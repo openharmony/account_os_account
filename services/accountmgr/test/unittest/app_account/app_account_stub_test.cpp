@@ -29,9 +29,8 @@ using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
 
-DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IAppAccount");
-
 namespace {
+DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IAppAccount");
 const std::string STRING_NAME = "name";
 const int32_t LIMIT_CODE = 43;
 const int32_t CLEAR_OAUTH_TOKEN = 29;
