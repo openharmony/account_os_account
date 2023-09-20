@@ -40,5 +40,22 @@ void TestHasDomainInfoCallback::OnResult(const int32_t errCode, Parcel &parcel)
     callback_->OnResult(errCode, hasDomainInfo_);
     return;
 }
+
+TestGetDomainAccountInfoCallback::TestGetDomainAccountInfoCallback(
+    const std::shared_ptr<MockGetDomainAccountInfoCallback> &callback)
+    : callback_(callback)
+{}
+
+TestGetDomainAccountInfoCallback::~TestGetDomainAccountInfoCallback()
+{}
+
+void TestGetDomainAccountInfoCallback::OnResult(const int32_t errCode, Parcel &parcel)
+{
+    if (callback_ == nullptr) {
+        return;
+    }
+    callback_->OnResult(errCode, parcel);
+    return;
+}
 }  // AccountSA
 }  // OHOS

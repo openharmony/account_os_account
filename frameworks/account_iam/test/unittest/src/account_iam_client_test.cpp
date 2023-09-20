@@ -382,7 +382,9 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetAvailableStatus_0300, TestSiz
  */
 HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetProperty_0100, TestSize.Level0)
 {
-    GetPropertyRequest testRequest = {};
+    GetPropertyRequest testRequest = {
+        .keys = { Attributes::AttributeKey::ATTR_PIN_SUB_TYPE }
+    };
     auto testCallback = std::make_shared<MockGetSetPropCallback>();
     EXPECT_NE(testCallback, nullptr);
     EXPECT_CALL(*testCallback, OnResult(_, _)).Times(1);
