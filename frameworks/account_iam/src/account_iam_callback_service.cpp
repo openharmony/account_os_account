@@ -105,15 +105,6 @@ DomainCredentialRecipient::~DomainCredentialRecipient()
 void DomainCredentialRecipient::OnSetData(int32_t authSubType, std::vector<uint8_t> data)
 {
     auto callback = std::make_shared<DomainAuthCallbackAdapter>(idmCallback_);
-    if (callback == nullptr) {
-        ACCOUNT_LOGE("fail to create DomainAuthCallbackAdapter");
-        if (idmCallback_ != nullptr) {
-            ACCOUNT_LOGE("idmCallback is nullptr");
-            Attributes attr;
-            idmCallback_->OnResult(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, attr);
-        }
-        return;
-    }
     ErrCode errCode = DomainAccountClient::GetInstance().AuthUser(userId_, data, callback);
     if (errCode != ERR_OK) {
         Parcel emptyParcel;
