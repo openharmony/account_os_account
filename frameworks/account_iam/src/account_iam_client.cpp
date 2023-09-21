@@ -184,13 +184,7 @@ uint64_t AccountIAMClient::StartDomainAuth(int32_t userId, const std::shared_ptr
         callback->OnResult(ERR_ACCOUNT_IAM_KIT_INPUTER_NOT_REGISTERED, emptyResult);
         return 0;
     }
-    auto credentialRecipient = std::make_shared<DomainCredentialRecipient>(userId, callback);
-    if (credentialRecipient == nullptr) {
-        ACCOUNT_LOGE("failed to create DomainCredentialRecipient");
-        callback->OnResult(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, emptyResult);
-        return 0;
-    }
-    domainInputer_->OnGetData(IAMAuthType::DOMAIN, credentialRecipient);
+    domainInputer_->OnGetData(IAMAuthType::DOMAIN, std::make_shared<DomainCredentialRecipient>(userId, callback));
     return 0;
 }
 
