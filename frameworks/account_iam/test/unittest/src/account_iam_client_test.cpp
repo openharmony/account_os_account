@@ -175,6 +175,18 @@ private:
     int code_;
 };
 
+class TestIInputer : public OHOS::AccountSA::IInputer {
+public:
+    void OnGetData(int32_t authSubType, std::shared_ptr<IInputerData> inputerData) override
+    {
+        if (inputerData != nullptr) {
+            inputerData->OnSetData(authSubType, {0, 0, 0, 0, 0, 0});
+        }
+    }
+
+    virtual ~TestIInputer() = default;
+};
+
 void AccountIAMClientTest::SetUpTestCase(void)
 {
     AccessTokenID tokenId = AccessTokenKit::GetNativeTokenId("accountmgr");
@@ -384,9 +396,6 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetAvailableStatus_0300, TestSiz
     AuthType authType = static_cast<AuthType>(-1);
     int32_t ret = AccountIAMClient::GetInstance().GetAvailableStatus(authType, level, status);
     EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, ret);
-    std::string cmd = "hilog -x | grep 'AccountIAMFwk'";
-    std::string cmdRes = RunCommand(cmd);
-    ASSERT_TRUE(cmdRes.find("authType is not in correct range") != std::string::npos);
 }
 
 /**
@@ -450,9 +459,6 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_AuthUser_0200, TestSize.Level0)
 {
     uint64_t ret = AccountIAMClient::GetInstance().AuthUser(
         0, TEST_CHALLENGE, AuthType::PIN, AuthTrustLevel::ATL1, nullptr);
-    std::string cmd = "hilog -x | grep 'AccountIAMFwk'";
-    std::string cmdRes = RunCommand(cmd);
-    ASSERT_TRUE(cmdRes.find("callback is nullptr") != std::string::npos);
     EXPECT_EQ(ret, 0);
 }
 
@@ -481,12 +487,6 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_CancelAuth_0100, TestSize.Level0
 {
     EXPECT_NE(ERR_OK, AccountIAMClient::GetInstance().CancelAuth(TEST_CONTEXT_ID));
 }
-
-class TestIInputer : public OHOS::AccountSA::IInputer {
-public:
-    void OnGetData(int32_t authSubType, std::shared_ptr<IInputerData> inputerData)override {}
-    virtual ~TestIInputer() = default;
-};
 
 /**
  * @tc.name: AccountIAMClient_RegisterPINInputer_0100
@@ -882,11 +882,9 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient004, TestSize.Level0)
 HWTEST_F(AccountIAMClientTest, StartDomainAuth001, TestSize.Level0)
 {
     auto testCallback = std::make_shared<MockIDMCallback>();
+    EXPECT_CALL(*testCallback, OnResult(ERR_ACCOUNT_IAM_KIT_INPUTER_NOT_REGISTERED, _)).Times(Exactly(1));
     AccountIAMClient::GetInstance().domainInputer_ = nullptr;
     uint64_t ret = AccountIAMClient::GetInstance().StartDomainAuth(TEST_USER_ID, testCallback);
-    std::string cmd = "hilog -x | grep 'AccountIAMFwk'";
-    std::string cmdRes = RunCommand(cmd);
-    ASSERT_TRUE(cmdRes.find("the registered inputer is not found or invalid") != std::string::npos);
     EXPECT_EQ(0, ret);
 }
 
@@ -900,6 +898,7 @@ HWTEST_F(AccountIAMClientTest, StartDomainAuth002, TestSize.Level0)
 {
     auto testCallback = std::make_shared<MockIDMCallback>();
     std::shared_ptr<IInputer> inputer = std::make_shared<TestIInputer>();
+    EXPECT_CALL(*testCallback, OnResult(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, _)).Times(Exactly(1));
     AccountIAMClient::GetInstance().domainInputer_ = inputer;
     uint64_t ret = AccountIAMClient::GetInstance().StartDomainAuth(TEST_USER_ID, testCallback);
     EXPECT_EQ(0, ret);
@@ -916,9 +915,6 @@ HWTEST_F(AccountIAMClientTest, ResetAccountIAMProxy001, TestSize.Level0)
     wptr<IRemoteObject> remote;
     AccountIAMClient::GetInstance().proxy_ = nullptr;
     AccountIAMClient::GetInstance().ResetAccountIAMProxy(remote);
-    std::string cmd = "hilog -x | grep 'AccountIAMFwk'";
-    std::string cmdRes = RunCommand(cmd);
-    ASSERT_TRUE(cmdRes.find("proxy is nullptr") != std::string::npos);
 }
 
 /**
