@@ -373,4 +373,5 @@ HWTEST_F(AccountCommandSetTest, Acm_Command_Set_1500, TestSize.Level1)
 
     AccountCommand cmd(argc, argv);
     EXPECT_EQ(cmd.ExecCommand(), STRING_SET_OS_ACCOUNT_CONSTRAINTS_OK + "\n");
+    EXPECT_EQ(ERR_OK, OsAccount::GetInstance().RemoveOsAccount(osAccountInfo.GetLocalId()));
 }

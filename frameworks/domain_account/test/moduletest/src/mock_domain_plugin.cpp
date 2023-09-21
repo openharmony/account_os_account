@@ -15,6 +15,7 @@
 
 #include "mock_domain_plugin.h"
 #include "account_log_wrapper.h"
+#include "string_wrapper.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -123,46 +124,51 @@ void MockDomainPlugin::GetAuthStatusInfo(
 void MockDomainPlugin::GetDomainAccountInfo(
     const GetDomainAccountInfoOptions &options, const std::shared_ptr<DomainAccountCallback> &callback)
 {
-    DomainAccountInfo info;
     Parcel parcel;
     if (options.accountInfo.accountName_ == ACCOUNT_NAME) {
-        info.accountName_ = options.accountInfo.accountName_;
-        info.domain_ = options.accountInfo.domain_;
-        info.accountId_ = "222";
-        info.Marshalling(parcel);
+        AAFwk::WantParams parameters;
+        parameters.SetParam("domain", OHOS::AAFwk::String::Box(options.accountInfo.domain_));
+        parameters.SetParam("accountName", OHOS::AAFwk::String::Box(options.accountInfo.accountName_));
+        parameters.SetParam("accountId", OHOS::AAFwk::String::Box("222"));
+        parameters.Marshalling(parcel);
         callback->OnResult(0, parcel);
     }
     if (options.accountInfo.accountName_ == STRING_NAME) {
-        info.accountName_ = options.accountInfo.accountName_;
-        info.domain_ = options.accountInfo.domain_;
-        info.accountId_ = "555";
-        info.Marshalling(parcel);
+        AAFwk::WantParams parameters;
+        parameters.SetParam("domain", OHOS::AAFwk::String::Box(options.accountInfo.domain_));
+        parameters.SetParam("accountName", OHOS::AAFwk::String::Box(options.accountInfo.accountName_));
+        parameters.SetParam("accountId", OHOS::AAFwk::String::Box("555"));
+        parameters.Marshalling(parcel);
         callback->OnResult(0, parcel);
     }
     if (options.accountInfo.accountName_ == STRING_NAME_NEW) {
-        info.accountName_ = options.accountInfo.accountName_;
-        info.domain_ = options.accountInfo.domain_;
-        info.accountId_ = "444";
-        info.Marshalling(parcel);
+        AAFwk::WantParams parameters;
+        parameters.SetParam("domain", OHOS::AAFwk::String::Box(options.accountInfo.domain_));
+        parameters.SetParam("accountName", OHOS::AAFwk::String::Box(options.accountInfo.accountName_));
+        parameters.SetParam("accountId", OHOS::AAFwk::String::Box("444"));
+        parameters.Marshalling(parcel);
         callback->OnResult(0, parcel);
     }
     if (options.accountInfo.accountName_ == VALID_ACCOUNT_NAME) {
-        info.accountName_ = options.accountInfo.accountName_;
-        info.domain_ = options.accountInfo.domain_;
-        info.accountId_ = "3333";
-        info.Marshalling(parcel);
+        AAFwk::WantParams parameters;
+        parameters.SetParam("domain", OHOS::AAFwk::String::Box(options.accountInfo.domain_));
+        parameters.SetParam("accountName", OHOS::AAFwk::String::Box(options.accountInfo.accountName_));
+        parameters.SetParam("accountId", OHOS::AAFwk::String::Box("3333"));
+        parameters.Marshalling(parcel);
         callback->OnResult(0, parcel);
     }
     if (options.accountInfo.accountName_ == STRING_NAME_BIND_INVALID) {
-        info.accountName_ = options.accountInfo.accountName_;
-        info.domain_ = options.accountInfo.domain_;
-        info.accountId_ = "666";
-        info.Marshalling(parcel);
+        AAFwk::WantParams parameters;
+        parameters.SetParam("domain", OHOS::AAFwk::String::Box(options.accountInfo.domain_));
+        parameters.SetParam("accountName", OHOS::AAFwk::String::Box(options.accountInfo.accountName_));
+        parameters.SetParam("accountId", OHOS::AAFwk::String::Box("666"));
+        parameters.Marshalling(parcel);
         callback->OnResult(0, parcel);
     }
     if (options.accountInfo.accountName_ == STRING_NAME_INVALID) {
-        info.accountName_ = options.accountInfo.accountName_;
-        info.Marshalling(parcel);
+        AAFwk::WantParams parameters;
+        parameters.SetParam("accountName", OHOS::AAFwk::String::Box(options.accountInfo.accountName_));
+        parameters.Marshalling(parcel);
         callback->OnResult(INVALID_CODE, parcel);
     }
 }

@@ -38,7 +38,6 @@ using json = nlohmann::json;
 namespace {
 static std::pair<bool, OhosAccountInfo> g_oldInfo;
 
-const std::int32_t LOCAL_ID = 101;
 const std::int32_t INVALID_LOCAL_ID = 0;
 const std::string KEY_ACCOUNT_EVENT_LOGIN = "LOGIN";
 const std::string KEY_ACCOUNT_EVENT_LOGOUT = "LOGOUT";
@@ -644,7 +643,8 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo011, TestSize.Level0)
 HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo012, TestSize.Level0)
 {
     OhosAccountInfo accountInfo;
-    auto ret = OhosAccountKits::GetInstance().SetOhosAccountInfoByUserId(LOCAL_ID, accountInfo, g_eventLogin);
+    int32_t userId = 123;
+    auto ret = OhosAccountKits::GetInstance().SetOhosAccountInfoByUserId(userId, accountInfo, g_eventLogin);
     EXPECT_EQ(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, ret);
 }
 
@@ -669,8 +669,9 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo013, TestSize.Level0)
  */
 HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserId001, TestSize.Level0)
 {
+    int32_t userId = 123;
     OhosAccountInfo accountInfo;
-    auto ret = OhosAccountKits::GetInstance().GetOhosAccountInfoByUserId(LOCAL_ID, accountInfo);
+    auto ret = OhosAccountKits::GetInstance().GetOhosAccountInfoByUserId(userId, accountInfo);
     EXPECT_EQ(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, ret);
 }
 

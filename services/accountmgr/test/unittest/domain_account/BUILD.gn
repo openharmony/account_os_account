@@ -86,6 +86,7 @@ ohos_unittest("DomainAccountInnerServiceCovTest") {
   ]
 
   external_deps = [
+    "ability_base:base",
     "ability_base:want",
     "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
