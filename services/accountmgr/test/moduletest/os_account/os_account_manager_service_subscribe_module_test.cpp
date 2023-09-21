@@ -316,10 +316,10 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     ErrCode result = OsAccount::GetInstance().SubscribeOsAccount(subscriberTestPtr);
     EXPECT_EQ(result, ERR_OK);
     //create osAccount
+    EXPECT_CALL(*subscriberTestPtr, OnAccountsChanged(_)).Times(Exactly(1));
     OsAccountInfo osAccountInfo;
     result = OsAccount::GetInstance().CreateOsAccount("test", OsAccountType::GUEST, osAccountInfo);
     const int id = osAccountInfo.GetLocalId();
-    EXPECT_CALL(*subscriberTestPtr, OnAccountsChanged(id)).Times(Exactly(1));
     //unsubscribe
     result = OsAccount::GetInstance().RemoveOsAccount(id);
     OsAccount::GetInstance().UnsubscribeOsAccount(subscriberTestPtr);
