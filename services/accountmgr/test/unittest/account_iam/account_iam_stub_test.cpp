@@ -30,8 +30,8 @@ using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
 
-DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IAccountIAM");
 namespace {
+DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IAccountIAM");
 const int32_t LIMIT_CODE = 13;
 const int32_t SLEEP_TIME = 2000;
 } // namespace
