@@ -56,7 +56,7 @@ private:
 
 class IDMAuthCallback : public AuthenticationCallback {
 public:
-    IDMAuthCallback(uint32_t userId, const Attributes &extraInfo);
+    IDMAuthCallback(uint32_t userId, const Attributes &extraInfo, const sptr<IIDMCallback> &idmCallback);
     virtual ~IDMAuthCallback() = default;
 
     void OnResult(int32_t result, const Attributes &extraInfo) override;
@@ -64,8 +64,10 @@ public:
 
 private:
     uint32_t userId_ = 0;
+    Attributes resultAttr_;
     uint64_t credentialId_ = 0;
     uint64_t secureUid_ = 0;
+    sptr<IIDMCallback> idmCallback_ = nullptr;
 };
 
 class AddCredCallback : public UserIdmClientCallback {
