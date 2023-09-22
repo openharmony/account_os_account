@@ -229,12 +229,12 @@ public:
         return ERROR_STORAGE_KEY_NOT_EXIST;
     }
 
-    int32_t CreateShareFile(std::string uri, uint32_t tokenId, uint32_t flag)
+    std::vector<int32_t> CreateShareFile(const std::vector<std::string> &uriList, uint32_t tokenId, uint32_t flag)
     {
-        return 0;
+        return std::vector<int32_t>{0};
     }
 
-    int32_t DeleteShareFile(uint32_t tokenId, std::vector<std::string>sharePathList)
+    int32_t DeleteShareFile(uint32_t tokenId, const std::vector<std::string> &uriList)
     {
         return 0;
     }
