@@ -96,6 +96,10 @@ ohos_moduletest("os_account_manager_service_module_test") {
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
   ]
+
+  if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
+    cflags = [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
+  }
   part_name = "os_account"
 }
 
@@ -354,7 +358,9 @@ group("moduletest") {
     ":os_account_database_operator_test",
     ":os_account_file_operator_test",
     ":os_account_manager_service_module_test",
-    ":os_account_manager_service_subscribe_module_test",
     ":os_account_photo_operator_test",
   ]
+  if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
+    deps += [ ":os_account_manager_service_subscribe_module_test" ]
+  }
 }

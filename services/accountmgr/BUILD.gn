@@ -170,7 +170,7 @@ ohos_shared_library("accountmgr") {
     cflags += [ "-DDISTRIBUTED_FEATURE_ENABLED" ]
   }
 
-  if (os_account_enable_multiple_os_accounts) {
+  if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
     cflags += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
   }
 
