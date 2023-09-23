@@ -399,14 +399,16 @@ ohos_moduletest("account_command_switch_module_test") {
 
 group("moduletest") {
   testonly = true
-
-  deps = [
-    ":account_command_create_module_mock_test",
-    ":account_command_create_module_test",
-    ":account_command_delete_module_mock_test",
-    ":account_command_delete_module_test",
-    ":account_command_dump_module_test",
-    ":account_command_set_module_test",
-    ":account_command_switch_module_test",
-  ]
+  deps = []
+  if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
+    deps += [
+      ":account_command_create_module_mock_test",
+      ":account_command_create_module_test",
+      ":account_command_delete_module_mock_test",
+      ":account_command_delete_module_test",
+      ":account_command_dump_module_test",
+      ":account_command_set_module_test",
+      ":account_command_switch_module_test",
+    ]
+  }
 }

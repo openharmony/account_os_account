@@ -49,8 +49,10 @@ using namespace Security::AccessToken;
 const int TEST_USER_ID10 = 10;
 const int INVALID_USERID = -1;
 const int TEST_USER_ID55 = 55;
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 const int ACCOUNT_UID = 3058;
 const int DELAY_FOR_OPERATION = 250;
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 const std::string ACCOUNT_NAME = "TEST";
 const std::string ACCOUNT_SET_NAME = "TEST2";
 const std::string ACCOUNT_PHOTO =
@@ -200,6 +202,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest007, 
  * @tc.type: FUNC
  * @tc.require: issuesI66BFB
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest008, TestSize.Level1)
 {
     // create common event subscribe
@@ -240,6 +243,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest008, 
     result = EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriberPtr);
     ASSERT_EQ(result, true);
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /*
  * @tc.name: SetOsAccountIsCreateSecret001
@@ -260,6 +264,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, SetOsAccountIsCreateSecret001, TestSi
  * @tc.type: FUNC
  * @tc.require: #I6JV5X
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, SetOsAccountIsCreateSecret002, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
@@ -272,5 +277,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, SetOsAccountIsCreateSecret002, TestSi
 
     ASSERT_EQ(innerMgrService_->RemoveOsAccount(localID), ERR_OK);
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 }  // namespace AccountSA
 }  // namespace OHOS

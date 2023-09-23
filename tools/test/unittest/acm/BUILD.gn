@@ -223,13 +223,15 @@ ohos_unittest("account_command_test") {
 
 group("unittest") {
   testonly = true
-
-  deps = [
-    ":account_command_create_test",
-    ":account_command_delete_test",
-    ":account_command_dump_test",
-    ":account_command_set_test",
-    ":account_command_switch_test",
-    ":account_command_test",
-  ]
+  deps = []
+  if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
+    deps += [
+      ":account_command_create_test",
+      ":account_command_delete_test",
+      ":account_command_dump_test",
+      ":account_command_set_test",
+      ":account_command_switch_test",
+      ":account_command_test",
+    ]
+  }
 }

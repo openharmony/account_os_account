@@ -395,6 +395,7 @@ HWTEST_F(AccountIamCallbackTest, GetPropCallbackWrapper_OnResult_0100, TestSize.
  * @tc.type: FUNC
  * @tc.require: issuesI64KAM
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 #ifdef DOMAIN_ACCOUNT_TEST_CASE
 HWTEST_F(AccountIamCallbackTest, GetCredInfoCallbackWrapper_OnCredentialInfo_0200, TestSize.Level0)
 {
@@ -464,7 +465,7 @@ HWTEST_F(AccountIamCallbackTest, GetCredInfoCallbackWrapper_OnCredentialInfo_040
     ASSERT_EQ(DomainAccountClient::GetInstance().UnregisterPlugin(), ERR_OK);
 }
 #endif // DOMAIN_ACCOUNT_TEST_CASE
-
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 /**
  * @tc.name: SetPropCallbackWrapper_OnResult_0100
  * @tc.desc: OnResult with nullptr.
