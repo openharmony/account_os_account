@@ -62,7 +62,9 @@ const int TEST_USER_ID100 = 100;
 const int TEST_USER_ID108 = 108;
 
 const std::string STRING_TEST_NAME = "test_account_name";
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 const int ACCOUNT_UID = 3058;
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 const std::string STRING_DOMAIN_NAME_OUT_OF_RANGE(200, '1');  // length 200
 const std::string STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE(600, '1');  // length 600
 
@@ -265,6 +267,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest009, 
  * @tc.type: FUNC
  * @tc.require:
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest010, TestSize.Level1)
 {
     int ret;
@@ -363,6 +366,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest012, 
     EXPECT_NE(ret, ERR_OK);
 }
 #endif // DOMAIN_ACCOUNT_TEST_CASE
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /*
  * @tc.name: OsAccountInnerAccmgrCoverageTest013
@@ -436,6 +440,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest013, 
  * @tc.type: FUNC
  * @tc.require:
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest015, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
@@ -449,6 +454,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest015, 
 
     (void)setuid(0);
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /*
  * @tc.name: OsAccountInnerAccmgrCoverageTest016
@@ -474,7 +480,11 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest016, 
         .WillRepeatedly(testing::Return(-1));
     int num = 0;
     ret = innerMgrService_->QueryMaxOsAccountNumber(num);
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
     EXPECT_EQ(ret, -1);
+#else
+    EXPECT_EQ(ret, 0);
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 }
 
 /*
@@ -623,13 +633,18 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest022, 
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->SetOsAccountControl(ptr);
 
-    bool isMultiOsAccountEnabled = false; ///
+    bool isMultiOsAccountEnabled = false;
 
     EXPECT_CALL(*ptr, GetIsMultiOsAccountEnable(_))
         .WillRepeatedly(testing::Return(-1));
 
     ErrCode ret = innerMgrService_->IsMultiOsAccountEnable(isMultiOsAccountEnabled);
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
     EXPECT_EQ(ret, -1);
+#else
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(isMultiOsAccountEnabled, false);
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 }
 
 /*
@@ -1132,6 +1147,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest037, 
  * @tc.type: FUNC
  * @tc.require:
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest039, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
@@ -1184,6 +1200,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest039, 
 
     (void)setuid(0);
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /*
  * @tc.name: OsAccountInnerAccmgrCoverageTest040

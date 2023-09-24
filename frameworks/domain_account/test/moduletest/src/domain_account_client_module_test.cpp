@@ -329,6 +329,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
  * @tc.type: FUNC
  * @tc.require: issueI64KAM
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_004, TestSize.Level0)
 {
     OsAccountInfo accountInfo;
@@ -381,6 +382,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
     }
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
  * @tc.name: DomainAccountClientModuleTest_AuthUser_006
@@ -444,6 +446,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPo
  * @tc.type: FUNC
  * @tc.require: issueI64KAM
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPopup_004, TestSize.Level0)
 {
     auto callback = std::make_shared<MockDomainAuthCallback>();
@@ -650,6 +653,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAc
     EXPECT_EQ(errCode, ERR_OK);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
  * @tc.name: DomainAccountClientModuleTest_HasDomainAccount_001
@@ -737,6 +741,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_HasDomainA
  * @tc.type: FUNC
  * @tc.require: I6JV52
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessToken_001, TestSize.Level0)
 {
     DomainAccountInfo info;
@@ -768,6 +773,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessT
     EXPECT_EQ(errCode, ERR_OK);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
  * @tc.name: DomainAccountClientModuleTest_GetAccessToken_002
@@ -789,6 +795,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessT
  * @tc.type: FUNC
  * @tc.require: I6JV52
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessToken_003, TestSize.Level0)
 {
     DomainAccountInfo domainInfo;
@@ -819,6 +826,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessT
     EXPECT_EQ(errCode, ERR_OK);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
  * @tc.name: DomainAccountClientModuleTest_GetAccessToken_004
@@ -847,6 +855,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessT
  * @tc.type: FUNC
  * @tc.require: I6JV52
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessToken_005, TestSize.Level0)
 {
     DomainAccountInfo domainInfo;
@@ -961,6 +970,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAcco
     InnerDomainAccountManager::GetInstance().GetTokenFromMap(userId, resultToken);
     EXPECT_EQ(resultToken.empty(), true);
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
  * @tc.name: DomainAccountClientModuleTest_UpdateAccountToken_003
@@ -1034,6 +1044,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccount
  * @tc.type: FUNC
  * @tc.require: issueI64KAM
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccountStatus_003, TestSize.Level0)
 {
     DomainAccountInfo domainInfo;
@@ -1200,6 +1211,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccount
 
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 class ListenerLogIn final : public DomainAccountStatusListener {
 public:
@@ -1379,6 +1391,7 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_002, TestS
     EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener), ERR_OK);
 }
 
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 void CreateDomainAccount(const DomainAccountInfo domainInfo)
 {
     auto callback = std::make_shared<MockDomainCreateDomainAccountCallback>();
@@ -1613,6 +1626,7 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_009, TestS
     EXPECT_EQ(listener3->visitedTwice, true);
     EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener3), ERR_OK);
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
  * @tc.name: RegisterAccountStatusListener_015

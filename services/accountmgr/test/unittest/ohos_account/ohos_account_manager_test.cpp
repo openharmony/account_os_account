@@ -188,6 +188,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest005, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest006, TestSize.Level0)
 {
     OsAccountInfo osAccountInfoOne;
@@ -258,6 +259,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest007, TestSize.Level0)
     result = EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriberPtr);
     EXPECT_EQ(result, true);
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
  * @tc.name: OhosAccountManagerTest07

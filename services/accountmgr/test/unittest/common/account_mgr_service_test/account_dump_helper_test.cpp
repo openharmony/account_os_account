@@ -115,6 +115,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpNoParameterTest001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: SR000CUF6J
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest001, TestSize.Level0)
 {
     OsAccountInfo osAccountInfo;
@@ -149,6 +150,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest001, TestSize.Level0)
     pos = out.find("Bind local user id", 0);
     EXPECT_NE(std::string::npos, pos);
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
  * @tc.name: AccountDumpParameterTest002
