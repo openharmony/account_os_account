@@ -83,6 +83,7 @@ void OsAccountManagerServiceCreateOsAccountTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(OsAccountManagerServiceCreateOsAccountTest, OsAccountManagerServiceCreateOsAccountTest001, TestSize.Level1)
 {
     ErrCode errCode;
@@ -106,5 +107,6 @@ HWTEST_F(OsAccountManagerServiceCreateOsAccountTest, OsAccountManagerServiceCrea
         std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
     }
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 }  // namespace AccountSA
 }  // namespace OHOS
