@@ -160,7 +160,7 @@ AddCredCallback::AddCredCallback(uint32_t userId, const CredentialParameters &cr
 {}
 
 void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
-{        
+{
     if ((result == 0) && (credInfo_.authType == AuthType::PIN)) {
         InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_ADD_CRED);
         (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsCreateSecret(userId_, true);
