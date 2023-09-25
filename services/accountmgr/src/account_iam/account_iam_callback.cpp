@@ -122,26 +122,31 @@ void AuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Att
     innerCallback_->OnAcquireInfo(module, acquireInfo, extraInfo);
 }
 
-IDMAuthCallback::IDMAuthCallback(uint32_t userId, const Attributes &extraInfo)
-    : userId_(userId)
+IDMAuthCallback::IDMAuthCallback(uint32_t userId, const Attributes &extraInfo, const sptr<IIDMCallback> &idmCallback)
+    : userId_(userId), idmCallback_(idmCallback)
 {
     extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId_);
     extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, secureUid_);
+    resultAttr_.SetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, secureUid_);
 }
 
 void IDMAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
     if (result != 0) {
         ACCOUNT_LOGE("fail to update user key for authentication failure, error code: %{public}d", result);
-        InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
+    } else {
+        std::vector<uint8_t> token;
+        std::vector<uint8_t> secret;
+        extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
+        extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, secret);
+        (void) InnerAccountIAMManager::GetInstance().UpdateUserKey(userId_, secureUid_, credentialId_, token, secret);
+    }
+    InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
+    if (idmCallback_ == nullptr) {
+        ACCOUNT_LOGE("idm callback is nullptr");
         return;
     }
-    std::vector<uint8_t> token;
-    std::vector<uint8_t> secret;
-    extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
-    extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, secret);
-    (void) InnerAccountIAMManager::GetInstance().UpdateUserKey(userId_, secureUid_, credentialId_, token, secret);
-    InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
+    idmCallback_->OnResult(ERR_OK, resultAttr_);
 }
 
 void IDMAuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
@@ -155,21 +160,18 @@ AddCredCallback::AddCredCallback(uint32_t userId, const CredentialParameters &cr
 {}
 
 void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
-{
-    if (result != 0) {
-        ACCOUNT_LOGE("fail to add credential, authType: %{public}d", credInfo_.authType);
-        InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
-    } else if (credInfo_.authType != AuthType::PIN) {
-        InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
-    } else {
+{        
+    if ((result == 0) && (credInfo_.authType == AuthType::PIN)) {
         InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_ADD_CRED);
         (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsCreateSecret(userId_, true);
         std::vector<uint8_t> challenge;
         InnerAccountIAMManager::GetInstance().GetChallenge(userId_, challenge);
-        auto callback = std::make_shared<IDMAuthCallback>(userId_, extraInfo);
+        auto callback = std::make_shared<IDMAuthCallback>(userId_, extraInfo, innerCallback_);
         UserAuthClient::GetInstance().BeginAuthentication(
             userId_, challenge, AuthType::PIN, AuthTrustLevel::ATL4, callback);
+        return;
     }
+    InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
     if (innerCallback_ == nullptr) {
         ACCOUNT_LOGE("inner callback is nullptr");
         return;
