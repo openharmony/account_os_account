@@ -141,10 +141,15 @@ ErrCode AccountCommand::RunAsCreateCommand(void)
 
         // create an os account
         result = OsAccount::GetInstance().CreateOsAccount(name, osAccountType, osAccountInfo);
-        if (result == ERR_OK) {
-            resultReceiver_ = STRING_CREATE_OS_ACCOUNT_OK + "\n";
-        } else {
-            resultReceiver_ = STRING_CREATE_OS_ACCOUNT_NG + "\n";
+        switch (result) {
+            case ERR_OK:
+                resultReceiver_ = STRING_CREATE_OS_ACCOUNT_OK + "\n";
+                break;
+            case ERR_OSACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR:
+                resultReceiver_ = "create failed, reason: multiple-os-account feature not enabled\n";
+                break;
+            default:
+                resultReceiver_ = STRING_CREATE_OS_ACCOUNT_NG + "\n";
         }
     }
 
