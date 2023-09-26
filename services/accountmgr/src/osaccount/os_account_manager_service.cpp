@@ -44,6 +44,7 @@ const std::string GET_LOCAL_ACCOUNTS = "ohos.permission.GET_LOCAL_ACCOUNTS";
 const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION =
     "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION";
 const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
+const std::set<uint32_t> uidWhiteListForCreation { 3057 };
 
 std::string AnonymizeNameStr(const std::string& nameStr)
 {
@@ -90,8 +91,8 @@ ErrCode OsAccountManagerService::CreateOsAccount(
     }
 
     // permission check
-    if ((!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, CONSTANT_CREATE)) ||
-        (!PermissionCheck("", CONSTANT_CREATE_DIRECTLY))) {
+    if (!CheckCreateOsAccountWhiteList() &&
+        (!PermissionCheck("", CONSTANT_CREATE_DIRECTLY) || !PermissionCheck(MANAGE_LOCAL_ACCOUNTS, CONSTANT_CREATE))) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -832,6 +833,11 @@ bool OsAccountManagerService::PermissionCheck(const std::string& permissionName,
     ACCOUNT_LOGE("failed to verify permission for %{public}s.", permissionName.c_str());
     ReportPermissionFail(callerUid, IPCSkeleton::GetCallingPid(), permissionName);
     return false;
+}
+
+bool OsAccountManagerService::CheckCreateOsAccountWhiteList()
+{
+    return uidWhiteListForCreation.find(GetCallingUid()) != uidWhiteListForCreation.end();
 }
 }  // namespace AccountSA
 }  // namespace OHOS
