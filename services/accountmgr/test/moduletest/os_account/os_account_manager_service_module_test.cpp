@@ -2137,5 +2137,22 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest124
     EXPECT_EQ(
         osAccountManagerService_->SetOsAccountProfilePhoto(MAIN_ACCOUNT_ID, ""), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest125
+ * @tc.desc: test CreateOsAccount permission with EDM
+ * @tc.type: FUNC
+ * @tc.require: DTS2023090516363
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest125, TestSize.Level1)
+{
+    setuid(TEST_UID);
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
+        osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfo));
+    setuid(3057);
+    EXPECT_EQ(ERR_OK,
+        osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfo));
+}
 }  // namespace AccountSA
 }  // namespace OHOS
