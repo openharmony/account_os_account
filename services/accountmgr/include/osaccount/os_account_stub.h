@@ -36,6 +36,8 @@ public:
 
 public:
     ErrCode ProcCreateOsAccount(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcCreateOsAccountWithFullInfo(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcUpdateOsAccountWithFullInfo(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcCreateOsAccountForDomain(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcRemoveOsAccount(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetOsAccountName(MessageParcel &data, MessageParcel &reply);
