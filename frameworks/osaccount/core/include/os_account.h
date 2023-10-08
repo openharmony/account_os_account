@@ -27,6 +27,8 @@ public:
     enum SubscribeState { ALREADY_SUBSCRIBED = 0, INITIAL_SUBSCRIPTION, SUBSCRIBE_FAILED };
     static OsAccount &GetInstance();
     ErrCode CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo);
+    ErrCode CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo);
+    ErrCode UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo);
     ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
         const std::shared_ptr<DomainAccountCallback> &callback);
     ErrCode RemoveOsAccount(const int id);

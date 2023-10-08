@@ -27,6 +27,16 @@ ErrCode OsAccountManager::CreateOsAccount(
     return OsAccount::GetInstance().CreateOsAccount(name, type, osAccountInfo);
 }
 
+ErrCode OsAccountManager::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
+{
+    return OsAccount::GetInstance().CreateOsAccountWithFullInfo(osAccountInfo);
+}
+
+ErrCode OsAccountManager::UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
+{
+    return OsAccount::GetInstance().UpdateOsAccountWithFullInfo(osAccountInfo);
+}
+
 ErrCode OsAccountManager::CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
     const std::shared_ptr<DomainAccountCallback> &callback)
 {
