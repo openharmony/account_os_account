@@ -1416,7 +1416,7 @@ static bool ParseParamForGetAccountInfo(
     napi_value argv[ARG_SIZE_TWO] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
     if (argc < ARG_SIZE_ONE) {
-        ACCOUNT_LOGE("the parameter of number should be at least two");
+        ACCOUNT_LOGE("the parameter of number should be at least one");
         return false;
     }
     if (argc == ARG_SIZE_TWO) {
@@ -1531,7 +1531,7 @@ napi_value NapiDomainAccountManager::GetDomainAccountInfo(napi_env env, napi_cal
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         GetAccountInfoExecuteCB, GetAccountInfoCompleteCB,
         reinterpret_cast<void *>(context.get()), &context->work));
-    NAPI_CALL(env, napi_queue_async_work(env, context->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_default));
     context.release();
     return result;
 }
