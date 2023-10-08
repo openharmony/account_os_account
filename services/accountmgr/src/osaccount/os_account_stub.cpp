@@ -33,6 +33,20 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         }
     },
     {
+        static_cast<uint32_t>(OsAccountInterfaceCode::CREATE_OS_ACCOUNT_WITH_FULL_INFO),
+        {
+            .messageProcFunction = &OsAccountStub::ProcCreateOsAccountWithFullInfo,
+            .isSyetemApi = true,
+        }
+    },
+    {
+        static_cast<uint32_t>(OsAccountInterfaceCode::UPDATE_OS_ACCOUNT_WITH_FULL_INFO),
+        {
+            .messageProcFunction = &OsAccountStub::ProcUpdateOsAccountWithFullInfo,
+            .isSyetemApi = true,
+        }
+    },
+    {
         static_cast<uint32_t>(OsAccountInterfaceCode::CREATE_OS_ACCOUNT_FOR_DOMAIN),
         {
             .messageProcFunction = &OsAccountStub::ProcCreateOsAccountForDomain,
@@ -435,6 +449,50 @@ ErrCode OsAccountStub::ProcCreateOsAccount(MessageParcel &data, MessageParcel &r
     OsAccountInfo osAccountInfo;
     ErrCode result = CreateOsAccount(name, type, osAccountInfo);
     return WriteResultWithOsAccountInfo(reply, result, osAccountInfo);
+}
+
+ErrCode OsAccountStub::ProcCreateOsAccountWithFullInfo(MessageParcel &data, MessageParcel &reply)
+{
+    std::shared_ptr<OsAccountInfo> info(data.ReadParcelable<OsAccountInfo>());
+    if (info == nullptr) {
+        ACCOUNT_LOGE("failed to read OsAccountInfo");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    
+    ErrCode code = info->ParamCheck();
+    if (code != ERR_OK) {
+        ACCOUNT_LOGE("OsAccountInfo required field is invalidate");
+        return code;
+    }
+
+    ErrCode result = CreateOsAccountWithFullInfo(*info);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write result");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcUpdateOsAccountWithFullInfo(MessageParcel &data, MessageParcel &reply)
+{
+    std::shared_ptr<OsAccountInfo> info(data.ReadParcelable<OsAccountInfo>());
+    if (info == nullptr) {
+        ACCOUNT_LOGE("failed to read OsAccountInfo");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+
+    ErrCode code = info->ParamCheck();
+    if (code != ERR_OK) {
+        ACCOUNT_LOGE("OsAccountInfo required field is invalidate");
+        return code;
+    }
+
+    ErrCode result = UpdateOsAccountWithFullInfo(*info);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write result");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
 }
 
 ErrCode OsAccountStub::ProcCreateOsAccountForDomain(MessageParcel &data, MessageParcel &reply)

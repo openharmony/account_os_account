@@ -15,6 +15,7 @@
 #include "os_account_info.h"
 
 #include <ctime>
+#include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "os_account_constants.h"
 
@@ -337,5 +338,44 @@ void OsAccountInfo::SetToBeRemoved(bool toBeRemoved)
 {
     toBeRemoved_ = toBeRemoved;
 }
+
+ErrCode OsAccountInfo::ParamCheck()
+{
+    std::string name = OsAccountInfo::GetLocalName();
+    if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("local name length %{public}zu is too long!", name.size());
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    if (name.empty()) {
+        ACCOUNT_LOGE("local name is empty!");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    int type = OsAccountInfo::GetType();
+    if (type < OsAccountType::ADMIN || type >= OsAccountType::END) {
+        ACCOUNT_LOGE("os account type is invalid");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    
+    int localId = OsAccountInfo::GetLocalId();
+    if (localId < Constants::START_USER_ID) {
+        ACCOUNT_LOGE("os localId is invalid");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    int64_t serialNumber = OsAccountInfo::GetSerialNumber();
+    if (serialNumber <= 0) {
+        ACCOUNT_LOGE("os serial number is invalid");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    int64_t createTime = OsAccountInfo::GetCreateTime();
+    if (createTime <= 0) {
+        ACCOUNT_LOGE("os create time is invalid");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    return ERR_OK;
+}
+
 }  // namespace AccountSA
 }  // namespace OHOS

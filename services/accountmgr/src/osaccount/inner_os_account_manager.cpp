@@ -227,6 +227,36 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &name, co
     return ERR_OK;
 }
 
+ErrCode IInnerOsAccountManager::PrepareOsAccountInfoWithFullInfo(OsAccountInfo &osAccountInfo)
+{
+    ErrCode errCode = osAccountControl_->InsertOsAccount(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("insert os account info err, errCode %{public}d.", errCode);
+        return errCode;
+    }
+
+    std::vector<std::string> constraints;
+    constraints.clear();
+    OsAccountType type = static_cast<OsAccountType>(osAccountInfo.GetType());
+    errCode = osAccountControl_->GetConstraintsByType(type, constraints);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("failed to GetConstraintsByType, errCode %{public}d.", errCode);
+        return errCode;
+    }
+    std::vector<std::string> constraintsExists = osAccountInfo.GetConstraints();
+    std::vector<std::string> constraintsResult;
+    std::merge(constraints.begin(), constraints.end(), constraintsExists.begin(), constraintsExists.end(),
+        std::back_inserter(constraintsResult));
+    osAccountInfo.SetConstraints(constraintsResult);
+    errCode = osAccountControl_->UpdateBaseOAConstraints(
+        std::to_string(osAccountInfo.GetLocalId()), constraintsResult, true);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("UpdateBaseOAConstraints err");
+        return errCode;
+    }
+    return ERR_OK;
+}
+
 ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(OsAccountInfo &osAccountInfo)
 {
     ErrCode errCode = OsAccountInterface::SendToStorageAccountCreate(osAccountInfo);
@@ -270,6 +300,34 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(
     if (errCode != ERR_OK) {
         (void)osAccountControl_->DelOsAccount(osAccountInfo.GetLocalId());
     }
+    return errCode;
+}
+
+ErrCode IInnerOsAccountManager::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
+{
+    ErrCode errCode = PrepareOsAccountInfoWithFullInfo(osAccountInfo);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+    errCode = SendMsgForAccountCreate(osAccountInfo);
+    if (errCode != ERR_OK) {
+        (void)osAccountControl_->DelOsAccount(osAccountInfo.GetLocalId());
+    }
+    return errCode;
+}
+
+ErrCode IInnerOsAccountManager::UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
+{
+    ErrCode errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ReportOsAccountOperationFail(
+            osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE, errCode, "UpdateOsAccount failed!");
+        return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
+    }
+
+    OsAccountInterface::PublishCommonEvent(
+        osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::OPERATION_UPDATE);
+
     return errCode;
 }
 
