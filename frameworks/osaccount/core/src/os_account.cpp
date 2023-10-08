@@ -66,6 +66,34 @@ ErrCode OsAccount::CreateOsAccount(const std::string &name, const OsAccountType 
     return proxy->CreateOsAccount(name, type, osAccountInfo);
 }
 
+ErrCode OsAccount::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
+{
+    ErrCode code = osAccountInfo.ParamCheck();
+    if (code != ERR_OK) {
+        return code;
+    }
+
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->CreateOsAccountWithFullInfo(osAccountInfo);
+}
+
+ErrCode OsAccount::UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
+{
+    ErrCode code = osAccountInfo.ParamCheck();
+    if (code != ERR_OK) {
+        return code;
+    }
+
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->UpdateOsAccountWithFullInfo(osAccountInfo);
+}
+
 ErrCode OsAccount::CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
     const std::shared_ptr<DomainAccountCallback> &callback)
 {

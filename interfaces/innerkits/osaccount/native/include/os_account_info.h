@@ -116,6 +116,8 @@ public:
 
     void SetIsCreateSecret(bool isCreateSecret);
 
+    ErrCode ParamCheck();
+
 private:
     int localId_;
     std::string localName_;

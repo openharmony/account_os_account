@@ -63,6 +63,60 @@ ErrCode OsAccountProxy::CreateOsAccount(
     return ERR_OK;
 }
 
+ErrCode OsAccountProxy::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
+    if (!data.WriteParcelable(&osAccountInfo)) {
+        ACCOUNT_LOGE("failed to write osAccountInfo info ");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    
+    MessageParcel reply;
+    ErrCode result = SendRequest(OsAccountInterfaceCode::CREATE_OS_ACCOUNT_WITH_FULL_INFO, data, reply);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    result = reply.ReadInt32();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to read reply for create os account with full user info, result %{public}d.", result);
+        return result;
+    }
+    return ERR_OK;
+}
+
+ErrCode OsAccountProxy::UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    
+    if (!data.WriteParcelable(&osAccountInfo)) {
+        ACCOUNT_LOGE("failed to write osAccountInfo info ");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    MessageParcel reply;
+    ErrCode result = SendRequest(OsAccountInterfaceCode::UPDATE_OS_ACCOUNT_WITH_FULL_INFO, data, reply);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    result = reply.ReadInt32();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to read reply for update os account with full user info, result %{public}d.", result);
+        return result;
+    }
+    return ERR_OK;
+}
+
 ErrCode OsAccountProxy::CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
     const sptr<IDomainAccountCallback> &callback)
 {

@@ -75,6 +75,8 @@
         "OHOS::AccountSA::OsAccountProxy::OsAccountProxy(OHOS::sptr<OHOS::IRemoteObject> const&)";
         "OHOS::AccountSA::OsAccountManager::GetOsAccountSwitchMod()";
         "OHOS::AccountSA::OsAccountManager::CreateOsAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::OsAccountType const&, OHOS::AccountSA::OsAccountInfo&)";
+        "OHOS::AccountSA::OsAccountManager::CreateOsAccountWithFullInfo(OHOS::AccountSA::OsAccountInfo&)";
+        "OHOS::AccountSA::OsAccountManager::UpdateOsAccountWithFullInfo(OHOS::AccountSA::OsAccountInfo&)";
         "OHOS::AccountSA::OsAccountManager::CreateOsAccountForDomain(OHOS::AccountSA::OsAccountType const&, OHOS::AccountSA::DomainAccountInfo const&, OHOS::AccountSA::OsAccountInfo&)";
         "OHOS::AccountSA::OsAccountManager::RemoveOsAccount(int)";
         "OHOS::AccountSA::OsAccountManager::IsOsAccountExists(int, bool&)";
@@ -132,6 +134,7 @@
         "OHOS::AccountSA::OsAccountManager::QueryActiveOsAccountIds(std::__h::vector<int, std::__h::allocator<int>>&)";
         "OHOS::AccountSA::OsAccountManager::SetGlobalOsAccountConstraints(std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&, bool, int, bool)";
         "OHOS::AccountSA::OsAccountInfo::GetLocalId() const";
+        "OHOS::AccountSA::OsAccountInfo::ParamCheck()";
         "OHOS::AccountSA::OsAccountInfo::GetDomainInfo(OHOS::AccountSA::DomainAccountInfo&) const";
         "OHOS::AccountSA::OsAccountInfo::OsAccountInfo(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, OHOS::AccountSA::OsAccountType, long long)";
         "OHOS::AccountSA::OsAccountInfo::OsAccountInfo(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, OHOS::AccountSA::OsAccountType, long)";

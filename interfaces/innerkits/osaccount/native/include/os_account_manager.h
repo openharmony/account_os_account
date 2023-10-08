@@ -58,6 +58,22 @@ public:
     static ErrCode CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo);
 
     /**
+     * @brief Creates an OS account using full user info
+     * @permission ohos.permission.MANAGE_LOCAL_ACCOUNTS
+     * @param osAccountInfo - Indicates the information about the created OS account.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo);
+
+    /**
+     * @brief update an OS account using full user info
+     * @permission ohos.permission.MANAGE_LOCAL_ACCOUNTS
+     * @param osAccountInfo - Indicates the information about the created OS account.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo);
+
+    /**
      * @brief Creates an OS account using the account type and domain account info.
      * @permission ohos.permission.MANAGE_LOCAL_ACCOUNTS
      * @param type - Indicates the type of the OS account to create.

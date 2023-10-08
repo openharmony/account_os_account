@@ -124,6 +124,56 @@ ErrCode OsAccountManagerService::CreateOsAccount(
     return innerManager_.CreateOsAccount(name, type, osAccountInfo);
 }
 
+ErrCode OsAccountManagerService::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
+{
+    bool isMultiOsAccountEnable = false;
+    innerManager_.IsMultiOsAccountEnable(isMultiOsAccountEnable);
+    if (!isMultiOsAccountEnable) {
+        ACCOUNT_LOGE("system is not multi os account enable error");
+        return ERR_OSACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR;
+    }
+
+    if ((!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, CONSTANT_CREATE)) ||
+        (!PermissionCheck("", CONSTANT_CREATE_DIRECTLY))) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+
+    bool isAllowedCreateAdmin = false;
+    ErrCode errCode = innerManager_.IsAllowedCreateAdmin(isAllowedCreateAdmin);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("query allowed create admin error");
+        return errCode;
+    }
+    if (!isAllowedCreateAdmin && osAccountInfo.GetType() == OsAccountType::ADMIN) {
+        ACCOUNT_LOGE("cannot create admin account error");
+        return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
+    }
+
+    return innerManager_.CreateOsAccountWithFullInfo(osAccountInfo);
+}
+
+ErrCode OsAccountManagerService::UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
+{
+    if ((!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, ""))) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+
+    bool isAllowedCreateAdmin = false;
+    ErrCode errCode = innerManager_.IsAllowedCreateAdmin(isAllowedCreateAdmin);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("query allowed update admin error");
+        return errCode;
+    }
+    if (!isAllowedCreateAdmin && osAccountInfo.GetType() == OsAccountType::ADMIN) {
+        ACCOUNT_LOGE("cannot update admin account error");
+        return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
+    }
+
+    return innerManager_.UpdateOsAccountWithFullInfo(osAccountInfo);
+}
+
 ErrCode OsAccountManagerService::CreateOsAccountForDomain(const OsAccountType &type,
     const DomainAccountInfo &domainInfo, const sptr<IDomainAccountCallback> &callback)
 {
