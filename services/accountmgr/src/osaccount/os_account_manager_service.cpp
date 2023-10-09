@@ -145,7 +145,7 @@ ErrCode OsAccountManagerService::CreateOsAccountWithFullInfo(OsAccountInfo &osAc
         ACCOUNT_LOGE("query allowed create admin error");
         return errCode;
     }
-    if (!isAllowedCreateAdmin && osAccountInfo.GetType() == OsAccountType::ADMIN) {
+    if (!isAllowedCreateAdmin && (osAccountInfo.GetType() == OsAccountType::ADMIN)) {
         ACCOUNT_LOGE("cannot create admin account error");
         return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
     }
@@ -155,7 +155,7 @@ ErrCode OsAccountManagerService::CreateOsAccountWithFullInfo(OsAccountInfo &osAc
 
 ErrCode OsAccountManagerService::UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
 {
-    if ((!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, ""))) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
