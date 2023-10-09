@@ -17,6 +17,7 @@
 
 #define private public
 #include "os_account_info.h"
+#include "os_account_manager.h"
 #undef private
 
 using namespace testing::ext;
@@ -66,6 +67,7 @@ const std::string STRING_JSON =
     "xFpssN5bwwXwPilDIZ0klLxSq2vWLAIWACMjBeilQNo6j9ni50R9U8U6lF400m18Q30sTMLnxC1758CxqrO8EesXXzBgiiV5SQPlCgHnNSfI5f1+"
     "av33Q5L3rdP68nb7mfWlFFFaCP//Z\",\"serialNumber\":121012012,\"toBeRemoved\":false,\"type\":0}";
 }  // namespace
+const std::int32_t CREATE_LOCAL_ID = 121;
 class OsAccountInfoTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -450,4 +452,140 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_Marshalling_0100, TestSize.Level1)
     ASSERT_NE(infoPtr, nullptr);
     // check the data
     EXPECT_EQ(INT_ID, infoPtr->localId_);
+}
+
+/**
+ * @tc.name: CreateOsAccountWithFullInfo0100
+ * @tc.desc: Test CreateOsAccountWithFullInfo ERR_ACCOUNT_COMMON_INVALID_PARAMETER
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0100, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo));
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
+
+    osAccountInfo.SetLocalName("test114");
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo));
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
+}
+
+/**
+ * @tc.name: CreateOsAccountWithFullInfo0101
+ * @tc.desc: Test CreateOsAccountWithFullInfo ERR_ACCOUNT_COMMON_INVALID_PARAMETER
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0101, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetLocalName("test115");
+    osAccountInfo.SetLocalId(CREATE_LOCAL_ID);
+
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo));
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
+    OsAccountManager::RemoveOsAccount(CREATE_LOCAL_ID);
+}
+
+/**
+ * @tc.name: CreateOsAccountWithFullInfo0102
+ * @tc.desc: Test CreateOsAccountWithFullInfo ERR_ACCOUNT_COMMON_INVALID_PARAMETER
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0102, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetLocalName("test116");
+    osAccountInfo.SetLocalId(CREATE_LOCAL_ID);
+    osAccountInfo.SetSerialNumber(2023023100000033);
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo));
+
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
+    OsAccountManager::RemoveOsAccount(CREATE_LOCAL_ID);
+}
+
+/**
+ * @tc.name: CreateOsAccountWithFullInfo0103
+ * @tc.desc: Test CreateOsAccountWithFullInfo admin success
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest,CreateOsAccountWithFullInfo0103, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetLocalName("test117");
+    osAccountInfo.SetLocalId(CREATE_LOCAL_ID);
+    osAccountInfo.SetSerialNumber(2023023100000033);
+    osAccountInfo.SetCreateTime(1695883215000);
+    osAccountInfo.SetLastLoginTime(1695863215000);
+    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo));
+
+    osAccountInfo.SetLocalName("update117");
+    EXPECT_EQ(ERR_OK, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
+    OsAccountManager::RemoveOsAccount(CREATE_LOCAL_ID);
+}
+
+/**
+ * @tc.name: CreateOsAccountWithFullInfo0104
+ * @tc.desc: Test CreateOsAccountWithFullInfo normal success
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0104, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetLocalName("test118");
+    osAccountInfo.SetType(OsAccountType::NORMAL);
+    osAccountInfo.SetLocalId(CREATE_LOCAL_ID);
+    osAccountInfo.SetSerialNumber(1100);
+    osAccountInfo.SetCreateTime(1695883215000);
+    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo));
+
+    osAccountInfo.SetLastLoginTime(1695863290000);
+    EXPECT_EQ(ERR_OK, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
+    OsAccountManager::RemoveOsAccount(CREATE_LOCAL_ID);
+}
+
+/**
+ * @tc.name: CreateOsAccountWithFullInfo0105
+ * @tc.desc: Test CreateOsAccountWithFullInfo guest success and repeat to create fail
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0105, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetLocalName("test119");
+    osAccountInfo.SetType(OsAccountType::GUEST);
+    osAccountInfo.SetLocalId(CREATE_LOCAL_ID);
+    osAccountInfo.SetSerialNumber(1100);
+    osAccountInfo.SetCreateTime(1695883215000);
+    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo));
+
+    osAccountInfo.SetLastLoginTime(1695863290000);
+    EXPECT_EQ(ERR_OK, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
+    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_CONTROL_INSERT_FILE_EXISTS_ERROR,
+        OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo));
+    OsAccountManager::RemoveOsAccount(CREATE_LOCAL_ID);
+}
+
+/**
+ * @tc.name: CreateOsAccountWithFullInfo0106
+ * @tc.desc: Test UpdateOsAccountWithFullInfo not exist fail
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0106, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetLocalName("test120");
+    osAccountInfo.SetType(OsAccountType::GUEST);
+    osAccountInfo.SetLocalId(CREATE_LOCAL_ID);
+    osAccountInfo.SetSerialNumber(1100);
+    osAccountInfo.SetCreateTime(1695883215000);
+    osAccountInfo.SetLastLoginTime(1695863290000);
+    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR,
+        OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
 }
