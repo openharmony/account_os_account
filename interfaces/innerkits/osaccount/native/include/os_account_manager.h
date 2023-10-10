@@ -66,7 +66,7 @@ public:
     static ErrCode CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo);
 
     /**
-     * @brief update an OS account using full user info
+     * @brief Updates an OS account using full user info
      * @permission ohos.permission.MANAGE_LOCAL_ACCOUNTS
      * @param osAccountInfo - Indicates the information about the created OS account.
      * @return error code, see account_error_no.h
