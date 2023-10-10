@@ -350,7 +350,7 @@ ErrCode OsAccountInfo::ParamCheck()
         ACCOUNT_LOGE("local name is empty!");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    int type = OsAccountInfo::GetType();
+    int32_t type = OsAccountInfo::GetType();
     if (type < OsAccountType::ADMIN || type >= OsAccountType::END) {
         ACCOUNT_LOGE("os account type is invalid");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
