@@ -122,13 +122,10 @@ void AuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Att
     innerCallback_->OnAcquireInfo(module, acquireInfo, extraInfo);
 }
 
-IDMAuthCallback::IDMAuthCallback(uint32_t userId, const Attributes &extraInfo, const sptr<IIDMCallback> &idmCallback)
-    : userId_(userId), idmCallback_(idmCallback)
-{
-    extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId_);
-    extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, secureUid_);
-    resultAttr_.SetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, secureUid_);
-}
+IDMAuthCallback::IDMAuthCallback(
+    uint32_t userId, uint64_t credentialId, uint64_t secureUid, const sptr<IIDMCallback> &idmCallback)
+    : userId_(userId), credentialId_(credentialId), secureUid_(secureUid), idmCallback_(idmCallback)
+{}
 
 void IDMAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
@@ -146,7 +143,10 @@ void IDMAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         ACCOUNT_LOGE("idm callback is nullptr");
         return;
     }
-    idmCallback_->OnResult(ERR_OK, resultAttr_);
+    Attributes resultAttr;
+    resultAttr.SetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId_);
+    resultAttr.SetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, secureUid_);
+    idmCallback_->OnResult(ERR_OK, resultAttr);
 }
 
 void IDMAuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
@@ -163,10 +163,14 @@ void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
     if ((result == 0) && (credInfo_.authType == AuthType::PIN)) {
         InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_ADD_CRED);
-        (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsCreateSecret(userId_, true);
+        uint64_t credentialId = 0;
+        extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId);
+        (void)IInnerOsAccountManager::GetInstance().SetOsAccountCredentialId(userId_, credentialId);
         std::vector<uint8_t> challenge;
         InnerAccountIAMManager::GetInstance().GetChallenge(userId_, challenge);
-        auto callback = std::make_shared<IDMAuthCallback>(userId_, extraInfo, innerCallback_);
+        uint64_t secureUid = 0;
+        extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, secureUid);
+        auto callback = std::make_shared<IDMAuthCallback>(userId_, credentialId, secureUid, innerCallback_);
         UserAuthClient::GetInstance().BeginAuthentication(
             userId_, challenge, AuthType::PIN, AuthTrustLevel::ATL4, callback);
         return;
@@ -188,9 +192,8 @@ void AddCredCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const 
     innerCallback_->OnAcquireInfo(module, acquireInfo, extraInfo);
 }
 
-DelCredCallback::DelCredCallback(int32_t userId, const std::vector<uint8_t> &authToken,
-    const sptr<IIDMCallback> &callback)
-    : userId_(userId), authToken_(authToken), innerCallback_(callback)
+DelCredCallback::DelCredCallback(int32_t userId, bool isPIN, const sptr<IIDMCallback> &callback)
+    : userId_(userId), isPIN_(isPIN), innerCallback_(callback)
 {}
 
 void DelCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
@@ -199,8 +202,8 @@ void DelCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
         ACCOUNT_LOGE("innerCallback_ is nullptr");
         return;
     }
-    if (result == 0) {
-        (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsCreateSecret(userId_, false);
+    if ((result == 0) && isPIN_) {
+        (void)IInnerOsAccountManager::GetInstance().SetOsAccountCredentialId(userId_, 0);  // 0-invalid credentialId
     }
     InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
     innerCallback_->OnResult(result, extraInfo);
