@@ -339,11 +339,9 @@ ErrCode OsAccountInterface::SendToStorageAccountRemove(OsAccountInfo &osAccountI
     return ERR_OK;
 }
 
-ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountInfo)
-{
-    ACCOUNT_LOGI("start");
-    bool isUserUnlocked = false;
 #ifdef HAS_STORAGE_PART
+static ErrCode GetStorageProxy(OsAccountInfo &osAccountInfo, sptr<StorageManager::IStorageManager> &proxy)
+{
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManager) {
         ACCOUNT_LOGE("failed to get system ability mgr.");
@@ -358,20 +356,29 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
             ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, "CheckSystemAbility for storage failed!");
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
-    auto proxy = iface_cast<StorageManager::IStorageManager>(remote);
-    if (!proxy) {
+    proxy = iface_cast<StorageManager::IStorageManager>(remote);
+    return ERR_OK;
+}
+#endif
+
+ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountInfo)
+{
+    ACCOUNT_LOGI("start");
+    bool isUserUnlocked = false;
+#ifdef HAS_STORAGE_PART
+    sptr<StorageManager::IStorageManager> proxy = nullptr;
+    if (GetStorageProxy(osAccountInfo, proxy) != ERR_OK) {
         ACCOUNT_LOGE("failed to get STORAGE_MANAGER_MANAGER_ID proxy.");
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
     StartTraceAdapter("StorageManager PrepareStartUser");
-    int localId = osAccountInfo.GetLocalId();
     if ((!osAccountInfo.GetIsVerified()) && (!osAccountInfo.GetIsCreateSecret())) {
         std::vector<uint8_t> emptyData;
-        if (proxy->ActiveUserKey(localId, emptyData, emptyData) == 0) {
+        if (proxy->ActiveUserKey(osAccountInfo.GetLocalId(), emptyData, emptyData) == 0) {
             isUserUnlocked = true;
         }
     }
-    int32_t err = proxy->PrepareStartUser(localId);
+    int32_t err = proxy->PrepareStartUser(osAccountInfo.GetLocalId());
     if (err != 0) {
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_ACTIVATE,
             err, "Storage PrepareStartUser failed!");
