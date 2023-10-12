@@ -223,9 +223,9 @@ ErrCode InnerDomainAccountManager::AuthUser(int32_t userId, const std::vector<ui
         return InnerAuth(userId, password, callback, AUTH_WITH_CREDENTIAL_MODE);
     }
 
-    bool isCreateSecret = false;
-    (void) IInnerOsAccountManager::GetInstance().GetOsAccountIsCreateSecret(userId, isCreateSecret);
-    if (isCreateSecret) {
+    uint64_t credentialId = 0;
+    (void) IInnerOsAccountManager::GetInstance().GetOsAccountCredentialId(userId, credentialId);
+    if (credentialId > 0) {
         ACCOUNT_LOGE("unsupported auth type");
         return ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE;
     }
