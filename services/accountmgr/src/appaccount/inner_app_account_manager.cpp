@@ -259,7 +259,9 @@ void RequestConnection::OnAbilityConnectDone(
 }
 
 void RequestConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode)
-{}
+{
+    request_.callback = nullptr;
+}
 
 void RequestConnection::SetCallbackService(const sptr<IAppAccountAuthorizationExtensionCallback> &callbackService)
 {
