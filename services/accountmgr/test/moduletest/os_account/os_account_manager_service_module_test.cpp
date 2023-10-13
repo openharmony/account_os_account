@@ -138,6 +138,10 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest001
     OsAccountInfo osAccountInfoTwo;
     errCode = osAccountManagerService_->QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo);
     EXPECT_EQ(errCode, ERR_OK);
+    DomainAccountInfo domainInfo;
+    osAccountInfoTwo.GetDomainInfo(domainInfo);
+    domainInfo.status_ = DomainAccountStatus::LOG_END;
+    osAccountInfoTwo.SetDomainInfo(domainInfo);
     EXPECT_EQ(osAccountInfoOne.ToString(), osAccountInfoTwo.ToString());
     errCode = osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId());
     EXPECT_EQ(errCode, ERR_OK);
