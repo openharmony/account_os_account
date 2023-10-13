@@ -67,7 +67,6 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo)
     if (authType_ != AuthType::PIN) {
         return ERR_OK;
     }
-    // to do
     (void)IInnerOsAccountManager::GetInstance().IsOsAccountVerified(userId_, isAccountVerified_);
     if (isAccountVerified_) {
         return ERR_OK;
