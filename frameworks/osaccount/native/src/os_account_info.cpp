@@ -155,17 +155,13 @@ bool OsAccountInfo::SetDomainInfo(const DomainAccountInfo &domainInfo)
         ACCOUNT_LOGE("domain name too long! %{public}zu.", domainInfo.domain_.size());
         return false;
     }
-    domainInfo_.accountName_ = domainInfo.accountName_;
-    domainInfo_.domain_ = domainInfo.domain_;
-    domainInfo_.accountId_ = domainInfo.accountId_;
+    domainInfo_ = domainInfo;
     return true;
 }
 
 void OsAccountInfo::GetDomainInfo(DomainAccountInfo &domainInfo) const
 {
-    domainInfo.accountName_ = domainInfo_.accountName_;
-    domainInfo.domain_ = domainInfo_.domain_;
-    domainInfo.accountId_ = domainInfo_.accountId_;
+    domainInfo = domainInfo_;
 }
 
 bool OsAccountInfo::GetIsActived() const
@@ -228,6 +224,7 @@ Json OsAccountInfo::ToJson() const
             {DOMAIN_NAME, domainInfo_.domain_},
             {DOMAIN_ACCOUNT_NAME, domainInfo_.accountName_},
             {DOMAIN_ACCOUNT_ID, domainInfo_.accountId_},
+            {DOMAIN_ACCOUNT_STATUS, domainInfo_.status_},
         },
         }
     };
@@ -286,6 +283,8 @@ void OsAccountInfo::FromJson(const Json &jsonObject)
         typeJson, typeJson.end(), DOMAIN_ACCOUNT_NAME, domainInfo_.accountName_, OHOS::AccountSA::JsonType::STRING);
     OHOS::AccountSA::GetDataByType<std::string>(
         typeJson, typeJson.end(), DOMAIN_ACCOUNT_ID, domainInfo_.accountId_, OHOS::AccountSA::JsonType::STRING);
+    OHOS::AccountSA::GetDataByType<DomainAccountStatus>(
+        typeJson, typeJson.end(), DOMAIN_ACCOUNT_STATUS, domainInfo_.status_, OHOS::AccountSA::JsonType::NUMBER);
 }
 
 bool OsAccountInfo::Marshalling(Parcel &parcel) const

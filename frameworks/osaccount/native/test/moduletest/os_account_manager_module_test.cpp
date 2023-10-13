@@ -236,6 +236,10 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest001, TestSize.Lev
     ASSERT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
     OsAccountInfo osAccountInfoTwo;
     EXPECT_EQ(OsAccountManager::QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo), ERR_OK);
+    DomainAccountInfo domainInfo;
+    osAccountInfoTwo.GetDomainInfo(domainInfo);
+    domainInfo.status_ = DomainAccountStatus::LOG_END;
+    osAccountInfoTwo.SetDomainInfo(domainInfo);
     EXPECT_EQ(osAccountInfoOne.ToString(), osAccountInfoTwo.ToString());
     EXPECT_EQ(osAccountInfoOne.GetType(), OsAccountType::GUEST);
     ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
@@ -278,6 +282,10 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest004, TestSize.Lev
     ASSERT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::ADMIN, osAccountInfoOne), ERR_OK);
     OsAccountInfo osAccountInfoTwo;
     EXPECT_EQ(OsAccountManager::QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo), ERR_OK);
+    DomainAccountInfo domainInfo;
+    osAccountInfoTwo.GetDomainInfo(domainInfo);
+    domainInfo.status_ = DomainAccountStatus::LOG_END;
+    osAccountInfoTwo.SetDomainInfo(domainInfo);
     EXPECT_EQ(osAccountInfoOne.ToString(), osAccountInfoTwo.ToString());
     EXPECT_EQ(osAccountInfoOne.GetType(), OsAccountType::ADMIN);
     ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
@@ -295,6 +303,10 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest005, TestSize.Lev
     ASSERT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
     OsAccountInfo osAccountInfoTwo;
     EXPECT_EQ(OsAccountManager::QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo), ERR_OK);
+    DomainAccountInfo domainInfo;
+    osAccountInfoTwo.GetDomainInfo(domainInfo);
+    domainInfo.status_ = DomainAccountStatus::LOG_END;
+    osAccountInfoTwo.SetDomainInfo(domainInfo);
     EXPECT_EQ(osAccountInfoOne.ToString(), osAccountInfoTwo.ToString());
     EXPECT_EQ(osAccountInfoOne.GetType(), OsAccountType::NORMAL);
     ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
