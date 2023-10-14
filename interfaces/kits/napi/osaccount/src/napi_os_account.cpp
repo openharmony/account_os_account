@@ -29,6 +29,8 @@ static thread_local napi_ref osAccountRef_ = nullptr;
 const int OS_ACCOUNT_TYPE_ADMIN = 0;
 const int OS_ACCOUNT_TYPE_NORMAL = 1;
 const int OS_ACCOUNT_TYPE_GUEST = 2;
+const int DOMAIN_ACCOUNT_STATUS_NOT_LOGGED_IN = 0;
+const int DOMAIN_ACCOUNT_STATUS_LOGGED_IN = 1;
 std::mutex g_lockForOsAccountSubscribers;
 std::map<OsAccountManager *, std::vector<SubscribeCBInfo *>> g_osAccountSubscribers;
 static napi_property_descriptor g_osAccountProperties[] = {
@@ -113,6 +115,12 @@ napi_value OsAccountInit(napi_env env, napi_value exports)
     SetEnumProperty(env, constraintSourceType, CONSTRAINT_TYPE_BASE, "CONSTRAINT_TYPE_BASE");
     SetEnumProperty(env, constraintSourceType, CONSTRAINT_TYPE_DEVICE_OWNER, "CONSTRAINT_TYPE_DEVICE_OWNER");
     SetEnumProperty(env, constraintSourceType, CONSTRAINT_TYPE_PROFILE_OWNER, "CONSTRAINT_TYPE_PROFILE_OWNER");
+
+    napi_value domainAccountStatus = nullptr;
+    napi_create_object(env, &domainAccountStatus);
+
+    SetEnumProperty(env, domainAccountStatus, DOMAIN_ACCOUNT_STATUS_NOT_LOGGED_IN, "NOT_LOGGED_IN");
+    SetEnumProperty(env, domainAccountStatus, DOMAIN_ACCOUNT_STATUS_LOGGED_IN, "LOGGED_IN");
 
     napi_property_descriptor exportEnum[] = {
         DECLARE_NAPI_PROPERTY("OsAccountType", osAccountType),
