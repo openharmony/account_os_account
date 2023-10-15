@@ -112,27 +112,27 @@ public:
 
     void SetToBeRemoved(bool toBeRemoved);
 
-    bool GetIsCreateSecret() const;
+    uint64_t GetCredentialId() const;
 
-    void SetIsCreateSecret(bool isCreateSecret);
+    void SetCredentialId(uint64_t credentialId);
 
     ErrCode ParamCheck();
 
 private:
-    int localId_;
+    int localId_ = -1;
     std::string localName_;
-    OsAccountType type_;
+    OsAccountType type_ = OsAccountType::ADMIN;
     std::vector<std::string> constraints_;
-    bool isVerified_;
     std::string photo_;
-    int64_t createTime_;
-    int64_t lastLoginTime_;
-    int64_t serialNumber_;
-    bool isActivated_;
-    bool isCreateCompleted_;
+    int64_t createTime_ = 0;
+    int64_t lastLoginTime_ = 0;
+    int64_t serialNumber_ = 0;
+    uint64_t credentialId_ = 0;
+    bool isVerified_ = false;
+    bool isActivated_ = false;
+    bool isCreateCompleted_ = false;
+    bool toBeRemoved_ = false;
     DomainAccountInfo domainInfo_;
-    bool toBeRemoved_;
-    bool isCreateSecret_;
 };
 typedef enum {
     ERROR_MOD = 0,
