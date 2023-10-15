@@ -16,6 +16,7 @@
 #include "inner_domain_account_manager.h"
 #include <pthread.h>
 #include <thread>
+#include <securec.h>
 #include "account_info_report.h"
 #include "account_log_wrapper.h"
 #include "domain_account_plugin_death_recipient.h"
@@ -60,7 +61,7 @@ void InnerDomainAuthCallback::OnResult(const int32_t errCode, Parcel &parcel)
 {
     std::shared_ptr<DomainAuthResult> authResult(DomainAuthResult::Unmarshalling(parcel));
     if (authResult == nullptr) {
-        ACCOUNT_LOGE ("authResult is nullptr");
+        ACCOUNT_LOGE("authResult is nullptr");
         return;
     }
     if ((errCode == ERR_OK) && (userId_ != 0)) {
@@ -70,6 +71,8 @@ void InnerDomainAuthCallback::OnResult(const int32_t errCode, Parcel &parcel)
         InnerDomainAccountManager::GetInstance().NotifyDomainAccountEvent(
             userId_, DomainAccountEvent::LOG_IN, DomainAccountStatus::LOG_END, domainInfo);
     }
+    (void)memset_s(authResult->token.data(), authResult->token.size(), 0, authResult->token.size());
+    authResult->token.clear();
     Parcel resultParcel;
     if (!(*authResult).Marshalling(resultParcel)) {
         ACCOUNT_LOGE("authResult Marshalling failed");
@@ -223,9 +226,9 @@ ErrCode InnerDomainAccountManager::AuthUser(int32_t userId, const std::vector<ui
         return InnerAuth(userId, password, callback, AUTH_WITH_CREDENTIAL_MODE);
     }
 
-    bool isCreateSecret = false;
-    (void) IInnerOsAccountManager::GetInstance().GetOsAccountIsCreateSecret(userId, isCreateSecret);
-    if (isCreateSecret) {
+    uint64_t credentialId = 0;
+    (void) IInnerOsAccountManager::GetInstance().GetOsAccountCredentialId(userId, credentialId);
+    if (credentialId > 0) {
         ACCOUNT_LOGE("unsupported auth type");
         return ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE;
     }

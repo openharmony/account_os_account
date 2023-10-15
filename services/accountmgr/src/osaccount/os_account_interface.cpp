@@ -372,7 +372,7 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
     StartTraceAdapter("StorageManager PrepareStartUser");
-    if ((!osAccountInfo.GetIsVerified()) && (!osAccountInfo.GetIsCreateSecret())) {
+    if ((!osAccountInfo.GetIsVerified()) && (osAccountInfo.GetCredentialId() <= 0)) {
         std::vector<uint8_t> emptyData;
         if (proxy->ActiveUserKey(osAccountInfo.GetLocalId(), emptyData, emptyData) == 0) {
             isUserUnlocked = true;

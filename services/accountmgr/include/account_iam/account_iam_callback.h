@@ -56,7 +56,7 @@ private:
 
 class IDMAuthCallback : public AuthenticationCallback {
 public:
-    IDMAuthCallback(uint32_t userId, const Attributes &extraInfo, const sptr<IIDMCallback> &idmCallback);
+    IDMAuthCallback(uint32_t userId, uint64_t credentialId, uint64_t secureUid, const sptr<IIDMCallback> &idmCallback);
     virtual ~IDMAuthCallback() = default;
 
     void OnResult(int32_t result, const Attributes &extraInfo) override;
@@ -64,7 +64,6 @@ public:
 
 private:
     uint32_t userId_ = 0;
-    Attributes resultAttr_;
     uint64_t credentialId_ = 0;
     uint64_t secureUid_ = 0;
     sptr<IIDMCallback> idmCallback_ = nullptr;
@@ -82,12 +81,12 @@ public:
 private:
     std::uint32_t userId_;
     CredentialParameters credInfo_;
-    const sptr<IIDMCallback> innerCallback_ = nullptr;
+    sptr<IIDMCallback> innerCallback_ = nullptr;
 };
 
 class DelCredCallback : public UserIdmClientCallback {
 public:
-    DelCredCallback(int32_t userId, const std::vector<uint8_t> &authToken, const sptr<IIDMCallback> &callback);
+    DelCredCallback(int32_t userId, bool isPIN, const sptr<IIDMCallback> &callback);
     virtual ~DelCredCallback() = default;
 
     void OnResult(int32_t result, const Attributes &extraInfo) override;
@@ -95,8 +94,8 @@ public:
 
 private:
     int32_t userId_;
-    std::vector<uint8_t> authToken_;
-    const sptr<IIDMCallback> innerCallback_ = nullptr;
+    bool isPIN_;
+    sptr<IIDMCallback> innerCallback_ = nullptr;
 };
 
 class GetCredInfoCallbackWrapper : public GetCredentialInfoCallback {

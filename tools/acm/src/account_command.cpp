@@ -86,14 +86,10 @@ ErrCode AccountCommand::RunAsHelpCommand(void)
     return ERR_OK;
 }
 
-ErrCode AccountCommand::RunAsCreateCommand(void)
+ErrCode AccountCommand::ParseCreateCommandOpt(std::string &name, OsAccountType &osAccountType)
 {
-    ACCOUNT_LOGD("enter");
-    ErrCode result = ERR_OK;
     int counter = 0;
-    std::string name = "";
-    OsAccountType osAccountType = static_cast<OsAccountType>(-1);
-
+    ErrCode result = ERR_OK;
     while (true) {
         counter++;
 
@@ -113,25 +109,54 @@ ErrCode AccountCommand::RunAsCreateCommand(void)
         }
 
         result = RunAsCreateCommandExistentOptionArgument(option, name, osAccountType);
-        if (result != ERR_OK) {
-            resultReceiver_.append(HELP_MSG_CREATE);
-            return result;
+    }
+    return result;
+}
+
+ErrCode AccountCommand::RunAsCreateCommand(void)
+{
+    ACCOUNT_LOGD("enter");
+    ErrCode result = ERR_OK;
+    std::string name = "";
+    OsAccountType osAccountType = static_cast<OsAccountType>(-1);
+
+    result = ParseCreateCommandOpt(name, osAccountType);
+    if (result == ERR_OK) {
+        if (name.size() == 0 || osAccountType == static_cast<OsAccountType>(-1)) {
+            ACCOUNT_LOGD("'acm create' without enough options");
+
+            if (name.size() == 0) {
+                resultReceiver_.append(HELP_MSG_NO_NAME_OPTION + "\n");
+            }
+
+            if (osAccountType == static_cast<OsAccountType>(-1)) {
+                resultReceiver_.append(HELP_MSG_NO_TYPE_OPTION + "\n");
+            }
+
+            result = ERR_INVALID_VALUE;
         }
     }
 
-    // make os account info
-    OsAccountInfo osAccountInfo;
-    // create an os account
-    result = OsAccount::GetInstance().CreateOsAccount(name, osAccountType, osAccountInfo);
-    switch (result) {
-        case ERR_OK:
-            resultReceiver_ = STRING_CREATE_OS_ACCOUNT_OK + "\n";
-            break;
-        case ERR_OSACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR:
-            resultReceiver_ = "create failed, reason: multiple-os-account feature not enabled\n";
-            break;
-        default:
-            resultReceiver_ = STRING_CREATE_OS_ACCOUNT_NG + "\n";
+    if (result != ERR_OK) {
+        resultReceiver_.append(HELP_MSG_CREATE);
+    } else {
+        /* create */
+
+        // make os account info
+        OsAccountInfo osAccountInfo;
+
+        // create an os account
+        result = OsAccount::GetInstance().CreateOsAccount(name, osAccountType, osAccountInfo);
+        switch (result) {
+            case ERR_OK:
+                resultReceiver_ = STRING_CREATE_OS_ACCOUNT_OK + "\n";
+                break;
+            case ERR_OSACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR:
+                resultReceiver_ = "create failed, reason: multiple-os-account feature not enabled\n";
+                break;
+            default:
+                resultReceiver_ = STRING_CREATE_OS_ACCOUNT_NG + "\n";
+        }
     }
 
     ACCOUNT_LOGD("result = %{public}d, name = %{public}s, type = %{public}d", result, name.c_str(), osAccountType);
@@ -397,10 +422,6 @@ ErrCode AccountCommand::RunAsCreateCommandExistentOptionArgument(
             // 'acm create -n <name>'
             // 'acm create --name <name>'
             name = optarg;
-            if (name.empty()) {
-                resultReceiver_.append(HELP_MSG_NO_NAME_OPTION + "\n");
-                result = ERR_INVALID_VALUE;
-            }
             break;
         }
         case 't': {
