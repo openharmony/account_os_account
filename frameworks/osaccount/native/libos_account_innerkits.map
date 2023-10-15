@@ -141,8 +141,9 @@
         "OHOS::AccountSA::OsAccountInfo::SetCreateTime(long long)";
         "OHOS::AccountSA::OsAccountInfo::SetCreateTime(long)";
         "OHOS::AccountSA::OsAccountInfo::SetIsCreateCompleted(bool)";
-        "OHOS::AccountSA::OsAccountInfo::GetIsCreateSecret() const";
-        "OHOS::AccountSA::OsAccountInfo::SetIsCreateSecret(bool)";
+        "OHOS::AccountSA::OsAccountInfo::GetCredentialId() const";
+        "OHOS::AccountSA::OsAccountInfo::SetCredentialId(unsigned long long)";
+        "OHOS::AccountSA::OsAccountInfo::SetCredentialId(unsigned long)";
         "OHOS::AccountSA::OsAccountInfo::SetIsActived(bool)";
         "OHOS::AccountSA::OsAccountInfo::SetConstraints(std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>)";
         "OHOS::AccountSA::OsAccountInfo::GetIsCreateCompleted() const";

@@ -114,13 +114,18 @@ void InnerAccountIAMManager::DelCred(
         callback->OnResult(ResultCode::INVALID_PARAMETERS, emptyResult);
         return;
     }
-    std::vector<uint8_t> secret;
-    ErrCode result = UpdateUserKey(userId, 0, credentialId, authToken, secret);
-    if (result != ERR_OK) {
-        callback->OnResult(result, emptyResult);
-        return;
+    uint64_t pinCredentialId = 0;
+    (void)IInnerOsAccountManager::GetInstance().GetOsAccountCredentialId(userId, pinCredentialId);
+    bool isPIN = false;
+    if ((pinCredentialId != 0) && (credentialId == pinCredentialId)) {
+        isPIN = true;
+        ErrCode result = RemoveUserKey(userId, authToken);
+        if (result != ERR_OK) {
+            callback->OnResult(result, emptyResult);
+            return;
+        }
     }
-    auto idmCallback = std::make_shared<DelCredCallback>(userId, authToken, callback);
+    auto idmCallback = std::make_shared<DelCredCallback>(userId, isPIN, callback);
     UserIDMClient::GetInstance().DeleteCredential(userId, credentialId, authToken, idmCallback);
 }
 
@@ -142,7 +147,7 @@ void InnerAccountIAMManager::DelUser(
         callback->OnResult(result, errResult);
         return;
     }
-    auto idmCallback = std::make_shared<DelCredCallback>(userId, authToken, callback);
+    auto idmCallback = std::make_shared<DelCredCallback>(userId, true, callback);
     UserIDMClient::GetInstance().DeleteUser(userId, authToken, idmCallback);
 }
 
@@ -154,9 +159,9 @@ static bool IsNonPINAllowed(int32_t userId)
         return true;
     }
 
-    bool isCreateSecret = false;
-    (void) IInnerOsAccountManager::GetInstance().GetOsAccountIsCreateSecret(userId, isCreateSecret);
-    return !isCreateSecret;
+    uint64_t credentialId = 0;
+    (void) IInnerOsAccountManager::GetInstance().GetOsAccountCredentialId(userId, credentialId);
+    return credentialId == 0;
 }
 
 void InnerAccountIAMManager::GetCredentialInfo(

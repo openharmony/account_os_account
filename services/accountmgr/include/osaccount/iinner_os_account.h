@@ -63,8 +63,8 @@ public:
     virtual OS_ACCOUNT_SWITCH_MOD GetOsAccountSwitchMod() = 0;
     virtual ErrCode IsOsAccountCompleted(const int id, bool &isOsAccountCompleted) = 0;
     virtual ErrCode SetOsAccountIsVerified(const int id, const bool isVerified) = 0;
-    virtual ErrCode GetOsAccountIsCreateSecret(const int id, bool &isCreateSecret) = 0;
-    virtual ErrCode SetOsAccountIsCreateSecret(const int id, const bool isCreateSecret) = 0;
+    virtual ErrCode GetOsAccountCredentialId(const int id, uint64_t &credentialId) = 0;
+    virtual ErrCode SetOsAccountCredentialId(const int id, uint64_t credentialId) = 0;
     virtual ErrCode IsAllowedCreateAdmin(bool &isAllowedCreateAdmin) = 0;
     virtual ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id) = 0;
     virtual ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
