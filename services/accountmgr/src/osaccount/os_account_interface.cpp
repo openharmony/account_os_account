@@ -365,7 +365,7 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
     }
     StartTraceAdapter("StorageManager PrepareStartUser");
     int localId = osAccountInfo.GetLocalId();
-    if ((!osAccountInfo.GetIsVerified()) && (!osAccountInfo.GetIsCreateSecret())) {
+    if ((!osAccountInfo.GetIsVerified()) && (osAccountInfo.GetCredentialId() <= 0)) {
         std::vector<uint8_t> emptyData;
         if (proxy->ActiveUserKey(localId, emptyData, emptyData) == 0) {
             isUserUnlocked = true;

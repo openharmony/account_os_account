@@ -1209,7 +1209,7 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
 
     DomainAccountInfo domainInfo;
     osAccountInfo.GetDomainInfo(domainInfo);
-    if (domainInfo.accountId_.empty() && !osAccountInfo.GetIsCreateSecret()) {
+    if (domainInfo.accountId_.empty() && (osAccountInfo.GetCredentialId() == 0)) {
         AccountInfoReport::ReportSecurityInfo(
             osAccountInfo.GetLocalName(), osAccountInfo.GetLocalId(), ReportEvent::EVENT_LOGIN, 0);
     }
@@ -1426,18 +1426,18 @@ ErrCode IInnerOsAccountManager::SetOsAccountIsVerified(const int id, const bool 
     return ERR_OK;
 }
 
-ErrCode IInnerOsAccountManager::GetOsAccountIsCreateSecret(const int id, bool &isCreateSecret)
+ErrCode IInnerOsAccountManager::GetOsAccountCredentialId(const int id, uint64_t &credentialId)
 {
-    isCreateSecret = false;
+    credentialId = 0;
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode == ERR_OK) {
-        isCreateSecret = osAccountInfo.GetIsCreateSecret();
+        credentialId = osAccountInfo.GetCredentialId();
     }
     return errCode;
 }
 
-ErrCode IInnerOsAccountManager::SetOsAccountIsCreateSecret(const int id, const bool isCreateSecret)
+ErrCode IInnerOsAccountManager::SetOsAccountCredentialId(const int id, uint64_t credentialId)
 {
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
@@ -1446,7 +1446,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountIsCreateSecret(const int id, const b
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
 
-    osAccountInfo.SetIsCreateSecret(isCreateSecret);
+    osAccountInfo.SetCredentialId(credentialId);
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("update osaccount info error %{public}d, id: %{public}d",

@@ -38,42 +38,16 @@ const std::string DOMAIN_NAME = "domain";
 const std::string DOMAIN_ACCOUNT_NAME = "accountName";
 const std::string DOMAIN_ACCOUNT_ID = "accountId";
 const std::string TO_BE_REMOVED = "toBeRemoved";
-const std::string IS_CREATE_SECRET = "isCreateSecret";
+const std::string CREDENTIAL_ID = "credentialId";
 const std::string DOMAIN_ACCOUNT_STATUS = "domainAccountStatus";
 }  // namespace
 
 OsAccountInfo::OsAccountInfo()
-{
-    localId_ = -1;
-    localName_.clear();
-    type_ = OsAccountType::ADMIN;
-    constraints_.clear();
-    isVerified_ = false;
-    photo_.clear();
-    createTime_ = 0;
-    lastLoginTime_ = 0;
-    serialNumber_ = 0;
-    isActivated_ = false;
-    isCreateCompleted_ = false;
-    domainInfo_.Clear();
-    toBeRemoved_ = false;
-    isCreateSecret_ = false;
-}
+{}
 
 OsAccountInfo::OsAccountInfo(int localId, const std::string localName, OsAccountType type, int64_t serialNumber)
     : localId_(localId), localName_(localName), type_(type), serialNumber_(serialNumber)
-{
-    constraints_.clear();
-    isVerified_ = false;
-    photo_.clear();
-    createTime_ = 0;
-    lastLoginTime_ = 0;
-    isActivated_ = false;
-    isCreateCompleted_ = false;
-    domainInfo_.Clear();
-    toBeRemoved_ = false;
-    isCreateSecret_ = false;
-}
+{}
 
 int OsAccountInfo::GetLocalId() const
 {
@@ -135,14 +109,14 @@ void OsAccountInfo::SetIsCreateCompleted(const bool isCreateCompleted)
     isCreateCompleted_ = isCreateCompleted;
 }
 
-bool OsAccountInfo::GetIsCreateSecret() const
+uint64_t OsAccountInfo::GetCredentialId() const
 {
-    return isCreateSecret_;
+    return credentialId_;
 }
 
-void OsAccountInfo::SetIsCreateSecret(bool isCreateSecret)
+void OsAccountInfo::SetCredentialId(uint64_t credentialId)
 {
-    isCreateSecret_ = isCreateSecret;
+    credentialId_ = credentialId;
 }
 
 bool OsAccountInfo::SetDomainInfo(const DomainAccountInfo &domainInfo)
@@ -219,7 +193,7 @@ Json OsAccountInfo::ToJson() const
         {IS_ACTIVATED, isActivated_},
         {IS_ACCOUNT_COMPLETED, isCreateCompleted_},
         {TO_BE_REMOVED, toBeRemoved_},
-        {IS_CREATE_SECRET, isCreateSecret_},
+        {CREDENTIAL_ID, credentialId_},
         {DOMAIN_INFO, {
             {DOMAIN_NAME, domainInfo_.domain_},
             {DOMAIN_ACCOUNT_NAME, domainInfo_.accountName_},
@@ -271,8 +245,8 @@ void OsAccountInfo::FromJson(const Json &jsonObject)
         jsonObject, jsonObjectEnd, IS_ACCOUNT_COMPLETED, isCreateCompleted_, OHOS::AccountSA::JsonType::BOOLEAN);
     OHOS::AccountSA::GetDataByType<bool>(
         jsonObject, jsonObjectEnd, TO_BE_REMOVED, toBeRemoved_, OHOS::AccountSA::JsonType::BOOLEAN);
-    OHOS::AccountSA::GetDataByType<bool>(
-        jsonObject, jsonObjectEnd, IS_CREATE_SECRET, isCreateSecret_, OHOS::AccountSA::JsonType::BOOLEAN);
+    OHOS::AccountSA::GetDataByType<uint64_t>(
+        jsonObject, jsonObjectEnd, CREDENTIAL_ID, credentialId_, OHOS::AccountSA::JsonType::NUMBER);
 
     Json typeJson;
     OHOS::AccountSA::GetDataByType<Json>(

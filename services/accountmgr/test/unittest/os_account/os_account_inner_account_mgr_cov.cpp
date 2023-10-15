@@ -246,26 +246,26 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest008, 
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /*
- * @tc.name: SetOsAccountIsCreateSecret001
- * @tc.desc: Test SetOsAccountIsCreateSecret with invalid userid.
+ * @tc.name: SetOsAccountCredentialId001
+ * @tc.desc: Test SetOsAccountCredentialId with invalid userid.
  * @tc.type: FUNC
  * @tc.require: #I6JV5X
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, SetOsAccountIsCreateSecret001, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrCoverageTest, SetOsAccountCredentialId001, TestSize.Level1)
 {
     int32_t invalidUserId = -1;
-    ErrCode errCode = innerMgrService_->SetOsAccountIsCreateSecret(invalidUserId, true);
+    ErrCode errCode = innerMgrService_->SetOsAccountCredentialId(invalidUserId, 0);
     ASSERT_NE(errCode, ERR_OK);
 }
 
 /*
- * @tc.name: SetOsAccountIsCreateSecret002
- * @tc.desc: Test SetOsAccountIsCreateSecret with valid userid.
+ * @tc.name: SetOsAccountCredentialId002
+ * @tc.desc: Test SetOsAccountCredentialId with valid userid.
  * @tc.type: FUNC
  * @tc.require: #I6JV5X
  */
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, SetOsAccountIsCreateSecret002, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrCoverageTest, SetOsAccountCredentialId002, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
     ErrCode errCode = innerMgrService_->CreateOsAccount(ACCOUNT_NAME, OsAccountType::NORMAL, osAccountInfo);
@@ -273,7 +273,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, SetOsAccountIsCreateSecret002, TestSi
 
     int32_t localID = osAccountInfo.GetLocalId();
 
-    ASSERT_EQ(innerMgrService_->SetOsAccountIsCreateSecret(localID, true), ERR_OK);
+    ASSERT_EQ(innerMgrService_->SetOsAccountCredentialId(localID, 0), ERR_OK);
 
     ASSERT_EQ(innerMgrService_->RemoveOsAccount(localID), ERR_OK);
 }
