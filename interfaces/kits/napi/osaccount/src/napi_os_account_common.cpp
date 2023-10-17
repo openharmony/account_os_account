@@ -156,14 +156,12 @@ void CreateJsDomainInfo(napi_env env, const DomainAccountInfo &info, napi_value 
 
     napi_create_string_utf8(env, info.accountId_.c_str(), info.accountId_.size(), &value);
     napi_set_named_property(env, result, "accountId", value);
-    if (info.status_ == DomainAccountStatus::LOGIN_BACKGROUND) {
-        napi_create_int32(env, DomainAccountStatus::LOGIN, &value);
-    } else if (info.status_ >= DomainAccountStatus::LOG_END) {
-        napi_create_int32(env, DomainAccountStatus::LOGOUT, &value);
+    if ((info.status_ == DomainAccountStatus::LOGOUT) || (info.status_ >= DomainAccountStatus::LOG_END)) {
+        napi_get_boolean(env, false, &value);
     } else {
-        napi_create_int32(env, info.status_, &value);
+        napi_get_boolean(env, true, &value);
     }
-    napi_set_named_property(env, result, "status", value);
+    napi_set_named_property(env, result, "isAuthenticated", value);
 }
 
 void CreateJsDistributedInfo(napi_env env, const OhosAccountInfo &info, napi_value &result)
