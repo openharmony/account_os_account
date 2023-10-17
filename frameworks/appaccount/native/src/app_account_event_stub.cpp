@@ -34,18 +34,8 @@ int AppAccountEventStub::OnRemoteRequest(
     }
 
     switch (code) {
-        case static_cast<uint32_t>(AppAccountEventInterfaceCode::ACCOUNT_CHANGED): {
-            std::vector<AppAccountInfo> accounts;
-            if (!ReadParcelableVector(accounts, data)) {
-                ACCOUNT_LOGE("failed to read parcelable vector for account info");
-                if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_PARCELABLE_VECTOR_ACCOUNT_INFO)) {
-                    ACCOUNT_LOGE("failed to write reply");
-                    return IPC_STUB_WRITE_PARCEL_ERR;
-                }
-            }
-            OnAccountsChanged(accounts);
-            break;
-        }
+        case static_cast<uint32_t>(AppAccountEventInterfaceCode::ACCOUNT_CHANGED):
+            return ProcOnAccountsChanged(data);
         default:
             ACCOUNT_LOGI("default, code = %{public}u, flags = %{public}u", code, option.GetFlags());
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
@@ -54,30 +44,29 @@ int AppAccountEventStub::OnRemoteRequest(
     return ERR_NONE;
 }
 
-template<typename T>
-bool AppAccountEventStub::ReadParcelableVector(std::vector<T> &parcelableVector, MessageParcel &data)
+ErrCode AppAccountEventStub::ProcOnAccountsChanged(MessageParcel &data)
 {
     uint32_t size = 0;
     if (!data.ReadUint32(size)) {
-        ACCOUNT_LOGE("failed to ReadInt32 for size");
-        return false;
+        ACCOUNT_LOGE("failed to the account list size");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
 
-    if (size > Constants::MAX_CUSTOM_DATA_SIZE) {
-        ACCOUNT_LOGE("ReadParcelableVector oversize");
-        return false;
+    if (size > Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT) {
+        ACCOUNT_LOGE("ReadAppAccountList failed");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    parcelableVector.clear();
-    for (uint32_t index = 0; index < size; index += 1) {
-        std::shared_ptr<T> parcelable(data.ReadParcelable<T>());
-        if (parcelable == nullptr) {
-            ACCOUNT_LOGE("failed to ReadParcelable for T");
-            return false;
+    std::vector<AppAccountInfo> accounts;
+    for (uint32_t index = 0; index < size; index++) {
+        std::shared_ptr<AppAccountInfo> account(data.ReadParcelable<AppAccountInfo>());
+        if (account == nullptr) {
+            ACCOUNT_LOGE("failed read app account info");
+            return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
         }
-        parcelableVector.emplace_back(*parcelable);
+        accounts.emplace_back(*account);
     }
-
-    return true;
+    OnAccountsChanged(accounts);
+    return ERR_NONE;
 }
 }  // namespace AccountSA
 }  // namespace OHOS

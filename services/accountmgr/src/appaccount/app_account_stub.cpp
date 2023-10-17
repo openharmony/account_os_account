@@ -288,28 +288,6 @@ bool AppAccountStub::WriteParcelableVector(const std::vector<T> &parcelableVecto
     return true;
 }
 
-template<typename T>
-bool AppAccountStub::ReadParcelableVector(std::vector<T> &parcelableVector, MessageParcel &data)
-{
-    uint32_t size = 0;
-    if (!data.ReadUint32(size)) {
-        ACCOUNT_LOGE("read Parcelable size failed.");
-        return false;
-    }
-
-    parcelableVector.clear();
-    for (uint32_t index = 0; index < size; index++) {
-        std::shared_ptr<T> info(data.ReadParcelable<T>());
-        if (info == nullptr) {
-            ACCOUNT_LOGE("read Parcelable infos failed.");
-            return false;
-        }
-        parcelableVector.emplace_back(*info);
-    }
-
-    return true;
-}
-
 static ErrCode CheckSpecialCharacters(const std::string &str)
 {
     for (auto specialCharacter : Constants::SPECIAL_CHARACTERS) {

@@ -17,6 +17,10 @@
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
+const size_t MAX_INFO_SIZE = 1024;
+}
+
 OsAccountProxy::OsAccountProxy(const sptr<IRemoteObject> &object) : IRemoteProxy<IOsAccount>(object)
 {}
 
@@ -413,7 +417,7 @@ ErrCode OsAccountProxy::QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &os
         ACCOUNT_LOGE("failed to read reply for query all os accounts, result %{public}d.", result);
         return result;
     }
-    ReadParcelableVector(osAccountInfos, reply);
+    ReadOsAccountInfoList(reply, osAccountInfos);
 
     return ERR_OK;
 }
@@ -1084,7 +1088,7 @@ ErrCode OsAccountProxy::GetOsAccountListFromDatabase(const std::string& storeID,
         ACCOUNT_LOGE("failed to read reply, result %{public}d.", result);
         return result;
     }
-    ReadParcelableVector(osAccountList, reply);
+    ReadOsAccountInfoList(reply, osAccountList);
     return ERR_OK;
 }
 
@@ -1297,39 +1301,26 @@ ErrCode OsAccountProxy::GetDefaultActivatedOsAccount(int32_t &id)
     return ERR_OK;
 }
 
-template<typename T>
-bool OsAccountProxy::WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data)
+bool OsAccountProxy::ReadOsAccountInfoList(MessageParcel &data, std::vector<OsAccountInfo> &infoList)
 {
-    if (!data.WriteUint32(parcelableVector.size())) {
-        ACCOUNT_LOGE("Account write ParcelableVector failed");
-        return false;
-    }
-
-    for (auto &parcelable : parcelableVector) {
-        if (!data.WriteParcelable(&parcelable)) {
-            ACCOUNT_LOGE("Account write ParcelableVector failed");
-            return false;
-        }
-    }
-    return true;
-}
-template<typename T>
-bool OsAccountProxy::ReadParcelableVector(std::vector<T> &parcelableInfos, MessageParcel &data)
-{
+    infoList.clear();
     uint32_t infoSize = 0;
     if (!data.ReadUint32(infoSize)) {
         ACCOUNT_LOGE("Account read Parcelable size failed.");
         return false;
     }
+    if (infoSize > MAX_INFO_SIZE) {
+        ACCOUNT_LOGE("the size of info list is too large");
+        return false;
+    }
 
-    parcelableInfos.clear();
     for (uint32_t index = 0; index < infoSize; index++) {
-        std::shared_ptr<T> info(data.ReadParcelable<T>());
+        std::shared_ptr<OsAccountInfo> info(data.ReadParcelable<OsAccountInfo>());
         if (info == nullptr) {
             ACCOUNT_LOGE("Account read Parcelable infos failed.");
             return false;
         }
-        parcelableInfos.emplace_back(*info);
+        infoList.emplace_back(*info);
     }
 
     return true;

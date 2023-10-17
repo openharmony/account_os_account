@@ -90,8 +90,6 @@ public:
 private:
     template<typename T>
     bool WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data);
-    template<typename T>
-    bool ReadParcelableVector(std::vector<T> &parcelableInfos, MessageParcel &data);
     std::map<uint32_t, OsAccountMessageProc> messageProcMap_;
     DISALLOW_COPY_AND_MOVE(OsAccountStub);
     ErrCode ProcCheckOsAccountConstraintEnabled(uint32_t code, MessageParcel &data, MessageParcel &reply);

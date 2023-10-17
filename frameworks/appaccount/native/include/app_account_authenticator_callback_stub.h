@@ -29,10 +29,6 @@ public:
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
 private:
-    template<typename T>
-    bool ReadParcelableVector(std::vector<T> &parcelableVector, MessageParcel &data);
-
-private:
     DISALLOW_COPY_AND_MOVE(AppAccountAuthenticatorCallbackStub);
 };
 }  // namespace AccountSA
