@@ -374,7 +374,6 @@ ErrCode DomainAccountStub::CheckPermission(DomainAccountInterfaceCode code, int3
             break;
         case DomainAccountInterfaceCode::DOMAIN_AUTH:
         case DomainAccountInterfaceCode::DOMAIN_AUTH_USER:
-        case DomainAccountInterfaceCode::DOMAIN_AUTH_WITH_POPUP:
             permissionName = ACCESS_USER_AUTH_INTERNAL;
             break;
         case DomainAccountInterfaceCode::DOMAIN_GET_ACCOUNT_INFO:
