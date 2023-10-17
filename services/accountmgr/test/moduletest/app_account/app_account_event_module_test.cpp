@@ -103,45 +103,42 @@ HWTEST_F(AppAccountEventModuleTest, AppAccountEventTest_OnRemoteRequest_0100, Te
 }
 
 /**
- * @tc.name: AppAccountEventTest_ReadParcelableVector_0100
- * @tc.desc: test event stub func ReadParcelableVector with invalid data.
+ * @tc.name: AppAccountEventTest_ProcOnAccountsChanged_0100
+ * @tc.desc: test event stub func ProcOnAccountsChanged with invalid data.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountEventModuleTest, AppAccountEventTest_ReadParcelableVector_0100, TestSize.Level1)
+HWTEST_F(AppAccountEventModuleTest, AppAccountEventTest_ProcOnAccountsChanged_0100, TestSize.Level1)
 {
     auto appAccountEventStubPtr = std::make_shared<MockAppAccountEventStub>();
     ASSERT_NE(appAccountEventStubPtr, nullptr);
     MessageParcel data;
-    std::vector<AppAccountInfo> accounts;
-    bool result = appAccountEventStubPtr->ReadParcelableVector(accounts, data);
-    ASSERT_EQ(result, false);
+    ASSERT_EQ(appAccountEventStubPtr->ProcOnAccountsChanged(data), ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR);
 }
 
 /**
- * @tc.name: AppAccountEventTest_ReadParcelableVector_0200
- * @tc.desc: test event stub func ReadParcelableVector with invalid data.
+ * @tc.name: AppAccountEventTest_ProcOnAccountsChanged_0200
+ * @tc.desc: test event stub func ProcOnAccountsChanged with invalid data.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountEventModuleTest, AppAccountEventTest_ReadParcelableVector_0200, TestSize.Level1)
+HWTEST_F(AppAccountEventModuleTest, AppAccountEventTest_ProcOnAccountsChanged_0200, TestSize.Level1)
 {
     auto appAccountEventStubPtr = std::make_shared<MockAppAccountEventStub>();
     ASSERT_NE(appAccountEventStubPtr, nullptr);
     MessageParcel data;
     data.WriteUint32(INVALID_CODE);
     std::vector<AppAccountInfo> accounts;
-    bool result = appAccountEventStubPtr->ReadParcelableVector(accounts, data);
-    ASSERT_EQ(result, false);
+    ASSERT_EQ(appAccountEventStubPtr->ProcOnAccountsChanged(data), ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR);
 }
 
 /**
- * @tc.name: AppAccountEventTest_ReadParcelableVector_0300
- * @tc.desc: test event stub func ReadParcelableVector success.
+ * @tc.name: AppAccountEventTest_ProcOnAccountsChanged_0300
+ * @tc.desc: test event stub func ProcOnAccountsChanged success.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountEventModuleTest, AppAccountEventTest_ReadParcelableVector_0300, TestSize.Level1)
+HWTEST_F(AppAccountEventModuleTest, AppAccountEventTest_ProcOnAccountsChanged_0300, TestSize.Level1)
 {
     auto appAccountEventStubPtr = std::make_shared<MockAppAccountEventStub>();
     ASSERT_NE(appAccountEventStubPtr, nullptr);
@@ -154,6 +151,5 @@ HWTEST_F(AppAccountEventModuleTest, AppAccountEventTest_ReadParcelableVector_030
         bool result = data.WriteParcelable(&parcelable);
         ASSERT_EQ(result, true);
     }
-    bool result = appAccountEventStubPtr->ReadParcelableVector(accounts, data);
-    ASSERT_EQ(result, true);
+    ASSERT_EQ(appAccountEventStubPtr->ProcOnAccountsChanged(data), ERR_NONE);
 }

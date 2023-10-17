@@ -33,8 +33,6 @@ public:
 public:
     template<typename T>
     bool WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data);
-    template<typename T>
-    bool ReadParcelableVector(std::vector<T> &parcelableInfos, MessageParcel &data);
 
     ErrCode ProcAddAccount(uint32_t code, MessageParcel &data, MessageParcel &reply);
     ErrCode ProcAddAccountImplicitly(uint32_t code, MessageParcel &data, MessageParcel &reply);
