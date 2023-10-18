@@ -33,6 +33,7 @@ const std::vector<std::string> VECTOR_CONSTRAINTS {"one", "two", "three", "four"
 const bool BOOL_IS_OS_ACCOUNT_VERIFIED = true;
 const bool BOOL_IS_OS_ACCOUNT_COMPLETED = true;
 const bool BOOL_IS_ACTIVED = true;
+const int32_t CREATE_LOCAL_ID = 121;
 const std::string STRING_PHOTO =
     "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD//gAUU29mdHdhcmU6IFNuaXBhc3Rl/"
     "9sAQwADAgIDAgIDAwMDBAMDBAUIBQUEBAUKBwcGCAwKDAwLCgsLDQ4SEA0OEQ4LCxAWEBETFBUVFQwPFxgWFBgSFBUU/"
@@ -67,7 +68,6 @@ const std::string STRING_JSON =
     "xFpssN5bwwXwPilDIZ0klLxSq2vWLAIWACMjBeilQNo6j9ni50R9U8U6lF400m18Q30sTMLnxC1758CxqrO8EesXXzBgiiV5SQPlCgHnNSfI5f1+"
     "av33Q5L3rdP68nb7mfWlFFFaCP//Z\",\"serialNumber\":121012012,\"toBeRemoved\":false,\"type\":0}";
 }  // namespace
-const std::int32_t CREATE_LOCAL_ID = 121;
 class OsAccountInfoTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
