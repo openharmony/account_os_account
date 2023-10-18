@@ -60,6 +60,7 @@ public:
     std::string accountName_;
     std::string accountId_;
     DomainAccountStatus status_ = DomainAccountStatus::LOG_END;
+    bool isAuthenticated = false;
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
     static DomainAccountInfo *Unmarshalling(Parcel &parcel);
