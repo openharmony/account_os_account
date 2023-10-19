@@ -294,8 +294,9 @@ ErrCode AppAccountSubscribeManager::OnAccountsChanged(const std::shared_ptr<AppA
         }
 
         std::vector<AppAccountInfo> appAccounts;
-        result = GetAccessibleAccountsBySubscribeInfo(receiver->subscribeInfoPtr, accessibleAccounts, appAccounts);
-        if (result != ERR_OK) {
+        result = GetAccessibleAccountsBySubscribeInfo(record->info,
+            receiver->subscribeInfoPtr, accessibleAccounts, appAccounts);
+        if ((result != ERR_OK) || (appAccounts.empty())) {
             ACCOUNT_LOGE("failed to get accessible accounts by subscribe info");
             continue;
         }
@@ -305,7 +306,6 @@ ErrCode AppAccountSubscribeManager::OnAccountsChanged(const std::shared_ptr<AppA
             ACCOUNT_LOGE("failed to get app account event proxy");
             continue;
         }
-
         appAccountEventProxy->OnAccountsChanged(appAccounts);
     }
 
@@ -313,10 +313,11 @@ ErrCode AppAccountSubscribeManager::OnAccountsChanged(const std::shared_ptr<AppA
 }
 
 ErrCode AppAccountSubscribeManager::GetAccessibleAccountsBySubscribeInfo(
+    const std::shared_ptr<AppAccountInfo> &info,
     const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr,
     const std::vector<AppAccountInfo> &accessibleAccounts, std::vector<AppAccountInfo> &appAccounts)
 {
-    if (subscribeInfoPtr == nullptr) {
+    if ((subscribeInfoPtr == nullptr) || (info == nullptr)) {
         ACCOUNT_LOGE("subscribeInfoPtr is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
@@ -325,16 +326,15 @@ ErrCode AppAccountSubscribeManager::GetAccessibleAccountsBySubscribeInfo(
 
     std::vector<std::string> owners;
     subscribeInfoPtr->GetOwners(owners);
-
-    for (auto accessibleAccount : accessibleAccounts) {
-        std::string name;
-        accessibleAccount.GetName(name);
-
-        std::string owner;
-        accessibleAccount.GetOwner(owner);
-
-        if (std::find(owners.begin(), owners.end(), owner) != owners.end()) {
-            appAccounts.emplace_back(accessibleAccount);
+    std::string targetOwner = info->GetOwner();
+    std::string targetName = info->GetName();
+    if (std::find(owners.begin(), owners.end(), targetOwner) != owners.end()) {
+        for (auto accessibleAccount : accessibleAccounts) {
+            std::string name;
+            accessibleAccount.GetName(name);
+            if (targetName == name) {
+                appAccounts.emplace_back(accessibleAccount);
+            }
         }
     }
 
