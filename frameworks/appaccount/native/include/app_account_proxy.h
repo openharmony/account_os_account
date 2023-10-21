@@ -113,11 +113,7 @@ private:
         const std::string &name, const std::string &authType, const std::string &bundleName, MessageParcel &data);
     ErrCode SendRequestWithTwoStr(MessageParcel &reply, AppAccountInterfaceCode code,
         const std::string &str1, const std::string &str2);
-
-    template<typename T>
-    bool WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data);
-    template<typename T>
-    bool ReadParcelableVector(std::vector<T> &parcelableVector, MessageParcel &data);
+    bool ReadAppAccountList(MessageParcel &parcel, std::vector<AppAccountInfo> &accountList);
 
 private:
     static inline BrokerDelegator<AppAccountProxy> delegator_;

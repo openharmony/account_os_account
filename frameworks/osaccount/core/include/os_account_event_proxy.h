@@ -29,8 +29,6 @@ public:
     void OnAccountsChanged(const int &localId) override;
 
 private:
-    template<typename T>
-    bool WriteParcelableVector(const std::vector<T> &parcelableVector, Parcel &data);
     ErrCode SendRequest(OsAccountEventInterfaceCode code, MessageParcel &data, MessageParcel &reply);
 
 private:

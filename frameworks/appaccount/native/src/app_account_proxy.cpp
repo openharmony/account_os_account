@@ -875,7 +875,7 @@ ErrCode AppAccountProxy::GetAllAccounts(const std::string &owner, std::vector<Ap
 
     result = reply.ReadInt32();
 
-    if (!ReadParcelableVector(appAccounts, reply)) {
+    if (!ReadAppAccountList(reply, appAccounts)) {
         ACCOUNT_LOGE("failed to read parcelable for AppAccountInfo");
         return ERR_APPACCOUNT_KIT_READ_PARCELABLE_APP_ACCOUNT_INFO;
     }
@@ -900,7 +900,7 @@ ErrCode AppAccountProxy::GetAllAccessibleAccounts(std::vector<AppAccountInfo> &a
 
     result = reply.ReadInt32();
 
-    if (!ReadParcelableVector(appAccounts, reply)) {
+    if (!ReadAppAccountList(reply, appAccounts)) {
         ACCOUNT_LOGE("failed to read parcelable for AppAccountInfo");
         return ERR_APPACCOUNT_KIT_READ_PARCELABLE_APP_ACCOUNT_INFO;
     }
@@ -925,7 +925,7 @@ ErrCode AppAccountProxy::QueryAllAccessibleAccounts(const std::string &owner, st
         return result;
     }
     result = reply.ReadInt32();
-    if (!ReadParcelableVector(appAccounts, reply)) {
+    if (!ReadAppAccountList(reply, appAccounts)) {
         ACCOUNT_LOGE("failed to read parcelable for AppAccountInfo");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
@@ -1173,41 +1173,25 @@ ErrCode AppAccountProxy::SendRequest(AppAccountInterfaceCode code, MessageParcel
     return ERR_OK;
 }
 
-template<typename T>
-bool AppAccountProxy::WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data)
+bool AppAccountProxy::ReadAppAccountList(MessageParcel &parcel, std::vector<AppAccountInfo> &accountList)
 {
-    if (!data.WriteUint32(parcelableVector.size())) {
-        ACCOUNT_LOGE("failed to WriteInt32 for parcelableVector.size()");
-        return false;
-    }
-
-    for (const auto &parcelable : parcelableVector) {
-        if (!data.WriteParcelable(&parcelable)) {
-            ACCOUNT_LOGE("failed to WriteParcelable for parcelable");
-            return false;
-        }
-    }
-
-    return true;
-}
-
-template<typename T>
-bool AppAccountProxy::ReadParcelableVector(std::vector<T> &parcelableVector, MessageParcel &data)
-{
+    accountList.clear();
     uint32_t size = 0;
-    if (!data.ReadUint32(size)) {
-        ACCOUNT_LOGE("failed to ReadInt32 for size");
+    if (!parcel.ReadUint32(size)) {
+        ACCOUNT_LOGE("fail to read the account list size");
         return false;
     }
-
-    parcelableVector.clear();
-    for (uint32_t index = 0; index < size; index += 1) {
-        std::shared_ptr<T> parcelable(data.ReadParcelable<T>());
-        if (parcelable == nullptr) {
-            ACCOUNT_LOGE("failed to ReadParcelable for T");
+    if (size > Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT) {
+        ACCOUNT_LOGE("the account list size is invalid");
+        return false;
+    }
+    for (uint32_t index = 0; index < size; index++) {
+        std::shared_ptr<AppAccountInfo> account(parcel.ReadParcelable<AppAccountInfo>());
+        if (account == nullptr) {
+            ACCOUNT_LOGE("failed to read app account info");
             return false;
         }
-        parcelableVector.emplace_back(*parcelable);
+        accountList.emplace_back(*account);
     }
 
     return true;

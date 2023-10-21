@@ -402,28 +402,6 @@ bool OsAccountStub::WriteParcelableVector(const std::vector<T> &parcelableVector
     return true;
 }
 
-template<typename T>
-bool OsAccountStub::ReadParcelableVector(std::vector<T> &parcelableInfos, MessageParcel &data)
-{
-    uint32_t infoSize = 0;
-    if (!data.ReadUint32(infoSize)) {
-        ACCOUNT_LOGE("read Parcelable size failed.");
-        return false;
-    }
-
-    parcelableInfos.clear();
-    for (uint32_t index = 0; index < infoSize; index++) {
-        std::shared_ptr<T> info(data.ReadParcelable<T>());
-        if (info == nullptr) {
-            ACCOUNT_LOGE("read Parcelable infos failed.");
-            return false;
-        }
-        parcelableInfos.emplace_back(*info);
-    }
-
-    return true;
-}
-
 static ErrCode WriteResultWithOsAccountInfo(MessageParcel &reply, int32_t result, const OsAccountInfo &info)
 {
     if (!reply.WriteInt32(result)) {
