@@ -91,10 +91,7 @@ public:
     ErrCode GetDefaultActivatedOsAccount(int32_t &id) override;
 
 private:
-    template<typename T>
-    bool WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data);
-    template<typename T>
-    bool ReadParcelableVector(std::vector<T> &parcelableInfos, MessageParcel &data);
+    bool ReadOsAccountInfoList(MessageParcel &data, std::vector<OsAccountInfo> &parcelableInfos);
     ErrCode SendRequest(OsAccountInterfaceCode code, MessageParcel &data, MessageParcel &reply);
     ErrCode CheckOsAccountConstraintEnabled(
         OsAccountInterfaceCode code, const int id, const std::string &constraint, bool &isConstraintEnable);

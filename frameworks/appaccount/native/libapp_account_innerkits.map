@@ -35,7 +35,6 @@
         "OHOS::AccountSA::AppAccountEventListener::AppAccountEventListener(std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscriber> const&)";
         "OHOS::AccountSA::AppAccountEventStub::AppAccountEventStub()";
         "OHOS::AccountSA::AppAccountEventStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
-        "OHOS::AccountSA::AppAccountEventStub::ReadParcelableVector<OHOS::AccountSA::AppAccountInfo>(std::__h::vector<OHOS::AccountSA::AppAccountInfo, std::__h::allocator<OHOS::AccountSA::AppAccountInfo>>&, OHOS::MessageParcel&)";
         "OHOS::AccountSA::AppAccountEventStub::~AppAccountEventStub()";
         "OHOS::AccountSA::AppAccountInfo::AppAccountInfo()";
         "OHOS::AccountSA::AuthorizationRequest::AuthorizationRequest()";
@@ -109,7 +108,7 @@
         "OHOS::AccountSA::AppAccount::CreateAppAccountEventListener(std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscriber> const&, OHOS::sptr<OHOS::IRemoteObject>&)";
         "OHOS::AccountSA::AppAccountInfo::AppAccountInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::AppAccountInfo::GetExtraInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&) const";
-        "bool OHOS::AccountSA::AppAccountEventStub::ReadParcelableVector<OHOS::AccountSA::AppAccountInfo>(std::__h::vector<OHOS::AccountSA::AppAccountInfo, std::__h::allocator<OHOS::AccountSA::AppAccountInfo>>&, OHOS::MessageParcel&)";
+        "OHOS::AccountSA::AppAccountEventStub::ProcOnAccountsChanged(OHOS::MessageParcel&)";
         "virtual thunk to OHOS::AccountSA::AppAccountAuthenticatorCallbackStub::~AppAccountAuthenticatorCallbackStub()";
         "OHOS::AccountSA::AppAccountSubscriber::AppAccountSubscriber()";
         "virtual thunk to OHOS::AccountSA::AppAccountAuthenticatorStub::~AppAccountAuthenticatorStub()";
