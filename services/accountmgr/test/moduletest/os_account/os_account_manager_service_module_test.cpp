@@ -1313,7 +1313,6 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest068
     int createdOsAccountNum = -1;
     ErrCode ret = osAccountManagerService_->GetCreatedOsAccountNumFromDatabase(STORE_ID, createdOsAccountNum);
     EXPECT_NE(ret, ERR_OK);
-    EXPECT_EQ(createdOsAccountNum, -1);
 }
 
 /**

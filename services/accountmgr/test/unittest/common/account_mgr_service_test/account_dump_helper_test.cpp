@@ -13,7 +13,12 @@
  * limitations under the License.
  */
 
+#include <dirent.h>
+#include <fstream>
 #include <gtest/gtest.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <vector>
 
 #define private public
 #include "account_dump_helper.h"
@@ -26,6 +31,7 @@
 #include "ohos_account_kits.h"
 #include "ohos_account_manager.h"
 #include "os_account.h"
+#include "os_account_file_operator.h"
 #include "os_account_manager_service.h"
 #define private public
 #include "perf_stat.h"
@@ -38,6 +44,7 @@ using namespace OHOS::AccountSA;
 namespace {
 const std::string TEST_ACCOUNT_NAME = "TestAccountName";
 const std::string TEST_ACCOUNT_UID = "123456789";
+const std::string DEFAULT_ANON_STR = "**********";
 }
 
 class AccountDumpHelperTest : public testing::Test {
@@ -86,6 +93,12 @@ void AccountDumpHelperTest::TearDown()
     }
 }
 
+
+static int RenameFile(const std::string &src, const std::string &des)
+{
+    return rename(src.c_str(), des.c_str());
+}
+
 /**
  * @tc.name: AccountDumpNoParameterTest001
  * @tc.desc: Test account info with no parameter
@@ -99,10 +112,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpNoParameterTest001, TestSize.Level0)
      */
     std::string out;
     vector<std::string> cmd;
-    if (accountDumpHelper_ == nullptr) {
-        std::cout << "AccountDumpNoParameterTest001, accountDumpHelper_ is nullptr!" << std::endl;
-        return;
-    }
+    ASSERT_NE(accountDumpHelper_, nullptr);
 
     accountDumpHelper_->Dump(cmd, out);
     auto pos = out.find("Account Manager service, enter '-h' for usage", 0);
@@ -133,10 +143,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest001, TestSize.Level0)
      */
     std::string out;
     vector<std::string> cmd = {"-ohos_account_infos"};
-    if (accountDumpHelper_ == nullptr) {
-        std::cout << "AccountDumpParameterTest001, accountDumpHelper_ is nullptr!" << std::endl;
-        return;
-    }
+    ASSERT_EQ(accountDumpHelper_, nullptr);
 
     accountDumpHelper_->Dump(cmd, out);
     auto pos = out.find("OhosAccount name", 0);
@@ -339,4 +346,117 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpInvalidParameterTest003, TestSize.Lev
     accountDumpHelper_->Dump(cmd, out);
     auto pos = out.find("Usage:dump", 0);
     EXPECT_NE(std::string::npos, pos);
+}
+
+/**
+ * @tc.name: AnonymizeNameStrTest001
+ * @tc.desc: test input invalid parameter
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountDumpHelperTest, AnonymizeNameStrTest001, TestSize.Level0)
+{
+    /**
+     * @tc.steps: step1. Input invalid parameter
+     */
+    std::string name = "";
+    std::string out = accountDumpHelper_->AnonymizeNameStr(name);
+    EXPECT_EQ(out, "");
+}
+
+/**
+ * @tc.name: AnonymizeUidStrTest001
+ * @tc.desc: test input invalid parameter
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountDumpHelperTest, AnonymizeUidStrTest001, TestSize.Level0)
+{
+    /**
+     * @tc.steps: step1. Input invalid parameter
+     */
+    std::string name = "ohosAnonymousUid";
+    std::string out = accountDumpHelper_->AnonymizeUidStr(name);
+    EXPECT_EQ(out, name);
+}
+
+/**
+ * @tc.name: AnonymizeUidStrTest002
+ * @tc.desc: test input invalid parameter
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountDumpHelperTest, AnonymizeUidStrTest002, TestSize.Level0)
+{
+    /**
+     * @tc.steps: step1. Input invalid parameter
+     */
+    std::string out = accountDumpHelper_->AnonymizeUidStr("");
+    EXPECT_EQ(out, "");
+}
+
+/**
+ * @tc.name: AnonymizeUidStrTest003
+ * @tc.desc: test input invalid parameter
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountDumpHelperTest, AnonymizeUidStrTest003, TestSize.Level0)
+{
+    /**
+     * @tc.steps: step1. Input invalid parameter
+     */
+    std::string name = "1";
+    std::string out = accountDumpHelper_->AnonymizeUidStr(name);
+    EXPECT_EQ(out, DEFAULT_ANON_STR);
+}
+
+/**
+ * @tc.name: ShowOhosAccountInfoTest001
+ * @tc.desc: test the file saved to OhosAccountInfo cannot be obtained
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountDumpHelperTest, ShowOhosAccountInfoTest001, TestSize.Level0)
+{
+    RenameFile(Constants::ACCOUNT_LIST_FILE_JSON_PATH,
+        Constants::ACCOUNT_LIST_FILE_JSON_PATH + "_blk");
+
+    std::string out;
+    accountDumpHelper_->ShowOhosAccountInfo(out);
+    auto pos = out.find("Cannot query os account list", 0);
+    EXPECT_NE(std::string::npos, pos);
+
+    RenameFile(Constants::ACCOUNT_LIST_FILE_JSON_PATH + "_blk",
+        Constants::ACCOUNT_LIST_FILE_JSON_PATH);
+}
+
+/**
+ * @tc.name: ShowOhosAccountInfoTest002
+ * @tc.desc: test read empty OhosAccountInfo
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountDumpHelperTest, ShowOhosAccountInfoTest002, TestSize.Level0)
+{
+    /**
+     * @tc.steps: step1. Input invalid parameter
+     */
+    RenameFile(Constants::ACCOUNT_LIST_FILE_JSON_PATH,
+        Constants::ACCOUNT_LIST_FILE_JSON_PATH + "_blk");
+    if (access(Constants::ACCOUNT_LIST_FILE_JSON_PATH.c_str(), F_OK) != 0) {
+        FILE *fp = fopen(Constants::ACCOUNT_LIST_FILE_JSON_PATH.c_str(), "w");
+        EXPECT_NE(fp, nullptr);
+        fclose(fp);
+    }
+    EXPECT_EQ(access(Constants::ACCOUNT_LIST_FILE_JSON_PATH.c_str(), F_OK), 0);
+
+    std::string out;
+    accountDumpHelper_->ShowOhosAccountInfo(out);
+    auto pos = out.find("System error:", 0);
+    EXPECT_NE(std::string::npos, pos);
+
+    remove(Constants::ACCOUNT_LIST_FILE_JSON_PATH.c_str());
+    RenameFile(Constants::ACCOUNT_LIST_FILE_JSON_PATH + "_blk",
+        Constants::ACCOUNT_LIST_FILE_JSON_PATH);
 }
