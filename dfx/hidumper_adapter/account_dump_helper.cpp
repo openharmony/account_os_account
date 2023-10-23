@@ -41,7 +41,9 @@ const size_t MIN_ANONYMIZE_PART_LEN = 10;
 const size_t MAX_INTERCEPT_PART_LEN = 4;
 const size_t INTERCEPT_HEAD_PART_LEN_FOR_NAME = 1;
 const std::string DEFAULT_ANON_STR = "**********";
-std::string AnonymizeNameStr(const std::string& nameStr)
+} // namespace
+
+std::string AccountDumpHelper::AnonymizeNameStr(const std::string& nameStr) const
 {
     if (nameStr == DEFAULT_OHOS_ACCOUNT_NAME || nameStr.empty()) {
         return nameStr;
@@ -50,7 +52,7 @@ std::string AnonymizeNameStr(const std::string& nameStr)
     return retStr;
 }
 
-std::string AnonymizeUidStr(const std::string& uidStr)
+std::string AccountDumpHelper::AnonymizeUidStr(const std::string& uidStr) const
 {
     if (uidStr == DEFAULT_OHOS_ACCOUNT_UID || uidStr.empty()) {
         return uidStr;
@@ -68,7 +70,6 @@ std::string AnonymizeUidStr(const std::string& uidStr)
     retStr += uidStr.substr(uidStr.length() - interceptLen);
     return retStr;
 }
-} // namespace
 
 AccountDumpHelper::AccountDumpHelper(OsAccountManagerService* osAccountMgrService)
 {

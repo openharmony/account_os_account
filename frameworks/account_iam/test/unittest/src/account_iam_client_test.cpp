@@ -915,17 +915,6 @@ HWTEST_F(AccountIAMClientTest, ResetAccountIAMProxy001, TestSize.Level0)
     wptr<IRemoteObject> remote;
     AccountIAMClient::GetInstance().proxy_ = nullptr;
     AccountIAMClient::GetInstance().ResetAccountIAMProxy(remote);
-}
-
-/**
- * @tc.name: ResetAccountIAMProxy002
- * @tc.desc: test ResetAccountIAMProxy.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AccountIAMClientTest, ResetAccountIAMProxy002, TestSize.Level0)
-{
-    wptr<IRemoteObject> remote;
     sptr<IAccountIAM> testIAccountIAM = new (std::nothrow) AccountIAMMgrProxy(nullptr);
     AccountIAMClient::GetInstance().proxy_ = testIAccountIAM;
     EXPECT_NE(AccountIAMClient::GetInstance().proxy_, nullptr);
