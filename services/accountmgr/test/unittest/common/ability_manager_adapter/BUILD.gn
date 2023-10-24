@@ -82,7 +82,9 @@ ohos_unittest("AbilityManagerAdapterMockTest") {
     "ability_runtime:ability_manager",
     "c_utils:utils",
     "hilog:libhilog",
+    "init:libbegetutil",
     "ipc:ipc_single",
+    "safwk:dynamic_cache",
     "samgr:samgr_proxy",
   ]
 
