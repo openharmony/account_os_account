@@ -78,7 +78,9 @@ ohos_unittest("os_account_mock_test") {
     "ability_base:want",
     "c_utils:utils",
     "hilog:libhilog",
+    "init:libbegetutil",
     "ipc:ipc_single",
+    "safwk:dynamic_cache",
   ]
 }
 group("unittest") {

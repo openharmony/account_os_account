@@ -180,4 +180,14 @@ int32_t SystemAbilityManagerProxy::UpdateOnDemandPolicy(int32_t systemAbilityId,
 {
     return ERR_INVALID_VALUE;
 }
+
+int32_t SystemAbilityManagerProxy::GetOnDemandSystemAbilityIds(std::vector<int32_t>& systemAbilityIds)
+{
+    return ERR_INVALID_VALUE;
+}
+
+sptr<IRemoteObject> SystemAbilityManagerProxy::Recompute(int32_t systemAbilityId, int32_t code)
+{
+    return nullptr;
+}
 }
