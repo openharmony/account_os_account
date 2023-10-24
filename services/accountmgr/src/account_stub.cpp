@@ -413,6 +413,7 @@ std::int32_t AccountStub::CmdGetDomainAccountService(MessageParcel &data, Messag
 std::int32_t AccountStub::OnRemoteRequest(
     std::uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
+    ACCOUNT_LOGD("Received stub message: %{public}d, callingUid: %{public}d", code, IPCSkeleton::GetCallingUid());
     MemoryGuard cacheGuard;
     if (!IsServiceStarted()) {
         ACCOUNT_LOGE("account mgr not ready");
