@@ -19,6 +19,8 @@
 #include "account_log_wrapper.h"
 #include "app_account_constants.h"
 #include "account_constants.h"
+#include "ipc_skeleton.h"
+#include "memory_guard.h"
 #ifdef HICOLLIE_ENABLE
 #include "xcollie/xcollie.h"
 #endif // HICOLLIE_ENABLE
@@ -240,6 +242,8 @@ AppAccountStub::~AppAccountStub()
 
 int AppAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
+    ACCOUNT_LOGD("Received stub message: %{public}d, callingUid: %{public}d", code, IPCSkeleton::GetCallingUid());
+    MemoryGuard cacheGuard;
     if (data.ReadInterfaceToken() != GetDescriptor()) {
         ACCOUNT_LOGE("failed to check descriptor! code %{public}u.", code);
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;

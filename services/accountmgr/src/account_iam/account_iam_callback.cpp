@@ -107,7 +107,7 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
     }
     innerCallback_->OnResult(result, extraInfo);
     AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, result);
-    if (!isAccountVerified_) {
+    if ((authType_ == AuthType::PIN) && (!isAccountVerified_)) {
         auto getSecUidCallback = std::make_shared<RestoreFileKeyCallback>(userId_, extraInfo);
         UserIDMClient::GetInstance().GetSecUserInfo(userId_, getSecUidCallback);
     }

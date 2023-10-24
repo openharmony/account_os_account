@@ -69,9 +69,9 @@ ErrCode OhosAccountDataDeal::Init(int32_t userId)
 
     // NOT-allow exceptions when parse json file
     std::lock_guard<std::mutex> lock(mutex_);
-    jsonData_ = json::parse(fin, nullptr, false);
+    nlohmann::json jsonData = json::parse(fin, nullptr, false);
     fin.close();
-    if (!jsonData_.is_structured()) {
+    if (!jsonData.is_structured()) {
         ACCOUNT_LOGE("Invalid json file, remove");
         if (RemoveFile(configFile)) {
             ACCOUNT_LOGE("Remove invalid json file %{public}s failed, errno %{public}d.", configFile.c_str(), errno);
@@ -173,55 +173,56 @@ ErrCode OhosAccountDataDeal::ParseJsonFromFile(const std::string &filePath, nloh
     return ERR_OK;
 }
 
-ErrCode OhosAccountDataDeal::GetAccountInfoFromJson(AccountInfo &accountInfo, const int32_t userId)
+ErrCode OhosAccountDataDeal::GetAccountInfoFromJson(
+    const nlohmann::json &jsonData, AccountInfo &accountInfo, const int32_t userId)
 {
-    const auto &jsonObjectEnd = jsonData_.end();
-    if ((jsonData_.find(DATADEAL_JSON_KEY_BIND_TIME) != jsonObjectEnd) &&
-        (jsonData_.at(DATADEAL_JSON_KEY_BIND_TIME).is_number())) {
-        accountInfo.bindTime_ = jsonData_.at(DATADEAL_JSON_KEY_BIND_TIME).get<std::time_t>();
+    const auto &jsonObjectEnd = jsonData.end();
+    if ((jsonData.find(DATADEAL_JSON_KEY_BIND_TIME) != jsonObjectEnd) &&
+        (jsonData.at(DATADEAL_JSON_KEY_BIND_TIME).is_number())) {
+        accountInfo.bindTime_ = jsonData.at(DATADEAL_JSON_KEY_BIND_TIME).get<std::time_t>();
     }
 
-    if ((jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_NAME) != jsonObjectEnd) &&
-        (jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_NAME).is_string())) {
-        accountInfo.ohosAccountInfo_.name_ = jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_NAME).get<std::string>();
+    if ((jsonData.find(DATADEAL_JSON_KEY_OHOSACCOUNT_NAME) != jsonObjectEnd) &&
+        (jsonData.at(DATADEAL_JSON_KEY_OHOSACCOUNT_NAME).is_string())) {
+        accountInfo.ohosAccountInfo_.name_ = jsonData.at(DATADEAL_JSON_KEY_OHOSACCOUNT_NAME).get<std::string>();
     }
 
-    if ((jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_RAW_UID) != jsonObjectEnd) &&
-        (jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_RAW_UID).is_string())) {
-        std::string rawUid = jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_RAW_UID).get<std::string>();
+    if ((jsonData.find(DATADEAL_JSON_KEY_OHOSACCOUNT_RAW_UID) != jsonObjectEnd) &&
+        (jsonData.at(DATADEAL_JSON_KEY_OHOSACCOUNT_RAW_UID).is_string())) {
+        std::string rawUid = jsonData.at(DATADEAL_JSON_KEY_OHOSACCOUNT_RAW_UID).get<std::string>();
         accountInfo.ohosAccountInfo_.SetRawUid(rawUid);
     }
 
-    if ((jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_UID) != jsonObjectEnd) &&
-        (jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_UID).is_string())) {
-        accountInfo.ohosAccountInfo_.uid_ = jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_UID).get<std::string>();
+    if ((jsonData.find(DATADEAL_JSON_KEY_OHOSACCOUNT_UID) != jsonObjectEnd) &&
+        (jsonData.at(DATADEAL_JSON_KEY_OHOSACCOUNT_UID).is_string())) {
+        accountInfo.ohosAccountInfo_.uid_ = jsonData.at(DATADEAL_JSON_KEY_OHOSACCOUNT_UID).get<std::string>();
     }
 
-    if ((jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_STATUS) != jsonObjectEnd) &&
-        (jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_STATUS).is_number())) {
-        accountInfo.ohosAccountInfo_.status_ = jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_STATUS).get<int32_t>();
+    if ((jsonData.find(DATADEAL_JSON_KEY_OHOSACCOUNT_STATUS) != jsonObjectEnd) &&
+        (jsonData.at(DATADEAL_JSON_KEY_OHOSACCOUNT_STATUS).is_number())) {
+        accountInfo.ohosAccountInfo_.status_ = jsonData.at(DATADEAL_JSON_KEY_OHOSACCOUNT_STATUS).get<int32_t>();
     }
 
-    if ((jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_CALLINGUID) != jsonObjectEnd) &&
-        (jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_CALLINGUID).is_number())) {
+    if ((jsonData.find(DATADEAL_JSON_KEY_OHOSACCOUNT_CALLINGUID) != jsonObjectEnd) &&
+        (jsonData.at(DATADEAL_JSON_KEY_OHOSACCOUNT_CALLINGUID).is_number())) {
         accountInfo.ohosAccountInfo_.callingUid_ =
-            jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_CALLINGUID).get<int32_t>();
+            jsonData.at(DATADEAL_JSON_KEY_OHOSACCOUNT_CALLINGUID).get<int32_t>();
     }
 
-    if ((jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_NICKNAME) != jsonObjectEnd) &&
-        (jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_NICKNAME).is_string())) {
+    if ((jsonData.find(DATADEAL_JSON_KEY_OHOSACCOUNT_NICKNAME) != jsonObjectEnd) &&
+        (jsonData.at(DATADEAL_JSON_KEY_OHOSACCOUNT_NICKNAME).is_string())) {
         accountInfo.ohosAccountInfo_.nickname_ =
-            jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_NICKNAME).get<std::string>();
+            jsonData.at(DATADEAL_JSON_KEY_OHOSACCOUNT_NICKNAME).get<std::string>();
     }
 
-    if ((jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR) != jsonObjectEnd) &&
-        (jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR).is_string())) {
-        accountInfo.ohosAccountInfo_.avatar_ = jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR).get<std::string>();
+    if ((jsonData.find(DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR) != jsonObjectEnd) &&
+        (jsonData.at(DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR).is_string())) {
+        accountInfo.ohosAccountInfo_.avatar_ = jsonData.at(DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR).get<std::string>();
     }
 
-    if ((jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_SCALABLEDATA) != jsonObjectEnd) &&
-        (jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_SCALABLEDATA).is_string())) {
-        auto scalableDataJson = jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_SCALABLEDATA).get<std::string>();
+    if ((jsonData.find(DATADEAL_JSON_KEY_OHOSACCOUNT_SCALABLEDATA) != jsonObjectEnd) &&
+        (jsonData.at(DATADEAL_JSON_KEY_OHOSACCOUNT_SCALABLEDATA).is_string())) {
+        auto scalableDataJson = jsonData.at(DATADEAL_JSON_KEY_OHOSACCOUNT_SCALABLEDATA).get<std::string>();
         sptr<AAFwk::Want> want = AAFwk::Want::FromString(scalableDataJson);
         if (want == nullptr) {
             return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
@@ -243,11 +244,12 @@ ErrCode OhosAccountDataDeal::GetAccountInfo(AccountInfo &accountInfo, const int3
 #endif // WITH_SELINUX
     }
     std::lock_guard<std::mutex> lock(mutex_);
-    ErrCode ret = ParseJsonFromFile(configFile, jsonData_, userId);
+    nlohmann::json jsonData;
+    ErrCode ret = ParseJsonFromFile(configFile, jsonData, userId);
     if (ret != ERR_OK) {
         return ret;
     }
-    return GetAccountInfoFromJson(accountInfo, userId);
+    return GetAccountInfoFromJson(jsonData, accountInfo, userId);
 }
 
 void OhosAccountDataDeal::BuildJsonFileFromScratch(int32_t userId) const
