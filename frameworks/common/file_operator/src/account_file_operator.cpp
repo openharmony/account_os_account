@@ -19,6 +19,7 @@
 #include <nlohmann/json.hpp>
 #include <sstream>
 #include <string>
+#include <sys/file.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -71,6 +72,18 @@ ErrCode AccountFileOperator::DeleteDirOrFile(const std::string &path)
     return ERR_OK;
 }
 
+void AccountFileOperator::SetValidWriteFileOptFlag(bool flag)
+{
+    std::lock_guard<std::mutex> lock(validWriteFileOptLock_);
+    validWriteFileOptFlag_ = flag;
+}
+
+bool AccountFileOperator::GetValidWriteFileOptFlag()
+{
+    std::lock_guard<std::mutex> lock(validWriteFileOptLock_);
+    return validWriteFileOptFlag_;
+}
+
 ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, const std::string &content)
 {
     std::string str = path;
@@ -82,37 +95,44 @@ ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, 
             return errCode;
         }
     }
+    std::lock_guard<std::mutex> lock(validWriteFileOptLock_);
+    validWriteFileOptFlag_ = true;
     FILE *fp = fopen(path.c_str(), "wb");
     if (fp == nullptr) {
         ACCOUNT_LOGE("failed to open %{public}s, errno %{public}d.", path.c_str(), errno);
+        validWriteFileOptFlag_ = false;
         return ERR_ACCOUNT_COMMON_FILE_OPEN_FAILED;
     }
-    size_t num = fwrite(content.c_str(), sizeof(char), content.length(), fp);
-    if (num != content.length()) {
-        ACCOUNT_LOGE("failed to fwrite %{public}s, errno %{public}d.", path.c_str(), errno);
+    do {
+        flock(fileno(fp), LOCK_EX);
+        size_t num = fwrite(content.c_str(), sizeof(char), content.length(), fp);
+        if (num != content.length()) {
+            ACCOUNT_LOGE("failed to fwrite %{public}s, errno %{public}d.", path.c_str(), errno);
+            break;
+        }
+        if (fflush(fp) != 0) {
+            ACCOUNT_LOGE("failed to fflush %{public}s, errno %{public}d.", path.c_str(), errno);
+            break;
+        }
+        if (fsync(fileno(fp)) != 0) {
+            ACCOUNT_LOGE("failed to fsync %{public}s, errno %{public}d.", path.c_str(), errno);
+            break;
+        }
+        flock(fileno(fp), LOCK_UN);
         fclose(fp);
-        return ERR_ACCOUNT_COMMON_FILE_WRITE_FAILED;
-    }
-    if (fflush(fp) != 0) {
-        ACCOUNT_LOGE("failed to fflush %{public}s, errno %{public}d.", path.c_str(), errno);
-        fclose(fp);
-        return ERR_ACCOUNT_COMMON_FILE_WRITE_FAILED;
-    }
-    if (fsync(fileno(fp)) != 0) {
-        ACCOUNT_LOGE("failed to fsync %{public}s, errno %{public}d.", path.c_str(), errno);
-        fclose(fp);
-        return ERR_ACCOUNT_COMMON_FILE_WRITE_FAILED;
-    }
-    fclose(fp);
 #ifdef WITH_SELINUX
-    Restorecon(path.c_str());
+        Restorecon(path.c_str());
 #endif // WITH_SELINUX
-    // change mode
-    if (!ChangeModeFile(path, S_IRUSR | S_IWUSR)) {
-        ACCOUNT_LOGW("failed to change mode for file %{public}s, errno %{public}d.", path.c_str(), errno);
-    }
-
-    return ERR_OK;
+        // change mode
+        if (!ChangeModeFile(path, S_IRUSR | S_IWUSR)) {
+            ACCOUNT_LOGW("failed to change mode for file %{public}s, errno %{public}d.", path.c_str(), errno);
+        }
+        return ERR_OK;
+    } while (0);
+    flock(fileno(fp), LOCK_UN);
+    fclose(fp);
+    validWriteFileOptFlag_ = false;
+    return ERR_ACCOUNT_COMMON_FILE_WRITE_FAILED;
 }
 
 ErrCode AccountFileOperator::GetFileContentByPath(const std::string &path, std::string &content)

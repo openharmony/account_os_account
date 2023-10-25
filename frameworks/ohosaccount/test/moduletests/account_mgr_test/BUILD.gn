@@ -115,6 +115,8 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
     "//third_party/mbedtls:mbedtls",
   ]
 
+  use_exceptions = true
+
   external_deps = [
     "ability_base:want",
     "ability_runtime:ability_manager",
@@ -126,6 +128,7 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "hilog:libhilog",
+    "huks:libhukssdk",
     "init:libbegetutil",
     "ipc:ipc_single",
     "safwk:system_ability_fwk",
