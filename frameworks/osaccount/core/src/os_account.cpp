@@ -805,5 +805,11 @@ ErrCode OsAccount::GetDefaultActivatedOsAccount(int32_t &id)
     }
     return proxy->GetDefaultActivatedOsAccount(id);
 }
+
+ErrCode OsAccount::GetOsAccountShortName(std::string &shortName)
+{
+    shortName = "default";
+    return ERR_OK;
+}
 }  // namespace AccountSA
 }  // namespace OHOS
