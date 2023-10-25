@@ -491,6 +491,13 @@ public:
      * @return error code, see account_error_no.h
      */
     static ErrCode GetDefaultActivatedOsAccount(int32_t &id);
+
+    /**
+     * @brief Gets the currend user short name.
+     * @param id - Indicates the current user short name of the OS account.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode GetOsAccountShortName(std::string &shortName);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

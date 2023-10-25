@@ -84,6 +84,7 @@ public:
         const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner);
     ErrCode SetDefaultActivatedOsAccount(const int32_t id);
     ErrCode GetDefaultActivatedOsAccount(int32_t &id);
+    ErrCode GetOsAccountShortName(std::string &shortName);
 
 private:
     OsAccount() = default;
