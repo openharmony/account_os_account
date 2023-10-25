@@ -589,3 +589,15 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0106, TestSize.Level1)
     EXPECT_EQ(ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR,
         OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
 }
+
+/**
+ * @tc.name: GetOsAccountShortName001
+ * @tc.desc: Test get os account name.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, GetOsAccountShortName001, TestSize.Level1)
+{
+    std::string shortName;
+    EXPECT_EQ(ERR_OK, OsAccountManager::GetOsAccountShortName(shortName));
+}

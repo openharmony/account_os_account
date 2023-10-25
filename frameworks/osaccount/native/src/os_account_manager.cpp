@@ -304,5 +304,10 @@ ErrCode OsAccountManager::GetDefaultActivatedOsAccount(int32_t &id)
 {
     return OsAccount::GetInstance().GetDefaultActivatedOsAccount(id);
 }
+
+ErrCode OsAccountManager::GetOsAccountShortName(std::string &shortName)
+{
+    return OsAccount::GetInstance().GetOsAccountShortName(shortName);
+}
 }  // namespace AccountSA
 }  // namespace OHOS
