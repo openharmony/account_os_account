@@ -61,6 +61,7 @@ public:
     OsAccountControlFileManager();
     virtual ~OsAccountControlFileManager();
     void Init() override;
+    void FileInit();
     ErrCode GetOsAccountList(std::vector<OsAccountInfo> &osAccountList) override;
     ErrCode GetOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo) override;
     ErrCode GetConstraintsByType(const OsAccountType type, std::vector<std::string> &constraints) override;
@@ -140,6 +141,14 @@ private:
     ErrCode RemoveOAGlobalConstraintsInfo(const int32_t id);
     ErrCode RemoveOASpecificConstraintsInfo(const int32_t id);
     ErrCode GetAccountInfoDigestFromFile(const std::string &path, uint8_t *digest, uint32_t size);
+    void WatchOsAccountInfoFile();
+    void AddFileWatcher(const int32_t id);
+    void RemoveFileWatcher(const int32_t id);
+    void GetNotifyEvent();
+    void DealWithFileEvent();
+    void InitFileWatcherInfo(std::vector<std::string> &accountIdList);
+    void SubscribeEventFunction(std::shared_ptr<FileWatcher> &fileWatcher);
+    bool RecoverAccountData(const std::string &fileName, const int32_t id);
 
 private:
     std::shared_ptr<AccountFileOperator> accountFileOperator_;
@@ -149,6 +158,7 @@ private:
     std::int32_t nextLocalId_ = Constants::START_USER_ID;
     std::shared_ptr<OsAccountFileOperator> osAccountFileOperator_;
     std::shared_ptr<OsAccountPhotoOperator> osAccountPhotoOperator_;
+    std::mutex fileWatcherMgrLock_;
     std::mutex accountListFileLock_;
     std::mutex accountInfoFileLock_;
     std::mutex accountInfoDigestFileLock_;
@@ -156,6 +166,12 @@ private:
     std::mutex baseOAConstraintsFileLock_;
     std::mutex globalOAConstraintsFileLock_;
     std::mutex specificOAConstraintsFileLock_;
+
+    std::unordered_map<int32_t, std::shared_ptr<FileWatcher>> fileNameMgrMap_;
+    fd_set fds_;
+    int32_t maxNotifyFd_ = -1;
+    std::vector<int32_t> fdArray_;
+    bool run_ = false;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
