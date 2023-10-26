@@ -82,6 +82,10 @@ static int32_t InitParamSet(struct HksParamSet **paramSet, const struct HksParam
 
 static int32_t MallocAndCheckBlobData(struct HksBlob *blob, const uint32_t blobSize)
 {
+    if (blobSize == 0) {
+        blob->data = NULL;
+        return -1;
+    }
     blob->data = (uint8_t *)malloc(blobSize);
     if (blob->data == NULL) {
         ACCOUNT_LOGE("MallocAndCheckBlobData err");
