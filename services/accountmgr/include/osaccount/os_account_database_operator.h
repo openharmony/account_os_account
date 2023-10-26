@@ -38,9 +38,9 @@ public:
     ErrCode GetMaxAllowCreateIdFromDatabase(const std::string& storeID, int &id);
     ErrCode GetOsAccountFromDatabase(const std::string& storeID, const int id, OsAccountInfo &osAccountInfo);
     ErrCode GetOsAccountListFromDatabase(const std::string& storeID, std::vector<OsAccountInfo> &osAccountList);
+    ErrCode GetAccountListFromStoreID(const std::string &storeID, Json &accountListJson);
 
 private:
-    ErrCode GetAccountListFromStoreID(const std::string& storeID, Json &accountListJson);
     ErrCode SaveAccountListToDatabase(const Json &accountListJson);
     bool InnerInit();
 
