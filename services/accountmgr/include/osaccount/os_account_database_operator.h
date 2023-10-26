@@ -33,11 +33,11 @@ public:
     void InsertOsAccountIntoDataBase(const OsAccountInfo &osAccountInfo);
     void DelOsAccountFromDatabase(const int id);
 
-    ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID, int &createdOsAccountNum);
-    ErrCode GetSerialNumberFromDatabase(const std::string& storeID, int64_t &serialNumber);
-    ErrCode GetMaxAllowCreateIdFromDatabase(const std::string& storeID, int &id);
-    ErrCode GetOsAccountFromDatabase(const std::string& storeID, const int id, OsAccountInfo &osAccountInfo);
-    ErrCode GetOsAccountListFromDatabase(const std::string& storeID, std::vector<OsAccountInfo> &osAccountList);
+    ErrCode GetCreatedOsAccountNumFromDatabase(const std::string &storeID, int &createdOsAccountNum);
+    ErrCode GetSerialNumberFromDatabase(const std::string &storeID, int64_t &serialNumber);
+    ErrCode GetMaxAllowCreateIdFromDatabase(const std::string &storeID, int &id);
+    ErrCode GetOsAccountFromDatabase(const std::string &storeID, const int id, OsAccountInfo &osAccountInfo);
+    ErrCode GetOsAccountListFromDatabase(const std::string &storeID, std::vector<OsAccountInfo> &osAccountList);
     ErrCode GetAccountListFromStoreID(const std::string &storeID, Json &accountListJson);
 
 private:

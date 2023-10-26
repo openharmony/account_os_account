@@ -17,10 +17,15 @@
 #ifdef WITH_SELINUX
 #include <policycoreutils.h>
 #endif // WITH_SELINUX
+#include <pthread.h>
 #include <securec.h>
 #include <sstream>
 #include <sys/types.h>
+#include <thread>
+#include <unistd.h>
+
 #include "account_log_wrapper.h"
+#include "hisysevent_adapter.h"
 #include "hks_api.h"
 #include "hks_param.h"
 #include "hks_type.h"
@@ -50,6 +55,7 @@ const struct HksParam g_genSignVerifyParams[] = {
     }
 };
 const uint32_t ALG_COMMON_SIZE = 32;
+const uint32_t BUF_COMMON_SIZE = 1024;
 const int32_t TIMES = 4;
 const int32_t MAX_UPDATE_SIZE = 256;
 const int32_t MAX_OUTDATA_SIZE = MAX_UPDATE_SIZE * TIMES;
@@ -223,6 +229,245 @@ bool GetValidAccountID(const std::string& dirName, std::int32_t& accountID)
     return (accountID >= Constants::ADMIN_LOCAL_ID && accountID <= Constants::MAX_USER_ID);
 }
 
+FileWatcher::FileWatcher(const int32_t id) : id_(id)
+{
+    filePath_ = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(id) +
+        Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
+}
+
+FileWatcher::FileWatcher(const std::string &filePath) : filePath_(filePath)
+{}
+
+FileWatcher::~FileWatcher()
+{}
+
+int32_t FileWatcher::GetNotifyId()
+{
+    return notifyFd_;
+}
+
+std::string FileWatcher::GetFilePath()
+{
+    return filePath_;
+}
+
+bool FileWatcher::InitNotify()
+{
+    notifyFd_ = inotify_init();
+    if (notifyFd_ < 0) {
+        ACCOUNT_LOGE("failed to init notify, errCode:%{public}d", errno);
+        return false;
+    }
+    return true;
+}
+
+bool FileWatcher::StartNotify(const uint32_t &watchEvents)
+{
+    wd_ = inotify_add_watch(notifyFd_, filePath_.c_str(), watchEvents);
+    if (wd_ < 0) {
+        ACCOUNT_LOGE("failed to init notify, errCode:%{public}d", errno);
+        return false;
+    }
+    return true;
+}
+
+bool FileWatcher::CheckNotifyEvent()
+{
+    if (!eventCallbackFunc_(filePath_, id_)) {
+        ACCOUNT_LOGW("deal notify event failed.");
+        return false;
+    }
+    return true;
+}
+
+void OsAccountControlFileManager::DealWithFileEvent()
+{
+    std::lock_guard<std::mutex> lock(fileWatcherMgrLock_);
+    for (int32_t i : fdArray_) {
+        if (FD_ISSET(i, &fds_)) { // check which fd has event
+            char buf[BUF_COMMON_SIZE] = {0};
+            struct inotify_event *event = nullptr;
+            int len, index = 0;
+            while (((len = read(i, &buf, sizeof(buf))) < 0) && (errno == EINTR)) {};
+            while (index < len) {
+                event = reinterpret_cast<inotify_event *>(buf + index);
+                std::shared_ptr<FileWatcher> fileWatcher = fileNameMgrMap_[i];
+                fileWatcher->CheckNotifyEvent();
+                index += sizeof(struct inotify_event) + event->len;
+            }
+        } else {
+            FD_SET(i, &fds_); // recover this fd for next check
+        }
+    }
+    return;
+}
+
+void OsAccountControlFileManager::GetNotifyEvent()
+{
+    while (run_) {
+        if (maxNotifyFd_ < 0) {
+            ACCOUNT_LOGE("failed to run notify because no fd available.");
+            run_ = false;
+            break;
+        }
+        if (select(maxNotifyFd_ + 1, &fds_, nullptr, nullptr, nullptr) <= 0) {
+            continue;
+        }
+        DealWithFileEvent();
+    }
+}
+
+void FileWatcher::SetEventCallback(CheckNotifyEventCallbackFunc &func)
+{
+    eventCallbackFunc_ = func;
+}
+
+int32_t FileWatcher::GetLocalId()
+{
+    return id_;
+}
+
+bool FileWatcher::CloseNotifyFd()
+{
+    if (inotify_rm_watch(notifyFd_, wd_) == -1) {
+        ACCOUNT_LOGE("failed to exec inotify_rm_watch, err:%{public}d", errno);
+        if (access(filePath_.c_str(), F_OK) == 0) {
+            close(notifyFd_);
+            return true;
+        }
+    }
+    int closeRet = close(notifyFd_);
+    if (closeRet != 0) {
+        ACCOUNT_LOGE("failed to close fd err:%{public}d", closeRet);
+        return false;
+    }
+    notifyFd_ = -1;
+    return true;
+}
+
+void OsAccountControlFileManager::RemoveFileWatcher(const int32_t id)
+{
+    std::lock_guard<std::mutex> lock(fileWatcherMgrLock_);
+    int targetFd = -1;
+    for (auto it : fileNameMgrMap_) {
+        if (it.second->GetLocalId() == id) {
+            targetFd = it.second->GetNotifyId();
+            break;
+        }
+    }
+    if (targetFd == -1) {
+        return;
+    }
+    FD_CLR(targetFd, &fds_);
+    if (!fileNameMgrMap_[targetFd]->CloseNotifyFd()) {
+        ACCOUNT_LOGE("failed to close notifyId, userId = %{public}d", id);
+    }
+    fdArray_.erase(
+        std::remove(fdArray_.begin(), fdArray_.end(), targetFd), fdArray_.end());
+
+    if (maxNotifyFd_ == targetFd) {
+        maxNotifyFd_ = *max_element(fdArray_.begin(), fdArray_.end());
+    }
+    fileNameMgrMap_.erase(targetFd);
+    return;
+}
+
+void OsAccountControlFileManager::AddFileWatcher(const int32_t id)
+{
+    std::shared_ptr<FileWatcher> fileWatcher;
+    if (id < Constants::START_USER_ID) {
+        fileWatcher = std::make_shared<FileWatcher>(Constants::ACCOUNT_LIST_FILE_JSON_PATH);
+    } else {
+        fileWatcher = std::make_shared<FileWatcher>(id);
+    }
+    if (!fileWatcher->InitNotify()) {
+        return;
+    }
+    SubscribeEventFunction(fileWatcher);
+    if (!fileWatcher->StartNotify(IN_MODIFY)) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(fileWatcherMgrLock_);
+    if (fileWatcher->GetNotifyId() > maxNotifyFd_) {
+        maxNotifyFd_ = fileWatcher->GetNotifyId();
+    }
+    fileNameMgrMap_[fileWatcher->GetNotifyId()] = fileWatcher;
+    fdArray_.emplace_back(fileWatcher->GetNotifyId());
+    FD_SET(fileWatcher->GetNotifyId(), &fds_);
+}
+
+bool OsAccountControlFileManager::RecoverAccountData(const std::string &fileName, const int32_t id)
+{
+#ifdef HAS_KV_STORE_PART
+    std::string recoverDataStr;
+    if (fileName == Constants::ACCOUNT_LIST_FILE_JSON_PATH) {
+        Json accountListJson;
+        osAccountDataBaseOperator_->GetAccountListFromStoreID(OS_ACCOUNT_STORE_ID, accountListJson);
+        recoverDataStr = accountListJson.dump();
+    } else {
+        OsAccountInfo osAccountInfo;
+        GetOsAccountFromDatabase(OS_ACCOUNT_STORE_ID, id, osAccountInfo);
+        recoverDataStr = osAccountInfo.ToString();
+    }
+    // recover data
+    ErrCode result = accountFileOperator_->InputFileByPathAndContent(fileName, recoverDataStr);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("recover local file data failed, err = %{public}d", result);
+        return false;
+    }
+    // update local digest
+    std::string digestStr;
+    if (GenerateAccountInfoDigestStr(fileName, recoverDataStr, digestStr) != ERR_OK) {
+        return false;
+    }
+    accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_INFO_DIGEST_FILE_PATH, digestStr);
+#endif
+    return true;
+}
+
+void OsAccountControlFileManager::SubscribeEventFunction(std::shared_ptr<FileWatcher> &fileWatcher)
+{
+    CheckNotifyEventCallbackFunc checkCallbackFunc =
+        [this](const std::string &fileName, const int32_t id) {
+            if (accountFileOperator_->GetValidWriteFileOptFlag()) {
+                ACCOUNT_LOGD("this is valid service operate, no need to deal with it.");
+                accountFileOperator_->SetValidWriteFileOptFlag(false);
+                return true;
+            }
+            std::string fileInfoStr;
+            std::lock_guard<std::mutex> lock(accountInfoFileLock_);
+            if (accountFileOperator_->GetFileContentByPath(fileName, fileInfoStr) != ERR_OK) {
+                ACCOUNT_LOGE("get content from file %{public}s failed!", fileName.c_str());
+                return false;
+            }
+            uint8_t localDigestData[ALG_COMMON_SIZE];
+            GetAccountInfoDigestFromFile(fileName, localDigestData, ALG_COMMON_SIZE);
+            uint8_t newDigestData[ALG_COMMON_SIZE];
+            GenerateAccountInfoGigest(fileInfoStr, newDigestData, ALG_COMMON_SIZE);
+
+            if (memcmp(localDigestData, newDigestData, ALG_COMMON_SIZE) == EOK) {
+                ACCOUNT_LOGD("No need to recover local file data.");
+                return true;
+            }
+            ACCOUNT_LOGW("local file data has been changed");
+            return RecoverAccountData(fileName, id);
+        };
+    fileWatcher->SetEventCallback(checkCallbackFunc);
+    return;
+}
+
+void OsAccountControlFileManager::WatchOsAccountInfoFile()
+{
+    if (run_) {
+        return;
+    }
+    run_ = true;
+    auto task = std::bind(&OsAccountControlFileManager::GetNotifyEvent, this);
+    std::thread taskThread(task);
+    pthread_setname_np(taskThread.native_handle(), "fileWatcher");
+    taskThread.detach();
+}
+
 OsAccountControlFileManager::OsAccountControlFileManager()
 {
     accountFileOperator_ = std::make_shared<AccountFileOperator>();
@@ -231,19 +476,47 @@ OsAccountControlFileManager::OsAccountControlFileManager()
 #endif
     osAccountFileOperator_ = std::make_shared<OsAccountFileOperator>();
     osAccountPhotoOperator_ = std::make_shared<OsAccountPhotoOperator>();
+    FD_ZERO(&fds_);
 }
 OsAccountControlFileManager::~OsAccountControlFileManager()
 {}
+
 void OsAccountControlFileManager::Init()
 {
-    ACCOUNT_LOGI("OsAccountControlFileManager Init start");
     InitEncryptionKey();
     osAccountFileOperator_->Init();
+    FileInit();
+    Json accountListJson;
+    ErrCode result = GetAccountListFromFile(accountListJson);
+    if (result != ERR_OK) {
+        return;
+    }
+    auto jsonEnd = accountListJson.end();
+    std::vector<std::string> accountIdList;
+    OHOS::AccountSA::GetDataByType<std::vector<std::string>>(
+        accountListJson, jsonEnd, Constants::ACCOUNT_LIST, accountIdList, OHOS::AccountSA::JsonType::ARRAY);
+    if (!accountIdList.empty()) {
+        nextLocalId_ = atoi(accountIdList[accountIdList.size() - 1].c_str()) + 1;
+        InitFileWatcherInfo(accountIdList);
+    }
+    ACCOUNT_LOGI("OsAccountControlFileManager Init end");
+}
+
+void OsAccountControlFileManager::FileInit()
+{
     if (!accountFileOperator_->IsJsonFileReady(Constants::ACCOUNT_LIST_FILE_JSON_PATH)) {
         ACCOUNT_LOGI("OsAccountControlFileManager there is not have valid account list, create!");
         RecoverAccountListJsonFile();
 #ifdef WITH_SELINUX
         Restorecon(Constants::ACCOUNT_LIST_FILE_JSON_PATH.c_str());
+#endif // WITH_SELINUX
+    }
+    AddFileWatcher(-1); // -1 is special refers to accountList file.
+    if (!accountFileOperator_->IsJsonFileReady(Constants::ACCOUNT_INFO_DIGEST_FILE_PATH)) {
+        ACCOUNT_LOGI("OsAccountControlFileManager there is not have valid account info digest file, create!");
+        RecoverAccountInfoDigestJsonFile();
+#ifdef WITH_SELINUX
+        Restorecon(Constants::ACCOUNT_INFO_DIGEST_FILE_PATH.c_str());
 #endif // WITH_SELINUX
     }
     if (!accountFileOperator_->IsJsonFileReady(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH)) {
@@ -267,19 +540,14 @@ void OsAccountControlFileManager::Init()
         Restorecon(Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH.c_str());
 #endif // WITH_SELINUX
     }
-    Json accountListJson;
-    ErrCode result = GetAccountListFromFile(accountListJson);
-    if (result != ERR_OK) {
-        return;
+}
+
+void OsAccountControlFileManager::InitFileWatcherInfo(std::vector<std::string> &accountIdList)
+{
+    for (std::string i : accountIdList) {
+        AddFileWatcher(stoi(i));
     }
-    auto jsonEnd = accountListJson.end();
-    std::vector<std::string> accountIdList;
-    OHOS::AccountSA::GetDataByType<std::vector<std::string>>(
-        accountListJson, jsonEnd, Constants::ACCOUNT_LIST, accountIdList, OHOS::AccountSA::JsonType::ARRAY);
-    if (!accountIdList.empty()) {
-        nextLocalId_ = atoi(accountIdList[accountIdList.size() - 1].c_str()) + 1;
-    }
-    ACCOUNT_LOGI("OsAccountControlFileManager Init end");
+    WatchOsAccountInfoFile();
 }
 
 void OsAccountControlFileManager::BuildAndSaveAccountListJsonFile(const std::vector<std::string>& accounts)
@@ -795,6 +1063,7 @@ ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInf
         ACCOUNT_LOGE("os account info is empty! maybe some illegal characters caused exception!");
         return ERR_OSACCOUNT_SERVICE_ACCOUNT_INFO_EMPTY_ERROR;
     }
+    std::lock_guard<std::mutex> lock(accountInfoFileLock_);
     ErrCode result = accountFileOperator_->InputFileByPathAndContent(path, accountInfoStr);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("InputFileByPathAndContent failed! path %{public}s.", path.c_str());
@@ -805,6 +1074,12 @@ ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInf
 #endif
 
     if (osAccountInfo.GetLocalId() >= Constants::START_USER_ID) {
+        std::string digestStr;
+        if (GenerateAccountInfoDigestStr(path, accountInfoStr, digestStr) == ERR_OK) {
+            accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_INFO_DIGEST_FILE_PATH, digestStr);
+        }
+        AddFileWatcher(osAccountInfo.GetLocalId());
+        WatchOsAccountInfoFile();
         return UpdateAccountList(osAccountInfo.GetPrimeKey(), true);
     }
     ACCOUNT_LOGD("end");
@@ -818,7 +1093,7 @@ ErrCode OsAccountControlFileManager::DelOsAccount(const int id)
         ACCOUNT_LOGE("invalid input id %{public}d to delete!", id);
         return ERR_OSACCOUNT_SERVICE_CONTROL_CANNOT_DELETE_ID_ERROR;
     }
-
+    std::lock_guard<std::mutex> lock(accountInfoFileLock_);
     std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(id);
     ErrCode result = accountFileOperator_->DeleteDirOrFile(path);
     if (result != ERR_OK) {
@@ -828,6 +1103,8 @@ ErrCode OsAccountControlFileManager::DelOsAccount(const int id)
 #ifdef HAS_KV_STORE_PART
     osAccountDataBaseOperator_->DelOsAccountFromDatabase(id);
 #endif
+    path += Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
+    DeleteAccountInfoDigest(path);
     return UpdateAccountList(std::to_string(id), false);
 }
 
@@ -904,6 +1181,7 @@ ErrCode OsAccountControlFileManager::UpdateOsAccount(OsAccountInfo &osAccountInf
         ACCOUNT_LOGE("account info str is empty!");
         return ERR_OSACCOUNT_SERVICE_ACCOUNT_INFO_EMPTY_ERROR;
     }
+    std::lock_guard<std::mutex> lock(accountInfoFileLock_);
     ErrCode result = accountFileOperator_->InputFileByPathAndContent(path, accountInfoStr);
     if (result != ERR_OK) {
         return result;
@@ -918,6 +1196,10 @@ ErrCode OsAccountControlFileManager::UpdateOsAccount(OsAccountInfo &osAccountInf
     ACCOUNT_LOGI("No distributed feature!");
 #endif // DISTRIBUTED_FEATURE_ENABLED
 
+    std::string digestStr;
+    if (GenerateAccountInfoDigestStr(path, accountInfoStr, digestStr) == ERR_OK) {
+        accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_INFO_DIGEST_FILE_PATH, digestStr);
+    }
     ACCOUNT_LOGD("end");
     return ERR_OK;
 }
@@ -942,6 +1224,7 @@ ErrCode OsAccountControlFileManager::GetMaxCreatedOsAccountNum(int &maxCreatedOs
 
 ErrCode OsAccountControlFileManager::GetSerialNumber(int64_t &serialNumber)
 {
+    std::lock_guard<std::mutex> lock(accountInfoFileLock_);
     Json accountListJson;
     ErrCode result = GetAccountListFromFile(accountListJson);
     if (result != ERR_OK) {
@@ -1321,6 +1604,7 @@ ErrCode OsAccountControlFileManager::UpdateDeviceOwnerId(const int deviceOwnerId
 
 ErrCode OsAccountControlFileManager::SetDefaultActivatedOsAccount(const int32_t id)
 {
+    std::lock_guard<std::mutex> lock(accountInfoFileLock_);
     Json accountListJson;
     ErrCode result = GetAccountListFromFile(accountListJson);
     if (result != ERR_OK) {
