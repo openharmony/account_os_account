@@ -14,19 +14,188 @@
  */
 #include "os_account_control_file_manager.h"
 #include <dirent.h>
-#include <sstream>
-#include <sys/types.h>
 #ifdef WITH_SELINUX
 #include <policycoreutils.h>
 #endif // WITH_SELINUX
+#include <securec.h>
+#include <sstream>
+#include <sys/types.h>
 #include "account_log_wrapper.h"
+#include "hks_api.h"
+#include "hks_param.h"
+#include "hks_type.h"
 #include "os_account_constants.h"
 #include "os_account_interface.h"
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
 const std::string DEFAULT_ACTIVATED_ACCOUNT_ID = "DefaultActivatedAccountID";
 const int32_t MAX_LOCAL_ID = 10736; // int32 max value reduce 200000 be divisible by 200000
+
+const std::string OS_ACCOUNT_STORE_ID = "os_account_info";
+const struct HksParam g_genSignVerifyParams[] = {
+    {
+        .tag = HKS_TAG_ALGORITHM,
+        .uint32Param = HKS_ALG_HMAC
+    }, {
+        .tag = HKS_TAG_PURPOSE,
+        .uint32Param = HKS_KEY_PURPOSE_MAC
+    }, {
+        .tag = HKS_TAG_KEY_SIZE,
+        .uint32Param = HKS_AES_KEY_SIZE_256
+    }, {
+        .tag = HKS_TAG_DIGEST,
+        .uint32Param = HKS_DIGEST_SHA256
+    }
+};
+const uint32_t ALG_COMMON_SIZE = 32;
+const int32_t TIMES = 4;
+const int32_t MAX_UPDATE_SIZE = 256;
+const int32_t MAX_OUTDATA_SIZE = MAX_UPDATE_SIZE * TIMES;
+const char ACCOUNT_KEY_ALIAS[] = "os_account_info_encryption_key";
+const HksBlob g_keyAlias = { (uint32_t)strlen(ACCOUNT_KEY_ALIAS), (uint8_t *)ACCOUNT_KEY_ALIAS };
+}
+
+static int32_t InitParamSet(struct HksParamSet **paramSet, const struct HksParam *params, uint32_t paramCount)
+{
+    int32_t ret = HksInitParamSet(paramSet);
+    if (ret != 0) {
+        ACCOUNT_LOGE("HksInitParamSet err = %{public}d", ret);
+        return ret;
+    }
+    ret = HksAddParams(*paramSet, params, paramCount);
+    if (ret != 0) {
+        ACCOUNT_LOGE("HksAddParams err = %{public}d", ret);
+        HksFreeParamSet(paramSet);
+        return ret;
+    }
+
+    ret = HksBuildParamSet(paramSet);
+    if (ret != 0) {
+        ACCOUNT_LOGE("HksBuildParamSet err = %{public}d", ret);
+        HksFreeParamSet(paramSet);
+        return ret;
+    }
+    return ret;
+}
+
+static int32_t MallocAndCheckBlobData(struct HksBlob *blob, const uint32_t blobSize)
+{
+    blob->data = (uint8_t *)malloc(blobSize);
+    if (blob->data == NULL) {
+        ACCOUNT_LOGE("MallocAndCheckBlobData err");
+        return -1;
+    }
+    return 0;
+}
+
+static int32_t HksUpdateOpt(
+    const struct HksBlob *handle, const struct HksParamSet *paramSet, const struct HksBlob *inData)
+{
+    struct HksBlob inDataSeg = *inData;
+    inDataSeg.size = MAX_UPDATE_SIZE;
+
+    uint8_t *lastPtr = inData->data + inData->size - 1;
+    struct HksBlob outDataSeg = {
+        .size = MAX_OUTDATA_SIZE,
+        .data = NULL
+    };
+
+    bool isFinished = false;
+    while (inDataSeg.data <= lastPtr) {
+        if (inDataSeg.data + MAX_UPDATE_SIZE <= lastPtr) {
+            outDataSeg.size = MAX_OUTDATA_SIZE;
+        } else {
+            isFinished = true;
+            inDataSeg.size = lastPtr - inDataSeg.data + 1;
+            outDataSeg.size = inDataSeg.size + MAX_UPDATE_SIZE;
+        }
+        if (MallocAndCheckBlobData(&outDataSeg, outDataSeg.size) != 0) {
+            return -1;
+        }
+        int32_t ret = HksUpdate(handle, paramSet, &inDataSeg, &outDataSeg);
+        if (ret != 0) {
+            ACCOUNT_LOGE("HksUpdate err, ret = %{public}d", ret);
+            free(outDataSeg.data);
+            outDataSeg.data = NULL;
+            return -1;
+        }
+        free(outDataSeg.data);
+        outDataSeg.data = NULL;
+        if ((isFinished == false) && (inDataSeg.data + MAX_UPDATE_SIZE > lastPtr)) {
+            return 0;
+        }
+        inDataSeg.data += MAX_UPDATE_SIZE;
+    }
+    return 0;
+}
+
+static int32_t InitEncryptionKey()
+{
+    struct HksParamSet *genParamSet = nullptr;
+
+    int32_t ret;
+    do {
+        ret = InitParamSet(&genParamSet, g_genSignVerifyParams, sizeof(g_genSignVerifyParams) / sizeof(HksParam));
+        if (ret != 0) {
+            ACCOUNT_LOGE("InitParamSet genParamSet err = %{public}d", ret);
+            break;
+        }
+        ret = HksGenerateKey(&g_keyAlias, genParamSet, nullptr);
+        if (ret != 0) {
+            ACCOUNT_LOGE("HksGenerateKey err = %{public}d", ret);
+            break;
+        }
+    } while (0);
+    HksFreeParamSet(&genParamSet);
+    return ret;
+}
+
+static int32_t GenerateAccountInfoGigest(const std::string &inData, uint8_t* outData, uint32_t size)
+{
+    if (inData.empty()) {
+        ACCOUNT_LOGW("inData is empty.");
+        return 0;
+    }
+    const char *tmpInData = inData.c_str();
+    struct HksBlob inDataBlob = { (uint32_t)strlen(tmpInData), (uint8_t *)tmpInData };
+    struct HksParamSet *genParamSet = nullptr;
+    int32_t ret = InitParamSet(&genParamSet, g_genSignVerifyParams, sizeof(g_genSignVerifyParams) / sizeof(HksParam));
+    if (ret != 0) {
+        ACCOUNT_LOGE("InitParamSet err = %{public}d", ret);
+        return ret;
+    }
+    uint8_t handleTmp[sizeof(uint64_t)] = {0};
+    struct HksBlob handleGenDigest = { (uint32_t)sizeof(uint64_t), handleTmp };
+        ret = HksInit(&g_keyAlias, genParamSet, &handleGenDigest, nullptr);
+    if (ret != 0) {
+        ACCOUNT_LOGE("HksInit err = %{public}d", ret);
+        return ret;
+    }
+    // Update loop
+    ret = HksUpdateOpt(&handleGenDigest, genParamSet, &inDataBlob);
+    if (ret != 0) {
+        ACCOUNT_LOGE("HksUpdateOpt err = %{public}d", ret);
+        HksAbort(&handleGenDigest, genParamSet);
+        return ret;
+    }
+    struct HksBlob finishOut = { 0, nullptr };
+    uint8_t outDataS[ALG_COMMON_SIZE] = "out";
+    struct HksBlob outDataBlob = { ALG_COMMON_SIZE, outDataS };
+    ret = HksFinish(&handleGenDigest, genParamSet, &finishOut, &outDataBlob);
+    if (ret != 0) {
+        ACCOUNT_LOGE("HksFinish failed = %{public}d", ret);
+        HksAbort(&handleGenDigest, genParamSet);
+        return ret;
+    }
+    if (memcpy_s(outData, size, outDataS, outDataBlob.size) != EOK) {
+        ACCOUNT_LOGE("Get digest failed duo to memcpy_s failed");
+        return -1;
+    }
+    HksFreeParamSet(&genParamSet);
+    return ret;
+}
 
 bool GetValidAccountID(const std::string& dirName, std::int32_t& accountID)
 {
@@ -64,6 +233,7 @@ OsAccountControlFileManager::~OsAccountControlFileManager()
 void OsAccountControlFileManager::Init()
 {
     ACCOUNT_LOGI("OsAccountControlFileManager Init start");
+    InitEncryptionKey();
     osAccountFileOperator_->Init();
     if (!accountFileOperator_->IsJsonFileReady(Constants::ACCOUNT_LIST_FILE_JSON_PATH)) {
         ACCOUNT_LOGI("OsAccountControlFileManager there is not have valid account list, create!");
@@ -155,6 +325,19 @@ void OsAccountControlFileManager::BuildAndSaveSpecificOAConstraintsJsonFile()
         {Constants::START_USER_STRING_ID, OsAccountConstraintsList},
     };
     SaveSpecificOAConstraintsToFile(specificOsAccountConstraints);
+}
+
+void OsAccountControlFileManager::RecoverAccountInfoDigestJsonFile()
+{
+    std::string listInfoStr;
+    accountFileOperator_->GetFileContentByPath(Constants::ACCOUNT_LIST_FILE_JSON_PATH, listInfoStr);
+    uint8_t digestOutData[ALG_COMMON_SIZE] = {0};
+    GenerateAccountInfoGigest(listInfoStr, digestOutData, ALG_COMMON_SIZE);
+    Json digestJsonData = Json {
+        {Constants::ACCOUNT_LIST_FILE_JSON_PATH, digestOutData},
+    };
+    accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_INFO_DIGEST_FILE_PATH, digestJsonData.dump());
+    return;
 }
 
 void OsAccountControlFileManager::RecoverAccountListJsonFile()
@@ -644,6 +827,64 @@ ErrCode OsAccountControlFileManager::DelOsAccount(const int id)
     return UpdateAccountList(std::to_string(id), false);
 }
 
+ErrCode OsAccountControlFileManager::GenerateAccountInfoDigestStr(
+    const std::string &userInfoPath, const std::string &accountInfoStr, std::string &digestStr)
+{
+    uint8_t digestOutData[ALG_COMMON_SIZE];
+    GenerateAccountInfoGigest(accountInfoStr, digestOutData, ALG_COMMON_SIZE);
+
+    std::string accountInfoDigest;
+    std::lock_guard<std::mutex> lock(accountInfoDigestFileLock_);
+    ErrCode errCode = accountFileOperator_->GetFileContentByPath(Constants::ACCOUNT_INFO_DIGEST_FILE_PATH,
+        accountInfoDigest);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("get file content failed! error code %{public}d.", errCode);
+        return errCode;
+    }
+    Json accountInfoDigestJson;
+    try {
+        accountInfoDigestJson = Json::parse(accountInfoDigest, nullptr, false);
+    } catch (Json::type_error& err) {
+        ACCOUNT_LOGE("accountInfoDigestJson parse failed! reason: %{public}s", err.what());
+    }
+    accountInfoDigestJson[userInfoPath] = digestOutData;
+    try {
+        digestStr = accountInfoDigestJson.dump();
+    } catch (Json::type_error& err) {
+        ACCOUNT_LOGE("failed to dump json object, reason: %{public}s", err.what());
+        return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
+    }
+    return ERR_OK;
+}
+
+ErrCode OsAccountControlFileManager::DeleteAccountInfoDigest(const std::string &userInfoPath)
+{
+    Json accountInfoDigestJson;
+    std::string accountInfoDigest;
+    std::lock_guard<std::mutex> lock(accountInfoDigestFileLock_);
+    ErrCode errCode = accountFileOperator_->GetFileContentByPath(Constants::ACCOUNT_INFO_DIGEST_FILE_PATH,
+        accountInfoDigest);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("get file content failed! error code %{public}d.", errCode);
+        return errCode;
+    }
+    try {
+        accountInfoDigestJson = Json::parse(accountInfoDigest, nullptr, false);
+    } catch (Json::type_error& err) {
+        ACCOUNT_LOGE("accountInfoDigestJson parse failed! reason: %{public}s", err.what());
+        return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
+    }
+    accountInfoDigestJson.erase(userInfoPath);
+
+    ErrCode result = accountFileOperator_->InputFileByPathAndContent(
+        Constants::ACCOUNT_INFO_DIGEST_FILE_PATH, accountInfoDigestJson.dump());
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("cannot save digest info to file, code %{public}d.", result);
+        return result;
+    }
+    return ERR_OK;
+}
+
 ErrCode OsAccountControlFileManager::UpdateOsAccount(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGD("start");
@@ -778,6 +1019,34 @@ ErrCode OsAccountControlFileManager::GetAllowCreateId(int &id)
     }
     id = GetNextLocalId(accountIdList);
     nextLocalId_++;
+    return ERR_OK;
+}
+
+ErrCode OsAccountControlFileManager::GetAccountInfoDigestFromFile(
+    const std::string &path, uint8_t *digest, uint32_t size)
+{
+    Json accountInfoDigestJson;
+    std::string accountInfoDigest;
+    std::lock_guard<std::mutex> lock(accountInfoDigestFileLock_);
+    ErrCode errCode = accountFileOperator_->GetFileContentByPath(Constants::ACCOUNT_INFO_DIGEST_FILE_PATH,
+        accountInfoDigest);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("GetFileContentByPath failed! error code %{public}d.", errCode);
+        return errCode;
+    }
+    try {
+        accountInfoDigestJson = Json::parse(accountInfoDigest, nullptr, false);
+    } catch (Json::type_error& err) {
+        ACCOUNT_LOGE("accountInfoDigestJson parse failed! reason: %{public}s", err.what());
+        return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
+    }
+    std::vector<uint8_t> digestTmp;
+    OHOS::AccountSA::GetDataByType<std::vector<uint8_t>>(accountInfoDigestJson,
+        accountInfoDigestJson.end(), path, digestTmp, OHOS::AccountSA::JsonType::ARRAY);
+    if (memcpy_s(digest, size, digestTmp.data(), ALG_COMMON_SIZE) != EOK) {
+        ACCOUNT_LOGE("Get digest failed duo to memcpy_s failed");
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
     return ERR_OK;
 }
 
@@ -968,6 +1237,11 @@ ErrCode OsAccountControlFileManager::SaveAccountListToFile(const Json &accountLi
     if (result != ERR_OK) {
         ACCOUNT_LOGE("cannot save save account list file content!");
         return result;
+    }
+    std::string digestStr;
+    result = GenerateAccountInfoDigestStr(Constants::ACCOUNT_LIST_FILE_JSON_PATH, accountListJson.dump(), digestStr);
+    if (result == ERR_OK) {
+        accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_INFO_DIGEST_FILE_PATH, digestStr);
     }
     ACCOUNT_LOGD("save account list file succeed!");
     return ERR_OK;

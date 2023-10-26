@@ -334,6 +334,8 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     "//third_party/mbedtls:mbedtls",
   ]
 
+  use_exceptions = true
+
   external_deps = [
     "ability_base:want",
     "ability_runtime:ability_manager",
@@ -345,6 +347,7 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "hilog:libhilog",
+    "huks:libhukssdk",
     "init:libbegetutil",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",

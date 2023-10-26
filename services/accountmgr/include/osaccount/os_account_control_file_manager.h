@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <mutex>
+#include <sys/inotify.h>
 #include "ios_account_control.h"
 #include "os_account_constants.h"
 #ifdef HAS_KV_STORE_PART
@@ -27,8 +28,33 @@
 #include "os_account_photo_operator.h"
 namespace OHOS {
 namespace AccountSA {
+using CheckNotifyEventCallbackFunc = std::function<bool(const std::string&, const int32_t)>;
 
 bool GetValidAccountID(const std::string& dirName, std::int32_t& accountID);
+
+class FileWatcher {
+public:
+    FileWatcher(const int32_t id);
+    FileWatcher(const std::string &filePath);
+    ~FileWatcher();
+
+    bool InitNotify();
+    int32_t GetNotifyId();
+    std::string GetFilePath();
+    int32_t GetLocalId();
+
+    bool StartNotify(const uint32_t &watchEvents);
+    bool CloseNotifyFd();
+    bool CheckNotifyEvent();
+    void SetEventCallback(CheckNotifyEventCallbackFunc &func);
+
+private:
+    int32_t notifyFd_ = -1;
+    int32_t id_ = -1;
+    int32_t wd_ = -1;
+    std::string filePath_;
+    CheckNotifyEventCallbackFunc eventCallbackFunc_;
+};
 
 class OsAccountControlFileManager : public IOsAccountControl {
 public:
@@ -81,6 +107,9 @@ public:
 
     ErrCode SetDefaultActivatedOsAccount(const int32_t id) override;
     ErrCode GetDefaultActivatedOsAccount(int32_t &id) override;
+    ErrCode GenerateAccountInfoDigestStr(
+        const std::string &userInfoPath, const std::string &accountInfoStr, std::string &digestStr);
+    ErrCode DeleteAccountInfoDigest(const std::string &userInfoPath);
 
 private:
     int GetNextLocalId(const std::vector<std::string> &accountIdList);
@@ -90,6 +119,7 @@ private:
     ErrCode SaveAccountListToFileAndDataBase(const Json& accountListJson);
     void BuildAndSaveAccountListJsonFile(const std::vector<std::string>& accounts);
     void RecoverAccountListJsonFile();
+    void RecoverAccountInfoDigestJsonFile();
     void BuildAndSaveBaseOAConstraintsJsonFile();
     void BuildAndSaveGlobalOAConstraintsJsonFile();
     void BuildAndSaveSpecificOAConstraintsJsonFile();
@@ -109,6 +139,7 @@ private:
     ErrCode RemoveOABaseConstraintsInfo(const int32_t id);
     ErrCode RemoveOAGlobalConstraintsInfo(const int32_t id);
     ErrCode RemoveOASpecificConstraintsInfo(const int32_t id);
+    ErrCode GetAccountInfoDigestFromFile(const std::string &path, uint8_t *digest, uint32_t size);
 
 private:
     std::shared_ptr<AccountFileOperator> accountFileOperator_;
@@ -119,6 +150,8 @@ private:
     std::shared_ptr<OsAccountFileOperator> osAccountFileOperator_;
     std::shared_ptr<OsAccountPhotoOperator> osAccountPhotoOperator_;
     std::mutex accountListFileLock_;
+    std::mutex accountInfoFileLock_;
+    std::mutex accountInfoDigestFileLock_;
     std::mutex operatingIdMutex_;
     std::mutex baseOAConstraintsFileLock_;
     std::mutex globalOAConstraintsFileLock_;

@@ -16,6 +16,7 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_FILE_OPERATOR_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_FILE_OPERATOR_H
 
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -36,6 +37,12 @@ public:
     bool IsJsonFormat(const std::string &path);
     bool IsJsonFileReady(const std::string &path);
     bool IsExistDir(const std::string &path);
+    bool GetValidWriteFileOptFlag();
+    void SetValidWriteFileOptFlag(bool flag);
+
+private:
+    std::mutex validWriteFileOptLock_;
+    bool validWriteFileOptFlag_ = false;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

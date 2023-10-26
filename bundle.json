@@ -49,6 +49,7 @@
         "hilog",
         "hisysevent",
         "hitrace",
+        "huks",
         "init",
         "i18n",
         "ipc",
