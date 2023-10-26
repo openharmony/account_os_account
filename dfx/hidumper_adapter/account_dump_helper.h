@@ -39,6 +39,8 @@ private:
     void ShowOhosAccountInfo(std::string &result) const;
     void ShowOsAccountInfo(std::string &result) const;
     void SetLogLevel(const std::string& levelStr, std::string& result) const;
+    std::string AnonymizeNameStr(const std::string& nameStr) const;
+    std::string AnonymizeUidStr(const std::string& uidStr) const;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

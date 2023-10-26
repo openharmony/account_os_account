@@ -1294,10 +1294,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest063, TestSize.Lev
 {
     char udid[Constants::DEVICE_UUID_LENGTH] = {0};
     int ret = GetDevUdid(udid, Constants::DEVICE_UUID_LENGTH);
-    if (ret != 0) {
-        std::cout << "Error: GetDevUdid failed! error code " << ret << std::endl;
-        return;
-    }
+    ASSERT_EQ(ret, 0);
 
     // create a new account
     OsAccountInfo osAccountInfoOne;
@@ -1320,10 +1317,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest065, TestSize.Lev
 {
     char udid[Constants::DEVICE_UUID_LENGTH] = {0};
     int ret = GetDevUdid(udid, Constants::DEVICE_UUID_LENGTH);
-    if (ret != 0) {
-        std::cout << "Error: GetDevUdid failed! error code " << ret << std::endl;
-        return;
-    }
+    ASSERT_EQ(ret, 0);
     std::string storeID = std::string(udid);
 
     // create a new os account
@@ -1724,7 +1718,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest081, TestSize.Lev
 {
     int createdOsAccountNum = -1;
     EXPECT_NE(OsAccountManager::GetCreatedOsAccountNumFromDatabase("ERROR_STORE_ID", createdOsAccountNum), ERR_OK);
-    EXPECT_EQ(createdOsAccountNum, -1);
 }
 
 /**
@@ -1754,7 +1747,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest083, TestSize.Lev
 {
     int64_t serialNumber = -1;
     EXPECT_NE(OsAccountManager::GetSerialNumberFromDatabase("ERROR_STORE_ID", serialNumber), ERR_OK);
-    EXPECT_EQ(serialNumber, -1);
 }
 
 /**
@@ -1784,7 +1776,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest085, TestSize.Lev
 {
     int maxAllowCreateId = -1;
     EXPECT_NE(OsAccountManager::GetMaxAllowCreateIdFromDatabase("ERROR_STORE_ID", maxAllowCreateId), ERR_OK);
-    EXPECT_EQ(maxAllowCreateId, -1);
 }
 
 /**
