@@ -155,13 +155,7 @@ static bool IsNonPINAllowed(int32_t userId)
 {
     bool isVerified = false;
     (void) IInnerOsAccountManager::GetInstance().IsOsAccountVerified(userId, isVerified);
-    if (isVerified) {
-        return true;
-    }
-
-    uint64_t credentialId = 0;
-    (void) IInnerOsAccountManager::GetInstance().GetOsAccountCredentialId(userId, credentialId);
-    return credentialId == 0;
+    return isVerified;
 }
 
 void InnerAccountIAMManager::GetCredentialInfo(
