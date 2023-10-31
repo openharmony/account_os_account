@@ -22,6 +22,7 @@
 #include "common_event_support.h"
 #endif // HAS_CES_PART
 #include "iinner_os_account_manager.h"
+#include "ios_account_control.h"
 #include "os_account_constants.h"
 #include "os_account_control_file_manager.h"
 
@@ -64,9 +65,11 @@ void CheckAndCreateDomainAccountCallback::OnResult(int32_t errCode, Parcel &parc
     }
 }
 
-BindDomainAccountCallback::BindDomainAccountCallback(const DomainAccountInfo &domainAccountInfo,
+BindDomainAccountCallback::BindDomainAccountCallback(
+    std::shared_ptr<IOsAccountControl> &osAccountControl, const DomainAccountInfo &domainAccountInfo,
     const OsAccountInfo &osAccountInfo, const sptr<IDomainAccountCallback> &callback)
-    : domainAccountInfo_(domainAccountInfo), osAccountInfo_(osAccountInfo), innerCallback_(callback)
+    : osAccountControl_(osAccountControl), domainAccountInfo_(domainAccountInfo),
+    osAccountInfo_(osAccountInfo), innerCallback_(callback)
 {}
 
 void BindDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
@@ -75,16 +78,10 @@ void BindDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
         ACCOUNT_LOGE("inner callback is nullptr");
         return;
     }
-    auto osAccountControl = std::make_shared<OsAccountControlFileManager>();
-    if (osAccountControl == nullptr) {
-        ACCOUNT_LOGE("failed to create OsAccountControlFileManager");
-        return innerCallback_->OnResult(ERR_JS_SYSTEM_SERVICE_EXCEPTION, parcel);
-    }
-    osAccountControl->Init();
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("failed to bind domain account");
         if (osAccountInfo_.GetLocalId() != Constants::START_USER_ID) {
-            (void)osAccountControl->DelOsAccount(osAccountInfo_.GetLocalId());
+            (void)osAccountControl_->DelOsAccount(osAccountInfo_.GetLocalId());
         }
         return innerCallback_->OnResult(errCode, parcel);
     }
@@ -94,7 +91,7 @@ void BindDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
         osAccountInfo_.Marshalling(resultParcel);
         return innerCallback_->OnResult(errCode, resultParcel);
     }
-    errCode = osAccountControl->UpdateOsAccount(osAccountInfo_);
+    errCode = osAccountControl_->UpdateOsAccount(osAccountInfo_);
     if ((osAccountInfo_.GetLocalId() == Constants::START_USER_ID) && (errCode == ERR_OK)) {
 #ifdef HAS_CES_PART
         AccountEventProvider::EventPublish(
