@@ -396,6 +396,7 @@ static void ErrorOnResult(const ErrCode errCode, const sptr<IDomainAccountCallba
 
 void CheckUserTokenCallback::OnResult(int32_t result, Parcel &parcel)
 {
+    ACCOUNT_LOGI("enter");
     if (result == ERR_OK) {
         isValid_ = parcel.ReadBool();
     }
