@@ -32,6 +32,7 @@ DomainAccountCallbackService::~DomainAccountCallbackService()
 
 void DomainAccountCallbackService::OnResult(const int32_t errCode, Parcel &parcel)
 {
+    ACCOUNT_LOGI("enter");
     if (innerCallback_ != nullptr) {
         innerCallback_->OnResult(errCode, parcel);
     }
