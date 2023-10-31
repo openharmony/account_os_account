@@ -34,6 +34,7 @@
 #include "os_account.h"
 #include "os_account_manager_service.h"
 #include "os_account_proxy.h"
+#include "iinner_os_account_manager.h"
 #undef private
 #endif
 #include "parameter.h"
@@ -206,6 +207,7 @@ void OsAccountManagerModuleTest::SetUpTestCase(void)
 #ifdef BUNDLE_ADAPTER_MOCK
     auto osAccountService = new (std::nothrow) OsAccountManagerService();
     ASSERT_NE(osAccountService, nullptr);
+    IInnerOsAccountManager::GetInstance().Init();
     OsAccount::GetInstance().proxy_ = new (std::nothrow) OsAccountProxy(osAccountService->AsObject());
     ASSERT_NE(OsAccount::GetInstance().proxy_, nullptr);
 #endif
@@ -1633,7 +1635,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest075, TestSize.Lev
     constraints.clear();
     EXPECT_EQ(OsAccountManager::GetOsAccountAllConstraints(osAccountInfoOne.GetLocalId(), constraints), ERR_OK);
     EXPECT_NE(constraints.size(), counts + 2); // test number
- 
     ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS

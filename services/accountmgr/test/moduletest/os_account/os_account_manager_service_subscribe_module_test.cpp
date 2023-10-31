@@ -69,7 +69,9 @@ public:
 };
 
 void OsAccountManagerServiceSubscribeModuleTest::SetUpTestCase(void)
-{}
+{
+    IInnerOsAccountManager::GetInstance().Init();
+}
 
 void OsAccountManagerServiceSubscribeModuleTest::TearDownTestCase(void)
 {
@@ -270,7 +272,7 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     auto inputer = std::make_shared<TestIInputer>();
     EXPECT_NE(nullptr, inputer);
     result = AccountIAMClient::GetInstance().RegisterPINInputer(inputer);
-    EXPECT_EQ(ERR_OK, result);
+    ASSERT_EQ(ERR_OK, result);
     //add a credential
     CredentialParameters testPara = {};
     std::vector<uint8_t> testchange = {};

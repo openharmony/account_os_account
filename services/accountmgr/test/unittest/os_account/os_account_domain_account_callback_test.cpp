@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 #include "account_log_wrapper.h"
 #define private public
+#include "os_account_control_file_manager.h"
 #include "os_account_domain_account_callback.h"
 #include "os_account_info.h"
 #undef private
@@ -75,7 +76,8 @@ HWTEST_F(DomainAccountCallbackTest, DomainAccountCallbackTest_OnResult_002, Test
 {
     DomainAccountInfo info;
     OsAccountInfo osAccountInfo;
-    auto callbackPtr = std::make_shared<BindDomainAccountCallback>(info, osAccountInfo, nullptr);
+    std::shared_ptr<IOsAccountControl> testOsAccountControl = std::make_shared<OsAccountControlFileManager>();
+    auto callbackPtr = std::make_shared<BindDomainAccountCallback>(testOsAccountControl, info, osAccountInfo, nullptr);
     Parcel parcel;
     callbackPtr->OnResult(0, parcel);
     EXPECT_EQ(callbackPtr->innerCallback_, nullptr);
