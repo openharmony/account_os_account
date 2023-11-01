@@ -63,6 +63,8 @@ void DomainAccountCallbackProxy::OnResult(const int32_t errCode, Parcel &parcel)
     ErrCode result = SendRequest(DomainAccountCallbackInterfaceCode::DOMAIN_ACCOUNT_CALLBACK_ON_RESULT, data);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("fail to send request, error code: %{public}d", result);
+    } else {
+        ACCOUNT_LOGI("SendRequest successfully.");
     }
 }
 }  // namespace AccountSA
