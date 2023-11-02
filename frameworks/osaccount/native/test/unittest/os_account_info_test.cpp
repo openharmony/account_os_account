@@ -591,6 +591,23 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0106, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CreateOsAccountWithFullInfo0107
+ * @tc.desc: Test UpdateOsAccountWithFullInfo admin user whitout localName
+ * @tc.type: FUNC
+ * @tc.require: I8DBBM
+ */
+HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0107, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetLocalId(100);
+    osAccountInfo.SetLastLoginTime(1695863290000);
+
+    EXPECT_EQ(ERR_OK, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
+    osAccountInfo.SetType(OsAccountType::GUEST);
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
+}
+
+/**
  * @tc.name: GetOsAccountShortName001
  * @tc.desc: Test get os account name.
  * @tc.type: FUNC

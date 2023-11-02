@@ -229,7 +229,15 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &name, co
 
 ErrCode IInnerOsAccountManager::PrepareOsAccountInfoWithFullInfo(OsAccountInfo &osAccountInfo)
 {
-    ErrCode errCode = osAccountControl_->InsertOsAccount(osAccountInfo);
+    int64_t serialNumber;
+    ErrCode errCode = osAccountControl_->GetSerialNumber(serialNumber);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("failed to GetSerialNumber, errCode %{public}d.", errCode);
+        return errCode;
+    }
+    osAccountInfo.SetSerialNumber(serialNumber);
+
+    errCode = osAccountControl_->InsertOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("insert os account info err, errCode %{public}d.", errCode);
         return errCode;
