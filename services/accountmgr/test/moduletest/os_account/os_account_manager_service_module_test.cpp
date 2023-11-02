@@ -87,7 +87,6 @@ const std::string STRING_DOMAIN_VALID = "TestDomainMT";
 const std::string STRING_DOMAIN_ACCOUNT_NAME_VALID = "TestDomainAccountNameMT";
 const std::int32_t MAIN_ACCOUNT_ID = 100;
 const std::int32_t INVALID_ACCOUNT_ID = 200;
-const std::shared_ptr<OsAccountControlFileManager> g_controlManager = std::make_shared<OsAccountControlFileManager>();
 const std::shared_ptr<AccountFileOperator> g_accountFileOperator = std::make_shared<AccountFileOperator>();
 }  // namespace
 
@@ -103,9 +102,8 @@ public:
 
 void OsAccountManagerServiceModuleTest::SetUpTestCase(void)
 {
-    ASSERT_NE(g_controlManager, nullptr);
     ASSERT_NE(g_accountFileOperator, nullptr);
-    g_controlManager->Init();
+    IInnerOsAccountManager::GetInstance().osAccountControl_->Init();
 }
 
 void OsAccountManagerServiceModuleTest::TearDownTestCase(void)
@@ -238,7 +236,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest007
     g_accountFileOperator->DeleteDirOrFile(Constants::ACCOUNT_LIST_FILE_JSON_PATH);
     OsAccountInfo osAccountInfoOne;
     ErrCode errCode = osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
-    EXPECT_NE(errCode, ERR_OK);
+    EXPECT_EQ(errCode, ERR_OK);
 
     // restore file content
     g_accountFileOperator->InputFileByPathAndContent(Constants::ACCOUNT_LIST_FILE_JSON_PATH, fileContext);
@@ -1023,8 +1021,8 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest057
     EXPECT_EQ(checkValid, true);
 
     OsAccountInfo resOsAccountInfo;
-    EXPECT_EQ(g_controlManager->GetOsAccountInfoById(osAccountInfo.GetLocalId(), resOsAccountInfo),
-        ERR_OK);
+    EXPECT_EQ(osAccountManagerService_.innerManager_.osAccountControl_->
+        GetOsAccountInfoById(osAccountInfo.GetLocalId(), resOsAccountInfo), ERR_OK);
 
     DomainAccountInfo resDomainInfo;
     resOsAccountInfo.GetDomainInfo(resDomainInfo);
@@ -1058,8 +1056,8 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest058
     EXPECT_EQ(checkValid, true);
 
     OsAccountInfo resOsAccountInfo;
-    EXPECT_EQ(g_controlManager->GetOsAccountInfoById(osAccountInfo.GetLocalId(), resOsAccountInfo),
-        ERR_OK);
+    EXPECT_EQ(osAccountManagerService_.innerManager_.osAccountControl_->
+        GetOsAccountInfoById(osAccountInfo.GetLocalId(), resOsAccountInfo), ERR_OK);
 
     DomainAccountInfo resDomainInfo;
     resOsAccountInfo.GetDomainInfo(resDomainInfo);

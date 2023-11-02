@@ -159,6 +159,7 @@ ohos_moduletest("domain_account_frameworks_module_mock_test") {
     cflags_cc += [ "-DHAS_CES_PART" ]
     external_deps += [ "common_event_service:cesfwk_innerkits" ]
   }
+  cflags_cc += [ "-DACCOUNT_TEST" ]
   cflags_cc += [ "-DBUNDLE_ADAPTER_MOCK" ]
   cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
 }

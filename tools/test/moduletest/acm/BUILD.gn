@@ -55,6 +55,7 @@ ohos_moduletest("account_command_create_module_test") {
     "ipc:ipc_single",
     "os_account:os_account_innerkits",
   ]
+  cflags_cc = [ "-DACCOUNT_TEST" ]
 }
 
 ohos_moduletest("account_command_create_module_mock_test") {
@@ -145,6 +146,7 @@ ohos_moduletest("account_command_create_module_mock_test") {
     cflags_cc += [ "-DHAS_CES_PART" ]
     external_deps += [ "common_event_service:cesfwk_innerkits" ]
   }
+  cflags_cc += [ "-DACCOUNT_TEST" ]
   cflags_cc += [ "-DBUNDLE_ADAPTER_MOCK" ]
 }
 
@@ -236,6 +238,7 @@ ohos_moduletest("account_command_delete_module_mock_test") {
     cflags_cc += [ "-DHAS_CES_PART" ]
     external_deps += [ "common_event_service:cesfwk_innerkits" ]
   }
+  cflags_cc += [ "-DACCOUNT_TEST" ]
   cflags_cc += [ "-DBUNDLE_ADAPTER_MOCK" ]
 }
 
@@ -278,6 +281,7 @@ ohos_moduletest("account_command_delete_module_test") {
     "ipc:ipc_single",
     "os_account:os_account_innerkits",
   ]
+  cflags_cc = [ "-DACCOUNT_TEST" ]
 }
 
 ohos_moduletest("account_command_dump_module_test") {
@@ -319,6 +323,7 @@ ohos_moduletest("account_command_dump_module_test") {
     "ipc:ipc_single",
     "os_account:os_account_innerkits",
   ]
+  cflags_cc = [ "-DACCOUNT_TEST" ]
 }
 
 ohos_moduletest("account_command_set_module_test") {
@@ -360,6 +365,7 @@ ohos_moduletest("account_command_set_module_test") {
     "ipc:ipc_single",
     "os_account:os_account_innerkits",
   ]
+  cflags_cc = [ "-DACCOUNT_TEST" ]
 }
 
 ohos_moduletest("account_command_switch_module_test") {
@@ -401,6 +407,7 @@ ohos_moduletest("account_command_switch_module_test") {
     "ipc:ipc_single",
     "os_account:os_account_innerkits",
   ]
+  cflags_cc = [ "-DACCOUNT_TEST" ]
 }
 
 group("moduletest") {
