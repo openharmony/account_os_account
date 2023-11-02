@@ -29,7 +29,12 @@
 
 namespace OHOS {
 namespace AccountSA {
+#ifndef ACCOUNT_TEST
 const std::string ACCOUNT_CFG_DIR_ROOT_PATH = "/data/service/el1/public/account/";
+#else
+const std::string ACCOUNT_CFG_DIR_ROOT_PATH = "/data/service/el1/public/account/test/";
+#endif // ACCOUNT_TEST
+
 
 class OhosAccountManager;
 using OhosAccountEventFunc = bool (OhosAccountManager::*)(
@@ -150,7 +155,7 @@ private:
     bool isInit_ = false;
     OhosAccountManager();
     DISALLOW_COPY_AND_MOVE(OhosAccountManager);
-    
+
     /**
      * Account state machine.
      */

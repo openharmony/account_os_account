@@ -20,6 +20,7 @@
 #include "domain_account_callback.h"
 #include "domain_account_callback_stub.h"
 #include "idomain_account_callback.h"
+#include "ios_account_control.h"
 #include "os_account_info.h"
 
 namespace OHOS {
@@ -38,11 +39,13 @@ private:
 
 class BindDomainAccountCallback final : public DomainAccountCallback {
 public:
-    BindDomainAccountCallback(const DomainAccountInfo &domainAccountInfo, const OsAccountInfo &osAccountInfo,
+    BindDomainAccountCallback(std::shared_ptr<IOsAccountControl> &osAccountControl,
+        const DomainAccountInfo &domainAccountInfo, const OsAccountInfo &osAccountInfo,
         const sptr<IDomainAccountCallback> &callback);
     void OnResult(const int32_t errCode, Parcel &parcel) override;
 
 private:
+    std::shared_ptr<IOsAccountControl> osAccountControl_;
     DomainAccountInfo domainAccountInfo_;
     OsAccountInfo osAccountInfo_;
     sptr<IDomainAccountCallback> innerCallback_ = nullptr;

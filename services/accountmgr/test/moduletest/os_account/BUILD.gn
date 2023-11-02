@@ -101,6 +101,7 @@ ohos_moduletest("os_account_manager_service_module_test") {
     cflags = [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
   }
   part_name = "os_account"
+  cflags_cc = [ "-DACCOUNT_TEST" ]
 }
 
 config("os_account_manager_service_create_os_account_test_config") {
@@ -212,6 +213,7 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
     external_deps += [ "user_auth_framework:userauth_client" ]
   }
+  cflags_cc += [ "-DACCOUNT_TEST" ]
 }
 
 ohos_moduletest("os_account_control_file_manager_test") {

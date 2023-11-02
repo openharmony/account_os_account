@@ -282,22 +282,28 @@ bool FileWatcher::CheckNotifyEvent()
 
 void OsAccountControlFileManager::DealWithFileEvent()
 {
-    std::lock_guard<std::mutex> lock(fileWatcherMgrLock_);
-    for (int32_t i : fdArray_) {
-        if (FD_ISSET(i, &fds_)) { // check which fd has event
-            char buf[BUF_COMMON_SIZE] = {0};
-            struct inotify_event *event = nullptr;
-            int len, index = 0;
-            while (((len = read(i, &buf, sizeof(buf))) < 0) && (errno == EINTR)) {};
-            while (index < len) {
-                event = reinterpret_cast<inotify_event *>(buf + index);
-                std::shared_ptr<FileWatcher> fileWatcher = fileNameMgrMap_[i];
-                fileWatcher->CheckNotifyEvent();
-                index += sizeof(struct inotify_event) + event->len;
+    std::vector<std::shared_ptr<FileWatcher>> eventMap;
+    {
+        std::lock_guard<std::mutex> lock(fileWatcherMgrLock_);
+        for (int32_t i : fdArray_) {
+            if (FD_ISSET(i, &fds_)) { // check which fd has event
+                char buf[BUF_COMMON_SIZE] = {0};
+                struct inotify_event *event = nullptr;
+                int len, index = 0;
+                while (((len = read(i, &buf, sizeof(buf))) < 0) && (errno == EINTR)) {};
+                while (index < len) {
+                    event = reinterpret_cast<inotify_event *>(buf + index);
+                    std::shared_ptr<FileWatcher> fileWatcher = fileNameMgrMap_[i];
+                    eventMap.emplace_back(fileWatcher);
+                    index += sizeof(struct inotify_event) + event->len;
+                }
+            } else {
+                FD_SET(i, &fds_); // recover this fd for next check
             }
-        } else {
-            FD_SET(i, &fds_); // recover this fd for next check
         }
+    }
+    for (auto it : eventMap) {
+        it->CheckNotifyEvent();
     }
     return;
 }
@@ -440,9 +446,9 @@ void OsAccountControlFileManager::SubscribeEventFunction(std::shared_ptr<FileWat
                 ACCOUNT_LOGE("get content from file %{public}s failed!", fileName.c_str());
                 return false;
             }
-            uint8_t localDigestData[ALG_COMMON_SIZE];
+            uint8_t localDigestData[ALG_COMMON_SIZE] = {0};
             GetAccountInfoDigestFromFile(fileName, localDigestData, ALG_COMMON_SIZE);
-            uint8_t newDigestData[ALG_COMMON_SIZE];
+            uint8_t newDigestData[ALG_COMMON_SIZE] = {0};
             GenerateAccountInfoGigest(fileInfoStr, newDigestData, ALG_COMMON_SIZE);
 
             if (memcmp(localDigestData, newDigestData, ALG_COMMON_SIZE) == EOK) {
@@ -1139,6 +1145,9 @@ ErrCode OsAccountControlFileManager::GenerateAccountInfoDigestStr(
         accountInfoDigestJson = Json::parse(accountInfoDigest, nullptr, false);
     } catch (Json::type_error& err) {
         ACCOUNT_LOGE("accountInfoDigestJson parse failed! reason: %{public}s", err.what());
+    }
+    if (accountInfoDigestJson.is_discarded()) {
+        accountInfoDigestJson = Json();
     }
     accountInfoDigestJson[userInfoPath] = digestOutData;
     try {

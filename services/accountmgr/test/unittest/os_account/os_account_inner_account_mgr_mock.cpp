@@ -86,6 +86,7 @@ void OsAccountInnerAccmgrCoverageTest::SetUpTestCase(void)
 #ifdef BUNDLE_ADAPTER_MOCK
     auto osAccountService = new (std::nothrow) OsAccountManagerService();
     ASSERT_NE(osAccountService, nullptr);
+    IInnerOsAccountManager::GetInstance().Init();
     OsAccount::GetInstance().proxy_ = new (std::nothrow) OsAccountProxy(osAccountService->AsObject());
     ASSERT_NE(OsAccount::GetInstance().proxy_, nullptr);
 #endif
@@ -672,7 +673,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest023, 
 
     EXPECT_CALL(*ptr, GetOsAccountInfoById(_, _))
         .WillRepeatedly(DoAll(::testing::SetArgReferee<1>(osAccountInfo), ::testing::Return(0)));
-    
+
     ret = innerMgrService_->SetOsAccountName(id, name);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR);
 
@@ -713,7 +714,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest024, 
 
     EXPECT_CALL(*ptr, GetOsAccountInfoById(_, _))
         .WillRepeatedly(DoAll(::testing::SetArgReferee<1>(osAccountInfo), ::testing::Return(0)));
-    
+
     ret = innerMgrService_->SetOsAccountConstraints(id, constraints, enable);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR);
 
@@ -778,7 +779,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest025, 
 
     EXPECT_CALL(*ptr, GetOsAccountInfoById(_, _))
         .WillRepeatedly(DoAll(::testing::SetArgReferee<1>(osAccountInfo), ::testing::Return(0)));
-    
+
     ret = innerMgrService_->SetOsAccountProfilePhoto(id, photo);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR);
 
@@ -827,10 +828,10 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest026, 
     osAccountInfo.SetIsCreateCompleted(0);
     EXPECT_CALL(*ptr, GetOsAccountInfoById(_, _))
         .WillRepeatedly(DoAll(testing::SetArgReferee<1>(osAccountInfo), testing::Return(0)));
-    
+
     ret = innerMgrService_->ActivateOsAccount(id);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_IS_UNVERIFIED_ERROR);
-    
+
     osAccountInfo.SetIsCreateCompleted(1);
     osAccountInfo.SetToBeRemoved(true);
     EXPECT_CALL(*ptr, GetOsAccountInfoById(_, _))
@@ -894,10 +895,10 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest029, 
     osAccountInfo.SetToBeRemoved(true);
     EXPECT_CALL(*ptr, GetOsAccountInfoById(_, _))
         .WillRepeatedly(DoAll(testing::SetArgReferee<1>(osAccountInfo), testing::Return(0)));
-    
+
     ret = innerMgrService_->SetOsAccountIsVerified(id, isVerified);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR);
-    
+
     osAccountInfo.SetToBeRemoved(false);
     EXPECT_CALL(*ptr, GetOsAccountInfoById(_, _))
         .WillRepeatedly(DoAll(testing::SetArgReferee<1>(osAccountInfo), testing::Return(0)));
@@ -957,7 +958,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest031, 
 
     EXPECT_CALL(*ptr, GetOsAccountInfoById(_, _))
         .WillRepeatedly(testing::Return(-1));
-    
+
     ErrCode ret = innerMgrService_->QueryOsAccountConstraintSourceTypes(id, constraint, constraintSourceTypeInfos);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }

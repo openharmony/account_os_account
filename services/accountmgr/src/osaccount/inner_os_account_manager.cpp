@@ -382,7 +382,8 @@ ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type, con
         return ERR_OSACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR;
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
     }
-    auto callbackWrapper = std::make_shared<BindDomainAccountCallback>(domainAccountInfo, osAccountInfo, callback);
+    auto callbackWrapper =
+        std::make_shared<BindDomainAccountCallback>(osAccountControl_, domainAccountInfo, osAccountInfo, callback);
     if (callbackWrapper == nullptr) {
         ACCOUNT_LOGE("create BindDomainAccountCallback failed");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;

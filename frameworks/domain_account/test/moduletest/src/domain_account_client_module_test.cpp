@@ -29,6 +29,7 @@
 #define private public
 #include "domain_account_client.h"
 #include "inner_domain_account_manager.h"
+#include "iinner_os_account_manager.h"
 #include "os_account.h"
 #undef private
 #include "ipc_skeleton.h"
@@ -99,6 +100,7 @@ void DomainAccountClientModuleTest::SetUpTestCase(void)
     ASSERT_NE(DomainAccountClient::GetInstance().proxy_, nullptr);
     auto osAccountService = new (std::nothrow) OsAccountManagerService();
     ASSERT_NE(osAccountService, nullptr);
+    IInnerOsAccountManager::GetInstance().Init();
     OsAccount::GetInstance().proxy_ = new (std::nothrow) OsAccountProxy(osAccountService->AsObject());
     ASSERT_NE(OsAccount::GetInstance().proxy_, nullptr);
 #endif
@@ -729,7 +731,6 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_HasDomainA
     info.accountName_ = STRING_NAME;
     info.domain_ = STRING_DOMAIN;
     info.accountId_ = STRING_ACCOUNTID;
-    
     std::shared_ptr<DomainAccountCallback> callback = nullptr;
     EXPECT_EQ(DomainAccountClient::GetInstance().HasAccount(info, callback),
         ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
