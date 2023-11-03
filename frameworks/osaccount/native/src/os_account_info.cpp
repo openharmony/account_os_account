@@ -314,35 +314,27 @@ void OsAccountInfo::SetToBeRemoved(bool toBeRemoved)
 
 ErrCode OsAccountInfo::ParamCheck()
 {
-    std::string name = OsAccountInfo::GetLocalName();
-    if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("local name length %{public}zu is too long!", name.size());
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-    if (name.empty()) {
-        ACCOUNT_LOGE("local name is empty!");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-    int32_t type = OsAccountInfo::GetType();
-    if (type < OsAccountType::ADMIN || type >= OsAccountType::END) {
-        ACCOUNT_LOGE("os account type is invalid");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-    
-    int localId = OsAccountInfo::GetLocalId();
-    if (localId < Constants::START_USER_ID) {
+    if (localId_ < Constants::START_USER_ID) {
         ACCOUNT_LOGE("os localId is invalid");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
-    int64_t serialNumber = OsAccountInfo::GetSerialNumber();
-    if (serialNumber <= 0) {
-        ACCOUNT_LOGE("os serial number is invalid");
+    if (localName_.size() > Constants::LOCAL_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("local name length %{public}zu is too long!", localName_.size());
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    if (localName_.empty() && localId_ != Constants::START_USER_ID) {
+        ACCOUNT_LOGE("local name is empty!");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
-    int64_t createTime = OsAccountInfo::GetCreateTime();
-    if (createTime <= 0) {
+    if ((type_ < OsAccountType::ADMIN) || (type_ >= OsAccountType::END) ||
+        (localId_ == Constants::START_USER_ID && type_ != OsAccountType::ADMIN)) {
+        ACCOUNT_LOGE("os account type is invalid");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    if ((createTime_ <= 0) && (localId_ != Constants::START_USER_ID)) {
         ACCOUNT_LOGE("os create time is invalid");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
