@@ -243,27 +243,37 @@ static bool ParseParamForUpdateAccountToken(
     return true;
 }
 
+static bool ParseParamForGetAccessByAccount(
+    napi_env env, const napi_value *argv, size_t argc, GetAccessTokenAsyncContext *asyncContext)
+{
+    if ((argc == ARG_SIZE_THREE) && (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1))) {
+        ACCOUNT_LOGE("failed to get callbackRef for getting access token");
+        return false;
+    }
+    if (!AppExecFwk::UnwrapWantParams(env, argv[PARAM_ONE], asyncContext->getTokenParams)) {
+        ACCOUNT_LOGE("unwrapWantParams failed");
+        return false;
+    }
+    return true;
+}
+
 static bool ParseParamForGetAccessToken(
     napi_env env, napi_callback_info cbInfo, GetAccessTokenAsyncContext *asyncContext)
 {
     size_t argc = ARG_SIZE_THREE;
     napi_value argv[ARG_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-    if (argc < ARG_SIZE_TWO) {
-        ACCOUNT_LOGE("the parameter number for getting access token should be at least two");
+    if (argc < ARG_SIZE_ONE) {
         return false;
     }
-    if (argc == ARG_SIZE_THREE) {
-        if (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1)) {
-            ACCOUNT_LOGE("failed to get callbackRef for getting access token");
-            return false;
-        }
+    if (ParseDomainAccountInfo(env, argv[0], asyncContext->domainInfo)) {
+        return ParseParamForGetAccessByAccount(env, argv, argc, asyncContext);
     }
-    if (!ParseDomainAccountInfo(env, argv[0], asyncContext->domainInfo)) {
-        ACCOUNT_LOGE("get domainInfo failed");
+    if ((argc == ARG_SIZE_TWO) && (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1))) {
+        ACCOUNT_LOGE("failed to get callbackRef for getting access token");
         return false;
     }
-    if (!AppExecFwk::UnwrapWantParams(env, argv[PARAM_ONE], asyncContext->getTokenParams)) {
+    if (!AppExecFwk::UnwrapWantParams(env, argv[0], asyncContext->getTokenParams)) {
         ACCOUNT_LOGE("unwrapWantParams failed");
         return false;
     }
