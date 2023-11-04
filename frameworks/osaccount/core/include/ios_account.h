@@ -34,6 +34,8 @@ public:
 
     virtual ErrCode CreateOsAccount(
         const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo) = 0;
+    virtual ErrCode CreateOsAccount(
+        const std::string &localName, const std::string &shortName, const OsAccountType &type, OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
@@ -96,6 +98,7 @@ public:
 
     virtual ErrCode SetDefaultActivatedOsAccount(const int32_t id) = 0;
     virtual ErrCode GetDefaultActivatedOsAccount(int32_t &id) = 0;
+    virtual ErrCode GetOsAccountShortName(std::string &shortName) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

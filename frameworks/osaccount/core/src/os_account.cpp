@@ -66,6 +66,49 @@ ErrCode OsAccount::CreateOsAccount(const std::string &name, const OsAccountType 
     return proxy->CreateOsAccount(name, type, osAccountInfo);
 }
 
+ErrCode OsAccount::CreateOsAccount(const std::string &localName, const std::string &shortName, const OsAccountType &type, OsAccountInfo &osAccountInfo)
+{
+    if (localName.size() > Constants::LOCAL_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("CreateOsAccount local name length %{public}zu is too long!", localName.size());
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    if (localName.empty()) {
+        ACCOUNT_LOGE("CreateOsAccount local name is empty!");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    if (shortName.size() > Constants::SHORT_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("CreateOsAccount short name length %{public}zu is too long!", shortName.size());
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    if (shortName.empty()) {
+        ACCOUNT_LOGE("CreateOsAccount short name is empty!");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    for (int i = 0; i < (int)strlen(Constants::SPECIAL_CHARACTER_ARRAY); i++)
+    {
+        if (shortName.find(Constants::SPECIAL_CHARACTER_ARRAY[i]) != std::string::npos) {
+            ACCOUNT_LOGE("CreateOsAccount short name is invalidate, short name is %{public}s !", shortName.c_str());
+            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+        }
+    }
+
+    for (int i = 0; i < (int)sizeof(Constants::SHORT_NAME_CANNOT_BE_NAME_ARRAY); i++)
+    {
+        if (shortName.compare(Constants::SHORT_NAME_CANNOT_BE_NAME_ARRAY[i]) == 0) {
+            ACCOUNT_LOGE("CreateOsAccount short name is invalidate, short name is %{public}s !", shortName.c_str());
+            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+        }
+    }
+
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+
+    return proxy->CreateOsAccount(localName, shortName, type, osAccountInfo);
+}
+
 ErrCode OsAccount::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
 {
     ErrCode code = osAccountInfo.ParamCheck();
@@ -808,8 +851,11 @@ ErrCode OsAccount::GetDefaultActivatedOsAccount(int32_t &id)
 
 ErrCode OsAccount::GetOsAccountShortName(std::string &shortName)
 {
-    shortName = "default";
-    return ERR_OK;
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->GetOsAccountShortName(shortName);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

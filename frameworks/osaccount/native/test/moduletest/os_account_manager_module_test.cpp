@@ -52,6 +52,7 @@ namespace {
 const std::string STRING_EMPTY = "";
 const std::string STRING_NAME = "name";
 const std::string STRING_TEST_NAME = "test_account_name";
+const std::string STRING_TEST_SHORT_NAME = "shortName";
 const std::string STRING_TEST_NAME_TWO = "test_account_name_2";
 const std::uint32_t INVALID_TOKEN_ID = 0;
 #ifdef DOMAIN_ACCOUNT_TEST_CASE
@@ -66,8 +67,13 @@ const std::int32_t MAIN_ACCOUNT_ID = 100;
 const std::int32_t INVALID_ID = 200;
 const std::uint32_t MAX_WAIT_FOR_READY_CNT = 10;
 const std::int32_t DEFAULT_API_VERSION = 8;
+
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
+#ifdef DOMAIN_ACCOUNT_TEST_CASE
 const uid_t ACCOUNT_UID = 3058;
 const gid_t ACCOUNT_GID = 3058;
+#endif // DOMAIN_ACCOUNT_TEST_CASE
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 const std::vector<std::string> CONSTANTS_VECTOR {
     "constraint.print",
@@ -2349,3 +2355,35 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest113, TestSize.Lev
     EXPECT_EQ(id, MAIN_ACCOUNT_ID);
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
+
+/**
+ * @tc.name: CreateOsAccount01
+ * @tc.desc: create os account with short name 
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, CreateOsAccount01, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfoOne;
+    OsAccountInfo osAccountInfoTwo;
+    EXPECT_NE(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, STRING_TEST_SHORT_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
+    EXPECT_NE(OsAccountManager::CreateOsAccount(STRING_TEST_NAME_TWO, STRING_TEST_SHORT_NAME, OsAccountType::NORMAL, osAccountInfoTwo), ERR_OSACCOUNT_SERVICE_DATA_STORAGE_KEY_EXISTED_ERROR);
+    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
+    OsAccountManager::RemoveOsAccount(osAccountInfoTwo.GetLocalId());
+}
+
+/**
+ * @tc.name: CreateOsAccount02
+ * @tc.desc: create os account with short name 
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, CreateOsAccount02, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfoOne;
+    OsAccountInfo osAccountInfoTwo;
+    EXPECT_NE(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, STRING_TEST_SHORT_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
+    EXPECT_NE(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfoTwo), ERR_OSACCOUNT_SERVICE_DATA_STORAGE_KEY_EXISTED_ERROR);
+    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
+    OsAccountManager::RemoveOsAccount(osAccountInfoTwo.GetLocalId());
+}

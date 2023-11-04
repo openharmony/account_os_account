@@ -31,6 +31,7 @@ const std::string SYSTEM_ETC_BASE = "/system/etc/account";
 const std::string OSACCOUNT_CONSTRAINTS_JSON_PATH = SYSTEM_ETC_BASE + PATH_SEPARATOR + "osaccount_constraints.json";
 const std::string CONSTRAINTS_LIST_JSON_PATH = SYSTEM_ETC_BASE + PATH_SEPARATOR + "constraints_list_collection.json";
 const std::string ACCOUNT_LIST_FILE_JSON_PATH = USER_INFO_BASE + PATH_SEPARATOR + "account_list.json";
+const std::string ACCOUNT_INDEX_JSON_PATH = USER_INFO_BASE + PATH_SEPARATOR + "account_index_info.json";
 const std::string ACCOUNT_INFO_DIGEST_FILE_PATH = USER_INFO_BASE + PATH_SEPARATOR + "account_info_digest.json";
 const std::string BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH =
     USER_INFO_BASE + PATH_SEPARATOR + "base_os_account_constraints.json";
@@ -65,6 +66,7 @@ const int SUBSCRIBER_MAX_SIZE = 100;
 // account restrict
 const unsigned int LOCAL_NAME_MAX_SIZE = 1024;
 const unsigned int LOCAL_PHOTO_MAX_SIZE = 1024 * 4;
+const unsigned int SHORT_NAME_MAX_SIZE = 255;
 
 // domain info limits
 const unsigned int DOMAIN_NAME_MAX_SIZE = 128;
@@ -103,6 +105,10 @@ const std::string IS_MULTI_OS_ACCOUNT_ENABLE = "IsMultiOsAccountEnable";
 const std::string IS_SERIAL_NUMBER_FULL = "isSerialNumberFull";
 const std::string CONSTRAINTS_LIST = "constraints";
 const std::string IS_ALLOWED_CREATE_ADMIN = "IsAllowedCreateAdmin";
+const std::string LOCAL_NAME = "localName";
+const std::string SHORT_NAME = "shortName";
+const char SPECIAL_CHARACTER_ARRAY[9] = { '<','>','|','\"',':', '*', '?','/', '\\' };
+const std::string SHORT_NAME_CANNOT_BE_NAME_ARRAY[2] = { ".",".." };
 
 // start type
 const OS_ACCOUNT_SWITCH_MOD NOW_OS_ACCOUNT_SWITCH_MOD = OS_ACCOUNT_SWITCH_MOD::HOT_SWITCH;

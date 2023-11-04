@@ -336,6 +336,12 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
             .messageProcFunction = &OsAccountStub::ProcGetDefaultActivatedOsAccount,
         }
     },
+    {
+        static_cast<uint32_t>(OsAccountInterfaceCode::GET_DEFAULT_OS_ACCOUNT_SHORT_NAME),
+        {
+            .messageProcFunction = &OsAccountStub::ProcGetOsAccountShortName,
+        }
+    },
 };
 
 OsAccountStub::OsAccountStub()
@@ -423,9 +429,15 @@ ErrCode OsAccountStub::ProcCreateOsAccount(MessageParcel &data, MessageParcel &r
         reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_LOCALNAME_ERROR);
         return ERR_NONE;
     }
+    std::string shortName = data.ReadString();
     OsAccountType type = static_cast<OsAccountType>(data.ReadInt32());
     OsAccountInfo osAccountInfo;
-    ErrCode result = CreateOsAccount(name, type, osAccountInfo);
+    ErrCode result;
+    if(shortName.empty()){
+        result = CreateOsAccount(name, type, osAccountInfo);
+    } else {
+        result = CreateOsAccount(name, shortName, type, osAccountInfo);
+    }
     return WriteResultWithOsAccountInfo(reply, result, osAccountInfo);
 }
 
@@ -1260,6 +1272,20 @@ ErrCode OsAccountStub::ProcGetDefaultActivatedOsAccount(MessageParcel &data, Mes
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     if (!reply.WriteInt32(localId)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcGetOsAccountShortName(MessageParcel &data, MessageParcel &reply){
+    std::string shortName;
+    ErrCode result = GetOsAccountShortName(shortName);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteString(shortName)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }

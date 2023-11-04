@@ -1060,6 +1060,36 @@ ErrCode OsAccountControlFileManager::UpdateAccountList(const std::string& idStr,
     return SaveAccountListToFileAndDataBase(accountListJson);
 }
 
+ErrCode OsAccountControlFileManager::UpdateAccountIndex(const OsAccountInfo &osAccountInfo, const bool isDelete)
+{
+    Json accountIndexJson;
+    ErrCode result = GetAccountIndexFromFile(accountIndexJson);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("get account index failed!");
+        return result;
+    }
+    std::string localIdStr = std::to_string(osAccountInfo.GetLocalId());
+    Json accountBaseInfo; 
+    accountBaseInfo[Constants::LOCAL_NAME] = osAccountInfo.GetLocalName();
+    accountBaseInfo[Constants::SHORT_NAME] = osAccountInfo.GetShortName();
+    if (accountIndexJson.contains(localIdStr)) {
+        if (isDelete) {
+            accountIndexJson.erase(localIdStr);
+        } else {
+            accountIndexJson[localIdStr] = accountBaseInfo;
+        }
+    } else {
+        accountIndexJson[localIdStr] = accountBaseInfo;
+    }
+    std::string lastAccountIndexStr = accountIndexJson.dump();
+    result = accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_INDEX_JSON_PATH, lastAccountIndexStr);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("InputFileByPathAndContent failed! path %{public}s.", Constants::ACCOUNT_INDEX_JSON_PATH.c_str());
+        return result;
+    }
+    return ERR_OK;
+}
+
 ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGD("enter");
@@ -1225,6 +1255,27 @@ ErrCode OsAccountControlFileManager::UpdateOsAccount(OsAccountInfo &osAccountInf
     return ERR_OK;
 }
 
+ErrCode OsAccountControlFileManager::ValidateOsAccount(OsAccountInfo &osAccountInfo)
+{
+    Json accountIndexJson;
+    ErrCode result = GetAccountIndexFromFile(accountIndexJson);
+    if (result != ERR_OK) {
+        return result;
+    }
+    for(auto& element : accountIndexJson.items()){
+        std::string localIdStr = element.key();
+        auto value = element.value();
+        std::string localName = value[Constants::LOCAL_NAME].get<std::string>();
+        std::string shortName = value[Constants::SHORT_NAME].get<std::string>();
+        if ((osAccountInfo.GetLocalName() == localName || osAccountInfo.GetShortName() == shortName) && 
+            std::to_string(osAccountInfo.GetLocalId()) != localIdStr) 
+        {
+            return ERR_OSACCOUNT_KIT_NAME_HAD_EXISTED;
+        }
+    }
+    return ERR_OK;
+}
+
 ErrCode OsAccountControlFileManager::GetMaxCreatedOsAccountNum(int &maxCreatedOsAccountNum)
 {
     ACCOUNT_LOGD("start");
@@ -1372,6 +1423,52 @@ ErrCode OsAccountControlFileManager::GetAccountListFromFile(Json &accountListJso
     }
     accountListJson = Json::parse(accountList, nullptr, false);
     ACCOUNT_LOGD("end");
+    return ERR_OK;
+}
+
+ErrCode OsAccountControlFileManager::GetAccountIndexFromFile(Json &accountIndexJson)
+{
+    accountIndexJson.clear();
+    std::string accountIndex;
+    if (!accountFileOperator_->IsExistFile(Constants::ACCOUNT_INDEX_JSON_PATH)) {
+        ErrCode result = CreateAccountIndexInfo(accountIndex);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGE("CreateAccountIndexInfo error code %{public}d.", result);
+            return result;
+        }
+    } else {
+        ErrCode errCode = accountFileOperator_->GetFileContentByPath(Constants::ACCOUNT_INDEX_JSON_PATH, accountIndex);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("GetFileContentByPath failed! error code %{public}d.", errCode);
+            return errCode;
+        }
+    }
+    accountIndexJson = Json::parse(accountIndex, nullptr, false);
+    return ERR_OK;
+}
+
+ErrCode OsAccountControlFileManager::CreateAccountIndexInfo(std::string &accountIndexInfo){
+    std::vector<OsAccountInfo> osAccountInfos;
+    ErrCode result = GetOsAccountList(osAccountInfos);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("CreateAccountIndexInfo get accountList error code %{public}d.", result);
+        return result;
+    }
+    Json accountIndexJson;
+    for (auto account = osAccountInfos.begin(); account != osAccountInfos.end(); account++) {
+        std::string localIdStr = std::to_string(account->GetLocalId());
+        Json accountIndexElement; 
+        accountIndexElement[Constants::LOCAL_NAME] = account->GetLocalName();
+        accountIndexElement[Constants::SHORT_NAME] = account->GetShortName();
+        accountIndexJson[localIdStr] = accountIndexElement;
+    }
+    accountIndexInfo = accountIndexJson.dump();
+    std::lock_guard<std::mutex> lock(accountInfoFileLock_);
+    result = accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_INDEX_JSON_PATH, accountIndexInfo);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("InputFileByPathAndContent failed! path %{public}s.", Constants::ACCOUNT_INDEX_JSON_PATH.c_str());
+        return result;
+    }
     return ERR_OK;
 }
 
