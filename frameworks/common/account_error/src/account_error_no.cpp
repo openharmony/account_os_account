@@ -14,8 +14,17 @@
  */
 
 #include "account_error_no.h"
+#include <map>
 
 namespace OHOS {
+const std::map<int32_t, int32_t> errorMap = {
+    { ERR_OK, ERR_JS_SUCCESS },
+    { ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR, ERR_JS_IS_NOT_SYSTEM_APP },
+    { ERR_ACCOUNT_COMMON_INVALID_PARAMETER, ERR_JS_INVALID_PARAMETER },
+    { ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, ERR_JS_ACCOUNT_NOT_FOUND },
+    { ERR_ACCOUNT_COMMON_NOT_AUTHENTICATED, ERR_JS_ACCOUNT_NOT_AUTHENTICATED }
+};
+
 int32_t AppAccountConvertOtherJSErrCode(int32_t errCode)
 {
     switch (errCode) {
@@ -148,17 +157,9 @@ static bool IsDomainAccountServiceError(int32_t errCode)
 
 int32_t ConvertToJSErrCode(int32_t nativeErrCode)
 {
-    if (nativeErrCode == ERR_OK) {
-        return ERR_JS_SUCCESS;
-    }
-    if (nativeErrCode == ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR) {
-        return ERR_JS_IS_NOT_SYSTEM_APP;
-    }
-    if (nativeErrCode == ERR_ACCOUNT_COMMON_INVALID_PARAMETER) {
-        return ERR_JS_INVALID_PARAMETER;
-    }
-    if (nativeErrCode == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR) {
-        return ERR_JS_ACCOUNT_NOT_FOUND;
+    auto it = errorMap.find(nativeErrCode);
+    if (it != errorMap.end()) {
+        return it->second;
     }
     if (IsAppAccountKitError(nativeErrCode) || IsAppAccountServiceError(nativeErrCode)) {
         return AppAccountConvertToJSErrCode(nativeErrCode);

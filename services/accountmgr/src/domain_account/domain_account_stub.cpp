@@ -382,13 +382,6 @@ ErrCode DomainAccountStub::CheckPermission(DomainAccountInterfaceCode code, int3
         default:
             break;
     }
-    if (code == DomainAccountInterfaceCode::DOMAIN_GET_ACCESS_TOKEN) {
-        errCode = AccountPermissionManager::VerifyPermission(MANAGE_LOCAL_ACCOUNTS);
-        if (errCode != ERR_OK) {
-            return AccountPermissionManager::VerifyPermission(GET_LOCAL_ACCOUNTS);
-        }
-        return ERR_OK;
-    }
     if (permissionName.empty()) {
         return ERR_OK;
     }
