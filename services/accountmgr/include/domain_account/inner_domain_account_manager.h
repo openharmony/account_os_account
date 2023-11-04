@@ -51,7 +51,7 @@ public:
     ErrCode OnAccountUnBound(const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback);
     bool IsPluginAvailable();
     void InsertTokenToMap(int32_t userId, const std::vector<uint8_t> &token);
-    void GetTokenFromMap(int32_t userId, std::vector<uint8_t> &token);
+    bool GetTokenFromMap(int32_t userId, std::vector<uint8_t> &token);
     void RemoveTokenFromMap(int32_t userId);
     ErrCode GetAccountStatus(const DomainAccountInfo &info, DomainAccountStatus &status);
     ErrCode RegisterAccountStatusListener(const sptr<IDomainAccountCallback> &listener);

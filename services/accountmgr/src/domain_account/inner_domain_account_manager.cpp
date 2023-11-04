@@ -258,13 +258,18 @@ void InnerDomainAccountManager::InsertTokenToMap(int32_t userId, const std::vect
 {
     std::lock_guard<std::mutex> lock(mutex_);
     userTokenMap_[userId] = token;
-    return;
 }
 
-void InnerDomainAccountManager::GetTokenFromMap(int32_t userId, std::vector<uint8_t> &token)
+bool InnerDomainAccountManager::GetTokenFromMap(int32_t userId, std::vector<uint8_t> &token)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    token = userTokenMap_[userId];
+    auto it = userTokenMap_.find(userId);
+    if (it == userTokenMap_.end()) {
+        token.clear();
+        return false;
+    }
+    token = it->second;
+    return true;
 }
 
 void InnerDomainAccountManager::RemoveTokenFromMap(int32_t userId)
@@ -369,18 +374,34 @@ ErrCode InnerDomainAccountManager::GetAccessToken(
         ACCOUNT_LOGE("invalid callback");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
+    int32_t callingUid = IPCSkeleton::GetCallingUid();
     int32_t userId = 0;
-    ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("get os account localId from domain failed, result: %{public}d", result);
-        return result;
+    ErrCode result = ERR_OK;
+    DomainAccountInfo targetInfo = info;
+    if (!info.accountName_.empty()) {
+        result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGE("domain account not found");
+            return result;
+        }
+    } else {
+        userId = callingUid / UID_TRANSFORM_DIVISOR;
+        OsAccountInfo osAccountInfo;
+        (void) IInnerOsAccountManager::GetInstance().QueryOsAccountById(userId, osAccountInfo);
+        osAccountInfo.GetDomainInfo(targetInfo);
+        if (targetInfo.accountName_.empty()) {
+            ACCOUNT_LOGE("domain account not found");
+            return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+        }
     }
     std::vector<uint8_t> accountToken;
-    GetTokenFromMap(userId, accountToken);
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    if (!GetTokenFromMap(userId, accountToken)) {
+        ACCOUNT_LOGE("the target domain account has not authenticated");
+        return ERR_ACCOUNT_COMMON_NOT_AUTHENTICATED;
+    }
     GetAccessTokenOptions option(callingUid, parameters);
-    auto task =
-        std::bind(&InnerDomainAccountManager::StartGetAccessToken, this, plugin_, accountToken, info, option, callback);
+    auto task = std::bind(&InnerDomainAccountManager::StartGetAccessToken,
+        this, plugin_, accountToken, targetInfo, option, callback);
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_GET_ACCESS_TOKEN);
     taskThread.detach();
@@ -464,9 +485,8 @@ ErrCode InnerDomainAccountManager::GetAccountStatus(const DomainAccountInfo &inf
         return res;
     }
     std::vector<uint8_t> token;
-    GetTokenFromMap(userId, token);
-    if (token.empty()) {
-        ACCOUNT_LOGI("Token is empty.");
+    if (!GetTokenFromMap(userId, token)) {
+        ACCOUNT_LOGI("the target domain account has not authenticated");
         return ERR_OK;
     }
 
