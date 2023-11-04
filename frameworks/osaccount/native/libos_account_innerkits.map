@@ -75,6 +75,7 @@
         "OHOS::AccountSA::OsAccountProxy::OsAccountProxy(OHOS::sptr<OHOS::IRemoteObject> const&)";
         "OHOS::AccountSA::OsAccountManager::GetOsAccountSwitchMod()";
         "OHOS::AccountSA::OsAccountManager::CreateOsAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::OsAccountType const&, OHOS::AccountSA::OsAccountInfo&)";
+        "OHOS::AccountSA::OsAccountManager::CreateOsAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::OsAccountType const&, OHOS::AccountSA::OsAccountInfo&)";
         "OHOS::AccountSA::OsAccountManager::CreateOsAccountWithFullInfo(OHOS::AccountSA::OsAccountInfo&)";
         "OHOS::AccountSA::OsAccountManager::UpdateOsAccountWithFullInfo(OHOS::AccountSA::OsAccountInfo&)";
         "OHOS::AccountSA::OsAccountManager::CreateOsAccountForDomain(OHOS::AccountSA::OsAccountType const&, OHOS::AccountSA::DomainAccountInfo const&, OHOS::AccountSA::OsAccountInfo&)";
@@ -162,6 +163,7 @@
         "OHOS::AccountSA::OsAccountInfo::SetPhoto(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>)";
         "OHOS::AccountSA::OsAccountInfo::GetType() const";
         "OHOS::AccountSA::OsAccountInfo::GetLocalName() const";
+        "OHOS::AccountSA::OsAccountInfo::GetShortName() const";
         "OHOS::AccountSA::OsAccountInfo::GetSerialNumber() const";
         "OHOS::AccountSA::OsAccountInfo::FromJson(nlohmann::basic_json<std::__h::map, std::__h::vector, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, bool, long long, unsigned long long, double, std::__h::allocator, nlohmann::adl_serializer, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>>> const&)";
         "OHOS::AccountSA::OsAccountInfo::FromJson(nlohmann::basic_json<std::__h::map, std::__h::vector, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, bool, long, unsigned long, double, std::__h::allocator, nlohmann::adl_serializer, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>>> const&)";
@@ -178,6 +180,7 @@
         "OHOS::AccountSA::OsAccountInfo::SetSerialNumber(long)";
         "OHOS::AccountSA::OsAccountInfo::OsAccountInfo(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, OHOS::AccountSA::OsAccountType, long long)";
         "OHOS::AccountSA::OsAccountInfo::OsAccountInfo(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, OHOS::AccountSA::OsAccountType, long)";
+        "OHOS::AccountSA::OsAccountInfo::OsAccountInfo(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, OHOS::AccountSA::OsAccountType, long long)";
         "OHOS::AccountSA::OsAccountInfo::SetConstraints(std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>)";
         "OHOS::AccountSA::OsAccountInfo::SetLocalName(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>)";
         "OHOS::AccountSA::OsAccountInfo::SetPhoto(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>)";

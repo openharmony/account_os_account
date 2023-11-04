@@ -31,6 +31,8 @@ public:
 
     ErrCode CreateOsAccount(
         const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo) override;
+    ErrCode CreateOsAccount(
+        const std::string &localName, const std::string &shortName, const OsAccountType &type, OsAccountInfo &osAccountInfo) override;
     ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
         const sptr<IDomainAccountCallback> &callback) override;
     
@@ -113,6 +115,7 @@ public:
 
     ErrCode SetDefaultActivatedOsAccount(const int32_t id) override;
     ErrCode GetDefaultActivatedOsAccount(int32_t &id) override;
+    ErrCode GetOsAccountShortName(std::string &shortName) override;
 
 private:
     virtual ErrCode DumpStateByAccounts(

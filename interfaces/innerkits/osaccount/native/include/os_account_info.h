@@ -46,6 +46,8 @@ public:
 
     OsAccountInfo(int localId, const std::string localName, OsAccountType type, int64_t serialNumber);
 
+    OsAccountInfo(int localId, const std::string localName, const std::string shortName, OsAccountType type, int64_t serialNumber);
+
     int GetLocalId() const;
 
     void SetLocalId(int localId);
@@ -53,6 +55,10 @@ public:
     std::string GetLocalName() const;
 
     void SetLocalName(const std::string localName);
+
+    std::string GetShortName() const;
+
+    void SetShortName(const std::string shortName);
 
     OsAccountType GetType() const;
 
@@ -121,6 +127,7 @@ public:
 private:
     int localId_ = -1;
     std::string localName_;
+    std::string shortName_;
     OsAccountType type_ = OsAccountType::ADMIN;
     std::vector<std::string> constraints_;
     std::string photo_;

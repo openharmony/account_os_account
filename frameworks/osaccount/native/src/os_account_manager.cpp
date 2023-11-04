@@ -27,6 +27,12 @@ ErrCode OsAccountManager::CreateOsAccount(
     return OsAccount::GetInstance().CreateOsAccount(name, type, osAccountInfo);
 }
 
+ErrCode OsAccountManager::CreateOsAccount(
+    const std::string &localName, const std::string &shortName, const OsAccountType &type, OsAccountInfo &osAccountInfo)
+{
+    return OsAccount::GetInstance().CreateOsAccount(localName, shortName, type, osAccountInfo);
+}
+
 ErrCode OsAccountManager::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
 {
     return OsAccount::GetInstance().CreateOsAccountWithFullInfo(osAccountInfo);

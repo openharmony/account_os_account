@@ -124,6 +124,59 @@ ErrCode OsAccountManagerService::CreateOsAccount(
     return innerManager_.CreateOsAccount(name, type, osAccountInfo);
 }
 
+ErrCode OsAccountManagerService::CreateOsAccount(
+    const std::string &localName, const std::string &shortName, const OsAccountType &type, OsAccountInfo &osAccountInfo)
+{
+    bool isMultiOsAccountEnable = false;
+    innerManager_.IsMultiOsAccountEnable(isMultiOsAccountEnable);
+    if (!isMultiOsAccountEnable) {
+        ACCOUNT_LOGE("system is not multi os account enable error");
+        return ERR_OSACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR;
+    }
+
+    // permission check
+    if (!CheckCreateOsAccountWhiteList() &&
+        (!PermissionCheck("", CONSTANT_CREATE_DIRECTLY) || !PermissionCheck(MANAGE_LOCAL_ACCOUNTS, CONSTANT_CREATE))) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+
+    // parameters check
+    if (localName.size() > Constants::LOCAL_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("os account name out of max allowed size");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    if (localName.size() <= 0) {
+        ACCOUNT_LOGE("os account name is empty");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    if (shortName.size() > Constants::SHORT_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("os account short name out of max allowed size");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    if (type < OsAccountType::ADMIN || type >= OsAccountType::END) {
+        ACCOUNT_LOGE("os account type is invalid");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    bool isAllowedCreateAdmin = false;
+    ErrCode errCode = innerManager_.IsAllowedCreateAdmin(isAllowedCreateAdmin);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("query allowed create admin error");
+        return errCode;
+    }
+    if (!isAllowedCreateAdmin && type == OsAccountType::ADMIN) {
+        ACCOUNT_LOGE("cannot create admin account error");
+        return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
+    }
+    if (shortName.size() <= 0) {
+        return innerManager_.CreateOsAccount(localName, type, osAccountInfo);
+    } else {
+        return innerManager_.CreateOsAccount(localName, shortName, type, osAccountInfo);
+    }
+}
+
 ErrCode OsAccountManagerService::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
 {
     bool isMultiOsAccountEnable = false;
@@ -853,6 +906,23 @@ ErrCode OsAccountManagerService::SetDefaultActivatedOsAccount(const int32_t id)
 ErrCode OsAccountManagerService::GetDefaultActivatedOsAccount(int32_t &id)
 {
     return innerManager_.GetDefaultActivatedOsAccount(id);
+}
+
+ErrCode OsAccountManagerService::GetOsAccountShortName(std::string &shortName)
+{
+    int id = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+
+    OsAccountInfo osAccountInfo;
+    ErrCode errCode = innerManager_.QueryOsAccountById(id, osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("GetOsAccountShortName error %{public}d", errCode);
+        return errCode;
+    }
+    shortName = osAccountInfo.GetShortName();
+    if (shortName.empty()) {
+        shortName = osAccountInfo.GetLocalName();
+    }
+    return ERR_OK;
 }
 
 bool OsAccountManagerService::PermissionCheck(const std::string& permissionName, const std::string& constraintName)

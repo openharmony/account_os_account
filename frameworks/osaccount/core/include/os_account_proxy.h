@@ -28,6 +28,8 @@ public:
 
     ErrCode CreateOsAccount(
         const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo) override;
+    ErrCode CreateOsAccount(
+        const std::string &localName, const std::string &shortName, const OsAccountType &type, OsAccountInfo &osAccountInfo) override;
     ErrCode CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo) override;
     ErrCode UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo) override;
     ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
@@ -89,6 +91,7 @@ public:
         const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner) override;
     ErrCode SetDefaultActivatedOsAccount(const int32_t id) override;
     ErrCode GetDefaultActivatedOsAccount(int32_t &id) override;
+    ErrCode GetOsAccountShortName(std::string &shortName) override;
 
 private:
     bool ReadOsAccountInfoList(MessageParcel &data, std::vector<OsAccountInfo> &parcelableInfos);

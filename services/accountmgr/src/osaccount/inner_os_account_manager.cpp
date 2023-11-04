@@ -79,7 +79,13 @@ void IInnerOsAccountManager::CreateBaseAdminAccount()
         osAccountInfo.SetCreateTime(time);
         osAccountInfo.SetIsCreateCompleted(true);
         osAccountInfo.SetIsActived(true);  // admin local account is always active
+        ErrCode errCode = osAccountControl_->ValidateOsAccount(osAccountInfo);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("account name already exist, errCode %{public}d.", errCode);
+            return;
+        }
         osAccountControl_->InsertOsAccount(osAccountInfo);
+        osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
         ACCOUNT_LOGI("OsAccountAccountMgr created admin account end");
     }
 }
@@ -105,7 +111,13 @@ void IInnerOsAccountManager::CreateBaseStandardAccount()
                 .count();
         osAccountInfo.SetCreateTime(time);
         osAccountInfo.SetIsCreateCompleted(false);
+        errCode = osAccountControl_->ValidateOsAccount(osAccountInfo);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("CreateBaseStandardAccount account name already exist, errCode %{public}d.", errCode);
+            return;
+        }
         osAccountControl_->InsertOsAccount(osAccountInfo);
+        osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
         ACCOUNT_LOGI("OsAccountAccountMgr created base account end");
     }
 }
@@ -185,6 +197,12 @@ void IInnerOsAccountManager::ResetAccountStatus(void)
 ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &name, const OsAccountType &type,
     const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo)
 {
+    return PrepareOsAccountInfo(name, name, type, domainInfo, osAccountInfo);
+}
+
+ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &localName, const std::string &shortName, const OsAccountType &type,
+    const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo)
+{
     int64_t serialNumber;
     ErrCode errCode = osAccountControl_->GetSerialNumber(serialNumber);
     if (errCode != ERR_OK) {
@@ -204,7 +222,11 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &name, co
         ACCOUNT_LOGE("failed to GetConstraintsByType, errCode %{public}d.", errCode);
         return errCode;
     }
-    osAccountInfo = OsAccountInfo(id, name, type, serialNumber);
+    if (shortName.empty()) {
+        osAccountInfo = OsAccountInfo(id, localName, type, serialNumber);
+    } else {
+        osAccountInfo = OsAccountInfo(id, localName, shortName, type, serialNumber);
+    }
     osAccountInfo.SetConstraints(constraints);
     int64_t time =
         std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -214,11 +236,18 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &name, co
         return ERR_OSACCOUNT_KIT_CREATE_OS_ACCOUNT_FOR_DOMAIN_ERROR;
     }
 
+    errCode = osAccountControl_->ValidateOsAccount(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("account name already exist, errCode %{public}d.", errCode);
+        return errCode;
+    }
+
     errCode = osAccountControl_->InsertOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("insert os account info err, errCode %{public}d.", errCode);
         return errCode;
     }
+    osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
     errCode = osAccountControl_->UpdateBaseOAConstraints(std::to_string(id), constraints, true);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("UpdateBaseOAConstraints err");
@@ -229,20 +258,24 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &name, co
 
 ErrCode IInnerOsAccountManager::PrepareOsAccountInfoWithFullInfo(OsAccountInfo &osAccountInfo)
 {
+    ErrCode errCode = osAccountControl_->ValidateOsAccount(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("account name already exist, errCode %{public}d.", errCode);
+        return errCode;
+    }
     int64_t serialNumber;
-    ErrCode errCode = osAccountControl_->GetSerialNumber(serialNumber);
+    errCode = osAccountControl_->GetSerialNumber(serialNumber);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("failed to GetSerialNumber, errCode %{public}d.", errCode);
         return errCode;
     }
     osAccountInfo.SetSerialNumber(serialNumber);
-
     errCode = osAccountControl_->InsertOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("insert os account info err, errCode %{public}d.", errCode);
         return errCode;
     }
-
+    osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
     std::vector<std::string> constraints;
     constraints.clear();
     OsAccountType type = static_cast<OsAccountType>(osAccountInfo.GetType());
@@ -311,6 +344,21 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(
     return errCode;
 }
 
+ErrCode IInnerOsAccountManager::CreateOsAccount(
+    const std::string &localName, const std::string &shortName, const OsAccountType &type, OsAccountInfo &osAccountInfo)
+{
+    DomainAccountInfo domainInfo;  // default empty domain info
+    ErrCode errCode = PrepareOsAccountInfo(localName, shortName, type, domainInfo, osAccountInfo);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+    errCode = SendMsgForAccountCreate(osAccountInfo);
+    if (errCode != ERR_OK) {
+        (void)osAccountControl_->DelOsAccount(osAccountInfo.GetLocalId());
+    }
+    return errCode;
+}
+
 ErrCode IInnerOsAccountManager::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
 {
     ErrCode errCode = PrepareOsAccountInfoWithFullInfo(osAccountInfo);
@@ -326,12 +374,18 @@ ErrCode IInnerOsAccountManager::CreateOsAccountWithFullInfo(OsAccountInfo &osAcc
 
 ErrCode IInnerOsAccountManager::UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
 {
-    ErrCode errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
+    ErrCode errCode = osAccountControl_->ValidateOsAccount(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("account name already exist, errCode %{public}d.", errCode);
+        return errCode;
+    }
+    errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ReportOsAccountOperationFail(
             osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE, errCode, "UpdateOsAccount failed!");
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
+    osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
 
     OsAccountInterface::PublishCommonEvent(
         osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::OPERATION_UPDATE);
@@ -452,6 +506,8 @@ ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountIn
         ACCOUNT_LOGE("RemoveOsAccount failed to remove os account constraints info");
         return errCode;
     }
+    osAccountControl_->UpdateAccountIndex(osAccountInfo, true);
+    
     CheckAndRefreshLocalIdRecord(id);
     if (!domainAccountInfo.accountId_.empty()) {
         InnerDomainAccountManager::GetInstance().NotifyDomainAccountEvent(
@@ -1045,11 +1101,17 @@ ErrCode IInnerOsAccountManager::SetOsAccountName(const int id, const std::string
     }
 
     osAccountInfo.SetLocalName(name);
+    errCode = osAccountControl_->ValidateOsAccount(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("account name already exist, errCode %{public}d.", errCode);
+        return errCode;
+    }
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("update osaccount info error %{public}d, id: %{public}d", errCode, osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
+    osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
     OsAccountInterface::PublishCommonEvent(
         osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::OPERATION_UPDATE);
     return ERR_OK;
