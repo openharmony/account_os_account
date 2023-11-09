@@ -586,7 +586,7 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0106, TestSize.Level1)
     osAccountInfo.SetSerialNumber(1100);
     osAccountInfo.SetCreateTime(1695883215000);
     osAccountInfo.SetLastLoginTime(1695863290000);
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR,
         OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
 }
 
@@ -601,6 +601,7 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0107, TestSize.Level1)
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetLocalId(100);
     osAccountInfo.SetLastLoginTime(1695863290000);
+    osAccountInfo.SetConstraints(VECTOR_CONSTRAINTS);
 
     EXPECT_EQ(ERR_OK, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
     osAccountInfo.SetType(OsAccountType::GUEST);
