@@ -417,6 +417,7 @@ HWTEST_F(AccountDumpHelperTest, AnonymizeUidStrTest003, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
+#ifndef HAS_KV_STORE_PART
 HWTEST_F(AccountDumpHelperTest, ShowOhosAccountInfoTest001, TestSize.Level0)
 {
     RenameFile(Constants::ACCOUNT_LIST_FILE_JSON_PATH,
@@ -430,6 +431,7 @@ HWTEST_F(AccountDumpHelperTest, ShowOhosAccountInfoTest001, TestSize.Level0)
     RenameFile(Constants::ACCOUNT_LIST_FILE_JSON_PATH + "_blk",
         Constants::ACCOUNT_LIST_FILE_JSON_PATH);
 }
+#endif
 
 /**
  * @tc.name: ShowOhosAccountInfoTest002
