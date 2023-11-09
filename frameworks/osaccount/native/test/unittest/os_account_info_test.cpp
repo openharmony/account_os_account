@@ -598,6 +598,9 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0106, TestSize.Level1)
  */
 HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0107, TestSize.Level1)
 {
+    OsAccountInfo osAccountInfoBak;
+    OsAccountManager::QueryOsAccountById(100, osAccountInfoBak);
+
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetLocalId(100);
     osAccountInfo.SetLastLoginTime(1695863290000);
@@ -605,6 +608,8 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0107, TestSize.Level1)
     EXPECT_EQ(ERR_OK, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
     osAccountInfo.SetType(OsAccountType::GUEST);
     EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
+
+    EXPECT_EQ(ERR_OK, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfoBak));
 }
 
 /**

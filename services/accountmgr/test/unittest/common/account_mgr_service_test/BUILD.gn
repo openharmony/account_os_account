@@ -101,6 +101,10 @@ ohos_unittest("account_mgr_test") {
     cflags_cc += [ "-DHAS_HITRACE_PART" ]
   }
 
+  if (has_kv_store_part) {
+    cflags_cc += [ "-DHAS_KV_STORE_PART" ]
+  }
+
   part_name = "os_account"
 }
 
