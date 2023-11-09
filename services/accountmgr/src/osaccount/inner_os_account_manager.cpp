@@ -324,18 +324,32 @@ ErrCode IInnerOsAccountManager::CreateOsAccountWithFullInfo(OsAccountInfo &osAcc
     return errCode;
 }
 
-ErrCode IInnerOsAccountManager::UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
+ErrCode IInnerOsAccountManager::UpdateOsAccountWithFullInfo(OsAccountInfo &newInfo)
 {
-    ErrCode errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
+    int32_t localId = newInfo.GetLocalId();
+    if (!CheckAndAddLocalIdOperating(localId)) {
+        ACCOUNT_LOGE("the %{public}d already in operating", localId);
+        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
+    }
+    OsAccountInfo oldInfo;
+    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(localId, oldInfo);
+    if (errCode != ERR_OK) {
+        RemoveLocalIdToOperating(localId);
+        return errCode;
+    }
+    oldInfo.SetLocalName(newInfo.GetLocalName());
+    oldInfo.SetType(newInfo.GetType());
+    oldInfo.SetPhoto(newInfo.GetPhoto());
+    oldInfo.SetConstraints(newInfo.GetConstraints());
+    errCode = osAccountControl_->UpdateOsAccount(oldInfo);
     if (errCode != ERR_OK) {
         ReportOsAccountOperationFail(
-            osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE, errCode, "UpdateOsAccount failed!");
-        return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
+            localId, Constants::OPERATION_UPDATE, errCode, "UpdateOsAccount failed!");
+    } else {
+        OsAccountInterface::PublishCommonEvent(oldInfo,
+            OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::OPERATION_UPDATE);
     }
-
-    OsAccountInterface::PublishCommonEvent(
-        osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::OPERATION_UPDATE);
-
+    RemoveLocalIdToOperating(localId);
     return errCode;
 }
 
