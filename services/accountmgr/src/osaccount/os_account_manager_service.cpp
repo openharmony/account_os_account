@@ -535,6 +535,48 @@ ErrCode OsAccountManagerService::ActivateOsAccount(const int id)
     return innerManager_.ActivateOsAccount(id);
 }
 
+ErrCode OsAccountManagerService::DeactivateOsAccount(const int id)
+{
+    // parameters check
+    ErrCode res = CheckLocalId(id);
+    if (res != ERR_OK) {
+        return res;
+    }
+
+    // permission check
+    if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    int32_t currentId = Constants::START_USER_ID;
+    GetCurrentLocalId(currentId);
+
+    res = innerManager_.DeactivateOsAccount(id);
+    if (res != ERR_OK) {
+        return res;
+    }
+
+    if (currentId == id) { // if stop current account
+#ifdef SUPPROT_STOP_MAIN_OS_ACCOUNT
+        ActivateOsAccount(id);
+#else
+        ActivateOsAccount(Constants::START_USER_ID);
+#endif // SUPPROT_STOP_MAIN_OS_ACCOUNT
+    }
+    return ERR_OK;
+}
+
+void OsAccountManagerService::GetCurrentLocalId(int32_t &userId)
+{
+    std::vector<int32_t> userIds;
+    if ((innerManager_.QueryActiveOsAccountIds(userIds) != ERR_OK) || userIds.empty()) {
+        ACCOUNT_LOGE("fail to get activated os account ids");
+        return;
+    }
+    userId = userIds[0];
+    return;
+}
+
 ErrCode OsAccountManagerService::StartOsAccount(const int id)
 {
     return innerManager_.StartOsAccount(id);

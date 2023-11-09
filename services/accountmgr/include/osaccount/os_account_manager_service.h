@@ -72,6 +72,7 @@ public:
     ErrCode SetOsAccountProfilePhoto(const int id, const std::string &photo) override;
 
     ErrCode ActivateOsAccount(const int id) override;
+    ErrCode DeactivateOsAccount(const int id) override;
 
     ErrCode StartOsAccount(const int id) override;
     ErrCode StopOsAccount(const int id) override;
@@ -119,6 +120,7 @@ private:
         const std::vector<OsAccountInfo> &osAccountInfos, std::vector<std::string> &state);
     bool PermissionCheck(const std::string& permissionName, const std::string& constraintName);
     bool CheckCreateOsAccountWhiteList();
+    void GetCurrentLocalId(int32_t &localId);
 
 private:
     IInnerOsAccount &innerManager_;

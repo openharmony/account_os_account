@@ -125,7 +125,7 @@
         "OHOS::AccountSA::IInnerOsAccountManager::CleanGarbageAccounts()";
         "OHOS::AccountSA::IInnerOsAccountManager::CreateBaseAdminAccount()";
         "OHOS::AccountSA::IInnerOsAccountManager::CreateBaseStandardAccount()";
-        "OHOS::AccountSA::IInnerOsAccountManager::DeActivateOsAccount(int)";
+        "OHOS::AccountSA::IInnerOsAccountManager::DeactivateOsAccountById(int)";
         "OHOS::AccountSA::IInnerOsAccountManager::EraseIdFromActiveList(int)";
         "OHOS::AccountSA::IInnerOsAccountManager::GetInstance()";
         "OHOS::AccountSA::IInnerOsAccountManager::IInnerOsAccountManager()";

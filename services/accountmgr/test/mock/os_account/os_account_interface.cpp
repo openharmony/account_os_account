@@ -35,6 +35,12 @@ ErrCode OsAccountInterface::SendToBMSAccountCreate(OsAccountInfo &osAccountInfo)
     return ERR_OK;
 }
 
+ErrCode OsAccountInterface::SendToAMSAccountDeactivate(OsAccountInfo &osAccountInfo)
+{
+    ACCOUNT_LOGI("mock OsAccountInterface SendToAMSAccountDeactivate start");
+    return ERR_OK;
+}
+
 ErrCode OsAccountInterface::SendToBMSAccountDelete(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("mock OsAccountInterface SendToBMSAccountDelete start");
