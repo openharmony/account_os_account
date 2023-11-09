@@ -103,7 +103,6 @@ ohos_shared_library("app_account_innerkits") {
     "ability_runtime:runtime",
     "ability_runtime:service_extension",
     "ability_runtime:ui_extension",
-    "ace_engine:ace_uicontent",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
