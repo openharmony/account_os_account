@@ -105,6 +105,10 @@ declare_args() {
 }
 
 declare_args() {
+  os_account_support_deactivate_main_os_account = false
+}
+
+declare_args() {
   os_account_distributed_feature = true
 }
 

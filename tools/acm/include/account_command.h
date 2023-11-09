@@ -28,6 +28,7 @@ const std::string HELP_MSG = "usage: acm <command> [<options>]\n"
                              "  create              create a local account with options\n"
                              "  delete              delete a local account with options\n"
                              "  switch              switch to a local account with options\n"
+                             "  deactivate          deactivate to a local account with options\n"
 #ifdef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
                              "  stop                stop the local accounts\n"
 #endif // ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
@@ -66,6 +67,12 @@ const std::string HELP_MSG_SWITCH =
     "  -h, --help                                       list available commands\n"
     "  -i <local-account-id>                            switch a local account with an id\n";
 
+const std::string HELP_MSG_DEACTIVATE =
+    "usage: acm deactivate <options>\n"
+    "options list:\n"
+    "  -h, --help                                       list available commands\n"
+    "  -i <local-account-id>                            deactivate a local account with an id\n";
+
 const std::string HELP_MSG_STOP =
     "usage: acm stop <options>\n"
     "options list:\n"
@@ -91,6 +98,8 @@ const std::string STRING_SWITCH_OS_ACCOUNT_OK = "switch the local account succes
 const std::string STRING_SWITCH_OS_ACCOUNT_NG = "error: failed to switch the local account.";
 const std::string STRING_STOP_OS_ACCOUNT_OK = "stop the local account successfully.";
 const std::string STRING_STOP_OS_ACCOUNT_NG = "error: failed to stop the local account.";
+const std::string STRING_DEACTIVATE_OS_ACCOUNT_OK = "deactivate the local account successfully.";
+const std::string STRING_DEACTIVATE_OS_ACCOUNT_NG = "error: failed to deactivate the local account.";
 
 class AccountCommand : public OHOS::AAFwk::ShellCommand {
 public:
@@ -106,6 +115,7 @@ private:
     ErrCode RunAsCreateCommand(void);
     ErrCode RunAsDeleteCommand(void);
     ErrCode RunAsSwitchCommand(void);
+    ErrCode RunAsDeactivateCommand(void);
     ErrCode RunAsStopCommand(void);
     ErrCode RunAsDumpCommand(void);
     ErrCode RunAsSetCommand(void);

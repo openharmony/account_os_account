@@ -1120,13 +1120,13 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest037, 
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->SetOsAccountControl(ptr);
 
-    ErrCode ret = innerMgrService_->DeActivateOsAccount(Constants::ADMIN_LOCAL_ID);
+    ErrCode ret = innerMgrService_->DeactivateOsAccountById(Constants::ADMIN_LOCAL_ID);
     EXPECT_EQ(ret, ERR_OK);
 
     EXPECT_CALL(*ptr, GetOsAccountInfoById(::testing::_, ::testing::_))
         .WillRepeatedly(testing::Return(-1));
 
-    ret = innerMgrService_->DeActivateOsAccount(TEST_USER_ID55);
+    ret = innerMgrService_->DeactivateOsAccountById(TEST_USER_ID55);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 
     EXPECT_CALL(*ptr, GetOsAccountInfoById(::testing::_, ::testing::_))
@@ -1135,7 +1135,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest037, 
     EXPECT_CALL(*ptr, UpdateOsAccount(::testing::_))
         .WillRepeatedly(testing::Return(-1));
 
-    ret = innerMgrService_->DeActivateOsAccount(TEST_USER_ID55);
+    ret = innerMgrService_->DeactivateOsAccountById(TEST_USER_ID55);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR);
 
     EXPECT_CALL(*ptr, UpdateOsAccount(::testing::_))

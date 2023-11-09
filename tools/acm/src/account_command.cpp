@@ -34,6 +34,7 @@ const struct option LONG_OPTIONS[] = {
 };
 
 static const std::string STOP_COMMAND = "stop";
+static const std::string DEACTIVATE_COMMAND = "deactivate";
 static const std::string DELETE_COMMAND = "delete";
 static const std::string SWITCH_COMMAND = "switch";
 static const std::string DUMP_COMMAND = "dump";
@@ -61,6 +62,7 @@ ErrCode AccountCommand::CreateCommandMap()
         {"dump", std::bind(&AccountCommand::RunAsDumpCommand, this)},
         {"set", std::bind(&AccountCommand::RunAsSetCommand, this)},
         {"switch", std::bind(&AccountCommand::RunAsSwitchCommand, this)},
+        {"deactivate", std::bind(&AccountCommand::RunAsDeactivateCommand, this)},
 #ifdef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
         {"stop", std::bind(&AccountCommand::RunAsStopCommand, this)},
 #endif // ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
@@ -338,6 +340,32 @@ ErrCode AccountCommand::RunAsSwitchCommand(void)
     return result;
 }
 
+ErrCode AccountCommand::RunAsDeactivateCommand(void)
+{
+    ErrCode result = ERR_OK;
+    int id = -1;
+
+    ParseCommandOpt(DEACTIVATE_COMMAND, result, id);
+
+    if (result != ERR_OK) {
+        resultReceiver_.append(HELP_MSG_DEACTIVATE);
+    } else {
+        /* deactivate */
+
+        // deactivate an os account
+        result = OsAccount::GetInstance().DeactivateOsAccount(id);
+        if (result == ERR_OK) {
+            resultReceiver_ = STRING_DEACTIVATE_OS_ACCOUNT_OK + "\n";
+        } else {
+            resultReceiver_ = STRING_DEACTIVATE_OS_ACCOUNT_NG + "\n";
+        }
+    }
+
+    ACCOUNT_LOGD("result = %{public}d, id = %{public}d", result, id);
+
+    return result;
+}
+
 ErrCode AccountCommand::RunAsStopCommand(void)
 {
     ErrCode result = ERR_OK;
@@ -581,14 +609,14 @@ ErrCode AccountCommand::RunAsCommonCommandExistentOptionArgument(const int &opti
         case 'h': {
             // 'acm command -h'
             // 'acm command --help'
-            // command includes stop, switch, dump, delete
+            // command includes stop, switch, deactivate, dump, delete
             result = ERR_INVALID_VALUE;
             break;
         }
         case 'i': {
             // 'acm command -i <id>'
             // 'acm command --id <id>
-            // command includes stop, switch, dump, delete
+            // command includes stop, switch, deactivate, dump, delete
             result = AnalyzeLocalIdArgument(id);
             break;
         }

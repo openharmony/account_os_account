@@ -76,6 +76,14 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode StopUser(int32_t accountId, const sptr<IStopUserCallback> &callback);
+
+    /**
+     * @brief logout user.
+     * @param accountId accountId.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode LogoutUser(int32_t accountId);
 };
 }  // namespace AAFwk
 }  // namespace OHOS

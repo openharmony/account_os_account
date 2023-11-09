@@ -182,6 +182,40 @@ ErrCode AbilityManagerAdapter::StopUser(int32_t accountId, const sptr<AAFwk::ISt
     return reply.ReadInt32();
 }
 
+ErrCode AbilityManagerAdapter::LogoutUser(int32_t accountId)
+{
+    auto abms = GetAbilityManager();
+    if (abms == nullptr) {
+        ACCOUNT_LOGE("ability manager proxy is nullptr.");
+        return ERR_ACCOUNT_COMMON_CONNECT_ABILITY_MANAGER_SERVICE_ERROR;
+    }
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(ABILITY_MGR_DESCRIPTOR)) {
+        ACCOUNT_LOGE("write interface token failed.");
+        return INNER_ERR;
+    }
+    if (!data.WriteInt32(accountId)) {
+        ACCOUNT_LOGE("write accountId failed.");
+        return ERR_INVALID_VALUE;
+    }
+
+    int32_t errCode =
+        abms->SendRequest(static_cast<uint32_t>(AbilityManagerInterfaceCode::LOGOUT_USER), data, reply, option);
+    if (errCode != NO_ERROR) {
+        ACCOUNT_LOGE("SendRequest error: %{public}d", errCode);
+        return errCode;
+    }
+    if (!reply.ReadInt32(errCode)) {
+        ACCOUNT_LOGE("read result failed.");
+        return ERR_INVALID_VALUE;
+    }
+    return errCode;
+}
+
 ErrCode AbilityManagerAdapter::DoConnectAbility(const sptr<IRemoteObject> proxy, const AAFwk::Want &want,
     const sptr<AAFwk::IAbilityConnection> &connect, const sptr<IRemoteObject> &callerToken, int32_t userId)
 {

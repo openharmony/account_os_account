@@ -196,6 +196,13 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         }
     },
     {
+        static_cast<uint32_t>(OsAccountInterfaceCode::DEACTIVATE_OS_ACCOUNT),
+        {
+            .messageProcFunction = &OsAccountStub::ProcDeactivateOsAccount,
+            .isSyetemApi = true,
+        }
+    },
+    {
         static_cast<uint32_t>(OsAccountInterfaceCode::START_OS_ACCOUNT),
         {
             .messageProcFunction = &OsAccountStub::ProcStartOsAccount,
@@ -965,6 +972,21 @@ ErrCode OsAccountStub::ProcActivateOsAccount(MessageParcel &data, MessageParcel 
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     ErrCode result = ActivateOsAccount(localId);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcDeactivateOsAccount(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("failed to read localId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = DeactivateOsAccount(localId);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
         return IPC_STUB_WRITE_PARCEL_ERR;
