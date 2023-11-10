@@ -50,12 +50,9 @@ OsAccount &OsAccount::GetInstance()
 
 ErrCode OsAccount::CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
 {
-    if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("name length %{public}zu is too long!", name.size());
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-    if (name.empty()) {
-        ACCOUNT_LOGE("name is empty!");
+    size_t localNameSize = name.size();
+    if (localNameSize == 0 || localNameSize > Constants::LOCAL_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("CreateOsAccount local name length %{public}zu is invalid!", localNameSize);
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     auto proxy = GetOsAccountProxy();
@@ -68,20 +65,15 @@ ErrCode OsAccount::CreateOsAccount(const std::string &name, const OsAccountType 
 
 ErrCode OsAccount::CreateOsAccount(const std::string &localName, const std::string &shortName, const OsAccountType &type, OsAccountInfo &osAccountInfo)
 {
-    if (localName.size() > Constants::LOCAL_NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("CreateOsAccount local name length %{public}zu is too long!", localName.size());
+    size_t localNameSize = localName.size();
+    if (localNameSize == 0 || localNameSize > Constants::LOCAL_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("CreateOsAccount local name length %{public}zu is invalid!", localNameSize);
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    if (localName.empty()) {
-        ACCOUNT_LOGE("CreateOsAccount local name is empty!");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-    if (shortName.size() > Constants::SHORT_NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("CreateOsAccount short name length %{public}zu is too long!", shortName.size());
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-    if (shortName.empty()) {
-        ACCOUNT_LOGE("CreateOsAccount short name is empty!");
+
+    size_t shortNameSize = shortName.size();
+    if (shortNameSize == 0 || shortNameSize > Constants::SHORT_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("CreateOsAccount short name length %{public}zu is invalid!", shortNameSize);
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 

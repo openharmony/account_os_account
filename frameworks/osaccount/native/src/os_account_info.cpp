@@ -82,7 +82,7 @@ std::string OsAccountInfo::GetShortName() const
     return shortName_;
 }
 
-void OsAccountInfo::SetShortName(const std::string shortName)
+void OsAccountInfo::SetShortName(const std::string &shortName)
 {
     shortName_ = shortName;
 }

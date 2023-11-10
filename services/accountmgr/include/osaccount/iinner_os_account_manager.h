@@ -50,6 +50,7 @@ public:
     ErrCode GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints) override;
     ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos) override;
     ErrCode QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo) override;
+    ErrCode GetOsAccountShortName(const int id, std::string &shortName) override;
     ErrCode GetOsAccountType(const int id, OsAccountType &type) override;
     ErrCode GetOsAccountProfilePhoto(const int id, std::string &photo) override;
     ErrCode IsMultiOsAccountEnable(bool &isMultiOsAccountEnable) override;
@@ -118,6 +119,7 @@ private:
     ErrCode SendMsgForAccountActivate(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountStop(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountRemove(OsAccountInfo &osAccountInfo);
+    ErrCode ValidateOsAccount(OsAccountInfo &osAccountInfo);
     void RemoveLocalIdToOperating(int32_t localId);
     bool CheckAndAddLocalIdOperating(int32_t localId);
     void CleanGarbageAccounts();

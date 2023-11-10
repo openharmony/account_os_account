@@ -58,7 +58,7 @@ public:
 
     std::string GetShortName() const;
 
-    void SetShortName(const std::string shortName);
+    void SetShortName(const std::string &shortName);
 
     OsAccountType GetType() const;
 

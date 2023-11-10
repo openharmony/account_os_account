@@ -79,7 +79,7 @@ void IInnerOsAccountManager::CreateBaseAdminAccount()
         osAccountInfo.SetCreateTime(time);
         osAccountInfo.SetIsCreateCompleted(true);
         osAccountInfo.SetIsActived(true);  // admin local account is always active
-        ErrCode errCode = osAccountControl_->ValidateOsAccount(osAccountInfo);
+        ErrCode errCode = ValidateOsAccount(osAccountInfo);
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("account name already exist, errCode %{public}d.", errCode);
             return;
@@ -115,7 +115,7 @@ void IInnerOsAccountManager::CreateBaseStandardAccount()
                 .count();
         osAccountInfo.SetCreateTime(time);
         osAccountInfo.SetIsCreateCompleted(false);
-        errCode = osAccountControl_->ValidateOsAccount(osAccountInfo);
+        errCode = ValidateOsAccount(osAccountInfo);
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("CreateBaseStandardAccount account name already exist, errCode %{public}d.", errCode);
             return;
@@ -226,11 +226,7 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &localNam
         ACCOUNT_LOGE("failed to GetConstraintsByType, errCode %{public}d.", errCode);
         return errCode;
     }
-    if (shortName.empty()) {
-        osAccountInfo = OsAccountInfo(id, localName, type, serialNumber);
-    } else {
-        osAccountInfo = OsAccountInfo(id, localName, shortName, type, serialNumber);
-    }
+    osAccountInfo = OsAccountInfo(id, localName, shortName, type, serialNumber);
     osAccountInfo.SetConstraints(constraints);
     int64_t time =
         std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -240,7 +236,7 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &localNam
         return ERR_OSACCOUNT_KIT_CREATE_OS_ACCOUNT_FOR_DOMAIN_ERROR;
     }
 
-    errCode = osAccountControl_->ValidateOsAccount(osAccountInfo);
+    errCode = ValidateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("account name already exist, errCode %{public}d.", errCode);
         return errCode;
@@ -262,13 +258,8 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &localNam
 
 ErrCode IInnerOsAccountManager::PrepareOsAccountInfoWithFullInfo(OsAccountInfo &osAccountInfo)
 {
-    ErrCode errCode = osAccountControl_->ValidateOsAccount(osAccountInfo);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("account name already exist, errCode %{public}d.", errCode);
-        return errCode;
-    }
     int64_t serialNumber;
-    errCode = osAccountControl_->GetSerialNumber(serialNumber);
+    ErrCode errCode = osAccountControl_->GetSerialNumber(serialNumber);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("failed to GetSerialNumber, errCode %{public}d.", errCode);
         return errCode;
@@ -279,7 +270,7 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfoWithFullInfo(OsAccountInfo &
         ACCOUNT_LOGE("insert os account info err, errCode %{public}d.", errCode);
         return errCode;
     }
-    osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
+
     std::vector<std::string> constraints;
     constraints.clear();
     OsAccountType type = static_cast<OsAccountType>(osAccountInfo.GetType());
@@ -393,11 +384,6 @@ ErrCode IInnerOsAccountManager::UpdateOsAccountWithFullInfo(OsAccountInfo &newIn
     oldInfo.SetType(newInfo.GetType());
     oldInfo.SetPhoto(newInfo.GetPhoto());
     oldInfo.SetConstraints(newInfo.GetConstraints());
-    errCode = osAccountControl_->ValidateOsAccount(newInfo);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("account name already exist, errCode %{public}d.", errCode);
-        return errCode;
-    }
     errCode = osAccountControl_->UpdateOsAccount(oldInfo);
     if (errCode != ERR_OK) {
         ReportOsAccountOperationFail(
@@ -614,6 +600,26 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountStop(OsAccountInfo &osAccountIn
     return errCode;
 }
 
+ErrCode IInnerOsAccountManager::ValidateOsAccount(OsAccountInfo &osAccountInfo)
+{
+    Json accountIndexJson;
+    ErrCode result = osAccountControl_->GetAccountIndexFromFile(accountIndexJson);
+    if (result != ERR_OK) {
+        return result;
+    }
+    for (const auto& element : accountIndexJson.items()) {
+        std::string localIdStr = element.key();
+        auto value = element.value();
+        std::string localName = value[Constants::LOCAL_NAME].get<std::string>();
+        std::string shortName = value[Constants::SHORT_NAME].get<std::string>();
+        if ((osAccountInfo.GetLocalName() == localName || osAccountInfo.GetShortName() == shortName) &&
+            std::to_string(osAccountInfo.GetLocalId()) != localIdStr) {
+            return ERR_OSACCOUNT_KIT_NAME_HAD_EXISTED;
+        }
+    }
+
+    return ERR_OK;
+}
 ErrCode IInnerOsAccountManager::SendMsgForAccountRemove(OsAccountInfo &osAccountInfo)
 {
     ErrCode errCode = OsAccountInterface::SendToBMSAccountDelete(osAccountInfo);
@@ -1024,6 +1030,18 @@ ErrCode IInnerOsAccountManager::GetOsAccountLocalIdFromDomain(const DomainAccoun
     return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
 }
 
+ErrCode IInnerOsAccountManager::GetOsAccountShortName(const int id, std::string &shortName)
+{
+    OsAccountInfo osAccountInfo;
+    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    shortName = osAccountInfo.GetShortName();
+    return ERR_OK;
+}
+
 ErrCode IInnerOsAccountManager::QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo)
 {
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
@@ -1118,11 +1136,6 @@ ErrCode IInnerOsAccountManager::SetOsAccountName(const int id, const std::string
     }
 
     osAccountInfo.SetLocalName(name);
-    errCode = osAccountControl_->ValidateOsAccount(osAccountInfo);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("account name already exist, errCode %{public}d.", errCode);
-        return errCode;
-    }
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("update osaccount info error %{public}d, id: %{public}d", errCode, osAccountInfo.GetLocalId());

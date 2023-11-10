@@ -14,6 +14,7 @@
  */
 #include "os_account_manager_service.h"
 #include <algorithm>
+#include <cstddef>
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "hisysevent_adapter.h"
@@ -84,21 +85,18 @@ ErrCode OsAccountManagerService::CreateOsAccount(
     const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
 {
     // parameters check
-    if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("os account name out of max allowed size");
+    size_t localNameSize = name.size();
+    if (localNameSize == 0 || localNameSize > Constants::LOCAL_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("CreateOsAccount local name length %{public}zu is invalid!", localNameSize);
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    if (name.size() <= 0) {
-        ACCOUNT_LOGE("os account name is empty");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-    std::string shortName = name;
 
-    for (int i = 0; i < (int)strlen(Constants::SPECIAL_CHARACTER_ARRAY); i++)
-    {
+    std::string shortName = name;
+    for (size_t i = 0; i < strlen(Constants::SPECIAL_CHARACTER_ARRAY); i++) {
         int position = shortName.find(Constants::SPECIAL_CHARACTER_ARRAY[i]);
-        while(position > 0){
+        while (position > 0) {
             shortName = shortName.erase(position, 1);
+            position = shortName.find(Constants::SPECIAL_CHARACTER_ARRAY[i]);
         }
     }
 
@@ -106,10 +104,10 @@ ErrCode OsAccountManagerService::CreateOsAccount(
         shortName = shortName.substr(0, Constants::SHORT_NAME_MAX_SIZE);
     }
 
-    for (int i = 0; i < (int)sizeof(Constants::SHORT_NAME_CANNOT_BE_NAME_ARRAY); i++)
-    {
+    for (size_t i = 0; i < sizeof(Constants::SHORT_NAME_CANNOT_BE_NAME_ARRAY); i++) {
         if (shortName.compare(Constants::SHORT_NAME_CANNOT_BE_NAME_ARRAY[i]) == 0) {
-            shortName = Constants::STANDARD_LOCAL_NAME;
+            shortName = Constants::STANDARD_LOCAL_NAME + std::to_string(i);
+            break;
         }
     }
 
@@ -133,29 +131,26 @@ ErrCode OsAccountManagerService::CreateOsAccount(
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 
-    // parameters check
-    if (localName.size() > Constants::LOCAL_NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("os account name out of max allowed size");
+    size_t localNameSize = localName.size();
+    if (localNameSize == 0 || localNameSize > Constants::LOCAL_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("CreateOsAccount local name length %{public}zu is invalid!", localNameSize);
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    if (localName.size() <= 0) {
-        ACCOUNT_LOGE("os account name is empty");
+
+    size_t shortNameSize = shortName.size();
+    if (shortNameSize == 0 || shortNameSize > Constants::SHORT_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("CreateOsAccount short name length %{public}zu is invalid!", shortNameSize);
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    if (shortName.size() > Constants::SHORT_NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("os account short name out of max allowed size");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-    for (int i = 0; i < (int)strlen(Constants::SPECIAL_CHARACTER_ARRAY); i++)
-    {
+
+    for (int i = 0; i < (int)strlen(Constants::SPECIAL_CHARACTER_ARRAY); i++) {
         if (shortName.find(Constants::SPECIAL_CHARACTER_ARRAY[i]) != std::string::npos) {
             ACCOUNT_LOGE("CreateOsAccount short name is invalidate, short name is %{public}s !", shortName.c_str());
             return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
         }
     }
 
-    for (int i = 0; i < (int)sizeof(Constants::SHORT_NAME_CANNOT_BE_NAME_ARRAY); i++)
-    {
+    for (int i = 0; i < (int)sizeof(Constants::SHORT_NAME_CANNOT_BE_NAME_ARRAY); i++) {
         if (shortName.compare(Constants::SHORT_NAME_CANNOT_BE_NAME_ARRAY[i]) == 0) {
             ACCOUNT_LOGE("CreateOsAccount short name is invalidate, short name is %{public}s !", shortName.c_str());
             return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
@@ -177,11 +172,8 @@ ErrCode OsAccountManagerService::CreateOsAccount(
         ACCOUNT_LOGE("cannot create admin account error");
         return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
     }
-    if (shortName.size() <= 0) {
-        return innerManager_.CreateOsAccount(localName, type, osAccountInfo);
-    } else {
-        return innerManager_.CreateOsAccount(localName, shortName, type, osAccountInfo);
-    }
+
+    return innerManager_.CreateOsAccount(localName, shortName, type, osAccountInfo);
 }
 
 ErrCode OsAccountManagerService::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
@@ -917,17 +909,11 @@ ErrCode OsAccountManagerService::GetDefaultActivatedOsAccount(int32_t &id)
 
 ErrCode OsAccountManagerService::GetOsAccountShortName(std::string &shortName)
 {
-    int id = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
-
-    OsAccountInfo osAccountInfo;
-    ErrCode errCode = innerManager_.QueryOsAccountById(id, osAccountInfo);
+    int32_t id = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+    ErrCode errCode = innerManager_.GetOsAccountShortName(id, shortName);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("GetOsAccountShortName error %{public}d", errCode);
         return errCode;
-    }
-    shortName = osAccountInfo.GetShortName();
-    if (shortName.empty()) {
-        shortName = osAccountInfo.GetLocalName();
     }
     return ERR_OK;
 }

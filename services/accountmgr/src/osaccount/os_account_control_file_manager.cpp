@@ -1072,12 +1072,8 @@ ErrCode OsAccountControlFileManager::UpdateAccountIndex(const OsAccountInfo &osA
     Json accountBaseInfo; 
     accountBaseInfo[Constants::LOCAL_NAME] = osAccountInfo.GetLocalName();
     accountBaseInfo[Constants::SHORT_NAME] = osAccountInfo.GetShortName();
-    if (accountIndexJson.contains(localIdStr)) {
-        if (isDelete) {
-            accountIndexJson.erase(localIdStr);
-        } else {
-            accountIndexJson[localIdStr] = accountBaseInfo;
-        }
+    if (isDelete) {
+        accountIndexJson.erase(localIdStr);
     } else {
         accountIndexJson[localIdStr] = accountBaseInfo;
     }
@@ -1252,27 +1248,6 @@ ErrCode OsAccountControlFileManager::UpdateOsAccount(OsAccountInfo &osAccountInf
         accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_INFO_DIGEST_FILE_PATH, digestStr);
     }
     ACCOUNT_LOGD("end");
-    return ERR_OK;
-}
-
-ErrCode OsAccountControlFileManager::ValidateOsAccount(OsAccountInfo &osAccountInfo)
-{
-    Json accountIndexJson;
-    ErrCode result = GetAccountIndexFromFile(accountIndexJson);
-    if (result != ERR_OK) {
-        return result;
-    }
-    for(auto& element : accountIndexJson.items()){
-        std::string localIdStr = element.key();
-        auto value = element.value();
-        std::string localName = value[Constants::LOCAL_NAME].get<std::string>();
-        std::string shortName = value[Constants::SHORT_NAME].get<std::string>();
-        if ((osAccountInfo.GetLocalName() == localName || osAccountInfo.GetShortName() == shortName) && 
-            std::to_string(osAccountInfo.GetLocalId()) != localIdStr) 
-        {
-            return ERR_OSACCOUNT_KIT_NAME_HAD_EXISTED;
-        }
-    }
     return ERR_OK;
 }
 
