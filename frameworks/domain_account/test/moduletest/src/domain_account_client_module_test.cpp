@@ -767,6 +767,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessT
     EXPECT_CALL(*callback, OnResult(ERR_OK, DEFAULT_TOKEN)).Times(Exactly(1));
     auto testCallback = std::make_shared<TestGetAccessTokenCallback>(callback);
     ASSERT_NE(testCallback, nullptr);
+    EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountToken(info, DEFAULT_TOKEN), ERR_OK);
     AAFwk::WantParams parameters;
     EXPECT_EQ(DomainAccountClient::GetInstance().GetAccessToken(info, parameters, testCallback), ERR_OK);
     int32_t userId = -1;
@@ -817,11 +818,11 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessT
 
     auto getCallback = std::make_shared<MockDomainGetAccessTokenCallback>();
     ASSERT_NE(getCallback, nullptr);
-    EXPECT_CALL(*getCallback, OnResult(INVALID_CODE, _)).Times(Exactly(1));
     auto testGetCallback = std::make_shared<TestGetAccessTokenCallback>(getCallback);
     ASSERT_NE(testGetCallback, nullptr);
     AAFwk::WantParams parameters;
-    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccessToken(domainInfo, parameters, testGetCallback), ERR_OK);
+    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccessToken(domainInfo, parameters, testGetCallback),
+        ERR_ACCOUNT_COMMON_NOT_AUTHENTICATED);
     int32_t userId = -1;
     errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId);
     EXPECT_EQ(errCode, ERR_OK);
@@ -878,11 +879,11 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessT
     DomainAccountClient::GetInstance().UnregisterPlugin();
     auto getAccessTokencallback = std::make_shared<MockDomainGetAccessTokenCallback>();
     ASSERT_NE(getAccessTokencallback, nullptr);
-    EXPECT_CALL(*getAccessTokencallback, OnResult(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, _)).Times(Exactly(1));
     auto testGetTokenCallback = std::make_shared<TestGetAccessTokenCallback>(getAccessTokencallback);
     ASSERT_NE(testGetTokenCallback, nullptr);
     AAFwk::WantParams parameters;
-    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccessToken(domainInfo, parameters, testGetTokenCallback), ERR_OK);
+    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccessToken(domainInfo, parameters, testGetTokenCallback),
+        ERR_ACCOUNT_COMMON_NOT_AUTHENTICATED);
     int32_t userId = -1;
     errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId);
     EXPECT_EQ(errCode, ERR_OK);
@@ -916,13 +917,13 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessT
 
     auto callback = std::make_shared<MockDomainGetAccessTokenCallback>();
     ASSERT_NE(callback, nullptr);
-    EXPECT_CALL(*callback, OnResult(ERR_OK, DEFAULT_TOKEN)).Times(Exactly(1));
     auto testCallback = std::make_shared<TestGetAccessTokenCallback>(callback);
     ASSERT_NE(testCallback, nullptr);
     AAFwk::WantParams parameters;
     DomainAccountInfo info2;
     info2.accountId_ = "555";
-    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccessToken(info2, parameters, testCallback), ERR_OK);
+    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccessToken(info2, parameters, testCallback),
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
     int32_t userId = -1;
     errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(info, userId);
     EXPECT_EQ(errCode, ERR_OK);
