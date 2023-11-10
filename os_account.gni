@@ -124,6 +124,10 @@ declare_args() {
   os_account_enable_multiple_os_accounts = true
 }
 
+declare_args() {
+  os_account_enable_default_admin_name = false
+}
+
 if (!defined(global_parts_info) ||
     defined(global_parts_info.hiviewdfx_hicollie)) {
   hicollie_enable = true
