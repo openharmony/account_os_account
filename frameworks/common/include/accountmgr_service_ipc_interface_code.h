@@ -88,7 +88,7 @@ enum class OsAccountInterfaceCode : uint32_t {
     SET_SPECIFIC_OS_ACCOUNT_CONSTRAINTS,
     SET_DEFAULT_ACTIVATED_OS_ACCOUNT,
     GET_DEFAULT_ACTIVATED_OS_ACCOUNT,
-    GET_DEFAULT_OS_ACCOUNT_SHORT_NAME,
+    GET_OS_ACCOUNT_SHORT_NAME,
 };
 
 enum class AppAccountInterfaceCode : uint32_t {

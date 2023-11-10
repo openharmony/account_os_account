@@ -27,7 +27,7 @@ public:
     virtual ErrCode InsertOsAccount(OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode DelOsAccount(const int id) = 0;
     virtual ErrCode UpdateOsAccount(OsAccountInfo &osAccountInfo) = 0;
-    virtual ErrCode ValidateOsAccount(OsAccountInfo &osAccountInfo) = 0;
+    virtual ErrCode GetAccountIndexFromFile(Json &accountIndexJson) = 0;
     virtual ErrCode GetMaxCreatedOsAccountNum(int &maxCreatedOsAccountNum) = 0;
     virtual ErrCode GetSerialNumber(int64_t &serialNumber) = 0;
     virtual ErrCode GetAllowCreateId(int &id) = 0;

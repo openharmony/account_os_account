@@ -1381,7 +1381,7 @@ ErrCode OsAccountProxy::GetOsAccountShortName(std::string &shortName)
     }
 
     MessageParcel reply;
-    ErrCode result = SendRequest(OsAccountInterfaceCode::GET_DEFAULT_OS_ACCOUNT_SHORT_NAME, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::GET_OS_ACCOUNT_SHORT_NAME, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;

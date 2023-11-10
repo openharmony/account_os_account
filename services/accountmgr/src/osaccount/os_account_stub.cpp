@@ -344,7 +344,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         }
     },
     {
-        static_cast<uint32_t>(OsAccountInterfaceCode::GET_DEFAULT_OS_ACCOUNT_SHORT_NAME),
+        static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_SHORT_NAME),
         {
             .messageProcFunction = &OsAccountStub::ProcGetOsAccountShortName,
         }
@@ -430,8 +430,8 @@ static ErrCode WriteResultWithOsAccountInfo(MessageParcel &reply, int32_t result
 
 ErrCode OsAccountStub::ProcCreateOsAccount(MessageParcel &data, MessageParcel &reply)
 {
-    std::string name = data.ReadString();
-    if (name.size() == 0) {
+    std::string name;
+    if (data.ReadString(name) && name.size() > 0) {
         ACCOUNT_LOGE("failed to read string for name");
         reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_LOCALNAME_ERROR);
         return ERR_NONE;
@@ -444,16 +444,21 @@ ErrCode OsAccountStub::ProcCreateOsAccount(MessageParcel &data, MessageParcel &r
 
 ErrCode OsAccountStub::ProcCreateOsAccountWithShortName(MessageParcel &data, MessageParcel &reply)
 {
-    std::string name = data.ReadString();
-    if (name.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for name");
+    std::string localName;
+    if (data.ReadString(localName) && localName.size() > 0) {
+        ACCOUNT_LOGE("failed to read string for local name");
         reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_LOCALNAME_ERROR);
         return ERR_NONE;
     }
-    std::string shortName = data.ReadString();
+    std::string shortName;
+    if (data.ReadString(shortName) && shortName.size() > 0) {
+        ACCOUNT_LOGE("failed to read string for short name");
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_LOCALNAME_ERROR);
+        return ERR_NONE;
+    }
     OsAccountType type = static_cast<OsAccountType>(data.ReadInt32());
     OsAccountInfo osAccountInfo;
-    ErrCode result = CreateOsAccount(name, shortName, type, osAccountInfo);
+    ErrCode result = CreateOsAccount(localName, shortName, type, osAccountInfo);
     return WriteResultWithOsAccountInfo(reply, result, osAccountInfo);
 }
 
@@ -1294,7 +1299,8 @@ ErrCode OsAccountStub::ProcGetDefaultActivatedOsAccount(MessageParcel &data, Mes
     return ERR_NONE;
 }
 
-ErrCode OsAccountStub::ProcGetOsAccountShortName(MessageParcel &data, MessageParcel &reply){
+ErrCode OsAccountStub::ProcGetOsAccountShortName(MessageParcel &data, MessageParcel &reply)
+{
     std::string shortName;
     ErrCode result = GetOsAccountShortName(shortName);
     if (!reply.WriteInt32(result)) {
