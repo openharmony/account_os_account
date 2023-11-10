@@ -31,6 +31,14 @@ config("accountkits_config") {
 }
 
 ohos_shared_library("libaccountkits") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   sources = [
     "src/account_info_parcel.cpp",
     "src/account_proxy.cpp",

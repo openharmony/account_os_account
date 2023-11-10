@@ -32,6 +32,14 @@ config("accountmgr_data_deal_test_config") {
 }
 
 ohos_unittest("OhosServiceTest") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
   cflags_cc = []
   include_dirs = [
@@ -90,6 +98,14 @@ ohos_unittest("OhosServiceTest") {
 }
 
 ohos_unittest("OhosDataDealTest") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
   cflags_cc = []
   resource_config_file =

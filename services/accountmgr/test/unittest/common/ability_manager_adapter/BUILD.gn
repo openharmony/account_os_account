@@ -29,6 +29,14 @@ config("ability_manager_adapter_test_config") {
 }
 
 ohos_unittest("AbilityManagerAdapterTest") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
   cflags_cc = []
 
@@ -58,6 +66,14 @@ ohos_unittest("AbilityManagerAdapterTest") {
 }
 
 ohos_unittest("AbilityManagerAdapterMockTest") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
   cflags_cc = []
 

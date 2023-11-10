@@ -53,6 +53,15 @@ config("domain_account_amgr_mock_config") {
 }
 
 ohos_unittest("DomainAccountInnerServiceCovTest") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "${os_account_path}/cfi_blocklist.txt"
+  }
+
   cflags_cc = []
   module_out_path = module_output_path
 
@@ -117,6 +126,14 @@ ohos_unittest("DomainAccountInnerServiceCovTest") {
 }
 
 ohos_unittest("domain_account_plugin_proxy_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   include_dirs = [ "${domain_account_interfaces_native_path}/include" ]

@@ -48,6 +48,14 @@ config("os_account_core_public_config") {
 }
 
 ohos_shared_library("os_account_core") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   sources = [
     "${domain_account_framework_path}/src/domain_account_callback_service.cpp",
     "${os_account_core_path}/src/os_account.cpp",
