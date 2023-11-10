@@ -110,5 +110,10 @@ ErrCode AbilityManagerAdapter::StopUser(int accountId, const sptr<AAFwk::IStopUs
 {
     return ERR_OK;
 }
+
+ErrCode AbilityManagerAdapter::LogoutUser(int accountId)
+{
+    return ERR_OK;
+}
 } // namespace AccountSA
 } // namespace OHOS

@@ -56,6 +56,7 @@ public:
         const int id, const std::vector<std::string> &constraints, const bool enable) override;
     ErrCode SetOsAccountProfilePhoto(const int id, const std::string &photo) override;
     ErrCode ActivateOsAccount(const int id) override;
+    ErrCode DeactivateOsAccount(const int id) override;
     ErrCode StartOsAccount(const int id) override;
     ErrCode StopOsAccount(const int id) override;
     ErrCode GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id) override;
@@ -107,11 +108,13 @@ private:
     void ResetAccountStatus(void);
     ErrCode RemoveOsAccountOperate(
         const int id, OsAccountInfo &osAccountInfo, const DomainAccountInfo &domainAccountInfo);
-    ErrCode DeActivateOsAccount(const int id);
+    ErrCode DeactivateOsAccountById(const int id);
+    ErrCode DeactivateOsAccountByInfo(OsAccountInfo &osAccountInfo);
     ErrCode PrepareOsAccountInfo(const std::string &name, const OsAccountType &type,
         const DomainAccountInfo &domainAccount, OsAccountInfo &osAccountInfo);
     ErrCode PrepareOsAccountInfoWithFullInfo(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountActivate(OsAccountInfo &osAccountInfo);
+    ErrCode SendMsgForAccountDeactivate(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountStop(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountRemove(OsAccountInfo &osAccountInfo);
     void RemoveLocalIdToOperating(int32_t localId);
