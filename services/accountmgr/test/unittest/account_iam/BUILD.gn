@@ -36,6 +36,14 @@ config("account_iam_native_config_unittest") {
 }
 
 ohos_unittest("account_iam_service_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   sources = [ "account_iam_service_test.cpp" ]
@@ -72,6 +80,14 @@ ohos_unittest("account_iam_service_test") {
 }
 
 ohos_unittest("account_iam_stub_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   sources = [
@@ -111,6 +127,14 @@ ohos_unittest("account_iam_stub_test") {
 }
 
 ohos_unittest("account_iam_callback_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   sources = [
@@ -157,6 +181,15 @@ ohos_unittest("account_iam_callback_test") {
 }
 
 ohos_unittest("account_iam_manager_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "${os_account_path}/cfi_blocklist.txt"
+  }
+
   module_out_path = module_output_path
 
   sources = [ "account_iam_manager_test.cpp" ]

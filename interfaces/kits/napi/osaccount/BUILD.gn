@@ -37,6 +37,14 @@ config("osaccount_kit_config") {
 }
 
 ohos_shared_library("osaccount") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   configs = [
     ":osaccount_kit_config",
     "${account_coverage_config_path}:coverage_flags",

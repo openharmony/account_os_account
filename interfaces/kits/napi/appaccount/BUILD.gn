@@ -36,6 +36,14 @@ config("appaccount_kit_config") {
 }
 
 ohos_shared_library("appaccount") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   include_dirs = []
   if (!use_clang_coverage) {
     version_script = "libappaccount.map"
