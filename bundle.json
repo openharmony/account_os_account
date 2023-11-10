@@ -24,7 +24,8 @@
       "os_account_storage_feature",
       "os_account_test_case_coverage_feature = false",
       "os_account_file_encryption_el1_feature",
-      "os_account_enable_multiple_os_accounts"
+      "os_account_enable_multiple_os_accounts",
+      "os_account_enable_default_admin_name"
     ],
     "hisysevent_config": [
       "//base/account/os_account/hisysevent.yaml"
