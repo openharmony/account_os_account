@@ -376,6 +376,7 @@ void NapiCallVoidFunction(napi_env env, napi_value *argv, size_t argc, napi_ref 
     napi_value func = nullptr;
     NAPI_CALL_RETURN_VOID(env, napi_get_reference_value(env, funcRef, &func));
     napi_call_function(env, undefined, func, argc, argv, &returnVal);
+    ACCOUNT_LOGI("call js function finish");
 }
 
 napi_value CreateAuthResult(

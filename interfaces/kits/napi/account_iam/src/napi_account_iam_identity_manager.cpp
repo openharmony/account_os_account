@@ -411,7 +411,7 @@ napi_value NapiAccountIAMIdentityManager::GetAuthInfo(napi_env env, napi_callbac
             delete reinterpret_cast<GetAuthInfoContext *>(data);
         },
         reinterpret_cast<void *>(context.get()), &context->work));
-    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_default));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_user_initiated));
     context.release();
     return result;
 }

@@ -28,6 +28,7 @@ AccountIAMMgrProxy::~AccountIAMMgrProxy()
 
 ErrCode AccountIAMMgrProxy::SendRequest(AccountIAMInterfaceCode code, MessageParcel &data, MessageParcel &reply)
 {
+    ACCOUNT_LOGI("send request enter, code = %{public}d", code);
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
         ACCOUNT_LOGE("remote is nullptr, code = %{public}d", code);
