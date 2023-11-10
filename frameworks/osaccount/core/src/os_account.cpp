@@ -85,22 +85,6 @@ ErrCode OsAccount::CreateOsAccount(const std::string &localName, const std::stri
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
-    for (int i = 0; i < (int)strlen(Constants::SPECIAL_CHARACTER_ARRAY); i++)
-    {
-        if (shortName.find(Constants::SPECIAL_CHARACTER_ARRAY[i]) != std::string::npos) {
-            ACCOUNT_LOGE("CreateOsAccount short name is invalidate, short name is %{public}s !", shortName.c_str());
-            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-        }
-    }
-
-    for (int i = 0; i < (int)sizeof(Constants::SHORT_NAME_CANNOT_BE_NAME_ARRAY); i++)
-    {
-        if (shortName.compare(Constants::SHORT_NAME_CANNOT_BE_NAME_ARRAY[i]) == 0) {
-            ACCOUNT_LOGE("CreateOsAccount short name is invalidate, short name is %{public}s !", shortName.c_str());
-            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-        }
-    }
-
     auto proxy = GetOsAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;

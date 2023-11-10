@@ -39,6 +39,7 @@ enum class AccountMgrInterfaceCode : uint32_t {
 
 enum class OsAccountInterfaceCode : uint32_t {
     CREATE_OS_ACCOUNT = 0,
+    CREATE_OS_ACCOUNT_WITH_SHORT_NAME,
     CREATE_OS_ACCOUNT_WITH_FULL_INFO,
     UPDATE_OS_ACCOUNT_WITH_FULL_INFO,
     CREATE_OS_ACCOUNT_FOR_DOMAIN,
