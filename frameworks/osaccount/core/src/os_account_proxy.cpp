@@ -93,7 +93,7 @@ ErrCode OsAccountProxy::CreateOsAccount(
     }
 
     MessageParcel reply;
-    ErrCode result = SendRequest(OsAccountInterfaceCode::CREATE_OS_ACCOUNT, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::CREATE_OS_ACCOUNT_WITH_SHORT_NAME, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;

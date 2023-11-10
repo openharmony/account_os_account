@@ -2387,3 +2387,42 @@ HWTEST_F(OsAccountManagerModuleTest, CreateOsAccount02, TestSize.Level1)
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
     OsAccountManager::RemoveOsAccount(osAccountInfoTwo.GetLocalId());
 }
+
+/**
+ * @tc.name: CreateOsAccount03
+ * @tc.desc: create os account with short name 
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, CreateOsAccount03, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfoOne;
+    EXPECT_NE(OsAccountManager::CreateOsAccount("zsm<<zd?s>|:23\"1/bc\\d", OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
+    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
+}
+
+/**
+ * @tc.name: CreateOsAccount04
+ * @tc.desc: create os account with short name 
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, CreateOsAccount04, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfoOne;
+    EXPECT_NE(OsAccountManager::CreateOsAccount(".", OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
+    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
+}
+
+/**
+ * @tc.name: CreateOsAccount05
+ * @tc.desc: create os account with short name 
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, CreateOsAccount05, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfoOne;
+    EXPECT_NE(OsAccountManager::CreateOsAccount("..", OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
+    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
+}

@@ -33,6 +33,13 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         }
     },
     {
+        static_cast<uint32_t>(OsAccountInterfaceCode::CREATE_OS_ACCOUNT_WITH_SHORT_NAME),
+        {
+            .messageProcFunction = &OsAccountStub::ProcCreateOsAccountWithShortName,
+            .isSyetemApi = true,
+        }
+    },
+    {
         static_cast<uint32_t>(OsAccountInterfaceCode::CREATE_OS_ACCOUNT_WITH_FULL_INFO),
         {
             .messageProcFunction = &OsAccountStub::ProcCreateOsAccountWithFullInfo,
@@ -429,15 +436,24 @@ ErrCode OsAccountStub::ProcCreateOsAccount(MessageParcel &data, MessageParcel &r
         reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_LOCALNAME_ERROR);
         return ERR_NONE;
     }
+    OsAccountType type = static_cast<OsAccountType>(data.ReadInt32());
+    OsAccountInfo osAccountInfo;
+    ErrCode result = CreateOsAccount(name, type, osAccountInfo); 
+    return WriteResultWithOsAccountInfo(reply, result, osAccountInfo);
+}
+
+ErrCode OsAccountStub::ProcCreateOsAccountWithShortName(MessageParcel &data, MessageParcel &reply)
+{
+    std::string name = data.ReadString();
+    if (name.size() == 0) {
+        ACCOUNT_LOGE("failed to read string for name");
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_LOCALNAME_ERROR);
+        return ERR_NONE;
+    }
     std::string shortName = data.ReadString();
     OsAccountType type = static_cast<OsAccountType>(data.ReadInt32());
     OsAccountInfo osAccountInfo;
-    ErrCode result;
-    if(shortName.empty()){
-        result = CreateOsAccount(name, type, osAccountInfo);
-    } else {
-        result = CreateOsAccount(name, shortName, type, osAccountInfo);
-    }
+    ErrCode result = CreateOsAccount(name, shortName, type, osAccountInfo);
     return WriteResultWithOsAccountInfo(reply, result, osAccountInfo);
 }
 
