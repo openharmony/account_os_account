@@ -633,6 +633,12 @@ ErrCode OsAccountProxy::ActivateOsAccount(const int id)
     return SendRequestWithAccountId(OsAccountInterfaceCode::ACTIVATE_OS_ACCOUNT, reply, id);
 }
 
+ErrCode OsAccountProxy::DeactivateOsAccount(const int id)
+{
+    MessageParcel reply;
+    return SendRequestWithAccountId(OsAccountInterfaceCode::DEACTIVATE_OS_ACCOUNT, reply, id);
+}
+
 ErrCode OsAccountProxy::StartOsAccount(const int id)
 {
     MessageParcel reply;

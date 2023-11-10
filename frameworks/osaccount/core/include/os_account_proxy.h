@@ -57,6 +57,7 @@ public:
         const int id, const std::vector<std::string> &constraints, const bool enable) override;
     ErrCode SetOsAccountProfilePhoto(const int id, const std::string &photo) override;
     ErrCode ActivateOsAccount(const int id) override;
+    ErrCode DeactivateOsAccount(const int id) override;
     ErrCode StartOsAccount(const int id) override;
     ErrCode StopOsAccount(const int id) override;
     ErrCode GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id) override;
