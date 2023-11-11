@@ -26,6 +26,10 @@ config("os_account_service_config_unittest") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
 
+  if (os_account_enable_user_short_name) {
+    cflags += [ "-DENABLE_USER_SHORT_NAME" ]
+  }
+
   defines = [
     "ACCOUNT_LOG_TAG = \"OsAccountUTestFwk\"",
     "LOG_DOMAIN = 0xD001B00",
