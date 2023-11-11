@@ -139,24 +139,9 @@ ErrCode OsAccountManagerService::CreateOsAccount(
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 #ifdef ENABLE_USER_SHORT_NAME
-    size_t shortNameSize = shortName.size();
-    if (shortNameSize == 0 || shortNameSize > Constants::SHORT_NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("CreateOsAccount short name length %{public}zu is invalid!", shortNameSize);
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-
-    for (int i = 0; i < (int)strlen(Constants::SPECIAL_CHARACTER_ARRAY); i++) {
-        if (shortName.find(Constants::SPECIAL_CHARACTER_ARRAY[i]) != std::string::npos) {
-            ACCOUNT_LOGE("CreateOsAccount short name is invalidate, short name is %{public}s !", shortName.c_str());
-            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-        }
-    }
-
-    for (int i = 0; i < (int)sizeof(Constants::SHORT_NAME_CANNOT_BE_NAME_ARRAY); i++) {
-        if (shortName.compare(Constants::SHORT_NAME_CANNOT_BE_NAME_ARRAY[i]) == 0) {
-            ACCOUNT_LOGE("CreateOsAccount short name is invalidate, short name is %{public}s !", shortName.c_str());
-            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-        }
+    ErrCode code = ValidateShortName(shortName);
+    if (code != ERR_OK) {
+        return code;
     }
 #endif // ENABLE_USER_SHORT_NAME
     if (type < OsAccountType::ADMIN || type >= OsAccountType::END) {
@@ -176,6 +161,30 @@ ErrCode OsAccountManagerService::CreateOsAccount(
     }
 
     return innerManager_.CreateOsAccount(localName, shortName, type, osAccountInfo);
+}
+
+ErrCode OsAccountManagerService::ValidateShortName(const std::string &shortName)
+{
+    size_t shortNameSize = shortName.size();
+    if (shortNameSize == 0 || shortNameSize > Constants::SHORT_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("CreateOsAccount short name length %{public}zu is invalid!", shortNameSize);
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    for (int i = 0; i < (int)strlen(Constants::SPECIAL_CHARACTER_ARRAY); i++) {
+        if (shortName.find(Constants::SPECIAL_CHARACTER_ARRAY[i]) != std::string::npos) {
+            ACCOUNT_LOGE("CreateOsAccount short name is invalidate, short name is %{public}s !", shortName.c_str());
+            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+        }
+    }
+
+    for (int i = 0; i < (int)sizeof(Constants::SHORT_NAME_CANNOT_BE_NAME_ARRAY); i++) {
+        if (shortName.compare(Constants::SHORT_NAME_CANNOT_BE_NAME_ARRAY[i]) == 0) {
+            ACCOUNT_LOGE("CreateOsAccount short name is invalidate, short name is %{public}s !", shortName.c_str());
+            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+        }
+    }
+    return ERR_OK;
 }
 
 ErrCode OsAccountManagerService::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)

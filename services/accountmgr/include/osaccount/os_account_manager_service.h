@@ -122,6 +122,7 @@ private:
         const std::vector<OsAccountInfo> &osAccountInfos, std::vector<std::string> &state);
     bool PermissionCheck(const std::string& permissionName, const std::string& constraintName);
     bool CheckCreateOsAccountWhiteList();
+    ErrCode ValidateShortName(const std::string &shortName);
 
 private:
     IInnerOsAccount &innerManager_;
