@@ -79,17 +79,7 @@ void IInnerOsAccountManager::CreateBaseAdminAccount()
         osAccountInfo.SetCreateTime(time);
         osAccountInfo.SetIsCreateCompleted(true);
         osAccountInfo.SetIsActived(true);  // admin local account is always active
-#ifdef ENABLE_USER_SHORT_NAME
-        ErrCode errCode = ValidateOsAccount(osAccountInfo);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("account name already exist, errCode %{public}d.", errCode);
-            return;
-        }
         osAccountControl_->InsertOsAccount(osAccountInfo);
-        osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
-#else
-        osAccountControl_->InsertOsAccount(osAccountInfo);
-#endif // ENABLE_USER_SHORT_NAME
         ACCOUNT_LOGI("OsAccountAccountMgr created admin account end");
     }
 }
@@ -119,17 +109,7 @@ void IInnerOsAccountManager::CreateBaseStandardAccount()
                 .count();
         osAccountInfo.SetCreateTime(time);
         osAccountInfo.SetIsCreateCompleted(false);
-#ifdef ENABLE_USER_SHORT_NAME
-        errCode = ValidateOsAccount(osAccountInfo);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("CreateBaseStandardAccount account name already exist, errCode %{public}d.", errCode);
-            return;
-        }
         osAccountControl_->InsertOsAccount(osAccountInfo);
-        osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
-#else
-        osAccountControl_->InsertOsAccount(osAccountInfo);
-#endif // ENABLE_USER_SHORT_NAME
         ACCOUNT_LOGI("OsAccountAccountMgr created base account end");
     }
 }
@@ -519,8 +499,9 @@ ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountIn
         ACCOUNT_LOGE("RemoveOsAccount failed to remove os account constraints info");
         return errCode;
     }
+#ifdef ENABLE_USER_SHORT_NAME
     osAccountControl_->UpdateAccountIndex(osAccountInfo, true);
-    
+#endif // ENABLE_USER_SHORT_NAME
     CheckAndRefreshLocalIdRecord(id);
     if (!domainAccountInfo.accountId_.empty()) {
         InnerDomainAccountManager::GetInstance().NotifyDomainAccountEvent(
@@ -1158,7 +1139,9 @@ ErrCode IInnerOsAccountManager::SetOsAccountName(const int id, const std::string
         ACCOUNT_LOGE("update osaccount info error %{public}d, id: %{public}d", errCode, osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
+#ifdef ENABLE_USER_SHORT_NAME
     osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
+#endif // ENABLE_USER_SHORT_NAME
     OsAccountInterface::PublishCommonEvent(
         osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::OPERATION_UPDATE);
     return ERR_OK;

@@ -93,7 +93,7 @@ ErrCode OsAccountManagerService::CreateOsAccount(
 
     std::string shortName;
 #ifdef ENABLE_USER_SHORT_NAME
-    shortName = name
+    shortName = name;
     for (size_t i = 0; i < strlen(Constants::SPECIAL_CHARACTER_ARRAY); i++) {
         int position = shortName.find(Constants::SPECIAL_CHARACTER_ARRAY[i]);
         while (position > 0) {

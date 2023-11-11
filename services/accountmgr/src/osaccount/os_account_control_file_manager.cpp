@@ -1071,7 +1071,9 @@ ErrCode OsAccountControlFileManager::UpdateAccountIndex(const OsAccountInfo &osA
     std::string localIdStr = std::to_string(osAccountInfo.GetLocalId());
     Json accountBaseInfo; 
     accountBaseInfo[Constants::LOCAL_NAME] = osAccountInfo.GetLocalName();
+#ifdef ENABLE_USER_SHORT_NAME
     accountBaseInfo[Constants::SHORT_NAME] = osAccountInfo.GetShortName();
+#endif // ENABLE_USER_SHORT_NAME
     if (isDelete) {
         accountIndexJson.erase(localIdStr);
     } else {
