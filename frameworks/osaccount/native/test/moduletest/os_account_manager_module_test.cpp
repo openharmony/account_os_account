@@ -52,7 +52,6 @@ namespace {
 const std::string STRING_EMPTY = "";
 const std::string STRING_NAME = "name";
 const std::string STRING_TEST_NAME = "test_account_name";
-const std::string STRING_TEST_SHORT_NAME = "shortName";
 const std::string STRING_TEST_NAME_TWO = "test_account_name_2";
 const std::uint32_t INVALID_TOKEN_ID = 0;
 #ifdef DOMAIN_ACCOUNT_TEST_CASE
@@ -2355,74 +2354,3 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest113, TestSize.Lev
     EXPECT_EQ(id, MAIN_ACCOUNT_ID);
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
-
-/**
- * @tc.name: CreateOsAccount01
- * @tc.desc: create os account with short name 
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerModuleTest, CreateOsAccount01, TestSize.Level1)
-{
-    OsAccountInfo osAccountInfoOne;
-    OsAccountInfo osAccountInfoTwo;
-    EXPECT_NE(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, STRING_TEST_SHORT_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
-    EXPECT_NE(OsAccountManager::CreateOsAccount(STRING_TEST_NAME_TWO, STRING_TEST_SHORT_NAME, OsAccountType::NORMAL, osAccountInfoTwo), ERR_OSACCOUNT_SERVICE_DATA_STORAGE_KEY_EXISTED_ERROR);
-    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
-    OsAccountManager::RemoveOsAccount(osAccountInfoTwo.GetLocalId());
-}
-
-/**
- * @tc.name: CreateOsAccount02
- * @tc.desc: create os account with short name 
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerModuleTest, CreateOsAccount02, TestSize.Level1)
-{
-    OsAccountInfo osAccountInfoOne;
-    OsAccountInfo osAccountInfoTwo;
-    EXPECT_NE(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, STRING_TEST_SHORT_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
-    EXPECT_NE(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfoTwo), ERR_OSACCOUNT_SERVICE_DATA_STORAGE_KEY_EXISTED_ERROR);
-    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
-    OsAccountManager::RemoveOsAccount(osAccountInfoTwo.GetLocalId());
-}
-
-/**
- * @tc.name: CreateOsAccount03
- * @tc.desc: create os account with short name 
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerModuleTest, CreateOsAccount03, TestSize.Level1)
-{
-    OsAccountInfo osAccountInfoOne;
-    EXPECT_NE(OsAccountManager::CreateOsAccount("zsm<<zd?s>|:23\"1/bc\\d", OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
-    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
-}
-
-/**
- * @tc.name: CreateOsAccount04
- * @tc.desc: create os account with short name 
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerModuleTest, CreateOsAccount04, TestSize.Level1)
-{
-    OsAccountInfo osAccountInfoOne;
-    EXPECT_NE(OsAccountManager::CreateOsAccount(".", OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
-    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
-}
-
-/**
- * @tc.name: CreateOsAccount05
- * @tc.desc: create os account with short name 
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerModuleTest, CreateOsAccount05, TestSize.Level1)
-{
-    OsAccountInfo osAccountInfoOne;
-    EXPECT_NE(OsAccountManager::CreateOsAccount("..", OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
-    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
-}

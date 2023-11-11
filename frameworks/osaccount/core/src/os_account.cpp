@@ -59,7 +59,7 @@ ErrCode OsAccount::CreateOsAccount(const std::string &name, const OsAccountType 
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-
+    
     return proxy->CreateOsAccount(name, type, osAccountInfo);
 }
 
@@ -81,7 +81,6 @@ ErrCode OsAccount::CreateOsAccount(const std::string &localName, const std::stri
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-
     return proxy->CreateOsAccount(localName, shortName, type, osAccountInfo);
 }
 
