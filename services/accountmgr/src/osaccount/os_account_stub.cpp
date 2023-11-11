@@ -431,7 +431,7 @@ static ErrCode WriteResultWithOsAccountInfo(MessageParcel &reply, int32_t result
 ErrCode OsAccountStub::ProcCreateOsAccount(MessageParcel &data, MessageParcel &reply)
 {
     std::string name;
-    if (data.ReadString(name) && name.size() > 0) {
+    if (!data.ReadString(name)) {
         ACCOUNT_LOGE("failed to read string for name");
         reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_LOCALNAME_ERROR);
         return ERR_NONE;
@@ -445,13 +445,13 @@ ErrCode OsAccountStub::ProcCreateOsAccount(MessageParcel &data, MessageParcel &r
 ErrCode OsAccountStub::ProcCreateOsAccountWithShortName(MessageParcel &data, MessageParcel &reply)
 {
     std::string localName;
-    if (data.ReadString(localName) && localName.size() > 0) {
+    if (!data.ReadString(localName)) {
         ACCOUNT_LOGE("failed to read string for local name");
         reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_LOCALNAME_ERROR);
         return ERR_NONE;
     }
     std::string shortName;
-    if (data.ReadString(shortName) && shortName.size() > 0) {
+    if (!data.ReadString(shortName)) {
         ACCOUNT_LOGE("failed to read string for short name");
         reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_LOCALNAME_ERROR);
         return ERR_NONE;

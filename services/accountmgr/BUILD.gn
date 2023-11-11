@@ -178,6 +178,10 @@ ohos_shared_library("accountmgr") {
     cflags += [ "-DENABLE_DEFAULT_ADMIN_NAME" ]
   }
 
+  if (os_account_enable_user_short_name) {
+    cflags += [ "-DENABLE_USER_SHORT_NAME" ]
+  }
+
   sources = [
     "${common_path}/utils/src/account_permission_manager.cpp",
     "${domain_account_framework_path}/src/domain_account_callback_proxy.cpp",

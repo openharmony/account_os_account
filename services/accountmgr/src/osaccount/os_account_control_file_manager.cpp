@@ -1434,7 +1434,9 @@ ErrCode OsAccountControlFileManager::CreateAccountIndexInfo(std::string &account
         std::string localIdStr = std::to_string(account->GetLocalId());
         Json accountIndexElement; 
         accountIndexElement[Constants::LOCAL_NAME] = account->GetLocalName();
+#ifdef ENABLE_USER_SHORT_NAME
         accountIndexElement[Constants::SHORT_NAME] = account->GetShortName();
+#endif // ENABLE_USER_SHORT_NAME
         accountIndexJson[localIdStr] = accountIndexElement;
     }
     accountIndexInfo = accountIndexJson.dump();

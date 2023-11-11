@@ -79,6 +79,7 @@ void IInnerOsAccountManager::CreateBaseAdminAccount()
         osAccountInfo.SetCreateTime(time);
         osAccountInfo.SetIsCreateCompleted(true);
         osAccountInfo.SetIsActived(true);  // admin local account is always active
+#ifdef ENABLE_USER_SHORT_NAME
         ErrCode errCode = ValidateOsAccount(osAccountInfo);
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("account name already exist, errCode %{public}d.", errCode);
@@ -86,6 +87,9 @@ void IInnerOsAccountManager::CreateBaseAdminAccount()
         }
         osAccountControl_->InsertOsAccount(osAccountInfo);
         osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
+#else
+        osAccountControl_->InsertOsAccount(osAccountInfo);
+#endif // ENABLE_USER_SHORT_NAME
         ACCOUNT_LOGI("OsAccountAccountMgr created admin account end");
     }
 }
@@ -115,6 +119,7 @@ void IInnerOsAccountManager::CreateBaseStandardAccount()
                 .count();
         osAccountInfo.SetCreateTime(time);
         osAccountInfo.SetIsCreateCompleted(false);
+#ifdef ENABLE_USER_SHORT_NAME
         errCode = ValidateOsAccount(osAccountInfo);
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("CreateBaseStandardAccount account name already exist, errCode %{public}d.", errCode);
@@ -122,6 +127,9 @@ void IInnerOsAccountManager::CreateBaseStandardAccount()
         }
         osAccountControl_->InsertOsAccount(osAccountInfo);
         osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
+#else
+        osAccountControl_->InsertOsAccount(osAccountInfo);
+#endif // ENABLE_USER_SHORT_NAME
         ACCOUNT_LOGI("OsAccountAccountMgr created base account end");
     }
 }
@@ -235,19 +243,21 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &localNam
         ACCOUNT_LOGE("failed to SetDomainInfo");
         return ERR_OSACCOUNT_KIT_CREATE_OS_ACCOUNT_FOR_DOMAIN_ERROR;
     }
-
+#ifdef ENABLE_USER_SHORT_NAME
     errCode = ValidateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("account name already exist, errCode %{public}d.", errCode);
         return errCode;
     }
-
+#endif // ENABLE_USER_SHORT_NAME
     errCode = osAccountControl_->InsertOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("insert os account info err, errCode %{public}d.", errCode);
         return errCode;
     }
+#ifdef ENABLE_USER_SHORT_NAME
     osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
+#endif // ENABLE_USER_SHORT_NAME
     errCode = osAccountControl_->UpdateBaseOAConstraints(std::to_string(id), constraints, true);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("UpdateBaseOAConstraints err");
@@ -611,15 +621,22 @@ ErrCode IInnerOsAccountManager::ValidateOsAccount(OsAccountInfo &osAccountInfo)
         std::string localIdStr = element.key();
         auto value = element.value();
         std::string localName = value[Constants::LOCAL_NAME].get<std::string>();
+#ifdef ENABLE_USER_SHORT_NAME
         std::string shortName = value[Constants::SHORT_NAME].get<std::string>();
         if ((osAccountInfo.GetLocalName() == localName || osAccountInfo.GetShortName() == shortName) &&
             std::to_string(osAccountInfo.GetLocalId()) != localIdStr) {
-            return ERR_OSACCOUNT_KIT_NAME_HAD_EXISTED;
+            return ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED;
         }
+#else
+        if (osAccountInfo.GetLocalName() == localName && std::to_string(osAccountInfo.GetLocalId()) != localIdStr) {
+            return ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED;
+        }
+#endif // ENABLE_USER_SHORT_NAME
     }
 
     return ERR_OK;
 }
+
 ErrCode IInnerOsAccountManager::SendMsgForAccountRemove(OsAccountInfo &osAccountInfo)
 {
     ErrCode errCode = OsAccountInterface::SendToBMSAccountDelete(osAccountInfo);
