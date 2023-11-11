@@ -63,6 +63,10 @@ ohos_moduletest("os_account_frameworks_module_test") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+  cflags_cc = []
+  if (os_account_support_deactivate_main_os_account) {
+    cflags_cc += [ "-DSUPPROT_STOP_MAIN_OS_ACCOUNT" ]
+  }
 }
 
 ohos_moduletest("os_account_frameworks_module_mock_test") {
@@ -140,6 +144,9 @@ ohos_moduletest("os_account_frameworks_module_mock_test") {
   cflags_cc += [ "-DACCOUNT_TEST" ]
   cflags_cc += [ "-DBUNDLE_ADAPTER_MOCK" ]
   cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
+  if (os_account_support_deactivate_main_os_account) {
+    cflags_cc += [ "-DSUPPROT_STOP_MAIN_OS_ACCOUNT" ]
+  }
   part_name = "os_account"
 }
 
