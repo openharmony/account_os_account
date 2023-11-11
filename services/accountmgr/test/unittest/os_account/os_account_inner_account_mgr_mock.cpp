@@ -830,7 +830,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest026, 
         .WillRepeatedly(DoAll(testing::SetArgReferee<1>(osAccountInfo), testing::Return(0)));
 
     ret = innerMgrService_->ActivateOsAccount(id);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_IS_UNVERIFIED_ERROR);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_IS_UNCOMPLETED_ERROR);
 
     osAccountInfo.SetIsCreateCompleted(1);
     osAccountInfo.SetToBeRemoved(true);
@@ -1246,7 +1246,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest041, 
         .WillRepeatedly(DoAll(SetArgReferee<1>(account1), testing::Return(0)));
 
     int ret = innerMgrService_->SetDefaultActivatedOsAccount(TEST_USER_ID108);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_IS_UNVERIFIED_ERROR);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_IS_UNCOMPLETED_ERROR);
 }
 
 /*
