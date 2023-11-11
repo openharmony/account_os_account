@@ -195,6 +195,36 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &name, co
 ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &localName, const std::string &shortName, const OsAccountType &type,
     const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo)
 {
+    ErrCode errCode = FillOsAccountInfo(localName, shortName, type, domainInfo, osAccountInfo);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+#ifdef ENABLE_USER_SHORT_NAME
+    errCode = ValidateOsAccount(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("account name already exist, errCode %{public}d.", errCode);
+        return errCode;
+    }
+#endif // ENABLE_USER_SHORT_NAME
+    errCode = osAccountControl_->InsertOsAccount(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("insert os account info err, errCode %{public}d.", errCode);
+        return errCode;
+    }
+#ifdef ENABLE_USER_SHORT_NAME
+    osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
+#endif // ENABLE_USER_SHORT_NAME
+    errCode = osAccountControl_->UpdateBaseOAConstraints(std::to_string(osAccountInfo.GetLocalId()), osAccountInfo.GetConstraints(), true);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("UpdateBaseOAConstraints err");
+        return errCode;
+    }
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::FillOsAccountInfo(const std::string &localName, const std::string &shortName, const OsAccountType &type,
+    const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo)
+{
     int64_t serialNumber;
     ErrCode errCode = osAccountControl_->GetSerialNumber(serialNumber);
     if (errCode != ERR_OK) {
@@ -222,26 +252,6 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &localNam
     if (!osAccountInfo.SetDomainInfo(domainInfo)) {
         ACCOUNT_LOGE("failed to SetDomainInfo");
         return ERR_OSACCOUNT_KIT_CREATE_OS_ACCOUNT_FOR_DOMAIN_ERROR;
-    }
-#ifdef ENABLE_USER_SHORT_NAME
-    errCode = ValidateOsAccount(osAccountInfo);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("account name already exist, errCode %{public}d.", errCode);
-        return errCode;
-    }
-#endif // ENABLE_USER_SHORT_NAME
-    errCode = osAccountControl_->InsertOsAccount(osAccountInfo);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("insert os account info err, errCode %{public}d.", errCode);
-        return errCode;
-    }
-#ifdef ENABLE_USER_SHORT_NAME
-    osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
-#endif // ENABLE_USER_SHORT_NAME
-    errCode = osAccountControl_->UpdateBaseOAConstraints(std::to_string(id), constraints, true);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("UpdateBaseOAConstraints err");
-        return errCode;
     }
     return ERR_OK;
 }
@@ -591,7 +601,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountStop(OsAccountInfo &osAccountIn
     return errCode;
 }
 
-ErrCode IInnerOsAccountManager::ValidateOsAccount(OsAccountInfo &osAccountInfo)
+ErrCode IInnerOsAccountManager::ValidateOsAccount(const OsAccountInfo &osAccountInfo)
 {
     Json accountIndexJson;
     ErrCode result = osAccountControl_->GetAccountIndexFromFile(accountIndexJson);
