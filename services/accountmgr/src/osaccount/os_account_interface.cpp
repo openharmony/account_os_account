@@ -115,6 +115,19 @@ ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
     return ERR_OK;
 }
 
+ErrCode OsAccountInterface::SendToAMSAccountDeactivate(OsAccountInfo &osAccountInfo)
+{
+    StartTraceAdapter("AbilityManagerAdapter LogoutUser");
+    ErrCode code = AbilityManagerAdapter::GetInstance()->LogoutUser(osAccountInfo.GetLocalId());
+    if (code != ERR_OK) {
+        ACCOUNT_LOGE("failed to AbilityManagerAdapter logout errcode is %{public}d", code);
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_STOP, code,
+            "AbilityManagerService LogoutUser failed!");
+    }
+    FinishTraceAdapter();
+    return code;
+}
+
 ErrCode OsAccountInterface::SendToBMSAccountCreate(OsAccountInfo &osAccountInfo)
 {
     return BundleManagerAdapter::GetInstance()->CreateNewUser(osAccountInfo.GetLocalId());
@@ -435,6 +448,8 @@ ErrCode OsAccountInterface::SendToStorageAccountStop(OsAccountInfo &osAccountInf
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_STOP,
             err, "Storage StopUser failed!");
     }
+
+    osAccountInfo.SetIsVerified(false);
 
     FinishTraceAdapter();
 #endif

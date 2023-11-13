@@ -96,6 +96,7 @@ NapiIDMCallback::~NapiIDMCallback()
 
 static void OnIDMResultWork(uv_work_t* work, int status)
 {
+    ACCOUNT_LOGI("enter");
     std::unique_ptr<uv_work_t> workPtr(work);
     napi_handle_scope scope = nullptr;
     if (!InitUvWorkCallbackEnv(work, scope)) {
@@ -108,7 +109,6 @@ static void OnIDMResultWork(uv_work_t* work, int status)
     napi_value credentialId = CreateUint8Array(
         param->env, reinterpret_cast<uint8_t *>(&param->credentialId), sizeof(uint64_t));
     napi_set_named_property(param->env, argv[PARAM_ONE], "credentialId", credentialId);
-    ACCOUNT_LOGI("call js function");
     NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->callback.onResult);
     napi_delete_reference(param->env, param->callback.onResult);
     napi_close_handle_scope(param->env, scope);
@@ -142,6 +142,7 @@ void NapiIDMCallback::OnResult(int32_t result, const Attributes &extraInfo)
 
 static void OnAcquireInfoWork(uv_work_t* work, int status)
 {
+    ACCOUNT_LOGI("enter");
     std::unique_ptr<uv_work_t> workPtr(work);
     napi_handle_scope scope = nullptr;
     if (!InitUvWorkCallbackEnv(work, scope)) {
@@ -153,7 +154,6 @@ static void OnAcquireInfoWork(uv_work_t* work, int status)
     napi_create_int32(env, param->module, &argv[PARAM_ZERO]);
     napi_create_int32(env, param->acquire, &argv[PARAM_ONE]);
     argv[PARAM_TWO] = CreateUint8Array(env, param->extraInfo.data(), param->extraInfo.size());
-    ACCOUNT_LOGI("call js function");
     NapiCallVoidFunction(env, argv, ARG_SIZE_THREE, param->callback.onAcquireInfo);
     napi_close_handle_scope(env, scope);
 }
@@ -402,6 +402,7 @@ static void CreateExecutorProperty(napi_env env, GetPropertyContext &prop, napi_
 
 static void OnUserAuthResultWork(uv_work_t *work, int status)
 {
+    ACCOUNT_LOGI("enter");
     std::unique_ptr<uv_work_t> workPtr(work);
     napi_handle_scope scope = nullptr;
     if (!InitUvWorkCallbackEnv(work, scope)) {
@@ -411,7 +412,6 @@ static void OnUserAuthResultWork(uv_work_t *work, int status)
     napi_value argv[ARG_SIZE_TWO] = {nullptr};
     napi_create_int32(param->env, AccountIAMConvertToJSErrCode(param->resultCode), &argv[PARAM_ZERO]);
     argv[PARAM_ONE] = CreateAuthResult(param->env, param->token, param->remainTimes, param->freezingTime);
-    ACCOUNT_LOGI("call js function");
     NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->callback.onResult);
     napi_delete_reference(param->env, param->callback.onResult);
     napi_close_handle_scope(param->env, scope);
@@ -419,6 +419,7 @@ static void OnUserAuthResultWork(uv_work_t *work, int status)
 
 static void OnUserAuthAcquireInfoWork(uv_work_t *work, int status)
 {
+    ACCOUNT_LOGI("enter");
     std::unique_ptr<uv_work_t> workPtr(work);
     napi_handle_scope scope = nullptr;
     if (!InitUvWorkCallbackEnv(work, scope)) {
@@ -429,7 +430,6 @@ static void OnUserAuthAcquireInfoWork(uv_work_t *work, int status)
     napi_create_int32(param->env, param->module, &argv[PARAM_ZERO]);
     napi_create_uint32(param->env, param->acquireInfo, &argv[PARAM_ONE]);
     argv[PARAM_TWO] = CreateUint8Array(param->env, param->extraInfo.data(), param->extraInfo.size());
-    ACCOUNT_LOGI("call js function");
     NapiCallVoidFunction(param->env, argv, ARG_SIZE_THREE, param->callback.onAcquireInfo);
     napi_close_handle_scope(param->env, scope);
 }
@@ -487,7 +487,7 @@ void NapiUserAuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, c
     param->callback = callback_;
     work->data = reinterpret_cast<void *>(param.get());
     NAPI_CALL_RETURN_VOID(env_, uv_queue_work_with_qos(
-        loop, work.get(), [] (uv_work_t *work) {}, OnUserAuthAcquireInfoWork, uv_qos_default));
+        loop, work.get(), [] (uv_work_t *work) {}, OnUserAuthAcquireInfoWork, uv_qos_user_initiated));
     ACCOUNT_LOGI("create user auth acquire info work finish");
     work.release();
     param.release();
@@ -502,6 +502,7 @@ NapiGetInfoCallback::~NapiGetInfoCallback()
 
 static void OnGetInfoWork(uv_work_t *work, int status)
 {
+    ACCOUNT_LOGI("enter");
     std::unique_ptr<uv_work_t> workPtr(work);
     napi_handle_scope scope = nullptr;
     if (!InitUvWorkCallbackEnv(work, scope)) {
@@ -538,7 +539,8 @@ void NapiGetInfoCallback::OnCredentialInfo(int32_t result, const std::vector<Acc
     context->errCode = result;
     context->credInfo = infoList;
     work->data = reinterpret_cast<void *>(context.get());
-    ErrCode ret = uv_queue_work_with_qos(loop, work.get(), [] (uv_work_t *work) {}, OnGetInfoWork, uv_qos_default);
+    ErrCode ret = uv_queue_work_with_qos(
+        loop, work.get(), [] (uv_work_t *work) {}, OnGetInfoWork, uv_qos_user_initiated);
     if (ret != ERR_OK) {
         ReleaseNapiRefAsync(env_, callbackRef_);
         return;
@@ -564,6 +566,7 @@ NapiGetPropCallback::~NapiGetPropCallback()
 
 static void OnGetPropertyWork(uv_work_t* work, int status)
 {
+    ACCOUNT_LOGI("enter");
     std::unique_ptr<uv_work_t> workPtr(work);
     napi_handle_scope scope = nullptr;
     if (!InitUvWorkCallbackEnv(work, scope)) {
@@ -644,10 +647,11 @@ void NapiGetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attr
     context->request = request_;
     work->data = reinterpret_cast<void *>(context.get());
     ErrCode ret = uv_queue_work_with_qos(
-        loop, work.get(), [] (uv_work_t *work) {}, OnGetPropertyWork, uv_qos_default);
+        loop, work.get(), [] (uv_work_t *work) {}, OnGetPropertyWork, uv_qos_user_initiated);
     ACCOUNT_LOGI("create get property work finish");
     if (ret != ERR_OK) {
         context->callbackRef = nullptr;
+        ACCOUNT_LOGE("create uv work failed");
         return;
     }
     callbackRef_ = nullptr;
@@ -717,6 +721,7 @@ void NapiSetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attr
     ACCOUNT_LOGI("create set property work finish");
     if (ret != ERR_OK) {
         context->callbackRef = nullptr;
+        ACCOUNT_LOGE("create uv work failed");
         return;
     }
     callbackRef_ = nullptr;
@@ -828,6 +833,7 @@ static napi_status GetInputerInstance(InputerContext *context, napi_value *input
 
 static void OnGetDataWork(uv_work_t* work, int status)
 {
+    ACCOUNT_LOGI("enter");
     std::unique_ptr<uv_work_t> workPtr(work);
     napi_handle_scope scope = nullptr;
     if (!InitUvWorkCallbackEnv(work, scope)) {
@@ -837,7 +843,6 @@ static void OnGetDataWork(uv_work_t* work, int status)
     napi_value argv[ARG_SIZE_TWO] = {0};
     napi_create_int32(context->env, context->authSubType, &argv[PARAM_ZERO]);
     GetInputerInstance(context.get(), &argv[PARAM_ONE]);
-    ACCOUNT_LOGI("call js function");
     NapiCallVoidFunction(context->env, argv, ARG_SIZE_TWO, context->callbackRef);
     context->callbackRef = nullptr;
     std::unique_lock<std::mutex> lock(context->lockInfo->mutex);
@@ -882,7 +887,8 @@ void NapiGetDataCallback::OnGetData(int32_t authSubType, const std::shared_ptr<A
     context->inputerData = inputerData;
     context->lockInfo = &lockInfo_;
     work->data = reinterpret_cast<void *>(context.get());
-    int errCode = uv_queue_work_with_qos(loop, work.get(), [] (uv_work_t *work) {}, OnGetDataWork, uv_qos_default);
+    int errCode = uv_queue_work_with_qos(
+        loop, work.get(), [] (uv_work_t *work) {}, OnGetDataWork, uv_qos_user_initiated);
     ACCOUNT_LOGI("create get data work finish");
     if (errCode != 0) {
         ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);

@@ -28,6 +28,8 @@ typedef enum {
     UNLOCKED,
     CREATED,
     REMOVED,
+    STOPPING,
+    STOPPED,
 } OS_ACCOUNT_SUBSCRIBE_TYPE;
 class OsAccountSubscribeInfo : public Parcelable {
 public:
