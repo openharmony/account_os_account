@@ -30,6 +30,8 @@ public:
     virtual void Init() = 0;
     virtual ErrCode CreateOsAccount(
         const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo) = 0;
+    virtual ErrCode CreateOsAccount(const std::string &localName,
+        const std::string &shortName, const OsAccountType &type, OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
@@ -45,6 +47,7 @@ public:
     virtual ErrCode GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints) = 0;
     virtual ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos) = 0;
     virtual ErrCode QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo) = 0;
+    virtual ErrCode GetOsAccountShortName(const int id, std::string &shortName) = 0;
     virtual ErrCode GetOsAccountType(const int id, OsAccountType &type) = 0;
     virtual ErrCode GetOsAccountProfilePhoto(const int id, std::string &photo) = 0;
     virtual ErrCode IsMultiOsAccountEnable(bool &isMultiOsAccountEnable) = 0;

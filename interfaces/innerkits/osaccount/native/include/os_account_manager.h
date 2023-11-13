@@ -58,6 +58,18 @@ public:
     static ErrCode CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo);
 
     /**
+     * @brief Creates an OS account using the local name、short name and account type.
+     * @permission ohos.permission.MANAGE_LOCAL_ACCOUNTS
+     * @param localName - Indicates the local name of the OS account to create.
+     * @param shortName - Indicates the short name of the OS account to create.
+     * @param type - Indicates the type of the OS account to create.
+     * @param osAccountInfo - Indicates the information about the created OS account.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode CreateOsAccount(const std::string& localName, const std::string& shortName,
+        const OsAccountType& type, OsAccountInfo& osAccountInfo);
+
+    /**
      * @brief Creates an OS account using full user info
      * @permission ohos.permission.MANAGE_LOCAL_ACCOUNTS
      * @param osAccountInfo - Indicates the information about the created OS account.

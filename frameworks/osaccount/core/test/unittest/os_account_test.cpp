@@ -262,7 +262,7 @@ HWTEST_F(OsAccountTest, OsAccountTest011, TestSize.Level1)
 {
     OsAccountType type = NORMAL;
     OsAccountInfo osAccountInfo;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_READ_LOCALNAME_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
         osAccountProxy_->CreateOsAccount(STRING_EMPTY, type, osAccountInfo));
 }
 

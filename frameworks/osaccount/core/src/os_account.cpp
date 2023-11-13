@@ -50,20 +50,39 @@ OsAccount &OsAccount::GetInstance()
 
 ErrCode OsAccount::CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
 {
-    if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("name length %{public}zu is too long!", name.size());
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-    if (name.empty()) {
-        ACCOUNT_LOGE("name is empty!");
+    size_t localNameSize = name.size();
+    if (localNameSize == 0 || localNameSize > Constants::LOCAL_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("CreateOsAccount local name length %{public}zu is invalid!", localNameSize);
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     auto proxy = GetOsAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-
+    
     return proxy->CreateOsAccount(name, type, osAccountInfo);
+}
+
+ErrCode OsAccount::CreateOsAccount(const std::string& localName, const std::string& shortName,
+    const OsAccountType& type, OsAccountInfo& osAccountInfo)
+{
+    size_t localNameSize = localName.size();
+    if (localNameSize == 0 || localNameSize > Constants::LOCAL_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("CreateOsAccount local name length %{public}zu is invalid!", localNameSize);
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    size_t shortNameSize = shortName.size();
+    if (shortNameSize == 0 || shortNameSize > Constants::SHORT_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("CreateOsAccount short name length %{public}zu is invalid!", shortNameSize);
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->CreateOsAccount(localName, shortName, type, osAccountInfo);
 }
 
 ErrCode OsAccount::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
@@ -822,8 +841,11 @@ ErrCode OsAccount::GetDefaultActivatedOsAccount(int32_t &id)
 
 ErrCode OsAccount::GetOsAccountShortName(std::string &shortName)
 {
-    shortName = "default";
-    return ERR_OK;
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->GetOsAccountShortName(shortName);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

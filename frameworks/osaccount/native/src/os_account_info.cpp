@@ -24,6 +24,7 @@ namespace AccountSA {
 namespace {
 const std::string LOCAL_ID = "localId";
 const std::string LOCAL_NAME = "localName";
+const std::string SHORT_NAME = "shortName";
 const std::string TYPE = "type";
 const std::string CONSTRAINTS = "constraints";
 const std::string IS_OS_ACCOUNT_VERIFIED = "isVerified";
@@ -46,7 +47,12 @@ OsAccountInfo::OsAccountInfo()
 {}
 
 OsAccountInfo::OsAccountInfo(int localId, const std::string localName, OsAccountType type, int64_t serialNumber)
-    : localId_(localId), localName_(localName), type_(type), serialNumber_(serialNumber)
+    : localId_(localId), localName_(localName), shortName_(localName), type_(type), serialNumber_(serialNumber)
+{}
+
+OsAccountInfo::OsAccountInfo(int localId, const std::string localName, const std::string shortName, OsAccountType type,
+    int64_t serialNumber)
+    : localId_(localId), localName_(localName), shortName_(shortName), type_(type), serialNumber_(serialNumber)
 {}
 
 int OsAccountInfo::GetLocalId() const
@@ -67,6 +73,19 @@ std::string OsAccountInfo::GetLocalName() const
 void OsAccountInfo::SetLocalName(const std::string localName)
 {
     localName_ = localName;
+}
+
+std::string OsAccountInfo::GetShortName() const
+{
+    if (shortName_.empty()) {
+        return localName_;
+    }
+    return shortName_;
+}
+
+void OsAccountInfo::SetShortName(const std::string &shortName)
+{
+    shortName_ = shortName;
 }
 
 OsAccountType OsAccountInfo::GetType() const
@@ -183,6 +202,7 @@ Json OsAccountInfo::ToJson() const
     Json jsonObject = Json {
         {LOCAL_ID, localId_},
         {LOCAL_NAME, localName_},
+        {SHORT_NAME, shortName_},
         {TYPE, type_},
         {CONSTRAINTS, constraints_},
         {IS_OS_ACCOUNT_VERIFIED, isVerified_},
@@ -225,6 +245,8 @@ void OsAccountInfo::FromJson(const Json &jsonObject)
         jsonObject, jsonObjectEnd, LOCAL_ID, localId_, OHOS::AccountSA::JsonType::NUMBER);
     OHOS::AccountSA::GetDataByType<std::string>(
         jsonObject, jsonObjectEnd, LOCAL_NAME, localName_, OHOS::AccountSA::JsonType::STRING);
+    OHOS::AccountSA::GetDataByType<std::string>(
+        jsonObject, jsonObjectEnd, SHORT_NAME, shortName_, OHOS::AccountSA::JsonType::STRING);
     OHOS::AccountSA::GetDataByType<OsAccountType>(
         jsonObject, jsonObjectEnd, TYPE, type_, OHOS::AccountSA::JsonType::NUMBER);
     OHOS::AccountSA::GetDataByType<std::vector<std::string>>(

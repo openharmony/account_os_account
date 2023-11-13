@@ -68,6 +68,7 @@ public:
     ErrCode InsertOsAccount(OsAccountInfo &osAccountInfo) override;
     ErrCode DelOsAccount(const int id) override;
     ErrCode UpdateOsAccount(OsAccountInfo &osAccountInfo) override;
+    ErrCode GetAccountIndexFromFile(Json &accountIndexJson) override;
     ErrCode GetMaxCreatedOsAccountNum(int &maxCreatedOsAccountNum) override;
     ErrCode GetSerialNumber(int64_t &serialNumber) override;
     ErrCode GetAllowCreateId(int &id) override;
@@ -111,11 +112,13 @@ public:
     ErrCode GenerateAccountInfoDigestStr(
         const std::string &userInfoPath, const std::string &accountInfoStr, std::string &digestStr);
     ErrCode DeleteAccountInfoDigest(const std::string &userInfoPath);
+    ErrCode UpdateAccountIndex(const OsAccountInfo &osAccountInfo, const bool isDelete) override;
 
 private:
     int GetNextLocalId(const std::vector<std::string> &accountIdList);
     ErrCode UpdateAccountList(const std::string &idStr, bool isAdd);
     ErrCode GetAccountListFromFile(Json& accountListJson);
+    ErrCode CreateAccountIndexInfo(std::string &accountIndexInfo);
     ErrCode SaveAccountListToFile(const Json& accountListJson);
     ErrCode SaveAccountListToFileAndDataBase(const Json& accountListJson);
     void BuildAndSaveAccountListJsonFile(const std::vector<std::string>& accounts);

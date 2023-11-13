@@ -33,6 +33,8 @@ public:
     void Init() override;
     ErrCode CreateOsAccount(
         const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo) override;
+    ErrCode CreateOsAccount(const std::string &localName,
+        const std::string &shortName, const OsAccountType &type, OsAccountInfo &osAccountInfo) override;
     ErrCode CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo) override;
     ErrCode UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo) override;
     ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
@@ -48,6 +50,7 @@ public:
     ErrCode GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints) override;
     ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos) override;
     ErrCode QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo) override;
+    ErrCode GetOsAccountShortName(const int id, std::string &shortName) override;
     ErrCode GetOsAccountType(const int id, OsAccountType &type) override;
     ErrCode GetOsAccountProfilePhoto(const int id, std::string &photo) override;
     ErrCode IsMultiOsAccountEnable(bool &isMultiOsAccountEnable) override;
@@ -112,11 +115,16 @@ private:
     ErrCode DeactivateOsAccountByInfo(OsAccountInfo &osAccountInfo);
     ErrCode PrepareOsAccountInfo(const std::string &name, const OsAccountType &type,
         const DomainAccountInfo &domainAccount, OsAccountInfo &osAccountInfo);
+    ErrCode PrepareOsAccountInfo(const std::string &localName, const std::string &shortName, const OsAccountType &type,
+        const DomainAccountInfo &domainAccount, OsAccountInfo &osAccountInfo);
+    ErrCode FillOsAccountInfo(const std::string &localName, const std::string &shortName, const OsAccountType &type,
+        const DomainAccountInfo &domainAccount, OsAccountInfo &osAccountInfo);
     ErrCode PrepareOsAccountInfoWithFullInfo(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountActivate(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountDeactivate(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountStop(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountRemove(OsAccountInfo &osAccountInfo);
+    ErrCode ValidateOsAccount(const OsAccountInfo &osAccountInfo);
     void RemoveLocalIdToOperating(int32_t localId);
     bool CheckAndAddLocalIdOperating(int32_t localId);
     void CleanGarbageAccounts();
