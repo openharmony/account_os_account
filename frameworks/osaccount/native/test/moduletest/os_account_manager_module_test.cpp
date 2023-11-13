@@ -66,13 +66,8 @@ const std::int32_t MAIN_ACCOUNT_ID = 100;
 const std::int32_t INVALID_ID = 200;
 const std::uint32_t MAX_WAIT_FOR_READY_CNT = 10;
 const std::int32_t DEFAULT_API_VERSION = 8;
-
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-#ifdef DOMAIN_ACCOUNT_TEST_CASE
 const uid_t ACCOUNT_UID = 3058;
 const gid_t ACCOUNT_GID = 3058;
-#endif // DOMAIN_ACCOUNT_TEST_CASE
-#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 const std::vector<std::string> CONSTANTS_VECTOR {
     "constraint.print",

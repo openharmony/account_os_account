@@ -115,11 +115,13 @@ private:
         const DomainAccountInfo &domainAccount, OsAccountInfo &osAccountInfo);
     ErrCode PrepareOsAccountInfo(const std::string &localName, const std::string &shortName, const OsAccountType &type,
         const DomainAccountInfo &domainAccount, OsAccountInfo &osAccountInfo);
+    ErrCode FillOsAccountInfo(const std::string &localName, const std::string &shortName, const OsAccountType &type,
+        const DomainAccountInfo &domainAccount, OsAccountInfo &osAccountInfo);
     ErrCode PrepareOsAccountInfoWithFullInfo(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountActivate(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountStop(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountRemove(OsAccountInfo &osAccountInfo);
-    ErrCode ValidateOsAccount(OsAccountInfo &osAccountInfo);
+    ErrCode ValidateOsAccount(const OsAccountInfo &osAccountInfo);
     void RemoveLocalIdToOperating(int32_t localId);
     bool CheckAndAddLocalIdOperating(int32_t localId);
     void CleanGarbageAccounts();
