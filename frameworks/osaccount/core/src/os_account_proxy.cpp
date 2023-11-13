@@ -67,6 +67,52 @@ ErrCode OsAccountProxy::CreateOsAccount(
     return ERR_OK;
 }
 
+ErrCode OsAccountProxy::CreateOsAccount(
+    const std::string &localName, const std::string &shortName, const OsAccountType &type, OsAccountInfo &osAccountInfo)
+{
+    MessageParcel data;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
+    if (!data.WriteString(localName)) {
+        ACCOUNT_LOGE("failed to write os account local name");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    if (!data.WriteString(shortName)) {
+        ACCOUNT_LOGE("failed to write os account short name");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    if (!data.WriteInt32(type)) {
+        ACCOUNT_LOGE("failed to write os account type");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    MessageParcel reply;
+    ErrCode result = SendRequest(OsAccountInterfaceCode::CREATE_OS_ACCOUNT_WITH_SHORT_NAME, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
+        return result;
+    }
+
+    result = reply.ReadInt32();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to read reply for create os account.");
+        return result;
+    }
+    std::shared_ptr<OsAccountInfo> infoPtr(reply.ReadParcelable<OsAccountInfo>());
+    if (infoPtr == nullptr) {
+        ACCOUNT_LOGE("failed to read OsAccountInfo");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    osAccountInfo = *infoPtr;
+    return ERR_OK;
+}
+
 ErrCode OsAccountProxy::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
 {
     MessageParcel data;
@@ -1330,6 +1376,34 @@ bool OsAccountProxy::ReadOsAccountInfoList(MessageParcel &data, std::vector<OsAc
     }
 
     return true;
+}
+
+ErrCode OsAccountProxy::GetOsAccountShortName(std::string &shortName)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
+    MessageParcel reply;
+    ErrCode result = SendRequest(OsAccountInterfaceCode::GET_OS_ACCOUNT_SHORT_NAME, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
+        return result;
+    }
+
+    result = reply.ReadInt32();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to read reply for is current os account verified, result %{public}d.", result);
+        return result;
+    }
+    if (!reply.ReadString(shortName)) {
+        ACCOUNT_LOGE("failed to read short name");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+
+    return ERR_OK;
 }
 }  // namespace AccountSA
 }  // namespace OHOS

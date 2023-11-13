@@ -16,6 +16,8 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_MANAGER_SERVICE_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_MANAGER_SERVICE_H
 
+#include <stdint.h>
+#include <sys/types.h>
 #include <memory>
 #include "account_permission_manager.h"
 #include "os_account_stub.h"
@@ -25,12 +27,17 @@
 namespace OHOS {
 namespace AccountSA {
 class OsAccountManagerService : public OsAccountStub {
+    const char SPECIAL_CHARACTER_ARRAY[9] = {'<', '>', '|', '\"', ':', '*', '?', '/', '\\'};
+    const std::string SHORT_NAME_CANNOT_BE_NAME_ARRAY[2] = {".", ".."};
+
 public:
     OsAccountManagerService();
     ~OsAccountManagerService() override;
 
     ErrCode CreateOsAccount(
         const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo) override;
+    ErrCode CreateOsAccount(const std::string &localName,
+        const std::string &shortName, const OsAccountType &type, OsAccountInfo &osAccountInfo) override;
     ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
         const sptr<IDomainAccountCallback> &callback) override;
     
@@ -114,12 +121,14 @@ public:
 
     ErrCode SetDefaultActivatedOsAccount(const int32_t id) override;
     ErrCode GetDefaultActivatedOsAccount(int32_t &id) override;
+    ErrCode GetOsAccountShortName(std::string &shortName) override;
 
 private:
     virtual ErrCode DumpStateByAccounts(
         const std::vector<OsAccountInfo> &osAccountInfos, std::vector<std::string> &state);
     bool PermissionCheck(const std::string& permissionName, const std::string& constraintName);
     bool CheckCreateOsAccountWhiteList();
+    ErrCode ValidateShortName(const std::string &shortName);
     void GetCurrentLocalId(int32_t &localId);
 
 private:

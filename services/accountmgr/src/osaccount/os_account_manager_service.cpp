@@ -14,6 +14,7 @@
  */
 #include "os_account_manager_service.h"
 #include <algorithm>
+#include <cstddef>
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "hisysevent_adapter.h"
@@ -83,6 +84,41 @@ OsAccountManagerService::~OsAccountManagerService()
 ErrCode OsAccountManagerService::CreateOsAccount(
     const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
 {
+    // parameters check
+    size_t localNameSize = name.size();
+    if (localNameSize == 0 || localNameSize > Constants::LOCAL_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("CreateOsAccount local name length %{public}zu is invalid!", localNameSize);
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    std::string shortName;
+#ifdef ENABLE_ACCOUNT_SHORT_NAME
+    shortName = name;
+    for (size_t i = 0; i < strlen(SPECIAL_CHARACTER_ARRAY); i++) {
+        int position = shortName.find(SPECIAL_CHARACTER_ARRAY[i]);
+        while (position > 0) {
+            shortName = shortName.erase(position, 1);
+            position = shortName.find(SPECIAL_CHARACTER_ARRAY[i]);
+        }
+    }
+
+    if (shortName.size() > Constants::SHORT_NAME_MAX_SIZE) {
+        shortName = shortName.substr(0, Constants::SHORT_NAME_MAX_SIZE);
+    }
+
+    for (size_t i = 0; i < sizeof(SHORT_NAME_CANNOT_BE_NAME_ARRAY); i++) {
+        if (shortName == SHORT_NAME_CANNOT_BE_NAME_ARRAY[i]) {
+            shortName = STANDARD_LOCAL_NAME + std::to_string(i);
+            break;
+        }
+    }
+#endif // ENABLE_ACCOUNT_SHORT_NAME
+    return CreateOsAccount(name, shortName, type, osAccountInfo);
+}
+
+ErrCode OsAccountManagerService::CreateOsAccount(
+    const std::string &localName, const std::string &shortName, const OsAccountType &type, OsAccountInfo &osAccountInfo)
+{
     bool isMultiOsAccountEnable = false;
     innerManager_.IsMultiOsAccountEnable(isMultiOsAccountEnable);
     if (!isMultiOsAccountEnable) {
@@ -92,21 +128,24 @@ ErrCode OsAccountManagerService::CreateOsAccount(
 
     // permission check
     if (!CheckCreateOsAccountWhiteList() &&
-        (!PermissionCheck("", CONSTANT_CREATE_DIRECTLY) || !PermissionCheck(MANAGE_LOCAL_ACCOUNTS, CONSTANT_CREATE))) {
+        (!PermissionCheck("", CONSTANT_CREATE_DIRECTLY) ||
+        !PermissionCheck(MANAGE_LOCAL_ACCOUNTS, CONSTANT_CREATE))) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 
-    // parameters check
-    if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("os account name out of max allowed size");
+    size_t localNameSize = localName.size();
+    if (localNameSize == 0 || localNameSize > Constants::LOCAL_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("CreateOsAccount local name length %{public}zu is invalid!", localNameSize);
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    if (name.size() <= 0) {
-        ACCOUNT_LOGE("os account name is empty");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+#ifdef ENABLE_ACCOUNT_SHORT_NAME
+    ErrCode code = ValidateShortName(shortName);
+    if (code != ERR_OK) {
+        return code;
     }
-    if ((type < OsAccountType::ADMIN) || (type >= OsAccountType::END)) {
+#endif // ENABLE_ACCOUNT_SHORT_NAME
+    if (type < OsAccountType::ADMIN || type >= OsAccountType::END) {
         ACCOUNT_LOGE("os account type is invalid");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
@@ -121,7 +160,32 @@ ErrCode OsAccountManagerService::CreateOsAccount(
         ACCOUNT_LOGE("cannot create admin account error");
         return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
     }
-    return innerManager_.CreateOsAccount(name, type, osAccountInfo);
+
+    return innerManager_.CreateOsAccount(localName, shortName, type, osAccountInfo);
+}
+
+ErrCode OsAccountManagerService::ValidateShortName(const std::string &shortName)
+{
+    size_t shortNameSize = shortName.size();
+    if (shortNameSize == 0 || shortNameSize > Constants::SHORT_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("CreateOsAccount short name length %{public}zu is invalid!", shortNameSize);
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    for (size_t i = 0; i < strlen(SPECIAL_CHARACTER_ARRAY); i++) {
+        if (shortName.find(SPECIAL_CHARACTER_ARRAY[i]) != std::string::npos) {
+            ACCOUNT_LOGE("CreateOsAccount short name is invalidate, short name is %{public}s !", shortName.c_str());
+            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+        }
+    }
+
+    for (size_t i = 0; i < sizeof(SHORT_NAME_CANNOT_BE_NAME_ARRAY); i++) {
+        if (shortName.compare(SHORT_NAME_CANNOT_BE_NAME_ARRAY[i]) == 0) {
+            ACCOUNT_LOGE("CreateOsAccount short name is invalidate, short name is %{public}s !", shortName.c_str());
+            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+        }
+    }
+    return ERR_OK;
 }
 
 ErrCode OsAccountManagerService::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
@@ -895,6 +959,17 @@ ErrCode OsAccountManagerService::SetDefaultActivatedOsAccount(const int32_t id)
 ErrCode OsAccountManagerService::GetDefaultActivatedOsAccount(int32_t &id)
 {
     return innerManager_.GetDefaultActivatedOsAccount(id);
+}
+
+ErrCode OsAccountManagerService::GetOsAccountShortName(std::string &shortName)
+{
+    int32_t id = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+    ErrCode errCode = innerManager_.GetOsAccountShortName(id, shortName);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("GetOsAccountShortName error %{public}d", errCode);
+        return errCode;
+    }
+    return ERR_OK;
 }
 
 bool OsAccountManagerService::PermissionCheck(const std::string& permissionName, const std::string& constraintName)

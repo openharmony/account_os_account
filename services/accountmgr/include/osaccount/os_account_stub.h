@@ -36,6 +36,7 @@ public:
 
 public:
     ErrCode ProcCreateOsAccount(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcCreateOsAccountWithShortName(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcCreateOsAccountWithFullInfo(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcUpdateOsAccountWithFullInfo(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcCreateOsAccountForDomain(MessageParcel &data, MessageParcel &reply);
@@ -87,6 +88,7 @@ public:
     ErrCode ProcSetSpecificOsAccountConstraints(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetDefaultActivatedOsAccount(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetDefaultActivatedOsAccount(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetOsAccountShortName(MessageParcel &data, MessageParcel &reply);
 
 private:
     template<typename T>
