@@ -46,7 +46,8 @@ public:
 
     OsAccountInfo(int localId, const std::string localName, OsAccountType type, int64_t serialNumber);
 
-    OsAccountInfo(int localId, const std::string localName, const std::string shortName, OsAccountType type, int64_t serialNumber);
+    OsAccountInfo(int localId, const std::string localName, const std::string shortName, OsAccountType type,
+        int64_t serialNumber);
 
     int GetLocalId() const;
 

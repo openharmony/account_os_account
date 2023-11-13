@@ -34,8 +34,8 @@ public:
 
     virtual ErrCode CreateOsAccount(
         const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo) = 0;
-    virtual ErrCode CreateOsAccount(
-        const std::string &localName, const std::string &shortName, const OsAccountType &type, OsAccountInfo &osAccountInfo) = 0;
+    virtual ErrCode CreateOsAccount(const std::string &localName,
+        const std::string &shortName, const OsAccountType &type, OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
@@ -65,6 +65,7 @@ public:
         const int id, const std::vector<std::string> &constraints, const bool enable) = 0;
     virtual ErrCode SetOsAccountProfilePhoto(const int id, const std::string &photo) = 0;
     virtual ErrCode ActivateOsAccount(const int id) = 0;
+    virtual ErrCode DeactivateOsAccount(const int id) = 0;
     virtual ErrCode StartOsAccount(const int id) = 0;
     virtual ErrCode StopOsAccount(const int id) = 0;
     virtual ErrCode GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id) = 0;

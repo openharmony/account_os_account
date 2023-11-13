@@ -63,7 +63,8 @@ ErrCode OsAccount::CreateOsAccount(const std::string &name, const OsAccountType 
     return proxy->CreateOsAccount(name, type, osAccountInfo);
 }
 
-ErrCode OsAccount::CreateOsAccount(const std::string &localName, const std::string &shortName, const OsAccountType &type, OsAccountInfo &osAccountInfo)
+ErrCode OsAccount::CreateOsAccount(const std::string& localName, const std::string& shortName,
+    const OsAccountType& type, OsAccountInfo& osAccountInfo)
 {
     size_t localNameSize = localName.size();
     if (localNameSize == 0 || localNameSize > Constants::LOCAL_NAME_MAX_SIZE) {
@@ -457,6 +458,20 @@ ErrCode OsAccount::ActivateOsAccount(const int id)
     }
 
     return proxy->ActivateOsAccount(id);
+}
+
+ErrCode OsAccount::DeactivateOsAccount(const int id)
+{
+    ErrCode result = CheckLocalId(id);
+    if (result != ERR_OK) {
+        return result;
+    }
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+
+    return proxy->DeactivateOsAccount(id);
 }
 
 ErrCode OsAccount::StartOsAccount(const int id)

@@ -14,13 +14,22 @@
  */
 
 #include <cerrno>
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <thread>
 #include <unistd.h>
+#include "access_token.h"
 #include "accesstoken_kit.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "account_proxy.h"
+#ifdef HAS_CES_PART
+#include "common_event_manager.h"
+#include "common_event_subscriber.h"
+#include "common_event_support.h"
+#include "common_event_subscribe_info.h"
+#include "matching_skills.h"
+#endif // HAS_CES_PART
 #include "if_system_ability_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
@@ -42,6 +51,7 @@
 #include "system_ability_definition.h"
 #include "token_setproc.h"
 
+using namespace testing;
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
@@ -177,6 +187,46 @@ HapInfoParams infoManagerTestSystemInfoParms = {
 };
 }  // namespace
 
+static bool AllocPermission(std::vector<std::string> permissions, AccessTokenID &tokenID, bool isSystemApp = true)
+{
+    std::vector<PermissionStateFull> permissionStates;
+    for (const auto& permission : permissions) {
+        PermissionStateFull permissionState = {
+            .permissionName = permission,
+            .isGeneral = true,
+            .resDeviceID = {"local"},
+            .grantStatus = {PermissionState::PERMISSION_GRANTED},
+            .grantFlags = {PERMISSION_SYSTEM_FIXED}
+        };
+        permissionStates.emplace_back(permissionState);
+    }
+    HapPolicyParams hapPolicyParams = {
+        .apl = APL_NORMAL,
+        .domain = "test.domain",
+        .permList = {},
+        .permStateList = permissionStates
+    };
+
+    HapInfoParams hapInfoParams = {
+        .userID = 100,
+        .bundleName = "account_test",
+        .instIndex = 0,
+        .appIDDesc = "account_test",
+        .apiVersion = DEFAULT_API_VERSION,
+        .isSystemApp = isSystemApp
+    };
+
+    AccessTokenIDEx tokenIdEx = {0};
+    tokenIdEx = AccessTokenKit::AllocHapToken(hapInfoParams, hapPolicyParams);
+    tokenID = tokenIdEx.tokenIdExStruct.tokenID;
+    return (INVALID_TOKENID != tokenIdEx.tokenIDEx) && (0 == SetSelfTokenID(tokenIdEx.tokenIDEx));
+}
+
+bool RecoveryPermission(AccessTokenID tokenID)
+{
+    return (ERR_OK == AccessTokenKit::DeleteToken(tokenID)) && (ERR_OK == SetSelfTokenID(g_selfTokenID));
+}
+
 class OsAccountManagerModuleTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -224,6 +274,39 @@ void OsAccountManagerModuleTest::SetUp(void)
 
 void OsAccountManagerModuleTest::TearDown(void)
 {}
+
+class MockSubscriberListener {
+public:
+    MOCK_METHOD1(OnReceiveEvent, void(const std::string &action));
+};
+
+class AccountTestEventSubscriber final : public EventFwk::CommonEventSubscriber {
+public:
+    AccountTestEventSubscriber(const EventFwk::CommonEventSubscribeInfo &subscribeInfo,
+        const std::shared_ptr<MockSubscriberListener> &listener)
+        : CommonEventSubscriber(subscribeInfo), listener_(listener)
+    {}
+
+    void OnReceiveEvent(const EventFwk::CommonEventData &data)
+    {
+        if (listener_ == nullptr) {
+            return;
+        }
+        auto want = data.GetWant();
+        listener_->OnReceiveEvent(want.GetAction());
+    }
+
+private:
+    const std::shared_ptr<MockSubscriberListener> listener_;
+};
+
+class DeactivateOsAccountSubscriber final : public OsAccountSubscriber {
+public:
+    explicit DeactivateOsAccountSubscriber(const OsAccountSubscribeInfo &subscribeInfo)
+        : OsAccountSubscriber(subscribeInfo) {}
+
+    MOCK_METHOD1(OnAccountsChanged, void(const int &id));
+};
 
 /**
  * @tc.name: OsAccountManagerModuleTest001
@@ -2349,3 +2432,78 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest113, TestSize.Lev
     EXPECT_EQ(id, MAIN_ACCOUNT_ID);
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
+
+/**
+ * @tc.name: OsAccountManagerModuleTest114
+ * @tc.desc: Test DeactivateOsAccount success.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest114, TestSize.Level1)
+{
+    AccessTokenID tokenID;
+    ASSERT_TRUE(AllocPermission(
+        {"ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS", "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION"},
+        tokenID));
+
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfo), ERR_OK);
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+
+    EventFwk::MatchingSkills matchingSkills;
+    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_STOPPING);
+    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_STOPPED);
+    EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
+    auto listener = std::make_shared<MockSubscriberListener>();
+    std::shared_ptr<AccountTestEventSubscriber> subscriberPtr =
+        std::make_shared<AccountTestEventSubscriber>(subscribeInfo, listener);
+    ASSERT_NE(subscriberPtr, nullptr);
+    ASSERT_EQ(EventFwk::CommonEventManager::SubscribeCommonEvent(subscriberPtr), true);
+    EXPECT_CALL(*listener, OnReceiveEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_STOPPING)).Times(Exactly(1));
+    EXPECT_CALL(*listener, OnReceiveEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_STOPPED)).Times(Exactly(1));
+
+    OsAccountSubscribeInfo subscribeStoppingInfo;
+    subscribeStoppingInfo.SetOsAccountSubscribeType(OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
+    subscribeStoppingInfo.SetName("subscribeStopping");
+    auto stoppingSubscriber = std::make_shared<DeactivateOsAccountSubscriber>(subscribeStoppingInfo);
+    ASSERT_NE(nullptr, stoppingSubscriber);
+    EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(stoppingSubscriber));
+    EXPECT_CALL(*stoppingSubscriber, OnAccountsChanged(osAccountInfo.GetLocalId())).Times(Exactly(1));
+
+    OsAccountSubscribeInfo subscribeStoppedInfo;
+    subscribeStoppedInfo.SetOsAccountSubscribeType(OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPED);
+    subscribeStoppedInfo.SetName("subscribeStopped");
+    auto stoppedSubscriber = std::make_shared<DeactivateOsAccountSubscriber>(subscribeStoppedInfo);
+    ASSERT_NE(nullptr, stoppedSubscriber);
+    EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(stoppedSubscriber));
+    EXPECT_CALL(*stoppedSubscriber, OnAccountsChanged(osAccountInfo.GetLocalId())).Times(Exactly(1));
+
+    EXPECT_EQ(OsAccountManager::DeactivateOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+
+    sleep(1); // Wait for event
+
+    EXPECT_EQ(EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriberPtr), true);
+    EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(stoppingSubscriber));
+    EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(stoppedSubscriber));
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+    ASSERT_TRUE(RecoveryPermission(tokenID));
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest115
+ * @tc.desc: Test DeactivateOsAccount with invalid id.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest115, TestSize.Level1)
+{
+#ifndef SUPPROT_STOP_MAIN_OS_ACCOUNT
+    EXPECT_EQ(OsAccountManager::DeactivateOsAccount(Constants::START_USER_ID),
+              ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_STOP_ACTIVE_ERROR);
+#else
+    EXPECT_EQ(OsAccountManager::DeactivateOsAccount(Constants::START_USER_ID), ERR_OK);
+#endif
+    EXPECT_EQ(OsAccountManager::DeactivateOsAccount(Constants::START_USER_ID - 1),
+              ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+    EXPECT_EQ(OsAccountManager::DeactivateOsAccount(Constants::MAX_USER_ID + 1), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}

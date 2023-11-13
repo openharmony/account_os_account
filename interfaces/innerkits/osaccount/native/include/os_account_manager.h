@@ -66,7 +66,8 @@ public:
      * @param osAccountInfo - Indicates the information about the created OS account.
      * @return error code, see account_error_no.h
      */
-    static ErrCode CreateOsAccount(const std::string &localName, const std::string &shortName, const OsAccountType &type, OsAccountInfo &osAccountInfo);
+    static ErrCode CreateOsAccount(const std::string& localName, const std::string& shortName,
+        const OsAccountType& type, OsAccountInfo& osAccountInfo);
 
     /**
      * @brief Creates an OS account using full user info
@@ -322,10 +323,21 @@ public:
      *
      * @permission ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION
      * @param id - Indicates the local ID of the OS account.
-     * @param callback - Asynchronous callback interface.
      * @return error code, see account_error_no.h
      */
     static ErrCode ActivateOsAccount(const int id);
+
+    /**
+     * @brief Deactivates a specified OS account.
+     * <p>
+     * You can call this method to disable a specific OS account.
+     * </p>
+     *
+     * @permission ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION
+     * @param id - Indicates the local ID of the OS account.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode DeactivateOsAccount(const int id);
 
     /**
      * @brief Starts the specified OS account.

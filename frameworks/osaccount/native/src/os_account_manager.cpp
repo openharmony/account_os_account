@@ -192,6 +192,11 @@ ErrCode OsAccountManager::ActivateOsAccount(const int id)
     return OsAccount::GetInstance().ActivateOsAccount(id);
 }
 
+ErrCode OsAccountManager::DeactivateOsAccount(const int id)
+{
+    return OsAccount::GetInstance().DeactivateOsAccount(id);
+}
+
 ErrCode OsAccountManager::StartOsAccount(const int id)
 {
     return OsAccount::GetInstance().StartOsAccount(id);

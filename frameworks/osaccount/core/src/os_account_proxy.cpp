@@ -679,6 +679,12 @@ ErrCode OsAccountProxy::ActivateOsAccount(const int id)
     return SendRequestWithAccountId(OsAccountInterfaceCode::ACTIVATE_OS_ACCOUNT, reply, id);
 }
 
+ErrCode OsAccountProxy::DeactivateOsAccount(const int id)
+{
+    MessageParcel reply;
+    return SendRequestWithAccountId(OsAccountInterfaceCode::DEACTIVATE_OS_ACCOUNT, reply, id);
+}
+
 ErrCode OsAccountProxy::StartOsAccount(const int id)
 {
     MessageParcel reply;
@@ -1392,7 +1398,10 @@ ErrCode OsAccountProxy::GetOsAccountShortName(std::string &shortName)
         ACCOUNT_LOGE("failed to read reply for is current os account verified, result %{public}d.", result);
         return result;
     }
-    shortName = reply.ReadString();
+    if (!reply.ReadString(shortName)) {
+        ACCOUNT_LOGE("failed to read short name");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
 
     return ERR_OK;
 }

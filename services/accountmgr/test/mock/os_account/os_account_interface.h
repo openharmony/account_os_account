@@ -23,6 +23,7 @@ class OsAccountInterface {
 public:
     static ErrCode SendToAMSAccountStart(OsAccountInfo &osAccountInfo);
     static ErrCode SendToAMSAccountStop(OsAccountInfo &osAccountInfo);
+    static ErrCode SendToAMSAccountDeactivate(OsAccountInfo &osAccountInfo);
     static ErrCode SendToBMSAccountCreate(OsAccountInfo &osAccountInfo);
     static ErrCode SendToBMSAccountDelete(OsAccountInfo &osAccountInfo);
 #ifdef HAS_USER_IDM_PART
