@@ -56,6 +56,7 @@ public:
     ErrCode SetOsAccountProfilePhoto(const int id, const std::string &photo);
     ErrCode GetDistributedVirtualDeviceId(std::string &deviceId);
     ErrCode ActivateOsAccount(const int id);
+    ErrCode DeactivateOsAccount(const int id);
     ErrCode StartOsAccount(const int id);
     ErrCode StopOsAccount(const int id);
     ErrCode SubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber> &subscriber);

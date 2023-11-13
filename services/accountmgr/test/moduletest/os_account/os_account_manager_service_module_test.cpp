@@ -2187,5 +2187,21 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest125
         osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfo));
 }
 #endif //ENABLE_MULTIPLE_OS_ACCOUNTS
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest126
+ * @tc.desc: Test DeactivateOsAccount success.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest126, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    ASSERT_EQ(osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfo), ERR_OK);
+    ASSERT_TRUE(osAccountInfo.GetLocalId() > Constants::START_USER_ID);
+    EXPECT_EQ(osAccountManagerService_->ActivateOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+    EXPECT_EQ(osAccountManagerService_->DeactivateOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+    EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+}
 }  // namespace AccountSA
 }  // namespace OHOS
