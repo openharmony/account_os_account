@@ -105,6 +105,10 @@ declare_args() {
 }
 
 declare_args() {
+  os_account_support_deactivate_main_os_account = false
+}
+
+declare_args() {
   os_account_distributed_feature = true
 }
 
@@ -129,7 +133,7 @@ declare_args() {
 }
 
 declare_args() {
-  os_account_enable_user_short_name = false
+  os_account_enable_account_short_name = false
 }
 
 if (!defined(global_parts_info) ||

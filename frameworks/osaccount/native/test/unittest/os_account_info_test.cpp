@@ -35,9 +35,11 @@ const bool BOOL_IS_OS_ACCOUNT_VERIFIED = true;
 const bool BOOL_IS_OS_ACCOUNT_COMPLETED = true;
 const bool BOOL_IS_ACTIVED = true;
 const int32_t CREATE_LOCAL_ID = 121;
-const std::string OVER_LENGTH_LOCAL_NAME = 
-    "EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYX**E||TIj::KBCB??RCk\"aGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJS"
-    "lNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIW<<Gh>>4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+"
+const std::string OVER_LENGTH_LOCAL_NAME =
+    "EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYX**E||TIj::KBCB??"
+    "RCk\"aGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJS"
+    "lNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIW<<Gh>>"
+    "4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+"
     "jp6vLz9PX29/j5+v/aAAwDAQACEQMRAD8A++fid8e7j4ZiYXHgDxBfN5jJayQ3OnBLsKQGdF+1GbYAwJJi4yN2M1seF/";
 const std::string STRING_PHOTO =
     "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD//gAUU29mdHdhcmU6IFNuaXBhc3Rl/"
@@ -597,7 +599,7 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0106, TestSize.Level1)
 
 /**
  * @tc.name: CreateOsAccountWithFullInfo0107
- * @tc.desc: Test UpdateOsAccountWithFullInfo admin user whitout localName
+ * @tc.desc: Test UpdateOsAccountWithFullInfo admin user without localName
  * @tc.type: FUNC
  * @tc.require: I8DBBM
  */
@@ -622,7 +624,7 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0107, TestSize.Level1)
  * @tc.name: GetOsAccountShortName001
  * @tc.desc: Test get os account name.
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: I8F2PI
  */
 HWTEST_F(OsAccountInfoTest, GetOsAccountShortName001, TestSize.Level1)
 {
@@ -630,30 +632,31 @@ HWTEST_F(OsAccountInfoTest, GetOsAccountShortName001, TestSize.Level1)
     EXPECT_EQ(ERR_OK, OsAccountManager::GetOsAccountShortName(shortName));
 }
 
-
 /**
  * @tc.name: CreateOsAccount01
- * @tc.desc: create os account with short name 
+ * @tc.desc: create os account with short name
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: I8F2PI
  */
 HWTEST_F(OsAccountInfoTest, CreateOsAccount01, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     OsAccountInfo osAccountInfoTwo;
-    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccount(STRING_NAME, "shortName", OsAccountType::NORMAL, osAccountInfoOne));
-#ifdef ENABLE_USER_SHORT_NAME
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED, OsAccountManager::CreateOsAccount(STRING_NAME, STRING_NAME, OsAccountType::NORMAL, osAccountInfoTwo));
+    EXPECT_EQ(ERR_OK,
+              OsAccountManager::CreateOsAccount(STRING_NAME, "shortName", OsAccountType::NORMAL, osAccountInfoOne));
+#ifdef ENABLE_ACCOUNT_SHORT_NAME
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED,
+              OsAccountManager::CreateOsAccount(STRING_NAME, STRING_NAME, OsAccountType::NORMAL, osAccountInfoTwo));
     OsAccountManager::RemoveOsAccount(osAccountInfoTwo.GetLocalId());
-#endif // ENABLE_USER_SHORT_NAME
+#endif  // ENABLE_ACCOUNT_SHORT_NAME
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
 }
 
 /**
  * @tc.name: CreateOsAccount02
- * @tc.desc: create os account with short name 
+ * @tc.desc: create os account with short name
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: I8F2PI
  */
 HWTEST_F(OsAccountInfoTest, CreateOsAccount02, TestSize.Level1)
 {
@@ -664,22 +667,23 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount02, TestSize.Level1)
 
 /**
  * @tc.name: CreateOsAccount03
- * @tc.desc: create os account with short name 
+ * @tc.desc: create os account with short name
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: I8F2PI
  */
 HWTEST_F(OsAccountInfoTest, CreateOsAccount03, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
-    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("zsm<<zd?s>|:23\"1/bc\\d", OsAccountType::NORMAL, osAccountInfoOne));
+    EXPECT_EQ(ERR_OK,
+              OsAccountManager::CreateOsAccount("zsm<<zd?s>|:23\"1/bc\\d", OsAccountType::NORMAL, osAccountInfoOne));
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
 }
 
 /**
  * @tc.name: CreateOsAccount04
- * @tc.desc: create os account with short name 
+ * @tc.desc: create os account with short name
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: I8F2PI
  */
 HWTEST_F(OsAccountInfoTest, CreateOsAccount04, TestSize.Level1)
 {
@@ -690,64 +694,73 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount04, TestSize.Level1)
 
 /**
  * @tc.name: CreateOsAccount05
- * @tc.desc: create os account with short name 
+ * @tc.desc: create os account with short name
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: I8F2PI
  */
 HWTEST_F(OsAccountInfoTest, CreateOsAccount05, TestSize.Level1)
 {
-    OsAccountInfo osAccountInfoOne; 
-    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccount(OVER_LENGTH_LOCAL_NAME, OsAccountType::NORMAL, osAccountInfoOne)); 
+    OsAccountInfo osAccountInfoOne;
+    EXPECT_EQ(ERR_OK,
+              OsAccountManager::CreateOsAccount(OVER_LENGTH_LOCAL_NAME, OsAccountType::NORMAL, osAccountInfoOne));
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
 }
 
-#ifdef ENABLE_USER_SHORT_NAME
+#ifdef ENABLE_ACCOUNT_SHORT_NAME
 /**
  * @tc.name: CreateOsAccount06
- * @tc.desc: create os account with short name 
+ * @tc.desc: create os account with short name
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: I8F2PI
  */
 HWTEST_F(OsAccountInfoTest, CreateOsAccount06, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
-    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_NAME, "shortName*", OsAccountType::NORMAL, osAccountInfoOne), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_NAME, "shortName*", OsAccountType::NORMAL, osAccountInfoOne),
+              ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
 }
 
 /**
  * @tc.name: CreateOsAccount07
- * @tc.desc: create os account with short name 
+ * @tc.desc: create os account with short name
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: I8F2PI
  */
 HWTEST_F(OsAccountInfoTest, CreateOsAccount07, TestSize.Level1)
 {
-    OsAccountInfo osAccountInfoOne; 
-    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_NAME, "123|",OsAccountType::NORMAL, osAccountInfoOne), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    OsAccountInfo osAccountInfoOne;
+    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_NAME, "123|", OsAccountType::NORMAL, osAccountInfoOne),
+              ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
-    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_NAME, "12*3",OsAccountType::NORMAL, osAccountInfoOne), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_NAME, "12*3", OsAccountType::NORMAL, osAccountInfoOne),
+              ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
-    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_NAME, "12?3",OsAccountType::NORMAL, osAccountInfoOne), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_NAME, "12?3", OsAccountType::NORMAL, osAccountInfoOne),
+              ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
-    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_NAME, "12\"3",OsAccountType::NORMAL, osAccountInfoOne), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_NAME, "12\"3", OsAccountType::NORMAL, osAccountInfoOne),
+              ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
 }
 
 /**
  * @tc.name: CreateOsAccount08
- * @tc.desc: create os account with short name 
+ * @tc.desc: create os account with short name
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: I8F2PI
  */
 HWTEST_F(OsAccountInfoTest, CreateOsAccount08, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
-    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_NAME, "", OsAccountType::NORMAL, osAccountInfoOne), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_NAME, "", OsAccountType::NORMAL, osAccountInfoOne),
+              ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
-    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_NAME, ".", OsAccountType::NORMAL, osAccountInfoOne), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_NAME, ".", OsAccountType::NORMAL, osAccountInfoOne),
+              ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
-    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_NAME, "..", OsAccountType::NORMAL, osAccountInfoOne), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_NAME, "..", OsAccountType::NORMAL, osAccountInfoOne),
+              ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
 }
-#endif // ENABLE_USER_SHORT_NAME
+#endif // ENABLE_ACCOUNT_SHORT_NAME

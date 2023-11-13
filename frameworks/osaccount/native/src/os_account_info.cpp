@@ -50,7 +50,8 @@ OsAccountInfo::OsAccountInfo(int localId, const std::string localName, OsAccount
     : localId_(localId), localName_(localName), shortName_(localName), type_(type), serialNumber_(serialNumber)
 {}
 
-OsAccountInfo::OsAccountInfo(int localId, const std::string localName, const std::string shortName, OsAccountType type, int64_t serialNumber)
+OsAccountInfo::OsAccountInfo(int localId, const std::string localName, const std::string shortName, OsAccountType type,
+    int64_t serialNumber)
     : localId_(localId), localName_(localName), shortName_(shortName), type_(type), serialNumber_(serialNumber)
 {}
 
@@ -76,7 +77,7 @@ void OsAccountInfo::SetLocalName(const std::string localName)
 
 std::string OsAccountInfo::GetShortName() const
 {
-    if(shortName_.empty()){
+    if (shortName_.empty()) {
         return localName_;
     }
     return shortName_;
@@ -246,10 +247,6 @@ void OsAccountInfo::FromJson(const Json &jsonObject)
         jsonObject, jsonObjectEnd, LOCAL_NAME, localName_, OHOS::AccountSA::JsonType::STRING);
     OHOS::AccountSA::GetDataByType<std::string>(
         jsonObject, jsonObjectEnd, SHORT_NAME, shortName_, OHOS::AccountSA::JsonType::STRING);
-    if (shortName_.empty()) {
-        OHOS::AccountSA::GetDataByType<std::string>(
-            jsonObject, jsonObjectEnd, LOCAL_NAME, shortName_, OHOS::AccountSA::JsonType::STRING);
-    }
     OHOS::AccountSA::GetDataByType<OsAccountType>(
         jsonObject, jsonObjectEnd, TYPE, type_, OHOS::AccountSA::JsonType::NUMBER);
     OHOS::AccountSA::GetDataByType<std::vector<std::string>>(

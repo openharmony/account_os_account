@@ -203,6 +203,13 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         }
     },
     {
+        static_cast<uint32_t>(OsAccountInterfaceCode::DEACTIVATE_OS_ACCOUNT),
+        {
+            .messageProcFunction = &OsAccountStub::ProcDeactivateOsAccount,
+            .isSyetemApi = true,
+        }
+    },
+    {
         static_cast<uint32_t>(OsAccountInterfaceCode::START_OS_ACCOUNT),
         {
             .messageProcFunction = &OsAccountStub::ProcStartOsAccount,
@@ -438,7 +445,7 @@ ErrCode OsAccountStub::ProcCreateOsAccount(MessageParcel &data, MessageParcel &r
     }
     OsAccountType type = static_cast<OsAccountType>(data.ReadInt32());
     OsAccountInfo osAccountInfo;
-    ErrCode result = CreateOsAccount(name, type, osAccountInfo); 
+    ErrCode result = CreateOsAccount(name, type, osAccountInfo);
     return WriteResultWithOsAccountInfo(reply, result, osAccountInfo);
 }
 
@@ -456,9 +463,15 @@ ErrCode OsAccountStub::ProcCreateOsAccountWithShortName(MessageParcel &data, Mes
         reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_LOCALNAME_ERROR);
         return ERR_NONE;
     }
-    OsAccountType type = static_cast<OsAccountType>(data.ReadInt32());
+    int32_t type = 0;
+    if (!data.ReadInt32(type)) {
+        ACCOUNT_LOGE("failed to read int for account type");
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_LOCALNAME_ERROR);
+        return ERR_NONE;
+    }
+    OsAccountType osAccountType = static_cast<OsAccountType>(type);
     OsAccountInfo osAccountInfo;
-    ErrCode result = CreateOsAccount(localName, shortName, type, osAccountInfo);
+    ErrCode result = CreateOsAccount(localName, shortName, osAccountType, osAccountInfo);
     return WriteResultWithOsAccountInfo(reply, result, osAccountInfo);
 }
 
@@ -998,6 +1011,21 @@ ErrCode OsAccountStub::ProcActivateOsAccount(MessageParcel &data, MessageParcel 
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     ErrCode result = ActivateOsAccount(localId);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcDeactivateOsAccount(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("failed to read localId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = DeactivateOsAccount(localId);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
         return IPC_STUB_WRITE_PARCEL_ERR;

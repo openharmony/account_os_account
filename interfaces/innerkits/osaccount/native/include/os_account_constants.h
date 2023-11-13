@@ -66,7 +66,7 @@ const int SUBSCRIBER_MAX_SIZE = 100;
 // account restrict
 const unsigned int LOCAL_NAME_MAX_SIZE = 1024;
 const unsigned int LOCAL_PHOTO_MAX_SIZE = 1024 * 4;
-const unsigned int SHORT_NAME_MAX_SIZE = 255;
+const uint32_t SHORT_NAME_MAX_SIZE = 255;
 
 // domain info limits
 const unsigned int DOMAIN_NAME_MAX_SIZE = 128;
@@ -107,8 +107,7 @@ const std::string CONSTRAINTS_LIST = "constraints";
 const std::string IS_ALLOWED_CREATE_ADMIN = "IsAllowedCreateAdmin";
 const std::string LOCAL_NAME = "localName";
 const std::string SHORT_NAME = "shortName";
-const char SPECIAL_CHARACTER_ARRAY[9] = { '<','>','|','\"',':', '*', '?','/', '\\' };
-const std::string SHORT_NAME_CANNOT_BE_NAME_ARRAY[2] = { ".",".." };
+
 
 // start type
 const OS_ACCOUNT_SWITCH_MOD NOW_OS_ACCOUNT_SWITCH_MOD = OS_ACCOUNT_SWITCH_MOD::HOT_SWITCH;
