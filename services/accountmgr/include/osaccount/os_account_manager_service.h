@@ -27,9 +27,6 @@
 namespace OHOS {
 namespace AccountSA {
 class OsAccountManagerService : public OsAccountStub {
-    const char SPECIAL_CHARACTER_ARRAY[9] = {'<', '>', '|', '\"', ':', '*', '?', '/', '\\'};
-    const std::string SHORT_NAME_CANNOT_BE_NAME_ARRAY[2] = {".", ".."};
-
 public:
     OsAccountManagerService();
     ~OsAccountManagerService() override;
