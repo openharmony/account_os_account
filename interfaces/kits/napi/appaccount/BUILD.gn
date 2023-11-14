@@ -47,7 +47,6 @@ ohos_shared_library("appaccount") {
 
   public_configs = [ ":appaccount_kit_config" ]
   sources = [
-    "src/napi_account_capability_scheduler.cpp",
     "src/napi_app_account.cpp",
     "src/napi_app_account_authenticator.cpp",
     "src/napi_app_account_authenticator_callback.cpp",
@@ -75,7 +74,6 @@ ohos_shared_library("appaccount") {
     "ability_runtime:runtime",
     "ability_runtime:service_extension",
     "ability_runtime:ui_extension",
-    "ace_engine:ace_uicontent",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
@@ -83,6 +81,12 @@ ohos_shared_library("appaccount") {
     "ipc:ipc_single",
     "napi:ace_napi",
   ]
+
+  if (has_ace_engine_part) {
+    cflags_cc = [ "-DHAS_ACE_ENGINE_PART" ]
+    sources += [ "src/napi_account_capability_scheduler.cpp" ]
+    external_deps += [ "ace_engine:ace_uicontent" ]
+  }
 
   subsystem_name = "account"
   part_name = "os_account"
