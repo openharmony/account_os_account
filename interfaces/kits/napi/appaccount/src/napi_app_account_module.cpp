@@ -16,7 +16,9 @@
 #include "account_log_wrapper.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#ifdef HAS_ACE_ENGINE_PART
 #include "napi_account_capability_scheduler.h"
+#endif
 #include "napi_app_account.h"
 #include "napi_app_account_authenticator.h"
 #include "napi_app_account_authenticator_callback.h"
@@ -32,8 +34,10 @@ static napi_value Init(napi_env env, napi_value exports)
     OHOS::AccountJsKit::NapiAppAccountConstant::Init(env, exports);
     OHOS::AccountJsKit::NapiAppAccountAuthenticatorCallback::Init(env, exports);
     OHOS::AccountJsKit::NapiAppAccountAuthenticator::Init(env, exports);
+#ifdef HAS_ACE_ENGINE_PART
     OHOS::AccountJsKit::NapiAccountCapabilityScheduler::Init(env, exports);
     OHOS::AccountJsKit::NapiAppAccountCapability::Init(env, exports);
+#endif
     return exports;
 }
 EXTERN_C_END
