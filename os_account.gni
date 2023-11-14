@@ -136,7 +136,7 @@ declare_args() {
 }
 
 declare_args() {
-  os_account_enable_default_admin_name = false
+  os_account_enable_default_admin_name = true
 }
 
 declare_args() {
