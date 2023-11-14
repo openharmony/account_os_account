@@ -456,20 +456,24 @@ ErrCode InnerDomainAccountManager::CheckUserToken(const std::vector<uint8_t> &to
         ACCOUNT_LOGE("make shared DomainAccountCallbackService failed");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (plugin_ == nullptr) {
-        ACCOUNT_LOGE("plugin not exists");
-        return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
-    }
 
-    OsAccountInfo osAccountInfo;
-    ErrCode errCode = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(userId, osAccountInfo);
-    if (errCode != ERR_OK) {
-        return errCode;
+    ErrCode errCode = ERR_OK;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (plugin_ == nullptr) {
+            ACCOUNT_LOGE("plugin not exists");
+            return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
+        }
+
+        OsAccountInfo osAccountInfo;
+        errCode = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(userId, osAccountInfo);
+        if (errCode != ERR_OK) {
+            return errCode;
+        }
+        DomainAccountInfo info;
+        osAccountInfo.GetDomainInfo(info);
+        errCode = plugin_->IsAccountTokenValid(info, token, callbackService);
     }
-    DomainAccountInfo info;
-    osAccountInfo.GetDomainInfo(info);
-    errCode = plugin_->IsAccountTokenValid(info, token, callbackService);
     callback->WaitForCallbackResult();
     isValid = callback->GetValidity();
     return errCode;
