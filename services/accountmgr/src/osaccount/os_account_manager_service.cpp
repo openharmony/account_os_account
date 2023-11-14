@@ -46,6 +46,8 @@ const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION =
     "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION";
 const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
 const std::set<uint32_t> uidWhiteListForCreation { 3057 };
+const std::string SPECIAL_CHARACTER_ARRAY = "<>|\":*?/\\";
+const std::vector<std::string> SHORT_NAME_CANNOT_BE_NAME_ARRAY = {".", ".."};
 
 std::string AnonymizeNameStr(const std::string& nameStr)
 {
@@ -94,7 +96,7 @@ ErrCode OsAccountManagerService::CreateOsAccount(
     std::string shortName;
 #ifdef ENABLE_ACCOUNT_SHORT_NAME
     shortName = name;
-    for (size_t i = 0; i < strlen(SPECIAL_CHARACTER_ARRAY); i++) {
+    for (size_t i = 0; i < SPECIAL_CHARACTER_ARRAY.size(); i++) {
         int position = shortName.find(SPECIAL_CHARACTER_ARRAY[i]);
         while (position > 0) {
             shortName = shortName.erase(position, 1);
@@ -106,9 +108,9 @@ ErrCode OsAccountManagerService::CreateOsAccount(
         shortName = shortName.substr(0, Constants::SHORT_NAME_MAX_SIZE);
     }
 
-    for (size_t i = 0; i < sizeof(SHORT_NAME_CANNOT_BE_NAME_ARRAY); i++) {
+    for (size_t i = 0; i < SHORT_NAME_CANNOT_BE_NAME_ARRAY.size(); i++) {
         if (shortName == SHORT_NAME_CANNOT_BE_NAME_ARRAY[i]) {
-            shortName = STANDARD_LOCAL_NAME + std::to_string(i);
+            shortName = Constants::STANDARD_LOCAL_NAME + std::to_string(i);
             break;
         }
     }
@@ -172,15 +174,15 @@ ErrCode OsAccountManagerService::ValidateShortName(const std::string &shortName)
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
-    for (size_t i = 0; i < strlen(SPECIAL_CHARACTER_ARRAY); i++) {
+    for (size_t i = 0; i < SPECIAL_CHARACTER_ARRAY.size(); i++) {
         if (shortName.find(SPECIAL_CHARACTER_ARRAY[i]) != std::string::npos) {
             ACCOUNT_LOGE("CreateOsAccount short name is invalidate, short name is %{public}s !", shortName.c_str());
             return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
         }
     }
 
-    for (size_t i = 0; i < sizeof(SHORT_NAME_CANNOT_BE_NAME_ARRAY); i++) {
-        if (shortName.compare(SHORT_NAME_CANNOT_BE_NAME_ARRAY[i]) == 0) {
+    for (size_t i = 0; i < SHORT_NAME_CANNOT_BE_NAME_ARRAY.size(); i++) {
+        if (shortName == SHORT_NAME_CANNOT_BE_NAME_ARRAY[i]) {
             ACCOUNT_LOGE("CreateOsAccount short name is invalidate, short name is %{public}s !", shortName.c_str());
             return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
         }

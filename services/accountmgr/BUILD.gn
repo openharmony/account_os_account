@@ -183,7 +183,7 @@ ohos_shared_library("accountmgr") {
   }
 
   if (os_account_enable_account_short_name) {
-    cflags += [ "-DENABLE_USER_SHORT_NAME" ]
+    cflags += [ "-DENABLE_ACCOUNT_SHORT_NAME" ]
   }
 
   sources = [
