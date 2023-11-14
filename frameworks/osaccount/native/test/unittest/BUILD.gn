@@ -27,7 +27,7 @@ config("os_account_service_config_unittest") {
   }
 
   if (os_account_enable_account_short_name) {
-    cflags += [ "-DENABLE_USER_SHORT_NAME" ]
+    cflags += [ "-DENABLE_ACCOUNT_SHORT_NAME" ]
   }
 
   defines = [
