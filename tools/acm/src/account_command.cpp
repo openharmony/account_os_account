@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 #include "account_command.h"
+#include <fstream>
 #include <getopt.h>
+#include <sys/stat.h>
 #include "account_log_wrapper.h"
 #include "singleton.h"
 
@@ -22,12 +24,13 @@ using namespace OHOS::AAFwk;
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const std::string SHORT_OPTIONS = "hn:t:i:c:ea";
+const std::string SHORT_OPTIONS = "hn:t:i:l:c:ea";
 const struct option LONG_OPTIONS[] = {
     {"help", no_argument, nullptr, 'h'},
     {"name", required_argument, nullptr, 'n'},
     {"type", required_argument, nullptr, 't'},
     {"id", required_argument, nullptr, 'i'},
+    {"disallowedlist", optional_argument, nullptr, 'l'},
     {"constraint", required_argument, nullptr, 'c'},
     {"enable", no_argument, nullptr, 'e'},
     {"all", no_argument, nullptr, 'a'},
@@ -88,7 +91,8 @@ ErrCode AccountCommand::RunAsHelpCommand(void)
     return ERR_OK;
 }
 
-ErrCode AccountCommand::ParseCreateCommandOpt(std::string &name, OsAccountType &osAccountType)
+ErrCode AccountCommand::ParseCreateCommandOpt(
+    std::string &name, OsAccountType &osAccountType, std::vector<std::string> &disallowedList)
 {
     int counter = 0;
     ErrCode result = ERR_OK;
@@ -110,7 +114,7 @@ ErrCode AccountCommand::ParseCreateCommandOpt(std::string &name, OsAccountType &
             break;
         }
 
-        result = RunAsCreateCommandExistentOptionArgument(option, name, osAccountType);
+        result = RunAsCreateCommandExistentOptionArgument(option, name, osAccountType, disallowedList);
     }
     return result;
 }
@@ -121,8 +125,8 @@ ErrCode AccountCommand::RunAsCreateCommand(void)
     ErrCode result = ERR_OK;
     std::string name = "";
     OsAccountType osAccountType = static_cast<OsAccountType>(-1);
-
-    result = ParseCreateCommandOpt(name, osAccountType);
+    CreateOsAccountOptions options;
+    result = ParseCreateCommandOpt(name, osAccountType, options.disallowedHapList);
     if (result == ERR_OK) {
         if (name.size() == 0 || osAccountType == static_cast<OsAccountType>(-1)) {
             ACCOUNT_LOGD("'acm create' without enough options");
@@ -139,7 +143,7 @@ ErrCode AccountCommand::RunAsCreateCommand(void)
         }
     }
 
-    if (result != ERR_OK) {
+    if (result != ERR_OK && result != ERR_ACCOUNT_COMMON_FILE_OPEN_FAILED) {
         resultReceiver_.append(HELP_MSG_CREATE);
     } else {
         /* create */
@@ -148,7 +152,7 @@ ErrCode AccountCommand::RunAsCreateCommand(void)
         OsAccountInfo osAccountInfo;
 
         // create an os account
-        result = OsAccount::GetInstance().CreateOsAccount(name, osAccountType, osAccountInfo);
+        result = OsAccount::GetInstance().CreateOsAccount(name, name, osAccountType, osAccountInfo, options);
         switch (result) {
             case ERR_OK:
                 resultReceiver_ = STRING_CREATE_OS_ACCOUNT_OK + "\n";
@@ -435,7 +439,7 @@ ErrCode AccountCommand::RunAsCreateCommandMissingOptionArgument(void)
 }
 
 ErrCode AccountCommand::RunAsCreateCommandExistentOptionArgument(
-    const int &option, std::string &name, OsAccountType &type)
+    const int &option, std::string &name, OsAccountType &type, std::vector<std::string> &disallowedList)
 {
     ErrCode result = ERR_OK;
 
@@ -456,6 +460,12 @@ ErrCode AccountCommand::RunAsCreateCommandExistentOptionArgument(
             // 'acm create -t <type>'
             // 'acm create --type <type>'
             result = AnalyzeTypeArgument(type);
+            break;
+        }
+        case 'l': {
+            // 'acm create -l <disallowedlist>'
+            // 'acm create --disallowedlist <disallowedlist>'
+            result = AnalyzeDisallowedListArgument(disallowedList);
             break;
         }
         default: {
@@ -645,6 +655,47 @@ ErrCode AccountCommand::AnalyzeTypeArgument(OsAccountType &type)
     }
 
     return result;
+}
+
+static bool IsExistFile(const std::string &path)
+{
+    if (path.empty()) {
+        return false;
+    }
+
+    struct stat buf = {};
+    if (stat(path.c_str(), &buf) != 0) {
+        return false;
+    }
+
+    return S_ISREG(buf.st_mode);
+}
+
+static ErrCode GetDisallowedListByPath(const std::string &path, std::vector<std::string> &disallowedList)
+{
+    if (!IsExistFile(path)) {
+        ACCOUNT_LOGE("cannot find file, path = %{public}s", path.c_str());
+        return ERR_ACCOUNT_COMMON_FILE_OPEN_FAILED;
+    }
+    std::ifstream readFile;
+    readFile.open(path.c_str(), std::ios::in);
+    if (!readFile.is_open()) {
+        ACCOUNT_LOGE("cannot open file, path = %{public}s", path.c_str());
+        return ERR_ACCOUNT_COMMON_FILE_OPEN_FAILED;
+    }
+    std::string str;
+    while (getline(readFile, str)) {
+        ACCOUNT_LOGI("read file, str = %{public}s", str.c_str());
+        disallowedList.emplace_back(str);
+    }
+    readFile.close();
+    return ERR_OK;
+}
+
+ErrCode AccountCommand::AnalyzeDisallowedListArgument(std::vector<std::string> &disallowedList)
+{
+    std::string listPath = optarg;
+    return GetDisallowedListByPath(listPath, disallowedList);
 }
 
 ErrCode AccountCommand::AnalyzeLocalIdArgument(int &id)

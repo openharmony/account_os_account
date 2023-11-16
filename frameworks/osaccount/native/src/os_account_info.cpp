@@ -364,5 +364,25 @@ ErrCode OsAccountInfo::ParamCheck()
     return ERR_OK;
 }
 
+bool CreateOsAccountOptions::Marshalling(Parcel &parcel) const
+{
+    return parcel.WriteStringVector(disallowedHapList);
+}
+
+CreateOsAccountOptions *CreateOsAccountOptions::Unmarshalling(Parcel &parcel)
+{
+    CreateOsAccountOptions *options = new (std::nothrow) CreateOsAccountOptions();
+    if ((options != nullptr) && (!options->ReadFromParcel(parcel))) {
+        ACCOUNT_LOGW("read from parcel failed");
+        delete options;
+        options = nullptr;
+    }
+    return options;
+}
+
+bool CreateOsAccountOptions::ReadFromParcel(Parcel &parcel)
+{
+    return parcel.ReadStringVector(&disallowedHapList);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

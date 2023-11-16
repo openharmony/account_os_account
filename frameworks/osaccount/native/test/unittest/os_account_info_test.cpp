@@ -642,11 +642,12 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount01, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     OsAccountInfo osAccountInfoTwo;
+    CreateOsAccountOptions options;
     EXPECT_EQ(ERR_OK,
-              OsAccountManager::CreateOsAccount(STRING_NAME, "shortName", OsAccountType::NORMAL, osAccountInfoOne));
+        OsAccountManager::CreateOsAccount(STRING_NAME, "shortName", OsAccountType::NORMAL, options, osAccountInfoOne));
 #ifdef ENABLE_ACCOUNT_SHORT_NAME
     EXPECT_EQ(ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED,
-              OsAccountManager::CreateOsAccount(STRING_NAME, STRING_NAME, OsAccountType::NORMAL, osAccountInfoTwo));
+        OsAccountManager::CreateOsAccount(STRING_NAME, STRING_NAME, OsAccountType::NORMAL, osAccountInfoTwo));
     OsAccountManager::RemoveOsAccount(osAccountInfoTwo.GetLocalId());
 #endif  // ENABLE_ACCOUNT_SHORT_NAME
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());

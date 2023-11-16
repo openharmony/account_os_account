@@ -128,9 +128,10 @@ ErrCode OsAccountInterface::SendToAMSAccountDeactivate(OsAccountInfo &osAccountI
     return code;
 }
 
-ErrCode OsAccountInterface::SendToBMSAccountCreate(OsAccountInfo &osAccountInfo)
+ErrCode OsAccountInterface::SendToBMSAccountCreate(
+    OsAccountInfo &osAccountInfo, const std::vector<std::string> &disallowedHapList)
 {
-    return BundleManagerAdapter::GetInstance()->CreateNewUser(osAccountInfo.GetLocalId());
+    return BundleManagerAdapter::GetInstance()->CreateNewUser(osAccountInfo.GetLocalId(), disallowedHapList);
 }
 
 ErrCode OsAccountInterface::SendToBMSAccountDelete(OsAccountInfo &osAccountInfo)

@@ -33,8 +33,8 @@ public:
     void Init() override;
     ErrCode CreateOsAccount(
         const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo) override;
-    ErrCode CreateOsAccount(const std::string &localName,
-        const std::string &shortName, const OsAccountType &type, OsAccountInfo &osAccountInfo) override;
+    ErrCode CreateOsAccount(const std::string &localName, const std::string &shortName,
+        const OsAccountType &type, OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options = {}) override;
     ErrCode CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo) override;
     ErrCode UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo) override;
     ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
@@ -96,7 +96,7 @@ public:
     ErrCode GetDefaultActivatedOsAccount(int32_t &id) override;
     ErrCode BindDomainAccount(const OsAccountType &type, const DomainAccountInfo &domainAccountInfo,
         const sptr<IDomainAccountCallback> &callback);
-    ErrCode SendMsgForAccountCreate(OsAccountInfo &osAccountInfo);
+    ErrCode SendMsgForAccountCreate(OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options = {});
     ErrCode GetOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo);
 
 private:
