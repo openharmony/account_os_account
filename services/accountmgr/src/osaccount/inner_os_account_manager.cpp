@@ -294,14 +294,15 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfoWithFullInfo(OsAccountInfo &
     return ERR_OK;
 }
 
-ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(OsAccountInfo &osAccountInfo)
+ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
+    OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options)
 {
     ErrCode errCode = OsAccountInterface::SendToStorageAccountCreate(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("create os account SendToStorageAccountCreate failed, errCode %{public}d.", errCode);
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
-    errCode = OsAccountInterface::SendToBMSAccountCreate(osAccountInfo);
+    errCode = OsAccountInterface::SendToBMSAccountCreate(osAccountInfo, options.disallowedHapList);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("create os account SendToBMSAccountCreate failed, errCode %{public}d.", errCode);
         (void)OsAccountInterface::SendToStorageAccountRemove(osAccountInfo);
@@ -340,15 +341,15 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(
     return errCode;
 }
 
-ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName,
-    const std::string &shortName, const OsAccountType &type, OsAccountInfo &osAccountInfo)
+ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, const std::string &shortName,
+    const OsAccountType &type, OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options)
 {
     DomainAccountInfo domainInfo;  // default empty domain info
     ErrCode errCode = PrepareOsAccountInfo(localName, shortName, type, domainInfo, osAccountInfo);
     if (errCode != ERR_OK) {
         return errCode;
     }
-    errCode = SendMsgForAccountCreate(osAccountInfo);
+    errCode = SendMsgForAccountCreate(osAccountInfo, options);
     if (errCode != ERR_OK) {
         (void)osAccountControl_->DelOsAccount(osAccountInfo.GetLocalId());
     }

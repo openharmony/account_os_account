@@ -58,7 +58,7 @@ public:
     static ErrCode CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo);
 
     /**
-     * @brief Creates an OS account using the local name、short name and account type.
+     * @brief Creates an OS account using the local name, short name and account type.
      * @permission ohos.permission.MANAGE_LOCAL_ACCOUNTS
      * @param localName - Indicates the local name of the OS account to create.
      * @param shortName - Indicates the short name of the OS account to create.
@@ -68,6 +68,20 @@ public:
      */
     static ErrCode CreateOsAccount(const std::string& localName, const std::string& shortName,
         const OsAccountType& type, OsAccountInfo& osAccountInfo);
+
+    /**
+     * @brief Creates an OS account using the local name, short name, account type and other options.
+     * @permission ohos.permission.MANAGE_LOCAL_ACCOUNTS
+     * @param localName - Indicates the local name of the OS account to create.
+     * @param shortName - Indicates the short name of the OS account to create.
+     * @param type - Indicates the type of the OS account to create.
+     * @param options - Indicates the options of the OS account to create.
+     *                - Include disallowedHapList - Indicates the disallowed install hap list.
+     * @param osAccountInfo - Indicates the information about the created OS account.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode CreateOsAccount(const std::string& localName, const std::string& shortName,
+        const OsAccountType& type, const CreateOsAccountOptions& options, OsAccountInfo& osAccountInfo);
 
     /**
      * @brief Creates an OS account using full user info
@@ -426,7 +440,7 @@ public:
      * @return error code, see account_error_no.h
      */
     static ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID, int &createdOsAccountNum);
-    
+
     /**
      * @brief Get serial number from database.
      * @param storeID - Indicates the store ID.
@@ -434,7 +448,7 @@ public:
      * @return error code, see account_error_no.h
      */
     static ErrCode GetSerialNumberFromDatabase(const std::string& storeID, int64_t &serialNumber);
-    
+
     /**
      * @brief Gets the max ID of the OS account to be created.
      * @param storeID - Indicates the store ID.

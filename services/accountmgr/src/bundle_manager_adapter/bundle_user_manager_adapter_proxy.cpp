@@ -19,7 +19,7 @@
 
 namespace OHOS {
 namespace AccountSA {
-constexpr int DISALLOWLISTMAXSIZE = 1000;
+constexpr size_t DISALLOWED_HAP_LIST_MAX_SIZE = 1000;
 
 BundleUserManagerAdapterProxy::BundleUserManagerAdapterProxy(const sptr<IRemoteObject> &object)
     : IRemoteProxy<AppExecFwk::IBundleUserMgr>(object)
@@ -28,7 +28,7 @@ BundleUserManagerAdapterProxy::BundleUserManagerAdapterProxy(const sptr<IRemoteO
 BundleUserManagerAdapterProxy::~BundleUserManagerAdapterProxy()
 {}
 
-ErrCode BundleUserManagerAdapterProxy::CreateNewUser(int32_t userId, const std::vector<std::string> &disallowList)
+ErrCode BundleUserManagerAdapterProxy::CreateNewUser(int32_t userId, const std::vector<std::string> &disallowedHapList)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(BundleUserManagerAdapterProxy::GetDescriptor())) {
@@ -39,14 +39,14 @@ ErrCode BundleUserManagerAdapterProxy::CreateNewUser(int32_t userId, const std::
         ACCOUNT_LOGE("fail to CreateNewUser due to write userId fail");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    int32_t disallowListMatchSize =
-        (disallowList.size() > DISALLOWLISTMAXSIZE) ? DISALLOWLISTMAXSIZE : disallowList.size();
-    if (!data.WriteInt32(disallowListMatchSize)) {
+    uint32_t disallowedListMatchSize = (disallowedHapList.size() > DISALLOWED_HAP_LIST_MAX_SIZE) ?
+        DISALLOWED_HAP_LIST_MAX_SIZE : disallowedHapList.size();
+    if (!data.WriteInt32(disallowedListMatchSize)) {
         ACCOUNT_LOGE("Write BundleNameListVector failed");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    for (int32_t index = 0; index < disallowListMatchSize; ++index) {
-        if (!data.WriteString(disallowList.at(index))) {
+    for (uint32_t index = 0; index < disallowedListMatchSize; ++index) {
+        if (!data.WriteString(disallowedHapList.at(index))) {
             ACCOUNT_LOGE("Write BundleNameListVector failed");
             return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
         }
@@ -82,7 +82,7 @@ ErrCode BundleUserManagerAdapterProxy::RemoveUser(int32_t userId)
         ACCOUNT_LOGE("fail to RemoveUser from server");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    
+
     ErrCode ret = reply.ReadInt32();
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("host reply errCode : %{public}d", ret);

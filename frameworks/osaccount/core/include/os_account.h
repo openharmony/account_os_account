@@ -28,7 +28,7 @@ public:
     static OsAccount &GetInstance();
     ErrCode CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo);
     ErrCode CreateOsAccount(const std::string &localName, const std::string &shortName, const OsAccountType &type,
-        OsAccountInfo &osAccountInfo);
+        OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options = {});
     ErrCode CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo);
     ErrCode UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo);
     ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
