@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "bundle_framework_core_ipc_interface_code.h"
 #include "bundle_user_manager_adapter_proxy.h"
 #include "account_error_no.h"
@@ -20,6 +19,8 @@
 
 namespace OHOS {
 namespace AccountSA {
+constexpr int DISALLOWLISTMAXSIZE = 1000;
+
 BundleUserManagerAdapterProxy::BundleUserManagerAdapterProxy(const sptr<IRemoteObject> &object)
     : IRemoteProxy<AppExecFwk::IBundleUserMgr>(object)
 {}
@@ -27,7 +28,7 @@ BundleUserManagerAdapterProxy::BundleUserManagerAdapterProxy(const sptr<IRemoteO
 BundleUserManagerAdapterProxy::~BundleUserManagerAdapterProxy()
 {}
 
-ErrCode BundleUserManagerAdapterProxy::CreateNewUser(int32_t userId)
+ErrCode BundleUserManagerAdapterProxy::CreateNewUser(int32_t userId, const std::vector<std::string> &disallowList)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(BundleUserManagerAdapterProxy::GetDescriptor())) {
@@ -38,7 +39,18 @@ ErrCode BundleUserManagerAdapterProxy::CreateNewUser(int32_t userId)
         ACCOUNT_LOGE("fail to CreateNewUser due to write userId fail");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-
+    int32_t disallowListMatchSize =
+        (disallowList.size() > DISALLOWLISTMAXSIZE) ? DISALLOWLISTMAXSIZE : disallowList.size();
+    if (!data.WriteInt32(disallowListMatchSize)) {
+        ACCOUNT_LOGE("Write BundleNameListVector failed");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    for (int32_t index = 0; index < disallowListMatchSize; ++index) {
+        if (!data.WriteString(disallowList.at(index))) {
+            ACCOUNT_LOGE("Write BundleNameListVector failed");
+            return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+        }
+    }
     MessageParcel reply;
     if (!SendTransactCmd(AppExecFwk::BundleUserMgrInterfaceCode::CREATE_USER, data, reply)) {
         ACCOUNT_LOGE("fail to CreateNewUser from server");
