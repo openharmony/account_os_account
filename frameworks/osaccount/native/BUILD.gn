@@ -24,6 +24,7 @@ config("osaccountinterface_config") {
     "${innerkits_path}/include",
     "${os_account_core_path}/include",
     "${os_account_interfaces_native_path}/include",
+    "${innerkits_common}/include",
   ]
   cflags = []
   if (target_cpu == "arm") {

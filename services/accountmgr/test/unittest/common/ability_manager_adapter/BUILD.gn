@@ -20,7 +20,7 @@ module_output_path = "os_account/services/common"
 config("ability_manager_adapter_test_config") {
   include_dirs = [
     "${common_path}/log/include",
-    "${common_path}/account_error/include",
+    "${innerkits_common}/include",
     "${domain_account_interfaces_native_path}/include",
     "${services_path}/accountmgr/include",
     "${services_path}/accountmgr/include/ability_manager_adapter",
