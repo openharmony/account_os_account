@@ -80,7 +80,6 @@ ohos_unittest("os_account_mock_test") {
     "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_single",
-    "safwk:dynamic_cache",
   ]
 }
 group("unittest") {
