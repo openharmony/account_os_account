@@ -47,7 +47,7 @@ BundleManagerAdapter::~BundleManagerAdapter()
     ACCOUNT_LOGI("destroy BundleManagerAdapter mock");
 }
 
-ErrCode BundleManagerAdapter::CreateNewUser(int32_t userId)
+ErrCode BundleManagerAdapter::CreateNewUser(int32_t userId, const std::vector<std::string> &disallowedHapList)
 {
     ACCOUNT_LOGI("CreateNewUser mock");
     return ERR_OK;

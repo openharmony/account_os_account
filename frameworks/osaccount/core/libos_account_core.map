@@ -16,6 +16,7 @@
     extern "C++" {
         "OHOS::AccountSA::OsAccountInfo::OsAccountInfo()";
         "OHOS::AccountSA::OsAccount::CreateOsAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::OsAccountType const&, OHOS::AccountSA::OsAccountInfo&)";
+        "OHOS::AccountSA::OsAccount::CreateOsAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::OsAccountType const&, OHOS::AccountSA::OsAccountInfo&, OHOS::AccountSA::CreateOsAccountOptions const&)";
         "OHOS::AccountSA::OsAccount::GetInstance()";
         "OHOS::AccountSA::OsAccount::RemoveOsAccount(int)";
         "OHOS::AccountSA::OsAccount::DumpState(int const&, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>&)";
@@ -24,6 +25,8 @@
         "OHOS::AccountSA::OsAccount::DeactivateOsAccount(int)";
         "OHOS::AccountSA::OsAccount::StopOsAccount(int)";
         "VTT for OHOS::AccountSA::OsAccountInfo";
+        "VTT for OHOS::AccountSA::CreateOsAccountOptions";
+        "vtable for OHOS::AccountSA::CreateOsAccountOptions";
         "OHOS::AccountSA::OsAccountEventListener::OsAccountEventListener(std::__h::shared_ptr<OHOS::AccountSA::OsAccountSubscriber> const&)";
     };
   local:

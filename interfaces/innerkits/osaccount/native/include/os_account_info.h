@@ -40,6 +40,13 @@ struct ConstraintSourceTypeInfo {
     ConstraintSourceType typeInfo;
 };
 
+struct CreateOsAccountOptions: public Parcelable {
+    std::vector<std::string> disallowedHapList = {};
+    bool ReadFromParcel(Parcel &parcel);
+    bool Marshalling(Parcel &parcel) const override;
+    static CreateOsAccountOptions *Unmarshalling(Parcel &parcel);
+};
+
 class OsAccountInfo : public IAccountInfo, public Parcelable {
 public:
     OsAccountInfo();
