@@ -59,12 +59,12 @@ ErrCode OsAccount::CreateOsAccount(const std::string &name, const OsAccountType 
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    
+
     return proxy->CreateOsAccount(name, type, osAccountInfo);
 }
 
 ErrCode OsAccount::CreateOsAccount(const std::string& localName, const std::string& shortName,
-    const OsAccountType& type, OsAccountInfo& osAccountInfo)
+    const OsAccountType& type, OsAccountInfo& osAccountInfo, const CreateOsAccountOptions &options)
 {
     size_t localNameSize = localName.size();
     if (localNameSize == 0 || localNameSize > Constants::LOCAL_NAME_MAX_SIZE) {
@@ -82,7 +82,7 @@ ErrCode OsAccount::CreateOsAccount(const std::string& localName, const std::stri
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->CreateOsAccount(localName, shortName, type, osAccountInfo);
+    return proxy->CreateOsAccount(localName, shortName, type, osAccountInfo, options);
 }
 
 ErrCode OsAccount::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)

@@ -118,8 +118,8 @@ ErrCode OsAccountManagerService::CreateOsAccount(
     return CreateOsAccount(name, shortName, type, osAccountInfo);
 }
 
-ErrCode OsAccountManagerService::CreateOsAccount(
-    const std::string &localName, const std::string &shortName, const OsAccountType &type, OsAccountInfo &osAccountInfo)
+ErrCode OsAccountManagerService::CreateOsAccount(const std::string &localName, const std::string &shortName,
+    const OsAccountType &type, OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options)
 {
     bool isMultiOsAccountEnable = false;
     innerManager_.IsMultiOsAccountEnable(isMultiOsAccountEnable);
@@ -163,7 +163,7 @@ ErrCode OsAccountManagerService::CreateOsAccount(
         return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
     }
 
-    return innerManager_.CreateOsAccount(localName, shortName, type, osAccountInfo);
+    return innerManager_.CreateOsAccount(localName, shortName, type, osAccountInfo, options);
 }
 
 ErrCode OsAccountManagerService::ValidateShortName(const std::string &shortName)

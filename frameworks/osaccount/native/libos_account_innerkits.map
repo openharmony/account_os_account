@@ -16,8 +16,10 @@
     extern "C++" {
         "VTT for OHOS::AccountSA::OsAccountInfo";
         "VTT for OHOS::AccountSA::OsAccountSubscribeInfo";
+        "VTT for OHOS::AccountSA::CreateOsAccountOptions";
         "vtable for OHOS::AccountSA::OsAccountInfo";
         "vtable for OHOS::AccountSA::OsAccountSubscribeInfo";
+        "vtable for OHOS::AccountSA::CreateOsAccountOptions";
         "OHOS::AccountSA::OsAccount::GetInstance()";
         "OHOS::AccountSA::OsAccount::CreateOsAccountEventListener(std::__h::shared_ptr<OHOS::AccountSA::OsAccountSubscriber> const&, OHOS::sptr<OHOS::IRemoteObject>&)";
         "OHOS::AccountSA::OsAccount::CreateOsAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::OsAccountType const&, OHOS::AccountSA::OsAccountInfo&)";
@@ -200,6 +202,7 @@
         "OHOS::AccountSA::OsAccountSubscribeInfo::GetName(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&) const";
         "OHOS::AccountSA::OsAccountSubscribeInfo::SetOsAccountSubscribeType(OHOS::AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE const&)";
         "OHOS::AccountSA::OsAccountSubscribeInfo::SetName(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+        *OHOS::AccountSA::CreateOsAccountOptions*;
     };
   local:
     *;

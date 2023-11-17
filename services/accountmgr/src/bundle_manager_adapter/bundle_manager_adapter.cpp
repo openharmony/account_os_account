@@ -124,7 +124,7 @@ bool BundleManagerAdapter::QueryExtensionAbilityInfos(
     return ret;
 }
 
-ErrCode BundleManagerAdapter::CreateNewUser(int32_t userId)
+ErrCode BundleManagerAdapter::CreateNewUser(int32_t userId, const std::vector<std::string> &disallowedHapList)
 {
     std::lock_guard<std::mutex> lock(proxyMutex_);
     ErrCode result = Connect();
@@ -145,7 +145,7 @@ ErrCode BundleManagerAdapter::CreateNewUser(int32_t userId)
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_CREATE_ERROR;
     }
     StartTraceAdapter("BundleManageService CreateNewUser");
-    bundleUserMgrProxy->CreateNewUser(userId);
+    bundleUserMgrProxy->CreateNewUser(userId, disallowedHapList);
     FinishTraceAdapter();
     return ERR_OK;
 }

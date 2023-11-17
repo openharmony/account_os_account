@@ -470,10 +470,16 @@ ErrCode OsAccountStub::ProcCreateOsAccountWithShortName(MessageParcel &data, Mes
         return ERR_NONE;
     }
     OsAccountType osAccountType = static_cast<OsAccountType>(type);
+    sptr<CreateOsAccountOptions> options = data.ReadParcelable<CreateOsAccountOptions>();
+    if (options == nullptr) {
+        ACCOUNT_LOGE("read options failed");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
     OsAccountInfo osAccountInfo;
-    ErrCode result = CreateOsAccount(localName, shortName, osAccountType, osAccountInfo);
+    ErrCode result = CreateOsAccount(localName, shortName, osAccountType, osAccountInfo, *options);
     return WriteResultWithOsAccountInfo(reply, result, osAccountInfo);
 }
+
 
 ErrCode OsAccountStub::ProcCreateOsAccountWithFullInfo(MessageParcel &data, MessageParcel &reply)
 {
@@ -482,7 +488,7 @@ ErrCode OsAccountStub::ProcCreateOsAccountWithFullInfo(MessageParcel &data, Mess
         ACCOUNT_LOGE("failed to read OsAccountInfo");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    
+
     ErrCode code = info->ParamCheck();
     if (code != ERR_OK) {
         ACCOUNT_LOGE("OsAccountInfo required field is invalidate");
