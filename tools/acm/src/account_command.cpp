@@ -34,6 +34,7 @@ const struct option LONG_OPTIONS[] = {
     {"constraint", required_argument, nullptr, 'c'},
     {"enable", no_argument, nullptr, 'e'},
     {"all", no_argument, nullptr, 'a'},
+    {nullptr, no_argument, nullptr, no_argument}
 };
 
 static const std::string STOP_COMMAND = "stop";
