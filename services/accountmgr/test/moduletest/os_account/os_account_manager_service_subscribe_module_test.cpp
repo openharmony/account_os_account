@@ -45,7 +45,9 @@ using namespace testing::ext;
 using namespace OHOS::AccountSA;
 using namespace OHOS::Security::AccessToken;
 using namespace OHOS::UserIam::UserAuth;
+#ifdef HAS_PIN_AUTH_PART
 using namespace OHOS::UserIam::PinAuth;
+#endif
 
 namespace OHOS {
 namespace AccountTest {
@@ -116,6 +118,7 @@ public:
     {}
 };
 
+#ifdef HAS_PIN_AUTH_PART
 class TestIInputer : public OHOS::AccountSA::IInputer {
 public:
     explicit TestIInputer() {}
@@ -127,6 +130,7 @@ public:
     }
     virtual ~TestIInputer() = default;
 };
+#endif
 
 class TestAuthCallBack : public OHOS::AccountSA::IDMCallback {
 public:
@@ -238,6 +242,7 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     result = OsAccount::GetInstance().RemoveOsAccount(id);
 }
 
+#ifdef HAS_PIN_AUTH_PART
 /**
  * @tc.name: OsAccountManagerServiceSubscribeModuleTest_0003
  * @tc.desc: Subscribe os accounts unlock with password
@@ -297,6 +302,7 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     result = OsAccount::GetInstance().RemoveOsAccount(id);
     EXPECT_EQ(result, ERR_OK);
 }
+#endif
 
 /**
  * @tc.name: OsAccountManagerServiceSubscribeModuleTest_0004

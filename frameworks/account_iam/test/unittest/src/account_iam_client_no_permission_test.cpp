@@ -77,6 +77,7 @@ public:
     int32_t result_ = -1;
 };
 
+#ifdef HAS_PIN_AUTH_PART
 class MockIInputer : public OHOS::AccountSA::IInputer {
 public:
     virtual ~MockIInputer() {}
@@ -85,6 +86,7 @@ public:
         return;
     }
 };
+#endif
 
 class AccountIAMClientNoPermissionTest : public testing::Test {
 public:
@@ -268,6 +270,7 @@ HWTEST_F(AccountIAMClientNoPermissionTest, AccountIAMClientNoPermission_SetPrope
     AccountIAMClient::GetInstance().SetProperty(TEST_USER_ID, testRequest, callback);
 }
 
+#ifdef HAS_PIN_AUTH_PART
 /**
  * @tc.name: AccountIAMClientNoPermission_RegisterInputer_0100
  * @tc.desc: RegisterInputer without permission.
@@ -281,6 +284,7 @@ HWTEST_F(AccountIAMClientNoPermissionTest, AccountIAMClientNoPermission_Register
     EXPECT_EQ(res, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     AccountIAMClient::GetInstance().UnregisterInputer(AuthType::PIN);
 }
+#endif
 
 /**
  * @tc.name: AccountIAMClientNoPermission_AuthUser_0100

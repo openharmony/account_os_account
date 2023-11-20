@@ -34,6 +34,7 @@ using namespace testing::ext;
 using namespace OHOS::AccountSA;
 using namespace OHOS::Security::AccessToken;
 
+#ifdef HAS_PIN_AUTH_PART
 class MockIInputer : public OHOS::AccountSA::IInputer {
 public:
     virtual ~MockIInputer() {}
@@ -42,6 +43,7 @@ public:
         return;
     }
 };
+#endif
 
 class AccountIAMCallbackServiceTest : public testing::Test {
 public:
@@ -146,6 +148,7 @@ HWTEST_F(AccountIAMCallbackServiceTest, GetSetPropCallbackService_OnResult_0100,
     wrapper->OnResult(0, extraInfo);
 }
 
+#ifdef HAS_PIN_AUTH_PART
 /**
  * @tc.name: IAMInputer_OnGetData_0100
  * @tc.desc: OnGetData with inputerData_ nullptr.
@@ -198,6 +201,7 @@ HWTEST_F(AccountIAMCallbackServiceTest, IAMInputer_OnGetData_0300, TestSize.Leve
     std::string cmdRes = RunCommand(cmd);
     ASSERT_TRUE(cmdRes.find("inputerData is nullptr") != std::string::npos);
 }
+#endif
 
 /**
  * @tc.name: DomainAuthCallbackAdapter_OnResult_0100
@@ -216,6 +220,7 @@ HWTEST_F(AccountIAMCallbackServiceTest, DomainAuthCallbackAdapter_OnResult_0100,
     ASSERT_TRUE(cmdRes.find("callback is nullptr") != std::string::npos);
 }
 
+#ifdef HAS_PIN_AUTH_PART
 /**
  * @tc.name: DomainCredentialRecipient_OnSetData_0100
  * @tc.desc: test OnSetData.
@@ -243,5 +248,6 @@ HWTEST_F(AccountIAMCallbackServiceTest, IAMInputerData_OnSetData_0100, TestSize.
     iamInputerData->OnSetData(0, data);
     EXPECT_EQ(iamInputerData->innerInputerData_, nullptr);
 }
+#endif
 }  // namespace AccountTest
 }  // namespace OHOS
