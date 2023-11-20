@@ -19,7 +19,9 @@
 #include "account_error_no.h"
 #include "account_iam_client_callback.h"
 #include "account_iam_info.h"
+#ifdef HAS_PIN_AUTH_PART
 #include "i_inputer.h"
+#endif
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "napi_account_common.h"

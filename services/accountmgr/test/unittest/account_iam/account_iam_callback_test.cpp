@@ -49,6 +49,7 @@ const int32_t INFO_LIST_SIZE_ZERO = 0;
 const static AccessTokenID g_accountMgrTokenID = AccessTokenKit::GetNativeTokenId("accountmgr");
 } // namespace
 
+#ifdef HAS_PIN_AUTH_PART
 class MockIInputer final : public IInputer {
 public:
     virtual ~MockIInputer() {}
@@ -57,6 +58,7 @@ public:
         return;
     }
 };
+#endif
 
 class MockIIDMCallback : public IDMCallbackStub {
 public:
@@ -180,6 +182,7 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_OnAcquireInfo_0100, TestSize.Level
     userAuthCallback->OnAcquireInfo(0, 0, extraInfo);
 }
 
+#ifdef HAS_PIN_AUTH_PART
 /**
  * @tc.name: AuthCallback_OnAcquireInfo_0200
  * @tc.desc: OnAcquireInfo with not nullptr.
@@ -196,6 +199,7 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_OnAcquireInfo_0200, TestSize.Level
     EXPECT_EQ(TEST_MODULE, callback->module_);
     EXPECT_EQ(TEST_ACQUIRE_INFO, callback->acquireInfo_);
 }
+#endif
 
 /**
  * @tc.name: AddCredCallback_OnResult_0100
