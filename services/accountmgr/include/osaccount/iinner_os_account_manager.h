@@ -98,6 +98,7 @@ public:
         const sptr<IDomainAccountCallback> &callback);
     ErrCode SendMsgForAccountCreate(OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options = {});
     ErrCode GetOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo);
+    ErrCode UpdateAccountStatusForDomain(const int id, DomainAccountStatus status);
 
 private:
     IInnerOsAccountManager();
