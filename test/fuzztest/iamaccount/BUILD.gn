@@ -11,6 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("../../../os_account.gni")
+
 group("fuzztest") {
   testonly = true
   deps = []
@@ -33,11 +35,16 @@ group("fuzztest") {
     "getcredentialinfo_fuzzer:GetCredentialInfoFuzzTest",
     "getproperty_fuzzer:GetPropertyFuzzTest",
     "opensession_fuzzer:OpenSessionFuzzTest",
-    "registerinputer_fuzzer:RegisterInputerFuzzTest",
     "setauthsubtype_fuzzer:SetAuthSubTypeFuzzTest",
     "setcredential_fuzzer:SetCredentialFuzzTest",
     "setproperty_fuzzer:SetPropertyFuzzTest",
-    "unregisterinputer_fuzzer:UnRegisterInputerFuzzTest",
     "updatecredential_fuzzer:UpdateCredentialFuzzTest",
   ]
+
+  if (has_pin_auth_part) {
+    deps += [
+      "registerinputer_fuzzer:RegisterInputerFuzzTest",
+      "unregisterinputer_fuzzer:UnRegisterInputerFuzzTest",
+    ]
+  }
 }
