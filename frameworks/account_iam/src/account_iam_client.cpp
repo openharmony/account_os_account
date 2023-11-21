@@ -24,7 +24,9 @@
 #include "ipc_skeleton.h"
 #include "ohos_account_kits_impl.h"
 #include "os_account_manager.h"
+#ifdef HAS_PIN_AUTH_PART
 #include "pinauth_register.h"
+#endif
 
 namespace OHOS {
 namespace AccountSA {
@@ -175,6 +177,7 @@ int32_t AccountIAMClient::Cancel(int32_t userId)
     return proxy->Cancel(userId);
 }
 
+#ifdef HAS_PIN_AUTH_PART
 uint64_t AccountIAMClient::StartDomainAuth(int32_t userId, const std::shared_ptr<IDMCallback> &callback)
 {
     std::lock_guard<std::mutex> lock(domainMutex_);
@@ -187,6 +190,7 @@ uint64_t AccountIAMClient::StartDomainAuth(int32_t userId, const std::shared_ptr
     domainInputer_->OnGetData(IAMAuthType::DOMAIN, std::make_shared<DomainCredentialRecipient>(userId, callback));
     return 0;
 }
+#endif
 
 uint64_t AccountIAMClient::Auth(const std::vector<uint8_t> &challenge, AuthType authType,
     AuthTrustLevel authTrustLevel, const std::shared_ptr<IDMCallback> &callback)
@@ -210,9 +214,11 @@ uint64_t AccountIAMClient::AuthUser(
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
         return contextId;
     }
+#ifdef HAS_PIN_AUTH_PART
     if (static_cast<int32_t>(authType) == static_cast<int32_t>(IAMAuthType::DOMAIN)) {
         return StartDomainAuth(userId, callback);
     }
+#endif
     sptr<IIDMCallback> wrapper = new (std::nothrow) IDMCallbackService(userId, callback);
     AuthParam authParam;
     authParam.challenge = challenge;
@@ -286,6 +292,14 @@ void AccountIAMClient::SetProperty(
     proxy->SetProperty(userId, request, wrapper);
 }
 
+bool AccountIAMClient::CheckSelfPermission(const std::string &permissionName)
+{
+    Security::AccessToken::AccessTokenID tokenId = IPCSkeleton::GetSelfTokenID();
+    ErrCode result = Security::AccessToken::AccessTokenKit::VerifyAccessToken(tokenId, permissionName);
+    return result == Security::AccessToken::TypePermissionState::PERMISSION_GRANTED;
+}
+
+#ifdef HAS_PIN_AUTH_PART
 ErrCode AccountIAMClient::RegisterPINInputer(const std::shared_ptr<IInputer> &inputer)
 {
     std::lock_guard<std::mutex> lock(pinMutex_);
@@ -312,13 +326,6 @@ ErrCode AccountIAMClient::RegisterPINInputer(const std::shared_ptr<IInputer> &in
         return ERR_OK;
     }
     return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
-}
-
-bool AccountIAMClient::CheckSelfPermission(const std::string &permissionName)
-{
-    Security::AccessToken::AccessTokenID tokenId = IPCSkeleton::GetSelfTokenID();
-    ErrCode result = Security::AccessToken::AccessTokenKit::VerifyAccessToken(tokenId, permissionName);
-    return result == Security::AccessToken::TypePermissionState::PERMISSION_GRANTED;
 }
 
 ErrCode AccountIAMClient::RegisterDomainInputer(const std::shared_ptr<IInputer> &inputer)
@@ -400,6 +407,7 @@ ErrCode AccountIAMClient::UnregisterDomainInputer()
     domainInputer_ = nullptr;
     return ERR_OK;
 }
+#endif
 
 IAMState AccountIAMClient::GetAccountState(int32_t userId)
 {

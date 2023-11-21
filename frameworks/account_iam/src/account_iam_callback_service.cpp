@@ -95,6 +95,7 @@ void DomainAuthCallbackAdapter::OnResult(const int32_t errCode, Parcel &parcel)
     callback_->OnResult(errCode, attr);
 }
 
+#ifdef HAS_PIN_AUTH_PART
 DomainCredentialRecipient::DomainCredentialRecipient(int32_t userId, const std::shared_ptr<IDMCallback> &callback)
     : userId_(userId), idmCallback_(callback)
 {}
@@ -171,5 +172,6 @@ void IAMInputer::ResetInnerInputer(const std::shared_ptr<IInputer> &inputer)
 {
     innerInputer_ = inputer;
 }
+#endif
 }  // namespace AccountSA
 }  // namespace OHOS

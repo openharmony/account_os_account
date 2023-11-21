@@ -118,6 +118,7 @@ HapInfoParams infoManagerTestSystemInfoParms = {
 };
 } // namespace
 
+#ifdef HAS_PIN_AUTH_PART
 class MockIInputer : public OHOS::AccountSA::IInputer {
 public:
     virtual ~MockIInputer() {}
@@ -126,6 +127,7 @@ public:
         return;
     }
 };
+#endif
 
 class AccountIAMClientTest : public testing::Test {
 public:
@@ -175,6 +177,7 @@ private:
     int code_;
 };
 
+#ifdef HAS_PIN_AUTH_PART
 class TestIInputer : public OHOS::AccountSA::IInputer {
 public:
     void OnGetData(int32_t authSubType, std::shared_ptr<IInputerData> inputerData) override
@@ -186,6 +189,7 @@ public:
 
     virtual ~TestIInputer() = default;
 };
+#endif
 
 void AccountIAMClientTest::SetUpTestCase(void)
 {
@@ -488,6 +492,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_CancelAuth_0100, TestSize.Level0
     EXPECT_NE(ERR_OK, AccountIAMClient::GetInstance().CancelAuth(TEST_CONTEXT_ID));
 }
 
+#ifdef HAS_PIN_AUTH_PART
 /**
  * @tc.name: AccountIAMClient_RegisterPINInputer_0100
  * @tc.desc: Register inputer.
@@ -519,6 +524,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_RegisterInputer_0100, TestSize.L
         AccountIAMClient::GetInstance().RegisterInputer(AuthType::PIN, inputer));
     EXPECT_EQ(ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE, AccountIAMClient::GetInstance().UnregisterInputer(AuthType::PIN));
 }
+#endif
 
 /**
  * @tc.name: AccountIAMClient_SetCredential_0100
@@ -700,6 +706,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient001, TestSize.Level0)
 
     ASSERT_EQ(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR, AccountIAMClient::GetInstance().CancelAuth(TEST_CONTEXT_ID));
 
+#ifdef HAS_PIN_AUTH_PART
     std::shared_ptr<IInputer> inputer = std::make_shared<TestIInputer>();
     ASSERT_NE(nullptr, inputer);
     ASSERT_EQ(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR, AccountIAMClient::GetInstance().RegisterPINInputer(inputer));
@@ -712,6 +719,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient001, TestSize.Level0)
         AccountIAMClient::GetInstance().RegisterInputer(AuthType::PIN, inputerTwo));
     ASSERT_EQ(
         ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR, AccountIAMClient::GetInstance().UnregisterInputer(AuthType::PIN));
+#endif
 
     std::vector<uint8_t> challenge;
     ASSERT_EQ(AccountIAMClient::GetInstance().OpenSession(0, challenge), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
@@ -796,6 +804,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient003, TestSize.Level0)
 
     ASSERT_NE(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR, AccountIAMClient::GetInstance().CancelAuth(TEST_CONTEXT_ID));
 
+#ifdef HAS_PIN_AUTH_PART
     std::shared_ptr<IInputer> inputer = std::make_shared<TestIInputer>();
     ASSERT_NE(nullptr, inputer);
     ASSERT_NE(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR, AccountIAMClient::GetInstance().RegisterPINInputer(inputer));
@@ -808,6 +817,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient003, TestSize.Level0)
         AccountIAMClient::GetInstance().RegisterInputer(AuthType::PIN, inputerTwo));
     ASSERT_NE(
         ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR, AccountIAMClient::GetInstance().UnregisterInputer(AuthType::PIN));
+#endif
 
     std::vector<uint8_t> challenge;
     ASSERT_NE(AccountIAMClient::GetInstance().OpenSession(0, challenge), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
@@ -873,6 +883,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient004, TestSize.Level0)
     SetSelfTokenID(g_selfTokenID);
 }
 
+#ifdef HAS_PIN_AUTH_PART
 /**
  * @tc.name: StartDomainAuth001
  * @tc.desc: test StartDomainAuth.
@@ -903,6 +914,7 @@ HWTEST_F(AccountIAMClientTest, StartDomainAuth002, TestSize.Level0)
     uint64_t ret = AccountIAMClient::GetInstance().StartDomainAuth(TEST_USER_ID, testCallback);
     EXPECT_EQ(0, ret);
 }
+#endif
 
 /**
  * @tc.name: ResetAccountIAMProxy001
