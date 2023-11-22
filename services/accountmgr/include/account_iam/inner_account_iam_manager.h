@@ -69,6 +69,7 @@ public:
     ErrCode UpdateUserKey(int32_t userId, uint64_t secureUid, uint64_t credentialId,
         const std::vector<uint8_t> &token, const std::vector<uint8_t> &newSecret);
     ErrCode RemoveUserKey(int32_t userId, const std::vector<uint8_t> &token);
+    ErrCode UnlockUserScreen(int32_t userId);
     bool CheckDomainAuthAvailable(int32_t userId);
 
 private:
