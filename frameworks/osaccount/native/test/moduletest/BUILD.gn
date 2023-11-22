@@ -150,8 +150,92 @@ ohos_moduletest("os_account_frameworks_module_mock_test") {
   part_name = "os_account"
 }
 
+ohos_moduletest("os_account_manager_no_bms_mock_test") {
+  module_out_path = module_output_path
+  include_dirs = [
+    "${os_account_dfx_path}/hidumper_adapter",
+    "${services_path}/accountmgr/include/bundle_manager_adapter",
+    "${services_path}/accountmgr/include/ability_manager_adapter",
+    "${services_path}/accountmgr/include",
+    "${os_account_dfx_path}/hitrace_adapter",
+    "${services_path}/accountmgr/include/account_iam",
+    "${services_path}/accountmgr/include/domain_account",
+    "${services_path}/accountmgr/include/osaccount",
+    "${bundle_framework_path}/interfaces/inner_api/appexecfwk_core/include",
+    "${os_account_path}/interfaces/innerkits/ohosaccount/native/include/",
+  ]
+  sources = [
+    "${app_account_services_path}/test/mock/common/ability_manager_adapter_mock.cpp",
+    "${common_path}/log/src/account_log_wrapper.cpp",
+    "${innerkits_native_path}/src/account_info_parcel.cpp",
+    "${innerkits_native_path}/src/account_proxy.cpp",
+    "${innerkits_native_path}/src/ohos_account_kits.cpp",
+    "${innerkits_native_path}/src/ohos_account_kits_impl.cpp",
+    "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
+    "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
+    "${services_path}/accountmgr/src/account_iam/account_iam_callback.cpp",
+    "${services_path}/accountmgr/src/account_iam/account_iam_mgr_stub.cpp",
+    "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
+    "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
+    "${services_path}/accountmgr/src/bundle_manager_adapter/bundle_manager_adapter.cpp",
+    "os_account_manager_no_bms_mock_test.cpp",
+  ]
+  sources += account_service_sources
+  configs = [ ":os_account_frameworks_config_unittest" ]
+
+  deps = [
+    "${account_iam_framework_path}:account_iam_innerkits",
+    "${common_path}:libaccount_common",
+    "${domain_account_framework_path}:domain_account_innerkits",
+    "${innerkits_native_path}:libaccountkits",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+    "//third_party/mbedtls:mbedtls",
+  ]
+
+  use_exceptions = true
+
+  external_deps = [
+    "ability_base:want",
+    "ability_runtime:ability_manager",
+    "ability_runtime:app_manager",
+    "ability_runtime:wantagent_innerkits",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtoken_setproc",
+    "access_token:libtokenid_sdk",
+    "bundle_framework:appexecfwk_base",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "huks:libhukssdk",
+    "init:libbegetutil",
+    "ipc:ipc_single",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
+  ]
+  cflags_cc = []
+  if (has_user_auth_part) {
+    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
+    external_deps += [ "user_auth_framework:userauth_client" ]
+  }
+  if (has_ces_part) {
+    cflags_cc += [ "-DHAS_CES_PART" ]
+    external_deps += [ "common_event_service:cesfwk_innerkits" ]
+  }
+  cflags_cc += [ "-DACCOUNT_TEST" ]
+  cflags_cc += [ "-DBUNDLE_ADAPTER_MOCK" ]
+  cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
+  if (os_account_support_deactivate_main_os_account) {
+    cflags_cc += [ "-DSUPPROT_STOP_MAIN_OS_ACCOUNT" ]
+  }
+  part_name = "os_account"
+}
+
 group("moduletest") {
   testonly = true
 
-  deps = [ ":os_account_frameworks_module_mock_test" ]
+  deps = [
+    ":os_account_frameworks_module_mock_test",
+    ":os_account_manager_no_bms_mock_test",
+  ]
 }
