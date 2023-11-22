@@ -31,9 +31,8 @@ config("account_common_config") {
 
 config("account_common_all_dependent_configs") {
   include_dirs = [
-    "database/include",
-    "account_error/include",
     "utils/include",
+    "${innerkits_common}/include",
   ]
 }
 
