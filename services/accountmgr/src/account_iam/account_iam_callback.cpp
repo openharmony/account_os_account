@@ -29,6 +29,19 @@ namespace AccountSA {
 using UserIDMClient = UserIam::UserAuth::UserIdmClient;
 using UserAuthClient = UserIam::UserAuth::UserAuthClient;
 
+void AuthCallbackDeathRecipient::SetContextId(uint16_t contextId)
+{
+    contextId_ = contextId;
+}
+
+void AuthCallbackDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
+{
+    ACCOUNT_LOGI("remote callback died, cancel authentication");
+    if (contextId_ > 0) {
+        UserAuthClient::GetInstance().CancelAuthentication(contextId_);
+    }
+}
+
 RestoreFileKeyCallback::RestoreFileKeyCallback(uint32_t userId, const Attributes& attributes)
 {
     userId_ = userId;
@@ -82,6 +95,11 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo)
     return ret;
 }
 
+void AuthCallback::SetDeathRecipient(const sptr<AuthCallbackDeathRecipient> &deathRecipient)
+{
+    deathRecipient_ = deathRecipient;
+}
+
 void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
     InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
@@ -89,6 +107,7 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         ACCOUNT_LOGE("innerCallback_ is nullptr");
         return;
     }
+    innerCallback_->AsObject()->RemoveDeathRecipient(deathRecipient_);
     if (result != 0) {
         ACCOUNT_LOGE("authentication failed");
         innerCallback_->OnResult(result, extraInfo);
