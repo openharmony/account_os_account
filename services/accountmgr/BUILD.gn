@@ -313,6 +313,10 @@ ohos_shared_library("accountmgr") {
     cflags_cc += [ "-DHAS_HITRACE_PART" ]
   }
 
+  if (build_variant == "user") {
+    cflags_cc += [ "-DIS_RELEASE_VERSION" ]
+  }
+
   if (!use_clang_coverage) {
     shlib_type = "sa"
   }
