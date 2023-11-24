@@ -1069,14 +1069,14 @@ ErrCode OsAccountControlFileManager::UpdateAccountIndex(const OsAccountInfo &osA
         return result;
     }
     std::string localIdStr = std::to_string(osAccountInfo.GetLocalId());
-    Json accountBaseInfo;
-    accountBaseInfo[Constants::LOCAL_NAME] = osAccountInfo.GetLocalName();
-#ifdef ENABLE_ACCOUNT_SHORT_NAME
-    accountBaseInfo[Constants::SHORT_NAME] = osAccountInfo.GetShortName();
-#endif // ENABLE_ACCOUNT_SHORT_NAME
     if (isDelete) {
         accountIndexJson.erase(localIdStr);
     } else {
+        Json accountBaseInfo;
+        accountBaseInfo[Constants::LOCAL_NAME] = osAccountInfo.GetLocalName();
+#ifdef ENABLE_ACCOUNT_SHORT_NAME
+        accountBaseInfo[Constants::SHORT_NAME] = osAccountInfo.GetShortName();
+#endif // ENABLE_ACCOUNT_SHORT_NAME
         accountIndexJson[localIdStr] = accountBaseInfo;
     }
     std::string lastAccountIndexStr = accountIndexJson.dump();
@@ -1146,6 +1146,11 @@ ErrCode OsAccountControlFileManager::DelOsAccount(const int id)
 #endif
     path += Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
     DeleteAccountInfoDigest(path);
+#ifdef ENABLE_ACCOUNT_SHORT_NAME
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetLocalId(id);
+    UpdateAccountIndex(osAccountInfo, true);
+#endif // ENABLE_ACCOUNT_SHORT_NAME
     return UpdateAccountList(std::to_string(id), false);
 }
 
@@ -1403,9 +1408,9 @@ ErrCode OsAccountControlFileManager::GetAccountIndexFromFile(Json &accountIndexJ
     accountIndexJson.clear();
     std::string accountIndex;
     if (!accountFileOperator_->IsExistFile(Constants::ACCOUNT_INDEX_JSON_PATH)) {
-        ErrCode result = CreateAccountIndexInfo(accountIndex);
+        ErrCode result = GetAccountIndexInfo(accountIndex);
         if (result != ERR_OK) {
-            ACCOUNT_LOGE("CreateAccountIndexInfo error code %{public}d.", result);
+            ACCOUNT_LOGE("GetAccountIndexInfo error code %{public}d.", result);
             return result;
         }
     } else {
@@ -1419,12 +1424,11 @@ ErrCode OsAccountControlFileManager::GetAccountIndexFromFile(Json &accountIndexJ
     return ERR_OK;
 }
 
-ErrCode OsAccountControlFileManager::CreateAccountIndexInfo(std::string &accountIndexInfo)
+ErrCode OsAccountControlFileManager::GetAccountIndexInfo(std::string &accountIndexInfo)
 {
     std::vector<OsAccountInfo> osAccountInfos;
     ErrCode result = GetOsAccountList(osAccountInfos);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("CreateAccountIndexInfo get accountList error code %{public}d.", result);
         return result;
     }
     Json accountIndexJson;
@@ -1438,8 +1442,7 @@ ErrCode OsAccountControlFileManager::CreateAccountIndexInfo(std::string &account
         accountIndexJson[localIdStr] = accountIndexElement;
     }
     accountIndexInfo = accountIndexJson.dump();
-    std::lock_guard<std::mutex> lock(accountInfoFileLock_);
-    return accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_INDEX_JSON_PATH, accountIndexInfo);
+    return ERR_OK;
 }
 
 ErrCode OsAccountControlFileManager::GetBaseOAConstraintsFromFile(Json &baseOAConstraintsJson)

@@ -225,6 +225,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest009, 
 
     int ret = innerMgrService_->PrepareOsAccountInfo(name, type, domainInfo1, accountInfo);
     EXPECT_EQ(ret, -1);
+    innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId());
 
     EXPECT_CALL(*ptr, GetAllowCreateId(::testing::_))
         .WillRepeatedly(testing::Return(0));
@@ -233,6 +234,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest009, 
 
     ret = innerMgrService_->PrepareOsAccountInfo(name, type, domainInfo1, accountInfo);
     EXPECT_NE(ret, ERR_OK);
+    innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId());
 
     EXPECT_CALL(*ptr, GetConstraintsByType(::testing::_, ::testing::_))
         .WillRepeatedly(testing::Return(0));
@@ -245,6 +247,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest009, 
 
     ret = innerMgrService_->PrepareOsAccountInfo(name, type, domainInfo1, accountInfo);
     EXPECT_NE(ret, ERR_OK);
+    innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId());
 
     EXPECT_CALL(*ptr, InsertOsAccount(::testing::_))
         .WillRepeatedly(testing::Return(0));
@@ -254,12 +257,14 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest009, 
 
     ret = innerMgrService_->PrepareOsAccountInfo(name, type, domainInfo1, accountInfo);
     EXPECT_NE(ret, ERR_OK);
+    innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId());
 
     EXPECT_CALL(*ptr, UpdateBaseOAConstraints(::testing::_, ::testing::_, ::testing::_))
         .WillRepeatedly(testing::Return(0));
 
     ret = innerMgrService_->PrepareOsAccountInfo(name, type, domainInfo1, accountInfo);
-    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(ret, ERR_OK);
+    innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId());
 }
 
 /*
@@ -448,12 +453,9 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest015, 
 
     OsAccountInfo osAccountInfoOne;
     (void)setuid(ACCOUNT_UID);
-    ErrCode ret = innerMgrService_->CreateOsAccount(STRING_TEST_NAME, OsAccountType::GUEST, osAccountInfoOne);
-
-    ret = innerMgrService_->RemoveOsAccount(osAccountInfoOne.GetLocalId());
-    EXPECT_EQ(ret, 0);
-
+    EXPECT_EQ(innerMgrService_->CreateOsAccount(STRING_TEST_NAME, OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
     (void)setuid(0);
+    EXPECT_EQ(innerMgrService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
@@ -1155,7 +1157,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest039, 
 
     OsAccountInfo osAccountInfoOne;
     (void)setuid(ACCOUNT_UID);
-    ErrCode ret = innerMgrService_->CreateOsAccount(STRING_TEST_NAME, OsAccountType::GUEST, osAccountInfoOne);
+    ErrCode ret = innerMgrService_->CreateOsAccount("CoverageTest039", OsAccountType::GUEST, osAccountInfoOne);
     EXPECT_EQ(ret, 0);
 
     ret = innerMgrService_->RemoveOsAccount(osAccountInfoOne.GetLocalId());
@@ -1193,7 +1195,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest039, 
     EXPECT_CALL(*ptr, RemoveOAConstraintsInfo(::testing::_))
         .WillRepeatedly(testing::Return(0));
 
-    ret = innerMgrService_->CreateOsAccount(STRING_TEST_NAME, OsAccountType::GUEST, osAccountInfoOne);
+    ret = innerMgrService_->CreateOsAccount("CoverageTest039", OsAccountType::GUEST, osAccountInfoOne);
     EXPECT_EQ(ret, 0);
     ret = innerMgrService_->RemoveOsAccount(osAccountInfoOne.GetLocalId());
     EXPECT_EQ(ret, 0);
