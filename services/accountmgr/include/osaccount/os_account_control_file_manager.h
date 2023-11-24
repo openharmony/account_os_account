@@ -28,7 +28,7 @@
 #include "os_account_photo_operator.h"
 namespace OHOS {
 namespace AccountSA {
-using CheckNotifyEventCallbackFunc = std::function<bool(const std::string&, const int32_t)>;
+using CheckNotifyEventCallbackFunc = std::function<bool(const std::string&, const int32_t, uint32_t)>;
 
 bool GetValidAccountID(const std::string& dirName, std::int32_t& accountID);
 
@@ -45,7 +45,7 @@ public:
 
     bool StartNotify(const uint32_t &watchEvents);
     bool CloseNotifyFd();
-    bool CheckNotifyEvent();
+    bool CheckNotifyEvent(uint32_t event);
     void SetEventCallback(CheckNotifyEventCallbackFunc &func);
 
 private:
@@ -149,6 +149,9 @@ private:
     void RemoveFileWatcher(const int32_t id);
     void GetNotifyEvent();
     void DealWithFileEvent();
+    bool DealWithFileModifyEvent(const std::string &fileName, const int32_t id);
+    bool DealWithFileDeleteEvent(const std::string &fileName, const int32_t id);
+    bool DealWithFileMoveEvent(const std::string &fileName, const int32_t id);
     void InitFileWatcherInfo(std::vector<std::string> &accountIdList);
     void SubscribeEventFunction(std::shared_ptr<FileWatcher> &fileWatcher);
     bool RecoverAccountData(const std::string &fileName, const int32_t id);
