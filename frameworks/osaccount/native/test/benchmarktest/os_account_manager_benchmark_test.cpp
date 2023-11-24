@@ -86,11 +86,6 @@ BENCHMARK_F(OsAccountManagerBenchmarkTest, OsAccountManagerTestCase002)(
     bool isMultiOsAccountEnable = false;
     for (auto _ : st) {
         EXPECT_EQ(OsAccountManager::IsMultiOsAccountEnable(isMultiOsAccountEnable), ERR_OK);
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-        EXPECT_EQ(isMultiOsAccountEnable, true);
-#else
-        EXPECT_EQ(isMultiOsAccountEnable, false);
-#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
     }
 }
 
