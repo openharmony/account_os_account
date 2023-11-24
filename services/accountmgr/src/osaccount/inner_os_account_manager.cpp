@@ -511,9 +511,6 @@ ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountIn
         ACCOUNT_LOGE("RemoveOsAccount failed to remove os account constraints info");
         return errCode;
     }
-#ifdef ENABLE_ACCOUNT_SHORT_NAME
-    osAccountControl_->UpdateAccountIndex(osAccountInfo, true);
-#endif // ENABLE_ACCOUNT_SHORT_NAME
     CheckAndRefreshLocalIdRecord(id);
     if (!domainAccountInfo.accountId_.empty()) {
         InnerDomainAccountManager::GetInstance().NotifyDomainAccountEvent(
@@ -630,7 +627,7 @@ ErrCode IInnerOsAccountManager::ValidateOsAccount(const OsAccountInfo &osAccount
             return ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED;
         }
 #else
-        if ((osAccountInfo.GetLocalName() == localName) && (localIdStr != localIdStr)) {
+        if ((osAccountInfo.GetLocalName() == localName) && (localIdKey != localIdStr)) {
             return ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED;
         }
 #endif // ENABLE_ACCOUNT_SHORT_NAME
@@ -1155,6 +1152,13 @@ ErrCode IInnerOsAccountManager::SetOsAccountName(const int id, const std::string
     }
 
     osAccountInfo.SetLocalName(name);
+#ifdef ENABLE_ACCOUNT_SHORT_NAME
+    errCode = ValidateOsAccount(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("account name already exist, errCode %{public}d.", errCode);
+        return errCode;
+    }
+#endif // ENABLE_ACCOUNT_SHORT_NAME
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("update osaccount info error %{public}d, id: %{public}d", errCode, osAccountInfo.GetLocalId());
