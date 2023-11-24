@@ -115,6 +115,11 @@ int32_t SystemAbilityManagerProxy::UnloadSystemAbility(int32_t systemAbilityId)
     return ERR_INVALID_VALUE;
 }
 
+int32_t SystemAbilityManagerProxy::UnloadAllIdleSystemAbility()
+{
+    return ERR_INVALID_VALUE;
+}
+
 int32_t SystemAbilityManagerProxy::CancelUnloadSystemAbility(int32_t systemAbilityId)
 {
     return ERR_INVALID_VALUE;
