@@ -36,7 +36,9 @@ const std::string CONSTANT_CREATE_DIRECTLY = "constraint.os.account.create.direc
 const std::string CONSTANT_REMOVE = "constraint.os.account.remove";
 const std::string CONSTANT_START = "constraint.os.account.start";
 const std::string CONSTANT_SET_ICON = "constraint.os.account.set.icon";
+#ifndef IS_RELEASE_VERSION
 const std::int32_t ROOT_UID = 0;
+#endif
 const std::string DEFAULT_ANON_STR = "**********";
 const size_t INTERCEPT_HEAD_PART_LEN_FOR_NAME = 1;
 
@@ -977,10 +979,12 @@ ErrCode OsAccountManagerService::GetOsAccountShortName(std::string &shortName)
 bool OsAccountManagerService::PermissionCheck(const std::string& permissionName, const std::string& constraintName)
 {
     int callerUid = IPCSkeleton::GetCallingUid();
-    // root check
+#ifndef IS_RELEASE_VERSION
+    // root check in none release version for test
     if (callerUid == ROOT_UID) {
         return true;
     }
+#endif
 
     // constraints check
     if (!constraintName.empty()) {

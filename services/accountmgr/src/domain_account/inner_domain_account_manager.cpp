@@ -70,6 +70,10 @@ void InnerDomainAuthCallback::OnResult(const int32_t errCode, Parcel &parcel)
         InnerDomainAccountManager::GetInstance().GetDomainAccountInfoByUserId(userId_, domainInfo);
         InnerDomainAccountManager::GetInstance().NotifyDomainAccountEvent(
             userId_, DomainAccountEvent::LOG_IN, DomainAccountStatus::LOG_END, domainInfo);
+        bool isActivated = false;
+        (void)IInnerOsAccountManager::GetInstance().IsOsAccountActived(userId_, isActivated);
+        DomainAccountStatus status = isActivated ? DomainAccountStatus::LOGIN : DomainAccountStatus::LOGIN_BACKGROUND;
+        IInnerOsAccountManager::GetInstance().UpdateAccountStatusForDomain(userId_, status);
     }
     (void)memset_s(authResult->token.data(), authResult->token.size(), 0, authResult->token.size());
     authResult->token.clear();
@@ -318,6 +322,7 @@ ErrCode InnerDomainAccountManager::UpdateAccountToken(const DomainAccountInfo &i
     if (token.empty()) {
         RemoveTokenFromMap(userId);
         NotifyDomainAccountEvent(userId, DomainAccountEvent::TOKEN_INVALID, DomainAccountStatus::LOGOUT, info);
+        IInnerOsAccountManager::GetInstance().UpdateAccountStatusForDomain(userId, DomainAccountStatus::LOGOUT);
         return ERR_OK;
     }
     InsertTokenToMap(userId, token);
