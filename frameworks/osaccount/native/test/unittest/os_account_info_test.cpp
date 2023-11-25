@@ -589,7 +589,7 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0106, TestSize.Level1)
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetLocalName("test120");
     osAccountInfo.SetType(OsAccountType::GUEST);
-    osAccountInfo.SetLocalId(CREATE_LOCAL_ID);
+    osAccountInfo.SetLocalId(999);
     osAccountInfo.SetSerialNumber(1100);
     osAccountInfo.SetCreateTime(1695883215000);
     osAccountInfo.SetLastLoginTime(1695863290000);
@@ -650,6 +650,7 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount01, TestSize.Level1)
         OsAccountManager::CreateOsAccount(STRING_NAME, STRING_NAME, OsAccountType::NORMAL, osAccountInfoTwo));
     OsAccountManager::RemoveOsAccount(osAccountInfoTwo.GetLocalId());
 #endif  // ENABLE_ACCOUNT_SHORT_NAME
+    EXPECT_EQ(ERR_OK, OsAccountManager::SetOsAccountName(osAccountInfoOne.GetLocalId(), "updateName"));
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
 }
 
@@ -762,6 +763,29 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount08, TestSize.Level1)
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
     EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_NAME, "..", OsAccountType::NORMAL, osAccountInfoOne),
               ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
+}
+
+/**
+ * @tc.name: CreateOsAccount09
+ * @tc.desc: create os account with short name
+ * @tc.type: FUNC
+ * @tc.require: I8F2PI
+ */
+HWTEST_F(OsAccountInfoTest, CreateOsAccount09, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfoOne;
+    EXPECT_EQ(OsAccountManager::CreateOsAccount("name1", "???", OsAccountType::NORMAL, osAccountInfoOne),
+              ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(OsAccountManager::CreateOsAccount("name2", "***", OsAccountType::NORMAL, osAccountInfoOne),
+              ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(OsAccountManager::CreateOsAccount("name3", "？", OsAccountType::NORMAL, osAccountInfoOne),
+              ERR_OK);
+    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(OsAccountManager::CreateOsAccount("name4", "：", OsAccountType::NORMAL, osAccountInfoOne),
+            ERR_OK);
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
 }
 #endif // ENABLE_ACCOUNT_SHORT_NAME
