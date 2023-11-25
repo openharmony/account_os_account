@@ -42,8 +42,7 @@ private:
 
     std::vector<AppAccountSubscribeRecordPtr> GetSubscribeRecords(const std::string &owner);
     ErrCode OnAccountsChanged(const std::shared_ptr<AppAccountEventRecord> &record);
-    ErrCode GetAccessibleAccountsBySubscribeInfo(const std::shared_ptr<AppAccountInfo> &info,
-        const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr,
+    ErrCode GetAccessibleAccountsBySubscribeInfo(const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr,
         const std::vector<AppAccountInfo> &accessibleAccounts, std::vector<AppAccountInfo> &appAccounts);
 
     ErrCode CheckAppAccess(const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr, const uid_t &uid,

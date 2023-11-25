@@ -20,6 +20,7 @@ services_path = "${os_account_path}/services"
 tools_path = "${os_account_path}/tools"
 innerkits_path = "${os_account_path}/interfaces/innerkits/ohosaccount/native"
 innerkits_native_path = "${os_account_path}/frameworks/ohosaccount/native"
+innerkits_common = "${os_account_path}/interfaces/innerkits/common"
 
 app_account_core_path = "${os_account_path}/frameworks/appaccount/core"
 app_account_extension_path =

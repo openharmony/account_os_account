@@ -39,10 +39,14 @@ public:
     bool IsExistDir(const std::string &path);
     bool GetValidWriteFileOptFlag();
     void SetValidWriteFileOptFlag(bool flag);
+    void SetValidDeleteFileOptFlag(const std::string &fileName, bool flag);
+    bool GetValidDeleteFileOptFlag(const std::string &fileName);
 
 private:
     std::mutex validWriteFileOptLock_;
+    std::mutex validDeleteFileOptLock_;
     bool validWriteFileOptFlag_ = false;
+    std::vector<std::string> validDeleteFileOptFlag_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

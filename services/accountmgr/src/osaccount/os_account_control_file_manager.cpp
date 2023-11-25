@@ -14,6 +14,7 @@
  */
 #include "os_account_control_file_manager.h"
 #include <dirent.h>
+#include <string>
 #ifdef WITH_SELINUX
 #include <policycoreutils.h>
 #endif // WITH_SELINUX
@@ -271,9 +272,9 @@ bool FileWatcher::StartNotify(const uint32_t &watchEvents)
     return true;
 }
 
-bool FileWatcher::CheckNotifyEvent()
+bool FileWatcher::CheckNotifyEvent(uint32_t event)
 {
-    if (!eventCallbackFunc_(filePath_, id_)) {
+    if (!eventCallbackFunc_(filePath_, id_, event)) {
         ACCOUNT_LOGW("deal notify event failed.");
         return false;
     }
@@ -282,7 +283,7 @@ bool FileWatcher::CheckNotifyEvent()
 
 void OsAccountControlFileManager::DealWithFileEvent()
 {
-    std::vector<std::shared_ptr<FileWatcher>> eventMap;
+    std::vector<std::pair<std::shared_ptr<FileWatcher>, uint32_t>> eventMap;
     {
         std::lock_guard<std::mutex> lock(fileWatcherMgrLock_);
         for (int32_t i : fdArray_) {
@@ -294,16 +295,16 @@ void OsAccountControlFileManager::DealWithFileEvent()
                 while (index < len) {
                     event = reinterpret_cast<inotify_event *>(buf + index);
                     std::shared_ptr<FileWatcher> fileWatcher = fileNameMgrMap_[i];
-                    eventMap.emplace_back(fileWatcher);
+                    eventMap.emplace_back(std::make_pair(fileWatcher, event->mask));
                     index += sizeof(struct inotify_event) + event->len;
                 }
             } else {
-                FD_SET(i, &fds_); // recover this fd for next check
+                FD_SET(i, &fds_);
             }
         }
     }
     for (auto it : eventMap) {
-        it->CheckNotifyEvent();
+        it.first->CheckNotifyEvent(it.second);
     }
     return;
 }
@@ -390,7 +391,7 @@ void OsAccountControlFileManager::AddFileWatcher(const int32_t id)
         return;
     }
     SubscribeEventFunction(fileWatcher);
-    if (!fileWatcher->StartNotify(IN_MODIFY)) {
+    if (!fileWatcher->StartNotify(IN_MODIFY | IN_DELETE_SELF| IN_MOVE_SELF)) {
         return;
     }
     std::lock_guard<std::mutex> lock(fileWatcherMgrLock_);
@@ -431,32 +432,80 @@ bool OsAccountControlFileManager::RecoverAccountData(const std::string &fileName
     return true;
 }
 
+bool OsAccountControlFileManager::DealWithFileModifyEvent(const std::string &fileName, const int32_t id)
+{
+    if (accountFileOperator_->GetValidWriteFileOptFlag()) {
+        ACCOUNT_LOGD("this is valid service operate, no need to deal with it.");
+        accountFileOperator_->SetValidWriteFileOptFlag(false);
+        return true;
+    }
+    std::string fileInfoStr;
+    std::lock_guard<std::mutex> lock(accountInfoFileLock_);
+    if (accountFileOperator_->GetFileContentByPath(fileName, fileInfoStr) != ERR_OK) {
+        ACCOUNT_LOGE("get content from file %{public}s failed!", fileName.c_str());
+        return false;
+    }
+    uint8_t localDigestData[ALG_COMMON_SIZE] = {0};
+    GetAccountInfoDigestFromFile(fileName, localDigestData, ALG_COMMON_SIZE);
+    uint8_t newDigestData[ALG_COMMON_SIZE] = {0};
+    GenerateAccountInfoGigest(fileInfoStr, newDigestData, ALG_COMMON_SIZE);
+
+    if (memcmp(localDigestData, newDigestData, ALG_COMMON_SIZE) == EOK) {
+        ACCOUNT_LOGD("No need to recover local file data.");
+        return true;
+    }
+    ACCOUNT_LOGW("local file data has been changed");
+    return RecoverAccountData(fileName, id);
+}
+
+bool OsAccountControlFileManager::DealWithFileDeleteEvent(const std::string &fileName, const int32_t id)
+{
+    ACCOUNT_LOGI("enter");
+    if (accountFileOperator_->GetValidDeleteFileOptFlag(fileName)) {
+        ACCOUNT_LOGD("this is valid service operate, no need to deal with it.");
+        accountFileOperator_->SetValidDeleteFileOptFlag(fileName, false);
+        return true;
+    }
+    std::lock_guard<std::mutex> lock(accountInfoFileLock_);
+    if (!RecoverAccountData(fileName, id)) {
+        ACCOUNT_LOGE("recover account data failed.");
+    }
+    AddFileWatcher(id);
+    return true;
+}
+
+bool OsAccountControlFileManager::DealWithFileMoveEvent(const std::string &fileName, const int32_t id)
+{
+    ACCOUNT_LOGI("enter");
+    // delete old file watcher
+    RemoveFileWatcher(id);
+    std::lock_guard<std::mutex> lock(accountInfoFileLock_);
+    if (!RecoverAccountData(fileName, id)) {
+        ACCOUNT_LOGE("recover account data failed.");
+    }
+    AddFileWatcher(id);
+    return true;
+}
+
 void OsAccountControlFileManager::SubscribeEventFunction(std::shared_ptr<FileWatcher> &fileWatcher)
 {
     CheckNotifyEventCallbackFunc checkCallbackFunc =
-        [this](const std::string &fileName, const int32_t id) {
-            if (accountFileOperator_->GetValidWriteFileOptFlag()) {
-                ACCOUNT_LOGD("this is valid service operate, no need to deal with it.");
-                accountFileOperator_->SetValidWriteFileOptFlag(false);
-                return true;
+        [this](const std::string &fileName, const int32_t id, uint32_t event) {
+            switch (event) {
+                case IN_MODIFY: {
+                    return DealWithFileModifyEvent(fileName, id);
+                }
+                case IN_MOVE_SELF: {
+                    return DealWithFileMoveEvent(fileName, id);
+                }
+                case IN_DELETE_SELF: {
+                    return DealWithFileDeleteEvent(fileName, id);
+                }
+                default: {
+                    ACCOUNT_LOGW("get event invalid!");
+                    return false;
+                }
             }
-            std::string fileInfoStr;
-            std::lock_guard<std::mutex> lock(accountInfoFileLock_);
-            if (accountFileOperator_->GetFileContentByPath(fileName, fileInfoStr) != ERR_OK) {
-                ACCOUNT_LOGE("get content from file %{public}s failed!", fileName.c_str());
-                return false;
-            }
-            uint8_t localDigestData[ALG_COMMON_SIZE] = {0};
-            GetAccountInfoDigestFromFile(fileName, localDigestData, ALG_COMMON_SIZE);
-            uint8_t newDigestData[ALG_COMMON_SIZE] = {0};
-            GenerateAccountInfoGigest(fileInfoStr, newDigestData, ALG_COMMON_SIZE);
-
-            if (memcmp(localDigestData, newDigestData, ALG_COMMON_SIZE) == EOK) {
-                ACCOUNT_LOGD("No need to recover local file data.");
-                return true;
-            }
-            ACCOUNT_LOGW("local file data has been changed");
-            return RecoverAccountData(fileName, id);
         };
     fileWatcher->SetEventCallback(checkCallbackFunc);
     return;
@@ -1151,6 +1200,7 @@ ErrCode OsAccountControlFileManager::DelOsAccount(const int id)
     osAccountInfo.SetLocalId(id);
     UpdateAccountIndex(osAccountInfo, true);
 #endif // ENABLE_ACCOUNT_SHORT_NAME
+    RemoveFileWatcher(id);
     return UpdateAccountList(std::to_string(id), false);
 }
 

@@ -25,7 +25,7 @@ config("os_account_manager_service_test_config") {
     "${services_path}/accountmgr/include/osaccount",
     "${common_path}/log/include",
     "${common_path}/perf_stat/include",
-    "${common_path}/account_error/include",
+    "${innerkits_common}/include",
     "${innerkits_path}/include",
     "//third_party/json/include",
   ]
@@ -43,7 +43,7 @@ ohos_moduletest("inner_os_account_manager_test") {
     "${services_path}/accountmgr/include/osaccount",
     "${common_path}/log/include",
     "${common_path}/perf_stat/include",
-    "${common_path}/account_error/include",
+    "${innerkits_common}/include",
     "${innerkits_path}/include",
   ]
 
@@ -115,7 +115,7 @@ config("os_account_manager_service_create_os_account_test_config") {
     "${services_path}/accountmgr/include/osaccount",
     "${common_path}/log/include",
     "${common_path}/perf_stat/include",
-    "${common_path}/account_error/include",
+    "${innerkits_common}/include",
     "${innerkits_path}/include",
     "//third_party/json/include",
   ]
@@ -159,7 +159,7 @@ config("os_account_manager_service_subscribe_test_config") {
     "${services_path}/accountmgr/include/osaccount",
     "${common_path}/log/include",
     "${common_path}/perf_stat/include",
-    "${common_path}/account_error/include",
+    "${innerkits_common}/include",
     "${innerkits_path}/include",
     "${account_iam_interfaces_native_path}/include",
     "${account_iam_framework_path}/test/unittest/include",
@@ -318,7 +318,7 @@ config("os_account_photo_operator_test_config") {
     "${services_path}/accountmgr/include/osaccount",
     "${common_path}/log/include",
     "${common_path}/perf_stat/include",
-    "${common_path}/account_error/include",
+    "${innerkits_common}/include",
     "${innerkits_path}/include",
     "//third_party/json/include",
   ]

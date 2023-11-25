@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "account_file_operator.h"
+#include <algorithm>
 #include <cerrno>
 #include <cstdio>
 #include <fstream>
@@ -57,7 +58,9 @@ ErrCode AccountFileOperator::CreateDir(const std::string &path)
 
 ErrCode AccountFileOperator::DeleteDirOrFile(const std::string &path)
 {
+    std::lock_guard<std::mutex> lock(validDeleteFileOptLock_);
     bool delFlag = false;
+    validDeleteFileOptFlag_.emplace_back(path);
     if (IsExistFile(path)) {
         delFlag = OHOS::RemoveFile(path);
     }
@@ -67,9 +70,32 @@ ErrCode AccountFileOperator::DeleteDirOrFile(const std::string &path)
     if (!delFlag) {
         ACCOUNT_LOGE("DeleteDirOrFile failed, path %{public}s errno %{public}d.", path.c_str(), errno);
         return ERR_OSACCOUNT_SERVICE_FILE_DELE_ERROR;
+        validDeleteFileOptFlag_.erase(std::remove(validDeleteFileOptFlag_.begin(), validDeleteFileOptFlag_.end(), path),
+            validDeleteFileOptFlag_.end());
     }
-
     return ERR_OK;
+}
+
+void AccountFileOperator::SetValidDeleteFileOptFlag(const std::string &fileName, bool flag)
+{
+    std::lock_guard<std::mutex> lock(validDeleteFileOptLock_);
+    if (flag) {
+        validDeleteFileOptFlag_.emplace_back(fileName);
+        return;
+    }
+    validDeleteFileOptFlag_.erase(std::remove(validDeleteFileOptFlag_.begin(), validDeleteFileOptFlag_.end(), fileName),
+        validDeleteFileOptFlag_.end());
+}
+
+bool AccountFileOperator::GetValidDeleteFileOptFlag(const std::string &fileName)
+{
+    std::lock_guard<std::mutex> lock(validDeleteFileOptLock_);
+    for (const auto &iter : validDeleteFileOptFlag_) {
+        if (fileName.find(iter) != std::string::npos) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void AccountFileOperator::SetValidWriteFileOptFlag(bool flag)

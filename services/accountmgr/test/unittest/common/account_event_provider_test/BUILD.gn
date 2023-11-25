@@ -24,7 +24,7 @@ config("accountmgr_event_provider_test_config") {
     "${app_account_interfaces_native_path}/include",
     "${common_path}/log/include",
     "${common_path}/perf_stat/include",
-    "${common_path}/account_error/include",
+    "${innerkits_common}/include",
     "${domain_account_interfaces_native_path}/include",
     "${os_account_dfx_path}/hitrace_adapter",
     "${services_path}/accountmgr/include",

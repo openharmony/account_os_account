@@ -204,9 +204,16 @@ int32_t InnerAccountIAMManager::AuthUser(
         ACCOUNT_LOGE("unsupported auth type: %{public}d", authParam.authType);
         return ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE;
     }
-    auto userAuthCallback = std::make_shared<AuthCallback>(userId, authParam.authType, callback);
+    sptr<AuthCallbackDeathRecipient> deathRecipient = new (std::nothrow) AuthCallbackDeathRecipient();
+    if ((deathRecipient == nullptr) || (!callback->AsObject()->AddDeathRecipient(deathRecipient))) {
+        ACCOUNT_LOGE("failed to add death recipient for auth callback");
+        return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
+    }
+    auto callbackWrapper = std::make_shared<AuthCallback>(userId, authParam.authType, callback);
+    callbackWrapper->SetDeathRecipient(deathRecipient);
     contextId = UserAuthClient::GetInstance().BeginAuthentication(
-        userId, authParam.challenge, authParam.authType, authParam.authTrustLevel, userAuthCallback);
+        userId, authParam.challenge, authParam.authType, authParam.authTrustLevel, callbackWrapper);
+    deathRecipient->SetContextId(contextId);
     return ERR_OK;
 }
 
