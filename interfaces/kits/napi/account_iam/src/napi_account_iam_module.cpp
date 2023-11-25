@@ -18,8 +18,10 @@
 #include "account_log_wrapper.h"
 #include "napi_account_iam_constant.h"
 #include "napi_account_iam_identity_manager.h"
+#ifdef HAS_PIN_AUTH_PART
 #include "napi_account_iam_inputer_manager.h"
 #include "napi_account_iam_pin_auth.h"
+#endif
 #include "napi_account_iam_user_auth.h"
 
 namespace OHOS {
@@ -28,11 +30,13 @@ using namespace OHOS::AccountSA;
 
 napi_value AccountIAMInit(napi_env env, napi_value exports)
 {
+#ifdef HAS_PIN_AUTH_PART
     NapiAccountIAMPINAuth::Init(env, exports);
+    NapiAccountIAMInputerManager::Init(env, exports);
+#endif
     NapiAccountIAMIdentityManager::Init(env, exports);
     NapiAccountIAMUserAuth::Init(env, exports);
     NapiAccountIAMConstant::Init(env, exports);
-    NapiAccountIAMInputerManager::Init(env, exports);
     return exports;
 }
 }  // namespace AccountJsKit

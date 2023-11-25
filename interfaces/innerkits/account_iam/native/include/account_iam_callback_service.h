@@ -65,6 +65,7 @@ private:
     std::shared_ptr<IDMCallback> callback_;
 };
 
+#ifdef HAS_PIN_AUTH_PART
 class DomainCredentialRecipient : public IInputerData {
 public:
     DomainCredentialRecipient(int32_t userId, const std::shared_ptr<IDMCallback> &callback);
@@ -101,6 +102,7 @@ private:
     std::shared_ptr<IInputer> innerInputer_ = nullptr;
     std::shared_ptr<IAMInputerData> inputerData_ = nullptr;
 };
+#endif
 }  // namespace AccountSA
 }  // namespace OHOS
 #endif  // OS_ACCOUNT_INTERFACES_INNERKITS_ACCOUNT_IAM_NATIVE_INCLUDE_ACCOUNT_IAM_CALLBACK_SERVICE_H

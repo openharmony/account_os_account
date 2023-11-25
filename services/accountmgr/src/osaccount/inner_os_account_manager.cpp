@@ -369,6 +369,28 @@ ErrCode IInnerOsAccountManager::CreateOsAccountWithFullInfo(OsAccountInfo &osAcc
     return errCode;
 }
 
+ErrCode IInnerOsAccountManager::UpdateAccountStatusForDomain(const int id, DomainAccountStatus status)
+{
+    OsAccountInfo accountInfo;
+    DomainAccountInfo domainInfo;
+    ErrCode errCode = GetOsAccountInfoById(id, accountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("get os account info failed, errCode: %{public}d", errCode);
+        return errCode;
+    }
+    accountInfo.GetDomainInfo(domainInfo);
+    domainInfo.status_ = status;
+    accountInfo.SetDomainInfo(domainInfo);
+
+    errCode = osAccountControl_->UpdateOsAccount(accountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("update osaccount info error %{public}d, id: %{public}d",
+            errCode, accountInfo.GetLocalId());
+        return errCode;
+    }
+    return ERR_OK;
+}
+
 ErrCode IInnerOsAccountManager::UpdateOsAccountWithFullInfo(OsAccountInfo &newInfo)
 {
     int32_t localId = newInfo.GetLocalId();
@@ -1081,15 +1103,6 @@ ErrCode IInnerOsAccountManager::QueryOsAccountById(const int id, OsAccountInfo &
         }
         osAccountInfo.SetPhoto(photo);
     }
-
-    DomainAccountInfo domainInfo;
-    osAccountInfo.GetDomainInfo(domainInfo);
-    errCode = InnerDomainAccountManager::GetInstance().GetAccountStatus(domainInfo, domainInfo.status_);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGI("GetAccountStatus errCode %{public}d.", errCode);
-        domainInfo.status_ = DomainAccountStatus::LOGOUT;
-    }
-    (void)osAccountInfo.SetDomainInfo(domainInfo);
     return ERR_OK;
 }
 

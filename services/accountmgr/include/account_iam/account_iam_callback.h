@@ -21,9 +21,22 @@
 #include "account_iam_info.h"
 #include "domain_account_callback.h"
 #include "iaccount_iam_callback.h"
+#include "iremote_object.h"
 
 namespace OHOS {
 namespace AccountSA {
+class AuthCallbackDeathRecipient : public IRemoteObject::DeathRecipient {
+public:
+    AuthCallbackDeathRecipient() = default;
+    ~AuthCallbackDeathRecipient() override = default;
+
+    void SetContextId(uint16_t context);
+    void OnRemoteDied(const wptr<IRemoteObject> &remote) override;
+
+private:
+    uint64_t contextId_ = 0;
+};
+
 class RestoreFileKeyCallback : public UserIam::UserAuth::GetSecUserInfoCallback {
 public:
     RestoreFileKeyCallback(uint32_t userId, const Attributes& attributes);
@@ -41,6 +54,7 @@ public:
     AuthCallback(uint32_t userId, AuthType authType, const sptr<IIDMCallback> &callback);
     virtual ~AuthCallback() = default;
 
+    void SetDeathRecipient(const sptr<AuthCallbackDeathRecipient> &deathRecipient);
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override;
     void OnResult(int32_t result, const Attributes &extraInfo) override;
 
@@ -51,6 +65,7 @@ private:
     uint32_t userId_;
     AuthType authType_;
     sptr<IIDMCallback> innerCallback_ = nullptr;
+    sptr<AuthCallbackDeathRecipient> deathRecipient_ = nullptr;
     bool isAccountVerified_ = false;
 };
 

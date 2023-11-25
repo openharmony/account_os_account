@@ -202,6 +202,6 @@ HWTEST_F(AppAccountSubscribeManagerTest, GetAccessibleAccountsBySubscribeInfo_01
     std::vector<AppAccountInfo> accessibleAccounts;
     std::vector<AppAccountInfo> appAccounts;
     ErrCode ret = AppAccountSubscribeManager::GetInstance().
-        GetAccessibleAccountsBySubscribeInfo(nullptr, nullptr, accessibleAccounts, appAccounts);
+        GetAccessibleAccountsBySubscribeInfo(nullptr, accessibleAccounts, appAccounts);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }

@@ -105,7 +105,7 @@
         "OHOS::AccountSA::AppAccountControlManager::GetInstance()";
         "OHOS::AccountSA::AppAccountSubscribeManager::AppAccountSubscribeManager()";
         "OHOS::AccountSA::AppAccountSubscribeManager::CheckAppAccess(std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscribeInfo> const&, unsigned int const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int const&)";
-        "OHOS::AccountSA::AppAccountSubscribeManager::GetAccessibleAccountsBySubscribeInfo(std::__h::shared_ptr<OHOS::AccountSA::AppAccountInfo> const&, std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscribeInfo> const&, std::__h::vector<OHOS::AccountSA::AppAccountInfo, std::__h::allocator<OHOS::AccountSA::AppAccountInfo>> const&, std::__h::vector<OHOS::AccountSA::AppAccountInfo, std::__h::allocator<OHOS::AccountSA::AppAccountInfo>>&)";
+        "OHOS::AccountSA::AppAccountSubscribeManager::GetAccessibleAccountsBySubscribeInfo(std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscribeInfo> const&, std::__h::vector<OHOS::AccountSA::AppAccountInfo, std::__h::allocator<OHOS::AccountSA::AppAccountInfo>> const&, std::__h::vector<OHOS::AccountSA::AppAccountInfo, std::__h::allocator<OHOS::AccountSA::AppAccountInfo>>&)";
         "OHOS::AccountSA::AppAccountSubscribeManager::GetInstance()";
         "OHOS::AccountSA::AppAccountSubscribeManager::InsertSubscribeRecord(std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&, std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscribeRecord> const&)";
         "OHOS::AccountSA::AppAccountSubscribeManager::RemoveSubscribeRecord(OHOS::sptr<OHOS::IRemoteObject> const&)";
@@ -122,6 +122,7 @@
         "OHOS::AccountSA::AccountHelperData::GetBundleNameTrustList()";
         "OHOS::AccountSA::IDMAuthCallback::IDMAuthCallback(unsigned int, OHOS::UserIam::UserAuth::CredentialParameters const&, int, OHOS::UserIam::UserAuth::Attributes const&, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
         "OHOS::AccountSA::IInnerOsAccountManager::CheckAndAddLocalIdOperating(int)";
+        "OHOS::AccountSA::IInnerOsAccountManager::UpdateAccountStatusForDomain(int, OHOS::AccountSA::DomainAccountStatus)";
         "OHOS::AccountSA::IInnerOsAccountManager::CleanGarbageAccounts()";
         "OHOS::AccountSA::IInnerOsAccountManager::CreateBaseAdminAccount()";
         "OHOS::AccountSA::IInnerOsAccountManager::CreateBaseStandardAccount()";
