@@ -199,11 +199,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest005
     ErrCode errCode = osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, OsAccountType::ADMIN,
         osAccountInfoOne);
     EXPECT_EQ(errCode, ERR_OK);
+    errCode = osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(errCode, ERR_OK);
     errCode = osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, OsAccountType::END,
         osAccountInfoOne);
     EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    errCode = osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId());
-    EXPECT_EQ(errCode, ERR_OK);
+    osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId());
 }
 
 /**
@@ -237,6 +238,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest007
     OsAccountInfo osAccountInfoOne;
     ErrCode errCode = osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
     EXPECT_EQ(errCode, ERR_OK);
+    osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId());
 
     // restore file content
     g_accountFileOperator->InputFileByPathAndContent(Constants::ACCOUNT_LIST_FILE_JSON_PATH, fileContext);
@@ -2185,6 +2187,8 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest125
     setuid(3057);
     EXPECT_EQ(ERR_OK,
         osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfo));
+    setuid(ROOT_UID);
+    EXPECT_EQ(ERR_OK, osAccountManagerService_->RemoveOsAccount(osAccountInfo.GetLocalId()));
 }
 
 /**

@@ -179,7 +179,8 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     sptr<IRemoteObject> osAccountEventListener = nullptr;
 
     OsAccountInfo osAccountInfo;
-    ErrCode result = osAccountManagerService_->CreateOsAccount("test", OsAccountType::GUEST, osAccountInfo);
+    ErrCode result = osAccountManagerService_->CreateOsAccount(
+        "OsAccountManagerServiceSubscribeModuleTest_0001", OsAccountType::GUEST, osAccountInfo);
     EXPECT_EQ(result, ERR_OK);
     subscriberTestPtr->id_ = osAccountInfo.GetLocalId();
     ErrCode subscribeState = OsAccount::GetInstance().CreateOsAccountEventListener(
@@ -228,7 +229,8 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     auto subscriberTestPtr = std::make_shared<MockOsAccountSubscriberTest>(osAccountSubscribeInfo);
     // create a osAccount
     OsAccountInfo osAccountInfo;
-    ErrCode result = OsAccount::GetInstance().CreateOsAccount("test", OsAccountType::GUEST, osAccountInfo);
+    ErrCode result = OsAccount::GetInstance().CreateOsAccount(
+        "OsAccountManagerServiceSubscribeModuleTest_0002", OsAccountType::GUEST, osAccountInfo);
     const int id = osAccountInfo.GetLocalId();
     EXPECT_CALL(*subscriberTestPtr, OnAccountsChanged(id)).Times(Exactly(1));
     //subscribe
@@ -268,7 +270,8 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     auto subscriberTestPtr = std::make_shared<MockOsAccountSubscriberTest>(osAccountSubscribeInfo);
     OsAccountInfo osAccountInfo;
     //create osAccount
-    ErrCode result = OsAccount::GetInstance().CreateOsAccount("test", OsAccountType::GUEST, osAccountInfo);
+    ErrCode result = OsAccount::GetInstance().CreateOsAccount(
+        "OsAccountManagerServiceSubscribeModuleTest_0003", OsAccountType::GUEST, osAccountInfo);
     EXPECT_EQ(result, ERR_OK);
     const int id = osAccountInfo.GetLocalId();
     EXPECT_CALL(*subscriberTestPtr, OnAccountsChanged(id)).Times(Exactly(1));
@@ -326,7 +329,8 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     //create osAccount
     EXPECT_CALL(*subscriberTestPtr, OnAccountsChanged(_)).Times(Exactly(1));
     OsAccountInfo osAccountInfo;
-    result = OsAccount::GetInstance().CreateOsAccount("test", OsAccountType::GUEST, osAccountInfo);
+    result = OsAccount::GetInstance().CreateOsAccount(
+        "OsAccountManagerServiceSubscribeModuleTest_0004", OsAccountType::GUEST, osAccountInfo);
     const int id = osAccountInfo.GetLocalId();
     //unsubscribe
     result = OsAccount::GetInstance().RemoveOsAccount(id);
@@ -355,7 +359,8 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     EXPECT_EQ(result, ERR_OK);
     //create osAccount
     OsAccountInfo osAccountInfo;
-    result = OsAccount::GetInstance().CreateOsAccount("test", OsAccountType::GUEST, osAccountInfo);
+    result = OsAccount::GetInstance().CreateOsAccount(
+        "OsAccountManagerServiceSubscribeModuleTest_0005", OsAccountType::GUEST, osAccountInfo);
     const int id = osAccountInfo.GetLocalId();
     EXPECT_CALL(*subscriberTestPtr, OnAccountsChanged(id)).Times(Exactly(1));
     //unsubscribe
