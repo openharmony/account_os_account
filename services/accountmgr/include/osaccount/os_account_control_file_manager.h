@@ -118,7 +118,7 @@ private:
     int GetNextLocalId(const std::vector<std::string> &accountIdList);
     ErrCode UpdateAccountList(const std::string &idStr, bool isAdd);
     ErrCode GetAccountListFromFile(Json& accountListJson);
-    ErrCode CreateAccountIndexInfo(std::string &accountIndexInfo);
+    ErrCode GetAccountIndexInfo(std::string &accountIndexInfo);
     ErrCode SaveAccountListToFile(const Json& accountListJson);
     ErrCode SaveAccountListToFileAndDataBase(const Json& accountListJson);
     void BuildAndSaveAccountListJsonFile(const std::vector<std::string>& accounts);
