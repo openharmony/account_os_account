@@ -467,6 +467,8 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
         STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME, 0);
     EXPECT_EQ(result, ERR_OK);
 
+    Wait();
+
     // unsubscribe app account
     result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
@@ -534,6 +536,8 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     result = appAccountManagerServicePtr_->innerManager_->SetAccountExtraInfo(STRING_NAME,
         STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME, 0);
     EXPECT_EQ(result, ERR_OK);
+
+    Wait();
 
     // unsubscribe app account
     result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener);

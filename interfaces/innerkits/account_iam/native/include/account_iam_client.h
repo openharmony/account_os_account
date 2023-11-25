@@ -197,6 +197,7 @@ public:
     void SetProperty(
         int32_t userId, const SetPropertyRequest &request, const std::shared_ptr<GetSetPropCallback> &callback);
 
+#ifdef HAS_PIN_AUTH_PART
     /**
      * @brief Registers inputer.
      * @permission ohos.permission.ACCESS_PIN_AUTH
@@ -228,6 +229,7 @@ public:
      * @return error code, see account_error_no.h
      */
     ErrCode UnregisterInputer(int32_t authType);
+#endif
 
     /**
      * @brief Gets the state of the specified account.
@@ -287,8 +289,10 @@ private:
     void ResetAccountIAMProxy(const wptr<IRemoteObject>& remote);
     bool GetCurrentUserId(int32_t &userId);
     uint64_t StartDomainAuth(int32_t userId, const std::shared_ptr<IDMCallback> &callback);
+#ifdef HAS_PIN_AUTH_PART
     ErrCode RegisterDomainInputer(const std::shared_ptr<IInputer> &inputer);
     ErrCode UnregisterDomainInputer();
+#endif
     bool CheckSelfPermission(const std::string &permissionName);
 
 private:
@@ -298,8 +302,10 @@ private:
     std::map<int32_t, CredentialItem> credentialMap_;
     sptr<IAccountIAM> proxy_ = nullptr;
     sptr<AccountIAMDeathRecipient> deathRecipient_ = nullptr;
+#ifdef HAS_PIN_AUTH_PART
     std::shared_ptr<IInputer> pinInputer_ = nullptr;
     std::shared_ptr<IInputer> domainInputer_ = nullptr;
+#endif
 };
 }  // namespace AccountSA
 }  // namespace OHOS

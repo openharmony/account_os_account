@@ -46,7 +46,9 @@ const std::string PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS = "ohos.permission.MANA
 const std::string PERMISSION_GET_DISTRIBUTED_ACCOUNTS = "ohos.permission.GET_DISTRIBUTED_ACCOUNTS";
 const std::string PERMISSION_DISTRIBUTED_DATASYNC = "ohos.permission.DISTRIBUTED_DATASYNC";
 const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
+#ifndef IS_RELEASE_VERSION
 constexpr std::int32_t ROOT_UID = 0;
+#endif
 constexpr std::int32_t INVALID_USERID = -1;
 constexpr std::int32_t DLP_UID = 3019;
 constexpr std::int32_t DLP_CREDENTIAL_SA_UID = 3553;
@@ -451,11 +453,13 @@ std::int32_t AccountStub::OnRemoteRequest(
 
 bool AccountStub::HasAccountRequestPermission(const std::string &permissionName)
 {
-    // check root
     std::int32_t uid = IPCSkeleton::GetCallingUid();
+#ifndef IS_RELEASE_VERSION
+    // root check in none release version for test
     if (uid == ROOT_UID) {
         return true;
     }
+#endif
 
     // check permission
     Security::AccessToken::AccessTokenID callingTokenID = IPCSkeleton::GetCallingTokenID();
