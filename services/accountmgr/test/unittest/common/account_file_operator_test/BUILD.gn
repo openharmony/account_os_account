@@ -30,6 +30,14 @@ config("account_file_operator_test_config") {
 }
 
 ohos_unittest("AccountFileOperatorTest") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   sources = [ "account_file_operator_test.cpp" ]

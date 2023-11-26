@@ -52,6 +52,14 @@ config("app_account_innerkits_public_config") {
 }
 
 ohos_shared_library("app_account_innerkits") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   sources = [
     "${ability_runtime_path}/frameworks/native/ability/native/ability_business_error/ability_business_error.cpp",
     "src/app_account.cpp",

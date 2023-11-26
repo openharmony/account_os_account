@@ -34,6 +34,14 @@ config("account_napi_common_config") {
 }
 
 ohos_shared_library("account_napi_common") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   include_dirs = []
   configs = [ ":account_napi_common_config" ]
   public_configs = [ ":account_napi_common_config" ]

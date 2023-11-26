@@ -41,6 +41,14 @@ config("app_account_service_config_unittest") {
 }
 
 ohos_unittest("app_account_data_storage_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   sources = [
@@ -83,6 +91,14 @@ ohos_unittest("app_account_data_storage_test") {
 }
 
 ohos_unittest("app_account_info_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   sources = [ "app_account_info_test.cpp" ]
@@ -103,6 +119,14 @@ ohos_unittest("app_account_info_test") {
 }
 
 ohos_unittest("app_account_manager_service_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
   cflags_cc = []
   sources = [
@@ -149,6 +173,14 @@ ohos_unittest("app_account_manager_service_test") {
 }
 
 ohos_unittest("app_account_stub_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
   cflags_cc = []
   sources = [
@@ -192,6 +224,14 @@ ohos_unittest("app_account_stub_test") {
 }
 
 ohos_unittest("app_account_subscribe_info_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   sources = [ "app_account_subscribe_info_test.cpp" ]
@@ -212,6 +252,14 @@ ohos_unittest("app_account_subscribe_info_test") {
 }
 
 ohos_unittest("app_account_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   sources = [
