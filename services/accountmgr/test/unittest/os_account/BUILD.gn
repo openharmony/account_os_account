@@ -30,6 +30,14 @@ config("os_account_control_file_manager_test_config") {
 }
 
 ohos_unittest("OsAccountControlFileManagerTest") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   sources = [ "os_account_control_file_manager_test.cpp" ]
@@ -70,6 +78,14 @@ config("os_account_data_storage_test_config") {
 }
 
 ohos_unittest("OsAccountDataStorageTest") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   sources = [ "os_account_data_storage_test.cpp" ]
@@ -95,6 +111,14 @@ ohos_unittest("OsAccountDataStorageTest") {
 }
 
 ohos_unittest("os_account_domain_account_callback_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   sources = [
@@ -140,6 +164,14 @@ config("os_account_subscribe_death_recipient_test_config") {
 }
 
 ohos_unittest("OsAccountSubscribeDeathRecipientTest") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   sources = [
@@ -187,6 +219,14 @@ config("os_account_amgr_test_config") {
 }
 
 ohos_unittest("OsAccountInnerAccmgrCovTest") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   cflags_cc = []
   module_out_path = module_output_path
 
@@ -243,6 +283,15 @@ config("os_account_amgr_mock_config") {
 }
 
 ohos_unittest("OsAccountInnerAccmgrMockTest") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "${os_account_path}/cfi_blocklist.txt"
+  }
+
   module_out_path = module_output_path
 
   sources = [
@@ -284,6 +333,15 @@ ohos_unittest("OsAccountInnerAccmgrMockTest") {
 }
 
 ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "${os_account_path}/cfi_blocklist.txt"
+  }
+
   module_out_path = module_output_path
   include_dirs = [
     "${os_account_dfx_path}/hidumper_adapter",

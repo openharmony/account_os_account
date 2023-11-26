@@ -29,6 +29,14 @@ bundle_manager_sources = [
 ]
 
 ohos_unittest("account_mgr_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
   cflags_cc = []
   include_dirs = [ "${account_iam_interfaces_native_path}/include" ]
@@ -109,6 +117,14 @@ ohos_unittest("account_mgr_test") {
 }
 
 ohos_unittest("account_stub_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
   cflags_cc = []
   include_dirs = [

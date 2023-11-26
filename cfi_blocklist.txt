@@ -1,0 +1,7 @@
+src:*/third_party/googletest/googletest/include/gtest/internal/gtest-port.h
+src:*/third_party/googletest/googlemock/include/gmock/gmock-cardinalities.h
+src:*/foundation/communication/ipc/interfaces/innerkits/ipc_core/include/iremote_broker.h
+src:*/commonlibrary/c_utils/base/include/refbase.h
+src:*/base/security/access_token/interfaces/innerkits/token_setproc/src/token_setproc.c
+src:*/base/security/access_token/interfaces/innerkits/token_setproc/include/token_setproc.h
+src:*/base/account/os_account/services/accountmgr/src/osaccount/os_account_control_file_manager.cpp

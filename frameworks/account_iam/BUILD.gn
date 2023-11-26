@@ -43,6 +43,14 @@ config("account_iam_innerkits_public_config") {
 }
 
 ohos_shared_library("account_iam_innerkits") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   sources = [
     "${account_iam_framework_path}/src/account_iam_callback_service.cpp",
     "${account_iam_framework_path}/src/account_iam_callback_stub.cpp",

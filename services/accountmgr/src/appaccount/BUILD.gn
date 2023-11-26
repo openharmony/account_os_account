@@ -34,6 +34,14 @@ config("app_account_service_core_public_config") {
 }
 
 ohos_shared_library("app_account_service_core") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   sources = [
     "app_account_event_proxy.cpp",
     "app_account_stub.cpp",

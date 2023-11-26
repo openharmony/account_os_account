@@ -17,6 +17,14 @@ import("../../../../os_account.gni")
 module_output_path = "os_account/tools"
 
 ohos_unittest("account_command_create_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   include_dirs = []
@@ -51,6 +59,14 @@ ohos_unittest("account_command_create_test") {
 }
 
 ohos_unittest("account_command_delete_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   include_dirs = []
@@ -85,6 +101,14 @@ ohos_unittest("account_command_delete_test") {
 }
 
 ohos_unittest("account_command_dump_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   include_dirs = []
@@ -119,6 +143,14 @@ ohos_unittest("account_command_dump_test") {
 }
 
 ohos_unittest("account_command_set_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   include_dirs = []
@@ -153,6 +185,14 @@ ohos_unittest("account_command_set_test") {
 }
 
 ohos_unittest("account_command_switch_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   include_dirs = []
@@ -187,6 +227,14 @@ ohos_unittest("account_command_switch_test") {
 }
 
 ohos_unittest("account_command_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   include_dirs = []
