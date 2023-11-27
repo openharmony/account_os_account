@@ -350,5 +350,6 @@ HWTEST_F(AccountCommandTest, Acm_Command_1500, TestSize.Level1)
 
     AccountCommand cmd(argc, argv);
     EXPECT_EQ(cmd.ExecCommand(), STRING_STOP_OS_ACCOUNT_OK + "\n");
+    OsAccount::GetInstance().RemoveOsAccount(osAccountInfo.GetLocalId());
 }
 #endif
