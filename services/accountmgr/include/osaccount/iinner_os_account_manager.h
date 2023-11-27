@@ -120,6 +120,7 @@ private:
         const DomainAccountInfo &domainAccount, OsAccountInfo &osAccountInfo);
     ErrCode FillOsAccountInfo(const std::string &localName, const std::string &shortName, const OsAccountType &type,
         const DomainAccountInfo &domainAccount, OsAccountInfo &osAccountInfo);
+    void RebuildShortName(std::string &shortName);
     ErrCode PrepareOsAccountInfoWithFullInfo(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountActivate(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountDeactivate(OsAccountInfo &osAccountInfo);
@@ -131,6 +132,7 @@ private:
     void CleanGarbageAccounts();
     ErrCode DealWithDeviceOwnerId(const bool isDeviceOwner, const int32_t localId);
     void CheckAndRefreshLocalIdRecord(const int id);
+    ErrCode ValidateShortName(const std::string &shortName);
 
     // operations for active list
     void PushIdIntoActiveList(int32_t id);

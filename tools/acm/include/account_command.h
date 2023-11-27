@@ -115,6 +115,7 @@ private:
 
     ErrCode RunAsHelpCommand(void);
     ErrCode RunAsCreateCommand(void);
+    void RebuildShortName(std::string &shortName);
     ErrCode RunAsDeleteCommand(void);
     ErrCode RunAsSwitchCommand(void);
     ErrCode RunAsDeactivateCommand(void);

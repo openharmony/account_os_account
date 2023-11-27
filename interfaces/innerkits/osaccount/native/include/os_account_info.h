@@ -42,6 +42,7 @@ struct ConstraintSourceTypeInfo {
 
 struct CreateOsAccountOptions: public Parcelable {
     std::vector<std::string> disallowedHapList = {};
+    bool isValidateShortName = true;
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
     static CreateOsAccountOptions *Unmarshalling(Parcel &parcel);

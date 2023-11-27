@@ -44,6 +44,8 @@ static const std::string SWITCH_COMMAND = "switch";
 static const std::string DUMP_COMMAND = "dump";
 static const std::string SET_COMMAND = "set";
 static const std::string CREATE_COMMAND = "create";
+static const std::string SPECIAL_CHARACTER_ARRAY = "<>|\":*?/\\";
+static const std::vector<std::string> SHORT_NAME_CANNOT_BE_NAME_ARRAY = {".", ".."};
 
 }  // namespace
 
@@ -153,7 +155,10 @@ ErrCode AccountCommand::RunAsCreateCommand(void)
         OsAccountInfo osAccountInfo;
 
         // create an os account
-        result = OsAccount::GetInstance().CreateOsAccount(name, name, osAccountType, osAccountInfo, options);
+        std::string shortName = name;
+        RebuildShortName(shortName);
+
+        result = OsAccount::GetInstance().CreateOsAccount(name, shortName, osAccountType, osAccountInfo, options);
         switch (result) {
             case ERR_OK:
                 resultReceiver_ = STRING_CREATE_OS_ACCOUNT_OK + "\n";
@@ -168,6 +173,28 @@ ErrCode AccountCommand::RunAsCreateCommand(void)
 
     ACCOUNT_LOGD("result = %{public}d, name = %{public}s, type = %{public}d", result, name.c_str(), osAccountType);
     return result;
+}
+
+void AccountCommand::RebuildShortName(std::string &shortName)
+{
+    for (size_t i = 0; i < SPECIAL_CHARACTER_ARRAY.size(); i++) {
+        int position = shortName.find(SPECIAL_CHARACTER_ARRAY[i]);
+        while (position > 0) {
+            shortName = shortName.replace(position, 1, std::to_string(i));
+            position = shortName.find(SPECIAL_CHARACTER_ARRAY[i]);
+        }
+    }
+
+    if (shortName.size() > Constants::SHORT_NAME_MAX_SIZE) {
+        shortName = shortName.substr(0, Constants::SHORT_NAME_MAX_SIZE);
+    }
+
+    for (size_t i = 0; i < SHORT_NAME_CANNOT_BE_NAME_ARRAY.size(); i++) {
+        if (shortName == SHORT_NAME_CANNOT_BE_NAME_ARRAY[i]) {
+            shortName = Constants::STANDARD_LOCAL_NAME + std::to_string(i);
+            break;
+        }
+    }
 }
 
 ErrCode AccountCommand::RunAsDeleteCommand(void)
