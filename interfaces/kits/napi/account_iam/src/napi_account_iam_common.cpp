@@ -133,7 +133,7 @@ void NapiIDMCallback::OnResult(int32_t result, const Attributes &extraInfo)
     param->callback = callback_;
     work->data = reinterpret_cast<void *>(param.get());
     NAPI_CALL_RETURN_VOID(env_, uv_queue_work_with_qos(
-        loop, work.get(), [] (uv_work_t *work) {}, OnIDMResultWork, uv_qos_default));
+        loop, work.get(), [] (uv_work_t *work) {}, OnIDMResultWork, uv_qos_user_initiated));
     ACCOUNT_LOGI("create idm result work finish");
     callback_.onResult = nullptr;
     work.release();
@@ -174,7 +174,7 @@ void NapiIDMCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const 
     extraInfo.GetUint8ArrayValue(Attributes::AttributeKey::ATTR_EXTRA_INFO, param->extraInfo);
     work->data = reinterpret_cast<void *>(param.get());
     NAPI_CALL_RETURN_VOID(env_, uv_queue_work_with_qos(
-        loop, work.get(), [] (uv_work_t *work) { }, OnAcquireInfoWork, uv_qos_default));
+        loop, work.get(), [] (uv_work_t *work) { }, OnAcquireInfoWork, uv_qos_user_initiated));
     ACCOUNT_LOGI("create acquire info work finish");
     work.release();
     param.release();
@@ -717,7 +717,7 @@ void NapiSetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attr
     context->result = result;
     work->data = reinterpret_cast<void *>(context.get());
     ErrCode ret = uv_queue_work_with_qos(
-        loop, work.get(), [] (uv_work_t *work) {}, OnSetPropertyWork, uv_qos_default);
+        loop, work.get(), [] (uv_work_t *work) {}, OnSetPropertyWork, uv_qos_user_initiated);
     ACCOUNT_LOGI("create set property work finish");
     if (ret != ERR_OK) {
         context->callbackRef = nullptr;
