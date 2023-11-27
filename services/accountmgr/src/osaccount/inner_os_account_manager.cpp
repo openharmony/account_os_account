@@ -40,6 +40,8 @@ const std::string CONSTRAINT_CREATE_ACCOUNT_DIRECTLY = "constraint.os.account.cr
 const std::string ACCOUNT_READY_EVENT = "bootevent.account.ready";
 const char WATCH_START_USER[] = "watch.start.user";
 constexpr std::int32_t DELAY_FOR_ACCOUNT_BOOT_EVENT_READY = 5000;
+const std::string SPECIAL_CHARACTER_ARRAY = "<>|\":*?/\\";
+const std::vector<std::string> SHORT_NAME_CANNOT_BE_NAME_ARRAY = {".", ".."};
 }
 
 IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManager_(OsAccountSubscribeManager::GetInstance())
@@ -245,6 +247,7 @@ ErrCode IInnerOsAccountManager::FillOsAccountInfo(const std::string &localName, 
         ACCOUNT_LOGE("failed to GetConstraintsByType, errCode %{public}d.", errCode);
         return errCode;
     }
+
     osAccountInfo = OsAccountInfo(id, localName, shortName, type, serialNumber);
     osAccountInfo.SetConstraints(constraints);
     int64_t time =
@@ -255,6 +258,28 @@ ErrCode IInnerOsAccountManager::FillOsAccountInfo(const std::string &localName, 
         return ERR_OSACCOUNT_KIT_CREATE_OS_ACCOUNT_FOR_DOMAIN_ERROR;
     }
     return ERR_OK;
+}
+
+void IInnerOsAccountManager::RebuildShortName(std::string &shortName)
+{
+    for (size_t i = 0; i < SPECIAL_CHARACTER_ARRAY.size(); i++) {
+        int position = shortName.find(SPECIAL_CHARACTER_ARRAY[i]);
+        while (position > 0) {
+            shortName = shortName.replace(position, 1, std::to_string(i));
+            position = shortName.find(SPECIAL_CHARACTER_ARRAY[i]);
+        }
+    }
+
+    if (shortName.size() > Constants::SHORT_NAME_MAX_SIZE) {
+        shortName = shortName.substr(0, Constants::SHORT_NAME_MAX_SIZE);
+    }
+
+    for (size_t i = 0; i < SHORT_NAME_CANNOT_BE_NAME_ARRAY.size(); i++) {
+        if (shortName == SHORT_NAME_CANNOT_BE_NAME_ARRAY[i]) {
+            shortName = Constants::STANDARD_LOCAL_NAME + std::to_string(i);
+            break;
+        }
+    }
 }
 
 ErrCode IInnerOsAccountManager::PrepareOsAccountInfoWithFullInfo(OsAccountInfo &osAccountInfo)
@@ -344,8 +369,47 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(
 ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, const std::string &shortName,
     const OsAccountType &type, OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options)
 {
+    bool isMultiOsAccountEnable = false;
+    IsMultiOsAccountEnable(isMultiOsAccountEnable);
+    if (!isMultiOsAccountEnable) {
+        ACCOUNT_LOGE("system is not multi os account enable error");
+        return ERR_OSACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR;
+    }
+
+    size_t localNameSize = localName.size();
+    if ((localNameSize == 0) || (localNameSize > Constants::LOCAL_NAME_MAX_SIZE)) {
+        ACCOUNT_LOGE("CreateOsAccount local name length %{public}zu is invalid!", localNameSize);
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    if (type < OsAccountType::ADMIN || type >= OsAccountType::END) {
+        ACCOUNT_LOGE("os account type is invalid");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    std::string shortNameNew = shortName;
+    if (options.isValidateShortName) {
+        ErrCode code = ValidateShortName(shortName);
+        if (code != ERR_OK) {
+            return code;
+        }
+    } else {
+        RebuildShortName(shortNameNew);
+    }
+
+    bool isAllowedCreateAdmin = false;
+    ErrCode errCode = IsAllowedCreateAdmin(isAllowedCreateAdmin);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("query allowed create admin error");
+        return errCode;
+    }
+    if (!isAllowedCreateAdmin && type == OsAccountType::ADMIN) {
+        ACCOUNT_LOGE("cannot create admin account error");
+        return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
+    }
+
     DomainAccountInfo domainInfo;  // default empty domain info
-    ErrCode errCode = PrepareOsAccountInfo(localName, shortName, type, domainInfo, osAccountInfo);
+    errCode = PrepareOsAccountInfo(localName, shortNameNew, type, domainInfo, osAccountInfo);
     if (errCode != ERR_OK) {
         return errCode;
     }
@@ -354,6 +418,30 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, co
         (void)osAccountControl_->DelOsAccount(osAccountInfo.GetLocalId());
     }
     return errCode;
+}
+
+ErrCode IInnerOsAccountManager::ValidateShortName(const std::string &shortName)
+{
+    size_t shortNameSize = shortName.size();
+    if (shortNameSize == 0 || shortNameSize > Constants::SHORT_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("CreateOsAccount short name length %{public}zu is invalid!", shortNameSize);
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    for (size_t i = 0; i < SPECIAL_CHARACTER_ARRAY.size(); i++) {
+        if (shortName.find(SPECIAL_CHARACTER_ARRAY[i]) != std::string::npos) {
+            ACCOUNT_LOGE("CreateOsAccount short name is invalidate, short name is %{public}s !", shortName.c_str());
+            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+        }
+    }
+
+    for (size_t i = 0; i < SHORT_NAME_CANNOT_BE_NAME_ARRAY.size(); i++) {
+        if (shortName == SHORT_NAME_CANNOT_BE_NAME_ARRAY[i]) {
+            ACCOUNT_LOGE("CreateOsAccount short name is invalidate, short name is %{public}s !", shortName.c_str());
+            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+        }
+    }
+    return ERR_OK;
 }
 
 ErrCode IInnerOsAccountManager::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
