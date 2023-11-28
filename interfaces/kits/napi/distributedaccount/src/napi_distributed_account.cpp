@@ -18,6 +18,7 @@
 #include <string>
 #include <unistd.h>
 #include "account_log_wrapper.h"
+#include "account_permission_manager.h"
 #include "js_native_api.h"
 #include "js_native_api_types.h"
 #include "napi_account_common.h"
@@ -273,6 +274,7 @@ napi_value NapiDistributedAccount::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("setOsAccountDistributedInfo", SetOsAccountDistributedInfo),
         DECLARE_NAPI_FUNCTION("getOsAccountDistributedInfoByLocalId", GetOsAccountDistributedInfo),
         DECLARE_NAPI_FUNCTION("setOsAccountDistributedInfoByLocalId", SetOsAccountDistributedInfoByLocalId),
+        DECLARE_NAPI_FUNCTION("setCurrentOsAccountDistributedInfo", SetCurrentOsAccountDistributedInfo),
     };
     napi_value cons = nullptr;
     napi_define_class(env, DISTRIBUTED_ACCOUNT_CLASS_NAME.c_str(), DISTRIBUTED_ACCOUNT_CLASS_NAME.size(),
@@ -381,6 +383,15 @@ napi_value NapiDistributedAccount::UpdateOsAccountDistributedInfo(napi_env env, 
 
 napi_value NapiDistributedAccount::SetOsAccountDistributedInfo(napi_env env, napi_callback_info cbInfo)
 {
+    return UpdateOhosAccountInfo(env, cbInfo, true);
+}
+
+napi_value NapiDistributedAccount::SetCurrentOsAccountDistributedInfo(napi_env env, napi_callback_info cbInfo)
+{
+    if (AccountPermissionManager::CheckSystemApp(false) != ERR_OK) {
+        AccountNapiThrow(env, ERR_JS_IS_NOT_SYSTEM_APP);
+        return nullptr;
+    }
     return UpdateOhosAccountInfo(env, cbInfo, true);
 }
 

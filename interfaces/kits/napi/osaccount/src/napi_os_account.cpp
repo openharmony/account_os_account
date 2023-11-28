@@ -14,6 +14,7 @@
  */
 
 #include "napi_os_account.h"
+#include "account_permission_manager.h"
 #include "napi_account_error.h"
 #include "napi_os_account_common.h"
 #include "napi/native_common.h"
@@ -92,6 +93,11 @@ static napi_property_descriptor g_osAccountProperties[] = {
     DECLARE_NAPI_FUNCTION("isMainOsAccount", IsMainOsAccount),
     DECLARE_NAPI_FUNCTION("on", Subscribe),
     DECLARE_NAPI_FUNCTION("off", Unsubscribe),
+    DECLARE_NAPI_FUNCTION("isOsAccountActivated", IsOsAccountActivated),
+    DECLARE_NAPI_FUNCTION("isOsAccountConstraintEnabled", IsOsAccountConstraintEnabled),
+    DECLARE_NAPI_FUNCTION("isOsAccountUnlocked", IsOsAccountUnlocked),
+    DECLARE_NAPI_FUNCTION("getEnabledOsAccountConstraints", GetEnabledOsAccountConstraints),
+    DECLARE_NAPI_FUNCTION("queryOsAccount", QueryOsAccount),
 };
 }  // namespace
 napi_value OsAccountInit(napi_env env, napi_value exports)
@@ -1543,6 +1549,55 @@ void UnsubscribeSync(napi_env env, UnsubscribeCBInfo *unsubscribeCBInfo)
     if (subscribe->second.empty()) {
         g_osAccountSubscribers.erase(subscribe->first);
     }
+}
+
+napi_value IsOsAccountActivated(napi_env env, napi_callback_info cbInfo)
+{
+    if (AccountPermissionManager::CheckSystemApp(false) != ERR_OK) {
+        AccountNapiThrow(env, ERR_JS_IS_NOT_SYSTEM_APP);
+        return nullptr;
+    }
+    return InnerIsOsAccountActived(env, cbInfo, true);
+}
+
+napi_value IsOsAccountConstraintEnabled(napi_env env, napi_callback_info cbInfo)
+{
+    if (AccountPermissionManager::CheckSystemApp(false) != ERR_OK) {
+        AccountNapiThrow(env, ERR_JS_IS_NOT_SYSTEM_APP);
+        return nullptr;
+    }
+    return InnerIsOsAccountConstraintEnable(env, cbInfo, true);
+}
+
+napi_value IsOsAccountUnlocked(napi_env env, napi_callback_info cbInfo)
+{
+    size_t argc = ARGS_SIZE_TWO;
+    napi_value argv[ARGS_SIZE_TWO] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+
+    if (argc != 0 && AccountPermissionManager::CheckSystemApp(false) != ERR_OK) {
+        AccountNapiThrow(env, ERR_JS_IS_NOT_SYSTEM_APP);
+        return nullptr;
+    }
+    return InnerIsOsAccountVerified(env, cbInfo, true);
+}
+
+napi_value GetEnabledOsAccountConstraints(napi_env env, napi_callback_info cbInfo)
+{
+    if (AccountPermissionManager::CheckSystemApp(false) != ERR_OK) {
+        AccountNapiThrow(env, ERR_JS_IS_NOT_SYSTEM_APP);
+        return nullptr;
+    }
+    return GetOsAccountAllConstraintsInner(env, cbInfo, true);
+}
+
+napi_value QueryOsAccount(napi_env env, napi_callback_info cbInfo)
+{
+    if (AccountPermissionManager::CheckSystemApp(false) != ERR_OK) {
+        AccountNapiThrow(env, ERR_JS_IS_NOT_SYSTEM_APP);
+        return nullptr;
+    }
+    return QueryCurrentOsAccountInner(env, cbInfo, true);
 }
 }  // namespace AccountJsKit
 }  // namespace OHOS
