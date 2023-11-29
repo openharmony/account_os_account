@@ -224,6 +224,16 @@ public:
         return 0;
     }
 
+    int32_t LockUserScreen(uint32_t userId)
+    {
+        return 0;
+    }
+
+    int32_t UnlockUserScreen(uint32_t userId)
+    {
+        return 0;
+    }
+
     int32_t UpdateKeyContext(uint32_t userId)
     {
         return ERROR_STORAGE_KEY_NOT_EXIST;
