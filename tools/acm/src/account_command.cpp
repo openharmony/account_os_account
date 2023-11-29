@@ -24,12 +24,13 @@ using namespace OHOS::AAFwk;
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const std::string SHORT_OPTIONS = "hn:t:i:l:c:ea";
+const std::string SHORT_OPTIONS = "hn:t:i:s:l:c:ea";
 const struct option LONG_OPTIONS[] = {
     {"help", no_argument, nullptr, 'h'},
     {"name", required_argument, nullptr, 'n'},
     {"type", required_argument, nullptr, 't'},
     {"id", required_argument, nullptr, 'i'},
+    {"shortName", optional_argument, nullptr, 's'},
     {"disallowedlist", optional_argument, nullptr, 'l'},
     {"constraint", required_argument, nullptr, 'c'},
     {"enable", no_argument, nullptr, 'e'},
@@ -44,8 +45,6 @@ static const std::string SWITCH_COMMAND = "switch";
 static const std::string DUMP_COMMAND = "dump";
 static const std::string SET_COMMAND = "set";
 static const std::string CREATE_COMMAND = "create";
-static const std::string SPECIAL_CHARACTER_ARRAY = "<>|\":*?/\\";
-static const std::vector<std::string> SHORT_NAME_CANNOT_BE_NAME_ARRAY = {".", ".."};
 
 }  // namespace
 
@@ -94,8 +93,8 @@ ErrCode AccountCommand::RunAsHelpCommand(void)
     return ERR_OK;
 }
 
-ErrCode AccountCommand::ParseCreateCommandOpt(
-    std::string &name, OsAccountType &osAccountType, std::vector<std::string> &disallowedList)
+ErrCode AccountCommand::ParseCreateCommandOpt(std::string &name,
+    std::string &shortName, OsAccountType &osAccountType, std::vector<std::string> &disallowedList)
 {
     int counter = 0;
     ErrCode result = ERR_OK;
@@ -117,7 +116,7 @@ ErrCode AccountCommand::ParseCreateCommandOpt(
             break;
         }
 
-        result = RunAsCreateCommandExistentOptionArgument(option, name, osAccountType, disallowedList);
+        result = RunAsCreateCommandExistentOptionArgument(option, name, shortName, osAccountType, disallowedList);
     }
     return result;
 }
@@ -127,9 +126,10 @@ ErrCode AccountCommand::RunAsCreateCommand(void)
     ACCOUNT_LOGD("enter");
     ErrCode result = ERR_OK;
     std::string name = "";
+    std::string shortName = "";
     OsAccountType osAccountType = static_cast<OsAccountType>(-1);
     CreateOsAccountOptions options;
-    result = ParseCreateCommandOpt(name, osAccountType, options.disallowedHapList);
+    result = ParseCreateCommandOpt(name, shortName, osAccountType, options.disallowedHapList);
     if (result == ERR_OK) {
         if (name.size() == 0 || osAccountType == static_cast<OsAccountType>(-1)) {
             ACCOUNT_LOGD("'acm create' without enough options");
@@ -153,11 +153,10 @@ ErrCode AccountCommand::RunAsCreateCommand(void)
 
         // make os account info
         OsAccountInfo osAccountInfo;
-
+        if (shortName.empty()) {
+            shortName = name;
+        }
         // create an os account
-        std::string shortName = name;
-        RebuildShortName(shortName);
-
         result = OsAccount::GetInstance().CreateOsAccount(name, shortName, osAccountType, osAccountInfo, options);
         switch (result) {
             case ERR_OK:
@@ -173,28 +172,6 @@ ErrCode AccountCommand::RunAsCreateCommand(void)
 
     ACCOUNT_LOGD("result = %{public}d, name = %{public}s, type = %{public}d", result, name.c_str(), osAccountType);
     return result;
-}
-
-void AccountCommand::RebuildShortName(std::string &shortName)
-{
-    for (size_t i = 0; i < SPECIAL_CHARACTER_ARRAY.size(); i++) {
-        int position = shortName.find(SPECIAL_CHARACTER_ARRAY[i]);
-        while (position > 0) {
-            shortName = shortName.replace(position, 1, std::to_string(i));
-            position = shortName.find(SPECIAL_CHARACTER_ARRAY[i]);
-        }
-    }
-
-    if (shortName.size() > Constants::SHORT_NAME_MAX_SIZE) {
-        shortName = shortName.substr(0, Constants::SHORT_NAME_MAX_SIZE);
-    }
-
-    for (size_t i = 0; i < SHORT_NAME_CANNOT_BE_NAME_ARRAY.size(); i++) {
-        if (shortName == SHORT_NAME_CANNOT_BE_NAME_ARRAY[i]) {
-            shortName = Constants::STANDARD_LOCAL_NAME + std::to_string(i);
-            break;
-        }
-    }
 }
 
 ErrCode AccountCommand::RunAsDeleteCommand(void)
@@ -466,8 +443,8 @@ ErrCode AccountCommand::RunAsCreateCommandMissingOptionArgument(void)
     return result;
 }
 
-ErrCode AccountCommand::RunAsCreateCommandExistentOptionArgument(
-    const int &option, std::string &name, OsAccountType &type, std::vector<std::string> &disallowedList)
+ErrCode AccountCommand::RunAsCreateCommandExistentOptionArgument(const int &option, std::string &name,
+    std::string &shortName, OsAccountType &type, std::vector<std::string> &disallowedList)
 {
     ErrCode result = ERR_OK;
 
@@ -488,6 +465,12 @@ ErrCode AccountCommand::RunAsCreateCommandExistentOptionArgument(
             // 'acm create -t <type>'
             // 'acm create --type <type>'
             result = AnalyzeTypeArgument(type);
+            break;
+        }
+        case 's': {
+            // 'acm create -s <shortName>'
+            // 'acm create --shortName <shortName>'
+            shortName = optarg;
             break;
         }
         case 'l': {

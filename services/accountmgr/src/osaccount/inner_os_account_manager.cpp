@@ -201,21 +201,20 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &localNam
     if (errCode != ERR_OK) {
         return errCode;
     }
-#ifdef ENABLE_ACCOUNT_SHORT_NAME
+
     errCode = ValidateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("account name already exist, errCode %{public}d.", errCode);
         return errCode;
     }
-#endif // ENABLE_ACCOUNT_SHORT_NAME
+
     errCode = osAccountControl_->InsertOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("insert os account info err, errCode %{public}d.", errCode);
         return errCode;
     }
-#ifdef ENABLE_ACCOUNT_SHORT_NAME
     osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
-#endif // ENABLE_ACCOUNT_SHORT_NAME
+
     errCode = osAccountControl_->UpdateBaseOAConstraints(std::to_string(osAccountInfo.GetLocalId()),
         osAccountInfo.GetConstraints(), true);
     if (errCode != ERR_OK) {
@@ -248,6 +247,13 @@ ErrCode IInnerOsAccountManager::FillOsAccountInfo(const std::string &localName, 
         return errCode;
     }
 
+#ifdef ENABLE_ACCOUNT_SHORT_NAME
+    ErrCode code = ValidateShortName(shortName);
+    if (code != ERR_OK) {
+        return code;
+    }
+#endif // ENABLE_ACCOUNT_SHORT_NAME
+
     osAccountInfo = OsAccountInfo(id, localName, shortName, type, serialNumber);
     osAccountInfo.SetConstraints(constraints);
     int64_t time =
@@ -258,28 +264,6 @@ ErrCode IInnerOsAccountManager::FillOsAccountInfo(const std::string &localName, 
         return ERR_OSACCOUNT_KIT_CREATE_OS_ACCOUNT_FOR_DOMAIN_ERROR;
     }
     return ERR_OK;
-}
-
-void IInnerOsAccountManager::RebuildShortName(std::string &shortName)
-{
-    for (size_t i = 0; i < SPECIAL_CHARACTER_ARRAY.size(); i++) {
-        int position = shortName.find(SPECIAL_CHARACTER_ARRAY[i]);
-        while (position > 0) {
-            shortName = shortName.replace(position, 1, std::to_string(i));
-            position = shortName.find(SPECIAL_CHARACTER_ARRAY[i]);
-        }
-    }
-
-    if (shortName.size() > Constants::SHORT_NAME_MAX_SIZE) {
-        shortName = shortName.substr(0, Constants::SHORT_NAME_MAX_SIZE);
-    }
-
-    for (size_t i = 0; i < SHORT_NAME_CANNOT_BE_NAME_ARRAY.size(); i++) {
-        if (shortName == SHORT_NAME_CANNOT_BE_NAME_ARRAY[i]) {
-            shortName = Constants::STANDARD_LOCAL_NAME + std::to_string(i);
-            break;
-        }
-    }
 }
 
 ErrCode IInnerOsAccountManager::PrepareOsAccountInfoWithFullInfo(OsAccountInfo &osAccountInfo)
@@ -387,16 +371,6 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, co
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
-    std::string shortNameNew = shortName;
-    if (options.isValidateShortName) {
-        ErrCode code = ValidateShortName(shortName);
-        if (code != ERR_OK) {
-            return code;
-        }
-    } else {
-        RebuildShortName(shortNameNew);
-    }
-
     bool isAllowedCreateAdmin = false;
     ErrCode errCode = IsAllowedCreateAdmin(isAllowedCreateAdmin);
     if (errCode != ERR_OK) {
@@ -407,9 +381,8 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, co
         ACCOUNT_LOGE("cannot create admin account error");
         return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
     }
-
     DomainAccountInfo domainInfo;  // default empty domain info
-    errCode = PrepareOsAccountInfo(localName, shortNameNew, type, domainInfo, osAccountInfo);
+    errCode = PrepareOsAccountInfo(localName, shortName, type, domainInfo, osAccountInfo);
     if (errCode != ERR_OK) {
         return errCode;
     }
@@ -550,7 +523,8 @@ ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type, con
     }
     if (osAccountInfo.GetLocalId() != Constants::START_USER_ID) {
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-        ErrCode errCode = PrepareOsAccountInfo(osAccountName, type, domainAccountInfo, osAccountInfo);
+        ErrCode errCode = PrepareOsAccountInfo(osAccountName, domainAccountInfo.accountName_,
+            type, domainAccountInfo, osAccountInfo);
         if (errCode != ERR_OK) {
             return errCode;
         }
@@ -1253,21 +1227,18 @@ ErrCode IInnerOsAccountManager::SetOsAccountName(const int id, const std::string
     }
 
     osAccountInfo.SetLocalName(name);
-#ifdef ENABLE_ACCOUNT_SHORT_NAME
     errCode = ValidateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("account name already exist, errCode %{public}d.", errCode);
         return errCode;
     }
-#endif // ENABLE_ACCOUNT_SHORT_NAME
+
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("update osaccount info error %{public}d, id: %{public}d", errCode, osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
-#ifdef ENABLE_ACCOUNT_SHORT_NAME
     osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
-#endif // ENABLE_ACCOUNT_SHORT_NAME
     OsAccountInterface::PublishCommonEvent(
         osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::OPERATION_UPDATE);
     return ERR_OK;
