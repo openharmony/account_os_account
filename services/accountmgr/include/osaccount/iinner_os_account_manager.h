@@ -120,7 +120,6 @@ private:
         const DomainAccountInfo &domainAccount, OsAccountInfo &osAccountInfo);
     ErrCode FillOsAccountInfo(const std::string &localName, const std::string &shortName, const OsAccountType &type,
         const DomainAccountInfo &domainAccount, OsAccountInfo &osAccountInfo);
-    void RebuildShortName(std::string &shortName);
     ErrCode PrepareOsAccountInfoWithFullInfo(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountActivate(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountDeactivate(OsAccountInfo &osAccountInfo);
