@@ -214,6 +214,7 @@ void GetOACBInfoToJs(napi_env env, OsAccountInfo &info, napi_value &objOAInfo)
     napi_value isVerifiedToJs = nullptr;
     napi_get_boolean(env, info.GetIsVerified(), &isVerifiedToJs);
     napi_set_named_property(env, objOAInfo, "isVerified", isVerifiedToJs);
+    napi_set_named_property(env, objOAInfo, "isUnlocked", isVerifiedToJs);
 
     // photo
     napi_value photoToJs = nullptr;
@@ -239,6 +240,7 @@ void GetOACBInfoToJs(napi_env env, OsAccountInfo &info, napi_value &objOAInfo)
     napi_value isActivedToJs = nullptr;
     napi_get_boolean(env, info.GetIsActived(), &isActivedToJs);
     napi_set_named_property(env, objOAInfo, "isActived", isActivedToJs);
+    napi_set_named_property(env, objOAInfo, "isActivated", isActivedToJs);
 
     // isCreateCompleted
     napi_value isCreateCompletedToJs = nullptr;

@@ -346,6 +346,16 @@ void UvQueueWorkOnAccountsChanged(uv_work_t *work, int status);
 void UnsubscribeSync(napi_env env, UnsubscribeCBInfo *unsubscribeCBInfo);
 
 void SetEnumProperty(napi_env env, napi_value dstObj, const int objValue, const char *propName);
+
+napi_value IsOsAccountActivated(napi_env env, napi_callback_info cbInfo);
+
+napi_value IsOsAccountConstraintEnabled(napi_env env, napi_callback_info cbInfo);
+
+napi_value IsOsAccountUnlocked(napi_env env, napi_callback_info cbInfo);
+
+napi_value GetEnabledOsAccountConstraints(napi_env env, napi_callback_info cbInfo);
+
+napi_value QueryOsAccount(napi_env env, napi_callback_info cbInfo);
 }  // namespace AccountJsKit
 }  // namespace OHOS
 

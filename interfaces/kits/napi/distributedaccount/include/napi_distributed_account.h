@@ -57,6 +57,7 @@ private:
     static napi_value SetOhosAccountInfo(napi_env env, DistributedAccountAsyncContext *asyncContext);
     static napi_value SetOsAccountDistributedInfoByLocalId(napi_env env, napi_callback_info cbInfo);
     static napi_value UpdateOhosAccountInfo(napi_env env, napi_callback_info cbInfo, bool throwErr);
+    static napi_value SetCurrentOsAccountDistributedInfo(napi_env env, napi_callback_info cbInfo);
 
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
 };

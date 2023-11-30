@@ -28,7 +28,7 @@ static ErrCode CheckInvalidLocalId(int localId)
 {
     if (localId > Constants::MAX_USER_ID) {
         ACCOUNT_LOGE("id %{public}d is out of range", localId);
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     return ERR_OK;
 }
