@@ -122,6 +122,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest001, Te
     EXPECT_NE(osAccountInfos.size(), size);
 }
 
+#ifdef ENABLE_DEFAULT_ADMIN_NAME
 /**
  * @tc.name: OsAccountControlFileManagerTest002
  * @tc.desc: Test GetOsAccountInfoById by valid data
@@ -134,6 +135,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest002, Te
     EXPECT_EQ(g_controlManager->GetOsAccountInfoById(Constants::START_USER_ID, osAccountInfo), ERR_OK);
     EXPECT_NE(osAccountInfo.GetLocalName().empty(), true);
 }
+#endif // ENABLE_DEFAULT_ADMIN_NAME
 
 /**
  * @tc.name: OsAccountControlFileManagerTest003

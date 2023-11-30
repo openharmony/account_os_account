@@ -1195,11 +1195,10 @@ ErrCode OsAccountControlFileManager::DelOsAccount(const int id)
 #endif
     path += Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
     DeleteAccountInfoDigest(path);
-#ifdef ENABLE_ACCOUNT_SHORT_NAME
+
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetLocalId(id);
     UpdateAccountIndex(osAccountInfo, true);
-#endif // ENABLE_ACCOUNT_SHORT_NAME
     RemoveFileWatcher(id);
     return UpdateAccountList(std::to_string(id), false);
 }

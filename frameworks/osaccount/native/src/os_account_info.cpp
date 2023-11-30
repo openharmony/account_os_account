@@ -47,7 +47,7 @@ OsAccountInfo::OsAccountInfo()
 {}
 
 OsAccountInfo::OsAccountInfo(int localId, const std::string localName, OsAccountType type, int64_t serialNumber)
-    : localId_(localId), localName_(localName), shortName_(localName), type_(type), serialNumber_(serialNumber)
+    : localId_(localId), localName_(localName), type_(type), serialNumber_(serialNumber)
 {}
 
 OsAccountInfo::OsAccountInfo(int localId, const std::string localName, const std::string shortName, OsAccountType type,
@@ -77,9 +77,6 @@ void OsAccountInfo::SetLocalName(const std::string localName)
 
 std::string OsAccountInfo::GetShortName() const
 {
-    if (shortName_.empty()) {
-        return localName_;
-    }
     return shortName_;
 }
 
