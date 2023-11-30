@@ -92,9 +92,7 @@ ErrCode OsAccountManagerService::CreateOsAccount(
         ACCOUNT_LOGE("CreateOsAccount local name length %{public}zu is invalid!", localNameSize);
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    CreateOsAccountOptions options;
-    options.isValidateShortName = false;
-    return CreateOsAccount(name, name, type, osAccountInfo, options);
+    return CreateOsAccount(name, name, type, osAccountInfo);
 }
 
 ErrCode OsAccountManagerService::CreateOsAccount(const std::string &localName, const std::string &shortName,

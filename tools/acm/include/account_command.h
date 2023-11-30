@@ -39,7 +39,7 @@ const std::string HELP_MSG_CREATE =
     "usage: acm create <options>\n"
     "options list:\n"
     "  -h, --help                           list available commands\n"
-    "  -n <local-account-name> -t <type> [-l] <disallowed-install-hap-list>\n"
+    "  -n <local-account-name> [-s] <shortName> -t <type> [-l] <disallowed-install-hap-list>\n"
     "                                       create a local account with a name and a type\n"
     "                                       <type>: admin, normal, guest\n"
     "                                       <disallowed-install-hap-list>: can set disallowed pre-installed hap list\n";
@@ -115,7 +115,6 @@ private:
 
     ErrCode RunAsHelpCommand(void);
     ErrCode RunAsCreateCommand(void);
-    void RebuildShortName(std::string &shortName);
     ErrCode RunAsDeleteCommand(void);
     ErrCode RunAsSwitchCommand(void);
     ErrCode RunAsDeactivateCommand(void);
@@ -125,8 +124,8 @@ private:
 
     ErrCode RunAsCreateCommandError(void);
     ErrCode RunAsCreateCommandMissingOptionArgument(void);
-    ErrCode RunAsCreateCommandExistentOptionArgument(
-        const int &option, std::string &name, OsAccountType &type, std::vector<std::string> &disallowedList);
+    ErrCode RunAsCreateCommandExistentOptionArgument(const int &option, std::string &name,
+        std::string &shortName, OsAccountType &type, std::vector<std::string> &disallowedList);
     ErrCode RunAsSetCommandError(void);
     ErrCode RunAsSetCommandMissingOptionArgument(void);
     ErrCode RunAsSetCommandExistentOptionArgument(
@@ -137,8 +136,8 @@ private:
 
     void ParseCommandOpt(const std::string &command, ErrCode &result, int &id);
     void RunCommand(int &counter, ErrCode &result, bool &enable, int &id, std::vector<std::string> &constraints);
-    ErrCode ParseCreateCommandOpt(
-        std::string &name, OsAccountType &osAccountType, std::vector<std::string> &disallowedList);
+    ErrCode ParseCreateCommandOpt(std::string &name,
+        std::string &shortName, OsAccountType &osAccountType, std::vector<std::string> &disallowedList);
 
     ErrCode AnalyzeTypeArgument(OsAccountType &type);
     ErrCode AnalyzeDisallowedListArgument(std::vector<std::string> &disallowedList);
