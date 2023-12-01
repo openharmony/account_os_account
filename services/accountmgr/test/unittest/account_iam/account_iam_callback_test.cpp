@@ -160,7 +160,7 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0300, TestSize.Level0)
     auto userAuthCallback = std::make_shared<AuthCallback>(TEST_USER_ID, AuthType::FACE, callback);
     EXPECT_TRUE(userAuthCallback->innerCallback_ != nullptr);
     Attributes extraInfo;
-    int32_t errCode = 0;
+    int32_t errCode = 1;
     userAuthCallback->OnResult(errCode, extraInfo);
     EXPECT_EQ(errCode, callback->result_);
     errCode = 10; // result != 0 && authType_ != AuthType::PIN
