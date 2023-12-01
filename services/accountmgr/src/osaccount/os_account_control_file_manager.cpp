@@ -1448,6 +1448,13 @@ ErrCode OsAccountControlFileManager::GetAccountListFromFile(Json &accountListJso
         return errCode;
     }
     accountListJson = Json::parse(accountList, nullptr, false);
+    if (accountListJson.is_discarded()) {
+#ifdef HAS_KV_STORE_PART
+        return osAccountDataBaseOperator_->GetAccountListFromStoreID(OS_ACCOUNT_STORE_ID, accountListJson);
+#else
+        return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
+#endif
+    }
     ACCOUNT_LOGD("end");
     return ERR_OK;
 }
