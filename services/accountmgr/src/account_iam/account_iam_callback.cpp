@@ -91,7 +91,6 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo)
     if (ret != 0) {
         ACCOUNT_LOGE("failed to activate user key");
     }
-    (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsVerified(userId_, true);
     return ret;
 }
 
@@ -125,6 +124,7 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         return AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, ResultCode::FAIL);
     }
     innerCallback_->OnResult(result, extraInfo);
+    (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsVerified(userId_, true);
     AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, result);
     if ((authType_ == AuthType::PIN) && (!isAccountVerified_)) {
         auto getSecUidCallback = std::make_shared<RestoreFileKeyCallback>(userId_, extraInfo);
