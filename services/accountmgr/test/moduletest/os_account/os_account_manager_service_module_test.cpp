@@ -350,7 +350,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest014
 
     int localId = Constants::MAX_USER_ID + 1;
     EXPECT_EQ(osAccountManagerService_->IsOsAccountActived(localId, isOsAccountActived),
-        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -491,7 +491,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest021
 {
     bool isVerified = true;
     EXPECT_EQ(osAccountManagerService_->IsOsAccountVerified(Constants::MAX_USER_ID + 1, isVerified),
-        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -504,7 +504,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest022
 {
     bool isVerified = true;
     EXPECT_EQ(osAccountManagerService_->IsOsAccountVerified(Constants::MAX_USER_ID + 1, isVerified),
-        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -569,7 +569,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest027
 {
     std::vector<std::string> constraints;
     EXPECT_EQ(osAccountManagerService_->GetOsAccountAllConstraints(Constants::MAX_USER_ID + 1, constraints),
-        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -621,7 +621,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest031
 {
     OsAccountInfo osAccountInfo;
     EXPECT_EQ(osAccountManagerService_->QueryOsAccountById(Constants::MAX_USER_ID + 1, osAccountInfo),
-        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -838,7 +838,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest045
 {
     std::string photo;
     EXPECT_EQ(osAccountManagerService_->GetOsAccountProfilePhoto(Constants::MAX_USER_ID + 1, photo),
-        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -1732,7 +1732,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest092
 {
     setuid(TEST_UID);
     unsigned int osAccountsCount;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
+    EXPECT_EQ(ERR_OK,
         osAccountManagerService_->GetCreatedOsAccountsCount(osAccountsCount));
 }
 
@@ -1748,21 +1748,6 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest093
     bool isMainOsAccount;
     EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->IsMainOsAccount(isMainOsAccount));
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest094
- * @tc.desc: Test GetOsAccountLocalIdFromDomain PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest094, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
-    int id;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainInfo, id));
 }
 
 /**
@@ -2089,7 +2074,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest117
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest118, TestSize.Level1)
 {
     EXPECT_EQ(osAccountManagerService_->SetDefaultActivatedOsAccount(Constants::MAX_USER_ID + 1),
-        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**

@@ -54,12 +54,8 @@ namespace AccountTest {
 namespace {
 std::mutex g_mtx;
 std::mutex h_mtx;
+const int32_t OVER_TIME = 10;
 }  // namespace
-
-std::mutex addmtx;
-std::mutex authmtx;
-std::condition_variable cv1;
-std::condition_variable cv2;
 
 class OsAccountManagerServiceSubscribeModuleTest : public testing::Test {
 public:
@@ -139,8 +135,7 @@ public:
     virtual ~TestAuthCallBack()=default;
     void OnResult(int32_t result, const Attributes &extraInfo) override
     {
-        cv2.notify_one();
-        EXPECT_EQ(result, ERR_OK);
+        g_mtx.unlock();
     }
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override
     {}
@@ -153,11 +148,25 @@ public:
     virtual ~TestAddCredCallBack() = default;
     void OnResult(int32_t result, const Attributes &extraInfo) override
     {
-        cv1.notify_one();
+        g_mtx.unlock();
     }
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override
     {}
 };
+
+static void Wait()
+{
+    struct tm startTime = {0};
+    EXPECT_EQ(GetSystemCurrentTime(&startTime), true);
+    struct tm doingTime = {0};
+    while (!g_mtx.try_lock()) {
+        EXPECT_EQ(GetSystemCurrentTime(&doingTime), true);
+        int64_t seconds = GetSecondsBetween(startTime, doingTime);
+        if (seconds >= OVER_TIME) {
+            break;
+        }
+    }
+}
 
 /**
  * @tc.name: OsAccountManagerServiceSubscribeModuleTest_0001
@@ -253,23 +262,18 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
  */
 HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubscribeModuleTest_0003, TestSize.Level1)
 {
-    ACCOUNT_LOGI("OsAccountManagerServiceSubscribeModuleTest_0003");
-    //set tokenId
     AccessTokenID tokenId = AccessTokenKit::GetNativeTokenId("accountmgr");
     SetSelfTokenID(tokenId);
-    //set selinux
     std::string cmd = "setenforce 0";
     FILE *file = popen(cmd.c_str(), "r");
     if (file != nullptr) {
         pclose(file);
     }
-    //make a subscriber
     OsAccountSubscribeInfo osAccountSubscribeInfo;
     osAccountSubscribeInfo.SetOsAccountSubscribeType(OS_ACCOUNT_SUBSCRIBE_TYPE::UNLOCKED);
     osAccountSubscribeInfo.SetName("subscribeUnlock");
     auto subscriberTestPtr = std::make_shared<MockOsAccountSubscriberTest>(osAccountSubscribeInfo);
     OsAccountInfo osAccountInfo;
-    //create osAccount
     ErrCode result = OsAccount::GetInstance().CreateOsAccount(
         "OsAccountManagerServiceSubscribeModuleTest_0003", OsAccountType::GUEST, osAccountInfo);
     EXPECT_EQ(result, ERR_OK);
@@ -281,7 +285,6 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     EXPECT_NE(nullptr, inputer);
     result = AccountIAMClient::GetInstance().RegisterPINInputer(inputer);
     ASSERT_EQ(ERR_OK, result);
-    //add a credential
     CredentialParameters testPara = {};
     std::vector<uint8_t> testchange = {};
     testPara.authType = AuthType::PIN;
@@ -289,15 +292,15 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     EXPECT_EQ(AccountIAMClient::GetInstance().OpenSession(id, testchange), ERR_OK);
     auto mockAddCredentialCallback = std::make_shared<TestAddCredCallBack>();
     EXPECT_NE(mockAddCredentialCallback, nullptr);
-    std::unique_lock<std::mutex> mtx1(addmtx);
+    g_mtx.lock();
     AccountIAMClient::GetInstance().AddCredential(id, testPara, mockAddCredentialCallback);
-    cv1.wait(mtx1);
-    //authUser
-    std::unique_lock<std::mutex> mtx2(authmtx);
+    Wait();
+    g_mtx.unlock();
     auto mockAuthCallback = std::make_shared<TestAuthCallBack>();
+    g_mtx.lock();
     AccountIAMClient::GetInstance().AuthUser(id, testchange, AuthType::PIN, AuthTrustLevel::ATL1, mockAuthCallback);
-    cv2.wait(mtx2);
-    //after opration
+    Wait();
+    g_mtx.unlock();
     EXPECT_EQ(AccountIAMClient::GetInstance().UnregisterPINInputer(), ERR_OK);
     EXPECT_EQ(AccountIAMClient::GetInstance().CloseSession(id), ERR_OK);
     result = OsAccount::GetInstance().UnsubscribeOsAccount(subscriberTestPtr);

@@ -490,7 +490,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest011, TestSize.Lev
 {
     bool isOsAccountExists = true;
     EXPECT_EQ(OsAccountManager::IsOsAccountExists(Constants::MAX_USER_ID + 1, isOsAccountExists),
-        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
     EXPECT_EQ(isOsAccountExists, false);
 }
 
@@ -1066,7 +1066,8 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest050, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest048, TestSize.Level1)
 {
-    EXPECT_EQ(OsAccountManager::StartOsAccount(Constants::MAX_USER_ID + 1), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(OsAccountManager::StartOsAccount(Constants::MAX_USER_ID + 1),
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -1088,7 +1089,8 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest049, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest051, TestSize.Level1)
 {
-    EXPECT_EQ(OsAccountManager::StopOsAccount(Constants::MAX_USER_ID + 1), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(OsAccountManager::StopOsAccount(Constants::MAX_USER_ID + 1),
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -2130,7 +2132,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest102, TestSize.Lev
 {
     bool isOsAccountActived = true;
     EXPECT_EQ(OsAccountManager::IsOsAccountActived(Constants::MAX_USER_ID + 1, isOsAccountActived),
-        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
     EXPECT_EQ(isOsAccountActived, false);
 }
 
@@ -2143,10 +2145,10 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest102, TestSize.Lev
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest103, TestSize.Level1)
 {
     bool isConstraintEnable = true;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, OsAccountManager::IsOsAccountConstraintEnable(
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, OsAccountManager::IsOsAccountConstraintEnable(
         Constants::MAX_USER_ID + 1, CONSTANT_PRINT, isConstraintEnable));
     EXPECT_EQ(isConstraintEnable, false);
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, OsAccountManager::CheckOsAccountConstraintEnabled(
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, OsAccountManager::CheckOsAccountConstraintEnabled(
         Constants::MAX_USER_ID + 1, CONSTANT_PRINT, isConstraintEnable));
     EXPECT_EQ(isConstraintEnable, false);
 }
@@ -2161,7 +2163,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest104, TestSize.Lev
 {
     const std::string localName = "testname";
     EXPECT_EQ(OsAccountManager::SetOsAccountName(Constants::MAX_USER_ID + 1, localName),
-        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
     EXPECT_EQ(localName, "testname");
 }
 
@@ -2175,7 +2177,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest105, TestSize.Lev
 {
     bool enable = true;
     EXPECT_EQ(OsAccountManager::SetOsAccountConstraints(Constants::MAX_USER_ID + 1, CONSTANTS_VECTOR, enable),
-        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
     EXPECT_EQ(enable, true);
 }
 
@@ -2188,7 +2190,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest105, TestSize.Lev
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest106, TestSize.Level1)
 {
     EXPECT_EQ(OsAccountManager::SetOsAccountProfilePhoto(Constants::MAX_USER_ID + 1, PHOTO_IMG),
-        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -2200,7 +2202,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest106, TestSize.Lev
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest108, TestSize.Level1)
 {
     EXPECT_EQ(OsAccountManager::SetOsAccountIsVerified(Constants::MAX_USER_ID + 1, false),
-        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -2505,5 +2507,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest115, TestSize.Lev
 #endif
     EXPECT_EQ(OsAccountManager::DeactivateOsAccount(Constants::START_USER_ID - 1),
               ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
-    EXPECT_EQ(OsAccountManager::DeactivateOsAccount(Constants::MAX_USER_ID + 1), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(OsAccountManager::DeactivateOsAccount(Constants::MAX_USER_ID + 1),
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
