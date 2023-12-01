@@ -109,7 +109,7 @@ napi_value NapiAccountIAMIdentityManager::OpenSession(napi_env env, napi_callbac
             delete context;
         },
         reinterpret_cast<void *>(context.get()), &context->work));
-    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_default));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_user_initiated));
     context.release();
     return result;
 }
@@ -156,7 +156,7 @@ napi_value NapiAccountIAMIdentityManager::AddCredential(napi_env env, napi_callb
             delete reinterpret_cast<IDMContext *>(data);
         },
         reinterpret_cast<void *>(context.get()), &context->work));
-    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_default));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_user_initiated));
     context.release();
     return nullptr;
 }
@@ -180,7 +180,7 @@ napi_value NapiAccountIAMIdentityManager::UpdateCredential(napi_env env, napi_ca
             delete reinterpret_cast<IDMContext *>(data);
         },
         reinterpret_cast<void *>(context.get()), &context->work));
-    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_default));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_user_initiated));
     context.release();
     return nullptr;
 }
@@ -264,7 +264,7 @@ napi_value NapiAccountIAMIdentityManager::DelUser(napi_env env, napi_callback_in
             delete reinterpret_cast<IDMContext *>(data);
         },
         reinterpret_cast<void *>(context.get()), &context->work));
-    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_default));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_user_initiated));
     context.release();
     return nullptr;
 }
@@ -314,7 +314,7 @@ napi_value NapiAccountIAMIdentityManager::DelCred(napi_env env, napi_callback_in
             delete reinterpret_cast<IDMContext *>(data);
         },
         reinterpret_cast<void *>(context.get()), &context->work));
-    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_default));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_user_initiated));
     context.release();
     return nullptr;
 }
