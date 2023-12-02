@@ -94,8 +94,8 @@ void IInnerOsAccountManager::CreateBaseStandardAccount()
         int64_t serialNumber = 0;
         osAccountControl_->GetSerialNumber(serialNumber);
 #ifdef ENABLE_DEFAULT_ADMIN_NAME
-        OsAccountInfo osAccountInfo(
-            Constants::START_USER_ID, Constants::STANDARD_LOCAL_NAME, OsAccountType::ADMIN, serialNumber);
+        OsAccountInfo osAccountInfo(Constants::START_USER_ID, Constants::STANDARD_LOCAL_NAME,
+            Constants::STANDARD_LOCAL_NAME, OsAccountType::ADMIN, serialNumber);
 #else
         OsAccountInfo osAccountInfo(Constants::START_USER_ID, "", OsAccountType::ADMIN, serialNumber);
 #endif //ENABLE_DEFAULT_ADMIN_NAME
