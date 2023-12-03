@@ -77,6 +77,12 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo)
         extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
         InnerDomainAccountManager::GetInstance().AuthWithToken(userId_, token);
     }
+    // send msg to storage for unlock
+    ErrCode ret = InnerAccountIAMManager::GetInstance().UnlockUserScreen(userId_);
+    if (ret != 0) {
+        ACCOUNT_LOGE("failed to unlock user screen");
+        return ret;
+    }
     if (authType_ != AuthType::PIN) {
         return ERR_OK;
     }
@@ -87,9 +93,10 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo)
     // file decryption
     std::vector<uint8_t> secret;
     extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, secret);
-    ErrCode ret = InnerAccountIAMManager::GetInstance().ActivateUserKey(userId_, token, secret);
+    ret = InnerAccountIAMManager::GetInstance().ActivateUserKey(userId_, token, secret);
     if (ret != 0) {
         ACCOUNT_LOGE("failed to activate user key");
+        return ret;
     }
     return ret;
 }

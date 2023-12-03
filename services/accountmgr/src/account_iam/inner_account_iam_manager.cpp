@@ -359,6 +359,23 @@ ErrCode InnerAccountIAMManager::UpdateStorageKey(
 #endif
 }
 
+ErrCode InnerAccountIAMManager::UnlockUserScreen(int32_t userId)
+{
+#ifdef HAS_STORAGE_PART
+    ErrCode result = GetStorageManagerProxy();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("fail to get storage proxy");
+        return result;
+    }
+    result = storageMgrProxy_->UnlockUserScreen(userId);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("fail to unlock screen");
+        return result;
+    }
+#endif // HAS_STORAGE_PART
+    return ERR_OK;
+}
+
 ErrCode InnerAccountIAMManager::ActivateUserKey(
     int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret)
 {
