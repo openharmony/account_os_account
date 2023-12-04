@@ -252,9 +252,10 @@ ErrCode IInnerOsAccountManager::FillOsAccountInfo(const std::string &localName, 
     if (code != ERR_OK) {
         return code;
     }
-#endif // ENABLE_ACCOUNT_SHORT_NAME
-
     osAccountInfo = OsAccountInfo(id, localName, shortName, type, serialNumber);
+#else
+    osAccountInfo = OsAccountInfo(id, localName, type, serialNumber);
+#endif // ENABLE_ACCOUNT_SHORT_NAME
     osAccountInfo.SetConstraints(constraints);
     int64_t time =
         std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
