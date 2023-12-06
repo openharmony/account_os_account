@@ -70,6 +70,13 @@ enum IAMResultCode : int32_t {
 int32_t AccountIAMConvertToJSErrCode(int32_t errCode);
 
 struct JsIAMCallback {
+    JsIAMCallback(napi_env env) : env(env) {}
+    ~JsIAMCallback()
+    {
+        ReleaseNapiRefArray(env, {onResult, onAcquireInfo});
+    }
+    bool onResultCalled = false;
+    napi_env env;
     napi_ref onResult = nullptr;
     napi_ref onAcquireInfo = nullptr;
 };
@@ -77,7 +84,7 @@ struct JsIAMCallback {
 #ifdef HAS_USER_AUTH_PART
 struct IDMCallbackParam : public CommonAsyncContext {
     explicit IDMCallbackParam(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
-    JsIAMCallback callback;
+    std::shared_ptr<JsIAMCallback> callback;
     int32_t result = 0;
     int32_t module = 0;
     uint32_t acquire = 0;
@@ -94,7 +101,7 @@ struct AuthCallbackParam : public CommonAsyncContext {
     int32_t remainTimes = -1;
     int32_t freezingTime = -1;
     std::vector<uint8_t> token;
-    JsIAMCallback callback;
+    std::shared_ptr<JsIAMCallback> callback;
 };
 
 struct AuthContext {
@@ -113,7 +120,7 @@ struct IDMContext : public CommonAsyncContext {
     uint64_t credentialId = 0;
     std::vector<uint8_t> token;
     AccountSA::CredentialParameters addCredInfo;
-    JsIAMCallback callback;
+    std::shared_ptr<JsIAMCallback> callback;
 };
 
 struct GetAuthInfoContext : public CommonAsyncContext {
@@ -141,7 +148,7 @@ struct SetPropertyContext : public CommonAsyncContext {
 
 class NapiIDMCallback : public AccountSA::IDMCallback {
 public:
-    explicit NapiIDMCallback(napi_env env, const JsIAMCallback &callback);
+    NapiIDMCallback(napi_env env, const std::shared_ptr<JsIAMCallback> &callback);
     virtual ~NapiIDMCallback();
 
     void OnResult(int32_t result, const AccountSA::Attributes &extraInfo) override;
@@ -149,7 +156,7 @@ public:
 
 private:
     napi_env env_;
-    JsIAMCallback callback_;
+    std::shared_ptr<JsIAMCallback> callback_;
     std::mutex mutex_;
 };
 
@@ -167,14 +174,14 @@ private:
 
 class NapiUserAuthCallback : public AccountSA::IDMCallback {
 public:
-    explicit NapiUserAuthCallback(napi_env env, JsIAMCallback callback);
+    NapiUserAuthCallback(napi_env env, const std::shared_ptr<JsIAMCallback> &callback);
     virtual ~NapiUserAuthCallback();
 
     void OnResult(int32_t result, const AccountSA::Attributes &extraInfo) override;
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const AccountSA::Attributes &extraInfo) override;
 private:
     napi_env env_;
-    JsIAMCallback callback_;
+    std::shared_ptr<JsIAMCallback> callback_;
     std::mutex mutex_;
 };
 
@@ -232,7 +239,7 @@ private:
 void CallbackAsyncOrPromise(napi_env env, CommonAsyncContext *context, napi_value errJs, napi_value dataJs);
 napi_value CreateErrorObject(napi_env env, int32_t code);
 napi_status ParseUInt32Array(napi_env env, napi_value value, std::vector<uint32_t> &data);
-napi_status ParseIAMCallback(napi_env env, napi_value object, JsIAMCallback &callback);
+napi_status ParseIAMCallback(napi_env env, napi_value object, std::shared_ptr<JsIAMCallback> &callback);
 #ifdef HAS_USER_AUTH_PART
 napi_status ParseAddCredInfo(napi_env env, napi_value value, AccountSA::CredentialParameters &addCredInfo);
 napi_status ParseGetPropRequest(napi_env env, napi_value object, AccountSA::GetPropertyRequest &request);
