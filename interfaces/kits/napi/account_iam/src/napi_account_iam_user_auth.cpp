@@ -230,7 +230,7 @@ static napi_status ParseContextForAuth(napi_env env, napi_value *argv, size_t ar
         ACCOUNT_LOGE("fail to parse trustLevel");
         return napi_invalid_arg;
     }
-    JsIAMCallback jsCallback;
+    std::shared_ptr<JsIAMCallback> jsCallback = std::make_shared<JsIAMCallback>(env);
     if (ParseIAMCallback(env, argv[index++], jsCallback) != napi_ok) {
         ACCOUNT_LOGE("fail to parse callback");
         return napi_invalid_arg;
