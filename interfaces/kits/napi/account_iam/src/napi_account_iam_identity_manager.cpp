@@ -129,6 +129,7 @@ static bool ParseContextForUpdateCredential(napi_env env, napi_callback_info inf
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
+    context->callback = std::make_shared<JsIAMCallback>(env);
     if (ParseIAMCallback(env, argv[PARAM_ONE], context->callback) != napi_ok) {
         std::string errMsg = "The type of arg 2 must be valid IIdmCallback";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
@@ -240,6 +241,7 @@ static napi_status ParseContextForDelUser(napi_env env, napi_callback_info info,
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return napi_invalid_arg;
     }
+    context->callback = std::make_shared<JsIAMCallback>(env);
     if (ParseIAMCallback(env, argv[PARAM_ONE], context->callback) != napi_ok) {
         std::string errMsg = "The type of arg 2 must be valid IIdmCallback";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
@@ -290,6 +292,7 @@ static napi_status ParseContextForDelCred(napi_env env, napi_callback_info info,
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return napi_invalid_arg;
     }
+    context->callback = std::make_shared<JsIAMCallback>(env);
     if (ParseIAMCallback(env, argv[PARAM_TWO], context->callback) != napi_ok) {
         std::string errMsg = "The type of arg 3 must be valid IIdmCallback";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);

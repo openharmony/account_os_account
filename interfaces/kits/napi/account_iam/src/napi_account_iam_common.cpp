@@ -86,13 +86,12 @@ int32_t AccountIAMConvertToJSErrCode(int32_t errCode)
 }
 
 #ifdef HAS_USER_AUTH_PART
-NapiIDMCallback::NapiIDMCallback(napi_env env, const JsIAMCallback &callback) : env_(env), callback_(callback)
+NapiIDMCallback::NapiIDMCallback(napi_env env, const std::shared_ptr<JsIAMCallback> &callback)
+    : env_(env), callback_(callback)
 {}
 
 NapiIDMCallback::~NapiIDMCallback()
-{
-    ReleaseNapiRefArray(env_, { callback_.onResult, callback_.onAcquireInfo });
-}
+{}
 
 static void OnIDMResultWork(uv_work_t* work, int status)
 {
@@ -109,17 +108,18 @@ static void OnIDMResultWork(uv_work_t* work, int status)
     napi_value credentialId = CreateUint8Array(
         param->env, reinterpret_cast<uint8_t *>(&param->credentialId), sizeof(uint64_t));
     napi_set_named_property(param->env, argv[PARAM_ONE], "credentialId", credentialId);
-    NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->callback.onResult);
-    napi_delete_reference(param->env, param->callback.onResult);
+    NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->callback->onResult);
     napi_close_handle_scope(param->env, scope);
 }
 
 void NapiIDMCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (callback_.onResult == nullptr) {
+    if (callback_->onResultCalled) {
+        ACCOUNT_LOGE("call twice is not allowed");
         return;
     }
+    callback_->onResultCalled = true;
     std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
     std::unique_ptr<IDMCallbackParam> param = std::make_unique<IDMCallbackParam>(env_);
     uv_loop_s *loop = nullptr;
@@ -135,7 +135,6 @@ void NapiIDMCallback::OnResult(int32_t result, const Attributes &extraInfo)
     NAPI_CALL_RETURN_VOID(env_, uv_queue_work_with_qos(
         loop, work.get(), [] (uv_work_t *work) {}, OnIDMResultWork, uv_qos_user_initiated));
     ACCOUNT_LOGI("create idm result work finish");
-    callback_.onResult = nullptr;
     work.release();
     param.release();
 }
@@ -154,12 +153,16 @@ static void OnAcquireInfoWork(uv_work_t* work, int status)
     napi_create_int32(env, param->module, &argv[PARAM_ZERO]);
     napi_create_int32(env, param->acquire, &argv[PARAM_ONE]);
     argv[PARAM_TWO] = CreateUint8Array(env, param->extraInfo.data(), param->extraInfo.size());
-    NapiCallVoidFunction(env, argv, ARG_SIZE_THREE, param->callback.onAcquireInfo);
+    NapiCallVoidFunction(env, argv, ARG_SIZE_THREE, param->callback->onAcquireInfo);
     napi_close_handle_scope(env, scope);
 }
 
 void NapiIDMCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
 {
+    if (callback_->onResultCalled) {
+        ACCOUNT_LOGE("call after OnResult is not allowed");
+        return;
+    }
     std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
     std::unique_ptr<IDMCallbackParam> param = std::make_unique<IDMCallbackParam>(env_);
     uv_loop_s *loop = nullptr;
@@ -201,7 +204,7 @@ napi_status ParseAddCredInfo(napi_env env, napi_value value, CredentialParameter
     return ParseUint8TypedArrayToVector(env, result, addCredInfo.token);
 }
 
-napi_status ParseIAMCallback(napi_env env, napi_value object, JsIAMCallback &callback)
+napi_status ParseIAMCallback(napi_env env, napi_value object, std::shared_ptr<JsIAMCallback> &callback)
 {
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, object, &valueType);
@@ -213,7 +216,7 @@ napi_status ParseIAMCallback(napi_env env, napi_value object, JsIAMCallback &cal
     napi_get_named_property(env, object, "onResult", &result);
     napi_typeof(env, result, &valueType);
     if (valueType == napi_function) {
-        NAPI_CALL_BASE(env, napi_create_reference(env, result, 1, &callback.onResult), napi_generic_failure);
+        NAPI_CALL_BASE(env, napi_create_reference(env, result, 1, &callback->onResult), napi_generic_failure);
     } else {
         ACCOUNT_LOGE("onResult is not a function");
         return napi_invalid_arg;
@@ -226,7 +229,7 @@ napi_status ParseIAMCallback(napi_env env, napi_value object, JsIAMCallback &cal
     napi_get_named_property(env, object, "onAcquireInfo", &result);
     napi_typeof(env, result, &valueType);
     if (valueType == napi_function) {
-        NAPI_CALL_BASE(env, napi_create_reference(env, result, 1, &callback.onAcquireInfo), napi_generic_failure);
+        NAPI_CALL_BASE(env, napi_create_reference(env, result, 1, &callback->onAcquireInfo), napi_generic_failure);
     } else if ((valueType == napi_undefined) || (valueType == napi_null)) {
         ACCOUNT_LOGI("onAcquireInfo is undefined or null");
     } else {
@@ -412,8 +415,7 @@ static void OnUserAuthResultWork(uv_work_t *work, int status)
     napi_value argv[ARG_SIZE_TWO] = {nullptr};
     napi_create_int32(param->env, AccountIAMConvertToJSErrCode(param->resultCode), &argv[PARAM_ZERO]);
     argv[PARAM_ONE] = CreateAuthResult(param->env, param->token, param->remainTimes, param->freezingTime);
-    NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->callback.onResult);
-    napi_delete_reference(param->env, param->callback.onResult);
+    NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->callback->onResult);
     napi_close_handle_scope(param->env, scope);
 }
 
@@ -430,25 +432,25 @@ static void OnUserAuthAcquireInfoWork(uv_work_t *work, int status)
     napi_create_int32(param->env, param->module, &argv[PARAM_ZERO]);
     napi_create_uint32(param->env, param->acquireInfo, &argv[PARAM_ONE]);
     argv[PARAM_TWO] = CreateUint8Array(param->env, param->extraInfo.data(), param->extraInfo.size());
-    NapiCallVoidFunction(param->env, argv, ARG_SIZE_THREE, param->callback.onAcquireInfo);
+    NapiCallVoidFunction(param->env, argv, ARG_SIZE_THREE, param->callback->onAcquireInfo);
     napi_close_handle_scope(param->env, scope);
 }
 
-NapiUserAuthCallback::NapiUserAuthCallback(napi_env env, JsIAMCallback callback)
+NapiUserAuthCallback::NapiUserAuthCallback(napi_env env, const std::shared_ptr<JsIAMCallback> &callback)
     : env_(env), callback_(callback)
 {}
 
 NapiUserAuthCallback::~NapiUserAuthCallback()
-{
-    ReleaseNapiRefArray(env_, { callback_.onResult, callback_.onAcquireInfo });
-}
+{}
 
 void NapiUserAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (callback_.onResult == nullptr) {
+    if (callback_->onResultCalled) {
+        ACCOUNT_LOGE("call twice is not allowed");
         return;
     }
+    callback_->onResultCalled = true;
     std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
     std::unique_ptr<AuthCallbackParam> param = std::make_unique<AuthCallbackParam>(env_);
     uv_loop_s *loop = nullptr;
@@ -466,13 +468,16 @@ void NapiUserAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
     NAPI_CALL_RETURN_VOID(env_, uv_queue_work_with_qos(
         loop, work.get(), [] (uv_work_t *work) {}, OnUserAuthResultWork, uv_qos_user_initiated));
     ACCOUNT_LOGI("create user auth result work finish");
-    callback_.onResult = nullptr;
     work.release();
     param.release();
 }
 
 void NapiUserAuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
 {
+    if (callback_->onResultCalled) {
+        ACCOUNT_LOGE("call after OnResult is not allowed");
+        return;
+    }
     std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
     std::unique_ptr<AuthCallbackParam> param = std::make_unique<AuthCallbackParam>(env_);
     uv_loop_s *loop = nullptr;
