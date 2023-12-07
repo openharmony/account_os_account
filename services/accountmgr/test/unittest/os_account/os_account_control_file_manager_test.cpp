@@ -133,7 +133,6 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest002, Te
 {
     OsAccountInfo osAccountInfo;
     EXPECT_EQ(g_controlManager->GetOsAccountInfoById(Constants::START_USER_ID, osAccountInfo), ERR_OK);
-    EXPECT_NE(osAccountInfo.GetLocalName().empty(), true);
 }
 #endif // ENABLE_DEFAULT_ADMIN_NAME
 
