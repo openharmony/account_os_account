@@ -166,3 +166,9 @@ if (!defined(global_parts_info) ||
   has_kv_store_part = false
   has_app_account_part = false
 }
+
+if (!defined(global_parts_info) || defined(global_parts_info.security_asset)) {
+  has_asset_part = true
+} else {
+  has_asset_part = false
+}

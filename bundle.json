@@ -43,6 +43,7 @@
         "ability_runtime",
         "access_token",
         "ace_engine",
+        "asset",
         "bundle_framework",
         "common_event_service",
         "c_utils",

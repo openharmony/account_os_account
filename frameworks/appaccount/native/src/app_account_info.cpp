@@ -16,6 +16,11 @@
 #include "app_account_info.h"
 
 #include "account_log_wrapper.h"
+#ifdef HAS_ASSET_PART
+#include <iomanip>
+#include <sstream>
+#include "mbedtls/sha256.h"
+#endif
 #include "nlohmann/json.hpp"
 
 namespace OHOS {
@@ -23,6 +28,7 @@ namespace AccountSA {
 namespace {
 const std::string OWNER = "owner";
 const std::string NAME = "name";
+const std::string ALIAS = "alias";
 const std::string EXTRA_INFO = "extraInfo";
 const std::string SYNC_ENABLE = "syncEnable";
 const std::string AUTHORIZED_APPS = "authorizedApps";
@@ -31,6 +37,7 @@ const std::string ACCOUNT_CREDENTIAL = "accountCredential";
 const std::string OAUTH_TOKEN = "oauthToken";
 const std::string OAUTH_TOKEN_INFOS = "tokenInfos";
 const std::string OAUTH_TYPE = "authType";
+const std::string OAUTH_TOKEN_STATUS = "status";
 const std::string OAUTH_AUTH_LIST = "authList";
 const std::string OAUTH_TOKEN_TO_TYPE = "tokenToType";
 const std::string HYPHEN = "#";
@@ -38,8 +45,31 @@ constexpr uint32_t APP_INDEX = 0;
 constexpr uint32_t MAX_TOKEN_NUMBER = 128;
 constexpr uint32_t MAX_OAUTH_LIST_SIZE = 512;
 constexpr uint32_t MAX_ASSOCIATED_DATA_NUMBER = 1024;
+#ifdef HAS_ASSET_PART
+constexpr uint32_t HASH_LENGTH = 32;
+constexpr uint32_t WIDTH_FOR_HEX = 2;
+#endif
 constexpr int32_t MAX_MAP_SZIE = 1024;
 }  // namespace
+
+#ifdef HAS_ASSET_PART
+static void ComputeHash(const std::string &input, std::string &output)
+{
+    unsigned char hash[HASH_LENGTH] = {0};
+    mbedtls_sha256_context context;
+    mbedtls_sha256_init(&context);
+    mbedtls_sha256_starts(&context, 0);
+    mbedtls_sha256_update(&context, reinterpret_cast<const unsigned char *>(input.c_str()), input.length());
+    mbedtls_sha256_finish(&context, hash);
+    mbedtls_sha256_free(&context);
+
+    std::stringstream ss;
+    for (std::uint32_t i = 0; i < HASH_LENGTH; ++i) {
+        ss << std::hex << std::uppercase << std::setw(WIDTH_FOR_HEX) << std::setfill('0') << std::uint16_t(hash[i]);
+    }
+    ss >> output;
+}
+#endif
 
 AppAccountInfo::AppAccountInfo()
 {
@@ -51,6 +81,7 @@ AppAccountInfo::AppAccountInfo()
     syncEnable_ = false;
     associatedData_ = "";
     accountCredential_ = "";
+    alias_ = "";
     oauthTokens_.clear();
 }
 
@@ -64,6 +95,7 @@ AppAccountInfo::AppAccountInfo(const std::string &name, const std::string &owner
     syncEnable_ = false;
     associatedData_ = "";
     accountCredential_ = "";
+    alias_ = "";
     oauthTokens_.clear();
 }
 
@@ -80,6 +112,7 @@ void AppAccountInfo::GetOwner(std::string &owner)
 void AppAccountInfo::SetOwner(const std::string &owner)
 {
     owner_ = owner;
+    alias_ = "";
 }
 
 std::string AppAccountInfo::GetName()
@@ -95,6 +128,7 @@ void AppAccountInfo::GetName(std::string &name) const
 void AppAccountInfo::SetName(const std::string &name)
 {
     name_ = name;
+    alias_ = "";
 }
 
 uint32_t AppAccountInfo::GetAppIndex()
@@ -105,6 +139,7 @@ uint32_t AppAccountInfo::GetAppIndex()
 void AppAccountInfo::SetAppIndex(const uint32_t &appIndex)
 {
     appIndex_ = appIndex;
+    alias_ = "";
 }
 
 void AppAccountInfo::GetExtraInfo(std::string &extraInfo) const
@@ -254,22 +289,30 @@ ErrCode AppAccountInfo::GetAccountCredential(const std::string &credentialType, 
 }
 
 ErrCode AppAccountInfo::SetAccountCredential(
-    const std::string &credentialType, const std::string &credential, bool isDelete)
+    const std::string &credentialType, const std::string &credential)
 {
-    auto jsonObject = Json::parse(accountCredential_, nullptr, false);
-    if (jsonObject.is_discarded() || (!jsonObject.is_object())) {
-        ACCOUNT_LOGI("jsonObject is discarded");
+    Json jsonObject;
+    if (accountCredential_.empty()) {
         jsonObject = Json::object();
-    }
-
-    if (isDelete) {
-        auto ret = jsonObject.erase(credentialType);
-        if (ret == 0) {
-            return ERR_APPACCOUNT_SERVICE_ACCOUNT_CREDENTIAL_NOT_EXIST;
-        }
     } else {
-        jsonObject[credentialType] = credential;
+        jsonObject = Json::parse(accountCredential_, nullptr, false);
+        if (!jsonObject.is_object()) {
+            ACCOUNT_LOGE("jsonObject is not an object");
+            return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
+        }
     }
+#ifndef HAS_ASSET_PART
+    jsonObject[credentialType] = credential;
+#else
+    auto it = jsonObject.find(credentialType);
+    if (it == jsonObject.end()) {
+        std::string credentialTypeAlias;
+        ComputeHash(credentialType, credentialTypeAlias);
+        jsonObject[credentialType] = GetAlias() + credentialTypeAlias;
+    } else {
+        return ERR_OK;
+    }
+#endif
 
     try {
         accountCredential_ = jsonObject.dump();
@@ -277,6 +320,17 @@ ErrCode AppAccountInfo::SetAccountCredential(
         ACCOUNT_LOGE("failed to dump json object, reason: %{public}s", err.what());
         return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
     }
+    return ERR_OK;
+}
+
+ErrCode AppAccountInfo::DeleteAccountCredential(const std::string &credentialType)
+{
+    auto jsonObject = Json::parse(accountCredential_, nullptr, false);
+    if (!jsonObject.is_object() || (jsonObject.erase(credentialType) == 0)) {
+        ACCOUNT_LOGE("credential not found");
+        return ERR_APPACCOUNT_SERVICE_ACCOUNT_CREDENTIAL_NOT_EXIST;
+    }
+    accountCredential_ = jsonObject.dump();
     return ERR_OK;
 }
 
@@ -303,7 +357,10 @@ ErrCode AppAccountInfo::SetOAuthToken(const std::string &authType, const std::st
 {
     auto it = oauthTokens_.find(authType);
     if (it != oauthTokens_.end()) {
+#ifndef HAS_ASSET_PART
         it->second.token = token;
+#endif
+        it->second.status = true;
         return ERR_OK;
     }
     if (oauthTokens_.size() >= MAX_TOKEN_NUMBER) {
@@ -311,7 +368,14 @@ ErrCode AppAccountInfo::SetOAuthToken(const std::string &authType, const std::st
         return ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_MAX_SIZE;
     }
     OAuthTokenInfo tokenInfo;
+    tokenInfo.status = !token.empty();
+#ifndef HAS_ASSET_PART
     tokenInfo.token = token;
+#else
+    std::string authTypeAlias;
+    ComputeHash(authType, authTypeAlias);
+    tokenInfo.token = GetAlias() + authTypeAlias;
+#endif
     oauthTokens_.emplace(authType, tokenInfo);
     return ERR_OK;
 }
@@ -320,7 +384,10 @@ ErrCode AppAccountInfo::DeleteOAuthToken(const std::string &authType, const std:
 {
     auto it = oauthTokens_.find(authType);
     if ((it != oauthTokens_.end()) && (it->second.token == token)) {
+#ifndef HAS_ASSET_PART
         it->second.token = "";
+#endif
+        it->second.status = false;
         return ERR_OK;
     }
     return ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST;
@@ -332,11 +399,13 @@ ErrCode AppAccountInfo::DeleteAuthToken(const std::string &authType, const std::
     if (it == oauthTokens_.end()) {
         return ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST;
     }
-    if (it->second.token == token && isOwnerSelf) {
-        oauthTokens_.erase(it);
-    } else {
-        it->second.status = false;
+    if (it->second.token != token) {
+        return ERR_OK;
     }
+    if (isOwnerSelf) {
+        oauthTokens_.erase(it);
+    }
+    it->second.status = false;
     return ERR_OK;
 }
 
@@ -487,12 +556,13 @@ Json AppAccountInfo::ToJson() const
 {
     auto tokenArray = Json::array();
     for (auto it = oauthTokens_.begin(); it != oauthTokens_.end(); ++it) {
-        if ((it->second.token.empty()) && (it->second.authList.size() == 0)) {
+        if (!it->second.status && it->second.authList.empty()) {
             continue;
         }
         auto tokenObject = Json {
             {OAUTH_TYPE, it->first},
             {OAUTH_TOKEN, it->second.token},
+            {OAUTH_TOKEN_STATUS, it->second.status},
             {OAUTH_AUTH_LIST, it->second.authList}
         };
         tokenArray.push_back(tokenObject);
@@ -500,6 +570,7 @@ Json AppAccountInfo::ToJson() const
     auto jsonObject = Json {
         {OWNER, owner_},
         {NAME, name_},
+        {ALIAS, alias_},
         {EXTRA_INFO, extraInfo_},
         {AUTHORIZED_APPS, authorizedApps_},
         {SYNC_ENABLE, syncEnable_},
@@ -519,6 +590,9 @@ void AppAccountInfo::ParseTokenInfosFromJson(const Json &jsonObject)
         if (it->find(OAUTH_TOKEN) != it->end() && it->at(OAUTH_TOKEN).is_string()) {
             it->at(OAUTH_TOKEN).get_to(tokenInfo.token);
         }
+        if (it->find(OAUTH_TOKEN_STATUS) != it->end() && it->at(OAUTH_TOKEN_STATUS).is_boolean()) {
+            it->at(OAUTH_TOKEN_STATUS).get_to(tokenInfo.status);
+        }
         if (it->find(OAUTH_TYPE) != it->end() && it->at(OAUTH_TYPE).is_string()) {
             it->at(OAUTH_TYPE).get_to(tokenInfo.authType);
         }
@@ -537,6 +611,8 @@ void AppAccountInfo::FromJson(const Json &jsonObject)
         jsonObject, jsonObjectEnd, OWNER, owner_, OHOS::AccountSA::JsonType::STRING);
     OHOS::AccountSA::GetDataByType<std::string>(
         jsonObject, jsonObjectEnd, NAME, name_, OHOS::AccountSA::JsonType::STRING);
+    OHOS::AccountSA::GetDataByType<std::string>(
+        jsonObject, jsonObjectEnd, ALIAS, alias_, OHOS::AccountSA::JsonType::STRING);
     OHOS::AccountSA::GetDataByType<std::string>(
         jsonObject, jsonObjectEnd, EXTRA_INFO, extraInfo_, OHOS::AccountSA::JsonType::STRING);
     OHOS::AccountSA::GetDataByType<bool>(
@@ -566,6 +642,16 @@ std::string AppAccountInfo::ToString() const
 std::string AppAccountInfo::GetPrimeKey() const
 {
     return (owner_ + HYPHEN + std::to_string(appIndex_) + HYPHEN + name_ + HYPHEN);
+}
+
+std::string AppAccountInfo::GetAlias()
+{
+#ifdef HAS_ASSET_PART
+    if (alias_.empty()) {
+        ComputeHash(GetPrimeKey(), alias_);
+    }
+#endif
+    return alias_;
 }
 
 bool AppAccountInfo::ReadFromParcel(Parcel &parcel)
