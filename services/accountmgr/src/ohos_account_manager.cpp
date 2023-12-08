@@ -18,7 +18,6 @@
 #include <dirent.h>
 #include <dlfcn.h>
 #include <iomanip>
-#include <sstream>
 #include <mbedtls/aes.h>
 #include <mbedtls/cipher.h>
 #include <mbedtls/pkcs5.h>

@@ -23,6 +23,9 @@
 #include "app_account_data_storage.h"
 #include "app_account_info.h"
 #include "app_account_subscribe_manager.h"
+#ifdef HAS_ASSET_PART
+#include "asset_api.h"
+#endif
 #include "bundle_manager_adapter.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
@@ -36,7 +39,98 @@ namespace {
 const std::string GET_ALL_APP_ACCOUNTS = "ohos.permission.GET_ALL_APP_ACCOUNTS";
 const std::string DATA_STORAGE_SUFFIX = "_sync";
 const std::string AUTHORIZED_ACCOUNTS = "authorizedAccounts";
+#ifdef HAS_ASSET_PART
+const std::string ALIAS_SUFFIX_CREDENTIAL = "credential";
+const std::string ALIAS_SUFFIX_TOKEN = "token";
+#endif
 }
+
+#ifdef HAS_ASSET_PART
+static ErrCode SaveDataToAsset(const std::string &hapLabel, const std::string &accountLabel,
+    const std::string &alias, const std::string &value)
+{
+    if (value.empty()) {
+        return ERR_OK;
+    }
+    Asset_Blob hapLabelBlob = { static_cast<uint32_t>(hapLabel.size()),
+        const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(hapLabel.c_str())) };
+    Asset_Blob accountLabelBlob = { static_cast<uint32_t>(accountLabel.size()),
+        const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(accountLabel.c_str())) };
+    Asset_Blob aliasBlob = { static_cast<uint32_t>(alias.size()),
+        const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(alias.c_str())) };
+    Asset_Blob secretBlob = { static_cast<uint32_t>(value.size()),
+        const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(value.c_str())) };
+    Asset_Attr attr[] = {
+        { .tag = ASSET_TAG_ALIAS, .value.blob = aliasBlob },
+        { .tag = ASSET_TAG_SECRET, .value.blob = secretBlob },
+        { .tag = ASSET_TAG_DATA_LABEL_NORMAL_1, .value.blob = hapLabelBlob },
+        { .tag = ASSET_TAG_DATA_LABEL_NORMAL_2, .value.blob = accountLabelBlob },
+        { .tag = ASSET_TAG_ACCESSIBILITY, .value.u32 = ASSET_ACCESSIBILITY_DEVICE_POWER_ON }
+    };
+    ErrCode ret = OH_Asset_Add(attr, sizeof(attr) / sizeof(attr[0]));
+    if (ret == ASSET_DUPLICATED) {
+        ret = OH_Asset_Update(attr, 1, &attr[1], 1);
+    }
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("fail to save data to asset, error code: %{public}d", ret);
+    }
+    return ret;
+}
+
+static ErrCode GetDataFromAsset(const std::string &alias, std::string &value)
+{
+    Asset_Blob aliasBlob = { static_cast<uint32_t>(alias.size()),
+        const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(alias.c_str())) };
+    Asset_Attr attr[] = {
+        { .tag = ASSET_TAG_ALIAS, .value.blob = aliasBlob },
+        { .tag = ASSET_TAG_RETURN_TYPE, .value.u32 = ASSET_RETURN_ALL }
+    };
+
+    Asset_ResultSet resultSet = {0};
+    ErrCode ret = OH_Asset_Query(attr, sizeof(attr) / sizeof(attr[0]), &resultSet);
+    if (ret != ASSET_SUCCESS) {
+        ACCOUNT_LOGE("fail to get data from asset, error code: %{public}d", ret);
+    } else {
+        Asset_Attr *secret = OH_Asset_ParseAttr(resultSet.results, ASSET_TAG_SECRET);
+        if (secret == nullptr) {
+            ACCOUNT_LOGE("secret is nullptr");
+            ret = ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+        } else {
+            Asset_Blob valueBlob = secret->value.blob;
+            value = std::string(reinterpret_cast<const char *>(valueBlob.data), valueBlob.size);
+        }
+    }
+    OH_Asset_FreeResultSet(&resultSet);
+    return ret;
+}
+
+static ErrCode RemoveDataFromAsset(const std::string &alias)
+{
+    Asset_Blob aliasBlob = { static_cast<uint32_t>(alias.size()),
+        const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(alias.c_str())) };
+    Asset_Attr attr[] = { { .tag = ASSET_TAG_ALIAS, .value.blob = aliasBlob } };
+
+    ErrCode ret = OH_Asset_Remove(attr, sizeof(attr) / sizeof(attr[0]));
+    if (ret != ASSET_SUCCESS) {
+        ACCOUNT_LOGE("fail to remove data from asset");
+    }
+    return ret;
+}
+
+static ErrCode RemoveDataFromAssetByLabel(int32_t tag, const std::string &label)
+{
+    Asset_Blob labelBlob = { static_cast<uint32_t>(label.size()),
+        const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(label.c_str())) };
+    Asset_Attr attr[] = { { .tag = tag, .value.blob = labelBlob } };
+
+    ErrCode ret = OH_Asset_Remove(attr, sizeof(attr) / sizeof(attr[0]));
+    if (ret != ASSET_SUCCESS) {
+        ACCOUNT_LOGE("fail to remove data from asset");
+    }
+    return ret;
+}
+#endif
+
 AppAccountControlManager &AppAccountControlManager::GetInstance()
 {
     static AppAccountControlManager *instance = new (std::nothrow) AppAccountControlManager();
@@ -100,6 +194,9 @@ ErrCode AppAccountControlManager::DeleteAccount(
         return result;
     }
     RemoveAssociatedDataCacheByAccount(uid, name);
+#ifdef HAS_ASSET_PART
+    RemoveDataFromAssetByLabel(ASSET_TAG_DATA_LABEL_NORMAL_2, appAccountInfo.GetPrimeKey());
+#endif
 
     std::set<std::string> authorizedApps;
     appAccountInfo.GetAuthorizedApps(authorizedApps);
@@ -395,15 +492,18 @@ ErrCode AppAccountControlManager::GetAccountCredential(const std::string &name, 
 
     result = appAccountInfo.GetAccountCredential(credentialType, credential);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get account credential, result %{public}d.", result);
         return result;
     }
-
-    return ERR_OK;
+#ifdef HAS_ASSET_PART
+    std::string alias = credential;
+    credential = "";
+    GetDataFromAsset(alias, credential);
+#endif
+    return result;
 }
 
 ErrCode AppAccountControlManager::SetAccountCredential(const std::string &name, const std::string &credentialType,
-    const std::string &credential, const AppAccountCallingInfo &appAccountCallingInfo, bool isDelete)
+    const std::string &credential, const AppAccountCallingInfo &appAccountCallingInfo)
 {
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr =
         GetDataStorage(appAccountCallingInfo.callingUid, false, DistributedKv::SecurityLevel::S4);
@@ -414,8 +514,7 @@ ErrCode AppAccountControlManager::SetAccountCredential(const std::string &name, 
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
-
-    result = appAccountInfo.SetAccountCredential(credentialType, credential, isDelete);
+    result = appAccountInfo.SetAccountCredential(credentialType, credential);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to set account credential, result %{public}d.", result);
         return result;
@@ -426,8 +525,43 @@ ErrCode AppAccountControlManager::SetAccountCredential(const std::string &name, 
         ACCOUNT_LOGE("failed to save account info into data storage, result %{public}d.", result);
         return result;
     }
+#ifdef HAS_ASSET_PART
+    std::string hapLabel = appAccountCallingInfo.bundleName + Constants::HYPHEN +
+        std::to_string(appAccountCallingInfo.appIndex);
+    std::string credentialAlias;
+    appAccountInfo.GetAccountCredential(credentialType, credentialAlias);
+    result = SaveDataToAsset(hapLabel, appAccountInfo.GetAlias(), credentialAlias, credential);
+#endif
+    return result;
+}
 
-    return ERR_OK;
+ErrCode AppAccountControlManager::DeleteAccountCredential(const std::string &name, const std::string &credentialType,
+    const AppAccountCallingInfo &callingInfo)
+{
+    AppAccountInfo appAccountInfo(name, callingInfo.bundleName);
+    appAccountInfo.SetAppIndex(callingInfo.appIndex);
+    auto dataStoragePtr = GetDataStorage(callingInfo.callingUid, false, DistributedKv::SecurityLevel::S4);
+    ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
+        return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
+    }
+#ifdef HAS_ASSET_PART
+    std::string alias;
+    appAccountInfo.GetAccountCredential(credentialType, alias);
+    RemoveDataFromAsset(alias);
+#endif
+    result = appAccountInfo.DeleteAccountCredential(credentialType);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to delete account credential, result %{public}d.", result);
+        return result;
+    }
+
+    result = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, callingInfo.callingUid);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to save account info into data storage, result %{public}d.", result);
+    }
+    return result;
 }
 
 ErrCode AppAccountControlManager::GetOAuthToken(
@@ -449,7 +583,19 @@ ErrCode AppAccountControlManager::GetOAuthToken(
         ACCOUNT_LOGE("failed to get oauth token for permission denied, result %{public}d.", result);
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
-    return appAccountInfo.GetOAuthToken(request.authType, token, apiVersion);
+    result = appAccountInfo.GetOAuthToken(request.authType, token, apiVersion);
+    if (result != ERR_OK) {
+        return result;
+    }
+#ifdef HAS_ASSET_PART
+    std::string alias = token;
+    token = "";
+    GetDataFromAsset(alias, token);
+    if (token.empty() && (apiVersion < Constants::API_VERSION9)) {
+        return ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST;
+    }
+#endif
+    return ERR_OK;
 }
 
 ErrCode AppAccountControlManager::SetOAuthToken(const AuthenticatorSessionRequest &request)
@@ -474,7 +620,13 @@ ErrCode AppAccountControlManager::SetOAuthToken(const AuthenticatorSessionReques
         ACCOUNT_LOGE("failed to save account info into data storage, result %{public}d.", result);
         return result;
     }
-    return ERR_OK;
+#ifdef HAS_ASSET_PART
+    std::string hapLabel = request.callerBundleName + Constants::HYPHEN + std::to_string(request.appIndex);
+    std::string authTypeAlias;
+    appAccountInfo.GetOAuthToken(request.authType, authTypeAlias);
+    result = SaveDataToAsset(hapLabel, appAccountInfo.GetAlias(), authTypeAlias, request.token);
+#endif
+    return result;
 }
 
 ErrCode AppAccountControlManager::DeleteOAuthToken(
@@ -489,23 +641,34 @@ ErrCode AppAccountControlManager::DeleteOAuthToken(
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", ret);
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
-    bool isOwnerSelf = false;
-    if (request.owner == request.callerBundleName) {
-        isOwnerSelf = true;
-    }
     bool isVisible = false;
     ret = appAccountInfo.CheckOAuthTokenVisibility(request.authType, request.callerBundleName, isVisible, apiVersion);
     if ((!isVisible) || (ret != ERR_OK)) {
         ACCOUNT_LOGE("failed to delete oauth token for permission denied, result %{public}d.", ret);
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
+    std::string token = request.token;
+#ifdef HAS_ASSET_PART
+    std::string alias;
+    ret = appAccountInfo.GetOAuthToken(request.authType, alias, apiVersion);
+    if (ret != ERR_OK) {
+        return apiVersion >= Constants::API_VERSION9 ? ret : ERR_OK;
+    }
+    GetDataFromAsset(alias, token);
+    if (token != request.token) {
+        return ERR_OK;
+    }
+    RemoveDataFromAsset(alias);
+    token = alias;
+#endif
     if (apiVersion >= Constants::API_VERSION9) {
-        ret = appAccountInfo.DeleteAuthToken(request.authType, request.token, isOwnerSelf);
+        bool isOwnerSelf = request.owner == request.callerBundleName;
+        ret = appAccountInfo.DeleteAuthToken(request.authType, token, isOwnerSelf);
         if (ret != ERR_OK) {
             return ret;
         }
     } else {
-        ret = appAccountInfo.DeleteOAuthToken(request.authType, request.token);
+        ret = appAccountInfo.DeleteOAuthToken(request.authType, token);
         if (ret == ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST) {
             return ERR_OK;
         }
@@ -515,7 +678,7 @@ ErrCode AppAccountControlManager::DeleteOAuthToken(
         ACCOUNT_LOGE("failed to save account info into data storage, result %{public}d.", ret);
         return ret;
     }
-    return ERR_OK;
+    return ret;
 }
 
 ErrCode AppAccountControlManager::SetOAuthTokenVisibility(
@@ -577,19 +740,21 @@ ErrCode AppAccountControlManager::GetAllOAuthTokens(
         ACCOUNT_LOGE("failed to get all oauth token from data storage, result %{public}d.", result);
         return result;
     }
-    if (request.callerBundleName == request.owner) {
-        tokenInfos = allTokenInfos;
-        return ERR_OK;
-    }
     for (auto tokenInfo : allTokenInfos) {
-        if (tokenInfo.token.empty()) {
+        if ((request.callerBundleName != request.owner) &&
+            (tokenInfo.authList.find(request.callerBundleName) == tokenInfo.authList.end())) {
             continue;
         }
-        auto it = tokenInfo.authList.find(request.callerBundleName);
-        if (it != tokenInfo.authList.end()) {
-            tokenInfo.authList.clear();
-            tokenInfos.push_back(tokenInfo);
+#ifdef HAS_ASSET_PART
+        std::string alias = tokenInfo.token;
+        tokenInfo.token = "";
+        GetDataFromAsset(alias, tokenInfo.token);
+#endif
+        if (tokenInfo.token.empty() && tokenInfo.authList.empty()) { // for api 8 logic
+            continue;
         }
+        tokenInfo.authList.clear();
+        tokenInfos.push_back(tokenInfo);
     }
     return ERR_OK;
 }
@@ -834,6 +999,9 @@ ErrCode AppAccountControlManager::OnPackageRemoved(
         ACCOUNT_LOGI("No distributed feature!");
 #endif // DISTRIBUTED_FEATURE_ENABLED
     }
+#ifdef HAS_ASSET_PART
+    RemoveDataFromAssetByLabel(ASSET_TAG_DATA_LABEL_NORMAL_1, key);
+#endif
     return ERR_OK;
 }
 

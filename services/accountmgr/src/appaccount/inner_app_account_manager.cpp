@@ -191,7 +191,7 @@ ErrCode InnerAppAccountManager::DeleteAccountCredential(const std::string &name,
     appAccountCallingInfo.callingUid = uid;
     appAccountCallingInfo.bundleName = bundleName;
     appAccountCallingInfo.appIndex = appIndex;
-    ErrCode result = controlManager_.SetAccountCredential(name, credentialType, "", appAccountCallingInfo, true);
+    ErrCode result = controlManager_.DeleteAccountCredential(name, credentialType, appAccountCallingInfo);
     if (result != ERR_OK) {
         return result;
     }
