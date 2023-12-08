@@ -368,7 +368,7 @@ OsAccountStub::~OsAccountStub()
 
 int OsAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    ACCOUNT_LOGD("Received stub message: %{public}d, callingUid: %{public}d", code, IPCSkeleton::GetCallingUid());
+    ACCOUNT_LOGI("Received stub message: %{public}d, callingUid: %{public}d", code, IPCSkeleton::GetCallingUid());
     MemoryGuard cacheGuard;
     if (data.ReadInterfaceToken() != GetDescriptor()) {
         ACCOUNT_LOGE("check descriptor failed! code %{public}u.", code);
