@@ -18,6 +18,7 @@
 #include "account_iam_callback.h"
 #include "account_log_wrapper.h"
 #include "domain_account_callback_service.h"
+#include "hisysevent_adapter.h"
 #include "iinner_os_account_manager.h"
 #include "inner_domain_account_manager.h"
 #include "iservice_registry.h"
@@ -289,7 +290,7 @@ void InnerAccountIAMManager::GetProperty(
         return;
     }
     if (static_cast<int32_t>(request.authType) != static_cast<int32_t>(IAMAuthType::DOMAIN)) {
-        auto getCallback = std::make_shared<GetPropCallbackWrapper>(callback);
+        auto getCallback = std::make_shared<GetPropCallbackWrapper>(userId, callback);
         UserAuthClient::GetInstance().GetProperty(userId, request, getCallback);
         return;
     }
@@ -307,7 +308,7 @@ void InnerAccountIAMManager::SetProperty(
         callback->OnResult(ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE, result);
         return;
     }
-    auto setCallback = std::make_shared<SetPropCallbackWrapper>(callback);
+    auto setCallback = std::make_shared<SetPropCallbackWrapper>(userId, callback);
     UserAuthClient::GetInstance().SetProperty(userId, request, setCallback);
 }
 
@@ -372,7 +373,7 @@ ErrCode InnerAccountIAMManager::UnlockUserScreen(int32_t userId)
         ACCOUNT_LOGE("fail to unlock screen");
         return result;
     }
-#endif // HAS_STORAGE_PART
+#endif
     return ERR_OK;
 }
 
@@ -416,6 +417,7 @@ ErrCode InnerAccountIAMManager::UpdateUserKey(int32_t userId, uint64_t secureUid
     }
     result = UpdateStorageKey(userId, secureUid, token, oldCredInfo.secret, newSecret);
     if (result != ERR_OK) {
+        ReportOsAccountOperationFail(userId, "updateUserKey", result, "failed to notice storage to update user key");
         return result;
     }
     credInfoMap_[userId] = {
@@ -439,6 +441,7 @@ ErrCode InnerAccountIAMManager::RemoveUserKey(int32_t userId, const std::vector<
     std::vector<uint8_t> newSecret;
     result = UpdateStorageKey(userId, 0, token, oldCredInfo.secret, newSecret);
     if (result != ERR_OK) {
+        ReportOsAccountOperationFail(userId, "removeUserKey", result, "failed to notice storage to remove user key");
         return result;
     }
     credInfoMap_[userId] = {

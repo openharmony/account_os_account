@@ -14,6 +14,7 @@ import("../../os_account.gni")
 account_service_sources = [
   "${services_path}/accountmgr/src/account_event_provider.cpp",
   "${services_path}/accountmgr/src/account_event_subscribe.cpp",
+  "${services_path}/accountmgr/src/account_file_watcher_manager.cpp",
   "${services_path}/accountmgr/src/account_helper_data.cpp",
   "${services_path}/accountmgr/src/account_info_report.cpp",
   "${services_path}/accountmgr/src/account_mgr_service.cpp",

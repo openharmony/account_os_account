@@ -27,7 +27,9 @@
 #include "directory_ex.h"
 #include "file_ex.h"
 #include "hisysevent_adapter.h"
+#include "iinner_os_account_manager.h"
 #include "ohos_account_data_deal.h"
+
 namespace OHOS {
 namespace AccountSA {
 namespace {
@@ -42,11 +44,90 @@ const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR = "account_avatar";
 const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_SCALABLEDATA = "account_scalableData";
 const std::string DATADEAL_JSON_KEY_USERID = "user_id";
 const std::string DATADEAL_JSON_KEY_BIND_TIME = "bind_time";
+const uint32_t ALG_COMMON_SIZE = 32;
 } // namespace
 
-OhosAccountDataDeal::OhosAccountDataDeal(const std::string &configFileDir) : configFileDir_(configFileDir)
+OhosAccountDataDeal::OhosAccountDataDeal(const std::string &configFileDir)
+    : configFileDir_(configFileDir),
+    accountFileWatcherMgr_(AccountFileWatcherMgr::GetInstance())
 {
+    accountFileOperator_ = std::make_shared<AccountFileOperator>();
     initOk_ = false;
+    checkCallbackFunc_ = [this](const std::string &fileName, const int32_t id, uint32_t event) {
+        ACCOUNT_LOGI("inotify event = %{public}d, fileName = %{public}s", event, fileName.c_str());
+        switch (event) {
+            case IN_MODIFY: {
+                return DealWithFileModifyEvent(fileName, id);
+            }
+            case IN_MOVE_SELF: {
+                ReportOsAccountDataTampered(id, fileName, "DISTRIBUTED_ACCOUT_INFO");
+                break;
+            }
+            case IN_DELETE_SELF: {
+                DealWithFileDeleteEvent(fileName, id);
+                break;
+            }
+            default: {
+                ACCOUNT_LOGW("get event invalid!");
+                return false;
+            }
+        }
+        return true;
+    };
+}
+
+bool OhosAccountDataDeal::DealWithFileModifyEvent(const std::string &fileName, const int32_t id)
+{
+    ACCOUNT_LOGI("enter");
+    {
+        std::lock_guard<std::mutex> lock(accountFileOperator_->GetModifyOperationLock());
+        if (accountFileOperator_->GetValidModifyFileOperationFlag(fileName)) {
+            ACCOUNT_LOGD("this is valid service operate, no need to deal with it.");
+            accountFileOperator_->SetValidModifyFileOperationFlag(fileName, false);
+            return true;
+        }
+    }
+    std::lock_guard<std::mutex> lock(accountInfoFileLock_);
+    std::string fileInfoStr;
+    if (accountFileOperator_->GetFileContentByPath(fileName, fileInfoStr) != ERR_OK) {
+        ACCOUNT_LOGE("get content from file %{public}s failed!", fileName.c_str());
+        return false;
+    }
+    uint8_t localDigestData[ALG_COMMON_SIZE] = {0};
+    accountFileWatcherMgr_.GetAccountInfoDigestFromFile(fileName, localDigestData, ALG_COMMON_SIZE);
+    uint8_t newDigestData[ALG_COMMON_SIZE] = {0};
+    GenerateAccountInfoDigest(fileInfoStr, newDigestData, ALG_COMMON_SIZE);
+    if (memcmp(localDigestData, newDigestData, ALG_COMMON_SIZE) == 0) {
+        ACCOUNT_LOGD("No need to recover local file data.");
+        return true;
+    }
+    ReportOsAccountDataTampered(id, fileName, "DISTRIBUTED_ACCOUT_INFO");
+    return true;
+}
+
+void OhosAccountDataDeal::DealWithFileDeleteEvent(const std::string &fileName, const int32_t id)
+{
+    {
+        std::lock_guard<std::mutex> lock(accountFileOperator_->GetDeleteOperationLock());
+        if (accountFileOperator_->GetValidDeleteFileOperationFlag(fileName)) {
+            ACCOUNT_LOGD("this is valid service operate, no need to deal with it.");
+            accountFileOperator_->SetValidDeleteFileOperationFlag(fileName, false);
+            return;
+        }
+    }
+    std::string fileDir = configFileDir_ + std::to_string(id);
+    if (!accountFileOperator_->IsExistDir(fileDir)) {
+        ACCOUNT_LOGI("this id is already removed.");
+        return;
+    }
+    ReportOsAccountDataTampered(id, fileName, "DISTRIBUTED_ACCOUT_INFO");
+}
+
+void OhosAccountDataDeal::AddFileWatcher(const int32_t id)
+{
+    std::shared_ptr<FileWatcher> fileWatcher;
+    std::string configFile = configFileDir_ + std::to_string(id) + ACCOUNT_CFG_FILE_NAME;
+    accountFileWatcherMgr_.AddFileWatcher(id, checkCallbackFunc_, configFile);
 }
 
 ErrCode OhosAccountDataDeal::Init(int32_t userId)
@@ -80,6 +161,12 @@ ErrCode OhosAccountDataDeal::Init(int32_t userId)
         return ERR_ACCOUNT_DATADEAL_JSON_FILE_CORRUPTION;
     }
 
+    // recover watch for exist account info
+    std::vector<OsAccountInfo> osAccountInfos;
+    IInnerOsAccountManager::GetInstance().QueryAllCreatedOsAccounts(osAccountInfos);
+    for (const auto &info : osAccountInfos) {
+        AddFileWatcher(info.GetLocalId());
+    }
     initOk_ = true;
     return ERR_OK;
 }
@@ -93,7 +180,7 @@ ErrCode OhosAccountDataDeal::AccountInfoFromJson(AccountInfo &accountInfo, int32
     return GetAccountInfo(accountInfo, userId);
 }
 
-ErrCode OhosAccountDataDeal::AccountInfoToJson(const AccountInfo &accountInfo) const
+ErrCode OhosAccountDataDeal::AccountInfoToJson(const AccountInfo &accountInfo)
 {
     if (!initOk_) {
         ACCOUNT_LOGE("Not init ok");
@@ -102,8 +189,9 @@ ErrCode OhosAccountDataDeal::AccountInfoToJson(const AccountInfo &accountInfo) c
     return SaveAccountInfo(accountInfo);
 }
 
-ErrCode OhosAccountDataDeal::SaveAccountInfo(const AccountInfo &accountInfo) const
+ErrCode OhosAccountDataDeal::SaveAccountInfo(const AccountInfo &accountInfo)
 {
+    std::lock_guard<std::mutex> lock(accountInfoFileLock_);
     std::string scalableDataStr = (accountInfo.ohosAccountInfo_.scalableData_).ToString();
     nlohmann::json jsonData = json {
         {DATADEAL_JSON_KEY_BIND_TIME, accountInfo.bindTime_},
@@ -119,40 +207,16 @@ ErrCode OhosAccountDataDeal::SaveAccountInfo(const AccountInfo &accountInfo) con
     };
     std::string accountInfoValue = jsonData.dump(-1, ' ', false, json::error_handler_t::ignore);
     std::string configFile = configFileDir_ + std::to_string(accountInfo.userId_) + ACCOUNT_CFG_FILE_NAME;
-    FILE *fp = fopen(configFile.c_str(), "wb");
-    if (fp == nullptr) {
-        ACCOUNT_LOGE("failed to open %{public}s, errno %{public}d.", configFile.c_str(), errno);
-        ReportOhosAccountOperationFail(accountInfo.userId_, OPERATION_OPEN_FILE_TO_WRITE, errno, configFile);
-        return ERR_ACCOUNT_COMMON_FILE_OPEN_FAILED;
-    }
-    size_t num = fwrite(accountInfoValue.c_str(), sizeof(char), accountInfoValue.length(), fp);
-    if (num != accountInfoValue.length()) {
-        ACCOUNT_LOGE("failed to fwrite %{public}s, errno %{public}d.", configFile.c_str(), errno);
-        ReportOhosAccountOperationFail(accountInfo.userId_, OPERATION_OPEN_FILE_TO_WRITE, errno, configFile);
-        fclose(fp);
-        return ERR_ACCOUNT_COMMON_FILE_WRITE_FAILED;
-    }
-    if (fflush(fp) != 0) {
-        ACCOUNT_LOGE("failed to fflush %{public}s, errno %{public}d.", configFile.c_str(), errno);
-        ReportOhosAccountOperationFail(accountInfo.userId_, OPERATION_OPEN_FILE_TO_WRITE, errno, configFile);
-        fclose(fp);
-        return ERR_ACCOUNT_COMMON_FILE_WRITE_FAILED;
-    }
-    if (fsync(fileno(fp)) != 0) {
-        ACCOUNT_LOGE("failed to fsync %{public}s, errno %{public}d.", configFile.c_str(), errno);
-        ReportOhosAccountOperationFail(accountInfo.userId_, OPERATION_OPEN_FILE_TO_WRITE, errno, configFile);
-        fclose(fp);
-        return ERR_ACCOUNT_COMMON_FILE_WRITE_FAILED;
-    }
-    fclose(fp);
 
-    // change mode
-    if (!ChangeModeFile(configFile, S_IRUSR | S_IWUSR)) {
-        ACCOUNT_LOGE("failed to change mode for file %{public}s, errno %{public}d.", configFile.c_str(), errno);
+    ErrCode ret = accountFileOperator_->InputFileByPathAndContent(configFile, accountInfoValue);
+    if (ret == ERR_OHOSACCOUNT_SERVICE_FILE_CHANGE_DIR_MODE_ERROR) {
         ReportOhosAccountOperationFail(accountInfo.userId_, OPERATION_CHANGE_MODE_FILE, errno, configFile);
-        return ERR_OHOSACCOUNT_SERVICE_FILE_CHANGE_DIR_MODE_ERROR;
     }
-    return ERR_OK;
+    if (ret != ERR_OK && ret != ERR_OHOSACCOUNT_SERVICE_FILE_CHANGE_DIR_MODE_ERROR) {
+        ReportOhosAccountOperationFail(accountInfo.userId_, OPERATION_OPEN_FILE_TO_WRITE, errno, configFile);
+    }
+    accountFileWatcherMgr_.AddAccountInfoDigest(accountInfoValue, configFile);
+    return ret;
 }
 
 ErrCode OhosAccountDataDeal::ParseJsonFromFile(const std::string &filePath, nlohmann::json &jsonData, int32_t userId)
@@ -235,6 +299,10 @@ ErrCode OhosAccountDataDeal::GetAccountInfoFromJson(
 
 ErrCode OhosAccountDataDeal::GetAccountInfo(AccountInfo &accountInfo, const int32_t userId)
 {
+    if (userId < 0) {
+        ACCOUNT_LOGW("invalid userid = %{public}d", userId);
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
     std::string configFile = configFileDir_ + std::to_string(userId) + ACCOUNT_CFG_FILE_NAME;
     if (!FileExists(configFile)) {
         ACCOUNT_LOGI("file %{public}s not exist, create!", configFile.c_str());
@@ -252,7 +320,7 @@ ErrCode OhosAccountDataDeal::GetAccountInfo(AccountInfo &accountInfo, const int3
     return GetAccountInfoFromJson(jsonData, accountInfo, userId);
 }
 
-void OhosAccountDataDeal::BuildJsonFileFromScratch(int32_t userId) const
+void OhosAccountDataDeal::BuildJsonFileFromScratch(int32_t userId)
 {
     AccountInfo accountInfo;
     accountInfo.userId_ = userId;
@@ -264,6 +332,7 @@ void OhosAccountDataDeal::BuildJsonFileFromScratch(int32_t userId) const
     accountInfo.digest_ = "";
     accountInfo.ohosAccountInfo_.SetRawUid(DEFAULT_OHOS_ACCOUNT_UID);
     SaveAccountInfo(accountInfo);
+    AddFileWatcher(userId);
 }
 } // namespace AccountSA
 } // namespace OHOS

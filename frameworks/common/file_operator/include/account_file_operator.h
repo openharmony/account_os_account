@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,16 +37,18 @@ public:
     bool IsJsonFormat(const std::string &path);
     bool IsJsonFileReady(const std::string &path);
     bool IsExistDir(const std::string &path);
-    bool GetValidWriteFileOptFlag();
-    void SetValidWriteFileOptFlag(bool flag);
-    void SetValidDeleteFileOptFlag(const std::string &fileName, bool flag);
-    bool GetValidDeleteFileOptFlag(const std::string &fileName);
+    bool GetValidDeleteFileOperationFlag(const std::string &fileName);
+    void SetValidDeleteFileOperationFlag(const std::string &fileName, bool flag);
+    bool GetValidModifyFileOperationFlag(const std::string &fileName);
+    void SetValidModifyFileOperationFlag(const std::string &fileName, bool flag);
+    std::mutex &GetModifyOperationLock();
+    std::mutex &GetDeleteOperationLock();
 
 private:
-    std::mutex validWriteFileOptLock_;
-    std::mutex validDeleteFileOptLock_;
-    bool validWriteFileOptFlag_ = false;
-    std::vector<std::string> validDeleteFileOptFlag_;
+    std::mutex validModifyFileOperationLock_;
+    std::mutex validDeleteFileOperationLock_;
+    std::vector<std::string> validModifyFileOperationFlag_;
+    std::vector<std::string> validDeleteFileOperationFlag_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -128,23 +128,25 @@ private:
 
 class GetPropCallbackWrapper : public GetPropCallback {
 public:
-    GetPropCallbackWrapper(const sptr<IGetSetPropCallback> &callback);
+    GetPropCallbackWrapper(int32_t userId, const sptr<IGetSetPropCallback> &callback);
     virtual ~GetPropCallbackWrapper() = default;
 
     void OnResult(int32_t result, const Attributes &extraInfo) override;
 
 private:
+    int32_t userId_;
     sptr<IGetSetPropCallback> innerCallback_;
 };
 
 class SetPropCallbackWrapper : public SetPropCallback {
 public:
-    SetPropCallbackWrapper(const sptr<IGetSetPropCallback> &callback);
+    SetPropCallbackWrapper(int32_t userId, const sptr<IGetSetPropCallback> &callback);
     virtual ~SetPropCallbackWrapper() = default;
 
     void OnResult(int32_t result, const Attributes &extraInfo) override;
 
 private:
+    int32_t userId_;
     sptr<IGetSetPropCallback> innerCallback_;
 };
 
