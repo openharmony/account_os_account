@@ -62,3 +62,9 @@ DISTRIBUTED_ACCOUNT_CHANGE:
   OPERATION_TYPE: {type: INT32, desc: operation type}
   OLD_STATE: {type: INT32, desc: ohos account old state}
   NEW_STATE: {type: INT32, desc: ohos account new state}
+
+DATA_TAMPERED:
+  __BASE: {type: SECURITY, level: CRITICAL, desc: account data is tampered}
+  ID: {type: INT32, desc: the id of os account which is tampered}
+  DATA_PATH: {type: STRING, desc: the file path which is tampered}
+  DATA_LABEL: {type: STRING, desc: the data label which is tampered}
