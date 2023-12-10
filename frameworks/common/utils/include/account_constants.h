@@ -21,7 +21,7 @@ namespace OHOS {
 namespace AccountSA {
 // for watchdog func
 #ifdef HICOLLIE_ENABLE
-const uint32_t TIMEOUT = 20; // 20s
+const uint32_t TIMEOUT = 30; // 30s
 constexpr const char TIMER_NAME[] = "AccountMgrTimer";
 #endif // HICOLLIE_ENABLE
 
