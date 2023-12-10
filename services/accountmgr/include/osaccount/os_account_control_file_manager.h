@@ -19,6 +19,7 @@
 #include <memory>
 #include <mutex>
 #include <sys/inotify.h>
+#include "account_file_watcher_manager.h"
 #include "ios_account_control.h"
 #include "os_account_constants.h"
 #ifdef HAS_KV_STORE_PART
@@ -31,30 +32,6 @@ namespace AccountSA {
 using CheckNotifyEventCallbackFunc = std::function<bool(const std::string&, const int32_t, uint32_t)>;
 
 bool GetValidAccountID(const std::string& dirName, std::int32_t& accountID);
-
-class FileWatcher {
-public:
-    FileWatcher(const int32_t id);
-    FileWatcher(const std::string &filePath);
-    ~FileWatcher();
-
-    bool InitNotify();
-    int32_t GetNotifyId();
-    std::string GetFilePath();
-    int32_t GetLocalId();
-
-    bool StartNotify(const uint32_t &watchEvents);
-    bool CloseNotifyFd();
-    bool CheckNotifyEvent(uint32_t event);
-    void SetEventCallback(CheckNotifyEventCallbackFunc &func);
-
-private:
-    int32_t notifyFd_ = -1;
-    int32_t id_ = -1;
-    int32_t wd_ = -1;
-    std::string filePath_;
-    CheckNotifyEventCallbackFunc eventCallbackFunc_;
-};
 
 class OsAccountControlFileManager : public IOsAccountControl {
 public:
@@ -115,6 +92,7 @@ public:
     ErrCode UpdateAccountIndex(const OsAccountInfo &osAccountInfo, const bool isDelete) override;
 
 private:
+    ErrCode RemoveAccountIndex(const int32_t id);
     int GetNextLocalId(const std::vector<std::string> &accountIdList);
     ErrCode UpdateAccountList(const std::string &idStr, bool isAdd);
     ErrCode GetAccountListFromFile(Json& accountListJson);
@@ -124,6 +102,7 @@ private:
     void BuildAndSaveAccountListJsonFile(const std::vector<std::string>& accounts);
     void RecoverAccountListJsonFile();
     void RecoverAccountInfoDigestJsonFile();
+    void BuildAndSaveOsAccountIndexJsonFile();
     void BuildAndSaveBaseOAConstraintsJsonFile();
     void BuildAndSaveGlobalOAConstraintsJsonFile();
     void BuildAndSaveSpecificOAConstraintsJsonFile();
@@ -144,16 +123,11 @@ private:
     ErrCode RemoveOAGlobalConstraintsInfo(const int32_t id);
     ErrCode RemoveOASpecificConstraintsInfo(const int32_t id);
     ErrCode GetAccountInfoDigestFromFile(const std::string &path, uint8_t *digest, uint32_t size);
-    void WatchOsAccountInfoFile();
-    void AddFileWatcher(const int32_t id);
-    void RemoveFileWatcher(const int32_t id);
     void GetNotifyEvent();
-    void DealWithFileEvent();
     bool DealWithFileModifyEvent(const std::string &fileName, const int32_t id);
     bool DealWithFileDeleteEvent(const std::string &fileName, const int32_t id);
     bool DealWithFileMoveEvent(const std::string &fileName, const int32_t id);
     void InitFileWatcherInfo(std::vector<std::string> &accountIdList);
-    void SubscribeEventFunction(std::shared_ptr<FileWatcher> &fileWatcher);
     bool RecoverAccountData(const std::string &fileName, const int32_t id);
 
 private:
@@ -164,20 +138,16 @@ private:
     std::int32_t nextLocalId_ = Constants::START_USER_ID;
     std::shared_ptr<OsAccountFileOperator> osAccountFileOperator_;
     std::shared_ptr<OsAccountPhotoOperator> osAccountPhotoOperator_;
+    AccountFileWatcherMgr &accountFileWatcherMgr_;
     std::mutex fileWatcherMgrLock_;
     std::mutex accountListFileLock_;
     std::mutex accountInfoFileLock_;
-    std::mutex accountInfoDigestFileLock_;
     std::mutex operatingIdMutex_;
     std::mutex baseOAConstraintsFileLock_;
     std::mutex globalOAConstraintsFileLock_;
     std::mutex specificOAConstraintsFileLock_;
 
-    std::unordered_map<int32_t, std::shared_ptr<FileWatcher>> fileNameMgrMap_;
-    fd_set fds_;
-    int32_t maxNotifyFd_ = -1;
-    std::vector<int32_t> fdArray_;
-    bool run_ = false;
+    CheckNotifyEventCallbackFunc eventCallbackFunc_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

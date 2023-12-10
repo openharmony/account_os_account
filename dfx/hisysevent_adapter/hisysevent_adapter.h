@@ -31,6 +31,7 @@ void ReportAppAccountOperationFail(const std::string &name, const std::string &o
 void ReportOsAccountLifeCycle(int32_t id, const std::string& operationStr);
 void ReportOsAccountSwitch(int32_t currentId, int32_t oldId);
 void ReportOhosAccountStateChange(int32_t userId, int32_t operateType, int32_t oldStat, int32_t newStat);
+void ReportOsAccountDataTampered(int32_t id, const std::string& dataPath, const std::string& dataLabel);
 } // AccountSA
 } // OHOS
 #endif // OS_ACCOUNT_DFX_HISYSEVENT_ADAPTER_H

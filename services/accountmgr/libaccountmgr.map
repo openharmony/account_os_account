@@ -115,7 +115,7 @@
         "OHOS::AccountSA::DelCredCallback::DelCredCallback(int, bool, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
         "OHOS::AccountSA::DomainAccountPluginProxy::DomainAccountPluginProxy(OHOS::sptr<OHOS::IRemoteObject> const&)";
         "OHOS::AccountSA::GetCredInfoCallbackWrapper::GetCredInfoCallbackWrapper(int, int, OHOS::sptr<OHOS::AccountSA::IGetCredInfoCallback> const&)";
-        "OHOS::AccountSA::GetPropCallbackWrapper::GetPropCallbackWrapper(OHOS::sptr<OHOS::AccountSA::IGetSetPropCallback> const&)";
+        "OHOS::AccountSA::GetPropCallbackWrapper::GetPropCallbackWrapper(int, OHOS::sptr<OHOS::AccountSA::IGetSetPropCallback> const&)";
         "OHOS::AccountSA::GetValidAccountID(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, int&)";
         "OHOS::AccountSA::IAccountContext::instance_";
         "OHOS::AccountSA::AccountMgrService::GetCallingUserID()";
@@ -225,7 +225,7 @@
         "OHOS::AccountSA::SessionConnection::SessionConnection(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::SessionServerDeathRecipient::OnRemoteDied(OHOS::wptr<OHOS::IRemoteObject> const&)";
         "OHOS::AccountSA::SessionServerDeathRecipient::SessionServerDeathRecipient(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
-        "OHOS::AccountSA::SetPropCallbackWrapper::SetPropCallbackWrapper(OHOS::sptr<OHOS::AccountSA::IGetSetPropCallback> const&)";
+        "OHOS::AccountSA::SetPropCallbackWrapper::SetPropCallbackWrapper(int, OHOS::sptr<OHOS::AccountSA::IGetSetPropCallback> const&)";
         "vtable for OHOS::AccountSA::AccountStub";
         "OHOS::AccountSA::AccountStub::AccountStub()";
         "vtable for OHOS::AccountSA::OsAccountStopUserCallback";
@@ -246,6 +246,7 @@
         "OHOS::AccountSA::UpdateTraceLabelAdapter()";
         "OHOS::AccountSA::StartTraceAdapter(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         *OHOS::AccountSA::CountTraceAdapter*;
+        *OHOS::AccountSA::AccountFileWatcherMgr*;
         "OHOS::AccountSA::FinishTraceAdapter()";
         "OHOS::AccountSA::DomainAccountStub::DomainAccountStub()";
         "OHOS::AccountSA::DomainAccountStub::~DomainAccountStub()";
@@ -278,6 +279,7 @@
         "non-virtual thunk to OHOS::AccountSA::AccountIAMMgrStub::~AccountIAMMgrStub()";
         "virtual thunk to OHOS::AccountSA::AccountIAMMgrStub::~AccountIAMMgrStub()";
         "OHOS::AccountSA::InnerDomainAccountManager::AuthUser(int, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>> const&, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
+        "OHOS::AccountSA::GenerateAccountInfoDigest(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned char*, unsigned int)";
     };
   local:
     *;
