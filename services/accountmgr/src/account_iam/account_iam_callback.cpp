@@ -18,6 +18,7 @@
 #include <securec.h>
 #include "account_info_report.h"
 #include "account_log_wrapper.h"
+#include "hisysevent_adapter.h"
 #include "iinner_os_account_manager.h"
 #include "inner_account_iam_manager.h"
 #include "inner_domain_account_manager.h"
@@ -81,6 +82,7 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo)
     ErrCode ret = InnerAccountIAMManager::GetInstance().UnlockUserScreen(userId_);
     if (ret != 0) {
         ACCOUNT_LOGE("failed to unlock user screen");
+        ReportOsAccountOperationFail(userId_, "unlockUserScreen", ret, "failed to send unlock msg for storage");
         return ret;
     }
     if (authType_ != AuthType::PIN) {
@@ -96,6 +98,7 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo)
     ret = InnerAccountIAMManager::GetInstance().ActivateUserKey(userId_, token, secret);
     if (ret != 0) {
         ACCOUNT_LOGE("failed to activate user key");
+        ReportOsAccountOperationFail(userId_, "activateUserKey", ret, "failed to notice storage to activate user key");
         return ret;
     }
     return ret;
@@ -117,6 +120,7 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
     if (result != 0) {
         ACCOUNT_LOGE("authentication failed");
         innerCallback_->OnResult(result, extraInfo);
+        ReportOsAccountOperationFail(userId_, "authUser", result, "auth user failed");
         return AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, result);
     }
     if (HandleAuthResult(extraInfo) != ERR_OK) {
@@ -157,6 +161,8 @@ void IDMAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
     if (result != 0) {
         ACCOUNT_LOGE("fail to update user key for authentication failure, error code: %{public}d", result);
+        ReportOsAccountOperationFail(
+            userId_, "authentication", result, "fail to update user key for authentication failure");
     } else {
         std::vector<uint8_t> token;
         std::vector<uint8_t> secret;
@@ -201,6 +207,9 @@ void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
             userId_, challenge, AuthType::PIN, AuthTrustLevel::ATL4, callback);
         return;
     }
+    if (result != 0) {
+        ReportOsAccountOperationFail(userId_, "addCredential", result, "fail to add credential");
+    }
     InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
     if (innerCallback_ == nullptr) {
         ACCOUNT_LOGE("inner callback is nullptr");
@@ -230,6 +239,9 @@ void DelCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
     }
     if ((result == 0) && isPIN_) {
         (void)IInnerOsAccountManager::GetInstance().SetOsAccountCredentialId(userId_, 0);  // 0-invalid credentialId
+    }
+    if (result != 0) {
+        ReportOsAccountOperationFail(userId_, "deleteCredential", result, "fail to delete credential");
     }
     InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
     innerCallback_->OnResult(result, extraInfo);
@@ -268,7 +280,8 @@ void GetCredInfoCallbackWrapper::OnCredentialInfo(const std::vector<CredentialIn
     return innerCallback_->OnCredentialInfo(infoList);
 }
 
-GetPropCallbackWrapper::GetPropCallbackWrapper(const sptr<IGetSetPropCallback> &callback) : innerCallback_(callback)
+GetPropCallbackWrapper::GetPropCallbackWrapper(int32_t userId, const sptr<IGetSetPropCallback> &callback)
+    : userId_(userId), innerCallback_(callback)
 {}
 
 void GetPropCallbackWrapper::OnResult(int32_t result, const Attributes &extraInfo)
@@ -277,10 +290,14 @@ void GetPropCallbackWrapper::OnResult(int32_t result, const Attributes &extraInf
         ACCOUNT_LOGE("inner callback is nullptr");
         return;
     }
+    if (result != 0) {
+        ReportOsAccountOperationFail(userId_, "getProperty", result, "fail to get property");
+    }
     innerCallback_->OnResult(result, extraInfo);
 }
 
-SetPropCallbackWrapper::SetPropCallbackWrapper(const sptr<IGetSetPropCallback> &callback) : innerCallback_(callback)
+SetPropCallbackWrapper::SetPropCallbackWrapper(int32_t userId, const sptr<IGetSetPropCallback> &callback)
+    : userId_(userId), innerCallback_(callback)
 {}
 
 void SetPropCallbackWrapper::OnResult(int32_t result, const Attributes &extraInfo)
@@ -288,6 +305,9 @@ void SetPropCallbackWrapper::OnResult(int32_t result, const Attributes &extraInf
     if (innerCallback_ == nullptr) {
         ACCOUNT_LOGE("inner callback is nullptr");
         return;
+    }
+    if (result != 0) {
+        ReportOsAccountOperationFail(userId_, "setProperty", result, "fail to set property");
     }
     innerCallback_->OnResult(result, extraInfo);
 }

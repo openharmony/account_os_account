@@ -384,7 +384,7 @@ HWTEST_F(AccountIamCallbackTest, GetCredInfoCallbackWrapper_OnCredentialInfo_010
 HWTEST_F(AccountIamCallbackTest, GetPropCallbackWrapper_OnResult_0100, TestSize.Level0)
 {
     Attributes extraInfo;
-    auto getPropCallback = std::make_shared<GetPropCallbackWrapper>(nullptr);
+    auto getPropCallback = std::make_shared<GetPropCallbackWrapper>(DEFAULT_USER_ID, nullptr);
     EXPECT_TRUE(getPropCallback->innerCallback_ == nullptr);
     getPropCallback->OnResult(0, extraInfo);
 }
@@ -475,7 +475,7 @@ HWTEST_F(AccountIamCallbackTest, GetCredInfoCallbackWrapper_OnCredentialInfo_040
 HWTEST_F(AccountIamCallbackTest, SetPropCallbackWrapper_OnResult_0100, TestSize.Level0)
 {
     Attributes extraInfo;
-    auto setPropCallback = std::make_shared<SetPropCallbackWrapper>(nullptr);
+    auto setPropCallback = std::make_shared<SetPropCallbackWrapper>(DEFAULT_USER_ID, nullptr);
     EXPECT_TRUE(setPropCallback->innerCallback_ == nullptr);
     setPropCallback->OnResult(0, extraInfo);
 }

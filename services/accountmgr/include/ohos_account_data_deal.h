@@ -20,6 +20,8 @@
 #include <mutex>
 #include <nlohmann/json.hpp>
 #include "account_error_no.h"
+#include "account_file_operator.h"
+#include "account_file_watcher_manager.h"
 #include "account_info.h"
 
 namespace OHOS {
@@ -32,18 +34,28 @@ public:
     ErrCode Init(std::int32_t userId);
 
     ErrCode AccountInfoFromJson(AccountInfo &accountInfo, int32_t userId);
-    ErrCode AccountInfoToJson(const AccountInfo &accountInfo) const;
+    ErrCode AccountInfoToJson(const AccountInfo &accountInfo);
     ~OhosAccountDataDeal() {}
 
 private:
+    bool DealWithFileModifyEvent(const std::string &fileName, const int32_t id);
+    void DealWithFileDeleteEvent(const std::string &fileName, const int32_t id);
     bool initOk_;
     std::string configFileDir_;
     std::mutex mutex_;
-    void BuildJsonFileFromScratch(int32_t userId) const;
-    ErrCode SaveAccountInfo(const AccountInfo &accountInfo) const;
+    void BuildJsonFileFromScratch(int32_t userId);
+    ErrCode SaveAccountInfo(const AccountInfo &accountInfo);
     ErrCode GetAccountInfo(AccountInfo &accountInfo, const int32_t userId);
     ErrCode ParseJsonFromFile(const std::string &filePath, nlohmann::json &jsonData, int32_t userId);
     ErrCode GetAccountInfoFromJson(const nlohmann::json &jsonData, AccountInfo &accountInfo, const int32_t userId);
+    ErrCode GenerateAccountInfoDigestStr(
+        const std::string &userInfoPath, const std::string &accountInfoStr, std::string &digestStr);
+    void AddFileWatcher(const int32_t id);
+
+    std::mutex accountInfoFileLock_;
+    std::shared_ptr<AccountFileOperator> accountFileOperator_;
+    AccountFileWatcherMgr &accountFileWatcherMgr_;
+    CheckNotifyEventCallbackFunc checkCallbackFunc_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

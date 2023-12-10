@@ -184,5 +184,24 @@ void ReportOhosAccountStateChange(int32_t userId, int32_t operateType, int32_t o
     (void)newStat;
 #endif // HAS_HISYSEVENT_PART
 }
+
+void ReportOsAccountDataTampered(int32_t id, const std::string& dataPath, const std::string& dataLabel)
+{
+#ifdef HAS_HISYSEVENT_PART
+    int ret = HiSysEventWrite(HiSysEvent::Domain::ACCOUNT, "DATA_TAMPERED",
+        HiSysEvent::EventType::SECURITY,
+        "ID", id,
+        "DATA_PATH", dataPath,
+        "DATA_LABEL", dataLabel);
+    if (ret != 0) {
+        ACCOUNT_LOGE("sysevent write failed, ret %{public}d, id %{public}d, dataPath %{public}s, dataLabel %{public}s.",
+            ret, id, dataPath.c_str(), dataLabel.c_str());
+    }
+#else // HAS_HISYSEVENT_PART
+    (void)id;
+    (void)dataPath;
+    (void)dataLabel;
+#endif // HAS_HISYSEVENT_PART
+}
 } // AccountSA
 } // OHOS

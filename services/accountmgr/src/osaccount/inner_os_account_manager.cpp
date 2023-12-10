@@ -652,6 +652,7 @@ ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
     errCode = SendMsgForAccountStop(osAccountInfo);
     if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(id);
+        ReportOsAccountOperationFail(id, "stop", errCode, "stop os account failed");
         return errCode;
     }
 
@@ -1490,6 +1491,7 @@ ErrCode IInnerOsAccountManager::DeactivateOsAccount(const int id)
     errCode = SendMsgForAccountDeactivate(osAccountInfo);
     if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(id);
+        ReportOsAccountOperationFail(id, "deactivate", errCode, "deactivate os account failed");
         return errCode;
     }
 
@@ -1595,6 +1597,7 @@ ErrCode IInnerOsAccountManager::StopOsAccount(const int id)
     errCode = SendMsgForAccountStop(osAccountInfo);
     if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(id);
+        ReportOsAccountOperationFail(id, "stop", errCode, "stop os account failed");
         ACCOUNT_LOGE("update %{public}d account info failed, errCode %{public}d.", id, errCode);
         return errCode;
     }

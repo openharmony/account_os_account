@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 #include "account_file_operator.h"
-#include <algorithm>
 #include <cerrno>
 #include <cstdio>
 #include <fstream>
@@ -32,6 +31,9 @@
 #include "hisysevent_adapter.h"
 namespace OHOS {
 namespace AccountSA {
+namespace {
+const std::string ACCOUNT_INFO_DIGEST_FILE_PATH = "account_info_digest.json";
+}
 AccountFileOperator::AccountFileOperator()
 {}
 
@@ -58,9 +60,9 @@ ErrCode AccountFileOperator::CreateDir(const std::string &path)
 
 ErrCode AccountFileOperator::DeleteDirOrFile(const std::string &path)
 {
-    std::lock_guard<std::mutex> lock(validDeleteFileOptLock_);
+    std::lock_guard<std::mutex> lock(validDeleteFileOperationLock_);
     bool delFlag = false;
-    validDeleteFileOptFlag_.emplace_back(path);
+    SetValidDeleteFileOperationFlag(path, true);
     if (IsExistFile(path)) {
         delFlag = OHOS::RemoveFile(path);
     }
@@ -69,45 +71,68 @@ ErrCode AccountFileOperator::DeleteDirOrFile(const std::string &path)
     }
     if (!delFlag) {
         ACCOUNT_LOGE("DeleteDirOrFile failed, path %{public}s errno %{public}d.", path.c_str(), errno);
+        SetValidDeleteFileOperationFlag(path, false);
         return ERR_OSACCOUNT_SERVICE_FILE_DELE_ERROR;
-        validDeleteFileOptFlag_.erase(std::remove(validDeleteFileOptFlag_.begin(), validDeleteFileOptFlag_.end(), path),
-            validDeleteFileOptFlag_.end());
     }
     return ERR_OK;
 }
 
-void AccountFileOperator::SetValidDeleteFileOptFlag(const std::string &fileName, bool flag)
+std::mutex &AccountFileOperator::GetModifyOperationLock()
 {
-    std::lock_guard<std::mutex> lock(validDeleteFileOptLock_);
-    if (flag) {
-        validDeleteFileOptFlag_.emplace_back(fileName);
-        return;
-    }
-    validDeleteFileOptFlag_.erase(std::remove(validDeleteFileOptFlag_.begin(), validDeleteFileOptFlag_.end(), fileName),
-        validDeleteFileOptFlag_.end());
+    return validModifyFileOperationLock_;
 }
 
-bool AccountFileOperator::GetValidDeleteFileOptFlag(const std::string &fileName)
+std::mutex &AccountFileOperator::GetDeleteOperationLock()
 {
-    std::lock_guard<std::mutex> lock(validDeleteFileOptLock_);
-    for (const auto &iter : validDeleteFileOptFlag_) {
-        if (fileName.find(iter) != std::string::npos) {
+    return validDeleteFileOperationLock_;
+}
+
+void AccountFileOperator::SetValidModifyFileOperationFlag(const std::string &fileName, bool flag)
+{
+    if (fileName.find(ACCOUNT_INFO_DIGEST_FILE_PATH) != std::string::npos) { // ignore digest file record
+        return;
+    }
+    if (!flag) {
+        validModifyFileOperationFlag_.erase(
+            std::remove(validModifyFileOperationFlag_.begin(), validModifyFileOperationFlag_.end(), fileName),
+            validModifyFileOperationFlag_.end());
+        return;
+    }
+    if (std::find(validModifyFileOperationFlag_.begin(), validModifyFileOperationFlag_.end(), fileName) ==
+        validModifyFileOperationFlag_.end()) {
+        validModifyFileOperationFlag_.emplace_back(fileName);
+    }
+}
+
+bool AccountFileOperator::GetValidModifyFileOperationFlag(const std::string &fileName)
+{
+    for (auto iter : validModifyFileOperationFlag_) {
+        if (iter == fileName) {
             return true;
         }
     }
     return false;
 }
 
-void AccountFileOperator::SetValidWriteFileOptFlag(bool flag)
+void AccountFileOperator::SetValidDeleteFileOperationFlag(const std::string &fileName, bool flag)
 {
-    std::lock_guard<std::mutex> lock(validWriteFileOptLock_);
-    validWriteFileOptFlag_ = flag;
+    if (!flag) {
+        validDeleteFileOperationFlag_.erase(
+            std::remove(validDeleteFileOperationFlag_.begin(), validDeleteFileOperationFlag_.end(), fileName),
+            validDeleteFileOperationFlag_.end());
+        return;
+    }
+    validDeleteFileOperationFlag_.emplace_back(fileName);
 }
 
-bool AccountFileOperator::GetValidWriteFileOptFlag()
+bool AccountFileOperator::GetValidDeleteFileOperationFlag(const std::string &fileName)
 {
-    std::lock_guard<std::mutex> lock(validWriteFileOptLock_);
-    return validWriteFileOptFlag_;
+    for (auto iter : validDeleteFileOperationFlag_) {
+        if (fileName.find(iter) != std::string::npos) {
+            return true;
+        }
+    }
+    return false;
 }
 
 ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, const std::string &content)
@@ -121,12 +146,12 @@ ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, 
             return errCode;
         }
     }
-    std::lock_guard<std::mutex> lock(validWriteFileOptLock_);
-    validWriteFileOptFlag_ = true;
+    std::lock_guard<std::mutex> lock(validModifyFileOperationLock_);
+    SetValidModifyFileOperationFlag(path, true);
     FILE *fp = fopen(path.c_str(), "wb");
     if (fp == nullptr) {
         ACCOUNT_LOGE("failed to open %{public}s, errno %{public}d.", path.c_str(), errno);
-        validWriteFileOptFlag_ = false;
+        SetValidModifyFileOperationFlag(path, false);
         return ERR_ACCOUNT_COMMON_FILE_OPEN_FAILED;
     }
     do {
@@ -152,12 +177,13 @@ ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, 
         // change mode
         if (!ChangeModeFile(path, S_IRUSR | S_IWUSR)) {
             ACCOUNT_LOGW("failed to change mode for file %{public}s, errno %{public}d.", path.c_str(), errno);
+            return ERR_OHOSACCOUNT_SERVICE_FILE_CHANGE_DIR_MODE_ERROR;
         }
         return ERR_OK;
     } while (0);
     flock(fileno(fp), LOCK_UN);
     fclose(fp);
-    validWriteFileOptFlag_ = false;
+    SetValidModifyFileOperationFlag(path, false);
     return ERR_ACCOUNT_COMMON_FILE_WRITE_FAILED;
 }
 
