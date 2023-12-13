@@ -91,7 +91,8 @@ napi_value NapiAccountIAMInputerManager::RegisterInputer(napi_env env, napi_call
     if (!ParseContextForRegisterInputer(env, info, authType, callback)) {
         return nullptr;
     }
-    auto inputer = std::make_shared<NapiGetDataCallback>(env, callback);
+    auto napiCallback = std::make_shared<NapiCallbackRef>(env, callback);
+    auto inputer = std::make_shared<NapiGetDataCallback>(env, napiCallback);
     ErrCode errCode = AccountIAMClient::GetInstance().RegisterInputer(authType, inputer);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Failed to register inputer, errCode=%{public}d", errCode);

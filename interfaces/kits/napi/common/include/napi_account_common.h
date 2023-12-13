@@ -34,7 +34,7 @@ struct ThreadLockInfo {
 
 struct CommonAsyncContext {
     CommonAsyncContext() {};
-    CommonAsyncContext(napi_env napiEnv, bool throwAble = false) : env(napiEnv), throwErr(throwAble) {};
+    CommonAsyncContext(napi_env napiEnv, bool throwAble = false) : env(napiEnv), throwErr(throwAble) {}
     virtual ~CommonAsyncContext ();
     napi_env env = nullptr;
     napi_async_work work = nullptr;
@@ -83,6 +83,13 @@ napi_value CreateAuthResult(
 void ReleaseNapiRefAsync(napi_env env, napi_ref napiRef);
 void ReleaseNapiRefArray(napi_env env, const std::vector<napi_ref> &napiRefVec);
 bool InitUvWorkCallbackEnv(uv_work_t *work, napi_handle_scope &scope);
+
+struct NapiCallbackRef {
+    NapiCallbackRef(napi_env env, napi_ref callbackRef) : env(env), callbackRef(callbackRef) {}
+    ~NapiCallbackRef();
+    napi_env env;
+    napi_ref callbackRef = nullptr;
+};
 } // namespace AccountJsKit
 } // namespace OHOS
 

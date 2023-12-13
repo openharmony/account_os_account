@@ -219,19 +219,19 @@ private:
 struct InputerContext : public CommonAsyncContext {
     int32_t authSubType = -1;
     std::shared_ptr<AccountSA::IInputerData> inputerData = nullptr;
-    ThreadLockInfo *lockInfo;
+    std::shared_ptr<NapiCallbackRef> callback;
 };
 
 class NapiGetDataCallback : public AccountSA::IInputer {
 public:
-    NapiGetDataCallback(napi_env env, napi_ref callback);
+    NapiGetDataCallback(napi_env env, const std::shared_ptr<NapiCallbackRef> &callback);
     virtual ~NapiGetDataCallback();
 
     void OnGetData(int32_t authSubType, const std::shared_ptr<AccountSA::IInputerData> inputerData) override;
 
 private:
     napi_env env_;
-    napi_ref callback_;
+    std::shared_ptr<NapiCallbackRef> callback_;
     ThreadLockInfo lockInfo_;
 };
 #endif  // HAS_PIN_AUTH_PART
