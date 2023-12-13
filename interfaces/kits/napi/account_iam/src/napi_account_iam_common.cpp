@@ -848,32 +848,18 @@ static void OnGetDataWork(uv_work_t* work, int status)
     napi_value argv[ARG_SIZE_TWO] = {0};
     napi_create_int32(context->env, context->authSubType, &argv[PARAM_ZERO]);
     GetInputerInstance(context.get(), &argv[PARAM_ONE]);
-    NapiCallVoidFunction(context->env, argv, ARG_SIZE_TWO, context->callbackRef);
-    context->callbackRef = nullptr;
-    std::unique_lock<std::mutex> lock(context->lockInfo->mutex);
-    context->lockInfo->count--;
-    context->lockInfo->condition.notify_all();
+    NapiCallVoidFunction(context->env, argv, ARG_SIZE_TWO, context->callback->callbackRef);
 }
 
-NapiGetDataCallback::NapiGetDataCallback(napi_env env, napi_ref callback) : env_(env), callback_(callback)
+NapiGetDataCallback::NapiGetDataCallback(napi_env env, const std::shared_ptr<NapiCallbackRef> &callback)
+    : env_(env), callback_(callback)
 {}
 
 NapiGetDataCallback::~NapiGetDataCallback()
-{
-    std::unique_lock<std::mutex> lock(lockInfo_.mutex);
-    lockInfo_.condition.wait(lock, [this] { return this->lockInfo_.count == 0; });
-    lockInfo_.count--;
-    ReleaseNapiRefAsync(env_, callback_);
-    callback_ = nullptr;
-}
+{}
 
 void NapiGetDataCallback::OnGetData(int32_t authSubType, const std::shared_ptr<AccountSA::IInputerData> inputerData)
 {
-    std::unique_lock<std::mutex> lock(lockInfo_.mutex);
-    if (lockInfo_.count < 0) {
-        ACCOUNT_LOGE("the inputer has been released");
-        return;
-    }
     if (callback_ == nullptr) {
         ACCOUNT_LOGE("the onGetData function is undefined");
         return;
@@ -887,20 +873,17 @@ void NapiGetDataCallback::OnGetData(int32_t authSubType, const std::shared_ptr<A
         return;
     }
     context->env = env_;
-    context->callbackRef = callback_;
+    context->callback = callback_;
     context->authSubType = authSubType;
     context->inputerData = inputerData;
-    context->lockInfo = &lockInfo_;
     work->data = reinterpret_cast<void *>(context.get());
     int errCode = uv_queue_work_with_qos(
         loop, work.get(), [] (uv_work_t *work) {}, OnGetDataWork, uv_qos_user_initiated);
     ACCOUNT_LOGI("create get data work finish");
     if (errCode != 0) {
         ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
-        context->callbackRef = nullptr;
         return;
     }
-    lockInfo_.count++;
     work.release();
     context.release();
 }
