@@ -83,7 +83,8 @@ napi_value NapiAccountIAMPINAuth::RegisterInputer(napi_env env, napi_callback_in
     if (!ParseContextForRegisterInputer(env, info, &callback)) {
         return result;
     }
-    auto inputer = std::make_shared<NapiGetDataCallback>(env, callback);
+    auto napiCallback = std::make_shared<NapiCallbackRef>(env, callback);
+    auto inputer = std::make_shared<NapiGetDataCallback>(env, napiCallback);
     int32_t errCode = AccountIAMClient::GetInstance().RegisterPINInputer(inputer);
     napi_value napiResult = nullptr;
     if (errCode == ERR_OK) {

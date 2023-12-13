@@ -447,6 +447,11 @@ void ReleaseNapiRefArray(napi_env env, const std::vector<napi_ref> &napiRefVec)
     work.release();
 }
 
+NapiCallbackRef::~NapiCallbackRef()
+{
+    ReleaseNapiRefArray(env, {callbackRef});
+}
+
 bool InitUvWorkCallbackEnv(uv_work_t *work, napi_handle_scope &scope)
 {
     if (work == nullptr) {
