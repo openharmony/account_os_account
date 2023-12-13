@@ -866,10 +866,7 @@ ErrCode OsAccountProxy::SendRequest(OsAccountInterfaceCode code, MessageParcel &
     int32_t result = remote->SendRequest(static_cast<uint32_t>(code), data, reply, option);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send os account request, code = %{public}d, result = %{public}d", code, result);
-        return result;
     }
-
-    ACCOUNT_LOGI("send os account request success, code = %{public}d", code);
     return result;
 }
 
