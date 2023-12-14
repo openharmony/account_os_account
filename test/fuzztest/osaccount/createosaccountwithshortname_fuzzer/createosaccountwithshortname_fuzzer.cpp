@@ -25,6 +25,7 @@
 
 using namespace std;
 using namespace OHOS::AccountSA;
+namespace OHOS {
 const int CONSTANTS_NUMBER_FIVE = 5;
 const int LIST_NUMBER_LIMIT = 1002;
 const int HAP_NAME_LENGTH_LIMIT = 1000;
@@ -47,39 +48,38 @@ template <class T> T GetData()
     return object;
 }
 
-namespace OHOS {
-    bool CreateOsAccountWithShortNameFuzzTest(const uint8_t* data, size_t size)
-    {
-        bool result = false;
-        if (size > 0) {
-            OsAccountInfo osAccountInfoOne;
-            OsAccountType testType = static_cast<OsAccountType>(size % CONSTANTS_NUMBER_FIVE);
-            std::string accountName(reinterpret_cast<const char*>(data), size);
-            std::string shortName(reinterpret_cast<const char*>(data), size);
-            result = OsAccountManager::CreateOsAccount(accountName, shortName, testType, osAccountInfoOne);
-            if (result == ERR_OK) {
-                ACCOUNT_LOGI("CreateOsAccountWithShortNameFuzzTest RemoveOsAccount");
-                OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
-            }
-            g_baseFuzzData = data;
-            g_baseFuzzSize = size;
-            g_baseFuzzPos = 0;
-            uint32_t listSize = GetData<uint32_t>();
-            CreateOsAccountOptions options;
-            for (uint32_t i = 0; i < listSize % LIST_NUMBER_LIMIT; i++) {
-                uint32_t hapNameSize = GetData<uint32_t>();
-                std::string hapName(reinterpret_cast<const char*>(data), hapNameSize % HAP_NAME_LENGTH_LIMIT);
-                options.disallowedHapList.push_back(hapName);
-            }
-            result = OsAccountManager::CreateOsAccount(accountName, shortName, testType, osAccountInfoOne);
-            if (result == ERR_OK) {
-                ACCOUNT_LOGI("CreateOsAccountWithShortNameFuzzTest RemoveOsAccount");
-                OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
-            }
+bool CreateOsAccountWithShortNameFuzzTest(const uint8_t* data, size_t size)
+{
+    bool result = false;
+    if (size > 0) {
+        OsAccountInfo osAccountInfoOne;
+        OsAccountType testType = static_cast<OsAccountType>(size % CONSTANTS_NUMBER_FIVE);
+        std::string accountName(reinterpret_cast<const char*>(data), size);
+        std::string shortName(reinterpret_cast<const char*>(data), size);
+        result = OsAccountManager::CreateOsAccount(accountName, shortName, testType, osAccountInfoOne);
+        if (result == ERR_OK) {
+            ACCOUNT_LOGI("CreateOsAccountWithShortNameFuzzTest RemoveOsAccount");
+            OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
         }
-        return result;
+        g_baseFuzzData = data;
+        g_baseFuzzSize = size;
+        g_baseFuzzPos = 0;
+        uint32_t listSize = GetData<uint32_t>();
+        CreateOsAccountOptions options;
+        for (uint32_t i = 0; i < listSize % LIST_NUMBER_LIMIT; i++) {
+            uint32_t hapNameSize = GetData<uint32_t>();
+            std::string hapName(reinterpret_cast<const char*>(data), hapNameSize % HAP_NAME_LENGTH_LIMIT);
+            options.disallowedHapList.push_back(hapName);
+        }
+        result = OsAccountManager::CreateOsAccount(accountName, shortName, testType, osAccountInfoOne);
+        if (result == ERR_OK) {
+            ACCOUNT_LOGI("CreateOsAccountWithShortNameFuzzTest RemoveOsAccount");
+            OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
+        }
     }
+    return result;
 }
+} // namespace
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
