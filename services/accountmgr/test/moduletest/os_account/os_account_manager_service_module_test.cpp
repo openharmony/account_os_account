@@ -114,7 +114,9 @@ void OsAccountManagerServiceModuleTest::TearDownTestCase(void)
 }
 
 void OsAccountManagerServiceModuleTest::SetUp(void)
-{}
+{
+    setuid(ROOT_UID);
+}
 
 void OsAccountManagerServiceModuleTest::TearDown(void)
 {
