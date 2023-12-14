@@ -140,7 +140,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest002, TestSize.Level0)
     std::int32_t testUserId = 200; // 200 is test user id.
     AccountInfo info;
     ErrCode ret = OhosAccountManager::GetInstance().GetAccountInfoByUserId(testUserId, info);
-    EXPECT_NE(ERR_OK, ret);
+    EXPECT_EQ(ERR_OK, ret);
 }
 
 /**

@@ -84,6 +84,31 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode LogoutUser(int32_t accountId);
+
+private:
+    void Connect();
+    ErrCode DoConnectAbility(
+        const sptr<IRemoteObject> proxy,
+        const Want &want,
+        const sptr<IAbilityConnection> &connect,
+        const sptr<IRemoteObject> &callerToken,
+        int32_t userId = -1);
+    
+    class AbilityMgrDeathRecipient : public IRemoteObject::DeathRecipient {
+        public:
+            AbilityMgrDeathRecipient() = default;
+            ~AbilityMgrDeathRecipient() override = default;
+            void OnRemoteDied(const wptr<IRemoteObject>& remote) override;
+        private:
+            DISALLOW_COPY_AND_MOVE(AbilityMgrDeathRecipient);
+    };
+
+    sptr<IRemoteObject> GetAbilityManager();
+    void ResetProxy(const wptr<IRemoteObject>& remote);
+
+    std::mutex proxyMutex_;
+    sptr<IRemoteObject> proxy_;
+    sptr<IRemoteObject::DeathRecipient> deathRecipient_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

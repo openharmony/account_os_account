@@ -128,7 +128,6 @@ HWTEST_F(AppAccountEventModuleTest, AppAccountEventTest_ProcOnAccountsChanged_02
     ASSERT_NE(appAccountEventStubPtr, nullptr);
     MessageParcel data;
     data.WriteUint32(INVALID_CODE);
-    std::vector<AppAccountInfo> accounts;
     ASSERT_EQ(appAccountEventStubPtr->ProcOnAccountsChanged(data), ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR);
 }
 
