@@ -181,6 +181,11 @@
         "non-virtual thunk to OHOS::AccountSA::AppAccountAuthorizationExtensionStub::~AppAccountAuthorizationExtensionStub()";
         "virtual thunk to OHOS::AccountSA::AppAccountAuthorizationExtensionStub::~AppAccountAuthorizationExtensionStub()";
         "OHOS::AccountSA::AppAccountAuthorizationExtensionCallbackStub::ProcOnRequestRedirected(OHOS::MessageParcel&, OHOS::MessageParcel&)";
+        "OHOS::AccountSA::AppAccountInfo::SetAppIndex(unsigned int const&)";
+        "OHOS::AccountSA::AppAccountInfo::GetAppIndex()";
+        "OHOS::AccountSA::AppAccountInfo::CheckAppAccess(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, bool&)";
+        "OHOS::AccountSA::AppAccountInfo::GetAllAssociatedData(std::__h::map<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::less<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::pair<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>>&) const";
+        "OHOS::AccountSA::AppAccountInfo::FromJson(nlohmann::basic_json<std::__h::map, std::__h::vector, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, bool, long long, unsigned long long, double, std::__h::allocator, nlohmann::adl_serializer, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>>> const&)";
     };
   local:
     *;

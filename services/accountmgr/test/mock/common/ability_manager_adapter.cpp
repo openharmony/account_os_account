@@ -115,5 +115,28 @@ ErrCode AbilityManagerAdapter::LogoutUser(int accountId)
 {
     return ERR_OK;
 }
+
+void Connect()
+{
+}
+
+ErrCode DoConnectAbility(
+    const sptr<IRemoteObject> proxy,
+    const Want &want,
+    const sptr<IAbilityConnection> &connect,
+    const sptr<IRemoteObject> &callerToken,
+    int32_t userId = -1)
+{
+    return ERR_OK;
+}
+
+sptr<IRemoteObject> GetAbilityManager()
+{
+    sptr<IRemoteObject> iRemoteObject;
+    return  iRemoteObject;
+}
+
+void ResetProxy(const wptr<IRemoteObject>& remote)
+{}
 } // namespace AccountSA
 } // namespace OHOS
