@@ -296,6 +296,12 @@ ErrCode OsAccountManagerService::IsOsAccountVerified(const int id, bool &isVerif
 
 ErrCode OsAccountManagerService::GetCreatedOsAccountsCount(unsigned int &osAccountsCount)
 {
+    // permission check
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+
     return innerManager_.GetCreatedOsAccountsCount(osAccountsCount);
 }
 
@@ -329,6 +335,11 @@ ErrCode OsAccountManagerService::GetOsAccountLocalIdFromDomain(const DomainAccou
     if (domainInfo.accountName_.empty() || domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("accountName length invalid. length %{public}zu.", domainInfo.accountName_.size());
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    // permission check
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 
     return innerManager_.GetOsAccountLocalIdFromDomain(domainInfo, id);
