@@ -69,7 +69,9 @@ public:
     ErrCode GetAccountCredential(const std::string &name, const std::string &credentialType, std::string &credential,
         const AppAccountCallingInfo &appAccountCallingInfo);
     ErrCode SetAccountCredential(const std::string &name, const std::string &credentialType,
-        const std::string &credential, const AppAccountCallingInfo &appAccountCallingInfo, bool isDelete = false);
+        const std::string &credential, const AppAccountCallingInfo &appAccountCallingInfo);
+    ErrCode DeleteAccountCredential(const std::string &name, const std::string &credentialType,
+        const AppAccountCallingInfo &callingInfo);
 
     ErrCode GetOAuthToken(const AuthenticatorSessionRequest &request,
         std::string &token, const uint32_t apiVersion = Constants::API_VERSION8);

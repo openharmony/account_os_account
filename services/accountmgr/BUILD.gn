@@ -322,6 +322,11 @@ ohos_shared_library("accountmgr") {
     cflags_cc += [ "-DHAS_HITRACE_PART" ]
   }
 
+  if (has_asset_part) {
+    external_deps += [ "asset:asset_ndk" ]
+    cflags_cc += [ "-DHAS_ASSET_PART" ]
+  }
+
   if (build_variant == "user") {
     cflags_cc += [ "-DIS_RELEASE_VERSION" ]
   }
