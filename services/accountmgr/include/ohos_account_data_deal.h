@@ -53,8 +53,8 @@ private:
     void AddFileWatcher(const int32_t id);
 
     std::mutex accountInfoFileLock_;
-    std::shared_ptr<AccountFileOperator> accountFileOperator_;
     AccountFileWatcherMgr &accountFileWatcherMgr_;
+    std::shared_ptr<AccountFileOperator> accountFileOperator_;
     CheckNotifyEventCallbackFunc checkCallbackFunc_;
 };
 }  // namespace AccountSA

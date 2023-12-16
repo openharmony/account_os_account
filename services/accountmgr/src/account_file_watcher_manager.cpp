@@ -32,7 +32,7 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 const uint32_t BUF_COMMON_SIZE = 1024;
-const uint32_t SELECT_WAIT_TIME = 1000;
+const uint32_t SELECT_WAIT_TIME = 3000000;
 const struct HksParam g_genSignVerifyParams[] = {
     {
         .tag = HKS_TAG_ALGORITHM,
@@ -266,7 +266,7 @@ void AccountFileWatcherMgr::GetNotifyEvent()
         for (int32_t i : fdArray_) {
             FD_SET(i, &fds_);
         }
-        struct timeval timeout = { 0, SELECT_WAIT_TIME }; // select wait time 1000us
+        struct timeval timeout = { 0, SELECT_WAIT_TIME }; // select wait time 3s
         if (select(maxNotifyFd_ + 1, &fds_, nullptr, nullptr, &timeout) <= 0) {
             continue;
         }
