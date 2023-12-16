@@ -136,9 +136,9 @@ private:
     std::shared_ptr<OsAccountDatabaseOperator> osAccountDataBaseOperator_;
 #endif
     std::int32_t nextLocalId_ = Constants::START_USER_ID;
+    AccountFileWatcherMgr &accountFileWatcherMgr_;
     std::shared_ptr<OsAccountFileOperator> osAccountFileOperator_;
     std::shared_ptr<OsAccountPhotoOperator> osAccountPhotoOperator_;
-    AccountFileWatcherMgr &accountFileWatcherMgr_;
     std::mutex fileWatcherMgrLock_;
     std::mutex accountListFileLock_;
     std::mutex accountInfoFileLock_;
