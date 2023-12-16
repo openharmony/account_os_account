@@ -46,6 +46,8 @@ public:
     void GetName(std::string &name) const;
     void SetName(const std::string &name);
 
+    std::string GetAlias();
+
     uint32_t GetAppIndex();
     void SetAppIndex(const uint32_t &appIndex);
 
@@ -68,8 +70,8 @@ public:
     ErrCode SetAssociatedData(const std::string &key, const std::string &value);
 
     ErrCode GetAccountCredential(const std::string &credentialType, std::string &credential) const;
-    ErrCode SetAccountCredential(
-        const std::string &credentialType, const std::string &credential, bool isDelete = false);
+    ErrCode SetAccountCredential(const std::string &credentialType, const std::string &credential);
+    ErrCode DeleteAccountCredential(const std::string &credentialType);
 
     ErrCode GetOAuthToken(
         const std::string &authType, std::string &token, const uint32_t apiVersion = Constants::API_VERSION8) const;
@@ -106,6 +108,7 @@ private:
 private:
     std::string owner_;
     std::string name_;
+    std::string alias_;
     uint32_t appIndex_;
     std::string extraInfo_;
     std::set<std::string> authorizedApps_;
