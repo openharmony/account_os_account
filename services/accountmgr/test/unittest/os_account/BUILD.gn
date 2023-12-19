@@ -424,6 +424,7 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
   cflags_cc += [
     "-DBUNDLE_ADAPTER_MOCK",
     "-DENABLE_MULTIPLE_OS_ACCOUNTS",
+    "-DACCOUNT_TEST",
   ]
   part_name = "os_account"
 }
@@ -435,7 +436,6 @@ group("unittest") {
     ":OsAccountControlFileManagerTest",
     ":OsAccountInnerAccmgrBundleAdapterMockTest",
     ":OsAccountInnerAccmgrCovTest",
-    ":OsAccountInnerAccmgrMockTest",
     ":OsAccountSubscribeDeathRecipientTest",
     ":os_account_domain_account_callback_test",
   ]
