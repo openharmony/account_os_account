@@ -1734,7 +1734,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest092
 {
     setuid(TEST_UID);
     unsigned int osAccountsCount;
-    EXPECT_EQ(ERR_OK,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->GetCreatedOsAccountsCount(osAccountsCount));
 }
 
@@ -1750,6 +1750,21 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest093
     bool isMainOsAccount;
     EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->IsMainOsAccount(isMainOsAccount));
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest094
+ * @tc.desc: Test GetOsAccountLocalIdFromDomain PermissionCheck failed.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest094, TestSize.Level1)
+{
+    setuid(TEST_UID);
+    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    int id;
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
+        osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainInfo, id));
 }
 
 /**
