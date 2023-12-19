@@ -159,13 +159,16 @@ static void Wait()
     struct tm startTime = {0};
     EXPECT_EQ(GetSystemCurrentTime(&startTime), true);
     struct tm doingTime = {0};
+    int64_t seconds = 0;
     while (!g_mtx.try_lock()) {
         EXPECT_EQ(GetSystemCurrentTime(&doingTime), true);
-        int64_t seconds = GetSecondsBetween(startTime, doingTime);
+        seconds = GetSecondsBetween(startTime, doingTime);
         if (seconds >= OVER_TIME) {
             break;
         }
     }
+    // the subscriber should receive the event within 5 seconds
+    EXPECT_LT(seconds, OVER_TIME);
 }
 
 /**

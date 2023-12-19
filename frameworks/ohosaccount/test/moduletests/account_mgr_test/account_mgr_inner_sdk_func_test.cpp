@@ -690,7 +690,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserId003, TestSize.Lev
  */
 HWTEST_F(AccountMgrInnerSdkFuncTest, QueryOhosAccountInfoByUserId, TestSize.Level0)
 {
-    std::int32_t testUserId = 200; // 200 is test user id.
+    std::int32_t testUserId = -1; // -1 is test user id.
     auto ret = OhosAccountKits::GetInstance().QueryOhosAccountInfoByUserId(testUserId);
     EXPECT_NE(true, ret.first);
 }

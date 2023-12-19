@@ -208,60 +208,40 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest008, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest009, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-
     EXPECT_CALL(*ptr, GetSerialNumber(::testing::_))
         .WillRepeatedly(testing::Return(0));
-
     EXPECT_CALL(*ptr, GetAllowCreateId(::testing::_))
         .WillRepeatedly(testing::Return(-1));
-
     innerMgrService_->SetOsAccountControl(ptr);
-
     std::string name;
     OsAccountType type = OsAccountType::GUEST;
     DomainAccountInfo domainInfo1(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     DomainAccountInfo domainInfo2(STRING_DOMAIN_NAME_OUT_OF_RANGE, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     OsAccountInfo accountInfo;
-
     int ret = innerMgrService_->PrepareOsAccountInfo(name, type, domainInfo1, accountInfo);
     EXPECT_EQ(ret, -1);
-    innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId());
-
     EXPECT_CALL(*ptr, GetAllowCreateId(::testing::_))
         .WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*ptr, GetConstraintsByType(::testing::_, ::testing::_))
         .WillRepeatedly(testing::Return(-1));
-
     ret = innerMgrService_->PrepareOsAccountInfo(name, type, domainInfo1, accountInfo);
     EXPECT_NE(ret, ERR_OK);
-    innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId());
-
     EXPECT_CALL(*ptr, GetConstraintsByType(::testing::_, ::testing::_))
         .WillRepeatedly(testing::Return(0));
-
     ret = innerMgrService_->PrepareOsAccountInfo(name, type, domainInfo2, accountInfo);
     EXPECT_EQ(ret, ERR_OSACCOUNT_KIT_CREATE_OS_ACCOUNT_FOR_DOMAIN_ERROR);
-
     EXPECT_CALL(*ptr, InsertOsAccount(::testing::_))
         .WillRepeatedly(testing::Return(-1));
-
     ret = innerMgrService_->PrepareOsAccountInfo(name, type, domainInfo1, accountInfo);
     EXPECT_NE(ret, ERR_OK);
-    innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId());
-
     EXPECT_CALL(*ptr, InsertOsAccount(::testing::_))
         .WillRepeatedly(testing::Return(0));
-
     EXPECT_CALL(*ptr, UpdateBaseOAConstraints(::testing::_, ::testing::_, ::testing::_))
         .WillRepeatedly(testing::Return(-1));
-
     ret = innerMgrService_->PrepareOsAccountInfo(name, type, domainInfo1, accountInfo);
     EXPECT_NE(ret, ERR_OK);
-    innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId());
-
     EXPECT_CALL(*ptr, UpdateBaseOAConstraints(::testing::_, ::testing::_, ::testing::_))
         .WillRepeatedly(testing::Return(0));
-
     ret = innerMgrService_->PrepareOsAccountInfo(name, type, domainInfo1, accountInfo);
     EXPECT_EQ(ret, ERR_OK);
     innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId());
@@ -449,8 +429,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest013, 
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest015, TestSize.Level1)
 {
-    auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-
     OsAccountInfo osAccountInfoOne;
     (void)setuid(ACCOUNT_UID);
     EXPECT_EQ(innerMgrService_->CreateOsAccount(STRING_TEST_NAME, OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
