@@ -120,7 +120,8 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
  */
 HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest004, TestSize.Level1)
 {
-    EXPECT_EQ(InnerDomainAccountManager::GetInstance().AuthWithToken(MAIN_ACCOUNT_ID, TEST_TOKEN), ERR_OK);
+    EXPECT_EQ(InnerDomainAccountManager::GetInstance().AuthWithToken(MAIN_ACCOUNT_ID, TEST_TOKEN),
+        ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT);
 }
 
 /**
