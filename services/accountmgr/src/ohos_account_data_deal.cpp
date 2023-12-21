@@ -125,7 +125,6 @@ void OhosAccountDataDeal::DealWithFileDeleteEvent(const std::string &fileName, c
 
 void OhosAccountDataDeal::AddFileWatcher(const int32_t id)
 {
-    std::shared_ptr<FileWatcher> fileWatcher;
     std::string configFile = configFileDir_ + std::to_string(id) + ACCOUNT_CFG_FILE_NAME;
     accountFileWatcherMgr_.AddFileWatcher(id, checkCallbackFunc_, configFile);
 }
