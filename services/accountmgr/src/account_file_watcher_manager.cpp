@@ -85,7 +85,7 @@ static int32_t MallocAndCheckBlobData(struct HksBlob *blob, const uint32_t blobS
         blob->data = NULL;
         return -1;
     }
-    blob->data = (uint8_t *)malloc(blobSize);
+    blob->data = static_cast<uint8_t *>(malloc(blobSize));
     if (blob->data == NULL) {
         ACCOUNT_LOGE("MallocAndCheckBlobData err");
         return -1;
