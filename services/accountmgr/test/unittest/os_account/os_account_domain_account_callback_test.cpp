@@ -53,7 +53,7 @@ void DomainAccountCallbackTest::TearDown(void)
 
 /**
  * @tc.name: DomainPluginStubModuleTest_OnResult_001
- * @tc.desc: OnResult with callbaci is nullptr.
+ * @tc.desc: OnResult with callback is nullptr.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -68,7 +68,7 @@ HWTEST_F(DomainAccountCallbackTest, DomainAccountCallbackTest_OnResult_001, Test
 
 /**
  * @tc.name: DomainPluginStubModuleTest_OnResult_002
- * @tc.desc: OnResult with callbaci is nullptr.
+ * @tc.desc: OnResult with callback is nullptr.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -76,7 +76,7 @@ HWTEST_F(DomainAccountCallbackTest, DomainAccountCallbackTest_OnResult_002, Test
 {
     DomainAccountInfo info;
     OsAccountInfo osAccountInfo;
-    std::shared_ptr<IOsAccountControl> testOsAccountControl = std::make_shared<OsAccountControlFileManager>();
+    std::shared_ptr<IOsAccountControl> testOsAccountControl = nullptr;
     auto callbackPtr = std::make_shared<BindDomainAccountCallback>(testOsAccountControl, info, osAccountInfo, nullptr);
     Parcel parcel;
     callbackPtr->OnResult(0, parcel);

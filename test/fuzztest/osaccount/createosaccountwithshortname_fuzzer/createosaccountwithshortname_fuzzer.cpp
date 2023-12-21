@@ -71,7 +71,7 @@ bool CreateOsAccountWithShortNameFuzzTest(const uint8_t* data, size_t size)
             std::string hapName(reinterpret_cast<const char*>(data), hapNameSize % HAP_NAME_LENGTH_LIMIT);
             options.disallowedHapList.push_back(hapName);
         }
-        result = OsAccountManager::CreateOsAccount(accountName, shortName, testType, osAccountInfoOne);
+        result = OsAccountManager::CreateOsAccount(accountName, shortName, testType, options, osAccountInfoOne);
         if (result == ERR_OK) {
             ACCOUNT_LOGI("CreateOsAccountWithShortNameFuzzTest RemoveOsAccount");
             OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());

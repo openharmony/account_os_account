@@ -961,7 +961,6 @@ ErrCode OsAccountControlFileManager::UpdateOsAccount(OsAccountInfo &osAccountInf
     ACCOUNT_LOGI("No distributed feature!");
 #endif // DISTRIBUTED_FEATURE_ENABLED
 
-    std::string digestStr;
     accountFileWatcherMgr_.AddAccountInfoDigest(accountInfoStr, path);
     ACCOUNT_LOGD("end");
     return ERR_OK;
