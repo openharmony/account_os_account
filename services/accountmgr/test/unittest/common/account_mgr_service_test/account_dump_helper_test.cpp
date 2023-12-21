@@ -93,11 +93,12 @@ void AccountDumpHelperTest::TearDown()
     }
 }
 
-
+#ifndef HAS_KV_STORE_PART
 static int RenameFile(const std::string &src, const std::string &des)
 {
     return rename(src.c_str(), des.c_str());
 }
+#endif
 
 /**
  * @tc.name: AccountDumpNoParameterTest001
@@ -431,7 +432,6 @@ HWTEST_F(AccountDumpHelperTest, ShowOhosAccountInfoTest001, TestSize.Level0)
     RenameFile(Constants::ACCOUNT_LIST_FILE_JSON_PATH + "_blk",
         Constants::ACCOUNT_LIST_FILE_JSON_PATH);
 }
-#endif
 
 /**
  * @tc.name: ShowOhosAccountInfoTest002
@@ -462,3 +462,4 @@ HWTEST_F(AccountDumpHelperTest, ShowOhosAccountInfoTest002, TestSize.Level0)
     RenameFile(Constants::ACCOUNT_LIST_FILE_JSON_PATH + "_blk",
         Constants::ACCOUNT_LIST_FILE_JSON_PATH);
 }
+#endif
