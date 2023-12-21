@@ -175,7 +175,7 @@ bool OsAccountControlFileManager::DealWithFileMoveEvent(const std::string &fileN
 OsAccountControlFileManager::OsAccountControlFileManager()
     : accountFileWatcherMgr_(AccountFileWatcherMgr::GetInstance())
 {
-    accountFileOperator_ = std::make_shared<AccountFileOperator>();
+    accountFileOperator_ = accountFileWatcherMgr_.accountFileOperator_;
 #ifdef HAS_KV_STORE_PART
     osAccountDataBaseOperator_ = std::make_shared<OsAccountDatabaseOperator>();
 #endif

@@ -51,7 +51,7 @@ OhosAccountDataDeal::OhosAccountDataDeal(const std::string &configFileDir)
     : configFileDir_(configFileDir),
     accountFileWatcherMgr_(AccountFileWatcherMgr::GetInstance())
 {
-    accountFileOperator_ = std::make_shared<AccountFileOperator>();
+    accountFileOperator_ = accountFileWatcherMgr_.accountFileOperator_;
     initOk_ = false;
     checkCallbackFunc_ = [this](const std::string &fileName, const int32_t id, uint32_t event) {
         ACCOUNT_LOGI("inotify event = %{public}d, fileName = %{public}s", event, fileName.c_str());
@@ -114,11 +114,11 @@ void OhosAccountDataDeal::DealWithFileDeleteEvent(const std::string &fileName, c
             accountFileOperator_->SetValidDeleteFileOperationFlag(fileName, false);
             return;
         }
-    }
-    std::string fileDir = configFileDir_ + std::to_string(id);
-    if (!accountFileOperator_->IsExistDir(fileDir)) {
-        ACCOUNT_LOGI("this id is already removed.");
-        return;
+        std::string fileDir = configFileDir_ + std::to_string(id);
+        if (!accountFileOperator_->IsExistDir(fileDir)) {
+            ACCOUNT_LOGI("this id is already removed.");
+            return;
+        }
     }
     ReportOsAccountDataTampered(id, fileName, "DISTRIBUTED_ACCOUT_INFO");
 }
