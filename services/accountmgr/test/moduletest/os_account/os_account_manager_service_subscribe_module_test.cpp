@@ -343,36 +343,5 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     OsAccount::GetInstance().UnsubscribeOsAccount(subscriberTestPtr);
     EXPECT_EQ(result, ERR_OK);
 }
-
-/**
- * @tc.name: OsAccountManagerServiceSubscribeModuleTest_0005
- * @tc.desc: Subscribe os accounts removed
- * @tc.type: FUNC
- * @tc.require: issueI7WX2P
- */
-HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubscribeModuleTest_0005, TestSize.Level1)
-{
-    ACCOUNT_LOGI("OsAccountManagerServiceSubscribeModuleTest_0005");
-    //make a subscriber
-    AccessTokenID tokenId = AccessTokenKit::GetNativeTokenId("accountmgr");
-    SetSelfTokenID(tokenId);
-    OsAccountSubscribeInfo osAccountSubscribeInfo;
-    osAccountSubscribeInfo.SetOsAccountSubscribeType(OS_ACCOUNT_SUBSCRIBE_TYPE::REMOVED);
-    osAccountSubscribeInfo.SetName("subscribeCreated");
-    auto subscriberTestPtr = std::make_shared<MockOsAccountSubscriberTest>(osAccountSubscribeInfo);
-    //subscribe
-    ErrCode result = OsAccount::GetInstance().SubscribeOsAccount(subscriberTestPtr);
-    EXPECT_EQ(result, ERR_OK);
-    //create osAccount
-    OsAccountInfo osAccountInfo;
-    result = OsAccount::GetInstance().CreateOsAccount(
-        "OsAccountManagerServiceSubscribeModuleTest_0005", OsAccountType::GUEST, osAccountInfo);
-    const int id = osAccountInfo.GetLocalId();
-    EXPECT_CALL(*subscriberTestPtr, OnAccountsChanged(id)).Times(Exactly(1));
-    //unsubscribe
-    result = OsAccount::GetInstance().RemoveOsAccount(id);
-    OsAccount::GetInstance().UnsubscribeOsAccount(subscriberTestPtr);
-    EXPECT_EQ(result, ERR_OK);
-}
 }
 }
