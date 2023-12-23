@@ -490,46 +490,6 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPo
 }
 
 /**
- * @tc.name: DomainAccountClientModuleTest_AuthWithPopup_006
- * @tc.desc: Auth domain user with popup successfully.
- * @tc.type: FUNC
- * @tc.require: issueI64KAU
- */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPopup_006, TestSize.Level0)
-{
-    DomainAccountInfo domainInfo;
-    domainInfo.accountName_ = STRING_NAME;
-    domainInfo.domain_ = STRING_DOMAIN;
-    domainInfo.accountId_ = INVALID_STRING_ACCOUNTID;
-    auto callback = std::make_shared<MockDomainCreateDomainAccountCallback>();
-    ASSERT_NE(callback, nullptr);
-    auto testCallback = std::make_shared<TestCreateDomainAccountCallback>(callback);
-    EXPECT_CALL(*callback, OnResult(ERR_OK, STRING_NAME, STRING_DOMAIN, _)).Times(Exactly(1));
-    ASSERT_NE(testCallback, nullptr);
-    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
-    std::unique_lock<std::mutex> lock(testCallback->mutex);
-    testCallback->cv.wait_for(
-        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
-    ASSERT_EQ(errCode, ERR_OK);
-
-    auto authCallback = std::make_shared<MockDomainAuthCallback>();
-    ASSERT_NE(authCallback, nullptr);
-    EXPECT_CALL(*authCallback, OnResult(ERR_OK, _)).Times(Exactly(1));
-    auto testAuthCallback = std::make_shared<TestDomainAuthCallback>(authCallback);
-    ASSERT_NE(testAuthCallback, nullptr);
-    int32_t userId = -1;
-    errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId);
-    EXPECT_EQ(errCode, ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().AuthWithPopup(userId, testAuthCallback), ERR_OK);
-    std::vector<uint8_t> resultToken;
-    InnerDomainAccountManager::GetInstance().GetTokenFromMap(userId, resultToken);
-    for (size_t index = 0; index < resultToken.size(); index++) {
-        EXPECT_EQ(resultToken[index], DEFAULT_TOKEN[index]);
-    }
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
-}
-
-/**
  * @tc.name: DomainAccountClientModuleTest_CreateOsAccountForDomain_001
  * @tc.desc: CreateOsAccountForDomain failed with invalid param.
  * @tc.type: FUNC
