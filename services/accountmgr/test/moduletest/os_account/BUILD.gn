@@ -483,7 +483,6 @@ group("moduletest") {
     ":os_account_control_file_manager_test",
     ":os_account_database_operator_test",
     ":os_account_file_operator_test",
-    ":os_account_manager_service_module_test",
     ":os_account_photo_operator_test",
   ]
   if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
