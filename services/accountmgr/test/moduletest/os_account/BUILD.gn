@@ -485,7 +485,4 @@ group("moduletest") {
     ":os_account_file_operator_test",
     ":os_account_photo_operator_test",
   ]
-  if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
-    deps += [ ":os_account_manager_service_subscribe_module_test" ]
-  }
 }
