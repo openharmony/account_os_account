@@ -37,18 +37,6 @@ private:
     uint64_t contextId_ = 0;
 };
 
-class RestoreFileKeyCallback : public UserIam::UserAuth::GetSecUserInfoCallback {
-public:
-    RestoreFileKeyCallback(uint32_t userId, const Attributes& attributes);
-    virtual ~RestoreFileKeyCallback();
-    void OnSecUserInfo(const UserIam::UserAuth::SecUserInfo &info) override;
-
-private:
-    uint32_t userId_;
-    std::vector<uint8_t> token_;
-    std::vector<uint8_t> secret_;
-};
-
 class AuthCallback : public AuthenticationCallback {
 public:
     AuthCallback(uint32_t userId, AuthType authType, const sptr<IIDMCallback> &callback);
@@ -97,6 +85,22 @@ private:
     std::uint32_t userId_;
     CredentialParameters credInfo_;
     sptr<IIDMCallback> innerCallback_ = nullptr;
+};
+
+class UpdateCredCallback : public UserIdmClientCallback {
+public:
+    UpdateCredCallback(uint32_t userId, const CredentialParameters &credInfo,
+        const sptr<IIDMCallback> &callback);
+    virtual ~UpdateCredCallback() = default;
+
+    void OnResult(int32_t result, const Attributes &extraInfo) override;
+    void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override;
+
+private:
+    std::uint32_t userId_;
+    std::vector<uint8_t> oldCredential_;
+    CredentialParameters credInfo_;
+    const sptr<IIDMCallback> innerCallback_ = nullptr;
 };
 
 class DelCredCallback : public UserIdmClientCallback {

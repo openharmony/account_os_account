@@ -93,12 +93,7 @@ void InnerAccountIAMManager::UpdateCredential(
         callback->OnResult(ResultCode::INVALID_PARAMETERS, emptyResult);
         return;
     }
-    ErrCode result = RemoveUserKey(userId, credInfo.token);
-    if (result != ERR_OK) {
-        callback->OnResult(result, emptyResult);
-        return;
-    }
-    auto idmCallback = std::make_shared<AddCredCallback>(userId, credInfo, callback);
+    auto idmCallback = std::make_shared<UpdateCredCallback>(userId, credInfo, callback);
     UserIDMClient::GetInstance().UpdateCredential(userId, credInfo, idmCallback);
 }
 
