@@ -90,6 +90,8 @@ ohos_executable("acm") {
 
   deps = [ ":tools_acm_source_set" ]
 
+  external_deps = [ "hilog:libhilog" ]
+
   configs = [ "${account_coverage_config_path}:coverage_flags" ]
 
   install_enable = true
