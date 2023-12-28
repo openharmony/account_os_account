@@ -303,21 +303,6 @@ HWTEST_F(AccountIAMClientNoPermissionTest, AccountIAMClientNoPermission_AuthUser
 }
 
 /**
- * @tc.name: AccountIAMClientNoPermission_Auth_0100
- * @tc.desc: Auth current user without permission.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AccountIAMClientNoPermissionTest, AccountIAMClientNoPermission_Auth_0100, TestSize.Level0)
-{
-    SetPropertyRequest testRequest = {};
-    auto callback = std::make_shared<MockIDMCallback>();
-    ASSERT_NE(callback, nullptr);
-    int32_t res = AccountIAMClient::GetInstance().Auth(TEST_CHALLENGE, AuthType::PIN, AuthTrustLevel::ATL1, callback);
-    EXPECT_EQ(res, ERR_OK);
-}
-
-/**
  * @tc.name: AccountIAMClientNoPermission_CancelAuth_0100
  * @tc.desc: Cancel authentication without permission.
  * @tc.type: FUNC

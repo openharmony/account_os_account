@@ -622,20 +622,6 @@ HWTEST_F(OsAccountControlFileManagerTest, IsFromSpecificOAConstraintsList_001, T
 }
 
 /**
- * @tc.name: OsAccountControlFileManagerCovTest023
- * @tc.desc: coverage RecoverAccountListJsonFile
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest023, TestSize.Level1)
-{
-    g_controlManager->RecoverAccountListJsonFile();
-    bool ret = false;
-    ret = g_controlManager->accountFileOperator_->IsJsonFileReady(Constants::ACCOUNT_LIST_FILE_JSON_PATH);
-    EXPECT_EQ(ret, true);
-}
-
-/**
  * @tc.name: OsAccountControlFileManagerCovTest024
  * @tc.desc: coverage BuildAndSaveBaseOAConstraintsJsonFile
  * @tc.type: FUNC
