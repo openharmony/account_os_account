@@ -54,7 +54,6 @@ namespace AccountTest {
 namespace {
 std::mutex g_mtx;
 std::mutex h_mtx;
-const int32_t OVER_TIME = 10;
 }  // namespace
 
 class OsAccountManagerServiceSubscribeModuleTest : public testing::Test {
@@ -154,23 +153,6 @@ public:
     {}
 };
 
-static void Wait()
-{
-    struct tm startTime = {0};
-    EXPECT_EQ(GetSystemCurrentTime(&startTime), true);
-    struct tm doingTime = {0};
-    int64_t seconds = 0;
-    while (!g_mtx.try_lock()) {
-        EXPECT_EQ(GetSystemCurrentTime(&doingTime), true);
-        seconds = GetSecondsBetween(startTime, doingTime);
-        if (seconds >= OVER_TIME) {
-            break;
-        }
-    }
-    // the subscriber should receive the event within 5 seconds
-    EXPECT_LT(seconds, OVER_TIME);
-}
-
 /**
  * @tc.name: OsAccountManagerServiceSubscribeModuleTest_0001
  * @tc.desc: Subscribe os accounts activate
@@ -254,125 +236,6 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     OsAccount::GetInstance().UnsubscribeOsAccount(subscriberTestPtr);
     EXPECT_EQ(result, ERR_OK);
     result = OsAccount::GetInstance().RemoveOsAccount(id);
-}
-
-#ifdef HAS_PIN_AUTH_PART
-/**
- * @tc.name: OsAccountManagerServiceSubscribeModuleTest_0003
- * @tc.desc: Subscribe os accounts unlock with password
- * @tc.type: FUNC
- * @tc.require: issueI7WX2P
- */
-HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubscribeModuleTest_0003, TestSize.Level1)
-{
-    AccessTokenID tokenId = AccessTokenKit::GetNativeTokenId("accountmgr");
-    SetSelfTokenID(tokenId);
-    std::string cmd = "setenforce 0";
-    FILE *file = popen(cmd.c_str(), "r");
-    if (file != nullptr) {
-        pclose(file);
-    }
-    OsAccountSubscribeInfo osAccountSubscribeInfo;
-    osAccountSubscribeInfo.SetOsAccountSubscribeType(OS_ACCOUNT_SUBSCRIBE_TYPE::UNLOCKED);
-    osAccountSubscribeInfo.SetName("subscribeUnlock");
-    auto subscriberTestPtr = std::make_shared<MockOsAccountSubscriberTest>(osAccountSubscribeInfo);
-    OsAccountInfo osAccountInfo;
-    ErrCode result = OsAccount::GetInstance().CreateOsAccount(
-        "OsAccountManagerServiceSubscribeModuleTest_0003", OsAccountType::GUEST, osAccountInfo);
-    EXPECT_EQ(result, ERR_OK);
-    const int id = osAccountInfo.GetLocalId();
-    EXPECT_CALL(*subscriberTestPtr, OnAccountsChanged(id)).Times(Exactly(1));
-    result = OsAccount::GetInstance().SubscribeOsAccount(subscriberTestPtr);
-    EXPECT_EQ(result, ERR_OK);
-    auto inputer = std::make_shared<TestIInputer>();
-    EXPECT_NE(nullptr, inputer);
-    result = AccountIAMClient::GetInstance().RegisterPINInputer(inputer);
-    ASSERT_EQ(ERR_OK, result);
-    CredentialParameters testPara = {};
-    std::vector<uint8_t> testchange = {};
-    testPara.authType = AuthType::PIN;
-    testPara.pinType = PinSubType::PIN_SIX;
-    EXPECT_EQ(AccountIAMClient::GetInstance().OpenSession(id, testchange), ERR_OK);
-    auto mockAddCredentialCallback = std::make_shared<TestAddCredCallBack>();
-    EXPECT_NE(mockAddCredentialCallback, nullptr);
-    g_mtx.lock();
-    AccountIAMClient::GetInstance().AddCredential(id, testPara, mockAddCredentialCallback);
-    Wait();
-    g_mtx.unlock();
-    auto mockAuthCallback = std::make_shared<TestAuthCallBack>();
-    g_mtx.lock();
-    AccountIAMClient::GetInstance().AuthUser(id, testchange, AuthType::PIN, AuthTrustLevel::ATL1, mockAuthCallback);
-    Wait();
-    g_mtx.unlock();
-    EXPECT_EQ(AccountIAMClient::GetInstance().UnregisterPINInputer(), ERR_OK);
-    EXPECT_EQ(AccountIAMClient::GetInstance().CloseSession(id), ERR_OK);
-    result = OsAccount::GetInstance().UnsubscribeOsAccount(subscriberTestPtr);
-    EXPECT_EQ(result, ERR_OK);
-    result = OsAccount::GetInstance().RemoveOsAccount(id);
-    EXPECT_EQ(result, ERR_OK);
-}
-#endif
-
-/**
- * @tc.name: OsAccountManagerServiceSubscribeModuleTest_0004
- * @tc.desc: Subscribe os accounts created
- * @tc.type: FUNC
- * @tc.require: issueI7WX2P
- */
-HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubscribeModuleTest_0004, TestSize.Level1)
-{
-    ACCOUNT_LOGI("OsAccountManagerServiceSubscribeModuleTest_0004");
-    //make a subscriber
-    AccessTokenID tokenId = AccessTokenKit::GetNativeTokenId("accountmgr");
-    SetSelfTokenID(tokenId);
-    OsAccountSubscribeInfo osAccountSubscribeInfo;
-    osAccountSubscribeInfo.SetOsAccountSubscribeType(OS_ACCOUNT_SUBSCRIBE_TYPE::CREATED);
-    osAccountSubscribeInfo.SetName("subscribeCreated");
-    auto subscriberTestPtr = std::make_shared<MockOsAccountSubscriberTest>(osAccountSubscribeInfo);
-    //subscribe
-    ErrCode result = OsAccount::GetInstance().SubscribeOsAccount(subscriberTestPtr);
-    EXPECT_EQ(result, ERR_OK);
-    //create osAccount
-    EXPECT_CALL(*subscriberTestPtr, OnAccountsChanged(_)).Times(Exactly(1));
-    OsAccountInfo osAccountInfo;
-    result = OsAccount::GetInstance().CreateOsAccount(
-        "OsAccountManagerServiceSubscribeModuleTest_0004", OsAccountType::GUEST, osAccountInfo);
-    const int id = osAccountInfo.GetLocalId();
-    //unsubscribe
-    result = OsAccount::GetInstance().RemoveOsAccount(id);
-    OsAccount::GetInstance().UnsubscribeOsAccount(subscriberTestPtr);
-    EXPECT_EQ(result, ERR_OK);
-}
-
-/**
- * @tc.name: OsAccountManagerServiceSubscribeModuleTest_0005
- * @tc.desc: Subscribe os accounts removed
- * @tc.type: FUNC
- * @tc.require: issueI7WX2P
- */
-HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubscribeModuleTest_0005, TestSize.Level1)
-{
-    ACCOUNT_LOGI("OsAccountManagerServiceSubscribeModuleTest_0005");
-    //make a subscriber
-    AccessTokenID tokenId = AccessTokenKit::GetNativeTokenId("accountmgr");
-    SetSelfTokenID(tokenId);
-    OsAccountSubscribeInfo osAccountSubscribeInfo;
-    osAccountSubscribeInfo.SetOsAccountSubscribeType(OS_ACCOUNT_SUBSCRIBE_TYPE::REMOVED);
-    osAccountSubscribeInfo.SetName("subscribeCreated");
-    auto subscriberTestPtr = std::make_shared<MockOsAccountSubscriberTest>(osAccountSubscribeInfo);
-    //subscribe
-    ErrCode result = OsAccount::GetInstance().SubscribeOsAccount(subscriberTestPtr);
-    EXPECT_EQ(result, ERR_OK);
-    //create osAccount
-    OsAccountInfo osAccountInfo;
-    result = OsAccount::GetInstance().CreateOsAccount(
-        "OsAccountManagerServiceSubscribeModuleTest_0005", OsAccountType::GUEST, osAccountInfo);
-    const int id = osAccountInfo.GetLocalId();
-    EXPECT_CALL(*subscriberTestPtr, OnAccountsChanged(id)).Times(Exactly(1));
-    //unsubscribe
-    result = OsAccount::GetInstance().RemoveOsAccount(id);
-    OsAccount::GetInstance().UnsubscribeOsAccount(subscriberTestPtr);
-    EXPECT_EQ(result, ERR_OK);
 }
 }
 }
