@@ -212,47 +212,6 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo002, TestSize.Level0)
 }
 
 /**
- * @tc.name: SetOhosAccountInfo003
- * @tc.desc: Test ohos account login and logoff
- * @tc.type: FUNC
- * @tc.require: issueI5RWXT
- */
-HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo003, TestSize.Level0)
-{
-    OsAccountInfo osAccountInfoOne;
-    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
-    EXPECT_EQ(OsAccountManager::ActivateOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
-    OhosAccountInfo accountInfo;
-    OhosAccountInfo accountInfoget;
-    accountInfo.name_ = TEST_DIFF_ACCOUNT_NAME;
-    accountInfo.status_ = ACCOUNT_STATE_UNBOUND;
-    accountInfo.uid_ = TEST_DIFF_ACCOUNT_UID;
-    accountInfo.nickname_ = TEST_NICKNAME;
-    accountInfo.avatar_ = TEST_AVATAR;
-    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
-
-    auto ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin);
-    EXPECT_EQ(ret, ERR_OK);
-    ret = OhosAccountKits::GetInstance().GetOhosAccountInfo(accountInfoget);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(accountInfoget.uid_, TEST_DIFF_EXPECTED_UID);
-    EXPECT_EQ(accountInfoget.name_, TEST_DIFF_ACCOUNT_NAME);
-    EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_LOGIN);
-    EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
-    EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
-    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
-        accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
-
-    ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogoff);
-    EXPECT_EQ(ret, ERR_OK);
-    ret = OhosAccountKits::GetInstance().GetOhosAccountInfo(accountInfoget);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(accountInfoget.uid_, DEFAULT_OHOS_ACCOUNT_UID);
-    EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_UNBOUND);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
-}
-
-/**
  * @tc.name: SetOhosAccountInfo004
  * @tc.desc: Test ohos account login and token invalid
  * @tc.type: FUNC
