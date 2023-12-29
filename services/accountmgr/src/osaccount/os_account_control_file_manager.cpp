@@ -15,9 +15,6 @@
 #include "os_account_control_file_manager.h"
 #include <dirent.h>
 #include <string>
-#ifdef WITH_SELINUX
-#include <policycoreutils.h>
-#endif // WITH_SELINUX
 #include <pthread.h>
 #include <securec.h>
 #include <sstream>
@@ -228,49 +225,31 @@ void OsAccountControlFileManager::FileInit()
     if (!accountFileOperator_->IsJsonFileReady(Constants::ACCOUNT_LIST_FILE_JSON_PATH)) {
         ACCOUNT_LOGI("OsAccountControlFileManager there is not have valid account list, create!");
         RecoverAccountListJsonFile();
-#ifdef WITH_SELINUX
-        Restorecon(Constants::ACCOUNT_LIST_FILE_JSON_PATH.c_str());
-#endif // WITH_SELINUX
     }
     if (!accountFileOperator_->IsJsonFileReady(Constants::ACCOUNT_INFO_DIGEST_FILE_PATH)) {
         ACCOUNT_LOGI("OsAccountControlFileManager there is not have valid account info digest file, create!");
         RecoverAccountInfoDigestJsonFile();
-#ifdef WITH_SELINUX
-        Restorecon(Constants::ACCOUNT_INFO_DIGEST_FILE_PATH.c_str());
-#endif // WITH_SELINUX
     }
     // -1 is special refers to conmon account data file.
     accountFileWatcherMgr_.AddFileWatcher(-1, eventCallbackFunc_, Constants::ACCOUNT_LIST_FILE_JSON_PATH);
     if (!accountFileOperator_->IsJsonFileReady(Constants::ACCOUNT_INDEX_JSON_PATH)) {
         ACCOUNT_LOGI("OsAccountControlFileManager there is not have valid account index file, create!");
         BuildAndSaveOsAccountIndexJsonFile();
-#ifdef WITH_SELINUX
-        Restorecon(Constants::ACCOUNT_INDEX_JSON_PATH.c_str());
-#endif // WITH_SELINUX
     }
     accountFileWatcherMgr_.AddFileWatcher(-1, eventCallbackFunc_, Constants::ACCOUNT_INDEX_JSON_PATH);
     if (!accountFileOperator_->IsJsonFileReady(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH)) {
         ACCOUNT_LOGI("OsAccountControlFileManager there is not have valid account list, create!");
         BuildAndSaveBaseOAConstraintsJsonFile();
-#ifdef WITH_SELINUX
-        Restorecon(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH.c_str());
-#endif // WITH_SELINUX
     }
     accountFileWatcherMgr_.AddFileWatcher(-1, eventCallbackFunc_, Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH);
     if (!accountFileOperator_->IsJsonFileReady(Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH)) {
         ACCOUNT_LOGI("OsAccountControlFileManager there is not have valid account list, create!");
         BuildAndSaveGlobalOAConstraintsJsonFile();
-#ifdef WITH_SELINUX
-        Restorecon(Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH.c_str());
-#endif // WITH_SELINUX
     }
     accountFileWatcherMgr_.AddFileWatcher(-1, eventCallbackFunc_, Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH);
     if (!accountFileOperator_->IsJsonFileReady(Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH)) {
         ACCOUNT_LOGI("OsAccountControlFileManager there is not have valid account list, create!");
         BuildAndSaveSpecificOAConstraintsJsonFile();
-#ifdef WITH_SELINUX
-        Restorecon(Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH.c_str());
-#endif // WITH_SELINUX
     }
     accountFileWatcherMgr_.AddFileWatcher(-1, eventCallbackFunc_, Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH);
 }

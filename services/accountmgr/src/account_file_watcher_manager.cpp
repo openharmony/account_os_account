@@ -16,9 +16,6 @@
 #include "account_file_watcher_manager.h"
 
 #include <dlfcn.h>
-#ifdef WITH_SELINUX
-#include <policycoreutils.h>
-#endif // WITH_SELINUX
 #include <pthread.h>
 #include <securec.h>
 #include <thread>
@@ -280,9 +277,6 @@ void AccountFileWatcherMgr::StartWatch() // start watcher
         return;
     }
     run_ = true;
-#ifdef WITH_SELINUX
-    Restorecon(Constants::ACCOUNT_INFO_DIGEST_FILE_PATH.c_str());
-#endif // WITH_SELINUX
     auto task = std::bind(&AccountFileWatcherMgr::GetNotifyEvent, this);
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), "fileWatcher");
