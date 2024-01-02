@@ -24,7 +24,9 @@
 #include "os_account_info.h"
 #include "account_log_wrapper.h"
 #define private public
+#include "account_file_watcher_manager.h"
 #include "iinner_os_account_manager.h"
+#include "os_account_control_file_manager.h"
 #undef private
 #include "os_account_subscribe_manager.h"
 #ifdef BUNDLE_ADAPTER_MOCK
@@ -80,6 +82,13 @@ public:
 
 void OsAccountInnerAccmgrCoverageTest::SetUpTestCase(void)
 {
+    IInnerOsAccountManager *innerMgrService = &IInnerOsAccountManager::GetInstance();
+    std::shared_ptr<OsAccountControlFileManager> osAccountControl =
+        std::static_pointer_cast<OsAccountControlFileManager>(innerMgrService->osAccountControl_);
+    osAccountControl->eventCallbackFunc_ = nullptr;
+    for (auto &fileNameMgr : osAccountControl->accountFileWatcherMgr_.fileNameMgrMap_) {
+        fileNameMgr.second->eventCallbackFunc_ = nullptr;
+    }
 #ifdef BUNDLE_ADAPTER_MOCK
     auto osAccountService = new (std::nothrow) OsAccountManagerService();
     ASSERT_NE(osAccountService, nullptr);

@@ -492,6 +492,10 @@ bool FileWatcher::StartNotify(const uint32_t &watchEvents)
 
 bool FileWatcher::CheckNotifyEvent(uint32_t event)
 {
+    if (eventCallbackFunc_ == nullptr) {
+        ACCOUNT_LOGW("eventCallbackFunc_ is nullptr.");
+        return false;
+    }
     if (!eventCallbackFunc_(filePath_, id_, event)) {
         ACCOUNT_LOGW("deal notify event failed.");
         return false;
