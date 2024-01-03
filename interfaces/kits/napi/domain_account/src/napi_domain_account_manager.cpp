@@ -1062,7 +1062,8 @@ napi_value NapiDomainAccountManager::Auth(napi_env env, napi_callback_info cbInf
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void *data) {
             JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(data);
-            auto callback = std::make_shared<NapiDomainAccountCallback>(env, param->callbackRef);
+            auto jsCallback = std::make_shared<JsDomainAccountAuthCallback>(env, param->callbackRef);
+            auto callback = std::make_shared<NapiDomainAccountCallback>(env, jsCallback);
             param->callbackRef = nullptr;
             param->errCode = DomainAccountClient::GetInstance().Auth(
                 param->domainAccountInfo, param->authData, callback);
@@ -1167,7 +1168,8 @@ napi_value NapiDomainAccountManager::AuthWithPopup(napi_env env, napi_callback_i
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void *data) {
             JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(data);
-            auto callback = std::make_shared<NapiDomainAccountCallback>(env, param->callbackRef);
+            auto jsCallback = std::make_shared<JsDomainAccountAuthCallback>(env, param->callbackRef);
+            auto callback = std::make_shared<NapiDomainAccountCallback>(env, jsCallback);
             param->callbackRef = nullptr;
             param->errCode = DomainAccountClient::GetInstance().AuthWithPopup(param->userId, callback);
             if (param->errCode != ERR_OK) {
