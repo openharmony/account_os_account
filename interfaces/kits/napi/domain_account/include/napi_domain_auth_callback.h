@@ -41,19 +41,35 @@ struct CallbackParam : public CommonAsyncContext {
     CallbackParam(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
     std::shared_ptr<AccountSA::DomainAccountCallback> callback = nullptr;
     AccountSA::DomainAuthResult authResult;
-    ThreadLockInfo *lockInfo = nullptr;
+};
+
+struct JsDomainAccountAuthCallback {
+    JsDomainAccountAuthCallback(napi_env env, napi_ref callbackRef) : env(env), onResult(callbackRef) {}
+    ~JsDomainAccountAuthCallback()
+    {
+        ReleaseNapiRefAsync(env, onResult);
+    }
+    bool onResultCalled = false;
+    napi_env env;
+    napi_ref onResult = nullptr;
+};
+
+struct DomainAccountAuthCallbackParam : public CommonAsyncContext {
+    DomainAccountAuthCallbackParam(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
+    std::shared_ptr<JsDomainAccountAuthCallback> callback = nullptr;
+    AccountSA::DomainAuthResult authResult;
 };
 
 class NapiDomainAccountCallback final: public AccountSA::DomainAccountCallback {
 public:
-    NapiDomainAccountCallback(napi_env env, napi_ref callback);
+    NapiDomainAccountCallback(napi_env env, std::shared_ptr<JsDomainAccountAuthCallback> &callback);
     ~NapiDomainAccountCallback();
 
     void OnResult(const int32_t errCode, Parcel &parcel) override;
 private:
     napi_env env_;
-    napi_ref callbackRef_;
-    ThreadLockInfo lockInfo_;
+    std::shared_ptr<JsDomainAccountAuthCallback> callback_;
+    std::mutex mutex_;
 };
 }  // namespace AccountJsKit
 }  // namespace OHOS
