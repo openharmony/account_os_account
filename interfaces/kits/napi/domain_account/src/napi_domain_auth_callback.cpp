@@ -174,18 +174,12 @@ napi_value NapiDomainAuthCallback::JsConstructor(napi_env env, napi_callback_inf
     return thisVar;
 }
 
-NapiDomainAccountCallback::NapiDomainAccountCallback(napi_env env, napi_ref callback)
-    : env_(env), callbackRef_(callback)
+NapiDomainAccountCallback::NapiDomainAccountCallback(napi_env env,
+    std::shared_ptr<JsDomainAccountAuthCallback> &callback) : env_(env), callback_(callback)
 {}
 
 NapiDomainAccountCallback::~NapiDomainAccountCallback()
-{
-    std::unique_lock<std::mutex> lock(lockInfo_.mutex);
-    lockInfo_.condition.wait(lock, [this] { return this->lockInfo_.count == 0; });
-    lockInfo_.count--;
-    ReleaseNapiRefAsync(env_, callbackRef_);
-    callbackRef_ = nullptr;
-}
+{}
 
 static void DomainAuthResultWork(uv_work_t *work, int status)
 {
@@ -194,36 +188,33 @@ static void DomainAuthResultWork(uv_work_t *work, int status)
     if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
-    CallbackParam *param = reinterpret_cast<CallbackParam *>(work->data);
+    std::unique_ptr<DomainAccountAuthCallbackParam> param(
+        reinterpret_cast<DomainAccountAuthCallbackParam *>(work->data));
     napi_value argv[ARGS_SIZE_TWO] = {nullptr};
     napi_create_int32(param->env, param->errCode, &argv[0]);
     argv[1] = CreateAuthResult(param->env, param->authResult.token,
         param->authResult.authStatusInfo.remainingTimes, param->authResult.authStatusInfo.freezingTime);
-    NapiCallVoidFunction(param->env, argv, ARGS_SIZE_TWO, param->callbackRef);
-    param->callbackRef = nullptr;
-    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-    param->lockInfo->count--;
-    param->lockInfo->condition.notify_all();
+    NapiCallVoidFunction(param->env, argv, ARGS_SIZE_TWO, param->callback->onResult);
     napi_close_handle_scope(param->env, scope);
-    delete param;
 }
 
 void NapiDomainAccountCallback::OnResult(const int32_t errCode, Parcel &parcel)
 {
-    std::unique_lock<std::mutex> lock(lockInfo_.mutex);
-    if (lockInfo_.count < 0) {
-        ACCOUNT_LOGE("the callback has been released");
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (callback_->onResultCalled) {
+        ACCOUNT_LOGE("call twice is not allowed");
         return;
     }
+    callback_->onResultCalled = true;
     std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
-    std::unique_ptr<CallbackParam> param = std::make_unique<CallbackParam>(env_);
+    std::unique_ptr<DomainAccountAuthCallbackParam> param =
+        std::make_unique<DomainAccountAuthCallbackParam>(env_);
     uv_loop_s *loop = nullptr;
     NAPI_CALL_RETURN_VOID(env_, napi_get_uv_event_loop(env_, &loop));
     if (loop == nullptr || work == nullptr || param == nullptr) {
         ACCOUNT_LOGE("fail for nullptr");
         return;
     }
-    param->lockInfo = &lockInfo_;
     param->errCode = errCode;
     std::shared_ptr<DomainAuthResult> authResult(DomainAuthResult::Unmarshalling(parcel));
     if (authResult == nullptr) {
@@ -231,18 +222,16 @@ void NapiDomainAccountCallback::OnResult(const int32_t errCode, Parcel &parcel)
         return;
     }
     param->authResult = (*authResult);
-    param->callbackRef = callbackRef_;
+    param->callback = callback_;
     work->data = reinterpret_cast<void *>(param.get());
     ErrCode ret = uv_queue_work_with_qos(
         loop, work.get(), [] (uv_work_t *work) {}, DomainAuthResultWork, uv_qos_default);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("fail to queue work");
-        param->callbackRef = nullptr;
         return;
     }
     work.release();
     param.release();
-    lockInfo_.count++;
 }
 }  // namespace AccountJsKit
 }  // namespace OHOS
