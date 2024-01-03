@@ -18,9 +18,6 @@
 #include <iostream>
 #include <unistd.h>
 #include <vector>
-#ifdef WITH_SELINUX
-#include <policycoreutils.h>
-#endif // WITH_SELINUX
 #include "account_error_no.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
@@ -135,9 +132,6 @@ ErrCode OhosAccountDataDeal::Init(int32_t userId)
     if (!FileExists(configFile)) {
         ACCOUNT_LOGI("file %{public}s not exist, create!", configFile.c_str());
         BuildJsonFileFromScratch(userId);
-#ifdef WITH_SELINUX
-        Restorecon(configFile.c_str());
-#endif // WITH_SELINUX
     }
 
     std::ifstream fin(configFile);
@@ -306,9 +300,6 @@ ErrCode OhosAccountDataDeal::GetAccountInfo(AccountInfo &accountInfo, const int3
     if (!FileExists(configFile)) {
         ACCOUNT_LOGI("file %{public}s not exist, create!", configFile.c_str());
         BuildJsonFileFromScratch(userId); // create default config file for first login
-#ifdef WITH_SELINUX
-        Restorecon(configFile.c_str());
-#endif // WITH_SELINUX
     }
     std::lock_guard<std::mutex> lock(mutex_);
     nlohmann::json jsonData;
