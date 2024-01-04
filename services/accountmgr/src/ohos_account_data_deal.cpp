@@ -60,6 +60,7 @@ OhosAccountDataDeal::OhosAccountDataDeal(const std::string &configFileDir)
                 return DealWithFileModifyEvent(fileName, id);
             }
             case IN_MOVE_SELF: {
+                accountFileWatcherMgr_.RemoveFileWatcher(id, fileName);
                 ReportOsAccountDataTampered(id, fileName, "DISTRIBUTED_ACCOUT_INFO");
                 break;
             }
@@ -112,6 +113,7 @@ void OhosAccountDataDeal::DealWithFileDeleteEvent(const std::string &fileName, c
         if (accountFileOperator_->GetValidDeleteFileOperationFlag(fileName)) {
             ACCOUNT_LOGD("this is valid service operate, no need to deal with it.");
             accountFileOperator_->SetValidDeleteFileOperationFlag(fileName, false);
+            accountFileWatcherMgr_.RemoveFileWatcher(id, fileName);
             return;
         }
         std::string fileDir = configFileDir_ + std::to_string(id);
