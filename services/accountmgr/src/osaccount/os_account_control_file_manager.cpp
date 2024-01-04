@@ -144,6 +144,7 @@ bool OsAccountControlFileManager::DealWithFileDeleteEvent(const std::string &fil
         if (accountFileOperator_->GetValidDeleteFileOperationFlag(fileName)) {
             ACCOUNT_LOGD("this is valid service operate, no need to deal with it.");
             accountFileOperator_->SetValidDeleteFileOperationFlag(fileName, false);
+            accountFileWatcherMgr_.RemoveFileWatcher(id, fileName);
             return true;
         }
     }
@@ -921,11 +922,9 @@ ErrCode OsAccountControlFileManager::DelOsAccount(const int id)
 #endif
     path += Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
     accountFileWatcherMgr_.DeleteAccountInfoDigest(path);
-    accountFileWatcherMgr_.RemoveFileWatcher(id, path);
     std::string distributedDataPath =
         Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(id) + DISTRIBUTED_ACCOUNT_FILE_NAME;
     accountFileWatcherMgr_.DeleteAccountInfoDigest(distributedDataPath);
-    accountFileWatcherMgr_.RemoveFileWatcher(id, distributedDataPath);
     RemoveAccountIndex(id);
     return UpdateAccountList(std::to_string(id), false);
 }
