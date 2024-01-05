@@ -43,18 +43,18 @@ typedef enum : std::int32_t {
 } OHOS_ACCOUNT_STATE;
 
 // event string
-const std::string EVENT_PUBLISH                    = "event publish";
-const std::string OHOS_ACCOUNT_EVENT_LOGIN         = "Ohos.account.event.LOGIN";
-const std::string OHOS_ACCOUNT_EVENT_LOGOUT        = "Ohos.account.event.LOGOUT";
-const std::string OHOS_ACCOUNT_EVENT_TOKEN_INVALID = "Ohos.account.event.TOKEN_INVALID";
-const std::string OHOS_ACCOUNT_EVENT_LOGOFF        = "Ohos.account.event.LOGOFF";
-const std::string OPERATION_INIT_OPEN_FILE_TO_READ = "InitOpenFileToRead";
-const std::string OPERATION_REMOVE_FILE = "RemoveFile";
-const std::string OPERATION_OPEN_FILE_TO_READ = "OpenFileToRead";
-const std::string OPERATION_OPEN_FILE_TO_WRITE = "OpenFileToWrite";
-const std::string OPERATION_CHANGE_MODE_FILE = "ChangeModeFile";
-const std::string OPERATION_FORCE_CREATE_DIRECTORY = "ForceCreateDirectory";
-const std::string OPERATION_CHANGE_MODE_DIRECTORY = "ChangeModeDirectory";
+const char EVENT_PUBLISH[]                    = "event publish";
+const char OHOS_ACCOUNT_EVENT_LOGIN[]         = "Ohos.account.event.LOGIN";
+const char OHOS_ACCOUNT_EVENT_LOGOUT[]        = "Ohos.account.event.LOGOUT";
+const char OHOS_ACCOUNT_EVENT_TOKEN_INVALID[] = "Ohos.account.event.TOKEN_INVALID";
+const char OHOS_ACCOUNT_EVENT_LOGOFF[]        = "Ohos.account.event.LOGOFF";
+const char OPERATION_INIT_OPEN_FILE_TO_READ[] = "InitOpenFileToRead";
+const char OPERATION_REMOVE_FILE[] = "RemoveFile";
+const char OPERATION_OPEN_FILE_TO_READ[] = "OpenFileToRead";
+const char OPERATION_OPEN_FILE_TO_WRITE[] = "OpenFileToWrite";
+const char OPERATION_CHANGE_MODE_FILE[] = "ChangeModeFile";
+const char OPERATION_FORCE_CREATE_DIRECTORY[] = "ForceCreateDirectory";
+const char OPERATION_CHANGE_MODE_DIRECTORY[] = "ChangeModeDirectory";
 /**
  * Account operation events
  */
@@ -71,8 +71,8 @@ typedef enum : std::int32_t {
     ACCOUNT_MANUAL_LOGOFF_EVT, // account logoff manually
 } ACCOUNT_INNER_EVENT_TYPE;
 
-const std::string DEFAULT_OHOS_ACCOUNT_NAME = "ohosAnonymousName"; // default name
-const std::string DEFAULT_OHOS_ACCOUNT_UID = "ohosAnonymousUid"; // default UID
+const char DEFAULT_OHOS_ACCOUNT_NAME[] = "ohosAnonymousName"; // default name
+const char DEFAULT_OHOS_ACCOUNT_UID[] = "ohosAnonymousUid"; // default UID
 constexpr std::int32_t UID_TRANSFORM_DIVISOR = 200000; // local account id = uid / UID_TRANSFORM_DIVISOR
 constexpr std::int32_t MAIN_OS_ACCOUNT_LOCAL_ID = 100; // main os account local id = 100
 constexpr std::int32_t DEFAULT_CALLING_UID = -1; // main os account local id = 100
