@@ -28,8 +28,8 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
+const uint32_t FILE_WATCHER_LIMIT = 1024;
 const uint32_t BUF_COMMON_SIZE = 1024;
-const uint32_t SELECT_WAIT_TIME = 3000000;
 const struct HksParam g_genSignVerifyParams[] = {
     {
         .tag = HKS_TAG_ALGORITHM,
@@ -215,6 +215,10 @@ int32_t GenerateAccountInfoDigest(const std::string &inData, uint8_t* outData, u
 AccountFileWatcherMgr::AccountFileWatcherMgr()
 {
     InitEncryptionKey();
+    inotifyFd_ = inotify_init();
+    if (inotifyFd_ < 0) {
+        ACCOUNT_LOGE("failed to init notify, errCode:%{public}d", errno);
+    }
     accountFileOperator_ = std::make_shared<AccountFileOperator>();
     FD_ZERO(&fds_);
 }
@@ -230,21 +234,20 @@ void AccountFileWatcherMgr::DealWithFileEvent()
     std::vector<std::pair<std::shared_ptr<FileWatcher>, uint32_t>> eventMap;
     {
         std::lock_guard<std::mutex> lock(fileWatcherMgrLock_);
-        for (int32_t i : fdArray_) {
-            if (FD_ISSET(i, &fds_)) { // check which fd has event
-                char buf[BUF_COMMON_SIZE] = {0};
-                struct inotify_event *event = nullptr;
-                int len, index = 0;
-                while (((len = read(i, &buf, sizeof(buf))) < 0) && (errno == EINTR)) {};
-                while (index < len) {
-                    event = reinterpret_cast<inotify_event *>(buf + index);
-                    std::shared_ptr<FileWatcher> fileWatcher = fileNameMgrMap_[i];
+        char buf[BUF_COMMON_SIZE] = {0};
+        struct inotify_event *event = nullptr;
+        int len = 0;
+        int index = 0;
+        while (((len = read(inotifyFd_, &buf, sizeof(buf))) < 0) && (errno == EINTR)) {};
+        while (index < len) {
+            event = reinterpret_cast<inotify_event *>(buf + index);
+            if (event->mask & (IN_MODIFY | IN_DELETE_SELF | IN_MOVE_SELF)) {
+                if (fileNameMgrMap_.find(event->wd) != fileNameMgrMap_.end()) {
+                    std::shared_ptr<FileWatcher> fileWatcher = fileNameMgrMap_[event->wd];
                     eventMap.emplace_back(std::make_pair(fileWatcher, event->mask));
-                    index += sizeof(struct inotify_event) + event->len;
                 }
-            } else {
-                FD_SET(i, &fds_);
             }
+            index += sizeof(struct inotify_event) + event->len;
         }
     }
     for (auto it : eventMap) {
@@ -255,16 +258,13 @@ void AccountFileWatcherMgr::DealWithFileEvent()
 
 void AccountFileWatcherMgr::GetNotifyEvent()
 {
+    FD_SET(inotifyFd_, &fds_);
     while (run_) {
-        if (maxNotifyFd_ < 0) {
+        if (inotifyFd_ < 0) {
             ACCOUNT_LOGE("failed to run notify because no fd available.");
-            continue;
+            break;
         }
-        for (int32_t i : fdArray_) {
-            FD_SET(i, &fds_);
-        }
-        struct timeval timeout = { 0, SELECT_WAIT_TIME }; // select wait time 3s
-        if (select(maxNotifyFd_ + 1, &fds_, nullptr, nullptr, &timeout) <= 0) {
+        if (select(inotifyFd_ + 1, &fds_, nullptr, nullptr, nullptr) <= 0) {
             continue;
         }
         DealWithFileEvent();
@@ -286,6 +286,17 @@ void AccountFileWatcherMgr::StartWatch() // start watcher
 void AccountFileWatcherMgr::AddFileWatcher(
     const int32_t id, CheckNotifyEventCallbackFunc checkCallbackFunc, const std::string filePath)
 {
+    if (inotifyFd_ < 0) {
+        inotifyFd_ = inotify_init();
+        if (inotifyFd_ < 0) {
+            ACCOUNT_LOGE("failed to init notify, errCode:%{public}d", errno);
+            return;
+        }
+    }
+    if (fileNameMgrMap_.size() > FILE_WATCHER_LIMIT) {
+        ACCOUNT_LOGW("the fileWatcher limit has been reached, fileName = %{public}s", filePath.c_str());
+        return;
+    }
     std::shared_ptr<FileWatcher> fileWatcher;
     if (!filePath.empty()) {
         fileWatcher = std::make_shared<FileWatcher>(filePath);
@@ -293,54 +304,36 @@ void AccountFileWatcherMgr::AddFileWatcher(
     } else {
         fileWatcher = std::make_shared<FileWatcher>(id);
     }
-    if (!fileWatcher->InitNotify()) {
-        ACCOUNT_LOGI("fileWatcher InitNotify failed");
-        return;
-    }
     fileWatcher->SetEventCallback(checkCallbackFunc);
-    if (!fileWatcher->StartNotify(IN_MODIFY | IN_DELETE_SELF| IN_MOVE_SELF)) {
+    if (!fileWatcher->StartNotify(inotifyFd_, IN_MODIFY | IN_DELETE_SELF| IN_MOVE_SELF)) {
         ACCOUNT_LOGI("fileWatcher StartNotify failed, fileName = %{public}s", filePath.c_str());
         return;
     }
     std::lock_guard<std::mutex> lock(fileWatcherMgrLock_);
-    if (fileWatcher->GetNotifyId() > maxNotifyFd_) {
-        maxNotifyFd_ = fileWatcher->GetNotifyId();
-    }
-    fileNameMgrMap_[fileWatcher->GetNotifyId()] = fileWatcher;
-    fdArray_.emplace_back(fileWatcher->GetNotifyId());
+    fileNameMgrMap_[fileWatcher->GetWd()] = fileWatcher;
     {
         std::lock_guard<std::mutex> filelock(accountFileOperator_->GetModifyOperationLock());
         accountFileOperator_->SetValidModifyFileOperationFlag(filePath, false);
     }
 
-    FD_SET(fileWatcher->GetNotifyId(), &fds_);
     StartWatch();
 }
 
 void AccountFileWatcherMgr::RemoveFileWatcher(const int32_t id, const std::string filePath)
 {
     std::lock_guard<std::mutex> lock(fileWatcherMgrLock_);
-    int targetFd = -1;
+    int targetWd = -1;
     for (auto it : fileNameMgrMap_) {
         if ((it.second->GetLocalId() == id) && (it.second->GetFilePath() == filePath)) {
-            targetFd = it.second->GetNotifyId();
+            targetWd = it.second->GetWd();
             break;
         }
     }
-    if (targetFd == -1) {
+    if (targetWd == -1) {
         return;
     }
-    FD_CLR(targetFd, &fds_);
-    if (!fileNameMgrMap_[targetFd]->CloseNotifyFd()) {
-        ACCOUNT_LOGE("failed to close notifyId, userId = %{public}d", id);
-    }
-    fdArray_.erase(
-        std::remove(fdArray_.begin(), fdArray_.end(), targetFd), fdArray_.end());
-
-    if (maxNotifyFd_ == targetFd) {
-        maxNotifyFd_ = *max_element(fdArray_.begin(), fdArray_.end());
-    }
-    fileNameMgrMap_.erase(targetFd);
+    fileNameMgrMap_[targetWd]->CloseNotify(inotifyFd_);
+    fileNameMgrMap_.erase(targetWd);
     return;
 }
 
@@ -431,6 +424,9 @@ ErrCode AccountFileWatcherMgr::DeleteAccountInfoDigest(const std::string &userIn
         ACCOUNT_LOGE("accountInfoDigestJson parse failed! reason: %{public}s", err.what());
         return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
     }
+    if (accountInfoDigestJson.find(userInfoPath) == accountInfoDigestJson.end()) {
+        return ERR_OK;
+    }
     accountInfoDigestJson.erase(userInfoPath);
 
     ErrCode result = accountFileOperator_->InputFileByPathAndContent(
@@ -454,29 +450,14 @@ FileWatcher::FileWatcher(const std::string &filePath) : filePath_(filePath)
 FileWatcher::~FileWatcher()
 {}
 
-int32_t FileWatcher::GetNotifyId()
-{
-    return notifyFd_;
-}
-
 std::string FileWatcher::GetFilePath()
 {
     return filePath_;
 }
 
-bool FileWatcher::InitNotify()
+bool FileWatcher::StartNotify(const int32_t fd, const uint32_t &watchEvents)
 {
-    notifyFd_ = inotify_init();
-    if (notifyFd_ < 0) {
-        ACCOUNT_LOGE("failed to init notify, errCode:%{public}d", errno);
-        return false;
-    }
-    return true;
-}
-
-bool FileWatcher::StartNotify(const uint32_t &watchEvents)
-{
-    wd_ = inotify_add_watch(notifyFd_, filePath_.c_str(), watchEvents);
+    wd_ = inotify_add_watch(fd, filePath_.c_str(), watchEvents);
     if (wd_ < 0) {
         ACCOUNT_LOGE("failed to start notify, errCode:%{public}d", errno);
         return false;
@@ -506,22 +487,22 @@ int32_t FileWatcher::GetLocalId()
     return id_;
 }
 
-bool FileWatcher::CloseNotifyFd()
+int32_t FileWatcher::GetWd()
 {
-    if (inotify_rm_watch(notifyFd_, wd_) == -1) {
-        ACCOUNT_LOGE("failed to exec inotify_rm_watch, err:%{public}d", errno);
+    return wd_;
+}
+
+void FileWatcher::CloseNotify(int32_t fd)
+{
+    if (inotify_rm_watch(fd, wd_) == -1) {
+        ACCOUNT_LOGE("failed to remove wd, err:%{public}d", errno);
         if (access(filePath_.c_str(), F_OK) == 0) {
-            close(notifyFd_);
-            return true;
+            ACCOUNT_LOGE("file already exist");
+            return;
         }
     }
-    int closeRet = close(notifyFd_);
-    if (closeRet != 0) {
-        ACCOUNT_LOGE("failed to close fd err:%{public}d", closeRet);
-        return false;
-    }
-    notifyFd_ = -1;
-    return true;
+    wd_ = -1;
+    return;
 }
 }  // namespace AccountSA
 }  // namespace OHOS
