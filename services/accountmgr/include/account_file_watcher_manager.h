@@ -34,13 +34,12 @@ public:
     FileWatcher(const std::string &filePath);
     ~FileWatcher();
 
-    bool InitNotify();
-    int32_t GetNotifyId();
     std::string GetFilePath();
     int32_t GetLocalId();
+    int32_t GetWd();
 
-    bool StartNotify(const uint32_t &watchEvents);
-    bool CloseNotifyFd();
+    bool StartNotify(const int32_t fd, const uint32_t &watchEvents);
+    void CloseNotify(int32_t fd);
     bool CheckNotifyEvent(uint32_t event);
     void SetEventCallback(CheckNotifyEventCallbackFunc &func);
 
@@ -48,8 +47,7 @@ public:
     int32_t id_ = -1;
 
 private:
-    int32_t notifyFd_ = -1;
-    int32_t wd_ = -1;
+    int32_t wd_ = -1; // generate from inotify_add_watch
     std::string filePath_;
     CheckNotifyEventCallbackFunc eventCallbackFunc_;
 };
@@ -75,13 +73,13 @@ private:
     DISALLOW_COPY_AND_MOVE(AccountFileWatcherMgr);
 
 public:
+    int32_t inotifyFd_ = -1;
+
     std::mutex accountInfoDigestFileLock_;
     std::mutex fileWatcherMgrLock_;
     std::shared_ptr<AccountFileOperator> accountFileOperator_;
     std::unordered_map<int32_t, std::shared_ptr<FileWatcher>> fileNameMgrMap_;
     fd_set fds_;
-    int32_t maxNotifyFd_ = -1;
-    std::vector<int32_t> fdArray_;
     bool run_ = false;
 };
 }  // namespace AccountSA
