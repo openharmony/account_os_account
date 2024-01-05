@@ -1562,7 +1562,11 @@ napi_value IsOsAccountActivated(napi_env env, napi_callback_info cbInfo)
 
 napi_value IsOsAccountConstraintEnabled(napi_env env, napi_callback_info cbInfo)
 {
-    if (AccountPermissionManager::CheckSystemApp(false) != ERR_OK) {
+    size_t argc = ARGS_SIZE_TWO;
+    napi_value argv[ARGS_SIZE_TWO] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+
+    if (argc == ARGS_SIZE_TWO && AccountPermissionManager::CheckSystemApp(false) != ERR_OK) {
         AccountNapiThrow(env, ERR_JS_IS_NOT_SYSTEM_APP);
         return nullptr;
     }
