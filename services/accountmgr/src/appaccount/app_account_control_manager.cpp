@@ -65,7 +65,7 @@ static ErrCode SaveDataToAsset(const std::string &hapLabel, const std::string &a
         { .tag = ASSET_TAG_SECRET, .value.blob = secretBlob },
         { .tag = ASSET_TAG_DATA_LABEL_NORMAL_1, .value.blob = hapLabelBlob },
         { .tag = ASSET_TAG_DATA_LABEL_NORMAL_2, .value.blob = accountLabelBlob },
-        { .tag = ASSET_TAG_ACCESSIBILITY, .value.u32 = ASSET_ACCESSIBILITY_DEVICE_POWER_ON }
+        { .tag = ASSET_TAG_ACCESSIBILITY, .value.u32 = ASSET_ACCESSIBILITY_DEVICE_POWERED_ON }
     };
     ErrCode ret = OH_Asset_Add(attr, sizeof(attr) / sizeof(attr[0]));
     if (ret == ASSET_DUPLICATED) {
