@@ -19,6 +19,7 @@
 #include <fstream>
 #include <gtest/gtest.h>
 #include <iostream>
+#include <new>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <vector>
@@ -44,6 +45,8 @@ const std::string STRING_TEST_USER_NAME = "testuser";
 const std::string STRING_TEST_USER_NAME_TWO = "testuser2";
 const int64_t STRING_TEST_USER_SHELLNUMBER = 1000;
 const int32_t INVALID_TYPE = 100000;
+const gid_t ACCOUNT_GID = 3058;
+const uid_t ACCOUNT_UID = 3058;
 const std::string STRING_PHOTO =
     "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD//gAUU29mdHdhcmU6IFNuaXBhc3Rl/"
     "9sAQwADAgIDAgIDAwMDBAMDBAUIBQUEBAUKBwcGCAwKDAwLCgsLDQ4SEA0OEQ4LCxAWEBETFBUVFQwPFxgWFBgSFBUU/"
@@ -75,7 +78,7 @@ const std::string STRING_ERR_PHOTO =
     "xFpssN5bwwXwPilDIZ0klLxSq2vWLAIWACMjBeilQNo6j9ni50R9U8U6lF400m18Q30sTMLnxC1758CxqrO8EesXXzBgiiV5SQPlCgHnNSfI5f"
     "1+"
     "av33Q5L3rdP68nb7mfWlFFFaCP//Z";
-const std::shared_ptr<OsAccountControlFileManager> g_controlManager = std::make_shared<OsAccountControlFileManager>();
+    OsAccountControlFileManager *g_controlManager = new (std::nothrow) OsAccountControlFileManager();
 }  // namespace
 class OsAccountControlFileManagerTest : public testing::Test {
 public:
@@ -514,6 +517,28 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest022,
     std::string dirName4(Constants::MAX_USER_ID_LENGTH - 1, '5');
     ret = GetValidAccountID(dirName4, accountID);
     EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: OsAccountControlFileManagerCovTest023
+ * @tc.desc: coverage RecoverAccountListJsonFile
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest023, TestSize.Level1)
+{
+    g_controlManager->accountFileOperator_->DeleteDirOrFile(Constants::ACCOUNT_LIST_FILE_JSON_PATH);
+    g_controlManager->RecoverAccountListJsonFile();
+    bool ret = false;
+    ret = g_controlManager->accountFileOperator_->IsJsonFileReady(Constants::ACCOUNT_LIST_FILE_JSON_PATH);
+    EXPECT_EQ(ret, true);
+    // recover permission
+    if (chmod(Constants::ACCOUNT_LIST_FILE_JSON_PATH.c_str(), S_IRUSR | S_IWUSR) != 0) {
+        ACCOUNT_LOGE("OsAccountManagerModuleTest006, chmod failed! errno %{public}d.", errno);
+    }
+    if (chown(Constants::ACCOUNT_LIST_FILE_JSON_PATH.c_str(), ACCOUNT_UID, ACCOUNT_GID) != 0) {
+        ACCOUNT_LOGE("OsAccountManagerModuleTest006, chown failed! errno %{public}d.", errno);
+    }
 }
 
 /**
