@@ -52,26 +52,26 @@ napi_value NapiAppAccountConstant::Init(napi_env env, napi_value exports)
     napi_create_object(env, &constants);
     ResultCodeInit(env, &resultCode);
 
-    SetNamedProperty(env, constants, Constants::OAUTH_ACTION_ADD_ACCOUNT_IMPLICITLY.c_str(),
+    SetNamedProperty(env, constants, Constants::OAUTH_ACTION_ADD_ACCOUNT_IMPLICITLY,
         "ACTION_ADD_ACCOUNT_IMPLICITLY");
-    SetNamedProperty(env, constants, Constants::OAUTH_ACTION_AUTHENTICATE.c_str(), "ACTION_AUTHENTICATE");
-    SetNamedProperty(env, constants, Constants::ACTION_CREATE_ACCOUNT_IMPLICITLY.c_str(),
+    SetNamedProperty(env, constants, Constants::OAUTH_ACTION_AUTHENTICATE, "ACTION_AUTHENTICATE");
+    SetNamedProperty(env, constants, Constants::ACTION_CREATE_ACCOUNT_IMPLICITLY,
         "ACTION_CREATE_ACCOUNT_IMPLICITLY");
-    SetNamedProperty(env, constants, Constants::ACTION_AUTH.c_str(), "ACTION_AUTH");
-    SetNamedProperty(env, constants, Constants::ACTION_VERIFY_CREDENTIAL.c_str(), "ACTION_VERIFY_CREDENTIAL");
-    SetNamedProperty(env, constants, Constants::ACTION_SET_AUTHENTICATOR_PROPERTIES.c_str(),
+    SetNamedProperty(env, constants, Constants::ACTION_AUTH, "ACTION_AUTH");
+    SetNamedProperty(env, constants, Constants::ACTION_VERIFY_CREDENTIAL, "ACTION_VERIFY_CREDENTIAL");
+    SetNamedProperty(env, constants, Constants::ACTION_SET_AUTHENTICATOR_PROPERTIES,
         "ACTION_SET_AUTHENTICATOR_PROPERTIES");
-    SetNamedProperty(env, constants, Constants::KEY_NAME.c_str(), "KEY_NAME");
-    SetNamedProperty(env, constants, Constants::KEY_OWNER.c_str(), "KEY_OWNER");
-    SetNamedProperty(env, constants, Constants::KEY_TOKEN.c_str(), "KEY_TOKEN");
-    SetNamedProperty(env, constants, Constants::KEY_ACTION.c_str(), "KEY_ACTION");
-    SetNamedProperty(env, constants, Constants::KEY_AUTH_TYPE.c_str(), "KEY_AUTH_TYPE");
-    SetNamedProperty(env, constants, Constants::KEY_SESSION_ID.c_str(), "KEY_SESSION_ID");
-    SetNamedProperty(env, constants, Constants::KEY_CALLER_BUNDLE_NAME.c_str(), "KEY_CALLER_BUNDLE_NAME");
-    SetNamedProperty(env, constants, Constants::KEY_CALLER_PID.c_str(), "KEY_CALLER_PID");
-    SetNamedProperty(env, constants, Constants::KEY_CALLER_UID.c_str(), "KEY_CALLER_UID");
-    SetNamedProperty(env, constants, Constants::KEY_REQUIRED_LABELS.c_str(), "KEY_REQUIRED_LABELS");
-    SetNamedProperty(env, constants, Constants::KEY_BOOLEAN_RESULT.c_str(), "KEY_BOOLEAN_RESULT");
+    SetNamedProperty(env, constants, Constants::KEY_NAME, "KEY_NAME");
+    SetNamedProperty(env, constants, Constants::KEY_OWNER, "KEY_OWNER");
+    SetNamedProperty(env, constants, Constants::KEY_TOKEN, "KEY_TOKEN");
+    SetNamedProperty(env, constants, Constants::KEY_ACTION, "KEY_ACTION");
+    SetNamedProperty(env, constants, Constants::KEY_AUTH_TYPE, "KEY_AUTH_TYPE");
+    SetNamedProperty(env, constants, Constants::KEY_SESSION_ID, "KEY_SESSION_ID");
+    SetNamedProperty(env, constants, Constants::KEY_CALLER_BUNDLE_NAME, "KEY_CALLER_BUNDLE_NAME");
+    SetNamedProperty(env, constants, Constants::KEY_CALLER_PID, "KEY_CALLER_PID");
+    SetNamedProperty(env, constants, Constants::KEY_CALLER_UID, "KEY_CALLER_UID");
+    SetNamedProperty(env, constants, Constants::KEY_REQUIRED_LABELS, "KEY_REQUIRED_LABELS");
+    SetNamedProperty(env, constants, Constants::KEY_BOOLEAN_RESULT, "KEY_BOOLEAN_RESULT");
 
     napi_property_descriptor exportFuncs[] = {
         DECLARE_NAPI_PROPERTY("ResultCode", resultCode),

@@ -1453,11 +1453,11 @@ ErrCode OsAccountControlFileManager::SetPhotoById(const int id, const std::strin
     if (photo.find(Constants::USER_PHOTO_BASE_JPG_HEAD) != std::string::npos) {
         path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(id) + Constants::PATH_SEPARATOR +
                Constants::USER_PHOTO_FILE_JPG_NAME;
-        subPhoto = photo.substr(Constants::USER_PHOTO_BASE_JPG_HEAD.size());
+        subPhoto = photo.substr(std::strlen(Constants::USER_PHOTO_BASE_JPG_HEAD));
     } else if (photo.find(Constants::USER_PHOTO_BASE_PNG_HEAD) != std::string::npos) {
         path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(id) + Constants::PATH_SEPARATOR +
                Constants::USER_PHOTO_FILE_PNG_NAME;
-        subPhoto = photo.substr(Constants::USER_PHOTO_BASE_PNG_HEAD.size());
+        subPhoto = photo.substr(std::strlen(Constants::USER_PHOTO_BASE_PNG_HEAD));
     } else {
         ACCOUNT_LOGE("SetPhotoById photo str error");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
