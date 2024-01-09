@@ -1267,6 +1267,28 @@ bool ParseParaIsEnable(napi_env env, napi_callback_info cbInfo, IsConEnableAsync
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    if (argc == ARGS_SIZE_ONE) {
+        std::vector<int> ids;
+        ErrCode errCode = OsAccountManager::QueryActiveOsAccountIds(ids);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("Get id failed");
+            AccountNapiThrow(env, errCode, asyncContext->throwErr);
+            return false;
+        }
+        if (ids.empty()) {
+            ACCOUNT_LOGE("No Active OsAccount Ids");
+            AccountNapiThrow(env, ERR_ACCOUNT_COMMON_INVALID_PARAMETER, asyncContext->throwErr);
+            return false;
+        }
+        asyncContext->id = ids[0];
+        if (!GetStringProperty(env, argv[PARAMZERO], asyncContext->constraint)) {
+            ACCOUNT_LOGE("Get constraint failed");
+            std::string errMsg = "The type of arg " + std::to_string(argc) + " must be string";
+            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+            return false;
+        }
+        return true;
+    }
     if (argc == ARGS_SIZE_THREE) {
         if (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1)) {
             ACCOUNT_LOGE("Get callbackRef failed");
