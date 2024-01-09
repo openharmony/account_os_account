@@ -39,21 +39,21 @@ const std::string GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH =
     USER_INFO_BASE + PATH_SEPARATOR + "global_os_account_constraints.json";
 const std::string SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH =
     USER_INFO_BASE + PATH_SEPARATOR + "specific_os_account_constraints.json";
-const std::string USER_PHOTO_FILE_PNG_NAME = "fase.png";
-const std::string USER_PHOTO_FILE_JPG_NAME = "fase.jpg";
-const std::string USER_PHOTO_BASE_JPG_HEAD = "data:image/jpeg;base64,";
-const std::string USER_PHOTO_BASE_PNG_HEAD = "data:image/png;base64,";
-const std::string USER_INFO_FILE_NAME = "account_info.json";
-const std::string OPERATION_ACTIVATE = "activate";
-const std::string OPERATION_CREATE = "create";
-const std::string OPERATION_DELETE = "delete";
-const std::string OPERATION_SWITCH = "switch";
-const std::string OPERATION_STOP = "stop";
-const std::string OPERATION_UPDATE = "update";
+const char USER_PHOTO_FILE_PNG_NAME[] = "fase.png";
+const char USER_PHOTO_FILE_JPG_NAME[] = "fase.jpg";
+const char USER_PHOTO_BASE_JPG_HEAD[] = "data:image/jpeg;base64,";
+const char USER_PHOTO_BASE_PNG_HEAD[] = "data:image/png;base64,";
+const char USER_INFO_FILE_NAME[] = "account_info.json";
+const char OPERATION_ACTIVATE[] = "activate";
+const char OPERATION_CREATE[] = "create";
+const char OPERATION_DELETE[] = "delete";
+const char OPERATION_SWITCH[] = "switch";
+const char OPERATION_STOP[] = "stop";
+const char OPERATION_UPDATE[] = "update";
 const char OPERATION_UNLOCK[] = "unlock";
 
 // distributed database
-const std::string APP_ID = "os_account_mgr_service";
+const char APP_ID[] = "os_account_mgr_service";
 const bool SYNC_OS_ACCOUNT_DATABASE = true;
 const std::uint32_t DEVICE_UUID_LENGTH = 65;
 
@@ -77,10 +77,10 @@ const unsigned int CONSTRAINT_MAX_SIZE = 128;
 
 const std::int32_t ADMIN_LOCAL_ID = 0;
 const int ADMIN_TYPE = -1;
-const std::string ADMIN_LOCAL_NAME = "admin";
-const std::string STANDARD_LOCAL_NAME = "user";
+const char ADMIN_LOCAL_NAME[] = "admin";
+const char STANDARD_LOCAL_NAME[] = "user";
 const std::int32_t START_USER_ID = 100;
-const std::string START_USER_STRING_ID = "100";
+const char START_USER_STRING_ID[] = "100";
 const std::int32_t MAX_USER_ID = 1099;
 const std::int32_t INVALID_OS_ACCOUNT_ID = -1;
 const size_t MAX_USER_ID_LENGTH = 4;
@@ -92,21 +92,21 @@ const int64_t TIME_WAIT_TIME_OUT = 5;
 const std::int32_t WAIT_ONE_TIME = 1000;
 
 // type template
-const std::string DEVICE_OWNER_ID = "deviceOwnerId";
-const std::string ALL_GLOBAL_CONSTRAINTS = "allGlobalConstraints";
-const std::string ALL_SPECIFIC_CONSTRAINTS = "allSpecificConstraints";
-const std::string USER_CONSTRAINTS_TEMPLATE = "UserConstraintsTemplate";
-const std::string TYPE_LIST = "TypeList";
-const std::string ACCOUNT_LIST = "AccountList";
-const std::string COUNT_ACCOUNT_NUM = "CountAccountNum";
-const std::string MAX_ALLOW_CREATE_ACCOUNT_ID = "MaxAllowCreateAccountID";
-const std::string SERIAL_NUMBER_NUM = "SerialNumber";
-const std::string IS_MULTI_OS_ACCOUNT_ENABLE = "IsMultiOsAccountEnable";
-const std::string IS_SERIAL_NUMBER_FULL = "isSerialNumberFull";
-const std::string CONSTRAINTS_LIST = "constraints";
-const std::string IS_ALLOWED_CREATE_ADMIN = "IsAllowedCreateAdmin";
-const std::string LOCAL_NAME = "localName";
-const std::string SHORT_NAME = "shortName";
+const char DEVICE_OWNER_ID[] = "deviceOwnerId";
+const char ALL_GLOBAL_CONSTRAINTS[] = "allGlobalConstraints";
+const char ALL_SPECIFIC_CONSTRAINTS[] = "allSpecificConstraints";
+const char USER_CONSTRAINTS_TEMPLATE[] = "UserConstraintsTemplate";
+const char TYPE_LIST[] = "TypeList";
+const char ACCOUNT_LIST[] = "AccountList";
+const char COUNT_ACCOUNT_NUM[] = "CountAccountNum";
+const char MAX_ALLOW_CREATE_ACCOUNT_ID[] = "MaxAllowCreateAccountID";
+const char SERIAL_NUMBER_NUM[] = "SerialNumber";
+const char IS_MULTI_OS_ACCOUNT_ENABLE[] = "IsMultiOsAccountEnable";
+const char IS_SERIAL_NUMBER_FULL[] = "isSerialNumberFull";
+const char CONSTRAINTS_LIST[] = "constraints";
+const char IS_ALLOWED_CREATE_ADMIN[] = "IsAllowedCreateAdmin";
+const char LOCAL_NAME[] = "localName";
+const char SHORT_NAME[] = "shortName";
 
 
 // start type

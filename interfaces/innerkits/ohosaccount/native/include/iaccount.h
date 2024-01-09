@@ -25,7 +25,7 @@
 
 namespace OHOS {
 namespace AccountSA {
-const std::string ACCOUNT_SERVICE_NAME = "AccountService";
+const char ACCOUNT_SERVICE_NAME[] = "AccountService";
 
 class IAccount : public IRemoteBroker {
 public:
