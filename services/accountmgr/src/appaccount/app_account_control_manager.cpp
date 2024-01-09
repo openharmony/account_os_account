@@ -52,20 +52,21 @@ static ErrCode SaveDataToAsset(const std::string &hapLabel, const std::string &a
     if (value.empty()) {
         return ERR_OK;
     }
-    Asset_Blob hapLabelBlob = { static_cast<uint32_t>(hapLabel.size()),
-        const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(hapLabel.c_str())) };
-    Asset_Blob accountLabelBlob = { static_cast<uint32_t>(accountLabel.size()),
-        const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(accountLabel.c_str())) };
-    Asset_Blob aliasBlob = { static_cast<uint32_t>(alias.size()),
-        const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(alias.c_str())) };
-    Asset_Blob secretBlob = { static_cast<uint32_t>(value.size()),
-        const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(value.c_str())) };
+    Asset_Value hapLabelValue = { .blob = { static_cast<uint32_t>(hapLabel.size()),
+        const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(hapLabel.c_str())) } };
+    Asset_Value accountLabelValue = { .blob = { static_cast<uint32_t>(accountLabel.size()),
+        const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(accountLabel.c_str())) } };
+    Asset_Value aliasValue = { .blob = { static_cast<uint32_t>(alias.size()),
+        const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(alias.c_str())) } };
+    Asset_Value secretValue = { .blob = { static_cast<uint32_t>(value.size()),
+        const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(value.c_str())) } };
+    Asset_Value u32Value = { .u32 = ASSET_ACCESSIBILITY_DEVICE_POWERED_ON };
     Asset_Attr attr[] = {
-        { .tag = ASSET_TAG_ALIAS, .value.blob = aliasBlob },
-        { .tag = ASSET_TAG_SECRET, .value.blob = secretBlob },
-        { .tag = ASSET_TAG_DATA_LABEL_NORMAL_1, .value.blob = hapLabelBlob },
-        { .tag = ASSET_TAG_DATA_LABEL_NORMAL_2, .value.blob = accountLabelBlob },
-        { .tag = ASSET_TAG_ACCESSIBILITY, .value.u32 = ASSET_ACCESSIBILITY_DEVICE_POWERED_ON }
+        { .tag = ASSET_TAG_ALIAS, .value = aliasValue },
+        { .tag = ASSET_TAG_SECRET, .value = secretValue },
+        { .tag = ASSET_TAG_DATA_LABEL_NORMAL_1, .value = hapLabelValue },
+        { .tag = ASSET_TAG_DATA_LABEL_NORMAL_2, .value = accountLabelValue },
+        { .tag = ASSET_TAG_ACCESSIBILITY, .value = u32Value }
     };
     ErrCode ret = OH_Asset_Add(attr, sizeof(attr) / sizeof(attr[0]));
     if (ret == ASSET_DUPLICATED) {
@@ -79,11 +80,12 @@ static ErrCode SaveDataToAsset(const std::string &hapLabel, const std::string &a
 
 static ErrCode GetDataFromAsset(const std::string &alias, std::string &value)
 {
-    Asset_Blob aliasBlob = { static_cast<uint32_t>(alias.size()),
-        const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(alias.c_str())) };
+    Asset_Value aliasValue = { .blob = { static_cast<uint32_t>(alias.size()),
+        const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(alias.c_str())) } };
+    Asset_Value u32Value = { .u32 = ASSET_RETURN_ALL };
     Asset_Attr attr[] = {
-        { .tag = ASSET_TAG_ALIAS, .value.blob = aliasBlob },
-        { .tag = ASSET_TAG_RETURN_TYPE, .value.u32 = ASSET_RETURN_ALL }
+        { .tag = ASSET_TAG_ALIAS, .value = aliasValue },
+        { .tag = ASSET_TAG_RETURN_TYPE, .value = u32Value }
     };
 
     Asset_ResultSet resultSet = {0};
@@ -106,9 +108,9 @@ static ErrCode GetDataFromAsset(const std::string &alias, std::string &value)
 
 static ErrCode RemoveDataFromAsset(const std::string &alias)
 {
-    Asset_Blob aliasBlob = { static_cast<uint32_t>(alias.size()),
-        const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(alias.c_str())) };
-    Asset_Attr attr[] = { { .tag = ASSET_TAG_ALIAS, .value.blob = aliasBlob } };
+    Asset_Value aliasValue = { .blob = { static_cast<uint32_t>(alias.size()),
+        const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(alias.c_str())) } };
+    Asset_Attr attr[] = { { .tag = ASSET_TAG_ALIAS, .value = aliasValue } };
 
     ErrCode ret = OH_Asset_Remove(attr, sizeof(attr) / sizeof(attr[0]));
     if (ret != ASSET_SUCCESS) {
@@ -119,9 +121,9 @@ static ErrCode RemoveDataFromAsset(const std::string &alias)
 
 static ErrCode RemoveDataFromAssetByLabel(int32_t tag, const std::string &label)
 {
-    Asset_Blob labelBlob = { static_cast<uint32_t>(label.size()),
-        const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(label.c_str())) };
-    Asset_Attr attr[] = { { .tag = tag, .value.blob = labelBlob } };
+    Asset_Value labelValue = { .blob = { static_cast<uint32_t>(label.size()),
+        const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(label.c_str())) } };
+    Asset_Attr attr[] = { { .tag = tag, .value = labelValue } };
 
     ErrCode ret = OH_Asset_Remove(attr, sizeof(attr) / sizeof(attr[0]));
     if (ret != ASSET_SUCCESS) {
