@@ -264,6 +264,13 @@ ErrCode OsAccountManagerService::CheckOsAccountConstraintEnabled(
     if (res != ERR_OK) {
         return res;
     }
+
+    // check current account state
+    int callerUserId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+    if (callerUserId == id) {
+        return innerManager_.IsOsAccountConstraintEnable(id, constraint, isEnabled);
+    }
+
     // permission check
     if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "") && !PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
