@@ -43,29 +43,6 @@ void AuthCallbackDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
     }
 }
 
-RestoreFileKeyCallback::RestoreFileKeyCallback(uint32_t userId, const Attributes& attributes)
-{
-    userId_ = userId;
-    attributes.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token_);
-    attributes.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, secret_);
-}
-
-RestoreFileKeyCallback::~RestoreFileKeyCallback()
-{
-    (void)memset_s(token_.data(), token_.size(), 0, token_.size());
-    (void)memset_s(secret_.data(), secret_.size(), 0, secret_.size());
-}
-
-void RestoreFileKeyCallback::OnSecUserInfo(const UserIam::UserAuth::SecUserInfo &info)
-{
-    ErrCode ret = InnerAccountIAMManager::GetInstance().UpdateUserKey(userId_, info.secureUid, 0, token_, secret_);
-    if (ret != ERR_OK) {
-        ACCOUNT_LOGE("failed to restore user key");
-    } else {
-        ACCOUNT_LOGI("restore user key successfully");
-    }
-}
-
 AuthCallback::AuthCallback(uint32_t userId, AuthType authType, const sptr<IIDMCallback> &callback)
     : userId_(userId), authType_(authType), innerCallback_(callback)
 {}
@@ -137,10 +114,6 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
     innerCallback_->OnResult(result, extraInfo);
     (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsVerified(userId_, true);
     AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, result);
-    if ((authType_ == AuthType::PIN) && (!isAccountVerified_)) {
-        auto getSecUidCallback = std::make_shared<RestoreFileKeyCallback>(userId_, extraInfo);
-        UserIDMClient::GetInstance().GetSecUserInfo(userId_, getSecUidCallback);
-    }
 }
 
 void AuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
@@ -219,6 +192,45 @@ void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
 }
 
 void AddCredCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
+{
+    if (innerCallback_ == nullptr) {
+        ACCOUNT_LOGE("innerCallback_ is nullptr");
+        return;
+    }
+    innerCallback_->OnAcquireInfo(module, acquireInfo, extraInfo);
+}
+
+UpdateCredCallback::UpdateCredCallback(
+    uint32_t userId, const CredentialParameters &credInfo, const sptr<IIDMCallback> &callback)
+    : userId_(userId), credInfo_(credInfo), innerCallback_(callback)
+{}
+
+void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
+{
+    if (innerCallback_ == nullptr) {
+        ACCOUNT_LOGE("inner callback is nullptr");
+        return;
+    }
+    if ((result != 0) || (credInfo_.authType != AuthType::PIN)) {
+        InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
+        innerCallback_->OnResult(result, extraInfo);
+        return;
+    }
+    InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_UPDATE_CRED);
+
+    uint64_t credentialId = 0;
+    extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId);
+    uint64_t secureUid = 0;
+    extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, secureUid);
+    auto callback = std::make_shared<IDMAuthCallback>(userId_, credentialId, secureUid, innerCallback_);
+
+    std::vector<uint8_t> challenge;
+    InnerAccountIAMManager::GetInstance().GetChallenge(userId_, challenge);
+    UserAuthClient::GetInstance().BeginAuthentication(
+        userId_, challenge, AuthType::PIN, AuthTrustLevel::ATL4, callback);
+}
+
+void UpdateCredCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
 {
     if (innerCallback_ == nullptr) {
         ACCOUNT_LOGE("innerCallback_ is nullptr");
