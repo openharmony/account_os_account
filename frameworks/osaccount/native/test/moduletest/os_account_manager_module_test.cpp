@@ -356,6 +356,27 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest003, TestSize.Lev
 }
 
 /**
+ * @tc.name: OsAccountManagerModuleTest004
+ * @tc.desc: Test create admin account.
+ * @tc.type: FUNC
+ * @tc.require: issueI4IU51
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest004, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfoOne;
+    ASSERT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::ADMIN, osAccountInfoOne), ERR_OK);
+    OsAccountInfo osAccountInfoTwo;
+    EXPECT_EQ(OsAccountManager::QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo), ERR_OK);
+    DomainAccountInfo domainInfo;
+    osAccountInfoTwo.GetDomainInfo(domainInfo);
+    domainInfo.status_ = DomainAccountStatus::LOG_END;
+    osAccountInfoTwo.SetDomainInfo(domainInfo);
+    EXPECT_EQ(osAccountInfoOne.ToString(), osAccountInfoTwo.ToString());
+    EXPECT_EQ(osAccountInfoOne.GetType(), OsAccountType::ADMIN);
+    ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+}
+
+/**
  * @tc.name: OsAccountManagerModuleTest005
  * @tc.desc: Test create normal account.
  * @tc.type: FUNC

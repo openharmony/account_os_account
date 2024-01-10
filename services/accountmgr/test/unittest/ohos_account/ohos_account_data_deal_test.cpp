@@ -68,6 +68,7 @@ HWTEST_F(OhosAccountDataDealTest, OhosAccountJsonNotInitTest001, TestSize.Level0
 {
     AccountInfo accountInfo;
     OhosAccountDataDeal dataDeal(RESOURCE_ROOT_PATH);
+    dataDeal.checkCallbackFunc_ = nullptr;
     ErrCode errCode = dataDeal.AccountInfoFromJson(accountInfo, TEST_VALID_USER_ID);
     EXPECT_EQ(errCode, ERR_ACCOUNT_DATADEAL_NOT_READY);
 }
@@ -82,6 +83,7 @@ HWTEST_F(OhosAccountDataDealTest, ValidOhosAccountJsonTest001, TestSize.Level0)
 {
     AccountInfo accountInfo;
     OhosAccountDataDeal dataDeal(RESOURCE_ROOT_PATH);
+    dataDeal.checkCallbackFunc_ = nullptr;
     ErrCode errCode = dataDeal.Init(TEST_VALID_USER_ID);
     EXPECT_EQ(errCode, ERR_OK);
 
@@ -106,6 +108,7 @@ HWTEST_F(OhosAccountDataDealTest, ValidOhosAccountJsonTest002, TestSize.Level0)
      */
     AccountInfo accountInfo;
     OhosAccountDataDeal dataDeal(RESOURCE_ROOT_PATH);
+    dataDeal.checkCallbackFunc_ = nullptr;
     ErrCode errCode = dataDeal.Init(TEST_VALID_USER_ID);
     EXPECT_EQ(errCode, ERR_OK);
 
@@ -133,6 +136,7 @@ HWTEST_F(OhosAccountDataDealTest, ValidOhosAccountJsonTest002, TestSize.Level0)
 HWTEST_F(OhosAccountDataDealTest, ValidOhosAccountJsonTest003, TestSize.Level0)
 {
     OhosAccountDataDeal dataDeal(RESOURCE_ROOT_PATH);
+    dataDeal.checkCallbackFunc_ = nullptr;
     dataDeal.initOk_ = false;
     AccountInfo accountInfo;
     ErrCode result = dataDeal.AccountInfoToJson(accountInfo);
@@ -152,6 +156,7 @@ HWTEST_F(OhosAccountDataDealTest, InvalidOhosAccountJsonTest001, TestSize.Level0
      */
     AccountInfo accountInfo;
     OhosAccountDataDeal dataDeal(RESOURCE_ROOT_PATH);
+    dataDeal.checkCallbackFunc_ = nullptr;
     ErrCode errCode = dataDeal.Init(TEST_INVALID_USER_ID);
     EXPECT_EQ(errCode, ERR_ACCOUNT_DATADEAL_JSON_FILE_CORRUPTION);
 
