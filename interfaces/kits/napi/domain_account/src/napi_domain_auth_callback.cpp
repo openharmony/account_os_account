@@ -159,7 +159,7 @@ napi_value NapiDomainAuthCallback::JsOnResult(napi_env env, napi_callback_info c
             delete reinterpret_cast<CallbackParam *>(data);
         },
         reinterpret_cast<void *>(param), &param->work));
-    NAPI_CALL(env, napi_queue_async_work_with_qos(env, param->work, napi_qos_default));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, param->work, napi_qos_user_initiated));
     paramPtr.release();
     return nullptr;
 }
@@ -225,7 +225,7 @@ void NapiDomainAccountCallback::OnResult(const int32_t errCode, Parcel &parcel)
     param->callback = callback_;
     work->data = reinterpret_cast<void *>(param.get());
     ErrCode ret = uv_queue_work_with_qos(
-        loop, work.get(), [] (uv_work_t *work) {}, DomainAuthResultWork, uv_qos_default);
+        loop, work.get(), [] (uv_work_t *work) {}, DomainAuthResultWork, uv_qos_user_initiated);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("fail to queue work");
         return;

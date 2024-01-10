@@ -249,7 +249,7 @@ napi_value RemoveOsAccount(napi_env env, napi_callback_info cbInfo)
     napi_create_async_work(env, nullptr, resource, RemoveOAExecuteCB, RemoveOACallbackCompletedCB,
         reinterpret_cast<void *>(removeOACB.get()), &removeOACB->work);
 
-    napi_queue_async_work_with_qos(env, removeOACB->work, napi_qos_default);
+    napi_queue_async_work_with_qos(env, removeOACB->work, napi_qos_user_initiated);
     removeOACB.release();
     return result;
 }
@@ -282,7 +282,7 @@ napi_value SetOsAccountName(napi_env env, napi_callback_info cbInfo)
         reinterpret_cast<void *>(setOANameCB.get()),
         &setOANameCB->work);
 
-    napi_queue_async_work_with_qos(env, setOANameCB->work, napi_qos_default);
+    napi_queue_async_work_with_qos(env, setOANameCB->work, napi_qos_user_initiated);
     setOANameCB.release();
     return result;
 }
@@ -348,7 +348,7 @@ napi_value ActivateOsAccount(napi_env env, napi_callback_info cbInfo)
         reinterpret_cast<void *>(activeOACB.get()),
         &activeOACB->work);
 
-    napi_queue_async_work_with_qos(env, activeOACB->work, napi_qos_default);
+    napi_queue_async_work_with_qos(env, activeOACB->work, napi_qos_user_initiated);
     activeOACB.release();
     return result;
 }
@@ -376,7 +376,7 @@ napi_value CreateOsAccount(napi_env env, napi_callback_info cbInfo)
     napi_create_async_work(env, nullptr, resource, CreateOAExecuteCB, CreateOACallbackCompletedCB,
         reinterpret_cast<void *>(createOACB.get()), &createOACB->work);
 
-    napi_queue_async_work_with_qos(env, createOACB->work, napi_qos_default);
+    napi_queue_async_work_with_qos(env, createOACB->work, napi_qos_user_initiated);
     createOACB.release();
     return result;
 }
@@ -404,7 +404,7 @@ napi_value CreateOsAccountForDomain(napi_env env, napi_callback_info cbInfo)
     napi_create_async_work(env, nullptr, resource, CreateOAForDomainExecuteCB, CreateOAForDomainCompletedCB,
         createOAForDomainCB.get(), &createOAForDomainCB->work);
 
-    napi_queue_async_work_with_qos(env, createOAForDomainCB->work, napi_qos_default);
+    napi_queue_async_work_with_qos(env, createOAForDomainCB->work, napi_qos_user_initiated);
     createOAForDomainCB.release();
     return result;
 }
@@ -941,7 +941,7 @@ napi_value SetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo)
     napi_create_async_work(env, nullptr, resource, SetPhotoExecuteCB, SetPhotoCompletedCB,
         reinterpret_cast<void *>(setPhoto.get()), &setPhoto->work);
 
-    napi_queue_async_work_with_qos(env, setPhoto->work, napi_qos_default);
+    napi_queue_async_work_with_qos(env, setPhoto->work, napi_qos_user_initiated);
     setPhoto.release();
     return result;
 }
