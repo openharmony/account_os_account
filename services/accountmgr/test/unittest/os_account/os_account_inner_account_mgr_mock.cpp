@@ -66,7 +66,9 @@ const int TEST_USER_ID108 = 108;
 const std::string STRING_TEST_NAME = "test_account_name";
 const std::string STRING_DOMAIN_NAME_OUT_OF_RANGE(200, '1');  // length 200
 const std::string STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE(600, '1');  // length 600
-
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
+const int ACCOUNT_UID = 3058;
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 const std::string STRING_DOMAIN_VALID = "TestDomainMT";
 const std::string STRING_DOMAIN_ACCOUNT_NAME_VALID = "TestDomainAccountNameMT";
 
@@ -252,7 +254,62 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest009, 
     EXPECT_EQ(ret, ERR_OK);
     innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId());
 }
+
+/*
+ * @tc.name: OsAccountInnerAccmgrCoverageTest010
+ * @tc.desc: coverage test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
+HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest010, TestSize.Level1)
+{
+    int ret;
+    auto ptr = std::make_shared<MockOsAccountControlFileManager>();
+    innerMgrService_->SetOsAccountControl(ptr);
+
+    OsAccountInfo osAccountInfoOne;
+#ifdef BUNDLE_ADAPTER_MOCK
+    EXPECT_NE(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
+#else // BUNDLE_ADAPTER_MOCK
+    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
+#endif
+    EXPECT_CALL(*ptr, UpdateOsAccount(::testing::_))
+        .WillRepeatedly(testing::Return(0));
+
+    ret = innerMgrService_->SendMsgForAccountCreate(osAccountInfoOne);
+    EXPECT_EQ(ret, 0);
+
+    (void)setuid(ACCOUNT_UID);
+
+    EXPECT_CALL(*ptr, UpdateOsAccount(::testing::_))
+        .WillRepeatedly(testing::Return(-1));
+
+    ret = innerMgrService_->SendMsgForAccountCreate(osAccountInfoOne);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR);
+
+    ret = innerMgrService_->SendMsgForAccountActivate(osAccountInfoOne);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR);
+
+    EXPECT_CALL(*ptr, UpdateOsAccount(::testing::_))
+        .WillRepeatedly(testing::Return(0));
+
+    ret = innerMgrService_->SendMsgForAccountCreate(osAccountInfoOne);
+    EXPECT_EQ(ret, 0);
+
+    EXPECT_CALL(*ptr, DelOsAccount(::testing::_))
+        .WillRepeatedly(testing::Return(-1));
+
+    ret = innerMgrService_->SendMsgForAccountRemove(osAccountInfoOne);
+    EXPECT_EQ(ret, -1);
+
+    (void)setuid(0);
+#ifdef BUNDLE_ADAPTER_MOCK
+    EXPECT_NE(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+#else // BUNDLE_ADAPTER_MOCK
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+#endif
+}
 
 /*
  * @tc.name: OsAccountInnerAccmgrCoverageTest012
@@ -370,6 +427,23 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest013, 
     ret = innerMgrService_->RemoveOsAccount(id);
     EXPECT_EQ(ret, 0);
 }
+
+/*
+ * @tc.name: OsAccountInnerAccmgrCoverageTest015
+ * @tc.desc: coverage test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
+HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest015, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfoOne;
+    (void)setuid(ACCOUNT_UID);
+    EXPECT_EQ(innerMgrService_->CreateOsAccount(STRING_TEST_NAME, OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
+    (void)setuid(0);
+    EXPECT_EQ(innerMgrService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+}
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /*
  * @tc.name: OsAccountInnerAccmgrCoverageTest016
@@ -1055,6 +1129,67 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest037, 
     EXPECT_CALL(*ptr, UpdateOsAccount(::testing::_))
         .WillRepeatedly(testing::Return(0));
 }
+
+/*
+ * @tc.name: OsAccountInnerAccmgrCoverageTest039
+ * @tc.desc: coverage test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
+HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest039, TestSize.Level1)
+{
+    auto ptr = std::make_shared<MockOsAccountControlFileManager>();
+
+    OsAccountInfo osAccountInfoOne;
+    (void)setuid(ACCOUNT_UID);
+    ErrCode ret = innerMgrService_->CreateOsAccount("CoverageTest039", OsAccountType::GUEST, osAccountInfoOne);
+    EXPECT_EQ(ret, 0);
+
+    ret = innerMgrService_->RemoveOsAccount(osAccountInfoOne.GetLocalId());
+    innerMgrService_->CleanGarbageAccounts();
+
+    EXPECT_EQ(ret, 0);
+
+    std::vector<OsAccountInfo> accounts;
+    OsAccountInfo account1;
+    account1.SetLocalId(TEST_USER_ID55);
+    account1.SetIsActived(true);
+    account1.SetToBeRemoved(true);
+    accounts.push_back(account1);
+    innerMgrService_->PushIdIntoActiveList(TEST_USER_ID55);
+
+    innerMgrService_->SetOsAccountControl(ptr);
+    EXPECT_CALL(*ptr, GetOsAccountList(_))
+        .WillRepeatedly(DoAll(SetArgReferee<0>(accounts), testing::Return(0)));
+    EXPECT_CALL(*ptr, GetSerialNumber(::testing::_))
+        .WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*ptr, GetAllowCreateId(::testing::_))
+        .WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*ptr, GetConstraintsByType(::testing::_, ::testing::_))
+        .WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*ptr, InsertOsAccount(::testing::_))
+        .WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*ptr, UpdateBaseOAConstraints(::testing::_, ::testing::_, ::testing::_))
+        .WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*ptr, UpdateOsAccount(::testing::_))
+        .WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*ptr, GetOsAccountInfoById(::testing::_, ::testing::_))
+        .WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*ptr, DelOsAccount(::testing::_))
+        .WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*ptr, RemoveOAConstraintsInfo(::testing::_))
+        .WillRepeatedly(testing::Return(0));
+
+    ret = innerMgrService_->CreateOsAccount("CoverageTest039", OsAccountType::GUEST, osAccountInfoOne);
+    EXPECT_EQ(ret, 0);
+    ret = innerMgrService_->RemoveOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(ret, 0);
+    innerMgrService_->CleanGarbageAccounts();
+
+    (void)setuid(0);
+}
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /*
  * @tc.name: OsAccountInnerAccmgrCoverageTest040

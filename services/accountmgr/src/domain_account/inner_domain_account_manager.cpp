@@ -678,12 +678,22 @@ void InnerDomainAccountManager::StartGetDomainAccountInfo(const sptr<IDomainAcco
 ErrCode InnerDomainAccountManager::GetDomainAccountInfo(
     const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback)
 {
+    DomainAccountCallbackFunc callbackFunc = [=](const int32_t errCode, Parcel &parcel) {
+        if (callback != nullptr) {
+            callback->OnResult(errCode, parcel);
+        }
+    };
+    sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callbackFunc);
+    if (callbackService == nullptr) {
+        ACCOUNT_LOGE("make shared DomainAccountCallbackService failed");
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
     int32_t callingUid = IPCSkeleton::GetCallingUid();
     GetDomainAccountInfoOptions options;
     options.accountInfo = info;
     options.callingUid = callingUid;
     auto task = std::bind(
-        &InnerDomainAccountManager::StartGetDomainAccountInfo, this, plugin_, options, callback);
+        &InnerDomainAccountManager::StartGetDomainAccountInfo, this, plugin_, options, callbackService);
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_GET_ACCOUNT);
     taskThread.detach();

@@ -41,6 +41,7 @@ const std::string STORE_ID = "testStoreID";
 const std::string EMPTY_STORE_ID = "";
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 const OsAccountType INT_TEST_TYPE = OsAccountType::GUEST;
+const gid_t ACCOUNT_GID = 3058;
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 const uid_t ACCOUNT_UID = 3058;
 const std::int32_t ROOT_UID = 0;
@@ -86,7 +87,9 @@ const std::string STRING_DOMAIN_VALID = "TestDomainMT";
 const std::string STRING_DOMAIN_ACCOUNT_NAME_VALID = "TestDomainAccountNameMT";
 const std::int32_t MAIN_ACCOUNT_ID = 100;
 const std::int32_t INVALID_ACCOUNT_ID = 200;
-const std::shared_ptr<AccountFileOperator> g_accountFileOperator = std::make_shared<AccountFileOperator>();
+const std::shared_ptr<AccountFileOperator> g_accountFileOperator =
+    AccountFileWatcherMgr::GetInstance().accountFileOperator_;
+
 }  // namespace
 
 class OsAccountManagerServiceModuleTest : public testing::Test {
@@ -188,6 +191,19 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest004
 }
 
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest005, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfoOne;
+    ErrCode errCode = osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, OsAccountType::ADMIN,
+        osAccountInfoOne);
+    EXPECT_EQ(errCode, ERR_OK);
+    errCode = osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(errCode, ERR_OK);
+    errCode = osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, OsAccountType::END,
+        osAccountInfoOne);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId());
+}
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest006
@@ -201,6 +217,37 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest006
     ASSERT_EQ(osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne), ERR_OK);
     EXPECT_EQ(osAccountManagerService_->ActivateOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest007
+ * @tc.desc: Test CreateOsAccount when cannot find account_list.json.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest007, TestSize.Level1)
+{
+    // save file content to fileContext first
+    std::string fileContext;
+    g_accountFileOperator->GetFileContentByPath(Constants::ACCOUNT_LIST_FILE_JSON_PATH, fileContext);
+
+    // remove file
+    g_accountFileOperator->DeleteDirOrFile(Constants::ACCOUNT_LIST_FILE_JSON_PATH);
+    OsAccountInfo osAccountInfoOne;
+    ErrCode errCode = osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
+    EXPECT_NE(errCode, ERR_OK);
+    osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId());
+
+    // restore file content
+    g_accountFileOperator->InputFileByPathAndContent(Constants::ACCOUNT_LIST_FILE_JSON_PATH, fileContext);
+
+    // recover permission
+    if (chmod(Constants::ACCOUNT_LIST_FILE_JSON_PATH.c_str(), S_IRUSR | S_IWUSR) != 0) {
+        ACCOUNT_LOGE("OsAccountManagerModuleTest006, chmod failed! errno %{public}d.", errno);
+    }
+    if (chown(Constants::ACCOUNT_LIST_FILE_JSON_PATH.c_str(), ACCOUNT_UID, ACCOUNT_GID) != 0) {
+        ACCOUNT_LOGE("OsAccountManagerModuleTest006, chown failed! errno %{public}d.", errno);
+    }
 }
 
 /**
