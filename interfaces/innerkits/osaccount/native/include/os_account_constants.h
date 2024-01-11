@@ -54,7 +54,7 @@ const char OPERATION_UNLOCK[] = "unlock";
 
 // distributed database
 const char APP_ID[] = "os_account_mgr_service";
-const bool SYNC_OS_ACCOUNT_DATABASE = true;
+const bool SYNC_OS_ACCOUNT_DATABASE = false;
 const std::uint32_t DEVICE_UUID_LENGTH = 65;
 
 // uid judgment
