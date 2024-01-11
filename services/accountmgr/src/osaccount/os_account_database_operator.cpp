@@ -35,7 +35,7 @@ bool OsAccountDatabaseOperator::InnerInit()
     if (accountDataStorage_ == nullptr) {
         ACCOUNT_LOGI("database operator inner init, enter!");
         accountDataStorage_ = std::make_shared<OsAccountDataStorage>(
-            Constants::APP_ID, OS_ACCOUNT_STORE_ID, !Constants::SYNC_OS_ACCOUNT_DATABASE);
+            Constants::APP_ID, OS_ACCOUNT_STORE_ID, Constants::SYNC_OS_ACCOUNT_DATABASE);
         if (accountDataStorage_ == nullptr) {
             ACCOUNT_LOGE("accountDataStorage_ is still nullptr.");
             return false;
