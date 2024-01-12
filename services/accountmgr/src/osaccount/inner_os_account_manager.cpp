@@ -1678,7 +1678,11 @@ OS_ACCOUNT_SWITCH_MOD IInnerOsAccountManager::GetOsAccountSwitchMod()
 ErrCode IInnerOsAccountManager::IsOsAccountCompleted(const int id, bool &isOsAccountCompleted)
 {
     OsAccountInfo osAccountInfo;
-    (void)osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
+    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("get osaccount info error,id %{public}d, errCode %{public}d.", id, errCode);
+        return errCode;
+    }
     isOsAccountCompleted = osAccountInfo.GetIsCreateCompleted();
     return ERR_OK;
 }
