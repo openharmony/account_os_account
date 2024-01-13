@@ -446,7 +446,12 @@ ErrCode OsAccountControlFileManager::GetOsAccountInfoById(const int id, OsAccoun
         ACCOUNT_LOGE("get content from file %{public}s failed!", path.c_str());
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
-    osAccountInfo.FromJson(Json::parse(accountInfoStr, nullptr, false));
+    Json osAccountInfoJson = Json::parse(accountInfoStr, nullptr, false);
+    if (osAccountInfoJson.is_discarded()) {
+        ACCOUNT_LOGE("parse os account info json data failed");
+        return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
+    }
+    osAccountInfo.FromJson(osAccountInfoJson);
     return ERR_OK;
 }
 
