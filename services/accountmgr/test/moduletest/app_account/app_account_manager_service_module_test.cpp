@@ -34,6 +34,7 @@
 #include "iremote_object.h"
 #include "app_account_manager_service.h"
 
+using namespace testing;
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
@@ -80,9 +81,6 @@ constexpr std::int32_t TEST_USER_ID = 101;
 constexpr std::size_t SIZE_ZERO = 0;
 constexpr std::size_t SIZE_ONE = 1;
 constexpr std::size_t SIZE_TWO = 2;
-constexpr std::int32_t DELAY_FOR_PACKAGE_REMOVED = 3;
-constexpr std::int32_t DELAY_FOR_MESSAGE = 1000;
-constexpr std::int32_t WAIT_FOR_ONE_CASE = 1000;
 std::shared_ptr<AppAccountManagerService> g_accountManagerService =
     std::make_shared<AppAccountManagerService>();
 }  // namespace
@@ -114,7 +112,7 @@ void AppAccountManagerServiceModuleTest::ClearDataStorage()
         }
     }
     dataStoragePtr->LoadAllData(accounts);
-    GTEST_LOG_(INFO) << "AppAccountManagerServiceModuleTest ClearDataStorage end, accounts.size =" << accounts.size();
+    ASSERT_EQ(accounts.size(), 0);
 }
 
 void AppAccountManagerServiceModuleTest::SetUpTestCase(void)
@@ -143,7 +141,6 @@ void AppAccountManagerServiceModuleTest::TearDownTestCase(void)
 
 void AppAccountManagerServiceModuleTest::SetUp(void)
 {
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_ONE_CASE));
     ClearDataStorage();
 }
 
@@ -165,7 +162,6 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount
 
     result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
-    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_MESSAGE));
 }
 
 /**
@@ -2203,12 +2199,22 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_OnPackageR
     CommonEventManager::PublishCommonEvent(commonEventData);
 #endif // HAS_CES_PART
 
-    std::this_thread::sleep_for(std::chrono::seconds(DELAY_FOR_PACKAGE_REMOVED));
+    bool ready = false;
+    auto startTime = std::chrono::steady_clock::now();
 
-    accounts.clear();
-    result = dataStoragePtr->LoadAllData(accounts);
-    EXPECT_EQ(result, ERR_OK);
-    EXPECT_EQ(accounts.size(), SIZE_ZERO);
+    while (true) {
+        accounts.clear();
+        if (dataStoragePtr->LoadAllData(accounts) == ERR_OK && accounts.size() == SIZE_ZERO) {
+            ready = true;
+            break;
+        } else if (std::chrono::steady_clock::now() - startTime > std::chrono::seconds(5)) {
+            break;
+        } else {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+    }
+
+    EXPECT_TRUE(ready);
 }
 
 /**
@@ -2408,8 +2414,9 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SelectAcco
     options.allowedAccounts.emplace_back("test_key", "value");
     options.allowedOwners = TEST_LABELS;
     options.requiredLabels = TEST_LABELS;
-    sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow)MockAuthenticatorCallback();
+    sptr<MockAuthenticatorCallback> callback = new (std::nothrow)MockAuthenticatorCallback();
     ASSERT_NE(callback, nullptr);
+    EXPECT_CALL(*callback, OnResult(0, _)).Times(1);
     ErrCode result = g_accountManagerService->SelectAccountsByOptions(options, callback);
     EXPECT_EQ(result, ERR_OK);
 }

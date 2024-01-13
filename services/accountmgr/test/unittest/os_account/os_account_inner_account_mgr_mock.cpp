@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <filesystem>
 #include <gtest/gtest.h>
 #include <map>
 
@@ -47,6 +48,7 @@ using namespace testing::ext;
 using namespace OHOS::AccountSA;
 using namespace OHOS;
 using namespace AccountSA;
+using namespace OHOS::AccountSA::Constants;
 
 using ::testing::_;
 using ::testing::AtLeast;
@@ -84,6 +86,13 @@ public:
 
 void OsAccountInnerAccmgrCoverageTest::SetUpTestCase(void)
 {
+#ifdef ACCOUNT_TEST
+    if (std::filesystem::exists(USER_INFO_BASE)) {
+        if (std::filesystem::remove_all(USER_INFO_BASE)) {
+            GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
+        }
+    }
+#endif  // ACCOUNT_TEST
     IInnerOsAccountManager *innerMgrService = &IInnerOsAccountManager::GetInstance();
     std::shared_ptr<OsAccountControlFileManager> osAccountControl =
         std::static_pointer_cast<OsAccountControlFileManager>(innerMgrService->osAccountControl_);
@@ -101,7 +110,15 @@ void OsAccountInnerAccmgrCoverageTest::SetUpTestCase(void)
 }
 
 void OsAccountInnerAccmgrCoverageTest::TearDownTestCase(void)
-{}
+{
+#ifdef ACCOUNT_TEST
+    if (std::filesystem::exists(USER_INFO_BASE)) {
+        if (std::filesystem::remove_all(USER_INFO_BASE)) {
+            GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
+        }
+    }
+#endif  // ACCOUNT_TEST
+}
 
 void OsAccountInnerAccmgrCoverageTest::SetUp(void)
 {}

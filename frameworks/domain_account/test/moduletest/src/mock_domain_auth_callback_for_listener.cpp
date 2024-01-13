@@ -40,6 +40,9 @@ void TestDomainAuthCallbackForListener::OnResult(const int32_t errCode, Parcel &
         return;
     }
     callback_->OnResult(errCode, *authResult);
+    std::unique_lock<std::mutex> lock(mutex);
+    isReady = true;
+    cv.notify_one();
 }
 
 void TestDomainAuthCallbackForListener::SetOsAccountInfo(const OsAccountInfo &accountInfo)

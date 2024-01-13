@@ -43,7 +43,6 @@ constexpr std::int32_t UID = 10000;
 constexpr std::int32_t WAIT_FOR_EXIT = 1000;
 const bool SYNC_ENABLE_TRUE = true;
 const bool SYNC_ENABLE_FALSE = false;
-constexpr std::int32_t WAIT_FOR_KVSTORE = 5000;
 
 constexpr std::size_t SIZE_ZERO = 0;
 constexpr std::size_t SIZE_ONE = 1;
@@ -71,14 +70,12 @@ void AppAccountManagerServiceSyncModuleTest::TearDownTestCase(void)
 
 void AppAccountManagerServiceSyncModuleTest::SetUp(void)
 {
-    GTEST_LOG_(INFO) << "SetUp enter!";
     auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
     ClearDataStorage(dataStoragePtr);
 #ifdef DISTRIBUTED_FEATURE_ENABLED
     dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
     ClearDataStorage(dataStoragePtr);
 #endif // DISTRIBUTED_FEATURE_ENABLED
-    GTEST_LOG_(INFO) << "SetUp exit!";
 }
 
 void AppAccountManagerServiceSyncModuleTest::ClearDataStorage(std::shared_ptr<AppAccountDataStorage> &dataStoragePtr)
@@ -91,8 +88,6 @@ void AppAccountManagerServiceSyncModuleTest::ClearDataStorage(std::shared_ptr<Ap
         }
     }
     dataStoragePtr->LoadAllData(accounts);
-    GTEST_LOG_(INFO) << "AppAccountManagerServiceSyncModuleTest ClearDataStorage end, accounts.size =" <<
-        accounts.size();
 }
 
 void AppAccountManagerServiceSyncModuleTest::TearDown(void)
@@ -113,8 +108,6 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
 
     result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
     EXPECT_EQ(result, ERR_OK);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
 
 #ifdef DISTRIBUTED_FEATURE_ENABLED
     auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
@@ -156,8 +149,6 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_De
     result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
     EXPECT_EQ(result, ERR_OK);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
-
     result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 
@@ -190,12 +181,8 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_De
     result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
     EXPECT_EQ(result, ERR_OK);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
-
     result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_FALSE);
     EXPECT_EQ(result, ERR_OK);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
 
     result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
@@ -227,15 +214,11 @@ HWTEST_F(
     result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
     EXPECT_EQ(result, ERR_OK);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
-
     result = appAccountManagerServicePtr_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
     result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_FALSE);
     EXPECT_EQ(result, ERR_OK);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
 
     result = appAccountManagerServicePtr_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO_TWO);
     EXPECT_EQ(result, ERR_OK);
@@ -243,7 +226,6 @@ HWTEST_F(
     result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
     EXPECT_EQ(result, ERR_OK);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
 #ifdef DISTRIBUTED_FEATURE_ENABLED
     auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
 #else
@@ -286,8 +268,6 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
 
     result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
     EXPECT_EQ(result, ERR_OK);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
 
     result = appAccountManagerServicePtr_->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
@@ -336,8 +316,6 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
 
     result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
     EXPECT_EQ(result, ERR_OK);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
 
     result = appAccountManagerServicePtr_->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
@@ -389,8 +367,6 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Di
 
     result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
     EXPECT_EQ(result, ERR_OK);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
 
     result = appAccountManagerServicePtr_->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);

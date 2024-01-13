@@ -42,7 +42,6 @@ const time_t TIME_OUT_SECONDS_LIMIT = 5;
 constexpr std::int32_t UID = 10000;
 constexpr std::size_t SIZE_ZERO = 0;
 constexpr std::size_t SIZE_ONE = 1;
-constexpr std::int32_t WAIT_FOR_EXIT = 1000;
 std::int32_t g_counter = 0;
 constexpr std::int32_t COUNTER_MAX = 2;
 }  // namespace
@@ -53,8 +52,7 @@ public:
     static void TearDownTestCase(void);
     void SetUp(void) override;
     void TearDown(void) override;
-    std::shared_ptr<AppAccountManagerService>
-        appAccountManagerServicePtr_ = std::make_shared<AppAccountManagerService>();
+    AppAccountManagerService* appAccountManagerServicePtr_ = new AppAccountManagerService();
 };
 
 void AppAccountManagerServiceSubscribeModuleTest::SetUpTestCase(void)
@@ -65,7 +63,6 @@ void AppAccountManagerServiceSubscribeModuleTest::SetUpTestCase(void)
 void AppAccountManagerServiceSubscribeModuleTest::TearDownTestCase(void)
 {
     GTEST_LOG_(INFO) << "TearDownTestCase";
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_EXIT));
 }
 
 void AppAccountManagerServiceSubscribeModuleTest::SetUp(void)

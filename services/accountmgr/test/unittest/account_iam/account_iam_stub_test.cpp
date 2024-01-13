@@ -33,7 +33,6 @@ using namespace OHOS::AccountSA;
 namespace {
 DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IAccountIAM");
 const int32_t LIMIT_CODE = 13;
-const int32_t SLEEP_TIME = 2000;
 } // namespace
 
 class AccountIAMStubModuleTest : public testing::Test {
@@ -102,7 +101,6 @@ HWTEST_F(AccountIAMStubModuleTest, AccountIAMStubModuleTest_OnRemoteRequest_002,
 HWTEST_F(AccountIAMStubModuleTest, AccountIAMStubModuleTest_OnRemoteRequest_003, TestSize.Level0)
 {
     for (int code = 0; code <= LIMIT_CODE; code++) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
         MessageParcel data;
         MessageParcel reply;
         MessageOption option;

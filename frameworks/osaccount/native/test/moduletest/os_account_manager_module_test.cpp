@@ -14,6 +14,7 @@
  */
 
 #include <cerrno>
+#include <filesystem>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <thread>
@@ -56,6 +57,7 @@ using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
 using namespace OHOS::Security::AccessToken;
+using namespace OHOS::AccountSA::Constants;
 
 uint64_t g_selfTokenID;
 namespace {
@@ -69,7 +71,6 @@ const std::uint32_t INVALID_BUNDLE_ID = -1;
 #endif
 const std::int32_t ERROR_LOCAL_ID = -1;
 const std::int32_t LOCAL_ID = 105;
-const std::int32_t WAIT_FOR_EXIT = 1000;
 const std::int64_t INVALID_SERIAL_NUM = 123;
 const std::int32_t WAIT_A_MOMENT = 3000;
 const std::int32_t MAIN_ACCOUNT_ID = 100;
@@ -238,6 +239,13 @@ public:
 void OsAccountManagerModuleTest::SetUpTestCase(void)
 {
     GTEST_LOG_(INFO) << "SetUpTestCase enter";
+#ifdef ACCOUNT_TEST
+    if (std::filesystem::exists(USER_INFO_BASE)) {
+        if (std::filesystem::remove_all(USER_INFO_BASE)) {
+            GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
+        }
+    }
+#endif  // ACCOUNT_TEST
     bool isOsAccountActived = false;
     ErrCode ret = OsAccountManager::IsOsAccountActived(MAIN_ACCOUNT_ID, isOsAccountActived);
     std::uint32_t waitCnt = 0;
@@ -265,8 +273,14 @@ void OsAccountManagerModuleTest::SetUpTestCase(void)
 
 void OsAccountManagerModuleTest::TearDownTestCase(void)
 {
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_EXIT));
     GTEST_LOG_(INFO) << "TearDownTestCase";
+#ifdef ACCOUNT_TEST
+    if (std::filesystem::exists(USER_INFO_BASE)) {
+        if (std::filesystem::remove_all(USER_INFO_BASE)) {
+            GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
+        }
+    }
+#endif  // ACCOUNT_TEST
 }
 
 void OsAccountManagerModuleTest::SetUp(void)
@@ -540,9 +554,8 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest014, TestSize.Lev
     OsAccountInfo osAccountInfoTwo;
     EXPECT_EQ(OsAccountManager::QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo), ERR_OK);
     std::vector<std::string> constraints = osAccountInfoTwo.GetConstraints();
-    for (auto it = constraints.begin(); it != constraints.end(); it++) {
-        GTEST_LOG_(INFO) << *it;
-    }
+    EXPECT_TRUE(std::includes(constraints.begin(), constraints.end(), CONSTANTS_VECTOR.begin(), CONSTANTS_VECTOR.end(),
+                              [](const std::string& s1, const std::string& s2) { return s1 == s2; }));
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
@@ -562,9 +575,8 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest015, TestSize.Lev
     OsAccountInfo osAccountInfoTwo;
     EXPECT_EQ(OsAccountManager::QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo), ERR_OK);
     std::vector<std::string> constraints = osAccountInfoTwo.GetConstraints();
-    for (auto it = constraints.begin(); it != constraints.end(); it++) {
-        GTEST_LOG_(INFO) << *it;
-    }
+    EXPECT_TRUE(std::includes(constraints.begin(), constraints.end(), CONSTANTS_VECTOR.begin(), CONSTANTS_VECTOR.end(),
+                              [](const std::string& s1, const std::string& s2) { return s1 == s2; }));
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
@@ -1051,7 +1063,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest050, TestSize.Lev
 {
     OsAccountInfo osAccountInfoOne;
     ASSERT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
     EXPECT_EQ(OsAccountManager::StartOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
     EXPECT_EQ(OsAccountManager::StopOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
     ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
@@ -1151,8 +1162,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest054, TestSize.Lev
     OsAccountInfo osAccountInfo;
     EXPECT_EQ(OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
-
     bool checkValid = (osAccountInfo.GetLocalId() > Constants::START_USER_ID);
     EXPECT_EQ(checkValid, true);
 
@@ -1244,8 +1253,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest057, TestSize.Lev
     OsAccountType type = NORMAL;
     OsAccountInfo osAccountInfo;
     EXPECT_NE(OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
 
     // create again
     EXPECT_NE(OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo),
@@ -1411,8 +1418,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest065, TestSize.Lev
     OsAccountInfo osAccountInfoOne;
     EXPECT_NE(OsAccountManager::CreateOsAccount("", OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
-
     // get created account info
     OsAccountInfo osAccountInfo;
     ret = OsAccountManager::GetOsAccountFromDatabase(storeID, osAccountInfoOne.GetLocalId(), osAccountInfo);
@@ -1439,9 +1444,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest066, TestSize.Lev
 {
     std::vector<int32_t> ids;
     EXPECT_EQ(OsAccountManager::QueryActiveOsAccountIds(ids), ERR_OK);
-    for (auto it = ids.begin(); it != ids.end(); it++) {
-        GTEST_LOG_(INFO) << *it;
-    }
 }
 
 /**
@@ -1637,7 +1639,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest073, TestSize.Lev
 {
     OsAccountInfo osAccountInfoOne;
     ASSERT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
     OsAccountInfo osAccountInfoTwo;
     ASSERT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME_TWO, OsAccountType::NORMAL, osAccountInfoTwo), ERR_OK);
 
@@ -1648,7 +1649,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest073, TestSize.Lev
 
     EXPECT_EQ(OsAccountManager::SetGlobalOsAccountConstraints(
         CONSTANTS_VECTOR_TEST, true, osAccountInfoOne.GetLocalId(), false), ERR_OK);
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
     EXPECT_EQ(OsAccountManager::SetGlobalOsAccountConstraints(
         CONSTANTS_VECTOR_TEST, true, osAccountInfoTwo.GetLocalId(), false), ERR_OK);
 
