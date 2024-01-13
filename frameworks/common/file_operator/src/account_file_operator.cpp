@@ -30,6 +30,7 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 const std::string ACCOUNT_INFO_DIGEST_FILE_PATH = "account_info_digest.json";
+const long MAX_FILE_SIZE = 1 << 24; // 16MB
 }
 AccountFileOperator::AccountFileOperator()
 {}
@@ -151,8 +152,9 @@ ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, 
         SetValidModifyFileOperationFlag(path, false);
         return ERR_ACCOUNT_COMMON_FILE_OPEN_FAILED;
     }
+    int fd = fileno(fp);
     do {
-        flock(fileno(fp), LOCK_EX);
+        flock(fd, LOCK_EX);
         size_t num = fwrite(content.c_str(), sizeof(char), content.length(), fp);
         if (num != content.length()) {
             ACCOUNT_LOGE("failed to fwrite %{public}s, errno %{public}d.", path.c_str(), errno);
@@ -162,11 +164,11 @@ ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, 
             ACCOUNT_LOGE("failed to fflush %{public}s, errno %{public}d.", path.c_str(), errno);
             break;
         }
-        if (fsync(fileno(fp)) != 0) {
+        if (fsync(fd) != 0) {
             ACCOUNT_LOGE("failed to fsync %{public}s, errno %{public}d.", path.c_str(), errno);
             break;
         }
-        flock(fileno(fp), LOCK_UN);
+        flock(fd, LOCK_UN);
         fclose(fp);
         // change mode
         if (!ChangeModeFile(path, S_IRUSR | S_IWUSR)) {
@@ -175,7 +177,7 @@ ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, 
         }
         return ERR_OK;
     } while (0);
-    flock(fileno(fp), LOCK_UN);
+    flock(fd, LOCK_UN);
     fclose(fp);
     SetValidModifyFileOperationFlag(path, false);
     return ERR_ACCOUNT_COMMON_FILE_WRITE_FAILED;
@@ -187,15 +189,41 @@ ErrCode AccountFileOperator::GetFileContentByPath(const std::string &path, std::
         ACCOUNT_LOGE("cannot find file, path = %{public}s", path.c_str());
         return ERR_OSACCOUNT_SERVICE_FILE_FIND_FILE_ERROR;
     }
-    std::stringstream buffer;
-    std::ifstream i(path);
-    if (!i.is_open()) {
+    FILE *fp = fopen(path.c_str(), "rb");
+    if (fp == nullptr) {
         ACCOUNT_LOGE("cannot open file %{public}s, errno %{public}d.", path.c_str(), errno);
         return ERR_ACCOUNT_COMMON_FILE_OPEN_FAILED;
     }
-    buffer << i.rdbuf();
-    content = buffer.str();
-    i.close();
+    int fd = fileno(fp);
+    flock(fd, LOCK_SH);
+    (void) fseek(fp, 0, SEEK_END);
+    long fileSize = ftell(fp);
+    if ((fileSize < 0) || (fileSize > MAX_FILE_SIZE)) {
+        ACCOUNT_LOGE("the file(%{public}s) size is invalid, errno %{public}d.", path.c_str(), errno);
+        flock(fd, LOCK_UN);
+        (void) fclose(fp);
+        return ERR_ACCOUNT_COMMON_FILE_READ_FAILED;
+    }
+    rewind(fp);
+    char *buffer = new (std::nothrow) char[fileSize];
+    if (buffer == nullptr) {
+        ACCOUNT_LOGE("insufficient memory");
+        flock(fd, LOCK_UN);
+        (void) fclose(fp);
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
+    size_t retSize = fread(buffer, sizeof(char), fileSize, fp);
+    if (static_cast<long>(retSize) != fileSize) {
+        ACCOUNT_LOGE("fail to read file %{public}s", path.c_str());
+        delete[] buffer;
+        flock(fd, LOCK_UN);
+        (void) fclose(fp);
+        return ERR_ACCOUNT_COMMON_FILE_READ_FAILED;
+    }
+    content = std::string(buffer, retSize);
+    delete[] buffer;
+    flock(fd, LOCK_UN);
+    (void) fclose(fp);
     return ERR_OK;
 }
 
@@ -207,6 +235,7 @@ bool AccountFileOperator::IsExistFile(const std::string &path)
 
     struct stat buf = {};
     if (stat(path.c_str(), &buf) != 0) {
+        ACCOUNT_LOGE("fail to get file stat, filepath: %{public}s", path.c_str());
         return false;
     }
 
