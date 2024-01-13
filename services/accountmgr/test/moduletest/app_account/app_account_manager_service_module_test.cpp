@@ -2170,7 +2170,6 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcce
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_OnPackageRemoved_0100, TestSize.Level1)
 {
-    ACCOUNT_LOGI("AppAccountManagerService_OnPackageRemoved_0100");
     auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
     ASSERT_NE(dataStoragePtr, nullptr);
 
@@ -2196,7 +2195,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_OnPackageR
     CommonEventData commonEventData;
     commonEventData.SetWant(want);
 
-    CommonEventManager::PublishCommonEvent(commonEventData);
+    EXPECT_TRUE(CommonEventManager::PublishCommonEvent(commonEventData));
 #endif // HAS_CES_PART
 
     bool ready = false;
@@ -2204,7 +2203,9 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_OnPackageR
 
     while (true) {
         accounts.clear();
-        if (dataStoragePtr->LoadAllData(accounts) == ERR_OK && accounts.size() == SIZE_ZERO) {
+        ErrCode ret = dataStoragePtr->LoadAllData(accounts);
+        ACCOUNT_LOGI("LoadAllData returned %d", ret);
+        if (ret == ERR_OK && accounts.size() == SIZE_ZERO) {
             ready = true;
             break;
         } else if (std::chrono::steady_clock::now() - startTime > std::chrono::seconds(5)) {
