@@ -317,13 +317,13 @@ void OsAccountControlFileManager::BuildAndSaveSpecificOAConstraintsJsonFile()
 
 void OsAccountControlFileManager::BuildAndSaveOsAccountIndexJsonFile()
 {
-    std::lock_guard<std::mutex> lock(accountInfoFileLock_);
     std::string accountIndex;
     ErrCode result = GetAccountIndexInfo(accountIndex);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("get account index info error code %{public}d.", result);
         return;
     }
+    std::lock_guard<std::mutex> lock(accountInfoFileLock_);
     result = accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_INDEX_JSON_PATH, accountIndex);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to input account index info to file!");
@@ -446,7 +446,12 @@ ErrCode OsAccountControlFileManager::GetOsAccountInfoById(const int id, OsAccoun
         ACCOUNT_LOGE("get content from file %{public}s failed!", path.c_str());
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
-    osAccountInfo.FromJson(Json::parse(accountInfoStr, nullptr, false));
+    Json osAccountInfoJson = Json::parse(accountInfoStr, nullptr, false);
+    if (osAccountInfoJson.is_discarded()) {
+        ACCOUNT_LOGE("parse os account info json data failed");
+        return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
+    }
+    osAccountInfo.FromJson(osAccountInfoJson);
     return ERR_OK;
 }
 

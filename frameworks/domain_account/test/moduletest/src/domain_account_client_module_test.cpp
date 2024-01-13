@@ -14,6 +14,7 @@
  */
 
 #include <cerrno>
+#include <filesystem>
 #include <mutex>
 #include <gtest/gtest.h>
 #include <thread>
@@ -51,6 +52,7 @@ using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
 using namespace OHOS::Security::AccessToken;
+using namespace OHOS::AccountSA::Constants;
 
 namespace {
 const std::string STRING_NAME = "zhangsan";
@@ -74,8 +76,7 @@ const std::vector<uint8_t> DEFAULT_TOKEN = {49, 50, 51, 52, 53};
 const std::vector<uint8_t> TOKEN = {1, 2, 3, 4, 5};
 const int32_t DEFAULT_USER_ID = 100;
 const int32_t NON_EXISTENT_USER_ID = 1000;
-const int32_t SLEEP_TIME = 1000;
-const int32_t WAIT_TIME = 20;
+const int32_t WAIT_TIME = 2;
 const int32_t INVALID_CODE = -1;
 const uid_t TEST_UID = 100;
 const uid_t ROOT_UID = 0;
@@ -93,6 +94,13 @@ public:
 void DomainAccountClientModuleTest::SetUpTestCase(void)
 {
     GTEST_LOG_(INFO) << "SetUpTestCase enter";
+#ifdef ACCOUNT_TEST
+    if (std::filesystem::exists(USER_INFO_BASE)) {
+        if (std::filesystem::remove_all(USER_INFO_BASE)) {
+            GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
+        }
+    }
+#endif  // ACCOUNT_TEST
 #ifdef BUNDLE_ADAPTER_MOCK
     auto servicePtr = new (std::nothrow) DomainAccountManagerService();
     ASSERT_NE(servicePtr, nullptr);
@@ -109,6 +117,13 @@ void DomainAccountClientModuleTest::SetUpTestCase(void)
 void DomainAccountClientModuleTest::TearDownTestCase(void)
 {
     GTEST_LOG_(INFO) << "TearDownTestCase";
+#ifdef ACCOUNT_TEST
+    if (std::filesystem::exists(USER_INFO_BASE)) {
+        if (std::filesystem::remove_all(USER_INFO_BASE)) {
+            GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
+        }
+    }
+#endif  // ACCOUNT_TEST
 }
 
 void DomainAccountClientModuleTest::SetUp(void)
@@ -490,6 +505,46 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPo
 }
 
 /**
+ * @tc.name: DomainAccountClientModuleTest_AuthWithPopup_006
+ * @tc.desc: Auth domain user with popup successfully.
+ * @tc.type: FUNC
+ * @tc.require: issueI64KAU
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPopup_006, TestSize.Level0)
+{
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = STRING_NAME;
+    domainInfo.domain_ = STRING_DOMAIN;
+    domainInfo.accountId_ = INVALID_STRING_ACCOUNTID;
+    auto callback = std::make_shared<MockDomainCreateDomainAccountCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestCreateDomainAccountCallback>(callback);
+    EXPECT_CALL(*callback, OnResult(ERR_OK, STRING_NAME, STRING_DOMAIN, _)).Times(Exactly(1));
+    ASSERT_NE(testCallback, nullptr);
+    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    ASSERT_EQ(errCode, ERR_OK);
+
+    auto authCallback = std::make_shared<MockDomainAuthCallback>();
+    ASSERT_NE(authCallback, nullptr);
+    EXPECT_CALL(*authCallback, OnResult(ERR_OK, _)).Times(Exactly(1));
+    auto testAuthCallback = std::make_shared<TestDomainAuthCallback>(authCallback);
+    ASSERT_NE(testAuthCallback, nullptr);
+    int32_t userId = -1;
+    errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId);
+    EXPECT_EQ(errCode, ERR_OK);
+    EXPECT_EQ(DomainAccountClient::GetInstance().AuthWithPopup(userId, testAuthCallback), ERR_OK);
+    std::vector<uint8_t> resultToken;
+    InnerDomainAccountManager::GetInstance().GetTokenFromMap(userId, resultToken);
+    for (size_t index = 0; index < resultToken.size(); index++) {
+        EXPECT_EQ(resultToken[index], TOKEN[index]);
+    }
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
+}
+
+/**
  * @tc.name: DomainAccountClientModuleTest_CreateOsAccountForDomain_001
  * @tc.desc: CreateOsAccountForDomain failed with invalid param.
  * @tc.type: FUNC
@@ -555,6 +610,49 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAc
     auto testCallback = std::make_shared<TestCreateDomainAccountCallback>(callback);
     ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
     EXPECT_EQ(errCode, ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+}
+
+/*
+ * @tc.name: DomainAccountClientModuleTest_CreateOsAccountForDomain_005
+ * @tc.desc: CreateOsAccountForDomain successfully with 100 bind domain.
+ * @tc.type: FUNC
+ * @tc.require: I6KNUZ
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAccountForDomain_005, TestSize.Level0)
+{
+    // query if the 100 account bound
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(OsAccountManager::QueryOsAccountById(OHOS::AccountSA::Constants::START_USER_ID, osAccountInfo), ERR_OK);
+    DomainAccountInfo startUserDomainInfo;
+    osAccountInfo.GetDomainInfo(startUserDomainInfo);
+    bool bound = !startUserDomainInfo.accountName_.empty();
+
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = ACCOUNT_NAME;
+    domainInfo.domain_ = STRING_DOMAIN;
+    domainInfo.accountId_ = STRING_ACCOUNTID;
+    std::vector<std::string> constraints;
+    constraints.emplace_back(CONSTRAINT_CREATE_ACCOUNT_DIRECTLY);
+    ErrCode errCode = OsAccountManager::SetOsAccountConstraints(TEST_UID, constraints, true);
+    ASSERT_EQ(errCode, ERR_OK);
+    auto callback = std::make_shared<MockDomainCreateDomainAccountCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestCreateDomainAccountCallback>(callback);
+    if (!bound) {
+        EXPECT_CALL(*callback, OnResult(ERR_OK, ACCOUNT_NAME, STRING_DOMAIN, STRING_ACCOUNTID))
+        .Times(Exactly(1));
+    }
+
+    ASSERT_NE(testCallback, nullptr);
+    errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
+    EXPECT_EQ(errCode, bound ? ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR : ERR_OK);
+    if (!bound) {
+        std::unique_lock<std::mutex> lock(testCallback->mutex);
+        testCallback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                                  [lockCallback = testCallback]() { return lockCallback->isReady; });
+    }
+    errCode = OsAccountManager::SetOsAccountConstraints(TEST_UID, constraints, false);
+    EXPECT_EQ(errCode, ERR_OK);
 }
 
 /*
@@ -1364,16 +1462,23 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_004, TestS
     int32_t userId = -1;
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId), ERR_OK);
     EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(userId, DEFAULT_TOKEN, testAuthCallback), ERR_OK);
-    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
+    {
+        std::unique_lock<std::mutex> lock1(testAuthCallback->mutex);
+        testAuthCallback->cv.wait_for(lock1, std::chrono::seconds(WAIT_TIME),
+                                      [lockCallback = testAuthCallback]() { return lockCallback->isReady; });
+    }
+    testAuthCallback->isReady = false;
     int32_t userId1 = -1;
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo1, userId1), ERR_OK);
     EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(userId1, DEFAULT_TOKEN, testAuthCallback), ERR_OK);
-    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
-
+    {
+        std::unique_lock<std::mutex> lock2(testAuthCallback->mutex);
+        testAuthCallback->cv.wait_for(lock2, std::chrono::seconds(WAIT_TIME),
+                                      [lockCallback = testAuthCallback]() { return lockCallback->isReady; });
+    }
     EXPECT_EQ(listener3->visited, true);
     EXPECT_EQ(listener3->visitedTwice, true);
     EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener3), ERR_OK);
-    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
 
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId1), ERR_OK);
@@ -1405,12 +1510,21 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_005, TestS
     auto testAuthCallback = std::make_shared<TestDomainAuthCallbackForListener>(authCallback);
     ASSERT_NE(testAuthCallback, nullptr);
     EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(userId, DEFAULT_TOKEN, testAuthCallback), ERR_OK);
-    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
+    {
+        std::unique_lock<std::mutex> lock1(testAuthCallback->mutex);
+        testAuthCallback->cv.wait_for(lock1, std::chrono::seconds(WAIT_TIME),
+                                      [lockCallback = testAuthCallback]() { return lockCallback->isReady; });
+    }
+    testAuthCallback->isReady = false;
     int32_t userId1;
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo1, userId1), ERR_OK);
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(userId1), ERR_OK);
     EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(userId1, DEFAULT_TOKEN, testAuthCallback), ERR_OK);
-    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
+    {
+        std::unique_lock<std::mutex> lock2(testAuthCallback->mutex);
+        testAuthCallback->cv.wait_for(lock2, std::chrono::seconds(WAIT_TIME),
+                                      [lockCallback = testAuthCallback]() { return lockCallback->isReady; });
+    }
 
     EXPECT_EQ(listener3->visited, true);
     EXPECT_EQ(listener3->visitedTwice, true);
@@ -1448,7 +1562,6 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_006, TestS
     EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountToken(domainInfo1, token), ERR_OK);
     resultToken.clear();
     InnerDomainAccountManager::GetInstance().GetTokenFromMap(userId, resultToken);
-    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
     EXPECT_EQ(listener3->visited, true);
     EXPECT_EQ(listener3->visitedTwice, true);
     EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener3), ERR_OK);
@@ -1483,7 +1596,6 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_007, TestS
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId), ERR_OK);
     InnerDomainAccountManager::GetInstance().GetTokenFromMap(userId, resultToken);
     EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountToken(domainInfo1, token), ERR_OK);
-    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo1, userId), ERR_OK);
     EXPECT_EQ(listener3->visited, true);
     EXPECT_EQ(listener3->visitedTwice, true);
@@ -1519,7 +1631,6 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_008, TestS
 
     EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountToken(domainInfo1, token), ERR_OK);
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo1, userId), ERR_OK);
-    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
 
     EXPECT_EQ(listener3->visited, true);
     EXPECT_EQ(listener3->visitedTwice, true);
@@ -1551,10 +1662,8 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_009, TestS
     EXPECT_EQ(listener3->visited, false);
     EXPECT_EQ(listener3->visitedTwice, false);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
-    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo1, userId), ERR_OK);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
-    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
     EXPECT_EQ(listener3->visited, true);
     EXPECT_EQ(listener3->visitedTwice, true);
     EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener3), ERR_OK);
