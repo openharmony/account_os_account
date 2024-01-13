@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <filesystem>
 #include <gtest/gtest.h>
 
 #include "account_command.h"
@@ -22,6 +23,7 @@ using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AAFwk;
 using namespace OHOS::AccountSA;
+using namespace OHOS::AccountSA::Constants;
 
 class AccountCommandCreateModuleTest : public testing::Test {
 public:
@@ -34,10 +36,26 @@ public:
 };
 
 void AccountCommandCreateModuleTest::SetUpTestCase()
-{}
+{
+#ifdef ACCOUNT_TEST
+    if (std::filesystem::exists(USER_INFO_BASE)) {
+        if (std::filesystem::remove_all(USER_INFO_BASE)) {
+            GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
+        }
+    }
+#endif  // ACCOUNT_TEST
+}
 
 void AccountCommandCreateModuleTest::TearDownTestCase()
-{}
+{
+#ifdef ACCOUNT_TEST
+    if (std::filesystem::exists(USER_INFO_BASE)) {
+        if (std::filesystem::remove_all(USER_INFO_BASE)) {
+            GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
+        }
+    }
+#endif  // ACCOUNT_TEST
+}
 
 void AccountCommandCreateModuleTest::SetUp()
 {}

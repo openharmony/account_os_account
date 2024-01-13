@@ -317,13 +317,13 @@ void OsAccountControlFileManager::BuildAndSaveSpecificOAConstraintsJsonFile()
 
 void OsAccountControlFileManager::BuildAndSaveOsAccountIndexJsonFile()
 {
-    std::lock_guard<std::mutex> lock(accountInfoFileLock_);
     std::string accountIndex;
     ErrCode result = GetAccountIndexInfo(accountIndex);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("get account index info error code %{public}d.", result);
         return;
     }
+    std::lock_guard<std::mutex> lock(accountInfoFileLock_);
     result = accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_INDEX_JSON_PATH, accountIndex);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to input account index info to file!");
