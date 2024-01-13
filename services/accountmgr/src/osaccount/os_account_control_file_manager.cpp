@@ -434,11 +434,11 @@ ErrCode OsAccountControlFileManager::GetOsAccountInfoById(const int id, OsAccoun
     std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(id) +
                        Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
     if (!accountFileOperator_->IsExistFile(path)) {
+        ACCOUNT_LOGE("file %{public}s does not exist err", path.c_str());
         if (GetOsAccountFromDatabase("", id, osAccountInfo) == ERR_OK) {
             InsertOsAccount(osAccountInfo);
             return ERR_OK;
         }
-        ACCOUNT_LOGE("file %{public}s does not exist err", path.c_str());
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     std::string accountInfoStr;
