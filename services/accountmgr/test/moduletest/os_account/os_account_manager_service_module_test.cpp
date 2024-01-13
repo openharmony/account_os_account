@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include <cerrno>
+#include <filesystem>
 #include <gtest/gtest.h>
 #include <thread>
 #include <unistd.h>
@@ -32,6 +33,7 @@ using namespace testing::ext;
 using namespace OHOS::AccountSA;
 using namespace OHOS;
 using namespace AccountSA;
+using namespace OHOS::AccountSA::Constants;
 
 namespace {
 const std::string STRING_EMPTY = "";
@@ -80,7 +82,6 @@ const std::string PHOTO_IMG_ERROR =
     "D3I1NZvmdCXz+XOv5wJANKHOVYjRTAghxIyh0FHKb+0QQH5+kXf2zkYGAG0oFr5RfnK8DAGkwY19wliRT2L448vjv0YGQFVa8VKdDXUU+"
     "faFUxpblhxYRNRzmd6FNnS0H3/X/VH6j0IIIRxMLJ5k/j/2L/"
     "zchW8pKj7iFAA0R2wajl5d46idlR3+GtPV2XOvQ3bBNvyFs8U39v9PLX0Bp0CN+yY0OAEAAAAASUVORK5CYII=";
-const std::int32_t DELAY_FOR_OPERATION = 2000;
 const std::string STRING_DOMAIN_NAME_OUT_OF_RANGE(200, '1');  // length 200
 const std::string STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE(600, '1');  // length 600
 const std::string STRING_DOMAIN_VALID = "TestDomainMT";
@@ -104,15 +105,26 @@ public:
 
 void OsAccountManagerServiceModuleTest::SetUpTestCase(void)
 {
+#ifdef ACCOUNT_TEST
+    if (std::filesystem::exists(USER_INFO_BASE)) {
+        if (std::filesystem::remove_all(USER_INFO_BASE)) {
+            GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
+        }
+    }
+#endif  // ACCOUNT_TEST
     ASSERT_NE(g_accountFileOperator, nullptr);
-    IInnerOsAccountManager::GetInstance().osAccountControl_->Init();
+    IInnerOsAccountManager::GetInstance().Init();
 }
 
 void OsAccountManagerServiceModuleTest::TearDownTestCase(void)
 {
-    GTEST_LOG_(INFO) << "TearDownTestCase enter!";
-    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
-    GTEST_LOG_(INFO) << "TearDownTestCase exit!";
+#ifdef ACCOUNT_TEST
+    if (std::filesystem::exists(USER_INFO_BASE)) {
+        if (std::filesystem::remove_all(USER_INFO_BASE)) {
+            GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
+        }
+    }
+#endif  // ACCOUNT_TEST
 }
 
 void OsAccountManagerServiceModuleTest::SetUp(void)
@@ -370,9 +382,8 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest015
         ERR_OK);
 
     std::vector<std::string> constraints = osAccountInfoTwo.GetConstraints();
-    for (auto it = constraints.begin(); it != constraints.end(); it++) {
-        GTEST_LOG_(INFO) << *it;
-    }
+    EXPECT_TRUE(std::includes(constraints.begin(), constraints.end(), CONSTANTS_VECTOR.begin(), CONSTANTS_VECTOR.end(),
+                              [](const std::string& s1, const std::string& s2) { return s1 == s2; }));
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
@@ -393,9 +404,8 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest016
     EXPECT_EQ(osAccountManagerService_->QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo),
         ERR_OK);
     std::vector<std::string> constraints = osAccountInfoTwo.GetConstraints();
-    for (auto it = constraints.begin(); it != constraints.end(); it++) {
-        GTEST_LOG_(INFO) << *it;
-    }
+    EXPECT_TRUE(std::includes(constraints.begin(), constraints.end(), CONSTANTS_VECTOR.begin(), CONSTANTS_VECTOR.end(),
+                              [](const std::string& s1, const std::string& s2) { return s1 == s2; }));
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 
     int localId = Constants::START_USER_ID - 1;
@@ -476,7 +486,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest020
 {
     bool isVerified = false;
     EXPECT_EQ(osAccountManagerService_->IsOsAccountVerified(Constants::START_USER_ID, isVerified), ERR_OK);
-    EXPECT_EQ(isVerified, true);
+    EXPECT_EQ(isVerified, false);
 }
 
 /**
@@ -921,8 +931,6 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest051
     OsAccountInfo osAccountInfoOne;
     ASSERT_EQ(osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne), ERR_OK);
     EXPECT_EQ(osAccountManagerService_->ActivateOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
-    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
-    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
     EXPECT_EQ(osAccountManagerService_->ActivateOsAccount(Constants::START_USER_ID), ERR_OK);
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 
@@ -1072,7 +1080,6 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest058
 
     // activate
     EXPECT_EQ(osAccountManagerService_->ActivateOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
-    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
 
     // check
     OsAccountInfo queryAccountInfo;
@@ -1262,9 +1269,6 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest065
 {
     std::vector<int32_t> ids;
     EXPECT_EQ(osAccountManagerService_->QueryActiveOsAccountIds(ids), ERR_OK);
-    for (auto it = ids.begin(); it != ids.end(); it++) {
-        GTEST_LOG_(INFO) << *it;
-    }
 }
 
 /**

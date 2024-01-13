@@ -75,9 +75,7 @@ void AppAccountSessionModuleTest::SetUp(void)
 }
 
 void AppAccountSessionModuleTest::TearDown(void)
-{
-    GTEST_LOG_(INFO) << "TearDownTestCase exit";
-}
+{}
 
 /**
  * @tc.name: AppAccountAuthenticateTest_Open_0100

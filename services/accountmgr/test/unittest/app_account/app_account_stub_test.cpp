@@ -38,7 +38,7 @@ const int32_t SUBSCRIBE_ACCOUNT = 33;
 const int32_t GET_ALL_ACCESSIBLE_ACCOUNTS = 31;
 const int32_t QUERY_ALL_ACCESSIBLE_ACCOUNTS = 32;
 const int32_t UNSUBSCRIBE_ACCOUNT = 34;
-const int32_t SLEEP_TIME = 2000;
+sptr<AppAccountManagerService> g_servicePtr;
 } // namespace
 
 class MockAuthenticatorCallback final : public AccountSA::AppAccountAuthenticatorCallbackStub {
@@ -57,21 +57,19 @@ public:
     static void TearDownTestCase(void);
     void SetUp();
     void TearDown();
-    sptr<AppAccountManagerService> appAccountService_ = nullptr;
 };
 
 void AppAccountStubModuleTest::SetUpTestCase(void)
-{}
+{
+    g_servicePtr = new (std::nothrow) AppAccountManagerService();
+    ASSERT_NE(g_servicePtr, nullptr);
+}
 
 void AppAccountStubModuleTest::TearDownTestCase(void)
 {}
 
 void AppAccountStubModuleTest::SetUp(void)
-{
-    appAccountService_ = new (std::nothrow) AppAccountManagerService();
-    ASSERT_NE(appAccountService_, nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
-}
+{}
 
 void AppAccountStubModuleTest::TearDown(void)
 {}
@@ -88,7 +86,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_OnRemoteRequest_001,
     MessageParcel reply;
     MessageOption option;
     EXPECT_NE(data.WriteInterfaceToken(GetDescriptor()), false);
-    EXPECT_NE(appAccountService_->OnRemoteRequest(-1, data, reply, option), ERR_NONE);
+    EXPECT_NE(g_servicePtr->OnRemoteRequest(-1, data, reply, option), ERR_NONE);
 }
 
 /**
@@ -99,11 +97,10 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_OnRemoteRequest_001,
  */
 HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_OnRemoteRequest_002, TestSize.Level0)
 {
-    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    EXPECT_NE(appAccountService_->OnRemoteRequest(-1, data, reply, option), ERR_NONE);
+    EXPECT_NE(g_servicePtr->OnRemoteRequest(-1, data, reply, option), ERR_NONE);
 }
 
 /**
@@ -115,16 +112,15 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_OnRemoteRequest_002,
 HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_OnRemoteRequest_003, TestSize.Level0)
 {
     for (int code = 0; code <= LIMIT_CODE; code++) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
         MessageParcel data;
         MessageParcel reply;
         MessageOption option;
         EXPECT_NE(data.WriteInterfaceToken(GetDescriptor()), false);
         if ((code == CLEAR_OAUTH_TOKEN) || (code == SUBSCRIBE_ACCOUNT) || (code == UNSUBSCRIBE_ACCOUNT)) {
-            EXPECT_NE(appAccountService_->OnRemoteRequest(
+            EXPECT_NE(g_servicePtr->OnRemoteRequest(
                 static_cast<uint32_t>(static_cast<uint32_t>(code)), data, reply, option), ERR_NONE);
         } else {
-            EXPECT_EQ(appAccountService_->OnRemoteRequest(
+            EXPECT_EQ(g_servicePtr->OnRemoteRequest(
                 static_cast<uint32_t>(static_cast<uint32_t>(code)), data, reply, option), ERR_NONE);
         }
     }
@@ -143,7 +139,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_001, Test
     EXPECT_NE(data.WriteInterfaceToken(GetDescriptor()), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(appAccountService_->ProcAddAccount(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcAddAccount(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -165,7 +161,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_002, Test
     EXPECT_NE(data.WriteString(STRING_NAME), false);
     EXPECT_NE(data.WriteParcelable(&options), false);
     EXPECT_NE(data.WriteRemoteObject(callback->AsObject()), false);
-    EXPECT_EQ(appAccountService_->ProcAddAccountImplicitly(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcAddAccountImplicitly(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -183,7 +179,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_003, Test
     AAFwk::Want options;
     EXPECT_NE(data.WriteString(STRING_NAME), false);
     EXPECT_NE(data.WriteParcelable(&options), false);
-    EXPECT_EQ(appAccountService_->ProcCreateAccount(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcCreateAccount(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -204,7 +200,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_004, Test
     EXPECT_NE(data.WriteString(STRING_NAME), false);
     EXPECT_NE(data.WriteParcelable(&options), false);
     EXPECT_NE(data.WriteRemoteObject(callback->AsObject()), false);
-    EXPECT_EQ(appAccountService_->ProcCreateAccountImplicitly(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcCreateAccountImplicitly(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -220,7 +216,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_005, Test
     MessageParcel reply;
     EXPECT_NE(data.WriteInterfaceToken(GetDescriptor()), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(appAccountService_->ProcDeleteAccount(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcDeleteAccount(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -236,7 +232,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_006, Test
     MessageParcel reply;
     EXPECT_NE(data.WriteInterfaceToken(GetDescriptor()), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(appAccountService_->ProcGetAccountExtraInfo(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcGetAccountExtraInfo(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -253,7 +249,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_007, Test
     EXPECT_NE(data.WriteInterfaceToken(GetDescriptor()), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(appAccountService_->ProcSetAccountExtraInfo(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcSetAccountExtraInfo(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -270,7 +266,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_008, Test
     EXPECT_NE(data.WriteInterfaceToken(GetDescriptor()), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(appAccountService_->ProcSetAppAccess(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcSetAppAccess(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -286,7 +282,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_009, Test
     MessageParcel reply;
     EXPECT_NE(data.WriteInterfaceToken(GetDescriptor()), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(appAccountService_->ProcCheckAppAccountSyncEnable(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcCheckAppAccountSyncEnable(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -304,7 +300,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_010, Test
     EXPECT_NE(data.WriteInterfaceToken(GetDescriptor()), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
     EXPECT_NE(data.WriteBool(syncEnable), false);
-    EXPECT_EQ(appAccountService_->ProcSetAppAccountSyncEnable(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcSetAppAccountSyncEnable(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -321,7 +317,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_011, Test
     EXPECT_NE(data.WriteInterfaceToken(GetDescriptor()), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(appAccountService_->ProcGetAssociatedData(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcGetAssociatedData(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -339,7 +335,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_012, Test
     EXPECT_NE(data.WriteString(STRING_NAME), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(appAccountService_->ProcSetAssociatedData(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcSetAssociatedData(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -356,7 +352,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_013, Test
     EXPECT_NE(data.WriteInterfaceToken(GetDescriptor()), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(appAccountService_->ProcGetAccountCredential(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcGetAccountCredential(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -374,7 +370,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_014, Test
     EXPECT_NE(data.WriteString(STRING_NAME), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(appAccountService_->ProcSetAccountCredential(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcSetAccountCredential(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -397,7 +393,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_015, Test
     EXPECT_NE(callback, nullptr);
     EXPECT_NE(data.WriteParcelable(&options), false);
     EXPECT_NE(data.WriteRemoteObject(callback->AsObject()), false);
-    EXPECT_EQ(appAccountService_->ProcAuthenticate(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcAuthenticate(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -415,7 +411,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_016, Test
     EXPECT_NE(data.WriteString(STRING_NAME), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(appAccountService_->ProcGetAuthToken(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcGetAuthToken(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -433,7 +429,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_017, Test
     EXPECT_NE(data.WriteString(STRING_NAME), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(appAccountService_->ProcSetOAuthToken(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcSetOAuthToken(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -452,7 +448,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_018, Test
     EXPECT_NE(data.WriteString(STRING_NAME), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(appAccountService_->ProcDeleteAuthToken(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcDeleteAuthToken(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -470,7 +466,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_019, Test
     EXPECT_NE(data.WriteString(STRING_NAME), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(appAccountService_->ProcSetAuthTokenVisibility(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcSetAuthTokenVisibility(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -488,7 +484,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_020, Test
     EXPECT_NE(data.WriteString(STRING_NAME), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(appAccountService_->ProcCheckAuthTokenVisibility(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcCheckAuthTokenVisibility(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -504,7 +500,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_021, Test
     MessageParcel reply;
     EXPECT_NE(data.WriteInterfaceToken(GetDescriptor()), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(appAccountService_->ProcGetAuthenticatorInfo(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcGetAuthenticatorInfo(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -521,7 +517,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_022, Test
     EXPECT_NE(data.WriteInterfaceToken(GetDescriptor()), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(appAccountService_->ProcGetAllOAuthTokens(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcGetAllOAuthTokens(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -538,7 +534,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_023, Test
     EXPECT_NE(data.WriteInterfaceToken(GetDescriptor()), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(appAccountService_->ProcGetAuthList(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcGetAuthList(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -554,7 +550,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_024, Test
     MessageParcel reply;
     EXPECT_NE(data.WriteInterfaceToken(GetDescriptor()), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(appAccountService_->ProcGetAuthenticatorCallback(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcGetAuthenticatorCallback(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -570,7 +566,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_025, Test
     MessageParcel reply;
     EXPECT_NE(data.WriteInterfaceToken(GetDescriptor()), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(appAccountService_->ProcGetAllAccounts(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcGetAllAccounts(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -586,9 +582,9 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_026, Test
     MessageParcel reply;
     EXPECT_NE(data.WriteInterfaceToken(GetDescriptor()), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(appAccountService_->ProcGetAllAccessibleAccounts(
+    EXPECT_EQ(g_servicePtr->ProcGetAllAccessibleAccounts(
         static_cast<uint32_t>(static_cast<uint32_t>(GET_ALL_ACCESSIBLE_ACCOUNTS)), data, reply), ERR_NONE);
-    EXPECT_EQ(appAccountService_->ProcGetAllAccessibleAccounts(
+    EXPECT_EQ(g_servicePtr->ProcGetAllAccessibleAccounts(
         static_cast<uint32_t>(static_cast<uint32_t>(QUERY_ALL_ACCESSIBLE_ACCOUNTS)), data, reply), ERR_NONE);
 }
 
@@ -605,7 +601,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_027, Test
     EXPECT_NE(data.WriteInterfaceToken(GetDescriptor()), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(appAccountService_->ProcCheckAppAccess(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcCheckAppAccess(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -622,7 +618,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_028, Test
     EXPECT_NE(data.WriteInterfaceToken(GetDescriptor()), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
     EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(appAccountService_->ProcDeleteAccountCredential(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcDeleteAccountCredential(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -642,7 +638,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_029, Test
     EXPECT_NE(callback, nullptr);
     EXPECT_NE(data.WriteParcelable(&options), false);
     EXPECT_NE(data.WriteRemoteObject(callback->AsObject()), false);
-    EXPECT_EQ(appAccountService_->ProcSelectAccountsByOptions(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcSelectAccountsByOptions(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -664,7 +660,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_030, Test
     EXPECT_NE(callback, nullptr);
     EXPECT_NE(data.WriteParcelable(&options), false);
     EXPECT_NE(data.WriteRemoteObject(callback->AsObject()), false);
-    EXPECT_EQ(appAccountService_->ProcVerifyCredential(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcVerifyCredential(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -686,7 +682,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_031, Test
     sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
     EXPECT_NE(callback, nullptr);
     EXPECT_NE(data.WriteRemoteObject(callback->AsObject()), false);
-    EXPECT_EQ(appAccountService_->ProcCheckAccountLabels(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcCheckAccountLabels(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
 
@@ -707,6 +703,6 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_032, Test
     sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
     EXPECT_NE(callback, nullptr);
     EXPECT_NE(data.WriteRemoteObject(callback->AsObject()), false);
-    EXPECT_EQ(appAccountService_->ProcSetAuthenticatorProperties(static_cast<uint32_t>(static_cast<uint32_t>(0)),
+    EXPECT_EQ(g_servicePtr->ProcSetAuthenticatorProperties(static_cast<uint32_t>(static_cast<uint32_t>(0)),
         data, reply), ERR_NONE);
 }
