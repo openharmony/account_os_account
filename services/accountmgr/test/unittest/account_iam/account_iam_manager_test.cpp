@@ -260,6 +260,11 @@ public:
         return 0;
     }
 
+    virtual int32_t UpdateMemoryPara(int32_t size, int32_t &oldSize)
+    {
+        return 0;
+    }
+
     sptr<IRemoteObject> AsObject()
     {
         return nullptr;
