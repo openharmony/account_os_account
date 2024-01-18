@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "account_error_no.h"
+#include "account_log_wrapper.h"
 #define private public
 #include "app_account_control_manager.h"
 #include "app_account_manager_service.h"
@@ -59,8 +60,15 @@ void AppAccountManagerServiceTest::TearDownTestCase(void)
     GTEST_LOG_(INFO) << "TearDownTestCase!";
 }
 
-void AppAccountManagerServiceTest::SetUp(void)
-{}
+void AppAccountManagerServiceTest::SetUp(void) __attribute__((no_sanitize("cfi")))
+{
+    testing::UnitTest *test = testing::UnitTest::GetInstance();
+    ASSERT_NE(test, nullptr);
+    const testing::TestInfo *testinfo = test->current_test_info();
+    ASSERT_NE(testinfo, nullptr);
+    string testCaseName = string(testinfo->name());
+    ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
+}
 
 void AppAccountManagerServiceTest::TearDown(void)
 {}

@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "account_error_no.h"
+#include "account_log_wrapper.h"
 #ifdef BUNDLE_ADAPTER_MOCK
 #define private public
 #include "account_mgr_service.h"
@@ -119,8 +120,15 @@ void AccountMgrInnerSdkFuncTest::TearDownTestCase(void)
 #endif  // ACCOUNT_TEST
 }
 
-void AccountMgrInnerSdkFuncTest::SetUp(void)
-{}
+void AccountMgrInnerSdkFuncTest::SetUp(void) __attribute__((no_sanitize("cfi")))
+{
+    testing::UnitTest *test = testing::UnitTest::GetInstance();
+    ASSERT_NE(test, nullptr);
+    const testing::TestInfo *testinfo = test->current_test_info();
+    ASSERT_NE(testinfo, nullptr);
+    string testCaseName = string(testinfo->name());
+    ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
+}
 
 void AccountMgrInnerSdkFuncTest::TearDown(void)
 {}

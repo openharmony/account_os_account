@@ -44,7 +44,6 @@ const std::string STRING_VALUE = "value";
 const std::string STRING_VALUE_TWO = "value_two";
 const std::string STRING_EMPTY = "";
 constexpr std::int32_t UID = 10000;
-constexpr std::int32_t WAIT_FOR_ONE_CASE = 1000;
 std::shared_ptr<AppAccountManagerService> g_accountManagerService =
     std::make_shared<AppAccountManagerService>();
 static constexpr int32_t DEFAULT_API_VERSION = 8;
@@ -127,9 +126,15 @@ void AppAccountManagerServiceAssocaitedDataTest::TearDownTestCase(void)
     GTEST_LOG_(INFO) << "TearDownTestCase exit";
 }
 
-void AppAccountManagerServiceAssocaitedDataTest::SetUp(void)
+void AppAccountManagerServiceAssocaitedDataTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 {
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_ONE_CASE));
+    testing::UnitTest *test = testing::UnitTest::GetInstance();
+    ASSERT_NE(test, nullptr);
+    const testing::TestInfo *testinfo = test->current_test_info();
+    ASSERT_NE(testinfo, nullptr);
+    string testCaseName = string(testinfo->name());
+    ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
+
     ClearDataStorage();
 }
 

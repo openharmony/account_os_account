@@ -40,7 +40,6 @@ const std::string HYPHEN = "#";
 const std::string AUTHORIZED_ACCOUNTS = "authorizedAccounts";
 
 constexpr std::int32_t UID = 10000;
-constexpr std::int32_t WAIT_FOR_EXIT = 1000;
 const bool SYNC_ENABLE_TRUE = true;
 const bool SYNC_ENABLE_FALSE = false;
 
@@ -65,11 +64,17 @@ void AppAccountManagerServiceSyncModuleTest::SetUpTestCase(void)
 void AppAccountManagerServiceSyncModuleTest::TearDownTestCase(void)
 {
     GTEST_LOG_(INFO) << "TearDownTestCase!";
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_EXIT));
 }
 
-void AppAccountManagerServiceSyncModuleTest::SetUp(void)
+void AppAccountManagerServiceSyncModuleTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 {
+    testing::UnitTest *test = testing::UnitTest::GetInstance();
+    ASSERT_NE(test, nullptr);
+    const testing::TestInfo *testinfo = test->current_test_info();
+    ASSERT_NE(testinfo, nullptr);
+    string testCaseName = string(testinfo->name());
+    ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
+
     auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
     ClearDataStorage(dataStoragePtr);
 #ifdef DISTRIBUTED_FEATURE_ENABLED
