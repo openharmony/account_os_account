@@ -128,6 +128,11 @@ void DomainAccountClientModuleTest::TearDownTestCase(void)
 
 void DomainAccountClientModuleTest::SetUp(void)
 {
+    std::vector<OsAccountInfo> osAccountInfos;
+    OsAccount::GetInstance().QueryAllCreatedOsAccounts(osAccountInfos);
+    for (const auto &info : osAccountInfos) {
+        OsAccount::GetInstance().RemoveOsAccount(info.GetLocalId());
+    }
     DomainAccountClient::GetInstance().UnregisterPlugin();
     DomainAccountClient::GetInstance().RegisterPlugin(g_plugin);
 #ifdef BUNDLE_ADAPTER_MOCK
@@ -541,7 +546,6 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPo
     for (size_t index = 0; index < resultToken.size(); index++) {
         EXPECT_EQ(resultToken[index], TOKEN[index]);
     }
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
 }
 
 /**
