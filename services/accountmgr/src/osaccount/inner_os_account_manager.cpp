@@ -40,6 +40,8 @@ const std::string CONSTRAINT_CREATE_ACCOUNT_DIRECTLY = "constraint.os.account.cr
 const std::string ACCOUNT_READY_EVENT = "bootevent.account.ready";
 const char WATCH_START_USER[] = "watch.start.user";
 constexpr std::int32_t DELAY_FOR_ACCOUNT_BOOT_EVENT_READY = 5000;
+constexpr std::int32_t DELAY_FOR_EXCEPTION = 50;
+constexpr std::int32_t MAX_RETRY_TIMES = 50;
 const std::string SPECIAL_CHARACTER_ARRAY = "<>|\":*?/\\";
 const std::vector<std::string> SHORT_NAME_CANNOT_BE_NAME_ARRAY = {".", ".."};
 }
@@ -68,6 +70,7 @@ void IInnerOsAccountManager::SetOsAccountControl(std::shared_ptr<IOsAccountContr
 
 void IInnerOsAccountManager::CreateBaseAdminAccount()
 {
+    ACCOUNT_LOGI("start to create admin account");
     bool isExistsAccount = false;
     osAccountControl_->IsOsAccountExists(Constants::ADMIN_LOCAL_ID, isExistsAccount);
     if (!isExistsAccount) {
@@ -82,12 +85,16 @@ void IInnerOsAccountManager::CreateBaseAdminAccount()
         osAccountInfo.SetIsCreateCompleted(true);
         osAccountInfo.SetIsActived(true);  // admin local account is always active
         osAccountControl_->InsertOsAccount(osAccountInfo);
+        ReportOsAccountLifeCycle(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE);
         ACCOUNT_LOGI("OsAccountAccountMgr created admin account end");
+    } else {
+        ACCOUNT_LOGI("OsAccountAccountMgr admin account already exists");
     }
 }
 
 void IInnerOsAccountManager::CreateBaseStandardAccount()
 {
+    ACCOUNT_LOGI("start to create base account");
     bool isExistsAccount = false;
     osAccountControl_->IsOsAccountExists(Constants::START_USER_ID, isExistsAccount);
     if (!isExistsAccount) {
@@ -112,45 +119,60 @@ void IInnerOsAccountManager::CreateBaseStandardAccount()
         osAccountInfo.SetCreateTime(time);
         osAccountInfo.SetIsCreateCompleted(false);
         osAccountControl_->InsertOsAccount(osAccountInfo);
+        ReportOsAccountLifeCycle(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE);
         ACCOUNT_LOGI("OsAccountAccountMgr created base account end");
+    } else {
+        ACCOUNT_LOGI("base account already exists");
+    }
+}
+
+void IInnerOsAccountManager::RetryToGetAccount(OsAccountInfo &osAccountInfo)
+{
+    int32_t retryTimes = 0;
+    while (retryTimes < MAX_RETRY_TIMES) {
+        std::vector<OsAccountInfo> osAccountInfos;
+        QueryAllCreatedOsAccounts(osAccountInfos);
+        if (!osAccountInfos.empty()) {
+            osAccountInfo = osAccountInfos[0];
+            break;
+        }
+        ACCOUNT_LOGE("fail to query accounts");
+        retryTimes++;
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
+    }
+
+#ifdef ENABLE_DEFAULT_ADMIN_NAME
+    while (CreateOsAccount(Constants::STANDARD_LOCAL_NAME, ADMIN, osAccountInfo) != ERR_OK) {
+#else
+    while (CreateOsAccount("", ADMIN, osAccountInfo) != ERR_OK) {
+#endif
+        ACCOUNT_LOGE("fail to create account");
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
     }
 }
 
 void IInnerOsAccountManager::StartAccount()
 {
+    ACCOUNT_LOGI("start to activate default account");
     ResetAccountStatus();
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(defaultActivatedId_, osAccountInfo);
     if (errCode != ERR_OK) {
-        if (defaultActivatedId_ == Constants::START_USER_ID) {
-            ACCOUNT_LOGE("Init start base account failed. cannot find account, errCode %{public}d.", errCode);
-            return;
-        }
-        ACCOUNT_LOGE("Init startup account %{public}d failed, errCode %{public}d. And restart base account.",
-            defaultActivatedId_, errCode);
-        errCode = osAccountControl_->GetOsAccountInfoById(Constants::START_USER_ID, osAccountInfo);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("Restart base account failed. cannot find account, errCode %{public}d.", errCode);
-            return;
-        }
-        osAccountControl_->SetDefaultActivatedOsAccount(Constants::START_USER_ID);
-        defaultActivatedId_ = Constants::START_USER_ID;
+        ACCOUNT_LOGE("account not found, localId: %{public}d, error: %{public}d", defaultActivatedId_, errCode);
+        RetryToGetAccount(osAccountInfo);
+        defaultActivatedId_ = osAccountInfo.GetLocalId();
+        osAccountControl_->SetDefaultActivatedOsAccount(defaultActivatedId_);
     }
-    auto task = std::bind(&IInnerOsAccountManager::WatchStartUser, this, osAccountInfo.GetLocalId());
+    auto task = std::bind(&IInnerOsAccountManager::WatchStartUser, this, defaultActivatedId_);
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), WATCH_START_USER);
     taskThread.detach();
-    if (!osAccountInfo.GetIsCreateCompleted()) {
-        if (SendMsgForAccountCreate(osAccountInfo) != ERR_OK) {
-            return;
-        }
-    }
-    // activate
-    if (SendMsgForAccountActivate(osAccountInfo) != ERR_OK) {
+    if (!osAccountInfo.GetIsCreateCompleted() && (SendMsgForAccountCreate(osAccountInfo) != ERR_OK)) {
+        ACCOUNT_LOGE("account %{public}d not created completely", defaultActivatedId_);
         return;
     }
-    subscribeManager_.Publish(osAccountInfo.GetLocalId(), OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED);
-    ACCOUNT_LOGI("OsAccountAccountMgr send to storage and am for start success");
+    // activate
+    SendMsgForAccountActivate(osAccountInfo);
 }
 
 void IInnerOsAccountManager::RestartActiveAccount()
@@ -1544,6 +1566,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
     RefreshActiveList(osAccountInfo.GetLocalId());
     SetParameter(ACCOUNT_READY_EVENT.c_str(), "true");
     OsAccountInterface::SendToCESAccountSwitched(osAccountInfo);
+    subscribeManager_.Publish(osAccountInfo.GetLocalId(), OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED);
     ACCOUNT_LOGI("SendMsgForAccountActivate ok");
     return errCode;
 }
