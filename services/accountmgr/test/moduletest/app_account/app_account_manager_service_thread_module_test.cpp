@@ -37,7 +37,6 @@ const std::string STRING_VALUE = "value";
 const std::string STRING_VALUE_TWO = "value_two";
 constexpr std::size_t SIZE_ZERO = 0;
 constexpr std::size_t SIZE_ONE = 1;
-constexpr std::int32_t WAIT_FOR_EXIT = 1000;
 constexpr std::int32_t DELAY_FOR_OPERATION = 3000;
 }  // namespace
 
@@ -68,11 +67,17 @@ void AppAccountManagerServiceThreadModuleTest::SetUpTestCase(void)
 void AppAccountManagerServiceThreadModuleTest::TearDownTestCase(void)
 {
     GTEST_LOG_(INFO) << "TearDownTestCase enter";
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_EXIT));
 }
 
-void AppAccountManagerServiceThreadModuleTest::SetUp(void)
-{}
+void AppAccountManagerServiceThreadModuleTest::SetUp(void) __attribute__((no_sanitize("cfi")))
+{
+    testing::UnitTest *test = testing::UnitTest::GetInstance();
+    ASSERT_NE(test, nullptr);
+    const testing::TestInfo *testinfo = test->current_test_info();
+    ASSERT_NE(testinfo, nullptr);
+    string testCaseName = string(testinfo->name());
+    ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
+}
 
 void AppAccountManagerServiceThreadModuleTest::TearDown(void)
 {}

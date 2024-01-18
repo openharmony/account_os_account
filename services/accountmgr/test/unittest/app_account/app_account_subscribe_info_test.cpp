@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "account_log_wrapper.h"
 #define private public
 #include "app_account_subscribe_info.h"
 #undef private
@@ -41,8 +42,15 @@ void AppAccountSubscribeInfoTest::SetUpTestCase(void)
 void AppAccountSubscribeInfoTest::TearDownTestCase(void)
 {}
 
-void AppAccountSubscribeInfoTest::SetUp(void)
-{}
+void AppAccountSubscribeInfoTest::SetUp(void) __attribute__((no_sanitize("cfi")))
+{
+    testing::UnitTest *test = testing::UnitTest::GetInstance();
+    ASSERT_NE(test, nullptr);
+    const testing::TestInfo *testinfo = test->current_test_info();
+    ASSERT_NE(testinfo, nullptr);
+    string testCaseName = string(testinfo->name());
+    ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
+}
 
 void AppAccountSubscribeInfoTest::TearDown(void)
 {}
