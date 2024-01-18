@@ -849,7 +849,7 @@ ErrCode OsAccountControlFileManager::RemoveAccountIndex(const int32_t id)
 
 ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGD("enter");
+    ACCOUNT_LOGI("enter");
     if (osAccountInfo.GetLocalId() < Constants::ADMIN_LOCAL_ID ||
         osAccountInfo.GetLocalId() > Constants::MAX_USER_ID) {
         ACCOUNT_LOGE("error id %{public}d cannot insert", osAccountInfo.GetLocalId());
@@ -883,7 +883,7 @@ ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInf
         accountFileWatcherMgr_.AddFileWatcher(osAccountInfo.GetLocalId(), eventCallbackFunc_);
         return UpdateAccountList(osAccountInfo.GetPrimeKey(), true);
     }
-    ACCOUNT_LOGD("end");
+    ACCOUNT_LOGI("end");
     return ERR_OK;
 }
 
