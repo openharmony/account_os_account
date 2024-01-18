@@ -159,6 +159,10 @@ static void OnAcquireInfoWork(uv_work_t* work, int status)
 
 void NapiIDMCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
 {
+    if (!callback_->hasOnAcquireInfo) {
+        ACCOUNT_LOGE("no 'OnAcquireInfo' callback need return");
+        return;
+    }
     if (callback_->onResultCalled) {
         ACCOUNT_LOGE("call after OnResult is not allowed");
         return;
@@ -221,9 +225,8 @@ napi_status ParseIAMCallback(napi_env env, napi_value object, std::shared_ptr<Js
         ACCOUNT_LOGE("onResult is not a function");
         return napi_invalid_arg;
     }
-    bool hasOnAcquireInfo = false;
-    napi_has_named_property(env, object, "onAcquireInfo", &hasOnAcquireInfo);
-    if (!hasOnAcquireInfo) {
+    napi_has_named_property(env, object, "onAcquireInfo", &callback->hasOnAcquireInfo);
+    if (!callback->hasOnAcquireInfo) {
         return napi_ok;
     }
     napi_get_named_property(env, object, "onAcquireInfo", &result);
@@ -474,6 +477,10 @@ void NapiUserAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
 
 void NapiUserAuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
 {
+    if (!callback_->hasOnAcquireInfo) {
+        ACCOUNT_LOGE("no 'OnAcquireInfo' callback need return");
+        return;
+    }
     if (callback_->onResultCalled) {
         ACCOUNT_LOGE("call after OnResult is not allowed");
         return;

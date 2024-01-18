@@ -79,6 +79,7 @@ struct JsIAMCallback {
     napi_env env;
     napi_ref onResult = nullptr;
     napi_ref onAcquireInfo = nullptr;
+    bool hasOnAcquireInfo = false;
 };
 
 #ifdef HAS_USER_AUTH_PART
