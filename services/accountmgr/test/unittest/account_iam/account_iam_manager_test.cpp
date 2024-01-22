@@ -234,6 +234,12 @@ public:
         return 0;
     }
 
+    int32_t GetLockScreenStatus(uint32_t userId, bool &lockScreenStatus)
+    {
+        return 0;
+    }
+
+
     int32_t UnlockUserScreen(uint32_t userId)
     {
         return 0;

@@ -17,6 +17,7 @@
 #include <map>
 
 #include "account_error_no.h"
+#include "account_log_wrapper.h"
 #include "os_account_constants.h"
 
 #include "os_account_delete_user_idm_callback.h"
@@ -51,8 +52,15 @@ void OsAccountCoverageTest::SetUpTestCase(void)
 void OsAccountCoverageTest::TearDownTestCase(void)
 {}
 
-void OsAccountCoverageTest::SetUp(void)
-{}
+void OsAccountCoverageTest::SetUp(void) __attribute__((no_sanitize("cfi")))
+{
+    testing::UnitTest *test = testing::UnitTest::GetInstance();
+    ASSERT_NE(test, nullptr);
+    const testing::TestInfo *testinfo = test->current_test_info();
+    ASSERT_NE(testinfo, nullptr);
+    string testCaseName = string(testinfo->name());
+    ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
+}
 
 void OsAccountCoverageTest::TearDown(void)
 {}

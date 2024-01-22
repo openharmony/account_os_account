@@ -110,8 +110,15 @@ void AppAccountManagerTest::SetUpTestCase(void)
 void AppAccountManagerTest::TearDownTestCase(void)
 {}
 
-void AppAccountManagerTest::SetUp(void)
+void AppAccountManagerTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 {
+    testing::UnitTest *test = testing::UnitTest::GetInstance();
+    ASSERT_NE(test, nullptr);
+    const testing::TestInfo *testinfo = test->current_test_info();
+    ASSERT_NE(testinfo, nullptr);
+    string testCaseName = string(testinfo->name());
+    ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
+
 #ifdef PROXY_MOCK
     std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
 #endif

@@ -15,6 +15,7 @@
 
 #include <gmock/gmock.h>
 #include "account_iam_client.h"
+#include "account_log_wrapper.h"
 
 namespace OHOS {
 namespace AccountTest {
@@ -43,8 +44,15 @@ void AccountIAMProxyMockTest::SetUpTestCase(void)
 void AccountIAMProxyMockTest::TearDownTestCase(void)
 {}
 
-void AccountIAMProxyMockTest::SetUp(void)
-{}
+void AccountIAMProxyMockTest::SetUp(void) __attribute__((no_sanitize("cfi")))
+{
+    testing::UnitTest *test = testing::UnitTest::GetInstance();
+    ASSERT_NE(test, nullptr);
+    const testing::TestInfo *testinfo = test->current_test_info();
+    ASSERT_NE(testinfo, nullptr);
+    string testCaseName = string(testinfo->name());
+    ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
+}
 
 void AccountIAMProxyMockTest::TearDown(void)
 {}

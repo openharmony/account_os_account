@@ -32,7 +32,6 @@ using namespace OHOS::AppExecFwk;
 using namespace OHOS::EventFwk;
 #endif // HAS_CES_PART
 namespace {
-constexpr std::int32_t WAIT_FOR_ONE_CASE = 1000;
 const std::string STRING_NAME = "name";
 const std::string AUTH_TYPE = "type";
 const std::string STRING_CREDENTIAL_TYPE = "password";
@@ -58,9 +57,14 @@ void AppAccountManagerServiceNotMockModuleTest::SetUpTestCase(void)
 void AppAccountManagerServiceNotMockModuleTest::TearDownTestCase(void)
 {}
 
-void AppAccountManagerServiceNotMockModuleTest::SetUp(void)
+void AppAccountManagerServiceNotMockModuleTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 {
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_ONE_CASE));
+    testing::UnitTest *test = testing::UnitTest::GetInstance();
+    ASSERT_NE(test, nullptr);
+    const testing::TestInfo *testinfo = test->current_test_info();
+    ASSERT_NE(testinfo, nullptr);
+    string testCaseName = string(testinfo->name());
+    ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
 }
 
 void AppAccountManagerServiceNotMockModuleTest::TearDown(void)

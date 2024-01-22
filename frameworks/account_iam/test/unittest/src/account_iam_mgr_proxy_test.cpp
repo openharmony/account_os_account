@@ -17,6 +17,7 @@
 #define private public
 #include "account_iam_mgr_proxy.h"
 #undef private
+#include "account_log_wrapper.h"
 #include "iam_common_defines.h"
 #include "test_common.h"
 
@@ -45,8 +46,15 @@ void AccountIAMMgrProxyTest::SetUpTestCase(void)
 void AccountIAMMgrProxyTest::TearDownTestCase(void)
 {}
 
-void AccountIAMMgrProxyTest::SetUp(void)
-{}
+void AccountIAMMgrProxyTest::SetUp(void) __attribute__((no_sanitize("cfi")))
+{
+    testing::UnitTest *test = testing::UnitTest::GetInstance();
+    ASSERT_NE(test, nullptr);
+    const testing::TestInfo *testinfo = test->current_test_info();
+    ASSERT_NE(testinfo, nullptr);
+    string testCaseName = string(testinfo->name());
+    ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
+}
 
 void AccountIAMMgrProxyTest::TearDown(void)
 {}
