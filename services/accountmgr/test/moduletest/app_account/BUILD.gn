@@ -130,6 +130,11 @@ ohos_moduletest("account_permission_manager_module_test") {
     "hilog:libhilog",
     "ipc:ipc_single",
   ]
+
+  defines = [
+    "ACCOUNT_LOG_TAG = \"AppAccountMTest\"",
+    "LOG_DOMAIN = 0xD001B00",
+  ]
 }
 
 ohos_moduletest("app_account_manager_service_associated_data_test") {

@@ -91,8 +91,15 @@ void OsAccountManagerServiceSubscribeModuleTest::TearDownTestCase(void)
 #endif  // ACCOUNT_TEST
 }
 
-void OsAccountManagerServiceSubscribeModuleTest::SetUp(void)
-{}
+void OsAccountManagerServiceSubscribeModuleTest::SetUp(void) __attribute__((no_sanitize("cfi")))
+{
+    testing::UnitTest *test = testing::UnitTest::GetInstance();
+    ASSERT_NE(test, nullptr);
+    const testing::TestInfo *testinfo = test->current_test_info();
+    ASSERT_NE(testinfo, nullptr);
+    string testCaseName = string(testinfo->name());
+    ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
+}
 
 void OsAccountManagerServiceSubscribeModuleTest::TearDown(void)
 {}

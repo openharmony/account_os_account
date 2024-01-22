@@ -74,7 +74,7 @@ const int ACCOUNT_UID = 3058;
 const std::string STRING_DOMAIN_VALID = "TestDomainMT";
 const std::string STRING_DOMAIN_ACCOUNT_NAME_VALID = "TestDomainAccountNameMT";
 
-class OsAccountInnerAccmgrCoverageTest : public testing::Test {
+class OsAccountInnerAccmgrMockTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
@@ -84,7 +84,7 @@ public:
     IInnerOsAccountManager *innerMgrService_ = &IInnerOsAccountManager::GetInstance();
 };
 
-void OsAccountInnerAccmgrCoverageTest::SetUpTestCase(void)
+void OsAccountInnerAccmgrMockTest::SetUpTestCase(void)
 {
 #ifdef ACCOUNT_TEST
     if (std::filesystem::exists(USER_INFO_BASE)) {
@@ -109,7 +109,7 @@ void OsAccountInnerAccmgrCoverageTest::SetUpTestCase(void)
 #endif
 }
 
-void OsAccountInnerAccmgrCoverageTest::TearDownTestCase(void)
+void OsAccountInnerAccmgrMockTest::TearDownTestCase(void)
 {
 #ifdef ACCOUNT_TEST
     if (std::filesystem::exists(USER_INFO_BASE)) {
@@ -120,19 +120,26 @@ void OsAccountInnerAccmgrCoverageTest::TearDownTestCase(void)
 #endif  // ACCOUNT_TEST
 }
 
-void OsAccountInnerAccmgrCoverageTest::SetUp(void)
-{}
+void OsAccountInnerAccmgrMockTest::SetUp(void) __attribute__((no_sanitize("cfi")))
+{
+    testing::UnitTest *test = testing::UnitTest::GetInstance();
+    ASSERT_NE(test, nullptr);
+    const testing::TestInfo *testinfo = test->current_test_info();
+    ASSERT_NE(testinfo, nullptr);
+    string testCaseName = string(testinfo->name());
+    ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
+}
 
-void OsAccountInnerAccmgrCoverageTest::TearDown(void)
+void OsAccountInnerAccmgrMockTest::TearDown(void)
 {}
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest001
+ * @tc.name: OsAccountInnerAccmgrMockTest001
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest001, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest001, TestSize.Level1)
 {
     innerMgrService_->CreateBaseAdminAccount();
 
@@ -144,12 +151,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest001, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest002
+ * @tc.name: OsAccountInnerAccmgrMockTest002
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest002, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest002, TestSize.Level1)
 {
     innerMgrService_->CreateBaseStandardAccount();
 
@@ -161,12 +168,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest002, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest005
+ * @tc.name: OsAccountInnerAccmgrMockTest005
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest005, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest005, TestSize.Level1)
 {
     bool ret = false;
 
@@ -184,12 +191,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest005, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest007
+ * @tc.name: OsAccountInnerAccmgrMockTest007
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest007, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest007, TestSize.Level1)
 {
     bool ret = false;
     innerMgrService_->CheckAndAddLocalIdOperating(TEST_USER_ID10);
@@ -206,12 +213,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest007, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest008
+ * @tc.name: OsAccountInnerAccmgrMockTest008
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest008, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest008, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
 
@@ -225,12 +232,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest008, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest009
+ * @tc.name: OsAccountInnerAccmgrMockTest009
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest009, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest009, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     EXPECT_CALL(*ptr, GetSerialNumber(::testing::_))
@@ -273,13 +280,13 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest009, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest010
+ * @tc.name: OsAccountInnerAccmgrMockTest010
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest010, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest010, TestSize.Level1)
 {
     int ret;
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
@@ -329,13 +336,13 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest010, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest012
+ * @tc.name: OsAccountInnerAccmgrMockTest012
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
 #ifdef DOMAIN_ACCOUNT_TEST_CASE
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest012, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest012, TestSize.Level1)
 {
     int ret;
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
@@ -380,12 +387,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest012, 
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest013
+ * @tc.name: OsAccountInnerAccmgrMockTest013
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest013, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest013, TestSize.Level1)
 {
     int ret;
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
@@ -446,13 +453,13 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest013, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest015
+ * @tc.name: OsAccountInnerAccmgrMockTest015
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest015, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest015, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     (void)setuid(ACCOUNT_UID);
@@ -463,12 +470,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest015, 
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest016
+ * @tc.name: OsAccountInnerAccmgrMockTest016
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest016, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest016, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->SetOsAccountControl(ptr);
@@ -494,12 +501,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest016, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest017
+ * @tc.name: OsAccountInnerAccmgrMockTest017
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest017, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest017, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->SetOsAccountControl(ptr);
@@ -533,12 +540,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest017, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest018
+ * @tc.name: OsAccountInnerAccmgrMockTest018
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest018, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest018, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->SetOsAccountControl(ptr);
@@ -555,12 +562,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest018, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest019
+ * @tc.name: OsAccountInnerAccmgrMockTest019
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest019, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest019, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->SetOsAccountControl(ptr);
@@ -587,12 +594,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest019, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest020
+ * @tc.name: OsAccountInnerAccmgrMockTest020
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest020, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest020, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->SetOsAccountControl(ptr);
@@ -608,12 +615,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest020, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest021
+ * @tc.name: OsAccountInnerAccmgrMockTest021
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest021, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest021, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->SetOsAccountControl(ptr);
@@ -629,12 +636,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest021, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest022
+ * @tc.name: OsAccountInnerAccmgrMockTest022
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest022, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest022, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->SetOsAccountControl(ptr);
@@ -654,12 +661,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest022, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest023
+ * @tc.name: OsAccountInnerAccmgrMockTest023
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest023, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest023, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->SetOsAccountControl(ptr);
@@ -693,12 +700,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest023, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest024
+ * @tc.name: OsAccountInnerAccmgrMockTest024
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest024, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest024, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->SetOsAccountControl(ptr);
@@ -757,12 +764,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest024, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest025
+ * @tc.name: OsAccountInnerAccmgrMockTest025
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest025, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest025, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->SetOsAccountControl(ptr);
@@ -800,12 +807,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest025, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest026
+ * @tc.name: OsAccountInnerAccmgrMockTest026
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest026, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest026, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->SetOsAccountControl(ptr);
@@ -847,12 +854,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest026, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest027
+ * @tc.name: OsAccountInnerAccmgrMockTest027
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest027, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest027, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->SetOsAccountControl(ptr);
@@ -878,12 +885,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest027, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest029
+ * @tc.name: OsAccountInnerAccmgrMockTest029
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest029, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest029, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->SetOsAccountControl(ptr);
@@ -919,12 +926,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest029, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest030
+ * @tc.name: OsAccountInnerAccmgrMockTest030
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest030, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest030, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->SetOsAccountControl(ptr);
@@ -947,12 +954,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest030, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest031
+ * @tc.name: OsAccountInnerAccmgrMockTest031
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest031, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest031, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->SetOsAccountControl(ptr);
@@ -969,12 +976,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest031, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest032
+ * @tc.name: OsAccountInnerAccmgrMockTest032
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest032, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest032, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->SetOsAccountControl(ptr);
@@ -1026,12 +1033,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest032, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest033
+ * @tc.name: OsAccountInnerAccmgrMockTest033
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest033, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest033, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->SetOsAccountControl(ptr);
@@ -1052,12 +1059,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest033, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest034
+ * @tc.name: OsAccountInnerAccmgrMockTest034
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest034, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest034, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->SetOsAccountControl(ptr);
@@ -1081,12 +1088,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest034, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest036
+ * @tc.name: OsAccountInnerAccmgrMockTest036
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest036, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest036, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->SetOsAccountControl(ptr);
@@ -1115,12 +1122,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest036, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest037
+ * @tc.name: OsAccountInnerAccmgrMockTest037
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest037, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest037, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->SetOsAccountControl(ptr);
@@ -1148,13 +1155,13 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest037, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest039
+ * @tc.name: OsAccountInnerAccmgrMockTest039
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require:
  */
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest039, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest039, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
 
@@ -1209,12 +1216,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest039, 
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest040
+ * @tc.name: OsAccountInnerAccmgrMockTest040
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require: issueI6AQUQ
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest040, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest040, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->SetOsAccountControl(ptr);
@@ -1232,12 +1239,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest040, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest041
+ * @tc.name: OsAccountInnerAccmgrMockTest041
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require: issueI6AQUQ
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest041, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest041, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->SetOsAccountControl(ptr);
@@ -1255,12 +1262,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest041, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest042
+ * @tc.name: OsAccountInnerAccmgrMockTest042
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require: issueI6AQUQ
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest042, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest042, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->SetOsAccountControl(ptr);
@@ -1278,12 +1285,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest042, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest043
+ * @tc.name: OsAccountInnerAccmgrMockTest043
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require: issueI6AQUQ
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest043, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest043, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->SetOsAccountControl(ptr);
@@ -1304,12 +1311,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest043, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest044
+ * @tc.name: OsAccountInnerAccmgrMockTest044
  * @tc.desc: coverage test
  * @tc.type: FUNC
  * @tc.require: issueI6AQUQ
  */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest044, TestSize.Level1)
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest044, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->SetOsAccountControl(ptr);
