@@ -48,8 +48,15 @@ void DomainPluginStubModuleTest::SetUpTestCase(void)
 void DomainPluginStubModuleTest::TearDownTestCase(void)
 {}
 
-void DomainPluginStubModuleTest::SetUp(void)
+void DomainPluginStubModuleTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 {
+    testing::UnitTest *test = testing::UnitTest::GetInstance();
+    ASSERT_NE(test, nullptr);
+    const testing::TestInfo *testinfo = test->current_test_info();
+    ASSERT_NE(testinfo, nullptr);
+    string testCaseName = string(testinfo->name());
+    ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
+
     pluginServie_ = new (std::nothrow) DomainAccountPluginService(nullptr);
     ASSERT_NE(pluginServie_, nullptr);
 }

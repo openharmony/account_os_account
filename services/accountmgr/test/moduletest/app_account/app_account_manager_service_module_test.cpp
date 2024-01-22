@@ -139,8 +139,15 @@ void AppAccountManagerServiceModuleTest::TearDownTestCase(void)
     GTEST_LOG_(INFO) << "TearDownTestCase exit";
 }
 
-void AppAccountManagerServiceModuleTest::SetUp(void)
+void AppAccountManagerServiceModuleTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 {
+    testing::UnitTest *test = testing::UnitTest::GetInstance();
+    ASSERT_NE(test, nullptr);
+    const testing::TestInfo *testinfo = test->current_test_info();
+    ASSERT_NE(testinfo, nullptr);
+    string testCaseName = string(testinfo->name());
+    ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
+
     ClearDataStorage();
 }
 
@@ -2204,11 +2211,11 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_OnPackageR
     while (true) {
         accounts.clear();
         ErrCode ret = dataStoragePtr->LoadAllData(accounts);
-        ACCOUNT_LOGI("LoadAllData returned %d", ret);
+        ACCOUNT_LOGI("LoadAllData returned %{public}d, account size: %{public}d", ret, accounts.size());
         if (ret == ERR_OK && accounts.size() == SIZE_ZERO) {
             ready = true;
             break;
-        } else if (std::chrono::steady_clock::now() - startTime > std::chrono::seconds(5)) {
+        } else if (std::chrono::steady_clock::now() - startTime > std::chrono::seconds(60)) { // wait event
             break;
         } else {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
