@@ -355,6 +355,23 @@ ErrCode InnerAccountIAMManager::UpdateStorageKey(
 #endif
 }
 
+ErrCode InnerAccountIAMManager::GetLockScreenStatus(uint32_t userId, bool &lockScreenStatus)
+{
+#ifdef HAS_STORAGE_PART
+    ErrCode result = GetStorageManagerProxy();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("fail to get storage proxy");
+        return result;
+    }
+    result = storageMgrProxy_->GetLockScreenStatus(userId, lockScreenStatus);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get lock screen status");
+        return result;
+    }
+#endif
+    return ERR_OK;
+}
+
 ErrCode InnerAccountIAMManager::UnlockUserScreen(int32_t userId)
 {
 #ifdef HAS_STORAGE_PART

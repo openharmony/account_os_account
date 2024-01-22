@@ -70,6 +70,7 @@ public:
         const std::vector<uint8_t> &token, const std::vector<uint8_t> &newSecret);
     ErrCode RemoveUserKey(int32_t userId, const std::vector<uint8_t> &token);
     ErrCode UnlockUserScreen(int32_t userId);
+    ErrCode GetLockScreenStatus(uint32_t userId, bool &lockScreenStatus);
     bool CheckDomainAuthAvailable(int32_t userId);
 
 private:

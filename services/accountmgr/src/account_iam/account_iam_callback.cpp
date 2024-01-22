@@ -56,11 +56,18 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo)
         InnerDomainAccountManager::GetInstance().AuthWithToken(userId_, token);
     }
     // send msg to storage for unlock
-    ErrCode ret = InnerAccountIAMManager::GetInstance().UnlockUserScreen(userId_);
+    bool lockScreenStatus = false;
+    ErrCode ret = InnerAccountIAMManager::GetInstance().GetLockScreenStatus(userId_, lockScreenStatus);
     if (ret != 0) {
-        ACCOUNT_LOGE("failed to unlock user screen");
-        ReportOsAccountOperationFail(userId_, "unlockUserScreen", ret, "failed to send unlock msg for storage");
-        return ret;
+        ReportOsAccountOperationFail(userId_, "getLockScreenStatus", ret, "failed to get lock status msg from storage");
+    }
+    if (!lockScreenStatus) {
+        ACCOUNT_LOGI("start unlock user screen");
+        ret = InnerAccountIAMManager::GetInstance().UnlockUserScreen(userId_);
+        if (ret != 0) {
+            ReportOsAccountOperationFail(userId_, "unlockUserScreen", ret, "failed to send unlock msg for storage");
+            return ret;
+        }
     }
     if (authType_ != AuthType::PIN) {
         return ERR_OK;
