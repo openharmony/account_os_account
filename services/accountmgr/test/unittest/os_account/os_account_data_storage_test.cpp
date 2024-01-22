@@ -19,6 +19,7 @@
 #include "account_data_storage.h"
 #undef protected
 #include "account_error_no.h"
+#include "account_log_wrapper.h"
 #include "os_account_constants.h"
 #define private public
 #define protected public
@@ -57,8 +58,15 @@ void OsAccountDataStorageTest::SetUpTestCase(void)
 void OsAccountDataStorageTest::TearDownTestCase(void)
 {}
 
-void OsAccountDataStorageTest::SetUp(void)
+void OsAccountDataStorageTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 {
+    testing::UnitTest *test = testing::UnitTest::GetInstance();
+    ASSERT_NE(test, nullptr);
+    const testing::TestInfo *testinfo = test->current_test_info();
+    ASSERT_NE(testinfo, nullptr);
+    string testCaseName = string(testinfo->name());
+    ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
+
     osAccountDataStorage_ = std::make_shared<OsAccountDataStorage>("account_test", "account_test_case", false);
     OsAccountInfo osAccountInfo(INT_ID, STRING_NAME, INT_TYPE, INT_SHERIAL);
     osAccountDataStorage_->AddAccountInfo(osAccountInfo);

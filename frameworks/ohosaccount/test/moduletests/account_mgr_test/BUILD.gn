@@ -154,8 +154,10 @@ ohos_moduletest("DeviceAccountInfoModuleTest") {
 
   sources = [ "device_account_info_test.cpp" ]
 
-  include_dirs =
-      [ "${os_account_path}/interfaces/innerkits/ohosaccount/native/include/" ]
+  include_dirs = [
+    "${os_account_path}/interfaces/innerkits/ohosaccount/native/include/",
+    "${common_path}/log/include",
+  ]
 
   configs = [ "${services_path}/accountmgr/test:accountmgr_test_config" ]
 
@@ -163,6 +165,7 @@ ohos_moduletest("DeviceAccountInfoModuleTest") {
 
   external_deps = [
     "c_utils:utils",
+    "hilog:libhilog",
     "ipc:ipc_single",
     "os_account:libaccountkits",
     "samgr:samgr_proxy",

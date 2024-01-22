@@ -126,8 +126,15 @@ void DomainAccountClientModuleTest::TearDownTestCase(void)
 #endif  // ACCOUNT_TEST
 }
 
-void DomainAccountClientModuleTest::SetUp(void)
+void DomainAccountClientModuleTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 {
+    testing::UnitTest *test = testing::UnitTest::GetInstance();
+    ASSERT_NE(test, nullptr);
+    const testing::TestInfo *testinfo = test->current_test_info();
+    ASSERT_NE(testinfo, nullptr);
+    string testCaseName = string(testinfo->name());
+    ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
+
     std::vector<OsAccountInfo> osAccountInfos;
     OsAccount::GetInstance().QueryAllCreatedOsAccounts(osAccountInfos);
     for (const auto &info : osAccountInfos) {
