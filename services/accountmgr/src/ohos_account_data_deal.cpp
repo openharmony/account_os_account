@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -78,7 +78,7 @@ bool OhosAccountDataDeal::DealWithFileModifyEvent(const std::string &fileName, c
 {
     ACCOUNT_LOGI("enter");
     {
-        std::lock_guard<std::mutex> lock(accountFileOperator_->GetModifyOperationLock());
+        std::shared_lock<std::shared_timed_mutex> lock(accountFileOperator_->fileLock_);
         if (accountFileOperator_->GetValidModifyFileOperationFlag(fileName)) {
             ACCOUNT_LOGD("this is valid service operate, no need to deal with it.");
             accountFileOperator_->SetValidModifyFileOperationFlag(fileName, false);
@@ -106,7 +106,7 @@ bool OhosAccountDataDeal::DealWithFileModifyEvent(const std::string &fileName, c
 void OhosAccountDataDeal::DealWithFileDeleteEvent(const std::string &fileName, const int32_t id)
 {
     {
-        std::lock_guard<std::mutex> lock(accountFileOperator_->GetDeleteOperationLock());
+        std::shared_lock<std::shared_timed_mutex> lock(accountFileOperator_->fileLock_);
         if (accountFileOperator_->GetValidDeleteFileOperationFlag(fileName)) {
             ACCOUNT_LOGD("this is valid service operate, no need to deal with it.");
             accountFileOperator_->SetValidDeleteFileOperationFlag(fileName, false);
