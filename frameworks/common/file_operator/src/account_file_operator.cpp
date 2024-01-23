@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@
 #include <cstdio>
 #include <fstream>
 #include <nlohmann/json.hpp>
+#include <shared_mutex>
 #include <sstream>
 #include <string>
 #include <sys/file.h>
@@ -41,7 +42,7 @@ AccountFileOperator::~AccountFileOperator()
 ErrCode AccountFileOperator::CreateDir(const std::string &path)
 {
     ACCOUNT_LOGD("enter");
-
+    std::unique_lock<std::shared_timed_mutex> lock(fileLock_);
     if (!OHOS::ForceCreateDirectory(path)) {
         ACCOUNT_LOGE("failed to create %{public}s, errno %{public}d.", path.c_str(), errno);
         return ERR_OSACCOUNT_SERVICE_FILE_CREATE_DIR_ERROR;
@@ -58,13 +59,15 @@ ErrCode AccountFileOperator::CreateDir(const std::string &path)
 
 ErrCode AccountFileOperator::DeleteDirOrFile(const std::string &path)
 {
-    std::lock_guard<std::mutex> lock(validDeleteFileOperationLock_);
     bool delFlag = false;
-    SetValidDeleteFileOperationFlag(path, true);
     if (IsExistFile(path)) {
+        std::unique_lock<std::shared_timed_mutex> lock(fileLock_);
+        SetValidDeleteFileOperationFlag(path, true);
         delFlag = OHOS::RemoveFile(path);
     }
     if (IsExistDir(path)) {
+        std::unique_lock<std::shared_timed_mutex> lock(fileLock_);
+        SetValidDeleteFileOperationFlag(path, true);
         delFlag = OHOS::ForceRemoveDirectory(path);
     }
     if (!delFlag) {
@@ -75,15 +78,6 @@ ErrCode AccountFileOperator::DeleteDirOrFile(const std::string &path)
     return ERR_OK;
 }
 
-std::mutex &AccountFileOperator::GetModifyOperationLock()
-{
-    return validModifyFileOperationLock_;
-}
-
-std::mutex &AccountFileOperator::GetDeleteOperationLock()
-{
-    return validDeleteFileOperationLock_;
-}
 
 void AccountFileOperator::SetValidModifyFileOperationFlag(const std::string &fileName, bool flag)
 {
@@ -144,7 +138,7 @@ ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, 
             return errCode;
         }
     }
-    std::lock_guard<std::mutex> lock(validModifyFileOperationLock_);
+    std::unique_lock<std::shared_timed_mutex> lock(fileLock_);
     SetValidModifyFileOperationFlag(path, true);
     FILE *fp = fopen(path.c_str(), "wb");
     if (fp == nullptr) {
@@ -189,6 +183,7 @@ ErrCode AccountFileOperator::GetFileContentByPath(const std::string &path, std::
         ACCOUNT_LOGE("cannot find file, path = %{public}s", path.c_str());
         return ERR_OSACCOUNT_SERVICE_FILE_FIND_FILE_ERROR;
     }
+    std::shared_lock<std::shared_timed_mutex> lock(fileLock_);
     FILE *fp = fopen(path.c_str(), "rb");
     if (fp == nullptr) {
         ACCOUNT_LOGE("cannot open file %{public}s, errno %{public}d.", path.c_str(), errno);
@@ -232,7 +227,7 @@ bool AccountFileOperator::IsExistFile(const std::string &path)
     if (path.empty()) {
         return false;
     }
-
+    std::shared_lock<std::shared_timed_mutex> lock(fileLock_);
     struct stat buf = {};
     if (stat(path.c_str(), &buf) != 0) {
         ACCOUNT_LOGE("fail to get file stat, filepath: %{public}s", path.c_str());
@@ -244,13 +239,12 @@ bool AccountFileOperator::IsExistFile(const std::string &path)
 
 bool AccountFileOperator::IsJsonFormat(const std::string &path)
 {
-    std::ifstream fin(path);
-    if (!fin) {
+    std::string content;
+    if (GetFileContentByPath(path, content) != ERR_OK) {
         return false;
     }
 
-    nlohmann::json jsonData = nlohmann::json::parse(fin, nullptr, false);
-    fin.close();
+    nlohmann::json jsonData = nlohmann::json::parse(content, nullptr, false);
     if (!jsonData.is_structured()) {
         return false;
     }
@@ -267,7 +261,7 @@ bool AccountFileOperator::IsExistDir(const std::string &path)
     if (path.empty()) {
         return false;
     }
-
+    std::shared_lock<std::shared_timed_mutex> lock(fileLock_);
     struct stat buf = {};
     if (stat(path.c_str(), &buf) != 0) {
         return false;
