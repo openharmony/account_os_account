@@ -26,11 +26,6 @@ config("account_common_config") {
     "perf_stat/include",
     "//third_party/json/include",
     "${os_account_dfx_path}/hisysevent_adapter",
-  ]
-}
-
-config("account_common_all_dependent_configs") {
-  include_dirs = [
     "utils/include",
     "${innerkits_common}/include",
   ]
@@ -77,8 +72,6 @@ ohos_shared_library("libaccount_common") {
   }
 
   public_configs = [ ":account_common_config" ]
-
-  all_dependent_configs = [ ":account_common_all_dependent_configs" ]
 
   external_deps = [
     "access_token:libaccesstoken_sdk",

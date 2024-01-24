@@ -30,7 +30,6 @@ ohos_unittest("account_command_create_test") {
   include_dirs = []
 
   sources = [
-    "${ability_runtime_path}/tools/aa/src/shell_command.cpp",
     "${tools_path}/acm/src/account_command.cpp",
     "account_command_create_test.cpp",
   ]
@@ -51,6 +50,7 @@ ohos_unittest("account_command_create_test") {
   ]
 
   external_deps = [
+    "ability_runtime:tools_aa_source_set",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
@@ -72,7 +72,6 @@ ohos_unittest("account_command_delete_test") {
   include_dirs = []
 
   sources = [
-    "${ability_runtime_path}/tools/aa/src/shell_command.cpp",
     "${tools_path}/acm/src/account_command.cpp",
     "account_command_delete_test.cpp",
   ]
@@ -93,6 +92,7 @@ ohos_unittest("account_command_delete_test") {
   ]
 
   external_deps = [
+    "ability_runtime:tools_aa_source_set",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
@@ -114,7 +114,6 @@ ohos_unittest("account_command_dump_test") {
   include_dirs = []
 
   sources = [
-    "${ability_runtime_path}/tools/aa/src/shell_command.cpp",
     "${tools_path}/acm/src/account_command.cpp",
     "account_command_dump_test.cpp",
   ]
@@ -135,6 +134,7 @@ ohos_unittest("account_command_dump_test") {
   ]
 
   external_deps = [
+    "ability_runtime:tools_aa_source_set",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
@@ -156,7 +156,6 @@ ohos_unittest("account_command_set_test") {
   include_dirs = []
 
   sources = [
-    "${ability_runtime_path}/tools/aa/src/shell_command.cpp",
     "${tools_path}/acm/src/account_command.cpp",
     "account_command_set_test.cpp",
   ]
@@ -177,6 +176,7 @@ ohos_unittest("account_command_set_test") {
   ]
 
   external_deps = [
+    "ability_runtime:tools_aa_source_set",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
@@ -198,7 +198,6 @@ ohos_unittest("account_command_switch_test") {
   include_dirs = []
 
   sources = [
-    "${ability_runtime_path}/tools/aa/src/shell_command.cpp",
     "${tools_path}/acm/src/account_command.cpp",
     "account_command_switch_test.cpp",
   ]
@@ -219,6 +218,7 @@ ohos_unittest("account_command_switch_test") {
   ]
 
   external_deps = [
+    "ability_runtime:tools_aa_source_set",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
@@ -240,7 +240,6 @@ ohos_unittest("account_command_test") {
   include_dirs = []
 
   sources = [
-    "${ability_runtime_path}/tools/aa/src/shell_command.cpp",
     "${tools_path}/acm/src/account_command.cpp",
     "account_command_test.cpp",
   ]
@@ -262,6 +261,7 @@ ohos_unittest("account_command_test") {
   ]
 
   external_deps = [
+    "ability_runtime:tools_aa_source_set",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
