@@ -14,6 +14,7 @@
 1.0 {
   global:
     extern "C++" {
+        "VTT for OHOS::AccountSA::DomainAccountInfo";
         "VTT for OHOS::AccountSA::OsAccountInfo";
         "VTT for OHOS::AccountSA::OsAccountSubscribeInfo";
         "VTT for OHOS::AccountSA::CreateOsAccountOptions";
