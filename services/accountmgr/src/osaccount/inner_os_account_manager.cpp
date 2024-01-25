@@ -1448,15 +1448,11 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR;
     }
 
-    // activate
-    subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
     errCode = SendMsgForAccountActivate(osAccountInfo);
+    RemoveLocalIdToOperating(id);
     if (errCode != ERR_OK) {
-        RemoveLocalIdToOperating(id);
         return errCode;
     }
-    RemoveLocalIdToOperating(id);
-    subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED);
 
     DomainAccountInfo domainInfo;
     osAccountInfo.GetDomainInfo(domainInfo);
@@ -1540,16 +1536,19 @@ void IInnerOsAccountManager::WatchStartUser(std::int32_t id)
 
 ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccountInfo)
 {
+    // activate
+    int localId = osAccountInfo.GetLocalId();
+    subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
     ErrCode errCode = OsAccountInterface::SendToStorageAccountStart(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("account %{public}d call storage active failed, errCode %{public}d.",
-            osAccountInfo.GetLocalId(), errCode);
+            localId, errCode);
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
     errCode = OsAccountInterface::SendToAMSAccountStart(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("account %{public}d call ams active failed, errCode %{public}d.",
-            osAccountInfo.GetLocalId(), errCode);
+            localId, errCode);
         return errCode;
     }
     // update info
@@ -1560,13 +1559,13 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("update %{public}d account info failed, errCode %{public}d.",
-            osAccountInfo.GetLocalId(), errCode);
+            localId, errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
-    RefreshActiveList(osAccountInfo.GetLocalId());
+    RefreshActiveList(localId);
     SetParameter(ACCOUNT_READY_EVENT.c_str(), "true");
     OsAccountInterface::SendToCESAccountSwitched(osAccountInfo);
-    subscribeManager_.Publish(osAccountInfo.GetLocalId(), OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED);
+    subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED);
     ACCOUNT_LOGI("SendMsgForAccountActivate ok");
     return errCode;
 }
