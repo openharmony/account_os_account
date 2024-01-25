@@ -77,8 +77,10 @@ const std::int32_t MAIN_ACCOUNT_ID = 100;
 const std::int32_t INVALID_ID = 200;
 const std::uint32_t MAX_WAIT_FOR_READY_CNT = 10;
 const std::int32_t DEFAULT_API_VERSION = 8;
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 const uid_t ACCOUNT_UID = 3058;
 const gid_t ACCOUNT_GID = 3058;
+#endif
 
 const std::vector<std::string> CONSTANTS_VECTOR {
     "constraint.print",
@@ -291,6 +293,12 @@ void OsAccountManagerModuleTest::SetUp(void) __attribute__((no_sanitize("cfi")))
     ASSERT_NE(testinfo, nullptr);
     string testCaseName = string(testinfo->name());
     ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
+
+    std::vector<OsAccountInfo> osAccountInfos;
+    EXPECT_EQ(OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos), ERR_OK);
+    for (const auto &info : osAccountInfos) {
+        OsAccountManager::RemoveOsAccount(info.GetLocalId());
+    }
 }
 
 void OsAccountManagerModuleTest::TearDown(void)

@@ -64,8 +64,17 @@ ohos_moduletest("os_account_frameworks_module_test") {
     "samgr:samgr_proxy",
   ]
   cflags_cc = []
+  cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
   if (os_account_support_deactivate_main_os_account) {
     cflags_cc += [ "-DSUPPROT_STOP_MAIN_OS_ACCOUNT" ]
+  }
+  if (has_user_auth_part) {
+    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
+    external_deps += [ "user_auth_framework:userauth_client" ]
+  }
+  if (has_ces_part) {
+    cflags_cc += [ "-DHAS_CES_PART" ]
+    external_deps += [ "common_event_service:cesfwk_innerkits" ]
   }
 }
 
@@ -234,5 +243,8 @@ ohos_moduletest("os_account_manager_no_bms_mock_test") {
 group("moduletest") {
   testonly = true
 
-  deps = [ ":os_account_frameworks_module_mock_test" ]
+  deps = [
+    ":os_account_frameworks_module_mock_test",
+    ":os_account_frameworks_module_test",
+  ]
 }
