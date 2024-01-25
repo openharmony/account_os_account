@@ -49,7 +49,10 @@ ohos_unittest("os_account_info_test") {
 
   sources = [ "os_account_info_test.cpp" ]
 
-  configs = [ ":os_account_service_config_unittest" ]
+  configs = [
+    ":os_account_service_config_unittest",
+    "${account_coverage_config_path}:coverage_flags",
+  ]
 
   deps = [
     "${common_path}:libaccount_common",
@@ -78,7 +81,10 @@ ohos_unittest("os_account_subscribe_info_test") {
 
   sources = [ "os_account_subscribe_info_test.cpp" ]
 
-  configs = [ ":os_account_service_config_unittest" ]
+  configs = [
+    ":os_account_service_config_unittest",
+    "${account_coverage_config_path}:coverage_flags",
+  ]
 
   deps = [
     "${common_path}:libaccount_common",
