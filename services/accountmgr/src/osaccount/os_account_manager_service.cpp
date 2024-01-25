@@ -34,7 +34,7 @@ const std::map<OsAccountType, std::string> DUMP_TYPE_MAP = {
 const std::string CONSTANT_CREATE = "constraint.os.account.create";
 const std::string CONSTANT_CREATE_DIRECTLY = "constraint.os.account.create.directly";
 const std::string CONSTANT_REMOVE = "constraint.os.account.remove";
-const std::string CONSTANT_START = "constraint.os.account.start";
+const std::string CONSTANT_ACTIVATE = "constraint.os.account.activate";
 const std::string CONSTANT_SET_ICON = "constraint.os.account.set.icon";
 #ifndef IS_RELEASE_VERSION
 const std::int32_t ROOT_UID = 0;
@@ -519,7 +519,7 @@ ErrCode OsAccountManagerService::ActivateOsAccount(const int id)
     }
 
     // permission check
-    if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, CONSTANT_START)) {
+    if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, CONSTANT_ACTIVATE)) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
