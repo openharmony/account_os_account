@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -41,6 +41,39 @@ ohos_unittest("OsAccountControlFileManagerTest") {
   module_out_path = module_output_path
 
   sources = [ "os_account_control_file_manager_test.cpp" ]
+  configs = [
+    ":os_account_control_file_manager_test_config",
+    "${services_path}/accountmgr/test:accountmgr_test_config",
+  ]
+  deps = [
+    "${common_path}:libaccount_common",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${services_path}/accountmgr:accountmgr",
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "init:libbegetutil",
+    "kv_store:distributeddata_inner",
+  ]
+  part_name = "os_account"
+}
+
+ohos_unittest("OsAccountFileManagerMultipleThreadTest") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  module_out_path = module_output_path
+
+  sources = [ "os_account_file_manager_multiple_thread_test.cpp" ]
   configs = [
     ":os_account_control_file_manager_test_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
@@ -434,6 +467,7 @@ group("unittest") {
 
   deps = [
     ":OsAccountControlFileManagerTest",
+    ":OsAccountFileManagerMultipleThreadTest",
     ":OsAccountInnerAccmgrBundleAdapterMockTest",
     ":OsAccountInnerAccmgrCovTest",
     ":OsAccountSubscribeDeathRecipientTest",

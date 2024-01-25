@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_FILE_OPERATOR_H
 
 #include <mutex>
+#include <shared_mutex>
 #include <string>
 #include <vector>
 
@@ -41,12 +42,11 @@ public:
     void SetValidDeleteFileOperationFlag(const std::string &fileName, bool flag);
     bool GetValidModifyFileOperationFlag(const std::string &fileName);
     void SetValidModifyFileOperationFlag(const std::string &fileName, bool flag);
-    std::mutex &GetModifyOperationLock();
-    std::mutex &GetDeleteOperationLock();
+
+public:
+    mutable std::shared_timed_mutex fileLock_;
 
 private:
-    std::mutex validModifyFileOperationLock_;
-    std::mutex validDeleteFileOperationLock_;
     std::vector<std::string> validModifyFileOperationFlag_;
     std::vector<std::string> validDeleteFileOperationFlag_;
 };
