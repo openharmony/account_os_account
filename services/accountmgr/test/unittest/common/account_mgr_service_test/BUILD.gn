@@ -59,6 +59,7 @@ ohos_unittest("account_mgr_test") {
     ":bundle_manager_config",
     "${services_path}/accountmgr:accountmgr_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
+    "${account_coverage_config_path}:coverage_flags",
   ]
   deps = [
     "${common_path}:libaccount_common",
@@ -146,6 +147,7 @@ ohos_unittest("account_stub_test") {
     "${services_path}/accountmgr:bundle_manager_config",
     "${services_path}/accountmgr:accountmgr_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
+    "${account_coverage_config_path}:coverage_flags",
   ]
   deps = [
     "${common_path}:libaccount_common",

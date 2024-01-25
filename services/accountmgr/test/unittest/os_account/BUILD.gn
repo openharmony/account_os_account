@@ -44,6 +44,7 @@ ohos_unittest("OsAccountControlFileManagerTest") {
   configs = [
     ":os_account_control_file_manager_test_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
+    "${account_coverage_config_path}:coverage_flags",
   ]
   deps = [
     "${common_path}:libaccount_common",
@@ -77,6 +78,7 @@ ohos_unittest("OsAccountFileManagerMultipleThreadTest") {
   configs = [
     ":os_account_control_file_manager_test_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
+    "${account_coverage_config_path}:coverage_flags",
   ]
   deps = [
     "${common_path}:libaccount_common",
@@ -125,6 +127,7 @@ ohos_unittest("OsAccountDataStorageTest") {
   configs = [
     ":os_account_data_storage_test_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
+    "${account_coverage_config_path}:coverage_flags",
   ]
 
   deps = [
@@ -161,6 +164,7 @@ ohos_unittest("os_account_domain_account_callback_test") {
   configs = [
     ":os_account_data_storage_test_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
+    "${account_coverage_config_path}:coverage_flags",
   ]
 
   deps = [
@@ -215,6 +219,7 @@ ohos_unittest("OsAccountSubscribeDeathRecipientTest") {
     ":os_account_subscribe_death_recipient_test_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
     "${services_path}/accountmgr/:ability_manager_config",
+    "${account_coverage_config_path}:coverage_flags",
   ]
 
   deps = [
@@ -271,6 +276,7 @@ ohos_unittest("OsAccountInnerAccmgrCovTest") {
     ":os_account_amgr_test_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
     "${services_path}/accountmgr/:ability_manager_config",
+    "${account_coverage_config_path}:coverage_flags",
   ]
 
   deps = [
@@ -335,6 +341,7 @@ ohos_unittest("OsAccountInnerAccmgrMockTest") {
     ":os_account_amgr_mock_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
     "${services_path}/accountmgr/:ability_manager_config",
+    "${account_coverage_config_path}:coverage_flags",
   ]
 
   deps = [
@@ -412,6 +419,7 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     ":os_account_amgr_mock_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
     "${services_path}/accountmgr/:ability_manager_config",
+    "${account_coverage_config_path}:coverage_flags",
   ]
 
   deps = [
