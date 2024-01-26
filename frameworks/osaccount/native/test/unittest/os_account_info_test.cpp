@@ -658,6 +658,7 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount01, TestSize.Level1)
     OsAccountManager::RemoveOsAccount(osAccountInfoTwo.GetLocalId());
 #endif  // ENABLE_ACCOUNT_SHORT_NAME
     EXPECT_EQ(ERR_OK, OsAccountManager::SetOsAccountName(osAccountInfoOne.GetLocalId(), "updateName"));
+    osAccountInfoOne.SetShortName("123");
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
 }
 
