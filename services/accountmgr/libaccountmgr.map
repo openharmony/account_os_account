@@ -172,6 +172,8 @@
         "OHOS::AccountSA::InnerAppAccountManager::InnerAppAccountManager()";
         "OHOS::AccountSA::InnerAppAccountManager::OnPackageRemoved(unsigned int const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int const&)";
         "OHOS::AccountSA::InnerAppAccountManager::OnUserRemoved(int)";
+        "OHOS::AccountSA::IInnerOsAccountManager::CheckAndRefreshLocalIdRecord(int)";
+        "OHOS::AccountSA::IInnerOsAccountManager::ValidateShortName(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::InnerAppAccountManager::SelectAccountsByOptions(OHOS::AccountSA::SelectAccountsOptions const&, OHOS::sptr<OHOS::AccountSA::IAppAccountAuthenticatorCallback> const&, unsigned int const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int const&)";
         "OHOS::AccountSA::InnerAppAccountManager::SetAccountCredential(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::AppAccountCallingInfo const&)";
         "OHOS::AccountSA::InnerAppAccountManager::SetAccountExtraInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int const&)";
