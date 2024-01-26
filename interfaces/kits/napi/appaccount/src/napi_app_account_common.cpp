@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -106,7 +106,13 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AppAccountInfo> &account
 
     work->data = reinterpret_cast<void *>(subscriberAccountsWorker);
 
-    uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnAppAccountsChanged, uv_qos_default);
+    int32_t ret =
+        uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnAppAccountsChanged, uv_qos_default);
+    if (ret != 0) {
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", ret);
+        delete work;
+        delete subscriberAccountsWorker;
+    }
 }
 
 void SubscriberPtr::SetEnv(const napi_env &env)
@@ -287,7 +293,12 @@ void AppAccountManagerCallback::OnResult(int32_t resultCode, const AAFwk::Want &
     param->result = result;
     param->callback = callback_;
     work->data = reinterpret_cast<void *>(param);
-    uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnResult, uv_qos_default);
+    int32_t ret = uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnResult, uv_qos_default);
+    if (ret != 0) {
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", ret);
+        delete work;
+        delete param;
+    }
 }
 
 void AppAccountManagerCallback::OnRequestRedirected(AAFwk::Want &request)
@@ -302,7 +313,13 @@ void AppAccountManagerCallback::OnRequestRedirected(AAFwk::Want &request)
     param->request = request;
     param->callback = callback_;
     work->data = reinterpret_cast<void *>(param);
-    uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnRequestRedirected, uv_qos_default);
+    int32_t ret =
+        uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnRequestRedirected, uv_qos_default);
+    if (ret != 0) {
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", ret);
+        delete work;
+        delete param;
+    }
 }
 
 void AppAccountManagerCallback::OnRequestContinued()
@@ -316,7 +333,13 @@ void AppAccountManagerCallback::OnRequestContinued()
     }
     param->callback = callback_;
     work->data = reinterpret_cast<void *>(param);
-    uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnRequestContinued, uv_qos_default);
+    int32_t ret =
+        uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnRequestContinued, uv_qos_default);
+    if (ret != 0) {
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", ret);
+        delete work;
+        delete param;
+    }
 }
 
 bool InitAuthenticatorWorkEnv(napi_env env, uv_loop_s **loop, uv_work_t **work,
