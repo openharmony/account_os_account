@@ -227,6 +227,8 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest008, 
     int errCode = innerMgrService_->CreateOsAccount(ACCOUNT_NAME, OsAccountType::NORMAL, osAccountInfo);
     subscriberPtr->localId_ = osAccountInfo.GetLocalId();
     ASSERT_EQ(errCode, ERR_OK);
+    errCode = innerMgrService_->SendMsgForAccountDeactivate(osAccountInfo);
+    EXPECT_NE(errCode, ERR_OK);
     int localID = osAccountInfo.GetLocalId();
     errCode = innerMgrService_->SetOsAccountName(localID, ACCOUNT_SET_NAME);
     ASSERT_EQ(errCode, ERR_OK);
