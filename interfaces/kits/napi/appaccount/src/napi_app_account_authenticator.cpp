@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -129,8 +129,13 @@ ErrCode NapiAppAccountAuthenticator::AddAccountImplicitly(
     param->options = options;
     param->callback = callback;
     work->data = reinterpret_cast<void *>(param);
-    uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, AddAccountImplicitlyWork, uv_qos_default);
-    return ERR_OK;
+    int32_t ret = uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, AddAccountImplicitlyWork, uv_qos_default);
+    if (ret != 0) {
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", ret);
+        delete work;
+        delete param;
+    }
+    return ret;
 }
 
 ErrCode NapiAppAccountAuthenticator::Authenticate(const std::string &name, const std::string &authType,
@@ -152,8 +157,13 @@ ErrCode NapiAppAccountAuthenticator::Authenticate(const std::string &name, const
     param->options = options;
     param->callback = callback;
     work->data = reinterpret_cast<void *>(param);
-    uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, AuthenticateWork, uv_qos_user_initiated);
-    return ERR_OK;
+    int32_t ret = uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, AuthenticateWork, uv_qos_default);
+    if (ret != 0) {
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", ret);
+        delete work;
+        delete param;
+    }
+    return ret;
 }
 
 ErrCode NapiAppAccountAuthenticator::CreateAccountImplicitly(
@@ -173,8 +183,14 @@ ErrCode NapiAppAccountAuthenticator::CreateAccountImplicitly(
     param->createOptions = options;
     param->callback = callback;
     work->data = reinterpret_cast<void *>(param);
-    uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, CreateAccountImplicitlyWork, uv_qos_default);
-    return ERR_OK;
+    int32_t ret =
+        uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, CreateAccountImplicitlyWork, uv_qos_default);
+    if (ret != 0) {
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", ret);
+        delete work;
+        delete param;
+    }
+    return ret;
 }
 
 ErrCode NapiAppAccountAuthenticator::Auth(const std::string &name, const std::string &authType,
@@ -195,8 +211,13 @@ ErrCode NapiAppAccountAuthenticator::Auth(const std::string &name, const std::st
     param->options = options;
     param->callback = callback;
     work->data = reinterpret_cast<void *>(param);
-    uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, AuthWork, uv_qos_user_initiated);
-    return ERR_OK;
+    int32_t ret = uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, AuthWork, uv_qos_default);
+    if (ret != 0) {
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", ret);
+        delete work;
+        delete param;
+    }
+    return ret;
 }
 
 ErrCode NapiAppAccountAuthenticator::VerifyCredential(
@@ -216,8 +237,13 @@ ErrCode NapiAppAccountAuthenticator::VerifyCredential(
     param->name = name;
     param->callback = callback;
     work->data = reinterpret_cast<void *>(param);
-    uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, VerifyCredentialWork, uv_qos_default);
-    return ERR_OK;
+    int32_t ret = uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, VerifyCredentialWork, uv_qos_default);
+    if (ret != 0) {
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", ret);
+        delete work;
+        delete param;
+    }
+    return ret;
 }
 
 ErrCode NapiAppAccountAuthenticator::SetProperties(
@@ -236,8 +262,13 @@ ErrCode NapiAppAccountAuthenticator::SetProperties(
     param->setPropOptions = options;
     param->callback = callback;
     work->data = reinterpret_cast<void *>(param);
-    uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, SetPropertiesWork, uv_qos_default);
-    return ERR_OK;
+    int32_t ret = uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, SetPropertiesWork, uv_qos_default);
+    if (ret != 0) {
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", ret);
+        delete work;
+        delete param;
+    }
+    return ret;
 }
 
 ErrCode NapiAppAccountAuthenticator::CheckAccountLabels(
@@ -257,8 +288,13 @@ ErrCode NapiAppAccountAuthenticator::CheckAccountLabels(
     param->name = name;
     param->callback = callback;
     work->data = reinterpret_cast<void *>(param);
-    uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, CheckAccountLabelsWork, uv_qos_default);
-    return ERR_OK;
+    int32_t ret = uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, CheckAccountLabelsWork, uv_qos_default);
+    if (ret != 0) {
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", ret);
+        delete work;
+        delete param;
+    }
+    return ret;
 }
 
 ErrCode NapiAppAccountAuthenticator::IsAccountRemovable(const std::string &name, const sptr<IRemoteObject> &callback)
@@ -276,8 +312,13 @@ ErrCode NapiAppAccountAuthenticator::IsAccountRemovable(const std::string &name,
     param->name = name;
     param->callback = callback;
     work->data = reinterpret_cast<void *>(param);
-    uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, IsAccountRemovableWork, uv_qos_default);
-    return ERR_OK;
+    int32_t ret = uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, IsAccountRemovableWork, uv_qos_default);
+    if (ret != 0) {
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", ret);
+        delete work;
+        delete param;
+    }
+    return ret;
 }
 
 napi_value NapiAppAccountAuthenticator::CreateAuthenticatorCallback(
