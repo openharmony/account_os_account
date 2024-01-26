@@ -754,6 +754,8 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest026, TestSize.Lev
     EXPECT_EQ(OsAccountManager::GetOsAccountAllConstraints(Constants::START_USER_ID, constraints), ERR_OK);
     const unsigned int size = 0;
     EXPECT_NE(size, constraints.size());
+    constraints.clear();
+    EXPECT_NE(OsAccountManager::GetOsAccountAllConstraints(199, constraints), ERR_OK);
 }
 
 /**
@@ -1634,10 +1636,12 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest072, TestSize.Lev
     std::vector<ConstraintSourceTypeInfo> constraintSourceTypeInfos;
     EXPECT_EQ(OsAccountManager::QueryOsAccountConstraintSourceTypes(
         MAIN_ACCOUNT_ID, CONSTANT_PRINT, constraintSourceTypeInfos), ERR_OK);
-    ACCOUNT_LOGI("OsAccountManagerModuleTest072 constraintSourceTypeInfos.size %{public}zu",
-        constraintSourceTypeInfos.size());
+
     EXPECT_EQ(constraintSourceTypeInfos[0].typeInfo, 2);
     ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    constraintSourceTypeInfos.clear();
+    EXPECT_NE(OsAccountManager::QueryOsAccountConstraintSourceTypes(
+        999, CONSTANT_PRINT, constraintSourceTypeInfos), ERR_OK);
     EXPECT_EQ(
         OsAccountManager::IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isEnable),
         ERR_OK);

@@ -34,6 +34,8 @@ public:
     static void TearDownTestCase(void);
     void SetUp(void);
     void TearDown(void);
+
+    IInnerOsAccountManager *innerMgrService_ = &IInnerOsAccountManager::GetInstance();
 };
 
 void IInnerOsAccountManagerTest::SetUpTestCase(void)
@@ -64,7 +66,7 @@ void IInnerOsAccountManagerTest::TearDown(void)
 HWTEST_F(IInnerOsAccountManagerTest, SendMsgForAccountStop001, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
-    ErrCode ret = IInnerOsAccountManager::GetInstance().SendMsgForAccountStop(osAccountInfo);
+    ErrCode ret = innerMgrService_->SendMsgForAccountStop(osAccountInfo);
     EXPECT_NE(ret, ERR_OK);
 }
 
@@ -77,7 +79,7 @@ HWTEST_F(IInnerOsAccountManagerTest, SendMsgForAccountStop001, TestSize.Level1)
 HWTEST_F(IInnerOsAccountManagerTest, SendMsgForAccountRemove001, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
-    ErrCode ret = IInnerOsAccountManager::GetInstance().SendMsgForAccountRemove(osAccountInfo);
+    ErrCode ret = innerMgrService_->SendMsgForAccountRemove(osAccountInfo);
     EXPECT_NE(ret, ERR_OK);
 }
 
@@ -90,7 +92,7 @@ HWTEST_F(IInnerOsAccountManagerTest, SendMsgForAccountRemove001, TestSize.Level1
 HWTEST_F(IInnerOsAccountManagerTest, SendMsgForAccountActivate001, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
-    ErrCode ret = IInnerOsAccountManager::GetInstance().SendMsgForAccountActivate(osAccountInfo);
+    ErrCode ret = innerMgrService_->SendMsgForAccountActivate(osAccountInfo);
     EXPECT_NE(ret, ERR_OK);
 }
 
@@ -106,8 +108,52 @@ HWTEST_F(IInnerOsAccountManagerTest, SubscribeOsAccount001, TestSize.Level1)
     const sptr<IRemoteObject> eventListener = nullptr;
 
     OsAccountInfo osAccountInfo;
-    ErrCode ret = IInnerOsAccountManager::GetInstance().SubscribeOsAccount(subscribeInfo, eventListener);
+    ErrCode ret = innerMgrService_->SubscribeOsAccount(subscribeInfo, eventListener);
     EXPECT_NE(ret, ERR_OK);
 }
+
+/**
+ * @tc.name: AccountDeactivate001
+ * @tc.desc: coverage SendMsgForAccountDeactivate
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(IInnerOsAccountManagerTest, AccountDeactivate001, TestSize.Level1)
+{
+    std::string shortName;
+    ErrCode ret = innerMgrService_->GetOsAccountShortName(199, shortName);
+    EXPECT_NE(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: AccountDeactivate001
+ * @tc.desc: coverage SendMsgForAccountDeactivate
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(IInnerOsAccountManagerTest, InnerOsAccountManagerTest001, TestSize.Level1)
+{
+    ErrCode ret = innerMgrService_->ValidateShortName("sdfgse*");
+    EXPECT_NE(ret, ERR_OK);
+    ret = innerMgrService_->ValidateShortName("..");
+    EXPECT_NE(ret, ERR_OK);
+    ret = innerMgrService_->ValidateShortName("");
+    EXPECT_NE(ret, ERR_OK);
+    ret = innerMgrService_->ValidateShortName("asdfgtr");
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: AccountDeactivate001
+ * @tc.desc: coverage SendMsgForAccountDeactivate
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(IInnerOsAccountManagerTest, InnerOsAccountManagerTest002, TestSize.Level1)
+{
+    innerMgrService_->CheckAndRefreshLocalIdRecord(100);
+    innerMgrService_->CheckAndRefreshLocalIdRecord(199);
+}
+
 }  // namespace AccountSA
 }  // namespace OHOS
