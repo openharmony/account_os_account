@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1423,21 +1423,24 @@ void SubscriberPtr::OnAccountsChanged(const int &id)
         ACCOUNT_LOGE("insufficient memory for work!");
         return;
     }
-
     SubscriberOAWorker *subscriberOAWorker = new (std::nothrow) SubscriberOAWorker();
-
     if (subscriberOAWorker == nullptr) {
         ACCOUNT_LOGE("insufficient memory for SubscriberAccountsWorker!");
         delete work;
         return;
     }
-
     subscriberOAWorker->id = id;
     subscriberOAWorker->env = env_;
     subscriberOAWorker->ref = ref_;
     subscriberOAWorker->subscriber = this;
     work->data = reinterpret_cast<void *>(subscriberOAWorker);
-    uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnAccountsChanged, uv_qos_default);
+    int32_t ret =
+        uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnAccountsChanged, uv_qos_default);
+    if (ret != 0) {
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", ret);
+        delete work;
+        delete subscriberOAWorker;
+    }
 }
 
 void UvQueueWorkOnAccountsChanged(uv_work_t *work, int status)
