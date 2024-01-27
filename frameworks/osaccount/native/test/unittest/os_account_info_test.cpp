@@ -662,6 +662,19 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount01, TestSize.Level1)
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
 }
 
+/**
+ * @tc.name: SetCredentialId01
+ * @tc.desc: Test SetCredentialId
+ * @tc.type: FUNC
+ * @tc.require: issueI8ZEEN
+ */
+HWTEST_F(OsAccountInfoTest, SetCredentialId01, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetCredentialId(0);
+    EXPECT_EQ(osAccountInfo.GetCredentialId(), 0);
+}
+
 #ifdef ENABLE_ACCOUNT_SHORT_NAME
 /**
  * @tc.name: CreateOsAccount02
