@@ -638,6 +638,24 @@ HWTEST_F(OsAccountInfoTest, GetOsAccountShortName001, TestSize.Level1)
     std::string shortName;
     EXPECT_EQ(ERR_OK, OsAccountManager::GetOsAccountShortName(shortName));
 }
+/**
+ * @tc.name: CreateOsAccount00
+ * @tc.desc: create os account with short name
+ * @tc.type: FUNC
+ * @tc.require: I8F2PI
+ */
+HWTEST_F(OsAccountInfoTest, CreateOsAccount00, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfoOne;
+    OsAccountInfo osAccountInfoTwo;
+    EXPECT_EQ(ERR_OK,
+        OsAccountManager::CreateOsAccount(STRING_NAME, "shortName", OsAccountType::NORMAL, osAccountInfoOne));
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED,
+        OsAccountManager::CreateOsAccount(STRING_NAME, STRING_NAME, OsAccountType::NORMAL, osAccountInfoTwo));
+    OsAccountManager::RemoveOsAccount(osAccountInfoTwo.GetLocalId());
+    EXPECT_EQ(ERR_OK, OsAccountManager::SetOsAccountName(osAccountInfoOne.GetLocalId(), "updateName"));
+    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
+}
 
 /**
  * @tc.name: CreateOsAccount01
@@ -658,7 +676,8 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount01, TestSize.Level1)
     OsAccountManager::RemoveOsAccount(osAccountInfoTwo.GetLocalId());
 #endif  // ENABLE_ACCOUNT_SHORT_NAME
     EXPECT_EQ(ERR_OK, OsAccountManager::SetOsAccountName(osAccountInfoOne.GetLocalId(), "updateName"));
-    osAccountInfoOne.SetShortName("123");
+    osAccountInfoOne.SetShortName(STRING_NAME);
+    osAccountInfoOne.SetCredentialId(123);
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
 }
 
