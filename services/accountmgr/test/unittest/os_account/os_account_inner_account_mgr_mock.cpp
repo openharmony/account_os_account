@@ -1051,8 +1051,9 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest033, TestSize
     EXPECT_CALL(*ptr, GetOsAccountList(::testing::_))
         .WillRepeatedly(testing::Return(0));
 
+    (void)setuid(ACCOUNT_UID);
     innerMgrService_->StartAccount();
-
+    (void)setuid(0);
     EXPECT_CALL(*ptr, GetOsAccountInfoById(_, _))
         .WillRepeatedly(DoAll(testing::SetArgReferee<1>(osAccountInfo), testing::Return(0)));
     innerMgrService_->StartAccount();

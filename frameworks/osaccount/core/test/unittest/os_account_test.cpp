@@ -120,6 +120,7 @@ HWTEST_F(OsAccountTest, OsAccountTest001, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
     ErrCode errCode = g_osAccount->CreateOsAccount(STRING_NAME_OUT_OF_RANGE, OsAccountType::GUEST, osAccountInfo);
+    osAccountInfo.SetShortName("shortName");
     EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
