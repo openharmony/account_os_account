@@ -126,8 +126,8 @@ HWTEST_F(IInnerOsAccountManagerTest, AccountDeactivate001, TestSize.Level1)
 }
 
 /**
- * @tc.name: AccountDeactivate001
- * @tc.desc: coverage SendMsgForAccountDeactivate
+ * @tc.name: InnerOsAccountManagerTest001
+ * @tc.desc: coverage ValidateShortName
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -144,8 +144,8 @@ HWTEST_F(IInnerOsAccountManagerTest, InnerOsAccountManagerTest001, TestSize.Leve
 }
 
 /**
- * @tc.name: AccountDeactivate001
- * @tc.desc: coverage SendMsgForAccountDeactivate
+ * @tc.name: InnerOsAccountManagerTest002
+ * @tc.desc: coverage CheckAndRefreshLocalIdRecord
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -153,6 +153,20 @@ HWTEST_F(IInnerOsAccountManagerTest, InnerOsAccountManagerTest002, TestSize.Leve
 {
     innerMgrService_->CheckAndRefreshLocalIdRecord(100);
     innerMgrService_->CheckAndRefreshLocalIdRecord(199);
+}
+
+/**
+ * @tc.name: InnerOsAccountManagerTest003
+ * @tc.desc: coverage SendMsgForAccountDeactivate
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(IInnerOsAccountManagerTest, InnerOsAccountManagerTest003, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    ErrCode ret = innerMgrService_->CreateOsAccount("InnerOsAccountManager003", OsAccountType::NORMAL, osAccountInfo);
+    EXPECT_NE(ret, ERR_OK);
+    innerMgrService_->RemoveOsAccount(osAccountInfo.GetLocalId());
 }
 
 }  // namespace AccountSA
