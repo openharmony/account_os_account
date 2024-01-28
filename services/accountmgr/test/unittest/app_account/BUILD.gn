@@ -60,6 +60,7 @@ ohos_unittest("app_account_data_storage_test") {
   configs = [
     ":app_account_service_config_mock",
     ":app_account_service_config_unittest",
+    "${account_coverage_config_path}:coverage_flags",
   ]
 
   deps = [
@@ -103,7 +104,10 @@ ohos_unittest("app_account_info_test") {
 
   sources = [ "app_account_info_test.cpp" ]
 
-  configs = [ ":app_account_service_config_unittest" ]
+  configs = [
+    ":app_account_service_config_unittest",
+    "${account_coverage_config_path}:coverage_flags",
+  ]
 
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
@@ -140,6 +144,7 @@ ohos_unittest("app_account_manager_service_test") {
   configs = [
     ":app_account_service_config_mock",
     ":app_account_service_config_unittest",
+    "${account_coverage_config_path}:coverage_flags",
   ]
 
   deps = [
@@ -191,6 +196,7 @@ ohos_unittest("app_account_stub_test") {
   configs = [
     ":app_account_service_config_mock",
     ":app_account_service_config_unittest",
+    "${account_coverage_config_path}:coverage_flags",
   ]
 
   deps = [
@@ -236,7 +242,10 @@ ohos_unittest("app_account_subscribe_info_test") {
 
   sources = [ "app_account_subscribe_info_test.cpp" ]
 
-  configs = [ ":app_account_service_config_unittest" ]
+  configs = [
+    ":app_account_service_config_unittest",
+    "${account_coverage_config_path}:coverage_flags",
+  ]
 
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
@@ -270,6 +279,7 @@ ohos_unittest("app_account_test") {
   configs = [
     ":app_account_service_config_mock",
     ":app_account_service_config_unittest",
+    "${account_coverage_config_path}:coverage_flags",
   ]
 
   deps = [

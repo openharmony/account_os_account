@@ -54,6 +54,7 @@ ohos_unittest("AccountEventProviderTest") {
   configs = [
     ":accountmgr_event_provider_test_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
+    "${account_coverage_config_path}:coverage_flags",
   ]
 
   deps = [

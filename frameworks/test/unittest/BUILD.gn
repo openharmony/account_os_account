@@ -63,7 +63,10 @@ ohos_unittest("account_proxy_mock_test") {
     "mock/iservice_registry.cpp",
   ]
 
-  configs = [ ":account_proxy_mock_config_unittest" ]
+  configs = [
+    ":account_proxy_mock_config_unittest",
+    "${account_coverage_config_path}:coverage_flags",
+  ]
 
   deps = [
     "${account_iam_framework_path}:account_iam_innerkits",
