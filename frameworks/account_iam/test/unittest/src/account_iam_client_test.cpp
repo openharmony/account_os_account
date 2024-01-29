@@ -920,6 +920,7 @@ HWTEST_F(AccountIAMClientTest, StartDomainAuth002, TestSize.Level0)
     AccountIAMClient::GetInstance().domainInputer_ = inputer;
     uint64_t ret = AccountIAMClient::GetInstance().StartDomainAuth(TEST_USER_ID, testCallback);
     EXPECT_EQ(0, ret);
+    testing::Mock::AllowLeak(testCallback.get());
 }
 #endif
 
