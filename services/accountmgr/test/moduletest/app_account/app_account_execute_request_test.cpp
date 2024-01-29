@@ -128,6 +128,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
     EXPECT_CALL(*testCallback, OnResult(_, _)).Times(testing::Exactly(1));
     ErrCode result = g_accountManagerService->ExecuteRequest(request, callback);
     EXPECT_EQ(result, ERR_OK);
+    testing::Mock::AllowLeak(testCallback.get());
 }
 
 /**
@@ -148,6 +149,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
     EXPECT_CALL(*testCallback, OnResult(_, _)).Times(testing::Exactly(1));
     ErrCode result = g_accountManagerService->ExecuteRequest(request, callback);
     EXPECT_EQ(result, ERR_OK);
+    testing::Mock::AllowLeak(testCallback.get());
 }
 
 /**
@@ -301,6 +303,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
     EXPECT_CALL(*testCallback, OnResult(ERR_JS_SYSTEM_SERVICE_EXCEPTION, _)).Times(testing::Exactly(1));
     ErrCode result = g_accountManagerService->ExecuteRequest(request, callback);
     EXPECT_EQ(result, ERR_OK);
+    testing::Mock::AllowLeak(testCallback.get());
 }
 
 /**
@@ -325,4 +328,5 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
     EXPECT_CALL(*testCallback, OnResult(ERR_JS_SYSTEM_SERVICE_EXCEPTION, _)).Times(testing::Exactly(1));
     ErrCode result = g_accountManagerService->ExecuteRequest(request, callback);
     EXPECT_EQ(result, ERR_OK);
+    testing::Mock::AllowLeak(testCallback.get());
 }

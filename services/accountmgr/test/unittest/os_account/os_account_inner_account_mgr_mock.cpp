@@ -1333,6 +1333,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest044, TestSize
         .WillRepeatedly(testing::Return(-1));
     int ret = innerMgrService_->SetDefaultActivatedOsAccount(TEST_USER_ID108);
     EXPECT_EQ(ret, -1);
+    testing::Mock::AllowLeak(ptr.get());
 }
 }  // namespace AccountSA
 }  // namespace OHOS

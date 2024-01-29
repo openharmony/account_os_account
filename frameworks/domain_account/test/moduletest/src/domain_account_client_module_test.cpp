@@ -1800,6 +1800,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetDomainA
     auto testCallback = std::make_shared<TestGetDomainAccountInfoCallback>(callback);
     ASSERT_NE(testCallback, nullptr);
     EXPECT_EQ(DomainAccountClient::GetInstance().GetDomainAccountInfo(info, testCallback), ERR_OK);
+    testing::Mock::AllowLeak(callback.get());
 }
 
 /**
