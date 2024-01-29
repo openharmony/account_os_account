@@ -1448,6 +1448,7 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR;
     }
 
+    subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
     errCode = SendMsgForAccountActivate(osAccountInfo);
     RemoveLocalIdToOperating(id);
     if (errCode != ERR_OK) {
@@ -1538,7 +1539,6 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
 {
     // activate
     int localId = osAccountInfo.GetLocalId();
-    subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
     ErrCode errCode = OsAccountInterface::SendToStorageAccountStart(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("account %{public}d call storage active failed, errCode %{public}d.",
