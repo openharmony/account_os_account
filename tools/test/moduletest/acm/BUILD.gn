@@ -19,13 +19,9 @@ module_output_path = "os_account/tools"
 ohos_moduletest("account_command_create_module_test") {
   module_out_path = module_output_path
 
-  include_dirs = [
-    "${ability_runtime_path}/tools/aa/include",
-    "${ability_runtime_path}/tools/test/systemtest/aa",
-  ]
+  include_dirs = [ "${ability_runtime_path}/tools/test/systemtest/aa" ]
 
   sources = [
-    "${ability_runtime_path}/tools/aa/src/shell_command.cpp",
     "${ability_runtime_path}/tools/test/systemtest/aa/tool_system_test.cpp",
     "${tools_path}/acm/src/account_command.cpp",
     "account_command_create_module_test.cpp",
@@ -50,6 +46,7 @@ ohos_moduletest("account_command_create_module_test") {
 
   external_deps = [
     "ability_base:base",
+    "ability_runtime:tools_aa_source_set",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
@@ -62,7 +59,6 @@ ohos_moduletest("account_command_create_module_mock_test") {
   module_out_path = module_output_path
 
   include_dirs = [
-    "${ability_runtime_path}/tools/aa/include",
     "${ability_runtime_path}/tools/test/systemtest/aa",
     "${os_account_dfx_path}/hidumper_adapter",
     "${services_path}/accountmgr/include/bundle_manager_adapter",
@@ -77,7 +73,6 @@ ohos_moduletest("account_command_create_module_mock_test") {
   ]
 
   sources = [
-    "${ability_runtime_path}/tools/aa/src/shell_command.cpp",
     "${ability_runtime_path}/tools/test/systemtest/aa/tool_system_test.cpp",
     "${app_account_services_path}/test/mock/common/ability_manager_adapter_mock.cpp",
     "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
@@ -124,6 +119,7 @@ ohos_moduletest("account_command_create_module_mock_test") {
     "ability_base:want",
     "ability_runtime:ability_manager",
     "ability_runtime:app_manager",
+    "ability_runtime:tools_aa_source_set",
     "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
     "access_token:libtoken_setproc",
@@ -154,7 +150,6 @@ ohos_moduletest("account_command_delete_module_mock_test") {
   module_out_path = module_output_path
 
   include_dirs = [
-    "${ability_runtime_path}/tools/aa/include",
     "${ability_runtime_path}/tools/test/systemtest/aa",
     "${os_account_dfx_path}/hidumper_adapter",
     "${services_path}/accountmgr/include/bundle_manager_adapter",
@@ -169,7 +164,6 @@ ohos_moduletest("account_command_delete_module_mock_test") {
   ]
 
   sources = [
-    "${ability_runtime_path}/tools/aa/src/shell_command.cpp",
     "${ability_runtime_path}/tools/test/systemtest/aa/tool_system_test.cpp",
     "${app_account_services_path}/test/mock/common/ability_manager_adapter_mock.cpp",
     "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
@@ -216,6 +210,7 @@ ohos_moduletest("account_command_delete_module_mock_test") {
     "ability_base:want",
     "ability_runtime:ability_manager",
     "ability_runtime:app_manager",
+    "ability_runtime:tools_aa_source_set",
     "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
     "access_token:libtoken_setproc",
@@ -245,13 +240,9 @@ ohos_moduletest("account_command_delete_module_mock_test") {
 ohos_moduletest("account_command_delete_module_test") {
   module_out_path = module_output_path
 
-  include_dirs = [
-    "${ability_runtime_path}/tools/aa/include",
-    "${ability_runtime_path}/tools/test/systemtest/aa",
-  ]
+  include_dirs = [ "${ability_runtime_path}/tools/test/systemtest/aa" ]
 
   sources = [
-    "${ability_runtime_path}/tools/aa/src/shell_command.cpp",
     "${ability_runtime_path}/tools/test/systemtest/aa/tool_system_test.cpp",
     "${tools_path}/acm/src/account_command.cpp",
     "account_command_delete_module_test.cpp",
@@ -276,6 +267,7 @@ ohos_moduletest("account_command_delete_module_test") {
 
   external_deps = [
     "ability_base:base",
+    "ability_runtime:tools_aa_source_set",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
@@ -287,13 +279,9 @@ ohos_moduletest("account_command_delete_module_test") {
 ohos_moduletest("account_command_dump_module_test") {
   module_out_path = module_output_path
 
-  include_dirs = [
-    "${ability_runtime_path}/tools/aa/include",
-    "${ability_runtime_path}/tools/test/systemtest/aa",
-  ]
+  include_dirs = [ "${ability_runtime_path}/tools/test/systemtest/aa" ]
 
   sources = [
-    "${ability_runtime_path}/tools/aa/src/shell_command.cpp",
     "${ability_runtime_path}/tools/test/systemtest/aa/tool_system_test.cpp",
     "${tools_path}/acm/src/account_command.cpp",
     "account_command_dump_module_test.cpp",
@@ -318,6 +306,7 @@ ohos_moduletest("account_command_dump_module_test") {
 
   external_deps = [
     "ability_base:base",
+    "ability_runtime:tools_aa_source_set",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
@@ -329,13 +318,9 @@ ohos_moduletest("account_command_dump_module_test") {
 ohos_moduletest("account_command_set_module_test") {
   module_out_path = module_output_path
 
-  include_dirs = [
-    "${ability_runtime_path}/tools/aa/include",
-    "${ability_runtime_path}/tools/test/systemtest/aa",
-  ]
+  include_dirs = [ "${ability_runtime_path}/tools/test/systemtest/aa" ]
 
   sources = [
-    "${ability_runtime_path}/tools/aa/src/shell_command.cpp",
     "${ability_runtime_path}/tools/test/systemtest/aa/tool_system_test.cpp",
     "${tools_path}/acm/src/account_command.cpp",
     "account_command_set_module_test.cpp",
@@ -360,6 +345,7 @@ ohos_moduletest("account_command_set_module_test") {
 
   external_deps = [
     "ability_base:base",
+    "ability_runtime:tools_aa_source_set",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
@@ -371,13 +357,9 @@ ohos_moduletest("account_command_set_module_test") {
 ohos_moduletest("account_command_switch_module_test") {
   module_out_path = module_output_path
 
-  include_dirs = [
-    "${ability_runtime_path}/tools/aa/include",
-    "${ability_runtime_path}/tools/test/systemtest/aa",
-  ]
+  include_dirs = [ "${ability_runtime_path}/tools/test/systemtest/aa" ]
 
   sources = [
-    "${ability_runtime_path}/tools/aa/src/shell_command.cpp",
     "${ability_runtime_path}/tools/test/systemtest/aa/tool_system_test.cpp",
     "${tools_path}/acm/src/account_command.cpp",
     "account_command_switch_module_test.cpp",
@@ -402,6 +384,7 @@ ohos_moduletest("account_command_switch_module_test") {
 
   external_deps = [
     "ability_base:base",
+    "ability_runtime:tools_aa_source_set",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
