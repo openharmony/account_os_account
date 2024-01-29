@@ -88,18 +88,12 @@ config("accountmgr_public_config") {
 }
 
 config("bundle_manager_config") {
-  include_dirs = [
-    "${services_path}/accountmgr/include/bundle_manager_adapter",
-    "${bundle_framework_path}/common/log/include",
-    "${bundle_framework_path}/interfaces/inner_api/appexecfwk_core/include",
-  ]
+  include_dirs =
+      [ "${services_path}/accountmgr/include/bundle_manager_adapter" ]
 }
 
-ability_manager_sources = [
-  "${ability_runtime_path}/services/abilitymgr/src/ability_connect_callback_stub.cpp",
-  "${ability_runtime_path}/services/abilitymgr/src/stop_user_callback_stub.cpp",
-  "src/ability_manager_adapter/ability_manager_adapter.cpp",
-]
+ability_manager_sources =
+    [ "src/ability_manager_adapter/ability_manager_adapter.cpp" ]
 
 if (has_kv_store_part) {
   app_account_sources = [
@@ -218,7 +212,6 @@ ohos_shared_library("accountmgr") {
 
   configs = [
     ":accountmgr_config",
-    ":ability_manager_config",
     ":bundle_manager_config",
     ":domain_account_config",
     "${account_coverage_config_path}:coverage_flags",
@@ -239,11 +232,14 @@ ohos_shared_library("accountmgr") {
 
   external_deps = [
     "ability_base:want",
+    "ability_runtime:ability_manager",
     "ability_runtime:app_manager",
     "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
     "access_token:libtokenid_sdk",
     "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "bundle_framework:libappexecfwk_common",
     "c_utils:utils",
     "hilog:libhilog",
     "huks:libhukssdk",

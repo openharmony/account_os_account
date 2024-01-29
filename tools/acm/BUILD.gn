@@ -15,10 +15,7 @@ import("//build/ohos.gni")
 import("../../os_account.gni")
 
 config("tools_acm_config") {
-  include_dirs = [
-    "${ability_runtime_path}/services/common/include",
-    "include",
-  ]
+  include_dirs = [ "include" ]
 
   defines = [
     "ACCOUNT_LOG_TAG = \"AccountTool\"",
@@ -36,7 +33,6 @@ ohos_source_set("tools_acm_source_set") {
   }
 
   sources = [
-    "${ability_runtime_path}/tools/aa/src/shell_command.cpp",
     "${os_account_path}/frameworks/domain_account/src/domain_account_common.cpp",
     "src/account_command.cpp",
     "src/main.cpp",
@@ -72,6 +68,7 @@ ohos_source_set("tools_acm_source_set") {
 
   external_deps = [
     "ability_base:want",
+    "ability_runtime:tools_aa_source_set",
     "c_utils:utils",
     "hilog:libhilog",
   ]

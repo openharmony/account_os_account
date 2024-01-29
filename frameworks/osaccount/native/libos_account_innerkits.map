@@ -206,6 +206,21 @@
         "OHOS::AccountSA::OsAccountSubscribeInfo::SetOsAccountSubscribeType(OHOS::AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE const&)";
         "OHOS::AccountSA::OsAccountSubscribeInfo::SetName(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         *OHOS::AccountSA::CreateOsAccountOptions*;
+        "vtable for OHOS::AccountSA::DomainAccountInfo";
+        "OHOS::AccountSA::DomainAccountInfo::DomainAccountInfo()";
+        "OHOS::AccountSA::DomainAccountClient::GetInstance()";
+        "OHOS::AccountSA::DomainAccountClient::GetAccountStatus(OHOS::AccountSA::DomainAccountInfo const&, OHOS::AccountSA::DomainAccountStatus&)";
+        "OHOS::AccountSA::DomainAccountProxy::DomainAccountProxy(OHOS::sptr<OHOS::IRemoteObject> const&)";
+        "OHOS::AccountSA::DomainAccountCallbackProxy::DomainAccountCallbackProxy(OHOS::sptr<OHOS::IRemoteObject> const&)";
+        "DomainAccountStatusListenerManager::GetListenerAllRecords()";
+        "OHOS::AccountSA::DomainAccountInfo::DomainAccountInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+        "OHOS::AccountSA::DomainAccountInfo::Clear()";
+        "OHOS::AccountSA::DomainAccountCallbackService::DomainAccountCallbackService(std::__h::shared_ptr<OHOS::AccountSA::DomainAccountCallback> const&)";
+        "OHOS::AccountSA::DomainAccountCallbackStub::DomainAccountCallbackStub()";
+        "OHOS::AccountSA::DomainAccountCallbackStub::~DomainAccountCallbackStub()";
+        "OHOS::AccountSA::DomainAccountCallbackStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
+        "non-virtual thunk to OHOS::AccountSA::DomainAccountCallbackStub::~DomainAccountCallbackStub()";
+        "virtual thunk to OHOS::AccountSA::DomainAccountCallbackStub::~DomainAccountCallbackStub()";
     };
   local:
     *;
