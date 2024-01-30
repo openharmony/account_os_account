@@ -241,7 +241,7 @@ public:
      */
     static ErrCode GetOAuthToken(const std::string &name, const std::string &owner, const std::string &authType,
         std::string &token);
-        
+
     /**
      * @brief Gets an oauth token with the specified authentication type from a particular application account.
      * @param name - Indicates the account name of your application or third-party applications.
@@ -506,8 +506,6 @@ public:
     static ErrCode SetAuthenticatorProperties(const std::string &owner,
         const SetPropertiesOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback);
 
-    static ErrCode ExecuteRequest(const AccountCapabilityRequest &request,
-        const sptr<IAppAccountAuthorizationExtensionCallback> &callback);
     /**
      * @brief Subscribes to the change events of accounts of the specified owners.
      * <p>

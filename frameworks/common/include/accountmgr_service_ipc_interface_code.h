@@ -136,7 +136,6 @@ enum class AppAccountInterfaceCode : uint32_t {
     SET_AUTHENTICATOR_PROPERTIES,
     CREATE_ACCOUNT,
     CREATE_ACCOUNT_IMPLICITLY,
-    EXECUTE_REQUEST,
 };
 
 enum class AccountIAMInterfaceCode : uint32_t {
