@@ -68,7 +68,6 @@ public:
     ErrCode ProcVerifyCredential(uint32_t code, MessageParcel &data, MessageParcel &reply);
     ErrCode ProcCheckAccountLabels(uint32_t code, MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetAuthenticatorProperties(uint32_t code, MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcExecuteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply);
 
 private:
     std::map<uint32_t, MessageProcFunction> messageProcMap_;

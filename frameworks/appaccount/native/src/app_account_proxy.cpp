@@ -579,7 +579,7 @@ ErrCode AppAccountProxy::DeleteOAuthToken(
     if (result != ERR_OK) {
         return result;
     }
-    
+
     result = SendRequest(AppAccountInterfaceCode::DELETE_OAUTH_TOKEN, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
@@ -791,7 +791,7 @@ ErrCode AppAccountProxy::GetOAuthList(
     if (result != ERR_OK) {
         return result;
     }
-    
+
     result = SendRequest(AppAccountInterfaceCode::GET_OAUTH_LIST, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
@@ -1068,35 +1068,6 @@ ErrCode AppAccountProxy::SetAuthenticatorProperties(const std::string &owner,
         return result;
     }
     return reply.ReadInt32();
-}
-
-ErrCode AppAccountProxy::ExecuteRequest(
-    const AccountCapabilityRequest &request, const sptr<IAppAccountAuthorizationExtensionCallback> &callback)
-{
-    MessageParcel data;
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
-    }
-    if (!data.WriteParcelable(&request)) {
-        ACCOUNT_LOGE("failed to write string for request");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-    }
-    if ((callback != nullptr) && (!data.WriteRemoteObject(callback->AsObject()))) {
-        ACCOUNT_LOGE("failed to write remote object for callback");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-    }
-    MessageParcel reply;
-    ErrCode result = SendRequest(AppAccountInterfaceCode::EXECUTE_REQUEST, data, reply);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
-        return result;
-    }
-    if (!reply.ReadInt32(result)) {
-        ACCOUNT_LOGE("failed to read result for check os account constraint enable.");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-    }
-    return result;
 }
 
 ErrCode AppAccountProxy::SubscribeAppAccount(
