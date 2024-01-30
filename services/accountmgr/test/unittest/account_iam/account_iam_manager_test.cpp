@@ -15,6 +15,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <unistd.h>
+#include <vector>
 
 #include "accesstoken_kit.h"
 #include "account_error_no.h"
@@ -266,6 +267,12 @@ public:
     }
 
     int32_t UpdateMemoryPara(int32_t size, int32_t &oldSize)
+    {
+        return 0;
+    }
+
+    int32_t GetBundleStatsForIncrease(uint32_t userId, const std::vector<std::string> &bundleNames,
+        const std::vector<int64_t> &incrementalBackTimes, std::vector<int64_t> &pkgFileSizes)
     {
         return 0;
     }
