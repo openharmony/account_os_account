@@ -219,10 +219,6 @@ const std::map<uint32_t, AppAccountStub::MessageProcFunction> messageProcMap = {
         &AppAccountStub::ProcSetAuthenticatorProperties,
     },
     {
-        static_cast<uint32_t>(AppAccountInterfaceCode::EXECUTE_REQUEST),
-        &AppAccountStub::ProcExecuteRequest,
-    },
-    {
         static_cast<uint32_t>(AppAccountInterfaceCode::SUBSCRIBE_ACCOUNT),
         &AppAccountStub::ProcSubscribeAccount,
     },
@@ -716,7 +712,7 @@ ErrCode AppAccountStub::ProcCheckAuthTokenVisibility(uint32_t code, MessageParce
         ACCOUNT_LOGE("stub code is invalid");
         return IPC_INVOKER_ERR;
     }
-     
+
     if ((!reply.WriteInt32(result)) || (!reply.WriteBool(isVisible))) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
@@ -962,24 +958,6 @@ ErrCode AppAccountStub::ProcSetAuthenticatorProperties(uint32_t code, MessagePar
         result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     } else {
         result = SetAuthenticatorProperties(owner, *options, callback);
-    }
-    if (!reply.WriteInt32(result)) {
-        ACCOUNT_LOGE("failed to write reply");
-        return IPC_STUB_WRITE_PARCEL_ERR;
-    }
-    return ERR_NONE;
-}
-
-ErrCode AppAccountStub::ProcExecuteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply)
-{
-    std::shared_ptr<AccountCapabilityRequest> request(data.ReadParcelable<AccountCapabilityRequest>());
-    auto callback = iface_cast<IAppAccountAuthorizationExtensionCallback>(data.ReadRemoteObject());
-    ErrCode result = ERR_OK;
-    if ((request == nullptr) || (request->bundleName.size() == 0) || (callback == nullptr)) {
-        ACCOUNT_LOGE("invalid parameters");
-        result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    } else {
-        result = ExecuteRequest(*request, callback);
     }
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
