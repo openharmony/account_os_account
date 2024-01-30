@@ -32,7 +32,7 @@ using namespace OHOS::AccountSA;
 namespace {
 DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IAppAccount");
 const std::string STRING_NAME = "name";
-const int32_t LIMIT_CODE = 43;
+const int32_t LIMIT_CODE = 42;
 const int32_t CLEAR_OAUTH_TOKEN = 29;
 const int32_t SUBSCRIBE_ACCOUNT = 33;
 const int32_t GET_ALL_ACCESSIBLE_ACCOUNTS = 31;

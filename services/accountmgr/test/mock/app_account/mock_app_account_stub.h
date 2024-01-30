@@ -38,7 +38,7 @@ public:
     ErrCode EnableAppAccess(const std::string &name, const std::string &authorizedApp) override;
     ErrCode DisableAppAccess(const std::string &name, const std::string &authorizedApp) override;
     ErrCode SetAppAccess(const std::string &name, const std::string &authorizedApp, bool isAccessible) override;
-    
+
     ErrCode CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable) override;
     ErrCode SetAppAccountSyncEnable(const std::string &name, const bool &syncEnable) override;
 
@@ -94,8 +94,6 @@ public:
         const std::vector<std::string> &labels, const sptr<IAppAccountAuthenticatorCallback> &callback) override;
     ErrCode SetAuthenticatorProperties(const std::string &owner, const SetPropertiesOptions &options,
         const sptr<IAppAccountAuthenticatorCallback> &callback) override;
-    ErrCode ExecuteRequest(const AccountCapabilityRequest &request,
-        const sptr<IAppAccountAuthorizationExtensionCallback> &callback) override;
 
     ErrCode SubscribeAppAccount(
         const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener) override;
