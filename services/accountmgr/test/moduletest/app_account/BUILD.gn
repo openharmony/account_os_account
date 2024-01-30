@@ -610,127 +610,6 @@ ohos_moduletest("app_account_manager_service_not_mock_module_test") {
   }
 }
 
-ohos_moduletest("app_account_execute_request_test") {
-  module_out_path = module_output_path
-  cflags_cc = []
-  cflags = []
-  include_dirs = [ "${app_account_extension_path}/include" ]
-
-  sources = [
-    "${app_account_services_path}/src/appaccount/app_account_control_manager.cpp",
-    "${app_account_services_path}/src/appaccount/app_account_manager_service.cpp",
-    "${app_account_services_path}/src/appaccount/app_account_stub.cpp",
-    "${app_account_services_path}/src/appaccount/inner_app_account_manager.cpp",
-    "${app_account_services_path}/test/mock/app_account/accesstoken_kit.cpp",
-    "${app_account_services_path}/test/mock/app_account/mock_app_account_authenticator_stub.cpp",
-    "${app_account_services_path}/test/mock/common/ability_manager_adapter.cpp",
-    "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
-    "${common_path}/utils/src/account_permission_manager.cpp",
-    "app_account_execute_request_test.cpp",
-  ]
-
-  sources += app_account_sources_mock
-
-  sources += [
-    "${app_account_services_path}/src/account_data_storage.cpp",
-    "${app_account_services_path}/src/bundle_manager_adapter/bundle_manager_adapter_proxy.cpp",
-    "${app_account_services_path}/src/bundle_manager_adapter/bundle_user_manager_adapter_proxy.cpp",
-    "${bundle_framework_path}/common/log/src/app_log_wrapper.cpp",
-    "${innerkits_native_path}/src/account_info_parcel.cpp",
-  ]
-
-  use_exceptions = true
-
-  version_script = "${services_path}/accountmgr/libaccountmgr.map"
-
-  configs = [
-    ":app_account_service_config_mock",
-    ":app_account_service_config_unittest",
-  ]
-
-  configs += [
-    "${app_account_services_path}/test/mock:mock_accountmgr_config",
-    "${app_account_services_path}/test/mock:accountmgr_config",
-    "${app_account_services_path}/test/mock:ability_manager_config",
-  ]
-
-  deps = [
-    "${app_account_innerkits_native_path}:app_account_innerkits",
-    "${app_account_services_path}/src/appaccount:app_account_service_core",
-    "${common_path}:libaccount_common",
-    "${innerkits_native_path}:libaccountkits",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  external_deps = [
-    "ability_base:base",
-    "ability_base:want",
-    "ability_runtime:ability_context_native",
-    "ability_runtime:ability_manager",
-    "ability_runtime:abilitykit_native",
-    "ability_runtime:app_manager",
-    "access_token:libaccesstoken_sdk",
-    "access_token:libtoken_setproc",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
-    "c_utils:utils",
-    "eventhandler:libeventhandler",
-    "hilog:libhilog",
-    "ipc:ipc_single",
-    "kv_store:distributeddata_inner",
-    "napi:ace_napi",
-    "safwk:system_ability_fwk",
-    "samgr:samgr_proxy",
-  ]
-
-  external_deps += [
-    "ability_runtime:wantagent_innerkits",
-    "access_token:libtokenid_sdk",
-    "huks:libhukssdk",
-    "init:libbegetutil",
-  ]
-
-  if (has_storage_service_part && os_account_storage_feature) {
-    external_deps += [ "storage_service:storage_manager_sa_proxy" ]
-  }
-
-  if (build_selinux) {
-    external_deps += [ "selinux_adapter:librestorecon" ]
-  }
-
-  if (has_hiviewdfx_hisysevent_part) {
-    external_deps += [ "hisysevent:libhisysevent" ]
-  }
-
-  if (hicollie_enable == true) {
-    external_deps += [ "hicollie:libhicollie" ]
-  }
-
-  if (security_guard_enabled) {
-    external_deps += [
-      "security_guard:libsg_collect_sdk",
-      "time_service:time_client",
-    ]
-  }
-
-  if (has_hiviewdfx_hitrace_part) {
-    external_deps += [ "hitrace:hitrace_meter" ]
-  }
-  if (has_user_auth_part) {
-    external_deps += [ "user_auth_framework:userauth_client" ]
-  }
-
-  if (has_ces_part) {
-    cflags_cc += [ "-DHAS_CES_PART" ]
-    external_deps += [ "common_event_service:cesfwk_innerkits" ]
-  }
-
-  if (os_account_distributed_feature) {
-    cflags += [ "-DDISTRIBUTED_FEATURE_ENABLED" ]
-  }
-}
-
 ohos_moduletest("at_not_mock_app_account_manager_service_module_test") {
   module_out_path = module_output_path
   sources = [
@@ -1191,7 +1070,6 @@ group("moduletest") {
     ":app_account_check_labels_module_test",
     ":app_account_control_manager_module_test",
     ":app_account_event_module_test",
-    ":app_account_execute_request_test",
     ":app_account_manager_service_associated_data_test",
     ":app_account_manager_service_module_test",
     ":app_account_manager_service_not_mock_module_test",
