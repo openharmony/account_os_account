@@ -2507,6 +2507,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest114, TestSize.Lev
     EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(stoppingSubscriber));
     EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(stoppedSubscriber));
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+    testing::Mock::AllowLeak(listener.get());
     ASSERT_TRUE(RecoveryPermission(tokenID));
 }
 
