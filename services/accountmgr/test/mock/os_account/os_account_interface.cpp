@@ -17,6 +17,7 @@
 
 namespace OHOS {
 namespace AccountSA {
+
 ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("mock OsAccountInterface SendToAMSAccountStart start");

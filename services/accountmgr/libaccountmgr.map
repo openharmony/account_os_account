@@ -14,7 +14,7 @@
 1.0 {
   global:
     extern "C++" {
-        "OHOS::AAFwk::StopUserCallbackStub::StopUserCallbackStub()";
+        "OHOS::AAFwk::UserCallbackStub::UserCallbackStub()";
         "OHOS::AccountSA::AccountDataStorage::AddAccountInfo(OHOS::AccountSA::IAccountInfo const&)";
         "OHOS::AccountSA::AccountDataStorage::CheckKvStore()";
         "OHOS::AccountSA::AccountDataStorage::DeleteKvStore()";

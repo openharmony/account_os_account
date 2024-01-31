@@ -18,7 +18,9 @@
 
 #include <vector>
 #include "account_error_no.h"
+#include <mutex>
 #include "os_account_info.h"
+#include "os_account_user_callback.h"
 
 namespace OHOS {
 namespace AccountSA {

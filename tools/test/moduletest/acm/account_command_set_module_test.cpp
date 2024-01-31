@@ -80,7 +80,7 @@ void AccountCommandSetModuleTest::TearDown()
  */
 HWTEST_F(AccountCommandSetModuleTest, Acm_Command_Set_0100, TestSize.Level1)
 {
-    AccountCommandUtil::CreateOsAccount();
+    AccountCommandUtil::CreateOsAccount("Acm_Command_Set_0100");
 
     std::vector<OsAccountInfo> osAccounts;
     ErrCode result = OsAccountManager::QueryAllCreatedOsAccounts(osAccounts);
@@ -107,7 +107,7 @@ HWTEST_F(AccountCommandSetModuleTest, Acm_Command_Set_0100, TestSize.Level1)
  */
 HWTEST_F(AccountCommandSetModuleTest, Acm_Command_Set_0200, TestSize.Level1)
 {
-    AccountCommandUtil::CreateOsAccount();
+    AccountCommandUtil::CreateOsAccount("Acm_Command_Set_0200");
 
     std::vector<OsAccountInfo> osAccounts;
     ErrCode result = OsAccountManager::QueryAllCreatedOsAccounts(osAccounts);

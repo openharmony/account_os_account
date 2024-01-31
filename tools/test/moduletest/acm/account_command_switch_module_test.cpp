@@ -89,7 +89,7 @@ HWTEST_F(AccountCommandSwitchModuleTest, Acm_Command_Switch_0200, TestSize.Level
  */
 HWTEST_F(AccountCommandSwitchModuleTest, Acm_Command_Switch_0300, TestSize.Level1)
 {
-    std::string commandResult = AccountCommandUtil::CreateOsAccount();
+    std::string commandResult = AccountCommandUtil::CreateOsAccount("Acm_Command_Switch_0300");
     ASSERT_NE(commandResult.find(STRING_CREATE_OS_ACCOUNT_OK), std::string::npos);
 
     commandResult = AccountCommandUtil::DeleteLastOsAccount();

@@ -15,6 +15,7 @@
 #include "os_account_interface.h"
 
 #include<cerrno>
+#include <condition_variable>
 #include<thread>
 
 #include "ability_manager_adapter.h"
@@ -34,7 +35,7 @@
 #endif
 #include "os_account_constants.h"
 #include "os_account_delete_user_idm_callback.h"
-#include "os_account_stop_user_callback.h"
+#include "os_account_user_callback.h"
 #include "os_account_subscribe_manager.h"
 #ifdef HAS_STORAGE_PART
 #include "storage_manager_proxy.h"
@@ -59,9 +60,19 @@ constexpr uint32_t CRYPTO_FLAG_EL2 = 2;
 
 ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("start");
+    ACCOUNT_LOGI("start %{public}d", osAccountInfo.GetLocalId());
+    sptr<OsAccountUserCallback> osAccountStartUserCallback = new (std::nothrow) OsAccountUserCallback();
+    if (osAccountStartUserCallback == nullptr) {
+        ACCOUNT_LOGE("alloc memory for start user callback failed!");
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_START,
+            ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, "malloc for OsAccountUserCallback failed!");
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
     StartTraceAdapter("AbilityManagerAdapter StartUser");
-    ErrCode code = AbilityManagerAdapter::GetInstance()->StartUser(osAccountInfo.GetLocalId());
+
+    std::unique_lock<std::mutex> lock(osAccountStartUserCallback->mutex_);
+    ErrCode code = AbilityManagerAdapter::GetInstance()->StartUser(osAccountInfo.GetLocalId(),
+        osAccountStartUserCallback);
     if (code != ERR_OK) {
         ACCOUNT_LOGE("AbilityManagerAdapter StartUser failed! errcode is %{public}d", code);
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_ACTIVATE, code,
@@ -69,22 +80,31 @@ ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo)
         FinishTraceAdapter();
         return code;
     }
-    ACCOUNT_LOGI("end, succeed!");
+    osAccountStartUserCallback->onStartCondition_.wait(lock);
     FinishTraceAdapter();
-    return ERR_OK;
+    if (!osAccountStartUserCallback->isReturnOk_) {
+        ACCOUNT_LOGE("failed to AbilityManagerService in call back");
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_START, -1,
+            "AbilityManagerService failed!");
+        return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_AM_ACCOUNT_START_ERROR;
+    }
+    ACCOUNT_LOGI("end, succeed %{public}d", osAccountInfo.GetLocalId());
+    return code;
 }
 
 ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
 {
-    sptr<OsAccountStopUserCallback> osAccountStopUserCallback = new (std::nothrow) OsAccountStopUserCallback();
+    ACCOUNT_LOGI("start %{public}d", osAccountInfo.GetLocalId());
+    sptr<OsAccountUserCallback> osAccountStopUserCallback = new (std::nothrow) OsAccountUserCallback();
     if (osAccountStopUserCallback == nullptr) {
         ACCOUNT_LOGE("alloc memory for stop user callback failed!");
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_STOP,
-            ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR,
-            "malloc for OsAccountStopUserCallback failed!");
+            ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, "malloc for OsAccountUserCallback failed!");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
     StartTraceAdapter("AbilityManagerAdapter StopUser");
+
+    std::unique_lock<std::mutex> lock(osAccountStopUserCallback->mutex_);
     ErrCode code = AbilityManagerAdapter::GetInstance()->StopUser(osAccountInfo.GetLocalId(),
         osAccountStopUserCallback);
     if (code != ERR_OK) {
@@ -94,25 +114,16 @@ ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
         FinishTraceAdapter();
         return code;
     }
-    struct tm startTime = {0};
-    struct tm nowTime = {0};
-    OHOS::GetSystemCurrentTime(&startTime);
-    OHOS::GetSystemCurrentTime(&nowTime);
-    while (OHOS::GetSecondsBetween(startTime, nowTime) < Constants::TIME_WAIT_TIME_OUT &&
-           !osAccountStopUserCallback->isCallBackOk_) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(Constants::WAIT_ONE_TIME));
-        OHOS::GetSystemCurrentTime(&nowTime);
-    }
+    osAccountStopUserCallback->onStopCondition_.wait(lock);
+    FinishTraceAdapter();
     if (!osAccountStopUserCallback->isReturnOk_) {
-        ACCOUNT_LOGE("failed to AbilityManagerService stop in call back");
+        ACCOUNT_LOGE("failed to AbilityManagerService in call back");
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_STOP, -1,
-            "AbilityManagerService StopUser timeout!");
-        FinishTraceAdapter();
+            "AbilityManagerService failed!");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_AM_ACCOUNT_START_ERROR;
     }
-
-    FinishTraceAdapter();
-    return ERR_OK;
+    ACCOUNT_LOGI("end, succeed %{public}d", osAccountInfo.GetLocalId());
+    return code;
 }
 
 ErrCode OsAccountInterface::SendToAMSAccountDeactivate(OsAccountInfo &osAccountInfo)
