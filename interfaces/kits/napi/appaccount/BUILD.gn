@@ -90,12 +90,6 @@ ohos_shared_library("appaccount") {
     "napi:ace_napi",
   ]
 
-  if (has_ace_engine_part) {
-    cflags_cc = [ "-DHAS_ACE_ENGINE_PART" ]
-    sources += [ "src/napi_account_capability_scheduler.cpp" ]
-    external_deps += [ "ace_engine:ace_uicontent" ]
-  }
-
   subsystem_name = "account"
   part_name = "os_account"
 }
