@@ -569,20 +569,6 @@ ErrCode AppAccount::QueryAllAccessibleAccounts(
     return proxy->QueryAllAccessibleAccounts(owner, appAccounts);
 }
 
-ErrCode AppAccount::ExecuteRequest(const AccountCapabilityRequest &request,
-    const sptr<IAppAccountAuthorizationExtensionCallback> &callback)
-{
-    if (request.bundleName.size() == 0) {
-        ACCOUNT_LOGE("bundleName is empty");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-    auto proxy = GetAppAccountProxy();
-    if (proxy == nullptr) {
-        return ERR_ACCOUNT_COMMON_GET_PROXY;
-    }
-    return proxy->ExecuteRequest(request, callback);
-}
-
 ErrCode AppAccount::SubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber)
 {
     auto proxy = GetAppAccountProxy();

@@ -103,29 +103,12 @@ public:
     ErrCode OnPackageRemoved(const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
     ErrCode OnUserRemoved(int32_t userId);
 
-    ErrCode ExecuteRequest(AuthorizationRequest &request, const std::string &bundleName,
-        const std::string &abilityName, const AppExecFwk::ExtensionAbilityInfo &extensionInfo);
 private:
     AppAccountControlManager &controlManager_;
     AppAccountSubscribeManager &subscribeManager_;
     AppAccountAuthenticatorSessionManager &sessionManager_;
 
     DISALLOW_COPY_AND_MOVE(InnerAppAccountManager);
-};
-
-class RequestConnection : public AAFwk::AbilityConnectionStub {
-public:
-    RequestConnection(const int32_t &uid, const AuthorizationRequest &request);
-    ~RequestConnection() override;
-
-    void OnAbilityConnectDone(
-        const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int32_t resultCode) override;
-    void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode) override;
-    void SetCallbackService(const sptr<IAppAccountAuthorizationExtensionCallback> &callbackService);
-
-private:
-    int32_t uid_;
-    AuthorizationRequest request_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
