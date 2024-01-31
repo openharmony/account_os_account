@@ -19,7 +19,7 @@
 #include <mutex>
 
 #include "ability_connect_callback_interface.h"
-#include "stop_user_callback.h"
+#include "user_callback.h"
 #include "want.h"
 
 namespace OHOS {
@@ -63,10 +63,11 @@ public:
     /**
      * @brief start user.
      * @param accountId accountId.
+     * @param callback callback.
      *
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode StartUser(int32_t accountId);
+    ErrCode StartUser(int32_t accountId, const sptr<IUserCallback> &callback);
 
     /**
      * @brief stop user.
@@ -75,7 +76,7 @@ public:
      *
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode StopUser(int32_t accountId, const sptr<IStopUserCallback> &callback);
+    ErrCode StopUser(int32_t accountId, const sptr<IUserCallback> &callback);
 
     /**
      * @brief logout user.

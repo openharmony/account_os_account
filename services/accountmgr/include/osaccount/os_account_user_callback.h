@@ -16,17 +16,20 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_STOP_USER_CALLBACK_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_STOP_USER_CALLBACK_H
 
-#include "stop_user_callback_stub.h"
+#include "user_callback_stub.h"
 
 namespace OHOS {
 namespace AccountSA {
-class OsAccountStopUserCallback : public OHOS::AAFwk::StopUserCallbackStub {
+class OsAccountUserCallback : public OHOS::AAFwk::UserCallbackStub {
 public:
     void OnStopUserDone(int userId, int errcode) override;
+    void OnStartUserDone(int userId, int errcode) override;
 
 public:
-    bool isCallBackOk_ = false;
     bool isReturnOk_ = false;
+    std::mutex mutex_;
+    std::condition_variable onStartCondition_;
+    std::condition_variable onStopCondition_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

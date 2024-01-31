@@ -162,6 +162,7 @@ ohos_unittest("os_account_domain_account_callback_test") {
     "os_account_domain_account_callback_test.cpp",
   ]
   configs = [
+    "${app_account_services_path}/test/mock:ability_manager_config",
     ":os_account_data_storage_test_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
     "${account_coverage_config_path}:coverage_flags",

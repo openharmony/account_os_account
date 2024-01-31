@@ -107,7 +107,7 @@ HWTEST_F(AccountCommandDumpModuleTest, Acm_Command_Dump_0200, TestSize.Level1)
  */
 HWTEST_F(AccountCommandDumpModuleTest, Acm_Command_Dump_0300, TestSize.Level1)
 {
-    std::string commandResult = AccountCommandUtil::CreateOsAccount();
+    std::string commandResult = AccountCommandUtil::CreateOsAccount("Acm_Command_Dump_0300");
     ASSERT_NE(commandResult.find(STRING_CREATE_OS_ACCOUNT_OK), std::string::npos);
 
     commandResult = AccountCommandUtil::DumpLastOsAccount();
