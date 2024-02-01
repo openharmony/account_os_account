@@ -54,7 +54,7 @@
         "constraint.autofill",
         "constraint.content.capture",
         "constraint.content.suggestions",
-        "constraint.os.account.start",
+        "constraint.os.account.activate",
         "constraint.location.set",
         "constraint.airplane.mode.set",
         "constraint.brightness.set",
