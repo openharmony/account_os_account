@@ -145,9 +145,9 @@ ErrCode BundleManagerAdapter::CreateNewUser(int32_t userId, const std::vector<st
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_CREATE_ERROR;
     }
     StartTraceAdapter("BundleManageService CreateNewUser");
-    bundleUserMgrProxy->CreateNewUser(userId, disallowedHapList);
+    result = bundleUserMgrProxy->CreateNewUser(userId, disallowedHapList);
     FinishTraceAdapter();
-    return ERR_OK;
+    return result;
 }
 
 ErrCode BundleManagerAdapter::RemoveUser(int32_t userId)
