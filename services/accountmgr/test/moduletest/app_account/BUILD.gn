@@ -929,6 +929,7 @@ ohos_moduletest("app_account_authenticator_session_manager_module_test") {
     "ability_runtime:app_manager",
     "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
