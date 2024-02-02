@@ -49,6 +49,7 @@ const char OPERATION_CREATE[] = "create";
 const char OPERATION_DELETE[] = "delete";
 const char OPERATION_SWITCH[] = "switch";
 const char OPERATION_STOP[] = "stop";
+const char OPERATION_START[] = "start";
 const char OPERATION_UPDATE[] = "update";
 const char OPERATION_UNLOCK[] = "unlock";
 

@@ -101,12 +101,12 @@ ErrCode AbilityManagerAdapter::DisconnectAbility(const sptr<AAFwk::IAbilityConne
     return ERR_OK;
 }
 
-ErrCode AbilityManagerAdapter::StartUser(int accountId)
+ErrCode AbilityManagerAdapter::StartUser(int accountId, const sptr<AAFwk::IUserCallback> &callback)
 {
     return ERR_OK;
 }
 
-ErrCode AbilityManagerAdapter::StopUser(int accountId, const sptr<AAFwk::IStopUserCallback> &callback)
+ErrCode AbilityManagerAdapter::StopUser(int accountId, const sptr<AAFwk::IUserCallback> &callback)
 {
     return ERR_OK;
 }

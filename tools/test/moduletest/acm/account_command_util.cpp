@@ -43,6 +43,16 @@ std::string AccountCommandUtil::CreateOsAccount()
     return commandResult;
 }
 
+std::string AccountCommandUtil::CreateOsAccount(const std::string name)
+{
+    std::string command = TOOL_NAME + " create -n " + name + " -t " + STRING_TYPE;
+    GTEST_LOG_(INFO) << "command = " << command;
+
+    std::string commandResult = ToolSystemTest::ExecuteCommand(command);
+    GTEST_LOG_(INFO) << "AccountCommandUtil::CreateOsAccount commandResult = " << commandResult;
+    return commandResult;
+}
+
 std::string AccountCommandUtil::DeleteLastOsAccount()
 {
     std::vector<OsAccountInfo> osAccounts;

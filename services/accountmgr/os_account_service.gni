@@ -38,10 +38,10 @@ account_service_sources = [
   "${services_path}/accountmgr/src/osaccount/os_account_interface.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_manager_service.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_photo_operator.cpp",
-  "${services_path}/accountmgr/src/osaccount/os_account_stop_user_callback.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_stub.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_subscribe_death_recipient.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_subscribe_manager.cpp",
+  "${services_path}/accountmgr/src/osaccount/os_account_user_callback.cpp",
 ]
 
 app_account_sources_mock = [
@@ -96,7 +96,7 @@ account_service_sources_mock = [
   "${services_path}/accountmgr/src/osaccount/os_account_file_operator.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_manager_service.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_photo_operator.cpp",
-  "${services_path}/accountmgr/src/osaccount/os_account_stop_user_callback.cpp",
+  "${services_path}/accountmgr/src/osaccount/os_account_user_callback.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_stub.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_subscribe_death_recipient.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_subscribe_manager.cpp",
@@ -104,7 +104,7 @@ account_service_sources_mock = [
 
 ability_base_sources = [
   "${ability_runtime_path}/services/abilitymgr/src/ability_connect_callback_stub.cpp",
-  "${ability_runtime_path}/services/abilitymgr/src/stop_user_callback_stub.cpp",
+  "${ability_runtime_path}/services/abilitymgr/src/user_callback_stub.cpp",
   "${app_account_services_path}/src/ability_manager_adapter/ability_manager_adapter.cpp",
 ]
 

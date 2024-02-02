@@ -21,7 +21,7 @@
 #include "account_log_wrapper.h"
 #include "os_account_constants.h"
 #define private public
-#include "os_account_stop_user_callback.h"
+#include "os_account_user_callback.h"
 #undef private
 
 namespace OHOS {
@@ -62,18 +62,32 @@ void OsAccountServiceTest::TearDown(void)
 
 /**
  * @tc.name: OnStopUserDone001
- * @tc.desc: Test OsAccountStopUserCallback::OnStopUserDone return errCode 0
+ * @tc.desc: Test OsAccountUserCallback::OnStopUserDone return errCode 0
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(OsAccountServiceTest, OnStopUserDone001, TestSize.Level1)
 {
-    sptr<OsAccountStopUserCallback> osAccountStopUserCallback = new (std::nothrow) OsAccountStopUserCallback();
+    sptr<OsAccountUserCallback> osAccountStopUserCallback = new (std::nothrow) OsAccountUserCallback();
     ASSERT_NE(nullptr, osAccountStopUserCallback);
     int errCode = 0;
     osAccountStopUserCallback->OnStopUserDone(TEST_USER_ID, errCode);
-    EXPECT_TRUE(osAccountStopUserCallback->isCallBackOk_);
     EXPECT_TRUE(osAccountStopUserCallback->isReturnOk_);
+}
+
+/**
+ * @tc.name: OnStartUserDone001
+ * @tc.desc: Test OsAccountUserCallback::OnStartUserDone return errCode 0
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountServiceTest, OnStartUserDone001, TestSize.Level1)
+{
+    sptr<OsAccountUserCallback> osAccountStartUserCallback = new (std::nothrow) OsAccountUserCallback();
+    ASSERT_NE(nullptr, osAccountStartUserCallback);
+    int errCode = 0;
+    osAccountStartUserCallback->OnStartUserDone(TEST_USER_ID, errCode);
+    EXPECT_TRUE(osAccountStartUserCallback->isReturnOk_);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

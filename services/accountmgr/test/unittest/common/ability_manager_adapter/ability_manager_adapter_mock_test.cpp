@@ -93,7 +93,7 @@ HWTEST_F(AbilityManagerAdapterMockTest, AbilityManagerAdapterMockTest002, TestSi
 HWTEST_F(AbilityManagerAdapterMockTest, AbilityManagerAdapterMockTest003, TestSize.Level0)
 {
     EXPECT_EQ(ERR_ACCOUNT_COMMON_CONNECT_ABILITY_MANAGER_SERVICE_ERROR,
-        AbilityManagerAdapter::GetInstance()->StartUser(MAIN_ACCOUNT_ID));
+        AbilityManagerAdapter::GetInstance()->StartUser(MAIN_ACCOUNT_ID, nullptr));
 }
 
 /**
