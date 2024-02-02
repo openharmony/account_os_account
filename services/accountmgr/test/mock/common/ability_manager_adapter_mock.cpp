@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <thread>
 #include "ability_manager_adapter_mock.h"
 
 #include "account_log_wrapper.h"
@@ -47,14 +48,21 @@ ErrCode AbilityManagerAdapter::DisconnectAbility(const sptr<AAFwk::IAbilityConne
     return ERR_OK;
 }
 
-ErrCode AbilityManagerAdapter::StartUser(int accountId)
+ErrCode AbilityManagerAdapter::StartUser(int accountId, const sptr<AAFwk::IUserCallback> &callback)
 {
+    auto task = std::bind(&IUserCallback::OnStartUserDone, callback, accountId, 0);
+    std::thread taskThread(task);
+    pthread_setname_np(taskThread.native_handle(), "StartUser");
+    taskThread.detach();
     return ERR_OK;
 }
 
-ErrCode AbilityManagerAdapter::StopUser(int accountId, const sptr<AAFwk::IStopUserCallback> &callback)
+ErrCode AbilityManagerAdapter::StopUser(int accountId, const sptr<AAFwk::IUserCallback> &callback)
 {
-    callback->OnStopUserDone(accountId, 0);
+    auto task = std::bind(&AAFwk::IUserCallback::OnStopUserDone, callback, accountId, 0);
+    std::thread taskThread(task);
+    pthread_setname_np(taskThread.native_handle(), "StopUser");
+    taskThread.detach();
     return ERR_OK;
 }
 

@@ -69,7 +69,7 @@ HWTEST_F(AbilityManagerAdapterTest, AbilityManagerAdapterTest001, TestSize.Level
  */
 HWTEST_F(AbilityManagerAdapterTest, AbilityManagerAdapterTest002, TestSize.Level0)
 {
-    EXPECT_EQ(CHECK_PERMISSION_FAILED, AbilityManagerAdapter::GetInstance()->StopUser(MAIN_ACCOUNT_ID, nullptr));
+    EXPECT_EQ(ERR_OK, AbilityManagerAdapter::GetInstance()->StopUser(MAIN_ACCOUNT_ID, nullptr));
 }
 
 class AbilityConnectCallbackTest : public AAFwk::AbilityConnectionStub {

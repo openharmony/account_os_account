@@ -12,21 +12,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "os_account_stop_user_callback.h"
+#include "os_account_user_callback.h"
+#include <chrono>
+#include <thread>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "os_account_manager.h"
+#include "os_account_interface.h"
 
 namespace OHOS {
 namespace AccountSA {
-void OsAccountStopUserCallback::OnStopUserDone(int userId, int errcode)
+void OsAccountUserCallback::OnStopUserDone(int userId, int errcode)
 {
-    ACCOUNT_LOGI("in call back account, id is %{public}d, errcode is %{public}d.",
+    std::unique_lock<std::mutex> lock(mutex_);
+    ACCOUNT_LOGI("in call back account, OnStopUserDone id is %{public}d, errcode is %{public}d.",
         userId, errcode);
-    isCallBackOk_ = true;
-    if (errcode == 0) {
-        isReturnOk_ = true;
-    }
+    isReturnOk_ = (errcode == 0);
+    onStopCondition_.notify_one();
+}
+
+void OsAccountUserCallback::OnStartUserDone(int userId, int errcode)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    ACCOUNT_LOGI("in call back account, OnStartUserDone id is %{public}d, errcode is %{public}d.",
+        userId, errcode);
+    isReturnOk_ = (errcode == 0);
+    onStartCondition_.notify_one();
 }
 }  // namespace AccountSA
 }  // namespace OHOS

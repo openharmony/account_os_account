@@ -113,7 +113,7 @@ void AbilityManagerAdapter::Connect()
     proxy_ = remoteObj;
 }
 
-ErrCode AbilityManagerAdapter::StartUser(int32_t accountId)
+ErrCode AbilityManagerAdapter::StartUser(int32_t accountId, const sptr<AAFwk::IUserCallback> &callback)
 {
     auto abms = GetAbilityManager();
     if (abms == nullptr) {
@@ -124,7 +124,7 @@ ErrCode AbilityManagerAdapter::StartUser(int32_t accountId)
     int error;
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option;
+    MessageOption option(MessageOption::TF_ASYNC);
 
     if (!data.WriteInterfaceToken(ABILITY_MGR_DESCRIPTOR)) {
         ACCOUNT_LOGE("write interface token failed.");
@@ -135,15 +135,26 @@ ErrCode AbilityManagerAdapter::StartUser(int32_t accountId)
         ACCOUNT_LOGE("StartUser:WriteInt32 fail.");
         return ERR_INVALID_VALUE;
     }
+
+    if (callback == nullptr) {
+        data.WriteBool(false);
+    } else {
+        data.WriteBool(true);
+        if (!data.WriteRemoteObject(callback->AsObject())) {
+            ACCOUNT_LOGE("StartUser:write IUserCallback fail.");
+            return ERR_INVALID_VALUE;
+        }
+    }
     error = abms->SendRequest(static_cast<uint32_t>(AbilityManagerInterfaceCode::START_USER), data, reply, option);
     if (error != NO_ERROR) {
         ACCOUNT_LOGE("StartUser:SendRequest error: %{public}d", error);
         return error;
     }
+
     return reply.ReadInt32();
 }
 
-ErrCode AbilityManagerAdapter::StopUser(int32_t accountId, const sptr<AAFwk::IStopUserCallback> &callback)
+ErrCode AbilityManagerAdapter::StopUser(int32_t accountId, const sptr<AAFwk::IUserCallback> &callback)
 {
     auto abms = GetAbilityManager();
     if (abms == nullptr) {
@@ -154,7 +165,7 @@ ErrCode AbilityManagerAdapter::StopUser(int32_t accountId, const sptr<AAFwk::ISt
     int error;
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option;
+    MessageOption option(MessageOption::TF_ASYNC);
 
     if (!data.WriteInterfaceToken(ABILITY_MGR_DESCRIPTOR)) {
         ACCOUNT_LOGE("write interface token failed.");
@@ -165,12 +176,12 @@ ErrCode AbilityManagerAdapter::StopUser(int32_t accountId, const sptr<AAFwk::ISt
         return ERR_INVALID_VALUE;
     }
 
-    if (!callback) {
+    if (callback == nullptr) {
         data.WriteBool(false);
     } else {
         data.WriteBool(true);
         if (!data.WriteRemoteObject(callback->AsObject())) {
-            ACCOUNT_LOGE("StopUser:write IStopUserCallback fail.");
+            ACCOUNT_LOGE("StopUser:write IUserCallback fail.");
             return ERR_INVALID_VALUE;
         }
     }
