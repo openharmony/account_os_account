@@ -203,6 +203,11 @@ ErrCode OsAccountManager::DeactivateOsAccount(const int id)
     return OsAccount::GetInstance().DeactivateOsAccount(id);
 }
 
+ErrCode OsAccountManager::DeactivateAllOsAccounts()
+{
+    return OsAccount::GetInstance().DeactivateAllOsAccounts();
+}
+
 ErrCode OsAccountManager::StartOsAccount(const int id)
 {
     return OsAccount::GetInstance().StartOsAccount(id);

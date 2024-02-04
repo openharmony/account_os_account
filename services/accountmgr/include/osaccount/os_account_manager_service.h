@@ -77,6 +77,7 @@ public:
 
     ErrCode ActivateOsAccount(const int id) override;
     ErrCode DeactivateOsAccount(const int id) override;
+    ErrCode DeactivateAllOsAccounts() override;
 
     ErrCode StartOsAccount(const int id) override;
     ErrCode StopOsAccount(const int id) override;

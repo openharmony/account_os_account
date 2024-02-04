@@ -66,6 +66,7 @@ public:
     virtual ErrCode SetOsAccountProfilePhoto(const int id, const std::string &photo) = 0;
     virtual ErrCode ActivateOsAccount(const int id) = 0;
     virtual ErrCode DeactivateOsAccount(const int id) = 0;
+    virtual ErrCode DeactivateAllOsAccounts() = 0;
     virtual ErrCode StartOsAccount(const int id) = 0;
     virtual ErrCode StopOsAccount(const int id) = 0;
     virtual ErrCode GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id) = 0;
