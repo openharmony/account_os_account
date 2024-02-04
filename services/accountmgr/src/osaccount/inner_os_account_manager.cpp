@@ -1357,13 +1357,6 @@ ErrCode IInnerOsAccountManager::DeactivateOsAccountByInfo(OsAccountInfo &osAccou
         return ERR_OK;
     }
 
-#ifndef SUPPROT_STOP_MAIN_OS_ACCOUNT
-    if (osAccountInfo.GetLocalId() == Constants::START_USER_ID) {
-        ACCOUNT_LOGI("this osaccount can't deactive, id: %{public}d", Constants::START_USER_ID);
-        return ERR_OK;
-    }
-#endif // SUPPORT_STOP_OS_ACCOUNT
-
     osAccountInfo.SetIsActived(false);
     ErrCode errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
@@ -1467,13 +1460,6 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
 
 ErrCode IInnerOsAccountManager::DeactivateOsAccount(const int id)
 {
-#ifndef SUPPROT_STOP_MAIN_OS_ACCOUNT
-    if (id == Constants::START_USER_ID) {
-        ACCOUNT_LOGW("the %{public}d os account can't stop", id);
-        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_STOP_ACTIVE_ERROR;
-    }
-#endif // SUPPORT_STOP_OS_ACCOUNT
-
     if (!CheckAndAddLocalIdOperating(id)) {
         ACCOUNT_LOGW("the %{public}d already in operating", id);
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;

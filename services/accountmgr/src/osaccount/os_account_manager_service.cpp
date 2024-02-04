@@ -543,6 +543,13 @@ ErrCode OsAccountManagerService::DeactivateOsAccount(const int id)
     int32_t currentId = Constants::START_USER_ID;
     GetCurrentLocalId(currentId);
 
+#ifndef SUPPROT_STOP_MAIN_OS_ACCOUNT
+    if (id == Constants::START_USER_ID) {
+        ACCOUNT_LOGW("the %{public}d os account can't stop", id);
+        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_STOP_ACTIVE_ERROR;
+    }
+#endif // SUPPORT_STOP_OS_ACCOUNT
+
     res = innerManager_.DeactivateOsAccount(id);
     if (res != ERR_OK) {
         return res;
@@ -556,6 +563,36 @@ ErrCode OsAccountManagerService::DeactivateOsAccount(const int id)
 #endif // SUPPROT_STOP_MAIN_OS_ACCOUNT
     }
     return ERR_OK;
+}
+
+ErrCode OsAccountManagerService::DeactivateAllOsAccounts()
+{
+    // permission check
+    if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "")) {
+        ACCOUNT_LOGE("Permission check failed.");
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    
+    std::vector<int32_t> userIds;
+    ErrCode res = innerManager_.QueryActiveOsAccountIds(userIds);
+    if (res != ERR_OK) {
+        ACCOUNT_LOGE("Get activated os account ids failed.");
+        return res;
+    }
+    if (userIds.empty()) {
+        ACCOUNT_LOGI("Activated os account list is empty.");
+        return ERR_OK;
+    }
+    ErrCode result = ERR_OK;
+    for (auto osAccountId : userIds) {
+        ACCOUNT_LOGI("DeactivateAllOsAccounts, id=%{public}d", osAccountId);
+        res = innerManager_.DeactivateOsAccount(osAccountId);
+        if (res != ERR_OK) {
+            ACCOUNT_LOGE("Deactivate os account id failed, id=%{public}d", osAccountId);
+            result = res;
+        }
+    }
+    return result;
 }
 
 void OsAccountManagerService::GetCurrentLocalId(int32_t &userId)
