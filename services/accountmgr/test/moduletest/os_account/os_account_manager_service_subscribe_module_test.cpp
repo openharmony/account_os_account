@@ -70,11 +70,9 @@ public:
 void OsAccountManagerServiceSubscribeModuleTest::SetUpTestCase(void)
 {
 #ifdef ACCOUNT_TEST
-    if (std::filesystem::exists(USER_INFO_BASE)) {
-        if (std::filesystem::remove_all(USER_INFO_BASE)) {
-            GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
-        }
-    }
+    AccountFileOperator osAccountFileOperator;
+    osAccountFileOperator.DeleteDirOrFile(USER_INFO_BASE);
+    GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
 #endif  // ACCOUNT_TEST
     IInnerOsAccountManager::GetInstance().Init();
 }
@@ -83,11 +81,9 @@ void OsAccountManagerServiceSubscribeModuleTest::TearDownTestCase(void)
 {
     GTEST_LOG_(INFO) << "TearDownTestCase exit!";
 #ifdef ACCOUNT_TEST
-    if (std::filesystem::exists(USER_INFO_BASE)) {
-        if (std::filesystem::remove_all(USER_INFO_BASE)) {
-            GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
-        }
-    }
+    AccountFileOperator osAccountFileOperator;
+    osAccountFileOperator.DeleteDirOrFile(USER_INFO_BASE);
+    GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
 #endif  // ACCOUNT_TEST
 }
 

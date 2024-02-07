@@ -16,7 +16,7 @@
 #include <cstdint>
 #include <iosfwd>
 #include <string>
-
+#include "account_log_wrapper.h"
 #include <gtest/gtest.h>
 #include "gtest/gtest-message.h"
 #include "gtest/gtest-test-part.h"
@@ -54,8 +54,15 @@ void AccountPerfStatTest::SetUpTestCase() {}
 
 void AccountPerfStatTest::TearDownTestCase() {}
 
-void AccountPerfStatTest::SetUp()
+void AccountPerfStatTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 {
+    testing::UnitTest *test = testing::UnitTest::GetInstance();
+    ASSERT_NE(test, nullptr);
+    const testing::TestInfo *testinfo = test->current_test_info();
+    ASSERT_NE(testinfo, nullptr);
+    string testCaseName = string(testinfo->name());
+    ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
+
     /**
      * @tc.setup: reset perfStat
      */
