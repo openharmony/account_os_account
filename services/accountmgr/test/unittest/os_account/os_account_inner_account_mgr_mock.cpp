@@ -87,11 +87,9 @@ public:
 void OsAccountInnerAccmgrMockTest::SetUpTestCase(void)
 {
 #ifdef ACCOUNT_TEST
-    if (std::filesystem::exists(USER_INFO_BASE)) {
-        if (std::filesystem::remove_all(USER_INFO_BASE)) {
-            GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
-        }
-    }
+    AccountFileOperator osAccountFileOperator;
+    osAccountFileOperator.DeleteDirOrFile(USER_INFO_BASE);
+    GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
 #endif  // ACCOUNT_TEST
     IInnerOsAccountManager *innerMgrService = &IInnerOsAccountManager::GetInstance();
     std::shared_ptr<OsAccountControlFileManager> osAccountControl =
@@ -112,11 +110,9 @@ void OsAccountInnerAccmgrMockTest::SetUpTestCase(void)
 void OsAccountInnerAccmgrMockTest::TearDownTestCase(void)
 {
 #ifdef ACCOUNT_TEST
-    if (std::filesystem::exists(USER_INFO_BASE)) {
-        if (std::filesystem::remove_all(USER_INFO_BASE)) {
-            GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
-        }
-    }
+    AccountFileOperator osAccountFileOperator;
+    osAccountFileOperator.DeleteDirOrFile(USER_INFO_BASE);
+    GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
 #endif  // ACCOUNT_TEST
 }
 

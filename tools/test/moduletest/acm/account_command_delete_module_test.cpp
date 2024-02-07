@@ -18,6 +18,8 @@
 
 #include "account_command.h"
 #include "account_command_util.h"
+#include "account_file_operator.h"
+#include "account_log_wrapper.h"
 #include "tool_system_test.h"
 
 using namespace testing::ext;
@@ -44,27 +46,30 @@ public:
 void AccountCommandDeleteModuleTest::SetUpTestCase()
 {
 #ifdef ACCOUNT_TEST
-    if (std::filesystem::exists(USER_INFO_BASE)) {
-        if (std::filesystem::remove_all(USER_INFO_BASE)) {
-            GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
-        }
-    }
+    AccountFileOperator osAccountFileOperator;
+    osAccountFileOperator.DeleteDirOrFile(USER_INFO_BASE);
+    GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
 #endif  // ACCOUNT_TEST
 }
 
 void AccountCommandDeleteModuleTest::TearDownTestCase()
 {
 #ifdef ACCOUNT_TEST
-    if (std::filesystem::exists(USER_INFO_BASE)) {
-        if (std::filesystem::remove_all(USER_INFO_BASE)) {
-            GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
-        }
-    }
+    AccountFileOperator osAccountFileOperator;
+    osAccountFileOperator.DeleteDirOrFile(USER_INFO_BASE);
+    GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
 #endif  // ACCOUNT_TEST
 }
 
-void AccountCommandDeleteModuleTest::SetUp()
-{}
+void AccountCommandDeleteModuleTest::SetUp(void) __attribute__((no_sanitize("cfi")))
+{
+    testing::UnitTest *test = testing::UnitTest::GetInstance();
+    ASSERT_NE(test, nullptr);
+    const testing::TestInfo *testinfo = test->current_test_info();
+    ASSERT_NE(testinfo, nullptr);
+    string testCaseName = string(testinfo->name());
+    ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
+}
 
 void AccountCommandDeleteModuleTest::TearDown()
 {}

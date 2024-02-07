@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "account_log_wrapper.h"
 #include "account_state_machine.h"
 
 using namespace testing::ext;
@@ -32,7 +33,15 @@ void AccountStateMachineTest::SetUpTestCase() {}
 
 void AccountStateMachineTest::TearDownTestCase() {}
 
-void AccountStateMachineTest::SetUp() {}
+void AccountStateMachineTest::SetUp(void) __attribute__((no_sanitize("cfi")))
+{
+    testing::UnitTest *test = testing::UnitTest::GetInstance();
+    ASSERT_NE(test, nullptr);
+    const testing::TestInfo *testinfo = test->current_test_info();
+    ASSERT_NE(testinfo, nullptr);
+    string testCaseName = string(testinfo->name());
+    ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
+}
 
 void AccountStateMachineTest::TearDown() {}
 
