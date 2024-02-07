@@ -18,6 +18,7 @@
 #define private public
 #include "account_command.h"
 #undef private
+#include "account_log_wrapper.h"
 #include "singleton.h"
 
 using namespace testing::ext;
@@ -43,8 +44,15 @@ void AccountCommandTest::SetUpTestCase()
 void AccountCommandTest::TearDownTestCase()
 {}
 
-void AccountCommandTest::SetUp()
+void AccountCommandTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 {
+    testing::UnitTest *test = testing::UnitTest::GetInstance();
+    ASSERT_NE(test, nullptr);
+    const testing::TestInfo *testinfo = test->current_test_info();
+    ASSERT_NE(testinfo, nullptr);
+    string testCaseName = string(testinfo->name());
+    ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
+
     // reset optind to 0
     optind = 0;
 }

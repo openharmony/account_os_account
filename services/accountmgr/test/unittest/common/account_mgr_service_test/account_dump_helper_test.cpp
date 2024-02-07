@@ -40,6 +40,7 @@
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
+using namespace OHOS::AccountSA::Constants;
 
 namespace {
 const std::string TEST_ACCOUNT_NAME = "TestAccountName";
@@ -72,12 +73,23 @@ void AccountDumpHelperTest::TearDownTestCase()
     std::vector<OsAccountInfo> osAccountInfos;
     OsAccount::GetInstance().QueryAllCreatedOsAccounts(osAccountInfos);
     for (const auto &info : osAccountInfos) {
+        if (info.GetLocalId() == START_USER_ID) {
+            continue;
+        }
+        ACCOUNT_LOGI("[TearDownTestCase] remove account %{public}d", info.GetLocalId());
         OsAccount::GetInstance().RemoveOsAccount(info.GetLocalId());
     }
 }
 
-void AccountDumpHelperTest::SetUp()
+void AccountDumpHelperTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 {
+    testing::UnitTest *test = testing::UnitTest::GetInstance();
+    ASSERT_NE(test, nullptr);
+    const testing::TestInfo *testinfo = test->current_test_info();
+    ASSERT_NE(testinfo, nullptr);
+    string testCaseName = string(testinfo->name());
+    ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
+
     osAccount_ = new (std::nothrow) OsAccountManagerService();
     if (osAccount_ == nullptr) {
         std::cout << "AccountDumpHelperTest, error! osAccount_ is nullptr!" << std::endl;
