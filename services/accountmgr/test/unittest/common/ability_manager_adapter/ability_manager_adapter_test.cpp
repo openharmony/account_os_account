@@ -18,6 +18,7 @@
 #include "ability_manager_adapter.h"
 #undef private
 #include "account_event_provider.h"
+#include "account_log_wrapper.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
 #include "ability_connect_callback_stub.h"
@@ -46,7 +47,15 @@ void AbilityManagerAdapterTest::SetUpTestCase() {}
 
 void AbilityManagerAdapterTest::TearDownTestCase() {}
 
-void AbilityManagerAdapterTest::SetUp() {}
+void AbilityManagerAdapterTest::SetUp(void) __attribute__((no_sanitize("cfi")))
+{
+    testing::UnitTest *test = testing::UnitTest::GetInstance();
+    ASSERT_NE(test, nullptr);
+    const testing::TestInfo *testinfo = test->current_test_info();
+    ASSERT_NE(testinfo, nullptr);
+    string testCaseName = string(testinfo->name());
+    ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
+}
 
 void AbilityManagerAdapterTest::TearDown() {}
 

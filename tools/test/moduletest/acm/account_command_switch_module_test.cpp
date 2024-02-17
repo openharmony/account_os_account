@@ -17,6 +17,7 @@
 #include <thread>
 #include "account_command.h"
 #include "account_command_util.h"
+#include "account_log_wrapper.h"
 #include "tool_system_test.h"
 
 using namespace testing::ext;
@@ -45,8 +46,15 @@ void AccountCommandSwitchModuleTest::SetUpTestCase()
 void AccountCommandSwitchModuleTest::TearDownTestCase()
 {}
 
-void AccountCommandSwitchModuleTest::SetUp()
-{}
+void AccountCommandSwitchModuleTest::SetUp(void) __attribute__((no_sanitize("cfi")))
+{
+    testing::UnitTest *test = testing::UnitTest::GetInstance();
+    ASSERT_NE(test, nullptr);
+    const testing::TestInfo *testinfo = test->current_test_info();
+    ASSERT_NE(testinfo, nullptr);
+    string testCaseName = string(testinfo->name());
+    ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
+}
 
 void AccountCommandSwitchModuleTest::TearDown()
 {}

@@ -19,6 +19,7 @@
 #undef private
 #include "ability_connect_callback_stub.h"
 #include "account_event_provider.h"
+#include "account_log_wrapper.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -44,7 +45,15 @@ void AbilityManagerAdapterMockTest::SetUpTestCase() {}
 
 void AbilityManagerAdapterMockTest::TearDownTestCase() {}
 
-void AbilityManagerAdapterMockTest::SetUp() {}
+void AbilityManagerAdapterMockTest::SetUp(void) __attribute__((no_sanitize("cfi")))
+{
+    testing::UnitTest *test = testing::UnitTest::GetInstance();
+    ASSERT_NE(test, nullptr);
+    const testing::TestInfo *testinfo = test->current_test_info();
+    ASSERT_NE(testinfo, nullptr);
+    string testCaseName = string(testinfo->name());
+    ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
+}
 
 void AbilityManagerAdapterMockTest::TearDown() {}
 
