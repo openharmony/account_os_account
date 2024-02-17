@@ -16,12 +16,14 @@
 #include <gtest/gtest.h>
 
 #include "account_command.h"
+#include "account_log_wrapper.h"
 #include "singleton.h"
 
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AAFwk;
 using namespace OHOS::AccountSA;
+using namespace OHOS::AccountSA::Constants;
 
 namespace {
 const std::string HELP_MSG_UNKNOWN_OPTION = "fail: unknown option.";
@@ -47,14 +49,25 @@ void AccountCommandSetTest::SetUpTestCase()
 void AccountCommandSetTest::TearDownTestCase()
 {}
 
-void AccountCommandSetTest::SetUp()
+void AccountCommandSetTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 {
+    testing::UnitTest *test = testing::UnitTest::GetInstance();
+    ASSERT_NE(test, nullptr);
+    const testing::TestInfo *testinfo = test->current_test_info();
+    ASSERT_NE(testinfo, nullptr);
+    string testCaseName = string(testinfo->name());
+    ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
+
     // reset optind to 0
     optind = 0;
 
     std::vector<OsAccountInfo> osAccountInfos;
     OsAccount::GetInstance().QueryAllCreatedOsAccounts(osAccountInfos);
     for (const auto &info : osAccountInfos) {
+        if (info.GetLocalId() == START_USER_ID) {
+            continue;
+        }
+        ACCOUNT_LOGI("[SetUp] remove account %{public}d", info.GetLocalId());
         OsAccount::GetInstance().RemoveOsAccount(info.GetLocalId());
     }
 }
