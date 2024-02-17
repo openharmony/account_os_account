@@ -20,6 +20,7 @@
 #include <thread>
 #include <unistd.h>
 #include "accesstoken_kit.h"
+#include "account_file_operator.h"
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
 #include "domain_account_callback_service.h"
@@ -95,11 +96,9 @@ void DomainAccountClientModuleTest::SetUpTestCase(void)
 {
     GTEST_LOG_(INFO) << "SetUpTestCase enter";
 #ifdef ACCOUNT_TEST
-    if (std::filesystem::exists(USER_INFO_BASE)) {
-        if (std::filesystem::remove_all(USER_INFO_BASE)) {
-            GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
-        }
-    }
+    AccountFileOperator osAccountFileOperator;
+    osAccountFileOperator.DeleteDirOrFile(USER_INFO_BASE);
+    GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
 #endif  // ACCOUNT_TEST
 #ifdef BUNDLE_ADAPTER_MOCK
     auto servicePtr = new (std::nothrow) DomainAccountManagerService();
@@ -118,11 +117,9 @@ void DomainAccountClientModuleTest::TearDownTestCase(void)
 {
     GTEST_LOG_(INFO) << "TearDownTestCase";
 #ifdef ACCOUNT_TEST
-    if (std::filesystem::exists(USER_INFO_BASE)) {
-        if (std::filesystem::remove_all(USER_INFO_BASE)) {
-            GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
-        }
-    }
+    AccountFileOperator osAccountFileOperator;
+    osAccountFileOperator.DeleteDirOrFile(USER_INFO_BASE);
+    GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
 #endif  // ACCOUNT_TEST
 }
 
@@ -138,6 +135,10 @@ void DomainAccountClientModuleTest::SetUp(void) __attribute__((no_sanitize("cfi"
     std::vector<OsAccountInfo> osAccountInfos;
     OsAccount::GetInstance().QueryAllCreatedOsAccounts(osAccountInfos);
     for (const auto &info : osAccountInfos) {
+        if (info.GetLocalId() == START_USER_ID) {
+            continue;
+        }
+        ACCOUNT_LOGI("[SetUp] remove account %{public}d", info.GetLocalId());
         OsAccount::GetInstance().RemoveOsAccount(info.GetLocalId());
     }
     DomainAccountClient::GetInstance().UnregisterPlugin();
