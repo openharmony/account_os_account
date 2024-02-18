@@ -200,6 +200,7 @@ ohos_moduletest("os_account_manager_service_create_os_account_test") {
 
   external_deps = [
     "ability_runtime:ability_manager",
+    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
@@ -362,6 +363,7 @@ ohos_moduletest("os_account_control_file_manager_test") {
   ]
   external_deps = [
     "ability_runtime:ability_manager",
+    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
@@ -392,6 +394,7 @@ ohos_moduletest("os_account_database_operator_test") {
   ]
   external_deps = [
     "ability_runtime:ability_manager",
+    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
@@ -422,6 +425,7 @@ ohos_moduletest("os_account_file_operator_test") {
   ]
   external_deps = [
     "ability_runtime:ability_manager",
+    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
@@ -467,6 +471,7 @@ ohos_moduletest("os_account_photo_operator_test") {
 
   external_deps = [
     "ability_runtime:ability_manager",
+    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",

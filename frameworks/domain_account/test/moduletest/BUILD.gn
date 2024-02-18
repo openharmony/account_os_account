@@ -139,6 +139,7 @@ ohos_moduletest("domain_account_frameworks_module_mock_test") {
     "access_token:libtoken_setproc",
     "access_token:libtokenid_sdk",
     "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "hilog:libhilog",
     "huks:libhukssdk",
