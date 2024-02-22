@@ -15,6 +15,8 @@
 
 #include "native_engine/native_engine.h"
 
+#define ATTRIBUTE __attribute__((visibility("default")))
+
 extern const char _binary_authorization_extension_ability_js_start[];
 extern const char _binary_authorization_extension_ability_js_end[];
 extern const char _binary_authorization_extension_ability_abc_start[];
@@ -45,8 +47,8 @@ extern "C" __attribute__((visibility("default"))) void NAPI_account_appAccount_A
     }
 }
 
-extern "C" __attribute__((visibility("default"))) void
-NAPI_account_appAccount_AuthorizationExtensionAbility_GetABCCode(const char **buf, int *buflen)
+extern "C" ATTRIBUTE void NAPI_account_appAccount_AuthorizationExtensionAbility_GetABCCode(
+    const char **buf, int *buflen)
 {
     if (buf != nullptr) {
         *buf = _binary_authorization_extension_ability_abc_start;
