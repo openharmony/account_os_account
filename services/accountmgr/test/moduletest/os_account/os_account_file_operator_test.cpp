@@ -72,6 +72,5 @@ HWTEST_F(OsAccountFileOperatorTest, CheckConstraintsList_0001, TestSize.Level1)
     ErrCode ret = g_osAccountFileOperator->CheckConstraintsList(constraints, isExists, isOverSize);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_OS_FILE_GET_CONSTRAINTS_LITS_ERROR);
 }
-
 }  // namespace AccountSA
 }  // namespace OHOS
