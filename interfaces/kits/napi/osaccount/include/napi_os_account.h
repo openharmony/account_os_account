@@ -74,7 +74,9 @@ struct ActivateOAAsyncContext : public CommonAsyncContext {
 struct CreateOAAsyncContext : public CommonAsyncContext {
     OsAccountType type;
     std::string name;
+    std::string shortName;
     OsAccountInfo osAccountInfos;
+    bool hasShortName = false;
 };
 
 struct CreateOAForDomainAsyncContext : public CommonAsyncContext {

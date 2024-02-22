@@ -189,64 +189,62 @@ void CreateJsDistributedInfo(napi_env env, const OhosAccountInfo &info, napi_val
 void GetOACBInfoToJs(napi_env env, OsAccountInfo &info, napi_value &objOAInfo)
 {
     napi_create_object(env, &objOAInfo);
-    // localId
     napi_value idToJs = nullptr;
     napi_create_int32(env, info.GetLocalId(), &idToJs);
     napi_set_named_property(env, objOAInfo, "localId", idToJs);
 
-    // localName
     napi_value nameToJs = nullptr;
     napi_create_string_utf8(env, info.GetLocalName().c_str(), NAPI_AUTO_LENGTH, &nameToJs);
     napi_set_named_property(env, objOAInfo, "localName", nameToJs);
 
-    // type
+    napi_value shortNameToJs = nullptr;
+    napi_create_string_utf8(env, info.GetShortName().c_str(), NAPI_AUTO_LENGTH, &shortNameToJs);
+    napi_set_named_property(env, objOAInfo, "shortName", shortNameToJs);
+
     napi_value typeToJsObj = nullptr;
     napi_create_int32(env, static_cast<int>(info.GetType()), &typeToJsObj);
     napi_set_named_property(env, objOAInfo, "type", typeToJsObj);
 
-    // constraints
     napi_value constraintsToJs = nullptr;
     napi_create_array(env, &constraintsToJs);
     MakeArrayToJs(env, info.GetConstraints(), constraintsToJs);
     napi_set_named_property(env, objOAInfo, "constraints", constraintsToJs);
 
-    // isVerified
     napi_value isVerifiedToJs = nullptr;
     napi_get_boolean(env, info.GetIsVerified(), &isVerifiedToJs);
     napi_set_named_property(env, objOAInfo, "isVerified", isVerifiedToJs);
     napi_set_named_property(env, objOAInfo, "isUnlocked", isVerifiedToJs);
 
-    // photo
     napi_value photoToJs = nullptr;
     napi_create_string_utf8(env, info.GetPhoto().c_str(), NAPI_AUTO_LENGTH, &photoToJs);
     napi_set_named_property(env, objOAInfo, "photo", photoToJs);
 
-    // createTime
     napi_value createTimeToJs = nullptr;
     napi_create_int64(env, info.GetCreateTime(), &createTimeToJs);
     napi_set_named_property(env, objOAInfo, "createTime", createTimeToJs);
 
-    // lastLoginTime
     napi_value lastLoginTimeToJs = nullptr;
     napi_create_int64(env, info.GetLastLoginTime(), &lastLoginTimeToJs);
     napi_set_named_property(env, objOAInfo, "lastLoginTime", lastLoginTimeToJs);
 
-    // serialNumber
     napi_value serialNumberToJs = nullptr;
     napi_create_int64(env, info.GetSerialNumber(), &serialNumberToJs);
     napi_set_named_property(env, objOAInfo, "serialNumber", serialNumberToJs);
 
-    // isActived
     napi_value isActivedToJs = nullptr;
     napi_get_boolean(env, info.GetIsActived(), &isActivedToJs);
     napi_set_named_property(env, objOAInfo, "isActived", isActivedToJs);
     napi_set_named_property(env, objOAInfo, "isActivated", isActivedToJs);
 
-    // isCreateCompleted
     napi_value isCreateCompletedToJs = nullptr;
     napi_get_boolean(env, info.GetIsCreateCompleted(), &isCreateCompletedToJs);
     napi_set_named_property(env, objOAInfo, "isCreateCompleted", isCreateCompletedToJs);
 
+    GetOtherAccountInfoToJs(env, info, objOAInfo);
+}
+
+void GetOtherAccountInfoToJs(napi_env env, OsAccountInfo &info, napi_value &objOAInfo)
+{
     // distributedInfo: distributedAccount.DistributedInfo
     napi_value dbInfoToJs = nullptr;
     std::pair<bool, OhosAccountInfo> dbAccountInfo = OhosAccountKits::GetInstance().QueryOhosAccountInfo();
@@ -464,13 +462,18 @@ bool ParseParaCreateOA(napi_env env, napi_callback_info cbInfo, CreateOAAsyncCon
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-
+    napi_valuetype valueType = napi_undefined;
     if (argc == ARGS_SIZE_THREE) {
-        if (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1)) {
-            ACCOUNT_LOGE("Get CreateOA callbackRef failed");
-            std::string errMsg = "The type of arg " + std::to_string(argc) + " must be function";
-            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-            return false;
+        napi_typeof(env, argv[ARGS_SIZE_TWO], &valueType);
+        if (!GetCallbackProperty(env, argv[PARAMTWO], asyncContext->callbackRef, 1)) {
+            if (!GetStringPropertyByKey(env, argv[PARAMTWO], "shortName", asyncContext->shortName)) {
+                ACCOUNT_LOGE("get CreateOsAccountOptions's shortName failed");
+                std::string errMsg = "The type of arg 3 must contains shortName";
+                AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+                return false;
+            } else {
+                asyncContext->hasShortName = true;
+            }
         }
     }
 
@@ -480,6 +483,7 @@ bool ParseParaCreateOA(napi_env env, napi_callback_info cbInfo, CreateOAAsyncCon
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
         return false;
     }
+
     int32_t type = 0;
     if (!GetIntProperty(env, argv[PARAMONE], type)) {
         ACCOUNT_LOGE("Get type failed");
@@ -487,6 +491,7 @@ bool ParseParaCreateOA(napi_env env, napi_callback_info cbInfo, CreateOAAsyncCon
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
         return false;
     }
+
     asyncContext->type = static_cast<OsAccountType>(type);
     return true;
 }
@@ -558,8 +563,14 @@ void CreateOAExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGD("napi_create_async_work running");
     CreateOAAsyncContext *asyncContext = reinterpret_cast<CreateOAAsyncContext *>(data);
-    asyncContext->errCode =
-        OsAccountManager::CreateOsAccount(asyncContext->name, asyncContext->type, asyncContext->osAccountInfos);
+    if (asyncContext->hasShortName) {
+        asyncContext->errCode =
+            OsAccountManager::CreateOsAccount(asyncContext->name, asyncContext->shortName,
+                asyncContext->type, asyncContext->osAccountInfos);
+    } else {
+        asyncContext->errCode =
+            OsAccountManager::CreateOsAccount(asyncContext->name, asyncContext->type, asyncContext->osAccountInfos);
+    }
     asyncContext->status = (asyncContext->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 

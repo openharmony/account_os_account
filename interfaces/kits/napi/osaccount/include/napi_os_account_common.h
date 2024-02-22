@@ -59,6 +59,8 @@ void QueryOAByIdCallbackCompletedCB(napi_env env, napi_status status, void *data
 
 void GetOACBInfoToJs(napi_env env, OsAccountInfo &info, napi_value &objOAInfo);
 
+void GetOtherAccountInfoToJs(napi_env env, OsAccountInfo &info, napi_value &objOAInfo);
+
 void MakeArrayToJs(napi_env env, const std::vector<std::string> &constraints, napi_value jsArray);
 
 bool ParseParaRemoveOACB(napi_env env, napi_callback_info cbInfo, RemoveOAAsyncContext *asyncContext);

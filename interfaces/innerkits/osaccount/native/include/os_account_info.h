@@ -45,6 +45,7 @@ struct CreateOsAccountOptions: public Parcelable {
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
     static CreateOsAccountOptions *Unmarshalling(Parcel &parcel);
+    std::string shortName;
 };
 
 class OsAccountInfo : public IAccountInfo, public Parcelable {
@@ -149,6 +150,7 @@ private:
     bool toBeRemoved_ = false;
     DomainAccountInfo domainInfo_;
 };
+
 typedef enum {
     ERROR_MOD = 0,
     HOT_SWITCH,
