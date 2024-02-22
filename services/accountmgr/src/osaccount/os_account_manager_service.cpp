@@ -86,12 +86,6 @@ OsAccountManagerService::~OsAccountManagerService()
 ErrCode OsAccountManagerService::CreateOsAccount(
     const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
 {
-    // parameters check
-    size_t localNameSize = name.size();
-    if (localNameSize == 0 || localNameSize > Constants::LOCAL_NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("CreateOsAccount local name length %{public}zu is invalid!", localNameSize);
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
     return CreateOsAccount(name, name, type, osAccountInfo);
 }
 
@@ -104,6 +98,40 @@ ErrCode OsAccountManagerService::CreateOsAccount(const std::string &localName, c
         !PermissionCheck(MANAGE_LOCAL_ACCOUNTS, CONSTANT_CREATE))) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+
+    bool isMultiOsAccountEnable = false;
+    IsMultiOsAccountEnable(isMultiOsAccountEnable);
+    if (!isMultiOsAccountEnable) {
+        ACCOUNT_LOGE("system is not multi os account enable error");
+        return ERR_OSACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR;
+    }
+
+    size_t localNameSize = localName.size();
+    if ((localNameSize == 0) || (localNameSize > Constants::LOCAL_NAME_MAX_SIZE)) {
+        ACCOUNT_LOGE("CreateOsAccount local name length %{public}zu is invalid!", localNameSize);
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    if (type < OsAccountType::ADMIN || type >= OsAccountType::END) {
+        ACCOUNT_LOGE("os account type is invalid");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    bool isAllowedCreateAdmin = false;
+    ErrCode errCode = innerManager_.IsAllowedCreateAdmin(isAllowedCreateAdmin);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("query allowed create admin error");
+        return errCode;
+    }
+    if (!isAllowedCreateAdmin && type == OsAccountType::ADMIN) {
+        ACCOUNT_LOGE("cannot create admin account error");
+        return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
+    }
+
+    errCode = innerManager_.ValidateShortName(shortName);
+    if (errCode != ERR_OK) {
+        return errCode;
     }
 
     return innerManager_.CreateOsAccount(localName, shortName, type, osAccountInfo, options);

@@ -94,6 +94,7 @@ public:
 
     ErrCode SetDefaultActivatedOsAccount(const int32_t id) override;
     ErrCode GetDefaultActivatedOsAccount(int32_t &id) override;
+    ErrCode ValidateShortName(const std::string &shortName) override;
     ErrCode BindDomainAccount(const OsAccountType &type, const DomainAccountInfo &domainAccountInfo,
         const sptr<IDomainAccountCallback> &callback);
     ErrCode SendMsgForAccountCreate(OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options = {});
@@ -131,7 +132,6 @@ private:
     void CleanGarbageAccounts();
     ErrCode DealWithDeviceOwnerId(const bool isDeviceOwner, const int32_t localId);
     void CheckAndRefreshLocalIdRecord(const int id);
-    ErrCode ValidateShortName(const std::string &shortName);
 
     // operations for active list
     void PushIdIntoActiveList(int32_t id);
@@ -142,6 +142,7 @@ private:
     bool CheckDomainAccountBound(const std::vector<OsAccountInfo> &osAccountInfos, const DomainAccountInfo &info);
     void WatchStartUser(std::int32_t id);
     void RetryToGetAccount(OsAccountInfo &osAccountInfo);
+    bool JudgeOsAccountUpdate(Json &accountIndexJson);
 
 private:
     std::shared_ptr<IOsAccountControl> osAccountControl_;

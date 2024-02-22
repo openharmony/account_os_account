@@ -90,6 +90,7 @@ public:
         const std::vector<std::string> &constraints, const bool enable) = 0;
     virtual ErrCode SetDefaultActivatedOsAccount(const int32_t id) = 0;
     virtual ErrCode GetDefaultActivatedOsAccount(int32_t &id) = 0;
+    virtual ErrCode ValidateShortName(const std::string &shortName) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
