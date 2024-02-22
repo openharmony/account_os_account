@@ -16,6 +16,7 @@
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_IOS_ACCOUNT_CONTROL_H
 #include "os_account_info.h"
 #include "account_error_no.h"
+#include <stdint.h>
 namespace OHOS {
 namespace AccountSA {
 class IOsAccountControl {

@@ -14,9 +14,11 @@
  */
 #include "iinner_os_account_manager.h"
 #include "account_event_provider.h"
+#include <unistd.h>
 #include "account_info.h"
 #include "account_info_report.h"
 #include "account_log_wrapper.h"
+#include "os_account_info.h"
 #ifdef HAS_CES_PART
 #include "common_event_support.h"
 #endif // HAS_CES_PART
@@ -102,7 +104,7 @@ void IInnerOsAccountManager::CreateBaseStandardAccount()
         osAccountControl_->GetSerialNumber(serialNumber);
 #ifdef ENABLE_DEFAULT_ADMIN_NAME
         OsAccountInfo osAccountInfo(Constants::START_USER_ID, Constants::STANDARD_LOCAL_NAME,
-            Constants::STANDARD_LOCAL_NAME, OsAccountType::ADMIN, serialNumber);
+            OsAccountType::ADMIN, serialNumber);
 #else
         OsAccountInfo osAccountInfo(Constants::START_USER_ID, "", OsAccountType::ADMIN, serialNumber);
 #endif //ENABLE_DEFAULT_ADMIN_NAME
@@ -213,6 +215,12 @@ void IInnerOsAccountManager::ResetAccountStatus(void)
 ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &name, const OsAccountType &type,
     const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo)
 {
+#ifdef ENABLE_ACCOUNT_SHORT_NAME
+    ErrCode code = ValidateShortName(name);
+    if (code != ERR_OK) {
+        return code;
+    }
+#endif // ENABLE_ACCOUNT_SHORT_NAME
     return PrepareOsAccountInfo(name, name, type, domainInfo, osAccountInfo);
 }
 
@@ -270,10 +278,6 @@ ErrCode IInnerOsAccountManager::FillOsAccountInfo(const std::string &localName, 
     }
 
 #ifdef ENABLE_ACCOUNT_SHORT_NAME
-    ErrCode code = ValidateShortName(shortName);
-    if (code != ERR_OK) {
-        return code;
-    }
     osAccountInfo = OsAccountInfo(id, localName, shortName, type, serialNumber);
 #else
     osAccountInfo = OsAccountInfo(id, localName, type, serialNumber);
@@ -376,36 +380,26 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(
 ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, const std::string &shortName,
     const OsAccountType &type, OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options)
 {
-    bool isMultiOsAccountEnable = false;
-    IsMultiOsAccountEnable(isMultiOsAccountEnable);
-    if (!isMultiOsAccountEnable) {
-        ACCOUNT_LOGE("system is not multi os account enable error");
-        return ERR_OSACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR;
+    osAccountInfo.SetLocalName(localName);
+#ifdef ENABLE_ACCOUNT_SHORT_NAME
+    OsAccountInfo accountInfoOld;
+    ErrCode code = QueryOsAccountById(Constants::START_USER_ID, accountInfoOld);
+    if (code != ERR_OK) {
+        ACCOUNT_LOGE("QueryOsAccountById error, errCode %{public}d.", code);
+        return code;
     }
-
-    size_t localNameSize = localName.size();
-    if ((localNameSize == 0) || (localNameSize > Constants::LOCAL_NAME_MAX_SIZE)) {
-        ACCOUNT_LOGE("CreateOsAccount local name length %{public}zu is invalid!", localNameSize);
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    if (accountInfoOld.GetShortName().empty()) {
+        accountInfoOld.SetType(type);
+        accountInfoOld.SetLocalName(localName);
+        accountInfoOld.SetShortName(shortName);
+        code = osAccountControl_->UpdateOsAccount(accountInfoOld);
+        osAccountControl_->UpdateAccountIndex(accountInfoOld, false);
+        osAccountInfo = accountInfoOld;
+        return code;
     }
-
-    if (type < OsAccountType::ADMIN || type >= OsAccountType::END) {
-        ACCOUNT_LOGE("os account type is invalid");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-
-    bool isAllowedCreateAdmin = false;
-    ErrCode errCode = IsAllowedCreateAdmin(isAllowedCreateAdmin);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("query allowed create admin error");
-        return errCode;
-    }
-    if (!isAllowedCreateAdmin && type == OsAccountType::ADMIN) {
-        ACCOUNT_LOGE("cannot create admin account error");
-        return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
-    }
+#endif // ENABLE_ACCOUNT_SHORT_NAME
     DomainAccountInfo domainInfo;  // default empty domain info
-    errCode = PrepareOsAccountInfo(localName, shortName, type, domainInfo, osAccountInfo);
+    ErrCode errCode = PrepareOsAccountInfo(localName, shortName, type, domainInfo, osAccountInfo);
     if (errCode != ERR_OK) {
         return errCode;
     }
@@ -424,11 +418,9 @@ ErrCode IInnerOsAccountManager::ValidateShortName(const std::string &shortName)
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
-    for (size_t i = 0; i < SPECIAL_CHARACTER_ARRAY.size(); i++) {
-        if (shortName.find(SPECIAL_CHARACTER_ARRAY[i]) != std::string::npos) {
-            ACCOUNT_LOGE("CreateOsAccount short name is invalidate, short name is %{public}s !", shortName.c_str());
-            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-        }
+    if (shortName.find_first_of(SPECIAL_CHARACTER_ARRAY) != std::string::npos) {
+        ACCOUNT_LOGE("CreateOsAccount short name is invalidate, short name is %{public}s !", shortName.c_str());
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
     for (size_t i = 0; i < SHORT_NAME_CANNOT_BE_NAME_ARRAY.size(); i++) {
@@ -493,6 +485,8 @@ ErrCode IInnerOsAccountManager::UpdateOsAccountWithFullInfo(OsAccountInfo &newIn
     oldInfo.SetPhoto(newInfo.GetPhoto());
     oldInfo.SetConstraints(newInfo.GetConstraints());
     errCode = osAccountControl_->UpdateOsAccount(oldInfo);
+    osAccountControl_->UpdateAccountIndex(oldInfo, false);
+    newInfo = oldInfo;
     if (errCode != ERR_OK) {
         ReportOsAccountOperationFail(
             localId, Constants::OPERATION_UPDATE, errCode, "UpdateOsAccount failed!");
