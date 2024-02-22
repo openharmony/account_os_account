@@ -413,7 +413,7 @@ ErrCode OsAccountControlFileManager::GetOsAccountList(std::vector<OsAccountInfo>
     std::vector<std::string> idList;
     OHOS::AccountSA::GetDataByType<std::vector<std::string>>(
         accountListJson, jsonObjectEnd, Constants::ACCOUNT_LIST, idList, OHOS::AccountSA::JsonType::ARRAY);
-    if (!idList.empty()) {
+    if (idList.empty()) {
         return ERR_OK;
     }
     for (auto it : idList) {
