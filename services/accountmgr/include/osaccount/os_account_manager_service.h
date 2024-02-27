@@ -119,6 +119,7 @@ public:
     ErrCode SetDefaultActivatedOsAccount(const int32_t id) override;
     ErrCode GetDefaultActivatedOsAccount(int32_t &id) override;
     ErrCode GetOsAccountShortName(std::string &shortName) override;
+    ErrCode GetOsAccountShortNameById(const int32_t id, std::string &shortName) override;
 
 private:
     virtual ErrCode DumpStateByAccounts(
@@ -127,6 +128,7 @@ private:
     bool CheckCreateOsAccountWhiteList();
     ErrCode ValidateShortName(const std::string &shortName);
     void GetCurrentLocalId(int32_t &localId);
+    ErrCode GetOsAccountShortNameCommon(const int32_t id, std::string &shortName);
 
 private:
     IInnerOsAccount &innerManager_;

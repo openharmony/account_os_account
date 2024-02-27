@@ -93,6 +93,7 @@ public:
     ErrCode SetDefaultActivatedOsAccount(const int32_t id) override;
     ErrCode GetDefaultActivatedOsAccount(int32_t &id) override;
     ErrCode GetOsAccountShortName(std::string &shortName) override;
+    ErrCode GetOsAccountShortNameById(const int32_t id, std::string &shortName) override;
 
 private:
     bool ReadOsAccountInfoList(MessageParcel &data, std::vector<OsAccountInfo> &parcelableInfos);

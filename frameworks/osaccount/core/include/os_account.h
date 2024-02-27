@@ -88,6 +88,7 @@ public:
     ErrCode SetDefaultActivatedOsAccount(const int32_t id);
     ErrCode GetDefaultActivatedOsAccount(int32_t &id);
     ErrCode GetOsAccountShortName(std::string &shortName);
+    ErrCode GetOsAccountShortNameById(const int32_t id, std::string &shortName);
 
 private:
     OsAccount() = default;

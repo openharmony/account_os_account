@@ -917,15 +917,29 @@ ErrCode OsAccountManagerService::GetDefaultActivatedOsAccount(int32_t &id)
     return innerManager_.GetDefaultActivatedOsAccount(id);
 }
 
-ErrCode OsAccountManagerService::GetOsAccountShortName(std::string &shortName)
+ErrCode OsAccountManagerService::GetOsAccountShortNameCommon(const int32_t id, std::string &shortName)
 {
-    int32_t id = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     ErrCode errCode = innerManager_.GetOsAccountShortName(id, shortName);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("GetOsAccountShortName error %{public}d", errCode);
         return errCode;
     }
     return ERR_OK;
+}
+
+ErrCode OsAccountManagerService::GetOsAccountShortName(std::string &shortName)
+{
+    int32_t id = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+    return GetOsAccountShortNameCommon(id, shortName);
+}
+
+ErrCode OsAccountManagerService::GetOsAccountShortNameById(const int32_t id, std::string &shortName)
+{
+    if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("Check permission failed, please check your permission.");
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    return GetOsAccountShortNameCommon(id, shortName);
 }
 
 bool OsAccountManagerService::PermissionCheck(const std::string& permissionName, const std::string& constraintName)

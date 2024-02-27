@@ -326,5 +326,10 @@ ErrCode OsAccountManager::GetOsAccountShortName(std::string &shortName)
 {
     return OsAccount::GetInstance().GetOsAccountShortName(shortName);
 }
+
+ErrCode OsAccountManager::GetOsAccountShortName(const int32_t id, std::string &shortName)
+{
+    return OsAccount::GetInstance().GetOsAccountShortNameById(id, shortName);
+}
 }  // namespace AccountSA
 }  // namespace OHOS
