@@ -208,7 +208,7 @@ ErrCode OsAccountControlFileManager::GetOsAccountList(std::vector<OsAccountInfo>
     if (idList.empty()) {
         return ERR_OK;
     }
-    for (auto it : idList) {
+    for (const auto &it : idList) {
         OsAccountInfo osAccountInfo;
         if (GetOsAccountInfoById(std::atoi(it.c_str()), osAccountInfo) == ERR_OK) {
             if (osAccountInfo.GetPhoto() != "") {
