@@ -205,17 +205,18 @@ ErrCode OsAccountControlFileManager::GetOsAccountList(std::vector<OsAccountInfo>
     std::vector<std::string> idList;
     OHOS::AccountSA::GetDataByType<std::vector<std::string>>(
         accountListJson, jsonObjectEnd, Constants::ACCOUNT_LIST, idList, OHOS::AccountSA::JsonType::ARRAY);
-    if (!idList.empty()) {
-        for (auto it : idList) {
-            OsAccountInfo osAccountInfo;
-            if (GetOsAccountInfoById(std::atoi(it.c_str()), osAccountInfo) == ERR_OK) {
-                if (osAccountInfo.GetPhoto() != "") {
-                    std::string photo = osAccountInfo.GetPhoto();
-                    GetPhotoById(osAccountInfo.GetLocalId(), photo);
-                    osAccountInfo.SetPhoto(photo);
-                }
-                osAccountList.push_back(osAccountInfo);
+    if (idList.empty()) {
+        return ERR_OK;
+    }
+    for (const auto &it : idList) {
+        OsAccountInfo osAccountInfo;
+        if (GetOsAccountInfoById(std::atoi(it.c_str()), osAccountInfo) == ERR_OK) {
+            if (osAccountInfo.GetPhoto() != "") {
+                std::string photo = osAccountInfo.GetPhoto();
+                GetPhotoById(osAccountInfo.GetLocalId(), photo);
+                osAccountInfo.SetPhoto(photo);
             }
+            osAccountList.push_back(osAccountInfo);
         }
     }
     return ERR_OK;
@@ -682,6 +683,17 @@ ErrCode OsAccountControlFileManager::GetMaxCreatedOsAccountNum(int &maxCreatedOs
     return ERR_OK;
 }
 
+bool AccountExistsWithSerialNumber(const std::vector<OsAccountInfo>& osAccountInfos, int serialNumber)
+{
+    for (const auto& accountInfo : osAccountInfos) {
+        if (accountInfo.GetSerialNumber() ==
+            Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN * Constants::CARRY_NUM + serialNumber) {
+            return true;
+        }
+    }
+    return false;
+}
+
 ErrCode OsAccountControlFileManager::GetSerialNumber(int64_t &serialNumber)
 {
     Json accountListJson;
@@ -708,13 +720,7 @@ ErrCode OsAccountControlFileManager::GetSerialNumber(int64_t &serialNumber)
         }
         while (serialNumber < Constants::CARRY_NUM) {
             bool exists = false;
-            for (auto it = osAccountInfos.begin(); it != osAccountInfos.end(); it++) {
-                if (it->GetSerialNumber() ==
-                    Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN * Constants::CARRY_NUM + serialNumber) {
-                    exists = true;
-                    break;
-                }
-            }
+            exists = AccountExistsWithSerialNumber(osAccountInfos, serialNumber);
             if (!exists) {
                 break;
             }
