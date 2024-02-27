@@ -356,6 +356,13 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
             .messageProcFunction = &OsAccountStub::ProcGetOsAccountShortName,
         }
     },
+    {
+        static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_SHORT_NAME_BY_ID),
+        {
+            .messageProcFunction = &OsAccountStub::ProcGetOsAccountShortNameById,
+            .isSyetemApi = true,
+        }
+    },
 };
 
 OsAccountStub::OsAccountStub()
@@ -1344,6 +1351,29 @@ ErrCode OsAccountStub::ProcGetOsAccountShortName(MessageParcel &data, MessagePar
     if (!reply.WriteString(shortName)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcGetOsAccountShortNameById(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t id;
+    if (!data.ReadInt32(id)) {
+        ACCOUNT_LOGE("Read id failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    std::string shortName;
+    ErrCode result = GetOsAccountShortNameById(id, shortName);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Write result failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        return ERR_NONE;
+    }
+    if (!reply.WriteString(shortName)) {
+        ACCOUNT_LOGE("Write short name failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_NONE;
 }

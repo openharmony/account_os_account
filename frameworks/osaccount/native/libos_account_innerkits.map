@@ -140,6 +140,7 @@
         "OHOS::AccountSA::OsAccountManager::QueryActiveOsAccountIds(std::__h::vector<int, std::__h::allocator<int>>&)";
         "OHOS::AccountSA::OsAccountManager::SetGlobalOsAccountConstraints(std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&, bool, int, bool)";
         "OHOS::AccountSA::OsAccountManager::GetOsAccountShortName(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&)";
+        "OHOS::AccountSA::OsAccountManager::GetOsAccountShortName(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&)";
         "OHOS::AccountSA::OsAccountInfo::GetLocalId() const";
         "OHOS::AccountSA::OsAccountInfo::ParamCheck()";
         "OHOS::AccountSA::OsAccountInfo::GetDomainInfo(OHOS::AccountSA::DomainAccountInfo&) const";

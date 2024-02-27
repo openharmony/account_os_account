@@ -638,6 +638,20 @@ HWTEST_F(OsAccountInfoTest, GetOsAccountShortName001, TestSize.Level1)
     std::string shortName;
     EXPECT_EQ(ERR_OK, OsAccountManager::GetOsAccountShortName(shortName));
 }
+
+/**
+ * @tc.name: GetOsAccountShortName002
+ * @tc.desc: Test get os account short name by id.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, GetOsAccountShortName002, TestSize.Level1)
+{
+    std::string shortName;
+    EXPECT_EQ(ERR_OK, OsAccountManager::GetOsAccountShortName(100, shortName));
+    EXPECT_NE(ERR_OK, OsAccountManager::GetOsAccountShortName(199, shortName));
+}
+
 /**
  * @tc.name: CreateOsAccount00
  * @tc.desc: create os account with short name
