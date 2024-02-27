@@ -705,7 +705,6 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest027,
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_OS_FILE_GET_CONSTRAINTS_LITS_ERROR);
     EXPECT_EQ(isExists, true);
     EXPECT_EQ(isOverSize, false);
-
 }
 
 /**
