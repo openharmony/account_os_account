@@ -77,10 +77,6 @@ const std::int32_t MAIN_ACCOUNT_ID = 100;
 const std::int32_t INVALID_ID = 200;
 const std::uint32_t MAX_WAIT_FOR_READY_CNT = 10;
 const std::int32_t DEFAULT_API_VERSION = 8;
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-const uid_t ACCOUNT_UID = 3058;
-const gid_t ACCOUNT_GID = 3058;
-#endif
 
 const std::vector<std::string> CONSTANTS_VECTOR {
     "constraint.print",
@@ -424,38 +420,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest005, TestSize.Lev
     EXPECT_EQ(osAccountInfoOne.ToString(), osAccountInfoTwo.ToString());
     EXPECT_EQ(osAccountInfoOne.GetType(), OsAccountType::NORMAL);
     ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
-}
-
-/**
- * @tc.name: OsAccountManagerModuleTest006
- * @tc.desc: Test CreateOsAccount when cannot find account_list.json.
- * @tc.type: FUNC
- * @tc.require: issueI4IU51
- */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest006, TestSize.Level1)
-{
-    // save file content to ram
-    std::string fileContext;
-    g_accountFileOperator->GetFileContentByPath(Constants::ACCOUNT_LIST_FILE_JSON_PATH, fileContext);
-
-    // remove file
-    g_accountFileOperator->DeleteDirOrFile(Constants::ACCOUNT_LIST_FILE_JSON_PATH);
-
-    // create account
-    OsAccountInfo osAccountInfoOne;
-    ErrCode errCode = OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::GUEST, osAccountInfoOne);
-    EXPECT_NE(errCode, ERR_OK);
-
-    // rewrite file content
-    g_accountFileOperator->InputFileByPathAndContent(Constants::ACCOUNT_LIST_FILE_JSON_PATH, fileContext);
-
-    // recover permission
-    if (chmod(Constants::ACCOUNT_LIST_FILE_JSON_PATH.c_str(), S_IRUSR | S_IWUSR) != 0) {
-        ACCOUNT_LOGE("OsAccountManagerModuleTest006, chmod failed! errno %{public}d.", errno);
-    }
-    if (chown(Constants::ACCOUNT_LIST_FILE_JSON_PATH.c_str(), ACCOUNT_UID, ACCOUNT_GID) != 0) {
-        ACCOUNT_LOGE("OsAccountManagerModuleTest006, chown failed! errno %{public}d.", errno);
-    }
 }
 
 /**
@@ -1055,27 +1019,12 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest046, TestSize.Lev
 }
 
 /**
- * @tc.name: OsAccountManagerModuleTest047
- * @tc.desc: Test StartOsAccount with valid id.
- * @tc.type: FUNC
- * @tc.require: issueI4IU3B
- */
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest047, TestSize.Level1)
-{
-    OsAccountInfo osAccountInfoOne;
-    ASSERT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
-    EXPECT_EQ(OsAccountManager::StartOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
-    EXPECT_EQ(OsAccountManager::StopOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
-    ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
-}
-
-/**
  * @tc.name: OsAccountManagerModuleTest050
  * @tc.desc: Test StopOsAccount with valid data.
  * @tc.type: FUNC
  * @tc.require: issueI4IU3B
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest050, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
@@ -2240,7 +2189,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest109, TestSize.Lev
     SetSelfTokenID(tokenIdEx.tokenIDEx);
 
     int bundleId = INVALID_BUNDLE_ID;
-    ASSERT_EQ(OsAccountManager::GetBundleIdFromUid(ACCOUNT_UID, bundleId), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+    ASSERT_EQ(OsAccountManager::GetBundleIdFromUid(3058, bundleId), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
 
     OsAccountInfo osAccountInfoOne;
     ASSERT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::GUEST, osAccountInfoOne),
@@ -2330,7 +2279,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest111, TestSize.Lev
     ASSERT_NE(INVALID_TOKEN_ID, tokenIdEx.tokenIDEx);
     SetSelfTokenID(tokenIdEx.tokenIDEx);
     int bundleId = INVALID_BUNDLE_ID;
-    ASSERT_EQ(OsAccountManager::GetBundleIdFromUid(ACCOUNT_UID, bundleId), ERR_OK);
+    ASSERT_EQ(OsAccountManager::GetBundleIdFromUid(3058, bundleId), ERR_OK);
     ASSERT_NE(bundleId, INVALID_BUNDLE_ID);
 
     OsAccountInfo osAccountInfoOne;

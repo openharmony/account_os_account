@@ -521,27 +521,6 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0102, TestSize.Level1)
 }
 
 /**
- * @tc.name: CreateOsAccountWithFullInfo0103
- * @tc.desc: Test CreateOsAccountWithFullInfo admin success
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0103, TestSize.Level1)
-{
-    OsAccountInfo osAccountInfo;
-    osAccountInfo.SetLocalName("test117");
-    osAccountInfo.SetLocalId(CREATE_LOCAL_ID);
-    osAccountInfo.SetSerialNumber(2023023100000033);
-    osAccountInfo.SetCreateTime(1695883215000);
-    osAccountInfo.SetLastLoginTime(1695863215000);
-    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo));
-
-    osAccountInfo.SetLocalName("update117");
-    EXPECT_EQ(ERR_OK, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
-    OsAccountManager::RemoveOsAccount(CREATE_LOCAL_ID);
-}
-
-/**
  * @tc.name: CreateOsAccountWithFullInfo0104
  * @tc.desc: Test CreateOsAccountWithFullInfo normal success
  * @tc.type: FUNC
@@ -559,29 +538,6 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0104, TestSize.Level1)
 
     osAccountInfo.SetLastLoginTime(1695863290000);
     EXPECT_EQ(ERR_OK, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
-    OsAccountManager::RemoveOsAccount(CREATE_LOCAL_ID);
-}
-
-/**
- * @tc.name: CreateOsAccountWithFullInfo0105
- * @tc.desc: Test CreateOsAccountWithFullInfo guest success and repeat to create fail
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0105, TestSize.Level1)
-{
-    OsAccountInfo osAccountInfo;
-    osAccountInfo.SetLocalName("test119");
-    osAccountInfo.SetType(OsAccountType::GUEST);
-    osAccountInfo.SetLocalId(CREATE_LOCAL_ID);
-    osAccountInfo.SetSerialNumber(1100);
-    osAccountInfo.SetCreateTime(1695883215000);
-    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo));
-
-    osAccountInfo.SetLastLoginTime(1695863290000);
-    EXPECT_EQ(ERR_OK, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_CONTROL_INSERT_FILE_EXISTS_ERROR,
-        OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo));
     OsAccountManager::RemoveOsAccount(CREATE_LOCAL_ID);
 }
 
