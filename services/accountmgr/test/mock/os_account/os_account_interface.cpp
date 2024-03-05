@@ -30,9 +30,20 @@ ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
     return ERR_OK;
 }
 
+#ifdef THEME_SERVICE_ACCOUNT
+void OsAccountInterface::InitThemeResource(int32_t userId, std::promise<ErrCode> &prom)
+{
+    ACCOUNT_LOGI("mock OsAccountInterface InitThemeResource start");
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    prom.set_value(ERR_OK);
+    return;
+}
+#endif
+
 ErrCode OsAccountInterface::SendToBMSAccountCreate(
     OsAccountInfo &osAccountInfo, const std::vector<std::string> &disallowedHapList)
 {
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     ACCOUNT_LOGI("mock OsAccountInterface SendToBMSAccountCreate start");
     return ERR_OK;
 }

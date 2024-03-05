@@ -139,6 +139,20 @@ ErrCode OsAccountInterface::SendToAMSAccountDeactivate(OsAccountInfo &osAccountI
     return code;
 }
 
+#ifdef THEME_SERVICE_ACCOUNT
+void OsAccountInterface::InitThemeResource(int32_t userId, std::promise<ErrCode> &prom)
+{
+    if (!ThemeManager::ThemeManagerClient::GetInstance().InitResource(userId)) {
+        ACCOUNT_LOGE("Init theme failed, userId=%{public}d.", userId);
+        prom.set_value(ERR_ACCOUNT_COMMIT_INIT_THEME_ERROR);
+        return;
+    }
+    ACCOUNT_LOGI("Init theme successful.");
+    prom.set_value(ERR_OK);
+    return;
+}
+#endif
+
 ErrCode OsAccountInterface::SendToBMSAccountCreate(
     OsAccountInfo &osAccountInfo, const std::vector<std::string> &disallowedHapList)
 {
