@@ -14,6 +14,7 @@
  */
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_TEST_MOCK_OS_ACCOUNT_OS_ACCOUNT_INTERFACE_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_TEST_MOCK_OS_ACCOUNT_OS_ACCOUNT_INTERFACE_H
+#include <future>
 #include <vector>
 #include "account_error_no.h"
 #include "os_account_info.h"
@@ -24,6 +25,9 @@ public:
     static ErrCode SendToAMSAccountStart(OsAccountInfo &osAccountInfo);
     static ErrCode SendToAMSAccountStop(OsAccountInfo &osAccountInfo);
     static ErrCode SendToAMSAccountDeactivate(OsAccountInfo &osAccountInfo);
+#ifdef THEME_SERVICE_ACCOUNT
+    static void InitThemeResource(int32_t userId, std::promise<ErrCode> &prom);
+#endif
     static ErrCode SendToBMSAccountCreate(
         OsAccountInfo &osAccountInfo, const std::vector<std::string> &disallowedHapList = {});
     static ErrCode SendToBMSAccountDelete(OsAccountInfo &osAccountInfo);

@@ -172,3 +172,11 @@ if (!defined(global_parts_info) || defined(global_parts_info.security_asset)) {
 } else {
   has_asset_part = false
 }
+
+declare_args() {
+  theme_service_account = false
+  if (defined(global_parts_info) &&
+      defined(global_parts_info.theme_theme_mgr)) {
+    theme_service_account = true
+  }
+}

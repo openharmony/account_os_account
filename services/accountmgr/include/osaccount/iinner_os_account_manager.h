@@ -17,6 +17,7 @@
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_IINNER_OS_ACCOUNT_MANAGER_H
 
 #include <memory>
+#include <thread>
 #include "iinner_os_account.h"
 #include "inner_domain_account_manager.h"
 #include "ios_account_control.h"

@@ -462,6 +462,10 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
     external_deps += [ "user_auth_framework:userauth_client" ]
   }
+  if (theme_service_account) {
+    external_deps += [ "theme_mgr:theme_manager_client" ]
+    cflags_cc += [ "-DTHEME_SERVICE_ACCOUNT" ]
+  }
   if (has_ces_part) {
     cflags_cc += [ "-DHAS_CES_PART" ]
     external_deps += [ "common_event_service:cesfwk_innerkits" ]
