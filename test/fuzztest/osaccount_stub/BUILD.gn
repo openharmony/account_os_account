@@ -24,6 +24,7 @@ group("fuzztest") {
     "getosaccountlocalidbyserialnumberstub_fuzzer:GetOsAccountLocalIdBySerialNumberStubFuzzTest",
     "getosaccountlocalidfromdomainstub_fuzzer:GetOsAccountLocalIdFromDomainStubFuzzTest",
     "getosaccountprofilephotostub_fuzzer:GetOsAccountProfilePhotoStubFuzzTest",
+    "getosaccounttypestub_fuzzer:GetOsAccountTypeStubFuzzTest",
     "getserialnumberbyosaccountlocalidstub_fuzzer:GetSerialNumberByOsAccountLocalIdStubFuzzTest",
     "isosaccountactivedstub_fuzzer:IsOsAccountActivedStubFuzzTest",
     "isosaccountcompletedstub_fuzzer:IsOsAccountCompletedStubFuzzTest",

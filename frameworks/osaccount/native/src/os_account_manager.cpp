@@ -162,6 +162,11 @@ ErrCode OsAccountManager::GetOsAccountTypeFromProcess(OsAccountType &type)
     return OsAccount::GetInstance().GetOsAccountTypeFromProcess(type);
 }
 
+ErrCode OsAccountManager::GetOsAccountType(const int id, OsAccountType& type)
+{
+    return OsAccount::GetInstance().GetOsAccountType(id, type);
+}
+
 ErrCode OsAccountManager::GetOsAccountProfilePhoto(const int id, std::string &photo)
 {
     return OsAccount::GetInstance().GetOsAccountProfilePhoto(id, photo);

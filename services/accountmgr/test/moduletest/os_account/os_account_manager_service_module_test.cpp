@@ -2212,5 +2212,110 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest126
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
 }
 #endif //ENABLE_MULTIPLE_OS_ACCOUNTS
+
+/**
+ * @tc.name: GetOsAccountType001
+ * @tc.desc: Test GetOsAccountType.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, GetOsAccountType001, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfoA;
+    ASSERT_EQ(osAccountManagerService_->CreateOsAccount("GetTypeName001", OsAccountType::NORMAL, osAccountInfoA),
+        ERR_OK);
+    OsAccountType type = OsAccountType::ADMIN;
+    EXPECT_EQ(osAccountManagerService_->GetOsAccountType(osAccountInfoA.GetLocalId(), type), ERR_OK);
+    EXPECT_EQ(type, OsAccountType::NORMAL);
+    EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoA.GetLocalId()), ERR_OK);
+}
+
+/**
+ * @tc.name: PrivateTypeTest001
+ * @tc.desc: Test PRIVATE type os account.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, PrivateTypeTest001, TestSize.Level1)
+{
+    std::string PRIVATE_TEST_NAME = "PrivateTestName001";
+    std::string PRIVATE_TEST_NAME_TWO = "PrivateTestName002";
+    // test create private os account with normal account duplicate name
+    OsAccountInfo osAccountInfoA;
+    ASSERT_EQ(osAccountManagerService_->CreateOsAccount(PRIVATE_TEST_NAME,
+        OsAccountType::NORMAL, osAccountInfoA), ERR_OK);
+    OsAccountInfo osAccountInfoB;
+    ASSERT_EQ(osAccountManagerService_->CreateOsAccount(PRIVATE_TEST_NAME,
+        OsAccountType::PRIVATE, osAccountInfoB), ERR_OK);
+    OsAccountInfo osAccountInfoC;
+    ASSERT_EQ(osAccountManagerService_->CreateOsAccount(PRIVATE_TEST_NAME_TWO,
+        OsAccountType::PRIVATE, osAccountInfoC), ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR);
+
+    // test get os account type by id
+    OsAccountType type;
+    EXPECT_EQ(osAccountManagerService_->GetOsAccountType(osAccountInfoB.GetLocalId(), type), ERR_OK);
+    EXPECT_EQ(type, OsAccountType::PRIVATE);
+    EXPECT_EQ(osAccountManagerService_->GetOsAccountType(osAccountInfoA.GetLocalId(), type), ERR_OK);
+    EXPECT_EQ(type, OsAccountType::NORMAL);
+
+    EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoB.GetLocalId()), ERR_OK);
+
+    // test delete private os account
+    OsAccountInfo osAccountInfoD;
+    ASSERT_EQ(osAccountManagerService_->CreateOsAccount(PRIVATE_TEST_NAME,
+        OsAccountType::PRIVATE, osAccountInfoD), ERR_OK);
+    EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoD.GetLocalId()), ERR_OK);
+
+    EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoA.GetLocalId()), ERR_OK);
+}
+
+/**
+ * @tc.name: PrivateTypeTest002
+ * @tc.desc: Test PRIVATE type os account.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, PrivateTypeTest002, TestSize.Level1)
+{
+    std::string PRIVATE_TEST_NAME = "PrivateTestName001";
+    // test create normal os account with private account duplicate name
+    OsAccountInfo osAccountInfoA;
+    ASSERT_EQ(osAccountManagerService_->CreateOsAccount(PRIVATE_TEST_NAME,
+        OsAccountType::PRIVATE, osAccountInfoA), ERR_OK);
+    OsAccountInfo osAccountInfoB;
+    ASSERT_EQ(osAccountManagerService_->CreateOsAccount(PRIVATE_TEST_NAME,
+        OsAccountType::NORMAL, osAccountInfoB), ERR_OK);
+
+    EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoA.GetLocalId()), ERR_OK);
+    EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoB.GetLocalId()), ERR_OK);
+}
+
+/**
+ * @tc.name: PrivateTypeTest003
+ * @tc.desc: Test PRIVATE type os account.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, PrivateTypeTest003, TestSize.Level1)
+{
+    std::string PRIVATE_TEST_NAME = "PrivateTestName001";
+    std::string PRIVATE_TEST_NAME_TWO = "PrivateTestName002";
+    // test set name with private account duplicate name
+    OsAccountInfo osAccountInfoA;
+    ASSERT_EQ(osAccountManagerService_->CreateOsAccount(PRIVATE_TEST_NAME,
+        OsAccountType::PRIVATE, osAccountInfoA), ERR_OK);
+    OsAccountInfo osAccountInfoB;
+    ASSERT_EQ(osAccountManagerService_->CreateOsAccount(PRIVATE_TEST_NAME_TWO,
+        OsAccountType::NORMAL, osAccountInfoB), ERR_OK);
+    EXPECT_EQ(osAccountManagerService_->SetOsAccountName(osAccountInfoB.GetLocalId(), PRIVATE_TEST_NAME), ERR_OK);
+    OsAccountInfo osAccountInfoC;
+    ASSERT_EQ(osAccountManagerService_->CreateOsAccount(PRIVATE_TEST_NAME_TWO, OsAccountType::NORMAL, osAccountInfoC),
+        ERR_OK);
+    EXPECT_EQ(osAccountManagerService_->SetOsAccountName(osAccountInfoA.GetLocalId(), PRIVATE_TEST_NAME_TWO), ERR_OK);
+
+    EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoA.GetLocalId()), ERR_OK);
+    EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoB.GetLocalId()), ERR_OK);
+    EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoC.GetLocalId()), ERR_OK);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

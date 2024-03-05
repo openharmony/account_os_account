@@ -41,7 +41,7 @@ const std::string HELP_MSG_CREATE =
     "  -h, --help                           list available commands\n"
     "  -n <local-account-name> [-s] <shortName> -t <type> [-l] <disallowed-install-hap-list>\n"
     "                                       create a local account with a name and a type\n"
-    "                                       <type>: admin, normal, guest\n"
+    "                                       <type>: admin, normal, guest, private\n"
     "                                       <disallowed-install-hap-list>: can set disallowed pre-installed hap list\n";
 
 const std::string HELP_MSG_DELETE =

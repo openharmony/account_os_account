@@ -58,6 +58,7 @@ public:
     virtual ErrCode QueryCurrentOsAccount(OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode GetOsAccountTypeFromProcess(OsAccountType &type) = 0;
+    virtual ErrCode GetOsAccountType(const int id, OsAccountType& type) = 0;
     virtual ErrCode GetOsAccountProfilePhoto(const int id, std::string &photo) = 0;
     virtual ErrCode IsMultiOsAccountEnable(bool &isMultiOsAccountEnable) = 0;
     virtual ErrCode SetOsAccountName(const int id, const std::string &localName) = 0;
