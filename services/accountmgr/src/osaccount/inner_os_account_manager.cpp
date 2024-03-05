@@ -46,6 +46,7 @@ constexpr std::int32_t DELAY_FOR_EXCEPTION = 50;
 constexpr std::int32_t MAX_RETRY_TIMES = 50;
 const std::string SPECIAL_CHARACTER_ARRAY = "<>|\":*?/\\";
 const std::vector<std::string> SHORT_NAME_CANNOT_BE_NAME_ARRAY = {".", ".."};
+const int32_t MAX_PRIVATE_TYPE_NUMBER = 1;
 }
 
 IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManager_(OsAccountSubscribeManager::GetInstance())
@@ -237,13 +238,21 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &localNam
         ACCOUNT_LOGE("account name already exist, errCode %{public}d.", errCode);
         return errCode;
     }
+    errCode = CheckTypeNumber(type);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Check type number failed.");
+        return errCode;
+    }
 
     errCode = osAccountControl_->InsertOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("insert os account info err, errCode %{public}d.", errCode);
         return errCode;
     }
-    osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
+    // private type account not write index to index file, don't check name in ValidateOsAccount
+    if (type != OsAccountType::PRIVATE) {
+        osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
+    }
 
     errCode = osAccountControl_->UpdateBaseOAConstraints(std::to_string(osAccountInfo.GetLocalId()),
         osAccountInfo.GetConstraints(), true);
@@ -712,6 +721,9 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountDeactivate(OsAccountInfo &osAcc
 
 ErrCode IInnerOsAccountManager::ValidateOsAccount(const OsAccountInfo &osAccountInfo)
 {
+    if (osAccountInfo.GetType() == OsAccountType::PRIVATE) {
+        return ERR_OK;
+    }
     Json accountIndexJson;
     ErrCode result = osAccountControl_->GetAccountIndexFromFile(accountIndexJson);
     if (result != ERR_OK) {
@@ -735,6 +747,41 @@ ErrCode IInnerOsAccountManager::ValidateOsAccount(const OsAccountInfo &osAccount
 #endif // ENABLE_ACCOUNT_SHORT_NAME
     }
 
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::GetTypeNumber(const OsAccountType& type, int32_t& typeNumber)
+{
+    typeNumber = 0;
+    std::vector<OsAccountInfo> osAccountList;
+    ErrCode result = osAccountControl_->GetOsAccountList(osAccountList);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Get os account list failed.");
+        return result;
+    }
+    for (const auto &info : osAccountList) {
+        if (info.GetType() == type) {
+            typeNumber++;
+        }
+    }
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::CheckTypeNumber(const OsAccountType& type)
+{
+    if (type != OsAccountType::PRIVATE) {
+        return ERR_OK;
+    }
+    int32_t typeNumber = 0;
+    ErrCode result = GetTypeNumber(type, typeNumber);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Count type number failed.");
+        return result;
+    }
+    if (type == OsAccountType::PRIVATE && typeNumber >= MAX_PRIVATE_TYPE_NUMBER) {
+        ACCOUNT_LOGE("Check type number failed, private type number=%{public}d", typeNumber);
+        return ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR;
+    }
     return ERR_OK;
 }
 

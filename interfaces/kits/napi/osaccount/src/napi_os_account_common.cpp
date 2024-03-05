@@ -1365,13 +1365,37 @@ void IsEnableCompletedCB(napi_env env, napi_status status, void *data)
 
 bool ParseParaGetType(napi_env env, napi_callback_info cbInfo, GetTypeAsyncContext *asyncContext)
 {
-    return ParseOneParaContext(env, cbInfo, asyncContext);
+    size_t argc = ARGS_SIZE_ONE;
+    napi_value argv[ARGS_SIZE_ONE] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    if (argc == ARGS_SIZE_ZERO) {
+        return true;
+    }
+
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, argv[PARAMZERO], &valueType);
+    if (valueType == napi_number) {
+        napi_get_value_int32(env, argv[PARAMZERO], &(asyncContext->id));
+        asyncContext->withId = true;
+    } else if (valueType == napi_function) {
+        napi_create_reference(env, argv[PARAMZERO], 1, &(asyncContext->callbackRef));
+    } else {
+        ACCOUNT_LOGE("Get callbackRef or id failed.");
+        std::string errMsg = "The type of arg " + std::to_string(argc) + " must be function or number";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+    return true;
 }
 
 void GetTypeExecuteCB(napi_env env, void *data)
 {
     GetTypeAsyncContext *asyncContext = reinterpret_cast<GetTypeAsyncContext *>(data);
-    asyncContext->errCode = OsAccountManager::GetOsAccountTypeFromProcess(asyncContext->type);
+    if (asyncContext->withId) {
+        asyncContext->errCode = OsAccountManager::GetOsAccountType(asyncContext->id, asyncContext->type);
+    } else {
+        asyncContext->errCode = OsAccountManager::GetOsAccountTypeFromProcess(asyncContext->type);
+    }
     ACCOUNT_LOGD("error code is %{public}d", asyncContext->errCode);
     asyncContext->status = (asyncContext->errCode == 0) ? napi_ok : napi_generic_failure;
 }

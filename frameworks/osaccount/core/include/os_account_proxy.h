@@ -52,6 +52,7 @@ public:
     ErrCode QueryCurrentOsAccount(OsAccountInfo &osAccountInfo) override;
     ErrCode QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo) override;
     ErrCode GetOsAccountTypeFromProcess(OsAccountType &type) override;
+    ErrCode GetOsAccountType(const int id, OsAccountType& type) override;
     ErrCode GetOsAccountProfilePhoto(const int id, std::string &photo) override;
     ErrCode IsMultiOsAccountEnable(bool &isMultiOsAccountEnable) override;
     ErrCode SetOsAccountName(const int id, const std::string &localName) override;

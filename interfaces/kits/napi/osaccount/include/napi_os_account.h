@@ -157,6 +157,8 @@ struct IsConEnableAsyncContext : public CommonAsyncContext {
 };
 
 struct GetTypeAsyncContext : public CommonAsyncContext {
+    int id = -1;
+    bool withId = false;
     OsAccountType type;
 };
 

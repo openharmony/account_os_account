@@ -91,6 +91,8 @@ public:
     virtual ErrCode SetDefaultActivatedOsAccount(const int32_t id) = 0;
     virtual ErrCode GetDefaultActivatedOsAccount(int32_t &id) = 0;
     virtual ErrCode ValidateShortName(const std::string &shortName) = 0;
+    virtual ErrCode GetTypeNumber(const OsAccountType& type, int32_t& typeNumber) = 0;
+    virtual ErrCode CheckTypeNumber(const OsAccountType& type) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

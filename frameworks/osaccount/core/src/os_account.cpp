@@ -349,6 +349,16 @@ ErrCode OsAccount::GetOsAccountTypeFromProcess(OsAccountType &type)
     return proxy->GetOsAccountTypeFromProcess(type);
 }
 
+ErrCode OsAccount::GetOsAccountType(const int id, OsAccountType& type)
+{
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+
+    return proxy->GetOsAccountType(id, type);
+}
+
 ErrCode OsAccount::GetOsAccountProfilePhoto(const int id, std::string &photo)
 {
     ErrCode result = CheckLocalId(id);

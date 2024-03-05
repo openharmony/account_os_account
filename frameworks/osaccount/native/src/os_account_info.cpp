@@ -331,6 +331,12 @@ void OsAccountInfo::SetToBeRemoved(bool toBeRemoved)
     toBeRemoved_ = toBeRemoved;
 }
 
+bool OsAccountInfo::IsTypeOutOfRange() const
+{
+    return (type_ < OsAccountType::ADMIN) || ((type_ > OsAccountType::GUEST) && (type_ < OsAccountType::PRIVATE)) ||
+        (type_ >= OsAccountType::END);
+}
+
 ErrCode OsAccountInfo::ParamCheck()
 {
     if (localId_ < Constants::START_USER_ID) {
@@ -347,8 +353,7 @@ ErrCode OsAccountInfo::ParamCheck()
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
-    if ((type_ < OsAccountType::ADMIN) || (type_ >= OsAccountType::END) ||
-        (localId_ == Constants::START_USER_ID && type_ != OsAccountType::ADMIN)) {
+    if (IsTypeOutOfRange() || (localId_ == Constants::START_USER_ID && type_ != OsAccountType::ADMIN)) {
         ACCOUNT_LOGE("os account type is invalid");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
