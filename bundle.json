@@ -65,7 +65,9 @@
         "selinux_adapter",
         "storage_service",
         "time_service",
-        "user_auth_framework"
+        "user_auth_framework",
+        "mbedtls",
+        "json"
       ],
       "third_party": [
         "mbedtls"
