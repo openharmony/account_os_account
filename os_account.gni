@@ -173,10 +173,8 @@ if (!defined(global_parts_info) || defined(global_parts_info.security_asset)) {
   has_asset_part = false
 }
 
-declare_args() {
-  theme_service_account = false
-  if (defined(global_parts_info) &&
-      defined(global_parts_info.theme_theme_mgr)) {
-    theme_service_account = true
-  }
+if (!defined(global_parts_info) || defined(global_parts_info.theme_theme_mgr)) {
+  has_theme_mar_part = true
+} else {
+  has_theme_mar_part = false
 }

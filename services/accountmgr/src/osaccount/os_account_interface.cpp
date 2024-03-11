@@ -139,18 +139,17 @@ ErrCode OsAccountInterface::SendToAMSAccountDeactivate(OsAccountInfo &osAccountI
     return code;
 }
 
-#ifdef THEME_SERVICE_ACCOUNT
-void OsAccountInterface::InitThemeResource(int32_t userId, std::promise<ErrCode> &prom)
+#ifdef HAS_THEME_SERVICE_PART
+void OsAccountInterface::InitThemeResource(int32_t localId)
 {
     StartTraceAdapter("ThemeManager InitResource");
-    if (!ThemeManager::ThemeManagerClient::GetInstance().InitResource(userId)) {
-        ACCOUNT_LOGE("Init theme failed, userId=%{public}d.", userId);
-        prom.set_value(ERR_ACCOUNT_COMMIT_INIT_THEME_ERROR);
+    bool ret = ThemeManager::ThemeManagerClient::GetInstance().InitResource(localId);
+    if (!ret) {
+        ACCOUNT_LOGE("Init theme failed, localId=%{public}d.", localId);
         FinishTraceAdapter();
         return;
     }
     ACCOUNT_LOGI("Init theme successful.");
-    prom.set_value(ERR_OK);
     FinishTraceAdapter();
     return;
 }

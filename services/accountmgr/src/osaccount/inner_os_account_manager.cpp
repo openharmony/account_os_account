@@ -33,9 +33,7 @@
 #include "os_account_subscribe_manager.h"
 #include "parameter.h"
 #include "parcel.h"
-#include <future>
 #include <pthread.h>
-#include <sstream>
 #include <thread>
 
 namespace OHOS {
@@ -341,13 +339,10 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
         ACCOUNT_LOGE("create os account SendToStorageAccountCreate failed, errCode %{public}d.", errCode);
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
-
-#ifdef THEME_SERVICE_ACCOUNT
-    std::promise<ErrCode> promTheme;
-    std::future<ErrCode> themeFuture = promTheme.get_future();
-    std::thread theme_thread([&]() {
-        OsAccountInterface::InitThemeResource(osAccountInfo.GetLocalId(), promTheme);
-    });
+#ifdef HAS_THEME_SERVICE_PART
+    auto task = std::bind(&OsAccountInterface::InitThemeResource, osAccountInfo.GetLocalId());
+    std::thread theme_thread(task);
+    pthread_setname_np(theme_thread.native_handle(), "InitTheme");
 #endif
     errCode = OsAccountInterface::SendToBMSAccountCreate(osAccountInfo, options.disallowedHapList);
     if (errCode != ERR_OK) {
@@ -355,12 +350,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
         (void)OsAccountInterface::SendToStorageAccountRemove(osAccountInfo);
         return errCode;
     }
-#ifdef THEME_SERVICE_ACCOUNT
-    if (themeFuture.get() != ERR_OK) {
-        ACCOUNT_LOGE("Init theme failed, userId=%{public}d.", osAccountInfo.GetLocalId());
-        (void)OsAccountInterface::SendToStorageAccountRemove(osAccountInfo);
-    }
-    ACCOUNT_LOGI("Init theme successful.");
+#ifdef HAS_THEME_SERVICE_PART
     if (theme_thread.joinable()) {
         theme_thread.join();
     }
