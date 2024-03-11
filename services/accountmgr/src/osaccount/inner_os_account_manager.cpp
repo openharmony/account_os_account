@@ -356,11 +356,9 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
         return errCode;
     }
 #ifdef THEME_SERVICE_ACCOUNT
-    auto status = themeFuture.wait_for(std::chrono::seconds(0));
-    if ((status != std::future_status::ready) || (themeFuture.get() != ERR_OK)) {
+    if (themeFuture.get() != ERR_OK) {
         ACCOUNT_LOGE("Init theme failed, userId=%{public}d.", osAccountInfo.GetLocalId());
         (void)OsAccountInterface::SendToStorageAccountRemove(osAccountInfo);
-        return errCode;
     }
     ACCOUNT_LOGI("Init theme successful.");
     if (theme_thread.joinable()) {
