@@ -20,7 +20,6 @@ config("public_account_config") {
     "${common_path}/include",
     "${innerkits_common}/include",
     "${innerkits_path}/include",
-    "//third_party/json/include",
   ]
 }
 
@@ -76,6 +75,7 @@ ohos_shared_library("libaccountkits") {
     "ipc:ipc_single",
     "samgr:samgr_proxy",
   ]
+  public_external_deps = [ "json:nlohmann_json_static" ]
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "account"
   part_name = "os_account"
