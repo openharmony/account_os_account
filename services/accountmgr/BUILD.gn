@@ -249,9 +249,9 @@ ohos_shared_library("accountmgr") {
     "samgr:samgr_proxy",
   ]
 
-  if (theme_service_account) {
+  if (has_theme_mar_part) {
     external_deps += [ "theme_mgr:theme_manager_client" ]
-    cflags_cc += [ "-DTHEME_SERVICE_ACCOUNT" ]
+    cflags_cc += [ "-DHAS_THEME_SERVICE_PART" ]
   }
 
   if (has_user_auth_part) {

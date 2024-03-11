@@ -17,13 +17,12 @@
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_INTERFACE_H
 
 #include <chrono>
-#include <future>
 #include <vector>
 #include "account_error_no.h"
 #include <mutex>
 #include "os_account_info.h"
 #include "os_account_user_callback.h"
-#ifdef THEME_SERVICE_ACCOUNT
+#ifdef HAS_THEME_SERVICE_PART
 #include "theme_manager_client.h"
 #endif
 
@@ -36,8 +35,8 @@ public:
     static ErrCode SendToAMSAccountDeactivate(OsAccountInfo &osAccountInfo);
     static ErrCode SendToBMSAccountCreate(
         OsAccountInfo &osAccountInfo, const std::vector<std::string> &disallowedHapList = {});
-#ifdef THEME_SERVICE_ACCOUNT
-    static void InitThemeResource(int32_t userId, std::promise<ErrCode> &prom);
+#ifdef HAS_THEME_SERVICE_PART
+    static void InitThemeResource(int32_t localId);
 #endif
     static ErrCode SendToBMSAccountDelete(OsAccountInfo &osAccountInfo);
 #ifdef HAS_USER_IDM_PART

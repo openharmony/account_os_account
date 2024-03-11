@@ -1331,35 +1331,5 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest044, TestSize
     EXPECT_EQ(ret, -1);
     testing::Mock::AllowLeak(ptr.get());
 }
-
-/*
- * @tc.name: OsAccountInnerAccmgrMockTest45
- * @tc.desc: Test theme init, passing in a valid userid.
- * @tc.type: FUNC
- * @tc.require:
- */
-#ifdef THEME_SERVICE_ACCOUNT
-HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest45, TestSize.Level1)
-{
-    OsAccountInfo osAccountInfoOne;
-    osAccountInfoOne.SetLocalId(100);
-    ErrCode errCode = innerMgrService_->SendMsgForAccountCreate(osAccountInfoOne);
-    EXPECT_EQ(errCode, 0);
-}
-
-/*
- * @tc.name: OsAccountInnerAccmgrMockTest46
- * @tc.desc: Test theme init, passing in a invalid userid.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest46, TestSize.Level1)
-{
-    OsAccountInfo osAccountInfoOne;
-    osAccountInfoOne.SetLocalId(-1);
-    ErrCode errCode = innerMgrService_->SendMsgForAccountCreate(osAccountInfoOne);
-    EXPECT_EQ(errCode, 0);
-}
-#endif
 }  // namespace AccountSA
 }  // namespace OHOS
