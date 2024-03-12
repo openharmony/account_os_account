@@ -86,11 +86,31 @@ OsAccountManagerService::~OsAccountManagerService()
 ErrCode OsAccountManagerService::CreateOsAccount(
     const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
 {
-    return CreateOsAccount(name, name, type, osAccountInfo);
+    ErrCode errCode = ValidateAccountCreateParamAndPermission(name, type);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+    return innerManager_.CreateOsAccount(name, type, osAccountInfo);
 }
 
 ErrCode OsAccountManagerService::CreateOsAccount(const std::string &localName, const std::string &shortName,
     const OsAccountType &type, OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options)
+{
+    ErrCode errCode = ValidateAccountCreateParamAndPermission(localName, type);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+
+    errCode = innerManager_.ValidateShortName(shortName);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+
+    return innerManager_.CreateOsAccount(localName, shortName, type, osAccountInfo, options);
+}
+
+ErrCode OsAccountManagerService::ValidateAccountCreateParamAndPermission(const std::string &localName,
+    const OsAccountType &type)
 {
     // permission check
     if (!CheckCreateOsAccountWhiteList() &&
@@ -128,13 +148,7 @@ ErrCode OsAccountManagerService::CreateOsAccount(const std::string &localName, c
         ACCOUNT_LOGE("cannot create admin account error");
         return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
     }
-
-    errCode = innerManager_.ValidateShortName(shortName);
-    if (errCode != ERR_OK) {
-        return errCode;
-    }
-
-    return innerManager_.CreateOsAccount(localName, shortName, type, osAccountInfo, options);
+    return ERR_OK;
 }
 
 ErrCode OsAccountManagerService::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
