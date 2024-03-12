@@ -127,6 +127,7 @@ private:
     bool CheckCreateOsAccountWhiteList();
     ErrCode ValidateShortName(const std::string &shortName);
     void GetCurrentLocalId(int32_t &localId);
+    ErrCode ValidateAccountCreateParamAndPermission(const std::string &localName, const OsAccountType &type);
 
 private:
     IInnerOsAccount &innerManager_;
