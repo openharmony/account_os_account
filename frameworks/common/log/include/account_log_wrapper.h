@@ -51,11 +51,18 @@ private:
 };
 
 #define ARGS(fmt, ...) "[%{public}s@%{public}s:%{public}d] " fmt, __FUNCTION__, LOG_FILE_NAME, __LINE__, ##__VA_ARGS__
-#define ACCOUNT_LOGD(...) OHOS::HiviewDFX::HiLog::Debug(ACCOUNT_LABEL, ARGS(__VA_ARGS__))
-#define ACCOUNT_LOGI(...) OHOS::HiviewDFX::HiLog::Info(ACCOUNT_LABEL, ARGS(__VA_ARGS__))
-#define ACCOUNT_LOGW(...) OHOS::HiviewDFX::HiLog::Warn(ACCOUNT_LABEL, ARGS(__VA_ARGS__))
-#define ACCOUNT_LOGE(...) OHOS::HiviewDFX::HiLog::Error(ACCOUNT_LABEL, ARGS(__VA_ARGS__))
-#define ACCOUNT_LOGF(...) OHOS::HiviewDFX::HiLog::Fatal(ACCOUNT_LABEL, ARGS(__VA_ARGS__))
+#undef LOG_TAG
+#define LOG_TAG ACCOUNT_LOG_TAG
+#define ACCOUNT_LOGD(fmt, ...) HILOG_DEBUG(LOG_CORE, \
+    "[%{public}s@%{public}s:%{public}d] " fmt, __FUNCTION__, LOG_FILE_NAME, __LINE__, ##__VA_ARGS__)
+#define ACCOUNT_LOGI(fmt, ...) HILOG_INFO(LOG_CORE, \
+    "[%{public}s@%{public}s:%{public}d] " fmt, __FUNCTION__, LOG_FILE_NAME, __LINE__, ##__VA_ARGS__)
+#define ACCOUNT_LOGW(fmt, ...) HILOG_WARN(LOG_CORE, \
+    "[%{public}s@%{public}s:%{public}d] " fmt, __FUNCTION__, LOG_FILE_NAME, __LINE__, ##__VA_ARGS__)
+#define ACCOUNT_LOGE(fmt, ...) HILOG_ERROR(LOG_CORE, \
+    "[%{public}s@%{public}s:%{public}d] " fmt, __FUNCTION__, LOG_FILE_NAME, __LINE__, ##__VA_ARGS__)
+#define ACCOUNT_LOGF(fmt, ...) HILOG_FATAL(LOG_CORE, \
+    "[%{public}s@%{public}s:%{public}d] " fmt, __FUNCTION__, LOG_FILE_NAME, __LINE__, ##__VA_ARGS__)
 }  // namespace AccountSA
 }  // namespace OHOS
 

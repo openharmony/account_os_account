@@ -215,13 +215,7 @@ void IInnerOsAccountManager::ResetAccountStatus(void)
 ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &name, const OsAccountType &type,
     const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo)
 {
-#ifdef ENABLE_ACCOUNT_SHORT_NAME
-    ErrCode code = ValidateShortName(name);
-    if (code != ERR_OK) {
-        return code;
-    }
-#endif // ENABLE_ACCOUNT_SHORT_NAME
-    return PrepareOsAccountInfo(name, name, type, domainInfo, osAccountInfo);
+    return PrepareOsAccountInfo(name, "", type, domainInfo, osAccountInfo);
 }
 
 ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &localName, const std::string &shortName,
@@ -277,11 +271,7 @@ ErrCode IInnerOsAccountManager::FillOsAccountInfo(const std::string &localName, 
         return errCode;
     }
 
-#ifdef ENABLE_ACCOUNT_SHORT_NAME
     osAccountInfo = OsAccountInfo(id, localName, shortName, type, serialNumber);
-#else
-    osAccountInfo = OsAccountInfo(id, localName, type, serialNumber);
-#endif // ENABLE_ACCOUNT_SHORT_NAME
     osAccountInfo.SetConstraints(constraints);
     int64_t time =
         std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -722,17 +712,15 @@ ErrCode IInnerOsAccountManager::ValidateOsAccount(const OsAccountInfo &osAccount
         std::string localIdKey = element.key();
         auto value = element.value();
         std::string localName = value[Constants::LOCAL_NAME].get<std::string>();
-#ifdef ENABLE_ACCOUNT_SHORT_NAME
-        std::string shortName = value[Constants::SHORT_NAME].get<std::string>();
-        if ((osAccountInfo.GetLocalName() == localName || osAccountInfo.GetShortName() == shortName) &&
-            (localIdKey != localIdStr)) {
-            return ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED;
-        }
-#else
         if ((osAccountInfo.GetLocalName() == localName) && (localIdKey != localIdStr)) {
             return ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED;
         }
-#endif // ENABLE_ACCOUNT_SHORT_NAME
+        if (!osAccountInfo.GetShortName().empty() && value.contains(Constants::SHORT_NAME)) {
+            std::string shortName = value[Constants::SHORT_NAME].get<std::string>();
+            if ((osAccountInfo.GetShortName() == shortName) && (localIdKey != localIdStr)) {
+                return ERR_ACCOUNT_COMMON_SHORT_NAME_HAD_EXISTED;
+            }
+        }
     }
 
     return ERR_OK;
