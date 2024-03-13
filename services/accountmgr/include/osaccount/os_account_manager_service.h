@@ -129,6 +129,7 @@ private:
     ErrCode ValidateShortName(const std::string &shortName);
     void GetCurrentLocalId(int32_t &localId);
     ErrCode GetOsAccountShortNameCommon(const int32_t id, std::string &shortName);
+    ErrCode ValidateAccountCreateParamAndPermission(const std::string &localName, const OsAccountType &type);
 
 private:
     IInnerOsAccount &innerManager_;

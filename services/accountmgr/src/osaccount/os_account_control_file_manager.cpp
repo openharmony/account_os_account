@@ -812,9 +812,7 @@ ErrCode OsAccountControlFileManager::UpdateAccountIndex(const OsAccountInfo &osA
     } else {
         Json accountBaseInfo;
         accountBaseInfo[Constants::LOCAL_NAME] = osAccountInfo.GetLocalName();
-#ifdef ENABLE_ACCOUNT_SHORT_NAME
         accountBaseInfo[Constants::SHORT_NAME] = osAccountInfo.GetShortName();
-#endif // ENABLE_ACCOUNT_SHORT_NAME
         accountIndexJson[localIdStr] = accountBaseInfo;
     }
     std::string lastAccountIndexStr = accountIndexJson.dump();
@@ -1112,9 +1110,7 @@ ErrCode OsAccountControlFileManager::GetAccountIndexInfo(std::string &accountInd
         std::string localIdStr = std::to_string(account->GetLocalId());
         Json accountIndexElement;
         accountIndexElement[Constants::LOCAL_NAME] = account->GetLocalName();
-#ifdef ENABLE_ACCOUNT_SHORT_NAME
         accountIndexElement[Constants::SHORT_NAME] = account->GetShortName();
-#endif // ENABLE_ACCOUNT_SHORT_NAME
         accountIndexJson[localIdStr] = accountIndexElement;
     }
     accountIndexInfo = accountIndexJson.dump();
