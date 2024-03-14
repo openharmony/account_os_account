@@ -162,6 +162,13 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         }
     },
     {
+        static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_TYPE),
+        {
+            .messageProcFunction = &OsAccountStub::ProcGetOsAccountType,
+            .isSyetemApi = true,
+        }
+    },
+    {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_PROFILE_PHOTO),
         {
             .messageProcFunction = &OsAccountStub::ProcGetOsAccountProfilePhoto,
@@ -206,6 +213,13 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         static_cast<uint32_t>(OsAccountInterfaceCode::DEACTIVATE_OS_ACCOUNT),
         {
             .messageProcFunction = &OsAccountStub::ProcDeactivateOsAccount,
+            .isSyetemApi = true,
+        }
+    },
+    {
+        static_cast<uint32_t>(OsAccountInterfaceCode::DEACTIVATE_ALL_OS_ACCOUNTS),
+        {
+            .messageProcFunction = &OsAccountStub::ProcDeactivateAllOsAccounts,
             .isSyetemApi = true,
         }
     },
@@ -354,6 +368,13 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_SHORT_NAME),
         {
             .messageProcFunction = &OsAccountStub::ProcGetOsAccountShortName,
+        }
+    },
+    {
+        static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_SHORT_NAME_BY_ID),
+        {
+            .messageProcFunction = &OsAccountStub::ProcGetOsAccountShortNameById,
+            .isSyetemApi = true,
         }
     },
 };
@@ -806,6 +827,29 @@ ErrCode OsAccountStub::ProcGetOsAccountTypeFromProcess(MessageParcel &data, Mess
     return ERR_NONE;
 }
 
+ErrCode OsAccountStub::ProcGetOsAccountType(MessageParcel &data, MessageParcel &reply)
+{
+    OsAccountType type = OsAccountType::ADMIN;
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("Read localId failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = GetOsAccountType(localId, type);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Write reply failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        return ERR_NONE;
+    }
+    if (!reply.WriteInt32(type)) {
+        ACCOUNT_LOGE("Write reply failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    return ERR_NONE;
+}
+
 ErrCode OsAccountStub::ProcGetApplicationConstraints(MessageParcel &data, MessageParcel &reply)
 {
     return ERR_NONE;
@@ -1035,6 +1079,16 @@ ErrCode OsAccountStub::ProcDeactivateOsAccount(MessageParcel &data, MessageParce
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
         return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcDeactivateAllOsAccounts(MessageParcel &data, MessageParcel &reply)
+{
+    ErrCode result = DeactivateAllOsAccounts();
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Write reply failed, result=%{public}d.", result);
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_NONE;
 }
@@ -1344,6 +1398,29 @@ ErrCode OsAccountStub::ProcGetOsAccountShortName(MessageParcel &data, MessagePar
     if (!reply.WriteString(shortName)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcGetOsAccountShortNameById(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t id;
+    if (!data.ReadInt32(id)) {
+        ACCOUNT_LOGE("Read id failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    std::string shortName;
+    ErrCode result = GetOsAccountShortNameById(id, shortName);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Write result failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        return ERR_NONE;
+    }
+    if (!reply.WriteString(shortName)) {
+        ACCOUNT_LOGE("Write short name failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_NONE;
 }

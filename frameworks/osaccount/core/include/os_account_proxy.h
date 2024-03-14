@@ -52,6 +52,7 @@ public:
     ErrCode QueryCurrentOsAccount(OsAccountInfo &osAccountInfo) override;
     ErrCode QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo) override;
     ErrCode GetOsAccountTypeFromProcess(OsAccountType &type) override;
+    ErrCode GetOsAccountType(const int id, OsAccountType& type) override;
     ErrCode GetOsAccountProfilePhoto(const int id, std::string &photo) override;
     ErrCode IsMultiOsAccountEnable(bool &isMultiOsAccountEnable) override;
     ErrCode SetOsAccountName(const int id, const std::string &localName) override;
@@ -60,6 +61,7 @@ public:
     ErrCode SetOsAccountProfilePhoto(const int id, const std::string &photo) override;
     ErrCode ActivateOsAccount(const int id) override;
     ErrCode DeactivateOsAccount(const int id) override;
+    ErrCode DeactivateAllOsAccounts() override;
     ErrCode StartOsAccount(const int id) override;
     ErrCode StopOsAccount(const int id) override;
     ErrCode GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id) override;
@@ -93,6 +95,7 @@ public:
     ErrCode SetDefaultActivatedOsAccount(const int32_t id) override;
     ErrCode GetDefaultActivatedOsAccount(int32_t &id) override;
     ErrCode GetOsAccountShortName(std::string &shortName) override;
+    ErrCode GetOsAccountShortNameById(const int32_t id, std::string &shortName) override;
 
 private:
     bool ReadOsAccountInfoList(MessageParcel &data, std::vector<OsAccountInfo> &parcelableInfos);

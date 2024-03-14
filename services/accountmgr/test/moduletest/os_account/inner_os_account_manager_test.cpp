@@ -113,16 +113,18 @@ HWTEST_F(IInnerOsAccountManagerTest, SubscribeOsAccount001, TestSize.Level1)
 }
 
 /**
- * @tc.name: AccountDeactivate001
- * @tc.desc: coverage SendMsgForAccountDeactivate
+ * @tc.name: GetOsAccountShortName001
+ * @tc.desc: coverage GetOsAccountShortName
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(IInnerOsAccountManagerTest, AccountDeactivate001, TestSize.Level1)
+HWTEST_F(IInnerOsAccountManagerTest, GetOsAccountShortName001, TestSize.Level1)
 {
     std::string shortName;
     ErrCode ret = innerMgrService_->GetOsAccountShortName(199, shortName);
     EXPECT_NE(ret, ERR_OK);
+    ret = innerMgrService_->GetOsAccountShortName(100, shortName);
+    EXPECT_EQ(ret, ERR_OK);
 }
 
 /**

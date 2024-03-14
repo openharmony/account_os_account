@@ -14,6 +14,7 @@
  */
 #include "iinner_os_account_manager.h"
 #include "account_event_provider.h"
+#include <chrono>
 #include <unistd.h>
 #include "account_info.h"
 #include "account_info_report.h"
@@ -46,6 +47,7 @@ constexpr std::int32_t DELAY_FOR_EXCEPTION = 50;
 constexpr std::int32_t MAX_RETRY_TIMES = 50;
 const std::string SPECIAL_CHARACTER_ARRAY = "<>|\":*?/\\";
 const std::vector<std::string> SHORT_NAME_CANNOT_BE_NAME_ARRAY = {".", ".."};
+const int32_t MAX_PRIVATE_TYPE_NUMBER = 1;
 }
 
 IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManager_(OsAccountSubscribeManager::GetInstance())
@@ -211,13 +213,7 @@ void IInnerOsAccountManager::ResetAccountStatus(void)
 ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &name, const OsAccountType &type,
     const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo)
 {
-#ifdef ENABLE_ACCOUNT_SHORT_NAME
-    ErrCode code = ValidateShortName(name);
-    if (code != ERR_OK) {
-        return code;
-    }
-#endif // ENABLE_ACCOUNT_SHORT_NAME
-    return PrepareOsAccountInfo(name, name, type, domainInfo, osAccountInfo);
+    return PrepareOsAccountInfo(name, "", type, domainInfo, osAccountInfo);
 }
 
 ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &localName, const std::string &shortName,
@@ -233,13 +229,21 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &localNam
         ACCOUNT_LOGE("account name already exist, errCode %{public}d.", errCode);
         return errCode;
     }
+    errCode = CheckTypeNumber(type);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Check type number failed.");
+        return errCode;
+    }
 
     errCode = osAccountControl_->InsertOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("insert os account info err, errCode %{public}d.", errCode);
         return errCode;
     }
-    osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
+    // private type account not write index to index file, don't check name in ValidateOsAccount
+    if (type != OsAccountType::PRIVATE) {
+        osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
+    }
 
     errCode = osAccountControl_->UpdateBaseOAConstraints(std::to_string(osAccountInfo.GetLocalId()),
         osAccountInfo.GetConstraints(), true);
@@ -273,11 +277,7 @@ ErrCode IInnerOsAccountManager::FillOsAccountInfo(const std::string &localName, 
         return errCode;
     }
 
-#ifdef ENABLE_ACCOUNT_SHORT_NAME
     osAccountInfo = OsAccountInfo(id, localName, shortName, type, serialNumber);
-#else
-    osAccountInfo = OsAccountInfo(id, localName, type, serialNumber);
-#endif // ENABLE_ACCOUNT_SHORT_NAME
     osAccountInfo.SetConstraints(constraints);
     int64_t time =
         std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -334,13 +334,22 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
         ACCOUNT_LOGE("create os account SendToStorageAccountCreate failed, errCode %{public}d.", errCode);
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
+#ifdef HAS_THEME_SERVICE_PART
+    auto task = std::bind(&OsAccountInterface::InitThemeResource, osAccountInfo.GetLocalId());
+    std::thread theme_thread(task);
+    pthread_setname_np(theme_thread.native_handle(), "InitTheme");
+#endif
     errCode = OsAccountInterface::SendToBMSAccountCreate(osAccountInfo, options.disallowedHapList);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("create os account SendToBMSAccountCreate failed, errCode %{public}d.", errCode);
         (void)OsAccountInterface::SendToStorageAccountRemove(osAccountInfo);
         return errCode;
     }
-
+#ifdef HAS_THEME_SERVICE_PART
+    if (theme_thread.joinable()) {
+        theme_thread.join();
+    }
+#endif
     osAccountInfo.SetIsCreateCompleted(true);
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
@@ -708,6 +717,9 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountDeactivate(OsAccountInfo &osAcc
 
 ErrCode IInnerOsAccountManager::ValidateOsAccount(const OsAccountInfo &osAccountInfo)
 {
+    if (osAccountInfo.GetType() == OsAccountType::PRIVATE) {
+        return ERR_OK;
+    }
     Json accountIndexJson;
     ErrCode result = osAccountControl_->GetAccountIndexFromFile(accountIndexJson);
     if (result != ERR_OK) {
@@ -718,19 +730,52 @@ ErrCode IInnerOsAccountManager::ValidateOsAccount(const OsAccountInfo &osAccount
         std::string localIdKey = element.key();
         auto value = element.value();
         std::string localName = value[Constants::LOCAL_NAME].get<std::string>();
-#ifdef ENABLE_ACCOUNT_SHORT_NAME
-        std::string shortName = value[Constants::SHORT_NAME].get<std::string>();
-        if ((osAccountInfo.GetLocalName() == localName || osAccountInfo.GetShortName() == shortName) &&
-            (localIdKey != localIdStr)) {
-            return ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED;
-        }
-#else
         if ((osAccountInfo.GetLocalName() == localName) && (localIdKey != localIdStr)) {
             return ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED;
         }
-#endif // ENABLE_ACCOUNT_SHORT_NAME
+        if (!osAccountInfo.GetShortName().empty() && value.contains(Constants::SHORT_NAME)) {
+            std::string shortName = value[Constants::SHORT_NAME].get<std::string>();
+            if ((osAccountInfo.GetShortName() == shortName) && (localIdKey != localIdStr)) {
+                return ERR_ACCOUNT_COMMON_SHORT_NAME_HAD_EXISTED;
+            }
+        }
     }
 
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::GetTypeNumber(const OsAccountType& type, int32_t& typeNumber)
+{
+    typeNumber = 0;
+    std::vector<OsAccountInfo> osAccountList;
+    ErrCode result = osAccountControl_->GetOsAccountList(osAccountList);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Get os account list failed.");
+        return result;
+    }
+    for (const auto &info : osAccountList) {
+        if (info.GetType() == type) {
+            typeNumber++;
+        }
+    }
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::CheckTypeNumber(const OsAccountType& type)
+{
+    if (type != OsAccountType::PRIVATE) {
+        return ERR_OK;
+    }
+    int32_t typeNumber = 0;
+    ErrCode result = GetTypeNumber(type, typeNumber);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Count type number failed.");
+        return result;
+    }
+    if (type == OsAccountType::PRIVATE && typeNumber >= MAX_PRIVATE_TYPE_NUMBER) {
+        ACCOUNT_LOGE("Check type number failed, private type number=%{public}d", typeNumber);
+        return ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR;
+    }
     return ERR_OK;
 }
 
@@ -1464,13 +1509,6 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id, const uint64_t d
 
 ErrCode IInnerOsAccountManager::DeactivateOsAccount(const int id)
 {
-#ifndef SUPPROT_STOP_MAIN_OS_ACCOUNT
-    if (id == Constants::START_USER_ID) {
-        ACCOUNT_LOGW("the %{public}d os account can't stop", id);
-        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_STOP_ACTIVE_ERROR;
-    }
-#endif // SUPPORT_STOP_OS_ACCOUNT
-
     if (!CheckAndAddLocalIdOperating(id)) {
         ACCOUNT_LOGW("the %{public}d already in operating", id);
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;

@@ -30,6 +30,14 @@ ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
     return ERR_OK;
 }
 
+#ifdef HAS_THEME_SERVICE_PART
+void OsAccountInterface::InitThemeResource(int32_t localId)
+{
+    ACCOUNT_LOGI("mock OsAccountInterface InitThemeResource start");
+    return;
+}
+#endif
+
 ErrCode OsAccountInterface::SendToBMSAccountCreate(
     OsAccountInfo &osAccountInfo, const std::vector<std::string> &disallowedHapList)
 {

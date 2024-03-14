@@ -55,6 +55,7 @@ public:
     ErrCode ProcGetOsAccountProfilePhoto(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountLocalIdFromDomain(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountTypeFromProcess(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetOsAccountType(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetApplicationConstraints(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetApplicationConstraintsByNumber(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountLocalIdBySerialNumber(MessageParcel &data, MessageParcel &reply);
@@ -69,6 +70,7 @@ public:
     ErrCode ProcUnsubscribeOsAccount(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcActivateOsAccount(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcDeactivateOsAccount(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcDeactivateAllOsAccounts(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcStartOsAccount(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcStopOsAccount(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountSwitchMod(MessageParcel &data, MessageParcel &reply);
@@ -89,6 +91,7 @@ public:
     ErrCode ProcSetDefaultActivatedOsAccount(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetDefaultActivatedOsAccount(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountShortName(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetOsAccountShortNameById(MessageParcel &data, MessageParcel &reply);
 
 private:
     template<typename T>
