@@ -49,6 +49,7 @@ public:
     ErrCode QueryCurrentOsAccount(OsAccountInfo &osAccountInfo);
     ErrCode QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo);
     ErrCode GetOsAccountTypeFromProcess(OsAccountType &type);
+    ErrCode GetOsAccountType(const int id, OsAccountType& type);
     ErrCode GetOsAccountProfilePhoto(const int id, std::string &photo);
     ErrCode IsMultiOsAccountEnable(bool &isMultiOsAccountEnable);
     ErrCode SetOsAccountName(const int id, const std::string &localName);

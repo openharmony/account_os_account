@@ -543,6 +543,24 @@ ErrCode OsAccountProxy::GetOsAccountTypeFromProcess(OsAccountType &type)
     return ERR_OK;
 }
 
+ErrCode OsAccountProxy::GetOsAccountType(const int id, OsAccountType& type)
+{
+    MessageParcel reply;
+    ErrCode result = SendRequestWithAccountId(OsAccountInterfaceCode::GET_OS_ACCOUNT_TYPE, reply, id);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    int32_t typeResult = 0;
+    if (!reply.ReadInt32(typeResult)) {
+        ACCOUNT_LOGE("Failed to read type.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    type = static_cast<OsAccountType>(typeResult);
+
+    return ERR_OK;
+}
+
 ErrCode OsAccountProxy::GetOsAccountProfilePhoto(const int id, std::string &photo)
 {
     MessageParcel reply;

@@ -32,6 +32,7 @@ constexpr int PARAMTWO = 2;
 constexpr int PARAMTHREE = 3;
 constexpr int RESULT_COUNT = 2;
 constexpr int INVALID_LOCALID = -1;
+constexpr std::int32_t ARGS_SIZE_ZERO = 0;
 constexpr std::int32_t ARGS_SIZE_ONE = 1;
 constexpr std::int32_t ARGS_SIZE_TWO = 2;
 constexpr std::int32_t ARGS_SIZE_THREE = 3;

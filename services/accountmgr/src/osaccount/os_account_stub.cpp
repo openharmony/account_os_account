@@ -162,6 +162,13 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         }
     },
     {
+        static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_TYPE),
+        {
+            .messageProcFunction = &OsAccountStub::ProcGetOsAccountType,
+            .isSyetemApi = true,
+        }
+    },
+    {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_PROFILE_PHOTO),
         {
             .messageProcFunction = &OsAccountStub::ProcGetOsAccountProfilePhoto,
@@ -816,6 +823,29 @@ ErrCode OsAccountStub::ProcGetOsAccountTypeFromProcess(MessageParcel &data, Mess
     if (!reply.WriteInt32(type)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcGetOsAccountType(MessageParcel &data, MessageParcel &reply)
+{
+    OsAccountType type = OsAccountType::ADMIN;
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("Read localId failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = GetOsAccountType(localId, type);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Write reply failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        return ERR_NONE;
+    }
+    if (!reply.WriteInt32(type)) {
+        ACCOUNT_LOGE("Write reply failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_NONE;
 }

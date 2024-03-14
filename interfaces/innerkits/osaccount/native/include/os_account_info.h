@@ -25,6 +25,7 @@ typedef enum {
     ADMIN = 0,
     NORMAL,
     GUEST,
+    PRIVATE = 1024,
     END, // the upper bound of OsAccountType.
 } OsAccountType;
 
@@ -132,6 +133,8 @@ public:
     void SetCredentialId(uint64_t credentialId);
 
     ErrCode ParamCheck();
+
+    bool IsTypeOutOfRange() const;
 
 private:
     int localId_ = -1;

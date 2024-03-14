@@ -30,6 +30,7 @@ const std::map<OsAccountType, std::string> DUMP_TYPE_MAP = {
     {OsAccountType::ADMIN, "admin"},
     {OsAccountType::NORMAL, "normal"},
     {OsAccountType::GUEST, "guest"},
+    {OsAccountType::PRIVATE, "private"},
 };
 const std::string CONSTANT_CREATE = "constraint.os.account.create";
 const std::string CONSTANT_CREATE_DIRECTLY = "constraint.os.account.create.directly";
@@ -74,6 +75,12 @@ ErrCode CheckLocalId(int localId)
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
     return CheckInvalidLocalId(localId);
+}
+
+bool IsTypeOutOfRange(const OsAccountType& type)
+{
+    return (type < OsAccountType::ADMIN) || ((type > OsAccountType::GUEST) && (type < OsAccountType::PRIVATE)) ||
+        (type >= OsAccountType::END);
 }
 }  // namespace
 
@@ -133,7 +140,7 @@ ErrCode OsAccountManagerService::ValidateAccountCreateParamAndPermission(const s
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
-    if (type < OsAccountType::ADMIN || type >= OsAccountType::END) {
+    if (IsTypeOutOfRange(type)) {
         ACCOUNT_LOGE("os account type is invalid");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
@@ -212,7 +219,7 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(const OsAccountType &t
     }
 
     // parameters check
-    if ((type < OsAccountType::ADMIN) || (type >= OsAccountType::END)) {
+    if (IsTypeOutOfRange(type)) {
         ACCOUNT_LOGE("os account type is invalid");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
@@ -457,6 +464,15 @@ ErrCode OsAccountManagerService::QueryOsAccountById(const int id, OsAccountInfo 
 ErrCode OsAccountManagerService::GetOsAccountTypeFromProcess(OsAccountType &type)
 {
     int id = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+    return innerManager_.GetOsAccountType(id, type);
+}
+
+ErrCode OsAccountManagerService::GetOsAccountType(const int id, OsAccountType& type)
+{
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "") && !PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("Check permission failed.");
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
     return innerManager_.GetOsAccountType(id, type);
 }
 

@@ -40,6 +40,7 @@
         "OHOS::AccountSA::OsAccount::QueryCurrentOsAccount(OHOS::AccountSA::OsAccountInfo&)";
         "OHOS::AccountSA::OsAccount::QueryOsAccountById(int, OHOS::AccountSA::OsAccountInfo&)";
         "OHOS::AccountSA::OsAccount::GetOsAccountTypeFromProcess(OHOS::AccountSA::OsAccountType&)";
+        "OHOS::AccountSA::OsAccount::GetOsAccountType(int, OHOS::AccountSA::OsAccountType&)";
         "OHOS::AccountSA::OsAccount::GetOsAccountProfilePhoto(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&)";
         "OHOS::AccountSA::OsAccount::IsMultiOsAccountEnable(bool&)";
         "OHOS::AccountSA::OsAccount::SetOsAccountName(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
@@ -123,6 +124,7 @@
         "OHOS::AccountSA::OsAccountManager::CheckOsAccountConstraintEnabled(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, bool&)";
         "OHOS::AccountSA::OsAccountManager::IsOsAccountConstraintEnable(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, bool&)";
         "OHOS::AccountSA::OsAccountManager::GetOsAccountTypeFromProcess(OHOS::AccountSA::OsAccountType&)";
+        "OHOS::AccountSA::OsAccountManager::GetOsAccountType(int, OHOS::AccountSA::OsAccountType&)";
         "OHOS::AccountSA::OsAccountManager::IsMultiOsAccountEnable(bool&)";
         "OHOS::AccountSA::OsAccountManager::IsCurrentOsAccountVerified(bool&)";
         "OHOS::AccountSA::OsAccountManager::GetOsAccountLocalIdBySerialNumber(long long, int&)";
