@@ -259,6 +259,15 @@ public:
     static ErrCode GetOsAccountTypeFromProcess(OsAccountType &type);
 
     /**
+     * @brief Gets the type of this OS account from the current process.
+     * @permission ohos.permission.MANAGE_LOCAL_ACCOUNTS or ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS
+     * @param id - Indicates the local ID of the OS account.
+     * @param type - Indicates the OS account type.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode GetOsAccountType(const int id, OsAccountType& type);
+
+    /**
      * @brief Gets the profile photo of an OS account based on its local ID.
      * @permission ohos.permission.MANAGE_LOCAL_ACCOUNTS
      * @param id - Indicates the local ID of the OS account.

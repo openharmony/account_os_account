@@ -55,6 +55,7 @@ public:
     ErrCode ProcGetOsAccountProfilePhoto(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountLocalIdFromDomain(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountTypeFromProcess(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetOsAccountType(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetApplicationConstraints(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetApplicationConstraintsByNumber(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountLocalIdBySerialNumber(MessageParcel &data, MessageParcel &reply);

@@ -46,12 +46,14 @@
             "constraint.volume.adjust",
             "constraint.calls.outgoing",
             "constraint.sms.use"
-        ]
+        ],
+        "1024": []
     },
     "TypeList": [
         "0",
         "1",
-        "2"
+        "2",
+        "1024"
     ],
     "IsMultiOsAccountEnable": true,
     "IsAllowedCreateAdmin": true

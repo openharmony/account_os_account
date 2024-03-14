@@ -100,6 +100,8 @@ public:
     ErrCode SendMsgForAccountCreate(OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options = {});
     ErrCode GetOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo);
     ErrCode UpdateAccountStatusForDomain(const int id, DomainAccountStatus status);
+    ErrCode GetTypeNumber(const OsAccountType& type, int32_t& typeNumber) override;
+    ErrCode CheckTypeNumber(const OsAccountType& type) override;
 
 private:
     IInnerOsAccountManager();

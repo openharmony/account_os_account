@@ -30,6 +30,7 @@ static thread_local napi_ref osAccountRef_ = nullptr;
 const int OS_ACCOUNT_TYPE_ADMIN = 0;
 const int OS_ACCOUNT_TYPE_NORMAL = 1;
 const int OS_ACCOUNT_TYPE_GUEST = 2;
+const int OS_ACCOUNT_TYPE_PRIVATE = 1024;
 const int DOMAIN_ACCOUNT_STATUS_NOT_LOGGED_IN = 0;
 const int DOMAIN_ACCOUNT_STATUS_LOGGED_IN = 1;
 std::mutex g_lockForOsAccountSubscribers;
@@ -114,6 +115,7 @@ napi_value OsAccountInit(napi_env env, napi_value exports)
     SetEnumProperty(env, osAccountType, OS_ACCOUNT_TYPE_ADMIN, "ADMIN");
     SetEnumProperty(env, osAccountType, OS_ACCOUNT_TYPE_NORMAL, "NORMAL");
     SetEnumProperty(env, osAccountType, OS_ACCOUNT_TYPE_GUEST, "GUEST");
+    SetEnumProperty(env, osAccountType, OS_ACCOUNT_TYPE_PRIVATE, "PRIVATE");
 
     napi_value constraintSourceType = nullptr;
     napi_create_object(env, &constraintSourceType);
