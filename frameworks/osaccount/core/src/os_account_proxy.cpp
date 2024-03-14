@@ -690,6 +690,30 @@ ErrCode OsAccountProxy::DeactivateOsAccount(const int id)
     return SendRequestWithAccountId(OsAccountInterfaceCode::DEACTIVATE_OS_ACCOUNT, reply, id);
 }
 
+ErrCode OsAccountProxy::DeactivateAllOsAccounts()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Write descriptor failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    ErrCode result = SendRequest(OsAccountInterfaceCode::DEACTIVATE_ALL_OS_ACCOUNTS, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest failed, result=%{public}d.", result);
+        return result;
+    }
+
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("Read result failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Deactivate all os account failed, result=%{public}d.", result);
+    }
+    return result;
+}
+
 ErrCode OsAccountProxy::StartOsAccount(const int id)
 {
     MessageParcel reply;

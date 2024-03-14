@@ -354,6 +354,17 @@ public:
     static ErrCode DeactivateOsAccount(const int id);
 
     /**
+     * @brief Deactivates all OS account.
+     * <p>
+     * You can call this method to disable all OS account.
+     * </p>
+     *
+     * @permission ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode DeactivateAllOsAccounts();
+
+    /**
      * @brief Starts the specified OS account.
      * @param id - Indicates the local ID of the OS account.
      * @return error code, see account_error_no.h
