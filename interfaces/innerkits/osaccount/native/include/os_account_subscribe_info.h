@@ -30,6 +30,8 @@ typedef enum {
     REMOVED,
     STOPPING,
     STOPPED,
+    SWITCHING,
+    SWITCHED,
 } OS_ACCOUNT_SUBSCRIBE_TYPE;
 class OsAccountSubscribeInfo : public Parcelable {
 public:

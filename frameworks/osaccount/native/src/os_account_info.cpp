@@ -40,6 +40,8 @@ const std::string DOMAIN_ACCOUNT_NAME = "accountName";
 const std::string DOMAIN_ACCOUNT_ID = "accountId";
 const std::string TO_BE_REMOVED = "toBeRemoved";
 const std::string CREDENTIAL_ID = "credentialId";
+const std::string DISPLAY_ID = "displayId";
+const std::string IS_FOREGROUND = "isForeground";
 const std::string DOMAIN_ACCOUNT_STATUS = "domainAccountStatus";
 }  // namespace
 
@@ -135,6 +137,26 @@ void OsAccountInfo::SetCredentialId(uint64_t credentialId)
     credentialId_ = credentialId;
 }
 
+uint64_t OsAccountInfo::GetDisplayId() const
+{
+    return displayId_;
+}
+
+void OsAccountInfo::SetDisplayId(const uint64_t displayId)
+{
+    displayId_ = displayId;
+}
+
+bool OsAccountInfo::GetIsForeground() const
+{
+    return isForeground_;
+}
+
+void OsAccountInfo::SetIsForeground(bool isForeground)
+{
+    isForeground_ = isForeground;
+}
+
 bool OsAccountInfo::SetDomainInfo(const DomainAccountInfo &domainInfo)
 {
     if (domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
@@ -211,6 +233,8 @@ Json OsAccountInfo::ToJson() const
         {IS_ACCOUNT_COMPLETED, isCreateCompleted_},
         {TO_BE_REMOVED, toBeRemoved_},
         {CREDENTIAL_ID, credentialId_},
+        {DISPLAY_ID, displayId_},
+        {IS_FOREGROUND, isForeground_},
         {DOMAIN_INFO, {
             {DOMAIN_NAME, domainInfo_.domain_},
             {DOMAIN_ACCOUNT_NAME, domainInfo_.accountName_},
@@ -266,6 +290,10 @@ void OsAccountInfo::FromJson(const Json &jsonObject)
         jsonObject, jsonObjectEnd, TO_BE_REMOVED, toBeRemoved_, OHOS::AccountSA::JsonType::BOOLEAN);
     OHOS::AccountSA::GetDataByType<uint64_t>(
         jsonObject, jsonObjectEnd, CREDENTIAL_ID, credentialId_, OHOS::AccountSA::JsonType::NUMBER);
+    OHOS::AccountSA::GetDataByType<uint64_t>(
+        jsonObject, jsonObjectEnd, DISPLAY_ID, displayId_, OHOS::AccountSA::JsonType::NUMBER);
+    OHOS::AccountSA::GetDataByType<bool>(
+        jsonObject, jsonObjectEnd, IS_FOREGROUND, isForeground_, OHOS::AccountSA::JsonType::BOOLEAN);
 
     Json typeJson;
     OHOS::AccountSA::GetDataByType<Json>(

@@ -337,6 +337,14 @@ public:
     MOCK_METHOD1(OnAccountsChanged, void(const int &id));
 };
 
+class ActiveOsAccountSubscriber final : public OsAccountSubscriber {
+public:
+    explicit ActiveOsAccountSubscriber(const OsAccountSubscribeInfo &subscribeInfo)
+        : OsAccountSubscriber(subscribeInfo) {}
+
+    MOCK_METHOD1(OnAccountsChanged, void(const int &id));
+};
+
 /**
  * @tc.name: OsAccountManagerModuleTest001
  * @tc.desc: Test create guest account.
@@ -2423,14 +2431,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest113, TestSize.Lev
 {
     std::vector<OsAccountInfo> osAccountInfos;
     EXPECT_EQ(OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos), ERR_OK);
-    const unsigned int size = 0;
-    EXPECT_NE(size, osAccountInfos.size());
-    for (unsigned int i = 0; i < osAccountInfos.size(); i++) {
-        if (osAccountInfos[i].GetLocalId() != MAIN_ACCOUNT_ID) {
-            EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfos[i].GetLocalId()), ERR_OK);
-        }
-    }
-    EXPECT_EQ(OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos), ERR_OK);
     EXPECT_EQ(osAccountInfos.size(), 1);
     OsAccountInfo osAccountInfoOne;
     int id;
@@ -2530,3 +2530,125 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest115, TestSize.Lev
     EXPECT_EQ(OsAccountManager::DeactivateOsAccount(Constants::MAX_USER_ID + 1),
         ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
+
+/**
+ * @tc.name: OsAccountManagerModuleTest116
+ * @tc.desc: Test ActivateOsAccount.
+ * @tc.type: FUNC
+ * @tc.require:
+*/
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest116, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfoOne;
+    EXPECT_EQ(OsAccountManager::CreateOsAccount("osAccountInfoOne", OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
+
+    // activing os account
+    OsAccountSubscribeInfo subscribeActivingInfo;
+    subscribeActivingInfo.SetOsAccountSubscribeType(OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
+    subscribeActivingInfo.SetName("subscribeActiving");
+    auto activingSubscriber = std::make_shared<ActiveOsAccountSubscriber>(subscribeActivingInfo);
+    EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(activingSubscriber));
+    EXPECT_CALL(*activingSubscriber, OnAccountsChanged(osAccountInfoOne.GetLocalId())).Times(Exactly(1));
+    // activated os account
+    OsAccountSubscribeInfo subscribeActivatedInfo;
+    subscribeActivatedInfo.SetOsAccountSubscribeType(OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED);
+    subscribeActivatedInfo.SetName("subscribeActived");
+    auto activedSubscriber = std::make_shared<ActiveOsAccountSubscriber>(subscribeActivatedInfo);
+    EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(activedSubscriber));
+    EXPECT_CALL(*activedSubscriber, OnAccountsChanged(osAccountInfoOne.GetLocalId())).Times(Exactly(1));
+
+    // switched os account
+    OsAccountSubscribeInfo subscribeSwitchedInfo;
+    subscribeSwitchedInfo.SetOsAccountSubscribeType(OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED);
+    subscribeSwitchedInfo.SetName("subscribeActived");
+    auto switchedSubscriber = std::make_shared<ActiveOsAccountSubscriber>(subscribeSwitchedInfo);
+    EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(switchedSubscriber));
+    EXPECT_CALL(*switchedSubscriber, OnAccountsChanged(osAccountInfoOne.GetLocalId())).Times(Exactly(1));
+
+    // switching os account
+    OsAccountSubscribeInfo subscribeSwitchingInfo;
+    subscribeSwitchingInfo.SetOsAccountSubscribeType(OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED);
+    subscribeSwitchingInfo.SetName("subscribeActived");
+    auto switchingSubscriber = std::make_shared<ActiveOsAccountSubscriber>(subscribeSwitchingInfo);
+    EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(switchingSubscriber));
+    EXPECT_CALL(*switchingSubscriber, OnAccountsChanged(osAccountInfoOne.GetLocalId())).Times(Exactly(1));
+
+    // common event: COMMON_EVENT_USER_FOREGROUND 、 COMMON_EVENT_USER_BACKGROUND
+    EventFwk::MatchingSkills matchingSkills;
+    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_FOREGROUND);
+    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_BACKGROUND);
+    EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
+    auto listener = std::make_shared<MockSubscriberListener>();
+    std::shared_ptr<AccountTestEventSubscriber> subscriberPtr =
+        std::make_shared<AccountTestEventSubscriber>(subscribeInfo, listener);
+    ASSERT_EQ(EventFwk::CommonEventManager::SubscribeCommonEvent(subscriberPtr), true);
+    EXPECT_CALL(*listener,
+        OnReceiveEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_BACKGROUND)).Times(Exactly(1));
+    EXPECT_CALL(*listener,
+        OnReceiveEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_FOREGROUND)).Times(Exactly(1));
+
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+
+    sleep(1);
+    EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(activingSubscriber));
+    EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(activedSubscriber));
+    EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(switchedSubscriber));
+    EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(switchingSubscriber));
+    EXPECT_EQ(EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriberPtr), true);
+
+    EXPECT_EQ(OsAccountManager::DeactivateOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()));
+}
+
+#ifdef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
+/**
+ * @tc.name: OsAccountManagerModuleTest117
+ * @tc.desc: Test ActivateOsAccount
+ * @tc.type: FUNC
+ * @tc.require:
+*/
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest117, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfoOne;
+    EXPECT_EQ(OsAccountManager::CreateOsAccount("osAccountInfoOne", OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
+    EXPECT_EQ(osAccountInfoOne.GetIsForeground(), false);
+    EXPECT_NE(osAccountInfoOne.GetDisplayId(), 0);
+    std::vector<int32_t> ids;
+    OsAccountManager::QueryActiveOsAccountIds(ids);
+    EXPECT_EQ(ids.size()>0, true);
+    EXPECT_NE(ids[0], osAccountInfoOne.GetLocalId());
+
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    ids.clear();
+    OsAccountManager::QueryActiveOsAccountIds(ids);
+    EXPECT_EQ(ids.size()>0, true);
+    EXPECT_EQ(ids[0], osAccountInfoOne.GetLocalId());
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(ERR_OK, OsAccountManager::QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfo));
+    EXPECT_EQ(osAccountInfo.GetIsActived(), true);
+    EXPECT_EQ(osAccountInfo.GetIsForeground(), true);
+    EXPECT_EQ(osAccountInfo.GetDisplayId(), 0);
+
+    EXPECT_EQ(ERR_OK, OsAccountManager::QueryOsAccountById(100, osAccountInfo));
+    EXPECT_EQ(osAccountInfo.GetIsActived(), true);
+    EXPECT_EQ(osAccountInfo.GetIsForeground(), false);
+    EXPECT_NE(osAccountInfo.GetDisplayId(), 0);
+
+    EXPECT_EQ(OsAccountManager::DeactivateOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    ids.clear();
+    OsAccountManager::QueryActiveOsAccountIds(ids);
+    EXPECT_EQ(ids.size()>0, true);
+    EXPECT_EQ(ids[0], 100);
+
+    EXPECT_EQ(ERR_OK, OsAccountManager::QueryOsAccountById(100, osAccountInfo));
+    EXPECT_EQ(osAccountInfo.GetIsActived(), true);
+    EXPECT_EQ(osAccountInfo.GetIsForeground(), true);
+    EXPECT_EQ(osAccountInfo.GetDisplayId(), 0);
+
+    EXPECT_EQ(ERR_OK, OsAccountManager::QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfo));
+    EXPECT_EQ(osAccountInfo.GetIsActived(), false);
+    EXPECT_EQ(osAccountInfo.GetIsForeground(), false);
+    EXPECT_NE(osAccountInfo.GetDisplayId(), 0);
+    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()));
+}
+#endif

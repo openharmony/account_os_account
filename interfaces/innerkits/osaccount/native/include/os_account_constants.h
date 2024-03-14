@@ -91,6 +91,8 @@ const int64_t CARRY_NUM = 100000000;
 const bool IS_SERIAL_NUMBER_FULL_INIT_VALUE = false;
 const int64_t TIME_WAIT_TIME_OUT = 5;
 const std::int32_t WAIT_ONE_TIME = 1000;
+const uint64_t DEFAULT_DISPALY_ID = 0;
+const uint64_t INVALID_DISPALY_ID = -1ull;
 
 // type template
 const char DEVICE_OWNER_ID[] = "deviceOwnerId";
