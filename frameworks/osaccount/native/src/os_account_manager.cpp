@@ -162,6 +162,11 @@ ErrCode OsAccountManager::GetOsAccountTypeFromProcess(OsAccountType &type)
     return OsAccount::GetInstance().GetOsAccountTypeFromProcess(type);
 }
 
+ErrCode OsAccountManager::GetOsAccountType(const int id, OsAccountType& type)
+{
+    return OsAccount::GetInstance().GetOsAccountType(id, type);
+}
+
 ErrCode OsAccountManager::GetOsAccountProfilePhoto(const int id, std::string &photo)
 {
     return OsAccount::GetInstance().GetOsAccountProfilePhoto(id, photo);
@@ -201,6 +206,11 @@ ErrCode OsAccountManager::ActivateOsAccount(const int id)
 ErrCode OsAccountManager::DeactivateOsAccount(const int id)
 {
     return OsAccount::GetInstance().DeactivateOsAccount(id);
+}
+
+ErrCode OsAccountManager::DeactivateAllOsAccounts()
+{
+    return OsAccount::GetInstance().DeactivateAllOsAccounts();
 }
 
 ErrCode OsAccountManager::StartOsAccount(const int id)
@@ -325,6 +335,11 @@ ErrCode OsAccountManager::GetDefaultActivatedOsAccount(int32_t &id)
 ErrCode OsAccountManager::GetOsAccountShortName(std::string &shortName)
 {
     return OsAccount::GetInstance().GetOsAccountShortName(shortName);
+}
+
+ErrCode OsAccountManager::GetOsAccountShortName(const int32_t id, std::string &shortName)
+{
+    return OsAccount::GetInstance().GetOsAccountShortNameById(id, shortName);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

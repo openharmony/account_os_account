@@ -38,10 +38,7 @@ ohos_source_set("tools_acm_source_set") {
     "src/main.cpp",
   ]
 
-  public_configs = [
-    "${ability_runtime_path}/tools/aa:ability_command_config",
-    ":tools_acm_config",
-  ]
+  public_configs = [ ":tools_acm_config" ]
 
   cflags = []
   if (target_cpu == "arm") {

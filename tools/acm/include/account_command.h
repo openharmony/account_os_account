@@ -39,7 +39,7 @@ const std::string HELP_MSG_CREATE =
     "  -h, --help                           list available commands\n"
     "  -n <local-account-name> [-s] <shortName> -t <type> [-l] <disallowed-install-hap-list>\n"
     "                                       create a local account with a name and a type\n"
-    "                                       <type>: admin, normal, guest\n"
+    "                                       <type>: admin, normal, guest, private\n"
     "                                       <disallowed-install-hap-list>: can set disallowed pre-installed hap list\n";
 
 const std::string HELP_MSG_DELETE =
@@ -70,6 +70,7 @@ const std::string HELP_MSG_SWITCH =
 const std::string HELP_MSG_DEACTIVATE =
     "usage: acm deactivate <options>\n"
     "options list:\n"
+    "  -a, --all                                        deactivate all local account\n"
     "  -h, --help                                       list available commands\n"
     "  -i <local-account-id>                            deactivate a local account with an id\n";
 
@@ -100,6 +101,8 @@ const std::string STRING_STOP_OS_ACCOUNT_OK = "stop the local account successful
 const std::string STRING_STOP_OS_ACCOUNT_NG = "error: failed to stop the local account.";
 const std::string STRING_DEACTIVATE_OS_ACCOUNT_OK = "deactivate the local account successfully.";
 const std::string STRING_DEACTIVATE_OS_ACCOUNT_NG = "error: failed to deactivate the local account.";
+const std::string STRING_DEACTIVATE_ALL_OS_ACCOUNTS_OK = "deactivate all local account successfully.";
+const std::string STRING_DEACTIVATE_ALL_OS_ACCOUNTS_NG = "error: failed to deactivate all local account.";
 
 class AccountCommand : public OHOS::AAFwk::ShellCommand {
 public:

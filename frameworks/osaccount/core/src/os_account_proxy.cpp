@@ -543,6 +543,24 @@ ErrCode OsAccountProxy::GetOsAccountTypeFromProcess(OsAccountType &type)
     return ERR_OK;
 }
 
+ErrCode OsAccountProxy::GetOsAccountType(const int id, OsAccountType& type)
+{
+    MessageParcel reply;
+    ErrCode result = SendRequestWithAccountId(OsAccountInterfaceCode::GET_OS_ACCOUNT_TYPE, reply, id);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    int32_t typeResult = 0;
+    if (!reply.ReadInt32(typeResult)) {
+        ACCOUNT_LOGE("Failed to read type.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    type = static_cast<OsAccountType>(typeResult);
+
+    return ERR_OK;
+}
+
 ErrCode OsAccountProxy::GetOsAccountProfilePhoto(const int id, std::string &photo)
 {
     MessageParcel reply;
@@ -688,6 +706,30 @@ ErrCode OsAccountProxy::DeactivateOsAccount(const int id)
 {
     MessageParcel reply;
     return SendRequestWithAccountId(OsAccountInterfaceCode::DEACTIVATE_OS_ACCOUNT, reply, id);
+}
+
+ErrCode OsAccountProxy::DeactivateAllOsAccounts()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Write descriptor failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    ErrCode result = SendRequest(OsAccountInterfaceCode::DEACTIVATE_ALL_OS_ACCOUNTS, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest failed, result=%{public}d.", result);
+        return result;
+    }
+
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("Read result failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Deactivate all os account failed, result=%{public}d.", result);
+    }
+    return result;
 }
 
 ErrCode OsAccountProxy::StartOsAccount(const int id)
@@ -1404,6 +1446,41 @@ ErrCode OsAccountProxy::GetOsAccountShortName(std::string &shortName)
     }
     if (!reply.ReadString(shortName)) {
         ACCOUNT_LOGE("failed to read short name");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+
+    return ERR_OK;
+}
+
+ErrCode OsAccountProxy::GetOsAccountShortNameById(const int32_t id, std::string &shortName)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Write descriptor failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteInt32(id)) {
+        ACCOUNT_LOGE("Write id failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    MessageParcel reply;
+    ErrCode result = SendRequest(OsAccountInterfaceCode::GET_OS_ACCOUNT_SHORT_NAME_BY_ID, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest failed, result=%{public}d.", result);
+        return result;
+    }
+
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("Read result from reply failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Get os account short name failed, result=%{public}d.", result);
+        return result;
+    }
+    if (!reply.ReadString(shortName)) {
+        ACCOUNT_LOGE("Read short name failed.");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
 

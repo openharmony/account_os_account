@@ -58,6 +58,7 @@ public:
     virtual ErrCode QueryCurrentOsAccount(OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode GetOsAccountTypeFromProcess(OsAccountType &type) = 0;
+    virtual ErrCode GetOsAccountType(const int id, OsAccountType& type) = 0;
     virtual ErrCode GetOsAccountProfilePhoto(const int id, std::string &photo) = 0;
     virtual ErrCode IsMultiOsAccountEnable(bool &isMultiOsAccountEnable) = 0;
     virtual ErrCode SetOsAccountName(const int id, const std::string &localName) = 0;
@@ -66,6 +67,7 @@ public:
     virtual ErrCode SetOsAccountProfilePhoto(const int id, const std::string &photo) = 0;
     virtual ErrCode ActivateOsAccount(const int id) = 0;
     virtual ErrCode DeactivateOsAccount(const int id) = 0;
+    virtual ErrCode DeactivateAllOsAccounts() = 0;
     virtual ErrCode StartOsAccount(const int id) = 0;
     virtual ErrCode StopOsAccount(const int id) = 0;
     virtual ErrCode GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id) = 0;
@@ -100,6 +102,7 @@ public:
     virtual ErrCode SetDefaultActivatedOsAccount(const int32_t id) = 0;
     virtual ErrCode GetDefaultActivatedOsAccount(int32_t &id) = 0;
     virtual ErrCode GetOsAccountShortName(std::string &shortName) = 0;
+    virtual ErrCode GetOsAccountShortNameById(const int32_t id, std::string &shortName) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

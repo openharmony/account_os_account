@@ -356,7 +356,7 @@ ErrCode AccountCommand::RunAsDeactivateCommand(void)
 
     if (result != ERR_OK) {
         resultReceiver_.append(HELP_MSG_DEACTIVATE);
-    } else {
+    } else if (id != -1) {
         /* deactivate */
 
         // deactivate an os account
@@ -365,6 +365,13 @@ ErrCode AccountCommand::RunAsDeactivateCommand(void)
             resultReceiver_ = STRING_DEACTIVATE_OS_ACCOUNT_OK + "\n";
         } else {
             resultReceiver_ = STRING_DEACTIVATE_OS_ACCOUNT_NG + "\n";
+        }
+    } else {
+        result = OsAccount::GetInstance().DeactivateAllOsAccounts();
+        if (result == ERR_OK) {
+            resultReceiver_ = STRING_DEACTIVATE_ALL_OS_ACCOUNTS_OK + "\n";
+        } else {
+            resultReceiver_ = STRING_DEACTIVATE_ALL_OS_ACCOUNTS_NG + "\n";
         }
     }
 
@@ -658,6 +665,8 @@ ErrCode AccountCommand::AnalyzeTypeArgument(OsAccountType &type)
         type = OsAccountType::NORMAL;
     } else if (typeByUser == "guest") {
         type = OsAccountType::GUEST;
+    } else if (typeByUser == "private") {
+        type = OsAccountType::PRIVATE;
     } else {
         resultReceiver_.append(HELP_MSG_INVALID_TYPE_ARGUMENT + "\n");
         result = ERR_INVALID_VALUE;

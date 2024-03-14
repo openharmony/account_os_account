@@ -259,6 +259,15 @@ public:
     static ErrCode GetOsAccountTypeFromProcess(OsAccountType &type);
 
     /**
+     * @brief Gets the type of this OS account from the current process.
+     * @permission ohos.permission.MANAGE_LOCAL_ACCOUNTS or ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS
+     * @param id - Indicates the local ID of the OS account.
+     * @param type - Indicates the OS account type.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode GetOsAccountType(const int id, OsAccountType& type);
+
+    /**
      * @brief Gets the profile photo of an OS account based on its local ID.
      * @permission ohos.permission.MANAGE_LOCAL_ACCOUNTS
      * @param id - Indicates the local ID of the OS account.
@@ -352,6 +361,17 @@ public:
      * @return error code, see account_error_no.h
      */
     static ErrCode DeactivateOsAccount(const int id);
+
+    /**
+     * @brief Deactivates all OS account.
+     * <p>
+     * You can call this method to disable all OS account.
+     * </p>
+     *
+     * @permission ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode DeactivateAllOsAccounts();
 
     /**
      * @brief Starts the specified OS account.
@@ -531,10 +551,19 @@ public:
 
     /**
      * @brief Gets the currend user short name.
-     * @param id - Indicates the current user short name of the OS account.
+     * @param shortName - Indicates the current user short name of the OS account.
      * @return error code, see account_error_no.h
      */
     static ErrCode GetOsAccountShortName(std::string &shortName);
+
+    /**
+     * @brief Gets the user short name, based on account id.
+     * @permission ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS
+     * @param id - Indicates the local ID of the OS account.
+     * @param shortName - Indicates the current user short name of the OS account.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode GetOsAccountShortName(const int32_t id, std::string &shortName);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

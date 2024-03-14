@@ -49,6 +49,7 @@ public:
     ErrCode QueryCurrentOsAccount(OsAccountInfo &osAccountInfo);
     ErrCode QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo);
     ErrCode GetOsAccountTypeFromProcess(OsAccountType &type);
+    ErrCode GetOsAccountType(const int id, OsAccountType& type);
     ErrCode GetOsAccountProfilePhoto(const int id, std::string &photo);
     ErrCode IsMultiOsAccountEnable(bool &isMultiOsAccountEnable);
     ErrCode SetOsAccountName(const int id, const std::string &localName);
@@ -57,6 +58,7 @@ public:
     ErrCode GetDistributedVirtualDeviceId(std::string &deviceId);
     ErrCode ActivateOsAccount(const int id);
     ErrCode DeactivateOsAccount(const int id);
+    ErrCode DeactivateAllOsAccounts();
     ErrCode StartOsAccount(const int id);
     ErrCode StopOsAccount(const int id);
     ErrCode SubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber> &subscriber);
@@ -88,6 +90,7 @@ public:
     ErrCode SetDefaultActivatedOsAccount(const int32_t id);
     ErrCode GetDefaultActivatedOsAccount(int32_t &id);
     ErrCode GetOsAccountShortName(std::string &shortName);
+    ErrCode GetOsAccountShortNameById(const int32_t id, std::string &shortName);
 
 private:
     OsAccount() = default;

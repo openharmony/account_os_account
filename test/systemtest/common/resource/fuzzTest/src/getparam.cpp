@@ -18,7 +18,7 @@
 #include <functional>
 #include <iostream>
 #include <random>
-#include "../include/getparam.h"
+#include "getparam.h"
 
 using namespace std;
 namespace OHOS {
