@@ -358,7 +358,7 @@ ErrCode AccountCommand::RunAsDeactivateCommand(void)
 
     if (result != ERR_OK) {
         resultReceiver_.append(HELP_MSG_DEACTIVATE);
-    } else {
+    } else if (id != -1) {
         /* deactivate */
 
         // deactivate an os account
@@ -367,6 +367,13 @@ ErrCode AccountCommand::RunAsDeactivateCommand(void)
             resultReceiver_ = STRING_DEACTIVATE_OS_ACCOUNT_OK + "\n";
         } else {
             resultReceiver_ = STRING_DEACTIVATE_OS_ACCOUNT_NG + "\n";
+        }
+    } else {
+        result = OsAccount::GetInstance().DeactivateAllOsAccounts();
+        if (result == ERR_OK) {
+            resultReceiver_ = STRING_DEACTIVATE_ALL_OS_ACCOUNTS_OK + "\n";
+        } else {
+            resultReceiver_ = STRING_DEACTIVATE_ALL_OS_ACCOUNTS_NG + "\n";
         }
     }
 

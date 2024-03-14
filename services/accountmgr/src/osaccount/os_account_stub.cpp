@@ -210,6 +210,13 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         }
     },
     {
+        static_cast<uint32_t>(OsAccountInterfaceCode::DEACTIVATE_ALL_OS_ACCOUNTS),
+        {
+            .messageProcFunction = &OsAccountStub::ProcDeactivateAllOsAccounts,
+            .isSyetemApi = true,
+        }
+    },
+    {
         static_cast<uint32_t>(OsAccountInterfaceCode::START_OS_ACCOUNT),
         {
             .messageProcFunction = &OsAccountStub::ProcStartOsAccount,
@@ -1042,6 +1049,16 @@ ErrCode OsAccountStub::ProcDeactivateOsAccount(MessageParcel &data, MessageParce
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
         return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcDeactivateAllOsAccounts(MessageParcel &data, MessageParcel &reply)
+{
+    ErrCode result = DeactivateAllOsAccounts();
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Write reply failed, result=%{public}d.", result);
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_NONE;
 }
