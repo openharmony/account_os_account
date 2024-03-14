@@ -90,6 +90,7 @@ enum class OsAccountInterfaceCode : uint32_t {
     SET_DEFAULT_ACTIVATED_OS_ACCOUNT,
     GET_DEFAULT_ACTIVATED_OS_ACCOUNT,
     GET_OS_ACCOUNT_SHORT_NAME,
+    GET_OS_ACCOUNT_SHORT_NAME_BY_ID,
 };
 
 enum class AppAccountInterfaceCode : uint32_t {

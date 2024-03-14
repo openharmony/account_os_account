@@ -531,10 +531,19 @@ public:
 
     /**
      * @brief Gets the currend user short name.
-     * @param id - Indicates the current user short name of the OS account.
+     * @param shortName - Indicates the current user short name of the OS account.
      * @return error code, see account_error_no.h
      */
     static ErrCode GetOsAccountShortName(std::string &shortName);
+
+    /**
+     * @brief Gets the user short name, based on account id.
+     * @permission ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS
+     * @param id - Indicates the local ID of the OS account.
+     * @param shortName - Indicates the current user short name of the OS account.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode GetOsAccountShortName(const int32_t id, std::string &shortName);
 };
 }  // namespace AccountSA
 }  // namespace OHOS
