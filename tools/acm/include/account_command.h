@@ -29,9 +29,7 @@ const std::string HELP_MSG = "usage: acm <command> [<options>]\n"
                              "  delete              delete a local account with options\n"
                              "  switch              switch to a local account with options\n"
                              "  deactivate          deactivate to a local account with options\n"
-#ifdef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
                              "  stop                stop the local accounts\n"
-#endif // ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
                              "  set                 set constraints of a local account\n"
                              "  dump                dump the info of local accounts\n";
 
