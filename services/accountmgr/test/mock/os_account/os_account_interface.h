@@ -24,6 +24,9 @@ public:
     static ErrCode SendToAMSAccountStart(OsAccountInfo &osAccountInfo);
     static ErrCode SendToAMSAccountStop(OsAccountInfo &osAccountInfo);
     static ErrCode SendToAMSAccountDeactivate(OsAccountInfo &osAccountInfo);
+#ifdef HAS_THEME_SERVICE_PART
+    static void InitThemeResource(int32_t localId);
+#endif
     static ErrCode SendToBMSAccountCreate(
         OsAccountInfo &osAccountInfo, const std::vector<std::string> &disallowedHapList = {});
     static ErrCode SendToBMSAccountDelete(OsAccountInfo &osAccountInfo);

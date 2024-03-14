@@ -35,12 +35,12 @@ const bool BOOL_IS_OS_ACCOUNT_VERIFIED = true;
 const bool BOOL_IS_OS_ACCOUNT_COMPLETED = true;
 const bool BOOL_IS_ACTIVED = true;
 const int32_t CREATE_LOCAL_ID = 121;
-const std::string OVER_LENGTH_LOCAL_NAME =
-    "EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYX**E||TIj::KBCB??"
-    "RCk\"aGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJS"
-    "lNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIW<<Gh>>"
-    "4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+"
-    "jp6vLz9PX29/j5+v/aAAwDAQACEQMRAD8A++fid8e7j4ZiYXHgDxBfN5jJayQ3OnBLsKQGdF+1GbYAwJJi4yN2M1seF/";
+const std::string OVER_LENGTH_NAME =
+    "EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYX**E||TIj::KBCB??BAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQyerewewgZG"
+    "RCk11aGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSfggdfghBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQ1ygZG"
+    "lNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIW<<Gh>>adsfasBAMFBQQEAAABfQECAwAEEQUwewrewrwrwerSITFBBhNRYQcicRwerQygZGfafd"
+    "4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5w+BAMFBQQEAAABfQECAwAEEQTFBBhNYQcicRQygZG"
+    "jp6vLz9PX29/j5+v/aAAwDAQACEQMRAD8A++fid8e7j4ZiYXHgDxBfN5jJayQ3werwrwrwrwwerOnBLsKQGdF+1GbYAwJJsdfgsdfgi4yN2M1seF";
 const std::string STRING_PHOTO =
     "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD//gAUU29mdHdhcmU6IFNuaXBhc3Rl/"
     "9sAQwADAgIDAgIDAwMDBAMDBAUIBQUEBAUKBwcGCAwKDAwLCgsLDQ4SEA0OEQ4LCxAWEBETFBUVFQwPFxgWFBgSFBUU/"
@@ -638,6 +638,20 @@ HWTEST_F(OsAccountInfoTest, GetOsAccountShortName001, TestSize.Level1)
     std::string shortName;
     EXPECT_EQ(ERR_OK, OsAccountManager::GetOsAccountShortName(shortName));
 }
+
+/**
+ * @tc.name: GetOsAccountShortName002
+ * @tc.desc: Test get os account short name by id.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, GetOsAccountShortName002, TestSize.Level1)
+{
+    std::string shortName;
+    EXPECT_EQ(ERR_OK, OsAccountManager::GetOsAccountShortName(100, shortName));
+    EXPECT_NE(ERR_OK, OsAccountManager::GetOsAccountShortName(199, shortName));
+}
+
 /**
  * @tc.name: CreateOsAccount00
  * @tc.desc: create os account with short name
@@ -670,11 +684,10 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount01, TestSize.Level1)
     CreateOsAccountOptions options;
     EXPECT_EQ(ERR_OK,
         OsAccountManager::CreateOsAccount(STRING_NAME, "shortName", OsAccountType::NORMAL, options, osAccountInfoOne));
-#ifdef ENABLE_ACCOUNT_SHORT_NAME
     EXPECT_EQ(ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED,
         OsAccountManager::CreateOsAccount(STRING_NAME, STRING_NAME, OsAccountType::NORMAL, osAccountInfoTwo));
-    OsAccountManager::RemoveOsAccount(osAccountInfoTwo.GetLocalId());
-#endif  // ENABLE_ACCOUNT_SHORT_NAME
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_SHORT_NAME_HAD_EXISTED,
+        OsAccountManager::CreateOsAccount("CreateOsAccount01", "shortName", OsAccountType::NORMAL, osAccountInfoTwo));
     EXPECT_EQ(ERR_OK, OsAccountManager::SetOsAccountName(osAccountInfoOne.GetLocalId(), "updateName"));
     osAccountInfoOne.SetShortName(STRING_NAME);
     osAccountInfoOne.SetCredentialId(123);
@@ -694,7 +707,6 @@ HWTEST_F(OsAccountInfoTest, SetCredentialId01, TestSize.Level1)
     EXPECT_EQ(osAccountInfo.GetCredentialId(), 0);
 }
 
-#ifdef ENABLE_ACCOUNT_SHORT_NAME
 /**
  * @tc.name: CreateOsAccount02
  * @tc.desc: create os account with short name
@@ -704,7 +716,7 @@ HWTEST_F(OsAccountInfoTest, SetCredentialId01, TestSize.Level1)
 HWTEST_F(OsAccountInfoTest, CreateOsAccount02, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
+    EXPECT_EQ(ERR_OK,
         OsAccountManager::CreateOsAccount("..", OsAccountType::NORMAL, osAccountInfoOne));
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
 }
@@ -718,7 +730,7 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount02, TestSize.Level1)
 HWTEST_F(OsAccountInfoTest, CreateOsAccount03, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
+    EXPECT_EQ(ERR_OK,
               OsAccountManager::CreateOsAccount("zsm<<zd?s>|:23\"1/bc\\d", OsAccountType::NORMAL, osAccountInfoOne));
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
 }
@@ -733,7 +745,8 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount04, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
-        OsAccountManager::CreateOsAccount(".", OsAccountType::NORMAL, osAccountInfoOne));
+        OsAccountManager::CreateOsAccount("CreateOsAccount04", OVER_LENGTH_NAME,
+            OsAccountType::NORMAL, osAccountInfoOne));
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
 }
 
@@ -747,7 +760,8 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount05, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
-              OsAccountManager::CreateOsAccount(OVER_LENGTH_LOCAL_NAME, OsAccountType::NORMAL, osAccountInfoOne));
+              OsAccountManager::CreateOsAccount(OVER_LENGTH_NAME + OVER_LENGTH_NAME,
+              OsAccountType::NORMAL, osAccountInfoOne));
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
 }
 
@@ -830,4 +844,3 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount09, TestSize.Level1)
             ERR_OK);
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
 }
-#endif // ENABLE_ACCOUNT_SHORT_NAME

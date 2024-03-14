@@ -47,7 +47,6 @@ config("accountmgr_config") {
     "${os_account_dfx_path}/hisysevent_adapter",
     "${os_account_dfx_path}/hitrace_adapter",
     "${app_account_innerkits_native_path}/include",
-    "//third_party/json/include",
   ]
 }
 
@@ -227,7 +226,6 @@ ohos_shared_library("accountmgr") {
   deps = [
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
-    "//third_party/mbedtls:mbedtls",
   ]
 
   external_deps = [
@@ -245,9 +243,16 @@ ohos_shared_library("accountmgr") {
     "huks:libhukssdk",
     "init:libbegetutil",
     "ipc:ipc_single",
+    "json:nlohmann_json_static",
+    "mbedtls:mbedtls_shared",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+
+  if (has_theme_mar_part) {
+    external_deps += [ "theme_mgr:theme_manager_client" ]
+    cflags_cc += [ "-DHAS_THEME_SERVICE_PART" ]
+  }
 
   if (has_user_auth_part) {
     cflags_cc += [

@@ -67,6 +67,7 @@ enum class OsAccountInterfaceCode : uint32_t {
     SET_OS_ACCOUNT_PROFILE_PHOTO,
     ACTIVATE_OS_ACCOUNT,
     DEACTIVATE_OS_ACCOUNT,
+    DEACTIVATE_ALL_OS_ACCOUNTS,
     START_OS_ACCOUNT,
     STOP_OS_ACCOUNT,
     SUBSCRIBE_OS_ACCOUNT,
@@ -91,6 +92,7 @@ enum class OsAccountInterfaceCode : uint32_t {
     SET_DEFAULT_ACTIVATED_OS_ACCOUNT,
     GET_DEFAULT_ACTIVATED_OS_ACCOUNT,
     GET_OS_ACCOUNT_SHORT_NAME,
+    GET_OS_ACCOUNT_SHORT_NAME_BY_ID,
 };
 
 enum class AppAccountInterfaceCode : uint32_t {

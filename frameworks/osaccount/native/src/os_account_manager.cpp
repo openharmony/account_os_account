@@ -208,6 +208,11 @@ ErrCode OsAccountManager::DeactivateOsAccount(const int id)
     return OsAccount::GetInstance().DeactivateOsAccount(id);
 }
 
+ErrCode OsAccountManager::DeactivateAllOsAccounts()
+{
+    return OsAccount::GetInstance().DeactivateAllOsAccounts();
+}
+
 ErrCode OsAccountManager::StartOsAccount(const int id)
 {
     return OsAccount::GetInstance().StartOsAccount(id);
@@ -330,6 +335,11 @@ ErrCode OsAccountManager::GetDefaultActivatedOsAccount(int32_t &id)
 ErrCode OsAccountManager::GetOsAccountShortName(std::string &shortName)
 {
     return OsAccount::GetInstance().GetOsAccountShortName(shortName);
+}
+
+ErrCode OsAccountManager::GetOsAccountShortName(const int32_t id, std::string &shortName)
+{
+    return OsAccount::GetInstance().GetOsAccountShortNameById(id, shortName);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

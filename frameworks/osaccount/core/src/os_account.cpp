@@ -484,6 +484,16 @@ ErrCode OsAccount::DeactivateOsAccount(const int id)
     return proxy->DeactivateOsAccount(id);
 }
 
+ErrCode OsAccount::DeactivateAllOsAccounts()
+{
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+
+    return proxy->DeactivateAllOsAccounts();
+}
+
 ErrCode OsAccount::StartOsAccount(const int id)
 {
     ErrCode result = CheckLocalId(id);
@@ -856,6 +866,15 @@ ErrCode OsAccount::GetOsAccountShortName(std::string &shortName)
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     return proxy->GetOsAccountShortName(shortName);
+}
+
+ErrCode OsAccount::GetOsAccountShortNameById(const int32_t id, std::string &shortName)
+{
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->GetOsAccountShortNameById(id, shortName);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

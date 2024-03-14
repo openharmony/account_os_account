@@ -2211,6 +2211,29 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest126
     EXPECT_EQ(osAccountManagerService_->DeactivateOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
 }
+
+/**
+ * @tc.name: DeactivateAllOsAccountsModuleTest001
+ * @tc.desc: Test DeactivateAllOsAccounts success.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, DeactivateAllOsAccountsModuleTest001, TestSize.Level1)
+{
+    std::string privateName = "DeactivateAllOsAccounts001";
+    OsAccountInfo osAccountInfo;
+    ASSERT_EQ(osAccountManagerService_->CreateOsAccount(privateName, INT_TEST_TYPE, osAccountInfo), ERR_OK);
+    ASSERT_TRUE(osAccountInfo.GetLocalId() > Constants::START_USER_ID);
+    EXPECT_EQ(osAccountManagerService_->ActivateOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+    EXPECT_EQ(osAccountManagerService_->DeactivateAllOsAccounts(), ERR_OK);
+
+    std::vector<int32_t> ids;
+    EXPECT_EQ(osAccountManagerService_->QueryActiveOsAccountIds(ids), ERR_OK);
+    EXPECT_EQ(ids.empty(), true);
+
+    EXPECT_EQ(osAccountManagerService_->ActivateOsAccount(MAIN_ACCOUNT_ID), ERR_OK);
+    EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+}
 #endif //ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**

@@ -61,6 +61,7 @@ public:
     ErrCode SetOsAccountProfilePhoto(const int id, const std::string &photo) override;
     ErrCode ActivateOsAccount(const int id) override;
     ErrCode DeactivateOsAccount(const int id) override;
+    ErrCode DeactivateAllOsAccounts() override;
     ErrCode StartOsAccount(const int id) override;
     ErrCode StopOsAccount(const int id) override;
     ErrCode GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id) override;
@@ -94,6 +95,7 @@ public:
     ErrCode SetDefaultActivatedOsAccount(const int32_t id) override;
     ErrCode GetDefaultActivatedOsAccount(int32_t &id) override;
     ErrCode GetOsAccountShortName(std::string &shortName) override;
+    ErrCode GetOsAccountShortNameById(const int32_t id, std::string &shortName) override;
 
 private:
     bool ReadOsAccountInfoList(MessageParcel &data, std::vector<OsAccountInfo> &parcelableInfos);

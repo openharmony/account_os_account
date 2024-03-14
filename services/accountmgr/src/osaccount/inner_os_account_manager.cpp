@@ -14,6 +14,7 @@
  */
 #include "iinner_os_account_manager.h"
 #include "account_event_provider.h"
+#include <chrono>
 #include <unistd.h>
 #include "account_info.h"
 #include "account_info_report.h"
@@ -216,13 +217,7 @@ void IInnerOsAccountManager::ResetAccountStatus(void)
 ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &name, const OsAccountType &type,
     const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo)
 {
-#ifdef ENABLE_ACCOUNT_SHORT_NAME
-    ErrCode code = ValidateShortName(name);
-    if (code != ERR_OK) {
-        return code;
-    }
-#endif // ENABLE_ACCOUNT_SHORT_NAME
-    return PrepareOsAccountInfo(name, name, type, domainInfo, osAccountInfo);
+    return PrepareOsAccountInfo(name, "", type, domainInfo, osAccountInfo);
 }
 
 ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &localName, const std::string &shortName,
@@ -286,11 +281,7 @@ ErrCode IInnerOsAccountManager::FillOsAccountInfo(const std::string &localName, 
         return errCode;
     }
 
-#ifdef ENABLE_ACCOUNT_SHORT_NAME
     osAccountInfo = OsAccountInfo(id, localName, shortName, type, serialNumber);
-#else
-    osAccountInfo = OsAccountInfo(id, localName, type, serialNumber);
-#endif // ENABLE_ACCOUNT_SHORT_NAME
     osAccountInfo.SetConstraints(constraints);
     int64_t time =
         std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -347,13 +338,22 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
         ACCOUNT_LOGE("create os account SendToStorageAccountCreate failed, errCode %{public}d.", errCode);
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
+#ifdef HAS_THEME_SERVICE_PART
+    auto task = std::bind(&OsAccountInterface::InitThemeResource, osAccountInfo.GetLocalId());
+    std::thread theme_thread(task);
+    pthread_setname_np(theme_thread.native_handle(), "InitTheme");
+#endif
     errCode = OsAccountInterface::SendToBMSAccountCreate(osAccountInfo, options.disallowedHapList);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("create os account SendToBMSAccountCreate failed, errCode %{public}d.", errCode);
         (void)OsAccountInterface::SendToStorageAccountRemove(osAccountInfo);
         return errCode;
     }
-
+#ifdef HAS_THEME_SERVICE_PART
+    if (theme_thread.joinable()) {
+        theme_thread.join();
+    }
+#endif
     osAccountInfo.SetIsCreateCompleted(true);
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
@@ -734,17 +734,15 @@ ErrCode IInnerOsAccountManager::ValidateOsAccount(const OsAccountInfo &osAccount
         std::string localIdKey = element.key();
         auto value = element.value();
         std::string localName = value[Constants::LOCAL_NAME].get<std::string>();
-#ifdef ENABLE_ACCOUNT_SHORT_NAME
-        std::string shortName = value[Constants::SHORT_NAME].get<std::string>();
-        if ((osAccountInfo.GetLocalName() == localName || osAccountInfo.GetShortName() == shortName) &&
-            (localIdKey != localIdStr)) {
-            return ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED;
-        }
-#else
         if ((osAccountInfo.GetLocalName() == localName) && (localIdKey != localIdStr)) {
             return ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED;
         }
-#endif // ENABLE_ACCOUNT_SHORT_NAME
+        if (!osAccountInfo.GetShortName().empty() && value.contains(Constants::SHORT_NAME)) {
+            std::string shortName = value[Constants::SHORT_NAME].get<std::string>();
+            if ((osAccountInfo.GetShortName() == shortName) && (localIdKey != localIdStr)) {
+                return ERR_ACCOUNT_COMMON_SHORT_NAME_HAD_EXISTED;
+            }
+        }
     }
 
     return ERR_OK;
@@ -1398,13 +1396,6 @@ ErrCode IInnerOsAccountManager::DeactivateOsAccountByInfo(OsAccountInfo &osAccou
         return ERR_OK;
     }
 
-#ifndef SUPPROT_STOP_MAIN_OS_ACCOUNT
-    if (osAccountInfo.GetLocalId() == Constants::START_USER_ID) {
-        ACCOUNT_LOGI("this osaccount can't deactive, id: %{public}d", Constants::START_USER_ID);
-        return ERR_OK;
-    }
-#endif // SUPPORT_STOP_OS_ACCOUNT
-
     osAccountInfo.SetIsActived(false);
     ErrCode errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
@@ -1508,13 +1499,6 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
 
 ErrCode IInnerOsAccountManager::DeactivateOsAccount(const int id)
 {
-#ifndef SUPPROT_STOP_MAIN_OS_ACCOUNT
-    if (id == Constants::START_USER_ID) {
-        ACCOUNT_LOGW("the %{public}d os account can't stop", id);
-        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_STOP_ACTIVE_ERROR;
-    }
-#endif // SUPPORT_STOP_OS_ACCOUNT
-
     if (!CheckAndAddLocalIdOperating(id)) {
         ACCOUNT_LOGW("the %{public}d already in operating", id);
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
