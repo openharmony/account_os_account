@@ -184,6 +184,10 @@
         "OHOS::AccountSA::OsAccountInfo::SetType(OHOS::AccountSA::OsAccountType)";
         "OHOS::AccountSA::OsAccountInfo::SetSerialNumber(long long)";
         "OHOS::AccountSA::OsAccountInfo::SetSerialNumber(long)";
+        "OHOS::AccountSA::OsAccountInfo::SetIsForeground(bool)";
+        "OHOS::AccountSA::OsAccountInfo::GetIsForeground() const";
+        *OHOS::AccountSA::OsAccountInfo::SetDisplayId*;
+        *OHOS::AccountSA::OsAccountInfo::GetDisplayId*;
         "OHOS::AccountSA::OsAccountInfo::OsAccountInfo(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, OHOS::AccountSA::OsAccountType, long long)";
         "OHOS::AccountSA::OsAccountInfo::OsAccountInfo(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, OHOS::AccountSA::OsAccountType, long)";
         "OHOS::AccountSA::OsAccountInfo::OsAccountInfo(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, OHOS::AccountSA::OsAccountType, long long)";

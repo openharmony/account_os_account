@@ -23,6 +23,7 @@
 #include "ios_account_subscribe.h"
 #include "ohos_account_manager.h"
 #include "os_account_interface.h"
+#include "safe_map.h"
 #include "singleton.h"
 
 namespace OHOS {
@@ -58,7 +59,7 @@ public:
     ErrCode SetOsAccountConstraints(
         const int id, const std::vector<std::string> &constraints, const bool enable) override;
     ErrCode SetOsAccountProfilePhoto(const int id, const std::string &photo) override;
-    ErrCode ActivateOsAccount(const int id) override;
+    ErrCode ActivateOsAccount(const int id, const uint64_t displayId = 0) override;
     ErrCode DeactivateOsAccount(const int id) override;
     ErrCode StartOsAccount(const int id) override;
     ErrCode StopOsAccount(const int id) override;
@@ -122,7 +123,7 @@ private:
     ErrCode FillOsAccountInfo(const std::string &localName, const std::string &shortName, const OsAccountType &type,
         const DomainAccountInfo &domainAccount, OsAccountInfo &osAccountInfo);
     ErrCode PrepareOsAccountInfoWithFullInfo(OsAccountInfo &osAccountInfo);
-    ErrCode SendMsgForAccountActivate(OsAccountInfo &osAccountInfo);
+    ErrCode SendMsgForAccountActivate(OsAccountInfo &osAccountInfo, const uint64_t dispalyId = 0);
     ErrCode SendMsgForAccountDeactivate(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountStop(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountRemove(OsAccountInfo &osAccountInfo);
@@ -138,11 +139,12 @@ private:
     void EraseIdFromActiveList(int32_t id);
     bool IsOsAccountIDInActiveList(int32_t id);
     void CopyFromActiveList(std::vector<int32_t>& idList);
-    void RefreshActiveList(int32_t newId);
     bool CheckDomainAccountBound(const std::vector<OsAccountInfo> &osAccountInfos, const DomainAccountInfo &info);
     void WatchStartUser(std::int32_t id);
     void RetryToGetAccount(OsAccountInfo &osAccountInfo);
     bool JudgeOsAccountUpdate(Json &accountIndexJson);
+    ErrCode UpdateAccountToForeground(const uint64_t displayId, OsAccountInfo &osAccountInfo);
+    ErrCode UpdateAccountToBackground(OsAccountInfo &oldOsAccountInfo);
 
 private:
     std::shared_ptr<IOsAccountControl> osAccountControl_;
@@ -153,6 +155,7 @@ private:
     std::int32_t defaultActivatedId_ = -1;
     mutable std::mutex ativeMutex_;
     mutable std::mutex operatingMutex_;
+    SafeMap<uint64_t, int32_t> foregroundAccountMap_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

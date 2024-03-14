@@ -530,7 +530,7 @@ HWTEST_F(OsAccountInfoTest,CreateOsAccountWithFullInfo0103, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetLocalName("test117");
-    osAccountInfo.SetLocalId(CREATE_LOCAL_ID);
+    osAccountInfo.SetLocalId(997);
     osAccountInfo.SetSerialNumber(2023023100000033);
     osAccountInfo.SetCreateTime(1695883215000);
     osAccountInfo.SetLastLoginTime(1695863215000);
@@ -538,7 +538,7 @@ HWTEST_F(OsAccountInfoTest,CreateOsAccountWithFullInfo0103, TestSize.Level1)
 
     osAccountInfo.SetLocalName("update117");
     EXPECT_EQ(ERR_OK, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
-    OsAccountManager::RemoveOsAccount(CREATE_LOCAL_ID);
+    OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId());
 }
 
 /**
@@ -552,14 +552,14 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0104, TestSize.Level1)
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetLocalName("test118");
     osAccountInfo.SetType(OsAccountType::NORMAL);
-    osAccountInfo.SetLocalId(CREATE_LOCAL_ID);
+    osAccountInfo.SetLocalId(998);
     osAccountInfo.SetSerialNumber(1100);
     osAccountInfo.SetCreateTime(1695883215000);
     EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo));
 
     osAccountInfo.SetLastLoginTime(1695863290000);
     EXPECT_EQ(ERR_OK, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
-    OsAccountManager::RemoveOsAccount(CREATE_LOCAL_ID);
+    OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId());
 }
 
 /**
@@ -573,7 +573,7 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0105, TestSize.Level1)
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetLocalName("test119");
     osAccountInfo.SetType(OsAccountType::GUEST);
-    osAccountInfo.SetLocalId(CREATE_LOCAL_ID);
+    osAccountInfo.SetLocalId(999);
     osAccountInfo.SetSerialNumber(1100);
     osAccountInfo.SetCreateTime(1695883215000);
     EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo));
@@ -582,7 +582,7 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0105, TestSize.Level1)
     EXPECT_EQ(ERR_OK, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
     EXPECT_EQ(ERR_OSACCOUNT_SERVICE_CONTROL_INSERT_FILE_EXISTS_ERROR,
         OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo));
-    OsAccountManager::RemoveOsAccount(CREATE_LOCAL_ID);
+    OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId());
 }
 
 /**
