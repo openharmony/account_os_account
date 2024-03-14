@@ -884,6 +884,8 @@ ErrCode OsAccountManagerService::DumpStateByAccounts(
         state.emplace_back(DUMP_TAB_CHARACTER + "Type: " + type);
         state.emplace_back(DUMP_TAB_CHARACTER + "Status: " +
             (osAccountInfo.GetIsActived() ? "active" : "inactive"));
+        state.emplace_back(DUMP_TAB_CHARACTER + "isForeground: " + std::to_string(osAccountInfo.GetIsForeground()));
+        state.emplace_back(DUMP_TAB_CHARACTER + "dispalyId: " + std::to_string(osAccountInfo.GetDisplayId()));
 
         state.emplace_back(DUMP_TAB_CHARACTER + "Constraints:");
         auto constraints = osAccountInfo.GetConstraints();

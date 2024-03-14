@@ -68,9 +68,7 @@ ErrCode AccountCommand::CreateCommandMap()
         {"set", std::bind(&AccountCommand::RunAsSetCommand, this)},
         {"switch", std::bind(&AccountCommand::RunAsSwitchCommand, this)},
         {"deactivate", std::bind(&AccountCommand::RunAsDeactivateCommand, this)},
-#ifdef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
         {"stop", std::bind(&AccountCommand::RunAsStopCommand, this)},
-#endif // ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
     };
 
     return ERR_OK;

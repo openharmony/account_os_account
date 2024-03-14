@@ -132,6 +132,14 @@ public:
 
     void SetCredentialId(uint64_t credentialId);
 
+    uint64_t GetDisplayId() const;
+
+    void SetDisplayId(const uint64_t credentialId);
+
+    bool GetIsForeground() const;
+
+    void SetIsForeground(const bool isForeground);
+
     ErrCode ParamCheck();
 
     bool IsTypeOutOfRange() const;
@@ -152,6 +160,8 @@ private:
     bool isCreateCompleted_ = false;
     bool toBeRemoved_ = false;
     DomainAccountInfo domainInfo_;
+    uint64_t displayId_ = -1;
+    bool isForeground_ = false;
 };
 
 typedef enum {

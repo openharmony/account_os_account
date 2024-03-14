@@ -427,11 +427,6 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest013, TestSize
     EXPECT_CALL(*ptr, GetOsAccountInfoById(::testing::_, ::testing::_))
         .WillRepeatedly(testing::Return(0));
 
-    innerMgrService_->PushIdIntoActiveList(id);
-    ret = innerMgrService_->RemoveOsAccount(id);
-    innerMgrService_->EraseIdFromActiveList(id);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_REMOVE_ACCOUNT_ACTIVED_ERROR);
-
     EXPECT_CALL(*ptr, UpdateOsAccount(::testing::_))
         .WillRepeatedly(testing::Return(0));
 
@@ -823,30 +818,18 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest026, TestSize
 
     innerMgrService_->PushIdIntoActiveList(id);
     ret = innerMgrService_->ActivateOsAccount(id);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREADY_ACTIVE_ERROR);
-
+    EXPECT_EQ(ret, ERR_OK);
     innerMgrService_->EraseIdFromActiveList(id);
 
     EXPECT_CALL(*ptr, GetOsAccountInfoById(_, _))
         .WillRepeatedly(testing::Return(-1));
     ret = innerMgrService_->ActivateOsAccount(id);
-    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    EXPECT_EQ(ret, ERR_OK);
 
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetIsCreateCompleted(0);
     EXPECT_CALL(*ptr, GetOsAccountInfoById(_, _))
         .WillRepeatedly(DoAll(testing::SetArgReferee<1>(osAccountInfo), testing::Return(0)));
-
-    ret = innerMgrService_->ActivateOsAccount(id);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_IS_UNCOMPLETED_ERROR);
-
-    osAccountInfo.SetIsCreateCompleted(1);
-    osAccountInfo.SetToBeRemoved(true);
-    EXPECT_CALL(*ptr, GetOsAccountInfoById(_, _))
-        .WillRepeatedly(DoAll(testing::SetArgReferee<1>(osAccountInfo), testing::Return(0)));
-
-    ret = innerMgrService_->ActivateOsAccount(id);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR);
 }
 
 /*

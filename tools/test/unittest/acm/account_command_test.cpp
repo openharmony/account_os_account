@@ -154,7 +154,6 @@ HWTEST_F(AccountCommandTest, Acm_Command_0500, TestSize.Level1)
     EXPECT_EQ(cmd.ExecCommand(), HELP_MSG);
 }
 
-#ifdef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
 /**
  * @tc.name: Acm_Command_0600
  * @tc.desc: Verify the "acm stop" command.
@@ -360,4 +359,3 @@ HWTEST_F(AccountCommandTest, Acm_Command_1500, TestSize.Level1)
     EXPECT_EQ(cmd.ExecCommand(), STRING_STOP_OS_ACCOUNT_OK + "\n");
     OsAccount::GetInstance().RemoveOsAccount(osAccountInfo.GetLocalId());
 }
-#endif
