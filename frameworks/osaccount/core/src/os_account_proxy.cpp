@@ -708,6 +708,30 @@ ErrCode OsAccountProxy::DeactivateOsAccount(const int id)
     return SendRequestWithAccountId(OsAccountInterfaceCode::DEACTIVATE_OS_ACCOUNT, reply, id);
 }
 
+ErrCode OsAccountProxy::DeactivateAllOsAccounts()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Write descriptor failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    ErrCode result = SendRequest(OsAccountInterfaceCode::DEACTIVATE_ALL_OS_ACCOUNTS, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest failed, result=%{public}d.", result);
+        return result;
+    }
+
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("Read result failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Deactivate all os account failed, result=%{public}d.", result);
+    }
+    return result;
+}
+
 ErrCode OsAccountProxy::StartOsAccount(const int id)
 {
     MessageParcel reply;
@@ -1422,6 +1446,41 @@ ErrCode OsAccountProxy::GetOsAccountShortName(std::string &shortName)
     }
     if (!reply.ReadString(shortName)) {
         ACCOUNT_LOGE("failed to read short name");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+
+    return ERR_OK;
+}
+
+ErrCode OsAccountProxy::GetOsAccountShortNameById(const int32_t id, std::string &shortName)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Write descriptor failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteInt32(id)) {
+        ACCOUNT_LOGE("Write id failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    MessageParcel reply;
+    ErrCode result = SendRequest(OsAccountInterfaceCode::GET_OS_ACCOUNT_SHORT_NAME_BY_ID, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest failed, result=%{public}d.", result);
+        return result;
+    }
+
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("Read result from reply failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Get os account short name failed, result=%{public}d.", result);
+        return result;
+    }
+    if (!reply.ReadString(shortName)) {
+        ACCOUNT_LOGE("Read short name failed.");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
 

@@ -93,11 +93,31 @@ OsAccountManagerService::~OsAccountManagerService()
 ErrCode OsAccountManagerService::CreateOsAccount(
     const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
 {
-    return CreateOsAccount(name, name, type, osAccountInfo);
+    ErrCode errCode = ValidateAccountCreateParamAndPermission(name, type);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+    return innerManager_.CreateOsAccount(name, type, osAccountInfo);
 }
 
 ErrCode OsAccountManagerService::CreateOsAccount(const std::string &localName, const std::string &shortName,
     const OsAccountType &type, OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options)
+{
+    ErrCode errCode = ValidateAccountCreateParamAndPermission(localName, type);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+
+    errCode = innerManager_.ValidateShortName(shortName);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+
+    return innerManager_.CreateOsAccount(localName, shortName, type, osAccountInfo, options);
+}
+
+ErrCode OsAccountManagerService::ValidateAccountCreateParamAndPermission(const std::string &localName,
+    const OsAccountType &type)
 {
     // permission check
     if (!CheckCreateOsAccountWhiteList() &&
@@ -135,13 +155,7 @@ ErrCode OsAccountManagerService::CreateOsAccount(const std::string &localName, c
         ACCOUNT_LOGE("cannot create admin account error");
         return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
     }
-
-    errCode = innerManager_.ValidateShortName(shortName);
-    if (errCode != ERR_OK) {
-        return errCode;
-    }
-
-    return innerManager_.CreateOsAccount(localName, shortName, type, osAccountInfo, options);
+    return ERR_OK;
 }
 
 ErrCode OsAccountManagerService::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
@@ -587,6 +601,13 @@ ErrCode OsAccountManagerService::DeactivateOsAccount(const int id)
     int32_t currentId = Constants::START_USER_ID;
     GetCurrentLocalId(currentId);
 
+#ifndef SUPPROT_STOP_MAIN_OS_ACCOUNT
+    if (id == Constants::START_USER_ID) {
+        ACCOUNT_LOGW("the %{public}d os account can't stop", id);
+        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_STOP_ACTIVE_ERROR;
+    }
+#endif // SUPPORT_STOP_OS_ACCOUNT
+
     res = innerManager_.DeactivateOsAccount(id);
     if (res != ERR_OK) {
         return res;
@@ -600,6 +621,36 @@ ErrCode OsAccountManagerService::DeactivateOsAccount(const int id)
 #endif // SUPPROT_STOP_MAIN_OS_ACCOUNT
     }
     return ERR_OK;
+}
+
+ErrCode OsAccountManagerService::DeactivateAllOsAccounts()
+{
+    // permission check
+    if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "")) {
+        ACCOUNT_LOGE("Permission check failed.");
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    
+    std::vector<int32_t> userIds;
+    ErrCode res = innerManager_.QueryActiveOsAccountIds(userIds);
+    if (res != ERR_OK) {
+        ACCOUNT_LOGE("Get activated os account ids failed.");
+        return res;
+    }
+    if (userIds.empty()) {
+        ACCOUNT_LOGI("Activated os account list is empty.");
+        return ERR_OK;
+    }
+    ErrCode result = ERR_OK;
+    for (auto osAccountId : userIds) {
+        ACCOUNT_LOGI("DeactivateAllOsAccounts, id=%{public}d", osAccountId);
+        res = innerManager_.DeactivateOsAccount(osAccountId);
+        if (res != ERR_OK) {
+            ACCOUNT_LOGE("Deactivate os account id failed, id=%{public}d", osAccountId);
+            result = res;
+        }
+    }
+    return result;
 }
 
 void OsAccountManagerService::GetCurrentLocalId(int32_t &userId)
@@ -933,15 +984,29 @@ ErrCode OsAccountManagerService::GetDefaultActivatedOsAccount(int32_t &id)
     return innerManager_.GetDefaultActivatedOsAccount(id);
 }
 
-ErrCode OsAccountManagerService::GetOsAccountShortName(std::string &shortName)
+ErrCode OsAccountManagerService::GetOsAccountShortNameCommon(const int32_t id, std::string &shortName)
 {
-    int32_t id = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     ErrCode errCode = innerManager_.GetOsAccountShortName(id, shortName);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("GetOsAccountShortName error %{public}d", errCode);
         return errCode;
     }
     return ERR_OK;
+}
+
+ErrCode OsAccountManagerService::GetOsAccountShortName(std::string &shortName)
+{
+    int32_t id = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+    return GetOsAccountShortNameCommon(id, shortName);
+}
+
+ErrCode OsAccountManagerService::GetOsAccountShortNameById(const int32_t id, std::string &shortName)
+{
+    if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("Check permission failed, please check your permission.");
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    return GetOsAccountShortNameCommon(id, shortName);
 }
 
 bool OsAccountManagerService::PermissionCheck(const std::string& permissionName, const std::string& constraintName)
