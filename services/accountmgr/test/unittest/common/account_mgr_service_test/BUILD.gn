@@ -67,7 +67,6 @@ ohos_unittest("account_mgr_test") {
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
     "//third_party/googletest:gtest_main",
-    "//third_party/mbedtls:mbedtls",
   ]
 
   external_deps = [
@@ -82,6 +81,7 @@ ohos_unittest("account_mgr_test") {
     "init:libbegetutil",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
+    "mbedtls:mbedtls_shared",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]

@@ -25,7 +25,6 @@ config("os_account_control_file_manager_test_config") {
     "${common_path}/perf_stat/include",
     "${innerkits_common}/include",
     "${innerkits_path}/include",
-    "//third_party/json/include",
   ]
 }
 
@@ -58,6 +57,7 @@ ohos_unittest("OsAccountControlFileManagerTest") {
     "c_utils:utils",
     "hilog:libhilog",
     "init:libbegetutil",
+    "json:nlohmann_json_static",
     "kv_store:distributeddata_inner",
   ]
   part_name = "os_account"
@@ -92,6 +92,7 @@ ohos_unittest("OsAccountFileManagerMultipleThreadTest") {
     "c_utils:utils",
     "hilog:libhilog",
     "init:libbegetutil",
+    "json:nlohmann_json_static",
     "kv_store:distributeddata_inner",
   ]
   part_name = "os_account"
@@ -107,7 +108,6 @@ config("os_account_data_storage_test_config") {
     "${common_path}/perf_stat/include",
     "${innerkits_common}/include",
     "${innerkits_path}/include",
-    "//third_party/json/include",
     "${services_path}/accountmgr/test/unittest/os_account/mock",
   ]
 }
@@ -141,6 +141,7 @@ ohos_unittest("OsAccountDataStorageTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "json:nlohmann_json_static",
     "kv_store:distributeddata_inner",
   ]
   part_name = "os_account"
@@ -181,6 +182,7 @@ ohos_unittest("os_account_domain_account_callback_test") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "json:nlohmann_json_static",
     "kv_store:distributeddata_inner",
   ]
   part_name = "os_account"
@@ -196,7 +198,6 @@ config("os_account_subscribe_death_recipient_test_config") {
     "${common_path}/perf_stat/include",
     "${innerkits_common}/include",
     "${innerkits_path}/include",
-    "//third_party/json/include",
     "${services_path}/accountmgr/test/unittest/os_account/mock",
   ]
 }
@@ -237,6 +238,7 @@ ohos_unittest("OsAccountSubscribeDeathRecipientTest") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "json:nlohmann_json_static",
     "samgr:samgr_proxy",
     "user_auth_framework:userauth_client",
   ]
@@ -252,7 +254,6 @@ config("os_account_amgr_test_config") {
     "${common_path}/perf_stat/include",
     "${innerkits_common}/include",
     "${innerkits_path}/include",
-    "//third_party/json/include",
     "${services_path}/accountmgr/test/unittest/os_account/mock",
   ]
 }
@@ -298,6 +299,7 @@ ohos_unittest("OsAccountInnerAccmgrCovTest") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "json:nlohmann_json_static",
     "kv_store:distributeddata_inner",
     "samgr:samgr_proxy",
     "user_auth_framework:userauth_client",
@@ -319,7 +321,6 @@ config("os_account_amgr_mock_config") {
     "${common_path}/perf_stat/include",
     "${innerkits_common}/include",
     "${innerkits_path}/include",
-    "//third_party/json/include",
   ]
 }
 
@@ -368,6 +369,7 @@ ohos_unittest("OsAccountInnerAccmgrMockTest") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "json:nlohmann_json_static",
     "kv_store:distributeddata_inner",
     "samgr:samgr_proxy",
     "user_auth_framework:userauth_client",
@@ -433,7 +435,6 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
-    "//third_party/mbedtls:mbedtls",
   ]
 
   use_exceptions = true
@@ -454,6 +455,7 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     "init:libbegetutil",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
+    "mbedtls:mbedtls_shared",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]

@@ -18,7 +18,6 @@ module_output_path = "os_account/services/common"
 
 config("app_account_service_config_mock") {
   include_dirs = [
-    "//third_party/googletest/googlemock/include",
     "${app_account_services_path}/test/mock/app_account",
     "${app_account_services_path}/test/mock/common",
     "${app_account_innerkits_native_path}/include",

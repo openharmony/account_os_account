@@ -18,7 +18,7 @@ import("../../os_account.gni")
 config("account_systemtest_config") {
   visibility = [ ":*" ]
 
-  include_dirs = [ "//third_party/json/include" ]
+  include_dirs = []
 
   configs = []
 }
