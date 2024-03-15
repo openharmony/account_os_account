@@ -1391,13 +1391,6 @@ ErrCode IInnerOsAccountManager::DeactivateOsAccountByInfo(OsAccountInfo &osAccou
         return ERR_OK;
     }
 
-#ifndef SUPPROT_STOP_MAIN_OS_ACCOUNT
-    if (localId == Constants::START_USER_ID) {
-        ACCOUNT_LOGI("this osaccount can't deactive, id: %{public}d", Constants::START_USER_ID);
-        return ERR_OK;
-    }
-#endif // SUPPORT_STOP_OS_ACCOUNT
-
     osAccountInfo.SetIsActived(false);
     osAccountInfo.SetDisplayId(Constants::INVALID_DISPALY_ID);
     osAccountInfo.SetIsForeground(false);
