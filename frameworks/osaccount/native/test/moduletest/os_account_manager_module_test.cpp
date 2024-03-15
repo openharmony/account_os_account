@@ -2600,6 +2600,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest116, TestSize.Lev
 
     EXPECT_EQ(OsAccountManager::DeactivateOsAccount(account.GetLocalId()), ERR_OK);
     EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(account.GetLocalId()));
+    testing::Mock::AllowLeak(listener.get());
 }
 
 #ifdef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
