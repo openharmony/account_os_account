@@ -21,7 +21,6 @@ config("app_account_interfaces_native_config_mock") {
     "${app_account_innerkits_native_path}/test/mock",
     "${app_account_services_path}/include/appaccount",
     "${app_account_services_path}/include",
-    "//third_party/googletest/googlemock/include",
   ]
 }
 

@@ -68,7 +68,8 @@
         "user_auth_framework",
         "mbedtls",
         "json",
-        "theme_mgr"
+        "theme_mgr",
+        "benchmark"
       ],
       "third_party": [
         "mbedtls"

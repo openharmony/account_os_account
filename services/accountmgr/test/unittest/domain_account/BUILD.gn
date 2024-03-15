@@ -48,7 +48,6 @@ config("domain_account_amgr_mock_config") {
     "${common_path}/perf_stat/include",
     "${innerkits_common}/include",
     "${innerkits_path}/include",
-    "//third_party/json/include",
   ]
 }
 
@@ -103,6 +102,7 @@ ohos_unittest("DomainAccountInnerServiceCovTest") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "json:nlohmann_json_static",
     "kv_store:distributeddata_inner",
     "samgr:samgr_proxy",
   ]

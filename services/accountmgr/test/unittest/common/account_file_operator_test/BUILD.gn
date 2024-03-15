@@ -25,7 +25,6 @@ config("account_file_operator_test_config") {
     "${common_path}/perf_stat/include",
     "${innerkits_common}/include",
     "${innerkits_path}/include",
-    "//third_party/json/include",
   ]
 }
 
@@ -59,6 +58,7 @@ ohos_unittest("AccountFileOperatorTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "json:nlohmann_json_static",
     "kv_store:distributeddata_inner",
   ]
   part_name = "os_account"
