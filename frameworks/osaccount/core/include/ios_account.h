@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -103,6 +103,10 @@ public:
     virtual ErrCode GetDefaultActivatedOsAccount(int32_t &id) = 0;
     virtual ErrCode GetOsAccountShortName(std::string &shortName) = 0;
     virtual ErrCode GetOsAccountShortNameById(const int32_t id, std::string &shortName) = 0;
+    virtual ErrCode IsOsAccountForeground(const int32_t localId, const uint64_t displayId, bool &isForeground) = 0;
+    virtual ErrCode GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId) = 0;
+    virtual ErrCode GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts) = 0;
+    virtual ErrCode GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -340,6 +340,41 @@ ErrCode OsAccountManager::GetOsAccountShortName(std::string &shortName)
 ErrCode OsAccountManager::GetOsAccountShortName(const int32_t id, std::string &shortName)
 {
     return OsAccount::GetInstance().GetOsAccountShortNameById(id, shortName);
+}
+
+ErrCode OsAccountManager::IsOsAccountForeground(bool &isForeground)
+{
+    return OsAccount::GetInstance().IsOsAccountForeground(isForeground);
+}
+
+ErrCode OsAccountManager::IsOsAccountForeground(const int32_t localId, bool &isForeground)
+{
+    return OsAccount::GetInstance().IsOsAccountForeground(localId, isForeground);
+}
+
+ErrCode OsAccountManager::IsOsAccountForeground(const int32_t localId, const uint64_t displayId, bool &isForeground)
+{
+    return OsAccount::GetInstance().IsOsAccountForeground(localId, displayId, isForeground);
+}
+
+ErrCode OsAccountManager::GetForegroundOsAccountLocalId(int32_t &localId)
+{
+    return OsAccount::GetInstance().GetForegroundOsAccountLocalId(localId);
+}
+
+ErrCode OsAccountManager::GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId)
+{
+    return OsAccount::GetInstance().GetForegroundOsAccountLocalId(displayId, localId);
+}
+
+ErrCode OsAccountManager::GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts)
+{
+    return OsAccount::GetInstance().GetForegroundOsAccounts(accounts);
+}
+
+ErrCode OsAccountManager::GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds)
+{
+    return OsAccount::GetInstance().GetBackgroundOsAccountLocalIds(localIds);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

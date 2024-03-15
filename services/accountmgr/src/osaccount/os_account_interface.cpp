@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -277,25 +277,25 @@ void OsAccountInterface::PublishCommonEvent(
 #endif // HAS_CES_PART
 }
 
-void OsAccountInterface::SendToCESAccountSwitched(OsAccountInfo &osAccountInfo)
+void OsAccountInterface::SendToCESAccountSwitched(int newId, int oldId)
 {
-    int osAccountID = osAccountInfo.GetLocalId();
 #ifdef HAS_CES_PART
-    StartTraceAdapter("PublishCommonEvent account switch");
+    StartTraceAdapter("PublishCommonEvent account switched");
     OHOS::AAFwk::Want want;
     want.SetAction(OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED);
+    want.SetParam("oldId", std::to_string(oldId));
     OHOS::EventFwk::CommonEventData data;
-    data.SetCode(osAccountID);
+    data.SetCode(newId);
     data.SetWant(want);
     if (!OHOS::EventFwk::CommonEventManager::PublishCommonEvent(data)) {
-        ACCOUNT_LOGE("PublishCommonEvent for switched to account %{public}d failed!", osAccountID);
-        ReportOsAccountOperationFail(osAccountID, Constants::OPERATION_SWITCH, -1, "PublishCommonEvent failed!");
+        ACCOUNT_LOGE("PublishCommonEvent failed, account switched:%{public}d->%{public}d", oldId, newId);
+        ReportOsAccountOperationFail(newId, Constants::OPERATION_SWITCH, -1, "PublishCommonEvent switched failed!");
     } else {
-        ACCOUNT_LOGI("PublishCommonEvent for switched to account %{public}d succeed!", osAccountID);
+        ACCOUNT_LOGI("PublishCommonEvent successful, account switched:%{public}d->%{public}d", oldId, newId);
     }
     FinishTraceAdapter();
 #else // HAS_CES_PART
-    ACCOUNT_LOGI("No common event part, do not publish for account %{public}d switched!", osAccountID);
+    ACCOUNT_LOGI("No common event part, do not publish for account switched:%{public}d->%{public}d", oldId, newId);
 #endif // HAS_CES_PART
 }
 

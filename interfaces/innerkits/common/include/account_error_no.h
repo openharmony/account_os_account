@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -67,7 +67,10 @@ enum {
     ERR_ACCOUNT_COMMON_OPERATION_TIMEOUT,
     ERR_ACCOUNT_COMMON_NOT_AUTHENTICATED,
     ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED,
-    ERR_ACCOUNT_COMMON_SHORT_NAME_HAD_EXISTED
+    ERR_ACCOUNT_COMMON_SHORT_NAME_HAD_EXISTED,
+    ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR,
+    ERR_ACCOUNT_COMMON_ACCOUNT_IN_DISPLAY_ID_NOT_FOUND_ERROR,
+    ERR_ACCOUNT_COMMON_ACCOUNT_SUBSCRIBE_NOT_FOUND_ERROR
 };
 
 // Error code for AccountMgr

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -678,9 +678,18 @@ ErrCode OsAccountManagerService::SubscribeOsAccount(
     const OsAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener)
 {
     // permission check
-    if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "")) {
-        ACCOUNT_LOGE("account manager service, permission denied!");
-        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType;
+    subscribeInfo.GetOsAccountSubscribeType(osAccountSubscribeType);
+    if (osAccountSubscribeType == SWITCHED || osAccountSubscribeType == SWITCHING) {
+        if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
+            ACCOUNT_LOGE("account manager service, permission denied!");
+            return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+        }
+    } else {
+        if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "")) {
+            ACCOUNT_LOGE("account manager service, permission denied!");
+            return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+        }
     }
 
     return innerManager_.SubscribeOsAccount(subscribeInfo, eventListener);
@@ -689,9 +698,22 @@ ErrCode OsAccountManagerService::SubscribeOsAccount(
 ErrCode OsAccountManagerService::UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener)
 {
     // permission check
-    if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "")) {
-        ACCOUNT_LOGE("account manager service, permission denied!");
-        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    auto osSubscribeInfo = innerManager_.GetSubscribeRecordInfo(eventListener);
+    if (osSubscribeInfo == nullptr) {
+        return ERR_ACCOUNT_COMMON_ACCOUNT_SUBSCRIBE_NOT_FOUND_ERROR;
+    }
+    OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType;
+    osSubscribeInfo->GetOsAccountSubscribeType(osAccountSubscribeType);
+    if (osAccountSubscribeType == SWITCHED || osAccountSubscribeType == SWITCHING) {
+        if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
+            ACCOUNT_LOGE("account manager service, permission denied!");
+            return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+        }
+    } else {
+        if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "")) {
+            ACCOUNT_LOGE("account manager service, permission denied!");
+            return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+        }
     }
 
     return innerManager_.UnsubscribeOsAccount(eventListener);
@@ -1046,6 +1068,55 @@ bool OsAccountManagerService::PermissionCheck(const std::string& permissionName,
 bool OsAccountManagerService::CheckCreateOsAccountWhiteList()
 {
     return uidWhiteListForCreation.find(GetCallingUid()) != uidWhiteListForCreation.end();
+}
+
+ErrCode OsAccountManagerService::IsOsAccountForeground(const int32_t localId, const uint64_t displayId,
+                                                       bool &isForeground)
+{
+    int32_t callerId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+    int32_t id = (localId == -1) ? callerId : localId;
+    if (id < Constants::ADMIN_LOCAL_ID) {
+        ACCOUNT_LOGE("LocalId %{public}d is invlaid.", id);
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    if (displayId != Constants::DEFAULT_DISPALY_ID) {
+        ACCOUNT_LOGE("DisplayId %{public}llu not exist.", static_cast<unsigned long long>(displayId));
+        return ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR;
+    }
+    bool isOsAccountExists = false;
+    ErrCode result = IsOsAccountExists(id, isOsAccountExists);
+    if (result != ERR_OK) {
+        return result;
+    }
+    if (!isOsAccountExists) {
+        ACCOUNT_LOGE("LocalId %{public}d not exist.", id);
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    if (id >= Constants::ADMIN_LOCAL_ID && id < Constants::START_USER_ID) {
+        ACCOUNT_LOGI("LocalId %{public}d is always in backgroud.", id);
+        isForeground = false;
+        return ERR_OK;
+    }
+    return innerManager_.IsOsAccountForeground(id, displayId, isForeground);
+}
+
+ErrCode OsAccountManagerService::GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId)
+{
+    if (displayId != Constants::DEFAULT_DISPALY_ID) {
+        ACCOUNT_LOGE("DisplayId %{public}llu not exist.", static_cast<unsigned long long>(displayId));
+        return ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR;
+    }
+    return innerManager_.GetForegroundOsAccountLocalId(displayId, localId);
+}
+
+ErrCode OsAccountManagerService::GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts)
+{
+    return innerManager_.GetForegroundOsAccounts(accounts);
+}
+
+ErrCode OsAccountManagerService::GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds)
+{
+    return innerManager_.GetBackgroundOsAccountLocalIds(localIds);
 }
 }  // namespace AccountSA
 }  // namespace OHOS
