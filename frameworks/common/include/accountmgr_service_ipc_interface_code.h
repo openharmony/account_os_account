@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -93,6 +93,10 @@ enum class OsAccountInterfaceCode : uint32_t {
     GET_DEFAULT_ACTIVATED_OS_ACCOUNT,
     GET_OS_ACCOUNT_SHORT_NAME,
     GET_OS_ACCOUNT_SHORT_NAME_BY_ID,
+    IS_OS_ACCOUNT_FOREGROUND,
+    GET_FOREGROUND_OS_ACCOUNT_LOCAL_ID,
+    GET_FOREGROUND_OS_ACCOUNTS,
+    GET_BACKGROUND_OS_ACCOUNT_LOCAL_IDS,
 };
 
 enum class AppAccountInterfaceCode : uint32_t {
@@ -189,6 +193,7 @@ enum class DomainAccountCallbackInterfaceCode : uint32_t {
 
 enum class OsAccountEventInterfaceCode : uint32_t {
     ACCOUNT_CHANGED = 0,
+    ACCOUNT_SWITCHED = 1,
 };
 
 enum class AppAccountAuthorizationExtensionCallbackInterfaceCode : uint32_t {

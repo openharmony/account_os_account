@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -110,6 +110,25 @@ ErrCode OsAccountSubscribeManager::RemoveSubscribeRecord(const sptr<IRemoteObjec
     return ERR_OK;
 }
 
+const std::shared_ptr<OsAccountSubscribeInfo> OsAccountSubscribeManager::GetSubscribeRecordInfo(
+    const sptr<IRemoteObject> &eventListener)
+{
+    if (eventListener == nullptr) {
+        ACCOUNT_LOGE("eventListener is nullptr");
+        return nullptr;
+    }
+
+    std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
+
+    for (auto it = subscribeRecords_.begin(); it != subscribeRecords_.end(); ++it) {
+        if (eventListener == (*it)->eventListener_) {
+            return (*it)->subscribeInfoPtr_;
+        }
+    }
+
+    return nullptr;
+}
+
 bool OsAccountSubscribeManager::OnAccountsChanged(const OsSubscribeRecordPtr &osSubscribeRecordPtr, const int id)
 {
     auto osAccountEventProxy = iface_cast<IOsAccountEvent>(osSubscribeRecordPtr->eventListener_);
@@ -121,8 +140,25 @@ bool OsAccountSubscribeManager::OnAccountsChanged(const OsSubscribeRecordPtr &os
     return true;
 }
 
+bool OsAccountSubscribeManager::OnAccountsSwitch(const OsSubscribeRecordPtr &osSubscribeRecordPtr, const int newId,
+                                                 const int oldId)
+{
+    auto osAccountEventProxy = iface_cast<IOsAccountEvent>(osSubscribeRecordPtr->eventListener_);
+    if (osAccountEventProxy == nullptr) {
+        ACCOUNT_LOGE("Get os account event proxy failed.");
+        return false;
+    }
+    osAccountEventProxy->OnAccountsSwitch(newId, oldId);
+    return true;
+}
+
 ErrCode OsAccountSubscribeManager::Publish(const int id, OS_ACCOUNT_SUBSCRIBE_TYPE subscribeType)
 {
+    if (subscribeType == SWITCHING || subscribeType == SWITCHED) {
+        ACCOUNT_LOGE("Switch event need two ids.");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
     std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
     uint32_t sendCnt = 0;
     for (auto it = subscribeRecords_.begin(); it != subscribeRecords_.end(); ++it) {
@@ -143,6 +179,36 @@ ErrCode OsAccountSubscribeManager::Publish(const int id, OS_ACCOUNT_SUBSCRIBE_TY
 
     ACCOUNT_LOGI("Publish OsAccountEvent %{public}d succeed! id %{public}d, sendCnt %{public}u.",
         subscribeType, id, sendCnt);
+    return ERR_OK;
+}
+
+ErrCode OsAccountSubscribeManager::Publish(const int newId, const int oldId, OS_ACCOUNT_SUBSCRIBE_TYPE subscribeType)
+{
+    if (subscribeType != SWITCHING && subscribeType != SWITCHED) {
+        ACCOUNT_LOGE("Only switch event need two ids.");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
+    uint32_t sendCnt = 0;
+    for (auto it = subscribeRecords_.begin(); it != subscribeRecords_.end(); ++it) {
+        if ((*it)->subscribeInfoPtr_ == nullptr) {
+            ACCOUNT_LOGE("SubscribeInfoPtr_ is null.");
+            continue;
+        }
+        OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType;
+        (*it)->subscribeInfoPtr_->GetOsAccountSubscribeType(osAccountSubscribeType);
+        if (osAccountSubscribeType == subscribeType) {
+            auto task = std::bind(&OsAccountSubscribeManager::OnAccountsSwitch, this, (*it), newId, oldId);
+            std::thread taskThread(task);
+            pthread_setname_np(taskThread.native_handle(), THREAD_OS_ACCOUNT_EVENT);
+            taskThread.detach();
+            ++sendCnt;
+        }
+    }
+
+    ACCOUNT_LOGI("Publish %{public}d successful, newId=%{public}d, oldId=%{public}d, sendCnt=%{public}u.",
+                 subscribeType, newId, oldId, sendCnt);
     return ERR_OK;
 }
 }  // namespace AccountSA

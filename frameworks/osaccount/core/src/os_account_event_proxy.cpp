@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -44,6 +44,31 @@ void OsAccountEventProxy::OnAccountsChanged(const int &localId)
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest for account changed failed! result %{public}d, localId %{public}d.",
             result, localId);
+        return;
+    }
+}
+
+void OsAccountEventProxy::OnAccountsSwitch(const int &newId, const int &oldId)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Write descriptor failed.");
+        return;
+    }
+
+    if (!data.WriteInt32(newId)) {
+        ACCOUNT_LOGE("Write newId failed.");
+        return;
+    }
+
+    if (!data.WriteInt32(oldId)) {
+        ACCOUNT_LOGE("Write oldId failed.");
+        return;
+    }
+    MessageParcel reply;
+    ErrCode result = SendRequest(OsAccountEventInterfaceCode::ACCOUNT_SWITCHED, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest failed, result=%{public}d.", result);
         return;
     }
 }

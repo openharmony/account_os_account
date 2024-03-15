@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -140,6 +140,10 @@ void QueryActiveIdsExecuteCB(napi_env env, void *data);
 void QueryCreateOACallbackCompletedCB(napi_env env, napi_status status, void *data);
 
 void QueryActiveIdsCallbackCompletedCB(napi_env env, napi_status status, void *data);
+
+void GetForegroundOALocalIdExecuteCB(napi_env env, void *data);
+
+void GetForegroundOALocalIdCallbackCompletedCB(napi_env env, napi_status status, void *data);
 
 void QueryOAInfoForResult(napi_env env, const std::vector<OsAccountInfo> &info, napi_value &result);
 

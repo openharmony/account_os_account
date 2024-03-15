@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,6 +35,7 @@
 #include "parcel.h"
 #include <pthread.h>
 #include <thread>
+#include <unordered_set>
 
 namespace OHOS {
 namespace AccountSA {
@@ -1573,8 +1574,10 @@ void IInnerOsAccountManager::WatchStartUser(std::int32_t id)
 ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccountInfo, const uint64_t displayId)
 {
     // activate
+    int32_t oldId = -1;
+    bool oldIdExist = foregroundAccountMap_.Find(displayId, oldId);
     int localId = osAccountInfo.GetLocalId();
-    subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
+    subscribeManager_.Publish(localId, oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
     ErrCode errCode = OsAccountInterface::SendToStorageAccountStart(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("account %{public}d call storage active failed, errCode %{public}d.",
@@ -1587,8 +1590,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
             localId, errCode);
         return errCode;
     }
-    int32_t oldId = -1;
-    if (foregroundAccountMap_.Find(displayId, oldId)) {
+    if (oldIdExist) {
         OsAccountInfo oldOsAccountInfo;
         errCode = osAccountControl_->GetOsAccountInfoById(oldId, oldOsAccountInfo);
         if (errCode != ERR_OK) {
@@ -1613,9 +1615,9 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
 #endif // ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
     PushIdIntoActiveList(localId);
     SetParameter(ACCOUNT_READY_EVENT.c_str(), "true");
-    OsAccountInterface::SendToCESAccountSwitched(osAccountInfo);
+    OsAccountInterface::SendToCESAccountSwitched(localId, oldId);
     subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED);
-    subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED);
+    subscribeManager_.Publish(localId, oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED);
     ACCOUNT_LOGI("SendMsgForAccountActivate ok");
     return errCode;
 }
@@ -1740,6 +1742,12 @@ ErrCode IInnerOsAccountManager::UnsubscribeOsAccount(const sptr<IRemoteObject> &
     return subscribeManager_.UnsubscribeOsAccount(eventListener);
 }
 
+const std::shared_ptr<OsAccountSubscribeInfo> IInnerOsAccountManager::GetSubscribeRecordInfo(
+    const sptr<IRemoteObject> &eventListener)
+{
+    return subscribeManager_.GetSubscribeRecordInfo(eventListener);
+}
+
 OS_ACCOUNT_SWITCH_MOD IInnerOsAccountManager::GetOsAccountSwitchMod()
 {
     return Constants::NOW_OS_ACCOUNT_SWITCH_MOD;
@@ -1846,6 +1854,66 @@ ErrCode IInnerOsAccountManager::SetDefaultActivatedOsAccount(const int32_t id)
         return errCode;
     }
     defaultActivatedId_ = id;
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::IsOsAccountForeground(const int32_t localId, const uint64_t displayId,
+                                                      bool &isForeground)
+{
+    int32_t id;
+    if (!foregroundAccountMap_.Find(displayId, id)) {
+        ACCOUNT_LOGE("No foreground account in displayId %{public}llu.", static_cast<unsigned long long>(displayId));
+        return ERR_ACCOUNT_COMMON_ACCOUNT_IN_DISPLAY_ID_NOT_FOUND_ERROR;
+    }
+    ACCOUNT_LOGI("Get foreground account %{public}d in displayId %{public}llu, qurey localId=%{public}d.", id,
+                 static_cast<unsigned long long>(displayId), localId);
+    isForeground = (id == localId);
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId)
+{
+    if (!foregroundAccountMap_.Find(displayId, localId)) {
+        ACCOUNT_LOGE("No foreground account in displayId %{public}llu.", static_cast<unsigned long long>(displayId));
+        return ERR_ACCOUNT_COMMON_ACCOUNT_IN_DISPLAY_ID_NOT_FOUND_ERROR;
+    }
+    ACCOUNT_LOGI("Get foreground account %{public}d in displayId %{public}llu.", localId,
+                 static_cast<unsigned long long>(displayId));
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts)
+{
+    accounts.clear();
+    auto it = [&](uint64_t displayId, int32_t localId) {
+        ForegroundOsAccount foregroundOsAccount;
+        foregroundOsAccount.displayId = displayId;
+        foregroundOsAccount.localId = localId;
+        accounts.emplace_back(foregroundOsAccount);
+    };
+    foregroundAccountMap_.Iterate(it);
+    ACCOUNT_LOGI("Get foreground list successful, total=%{public}zu.", accounts.size());
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds)
+{
+    localIds.clear();
+    std::vector<int32_t> activatedIds;
+    CopyFromActiveList(activatedIds);
+
+    std::vector<int32_t> foregroundIds;
+    auto it = [&](uint64_t displayId, int32_t localId) {
+        foregroundIds.emplace_back(localId);
+    };
+    foregroundAccountMap_.Iterate(it);
+    std::unordered_set<int32_t> foregroundSet(foregroundIds.begin(), foregroundIds.end());
+    for (const auto &id : activatedIds) {
+        if (foregroundSet.find(id) == foregroundSet.end()) {
+            localIds.emplace_back(id);
+        }
+    }
+    ACCOUNT_LOGI("Get background list successful, total=%{public}zu.", localIds.size());
     return ERR_OK;
 }
 

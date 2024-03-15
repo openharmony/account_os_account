@@ -58,6 +58,7 @@ static napi_property_descriptor g_osAccountProperties[] = {
     DECLARE_NAPI_FUNCTION("queryActivatedOsAccountIds", QueryActivatedOsAccountIds),
     DECLARE_NAPI_FUNCTION("getActivatedOsAccountIds", GetActivatedOsAccountIds),
     DECLARE_NAPI_FUNCTION("getActivatedOsAccountLocalIds", GetActivatedOsAccountIds),
+    DECLARE_NAPI_FUNCTION("getForegroundOsAccountLocalId", GetForegroundOsAccountLocalId),
     DECLARE_NAPI_FUNCTION("getOsAccountProfilePhoto", GetOsAccountProfilePhoto),
     DECLARE_NAPI_FUNCTION("queryCurrentOsAccount", QueryCurrentOsAccount),
     DECLARE_NAPI_FUNCTION("getCurrentOsAccount", GetCurrentOsAccount),
@@ -689,6 +690,31 @@ napi_value QueryActivatedOsAccountIdsInner(napi_env env, napi_callback_info cbIn
 
     napi_queue_async_work_with_qos(env, queryActiveIds->work, napi_qos_default);
     queryActiveIds.release();
+    return result;
+}
+
+napi_value GetForegroundOsAccountLocalId(napi_env env, napi_callback_info cbInfo)
+{
+    auto getForegroundIds = std::make_unique<GetForegroundOALocalIdAsyncContext>();
+    getForegroundIds->env = env;
+    getForegroundIds->throwErr = true;
+
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_promise(env, &getForegroundIds->deferred, &result));
+
+    napi_value resource = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, "GetForegroundOsAccountLocalId", NAPI_AUTO_LENGTH, &resource));
+
+    NAPI_CALL(env, napi_create_async_work(env,
+        nullptr,
+        resource,
+        GetForegroundOALocalIdExecuteCB,
+        GetForegroundOALocalIdCallbackCompletedCB,
+        reinterpret_cast<void *>(getForegroundIds.get()),
+        &getForegroundIds->work));
+
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, getForegroundIds->work, napi_qos_default));
+    getForegroundIds.release();
     return result;
 }
 
@@ -1414,6 +1440,16 @@ SubscriberPtr::~SubscriberPtr()
 
 void SubscriberPtr::OnAccountsChanged(const int &id)
 {
+    OnAccountsSubNotify(id, id);
+}
+
+void SubscriberPtr::OnAccountsSwitch(const int &newId, const int &oldId)
+{
+    OnAccountsSubNotify(newId, oldId);
+}
+
+void SubscriberPtr::OnAccountsSubNotify(const int &newId, const int &oldId)
+{
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
     if (loop == nullptr) {
@@ -1431,13 +1467,14 @@ void SubscriberPtr::OnAccountsChanged(const int &id)
         delete work;
         return;
     }
-    subscriberOAWorker->id = id;
+    subscriberOAWorker->oldId = oldId;
+    subscriberOAWorker->newId = newId;
     subscriberOAWorker->env = env_;
     subscriberOAWorker->ref = ref_;
     subscriberOAWorker->subscriber = this;
     work->data = reinterpret_cast<void *>(subscriberOAWorker);
     int32_t ret =
-        uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnAccountsChanged, uv_qos_default);
+        uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnAccountsSubNotify, uv_qos_default);
     if (ret != 0) {
         ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", ret);
         delete work;
@@ -1445,7 +1482,22 @@ void SubscriberPtr::OnAccountsChanged(const int &id)
     }
 }
 
-void UvQueueWorkOnAccountsChanged(uv_work_t *work, int status)
+static napi_value CreateSwitchEventInfoObj(std::unique_ptr<SubscriberOAWorker> &subscriberOAWorker)
+{
+    napi_env env = subscriberOAWorker->env;
+    napi_value objInfo = nullptr;
+    NAPI_CALL(env, napi_create_object(env, &objInfo));
+    napi_value fromAccountIdJs;
+    NAPI_CALL(env, napi_create_int32(env, subscriberOAWorker->oldId, &fromAccountIdJs));
+    NAPI_CALL(env, napi_set_named_property(env, objInfo, "fromAccountId", fromAccountIdJs));
+    napi_value toAccountIdJs;
+    NAPI_CALL(env, napi_create_int32(env, subscriberOAWorker->newId, &toAccountIdJs));
+    NAPI_CALL(env, napi_set_named_property(env, objInfo, "toAccountId", toAccountIdJs));
+
+    return objInfo;
+}
+
+void UvQueueWorkOnAccountsSubNotify(uv_work_t *work, int status)
 {
     std::unique_ptr<uv_work_t> workPtr(work);
     napi_handle_scope scope = nullptr;
@@ -1469,8 +1521,19 @@ void UvQueueWorkOnAccountsChanged(uv_work_t *work, int status)
         }
     }
     if (isFound) {
+        OsAccountSubscribeInfo subscribeInfo;
+        OS_ACCOUNT_SUBSCRIBE_TYPE osSubscribeType;
+        subscriberOAWorkerData->subscriber->GetSubscribeInfo(subscribeInfo);
+        subscribeInfo.GetOsAccountSubscribeType(osSubscribeType);
+
         napi_value result[ARGS_SIZE_ONE] = {nullptr};
-        napi_create_int32(subscriberOAWorkerData->env, subscriberOAWorkerData->id, &result[PARAMZERO]);
+        if ((osSubscribeType == SWITCHING || osSubscribeType == SWITCHED)) {
+            ACCOUNT_LOGI("Switch condition, return oldId=%{public}d and newId=%{public}d.",
+                         subscriberOAWorkerData->oldId, subscriberOAWorkerData->newId);
+            result[PARAMZERO] = CreateSwitchEventInfoObj(subscriberOAWorkerData);
+        } else {
+            napi_create_int32(subscriberOAWorkerData->env, subscriberOAWorkerData->newId, &result[PARAMZERO]);
+        }
         napi_value undefined = nullptr;
         napi_get_undefined(subscriberOAWorkerData->env, &undefined);
         napi_value callback = nullptr;

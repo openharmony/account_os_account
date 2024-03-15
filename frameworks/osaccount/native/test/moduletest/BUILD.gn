@@ -64,6 +64,9 @@ ohos_moduletest("os_account_frameworks_module_test") {
     "samgr:samgr_proxy",
   ]
   cflags_cc = []
+  if (os_account_multiple_active_accounts) {
+    cflags_cc += [ "-DENABLE_MULTIPLE_ACTIVE_ACCOUNTS" ]
+  }
   cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
   if (os_account_support_deactivate_main_os_account) {
     cflags_cc += [ "-DSUPPROT_STOP_MAIN_OS_ACCOUNT" ]
@@ -143,6 +146,9 @@ ohos_moduletest("os_account_frameworks_module_mock_test") {
     "samgr:samgr_proxy",
   ]
   cflags_cc = []
+  if (os_account_multiple_active_accounts) {
+    cflags_cc += [ "-DENABLE_MULTIPLE_ACTIVE_ACCOUNTS" ]
+  }
   if (has_user_auth_part) {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
     external_deps += [ "user_auth_framework:userauth_client" ]

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -920,6 +920,28 @@ void QueryCreateOACallbackCompletedCB(napi_env env, napi_status status, void *da
     delete asyncContext;
 }
 
+void GetForegroundOALocalIdExecuteCB(napi_env env, void *data)
+{
+    GetForegroundOALocalIdAsyncContext *asyncContext = reinterpret_cast<GetForegroundOALocalIdAsyncContext *>(data);
+    asyncContext->errCode = OsAccountManager::GetForegroundOsAccountLocalId(asyncContext->id);
+}
+
+void GetForegroundOALocalIdCallbackCompletedCB(napi_env env, napi_status status, void *data)
+{
+    GetForegroundOALocalIdAsyncContext *asyncContext = reinterpret_cast<GetForegroundOALocalIdAsyncContext *>(data);
+    std::unique_ptr<GetForegroundOALocalIdAsyncContext> asyncContextPtr{asyncContext};
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    if (asyncContext->errCode == ERR_OK) {
+        NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &errJs));
+        NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, asyncContext->id, &dataJs));
+    } else {
+        errJs = GenerateBusinessError(env, asyncContext->errCode);
+        NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &dataJs));
+    }
+    ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
+}
+
 void QueryActiveIdsCallbackCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGD("napi_create_async_work complete");
@@ -1648,44 +1670,29 @@ bool ParseParaIsMainOA(napi_env env, napi_callback_info cbInfo, IsMainOAInfo *as
     return ParseOneParaContext(env, cbInfo, asyncContext);
 }
 
-bool ParseParaToSubscriber(const napi_env &env, napi_callback_info cbInfo, SubscribeCBInfo *asyncContext,
-    napi_value *thisVar)
+static bool ParseParamForActiveSubscriber(const napi_env &env, const std::string &type, SubscribeCBInfo *asyncContext,
+                                          size_t argc, napi_value *argv)
 {
-    size_t argc = ARGS_SIZE_THREE;
-    napi_value argv[ARGS_SIZE_THREE] = {nullptr};
-    napi_get_cb_info(env, cbInfo, &argc, argv, thisVar, NULL);
     if (argc < ARGS_SIZE_THREE) {
         ACCOUNT_LOGE("The arg number less than 3 characters");
         std::string errMsg = "The arg number must be at least 3 characters";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
         return false;
     }
-    if (argc == ARGS_SIZE_THREE) {
-        if (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1)) {
+    if (argc >= ARGS_SIZE_THREE) {
+        if (!GetCallbackProperty(env, argv[PARAMTWO], asyncContext->callbackRef, 1)) {
             ACCOUNT_LOGE("Get callbackRef failed");
-            std::string errMsg = "The type of arg " + std::to_string(argc) + " must be function";
+            std::string errMsg = "The type of arg " + std::to_string(PARAMTWO + 1) + " must be function";
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
             return false;
         }
     }
 
     // argv[0] type: 'activate' | 'activating'
-    std::string type;
-    if (!GetStringProperty(env, argv[PARAMZERO], type)) {
-        ACCOUNT_LOGE("Get type failed");
-        std::string errMsg = "The type of arg 1 must be string";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-        return false;
-    }
     if (type == "activate") {
         asyncContext->osSubscribeType = OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED;
-    } else if (type == "activating") {
-        asyncContext->osSubscribeType = OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING;
     } else {
-        ACCOUNT_LOGE("Get type failed, type is invalid");
-        std::string errMsg = "The value of arg 1 must be 'activate' or 'activating'";
-        AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, errMsg, asyncContext->throwErr);
-        return false;
+        asyncContext->osSubscribeType = OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING;
     }
 
     // argv[1] name: string
@@ -1706,43 +1713,87 @@ bool ParseParaToSubscriber(const napi_env &env, napi_callback_info cbInfo, Subsc
     return true;
 }
 
-bool ParseParaToUnsubscriber(const napi_env &env, napi_callback_info cbInfo, UnsubscribeCBInfo *asyncContext,
-    napi_value *thisVar)
+static bool ParseParamForSwitchSubscriber(const napi_env &env, const std::string &type, SubscribeCBInfo *asyncContext,
+                                          size_t argc, napi_value *argv)
 {
-    size_t argc = ARGS_SIZE_THREE;
-    napi_value argv[ARGS_SIZE_THREE] = {nullptr};
-    napi_get_cb_info(env, cbInfo, &argc, argv, thisVar, NULL);
     if (argc < ARGS_SIZE_TWO) {
         ACCOUNT_LOGE("The arg number less than 2 characters");
         std::string errMsg = "The arg number must be at least 2 characters";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
         return false;
     }
-    if (argc == ARGS_SIZE_THREE) {
-        if (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1)) {
+    if (argc >= ARGS_SIZE_TWO) {
+        if (!GetCallbackProperty(env, argv[PARAMONE], asyncContext->callbackRef, 1)) {
             ACCOUNT_LOGE("Get callbackRef failed");
-            std::string errMsg = "The type of arg " + std::to_string(argc) + " must be function";
+            std::string errMsg = "The type of arg " + std::to_string(PARAMONE + 1) + " must be function";
+            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+            return false;
+        }
+    }
+    // argv[0] type: 'switched' | 'switching'
+    if (type == "switched") {
+        asyncContext->osSubscribeType = OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED;
+    } else {
+        asyncContext->osSubscribeType = OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING;
+    }
+
+    return true;
+}
+
+bool ParseParaToSubscriber(const napi_env &env, napi_callback_info cbInfo, SubscribeCBInfo *asyncContext,
+                           napi_value *thisVar)
+{
+    size_t argc = ARGS_SIZE_THREE;
+    napi_value argv[ARGS_SIZE_THREE] = {nullptr};
+    NAPI_CALL_BASE(env, napi_get_cb_info(env, cbInfo, &argc, argv, thisVar, NULL), false);
+    if (argc < ARGS_SIZE_TWO) {
+        ACCOUNT_LOGE("The arg number less than 2 characters.");
+        std::string errMsg = "The arg number must be at least 2 characters";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+    std::string type;
+    if (!GetStringProperty(env, argv[PARAMZERO], type)) {
+        ACCOUNT_LOGE("Get type failed.");
+        std::string errMsg = "The type of arg 1 must be string";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+    if ((type == "activate" || type == "activating")) {
+        return ParseParamForActiveSubscriber(env, type, asyncContext, argc, argv);
+    }
+    if (type == "switched" || type == "switching") {
+        return ParseParamForSwitchSubscriber(env, type, asyncContext, argc, argv);
+    }
+    ACCOUNT_LOGE("Get type fail, %{public}s is invalid.", type.c_str());
+    std::string errMsg = "The type of arg 1 must be 'activate|activating|switched|switching'";
+    AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, errMsg, asyncContext->throwErr);
+    return false;
+}
+
+static bool ParseParamForActiveUnsubscriber(const napi_env &env, const std::string &type,
+                                            UnsubscribeCBInfo *asyncContext, size_t argc, napi_value *argv)
+{
+    if (argc < ARGS_SIZE_TWO) {
+        ACCOUNT_LOGE("The arg number less than 2 characters.");
+        std::string errMsg = "The arg number must be at least 2 characters";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+    if (argc >= ARGS_SIZE_THREE) {
+        if (!GetCallbackProperty(env, argv[PARAMTWO], asyncContext->callbackRef, 1)) {
+            ACCOUNT_LOGE("Get callbackRef failed.");
+            std::string errMsg = "The type of arg " + std::to_string(PARAMTWO + 1) + " must be function";
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
             return false;
         }
     }
 
     // argv[0] type: 'activate' | 'activating'
-    std::string type;
-    if (!GetStringProperty(env, argv[PARAMZERO], type)) {
-        std::string errMsg = "The type of arg 1 must be string";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-        return false;
-    }
     if (type == "activate") {
         asyncContext->osSubscribeType = OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED;
-    } else if (type == "activating") {
-        asyncContext->osSubscribeType = OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING;
     } else {
-        ACCOUNT_LOGE("Get type fail, type is invalid");
-        std::string errMsg = "The value of arg 1 must be 'activate' or 'activating'";
-        AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, errMsg, asyncContext->throwErr);
-        return false;
+        asyncContext->osSubscribeType = OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING;
     }
 
     // argv[1] name: string
@@ -1761,6 +1812,64 @@ bool ParseParaToUnsubscriber(const napi_env &env, napi_callback_info cbInfo, Uns
     }
 
     return true;
+}
+
+static bool ParseParamForSwitchUnsubscriber(const napi_env &env, const std::string &type,
+                                            UnsubscribeCBInfo *asyncContext, size_t argc, napi_value *argv)
+{
+    if (argc < ARGS_SIZE_ONE) {
+        ACCOUNT_LOGE("The arg number less than 1 characters.");
+        std::string errMsg = "The arg number must be at least 1 characters";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+    if (argc >= ARGS_SIZE_TWO) {
+        if (!GetCallbackProperty(env, argv[PARAMONE], asyncContext->callbackRef, 1)) {
+            ACCOUNT_LOGE("Get callbackRef failed.");
+            std::string errMsg = "The type of arg " + std::to_string(PARAMONE + 1) + " must be function";
+            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+            return false;
+        }
+    }
+    // argv[0] type: 'switched' | 'switching'
+    if (type == "switched") {
+        asyncContext->osSubscribeType = OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED;
+    } else {
+        asyncContext->osSubscribeType = OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING;
+    }
+
+    return true;
+}
+
+bool ParseParaToUnsubscriber(const napi_env &env, napi_callback_info cbInfo, UnsubscribeCBInfo *asyncContext,
+                             napi_value *thisVar)
+{
+    size_t argc = ARGS_SIZE_THREE;
+    napi_value argv[ARGS_SIZE_THREE] = {nullptr};
+    NAPI_CALL_BASE(env, napi_get_cb_info(env, cbInfo, &argc, argv, thisVar, NULL), false);
+    if (argc < ARGS_SIZE_ONE) {
+        ACCOUNT_LOGE("The arg number less than 1 characters.");
+        std::string errMsg = "The arg number must be at least 1 characters";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+    std::string type;
+    if (!GetStringProperty(env, argv[PARAMZERO], type)) {
+        ACCOUNT_LOGE("Get type failed.");
+        std::string errMsg = "The type of arg 1 must be string";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+    if ((type == "activate" || type == "activating")) {
+        return ParseParamForActiveUnsubscriber(env, type, asyncContext, argc, argv);
+    }
+    if (type == "switched" || type == "switching") {
+        return ParseParamForSwitchUnsubscriber(env, type, asyncContext, argc, argv);
+    }
+    ACCOUNT_LOGE("Get type fail, %{public}s is invalid.", type.c_str());
+    std::string errMsg = "The type of arg 1 must be 'activate|activating|switched|switching'";
+    AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, errMsg, asyncContext->throwErr);
+    return false;
 }
 }  // namespace AccountJsKit
 }  // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -875,6 +875,83 @@ ErrCode OsAccount::GetOsAccountShortNameById(const int32_t id, std::string &shor
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     return proxy->GetOsAccountShortNameById(id, shortName);
+}
+
+ErrCode OsAccount::IsOsAccountForeground(bool &isForeground)
+{
+    return IsOsAccountForegroundCommon(-1, Constants::DEFAULT_DISPALY_ID, isForeground);
+}
+
+ErrCode OsAccount::IsOsAccountForeground(const int32_t localId, bool &isForeground)
+{
+    if (localId < Constants::ADMIN_LOCAL_ID) {
+        ACCOUNT_LOGE("LocalId %{public}d is invlaid", localId);
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    return IsOsAccountForegroundCommon(localId, Constants::DEFAULT_DISPALY_ID, isForeground);
+}
+
+ErrCode OsAccount::IsOsAccountForeground(const int32_t localId, const uint64_t displayId, bool &isForeground)
+{
+    if (localId < Constants::ADMIN_LOCAL_ID) {
+        ACCOUNT_LOGE("LocalId %{public}d is invlaid", localId);
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    if (displayId != Constants::DEFAULT_DISPALY_ID) {
+        ACCOUNT_LOGE("DisplayId %{public}llu not exist", static_cast<unsigned long long>(displayId));
+        return ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR;
+    }
+    return IsOsAccountForegroundCommon(localId, displayId, isForeground);
+}
+
+ErrCode OsAccount::IsOsAccountForegroundCommon(const int32_t localId, const uint64_t displayId, bool &isForeground)
+{
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->IsOsAccountForeground(localId, displayId, isForeground);
+}
+
+ErrCode OsAccount::GetForegroundOsAccountLocalId(int32_t &localId)
+{
+    return GetForegroundLocalIdCommon(Constants::DEFAULT_DISPALY_ID, localId);
+}
+
+ErrCode OsAccount::GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId)
+{
+    if (displayId != Constants::DEFAULT_DISPALY_ID) {
+        ACCOUNT_LOGE("DisplayId %{public}llu not exist", static_cast<unsigned long long>(displayId));
+        return ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR;
+    }
+    return GetForegroundLocalIdCommon(displayId, localId);
+}
+
+ErrCode OsAccount::GetForegroundLocalIdCommon(const uint64_t displayId, int32_t &localId)
+{
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->GetForegroundOsAccountLocalId(displayId, localId);
+}
+
+ErrCode OsAccount::GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts)
+{
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->GetForegroundOsAccounts(accounts);
+}
+
+ErrCode OsAccount::GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds)
+{
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->GetBackgroundOsAccountLocalIds(localIds);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

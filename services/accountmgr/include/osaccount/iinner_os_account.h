@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -64,6 +64,8 @@ public:
     virtual ErrCode SubscribeOsAccount(
         const OsAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener) = 0;
     virtual ErrCode UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener) = 0;
+    virtual const std::shared_ptr<OsAccountSubscribeInfo> GetSubscribeRecordInfo(
+        const sptr<IRemoteObject> &eventListener) = 0;
     virtual OS_ACCOUNT_SWITCH_MOD GetOsAccountSwitchMod() = 0;
     virtual ErrCode IsOsAccountCompleted(const int id, bool &isOsAccountCompleted) = 0;
     virtual ErrCode SetOsAccountIsVerified(const int id, const bool isVerified) = 0;
@@ -93,6 +95,10 @@ public:
     virtual ErrCode ValidateShortName(const std::string &shortName) = 0;
     virtual ErrCode GetTypeNumber(const OsAccountType& type, int32_t& typeNumber) = 0;
     virtual ErrCode CheckTypeNumber(const OsAccountType& type) = 0;
+    virtual ErrCode IsOsAccountForeground(const int32_t localId, const uint64_t displayId, bool &isForeground) = 0;
+    virtual ErrCode GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId) = 0;
+    virtual ErrCode GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts) = 0;
+    virtual ErrCode GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -564,6 +564,60 @@ public:
      * @return error code, see account_error_no.h
      */
     static ErrCode GetOsAccountShortName(const int32_t id, std::string &shortName);
+
+    /**
+     * @brief Checks whether the current accoount is foreground.
+     * @param isForeground - Indicates whether the specified localId is Foreground.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode IsOsAccountForeground(bool &isForeground);
+
+    /**
+     * @brief Checks whether the specified accoount is foreground.
+     * @param localId - Indicates the local Id of the OS account.
+     * @param isForeground - Indicates whether the specified localId is foreground.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode IsOsAccountForeground(const int32_t localId, bool &isForeground);
+
+    /**
+     * @brief Checks whether the specified accoount is foreground in specified display.
+     * @param localId - Indicates the local id of the OS account.
+     * @param displayId - Indicates the id of the display.
+     * @param isForeground - Indicates whether the specified localId is foreground.
+     * @return error code, see account_error_no.h
+     */
+
+    static ErrCode IsOsAccountForeground(const int32_t localId, const uint64_t displayId, bool &isForeground);
+
+    /**
+     * @brief Gets the id from default display.
+     * @param localId - Indicates the corresponding localId of default display.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode GetForegroundOsAccountLocalId(int32_t &localId);
+
+    /**
+     * @brief Gets the id from specified display.
+     * @param displayId - Indicates the id of the specified display.
+     * @param localId - Indicates the corresponding localId of specified display.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId);
+
+    /**
+     * @brief Gets the foreground accounts.
+     * @param accounts - Indicates the foreground accounts.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts);
+
+    /**
+     * @brief Gets the boreground localId list.
+     * @param localIds - Indicates the boreground localId list.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds);
 };
 }  // namespace AccountSA
 }  // namespace OHOS
