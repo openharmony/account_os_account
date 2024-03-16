@@ -1,4 +1,4 @@
-# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Copyright (c) 2023-2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -145,6 +145,10 @@
         "OHOS::AccountSA::OsAccountManager::SetGlobalOsAccountConstraints(std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&, bool, int, bool)";
         "OHOS::AccountSA::OsAccountManager::GetOsAccountShortName(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&)";
         "OHOS::AccountSA::OsAccountManager::GetOsAccountShortName(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&)";
+        OHOS::AccountSA::OsAccountManager::IsOsAccountForeground*;
+        OHOS::AccountSA::OsAccountManager::GetForegroundOsAccountLocalId*;
+        "OHOS::AccountSA::OsAccountManager::GetForegroundOsAccounts(std::__h::vector<OHOS::AccountSA::ForegroundOsAccount, std::__h::allocator<OHOS::AccountSA::ForegroundOsAccount>>&)";
+        "OHOS::AccountSA::OsAccountManager::GetBackgroundOsAccountLocalIds(std::__h::vector<int, std::__h::allocator<int>>&)";
         "OHOS::AccountSA::OsAccountInfo::GetLocalId() const";
         "OHOS::AccountSA::OsAccountInfo::ParamCheck()";
         "OHOS::AccountSA::OsAccountInfo::GetDomainInfo(OHOS::AccountSA::DomainAccountInfo&) const";

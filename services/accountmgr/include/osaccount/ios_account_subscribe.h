@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -40,7 +40,10 @@ public:
     virtual ErrCode SubscribeOsAccount(
         const std::shared_ptr<OsAccountSubscribeInfo> &subscribeInfoPtr, const sptr<IRemoteObject> &eventListener) = 0;
     virtual ErrCode UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener) = 0;
+    virtual const std::shared_ptr<OsAccountSubscribeInfo> GetSubscribeRecordInfo(
+        const sptr<IRemoteObject> &eventListener) = 0;
     virtual ErrCode Publish(const int id, OS_ACCOUNT_SUBSCRIBE_TYPE subscribeType) = 0;
+    virtual ErrCode Publish(const int newId, const int oldId, OS_ACCOUNT_SUBSCRIBE_TYPE subscribeType) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

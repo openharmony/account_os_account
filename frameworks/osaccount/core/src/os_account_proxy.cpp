@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 const size_t MAX_INFO_SIZE = 1024;
+const uint32_t ACCOUNT_MAX_SIZE = 1000;
 }
 
 OsAccountProxy::OsAccountProxy(const sptr<IRemoteObject> &object) : IRemoteProxy<IOsAccount>(object)
@@ -1484,6 +1485,145 @@ ErrCode OsAccountProxy::GetOsAccountShortNameById(const int32_t id, std::string 
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
 
+    return ERR_OK;
+}
+
+ErrCode OsAccountProxy::IsOsAccountForeground(const int32_t localId, const uint64_t displayId, bool &isForeground)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Write descriptor failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteInt32(localId)) {
+        ACCOUNT_LOGE("Write localId failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteUint64(displayId)) {
+        ACCOUNT_LOGE("Write displayId failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    MessageParcel reply;
+    ErrCode result = SendRequest(OsAccountInterfaceCode::IS_OS_ACCOUNT_FOREGROUND, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest failed, result=%{public}d.", result);
+        return result;
+    }
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("Read result failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("IsOsAccountForeground failed, result=%{public}d.", result);
+        return result;
+    }
+    if (!reply.ReadBool(isForeground)) {
+        ACCOUNT_LOGE("Read isForeground failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return ERR_OK;
+}
+
+ErrCode OsAccountProxy::GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Write descriptor failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteUint64(displayId)) {
+        ACCOUNT_LOGE("Write displayId failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    MessageParcel reply;
+    ErrCode result = SendRequest(OsAccountInterfaceCode::GET_FOREGROUND_OS_ACCOUNT_LOCAL_ID, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest failed, result=%{public}d.", result);
+        return result;
+    }
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("Read result from reply failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("GetForegroundOsAccountLocalId failed, result=%{public}d.", result);
+        return result;
+    }
+    if (!reply.ReadInt32(localId)) {
+        ACCOUNT_LOGE("Read localId failed");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return ERR_OK;
+}
+
+ErrCode OsAccountProxy::GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Write descriptor failed");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    MessageParcel reply;
+    ErrCode result = SendRequest(OsAccountInterfaceCode::GET_FOREGROUND_OS_ACCOUNTS, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest failed, result=%{public}d.", result);
+        return result;
+    }
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("Read result failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("GetForegroundOsAccounts failed, result=%{public}d.", result);
+        return result;
+    }
+    uint32_t size = 0;
+    if (!reply.ReadUint32(size)) {
+        ACCOUNT_LOGE("Read foregroundAccounts size failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (size >= ACCOUNT_MAX_SIZE) {
+        ACCOUNT_LOGE("Account size exceeded.");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    accounts.clear();
+    for (uint32_t i = 0; i < size; ++i) {
+        ForegroundOsAccount foregroundOsAccount;
+        if (!reply.ReadInt32(foregroundOsAccount.localId) || !reply.ReadUint64(foregroundOsAccount.displayId)) {
+            ACCOUNT_LOGE("Read ForegroundOsAccount failed.");
+            return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+        }
+        accounts.emplace_back(foregroundOsAccount);
+    }
+    return ERR_OK;
+}
+
+ErrCode OsAccountProxy::GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Write descriptor failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    MessageParcel reply;
+    ErrCode result = SendRequest(OsAccountInterfaceCode::GET_BACKGROUND_OS_ACCOUNT_LOCAL_IDS, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest failed, result=%{public}d.", result);
+        return result;
+    }
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("Read result failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("GetBackgroundOsAccountLocalIds failed, result=%{public}d.", result);
+        return result;
+    }
+    localIds.clear();
+    if (!reply.ReadInt32Vector(&localIds)) {
+        ACCOUNT_LOGE("Read localIds failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
     return ERR_OK;
 }
 }  // namespace AccountSA
