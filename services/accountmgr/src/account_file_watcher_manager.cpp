@@ -24,12 +24,13 @@
 #include "hks_param.h"
 #include "hks_type.h"
 #include "os_account_constants.h"
+#include "hitrace_adapter.h"
 
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const uint32_t FILE_WATCHER_LIMIT = 1024;
-const uint32_t BUF_COMMON_SIZE = 1024;
+const uint32_t FILE_WATCHER_LIMIT = 1024 * 100;
+const uint32_t BUF_COMMON_SIZE = 1024 * 100;
 const struct HksParam g_genSignVerifyParams[] = {
     {
         .tag = HKS_TAG_ALGORITHM,
@@ -47,7 +48,7 @@ const struct HksParam g_genSignVerifyParams[] = {
 };
 const uint32_t ALG_COMMON_SIZE = 32;
 const int32_t TIMES = 4;
-const int32_t MAX_UPDATE_SIZE = 256;
+const int32_t MAX_UPDATE_SIZE = 256 * 100;
 const int32_t MAX_OUTDATA_SIZE = MAX_UPDATE_SIZE * TIMES;
 const char ACCOUNT_KEY_ALIAS[] = "os_account_info_encryption_key";
 const HksBlob g_keyAlias = { (uint32_t)strlen(ACCOUNT_KEY_ALIAS), (uint8_t *)ACCOUNT_KEY_ALIAS };
@@ -368,7 +369,9 @@ ErrCode AccountFileWatcherMgr::GenerateAccountInfoDigestStr(
     const std::string &userInfoPath, const std::string &accountInfoStr, std::string &digestStr)
 {
     uint8_t digestOutData[ALG_COMMON_SIZE];
+    StartTraceAdapter("GenerateAccountInfoDigest Using Huks");
     GenerateAccountInfoDigest(accountInfoStr, digestOutData, ALG_COMMON_SIZE);
+    FinishTraceAdapter();
 
     std::string accountInfoDigest;
     std::lock_guard<std::mutex> lock(accountInfoDigestFileLock_);
