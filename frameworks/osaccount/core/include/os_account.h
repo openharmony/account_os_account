@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -92,6 +92,14 @@ public:
     ErrCode GetOsAccountShortName(std::string &shortName);
     ErrCode GetOsAccountShortNameById(const int32_t id, std::string &shortName);
 
+    ErrCode IsOsAccountForeground(bool &isForeground);
+    ErrCode IsOsAccountForeground(const int32_t localId, bool &isForeground);
+    ErrCode IsOsAccountForeground(const int32_t localId, const uint64_t displayId, bool &isForeground);
+    ErrCode GetForegroundOsAccountLocalId(int32_t &localId);
+    ErrCode GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId);
+    ErrCode GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts);
+    ErrCode GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds);
+
 private:
     OsAccount() = default;
     ~OsAccount() = default;
@@ -99,6 +107,8 @@ private:
     sptr<IOsAccount> GetOsAccountProxy();
     ErrCode CreateOsAccountEventListener(
         const std::shared_ptr<OsAccountSubscriber> &subscriber, sptr<IRemoteObject> &osAccountEventListener);
+    ErrCode IsOsAccountForegroundCommon(int32_t localId, uint64_t displayId, bool &isForeground);
+    ErrCode GetForegroundLocalIdCommon(uint64_t displayId, int32_t &localId);
 
 private:
     std::mutex mutex_;

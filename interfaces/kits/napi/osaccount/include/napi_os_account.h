@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -38,11 +38,13 @@ public:
     ~SubscriberPtr() override;
 
     void OnAccountsChanged(const int &id) override;
+    void OnAccountsSwitch(const int &newId, const int &oldId) override;
 
     void SetEnv(const napi_env &env);
     void SetCallbackRef(const napi_ref &ref);
 
 private:
+    void OnAccountsSubNotify(const int &newId, const int &oldId);
     napi_env env_ = nullptr;
     napi_ref ref_ = nullptr;
 };
@@ -115,6 +117,10 @@ struct QueryOAConstraintSrcTypeContext : public CommonAsyncContext {
 
 struct QueryActiveIdsAsyncContext : public CommonAsyncContext {
     std::vector<int> osAccountIds;
+};
+
+struct GetForegroundOALocalIdAsyncContext : public CommonAsyncContext {
+    int id = 0;
 };
 
 struct GetOAPhotoAsyncContext : public CommonAsyncContext {
@@ -198,7 +204,8 @@ struct SubscribeCBInfo : public CommonAsyncContext {
 };
 
 struct SubscriberOAWorker : public CommonAsyncContext {
-    int id = 0;
+    int oldId = 0;
+    int newId = 0;
     napi_ref ref = nullptr;
     SubscriberPtr *subscriber = nullptr;
 };
@@ -258,6 +265,8 @@ napi_value GetOsAccountLocalIdFromProcessInner(napi_env env, napi_callback_info 
 napi_value QueryAllCreatedOsAccounts(napi_env env, napi_callback_info cbInfo);
 
 napi_value GetActivatedOsAccountIds(napi_env env, napi_callback_info cbInfo);
+
+napi_value GetForegroundOsAccountLocalId(napi_env env, napi_callback_info cbInfo);
 
 napi_value QueryActivatedOsAccountIds(napi_env env, napi_callback_info cbInfo);
 
@@ -345,7 +354,7 @@ napi_value Subscribe(napi_env env, napi_callback_info cbInfo);
 
 napi_value Unsubscribe(napi_env env, napi_callback_info cbInfo);
 
-void UvQueueWorkOnAccountsChanged(uv_work_t *work, int status);
+void UvQueueWorkOnAccountsSubNotify(uv_work_t *work, int status);
 
 void UnsubscribeSync(napi_env env, UnsubscribeCBInfo *unsubscribeCBInfo);
 

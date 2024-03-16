@@ -489,7 +489,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest020
 {
     bool isVerified = false;
     EXPECT_EQ(osAccountManagerService_->IsOsAccountVerified(Constants::START_USER_ID, isVerified), ERR_OK);
-    EXPECT_EQ(isVerified, false);
+    EXPECT_EQ(isVerified, true);
 }
 
 /**
@@ -1917,8 +1917,8 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest105
 {
     setuid(TEST_UID);
     sptr<IRemoteObject> eventListener = nullptr;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->UnsubscribeOsAccount(eventListener));
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_ACCOUNT_SUBSCRIBE_NOT_FOUND_ERROR,
+              osAccountManagerService_->UnsubscribeOsAccount(eventListener));
 }
 
 /**

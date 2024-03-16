@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -368,6 +368,34 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_SHORT_NAME),
         {
             .messageProcFunction = &OsAccountStub::ProcGetOsAccountShortName,
+            .isSyetemApi = true,
+        }
+    },
+    {
+        static_cast<uint32_t>(OsAccountInterfaceCode::IS_OS_ACCOUNT_FOREGROUND),
+        {
+            .messageProcFunction = &OsAccountStub::ProcIsOsAccountForeground,
+            .isSyetemApi = true,
+        }
+    },
+    {
+        static_cast<uint32_t>(OsAccountInterfaceCode::GET_FOREGROUND_OS_ACCOUNT_LOCAL_ID),
+        {
+            .messageProcFunction = &OsAccountStub::ProcGetForegroundOsAccountLocalId,
+            .isSyetemApi = true,
+        }
+    },
+    {
+        static_cast<uint32_t>(OsAccountInterfaceCode::GET_FOREGROUND_OS_ACCOUNTS),
+        {
+            .messageProcFunction = &OsAccountStub::ProcGetForegroundOsAccounts,
+            .isSyetemApi = true,
+        }
+    },
+    {
+        static_cast<uint32_t>(OsAccountInterfaceCode::GET_BACKGROUND_OS_ACCOUNT_LOCAL_IDS),
+        {
+            .messageProcFunction = &OsAccountStub::ProcGetBackgroundOsAccountLocalIds,
         }
     },
     {
@@ -1451,6 +1479,99 @@ ErrCode OsAccountStub::ProcSetSpecificOsAccountConstraints(MessageParcel &data, 
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcIsOsAccountForeground(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("Read localId failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    uint64_t displayId;
+    if (!data.ReadUint64(displayId)) {
+        ACCOUNT_LOGE("Read displayId failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    bool isForeground = false;
+    ErrCode result = IsOsAccountForeground(localId, displayId, isForeground);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Write result failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        return result;
+    }
+    if (!reply.WriteBool(isForeground)) {
+        ACCOUNT_LOGE("Write isForeground failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcGetForegroundOsAccountLocalId(MessageParcel &data, MessageParcel &reply)
+{
+    uint64_t displayId;
+    if (!data.ReadUint64(displayId)) {
+        ACCOUNT_LOGE("Read displayId failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    int32_t localId;
+    ErrCode result = GetForegroundOsAccountLocalId(displayId, localId);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Write result failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        return result;
+    }
+    if (!reply.WriteInt32(localId)) {
+        ACCOUNT_LOGE("Write localId failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcGetForegroundOsAccounts(MessageParcel &data, MessageParcel &reply)
+{
+    std::vector<ForegroundOsAccount> foregroundAccounts;
+    ErrCode result = GetForegroundOsAccounts(foregroundAccounts);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Write result failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        return result;
+    }
+    if (!reply.WriteUint32(foregroundAccounts.size())) {
+        ACCOUNT_LOGE("Write foregroundAccounts size failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    for (const auto &iter : foregroundAccounts) {
+        if ((!reply.WriteInt32(iter.localId)) || (!reply.WriteUint64(iter.displayId))) {
+            ACCOUNT_LOGE("Write ForegroundOsAccount failed.");
+            return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+        }
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcGetBackgroundOsAccountLocalIds(MessageParcel &data, MessageParcel &reply)
+{
+    std::vector<int32_t> localIds;
+    ErrCode result = GetBackgroundOsAccountLocalIds(localIds);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Write result failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        return result;
+    }
+    if (!reply.WriteInt32Vector(localIds)) {
+        ACCOUNT_LOGE("Write localIds failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_NONE;
 }
