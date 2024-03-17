@@ -818,13 +818,14 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest026, TestSize
 
     innerMgrService_->PushIdIntoActiveList(id);
     ret = innerMgrService_->ActivateOsAccount(id);
-    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREADY_ACTIVE_ERROR);
+
     innerMgrService_->EraseIdFromActiveList(id);
 
     EXPECT_CALL(*ptr, GetOsAccountInfoById(_, _))
         .WillRepeatedly(testing::Return(-1));
     ret = innerMgrService_->ActivateOsAccount(id);
-    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREADY_ACTIVE_ERROR);
 
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetIsCreateCompleted(0);
