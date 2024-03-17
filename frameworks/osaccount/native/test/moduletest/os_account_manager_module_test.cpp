@@ -2542,7 +2542,8 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest115, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest116, TestSize.Level1)
 {
-    EXPECT_EQ(OsAccountManager::ActivateOsAccount(MAIN_ACCOUNT_ID), ERR_OK);
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(MAIN_ACCOUNT_ID),
+        ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREADY_ACTIVE_ERROR);
     OsAccountInfo account;
     EXPECT_EQ(OsAccountManager::CreateOsAccount("AccountForegroundTest001", OsAccountType::NORMAL, account), ERR_OK);
 
@@ -2959,7 +2960,7 @@ HWTEST_F(OsAccountManagerModuleTest, GetForegroundOsAccountLocalId001, TestSize.
     int32_t localId = 0;
 
     // test in main account
-    EXPECT_EQ(OsAccountManager::ActivateOsAccount(MAIN_ACCOUNT_ID), ERR_OK);
+    OsAccountManager::ActivateOsAccount(MAIN_ACCOUNT_ID);
     EXPECT_EQ(OsAccountManager::GetForegroundOsAccountLocalId(localId), ERR_OK);
     EXPECT_EQ(localId, MAIN_ACCOUNT_ID);
 
@@ -2992,7 +2993,7 @@ HWTEST_F(OsAccountManagerModuleTest, GetForegroundOsAccountLocalId002, TestSize.
     int32_t localId = 0;
 
     // test in main account
-    EXPECT_EQ(OsAccountManager::ActivateOsAccount(MAIN_ACCOUNT_ID), ERR_OK);
+    OsAccountManager::ActivateOsAccount(MAIN_ACCOUNT_ID);
     EXPECT_EQ(OsAccountManager::GetForegroundOsAccountLocalId(Constants::DEFAULT_DISPALY_ID, localId), ERR_OK);
     EXPECT_EQ(localId, MAIN_ACCOUNT_ID);
 
@@ -3093,7 +3094,8 @@ HWTEST_F(OsAccountManagerModuleTest, GetBackgroundOsAccountLocalIds001, TestSize
     EXPECT_TRUE(it == localIds.end());
 
     // test account in backgroud list after switch
-    EXPECT_EQ(OsAccountManager::ActivateOsAccount(MAIN_ACCOUNT_ID), ERR_OK);
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(MAIN_ACCOUNT_ID),
+        ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREADY_ACTIVE_ERROR);
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(account.GetLocalId()), ERR_OK);
     EXPECT_EQ(OsAccountManager::GetBackgroundOsAccountLocalIds(localIds), ERR_OK);
     it = std::find_if(localIds.begin(), localIds.end(), [&](int32_t localId) { return localId == MAIN_ACCOUNT_ID; });
