@@ -1458,7 +1458,7 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id, const uint64_t d
     if (foregroundAccountMap_.Find(displayId, foregroundId) && foregroundId == id) {
         ACCOUNT_LOGI("Account id=%{public}d already is foreground", id);
         RemoveLocalIdToOperating(id);
-        return ERR_OK;
+        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREADY_ACTIVE_ERROR;
     }
 
     // get information
