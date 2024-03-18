@@ -799,6 +799,10 @@ ErrCode OsAccountControlFileManager::UpdateAccountList(const std::string& idStr,
 
 ErrCode OsAccountControlFileManager::UpdateAccountIndex(const OsAccountInfo &osAccountInfo, const bool isDelete)
 {
+    // private type account not write index to index file, don't check name in ValidateOsAccount
+    if (osAccountInfo.GetType() == OsAccountType::PRIVATE) {
+        return ERR_OK;
+    }
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
     Json accountIndexJson;
     ErrCode result = GetAccountIndexFromFile(accountIndexJson);
@@ -1107,6 +1111,10 @@ ErrCode OsAccountControlFileManager::GetAccountIndexInfo(std::string &accountInd
     }
     Json accountIndexJson;
     for (auto account = osAccountInfos.begin(); account != osAccountInfos.end(); account++) {
+        // private account don't check name
+        if (account->GetType() == OsAccountType::PRIVATE) {
+            continue;
+        }
         std::string localIdStr = std::to_string(account->GetLocalId());
         Json accountIndexElement;
         accountIndexElement[Constants::LOCAL_NAME] = account->GetLocalName();

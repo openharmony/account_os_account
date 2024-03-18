@@ -2738,6 +2738,7 @@ HWTEST_F(OsAccountManagerModuleTest, PrivateTypeTest003, TestSize.Level1)
 {
     std::string privateTestName = "PrivateTestName001";
     std::string privateTestNameTwo = "PrivateTestName002";
+    std::string privateTestNameThree = "PrivateTestName003";
     // test set name with private account duplicate name
     OsAccountInfo osAccountInfoA;
     ASSERT_EQ(OsAccountManager::CreateOsAccount(privateTestName, OsAccountType::PRIVATE, osAccountInfoA), ERR_OK);
@@ -2747,6 +2748,9 @@ HWTEST_F(OsAccountManagerModuleTest, PrivateTypeTest003, TestSize.Level1)
     OsAccountInfo osAccountInfoC;
     ASSERT_EQ(OsAccountManager::CreateOsAccount(privateTestNameTwo, OsAccountType::NORMAL, osAccountInfoC), ERR_OK);
     EXPECT_EQ(OsAccountManager::SetOsAccountName(osAccountInfoA.GetLocalId(), privateTestNameTwo), ERR_OK);
+
+    EXPECT_EQ(OsAccountManager::SetOsAccountName(osAccountInfoA.GetLocalId(), privateTestNameThree), ERR_OK);
+    EXPECT_EQ(OsAccountManager::SetOsAccountName(osAccountInfoC.GetLocalId(), privateTestNameThree), ERR_OK);
 
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoA.GetLocalId()), ERR_OK);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoB.GetLocalId()), ERR_OK);
