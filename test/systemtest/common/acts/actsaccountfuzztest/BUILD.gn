@@ -36,7 +36,6 @@ ohos_systemtest("ActsAccountFuzzTest") {
     "${innerkits_common}/include",
     "${os_account_path}/test/systemtest/common/resource/fuzzTest/include",
     "${services_path}/accountmgr/include/appaccount",
-    "//third_party/json/include",
   ]
 
   cflags = []
@@ -63,6 +62,7 @@ ohos_systemtest("ActsAccountFuzzTest") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "json:nlohmann_json_static",
   ]
 }
 

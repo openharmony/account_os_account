@@ -26,7 +26,6 @@ config("accountmgr_data_deal_test_config") {
     "${innerkits_common}/include",
     "${os_account_dfx_path}/hisysevent_adapter",
     "${services_path}/accountmgr/include",
-    "//third_party/json/include",
     "${innerkits_path}/include",
   ]
 }
@@ -72,7 +71,6 @@ ohos_unittest("OhosServiceTest") {
     "${services_path}/accountmgr:accountmgr",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
-    "//third_party/mbedtls:mbedtls",
   ]
 
   external_deps = [
@@ -84,7 +82,9 @@ ohos_unittest("OhosServiceTest") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "json:nlohmann_json_static",
     "kv_store:distributeddata_inner",
+    "mbedtls:mbedtls_shared",
     "safwk:system_ability_fwk",
   ]
   if (has_hiviewdfx_hisysevent_part) {
@@ -145,6 +145,7 @@ ohos_unittest("OhosDataDealTest") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "json:nlohmann_json_static",
   ]
   if (has_hiviewdfx_hisysevent_part) {
     cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]

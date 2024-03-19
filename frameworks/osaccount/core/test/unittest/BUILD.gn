@@ -18,8 +18,6 @@ module_output_path = "os_account/frameworks/os_account"
 config("os_account_core_config_unittest") {
   visibility = [ ":*" ]
 
-  include_dirs = [ "//third_party/googletest/googlemock/include" ]
-
   cflags = []
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]

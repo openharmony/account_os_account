@@ -48,6 +48,8 @@ config("app_account_innerkits_public_config") {
     "${app_account_kits_path}/include",
     "${os_account_path}/frameworks/common/include",
     "include",
+    "${common_path}/utils/include",
+    "${innerkits_common}/include",
   ]
 }
 

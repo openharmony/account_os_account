@@ -39,7 +39,11 @@ config("account_iam_innnerkits_config") {
 config("account_iam_innerkits_public_config") {
   visibility = [ ":*" ]
 
-  include_dirs = [ "${account_iam_interfaces_native_path}/include" ]
+  include_dirs = [
+    "${account_iam_interfaces_native_path}/include",
+    "${common_path}/utils/include",
+    "${innerkits_common}/include",
+  ]
 }
 
 ohos_shared_library("account_iam_innerkits") {

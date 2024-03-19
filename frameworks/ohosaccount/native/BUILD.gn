@@ -18,6 +18,7 @@ config("public_account_config") {
   include_dirs = [
     "include",
     "${common_path}/include",
+    "${common_path}/utils/include",
     "${innerkits_common}/include",
     "${innerkits_path}/include",
   ]
