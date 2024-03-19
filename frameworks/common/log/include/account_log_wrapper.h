@@ -51,18 +51,21 @@ private:
 };
 
 #define ARGS(fmt, ...) "[%{public}s@%{public}s:%{public}d] " fmt, __FUNCTION__, LOG_FILE_NAME, __LINE__, ##__VA_ARGS__
-#undef LOG_TAG
-#define LOG_TAG ACCOUNT_LOG_TAG
-#define ACCOUNT_LOGD(fmt, ...) HILOG_DEBUG(LOG_CORE, \
-    "[%{public}s@%{public}s:%{public}d] " fmt, __FUNCTION__, LOG_FILE_NAME, __LINE__, ##__VA_ARGS__)
-#define ACCOUNT_LOGI(fmt, ...) HILOG_INFO(LOG_CORE, \
-    "[%{public}s@%{public}s:%{public}d] " fmt, __FUNCTION__, LOG_FILE_NAME, __LINE__, ##__VA_ARGS__)
-#define ACCOUNT_LOGW(fmt, ...) HILOG_WARN(LOG_CORE, \
-    "[%{public}s@%{public}s:%{public}d] " fmt, __FUNCTION__, LOG_FILE_NAME, __LINE__, ##__VA_ARGS__)
-#define ACCOUNT_LOGE(fmt, ...) HILOG_ERROR(LOG_CORE, \
-    "[%{public}s@%{public}s:%{public}d] " fmt, __FUNCTION__, LOG_FILE_NAME, __LINE__, ##__VA_ARGS__)
-#define ACCOUNT_LOGF(fmt, ...) HILOG_FATAL(LOG_CORE, \
-    "[%{public}s@%{public}s:%{public}d] " fmt, __FUNCTION__, LOG_FILE_NAME, __LINE__, ##__VA_ARGS__)
+#define ACCOUNT_LOGD(fmt, ...) \
+    ((void)HILOG_IMPL(ACCOUNT_LABEL.type, LOG_DEBUG, ACCOUNT_LABEL.domain, ACCOUNT_LABEL.tag, \
+    "[%{public}s@%{public}s:%{public}d] " fmt, __FUNCTION__, LOG_FILE_NAME, __LINE__, ##__VA_ARGS__))
+#define ACCOUNT_LOGI(fmt, ...) \
+    ((void)HILOG_IMPL(ACCOUNT_LABEL.type, LOG_INFO, ACCOUNT_LABEL.domain, ACCOUNT_LABEL.tag, \
+    "[%{public}s@%{public}s:%{public}d] " fmt, __FUNCTION__, LOG_FILE_NAME, __LINE__, ##__VA_ARGS__))
+#define ACCOUNT_LOGW(fmt, ...) \
+    ((void)HILOG_IMPL(ACCOUNT_LABEL.type, LOG_WARN, ACCOUNT_LABEL.domain, ACCOUNT_LABEL.tag, \
+    "[%{public}s@%{public}s:%{public}d] " fmt, __FUNCTION__, LOG_FILE_NAME, __LINE__, ##__VA_ARGS__))
+#define ACCOUNT_LOGE(fmt, ...) \
+    ((void)HILOG_IMPL(ACCOUNT_LABEL.type, LOG_ERROR, ACCOUNT_LABEL.domain, ACCOUNT_LABEL.tag, \
+    "[%{public}s@%{public}s:%{public}d] " fmt, __FUNCTION__, LOG_FILE_NAME, __LINE__, ##__VA_ARGS__))
+#define ACCOUNT_LOGF(fmt, ...) \
+    ((void)HILOG_IMPL(ACCOUNT_LABEL.type, LOG_FATAL, ACCOUNT_LABEL.domain, ACCOUNT_LABEL.tag, \
+    "[%{public}s@%{public}s:%{public}d] " fmt, __FUNCTION__, LOG_FILE_NAME, __LINE__, ##__VA_ARGS__))
 }  // namespace AccountSA
 }  // namespace OHOS
 
