@@ -19,7 +19,6 @@ module_output_path = "os_account/services/app_account"
 
 config("app_account_service_config_mock") {
   include_dirs = [
-    "//third_party/googletest/googlemock/include",
     "${app_account_services_path}/test/mock/app_account",
     "${app_account_services_path}/test/mock/common",
     "${app_account_innerkits_native_path}/include",
@@ -167,7 +166,6 @@ ohos_moduletest("app_account_manager_service_associated_data_test") {
     "${app_account_services_path}/test/mock:ability_manager_config",
   ]
   include_dirs = [
-    "//third_party/googletest/googlemock/include",
     "${app_account_services_path}/test/mock/common",
     "${app_account_innerkits_native_path}/include",
   ]
@@ -178,7 +176,6 @@ ohos_moduletest("app_account_manager_service_associated_data_test") {
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
-    "//third_party/mbedtls:mbedtls",
   ]
 
   external_deps = [
@@ -194,6 +191,7 @@ ohos_moduletest("app_account_manager_service_associated_data_test") {
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
+    "mbedtls:mbedtls_shared",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
@@ -646,7 +644,6 @@ ohos_moduletest("at_not_mock_app_account_manager_service_module_test") {
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
-    "//third_party/mbedtls:mbedtls",
   ]
 
   external_deps = [
@@ -665,6 +662,7 @@ ohos_moduletest("at_not_mock_app_account_manager_service_module_test") {
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
+    "mbedtls:mbedtls_shared",
     "napi:ace_napi",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
