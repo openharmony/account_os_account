@@ -32,6 +32,14 @@ config("os_account_manager_service_test_config") {
 }
 
 ohos_moduletest("inner_os_account_manager_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   sources = [ "inner_os_account_manager_test.cpp" ]
@@ -64,6 +72,14 @@ ohos_moduletest("inner_os_account_manager_test") {
 }
 
 ohos_moduletest("os_account_manager_service_module_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
   include_dirs = [
     "${app_account_services_path}/test/mock/common",
@@ -175,6 +191,14 @@ config("os_account_manager_service_create_os_account_test_config") {
 }
 
 ohos_moduletest("os_account_manager_service_create_os_account_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   sources = [ "os_account_manager_service_create_os_account_test.cpp" ]
@@ -221,6 +245,15 @@ config("os_account_manager_service_subscribe_test_config") {
 }
 
 ohos_moduletest("os_account_manager_service_subscribe_module_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "${os_account_path}/cfi_blocklist.txt"
+  }
+
   module_out_path = module_output_path
 
   include_dirs = [
@@ -337,6 +370,14 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
 }
 
 ohos_moduletest("os_account_control_file_manager_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   sources = [ "os_account_control_file_manager_test.cpp" ]
@@ -368,6 +409,14 @@ ohos_moduletest("os_account_control_file_manager_test") {
 }
 
 ohos_moduletest("os_account_database_operator_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   sources = [ "os_account_database_operator_test.cpp" ]
@@ -399,6 +448,14 @@ ohos_moduletest("os_account_database_operator_test") {
 }
 
 ohos_moduletest("os_account_file_operator_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   sources = [ "os_account_file_operator_test.cpp" ]
@@ -443,6 +500,14 @@ config("os_account_photo_operator_test_config") {
 }
 
 ohos_moduletest("os_account_photo_operator_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   sources = [ "os_account_photo_operator_test.cpp" ]

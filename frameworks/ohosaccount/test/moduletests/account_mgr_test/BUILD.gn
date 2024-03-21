@@ -25,6 +25,14 @@ config("accountmgr_mst_test_config") {
 }
 
 ohos_moduletest("AccountInnerSdkModuleTest") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   sources = [
@@ -67,6 +75,14 @@ ohos_moduletest("AccountInnerSdkModuleTest") {
 }
 
 ohos_moduletest("AccountInnerSdkModuleMockTest") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   include_dirs = [
@@ -153,6 +169,14 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
 }
 
 ohos_moduletest("DeviceAccountInfoModuleTest") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   sources = [ "device_account_info_test.cpp" ]

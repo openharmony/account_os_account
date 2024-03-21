@@ -33,6 +33,14 @@ config("domain_account_frameworks_config_moduletest") {
 }
 
 ohos_moduletest("domain_account_frameworks_module_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   include_dirs = [
@@ -82,6 +90,15 @@ ohos_moduletest("domain_account_frameworks_module_test") {
 }
 
 ohos_moduletest("domain_account_frameworks_module_mock_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "${os_account_path}/cfi_blocklist.txt"
+  }
+
   module_out_path = module_output_path
   cflags = [ "-pipe" ]
 
@@ -166,6 +183,14 @@ ohos_moduletest("domain_account_frameworks_module_mock_test") {
 }
 
 ohos_moduletest("domain_account_common_module_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   include_dirs = [ "${domain_account_interfaces_native_path}/include" ]
@@ -189,6 +214,14 @@ ohos_moduletest("domain_account_common_module_test") {
 }
 
 ohos_moduletest("domain_account_plugin_service_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   include_dirs = [ "${domain_account_interfaces_native_path}/include" ]
@@ -216,6 +249,14 @@ ohos_moduletest("domain_account_plugin_service_test") {
 }
 
 ohos_moduletest("domain_account_plugin_stub_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   include_dirs = [ "${domain_account_interfaces_native_path}/include" ]
