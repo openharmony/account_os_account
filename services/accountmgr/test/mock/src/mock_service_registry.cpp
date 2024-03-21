@@ -120,6 +120,17 @@ int32_t SystemAbilityManagerProxy::UnloadAllIdleSystemAbility()
     return ERR_INVALID_VALUE;
 }
 
+int32_t SystemAbilityManagerProxy::GetExtensionSaIds(const std::string& extension, std::vector<int32_t> &saIds)
+{
+    return ERR_INVALID_VALUE;
+}
+
+int32_t SystemAbilityManagerProxy::GetExtensionRunningSaList(const std::string& extension,
+    std::vector<sptr<IRemoteObject>>& saList)
+{
+    return ERR_INVALID_VALUE;
+}
+
 int32_t SystemAbilityManagerProxy::CancelUnloadSystemAbility(int32_t systemAbilityId)
 {
     return ERR_INVALID_VALUE;
