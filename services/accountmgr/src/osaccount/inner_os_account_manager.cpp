@@ -241,10 +241,7 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &localNam
         ACCOUNT_LOGE("insert os account info err, errCode %{public}d.", errCode);
         return errCode;
     }
-    // private type account not write index to index file, don't check name in ValidateOsAccount
-    if (type != OsAccountType::PRIVATE) {
-        osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
-    }
+    osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
 
     errCode = osAccountControl_->UpdateBaseOAConstraints(std::to_string(osAccountInfo.GetLocalId()),
         osAccountInfo.GetConstraints(), true);
