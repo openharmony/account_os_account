@@ -17,6 +17,14 @@ import("../../../../services/accountmgr/os_account_service.gni")
 module_output_path = "os_account/tools"
 
 ohos_moduletest("account_command_create_module_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   include_dirs = [ "${ability_runtime_path}/tools/test/systemtest/aa" ]
@@ -56,6 +64,14 @@ ohos_moduletest("account_command_create_module_test") {
 }
 
 ohos_moduletest("account_command_create_module_mock_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   include_dirs = [
@@ -148,6 +164,14 @@ ohos_moduletest("account_command_create_module_mock_test") {
 }
 
 ohos_moduletest("account_command_delete_module_mock_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   include_dirs = [
@@ -240,6 +264,14 @@ ohos_moduletest("account_command_delete_module_mock_test") {
 }
 
 ohos_moduletest("account_command_delete_module_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   include_dirs = [ "${ability_runtime_path}/tools/test/systemtest/aa" ]
@@ -279,6 +311,14 @@ ohos_moduletest("account_command_delete_module_test") {
 }
 
 ohos_moduletest("account_command_dump_module_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   include_dirs = [ "${ability_runtime_path}/tools/test/systemtest/aa" ]
@@ -318,6 +358,14 @@ ohos_moduletest("account_command_dump_module_test") {
 }
 
 ohos_moduletest("account_command_set_module_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   include_dirs = [ "${ability_runtime_path}/tools/test/systemtest/aa" ]
@@ -357,6 +405,14 @@ ohos_moduletest("account_command_set_module_test") {
 }
 
 ohos_moduletest("account_command_switch_module_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   include_dirs = [ "${ability_runtime_path}/tools/test/systemtest/aa" ]
