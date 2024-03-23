@@ -36,6 +36,15 @@ config("os_account_frameworks_config_unittest") {
 }
 
 ohos_moduletest("os_account_frameworks_module_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "${os_account_path}/cfi_blocklist.txt"
+  }
+
   module_out_path = module_output_path
 
   sources = [
@@ -82,6 +91,15 @@ ohos_moduletest("os_account_frameworks_module_test") {
 }
 
 ohos_moduletest("os_account_frameworks_module_mock_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "${os_account_path}/cfi_blocklist.txt"
+  }
+
   module_out_path = module_output_path
   include_dirs = [
     "${os_account_dfx_path}/hidumper_adapter",
@@ -167,6 +185,14 @@ ohos_moduletest("os_account_frameworks_module_mock_test") {
 }
 
 ohos_moduletest("os_account_manager_no_bms_mock_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
   include_dirs = [
     "${os_account_dfx_path}/hidumper_adapter",

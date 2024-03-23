@@ -41,6 +41,14 @@ config("app_account_service_config_unittest") {
 }
 
 ohos_moduletest("account_permission_manager_module_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   sources = [ "account_permission_manager_module_test.cpp" ]
@@ -66,6 +74,14 @@ ohos_moduletest("account_permission_manager_module_test") {
 }
 
 ohos_moduletest("bundle_manager_adapter_module_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
   include_dirs =
       [ "${services_path}/accountmgr/include/bundle_manager_adapter" ]
