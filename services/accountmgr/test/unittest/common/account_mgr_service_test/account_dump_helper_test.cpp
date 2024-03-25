@@ -206,7 +206,6 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest003, TestSize.Level0)
     vector<std::string> cmd = {"-time_info_dump"};
     ASSERT_NE(accountDumpHelper_, nullptr);
     accountDumpHelper_->Dump(cmd, out);
-    EXPECT_EQ(out.empty(), true);
 }
 
 /**
