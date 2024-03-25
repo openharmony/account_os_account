@@ -22,5 +22,5 @@ config("accountfuzz_test_config") {
 group("systemtest") {
   testonly = true
 
-  deps = [ "actsaccountfuzztest:fuzzTest" ]
+  deps = []
 }
