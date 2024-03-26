@@ -114,6 +114,10 @@ ohos_unittest("account_mgr_test") {
     cflags_cc += [ "-DHAS_KV_STORE_PART" ]
   }
 
+  if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
+    cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
+  }
+
   part_name = "os_account"
 }
 

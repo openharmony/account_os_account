@@ -76,7 +76,9 @@ ohos_moduletest("os_account_frameworks_module_test") {
   if (os_account_multiple_active_accounts) {
     cflags_cc += [ "-DENABLE_MULTIPLE_ACTIVE_ACCOUNTS" ]
   }
-  cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
+  if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
+    cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
+  }
   if (os_account_support_deactivate_main_os_account) {
     cflags_cc += [ "-DSUPPROT_STOP_MAIN_OS_ACCOUNT" ]
   }

@@ -66,6 +66,10 @@ ohos_unittest("os_account_info_test") {
     "c_utils:utils",
     "hilog:libhilog",
   ]
+  cflags_cc = []
+  if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
+    cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
+  }
 }
 
 ohos_unittest("os_account_subscribe_info_test") {

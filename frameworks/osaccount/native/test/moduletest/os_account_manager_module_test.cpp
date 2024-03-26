@@ -81,8 +81,8 @@ const std::int32_t DEFAULT_API_VERSION = 8;
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 const uid_t ACCOUNT_UID = 3058;
 const gid_t ACCOUNT_GID = 3058;
-#endif
 const uid_t ROOT_UID = 0;
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 const std::vector<std::string> CONSTANTS_VECTOR {
     "constraint.print",
@@ -192,6 +192,7 @@ HapInfoParams infoManagerTestSystemInfoParms = {
 };
 }  // namespace
 
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 static bool AllocPermission(std::vector<std::string> permissions, AccessTokenID &tokenID, bool isSystemApp = true)
 {
     std::vector<PermissionStateFull> permissionStates;
@@ -226,6 +227,7 @@ static bool AllocPermission(std::vector<std::string> permissions, AccessTokenID 
     tokenID = tokenIdEx.tokenIdExStruct.tokenID;
     return (INVALID_TOKENID != tokenIdEx.tokenIDEx) && (0 == SetSelfTokenID(tokenIdEx.tokenIDEx));
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 bool RecoveryPermission(AccessTokenID tokenID)
 {
@@ -644,7 +646,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest017, TestSize.Lev
     EXPECT_EQ(isEnable, false);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
-#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
  * @tc.name: OsAccountManagerModuleTest018
@@ -658,6 +659,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest018, TestSize.Lev
     EXPECT_EQ(OsAccountManager::IsMultiOsAccountEnable(isMultiOsAccountEnable), ERR_OK);
     EXPECT_EQ(isMultiOsAccountEnable, true);
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
  * @tc.name: OsAccountManagerModuleTest019
@@ -1871,6 +1873,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest083, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: issueI4JBFI
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest084, TestSize.Level1)
 {
     int maxAllowCreateId = -1;
@@ -1893,6 +1896,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest085, TestSize.Lev
     int maxAllowCreateId = -1;
     EXPECT_NE(OsAccountManager::GetMaxAllowCreateIdFromDatabase("ERROR_STORE_ID", maxAllowCreateId), ERR_OK);
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
  * @tc.name: OsAccountManagerModuleTest086
@@ -2455,7 +2459,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest113, TestSize.Lev
     EXPECT_EQ(OsAccountManager::GetDefaultActivatedOsAccount(id), ERR_OK);
     EXPECT_EQ(id, MAIN_ACCOUNT_ID);
 }
-#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
  * @tc.name: OsAccountManagerModuleTest114
@@ -3121,3 +3124,4 @@ HWTEST_F(OsAccountManagerModuleTest, GetBackgroundOsAccountLocalIds001, TestSize
     EXPECT_TRUE(it == localIds.end());
 }
 #endif
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS

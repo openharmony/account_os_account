@@ -77,7 +77,9 @@ const std::vector<uint8_t> DEFAULT_TOKEN = {49, 50, 51, 52, 53};
 const std::vector<uint8_t> TOKEN = {1, 2, 3, 4, 5};
 const int32_t DEFAULT_USER_ID = 100;
 const int32_t NON_EXISTENT_USER_ID = 1000;
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 const int32_t WAIT_TIME = 2;
+#endif
 const int32_t INVALID_CODE = -1;
 const uid_t TEST_UID = 100;
 const uid_t ROOT_UID = 0;
