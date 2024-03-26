@@ -156,7 +156,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest001, TestSize.Level0)
      */
     std::string out;
     vector<std::string> cmd = {"-ohos_account_infos"};
-    ASSERT_EQ(accountDumpHelper_, nullptr);
+    ASSERT_NE(accountDumpHelper_, nullptr);
 
     accountDumpHelper_->Dump(cmd, out);
     auto pos = out.find("OhosAccount name", 0);
@@ -197,6 +197,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest002, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest003, TestSize.Level0)
 {
     /**
@@ -207,6 +208,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest003, TestSize.Level0)
     ASSERT_NE(accountDumpHelper_, nullptr);
     accountDumpHelper_->Dump(cmd, out);
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
  * @tc.name: AccountDumpParameterTest004

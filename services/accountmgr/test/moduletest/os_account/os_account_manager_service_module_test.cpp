@@ -2234,7 +2234,6 @@ HWTEST_F(OsAccountManagerServiceModuleTest, DeactivateAllOsAccountsModuleTest001
     EXPECT_EQ(osAccountManagerService_->ActivateOsAccount(MAIN_ACCOUNT_ID), ERR_OK);
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
 }
-#endif //ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
  * @tc.name: GetOsAccountType001
@@ -2344,5 +2343,6 @@ HWTEST_F(OsAccountManagerServiceModuleTest, PrivateTypeTest003, TestSize.Level1)
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoB.GetLocalId()), ERR_OK);
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoC.GetLocalId()), ERR_OK);
 }
+#endif //ENABLE_MULTIPLE_OS_ACCOUNTS
 }  // namespace AccountSA
 }  // namespace OHOS

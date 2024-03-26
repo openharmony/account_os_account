@@ -248,7 +248,7 @@ public:
 
     int32_t UpdateKeyContext(uint32_t userId)
     {
-        return ERROR_STORAGE_KEY_NOT_EXIST;
+        return g_fscryptEnable ? ERROR_STORAGE_KEY_NOT_EXIST : 0;
     }
 
     std::vector<int32_t> CreateShareFile(const std::vector<std::string> &uriList, uint32_t tokenId, uint32_t flag)
@@ -294,7 +294,7 @@ int32_t MockStorageMgrProxy::UpdateUserAuth(uint32_t userId, uint64_t secureUid,
         return 0;
     }
     if (newSecret.size() == dataSize || userId == TEST_OTHER_ID) {
-        return ERROR_STORAGE_KEY_NOT_EXIST;
+        return g_fscryptEnable ? ERROR_STORAGE_KEY_NOT_EXIST : 0;
     }
     if (userId == TEST_ID) {
         if (token.size() != dataSize) {

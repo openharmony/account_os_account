@@ -34,7 +34,9 @@ const std::vector<std::string> VECTOR_CONSTRAINTS {"one", "two", "three", "four"
 const bool BOOL_IS_OS_ACCOUNT_VERIFIED = true;
 const bool BOOL_IS_OS_ACCOUNT_COMPLETED = true;
 const bool BOOL_IS_ACTIVED = true;
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 const int32_t CREATE_LOCAL_ID = 121;
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 const std::string OVER_LENGTH_NAME =
     "EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYX**E||TIj::KBCB??BAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQyerewewgZG"
     "RCk11aGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSfggdfghBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQ1ygZG"
@@ -474,6 +476,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_Marshalling_0100, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0100, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
@@ -693,6 +696,7 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount01, TestSize.Level1)
     osAccountInfoOne.SetCredentialId(123);
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
  * @tc.name: SetCredentialId01
@@ -713,6 +717,7 @@ HWTEST_F(OsAccountInfoTest, SetCredentialId01, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: I8F2PI
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(OsAccountInfoTest, CreateOsAccount02, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
@@ -844,3 +849,4 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount09, TestSize.Level1)
             ERR_OK);
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS

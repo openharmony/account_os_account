@@ -179,7 +179,9 @@ ohos_moduletest("domain_account_frameworks_module_mock_test") {
   }
   cflags_cc += [ "-DACCOUNT_TEST" ]
   cflags_cc += [ "-DBUNDLE_ADAPTER_MOCK" ]
-  cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
+  if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
+    cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
+  }
 }
 
 ohos_moduletest("domain_account_common_module_test") {
