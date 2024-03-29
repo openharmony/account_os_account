@@ -16,7 +16,7 @@
 #include <memory>
 #include <unistd.h>
 #include "account_log_wrapper.h"
-#include "hisysevent_adapter.h"
+#include "account_hisysevent_adapter.h"
 
 namespace OHOS {
 namespace AccountSA {

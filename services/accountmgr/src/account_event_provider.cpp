@@ -24,7 +24,7 @@
 #include "common_event_manager.h"
 #include "want.h"
 #endif // HAS_CES_PART
-#include "hisysevent_adapter.h"
+#include "account_hisysevent_adapter.h"
 #include "hitrace_adapter.h"
 
 #ifdef HAS_CES_PART

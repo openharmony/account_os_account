@@ -23,7 +23,7 @@
 #include <unistd.h>
 
 #include "account_log_wrapper.h"
-#include "hisysevent_adapter.h"
+#include "account_hisysevent_adapter.h"
 #include "os_account_constants.h"
 #include "os_account_interface.h"
 
