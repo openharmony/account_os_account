@@ -15,7 +15,7 @@
 #include "bundle_manager_adapter.h"
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
-#include "hisysevent_adapter.h"
+#include "account_hisysevent_adapter.h"
 #include "hitrace_adapter.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "hisysevent_adapter.h"
+#include "account_hisysevent_adapter.h"
 #include "account_log_wrapper.h"
 #ifdef HAS_HISYSEVENT_PART
 #include "hisysevent.h"

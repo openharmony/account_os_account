@@ -49,7 +49,7 @@ ohos_unittest("OhosServiceTest") {
 
   sources = [
     "${common_path}/log/src/account_log_wrapper.cpp",
-    "${os_account_dfx_path}/hisysevent_adapter/hisysevent_adapter.cpp",
+    "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
     "${services_path}/accountmgr/src/account_event_provider.cpp",
     "${services_path}/accountmgr/src/account_mgr_service.cpp",
     "${services_path}/accountmgr/src/ohos_account_data_deal.cpp",
@@ -119,7 +119,7 @@ ohos_unittest("OhosDataDealTest") {
 
   sources = [
     "${common_path}/log/src/account_log_wrapper.cpp",
-    "${os_account_dfx_path}/hisysevent_adapter/hisysevent_adapter.cpp",
+    "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
     "${services_path}/accountmgr/src/ohos_account_data_deal.cpp",
   ]
 
