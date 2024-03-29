@@ -25,7 +25,7 @@
 #include "account_log_wrapper.h"
 #include "account_mgr_service.h"
 #include "bundle_manager_adapter.h"
-#include "hisysevent_adapter.h"
+#include "account_hisysevent_adapter.h"
 #include "if_system_ability_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"

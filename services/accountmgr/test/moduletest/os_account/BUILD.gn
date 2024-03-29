@@ -105,7 +105,7 @@ ohos_moduletest("os_account_manager_service_module_test") {
     "${innerkits_native_path}/src/account_info_parcel.cpp",
     "${os_account_core_path}/src/os_account_event_proxy.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
-    "${os_account_dfx_path}/hisysevent_adapter/hisysevent_adapter.cpp",
+    "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
   ]
   sources += account_service_sources_mock
@@ -282,7 +282,7 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
     "${innerkits_native_path}/src/account_info_parcel.cpp",
     "${os_account_core_path}/src/os_account_event_proxy.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
-    "${os_account_dfx_path}/hisysevent_adapter/hisysevent_adapter.cpp",
+    "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
   ]
   sources += account_service_sources_mock

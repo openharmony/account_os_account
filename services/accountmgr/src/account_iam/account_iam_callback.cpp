@@ -18,7 +18,7 @@
 #include <securec.h>
 #include "account_info_report.h"
 #include "account_log_wrapper.h"
-#include "hisysevent_adapter.h"
+#include "account_hisysevent_adapter.h"
 #include "iinner_os_account_manager.h"
 #include "inner_account_iam_manager.h"
 #include "inner_domain_account_manager.h"

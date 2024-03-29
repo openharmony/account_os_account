@@ -25,7 +25,7 @@
 #endif // HAS_CES_PART
 #include "domain_account_callback_service.h"
 #include "hitrace_adapter.h"
-#include "hisysevent_adapter.h"
+#include "account_hisysevent_adapter.h"
 #include "ohos_account_kits.h"
 #include "os_account_constants.h"
 #include "os_account_control_file_manager.h"

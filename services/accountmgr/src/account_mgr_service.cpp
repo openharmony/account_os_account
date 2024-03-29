@@ -25,7 +25,7 @@
 #include "directory_ex.h"
 #include "domain_account_manager_service.h"
 #include "file_ex.h"
-#include "hisysevent_adapter.h"
+#include "account_hisysevent_adapter.h"
 #include "hitrace_adapter.h"
 #include "if_system_ability_manager.h"
 #include "ipc_skeleton.h"

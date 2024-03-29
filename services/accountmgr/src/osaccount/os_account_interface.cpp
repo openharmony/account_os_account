@@ -26,7 +26,7 @@
 #include "common_event_support.h"
 #endif // HAS_CES_PART
 #include "datetime_ex.h"
-#include "hisysevent_adapter.h"
+#include "account_hisysevent_adapter.h"
 #include "hitrace_adapter.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"

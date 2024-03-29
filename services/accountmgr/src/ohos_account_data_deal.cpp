@@ -23,7 +23,7 @@
 #include "account_log_wrapper.h"
 #include "directory_ex.h"
 #include "file_ex.h"
-#include "hisysevent_adapter.h"
+#include "account_hisysevent_adapter.h"
 #include "iinner_os_account_manager.h"
 #include "ohos_account_data_deal.h"
 

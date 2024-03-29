@@ -36,7 +36,7 @@
 #ifdef HAS_CES_PART
 #include "common_event_support.h"
 #endif // HAS_CES_PART
-#include "hisysevent_adapter.h"
+#include "account_hisysevent_adapter.h"
 #include "ipc_skeleton.h"
 #include "mbedtls/sha256.h"
 #include "system_ability_definition.h"
