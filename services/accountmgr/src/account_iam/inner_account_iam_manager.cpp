@@ -18,7 +18,7 @@
 #include "account_iam_callback.h"
 #include "account_log_wrapper.h"
 #include "domain_account_callback_service.h"
-#include "hisysevent_adapter.h"
+#include "account_hisysevent_adapter.h"
 #include "iinner_os_account_manager.h"
 #include "inner_domain_account_manager.h"
 #include "iservice_registry.h"

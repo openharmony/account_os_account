@@ -17,7 +17,7 @@
 #include <cstddef>
 #include "account_info.h"
 #include "account_log_wrapper.h"
-#include "hisysevent_adapter.h"
+#include "account_hisysevent_adapter.h"
 #include "iinner_os_account_manager.h"
 #include "ipc_skeleton.h"
 #include "os_account_constants.h"
