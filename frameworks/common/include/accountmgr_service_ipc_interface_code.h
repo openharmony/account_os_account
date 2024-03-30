@@ -97,6 +97,7 @@ enum class OsAccountInterfaceCode : uint32_t {
     GET_FOREGROUND_OS_ACCOUNT_LOCAL_ID,
     GET_FOREGROUND_OS_ACCOUNTS,
     GET_BACKGROUND_OS_ACCOUNT_LOCAL_IDS,
+    SET_OS_ACCOUNT_TO_BE_REMOVED
 };
 
 enum class AppAccountInterfaceCode : uint32_t {

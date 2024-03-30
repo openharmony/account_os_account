@@ -3077,6 +3077,26 @@ HWTEST_F(OsAccountManagerModuleTest, GetForegroundOsAccounts001, TestSize.Level1
     ASSERT_EQ(OsAccountManager::RemoveOsAccount(account.GetLocalId()), ERR_OK);
 }
 
+
+/**
+ * @tc.name: SetOsAccountToBeRemoved001
+ * @tc.desc: Test SetOsAccountToBeRemoved.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, SetOsAccountToBeRemoved001, TestSize.Level1)
+{
+    OsAccountInfo account;
+    ASSERT_EQ(OsAccountManager::CreateOsAccount("SetOsAccountToBeRemoved001", OsAccountType::NORMAL, account), ERR_OK);
+    EXPECT_EQ(account.GetToBeRemoved(), false);
+    EXPECT_EQ(OsAccountManager::SetOsAccountToBeRemoved(account.GetLocalId() + 1, true),
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    EXPECT_EQ(OsAccountManager::SetOsAccountToBeRemoved(account.GetLocalId(), true), ERR_OK);
+    EXPECT_EQ(OsAccountManager::QueryOsAccountById(account.GetLocalId(), account), ERR_OK);
+    EXPECT_EQ(account.GetToBeRemoved(), true);
+    ASSERT_EQ(OsAccountManager::RemoveOsAccount(account.GetLocalId()), ERR_OK);
+}
+
 #ifdef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
 /**
  * @tc.name: GetBackgroundOsAccountLocalIds001

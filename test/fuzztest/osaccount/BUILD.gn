@@ -65,6 +65,7 @@ group("fuzztest") {
     "setosaccountisverified_fuzzer:SetOsAccountIsVerifiedFuzzTest",
     "setosaccountname_fuzzer:SetOsAccountNameFuzzTest",
     "setosaccountprofilephoto_fuzzer:SetOsAccountProfilePhotoFuzzTest",
+    "setosaccounttoberemoved_fuzzer:SetOsAccountToBeRemovedFuzzTest",
     "setspecificosaccountconstraints_fuzzer:SetSpecificOsAccountConstraintsFuzzTest",
     "startosaccount_fuzzer:StartOsAccountFuzzTest",
     "stoposaccount_fuzzer:StopOsAccountFuzzTest",

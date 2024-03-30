@@ -102,6 +102,7 @@ public:
     ErrCode GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId) override;
     ErrCode GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts) override;
     ErrCode GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds) override;
+    ErrCode SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved) override;
     ErrCode BindDomainAccount(const OsAccountType &type, const DomainAccountInfo &domainAccountInfo,
         const sptr<IDomainAccountCallback> &callback);
     ErrCode SendMsgForAccountCreate(OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options = {});
