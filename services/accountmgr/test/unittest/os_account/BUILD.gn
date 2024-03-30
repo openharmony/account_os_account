@@ -468,9 +468,11 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     cflags_cc += [ "-DHAS_CES_PART" ]
     external_deps += [ "common_event_service:cesfwk_innerkits" ]
   }
+  if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
+    cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
+  }
   cflags_cc += [
     "-DBUNDLE_ADAPTER_MOCK",
-    "-DENABLE_MULTIPLE_OS_ACCOUNTS",
     "-DACCOUNT_TEST",
   ]
   part_name = "os_account"

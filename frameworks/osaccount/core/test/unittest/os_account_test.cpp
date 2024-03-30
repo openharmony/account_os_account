@@ -267,6 +267,7 @@ HWTEST_F(OsAccountTest, OsAccountTest010, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(OsAccountTest, OsAccountTest011, TestSize.Level1)
 {
     OsAccountType type = NORMAL;
@@ -274,6 +275,7 @@ HWTEST_F(OsAccountTest, OsAccountTest011, TestSize.Level1)
     EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
         osAccountProxy_->CreateOsAccount(STRING_EMPTY, type, osAccountInfo));
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
  * @tc.name: OsAccountTest012
