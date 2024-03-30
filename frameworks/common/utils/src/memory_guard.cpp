@@ -24,7 +24,7 @@ MemoryGuard::MemoryGuard()
 #ifdef CONFIG_USE_JEMALLOC_DFX_INTF
     int32_t ret1 = mallopt(M_SET_THREAD_CACHE, M_THREAD_CACHE_DISABLE);
     int32_t ret2 = mallopt(M_DELAYED_FREE, M_DELAYED_FREE_DISABLE);
-    if ((ret1 != 0) || (ret2 != 0)) {
+    if ((ret1 != 1) || (ret2 != 1)) {
         ACCOUNT_LOGE("disable tcache and delay free, result[%{public}d, %{public}d]", ret1, ret2);
     }
 #endif
@@ -34,7 +34,7 @@ MemoryGuard::~MemoryGuard()
 {
 #ifdef CONFIG_USE_JEMALLOC_DFX_INTF
     int32_t err = mallopt(M_FLUSH_THREAD_CACHE, 0);
-    if (err != 0) {
+    if (err != 1) {
         ACCOUNT_LOGE("flush cache, result: %{public}d", err);
     }
 #endif
