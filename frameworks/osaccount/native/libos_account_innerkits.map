@@ -144,6 +144,7 @@
         "OHOS::AccountSA::OsAccountInfo::GetDomainInfo(OHOS::AccountSA::DomainAccountInfo&) const";
         "OHOS::AccountSA::OsAccountInfo::OsAccountInfo(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, OHOS::AccountSA::OsAccountType, long long)";
         "OHOS::AccountSA::OsAccountInfo::OsAccountInfo(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, OHOS::AccountSA::OsAccountType, long)";
+        "OHOS::AccountSA::OsAccountInfo::OsAccountInfo(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, OHOS::AccountSA::OsAccountType, long)";
         "OHOS::AccountSA::OsAccountInfo::SetCreateTime(long long)";
         "OHOS::AccountSA::OsAccountInfo::SetCreateTime(long)";
         "OHOS::AccountSA::OsAccountInfo::SetIsCreateCompleted(bool)";
