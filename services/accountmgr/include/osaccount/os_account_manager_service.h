@@ -127,6 +127,7 @@ public:
     ErrCode GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId) override;
     ErrCode GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts) override;
     ErrCode GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds) override;
+    ErrCode SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved) override;
 
 private:
     virtual ErrCode DumpStateByAccounts(

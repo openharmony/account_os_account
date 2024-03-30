@@ -405,6 +405,13 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
             .isSyetemApi = true,
         }
     },
+    {
+        static_cast<uint32_t>(OsAccountInterfaceCode::SET_OS_ACCOUNT_TO_BE_REMOVED),
+        {
+            .messageProcFunction = &OsAccountStub::ProcSetOsAccountToBeRemoved,
+            .isSyetemApi = true,
+        }
+    },
 };
 
 OsAccountStub::OsAccountStub()
@@ -1571,6 +1578,26 @@ ErrCode OsAccountStub::ProcGetBackgroundOsAccountLocalIds(MessageParcel &data, M
     }
     if (!reply.WriteInt32Vector(localIds)) {
         ACCOUNT_LOGE("Write localIds failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcSetOsAccountToBeRemoved(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("Read localId failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    bool toBeRemoved = false;
+    if (!data.ReadBool(toBeRemoved)) {
+        ACCOUNT_LOGE("Read toBeRemoved failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = SetOsAccountToBeRemoved(localId, toBeRemoved);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Write result failed.");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_NONE;
