@@ -60,6 +60,10 @@ ohos_unittest("os_account_test") {
     "os_account:os_account_innerkits",
     "samgr:samgr_proxy",
   ]
+  cflags_cc = []
+  if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
+    cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
+  }
 }
 
 ohos_unittest("os_account_mock_test") {

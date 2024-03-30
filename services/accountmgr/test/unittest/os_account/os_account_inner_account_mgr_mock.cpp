@@ -1018,6 +1018,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest032, TestSize
  * @tc.type: FUNC
  * @tc.require:
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest033, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
@@ -1038,6 +1039,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest033, TestSize
         .WillRepeatedly(DoAll(testing::SetArgReferee<1>(osAccountInfo), testing::Return(0)));
     innerMgrService_->StartAccount();
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /*
  * @tc.name: OsAccountInnerAccmgrMockTest034
