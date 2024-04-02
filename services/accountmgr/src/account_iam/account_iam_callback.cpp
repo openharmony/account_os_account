@@ -166,13 +166,34 @@ void IDMAuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const 
     ACCOUNT_LOGW("unsupported operation");
 }
 
+void IDMCallbackDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
+{
+    ACCOUNT_LOGI("Remote callback died, cancel cred");
+    if (userId_ > 0) {
+        UserIDMClient::GetInstance().Cancel(userId_);
+    }
+}
+
+IDMCallbackDeathRecipient::IDMCallbackDeathRecipient(uint32_t userId) : userId_(userId)
+{}
+
 AddCredCallback::AddCredCallback(uint32_t userId, const CredentialParameters &credInfo,
     const sptr<IIDMCallback> &callback)
     : userId_(userId), credInfo_(credInfo), innerCallback_(callback)
 {}
 
+void AddCredCallback::SetDeathRecipient(const sptr<IDMCallbackDeathRecipient> &deathRecipient)
+{
+    deathRecipient_ = deathRecipient;
+}
+
 void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
+    if (innerCallback_ == nullptr || innerCallback_->AsObject() == nullptr) {
+        ACCOUNT_LOGE("innerCallback_ is nullptr");
+        return;
+    }
+    innerCallback_->AsObject()->RemoveDeathRecipient(deathRecipient_);
     if ((result == 0) && (credInfo_.authType == AuthType::PIN)) {
         InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_ADD_CRED);
         uint64_t credentialId = 0;
@@ -212,12 +233,18 @@ UpdateCredCallback::UpdateCredCallback(
     : userId_(userId), credInfo_(credInfo), innerCallback_(callback)
 {}
 
+void UpdateCredCallback::SetDeathRecipient(const sptr<IDMCallbackDeathRecipient> &deathRecipient)
+{
+    deathRecipient_ = deathRecipient;
+}
+
 void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
-    if (innerCallback_ == nullptr) {
+    if (innerCallback_ == nullptr || innerCallback_->AsObject() == nullptr) {
         ACCOUNT_LOGE("inner callback is nullptr");
         return;
     }
+    innerCallback_->AsObject()->RemoveDeathRecipient(deathRecipient_);
     if ((result != 0) || (credInfo_.authType != AuthType::PIN)) {
         InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
         innerCallback_->OnResult(result, extraInfo);

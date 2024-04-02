@@ -76,8 +76,16 @@ void InnerAccountIAMManager::AddCredential(
         ACCOUNT_LOGE("callback is nullptr");
         return;
     }
-    auto idmCallback = std::make_shared<AddCredCallback>(userId, credInfo, callback);
-    UserIDMClient::GetInstance().AddCredential(userId, credInfo, idmCallback);
+
+    sptr<IDMCallbackDeathRecipient> deathRecipient = new (std::nothrow) IDMCallbackDeathRecipient(userId);
+    if ((deathRecipient == nullptr) || (callback->AsObject() == nullptr) ||
+        (!callback->AsObject()->AddDeathRecipient(deathRecipient))) {
+        ACCOUNT_LOGE("Failed to add death recipient for AddCred");
+        return;
+    }
+    auto idmCallbackWrapper = std::make_shared<AddCredCallback>(userId, credInfo, callback);
+    idmCallbackWrapper->SetDeathRecipient(deathRecipient);
+    UserIDMClient::GetInstance().AddCredential(userId, credInfo, idmCallbackWrapper);
 }
 
 void InnerAccountIAMManager::UpdateCredential(
@@ -93,8 +101,17 @@ void InnerAccountIAMManager::UpdateCredential(
         callback->OnResult(ResultCode::INVALID_PARAMETERS, emptyResult);
         return;
     }
-    auto idmCallback = std::make_shared<UpdateCredCallback>(userId, credInfo, callback);
-    UserIDMClient::GetInstance().UpdateCredential(userId, credInfo, idmCallback);
+
+    sptr<IDMCallbackDeathRecipient> deathRecipient = new (std::nothrow) IDMCallbackDeathRecipient(userId);
+    if ((deathRecipient == nullptr) || (callback->AsObject() == nullptr) ||
+        (!callback->AsObject()->AddDeathRecipient(deathRecipient))) {
+        ACCOUNT_LOGE("Failed to add death recipient for UpdateCred");
+        return;
+    }
+
+    auto idmCallbackWrapper = std::make_shared<UpdateCredCallback>(userId, credInfo, callback);
+    idmCallbackWrapper->SetDeathRecipient(deathRecipient);
+    UserIDMClient::GetInstance().UpdateCredential(userId, credInfo, idmCallbackWrapper);
 }
 
 void InnerAccountIAMManager::DelCred(
