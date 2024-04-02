@@ -3046,7 +3046,7 @@ HWTEST_F(OsAccountManagerModuleTest, GetForegroundOsAccounts001, TestSize.Level1
     // test account not in foregroud list after create
     std::vector<ForegroundOsAccount> accounts;
     EXPECT_EQ(OsAccountManager::GetForegroundOsAccounts(accounts), ERR_OK);
-    auto it = std::find_if(accounts.begin(), accounts.end(), [&](ForegroundOsAccount &foregroundAccounts) {
+    auto it = std::find_if(accounts.begin(), accounts.end(), [&](const ForegroundOsAccount &foregroundAccounts) {
         return foregroundAccounts.localId == account.GetLocalId();
     });
     EXPECT_TRUE(it == accounts.end());
@@ -3054,7 +3054,7 @@ HWTEST_F(OsAccountManagerModuleTest, GetForegroundOsAccounts001, TestSize.Level1
     // test account in foregroud list after active
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(account.GetLocalId()), ERR_OK);
     EXPECT_EQ(OsAccountManager::GetForegroundOsAccounts(accounts), ERR_OK);
-    it = std::find_if(accounts.begin(), accounts.end(), [&](ForegroundOsAccount &foregroundAccounts) {
+    it = std::find_if(accounts.begin(), accounts.end(), [&](const ForegroundOsAccount &foregroundAccounts) {
         return foregroundAccounts.localId == account.GetLocalId();
     });
     EXPECT_TRUE(it != accounts.end());
@@ -3063,7 +3063,7 @@ HWTEST_F(OsAccountManagerModuleTest, GetForegroundOsAccounts001, TestSize.Level1
     // test account in foregroud list after switch
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(MAIN_ACCOUNT_ID), ERR_OK);
     EXPECT_EQ(OsAccountManager::GetForegroundOsAccounts(accounts), ERR_OK);
-    it = std::find_if(accounts.begin(), accounts.end(), [&](ForegroundOsAccount &foregroundAccounts) {
+    it = std::find_if(accounts.begin(), accounts.end(), [&](const ForegroundOsAccount &foregroundAccounts) {
         return foregroundAccounts.localId == MAIN_ACCOUNT_ID;
     });
     EXPECT_TRUE(it != accounts.end());
@@ -3072,7 +3072,7 @@ HWTEST_F(OsAccountManagerModuleTest, GetForegroundOsAccounts001, TestSize.Level1
     // test account not in foregroud list after deactive
     EXPECT_EQ(OsAccountManager::DeactivateOsAccount(account.GetLocalId()), ERR_OK);
     EXPECT_EQ(OsAccountManager::GetForegroundOsAccounts(accounts), ERR_OK);
-    it = std::find_if(accounts.begin(), accounts.end(), [&](ForegroundOsAccount &foregroundAccounts) {
+    it = std::find_if(accounts.begin(), accounts.end(), [&](const ForegroundOsAccount &foregroundAccounts) {
         return foregroundAccounts.localId == account.GetLocalId();
     });
     EXPECT_TRUE(it == accounts.end());
