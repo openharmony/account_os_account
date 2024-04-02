@@ -72,18 +72,29 @@ private:
     sptr<IIDMCallback> idmCallback_ = nullptr;
 };
 
+class IDMCallbackDeathRecipient : public IRemoteObject::DeathRecipient {
+public:
+    IDMCallbackDeathRecipient(uint32_t userId);
+    void OnRemoteDied(const wptr<IRemoteObject> &remote) override;
+
+private:
+    uint32_t userId_ = 0;
+};
+
 class AddCredCallback : public UserIdmClientCallback {
 public:
     AddCredCallback(uint32_t userId, const CredentialParameters &credInfo,
         const sptr<IIDMCallback> &callback);
     virtual ~AddCredCallback() = default;
 
+    void SetDeathRecipient(const sptr<IDMCallbackDeathRecipient> &deathRecipient);
     void OnResult(int32_t result, const Attributes &extraInfo) override;
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override;
 
 private:
     std::uint32_t userId_;
     CredentialParameters credInfo_;
+    sptr<IDMCallbackDeathRecipient> deathRecipient_ = nullptr;
     sptr<IIDMCallback> innerCallback_ = nullptr;
 };
 
@@ -93,6 +104,7 @@ public:
         const sptr<IIDMCallback> &callback);
     virtual ~UpdateCredCallback() = default;
 
+    void SetDeathRecipient(const sptr<IDMCallbackDeathRecipient> &deathRecipient);
     void OnResult(int32_t result, const Attributes &extraInfo) override;
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override;
 
@@ -100,6 +112,7 @@ private:
     std::uint32_t userId_;
     std::vector<uint8_t> oldCredential_;
     CredentialParameters credInfo_;
+    sptr<IDMCallbackDeathRecipient> deathRecipient_ = nullptr;
     const sptr<IIDMCallback> innerCallback_ = nullptr;
 };
 

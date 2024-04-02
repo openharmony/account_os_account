@@ -249,7 +249,11 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_AddCredential_0100, TestSize.Lev
     CredentialParameters testPara = {};
     auto testCallback = std::make_shared<MockIDMCallback>();
     EXPECT_NE(testCallback, nullptr);
+#ifdef PROXY_MOCK
+    EXPECT_CALL(*testCallback, OnResult(_, _)).Times(Exactly(0));
+#else
     EXPECT_CALL(*testCallback, OnResult(_, _)).Times(Exactly(1));
+#endif
     AccountIAMClient::GetInstance().AddCredential(TEST_USER_ID, testPara, testCallback);
 }
 
@@ -265,7 +269,11 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_AddCredential_0200, TestSize.Lev
     testPara.authType = AuthType::PIN;
     auto testCallback = std::make_shared<MockIDMCallback>();
     EXPECT_NE(testCallback, nullptr);
+#ifdef PROXY_MOCK
+    EXPECT_CALL(*testCallback, OnResult(_, _)).Times(Exactly(0));
+#else
     EXPECT_CALL(*testCallback, OnResult(_, _)).Times(Exactly(2));
+#endif
     AccountIAMClient::GetInstance().AddCredential(0, testPara, testCallback);
     AccountIAMClient::GetInstance().AddCredential(TEST_USER_ID, testPara, nullptr);
     AccountIAMClient::GetInstance().AddCredential(TEST_USER_ID, testPara, testCallback);
