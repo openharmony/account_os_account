@@ -25,22 +25,33 @@ using namespace std;
 using namespace OHOS::AccountSA;
 
 namespace OHOS {
-    bool StartOsAccountFuzzTest(const uint8_t* data, size_t size)
-    {
-        int32_t result = ERR_OK;
-        if (size > 0) {
-            int testId = static_cast<int>(size);
-            result = OsAccountManager::StartOsAccount(testId);
-        }
-        return result == ERR_OK;
+bool StartOsAccountFuzzTest(const uint8_t* data, size_t size)
+{
+    int32_t result = ERR_OK;
+    if (size > 0) {
+        int testId = static_cast<int>(size);
+        result = OsAccountManager::StartOsAccount(testId);
     }
+    return result == ERR_OK;
 }
+
+bool StopOsAccountFuzzTest(const uint8_t* data, size_t size)
+{
+    int32_t result = ERR_OK;
+    if (size > 0) {
+        int testId = static_cast<int>(size);
+        result = OsAccountManager::StopOsAccount(testId);
+    }
+    return result == ERR_OK;
+}
+} // namespace
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::StartOsAccountFuzzTest(data, size);
+    OHOS::StopOsAccountFuzzTest(data, size);
     return 0;
 }
 

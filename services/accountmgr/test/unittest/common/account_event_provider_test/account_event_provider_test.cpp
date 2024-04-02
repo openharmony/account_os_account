@@ -48,7 +48,7 @@ void AccountEventProviderTest::SetUpTestCase() {}
 
 void AccountEventProviderTest::TearDownTestCase() {}
 
-void AccountEventProviderTest::SetUp(){}
+void AccountEventProviderTest::SetUp() {}
 
 void AccountEventProviderTest::TearDown() {}
 

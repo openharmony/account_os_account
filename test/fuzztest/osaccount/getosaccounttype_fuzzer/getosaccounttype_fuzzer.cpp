@@ -30,10 +30,8 @@ namespace OHOS {
     {
         int32_t result = ERR_OK;
         OsAccountType type;
-        if (size >= 0) {
-            int testId = static_cast<int>(size);
-            result = OsAccountManager::GetOsAccountType(testId, type);
-        }
+        int testId = static_cast<int>(size);
+        result = OsAccountManager::GetOsAccountType(testId, type);
         return result == ERR_OK;
     }
 }
