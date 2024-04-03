@@ -313,7 +313,7 @@ void AccountFileWatcherMgr::AddFileWatcher(
     std::lock_guard<std::mutex> lock(fileWatcherMgrLock_);
     fileNameMgrMap_[fileWatcher->GetWd()] = fileWatcher;
     {
-        std::shared_lock<std::shared_timed_mutex> fileLock(accountFileOperator_->fileLock_);
+        std::unique_lock<std::shared_timed_mutex> fileLock(accountFileOperator_->fileLock_);
         accountFileOperator_->SetValidModifyFileOperationFlag(filePath, false);
     }
 
