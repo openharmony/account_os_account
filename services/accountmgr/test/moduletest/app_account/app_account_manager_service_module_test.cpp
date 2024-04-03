@@ -2211,7 +2211,6 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_OnPackageR
     while (true) {
         accounts.clear();
         ErrCode ret = dataStoragePtr->LoadAllData(accounts);
-        ACCOUNT_LOGI("LoadAllData returned %{public}d, account size: %{public}d", ret, accounts.size());
         if (ret == ERR_OK && accounts.size() == SIZE_ZERO) {
             ready = true;
             break;
