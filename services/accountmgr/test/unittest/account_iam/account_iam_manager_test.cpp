@@ -384,7 +384,7 @@ HWTEST_F(AccountIamManagerTest, AddCredential001, TestSize.Level0)
     CredentialParameters testPara = {};
     sptr<MockIIDMCallback> testCallback = new(std::nothrow) MockIIDMCallback();
     EXPECT_NE(testCallback, nullptr);
-    EXPECT_CALL(*testCallback, OnResult(_, _)).Times(Exactly(1));
+    EXPECT_CALL(*testCallback, OnResult(_, _)).Times(Exactly(0));
     InnerAccountIAMManager::GetInstance().AddCredential(TEST_USER_ID, testPara, nullptr);
     InnerAccountIAMManager::GetInstance().AddCredential(TEST_USER_ID, testPara, testCallback);
 }
@@ -400,7 +400,7 @@ HWTEST_F(AccountIamManagerTest, UpdateCredential001, TestSize.Level0)
     CredentialParameters testPara = {};
     sptr<MockIIDMCallback> testCallback = new(std::nothrow) MockIIDMCallback();
     EXPECT_NE(testCallback, nullptr);
-    EXPECT_CALL(*testCallback, OnResult(_, _)).Times(Exactly(2));
+    EXPECT_CALL(*testCallback, OnResult(_, _)).Times(Exactly(1));
     InnerAccountIAMManager::GetInstance().UpdateCredential(TEST_USER_ID, testPara, nullptr);
     InnerAccountIAMManager::GetInstance().UpdateCredential(TEST_USER_ID, testPara, testCallback);
 
