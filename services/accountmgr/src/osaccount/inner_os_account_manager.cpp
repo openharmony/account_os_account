@@ -751,11 +751,13 @@ ErrCode IInnerOsAccountManager::GetTypeNumber(const OsAccountType& type, int32_t
         ACCOUNT_LOGE("Get os account list failed.");
         return result;
     }
-    for (const auto &info : osAccountList) {
-        if (info.GetType() == type) {
-            typeNumber++;
+
+    typeNumber = std::count_if(
+        osAccountList.begin(), osAccountList.end(),
+        [&type](const OsAccountInfo& info) {
+            return info.GetType() == type;
         }
-    }
+    );
     return ERR_OK;
 }
 

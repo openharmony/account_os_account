@@ -529,7 +529,7 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0102, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInfoTest,CreateOsAccountWithFullInfo0103, TestSize.Level1)
+HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0103, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetLocalName("test117");
