@@ -19,7 +19,6 @@ group("fuzztest") {
     # deps file
     "activateosaccount_fuzzer:ActivateOsAccountFuzzTest",
     "createosaccount_fuzzer:CreateOsAccountFuzzTest",
-    "createosaccountwithshortname_fuzzer:CreateOsAccountWithShortNameFuzzTest",
     "deactivateosaccount_fuzzer:DeactivateOsAccountFuzzTest",
     "getbundleidfromuid_fuzzer:GetBundleIdFromUidFuzzTest",
     "getcreatedosaccountnumfromdatabase_fuzzer:GetCreatedOsAccountNumFromDatabaseFuzzTest",
@@ -51,12 +50,7 @@ group("fuzztest") {
     "isosaccountexists_fuzzer:IsOsAccountExistsFuzzTest",
     "isosaccountforeground_fuzzer:IsOsAccountForegroundFuzzTest",
     "isosaccountverified_fuzzer:IsOsAccountVerifiedFuzzTest",
-    "queryactiveosaccountids_fuzzer:QueryActiveOsAccountIdsFuzzTest",
-    "queryallcreatedosaccounts_fuzzer:QueryAllCreatedOsAccountsFuzzTest",
-    "querycurrentosaccount_fuzzer:QueryCurrentOsAccountFuzzTest",
-    "querymaxosaccountnumber_fuzzer:QueryMaxOsAccountNumberFuzzTest",
-    "queryosaccountbyid_fuzzer:QueryOsAccountByIdFuzzTest",
-    "queryosaccountconstraintsourcetypes_fuzzer:QueryOsAccountConstraintSourceTypesFuzzTest",
+    "queryaccountinfo_fuzzer:QueryAccountInfoFuzzTest",
     "removeosaccount_fuzzer:RemoveOsAccountFuzzTest",
     "setcurrentosaccountisverified_fuzzer:SetCurrentOsAccountIsVerifiedFuzzTest",
     "setdefaultactivatedosaccount_fuzzer:SetDefaultActivatedOsAccountFuzzTest",
@@ -67,8 +61,6 @@ group("fuzztest") {
     "setosaccountprofilephoto_fuzzer:SetOsAccountProfilePhotoFuzzTest",
     "setspecificosaccountconstraints_fuzzer:SetSpecificOsAccountConstraintsFuzzTest",
     "startosaccount_fuzzer:StartOsAccountFuzzTest",
-    "stoposaccount_fuzzer:StopOsAccountFuzzTest",
     "subscribeosaccount_fuzzer:SubscribeOsAccountFuzzTest",
-    "unsubscribeosaccount_fuzzer:UnsubscribeOsAccountFuzzTest",
   ]
 }
