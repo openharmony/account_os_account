@@ -99,6 +99,7 @@ public:
     ErrCode GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId);
     ErrCode GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts);
     ErrCode GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds);
+    ErrCode SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved);
 
 private:
     OsAccount() = default;

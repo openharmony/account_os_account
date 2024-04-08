@@ -107,6 +107,7 @@ public:
     virtual ErrCode GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId) = 0;
     virtual ErrCode GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts) = 0;
     virtual ErrCode GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds) = 0;
+    virtual ErrCode SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

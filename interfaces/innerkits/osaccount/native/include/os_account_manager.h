@@ -613,11 +613,21 @@ public:
     static ErrCode GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts);
 
     /**
-     * @brief Gets the boreground localId list.
-     * @param localIds - Indicates the boreground localId list.
+     * @brief Gets the foreground localId list.
+     * @param localIds - Indicates the foreground localId list.
      * @return error code, see account_error_no.h
      */
     static ErrCode GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds);
+
+    /**
+     * @brief Sets the target OS account to be removed or not.
+     *
+     * @permission ohos.permission.MANAGE_LOCAL_ACCOUNTS
+     * @param localId - Indicates the target OS account.
+     * @param toBeRemoved - Indicates whether the target OS account to be removed.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

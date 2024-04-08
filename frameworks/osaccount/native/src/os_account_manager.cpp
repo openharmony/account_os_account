@@ -376,5 +376,10 @@ ErrCode OsAccountManager::GetBackgroundOsAccountLocalIds(std::vector<int32_t> &l
 {
     return OsAccount::GetInstance().GetBackgroundOsAccountLocalIds(localIds);
 }
+
+ErrCode OsAccountManager::SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved)
+{
+    return OsAccount::GetInstance().SetOsAccountToBeRemoved(localId, toBeRemoved);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

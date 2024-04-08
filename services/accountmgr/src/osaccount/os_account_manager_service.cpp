@@ -1118,5 +1118,14 @@ ErrCode OsAccountManagerService::GetBackgroundOsAccountLocalIds(std::vector<int3
 {
     return innerManager_.GetBackgroundOsAccountLocalIds(localIds);
 }
+
+ErrCode OsAccountManagerService::SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved)
+{
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("Permission denied.");
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    return innerManager_.SetOsAccountToBeRemoved(localId, toBeRemoved);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

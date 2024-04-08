@@ -97,6 +97,7 @@ public:
     ErrCode ProcGetForegroundOsAccountLocalId(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetForegroundOsAccounts(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetBackgroundOsAccountLocalIds(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcSetOsAccountToBeRemoved(MessageParcel &data, MessageParcel &reply);
 
 private:
     template<typename T>

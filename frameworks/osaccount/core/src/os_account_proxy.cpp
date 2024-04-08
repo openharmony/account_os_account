@@ -1626,5 +1626,33 @@ ErrCode OsAccountProxy::GetBackgroundOsAccountLocalIds(std::vector<int32_t> &loc
     }
     return ERR_OK;
 }
+
+ErrCode OsAccountProxy::SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Write descriptor failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteInt32(localId)) {
+        ACCOUNT_LOGE("Write localId failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteBool(toBeRemoved)) {
+        ACCOUNT_LOGE("Write toBeRemoved failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    MessageParcel reply;
+    ErrCode result = SendRequest(OsAccountInterfaceCode::SET_OS_ACCOUNT_TO_BE_REMOVED, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest failed, result=%{public}d.", result);
+        return result;
+    }
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("Read result failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return result;
+}
 }  // namespace AccountSA
 }  // namespace OHOS
