@@ -2060,5 +2060,24 @@ ErrCode IInnerOsAccountManager::UpdateAccountToBackground(OsAccountInfo &oldOsAc
         OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_BACKGROUND, Constants::OPERATION_SWITCH);
     return errCode;
 }
+
+ErrCode IInnerOsAccountManager::SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved)
+{
+    if (!CheckAndAddLocalIdOperating(localId)) {
+        ACCOUNT_LOGE("The account %{public}d already in operating", localId);
+        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
+    }
+    OsAccountInfo osAccountInfo;
+    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(localId, osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("RemoveOsAccount cannot find os account info, errCode: %{public}d.", errCode);
+        RemoveLocalIdToOperating(localId);
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    osAccountInfo.SetToBeRemoved(toBeRemoved);
+    errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
+    RemoveLocalIdToOperating(localId);
+    return errCode;
+}
 }  // namespace AccountSA
 }  // namespace OHOS
