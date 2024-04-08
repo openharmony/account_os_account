@@ -57,6 +57,8 @@ account_coverage_config_path = "${os_account_path}/config"
 
 fuzz_output_path = "os_account/os_account"
 
+binarys_path = "//binarys"
+
 if (!defined(global_parts_info) ||
     defined(global_parts_info.useriam_user_auth_framework)) {
   has_user_auth_part = true

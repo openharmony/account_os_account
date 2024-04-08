@@ -33,7 +33,7 @@ namespace AccountSA {
 typedef UserIam::PinAuth::IInputer IInputer;
 typedef UserIam::PinAuth::IInputerData IInputerData;
 #endif
-#ifdef HAS_USER_AUTH_PART
+
 typedef UserIam::UserAuth::ResultCode ResultCode;
 typedef UserIam::UserAuth::AuthType AuthType;
 typedef UserIam::UserAuth::Attributes Attributes;
@@ -49,7 +49,6 @@ typedef UserIam::UserAuth::UserIdmClientCallback UserIdmClientCallback;
 typedef UserIam::UserAuth::CredentialParameters CredentialParameters;
 typedef UserIam::UserAuth::CredentialInfo CredentialInfo;
 typedef UserIam::UserAuth::GetCredentialInfoCallback GetCredentialInfoCallback;
-#endif
 
 enum IAMAuthType {
     DOMAIN = 1024
