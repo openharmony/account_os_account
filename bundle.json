@@ -72,17 +72,16 @@
         "benchmark"
       ],
       "third_party": [
-        "mbedtls"
+        "mbedtls",
+        "jsoncpp"
       ]
     },
     "build": {
       "group_type": {
         "base_group": [
-          "//base/account/os_account/interfaces/kits/napi/appaccount:appaccount",
-          "//base/account/os_account/interfaces/kits/napi/distributedaccount:distributedaccount",
-          "//base/account/os_account/interfaces/kits/napi/osaccount:osaccount",
+          "//base/account/os_account/interfaces/kits/napi:napi_packages",
           "//base/account/os_account/sa_profile:account_sa_profile",
-          "//base/account/os_account/tools:os_account_tools"
+          "//base/account/os_account/tools:tools_acm"
         ],
         "fwk_group": [
           "//base/account/os_account/frameworks/appaccount/native:app_account_innerkits",

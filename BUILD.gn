@@ -30,7 +30,7 @@ group("account_build_unittest") {
     "${os_account_path}/frameworks/test/unittest:unittest",
     "${os_account_path}/services/accountmgr/test:unittest",
     "${os_account_path}/test/systemtest:systemtest",
-    "${os_account_path}/tools:unittest",
+    "${os_account_path}/tools/test:unittest",
   ]
 }
 
@@ -49,7 +49,7 @@ group("account_build_moduletest") {
     "${os_account_path}/frameworks/osaccount/native/test/moduletest:moduletest",
     "${os_account_path}/services/accountmgr/test/moduletest/common:moduletest",
     "${os_account_path}/services/accountmgr/test/moduletest/os_account:moduletest",
-    "${os_account_path}/tools:moduletest",
+    "${os_account_path}/tools/test:moduletest",
   ]
 }
 

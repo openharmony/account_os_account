@@ -84,6 +84,10 @@ ohos_shared_library("account_iam_innerkits") {
     "samgr:samgr_proxy",
   ]
 
+  if (ohos_indep_compiler_enable) {
+    external_deps += [ "ability_base:want" ]
+  }
+
   cflags_cc = []
   if (has_pin_auth_part) {
     cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]

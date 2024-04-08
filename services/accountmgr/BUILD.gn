@@ -48,6 +48,13 @@ config("accountmgr_config") {
     "${os_account_dfx_path}/hitrace_adapter",
     "${app_account_innerkits_native_path}/include",
   ]
+  if (ohos_indep_compiler_enable) {
+    include_dirs += [
+      "${binarys_path}/foundation/bundlemanager/bundle_framework/innerapis/appexecfwk_core/includes/app_control",
+      "${binarys_path}/third_party/jsoncpp/innerapis/jsoncpp/includes",
+      "${binarys_path}/base/useriam/user_auth_framework/innerapis/userauth_client/includes",
+    ]
+  }
 }
 
 config("account_iam_config") {
@@ -126,7 +133,7 @@ if (has_kv_store_part) {
   ]
 }
 
-if (has_user_auth_part) {
+if (has_user_auth_part && !ohos_indep_compiler_enable) {
   account_iam_sources = [
     "src/account_iam/account_iam_callback.cpp",
     "src/account_iam/account_iam_client_callback_proxy.cpp",
@@ -137,7 +144,6 @@ if (has_user_auth_part) {
 }
 
 bundle_manager_sources = [
-  "${bundle_framework_path}/common/log/src/app_log_wrapper.cpp",
   "src/bundle_manager_adapter/bundle_manager_adapter.cpp",
   "src/bundle_manager_adapter/bundle_manager_adapter_proxy.cpp",
   "src/bundle_manager_adapter/bundle_user_manager_adapter_proxy.cpp",
@@ -250,17 +256,24 @@ ohos_shared_library("accountmgr") {
     "samgr:samgr_proxy",
   ]
 
+  if (ohos_indep_compiler_enable) {
+    external_deps += [
+      "ability_base:session_info",
+      "ability_runtime:ability_connect_callback_stub",
+    ]
+  }
+
   if (has_theme_mar_part) {
     external_deps += [ "theme_mgr:theme_manager_client" ]
     cflags_cc += [ "-DHAS_THEME_SERVICE_PART" ]
   }
 
-  if (has_user_auth_part) {
+  configs += [ ":account_iam_config" ]
+  if (has_user_auth_part && !ohos_indep_compiler_enable) {
     cflags_cc += [
       "-DHAS_USER_AUTH_PART",
       "-DHAS_USER_IDM_PART",
     ]
-    configs += [ ":account_iam_config" ]
     sources += account_iam_sources
     external_deps += [
       "access_token:libtoken_setproc",
@@ -311,7 +324,7 @@ ohos_shared_library("accountmgr") {
     cflags_cc += [ "-DHICOLLIE_ENABLE" ]
   }
 
-  if (security_guard_enabled) {
+  if (security_guard_enabled && !ohos_indep_compiler_enable) {
     external_deps += [
       "security_guard:libsg_collect_sdk",
       "time_service:time_client",
