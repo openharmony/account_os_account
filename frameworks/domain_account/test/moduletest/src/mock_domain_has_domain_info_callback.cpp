@@ -38,6 +38,9 @@ void TestHasDomainInfoCallback::OnResult(const int32_t errCode, Parcel &parcel)
     }
     parcel.ReadBool(hasDomainInfo_);
     callback_->OnResult(errCode, hasDomainInfo_);
+    std::unique_lock<std::mutex> lock(mutex);
+    isReady = true;
+    cv.notify_one();
     return;
 }
 
@@ -55,6 +58,9 @@ void TestGetDomainAccountInfoCallback::OnResult(const int32_t errCode, Parcel &p
         return;
     }
     callback_->OnResult(errCode, parcel);
+    std::unique_lock<std::mutex> lock(mutex);
+    isReady = true;
+    cv.notify_one();
     return;
 }
 }  // AccountSA
