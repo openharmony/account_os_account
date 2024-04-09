@@ -78,6 +78,7 @@ const std::int32_t MAIN_ACCOUNT_ID = 100;
 const std::int32_t INVALID_ID = 200;
 const std::uint32_t MAX_WAIT_FOR_READY_CNT = 10;
 const std::int32_t DEFAULT_API_VERSION = 8;
+const int32_t WAIT_TIME = 20;
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 const uid_t ACCOUNT_UID = 3058;
 const gid_t ACCOUNT_GID = 3058;
@@ -327,19 +328,64 @@ public:
         }
         auto want = data.GetWant();
         listener_->OnReceiveEvent(want.GetAction());
+        std::unique_lock<std::mutex> lock(mutex);
+        if (want.GetAction() == EventFwk::CommonEventSupport::COMMON_EVENT_USER_STOPPING) {
+            stoppingEventReady = true;
+        } else {
+            stoppedEventReady = true;
+        }
+        cv.notify_one();
+        return;
     }
+    std::condition_variable cv;
+    bool stoppingEventReady = false;
+    bool stoppedEventReady = false;
+    std::mutex mutex;
 
 private:
     const std::shared_ptr<MockSubscriberListener> listener_;
 };
 
-class DeactivateOsAccountSubscriber final : public OsAccountSubscriber {
-public:
-    explicit DeactivateOsAccountSubscriber(const OsAccountSubscribeInfo &subscribeInfo)
-        : OsAccountSubscriber(subscribeInfo) {}
+static void Wait(const std::shared_ptr<AccountTestEventSubscriber> &ptr)
+{
+    std::unique_lock<std::mutex> lock(ptr->mutex);
+    ptr->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+        [lockPtr = ptr]() { return lockPtr->stoppingEventReady && lockPtr->stoppedEventReady; });
+}
 
+class MockOsAccountSubscriber {
+public:
     MOCK_METHOD1(OnAccountsChanged, void(const int &id));
 };
+
+class DeactivateOsAccountSubscriber final : public OsAccountSubscriber {
+public:
+    explicit DeactivateOsAccountSubscriber(
+        const OsAccountSubscribeInfo &subscribeInfo, const std::shared_ptr<MockOsAccountSubscriber> &callback)
+        : OsAccountSubscriber(subscribeInfo), callback_(callback) {}
+
+    void OnAccountsChanged(const int &id)
+    {
+        callback_->OnAccountsChanged(id);
+        std::unique_lock<std::mutex> lock(mutex);
+        isReady = true;
+        cv.notify_one();
+        return;
+    }
+    std::condition_variable cv;
+    bool isReady = false;
+    std::mutex mutex;
+
+private:
+    std::shared_ptr<MockOsAccountSubscriber> callback_;
+};
+
+static void Wait(const std::shared_ptr<DeactivateOsAccountSubscriber> &ptr)
+{
+    std::unique_lock<std::mutex> lock(ptr->mutex);
+    ptr->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+        [lockPtr = ptr]() { return lockPtr->isReady; });
+}
 
 class ActiveOsAccountSubscriber final : public OsAccountSubscriber {
 public:
@@ -2492,22 +2538,28 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest114, TestSize.Lev
     OsAccountSubscribeInfo subscribeStoppingInfo;
     subscribeStoppingInfo.SetOsAccountSubscribeType(OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
     subscribeStoppingInfo.SetName("subscribeStopping");
-    auto stoppingSubscriber = std::make_shared<DeactivateOsAccountSubscriber>(subscribeStoppingInfo);
+    auto stoppingPtr = std::make_shared<MockOsAccountSubscriber>();
+    ASSERT_NE(nullptr, stoppingPtr);
+    auto stoppingSubscriber = std::make_shared<DeactivateOsAccountSubscriber>(subscribeStoppingInfo, stoppingPtr);
     ASSERT_NE(nullptr, stoppingSubscriber);
     EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(stoppingSubscriber));
-    EXPECT_CALL(*stoppingSubscriber, OnAccountsChanged(osAccountInfo.GetLocalId())).Times(Exactly(1));
+    EXPECT_CALL(*stoppingPtr, OnAccountsChanged(osAccountInfo.GetLocalId())).Times(Exactly(1));
 
     OsAccountSubscribeInfo subscribeStoppedInfo;
     subscribeStoppedInfo.SetOsAccountSubscribeType(OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPED);
     subscribeStoppedInfo.SetName("subscribeStopped");
-    auto stoppedSubscriber = std::make_shared<DeactivateOsAccountSubscriber>(subscribeStoppedInfo);
+    auto stoppedPtr = std::make_shared<MockOsAccountSubscriber>();
+    ASSERT_NE(nullptr, stoppedPtr);
+    auto stoppedSubscriber = std::make_shared<DeactivateOsAccountSubscriber>(subscribeStoppedInfo, stoppedPtr);
     ASSERT_NE(nullptr, stoppedSubscriber);
     EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(stoppedSubscriber));
-    EXPECT_CALL(*stoppedSubscriber, OnAccountsChanged(osAccountInfo.GetLocalId())).Times(Exactly(1));
+    EXPECT_CALL(*stoppedPtr, OnAccountsChanged(osAccountInfo.GetLocalId())).Times(Exactly(1));
 
     EXPECT_EQ(OsAccountManager::DeactivateOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
 
-    sleep(1); // Wait for event
+    Wait(subscriberPtr);
+    Wait(stoppingSubscriber);
+    Wait(stoppedSubscriber);
 
     EXPECT_EQ(EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriberPtr), true);
     EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(stoppingSubscriber));

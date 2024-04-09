@@ -33,6 +33,9 @@ public:
     virtual ~TestDomainAuthCallback();
     void OnResult(const int32_t errCode, Parcel &parcel) override;
     void SetOsAccountInfo(const OsAccountInfo &info);
+    std::condition_variable cv;
+    bool isReady = false;
+    std::mutex mutex;
 
 private:
     std::shared_ptr<MockDomainAuthCallback> callback_;
