@@ -73,6 +73,7 @@
       ],
       "third_party": [
         "mbedtls",
+        "bounds_checking_function",
         "jsoncpp"
       ]
     },
