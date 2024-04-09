@@ -93,7 +93,3 @@ ohos_executable("acm") {
   subsystem_name = "account"
   part_name = "os_account"
 }
-
-group("tools_acm") {
-  deps = [ ":acm" ]
-}

@@ -67,6 +67,10 @@ ohos_shared_library("distributedaccount") {
     "napi:ace_napi",
   ]
 
+  if (ohos_indep_compiler_enable) {
+    external_deps += [ "ipc:ipc_core" ]
+  }
+
   part_name = "os_account"
   subsystem_name = "account"
 }
