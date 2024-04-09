@@ -22,6 +22,47 @@
 
 namespace OHOS {
 namespace AccountSA {
+OsAccountUserCallback::OsAccountUserCallback()
+{
+    vecMemberFunc_.resize(UserCallbackCmd::CMD_MAX);
+    vecMemberFunc_[UserCallbackCmd::ON_STOP_USER_DONE] = &OsAccountUserCallback::OnStopUserDoneInner;
+    vecMemberFunc_[UserCallbackCmd::ON_START_USER_DONE] = &OsAccountUserCallback::OnStartUserDoneInner;
+}
+
+int OsAccountUserCallback::OnStopUserDoneInner(MessageParcel &data, MessageParcel &reply)
+{
+    auto accountId = data.ReadInt32();
+    auto errCode = data.ReadInt32();
+    OnStopUserDone(accountId, errCode);
+    return ERR_OK;
+}
+
+int OsAccountUserCallback::OnStartUserDoneInner(MessageParcel &data, MessageParcel &reply)
+{
+    auto accountId = data.ReadInt32();
+    auto errCode = data.ReadInt32();
+    OnStartUserDone(accountId, errCode);
+    return ERR_OK;
+}
+
+int OsAccountUserCallback::OnRemoteRequest(
+    uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    std::u16string descriptor = OsAccountUserCallback::GetDescriptor();
+    std::u16string remoteDescriptor = data.ReadInterfaceToken();
+    if (descriptor != remoteDescriptor) {
+        ACCOUNT_LOGI("Local descriptor is not equal to remote");
+        return ERR_INVALID_STATE;
+    }
+
+    if (code < UserCallbackCmd::CMD_MAX && code >= 0) {
+        auto memberFunc = vecMemberFunc_[code];
+        return (this->*memberFunc)(data, reply);
+    }
+
+    return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+}
+
 void OsAccountUserCallback::OnStopUserDone(int userId, int errcode)
 {
     std::unique_lock<std::mutex> lock(mutex_);
