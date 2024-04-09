@@ -15,7 +15,7 @@
 
 #include "ability_manager_adapter.h"
 #include "ability_manager_errors.h"
-#include "ability_manager_interface.h"
+#include "ability_manager_ipc_interface_code.h"
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "iservice_registry.h"
