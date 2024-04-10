@@ -55,6 +55,7 @@ void CheckAndCreateDomainAccountCallback::OnResult(int32_t errCode, Parcel &parc
     domainAccountInfo.accountName_ = parameters->GetStringParam("accountName");
     domainAccountInfo.domain_ = parameters->GetStringParam("domain");
     domainAccountInfo.accountId_ = parameters->GetStringParam("accountId");
+    domainAccountInfo.serverConfigId_ = parameters->GetStringParam("serverConfigId");
     if ((domainAccountInfo.accountName_.empty()) || (domainAccountInfo.domain_.empty())) {
         ACCOUNT_LOGE("domain account not found");
         return innerCallback_->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, resultParcel);

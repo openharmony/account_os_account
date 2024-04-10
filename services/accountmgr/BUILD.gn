@@ -214,7 +214,9 @@ ohos_shared_library("accountmgr") {
     "ACCOUNT_LOG_TAG = \"AccountMgrService\"",
     "LOG_DOMAIN = 0xD001B00",
   ]
-
+  if (target_cpu == "arm64") {
+    defines += [ "_ARM64_" ]
+  }
   configs = [
     ":accountmgr_config",
     ":bundle_manager_config",
@@ -235,6 +237,7 @@ ohos_shared_library("accountmgr") {
   ]
 
   external_deps = [
+    "ability_base:base",
     "ability_base:want",
     "ability_runtime:ability_manager",
     "ability_runtime:app_manager",
