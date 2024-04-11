@@ -104,5 +104,20 @@ ErrCode DomainAccountManagerService::UnregisterAccountStatusListener(const sptr<
 {
     return InnerDomainAccountManager::GetInstance().UnregisterAccountStatusListener(listener);
 }
+
+ErrCode DomainAccountManagerService::AddServerConfig(const std::string &parameters, DomainServerConfig &config)
+{
+    return InnerDomainAccountManager::GetInstance().AddServerConfig(parameters, config);
+}
+
+ErrCode DomainAccountManagerService::RemoveServerConfig(const std::string &configId)
+{
+    return InnerDomainAccountManager::GetInstance().RemoveServerConfig(configId);
+}
+
+ErrCode DomainAccountManagerService::GetAccountServerConfig(const DomainAccountInfo &info, DomainServerConfig &config)
+{
+    return InnerDomainAccountManager::GetInstance().GetAccountServerConfig(info, config);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

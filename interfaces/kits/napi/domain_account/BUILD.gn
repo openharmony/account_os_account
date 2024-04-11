@@ -49,9 +49,11 @@ ohos_shared_library("domain_account_napi") {
   public_configs = [ ":domain_account_napi_kit_config" ]
 
   sources = [
+    "src/napi_domain_account_common.cpp",
     "src/napi_domain_account_manager.cpp",
     "src/napi_domain_account_module.cpp",
     "src/napi_domain_auth_callback.cpp",
+    "src/napi_domain_server_manager.cpp",
   ]
 
   defines = [
@@ -73,6 +75,9 @@ ohos_shared_library("domain_account_napi") {
     "napi:ace_napi",
   ]
 
+  if (!use_clang_coverage) {
+    version_script = "libnapi_account_innerkits.map"
+  }
   subsystem_name = "account"
 
   innerapi_tags = [ "platformsdk" ]

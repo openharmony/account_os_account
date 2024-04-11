@@ -43,6 +43,9 @@ public:
     ErrCode GetAccessToken(const DomainAccountInfo &info, const AAFwk::WantParams &parameters,
         const sptr<IDomainAccountCallback> &callback) override;
     ErrCode GetDomainAccountInfo(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback) override;
+    ErrCode AddServerConfig(const std::string &paramter, DomainServerConfig &config) override;
+    ErrCode RemoveServerConfig(const std::string &configId) override;
+    ErrCode GetAccountServerConfig(const DomainAccountInfo &info, DomainServerConfig &config) override;
 
 private:
     ErrCode SendRequest(DomainAccountInterfaceCode code, MessageParcel &data, MessageParcel &reply);

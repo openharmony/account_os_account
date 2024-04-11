@@ -21,6 +21,9 @@ config("tools_acm_config") {
     "ACCOUNT_LOG_TAG = \"AccountTool\"",
     "LOG_DOMAIN = 0xD001B00",
   ]
+  if (target_cpu == "arm64") {
+    defines += [ "_ARM64_" ]
+  }
 }
 
 ohos_source_set("tools_acm_source_set") {
