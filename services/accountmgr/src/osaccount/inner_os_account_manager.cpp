@@ -842,7 +842,7 @@ ErrCode IInnerOsAccountManager::IsOsAccountActived(const int id, bool &isOsAccou
         isOsAccountActived = true;
         return ERR_OK;
     }
-    isOsAccountActived = IsOsAccountIDInActiveList(id);
+    isOsAccountActived = osAccountInfo.GetIsActived();
     return ERR_OK;
 }
 
@@ -1206,12 +1206,6 @@ ErrCode IInnerOsAccountManager::QueryOsAccountById(const int id, OsAccountInfo &
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
 
-    if (IsOsAccountIDInActiveList(id)) {
-        osAccountInfo.SetIsActived(true);
-    } else {
-        osAccountInfo.SetIsActived(false);
-    }
-
     if (osAccountInfo.GetPhoto() != "") {
         std::string photo = osAccountInfo.GetPhoto();
         errCode = osAccountControl_->GetPhotoById(osAccountInfo.GetLocalId(), photo);
@@ -1363,18 +1357,13 @@ ErrCode IInnerOsAccountManager::SetOsAccountProfilePhoto(const int id, const std
     }
     errCode = osAccountControl_->SetPhotoById(id, photo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("set photo by id error, errCode %{public}d.", errCode);
+        ACCOUNT_LOGE("Set photo error, code=%{public}d, id=%{public}d.", errCode, id);
         return errCode;
     }
-    auto sizeType = photo.find(Constants::USER_PHOTO_BASE_JPG_HEAD);
-    if (sizeType == std::string::npos) {
-        osAccountInfo.SetPhoto(Constants::USER_PHOTO_FILE_PNG_NAME);
-    } else {
-        osAccountInfo.SetPhoto(Constants::USER_PHOTO_FILE_JPG_NAME);
-    }
+    osAccountInfo.SetPhoto(Constants::USER_PHOTO_FILE_TXT_NAME);
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("update osaccount info error %{public}d, id: %{public}d", errCode, osAccountInfo.GetLocalId());
+        ACCOUNT_LOGE("Update osaccount info faile code=%{public}d, id=%{public}d", errCode, osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
     OsAccountInterface::PublishCommonEvent(
