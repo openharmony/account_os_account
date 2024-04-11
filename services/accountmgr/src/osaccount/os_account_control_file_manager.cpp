@@ -413,10 +413,8 @@ ErrCode OsAccountControlFileManager::GetOsAccountList(std::vector<OsAccountInfo>
     std::vector<std::string> idList;
     OHOS::AccountSA::GetDataByType<std::vector<std::string>>(
         accountListJson, jsonObjectEnd, Constants::ACCOUNT_LIST, idList, OHOS::AccountSA::JsonType::ARRAY);
-    if (idList.empty()) {
-        return ERR_OK;
-    }
-    for (auto it : idList) {
+
+    for (const auto& it : idList) {
         OsAccountInfo osAccountInfo;
         if (GetOsAccountInfoById(std::atoi(it.c_str()), osAccountInfo) == ERR_OK) {
             if (osAccountInfo.GetPhoto() != "") {
@@ -1439,6 +1437,10 @@ ErrCode OsAccountControlFileManager::IsOsAccountExists(const int id, bool &isExi
 
 ErrCode OsAccountControlFileManager::GetPhotoById(const int id, std::string &photo)
 {
+    if ((photo != Constants::USER_PHOTO_FILE_JPG_NAME) && (photo != Constants::USER_PHOTO_FILE_PNG_NAME)
+        && (photo != Constants::USER_PHOTO_FILE_TXT_NAME)) {
+        return ERR_OK;
+    }
     std::string path =
         Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(id) + Constants::PATH_SEPARATOR + photo;
     std::string byteStr = "";
@@ -1447,6 +1449,11 @@ ErrCode OsAccountControlFileManager::GetPhotoById(const int id, std::string &pho
         ACCOUNT_LOGE("GetPhotoById cannot find photo file error");
         return errCode;
     }
+    if (photo == Constants::USER_PHOTO_FILE_TXT_NAME) {
+        photo = byteStr;
+        return ERR_OK;
+    }
+    // USER_PHOTO_FILE_JPG_NAME and USER_PHOTO_FILE_PNG_NAME are compatible with previous data
     if (photo == Constants::USER_PHOTO_FILE_JPG_NAME) {
         photo =
             Constants::USER_PHOTO_BASE_JPG_HEAD + osAccountPhotoOperator_->EnCode(byteStr.c_str(), byteStr.length());
@@ -1463,22 +1470,9 @@ ErrCode OsAccountControlFileManager::GetPhotoById(const int id, std::string &pho
 
 ErrCode OsAccountControlFileManager::SetPhotoById(const int id, const std::string &photo)
 {
-    std::string path = "";
-    std::string subPhoto = "";
-    if (photo.find(Constants::USER_PHOTO_BASE_JPG_HEAD) != std::string::npos) {
-        path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(id) + Constants::PATH_SEPARATOR +
-               Constants::USER_PHOTO_FILE_JPG_NAME;
-        subPhoto = photo.substr(std::strlen(Constants::USER_PHOTO_BASE_JPG_HEAD));
-    } else if (photo.find(Constants::USER_PHOTO_BASE_PNG_HEAD) != std::string::npos) {
-        path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(id) + Constants::PATH_SEPARATOR +
-               Constants::USER_PHOTO_FILE_PNG_NAME;
-        subPhoto = photo.substr(std::strlen(Constants::USER_PHOTO_BASE_PNG_HEAD));
-    } else {
-        ACCOUNT_LOGE("SetPhotoById photo str error");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-    std::string bytePhoto = osAccountPhotoOperator_->DeCode(subPhoto);
-    ErrCode errCode = accountFileOperator_->InputFileByPathAndContent(path, bytePhoto);
+    std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(id)
+        + Constants::PATH_SEPARATOR + Constants::USER_PHOTO_FILE_TXT_NAME;
+    ErrCode errCode = accountFileOperator_->InputFileByPathAndContent(path, photo);
     if (errCode != ERR_OK) {
         return errCode;
     }
