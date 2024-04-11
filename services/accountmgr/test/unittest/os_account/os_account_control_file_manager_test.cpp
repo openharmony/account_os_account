@@ -377,7 +377,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest018, Te
     OsAccountInfo osAccountInfo(id, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
     g_controlManager->InsertOsAccount(osAccountInfo);
     EXPECT_EQ(g_controlManager->SetPhotoById(id, STRING_PHOTO), ERR_OK);
-    std::string photo = Constants::USER_PHOTO_FILE_JPG_NAME;
+    std::string photo = Constants::USER_PHOTO_FILE_TXT_NAME;
     EXPECT_EQ(g_controlManager->GetPhotoById(id, photo), ERR_OK);
     EXPECT_EQ(photo, STRING_PHOTO);
     g_controlManager->DelOsAccount(id);
@@ -395,7 +395,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest019, Te
     g_controlManager->GetAllowCreateId(id);
     OsAccountInfo osAccountInfo(id, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
     g_controlManager->InsertOsAccount(osAccountInfo);
-    EXPECT_NE(g_controlManager->SetPhotoById(id, STRING_ERR_PHOTO), ERR_OK);
+    EXPECT_EQ(g_controlManager->SetPhotoById(id, STRING_ERR_PHOTO), ERR_OK);
     g_controlManager->DelOsAccount(id);
 }
 
@@ -541,10 +541,10 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest023,
     EXPECT_EQ(ret, true);
     // recover permission
     if (chmod(Constants::ACCOUNT_LIST_FILE_JSON_PATH.c_str(), S_IRUSR | S_IWUSR) != 0) {
-        ACCOUNT_LOGE("OsAccountManagerModuleTest006, chmod failed! errno %{public}d.", errno);
+        ACCOUNT_LOGE("OsAccountControlFileManagerCovTest023, chmod failed! errno %{public}d.", errno);
     }
     if (chown(Constants::ACCOUNT_LIST_FILE_JSON_PATH.c_str(), ACCOUNT_UID, ACCOUNT_GID) != 0) {
-        ACCOUNT_LOGE("OsAccountManagerModuleTest006, chown failed! errno %{public}d.", errno);
+        ACCOUNT_LOGE("OsAccountControlFileManagerCovTest023, chown failed! errno %{public}d.", errno);
     }
 }
 
@@ -736,7 +736,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest030,
     int id = 0;
     std::string photo;
     ErrCode ret = g_controlManager->GetPhotoById(id, photo);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_FILE_FIND_FILE_ERROR);
+    EXPECT_EQ(ret, ERR_OK);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

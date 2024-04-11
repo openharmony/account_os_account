@@ -41,6 +41,7 @@ const std::string SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH =
     USER_INFO_BASE + PATH_SEPARATOR + "specific_os_account_constraints.json";
 const char USER_PHOTO_FILE_PNG_NAME[] = "fase.png";
 const char USER_PHOTO_FILE_JPG_NAME[] = "fase.jpg";
+const char USER_PHOTO_FILE_TXT_NAME[] = "photo.txt";
 const char USER_PHOTO_BASE_JPG_HEAD[] = "data:image/jpeg;base64,";
 const char USER_PHOTO_BASE_PNG_HEAD[] = "data:image/png;base64,";
 const char USER_INFO_FILE_NAME[] = "account_info.json";
@@ -66,7 +67,7 @@ const std::int32_t MAX_SYSTEM_UID_NUM = 2899;
 const int SUBSCRIBER_MAX_SIZE = 100;
 // account restrict
 const unsigned int LOCAL_NAME_MAX_SIZE = 1024;
-const unsigned int LOCAL_PHOTO_MAX_SIZE = 1024 * 4;
+const unsigned int LOCAL_PHOTO_MAX_SIZE = 1024 * 1024 * 10;
 const uint32_t SHORT_NAME_MAX_SIZE = 255;
 
 // domain info limits
