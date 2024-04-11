@@ -34,6 +34,12 @@ DomainAccountInfo::DomainAccountInfo(
     : domain_(domain), accountName_(domainAccountName), accountId_(accountId)
 {}
 
+DomainAccountInfo::DomainAccountInfo(const std::string &domain, const std::string &domainAccountName,
+    const std::string &accountId, const bool &isAuthed, const std::string &serverConfigId)
+    : domain_(domain), accountName_(domainAccountName), accountId_(accountId), isAuthenticated(isAuthed),
+    serverConfigId_(serverConfigId)
+{}
+
 void DomainAccountInfo::Clear()
 {
     domain_.clear();
@@ -55,6 +61,14 @@ bool DomainAccountInfo::ReadFromParcel(Parcel &parcel)
         ACCOUNT_LOGE("failed to read domain accountId");
         return false;
     }
+    if (!parcel.ReadBool(isAuthenticated)) {
+        ACCOUNT_LOGE("Failed to read domain isAuthenticated.");
+        return false;
+    }
+    if (!parcel.ReadString(serverConfigId_)) {
+        ACCOUNT_LOGE("Failed to read domain serverConfigId.");
+        return false;
+    }
     return true;
 }
 
@@ -70,6 +84,14 @@ bool DomainAccountInfo::Marshalling(Parcel &parcel) const
     }
     if (!parcel.WriteString(accountId_)) {
         ACCOUNT_LOGE("failed to read write accountId");
+        return false;
+    }
+    if (!parcel.WriteBool(isAuthenticated)) {
+        ACCOUNT_LOGE("Failed to read write isAuthenticated.");
+        return false;
+    }
+    if (!parcel.WriteString(serverConfigId_)) {
+        ACCOUNT_LOGE("Failed to read write serverConfigId.");
         return false;
     }
     return true;
@@ -185,6 +207,64 @@ GetDomainAccountInfoOptions *GetDomainAccountInfoOptions::Unmarshalling(Parcel &
     }
 
     return getAccountInfoOptions;
+}
+
+DomainServerConfig::DomainServerConfig()
+{}
+
+DomainServerConfig::DomainServerConfig(const std::string &parameters, const std::string &id)
+    :parameters_(parameters), id_(id)
+{}
+DomainServerConfig::DomainServerConfig(const std::string &parameters, const std::string &id, const std::string &domain)
+    :parameters_(parameters), id_(id), domain_(domain)
+{}
+
+bool DomainServerConfig::ReadFromParcel(Parcel &parcel)
+{
+    if (!parcel.ReadString(parameters_)) {
+        ACCOUNT_LOGE("Failed to read parameters.");
+        return false;
+    }
+    if (!parcel.ReadString(id_)) {
+        ACCOUNT_LOGE("Failed to read id.");
+        return false;
+    }
+    if (!parcel.ReadString(domain_)) {
+        ACCOUNT_LOGE("Failed to read domain.");
+        return false;
+    }
+    return true;
+}
+
+bool DomainServerConfig::Marshalling(Parcel &parcel) const
+{
+    if (!parcel.WriteString(parameters_)) {
+        ACCOUNT_LOGE("Failed to write param.");
+        return false;
+    }
+    if (!parcel.WriteString(id_)) {
+        ACCOUNT_LOGE("Failed to write id.");
+        return false;
+    }
+    if (!parcel.WriteString(domain_)) {
+        ACCOUNT_LOGE("Failed to write domain.");
+        return false;
+    }
+    return true;
+}
+
+DomainServerConfig *DomainServerConfig::Unmarshalling(Parcel &parcel)
+{
+    DomainServerConfig *domainServerConfig = new (std::nothrow) DomainServerConfig();
+    if (domainServerConfig == nullptr) {
+        return nullptr;
+    }
+    if (!domainServerConfig->ReadFromParcel(parcel)) {
+        ACCOUNT_LOGE("Failed to read from parcel.");
+        delete domainServerConfig;
+        domainServerConfig = nullptr;
+    }
+    return domainServerConfig;
 }
 
 bool AuthStatusInfo::ReadFromParcel(Parcel &parcel)
