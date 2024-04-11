@@ -45,6 +45,9 @@ public:
         const sptr<IDomainAccountCallback> &callback) = 0;
     virtual ErrCode GetDomainAccountInfo(
         const DomainAccountInfo &Info, const sptr<IDomainAccountCallback> &callback) = 0;
+    virtual ErrCode AddServerConfig(const std::string &paramter, DomainServerConfig &config) = 0;
+    virtual ErrCode RemoveServerConfig(const std::string &configId) = 0;
+    virtual ErrCode GetAccountServerConfig(const DomainAccountInfo &info, DomainServerConfig &config) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

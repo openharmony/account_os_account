@@ -120,3 +120,21 @@ HWTEST_F(DomainAccountCommonModuleTest, DomainAccountCommonModuleTest_AuthStatus
     std::shared_ptr<AuthStatusInfo> authStatusInfoPtr(result);
     EXPECT_EQ(authStatusInfoPtr->remainingTimes, REMAINING_TIMES);
 }
+
+/**
+ * @tc.name: DomainAccountCommonModuleTest_DomainServerConfig_001
+ * @tc.desc: DomainServerConfig Marshalling successfully.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountCommonModuleTest, DomainAccountCommonModuleTest_DomainServerConfig_001, TestSize.Level0)
+{
+    std::string parameters;
+    string id = STRING_DOMAIN_NEW;
+    DomainServerConfig config(parameters, id);
+    Parcel parcel;
+    config.Marshalling(parcel);
+    DomainServerConfig *result = config.Unmarshalling(parcel);
+    std::shared_ptr<DomainServerConfig> infoPtr(result);
+    EXPECT_EQ(infoPtr->id_, STRING_DOMAIN_NEW);
+}

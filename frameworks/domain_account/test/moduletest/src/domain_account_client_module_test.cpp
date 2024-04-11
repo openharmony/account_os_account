@@ -1844,3 +1844,22 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetDomainA
     EXPECT_EQ(DomainAccountClient::GetInstance().GetDomainAccountInfo(info, callback),
         ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_AddServerConfig_001
+ * @tc.desc: AddServerConfig.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AddServerConfig_001, TestSize.Level0)
+{
+    DomainServerConfig config;
+    std::string identifier;
+    DomainAccountInfo info;
+    EXPECT_EQ(DomainAccountClient::GetInstance().AddServerConfig(identifier, config),
+        ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccountServerConfig(info, config),
+        ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(DomainAccountClient::GetInstance().RemoveServerConfig(identifier),
+        ERR_JS_CAPABILITY_NOT_SUPPORTED);
+}

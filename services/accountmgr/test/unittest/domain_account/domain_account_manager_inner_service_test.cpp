@@ -485,5 +485,174 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     EXPECT_EQ(InnerDomainAccountManager::GetInstance().StartAuth(
         pluginService, domainInfo, authData, callbackService, AUTH_MODE_END), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
+
+/**
+ * @tc.name: DomainAccountManagerInnerServiceTest025
+ * @tc.desc: LoaderLib CloseLib.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest025, TestSize.Level0)
+{
+    InnerDomainAccountManager *instance = new (std::nothrow) InnerDomainAccountManager();
+    instance->libHandle_ = nullptr;
+    std::string rightPath = "/rightPath/";
+    std::string rightSoName = "right.z.so";
+    //LoadLib success
+    instance->LoaderLib(rightPath, rightSoName);
+    EXPECT_NE(instance->libHandle_, nullptr);
+    //CloseLib path
+    instance->CloseLib();
+    EXPECT_EQ(instance->libHandle_, nullptr);
+    //CloseLib path libHandle_ nullper
+    instance->CloseLib();
+    EXPECT_EQ(instance->libHandle_, nullptr);
+    //empty libName
+    instance->LoaderLib(rightPath, "");
+    EXPECT_EQ(instance->libHandle_, nullptr);
+    //error path
+    instance->LoaderLib("/", rightSoName);
+    EXPECT_EQ(instance->libHandle_, nullptr);
+    //error libName
+    std::string errorlibName = "error.z.so";
+    instance->LoaderLib(rightPath, errorlibName);
+    EXPECT_EQ(instance->libHandle_, nullptr);
+    //not legal so
+    std::string notLegalLibName = "leg.z.so";
+    instance->LoaderLib(rightPath, notLegalLibName);
+    EXPECT_EQ(instance->libHandle_, nullptr);
+    //empty path
+    instance->LoaderLib("", rightSoName);
+    EXPECT_NE(instance->libHandle_, nullptr);
+    //clear
+    instance->CloseLib();
+}
+
+/**
+ * @tc.name: DomainAccountManagerInnerServiceTest026
+ * @tc.desc: AddServerConfig.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest026, TestSize.Level0)
+{
+    InnerDomainAccountManager *instance = new (std::nothrow) InnerDomainAccountManager();
+    DomainServerConfig config;
+    std::string identifier;
+    //libHandle_ is null
+    EXPECT_EQ(instance->AddServerConfig(identifier, config), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    DomainAccountInfo info;
+    EXPECT_EQ(instance->GetAccountServerConfig(info, config), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    std::string configId = STRING_TEST_NAME;
+    EXPECT_EQ(instance->RemoveServerConfig(configId), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    std::vector<uint8_t> password;
+    DomainAuthResult resultParcel;
+    EXPECT_EQ(instance->PluginAuth(info, password, resultParcel), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(instance->PluginBindAccount(info, 100, resultParcel), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(instance->PluginUnBindAccount(info, resultParcel), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    int32_t isVaild;
+    EXPECT_EQ(instance->PluginIsAccountTokenValid(info, password, isVaild), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    GetAccessTokenOptions option;
+    EXPECT_EQ(instance->PluginGetAccessToken(option, password, info, resultParcel),
+        ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(instance->PluginAuthWithPopup(info, resultParcel), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(instance->PluginAuthToken(info, password, resultParcel), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    AuthStatusInfo authInfo;
+    EXPECT_EQ(instance->PluginGetAuthStatusInfo(info, authInfo), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    GetDomainAccountInfoOptions options;
+    EXPECT_EQ(instance->PluginGetDomainAccountInfo(options, info), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+}
+
+/**
+ * @tc.name: DomainAccountManagerInnerServiceTest027
+ * @tc.desc: AddServerConfig.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest027, TestSize.Level0)
+{
+    InnerDomainAccountManager *instance = new (std::nothrow) InnerDomainAccountManager();
+    DomainServerConfig config;
+    std::string identifier;
+    DomainAccountInfo info;
+    std::string configId = STRING_TEST_NAME;
+    std::vector<uint8_t> password;
+    DomainAuthResult resultParcel;
+    int32_t isVaild;
+    GetAccessTokenOptions option;
+    AuthStatusInfo authInfo;
+    GetDomainAccountInfoOptions options;
+    std::string rightPath = "/rightPath/";
+    std::string rightSoName = "right.z.so";
+    //LoadLib success
+    instance->LoaderLib(rightPath, rightSoName);
+    info.accountId_ = STRING_TEST_NAME;
+    info.domain_ = STRING_TEST_NAME;
+    info.accountName_ = STRING_TEST_NAME;
+    info.serverConfigId_ = STRING_TEST_NAME;
+    info.isAuthenticated = 0;
+    EXPECT_EQ(instance->AddServerConfig(identifier, config), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    EXPECT_EQ(instance->GetAccountServerConfig(info, config), ERR_OK);
+    EXPECT_EQ(instance->RemoveServerConfig(configId), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    EXPECT_EQ(instance->PluginAuth(info, password, resultParcel), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    EXPECT_EQ(instance->PluginBindAccount(info, 100, resultParcel), ERR_OK);
+    EXPECT_EQ(instance->PluginUnBindAccount(info, resultParcel), ERR_OK);
+    password.push_back(0);
+    EXPECT_EQ(instance->PluginIsAccountTokenValid(info, password, isVaild), ERR_OK);
+    EXPECT_EQ(instance->PluginGetAccessToken(option, password, info, resultParcel), ERR_OK);
+    option.callingUid_ = 1;
+    EXPECT_EQ(instance->PluginGetAccessToken(option, password, info, resultParcel), ERR_OK);
+    EXPECT_EQ(instance->PluginAuthWithPopup(info, resultParcel), ERR_OK);
+    EXPECT_EQ(instance->PluginAuthToken(info, password, resultParcel), ERR_OK);
+    EXPECT_EQ(instance->PluginGetAuthStatusInfo(info, authInfo), ERR_OK);
+    EXPECT_EQ(instance->PluginGetDomainAccountInfo(options, info), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+}
+
+/**
+ * @tc.name: DomainAccountManagerInnerServiceTest028
+ * @tc.desc: AddServerConfig.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest028, TestSize.Level0)
+{
+    InnerDomainAccountManager *instance = new (std::nothrow) InnerDomainAccountManager();
+    DomainServerConfig config;
+    std::string identifier;
+    DomainAccountInfo info;
+    std::string configId = STRING_TEST_NAME;
+    std::vector<uint8_t> password;
+    DomainAuthResult resultParcel;
+    int32_t isVaild;
+    GetAccessTokenOptions option;
+    AuthStatusInfo authInfo;
+    GetDomainAccountInfoOptions options;
+    std::string rightPath = "/rightPath/";
+    std::string rightSoName = "right.z.so";
+    //LoadLib success
+    instance->LoaderLib(rightPath, rightSoName);
+    info.accountId_ = STRING_TEST_NAME;
+    info.domain_ = STRING_TEST_NAME;
+    info.accountName_ = STRING_TEST_NAME;
+    info.serverConfigId_ = STRING_TEST_NAME;
+    info.isAuthenticated = 0;
+    password.push_back(0);
+    option.callingUid_ = 1;
+    instance->methodMap.clear();
+    EXPECT_EQ(instance->AddServerConfig(identifier, config), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(instance->GetAccountServerConfig(info, config), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(instance->RemoveServerConfig(configId), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(instance->PluginAuth(info, password, resultParcel), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(instance->PluginBindAccount(info, 100, resultParcel), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(instance->PluginUnBindAccount(info, resultParcel), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(instance->PluginIsAccountTokenValid(info, password, isVaild),
+        ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(instance->PluginGetAccessToken(option, password, info, resultParcel),
+        ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(instance->PluginAuthWithPopup(info, resultParcel), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(instance->PluginAuthToken(info, password, resultParcel), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(instance->PluginGetAuthStatusInfo(info, authInfo), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(instance->PluginGetDomainAccountInfo(options, info), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

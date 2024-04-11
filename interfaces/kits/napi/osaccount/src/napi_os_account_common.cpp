@@ -522,6 +522,10 @@ static bool ParseDomainAccountInfo(napi_env env, napi_value object, DomainAccoun
             }
         }
     }
+    if (!GetOptionalStringPropertyByKey(env, object, "serverConfigId", info.serverConfigId_)) {
+        ACCOUNT_LOGE("Get domainInfo's serverConfigId failed");
+        return false;
+    }
     return true;
 }
 

@@ -17,6 +17,7 @@
 
 #include "napi_domain_account_manager.h"
 #include "napi_domain_auth_callback.h"
+#include "napi_domain_server_manager.h"
 
 namespace OHOS {
 namespace AccountJsKit {
@@ -24,6 +25,7 @@ napi_value DomainAccountInit(napi_env env, napi_value exports)
 {
     NapiDomainAuthCallback::Init(env, exports);
     NapiDomainAccountManager::Init(env, exports);
+    NapiDomainServerConfigManager::Init(env, exports);
     return exports;
 }
 }  // namespace AccountJsKit
