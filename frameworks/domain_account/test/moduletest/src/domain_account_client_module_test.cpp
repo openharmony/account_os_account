@@ -334,7 +334,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
     auto callback = std::make_shared<MockDomainAuthCallback>();
     ASSERT_NE(callback, nullptr);
     EXPECT_CALL(*callback,
-        OnResult(ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST), _)).Times(Exactly(1));
+        OnResult(ERR_JS_CAPABILITY_NOT_SUPPORTED, _)).Times(Exactly(1));
     auto testCallback = std::make_shared<TestDomainAuthCallback>(callback);
     ASSERT_NE(testCallback, nullptr);
     EXPECT_EQ(
@@ -1823,7 +1823,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetDomainA
     ASSERT_NE(callback, nullptr);
     auto testCallback = std::make_shared<TestGetDomainAccountInfoCallback>(callback);
     ASSERT_NE(testCallback, nullptr);
-    EXPECT_CALL(*callback, OnResult(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, _)).Times(Exactly(1));
+    EXPECT_CALL(*callback, OnResult(ERR_JS_CAPABILITY_NOT_SUPPORTED, _)).Times(Exactly(1));
     EXPECT_EQ(DomainAccountClient::GetInstance().GetDomainAccountInfo(info, testCallback), ERR_OK);
 }
 

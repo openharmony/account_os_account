@@ -52,7 +52,8 @@ public:
     DomainAccountInfo(const std::string &domain, const std::string &domainAccountName);
 
     DomainAccountInfo(const std::string &domain, const std::string &domainAccountName, const std::string &accountId);
-
+    DomainAccountInfo(const std::string &domain, const std::string &domainAccountName, const std::string &accountId,
+        const bool &isAuthed, const std::string &serverConfigId);
     void Clear();
 
 public:
@@ -61,6 +62,7 @@ public:
     std::string accountId_;
     DomainAccountStatus status_ = DomainAccountStatus::LOG_END;
     bool isAuthenticated = false;
+    std::string serverConfigId_;
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
     static DomainAccountInfo *Unmarshalling(Parcel &parcel);
@@ -77,6 +79,20 @@ public:
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
     static GetAccessTokenOptions *Unmarshalling(Parcel &parcel);
+};
+
+class DomainServerConfig : public Parcelable {
+public:
+    DomainServerConfig();
+    DomainServerConfig(const std::string &parameters, const std::string &id);
+    DomainServerConfig(const std::string &parameters, const std::string &id, const std::string &domain);
+public:
+    std::string parameters_;
+    std::string id_;
+    std::string domain_;
+    bool ReadFromParcel(Parcel &parcel);
+    bool Marshalling(Parcel &parcel) const override;
+    static DomainServerConfig *Unmarshalling(Parcel &parcel);
 };
 
 struct GetDomainAccountInfoOptions : public Parcelable {

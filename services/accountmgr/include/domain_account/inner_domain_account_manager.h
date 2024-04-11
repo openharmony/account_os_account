@@ -22,6 +22,7 @@
 #include "domain_account_plugin_proxy.h"
 #include "domain_account_callback.h"
 #include "domain_account_callback_stub.h"
+#include "domain_plugin.h"
 #include "os_account_info.h"
 #include "want.h"
 
@@ -59,6 +60,11 @@ public:
     void NotifyDomainAccountEvent(
         int32_t userId, DomainAccountEvent event, DomainAccountStatus status, const DomainAccountInfo &info);
     ErrCode GetDomainAccountInfoByUserId(int32_t userId, DomainAccountInfo &domainInfo);
+    ErrCode AddServerConfig(const std::string &paremters, DomainServerConfig &config);
+    ErrCode RemoveServerConfig(const std::string &configId);
+    ErrCode GetAccountServerConfig(const DomainAccountInfo &info, DomainServerConfig &config);
+    void LoaderLib(const std::string &path, const std::string &libName);
+    void CloseLib();
 
 private:
     InnerDomainAccountManager();
@@ -83,12 +89,28 @@ private:
     ErrCode InnerAuth(int32_t userId, const std::vector<uint8_t> &authData,
         const sptr<IDomainAccountCallback> &callback, AuthMode authMode);
     ErrCode CheckUserToken(const std::vector<uint8_t> &token, bool &isValid, int32_t userId);
-
+    ErrCode PluginAuth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
+        DomainAuthResult &resultParcel);
+    ErrCode PluginGetDomainAccountInfo(const GetDomainAccountInfoOptions &options,
+        DomainAccountInfo &resultParcel);
+    ErrCode PluginAuthWithPopup(const DomainAccountInfo &info, DomainAuthResult &resultParcel);
+    ErrCode PluginAuthToken(const DomainAccountInfo &info,  const std::vector<uint8_t> &authData,
+        DomainAuthResult &resultParcel);
+    ErrCode PluginGetAuthStatusInfo(const DomainAccountInfo &info, AuthStatusInfo &resultParcel);
+    ErrCode PluginBindAccount(const DomainAccountInfo &info, const int32_t localId, DomainAuthResult &resultParcel);
+    ErrCode PluginUnBindAccount(const DomainAccountInfo &info, DomainAuthResult &resultParcel);
+    ErrCode PluginIsAccountTokenValid(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
+        int32_t &isValid);
+    ErrCode PluginGetAccessToken(const GetAccessTokenOptions &option,
+        const std::vector<uint8_t> &token, const DomainAccountInfo &info, DomainAuthResult &resultParcel);
 private:
     int32_t callingUid_ = -1;
     std::mutex mutex_;
+    std::mutex libMutex_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
     sptr<IDomainAccountPlugin> plugin_;
+    std::map<PluginMethodEnum, void*> methodMap;
+    void* libHandle_ = nullptr;
     std::map<int32_t, std::vector<uint8_t>> userTokenMap_;
 };
 

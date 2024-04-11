@@ -229,6 +229,9 @@
         "DomainAccountStatusListenerManager::GetListenerAllRecords()";
         "OHOS::AccountSA::DomainAccountInfo::DomainAccountInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::DomainAccountInfo::Clear()";
+        "VTT for OHOS::AccountSA::DomainServerConfig";
+        "OHOS::AccountSA::DomainServerConfig::Unmarshalling(OHOS::Parcel&)";
+        "OHOS::AccountSA::DomainServerConfig::DomainServerConfig()";
         "OHOS::AccountSA::DomainAccountCallbackService::DomainAccountCallbackService(std::__h::shared_ptr<OHOS::AccountSA::DomainAccountCallback> const&)";
         "OHOS::AccountSA::DomainAccountCallbackStub::DomainAccountCallbackStub()";
         "OHOS::AccountSA::DomainAccountCallbackStub::~DomainAccountCallbackStub()";

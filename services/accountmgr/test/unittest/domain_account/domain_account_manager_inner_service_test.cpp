@@ -24,6 +24,7 @@
 #include "domain_has_domain_info_callback.h"
 #include "inner_domain_account_manager.h"
 #undef private
+#include "os_account_manager.h"
 #include "mock_domain_account_callback_stub.h"
 #include "mock_domain_plugin.h"
 #include "mock_inner_os_account_manager.h"
@@ -190,8 +191,12 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     domainInfo.accountName_ = TEST_DOMAIN_ACCOUNT_NAME;
     domainInfo.domain_ = TEST_DOMAIN;
     domainInfo.accountId_ = TEST_ACCOUNT_ID;
-    EXPECT_EQ(InnerDomainAccountManager::GetInstance().GetAuthStatusInfo(domainInfo, nullptr),
-        ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+    int32_t res = InnerDomainAccountManager::GetInstance().GetAuthStatusInfo(domainInfo, nullptr);
+    if (InnerDomainAccountManager::GetInstance().plugin_ != nullptr) {
+        EXPECT_EQ(res, ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+    } else {
+        EXPECT_EQ(res, ERR_OK);
+    }
 }
 
 /**
@@ -324,8 +329,12 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
 HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest016, TestSize.Level1)
 {
     DomainAccountInfo info;
-    ASSERT_EQ(InnerDomainAccountManager::GetInstance().GetAuthStatusInfo(info, nullptr),
-        ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+    int32_t res = InnerDomainAccountManager::GetInstance().GetAuthStatusInfo(info, nullptr);
+    if (InnerDomainAccountManager::GetInstance().plugin_ != nullptr) {
+        EXPECT_EQ(res, ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+    } else {
+        EXPECT_EQ(res, ERR_OK);
+    }
 }
 
 /**
@@ -337,8 +346,12 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
 HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest017, TestSize.Level1)
 {
     DomainAccountInfo info;
-    ASSERT_EQ(InnerDomainAccountManager::GetInstance().GetAuthStatusInfo(info, nullptr),
-        ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+    int32_t res = InnerDomainAccountManager::GetInstance().GetAuthStatusInfo(info, nullptr);
+    if (InnerDomainAccountManager::GetInstance().plugin_ != nullptr) {
+        EXPECT_EQ(res, ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+    } else {
+        EXPECT_EQ(res, ERR_OK);
+    }
 }
 
 /**

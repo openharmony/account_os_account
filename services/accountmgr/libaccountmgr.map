@@ -266,10 +266,16 @@
         "OHOS::AccountSA::InnerDomainAccountManager::UnregisterAccountStatusListener(OHOS::AccountSA::DomainAccountInfo const&, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
         "OHOS::AccountSA::InnerDomainAccountManager::UnregisterAccountStatusListener(OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
         "OHOS::AccountSA::InnerDomainAccountManager::GetDomainAccountInfo(OHOS::AccountSA::DomainAccountInfo const&, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
+        "OHOS::AccountSA::InnerDomainAccountManager::AddServerConfig(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::DomainServerConfig&)";
+        "OHOS::AccountSA::InnerDomainAccountManager::RemoveServerConfig(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+        "OHOS::AccountSA::InnerDomainAccountManager::GetAccountServerConfig(OHOS::AccountSA::DomainAccountInfo const&, OHOS::AccountSA::DomainServerConfig&)";
         "OHOS::AccountSA::DomainAccountStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
         "OHOS::AccountSA::DomainAccountInfo::DomainAccountInfo()";
         "VTT for OHOS::AccountSA::DomainAccountInfo";
         "OHOS::AccountSA::DomainAccountInfo::Unmarshalling(OHOS::Parcel&)";
+        "VTT for OHOS::AccountSA::DomainServerConfig";
+        "OHOS::AccountSA::DomainServerConfig::Unmarshalling(OHOS::Parcel&)";
+        "OHOS::AccountSA::DomainServerConfig::DomainServerConfig()";
         "OHOS::AccountSA::DomainAccountCallbackProxy::DomainAccountCallbackProxy(OHOS::sptr<OHOS::IRemoteObject> const&)";
         "OHOS::AccountSA::DomainAuthCallbackProxy::DomainAuthCallbackProxy(OHOS::sptr<OHOS::IRemoteObject> const&)";
         "OHOS::AccountSA::DomainAuthCallbackService::DomainAuthCallbackService(std::__h::shared_ptr<OHOS::AccountSA::DomainAuthCallback> const&)";
