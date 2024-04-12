@@ -24,6 +24,7 @@
 #include "napi_account_common.h"
 #include "napi_account_error.h"
 #include "napi_common.h"
+#include "napi_domain_account_common.h"
 #include "napi_domain_auth_callback.h"
 
 namespace OHOS {
@@ -184,35 +185,6 @@ static bool ParseAuthStatusInfo(napi_env env, napi_value value, AuthStatusInfo &
         return false;
     }
     NAPI_CALL_BASE(env, napi_get_value_int32(env, napiFreezingTime, &info.freezingTime), false);
-    return true;
-}
-
-static bool ParseDomainAccountInfo(napi_env env, napi_value object, DomainAccountInfo &info)
-{
-    if (!GetStringPropertyByKey(env, object, "domain", info.domain_)) {
-        ACCOUNT_LOGE("get domainInfo's domain failed");
-        return false;
-    }
-    if (!GetStringPropertyByKey(env, object, "accountName", info.accountName_)) {
-        ACCOUNT_LOGE("get domainInfo's accountName failed");
-        return false;
-    }
-    bool hasProp = false;
-    napi_has_named_property(env, object, "accountId", &hasProp);
-    if (hasProp) {
-        napi_value value = nullptr;
-        napi_get_named_property(env, object, "accountId", &value);
-        napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, value, &valueType);
-        if ((valueType == napi_undefined) || (valueType == napi_null)) {
-            ACCOUNT_LOGI("the accountId is undefined or null");
-        } else {
-            if (!GetStringProperty(env, value, info.accountId_)) {
-                ACCOUNT_LOGE("get domainInfo's accountId failed");
-                return false;
-            }
-        }
-    }
     return true;
 }
 

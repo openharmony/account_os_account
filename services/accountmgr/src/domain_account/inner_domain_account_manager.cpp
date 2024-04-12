@@ -22,12 +22,14 @@
 #include <vector>
 #include "account_info_report.h"
 #include "account_log_wrapper.h"
+#include "bool_wrapper.h"
 #include "domain_account_plugin_death_recipient.h"
 #include "domain_account_callback_service.h"
 #include "domain_has_domain_info_callback.h"
 #include "idomain_account_callback.h"
 #include "iinner_os_account_manager.h"
 #include "inner_account_iam_manager.h"
+#include "int_wrapper.h"
 #include "ipc_skeleton.h"
 #include "status_listener_manager.h"
 #include "string_wrapper.h"
@@ -695,8 +697,10 @@ ErrCode InnerDomainAccountManager::PluginGetAccessToken(const GetAccessTokenOpti
     PluginUint8Vector *accessToken = nullptr;
     ACCOUNT_LOGD("Param params=%{public}s callerUid=%{public}d.", pOption.bussinessParams.data, pOption.callerUid);
     PluginBussnessError* error = (*reinterpret_cast<GetAccessTokenFunc>(iter->second))(&pOption, &accessToken);
-    GetAndCleanPluginUint8Vector(*accessToken, resultParcel.token);
-    free(accessToken);
+    if (accessToken != nullptr) {
+        GetAndCleanPluginUint8Vector(*accessToken, resultParcel.token);
+        free(accessToken);
+    }
     accessToken = nullptr;
     CleanPluginString(&(pOption.domainAccountInfo.domain.data), pOption.domainAccountInfo.domain.length);
     CleanPluginString(&(pOption.domainAccountInfo.serverConfigId.data),
@@ -1380,7 +1384,14 @@ ErrCode InnerDomainAccountManager::GetDomainAccountInfo(
         Parcel emptyParcel;
         DomainAccountInfo result;
         ErrCode err = PluginGetDomainAccountInfo(options, result);
-        if (!result.Marshalling(emptyParcel)) {
+        AAFwk::WantParams wParam;
+        wParam.SetParam("domain", OHOS::AAFwk::String::Box(result.domain_));
+        wParam.SetParam("accountName", OHOS::AAFwk::String::Box(result.accountName_));
+        wParam.SetParam("accountId", OHOS::AAFwk::String::Box(result.accountId_));
+        wParam.SetParam("serverConfigId", OHOS::AAFwk::String::Box(result.serverConfigId_));
+        wParam.SetParam("isAuthenticated", OHOS::AAFwk::Boolean::Box(result.isAuthenticated));
+        wParam.SetParam("status", OHOS::AAFwk::Integer::Box(result.status_));
+        if (!wParam.Marshalling(emptyParcel)) {
             ACCOUNT_LOGE("DomainAccountInfo marshalling failed.");
             err = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
         }

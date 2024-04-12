@@ -204,7 +204,6 @@ bool GetStringPropertyByKey(napi_env env, napi_value obj, const std::string &pro
 {
     napi_value value = nullptr;
     NAPI_CALL_BASE(env, napi_get_named_property(env, obj, propertyName.c_str(), &value), false);
-
     return GetStringProperty(env, value, property);
 }
 
@@ -471,6 +470,54 @@ bool InitUvWorkCallbackEnv(uv_work_t *work, napi_handle_scope &scope)
         return false;
     }
     return true;
+}
+
+bool JsObjectToNativeString(napi_env env, napi_value jsData, std::string &nativeData)
+{
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, jsData, &valueType);
+    if (valueType != napi_object) {
+        ACCOUNT_LOGI("The parameters is not object");
+        return false;
+    }
+    napi_value globalValue = nullptr;
+    napi_get_global(env, &globalValue);
+    napi_value jsonValue;
+    napi_get_named_property(env, globalValue, "JSON", &jsonValue);
+
+    napi_value stringifyValue = nullptr;
+    napi_get_named_property(env, jsonValue, "stringify", &stringifyValue);
+    napi_value funcArgv[1] = { jsData };
+    napi_value transValue = nullptr;
+    napi_call_function(env, jsonValue, stringifyValue, 1, funcArgv, &transValue);
+
+    if (!GetStringProperty(env, transValue, nativeData)) {
+        ACCOUNT_LOGE("Get native data failed");
+        std::string errMsg = "The type of arg 2 must be string";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, false);
+        return false;
+    }
+    return true;
+}
+
+napi_value NativeStringToJsObject(napi_env env, const std::string &nativeData)
+{
+    napi_value jsObjData = nullptr;
+    if (nativeData.empty()) {
+        napi_create_object(env, &jsObjData);
+        return jsObjData;
+    }
+    napi_value globalValue = nullptr;
+    napi_get_global(env, &globalValue);
+    napi_value jsonValue;
+    napi_get_named_property(env, globalValue, "JSON", &jsonValue);
+    napi_value parseValue = nullptr;
+    napi_get_named_property(env, jsonValue, "parse", &parseValue);
+    napi_value jsStringDate = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, nativeData.c_str(), NAPI_AUTO_LENGTH, &jsStringDate));
+    napi_value funcArgv[1] = { jsStringDate };
+    NAPI_CALL(env, napi_call_function(env, jsonValue, parseValue, 1, funcArgv, &jsObjData));
+    return jsObjData;
 }
 } // namespace AccountJsKit
 } // namespace OHOS

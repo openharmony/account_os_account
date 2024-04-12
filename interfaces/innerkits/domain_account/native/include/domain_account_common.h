@@ -62,7 +62,7 @@ public:
     std::string accountId_;
     DomainAccountStatus status_ = DomainAccountStatus::LOG_END;
     bool isAuthenticated = false;
-    std::string serverConfigId_;
+    std::string serverConfigId_ = "";
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
     static DomainAccountInfo *Unmarshalling(Parcel &parcel);
@@ -87,9 +87,9 @@ public:
     DomainServerConfig(const std::string &parameters, const std::string &id);
     DomainServerConfig(const std::string &parameters, const std::string &id, const std::string &domain);
 public:
-    std::string parameters_;
-    std::string id_;
-    std::string domain_;
+    std::string parameters_ = "";
+    std::string id_ = "";
+    std::string domain_ = "";
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
     static DomainServerConfig *Unmarshalling(Parcel &parcel);
