@@ -66,19 +66,20 @@ public:
     void SetState(int32_t userId, IAMState state);
     void GetChallenge(int32_t userId, std::vector<uint8_t> &challenge);
     ErrCode ActivateUserKey(int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret);
-    ErrCode UpdateUserKey(int32_t userId, uint64_t secureUid, uint64_t credentialId,
-        const std::vector<uint8_t> &token, const std::vector<uint8_t> &newSecret);
-    ErrCode RemoveUserKey(int32_t userId, const std::vector<uint8_t> &token);
+
     ErrCode UnlockUserScreen(int32_t userId);
     ErrCode GetLockScreenStatus(uint32_t userId, bool &lockScreenStatus);
     bool CheckDomainAuthAvailable(int32_t userId);
+    ErrCode UpdateStorageKey(int32_t userId, uint64_t secureUid, const std::vector<uint8_t> &token,
+        const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret);
+    ErrCode UpdateStorageKeyContext(const int32_t userId);
+    ErrCode UpdateStorageUserAuth(int32_t userId, uint64_t secureUid, const std::vector<uint8_t> &token,
+        const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret);
 
 private:
     InnerAccountIAMManager();
     ~InnerAccountIAMManager() = default;
     DISALLOW_COPY_AND_MOVE(InnerAccountIAMManager);
-    ErrCode UpdateStorageKey(int32_t userId, uint64_t secureUid, const std::vector<uint8_t> &token,
-        const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret);
     ErrCode GetStorageManagerProxy();
     ErrCode GetDomainAuthStatusInfo(
         int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback);

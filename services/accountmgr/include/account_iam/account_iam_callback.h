@@ -57,21 +57,6 @@ private:
     bool isAccountVerified_ = false;
 };
 
-class IDMAuthCallback : public AuthenticationCallback {
-public:
-    IDMAuthCallback(uint32_t userId, uint64_t credentialId, uint64_t secureUid, const sptr<IIDMCallback> &idmCallback);
-    virtual ~IDMAuthCallback() = default;
-
-    void OnResult(int32_t result, const Attributes &extraInfo) override;
-    void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override;
-
-private:
-    uint32_t userId_ = 0;
-    uint64_t credentialId_ = 0;
-    uint64_t secureUid_ = 0;
-    sptr<IIDMCallback> idmCallback_ = nullptr;
-};
-
 class IDMCallbackDeathRecipient : public IRemoteObject::DeathRecipient {
 public:
     IDMCallbackDeathRecipient(uint32_t userId);
@@ -116,9 +101,22 @@ private:
     const sptr<IIDMCallback> innerCallback_ = nullptr;
 };
 
+class CommitCredUpdateCallback : public UserIdmClientCallback {
+public:
+    CommitCredUpdateCallback(int32_t userId, const sptr<IIDMCallback> &callback);
+    virtual ~CommitCredUpdateCallback() = default;
+
+    void OnResult(int32_t result, const Attributes &extraInfo) override;
+    void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override;
+
+private:
+    int32_t userId_;
+    sptr<IIDMCallback> innerCallback_ = nullptr;
+};
+
 class DelCredCallback : public UserIdmClientCallback {
 public:
-    DelCredCallback(int32_t userId, bool isPIN, const sptr<IIDMCallback> &callback);
+    DelCredCallback(int32_t userId, bool isPIN, std::vector<uint8_t> token, const sptr<IIDMCallback> &callback);
     virtual ~DelCredCallback() = default;
 
     void OnResult(int32_t result, const Attributes &extraInfo) override;
@@ -127,6 +125,7 @@ public:
 private:
     int32_t userId_;
     bool isPIN_;
+    std::vector<uint8_t> token_;
     sptr<IIDMCallback> innerCallback_ = nullptr;
 };
 

@@ -40,6 +40,8 @@ namespace OHOS {
 namespace AccountTest {
 namespace {
     const int32_t TEST_USER_ID = 101;
+    const int32_t UPDATE_USER_ID = 102;
+    const int32_t UPDATE_FAIL_USER_ID = 103;
     const int32_t TEST_OTHER_ID = 112;
     const int32_t TEST_ID = 2222;
     const int32_t ERROR_STORAGE_KEY_NOT_EXIST = -2;
@@ -290,6 +292,12 @@ int32_t MockStorageMgrProxy::UpdateUserAuth(uint32_t userId, uint64_t secureUid,
                                             const std::vector<uint8_t> &newSecret)
 {
     const uint32_t dataSize = 4;
+    if (userId == UPDATE_USER_ID) {
+        return 0;
+    }
+    if (userId == UPDATE_FAIL_USER_ID) {
+        return -1;
+    }
     if (!g_fscryptEnable) {
         return 0;
     }
@@ -305,10 +313,64 @@ int32_t MockStorageMgrProxy::UpdateUserAuth(uint32_t userId, uint64_t secureUid,
     return 0;
 }
 
+class MockDeathRecipient : public IRemoteObject {
+public:
+    bool AddDeathRecipient(const sptr<DeathRecipient> &recipient) override;
+    int32_t GetObjectRefCount() override;
+    int SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
+    bool RemoveDeathRecipient(const sptr<DeathRecipient> &recipient) override;
+    int Dump(int fd, const std::vector<std::u16string> &args) override;
+};
+
+bool MockDeathRecipient::AddDeathRecipient(const sptr<DeathRecipient> &recipient)
+{
+    return true;
+}
+
+int32_t MockDeathRecipient::GetObjectRefCount()
+{
+    return 0;
+}
+
+int MockDeathRecipient::SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    return 0;
+}
+
+bool MockDeathRecipient::RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
+{
+    return true;
+}
+
+int MockDeathRecipient::Dump(int fd, const std::vector<std::u16string> &args)
+{
+    return 0;
+}
+
 class MockIIDMCallback : public IDMCallbackStub {
 public:
     MOCK_METHOD2(OnResult, void(int32_t result, const AccountSA::Attributes &extraInfo));
     MOCK_METHOD3(OnAcquireInfo, void(int32_t module, uint32_t acquireInfo, const AccountSA::Attributes &extraInfo));
+};
+
+class MockIIDMCallback2 : public IDMCallbackStub {
+public:
+    void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override
+    {
+        module_ = module;
+        acquireInfo_ = acquireInfo;
+        return;
+    }
+    void OnResult(int32_t result, const Attributes &extraInfo) override
+    {
+        result_ = result;
+        return;
+    }
+
+public:
+    int32_t result_ = -1;
+    int32_t module_ = 0;
+    uint32_t acquireInfo_ = 0;
 };
 
 class AccountIamManagerTest : public testing::Test {
@@ -589,45 +651,82 @@ HWTEST_F(AccountIamManagerTest, ActivateUserKey001, TestSize.Level2)
 }
 
 /**
- * @tc.name: UpdateUserKey001
- * @tc.desc: UpdateUserKey.
+ * @tc.name: UpdateStorageKey001
+ * @tc.desc: UpdateStorageKey.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamManagerTest, UpdateUserKey001, TestSize.Level2)
+HWTEST_F(AccountIamManagerTest, UpdateStorageKey001, TestSize.Level2)
 {
     uint64_t testCreId = 111;
     std::vector<uint8_t> testAuthToken = {1, 2, 3, 4};
     std::vector<uint8_t> testSecret = {1, 2, 3, 4};
+    std::vector<uint8_t> token = {};
     auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
     sptr<MockStorageMgrProxy> ptr = new (std::nothrow) MockStorageMgrProxy();
     ASSERT_NE(ptr, nullptr);
     innerIamMgr_.storageMgrProxy_ = ptr;
 
     int32_t res =
-        innerIamMgr_.UpdateUserKey(TEST_USER_ID, 0, testCreId, testAuthToken, testSecret);
+        innerIamMgr_.UpdateStorageKey(TEST_USER_ID, testCreId, token, testSecret, testSecret);
     EXPECT_EQ(g_fscryptEnable ? -2 : 0, res);
     innerIamMgr_.storageMgrProxy_ = nullptr;
 }
 
 /**
- * @tc.name: RemoveUserKey001
- * @tc.desc: RemoveUserKey.
+ * @tc.name: UpdateCredCallback_OnResult_0001
+ * @tc.desc: OnResult with not PIN.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamManagerTest, RemoveUserKey001, TestSize.Level2)
+HWTEST_F(AccountIamManagerTest, UpdateCredCallback_OnResult_0001, TestSize.Level0)
 {
-    int32_t userId = 2222;
-    std::vector<uint8_t> testAuthToken = {1, 2, 3, 4};
+    sptr<MockIIDMCallback2> callback = new (std::nothrow) MockIIDMCallback2();
+    CredentialParameters credInfo = {};
+    credInfo.authType = AuthType::PIN;
+    Attributes extraInfo;
+    auto updateCredCallback = std::make_shared<UpdateCredCallback>(UPDATE_USER_ID, credInfo, callback);
     auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
     sptr<MockStorageMgrProxy> ptr = new (std::nothrow) MockStorageMgrProxy();
     ASSERT_NE(ptr, nullptr);
     innerIamMgr_.storageMgrProxy_ = ptr;
 
-    int32_t res = innerIamMgr_.RemoveUserKey(TEST_OTHER_ID, testAuthToken);
-    EXPECT_EQ(g_fscryptEnable ? -2 : 0, res);
-    EXPECT_EQ(ERR_OK, innerIamMgr_.RemoveUserKey(userId, testAuthToken));
+    EXPECT_TRUE(updateCredCallback->innerCallback_ != nullptr);
+    int32_t errCode = 10;
+    updateCredCallback->OnResult(errCode, extraInfo);
+    EXPECT_EQ(errCode, callback->result_);
+    errCode = 0;
+    updateCredCallback->OnResult(errCode, extraInfo);
+    EXPECT_NE(errCode, callback->result_);
+    innerIamMgr_.storageMgrProxy_ = nullptr;
+}
+
+/**
+ * @tc.name: UpdateCredCallback_OnResult_0002
+ * @tc.desc: OnResult with not PIN.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamManagerTest, UpdateCredCallback_OnResult_0002, TestSize.Level0)
+{
+    sptr<MockIIDMCallback2> callback = new (std::nothrow) MockIIDMCallback2();
+    CredentialParameters credInfo = {};
+    credInfo.authType = AuthType::PIN;
+    Attributes extraInfo;
+    auto updateCredCallback = std::make_shared<UpdateCredCallback>(UPDATE_FAIL_USER_ID, credInfo, callback);
+    auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
+    sptr<MockStorageMgrProxy> ptr = new (std::nothrow) MockStorageMgrProxy();
+    ASSERT_NE(ptr, nullptr);
+    innerIamMgr_.storageMgrProxy_ = ptr;
+
+    EXPECT_TRUE(updateCredCallback->innerCallback_ != nullptr);
+    int32_t errCode = 0;
+    updateCredCallback->OnResult(errCode, extraInfo);
+    EXPECT_NE(errCode, callback->result_);
+
+    auto commitUpdateCredCallback = std::make_shared<CommitCredUpdateCallback>(UPDATE_FAIL_USER_ID, callback);
+    commitUpdateCredCallback->OnResult(errCode, extraInfo);
+    commitUpdateCredCallback->OnResult(1, extraInfo);
     innerIamMgr_.storageMgrProxy_ = nullptr;
 }
 }  // namespace AccountTest

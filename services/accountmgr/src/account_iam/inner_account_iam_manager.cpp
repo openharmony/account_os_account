@@ -129,16 +129,9 @@ void InnerAccountIAMManager::DelCred(
     }
     uint64_t pinCredentialId = 0;
     (void)IInnerOsAccountManager::GetInstance().GetOsAccountCredentialId(userId, pinCredentialId);
-    bool isPIN = false;
-    if ((pinCredentialId != 0) && (credentialId == pinCredentialId)) {
-        isPIN = true;
-        ErrCode result = RemoveUserKey(userId, authToken);
-        if (result != ERR_OK) {
-            callback->OnResult(result, emptyResult);
-            return;
-        }
-    }
-    auto idmCallback = std::make_shared<DelCredCallback>(userId, isPIN, callback);
+    bool isPIN = (pinCredentialId != 0) && (credentialId == pinCredentialId);
+
+    auto idmCallback = std::make_shared<DelCredCallback>(userId, isPIN, authToken, callback);
     UserIDMClient::GetInstance().DeleteCredential(userId, credentialId, authToken, idmCallback);
 }
 
@@ -155,12 +148,8 @@ void InnerAccountIAMManager::DelUser(
         callback->OnResult(ResultCode::INVALID_PARAMETERS, errResult);
         return;
     }
-    ErrCode result = RemoveUserKey(userId, authToken);
-    if (result != ERR_OK) {
-        callback->OnResult(result, errResult);
-        return;
-    }
-    auto idmCallback = std::make_shared<DelCredCallback>(userId, true, callback);
+
+    auto idmCallback = std::make_shared<DelCredCallback>(userId, true, authToken, callback);
     UserIDMClient::GetInstance().DeleteUser(userId, authToken, idmCallback);
 }
 
@@ -366,10 +355,59 @@ ErrCode InnerAccountIAMManager::UpdateStorageKey(
         ACCOUNT_LOGE("fail to update user auth");
         return result;
     }
-    return storageMgrProxy_->UpdateKeyContext(userId);
+
+    result = storageMgrProxy_->UpdateKeyContext(userId);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Fail to update key context, userId=%{public}d, result=%{public}d", userId, result);
+        ReportOsAccountOperationFail(userId, "updateStorageKeyContext", result,
+            "Failed to notice storage update key context");
+    }
+    return result;
 #else
     return ERR_OK;
 #endif
+}
+
+ErrCode InnerAccountIAMManager::UpdateStorageKeyContext(const int32_t userId)
+{
+    ACCOUNT_LOGI("Enter, userId=%{public}d", userId);
+#ifdef HAS_STORAGE_PART
+    ErrCode code = GetStorageManagerProxy();
+    if (code != ERR_OK) {
+        ACCOUNT_LOGE("Fail to get storage proxy");
+        return code;
+    }
+    code = storageMgrProxy_->UpdateKeyContext(userId);
+    if (code != ERR_OK) {
+        ACCOUNT_LOGE("Fail to update key context, userId=%{public}d, code=%{public}d", userId, code);
+        ReportOsAccountOperationFail(userId, "updateStorageKeyContext", code,
+            "Failed to notice storage update key context");
+        return code;
+    }
+#endif
+    return ERR_OK;
+}
+
+ErrCode InnerAccountIAMManager::UpdateStorageUserAuth(int32_t userId, uint64_t secureUid,
+    const std::vector<uint8_t> &token, const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret)
+{
+    ACCOUNT_LOGI("Enter, userId=%{public}d", userId);
+#ifdef HAS_STORAGE_PART
+    ErrCode code = GetStorageManagerProxy();
+    if (code != ERR_OK) {
+        ACCOUNT_LOGE("Fail to get storage proxy");
+        return code;
+    }
+
+    code = storageMgrProxy_->UpdateUserAuth(userId, secureUid, token, oldSecret, newSecret);
+    if ((code != ERR_OK) && (code != ERROR_STORAGE_KEY_NOT_EXIST)) {
+        ACCOUNT_LOGE("Fail to update user auth, userId=%{public}d, code=%{public}d", userId, code);
+        ReportOsAccountOperationFail(userId, "updateStorageUserAuth", code,
+            "Failed to notice storage update user auth");
+        return code;
+    }
+#endif
+    return ERR_OK;
 }
 
 ErrCode InnerAccountIAMManager::GetLockScreenStatus(uint32_t userId, bool &lockScreenStatus)
@@ -422,65 +460,9 @@ ErrCode InnerAccountIAMManager::ActivateUserKey(
     }
     storageMgrProxy_->PrepareStartUser(userId);
 #endif
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto it = credInfoMap_.find(userId);
-    if (it != credInfoMap_.end()) {
-        it->second.secret = secret;
-    } else {
-        credInfoMap_[userId] = {
-            .secret = secret
-        };
-    }
     return ERR_OK;
 }
 
-ErrCode InnerAccountIAMManager::UpdateUserKey(int32_t userId, uint64_t secureUid, uint64_t credentialId,
-    const std::vector<uint8_t> &token, const std::vector<uint8_t> &newSecret)
-{
-    ErrCode result = ERR_OK;
-    AccountCredentialInfo oldCredInfo;
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto it = credInfoMap_.find(userId);
-    if (it != credInfoMap_.end()) {
-        oldCredInfo = it->second;
-    }
-    result = UpdateStorageKey(userId, secureUid, token, oldCredInfo.secret, newSecret);
-    if (result != ERR_OK) {
-        ReportOsAccountOperationFail(userId, "updateUserKey", result, "failed to notice storage to update user key");
-        return result;
-    }
-    credInfoMap_[userId] = {
-        .oldSecureUid = oldCredInfo.secureUid,
-        .secureUid = secureUid,
-        .oldSecret = oldCredInfo.secret,
-        .secret = newSecret
-    };
-    return result;
-}
-
-ErrCode InnerAccountIAMManager::RemoveUserKey(int32_t userId, const std::vector<uint8_t> &token)
-{
-    ErrCode result = ERR_OK;
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto it = credInfoMap_.find(userId);
-    if (it == credInfoMap_.end()) {
-        return ERR_OK;
-    }
-    AccountCredentialInfo oldCredInfo = it->second;
-    std::vector<uint8_t> newSecret;
-    result = UpdateStorageKey(userId, 0, token, oldCredInfo.secret, newSecret);
-    if (result != ERR_OK) {
-        ReportOsAccountOperationFail(userId, "removeUserKey", result, "failed to notice storage to remove user key");
-        return result;
-    }
-    credInfoMap_[userId] = {
-        .oldSecureUid = oldCredInfo.secureUid,
-        .secureUid = 0,
-        .oldSecret = oldCredInfo.secret,
-        .secret = newSecret
-    };
-    return result;
-}
 
 ErrCode InnerAccountIAMManager::GetStorageManagerProxy()
 {
