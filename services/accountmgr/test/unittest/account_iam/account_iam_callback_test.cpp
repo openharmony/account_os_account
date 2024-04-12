@@ -309,7 +309,8 @@ HWTEST_F(AccountIamCallbackTest, AddCredCallback_OnAcquireInfo_0200, TestSize.Le
 HWTEST_F(AccountIamCallbackTest, DelCredCallback_OnResult_0100, TestSize.Level0)
 {
     Attributes extraInfo;
-    auto delCredCallback = std::make_shared<DelCredCallback>(TEST_USER_ID, false, nullptr);
+    std::vector<uint8_t> token;
+    auto delCredCallback = std::make_shared<DelCredCallback>(TEST_USER_ID, false, token, nullptr);
     EXPECT_TRUE(delCredCallback->innerCallback_ == nullptr);
     delCredCallback->OnResult(0, extraInfo);
 }
@@ -324,7 +325,8 @@ HWTEST_F(AccountIamCallbackTest, DelCredCallback_OnResult_0300, TestSize.Level0)
 {
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
     Attributes extraInfo;
-    auto delCredCallback = std::make_shared<DelCredCallback>(TEST_USER_ID, false, callback);
+    std::vector<uint8_t> token;
+    auto delCredCallback = std::make_shared<DelCredCallback>(TEST_USER_ID, false, token, callback);
     EXPECT_TRUE(delCredCallback->innerCallback_ != nullptr);
     IAMState state = InnerAccountIAMManager::GetInstance().GetState(TEST_USER_ID);
     InnerAccountIAMManager::GetInstance().SetState(TEST_USER_ID, IDLE);
@@ -346,7 +348,8 @@ HWTEST_F(AccountIamCallbackTest, DelCredCallback_OnResult_0300, TestSize.Level0)
 HWTEST_F(AccountIamCallbackTest, DelCredCallback_OnAcquireInfo_0100, TestSize.Level0)
 {
     Attributes extraInfo;
-    auto delCredCallback = std::make_shared<DelCredCallback>(TEST_USER_ID, false, nullptr);
+    std::vector<uint8_t> token;
+    auto delCredCallback = std::make_shared<DelCredCallback>(TEST_USER_ID, false, token, nullptr);
     EXPECT_TRUE(delCredCallback->innerCallback_ == nullptr);
     delCredCallback->OnAcquireInfo(0, 0, extraInfo);
 }
@@ -361,7 +364,8 @@ HWTEST_F(AccountIamCallbackTest, DelCredCallback_OnAcquireInfo_0200, TestSize.Le
 {
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
     Attributes extraInfo;
-    auto delCredCallback = std::make_shared<DelCredCallback>(TEST_USER_ID, false, callback);
+    std::vector<uint8_t> token;
+    auto delCredCallback = std::make_shared<DelCredCallback>(TEST_USER_ID, false, token, callback);
     EXPECT_TRUE(delCredCallback->innerCallback_ != nullptr);
     delCredCallback->OnAcquireInfo(TEST_MODULE, TEST_ACQUIRE_INFO, extraInfo);
     EXPECT_EQ(TEST_MODULE, callback->module_);

@@ -40,6 +40,7 @@
         "OHOS::AccountSA::DomainAccountManagerService::DomainAccountManagerService()";
         "OHOS::AccountSA::AccountStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
         "OHOS::AccountSA::AddCredCallback::AddCredCallback(unsigned int, OHOS::UserIam::UserAuth::CredentialParameters const&, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
+        "OHOS::AccountSA::UpdateCredCallback::UpdateCredCallback(unsigned int, OHOS::UserIam::UserAuth::CredentialParameters const&, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
         "OHOS::AccountSA::AppAccountAuthenticatorCallback::AppAccountAuthenticatorCallback(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::AppAccountAuthenticatorManager::AppAccountAuthenticatorManager()";
         "OHOS::AccountSA::AppAccountAuthenticatorManager::GetAuthenticatorInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, int, OHOS::AccountSA::AuthenticatorInfo&)";
@@ -112,7 +113,7 @@
         "OHOS::AccountSA::AppAccountSubscribeManager::SubscribeAppAccount(std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscribeInfo> const&, OHOS::sptr<OHOS::IRemoteObject> const&, unsigned int const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int const&)";
         "OHOS::AccountSA::AppAccountSubscribeManager::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener)";
         "OHOS::AccountSA::AuthCallback::AuthCallback(unsigned int, OHOS::UserIam::UserAuth::AuthType, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
-        "OHOS::AccountSA::DelCredCallback::DelCredCallback(int, bool, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
+        "OHOS::AccountSA::DelCredCallback::DelCredCallback(int, bool, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>>, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
         "OHOS::AccountSA::DomainAccountPluginProxy::DomainAccountPluginProxy(OHOS::sptr<OHOS::IRemoteObject> const&)";
         "OHOS::AccountSA::GetCredInfoCallbackWrapper::GetCredInfoCallbackWrapper(int, int, OHOS::sptr<OHOS::AccountSA::IGetCredInfoCallback> const&)";
         "OHOS::AccountSA::GetPropCallbackWrapper::GetPropCallbackWrapper(int, OHOS::sptr<OHOS::AccountSA::IGetSetPropCallback> const&)";
@@ -120,7 +121,7 @@
         "OHOS::AccountSA::IAccountContext::instance_";
         "OHOS::AccountSA::AccountMgrService::GetCallingUserID()";
         "OHOS::AccountSA::AccountHelperData::GetBundleNameTrustList()";
-        "OHOS::AccountSA::IDMAuthCallback::IDMAuthCallback(unsigned int, OHOS::UserIam::UserAuth::CredentialParameters const&, int, OHOS::UserIam::UserAuth::Attributes const&, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
+        *OHOS::AccountSA::CommitCredUpdateCallback::CommitCredUpdateCallback*;
         "OHOS::AccountSA::IInnerOsAccountManager::CheckAndAddLocalIdOperating(int)";
         "OHOS::AccountSA::IInnerOsAccountManager::UpdateAccountStatusForDomain(int, OHOS::AccountSA::DomainAccountStatus)";
         "OHOS::AccountSA::IInnerOsAccountManager::CleanGarbageAccounts()";
