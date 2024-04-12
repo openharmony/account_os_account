@@ -45,6 +45,9 @@ public:
     ErrCode ProcGetDomainAccountInfo(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcUnregisterAccountStatusListener(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcRegisterAccountStatusListener(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcAddServerConfig(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcRemoveServerConfig(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetAccountServerConfig(MessageParcel &data, MessageParcel &reply);
 
 private:
     std::map<DomainAccountInterfaceCode, DomainAccountStubFunc> stubFuncMap_;

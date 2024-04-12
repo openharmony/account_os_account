@@ -83,6 +83,8 @@ napi_value CreateAuthResult(
 void ReleaseNapiRefAsync(napi_env env, napi_ref napiRef);
 void ReleaseNapiRefArray(napi_env env, const std::vector<napi_ref> &napiRefVec);
 bool InitUvWorkCallbackEnv(uv_work_t *work, napi_handle_scope &scope);
+bool JsObjectToNativeString(napi_env env, napi_value jsData, std::string &nativeData);
+napi_value NativeStringToJsObject(napi_env env, const std::string &nativeData);
 
 struct NapiCallbackRef {
     NapiCallbackRef(napi_env env, napi_ref callbackRef) : env(env), callbackRef(callbackRef) {}

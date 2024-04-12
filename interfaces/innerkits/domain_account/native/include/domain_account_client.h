@@ -124,6 +124,10 @@ public:
     ErrCode UnregisterAccountStatusListener(const std::shared_ptr<DomainAccountStatusListener> &listener);
     friend std::function<void(int32_t, const std::string &)> callbackFunc();
 
+    ErrCode AddServerConfig(const std::string &parameters, DomainServerConfig &config);
+    ErrCode RemoveServerConfig(const std::string &configId);
+    ErrCode GetAccountServerConfig(const DomainAccountInfo &info, DomainServerConfig &config);
+
 private:
     DomainAccountClient();
     ~DomainAccountClient() = default;

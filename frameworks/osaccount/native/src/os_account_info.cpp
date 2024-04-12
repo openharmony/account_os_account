@@ -43,6 +43,7 @@ const std::string CREDENTIAL_ID = "credentialId";
 const std::string DISPLAY_ID = "displayId";
 const std::string IS_FOREGROUND = "isForeground";
 const std::string DOMAIN_ACCOUNT_STATUS = "domainAccountStatus";
+const std::string DOMAIN_ACCOUNT_CONFIG = "domainServerConfigId";
 }  // namespace
 
 OsAccountInfo::OsAccountInfo()
@@ -240,6 +241,7 @@ Json OsAccountInfo::ToJson() const
             {DOMAIN_ACCOUNT_NAME, domainInfo_.accountName_},
             {DOMAIN_ACCOUNT_ID, domainInfo_.accountId_},
             {DOMAIN_ACCOUNT_STATUS, domainInfo_.status_},
+            {DOMAIN_ACCOUNT_CONFIG, domainInfo_.serverConfigId_},
         },
         }
     };
@@ -306,6 +308,9 @@ void OsAccountInfo::FromJson(const Json &jsonObject)
         typeJson, typeJson.end(), DOMAIN_ACCOUNT_ID, domainInfo_.accountId_, OHOS::AccountSA::JsonType::STRING);
     OHOS::AccountSA::GetDataByType<DomainAccountStatus>(
         typeJson, typeJson.end(), DOMAIN_ACCOUNT_STATUS, domainInfo_.status_, OHOS::AccountSA::JsonType::NUMBER);
+    OHOS::AccountSA::GetDataByType<std::string>(
+        typeJson, typeJson.end(), DOMAIN_ACCOUNT_CONFIG, domainInfo_.serverConfigId_,
+        OHOS::AccountSA::JsonType::STRING);
 }
 
 bool OsAccountInfo::Marshalling(Parcel &parcel) const

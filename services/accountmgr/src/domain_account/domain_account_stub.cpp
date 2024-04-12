@@ -80,6 +80,19 @@ const std::map<DomainAccountInterfaceCode, DomainAccountStub::DomainAccountStubF
         DomainAccountInterfaceCode::DOMAIN_GET_ACCOUNT_INFO,
         &DomainAccountStub::ProcGetDomainAccountInfo
     },
+    {
+        DomainAccountInterfaceCode::ADD_SERVER_CONFIG,
+        &DomainAccountStub::ProcAddServerConfig
+    },
+    {
+        DomainAccountInterfaceCode::REMOVE_SERVER_CONFIG,
+        &DomainAccountStub::ProcRemoveServerConfig
+    },
+    {
+        DomainAccountInterfaceCode::GET_ACCOUNT_SERVER_CONFIG,
+        &DomainAccountStub::ProcGetAccountServerConfig
+    },
+
 };
 
 DomainAccountStub::DomainAccountStub()
@@ -188,6 +201,10 @@ ErrCode DomainAccountStub::ProcAuth(MessageParcel &data, MessageParcel &reply)
     std::vector<uint8_t> password;
     if (!data.ReadUInt8Vector(&password)) {
         ACCOUNT_LOGE("fail to read password");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (!data.ReadString(info.serverConfigId_)) {
+        ACCOUNT_LOGE("fail to read serverConfigId");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     auto callback = iface_cast<IDomainAccountCallback>(data.ReadRemoteObject());
@@ -349,6 +366,67 @@ ErrCode DomainAccountStub::ProcGetDomainAccessToken(MessageParcel &data, Message
     return ERR_NONE;
 }
 
+ErrCode DomainAccountStub::ProcAddServerConfig(MessageParcel &data, MessageParcel &reply)
+{
+    std::string parameters;
+    if (!data.ReadString(parameters)) {
+        ACCOUNT_LOGE("Failed to read domain server config.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    DomainServerConfig config;
+    ErrCode result = AddServerConfig(parameters, config);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Failed to write reply, result=%{public}d.", result);
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (result != ERR_OK) {
+        return result;
+    }
+    if (!reply.WriteParcelable(&config)) {
+        ACCOUNT_LOGE("Failed to write identifier.");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode DomainAccountStub::ProcRemoveServerConfig(MessageParcel &data, MessageParcel &reply)
+{
+    std::string configId;
+    if (!data.ReadString(configId)) {
+        ACCOUNT_LOGE("Fail to configId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = RemoveServerConfig(configId);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Failed to write reply, result=%{public}d.", result);
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return result;
+}
+
+ErrCode DomainAccountStub::ProcGetAccountServerConfig(MessageParcel &data, MessageParcel &reply)
+{
+    std::shared_ptr<DomainAccountInfo> info(data.ReadParcelable<DomainAccountInfo>());
+    if (info == nullptr) {
+        ACCOUNT_LOGE("Failed to read domain server config.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    DomainServerConfig config;
+    ErrCode result = GetAccountServerConfig(*info, config);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Failed to write reply, result=%{public}d.", result);
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (result != ERR_OK) {
+        return result;
+    }
+    if (!reply.WriteParcelable(&config)) {
+        ACCOUNT_LOGE("Failed to write identifier.");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
 ErrCode DomainAccountStub::CheckPermission(DomainAccountInterfaceCode code, int32_t uid)
 {
     ErrCode errCode = AccountPermissionManager::CheckSystemApp();
@@ -365,6 +443,9 @@ ErrCode DomainAccountStub::CheckPermission(DomainAccountInterfaceCode code, int3
         case DomainAccountInterfaceCode::UNREGISTER_PLUGIN:
         case DomainAccountInterfaceCode::DOMAIN_HAS_DOMAIN_ACCOUNT:
         case DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_TOKEN:
+        case DomainAccountInterfaceCode::ADD_SERVER_CONFIG:
+        case DomainAccountInterfaceCode::REMOVE_SERVER_CONFIG:
+        case DomainAccountInterfaceCode::GET_ACCOUNT_SERVER_CONFIG:
             permissionName = MANAGE_LOCAL_ACCOUNTS;
             break;
         case DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_ENQUIRY:

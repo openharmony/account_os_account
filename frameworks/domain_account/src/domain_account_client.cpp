@@ -292,6 +292,36 @@ ErrCode DomainAccountClient::UnregisterAccountStatusListener(
     return ERR_OK;
 }
 
+ErrCode DomainAccountClient::AddServerConfig(const std::string &parameters, DomainServerConfig &config)
+{
+    auto proxy = GetDomainAccountProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("Failed to get domain account proxy.");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->AddServerConfig(parameters, config);
+}
+
+ErrCode DomainAccountClient::RemoveServerConfig(const std::string &configId)
+{
+    auto proxy = GetDomainAccountProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("Failed to get domain account proxy.");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->RemoveServerConfig(configId);
+}
+
+ErrCode DomainAccountClient::GetAccountServerConfig(const DomainAccountInfo &info, DomainServerConfig &config)
+{
+    auto proxy = GetDomainAccountProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("Failed to get domain account proxy.");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->GetAccountServerConfig(info, config);
+}
+
 void DomainAccountClient::RestoreListenerRecords()
 {
     if (listenerManager_ == nullptr) {
