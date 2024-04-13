@@ -258,6 +258,8 @@
         "OHOS::AccountSA::InnerDomainAccountManager::HasDomainAccount(OHOS::AccountSA::DomainAccountInfo const&, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
         "OHOS::AccountSA::InnerDomainAccountManager::GetAccessToken(OHOS::AccountSA::DomainAccountInfo const&, OHOS::AAFwk::WantParams const&, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
         "OHOS::AccountSA::InnerDomainAccountManager::UpdateAccountToken(OHOS::AccountSA::DomainAccountInfo const&, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>> const&)";
+        "OHOS::AccountSA::InnerDomainAccountManager::SetAccountPolicy(OHOS::AccountSA::DomainAccountPolicy const&)";
+        "OHOS::AccountSA::InnerDomainAccountManager::IsAuthenticationExpired(OHOS::AccountSA::DomainAccountInfo const&, bool&)";
         "OHOS::AccountSA::InnerDomainAccountManager::Auth(OHOS::AccountSA::DomainAccountInfo const&, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>> const&, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
         "OHOS::AccountSA::InnerDomainAccountManager::AuthUser(int, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>> const&, OHOS::sptr<OHOS::AccountSA::IDomainAuthCallback> const&)";
         "OHOS::AccountSA::InnerDomainAccountManager::AuthWithPopup(int, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";

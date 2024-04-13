@@ -73,6 +73,14 @@ const std::map<DomainAccountInterfaceCode, DomainAccountStub::DomainAccountStubF
         &DomainAccountStub::ProcUpdateAccountToken
     },
     {
+        DomainAccountInterfaceCode::DOMAIN_IS_AUTHENTICATION_EXPIRED,
+        &DomainAccountStub::ProcIsAuthenticationExpired
+    },
+    {
+        DomainAccountInterfaceCode::DOMAIN_SET_ACCOUNT_POLICY,
+        &DomainAccountStub::ProcSetAuthenticationExpiryThreshold
+    },
+    {
         DomainAccountInterfaceCode::DOMAIN_GET_ACCESS_TOKEN,
         &DomainAccountStub::ProcGetDomainAccessToken
     },
@@ -164,6 +172,45 @@ ErrCode DomainAccountStub::ProcUpdateAccountToken(MessageParcel &data, MessagePa
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     return ERR_NONE;
+}
+
+ErrCode DomainAccountStub::ProcIsAuthenticationExpired(MessageParcel &data, MessageParcel &reply)
+{
+    std::shared_ptr<DomainAccountInfo> info(data.ReadParcelable<DomainAccountInfo>());
+    if (info == nullptr) {
+        ACCOUNT_LOGE("Read DomainAccountInfo failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    bool isExpired = true;
+    ErrCode result = IsAuthenticationExpired(*info, isExpired);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Write reply failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("IsAuthenticationExpired failed %{public}d.", result);
+        return result;
+    }
+    if (!reply.WriteBool(isExpired)) {
+        ACCOUNT_LOGE("Write isExpired failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    return ERR_OK;
+}
+
+ErrCode DomainAccountStub::ProcSetAuthenticationExpiryThreshold(MessageParcel &data, MessageParcel &reply)
+{
+    DomainAccountPolicy policy;
+    if (!data.ReadInt32(policy.authenicationValidityPeriod)) {
+        ACCOUNT_LOGE("Read threshold failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = SetAccountPolicy(policy);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Write reply failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    return ERR_OK;
 }
 
 ErrCode DomainAccountStub::ProcRegisterPlugin(MessageParcel &data, MessageParcel &reply)
@@ -441,6 +488,7 @@ ErrCode DomainAccountStub::CheckPermission(DomainAccountInterfaceCode code, int3
     switch (code) {
         case DomainAccountInterfaceCode::REGISTER_PLUGIN:
         case DomainAccountInterfaceCode::UNREGISTER_PLUGIN:
+        case DomainAccountInterfaceCode::DOMAIN_SET_ACCOUNT_POLICY:
         case DomainAccountInterfaceCode::DOMAIN_HAS_DOMAIN_ACCOUNT:
         case DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_TOKEN:
         case DomainAccountInterfaceCode::ADD_SERVER_CONFIG:

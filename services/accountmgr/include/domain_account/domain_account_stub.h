@@ -41,6 +41,8 @@ public:
     ErrCode ProcGetAccountStatus(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcHasDomainAccount(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcUpdateAccountToken(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcIsAuthenticationExpired(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcSetAuthenticationExpiryThreshold(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetDomainAccessToken(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetDomainAccountInfo(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcUnregisterAccountStatusListener(MessageParcel &data, MessageParcel &reply);
