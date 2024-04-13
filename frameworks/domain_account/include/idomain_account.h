@@ -41,6 +41,8 @@ public:
     virtual ErrCode AuthWithPopup(int32_t userId, const sptr<IDomainAccountCallback> &callback) = 0;
     virtual ErrCode HasDomainAccount(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback) = 0;
     virtual ErrCode UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token) = 0;
+    virtual ErrCode IsAuthenticationExpired(const DomainAccountInfo &info, bool &isExpired) = 0;
+    virtual ErrCode SetAccountPolicy(const DomainAccountPolicy &policy) = 0;
     virtual ErrCode GetAccessToken(const DomainAccountInfo &info, const AAFwk::WantParams &parameters,
         const sptr<IDomainAccountCallback> &callback) = 0;
     virtual ErrCode GetDomainAccountInfo(

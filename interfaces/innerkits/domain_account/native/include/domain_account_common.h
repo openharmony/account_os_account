@@ -128,6 +128,10 @@ struct DomainAccountEventData {
     DomainAccountEvent event;
     DomainAccountStatus status;
 };
+
+struct DomainAccountPolicy {
+    int32_t authenicationValidityPeriod = -1;
+};
 }  // namespace AccountSA
 }  // namespace OHOS
 #endif  // OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_DOMAIN_ACCOUNT_COMMON_H

@@ -189,6 +189,26 @@ ErrCode DomainAccountClient::UpdateAccountToken(const DomainAccountInfo &info, c
     return proxy->UpdateAccountToken(info, token);
 }
 
+ErrCode DomainAccountClient::IsAuthenticationExpired(const DomainAccountInfo &info, bool &isExpired)
+{
+    auto proxy = GetDomainAccountProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("Get domain account proxy failed.");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->IsAuthenticationExpired(info, isExpired);
+}
+
+ErrCode DomainAccountClient::SetAccountPolicy(const DomainAccountPolicy &policy)
+{
+    auto proxy = GetDomainAccountProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("Get domain account proxy failed.");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->SetAccountPolicy(policy);
+}
+
 void DomainAccountClient::ResetDomainAccountProxy(const wptr<IRemoteObject>& remote)
 {
     std::lock_guard<std::mutex> lock(mutex_);

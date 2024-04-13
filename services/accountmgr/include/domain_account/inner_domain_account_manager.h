@@ -23,6 +23,8 @@
 #include "domain_account_callback.h"
 #include "domain_account_callback_stub.h"
 #include "domain_plugin.h"
+#include "int_wrapper.h"
+#include "bool_wrapper.h"
 #include "os_account_info.h"
 #include "want.h"
 
@@ -42,6 +44,8 @@ public:
     ErrCode GetAuthStatusInfo(const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback);
     ErrCode HasDomainAccount(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback);
     ErrCode UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token);
+    ErrCode IsAuthenticationExpired(const DomainAccountInfo &info, bool &isExpired);
+    ErrCode SetAccountPolicy(const DomainAccountPolicy &policy);
     ErrCode GetAccessToken(const DomainAccountInfo &info, const AAFwk::WantParams &parameters,
         const sptr<IDomainAccountCallback> &callback);
     ErrCode GetDomainAccountInfo(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback);

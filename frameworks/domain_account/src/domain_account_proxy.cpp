@@ -244,6 +244,46 @@ ErrCode DomainAccountProxy::UpdateAccountToken(const DomainAccountInfo &info, co
     return SendRequest(DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_TOKEN, data, reply);
 }
 
+ErrCode DomainAccountProxy::IsAuthenticationExpired(const DomainAccountInfo &info, bool &isExpired)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Write descriptor failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteParcelable(&info)) {
+        ACCOUNT_LOGE("Write domainAccountInfo failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    MessageParcel reply;
+    ErrCode result = SendRequest(DomainAccountInterfaceCode::DOMAIN_IS_AUTHENTICATION_EXPIRED, data, reply);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    if (!reply.ReadBool(isExpired)) {
+        ACCOUNT_LOGE("Read isExpired failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return ERR_OK;
+}
+
+ErrCode DomainAccountProxy::SetAccountPolicy(const DomainAccountPolicy &policy)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Write descriptor failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    if (!data.WriteInt32(policy.authenicationValidityPeriod)) {
+        ACCOUNT_LOGE("Write threshold failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    MessageParcel reply;
+    return SendRequest(DomainAccountInterfaceCode::DOMAIN_SET_ACCOUNT_POLICY, data, reply);
+}
+
 ErrCode DomainAccountProxy::GetAccessToken(
     const DomainAccountInfo &info, const AAFwk::WantParams &parameters, const sptr<IDomainAccountCallback> &callback)
 {
