@@ -354,6 +354,9 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_IsAuthenticationExpired_001,
          TestSize.Level0)
 {
+    AccessTokenID tokenID;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
+    setuid(EDM_UID);
     DomainAccountInfo domainInfo;
     domainInfo.accountName_ = "testaccount";
     domainInfo.domain_ = "test.example.com";
@@ -364,7 +367,10 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     InnerDomainAccountManager::GetInstance().LoaderLib("", WRONG_SO);
     EXPECT_EQ(DomainAccountClient::GetInstance().IsAuthenticationExpired(domainInfo, isExpired),
               ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+    EXPECT_TRUE(isExpired);
     InnerDomainAccountManager::GetInstance().CloseLib();
+    setuid(ROOT_UID);
+    ASSERT_TRUE(RecoveryPermission(tokenID));
 }
 
 /**
@@ -381,9 +387,10 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     domainInfo.domain_ = "test.example.com";
     domainInfo.accountId_ = "testid";
 
-    bool isExpired = true;
+    bool isExpired = false;
     InnerDomainAccountManager::GetInstance().LoaderLib("", RIGHT_SO);
-    EXPECT_EQ(DomainAccountClient::GetInstance().IsAuthenticationExpired(domainInfo, isExpired), ERR_OK);
+    EXPECT_EQ(DomainAccountClient::GetInstance().IsAuthenticationExpired(domainInfo, isExpired),
+        ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT);
     EXPECT_TRUE(isExpired);
     InnerDomainAccountManager::GetInstance().CloseLib();
 }
@@ -539,3 +546,35 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
 }
 #endif
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_IsAuthenticationExpired_006
+ * @tc.desc: IsAuthenticationExpired failed without permission.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_IsAuthenticationExpired_006,
+         TestSize.Level0)
+{
+    AccessTokenID tokenID;
+    ASSERT_TRUE(AllocPermission({}, tokenID));
+    setuid(EDM_UID);
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = "testaccount";
+    domainInfo.domain_ = "test.example.com";
+    domainInfo.accountId_ = "testid";
+
+    bool isExpired = false;
+    EXPECT_EQ(DomainAccountClient::GetInstance().IsAuthenticationExpired(domainInfo, isExpired),
+        ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    EXPECT_TRUE(isExpired);
+    setuid(ROOT_UID);
+    ASSERT_TRUE(RecoveryPermission(tokenID));
+    ASSERT_TRUE(AllocPermission({"ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS"}, tokenID));
+    setuid(EDM_UID);
+    EXPECT_EQ(DomainAccountClient::GetInstance().IsAuthenticationExpired(domainInfo, isExpired),
+        ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT);
+    EXPECT_TRUE(isExpired);
+    setuid(ROOT_UID);
+    ASSERT_TRUE(RecoveryPermission(tokenID));
+}

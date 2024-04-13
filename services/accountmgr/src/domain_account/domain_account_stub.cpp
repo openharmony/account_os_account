@@ -29,6 +29,7 @@ const std::string MANAGE_LOCAL_ACCOUNTS = "ohos.permission.MANAGE_LOCAL_ACCOUNTS
 const std::string GET_LOCAL_ACCOUNTS = "ohos.permission.GET_LOCAL_ACCOUNTS";
 const std::string ACCESS_USER_AUTH_INTERNAL = "ohos.permission.ACCESS_USER_AUTH_INTERNAL";
 const std::string GET_DOMAIN_ACCOUNTS = "ohos.permission.GET_DOMAIN_ACCOUNTS";
+const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
 }
 
 const std::map<DomainAccountInterfaceCode, DomainAccountStub::DomainAccountStubFunc> stubFuncMap = {
@@ -507,7 +508,7 @@ ErrCode DomainAccountStub::CheckPermission(DomainAccountInterfaceCode code, int3
     if (uid == 0) {
         return ERR_OK;
     }
-    std::string permissionName;
+    std::vector<std::string> orPermissions;
     switch (code) {
         case DomainAccountInterfaceCode::REGISTER_PLUGIN:
         case DomainAccountInterfaceCode::UNREGISTER_PLUGIN:
@@ -518,27 +519,34 @@ ErrCode DomainAccountStub::CheckPermission(DomainAccountInterfaceCode code, int3
         case DomainAccountInterfaceCode::REMOVE_SERVER_CONFIG:
         case DomainAccountInterfaceCode::GET_ACCOUNT_SERVER_CONFIG:
         case DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_INFO:
-            permissionName = MANAGE_LOCAL_ACCOUNTS;
+            orPermissions.emplace_back(MANAGE_LOCAL_ACCOUNTS);
             break;
         case DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_ENQUIRY:
         case DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER:
         case DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER:
-            permissionName = GET_LOCAL_ACCOUNTS;
+            orPermissions.emplace_back(GET_LOCAL_ACCOUNTS);
             break;
         case DomainAccountInterfaceCode::DOMAIN_AUTH:
         case DomainAccountInterfaceCode::DOMAIN_AUTH_USER:
-            permissionName = ACCESS_USER_AUTH_INTERNAL;
+            orPermissions.emplace_back(ACCESS_USER_AUTH_INTERNAL);
             break;
         case DomainAccountInterfaceCode::DOMAIN_GET_ACCOUNT_INFO:
-            permissionName = GET_DOMAIN_ACCOUNTS;
+            orPermissions.emplace_back(GET_DOMAIN_ACCOUNTS);
+            break;
+        case DomainAccountInterfaceCode::DOMAIN_IS_AUTHENTICATION_EXPIRED:
+            orPermissions.emplace_back(MANAGE_LOCAL_ACCOUNTS);
+            orPermissions.emplace_back(INTERACT_ACROSS_LOCAL_ACCOUNTS);
             break;
         default:
             break;
     }
-    if (permissionName.empty()) {
-        return ERR_OK;
+    for (const auto &permission : orPermissions) {
+        errCode = AccountPermissionManager::VerifyPermission(permission);
+        if (errCode == ERR_OK) {
+            return ERR_OK;
+        }
     }
-    return AccountPermissionManager::VerifyPermission(permissionName);
+    return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
 }
 }  // namespace AccountSA
 }  // namespace OHOS

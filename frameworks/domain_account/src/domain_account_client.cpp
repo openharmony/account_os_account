@@ -191,6 +191,7 @@ ErrCode DomainAccountClient::UpdateAccountToken(const DomainAccountInfo &info, c
 
 ErrCode DomainAccountClient::IsAuthenticationExpired(const DomainAccountInfo &info, bool &isExpired)
 {
+    isExpired = true;
     auto proxy = GetDomainAccountProxy();
     if (proxy == nullptr) {
         ACCOUNT_LOGE("Get domain account proxy failed.");
