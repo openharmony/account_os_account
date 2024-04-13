@@ -39,6 +39,8 @@ public:
         const sptr<IDomainAccountCallback> &callback) override;
     ErrCode AuthWithPopup(int32_t userId, const sptr<IDomainAccountCallback> &callback) override;
     ErrCode UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token) override;
+    ErrCode IsAuthenticationExpired(const DomainAccountInfo &info, bool &isExpired) override;
+    ErrCode SetAccountPolicy(const DomainAccountPolicy &policy) override;
     ErrCode GetAccessToken(const DomainAccountInfo &info, const AAFwk::WantParams &parameters,
         const sptr<IDomainAccountCallback> &callback) override;
     ErrCode GetDomainAccountInfo(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback) override;

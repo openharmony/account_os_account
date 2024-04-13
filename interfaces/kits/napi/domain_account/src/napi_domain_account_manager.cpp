@@ -34,6 +34,7 @@ const size_t ARG_SIZE_ONE = 1;
 const size_t ARG_SIZE_TWO = 2;
 const size_t ARG_SIZE_THREE = 3;
 const size_t PARAM_ONE = 1;
+const size_t PARAM_ZERO = 0;
 }
 
 using namespace OHOS::AccountSA;
@@ -210,6 +211,23 @@ static bool ParseParamForUpdateAccountToken(
     }
     if (ParseUint8TypedArrayToVector(env, argv[PARAM_ONE], asyncContext->token) != napi_ok) {
         ACCOUNT_LOGE("get token failed");
+        return false;
+    }
+    return true;
+}
+
+static bool ParseParamForIsAuthenticationExpired(
+    napi_env env, napi_callback_info cbInfo, IsAuthenticationExpiredAsyncContext *asyncContext)
+{
+    size_t argc = ARG_SIZE_ONE;
+    napi_value argv[ARG_SIZE_ONE] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    if (argc < ARG_SIZE_ONE) {
+        ACCOUNT_LOGE("The number of parameters should be at least 1.");
+        return false;
+    }
+    if (!ParseDomainAccountInfo(env, argv[PARAM_ZERO], asyncContext->domainInfo)) {
+        ACCOUNT_LOGE("Get domainInfo failed.");
         return false;
     }
     return true;
@@ -865,6 +883,7 @@ napi_value NapiDomainAccountManager::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_STATIC_FUNCTION("authWithPopup", AuthWithPopup),
         DECLARE_NAPI_STATIC_FUNCTION("hasAccount", HasAccount),
         DECLARE_NAPI_STATIC_FUNCTION("updateAccountToken", UpdateAccountToken),
+        DECLARE_NAPI_STATIC_FUNCTION("isAuthenticationExpired", IsAuthenticationExpired),
         DECLARE_NAPI_STATIC_FUNCTION("getAccessToken", GetAccessToken),
         DECLARE_NAPI_STATIC_FUNCTION("getAccountInfo", GetDomainAccountInfo),
         DECLARE_NAPI_FUNCTION("registerPlugin", RegisterPlugin),
@@ -1321,6 +1340,53 @@ napi_value NapiDomainAccountManager::UpdateAccountToken(napi_env env, napi_callb
         &context->work));
     NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_default));
     context.release();
+    return result;
+}
+
+static void IsAuthenticationExpiredExecuteCB(napi_env env, void *data)
+{
+    IsAuthenticationExpiredAsyncContext *asyncContext = reinterpret_cast<IsAuthenticationExpiredAsyncContext *>(data);
+    asyncContext->errCode =
+        DomainAccountClient::GetInstance().IsAuthenticationExpired(asyncContext->domainInfo, asyncContext->isExpired);
+}
+
+static void IsAuthenticationExpiredCompletedCB(napi_env env, napi_status status, void *data)
+{
+    IsAuthenticationExpiredAsyncContext *asyncContext = reinterpret_cast<IsAuthenticationExpiredAsyncContext *>(data);
+    std::unique_ptr<IsAuthenticationExpiredAsyncContext> asyncContextPtr{asyncContext};
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    if (asyncContext->errCode == ERR_OK) {
+        NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &errJs));
+        NAPI_CALL_RETURN_VOID(env, napi_get_boolean(env, asyncContext->isExpired, &dataJs));
+    } else {
+        errJs = GenerateBusinessError(env, asyncContext->errCode);
+        NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &dataJs));
+    }
+    ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
+}
+
+napi_value NapiDomainAccountManager::IsAuthenticationExpired(napi_env env, napi_callback_info cbInfo)
+{
+    auto asyncContextPtr = std::make_unique<IsAuthenticationExpiredAsyncContext>(env);
+    if (!ParseParamForIsAuthenticationExpired(env, cbInfo, asyncContextPtr.get())) {
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, true);
+        return nullptr;
+    }
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_promise(env, &asyncContextPtr->deferred, &result));
+
+    napi_value resource = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, "IsAuthenticationExpired", NAPI_AUTO_LENGTH, &resource));
+    NAPI_CALL(env, napi_create_async_work(env,
+        nullptr,
+        resource,
+        IsAuthenticationExpiredExecuteCB,
+        IsAuthenticationExpiredCompletedCB,
+        reinterpret_cast<void *>(asyncContextPtr.get()),
+        &asyncContextPtr->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, asyncContextPtr->work, napi_qos_default));
+    asyncContextPtr.release();
     return result;
 }
 

@@ -116,6 +116,8 @@ public:
      */
     ErrCode HasAccount(const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback);
     ErrCode UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token);
+    ErrCode IsAuthenticationExpired(const DomainAccountInfo &info, bool &isExpired);
+    ErrCode SetAccountPolicy(const DomainAccountPolicy &policy);
     ErrCode GetAccessToken(const DomainAccountInfo &info, const AAFwk::WantParams &parameters,
         const std::shared_ptr<GetAccessTokenCallback> &callback);
     ErrCode GetAccountStatus(const DomainAccountInfo &info, DomainAccountStatus &status);
