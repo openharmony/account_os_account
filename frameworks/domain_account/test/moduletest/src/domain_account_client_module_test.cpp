@@ -1863,3 +1863,120 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AddServerC
     EXPECT_EQ(DomainAccountClient::GetInstance().RemoveServerConfig(identifier),
         ERR_JS_CAPABILITY_NOT_SUPPORTED);
 }
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_UpdateAccountInfo_001
+ * @tc.desc: UpdateAccountInfo failed for permission denied.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAccountInfo_001, TestSize.Level0)
+{
+    setuid(TEST_UID);
+    DomainAccountInfo oldInfo, newInfo;
+    ASSERT_EQ(DomainAccountClient::GetInstance().UpdateAccountInfo(oldInfo, newInfo),
+        ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    setuid(ROOT_UID);
+}
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_UpdateAccountInfo_002
+ * @tc.desc: UpdateAccountInfo failed for oldAccount not exist.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAccountInfo_002, TestSize.Level0)
+{
+    DomainAccountInfo oldInfo, newInfo;
+    ASSERT_EQ(DomainAccountClient::GetInstance().UpdateAccountInfo(oldInfo, newInfo),
+        ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT);
+}
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_UpdateAccountInfo_003
+ * @tc.desc: UpdateAccountInfo failed for newAccount is invaild.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAccountInfo_003, TestSize.Level0)
+{
+    DomainAccountInfo oldInfo(STRING_DOMAIN, STRING_NAME), newInfo(STRING_DOMAIN, STRING_NAME_INVALID);
+    auto callback = std::make_shared<MockDomainCreateDomainAccountCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestCreateDomainAccountCallback>(callback);
+    EXPECT_CALL(*callback, OnResult(ERR_OK, oldInfo.accountName_, oldInfo.domain_, _)).Times(Exactly(1));
+    ASSERT_NE(testCallback, nullptr);
+    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, oldInfo, testCallback);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    ASSERT_EQ(errCode, ERR_OK);
+
+    newInfo.accountName_ = STRING_NAME_INVALID;
+    ASSERT_EQ(InnerDomainAccountManager::GetInstance().UpdateAccountInfo(oldInfo, newInfo), INVALID_CODE);
+
+    int32_t userId = -1;
+    errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(oldInfo, userId);
+    EXPECT_EQ(errCode, ERR_OK);
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
+}
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_UpdateAccountInfo_004
+ * @tc.desc: UpdateAccountInfo failed for newAccount already exists.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAccountInfo_004, TestSize.Level0)
+{
+    DomainAccountInfo oldInfo(STRING_DOMAIN, STRING_NAME);
+    auto callback = std::make_shared<MockDomainCreateDomainAccountCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestCreateDomainAccountCallback>(callback);
+    EXPECT_CALL(*callback, OnResult(ERR_OK, oldInfo.accountName_, oldInfo.domain_, _)).Times(Exactly(1));
+    ASSERT_NE(testCallback, nullptr);
+    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, oldInfo, testCallback);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    ASSERT_EQ(errCode, ERR_OK);
+
+    ASSERT_EQ(InnerDomainAccountManager::GetInstance().UpdateAccountInfo(oldInfo, oldInfo),
+        ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR);
+
+    int32_t userId = -1;
+    errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(oldInfo, userId);
+    EXPECT_EQ(errCode, ERR_OK);
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
+}
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_UpdateAccountInfo_005
+ * @tc.desc: UpdateAccountInfo success.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAccountInfo_005, TestSize.Level0)
+{
+    DomainAccountInfo oldInfo(STRING_DOMAIN, STRING_NAME), newInfo(STRING_DOMAIN, STRING_NAME_NEW);
+    auto callback = std::make_shared<MockDomainCreateDomainAccountCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestCreateDomainAccountCallback>(callback);
+    EXPECT_CALL(*callback, OnResult(ERR_OK, oldInfo.accountName_, oldInfo.domain_, _)).Times(Exactly(1));
+    ASSERT_NE(testCallback, nullptr);
+    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, oldInfo, testCallback);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    ASSERT_EQ(errCode, ERR_OK);
+    int32_t oldUserId = -1;
+    errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(oldInfo, oldUserId);
+    ASSERT_EQ(errCode, ERR_OK);
+    ASSERT_EQ(InnerDomainAccountManager::GetInstance().UpdateAccountInfo(oldInfo, newInfo), ERR_OK);
+
+    int32_t newUserId = -1;
+    errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(newInfo, newUserId);
+    EXPECT_EQ(errCode, ERR_OK);
+    EXPECT_EQ(oldUserId, newUserId);
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(oldUserId), ERR_OK);
+}

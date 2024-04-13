@@ -46,6 +46,8 @@ public:
     ErrCode AddServerConfig(const std::string &paramter, DomainServerConfig &config) override;
     ErrCode RemoveServerConfig(const std::string &configId) override;
     ErrCode GetAccountServerConfig(const DomainAccountInfo &info, DomainServerConfig &config) override;
+    ErrCode UpdateAccountInfo(
+        const DomainAccountInfo &oldAccountInfo, const DomainAccountInfo &newAccountInfo) override;
 
 private:
     ErrCode SendRequest(DomainAccountInterfaceCode code, MessageParcel &data, MessageParcel &reply);

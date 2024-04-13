@@ -45,6 +45,8 @@ public:
     ErrCode AddServerConfig(const std::string &identifier, DomainServerConfig &config) override;
     ErrCode RemoveServerConfig(const std::string &configId) override;
     ErrCode GetAccountServerConfig(const DomainAccountInfo &info, DomainServerConfig &config) override;
+    ErrCode UpdateAccountInfo(
+        const DomainAccountInfo &oldAccountInfo, const DomainAccountInfo &newAccountInfo) override;
 
 private:
     std::mutex mutex_;

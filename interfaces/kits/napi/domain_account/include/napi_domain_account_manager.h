@@ -66,6 +66,12 @@ struct GetAccountInfoAsyncContext : public CommonAsyncContext {
     AAFwk::WantParams getAccountInfoParams;
 };
 
+struct UpdateAccountInfoAsyncContext : public CommonAsyncContext {
+    UpdateAccountInfoAsyncContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
+    AccountSA::DomainAccountInfo oldAccountInfo;
+    AccountSA::DomainAccountInfo newAccountInfo;
+};
+
 struct JsDomainPluginParam : public CommonAsyncContext {
     JsDomainPluginParam(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
     napi_ref func = nullptr;
@@ -166,6 +172,7 @@ private:
     static napi_value UpdateAccountToken(napi_env env, napi_callback_info cbInfo);
     static napi_value GetAccessToken(napi_env env, napi_callback_info cbInfo);
     static napi_value GetDomainAccountInfo(napi_env env, napi_callback_info cbInfo);
+    static napi_value UpdateAccountInfo(napi_env env, napi_callback_info cbInfo);
 };
 }  // namespace AccountJsKit
 }  // namespace OHOS

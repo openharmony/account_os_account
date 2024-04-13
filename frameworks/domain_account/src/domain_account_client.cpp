@@ -230,6 +230,17 @@ ErrCode DomainAccountClient::GetDomainAccountInfo(
     return proxy->GetDomainAccountInfo(info, callbackService);
 }
 
+ErrCode DomainAccountClient::UpdateAccountInfo(
+    const DomainAccountInfo &oldAccountInfo, const DomainAccountInfo &newAccountInfo)
+{
+    auto proxy = GetDomainAccountProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("Failed to get domain account proxy");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->UpdateAccountInfo(oldAccountInfo, newAccountInfo);
+}
+
 ErrCode DomainAccountClient::RegisterAccountStatusListener(const std::shared_ptr<DomainAccountStatusListener> &listener)
 {
     if (listener == nullptr) {
