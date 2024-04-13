@@ -17,11 +17,13 @@
 
 #include "account_log_wrapper.h"
 #include "inner_domain_account_manager.h"
+#include "ipc_skeleton.h"
 
 namespace OHOS {
 namespace AccountSA {
 namespace {
 constexpr int32_t START_USER_ID = 100;
+const std::set<uint32_t> UID_WHITELIST_FOR_SET { 3057 };
 }
 
 DomainAccountManagerService::DomainAccountManagerService()
@@ -57,6 +59,26 @@ ErrCode DomainAccountManagerService::UpdateAccountToken(
     const DomainAccountInfo &info, const std::vector<uint8_t> &token)
 {
     return InnerDomainAccountManager::GetInstance().UpdateAccountToken(info, token);
+}
+
+static bool CheckManageExpiryThresholdWhiteList()
+{
+    return UID_WHITELIST_FOR_SET.find(IPCSkeleton::GetCallingUid()) != UID_WHITELIST_FOR_SET.end();
+}
+
+ErrCode DomainAccountManagerService::IsAuthenticationExpired(const DomainAccountInfo &info, bool &isExpired)
+{
+    return InnerDomainAccountManager::GetInstance().IsAuthenticationExpired(info, isExpired);
+}
+
+ErrCode DomainAccountManagerService::SetAccountPolicy(const DomainAccountPolicy &policy)
+{
+    // check EDM uid
+    if (!CheckManageExpiryThresholdWhiteList()) {
+        ACCOUNT_LOGE("Permission denied, callingUid=%{public}d.", IPCSkeleton::GetCallingUid());
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    return InnerDomainAccountManager::GetInstance().SetAccountPolicy(policy);
 }
 
 ErrCode DomainAccountManagerService::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,

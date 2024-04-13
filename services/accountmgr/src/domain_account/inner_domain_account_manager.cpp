@@ -1040,6 +1040,63 @@ ErrCode InnerDomainAccountManager::GetAccessToken(
     return ERR_OK;
 }
 
+ErrCode InnerDomainAccountManager::IsAuthenticationExpired(const DomainAccountInfo &info, bool &isExpired)
+{
+    std::lock_guard<std::mutex> lock(libMutex_);
+    auto iter = methodMap.find(PluginMethodEnum::IS_AUTHENTICATION_EXPIRED);
+    if (iter == methodMap.end() || iter->second == nullptr) {
+        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", iter->first);
+        return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
+    }
+    int32_t userId = 0;
+    ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGI("The target domain account not found, isExpired=true.");
+        isExpired = true;
+        return ERR_OK;
+    }
+    std::vector<uint8_t> accountToken;
+    if (!GetTokenFromMap(userId, accountToken)) {
+        ACCOUNT_LOGI("The target domain account has not authenticated, isExpired=true.");
+        isExpired = true;
+        return ERR_OK;
+    }
+
+    PluginDomainAccountInfo domainAccountInfo;
+    SetPluginDomainAccountInfo(info, domainAccountInfo);
+    PluginUint8Vector pToken;
+    SetPluginUint8Vector(accountToken, pToken);
+    int32_t isValid = 0;
+    PluginBussnessError* error =
+        (*reinterpret_cast<IsAuthenticationExpiredFunc>(iter->second))(&domainAccountInfo, &pToken, &isValid);
+    ACCOUNT_LOGI("Return isValid=%{public}d.", isValid);
+    if (error == nullptr) {
+        ACCOUNT_LOGE("Error is nullptr.");
+        return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
+    }
+    isExpired = (isValid == 0);
+    return GetAndCleanPluginBussnessError(&error, iter->first);
+}
+
+ErrCode InnerDomainAccountManager::SetAccountPolicy(const DomainAccountPolicy &policy)
+{
+    std::lock_guard<std::mutex> lock(libMutex_);
+    auto iter = methodMap.find(PluginMethodEnum::SET_ACCOUNT_POLICY);
+    if (iter == methodMap.end() || iter->second == nullptr) {
+        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::SET_ACCOUNT_POLICY);
+        return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
+    }
+    PluginDomainAccountPolicy domainAccountPolicy;
+    domainAccountPolicy.authenicationValidityPeriod = policy.authenicationValidityPeriod;
+    PluginBussnessError* error =
+        (*reinterpret_cast<SetAccountPolicyFunc>(iter->second))(&domainAccountPolicy);
+    if (error == nullptr) {
+        ACCOUNT_LOGE("Error is nullptr.");
+        return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
+    }
+    return GetAndCleanPluginBussnessError(&error, iter->first);
+}
+
 static void ErrorOnResult(const ErrCode errCode, const sptr<IDomainAccountCallback> &callback)
 {
     Parcel emptyParcel;

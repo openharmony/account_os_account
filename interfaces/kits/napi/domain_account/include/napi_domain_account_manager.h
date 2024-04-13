@@ -53,6 +53,12 @@ struct UpdateAccountTokenAsyncContext : public CommonAsyncContext {
     std::vector<uint8_t> token;
 };
 
+struct IsAuthenticationExpiredAsyncContext : public CommonAsyncContext {
+    IsAuthenticationExpiredAsyncContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
+    AccountSA::DomainAccountInfo domainInfo;
+    bool isExpired = false;
+};
+
 struct GetAccessTokenAsyncContext : public CommonAsyncContext {
     GetAccessTokenAsyncContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
     AccountSA::DomainAccountInfo domainInfo;
@@ -164,6 +170,7 @@ private:
     static napi_value AuthWithPopup(napi_env env, napi_callback_info cbInfo);
     static napi_value HasAccount(napi_env env, napi_callback_info cbInfo);
     static napi_value UpdateAccountToken(napi_env env, napi_callback_info cbInfo);
+    static napi_value IsAuthenticationExpired(napi_env env, napi_callback_info cbInfo);
     static napi_value GetAccessToken(napi_env env, napi_callback_info cbInfo);
     static napi_value GetDomainAccountInfo(napi_env env, napi_callback_info cbInfo);
 };
