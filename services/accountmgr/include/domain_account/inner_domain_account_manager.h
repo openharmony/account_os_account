@@ -18,6 +18,7 @@
 
 #include <condition_variable>
 #include <mutex>
+#include "domain_account_common.h"
 #include "domain_account_plugin_death_recipient.h"
 #include "domain_account_plugin_proxy.h"
 #include "domain_account_callback.h"
@@ -69,6 +70,7 @@ public:
     ErrCode GetAccountServerConfig(const DomainAccountInfo &info, DomainServerConfig &config);
     void LoaderLib(const std::string &path, const std::string &libName);
     void CloseLib();
+    ErrCode UpdateAccountInfo(const DomainAccountInfo &oldAccountInfo, const DomainAccountInfo &newAccountInfo);
 
 private:
     InnerDomainAccountManager();
@@ -107,6 +109,9 @@ private:
         int32_t &isValid);
     ErrCode PluginGetAccessToken(const GetAccessTokenOptions &option,
         const std::vector<uint8_t> &token, const DomainAccountInfo &info, DomainAuthResult &resultParcel);
+    ErrCode PluginUpdateAccountInfo(const DomainAccountInfo &oldAccountInfo,
+        const DomainAccountInfo &newAccountInfo);
+
 private:
     int32_t callingUid_ = -1;
     std::mutex mutex_;
@@ -141,6 +146,21 @@ public:
 private:
     int32_t userId_;
     sptr<IDomainAccountCallback> callback_;
+};
+
+class UpdateAccountInfoCallback final : public DomainAccountCallback {
+public:
+    void OnResult(int32_t result, Parcel &parcel) override;
+    int32_t GetResult();
+    void WaitForCallbackResult();
+    DomainAccountInfo GetAccountInfo();
+
+private:
+    int32_t result_ = -1;
+    mutable std::mutex lock_;
+    std::condition_variable condition_;
+    bool threadInSleep_ = true;
+    DomainAccountInfo accountInfo_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
