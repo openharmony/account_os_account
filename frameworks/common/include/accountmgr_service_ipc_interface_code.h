@@ -181,6 +181,7 @@ enum class DomainAccountInterfaceCode : uint32_t {
     ADD_SERVER_CONFIG,
     REMOVE_SERVER_CONFIG,
     GET_ACCOUNT_SERVER_CONFIG,
+    DOMAIN_UPDATE_ACCOUNT_INFO,
 };
 
 enum class DomainAccountPluginInterfaceCode : int32_t {

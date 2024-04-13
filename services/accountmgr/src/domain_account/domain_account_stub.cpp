@@ -100,7 +100,10 @@ const std::map<DomainAccountInterfaceCode, DomainAccountStub::DomainAccountStubF
         DomainAccountInterfaceCode::GET_ACCOUNT_SERVER_CONFIG,
         &DomainAccountStub::ProcGetAccountServerConfig
     },
-
+    {
+        DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_INFO,
+        &DomainAccountStub::ProcUpdateAccountInfo
+    },
 };
 
 DomainAccountStub::DomainAccountStub()
@@ -309,6 +312,26 @@ ErrCode DomainAccountStub::ProcGetDomainAccountInfo(MessageParcel &data, Message
     return ERR_NONE;
 }
 
+ErrCode DomainAccountStub::ProcUpdateAccountInfo(MessageParcel &data, MessageParcel &reply)
+{
+    std::shared_ptr<DomainAccountInfo> oldAccountInfo(data.ReadParcelable<DomainAccountInfo>());
+    if (oldAccountInfo == nullptr) {
+        ACCOUNT_LOGE("Failed to read oldAccountInfo");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    std::shared_ptr<DomainAccountInfo> newAccountInfo(data.ReadParcelable<DomainAccountInfo>());
+    if (newAccountInfo == nullptr) {
+        ACCOUNT_LOGE("Failed to read newAccountInfo");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = UpdateAccountInfo(*oldAccountInfo, *newAccountInfo);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Failed to write reply, result %{public}d.", result);
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
 ErrCode DomainAccountStub::ProcRegisterAccountStatusListener(MessageParcel &data, MessageParcel &reply)
 {
     auto callback = iface_cast<IDomainAccountCallback>(data.ReadRemoteObject());
@@ -494,6 +517,7 @@ ErrCode DomainAccountStub::CheckPermission(DomainAccountInterfaceCode code, int3
         case DomainAccountInterfaceCode::ADD_SERVER_CONFIG:
         case DomainAccountInterfaceCode::REMOVE_SERVER_CONFIG:
         case DomainAccountInterfaceCode::GET_ACCOUNT_SERVER_CONFIG:
+        case DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_INFO:
             permissionName = MANAGE_LOCAL_ACCOUNTS;
             break;
         case DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_ENQUIRY:

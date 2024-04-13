@@ -23,6 +23,11 @@
 #include "account_info_report.h"
 #include "account_log_wrapper.h"
 #include "bool_wrapper.h"
+#ifdef HAS_CES_PART
+#include "account_event_provider.h"
+#include "common_event_support.h"
+#endif // HAS_CES_PART
+#include "domain_account_common.h"
 #include "domain_account_plugin_death_recipient.h"
 #include "domain_account_callback_service.h"
 #include "domain_has_domain_info_callback.h"
@@ -782,6 +787,32 @@ ErrCode InnerDomainAccountManager::PluginGetAuthStatusInfo(const DomainAccountIn
     return GetAndCleanPluginBussnessError(&error, iter->first);
 }
 
+ErrCode InnerDomainAccountManager::PluginUpdateAccountInfo(const DomainAccountInfo &oldAccountInfo,
+    const DomainAccountInfo &newAccountInfo)
+{
+    std::lock_guard<std::mutex> lock(libMutex_);
+    auto iter = methodMap.find(PluginMethodEnum::UPDATE_ACCOUNT_INFO);
+    if (iter == methodMap.end() || iter->second == nullptr) {
+        ACCOUNT_LOGE("Caller method = %{public}d not exsit.", PluginMethodEnum::UPDATE_ACCOUNT_INFO);
+        return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+    }
+    PluginDomainAccountInfo oldDomainAccountInfo;
+    SetPluginDomainAccountInfo(oldAccountInfo, oldDomainAccountInfo);
+    PluginDomainAccountInfo newDomainAccountInfo;
+    SetPluginDomainAccountInfo(oldAccountInfo, newDomainAccountInfo);
+    PluginBussnessError* error =
+        (*reinterpret_cast<UpdateAccountInfoFunc>(iter->second))(&oldDomainAccountInfo, &newDomainAccountInfo);
+    CleanPluginString(&(oldDomainAccountInfo.domain.data), oldDomainAccountInfo.domain.length);
+    CleanPluginString(&(oldDomainAccountInfo.serverConfigId.data), oldDomainAccountInfo.serverConfigId.length);
+    CleanPluginString(&(oldDomainAccountInfo.accountName.data), oldDomainAccountInfo.accountName.length);
+    CleanPluginString(&(oldDomainAccountInfo.accountId.data), oldDomainAccountInfo.accountId.length);
+    CleanPluginString(&(newDomainAccountInfo.domain.data), newDomainAccountInfo.domain.length);
+    CleanPluginString(&(newDomainAccountInfo.serverConfigId.data), newDomainAccountInfo.serverConfigId.length);
+    CleanPluginString(&(newDomainAccountInfo.accountName.data), newDomainAccountInfo.accountName.length);
+    CleanPluginString(&(newDomainAccountInfo.accountId.data), newDomainAccountInfo.accountId.length);
+    return GetAndCleanPluginBussnessError(&error, iter->first);
+}
+
 ErrCode InnerDomainAccountManager::InnerAuth(int32_t userId, const std::vector<uint8_t> &authData,
     const sptr<IDomainAccountCallback> &callback, AuthMode authMode)
 {
@@ -1502,6 +1533,128 @@ ErrCode InnerDomainAccountManager::IsAccountTokenValid(const DomainAccountInfo &
     pthread_setname_np(taskThread.native_handle(), THREAD_IS_ACCOUNT_VALID);
     taskThread.detach();
     return ERR_OK;
+}
+
+void UpdateAccountInfoCallback::OnResult(int32_t result, Parcel &parcel)
+{
+    std::unique_lock<std::mutex> lock(lock_);
+    if (result_ > 0) {
+        return;
+    }
+    if (result == ERR_JS_ACCOUNT_NOT_FOUND) {
+        result_ = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    } else {
+        result_ = result;
+    }
+    if (result == ERR_OK) {
+        std::shared_ptr<AAFwk::WantParams> parameters(AAFwk::WantParams::Unmarshalling(parcel));
+        if (parameters == nullptr) {
+            ACCOUNT_LOGE("Parameters unmarshalling error");
+            result_ = ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+        } else {
+            accountInfo_.accountName_ = parameters->GetStringParam("accountName");
+            accountInfo_.domain_ = parameters->GetStringParam("domain");
+            accountInfo_.accountId_ = parameters->GetStringParam("accountId");
+            accountInfo_.serverConfigId_ = parameters->GetStringParam("serverConfigId");
+        }
+    }
+    ACCOUNT_LOGI("ThreadInSleep_ set false.");
+    threadInSleep_ = false;
+    condition_.notify_one();
+}
+
+int32_t UpdateAccountInfoCallback::GetResult()
+{
+    return result_;
+}
+
+void UpdateAccountInfoCallback::WaitForCallbackResult()
+{
+    std::unique_lock<std::mutex> lock(lock_);
+    condition_.wait(lock, [this] {
+        return threadInSleep_ == false;
+    });
+    ACCOUNT_LOGI("WaitForCallbackResult.");
+}
+
+DomainAccountInfo UpdateAccountInfoCallback::GetAccountInfo()
+{
+    return accountInfo_;
+}
+
+static ErrCode CheckNewDomainAccountInfo(const DomainAccountInfo &oldAccountInfo, DomainAccountInfo &newAccountInfo)
+{
+    if (newAccountInfo.domain_ != oldAccountInfo.domain_) {
+        ACCOUNT_LOGE("NewAccountInfo's domain is invalid");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    if (!oldAccountInfo.serverConfigId_.empty()) {
+        if (newAccountInfo.serverConfigId_.empty()) {
+            newAccountInfo.serverConfigId_ = oldAccountInfo.serverConfigId_;
+        }
+        if (newAccountInfo.serverConfigId_ != oldAccountInfo.serverConfigId_) {
+            ACCOUNT_LOGE("NewAccountInfo's serverConfigId is invalid");
+            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+        }
+    }
+    int32_t userId = 0;
+    ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(newAccountInfo, userId);
+    if (result == ERR_OK && userId > 0) {
+        ACCOUNT_LOGE("NewAccountInfo already exists");
+        return ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR;
+    }
+    std::shared_ptr<UpdateAccountInfoCallback> callback = std::make_shared<UpdateAccountInfoCallback>();
+    sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
+    if (callbackService == nullptr) {
+        ACCOUNT_LOGE("Make shared DomainAccountCallbackService failed");
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
+    result = InnerDomainAccountManager::GetInstance().GetDomainAccountInfo(newAccountInfo, callbackService);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("GetDomainAccountInfo failed, result = %{public}d", result);
+        return result;
+    }
+    callback->WaitForCallbackResult();
+    result = callback->GetResult();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("NewAccountInfo is invaild");
+        return result;
+    }
+    newAccountInfo = callback->GetAccountInfo();
+    return ERR_OK;
+}
+
+ErrCode InnerDomainAccountManager::UpdateAccountInfo(
+    const DomainAccountInfo &oldAccountInfo, const DomainAccountInfo &newAccountInfo)
+{
+    if (!IsPluginAvailable()) {
+        ACCOUNT_LOGE("Plugin is nullptr.");
+        return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
+    }
+    // check old account info
+    int32_t userId = 0;
+    ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(oldAccountInfo, userId);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("GetOsAccountLocalIdFromDomain failed, result = %{public}d", result);
+        return result;
+    }
+    // check new account info
+    DomainAccountInfo newDomainAccountInfo(newAccountInfo);
+    result = CheckNewDomainAccountInfo(oldAccountInfo, newDomainAccountInfo);
+    if (result != ERR_OK) {
+        return result;
+    }
+    // update account info
+    if (plugin_ == nullptr) {
+        result = PluginUpdateAccountInfo(oldAccountInfo, newDomainAccountInfo);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGE("PluginUpdateAccountInfo failed, errCode = %{public}d", result);
+            return result;
+        }
+    }
+    // update local info
+    return IInnerOsAccountManager::GetInstance().UpdateAccountInfoByDomainAccountInfo(
+        userId, newDomainAccountInfo);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

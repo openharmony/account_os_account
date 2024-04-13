@@ -110,6 +110,7 @@ public:
     ErrCode UpdateAccountStatusForDomain(const int id, DomainAccountStatus status);
     ErrCode GetTypeNumber(const OsAccountType& type, int32_t& typeNumber) override;
     ErrCode CheckTypeNumber(const OsAccountType& type) override;
+    ErrCode UpdateAccountInfoByDomainAccountInfo(int32_t userId, const DomainAccountInfo &newDomainAccountInfo);
 
 private:
     IInnerOsAccountManager();

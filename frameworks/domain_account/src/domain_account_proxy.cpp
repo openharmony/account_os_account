@@ -401,5 +401,25 @@ ErrCode DomainAccountProxy::GetAccountServerConfig(const DomainAccountInfo &info
     config = *serverConfig;
     return ERR_OK;
 }
+
+ErrCode DomainAccountProxy::UpdateAccountInfo(
+    const DomainAccountInfo &oldAccountInfo, const DomainAccountInfo &newAccountInfo)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Fail to write descriptor");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteParcelable(&oldAccountInfo)) {
+        ACCOUNT_LOGE("Fail to write oldAccountInfo");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteParcelable(&newAccountInfo)) {
+        ACCOUNT_LOGE("Fail to write newAccountInfo");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    MessageParcel reply;
+    return SendRequest(DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_INFO, data, reply);
+}
 } // namespace AccountSA
 } // namespace OHOS

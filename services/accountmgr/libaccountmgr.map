@@ -222,6 +222,7 @@
         "OHOS::AccountSA::IInnerOsAccountManager::IInnerOsAccountManager()";
         "OHOS::AccountSA::IInnerOsAccountManager::SendMsgForAccountCreate(OsAccountInfo &osAccountInfo)";
         "OHOS::AccountSA::IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccountInfo)";
+        "OHOS::AccountSA::IInnerOsAccountManager::UpdateAccountInfoByDomainAccountInfo(int, OHOS::AccountSA::DomainAccountInfo const&)";
         "OHOS::AccountSA::SessionAppStateObserver::OnAbilityStateChanged(OHOS::AppExecFwk::AbilityStateData const&)";
         "OHOS::AccountSA::SessionAppStateObserver::SessionAppStateObserver()";
         "OHOS::AccountSA::SessionConnection::SessionConnection(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
@@ -272,6 +273,7 @@
         "OHOS::AccountSA::InnerDomainAccountManager::AddServerConfig(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::DomainServerConfig&)";
         "OHOS::AccountSA::InnerDomainAccountManager::RemoveServerConfig(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::InnerDomainAccountManager::GetAccountServerConfig(OHOS::AccountSA::DomainAccountInfo const&, OHOS::AccountSA::DomainServerConfig&)";
+        "OHOS::AccountSA::InnerDomainAccountManager::UpdateAccountInfo(OHOS::AccountSA::DomainAccountInfo const&, OHOS::AccountSA::DomainAccountInfo const&)";
         "OHOS::AccountSA::DomainAccountStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
         "OHOS::AccountSA::DomainAccountInfo::DomainAccountInfo()";
         "VTT for OHOS::AccountSA::DomainAccountInfo";

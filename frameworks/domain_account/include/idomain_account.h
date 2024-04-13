@@ -50,6 +50,8 @@ public:
     virtual ErrCode AddServerConfig(const std::string &paramter, DomainServerConfig &config) = 0;
     virtual ErrCode RemoveServerConfig(const std::string &configId) = 0;
     virtual ErrCode GetAccountServerConfig(const DomainAccountInfo &info, DomainServerConfig &config) = 0;
+    virtual ErrCode UpdateAccountInfo(
+        const DomainAccountInfo &oldAccountInfo, const DomainAccountInfo &newAccountInfo) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -122,6 +122,7 @@ public:
         const std::shared_ptr<GetAccessTokenCallback> &callback);
     ErrCode GetAccountStatus(const DomainAccountInfo &info, DomainAccountStatus &status);
     ErrCode GetDomainAccountInfo(const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback);
+    ErrCode UpdateAccountInfo(const DomainAccountInfo &oldAccountInfo, const DomainAccountInfo &newAccountInfo);
     ErrCode RegisterAccountStatusListener(const std::shared_ptr<DomainAccountStatusListener> &listener);
     ErrCode UnregisterAccountStatusListener(const std::shared_ptr<DomainAccountStatusListener> &listener);
     friend std::function<void(int32_t, const std::string &)> callbackFunc();

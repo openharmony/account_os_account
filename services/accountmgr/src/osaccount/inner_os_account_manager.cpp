@@ -2014,6 +2014,44 @@ void IInnerOsAccountManager::CopyFromActiveList(std::vector<int32_t>& idList)
     }
 }
 
+ErrCode IInnerOsAccountManager::UpdateAccountInfoByDomainAccountInfo(
+    int32_t userId, const DomainAccountInfo &newDomainAccountInfo)
+{
+    if (!CheckAndAddLocalIdOperating(userId)) {
+        ACCOUNT_LOGW("Account id = %{public}d already in operating", userId);
+        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
+    }
+    OsAccountInfo accountInfo;
+    ErrCode result = osAccountControl_->GetOsAccountInfoById(userId, accountInfo);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Get account info failed, result = %{public}d", result);
+        RemoveLocalIdToOperating(userId);
+        return result;
+    }
+    DomainAccountInfo oldDomainAccountInfo;
+    accountInfo.GetDomainInfo(oldDomainAccountInfo);
+    if (!newDomainAccountInfo.accountName_.empty()) {
+        oldDomainAccountInfo.accountName_ = newDomainAccountInfo.accountName_;
+    }
+    if (!newDomainAccountInfo.accountId_.empty()) {
+        oldDomainAccountInfo.accountId_ = newDomainAccountInfo.accountId_;
+    }
+    accountInfo.SetDomainInfo(oldDomainAccountInfo);
+    accountInfo.SetLocalName(newDomainAccountInfo.domain_ + "/" + newDomainAccountInfo.accountName_);
+    result = osAccountControl_->UpdateOsAccount(accountInfo);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Update account info failed, result = %{public}d", result);
+        RemoveLocalIdToOperating(userId);
+        return result;
+    }
+    RemoveLocalIdToOperating(userId);
+#ifdef HAS_CES_PART
+    AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED,
+        userId, nullptr);
+#endif // HAS_CES_PART
+    return ERR_OK;
+}
+
 ErrCode IInnerOsAccountManager::UpdateAccountToForeground(const uint64_t displayId, OsAccountInfo &osAccountInfo)
 {
     int32_t localId = osAccountInfo.GetLocalId();
