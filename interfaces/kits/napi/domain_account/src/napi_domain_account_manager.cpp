@@ -867,6 +867,7 @@ napi_value NapiDomainAccountManager::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_STATIC_FUNCTION("updateAccountToken", UpdateAccountToken),
         DECLARE_NAPI_STATIC_FUNCTION("getAccessToken", GetAccessToken),
         DECLARE_NAPI_STATIC_FUNCTION("getAccountInfo", GetDomainAccountInfo),
+        DECLARE_NAPI_STATIC_FUNCTION("updateAccountInfo", UpdateAccountInfo),
         DECLARE_NAPI_FUNCTION("registerPlugin", RegisterPlugin),
         DECLARE_NAPI_FUNCTION("unregisterPlugin", UnregisterPlugin),
         DECLARE_NAPI_FUNCTION("hasAccount", HasAccount),
@@ -1514,6 +1515,67 @@ napi_value NapiDomainAccountManager::GetDomainAccountInfo(napi_env env, napi_cal
     NAPI_CALL(env, napi_create_string_utf8(env, "getAccountInfo", NAPI_AUTO_LENGTH, &resource));
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         GetAccountInfoExecuteCB, GetAccountInfoCompleteCB,
+        reinterpret_cast<void *>(context.get()), &context->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_default));
+    context.release();
+    return result;
+}
+
+static bool ParseParamForUpdateAccountInfo(
+    napi_env env, napi_callback_info cbInfo, UpdateAccountInfoAsyncContext *asyncContext)
+{
+    size_t argc = ARG_SIZE_TWO;
+    napi_value argv[ARG_SIZE_TWO] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    if (argc != ARG_SIZE_TWO) {
+        ACCOUNT_LOGE("The parameter of number should be two");
+        return false;
+    }
+    if (!ParseDomainAccountInfo(env, argv[0], asyncContext->oldAccountInfo)) {
+        ACCOUNT_LOGE("Get oldAccountInfo failed");
+        return false;
+    }
+    if (!ParseDomainAccountInfo(env, argv[1], asyncContext->newAccountInfo)) {
+        ACCOUNT_LOGE("Get newAccountInfo failed");
+        return false;
+    }
+    return true;
+}
+
+static void UpdateAccountInfoExecuteCB(napi_env env, void *data)
+{
+    UpdateAccountInfoAsyncContext *asyncContext = reinterpret_cast<UpdateAccountInfoAsyncContext *>(data);
+    asyncContext->errCode = DomainAccountClient::GetInstance().UpdateAccountInfo(
+        asyncContext->oldAccountInfo, asyncContext->newAccountInfo);
+}
+
+static void UpdateAccountInfoCompleteCB(napi_env env, napi_status status, void *data)
+{
+    UpdateAccountInfoAsyncContext *asyncContext = reinterpret_cast<UpdateAccountInfoAsyncContext *>(data);
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    if (asyncContext->errCode != ERR_OK) {
+        errJs = GenerateBusinessError(asyncContext->env, asyncContext->errCode);
+    } else {
+        napi_get_null(asyncContext->env, &dataJs);
+    }
+    ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
+    delete asyncContext;
+}
+
+napi_value NapiDomainAccountManager::UpdateAccountInfo(napi_env env, napi_callback_info cbInfo)
+{
+    auto context = std::make_unique<UpdateAccountInfoAsyncContext>(env);
+    if (!ParseParamForUpdateAccountInfo(env, cbInfo, context.get())) {
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, true);
+        return nullptr;
+    }
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_promise(env, &context->deferred, &result));
+    napi_value resource = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, "UpdateAccountInfo", NAPI_AUTO_LENGTH, &resource));
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
+        UpdateAccountInfoExecuteCB, UpdateAccountInfoCompleteCB,
         reinterpret_cast<void *>(context.get()), &context->work));
     NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_default));
     context.release();

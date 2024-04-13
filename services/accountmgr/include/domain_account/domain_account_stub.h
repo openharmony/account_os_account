@@ -43,6 +43,7 @@ public:
     ErrCode ProcUpdateAccountToken(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetDomainAccessToken(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetDomainAccountInfo(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcUpdateAccountInfo(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcUnregisterAccountStatusListener(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcRegisterAccountStatusListener(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcAddServerConfig(MessageParcel &data, MessageParcel &reply);
