@@ -1084,7 +1084,7 @@ ErrCode InnerDomainAccountManager::IsAuthenticationExpired(const DomainAccountIn
     if (result != ERR_OK) {
         ACCOUNT_LOGI("The target domain account not found, isExpired=true.");
         isExpired = true;
-        return ERR_OK;
+        return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
     }
     std::vector<uint8_t> accountToken;
     if (!GetTokenFromMap(userId, accountToken)) {
