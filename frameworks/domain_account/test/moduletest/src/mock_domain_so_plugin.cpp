@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#include <securec.h>
 #include <ctime>
+#include <securec.h>
 #include "dlfcn.h"
 #include "account_log_wrapper.h"
 #include "domain_plugin.h"
@@ -129,6 +129,11 @@ PluginBussnessError *GetAccountInfo(const PluginGetDomainAccountInfoOptions *opt
     if (error == nullptr) {
         return nullptr;
     }
+    if (strcmp(options->domainAccountInfo.accountName.data, "testNewAccountInvalid") == 0) {
+        error->code = 12300003; // 12300003 is ERR_JS_ACCOUNT_NOT_FOUND
+        error->msg.data = nullptr;
+        return error;
+    }
     error->code = 0;
     error->msg.data = nullptr;
     *domainAccountInfo = (PluginDomainAccountInfo *)malloc(sizeof(PluginDomainAccountInfo));
@@ -136,6 +141,7 @@ PluginBussnessError *GetAccountInfo(const PluginGetDomainAccountInfoOptions *opt
         free(error);
         return nullptr;
     }
+
     (*domainAccountInfo)->serverConfigId.data = nullptr;
     SetPluginString(options->domainAccountInfo.domain.data, (*domainAccountInfo)->domain);
     SetPluginString(options->domainAccountInfo.accountName.data, (*domainAccountInfo)->accountName);
@@ -192,6 +198,18 @@ PluginBussnessError *SetAccountPolicy(PluginDomainAccountPolicy *domainAccountPo
     return error;
 }
 
+PluginBussnessError* UpdateAccountInfo(const PluginDomainAccountInfo *domainAccountInfo,
+    const PluginDomainAccountInfo *newDomainAccountInfo)
+{
+    PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    if (error == nullptr) {
+        return nullptr;
+    }
+    error->code = 0;
+    error->msg.data = nullptr;
+    return error;
+}
+
 void *dlsym(void *__restrict, const char *methodName)
 {
     if (strcmp(methodName, "Auth") == 0) {
@@ -208,6 +226,9 @@ void *dlsym(void *__restrict, const char *methodName)
     }
     if (strcmp(methodName, "SetAccountPolicy") == 0) {
         return reinterpret_cast<void *>(SetAccountPolicy);
+    }
+    if (strcmp(methodName, "UpdateAccountInfo") == 0) {
+        return reinterpret_cast<void *>(UpdateAccountInfo);
     }
     return nullptr;
 }
