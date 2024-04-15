@@ -44,6 +44,9 @@ const struct HksParam g_genSignVerifyParams[] = {
     }, {
         .tag = HKS_TAG_DIGEST,
         .uint32Param = HKS_DIGEST_SHA256
+    }, {
+        .tag = HKS_TAG_AUTH_STORAGE_LEVEL,
+        .uint32Param = HKS_AUTH_STORAGE_LEVEL_DE
     }
 };
 const uint32_t ALG_COMMON_SIZE = 32;
