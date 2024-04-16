@@ -24,6 +24,7 @@
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
 #include "domain_account_callback_service.h"
+#include "os_account_info.h"
 #ifdef BUNDLE_ADAPTER_MOCK
 #include "domain_account_manager_service.h"
 #include "domain_account_proxy.h"
@@ -1979,4 +1980,32 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAcco
     EXPECT_EQ(errCode, ERR_OK);
     EXPECT_EQ(oldUserId, newUserId);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(oldUserId), ERR_OK);
+}
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_UpdateAccountInfo_006
+ * @tc.desc: UpdateAccountInfo failed with plugin not surport.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAccountInfo_006, TestSize.Level0)
+{
+    DomainAccountClient::GetInstance().UnregisterPlugin();
+    DomainAccountInfo oldInfo(STRING_DOMAIN, STRING_NAME), newInfo(STRING_DOMAIN, STRING_NAME_NEW);
+    EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountInfo(oldInfo, newInfo),
+        ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+}
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_UpdateAccountInfo_007
+ * @tc.desc: UpdateAccountInfo failed with plugin not surport.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAccountInfo_007, TestSize.Level0)
+{
+    DomainAccountClient::GetInstance().UnregisterPlugin();
+    DomainAccountInfo oldInfo(STRING_DOMAIN, STRING_NAME), newInfo(STRING_DOMAIN, STRING_NAME_NEW);
+    EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountInfo(oldInfo, newInfo),
+        ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
 }
