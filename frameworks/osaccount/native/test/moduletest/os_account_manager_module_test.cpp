@@ -60,8 +60,8 @@ using namespace OHOS::Security::AccessToken;
 using namespace OHOS::AccountSA::Constants;
 using namespace OHOS::EventFwk;
 
-uint64_t g_selfTokenID;
 namespace {
+static uint64_t g_selfTokenID;
 const std::string STRING_EMPTY = "";
 const std::string STRING_NAME = "name";
 const std::string STRING_TEST_NAME_TWO = "test_account_name_2";
@@ -97,7 +97,7 @@ const std::string CONSTANT_WIFI = "constraint.wifi";
 
 const std::string CONSTANT_PRINT = "constraint.print";
 const std::string STRING_NAME_OUT_OF_RANGE(1200, '1');  // length 1200
-const std::string STRING_PHOTO_OUT_OF_RANGE(1024*1024*10+1, '1');  // length 1024*1024*10+1
+const std::string STRING_PHOTO_OUT_OF_RANGE(1024 * 1024 * 10 + 1, '1');  // length 1024*1024*10+1
 const std::string PHOTO_IMG =
     "data:image/"
     "png;base64,"
@@ -228,7 +228,7 @@ static bool AllocPermission(std::vector<std::string> permissions, AccessTokenID 
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
-bool RecoveryPermission(AccessTokenID tokenID)
+static bool RecoveryPermission(AccessTokenID tokenID)
 {
     return (ERR_OK == AccessTokenKit::DeleteToken(tokenID)) && (ERR_OK == SetSelfTokenID(g_selfTokenID));
 }
