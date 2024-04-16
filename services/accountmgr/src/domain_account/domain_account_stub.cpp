@@ -546,7 +546,7 @@ ErrCode DomainAccountStub::CheckPermission(DomainAccountInterfaceCode code, int3
             return ERR_OK;
         }
     }
-    return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    return orPermissions.empty() ? ERR_OK : ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
 }
 }  // namespace AccountSA
 }  // namespace OHOS
