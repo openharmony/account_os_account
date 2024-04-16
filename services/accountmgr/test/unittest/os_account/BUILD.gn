@@ -415,6 +415,7 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
     "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
     "${services_path}/accountmgr/test/mock/os_account/os_account_interface.cpp",
+    "${services_path}/accountmgr/test/unittest/os_account/mock/mock_os_account_musl.cpp",
     "os_account_inner_account_mgr_mock.cpp",
   ]
   sources += account_service_sources

@@ -23,6 +23,7 @@
 #include "ios_account_subscribe.h"
 #include "ohos_account_manager.h"
 #include "os_account_interface.h"
+#include "os_account_plugin_manager.h"
 #include "safe_map.h"
 #include "singleton.h"
 
@@ -166,6 +167,7 @@ private:
     mutable std::mutex ativeMutex_;
     mutable std::mutex operatingMutex_;
     SafeMap<uint64_t, int32_t> foregroundAccountMap_;
+    OsAccountPluginManager &pluginManager_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
