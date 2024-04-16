@@ -137,9 +137,9 @@ void IInnerOsAccountManager::RetryToGetAccount(OsAccountInfo &osAccountInfo)
     while (retryTimes < MAX_RETRY_TIMES) {
         std::vector<OsAccountInfo> osAccountInfos;
         QueryAllCreatedOsAccounts(osAccountInfos);
-        if (!osAccountInfos.empty()) {
+        if (!osAccountInfos.empty() && !osAccountInfos[0].GetToBeRemoved()) {
             osAccountInfo = osAccountInfos[0];
-            break;
+            return;
         }
         ACCOUNT_LOGE("fail to query accounts");
         retryTimes++;
@@ -162,7 +162,7 @@ void IInnerOsAccountManager::StartAccount()
     ResetAccountStatus();
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(defaultActivatedId_, osAccountInfo);
-    if (errCode != ERR_OK) {
+    if (errCode != ERR_OK || osAccountInfo.GetToBeRemoved()) {
         ACCOUNT_LOGE("account not found, localId: %{public}d, error: %{public}d", defaultActivatedId_, errCode);
         RetryToGetAccount(osAccountInfo);
         defaultActivatedId_ = osAccountInfo.GetLocalId();
