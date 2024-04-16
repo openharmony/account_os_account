@@ -248,6 +248,12 @@ public:
         return 0;
     }
 
+    int32_t MountDfsDocs(int32_t userId, std::string relativePath,
+        std::string networkId, std::string deviceId)
+    {
+        return 0;
+    }
+
     int32_t UpdateKeyContext(uint32_t userId)
     {
         return g_fscryptEnable ? ERROR_STORAGE_KEY_NOT_EXIST : 0;
