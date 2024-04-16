@@ -156,7 +156,6 @@ ohos_shared_library("accountmgr") {
     cfi = true
     cfi_cross_dso = true
     debug = false
-    blocklist = "${os_account_path}/cfi_blocklist.txt"
   }
 
   visibility = [ "${os_account_path}/*" ]
