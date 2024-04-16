@@ -20,6 +20,7 @@
 #include <thread>
 #include <unistd.h>
 #include "accesstoken_kit.h"
+#include "account_error_no.h"
 #include "account_file_operator.h"
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
@@ -343,6 +344,134 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     InnerDomainAccountManager::GetInstance().CloseLib();
     setuid(ROOT_UID);
     ASSERT_TRUE(RecoveryPermission(tokenID));
+}
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_UpdateAccountInfo_001
+ * @tc.desc: UpdateAccountInfo success.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_UpdateAccountInfo_001,
+         TestSize.Level0)
+{
+    DomainAccountInfo oldDomainInfo;
+    oldDomainInfo.accountName_ = "testAccount";
+    oldDomainInfo.domain_ = "test.example.com";
+    oldDomainInfo.accountId_ = "testAccountId";
+
+    DomainAccountInfo newDomainInfo;
+    newDomainInfo.accountName_ = "testNewAccount";
+    newDomainInfo.domain_ = "test.example.com";
+    newDomainInfo.accountId_ = "testAccountId2";
+
+    InnerDomainAccountManager::GetInstance().LoaderLib("", RIGHT_SO);
+    auto callback = std::make_shared<MockPluginSoDomainCreateDomainAccountCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestPluginSoCreateDomainAccountCallback>(callback);
+    EXPECT_CALL(*callback, OnResult(ERR_OK, "testAccount", "test.example.com", _)).Times(Exactly(1));
+    ASSERT_NE(testCallback, nullptr);
+    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, oldDomainInfo, testCallback);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                              [lockCallback = testCallback]() { return lockCallback->isReady; });
+    EXPECT_EQ(errCode, ERR_OK);
+    int32_t oldUserId = -1;
+    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(oldDomainInfo, oldUserId), ERR_OK);
+
+    ASSERT_EQ(DomainAccountClient::GetInstance().UpdateAccountInfo(oldDomainInfo, newDomainInfo), ERR_OK);
+    InnerDomainAccountManager::GetInstance().CloseLib();
+    int32_t newUserId = -1;
+
+    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(newDomainInfo, newUserId), ERR_OK);
+    EXPECT_EQ(newUserId, oldUserId);
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(newUserId), ERR_OK);
+}
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_UpdateAccountInfo_002
+ * @tc.desc: UpdateAccountInfo failed with new account check failed by plugin.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_UpdateAccountInfo_002,
+         TestSize.Level0)
+{
+    DomainAccountInfo oldDomainInfo;
+    oldDomainInfo.accountName_ = "testAccount";
+    oldDomainInfo.domain_ = "test.example.com";
+    oldDomainInfo.accountId_ = "testAccountId";
+
+    DomainAccountInfo newDomainInfo;
+    newDomainInfo.accountName_ = "testNewAccountInvalid";
+    newDomainInfo.domain_ = "test.example.com";
+    newDomainInfo.accountId_ = "testAccountId2";
+
+    InnerDomainAccountManager::GetInstance().LoaderLib("", RIGHT_SO);
+    auto callback = std::make_shared<MockPluginSoDomainCreateDomainAccountCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestPluginSoCreateDomainAccountCallback>(callback);
+    EXPECT_CALL(*callback, OnResult(ERR_OK, "testAccount", "test.example.com", _)).Times(Exactly(1));
+    ASSERT_NE(testCallback, nullptr);
+    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, oldDomainInfo, testCallback);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                              [lockCallback = testCallback]() { return lockCallback->isReady; });
+    EXPECT_EQ(errCode, ERR_OK);
+    int32_t oldUserId = -1;
+    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(oldDomainInfo, oldUserId), ERR_OK);
+
+    EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountInfo(oldDomainInfo, newDomainInfo),
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    InnerDomainAccountManager::GetInstance().CloseLib();
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(oldUserId), ERR_OK);
+}
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_UpdateAccountInfo_003
+ * @tc.desc: UpdateAccountInfo failed with new account check failed by plugin.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_UpdateAccountInfo_003,
+         TestSize.Level0)
+{
+    DomainAccountInfo oldDomainInfo;
+    oldDomainInfo.accountName_ = "testAccount";
+    oldDomainInfo.domain_ = "test.example.com";
+    oldDomainInfo.accountId_ = "testAccountId";
+
+    DomainAccountInfo newDomainInfo;
+    newDomainInfo.accountName_ = "testNewAccountInvalid";
+    newDomainInfo.domain_ = "test.example1.com";
+    newDomainInfo.accountId_ = "testAccountId2";
+
+    InnerDomainAccountManager::GetInstance().LoaderLib("", RIGHT_SO);
+    auto callback = std::make_shared<MockPluginSoDomainCreateDomainAccountCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestPluginSoCreateDomainAccountCallback>(callback);
+    EXPECT_CALL(*callback, OnResult(ERR_OK, "testAccount", "test.example.com", _)).Times(Exactly(1));
+    ASSERT_NE(testCallback, nullptr);
+    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, oldDomainInfo, testCallback);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                              [lockCallback = testCallback]() { return lockCallback->isReady; });
+    EXPECT_EQ(errCode, ERR_OK);
+    int32_t oldUserId = -1;
+    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(oldDomainInfo, oldUserId), ERR_OK);
+
+    // test new accountInfo's domain is invalid
+    EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountInfo(oldDomainInfo, newDomainInfo),
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+
+    // test new accountInfo's serverConfigId is invalid
+    oldDomainInfo.serverConfigId_ = "testId";
+    DomainAccountInfo newInfo2(oldDomainInfo);
+    newInfo2.serverConfigId_ = "invalidTestId";
+    EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountInfo(oldDomainInfo, newInfo2),
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    InnerDomainAccountManager::GetInstance().CloseLib();
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(oldUserId), ERR_OK);
 }
 
 /**
