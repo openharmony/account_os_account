@@ -42,6 +42,7 @@
 #include "mock_domain_has_domain_info_callback.h"
 #include "mock_domain_get_access_token_callback.h"
 #include "mock_domain_plugin.h"
+#include "mock_domain_so_plugin.h"
 #include "os_account_manager.h"
 #ifdef BUNDLE_ADAPTER_MOCK
 #include "os_account_manager_service.h"
@@ -57,16 +58,24 @@ using namespace OHOS::Security::AccessToken;
 using namespace OHOS::AccountSA::Constants;
 
 namespace {
+static int g_a = 1;
+static void *g_ptr = &g_a;
 const int32_t ROOT_UID = 0;
 const int32_t EDM_UID = 3057;
-static const char* RIGHT_SO = "right.z.so";
-static const char* WRONG_SO = "wrong.z.so";
 static constexpr int32_t DEFAULT_API_VERSION = 8;
 const std::vector<uint8_t> DEFAULT_TOKEN = {49, 50, 51, 52, 53};
 static uint64_t g_selfTokenID;
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 const int32_t WAIT_TIME = 2;
 #endif
+const std::map<PluginMethodEnum, void *> PLUGIN_METHOD_MAP = {
+    {PluginMethodEnum::AUTH, reinterpret_cast<void *>(Auth)},
+    {PluginMethodEnum::GET_ACCOUNT_INFO, reinterpret_cast<void *>(GetAccountInfo)},
+    {PluginMethodEnum::BIND_ACCOUNT, reinterpret_cast<void *>(BindAccount)},
+    {PluginMethodEnum::IS_AUTHENTICATION_EXPIRED, reinterpret_cast<void *>(IsAuthenticationExpired)},
+    {PluginMethodEnum::SET_ACCOUNT_POLICY, reinterpret_cast<void *>(SetAccountPolicy)},
+    {PluginMethodEnum::UPDATE_ACCOUNT_INFO, reinterpret_cast<void *>(UpdateAccountInfo)},
+};
 }
 
 static bool AllocPermission(std::vector<std::string> permissions, AccessTokenID &tokenID, bool isSystemApp = true)
@@ -195,6 +204,23 @@ void TestPluginSoCreateDomainAccountCallback::OnResult(const int32_t errCode, Pa
     return;
 }
 
+static void LoadPluginMethods()
+{
+    std::lock_guard<std::mutex> lock(InnerDomainAccountManager::GetInstance().libMutex_);
+    InnerDomainAccountManager::GetInstance().libHandle_ = g_ptr;
+    InnerDomainAccountManager::GetInstance().methodMap.clear();
+    for (const auto &mockMethod : PLUGIN_METHOD_MAP) {
+        InnerDomainAccountManager::GetInstance().methodMap.emplace(mockMethod.first, mockMethod.second);
+    }
+}
+
+static void UnloadPluginMethods()
+{
+    std::lock_guard<std::mutex> lock(InnerDomainAccountManager::GetInstance().libMutex_);
+    InnerDomainAccountManager::GetInstance().libHandle_ = nullptr;
+    InnerDomainAccountManager::GetInstance().methodMap.clear();
+}
+
 int32_t TestPluginSoCreateDomainAccountCallback::GetLocalId(void)
 {
     return localId_;
@@ -278,12 +304,11 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     AccessTokenID tokenID;
     ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
     setuid(EDM_UID);
-    InnerDomainAccountManager::GetInstance().LoaderLib("", WRONG_SO);
+    UnloadPluginMethods();
 
     DomainAccountPolicy policy;
     policy.authenicationValidityPeriod = 1;
     EXPECT_EQ(DomainAccountClient::GetInstance().SetAccountPolicy(policy), ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
-    InnerDomainAccountManager::GetInstance().CloseLib();
     setuid(ROOT_UID);
     ASSERT_TRUE(RecoveryPermission(tokenID));
 }
@@ -299,12 +324,12 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
 {
     AccessTokenID tokenID;
     ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
-    InnerDomainAccountManager::GetInstance().LoaderLib("", RIGHT_SO);
+    LoadPluginMethods();
     DomainAccountPolicy policy;
     policy.authenicationValidityPeriod = 10;
     EXPECT_EQ(DomainAccountClient::GetInstance().SetAccountPolicy(policy),
               ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
-    InnerDomainAccountManager::GetInstance().CloseLib();
+    UnloadPluginMethods();
     ASSERT_TRUE(RecoveryPermission(tokenID));
 }
 
@@ -317,12 +342,12 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_SetAuthenticationExpiryThreshold_003,
          TestSize.Level0)
 {
-    InnerDomainAccountManager::GetInstance().LoaderLib("", RIGHT_SO);
+    LoadPluginMethods();
     DomainAccountPolicy policy;
     policy.authenicationValidityPeriod = 10;
     EXPECT_EQ(DomainAccountClient::GetInstance().SetAccountPolicy(policy),
               ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
-    InnerDomainAccountManager::GetInstance().CloseLib();
+    UnloadPluginMethods();
 }
 
 /**
@@ -337,11 +362,11 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     AccessTokenID tokenID;
     ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
     setuid(EDM_UID);
-    InnerDomainAccountManager::GetInstance().LoaderLib("", RIGHT_SO);
+    LoadPluginMethods();
     DomainAccountPolicy policy;
     policy.authenicationValidityPeriod = 10;
     EXPECT_EQ(DomainAccountClient::GetInstance().SetAccountPolicy(policy), ERR_OK);
-    InnerDomainAccountManager::GetInstance().CloseLib();
+    UnloadPluginMethods();
     setuid(ROOT_UID);
     ASSERT_TRUE(RecoveryPermission(tokenID));
 }
@@ -365,7 +390,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     newDomainInfo.domain_ = "test.example.com";
     newDomainInfo.accountId_ = "testAccountId2";
 
-    InnerDomainAccountManager::GetInstance().LoaderLib("", RIGHT_SO);
+    LoadPluginMethods();
     auto callback = std::make_shared<MockPluginSoDomainCreateDomainAccountCallback>();
     ASSERT_NE(callback, nullptr);
     auto testCallback = std::make_shared<TestPluginSoCreateDomainAccountCallback>(callback);
@@ -380,7 +405,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(oldDomainInfo, oldUserId), ERR_OK);
 
     ASSERT_EQ(DomainAccountClient::GetInstance().UpdateAccountInfo(oldDomainInfo, newDomainInfo), ERR_OK);
-    InnerDomainAccountManager::GetInstance().CloseLib();
+    UnloadPluginMethods();
     int32_t newUserId = -1;
 
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(newDomainInfo, newUserId), ERR_OK);
@@ -407,7 +432,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     newDomainInfo.domain_ = "test.example.com";
     newDomainInfo.accountId_ = "testAccountId2";
 
-    InnerDomainAccountManager::GetInstance().LoaderLib("", RIGHT_SO);
+    LoadPluginMethods();
     auto callback = std::make_shared<MockPluginSoDomainCreateDomainAccountCallback>();
     ASSERT_NE(callback, nullptr);
     auto testCallback = std::make_shared<TestPluginSoCreateDomainAccountCallback>(callback);
@@ -423,7 +448,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
 
     EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountInfo(oldDomainInfo, newDomainInfo),
         ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    InnerDomainAccountManager::GetInstance().CloseLib();
+    UnloadPluginMethods();
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(oldUserId), ERR_OK);
 }
 
@@ -446,7 +471,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     newDomainInfo.domain_ = "test.example1.com";
     newDomainInfo.accountId_ = "testAccountId2";
 
-    InnerDomainAccountManager::GetInstance().LoaderLib("", RIGHT_SO);
+    LoadPluginMethods();
     auto callback = std::make_shared<MockPluginSoDomainCreateDomainAccountCallback>();
     ASSERT_NE(callback, nullptr);
     auto testCallback = std::make_shared<TestPluginSoCreateDomainAccountCallback>(callback);
@@ -470,7 +495,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     newInfo2.serverConfigId_ = "invalidTestId";
     EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountInfo(oldDomainInfo, newInfo2),
         ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    InnerDomainAccountManager::GetInstance().CloseLib();
+    UnloadPluginMethods();
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(oldUserId), ERR_OK);
 }
 
@@ -492,12 +517,10 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     domainInfo.accountId_ = "testid";
 
     bool isExpired = false;
-    InnerDomainAccountManager::GetInstance().methodMap.clear();
-    InnerDomainAccountManager::GetInstance().LoaderLib("", WRONG_SO);
+    UnloadPluginMethods();
     EXPECT_EQ(DomainAccountClient::GetInstance().IsAuthenticationExpired(domainInfo, isExpired),
               ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     EXPECT_TRUE(isExpired);
-    InnerDomainAccountManager::GetInstance().CloseLib();
     setuid(ROOT_UID);
     ASSERT_TRUE(RecoveryPermission(tokenID));
 }
@@ -517,11 +540,11 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     domainInfo.accountId_ = "testid";
 
     bool isExpired = false;
-    InnerDomainAccountManager::GetInstance().LoaderLib("", RIGHT_SO);
+    LoadPluginMethods();
     EXPECT_EQ(DomainAccountClient::GetInstance().IsAuthenticationExpired(domainInfo, isExpired),
         ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT);
     EXPECT_TRUE(isExpired);
-    InnerDomainAccountManager::GetInstance().CloseLib();
+    UnloadPluginMethods();
 }
 
 /**
@@ -538,7 +561,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     domainInfo.domain_ = "test.example.com";
     domainInfo.accountId_ = "testid";
 
-    InnerDomainAccountManager::GetInstance().LoaderLib("", RIGHT_SO);
+    LoadPluginMethods();
     auto callback = std::make_shared<MockPluginSoDomainCreateDomainAccountCallback>();
     ASSERT_NE(callback, nullptr);
     auto testCallback = std::make_shared<TestPluginSoCreateDomainAccountCallback>(callback);
@@ -553,7 +576,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     bool isExpired = false;
     EXPECT_EQ(DomainAccountClient::GetInstance().IsAuthenticationExpired(domainInfo, isExpired), ERR_OK);
     EXPECT_TRUE(isExpired);
-    InnerDomainAccountManager::GetInstance().CloseLib();
+    UnloadPluginMethods();
 
     int32_t userId = -1;
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId), ERR_OK);
@@ -573,7 +596,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     AccessTokenID tokenID;
     ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
     setuid(EDM_UID);
-    InnerDomainAccountManager::GetInstance().LoaderLib("", RIGHT_SO);
+    LoadPluginMethods();
     DomainAccountPolicy policy;
     policy.authenicationValidityPeriod = -1;
     EXPECT_EQ(DomainAccountClient::GetInstance().SetAccountPolicy(policy), ERR_OK);
@@ -612,7 +635,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     EXPECT_EQ(DomainAccountClient::GetInstance().IsAuthenticationExpired(domainInfo, isExpired), ERR_OK);
     EXPECT_FALSE(isExpired);
 
-    InnerDomainAccountManager::GetInstance().CloseLib();
+    UnloadPluginMethods();
     int32_t userId = -1;
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId), ERR_OK);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
@@ -630,7 +653,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     AccessTokenID tokenID;
     ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
     setuid(EDM_UID);
-    InnerDomainAccountManager::GetInstance().LoaderLib("", RIGHT_SO);
+    LoadPluginMethods();
     DomainAccountPolicy policy;
     policy.authenicationValidityPeriod = 1;
     EXPECT_EQ(DomainAccountClient::GetInstance().SetAccountPolicy(policy), ERR_OK);
@@ -669,7 +692,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     EXPECT_EQ(DomainAccountClient::GetInstance().IsAuthenticationExpired(domainInfo, isExpired), ERR_OK);
     EXPECT_TRUE(isExpired);
 
-    InnerDomainAccountManager::GetInstance().CloseLib();
+    UnloadPluginMethods();
     int32_t userId = -1;
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId), ERR_OK);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
@@ -688,6 +711,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     AccessTokenID tokenID;
     ASSERT_TRUE(AllocPermission({}, tokenID));
     setuid(EDM_UID);
+    LoadPluginMethods();
     DomainAccountInfo domainInfo;
     domainInfo.accountName_ = "testaccount";
     domainInfo.domain_ = "test.example.com";
@@ -705,5 +729,6 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
         ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT);
     EXPECT_TRUE(isExpired);
     setuid(ROOT_UID);
+    UnloadPluginMethods();
     ASSERT_TRUE(RecoveryPermission(tokenID));
 }
