@@ -15,49 +15,16 @@
 
 #include <ctime>
 #include <securec.h>
-#include "dlfcn.h"
 #include "account_log_wrapper.h"
-#include "domain_plugin.h"
+#include "mock_domain_so_plugin.h"
 
 namespace OHOS {
 namespace AccountSA {
 #ifdef __cplusplus
 extern "C" {
 #endif
-static const char *RIGHT_SO = "right.z.so";
-static int g_a = 1;
-static void *g_ptr = &g_a;
 static int32_t g_authenicationValidityPeriod = -1;
 static int32_t g_authTime = 0;
-
-int dlclose(void *handler)
-{
-    if (handler == nullptr) {
-        ACCOUNT_LOGI("Mock dlopen equal.");
-        errno = 1;
-        return 1;
-    }
-    errno = 0;
-    return 0;
-}
-
-char *dlerror(void)
-{
-    if (errno == 0) {
-        return nullptr;
-    }
-    errno = 0;
-    return const_cast<char *>(RIGHT_SO);
-}
-
-void *dlopen(const char *path, int flag)
-{
-    if (strcmp(path, RIGHT_SO) == 0) {
-        ACCOUNT_LOGI("Mock dlopen equal.");
-        return g_ptr;
-    }
-    return nullptr;
-}
 
 static void SetPluginString(const std::string &str, PluginString &pStr)
 {
@@ -208,29 +175,6 @@ PluginBussnessError* UpdateAccountInfo(const PluginDomainAccountInfo *domainAcco
     error->code = 0;
     error->msg.data = nullptr;
     return error;
-}
-
-void *dlsym(void *__restrict, const char *methodName)
-{
-    if (strcmp(methodName, "Auth") == 0) {
-        return reinterpret_cast<void *>(Auth);
-    }
-    if (strcmp(methodName, "GetAccountInfo") == 0) {
-        return reinterpret_cast<void *>(GetAccountInfo);
-    }
-    if (strcmp(methodName, "BindAccount") == 0) {
-        return reinterpret_cast<void *>(BindAccount);
-    }
-    if (strcmp(methodName, "IsAuthenticationExpired") == 0) {
-        return reinterpret_cast<void *>(IsAuthenticationExpired);
-    }
-    if (strcmp(methodName, "SetAccountPolicy") == 0) {
-        return reinterpret_cast<void *>(SetAccountPolicy);
-    }
-    if (strcmp(methodName, "UpdateAccountInfo") == 0) {
-        return reinterpret_cast<void *>(UpdateAccountInfo);
-    }
-    return nullptr;
 }
 #ifdef __cplusplus
 }
