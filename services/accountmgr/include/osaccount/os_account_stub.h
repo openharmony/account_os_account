@@ -91,6 +91,7 @@ public:
     ErrCode ProcSetDefaultActivatedOsAccount(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetDefaultActivatedOsAccount(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountShortName(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetOsAccountName(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountShortNameById(MessageParcel &data, MessageParcel &reply);
 
     ErrCode ProcIsOsAccountForeground(MessageParcel &data, MessageParcel &reply);

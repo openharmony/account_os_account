@@ -30,6 +30,9 @@ const int INT_ID = 12;
 const std::string STRING_NAME = "account";
 const OsAccountType INT_TYPE = OsAccountType::ADMIN;
 const int64_t STRING_SERIAL_NUMBER = 121012012;
+constexpr std::int32_t UID_TRANSFORM_DIVISOR = 200000;
+const int32_t ROOT_UID = 0;
+const int32_t TEST_UID = 100;
 const std::vector<std::string> VECTOR_CONSTRAINTS {"one", "two", "three", "four", "five"};
 const bool BOOL_IS_OS_ACCOUNT_VERIFIED = true;
 const bool BOOL_IS_OS_ACCOUNT_COMPLETED = true;
@@ -471,12 +474,56 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_Marshalling_0100, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetOsAccountName01
+ * @tc.desc: Test GetOsAccountName
+ * @tc.type: FUNC
+ * @tc.require: issueI8ZEEN
+ */
+HWTEST_F(OsAccountInfoTest, GetOsAccountName01, TestSize.Level1)
+{
+    std::string name;
+    setuid(TEST_UID * UID_TRANSFORM_DIVISOR);
+    EXPECT_EQ(ERR_OK, OsAccountManager::GetOsAccountName(name));
+    OsAccountInfo osAccountInfo;
+    setuid(ROOT_UID);
+    EXPECT_EQ(ERR_OK, OsAccountManager::QueryOsAccountById(TEST_UID, osAccountInfo));
+    EXPECT_EQ(name, osAccountInfo.GetLocalName());
+}
+
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
+/**
+ * @tc.name: GetOsAccountName02
+ * @tc.desc: Test GetOsAccountName
+ * @tc.type: FUNC
+ * @tc.require: issueI8ZEEN
+ */
+HWTEST_F(OsAccountInfoTest, GetOsAccountName02, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("GetOsAccountName02", OsAccountType::NORMAL, osAccountInfo));
+    uint32_t localId = osAccountInfo.GetLocalId();
+    setuid(localId * UID_TRANSFORM_DIVISOR);
+    std::string name;
+    EXPECT_EQ(ERR_OK, OsAccountManager::GetOsAccountName(name));
+    EXPECT_EQ("GetOsAccountName02", name);
+    setuid(ROOT_UID);
+    EXPECT_EQ(ERR_OK, OsAccountManager::SetOsAccountName(localId, "updateName"));
+    setuid(localId * UID_TRANSFORM_DIVISOR);
+    EXPECT_EQ(ERR_OK, OsAccountManager::GetOsAccountName(name));
+    EXPECT_EQ(name, "updateName");
+    setuid(ROOT_UID);
+    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(localId));
+    setuid(localId * UID_TRANSFORM_DIVISOR);
+    EXPECT_NE(ERR_OK, OsAccountManager::GetOsAccountName(name));
+    setuid(ROOT_UID);
+}
+
+/**
  * @tc.name: CreateOsAccountWithFullInfo0100
  * @tc.desc: Test CreateOsAccountWithFullInfo ERR_ACCOUNT_COMMON_INVALID_PARAMETER
  * @tc.type: FUNC
  * @tc.require:
  */
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0100, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;

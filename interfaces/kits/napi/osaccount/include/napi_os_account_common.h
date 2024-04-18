@@ -149,6 +149,10 @@ void QueryOAInfoForResult(napi_env env, const std::vector<OsAccountInfo> &info, 
 
 bool ParseParaGetPhoto(napi_env env, napi_callback_info cbInfo, GetOAPhotoAsyncContext *asyncContext);
 
+void GetOsAccountNameExecuteCB(napi_env env, void *data);
+
+void GetOsAccountNameCallbackCompletedCB(napi_env env, napi_status status, void *data);
+
 void GetOAPhotoExecuteCB(napi_env env, void *data);
 
 void GetOAPhotoCallbackCompletedCB(napi_env env, napi_status status, void *data);
