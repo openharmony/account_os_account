@@ -48,6 +48,7 @@ public:
     virtual ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos) = 0;
     virtual ErrCode QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode GetOsAccountShortName(const int id, std::string &shortName) = 0;
+    virtual ErrCode GetOsAccountName(const int id, std::string &name) = 0;
     virtual ErrCode GetOsAccountType(const int id, OsAccountType &type) = 0;
     virtual ErrCode GetOsAccountProfilePhoto(const int id, std::string &photo) = 0;
     virtual ErrCode IsMultiOsAccountEnable(bool &isMultiOsAccountEnable) = 0;

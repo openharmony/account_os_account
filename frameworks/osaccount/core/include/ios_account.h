@@ -102,6 +102,7 @@ public:
     virtual ErrCode SetDefaultActivatedOsAccount(const int32_t id) = 0;
     virtual ErrCode GetDefaultActivatedOsAccount(int32_t &id) = 0;
     virtual ErrCode GetOsAccountShortName(std::string &shortName) = 0;
+    virtual ErrCode GetOsAccountName(std::string &name) = 0;
     virtual ErrCode GetOsAccountShortNameById(const int32_t id, std::string &shortName) = 0;
     virtual ErrCode IsOsAccountForeground(const int32_t localId, const uint64_t displayId, bool &isForeground) = 0;
     virtual ErrCode GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId) = 0;

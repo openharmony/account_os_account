@@ -52,6 +52,7 @@ public:
     ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos) override;
     ErrCode QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo) override;
     ErrCode GetOsAccountShortName(const int id, std::string &shortName) override;
+    ErrCode GetOsAccountName(const int id, std::string &name) override;
     ErrCode GetOsAccountType(const int id, OsAccountType &type) override;
     ErrCode GetOsAccountProfilePhoto(const int id, std::string &photo) override;
     ErrCode IsMultiOsAccountEnable(bool &isMultiOsAccountEnable) override;

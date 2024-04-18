@@ -44,6 +44,7 @@
         "access_token",
         "ace_engine",
         "asset",
+        "bounds_checking_function",
         "bundle_framework",
         "common_event_service",
         "c_utils",
@@ -73,13 +74,13 @@
       ],
       "third_party": [
         "mbedtls",
-        "bounds_checking_function",
         "jsoncpp"
       ]
     },
     "build": {
       "group_type": {
         "base_group": [
+          "//base/account/os_account/interfaces/kits/capi:capi_packages",
           "//base/account/os_account/interfaces/kits/napi:napi_packages",
           "//base/account/os_account/sa_profile:account_sa_profile",
           "//base/account/os_account/tools:tools_acm"

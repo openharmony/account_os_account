@@ -986,6 +986,30 @@ bool ParseParaGetPhoto(napi_env env, napi_callback_info cbInfo, GetOAPhotoAsyncC
     return ParseCallbackAndId(env, cbInfo, asyncContext->callbackRef, asyncContext->id, asyncContext->throwErr);
 }
 
+void GetOsAccountNameExecuteCB(napi_env env, void *data)
+{
+    ACCOUNT_LOGD("Running napi_create_async_work");
+    GetOsAccountNameContext *asyncContext = reinterpret_cast<GetOsAccountNameContext *>(data);
+    asyncContext->errCode = OsAccountManager::GetOsAccountName(asyncContext->name);
+}
+
+void GetOsAccountNameCallbackCompletedCB(napi_env env, napi_status status, void *data)
+{
+    ACCOUNT_LOGD("Complete napi_create_async_work");
+    GetOsAccountNameContext *asyncContext = reinterpret_cast<GetOsAccountNameContext *>(data);
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    if (asyncContext->errCode == napi_ok) {
+        napi_get_null(env, &errJs);
+        napi_create_string_utf8(env, asyncContext->name.c_str(), NAPI_AUTO_LENGTH, &dataJs);
+    } else {
+        errJs = GenerateBusinessError(env, asyncContext->errCode);
+        napi_get_null(env, &dataJs);
+    }
+    ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
+    delete asyncContext;
+}
+
 void GetOAPhotoExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGD("napi_create_async_work running");

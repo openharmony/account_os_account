@@ -372,6 +372,13 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         }
     },
     {
+        static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_NAME),
+        {
+            .messageProcFunction = &OsAccountStub::ProcGetOsAccountName,
+            .isSyetemApi = false,
+        }
+    },
+    {
         static_cast<uint32_t>(OsAccountInterfaceCode::IS_OS_ACCOUNT_FOREGROUND),
         {
             .messageProcFunction = &OsAccountStub::ProcIsOsAccountForeground,
@@ -1432,6 +1439,21 @@ ErrCode OsAccountStub::ProcGetOsAccountShortName(MessageParcel &data, MessagePar
     }
     if (!reply.WriteString(shortName)) {
         ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcGetOsAccountName(MessageParcel &data, MessageParcel &reply)
+{
+    std::string name;
+    ErrCode result = GetOsAccountName(name);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Failed to write result, result=%{public}d.", result);
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteString(name)) {
+        ACCOUNT_LOGE("Failed to write name");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     return ERR_NONE;

@@ -28,6 +28,7 @@ group("account_build_unittest") {
     "${os_account_path}/frameworks/osaccount/native/test/benchmarktest:benchmarktest",
     "${os_account_path}/frameworks/osaccount/native/test/unittest:unittest",
     "${os_account_path}/frameworks/test/unittest:unittest",
+    "${os_account_path}/interfaces/kits/capi/test/unittest:unittest",
     "${os_account_path}/services/accountmgr/test:unittest",
     "${os_account_path}/test/systemtest:systemtest",
     "${os_account_path}/tools/test:unittest",

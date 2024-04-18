@@ -90,6 +90,7 @@ public:
     ErrCode SetDefaultActivatedOsAccount(const int32_t id);
     ErrCode GetDefaultActivatedOsAccount(int32_t &id);
     ErrCode GetOsAccountShortName(std::string &shortName);
+    ErrCode GetOsAccountName(std::string &name);
     ErrCode GetOsAccountShortNameById(const int32_t id, std::string &shortName);
 
     ErrCode IsOsAccountForeground(bool &isForeground);
