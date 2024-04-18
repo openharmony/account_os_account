@@ -44,7 +44,7 @@ ErrCode OsAccountProxy::CreateOsAccount(
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
-    if (!data.WriteInt32(type)) {
+    if (!data.WriteInt32(static_cast<int32_t>(type))) {
         ACCOUNT_LOGE("failed to write os account type");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
@@ -88,7 +88,7 @@ ErrCode OsAccountProxy::CreateOsAccount(const std::string &localName, const std:
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
-    if (!data.WriteInt32(type)) {
+    if (!data.WriteInt32(static_cast<int32_t>(type))) {
         ACCOUNT_LOGE("failed to write os account type");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
@@ -184,7 +184,7 @@ ErrCode OsAccountProxy::CreateOsAccountForDomain(const OsAccountType &type, cons
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
 
-    if (!data.WriteInt32(type)) {
+    if (!data.WriteInt32(static_cast<int32_t>(type))) {
         ACCOUNT_LOGE("failed to write type ");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }

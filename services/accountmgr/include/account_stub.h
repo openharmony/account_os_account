@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -49,6 +49,10 @@ public:
     std::int32_t CmdQueryOhosQuitTips(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdQueryOhosAccountInfoByUserId(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdQueryDeviceAccountId(MessageParcel &data, MessageParcel &reply);
+
+    std::int32_t CmdSubscribeDistributedAccountEvent(MessageParcel &data, MessageParcel &reply);
+    std::int32_t CmdUnsubscribeDistributedAccountEvent(MessageParcel &data, MessageParcel &reply);
+
     std::int32_t CmdGetAppAccountService(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdGetOsAccountService(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdGetAccountIAMService(MessageParcel &data, MessageParcel &reply);

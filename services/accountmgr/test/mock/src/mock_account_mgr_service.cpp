@@ -66,6 +66,18 @@ std::pair<bool, OhosAccountInfo> MockAccountMgrService::QueryOhosAccountInfoByUs
     return std::make_pair(true, OhosAccountInfo(name, id, status));
 }
 
+ErrCode MockAccountMgrService::SubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
+    const sptr<IRemoteObject> &eventListener)
+{
+    return ERR_OK;
+}
+
+ErrCode MockAccountMgrService::UnsubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
+    const sptr<IRemoteObject> &eventListener)
+{
+    return ERR_OK;
+}
+
 sptr<IRemoteObject> MockAccountMgrService::GetAppAccountService()
 {
     ACCOUNT_LOGI("enter");
