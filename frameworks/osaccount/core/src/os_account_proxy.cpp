@@ -1453,6 +1453,37 @@ ErrCode OsAccountProxy::GetOsAccountShortName(std::string &shortName)
     return ERR_OK;
 }
 
+ErrCode OsAccountProxy::GetOsAccountName(std::string &name)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
+    MessageParcel reply;
+    ErrCode result = SendRequest(OsAccountInterfaceCode::GET_OS_ACCOUNT_NAME, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
+        return result;
+    }
+
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("Read result from reply failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Failed to read reply for is current os account verified, result=%{public}d.", result);
+        return result;
+    }
+    if (!reply.ReadString(name)) {
+        ACCOUNT_LOGE("Failed to read short name");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+
+    return ERR_OK;
+}
+
 ErrCode OsAccountProxy::GetOsAccountShortNameById(const int32_t id, std::string &shortName)
 {
     MessageParcel data;

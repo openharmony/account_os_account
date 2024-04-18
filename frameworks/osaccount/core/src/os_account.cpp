@@ -868,6 +868,15 @@ ErrCode OsAccount::GetOsAccountShortName(std::string &shortName)
     return proxy->GetOsAccountShortName(shortName);
 }
 
+ErrCode OsAccount::GetOsAccountName(std::string &name)
+{
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->GetOsAccountName(name);
+}
+
 ErrCode OsAccount::GetOsAccountShortNameById(const int32_t id, std::string &shortName)
 {
     auto proxy = GetOsAccountProxy();

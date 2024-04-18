@@ -128,6 +128,10 @@ struct GetOAPhotoAsyncContext : public CommonAsyncContext {
     std::string photo;
 };
 
+struct GetOsAccountNameContext : public CommonAsyncContext {
+    std::string name;
+};
+
 struct CurrentOAAsyncContext : public CommonAsyncContext {
     OsAccountInfo osAccountInfos;
 };
@@ -273,6 +277,8 @@ napi_value QueryActivatedOsAccountIds(napi_env env, napi_callback_info cbInfo);
 napi_value QueryActivatedOsAccountIdsInner(napi_env env, napi_callback_info cbInfo, bool throwErr);
 
 napi_value GetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo);
+
+napi_value GetOsAccountName(napi_env env, napi_callback_info cbInfo);
 
 napi_value GetCurrentOsAccount(napi_env env, napi_callback_info cbInfo);
 

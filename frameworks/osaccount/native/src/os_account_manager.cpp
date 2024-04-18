@@ -342,6 +342,11 @@ ErrCode OsAccountManager::GetOsAccountShortName(const int32_t id, std::string &s
     return OsAccount::GetInstance().GetOsAccountShortNameById(id, shortName);
 }
 
+ErrCode OsAccountManager::GetOsAccountName(std::string &name)
+{
+    return OsAccount::GetInstance().GetOsAccountName(name);
+}
+
 ErrCode OsAccountManager::IsOsAccountForeground(bool &isForeground)
 {
     return OsAccount::GetInstance().IsOsAccountForeground(isForeground);
