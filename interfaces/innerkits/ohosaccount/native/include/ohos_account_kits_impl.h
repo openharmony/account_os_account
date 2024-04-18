@@ -17,6 +17,7 @@
 #define BASE_ACCOUNT_OHOS_ACCOUNT_KITS_IMPL_H
 
 #include <mutex>
+#include "distributed_account_event_service.h"
 #include "iaccount.h"
 #include "ipc_skeleton.h"
 #include "ohos_account_kits.h"
@@ -40,6 +41,11 @@ public:
     std::pair<bool, OhosAccountInfo> QueryOhosAccountInfoByUserId(std::int32_t userId) final;
     ErrCode QueryDeviceAccountId(std::int32_t& accountId) final;
     std::int32_t GetDeviceAccountIdByUID(std::int32_t& uid) final;
+    ErrCode SubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
+        const std::shared_ptr<DistributedAccountSubscribeCallback> &callback) final;
+    ErrCode UnsubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
+        const std::shared_ptr<DistributedAccountSubscribeCallback> &callback) final;
+    void RestoreSubscribe();
     ErrCode SubscribeSystemAbility(const DomainAccountSubscribeSACallbackFunc& callbackFunc);
     sptr<IRemoteObject> GetOsAccountService();
     sptr<IRemoteObject> GetDomainAccountService();
@@ -61,7 +67,14 @@ private:
 
     void ResetService(const wptr<IRemoteObject>& remote);
     sptr<IAccount> GetService();
+    ErrCode CreateDistributedAccountEventService(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
+        const std::shared_ptr<DistributedAccountSubscribeCallback> &callback,
+        sptr<IRemoteObject> &DistributedAccountEventService);
 
+    bool isSubscribeSA_ = false;
+    std::mutex eventListenersMutex_;
+    std::map<std::shared_ptr<DistributedAccountSubscribeCallback>,
+        sptr<DistributedAccountEventService>> eventListeners_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_{};
     std::mutex accountProxyLock_;
     sptr<IAccount> accountProxy_{};

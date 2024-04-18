@@ -26,6 +26,15 @@
         "OHOS::AccountSA::ReadOhosAccountInfo(OHOS::MessageParcel&, OHOS::AccountSA::OhosAccountInfo&)";
         "OHOS::AccountSA::SystemAbilityStatusChangeListener::SystemAbilityStatusChangeListener(std::__h::function<void (int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>)> const&)";
         "OHOS::AccountSA::OhosAccountKitsImpl::SubscribeSystemAbility(std::__h::function<void (int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>)> const&)";
+        "VTT for OHOS::AccountSA::DistributedAccountEventData";
+        "vtable for OHOS::AccountSA::DistributedAccountEventData";
+        "OHOS::AccountSA::DistributedAccountEventService::IsTypeExist(OHOS::AccountSA::DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE)";
+        "OHOS::AccountSA::DistributedAccountEventService::DeleteType(OHOS::AccountSA::DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE)";
+        "OHOS::AccountSA::DistributedAccountEventService::GetTypeSize()";
+        "OHOS::AccountSA::DistributedAccountEventService::GetAllType(std::__h::vector<OHOS::AccountSA::DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE, std::__h::allocator<OHOS::AccountSA::DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE>>&)";
+        "OHOS::AccountSA::DistributedAccountEventService::DistributedAccountEventService(OHOS::AccountSA::DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE, std::__h::shared_ptr<OHOS::AccountSA::DistributedAccountSubscribeCallback> const&)";
+        "OHOS::AccountSA::DistributedAccountEventService::AddType(OHOS::AccountSA::DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE)";
+        "OHOS::AccountSA::DistributedAccountEventData::operator==(OHOS::AccountSA::DistributedAccountEventData const&) const";
     };
   local:
     *;

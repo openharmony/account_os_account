@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -150,6 +150,28 @@ std::int32_t AccountMgrService::QueryDeviceAccountId(std::int32_t &accountId)
     const std::int32_t uid = IPCSkeleton::GetCallingUid();
     accountId = uid / UID_TRANSFORM_DIVISOR;
     return ERR_OK;
+}
+
+ErrCode AccountMgrService::SubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
+    const sptr<IRemoteObject> &eventListener)
+{
+    ErrCode res = AccountPermissionManager::CheckSystemApp(false);
+    if (res != ERR_OK) {
+        ACCOUNT_LOGE("Check systemApp failed.");
+        return res;
+    }
+    return OhosAccountManager::GetInstance().SubscribeDistributedAccountEvent(type, eventListener);
+}
+
+ErrCode AccountMgrService::UnsubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
+    const sptr<IRemoteObject> &eventListener)
+{
+    ErrCode res = AccountPermissionManager::CheckSystemApp(false);
+    if (res != ERR_OK) {
+        ACCOUNT_LOGE("Check systemApp failed.");
+        return res;
+    }
+    return OhosAccountManager::GetInstance().UnsubscribeDistributedAccountEvent(type, eventListener);
 }
 
 sptr<IRemoteObject> AccountMgrService::GetAppAccountService()

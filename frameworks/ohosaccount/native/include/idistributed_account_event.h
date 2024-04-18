@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,20 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OHOSACCOUNT_ACCOUNT_CONSTANTS_H
-#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OHOSACCOUNT_ACCOUNT_CONSTANTS_H
+#ifndef OS_ACCOUNT_FRAMEWORKS_OHOSACCOUNT_NATIVE_INCLUDE_IDISTRIBUTED_ACCOUNT_EVENT_H
+#define OS_ACCOUNT_FRAMEWORKS_OHOSACCOUNT_NATIVE_INCLUDE_IDISTRIBUTED_ACCOUNT_EVENT_H
 
 #include "account_error_no.h"
+#include "accountmgr_service_ipc_interface_code.h"
+#include "distributed_account_subscribe_callback.h"
+#include "iremote_broker.h"
 
 namespace OHOS {
 namespace AccountSA {
-namespace Constants {
-constexpr std::size_t NICKNAME_MAX_SIZE = 1024;
-constexpr std::size_t AVATAR_MAX_SIZE = 10 * 1024 * 1024;
-constexpr std::size_t SCALABLEDATA_MAX_SIZE = 1024;
-constexpr std::size_t DISTRIBUTED_SUBSCRIBER_MAX_SIZE = 100;
-};  // namespace Constants
+class IDistributedAccountEvent : public IRemoteBroker {
+public:
+    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IDistributedAccountEvent");
+
+    virtual void OnAccountsChanged(const DistributedAccountEventData &eventData) = 0;
+};
 }  // namespace AccountSA
 }  // namespace OHOS
 
-#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_CONSTANTS_H
+#endif  // OS_ACCOUNT_FRAMEWORKS_OHOSACCOUNT_NATIVE_INCLUDE_IDISTRIBUTED_ACCOUNT_EVENT_H

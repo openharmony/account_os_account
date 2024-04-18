@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,6 +24,7 @@
 #endif // HAS_CES_PART
 #include "account_info.h"
 #include "account_state_machine.h"
+#include "idistributed_account_subscribe.h"
 #include "iinner_os_account_manager.h"
 #include "ohos_account_data_deal.h"
 
@@ -59,6 +60,26 @@ public:
      * @return ohos account info which is bound to the local userId.
      */
     ErrCode GetAccountInfoByUserId(std::int32_t userId, AccountInfo &info);
+
+    /**
+     * Subscribe distributed account event by type.
+     *
+     * @param type event type
+     * @param eventListener event listener
+     * @return subscribe resule.
+     */
+    ErrCode SubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
+        const sptr<IRemoteObject> &eventListener);
+    
+    /**
+     * Unsubscribe distributed account event by type.
+     *
+     * @param type event type
+     * @param eventListener event listener
+     * @return unsubscribe resule.
+     */
+    ErrCode UnsubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
+        const sptr<IRemoteObject> &eventListener);
 
     /**
      * Get current account state.
@@ -155,6 +176,7 @@ private:
     bool isInit_ = false;
     OhosAccountManager();
     DISALLOW_COPY_AND_MOVE(OhosAccountManager);
+    IDistributedAccountSubscribe &subscribeManager_;
 
     /**
      * Account state machine.
