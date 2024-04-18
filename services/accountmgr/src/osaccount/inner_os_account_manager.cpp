@@ -1198,6 +1198,18 @@ ErrCode IInnerOsAccountManager::GetOsAccountShortName(const int id, std::string 
     return ERR_OK;
 }
 
+ErrCode IInnerOsAccountManager::GetOsAccountName(const int id, std::string &name)
+{
+    OsAccountInfo osAccountInfo;
+    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Get osaccount info fail, code=%{public}d.", errCode);
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    name = osAccountInfo.GetLocalName();
+    return ERR_OK;
+}
+
 ErrCode IInnerOsAccountManager::QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo)
 {
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);

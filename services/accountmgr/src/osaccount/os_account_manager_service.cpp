@@ -1024,6 +1024,18 @@ ErrCode OsAccountManagerService::GetOsAccountShortName(std::string &shortName)
     return GetOsAccountShortNameCommon(id, shortName);
 }
 
+ErrCode OsAccountManagerService::GetOsAccountName(std::string &name)
+{
+    int32_t id = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+    ErrCode errCode = innerManager_.GetOsAccountName(id, name);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed get account name, errCode=%{public}d, uid=%{public}d", errCode,
+            IPCSkeleton::GetCallingUid());
+        return errCode;
+    }
+    return ERR_OK;
+}
+
 ErrCode OsAccountManagerService::GetOsAccountShortNameById(const int32_t id, std::string &shortName)
 {
     if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
