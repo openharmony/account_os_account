@@ -36,7 +36,7 @@ OsAccount_ErrCode OH_OsAccount_GetName(char *buffer, size_t buffer_size)
     size_t accountSize = accountName.size();
     if (buffer_size <= accountSize) {
         ACCOUNT_LOGE(
-            "Buffer size(%{public}zu) is less than length of account name(%{public}d).", buffer_size, accountSize);
+            "Buffer size(%{public}zu) is less than length of account name(%{public}zu).", buffer_size, accountSize);
         return OsAccount_ErrCode::OS_ACCOUNT_ERR_INVALID_PARAMETER;
     }
     err = strncpy_s(buffer, buffer_size, accountName.c_str(), accountSize);
