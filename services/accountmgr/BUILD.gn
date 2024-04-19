@@ -28,6 +28,13 @@ ohos_prebuilt_etc("osaccount_constraint") {
   part_name = "os_account"
 }
 
+ohos_prebuilt_etc("os_account_config") {
+  source = "os_account_config.json"
+  relative_install_dir = "account"
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
 ohos_prebuilt_etc("constraints_list_collection") {
   source = "constraints_list_collection.json"
   relative_install_dir = "account"
@@ -193,6 +200,10 @@ ohos_shared_library("accountmgr") {
     cflags += [ "-DENABLE_ACCOUNT_SHORT_NAME" ]
   }
 
+  if (os_account_activate_last_logged_in_account) {
+    cflags += [ "-DACTIVATE_LAST_LOGGED_IN_ACCOUNT" ]
+  }
+
   sources = [
     "${common_path}/utils/src/account_permission_manager.cpp",
     "${domain_account_framework_path}/src/domain_account_callback_proxy.cpp",
@@ -246,6 +257,7 @@ ohos_shared_library("accountmgr") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "config_policy:configpolicy_util",
     "hilog:libhilog",
     "huks:libhukssdk",
     "init:libbegetutil",
@@ -355,6 +367,7 @@ group("accountmgr_target") {
     ":accountmgr",
     ":accountmgr.init",
     ":constraints_list_collection",
+    ":os_account_config",
     ":osaccount_constraint",
   ]
 }

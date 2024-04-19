@@ -68,6 +68,7 @@ static const std::unordered_map<uint32_t, std::string> g_errorStringMap = {
     {ERR_JS_PERMISSION_DENIED, "Permission denied"},
     {ERR_JS_PLUGIN_NETWORK_EXCEPTION, "Network exception"},
     {ERR_JS_CAPABILITY_NOT_SUPPORTED, "capability not supported"},
+    {ERR_JS_ACCOUNT_LOGGED_IN_ACCOUNTS_OVERSIZE, "The number of the logged in OS accounts reaches upper limit"}
 };
 
 napi_value GenerateBusinessError(napi_env env, int32_t jsErrCode, const std::string &jsErrMsg)

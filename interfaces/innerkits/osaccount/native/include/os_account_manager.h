@@ -215,7 +215,14 @@ public:
      * @param maxOsAccountNumber - Returns the maximum number of OS accounts that can be created.
      * @return error code, see account_error_no.h
      */
-    static ErrCode QueryMaxOsAccountNumber(int &maxOsAccountNumber);
+    static ErrCode QueryMaxOsAccountNumber(uint32_t &maxOsAccountNumber);
+
+    /**
+     * @brief Queries the maximum number of OS accounts that can be logged in.
+     * @param maxNum - Returns the maximum number of OS accounts that can be created.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode QueryMaxLoggedInOsAccountNumber(uint32_t &maxNum);
 
     /**
      * @brief Gets all constraints of an account based on its ID.

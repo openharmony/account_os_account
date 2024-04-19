@@ -236,6 +236,10 @@ void GetOACBInfoToJs(napi_env env, OsAccountInfo &info, napi_value &objOAInfo)
     napi_set_named_property(env, objOAInfo, "isActived", isActivedToJs);
     napi_set_named_property(env, objOAInfo, "isActivated", isActivedToJs);
 
+    napi_value isLoggedInToJs = nullptr;
+    napi_get_boolean(env, info.GetIsLoggedIn(), &isLoggedInToJs);
+    napi_set_named_property(env, objOAInfo, "isLoggedIn", isLoggedInToJs);
+
     napi_value isCreateCompletedToJs = nullptr;
     napi_get_boolean(env, info.GetIsCreateCompleted(), &isCreateCompletedToJs);
     napi_set_named_property(env, objOAInfo, "isCreateCompleted", isCreateCompletedToJs);
@@ -1277,7 +1281,7 @@ void QueryMaxNumCompletedCB(napi_env env, napi_status status, void *data)
     napi_value dataJs = nullptr;
     if (asyncContext->status == napi_ok) {
         napi_get_null(env, &errJs);
-        napi_create_int32(env, asyncContext->maxOsAccountNumber, &dataJs);
+        napi_create_uint32(env, asyncContext->maxOsAccountNumber, &dataJs);
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
         napi_get_null(env, &dataJs);

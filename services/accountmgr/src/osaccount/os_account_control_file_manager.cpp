@@ -24,6 +24,7 @@
 
 #include "account_log_wrapper.h"
 #include "account_hisysevent_adapter.h"
+#include "config_policy_utils.h"
 #include "os_account_constants.h"
 #include "os_account_interface.h"
 
@@ -40,6 +41,14 @@ const std::string ACCOUNT_CFG_DIR_ROOT_PATH = "/data/service/el1/public/account/
 const std::string ACCOUNT_CFG_DIR_ROOT_PATH = "/data/service/el1/public/account/test/";
 #endif // ACCOUNT_TEST
 const std::string DISTRIBUTED_ACCOUNT_FILE_NAME = "/account.json";
+const std::string OS_ACCOUNT_CONFIG_FILE = "etc/os_account/os_account_config.json";
+const std::string MAX_OS_ACCOUNT_NUM = "maxOsAccountNum";
+const std::string MAX_LOGGED_IN_OS_ACCOUNT_NUM = "maxLoggedInOsAccountNum";
+#ifndef ACCOUNT_TEST
+const std::string DEFAULT_OS_ACCOUNT_CONFIG_FILE = "/system/etc/account/os_account_config.json";
+#else
+const std::string DEFAULT_OS_ACCOUNT_CONFIG_FILE = ACCOUNT_CFG_DIR_ROOT_PATH + "os_account_config.json";
+#endif // ACCOUNT_TEST
 }
 
 bool GetValidAccountID(const std::string& dirName, std::int32_t& accountID)
@@ -62,6 +71,46 @@ bool GetValidAccountID(const std::string& dirName, std::int32_t& accountID)
     sstream << dirName;
     sstream >> accountID;
     return (accountID >= Constants::ADMIN_LOCAL_ID && accountID <= Constants::MAX_USER_ID);
+}
+
+ErrCode OsAccountControlFileManager::GetOsAccountConfig(OsAccountConfig &config)
+{
+    std::string cfgPath = DEFAULT_OS_ACCOUNT_CONFIG_FILE;
+    CfgFiles *cfgFiles = GetCfgFiles(OS_ACCOUNT_CONFIG_FILE.c_str());
+    if (cfgFiles != nullptr) {
+        if (cfgFiles->paths[0] != nullptr) {
+            cfgPath = cfgFiles->paths[0];
+        }
+        FreeCfgFiles(cfgFiles);
+    }
+    std::string configStr;
+    ErrCode errCode = accountFileOperator_->GetFileContentByPath(cfgPath, configStr);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("get content from file %{public}s failed!", cfgPath.c_str());
+        return errCode;
+    }
+    Json configJson = Json::parse(configStr, nullptr, false);
+    if (configJson.is_discarded()) {
+        ACCOUNT_LOGE("parse os account info json data failed");
+        return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
+    }
+    auto jsonEnd = configJson.end();
+    int32_t maxOsAccountNum = -1;
+    OHOS::AccountSA::GetDataByType<int32_t>(configJson, jsonEnd, MAX_OS_ACCOUNT_NUM,
+        maxOsAccountNum, OHOS::AccountSA::JsonType::NUMBER);
+    if (maxOsAccountNum > 0) {
+        config.maxOsAccountNum = static_cast<uint32_t>(maxOsAccountNum);
+    }
+    int32_t maxLoggedInOsAccountNum = -1;
+    OHOS::AccountSA::GetDataByType<int32_t>(configJson, jsonEnd, MAX_LOGGED_IN_OS_ACCOUNT_NUM,
+        config.maxLoggedInOsAccountNum, OHOS::AccountSA::JsonType::NUMBER);
+    if (maxLoggedInOsAccountNum > 0) {
+        config.maxLoggedInOsAccountNum = static_cast<uint32_t>(maxLoggedInOsAccountNum);
+    }
+    if (config.maxLoggedInOsAccountNum > config.maxOsAccountNum) {
+        config.maxLoggedInOsAccountNum = config.maxOsAccountNum;
+    }
+    return ERR_OK;
 }
 
 bool OsAccountControlFileManager::RecoverAccountData(const std::string &fileName, const int32_t id)
@@ -390,6 +439,23 @@ void OsAccountControlFileManager::RecoverAccountListJsonFile()
 
     (void)closedir(rootDir);
     BuildAndSaveAccountListJsonFile(accounts);
+}
+
+ErrCode OsAccountControlFileManager::GetOsAccountIdList(std::vector<int32_t> &idList)
+{
+    idList.clear();
+    Json accountListJson;
+    ErrCode errCode = GetAccountListFromFile(accountListJson);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+    std::vector<std::string> idStrList;
+    OHOS::AccountSA::GetDataByType<std::vector<std::string>>(accountListJson, accountListJson.end(),
+        Constants::ACCOUNT_LIST, idStrList, OHOS::AccountSA::JsonType::ARRAY);
+    for (const auto &idStr : idStrList) {
+        idList.emplace_back(atoi(idStr.c_str()));
+    }
+    return errCode;
 }
 
 ErrCode OsAccountControlFileManager::GetOsAccountList(std::vector<OsAccountInfo> &osAccountList)
@@ -950,24 +1016,6 @@ ErrCode OsAccountControlFileManager::UpdateOsAccount(OsAccountInfo &osAccountInf
     return ERR_OK;
 }
 
-ErrCode OsAccountControlFileManager::GetMaxCreatedOsAccountNum(int &maxCreatedOsAccountNum)
-{
-    ACCOUNT_LOGD("start");
-    Json accountListJson;
-    ErrCode result = GetAccountListFromFile(accountListJson);
-    if (result != ERR_OK) {
-        return result;
-    }
-    OHOS::AccountSA::GetDataByType<int>(accountListJson,
-        accountListJson.end(),
-        Constants::MAX_ALLOW_CREATE_ACCOUNT_ID,
-        maxCreatedOsAccountNum,
-        OHOS::AccountSA::JsonType::NUMBER);
-    maxCreatedOsAccountNum -= Constants::START_USER_ID;
-    ACCOUNT_LOGD("end");
-    return ERR_OK;
-}
-
 bool AccountExistsWithSerialNumber(const std::vector<OsAccountInfo>& osAccountInfos, int serialNumber)
 {
     const auto targetSerialNumber = Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN * Constants::CARRY_NUM + serialNumber;
@@ -1049,10 +1097,6 @@ ErrCode OsAccountControlFileManager::GetAllowCreateId(int &id)
     std::vector<std::string> accountIdList;
     OHOS::AccountSA::GetDataByType<std::vector<std::string>>(
         accountListJson, jsonEnd, Constants::ACCOUNT_LIST, accountIdList, OHOS::AccountSA::JsonType::ARRAY);
-    if (accountIdList.size() >= Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("GetAllowCreateId cannot create more account error");
-        return ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR;
-    }
     id = GetNextLocalId(accountIdList);
     nextLocalId_++;
     return ERR_OK;

@@ -27,7 +27,8 @@
       "os_account_file_encryption_el1_feature",
       "os_account_enable_multiple_os_accounts",
       "os_account_enable_default_admin_name",
-      "os_account_enable_account_short_name"
+      "os_account_enable_account_short_name",
+      "os_account_activate_last_logged_in_account"
     ],
     "hisysevent_config": [
       "//base/account/os_account/hisysevent.yaml"
@@ -70,7 +71,8 @@
         "mbedtls",
         "json",
         "theme_mgr",
-        "benchmark"
+        "benchmark",
+        "config_policy"
       ],
       "third_party": [
         "mbedtls",

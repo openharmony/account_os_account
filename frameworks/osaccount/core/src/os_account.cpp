@@ -281,7 +281,7 @@ ErrCode OsAccount::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domain
     return proxy->GetOsAccountLocalIdFromDomain(domainInfo, id);
 }
 
-ErrCode OsAccount::QueryMaxOsAccountNumber(int &maxOsAccountNumber)
+ErrCode OsAccount::QueryMaxOsAccountNumber(uint32_t &maxOsAccountNumber)
 {
     auto proxy = GetOsAccountProxy();
     if (proxy == nullptr) {
@@ -289,6 +289,16 @@ ErrCode OsAccount::QueryMaxOsAccountNumber(int &maxOsAccountNumber)
     }
 
     return proxy->QueryMaxOsAccountNumber(maxOsAccountNumber);
+}
+
+ErrCode OsAccount::QueryMaxLoggedInOsAccountNumber(uint32_t &maxNum)
+{
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+
+    return proxy->QueryMaxLoggedInOsAccountNumber(maxNum);
 }
 
 ErrCode OsAccount::GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints)

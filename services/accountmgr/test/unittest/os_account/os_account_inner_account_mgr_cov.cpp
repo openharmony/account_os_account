@@ -28,12 +28,11 @@
 #include "matching_skills.h"
 #endif // HAS_CES_PART
 #include "os_account_constants.h"
+#define private public
 #include "os_account_manager_service.h"
 #include "os_account_interface.h"
 #include "os_account_info.h"
 #include "account_log_wrapper.h"
-#define private public
-#include "iinner_os_account_manager.h"
 #undef private
 #include "os_account_subscribe_manager.h"
 #include "token_setproc.h"

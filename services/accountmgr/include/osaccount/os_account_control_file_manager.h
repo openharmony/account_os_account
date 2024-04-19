@@ -39,14 +39,15 @@ public:
     virtual ~OsAccountControlFileManager();
     void Init() override;
     void FileInit();
+    ErrCode GetOsAccountConfig(OsAccountConfig &config) override;
     ErrCode GetOsAccountList(std::vector<OsAccountInfo> &osAccountList) override;
+    ErrCode GetOsAccountIdList(std::vector<int32_t> &idList) override;
     ErrCode GetOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo) override;
     ErrCode GetConstraintsByType(const OsAccountType type, std::vector<std::string> &constraints) override;
     ErrCode InsertOsAccount(OsAccountInfo &osAccountInfo) override;
     ErrCode DelOsAccount(const int id) override;
     ErrCode UpdateOsAccount(OsAccountInfo &osAccountInfo) override;
     ErrCode GetAccountIndexFromFile(Json &accountIndexJson) override;
-    ErrCode GetMaxCreatedOsAccountNum(int &maxCreatedOsAccountNum) override;
     ErrCode GetSerialNumber(int64_t &serialNumber) override;
     ErrCode GetAllowCreateId(int &id) override;
     ErrCode IsOsAccountExists(const int id, bool &isExists) override;
@@ -92,6 +93,7 @@ public:
     ErrCode UpdateAccountIndex(const OsAccountInfo &osAccountInfo, const bool isDelete) override;
 
 private:
+    ErrCode GetDefaultOsAccountConfig(OsAccountConfig &config);
     ErrCode RemoveAccountIndex(const int32_t id);
     int GetNextLocalId(const std::vector<std::string> &accountIdList);
     ErrCode UpdateAccountList(const std::string &idStr, bool isAdd);

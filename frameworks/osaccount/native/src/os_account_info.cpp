@@ -42,6 +42,7 @@ const std::string TO_BE_REMOVED = "toBeRemoved";
 const std::string CREDENTIAL_ID = "credentialId";
 const std::string DISPLAY_ID = "displayId";
 const std::string IS_FOREGROUND = "isForeground";
+const std::string IS_LOGGED_IN = "isLoggedIn";
 const std::string DOMAIN_ACCOUNT_STATUS = "domainAccountStatus";
 const std::string DOMAIN_ACCOUNT_CONFIG = "domainServerConfigId";
 }  // namespace
@@ -158,6 +159,16 @@ void OsAccountInfo::SetIsForeground(bool isForeground)
     isForeground_ = isForeground;
 }
 
+bool OsAccountInfo::GetIsLoggedIn() const
+{
+    return isLoggedIn_;
+}
+
+void OsAccountInfo::SetIsLoggedIn(bool isLoggedIn)
+{
+    isLoggedIn_ = isLoggedIn;
+}
+
 bool OsAccountInfo::SetDomainInfo(const DomainAccountInfo &domainInfo)
 {
     if (domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
@@ -236,6 +247,7 @@ Json OsAccountInfo::ToJson() const
         {CREDENTIAL_ID, credentialId_},
         {DISPLAY_ID, displayId_},
         {IS_FOREGROUND, isForeground_},
+        {IS_LOGGED_IN, isLoggedIn_},
         {DOMAIN_INFO, {
             {DOMAIN_NAME, domainInfo_.domain_},
             {DOMAIN_ACCOUNT_NAME, domainInfo_.accountName_},
@@ -315,6 +327,8 @@ void OsAccountInfo::FromJson(const Json &jsonObject)
         jsonObject, jsonObjectEnd, DISPLAY_ID, displayId_, OHOS::AccountSA::JsonType::NUMBER);
     OHOS::AccountSA::GetDataByType<bool>(
         jsonObject, jsonObjectEnd, IS_FOREGROUND, isForeground_, OHOS::AccountSA::JsonType::BOOLEAN);
+    OHOS::AccountSA::GetDataByType<bool>(
+        jsonObject, jsonObjectEnd, IS_LOGGED_IN, isLoggedIn_, OHOS::AccountSA::JsonType::BOOLEAN);
 
     GetDomainInfoFromJson(jsonObject);
 }

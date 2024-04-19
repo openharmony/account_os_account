@@ -32,6 +32,8 @@ class MockOsAccountControlFileManager : public IOsAccountControl {
 public:
     MockOsAccountControlFileManager() {}
     virtual ~MockOsAccountControlFileManager() {}
+    MOCK_METHOD1(GetOsAccountConfig, ErrCode(OsAccountConfig &config));
+    MOCK_METHOD1(GetOsAccountIdList, ErrCode(std::vector<int32_t> &idList));
     MOCK_METHOD1(GetOsAccountList, ErrCode(std::vector<OsAccountInfo> &osAccountList));
     MOCK_METHOD2(GetConstraintsByType, ErrCode(const OsAccountType type, std::vector<std::string> &constraints));
     MOCK_METHOD2(GetOsAccountInfoById, ErrCode(const int id, OsAccountInfo &osAccountInfo));
@@ -43,7 +45,6 @@ public:
     MOCK_METHOD1(UpdateOsAccount, ErrCode(OsAccountInfo &osAccountInfo));
     MOCK_METHOD1(RemoveOAConstraintsInfo, ErrCode(const int32_t id));
     MOCK_METHOD1(DelOsAccount, ErrCode(const int id));
-    MOCK_METHOD1(GetMaxCreatedOsAccountNum, ErrCode(int &maxCreatedOsAccountNum));
     MOCK_METHOD1(GetGlobalOAConstraintsList, ErrCode(std::vector<std::string> &constraintsList));
     MOCK_METHOD2(GetSpecificOAConstraintsList, ErrCode (const int32_t id, std::vector<std::string> &constraintsList));
     MOCK_METHOD4(IsFromGlobalOAConstraintsList, ErrCode(const int32_t id, const int32_t deviceOwnerId,
