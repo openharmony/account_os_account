@@ -33,6 +33,9 @@ void MockDomainAccountCallbackStub::OnResult(const int32_t errCode, Parcel &parc
 {
     ACCOUNT_LOGI("MockDomainAccountCallbackStub OnResult enter");
     innerCallback_->OnResult(errCode, parcel);
+    std::unique_lock<std::mutex> lock(mutex);
+    isReady = true;
+    cv.notify_one();
     return;
 }
 } // namespace AccountSA

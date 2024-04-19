@@ -45,6 +45,7 @@ const int32_t TEST_ACQUIRE_INFO = 10;
 #ifdef DOMAIN_ACCOUNT_TEST_CASE
 const int32_t INFO_LIST_SIZE_ONE = 1;
 const int32_t INFO_LIST_SIZE_ZERO = 0;
+const int32_t WAIT_TIME = 20;
 #endif // DOMAIN_ACCOUNT_TEST_CASE
 const static AccessTokenID g_accountMgrTokenID = AccessTokenKit::GetNativeTokenId("accountmgr");
 } // namespace
@@ -79,14 +80,29 @@ public:
     int32_t module_ = 0;
     uint32_t acquireInfo_ = 0;
 };
-class MockGetCredInfoCallback final : public GetCredInfoCallback {
+class MockGetCredInfoCallback {
 public:
     MOCK_METHOD1(OnResult, void(int32_t result));
+};
+
+class TestGetCredInfoCallback final : public GetCredInfoCallback {
+public:
+    explicit TestGetCredInfoCallback(const std::shared_ptr<MockGetCredInfoCallback> &callback) : callback_(callback)
+    {}
     void OnCredentialInfo(int32_t result, const std::vector<CredentialInfo> &infoList)
     {
         int infoListSize = infoList.size();
-        OnResult(infoListSize);
+        callback_->OnResult(infoListSize);
+        std::unique_lock<std::mutex> lock(mutex);
+        isReady = true;
+        cv.notify_one();
+        return;
     }
+    std::condition_variable cv;
+    bool isReady = false;
+    std::mutex mutex;
+private:
+    std::shared_ptr<MockGetCredInfoCallback> callback_;
 };
 
 class AccountIamCallbackTest : public testing::Test {
@@ -420,8 +436,13 @@ HWTEST_F(AccountIamCallbackTest, GetCredInfoCallbackWrapper_OnCredentialInfo_020
     int32_t userId = accountInfo.GetLocalId();
     std::shared_ptr<MockGetCredInfoCallback> callback = std::make_shared<MockGetCredInfoCallback>();
     ASSERT_NE(callback, nullptr);
+    std::shared_ptr<TestGetCredInfoCallback> testCallback = std::make_shared<TestGetCredInfoCallback>(callback);
+    ASSERT_NE(testCallback, nullptr);
     EXPECT_CALL(*callback, OnResult(INFO_LIST_SIZE_ZERO)).Times(1);
-    AccountIAMClient::GetInstance().GetCredentialInfo(userId, AuthType::ALL, callback);
+    AccountIAMClient::GetInstance().GetCredentialInfo(userId, AuthType::ALL, testCallback);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(accountInfo.GetLocalId()), ERR_OK);
 }
 
@@ -445,8 +466,13 @@ HWTEST_F(AccountIamCallbackTest, GetCredInfoCallbackWrapper_OnCredentialInfo_030
     ASSERT_EQ(DomainAccountClient::GetInstance().RegisterPlugin(g_plugin), ERR_OK);
     std::shared_ptr<MockGetCredInfoCallback> callback = std::make_shared<MockGetCredInfoCallback>();
     ASSERT_NE(callback, nullptr);
+    std::shared_ptr<TestGetCredInfoCallback> testCallback = std::make_shared<TestGetCredInfoCallback>(callback);
+    ASSERT_NE(testCallback, nullptr);
     EXPECT_CALL(*callback, OnResult(INFO_LIST_SIZE_ONE)).Times(Exactly(1));
-    AccountIAMClient::GetInstance().GetCredentialInfo(userId, AuthType::ALL, callback);
+    AccountIAMClient::GetInstance().GetCredentialInfo(userId, AuthType::ALL, testCallback);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(accountInfo.GetLocalId()), ERR_OK);
     ASSERT_EQ(DomainAccountClient::GetInstance().UnregisterPlugin(), ERR_OK);
 }
@@ -470,8 +496,13 @@ HWTEST_F(AccountIamCallbackTest, GetCredInfoCallbackWrapper_OnCredentialInfo_040
     ASSERT_EQ(DomainAccountClient::GetInstance().RegisterPlugin(g_plugin), ERR_OK);
     std::shared_ptr<MockGetCredInfoCallback> callback = std::make_shared<MockGetCredInfoCallback>();
     ASSERT_NE(callback, nullptr);
+    std::shared_ptr<TestGetCredInfoCallback> testCallback = std::make_shared<TestGetCredInfoCallback>(callback);
+    ASSERT_NE(testCallback, nullptr);
     EXPECT_CALL(*callback, OnResult(INFO_LIST_SIZE_ZERO)).Times(Exactly(1));
-    AccountIAMClient::GetInstance().GetCredentialInfo(userId, AuthType::PIN, callback);
+    AccountIAMClient::GetInstance().GetCredentialInfo(userId, AuthType::PIN, testCallback);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(accountInfo.GetLocalId()), ERR_OK);
     ASSERT_EQ(DomainAccountClient::GetInstance().UnregisterPlugin(), ERR_OK);
 }
