@@ -700,7 +700,8 @@ ErrCode OsAccountManagerService::UnsubscribeOsAccount(const sptr<IRemoteObject> 
     // permission check
     auto osSubscribeInfo = innerManager_.GetSubscribeRecordInfo(eventListener);
     if (osSubscribeInfo == nullptr) {
-        return ERR_ACCOUNT_COMMON_ACCOUNT_SUBSCRIBE_NOT_FOUND_ERROR;
+        ACCOUNT_LOGI("Event listener is not exist.");
+        return ERR_OK;
     }
     OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType;
     osSubscribeInfo->GetOsAccountSubscribeType(osAccountSubscribeType);
