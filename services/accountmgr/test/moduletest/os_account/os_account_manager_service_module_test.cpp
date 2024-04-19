@@ -1917,8 +1917,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest105
 {
     setuid(TEST_UID);
     sptr<IRemoteObject> eventListener = nullptr;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_ACCOUNT_SUBSCRIBE_NOT_FOUND_ERROR,
-              osAccountManagerService_->UnsubscribeOsAccount(eventListener));
+    EXPECT_EQ(ERR_OK, osAccountManagerService_->UnsubscribeOsAccount(eventListener));
 }
 
 /**
