@@ -15,6 +15,7 @@
 #include "iinner_os_account_manager.h"
 #include "account_event_provider.h"
 #include <chrono>
+#include <dlfcn.h>
 #include <unistd.h>
 #include "account_info.h"
 #include "account_info_report.h"
@@ -51,7 +52,8 @@ const std::vector<std::string> SHORT_NAME_CANNOT_BE_NAME_ARRAY = {".", ".."};
 const int32_t MAX_PRIVATE_TYPE_NUMBER = 1;
 }
 
-IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManager_(OsAccountSubscribeManager::GetInstance())
+IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManager_(OsAccountSubscribeManager::GetInstance()),
+    pluginManager_(OsAccountPluginManager::GetInstance())
 {
     activeAccountId_.clear();
     operatingId_.clear();
@@ -368,6 +370,10 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
 ErrCode IInnerOsAccountManager::CreateOsAccount(
     const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
 {
+    if (!pluginManager_.IsCreationAllowed()) {
+        ACCOUNT_LOGI("Not allow creation account.");
+        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_PLUGIN_NOT_ALLOWED_CREATION_ERROR;
+    }
     DomainAccountInfo domainInfo;  // default empty domain info
     ErrCode errCode = PrepareOsAccountInfo(name, type, domainInfo, osAccountInfo);
     if (errCode != ERR_OK) {
@@ -383,6 +389,10 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(
 ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, const std::string &shortName,
     const OsAccountType &type, OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options)
 {
+    if (!pluginManager_.IsCreationAllowed()) {
+        ACCOUNT_LOGI("Not allow creation account.");
+        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_PLUGIN_NOT_ALLOWED_CREATION_ERROR;
+    }
     osAccountInfo.SetLocalName(localName);
 #ifdef ENABLE_ACCOUNT_SHORT_NAME
     OsAccountInfo accountInfoOld;
@@ -437,6 +447,10 @@ ErrCode IInnerOsAccountManager::ValidateShortName(const std::string &shortName)
 
 ErrCode IInnerOsAccountManager::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
 {
+    if (!pluginManager_.IsCreationAllowed()) {
+        ACCOUNT_LOGI("Not allow creation account.");
+        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_PLUGIN_NOT_ALLOWED_CREATION_ERROR;
+    }
     ErrCode errCode = PrepareOsAccountInfoWithFullInfo(osAccountInfo);
     if (errCode != ERR_OK) {
         return errCode;
@@ -566,6 +580,10 @@ ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type, con
 ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
     const OsAccountType &type, const DomainAccountInfo &domainInfo, const sptr<IDomainAccountCallback> &callback)
 {
+    if (!pluginManager_.IsCreationAllowed()) {
+        ACCOUNT_LOGI("Not allow creation account.");
+        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_PLUGIN_NOT_ALLOWED_CREATION_ERROR;
+    }
     std::vector<OsAccountInfo> osAccountInfos;
     (void)QueryAllCreatedOsAccounts(osAccountInfos);
     if (CheckDomainAccountBound(osAccountInfos, domainInfo)) {

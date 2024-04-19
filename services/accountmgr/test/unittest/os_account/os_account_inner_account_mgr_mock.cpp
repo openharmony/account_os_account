@@ -34,13 +34,14 @@
 #define private public
 #include "os_account.h"
 #include "os_account_manager_service.h"
+#include "os_account_plugin_manager.h"
 #include "os_account_proxy.h"
 #undef private
 #endif
 #include "mock_os_account_control_file_manager.h"
+#include "mock_os_account_dlfcn.h"
 #include <sys/types.h>
 #include <unistd.h>
-
 
 namespace OHOS {
 namespace AccountSA {
@@ -1316,6 +1317,69 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest044, TestSize
     int ret = innerMgrService_->SetDefaultActivatedOsAccount(TEST_USER_ID108);
     EXPECT_EQ(ret, -1);
     testing::Mock::AllowLeak(ptr.get());
+}
+
+/*
+ * @tc.name: OsAccountPluginMockTest001
+ * @tc.desc: os account LoaderLib test
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountPluginMockTest001, TestSize.Level1)
+{
+    innerMgrService_->pluginManager_.CloseLib();
+    // load plugin success
+    innerMgrService_->pluginManager_.LoaderLib("/rightPath/", "right.z.so");
+    EXPECT_NE(innerMgrService_->pluginManager_.libHandle_, nullptr);
+    // load plugin not nullptr
+    innerMgrService_->pluginManager_.LoaderLib("/rightPath/", "right.z.so");
+    EXPECT_NE(innerMgrService_->pluginManager_.libHandle_, nullptr);
+    // close plugin
+    innerMgrService_->pluginManager_.CloseLib();
+    EXPECT_EQ(innerMgrService_->pluginManager_.libHandle_, nullptr);
+    // close plugin failed
+    innerMgrService_->pluginManager_.CloseLib();
+    EXPECT_EQ(innerMgrService_->pluginManager_.libHandle_, nullptr);
+    // wrong lib path
+    innerMgrService_->pluginManager_.LoaderLib("/abc/", "right.z.so");
+    EXPECT_EQ(innerMgrService_->pluginManager_.libHandle_, nullptr);
+    // wrong lib name
+    innerMgrService_->pluginManager_.LoaderLib("/rightPath/", "abc.z.so");
+    EXPECT_EQ(innerMgrService_->pluginManager_.libHandle_, nullptr);
+
+    innerMgrService_->pluginManager_.CloseLib();
+}
+
+/*
+ * @tc.name: OsAccountPluginMockTest002
+ * @tc.desc: os account IsCreationAllowed test
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountPluginMockTest002, TestSize.Level1)
+{
+    innerMgrService_->pluginManager_.CloseLib();
+    // plugin unavailable
+    EXPECT_EQ(innerMgrService_->pluginManager_.IsCreationAllowed(), true);
+
+    // load plugin success
+    innerMgrService_->pluginManager_.LoaderLib("/rightPath/", "right.z.so");
+    EXPECT_NE(innerMgrService_->pluginManager_.libHandle_, nullptr);
+    
+    // methodMap_ is empty
+    innerMgrService_->pluginManager_.methodMap_.clear();
+    EXPECT_EQ(innerMgrService_->pluginManager_.IsCreationAllowed(), false);
+
+    // mock return false
+    innerMgrService_->pluginManager_.methodMap_[OsPluginMethodEnum::VERIFY_ACTIVATION_LOCK] = dlsym(
+        innerMgrService_->pluginManager_.libHandle_, "VerifyActivationLock");
+    EXPECT_NE(innerMgrService_->pluginManager_.methodMap_.size(), 0);
+    EXPECT_EQ(innerMgrService_->pluginManager_.IsCreationAllowed(), false);
+
+    // create os account fail
+    OsAccountInfo info;
+    EXPECT_EQ(innerMgrService_->CreateOsAccount("OsAccountPluginMockTest002", OsAccountType::NORMAL, info),
+        ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_PLUGIN_NOT_ALLOWED_CREATION_ERROR);
+
+    innerMgrService_->pluginManager_.CloseLib();
 }
 }  // namespace AccountSA
 }  // namespace OHOS
