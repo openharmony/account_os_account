@@ -52,7 +52,8 @@ public:
     virtual ErrCode GetOsAccountLocalIdFromProcess(int &id) = 0;
     virtual ErrCode IsMainOsAccount(bool &isMainOsAccount) = 0;
     virtual ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id) = 0;
-    virtual ErrCode QueryMaxOsAccountNumber(int &maxOsAccountNumber) = 0;
+    virtual ErrCode QueryMaxOsAccountNumber(uint32_t &maxOsAccountNumber) = 0;
+    virtual ErrCode QueryMaxLoggedInOsAccountNumber(uint32_t &maxNum) = 0;
     virtual ErrCode GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints) = 0;
     virtual ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos) = 0;
     virtual ErrCode QueryCurrentOsAccount(OsAccountInfo &osAccountInfo) = 0;

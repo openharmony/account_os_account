@@ -43,7 +43,8 @@ public:
     ErrCode GetOsAccountLocalIdFromProcess(int &id);
     ErrCode IsMainOsAccount(bool &isMainOsAccount);
     ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id);
-    ErrCode QueryMaxOsAccountNumber(int &maxOsAccountNumber);
+    ErrCode QueryMaxOsAccountNumber(uint32_t &maxOsAccountNumber);
+    ErrCode QueryMaxLoggedInOsAccountNumber(uint32_t &maxNum);
     ErrCode GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints);
     ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos);
     ErrCode QueryCurrentOsAccount(OsAccountInfo &osAccountInfo);

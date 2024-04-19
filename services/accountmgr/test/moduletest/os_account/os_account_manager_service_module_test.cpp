@@ -82,12 +82,21 @@ const std::string PHOTO_IMG_ERROR =
     "D3I1NZvmdCXz+XOv5wJANKHOVYjRTAghxIyh0FHKb+0QQH5+kXf2zkYGAG0oFr5RfnK8DAGkwY19wliRT2L448vjv0YGQFVa8VKdDXUU+"
     "faFUxpblhxYRNRzmd6FNnS0H3/X/VH6j0IIIRxMLJ5k/j/2L/"
     "zchW8pKj7iFAA0R2wajl5d46idlR3+GtPV2XOvQ3bBNvyFs8U39v9PLX0Bp0CN+yY0OAEAAAAASUVORK5CYII=";
+const std::string CONFIG_JSON_NORMAL = "{\"maxOsAccountNum\": 5, \"maxLoggedInOsAccountNum\": 3}";
+const std::string CONFIG_JSON_LAGER_LOGGED_IN_NUM = "{\"maxOsAccountNum\": 5, \"maxLoggedInOsAccountNum\": 9}";
+const std::string CONFIG_JSON_INVALID_KEY_OR_VALUE = "{\"version\": 1, \"maxLoggedInOsAccountNum\": -1}";
+const std::string CONFIG_JSON_INVALID_FORMAT = "maxOsAccountNum=5, maxLoggedInOsAccountNum=3";
+const std::string CONFIG_PATH = "/data/service/el1/public/account/test/os_account_config.json";
 const std::string STRING_DOMAIN_NAME_OUT_OF_RANGE(200, '1');  // length 200
 const std::string STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE(600, '1');  // length 600
 const std::string STRING_DOMAIN_VALID = "TestDomainMT";
 const std::string STRING_DOMAIN_ACCOUNT_NAME_VALID = "TestDomainAccountNameMT";
 const std::int32_t MAIN_ACCOUNT_ID = 100;
 const std::int32_t INVALID_ACCOUNT_ID = 200;
+const std::uint32_t MAX_OS_ACCOUNT_NUM = 5;
+const std::uint32_t MAX_LOGGED_IN_OS_ACCOUNT_NUM = 3;
+const std::uint32_t DEFAULT_MAX_OS_ACCOUNT_NUM = 999;
+const std::uint32_t DEFAULT_MAX_LOGGED_IN_OS_ACCOUNT_NUM = 999;
 const std::shared_ptr<AccountFileOperator> g_accountFileOperator =
     AccountFileWatcherMgr::GetInstance().accountFileOperator_;
 
@@ -552,7 +561,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest024
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest025, TestSize.Level1)
 {
-    int maxOsAccountNumber = 0;
+    uint32_t maxOsAccountNumber = 0;
     EXPECT_EQ(osAccountManagerService_->QueryMaxOsAccountNumber(maxOsAccountNumber), ERR_OK);
 }
 
@@ -2342,6 +2351,177 @@ HWTEST_F(OsAccountManagerServiceModuleTest, PrivateTypeTest003, TestSize.Level1)
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoA.GetLocalId()), ERR_OK);
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoB.GetLocalId()), ERR_OK);
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoC.GetLocalId()), ERR_OK);
+}
+
+/**
+ * @tc.name: MaxNumTest001
+ * @tc.desc: test maxOsAccount and maxLoggedInOsAccount is valid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, MaxNumTest001, TestSize.Level1)
+{
+    AccountFileOperator osAccountFileOperator;
+    osAccountFileOperator.InputFileByPathAndContent(CONFIG_PATH, CONFIG_JSON_NORMAL);
+    auto &innerMgr = osAccountManagerService_->innerManager_;
+    ASSERT_NE(innerMgr.osAccountControl_, nullptr);
+    innerMgr.osAccountControl_->GetOsAccountConfig(innerMgr.config_);
+    uint32_t maxOsAccountNum = 0;
+    EXPECT_EQ(osAccountManagerService_->QueryMaxOsAccountNumber(maxOsAccountNum), ERR_OK);
+    ASSERT_EQ(maxOsAccountNum, MAX_OS_ACCOUNT_NUM);
+    uint32_t maxLoggedInOsAccountNum = 0;
+    EXPECT_EQ(osAccountManagerService_->QueryMaxLoggedInOsAccountNumber(maxLoggedInOsAccountNum), ERR_OK);
+    ASSERT_EQ(maxLoggedInOsAccountNum, MAX_LOGGED_IN_OS_ACCOUNT_NUM);
+    std::vector<int32_t> createdOsAccounts;
+    ErrCode ret = ERR_OK;
+    OsAccountInfo osAccountInfo;
+    for (uint32_t i = 1; i < maxOsAccountNum; ++i) {
+        ret = osAccountManagerService_->CreateOsAccount(
+            "InnerOsAccountManager004" + std::to_string(i), OsAccountType::NORMAL, osAccountInfo);
+        EXPECT_EQ(ret, ERR_OK);
+        createdOsAccounts.emplace_back(osAccountInfo.GetLocalId());
+    }
+    ret = osAccountManagerService_->CreateOsAccount(
+            "InnerOsAccountManager004" + std::to_string(maxOsAccountNum), OsAccountType::NORMAL, osAccountInfo);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR);
+    for (uint32_t i = 0; i < maxLoggedInOsAccountNum - 1; ++i) {
+        ret = osAccountManagerService_->ActivateOsAccount(createdOsAccounts[i]);
+        EXPECT_EQ(ret, ERR_OK);
+    }
+#ifndef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
+    if (maxLoggedInOsAccountNum < maxOsAccountNum && createdOsAccounts.size() > 0) {
+        ret = osAccountManagerService_->ActivateOsAccount(createdOsAccounts[createdOsAccounts.size() - 1]);
+        EXPECT_EQ(ret, ERR_OK);
+    }
+#endif
+    for (uint32_t i = 0; i < maxOsAccountNum; ++i) {
+        osAccountManagerService_->RemoveOsAccount(createdOsAccounts[i]);
+    }
+    osAccountFileOperator.DeleteDirOrFile(CONFIG_PATH);
+}
+
+/**
+ * @tc.name: MaxNumTest002
+ * @tc.desc: test the maxLoggedInOsAccountNum is larger then the maxOsAccountNum
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, MaxNumTest002, TestSize.Level1)
+{
+    AccountFileOperator osAccountFileOperator;
+    osAccountFileOperator.InputFileByPathAndContent(CONFIG_PATH, CONFIG_JSON_LAGER_LOGGED_IN_NUM);
+    auto &innerMgr = osAccountManagerService_->innerManager_;
+    ASSERT_NE(innerMgr.osAccountControl_, nullptr);
+    innerMgr.osAccountControl_->GetOsAccountConfig(innerMgr.config_);
+    uint32_t maxOsAccountNum = 0;
+    EXPECT_EQ(osAccountManagerService_->QueryMaxOsAccountNumber(maxOsAccountNum), ERR_OK);
+    ASSERT_EQ(maxOsAccountNum, MAX_OS_ACCOUNT_NUM);
+    uint32_t maxLoggedInOsAccountNum = 0;
+    EXPECT_EQ(osAccountManagerService_->QueryMaxLoggedInOsAccountNumber(maxLoggedInOsAccountNum), ERR_OK);
+    ASSERT_EQ(maxLoggedInOsAccountNum, MAX_OS_ACCOUNT_NUM);
+    osAccountFileOperator.DeleteDirOrFile(CONFIG_PATH);
+}
+
+/**
+ * @tc.name: MaxNumTest003
+ * @tc.desc: test config json is invalid format.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, MaxNumTest003, TestSize.Level1)
+{
+    AccountFileOperator osAccountFileOperator;
+    osAccountFileOperator.InputFileByPathAndContent(CONFIG_PATH, CONFIG_JSON_INVALID_FORMAT);
+    auto &innerMgr = osAccountManagerService_->innerManager_;
+    innerMgr.config_.maxOsAccountNum = DEFAULT_MAX_OS_ACCOUNT_NUM;
+    innerMgr.config_.maxLoggedInOsAccountNum = DEFAULT_MAX_LOGGED_IN_OS_ACCOUNT_NUM;
+    ASSERT_NE(innerMgr.osAccountControl_, nullptr);
+    innerMgr.osAccountControl_->GetOsAccountConfig(innerMgr.config_);
+    uint32_t maxOsAccountNum = 0;
+    EXPECT_EQ(osAccountManagerService_->QueryMaxOsAccountNumber(maxOsAccountNum), ERR_OK);
+    ASSERT_EQ(maxOsAccountNum, DEFAULT_MAX_OS_ACCOUNT_NUM);
+    uint32_t maxLoggedInOsAccountNum = 0;
+    EXPECT_EQ(osAccountManagerService_->QueryMaxLoggedInOsAccountNumber(maxLoggedInOsAccountNum), ERR_OK);
+    ASSERT_EQ(maxLoggedInOsAccountNum, DEFAULT_MAX_LOGGED_IN_OS_ACCOUNT_NUM);
+    osAccountFileOperator.DeleteDirOrFile(CONFIG_PATH);
+}
+
+/**
+ * @tc.name: MaxNumTest004
+ * @tc.desc: test key not found, or value is negative.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, MaxNumTest004, TestSize.Level1)
+{
+    AccountFileOperator osAccountFileOperator;
+    osAccountFileOperator.InputFileByPathAndContent(CONFIG_PATH, CONFIG_JSON_INVALID_KEY_OR_VALUE);
+    auto &innerMgr = osAccountManagerService_->innerManager_;
+    innerMgr.config_.maxOsAccountNum = DEFAULT_MAX_OS_ACCOUNT_NUM;
+    innerMgr.config_.maxLoggedInOsAccountNum = DEFAULT_MAX_LOGGED_IN_OS_ACCOUNT_NUM;
+    ASSERT_NE(innerMgr.osAccountControl_, nullptr);
+    innerMgr.osAccountControl_->GetOsAccountConfig(innerMgr.config_);
+    uint32_t maxOsAccountNum = 0;
+    EXPECT_EQ(osAccountManagerService_->QueryMaxOsAccountNumber(maxOsAccountNum), ERR_OK);
+    ASSERT_EQ(maxOsAccountNum, DEFAULT_MAX_OS_ACCOUNT_NUM);
+    uint32_t maxLoggedInOsAccountNum = 0;
+    EXPECT_EQ(osAccountManagerService_->QueryMaxLoggedInOsAccountNumber(maxLoggedInOsAccountNum), ERR_OK);
+    ASSERT_EQ(maxLoggedInOsAccountNum, DEFAULT_MAX_LOGGED_IN_OS_ACCOUNT_NUM);
+    osAccountFileOperator.DeleteDirOrFile(CONFIG_PATH);
+}
+
+/**
+ * @tc.name: MaxNumTest005
+ * @tc.desc: test activateOsAccount failed when the number of the logged in accounts reaches upper limit.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, MaxNumTest005, TestSize.Level1)
+{
+    auto &innerMgr = osAccountManagerService_->innerManager_;
+    innerMgr.config_.maxLoggedInOsAccountNum = 1;
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(osAccountManagerService_->CreateOsAccount("MaxNumTest005", OsAccountType::NORMAL, osAccountInfo),
+        ERR_OK);
+    EXPECT_EQ(osAccountManagerService_->ActivateOsAccount(osAccountInfo.GetLocalId()),
+        ERR_OSACCOUNT_SERVICE_LOGGED_IN_ACCOUNTS_OVERSIZE);
+}
+
+/**
+ * @tc.name: SetOsAccountIsLoggedInTest001
+ * @tc.desc: coverage SetOsAccountIsLoggedIn
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, SetOsAccountIsLoggedInTest001, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    ErrCode ret = osAccountManagerService_->CreateOsAccount(
+        "SetOsAccountIsLoggedInTest001", OsAccountType::NORMAL, osAccountInfo);
+    ASSERT_EQ(ret, ERR_OK);
+    int localId = osAccountInfo.GetLocalId();
+    // account not found, login fail
+    EXPECT_EQ(osAccountManagerService_->innerManager_.SetOsAccountIsLoggedIn(localId + 1, true),
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    // to be removed, login fail
+    ASSERT_EQ(osAccountManagerService_->SetOsAccountToBeRemoved(localId, true), ERR_OK);
+    EXPECT_EQ(osAccountManagerService_->innerManager_.SetOsAccountIsLoggedIn(localId, true),
+        ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR);
+    // unset toBeRemoved
+    ASSERT_EQ(osAccountManagerService_->SetOsAccountToBeRemoved(localId, false), ERR_OK);
+    EXPECT_FALSE(osAccountInfo.GetIsLoggedIn());
+    EXPECT_FALSE(osAccountInfo.GetLastLoginTime() > 0);
+    // login
+    EXPECT_EQ(osAccountManagerService_->innerManager_.SetOsAccountIsLoggedIn(localId, true), ERR_OK);
+    EXPECT_EQ(osAccountManagerService_->QueryOsAccountById(localId, osAccountInfo), ERR_OK);
+    EXPECT_TRUE(osAccountInfo.GetIsLoggedIn());
+    EXPECT_TRUE(osAccountInfo.GetLastLoginTime() > 0);
+    bool val = true;
+    EXPECT_TRUE(osAccountManagerService_->innerManager_.loggedInAccounts_.Find(localId, val));
+    // logout
+    EXPECT_EQ(osAccountManagerService_->innerManager_.SetOsAccountIsLoggedIn(localId, false), ERR_OK);
+    EXPECT_FALSE(osAccountManagerService_->innerManager_.loggedInAccounts_.Find(localId, val));
+    osAccountManagerService_->RemoveOsAccount(osAccountInfo.GetLocalId());
 }
 #endif //ENABLE_MULTIPLE_OS_ACCOUNTS
 }  // namespace AccountSA

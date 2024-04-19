@@ -228,19 +228,6 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest008, Te
 }
 
 /**
- * @tc.name: OsAccountControlFileManagerTest009
- * @tc.desc: Test GetMaxCreatedOsAccountNum
- * @tc.type: FUNC
- * @tc.require: SR000GGVFG
- */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest009, TestSize.Level1)
-{
-    int maxCreatedOsAccountNum = 0;
-    EXPECT_EQ(g_controlManager->GetMaxCreatedOsAccountNum(maxCreatedOsAccountNum), ERR_OK);
-    EXPECT_NE(maxCreatedOsAccountNum, 0);
-}
-
-/**
  * @tc.name: OsAccountControlFileManagerTest010
  * @tc.desc: Test GetAllowCreateId
  * @tc.type: FUNC

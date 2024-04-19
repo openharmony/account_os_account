@@ -26,7 +26,6 @@
 #include "os_account_subscribe_manager.h"
 #include "ability_manager_adapter.h"
 #undef private
-#include "os_account_manager_service.h"
 #include "os_account_interface.h"
 #include "mock_account_mgr_service.h"
 #include "os_account_info.h"

@@ -749,8 +749,20 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest024, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest025, TestSize.Level1)
 {
-    int maxOsAccountNumber = 0;
+    uint32_t maxOsAccountNumber = 0;
     EXPECT_EQ(OsAccountManager::QueryMaxOsAccountNumber(maxOsAccountNumber), ERR_OK);
+}
+
+/**
+ * @tc.name: QueryMaxLoggedInOsAccountNumberModuleTest001
+ * @tc.desc: Test QueryMaxLoggedInOsAccountNumber.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, QueryMaxLoggedInOsAccountNumberModuleTest001, TestSize.Level1)
+{
+    uint32_t maxNum = 0;
+    EXPECT_EQ(OsAccountManager::QueryMaxLoggedInOsAccountNumber(maxNum), ERR_OK);
 }
 
 /**

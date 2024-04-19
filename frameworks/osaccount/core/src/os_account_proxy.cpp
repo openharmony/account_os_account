@@ -409,7 +409,7 @@ ErrCode OsAccountProxy::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &d
     return ERR_OK;
 }
 
-ErrCode OsAccountProxy::QueryMaxOsAccountNumber(int &maxOsAccountNumber)
+ErrCode OsAccountProxy::QueryMaxOsAccountNumber(uint32_t &maxOsAccountNumber)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -431,6 +431,34 @@ ErrCode OsAccountProxy::QueryMaxOsAccountNumber(int &maxOsAccountNumber)
     }
     maxOsAccountNumber = reply.ReadInt32();
 
+    return ERR_OK;
+}
+
+ErrCode OsAccountProxy::QueryMaxLoggedInOsAccountNumber(uint32_t &maxNum)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
+    MessageParcel reply;
+    ErrCode result = SendRequest(OsAccountInterfaceCode::QUERY_MAX_LOGGED_IN_OS_ACCOUNT_NUMBER, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
+        return result;
+    }
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("Failed to read errCode");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        return result;
+    }
+    if (!reply.ReadUint32(maxNum)) {
+        ACCOUNT_LOGE("Failed to read maxNum");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
     return ERR_OK;
 }
 

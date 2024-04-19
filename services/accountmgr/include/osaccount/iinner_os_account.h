@@ -43,7 +43,8 @@ public:
         const int id, const std::string &constraint, bool &isOsAccountConstraintEnable) = 0;
     virtual ErrCode IsOsAccountVerified(const int id, bool &isVerified) = 0;
     virtual ErrCode GetCreatedOsAccountsCount(unsigned int &createdOsAccountCount) = 0;
-    virtual ErrCode QueryMaxOsAccountNumber(int &maxOsAccountNumber) = 0;
+    virtual ErrCode QueryMaxOsAccountNumber(uint32_t &maxOsAccountNumber) = 0;
+    virtual ErrCode QueryMaxLoggedInOsAccountNumber(uint32_t &maxNum) = 0;
     virtual ErrCode GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints) = 0;
     virtual ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos) = 0;
     virtual ErrCode QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo) = 0;
@@ -70,6 +71,7 @@ public:
     virtual OS_ACCOUNT_SWITCH_MOD GetOsAccountSwitchMod() = 0;
     virtual ErrCode IsOsAccountCompleted(const int id, bool &isOsAccountCompleted) = 0;
     virtual ErrCode SetOsAccountIsVerified(const int id, const bool isVerified) = 0;
+    virtual ErrCode SetOsAccountIsLoggedIn(const int32_t id, const bool isLoggedIn) = 0;
     virtual ErrCode GetOsAccountCredentialId(const int id, uint64_t &credentialId) = 0;
     virtual ErrCode SetOsAccountCredentialId(const int id, uint64_t credentialId) = 0;
     virtual ErrCode IsAllowedCreateAdmin(bool &isAllowedCreateAdmin) = 0;

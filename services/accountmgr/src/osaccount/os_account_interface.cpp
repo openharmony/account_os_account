@@ -413,11 +413,9 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
     StartTraceAdapter("StorageManager PrepareStartUser");
-    if ((!osAccountInfo.GetIsVerified()) && (osAccountInfo.GetCredentialId() <= 0)) {
-        std::vector<uint8_t> emptyData;
-        if (proxy->ActiveUserKey(osAccountInfo.GetLocalId(), emptyData, emptyData) == 0) {
-            isUserUnlocked = true;
-        }
+    std::vector<uint8_t> emptyData;
+    if (proxy->ActiveUserKey(osAccountInfo.GetLocalId(), emptyData, emptyData) == 0) {
+        isUserUnlocked = true;
     }
     int32_t err = proxy->PrepareStartUser(osAccountInfo.GetLocalId());
     if (err != 0) {
@@ -427,10 +425,16 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
     ACCOUNT_LOGI("end, Storage PrepareStartUser ret %{public}d.", err);
     FinishTraceAdapter();
 #else
-    isUserUnlocked = !osAccountInfo.GetIsVerified();
+    isUserUnlocked = true;
 #endif
-    if (isUserUnlocked) {
+    if (!osAccountInfo.GetIsVerified() && isUserUnlocked) {
         osAccountInfo.SetIsVerified(true);
+        bool hasCredential = osAccountInfo.GetCredentialId() > 0;
+        if (!hasCredential) {
+            osAccountInfo.SetIsLoggedIn(true);
+            osAccountInfo.SetLastLoginTime(std::chrono::duration_cast<std::chrono::seconds>(
+                std::chrono::system_clock::now().time_since_epoch()).count());
+        }
         PublishCommonEvent(osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED,
             Constants::OPERATION_UNLOCK);
         OsAccountSubscribeManager::GetInstance().Publish(osAccountInfo.GetLocalId(),

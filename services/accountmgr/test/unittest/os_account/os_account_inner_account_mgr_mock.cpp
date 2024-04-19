@@ -20,13 +20,11 @@
 #include "account_error_no.h"
 #include "os_account_constants.h"
 #include "os_account_manager.h"
-#include "os_account_manager_service.h"
 #include "os_account_interface.h"
 #include "os_account_info.h"
 #include "account_log_wrapper.h"
 #define private public
 #include "account_file_watcher_manager.h"
-#include "iinner_os_account_manager.h"
 #include "os_account_control_file_manager.h"
 #undef private
 #include "os_account_subscribe_manager.h"
@@ -219,7 +217,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest008, TestSize
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
 
-    EXPECT_CALL(*ptr, GetOsAccountList(::testing::_))
+    EXPECT_CALL(*ptr, GetOsAccountIdList(::testing::_))
         .WillRepeatedly(testing::Return(-1));
 
     innerMgrService_->SetOsAccountControl(ptr);
@@ -460,37 +458,6 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest015, TestSize
     EXPECT_EQ(innerMgrService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
-
-/*
- * @tc.name: OsAccountInnerAccmgrMockTest016
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest016, TestSize.Level1)
-{
-    auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
-
-    int id = 0;
-    bool flag;
-
-    EXPECT_CALL(*ptr, GetOsAccountInfoById(_, _))
-        .WillRepeatedly(testing::Return(-1));
-
-    ErrCode ret = innerMgrService_->IsOsAccountActived(id, flag);
-    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
-
-    EXPECT_CALL(*ptr, GetMaxCreatedOsAccountNum(_))
-        .WillRepeatedly(testing::Return(-1));
-    int num = 0;
-    ret = innerMgrService_->QueryMaxOsAccountNumber(num);
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-    EXPECT_EQ(ret, -1);
-#else
-    EXPECT_EQ(ret, 0);
-#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
-}
 
 /*
  * @tc.name: OsAccountInnerAccmgrMockTest017

@@ -102,6 +102,8 @@ ErrCode OsAccountInterface::SendToStorageAccountRemove(OsAccountInfo &osAccountI
 ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("mock OsAccountInterface SendToStorageAccountStart start");
+    osAccountInfo.SetIsVerified(true);
+    osAccountInfo.SetIsLoggedIn(true);
     return ERR_OK;
 }
 
