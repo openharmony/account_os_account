@@ -24,7 +24,7 @@
 #include "app_account_info.h"
 #include "app_account_subscribe_manager.h"
 #ifdef HAS_ASSET_PART
-#include "asset_api.h"
+#include "asset_system_api.h"
 #endif
 #include "bundle_manager_adapter.h"
 #include "ipc_skeleton.h"
@@ -52,25 +52,25 @@ static ErrCode SaveDataToAsset(const std::string &hapLabel, const std::string &a
     if (value.empty()) {
         return ERR_OK;
     }
-    Asset_Value hapLabelValue = { .blob = { static_cast<uint32_t>(hapLabel.size()),
+    AssetValue hapLabelValue = { .blob = { static_cast<uint32_t>(hapLabel.size()),
         const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(hapLabel.c_str())) } };
-    Asset_Value accountLabelValue = { .blob = { static_cast<uint32_t>(accountLabel.size()),
+    AssetValue accountLabelValue = { .blob = { static_cast<uint32_t>(accountLabel.size()),
         const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(accountLabel.c_str())) } };
-    Asset_Value aliasValue = { .blob = { static_cast<uint32_t>(alias.size()),
+    AssetValue aliasValue = { .blob = { static_cast<uint32_t>(alias.size()),
         const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(alias.c_str())) } };
-    Asset_Value secretValue = { .blob = { static_cast<uint32_t>(value.size()),
+    AssetValue secretValue = { .blob = { static_cast<uint32_t>(value.size()),
         const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(value.c_str())) } };
-    Asset_Value u32Value = { .u32 = ASSET_ACCESSIBILITY_DEVICE_POWERED_ON };
-    Asset_Attr attr[] = {
-        { .tag = ASSET_TAG_ALIAS, .value = aliasValue },
-        { .tag = ASSET_TAG_SECRET, .value = secretValue },
-        { .tag = ASSET_TAG_DATA_LABEL_NORMAL_1, .value = hapLabelValue },
-        { .tag = ASSET_TAG_DATA_LABEL_NORMAL_2, .value = accountLabelValue },
-        { .tag = ASSET_TAG_ACCESSIBILITY, .value = u32Value }
+    AssetValue u32Value = { .u32 = SEC_ASSET_ACCESSIBILITY_DEVICE_POWERED_ON };
+    AssetAttr attr[] = {
+        { .tag = SEC_ASSET_TAG_ALIAS, .value = aliasValue },
+        { .tag = SEC_ASSET_TAG_SECRET, .value = secretValue },
+        { .tag = SEC_ASSET_TAG_DATA_LABEL_NORMAL_1, .value = hapLabelValue },
+        { .tag = SEC_ASSET_TAG_DATA_LABEL_NORMAL_2, .value = accountLabelValue },
+        { .tag = SEC_ASSET_TAG_ACCESSIBILITY, .value = u32Value }
     };
-    ErrCode ret = OH_Asset_Add(attr, sizeof(attr) / sizeof(attr[0]));
-    if (ret == ASSET_DUPLICATED) {
-        ret = OH_Asset_Update(attr, 1, &attr[1], 1);
+    ErrCode ret = AssetAdd(attr, sizeof(attr) / sizeof(attr[0]));
+    if (ret == SEC_ASSET_DUPLICATED) {
+        ret = AssetUpdate(attr, 1, &attr[1], 1);
     }
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("fail to save data to asset, error code: %{public}d", ret);
@@ -80,40 +80,40 @@ static ErrCode SaveDataToAsset(const std::string &hapLabel, const std::string &a
 
 static ErrCode GetDataFromAsset(const std::string &alias, std::string &value)
 {
-    Asset_Value aliasValue = { .blob = { static_cast<uint32_t>(alias.size()),
+    AssetValue aliasValue = { .blob = { static_cast<uint32_t>(alias.size()),
         const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(alias.c_str())) } };
-    Asset_Value u32Value = { .u32 = ASSET_RETURN_ALL };
-    Asset_Attr attr[] = {
-        { .tag = ASSET_TAG_ALIAS, .value = aliasValue },
-        { .tag = ASSET_TAG_RETURN_TYPE, .value = u32Value }
+    AssetValue u32Value = { .u32 = SEC_ASSET_RETURN_ALL };
+    AssetAttr attr[] = {
+        { .tag = SEC_ASSET_TAG_ALIAS, .value = aliasValue },
+        { .tag = SEC_ASSET_TAG_RETURN_TYPE, .value = u32Value }
     };
 
-    Asset_ResultSet resultSet = {0};
-    ErrCode ret = OH_Asset_Query(attr, sizeof(attr) / sizeof(attr[0]), &resultSet);
-    if (ret != ASSET_SUCCESS) {
+    AssetResultSet resultSet = {0};
+    ErrCode ret = AssetQuery(attr, sizeof(attr) / sizeof(attr[0]), &resultSet);
+    if (ret != SEC_ASSET_SUCCESS) {
         ACCOUNT_LOGE("fail to get data from asset, error code: %{public}d", ret);
     } else {
-        Asset_Attr *secret = OH_Asset_ParseAttr(resultSet.results, ASSET_TAG_SECRET);
+        AssetAttr *secret = AssetParseAttr(resultSet.results, SEC_ASSET_TAG_SECRET);
         if (secret == nullptr) {
             ACCOUNT_LOGE("secret is nullptr");
             ret = ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
         } else {
-            Asset_Blob valueBlob = secret->value.blob;
+            AssetBlob valueBlob = secret->value.blob;
             value = std::string(reinterpret_cast<const char *>(valueBlob.data), valueBlob.size);
         }
     }
-    OH_Asset_FreeResultSet(&resultSet);
+    AssetFreeResultSet(&resultSet);
     return ret;
 }
 
 static ErrCode RemoveDataFromAsset(const std::string &alias)
 {
-    Asset_Value aliasValue = { .blob = { static_cast<uint32_t>(alias.size()),
+    AssetValue aliasValue = { .blob = { static_cast<uint32_t>(alias.size()),
         const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(alias.c_str())) } };
-    Asset_Attr attr[] = { { .tag = ASSET_TAG_ALIAS, .value = aliasValue } };
+    AssetAttr attr[] = { { .tag = SEC_ASSET_TAG_ALIAS, .value = aliasValue } };
 
-    ErrCode ret = OH_Asset_Remove(attr, sizeof(attr) / sizeof(attr[0]));
-    if (ret != ASSET_SUCCESS) {
+    ErrCode ret = AssetRemove(attr, sizeof(attr) / sizeof(attr[0]));
+    if (ret != SEC_ASSET_SUCCESS) {
         ACCOUNT_LOGE("fail to remove data from asset");
     }
     return ret;
@@ -121,12 +121,12 @@ static ErrCode RemoveDataFromAsset(const std::string &alias)
 
 static ErrCode RemoveDataFromAssetByLabel(int32_t tag, const std::string &label)
 {
-    Asset_Value labelValue = { .blob = { static_cast<uint32_t>(label.size()),
+    AssetValue labelValue = { .blob = { static_cast<uint32_t>(label.size()),
         const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(label.c_str())) } };
-    Asset_Attr attr[] = { { .tag = tag, .value = labelValue } };
+    AssetAttr attr[] = { { .tag = tag, .value = labelValue } };
 
-    ErrCode ret = OH_Asset_Remove(attr, sizeof(attr) / sizeof(attr[0]));
-    if (ret != ASSET_SUCCESS) {
+    ErrCode ret = AssetRemove(attr, sizeof(attr) / sizeof(attr[0]));
+    if (ret != SEC_ASSET_SUCCESS) {
         ACCOUNT_LOGE("fail to remove data from asset");
     }
     return ret;
@@ -197,7 +197,7 @@ ErrCode AppAccountControlManager::DeleteAccount(
     }
     RemoveAssociatedDataCacheByAccount(uid, name);
 #ifdef HAS_ASSET_PART
-    RemoveDataFromAssetByLabel(ASSET_TAG_DATA_LABEL_NORMAL_2, appAccountInfo.GetPrimeKey());
+    RemoveDataFromAssetByLabel(SEC_ASSET_TAG_DATA_LABEL_NORMAL_2, appAccountInfo.GetPrimeKey());
 #endif
 
     std::set<std::string> authorizedApps;
@@ -1002,7 +1002,7 @@ ErrCode AppAccountControlManager::OnPackageRemoved(
 #endif // DISTRIBUTED_FEATURE_ENABLED
     }
 #ifdef HAS_ASSET_PART
-    RemoveDataFromAssetByLabel(ASSET_TAG_DATA_LABEL_NORMAL_1, key);
+    RemoveDataFromAssetByLabel(SEC_ASSET_TAG_DATA_LABEL_NORMAL_1, key);
 #endif
     return ERR_OK;
 }
