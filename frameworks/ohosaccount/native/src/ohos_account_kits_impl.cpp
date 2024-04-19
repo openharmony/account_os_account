@@ -22,6 +22,15 @@
 
 namespace OHOS {
 namespace AccountSA {
+std::function<void(int32_t, const std::string &)> ohosCallbackFunc()
+{
+    return [](int32_t systemAbilityId, const std::string &deviceId) {
+        if (systemAbilityId == SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN) {
+            OhosAccountKitsImpl::GetInstance().RestoreSubscribe();
+        }
+    };
+}
+
 OhosAccountKitsImpl &OhosAccountKitsImpl::GetInstance()
 {
     static OhosAccountKitsImpl *instance = new (std::nothrow) OhosAccountKitsImpl();
@@ -39,6 +48,10 @@ void OhosAccountKitsImpl::ResetService(const wptr<IRemoteObject>& remote)
             object->RemoveDeathRecipient(deathRecipient_);
             accountProxy_ = nullptr;
         }
+    }
+    if (!isSubscribeSA_) {
+        isSubscribeSA_ = true;
+        SubscribeSystemAbility(ohosCallbackFunc());
     }
 }
 
@@ -178,6 +191,133 @@ ErrCode OhosAccountKitsImpl::QueryDeviceAccountId(std::int32_t& accountId)
     }
 
     return accountProxy->QueryDeviceAccountId(accountId);
+}
+
+ErrCode OhosAccountKitsImpl::SubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
+    const std::shared_ptr<DistributedAccountSubscribeCallback> &callback)
+{
+    ACCOUNT_LOGI("Subscribe distributed account event in client.");
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("Callback is nullptr.");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
+
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed.");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+
+    sptr<IRemoteObject> listener = nullptr;
+    ErrCode result = CreateDistributedAccountEventService(type, callback, listener);
+
+    if (listener == nullptr) {
+        ACCOUNT_LOGE("Create event service failed.");
+        return ERR_OHOSACCOUNT_KIT_SUBSCRIBE_ERROR;
+    }
+    if (result == ERR_OHOSACCOUNT_KIT_CALLBACK_ALREADY_REGISTERED_ERROR) {
+        ACCOUNT_LOGE("Callback already registered.");
+        return ERR_OK;
+    }
+
+    result = accountProxy->SubscribeDistributedAccountEvent(type, listener);
+    if (result != ERR_OK) {
+        std::lock_guard<std::mutex> lock(eventListenersMutex_);
+        eventListeners_.erase(callback);
+    }
+    return result;
+}
+
+ErrCode OhosAccountKitsImpl::UnsubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
+    const std::shared_ptr<DistributedAccountSubscribeCallback> &callback)
+{
+    ACCOUNT_LOGI("Unsubscribe distributed account event in client.");
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("Callback is nullptr.");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
+
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed.");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+
+    std::lock_guard<std::mutex> lock(eventListenersMutex_);
+    auto eventListener = eventListeners_.find(callback);
+    if (eventListener == eventListeners_.end()) {
+        ACCOUNT_LOGE("No specified callback has been registered.");
+        return ERR_OHOSACCOUNT_KIT_NO_SPECIFIED_CALLBACK_HAS_BEEN_REGISTERED;
+    }
+
+    if (!(eventListener->second->IsTypeExist(type))) {
+        ACCOUNT_LOGE("No specified callback has been registered.");
+        return ERR_OHOSACCOUNT_KIT_NO_SPECIFIED_CALLBACK_HAS_BEEN_REGISTERED;
+    }
+    ErrCode result = accountProxy->UnsubscribeDistributedAccountEvent(type, eventListener->second->AsObject());
+    if (result == ERR_OK) {
+        eventListener->second->DeleteType(type);
+        if (eventListener->second->GetTypeSize() == 0) {
+            eventListeners_.erase(eventListener);
+        }
+    }
+    return result;
+}
+
+ErrCode OhosAccountKitsImpl::CreateDistributedAccountEventService(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
+    const std::shared_ptr<DistributedAccountSubscribeCallback> &callback,
+    sptr<IRemoteObject> &subscribeListener)
+{
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("Callback is nullptr");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
+
+    std::lock_guard<std::mutex> lock(eventListenersMutex_);
+    auto eventListener = eventListeners_.find(callback);
+    if (eventListener != eventListeners_.end()) {
+        subscribeListener = eventListener->second->AsObject();
+        if (eventListener->second->IsTypeExist(type)) {
+            ACCOUNT_LOGI("Callback already has distributed account event listener.");
+            return ERR_OHOSACCOUNT_KIT_CALLBACK_ALREADY_REGISTERED_ERROR;
+        }
+        eventListener->second->AddType(type);
+        return ERR_OK;
+    }
+    if (eventListeners_.size() == Constants::DISTRIBUTED_SUBSCRIBER_MAX_SIZE) {
+        ACCOUNT_LOGE("The maximum number of eventListeners has been reached.");
+        return ERR_OHOSACCOUNT_KIT_SUBSCRIBE_MAX_SIZE_ERROR;
+    }
+    sptr<DistributedAccountEventService> listener = new (std::nothrow) DistributedAccountEventService(
+        type, callback);
+    if (listener == nullptr) {
+        ACCOUNT_LOGE("Memory allocation for listener failed!");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
+    subscribeListener = listener->AsObject();
+    eventListeners_[callback] = listener;
+    return ERR_OK;
+}
+
+void OhosAccountKitsImpl::RestoreSubscribe()
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed.");
+        return ;
+    }
+
+    std::lock_guard<std::mutex> lock(eventListenersMutex_);
+    for (auto it = eventListeners_.begin(); it != eventListeners_.end(); ++it) {
+        std::vector<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE> typeList;
+        it->second->GetAllType(typeList);
+        for (auto type : typeList) {
+            ErrCode subscribeState = accountProxy->SubscribeDistributedAccountEvent(type, it->second);
+            if (subscribeState != ERR_OK) {
+                ACCOUNT_LOGE("Restore subscribe failed, res=%{public}d.", subscribeState);
+            }
+        }
+    }
 }
 
 std::int32_t OhosAccountKitsImpl::GetDeviceAccountIdByUID(std::int32_t& uid)

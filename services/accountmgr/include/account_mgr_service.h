@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-20243 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -52,6 +52,10 @@ public:
     ErrCode GetOhosAccountInfo(OhosAccountInfo &info) override;
     ErrCode GetOhosAccountInfoByUserId(int32_t userId, OhosAccountInfo &info) override;
     std::int32_t QueryDeviceAccountId(std::int32_t &accountId) override;
+    ErrCode SubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
+        const sptr<IRemoteObject> &eventListener) override;
+    ErrCode UnsubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
+        const sptr<IRemoteObject> &eventListener) override;
     sptr<IRemoteObject> GetAppAccountService() override;
     sptr<IRemoteObject> GetOsAccountService() override;
     sptr<IRemoteObject> GetAccountIAMService() override;

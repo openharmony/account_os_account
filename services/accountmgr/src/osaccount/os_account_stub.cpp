@@ -862,7 +862,7 @@ ErrCode OsAccountStub::ProcGetOsAccountTypeFromProcess(MessageParcel &data, Mess
         ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-    if (!reply.WriteInt32(type)) {
+    if (!reply.WriteInt32(static_cast<int32_t>(type))) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
@@ -885,7 +885,7 @@ ErrCode OsAccountStub::ProcGetOsAccountType(MessageParcel &data, MessageParcel &
     if (result != ERR_OK) {
         return ERR_NONE;
     }
-    if (!reply.WriteInt32(type)) {
+    if (!reply.WriteInt32(static_cast<int32_t>(type))) {
         ACCOUNT_LOGE("Write reply failed.");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }

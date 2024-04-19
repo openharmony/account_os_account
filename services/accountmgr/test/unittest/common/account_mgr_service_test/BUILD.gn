@@ -46,6 +46,8 @@ ohos_unittest("account_mgr_test") {
     "${services_path}/accountmgr/src/account_event_provider.cpp",
     "${services_path}/accountmgr/src/account_event_subscribe.cpp",
     "${services_path}/accountmgr/src/account_mgr_service.cpp",
+    "${services_path}/accountmgr/src/distributed_account_subscribe_death_recipient.cpp",
+    "${services_path}/accountmgr/src/distributed_account_subscribe_manager.cpp",
     "${services_path}/accountmgr/src/ohos_account_data_deal.cpp",
     "${services_path}/accountmgr/src/ohos_account_manager.cpp",
     "account_dump_helper_test.cpp",

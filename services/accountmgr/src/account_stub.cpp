@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -72,6 +72,10 @@ AccountStub::AccountStub()
     stubFuncMap_[AccountMgrInterfaceCode::GET_OHOS_ACCOUNT_INFO_BY_USER_ID] =
         &AccountStub::CmdGetOhosAccountInfoByUserId;
     stubFuncMap_[AccountMgrInterfaceCode::QUERY_DEVICE_ACCOUNT_ID] = &AccountStub::CmdQueryDeviceAccountId;
+    stubFuncMap_[AccountMgrInterfaceCode::SUBSCRIBE_DISTRIBUTED_ACCOUNT_EVENT] =
+        &AccountStub::CmdSubscribeDistributedAccountEvent;
+    stubFuncMap_[AccountMgrInterfaceCode::UNSUBSCRIBE_DISTRIBUTED_ACCOUNT_EVENT] =
+        &AccountStub::CmdUnsubscribeDistributedAccountEvent;
     stubFuncMap_[AccountMgrInterfaceCode::GET_APP_ACCOUNT_SERVICE] = &AccountStub::CmdGetAppAccountService;
     stubFuncMap_[AccountMgrInterfaceCode::GET_OS_ACCOUNT_SERVICE] = &AccountStub::CmdGetOsAccountService;
     stubFuncMap_[AccountMgrInterfaceCode::GET_ACCOUNT_IAM_SERVICE] = &AccountStub::CmdGetAccountIAMService;
@@ -367,6 +371,54 @@ std::int32_t AccountStub::CmdQueryDeviceAccountId(MessageParcel &data, MessagePa
         ACCOUNT_LOGE("Write result data failed");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
+    return ERR_OK;
+}
+
+std::int32_t AccountStub::CmdSubscribeDistributedAccountEvent(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t type;
+    if (!data.ReadInt32(type)) {
+        ACCOUNT_LOGE("Read type failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+
+    sptr<IRemoteObject> eventListener = data.ReadRemoteObject();
+    if (eventListener == nullptr) {
+        ACCOUNT_LOGE("Read remote object for eventListener failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+
+    ErrCode result = SubscribeDistributedAccountEvent(
+        static_cast<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE>(type), eventListener);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Write reply failed, result=%{public}d.", result);
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    return ERR_OK;
+}
+
+std::int32_t AccountStub::CmdUnsubscribeDistributedAccountEvent(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t type;
+    if (!data.ReadInt32(type)) {
+        ACCOUNT_LOGE("Read type failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+
+    sptr<IRemoteObject> eventListener = data.ReadRemoteObject();
+    if (eventListener == nullptr) {
+        ACCOUNT_LOGE("Read remote object for eventListener failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+
+    ErrCode result = UnsubscribeDistributedAccountEvent(
+        static_cast<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE>(type), eventListener);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Write reply failed, result=%{public}d.", result);
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
     return ERR_OK;
 }
 

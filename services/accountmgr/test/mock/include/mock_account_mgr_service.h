@@ -36,6 +36,10 @@ public:
         const std::string &accountName, const std::string &uid, const std::string &eventStr) override;
     std::pair<bool, OhosAccountInfo> QueryOhosAccountInfo(void) override;
     std::pair<bool, OhosAccountInfo> QueryOhosAccountInfoByUserId(std::int32_t userId) override;
+    ErrCode SubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
+        const sptr<IRemoteObject> &eventListener) override;
+    ErrCode UnsubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
+        const sptr<IRemoteObject> &eventListener) override;
     sptr<IRemoteObject> GetAppAccountService() override;
     sptr<IRemoteObject> GetOsAccountService() override;
     sptr<IRemoteObject> GetDomainAccountService() override;

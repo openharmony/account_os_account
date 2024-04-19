@@ -30,6 +30,8 @@ enum class AccountMgrInterfaceCode : uint32_t {
     GET_OHOS_ACCOUNT_INFO = 6,
     GET_OHOS_ACCOUNT_INFO_BY_USER_ID = 7,
     SET_OHOS_ACCOUNT_INFO_BY_USER_ID = 8,
+    SUBSCRIBE_DISTRIBUTED_ACCOUNT_EVENT = 9,
+    UNSUBSCRIBE_DISTRIBUTED_ACCOUNT_EVENT = 10,
     QUERY_DEVICE_ACCOUNT_ID = 104,
     GET_APP_ACCOUNT_SERVICE = 105,
     GET_OS_ACCOUNT_SERVICE = 106,
@@ -202,6 +204,10 @@ enum class DomainAccountCallbackInterfaceCode : uint32_t {
 enum class OsAccountEventInterfaceCode : uint32_t {
     ACCOUNT_CHANGED = 0,
     ACCOUNT_SWITCHED = 1,
+};
+
+enum class DistributedAccountEventInterfaceCode : uint32_t {
+    ON_ACCOUNT_CHANGED = 0,
 };
 
 enum class AppAccountAuthorizationExtensionCallbackInterfaceCode : uint32_t {

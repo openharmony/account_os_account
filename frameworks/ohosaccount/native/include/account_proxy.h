@@ -39,6 +39,10 @@ public:
     ErrCode GetOhosAccountInfoByUserId(std::int32_t userId, OhosAccountInfo &ohosAccountInfo) override;
     std::pair<bool, OhosAccountInfo> QueryOhosAccountInfoByUserId(std::int32_t userId) override;
     std::int32_t QueryDeviceAccountId(std::int32_t &accountId) override;
+    ErrCode SubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
+        const sptr<IRemoteObject> &eventListener) override;
+    ErrCode UnsubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
+        const sptr<IRemoteObject> &eventListener) override;
     sptr<IRemoteObject> GetAppAccountService() override;
     sptr<IRemoteObject> GetOsAccountService() override;
     sptr<IRemoteObject> GetAccountIAMService() override;

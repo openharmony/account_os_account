@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,6 +37,7 @@
 #include "common_event_support.h"
 #endif // HAS_CES_PART
 #include "account_hisysevent_adapter.h"
+#include "distributed_account_subscribe_manager.h"
 #include "ipc_skeleton.h"
 #include "mbedtls/sha256.h"
 #include "system_ability_definition.h"
@@ -259,6 +260,18 @@ ErrCode OhosAccountManager::GetAccountInfoByUserId(std::int32_t userId, AccountI
     return ERR_OK;
 }
 
+ErrCode OhosAccountManager::SubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
+    const sptr<IRemoteObject> &eventListener)
+{
+    return subscribeManager_.SubscribeDistributedAccountEvent(type, eventListener);
+}
+
+ErrCode OhosAccountManager::UnsubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
+    const sptr<IRemoteObject> &eventListener)
+{
+    return subscribeManager_.UnsubscribeDistributedAccountEvent(type, eventListener);
+}
+
 /**
  * Get current account state.
  *
@@ -348,6 +361,7 @@ bool OhosAccountManager::LoginOhosAccount(
         ACCOUNT_LOGE("SaveOhosAccountInfo failed! userId %{public}d.", userId);
         return false;
     }
+    subscribeManager_.Publish(userId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN);
 
 #ifdef HAS_CES_PART
     if (!isPubLoginEvent) {
@@ -398,6 +412,7 @@ bool OhosAccountManager::LogoutOhosAccount(
         ACCOUNT_LOGE("ClearOhosAccount failed! userId %{public}d.", userId);
         return false;
     }
+    subscribeManager_.Publish(userId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGOUT);
 
 #ifdef HAS_CES_PART
     AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, userId, nullptr);
@@ -440,6 +455,8 @@ bool OhosAccountManager::LogoffOhosAccount(
         ACCOUNT_LOGE("ClearOhosAccount failed, userId %{public}d.", userId);
         return false;
     }
+    subscribeManager_.Publish(userId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGOFF);
+
 #ifdef HAS_CES_PART
     AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOFF, userId, nullptr);
     AccountEventProvider::EventPublish(
@@ -482,6 +499,8 @@ bool OhosAccountManager::HandleOhosAccountTokenInvalidEvent(
         // moving on even if failed to update account info
         ACCOUNT_LOGW("SaveOhosAccountInfo failed, userId %{public}d.", userId);
     }
+    subscribeManager_.Publish(userId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::TOKEN_INVALID);
+
 #ifdef HAS_CES_PART
     AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_TOKEN_INVALID,
         userId, nullptr);
@@ -523,7 +542,7 @@ OhosAccountManager &OhosAccountManager::GetInstance()
     return *instance;
 }
 
-OhosAccountManager::OhosAccountManager()
+OhosAccountManager::OhosAccountManager() : subscribeManager_(DistributedAccountSubscribeManager::GetInstance())
 {
     accountState_ = std::make_unique<AccountStateMachine>();
     dataDealer_ = std::make_unique<OhosAccountDataDeal>(ACCOUNT_CFG_DIR_ROOT_PATH);
