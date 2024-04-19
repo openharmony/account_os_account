@@ -335,7 +335,7 @@ ohos_shared_library("accountmgr") {
   }
 
   if (has_asset_part) {
-    external_deps += [ "asset:asset_ndk" ]
+    external_deps += [ "asset:asset_sdk" ]
     cflags_cc += [ "-DHAS_ASSET_PART" ]
   }
 
