@@ -970,13 +970,11 @@ ErrCode OsAccountControlFileManager::GetMaxCreatedOsAccountNum(int &maxCreatedOs
 
 bool AccountExistsWithSerialNumber(const std::vector<OsAccountInfo>& osAccountInfos, int serialNumber)
 {
-    for (const auto& accountInfo : osAccountInfos) {
-        if (accountInfo.GetSerialNumber() ==
-            Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN * Constants::CARRY_NUM + serialNumber) {
-            return true;
-        }
-    }
-    return false;
+    const auto targetSerialNumber = Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN * Constants::CARRY_NUM + serialNumber;
+    return std::any_of(osAccountInfos.begin(), osAccountInfos.end(),
+        [&targetSerialNumber](const OsAccountInfo& accountInfo) {
+        return accountInfo.GetSerialNumber() == targetSerialNumber;
+    });
 }
 
 ErrCode OsAccountControlFileManager::GetSerialNumber(int64_t &serialNumber)

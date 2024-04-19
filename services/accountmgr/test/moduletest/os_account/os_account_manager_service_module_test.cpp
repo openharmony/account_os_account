@@ -65,7 +65,7 @@ const std::vector<std::string> INVALID_CONSTRAINT = {
 };
 const std::string STRING_NAME_OUT_OF_RANGE(1200, '1');  // length 1200
 const std::string STRING_CONSTRAINT_OUT_OF_RANGE(300, '1');  // length 300
-const std::string STRING_PHOTO_OUT_OF_RANGE(1024*1024*10+1, '1');  // length 1024*1024*10+1
+const std::string STRING_PHOTO_OUT_OF_RANGE(1024 * 1024 * 10 + 1, '1');  // length 1024*1024*10+1
 const std::string PHOTO_IMG =
     "data:image/"
     "png;base64,"

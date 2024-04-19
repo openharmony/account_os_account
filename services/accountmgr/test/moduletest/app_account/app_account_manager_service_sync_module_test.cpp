@@ -45,7 +45,6 @@ const bool SYNC_ENABLE_FALSE = false;
 
 constexpr std::size_t SIZE_ZERO = 0;
 constexpr std::size_t SIZE_ONE = 1;
-}  // namespace
 
 class AppAccountManagerServiceSyncModuleTest : public testing::Test {
 public:
@@ -402,3 +401,4 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Di
     result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
+}  // namespace
