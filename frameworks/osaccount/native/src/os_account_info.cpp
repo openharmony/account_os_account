@@ -261,6 +261,25 @@ OsAccountInfo *OsAccountInfo::Unmarshalling(Parcel &parcel)
     return osAccountInfo;
 }
 
+void OsAccountInfo::GetDomainInfoFromJson(const Json &jsonObject)
+{
+    const auto &jsonObjectEnd = jsonObject.end();
+    Json typeJson;
+    OHOS::AccountSA::GetDataByType<Json>(
+        jsonObject, jsonObjectEnd, DOMAIN_INFO, typeJson, OHOS::AccountSA::JsonType::OBJECT);
+    OHOS::AccountSA::GetDataByType<std::string>(
+        typeJson, typeJson.end(), DOMAIN_NAME, domainInfo_.domain_, OHOS::AccountSA::JsonType::STRING);
+    OHOS::AccountSA::GetDataByType<std::string>(
+        typeJson, typeJson.end(), DOMAIN_ACCOUNT_NAME, domainInfo_.accountName_, OHOS::AccountSA::JsonType::STRING);
+    OHOS::AccountSA::GetDataByType<std::string>(
+        typeJson, typeJson.end(), DOMAIN_ACCOUNT_ID, domainInfo_.accountId_, OHOS::AccountSA::JsonType::STRING);
+    OHOS::AccountSA::GetDataByType<DomainAccountStatus>(
+        typeJson, typeJson.end(), DOMAIN_ACCOUNT_STATUS, domainInfo_.status_, OHOS::AccountSA::JsonType::NUMBER);
+    OHOS::AccountSA::GetDataByType<std::string>(
+        typeJson, typeJson.end(), DOMAIN_ACCOUNT_CONFIG, domainInfo_.serverConfigId_,
+        OHOS::AccountSA::JsonType::STRING);
+}
+
 void OsAccountInfo::FromJson(const Json &jsonObject)
 {
     const auto &jsonObjectEnd = jsonObject.end();
@@ -297,20 +316,7 @@ void OsAccountInfo::FromJson(const Json &jsonObject)
     OHOS::AccountSA::GetDataByType<bool>(
         jsonObject, jsonObjectEnd, IS_FOREGROUND, isForeground_, OHOS::AccountSA::JsonType::BOOLEAN);
 
-    Json typeJson;
-    OHOS::AccountSA::GetDataByType<Json>(
-        jsonObject, jsonObjectEnd, DOMAIN_INFO, typeJson, OHOS::AccountSA::JsonType::OBJECT);
-    OHOS::AccountSA::GetDataByType<std::string>(
-        typeJson, typeJson.end(), DOMAIN_NAME, domainInfo_.domain_, OHOS::AccountSA::JsonType::STRING);
-    OHOS::AccountSA::GetDataByType<std::string>(
-        typeJson, typeJson.end(), DOMAIN_ACCOUNT_NAME, domainInfo_.accountName_, OHOS::AccountSA::JsonType::STRING);
-    OHOS::AccountSA::GetDataByType<std::string>(
-        typeJson, typeJson.end(), DOMAIN_ACCOUNT_ID, domainInfo_.accountId_, OHOS::AccountSA::JsonType::STRING);
-    OHOS::AccountSA::GetDataByType<DomainAccountStatus>(
-        typeJson, typeJson.end(), DOMAIN_ACCOUNT_STATUS, domainInfo_.status_, OHOS::AccountSA::JsonType::NUMBER);
-    OHOS::AccountSA::GetDataByType<std::string>(
-        typeJson, typeJson.end(), DOMAIN_ACCOUNT_CONFIG, domainInfo_.serverConfigId_,
-        OHOS::AccountSA::JsonType::STRING);
+    GetDomainInfoFromJson(jsonObject);
 }
 
 bool OsAccountInfo::Marshalling(Parcel &parcel) const

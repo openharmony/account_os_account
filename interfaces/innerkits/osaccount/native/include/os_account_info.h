@@ -103,6 +103,8 @@ public:
 
     void FromJson(const Json &jsonObject) override;
 
+    void GetDomainInfoFromJson(const Json &jsonObject);
+
     bool Marshalling(Parcel &parcel) const override;
 
     bool ReadFromParcel(Parcel &parcel);
