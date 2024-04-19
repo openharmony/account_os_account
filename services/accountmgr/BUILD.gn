@@ -232,6 +232,7 @@ ohos_shared_library("accountmgr") {
 
   deps = [
     "${common_path}:libaccount_common",
+    "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
 

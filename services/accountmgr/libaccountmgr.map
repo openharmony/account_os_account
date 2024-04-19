@@ -342,6 +342,8 @@
         "OHOS::AccountSA::GenerateAccountInfoDigest(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned char*, unsigned int)";
         "OHOS::AccountSA::AccountFileWatcherMgr::AddFileWatcher(int, std::__h::function<bool (std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, int, unsigned int)>, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>)";
         "OHOS::AccountSA::AccountFileWatcherMgr::AddAccountInfoDigest(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+        "OHOS::AccountSA::OhosAccountManager::SubscribeDistributedAccountEvent(OHOS::AccountSA::DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE, OHOS::sptr<OHOS::IRemoteObject> const&)";
+        "OHOS::AccountSA::OhosAccountManager::UnsubscribeDistributedAccountEvent(OHOS::AccountSA::DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE, OHOS::sptr<OHOS::IRemoteObject> const&)";
     };
   local:
     *;

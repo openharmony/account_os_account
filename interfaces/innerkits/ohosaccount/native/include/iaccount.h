@@ -22,6 +22,7 @@
 #include "accountmgr_service_ipc_interface_code.h"
 #include "account_info.h"
 #include "device_account_info.h"
+#include "distributed_account_subscribe_callback.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -42,6 +43,10 @@ public:
     virtual ErrCode GetOhosAccountInfo(OhosAccountInfo &accountInfo) = 0;
     virtual ErrCode GetOhosAccountInfoByUserId(int32_t userId, OhosAccountInfo &info) = 0;
     virtual std::int32_t QueryDeviceAccountId(std::int32_t &accountId) = 0;
+    virtual ErrCode SubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
+        const sptr<IRemoteObject> &eventListener) = 0;
+    virtual ErrCode UnsubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
+        const sptr<IRemoteObject> &eventListener) = 0;
     virtual sptr<IRemoteObject> GetAppAccountService() = 0;
     virtual sptr<IRemoteObject> GetOsAccountService() = 0;
     virtual sptr<IRemoteObject> GetAccountIAMService() = 0;

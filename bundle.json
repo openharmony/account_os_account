@@ -106,7 +106,8 @@
               "account_info.h",
               "device_account_info.h",
               "iaccount.h",
-              "ohos_account_kits.h"
+              "ohos_account_kits.h",
+              "distributed_account_subscribe_callback.h"
             ]
           },
           "name": "//base/account/os_account/frameworks/ohosaccount/native:libaccountkits"

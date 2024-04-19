@@ -52,6 +52,8 @@ ohos_unittest("OhosServiceTest") {
     "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
     "${services_path}/accountmgr/src/account_event_provider.cpp",
     "${services_path}/accountmgr/src/account_mgr_service.cpp",
+    "${services_path}/accountmgr/src/distributed_account_subscribe_death_recipient.cpp",
+    "${services_path}/accountmgr/src/distributed_account_subscribe_manager.cpp",
     "${services_path}/accountmgr/src/ohos_account_data_deal.cpp",
     "${services_path}/accountmgr/src/ohos_account_manager.cpp",
   ]
@@ -67,6 +69,7 @@ ohos_unittest("OhosServiceTest") {
 
   deps = [
     "${common_path}:libaccount_common",
+    "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
     "//third_party/googletest:gmock_main",
