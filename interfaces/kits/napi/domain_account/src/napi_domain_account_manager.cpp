@@ -1439,6 +1439,12 @@ napi_value NapiDomainAccountManager::HasAccount(napi_env env, napi_callback_info
 
 static bool ParseGetDomainAccountInfoOptions(napi_env env, napi_value object, DomainAccountInfo &info)
 {
+    napi_valuetype type = napi_undefined;
+    napi_typeof(env, object, &type);
+    if (type != napi_object) {
+        ACCOUNT_LOGE("Value is not an object.");
+        return false;
+    }
     if (!GetStringPropertyByKey(env, object, "accountName", info.accountName_)) {
         ACCOUNT_LOGE("get domainInfo's accountName failed");
         return false;
