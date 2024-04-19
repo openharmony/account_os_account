@@ -24,6 +24,12 @@ namespace AccountJsKit {
 using namespace AccountSA;
 bool ParseDomainAccountInfo(napi_env env, napi_value object, DomainAccountInfo &info)
 {
+    napi_valuetype type = napi_undefined;
+    napi_typeof(env, object, &type);
+    if (type != napi_object) {
+        ACCOUNT_LOGE("Value is not an object.");
+        return false;
+    }
     if (!GetStringPropertyByKey(env, object, "domain", info.domain_)) {
         ACCOUNT_LOGE("Get domainInfo's domain failed");
         return false;
