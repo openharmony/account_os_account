@@ -56,6 +56,7 @@ namespace AccountTest {
 namespace {
 std::mutex g_mtx;
 std::mutex h_mtx;
+const int32_t WAIT_TIME = 20;
 }  // namespace
 
 class OsAccountManagerServiceSubscribeModuleTest : public testing::Test {
@@ -122,14 +123,32 @@ public:
     }
     int id_;
 };
-class MockOsAccountSubscriberTest final : public OsAccountSubscriber {
+class MockOsAccountSubscriber final {
 public:
-    explicit MockOsAccountSubscriberTest(const OsAccountSubscribeInfo &subscribeInfo)
-        : OsAccountSubscriber(subscribeInfo)
-    {}
     MOCK_METHOD1(OnAccountsChanged, void(const int &id));
-    virtual ~MockOsAccountSubscriberTest()
+};
+
+class TestOsAccountSubscriber final : public OsAccountSubscriber {
+public:
+    explicit TestOsAccountSubscriber(
+        const std::shared_ptr<MockOsAccountSubscriber> &ptr, const OsAccountSubscribeInfo &subscribeInfo)
+        : OsAccountSubscriber(subscribeInfo), ptr_(ptr)
     {}
+    void OnAccountsChanged(const int &id)
+    {
+        ptr_->OnAccountsChanged(id);
+        std::unique_lock<std::mutex> lock(mutex);
+        isReady = true;
+        cv.notify_one();
+        return;
+    }
+    virtual ~TestOsAccountSubscriber()
+    {}
+    std::condition_variable cv;
+    bool isReady = false;
+    std::mutex mutex;
+private:
+    std::shared_ptr<MockOsAccountSubscriber> ptr_;
 };
 
 #ifdef HAS_PIN_AUTH_PART
@@ -239,18 +258,22 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     osAccountSubscribeInfo.SetOsAccountSubscribeType(OS_ACCOUNT_SUBSCRIBE_TYPE::UNLOCKED);
     osAccountSubscribeInfo.SetName("subscribeUnlock");
     // make a subscriber
-    auto subscriberTestPtr = std::make_shared<MockOsAccountSubscriberTest>(osAccountSubscribeInfo);
+    auto subscriberMockPtr = std::make_shared<MockOsAccountSubscriber>();
+    auto subscriberTestPtr = std::make_shared<TestOsAccountSubscriber>(subscriberMockPtr, osAccountSubscribeInfo);
     // create a osAccount
     OsAccountInfo osAccountInfo;
     ErrCode result = OsAccount::GetInstance().CreateOsAccount(
         "OsAccountManagerServiceSubscribeModuleTest_0002", OsAccountType::GUEST, osAccountInfo);
     const int id = osAccountInfo.GetLocalId();
-    EXPECT_CALL(*subscriberTestPtr, OnAccountsChanged(id)).Times(Exactly(1));
+    EXPECT_CALL(*subscriberMockPtr, OnAccountsChanged(id)).Times(Exactly(1));
     //subscribe
     result = OsAccount::GetInstance().SubscribeOsAccount(subscriberTestPtr);
     EXPECT_EQ(result, ERR_OK);
     //unlock
     result = OsAccount::GetInstance().ActivateOsAccount(id);
+    std::unique_lock<std::mutex> lock(subscriberTestPtr->mutex);
+    subscriberTestPtr->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = subscriberTestPtr]() { return lockCallback->isReady; });
     EXPECT_EQ(result, ERR_OK);
     OsAccount::GetInstance().UnsubscribeOsAccount(subscriberTestPtr);
     EXPECT_EQ(result, ERR_OK);
