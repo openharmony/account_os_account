@@ -48,6 +48,7 @@ public:
     ErrCode ProcQueryCurrentOsAccount(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcQueryAllCreatedOsAccounts(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcQueryMaxOsAccountNumber(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcQueryMaxLoggedInOsAccountNumber(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetCreatedOsAccountsCount(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountAllConstraints(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountLocalIdFromProcess(MessageParcel &data, MessageParcel &reply);

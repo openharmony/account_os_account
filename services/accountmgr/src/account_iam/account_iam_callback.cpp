@@ -123,6 +123,7 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
     }
     innerCallback_->OnResult(result, extraInfo);
     (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsVerified(userId_, true);
+    (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsLoggedIn(userId_, true);
     AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, result);
 }
 

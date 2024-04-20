@@ -170,6 +170,5 @@ HWTEST_F(IInnerOsAccountManagerTest, InnerOsAccountManagerTest003, TestSize.Leve
     EXPECT_NE(ret, ERR_OK);
     innerMgrService_->RemoveOsAccount(osAccountInfo.GetLocalId());
 }
-
 }  // namespace AccountSA
 }  // namespace OHOS

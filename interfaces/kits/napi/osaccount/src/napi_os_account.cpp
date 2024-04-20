@@ -74,6 +74,7 @@ static napi_property_descriptor g_osAccountProperties[] = {
     DECLARE_NAPI_FUNCTION("getOsAccountLocalIdForDomain", QueryOsAccountLocalIdFromDomain),
     DECLARE_NAPI_FUNCTION("setOsAccountProfilePhoto", SetOsAccountProfilePhoto),
     DECLARE_NAPI_FUNCTION("queryMaxOsAccountNumber", QueryMaxOsAccountNumber),
+    DECLARE_NAPI_FUNCTION("queryMaxLoggedInOsAccountNumber", QueryMaxLoggedInOsAccountNumber),
     DECLARE_NAPI_FUNCTION("isOsAccountActived", IsOsAccountActived),
     DECLARE_NAPI_FUNCTION("checkOsAccountActivated", CheckOsAccountActivated),
     DECLARE_NAPI_FUNCTION("isOsAccountConstraintEnable", IsOsAccountConstraintEnable),
@@ -1019,6 +1020,34 @@ napi_value QueryMaxOsAccountNumber(napi_env env, napi_callback_info cbInfo)
 
     napi_queue_async_work_with_qos(env, maxNum->work, napi_qos_default);
     maxNum.release();
+    return result;
+}
+
+napi_value QueryMaxLoggedInOsAccountNumber(napi_env env, napi_callback_info cbInfo)
+{
+    auto context = std::make_unique<QueryMaxNumAsyncContext>();
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_promise(env, &context->deferred, &result));
+    napi_value resource = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, "QueryMaxLoggedInOsAccountNumber", NAPI_AUTO_LENGTH, &resource));
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
+        [](napi_env env, void *data) {
+            auto context = reinterpret_cast<QueryMaxNumAsyncContext *>(data);
+            context->errCode = OsAccountManager::QueryMaxLoggedInOsAccountNumber(context->maxLoggedInNumber);
+        }, [](napi_env env, napi_status status, void *data) {
+            auto context = reinterpret_cast<QueryMaxNumAsyncContext *>(data);
+            napi_value errJs = nullptr;
+            napi_value dataJs = nullptr;
+            if (context->errCode == napi_ok) {
+                napi_create_uint32(env, context->maxLoggedInNumber, &dataJs);
+            } else {
+                errJs = GenerateBusinessError(env, context->errCode);
+            }
+            ProcessCallbackOrPromise(env, context, errJs, dataJs);
+            delete context;
+        }, reinterpret_cast<void *>(context.get()), &context->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_default));
+    context.release();
     return result;
 }
 

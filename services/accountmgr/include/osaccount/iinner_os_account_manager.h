@@ -48,7 +48,8 @@ public:
         const int id, const std::string &constraint, bool &isOsAccountConstraintEnable) override;
     ErrCode IsOsAccountVerified(const int id, bool &isVerified) override;
     ErrCode GetCreatedOsAccountsCount(unsigned int &createdOsAccountCount) override;
-    ErrCode QueryMaxOsAccountNumber(int &maxOsAccountNumber) override;
+    ErrCode QueryMaxOsAccountNumber(uint32_t &maxOsAccountNumber) override;
+    ErrCode QueryMaxLoggedInOsAccountNumber(uint32_t &maxNum) override;
     ErrCode GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints) override;
     ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos) override;
     ErrCode QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo) override;
@@ -75,6 +76,7 @@ public:
     OS_ACCOUNT_SWITCH_MOD GetOsAccountSwitchMod() override;
     ErrCode IsOsAccountCompleted(const int id, bool &isOsAccountCompleted) override;
     ErrCode SetOsAccountIsVerified(const int id, const bool isVerified) override;
+    ErrCode SetOsAccountIsLoggedIn(const int32_t id, const bool isLoggedIn) override;
     ErrCode GetOsAccountCredentialId(const int id, uint64_t &credentialId) override;
     ErrCode SetOsAccountCredentialId(const int id, uint64_t credentialId) override;
     ErrCode IsAllowedCreateAdmin(bool &isAllowedCreateAdmin) override;
@@ -156,7 +158,7 @@ private:
     void RetryToGetAccount(OsAccountInfo &osAccountInfo);
     bool JudgeOsAccountUpdate(Json &accountIndexJson);
     ErrCode UpdateAccountToForeground(const uint64_t displayId, OsAccountInfo &osAccountInfo);
-    ErrCode UpdateAccountToBackground(OsAccountInfo &oldOsAccountInfo);
+    ErrCode UpdateAccountToBackground(int32_t oldId);
 
 private:
     std::shared_ptr<IOsAccountControl> osAccountControl_;
@@ -165,10 +167,12 @@ private:
     IOsAccountSubscribe &subscribeManager_;
     std::int32_t deviceOwnerId_ = -1;
     std::int32_t defaultActivatedId_ = -1;
+    OsAccountConfig config_;
     mutable std::mutex ativeMutex_;
     mutable std::mutex operatingMutex_;
     SafeMap<uint64_t, int32_t> foregroundAccountMap_;
     OsAccountPluginManager &pluginManager_;
+    SafeMap<int32_t, bool> loggedInAccounts_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

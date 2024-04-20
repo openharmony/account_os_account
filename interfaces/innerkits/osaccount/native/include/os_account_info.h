@@ -147,6 +147,10 @@ public:
 
     void SetIsForeground(const bool isForeground);
 
+    bool GetIsLoggedIn() const;
+
+    void SetIsLoggedIn(const bool isLoggedIn);
+
     ErrCode ParamCheck();
 
     bool IsTypeOutOfRange() const;
@@ -169,6 +173,7 @@ private:
     DomainAccountInfo domainInfo_;
     uint64_t displayId_ = -1;
     bool isForeground_ = false;
+    bool isLoggedIn_ = false;
 };
 
 typedef enum {
