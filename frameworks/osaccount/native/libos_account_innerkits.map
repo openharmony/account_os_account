@@ -120,7 +120,8 @@
         "OHOS::AccountSA::OsAccountManager::GetBundleIdFromUid(int, int&)";
         "OHOS::AccountSA::OsAccountManager::GetOsAccountLocalIdFromDomain(OHOS::AccountSA::DomainAccountInfo const&, int&)";
         "OHOS::AccountSA::OsAccountManager::SetOsAccountProfilePhoto(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
-        "OHOS::AccountSA::OsAccountManager::QueryMaxOsAccountNumber(int&)";
+        "OHOS::AccountSA::OsAccountManager::QueryMaxOsAccountNumber(unsigned int&)";
+        "OHOS::AccountSA::OsAccountManager::QueryMaxLoggedInOsAccountNumber(unsigned int&)";
         "OHOS::AccountSA::OsAccountManager::CheckOsAccountConstraintEnabled(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, bool&)";
         "OHOS::AccountSA::OsAccountManager::IsOsAccountConstraintEnable(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, bool&)";
         "OHOS::AccountSA::OsAccountManager::GetOsAccountTypeFromProcess(OHOS::AccountSA::OsAccountType&)";
@@ -197,6 +198,8 @@
         "OHOS::AccountSA::OsAccountInfo::SetSerialNumber(long)";
         "OHOS::AccountSA::OsAccountInfo::SetIsForeground(bool)";
         "OHOS::AccountSA::OsAccountInfo::GetIsForeground() const";
+        "OHOS::AccountSA::OsAccountInfo::SetIsLoggedIn(bool)";
+        "OHOS::AccountSA::OsAccountInfo::GetIsLoggedIn() const";
         *OHOS::AccountSA::OsAccountInfo::SetDisplayId*;
         *OHOS::AccountSA::OsAccountInfo::GetDisplayId*;
         "OHOS::AccountSA::OsAccountInfo::OsAccountInfo(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, OHOS::AccountSA::OsAccountType, long long)";

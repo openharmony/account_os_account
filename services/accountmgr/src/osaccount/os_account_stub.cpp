@@ -130,6 +130,13 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         }
     },
     {
+        static_cast<uint32_t>(OsAccountInterfaceCode::QUERY_MAX_LOGGED_IN_OS_ACCOUNT_NUMBER),
+        {
+            .messageProcFunction = &OsAccountStub::ProcQueryMaxLoggedInOsAccountNumber,
+            .isSyetemApi = true,
+        }
+    },
+    {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_ALL_CONSTRAINTS),
         {
             .messageProcFunction = &OsAccountStub::ProcGetOsAccountAllConstraints,
@@ -726,14 +733,29 @@ ErrCode OsAccountStub::ProcQueryAllCreatedOsAccounts(MessageParcel &data, Messag
 
 ErrCode OsAccountStub::ProcQueryMaxOsAccountNumber(MessageParcel &data, MessageParcel &reply)
 {
-    int maxOsAccountNumber = 0;
+    uint32_t maxOsAccountNumber = 0;
     ErrCode result = QueryMaxOsAccountNumber(maxOsAccountNumber);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-    if (!reply.WriteInt32(maxOsAccountNumber)) {
+    if (!reply.WriteUint32(maxOsAccountNumber)) {
         ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcQueryMaxLoggedInOsAccountNumber(MessageParcel &data, MessageParcel &reply)
+{
+    uint32_t maxNum = 0;
+    ErrCode result = QueryMaxLoggedInOsAccountNumber(maxNum);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Failed to write reply, result %{public}d.", result);
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteUint32(maxNum)) {
+        ACCOUNT_LOGE("Failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     return ERR_NONE;

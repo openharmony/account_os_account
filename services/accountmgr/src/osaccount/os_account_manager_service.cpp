@@ -401,9 +401,14 @@ ErrCode OsAccountManagerService::GetOsAccountLocalIdFromDomain(const DomainAccou
     return innerManager_.GetOsAccountLocalIdFromDomain(domainInfo, id);
 }
 
-ErrCode OsAccountManagerService::QueryMaxOsAccountNumber(int &maxOsAccountNumber)
+ErrCode OsAccountManagerService::QueryMaxOsAccountNumber(uint32_t &maxOsAccountNumber)
 {
     return innerManager_.QueryMaxOsAccountNumber(maxOsAccountNumber);
+}
+
+ErrCode OsAccountManagerService::QueryMaxLoggedInOsAccountNumber(uint32_t &maxNum)
+{
+    return innerManager_.QueryMaxLoggedInOsAccountNumber(maxNum);
 }
 
 ErrCode OsAccountManagerService::GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints)

@@ -19,17 +19,23 @@
 #include <stdint.h>
 namespace OHOS {
 namespace AccountSA {
+struct OsAccountConfig {
+    uint32_t maxOsAccountNum = 999;
+    uint32_t maxLoggedInOsAccountNum = 999;
+};
+
 class IOsAccountControl {
 public:
     virtual void Init() = 0;
+    virtual ErrCode GetOsAccountConfig(OsAccountConfig &config) = 0;
     virtual ErrCode GetOsAccountList(std::vector<OsAccountInfo> &osAccountList) = 0;
+    virtual ErrCode GetOsAccountIdList(std::vector<int32_t> &idList) = 0;
     virtual ErrCode GetOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode GetConstraintsByType(const OsAccountType type, std::vector<std::string> &constraints) = 0;
     virtual ErrCode InsertOsAccount(OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode DelOsAccount(const int id) = 0;
     virtual ErrCode UpdateOsAccount(OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode GetAccountIndexFromFile(Json &accountIndexJson) = 0;
-    virtual ErrCode GetMaxCreatedOsAccountNum(int &maxCreatedOsAccountNum) = 0;
     virtual ErrCode GetSerialNumber(int64_t &serialNumber) = 0;
     virtual ErrCode GetAllowCreateId(int &id) = 0;
     virtual ErrCode IsOsAccountExists(const int id, bool &isExists) = 0;

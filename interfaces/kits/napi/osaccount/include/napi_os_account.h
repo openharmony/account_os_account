@@ -152,7 +152,8 @@ struct SetOAPhotoAsyncContext : public CommonAsyncContext {
 };
 
 struct QueryMaxNumAsyncContext : public CommonAsyncContext {
-    int maxOsAccountNumber = 0;
+    uint32_t maxOsAccountNumber = 0;
+    uint32_t maxLoggedInNumber = 0;
 };
 
 struct IsActivedAsyncContext : public CommonAsyncContext {
@@ -307,6 +308,8 @@ napi_value GetOsAccountLocalIdFromDomainInner(napi_env env, napi_callback_info c
 napi_value SetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo);
 
 napi_value QueryMaxOsAccountNumber(napi_env env, napi_callback_info cbInfo);
+
+napi_value QueryMaxLoggedInOsAccountNumber(napi_env env, napi_callback_info cbInfo);
 
 napi_value QueryOsAccountConstraintSourceTypes(napi_env env, napi_callback_info cbInfo);
 

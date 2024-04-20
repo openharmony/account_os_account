@@ -249,7 +249,7 @@ BENCHMARK_F(OsAccountManagerBenchmarkTest, OsAccountManagerTestCase0010)(
 {
     GTEST_LOG_(INFO) << "OsAccountManagerBenchmarkTest OsAccountManagerTestCase0010 start!";
     for (auto _ : st) {
-        int maxOsAccountNumber = 0;
+        uint32_t maxOsAccountNumber = 0;
         EXPECT_EQ(OsAccountManager::QueryMaxOsAccountNumber(maxOsAccountNumber), ERR_OK);
     }
 }

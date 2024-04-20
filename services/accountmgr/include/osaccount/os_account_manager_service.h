@@ -22,7 +22,7 @@
 #include "account_permission_manager.h"
 #include "os_account_stub.h"
 #include "idomain_account_callback.h"
-#include "iinner_os_account.h"
+#include "iinner_os_account_manager.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -57,7 +57,8 @@ public:
     ErrCode IsMainOsAccount(bool &isMainOsAccount) override;
 
     ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id) override;
-    ErrCode QueryMaxOsAccountNumber(int &maxOsAccountNumber) override;
+    ErrCode QueryMaxOsAccountNumber(uint32_t &maxOsAccountNumber) override;
+    ErrCode QueryMaxLoggedInOsAccountNumber(uint32_t &maxNum) override;
 
     ErrCode GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints) override;
     ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos) override;
@@ -141,7 +142,7 @@ private:
     ErrCode ValidateAccountCreateParamAndPermission(const std::string &localName, const OsAccountType &type);
 
 private:
-    IInnerOsAccount &innerManager_;
+    IInnerOsAccountManager &innerManager_;
     DISALLOW_COPY_AND_MOVE(OsAccountManagerService);
 };
 }  // namespace AccountSA

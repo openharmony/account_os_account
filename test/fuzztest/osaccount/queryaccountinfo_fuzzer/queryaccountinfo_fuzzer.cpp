@@ -61,8 +61,15 @@ bool QueryOsAccountByIdFuzzTest(const uint8_t* data, size_t size)
 bool QueryMaxOsAccountNumberFuzzTest(const uint8_t* data, size_t size)
 {
     int32_t result = ERR_OK;
-    int32_t testMaxOsAccountNumber;
+    uint32_t testMaxOsAccountNumber;
     result = OsAccountManager::QueryMaxOsAccountNumber(testMaxOsAccountNumber);
+    return result == ERR_OK;
+}
+
+bool QueryMaxLoggedInOsAccountNumberFuzzTest(const uint8_t* data, size_t size)
+{
+    uint32_t maxNum;
+    ErrCode result = OsAccountManager::QueryMaxLoggedInOsAccountNumber(maxNum);
     return result == ERR_OK;
 }
 
@@ -95,6 +102,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::QueryOsAccountConstraintSourceTypesFuzzTest(data, size);
     OHOS::QueryOsAccountByIdFuzzTest(data, size);
     OHOS::QueryMaxOsAccountNumberFuzzTest(data, size);
+    OHOS::QueryMaxLoggedInOsAccountNumberFuzzTest(data, size);
     OHOS::QueryCurrentOsAccountFuzzTest(data, size);
     OHOS::QueryAllCreatedOsAccountsFuzzTest(data, size);
     return 0;
