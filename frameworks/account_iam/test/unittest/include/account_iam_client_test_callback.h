@@ -17,26 +17,92 @@
 #define ACCOUNT_IAM_CLIENT_TEST_CALLBACK_H
 
 #include <vector>
+#include <memory>
 #include <gmock/gmock.h>
 #include "account_iam_client_callback.h"
 #include "account_iam_info.h"
 
 namespace OHOS {
 namespace AccountTest {
-class MockIDMCallback final : public AccountSA::IDMCallback {
+class MockIDMCallback final {
 public:
     MOCK_METHOD2(OnResult, void(int32_t result, const AccountSA::Attributes &extraInfo));
     MOCK_METHOD3(OnAcquireInfo, void(int32_t module, uint32_t acquireInfo, const AccountSA::Attributes &extraInfo));
 };
 
-class MockGetCredInfoCallback final : public AccountSA::GetCredInfoCallback {
+class TestIDMCallback final : public AccountSA::IDMCallback {
+public:
+    TestIDMCallback(const std::shared_ptr<MockIDMCallback> &callback) :callback_(callback) {}
+    virtual ~TestIDMCallback() {}
+    void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const AccountSA::Attributes &extraInfo)
+    {
+        callback_->OnAcquireInfo(module, acquireInfo, extraInfo);
+        std::unique_lock<std::mutex> lock(mutex);
+        isReady = true;
+        cv.notify_one();
+        return;
+    }
+    void OnResult(int32_t result, const AccountSA::Attributes &extraInfo)
+    {
+        callback_->OnResult(result, extraInfo);
+        std::unique_lock<std::mutex> lock(mutex);
+        isReady = true;
+        cv.notify_one();
+        return;
+    }
+    std::condition_variable cv;
+    bool isReady = false;
+    std::mutex mutex;
+private:
+    std::shared_ptr<MockIDMCallback> callback_;
+};
+
+class MockGetCredInfoCallback final {
 public:
     MOCK_METHOD2(OnCredentialInfo, void(int32_t result, const std::vector<AccountSA::CredentialInfo> &infoList));
 };
 
-class MockGetSetPropCallback final : public AccountSA::GetSetPropCallback {
+class TestGetCredInfoCallback final : public AccountSA::GetCredInfoCallback {
+public:
+    TestGetCredInfoCallback(const std::shared_ptr<MockGetCredInfoCallback> &callback) :callback_(callback) {}
+    virtual ~TestGetCredInfoCallback() {}
+    void OnCredentialInfo(int32_t result, const std::vector<AccountSA::CredentialInfo> &infoList)
+    {
+        callback_->OnCredentialInfo(result, infoList);
+        std::unique_lock<std::mutex> lock(mutex);
+        isReady = true;
+        cv.notify_one();
+        return;
+    }
+    std::condition_variable cv;
+    bool isReady = false;
+    std::mutex mutex;
+private:
+    std::shared_ptr<MockGetCredInfoCallback> callback_;
+};
+
+class MockGetSetPropCallback final {
 public:
     MOCK_METHOD2(OnResult, void(int32_t result, const AccountSA::Attributes &extraInfo));
+};
+
+class TestGetSetPropCallback final : public AccountSA::GetSetPropCallback {
+public:
+    TestGetSetPropCallback(const std::shared_ptr<MockGetSetPropCallback> &callback) :callback_(callback) {}
+    virtual ~TestGetSetPropCallback() {}
+    void OnResult(int32_t result, const AccountSA::Attributes &extraInfo)
+    {
+        callback_->OnResult(result, extraInfo);
+        std::unique_lock<std::mutex> lock(mutex);
+        isReady = true;
+        cv.notify_one();
+        return;
+    }
+    std::condition_variable cv;
+    bool isReady = false;
+    std::mutex mutex;
+private:
+    std::shared_ptr<MockGetSetPropCallback> callback_;
 };
 }  // namespace AccountTest
 }  // namespace OHOS

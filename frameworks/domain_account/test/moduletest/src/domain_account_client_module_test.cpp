@@ -78,9 +78,7 @@ const std::vector<uint8_t> DEFAULT_TOKEN = {49, 50, 51, 52, 53};
 const std::vector<uint8_t> TOKEN = {1, 2, 3, 4, 5};
 const int32_t DEFAULT_USER_ID = 100;
 const int32_t NON_EXISTENT_USER_ID = 1000;
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-const int32_t WAIT_TIME = 2;
-#endif
+const int32_t WAIT_TIME = 20;
 const int32_t INVALID_CODE = -1;
 const uid_t TEST_UID = 100;
 const uid_t ROOT_UID = 0;
@@ -238,6 +236,9 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Auth_001, 
     ASSERT_NE(testCallback, nullptr);
     EXPECT_EQ(
         DomainAccountClient::GetInstance().Auth(info, VALID_PASSWORD, testCallback), ERR_OK);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
 }
 
 /**
@@ -258,6 +259,11 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Auth_002, 
     ASSERT_NE(testCallback, nullptr);
     EXPECT_EQ(
         DomainAccountClient::GetInstance().Auth(info, VALID_PASSWORD, testCallback), ERR_OK);
+    {
+        std::unique_lock<std::mutex> lock(testCallback->mutex);
+        testCallback->cv.wait_for(
+            lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    }
 
     info.accountName_ = STRING_NAME;
     info.domain_ = INVALID_STRING_DOMAIN;
@@ -268,6 +274,11 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Auth_002, 
     ASSERT_NE(testCallbackSec, nullptr);
     EXPECT_EQ(
         DomainAccountClient::GetInstance().Auth(info, VALID_PASSWORD, testCallbackSec), ERR_OK);
+    {
+        std::unique_lock<std::mutex> lock(testCallbackSec->mutex);
+        testCallbackSec->cv.wait_for(lock,
+            std::chrono::seconds(WAIT_TIME), [lockCallback = testCallbackSec]() { return lockCallback->isReady; });
+    }
 }
 
 /**
@@ -288,6 +299,9 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Auth_003, 
     ASSERT_NE(testCallback, nullptr);
     EXPECT_EQ(
         DomainAccountClient::GetInstance().Auth(info, INVALID_PASSWORD, testCallback), ERR_OK);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
 }
 
 /**
@@ -340,6 +354,9 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
     ASSERT_NE(testCallback, nullptr);
     EXPECT_EQ(
         DomainAccountClient::GetInstance().Auth(info, VALID_PASSWORD, testCallback), ERR_OK);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
 }
 
 /**
@@ -394,9 +411,11 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
     EXPECT_CALL(*callback, OnResult(ERR_OK, STRING_NAME, STRING_DOMAIN, _)).Times(Exactly(1));
     ASSERT_NE(testCallback, nullptr);
     ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
-    std::unique_lock<std::mutex> lock(testCallback->mutex);
-    testCallback->cv.wait_for(
-        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    {
+        std::unique_lock<std::mutex> lock(testCallback->mutex);
+        testCallback->cv.wait_for(
+            lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    }
     ASSERT_EQ(errCode, ERR_OK);
 
     auto authCallback = std::make_shared<MockDomainAuthCallback>();
@@ -408,6 +427,11 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
     errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId);
     EXPECT_EQ(errCode, ERR_OK);
     EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(userId, DEFAULT_TOKEN, testAuthCallback), ERR_OK);
+    {
+        std::unique_lock<std::mutex> lock(testAuthCallback->mutex);
+        testAuthCallback->cv.wait_for(lock,
+            std::chrono::seconds(WAIT_TIME), [lockCallback = testAuthCallback]() { return lockCallback->isReady; });
+    }
     std::vector<uint8_t> resultToken;
     InnerDomainAccountManager::GetInstance().GetTokenFromMap(userId, resultToken);
     for (size_t index = 0; index < resultToken.size(); index++) {
@@ -538,9 +562,11 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPo
     EXPECT_CALL(*callback, OnResult(ERR_OK, STRING_NAME, STRING_DOMAIN, _)).Times(Exactly(1));
     ASSERT_NE(testCallback, nullptr);
     ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
-    std::unique_lock<std::mutex> lock(testCallback->mutex);
-    testCallback->cv.wait_for(
-        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    {
+        std::unique_lock<std::mutex> lock(testCallback->mutex);
+        testCallback->cv.wait_for(
+            lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    }
     ASSERT_EQ(errCode, ERR_OK);
 
     auto authCallback = std::make_shared<MockDomainAuthCallback>();
@@ -552,6 +578,11 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPo
     errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId);
     EXPECT_EQ(errCode, ERR_OK);
     EXPECT_EQ(DomainAccountClient::GetInstance().AuthWithPopup(userId, testAuthCallback), ERR_OK);
+    {
+        std::unique_lock<std::mutex> lock(testAuthCallback->mutex);
+        testAuthCallback->cv.wait_for(lock,
+            std::chrono::seconds(WAIT_TIME), [lockCallback = testAuthCallback]() { return lockCallback->isReady; });
+    }
     std::vector<uint8_t> resultToken;
     InnerDomainAccountManager::GetInstance().GetTokenFromMap(userId, resultToken);
     for (size_t index = 0; index < resultToken.size(); index++) {
@@ -720,6 +751,9 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_HasDomainA
     auto testCallback = std::make_shared<TestHasDomainInfoCallback>(callback);
     ASSERT_NE(testCallback, nullptr);
     EXPECT_EQ(DomainAccountClient::GetInstance().HasAccount(info, testCallback), ERR_OK);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
 }
 
 /**
@@ -740,6 +774,9 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_HasDomainA
     auto testCallback = std::make_shared<TestHasDomainInfoCallback>(callback);
     ASSERT_NE(testCallback, nullptr);
     EXPECT_EQ(DomainAccountClient::GetInstance().HasAccount(info, testCallback), ERR_OK);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
 }
 
 /**
@@ -761,6 +798,9 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_HasDomainA
     ASSERT_NE(testCallback, nullptr);
     EXPECT_CALL(*callback, OnResult(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, _)).Times(Exactly(1));
     EXPECT_EQ(DomainAccountClient::GetInstance().HasAccount(info, testCallback), ERR_OK);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
 }
 
 /**
@@ -802,9 +842,11 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessT
         STRING_NAME_TWO, STRING_DOMAIN_NEW, STRING_ACCOUNTID_FIVE)).Times(Exactly(1));
     ASSERT_NE(testCallbackCreate, nullptr);
     ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, info, testCallbackCreate);
-    std::unique_lock<std::mutex> lock(testCallbackCreate->mutex);
-    testCallbackCreate->cv.wait_for(
-        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallbackCreate]() { return lockCallback->isReady; });
+    {
+        std::unique_lock<std::mutex> lock(testCallbackCreate->mutex);
+        testCallbackCreate->cv.wait_for(lock,
+            std::chrono::seconds(WAIT_TIME), [lockCallback = testCallbackCreate]() { return lockCallback->isReady; });
+    }
     ASSERT_EQ(errCode, ERR_OK);
 
     auto callback = std::make_shared<MockDomainGetAccessTokenCallback>();
@@ -815,6 +857,11 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessT
     EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountToken(info, DEFAULT_TOKEN), ERR_OK);
     AAFwk::WantParams parameters;
     EXPECT_EQ(DomainAccountClient::GetInstance().GetAccessToken(info, parameters, testCallback), ERR_OK);
+    {
+        std::unique_lock<std::mutex> lock(testCallback->mutex);
+        testCallback->cv.wait_for(
+            lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    }
     int32_t userId = -1;
     errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(info, userId);
     EXPECT_EQ(errCode, ERR_OK);
@@ -1104,9 +1151,11 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccount
     EXPECT_CALL(*callback, OnResult(ERR_OK, STRING_NAME_TWO, STRING_DOMAIN_NEW, _)).Times(Exactly(1));
     ASSERT_NE(testCallback, nullptr);
     ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
-    std::unique_lock<std::mutex> lock(testCallback->mutex);
-    testCallback->cv.wait_for(
-        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    {
+        std::unique_lock<std::mutex> lock(testCallback->mutex);
+        testCallback->cv.wait_for(
+            lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    }
     ASSERT_EQ(errCode, ERR_OK);
 
     int32_t localId = testCallback->GetLocalId();
@@ -1116,6 +1165,11 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccount
     auto testAuthCallback = std::make_shared<TestDomainAuthCallback>(authCallback);
     ASSERT_NE(testAuthCallback, nullptr);
     EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(localId, DEFAULT_TOKEN, testAuthCallback), ERR_OK);
+    {
+        std::unique_lock<std::mutex> lock(testAuthCallback->mutex);
+        testAuthCallback->cv.wait_for(lock,
+            std::chrono::seconds(WAIT_TIME), [lockCallback = testAuthCallback]() { return lockCallback->isReady; });
+    }
 
     std::vector<uint8_t> nullToken;
     DomainAccountClient::GetInstance().UpdateAccountToken(domainInfo, nullToken);
@@ -1192,9 +1246,11 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccount
     EXPECT_CALL(*callback, OnResult(ERR_OK, domainInfo.accountName_, domainInfo.domain_, _)).Times(Exactly(1));
     ASSERT_NE(testCallback, nullptr);
     ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
-    std::unique_lock<std::mutex> lock(testCallback->mutex);
-    testCallback->cv.wait_for(
-        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    {
+        std::unique_lock<std::mutex> lock(testCallback->mutex);
+        testCallback->cv.wait_for(
+            lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    }
     ASSERT_EQ(errCode, ERR_OK);
 
     auto authCallback = std::make_shared<MockDomainAuthCallback>();
@@ -1206,6 +1262,11 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccount
     errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId);
     EXPECT_EQ(errCode, ERR_OK);
     EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(userId, DEFAULT_TOKEN, testAuthCallback), ERR_OK);
+    {
+        std::unique_lock<std::mutex> lock(testAuthCallback->mutex);
+        testAuthCallback->cv.wait_for(lock,
+            std::chrono::seconds(WAIT_TIME), [lockCallback = testAuthCallback]() { return lockCallback->isReady; });
+    }
     DomainAccountClient::GetInstance().UpdateAccountToken(domainInfo, DEFAULT_TOKEN);
 
     DomainAccountClient::GetInstance().UnregisterPlugin();
@@ -1784,6 +1845,9 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetDomainA
     auto testCallback = std::make_shared<TestGetDomainAccountInfoCallback>(callback);
     ASSERT_NE(testCallback, nullptr);
     EXPECT_EQ(DomainAccountClient::GetInstance().GetDomainAccountInfo(info, testCallback), ERR_OK);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
 }
 
 /**`
@@ -1804,6 +1868,9 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetDomainA
     auto testCallback = std::make_shared<TestGetDomainAccountInfoCallback>(callback);
     ASSERT_NE(testCallback, nullptr);
     EXPECT_EQ(DomainAccountClient::GetInstance().GetDomainAccountInfo(info, testCallback), ERR_OK);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
     testing::Mock::AllowLeak(callback.get());
 }
 
@@ -1826,6 +1893,9 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetDomainA
     ASSERT_NE(testCallback, nullptr);
     EXPECT_CALL(*callback, OnResult(ERR_JS_CAPABILITY_NOT_SUPPORTED, _)).Times(Exactly(1));
     EXPECT_EQ(DomainAccountClient::GetInstance().GetDomainAccountInfo(info, testCallback), ERR_OK);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
 }
 
 /**

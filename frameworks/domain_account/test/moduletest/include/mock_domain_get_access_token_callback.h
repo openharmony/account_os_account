@@ -32,6 +32,9 @@ public:
     TestGetAccessTokenCallback(const std::shared_ptr<MockDomainGetAccessTokenCallback> &callback);
     virtual ~TestGetAccessTokenCallback();
     void OnResult(const int32_t errCode, const std::vector<uint8_t> &accessToken) override;
+    std::condition_variable cv;
+    bool isReady = false;
+    std::mutex mutex;
 
 private:
     std::shared_ptr<MockDomainGetAccessTokenCallback> callback_;
