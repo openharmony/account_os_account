@@ -347,7 +347,7 @@ ohos_shared_library("accountmgr") {
     cflags_cc += [ "-DHAS_HITRACE_PART" ]
   }
 
-  if (has_asset_part) {
+  if (has_asset_part && !ohos_indep_compiler_enable) {
     external_deps += [ "asset:asset_sdk" ]
     cflags_cc += [ "-DHAS_ASSET_PART" ]
   }
