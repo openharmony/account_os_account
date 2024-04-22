@@ -26,9 +26,9 @@ namespace AccountSA {
 namespace {
 const int32_t PLUGIN_CALLBACK_TIMEOUT = 5000;
 #ifdef _ARM64_
-static const std::string OS_ACCOUNT_PLUGIN_LIB_PATH = "/system/lib64/";
+static const std::string OS_ACCOUNT_PLUGIN_LIB_PATH = "/system/lib64/platformsdk/";
 #else
-static const std::string OS_ACCOUNT_PLUGIN_LIB_PATH = "/system/lib/";
+static const std::string OS_ACCOUNT_PLUGIN_LIB_PATH = "/system/lib/platformsdk/";
 #endif
 static const std::string OS_ACCOUNT_PLUGIN_LIB_NAME = "libactivation_lock_sdk.z.so";
 }
