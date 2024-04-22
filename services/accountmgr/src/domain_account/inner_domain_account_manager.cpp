@@ -799,7 +799,7 @@ ErrCode InnerDomainAccountManager::PluginUpdateAccountInfo(const DomainAccountIn
     PluginDomainAccountInfo oldDomainAccountInfo;
     SetPluginDomainAccountInfo(oldAccountInfo, oldDomainAccountInfo);
     PluginDomainAccountInfo newDomainAccountInfo;
-    SetPluginDomainAccountInfo(oldAccountInfo, newDomainAccountInfo);
+    SetPluginDomainAccountInfo(newAccountInfo, newDomainAccountInfo);
     PluginBussnessError* error =
         (*reinterpret_cast<UpdateAccountInfoFunc>(iter->second))(&oldDomainAccountInfo, &newDomainAccountInfo);
     CleanPluginString(&(oldDomainAccountInfo.domain.data), oldDomainAccountInfo.domain.length);
@@ -1538,15 +1538,17 @@ ErrCode InnerDomainAccountManager::IsAccountTokenValid(const DomainAccountInfo &
 void UpdateAccountInfoCallback::OnResult(int32_t result, Parcel &parcel)
 {
     std::unique_lock<std::mutex> lock(lock_);
-    if (result_ > 0) {
+    if (result_ >= 0) {
         return;
     }
     if (result == ERR_JS_ACCOUNT_NOT_FOUND) {
         result_ = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    } else if (result == ERR_JS_CAPABILITY_NOT_SUPPORTED) {
+        result_ = ERR_OK;
     } else {
         result_ = result;
     }
-    if (result == ERR_OK) {
+    if (result_ == ERR_OK) {
         std::shared_ptr<AAFwk::WantParams> parameters(AAFwk::WantParams::Unmarshalling(parcel));
         if (parameters == nullptr) {
             ACCOUNT_LOGE("Parameters unmarshalling error");
