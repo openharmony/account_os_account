@@ -45,14 +45,12 @@ ohos_benchmarktest("os_account_manager_benchmark_test") {
   deps = [
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
+    "//third_party/benchmark",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
 
-  external_deps = [
-    "benchmark:benchmark",
-    "c_utils:utils",
-  ]
+  external_deps = [ "c_utils:utils" ]
 }
 
 group("benchmarktest") {
