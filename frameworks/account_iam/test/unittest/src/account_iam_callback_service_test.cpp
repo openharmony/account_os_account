@@ -27,6 +27,7 @@ namespace OHOS {
 namespace AccountTest {
 namespace {
     const int32_t TEST_USER_ID = 200;
+    const int32_t WAIT_TIME = 20;
 }
 
 using namespace testing;
@@ -97,13 +98,17 @@ HWTEST_F(AccountIAMCallbackServiceTest, IDMCallbackService_OnAcquireInfo_0100, T
  */
 HWTEST_F(AccountIAMCallbackServiceTest, IDMCallbackService_OnAcquireInfo_0200, TestSize.Level0)
 {
-    auto testCallback = std::make_shared<MockIDMCallback>();
-    EXPECT_NE(testCallback, nullptr);
-    EXPECT_CALL(*testCallback, OnAcquireInfo(_, _, _)).Times(Exactly(1));
+    auto callback = std::make_shared<MockIDMCallback>();
+    EXPECT_NE(callback, nullptr);
+    EXPECT_CALL(*callback, OnAcquireInfo(_, _, _)).Times(Exactly(1));
+    auto testCallback = std::make_shared<TestIDMCallback>(callback);
     sptr<IDMCallbackService> wrapper = new (std::nothrow) IDMCallbackService(TEST_USER_ID, testCallback);
     EXPECT_TRUE(wrapper->callback_ != nullptr);
     Attributes extraInfo;
     wrapper->OnAcquireInfo(0, 0, extraInfo);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
 }
 
 /**
@@ -114,15 +119,27 @@ HWTEST_F(AccountIAMCallbackServiceTest, IDMCallbackService_OnAcquireInfo_0200, T
  */
 HWTEST_F(AccountIAMCallbackServiceTest, IDMCallbackService_OnResult_0100, TestSize.Level0)
 {
-    auto testCallback = std::make_shared<MockIDMCallback>();
-    EXPECT_NE(testCallback, nullptr);
-    EXPECT_CALL(*testCallback, OnResult(0, _)).Times(Exactly(1));
+    auto callback = std::make_shared<MockIDMCallback>();
+    EXPECT_NE(callback, nullptr);
+    EXPECT_CALL(*callback, OnResult(0, _)).Times(Exactly(1));
+    auto testCallback = std::make_shared<TestIDMCallback>(callback);
     sptr<IDMCallbackService> wrapper = new (std::nothrow) IDMCallbackService(TEST_USER_ID, testCallback);
     ASSERT_NE(wrapper, nullptr);
     Attributes extraInfo;
     wrapper->OnResult(0, extraInfo);
-    EXPECT_CALL(*testCallback, OnResult(1, _)).Times(Exactly(1));
+    {
+        std::unique_lock<std::mutex> lock(testCallback->mutex);
+        testCallback->cv.wait_for(
+            lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    }
+    EXPECT_CALL(*callback, OnResult(1, _)).Times(Exactly(1));
+    testCallback->isReady = false;
     wrapper->OnResult(1, extraInfo);
+    {
+        std::unique_lock<std::mutex> lock(testCallback->mutex);
+        testCallback->cv.wait_for(
+            lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    }
     wrapper->callback_ = nullptr;
     wrapper->OnResult(0, extraInfo);
 }

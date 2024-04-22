@@ -33,6 +33,9 @@ public:
     virtual ~TestHasDomainInfoCallback();
     void OnResult(const int32_t errCode, Parcel &parcel) override;
     bool GetHasDomainInfo();
+    std::condition_variable cv;
+    bool isReady = false;
+    std::mutex mutex;
 
 private:
     std::shared_ptr<MockDomainHasDomainInfoCallback> callback_;
@@ -49,6 +52,9 @@ public:
     TestGetDomainAccountInfoCallback(const std::shared_ptr<MockGetDomainAccountInfoCallback> &callback);
     virtual ~TestGetDomainAccountInfoCallback();
     void OnResult(const int32_t errCode, Parcel &parcel) override;
+    std::condition_variable cv;
+    bool isReady = false;
+    std::mutex mutex;
 
 private:
     std::shared_ptr<MockGetDomainAccountInfoCallback> callback_;

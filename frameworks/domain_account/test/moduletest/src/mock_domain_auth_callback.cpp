@@ -44,12 +44,19 @@ void TestDomainAuthCallback::OnResult(const int32_t errCode, Parcel &parcel)
         if (errCode != ERR_OK) {
             DomainAuthResult emptyResult = {};
             callback_->OnResult(errCode, emptyResult);
+            std::unique_lock<std::mutex> lock(mutex);
+            isReady = true;
+            cv.notify_one();
             return;
         }
         ACCOUNT_LOGI("removeOsAccount successfully, localId: %{public}d", localId);
     }
     std::shared_ptr<DomainAuthResult> authResult(DomainAuthResult::Unmarshalling(parcel));
     callback_->OnResult(errCode, (*authResult));
+    std::unique_lock<std::mutex> lock(mutex);
+    isReady = true;
+    cv.notify_one();
+    return;
 }
 
 void TestDomainAuthCallback::SetOsAccountInfo(const OsAccountInfo &accountInfo)

@@ -35,6 +35,9 @@ void TestGetAccessTokenCallback::OnResult(const int32_t errCode, const std::vect
         return;
     }
     callback_->OnResult(errCode, accessToken);
+    std::unique_lock<std::mutex> lock(mutex);
+    isReady = true;
+    cv.notify_one();
     return;
 }
 }  // AccountSA
