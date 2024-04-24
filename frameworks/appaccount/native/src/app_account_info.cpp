@@ -215,7 +215,7 @@ ErrCode AppAccountInfo::InitCustomData(const std::map<std::string, std::string> 
 ErrCode AppAccountInfo::GetAllAssociatedData(std::map<std::string, std::string> &data) const
 {
     auto jsonObject = Json::parse(associatedData_, nullptr, false);
-    if (!jsonObject.is_object()) {
+    if (jsonObject.is_discarded() || !jsonObject.is_object()) {
         ACCOUNT_LOGE("jsonObject is_discarded");
         return ERR_APPACCOUNT_SERVICE_GET_ASSOCIATED_DATA;
     }
@@ -296,7 +296,7 @@ ErrCode AppAccountInfo::SetAccountCredential(
         jsonObject = Json::object();
     } else {
         jsonObject = Json::parse(accountCredential_, nullptr, false);
-        if (!jsonObject.is_object()) {
+        if (jsonObject.is_discarded() || !jsonObject.is_object()) {
             ACCOUNT_LOGE("jsonObject is not an object");
             return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
         }
@@ -326,7 +326,7 @@ ErrCode AppAccountInfo::SetAccountCredential(
 ErrCode AppAccountInfo::DeleteAccountCredential(const std::string &credentialType)
 {
     auto jsonObject = Json::parse(accountCredential_, nullptr, false);
-    if (!jsonObject.is_object() || (jsonObject.erase(credentialType) == 0)) {
+    if (jsonObject.is_discarded() || !jsonObject.is_object() || (jsonObject.erase(credentialType) == 0)) {
         ACCOUNT_LOGE("credential not found");
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_CREDENTIAL_NOT_EXIST;
     }

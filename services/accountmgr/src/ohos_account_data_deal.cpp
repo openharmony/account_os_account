@@ -147,7 +147,7 @@ ErrCode OhosAccountDataDeal::Init(int32_t userId)
     std::lock_guard<std::mutex> lock(mutex_);
     nlohmann::json jsonData = json::parse(fin, nullptr, false);
     fin.close();
-    if (!jsonData.is_structured()) {
+    if (jsonData.is_discarded() || !jsonData.is_structured()) {
         ACCOUNT_LOGE("Invalid json file, remove");
         if (RemoveFile(configFile)) {
             ACCOUNT_LOGE("Remove invalid json file %{public}s failed, errno %{public}d.", configFile.c_str(), errno);
@@ -225,7 +225,7 @@ ErrCode OhosAccountDataDeal::ParseJsonFromFile(const std::string &filePath, nloh
     // NOT-allow exceptions when parse json file
     jsonData = json::parse(fin, nullptr, false);
     fin.close();
-    if (!jsonData.is_structured()) {
+    if (jsonData.is_discarded() || !jsonData.is_structured()) {
         ACCOUNT_LOGE("Invalid json file,  %{public}s, remove", filePath.c_str());
         return ERR_ACCOUNT_DATADEAL_JSON_FILE_CORRUPTION;
     }
