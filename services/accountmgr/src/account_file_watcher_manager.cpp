@@ -241,7 +241,7 @@ void AccountFileWatcherMgr::DealWithFileEvent()
         char buf[BUF_COMMON_SIZE] = {0};
         struct inotify_event *event = nullptr;
         int len = 0;
-        int index = 0;
+        uint32_t index = 0;
         while (((len = read(inotifyFd_, &buf, sizeof(buf))) < 0) && (errno == EINTR)) {};
         while (index < len) {
             event = reinterpret_cast<inotify_event *>(buf + index);
@@ -343,7 +343,6 @@ void AccountFileWatcherMgr::RemoveFileWatcher(const int32_t id, const std::strin
 
 ErrCode AccountFileWatcherMgr::GetAccountInfoDigestFromFile(const std::string &path, uint8_t *digest, uint32_t size)
 {
-    Json accountInfoDigestJson;
     std::string accountInfoDigest;
     std::lock_guard<std::mutex> lock(accountInfoDigestFileLock_);
     ErrCode errCode = accountFileOperator_->GetFileContentByPath(Constants::ACCOUNT_INFO_DIGEST_FILE_PATH,
@@ -352,10 +351,8 @@ ErrCode AccountFileWatcherMgr::GetAccountInfoDigestFromFile(const std::string &p
         ACCOUNT_LOGE("GetFileContentByPath failed! error code %{public}d.", errCode);
         return errCode;
     }
-    try {
-        accountInfoDigestJson = Json::parse(accountInfoDigest, nullptr, false);
-    } catch (Json::type_error& err) {
-        ACCOUNT_LOGE("accountInfoDigestJson parse failed! reason: %{public}s", err.what());
+    Json accountInfoDigestJson = Json::parse(accountInfoDigest, nullptr, false);
+    if (accountInfoDigestJson.is_discarded()) {
         return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
     }
     std::vector<uint8_t> digestTmp;
@@ -384,12 +381,7 @@ ErrCode AccountFileWatcherMgr::GenerateAccountInfoDigestStr(
         ACCOUNT_LOGE("get file content failed! error code %{public}d.", errCode);
         return errCode;
     }
-    Json accountInfoDigestJson;
-    try {
-        accountInfoDigestJson = Json::parse(accountInfoDigest, nullptr, false);
-    } catch (Json::type_error& err) {
-        ACCOUNT_LOGE("accountInfoDigestJson parse failed! reason: %{public}s", err.what());
-    }
+    Json accountInfoDigestJson = Json::parse(accountInfoDigest, nullptr, false);
     if (accountInfoDigestJson.is_discarded()) {
         accountInfoDigestJson = Json();
     }
@@ -415,7 +407,6 @@ ErrCode AccountFileWatcherMgr::AddAccountInfoDigest(const std::string accountInf
 
 ErrCode AccountFileWatcherMgr::DeleteAccountInfoDigest(const std::string &userInfoPath)
 {
-    Json accountInfoDigestJson;
     std::string accountInfoDigest;
     std::lock_guard<std::mutex> lock(accountInfoDigestFileLock_);
     ErrCode errCode = accountFileOperator_->GetFileContentByPath(Constants::ACCOUNT_INFO_DIGEST_FILE_PATH,
@@ -424,10 +415,8 @@ ErrCode AccountFileWatcherMgr::DeleteAccountInfoDigest(const std::string &userIn
         ACCOUNT_LOGE("get file content failed! error code %{public}d.", errCode);
         return errCode;
     }
-    try {
-        accountInfoDigestJson = Json::parse(accountInfoDigest, nullptr, false);
-    } catch (Json::type_error& err) {
-        ACCOUNT_LOGE("accountInfoDigestJson parse failed! reason: %{public}s", err.what());
+    Json accountInfoDigestJson = Json::parse(accountInfoDigest, nullptr, false);
+    if (accountInfoDigestJson.is_discarded()) {
         return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
     }
     if (accountInfoDigestJson.find(userInfoPath) == accountInfoDigestJson.end()) {

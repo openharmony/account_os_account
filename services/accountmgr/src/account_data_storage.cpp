@@ -236,7 +236,7 @@ ErrCode AccountDataStorage::GetAccountInfoById(const std::string id, IAccountInf
     }
 
     nlohmann::json jsonObject = nlohmann::json::parse(valueStr, nullptr, false);
-    if (!jsonObject.is_structured()) {  // check format
+    if (jsonObject.is_discarded() || !jsonObject.is_structured()) {  // check format
         ACCOUNT_LOGE("bad format of value from kvstore! id %{public}s.", id.c_str());
         return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
     }
