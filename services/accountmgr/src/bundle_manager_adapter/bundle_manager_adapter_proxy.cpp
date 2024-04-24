@@ -418,7 +418,7 @@ bool BundleManagerAdapterProxy::GetParcelInfo(BundleMgrInterfaceCode code, Messa
 template<typename T>
 bool BundleManagerAdapterProxy::InnerGetParcelInfo(MessageParcel &reply, T &parcelInfo)
 {
-    size_t dataSize = reply.ReadInt32();
+    size_t dataSize = static_cast<size_t>(reply.ReadInt32());
     void *buffer = nullptr;
     if (!GetData(buffer, dataSize, reply.ReadRawData(dataSize))) {
         ACCOUNT_LOGE("GetData failed");

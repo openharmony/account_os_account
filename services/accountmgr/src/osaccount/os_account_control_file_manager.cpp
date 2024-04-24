@@ -1145,6 +1145,10 @@ ErrCode OsAccountControlFileManager::GetAccountIndexFromFile(Json &accountIndexJ
         }
     }
     accountIndexJson = Json::parse(accountIndex, nullptr, false);
+    if (accountIndexJson.is_discarded()) {
+        ACCOUNT_LOGE("parse os account info json data failed");
+        return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
+    }
     return ERR_OK;
 }
 
@@ -1183,7 +1187,7 @@ ErrCode OsAccountControlFileManager::GetBaseOAConstraintsFromFile(Json &baseOACo
         return errCode;
     }
     baseOAConstraintsJson = Json::parse(baseOAConstraints, nullptr, false);
-    if (!baseOAConstraintsJson.is_object()) {
+    if (baseOAConstraintsJson.is_discarded() || !baseOAConstraintsJson.is_object()) {
         ACCOUNT_LOGE("base constraints json data parse failed code.");
         return errCode;
     }
@@ -1203,7 +1207,7 @@ ErrCode OsAccountControlFileManager::GetGlobalOAConstraintsFromFile(Json &global
         return errCode;
     }
     globalOAConstraintsJson = Json::parse(globalOAConstraints, nullptr, false);
-    if (!globalOAConstraintsJson.is_object()) {
+    if (globalOAConstraintsJson.is_discarded() || !globalOAConstraintsJson.is_object()) {
         ACCOUNT_LOGE("global constraints json data parse failed code.");
         return errCode;
     }
@@ -1223,7 +1227,7 @@ ErrCode OsAccountControlFileManager::GetSpecificOAConstraintsFromFile(Json &spec
         return errCode;
     }
     specificOAConstraintsJson = Json::parse(specificOAConstraints, nullptr, false);
-    if (!specificOAConstraintsJson.is_object()) {
+    if (specificOAConstraintsJson.is_discarded() || !specificOAConstraintsJson.is_object()) {
         ACCOUNT_LOGE("specific constraints json data parse failed code.");
         return errCode;
     }

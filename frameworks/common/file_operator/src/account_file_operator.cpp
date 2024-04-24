@@ -245,7 +245,7 @@ bool AccountFileOperator::IsJsonFormat(const std::string &path)
     }
 
     nlohmann::json jsonData = nlohmann::json::parse(content, nullptr, false);
-    if (!jsonData.is_structured()) {
+    if (jsonData.is_discarded() || !jsonData.is_structured()) {
         return false;
     }
     return true;

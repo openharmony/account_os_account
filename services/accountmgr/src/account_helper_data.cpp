@@ -47,7 +47,7 @@ static bool ParseJsonData(nlohmann::json &jsonData)
     }
 
     jsonData = json::parse(fin, nullptr, false);
-    if (!jsonData.is_structured()) {
+    if (jsonData.is_discarded() || !jsonData.is_structured()) {
         ACCOUNT_LOGE("not valid json file!");
         fin.close();
         return false;

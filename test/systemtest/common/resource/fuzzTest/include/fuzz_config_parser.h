@@ -48,7 +48,7 @@ public:
 
         nlohmann::json jsonObj = nlohmann::json::parse(fin, nullptr, false);
         fin.close();
-        if (!jsonObj.is_structured()) {
+        if (jsonObj.is_discarded() || !jsonObj.is_structured()) {
             std::cout << __FUNCTION__ << " failed to parse " << path << std::endl;
             return;
         }

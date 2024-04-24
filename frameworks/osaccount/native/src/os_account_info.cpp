@@ -343,6 +343,9 @@ bool OsAccountInfo::ReadFromParcel(Parcel &parcel)
 {
     std::string jsonString = parcel.ReadString();
     nlohmann::json jsonObject = nlohmann::json::parse(jsonString, nullptr, false);
+    if (jsonObject.is_discarded()) {
+        ACCOUNT_LOGI("jsonObject is discarded");
+    }
     FromJson(jsonObject);
     return true;
 }
