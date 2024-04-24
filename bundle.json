@@ -68,14 +68,12 @@
         "storage_service",
         "time_service",
         "user_auth_framework",
+        "theme_mgr",
         "mbedtls",
         "json",
-        "theme_mgr",
-        "benchmark",
         "config_policy"
       ],
       "third_party": [
-        "mbedtls",
         "jsoncpp"
       ]
     },
