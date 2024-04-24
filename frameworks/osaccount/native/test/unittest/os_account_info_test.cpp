@@ -428,7 +428,9 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_FromJson_0100, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
 
-    osAccountInfo.FromJson(Json::parse(STRING_JSON, nullptr, false));
+    nlohmann::json jsonObject = Json::parse(STRING_JSON, nullptr, false);
+    ASSERT_EQ(jsonObject.is_discarded(), false);
+    osAccountInfo.FromJson(jsonObject);
     EXPECT_EQ(osAccountInfo.GetLocalId(), INT_ID);
 }
 
@@ -445,7 +447,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_ToString_0100, TestSize.Level1)
     osAccountInfoSrc.localId_ = id;
     std::string jsonString = osAccountInfoSrc.ToString();
     nlohmann::json jsonObject = nlohmann::json::parse(jsonString, nullptr, false);
-
+    ASSERT_EQ(jsonObject.is_discarded(), false);
     OsAccountInfo osAccountInfoTar;
     osAccountInfoTar.FromJson(jsonObject);
     EXPECT_EQ(osAccountInfoTar.GetLocalId(), INT_ID);
