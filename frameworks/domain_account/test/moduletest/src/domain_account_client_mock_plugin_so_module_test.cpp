@@ -67,6 +67,7 @@ const std::vector<uint8_t> DEFAULT_TOKEN = {49, 50, 51, 52, 53};
 static uint64_t g_selfTokenID;
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 const int32_t WAIT_TIME = 2;
+const std::string STRING_SHORT_NAME_OUT_OF_RANGE(256, '1');
 #endif
 const std::map<PluginMethodEnum, void *> PLUGIN_METHOD_MAP = {
     {PluginMethodEnum::AUTH, reinterpret_cast<void *>(Auth)},
@@ -697,7 +698,69 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId), ERR_OK);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
 }
-#endif
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_IsAuthenticationExpired_005
+ * @tc.desc: IsAuthenticationExpired success.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_IsAuthenticationExpired_007,
+         TestSize.Level0)
+{
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = "testaccount";
+    domainInfo.domain_ = "test.example.com";
+    domainInfo.accountId_ = "testid";
+    
+    CreateOsAccountForDomainOptions options;
+    options.hasShortName = true;
+
+    OsAccountInfo osAccountInfo;
+    ErrCode code = OsAccountManager::CreateOsAccount("domain007", "shortExist", OsAccountType::NORMAL, osAccountInfo);
+    EXPECT_EQ(code, ERR_OK);
+
+    auto testCallback1 = nullptr;
+    options.shortName = "TEST1*";
+    EXPECT_NE(OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo,
+        testCallback1, options), ERR_OK);
+
+    options.shortName = "..";
+    EXPECT_NE(OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo,
+        testCallback1, options), ERR_OK);
+
+    options.shortName = "";
+    EXPECT_NE(OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo,
+        testCallback1, options), ERR_OK);
+    
+    options.shortName = STRING_SHORT_NAME_OUT_OF_RANGE;
+    EXPECT_NE(OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo,
+        testCallback1, options), ERR_OK);
+
+    options.shortName = "shortExist";
+    EXPECT_NE(OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo,
+        testCallback1, options), ERR_OK);
+    
+    LoadPluginMethods();
+    auto callback = std::make_shared<MockPluginSoDomainCreateDomainAccountCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestPluginSoCreateDomainAccountCallback>(callback);
+    EXPECT_CALL(*callback, OnResult(ERR_OK, "testaccount", "test.example.com", _)).Times(Exactly(1));
+    ASSERT_NE(testCallback, nullptr);
+    options.shortName = "shortNameTest";
+    options.hasShortName = false;
+    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo,
+        testCallback, options);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                              [lockCallback = testCallback]() { return lockCallback->isReady; });
+    EXPECT_EQ(errCode, ERR_OK);
+    int32_t userId = -1;
+    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId), ERR_OK);
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+}
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
  * @tc.name: DomainAccountClientModuleTest_IsAuthenticationExpired_006

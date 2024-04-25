@@ -209,7 +209,8 @@ ErrCode OsAccountManagerService::UpdateOsAccountWithFullInfo(OsAccountInfo &osAc
 }
 
 ErrCode OsAccountManagerService::CreateOsAccountForDomain(const OsAccountType &type,
-    const DomainAccountInfo &domainInfo, const sptr<IDomainAccountCallback> &callback)
+    const DomainAccountInfo &domainInfo, const sptr<IDomainAccountCallback> &callback,
+    const CreateOsAccountForDomainOptions &options)
 {
     ACCOUNT_LOGI("start");
     // permission check
@@ -224,22 +225,35 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(const OsAccountType &t
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     if (domainInfo.accountName_.empty() || domainInfo.domain_.empty()) {
+        ACCOUNT_LOGE("Domain account name is empty or domain is empty");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     if (domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE ||
         domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("Domain account name is overlength or domain is overlength");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    if (options.hasShortName || (options.shortName != "")) {
+        ErrCode code = innerManager_.ValidateShortName(options.shortName);
+        if (code != ERR_OK) {
+            ACCOUNT_LOGE("Failed to create os account for domain, shortName=%{public}s is invalid!",
+                options.shortName.c_str());
+            return code;
+        }
     }
 
     bool isAllowedCreateAdmin = false;
     ErrCode errCode = innerManager_.IsAllowedCreateAdmin(isAllowedCreateAdmin);
     if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get allowed create admin permission, code=%{public}d.", errCode);
         return errCode;
     }
     if (!isAllowedCreateAdmin && type == OsAccountType::ADMIN) {
+        ACCOUNT_LOGE("Do not allowed create admin.");
         return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
     }
-    return innerManager_.CreateOsAccountForDomain(type, domainInfo, callback);
+    return innerManager_.CreateOsAccountForDomain(type, domainInfo, callback, options);
 }
 
 ErrCode OsAccountManagerService::RemoveOsAccount(const int id)

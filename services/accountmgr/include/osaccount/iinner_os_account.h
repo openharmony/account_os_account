@@ -35,7 +35,7 @@ public:
     virtual ErrCode CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
-        const sptr<IDomainAccountCallback> &callback) = 0;
+        const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options = {}) = 0;
     virtual ErrCode RemoveOsAccount(const int id) = 0;
     virtual ErrCode IsOsAccountExists(const int id, bool &isOsAccountExits) = 0;
     virtual ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived) = 0;

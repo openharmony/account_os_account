@@ -350,5 +350,42 @@ DomainAuthResult *DomainAuthResult::Unmarshalling(Parcel &parcel)
     }
     return result;
 }
+
+bool CreateOsAccountForDomainOptions::Marshalling(Parcel &parcel) const
+{
+    if (!parcel.WriteString(shortName)) {
+        ACCOUNT_LOGE("Failed to write shortName");
+        return false;
+    }
+    if (!parcel.WriteBool(hasShortName)) {
+        ACCOUNT_LOGE("Failed to write hasShortName");
+        return false;
+    }
+    return true;
+}
+
+CreateOsAccountForDomainOptions *CreateOsAccountForDomainOptions::Unmarshalling(Parcel &parcel)
+{
+    CreateOsAccountForDomainOptions *options = new (std::nothrow) CreateOsAccountForDomainOptions();
+    if ((options != nullptr) && (!options->ReadFromParcel(parcel))) {
+        ACCOUNT_LOGE("Failed to read from parcel");
+        delete options;
+        options = nullptr;
+    }
+    return options;
+}
+
+bool CreateOsAccountForDomainOptions::ReadFromParcel(Parcel &parcel)
+{
+    if (!parcel.ReadString(shortName)) {
+        ACCOUNT_LOGE("Failed to read shortName.");
+        return false;
+    }
+    if (!parcel.ReadBool(hasShortName)) {
+        ACCOUNT_LOGE("Failed to read hasShortName.");
+        return false;
+    }
+    return true;
+}
 }  // namespace AccountSA
 }  // namespace OHOS

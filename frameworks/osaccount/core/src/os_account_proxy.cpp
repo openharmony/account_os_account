@@ -174,40 +174,45 @@ ErrCode OsAccountProxy::UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo
 }
 
 ErrCode OsAccountProxy::CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
-    const sptr<IDomainAccountCallback> &callback)
+    const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions& options)
 {
     MessageParcel data;
     MessageParcel reply;
 
     if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGE("failed to write descriptor!");
+        ACCOUNT_LOGE("Failed to write descriptor!");
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
 
     if (!data.WriteInt32(static_cast<int32_t>(type))) {
-        ACCOUNT_LOGE("failed to write type ");
+        ACCOUNT_LOGE("Failed to write type ");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteParcelable(&domainInfo)) {
-        ACCOUNT_LOGE("fail to write name");
+        ACCOUNT_LOGE("Fail to write domainInfo");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if ((callback == nullptr) || (!data.WriteRemoteObject(callback->AsObject()))) {
-        ACCOUNT_LOGE("fail to write callback");
+        ACCOUNT_LOGE("Fail to write callback");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    if (!data.WriteParcelable(&options)) {
+        ACCOUNT_LOGE("Failed to write options");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     ErrCode result = SendRequest(OsAccountInterfaceCode::CREATE_OS_ACCOUNT_FOR_DOMAIN, data, reply);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to send request, result %{public}d.", result);
+        ACCOUNT_LOGE("Failed to send request, result %{public}d.", result);
         return result;
     }
 
     result = reply.ReadInt32();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to read reply for create os account for domain, result %{public}d.", result);
+        ACCOUNT_LOGE("Failed to read reply for create os account for domain, result %{public}d.", result);
         return result;
     }
     return ERR_OK;

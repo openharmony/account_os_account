@@ -108,7 +108,7 @@ public:
      * @return error code, see account_error_no.h
      */
     static ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
-        const std::shared_ptr<DomainAccountCallback> &callback);
+        const std::shared_ptr<DomainAccountCallback> &callback, const CreateOsAccountForDomainOptions& options = {});
 
     /**
      * @brief Removes an OS account based on its local ID.

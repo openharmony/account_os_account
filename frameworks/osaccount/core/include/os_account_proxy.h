@@ -33,7 +33,7 @@ public:
     ErrCode CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo) override;
     ErrCode UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo) override;
     ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
-        const sptr<IDomainAccountCallback> &callback) override;
+        const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions& options) override;
     ErrCode RemoveOsAccount(const int id) override;
     ErrCode IsOsAccountExists(const int id, bool &isOsAccountExists) override;
     ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived) override;

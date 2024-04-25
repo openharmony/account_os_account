@@ -540,7 +540,7 @@ bool IInnerOsAccountManager::CheckDomainAccountBound(
 }
 
 ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type, const DomainAccountInfo &domainAccountInfo,
-    const sptr<IDomainAccountCallback> &callback)
+    const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options)
 {
     std::vector<OsAccountInfo> osAccountInfos;
     (void)QueryAllCreatedOsAccounts(osAccountInfos);
@@ -567,7 +567,7 @@ ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type, con
     }
     if (osAccountInfo.GetLocalId() != Constants::START_USER_ID) {
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-        ErrCode errCode = PrepareOsAccountInfo(osAccountName, domainAccountInfo.accountName_,
+        ErrCode errCode = PrepareOsAccountInfo(osAccountName, options.shortName,
             type, domainAccountInfo, osAccountInfo);
         if (errCode != ERR_OK) {
             return errCode;
@@ -588,7 +588,8 @@ ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type, con
 }
 
 ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
-    const OsAccountType &type, const DomainAccountInfo &domainInfo, const sptr<IDomainAccountCallback> &callback)
+    const OsAccountType &type, const DomainAccountInfo &domainInfo, const sptr<IDomainAccountCallback> &callback,
+    const CreateOsAccountForDomainOptions &options)
 {
     if (!pluginManager_.IsCreationAllowed()) {
         ACCOUNT_LOGI("Not allow creation account.");
@@ -609,7 +610,7 @@ ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
         return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
     }
     sptr<CheckAndCreateDomainAccountCallback> callbackWrapper =
-        new (std::nothrow) CheckAndCreateDomainAccountCallback(type, domainInfo, callback);
+        new (std::nothrow) CheckAndCreateDomainAccountCallback(type, domainInfo, callback, options);
     if (callbackWrapper == nullptr) {
         ACCOUNT_LOGE("new DomainCreateDomainCallback failed");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
