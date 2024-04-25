@@ -244,6 +244,16 @@ public:
         return 0;
     }
 
+    int32_t GenerateAppkey(uint32_t appUid, std::string &keyId)
+    {
+        return 0;
+    }
+
+    int32_t DeleteAppkey(const std::string keyId)
+    {
+        return 0;
+    }
+
     int32_t UnlockUserScreen(uint32_t userId)
     {
         return 0;
