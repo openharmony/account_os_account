@@ -41,6 +41,7 @@ static napi_property_descriptor g_osAccountProperties[] = {
     DECLARE_NAPI_FUNCTION("setOsAccountName", SetOsAccountName),
     DECLARE_NAPI_FUNCTION("setOsAccountConstraints", SetOsAccountConstraints),
     DECLARE_NAPI_FUNCTION("activateOsAccount", ActivateOsAccount),
+    DECLARE_NAPI_FUNCTION("deactivateOsAccount", DeactivateOsAccount),
     DECLARE_NAPI_FUNCTION("createOsAccount", CreateOsAccount),
     DECLARE_NAPI_FUNCTION("createOsAccountForDomain", CreateOsAccountForDomain),
     DECLARE_NAPI_FUNCTION("getCreatedOsAccountsCount", GetCreatedOsAccountsCount),
@@ -355,6 +356,34 @@ napi_value ActivateOsAccount(napi_env env, napi_callback_info cbInfo)
 
     napi_queue_async_work_with_qos(env, activeOACB->work, napi_qos_user_initiated);
     activeOACB.release();
+    return result;
+}
+
+napi_value DeactivateOsAccount(napi_env env, napi_callback_info cbInfo)
+{
+    auto asyncContext = std::make_unique<ActivateOAAsyncContext>();
+    asyncContext->env = env;
+
+    if (!ParseParaDeactivateOA(env, cbInfo, asyncContext.get())) {
+        return nullptr;
+    }
+
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_promise(env, &asyncContext->deferred, &result));
+
+    napi_value resource = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, "DeactivateOsAccount", NAPI_AUTO_LENGTH, &resource));
+
+    NAPI_CALL(env, napi_create_async_work(env,
+        nullptr,
+        resource,
+        DeactivateOAExecuteCB,
+        DeactivateOACompletedCB,
+        reinterpret_cast<void *>(asyncContext.get()),
+        &asyncContext->work));
+
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_user_initiated));
+    asyncContext.release();
     return result;
 }
 
