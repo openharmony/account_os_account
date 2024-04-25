@@ -113,6 +113,47 @@ bool ParseCallbackAndId(napi_env env, napi_callback_info cbInfo, napi_ref &callb
     return true;
 }
 
+bool ParseParaDeactivateOA(napi_env env, napi_callback_info cbInfo, ActivateOAAsyncContext *asyncContext)
+{
+    size_t argc = ARGS_SIZE_ONE;
+    napi_value argv[ARGS_SIZE_ONE] = {0};
+    NAPI_CALL_BASE(env, napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr), false);
+
+    if (argc < ARGS_SIZE_ONE) {
+        ACCOUNT_LOGE("The number of parameters should be at least 1.");
+        std::string errMsg = "The number of parameters should be at least 1";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return false;
+    }
+    if (!GetIntProperty(env, argv[PARAMZERO], asyncContext->id)) {
+        ACCOUNT_LOGE("Get local Id failed.");
+        std::string errMsg = "The type of first arg must be number";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return false;
+    }
+    return true;
+}
+
+void DeactivateOAExecuteCB(napi_env env, void *data)
+{
+    ActivateOAAsyncContext *asyncContext = reinterpret_cast<ActivateOAAsyncContext *>(data);
+    asyncContext->errCode = OsAccountManager::DeactivateOsAccount(asyncContext->id);
+}
+
+void DeactivateOACompletedCB(napi_env env, napi_status status, void *data)
+{
+    ActivateOAAsyncContext *asyncContext = reinterpret_cast<ActivateOAAsyncContext *>(data);
+    std::unique_ptr<ActivateOAAsyncContext> asyncContextPtr{asyncContext};
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    if (asyncContext->errCode == ERR_OK) {
+        NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &dataJs));
+    } else {
+        errJs = GenerateBusinessError(env, asyncContext->errCode);
+    }
+    ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
+}
+
 bool ParseParaQueryOAByIdCB(napi_env env, napi_callback_info cbInfo, QueryOAByIdAsyncContext *asyncContext)
 {
     return ParseCallbackAndId(env, cbInfo, asyncContext->callbackRef, asyncContext->id, asyncContext->throwErr);

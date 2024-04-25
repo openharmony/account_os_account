@@ -239,6 +239,8 @@ napi_value SetOsAccountConstraints(napi_env env, napi_callback_info cbInfo);
 
 napi_value ActivateOsAccount(napi_env env, napi_callback_info cbInfo);
 
+napi_value DeactivateOsAccount(napi_env env, napi_callback_info cbInfo);
+
 napi_value CreateOsAccount(napi_env env, napi_callback_info cbInfo);
 
 napi_value CreateOsAccountForDomain(napi_env env, napi_callback_info cbInfo);
