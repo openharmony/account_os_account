@@ -88,6 +88,12 @@ void ActivateOAExecuteCB(napi_env env, void *data);
 
 void ActivateOACallbackCompletedCB(napi_env env, napi_status status, void *data);
 
+bool ParseParaDeactivateOA(napi_env env, napi_callback_info cbInfo, ActivateOAAsyncContext *asyncContext);
+
+void DeactivateOAExecuteCB(napi_env env, void *data);
+
+void DeactivateOACompletedCB(napi_env env, napi_status status, void *data);
+
 bool ParseParaCreateOA(napi_env env, napi_callback_info cbInfo, CreateOAAsyncContext *asyncContext);
 
 bool ParseParaCreateOAForDomain(napi_env env, napi_callback_info cbInfo,
