@@ -90,8 +90,15 @@ public:
         }
         auto want = data.GetWant();
         listener_->OnReceiveEvent(want.GetAction());
+        std::unique_lock<std::mutex> lock(mutex);
+        isReady = true;
+        cv.notify_one();
+        return;
     }
 
+    std::condition_variable cv;
+    bool isReady = false;
+    std::mutex mutex;
 private:
     const std::shared_ptr<MockSubscriberListener> listener_;
 };
@@ -223,6 +230,9 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest006, TestSize.Level0)
     ret = OhosAccountManager::GetInstance().LoginOhosAccount(
         osAccountInfoOne.GetLocalId(), curAccountInfo.ohosAccountInfo_, g_eventLogin);
     EXPECT_EQ(ret, true);
+    std::unique_lock<std::mutex> lock(subscriberPtr->mutex);
+    subscriberPtr->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = subscriberPtr]() { return lockCallback->isReady; });
     ret = OhosAccountManager::GetInstance().LogoutOhosAccount(
         osAccountInfoOne.GetLocalId(), curAccountInfo.ohosAccountInfo_, g_eventLogout);
     EXPECT_EQ(true, ret);
@@ -262,6 +272,9 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest007, TestSize.Level0)
         OnReceiveEvent(EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT)).Times(Exactly(1));
     ret = OhosAccountManager::GetInstance().LogoutOhosAccount(
         osAccountInfoOne.GetLocalId(), curAccountInfo.ohosAccountInfo_, g_eventLogout);
+    std::unique_lock<std::mutex> lock(subscriberPtr->mutex);
+    subscriberPtr->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = subscriberPtr]() { return lockCallback->isReady; });
     EXPECT_EQ(true, ret);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
     result = EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriberPtr);

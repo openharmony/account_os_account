@@ -48,6 +48,7 @@ namespace {
     const std::vector<uint8_t> TEST_CHALLENGE = {1, 2, 3, 4};
     static bool g_fscryptEnable = false;
     const uid_t ACCOUNT_UID = 3058;
+    const int32_t WAIT_TIME = 20;
 }
 
 class MockStorageMgrProxy : public StorageManager::IStorageManager {
@@ -353,6 +354,30 @@ public:
     MOCK_METHOD3(OnAcquireInfo, void(int32_t module, uint32_t acquireInfo, const AccountSA::Attributes &extraInfo));
 };
 
+class TestIIDMCallback : public IDMCallbackStub {
+public:
+    explicit TestIIDMCallback(const std::shared_ptr<MockIIDMCallback> &callback) : callback_(callback)
+    {}
+    void OnResult(int32_t result, const AccountSA::Attributes &extraInfo)
+    {
+        callback_->OnResult(result, extraInfo);
+        std::unique_lock<std::mutex> lock(mutex);
+        isReady = true;
+        cv.notify_one();
+        return;
+    }
+    void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const AccountSA::Attributes &extraInfo)
+    {
+        callback_->OnAcquireInfo(module, acquireInfo, extraInfo);
+    }
+    std::condition_variable cv;
+    bool isReady = false;
+    std::mutex mutex;
+
+private:
+    std::shared_ptr<MockIIDMCallback> callback_;
+};
+
 class MockIIDMCallback2 : public IDMCallbackStub {
 public:
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override
@@ -444,11 +469,16 @@ HWTEST_F(AccountIamManagerTest, OpenSession001, TestSize.Level2)
 HWTEST_F(AccountIamManagerTest, AddCredential001, TestSize.Level0)
 {
     CredentialParameters testPara = {};
-    sptr<MockIIDMCallback> testCallback = new(std::nothrow) MockIIDMCallback();
+    std::shared_ptr<MockIIDMCallback> callback = std::make_shared<MockIIDMCallback>();
+    EXPECT_NE(callback, nullptr);
+    sptr<TestIIDMCallback> testCallback = new(std::nothrow) TestIIDMCallback(callback);
     EXPECT_NE(testCallback, nullptr);
-    EXPECT_CALL(*testCallback, OnResult(_, _)).Times(Exactly(0));
+    EXPECT_CALL(*callback, OnResult(_, _)).Times(Exactly(0));
     InnerAccountIAMManager::GetInstance().AddCredential(TEST_USER_ID, testPara, nullptr);
     InnerAccountIAMManager::GetInstance().AddCredential(TEST_USER_ID, testPara, testCallback);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
 }
 
 /**
@@ -460,14 +490,26 @@ HWTEST_F(AccountIamManagerTest, AddCredential001, TestSize.Level0)
 HWTEST_F(AccountIamManagerTest, UpdateCredential001, TestSize.Level0)
 {
     CredentialParameters testPara = {};
-    sptr<MockIIDMCallback> testCallback = new(std::nothrow) MockIIDMCallback();
+    std::shared_ptr<MockIIDMCallback> callback = std::make_shared<MockIIDMCallback>();
+    EXPECT_NE(callback, nullptr);
+    sptr<TestIIDMCallback> testCallback = new(std::nothrow) TestIIDMCallback(callback);
     EXPECT_NE(testCallback, nullptr);
-    EXPECT_CALL(*testCallback, OnResult(_, _)).Times(Exactly(1));
+    EXPECT_CALL(*callback, OnResult(_, _)).Times(Exactly(1));
     InnerAccountIAMManager::GetInstance().UpdateCredential(TEST_USER_ID, testPara, nullptr);
     InnerAccountIAMManager::GetInstance().UpdateCredential(TEST_USER_ID, testPara, testCallback);
+    {
+        std::unique_lock<std::mutex> lock(testCallback->mutex);
+        testCallback->cv.wait_for(
+            lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    }
 
     testPara.token = {1, 2, 3};
     InnerAccountIAMManager::GetInstance().UpdateCredential(TEST_USER_ID, testPara, testCallback);
+    {
+        std::unique_lock<std::mutex> lock(testCallback->mutex);
+        testCallback->cv.wait_for(
+            lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    }
 }
 
 /**
@@ -519,15 +561,27 @@ HWTEST_F(AccountIamManagerTest, DelCred001, TestSize.Level0)
 {
     uint64_t testCredentialId = 111;
     std::vector<uint8_t> testAuthToken;
-    sptr<MockIIDMCallback> testCallback = new(std::nothrow) MockIIDMCallback();
+    std::shared_ptr<MockIIDMCallback> callback = std::make_shared<MockIIDMCallback>();
+    EXPECT_NE(callback, nullptr);
+    sptr<TestIIDMCallback> testCallback = new(std::nothrow) TestIIDMCallback(callback);
     EXPECT_NE(testCallback, nullptr);
-    EXPECT_CALL(*testCallback, OnResult(_, _)).Times(Exactly(2));
+    EXPECT_CALL(*callback, OnResult(_, _)).Times(Exactly(2));
     InnerAccountIAMManager::GetInstance().DelCred(TEST_USER_ID, testCredentialId, testAuthToken, nullptr);
 
     InnerAccountIAMManager::GetInstance().DelCred(TEST_USER_ID, testCredentialId, testAuthToken, testCallback);
+    {
+        std::unique_lock<std::mutex> lock(testCallback->mutex);
+        testCallback->cv.wait_for(
+            lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    }
 
     testAuthToken = {1, 2, 3, 4};
     InnerAccountIAMManager::GetInstance().DelCred(TEST_USER_ID, testCredentialId, testAuthToken, testCallback);
+    {
+        std::unique_lock<std::mutex> lock(testCallback->mutex);
+        testCallback->cv.wait_for(
+            lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    }
 }
 
 /**
@@ -539,14 +593,26 @@ HWTEST_F(AccountIamManagerTest, DelCred001, TestSize.Level0)
 HWTEST_F(AccountIamManagerTest, DelUser001, TestSize.Level0)
 {
     std::vector<uint8_t> testAuthToken = {1, 2, 3, 4};
-    sptr<MockIIDMCallback> testCallback = new(std::nothrow) MockIIDMCallback();
+    std::shared_ptr<MockIIDMCallback> callback = std::make_shared<MockIIDMCallback>();
+    EXPECT_NE(callback, nullptr);
+    sptr<TestIIDMCallback> testCallback = new(std::nothrow) TestIIDMCallback(callback);
     EXPECT_NE(testCallback, nullptr);
-    EXPECT_CALL(*testCallback, OnResult(_, _)).Times(Exactly(2));
+    EXPECT_CALL(*callback, OnResult(_, _)).Times(Exactly(2));
     InnerAccountIAMManager::GetInstance().DelUser(TEST_USER_ID, testAuthToken, nullptr);
     InnerAccountIAMManager::GetInstance().DelUser(TEST_USER_ID, testAuthToken, testCallback);
+    {
+        std::unique_lock<std::mutex> lock(testCallback->mutex);
+        testCallback->cv.wait_for(
+            lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    }
 
     testAuthToken = {1, 2, 3, 4};
     InnerAccountIAMManager::GetInstance().DelUser(TEST_USER_ID, testAuthToken, testCallback);
+    {
+        std::unique_lock<std::mutex> lock(testCallback->mutex);
+        testCallback->cv.wait_for(
+            lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    }
 }
 
 /**
@@ -558,9 +624,11 @@ HWTEST_F(AccountIamManagerTest, DelUser001, TestSize.Level0)
 HWTEST_F(AccountIamManagerTest, AuthUser001, TestSize.Level0)
 {
     SetPropertyRequest testRequest = {};
-    sptr<MockIIDMCallback> testCallback = new(std::nothrow) MockIIDMCallback();
+    std::shared_ptr<MockIIDMCallback> callback = std::make_shared<MockIIDMCallback>();
+    EXPECT_NE(callback, nullptr);
+    sptr<TestIIDMCallback> testCallback = new(std::nothrow) TestIIDMCallback(callback);
     EXPECT_NE(testCallback, nullptr);
-    EXPECT_CALL(*testCallback, OnResult(_, _)).Times(0);
+    EXPECT_CALL(*callback, OnResult(_, _)).Times(0);
     AuthParam authParam = {
         .challenge = TEST_CHALLENGE,
         .authType = AuthType::PIN,
@@ -600,9 +668,11 @@ HWTEST_F(AccountIamManagerTest, GetChallenge001, TestSize.Level2)
     std::vector<uint8_t> challenge;
     InnerAccountIAMManager::GetInstance().OpenSession(TEST_USER_ID, challenge);
 
-    sptr<MockIIDMCallback> testCallback = new(std::nothrow) MockIIDMCallback();
+    std::shared_ptr<MockIIDMCallback> callback = std::make_shared<MockIIDMCallback>();
+    EXPECT_NE(callback, nullptr);
+    sptr<TestIIDMCallback> testCallback = new(std::nothrow) TestIIDMCallback(callback);
     EXPECT_NE(testCallback, nullptr);
-    EXPECT_CALL(*testCallback, OnResult(_, _)).Times(0);
+    EXPECT_CALL(*callback, OnResult(_, _)).Times(0);
     AuthParam authParam = {
         .challenge = TEST_CHALLENGE,
         .authType = AuthType::PIN,

@@ -31,6 +31,9 @@ public:
     explicit MockDomainAccountCallbackStub(const std::shared_ptr<MockDomainAccountCallback> &callback);
     virtual ~MockDomainAccountCallbackStub();
     void OnResult(const int32_t errCode, Parcel &parcel) override;
+    std::condition_variable cv;
+    bool isReady = false;
+    std::mutex mutex;
 
 private:
     std::shared_ptr<MockDomainAccountCallback> innerCallback_;
