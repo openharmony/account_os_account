@@ -68,9 +68,7 @@ static bool ParseContextFoAddServerConfig(
         ACCOUNT_LOGE("The parameter of number should be at least one.");
         return false;
     }
-    napi_value value = nullptr;
-    napi_get_named_property(env, argv[0], "parameters", &value);
-    if (!JsObjectToNativeString(env, value, context->parameters)) {
+    if (!JsObjectToNativeString(env, argv[0], context->parameters)) {
         ACCOUNT_LOGE("Get parameters failed.");
         return false;
     }
@@ -128,7 +126,7 @@ napi_value NapiDomainServerConfigManager::AddServerConfig(napi_env env, napi_cal
 
     if (!ParseContextFoAddServerConfig(env, info, context.get())) {
         std::string errMsg = "The type of parameter is error.";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, context->throwErr);
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return nullptr;
     }
     napi_value result = nullptr;
@@ -193,7 +191,7 @@ napi_value NapiDomainServerConfigManager::RemoveServerConfig(napi_env env, napi_
     auto context = std::make_unique<RemoveServerConfigAsyncContext>(env);
     if (!ParseContextFoRemoveServerConfig(env, info, context.get())) {
         std::string errMsg = "The type of parameter is error.";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, context->throwErr);
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return nullptr;
     }
     napi_value result = nullptr;
@@ -261,7 +259,7 @@ napi_value NapiDomainServerConfigManager::GetAccountServerConfig(napi_env env, n
     auto context = std::make_unique<GetAccountServerConfigAsyncContext>(env);
     if (!ParseContextFoGetAccountServerConfig(env, info, context.get())) {
         std::string errMsg = "The type of parameter is error.";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, context->throwErr);
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return nullptr;
     }
     napi_value result = nullptr;
