@@ -58,7 +58,7 @@ public:
         const int id, const std::vector<std::string> &constraints, const bool enable) = 0;
     virtual ErrCode SetOsAccountProfilePhoto(const int id, const std::string &photo) = 0;
     virtual ErrCode ActivateOsAccount(const int id, const uint64_t displayId = 0) = 0;
-    virtual ErrCode DeactivateOsAccount(const int id) = 0;
+    virtual ErrCode DeactivateOsAccount(const int id, const bool isStopStorage = true) = 0;
     virtual ErrCode StartOsAccount(const int id) = 0;
     virtual ErrCode StopOsAccount(const int id) = 0;
     virtual ErrCode GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id) = 0;
