@@ -28,12 +28,13 @@ namespace AccountSA {
 class CheckAndCreateDomainAccountCallback final : public DomainAccountCallbackStub {
 public:
     CheckAndCreateDomainAccountCallback(const OsAccountType &type, const DomainAccountInfo &domainAccountInfo_,
-        const sptr<IDomainAccountCallback> &callback);
+        const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &accountOptions);
     void OnResult(const int32_t errCode, Parcel &parcel) override;
 
 private:
     OsAccountType type_;
     DomainAccountInfo domainAccountInfo_;
+    CreateOsAccountForDomainOptions accountOptions_;
     sptr<IDomainAccountCallback> innerCallback_ = nullptr;
 };
 

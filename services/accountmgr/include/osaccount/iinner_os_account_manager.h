@@ -40,7 +40,7 @@ public:
     ErrCode CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo) override;
     ErrCode UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo) override;
     ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
-        const sptr<IDomainAccountCallback> &callback) override;
+        const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options = {}) override;
     ErrCode RemoveOsAccount(const int id) override;
     ErrCode IsOsAccountExists(const int id, bool &isOsAccountExits) override;
     ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived) override;
@@ -108,7 +108,7 @@ public:
     ErrCode GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds) override;
     ErrCode SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved) override;
     ErrCode BindDomainAccount(const OsAccountType &type, const DomainAccountInfo &domainAccountInfo,
-        const sptr<IDomainAccountCallback> &callback);
+        const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options = {});
     ErrCode SendMsgForAccountCreate(OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options = {});
     ErrCode GetOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo);
     ErrCode UpdateAccountStatusForDomain(const int id, DomainAccountStatus status);

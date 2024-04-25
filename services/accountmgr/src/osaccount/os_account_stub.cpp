@@ -622,7 +622,13 @@ ErrCode OsAccountStub::ProcCreateOsAccountForDomain(MessageParcel &data, Message
         ACCOUNT_LOGE("failed to read parcel");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    ErrCode result = CreateOsAccountForDomain(type, *info, callback);
+
+    sptr<CreateOsAccountForDomainOptions> options = data.ReadParcelable<CreateOsAccountForDomainOptions>();
+    if (options == nullptr) {
+        ACCOUNT_LOGE("Read options failed");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = CreateOsAccountForDomain(type, *info, callback, *options);
     return WriteResultWithOsAccountInfo(reply, result, osAccountInfo);
 }
 

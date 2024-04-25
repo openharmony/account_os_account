@@ -719,7 +719,10 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAc
     EXPECT_CALL(*callback, OnResult(ERR_OK,
         STRING_NAME, INVALID_STRING_DOMAIN, STRING_ACCOUNTID_NEW)).Times(Exactly(1));
     ASSERT_NE(testCallback, nullptr);
-    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
+    CreateOsAccountForDomainOptions options;
+    options.shortName = "shortName";
+    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo,
+        testCallback, options);
     std::unique_lock<std::mutex> lock(testCallback->mutex);
     testCallback->cv.wait_for(
         lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
@@ -729,6 +732,9 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAc
     int32_t userId = -1;
     errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId);
     EXPECT_EQ(errCode, ERR_OK);
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(OsAccountManager::QueryOsAccountById(userId, osAccountInfo), ERR_OK);
+    EXPECT_EQ(osAccountInfo.GetShortName(), options.shortName);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS

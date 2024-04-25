@@ -50,9 +50,9 @@ ErrCode OsAccountManager::UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountIn
 }
 
 ErrCode OsAccountManager::CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
-    const std::shared_ptr<DomainAccountCallback> &callback)
+    const std::shared_ptr<DomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options)
 {
-    return OsAccount::GetInstance().CreateOsAccountForDomain(type, domainInfo, callback);
+    return OsAccount::GetInstance().CreateOsAccountForDomain(type, domainInfo, callback, options);
 }
 
 ErrCode OsAccountManager::RemoveOsAccount(const int id)

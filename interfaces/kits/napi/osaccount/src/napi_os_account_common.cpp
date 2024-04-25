@@ -533,6 +533,16 @@ static bool ParseDomainAccountInfo(napi_env env, napi_value object, DomainAccoun
     return true;
 }
 
+static bool ParseDomainOptionInfo(napi_env env, napi_value object, CreateOsAccountForDomainOptions &domainOptions)
+{
+    if (!GetStringPropertyByKey(env, object, "shortName", domainOptions.shortName)) {
+        ACCOUNT_LOGE("Failed to get options's shortName");
+        return false;
+    }
+    domainOptions.hasShortName = true;
+    return true;
+}
+
 bool ParseParaCreateOAForDomain(napi_env env, napi_callback_info cbInfo,
     CreateOAForDomainAsyncContext *asyncContext)
 {
@@ -540,12 +550,16 @@ bool ParseParaCreateOAForDomain(napi_env env, napi_callback_info cbInfo,
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
 
+    napi_valuetype valueType = napi_undefined;
     if (argc == ARGS_SIZE_THREE) {
-        if (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1)) {
-            ACCOUNT_LOGE("Get CreateOAForDomain callbackRef failed");
-            std::string errMsg = "The type of arg " + std::to_string(argc) + " must be function";
-            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-            return false;
+        napi_typeof(env, argv[ARGS_SIZE_TWO], &valueType);
+        if (!GetCallbackProperty(env, argv[PARAMTWO], asyncContext->callbackRef, 1)) {
+            if (!ParseDomainOptionInfo(env, argv[PARAMTWO], asyncContext->domainOptions)) {
+                ACCOUNT_LOGE("Failed to get domainOptions");
+                std::string errMsg = "The type of arg 3 must contains shortName";
+                AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+                return false;
+            }
         }
     }
 
@@ -592,7 +606,8 @@ void CreateOAForDomainExecuteCB(napi_env env, void *data)
     CreateOAForDomainAsyncContext *asyncContext = reinterpret_cast<CreateOAForDomainAsyncContext *>(data);
     auto callback = std::make_shared<NapiCreateDomainCallback>(env, asyncContext->callbackRef, asyncContext->deferred);
     asyncContext->errCode =
-        OsAccountManager::CreateOsAccountForDomain(asyncContext->type, asyncContext->domainInfo, callback);
+        OsAccountManager::CreateOsAccountForDomain(asyncContext->type, asyncContext->domainInfo,
+            callback, asyncContext->domainOptions);
     if (asyncContext->errCode != ERR_OK) {
         Parcel emptyParcel;
         callback->OnResult(asyncContext->errCode, emptyParcel);
