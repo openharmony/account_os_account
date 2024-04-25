@@ -44,6 +44,7 @@ const std::string TEST_DOMAIN_ACCOUNT_NAME = "test_domain_account_name";
 const std::string TEST_DOMAIN = "test_domain";
 const std::string TEST_ACCOUNT_ID = "test_account_id";
 const std::int32_t MAIN_ACCOUNT_ID = 100;
+const int32_t WAIT_TIME = 20;
 const std::vector<uint8_t> TEST_TOKEN = {0};
 const std::vector<uint8_t> TEST_PASSWORD = {0};
 std::shared_ptr<MockDomainPlugin> g_plugin = std::make_shared<MockDomainPlugin>();
@@ -442,6 +443,9 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     sptr<DomainAccountPluginService> pluginService = new (std::nothrow) DomainAccountPluginService(g_plugin);
     ASSERT_NE(pluginService, nullptr);
     InnerDomainAccountManager::GetInstance().StartIsAccountTokenValid(pluginService, domainInfo, token, testCallback);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
 }
 
 /**
