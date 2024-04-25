@@ -208,7 +208,7 @@ void IInnerOsAccountManager::ResetAccountStatus(void)
     std::vector<int32_t> idList;
     (void) osAccountControl_->GetOsAccountIdList(idList);
     for (const auto id : idList) {
-        DeactivateOsAccount(id, false);
+        DeactivateOsAccount(id);
     }
 }
 
@@ -729,7 +729,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountStop(OsAccountInfo &osAccountIn
     return DeactivateOsAccountByInfo(osAccountInfo);
 }
 
-ErrCode IInnerOsAccountManager::SendMsgForAccountDeactivate(OsAccountInfo &osAccountInfo, const bool isStopStorage)
+ErrCode IInnerOsAccountManager::SendMsgForAccountDeactivate(OsAccountInfo &osAccountInfo)
 {
     ErrCode errCode = OsAccountInterface::SendToAMSAccountDeactivate(osAccountInfo);
     if (errCode != ERR_OK) {
@@ -737,15 +737,12 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountDeactivate(OsAccountInfo &osAcc
             osAccountInfo.GetLocalId(), errCode);
         return errCode;
     }
-    if (isStopStorage) {
-        errCode = OsAccountInterface::SendToStorageAccountStop(osAccountInfo);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("SendToStorageAccountStop failed, id %{public}d, errCode %{public}d",
-                osAccountInfo.GetLocalId(), errCode);
-            return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
-        }
+    errCode = OsAccountInterface::SendToStorageAccountStop(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("SendToStorageAccountStop failed, id %{public}d, errCode %{public}d",
+            osAccountInfo.GetLocalId(), errCode);
+        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
-    
     return DeactivateOsAccountByInfo(osAccountInfo);
 }
 
@@ -1524,9 +1521,8 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id, const uint64_t d
     return ERR_OK;
 }
 
-ErrCode IInnerOsAccountManager::DeactivateOsAccount(const int id, const bool isStopStorage)
+ErrCode IInnerOsAccountManager::DeactivateOsAccount(const int id)
 {
-    ACCOUNT_LOGI("Start deactivate account id=%{public}d", id);
     if (!CheckAndAddLocalIdOperating(id)) {
         ACCOUNT_LOGW("the %{public}d already in operating", id);
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
@@ -1560,7 +1556,7 @@ ErrCode IInnerOsAccountManager::DeactivateOsAccount(const int id, const bool isS
         osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_STOPPING, Constants::OPERATION_STOP);
     subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
 
-    errCode = SendMsgForAccountDeactivate(osAccountInfo, isStopStorage);
+    errCode = SendMsgForAccountDeactivate(osAccountInfo);
     if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(id);
         ReportOsAccountOperationFail(id, "deactivate", errCode, "deactivate os account failed");
