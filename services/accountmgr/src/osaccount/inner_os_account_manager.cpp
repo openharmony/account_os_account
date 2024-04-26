@@ -1461,17 +1461,11 @@ ErrCode IInnerOsAccountManager::DeactivateOsAccountById(const int id)
     return DeactivateOsAccountByInfo(osAccountInfo);
 }
 
-ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id, const uint64_t displayId)
+ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id, const bool startStorage, const uint64_t displayId)
 {
     if (!CheckAndAddLocalIdOperating(id)) {
         ACCOUNT_LOGE("the %{public}d already in operating", id);
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
-    }
-    int32_t foregroundId = -1;
-    if (foregroundAccountMap_.Find(displayId, foregroundId) && foregroundId == id) {
-        ACCOUNT_LOGI("Account id=%{public}d already is foreground", id);
-        RemoveLocalIdToOperating(id);
-        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREADY_ACTIVE_ERROR;
     }
 
     // get information
@@ -1481,6 +1475,13 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id, const uint64_t d
         RemoveLocalIdToOperating(id);
         ACCOUNT_LOGE("cannot find os account info by id:%{public}d, errCode %{public}d.", id, errCode);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+
+    int32_t foregroundId = -1;
+    if (foregroundAccountMap_.Find(displayId, foregroundId) && (foregroundId == id) && osAccountInfo.GetIsVerified()) {
+        ACCOUNT_LOGI("Account %{public}d already is foreground", id);
+        RemoveLocalIdToOperating(id);
+        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREADY_ACTIVE_ERROR;
     }
 
     // check complete
@@ -1506,7 +1507,7 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id, const uint64_t d
     }
 
     subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
-    errCode = SendMsgForAccountActivate(osAccountInfo);
+    errCode = SendMsgForAccountActivate(osAccountInfo, startStorage);
     RemoveLocalIdToOperating(id);
     if (errCode != ERR_OK) {
         return errCode;
@@ -1585,18 +1586,21 @@ void IInnerOsAccountManager::WatchStartUser(std::int32_t id)
     SetParameter(ACCOUNT_READY_EVENT.c_str(), "true");
 }
 
-ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccountInfo, const uint64_t displayId)
+ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccountInfo, const bool startStorage,
+                                                          const uint64_t displayId)
 {
     // activate
     int32_t oldId = -1;
     bool oldIdExist = foregroundAccountMap_.Find(displayId, oldId);
     int localId = osAccountInfo.GetLocalId();
     subscribeManager_.Publish(localId, oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
-    ErrCode errCode = OsAccountInterface::SendToStorageAccountStart(osAccountInfo);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("account %{public}d call storage active failed, errCode %{public}d.",
-            localId, errCode);
-        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
+    ErrCode errCode = ERR_OK;
+    if (startStorage) {
+        errCode = OsAccountInterface::SendToStorageAccountStart(osAccountInfo);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("account %{public}d call storage active failed, errCode %{public}d.", localId, errCode);
+            return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
+        }
     }
     errCode = OsAccountInterface::SendToAMSAccountStart(osAccountInfo);
     if (errCode != ERR_OK) {
