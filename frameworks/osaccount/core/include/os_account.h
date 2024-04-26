@@ -32,7 +32,7 @@ public:
     ErrCode CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo);
     ErrCode UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo);
     ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
-        const std::shared_ptr<DomainAccountCallback> &callback);
+        const std::shared_ptr<DomainAccountCallback> &callback, const CreateOsAccountForDomainOptions& options = {});
     ErrCode RemoveOsAccount(const int id);
     ErrCode IsOsAccountExists(const int id, bool &isOsAccountExists);
     ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived);

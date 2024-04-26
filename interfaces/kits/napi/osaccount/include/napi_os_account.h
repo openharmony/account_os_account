@@ -85,6 +85,7 @@ struct CreateOAForDomainAsyncContext : public CommonAsyncContext {
     OsAccountType type;
     DomainAccountInfo domainInfo;
     OsAccountInfo osAccountInfos;
+    CreateOsAccountForDomainOptions domainOptions;
     ThreadLockInfo *lockInfo;
 };
 
