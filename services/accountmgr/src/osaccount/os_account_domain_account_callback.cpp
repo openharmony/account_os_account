@@ -29,8 +29,9 @@
 namespace OHOS {
 namespace AccountSA {
 CheckAndCreateDomainAccountCallback::CheckAndCreateDomainAccountCallback(
-    const OsAccountType &type, const DomainAccountInfo &domainAccountInfo, const sptr<IDomainAccountCallback> &callback)
-    : type_(type), domainAccountInfo_(domainAccountInfo), innerCallback_(callback)
+    const OsAccountType &type, const DomainAccountInfo &domainAccountInfo,
+    const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &accountOptions)
+    : type_(type), domainAccountInfo_(domainAccountInfo), accountOptions_(accountOptions), innerCallback_(callback)
 {}
 
 void CheckAndCreateDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
@@ -60,7 +61,8 @@ void CheckAndCreateDomainAccountCallback::OnResult(int32_t errCode, Parcel &parc
         ACCOUNT_LOGE("domain account not found");
         return innerCallback_->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, resultParcel);
     }
-    errCode = IInnerOsAccountManager::GetInstance().BindDomainAccount(type_, domainAccountInfo, innerCallback_);
+    errCode = IInnerOsAccountManager::GetInstance().BindDomainAccount(type_, domainAccountInfo,
+        innerCallback_, accountOptions_);
     if (errCode != ERR_OK) {
         return innerCallback_->OnResult(errCode, resultParcel);
     }

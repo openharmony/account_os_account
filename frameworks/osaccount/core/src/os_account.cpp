@@ -114,17 +114,23 @@ ErrCode OsAccount::UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
 }
 
 ErrCode OsAccount::CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
-    const std::shared_ptr<DomainAccountCallback> &callback)
+    const std::shared_ptr<DomainAccountCallback> &callback, const CreateOsAccountForDomainOptions& options)
 {
     if (domainInfo.domain_.empty() ||
         domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("domain is empty or too long, len %{public}zu.", domainInfo.domain_.size());
+        ACCOUNT_LOGE("Domain is empty or too long, len=%{public}zu.", domainInfo.domain_.size());
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
     if (domainInfo.accountName_.empty() ||
         domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("account name is empty or too long, len %{public}zu.", domainInfo.accountName_.size());
+        ACCOUNT_LOGE("Account name is empty or too long, len=%{public}zu.", domainInfo.accountName_.size());
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    if (options.hasShortName && ((options.shortName.size() > Constants::SHORT_NAME_MAX_SIZE) ||
+        (options.shortName == ""))) {
+        ACCOUNT_LOGE("Account short name is empty or too long, len=%{public}zu.", options.shortName.size());
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
@@ -133,7 +139,7 @@ ErrCode OsAccount::CreateOsAccountForDomain(const OsAccountType &type, const Dom
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
-    return proxy->CreateOsAccountForDomain(type, domainInfo, callbackService);
+    return proxy->CreateOsAccountForDomain(type, domainInfo, callbackService, options);
 }
 
 ErrCode OsAccount::RemoveOsAccount(const int id)

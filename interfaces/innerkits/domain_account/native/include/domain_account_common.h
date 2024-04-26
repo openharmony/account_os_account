@@ -45,6 +45,14 @@ typedef enum {
     LOG_OUT,
 } DomainAccountEvent;
 
+struct CreateOsAccountForDomainOptions: public Parcelable {
+    bool ReadFromParcel(Parcel &parcel);
+    bool Marshalling(Parcel &parcel) const override;
+    static CreateOsAccountForDomainOptions *Unmarshalling(Parcel &parcel);
+    std::string shortName;
+    bool hasShortName = false;
+};
+
 class DomainAccountInfo : public Parcelable {
 public:
     DomainAccountInfo();

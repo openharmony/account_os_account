@@ -66,7 +66,9 @@ void DomainAccountCallbackTest::TearDown(void)
 HWTEST_F(DomainAccountCallbackTest, DomainAccountCallbackTest_OnResult_001, TestSize.Level0)
 {
     DomainAccountInfo info;
-    auto callbackPtr = std::make_shared<CheckAndCreateDomainAccountCallback>(OsAccountType::NORMAL, info, nullptr);
+    CreateOsAccountForDomainOptions accountOptions;
+    auto callbackPtr = std::make_shared<CheckAndCreateDomainAccountCallback>(OsAccountType::NORMAL,
+        info, nullptr, accountOptions);
     Parcel parcel;
     callbackPtr->OnResult(0, parcel);
     EXPECT_EQ(callbackPtr->innerCallback_, nullptr);
