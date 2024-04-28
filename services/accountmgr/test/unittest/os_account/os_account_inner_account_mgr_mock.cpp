@@ -784,6 +784,10 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest026, TestSize
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR);
     innerMgrService_->RemoveLocalIdToOperating(id);
 
+    OsAccountInfo expectedAccountInfo;
+    expectedAccountInfo.SetIsVerified(true);
+    EXPECT_CALL(*ptr, GetOsAccountInfoById(id, _))
+        .WillOnce(DoAll(SetArgReferee<1>(expectedAccountInfo), Return(ERR_OK)));
     innerMgrService_->PushIdIntoActiveList(id);
     ret = innerMgrService_->ActivateOsAccount(id);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREADY_ACTIVE_ERROR);
@@ -793,7 +797,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest026, TestSize
     EXPECT_CALL(*ptr, GetOsAccountInfoById(_, _))
         .WillRepeatedly(testing::Return(-1));
     ret = innerMgrService_->ActivateOsAccount(id);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREADY_ACTIVE_ERROR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetIsCreateCompleted(0);

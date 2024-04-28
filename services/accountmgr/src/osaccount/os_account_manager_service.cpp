@@ -634,9 +634,9 @@ ErrCode OsAccountManagerService::DeactivateOsAccount(const int id)
 
     if (currentId == id) { // if stop current account
 #ifdef SUPPROT_STOP_MAIN_OS_ACCOUNT
-        ActivateOsAccount(id);
+        innerManager_.ActivateOsAccount(id, false);
 #else
-        ActivateOsAccount(Constants::START_USER_ID);
+        innerManager_.ActivateOsAccount(Constants::START_USER_ID, false);
 #endif // SUPPROT_STOP_MAIN_OS_ACCOUNT
     }
     return ERR_OK;
