@@ -232,7 +232,6 @@
         "OHOS::AccountSA::DomainAccountClient::GetAccountStatus(OHOS::AccountSA::DomainAccountInfo const&, OHOS::AccountSA::DomainAccountStatus&)";
         "OHOS::AccountSA::DomainAccountProxy::DomainAccountProxy(OHOS::sptr<OHOS::IRemoteObject> const&)";
         "OHOS::AccountSA::DomainAccountCallbackProxy::DomainAccountCallbackProxy(OHOS::sptr<OHOS::IRemoteObject> const&)";
-        "DomainAccountStatusListenerManager::GetListenerAllRecords()";
         "OHOS::AccountSA::DomainAccountInfo::DomainAccountInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::DomainAccountInfo::Clear()";
         "VTT for OHOS::AccountSA::DomainServerConfig";

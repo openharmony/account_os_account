@@ -365,9 +365,7 @@ void DomainAccountClient::RestoreListenerRecords()
         ACCOUNT_LOGE("proxy is nullptr");
         return;
     }
-    std::set<std::shared_ptr<DomainAccountStatusListener>> listenerAllRecords;
-    listenerAllRecords = listenerManager_->GetListenerAllRecords();
-    if (!listenerAllRecords.empty()) {
+    if (!listenerManager_->IsRecordEmpty()) {
         (void)proxy->RegisterAccountStatusListener(callback_);
     }
 }
