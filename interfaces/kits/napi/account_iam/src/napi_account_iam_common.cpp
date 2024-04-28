@@ -782,7 +782,7 @@ napi_value OnSetData(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
     if (argc != ARG_SIZE_TWO) {
         ACCOUNT_LOGE("failed to parse parameters, expect three parameters, but got %{public}zu", argc);
-        std::string errMsg = "The arg number must be at least 2 characters";
+        std::string errMsg = "Parameter error. The number of parameters should be 2";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return nullptr;
     }
@@ -795,14 +795,14 @@ napi_value OnSetData(napi_env env, napi_callback_info info)
     int32_t authSubType;
     if (!GetIntProperty(env, argv[PARAM_ZERO], authSubType)) {
         ACCOUNT_LOGE("Get authSubType failed");
-        std::string errMsg = "The type of arg 1 must be number";
+        std::string errMsg = "Parameter error. The type of \"authSubType\" must be AuthSubType";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return nullptr;
     }
     std::vector<uint8_t> data;
     if (ParseUint8TypedArrayToVector(env, argv[PARAM_ONE], data) != napi_ok) {
         ACCOUNT_LOGE("Get data failed");
-        std::string errMsg = "The type of arg 2 must be int array";
+        std::string errMsg = "Parameter error. The type of \"data\" must be Uint8Array";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return nullptr;
     }
