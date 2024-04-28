@@ -34,7 +34,6 @@ public:
     void RemoveRecord(const std::shared_ptr<DomainAccountStatusListener> &listener);
     bool IsRecordEmpty();
     std::set<std::string> GetDomainInfoRecords();
-    std::set<std::shared_ptr<DomainAccountStatusListener>> GetListenerAllRecords();
 
 private:
     std::string GetDomainAccountStr(const std::string &domain, const std::string &accountName);
