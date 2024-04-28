@@ -789,7 +789,7 @@ ErrCode AppAccountManagerService::GetCallingTokenInfoAndAppIndex(uint32_t &appIn
         ACCOUNT_LOGE("get invalid app index from hap token info, index = %{public}d", hapTokenInfo.instIndex);
         return ERR_APPACCOUNT_SERVICE_GET_APP_INDEX;
     }
-    appIndex = hapTokenInfo.instIndex;
+    appIndex = static_cast<uint32_t>(hapTokenInfo.instIndex);
     return ERR_OK;
 }
 

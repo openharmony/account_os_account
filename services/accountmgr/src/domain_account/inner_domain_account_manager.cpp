@@ -502,12 +502,12 @@ ErrCode InnerDomainAccountManager::AddServerConfig(const std::string &paremters,
         ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::ADD_SERVER_CONFIG);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
-    PluginString param;
-    SetPluginString(paremters, param);
     int32_t localId = GetCallingUserID();
     if (localId == -1) {
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
+    PluginString param;
+    SetPluginString(paremters, param);
     PluginServerConfigInfo *configInfo = nullptr;
     PluginBussnessError* error = (*reinterpret_cast<AddServerConfigFunc>(iter->second))(&param, localId, &configInfo);
     GetAndCleanPluginServerConfigInfo(&configInfo, config.id_, config.domain_, config.parameters_);
@@ -523,12 +523,12 @@ ErrCode InnerDomainAccountManager::RemoveServerConfig(const std::string &configI
         ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::REMOVE_SERVER_CONFIG);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
-    PluginString serverConfigId;
-    SetPluginString(configId, serverConfigId);
     int32_t localId = GetCallingUserID();
     if (localId == -1) {
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
+    PluginString serverConfigId;
+    SetPluginString(configId, serverConfigId);
     PluginBussnessError* error = (*reinterpret_cast<RemoveServerConfigFunc>(iter->second))(&serverConfigId, localId);
     CleanPluginString(&(serverConfigId.data), serverConfigId.length);
     return GetAndCleanPluginBussnessError(&error, iter->first);
@@ -564,13 +564,13 @@ ErrCode InnerDomainAccountManager::PluginAuth(const DomainAccountInfo &info, con
         ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::AUTH);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
-    PluginDomainAccountInfo domainAccountInfo;
-    SetPluginDomainAccountInfo(info, domainAccountInfo);
     int32_t localId = GetCallingUserID();
     if (localId == -1) {
         ACCOUNT_LOGE("fail to get activated os account ids");
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
+    PluginDomainAccountInfo domainAccountInfo;
+    SetPluginDomainAccountInfo(info, domainAccountInfo);
     PluginUint8Vector credential;
     SetPluginUint8Vector(password, credential);
     PluginAuthResultInfo *authResultInfo = nullptr;
@@ -630,14 +630,14 @@ ErrCode InnerDomainAccountManager::PluginBindAccount(const DomainAccountInfo &in
         ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::BIND_ACCOUNT);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
-    PluginDomainAccountInfo domainAccountInfo;
-    SetPluginDomainAccountInfo(info, domainAccountInfo);
     ACCOUNT_LOGD("Param localId=%{public}d.", localId);
     int32_t callerLocalId = GetCallingUserID();
     if (localId == -1) {
         ACCOUNT_LOGE("fail to get activated os account ids");
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
+    PluginDomainAccountInfo domainAccountInfo;
+    SetPluginDomainAccountInfo(info, domainAccountInfo);
     PluginBussnessError* error =
         (*reinterpret_cast<BindAccountFunc>(iter->second))(&domainAccountInfo, localId, callerLocalId);
     CleanPluginString(&(domainAccountInfo.domain.data), domainAccountInfo.domain.length);
