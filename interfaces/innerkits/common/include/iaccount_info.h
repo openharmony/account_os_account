@@ -56,7 +56,7 @@ void GetDataByType(const Json &jsonObject, const nlohmann::detail::iter_impl<con
                 if (!jsonObject.at(key).is_number()) {
                     break;
                 }
-                data = jsonObject.at(key).get<T>();
+                data = static_cast<dataType>(jsonObject.at(key).get<T>());
                 break;
             case JsonType::OBJECT:
                 if (!jsonObject.at(key).is_object()) {

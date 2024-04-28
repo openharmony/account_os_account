@@ -220,6 +220,10 @@ ErrCode DomainAccountStub::ProcSetAuthenticationExpiryThreshold(MessageParcel &d
 ErrCode DomainAccountStub::ProcRegisterPlugin(MessageParcel &data, MessageParcel &reply)
 {
     auto plugin = iface_cast<IDomainAccountPlugin>(data.ReadRemoteObject());
+    if (plugin == nullptr) {
+        ACCOUNT_LOGE("Failed to read plugin");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
     ErrCode result = RegisterPlugin(plugin);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write result");
