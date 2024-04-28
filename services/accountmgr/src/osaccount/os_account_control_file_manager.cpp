@@ -215,6 +215,7 @@ void OsAccountControlFileManager::Init()
     OHOS::AccountSA::GetDataByType<std::vector<std::string>>(
         accountListJson, jsonEnd, Constants::ACCOUNT_LIST, accountIdList, OHOS::AccountSA::JsonType::ARRAY);
     if (!accountIdList.empty()) {
+        std::lock_guard<std::mutex> lock(operatingIdMutex_);
         nextLocalId_ = atoi(accountIdList[accountIdList.size() - 1].c_str()) + 1;
         InitFileWatcherInfo(accountIdList);
     }
@@ -1025,7 +1026,6 @@ ErrCode OsAccountControlFileManager::GetSerialNumber(int64_t &serialNumber)
 
 int OsAccountControlFileManager::GetNextLocalId(const std::vector<std::string> &accountIdList)
 {
-    std::lock_guard<std::mutex> lock(operatingIdMutex_);
     do {
         if (nextLocalId_ > MAX_LOCAL_ID) {
             nextLocalId_ = Constants::START_USER_ID;
@@ -1055,6 +1055,7 @@ ErrCode OsAccountControlFileManager::GetAllowCreateId(int &id)
         ACCOUNT_LOGE("GetAllowCreateId cannot create more account error");
         return ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR;
     }
+    std::lock_guard<std::mutex> lock(operatingIdMutex_);
     id = GetNextLocalId(accountIdList);
     nextLocalId_++;
     return ERR_OK;
