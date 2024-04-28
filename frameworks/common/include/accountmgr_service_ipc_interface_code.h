@@ -164,6 +164,7 @@ enum class AccountIAMInterfaceCode : uint32_t {
     GET_AVAILABLE_STATUS,
     GET_PROPERTY,
     SET_PROPERTY,
+    GET_ENROLLED_ID,
     GET_ACCOUNT_STATE,
 };
 
@@ -257,6 +258,10 @@ enum class GetCredInfoCallbackInterfaceCode : uint32_t {
 
 enum class GetSetPropCallbackInterfaceCode : uint32_t {
     ON_RESULT = 0,
+};
+
+enum class GetEnrolledIdCallbackInterfaceCode : uint32_t {
+    ON_ENROLLED_ID = 0,
 };
 }  // namespace AccountSA
 }  // namespace OHOS

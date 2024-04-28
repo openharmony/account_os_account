@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -121,6 +121,21 @@ bool GetIntProperty(napi_env env, napi_value obj, int32_t &property)
     return true;
 }
 
+bool GetOptionIntProperty(napi_env env, napi_value obj, int32_t &property)
+{
+    napi_valuetype valueType = napi_undefined;
+    NAPI_CALL_BASE(env, napi_typeof(env, obj, &valueType), false);
+    if ((valueType == napi_undefined) || (valueType == napi_null)) {
+        ACCOUNT_LOGI("this value is undefined or null");
+        return true;
+    }
+    if (valueType != napi_number) {
+        return false;
+    }
+    NAPI_CALL_BASE(env, napi_get_value_int32(env, obj, &property), false);
+    return true;
+}
+
 bool GetLongIntProperty(napi_env env, napi_value obj, int64_t &property)
 {
     napi_valuetype valueType = napi_undefined;
@@ -224,6 +239,43 @@ bool GetOptionalStringPropertyByKey(napi_env env, napi_value obj, const std::str
         return true;
     }
     return GetStringProperty(env, value, property);
+}
+
+bool IsOptionalPropertyExist(napi_env env, napi_value obj, const std::string &propertyName)
+{
+    bool hasProp = false;
+    napi_has_named_property(env, obj, propertyName.c_str(), &hasProp);
+    if (!hasProp) {
+        return false;
+    }
+    napi_value value = nullptr;
+    NAPI_CALL_BASE(env, napi_get_named_property(env, obj, propertyName.c_str(), &value), false);
+    napi_valuetype valuetype = napi_undefined;
+    NAPI_CALL_BASE(env, napi_typeof(env, value, &valuetype), false);
+    if ((valuetype == napi_undefined) || (valuetype == napi_null)) {
+        ACCOUNT_LOGI("This key's value is undefined or null");
+        return false;
+    }
+    return true;
+}
+
+bool GetOptionalNumberPropertyByKey(napi_env env, napi_value obj, const std::string &propertyName,
+    int32_t &numberProperty)
+{
+    bool hasProp = false;
+    napi_has_named_property(env, obj, propertyName.c_str(), &hasProp);
+    if (!hasProp) {
+        return true;
+    }
+    napi_value value = nullptr;
+    NAPI_CALL_BASE(env, napi_get_named_property(env, obj, propertyName.c_str(), &value), false);
+    napi_valuetype valuetype = napi_undefined;
+    NAPI_CALL_BASE(env, napi_typeof(env, value, &valuetype), false);
+    if ((valuetype == napi_undefined) || (valuetype == napi_null)) {
+        ACCOUNT_LOGI("This key's value is undefined or null");
+        return true;
+    }
+    return GetIntProperty(env, value, numberProperty);
 }
 
 bool CompareOnAndOffRef(const napi_env env, napi_ref subscriberRef, napi_ref unsubscriberRef)
