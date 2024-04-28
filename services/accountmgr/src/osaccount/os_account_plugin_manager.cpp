@@ -149,6 +149,9 @@ ErrCode OsAccountPluginManager::PluginVerifyActivationLockFunc(bool& isAllowed)
 
 bool OsAccountPluginManager::IsCreationAllowed()
 {
+#ifdef ACCOUNT_TEST
+    return true;
+#else
     if (!IsPluginAvailable()) {
         ACCOUNT_LOGI("Plugin not availabel.");
         return true;
@@ -160,6 +163,7 @@ bool OsAccountPluginManager::IsCreationAllowed()
         return false;
     }
     return isAllowed;
+#endif
 }
 }  // namespace AccountSA
 }  // namespace OHOS
