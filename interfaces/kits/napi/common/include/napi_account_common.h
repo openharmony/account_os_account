@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -61,6 +61,7 @@ void ReturnCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContex
 bool CreateExecEnv(napi_env env, uv_loop_s **loop, uv_work_t **work);
 bool GetCallbackProperty(napi_env env, napi_value obj, napi_ref &property, int argNum);
 bool GetIntProperty(napi_env env, napi_value obj, int32_t &property);
+bool GetOptionIntProperty(napi_env env, napi_value obj, int32_t &property);
 bool GetLongIntProperty(napi_env env, napi_value obj, int64_t &property);
 bool GetBoolProperty(napi_env env, napi_value obj, bool &property);
 bool GetStringProperty(napi_env env, napi_value obj, std::string &property);
@@ -68,6 +69,9 @@ bool GetStringArrayProperty(napi_env env, napi_value obj, std::vector<std::strin
 bool GetStringPropertyByKey(napi_env env, napi_value obj, const std::string &propertyName, std::string &property);
 bool GetOptionalStringPropertyByKey(napi_env env, napi_value obj, const std::string &propertyName,
     std::string &property);
+bool GetOptionalNumberPropertyByKey(napi_env env, napi_value obj, const std::string &propertyName,
+    int32_t &numberProperty);
+bool IsOptionalPropertyExist(napi_env env, napi_value obj, const std::string &propertyName);
 bool CompareOnAndOffRef(const napi_env env, napi_ref subscriberRef, napi_ref unsubscriberRef);
 bool IsSystemApp(napi_env env);
 bool ParseBusinessError(napi_env env, napi_value value, BusinessError &error);

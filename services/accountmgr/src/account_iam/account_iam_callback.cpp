@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -376,6 +376,26 @@ void SetPropCallbackWrapper::OnResult(int32_t result, const Attributes &extraInf
         ReportOsAccountOperationFail(userId_, "setProperty", result, "fail to set property");
     }
     innerCallback_->OnResult(result, extraInfo);
+}
+
+GetSecUserInfoCallbackWrapper::GetSecUserInfoCallbackWrapper(
+    AuthType authType, const sptr<IGetEnrolledIdCallback> &callback)
+    : authType_(authType), innerCallback_(callback)
+{}
+
+void GetSecUserInfoCallbackWrapper::OnSecUserInfo(const SecUserInfo &info)
+{
+    if (innerCallback_ == nullptr) {
+        return;
+    }
+    uint64_t enrolledId = 0;
+    for (const auto &iter : info.enrolledInfo) {
+        if (iter.authType == authType_) {
+            enrolledId = iter.enrolledId;
+            return innerCallback_->OnEnrolledId(ERR_OK, enrolledId);
+        }
+    }
+    return innerCallback_->OnEnrolledId(ERR_IAM_NOT_ENROLLED, enrolledId);
 }
 
 GetDomainAuthStatusInfoCallback::GetDomainAuthStatusInfoCallback(

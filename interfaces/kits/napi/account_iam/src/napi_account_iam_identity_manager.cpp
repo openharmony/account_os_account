@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -38,6 +38,7 @@ napi_value NapiAccountIAMIdentityManager::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("delUser", DelUser),
         DECLARE_NAPI_FUNCTION("delCred", DelCred),
         DECLARE_NAPI_FUNCTION("getAuthInfo", GetAuthInfo),
+        DECLARE_NAPI_FUNCTION("getEnrolledId", GetEnrolledId),
     };
     NAPI_CALL(env, napi_define_class(env, "UserIdentityManager", NAPI_AUTO_LENGTH, JsConstructor,
         nullptr, sizeof(clzDes) / sizeof(napi_property_descriptor), clzDes, &cons));
@@ -63,8 +64,25 @@ static bool ParseContextForOpenSession(
     NAPI_CALL_BASE(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr), false);
 
     if (argc > 0) {
-        if (!GetCallbackProperty(env, argv[0], context->callbackRef, 1)) {
-            std::string errMsg = "Parameter error. The type of \"callback\" must be function";
+        if ((!GetCallbackProperty(env, argv[0], context->callbackRef, 1)) &&
+            (!GetOptionIntProperty(env, argv[0], context->accountId))) {
+            std::string errMsg = "Parameter error. The type of arg 1 must be function or number";
+            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool ParseContextForCloseSession(
+    napi_env env, napi_callback_info info, IDMContext *context)
+{
+    size_t argc = ARG_SIZE_ONE;
+    napi_value argv[ARG_SIZE_ONE] = {0};
+    NAPI_CALL_BASE(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr), false);
+    if (argc > 0) {
+        if (!GetOptionIntProperty(env, argv[0], context->accountId)) {
+            std::string errMsg = "The type of arg 1 must be number";
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
             return false;
         }
@@ -91,7 +109,7 @@ napi_value NapiAccountIAMIdentityManager::OpenSession(napi_env env, napi_callbac
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resourceName,
         [](napi_env env, void *data) {
             IDMContext *context = reinterpret_cast<IDMContext *>(data);
-            context->errCode = AccountIAMClient::GetInstance().OpenSession(0, context->challenge);
+            context->errCode = AccountIAMClient::GetInstance().OpenSession(context->accountId, context->challenge);
         },
         [](napi_env env, napi_status status, void *data) {
             IDMContext *context = reinterpret_cast<IDMContext *>(data);
@@ -124,7 +142,7 @@ static bool ParseContextForUpdateCredential(napi_env env, napi_callback_info inf
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
-    if (ParseAddCredInfo(env, argv[PARAM_ZERO], context->addCredInfo) != napi_ok) {
+    if (ParseAddCredInfo(env, argv[PARAM_ZERO], context->addCredInfo, context->accountId) != napi_ok) {
         std::string errMsg = "Parameter error. The type of \"credentialInfo\" must be CredentialInfo";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
@@ -151,7 +169,7 @@ napi_value NapiAccountIAMIdentityManager::AddCredential(napi_env env, napi_callb
         [](napi_env env, void *data) {
             IDMContext *context = reinterpret_cast<IDMContext *>(data);
             auto idmCallback = std::make_shared<NapiIDMCallback>(context->env, context->callback);
-            AccountIAMClient::GetInstance().AddCredential(0, context->addCredInfo, idmCallback);
+            AccountIAMClient::GetInstance().AddCredential(context->accountId, context->addCredInfo, idmCallback);
         },
         [](napi_env env, napi_status status, void *data) {
             delete reinterpret_cast<IDMContext *>(data);
@@ -175,7 +193,7 @@ napi_value NapiAccountIAMIdentityManager::UpdateCredential(napi_env env, napi_ca
         [](napi_env env, void *data) {
             IDMContext *context = reinterpret_cast<IDMContext *>(data);
             auto idmCallback = std::make_shared<NapiIDMCallback>(context->env, context->callback);
-            AccountIAMClient::GetInstance().UpdateCredential(0, context->addCredInfo, idmCallback);
+            AccountIAMClient::GetInstance().UpdateCredential(context->accountId, context->addCredInfo, idmCallback);
         },
         [](napi_env env, napi_status status, void *data) {
             delete reinterpret_cast<IDMContext *>(data);
@@ -188,7 +206,11 @@ napi_value NapiAccountIAMIdentityManager::UpdateCredential(napi_env env, napi_ca
 
 napi_value NapiAccountIAMIdentityManager::CloseSession(napi_env env, napi_callback_info info)
 {
-    ErrCode errCode = AccountIAMClient::GetInstance().CloseSession(0);
+    auto context = std::make_unique<IDMContext>(env);
+    if (!ParseContextForCloseSession(env, info, context.get())) {
+        return nullptr;
+    }
+    ErrCode errCode = AccountIAMClient::GetInstance().CloseSession(context->accountId);
     if (errCode != ERR_OK) {
         AccountIAMNapiThrow(env, AccountIAMConvertToJSErrCode(errCode), true);
     }
@@ -322,6 +344,19 @@ napi_value NapiAccountIAMIdentityManager::DelCred(napi_env env, napi_callback_in
     return nullptr;
 }
 
+static bool ParseGetAuthInfoOptions(napi_env env, napi_value jsOptions, GetAuthInfoContext *context, int32_t &authType)
+{
+    if (!GetOptionalNumberPropertyByKey(env, jsOptions, "authType", authType)) {
+        ACCOUNT_LOGE("Get authOptions's authType failed");
+        return false;
+    }
+    if (!GetOptionalNumberPropertyByKey(env, jsOptions, "accountId", context->accountId)) {
+        ACCOUNT_LOGE("Get authOptions's accountId failed");
+        return false;
+    }
+    return true;
+}
+
 static napi_status ParseOneParamForGetAuthInfo(napi_env env, GetAuthInfoContext *context,
     napi_value *result, napi_value argv, int32_t &authType)
 {
@@ -338,6 +373,14 @@ static napi_status ParseOneParamForGetAuthInfo(napi_env env, GetAuthInfoContext 
         if (!GetIntProperty(env, argv, authType)) {
             ACCOUNT_LOGE("Get authType failed");
             std::string errMsg = "Parameter error. The type of \"authType\" must be AuthType";
+            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+            return napi_invalid_arg;
+        }
+        NAPI_CALL_BASE(env, napi_create_promise(env, &context->deferred, result), napi_generic_failure);
+    } else if (valueType == napi_object) {
+        if (!ParseGetAuthInfoOptions(env, argv, context, authType)) {
+            ACCOUNT_LOGE("Parse GetAuthInfoOptions failed");
+            std::string errMsg = "The type of arg 1 must be a valid object";
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
             return napi_invalid_arg;
         }
@@ -407,11 +450,70 @@ napi_value NapiAccountIAMIdentityManager::GetAuthInfo(napi_env env, napi_callbac
             GetAuthInfoContext *context = reinterpret_cast<GetAuthInfoContext *>(data);
             auto idmCallback = std::make_shared<NapiGetInfoCallback>(
                 context->env, context->callbackRef, context->deferred);
-            AccountIAMClient::GetInstance().GetCredentialInfo(0, context->authType, idmCallback);
+            AccountIAMClient::GetInstance().GetCredentialInfo(context->accountId, context->authType, idmCallback);
             context->callbackRef = nullptr;
         },
         [](napi_env env, napi_status status, void *data) {
             delete reinterpret_cast<GetAuthInfoContext *>(data);
+        },
+        reinterpret_cast<void *>(context.get()), &context->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_user_initiated));
+    context.release();
+    return result;
+}
+
+static bool ParseContextForGetEnrolledId(
+    napi_env env, napi_callback_info info, GetEnrolledIdContext *context, std::string &errMsg)
+{
+    size_t argc = ARG_SIZE_TWO;
+    napi_value argv[ARG_SIZE_TWO] = {0};
+
+    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (argc < ARG_SIZE_ONE) {
+        errMsg = "the parameter of number should be at least one";
+        return false;
+    }
+    if (argc == ARG_SIZE_TWO) {
+        if (!GetIntProperty(env, argv[argc - 1], context->accountId)) {
+            errMsg = "the type of arg 1 must be number";
+            return false;
+        }
+    }
+    int32_t authType = 0;
+    if (!GetIntProperty(env, argv[0], authType)) {
+        errMsg = "the type of arg 0 must be number";
+        return false;
+    }
+    context->authType = static_cast<AuthType>(authType);
+    return true;
+}
+
+napi_value NapiAccountIAMIdentityManager::GetEnrolledId(napi_env env, napi_callback_info info)
+{
+    auto context = std::make_unique<GetEnrolledIdContext>(env);
+    std::string errMsg;
+    if (!ParseContextForGetEnrolledId(env, info, context.get(), errMsg)) {
+        ACCOUNT_LOGE("Parse context failed, %{public}s", errMsg.c_str());
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return nullptr;
+    }
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_promise(env, &context->deferred, &result));
+    napi_value resourceName = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, "GetEnrolledId", NAPI_AUTO_LENGTH, &resourceName));
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resourceName,
+        [](napi_env env, void *data) {
+            if (data == nullptr) {
+                ACCOUNT_LOGE("Data is nullptr");
+                return;
+            }
+            GetEnrolledIdContext *context = reinterpret_cast<GetEnrolledIdContext *>(data);
+            auto getEnrolledIdCallback = std::make_shared<NapiGetEnrolledIdCallback>(
+                context->env, context->deferred);
+            AccountIAMClient::GetInstance().GetEnrolledId(context->accountId, context->authType, getEnrolledIdCallback);
+        },
+        [](napi_env env, napi_status status, void *data) {
+            delete reinterpret_cast<GetEnrolledIdContext *>(data);
         },
         reinterpret_cast<void *>(context.get()), &context->work));
     NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_user_initiated));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -132,8 +132,8 @@ static napi_status ParseContextForGetSetProperty(
         NAPI_CALL_BASE(env, napi_create_promise(env, &context->deferred, result), napi_generic_failure);
     }
     if (isGet) {
-        if (ParseGetPropRequest(env, argv[PARAM_ZERO], reinterpret_cast<GetPropertyContext *>(context)->request) !=
-            napi_ok) {
+        if (ParseGetPropRequest(env, argv[PARAM_ZERO], reinterpret_cast<GetPropertyContext *>(context)->request,
+            reinterpret_cast<GetPropertyContext *>(context)->accountId) != napi_ok) {
             std::string errMsg = "Parameter error. The type of \"request\" must be GetPropertyRequest";
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
             return napi_generic_failure;
@@ -169,7 +169,7 @@ napi_value NapiAccountIAMUserAuth::GetProperty(napi_env env, napi_callback_info 
             auto getPropCallback = std::make_shared<NapiGetPropCallback>(
                 context->env, context->callbackRef, context->deferred, context->request);
             context->callbackRef = nullptr;
-            AccountIAMClient::GetInstance().GetProperty(0, context->request, getPropCallback);
+            AccountIAMClient::GetInstance().GetProperty(context->accountId, context->request, getPropCallback);
         },
         [](napi_env env, napi_status status, void *data) {
             delete reinterpret_cast<GetPropertyContext *>(data);
