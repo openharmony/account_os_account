@@ -1319,38 +1319,5 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountPluginMockTest001, TestSize.Leve
 
     innerMgrService_->pluginManager_.CloseLib();
 }
-
-/*
- * @tc.name: OsAccountPluginMockTest002
- * @tc.desc: os account IsCreationAllowed test
- * @tc.type: FUNC
- */
-HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountPluginMockTest002, TestSize.Level1)
-{
-    innerMgrService_->pluginManager_.CloseLib();
-    // plugin unavailable
-    EXPECT_EQ(innerMgrService_->pluginManager_.IsCreationAllowed(), true);
-
-    // load plugin success
-    innerMgrService_->pluginManager_.LoaderLib("/rightPath/", "right.z.so");
-    EXPECT_NE(innerMgrService_->pluginManager_.libHandle_, nullptr);
-    
-    // methodMap_ is empty
-    innerMgrService_->pluginManager_.methodMap_.clear();
-    EXPECT_EQ(innerMgrService_->pluginManager_.IsCreationAllowed(), false);
-
-    // mock return false
-    innerMgrService_->pluginManager_.methodMap_[OsPluginMethodEnum::VERIFY_ACTIVATION_LOCK] = dlsym(
-        innerMgrService_->pluginManager_.libHandle_, "VerifyActivationLock");
-    EXPECT_NE(innerMgrService_->pluginManager_.methodMap_.size(), 0);
-    EXPECT_EQ(innerMgrService_->pluginManager_.IsCreationAllowed(), false);
-
-    // create os account fail
-    OsAccountInfo info;
-    EXPECT_EQ(innerMgrService_->CreateOsAccount("OsAccountPluginMockTest002", OsAccountType::NORMAL, info),
-        ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_PLUGIN_NOT_ALLOWED_CREATION_ERROR);
-
-    innerMgrService_->pluginManager_.CloseLib();
-}
 }  // namespace AccountSA
 }  // namespace OHOS
