@@ -51,6 +51,7 @@ typedef UserIam::UserAuth::CredentialParameters CredentialParameters;
 typedef UserIam::UserAuth::CredentialInfo CredentialInfo;
 typedef UserIam::UserAuth::GetSecUserInfoCallback GetSecUserInfoCallback;
 typedef UserIam::UserAuth::GetCredentialInfoCallback GetCredentialInfoCallback;
+typedef UserIam::UserAuth::PrepareRemoteAuthCallback PrepareRemoteAuthCallback;
 
 enum IAMAuthType {
     DOMAIN = 1024,
@@ -81,10 +82,41 @@ struct CredentialItem {
     std::vector<uint8_t> credential;
 };
 
+enum AuthIntent : int32_t {
+    DEFAULT = 0,
+    UNLOCK = 1,
+    INIT = 2,
+};
+
+struct RemoteAuthParam {
+    std::optional<std::string> verifierNetworkId;
+    std::optional<std::string> collectorNetworkId;
+    std::optional<uint32_t> collectorTokenId;
+};
+
 struct AuthParam {
+    int32_t userId = 0;
     std::vector<uint8_t> challenge;
     AuthType authType;
     AuthTrustLevel authTrustLevel;
+    AuthIntent authIntent = AuthIntent::DEFAULT;
+    std::optional<RemoteAuthParam> remoteAuthParam;
+};
+
+struct RemoteAuthOptions {
+    std::string verifierNetworkId;
+    std::string collectorNetworkId;
+    uint32_t collectorTokenId;
+    bool hasVerifierNetworkId = false;
+    bool hasCollectorNetworkId = false;
+    bool hasCollectorTokenId = false;
+};
+
+struct AuthOptions {
+    int32_t accountId = 0;
+    AuthIntent authIntent = AuthIntent::DEFAULT;
+    RemoteAuthOptions remoteAuthOptions;
+    bool hasRemoteAuthOptions = false;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

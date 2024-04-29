@@ -178,6 +178,17 @@ private:
     sptr<IGetEnrolledIdCallback> innerCallback_;
 };
 
+class PrepareRemoteAuthCallbackWrapper : public PrepareRemoteAuthCallback {
+public:
+    PrepareRemoteAuthCallbackWrapper(const sptr<IPreRemoteAuthCallback> &callback);
+    virtual ~PrepareRemoteAuthCallbackWrapper() = default;
+
+    void OnResult(int32_t result) override;
+
+private:
+    sptr<IPreRemoteAuthCallback> innerCallback_;
+};
+
 class GetDomainAuthStatusInfoCallback final : public DomainAccountCallback {
 public:
     GetDomainAuthStatusInfoCallback(const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback);

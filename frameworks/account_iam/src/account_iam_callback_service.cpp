@@ -86,6 +86,19 @@ void GetEnrolledIdCallbackService::OnEnrolledId(int32_t result, uint64_t enrolle
     callback_->OnEnrolledId(result, enrolledId);
 }
 
+PreRemoteAuthCallbackService::PreRemoteAuthCallbackService(
+    const std::shared_ptr<PreRemoteAuthCallback> &callback) : callback_(callback)
+{}
+
+void PreRemoteAuthCallbackService::OnResult(int32_t result)
+{
+    if (callback_ == nullptr) {
+        ACCOUNT_LOGE("Callback is nullptr.");
+        return;
+    }
+    callback_->OnResult(result);
+}
+
 DomainAuthCallbackAdapter::DomainAuthCallbackAdapter(
     const std::shared_ptr<IDMCallback> &callback) : callback_(callback)
 {}
@@ -156,7 +169,8 @@ IAMInputer::IAMInputer(int32_t userId, const std::shared_ptr<IInputer> &inputer)
 IAMInputer::~IAMInputer()
 {}
 
-void IAMInputer::OnGetData(int32_t authSubType, std::shared_ptr<IInputerData> inputerData)
+void IAMInputer::OnGetData(int32_t authSubType, std::vector<uint8_t> challenge,
+    std::shared_ptr<IInputerData> inputerData)
 {
     if (inputerData == nullptr) {
         ACCOUNT_LOGE("inputerData is nullptr");
@@ -178,7 +192,7 @@ void IAMInputer::OnGetData(int32_t authSubType, std::shared_ptr<IInputerData> in
         return;
     }
     auto iamInputerData = std::make_shared<IAMInputerData>(userId_, inputerData);
-    innerInputer_->OnGetData(authSubType, iamInputerData);
+    innerInputer_->OnGetData(authSubType, challenge, iamInputerData);
 }
 
 void IAMInputer::ResetInnerInputer(const std::shared_ptr<IInputer> &inputer)

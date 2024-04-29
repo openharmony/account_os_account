@@ -85,7 +85,8 @@ HWTEST_F(AccountIAMMgrProxyTest, AccountIAMMgrProxy001, TestSize.Level0)
     std::vector<uint8_t> challenge;
     CredentialParameters credInfo;
     const std::vector<uint8_t> authToken = {0, 0};
-    AuthParam authParam;
+    AccountSA::AuthParam authParam;
+    authParam.userId = TEST_USER_ID;
     uint64_t contextId;
     GetPropertyRequest g_request;
     SetPropertyRequest s_request;
@@ -103,7 +104,7 @@ HWTEST_F(AccountIAMMgrProxyTest, AccountIAMMgrProxy001, TestSize.Level0)
 
     int32_t ret = accountIAMMgrProxy->GetCredentialInfo(TEST_USER_ID, AuthType::ALL, nullptr);
     EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, ret);
-    ret = accountIAMMgrProxy->AuthUser(TEST_USER_ID, authParam, nullptr, contextId);
+    ret = accountIAMMgrProxy->AuthUser(authParam, nullptr, contextId);
     EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, ret);
 }
 }  // namespace AccountTest

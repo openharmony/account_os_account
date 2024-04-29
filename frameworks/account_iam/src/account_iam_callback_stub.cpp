@@ -214,5 +214,35 @@ ErrCode GetEnrolledIdCallbackStub::ProcOnEnrolledId(MessageParcel &data, Message
     OnEnrolledId(result, enrolledId);
     return ERR_OK;
 }
+
+int PreRemoteAuthCallbackStub::OnRemoteRequest(
+    uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    ACCOUNT_LOGD("Received stub message: %{public}d, callingUid: %{public}d, callingPid: %{public}d",
+        code, IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingPid());
+    if (data.ReadInterfaceToken() != GetDescriptor()) {
+        ACCOUNT_LOGE("Check PreRemoteAuthCallbackStub descriptor failed, code=%{public}u.", code);
+        return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
+    }
+    switch (code) {
+        case static_cast<uint32_t>(PreRemoteAuthCallbackInterfaceCode::ON_RESULT):
+            return ProcOnResult(data, reply);
+        default:
+            break;
+    }
+    ACCOUNT_LOGW("Remote request unhandled: %{public}d.", code);
+    return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+}
+
+ErrCode PreRemoteAuthCallbackStub::ProcOnResult(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t result;
+    if (!data.ReadInt32(result)) {
+        ACCOUNT_LOGE("Read result for PreRemoteAuthCallbackStub OnResult failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    OnResult(result);
+    return ERR_OK;
+}
 }  // namespace AccountSA
 }  // namespace OHOS

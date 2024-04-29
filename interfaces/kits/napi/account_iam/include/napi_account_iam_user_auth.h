@@ -34,6 +34,7 @@ private:
     static napi_value Auth(napi_env env, napi_callback_info info);
     static napi_value AuthUser(napi_env env, napi_callback_info info);
     static napi_value CancelAuth(napi_env env, napi_callback_info info);
+    static napi_value PrepareRemoteAuth(napi_env env, napi_callback_info info);
 };
 }  // namespace AccountJsKit
 }  // namespace OHOS

@@ -89,6 +89,13 @@ const std::map<uint32_t, AccountIAMMgrStub::AccountIAMMessageProc> messageProcMa
         }
     },
     {
+        static_cast<uint32_t>(AccountIAMInterfaceCode::PREPARE_REMOTE_AUTH),
+        {
+            .messageProcFunction = &AccountIAMMgrStub::ProcPrepareRemoteAuth,
+            .isSyetemApi = true,
+        }
+    },
+    {
         static_cast<uint32_t>(AccountIAMInterfaceCode::AUTH_USER),
         {
             .messageProcFunction = &AccountIAMMgrStub::ProcAuthUser,
@@ -370,17 +377,37 @@ ErrCode AccountIAMMgrStub::ProcGetCredentialInfo(MessageParcel &data, MessagePar
     return ERR_NONE;
 }
 
-ErrCode AccountIAMMgrStub::ProcAuthUser(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountIAMMgrStub::ProcPrepareRemoteAuth(MessageParcel &data, MessageParcel &reply)
 {
     if (!CheckPermission(ACCESS_USER_AUTH_INTERNAL)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
-    int32_t userId;
-    if (!data.ReadInt32(userId)) {
+    std::string remoteNetworkId;
+    if (!data.ReadString(remoteNetworkId)) {
+        ACCOUNT_LOGE("Read remoteNetworkId failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+
+    sptr<IPreRemoteAuthCallback> callback = iface_cast<IPreRemoteAuthCallback>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("PreRemoteAuthCallback is nullptr.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    int result = PrepareRemoteAuth(remoteNetworkId, callback);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Write result failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    return ERR_NONE;
+}
+
+ErrCode AccountIAMMgrStub::ReadAuthParam(MessageParcel &data, AuthParam &authParam)
+{
+    if (!data.ReadInt32(authParam.userId)) {
         ACCOUNT_LOGE("failed to read userId");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    AuthParam authParam;
     if (!data.ReadUInt8Vector(&authParam.challenge)) {
         ACCOUNT_LOGE("failed to read challenge");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
@@ -397,13 +424,87 @@ ErrCode AccountIAMMgrStub::ProcAuthUser(MessageParcel &data, MessageParcel &repl
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     authParam.authTrustLevel = static_cast<AuthTrustLevel>(authTrustLevel);
+    int32_t authIntent = 0;
+    if (!data.ReadInt32(authIntent)) {
+        ACCOUNT_LOGE("failed to read authIntent for AuthUser");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    authParam.authIntent = static_cast<AuthIntent>(authIntent);
+    return ERR_OK;
+}
+
+ErrCode AccountIAMMgrStub::ReadRemoteAuthParam(MessageParcel &data,
+    std::optional<RemoteAuthParam> &remoteAuthParam)
+{
+    bool res = false;
+    if (!data.ReadBool(res)) {
+        ACCOUNT_LOGE("Read RemoteAuthParam exist failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (!res) {
+        return ERR_OK;
+    }
+    remoteAuthParam = RemoteAuthParam();
+    if (!data.ReadBool(res)) {
+        ACCOUNT_LOGE("Read verifierNetworkId exist failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (res) {
+        std::string networkId;
+        if (!data.ReadString(networkId)) {
+            ACCOUNT_LOGE("Read verifierNetworkId failed.");
+            return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+        }
+        remoteAuthParam.value().verifierNetworkId = networkId;
+    }
+    if (!data.ReadBool(res)) {
+        ACCOUNT_LOGE("Read collectorNetworkId exist failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (res) {
+        std::string networkId;
+        if (!data.ReadString(networkId)) {
+            ACCOUNT_LOGE("Read collectorNetworkId failed.");
+            return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+        }
+        remoteAuthParam.value().collectorNetworkId = networkId;
+    }
+    if (!data.ReadBool(res)) {
+        ACCOUNT_LOGE("Read collectorTokenId exist failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (res) {
+        uint32_t tokenId;
+        if (!data.ReadUint32(tokenId)) {
+            ACCOUNT_LOGE("Read collectorTokenId failed.");
+            return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+        }
+        remoteAuthParam.value().collectorTokenId = tokenId;
+    }
+    return ERR_OK;
+}
+
+ErrCode AccountIAMMgrStub::ProcAuthUser(MessageParcel &data, MessageParcel &reply)
+{
+    if (!CheckPermission(ACCESS_USER_AUTH_INTERNAL)) {
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    AuthParam authParam;
+    if (ReadAuthParam(data, authParam) != ERR_OK) {
+        ACCOUNT_LOGE("failed to read authParam");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
     sptr<IIDMCallback> callback = iface_cast<IIDMCallback>(data.ReadRemoteObject());
     if (callback == nullptr) {
         ACCOUNT_LOGE("UserAuthCallbackInterface is nullptr");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
+    if (ReadRemoteAuthParam(data, authParam.remoteAuthParam) != ERR_OK) {
+        ACCOUNT_LOGE("failed to read RemoteAuthParam");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
     uint64_t contextId = 0;
-    ErrCode result = AuthUser(userId, authParam, callback, contextId);
+    ErrCode result = AuthUser(authParam, callback, contextId);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write result");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
