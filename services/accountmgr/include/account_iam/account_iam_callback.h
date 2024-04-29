@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -164,6 +164,18 @@ public:
 private:
     int32_t userId_;
     sptr<IGetSetPropCallback> innerCallback_;
+};
+
+class GetSecUserInfoCallbackWrapper : public GetSecUserInfoCallback {
+public:
+    GetSecUserInfoCallbackWrapper(AuthType authType, const sptr<IGetEnrolledIdCallback> &callback);
+    virtual ~GetSecUserInfoCallbackWrapper() = default;
+
+    void OnSecUserInfo(const SecUserInfo &info) override;
+
+private:
+    AuthType authType_;
+    sptr<IGetEnrolledIdCallback> innerCallback_;
 };
 
 class GetDomainAuthStatusInfoCallback final : public DomainAccountCallback {

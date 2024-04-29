@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -311,6 +311,19 @@ void InnerAccountIAMManager::SetProperty(
     }
     auto setCallback = std::make_shared<SetPropCallbackWrapper>(userId, callback);
     UserAuthClient::GetInstance().SetProperty(userId, request, setCallback);
+}
+
+void InnerAccountIAMManager::GetEnrolledId(
+    int32_t accountId, AuthType authType, const sptr<IGetEnrolledIdCallback> &callback)
+{
+    if (static_cast<int32_t>(authType) == static_cast<int32_t>(IAMAuthType::DOMAIN)) {
+        ACCOUNT_LOGE("Unsupported auth type");
+        uint64_t emptyId = 0;
+        callback->OnEnrolledId(ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE, emptyId);
+        return;
+    }
+    auto GetSecUserInfoCallback = std::make_shared<GetSecUserInfoCallbackWrapper>(authType, callback);
+    UserIDMClient::GetInstance().GetSecUserInfo(accountId, GetSecUserInfoCallback);
 }
 
 IAMState InnerAccountIAMManager::GetState(int32_t userId)

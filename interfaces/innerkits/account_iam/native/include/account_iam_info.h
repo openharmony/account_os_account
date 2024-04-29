@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,6 +37,7 @@ typedef UserIam::PinAuth::IInputerData IInputerData;
 typedef UserIam::UserAuth::ResultCode ResultCode;
 typedef UserIam::UserAuth::AuthType AuthType;
 typedef UserIam::UserAuth::Attributes Attributes;
+typedef UserIam::UserAuth::SecUserInfo SecUserInfo;
 typedef UserIam::UserAuth::AuthTrustLevel AuthTrustLevel;
 typedef UserIam::UserAuth::AuthenticationCallback AuthenticationCallback;
 typedef UserIam::UserAuth::GetPropCallback GetPropCallback;
@@ -48,10 +49,12 @@ typedef UserIam::UserAuth::PinSubType PinSubType;
 typedef UserIam::UserAuth::UserIdmClientCallback UserIdmClientCallback;
 typedef UserIam::UserAuth::CredentialParameters CredentialParameters;
 typedef UserIam::UserAuth::CredentialInfo CredentialInfo;
+typedef UserIam::UserAuth::GetSecUserInfoCallback GetSecUserInfoCallback;
 typedef UserIam::UserAuth::GetCredentialInfoCallback GetCredentialInfoCallback;
 
 enum IAMAuthType {
-    DOMAIN = 1024
+    DOMAIN = 1024,
+    TYPE_END,
 };
 
 enum IAMAuthSubType {

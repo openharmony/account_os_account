@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -290,6 +290,27 @@ void AccountIAMClient::SetProperty(
     }
     sptr<IGetSetPropCallback> wrapper = new (std::nothrow) GetSetPropCallbackService(callback);
     proxy->SetProperty(userId, request, wrapper);
+}
+
+void AccountIAMClient::GetEnrolledId(
+    int32_t accountId, AuthType authType, const std::shared_ptr<GetEnrolledIdCallback> &callback)
+{
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("The callback for get enrolled id is nullptr");
+        return;
+    }
+    uint64_t emptyResult = 0;
+    auto proxy = GetAccountIAMProxy();
+    if (proxy == nullptr) {
+        callback->OnEnrolledId(ERR_ACCOUNT_COMMON_GET_PROXY, emptyResult);
+        return;
+    }
+    sptr<IGetEnrolledIdCallback> wrapper = new (std::nothrow) GetEnrolledIdCallbackService(callback);
+    if (wrapper == nullptr) {
+        callback->OnEnrolledId(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, emptyResult);
+        return;
+    }
+    proxy->GetEnrolledId(accountId, authType, wrapper);
 }
 
 bool AccountIAMClient::CheckSelfPermission(const std::string &permissionName)

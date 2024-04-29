@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -196,6 +196,16 @@ public:
      */
     void SetProperty(
         int32_t userId, const SetPropertyRequest &request, const std::shared_ptr<GetSetPropCallback> &callback);
+
+    /**
+     * @brief Get the enrolled id based on the specified information.
+     * @permission ohos.permission.USE_USER_IDM
+     * @param accountId - Indicates the user identification.
+     * @param authType - Indicates the credential type.
+     * @param callback - Indicates the callback for getting result.
+     * @return error code, see account_error_no.h
+     */
+    void GetEnrolledId(int32_t accountId, AuthType authType, const std::shared_ptr<GetEnrolledIdCallback> &callback);
 
 #ifdef HAS_PIN_AUTH_PART
     /**

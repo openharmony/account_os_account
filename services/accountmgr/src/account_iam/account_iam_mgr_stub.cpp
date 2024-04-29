@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -120,6 +120,13 @@ const std::map<uint32_t, AccountIAMMgrStub::AccountIAMMessageProc> messageProcMa
         static_cast<uint32_t>(AccountIAMInterfaceCode::SET_PROPERTY),
         {
             .messageProcFunction = &AccountIAMMgrStub::ProcSetProperty,
+            .isSyetemApi = true,
+        }
+    },
+    {
+        static_cast<uint32_t>(AccountIAMInterfaceCode::GET_ENROLLED_ID),
+        {
+            .messageProcFunction = &AccountIAMMgrStub::ProcGetEnrolledId,
             .isSyetemApi = true,
         }
     },
@@ -526,6 +533,26 @@ ErrCode AccountIAMMgrStub::ProcGetAccountState(MessageParcel &data, MessageParce
         ACCOUNT_LOGE("failed to write state");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
+    return ERR_NONE;
+}
+
+ErrCode AccountIAMMgrStub::ProcGetEnrolledId(MessageParcel &data, MessageParcel &reply)
+{
+    if (!CheckPermission(USE_USER_IDM)) {
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    int32_t accountId;
+    int32_t authType;
+    ErrCode ret = ReadUserIdAndAuthType(data, accountId, authType);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    sptr<IGetEnrolledIdCallback> callback = iface_cast<IGetEnrolledIdCallback>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("Callback is nullptr");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    GetEnrolledId(accountId, static_cast<AuthType>(authType), callback);
     return ERR_NONE;
 }
 

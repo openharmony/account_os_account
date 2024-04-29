@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -447,6 +447,36 @@ void AccountIAMMgrProxy::SetProperty(
     int32_t result = SendRequest(AccountIAMInterfaceCode::SET_PROPERTY, data, reply);
     if (result != ERR_OK) {
         callback->OnResult(result, emptyResult);
+    }
+}
+
+void AccountIAMMgrProxy::GetEnrolledId(
+    int32_t accountId, AuthType authType, const sptr<IGetEnrolledIdCallback> &callback)
+{
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("Callback is nullptr");
+        return;
+    }
+    uint64_t emptyResult = 0;
+    MessageParcel data;
+    if (!WriteCommonData(data, accountId)) {
+        callback->OnEnrolledId(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyResult);
+        return;
+    }
+    if (!data.WriteInt32(authType)) {
+        ACCOUNT_LOGE("Failed to write authType");
+        callback->OnEnrolledId(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyResult);
+        return;
+    }
+    if (!data.WriteRemoteObject(callback->AsObject())) {
+        ACCOUNT_LOGE("Failed to write callback");
+        callback->OnEnrolledId(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyResult);
+        return;
+    }
+    MessageParcel reply;
+    int32_t result = SendRequest(AccountIAMInterfaceCode::GET_ENROLLED_ID, data, reply);
+    if (result != ERR_OK) {
+        callback->OnEnrolledId(result, emptyResult);
     }
 }
 
