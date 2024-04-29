@@ -62,6 +62,16 @@ public:
 private:
     ErrCode ProcOnEnrolledId(MessageParcel &data, MessageParcel &reply);
 };
+
+class PreRemoteAuthCallbackStub : public IRemoteStub<IPreRemoteAuthCallback> {
+public:
+    PreRemoteAuthCallbackStub() {};
+    int OnRemoteRequest(
+        uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
+
+private:
+    ErrCode ProcOnResult(MessageParcel &data, MessageParcel &reply);
+};
 }  // namespace AccountSA
 }  // namespace OHOS
 #endif  // OS_ACCOUNT_INTERFACES_INNERKITS_ACCOUNT_IAM_NATIVE_INCLUDE_ACCOUNT_IAM_CALLBACK_STUB_H

@@ -225,13 +225,14 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_AuthUser_0100, TestSize.Level0
     std::vector<uint8_t> challenge;
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
     ASSERT_NE(callback, nullptr);
-    AuthParam authParam = {
+    AccountSA::AuthParam authParam = {
+        .userId = 0,
         .challenge = challenge,
         .authType = AuthType::PIN,
         .authTrustLevel = AuthTrustLevel::ATL1
     };
     uint64_t contextId = 0;
-    ErrCode res = accountIAMService_->AuthUser(0, authParam, callback, contextId);
+    ErrCode res = accountIAMService_->AuthUser(authParam, callback, contextId);
     EXPECT_EQ(res, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 

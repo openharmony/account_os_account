@@ -39,6 +39,7 @@ constexpr size_t PARAM_ONE = 1;
 constexpr size_t PARAM_TWO = 2;
 constexpr size_t PARAM_THREE = 3;
 constexpr size_t PARAM_FOUR = 4;
+constexpr size_t PARAM_FIVE = 5;
 
 int32_t AccountIAMConvertToJSErrCode(int32_t errCode);
 
@@ -84,7 +85,28 @@ struct AuthContext {
     int32_t trustLevel = -1;
     bool throwErr = true;
     std::vector<uint8_t> challenge;
+    AccountSA::AuthOptions authOptions;
     std::shared_ptr<AccountSA::IDMCallback> callback;
+};
+
+struct PrepareRemoteAuthContext : public CommonAsyncContext {
+    explicit PrepareRemoteAuthContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
+    int32_t result = 0;
+    std::string remoteNetworkId;
+};
+
+class NapiPrepareRemoteAuthCallback : public AccountSA::PreRemoteAuthCallback {
+public:
+    explicit NapiPrepareRemoteAuthCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred);
+    virtual ~NapiPrepareRemoteAuthCallback();
+
+    void OnResult(int32_t result) override;
+
+private:
+    napi_env env_ = nullptr;
+    napi_ref callbackRef_ = nullptr;
+    napi_deferred deferred_ = nullptr;
+    std::mutex mutex_;
 };
 
 struct IDMContext : public CommonAsyncContext {
@@ -214,6 +236,7 @@ private:
 #ifdef HAS_PIN_AUTH_PART
 struct InputerContext : public CommonAsyncContext {
     int32_t authSubType = -1;
+    std::vector<uint8_t> challenge;
     std::shared_ptr<AccountSA::IInputerData> inputerData = nullptr;
     std::shared_ptr<NapiCallbackRef> callback;
 };
@@ -223,7 +246,8 @@ public:
     NapiGetDataCallback(napi_env env, const std::shared_ptr<NapiCallbackRef> &callback);
     virtual ~NapiGetDataCallback();
 
-    void OnGetData(int32_t authSubType, const std::shared_ptr<AccountSA::IInputerData> inputerData) override;
+    void OnGetData(int32_t authSubType, std::vector<uint8_t> challenge,
+        const std::shared_ptr<AccountSA::IInputerData> inputerData) override;
 
 private:
     napi_env env_;

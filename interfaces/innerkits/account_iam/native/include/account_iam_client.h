@@ -133,28 +133,39 @@ public:
     int32_t GetCredentialInfo(int32_t userId, AuthType authType, const std::shared_ptr<GetCredInfoCallback> &callback);
 
     /**
-     * @brief Executes user authentication.
+     * @brief Prepare remote auth.
      * @permission ohos.permission.ACCESS_USER_AUTH_INTERNAL
-     * @param challenge - Indicates the challenge value.
-     * @param authType - Indicates the authentication type.
-     * @param authTrustLevel - Indicates the trust level of authentication result.
-     * @param callback - Indicates the callback to get result and acquireInfo.
-     * @return a context ID for cancellation.
+     * @param remoteNetworkId - Indicates the remote network id.
+     * @param callback - Indicates the callback for getting result.
+     * @return error code, see account_error_no.h
      */
-    uint64_t Auth(const std::vector<uint8_t> &challenge, AuthType authType, AuthTrustLevel authTrustLevel,
-        const std::shared_ptr<IDMCallback> &callback);
+    int32_t PrepareRemoteAuth(
+        const std::string &remoteNetworkId, const std::shared_ptr<PreRemoteAuthCallback> &callback);
 
     /**
      * @brief Executes user authentication.
      * @permission ohos.permission.ACCESS_USER_AUTH_INTERNAL
-     * @param userId - Indicates the user identification.
+     * @param authOptions - Indicates the AuthOptions.
      * @param challenge - Indicates the challenge value.
      * @param authType - Indicates the authentication type.
      * @param authTrustLevel - Indicates the trust level of authentication result.
      * @param callback - Indicates the callback to get result and acquireInfo.
      * @return a context ID for cancellation.
      */
-    uint64_t AuthUser(int32_t userId, const std::vector<uint8_t> &challenge, AuthType authType,
+    uint64_t Auth(AuthOptions& authOptions, const std::vector<uint8_t> &challenge, AuthType authType,
+        AuthTrustLevel authTrustLevel, const std::shared_ptr<IDMCallback> &callback);
+
+    /**
+     * @brief Executes user authentication.
+     * @permission ohos.permission.ACCESS_USER_AUTH_INTERNAL
+     * @param authOptions - Indicates the AuthOptions.
+     * @param challenge - Indicates the challenge value.
+     * @param authType - Indicates the authentication type.
+     * @param authTrustLevel - Indicates the trust level of authentication result.
+     * @param callback - Indicates the callback to get result and acquireInfo.
+     * @return a context ID for cancellation.
+     */
+    uint64_t AuthUser(AuthOptions &authOptions, const std::vector<uint8_t> &challenge, AuthType authType,
         AuthTrustLevel authTrustLevel, const std::shared_ptr<IDMCallback> &callback);
 
     /**

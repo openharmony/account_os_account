@@ -272,6 +272,16 @@ napi_value FingerprintTipsConstructorForInnerkits(napi_env env)
     return fingerprintTips;
 }
 
+napi_value AuthIntentConstructorForInnerkits(napi_env env)
+{
+    napi_value authIntent = nullptr;
+    napi_value unlock = nullptr;
+    NAPI_CALL(env, napi_create_object(env, &authIntent));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(AuthIntent::UNLOCK), &unlock));
+    NAPI_CALL(env, napi_set_named_property(env, authIntent, "UNLOCK", unlock));
+    return authIntent;
+}
+
 napi_value NapiAccountIAMConstant::Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor descriptors[] = {
@@ -285,6 +295,7 @@ napi_value NapiAccountIAMConstant::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_PROPERTY("ResultCode", ResultCodeConstructor(env)),
         DECLARE_NAPI_PROPERTY("FaceTipsCode", FaceTipsCodeConstructor(env)),
         DECLARE_NAPI_PROPERTY("FingerprintTips", FingerprintTipsConstructorForInnerkits(env)),
+        DECLARE_NAPI_PROPERTY("AuthIntent", AuthIntentConstructorForInnerkits(env)),
     };
     napi_define_properties(env, exports, sizeof(descriptors) / sizeof(napi_property_descriptor), descriptors);
     return exports;
