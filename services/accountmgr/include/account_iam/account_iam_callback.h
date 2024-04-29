@@ -54,7 +54,6 @@ private:
     AuthType authType_;
     sptr<IIDMCallback> innerCallback_ = nullptr;
     sptr<AuthCallbackDeathRecipient> deathRecipient_ = nullptr;
-    bool isAccountVerified_ = false;
 };
 
 class IDMCallbackDeathRecipient : public IRemoteObject::DeathRecipient {
