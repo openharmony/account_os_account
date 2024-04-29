@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -71,6 +71,19 @@ void GetSetPropCallbackService::OnResult(int32_t result, const Attributes &extra
         return;
     }
     callback_->OnResult(result, extraInfo);
+}
+
+GetEnrolledIdCallbackService::GetEnrolledIdCallbackService(const std::shared_ptr<GetEnrolledIdCallback> &callback)
+    : callback_(callback)
+{}
+
+void GetEnrolledIdCallbackService::OnEnrolledId(int32_t result, uint64_t enrolledId)
+{
+    if (callback_ == nullptr) {
+        ACCOUNT_LOGE("Callback is nullptr");
+        return;
+    }
+    callback_->OnEnrolledId(result, enrolledId);
 }
 
 DomainAuthCallbackAdapter::DomainAuthCallbackAdapter(

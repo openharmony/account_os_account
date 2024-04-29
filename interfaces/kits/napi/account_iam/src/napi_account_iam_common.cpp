@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 
 #include <uv.h>
 #include "account_error_no.h"
+#include "account_iam_info.h"
 #include "account_log_wrapper.h"
 #include "napi_account_error.h"
 #include "napi_account_common.h"
@@ -52,6 +53,8 @@ static int32_t AccountIAMConvertOtherToJSErrCode(int32_t errCode)
             return ERR_JS_AUTH_SERVICE_LOCKED;
         case ERR_IAM_NOT_ENROLLED:
             return ERR_JS_CREDENTIAL_NOT_EXIST;
+        case ERR_IAM_COMPLEXITY_CHECK_FAILED:
+            return ERR_JS_COMPLEXITY_CHECK_FAILED;
         case ERR_IAM_INVALID_CONTEXT_ID:
             return ERR_JS_INVALID_CONTEXT_ID;
         case ERR_ACCOUNT_COMMON_INVALID_PARAMETER:
@@ -81,6 +84,8 @@ int32_t AccountIAMConvertToJSErrCode(int32_t errCode)
         return ERR_JS_PERMISSION_DENIED;
     } else if (errCode == ERR_ACCOUNT_COMMON_INVALID_PARAMETER) {
         return ERR_JS_INVALID_PARAMETER;
+    } else if (errCode == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR) {
+        return ERR_JS_ACCOUNT_NOT_FOUND;
     }
     return AccountIAMConvertOtherToJSErrCode(errCode);
 }
@@ -187,7 +192,7 @@ void NapiIDMCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const 
     param.release();
 }
 
-napi_status ParseAddCredInfo(napi_env env, napi_value value, CredentialParameters &addCredInfo)
+napi_status ParseAddCredInfo(napi_env env, napi_value value, CredentialParameters &addCredInfo, int32_t &accountId)
 {
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, value, &valueType);
@@ -205,7 +210,15 @@ napi_status ParseAddCredInfo(napi_env env, napi_value value, CredentialParameter
     napi_get_value_int32(env, result, &credSubType);
     addCredInfo.pinType = static_cast<PinSubType>(credSubType);
     napi_get_named_property(env, value, "token", &result);
-    return ParseUint8TypedArrayToVector(env, result, addCredInfo.token);
+    if (ParseUint8TypedArrayToVector(env, result, addCredInfo.token) != napi_ok) {
+        ACCOUNT_LOGE("Get Uint8Array data failed");
+        return napi_invalid_arg;
+    }
+    if (!GetOptionalNumberPropertyByKey(env, value, "accountId", accountId)) {
+        ACCOUNT_LOGE("Get accountId data failed");
+        return napi_invalid_arg;
+    }
+    return napi_ok;
 }
 
 napi_status ParseIAMCallback(napi_env env, napi_value object, std::shared_ptr<JsIAMCallback> &callback)
@@ -290,7 +303,7 @@ napi_status ConvertGetPropertyTypeToAttributeKey(GetPropertyType in,
     return napi_ok;
 }
 
-napi_status ParseGetPropRequest(napi_env env, napi_value object, GetPropertyRequest &request)
+napi_status ParseGetPropRequest(napi_env env, napi_value object, GetPropertyRequest &request, int32_t &accountId)
 {
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, object, &valueType);
@@ -315,6 +328,10 @@ napi_status ParseGetPropRequest(napi_env env, napi_value object, GetPropertyRequ
             return status;
         }
         request.keys.push_back(key);
+    }
+    if (!GetOptionalNumberPropertyByKey(env, object, "accountId", accountId)) {
+        ACCOUNT_LOGE("Get getPropRequest's accountId failed");
+        return napi_invalid_arg;
     }
     return napi_ok;
 }
@@ -558,6 +575,63 @@ void NapiGetInfoCallback::OnCredentialInfo(int32_t result, const std::vector<Acc
         return;
     }
     ACCOUNT_LOGI("create get credential info work finish");
+    work.release();
+    context.release();
+}
+
+NapiGetEnrolledIdCallback::NapiGetEnrolledIdCallback(napi_env env, napi_deferred deferred)
+    : env_(env), deferred_(deferred)
+{}
+
+NapiGetEnrolledIdCallback::~NapiGetEnrolledIdCallback()
+{}
+
+static void OnGetEnrolledIdWork(uv_work_t *work, int status)
+{
+    ACCOUNT_LOGI("enter");
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
+        ACCOUNT_LOGI("enter");
+        return;
+    }
+    std::unique_ptr<GetEnrolledIdContext> context(reinterpret_cast<GetEnrolledIdContext *>(work->data));
+    napi_env env = context->env;
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    if (context->errCode != ERR_OK) {
+        int32_t jsErrCode = AccountIAMConvertToJSErrCode(context->errCode);
+        errJs = GenerateBusinessError(env, jsErrCode, ConvertToJsErrMsg(jsErrCode));
+        napi_get_null(env, &dataJs);
+    } else {
+        napi_get_null(env, &errJs);
+        dataJs = CreateUint8Array(env, reinterpret_cast<uint8_t *>(&context->enrolledId), sizeof(uint64_t));
+    }
+    CallbackAsyncOrPromise(env, context.get(), errJs, dataJs);
+    napi_close_handle_scope(env, scope);
+}
+
+void NapiGetEnrolledIdCallback::OnEnrolledId(int32_t result, uint64_t enrolledId)
+{
+    std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
+    std::unique_ptr<GetEnrolledIdContext> context = std::make_unique<GetEnrolledIdContext>(env_);
+    uv_loop_s *loop = nullptr;
+    napi_get_uv_event_loop(env_, &loop);
+    if (loop == nullptr || work == nullptr || context == nullptr) {
+        ACCOUNT_LOGE("Failed for nullptr");
+        return;
+    }
+    context->deferred = deferred_;
+    context->errCode = result;
+    context->enrolledId = enrolledId;
+    work->data = reinterpret_cast<void *>(context.get());
+    ErrCode ret = uv_queue_work_with_qos(
+        loop, work.get(), [] (uv_work_t *work) {}, OnGetEnrolledIdWork, uv_qos_user_initiated);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Create get enrolled id work failed");
+        return;
+    }
+    ACCOUNT_LOGI("Create get enrolled id work finish");
     work.release();
     context.release();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -161,6 +161,30 @@ void AccountIAMService::SetProperty(
 IAMState AccountIAMService::GetAccountState(int32_t userId)
 {
     return InnerAccountIAMManager::GetInstance().GetState(userId);
+}
+
+void AccountIAMService::GetEnrolledId(
+    int32_t accountId, AuthType authType, const sptr<IGetEnrolledIdCallback> &callback)
+{
+    uint64_t emptyId = 0;
+    OsAccountInfo osAccountInfo;
+    if ((accountId != 0) &&
+        (IInnerOsAccountManager::GetInstance().QueryOsAccountById(accountId, osAccountInfo)) != ERR_OK) {
+        ACCOUNT_LOGE("Account is not exist");
+        callback->OnEnrolledId(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, emptyId);
+        return;
+    }
+    if ((accountId == 0) && (!GetCurrentUserId(accountId))) {
+        callback->OnEnrolledId(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyId);
+        return;
+    }
+    if ((authType < UserIam::UserAuth::ALL) ||
+        (static_cast<int32_t>(authType) >= static_cast<int32_t>(IAMAuthType::TYPE_END))) {
+        ACCOUNT_LOGE("AuthType is not in correct range");
+        callback->OnEnrolledId(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyId);
+        return;
+    }
+    InnerAccountIAMManager::GetInstance().GetEnrolledId(accountId, authType, callback);
 }
 
 bool AccountIAMService::GetCurrentUserId(int32_t &userId)

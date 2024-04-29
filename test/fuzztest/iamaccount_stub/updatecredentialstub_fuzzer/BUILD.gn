@@ -59,6 +59,7 @@ ohos_fuzztest("UpdateCredentialStubFuzzTest") {
   deps = [
     "${account_iam_framework_path}:account_iam_innerkits",
     "${common_path}:libaccount_common",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
     "${os_account_path}/services/accountmgr:accountmgr",
   ]
 
