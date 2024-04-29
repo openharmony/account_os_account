@@ -54,6 +54,7 @@ void DomainAccountStatusListenerManager::OnResult(const int32_t errCode, Parcel 
         return;
     }
     report.userId = userId;
+    std::lock_guard<std::mutex> lock(mutex_);
     for (auto listener : listenerAll_) {
         listener->OnStatusChanged(report);
     }
@@ -79,13 +80,9 @@ void DomainAccountStatusListenerManager::RemoveRecord(const std::shared_ptr<Doma
     listenerAll_.erase(listenerAllIter);
 }
 
-std::set<std::shared_ptr<DomainAccountStatusListener>> DomainAccountStatusListenerManager::GetListenerAllRecords()
-{
-    return listenerAll_;
-}
-
 bool DomainAccountStatusListenerManager::IsRecordEmpty()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     return listenerAll_.empty();
 }
 }  // namespace AccountSA
