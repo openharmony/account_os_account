@@ -57,16 +57,15 @@ static bool InitDomainPluginExecEnv(
     return true;
 }
 
-static napi_value CreatePluginAsyncCallback(
-    napi_env env, napi_callback callback, std::unique_ptr<JsDomainPluginParam> &param)
+static napi_value CreatePluginAsyncCallback(napi_env env, napi_callback callback, JsDomainPluginParam *param)
 {
     napi_value napiCallback = nullptr;
-    napi_status status = napi_create_function(env, "callback", NAPI_AUTO_LENGTH, callback, param.get(), &napiCallback);
+    napi_status status = napi_create_function(env, "callback", NAPI_AUTO_LENGTH, callback, param, &napiCallback);
     if (status != napi_ok) {
         ACCOUNT_LOGE("failed to create js function");
         return nullptr;
     }
-    status = napi_wrap(env, napiCallback, param.get(),
+    status = napi_wrap(env, napiCallback, param,
         [](napi_env env, void *data, void *hint) {
             ACCOUNT_LOGI("release JsDomainPluginParam");
             delete reinterpret_cast<JsDomainPluginParam *>(data);
@@ -121,7 +120,7 @@ static napi_value CreateNapiDomainAccountInfo(napi_env env, const DomainAccountI
     return napiInfo;
 }
 
-static napi_value CreateNapiGetAccessTokenOptions(const std::unique_ptr<JsDomainPluginParam> &param)
+static napi_value CreateNapiGetAccessTokenOptions(const JsDomainPluginParam *param)
 {
     napi_value napiOptions = nullptr;
     NAPI_CALL(param->env, napi_create_object(param->env, &napiOptions));
@@ -320,7 +319,7 @@ static napi_value GetDomainAccountInfoCallback(napi_env env, napi_callback_info 
     return nullptr;
 }
 
-static napi_value CreatePluginAccountInfoOptions(const std::unique_ptr<JsDomainPluginParam> &param)
+static napi_value CreatePluginAccountInfoOptions(const JsDomainPluginParam *param)
 {
     napi_value napiOptions = nullptr;
     NAPI_CALL(param->env, napi_create_object(param->env, &napiOptions));
@@ -345,7 +344,7 @@ static void GetDomainAccountInfoWork(uv_work_t *work, int status)
     if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
-    std::unique_ptr<JsDomainPluginParam> param(reinterpret_cast<JsDomainPluginParam *>(work->data));
+    JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
     napi_value napiCallback = CreatePluginAsyncCallback(param->env, GetDomainAccountInfoCallback, param);
     napi_value getDomainAccountInfoPLuginOptions = CreatePluginAccountInfoOptions(param);
     napi_value argv[] = {getDomainAccountInfoPLuginOptions, napiCallback};
@@ -354,6 +353,7 @@ static void GetDomainAccountInfoWork(uv_work_t *work, int status)
     param->lockInfo->count--;
     param->lockInfo->condition.notify_all();
     napi_close_handle_scope(param->env, scope);
+    delete param;
 }
 
 static napi_value OnAccountBoundCallback(napi_env env, napi_callback_info cbInfo)
@@ -387,7 +387,7 @@ static void OnAccountBoundWork(uv_work_t *work, int status)
     if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
-    std::unique_ptr<JsDomainPluginParam> param(reinterpret_cast<JsDomainPluginParam *>(work->data));
+    JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
     napi_value napiLocalId = nullptr;
     napi_create_int32(param->env, param->userId, &napiLocalId);
     napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
@@ -398,6 +398,7 @@ static void OnAccountBoundWork(uv_work_t *work, int status)
     param->lockInfo->count--;
     param->lockInfo->condition.notify_all();
     napi_close_handle_scope(param->env, scope);
+    delete param;
 }
 
 static void OnAccountUnBoundWork(uv_work_t *work, int status)
@@ -407,7 +408,7 @@ static void OnAccountUnBoundWork(uv_work_t *work, int status)
     if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
-    std::unique_ptr<JsDomainPluginParam> param(reinterpret_cast<JsDomainPluginParam *>(work->data));
+    JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
     napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
     napi_value napiCallback = CreatePluginAsyncCallback(param->env, OnAccountBoundCallback, param);
     napi_value argv[] = {napiDomainAccountInfo, napiCallback};
@@ -416,6 +417,7 @@ static void OnAccountUnBoundWork(uv_work_t *work, int status)
     param->lockInfo->count--;
     param->lockInfo->condition.notify_all();
     napi_close_handle_scope(param->env, scope);
+    delete param;
 }
 
 static napi_value GetAuthStatusInfoCallback(napi_env env, napi_callback_info cbInfo)
@@ -503,7 +505,7 @@ static void GetAccessTokenWork(uv_work_t *work, int status)
     if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
-    std::unique_ptr<JsDomainPluginParam> param(reinterpret_cast<JsDomainPluginParam *>(work->data));
+    JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
     napi_value napiCallback = CreatePluginAsyncCallback(param->env, GetAccessTokenCallback, param);
     napi_value napiOptions = CreateNapiGetAccessTokenOptions(param);
     napi_value argv[] = {napiOptions, napiCallback};
@@ -512,6 +514,7 @@ static void GetAccessTokenWork(uv_work_t *work, int status)
     param->lockInfo->count--;
     param->lockInfo->condition.notify_all();
     napi_close_handle_scope(param->env, scope);
+    delete param;
 }
 
 static void IsUserTokenValidWork(uv_work_t *work, int status)
@@ -521,7 +524,7 @@ static void IsUserTokenValidWork(uv_work_t *work, int status)
     if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
-    std::unique_ptr<JsDomainPluginParam> param(reinterpret_cast<JsDomainPluginParam *>(work->data));
+    JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
     napi_value napiCallback = CreatePluginAsyncCallback(param->env, IsUserTokenValidCallback, param);
     napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
     napi_value napiUserToken = CreateUint8Array(param->env, param->authData.data(), param->authData.size());
@@ -531,6 +534,7 @@ static void IsUserTokenValidWork(uv_work_t *work, int status)
     param->lockInfo->count--;
     param->lockInfo->condition.notify_all();
     napi_close_handle_scope(param->env, scope);
+    delete param;
 }
 
 static void GetAuthStatusInfoWork(uv_work_t *work, int status)
@@ -540,7 +544,7 @@ static void GetAuthStatusInfoWork(uv_work_t *work, int status)
     if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
-    std::unique_ptr<JsDomainPluginParam> param(reinterpret_cast<JsDomainPluginParam *>(work->data));
+    JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
     napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
     napi_value napiCallback = CreatePluginAsyncCallback(param->env, GetAuthStatusInfoCallback, param);
     napi_value argv[] = {napiDomainAccountInfo, napiCallback};
@@ -549,6 +553,7 @@ static void GetAuthStatusInfoWork(uv_work_t *work, int status)
     param->lockInfo->count--;
     param->lockInfo->condition.notify_all();
     napi_close_handle_scope(param->env, scope);
+    delete param;
 }
 
 NapiDomainAccountPlugin::NapiDomainAccountPlugin(napi_env env, const JsDomainPlugin &jsPlugin)

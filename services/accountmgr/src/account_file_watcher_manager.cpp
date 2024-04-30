@@ -241,7 +241,7 @@ void AccountFileWatcherMgr::DealWithFileEvent()
         char buf[BUF_COMMON_SIZE] = {0};
         struct inotify_event *event = nullptr;
         int len = 0;
-        uint32_t index = 0;
+        int index = 0;
         while (((len = read(inotifyFd_, &buf, sizeof(buf))) < 0) && (errno == EINTR)) {};
         while (index < len) {
             event = reinterpret_cast<inotify_event *>(buf + index);
@@ -251,7 +251,7 @@ void AccountFileWatcherMgr::DealWithFileEvent()
                     eventMap.emplace_back(std::make_pair(fileWatcher, event->mask));
                 }
             }
-            index += sizeof(struct inotify_event) + event->len;
+            index += static_cast<int>(sizeof(struct inotify_event) + event->len);
         }
     }
     for (auto it : eventMap) {
