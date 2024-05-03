@@ -81,7 +81,8 @@ public:
 class MockIInputer : public OHOS::AccountSA::IInputer {
 public:
     virtual ~MockIInputer() {}
-    void OnGetData(int32_t authSubType, std::shared_ptr<IInputerData> inputerData) override
+    void OnGetData(int32_t authSubType, std::vector<uint8_t> challenge,
+        std::shared_ptr<IInputerData> inputerData) override
     {
         return;
     }
@@ -304,8 +305,10 @@ HWTEST_F(AccountIAMClientNoPermissionTest, AccountIAMClientNoPermission_AuthUser
     SetPropertyRequest testRequest = {};
     auto callback = std::make_shared<MockIDMCallback>();
     ASSERT_NE(callback, nullptr);
+    AuthOptions authOptions;
+    authOptions.accountId = TEST_USER_ID;
     int32_t res = AccountIAMClient::GetInstance().AuthUser(
-        TEST_USER_ID, TEST_CHALLENGE, AuthType::PIN, AuthTrustLevel::ATL1, callback);
+        authOptions, TEST_CHALLENGE, AuthType::PIN, AuthTrustLevel::ATL1, callback);
     EXPECT_EQ(res, ERR_OK);
 }
 

@@ -195,14 +195,50 @@ int32_t InnerAccountIAMManager::Cancel(int32_t userId)
     return UserIDMClient::GetInstance().Cancel(userId);
 }
 
-int32_t InnerAccountIAMManager::AuthUser(
-    int32_t userId, const AuthParam &authParam, const sptr<IIDMCallback> &callback, uint64_t &contextId)
+int32_t InnerAccountIAMManager::PrepareRemoteAuth(
+    const std::string &remoteNetworkId, const sptr<IPreRemoteAuthCallback> &callback)
 {
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
-    if ((authParam.authType != AuthType::PIN) && (!IsNonPINAllowed(userId))) {
+    ACCOUNT_LOGI("Start IAM PrepareRemoteAuth.");
+    auto prepareCallback = std::make_shared<PrepareRemoteAuthCallbackWrapper>(callback);
+    return UserAuthClient::GetInstance().PrepareRemoteAuth(remoteNetworkId, prepareCallback);
+}
+
+void InnerAccountIAMManager::CopyAuthParam(const AuthParam &authParam, UserIam::UserAuth::AuthParam &iamAuthParam)
+{
+    iamAuthParam.userId = authParam.userId;
+    iamAuthParam.challenge = authParam.challenge;
+    iamAuthParam.authType = authParam.authType;
+    iamAuthParam.authTrustLevel = authParam.authTrustLevel;
+    iamAuthParam.authIntent = static_cast<UserIam::UserAuth::AuthIntent>(authParam.authIntent);
+    if (authParam.remoteAuthParam != std::nullopt) {
+        iamAuthParam.remoteAuthParam = UserIam::UserAuth::RemoteAuthParam();
+        if (authParam.remoteAuthParam.value().verifierNetworkId != std::nullopt) {
+            iamAuthParam.remoteAuthParam.value().verifierNetworkId =
+                authParam.remoteAuthParam.value().verifierNetworkId.value();
+        }
+        if (authParam.remoteAuthParam.value().collectorNetworkId != std::nullopt) {
+            iamAuthParam.remoteAuthParam.value().collectorNetworkId =
+                authParam.remoteAuthParam.value().collectorNetworkId.value();
+        }
+        if (authParam.remoteAuthParam.value().collectorTokenId != std::nullopt) {
+            iamAuthParam.remoteAuthParam.value().collectorTokenId =
+                authParam.remoteAuthParam.value().collectorTokenId.value();
+        }
+    }
+}
+
+int32_t InnerAccountIAMManager::AuthUser(
+    AuthParam &authParam, const sptr<IIDMCallback> &callback, uint64_t &contextId)
+{
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("callback is nullptr");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
+    if ((authParam.authType != AuthType::PIN) && (!IsNonPINAllowed(authParam.userId))) {
         ACCOUNT_LOGE("unsupported auth type: %{public}d", authParam.authType);
         return ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE;
     }
@@ -211,10 +247,13 @@ int32_t InnerAccountIAMManager::AuthUser(
         ACCOUNT_LOGE("failed to add death recipient for auth callback");
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
-    auto callbackWrapper = std::make_shared<AuthCallback>(userId, authParam.authType, callback);
+    auto callbackWrapper = std::make_shared<AuthCallback>(authParam.userId, authParam.authType, callback);
     callbackWrapper->SetDeathRecipient(deathRecipient);
-    contextId = UserAuthClient::GetInstance().BeginAuthentication(
-        userId, authParam.challenge, authParam.authType, authParam.authTrustLevel, callbackWrapper);
+
+    UserIam::UserAuth::AuthParam iamAuthParam;
+    CopyAuthParam(authParam, iamAuthParam);
+    ACCOUNT_LOGI("Start IAM AuthUser.");
+    contextId = UserAuthClient::GetInstance().BeginAuthentication(iamAuthParam, callbackWrapper);
     deathRecipient->SetContextId(contextId);
     return ERR_OK;
 }

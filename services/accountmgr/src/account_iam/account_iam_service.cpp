@@ -109,13 +109,19 @@ int32_t AccountIAMService::GetCredentialInfo(
     return ERR_OK;
 }
 
-int32_t AccountIAMService::AuthUser(
-    int32_t userId, const AuthParam &authParam, const sptr<IIDMCallback> &callback, uint64_t &contextId)
+int32_t AccountIAMService::PrepareRemoteAuth(
+    const std::string &remoteNetworkId, const sptr<IPreRemoteAuthCallback> &callback)
 {
-    if ((userId == 0) && (!GetCurrentUserId(userId))) {
+    return InnerAccountIAMManager::GetInstance().PrepareRemoteAuth(remoteNetworkId, callback);
+}
+
+int32_t AccountIAMService::AuthUser(
+    AuthParam &authParam, const sptr<IIDMCallback> &callback, uint64_t &contextId)
+{
+    if ((authParam.userId == 0) && (!GetCurrentUserId(authParam.userId))) {
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    return InnerAccountIAMManager::GetInstance().AuthUser(userId, authParam, callback, contextId);
+    return InnerAccountIAMManager::GetInstance().AuthUser(authParam, callback, contextId);
 }
 
 int32_t AccountIAMService::CancelAuth(uint64_t contextId)

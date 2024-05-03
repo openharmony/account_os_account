@@ -40,6 +40,11 @@ class GetEnrolledIdCallback {
 public:
     virtual void OnEnrolledId(int32_t result, uint64_t enrolledId) = 0;
 };
+
+class PreRemoteAuthCallback {
+public:
+    virtual void OnResult(int32_t result) = 0;
+};
 }  // namespace AccountSA
 }  // namespace OHOS
 #endif  // OS_ACCOUNT_INTERFACES_INNERKITS_ACCOUNT_IAM_NATIVE_INCLUDE_ACCOUNT_IAM_CLIENT_CALLBACK_H

@@ -159,6 +159,7 @@ enum class AccountIAMInterfaceCode : uint32_t {
     DEL_CRED,
     DEL_USER,
     GET_CREDENTIAL_INFO,
+    PREPARE_REMOTE_AUTH,
     AUTH_USER,
     CANCEL_AUTH,
     GET_AVAILABLE_STATUS,
@@ -262,6 +263,10 @@ enum class GetSetPropCallbackInterfaceCode : uint32_t {
 
 enum class GetEnrolledIdCallbackInterfaceCode : uint32_t {
     ON_ENROLLED_ID = 0,
+};
+
+enum class PreRemoteAuthCallbackInterfaceCode : uint32_t {
+    ON_RESULT = 0,
 };
 }  // namespace AccountSA
 }  // namespace OHOS

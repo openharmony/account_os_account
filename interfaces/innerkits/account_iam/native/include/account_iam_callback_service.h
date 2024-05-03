@@ -66,6 +66,16 @@ private:
     DISALLOW_COPY_AND_MOVE(GetEnrolledIdCallbackService);
 };
 
+class PreRemoteAuthCallbackService : public PreRemoteAuthCallbackStub {
+public:
+    explicit PreRemoteAuthCallbackService(const std::shared_ptr<PreRemoteAuthCallback> &callback);
+    void OnResult(int32_t result) override;
+
+private:
+    std::shared_ptr<PreRemoteAuthCallback> callback_;
+    DISALLOW_COPY_AND_MOVE(PreRemoteAuthCallbackService);
+};
+
 class DomainAuthCallbackAdapter final : public DomainAccountCallback {
 public:
     explicit DomainAuthCallbackAdapter(const std::shared_ptr<IDMCallback> &callback);
@@ -104,7 +114,8 @@ public:
     IAMInputer(int32_t userId, const std::shared_ptr<IInputer> &inputer);
     virtual ~IAMInputer();
 
-    void OnGetData(int32_t authSubType, std::shared_ptr<IInputerData> inputerData) override;
+    void OnGetData(int32_t authSubType, std::vector<uint8_t> challenge,
+        std::shared_ptr<IInputerData> inputerData) override;
     void ResetInnerInputer(const std::shared_ptr<IInputer> &inputer);
 private:
     int32_t userId_;

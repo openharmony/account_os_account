@@ -41,8 +41,9 @@ public:
         int32_t userId, const std::vector<uint8_t> &authToken, const sptr<IIDMCallback> &callback) = 0;
     virtual int32_t GetCredentialInfo(
         int32_t userId, AuthType authType, const sptr<IGetCredInfoCallback> &callback) = 0;
-    virtual int32_t AuthUser(
-        int32_t userId, const AuthParam &authParam, const sptr<IIDMCallback> &callback, uint64_t &contextId) = 0;
+    virtual int32_t PrepareRemoteAuth(
+        const std::string &remoteNetworkId, const sptr<IPreRemoteAuthCallback> &callback) = 0;
+    virtual int32_t AuthUser(AuthParam &authParam, const sptr<IIDMCallback> &callback, uint64_t &contextId) = 0;
     virtual int32_t CancelAuth(uint64_t contextId) = 0;
     virtual int32_t GetAvailableStatus(AuthType authType, AuthTrustLevel authTrustLevel, int32_t &status) = 0;
     virtual void GetProperty(
