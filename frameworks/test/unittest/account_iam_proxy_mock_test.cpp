@@ -194,8 +194,10 @@ HWTEST_F(AccountIAMProxyMockTest, AccountIAMClient_AuthUser_0100, TestSize.Level
     SetPropertyRequest testRequest = {};
     auto testCallback = std::make_shared<IDMCallbackMockTest>();
     ASSERT_NE(testCallback, nullptr);
+    AuthOptions authOptions;
+    authOptions.accountId = TEST_USER_ID;
     ASSERT_EQ(static_cast<uint64_t>(0), AccountIAMClient::GetInstance().AuthUser(
-        TEST_USER_ID, TEST_CHALLENGE, AuthType::PIN, AuthTrustLevel::ATL1, testCallback));
+        authOptions, TEST_CHALLENGE, AuthType::PIN, AuthTrustLevel::ATL1, testCallback));
 }
 
 /**

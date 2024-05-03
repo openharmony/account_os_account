@@ -163,5 +163,25 @@ void GetEnrolledIdCallbackProxy::OnEnrolledId(int32_t result, uint64_t enrolledI
     uint32_t code = static_cast<uint32_t>(GetEnrolledIdCallbackInterfaceCode::ON_ENROLLED_ID);
     SendRequestFunc(Remote(), code, data, reply);
 }
+
+PreRemoteAuthCallbackProxy::PreRemoteAuthCallbackProxy(const sptr<IRemoteObject> &object)
+    : IRemoteProxy<IPreRemoteAuthCallback>(object)
+{}
+
+void PreRemoteAuthCallbackProxy::OnResult(int32_t result)
+{
+    uint32_t code = static_cast<uint32_t>(PreRemoteAuthCallbackInterfaceCode::ON_RESULT);
+    MessageParcel data;
+    MessageParcel reply;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Write descriptor failed.");
+        return;
+    }
+    if (!data.WriteInt32(result)) {
+        ACCOUNT_LOGE("Write result failed.");
+        return;
+    }
+    SendRequestFunc(Remote(), code, data, reply);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

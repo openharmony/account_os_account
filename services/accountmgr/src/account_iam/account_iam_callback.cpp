@@ -398,6 +398,22 @@ void GetSecUserInfoCallbackWrapper::OnSecUserInfo(const SecUserInfo &info)
     return innerCallback_->OnEnrolledId(ERR_IAM_NOT_ENROLLED, enrolledId);
 }
 
+PrepareRemoteAuthCallbackWrapper::PrepareRemoteAuthCallbackWrapper(const sptr<IPreRemoteAuthCallback> &callback)
+    : innerCallback_(callback)
+{}
+
+void PrepareRemoteAuthCallbackWrapper::OnResult(int32_t result)
+{
+    if (innerCallback_ == nullptr) {
+        ACCOUNT_LOGE("Inner callback is nullptr.");
+        return;
+    }
+    if (result != 0) {
+        ACCOUNT_LOGE("PrepareRemoteAuth, result=%{public}d fail to prepare remote auth.", result);
+    }
+    innerCallback_->OnResult(result);
+}
+
 GetDomainAuthStatusInfoCallback::GetDomainAuthStatusInfoCallback(
     const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback)
     : request_(request), innerCallback_(callback)

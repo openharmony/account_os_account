@@ -47,6 +47,12 @@ public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IGetEnrolledIdCallback");
     virtual void OnEnrolledId(int32_t result, uint64_t enrolledId) = 0;
 };
+
+class IPreRemoteAuthCallback : public IRemoteBroker {
+public:
+    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IPreRemoteAuthCallback");
+    virtual void OnResult(int32_t result) = 0;
+};
 }  // namespace AccountSA
 }  // OHOS
 #endif  // OS_ACCOUNT_INTERFACES_INNERKITS_ACCOUNT_IAM_NATIVE_INCLUDE_ACCOUNT_IAM_CALLBACK_H

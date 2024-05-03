@@ -54,8 +54,9 @@ public:
     void GetCredentialInfo(
         int32_t userId, AuthType authType, const sptr<IGetCredInfoCallback> &callback);
     int32_t Cancel(int32_t userId);
-    int32_t AuthUser(
-        int32_t userId, const AuthParam &authParam, const sptr<IIDMCallback> &callback, uint64_t &contextId);
+    int32_t PrepareRemoteAuth(
+        const std::string &remoteNetworkId, const sptr<IPreRemoteAuthCallback> &callback);
+    int32_t AuthUser(AuthParam &authParam, const sptr<IIDMCallback> &callback, uint64_t &contextId);
     int32_t CancelAuth(uint64_t contextId);
     int32_t GetAvailableStatus(AuthType authType, AuthTrustLevel authTrustLevel, int32_t &status);
     void GetProperty(
@@ -84,6 +85,7 @@ private:
     ErrCode GetStorageManagerProxy();
     ErrCode GetDomainAuthStatusInfo(
         int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback);
+    void CopyAuthParam(const AuthParam &authParam, UserIam::UserAuth::AuthParam &iamAuthParam);
 
 private:
     std::mutex mutex_;

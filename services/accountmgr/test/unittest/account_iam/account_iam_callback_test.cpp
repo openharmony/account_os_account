@@ -54,7 +54,8 @@ const static AccessTokenID g_accountMgrTokenID = AccessTokenKit::GetNativeTokenI
 class MockIInputer final : public IInputer {
 public:
     virtual ~MockIInputer() {}
-    void OnGetData(int32_t authSubType, std::shared_ptr<IInputerData> inputerData) override
+    void OnGetData(int32_t authSubType, std::vector<uint8_t> challenge,
+        std::shared_ptr<IInputerData> inputerData) override
     {
         return;
     }

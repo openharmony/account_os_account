@@ -639,16 +639,17 @@ HWTEST_F(AccountIamManagerTest, AuthUser001, TestSize.Level0)
     sptr<TestIIDMCallback> testCallback = new(std::nothrow) TestIIDMCallback(callback);
     EXPECT_NE(testCallback, nullptr);
     EXPECT_CALL(*callback, OnResult(_, _)).Times(0);
-    AuthParam authParam = {
+    AccountSA::AuthParam authParam = {
+        .userId = TEST_USER_ID,
         .challenge = TEST_CHALLENGE,
         .authType = AuthType::PIN,
         .authTrustLevel = AuthTrustLevel::ATL1
     };
     uint64_t contextId = 0;
-    ErrCode errCode = InnerAccountIAMManager::GetInstance().AuthUser(TEST_USER_ID, authParam, nullptr, contextId);
+    ErrCode errCode = InnerAccountIAMManager::GetInstance().AuthUser(authParam, nullptr, contextId);
     EXPECT_EQ(ERR_ACCOUNT_COMMON_NULL_PTR_ERROR, errCode);
 
-    errCode = InnerAccountIAMManager::GetInstance().AuthUser(TEST_USER_ID, authParam, testCallback, contextId);
+    errCode = InnerAccountIAMManager::GetInstance().AuthUser(authParam, testCallback, contextId);
     EXPECT_EQ(ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT, errCode);
     InnerAccountIAMManager::GetInstance().CancelAuth(contextId);
 }
@@ -683,13 +684,14 @@ HWTEST_F(AccountIamManagerTest, GetChallenge001, TestSize.Level2)
     sptr<TestIIDMCallback> testCallback = new(std::nothrow) TestIIDMCallback(callback);
     EXPECT_NE(testCallback, nullptr);
     EXPECT_CALL(*callback, OnResult(_, _)).Times(0);
-    AuthParam authParam = {
+    AccountSA::AuthParam authParam = {
+        .userId = TEST_USER_ID,
         .challenge = TEST_CHALLENGE,
         .authType = AuthType::PIN,
         .authTrustLevel = AuthTrustLevel::ATL1
     };
     uint64_t contextId = 0;
-    ErrCode errCode = InnerAccountIAMManager::GetInstance().AuthUser(TEST_USER_ID, authParam, testCallback, contextId);
+    ErrCode errCode = InnerAccountIAMManager::GetInstance().AuthUser(authParam, testCallback, contextId);
     EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT);
 
     std::vector<uint8_t> outChallenge;

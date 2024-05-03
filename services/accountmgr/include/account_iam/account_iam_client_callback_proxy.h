@@ -71,6 +71,18 @@ private:
 private:
     static inline BrokerDelegator<GetEnrolledIdCallbackProxy> delegator_;
 };
+
+class PreRemoteAuthCallbackProxy : public IRemoteProxy<IPreRemoteAuthCallback> {
+public:
+    explicit PreRemoteAuthCallbackProxy(const sptr<IRemoteObject> &object);
+    void OnResult(int32_t result) override;
+
+private:
+    ErrCode SendRequest(PreRemoteAuthCallbackInterfaceCode code, MessageParcel &data, MessageParcel &reply);
+
+private:
+    static inline BrokerDelegator<PreRemoteAuthCallbackProxy> delegator_;
+};
 }  // namespace AccountSA
 }  // namespace OHOS
 #endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_IAM_CLIENT_CALLBACK_PROXY_H

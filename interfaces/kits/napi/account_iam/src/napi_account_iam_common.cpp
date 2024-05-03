@@ -761,6 +761,74 @@ NapiSetPropCallback::~NapiSetPropCallback()
     deferred_ = nullptr;
 }
 
+NapiPrepareRemoteAuthCallback::NapiPrepareRemoteAuthCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred)
+    : env_(env), callbackRef_(callbackRef), deferred_(deferred)
+{}
+
+NapiPrepareRemoteAuthCallback::~NapiPrepareRemoteAuthCallback()
+{
+    if (callbackRef_ != nullptr) {
+        ReleaseNapiRefAsync(env_, callbackRef_);
+        callbackRef_ = nullptr;
+    }
+    deferred_ = nullptr;
+}
+
+static void OnPrepareRemoteAuthWork(uv_work_t* work, int status)
+{
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
+        return;
+    }
+    std::unique_ptr<PrepareRemoteAuthContext> context(reinterpret_cast<PrepareRemoteAuthContext *>(work->data));
+    napi_env env = context->env;
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    context->errCode = context->result;
+    if (context->result != ERR_OK) {
+        int32_t jsErrCode = AccountIAMConvertToJSErrCode(context->result);
+        errJs = GenerateBusinessError(env, jsErrCode, ConvertToJsErrMsg(jsErrCode));
+        napi_get_null(env, &dataJs);
+    } else {
+        napi_get_null(env, &errJs);
+        napi_get_null(env, &dataJs);
+    }
+    CallbackAsyncOrPromise(env, context.get(), errJs, dataJs);
+    napi_close_handle_scope(env, scope);
+}
+
+void NapiPrepareRemoteAuthCallback::OnResult(int32_t result)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if ((callbackRef_ == nullptr) && (deferred_ == nullptr)) {
+        return;
+    }
+    std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
+    std::unique_ptr<PrepareRemoteAuthContext> context = std::make_unique<PrepareRemoteAuthContext>(env_);
+    uv_loop_s *loop = nullptr;
+    napi_get_uv_event_loop(env_, &loop);
+    if (loop == nullptr || work == nullptr || context == nullptr) {
+        ACCOUNT_LOGE("Nullptr fail.");
+        return;
+    }
+    context->deferred = deferred_;
+    context->errCode = ERR_OK;
+    context->result = result;
+    work->data = reinterpret_cast<void *>(context.get());
+    ErrCode ret = uv_queue_work_with_qos(
+        loop, work.get(), [] (uv_work_t *work) {}, OnPrepareRemoteAuthWork, uv_qos_user_initiated);
+    if (ret != ERR_OK) {
+        context->callbackRef = nullptr;
+        ACCOUNT_LOGE("Create uv work failed.");
+        return;
+    }
+    ACCOUNT_LOGI("Create prepare remote auth work finish.");
+    deferred_ = nullptr;
+    work.release();
+    context.release();
+}
+
 static void OnSetPropertyWork(uv_work_t* work, int status)
 {
     std::unique_ptr<uv_work_t> workPtr(work);
@@ -928,10 +996,18 @@ static void OnGetDataWork(uv_work_t* work, int status)
         return;
     }
     std::unique_ptr<InputerContext> context(reinterpret_cast<InputerContext *>(work->data));
-    napi_value argv[ARG_SIZE_TWO] = {0};
+    napi_value argv[ARG_SIZE_THREE] = {0};
     napi_create_int32(context->env, context->authSubType, &argv[PARAM_ZERO]);
     GetInputerInstance(context.get(), &argv[PARAM_ONE]);
-    NapiCallVoidFunction(context->env, argv, ARG_SIZE_TWO, context->callback->callbackRef);
+
+    napi_create_object(context->env, &argv[PARAM_TWO]);
+    if (!(context->challenge.empty())) {
+        napi_value dataJs = nullptr;
+        dataJs = CreateUint8Array(context->env, context->challenge.data(), context->challenge.size());
+        napi_set_named_property(context->env, argv[PARAM_TWO], "challenge", dataJs);
+    }
+
+    NapiCallVoidFunction(context->env, argv, ARG_SIZE_THREE, context->callback->callbackRef);
 }
 
 NapiGetDataCallback::NapiGetDataCallback(napi_env env, const std::shared_ptr<NapiCallbackRef> &callback)
@@ -941,7 +1017,8 @@ NapiGetDataCallback::NapiGetDataCallback(napi_env env, const std::shared_ptr<Nap
 NapiGetDataCallback::~NapiGetDataCallback()
 {}
 
-void NapiGetDataCallback::OnGetData(int32_t authSubType, const std::shared_ptr<AccountSA::IInputerData> inputerData)
+void NapiGetDataCallback::OnGetData(int32_t authSubType, std::vector<uint8_t> challenge,
+    const std::shared_ptr<AccountSA::IInputerData> inputerData)
 {
     if (callback_ == nullptr) {
         ACCOUNT_LOGE("the onGetData function is undefined");
@@ -958,6 +1035,7 @@ void NapiGetDataCallback::OnGetData(int32_t authSubType, const std::shared_ptr<A
     context->env = env_;
     context->callback = callback_;
     context->authSubType = authSubType;
+    context->challenge = challenge;
     context->inputerData = inputerData;
     work->data = reinterpret_cast<void *>(context.get());
     int errCode = uv_queue_work_with_qos(
