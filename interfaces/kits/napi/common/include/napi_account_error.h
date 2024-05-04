@@ -31,6 +31,7 @@ napi_value GenerateBusinessError(napi_env env, int32_t nativeErrCode, bool throw
 void AccountNapiThrow(napi_env env, int32_t jsErrCode, const std::string &jsErrMsg, bool throwErr = true);
 void AccountNapiThrow(napi_env env, int32_t nativeErrCode, bool throwErr = true);
 void AccountIAMNapiThrow(napi_env env, int32_t jsErrCode, bool throwErr);
+bool CheckJsErrorCode(int32_t errCode);
 } // namespace AccountJsKit
 } // namespace OHOS
 

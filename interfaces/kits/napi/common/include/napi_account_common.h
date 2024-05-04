@@ -61,7 +61,7 @@ void ReturnCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContex
 bool CreateExecEnv(napi_env env, uv_loop_s **loop, uv_work_t **work);
 bool GetCallbackProperty(napi_env env, napi_value obj, napi_ref &property, int argNum);
 bool GetIntProperty(napi_env env, napi_value obj, int32_t &property);
-bool GetOptionIntProperty(napi_env env, napi_value obj, int32_t &property);
+bool GetOptionIntProperty(napi_env env, napi_value obj, int32_t &property, bool &hasProperty);
 bool GetLongIntProperty(napi_env env, napi_value obj, int64_t &property);
 bool GetBoolProperty(napi_env env, napi_value obj, bool &property);
 bool GetStringProperty(napi_env env, napi_value obj, std::string &property);
@@ -69,8 +69,11 @@ bool GetStringArrayProperty(napi_env env, napi_value obj, std::vector<std::strin
 bool GetStringPropertyByKey(napi_env env, napi_value obj, const std::string &propertyName, std::string &property);
 bool GetOptionalStringPropertyByKey(napi_env env, napi_value obj, const std::string &propertyName,
     std::string &property);
+bool GetOptionalStringPropertyByKey(napi_env env, napi_value obj, const std::string &propertyName,
+    std::string &property, bool &hasProperty);
 bool GetOptionalNumberPropertyByKey(napi_env env, napi_value obj, const std::string &propertyName,
-    int32_t &numberProperty);
+    int32_t &numberProperty, bool &hasProperty);
+void SetInt32ToJsProperty(napi_env env, int32_t number, const std::string &propertyName, napi_value &dataJs);
 bool IsOptionalPropertyExist(napi_env env, napi_value obj, const std::string &propertyName);
 bool CompareOnAndOffRef(const napi_env env, napi_ref subscriberRef, napi_ref unsubscriberRef);
 bool IsSystemApp(napi_env env);
