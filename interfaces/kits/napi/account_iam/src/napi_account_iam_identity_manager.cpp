@@ -65,7 +65,7 @@ static bool ParseContextForOpenSession(
 
     if (argc > 0) {
         if ((!GetCallbackProperty(env, argv[0], context->callbackRef, 1)) &&
-            (!GetOptionIntProperty(env, argv[0], context->accountId))) {
+            (!GetOptionIntProperty(env, argv[0], context->accountId, context->parseHasAccountId))) {
             std::string errMsg = "Parameter error. The type of arg 1 must be function or number";
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
             return false;
@@ -81,8 +81,8 @@ static bool ParseContextForCloseSession(
     napi_value argv[ARG_SIZE_ONE] = {0};
     NAPI_CALL_BASE(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr), false);
     if (argc > 0) {
-        if (!GetOptionIntProperty(env, argv[0], context->accountId)) {
-            std::string errMsg = "The type of arg 1 must be number";
+        if (!GetOptionIntProperty(env, argv[0], context->accountId, context->parseHasAccountId)) {
+            std::string errMsg = "Parameter error. The type of \"accountId\" must be number";
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
             return false;
         }
@@ -109,6 +109,10 @@ napi_value NapiAccountIAMIdentityManager::OpenSession(napi_env env, napi_callbac
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resourceName,
         [](napi_env env, void *data) {
             IDMContext *context = reinterpret_cast<IDMContext *>(data);
+            if ((context->parseHasAccountId) && (IsRestrictedAccountId(context->accountId))) {
+                context->errCode = ERR_JS_ACCOUNT_RESTRICTED;
+                return;
+            }
             context->errCode = AccountIAMClient::GetInstance().OpenSession(context->accountId, context->challenge);
         },
         [](napi_env env, napi_status status, void *data) {
@@ -142,7 +146,7 @@ static bool ParseContextForUpdateCredential(napi_env env, napi_callback_info inf
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
-    if (ParseAddCredInfo(env, argv[PARAM_ZERO], context->addCredInfo, context->accountId) != napi_ok) {
+    if (ParseAddCredInfo(env, argv[PARAM_ZERO], *context) != napi_ok) {
         std::string errMsg = "Parameter error. The type of \"credentialInfo\" must be CredentialInfo";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
@@ -169,6 +173,11 @@ napi_value NapiAccountIAMIdentityManager::AddCredential(napi_env env, napi_callb
         [](napi_env env, void *data) {
             IDMContext *context = reinterpret_cast<IDMContext *>(data);
             auto idmCallback = std::make_shared<NapiIDMCallback>(context->env, context->callback);
+            if ((context->parseHasAccountId) && (IsRestrictedAccountId(context->accountId))) {
+                Attributes emptyResult;
+                idmCallback->OnResult(ERR_JS_ACCOUNT_RESTRICTED, emptyResult);
+                return;
+            }
             AccountIAMClient::GetInstance().AddCredential(context->accountId, context->addCredInfo, idmCallback);
         },
         [](napi_env env, napi_status status, void *data) {
@@ -193,6 +202,11 @@ napi_value NapiAccountIAMIdentityManager::UpdateCredential(napi_env env, napi_ca
         [](napi_env env, void *data) {
             IDMContext *context = reinterpret_cast<IDMContext *>(data);
             auto idmCallback = std::make_shared<NapiIDMCallback>(context->env, context->callback);
+           if ((context->parseHasAccountId) && (IsRestrictedAccountId(context->accountId))) {
+                Attributes emptyResult;
+                idmCallback->OnResult(ERR_JS_CREDENTIAL_NOT_EXIST, emptyResult);
+                return;
+            }
             AccountIAMClient::GetInstance().UpdateCredential(context->accountId, context->addCredInfo, idmCallback);
         },
         [](napi_env env, napi_status status, void *data) {
@@ -208,6 +222,10 @@ napi_value NapiAccountIAMIdentityManager::CloseSession(napi_env env, napi_callba
 {
     auto context = std::make_unique<IDMContext>(env);
     if (!ParseContextForCloseSession(env, info, context.get())) {
+        return nullptr;
+    }
+    if ((context->parseHasAccountId) && (IsRestrictedAccountId(context->accountId))) {
+        AccountIAMNapiThrow(env, AccountIAMConvertToJSErrCode(ERR_JS_ACCOUNT_RESTRICTED), true);
         return nullptr;
     }
     ErrCode errCode = AccountIAMClient::GetInstance().CloseSession(context->accountId);
@@ -346,11 +364,12 @@ napi_value NapiAccountIAMIdentityManager::DelCred(napi_env env, napi_callback_in
 
 static bool ParseGetAuthInfoOptions(napi_env env, napi_value jsOptions, GetAuthInfoContext *context, int32_t &authType)
 {
-    if (!GetOptionalNumberPropertyByKey(env, jsOptions, "authType", authType)) {
+    bool hasAuthType;
+    if (!GetOptionalNumberPropertyByKey(env, jsOptions, "authType", authType, hasAuthType)) {
         ACCOUNT_LOGE("Get authOptions's authType failed");
         return false;
     }
-    if (!GetOptionalNumberPropertyByKey(env, jsOptions, "accountId", context->accountId)) {
+    if (!GetOptionalNumberPropertyByKey(env, jsOptions, "accountId", context->accountId, context->parseHasAccountId)) {
         ACCOUNT_LOGE("Get authOptions's accountId failed");
         return false;
     }
@@ -380,7 +399,7 @@ static napi_status ParseOneParamForGetAuthInfo(napi_env env, GetAuthInfoContext 
     } else if (valueType == napi_object) {
         if (!ParseGetAuthInfoOptions(env, argv, context, authType)) {
             ACCOUNT_LOGE("Parse GetAuthInfoOptions failed");
-            std::string errMsg = "The type of arg 1 must be a valid object";
+            std::string errMsg = "Parameter error. The type of \"options\" must be object";
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
             return napi_invalid_arg;
         }
@@ -390,7 +409,7 @@ static napi_status ParseOneParamForGetAuthInfo(napi_env env, GetAuthInfoContext 
         NAPI_CALL_BASE(env, napi_create_promise(env, &context->deferred, result), napi_generic_failure);
     } else {
         ACCOUNT_LOGE("Get arg 1 failed");
-        std::string errMsg = "Parameter error. The type of arg 1 must be AuthType or function";
+        std::string errMsg = "Parameter error. The type of arg 1 must be AuthType, function or object";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return napi_invalid_arg;
     }
@@ -450,6 +469,11 @@ napi_value NapiAccountIAMIdentityManager::GetAuthInfo(napi_env env, napi_callbac
             GetAuthInfoContext *context = reinterpret_cast<GetAuthInfoContext *>(data);
             auto idmCallback = std::make_shared<NapiGetInfoCallback>(
                 context->env, context->callbackRef, context->deferred);
+            if ((context->parseHasAccountId) && (IsRestrictedAccountId(context->accountId))) {
+                std::vector<AccountSA::CredentialInfo> emptyInfoList;
+                idmCallback->OnCredentialInfo(ERR_JS_CREDENTIAL_NOT_EXIST, emptyInfoList);
+                return;
+            }
             AccountIAMClient::GetInstance().GetCredentialInfo(context->accountId, context->authType, idmCallback);
             context->callbackRef = nullptr;
         },
@@ -470,18 +494,18 @@ static bool ParseContextForGetEnrolledId(
 
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (argc < ARG_SIZE_ONE) {
-        errMsg = "the parameter of number should be at least one";
+        errMsg = "Parameter error. the parameter of number should be at least one";
         return false;
     }
     if (argc == ARG_SIZE_TWO) {
-        if (!GetIntProperty(env, argv[argc - 1], context->accountId)) {
-            errMsg = "the type of arg 1 must be number";
+        if (!GetOptionIntProperty(env, argv[argc - 1], context->accountId, context->parseHasAccountId)) {
+            errMsg = "Parameter error. the type of \"accountId\" must be number";
             return false;
         }
     }
     int32_t authType = 0;
     if (!GetIntProperty(env, argv[0], authType)) {
-        errMsg = "the type of arg 0 must be number";
+        errMsg = "Parameter error. the type of \"authType\" must be AuthType";
         return false;
     }
     context->authType = static_cast<AuthType>(authType);
@@ -510,6 +534,11 @@ napi_value NapiAccountIAMIdentityManager::GetEnrolledId(napi_env env, napi_callb
             GetEnrolledIdContext *context = reinterpret_cast<GetEnrolledIdContext *>(data);
             auto getEnrolledIdCallback = std::make_shared<NapiGetEnrolledIdCallback>(
                 context->env, context->deferred);
+            if ((context->parseHasAccountId) && (IsRestrictedAccountId(context->accountId))) {
+                uint64_t enrolledId = 0;
+                getEnrolledIdCallback->OnEnrolledId(ERR_JS_CREDENTIAL_NOT_EXIST, enrolledId);
+                return;
+            }
             AccountIAMClient::GetInstance().GetEnrolledId(context->accountId, context->authType, getEnrolledIdCallback);
         },
         [](napi_env env, napi_status status, void *data) {

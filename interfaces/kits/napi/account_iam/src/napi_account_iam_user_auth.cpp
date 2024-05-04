@@ -133,8 +133,7 @@ static napi_status ParseContextForGetSetProperty(
         NAPI_CALL_BASE(env, napi_create_promise(env, &context->deferred, result), napi_generic_failure);
     }
     if (isGet) {
-        if (ParseGetPropRequest(env, argv[PARAM_ZERO], reinterpret_cast<GetPropertyContext *>(context)->request,
-            reinterpret_cast<GetPropertyContext *>(context)->accountId) != napi_ok) {
+        if (ParseGetPropRequest(env, argv[PARAM_ZERO], *(reinterpret_cast<GetPropertyContext *>(context))) != napi_ok) {
             std::string errMsg = "Parameter error. The type of \"request\" must be GetPropertyRequest";
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
             return napi_generic_failure;
@@ -169,6 +168,11 @@ napi_value NapiAccountIAMUserAuth::GetProperty(napi_env env, napi_callback_info 
             GetPropertyContext *context = reinterpret_cast<GetPropertyContext *>(data);
             auto getPropCallback = std::make_shared<NapiGetPropCallback>(
                 context->env, context->callbackRef, context->deferred, context->request);
+            if ((context->parseHasAccountId) && (IsRestrictedAccountId(context->accountId))) {
+                AccountSA::Attributes emptyInfo;
+                getPropCallback->OnResult(ERR_JS_CREDENTIAL_NOT_EXIST, emptyInfo);
+                return;
+            }
             context->callbackRef = nullptr;
             AccountIAMClient::GetInstance().GetProperty(context->accountId, context->request, getPropCallback);
         },
@@ -216,35 +220,39 @@ static bool ParseContextForRemoteAuthOptions(napi_env env, napi_value jsOptions,
 {
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, jsOptions, &valueType);
+    if (valueType == napi_undefined || valueType == napi_null) {
+        ACCOUNT_LOGI("RemoteAuthOptions is undefined or null");
+        return true;
+    }
     if (valueType != napi_object) {
         ACCOUNT_LOGE("Invalid object.");
+        std::string errMsg = "Parameter error. The type of \"remoteAuthOptions\" must be object";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
-    if (IsOptionalPropertyExist(env, jsOptions, "verifierNetworkId")) {
-        remoteAuthOptions.hasVerifierNetworkId = true;
-        if (!GetOptionalStringPropertyByKey(
-            env, jsOptions, "verifierNetworkId", remoteAuthOptions.verifierNetworkId)) {
-            ACCOUNT_LOGE("Get remoteAuthOptions's verifierNetworkId failed.");
-            return false;
-        }
+    if (!GetOptionalStringPropertyByKey(env, jsOptions, "verifierNetworkId",
+        remoteAuthOptions.verifierNetworkId, remoteAuthOptions.hasVerifierNetworkId)) {
+        ACCOUNT_LOGE("Get remoteAuthOptions's verifierNetworkId failed.");
+        std::string errMsg = "Parameter error. The type of \"verifierNetworkId\" must be string";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return false;
     }
-    if (IsOptionalPropertyExist(env, jsOptions, "collectorNetworkId")) {
-        remoteAuthOptions.hasCollectorNetworkId = true;
-        if (!GetOptionalStringPropertyByKey(
-            env, jsOptions, "collectorNetworkId", remoteAuthOptions.collectorNetworkId)) {
-            ACCOUNT_LOGE("Get remoteAuthOptions's collectorNetworkId failed.");
-            return false;
-        }
+    if (!GetOptionalStringPropertyByKey(env, jsOptions, "collectorNetworkId",
+        remoteAuthOptions.collectorNetworkId, remoteAuthOptions.hasCollectorNetworkId)) {
+        ACCOUNT_LOGE("Get remoteAuthOptions's collectorNetworkId failed.");
+        std::string errMsg = "Parameter error. The type of \"collectorNetworkId\" must be string";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return false;
     }
-    if (IsOptionalPropertyExist(env, jsOptions, "collectorTokenId")) {
-        remoteAuthOptions.hasCollectorTokenId = true;
-        int32_t tokenId = 0;
-        if (!GetOptionalNumberPropertyByKey(env, jsOptions, "collectorTokenId", tokenId)) {
-            ACCOUNT_LOGE("Get remoteAuthOptions's collectorTokenId failed.");
-            return false;
-        }
-        remoteAuthOptions.collectorTokenId = static_cast<uint32_t>(tokenId);
+    int32_t tokenId = 0;
+    if (!GetOptionalNumberPropertyByKey(
+        env, jsOptions, "collectorTokenId", tokenId, remoteAuthOptions.hasCollectorTokenId)) {
+        ACCOUNT_LOGE("Get remoteAuthOptions's collectorTokenId failed.");
+        std::string errMsg = "Parameter error. The type of \"collectorTokenId\" must be number";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return false;
     }
+    remoteAuthOptions.collectorTokenId = static_cast<uint32_t>(tokenId);
     return true;
 }
 
@@ -252,38 +260,40 @@ static bool ParseContextForAuthOptions(napi_env env, napi_value jsOptions, AuthO
 {
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, jsOptions, &valueType);
+    if (valueType == napi_undefined || valueType == napi_null) {
+        ACCOUNT_LOGI("AuthOption is undefined or null");
+        return true;
+    }
     if (valueType != napi_object) {
         ACCOUNT_LOGE("Invalid object.");
+        std::string errMsg = "Parameter error. The type of \"authOptions\" must be object";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
-    if (IsOptionalPropertyExist(env, jsOptions, "accountId")) {
-        if (!GetOptionalNumberPropertyByKey(env, jsOptions, "accountId", authOptions.accountId)) {
-            ACCOUNT_LOGE("Get authOptions's accountId failed.");
-            return false;
-        }
+    if (!GetOptionalNumberPropertyByKey(
+        env, jsOptions, "accountId", authOptions.accountId, authOptions.hasAccountId)) {
+        ACCOUNT_LOGE("Get authOptions's accountId failed.");
+        std::string errMsg = "Parameter error. The type of \"accountId\" must be number";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return false;
     }
-    if (IsOptionalPropertyExist(env, jsOptions, "authIntent")) {
-        int32_t authIntent = 0;
-        if (!GetOptionalNumberPropertyByKey(env, jsOptions, "authIntent", authIntent)) {
-            ACCOUNT_LOGE("Get authOptions's authIntent failed.");
-            return false;
-        }
-        authOptions.authIntent = static_cast<AuthIntent>(authIntent);
+    int32_t authIntent = 0;
+    bool hasProp = false;
+    if (!GetOptionalNumberPropertyByKey(env, jsOptions, "authIntent", authIntent, hasProp)) {
+        ACCOUNT_LOGE("Get authOptions's authIntent failed.");
+        std::string errMsg = "Parameter error. The type of \"authIntent\" must be AuthIntent";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return false;
     }
+    authOptions.authIntent = static_cast<AuthIntent>(authIntent);
     if (IsOptionalPropertyExist(env, jsOptions, "remoteAuthOptions")) {
         napi_value value = nullptr;
         NAPI_CALL_BASE(env, napi_get_named_property(env, jsOptions, "remoteAuthOptions", &value), false);
-        valueType = napi_undefined;
-        NAPI_CALL_BASE(env, napi_typeof(env, value, &valueType), false);
-        if (valueType != napi_object) {
-            ACCOUNT_LOGE("Invalid object.");
+        if (!ParseContextForRemoteAuthOptions(env, value, authOptions.remoteAuthOptions)) {
+            ACCOUNT_LOGE("Parse remoteAuthOptions failed.");
             return false;
         }
         authOptions.hasRemoteAuthOptions = true;
-        if (!ParseContextForRemoteAuthOptions(env, value, authOptions.remoteAuthOptions)) {
-            ACCOUNT_LOGE("Parse authOptions failed.");
-            return false;
-        }
     }
     return true;
 }
@@ -362,6 +372,11 @@ napi_value NapiAccountIAMUserAuth::Auth(napi_env env, napi_callback_info info)
     if (ParseContextForAuth(env, argv, argc, context) == napi_invalid_arg) {
         return nullptr;
     }
+    if ((context.parseHasAccountId) && (IsRestrictedAccountId(context.authOptions.accountId))) {
+        AccountSA::Attributes emptyInfo;
+        context.callback->OnResult(ERR_JS_CREDENTIAL_NOT_EXIST, emptyInfo);
+        return nullptr;
+    }
     uint64_t contextId = AccountIAMClient::GetInstance().Auth(context.authOptions, context.challenge,
         static_cast<AuthType>(context.authType), static_cast<AuthTrustLevel>(context.trustLevel), context.callback);
     return CreateUint8Array(env, reinterpret_cast<uint8_t *>(&contextId), sizeof(uint64_t));
@@ -376,8 +391,12 @@ napi_value NapiAccountIAMUserAuth::AuthUser(napi_env env, napi_callback_info inf
     if (ParseContextForAuthUser(env, argv, argc, context) == napi_invalid_arg) {
         return nullptr;
     }
+    if (IsRestrictedAccountId(context.userId)) {
+        AccountSA::Attributes emptyInfo;
+        context.callback->OnResult(ERR_JS_CREDENTIAL_NOT_EXIST, emptyInfo);
+        return nullptr;
+    }
     context.authOptions.accountId = context.userId;
-
     uint64_t contextId = AccountIAMClient::GetInstance().AuthUser(context.authOptions, context.challenge,
         static_cast<AuthType>(context.authType), static_cast<AuthTrustLevel>(context.trustLevel), context.callback);
     return CreateUint8Array(env, reinterpret_cast<uint8_t *>(&contextId), sizeof(uint64_t));

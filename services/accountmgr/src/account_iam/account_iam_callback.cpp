@@ -45,8 +45,9 @@ void AuthCallbackDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
     }
 }
 
-AuthCallback::AuthCallback(uint32_t userId, AuthType authType, const sptr<IIDMCallback> &callback)
-    : userId_(userId), authType_(authType), innerCallback_(callback)
+AuthCallback::AuthCallback(
+    uint32_t userId, uint64_t credentialId, AuthType authType, const sptr<IIDMCallback> &callback)
+    : userId_(userId), credentialId_(credentialId), authType_(authType), innerCallback_(callback)
 {}
 
 ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo)
@@ -95,6 +96,35 @@ void AuthCallback::SetDeathRecipient(const sptr<AuthCallbackDeathRecipient> &dea
     deathRecipient_ = deathRecipient;
 }
 
+static void GenerateAttributesInfo(const Attributes &extraInfo, Attributes &extraAuthInfo)
+{
+    std::vector<uint8_t> token;
+    if (extraInfo.GetUint8ArrayValue(Attributes::AttributeKey::ATTR_SIGNATURE, token)) {
+        extraAuthInfo.SetUint8ArrayValue(Attributes::AttributeKey::ATTR_SIGNATURE, token);
+    }
+    int32_t remainTimes = 0;
+    if (extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, remainTimes)) {
+        extraAuthInfo.SetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, remainTimes);
+    }
+    int32_t freezingTime = 0;
+    if (extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, freezingTime)) {
+        extraAuthInfo.SetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, freezingTime);
+    }
+    int32_t nextPhaseFreezingTime = 0;
+    if (extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION, nextPhaseFreezingTime)) {
+        extraAuthInfo.SetInt32Value(Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION, nextPhaseFreezingTime);
+    }
+    int32_t accountId = 0;
+    if (extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_USER_ID, accountId)) {
+        extraAuthInfo.SetInt32Value(Attributes::AttributeKey::ATTR_USER_ID, accountId);
+    }
+    // pinValidityPeriod
+    int64_t pinValidityPeriod = 0;
+    if (extraInfo.GetInt64Value(Attributes::AttributeKey::ATTR_PIN_EXPIRED_INFO, pinValidityPeriod)) {
+        extraAuthInfo.SetInt64Value(Attributes::AttributeKey::ATTR_PIN_EXPIRED_INFO, pinValidityPeriod);
+    }
+}
+
 void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
     ACCOUNT_LOGI("AuthCallback::OnResult, result=%{public}d", result);
@@ -121,7 +151,13 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         innerCallback_->OnResult(ResultCode::FAIL, errInfo);
         return AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, ResultCode::FAIL);
     }
-    innerCallback_->OnResult(result, extraInfo);
+    Attributes extraAuthInfo;
+    GenerateAttributesInfo(extraInfo, extraAuthInfo);
+    uint64_t credentialId = 0;
+    if (!extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId) && (credentialId_ != 0)) {
+        extraAuthInfo.SetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId_);
+    }
+    innerCallback_->OnResult(result, extraAuthInfo);
     (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsVerified(userId_, true);
     (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsLoggedIn(userId_, true);
     AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, result);

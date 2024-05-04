@@ -31,8 +31,17 @@ AccountIAMService::~AccountIAMService()
 
 int32_t AccountIAMService::OpenSession(int32_t userId, std::vector<uint8_t> &challenge)
 {
-    if ((userId == 0) && (!GetCurrentUserId(userId))) {
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    if (userId == 0) {
+        if (!GetCurrentUserId(userId)) {
+            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+        }
+    } else {
+        bool isOsAccountExits = false;
+        IInnerOsAccountManager::GetInstance().IsOsAccountExists(userId, isOsAccountExits);
+        if (!isOsAccountExits) {
+            ACCOUNT_LOGE("Account does not exist");
+            return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+        }
     }
     InnerAccountIAMManager::GetInstance().OpenSession(userId, challenge);
     return ERR_OK;
@@ -40,8 +49,17 @@ int32_t AccountIAMService::OpenSession(int32_t userId, std::vector<uint8_t> &cha
 
 int32_t AccountIAMService::CloseSession(int32_t userId)
 {
-    if ((userId == 0) && (!GetCurrentUserId(userId))) {
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    if (userId == 0) {
+        if (!GetCurrentUserId(userId)) {
+            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+        }
+    } else {
+        bool isOsAccountExits = false;
+        IInnerOsAccountManager::GetInstance().IsOsAccountExists(userId, isOsAccountExits);
+        if (!isOsAccountExits) {
+            ACCOUNT_LOGE("Account does not exist");
+            return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+        }
     }
     InnerAccountIAMManager::GetInstance().CloseSession(userId);
     return ERR_OK;
@@ -51,9 +69,19 @@ void AccountIAMService::AddCredential(
     int32_t userId, const CredentialParameters &credInfo, const sptr<IIDMCallback> &callback)
 {
     Attributes emptyResult;
-    if ((userId == 0) && (!GetCurrentUserId(userId))) {
-        callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
-        return;
+    if (userId == 0) {
+        if (!GetCurrentUserId(userId)) {
+            callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
+            return;
+        }
+    } else {
+        bool isOsAccountExits = false;
+        IInnerOsAccountManager::GetInstance().IsOsAccountExists(userId, isOsAccountExits);
+        if (!isOsAccountExits) {
+            ACCOUNT_LOGE("Account does not exist");
+            callback->OnResult(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, emptyResult);
+            return;
+        }
     }
     InnerAccountIAMManager::GetInstance().AddCredential(userId, credInfo, callback);
 }
@@ -62,9 +90,19 @@ void AccountIAMService::UpdateCredential(int32_t userId, const CredentialParamet
     const sptr<IIDMCallback> &callback)
 {
     Attributes emptyResult;
-    if ((userId == 0) && (!GetCurrentUserId(userId))) {
-        callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
-        return;
+    if (userId == 0) {
+        if (!GetCurrentUserId(userId)) {
+            callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
+            return;
+        }
+    } else {
+        bool isOsAccountExits = false;
+        IInnerOsAccountManager::GetInstance().IsOsAccountExists(userId, isOsAccountExits);
+        if (!isOsAccountExits) {
+            ACCOUNT_LOGE("Account does not exist");
+            callback->OnResult(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, emptyResult);
+            return;
+        }
     }
     InnerAccountIAMManager::GetInstance().UpdateCredential(userId, credInfo, callback);
 }
@@ -102,7 +140,21 @@ void AccountIAMService::DelUser(
 int32_t AccountIAMService::GetCredentialInfo(
     int32_t userId, AuthType authType, const sptr<IGetCredInfoCallback> &callback)
 {
-    if ((userId == 0) && (!GetCurrentUserId(userId))) {
+    if (userId == 0) {
+        if (!GetCurrentUserId(userId)) {
+            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+        }
+    } else {
+        bool isOsAccountExits = false;
+        IInnerOsAccountManager::GetInstance().IsOsAccountExists(userId, isOsAccountExits);
+        if (!isOsAccountExits) {
+            ACCOUNT_LOGE("Account does not exist");
+            return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+        }
+    }
+    if ((authType < UserIam::UserAuth::ALL) ||
+        (static_cast<int32_t>(authType) >= static_cast<int32_t>(IAMAuthType::TYPE_END))) {
+        ACCOUNT_LOGE("authType is not in correct range");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     InnerAccountIAMManager::GetInstance().GetCredentialInfo(userId, authType, callback);
@@ -146,9 +198,19 @@ void AccountIAMService::GetProperty(
     int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback)
 {
     Attributes emptyResult;
-    if ((userId == 0) && (!GetCurrentUserId(userId))) {
-        callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
-        return;
+    if (userId == 0) {
+        if (!GetCurrentUserId(userId)) {
+            callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
+            return;
+        }
+    } else {
+        bool isOsAccountExits = false;
+        IInnerOsAccountManager::GetInstance().IsOsAccountExists(userId, isOsAccountExits);
+        if (!isOsAccountExits) {
+            ACCOUNT_LOGE("Account does not exist");
+            callback->OnResult(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, emptyResult);
+            return;
+        }
     }
     return InnerAccountIAMManager::GetInstance().GetProperty(userId, request, callback);
 }
@@ -173,16 +235,19 @@ void AccountIAMService::GetEnrolledId(
     int32_t accountId, AuthType authType, const sptr<IGetEnrolledIdCallback> &callback)
 {
     uint64_t emptyId = 0;
-    OsAccountInfo osAccountInfo;
-    if ((accountId != 0) &&
-        (IInnerOsAccountManager::GetInstance().QueryOsAccountById(accountId, osAccountInfo)) != ERR_OK) {
-        ACCOUNT_LOGE("Account is not exist");
-        callback->OnEnrolledId(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, emptyId);
-        return;
-    }
-    if ((accountId == 0) && (!GetCurrentUserId(accountId))) {
-        callback->OnEnrolledId(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyId);
-        return;
+    if (accountId == -1) {
+        if (!GetCurrentUserId(accountId)) {
+            callback->OnEnrolledId(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyId);
+            return;
+        }
+    } else {
+        bool isOsAccountExits = false;
+        IInnerOsAccountManager::GetInstance().IsOsAccountExists(accountId, isOsAccountExits);
+        if (!isOsAccountExits) {
+            ACCOUNT_LOGE("Account does not exist");
+            callback->OnEnrolledId(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, emptyId);
+            return;
+        }
     }
     if ((authType < UserIam::UserAuth::ALL) ||
         (static_cast<int32_t>(authType) >= static_cast<int32_t>(IAMAuthType::TYPE_END))) {
