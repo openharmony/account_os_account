@@ -52,6 +52,7 @@ typedef UserIam::UserAuth::CredentialInfo CredentialInfo;
 typedef UserIam::UserAuth::GetSecUserInfoCallback GetSecUserInfoCallback;
 typedef UserIam::UserAuth::GetCredentialInfoCallback GetCredentialInfoCallback;
 typedef UserIam::UserAuth::PrepareRemoteAuthCallback PrepareRemoteAuthCallback;
+typedef UserIam::UserAuth::GetSecUserInfoCallback GetSecUserInfoCallback;
 
 enum IAMAuthType {
     DOMAIN = 1024,
@@ -117,6 +118,7 @@ struct AuthOptions {
     AuthIntent authIntent = AuthIntent::DEFAULT;
     RemoteAuthOptions remoteAuthOptions;
     bool hasRemoteAuthOptions = false;
+    bool hasAccountId = false;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

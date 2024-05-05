@@ -41,6 +41,9 @@ constexpr size_t PARAM_THREE = 3;
 constexpr size_t PARAM_FOUR = 4;
 constexpr size_t PARAM_FIVE = 5;
 
+constexpr int32_t RESTRICTED_ACCOUNT_ID_BEGINNING = 0;
+constexpr int32_t RESTRICTED_ACCOUNT_ID_ENDDING = 100;
+
 int32_t AccountIAMConvertToJSErrCode(int32_t errCode);
 
 struct JsIAMCallback {
@@ -77,6 +80,14 @@ struct AuthCallbackParam : public CommonAsyncContext {
     int32_t freezingTime = -1;
     std::vector<uint8_t> token;
     std::shared_ptr<JsIAMCallback> callback;
+    bool hasNextPhaseFreezingTime = false;
+    bool hasCredentialId = false;
+    bool hasAccountId = false;
+    bool hasPinValidityPeriod = false;
+    int32_t nextPhaseFreezingTime = -1;
+    uint64_t credentialId = 0;
+    int32_t accountId = 0;
+    int64_t pinValidityPeriod = -1;
 };
 
 struct AuthContext {
@@ -84,6 +95,7 @@ struct AuthContext {
     int32_t authType = -1;
     int32_t trustLevel = -1;
     bool throwErr = true;
+    bool parseHasAccountId = false;
     std::vector<uint8_t> challenge;
     AccountSA::AuthOptions authOptions;
     std::shared_ptr<AccountSA::IDMCallback> callback;
@@ -115,6 +127,7 @@ struct IDMContext : public CommonAsyncContext {
     std::vector<uint8_t> challenge;
     uint64_t credentialId = 0;
     int32_t accountId = 0;
+    bool parseHasAccountId = false;
     std::vector<uint8_t> token;
     AccountSA::CredentialParameters addCredInfo;
     std::shared_ptr<JsIAMCallback> callback;
@@ -123,13 +136,15 @@ struct IDMContext : public CommonAsyncContext {
 struct GetAuthInfoContext : public CommonAsyncContext {
     explicit GetAuthInfoContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
     int32_t accountId = 0;
+    bool parseHasAccountId = false;
     AccountSA::AuthType authType {0};
     std::vector<AccountSA::CredentialInfo> credInfo;
 };
 
 struct GetEnrolledIdContext : public CommonAsyncContext {
     explicit GetEnrolledIdContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
-    int32_t accountId = 0;
+    int32_t accountId = -1;
+    bool parseHasAccountId = false;
     AccountSA::AuthType authType {0};
     uint64_t enrolledId;
 };
@@ -144,6 +159,7 @@ struct GetPropertyContext : public CommonAsyncContext {
     std::string enrollmentProgress;
     std::string sensorInfo;
     int32_t accountId = 0;
+    bool parseHasAccountId = false;
     int32_t nextPhaseFreezingTime = -1;
 };
 
@@ -261,13 +277,12 @@ napi_value CreateErrorObject(napi_env env, int32_t code);
 napi_status ParseUInt32Array(napi_env env, napi_value value, std::vector<uint32_t> &data);
 napi_status ParseIAMCallback(napi_env env, napi_value object, std::shared_ptr<JsIAMCallback> &callback);
 #ifdef HAS_USER_AUTH_PART
-napi_status ParseAddCredInfo(
-    napi_env env, napi_value value, AccountSA::CredentialParameters &addCredInfo, int32_t &accountId);
-napi_status ParseGetPropRequest(
-    napi_env env, napi_value object, AccountSA::GetPropertyRequest &request, int32_t &accountId);
+napi_status ParseAddCredInfo(napi_env env, napi_value value, IDMContext &context);
+napi_status ParseGetPropRequest(napi_env env, napi_value object, GetPropertyContext &context);
 napi_status ParseSetPropRequest(napi_env env, napi_value object, AccountSA::SetPropertyRequest &request);
 napi_value CreateCredInfoArray(napi_env env, const std::vector<AccountSA::CredentialInfo> &info);
 napi_value CreateAuthResult(napi_env env, const std::vector<uint8_t> &token, int32_t remainTimes, int32_t freezingTime);
+bool IsRestrictedAccountId(int32_t accountId);
 #endif
 }  // namespace AccountJsKit
 }  // namespace OHOS

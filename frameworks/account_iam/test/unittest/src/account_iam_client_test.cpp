@@ -44,6 +44,7 @@ namespace OHOS {
 namespace AccountTest {
 namespace {
 const int32_t TEST_USER_ID = 200;
+const int32_t TEST_EXIST_ID = 100;
 const int32_t DEFAULT_API_VERSION = 8;
 const uint32_t INVALID_IPC_CODE = 1000;
 const uint32_t INVALID_TOKEN_ID = 0;
@@ -273,7 +274,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_AddCredential_0100, TestSize.Lev
 #endif
     auto testCallback = std::make_shared<TestIDMCallback>(callback);
     EXPECT_NE(testCallback, nullptr);
-    AccountIAMClient::GetInstance().AddCredential(TEST_USER_ID, testPara, testCallback);
+    AccountIAMClient::GetInstance().AddCredential(TEST_EXIST_ID, testPara, testCallback);
 #ifndef PROXY_MOCK
     std::unique_lock<std::mutex> lock(testCallback->mutex);
     testCallback->cv.wait_for(
@@ -309,7 +310,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_AddCredential_0200, TestSize.Lev
 #endif
     AccountIAMClient::GetInstance().AddCredential(TEST_USER_ID, testPara, nullptr);
     testCallback->isReady = false;
-    AccountIAMClient::GetInstance().AddCredential(TEST_USER_ID, testPara, testCallback);
+    AccountIAMClient::GetInstance().AddCredential(TEST_EXIST_ID, testPara, testCallback);
 #ifndef PROXY_MOCK
     {
         std::unique_lock<std::mutex> lock(testCallback->mutex);
@@ -731,7 +732,7 @@ HWTEST_F(AccountIAMClientTest, IDMCallbackStub_ProcOnAcquireInfo_0100, TestSize.
     MessageParcel data;
     MessageParcel reply;
     MessageOption option = {MessageOption::TF_SYNC};
-    
+
     int32_t module = 0;
     int32_t acquireInfo = 0;
     std::vector<uint8_t> buffer;
@@ -777,7 +778,7 @@ HWTEST_F(AccountIAMClientTest, GetCredInfoCallbackStub_ProcOnCredentialInfo_0100
     MessageParcel data;
     MessageParcel reply;
     MessageOption option = {MessageOption::TF_SYNC};
-    
+
     uint32_t vectorSize = 1;
     CredentialInfo info;
     std::vector<CredentialInfo> infoList = {info};
