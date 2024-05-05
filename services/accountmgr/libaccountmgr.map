@@ -112,7 +112,7 @@
         "OHOS::AccountSA::AppAccountSubscribeManager::RemoveSubscribeRecord(OHOS::sptr<OHOS::IRemoteObject> const&)";
         "OHOS::AccountSA::AppAccountSubscribeManager::SubscribeAppAccount(std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscribeInfo> const&, OHOS::sptr<OHOS::IRemoteObject> const&, unsigned int const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int const&)";
         "OHOS::AccountSA::AppAccountSubscribeManager::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener)";
-        "OHOS::AccountSA::AuthCallback::AuthCallback(unsigned int, OHOS::UserIam::UserAuth::AuthType, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
+        "OHOS::AccountSA::AuthCallback::AuthCallback(unsigned int, unsigned long long, OHOS::UserIam::UserAuth::AuthType, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
         "OHOS::AccountSA::DelCredCallback::DelCredCallback(int, bool, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>>, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
         "OHOS::AccountSA::DomainAccountPluginProxy::DomainAccountPluginProxy(OHOS::sptr<OHOS::IRemoteObject> const&)";
         "OHOS::AccountSA::GetCredInfoCallbackWrapper::GetCredInfoCallbackWrapper(int, int, OHOS::sptr<OHOS::AccountSA::IGetCredInfoCallback> const&)";

@@ -68,7 +68,9 @@ static const std::unordered_map<uint32_t, std::string> g_errorStringMap = {
     {ERR_JS_PERMISSION_DENIED, "Permission denied"},
     {ERR_JS_PLUGIN_NETWORK_EXCEPTION, "Network exception"},
     {ERR_JS_CAPABILITY_NOT_SUPPORTED, "capability not supported"},
-    {ERR_JS_ACCOUNT_LOGGED_IN_ACCOUNTS_OVERSIZE, "The number of the logged in OS accounts reaches upper limit"}
+    {ERR_JS_ACCOUNT_LOGGED_IN_ACCOUNTS_OVERSIZE, "The number of the logged in OS accounts reaches upper limit"},
+    {ERR_JS_COMPLEXITY_CHECK_FAILED, "The complexity of credential check failed"},
+    {ERR_JS_PIN_IS_EXPIRED, "The PIN credential is expored"},
 };
 
 napi_value GenerateBusinessError(napi_env env, int32_t jsErrCode, const std::string &jsErrMsg)
@@ -134,6 +136,15 @@ napi_value GenerateBusinessError(napi_env env, int32_t nativeErrCode)
     std::string jsErrMsg = ConvertToJsErrMsg(jsErrCode);
 
     return GenerateBusinessError(env, jsErrCode, jsErrMsg);
+}
+
+bool CheckJsErrorCode(int32_t errCode)
+{
+    auto iter = g_errorStringMap.find(errCode);
+    if (iter == g_errorStringMap.end()) {
+        return false;
+    }
+    return true;
 }
 
 void AccountNapiThrow(napi_env env, int32_t nativeErrCode, bool throwErr)

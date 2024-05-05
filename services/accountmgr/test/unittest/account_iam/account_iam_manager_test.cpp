@@ -39,6 +39,7 @@ using namespace StorageManager;
 namespace OHOS {
 namespace AccountTest {
 namespace {
+    const int32_t TEST_EXIST_ID = 100;
     const int32_t TEST_USER_ID = 101;
     const int32_t UPDATE_USER_ID = 102;
     const int32_t UPDATE_FAIL_USER_ID = 103;
@@ -646,7 +647,7 @@ HWTEST_F(AccountIamManagerTest, AuthUser001, TestSize.Level0)
     EXPECT_NE(testCallback, nullptr);
     EXPECT_CALL(*callback, OnResult(_, _)).Times(0);
     AccountSA::AuthParam authParam = {
-        .userId = TEST_USER_ID,
+        .userId = TEST_EXIST_ID,
         .challenge = TEST_CHALLENGE,
         .authType = AuthType::PIN,
         .authTrustLevel = AuthTrustLevel::ATL1
@@ -691,7 +692,7 @@ HWTEST_F(AccountIamManagerTest, GetChallenge001, TestSize.Level2)
     EXPECT_NE(testCallback, nullptr);
     EXPECT_CALL(*callback, OnResult(_, _)).Times(0);
     AccountSA::AuthParam authParam = {
-        .userId = TEST_USER_ID,
+        .userId = TEST_EXIST_ID,
         .challenge = TEST_CHALLENGE,
         .authType = AuthType::PIN,
         .authTrustLevel = AuthTrustLevel::ATL1
