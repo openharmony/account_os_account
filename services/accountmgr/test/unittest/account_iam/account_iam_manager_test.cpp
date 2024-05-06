@@ -255,7 +255,7 @@ public:
         return 0;
     }
 
-    int32_t UnlockUserScreen(uint32_t userId)
+    int32_t UnlockUserScreen(uint32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret)
     {
         return 0;
     }

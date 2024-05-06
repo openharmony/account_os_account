@@ -69,7 +69,7 @@ public:
     void GetChallenge(int32_t userId, std::vector<uint8_t> &challenge);
     ErrCode ActivateUserKey(int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret);
 
-    ErrCode UnlockUserScreen(int32_t userId);
+    ErrCode UnlockUserScreen(int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret);
     ErrCode GetLockScreenStatus(uint32_t userId, bool &lockScreenStatus);
     bool CheckDomainAuthAvailable(int32_t userId);
     ErrCode UpdateStorageKey(int32_t userId, uint64_t secureUid, const std::vector<uint8_t> &token,
