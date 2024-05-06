@@ -66,7 +66,10 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo)
     }
     if (!lockScreenStatus) {
         ACCOUNT_LOGI("start unlock user screen");
-        ret = InnerAccountIAMManager::GetInstance().UnlockUserScreen(userId_);
+        // file decryption
+        std::vector<uint8_t> secret;
+        extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, secret);
+        ret = InnerAccountIAMManager::GetInstance().UnlockUserScreen(userId_, token, secret);
         if (ret != 0) {
             ReportOsAccountOperationFail(userId_, "unlockUserScreen", ret, "failed to send unlock msg for storage");
             return ret;
