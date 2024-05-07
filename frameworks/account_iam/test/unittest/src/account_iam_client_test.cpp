@@ -1090,5 +1090,75 @@ HWTEST_F(AccountIAMClientTest, ResetAccountIAMProxy001, TestSize.Level0)
     EXPECT_NE(AccountIAMClient::GetInstance().proxy_, nullptr);
     AccountIAMClient::GetInstance().ResetAccountIAMProxy(remote);
 }
+
+/**
+ * @tc.name: PrepareRemoteAuthTest001
+ * @tc.desc: test PrepareRemoteAuth.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMClientTest, PrepareRemoteAuthTest001, TestSize.Level0)
+{
+    int32_t ret = AccountIAMClient::GetInstance().PrepareRemoteAuth("testString", nullptr);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
+}
+
+/**
+ * @tc.name: AccountIAMClient_AuthUser_0300
+ * @tc.desc: Auth user.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_AuthUser_0300, TestSize.Level0)
+{
+    SetPropertyRequest testRequest = {};
+    auto callback = std::make_shared<MockIDMCallback>();
+    EXPECT_NE(callback, nullptr);
+    EXPECT_CALL(*callback, OnResult(_, _)).Times(Exactly(1));
+    auto testCallback = std::make_shared<TestIDMCallback>(callback);
+    AuthOptions authOptions;
+
+    authOptions.hasRemoteAuthOptions = true;
+
+    AccountIAMClient::GetInstance().AuthUser(
+        authOptions, TEST_CHALLENGE, AuthType::PIN, AuthTrustLevel::ATL1, testCallback);
+    {
+        std::unique_lock<std::mutex> lock(testCallback->mutex);
+        testCallback->cv.wait_for(
+            lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    }
+}
+
+/**
+ * @tc.name: AccountIAMClient_AuthUser_0400
+ * @tc.desc: Auth user.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_AuthUser_0400, TestSize.Level0)
+{
+    SetPropertyRequest testRequest = {};
+    auto callback = std::make_shared<MockIDMCallback>();
+    EXPECT_NE(callback, nullptr);
+    EXPECT_CALL(*callback, OnResult(_, _)).Times(Exactly(1));
+    auto testCallback = std::make_shared<TestIDMCallback>(callback);
+    AuthOptions authOptions;
+
+    authOptions.hasRemoteAuthOptions = true;
+    authOptions.remoteAuthOptions.hasVerifierNetworkId = true;
+    authOptions.remoteAuthOptions.verifierNetworkId = "testVerifierNetworkId";
+    authOptions.remoteAuthOptions.hasCollectorNetworkId = true;
+    authOptions.remoteAuthOptions.collectorNetworkId = "testCollectorNetworkId";
+    authOptions.remoteAuthOptions.hasCollectorTokenId = true;
+    authOptions.remoteAuthOptions.collectorTokenId = 0;
+
+    AccountIAMClient::GetInstance().AuthUser(
+        authOptions, TEST_CHALLENGE, AuthType::PIN, AuthTrustLevel::ATL1, testCallback);
+    {
+        std::unique_lock<std::mutex> lock(testCallback->mutex);
+        testCallback->cv.wait_for(
+            lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    }
+}
 }  // namespace AccountTest
 }  // namespace OHOS
