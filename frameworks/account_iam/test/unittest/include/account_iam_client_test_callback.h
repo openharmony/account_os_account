@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -79,6 +79,30 @@ public:
     std::mutex mutex;
 private:
     std::shared_ptr<MockGetCredInfoCallback> callback_;
+};
+
+class MockGetEnrolledIdCallback final {
+public:
+    MOCK_METHOD2(OnEnrolledId, void(int32_t result, uint64_t enrolledId));
+};
+
+class TestGetEnrolledIdCallback final : public AccountSA::GetEnrolledIdCallback {
+public:
+    TestGetEnrolledIdCallback(const std::shared_ptr<MockGetEnrolledIdCallback> &callback) :callback_(callback) {}
+    virtual ~TestGetEnrolledIdCallback() {}
+    void OnEnrolledId(int32_t result, uint64_t enrolledId)
+    {
+        callback_->OnEnrolledId(result, enrolledId);
+        std::unique_lock<std::mutex> lock(mutex);
+        isReady = true;
+        cv.notify_one();
+        return;
+    }
+    std::condition_variable cv;
+    bool isReady = false;
+    std::mutex mutex;
+private:
+    std::shared_ptr<MockGetEnrolledIdCallback> callback_;
 };
 
 class MockGetSetPropCallback final {
