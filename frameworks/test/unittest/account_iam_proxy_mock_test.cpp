@@ -76,6 +76,15 @@ public:
     int32_t result_;
 };
 
+class PreRemoteAuthCallbackMockTest final : public AccountSA::PreRemoteAuthCallback {
+public:
+    void OnResult(int32_t result) override
+    {
+        result_ = result;
+    }
+    int32_t result_;
+};
+
 /**
  * @tc.name: AccountIAMClient_OpenSession_0100
  * @tc.desc: Test func with proxy is nullptr.
@@ -263,6 +272,20 @@ HWTEST_F(AccountIAMProxyMockTest, AccountIAMClient_SetProperty_0100, TestSize.Le
 HWTEST_F(AccountIAMProxyMockTest, AccountIAMClient_GetAccountState_0100, TestSize.Level0)
 {
     EXPECT_EQ(IDLE, AccountIAMClient::GetInstance().GetAccountState(TEST_USER_ID));
+}
+
+/**
+ * @tc.name: AccountIAMClient_PrepareRemoteAuth_0100
+ * @tc.desc: Test func PrepareRemoteAuth.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMProxyMockTest, AccountIAMClient_PrepareRemoteAuth_0100, TestSize.Level0)
+{
+    auto testCallback = std::make_shared<PreRemoteAuthCallbackMockTest>();
+    ASSERT_NE(testCallback, nullptr);
+    AccountIAMClient::GetInstance().PrepareRemoteAuth("testString", testCallback);
+    EXPECT_NE(testCallback->result_, 0);
 }
 }  // namespace AccountTest
 }  // namespace OHOS

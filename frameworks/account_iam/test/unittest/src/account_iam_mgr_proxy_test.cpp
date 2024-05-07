@@ -106,6 +106,9 @@ HWTEST_F(AccountIAMMgrProxyTest, AccountIAMMgrProxy001, TestSize.Level0)
     EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, ret);
     ret = accountIAMMgrProxy->AuthUser(authParam, nullptr, contextId);
     EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, ret);
+
+    ret = accountIAMMgrProxy->PrepareRemoteAuth("testString", nullptr);
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, ret);
 }
 }  // namespace AccountTest
 }  // namespace OHOS
