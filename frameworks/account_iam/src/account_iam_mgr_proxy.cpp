@@ -277,7 +277,7 @@ int32_t AccountIAMMgrProxy::PrepareRemoteAuth(
 {
     if (callback == nullptr) {
         ACCOUNT_LOGE("Prepare remote auth callback is nullptr.");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {

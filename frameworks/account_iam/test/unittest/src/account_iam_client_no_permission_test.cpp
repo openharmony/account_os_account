@@ -89,6 +89,17 @@ public:
 };
 #endif
 
+class MockPreRemoteAuthCallback final : public AccountSA::PreRemoteAuthCallback {
+public:
+    void OnResult(int32_t result) override
+    {
+        result_ = result;
+    }
+
+public:
+    int32_t result_ = -1;
+};
+
 class AccountIAMClientNoPermissionTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -321,6 +332,20 @@ HWTEST_F(AccountIAMClientNoPermissionTest, AccountIAMClientNoPermission_AuthUser
 HWTEST_F(AccountIAMClientNoPermissionTest, AccountIAMClientNoPermission_CancelAuth_0100, TestSize.Level0)
 {
     int32_t res = AccountIAMClient::GetInstance().CancelAuth(TEST_CONTEXT_ID);
+    EXPECT_EQ(res, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+}
+
+/**
+ * @tc.name: AccountIAMClientNoPermission_prepareRemoteAuth_0100
+ * @tc.desc: prepare remote authentication without permission.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMClientNoPermissionTest, AccountIAMClientNoPermission_prepareRemoteAuth_0100, TestSize.Level0)
+{
+    auto callback = std::make_shared<MockPreRemoteAuthCallback>();
+    ASSERT_NE(callback, nullptr);
+    int32_t res = AccountIAMClient::GetInstance().PrepareRemoteAuth("testString", callback);
     EXPECT_EQ(res, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
 }
 }  // namespace AccountTest
