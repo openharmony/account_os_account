@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -165,6 +165,24 @@ public:
         return;
     }
     void OnResult(int32_t result, const Attributes &extraInfo)
+    {
+        code_ = result;
+    }
+    int GetResult()
+    {
+        if (code_ != ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR) {
+            return ERR_OK;
+        }
+        return code_;
+    }
+
+private:
+    int code_;
+};
+
+class TestOnEnrolledIdCallback final : public AccountSA::GetEnrolledIdCallback {
+public:
+    void OnEnrolledId(int32_t result, uint64_t enrolledId)
     {
         code_ = result;
     }
@@ -453,6 +471,24 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetCredentialInfo_0100, TestSize
     auto testCallback = std::make_shared<TestGetCredInfoCallback>(callback);
     EXPECT_CALL(*callback, OnCredentialInfo(_, _)).Times(Exactly(1));
     AccountIAMClient::GetInstance().GetCredentialInfo(TEST_USER_ID, AuthType::PIN, testCallback);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+}
+
+/**
+ * @tc.name: AccountIAMClient_GetEnrolledId_0100
+ * @tc.desc: Get enrolled id.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetEnrolledId_0100, TestSize.Level0)
+{
+    auto callback = std::make_shared<MockGetEnrolledIdCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestGetEnrolledIdCallback>(callback);
+    EXPECT_CALL(*callback, OnEnrolledId(_, _)).Times(Exactly(1));
+    AccountIAMClient::GetInstance().GetEnrolledId(TEST_USER_ID, AuthType::PIN, testCallback);
     std::unique_lock<std::mutex> lock(testCallback->mutex);
     testCallback->cv.wait_for(
         lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
@@ -869,6 +905,15 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient001, TestSize.Level0)
     testCallback->cv.wait_for(
         lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
 
+    auto getEnrolledIdCallback = std::make_shared<MockGetEnrolledIdCallback>();
+    auto testGetEnrolledIdCallback = std::make_shared<TestGetEnrolledIdCallback>(getEnrolledIdCallback);
+    ASSERT_NE(testGetEnrolledIdCallback, nullptr);
+    EXPECT_CALL(*getEnrolledIdCallback, OnEnrolledId(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR, _)).Times(1);
+    AccountIAMClient::GetInstance().GetEnrolledId(TEST_USER_ID, AuthType::PIN, testGetEnrolledIdCallback);
+    std::unique_lock<std::mutex> cvLock(testGetEnrolledIdCallback->mutex);
+    testGetEnrolledIdCallback->cv.wait_for(cvLock, std::chrono::seconds(WAIT_TIME),
+        [lockCallback = testGetEnrolledIdCallback]() { return lockCallback->isReady; });
+
     AccessTokenID tokenID = AccessTokenKit::GetHapTokenID(infoManagerTestNormalInfoParms.userID,
         infoManagerTestNormalInfoParms.bundleName, infoManagerTestNormalInfoParms.instIndex);
     AccessTokenKit::DeleteToken(tokenID);
@@ -980,6 +1025,15 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient003, TestSize.Level0)
     ASSERT_NE(AccountIAMClient::GetInstance().GetCredentialInfo(TEST_USER_ID, AuthType::PIN, testCallback),
         ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
 
+    auto getEnrolledIdCallback = std::make_shared<MockGetEnrolledIdCallback>();
+    auto testGetEnrolledIdCallback = std::make_shared<TestGetEnrolledIdCallback>(getEnrolledIdCallback);
+    ASSERT_NE(testGetEnrolledIdCallback, nullptr);
+    EXPECT_CALL(*getEnrolledIdCallback, OnEnrolledId(ERR_ACCOUNT_COMMON_PERMISSION_DENIED, _)).Times(1);
+    AccountIAMClient::GetInstance().GetEnrolledId(TEST_USER_ID, AuthType::PIN, testGetEnrolledIdCallback);
+    std::unique_lock<std::mutex> lock(testGetEnrolledIdCallback->mutex);
+    testGetEnrolledIdCallback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+        [lockCallback = testGetEnrolledIdCallback]() { return lockCallback->isReady; });
+
     AccessTokenID tokenID = AccessTokenKit::GetHapTokenID(infoManagerTestSystemInfoParms.userID,
         infoManagerTestSystemInfoParms.bundleName, infoManagerTestSystemInfoParms.instIndex);
     AccessTokenKit::DeleteToken(tokenID);
@@ -1025,6 +1079,11 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient004, TestSize.Level0)
 
     AccountIAMClient::GetInstance().DelCred(TEST_USER_ID, testCredentialId, testAuthToken, testIDMCallback);
     ASSERT_EQ(testCallback->GetResult(), ERR_OK);
+
+    auto testGetEnrolledIdCallback = std::make_shared<TestOnEnrolledIdCallback>();
+    ASSERT_NE(testGetEnrolledIdCallback, nullptr);
+    AccountIAMClient::GetInstance().GetEnrolledId(TEST_USER_ID, AuthType::PIN, testGetEnrolledIdCallback);
+    ASSERT_EQ(testGetEnrolledIdCallback->GetResult(), ERR_OK);
 
     AccessTokenID tokenID = AccessTokenKit::GetHapTokenID(infoManagerTestSystemInfoParms.userID,
         infoManagerTestSystemInfoParms.bundleName, infoManagerTestSystemInfoParms.instIndex);

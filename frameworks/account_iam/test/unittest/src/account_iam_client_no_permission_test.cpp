@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -68,6 +68,18 @@ public:
 class MockGetSetPropCallback final : public GetSetPropCallback {
 public:
     void OnResult(int32_t result, const Attributes &extraInfo) override
+    {
+        result_ = result;
+        return;
+    }
+
+public:
+    int32_t result_ = -1;
+};
+
+class MockGetEnrolledIdCallback final : public GetEnrolledIdCallback {
+public:
+    void OnEnrolledId(int32_t result, uint64_t enrolledId) override
     {
         result_ = result;
         return;
@@ -249,6 +261,20 @@ HWTEST_F(AccountIAMClientNoPermissionTest, AccountIAMClientNoPermission_GetCrede
 }
 
 /**
+ * @tc.name: AccountIAMClientNoPermission_GetEnrolledId_0100
+ * @tc.desc: Get credential info without permission.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMClientNoPermissionTest, AccountIAMClientNoPermission_GetEnrolledId_0100, TestSize.Level0)
+{
+    auto callback = std::make_shared<MockGetEnrolledIdCallback>();
+    ASSERT_NE(callback, nullptr);
+    AccountIAMClient::GetInstance().GetEnrolledId(TEST_USER_ID, AuthType::PIN, callback);
+    EXPECT_EQ(callback->result_, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+}
+
+/**
  * @tc.name: AccountIAMClientNoPermission_GetAvailableStatus_0100
  * @tc.desc: Get available status without permission.
  * @tc.type: FUNC
@@ -320,7 +346,7 @@ HWTEST_F(AccountIAMClientNoPermissionTest, AccountIAMClientNoPermission_AuthUser
     authOptions.accountId = TEST_USER_ID;
     int32_t res = AccountIAMClient::GetInstance().AuthUser(
         authOptions, TEST_CHALLENGE, AuthType::PIN, AuthTrustLevel::ATL1, callback);
-    EXPECT_EQ(res, ERR_OK);
+    EXPECT_EQ(res, 0);
 }
 
 /**
