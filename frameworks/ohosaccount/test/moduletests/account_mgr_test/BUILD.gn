@@ -254,6 +254,7 @@ ohos_moduletest("SubscribeDistributedAccountModuleTest") {
     "samgr:samgr_proxy",
   ]
   part_name = "os_account"
+  cflags_cc = [ "-DACCOUNT_TEST" ]
 }
 
 group("moduletest") {
