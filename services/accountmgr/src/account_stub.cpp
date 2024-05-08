@@ -50,8 +50,11 @@ const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS = "ohos.permission.INTERACT_ACR
 constexpr std::int32_t ROOT_UID = 0;
 #endif
 constexpr std::int32_t INVALID_USERID = -1;
-constexpr std::int32_t DLP_UID = 3019;
-constexpr std::int32_t DLP_CREDENTIAL_SA_UID = 3553;
+const std::set<std::int32_t> WHITE_LIST = {
+    3012, // DISTRIBUTED_KV_DATA_SA_UID
+    3019, // DLP_UID
+    3553, // DLP_CREDENTIAL_SA_UID
+};
 #ifdef USE_MUSL
 constexpr std::int32_t DSOFTBUS_UID = 1024;
 #else
@@ -290,7 +293,7 @@ ErrCode AccountStub::CmdGetOhosAccountInfoByUserId(MessageParcel &data, MessageP
         return errCode;
     }
     int32_t uid = IPCSkeleton::GetCallingUid();
-    if ((uid != DLP_UID) && (uid != DLP_CREDENTIAL_SA_UID)) {
+    if (WHITE_LIST.find(uid) == WHITE_LIST.end()) {
         ohosAccountInfo.SetRawUid("");
     }
     if (!WriteOhosAccountInfo(reply, ohosAccountInfo)) {
