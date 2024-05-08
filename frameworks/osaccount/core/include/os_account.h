@@ -61,7 +61,6 @@ public:
     ErrCode DeactivateOsAccount(const int id);
     ErrCode DeactivateAllOsAccounts();
     ErrCode StartOsAccount(const int id);
-    ErrCode StopOsAccount(const int id);
     ErrCode SubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber> &subscriber);
     ErrCode UnsubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber> &subscriber);
     ErrCode GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id);

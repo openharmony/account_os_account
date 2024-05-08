@@ -688,11 +688,6 @@ ErrCode OsAccountManagerService::StartOsAccount(const int id)
     return innerManager_.StartOsAccount(id);
 }
 
-ErrCode OsAccountManagerService::StopOsAccount(const int id)
-{
-    return innerManager_.StopOsAccount(id);
-}
-
 ErrCode OsAccountManagerService::SubscribeOsAccount(
     const OsAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener)
 {

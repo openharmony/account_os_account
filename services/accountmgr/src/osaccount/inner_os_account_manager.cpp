@@ -1644,58 +1644,6 @@ ErrCode IInnerOsAccountManager::StartOsAccount(const int id)
     return ERR_OK;
 }
 
-ErrCode IInnerOsAccountManager::StopOsAccount(const int id)
-{
-    if (id == Constants::START_USER_ID) {
-        ACCOUNT_LOGW("Account id=%{public}d can't stop", id);
-        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_STOP_ACTIVE_ERROR;
-    }
-
-    if (!CheckAndAddLocalIdOperating(id)) {
-        ACCOUNT_LOGW("Account id=%{public}d already in operating", id);
-        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
-    }
-    if (!IsOsAccountIDInActiveList(id)) {
-        RemoveLocalIdToOperating(id);
-        ACCOUNT_LOGI("Account id=%{public}d already stop", id);
-        return ERR_OK;
-    }
-    // get information
-    OsAccountInfo osAccountInfo;
-    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
-    if (errCode != ERR_OK) {
-        RemoveLocalIdToOperating(id);
-        ACCOUNT_LOGW("Cannot find os account info by id:%{public}d, errCode %{public}d.", id, errCode);
-        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
-    }
-
-     // check complete
-    if (!osAccountInfo.GetIsCreateCompleted()) {
-        RemoveLocalIdToOperating(id);
-        ACCOUNT_LOGW("Account id=%{public}d is not completed", id);
-        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_IS_UNCOMPLETED_ERROR;
-    }
-
-     // check to be removed
-    if (osAccountInfo.GetToBeRemoved()) {
-        RemoveLocalIdToOperating(id);
-        ACCOUNT_LOGW("Account id=%{public}d will be removed, don't need to stop!", id);
-        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR;
-    }
-
-    // stop
-    errCode = SendMsgForAccountStop(osAccountInfo);
-    if (errCode != ERR_OK) {
-        RemoveLocalIdToOperating(id);
-        ReportOsAccountOperationFail(id, "stop", errCode, "stop os account failed");
-        ACCOUNT_LOGE("Update account failed, id=%{public}d, errCode %{public}d.", id, errCode);
-        return errCode;
-    }
-    RemoveLocalIdToOperating(id);
-    ACCOUNT_LOGI("IInnerOsAccountManager StopOsAccount end");
-    return ERR_OK;
-}
-
 ErrCode IInnerOsAccountManager::GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id)
 {
     if (serialNumber ==

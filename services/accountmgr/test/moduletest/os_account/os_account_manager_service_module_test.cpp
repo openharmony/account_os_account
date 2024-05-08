@@ -876,7 +876,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest046
     OsAccountInfo osAccountInfoOne;
     ASSERT_EQ(osAccountManagerService_->CreateOsAccount("Test046", INT_TEST_TYPE, osAccountInfoOne), ERR_OK);
     EXPECT_EQ(osAccountManagerService_->StartOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
-    EXPECT_EQ(osAccountManagerService_->StopOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    EXPECT_EQ(osAccountManagerService_->DeactivateOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
@@ -902,35 +902,6 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest047
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest048, TestSize.Level1)
 {
     EXPECT_EQ(osAccountManagerService_->StartOsAccount(Constants::START_USER_ID),
-        ERR_OK);
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest049
- * @tc.desc: Test StopOsAccount with valid data.
- * @tc.type: FUNC
- * @tc.require:
- */
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest049, TestSize.Level1)
-{
-    OsAccountInfo osAccountInfoOne;
-    ASSERT_EQ(osAccountManagerService_->CreateOsAccount("Test049", INT_TEST_TYPE, osAccountInfoOne), ERR_OK);
-    EXPECT_EQ(osAccountManagerService_->StartOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
-    EXPECT_EQ(osAccountManagerService_->StopOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
-    EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
-}
-#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest050
- * @tc.desc: Test StopOsAccount with invalid data.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest050, TestSize.Level1)
-{
-    EXPECT_EQ(osAccountManagerService_->StopOsAccount(Constants::MAX_USER_ID + 1),
         ERR_OK);
 }
 
