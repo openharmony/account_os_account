@@ -415,18 +415,6 @@ HWTEST_F(AccountOsProxyMockTest, StartOsAccountTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: StopOsAccountTest001
- * @tc.desc: Test func with proxy is nullptr.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AccountOsProxyMockTest, StopOsAccountTest001, TestSize.Level1)
-{
-    ErrCode errCode = OsAccountManager::StopOsAccount(TEST_USER_ID);
-    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
-}
-
-/**
  * @tc.name: GetOsAccountLocalIdBySerialNumberTest001
  * @tc.desc: Test func with proxy is nullptr.
  * @tc.type: FUNC

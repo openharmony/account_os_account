@@ -772,12 +772,6 @@ ErrCode OsAccountProxy::StartOsAccount(const int id)
     return SendRequestWithAccountId(OsAccountInterfaceCode::START_OS_ACCOUNT, reply, id);
 }
 
-ErrCode OsAccountProxy::StopOsAccount(const int id)
-{
-    MessageParcel reply;
-    return SendRequestWithAccountId(OsAccountInterfaceCode::STOP_OS_ACCOUNT, reply, id);
-}
-
 ErrCode OsAccountProxy::GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id)
 {
     MessageParcel data;

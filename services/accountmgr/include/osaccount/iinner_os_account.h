@@ -60,7 +60,6 @@ public:
     virtual ErrCode ActivateOsAccount(const int id, const bool startStorage = true, const uint64_t displayId = 0) = 0;
     virtual ErrCode DeactivateOsAccount(const int id) = 0;
     virtual ErrCode StartOsAccount(const int id) = 0;
-    virtual ErrCode StopOsAccount(const int id) = 0;
     virtual ErrCode GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id) = 0;
     virtual ErrCode GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber) = 0;
     virtual ErrCode SubscribeOsAccount(

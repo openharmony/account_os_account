@@ -24,7 +24,6 @@
         "OHOS::AccountSA::OsAccount::ActivateOsAccount(int)";
         "OHOS::AccountSA::OsAccount::DeactivateOsAccount(int)";
         "OHOS::AccountSA::OsAccount::DeactivateAllOsAccounts()";
-        "OHOS::AccountSA::OsAccount::StopOsAccount(int)";
         "VTT for OHOS::AccountSA::OsAccountInfo";
         "VTT for OHOS::AccountSA::CreateOsAccountOptions";
         "vtable for OHOS::AccountSA::CreateOsAccountOptions";

@@ -388,13 +388,6 @@ public:
     static ErrCode StartOsAccount(const int id);
 
     /**
-     * @brief Stops the specified OS account.
-     * @param id - Indicates the local ID of the OS account.
-     * @return error code, see account_error_no.h
-     */
-    static ErrCode StopOsAccount(const int id);
-
-    /**
      * @brief Gets localId according to serial number.
      * @param serialNumber - Indicates serial number.
      * @param id - Indicates the local ID of the OS account.
