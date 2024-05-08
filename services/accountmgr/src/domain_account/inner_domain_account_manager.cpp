@@ -50,6 +50,7 @@ const char THREAD_BIND_ACCOUNT[] = "bindAccount";
 const char THREAD_UNBIND_ACCOUNT[] = "unbindAccount";
 const char THREAD_GET_ACCESS_TOKEN[] = "getAccessToken";
 const char THREAD_IS_ACCOUNT_VALID[] = "isAccountTokenValid";
+const int32_t INVALID_USERID = -1;
 #ifdef _ARM64_
 static const std::string LIB_PATH = "/system/lib64/platformsdk/";
 #else
@@ -268,7 +269,7 @@ void InnerDomainAccountManager::LoaderLib(const std::string &path, const std::st
         dlerror();
         void *func = dlsym(libHandle_,  methodName.c_str());
         const char *dlsym_error = dlerror();
-        if (dlsym_error) {
+        if (dlsym_error != nullptr) {
             ACCOUNT_LOGE("Call check method=%{public}s error=%{public}s", methodName.c_str(), dlsym_error);
             libHandle_ = nullptr;
             methodMap.clear();
@@ -318,6 +319,8 @@ static bool SetPluginUint8Vector(const std::vector<uint8_t> &vector, PluginUint8
     if (vector.empty()) {
         ACCOUNT_LOGE("Vector is empty.");
         pVector.data = nullptr;
+        pVector.capcity = 0;
+        pVector.size = 0;
         return true;
     }
     pVector.data = (uint8_t *)vector.data();
@@ -351,21 +354,21 @@ static ErrCode GetAndCleanPluginBussnessError(PluginBussnessError **error, Plugi
     std::string methodName = GetMethodNameByEnum(methodEnum);
     std::string msg;
     if ((*error)->msg.data == nullptr) {
-        ACCOUNT_LOGE("PluginString's data is null.");
+        ACCOUNT_LOGW("PluginString's data is null.");
     } else {
         msg = std::string((*error)->msg.data);
         (void)memset_s((*error)->msg.data, (*error)->msg.length, 0, (*error)->msg.length);
         free((*error)->msg.data);
         (*error)->msg.data = nullptr;
     }
-    if ((*error)->code == ERR_OK) {
+    free((*error));
+    (*error) = nullptr;
+    if (err == ERR_OK) {
         ACCOUNT_LOGD("Call method=%{public}s is ok msg=%{public}s.", methodName.c_str(), msg.c_str());
         return err;
     }
     ACCOUNT_LOGE("Call method=%{public}s is error, errorCode=%{public}d msg=%{public}s.",
-        methodName.c_str(), (*error)->code, msg.c_str());
-    free((*error));
-    (*error) = nullptr;
+        methodName.c_str(), err, msg.c_str());
     return err;
 }
 
@@ -404,7 +407,7 @@ static int32_t GetCallingUserID()
         std::vector<int32_t> userIds;
         (void)IInnerOsAccountManager::GetInstance().QueryActiveOsAccountIds(userIds);
         if (userIds.empty()) {
-            return -1;  // invalid user id
+            return INVALID_USERID;  // invalid user id
         }
         userId = userIds[0];
     }
@@ -424,7 +427,7 @@ static void SetPluginDomainAccountInfo(const DomainAccountInfo &info, PluginDoma
     OsAccountInfo accountInfo;
     ErrCode errCode = IInnerOsAccountManager::GetInstance().QueryOsAccountById(userId, accountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("QueryOsAccountById fail.");
+        ACCOUNT_LOGE("QueryOsAccountById fail code=%{public}d.", errCode);
         pluginInfo.serverConfigId.data = nullptr;
         return;
     }
@@ -503,7 +506,7 @@ ErrCode InnerDomainAccountManager::AddServerConfig(const std::string &paremters,
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
     int32_t localId = GetCallingUserID();
-    if (localId == -1) {
+    if (localId == INVALID_USERID) {
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     PluginString param;
