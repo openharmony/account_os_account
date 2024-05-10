@@ -52,13 +52,6 @@ AuthCallback::AuthCallback(
 
 ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo)
 {
-    std::vector<uint8_t> token;
-    if (authType_ != static_cast<AuthType>(IAMAuthType::DOMAIN)) {
-        // domain account authentication
-        extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
-        InnerDomainAccountManager::GetInstance().AuthWithToken(userId_, token);
-    }
-    // send msg to storage for unlock
     bool lockScreenStatus = false;
     ErrCode ret = InnerAccountIAMManager::GetInstance().GetLockScreenStatus(userId_, lockScreenStatus);
     if (ret != 0) {
@@ -66,28 +59,36 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo)
     }
     if (!lockScreenStatus) {
         ACCOUNT_LOGI("start unlock user screen");
+        // el3\4 file decryption
         ret = InnerAccountIAMManager::GetInstance().UnlockUserScreen(userId_);
         if (ret != 0) {
             ReportOsAccountOperationFail(userId_, "unlockUserScreen", ret, "failed to send unlock msg for storage");
             return ret;
         }
     }
-    if (authType_ != AuthType::PIN) {
+    if (authType_ == static_cast<AuthType>(IAMAuthType::DOMAIN)) {
         return ERR_OK;
     }
-    (void)IInnerOsAccountManager::GetInstance().IsOsAccountVerified(userId_, isAccountVerified_);
-    if (isAccountVerified_) {
-        return ERR_OK;
-    }
-    // file decryption
+    std::vector<uint8_t> token;
+    extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
     std::vector<uint8_t> secret;
     extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, secret);
-    ret = InnerAccountIAMManager::GetInstance().ActivateUserKey(userId_, token, secret);
-    if (ret != 0) {
-        ACCOUNT_LOGE("failed to activate user key");
-        ReportOsAccountOperationFail(userId_, "activateUserKey", ret, "failed to notice storage to activate user key");
-        return ret;
+    if (authType_ == AuthType::PIN) {
+        bool isVerified = false;
+        (void)IInnerOsAccountManager::GetInstance().IsOsAccountVerified(userId_, isVerified);
+        if (!isVerified) {
+            // el2 file decryption
+            ret = InnerAccountIAMManager::GetInstance().ActivateUserKey(userId_, token, secret);
+            if (ret != 0) {
+                ACCOUNT_LOGE("failed to activate user key");
+                ReportOsAccountOperationFail(userId_, "activateUserKey", ret,
+                    "failed to notice storage to activate user key");
+                return ret;
+            }
+        }
     }
+    // domain account authentication
+    InnerDomainAccountManager::GetInstance().AuthWithToken(userId_, token);
     return ret;
 }
 

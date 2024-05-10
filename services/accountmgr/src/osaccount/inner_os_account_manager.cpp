@@ -44,7 +44,7 @@ namespace {
 const std::string CONSTRAINT_CREATE_ACCOUNT_DIRECTLY = "constraint.os.account.create.directly";
 const std::string ACCOUNT_READY_EVENT = "bootevent.account.ready";
 const char WATCH_START_USER[] = "watch.start.user";
-constexpr std::int32_t DELAY_FOR_ACCOUNT_BOOT_EVENT_READY = 5000;
+constexpr std::int32_t DELAY_FOR_ACCOUNT_BOOT_EVENT_READY = 5;
 constexpr std::int32_t DELAY_FOR_EXCEPTION = 50;
 constexpr std::int32_t MAX_RETRY_TIMES = 50;
 const std::string SPECIAL_CHARACTER_ARRAY = "<>|\":*?/\\";
@@ -1576,7 +1576,11 @@ ErrCode IInnerOsAccountManager::DeactivateOsAccount(const int id)
 
 void IInnerOsAccountManager::WatchStartUser(std::int32_t id)
 {
-    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_ACCOUNT_BOOT_EVENT_READY));
+    int ret = WaitParameter(ACCOUNT_READY_EVENT.c_str(), "true", DELAY_FOR_ACCOUNT_BOOT_EVENT_READY);
+    if (ret == 0) {
+        return;
+    }
+    ACCOUNT_LOGW("Wait account ready timeout.");
     OsAccountInfo osAccountInfo;
     osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (!osAccountInfo.GetIsActived()) {
