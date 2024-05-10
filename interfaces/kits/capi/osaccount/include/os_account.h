@@ -44,10 +44,10 @@ extern "C" {
  *
  * @param buffer The name character array which should have space for the name and the terminating character ('\0').
  * @param buffer_size The size of the name character array.
- * @return OS_ACCOUNT_ERR_OK - Indicates successful;<br>
- *         OS_ACCOUNT_ERR_INTERNAL_ERROR - Indicates the internal error.<br>
- *         OS_ACCOUNT_ERR_INVALID_PARAMETER - Indicates the <i>buf</i> is NULL pointer or the size of the name,
- *         including the terminating character ('\0'), is larger then <i>buffer_size</i>;
+ * @return {@link OS_ACCOUNT_ERR_OK} Indicates successful;<br>
+ *         {@link OS_ACCOUNT_ERR_INTERNAL_ERROR} Indicates the internal error.<br>
+ *         {@link OS_ACCOUNT_ERR_INVALID_PARAMETER} Indicates the <i>buffer</i> is NULL pointer or the size of the name,
+ *         including the terminating character ('\0'), is larger than <i>buffer_size</i>;
  * @syscap SystemCapability.Account.OsAccount
  * @since 12
  */

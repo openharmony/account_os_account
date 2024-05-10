@@ -42,19 +42,13 @@ extern "C" {
  * @since 12
  */
 typedef enum OsAccount_ErrCode {
-    /**
-     * Operation is successful.
-     */
+    /** @error Operation is successful*/
     OS_ACCOUNT_ERR_OK = 0,
 
-    /**
-     * Internal error.
-     */
+    /** @error Internal error.*/
     OS_ACCOUNT_ERR_INTERNAL_ERROR = 12300001,
 
-    /**
-     * Invalid parameter.
-     */
+    /** @error Invalid parameter.*/
     OS_ACCOUNT_ERR_INVALID_PARAMETER = 12300002
 } OsAccount_ErrCode;
 
