@@ -415,6 +415,25 @@ public:
     uint32_t acquireInfo_ = 0;
 };
 
+class MockPreRemoteAuthCallback : public PreRemoteAuthCallbackStub {
+public:
+    MOCK_METHOD1(OnResult, void(int32_t result));
+};
+
+class TestPreRemoteAuthCallback : public PreRemoteAuthCallbackStub {
+public:
+    explicit TestPreRemoteAuthCallback(const std::shared_ptr<MockPreRemoteAuthCallback> &callback) : callback_(callback)
+    {}
+    void OnResult(int32_t result)
+    {
+        callback_->OnResult(result);
+        return;
+    }
+
+private:
+    std::shared_ptr<MockPreRemoteAuthCallback> callback_;
+};
+
 class AccountIamManagerTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -817,6 +836,25 @@ HWTEST_F(AccountIamManagerTest, UpdateCredCallback_OnResult_0002, TestSize.Level
     commitUpdateCredCallback->OnResult(errCode, extraInfo);
     commitUpdateCredCallback->OnResult(1, extraInfo);
     innerIamMgr_.storageMgrProxy_ = nullptr;
+}
+
+/**
+ * @tc.name: PrepareRemoteAuth001
+ * @tc.desc: PrepareRemoteAuth.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamManagerTest, PrepareRemoteAuth001, TestSize.Level0)
+{
+    ErrCode errCode = InnerAccountIAMManager::GetInstance().PrepareRemoteAuth("testString", nullptr);
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_NULL_PTR_ERROR, errCode);
+
+    std::shared_ptr<MockPreRemoteAuthCallback> callback = std::make_shared<MockPreRemoteAuthCallback>();
+    EXPECT_NE(callback, nullptr);
+    sptr<TestPreRemoteAuthCallback> testCallback = new(std::nothrow) TestPreRemoteAuthCallback(callback);
+    EXPECT_NE(testCallback, nullptr);
+
+    InnerAccountIAMManager::GetInstance().PrepareRemoteAuth("testString", testCallback);
 }
 }  // namespace AccountTest
 }  // namespace OHOS
