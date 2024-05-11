@@ -1134,23 +1134,6 @@ HWTEST_F(AccountIAMClientTest, StartDomainAuth002, TestSize.Level0)
 #endif
 
 /**
- * @tc.name: ResetAccountIAMProxy001
- * @tc.desc: test ResetAccountIAMProxy.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AccountIAMClientTest, ResetAccountIAMProxy001, TestSize.Level0)
-{
-    wptr<IRemoteObject> remote;
-    AccountIAMClient::GetInstance().proxy_ = nullptr;
-    AccountIAMClient::GetInstance().ResetAccountIAMProxy(remote);
-    sptr<IAccountIAM> testIAccountIAM = new (std::nothrow) AccountIAMMgrProxy(nullptr);
-    AccountIAMClient::GetInstance().proxy_ = testIAccountIAM;
-    EXPECT_NE(AccountIAMClient::GetInstance().proxy_, nullptr);
-    AccountIAMClient::GetInstance().ResetAccountIAMProxy(remote);
-}
-
-/**
  * @tc.name: PrepareRemoteAuthTest001
  * @tc.desc: test PrepareRemoteAuth.
  * @tc.type: FUNC
@@ -1170,7 +1153,6 @@ HWTEST_F(AccountIAMClientTest, PrepareRemoteAuthTest001, TestSize.Level0)
  */
 HWTEST_F(AccountIAMClientTest, AccountIAMClient_AuthUser_0300, TestSize.Level0)
 {
-    SetPropertyRequest testRequest = {};
     auto callback = std::make_shared<MockIDMCallback>();
     EXPECT_NE(callback, nullptr);
     EXPECT_CALL(*callback, OnResult(_, _)).Times(Exactly(1));
@@ -1196,7 +1178,6 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_AuthUser_0300, TestSize.Level0)
  */
 HWTEST_F(AccountIAMClientTest, AccountIAMClient_AuthUser_0400, TestSize.Level0)
 {
-    SetPropertyRequest testRequest = {};
     auto callback = std::make_shared<MockIDMCallback>();
     EXPECT_NE(callback, nullptr);
     EXPECT_CALL(*callback, OnResult(_, _)).Times(Exactly(1));
@@ -1218,6 +1199,25 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_AuthUser_0400, TestSize.Level0)
         testCallback->cv.wait_for(
             lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
     }
+}
+
+/**
+ * @tc.name: ResetAccountIAMProxy001
+ * @tc.desc: test ResetAccountIAMProxy.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMClientTest, ResetAccountIAMProxy001, TestSize.Level0)
+{
+    wptr<IRemoteObject> remote;
+    sptr<IAccountIAM> proxy = AccountIAMClient::GetInstance().proxy_;
+    AccountIAMClient::GetInstance().proxy_ = nullptr;
+    AccountIAMClient::GetInstance().ResetAccountIAMProxy(remote);
+    sptr<IAccountIAM> testIAccountIAM = new (std::nothrow) AccountIAMMgrProxy(nullptr);
+    AccountIAMClient::GetInstance().proxy_ = testIAccountIAM;
+    EXPECT_NE(AccountIAMClient::GetInstance().proxy_, nullptr);
+    AccountIAMClient::GetInstance().ResetAccountIAMProxy(remote);
+    AccountIAMClient::GetInstance().proxy_ = proxy;
 }
 }  // namespace AccountTest
 }  // namespace OHOS
