@@ -15,12 +15,15 @@ group("fuzztest") {
 
   deps = [
     # deps file
+    "procaddserverconfigstub_fuzzer:ProcAddServerConfigStubFuzzTest",
     "procauthstub_fuzzer:ProcAuthStubFuzzTest",
     "procauthuserstub_fuzzer:ProcAuthUserStubFuzzTest",
     "procauthwithpopupstub_fuzzer:ProcAuthWithPopupStubFuzzTest",
+    "procgetaccountserverconfigstub_fuzzer:ProcGetAccountServerConfigStubFuzzTest",
     "procgetdomainaccountinfostub_fuzzer:ProcGetDomainAccountInfoStubFuzzTest",
     "prochasdomainaccountstub_fuzzer:ProcHasDomainAccountStubFuzzTest",
     "procregisterpluginstub_fuzzer:ProcRegisterPluginStubFuzzTest",
+    "procremoveserverconfigstub_fuzzer:ProcRemoveServerConfigStubFuzzTest",
     "procunregisterpluginstub_fuzzer:ProcUnregisterPluginStubFuzzTest",
     "procupdateaccountinfostub_fuzzer:ProcUpdateAccountInfoStubFuzzTest",
   ]

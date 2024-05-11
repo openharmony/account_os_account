@@ -51,22 +51,10 @@ public:
 };
 
 void SubscribeDistributedAccountModuleTest::SetUpTestCase(void)
-{
-#ifdef ACCOUNT_TEST
-    AccountFileOperator osAccountFileOperator;
-    osAccountFileOperator.DeleteDirOrFile(USER_INFO_BASE);
-    GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
-#endif  // ACCOUNT_TEST
-}
+{}
 
 void SubscribeDistributedAccountModuleTest::TearDownTestCase(void)
-{
-#ifdef ACCOUNT_TEST
-    AccountFileOperator osAccountFileOperator;
-    osAccountFileOperator.DeleteDirOrFile(USER_INFO_BASE);
-    GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
-#endif  // ACCOUNT_TEST
-}
+{}
 
 void SubscribeDistributedAccountModuleTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 {
