@@ -60,6 +60,8 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo)
     if (!lockScreenStatus) {
         ACCOUNT_LOGI("start unlock user screen");
         // el3\4 file decryption
+        std::vector<uint8_t> token;
+        extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
         std::vector<uint8_t> secret;
         extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, secret);
         ret = InnerAccountIAMManager::GetInstance().UnlockUserScreen(userId_, token, secret);
