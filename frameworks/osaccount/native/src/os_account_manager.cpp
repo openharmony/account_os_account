@@ -223,11 +223,6 @@ ErrCode OsAccountManager::StartOsAccount(const int id)
     return OsAccount::GetInstance().StartOsAccount(id);
 }
 
-ErrCode OsAccountManager::StopOsAccount(const int id)
-{
-    return OsAccount::GetInstance().StopOsAccount(id);
-}
-
 ErrCode OsAccountManager::GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id)
 {
     return OsAccount::GetInstance().GetOsAccountLocalIdBySerialNumber(serialNumber, id);

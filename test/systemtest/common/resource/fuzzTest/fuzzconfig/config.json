@@ -47,7 +47,6 @@
         "GetDistributedVirtualDeviceId": [],
         "ActivateOsAccount": [],
         "StartOsAccount": [],
-        "StopOsAccount": [],
         "GetOsAccountLocalIdBySerialNumber": [],
         "GetSerialNumberByOsAccountLocalId": [],
         "SubscribeOsAccount": [],

@@ -70,7 +70,6 @@ public:
     virtual ErrCode DeactivateOsAccount(const int id) = 0;
     virtual ErrCode DeactivateAllOsAccounts() = 0;
     virtual ErrCode StartOsAccount(const int id) = 0;
-    virtual ErrCode StopOsAccount(const int id) = 0;
     virtual ErrCode GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id) = 0;
     virtual ErrCode GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber) = 0;
     virtual ErrCode SubscribeOsAccount(

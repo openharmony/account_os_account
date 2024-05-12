@@ -29,7 +29,6 @@ const std::string HELP_MSG = "usage: acm <command> [<options>]\n"
                              "  delete              delete a local account with options\n"
                              "  switch              switch to a local account with options\n"
                              "  deactivate          deactivate to a local account with options\n"
-                             "  stop                stop the local accounts\n"
                              "  set                 set constraints of a local account\n"
                              "  dump                dump the info of local accounts\n";
 
@@ -119,7 +118,6 @@ private:
     ErrCode RunAsDeleteCommand(void);
     ErrCode RunAsSwitchCommand(void);
     ErrCode RunAsDeactivateCommand(void);
-    ErrCode RunAsStopCommand(void);
     ErrCode RunAsDumpCommand(void);
     ErrCode RunAsSetCommand(void);
 

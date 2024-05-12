@@ -82,7 +82,6 @@ public:
     ErrCode DeactivateAllOsAccounts() override;
 
     ErrCode StartOsAccount(const int id) override;
-    ErrCode StopOsAccount(const int id) override;
 
     ErrCode GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id) override;
     ErrCode GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber) override;
