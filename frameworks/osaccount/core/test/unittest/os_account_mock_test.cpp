@@ -392,18 +392,6 @@ HWTEST_F(OsAccountMockTest, StartOsAccountMockTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: StopOsAccountMockTest001
- * @tc.desc: Test StopOsAccount getosaccountproxy faild
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountMockTest, StopOsAccountMockTest001, TestSize.Level1)
-{
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
-        g_osAccount->StopOsAccount(MAIN_ACCOUNT_ID));
-}
-
-/**
  * @tc.name: GetOsAccountLocalIdBySerialNumberMockTest001
  * @tc.desc: Test GetOsAccountLocalIdBySerialNumber getosaccountproxy faild
  * @tc.type: FUNC

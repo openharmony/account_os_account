@@ -1139,22 +1139,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest047, TestSize.Lev
     OsAccountInfo osAccountInfoOne;
     ASSERT_EQ(OsAccountManager::CreateOsAccount("ModuleTest047", OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
     EXPECT_EQ(OsAccountManager::StartOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
-    EXPECT_EQ(OsAccountManager::StopOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
-    ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
-}
-
-/**
- * @tc.name: OsAccountManagerModuleTest050
- * @tc.desc: Test StopOsAccount with valid data.
- * @tc.type: FUNC
- * @tc.require: issueI4IU3B
- */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest050, TestSize.Level1)
-{
-    OsAccountInfo osAccountInfoOne;
-    ASSERT_EQ(OsAccountManager::CreateOsAccount("ModuleTest050", OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
-    EXPECT_EQ(OsAccountManager::StartOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
-    EXPECT_EQ(OsAccountManager::StopOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    EXPECT_EQ(OsAccountManager::DeactivateOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
     ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
@@ -1180,18 +1165,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest048, TestSize.Lev
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest049, TestSize.Level1)
 {
     EXPECT_EQ(OsAccountManager::StartOsAccount(Constants::START_USER_ID), ERR_OK);
-}
-
-/**
- * @tc.name: OsAccountManagerModuleTest051
- * @tc.desc: Test StopOsAccount with invalid data.
- * @tc.type: FUNC
- * @tc.require: issueI4IU3B
- */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest051, TestSize.Level1)
-{
-    EXPECT_EQ(OsAccountManager::StopOsAccount(Constants::MAX_USER_ID + 1),
-        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
