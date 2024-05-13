@@ -266,6 +266,12 @@ public:
         return 0;
     }
 
+    int32_t UMountDfsDocs(int32_t userId, const std::string &relativePath,
+        const std::string &networkId, const std::string &deviceId)
+    {
+        return 0;
+    }
+
     int32_t UpdateKeyContext(uint32_t userId)
     {
         return g_fscryptEnable ? ERROR_STORAGE_KEY_NOT_EXIST : 0;
