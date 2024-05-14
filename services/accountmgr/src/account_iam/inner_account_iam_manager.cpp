@@ -486,7 +486,8 @@ ErrCode InnerAccountIAMManager::GetLockScreenStatus(uint32_t userId, bool &lockS
     return ERR_OK;
 }
 
-ErrCode InnerAccountIAMManager::UnlockUserScreen(int32_t userId)
+ErrCode InnerAccountIAMManager::UnlockUserScreen(
+    int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret)
 {
 #ifdef HAS_STORAGE_PART
     ErrCode result = GetStorageManagerProxy();
@@ -494,7 +495,7 @@ ErrCode InnerAccountIAMManager::UnlockUserScreen(int32_t userId)
         ACCOUNT_LOGE("fail to get storage proxy");
         return result;
     }
-    result = storageMgrProxy_->UnlockUserScreen(userId);
+    result = storageMgrProxy_->UnlockUserScreen(userId, token, secret);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("fail to unlock screen");
         return result;
