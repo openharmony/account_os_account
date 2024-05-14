@@ -1077,7 +1077,7 @@ bool OsAccountManagerService::PermissionCheck(const std::string& permissionName,
         innerManager_.IsOsAccountConstraintEnable(callerUserId, constraintName, isEnable);
         if (isEnable) {
             ACCOUNT_LOGE("constraint check %{public}s failed.", constraintName.c_str());
-            ReportPermissionFail(callerUid, IPCSkeleton::GetCallingPid(), constraintName);
+            ReportPermissionFail(callerUid, IPCSkeleton::GetCallingRealPid(), constraintName);
             return false;
         }
     }
@@ -1088,7 +1088,7 @@ bool OsAccountManagerService::PermissionCheck(const std::string& permissionName,
     }
 
     ACCOUNT_LOGE("failed to verify permission for %{public}s.", permissionName.c_str());
-    ReportPermissionFail(callerUid, IPCSkeleton::GetCallingPid(), permissionName);
+    ReportPermissionFail(callerUid, IPCSkeleton::GetCallingRealPid(), permissionName);
     return false;
 }
 
