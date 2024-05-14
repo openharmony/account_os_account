@@ -29,7 +29,7 @@ int IDMCallbackStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     ACCOUNT_LOGD("Received stub message: %{public}d, callingUid: %{public}d, callingPid: %{public}d",
-        code, IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingPid());
+        code, IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingRealPid());
     if (data.ReadInterfaceToken() != GetDescriptor()) {
         ACCOUNT_LOGE("check IDMCallbackStub descriptor failed! code %{public}u.", code);
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
@@ -89,7 +89,7 @@ int GetCredInfoCallbackStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     ACCOUNT_LOGD("Received stub message: %{public}d, callingUid: %{public}d, callingPid: %{public}d",
-        code, IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingPid());
+        code, IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingRealPid());
     if (data.ReadInterfaceToken() != GetDescriptor()) {
         ACCOUNT_LOGE("check GetCredInfoCallbackStub descriptor failed! code %{public}u.", code);
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
@@ -148,7 +148,7 @@ int GetSetPropCallbackStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     ACCOUNT_LOGD("Received stub message: %{public}d, callingUid: %{public}d, callingPid: %{public}d",
-        code, IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingPid());
+        code, IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingRealPid());
     if (data.ReadInterfaceToken() != GetDescriptor()) {
         ACCOUNT_LOGE("check GetSetPropCallbackStub descriptor failed! code %{public}u.", code);
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
@@ -184,7 +184,7 @@ int GetEnrolledIdCallbackStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     ACCOUNT_LOGD("Received stub message: %{public}d, callingUid: %{public}d, callingPid: %{public}d",
-        code, IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingPid());
+        code, IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingRealPid());
     if (data.ReadInterfaceToken() != GetDescriptor()) {
         ACCOUNT_LOGE("Check GetCredInfoCallbackStub descriptor failed! code %{public}u.", code);
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
@@ -219,7 +219,7 @@ int PreRemoteAuthCallbackStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     ACCOUNT_LOGD("Received stub message: %{public}d, callingUid: %{public}d, callingPid: %{public}d",
-        code, IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingPid());
+        code, IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingRealPid());
     if (data.ReadInterfaceToken() != GetDescriptor()) {
         ACCOUNT_LOGE("Check PreRemoteAuthCallbackStub descriptor failed, code=%{public}u.", code);
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
