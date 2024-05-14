@@ -57,13 +57,13 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo)
     if (ret != 0) {
         ReportOsAccountOperationFail(userId_, "getLockScreenStatus", ret, "failed to get lock status msg from storage");
     }
+    std::vector<uint8_t> token;
+    extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
+    std::vector<uint8_t> secret;
+    extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, secret);
     if (!lockScreenStatus) {
         ACCOUNT_LOGI("start unlock user screen");
         // el3\4 file decryption
-        std::vector<uint8_t> token;
-        extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
-        std::vector<uint8_t> secret;
-        extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, secret);
         ret = InnerAccountIAMManager::GetInstance().UnlockUserScreen(userId_, token, secret);
         if (ret != 0) {
             ReportOsAccountOperationFail(userId_, "unlockUserScreen", ret, "failed to send unlock msg for storage");
@@ -73,10 +73,6 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo)
     if (authType_ == static_cast<AuthType>(IAMAuthType::DOMAIN)) {
         return ERR_OK;
     }
-    std::vector<uint8_t> token;
-    extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
-    std::vector<uint8_t> secret;
-    extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, secret);
     if (authType_ == AuthType::PIN) {
         bool isVerified = false;
         (void)IInnerOsAccountManager::GetInstance().IsOsAccountVerified(userId_, isVerified);
