@@ -156,7 +156,7 @@ AccountIAMMgrStub::~AccountIAMMgrStub()
 std::int32_t AccountIAMMgrStub::OnRemoteRequest(
     std::uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    ACCOUNT_LOGI("Received stub message: %{public}d, callingPid: %{public}d", code, IPCSkeleton::GetCallingPid());
+    ACCOUNT_LOGI("Received stub message: %{public}d, callingPid: %{public}d", code, IPCSkeleton::GetCallingRealPid());
     MemoryGuard cacheGuard;
     Security::AccessToken::AccessTokenID tokenCaller = IPCSkeleton::GetCallingTokenID();
     int result = SetFirstCallerTokenID(tokenCaller);
