@@ -100,10 +100,6 @@ void AppAccountManagerServiceAssocaitedDataTest::ClearDataStorage()
 void AppAccountManagerServiceAssocaitedDataTest::SetUpTestCase(void)
 {
     GTEST_LOG_(INFO) << "SetUpTestCase";
-    
-    OHOS::Security::AccessToken::AccessTokenIDEx tokenIdEx = {0};
-    tokenIdEx = OHOS::Security::AccessToken::AccessTokenKit::AllocHapToken(g_info, g_PolicyPrams1);
-    SetSelfTokenID(tokenIdEx.tokenIDEx);
 }
 
 void AppAccountManagerServiceAssocaitedDataTest::TearDownTestCase(void)
@@ -122,7 +118,6 @@ void AppAccountManagerServiceAssocaitedDataTest::TearDownTestCase(void)
     result = dataStoragePtr->DeleteKvStore();
     ASSERT_EQ(result, ERR_OK);
 #endif // DISTRIBUTED_FEATURE_ENABLED
-    SetSelfTokenID(g_tokenId);
     GTEST_LOG_(INFO) << "TearDownTestCase exit";
 }
 
