@@ -424,14 +424,15 @@ void GetSecUserInfoCallbackWrapper::OnSecUserInfo(const SecUserInfo &info)
     if (innerCallback_ == nullptr) {
         return;
     }
-    uint64_t enrolledId = 0;
-    for (const auto &iter : info.enrolledInfo) {
-        if (iter.authType == authType_) {
-            enrolledId = iter.enrolledId;
-            return innerCallback_->OnEnrolledId(ERR_OK, enrolledId);
-        }
+
+    auto it = std::find_if(info.enrolledInfo.begin(), info.enrolledInfo.end(), [this](const auto& item) {
+        return item.authType == authType_;
+    });
+    if (it != info.enrolledInfo.end()) {
+        return innerCallback_->OnEnrolledId(ERR_OK, it->enrolledId);
+    } else {
+        return innerCallback_->OnEnrolledId(ERR_IAM_NOT_ENROLLED, 0);
     }
-    return innerCallback_->OnEnrolledId(ERR_IAM_NOT_ENROLLED, enrolledId);
 }
 
 PrepareRemoteAuthCallbackWrapper::PrepareRemoteAuthCallbackWrapper(const sptr<IPreRemoteAuthCallback> &callback)
