@@ -58,7 +58,7 @@ OHOS::DistributedKv::Status AccountDataStorage::GetKvStore()
 {
     OHOS::DistributedKv::Options options = {
         .createIfMissing = true,
-        .encrypt = false,
+        .encrypt = options_.encrypt,
         .autoSync = options_.autoSync,
         .syncable = options_.autoSync,
         .securityLevel = options_.securityLevel,
@@ -331,6 +331,31 @@ bool AccountDataStorage::IsKeyExists(const std::string keyStr)
         return false;
     }
     return true;
+}
+
+ErrCode AccountDataStorage::MoveData(const std::shared_ptr<AccountDataStorage> &ptr)
+{
+    if (ptr == nullptr) {
+        ACCOUNT_LOGE("AccountDataStorage is nullptr");
+        return ERR_ACCOUNT_COMMON_CHECK_KVSTORE_ERROR;
+    }
+    std::map<std::string, std::shared_ptr<IAccountInfo>> infos;
+    ErrCode result = ptr->LoadAllData(infos);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("LoadAllData failed, result=%{public}u", result);
+        return result;
+    }
+    for (const auto &info:  infos) {
+        if (info.second == nullptr) {
+            ACCOUNT_LOGE("AppAccountInfo %{public}s is nullptr", info.first.c_str());
+            continue;
+        }
+        result = AddAccountInfo(*info.second);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGE("Add AppAccountInfo failed, result=%{public}u", result);
+        }
+    }
+    return ERR_OK;
 }
 }  // namespace AccountSA
 }  // namespace OHOS
