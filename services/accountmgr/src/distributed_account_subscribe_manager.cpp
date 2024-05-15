@@ -46,17 +46,15 @@ ErrCode DistributedAccountSubscribeManager::SubscribeDistributedAccountEvent(
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
     std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
-    for (auto &it : subscribeRecords_) {
-        if (it->eventListener_ == eventListener) {
-            it->types_.insert(type);
-            return ERR_OK;
-        }
+    auto it = std::find_if(subscribeRecords_.begin(), subscribeRecords_.end(), [&eventListener](const auto& record) {
+        return record->eventListener_ == eventListener;
+    });
+    if (it != subscribeRecords_.end()) {
+        (*it)->types_.insert(type);
+        return ERR_OK;
     }
+
     auto subscribeRecordPtr = std::make_shared<DistributedSubscribeRecord>(eventListener);
-    if (subscribeRecordPtr == nullptr) {
-        ACCOUNT_LOGE("SubscribeRecordPtr is nullptr.");
-        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
-    }
     if (subscribeDeathRecipient_ != nullptr) {
         eventListener->AddDeathRecipient(subscribeDeathRecipient_);
     }
