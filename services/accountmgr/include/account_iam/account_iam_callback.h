@@ -103,7 +103,7 @@ private:
 
 class CommitCredUpdateCallback : public UserIdmClientCallback {
 public:
-    CommitCredUpdateCallback(int32_t userId, const sptr<IIDMCallback> &callback);
+    CommitCredUpdateCallback(int32_t userId, uint64_t credentialId, const sptr<IIDMCallback> &callback);
     virtual ~CommitCredUpdateCallback() = default;
 
     void OnResult(int32_t result, const Attributes &extraInfo) override;
@@ -111,6 +111,7 @@ public:
 
 private:
     int32_t userId_;
+    uint64_t credentialId_;
     sptr<IIDMCallback> innerCallback_ = nullptr;
 };
 

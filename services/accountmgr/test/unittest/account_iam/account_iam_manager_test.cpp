@@ -838,7 +838,9 @@ HWTEST_F(AccountIamManagerTest, UpdateCredCallback_OnResult_0002, TestSize.Level
     updateCredCallback->OnResult(errCode, extraInfo);
     EXPECT_NE(errCode, callback->result_);
 
-    auto commitUpdateCredCallback = std::make_shared<CommitCredUpdateCallback>(UPDATE_FAIL_USER_ID, callback);
+    uint64_t credentialId;
+    auto commitUpdateCredCallback = std::make_shared<CommitCredUpdateCallback>(UPDATE_FAIL_USER_ID,
+        credentialId, callback);
     commitUpdateCredCallback->OnResult(errCode, extraInfo);
     commitUpdateCredCallback->OnResult(1, extraInfo);
     innerIamMgr_.storageMgrProxy_ = nullptr;

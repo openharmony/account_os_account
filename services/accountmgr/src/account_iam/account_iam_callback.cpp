@@ -274,9 +274,11 @@ void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
         return;
     }
     innerIamMgr_.SetState(userId_, AFTER_UPDATE_CRED);
-    auto idmCallback = std::make_shared<CommitCredUpdateCallback>(userId_, innerCallback_);
     uint64_t oldCredentialId = 0;
     extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_OLD_CREDENTIAL_ID, oldCredentialId);
+    uint64_t credentialId = 0;
+    extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId);
+    auto idmCallback = std::make_shared<CommitCredUpdateCallback>(userId_, credentialId, innerCallback_);
     UserIDMClient::GetInstance().DeleteCredential(userId_, oldCredentialId, credInfo_.token, idmCallback);
 }
 
@@ -289,8 +291,9 @@ void UpdateCredCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, con
     innerCallback_->OnAcquireInfo(module, acquireInfo, extraInfo);
 }
 
-CommitCredUpdateCallback::CommitCredUpdateCallback(int32_t userId, const sptr<IIDMCallback> &callback)
-    : userId_(userId), innerCallback_(callback)
+CommitCredUpdateCallback::CommitCredUpdateCallback(int32_t userId, uint64_t credentialId,
+    const sptr<IIDMCallback> &callback)
+    : userId_(userId), credentialId_(credentialId), innerCallback_(callback)
 {}
 
 void CommitCredUpdateCallback::OnResult(int32_t result, const Attributes &extraInfo)
@@ -311,7 +314,9 @@ void CommitCredUpdateCallback::OnResult(int32_t result, const Attributes &extraI
     }
     innerIamMgr_.UpdateStorageKeyContext(userId_);
     innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
-    innerCallback_->OnResult(result, extraInfo);
+    Attributes extraInfoResult;
+    extraInfoResult.SetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId_);
+    innerCallback_->OnResult(result, extraInfoResult);
 }
 
 void CommitCredUpdateCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
