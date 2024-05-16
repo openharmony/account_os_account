@@ -94,6 +94,7 @@ void BindDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
         osAccountInfo_.Marshalling(resultParcel);
         return innerCallback_->OnResult(errCode, resultParcel);
     }
+    osAccountControl_->UpdateAccountIndex(osAccountInfo_, false);
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo_);
     if ((osAccountInfo_.GetLocalId() == Constants::START_USER_ID) && (errCode == ERR_OK)) {
 #ifdef HAS_CES_PART

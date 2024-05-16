@@ -561,6 +561,7 @@ ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type, con
         osAccountInfos[0].GetDomainInfo(curDomainInfo);
         if (curDomainInfo.domain_.empty()) {
             osAccountInfos[0].SetLocalName(osAccountName);
+            osAccountInfos[0].SetShortName(options.shortName);
             osAccountInfos[0].SetDomainInfo(domainAccountInfo);
             osAccountInfo = osAccountInfos[0];
         }
