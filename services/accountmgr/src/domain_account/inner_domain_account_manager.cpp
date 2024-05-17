@@ -50,7 +50,8 @@ const char THREAD_BIND_ACCOUNT[] = "bindAccount";
 const char THREAD_UNBIND_ACCOUNT[] = "unbindAccount";
 const char THREAD_GET_ACCESS_TOKEN[] = "getAccessToken";
 const char THREAD_IS_ACCOUNT_VALID[] = "isAccountTokenValid";
-const int32_t INVALID_USERID = -1;
+constexpr int32_t INVALID_USERID = -1;
+constexpr int32_t SELF_UID = 3058;
 #ifdef _ARM64_
 static const std::string LIB_PATH = "/system/lib64/platformsdk/";
 #else
@@ -943,12 +944,8 @@ void InnerDomainAccountManager::NotifyDomainAccountEvent(
 
 ErrCode InnerDomainAccountManager::UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token)
 {
-    if (plugin_ == nullptr) {
-        ACCOUNT_LOGE("plugin is not exit!");
-        return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
-    }
     int32_t callingUid = IPCSkeleton::GetCallingUid();
-    if (callingUid != callingUid_) {
+    if ((callingUid != callingUid_) && (callingUid != SELF_UID)) {
         ACCOUNT_LOGE("callingUid and register callinguid is not same!");
         return ERR_DOMAIN_ACCOUNT_SERVICE_INVALID_CALLING_UID;
     }
