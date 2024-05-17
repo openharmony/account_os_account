@@ -230,7 +230,7 @@ bool AccountFileOperator::IsExistFile(const std::string &path)
     std::shared_lock<std::shared_timed_mutex> lock(fileLock_);
     struct stat buf = {};
     if (stat(path.c_str(), &buf) != 0) {
-        ACCOUNT_LOGE("fail to get file stat, filepath: %{public}s", path.c_str());
+        ACCOUNT_LOGE("Stat %{public}s failed, errno=%{public}d.", path.c_str(), errno);
         return false;
     }
 
@@ -264,6 +264,7 @@ bool AccountFileOperator::IsExistDir(const std::string &path)
     std::shared_lock<std::shared_timed_mutex> lock(fileLock_);
     struct stat buf = {};
     if (stat(path.c_str(), &buf) != 0) {
+        ACCOUNT_LOGE("Stat %{public}s failed, errno=%{public}d", path.c_str(), errno);
         return false;
     }
 
