@@ -29,8 +29,8 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const uint32_t FILE_WATCHER_LIMIT = 1024 * 100;
-const uint32_t BUF_COMMON_SIZE = 1024 * 100;
+constexpr uint32_t FILE_WATCHER_LIMIT = 1024 * 100;
+constexpr uint32_t BUF_COMMON_SIZE = 1024 * 100;
 const struct HksParam g_genSignVerifyParams[] = {
     {
         .tag = HKS_TAG_ALGORITHM,
@@ -49,11 +49,11 @@ const struct HksParam g_genSignVerifyParams[] = {
         .uint32Param = HKS_AUTH_STORAGE_LEVEL_DE
     }
 };
-const uint32_t ALG_COMMON_SIZE = 32;
-const int32_t TIMES = 4;
-const int32_t MAX_UPDATE_SIZE = 256 * 100;
-const int32_t MAX_OUTDATA_SIZE = MAX_UPDATE_SIZE * TIMES;
-const char ACCOUNT_KEY_ALIAS[] = "os_account_info_encryption_key";
+constexpr uint32_t ALG_COMMON_SIZE = 32;
+constexpr int32_t TIMES = 4;
+constexpr int32_t MAX_UPDATE_SIZE = 256 * 100;
+constexpr int32_t MAX_OUTDATA_SIZE = MAX_UPDATE_SIZE * TIMES;
+constexpr char ACCOUNT_KEY_ALIAS[] = "os_account_info_encryption_key";
 const HksBlob g_keyAlias = { (uint32_t)strlen(ACCOUNT_KEY_ALIAS), (uint8_t *)ACCOUNT_KEY_ALIAS };
 }
 
@@ -257,7 +257,6 @@ void AccountFileWatcherMgr::DealWithFileEvent()
     for (auto it : eventMap) {
         it.first->CheckNotifyEvent(it.second);
     }
-    return;
 }
 
 void AccountFileWatcherMgr::GetNotifyEvent()
@@ -288,8 +287,13 @@ void AccountFileWatcherMgr::StartWatch() // start watcher
 }
 
 void AccountFileWatcherMgr::AddFileWatcher(
-    const int32_t id, CheckNotifyEventCallbackFunc checkCallbackFunc, const std::string filePath)
+    int32_t id, CheckNotifyEventCallbackFunc checkCallbackFunc, const std::string &filePath)
 {
+    if (checkCallbackFunc == nullptr) {
+        ACCOUNT_LOGE("Notify event callback is nullptr");
+        return;
+    }
+    std::lock_guard<std::mutex> lock(fileWatcherMgrLock_);
     if (inotifyFd_ < 0) {
         inotifyFd_ = inotify_init();
         if (inotifyFd_ < 0) {
@@ -297,19 +301,16 @@ void AccountFileWatcherMgr::AddFileWatcher(
             return;
         }
     }
-    std::lock_guard<std::mutex> lock(fileWatcherMgrLock_);
     if (fileNameMgrMap_.size() > FILE_WATCHER_LIMIT) {
         ACCOUNT_LOGW("the fileWatcher limit has been reached, fileName = %{public}s", filePath.c_str());
         return;
     }
     std::shared_ptr<FileWatcher> fileWatcher;
     if (!filePath.empty()) {
-        fileWatcher = std::make_shared<FileWatcher>(filePath);
-        fileWatcher->id_ = id;
+        fileWatcher = std::make_shared<FileWatcher>(id, filePath, checkCallbackFunc);
     } else {
-        fileWatcher = std::make_shared<FileWatcher>(id);
+        fileWatcher = std::make_shared<FileWatcher>(id, checkCallbackFunc);
     }
-    fileWatcher->SetEventCallback(checkCallbackFunc);
     if (!fileWatcher->StartNotify(inotifyFd_, IN_MODIFY | IN_DELETE_SELF| IN_MOVE_SELF)) {
         ACCOUNT_LOGI("fileWatcher StartNotify failed, fileName = %{public}s", filePath.c_str());
         return;
@@ -323,7 +324,7 @@ void AccountFileWatcherMgr::AddFileWatcher(
     StartWatch();
 }
 
-void AccountFileWatcherMgr::RemoveFileWatcher(const int32_t id, const std::string filePath)
+void AccountFileWatcherMgr::RemoveFileWatcher(int32_t id, const std::string &filePath)
 {
     std::lock_guard<std::mutex> lock(fileWatcherMgrLock_);
     int targetWd = -1;
@@ -338,7 +339,6 @@ void AccountFileWatcherMgr::RemoveFileWatcher(const int32_t id, const std::strin
     }
     fileNameMgrMap_[targetWd]->CloseNotify(inotifyFd_);
     fileNameMgrMap_.erase(targetWd);
-    return;
 }
 
 ErrCode AccountFileWatcherMgr::GetAccountInfoDigestFromFile(const std::string &path, uint8_t *digest, uint32_t size)
@@ -383,7 +383,7 @@ ErrCode AccountFileWatcherMgr::GenerateAccountInfoDigestStr(
     }
     Json accountInfoDigestJson = Json::parse(accountInfoDigest, nullptr, false);
     if (accountInfoDigestJson.is_discarded()) {
-        accountInfoDigestJson = Json();
+        return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
     }
     accountInfoDigestJson[userInfoPath] = digestOutData;
     try {
@@ -433,24 +433,27 @@ ErrCode AccountFileWatcherMgr::DeleteAccountInfoDigest(const std::string &userIn
     return ERR_OK;
 }
 
-FileWatcher::FileWatcher(const int32_t id) : id_(id)
+FileWatcher::FileWatcher(int32_t id, const CheckNotifyEventCallbackFunc &checkCallbackFunc)
+    : id_(id), eventCallbackFunc_(checkCallbackFunc)
 {
     filePath_ = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(id) +
         Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
 }
 
-FileWatcher::FileWatcher(const std::string &filePath) : filePath_(filePath)
+FileWatcher::FileWatcher(int32_t id, const std::string &filePath,
+    const CheckNotifyEventCallbackFunc &checkCallbackFunc)
+    : id_(id), filePath_(filePath), eventCallbackFunc_(checkCallbackFunc)
 {}
 
 FileWatcher::~FileWatcher()
 {}
 
-std::string FileWatcher::GetFilePath()
+std::string FileWatcher::GetFilePath() const
 {
     return filePath_;
 }
 
-bool FileWatcher::StartNotify(const int32_t fd, const uint32_t &watchEvents)
+bool FileWatcher::StartNotify(int32_t fd, const uint32_t &watchEvents)
 {
     wd_ = inotify_add_watch(fd, filePath_.c_str(), watchEvents);
     if (wd_ < 0) {
@@ -472,17 +475,13 @@ bool FileWatcher::CheckNotifyEvent(uint32_t event)
     }
     return true;
 }
-void FileWatcher::SetEventCallback(CheckNotifyEventCallbackFunc &func)
-{
-    eventCallbackFunc_ = func;
-}
 
-int32_t FileWatcher::GetLocalId()
+int32_t FileWatcher::GetLocalId() const
 {
     return id_;
 }
 
-int32_t FileWatcher::GetWd()
+int32_t FileWatcher::GetWd() const
 {
     return wd_;
 }
@@ -497,7 +496,6 @@ void FileWatcher::CloseNotify(int32_t fd)
         }
     }
     wd_ = -1;
-    return;
 }
 }  // namespace AccountSA
 }  // namespace OHOS
