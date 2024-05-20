@@ -184,3 +184,9 @@ if (!defined(global_parts_info) || defined(global_parts_info.theme_theme_mgr)) {
 } else {
   has_theme_mar_part = false
 }
+
+if (!defined(global_parts_info) || defined(global_parts_info.config_policy)) {
+  has_config_policy_part = true
+} else {
+  has_config_policy_part = false
+}
