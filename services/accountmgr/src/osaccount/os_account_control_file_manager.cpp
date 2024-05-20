@@ -24,7 +24,9 @@
 
 #include "account_log_wrapper.h"
 #include "account_hisysevent_adapter.h"
+#ifdef HAS_CONFIG_POLICY_PART
 #include "config_policy_utils.h"
+#endif
 #include "os_account_constants.h"
 #include "os_account_interface.h"
 
@@ -37,18 +39,17 @@ const std::string OS_ACCOUNT_STORE_ID = "os_account_info";
 const uint32_t ALG_COMMON_SIZE = 32;
 #ifndef ACCOUNT_TEST
 const std::string ACCOUNT_CFG_DIR_ROOT_PATH = "/data/service/el1/public/account/";
-#else
-const std::string ACCOUNT_CFG_DIR_ROOT_PATH = "/data/service/el1/public/account/test/";
-#endif // ACCOUNT_TEST
-const std::string DISTRIBUTED_ACCOUNT_FILE_NAME = "/account.json";
-const std::string OS_ACCOUNT_CONFIG_FILE = "etc/os_account/os_account_config.json";
-const std::string MAX_OS_ACCOUNT_NUM = "maxOsAccountNum";
-const std::string MAX_LOGGED_IN_OS_ACCOUNT_NUM = "maxLoggedInOsAccountNum";
-#ifndef ACCOUNT_TEST
 const std::string DEFAULT_OS_ACCOUNT_CONFIG_FILE = "/system/etc/account/os_account_config.json";
 #else
+const std::string ACCOUNT_CFG_DIR_ROOT_PATH = "/data/service/el1/public/account/test/";
 const std::string DEFAULT_OS_ACCOUNT_CONFIG_FILE = ACCOUNT_CFG_DIR_ROOT_PATH + "os_account_config.json";
 #endif // ACCOUNT_TEST
+const std::string DISTRIBUTED_ACCOUNT_FILE_NAME = "/account.json";
+#ifdef HAS_CONFIG_POLICY_PART
+const std::string OS_ACCOUNT_CONFIG_FILE = "etc/os_account/os_account_config.json";
+#endif // HAS_CONFIG_POLICY_PART
+const std::string MAX_OS_ACCOUNT_NUM = "maxOsAccountNum";
+const std::string MAX_LOGGED_IN_OS_ACCOUNT_NUM = "maxLoggedInOsAccountNum";
 }
 
 bool GetValidAccountID(const std::string& dirName, std::int32_t& accountID)
@@ -76,6 +77,7 @@ bool GetValidAccountID(const std::string& dirName, std::int32_t& accountID)
 ErrCode OsAccountControlFileManager::GetOsAccountConfig(OsAccountConfig &config)
 {
     std::string cfgPath = DEFAULT_OS_ACCOUNT_CONFIG_FILE;
+#ifdef HAS_CONFIG_POLICY_PART
     CfgFiles *cfgFiles = GetCfgFiles(OS_ACCOUNT_CONFIG_FILE.c_str());
     if (cfgFiles != nullptr) {
         if (cfgFiles->paths[0] != nullptr) {
@@ -83,6 +85,7 @@ ErrCode OsAccountControlFileManager::GetOsAccountConfig(OsAccountConfig &config)
         }
         FreeCfgFiles(cfgFiles);
     }
+#endif
     std::string configStr;
     ErrCode errCode = accountFileOperator_->GetFileContentByPath(cfgPath, configStr);
     if (errCode != ERR_OK) {
