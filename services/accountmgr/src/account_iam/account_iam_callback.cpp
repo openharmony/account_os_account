@@ -152,13 +152,15 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         innerCallback_->OnResult(ResultCode::FAIL, errInfo);
         return AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, ResultCode::FAIL);
     }
-    Attributes extraAuthInfo;
-    GenerateAttributesInfo(extraInfo, extraAuthInfo);
     uint64_t credentialId = 0;
     if (!extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId) && (credentialId_ != 0)) {
+        Attributes extraAuthInfo;
+        GenerateAttributesInfo(extraInfo, extraAuthInfo);
         extraAuthInfo.SetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId_);
+        innerCallback_->OnResult(result, extraAuthInfo);
+    } else {
+        innerCallback_->OnResult(result, extraInfo);
     }
-    innerCallback_->OnResult(result, extraAuthInfo);
     (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsVerified(userId_, true);
     (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsLoggedIn(userId_, true);
     AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, result);

@@ -238,12 +238,14 @@ int32_t InnerAccountIAMManager::AuthUser(
         ACCOUNT_LOGE("callback is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
-    if ((authParam.authType != AuthType::PIN) && (!IsNonPINAllowed(authParam.userId))) {
+    if ((authParam.remoteAuthParam == std::nullopt) &&
+        (authParam.authType != AuthType::PIN) && (!IsNonPINAllowed(authParam.userId))) {
         ACCOUNT_LOGE("unsupported auth type: %{public}d", authParam.authType);
         return ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE;
     }
     OsAccountInfo osAccountInfo;
-    if (IInnerOsAccountManager::GetInstance().QueryOsAccountById(authParam.userId, osAccountInfo) != ERR_OK) {
+    if ((authParam.remoteAuthParam == std::nullopt) &&
+        (IInnerOsAccountManager::GetInstance().QueryOsAccountById(authParam.userId, osAccountInfo)) != ERR_OK) {
         ACCOUNT_LOGE("Account does not exist");
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
