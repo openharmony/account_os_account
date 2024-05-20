@@ -59,22 +59,39 @@ ErrCode AccountFileOperator::CreateDir(const std::string &path)
 
 ErrCode AccountFileOperator::DeleteDirOrFile(const std::string &path)
 {
-    bool delFlag = false;
-    if (IsExistFile(path)) {
-        std::unique_lock<std::shared_timed_mutex> lock(fileLock_);
-        SetValidDeleteFileOperationFlag(path, true);
-        delFlag = OHOS::RemoveFile(path);
-    }
     if (IsExistDir(path)) {
-        std::unique_lock<std::shared_timed_mutex> lock(fileLock_);
-        SetValidDeleteFileOperationFlag(path, true);
-        delFlag = OHOS::ForceRemoveDirectory(path);
+        return DeleteDir(path);
     }
+    if (IsExistFile(path)) {
+        return DeleteFile(path);
+    }
+    ACCOUNT_LOGI("Dir or file does not exist, path %{public}s.", path.c_str());
+    return ERR_OK;
+}
+
+ErrCode AccountFileOperator::DeleteDir(const std::string &path)
+{
+    std::unique_lock<std::shared_timed_mutex> lock(fileLock_);
+    bool delFlag = false;
+    delFlag = OHOS::ForceRemoveDirectory(path);
     if (!delFlag) {
         ACCOUNT_LOGE("DeleteDirOrFile failed, path %{public}s errno %{public}d.", path.c_str(), errno);
-        SetValidDeleteFileOperationFlag(path, false);
         return ERR_OSACCOUNT_SERVICE_FILE_DELE_ERROR;
     }
+    SetValidDeleteFileOperationFlag(path, true);
+    return ERR_OK;
+}
+
+ErrCode AccountFileOperator::DeleteFile(const std::string &path)
+{
+    std::unique_lock<std::shared_timed_mutex> lock(fileLock_);
+    bool delFlag = false;
+    delFlag = OHOS::RemoveFile(path);
+    if (!delFlag) {
+        ACCOUNT_LOGE("DeleteDirOrFile failed, path %{public}s errno %{public}d.", path.c_str(), errno);
+        return ERR_OSACCOUNT_SERVICE_FILE_DELE_ERROR;
+    }
+    SetValidDeleteFileOperationFlag(path, true);
     return ERR_OK;
 }
 

@@ -27,26 +27,23 @@ namespace OHOS {
 namespace AccountSA {
 int32_t GenerateAccountInfoDigest(const std::string &inData, uint8_t* outData, uint32_t size);
 
-using CheckNotifyEventCallbackFunc = std::function<bool(const std::string&, const int32_t, uint32_t)>;
+using CheckNotifyEventCallbackFunc = std::function<bool(const std::string&, int32_t, uint32_t)>;
 class FileWatcher {
 public:
-    FileWatcher(const int32_t id);
-    FileWatcher(const std::string &filePath);
+    FileWatcher(int32_t id, const CheckNotifyEventCallbackFunc &checkCallbackFunc);
+    FileWatcher(int32_t id, const std::string &filePath, const CheckNotifyEventCallbackFunc &checkCallbackFunc);
     ~FileWatcher();
 
-    std::string GetFilePath();
-    int32_t GetLocalId();
-    int32_t GetWd();
+    std::string GetFilePath() const;
+    int32_t GetLocalId() const;
+    int32_t GetWd() const;
 
-    bool StartNotify(const int32_t fd, const uint32_t &watchEvents);
+    bool StartNotify(int32_t fd, const uint32_t &watchEvents);
     void CloseNotify(int32_t fd);
     bool CheckNotifyEvent(uint32_t event);
-    void SetEventCallback(CheckNotifyEventCallbackFunc &func);
-
-public:
-    int32_t id_ = -1;
 
 private:
+    int32_t id_ = -1;
     int32_t wd_ = -1; // generate from inotify_add_watch
     std::string filePath_;
     CheckNotifyEventCallbackFunc eventCallbackFunc_;
@@ -57,8 +54,8 @@ public:
     static AccountFileWatcherMgr &GetInstance();
     void StartWatch();
     void AddFileWatcher(
-        const int32_t id, CheckNotifyEventCallbackFunc checkCallbackFunc, const std::string filePath = "");
-    void RemoveFileWatcher(const int32_t id, const std::string filePath);
+        int32_t id, CheckNotifyEventCallbackFunc checkCallbackFunc, const std::string &filePath = "");
+    void RemoveFileWatcher(int32_t id, const std::string &filePath);
     ErrCode GetAccountInfoDigestFromFile(const std::string &path, uint8_t *digest, uint32_t size);
     ErrCode GenerateAccountInfoDigestStr(
         const std::string &userInfoPath, const std::string &accountInfoStr, std::string &digestStr);
