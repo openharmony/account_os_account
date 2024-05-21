@@ -228,7 +228,8 @@ uint64_t AccountIAMClient::AuthUser(
     if (proxy == nullptr) {
         return contextId;
     }
-    if ((authOptions.accountId == 0) && (!GetCurrentUserId(authOptions.accountId))) {
+    if ((!authOptions.hasRemoteAuthOptions) && (authOptions.accountId == 0) &&
+        (!GetCurrentUserId(authOptions.accountId))) {
         return contextId;
     }
 #ifdef HAS_PIN_AUTH_PART
