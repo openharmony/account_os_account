@@ -294,6 +294,9 @@ static bool ParseContextForAuthOptions(napi_env env, napi_value jsOptions, AuthO
             return false;
         }
         authOptions.hasRemoteAuthOptions = true;
+        if (!authOptions.hasAccountId) {
+            authOptions.accountId = -1;
+        }
     }
     return true;
 }
@@ -372,7 +375,8 @@ napi_value NapiAccountIAMUserAuth::Auth(napi_env env, napi_callback_info info)
     if (ParseContextForAuth(env, argv, argc, context) == napi_invalid_arg) {
         return nullptr;
     }
-    if ((context.authOptions.hasAccountId) && (IsRestrictedAccountId(context.authOptions.accountId))) {
+    if ((!context.authOptions.hasRemoteAuthOptions) && (context.authOptions.hasAccountId) &&
+        (IsRestrictedAccountId(context.authOptions.accountId))) {
         AccountSA::Attributes emptyInfo;
         context.callback->OnResult(ERR_JS_CREDENTIAL_NOT_EXIST, emptyInfo);
         return nullptr;

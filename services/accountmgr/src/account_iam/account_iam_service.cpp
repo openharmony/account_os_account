@@ -170,7 +170,8 @@ int32_t AccountIAMService::PrepareRemoteAuth(
 int32_t AccountIAMService::AuthUser(
     AuthParam &authParam, const sptr<IIDMCallback> &callback, uint64_t &contextId)
 {
-    if ((authParam.userId == 0) && (!GetCurrentUserId(authParam.userId))) {
+    if ((authParam.remoteAuthParam == std::nullopt) && (authParam.userId == 0) &&
+        (!GetCurrentUserId(authParam.userId))) {
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     return InnerAccountIAMManager::GetInstance().AuthUser(authParam, callback, contextId);
