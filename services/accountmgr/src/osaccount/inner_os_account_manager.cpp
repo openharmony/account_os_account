@@ -43,6 +43,7 @@ namespace AccountSA {
 namespace {
 const std::string CONSTRAINT_CREATE_ACCOUNT_DIRECTLY = "constraint.os.account.create.directly";
 const std::string ACCOUNT_READY_EVENT = "bootevent.account.ready";
+const std::string PARAM_LOGIN_NAME_MAX = "persist.account.login_name_max";
 const char WATCH_START_USER[] = "watch.start.user";
 constexpr std::int32_t DELAY_FOR_ACCOUNT_BOOT_EVENT_READY = 5;
 constexpr std::int32_t DELAY_FOR_EXCEPTION = 50;
@@ -554,13 +555,12 @@ ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type, con
 #else
     bool isEnabled = true;
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
-    std::string osAccountName = domainAccountInfo.domain_ + "/" + domainAccountInfo.accountName_;
     OsAccountInfo osAccountInfo;
     if (isEnabled && (osAccountInfos.size() == 1) && (osAccountInfos[0].GetLocalId() == Constants::START_USER_ID)) {
         DomainAccountInfo curDomainInfo;
         osAccountInfos[0].GetDomainInfo(curDomainInfo);
         if (curDomainInfo.domain_.empty()) {
-            osAccountInfos[0].SetLocalName(osAccountName);
+            osAccountInfos[0].SetLocalName(domainAccountInfo.accountName_);
             osAccountInfos[0].SetShortName(options.shortName);
             osAccountInfos[0].SetDomainInfo(domainAccountInfo);
             osAccountInfo = osAccountInfos[0];
@@ -568,7 +568,7 @@ ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type, con
     }
     if (osAccountInfo.GetLocalId() != Constants::START_USER_ID) {
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-        ErrCode errCode = PrepareOsAccountInfo(osAccountName, options.shortName,
+        ErrCode errCode = PrepareOsAccountInfo(domainAccountInfo.accountName_, options.shortName,
             type, domainAccountInfo, osAccountInfo);
         if (errCode != ERR_OK) {
             return errCode;
@@ -854,6 +854,7 @@ void IInnerOsAccountManager::Init()
     ResetAccountStatus();
     StartAccount();
     CleanGarbageAccounts();
+    SetParameter(PARAM_LOGIN_NAME_MAX.c_str(), std::to_string(Constants::LOCAL_NAME_MAX_SIZE).c_str());
 }
 
 ErrCode IInnerOsAccountManager::IsOsAccountExists(const int id, bool &isOsAccountExits)
@@ -1202,7 +1203,7 @@ ErrCode IInnerOsAccountManager::GetOsAccountLocalIdFromDomain(const DomainAccoun
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
-    if (domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
+    if (domainInfo.accountName_.size() > Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("invalid domain account name length %{public}zu.", domainInfo.accountName_.size());
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
