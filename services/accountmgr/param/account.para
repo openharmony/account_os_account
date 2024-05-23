@@ -12,3 +12,4 @@
 # limitations under the License.
 
 bootevent.account.ready=false
+persist.account.login_name_max

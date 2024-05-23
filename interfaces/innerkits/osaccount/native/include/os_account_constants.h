@@ -16,6 +16,7 @@
 #define OS_ACCOUNT_INTERFACES_INNERKITS_OS_ACCOUNT_CONSTANT_H
 
 #include <string>
+#include <sys/sysinfo.h>
 #include "os_account_info.h"
 
 namespace OHOS {
@@ -66,13 +67,12 @@ const std::int32_t MAX_SYSTEM_UID_NUM = 2899;
 // subscribe
 const int SUBSCRIBER_MAX_SIZE = 100;
 // account restrict
-const unsigned int LOCAL_NAME_MAX_SIZE = 1024;
+const unsigned int LOCAL_NAME_MAX_SIZE = sysconf(_SC_LOGIN_NAME_MAX);
 const unsigned int LOCAL_PHOTO_MAX_SIZE = 1024 * 1024 * 10;
 const uint32_t SHORT_NAME_MAX_SIZE = 255;
 
 // domain info limits
 const unsigned int DOMAIN_NAME_MAX_SIZE = 128;
-const unsigned int DOMAIN_ACCOUNT_NAME_MAX_SIZE = 512;
 
 // constraint limits
 const unsigned int CONSTRAINT_MAX_SIZE = 128;
