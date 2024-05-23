@@ -86,7 +86,7 @@ public:
 HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest001, TestSize.Level0)
 {
     OsAccountInfo SubDistributedAccount;
-    EXPECT_EQ(OsAccountManager::CreateOsAccount("SubDistributed001", OsAccountType::NORMAL, SubDistributedAccount),
+    ASSERT_EQ(OsAccountManager::CreateOsAccount("SubDistributed001", OsAccountType::NORMAL, SubDistributedAccount),
         ERR_OK);
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(SubDistributedAccount.GetLocalId()), ERR_OK);
 
@@ -131,7 +131,7 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
 HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest002, TestSize.Level0)
 {
     OsAccountInfo SubDistributedAccount;
-    EXPECT_EQ(OsAccountManager::CreateOsAccount("SubDistributed002", OsAccountType::NORMAL, SubDistributedAccount),
+    ASSERT_EQ(OsAccountManager::CreateOsAccount("SubDistributed002", OsAccountType::NORMAL, SubDistributedAccount),
         ERR_OK);
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(SubDistributedAccount.GetLocalId()), ERR_OK);
 
@@ -183,7 +183,7 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
 HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest003, TestSize.Level0)
 {
     OsAccountInfo SubDistributedAccount;
-    EXPECT_EQ(OsAccountManager::CreateOsAccount("SubDistributed003", OsAccountType::NORMAL, SubDistributedAccount),
+    ASSERT_EQ(OsAccountManager::CreateOsAccount("SubDistributed003", OsAccountType::NORMAL, SubDistributedAccount),
         ERR_OK);
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(SubDistributedAccount.GetLocalId()), ERR_OK);
 
@@ -245,7 +245,7 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
 HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest005, TestSize.Level0)
 {
     OsAccountInfo SubDistributedAccount;
-    EXPECT_EQ(OsAccountManager::CreateOsAccount("SubDistributed005", OsAccountType::NORMAL, SubDistributedAccount),
+    ASSERT_EQ(OsAccountManager::CreateOsAccount("SubDistributed005", OsAccountType::NORMAL, SubDistributedAccount),
         ERR_OK);
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(SubDistributedAccount.GetLocalId()), ERR_OK);
 
@@ -288,7 +288,7 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
 HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest006, TestSize.Level0)
 {
     OsAccountInfo SubDistributedAccount;
-    EXPECT_EQ(OsAccountManager::CreateOsAccount("SubDistributed006", OsAccountType::NORMAL, SubDistributedAccount),
+    ASSERT_EQ(OsAccountManager::CreateOsAccount("SubDistributed006", OsAccountType::NORMAL, SubDistributedAccount),
         ERR_OK);
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(SubDistributedAccount.GetLocalId()), ERR_OK);
 
