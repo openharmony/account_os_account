@@ -123,7 +123,7 @@ ErrCode OsAccount::CreateOsAccountForDomain(const OsAccountType &type, const Dom
     }
 
     if (domainInfo.accountName_.empty() ||
-        domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
+        domainInfo.accountName_.size() > Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("Account name is empty or too long, len=%{public}zu.", domainInfo.accountName_.size());
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
@@ -274,7 +274,7 @@ ErrCode OsAccount::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domain
     }
 
     if (domainInfo.accountName_.empty() ||
-        domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
+        domainInfo.accountName_.size() > Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("invalid domain account name length %{public}zu.", domainInfo.accountName_.size());
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
