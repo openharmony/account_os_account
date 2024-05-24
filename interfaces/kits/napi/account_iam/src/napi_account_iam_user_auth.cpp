@@ -168,9 +168,9 @@ napi_value NapiAccountIAMUserAuth::GetProperty(napi_env env, napi_callback_info 
             GetPropertyContext *context = reinterpret_cast<GetPropertyContext *>(data);
             auto getPropCallback = std::make_shared<NapiGetPropCallback>(
                 context->env, context->callbackRef, context->deferred, context->request);
-            if ((context->parseHasAccountId) && (IsRestrictedAccountId(context->accountId))) {
+            if ((context->parseHasAccountId) && (!IsAccountIdValid(context->accountId))) {
                 AccountSA::Attributes emptyInfo;
-                getPropCallback->OnResult(ERR_JS_CREDENTIAL_NOT_EXIST, emptyInfo);
+                getPropCallback->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, emptyInfo);
                 return;
             }
             context->callbackRef = nullptr;
@@ -205,7 +205,7 @@ napi_value NapiAccountIAMUserAuth::SetProperty(napi_env env, napi_callback_info 
             auto setPropCallback = std::make_shared<NapiSetPropCallback>(
                 context->env, context->callbackRef, context->deferred);
             context->callbackRef = nullptr;
-            AccountIAMClient::GetInstance().SetProperty(0, context->request, setPropCallback);
+            AccountIAMClient::GetInstance().SetProperty(context->accountId, context->request, setPropCallback);
         },
         [](napi_env env, napi_status status, void *data) {
             delete reinterpret_cast<SetPropertyContext *>(data);
@@ -376,9 +376,9 @@ napi_value NapiAccountIAMUserAuth::Auth(napi_env env, napi_callback_info info)
         return nullptr;
     }
     if ((!context.authOptions.hasRemoteAuthOptions) && (context.authOptions.hasAccountId) &&
-        (IsRestrictedAccountId(context.authOptions.accountId))) {
+        (!IsAccountIdValid(context.authOptions.accountId))) {
         AccountSA::Attributes emptyInfo;
-        context.callback->OnResult(ERR_JS_CREDENTIAL_NOT_EXIST, emptyInfo);
+        context.callback->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, emptyInfo);
         return nullptr;
     }
     uint64_t contextId = AccountIAMClient::GetInstance().Auth(context.authOptions, context.challenge,
@@ -395,9 +395,9 @@ napi_value NapiAccountIAMUserAuth::AuthUser(napi_env env, napi_callback_info inf
     if (ParseContextForAuthUser(env, argv, argc, context) == napi_invalid_arg) {
         return nullptr;
     }
-    if (IsRestrictedAccountId(context.userId)) {
+    if (!IsAccountIdValid(context.userId)) {
         AccountSA::Attributes emptyInfo;
-        context.callback->OnResult(ERR_JS_CREDENTIAL_NOT_EXIST, emptyInfo);
+        context.callback->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, emptyInfo);
         return nullptr;
     }
     context.authOptions.accountId = context.userId;
