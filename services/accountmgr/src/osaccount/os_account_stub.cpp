@@ -16,6 +16,7 @@
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
 #include "account_constants.h"
+#include "hitrace_adapter.h"
 #include "idomain_account_callback.h"
 #include "ipc_skeleton.h"
 #include "memory_guard.h"
@@ -1124,11 +1125,14 @@ ErrCode OsAccountStub::ProcActivateOsAccount(MessageParcel &data, MessageParcel 
         ACCOUNT_LOGE("failed to read localId");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
+    StartTraceAdapter("AccountManager ActivateAccount");
     ErrCode result = ActivateOsAccount(localId);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
+        FinishTraceAdapter();
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
+    FinishTraceAdapter();
     return ERR_NONE;
 }
 
