@@ -695,12 +695,14 @@ ErrCode OsAccountManagerService::SubscribeOsAccount(
     OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType;
     subscribeInfo.GetOsAccountSubscribeType(osAccountSubscribeType);
     if (osAccountSubscribeType == SWITCHED || osAccountSubscribeType == SWITCHING) {
-        if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
+        if (!(PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "") ||
+              (AccountPermissionManager::CheckSaCall() && PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")))) {
             ACCOUNT_LOGE("account manager service, permission denied!");
             return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
         }
     } else {
-        if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "")) {
+        if (!(PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "") ||
+              (AccountPermissionManager::CheckSaCall() && PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")))) {
             ACCOUNT_LOGE("account manager service, permission denied!");
             return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
         }
