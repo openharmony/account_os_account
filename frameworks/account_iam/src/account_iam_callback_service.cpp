@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -73,6 +73,32 @@ void GetSetPropCallbackService::OnResult(int32_t result, const Attributes &extra
     callback_->OnResult(result, extraInfo);
 }
 
+GetEnrolledIdCallbackService::GetEnrolledIdCallbackService(const std::shared_ptr<GetEnrolledIdCallback> &callback)
+    : callback_(callback)
+{}
+
+void GetEnrolledIdCallbackService::OnEnrolledId(int32_t result, uint64_t enrolledId)
+{
+    if (callback_ == nullptr) {
+        ACCOUNT_LOGE("Callback is nullptr");
+        return;
+    }
+    callback_->OnEnrolledId(result, enrolledId);
+}
+
+PreRemoteAuthCallbackService::PreRemoteAuthCallbackService(
+    const std::shared_ptr<PreRemoteAuthCallback> &callback) : callback_(callback)
+{}
+
+void PreRemoteAuthCallbackService::OnResult(int32_t result)
+{
+    if (callback_ == nullptr) {
+        ACCOUNT_LOGE("Callback is nullptr.");
+        return;
+    }
+    callback_->OnResult(result);
+}
+
 DomainAuthCallbackAdapter::DomainAuthCallbackAdapter(
     const std::shared_ptr<IDMCallback> &callback) : callback_(callback)
 {}
@@ -143,7 +169,8 @@ IAMInputer::IAMInputer(int32_t userId, const std::shared_ptr<IInputer> &inputer)
 IAMInputer::~IAMInputer()
 {}
 
-void IAMInputer::OnGetData(int32_t authSubType, std::shared_ptr<IInputerData> inputerData)
+void IAMInputer::OnGetData(int32_t authSubType, std::vector<uint8_t> challenge,
+    std::shared_ptr<IInputerData> inputerData)
 {
     if (inputerData == nullptr) {
         ACCOUNT_LOGE("inputerData is nullptr");
@@ -165,7 +192,7 @@ void IAMInputer::OnGetData(int32_t authSubType, std::shared_ptr<IInputerData> in
         return;
     }
     auto iamInputerData = std::make_shared<IAMInputerData>(userId_, inputerData);
-    innerInputer_->OnGetData(authSubType, iamInputerData);
+    innerInputer_->OnGetData(authSubType, challenge, iamInputerData);
 }
 
 void IAMInputer::ResetInnerInputer(const std::shared_ptr<IInputer> &inputer)

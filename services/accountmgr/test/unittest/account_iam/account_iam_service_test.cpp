@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,6 +30,11 @@ using namespace testing;
 using namespace testing::ext;
 using namespace OHOS::AccountSA;
 using namespace OHOS::Security::AccessToken;
+namespace {
+constexpr int32_t TEST_DEFAULT_ID = -1;
+constexpr int32_t TEST_EXIST_ID = 100;
+constexpr int32_t TEST_NOT_EXIST_ID = 1;
+}
 
 class MockIIDMCallback : public IDMCallbackStub {
 public:
@@ -53,6 +58,17 @@ public:
     {
         return;
     }
+};
+
+class MockGetEnrolledIdCallback : public GetEnrolledIdCallbackStub {
+public:
+    void OnEnrolledId(int32_t result, uint64_t enrolledId) override
+    {
+        result_ = result;
+        return;
+    }
+public:
+    int32_t result_ = -1;
 };
 
 class MockGetSetPropCallback : public GetSetPropCallbackStub {
@@ -117,6 +133,19 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_OpenSession_0100, TestSize.Lev
 }
 
 /**
+ * @tc.name: AccountIAMService_OpenSession_0200
+ * @tc.desc: OpenSession test account not exist.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamServiceTest, AccountIAMService_OpenSession_0200, TestSize.Level0)
+{
+    std::vector<uint8_t> challenge;
+    int32_t res = accountIAMService_->OpenSession(TEST_NOT_EXIST_ID, challenge);
+    EXPECT_EQ(res, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+}
+
+/**
  * @tc.name: AccountIAMService_CloseSession_0100
  * @tc.desc: CloseSession test.
  * @tc.type: FUNC
@@ -126,6 +155,18 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_CloseSession_0100, TestSize.Le
 {
     int32_t res = accountIAMService_->CloseSession(0);
     EXPECT_EQ(res, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AccountIAMService_CloseSession_0200
+ * @tc.desc: CloseSession test account not exist.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamServiceTest, AccountIAMService_CloseSession_0200, TestSize.Level0)
+{
+    int32_t res = accountIAMService_->CloseSession(TEST_NOT_EXIST_ID);
+    EXPECT_EQ(res, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -144,6 +185,21 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_AddCredential_0100, TestSize.L
 }
 
 /**
+ * @tc.name: AccountIAMService_AddCredential_0200
+ * @tc.desc: AddCredential test account not exist.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamServiceTest, AccountIAMService_AddCredential_0200, TestSize.Level0)
+{
+    CredentialParameters creInfo = {};
+    sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
+    ASSERT_NE(callback, nullptr);
+    accountIAMService_->AddCredential(TEST_NOT_EXIST_ID, creInfo, callback);
+    EXPECT_EQ(callback->result_, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+}
+
+/**
  * @tc.name: AccountIAMService_UpdateCredential_0100
  * @tc.desc: UpdateCredential test.
  * @tc.type: FUNC
@@ -156,6 +212,21 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_UpdateCredential_0100, TestSiz
     ASSERT_NE(callback, nullptr);
     accountIAMService_->UpdateCredential(0, creInfo, callback);
     EXPECT_EQ(callback->result_, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AccountIAMService_UpdateCredential_0200
+ * @tc.desc: UpdateCredential test account not exist.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamServiceTest, AccountIAMService_UpdateCredential_0200, TestSize.Level0)
+{
+    CredentialParameters creInfo = {};
+    sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
+    ASSERT_NE(callback, nullptr);
+    accountIAMService_->UpdateCredential(TEST_NOT_EXIST_ID, creInfo, callback);
+    EXPECT_EQ(callback->result_, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -215,6 +286,93 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_GetCredentialInfo_0100, TestSi
 }
 
 /**
+ * @tc.name: AccountIAMService_GetCredentialInfo_0200
+ * @tc.desc: GetCredentialInfo test account not exist.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamServiceTest, AccountIAMService_GetCredentialInfo_0200, TestSize.Level0)
+{
+    sptr<MockGetCredInfoCallback> callback = new (std::nothrow) MockGetCredInfoCallback();
+    ASSERT_NE(callback, nullptr);
+    int32_t res = accountIAMService_->GetCredentialInfo(TEST_NOT_EXIST_ID, AuthType::PIN, callback);
+    EXPECT_EQ(res, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+}
+
+/**
+ * @tc.name: AccountIAMService_GetCredentialInfo_0300
+ * @tc.desc: GetCredentialInfo test authType is invalid.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamServiceTest, AccountIAMService_GetCredentialInfo_0300, TestSize.Level0)
+{
+    sptr<MockGetCredInfoCallback> callback = new (std::nothrow) MockGetCredInfoCallback();
+    ASSERT_NE(callback, nullptr);
+    int32_t res =
+        accountIAMService_->GetCredentialInfo(TEST_EXIST_ID, static_cast<AuthType>(IAMAuthType::TYPE_END), callback);
+    EXPECT_EQ(res, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AccountIAMService_GetEnrolledId_0100
+ * @tc.desc: GetCredentialInfo test default account.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamServiceTest, AccountIAMService_GetEnrolledId_0100, TestSize.Level0)
+{
+    sptr<MockGetEnrolledIdCallback> callback = new (std::nothrow) MockGetEnrolledIdCallback();
+    ASSERT_NE(callback, nullptr);
+    // -1 is default account and indicates querying the current account
+    accountIAMService_->GetEnrolledId(TEST_DEFAULT_ID, AuthType::PIN, callback);
+    EXPECT_NE(callback->result_, ERR_OK);
+}
+
+/**
+ * @tc.name: AccountIAMService_GetEnrolledId_0200
+ * @tc.desc: GetCredentialInfo test account not exist.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamServiceTest, AccountIAMService_GetEnrolledId_0200, TestSize.Level0)
+{
+    sptr<MockGetEnrolledIdCallback> callback = new (std::nothrow) MockGetEnrolledIdCallback();
+    ASSERT_NE(callback, nullptr);
+    accountIAMService_->GetEnrolledId(TEST_NOT_EXIST_ID, AuthType::PIN, callback);
+    EXPECT_EQ(callback->result_, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+}
+
+/**
+ * @tc.name: AccountIAMService_GetEnrolledId_0300
+ * @tc.desc: GetCredentialInfo test authType is invalid.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamServiceTest, AccountIAMService_GetEnrolledId_0300, TestSize.Level0)
+{
+    sptr<MockGetEnrolledIdCallback> callback = new (std::nothrow) MockGetEnrolledIdCallback();
+    ASSERT_NE(callback, nullptr);
+    accountIAMService_->GetEnrolledId(TEST_EXIST_ID, static_cast<AuthType>(IAMAuthType::TYPE_END), callback);
+    EXPECT_EQ(callback->result_, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+
+ * @tc.name: AccountIAMService_GetEnrolledId_0400
+ * @tc.desc: GetCredentialInfo test authType is not support.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamServiceTest, AccountIAMService_GetEnrolledId_0400, TestSize.Level0)
+{
+    sptr<MockGetEnrolledIdCallback> callback = new (std::nothrow) MockGetEnrolledIdCallback();
+    ASSERT_NE(callback, nullptr);
+    accountIAMService_->GetEnrolledId(TEST_EXIST_ID, static_cast<AuthType>(IAMAuthType::DOMAIN), callback);
+    EXPECT_EQ(callback->result_, ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE);
+}
+
+/**
  * @tc.name: AccountIAMService_AuthUser_0100
  * @tc.desc: AuthUser test.
  * @tc.type: FUNC
@@ -225,14 +383,37 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_AuthUser_0100, TestSize.Level0
     std::vector<uint8_t> challenge;
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
     ASSERT_NE(callback, nullptr);
-    AuthParam authParam = {
+    AccountSA::AuthParam authParam = {
+        .userId = 0,
         .challenge = challenge,
         .authType = AuthType::PIN,
         .authTrustLevel = AuthTrustLevel::ATL1
     };
     uint64_t contextId = 0;
-    ErrCode res = accountIAMService_->AuthUser(0, authParam, callback, contextId);
+    ErrCode res = accountIAMService_->AuthUser(authParam, callback, contextId);
     EXPECT_EQ(res, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AccountIAMService_AuthUser_0200
+ * @tc.desc: AuthUser test account not exist.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamServiceTest, AccountIAMService_AuthUser_0200, TestSize.Level0)
+{
+    std::vector<uint8_t> challenge;
+    sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
+    ASSERT_NE(callback, nullptr);
+    AccountSA::AuthParam authParam = {
+        .userId = TEST_NOT_EXIST_ID,
+        .challenge = challenge,
+        .authType = AuthType::PIN,
+        .authTrustLevel = AuthTrustLevel::ATL1
+    };
+    uint64_t contextId = 0;
+    ErrCode res = accountIAMService_->AuthUser(authParam, callback, contextId);
+    EXPECT_EQ(res, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -263,6 +444,21 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_GetProperty_0100, TestSize.Lev
     ASSERT_NE(callback, nullptr);
     accountIAMService_->GetProperty(0, request, callback);
     EXPECT_EQ(callback->result_, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AccountIAMService_GetProperty_0200
+ * @tc.desc: GetProperty test account not exist.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamServiceTest, AccountIAMService_GetProperty_0200, TestSize.Level0)
+{
+    GetPropertyRequest request;
+    sptr<MockGetSetPropCallback> callback = new (std::nothrow) MockGetSetPropCallback();
+    ASSERT_NE(callback, nullptr);
+    accountIAMService_->GetProperty(TEST_NOT_EXIST_ID, request, callback);
+    EXPECT_EQ(callback->result_, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**

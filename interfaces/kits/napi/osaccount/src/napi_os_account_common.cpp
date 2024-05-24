@@ -877,7 +877,7 @@ bool ParseQueryOAConstraintSrcTypes(napi_env env, napi_callback_info cbInfo,
     if (argc == ARGS_SIZE_THREE) {
         if (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1)) {
             ACCOUNT_LOGE("Get callbackRef failed");
-            std::string errMsg = "The type of arg " + std::to_string(argc) + " must be function";
+            std::string errMsg = "Parameter error. The type of \"callback\" must be function";
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
             return false;
         }
@@ -885,13 +885,13 @@ bool ParseQueryOAConstraintSrcTypes(napi_env env, napi_callback_info cbInfo,
 
     if (!GetIntProperty(env, argv[PARAMZERO], asyncContext->id)) {
         ACCOUNT_LOGE("Get id failed");
-        std::string errMsg = "The type of arg 1 must be number";
+        std::string errMsg = "Parameter error. The type of \"localId\" must be number";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
         return false;
     }
     if (!GetStringProperty(env, argv[PARAMONE], asyncContext->constraint)) {
         ACCOUNT_LOGE("Get constraint failed");
-        std::string errMsg = "The type of arg 2 must be string";
+        std::string errMsg = "Parameter error. The type of \"constraint\" must be string";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
         return false;
     }
@@ -1140,7 +1140,7 @@ bool ParseParaGetIdByUid(napi_env env, napi_callback_info cbInfo, GetIdByUidAsyn
     if (argc == ARGS_SIZE_TWO) {
         if (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1)) {
             ACCOUNT_LOGE("Get callbackRef failed");
-            std::string errMsg = "The type of arg " + std::to_string(argc) + " must be function";
+            std::string errMsg = "Parameter error. The type of \"callback\" must be function";
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
             return false;
         }
@@ -1148,7 +1148,7 @@ bool ParseParaGetIdByUid(napi_env env, napi_callback_info cbInfo, GetIdByUidAsyn
 
     if (!GetIntProperty(env, argv[PARAMZERO], asyncContext->uid)) {
         ACCOUNT_LOGE("Get uid failed");
-        std::string errMsg = "The type of arg 1 must be number";
+        std::string errMsg = "Parameter error. The type of \"uid\" must be number";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
         return false;
     }
@@ -1405,7 +1405,7 @@ bool ParseParaIsEnable(napi_env env, napi_callback_info cbInfo, IsConEnableAsync
         asyncContext->id = ids[0];
         if (!GetStringProperty(env, argv[PARAMZERO], asyncContext->constraint)) {
             ACCOUNT_LOGE("Get constraint failed");
-            std::string errMsg = "The type of arg " + std::to_string(argc) + " must be string";
+            std::string errMsg = "Parameter error. The type of \"constraint\" must be string";
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
             return false;
         }
@@ -1414,7 +1414,7 @@ bool ParseParaIsEnable(napi_env env, napi_callback_info cbInfo, IsConEnableAsync
     if (argc == ARGS_SIZE_THREE) {
         if (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1)) {
             ACCOUNT_LOGE("Get callbackRef failed");
-            std::string errMsg = "The type of arg " + std::to_string(argc) + " must be function";
+            std::string errMsg = "Parameter error. The type of \"callback\" must be function";
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
             return false;
         }
@@ -1422,13 +1422,13 @@ bool ParseParaIsEnable(napi_env env, napi_callback_info cbInfo, IsConEnableAsync
 
     if (!GetIntProperty(env, argv[PARAMZERO], asyncContext->id)) {
         ACCOUNT_LOGE("Get id failed");
-        std::string errMsg = "The type of arg 1 must be number";
+        std::string errMsg = "Parameter error. The type of \"localId\" must be number";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
         return false;
     }
     if (!GetStringProperty(env, argv[PARAMONE], asyncContext->constraint)) {
         ACCOUNT_LOGE("Get constraint failed");
-        std::string errMsg = "The type of arg 2 must be string";
+        std::string errMsg = "Parameter error. The type of \"constraint\" must be string";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
         return false;
     }
@@ -1570,7 +1570,7 @@ static bool ParseParaIsVerifiedWithOneParam(
     if (valueType == napi_number) {
         if (!GetIntProperty(env, value, asyncContext->id)) {
             ACCOUNT_LOGE("Get id failed");
-            std::string errMsg = "The type of arg 1 must be number";
+            std::string errMsg = "Parameter error. The type of \"localId\" must be number";
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
             return false;
         }
@@ -1607,7 +1607,7 @@ bool ParseParaIsVerified(napi_env env, napi_callback_info cbInfo, IsVerifiedAsyn
     if (argc == ARGS_SIZE_TWO) {
         if (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1)) {
             ACCOUNT_LOGE("Get callbackRef failed");
-            std::string errMsg = "The type of arg " + std::to_string(argc) + " must be function";
+            std::string errMsg = "Parameter error. The type of \"callback\" must be function";
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
             return false;
         }
@@ -1618,7 +1618,7 @@ bool ParseParaIsVerified(napi_env env, napi_callback_info cbInfo, IsVerifiedAsyn
         } else {
             if (!GetIntProperty(env, argv[PARAMZERO], asyncContext->id)) {
                 ACCOUNT_LOGE("Get id failed");
-                std::string errMsg = "The type of arg 1 must be number";
+                std::string errMsg = "Parameter error. The type of \"localId\" must be number";
                 AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
                 return false;
             }
@@ -1764,14 +1764,14 @@ static bool ParseParamForActiveSubscriber(const napi_env &env, const std::string
 {
     if (argc < ARGS_SIZE_THREE) {
         ACCOUNT_LOGE("The arg number less than 3 characters");
-        std::string errMsg = "The arg number must be at least 3 characters";
+        std::string errMsg = "Parameter error. The number of parameters should be at least 3";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
         return false;
     }
     if (argc >= ARGS_SIZE_THREE) {
         if (!GetCallbackProperty(env, argv[PARAMTWO], asyncContext->callbackRef, 1)) {
             ACCOUNT_LOGE("Get callbackRef failed");
-            std::string errMsg = "The type of arg " + std::to_string(PARAMTWO + 1) + " must be function";
+            std::string errMsg = "Parameter error. The type of \"callback\" must be function";
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
             return false;
         }
@@ -1787,14 +1787,14 @@ static bool ParseParamForActiveSubscriber(const napi_env &env, const std::string
     // argv[1] name: string
     if (!GetStringProperty(env, argv[PARAMONE], asyncContext->name)) {
         ACCOUNT_LOGE("Get name failed");
-        std::string errMsg = "The type of arg 2 must be string";
+        std::string errMsg = "Parameter error. The type of \"name\" must be string";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
         return false;
     }
     size_t nameSize = asyncContext->name.size();
     if (nameSize == 0 || nameSize > MAX_SUBSCRIBER_NAME_LEN) {
         ACCOUNT_LOGE("Subscriber name size %{public}zu is invalid.", nameSize);
-        std::string errMsg = "The length of arg 2 is invalid";
+        std::string errMsg = "Parameter error. The length of \"name\" is invalid";
         AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, errMsg, asyncContext->throwErr);
         return false;
     }
@@ -1806,15 +1806,15 @@ static bool ParseParamForSwitchSubscriber(const napi_env &env, const std::string
                                           size_t argc, napi_value *argv)
 {
     if (argc < ARGS_SIZE_TWO) {
-        ACCOUNT_LOGE("The arg number less than 2 characters");
-        std::string errMsg = "The arg number must be at least 2 characters";
+        ACCOUNT_LOGE("The number of parameters should be at least 2");
+        std::string errMsg = "Parameter error. The number of parameters should be at least 2";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
         return false;
     }
     if (argc >= ARGS_SIZE_TWO) {
         if (!GetCallbackProperty(env, argv[PARAMONE], asyncContext->callbackRef, 1)) {
             ACCOUNT_LOGE("Get callbackRef failed");
-            std::string errMsg = "The type of arg " + std::to_string(PARAMONE + 1) + " must be function";
+            std::string errMsg = "Parameter error. The type of \"callback\" must be function";
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
             return false;
         }
@@ -1836,15 +1836,15 @@ bool ParseParaToSubscriber(const napi_env &env, napi_callback_info cbInfo, Subsc
     napi_value argv[ARGS_SIZE_THREE] = {nullptr};
     NAPI_CALL_BASE(env, napi_get_cb_info(env, cbInfo, &argc, argv, thisVar, NULL), false);
     if (argc < ARGS_SIZE_TWO) {
-        ACCOUNT_LOGE("The arg number less than 2 characters.");
-        std::string errMsg = "The arg number must be at least 2 characters";
+        ACCOUNT_LOGE("The number of parameters should be at least 2");
+        std::string errMsg = "Parameter error. The number of parameters should be at least 2";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
         return false;
     }
     std::string type;
     if (!GetStringProperty(env, argv[PARAMZERO], type)) {
         ACCOUNT_LOGE("Get type failed.");
-        std::string errMsg = "The type of arg 1 must be string";
+        std::string errMsg = "Parameter error. The type of \"type\" must be string";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
         return false;
     }
@@ -1855,7 +1855,7 @@ bool ParseParaToSubscriber(const napi_env &env, napi_callback_info cbInfo, Subsc
         return ParseParamForSwitchSubscriber(env, type, asyncContext, argc, argv);
     }
     ACCOUNT_LOGE("Get type fail, %{public}s is invalid.", type.c_str());
-    std::string errMsg = "The type of arg 1 must be 'activate|activating|switched|switching'";
+    std::string errMsg = "Parameter error. The content of \"type\" must be \"activate|activating|switched|switching\"";
     AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, errMsg, asyncContext->throwErr);
     return false;
 }
@@ -1938,14 +1938,14 @@ bool ParseParaToUnsubscriber(const napi_env &env, napi_callback_info cbInfo, Uns
     NAPI_CALL_BASE(env, napi_get_cb_info(env, cbInfo, &argc, argv, thisVar, NULL), false);
     if (argc < ARGS_SIZE_ONE) {
         ACCOUNT_LOGE("The arg number less than 1 characters.");
-        std::string errMsg = "The arg number must be at least 1 characters";
+        std::string errMsg = "Parameter error. The number of parameters should be at least 1";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
         return false;
     }
     std::string type;
     if (!GetStringProperty(env, argv[PARAMZERO], type)) {
         ACCOUNT_LOGE("Get type failed.");
-        std::string errMsg = "The type of arg 1 must be string";
+        std::string errMsg = "Parameter error. The type of \"type\" must be string";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
         return false;
     }
@@ -1956,7 +1956,7 @@ bool ParseParaToUnsubscriber(const napi_env &env, napi_callback_info cbInfo, Uns
         return ParseParamForSwitchUnsubscriber(env, type, asyncContext, argc, argv);
     }
     ACCOUNT_LOGE("Get type fail, %{public}s is invalid.", type.c_str());
-    std::string errMsg = "The type of arg 1 must be 'activate|activating|switched|switching'";
+    std::string errMsg = "Parameter error. The content of \"type\" must be \"activate|activating|switched|switching\"";
     AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, errMsg, asyncContext->throwErr);
     return false;
 }

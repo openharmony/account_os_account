@@ -237,12 +237,6 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         }
     },
     {
-        static_cast<uint32_t>(OsAccountInterfaceCode::STOP_OS_ACCOUNT),
-        {
-            .messageProcFunction = &OsAccountStub::ProcStopOsAccount,
-        }
-    },
-    {
         static_cast<uint32_t>(OsAccountInterfaceCode::SUBSCRIBE_OS_ACCOUNT),
         {
             .messageProcFunction = &OsAccountStub::ProcSubscribeOsAccount,
@@ -610,7 +604,7 @@ ErrCode OsAccountStub::ProcCreateOsAccountForDomain(MessageParcel &data, Message
         return ERR_NONE;
     }
 
-    if (info->accountName_.empty() || info->accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
+    if (info->accountName_.empty() || info->accountName_.size() > Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("read invalid domain account name length %{public}zu.", info->accountName_.size());
         reply.WriteInt32(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
         return ERR_NONE;
@@ -862,7 +856,7 @@ ErrCode OsAccountStub::ProcGetOsAccountLocalIdFromDomain(MessageParcel &data, Me
         return ERR_NONE;
     }
 
-    if (domainAccountName.empty() || domainAccountName.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
+    if (domainAccountName.empty() || domainAccountName.size() > Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("failed to read string for domainAccountName. length %{public}zu.", domainAccountName.size());
         reply.WriteInt32(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
         return ERR_NONE;
@@ -1171,21 +1165,6 @@ ErrCode OsAccountStub::ProcStartOsAccount(MessageParcel &data, MessageParcel &re
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     ErrCode result = StartOsAccount(localId);
-    if (!reply.WriteInt32(result)) {
-        ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
-        return IPC_STUB_WRITE_PARCEL_ERR;
-    }
-    return ERR_NONE;
-}
-
-ErrCode OsAccountStub::ProcStopOsAccount(MessageParcel &data, MessageParcel &reply)
-{
-    int32_t localId;
-    if (!data.ReadInt32(localId)) {
-        ACCOUNT_LOGE("failed to read localId");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-    }
-    ErrCode result = StopOsAccount(localId);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
         return IPC_STUB_WRITE_PARCEL_ERR;

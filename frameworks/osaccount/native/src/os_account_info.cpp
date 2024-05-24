@@ -171,7 +171,7 @@ void OsAccountInfo::SetIsLoggedIn(bool isLoggedIn)
 
 bool OsAccountInfo::SetDomainInfo(const DomainAccountInfo &domainInfo)
 {
-    if (domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
+    if (domainInfo.accountName_.size() > Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("domain account name too long! %{public}zu.", domainInfo.accountName_.size());
         return false;
     }

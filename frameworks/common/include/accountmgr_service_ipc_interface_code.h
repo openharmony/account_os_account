@@ -71,7 +71,6 @@ enum class OsAccountInterfaceCode : uint32_t {
     DEACTIVATE_OS_ACCOUNT,
     DEACTIVATE_ALL_OS_ACCOUNTS,
     START_OS_ACCOUNT,
-    STOP_OS_ACCOUNT,
     SUBSCRIBE_OS_ACCOUNT,
     UNSUBSCRIBE_OS_ACCOUNT,
     GET_OS_ACCOUNT_LOCAL_ID_FOR_SERIAL_NUMBER,
@@ -159,11 +158,13 @@ enum class AccountIAMInterfaceCode : uint32_t {
     DEL_CRED,
     DEL_USER,
     GET_CREDENTIAL_INFO,
+    PREPARE_REMOTE_AUTH,
     AUTH_USER,
     CANCEL_AUTH,
     GET_AVAILABLE_STATUS,
     GET_PROPERTY,
     SET_PROPERTY,
+    GET_ENROLLED_ID,
     GET_ACCOUNT_STATE,
 };
 
@@ -256,6 +257,14 @@ enum class GetCredInfoCallbackInterfaceCode : uint32_t {
 };
 
 enum class GetSetPropCallbackInterfaceCode : uint32_t {
+    ON_RESULT = 0,
+};
+
+enum class GetEnrolledIdCallbackInterfaceCode : uint32_t {
+    ON_ENROLLED_ID = 0,
+};
+
+enum class PreRemoteAuthCallbackInterfaceCode : uint32_t {
     ON_RESULT = 0,
 };
 }  // namespace AccountSA

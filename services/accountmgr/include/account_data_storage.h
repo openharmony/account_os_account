@@ -26,6 +26,7 @@
 namespace OHOS {
 namespace AccountSA {
 struct AccountDataStorageOptions {
+    bool encrypt = false;
     bool autoSync = false;
     DistributedKv::SecurityLevel securityLevel = DistributedKv::SecurityLevel::S1;
     OHOS::DistributedKv::Area area = OHOS::DistributedKv::EL1;
@@ -50,6 +51,7 @@ public:
     ErrCode PutValueToKvStore(const std::string &keyStr, const std::string &valueStr);
     ErrCode GetValueFromKvStore(const std::string &keyStr, std::string &valueStr);
     ErrCode RemoveValueFromKvStore(const std::string &keyStr);
+    ErrCode MoveData(const std::shared_ptr<AccountDataStorage> &ptr);
 
 protected:
     OHOS::DistributedKv::Status GetEntries(

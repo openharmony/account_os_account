@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 
 #include <uv.h>
 #include "account_error_no.h"
+#include "account_iam_info.h"
 #include "account_log_wrapper.h"
 #include "napi_account_error.h"
 #include "napi_account_common.h"
@@ -52,6 +53,10 @@ static int32_t AccountIAMConvertOtherToJSErrCode(int32_t errCode)
             return ERR_JS_AUTH_SERVICE_LOCKED;
         case ERR_IAM_NOT_ENROLLED:
             return ERR_JS_CREDENTIAL_NOT_EXIST;
+        case ERR_IAM_PIN_IS_EXPIRED:
+            return ERR_JS_PIN_IS_EXPIRED;
+        case ERR_IAM_COMPLEXITY_CHECK_FAILED:
+            return ERR_JS_COMPLEXITY_CHECK_FAILED;
         case ERR_IAM_INVALID_CONTEXT_ID:
             return ERR_JS_INVALID_CONTEXT_ID;
         case ERR_ACCOUNT_COMMON_INVALID_PARAMETER:
@@ -75,12 +80,17 @@ static int32_t AccountIAMConvertOtherToJSErrCode(int32_t errCode)
 
 int32_t AccountIAMConvertToJSErrCode(int32_t errCode)
 {
+    if (CheckJsErrorCode(errCode)) {
+        return errCode;
+    }
     if (errCode == ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR) {
         return ERR_JS_IS_NOT_SYSTEM_APP;
     } else if (errCode == ERR_ACCOUNT_COMMON_PERMISSION_DENIED || errCode == ERR_IAM_CHECK_PERMISSION_FAILED) {
         return ERR_JS_PERMISSION_DENIED;
     } else if (errCode == ERR_ACCOUNT_COMMON_INVALID_PARAMETER) {
         return ERR_JS_INVALID_PARAMETER;
+    } else if (errCode == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR) {
+        return ERR_JS_ACCOUNT_NOT_FOUND;
     }
     return AccountIAMConvertOtherToJSErrCode(errCode);
 }
@@ -159,6 +169,7 @@ static void OnAcquireInfoWork(uv_work_t* work, int status)
 
 void NapiIDMCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (!callback_->hasOnAcquireInfo) {
         ACCOUNT_LOGE("no 'OnAcquireInfo' callback need return");
         return;
@@ -187,7 +198,7 @@ void NapiIDMCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const 
     param.release();
 }
 
-napi_status ParseAddCredInfo(napi_env env, napi_value value, CredentialParameters &addCredInfo)
+napi_status ParseAddCredInfo(napi_env env, napi_value value, IDMContext &context)
 {
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, value, &valueType);
@@ -199,13 +210,21 @@ napi_status ParseAddCredInfo(napi_env env, napi_value value, CredentialParameter
     napi_get_named_property(env, value, "credType", &result);
     int32_t credType = -1;
     napi_get_value_int32(env, result, &credType);
-    addCredInfo.authType = static_cast<AuthType>(credType);
+    context.addCredInfo.authType = static_cast<AuthType>(credType);
     napi_get_named_property(env, value, "credSubType", &result);
     int32_t credSubType = -1;
     napi_get_value_int32(env, result, &credSubType);
-    addCredInfo.pinType = static_cast<PinSubType>(credSubType);
+    context.addCredInfo.pinType = static_cast<PinSubType>(credSubType);
     napi_get_named_property(env, value, "token", &result);
-    return ParseUint8TypedArrayToVector(env, result, addCredInfo.token);
+    if (ParseUint8TypedArrayToVector(env, result, context.addCredInfo.token) != napi_ok) {
+        ACCOUNT_LOGE("Get Uint8Array data failed");
+        return napi_invalid_arg;
+    }
+    if (!GetOptionalNumberPropertyByKey(env, value, "accountId", context.accountId, context.parseHasAccountId)) {
+        ACCOUNT_LOGE("Get accountId data failed");
+        return napi_invalid_arg;
+    }
+    return napi_ok;
 }
 
 napi_status ParseIAMCallback(napi_env env, napi_value object, std::shared_ptr<JsIAMCallback> &callback)
@@ -278,6 +297,7 @@ napi_status ConvertGetPropertyTypeToAttributeKey(GetPropertyType in,
         { FREEZING_TIME, Attributes::AttributeKey::ATTR_FREEZING_TIME },
         { ENROLLMENT_PROGRESS, Attributes::AttributeKey::ATTR_ENROLL_PROGRESS },
         { SENSOR_INFO, Attributes::AttributeKey::ATTR_SENSOR_INFO },
+        { NEXT_PHASE_FREEZING_TIME, Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION },
     };
 
     auto iter = type2Key.find(in);
@@ -290,7 +310,7 @@ napi_status ConvertGetPropertyTypeToAttributeKey(GetPropertyType in,
     return napi_ok;
 }
 
-napi_status ParseGetPropRequest(napi_env env, napi_value object, GetPropertyRequest &request)
+napi_status ParseGetPropRequest(napi_env env, napi_value object, GetPropertyContext &context)
 {
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, object, &valueType);
@@ -302,7 +322,7 @@ napi_status ParseGetPropRequest(napi_env env, napi_value object, GetPropertyRequ
     napi_get_named_property(env, object, "authType", &napiAuthType);
     int32_t authType = -1;
     napi_get_value_int32(env, napiAuthType, &authType);
-    request.authType = static_cast<AuthType>(authType);
+    context.request.authType = static_cast<AuthType>(authType);
     napi_value napiKeys = nullptr;
     napi_get_named_property(env, object, "keys", &napiKeys);
     std::vector<uint32_t> keys;
@@ -314,7 +334,11 @@ napi_status ParseGetPropRequest(napi_env env, napi_value object, GetPropertyRequ
             ACCOUNT_LOGE("failed to convert get property type");
             return status;
         }
-        request.keys.push_back(key);
+        context.request.keys.push_back(key);
+    }
+    if (!GetOptionalNumberPropertyByKey(env, object, "accountId", context.accountId, context.parseHasAccountId)) {
+        ACCOUNT_LOGE("Get getPropRequest's accountId failed");
+        return napi_invalid_arg;
     }
     return napi_ok;
 }
@@ -354,21 +378,15 @@ static void GeneratePropertyJs(napi_env env, const GetPropertyContext &prop, nap
     for (const auto &key : prop.request.keys) {
         switch (key) {
             case Attributes::AttributeKey::ATTR_PIN_SUB_TYPE: {
-                napi_value napiAuthSubType = nullptr;
-                NAPI_CALL_RETURN_VOID(env, napi_create_uint32(env, prop.authSubType, &napiAuthSubType));
-                NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, dataJs, "authSubType", napiAuthSubType));
+                SetInt32ToJsProperty(env, prop.authSubType, "authSubType", dataJs);
                 break;
             }
             case Attributes::AttributeKey::ATTR_REMAIN_TIMES: {
-                napi_value napiRemainTimes = nullptr;
-                NAPI_CALL_RETURN_VOID(env, napi_create_uint32(env, prop.remainTimes, &napiRemainTimes));
-                NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, dataJs, "remainTimes", napiRemainTimes));
+                SetInt32ToJsProperty(env, prop.remainTimes, "remainTimes", dataJs);
                 break;
             }
             case Attributes::AttributeKey::ATTR_FREEZING_TIME: {
-                napi_value napiFreezingTimes = nullptr;
-                NAPI_CALL_RETURN_VOID(env, napi_create_uint32(env, prop.freezingTime, &napiFreezingTimes));
-                NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, dataJs, "freezingTime", napiFreezingTimes));
+                SetInt32ToJsProperty(env, prop.freezingTime, "freezingTime", dataJs);
                 break;
             }
             case Attributes::AttributeKey::ATTR_ENROLL_PROGRESS: {
@@ -384,6 +402,10 @@ static void GeneratePropertyJs(napi_env env, const GetPropertyContext &prop, nap
                 NAPI_CALL_RETURN_VOID(env,
                     napi_create_string_utf8(env, prop.sensorInfo.c_str(), NAPI_AUTO_LENGTH, &napiSensorInfo));
                 NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, dataJs, "sensorInfo", napiSensorInfo));
+                break;
+            }
+            case Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION: {
+                SetInt32ToJsProperty(env, prop.nextPhaseFreezingTime, "nextPhaseFreezingTime", dataJs);
                 break;
             }
             default:
@@ -406,6 +428,28 @@ static void CreateExecutorProperty(napi_env env, GetPropertyContext &prop, napi_
     }
 }
 
+static napi_value GenerateAuthResult(napi_env env, AuthCallbackParam *param)
+{
+    napi_value object = CreateAuthResult(param->env, param->token, param->remainTimes, param->freezingTime);
+    if (param->hasNextPhaseFreezingTime) {
+        SetInt32ToJsProperty(env, param->nextPhaseFreezingTime, "nextPhaseFreezingTime", object);
+    }
+    if (param->hasCredentialId) {
+        napi_value napiCredentialId =
+            CreateUint8Array(env, reinterpret_cast<uint8_t *>(&param->credentialId), sizeof(uint64_t));
+        NAPI_CALL(env, napi_set_named_property(env, object, "credentialId", napiCredentialId));
+    }
+    if (param->hasAccountId) {
+        SetInt32ToJsProperty(env, param->accountId, "accountId", object);
+    }
+    if (param->hasPinValidityPeriod) {
+        napi_value napiPinValidityPeriod = nullptr;
+        NAPI_CALL(env, napi_create_int64(env, param->pinValidityPeriod, &napiPinValidityPeriod));
+        NAPI_CALL(env, napi_set_named_property(env, object, "pinValidityPeriod", napiPinValidityPeriod));
+    }
+    return object;
+}
+
 static void OnUserAuthResultWork(uv_work_t *work, int status)
 {
     ACCOUNT_LOGI("enter");
@@ -417,7 +461,7 @@ static void OnUserAuthResultWork(uv_work_t *work, int status)
     std::unique_ptr<AuthCallbackParam> param(reinterpret_cast<AuthCallbackParam *>(work->data));
     napi_value argv[ARG_SIZE_TWO] = {nullptr};
     napi_create_int32(param->env, AccountIAMConvertToJSErrCode(param->resultCode), &argv[PARAM_ZERO]);
-    argv[PARAM_ONE] = CreateAuthResult(param->env, param->token, param->remainTimes, param->freezingTime);
+    argv[PARAM_ONE] = GenerateAuthResult(param->env, param.get());
     NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->callback->onResult);
     napi_close_handle_scope(param->env, scope);
 }
@@ -466,6 +510,19 @@ void NapiUserAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
     extraInfo.GetUint8ArrayValue(Attributes::AttributeKey::ATTR_SIGNATURE, param->token);
     extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, param->remainTimes);
     extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, param->freezingTime);
+    if (extraInfo.GetInt32Value(
+        Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION, param->nextPhaseFreezingTime)) {
+        param->hasNextPhaseFreezingTime = true;
+    }
+    if (extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, param->credentialId)) {
+        param->hasCredentialId = true;
+    }
+    if (extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_USER_ID, param->accountId)) {
+        param->hasAccountId = true;
+    }
+    if (extraInfo.GetInt64Value(Attributes::AttributeKey::ATTR_PIN_EXPIRED_INFO, param->pinValidityPeriod)) {
+        param->hasPinValidityPeriod = true;
+    }
     param->callback = callback_;
     work->data = reinterpret_cast<void *>(param.get());
     NAPI_CALL_RETURN_VOID(env_, uv_queue_work_with_qos(
@@ -477,6 +534,7 @@ void NapiUserAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
 
 void NapiUserAuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (!callback_->hasOnAcquireInfo) {
         ACCOUNT_LOGE("no 'OnAcquireInfo' callback need return");
         return;
@@ -562,6 +620,63 @@ void NapiGetInfoCallback::OnCredentialInfo(int32_t result, const std::vector<Acc
     context.release();
 }
 
+NapiGetEnrolledIdCallback::NapiGetEnrolledIdCallback(napi_env env, napi_deferred deferred)
+    : env_(env), deferred_(deferred)
+{}
+
+NapiGetEnrolledIdCallback::~NapiGetEnrolledIdCallback()
+{}
+
+static void OnGetEnrolledIdWork(uv_work_t *work, int status)
+{
+    ACCOUNT_LOGI("enter");
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
+        ACCOUNT_LOGI("enter");
+        return;
+    }
+    std::unique_ptr<GetEnrolledIdContext> context(reinterpret_cast<GetEnrolledIdContext *>(work->data));
+    napi_env env = context->env;
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    if (context->errCode != ERR_OK) {
+        int32_t jsErrCode = AccountIAMConvertToJSErrCode(context->errCode);
+        errJs = GenerateBusinessError(env, jsErrCode, ConvertToJsErrMsg(jsErrCode));
+        napi_get_null(env, &dataJs);
+    } else {
+        napi_get_null(env, &errJs);
+        dataJs = CreateUint8Array(env, reinterpret_cast<uint8_t *>(&context->enrolledId), sizeof(uint64_t));
+    }
+    CallbackAsyncOrPromise(env, context.get(), errJs, dataJs);
+    napi_close_handle_scope(env, scope);
+}
+
+void NapiGetEnrolledIdCallback::OnEnrolledId(int32_t result, uint64_t enrolledId)
+{
+    std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
+    std::unique_ptr<GetEnrolledIdContext> context = std::make_unique<GetEnrolledIdContext>(env_);
+    uv_loop_s *loop = nullptr;
+    napi_get_uv_event_loop(env_, &loop);
+    if (loop == nullptr || work == nullptr || context == nullptr) {
+        ACCOUNT_LOGE("Failed for nullptr");
+        return;
+    }
+    context->deferred = deferred_;
+    context->errCode = result;
+    context->enrolledId = enrolledId;
+    work->data = reinterpret_cast<void *>(context.get());
+    ErrCode ret = uv_queue_work_with_qos(
+        loop, work.get(), [] (uv_work_t *work) {}, OnGetEnrolledIdWork, uv_qos_user_initiated);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Create get enrolled id work failed");
+        return;
+    }
+    ACCOUNT_LOGI("Create get enrolled id work finish");
+    work.release();
+    context.release();
+}
+
 NapiGetPropCallback::NapiGetPropCallback(
     napi_env env, napi_ref callbackRef, napi_deferred deferred, const AccountSA::GetPropertyRequest &request)
     : env_(env), callbackRef_(callbackRef), deferred_(deferred), request_(request)
@@ -628,6 +743,13 @@ void NapiGetPropCallback::GetContextParams(
                 }
                 break;
             }
+            case Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION: {
+                if (!extraInfo.GetInt32Value(
+                    Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION, context.nextPhaseFreezingTime)) {
+                    ACCOUNT_LOGE("get nextPhaseFreezingTime failed");
+                }
+                break;
+            }
             default:
                 ACCOUNT_LOGE("get invalid key");
                 break;
@@ -683,6 +805,74 @@ NapiSetPropCallback::~NapiSetPropCallback()
         callbackRef_ = nullptr;
     }
     deferred_ = nullptr;
+}
+
+NapiPrepareRemoteAuthCallback::NapiPrepareRemoteAuthCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred)
+    : env_(env), callbackRef_(callbackRef), deferred_(deferred)
+{}
+
+NapiPrepareRemoteAuthCallback::~NapiPrepareRemoteAuthCallback()
+{
+    if (callbackRef_ != nullptr) {
+        ReleaseNapiRefAsync(env_, callbackRef_);
+        callbackRef_ = nullptr;
+    }
+    deferred_ = nullptr;
+}
+
+static void OnPrepareRemoteAuthWork(uv_work_t* work, int status)
+{
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
+        return;
+    }
+    std::unique_ptr<PrepareRemoteAuthContext> context(reinterpret_cast<PrepareRemoteAuthContext *>(work->data));
+    napi_env env = context->env;
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    context->errCode = context->result;
+    if (context->result != ERR_OK) {
+        int32_t jsErrCode = AccountIAMConvertToJSErrCode(context->result);
+        errJs = GenerateBusinessError(env, jsErrCode, ConvertToJsErrMsg(jsErrCode));
+        napi_get_null(env, &dataJs);
+    } else {
+        napi_get_null(env, &errJs);
+        napi_get_null(env, &dataJs);
+    }
+    CallbackAsyncOrPromise(env, context.get(), errJs, dataJs);
+    napi_close_handle_scope(env, scope);
+}
+
+void NapiPrepareRemoteAuthCallback::OnResult(int32_t result)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if ((callbackRef_ == nullptr) && (deferred_ == nullptr)) {
+        return;
+    }
+    std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
+    std::unique_ptr<PrepareRemoteAuthContext> context = std::make_unique<PrepareRemoteAuthContext>(env_);
+    uv_loop_s *loop = nullptr;
+    napi_get_uv_event_loop(env_, &loop);
+    if (loop == nullptr || work == nullptr || context == nullptr) {
+        ACCOUNT_LOGE("Nullptr fail.");
+        return;
+    }
+    context->deferred = deferred_;
+    context->errCode = ERR_OK;
+    context->result = result;
+    work->data = reinterpret_cast<void *>(context.get());
+    ErrCode ret = uv_queue_work_with_qos(
+        loop, work.get(), [] (uv_work_t *work) {}, OnPrepareRemoteAuthWork, uv_qos_user_initiated);
+    if (ret != ERR_OK) {
+        context->callbackRef = nullptr;
+        ACCOUNT_LOGE("Create uv work failed.");
+        return;
+    }
+    ACCOUNT_LOGI("Create prepare remote auth work finish.");
+    deferred_ = nullptr;
+    work.release();
+    context.release();
 }
 
 static void OnSetPropertyWork(uv_work_t* work, int status)
@@ -782,7 +972,7 @@ napi_value OnSetData(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
     if (argc != ARG_SIZE_TWO) {
         ACCOUNT_LOGE("failed to parse parameters, expect three parameters, but got %{public}zu", argc);
-        std::string errMsg = "The arg number must be at least 2 characters";
+        std::string errMsg = "Parameter error. The number of parameters should be 2";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return nullptr;
     }
@@ -795,14 +985,14 @@ napi_value OnSetData(napi_env env, napi_callback_info info)
     int32_t authSubType;
     if (!GetIntProperty(env, argv[PARAM_ZERO], authSubType)) {
         ACCOUNT_LOGE("Get authSubType failed");
-        std::string errMsg = "The type of arg 1 must be number";
+        std::string errMsg = "Parameter error. The type of \"authSubType\" must be AuthSubType";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return nullptr;
     }
     std::vector<uint8_t> data;
     if (ParseUint8TypedArrayToVector(env, argv[PARAM_ONE], data) != napi_ok) {
         ACCOUNT_LOGE("Get data failed");
-        std::string errMsg = "The type of arg 2 must be int array";
+        std::string errMsg = "Parameter error. The type of \"data\" must be Uint8Array";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return nullptr;
     }
@@ -852,10 +1042,18 @@ static void OnGetDataWork(uv_work_t* work, int status)
         return;
     }
     std::unique_ptr<InputerContext> context(reinterpret_cast<InputerContext *>(work->data));
-    napi_value argv[ARG_SIZE_TWO] = {0};
+    napi_value argv[ARG_SIZE_THREE] = {0};
     napi_create_int32(context->env, context->authSubType, &argv[PARAM_ZERO]);
     GetInputerInstance(context.get(), &argv[PARAM_ONE]);
-    NapiCallVoidFunction(context->env, argv, ARG_SIZE_TWO, context->callback->callbackRef);
+
+    napi_create_object(context->env, &argv[PARAM_TWO]);
+    if (!(context->challenge.empty())) {
+        napi_value dataJs = nullptr;
+        dataJs = CreateUint8Array(context->env, context->challenge.data(), context->challenge.size());
+        napi_set_named_property(context->env, argv[PARAM_TWO], "challenge", dataJs);
+    }
+
+    NapiCallVoidFunction(context->env, argv, ARG_SIZE_THREE, context->callback->callbackRef);
 }
 
 NapiGetDataCallback::NapiGetDataCallback(napi_env env, const std::shared_ptr<NapiCallbackRef> &callback)
@@ -865,7 +1063,8 @@ NapiGetDataCallback::NapiGetDataCallback(napi_env env, const std::shared_ptr<Nap
 NapiGetDataCallback::~NapiGetDataCallback()
 {}
 
-void NapiGetDataCallback::OnGetData(int32_t authSubType, const std::shared_ptr<AccountSA::IInputerData> inputerData)
+void NapiGetDataCallback::OnGetData(int32_t authSubType, std::vector<uint8_t> challenge,
+    const std::shared_ptr<AccountSA::IInputerData> inputerData)
 {
     if (callback_ == nullptr) {
         ACCOUNT_LOGE("the onGetData function is undefined");
@@ -882,6 +1081,7 @@ void NapiGetDataCallback::OnGetData(int32_t authSubType, const std::shared_ptr<A
     context->env = env_;
     context->callback = callback_;
     context->authSubType = authSubType;
+    context->challenge = challenge;
     context->inputerData = inputerData;
     work->data = reinterpret_cast<void *>(context.get());
     int errCode = uv_queue_work_with_qos(
@@ -943,6 +1143,15 @@ napi_value CreateErrorObject(napi_env env, int32_t code)
     NAPI_CALL(env, napi_create_int32(env, code, &number));
     NAPI_CALL(env, napi_set_named_property(env, errObj, "code", number));
     return errObj;
+}
+
+bool IsRestrictedAccountId(int32_t accountId)
+{
+    if ((accountId >= RESTRICTED_ACCOUNT_ID_BEGINNING) && (accountId < RESTRICTED_ACCOUNT_ID_ENDDING)) {
+        ACCOUNT_LOGI("The account id is restricted");
+        return true;
+    }
+    return false;
 }
 }  // namespace AccountJsKit
 }  // namespace OHOS

@@ -434,7 +434,7 @@ ErrCode OsAccountProxy::QueryMaxOsAccountNumber(uint32_t &maxOsAccountNumber)
         ACCOUNT_LOGE("failed to read reply for query os account number, result %{public}d.", result);
         return result;
     }
-    maxOsAccountNumber = reply.ReadInt32();
+    maxOsAccountNumber = static_cast<uint32_t>(reply.ReadInt32());
 
     return ERR_OK;
 }
@@ -770,12 +770,6 @@ ErrCode OsAccountProxy::StartOsAccount(const int id)
 {
     MessageParcel reply;
     return SendRequestWithAccountId(OsAccountInterfaceCode::START_OS_ACCOUNT, reply, id);
-}
-
-ErrCode OsAccountProxy::StopOsAccount(const int id)
-{
-    MessageParcel reply;
-    return SendRequestWithAccountId(OsAccountInterfaceCode::STOP_OS_ACCOUNT, reply, id);
 }
 
 ErrCode OsAccountProxy::GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id)

@@ -38,7 +38,6 @@ const struct option LONG_OPTIONS[] = {
     {nullptr, no_argument, nullptr, no_argument}
 };
 
-static const std::string STOP_COMMAND = "stop";
 static const std::string DEACTIVATE_COMMAND = "deactivate";
 static const std::string DELETE_COMMAND = "delete";
 static const std::string SWITCH_COMMAND = "switch";
@@ -68,7 +67,6 @@ ErrCode AccountCommand::CreateCommandMap()
         {"set", std::bind(&AccountCommand::RunAsSetCommand, this)},
         {"switch", std::bind(&AccountCommand::RunAsSwitchCommand, this)},
         {"deactivate", std::bind(&AccountCommand::RunAsDeactivateCommand, this)},
-        {"stop", std::bind(&AccountCommand::RunAsStopCommand, this)},
     };
 
     return ERR_OK;
@@ -372,32 +370,6 @@ ErrCode AccountCommand::RunAsDeactivateCommand(void)
             resultReceiver_ = STRING_DEACTIVATE_ALL_OS_ACCOUNTS_OK + "\n";
         } else {
             resultReceiver_ = STRING_DEACTIVATE_ALL_OS_ACCOUNTS_NG + "\n";
-        }
-    }
-
-    ACCOUNT_LOGD("result = %{public}d, id = %{public}d", result, id);
-
-    return result;
-}
-
-ErrCode AccountCommand::RunAsStopCommand(void)
-{
-    ErrCode result = ERR_OK;
-    int id = -1;
-
-    ParseCommandOpt(STOP_COMMAND, result, id);
-
-    if (result != ERR_OK) {
-        resultReceiver_.append(HELP_MSG_STOP);
-    } else {
-        /* stop */
-
-        // stop an os account
-        result = OsAccount::GetInstance().StopOsAccount(id);
-        if (result == ERR_OK) {
-            resultReceiver_ = STRING_STOP_OS_ACCOUNT_OK + "\n";
-        } else {
-            resultReceiver_ = STRING_STOP_OS_ACCOUNT_NG + "\n";
         }
     }
 

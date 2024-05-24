@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -56,6 +56,26 @@ private:
     DISALLOW_COPY_AND_MOVE(GetSetPropCallbackService);
 };
 
+class GetEnrolledIdCallbackService : public GetEnrolledIdCallbackStub {
+public:
+    explicit GetEnrolledIdCallbackService(const std::shared_ptr<GetEnrolledIdCallback> &callback);
+    void OnEnrolledId(int32_t result, uint64_t enrolledId) override;
+
+private:
+    std::shared_ptr<GetEnrolledIdCallback> callback_;
+    DISALLOW_COPY_AND_MOVE(GetEnrolledIdCallbackService);
+};
+
+class PreRemoteAuthCallbackService : public PreRemoteAuthCallbackStub {
+public:
+    explicit PreRemoteAuthCallbackService(const std::shared_ptr<PreRemoteAuthCallback> &callback);
+    void OnResult(int32_t result) override;
+
+private:
+    std::shared_ptr<PreRemoteAuthCallback> callback_;
+    DISALLOW_COPY_AND_MOVE(PreRemoteAuthCallbackService);
+};
+
 class DomainAuthCallbackAdapter final : public DomainAccountCallback {
 public:
     explicit DomainAuthCallbackAdapter(const std::shared_ptr<IDMCallback> &callback);
@@ -94,7 +114,8 @@ public:
     IAMInputer(int32_t userId, const std::shared_ptr<IInputer> &inputer);
     virtual ~IAMInputer();
 
-    void OnGetData(int32_t authSubType, std::shared_ptr<IInputerData> inputerData) override;
+    void OnGetData(int32_t authSubType, std::vector<uint8_t> challenge,
+        std::shared_ptr<IInputerData> inputerData) override;
     void ResetInnerInputer(const std::shared_ptr<IInputer> &inputer);
 private:
     int32_t userId_;

@@ -43,7 +43,9 @@ namespace OHOS {
         AuthType authType = static_cast<AuthType>(size);
         AuthTrustLevel authTrustLevel = static_cast<AuthTrustLevel>(size);
         std::shared_ptr<IDMCallback> callback = make_shared<MockIDMCallback>();
-        uint64_t result = AccountIAMClient::GetInstance().Auth(challenge, authType, authTrustLevel, callback);
+        AuthOptions authOptions;
+        uint64_t result = AccountIAMClient::GetInstance().Auth(authOptions,
+            challenge, authType, authTrustLevel, callback);
         return result == ERR_OK;
     }
 }

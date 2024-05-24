@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -187,19 +187,36 @@ uint64_t AccountIAMClient::StartDomainAuth(int32_t userId, const std::shared_ptr
         callback->OnResult(ERR_ACCOUNT_IAM_KIT_INPUTER_NOT_REGISTERED, emptyResult);
         return 0;
     }
-    domainInputer_->OnGetData(IAMAuthType::DOMAIN, std::make_shared<DomainCredentialRecipient>(userId, callback));
+    domainInputer_->OnGetData(IAMAuthType::DOMAIN, std::vector<uint8_t>(),
+        std::make_shared<DomainCredentialRecipient>(userId, callback));
     return 0;
 }
 #endif
 
-uint64_t AccountIAMClient::Auth(const std::vector<uint8_t> &challenge, AuthType authType,
-    AuthTrustLevel authTrustLevel, const std::shared_ptr<IDMCallback> &callback)
+int32_t AccountIAMClient::PrepareRemoteAuth(
+    const std::string &remoteNetworkId, const std::shared_ptr<PreRemoteAuthCallback> &callback)
 {
-    return AuthUser(0, challenge, authType, authTrustLevel, callback);
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("Callback for PrepareRemoteAuth is nullptr.");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
+    auto proxy = GetAccountIAMProxy();
+    if (proxy == nullptr) {
+        callback->OnResult(ERR_ACCOUNT_COMMON_GET_PROXY);
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    sptr<IPreRemoteAuthCallback> wrapper = new (std::nothrow) PreRemoteAuthCallbackService(callback);
+    return proxy->PrepareRemoteAuth(remoteNetworkId, wrapper);
+}
+
+uint64_t AccountIAMClient::Auth(AuthOptions& authOptions, const std::vector<uint8_t> &challenge,
+    AuthType authType, AuthTrustLevel authTrustLevel, const std::shared_ptr<IDMCallback> &callback)
+{
+    return AuthUser(authOptions, challenge, authType, authTrustLevel, callback);
 }
 
 uint64_t AccountIAMClient::AuthUser(
-    int32_t userId, const std::vector<uint8_t> &challenge, AuthType authType,
+    AuthOptions &authOptions, const std::vector<uint8_t> &challenge, AuthType authType,
     AuthTrustLevel authTrustLevel, const std::shared_ptr<IDMCallback> &callback)
 {
     uint64_t contextId = 0;
@@ -211,20 +228,35 @@ uint64_t AccountIAMClient::AuthUser(
     if (proxy == nullptr) {
         return contextId;
     }
-    if ((userId == 0) && (!GetCurrentUserId(userId))) {
+    if ((!authOptions.hasRemoteAuthOptions) && (authOptions.accountId == 0) &&
+        (!GetCurrentUserId(authOptions.accountId))) {
         return contextId;
     }
 #ifdef HAS_PIN_AUTH_PART
     if (static_cast<int32_t>(authType) == static_cast<int32_t>(IAMAuthType::DOMAIN)) {
-        return StartDomainAuth(userId, callback);
+        return StartDomainAuth(authOptions.accountId, callback);
     }
 #endif
-    sptr<IIDMCallback> wrapper = new (std::nothrow) IDMCallbackService(userId, callback);
+    sptr<IIDMCallback> wrapper = new (std::nothrow) IDMCallbackService(authOptions.accountId, callback);
     AuthParam authParam;
     authParam.challenge = challenge;
     authParam.authType = authType;
     authParam.authTrustLevel = authTrustLevel;
-    ErrCode result = proxy->AuthUser(userId, authParam, wrapper, contextId);
+    authParam.userId = authOptions.accountId;
+    authParam.authIntent = authOptions.authIntent;
+    if (authOptions.hasRemoteAuthOptions) {
+        authParam.remoteAuthParam = RemoteAuthParam();
+        if (authOptions.remoteAuthOptions.hasVerifierNetworkId) {
+            authParam.remoteAuthParam.value().verifierNetworkId = authOptions.remoteAuthOptions.verifierNetworkId;
+        }
+        if (authOptions.remoteAuthOptions.hasCollectorNetworkId) {
+            authParam.remoteAuthParam.value().collectorNetworkId = authOptions.remoteAuthOptions.collectorNetworkId;
+        }
+        if (authOptions.remoteAuthOptions.hasCollectorTokenId) {
+            authParam.remoteAuthParam.value().collectorTokenId = authOptions.remoteAuthOptions.collectorTokenId;
+        }
+    }
+    ErrCode result = proxy->AuthUser(authParam, wrapper, contextId);
     if (result != ERR_OK) {
         Attributes emptyResult;
         callback->OnResult(result, emptyResult);
@@ -290,6 +322,27 @@ void AccountIAMClient::SetProperty(
     }
     sptr<IGetSetPropCallback> wrapper = new (std::nothrow) GetSetPropCallbackService(callback);
     proxy->SetProperty(userId, request, wrapper);
+}
+
+void AccountIAMClient::GetEnrolledId(
+    int32_t accountId, AuthType authType, const std::shared_ptr<GetEnrolledIdCallback> &callback)
+{
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("The callback for get enrolled id is nullptr");
+        return;
+    }
+    uint64_t emptyResult = 0;
+    auto proxy = GetAccountIAMProxy();
+    if (proxy == nullptr) {
+        callback->OnEnrolledId(ERR_ACCOUNT_COMMON_GET_PROXY, emptyResult);
+        return;
+    }
+    sptr<IGetEnrolledIdCallback> wrapper = new (std::nothrow) GetEnrolledIdCallbackService(callback);
+    if (wrapper == nullptr) {
+        callback->OnEnrolledId(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, emptyResult);
+        return;
+    }
+    proxy->GetEnrolledId(accountId, authType, wrapper);
 }
 
 bool AccountIAMClient::CheckSelfPermission(const std::string &permissionName)

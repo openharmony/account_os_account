@@ -1,0 +1,67 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("../../../../os_account.gni")
+
+#####################hydra-fuzz###################
+import("//build/config/features.gni")
+import("//build/ohos.gni")
+import("//build/test.gni")
+
+##############################fuzztest##########################################
+ohos_fuzztest("ProcRemoveServerConfigStubFuzzTest") {
+  module_out_path = fuzz_output_path
+
+  fuzz_config_file = "."
+  include_dirs = [
+    "${domain_account_framework_path}/include",
+    "${innerkits_path}/include",
+    "${os_account_core_path}/include",
+    "${os_account_interfaces_native_path}/include",
+    "${os_account_path}/dfx/hidumper_adapter",
+    "${os_account_path}/dfx/hitrace_adapter",
+    "${services_path}/accountmgr/include",
+  ]
+  cflags = [
+    "-g",
+    "-O0",
+    "-Wno-unused-variable",
+    "-fno-omit-frame-pointer",
+  ]
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+  sources = [
+    "${app_account_services_path}/src/domain_account/domain_account_manager_service.cpp",
+    "${app_account_services_path}/src/domain_account/domain_account_stub.cpp",
+    "procremoveserverconfigstub_fuzzer.cpp",
+  ]
+
+  deps = [
+    "${os_account_path}/frameworks/common:libaccount_common",
+    "${os_account_path}/frameworks/domain_account:domain_account_innerkits",
+    "${os_account_path}/services/accountmgr:accountmgr",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+
+  defines = [
+    "ACCOUNT_LOG_TAG = \"AppAccountFuzzTest\"",
+    "LOG_DOMAIN = 0xD001B00",
+  ]
+}

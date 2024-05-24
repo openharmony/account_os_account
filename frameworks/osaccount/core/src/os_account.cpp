@@ -123,7 +123,7 @@ ErrCode OsAccount::CreateOsAccountForDomain(const OsAccountType &type, const Dom
     }
 
     if (domainInfo.accountName_.empty() ||
-        domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
+        domainInfo.accountName_.size() > Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("Account name is empty or too long, len=%{public}zu.", domainInfo.accountName_.size());
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
@@ -274,7 +274,7 @@ ErrCode OsAccount::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domain
     }
 
     if (domainInfo.accountName_.empty() ||
-        domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
+        domainInfo.accountName_.size() > Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("invalid domain account name length %{public}zu.", domainInfo.accountName_.size());
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
@@ -522,19 +522,6 @@ ErrCode OsAccount::StartOsAccount(const int id)
     }
 
     return proxy->StartOsAccount(id);
-}
-
-ErrCode OsAccount::StopOsAccount(const int id)
-{
-    ErrCode result = CheckLocalId(id);
-    if (result != ERR_OK) {
-        return result;
-    }
-    auto proxy = GetOsAccountProxy();
-    if (proxy == nullptr) {
-        return ERR_ACCOUNT_COMMON_GET_PROXY;
-    }
-    return proxy->StopOsAccount(id);
 }
 
 ErrCode OsAccount::GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id)

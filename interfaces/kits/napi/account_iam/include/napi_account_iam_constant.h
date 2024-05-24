@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -70,6 +70,7 @@ enum GetPropertyType : uint32_t {
     FREEZING_TIME = 3,
     ENROLLMENT_PROGRESS = 4,
     SENSOR_INFO = 5,
+    NEXT_PHASE_FREEZING_TIME = 6,
 };
 
 enum SetPropertyType : uint32_t {

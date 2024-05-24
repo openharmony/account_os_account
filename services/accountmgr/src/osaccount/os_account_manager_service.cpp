@@ -228,7 +228,7 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(const OsAccountType &t
         ACCOUNT_LOGE("Domain account name is empty or domain is empty");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    if (domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE ||
+    if (domainInfo.accountName_.size() > Constants::LOCAL_NAME_MAX_SIZE ||
         domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("Domain account name is overlength or domain is overlength");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
@@ -402,7 +402,7 @@ ErrCode OsAccountManagerService::GetOsAccountLocalIdFromDomain(const DomainAccou
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
-    if (domainInfo.accountName_.empty() || domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
+    if (domainInfo.accountName_.empty() || domainInfo.accountName_.size() > Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("accountName length invalid. length %{public}zu.", domainInfo.accountName_.size());
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
@@ -634,9 +634,9 @@ ErrCode OsAccountManagerService::DeactivateOsAccount(const int id)
 
     if (currentId == id) { // if stop current account
 #ifdef SUPPROT_STOP_MAIN_OS_ACCOUNT
-        ActivateOsAccount(id);
+        innerManager_.ActivateOsAccount(id, false);
 #else
-        ActivateOsAccount(Constants::START_USER_ID);
+        innerManager_.ActivateOsAccount(Constants::START_USER_ID, false);
 #endif // SUPPROT_STOP_MAIN_OS_ACCOUNT
     }
     return ERR_OK;
@@ -686,11 +686,6 @@ void OsAccountManagerService::GetCurrentLocalId(int32_t &userId)
 ErrCode OsAccountManagerService::StartOsAccount(const int id)
 {
     return innerManager_.StartOsAccount(id);
-}
-
-ErrCode OsAccountManagerService::StopOsAccount(const int id)
-{
-    return innerManager_.StopOsAccount(id);
 }
 
 ErrCode OsAccountManagerService::SubscribeOsAccount(
@@ -1082,7 +1077,7 @@ bool OsAccountManagerService::PermissionCheck(const std::string& permissionName,
         innerManager_.IsOsAccountConstraintEnable(callerUserId, constraintName, isEnable);
         if (isEnable) {
             ACCOUNT_LOGE("constraint check %{public}s failed.", constraintName.c_str());
-            ReportPermissionFail(callerUid, IPCSkeleton::GetCallingPid(), constraintName);
+            ReportPermissionFail(callerUid, IPCSkeleton::GetCallingRealPid(), constraintName);
             return false;
         }
     }
@@ -1093,7 +1088,7 @@ bool OsAccountManagerService::PermissionCheck(const std::string& permissionName,
     }
 
     ACCOUNT_LOGE("failed to verify permission for %{public}s.", permissionName.c_str());
-    ReportPermissionFail(callerUid, IPCSkeleton::GetCallingPid(), permissionName);
+    ReportPermissionFail(callerUid, IPCSkeleton::GetCallingRealPid(), permissionName);
     return false;
 }
 

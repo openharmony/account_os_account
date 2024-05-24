@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -121,6 +121,22 @@ bool GetIntProperty(napi_env env, napi_value obj, int32_t &property)
     return true;
 }
 
+bool GetOptionIntProperty(napi_env env, napi_value obj, int32_t &property, bool &hasProperty)
+{
+    napi_valuetype valueType = napi_undefined;
+    NAPI_CALL_BASE(env, napi_typeof(env, obj, &valueType), false);
+    if ((valueType == napi_undefined) || (valueType == napi_null)) {
+        ACCOUNT_LOGI("This value is undefined or null");
+        return true;
+    }
+    if (valueType != napi_number) {
+        return false;
+    }
+    NAPI_CALL_BASE(env, napi_get_value_int32(env, obj, &property), false);
+    hasProperty = true;
+    return true;
+}
+
 bool GetLongIntProperty(napi_env env, napi_value obj, int64_t &property)
 {
     napi_valuetype valueType = napi_undefined;
@@ -224,6 +240,71 @@ bool GetOptionalStringPropertyByKey(napi_env env, napi_value obj, const std::str
         return true;
     }
     return GetStringProperty(env, value, property);
+}
+
+bool GetOptionalStringPropertyByKey(napi_env env, napi_value obj, const std::string &propertyName,
+    std::string &property, bool &hasProperty)
+{
+    bool hasProp = false;
+    napi_has_named_property(env, obj, propertyName.c_str(), &hasProp);
+    if (!hasProp) {
+        return true;
+    }
+    napi_value value = nullptr;
+    NAPI_CALL_BASE(env, napi_get_named_property(env, obj, propertyName.c_str(), &value), false);
+    napi_valuetype valuetype = napi_undefined;
+    NAPI_CALL_BASE(env, napi_typeof(env, value, &valuetype), false);
+    if ((valuetype == napi_undefined) || (valuetype == napi_null)) {
+        ACCOUNT_LOGI("this key's value is undefined or null");
+        return true;
+    }
+    if (!GetStringProperty(env, value, property)) {
+        return false;
+    }
+    hasProperty = true;
+    return true;
+}
+
+bool IsOptionalPropertyExist(napi_env env, napi_value obj, const std::string &propertyName)
+{
+    bool hasProp = false;
+    napi_has_named_property(env, obj, propertyName.c_str(), &hasProp);
+    if (!hasProp) {
+        return false;
+    }
+    napi_value value = nullptr;
+    NAPI_CALL_BASE(env, napi_get_named_property(env, obj, propertyName.c_str(), &value), false);
+    napi_valuetype valuetype = napi_undefined;
+    NAPI_CALL_BASE(env, napi_typeof(env, value, &valuetype), false);
+    if ((valuetype == napi_undefined) || (valuetype == napi_null)) {
+        ACCOUNT_LOGI("This key's value is undefined or null");
+        return false;
+    }
+    return true;
+}
+
+bool GetOptionalNumberPropertyByKey(napi_env env, napi_value obj, const std::string &propertyName,
+    int32_t &numberProperty, bool &hasProperty)
+{
+    bool hasProp = false;
+    napi_has_named_property(env, obj, propertyName.c_str(), &hasProp);
+    if (!hasProp) {
+        ACCOUNT_LOGI("This property has no '%{public}s' key", propertyName.c_str());
+        return true;
+    }
+    napi_value value = nullptr;
+    NAPI_CALL_BASE(env, napi_get_named_property(env, obj, propertyName.c_str(), &value), false);
+    napi_valuetype valuetype = napi_undefined;
+    NAPI_CALL_BASE(env, napi_typeof(env, value, &valuetype), false);
+    if ((valuetype == napi_undefined) || (valuetype == napi_null)) {
+        ACCOUNT_LOGI("This key's value is undefined or null");
+        return true;
+    }
+    if (!GetIntProperty(env, value, numberProperty)) {
+        return false;
+    }
+    hasProperty = true;
+    return true;
 }
 
 bool CompareOnAndOffRef(const napi_env env, napi_ref subscriberRef, napi_ref unsubscriberRef)
@@ -376,6 +457,13 @@ void NapiCallVoidFunction(napi_env env, napi_value *argv, size_t argc, napi_ref 
     NAPI_CALL_RETURN_VOID(env, napi_get_reference_value(env, funcRef, &func));
     napi_call_function(env, undefined, func, argc, argv, &returnVal);
     ACCOUNT_LOGI("call js function finish");
+}
+
+void SetInt32ToJsProperty(napi_env env, int32_t number, const std::string &propertyName, napi_value &dataJs)
+{
+    napi_value napiNum = nullptr;
+    NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, number, &napiNum));
+    NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, dataJs, propertyName.c_str(), napiNum));
 }
 
 napi_value CreateAuthResult(

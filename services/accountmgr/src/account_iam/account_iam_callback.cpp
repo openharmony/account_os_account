@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -45,54 +45,85 @@ void AuthCallbackDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
     }
 }
 
-AuthCallback::AuthCallback(uint32_t userId, AuthType authType, const sptr<IIDMCallback> &callback)
-    : userId_(userId), authType_(authType), innerCallback_(callback)
+AuthCallback::AuthCallback(
+    uint32_t userId, uint64_t credentialId, AuthType authType, const sptr<IIDMCallback> &callback)
+    : userId_(userId), credentialId_(credentialId), authType_(authType), innerCallback_(callback)
 {}
 
 ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo)
 {
-    std::vector<uint8_t> token;
-    if (authType_ != static_cast<AuthType>(IAMAuthType::DOMAIN)) {
-        // domain account authentication
-        extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
-        InnerDomainAccountManager::GetInstance().AuthWithToken(userId_, token);
-    }
-    // send msg to storage for unlock
     bool lockScreenStatus = false;
     ErrCode ret = InnerAccountIAMManager::GetInstance().GetLockScreenStatus(userId_, lockScreenStatus);
     if (ret != 0) {
         ReportOsAccountOperationFail(userId_, "getLockScreenStatus", ret, "failed to get lock status msg from storage");
     }
+    std::vector<uint8_t> token;
+    extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
+    std::vector<uint8_t> secret;
+    extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, secret);
     if (!lockScreenStatus) {
         ACCOUNT_LOGI("start unlock user screen");
-        ret = InnerAccountIAMManager::GetInstance().UnlockUserScreen(userId_);
+        // el3\4 file decryption
+        ret = InnerAccountIAMManager::GetInstance().UnlockUserScreen(userId_, token, secret);
         if (ret != 0) {
             ReportOsAccountOperationFail(userId_, "unlockUserScreen", ret, "failed to send unlock msg for storage");
             return ret;
         }
     }
-    if (authType_ != AuthType::PIN) {
+    if (authType_ == static_cast<AuthType>(IAMAuthType::DOMAIN)) {
         return ERR_OK;
     }
-    (void)IInnerOsAccountManager::GetInstance().IsOsAccountVerified(userId_, isAccountVerified_);
-    if (isAccountVerified_) {
-        return ERR_OK;
+    if (authType_ == AuthType::PIN) {
+        bool isVerified = false;
+        (void)IInnerOsAccountManager::GetInstance().IsOsAccountVerified(userId_, isVerified);
+        if (!isVerified) {
+            // el2 file decryption
+            ret = InnerAccountIAMManager::GetInstance().ActivateUserKey(userId_, token, secret);
+            if (ret != 0) {
+                ACCOUNT_LOGE("failed to activate user key");
+                ReportOsAccountOperationFail(userId_, "activateUserKey", ret,
+                    "failed to notice storage to activate user key");
+                return ret;
+            }
+        }
     }
-    // file decryption
-    std::vector<uint8_t> secret;
-    extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, secret);
-    ret = InnerAccountIAMManager::GetInstance().ActivateUserKey(userId_, token, secret);
-    if (ret != 0) {
-        ACCOUNT_LOGE("failed to activate user key");
-        ReportOsAccountOperationFail(userId_, "activateUserKey", ret, "failed to notice storage to activate user key");
-        return ret;
-    }
+    // domain account authentication
+    InnerDomainAccountManager::GetInstance().AuthWithToken(userId_, token);
     return ret;
 }
 
 void AuthCallback::SetDeathRecipient(const sptr<AuthCallbackDeathRecipient> &deathRecipient)
 {
     deathRecipient_ = deathRecipient;
+}
+
+static void GenerateAttributesInfo(const Attributes &extraInfo, Attributes &extraAuthInfo)
+{
+    std::vector<uint8_t> token;
+    if (extraInfo.GetUint8ArrayValue(Attributes::AttributeKey::ATTR_SIGNATURE, token)) {
+        extraAuthInfo.SetUint8ArrayValue(Attributes::AttributeKey::ATTR_SIGNATURE, token);
+    }
+    int32_t remainTimes = 0;
+    if (extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, remainTimes)) {
+        extraAuthInfo.SetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, remainTimes);
+    }
+    int32_t freezingTime = 0;
+    if (extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, freezingTime)) {
+        extraAuthInfo.SetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, freezingTime);
+    }
+    int32_t nextPhaseFreezingTime = 0;
+    if (extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION, nextPhaseFreezingTime)) {
+        extraAuthInfo.SetInt32Value(Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION, nextPhaseFreezingTime);
+    }
+    int32_t accountId = 0;
+    if (extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_USER_ID, accountId)) {
+        extraAuthInfo.SetInt32Value(Attributes::AttributeKey::ATTR_USER_ID, accountId);
+    }
+    // pinValidityPeriod
+    int64_t pinValidityPeriod = 0;
+    if (extraInfo.GetInt64Value(Attributes::AttributeKey::ATTR_PIN_EXPIRED_INFO, pinValidityPeriod)) {
+        extraAuthInfo.SetInt64Value(Attributes::AttributeKey::ATTR_PIN_EXPIRED_INFO, pinValidityPeriod);
+    }
 }
 
 void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
@@ -121,7 +152,15 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         innerCallback_->OnResult(ResultCode::FAIL, errInfo);
         return AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, ResultCode::FAIL);
     }
-    innerCallback_->OnResult(result, extraInfo);
+    uint64_t credentialId = 0;
+    if (!extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId) && (credentialId_ != 0)) {
+        Attributes extraAuthInfo;
+        GenerateAttributesInfo(extraInfo, extraAuthInfo);
+        extraAuthInfo.SetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId_);
+        innerCallback_->OnResult(result, extraAuthInfo);
+    } else {
+        innerCallback_->OnResult(result, extraInfo);
+    }
     (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsVerified(userId_, true);
     (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsLoggedIn(userId_, true);
     AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, result);
@@ -237,9 +276,11 @@ void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
         return;
     }
     innerIamMgr_.SetState(userId_, AFTER_UPDATE_CRED);
-    auto idmCallback = std::make_shared<CommitCredUpdateCallback>(userId_, innerCallback_);
     uint64_t oldCredentialId = 0;
     extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_OLD_CREDENTIAL_ID, oldCredentialId);
+    uint64_t credentialId = 0;
+    extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId);
+    auto idmCallback = std::make_shared<CommitCredUpdateCallback>(userId_, credentialId, innerCallback_);
     UserIDMClient::GetInstance().DeleteCredential(userId_, oldCredentialId, credInfo_.token, idmCallback);
 }
 
@@ -252,8 +293,9 @@ void UpdateCredCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, con
     innerCallback_->OnAcquireInfo(module, acquireInfo, extraInfo);
 }
 
-CommitCredUpdateCallback::CommitCredUpdateCallback(int32_t userId, const sptr<IIDMCallback> &callback)
-    : userId_(userId), innerCallback_(callback)
+CommitCredUpdateCallback::CommitCredUpdateCallback(int32_t userId, uint64_t credentialId,
+    const sptr<IIDMCallback> &callback)
+    : userId_(userId), credentialId_(credentialId), innerCallback_(callback)
 {}
 
 void CommitCredUpdateCallback::OnResult(int32_t result, const Attributes &extraInfo)
@@ -274,7 +316,9 @@ void CommitCredUpdateCallback::OnResult(int32_t result, const Attributes &extraI
     }
     innerIamMgr_.UpdateStorageKeyContext(userId_);
     innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
-    innerCallback_->OnResult(result, extraInfo);
+    Attributes extraInfoResult;
+    extraInfoResult.SetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId_);
+    innerCallback_->OnResult(result, extraInfoResult);
 }
 
 void CommitCredUpdateCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
@@ -376,6 +420,43 @@ void SetPropCallbackWrapper::OnResult(int32_t result, const Attributes &extraInf
         ReportOsAccountOperationFail(userId_, "setProperty", result, "fail to set property");
     }
     innerCallback_->OnResult(result, extraInfo);
+}
+
+GetSecUserInfoCallbackWrapper::GetSecUserInfoCallbackWrapper(
+    AuthType authType, const sptr<IGetEnrolledIdCallback> &callback)
+    : authType_(authType), innerCallback_(callback)
+{}
+
+void GetSecUserInfoCallbackWrapper::OnSecUserInfo(const SecUserInfo &info)
+{
+    if (innerCallback_ == nullptr) {
+        return;
+    }
+
+    auto it = std::find_if(info.enrolledInfo.begin(), info.enrolledInfo.end(), [this](const auto& item) {
+        return item.authType == authType_;
+    });
+    if (it != info.enrolledInfo.end()) {
+        return innerCallback_->OnEnrolledId(ERR_OK, it->enrolledId);
+    } else {
+        return innerCallback_->OnEnrolledId(ERR_IAM_NOT_ENROLLED, 0);
+    }
+}
+
+PrepareRemoteAuthCallbackWrapper::PrepareRemoteAuthCallbackWrapper(const sptr<IPreRemoteAuthCallback> &callback)
+    : innerCallback_(callback)
+{}
+
+void PrepareRemoteAuthCallbackWrapper::OnResult(int32_t result)
+{
+    if (innerCallback_ == nullptr) {
+        ACCOUNT_LOGE("Inner callback is nullptr.");
+        return;
+    }
+    if (result != 0) {
+        ACCOUNT_LOGE("PrepareRemoteAuth, result=%{public}d fail to prepare remote auth.", result);
+    }
+    innerCallback_->OnResult(result);
 }
 
 GetDomainAuthStatusInfoCallback::GetDomainAuthStatusInfoCallback(

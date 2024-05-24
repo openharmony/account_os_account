@@ -43,8 +43,9 @@ namespace AccountSA {
 namespace {
 const std::string CONSTRAINT_CREATE_ACCOUNT_DIRECTLY = "constraint.os.account.create.directly";
 const std::string ACCOUNT_READY_EVENT = "bootevent.account.ready";
+const std::string PARAM_LOGIN_NAME_MAX = "persist.account.login_name_max";
 const char WATCH_START_USER[] = "watch.start.user";
-constexpr std::int32_t DELAY_FOR_ACCOUNT_BOOT_EVENT_READY = 5000;
+constexpr std::int32_t DELAY_FOR_ACCOUNT_BOOT_EVENT_READY = 5;
 constexpr std::int32_t DELAY_FOR_EXCEPTION = 50;
 constexpr std::int32_t MAX_RETRY_TIMES = 50;
 const std::string SPECIAL_CHARACTER_ARRAY = "<>|\":*?/\\";
@@ -554,20 +555,20 @@ ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type, con
 #else
     bool isEnabled = true;
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
-    std::string osAccountName = domainAccountInfo.domain_ + "/" + domainAccountInfo.accountName_;
     OsAccountInfo osAccountInfo;
     if (isEnabled && (osAccountInfos.size() == 1) && (osAccountInfos[0].GetLocalId() == Constants::START_USER_ID)) {
         DomainAccountInfo curDomainInfo;
         osAccountInfos[0].GetDomainInfo(curDomainInfo);
         if (curDomainInfo.domain_.empty()) {
-            osAccountInfos[0].SetLocalName(osAccountName);
+            osAccountInfos[0].SetLocalName(domainAccountInfo.accountName_);
+            osAccountInfos[0].SetShortName(options.shortName);
             osAccountInfos[0].SetDomainInfo(domainAccountInfo);
             osAccountInfo = osAccountInfos[0];
         }
     }
     if (osAccountInfo.GetLocalId() != Constants::START_USER_ID) {
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-        ErrCode errCode = PrepareOsAccountInfo(osAccountName, options.shortName,
+        ErrCode errCode = PrepareOsAccountInfo(domainAccountInfo.accountName_, options.shortName,
             type, domainAccountInfo, osAccountInfo);
         if (errCode != ERR_OK) {
             return errCode;
@@ -853,6 +854,7 @@ void IInnerOsAccountManager::Init()
     ResetAccountStatus();
     StartAccount();
     CleanGarbageAccounts();
+    SetParameter(PARAM_LOGIN_NAME_MAX.c_str(), std::to_string(Constants::LOCAL_NAME_MAX_SIZE).c_str());
 }
 
 ErrCode IInnerOsAccountManager::IsOsAccountExists(const int id, bool &isOsAccountExits)
@@ -1201,7 +1203,7 @@ ErrCode IInnerOsAccountManager::GetOsAccountLocalIdFromDomain(const DomainAccoun
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
-    if (domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
+    if (domainInfo.accountName_.size() > Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("invalid domain account name length %{public}zu.", domainInfo.accountName_.size());
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
@@ -1461,17 +1463,11 @@ ErrCode IInnerOsAccountManager::DeactivateOsAccountById(const int id)
     return DeactivateOsAccountByInfo(osAccountInfo);
 }
 
-ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id, const uint64_t displayId)
+ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id, const bool startStorage, const uint64_t displayId)
 {
     if (!CheckAndAddLocalIdOperating(id)) {
         ACCOUNT_LOGE("the %{public}d already in operating", id);
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
-    }
-    int32_t foregroundId = -1;
-    if (foregroundAccountMap_.Find(displayId, foregroundId) && foregroundId == id) {
-        ACCOUNT_LOGI("Account id=%{public}d already is foreground", id);
-        RemoveLocalIdToOperating(id);
-        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREADY_ACTIVE_ERROR;
     }
 
     // get information
@@ -1481,6 +1477,13 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id, const uint64_t d
         RemoveLocalIdToOperating(id);
         ACCOUNT_LOGE("cannot find os account info by id:%{public}d, errCode %{public}d.", id, errCode);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+
+    int32_t foregroundId = -1;
+    if (foregroundAccountMap_.Find(displayId, foregroundId) && (foregroundId == id) && osAccountInfo.GetIsVerified()) {
+        ACCOUNT_LOGI("Account %{public}d already is foreground", id);
+        RemoveLocalIdToOperating(id);
+        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREADY_ACTIVE_ERROR;
     }
 
     // check complete
@@ -1506,7 +1509,7 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id, const uint64_t d
     }
 
     subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
-    errCode = SendMsgForAccountActivate(osAccountInfo);
+    errCode = SendMsgForAccountActivate(osAccountInfo, startStorage);
     RemoveLocalIdToOperating(id);
     if (errCode != ERR_OK) {
         return errCode;
@@ -1575,7 +1578,11 @@ ErrCode IInnerOsAccountManager::DeactivateOsAccount(const int id)
 
 void IInnerOsAccountManager::WatchStartUser(std::int32_t id)
 {
-    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_ACCOUNT_BOOT_EVENT_READY));
+    int ret = WaitParameter(ACCOUNT_READY_EVENT.c_str(), "true", DELAY_FOR_ACCOUNT_BOOT_EVENT_READY);
+    if (ret == 0) {
+        return;
+    }
+    ACCOUNT_LOGW("Wait account ready timeout.");
     OsAccountInfo osAccountInfo;
     osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (!osAccountInfo.GetIsActived()) {
@@ -1585,18 +1592,21 @@ void IInnerOsAccountManager::WatchStartUser(std::int32_t id)
     SetParameter(ACCOUNT_READY_EVENT.c_str(), "true");
 }
 
-ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccountInfo, const uint64_t displayId)
+ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccountInfo, const bool startStorage,
+                                                          const uint64_t displayId)
 {
     // activate
     int32_t oldId = -1;
     bool oldIdExist = foregroundAccountMap_.Find(displayId, oldId);
     int localId = osAccountInfo.GetLocalId();
     subscribeManager_.Publish(localId, oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
-    ErrCode errCode = OsAccountInterface::SendToStorageAccountStart(osAccountInfo);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("account %{public}d call storage active failed, errCode %{public}d.",
-            localId, errCode);
-        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
+    ErrCode errCode = ERR_OK;
+    if (startStorage) {
+        errCode = OsAccountInterface::SendToStorageAccountStart(osAccountInfo);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("account %{public}d call storage active failed, errCode %{public}d.", localId, errCode);
+            return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
+        }
     }
     errCode = OsAccountInterface::SendToAMSAccountStart(osAccountInfo);
     if (errCode != ERR_OK) {
@@ -1637,58 +1647,6 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
 
 ErrCode IInnerOsAccountManager::StartOsAccount(const int id)
 {
-    return ERR_OK;
-}
-
-ErrCode IInnerOsAccountManager::StopOsAccount(const int id)
-{
-    if (id == Constants::START_USER_ID) {
-        ACCOUNT_LOGW("Account id=%{public}d can't stop", id);
-        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_STOP_ACTIVE_ERROR;
-    }
-
-    if (!CheckAndAddLocalIdOperating(id)) {
-        ACCOUNT_LOGW("Account id=%{public}d already in operating", id);
-        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
-    }
-    if (!IsOsAccountIDInActiveList(id)) {
-        RemoveLocalIdToOperating(id);
-        ACCOUNT_LOGI("Account id=%{public}d already stop", id);
-        return ERR_OK;
-    }
-    // get information
-    OsAccountInfo osAccountInfo;
-    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
-    if (errCode != ERR_OK) {
-        RemoveLocalIdToOperating(id);
-        ACCOUNT_LOGW("Cannot find os account info by id:%{public}d, errCode %{public}d.", id, errCode);
-        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
-    }
-
-     // check complete
-    if (!osAccountInfo.GetIsCreateCompleted()) {
-        RemoveLocalIdToOperating(id);
-        ACCOUNT_LOGW("Account id=%{public}d is not completed", id);
-        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_IS_UNCOMPLETED_ERROR;
-    }
-
-     // check to be removed
-    if (osAccountInfo.GetToBeRemoved()) {
-        RemoveLocalIdToOperating(id);
-        ACCOUNT_LOGW("Account id=%{public}d will be removed, don't need to stop!", id);
-        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR;
-    }
-
-    // stop
-    errCode = SendMsgForAccountStop(osAccountInfo);
-    if (errCode != ERR_OK) {
-        RemoveLocalIdToOperating(id);
-        ReportOsAccountOperationFail(id, "stop", errCode, "stop os account failed");
-        ACCOUNT_LOGE("Update account failed, id=%{public}d, errCode %{public}d.", id, errCode);
-        return errCode;
-    }
-    RemoveLocalIdToOperating(id);
-    ACCOUNT_LOGI("IInnerOsAccountManager StopOsAccount end");
     return ERR_OK;
 }
 
