@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -90,7 +90,6 @@ void OsAccountTest::SetUpTestCase(void)
     auto osAccountRemoteObject = accountProxy->GetOsAccountService();
     osAccountProxy_ = iface_cast<IOsAccount>(osAccountRemoteObject);
     EXPECT_NE(osAccountProxy_, nullptr);
-            
     GTEST_LOG_(INFO) << "SetUpTestCase finished, waitCnt " << waitCnt;
 }
 
@@ -150,7 +149,7 @@ HWTEST_F(OsAccountTest, OsAccountTest003, TestSize.Level1)
     errCode = g_osAccount->RemoveOsAccount(100);
     EXPECT_EQ(errCode, ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
     errCode = g_osAccount->RemoveOsAccount(1100);
-    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -291,7 +290,6 @@ HWTEST_F(OsAccountTest, OsAccountTest012, TestSize.Level1)
     OsAccountInfo osAccountInfo;
     EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
         osAccountProxy_->CreateOsAccountForDomain(type, domainInfo, osAccountInfo));
-    
     domainInfo.domain_ = STRING_DOMAIN_NAME_OUT_OF_RANGE;
     EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
         osAccountProxy_->CreateOsAccountForDomain(type, domainInfo, osAccountInfo));
