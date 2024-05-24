@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -46,13 +46,17 @@ public:
     ErrCode ProcDelUser(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcCancel(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetCredentialInfo(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcPrepareRemoteAuth(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcAuthUser(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcCancelAuth(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetAvailableStatus(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetProperty(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetProperty(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetEnrolledId(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetAccountState(MessageParcel &data, MessageParcel &reply);
     ErrCode ReadUserIdAndAuthType(MessageParcel &data, int32_t &userId, int32_t &authType);
+    ErrCode ReadAuthParam(MessageParcel &data, AuthParam &authParam);
+    ErrCode ReadRemoteAuthParam(MessageParcel &data, std::optional<RemoteAuthParam> &remoteAuthParam);
     ErrCode AddOrUpdateCredential(MessageParcel &data, MessageParcel &reply, bool isAdd = true);
     bool CheckPermission(const std::string &permission);
 

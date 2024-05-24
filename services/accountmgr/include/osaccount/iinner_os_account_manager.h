@@ -62,10 +62,9 @@ public:
     ErrCode SetOsAccountConstraints(
         const int id, const std::vector<std::string> &constraints, const bool enable) override;
     ErrCode SetOsAccountProfilePhoto(const int id, const std::string &photo) override;
-    ErrCode ActivateOsAccount(const int id, const uint64_t displayId = 0) override;
+    ErrCode ActivateOsAccount(const int id, const bool startStorage = true, const uint64_t displayId = 0) override;
     ErrCode DeactivateOsAccount(const int id) override;
     ErrCode StartOsAccount(const int id) override;
-    ErrCode StopOsAccount(const int id) override;
     ErrCode GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id) override;
     ErrCode GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber) override;
     ErrCode SubscribeOsAccount(
@@ -137,7 +136,8 @@ private:
     ErrCode FillOsAccountInfo(const std::string &localName, const std::string &shortName, const OsAccountType &type,
         const DomainAccountInfo &domainAccount, OsAccountInfo &osAccountInfo);
     ErrCode PrepareOsAccountInfoWithFullInfo(OsAccountInfo &osAccountInfo);
-    ErrCode SendMsgForAccountActivate(OsAccountInfo &osAccountInfo, const uint64_t dispalyId = 0);
+    ErrCode SendMsgForAccountActivate(OsAccountInfo &osAccountInfo, const bool startStorage = true,
+                                      const uint64_t dispalyId = 0);
     ErrCode SendMsgForAccountDeactivate(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountStop(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountRemove(OsAccountInfo &osAccountInfo);

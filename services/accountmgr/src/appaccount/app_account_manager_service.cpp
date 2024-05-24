@@ -61,7 +61,7 @@ ErrCode AppAccountManagerService::AddAccountImplicitly(const std::string &owner,
     const AAFwk::Want &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
     AuthenticatorSessionRequest request;
-    request.callerPid = IPCSkeleton::GetCallingPid();
+    request.callerPid = IPCSkeleton::GetCallingRealPid();
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
         return result;
@@ -93,7 +93,7 @@ ErrCode AppAccountManagerService::CreateAccountImplicitly(const std::string &own
     const CreateAccountImplicitlyOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
     AuthenticatorSessionRequest request;
-    request.callerPid = IPCSkeleton::GetCallingPid();
+    request.callerPid = IPCSkeleton::GetCallingRealPid();
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
         return result;
@@ -313,7 +313,7 @@ ErrCode AppAccountManagerService::Authenticate(const std::string &name, const st
     const std::string &authType, const AAFwk::Want &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
     AuthenticatorSessionRequest request;
-    request.callerPid = IPCSkeleton::GetCallingPid();
+    request.callerPid = IPCSkeleton::GetCallingRealPid();
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
         return result;
@@ -558,7 +558,7 @@ ErrCode AppAccountManagerService::GetAllAccounts(const std::string &owner, std::
     if ((owner != bundleName) &&
         (AccountPermissionManager::VerifyPermission(GET_ALL_APP_ACCOUNTS) != ERR_OK)) {
         ACCOUNT_LOGE("failed to verify permission for %{public}s", GET_ALL_APP_ACCOUNTS.c_str());
-        ReportPermissionFail(callingUid, IPCSkeleton::GetCallingPid(), GET_ALL_APP_ACCOUNTS);
+        ReportPermissionFail(callingUid, IPCSkeleton::GetCallingRealPid(), GET_ALL_APP_ACCOUNTS);
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 
@@ -759,7 +759,7 @@ ErrCode AppAccountManagerService::GetBundleNameAndCheckPerm(int32_t &callingUid,
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to verify permission for %{public}s, result = %{public}d",
             permName.c_str(), result);
-        ReportPermissionFail(callingUid, IPCSkeleton::GetCallingPid(), permName);
+        ReportPermissionFail(callingUid, IPCSkeleton::GetCallingRealPid(), permName);
         return result;
     }
     return ERR_OK;
@@ -789,7 +789,7 @@ ErrCode AppAccountManagerService::GetCallingTokenInfoAndAppIndex(uint32_t &appIn
         ACCOUNT_LOGE("get invalid app index from hap token info, index = %{public}d", hapTokenInfo.instIndex);
         return ERR_APPACCOUNT_SERVICE_GET_APP_INDEX;
     }
-    appIndex = hapTokenInfo.instIndex;
+    appIndex = static_cast<uint32_t>(hapTokenInfo.instIndex);
     return ERR_OK;
 }
 

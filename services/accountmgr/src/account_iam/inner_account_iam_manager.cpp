@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -195,26 +195,74 @@ int32_t InnerAccountIAMManager::Cancel(int32_t userId)
     return UserIDMClient::GetInstance().Cancel(userId);
 }
 
-int32_t InnerAccountIAMManager::AuthUser(
-    int32_t userId, const AuthParam &authParam, const sptr<IIDMCallback> &callback, uint64_t &contextId)
+int32_t InnerAccountIAMManager::PrepareRemoteAuth(
+    const std::string &remoteNetworkId, const sptr<IPreRemoteAuthCallback> &callback)
 {
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
-    if ((authParam.authType != AuthType::PIN) && (!IsNonPINAllowed(userId))) {
+    ACCOUNT_LOGI("Start IAM PrepareRemoteAuth.");
+    auto prepareCallback = std::make_shared<PrepareRemoteAuthCallbackWrapper>(callback);
+    return UserAuthClient::GetInstance().PrepareRemoteAuth(remoteNetworkId, prepareCallback);
+}
+
+void InnerAccountIAMManager::CopyAuthParam(const AuthParam &authParam, UserIam::UserAuth::AuthParam &iamAuthParam)
+{
+    iamAuthParam.userId = authParam.userId;
+    iamAuthParam.challenge = authParam.challenge;
+    iamAuthParam.authType = authParam.authType;
+    iamAuthParam.authTrustLevel = authParam.authTrustLevel;
+    iamAuthParam.authIntent = static_cast<UserIam::UserAuth::AuthIntent>(authParam.authIntent);
+    if (authParam.remoteAuthParam != std::nullopt) {
+        iamAuthParam.remoteAuthParam = UserIam::UserAuth::RemoteAuthParam();
+        if (authParam.remoteAuthParam.value().verifierNetworkId != std::nullopt) {
+            iamAuthParam.remoteAuthParam.value().verifierNetworkId =
+                authParam.remoteAuthParam.value().verifierNetworkId.value();
+        }
+        if (authParam.remoteAuthParam.value().collectorNetworkId != std::nullopt) {
+            iamAuthParam.remoteAuthParam.value().collectorNetworkId =
+                authParam.remoteAuthParam.value().collectorNetworkId.value();
+        }
+        if (authParam.remoteAuthParam.value().collectorTokenId != std::nullopt) {
+            iamAuthParam.remoteAuthParam.value().collectorTokenId =
+                authParam.remoteAuthParam.value().collectorTokenId.value();
+        }
+    }
+}
+
+int32_t InnerAccountIAMManager::AuthUser(
+    AuthParam &authParam, const sptr<IIDMCallback> &callback, uint64_t &contextId)
+{
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("callback is nullptr");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
+    if ((authParam.remoteAuthParam == std::nullopt) &&
+        (authParam.authType != AuthType::PIN) && (!IsNonPINAllowed(authParam.userId))) {
         ACCOUNT_LOGE("unsupported auth type: %{public}d", authParam.authType);
         return ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE;
+    }
+    OsAccountInfo osAccountInfo;
+    if ((authParam.remoteAuthParam == std::nullopt) &&
+        (IInnerOsAccountManager::GetInstance().QueryOsAccountById(authParam.userId, osAccountInfo)) != ERR_OK) {
+        ACCOUNT_LOGE("Account does not exist");
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     sptr<AuthCallbackDeathRecipient> deathRecipient = new (std::nothrow) AuthCallbackDeathRecipient();
     if ((deathRecipient == nullptr) || (!callback->AsObject()->AddDeathRecipient(deathRecipient))) {
         ACCOUNT_LOGE("failed to add death recipient for auth callback");
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
-    auto callbackWrapper = std::make_shared<AuthCallback>(userId, authParam.authType, callback);
+
+    auto callbackWrapper =
+        std::make_shared<AuthCallback>(authParam.userId, osAccountInfo.GetCredentialId(), authParam.authType, callback);
     callbackWrapper->SetDeathRecipient(deathRecipient);
-    contextId = UserAuthClient::GetInstance().BeginAuthentication(
-        userId, authParam.challenge, authParam.authType, authParam.authTrustLevel, callbackWrapper);
+
+    UserIam::UserAuth::AuthParam iamAuthParam;
+    CopyAuthParam(authParam, iamAuthParam);
+    ACCOUNT_LOGI("Start IAM AuthUser.");
+    contextId = UserAuthClient::GetInstance().BeginAuthentication(iamAuthParam, callbackWrapper);
     deathRecipient->SetContextId(contextId);
     return ERR_OK;
 }
@@ -311,6 +359,19 @@ void InnerAccountIAMManager::SetProperty(
     }
     auto setCallback = std::make_shared<SetPropCallbackWrapper>(userId, callback);
     UserAuthClient::GetInstance().SetProperty(userId, request, setCallback);
+}
+
+void InnerAccountIAMManager::GetEnrolledId(
+    int32_t accountId, AuthType authType, const sptr<IGetEnrolledIdCallback> &callback)
+{
+    if (static_cast<int32_t>(authType) == static_cast<int32_t>(IAMAuthType::DOMAIN)) {
+        ACCOUNT_LOGE("Unsupported auth type");
+        uint64_t emptyId = 0;
+        callback->OnEnrolledId(ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE, emptyId);
+        return;
+    }
+    auto GetSecUserInfoCallback = std::make_shared<GetSecUserInfoCallbackWrapper>(authType, callback);
+    UserIDMClient::GetInstance().GetSecUserInfo(accountId, GetSecUserInfoCallback);
 }
 
 IAMState InnerAccountIAMManager::GetState(int32_t userId)
@@ -427,7 +488,8 @@ ErrCode InnerAccountIAMManager::GetLockScreenStatus(uint32_t userId, bool &lockS
     return ERR_OK;
 }
 
-ErrCode InnerAccountIAMManager::UnlockUserScreen(int32_t userId)
+ErrCode InnerAccountIAMManager::UnlockUserScreen(
+    int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret)
 {
 #ifdef HAS_STORAGE_PART
     ErrCode result = GetStorageManagerProxy();
@@ -435,7 +497,7 @@ ErrCode InnerAccountIAMManager::UnlockUserScreen(int32_t userId)
         ACCOUNT_LOGE("fail to get storage proxy");
         return result;
     }
-    result = storageMgrProxy_->UnlockUserScreen(userId);
+    result = storageMgrProxy_->UnlockUserScreen(userId, token, secret);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("fail to unlock screen");
         return result;

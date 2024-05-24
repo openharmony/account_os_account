@@ -155,7 +155,8 @@ private:
 class TestIInputer : public OHOS::AccountSA::IInputer {
 public:
     explicit TestIInputer() {}
-    void OnGetData(int32_t authSubType, const std::shared_ptr<IInputerData> inputerData) override
+    void OnGetData(int32_t authSubType, std::vector<uint8_t> challenge,
+        const std::shared_ptr<IInputerData> inputerData) override
     {
         // inputer class is IAMInputerData
         std::vector<uint8_t> data = { 1, 2, 3, 4, 5, 6 };

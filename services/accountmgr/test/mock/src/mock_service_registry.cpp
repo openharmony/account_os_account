@@ -197,6 +197,12 @@ int32_t SystemAbilityManagerProxy::UpdateOnDemandPolicy(int32_t systemAbilityId,
     return ERR_INVALID_VALUE;
 }
 
+int32_t SystemAbilityManagerProxy::GetRunningSaExtensionInfoList(const std::string& extension,
+    std::vector<SaExtensionInfo>& infoList)
+{
+    return ERR_INVALID_VALUE;
+};
+
 int32_t SystemAbilityManagerProxy::GetOnDemandSystemAbilityIds(std::vector<int32_t>& systemAbilityIds)
 {
     return ERR_INVALID_VALUE;

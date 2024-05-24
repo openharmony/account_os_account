@@ -55,7 +55,7 @@ static bool ParseContextForRegisterInputer(napi_env env, napi_callback_info info
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (argc != ARG_SIZE_ONE) {
         ACCOUNT_LOGE("expect at least one parameter, but got %zu", argc);
-        std::string errMsg = "The arg number must be at least " + std::to_string(ARG_SIZE_ONE) + " characters";
+        std::string errMsg = "Parameter error. The number of parameters should be at least 1";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
@@ -68,7 +68,7 @@ static bool ParseContextForRegisterInputer(napi_env env, napi_callback_info info
         onGetData = argv[PARAM_ZERO];
     } else {
         ACCOUNT_LOGE("inputer param type error");
-        std::string errMsg = "The type of arg 1 must be function or object";
+        std::string errMsg = "Parameter error. The type of \"inputer\" must be function or object";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }

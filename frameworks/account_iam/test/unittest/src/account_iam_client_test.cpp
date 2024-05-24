@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -44,6 +44,7 @@ namespace OHOS {
 namespace AccountTest {
 namespace {
 const int32_t TEST_USER_ID = 200;
+const int32_t TEST_EXIST_ID = 100;
 const int32_t DEFAULT_API_VERSION = 8;
 const uint32_t INVALID_IPC_CODE = 1000;
 const uint32_t INVALID_TOKEN_ID = 0;
@@ -123,7 +124,8 @@ HapInfoParams infoManagerTestSystemInfoParms = {
 class MockIInputer : public OHOS::AccountSA::IInputer {
 public:
     virtual ~MockIInputer() {}
-    void OnGetData(int32_t authSubType, std::shared_ptr<IInputerData> inputerData) override
+    void OnGetData(int32_t authSubType, std::vector<uint8_t> challenge,
+        std::shared_ptr<IInputerData> inputerData) override
     {
         return;
     }
@@ -178,10 +180,29 @@ private:
     int code_;
 };
 
+class TestOnEnrolledIdCallback final : public AccountSA::GetEnrolledIdCallback {
+public:
+    void OnEnrolledId(int32_t result, uint64_t enrolledId)
+    {
+        code_ = result;
+    }
+    int GetResult()
+    {
+        if (code_ != ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR) {
+            return ERR_OK;
+        }
+        return code_;
+    }
+
+private:
+    int code_;
+};
+
 #ifdef HAS_PIN_AUTH_PART
 class TestIInputer : public OHOS::AccountSA::IInputer {
 public:
-    void OnGetData(int32_t authSubType, std::shared_ptr<IInputerData> inputerData) override
+    void OnGetData(int32_t authSubType, std::vector<uint8_t> challenge,
+        std::shared_ptr<IInputerData> inputerData) override
     {
         if (inputerData != nullptr) {
             inputerData->OnSetData(authSubType, {0, 0, 0, 0, 0, 0});
@@ -271,7 +292,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_AddCredential_0100, TestSize.Lev
 #endif
     auto testCallback = std::make_shared<TestIDMCallback>(callback);
     EXPECT_NE(testCallback, nullptr);
-    AccountIAMClient::GetInstance().AddCredential(TEST_USER_ID, testPara, testCallback);
+    AccountIAMClient::GetInstance().AddCredential(TEST_EXIST_ID, testPara, testCallback);
 #ifndef PROXY_MOCK
     std::unique_lock<std::mutex> lock(testCallback->mutex);
     testCallback->cv.wait_for(
@@ -307,7 +328,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_AddCredential_0200, TestSize.Lev
 #endif
     AccountIAMClient::GetInstance().AddCredential(TEST_USER_ID, testPara, nullptr);
     testCallback->isReady = false;
-    AccountIAMClient::GetInstance().AddCredential(TEST_USER_ID, testPara, testCallback);
+    AccountIAMClient::GetInstance().AddCredential(TEST_EXIST_ID, testPara, testCallback);
 #ifndef PROXY_MOCK
     {
         std::unique_lock<std::mutex> lock(testCallback->mutex);
@@ -456,6 +477,24 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetCredentialInfo_0100, TestSize
 }
 
 /**
+ * @tc.name: AccountIAMClient_GetEnrolledId_0100
+ * @tc.desc: Get enrolled id.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetEnrolledId_0100, TestSize.Level0)
+{
+    auto callback = std::make_shared<MockGetEnrolledIdCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestGetEnrolledIdCallback>(callback);
+    EXPECT_CALL(*callback, OnEnrolledId(_, _)).Times(Exactly(1));
+    AccountIAMClient::GetInstance().GetEnrolledId(TEST_USER_ID, AuthType::PIN, testCallback);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+}
+
+/**
  * @tc.name: AccountIAMClient_GetAvailableStatus_0100
  * @tc.desc: Get available status.
  * @tc.type: FUNC
@@ -554,15 +593,19 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_AuthUser_0100, TestSize.Level0)
     EXPECT_NE(callback, nullptr);
     EXPECT_CALL(*callback, OnResult(_, _)).Times(Exactly(2));
     auto testCallback = std::make_shared<TestIDMCallback>(callback);
-    AccountIAMClient::GetInstance().AuthUser(0, TEST_CHALLENGE, AuthType::PIN, AuthTrustLevel::ATL1, testCallback);
+    AuthOptions authOptionsOne;
+    AccountIAMClient::GetInstance().AuthUser(
+        authOptionsOne, TEST_CHALLENGE, AuthType::PIN, AuthTrustLevel::ATL1, testCallback);
     {
         std::unique_lock<std::mutex> lock(testCallback->mutex);
         testCallback->cv.wait_for(
             lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
     }
     testCallback->isReady = false;
+    AuthOptions authOptionsTwo;
+    authOptionsTwo.accountId = TEST_USER_ID;
     AccountIAMClient::GetInstance().AuthUser(
-        TEST_USER_ID, TEST_CHALLENGE, AuthType::PIN, AuthTrustLevel::ATL1, testCallback);
+        authOptionsTwo, TEST_CHALLENGE, AuthType::PIN, AuthTrustLevel::ATL1, testCallback);
     {
         std::unique_lock<std::mutex> lock(testCallback->mutex);
         testCallback->cv.wait_for(
@@ -578,8 +621,9 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_AuthUser_0100, TestSize.Level0)
  */
 HWTEST_F(AccountIAMClientTest, AccountIAMClient_AuthUser_0200, TestSize.Level0)
 {
+    AuthOptions authOptions;
     uint64_t ret = AccountIAMClient::GetInstance().AuthUser(
-        0, TEST_CHALLENGE, AuthType::PIN, AuthTrustLevel::ATL1, nullptr);
+        authOptions, TEST_CHALLENGE, AuthType::PIN, AuthTrustLevel::ATL1, nullptr);
     EXPECT_EQ(ret, 0);
 }
 
@@ -596,7 +640,9 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_Auth_0100, TestSize.Level0)
     EXPECT_NE(callback, nullptr);
     EXPECT_CALL(*callback, OnResult(_, _)).Times(Exactly(1));
     auto testCallback = std::make_shared<TestIDMCallback>(callback);
-    AccountIAMClient::GetInstance().Auth(TEST_CHALLENGE, AuthType::PIN, AuthTrustLevel::ATL1, testCallback);
+    AuthOptions authOptions;
+    AccountIAMClient::GetInstance().Auth(authOptions,
+        TEST_CHALLENGE, AuthType::PIN, AuthTrustLevel::ATL1, testCallback);
     std::unique_lock<std::mutex> lock(testCallback->mutex);
     testCallback->cv.wait_for(
         lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
@@ -722,7 +768,7 @@ HWTEST_F(AccountIAMClientTest, IDMCallbackStub_ProcOnAcquireInfo_0100, TestSize.
     MessageParcel data;
     MessageParcel reply;
     MessageOption option = {MessageOption::TF_SYNC};
-    
+
     int32_t module = 0;
     int32_t acquireInfo = 0;
     std::vector<uint8_t> buffer;
@@ -768,7 +814,7 @@ HWTEST_F(AccountIAMClientTest, GetCredInfoCallbackStub_ProcOnCredentialInfo_0100
     MessageParcel data;
     MessageParcel reply;
     MessageOption option = {MessageOption::TF_SYNC};
-    
+
     uint32_t vectorSize = 1;
     CredentialInfo info;
     std::vector<CredentialInfo> infoList = {info};
@@ -858,6 +904,15 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient001, TestSize.Level0)
     std::unique_lock<std::mutex> lock(testCallback->mutex);
     testCallback->cv.wait_for(
         lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+
+    auto getEnrolledIdCallback = std::make_shared<MockGetEnrolledIdCallback>();
+    auto testGetEnrolledIdCallback = std::make_shared<TestGetEnrolledIdCallback>(getEnrolledIdCallback);
+    ASSERT_NE(testGetEnrolledIdCallback, nullptr);
+    EXPECT_CALL(*getEnrolledIdCallback, OnEnrolledId(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR, _)).Times(1);
+    AccountIAMClient::GetInstance().GetEnrolledId(TEST_USER_ID, AuthType::PIN, testGetEnrolledIdCallback);
+    std::unique_lock<std::mutex> cvLock(testGetEnrolledIdCallback->mutex);
+    testGetEnrolledIdCallback->cv.wait_for(cvLock, std::chrono::seconds(WAIT_TIME),
+        [lockCallback = testGetEnrolledIdCallback]() { return lockCallback->isReady; });
 
     AccessTokenID tokenID = AccessTokenKit::GetHapTokenID(infoManagerTestNormalInfoParms.userID,
         infoManagerTestNormalInfoParms.bundleName, infoManagerTestNormalInfoParms.instIndex);
@@ -970,6 +1025,15 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient003, TestSize.Level0)
     ASSERT_NE(AccountIAMClient::GetInstance().GetCredentialInfo(TEST_USER_ID, AuthType::PIN, testCallback),
         ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
 
+    auto getEnrolledIdCallback = std::make_shared<MockGetEnrolledIdCallback>();
+    auto testGetEnrolledIdCallback = std::make_shared<TestGetEnrolledIdCallback>(getEnrolledIdCallback);
+    ASSERT_NE(testGetEnrolledIdCallback, nullptr);
+    EXPECT_CALL(*getEnrolledIdCallback, OnEnrolledId(ERR_ACCOUNT_COMMON_PERMISSION_DENIED, _)).Times(1);
+    AccountIAMClient::GetInstance().GetEnrolledId(TEST_USER_ID, AuthType::PIN, testGetEnrolledIdCallback);
+    std::unique_lock<std::mutex> lock(testGetEnrolledIdCallback->mutex);
+    testGetEnrolledIdCallback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+        [lockCallback = testGetEnrolledIdCallback]() { return lockCallback->isReady; });
+
     AccessTokenID tokenID = AccessTokenKit::GetHapTokenID(infoManagerTestSystemInfoParms.userID,
         infoManagerTestSystemInfoParms.bundleName, infoManagerTestSystemInfoParms.instIndex);
     AccessTokenKit::DeleteToken(tokenID);
@@ -1015,6 +1079,11 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient004, TestSize.Level0)
 
     AccountIAMClient::GetInstance().DelCred(TEST_USER_ID, testCredentialId, testAuthToken, testIDMCallback);
     ASSERT_EQ(testCallback->GetResult(), ERR_OK);
+
+    auto testGetEnrolledIdCallback = std::make_shared<TestOnEnrolledIdCallback>();
+    ASSERT_NE(testGetEnrolledIdCallback, nullptr);
+    AccountIAMClient::GetInstance().GetEnrolledId(TEST_USER_ID, AuthType::PIN, testGetEnrolledIdCallback);
+    ASSERT_EQ(testGetEnrolledIdCallback->GetResult(), ERR_OK);
 
     AccessTokenID tokenID = AccessTokenKit::GetHapTokenID(infoManagerTestSystemInfoParms.userID,
         infoManagerTestSystemInfoParms.bundleName, infoManagerTestSystemInfoParms.instIndex);
@@ -1065,6 +1134,74 @@ HWTEST_F(AccountIAMClientTest, StartDomainAuth002, TestSize.Level0)
 #endif
 
 /**
+ * @tc.name: PrepareRemoteAuthTest001
+ * @tc.desc: test PrepareRemoteAuth.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMClientTest, PrepareRemoteAuthTest001, TestSize.Level0)
+{
+    int32_t ret = AccountIAMClient::GetInstance().PrepareRemoteAuth("testString", nullptr);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
+}
+
+/**
+ * @tc.name: AccountIAMClient_AuthUser_0300
+ * @tc.desc: Auth user.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_AuthUser_0300, TestSize.Level0)
+{
+    auto callback = std::make_shared<MockIDMCallback>();
+    EXPECT_NE(callback, nullptr);
+    EXPECT_CALL(*callback, OnResult(_, _)).Times(Exactly(1));
+    auto testCallback = std::make_shared<TestIDMCallback>(callback);
+    AuthOptions authOptions;
+
+    authOptions.hasRemoteAuthOptions = true;
+
+    AccountIAMClient::GetInstance().AuthUser(
+        authOptions, TEST_CHALLENGE, AuthType::PIN, AuthTrustLevel::ATL1, testCallback);
+    {
+        std::unique_lock<std::mutex> lock(testCallback->mutex);
+        testCallback->cv.wait_for(
+            lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    }
+}
+
+/**
+ * @tc.name: AccountIAMClient_AuthUser_0400
+ * @tc.desc: Auth user.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_AuthUser_0400, TestSize.Level0)
+{
+    auto callback = std::make_shared<MockIDMCallback>();
+    EXPECT_NE(callback, nullptr);
+    EXPECT_CALL(*callback, OnResult(_, _)).Times(Exactly(1));
+    auto testCallback = std::make_shared<TestIDMCallback>(callback);
+    AuthOptions authOptions;
+
+    authOptions.hasRemoteAuthOptions = true;
+    authOptions.remoteAuthOptions.hasVerifierNetworkId = true;
+    authOptions.remoteAuthOptions.verifierNetworkId = "testVerifierNetworkId";
+    authOptions.remoteAuthOptions.hasCollectorNetworkId = true;
+    authOptions.remoteAuthOptions.collectorNetworkId = "testCollectorNetworkId";
+    authOptions.remoteAuthOptions.hasCollectorTokenId = true;
+    authOptions.remoteAuthOptions.collectorTokenId = 0;
+
+    AccountIAMClient::GetInstance().AuthUser(
+        authOptions, TEST_CHALLENGE, AuthType::PIN, AuthTrustLevel::ATL1, testCallback);
+    {
+        std::unique_lock<std::mutex> lock(testCallback->mutex);
+        testCallback->cv.wait_for(
+            lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    }
+}
+
+/**
  * @tc.name: ResetAccountIAMProxy001
  * @tc.desc: test ResetAccountIAMProxy.
  * @tc.type: FUNC
@@ -1073,12 +1210,14 @@ HWTEST_F(AccountIAMClientTest, StartDomainAuth002, TestSize.Level0)
 HWTEST_F(AccountIAMClientTest, ResetAccountIAMProxy001, TestSize.Level0)
 {
     wptr<IRemoteObject> remote;
+    sptr<IAccountIAM> proxy = AccountIAMClient::GetInstance().proxy_;
     AccountIAMClient::GetInstance().proxy_ = nullptr;
     AccountIAMClient::GetInstance().ResetAccountIAMProxy(remote);
     sptr<IAccountIAM> testIAccountIAM = new (std::nothrow) AccountIAMMgrProxy(nullptr);
     AccountIAMClient::GetInstance().proxy_ = testIAccountIAM;
     EXPECT_NE(AccountIAMClient::GetInstance().proxy_, nullptr);
     AccountIAMClient::GetInstance().ResetAccountIAMProxy(remote);
+    AccountIAMClient::GetInstance().proxy_ = proxy;
 }
 }  // namespace AccountTest
 }  // namespace OHOS

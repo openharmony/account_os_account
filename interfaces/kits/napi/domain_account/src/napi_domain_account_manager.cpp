@@ -57,16 +57,15 @@ static bool InitDomainPluginExecEnv(
     return true;
 }
 
-static napi_value CreatePluginAsyncCallback(
-    napi_env env, napi_callback callback, std::unique_ptr<JsDomainPluginParam> &param)
+static napi_value CreatePluginAsyncCallback(napi_env env, napi_callback callback, JsDomainPluginParam *param)
 {
     napi_value napiCallback = nullptr;
-    napi_status status = napi_create_function(env, "callback", NAPI_AUTO_LENGTH, callback, param.get(), &napiCallback);
+    napi_status status = napi_create_function(env, "callback", NAPI_AUTO_LENGTH, callback, param, &napiCallback);
     if (status != napi_ok) {
         ACCOUNT_LOGE("failed to create js function");
         return nullptr;
     }
-    status = napi_wrap(env, napiCallback, param.get(),
+    status = napi_wrap(env, napiCallback, param,
         [](napi_env env, void *data, void *hint) {
             ACCOUNT_LOGI("release JsDomainPluginParam");
             delete reinterpret_cast<JsDomainPluginParam *>(data);
@@ -121,7 +120,7 @@ static napi_value CreateNapiDomainAccountInfo(napi_env env, const DomainAccountI
     return napiInfo;
 }
 
-static napi_value CreateNapiGetAccessTokenOptions(const std::unique_ptr<JsDomainPluginParam> &param)
+static napi_value CreateNapiGetAccessTokenOptions(const JsDomainPluginParam *param)
 {
     napi_value napiOptions = nullptr;
     NAPI_CALL(param->env, napi_create_object(param->env, &napiOptions));
@@ -198,20 +197,28 @@ static bool ParseParamForUpdateAccountToken(
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
     if (argc < ARG_SIZE_TWO) {
         ACCOUNT_LOGE("the parameter number for updating account token should be at least two");
+        std::string errMsg = "Parameter error. The number of parameters should be at least 2";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
     if (argc == ARG_SIZE_THREE) {
         if (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1)) {
             ACCOUNT_LOGE("failed to get callbackRef for updating account token");
+            std::string errMsg = "Parameter error. The type of \"callback\" must be function";
+            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
             return false;
         }
     }
     if (!ParseDomainAccountInfo(env, argv[0], asyncContext->domainInfo)) {
         ACCOUNT_LOGE("get domainInfo failed");
+        std::string errMsg = "Parameter error. The type of \"domainAccountInfo\" must be DomainAccountInfo";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
     if (ParseUint8TypedArrayToVector(env, argv[PARAM_ONE], asyncContext->token) != napi_ok) {
         ACCOUNT_LOGE("get token failed");
+        std::string errMsg = "Parameter error. The type of \"token\" must be Uint8Array";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
     return true;
@@ -225,10 +232,14 @@ static bool ParseParamForIsAuthenticationExpired(
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
     if (argc < ARG_SIZE_ONE) {
         ACCOUNT_LOGE("The number of parameters should be at least 1.");
+        std::string errMsg = "Parameter error. The number of parameters should be at least 1";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
     if (!ParseDomainAccountInfo(env, argv[PARAM_ZERO], asyncContext->domainInfo)) {
         ACCOUNT_LOGE("Get domainInfo failed.");
+        std::string errMsg = "Parameter error. The type of \"domainAccountInfo\" must be DomainAccountInfo";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
     return true;
@@ -255,6 +266,8 @@ static bool ParseParamForGetAccessToken(
     napi_value argv[ARG_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
     if (argc < ARG_SIZE_ONE) {
+        std::string errMsg = "Parameter error. The number of parameters should be at least 1";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
     if (ParseDomainAccountInfo(env, argv[0], asyncContext->domainInfo)) {
@@ -262,10 +275,14 @@ static bool ParseParamForGetAccessToken(
     }
     if ((argc == ARG_SIZE_TWO) && (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1))) {
         ACCOUNT_LOGE("failed to get callbackRef for getting access token");
+        std::string errMsg = "Parameter error. The type of \"callback\" must be function";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
     if (!AppExecFwk::UnwrapWantParams(env, argv[0], asyncContext->getTokenParams)) {
         ACCOUNT_LOGE("unwrapWantParams failed");
+        std::string errMsg = "Parameter error. The type of \"businessParams\" must be Record";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
     return true;
@@ -302,7 +319,7 @@ static napi_value GetDomainAccountInfoCallback(napi_env env, napi_callback_info 
     return nullptr;
 }
 
-static napi_value CreatePluginAccountInfoOptions(const std::unique_ptr<JsDomainPluginParam> &param)
+static napi_value CreatePluginAccountInfoOptions(const JsDomainPluginParam *param)
 {
     napi_value napiOptions = nullptr;
     NAPI_CALL(param->env, napi_create_object(param->env, &napiOptions));
@@ -327,7 +344,7 @@ static void GetDomainAccountInfoWork(uv_work_t *work, int status)
     if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
-    std::unique_ptr<JsDomainPluginParam> param(reinterpret_cast<JsDomainPluginParam *>(work->data));
+    JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
     napi_value napiCallback = CreatePluginAsyncCallback(param->env, GetDomainAccountInfoCallback, param);
     napi_value getDomainAccountInfoPLuginOptions = CreatePluginAccountInfoOptions(param);
     napi_value argv[] = {getDomainAccountInfoPLuginOptions, napiCallback};
@@ -336,6 +353,9 @@ static void GetDomainAccountInfoWork(uv_work_t *work, int status)
     param->lockInfo->count--;
     param->lockInfo->condition.notify_all();
     napi_close_handle_scope(param->env, scope);
+    if (napiCallback == nullptr) {
+        delete param;
+    }
 }
 
 static napi_value OnAccountBoundCallback(napi_env env, napi_callback_info cbInfo)
@@ -369,7 +389,7 @@ static void OnAccountBoundWork(uv_work_t *work, int status)
     if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
-    std::unique_ptr<JsDomainPluginParam> param(reinterpret_cast<JsDomainPluginParam *>(work->data));
+    JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
     napi_value napiLocalId = nullptr;
     napi_create_int32(param->env, param->userId, &napiLocalId);
     napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
@@ -380,6 +400,9 @@ static void OnAccountBoundWork(uv_work_t *work, int status)
     param->lockInfo->count--;
     param->lockInfo->condition.notify_all();
     napi_close_handle_scope(param->env, scope);
+    if (napiCallback == nullptr) {
+        delete param;
+    }
 }
 
 static void OnAccountUnBoundWork(uv_work_t *work, int status)
@@ -389,7 +412,7 @@ static void OnAccountUnBoundWork(uv_work_t *work, int status)
     if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
-    std::unique_ptr<JsDomainPluginParam> param(reinterpret_cast<JsDomainPluginParam *>(work->data));
+    JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
     napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
     napi_value napiCallback = CreatePluginAsyncCallback(param->env, OnAccountBoundCallback, param);
     napi_value argv[] = {napiDomainAccountInfo, napiCallback};
@@ -398,6 +421,9 @@ static void OnAccountUnBoundWork(uv_work_t *work, int status)
     param->lockInfo->count--;
     param->lockInfo->condition.notify_all();
     napi_close_handle_scope(param->env, scope);
+    if (napiCallback == nullptr) {
+        delete param;
+    }
 }
 
 static napi_value GetAuthStatusInfoCallback(napi_env env, napi_callback_info cbInfo)
@@ -485,7 +511,7 @@ static void GetAccessTokenWork(uv_work_t *work, int status)
     if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
-    std::unique_ptr<JsDomainPluginParam> param(reinterpret_cast<JsDomainPluginParam *>(work->data));
+    JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
     napi_value napiCallback = CreatePluginAsyncCallback(param->env, GetAccessTokenCallback, param);
     napi_value napiOptions = CreateNapiGetAccessTokenOptions(param);
     napi_value argv[] = {napiOptions, napiCallback};
@@ -494,6 +520,9 @@ static void GetAccessTokenWork(uv_work_t *work, int status)
     param->lockInfo->count--;
     param->lockInfo->condition.notify_all();
     napi_close_handle_scope(param->env, scope);
+    if (napiCallback == nullptr) {
+        delete param;
+    }
 }
 
 static void IsUserTokenValidWork(uv_work_t *work, int status)
@@ -503,7 +532,7 @@ static void IsUserTokenValidWork(uv_work_t *work, int status)
     if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
-    std::unique_ptr<JsDomainPluginParam> param(reinterpret_cast<JsDomainPluginParam *>(work->data));
+    JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
     napi_value napiCallback = CreatePluginAsyncCallback(param->env, IsUserTokenValidCallback, param);
     napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
     napi_value napiUserToken = CreateUint8Array(param->env, param->authData.data(), param->authData.size());
@@ -513,6 +542,9 @@ static void IsUserTokenValidWork(uv_work_t *work, int status)
     param->lockInfo->count--;
     param->lockInfo->condition.notify_all();
     napi_close_handle_scope(param->env, scope);
+    if (napiCallback == nullptr) {
+        delete param;
+    }
 }
 
 static void GetAuthStatusInfoWork(uv_work_t *work, int status)
@@ -522,7 +554,7 @@ static void GetAuthStatusInfoWork(uv_work_t *work, int status)
     if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
-    std::unique_ptr<JsDomainPluginParam> param(reinterpret_cast<JsDomainPluginParam *>(work->data));
+    JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
     napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
     napi_value napiCallback = CreatePluginAsyncCallback(param->env, GetAuthStatusInfoCallback, param);
     napi_value argv[] = {napiDomainAccountInfo, napiCallback};
@@ -531,6 +563,9 @@ static void GetAuthStatusInfoWork(uv_work_t *work, int status)
     param->lockInfo->count--;
     param->lockInfo->condition.notify_all();
     napi_close_handle_scope(param->env, scope);
+    if (napiCallback == nullptr) {
+        delete param;
+    }
 }
 
 NapiDomainAccountPlugin::NapiDomainAccountPlugin(napi_env env, const JsDomainPlugin &jsPlugin)
@@ -950,7 +985,8 @@ napi_value NapiDomainAccountManager::RegisterPlugin(napi_env env, napi_callback_
 {
     JsDomainPlugin jsPlugin;
     if (!ParseContextForRegisterPlugin(env, cbInfo, jsPlugin)) {
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, true);
+        std::string errMsg = "Parameter error. The type of \"plugin\" must be DomainPlugin";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return nullptr;
     }
     auto plugin = std::make_shared<NapiDomainAccountPlugin>(env, jsPlugin);
@@ -970,16 +1006,22 @@ static bool ParseParamForHasDomainAccount(
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
     if (argc < ARG_SIZE_ONE) {
         ACCOUNT_LOGE("paramter number should be at least one");
+        std::string errMsg = "Parameter error. The number of parameters should be at least 1";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
     if (argc == ARG_SIZE_TWO) {
         if (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1)) {
             ACCOUNT_LOGE("Get callbackRef failed");
+            std::string errMsg = "Parameter error. The type of \"callback\" must be function";
+            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
             return false;
         }
     }
     if (!ParseDomainAccountInfo(env, argv[0], asyncContext->domainInfo)) {
         ACCOUNT_LOGE("get domainInfo failed");
+        std::string errMsg = "Parameter error. The type of \"domainAccountInfo\" must be DomainAccountInfo";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
     return true;
@@ -1002,19 +1044,27 @@ static bool ParseContextForAuth(napi_env env, napi_callback_info cbInfo, JsDomai
     NAPI_CALL_BASE(env, napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr), false);
     if (argc != ARG_SIZE_THREE) {
         ACCOUNT_LOGE("the number of parameter must be one, but got %{public}zu", argc);
+        std::string errMsg = "Parameter error. The number of parameters should be at least 3";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
     int index = 0;
     if (!ParseDomainAccountInfo(env, argv[index++], authContext.domainAccountInfo)) {
         ACCOUNT_LOGE("get domainInfo failed");
+        std::string errMsg = "Parameter error. The type of \"domainAccountInfo\" must be DomainAccountInfo";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
     if (ParseUint8TypedArrayToVector(env, argv[index++], authContext.authData) != napi_ok) {
         ACCOUNT_LOGE("get credential failed");
+        std::string errMsg = "Parameter error. The type of \"credential\" must be Uint8Array";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
     if (!GetNamedJsFunction(env, argv[index++], "onResult", authContext.callbackRef)) {
         ACCOUNT_LOGE("get callback failed");
+        std::string errMsg = "Parameter error. The type of \"callback\" must be IUserAuthCallback";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
     return true;
@@ -1029,7 +1079,6 @@ napi_value NapiDomainAccountManager::Auth(napi_env env, napi_callback_info cbInf
 {
     auto authContext = std::make_unique<JsDomainPluginParam>(env);
     if (!ParseContextForAuth(env, cbInfo, *authContext)) {
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, true);
         return nullptr;
     }
     napi_value resource = nullptr;
@@ -1067,10 +1116,14 @@ static bool ParseContextForAuthWithPopup(
     NAPI_CALL_BASE(env, napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr), false);
     if (argc < ARG_SIZE_ONE) {
         ACCOUNT_LOGE("need input at least one parameter, but got %{public}zu", argc);
+        std::string errMsg = "Parameter error. The number of parameters should be at least 1";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
     if (!GetNamedJsFunction(env, argv[argc - 1], "onResult", authWithPopupContext.callbackRef)) {
         ACCOUNT_LOGE("get callback failed");
+        std::string errMsg = "Parameter error. The type of \"callback\" must be function";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
     if (argc == ARG_SIZE_TWO) {
@@ -1080,6 +1133,8 @@ static bool ParseContextForAuthWithPopup(
             ACCOUNT_LOGI("the userId is undefined or null");
         } else {
             if (!GetIntProperty(env, argv[0], authWithPopupContext.userId)) {
+                std::string errMsg = "Parameter error. The type of \"localId\" must be number";
+                AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
                 ACCOUNT_LOGE("get id failed");
                 return false;
             }
@@ -1135,7 +1190,6 @@ napi_value NapiDomainAccountManager::AuthWithPopup(napi_env env, napi_callback_i
 {
     auto authWithPopupContext = std::make_unique<JsDomainPluginParam>(env);
     if (!ParseContextForAuthWithPopup(env, cbInfo, *authWithPopupContext)) {
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, true);
         return nullptr;
     }
     napi_value resource = nullptr;
@@ -1306,7 +1360,6 @@ napi_value NapiDomainAccountManager::UpdateAccountToken(napi_env env, napi_callb
 {
     auto context = std::make_unique<UpdateAccountTokenAsyncContext>(env);
     if (!ParseParamForUpdateAccountToken(env, cbInfo, context.get())) {
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, true);
         return nullptr;
     }
     napi_value result = nullptr;
@@ -1354,7 +1407,6 @@ napi_value NapiDomainAccountManager::IsAuthenticationExpired(napi_env env, napi_
 {
     auto asyncContextPtr = std::make_unique<IsAuthenticationExpiredAsyncContext>(env);
     if (!ParseParamForIsAuthenticationExpired(env, cbInfo, asyncContextPtr.get())) {
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, true);
         return nullptr;
     }
     napi_value result = nullptr;
@@ -1378,7 +1430,6 @@ napi_value NapiDomainAccountManager::GetAccessToken(napi_env env, napi_callback_
 {
     auto context = std::make_unique<GetAccessTokenAsyncContext>(env);
     if (!ParseParamForGetAccessToken(env, cbInfo, context.get())) {
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, true);
         return nullptr;
     }
     napi_value result = nullptr;
@@ -1399,7 +1450,6 @@ napi_value NapiDomainAccountManager::HasAccount(napi_env env, napi_callback_info
 {
     auto context = std::make_unique<HasDomainAccountAsyncContext>(env);
     if (!ParseParamForHasDomainAccount(env, cbInfo, context.get())) {
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, true);
         return nullptr;
     }
     napi_value result = nullptr;
@@ -1457,16 +1507,22 @@ static bool ParseParamForGetAccountInfo(
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
     if (argc < ARG_SIZE_ONE) {
         ACCOUNT_LOGE("the parameter of number should be at least one");
+        std::string errMsg = "Parameter error. The number of parameters should be at least 1";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
     if (argc == ARG_SIZE_TWO) {
         if (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1)) {
             ACCOUNT_LOGE("Get callbackRef failed");
+            std::string errMsg = "Parameter error. The type of \"callback\" must be function";
+            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
             return false;
         }
     }
     if (!ParseGetDomainAccountInfoOptions(env, argv[0], asyncContext->domainInfo)) {
         ACCOUNT_LOGE("get domainInfo failed");
+        std::string errMsg = "Parameter error. The type of \"options\" must be GetDomainAccountInfoOptions";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
     return true;
@@ -1559,7 +1615,6 @@ napi_value NapiDomainAccountManager::GetDomainAccountInfo(napi_env env, napi_cal
 {
     auto context = std::make_unique<GetAccountInfoAsyncContext>(env);
     if (!ParseParamForGetAccountInfo(env, cbInfo, context.get())) {
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, true);
         return nullptr;
     }
     napi_value result = nullptr;
@@ -1584,14 +1639,20 @@ static bool ParseParamForUpdateAccountInfo(
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
     if (argc != ARG_SIZE_TWO) {
         ACCOUNT_LOGE("The parameter of number should be two");
+        std::string errMsg = "Parameter error. The number of parameters should be at least 2";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
     if (!ParseDomainAccountInfo(env, argv[0], asyncContext->oldAccountInfo)) {
         ACCOUNT_LOGE("Get oldAccountInfo failed");
+        std::string errMsg = "Parameter error. The type of \"oldAccountInfo\" must be DomainAccountInfo";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
     if (!ParseDomainAccountInfo(env, argv[1], asyncContext->newAccountInfo)) {
         ACCOUNT_LOGE("Get newAccountInfo failed");
+        std::string errMsg = "Parameter error. The type of \"newAccountInfo\" must be DomainAccountInfo";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
     return true;
@@ -1622,7 +1683,6 @@ napi_value NapiDomainAccountManager::UpdateAccountInfo(napi_env env, napi_callba
 {
     auto context = std::make_unique<UpdateAccountInfoAsyncContext>(env);
     if (!ParseParamForUpdateAccountInfo(env, cbInfo, context.get())) {
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, true);
         return nullptr;
     }
     napi_value result = nullptr;

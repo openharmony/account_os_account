@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -40,14 +40,16 @@ public:
     void DelUser(int32_t userId, const std::vector<uint8_t> &authToken, const sptr<IIDMCallback> &callback) override;
     int32_t GetCredentialInfo(
         int32_t userId, AuthType authType, const sptr<IGetCredInfoCallback> &callback) override;
-    int32_t AuthUser(
-        int32_t userId, const AuthParam &authParam, const sptr<IIDMCallback> &callback, uint64_t &contextId) override;
+    int32_t PrepareRemoteAuth(
+        const std::string &remoteNetworkId, const sptr<IPreRemoteAuthCallback> &callback) override;
+    int32_t AuthUser(AuthParam &authParam, const sptr<IIDMCallback> &callback, uint64_t &contextId) override;
     int32_t CancelAuth(uint64_t contextId) override;
     int32_t GetAvailableStatus(const AuthType authType, const AuthTrustLevel authTrustLevel, int32_t &status) override;
     void GetProperty(
         int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback) override;
     void SetProperty(
         int32_t userId, const SetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback) override;
+    void GetEnrolledId(int32_t accountId, AuthType authType, const sptr<IGetEnrolledIdCallback> &callback) override;
     IAMState GetAccountState(int32_t userId) override;
 
 private:
@@ -55,6 +57,8 @@ private:
     void AddOrUpdateCredential(int32_t userId, const CredentialParameters &credInfo,
         const sptr<IIDMCallback> &callback, bool isAdd);
     bool WriteCommonData(MessageParcel &data, int32_t userId);
+    bool WriteAuthParam(MessageParcel &data, const AuthParam &authParam);
+    bool WriteRemoteAuthParam(MessageParcel &data, const std::optional<RemoteAuthParam> &remoteAuthParam);
 
 private:
     static inline BrokerDelegator<AccountIAMMgrProxy> delegator_;

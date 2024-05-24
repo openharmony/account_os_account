@@ -28,15 +28,18 @@ napi_value AuthTypeConstructor(napi_env env)
     napi_value pin = nullptr;
     napi_value face = nullptr;
     napi_value fingerPrint = nullptr;
+    napi_value recoveryKey = nullptr;
     napi_value domain = nullptr;
     NAPI_CALL(env, napi_create_object(env, &authType));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(AuthType::PIN), &pin));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(AuthType::FACE), &face));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(AuthType::FINGERPRINT), &fingerPrint));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(AuthType::RECOVERY_KEY), &recoveryKey));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(IAMAuthType::DOMAIN), &domain));
     NAPI_CALL(env, napi_set_named_property(env, authType, "PIN", pin));
     NAPI_CALL(env, napi_set_named_property(env, authType, "FACE", face));
     NAPI_CALL(env, napi_set_named_property(env, authType, "FINGERPRINT", fingerPrint));
+    NAPI_CALL(env, napi_set_named_property(env, authType, "RECOVERY_KEY", recoveryKey));
     NAPI_CALL(env, napi_set_named_property(env, authType, "DOMAIN", domain));
     return authType;
 }
@@ -102,6 +105,7 @@ napi_value GetPropertyTypeConstructor(napi_env env)
     napi_value freezingTime = nullptr;
     napi_value enrollmentProgress = nullptr;
     napi_value sensorInfo = nullptr;
+    napi_value nextPhaseFreezingTime = nullptr;
     NAPI_CALL(env, napi_create_object(env, &getPropertyType));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(GetPropertyType::AUTH_SUB_TYPE), &authSubType));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(GetPropertyType::REMAIN_TIMES), &remainTimes));
@@ -109,11 +113,14 @@ napi_value GetPropertyTypeConstructor(napi_env env)
     NAPI_CALL(env,
         napi_create_int32(env, static_cast<int32_t>(GetPropertyType::ENROLLMENT_PROGRESS), &enrollmentProgress));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(GetPropertyType::SENSOR_INFO), &sensorInfo));
+    NAPI_CALL(env, napi_create_int32(
+        env, static_cast<int32_t>(GetPropertyType::NEXT_PHASE_FREEZING_TIME), &nextPhaseFreezingTime));
     NAPI_CALL(env, napi_set_named_property(env, getPropertyType, "AUTH_SUB_TYPE", authSubType));
     NAPI_CALL(env, napi_set_named_property(env, getPropertyType, "REMAIN_TIMES", remainTimes));
     NAPI_CALL(env, napi_set_named_property(env, getPropertyType, "FREEZING_TIME", freezingTime));
     NAPI_CALL(env, napi_set_named_property(env, getPropertyType, "ENROLLMENT_PROGRESS", enrollmentProgress));
     NAPI_CALL(env, napi_set_named_property(env, getPropertyType, "SENSOR_INFO", sensorInfo));
+    NAPI_CALL(env, napi_set_named_property(env, getPropertyType, "NEXT_PHASE_FREEZING_TIME", nextPhaseFreezingTime));
     return getPropertyType;
 }
 
@@ -272,6 +279,16 @@ napi_value FingerprintTipsConstructorForInnerkits(napi_env env)
     return fingerprintTips;
 }
 
+napi_value AuthIntentConstructorForInnerkits(napi_env env)
+{
+    napi_value authIntent = nullptr;
+    napi_value unlock = nullptr;
+    NAPI_CALL(env, napi_create_object(env, &authIntent));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(AuthIntent::UNLOCK), &unlock));
+    NAPI_CALL(env, napi_set_named_property(env, authIntent, "UNLOCK", unlock));
+    return authIntent;
+}
+
 napi_value NapiAccountIAMConstant::Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor descriptors[] = {
@@ -285,6 +302,7 @@ napi_value NapiAccountIAMConstant::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_PROPERTY("ResultCode", ResultCodeConstructor(env)),
         DECLARE_NAPI_PROPERTY("FaceTipsCode", FaceTipsCodeConstructor(env)),
         DECLARE_NAPI_PROPERTY("FingerprintTips", FingerprintTipsConstructorForInnerkits(env)),
+        DECLARE_NAPI_PROPERTY("AuthIntent", AuthIntentConstructorForInnerkits(env)),
     };
     napi_define_properties(env, exports, sizeof(descriptors) / sizeof(napi_property_descriptor), descriptors);
     return exports;

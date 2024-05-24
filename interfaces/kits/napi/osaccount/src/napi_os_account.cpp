@@ -877,29 +877,35 @@ napi_value GetOsAccountLocalIdForUid(napi_env env, napi_callback_info cbInfo)
     return GetOsAccountLocalIdFromUidInner(env, cbInfo, true);
 }
 
-static ErrCode ParseUidFromCbInfo(napi_env env, napi_callback_info cbInfo, int32_t &uid)
+static bool ParseUidFromCbInfo(napi_env env, napi_callback_info cbInfo, int32_t &uid)
 {
     size_t argc = ARGS_SIZE_ONE;
     napi_value argv[ARGS_SIZE_ONE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-    if ((argc == 0) || (!GetIntProperty(env, argv[0], uid))) {
-        ACCOUNT_LOGE("failed to parse uid");
-        return ERR_JS_PARAMETER_ERROR;
+    if (argc == 0) {
+        ACCOUNT_LOGE("The number of parameters should be at least 1.");
+        std::string errMsg = "Parameter error. The number of parameters should be at least 1";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return false;
     }
-    return ERR_OK;
+    if (!GetIntProperty(env, argv[0], uid)) {
+        ACCOUNT_LOGE("Get uid failed.");
+        std::string errMsg = "Parameter error. The type of \"uid\" must be number";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return false;
+    }
+    return true;
 }
 
 napi_value GetOsAccountLocalIdForUidSync(napi_env env, napi_callback_info cbInfo)
 {
     napi_value napiValue = nullptr;
     int32_t uid = 0;
-    ErrCode errCode = ParseUidFromCbInfo(env, cbInfo, uid);
-    if (errCode != ERR_OK) {
-        AccountNapiThrow(env, errCode);
+    if (!ParseUidFromCbInfo(env, cbInfo, uid)) {
         return napiValue;
     }
     int32_t localId = 0;
-    errCode = OsAccountManager::GetOsAccountLocalIdFromUid(uid, localId);
+    ErrCode errCode = OsAccountManager::GetOsAccountLocalIdFromUid(uid, localId);
     if (errCode != ERR_OK) {
         AccountNapiThrow(env, errCode);
         return napiValue;
@@ -943,13 +949,11 @@ napi_value GetBundleIdForUidSync(napi_env env, napi_callback_info cbInfo)
 {
     napi_value retValue = nullptr;
     int32_t uid = 0;
-    ErrCode errCode = ParseUidFromCbInfo(env, cbInfo, uid);
-    if (errCode != ERR_OK) {
-        AccountNapiThrow(env, errCode);
+    if (!ParseUidFromCbInfo(env, cbInfo, uid)) {
         return retValue;
     }
     int32_t bundleId = 0;
-    errCode = OsAccountManager::GetBundleIdFromUid(uid, bundleId);
+    ErrCode errCode = OsAccountManager::GetBundleIdFromUid(uid, bundleId);
     if (errCode != ERR_OK) {
         AccountNapiThrow(env, errCode);
         return retValue;

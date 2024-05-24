@@ -35,12 +35,12 @@ bool StartOsAccountFuzzTest(const uint8_t* data, size_t size)
     return result == ERR_OK;
 }
 
-bool StopOsAccountFuzzTest(const uint8_t* data, size_t size)
+bool DeactivateOsAccountFuzzTest(const uint8_t* data, size_t size)
 {
     int32_t result = ERR_OK;
     if (size > 0) {
         int testId = static_cast<int>(size);
-        result = OsAccountManager::StopOsAccount(testId);
+        result = OsAccountManager::DeactivateOsAccount(testId);
     }
     return result == ERR_OK;
 }
@@ -51,7 +51,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::StartOsAccountFuzzTest(data, size);
-    OHOS::StopOsAccountFuzzTest(data, size);
+    OHOS::DeactivateOsAccountFuzzTest(data, size);
     return 0;
 }
 

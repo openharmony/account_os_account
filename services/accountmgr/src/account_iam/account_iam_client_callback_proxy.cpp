@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -138,6 +138,50 @@ void GetSetPropCallbackProxy::OnResult(int32_t result, const Attributes &extraIn
 {
     uint32_t code = static_cast<uint32_t>(GetSetPropCallbackInterfaceCode::ON_RESULT);
     OnResultFunc(Remote(), code, GetDescriptor(), result, extraInfo);
+}
+
+GetEnrolledIdCallbackProxy::GetEnrolledIdCallbackProxy(const sptr<IRemoteObject> &object)
+    : IRemoteProxy<IGetEnrolledIdCallback>(object)
+{}
+
+void GetEnrolledIdCallbackProxy::OnEnrolledId(int32_t result, uint64_t enrolledId)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Write descriptor fail");
+        return;
+    }
+    if (!data.WriteInt32(result)) {
+        ACCOUNT_LOGE("Write result fail");
+        return;
+    }
+    if (!data.WriteUint64(enrolledId)) {
+        ACCOUNT_LOGE("Write enrolledId fail");
+        return;
+    }
+    uint32_t code = static_cast<uint32_t>(GetEnrolledIdCallbackInterfaceCode::ON_ENROLLED_ID);
+    SendRequestFunc(Remote(), code, data, reply);
+}
+
+PreRemoteAuthCallbackProxy::PreRemoteAuthCallbackProxy(const sptr<IRemoteObject> &object)
+    : IRemoteProxy<IPreRemoteAuthCallback>(object)
+{}
+
+void PreRemoteAuthCallbackProxy::OnResult(int32_t result)
+{
+    uint32_t code = static_cast<uint32_t>(PreRemoteAuthCallbackInterfaceCode::ON_RESULT);
+    MessageParcel data;
+    MessageParcel reply;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Write descriptor failed.");
+        return;
+    }
+    if (!data.WriteInt32(result)) {
+        ACCOUNT_LOGE("Write result failed.");
+        return;
+    }
+    SendRequestFunc(Remote(), code, data, reply);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

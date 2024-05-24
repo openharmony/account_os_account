@@ -480,11 +480,9 @@ ErrCode OsAccountInterface::SendToStorageAccountStop(OsAccountInfo &osAccountInf
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_STOP,
             err, "Storage StopUser failed!");
     }
-
-    osAccountInfo.SetIsVerified(false);
-
     FinishTraceAdapter();
 #endif
+    osAccountInfo.SetIsVerified(false);
     return ERR_OK;
 }
 }  // namespace AccountSA

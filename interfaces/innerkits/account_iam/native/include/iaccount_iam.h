@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -41,14 +41,17 @@ public:
         int32_t userId, const std::vector<uint8_t> &authToken, const sptr<IIDMCallback> &callback) = 0;
     virtual int32_t GetCredentialInfo(
         int32_t userId, AuthType authType, const sptr<IGetCredInfoCallback> &callback) = 0;
-    virtual int32_t AuthUser(
-        int32_t userId, const AuthParam &authParam, const sptr<IIDMCallback> &callback, uint64_t &contextId) = 0;
+    virtual int32_t PrepareRemoteAuth(
+        const std::string &remoteNetworkId, const sptr<IPreRemoteAuthCallback> &callback) = 0;
+    virtual int32_t AuthUser(AuthParam &authParam, const sptr<IIDMCallback> &callback, uint64_t &contextId) = 0;
     virtual int32_t CancelAuth(uint64_t contextId) = 0;
     virtual int32_t GetAvailableStatus(AuthType authType, AuthTrustLevel authTrustLevel, int32_t &status) = 0;
     virtual void GetProperty(
         int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback) = 0;
     virtual void SetProperty(
         int32_t userId, const SetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback) = 0;
+    virtual void GetEnrolledId(
+        int32_t accountId, AuthType authType, const sptr<IGetEnrolledIdCallback> &callback) = 0;
     virtual IAMState GetAccountState(int32_t userId) = 0;
 };
 }  // namespace AccountSA

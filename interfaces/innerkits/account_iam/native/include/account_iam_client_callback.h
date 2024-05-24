@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -34,6 +34,16 @@ public:
 class GetSetPropCallback {
 public:
     virtual void OnResult(int32_t result, const Attributes &extraInfo) = 0;
+};
+
+class GetEnrolledIdCallback {
+public:
+    virtual void OnEnrolledId(int32_t result, uint64_t enrolledId) = 0;
+};
+
+class PreRemoteAuthCallback {
+public:
+    virtual void OnResult(int32_t result) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

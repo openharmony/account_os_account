@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -58,6 +58,30 @@ private:
 
 private:
     static inline BrokerDelegator<GetSetPropCallbackProxy> delegator_;
+};
+
+class GetEnrolledIdCallbackProxy : public IRemoteProxy<IGetEnrolledIdCallback> {
+public:
+    explicit GetEnrolledIdCallbackProxy(const sptr<IRemoteObject> &object);
+    void OnEnrolledId(int32_t result, uint64_t enrolledId) override;
+
+private:
+    ErrCode SendRequest(GetEnrolledIdCallbackInterfaceCode code, MessageParcel &data, MessageParcel &reply);
+
+private:
+    static inline BrokerDelegator<GetEnrolledIdCallbackProxy> delegator_;
+};
+
+class PreRemoteAuthCallbackProxy : public IRemoteProxy<IPreRemoteAuthCallback> {
+public:
+    explicit PreRemoteAuthCallbackProxy(const sptr<IRemoteObject> &object);
+    void OnResult(int32_t result) override;
+
+private:
+    ErrCode SendRequest(PreRemoteAuthCallbackInterfaceCode code, MessageParcel &data, MessageParcel &reply);
+
+private:
+    static inline BrokerDelegator<PreRemoteAuthCallbackProxy> delegator_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

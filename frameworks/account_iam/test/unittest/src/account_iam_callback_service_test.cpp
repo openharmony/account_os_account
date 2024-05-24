@@ -39,7 +39,8 @@ using namespace OHOS::Security::AccessToken;
 class MockIInputer : public OHOS::AccountSA::IInputer {
 public:
     virtual ~MockIInputer() {}
-    void OnGetData(int32_t authSubType, std::shared_ptr<IInputerData> inputerData) override
+    void OnGetData(int32_t authSubType, std::vector<uint8_t> challenge,
+        std::shared_ptr<IInputerData> inputerData) override
     {
         return;
     }
@@ -188,7 +189,7 @@ HWTEST_F(AccountIAMCallbackServiceTest, IAMInputer_OnGetData_0100, TestSize.Leve
     auto iamInputerData = std::make_shared<IAMInputerData>(TEST_USER_ID, nullptr);
     EXPECT_TRUE(iamInputerData != nullptr);
     iamInputer->inputerData_ = nullptr;
-    iamInputer->OnGetData(authSubType, iamInputerData);
+    iamInputer->OnGetData(authSubType, std::vector<uint8_t>(), iamInputerData);
 }
 
 /**
@@ -205,7 +206,7 @@ HWTEST_F(AccountIAMCallbackServiceTest, IAMInputer_OnGetData_0200, TestSize.Leve
     int32_t authSubType = 0;
     auto iamInputerData = std::make_shared<IAMInputerData>(TEST_USER_ID, nullptr);
     EXPECT_TRUE(iamInputerData != nullptr);
-    iamInputer->OnGetData(authSubType, iamInputerData);
+    iamInputer->OnGetData(authSubType, std::vector<uint8_t>(), iamInputerData);
 }
 
 /**
@@ -220,7 +221,7 @@ HWTEST_F(AccountIAMCallbackServiceTest, IAMInputer_OnGetData_0300, TestSize.Leve
     auto iamInputer = std::make_shared<IAMInputer>(TEST_USER_ID, inputer);
     ASSERT_TRUE(iamInputer != nullptr);
     int32_t authSubType = 0;
-    iamInputer->OnGetData(authSubType, nullptr);
+    iamInputer->OnGetData(authSubType, std::vector<uint8_t>(), nullptr);
     std::string cmd = "hilog -x | grep 'AccountIAMFwk'";
     std::string cmdRes = RunCommand(cmd);
     ASSERT_TRUE(cmdRes.find("inputerData is nullptr") != std::string::npos);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,6 +37,7 @@ typedef UserIam::PinAuth::IInputerData IInputerData;
 typedef UserIam::UserAuth::ResultCode ResultCode;
 typedef UserIam::UserAuth::AuthType AuthType;
 typedef UserIam::UserAuth::Attributes Attributes;
+typedef UserIam::UserAuth::SecUserInfo SecUserInfo;
 typedef UserIam::UserAuth::AuthTrustLevel AuthTrustLevel;
 typedef UserIam::UserAuth::AuthenticationCallback AuthenticationCallback;
 typedef UserIam::UserAuth::GetPropCallback GetPropCallback;
@@ -48,10 +49,14 @@ typedef UserIam::UserAuth::PinSubType PinSubType;
 typedef UserIam::UserAuth::UserIdmClientCallback UserIdmClientCallback;
 typedef UserIam::UserAuth::CredentialParameters CredentialParameters;
 typedef UserIam::UserAuth::CredentialInfo CredentialInfo;
+typedef UserIam::UserAuth::GetSecUserInfoCallback GetSecUserInfoCallback;
 typedef UserIam::UserAuth::GetCredentialInfoCallback GetCredentialInfoCallback;
+typedef UserIam::UserAuth::PrepareRemoteAuthCallback PrepareRemoteAuthCallback;
+typedef UserIam::UserAuth::GetSecUserInfoCallback GetSecUserInfoCallback;
 
 enum IAMAuthType {
-    DOMAIN = 1024
+    DOMAIN = 1024,
+    TYPE_END,
 };
 
 enum IAMAuthSubType {
@@ -78,10 +83,42 @@ struct CredentialItem {
     std::vector<uint8_t> credential;
 };
 
+enum AuthIntent : int32_t {
+    DEFAULT = 0,
+    UNLOCK = 1,
+    INIT = 2,
+};
+
+struct RemoteAuthParam {
+    std::optional<std::string> verifierNetworkId;
+    std::optional<std::string> collectorNetworkId;
+    std::optional<uint32_t> collectorTokenId;
+};
+
 struct AuthParam {
+    int32_t userId = 0;
     std::vector<uint8_t> challenge;
     AuthType authType;
     AuthTrustLevel authTrustLevel;
+    AuthIntent authIntent = AuthIntent::DEFAULT;
+    std::optional<RemoteAuthParam> remoteAuthParam;
+};
+
+struct RemoteAuthOptions {
+    std::string verifierNetworkId;
+    std::string collectorNetworkId;
+    uint32_t collectorTokenId;
+    bool hasVerifierNetworkId = false;
+    bool hasCollectorNetworkId = false;
+    bool hasCollectorTokenId = false;
+};
+
+struct AuthOptions {
+    int32_t accountId = 0;
+    AuthIntent authIntent = AuthIntent::DEFAULT;
+    RemoteAuthOptions remoteAuthOptions;
+    bool hasRemoteAuthOptions = false;
+    bool hasAccountId = false;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -54,20 +54,22 @@ public:
     void GetCredentialInfo(
         int32_t userId, AuthType authType, const sptr<IGetCredInfoCallback> &callback);
     int32_t Cancel(int32_t userId);
-    int32_t AuthUser(
-        int32_t userId, const AuthParam &authParam, const sptr<IIDMCallback> &callback, uint64_t &contextId);
+    int32_t PrepareRemoteAuth(
+        const std::string &remoteNetworkId, const sptr<IPreRemoteAuthCallback> &callback);
+    int32_t AuthUser(AuthParam &authParam, const sptr<IIDMCallback> &callback, uint64_t &contextId);
     int32_t CancelAuth(uint64_t contextId);
     int32_t GetAvailableStatus(AuthType authType, AuthTrustLevel authTrustLevel, int32_t &status);
     void GetProperty(
         int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback);
     void SetProperty(
         int32_t userId, const SetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback);
+    void GetEnrolledId(int32_t accountId, AuthType authType, const sptr<IGetEnrolledIdCallback> &callback);
     IAMState GetState(int32_t userId);
     void SetState(int32_t userId, IAMState state);
     void GetChallenge(int32_t userId, std::vector<uint8_t> &challenge);
     ErrCode ActivateUserKey(int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret);
 
-    ErrCode UnlockUserScreen(int32_t userId);
+    ErrCode UnlockUserScreen(int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret);
     ErrCode GetLockScreenStatus(uint32_t userId, bool &lockScreenStatus);
     bool CheckDomainAuthAvailable(int32_t userId);
     ErrCode UpdateStorageKey(int32_t userId, uint64_t secureUid, const std::vector<uint8_t> &token,
@@ -83,6 +85,7 @@ private:
     ErrCode GetStorageManagerProxy();
     ErrCode GetDomainAuthStatusInfo(
         int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback);
+    void CopyAuthParam(const AuthParam &authParam, UserIam::UserAuth::AuthParam &iamAuthParam);
 
 private:
     std::mutex mutex_;

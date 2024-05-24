@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -39,7 +39,7 @@ private:
 
 class AuthCallback : public AuthenticationCallback {
 public:
-    AuthCallback(uint32_t userId, AuthType authType, const sptr<IIDMCallback> &callback);
+    AuthCallback(uint32_t userId, uint64_t credentialId, AuthType authType, const sptr<IIDMCallback> &callback);
     virtual ~AuthCallback() = default;
 
     void SetDeathRecipient(const sptr<AuthCallbackDeathRecipient> &deathRecipient);
@@ -51,10 +51,10 @@ private:
 
 private:
     uint32_t userId_;
+    uint64_t credentialId_;
     AuthType authType_;
     sptr<IIDMCallback> innerCallback_ = nullptr;
     sptr<AuthCallbackDeathRecipient> deathRecipient_ = nullptr;
-    bool isAccountVerified_ = false;
 };
 
 class IDMCallbackDeathRecipient : public IRemoteObject::DeathRecipient {
@@ -103,7 +103,7 @@ private:
 
 class CommitCredUpdateCallback : public UserIdmClientCallback {
 public:
-    CommitCredUpdateCallback(int32_t userId, const sptr<IIDMCallback> &callback);
+    CommitCredUpdateCallback(int32_t userId, uint64_t credentialId, const sptr<IIDMCallback> &callback);
     virtual ~CommitCredUpdateCallback() = default;
 
     void OnResult(int32_t result, const Attributes &extraInfo) override;
@@ -111,6 +111,7 @@ public:
 
 private:
     int32_t userId_;
+    uint64_t credentialId_;
     sptr<IIDMCallback> innerCallback_ = nullptr;
 };
 
@@ -164,6 +165,29 @@ public:
 private:
     int32_t userId_;
     sptr<IGetSetPropCallback> innerCallback_;
+};
+
+class GetSecUserInfoCallbackWrapper : public GetSecUserInfoCallback {
+public:
+    GetSecUserInfoCallbackWrapper(AuthType authType, const sptr<IGetEnrolledIdCallback> &callback);
+    virtual ~GetSecUserInfoCallbackWrapper() = default;
+
+    void OnSecUserInfo(const SecUserInfo &info) override;
+
+private:
+    AuthType authType_;
+    sptr<IGetEnrolledIdCallback> innerCallback_;
+};
+
+class PrepareRemoteAuthCallbackWrapper : public PrepareRemoteAuthCallback {
+public:
+    PrepareRemoteAuthCallbackWrapper(const sptr<IPreRemoteAuthCallback> &callback);
+    virtual ~PrepareRemoteAuthCallbackWrapper() = default;
+
+    void OnResult(int32_t result) override;
+
+private:
+    sptr<IPreRemoteAuthCallback> innerCallback_;
 };
 
 class GetDomainAuthStatusInfoCallback final : public DomainAccountCallback {

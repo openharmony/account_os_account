@@ -365,9 +365,7 @@ void DomainAccountClient::RestoreListenerRecords()
         ACCOUNT_LOGE("proxy is nullptr");
         return;
     }
-    std::set<std::shared_ptr<DomainAccountStatusListener>> listenerAllRecords;
-    listenerAllRecords = listenerManager_->GetListenerAllRecords();
-    if (!listenerAllRecords.empty()) {
+    if (!listenerManager_->IsRecordEmpty()) {
         (void)proxy->RegisterAccountStatusListener(callback_);
     }
 }
@@ -411,10 +409,10 @@ sptr<IDomainAccount> DomainAccountClient::GetDomainAccountProxy()
         ACCOUNT_LOGE("failed to create domain account death recipient");
         return nullptr;
     }
-    if (!object->AddDeathRecipient(deathRecipient_)) {
-        ACCOUNT_LOGE("failed to add domain account death recipient");
+
+    if ((object->IsProxyObject()) && (!object->AddDeathRecipient(deathRecipient_))) {
+        ACCOUNT_LOGE("Failed to add death recipient");
         deathRecipient_ = nullptr;
-        return nullptr;
     }
     proxy_ = iface_cast<IDomainAccount>(object);
     return proxy_;

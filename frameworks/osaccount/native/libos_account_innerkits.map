@@ -52,7 +52,6 @@
         "OHOS::AccountSA::OsAccount::DeactivateOsAccount(int)";
         "OHOS::AccountSA::OsAccount::DeactivateAllOsAccounts()";
         "OHOS::AccountSA::OsAccount::StartOsAccount(int)";
-        "OHOS::AccountSA::OsAccount::StopOsAccount(int)";
         "OHOS::AccountSA::OsAccount::GetOsAccountLocalIdBySerialNumber(long long, int&)";
         "OHOS::AccountSA::OsAccount::GetOsAccountLocalIdBySerialNumber(long, int&)";
         "OHOS::AccountSA::OsAccount::GetSerialNumberByOsAccountLocalId(int const&, long long&)";
@@ -97,7 +96,6 @@
         "OHOS::AccountSA::OsAccountManager::GetOsAccountLocalIdFromProcess(int&)";
         "OHOS::AccountSA::OsAccountManager::SetOsAccountIsVerified(int, bool)";
         "OHOS::AccountSA::OsAccountManager::StartOsAccount(int)";
-        "OHOS::AccountSA::OsAccountManager::StopOsAccount(int)";
         "OHOS::AccountSA::OsAccountManager::GetOsAccountFromDatabase(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, int, OHOS::AccountSA::OsAccountInfo&)";
         "OHOS::AccountSA::OsAccountManager::SetSpecificOsAccountConstraints(std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&, bool, int, int, bool)";
         "OHOS::AccountSA::OsAccountManager::IsOsAccountCompleted(int, bool&)";
@@ -232,7 +230,6 @@
         "OHOS::AccountSA::DomainAccountClient::GetAccountStatus(OHOS::AccountSA::DomainAccountInfo const&, OHOS::AccountSA::DomainAccountStatus&)";
         "OHOS::AccountSA::DomainAccountProxy::DomainAccountProxy(OHOS::sptr<OHOS::IRemoteObject> const&)";
         "OHOS::AccountSA::DomainAccountCallbackProxy::DomainAccountCallbackProxy(OHOS::sptr<OHOS::IRemoteObject> const&)";
-        "DomainAccountStatusListenerManager::GetListenerAllRecords()";
         "OHOS::AccountSA::DomainAccountInfo::DomainAccountInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::DomainAccountInfo::Clear()";
         "VTT for OHOS::AccountSA::DomainServerConfig";

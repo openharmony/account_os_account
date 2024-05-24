@@ -784,6 +784,10 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest026, TestSize
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR);
     innerMgrService_->RemoveLocalIdToOperating(id);
 
+    OsAccountInfo expectedAccountInfo;
+    expectedAccountInfo.SetIsVerified(true);
+    EXPECT_CALL(*ptr, GetOsAccountInfoById(id, _))
+        .WillOnce(DoAll(SetArgReferee<1>(expectedAccountInfo), Return(ERR_OK)));
     innerMgrService_->PushIdIntoActiveList(id);
     ret = innerMgrService_->ActivateOsAccount(id);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREADY_ACTIVE_ERROR);
@@ -793,7 +797,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest026, TestSize
     EXPECT_CALL(*ptr, GetOsAccountInfoById(_, _))
         .WillRepeatedly(testing::Return(-1));
     ret = innerMgrService_->ActivateOsAccount(id);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREADY_ACTIVE_ERROR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetIsCreateCompleted(0);
@@ -1312,39 +1316,6 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountPluginMockTest001, TestSize.Leve
     // wrong lib name
     innerMgrService_->pluginManager_.LoaderLib("/rightPath/", "abc.z.so");
     EXPECT_EQ(innerMgrService_->pluginManager_.libHandle_, nullptr);
-
-    innerMgrService_->pluginManager_.CloseLib();
-}
-
-/*
- * @tc.name: OsAccountPluginMockTest002
- * @tc.desc: os account IsCreationAllowed test
- * @tc.type: FUNC
- */
-HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountPluginMockTest002, TestSize.Level1)
-{
-    innerMgrService_->pluginManager_.CloseLib();
-    // plugin unavailable
-    EXPECT_EQ(innerMgrService_->pluginManager_.IsCreationAllowed(), true);
-
-    // load plugin success
-    innerMgrService_->pluginManager_.LoaderLib("/rightPath/", "right.z.so");
-    EXPECT_NE(innerMgrService_->pluginManager_.libHandle_, nullptr);
-    
-    // methodMap_ is empty
-    innerMgrService_->pluginManager_.methodMap_.clear();
-    EXPECT_EQ(innerMgrService_->pluginManager_.IsCreationAllowed(), false);
-
-    // mock return false
-    innerMgrService_->pluginManager_.methodMap_[OsPluginMethodEnum::VERIFY_ACTIVATION_LOCK] = dlsym(
-        innerMgrService_->pluginManager_.libHandle_, "VerifyActivationLock");
-    EXPECT_NE(innerMgrService_->pluginManager_.methodMap_.size(), 0);
-    EXPECT_EQ(innerMgrService_->pluginManager_.IsCreationAllowed(), false);
-
-    // create os account fail
-    OsAccountInfo info;
-    EXPECT_EQ(innerMgrService_->CreateOsAccount("OsAccountPluginMockTest002", OsAccountType::NORMAL, info),
-        ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_PLUGIN_NOT_ALLOWED_CREATION_ERROR);
 
     innerMgrService_->pluginManager_.CloseLib();
 }

@@ -47,7 +47,6 @@ group("fuzztest") {
     "setosaccountprofilephotostub_fuzzer:SetOsAccountProfilePhotoStubFuzzTest",
     "setosaccounttoberemovedstub_fuzzer:SetOsAccountToBeRemovedStubFuzzTest",
     "setspecificosaccountconstraintsstub_fuzzer:SetSpecificOsAccountConstraintsStubFuzzTest",
-    "stoposaccountstub_fuzzer:StopOsAccountStubFuzzTest",
     "subscribeosaccountstub_fuzzer:SubscribeOsAccountStubFuzzTest",
     "unsubscribeosaccountstub_fuzzer:UnSubscribeOsAccountStubFuzzTest",
   ]

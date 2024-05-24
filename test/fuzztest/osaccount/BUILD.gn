@@ -18,8 +18,10 @@ group("fuzztest") {
   deps += [
     # deps file
     "activateosaccount_fuzzer:ActivateOsAccountFuzzTest",
+    "addserverconfig_fuzzer:AddServerConfigFuzzTest",
     "createosaccount_fuzzer:CreateOsAccountFuzzTest",
     "deactivateosaccount_fuzzer:DeactivateOsAccountFuzzTest",
+    "getaccountserverconfig_fuzzer:GetAccountServerConfigFuzzTest",
     "getbundleidfromuid_fuzzer:GetBundleIdFromUidFuzzTest",
     "getcreatedosaccountnumfromdatabase_fuzzer:GetCreatedOsAccountNumFromDatabaseFuzzTest",
     "getcreatedosaccountscount_fuzzer:GetCreatedOsAccountsCountFuzzTest",
@@ -52,6 +54,7 @@ group("fuzztest") {
     "isosaccountverified_fuzzer:IsOsAccountVerifiedFuzzTest",
     "queryaccountinfo_fuzzer:QueryAccountInfoFuzzTest",
     "removeosaccount_fuzzer:RemoveOsAccountFuzzTest",
+    "removeserverconfig_fuzzer:RemoveServerConfigFuzzTest",
     "setcurrentosaccountisverified_fuzzer:SetCurrentOsAccountIsVerifiedFuzzTest",
     "setdefaultactivatedosaccount_fuzzer:SetDefaultActivatedOsAccountFuzzTest",
     "setglobalosaccountconstraints_fuzzer:SetGlobalOsAccountConstraintsFuzzTest",

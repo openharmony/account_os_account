@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -40,6 +40,18 @@ class IGetSetPropCallback : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IGetSetPropCallback");
     virtual void OnResult(int32_t result, const Attributes &extraInfo) = 0;
+};
+
+class IGetEnrolledIdCallback : public IRemoteBroker {
+public:
+    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IGetEnrolledIdCallback");
+    virtual void OnEnrolledId(int32_t result, uint64_t enrolledId) = 0;
+};
+
+class IPreRemoteAuthCallback : public IRemoteBroker {
+public:
+    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IPreRemoteAuthCallback");
+    virtual void OnResult(int32_t result) = 0;
 };
 }  // namespace AccountSA
 }  // OHOS
