@@ -1240,6 +1240,7 @@ ErrCode OsAccountControlFileManager::IsFromBaseOAConstraintsList(
 {
     isExist = false;
     std::vector<std::string> constraintsList;
+    std::lock_guard<std::mutex> lock(baseOAConstraintsFileLock_);
     ErrCode errCode = osAccountFileOperator_->GetBaseOAConstraintsList(id, constraintsList);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("GetBaseOAConstraintsList failed! error code %{public}d.", errCode);
@@ -1258,7 +1259,11 @@ ErrCode OsAccountControlFileManager::IsFromGlobalOAConstraintsList(const int32_t
 {
     globalSourceList.clear();
     std::vector<std::string> constraintsList;
-    ErrCode errCode = osAccountFileOperator_->GetGlobalOAConstraintsList(constraintsList);
+    ErrCode errCode = ERR_OK;
+    {
+        std::lock_guard<std::mutex> lock(globalOAConstraintsFileLock_);
+        errCode = osAccountFileOperator_->GetGlobalOAConstraintsList(constraintsList);
+    }
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("GetGlobalOAConstraintsList failed! error code %{public}d.", errCode);
         return errCode;
@@ -1301,7 +1306,11 @@ ErrCode OsAccountControlFileManager::IsFromSpecificOAConstraintsList(const int32
 {
     specificSourceList.clear();
     std::vector<std::string> constraintsList;
-    ErrCode errCode = osAccountFileOperator_->GetSpecificOAConstraintsList(id, constraintsList);
+    ErrCode errCode = ERR_OK;
+    {
+        std::lock_guard<std::mutex> lock(specificOAConstraintsFileLock_);
+        errCode = osAccountFileOperator_->GetSpecificOAConstraintsList(id, constraintsList);
+    }
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("GetSpecificOAConstraintsList failed! error code %{public}d.", errCode);
         return errCode;
@@ -1527,12 +1536,14 @@ ErrCode OsAccountControlFileManager::SetPhotoById(const int id, const std::strin
 
 ErrCode OsAccountControlFileManager::GetGlobalOAConstraintsList(std::vector<std::string> &constraintsList)
 {
+    std::lock_guard<std::mutex> lock(globalOAConstraintsFileLock_);
     return osAccountFileOperator_->GetGlobalOAConstraintsList(constraintsList);
 }
 
 ErrCode OsAccountControlFileManager::GetSpecificOAConstraintsList(
     const int32_t id, std::vector<std::string> &constraintsList)
 {
+    std::lock_guard<std::mutex> lock(specificOAConstraintsFileLock_);
     return osAccountFileOperator_->GetSpecificOAConstraintsList(id, constraintsList);
 }
 
