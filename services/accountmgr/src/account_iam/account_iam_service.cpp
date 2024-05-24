@@ -29,19 +29,52 @@ AccountIAMService::AccountIAMService()
 AccountIAMService::~AccountIAMService()
 {}
 
-int32_t AccountIAMService::OpenSession(int32_t userId, std::vector<uint8_t> &challenge)
+static bool GetCurrentUserId(int32_t &userId)
 {
-    if (userId == 0) {
-        if (!GetCurrentUserId(userId)) {
-            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    std::vector<int32_t> userIds;
+    (void)IInnerOsAccountManager::GetInstance().QueryActiveOsAccountIds(userIds);
+    if (userIds.empty()) {
+        ACCOUNT_LOGE("Fail to get activated os account ids");
+        return false;
+    }
+    userId = userIds[0];
+    return true;
+}
+
+static bool IsRestrictedAccountId(int32_t accountId)
+{
+    return (accountId == 0);
+}
+
+static int32_t CheckAccountId(int32_t &accountId)
+{
+    if (accountId < -1) {
+        ACCOUNT_LOGE("The id = %{public}d is invalid", accountId);
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    } else if (accountId == -1) {
+        if (!GetCurrentUserId(accountId)) {
+            return ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR;
         }
     } else {
         bool isOsAccountExits = false;
-        IInnerOsAccountManager::GetInstance().IsOsAccountExists(userId, isOsAccountExits);
+        IInnerOsAccountManager::GetInstance().IsOsAccountExists(accountId, isOsAccountExits);
         if (!isOsAccountExits) {
             ACCOUNT_LOGE("Account does not exist");
             return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
         }
+    }
+    return ERR_OK;
+}
+
+int32_t AccountIAMService::OpenSession(int32_t userId, std::vector<uint8_t> &challenge)
+{
+    int32_t ret = CheckAccountId(userId);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    if (IsRestrictedAccountId(userId)) {
+        ACCOUNT_LOGE("The id = %{public}d is restricted", userId);
+        return ERR_ACCOUNT_COMMON_ACCOUNT_IS_RESTRICTED;
     }
     InnerAccountIAMManager::GetInstance().OpenSession(userId, challenge);
     return ERR_OK;
@@ -49,17 +82,13 @@ int32_t AccountIAMService::OpenSession(int32_t userId, std::vector<uint8_t> &cha
 
 int32_t AccountIAMService::CloseSession(int32_t userId)
 {
-    if (userId == 0) {
-        if (!GetCurrentUserId(userId)) {
-            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-        }
-    } else {
-        bool isOsAccountExits = false;
-        IInnerOsAccountManager::GetInstance().IsOsAccountExists(userId, isOsAccountExits);
-        if (!isOsAccountExits) {
-            ACCOUNT_LOGE("Account does not exist");
-            return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
-        }
+    int32_t ret = CheckAccountId(userId);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    if (IsRestrictedAccountId(userId)) {
+        ACCOUNT_LOGE("The id = %{public}d is restricted", userId);
+        return ERR_ACCOUNT_COMMON_ACCOUNT_IS_RESTRICTED;
     }
     InnerAccountIAMManager::GetInstance().CloseSession(userId);
     return ERR_OK;
@@ -69,19 +98,15 @@ void AccountIAMService::AddCredential(
     int32_t userId, const CredentialParameters &credInfo, const sptr<IIDMCallback> &callback)
 {
     Attributes emptyResult;
-    if (userId == 0) {
-        if (!GetCurrentUserId(userId)) {
-            callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
-            return;
-        }
-    } else {
-        bool isOsAccountExits = false;
-        IInnerOsAccountManager::GetInstance().IsOsAccountExists(userId, isOsAccountExits);
-        if (!isOsAccountExits) {
-            ACCOUNT_LOGE("Account does not exist");
-            callback->OnResult(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, emptyResult);
-            return;
-        }
+    int32_t ret = CheckAccountId(userId);
+    if (ret != ERR_OK) {
+        callback->OnResult(ret, emptyResult);
+        return;
+    }
+    if (IsRestrictedAccountId(userId)) {
+        ACCOUNT_LOGE("The id = %{public}d is restricted", userId);
+        callback->OnResult(ERR_ACCOUNT_COMMON_ACCOUNT_IS_RESTRICTED, emptyResult);
+        return;
     }
     InnerAccountIAMManager::GetInstance().AddCredential(userId, credInfo, callback);
 }
@@ -89,28 +114,20 @@ void AccountIAMService::AddCredential(
 void AccountIAMService::UpdateCredential(int32_t userId, const CredentialParameters &credInfo,
     const sptr<IIDMCallback> &callback)
 {
-    Attributes emptyResult;
-    if (userId == 0) {
-        if (!GetCurrentUserId(userId)) {
-            callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
-            return;
-        }
-    } else {
-        bool isOsAccountExits = false;
-        IInnerOsAccountManager::GetInstance().IsOsAccountExists(userId, isOsAccountExits);
-        if (!isOsAccountExits) {
-            ACCOUNT_LOGE("Account does not exist");
-            callback->OnResult(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, emptyResult);
-            return;
-        }
+    int32_t ret = CheckAccountId(userId);
+    if (ret != ERR_OK) {
+        Attributes emptyResult;
+        callback->OnResult(ret, emptyResult);
+        return;
     }
     InnerAccountIAMManager::GetInstance().UpdateCredential(userId, credInfo, callback);
 }
 
 int32_t AccountIAMService::Cancel(int32_t userId)
 {
-    if ((userId == 0) && (!GetCurrentUserId(userId))) {
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    int32_t ret = CheckAccountId(userId);
+    if (ret != ERR_OK) {
+        return ret;
     }
     return InnerAccountIAMManager::GetInstance().Cancel(userId);
 }
@@ -118,9 +135,10 @@ int32_t AccountIAMService::Cancel(int32_t userId)
 void AccountIAMService::DelCred(
     int32_t userId, uint64_t credentialId, const std::vector<uint8_t> &authToken, const sptr<IIDMCallback> &callback)
 {
-    Attributes emptyResult;
-    if ((userId == 0) && (!GetCurrentUserId(userId))) {
-        callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
+    int32_t ret = CheckAccountId(userId);
+    if (ret != ERR_OK) {
+        Attributes emptyResult;
+        callback->OnResult(ret, emptyResult);
         return;
     }
     InnerAccountIAMManager::GetInstance().DelCred(userId, credentialId, authToken, callback);
@@ -129,9 +147,10 @@ void AccountIAMService::DelCred(
 void AccountIAMService::DelUser(
     int32_t userId, const std::vector<uint8_t> &authToken, const sptr<IIDMCallback> &callback)
 {
-    Attributes emptyResult;
-    if ((userId == 0) && (!GetCurrentUserId(userId))) {
-        callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
+    int32_t ret = CheckAccountId(userId);
+    if (ret != ERR_OK) {
+        Attributes emptyResult;
+        callback->OnResult(ret, emptyResult);
         return;
     }
     InnerAccountIAMManager::GetInstance().DelUser(userId, authToken, callback);
@@ -140,17 +159,9 @@ void AccountIAMService::DelUser(
 int32_t AccountIAMService::GetCredentialInfo(
     int32_t userId, AuthType authType, const sptr<IGetCredInfoCallback> &callback)
 {
-    if (userId == 0) {
-        if (!GetCurrentUserId(userId)) {
-            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-        }
-    } else {
-        bool isOsAccountExits = false;
-        IInnerOsAccountManager::GetInstance().IsOsAccountExists(userId, isOsAccountExits);
-        if (!isOsAccountExits) {
-            ACCOUNT_LOGE("Account does not exist");
-            return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
-        }
+    int32_t ret = CheckAccountId(userId);
+    if (ret != ERR_OK) {
+        return ret;
     }
     if ((authType < UserIam::UserAuth::ALL) ||
         (static_cast<int32_t>(authType) >= static_cast<int32_t>(IAMAuthType::TYPE_END))) {
@@ -170,9 +181,9 @@ int32_t AccountIAMService::PrepareRemoteAuth(
 int32_t AccountIAMService::AuthUser(
     AuthParam &authParam, const sptr<IIDMCallback> &callback, uint64_t &contextId)
 {
-    if ((authParam.remoteAuthParam == std::nullopt) && (authParam.userId == 0) &&
+    if ((authParam.remoteAuthParam == std::nullopt) && (authParam.userId == -1) &&
         (!GetCurrentUserId(authParam.userId))) {
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+        return ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR;
     }
     return InnerAccountIAMManager::GetInstance().AuthUser(authParam, callback, contextId);
 }
@@ -198,30 +209,22 @@ int32_t AccountIAMService::GetAvailableStatus(AuthType authType, AuthTrustLevel 
 void AccountIAMService::GetProperty(
     int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback)
 {
-    Attributes emptyResult;
-    if (userId == 0) {
-        if (!GetCurrentUserId(userId)) {
-            callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
-            return;
-        }
-    } else {
-        bool isOsAccountExits = false;
-        IInnerOsAccountManager::GetInstance().IsOsAccountExists(userId, isOsAccountExits);
-        if (!isOsAccountExits) {
-            ACCOUNT_LOGE("Account does not exist");
-            callback->OnResult(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, emptyResult);
-            return;
-        }
+    int32_t ret = CheckAccountId(userId);
+    if (ret != ERR_OK) {
+        Attributes emptyResult;
+        callback->OnResult(ret, emptyResult);
+        return;
     }
-    return InnerAccountIAMManager::GetInstance().GetProperty(userId, request, callback);
+    InnerAccountIAMManager::GetInstance().GetProperty(userId, request, callback);
 }
 
 void AccountIAMService::SetProperty(
     int32_t userId, const SetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback)
 {
-    Attributes emptyResult;
-    if ((userId == 0) && (!GetCurrentUserId(userId))) {
-        callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
+    int32_t ret = CheckAccountId(userId);
+    if (ret != ERR_OK) {
+        Attributes emptyResult;
+        callback->OnResult(ret, emptyResult);
         return;
     }
     InnerAccountIAMManager::GetInstance().SetProperty(userId, request, callback);
@@ -236,19 +239,10 @@ void AccountIAMService::GetEnrolledId(
     int32_t accountId, AuthType authType, const sptr<IGetEnrolledIdCallback> &callback)
 {
     uint64_t emptyId = 0;
-    if (accountId == -1) {
-        if (!GetCurrentUserId(accountId)) {
-            callback->OnEnrolledId(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyId);
-            return;
-        }
-    } else {
-        bool isOsAccountExits = false;
-        IInnerOsAccountManager::GetInstance().IsOsAccountExists(accountId, isOsAccountExits);
-        if (!isOsAccountExits) {
-            ACCOUNT_LOGE("Account does not exist");
-            callback->OnEnrolledId(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, emptyId);
-            return;
-        }
+    int32_t ret = CheckAccountId(accountId);
+    if (ret != ERR_OK) {
+        callback->OnEnrolledId(ret, emptyId);
+        return;
     }
     if ((authType < UserIam::UserAuth::ALL) ||
         (static_cast<int32_t>(authType) >= static_cast<int32_t>(IAMAuthType::TYPE_END))) {
@@ -257,18 +251,6 @@ void AccountIAMService::GetEnrolledId(
         return;
     }
     InnerAccountIAMManager::GetInstance().GetEnrolledId(accountId, authType, callback);
-}
-
-bool AccountIAMService::GetCurrentUserId(int32_t &userId)
-{
-    std::vector<int32_t> userIds;
-    (void)IInnerOsAccountManager::GetInstance().QueryActiveOsAccountIds(userIds);
-    if (userIds.empty()) {
-        ACCOUNT_LOGE("fail to get activated os account ids");
-        return false;
-    }
-    userId = userIds[0];
-    return true;
 }
 }  // namespace AccountSA
 }  // namespace OHOS

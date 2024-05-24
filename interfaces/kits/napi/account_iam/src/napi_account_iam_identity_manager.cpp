@@ -109,8 +109,8 @@ napi_value NapiAccountIAMIdentityManager::OpenSession(napi_env env, napi_callbac
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resourceName,
         [](napi_env env, void *data) {
             IDMContext *context = reinterpret_cast<IDMContext *>(data);
-            if ((context->parseHasAccountId) && (IsRestrictedAccountId(context->accountId))) {
-                context->errCode = ERR_JS_ACCOUNT_RESTRICTED;
+            if ((context->parseHasAccountId) && (!IsAccountIdValid(context->accountId))) {
+                context->errCode = ERR_JS_ACCOUNT_NOT_FOUND;
                 return;
             }
             context->errCode = AccountIAMClient::GetInstance().OpenSession(context->accountId, context->challenge);
@@ -173,9 +173,9 @@ napi_value NapiAccountIAMIdentityManager::AddCredential(napi_env env, napi_callb
         [](napi_env env, void *data) {
             IDMContext *context = reinterpret_cast<IDMContext *>(data);
             auto idmCallback = std::make_shared<NapiIDMCallback>(context->env, context->callback);
-            if ((context->parseHasAccountId) && (IsRestrictedAccountId(context->accountId))) {
+            if ((context->parseHasAccountId) && (!IsAccountIdValid(context->accountId))) {
                 Attributes emptyResult;
-                idmCallback->OnResult(ERR_JS_ACCOUNT_RESTRICTED, emptyResult);
+                idmCallback->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, emptyResult);
                 return;
             }
             AccountIAMClient::GetInstance().AddCredential(context->accountId, context->addCredInfo, idmCallback);
@@ -202,9 +202,9 @@ napi_value NapiAccountIAMIdentityManager::UpdateCredential(napi_env env, napi_ca
         [](napi_env env, void *data) {
             IDMContext *context = reinterpret_cast<IDMContext *>(data);
             auto idmCallback = std::make_shared<NapiIDMCallback>(context->env, context->callback);
-           if ((context->parseHasAccountId) && (IsRestrictedAccountId(context->accountId))) {
+           if ((context->parseHasAccountId) && (!IsAccountIdValid(context->accountId))) {
                 Attributes emptyResult;
-                idmCallback->OnResult(ERR_JS_CREDENTIAL_NOT_EXIST, emptyResult);
+                idmCallback->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, emptyResult);
                 return;
             }
             AccountIAMClient::GetInstance().UpdateCredential(context->accountId, context->addCredInfo, idmCallback);
@@ -224,8 +224,8 @@ napi_value NapiAccountIAMIdentityManager::CloseSession(napi_env env, napi_callba
     if (!ParseContextForCloseSession(env, info, context.get())) {
         return nullptr;
     }
-    if ((context->parseHasAccountId) && (IsRestrictedAccountId(context->accountId))) {
-        AccountIAMNapiThrow(env, AccountIAMConvertToJSErrCode(ERR_JS_ACCOUNT_RESTRICTED), true);
+    if ((context->parseHasAccountId) && (!IsAccountIdValid(context->accountId))) {
+        AccountIAMNapiThrow(env, AccountIAMConvertToJSErrCode(ERR_JS_ACCOUNT_NOT_FOUND), true);
         return nullptr;
     }
     ErrCode errCode = AccountIAMClient::GetInstance().CloseSession(context->accountId);
@@ -254,7 +254,7 @@ napi_value NapiAccountIAMIdentityManager::Cancel(napi_env env, napi_callback_inf
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return nullptr;
     }
-    int32_t ret = AccountIAMClient::GetInstance().Cancel(0);
+    int32_t ret = AccountIAMClient::GetInstance().Cancel(-1); // -1 indicates the current user
     napi_value napiResult = nullptr;
     if (ret == ERR_OK) {
         napi_create_int32(env, ret, &napiResult);
@@ -300,7 +300,7 @@ napi_value NapiAccountIAMIdentityManager::DelUser(napi_env env, napi_callback_in
         [](napi_env env, void *data) {
             IDMContext *context = reinterpret_cast<IDMContext *>(data);
             auto idmCallback = std::make_shared<NapiIDMCallback>(context->env, context->callback);
-            AccountIAMClient::GetInstance().DelUser(0, context->token, idmCallback);
+            AccountIAMClient::GetInstance().DelUser(context->accountId, context->token, idmCallback);
         },
         [](napi_env env, napi_status status, void *data) {
             delete reinterpret_cast<IDMContext *>(data);
@@ -351,7 +351,8 @@ napi_value NapiAccountIAMIdentityManager::DelCred(napi_env env, napi_callback_in
         [](napi_env env, void *data) {
             IDMContext *context = reinterpret_cast<IDMContext *>(data);
             auto idmCallback = std::make_shared<NapiIDMCallback>(context->env, context->callback);
-            AccountIAMClient::GetInstance().DelCred(0, context->credentialId, context->token, idmCallback);
+            AccountIAMClient::GetInstance().DelCred(
+                context->accountId, context->credentialId, context->token, idmCallback);
         },
         [](napi_env env, napi_status status, void *data) {
             delete reinterpret_cast<IDMContext *>(data);
@@ -469,9 +470,9 @@ napi_value NapiAccountIAMIdentityManager::GetAuthInfo(napi_env env, napi_callbac
             GetAuthInfoContext *context = reinterpret_cast<GetAuthInfoContext *>(data);
             auto idmCallback = std::make_shared<NapiGetInfoCallback>(
                 context->env, context->callbackRef, context->deferred);
-            if ((context->parseHasAccountId) && (IsRestrictedAccountId(context->accountId))) {
+            if ((context->parseHasAccountId) && (!IsAccountIdValid(context->accountId))) {
                 std::vector<AccountSA::CredentialInfo> emptyInfoList;
-                idmCallback->OnCredentialInfo(ERR_JS_CREDENTIAL_NOT_EXIST, emptyInfoList);
+                idmCallback->OnCredentialInfo(ERR_JS_ACCOUNT_NOT_FOUND, emptyInfoList);
                 return;
             }
             AccountIAMClient::GetInstance().GetCredentialInfo(context->accountId, context->authType, idmCallback);
@@ -534,9 +535,9 @@ napi_value NapiAccountIAMIdentityManager::GetEnrolledId(napi_env env, napi_callb
             GetEnrolledIdContext *context = reinterpret_cast<GetEnrolledIdContext *>(data);
             auto getEnrolledIdCallback = std::make_shared<NapiGetEnrolledIdCallback>(
                 context->env, context->deferred);
-            if ((context->parseHasAccountId) && (IsRestrictedAccountId(context->accountId))) {
+            if ((context->parseHasAccountId) && (!IsAccountIdValid(context->accountId))) {
                 uint64_t enrolledId = 0;
-                getEnrolledIdCallback->OnEnrolledId(ERR_JS_CREDENTIAL_NOT_EXIST, enrolledId);
+                getEnrolledIdCallback->OnEnrolledId(ERR_JS_ACCOUNT_NOT_FOUND, enrolledId);
                 return;
             }
             AccountIAMClient::GetInstance().GetEnrolledId(context->accountId, context->authType, getEnrolledIdCallback);

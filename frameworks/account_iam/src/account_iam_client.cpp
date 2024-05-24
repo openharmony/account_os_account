@@ -73,7 +73,7 @@ void AccountIAMClient::AddCredential(
         callback->OnResult(ERR_ACCOUNT_COMMON_GET_PROXY, emptyResult);
         return;
     }
-    if ((userId == 0) && (!GetCurrentUserId(userId))) {
+    if ((userId == -1) && (!GetCurrentUserId(userId))) {
         ACCOUNT_LOGE("fail to add credential for invalid userId");
         callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
         return;
@@ -98,7 +98,7 @@ void AccountIAMClient::UpdateCredential(
         callback->OnResult(ERR_ACCOUNT_COMMON_GET_PROXY, emptyResult);
         return;
     }
-    if ((userId == 0) && (!GetCurrentUserId(userId))) {
+    if ((userId == -1) && (!GetCurrentUserId(userId))) {
         ACCOUNT_LOGE("fail to update credential for invalid userId");
         callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
         return;
@@ -123,7 +123,7 @@ void AccountIAMClient::DelCred(int32_t userId, uint64_t credentialId, const std:
         callback->OnResult(ERR_ACCOUNT_COMMON_GET_PROXY, emptyResult);
         return;
     }
-    if ((userId == 0) && (!GetCurrentUserId(userId))) {
+    if ((userId == -1) && (!GetCurrentUserId(userId))) {
         callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
         return;
     }
@@ -144,7 +144,7 @@ void AccountIAMClient::DelUser(
         callback->OnResult(ERR_ACCOUNT_COMMON_GET_PROXY, emptyResult);
         return;
     }
-    if ((userId == 0) && (!GetCurrentUserId(userId))) {
+    if ((userId == -1) && (!GetCurrentUserId(userId))) {
         callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
         return;
     }
@@ -228,7 +228,7 @@ uint64_t AccountIAMClient::AuthUser(
     if (proxy == nullptr) {
         return contextId;
     }
-    if ((!authOptions.hasRemoteAuthOptions) && (authOptions.accountId == 0) &&
+    if ((!authOptions.hasRemoteAuthOptions) && (authOptions.accountId == -1) &&
         (!GetCurrentUserId(authOptions.accountId))) {
         return contextId;
     }
@@ -365,7 +365,7 @@ ErrCode AccountIAMClient::RegisterPINInputer(const std::shared_ptr<IInputer> &in
         ACCOUNT_LOGE("inputer is already registered");
         return ERR_ACCOUNT_IAM_KIT_INPUTER_ALREADY_REGISTERED;
     }
-    int32_t userId = 0;
+    int32_t userId = -1;
     if (!GetCurrentUserId(userId)) {
         return ERR_ACCOUNT_IAM_KIT_GET_USERID_FAIL;
     }
