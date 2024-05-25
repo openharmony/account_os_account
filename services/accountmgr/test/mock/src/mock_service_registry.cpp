@@ -208,6 +208,12 @@ int32_t SystemAbilityManagerProxy::GetOnDemandSystemAbilityIds(std::vector<int32
     return ERR_INVALID_VALUE;
 }
 
+int32_t SystemAbilityManagerProxy::GetCommonEventExtraDataIdlist(int32_t saId,
+    std::vector<int64_t>& extraDataIdList, const std::string& eventName)
+{
+    return ERR_INVALID_VALUE;
+};
+
 int32_t SystemAbilityManagerProxy::SendStrategy(int32_t type, std::vector<int32_t>& systemAbilityIds,
     int32_t level, std::string& action)
 {
