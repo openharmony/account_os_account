@@ -59,22 +59,13 @@ std::string AnonymizeNameStr(const std::string& nameStr)
     return retStr;
 }
 
-ErrCode CheckInvalidLocalId(int localId)
+ErrCode CheckLocalId(int localId)
 {
-    if (localId > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("id %{public}d is out of range", localId);
+    if (localId < 0) {
+        ACCOUNT_LOGE("id %{public}d is invalid", localId);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     return ERR_OK;
-}
-
-ErrCode CheckLocalId(int localId)
-{
-    if (localId < Constants::START_USER_ID) {
-        ACCOUNT_LOGE("id %{public}d is system reserved", localId);
-        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
-    }
-    return CheckInvalidLocalId(localId);
 }
 
 bool IsTypeOutOfRange(const OsAccountType& type)
@@ -259,15 +250,14 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(const OsAccountType &t
 ErrCode OsAccountManagerService::RemoveOsAccount(const int id)
 {
     // parameters check
-    if (id <= Constants::START_USER_ID) {
+    ErrCode res = CheckLocalId(id);
+    if (res != ERR_OK) {
+        return res;
+    }
+    if ((id == Constants::START_USER_ID) || (id == Constants::ADMIN_LOCAL_ID)) {
         ACCOUNT_LOGE("cannot remove system preinstalled user");
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
-    if (id > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId %{public}d is out of range", id);
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-
     // permission check
     if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, CONSTANT_REMOVE)) {
         ACCOUNT_LOGE("account manager service, permission denied!");
@@ -284,11 +274,6 @@ ErrCode OsAccountManagerService::IsOsAccountExists(const int id, bool &isOsAccou
 
 ErrCode OsAccountManagerService::IsOsAccountActived(const int id, bool &isOsAccountActived)
 {
-    ErrCode res = CheckInvalidLocalId(id);
-    if (res != ERR_OK) {
-        return res;
-    }
-
     // check current account state
     int callerUserId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     if (callerUserId == id) {
@@ -345,7 +330,7 @@ ErrCode OsAccountManagerService::CheckOsAccountConstraintEnabled(
 
 ErrCode OsAccountManagerService::IsOsAccountVerified(const int id, bool &isVerified)
 {
-    ErrCode res = CheckInvalidLocalId(id);
+    ErrCode res = CheckLocalId(id);
     if (res != ERR_OK) {
         return res;
     }
@@ -427,10 +412,6 @@ ErrCode OsAccountManagerService::QueryMaxLoggedInOsAccountNumber(uint32_t &maxNu
 
 ErrCode OsAccountManagerService::GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints)
 {
-    ErrCode res = CheckInvalidLocalId(id);
-    if (res != ERR_OK) {
-        return res;
-    }
     // permission check
     if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
@@ -528,6 +509,10 @@ ErrCode OsAccountManagerService::SetOsAccountName(const int id, const std::strin
     if (res != ERR_OK) {
         return res;
     }
+    if (id == Constants::ADMIN_LOCAL_ID) {
+        ACCOUNT_LOGE("cannot set name for system preinstalled user");
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
     if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("set os account name is out of allowed size");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
@@ -553,7 +538,10 @@ ErrCode OsAccountManagerService::SetOsAccountConstraints(
     if (res != ERR_OK) {
         return res;
     }
-
+    if (id == Constants::ADMIN_LOCAL_ID) {
+        ACCOUNT_LOGE("cannot set constraints for system preinstalled user");
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
     // permission check
     if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
@@ -569,6 +557,10 @@ ErrCode OsAccountManagerService::SetOsAccountProfilePhoto(const int id, const st
     ErrCode res = CheckLocalId(id);
     if (res != ERR_OK) {
         return res;
+    }
+    if (id == Constants::ADMIN_LOCAL_ID) {
+        ACCOUNT_LOGE("cannot set photo for system preinstalled user");
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
     if (photo.size() > Constants::LOCAL_PHOTO_MAX_SIZE) {
         ACCOUNT_LOGE("photo out of allowed size");
@@ -594,7 +586,10 @@ ErrCode OsAccountManagerService::ActivateOsAccount(const int id)
     if (res != ERR_OK) {
         return res;
     }
-
+    if (id == Constants::ADMIN_LOCAL_ID) {
+        ACCOUNT_LOGE("cannot activate name for system preinstalled user");
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
     // permission check
     if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, CONSTANT_ACTIVATE)) {
         ACCOUNT_LOGE("account manager service, permission denied!");
@@ -611,7 +606,10 @@ ErrCode OsAccountManagerService::DeactivateOsAccount(const int id)
     if (res != ERR_OK) {
         return res;
     }
-
+    if (id == Constants::ADMIN_LOCAL_ID) {
+        ACCOUNT_LOGE("cannot deactivate name for system preinstalled user");
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
     // permission check
     if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
@@ -649,7 +647,7 @@ ErrCode OsAccountManagerService::DeactivateAllOsAccounts()
         ACCOUNT_LOGE("Permission check failed.");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
-    
+
     std::vector<int32_t> userIds;
     ErrCode res = innerManager_.QueryActiveOsAccountIds(userIds);
     if (res != ERR_OK) {
@@ -743,10 +741,6 @@ ErrCode OsAccountManagerService::GetOsAccountLocalIdBySerialNumber(const int64_t
 
 ErrCode OsAccountManagerService::GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber)
 {
-    ErrCode result = CheckInvalidLocalId(id);
-    if (result != ERR_OK) {
-        return result;
-    }
     return innerManager_.GetSerialNumberByOsAccountLocalId(id, serialNumber);
 }
 
@@ -780,7 +774,10 @@ ErrCode OsAccountManagerService::SetCurrentOsAccountIsVerified(const bool isVeri
     if (res != ERR_OK) {
         return res;
     }
-
+    if (id == Constants::ADMIN_LOCAL_ID) {
+        ACCOUNT_LOGE("Cannot set verified status for system preinstalled user");
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
     return innerManager_.SetOsAccountIsVerified(id, isVerified);
 }
 
@@ -791,7 +788,10 @@ ErrCode OsAccountManagerService::SetOsAccountIsVerified(const int id, const bool
     if (res != ERR_OK) {
         return res;
     }
-
+    if (id == Constants::ADMIN_LOCAL_ID) {
+        ACCOUNT_LOGE("Cannot set verified status for system preinstalled user");
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
     // permission check
     if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");

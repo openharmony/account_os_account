@@ -24,22 +24,13 @@
 
 namespace OHOS {
 namespace AccountSA {
-static ErrCode CheckInvalidLocalId(int localId)
+static ErrCode CheckLocalId(int localId)
 {
-    if (localId > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("id %{public}d is out of range", localId);
+    if (localId < 0) {
+        ACCOUNT_LOGE("id %{public}d is invalid", localId);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     return ERR_OK;
-}
-
-static ErrCode CheckLocalId(int localId)
-{
-    if (localId < Constants::START_USER_ID) {
-        ACCOUNT_LOGE("id %{public}d is system reserved", localId);
-        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
-    }
-    return CheckInvalidLocalId(localId);
 }
 
 OsAccount &OsAccount::GetInstance()
@@ -144,13 +135,9 @@ ErrCode OsAccount::CreateOsAccountForDomain(const OsAccountType &type, const Dom
 
 ErrCode OsAccount::RemoveOsAccount(const int id)
 {
-    if (id <= Constants::START_USER_ID) {
-        ACCOUNT_LOGE("cannot remove system preinstalled user");
-        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
-    }
-    if (id > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId %{public}d is out of range", id);
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    if (id < 0) {
+        ACCOUNT_LOGE("Id is invalid");
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     auto proxy = GetOsAccountProxy();
     if (proxy == nullptr) {
@@ -178,10 +165,6 @@ ErrCode OsAccount::IsOsAccountExists(const int id, bool &isOsAccountExists)
 ErrCode OsAccount::IsOsAccountActived(const int id, bool &isOsAccountActived)
 {
     isOsAccountActived = false;
-    ErrCode result = CheckInvalidLocalId(id);
-    if (result != ERR_OK) {
-        return result;
-    }
     auto proxy = GetOsAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -222,10 +205,6 @@ ErrCode OsAccount::CheckOsAccountConstraintEnabled(const int id, const std::stri
 ErrCode OsAccount::IsOsAccountVerified(const int id, bool &isVerified)
 {
     isVerified = false;
-    ErrCode result = CheckInvalidLocalId(id);
-    if (result != ERR_OK) {
-        return result;
-    }
     auto proxy = GetOsAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -309,10 +288,6 @@ ErrCode OsAccount::QueryMaxLoggedInOsAccountNumber(uint32_t &maxNum)
 
 ErrCode OsAccount::GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints)
 {
-    ErrCode result = CheckInvalidLocalId(id);
-    if (result != ERR_OK) {
-        return result;
-    }
     auto proxy = GetOsAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -535,10 +510,6 @@ ErrCode OsAccount::GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber,
 
 ErrCode OsAccount::GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber)
 {
-    ErrCode result = CheckInvalidLocalId(id);
-    if (result != ERR_OK) {
-        return result;
-    }
     auto proxy = GetOsAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;

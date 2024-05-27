@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -311,7 +311,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest009
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest010, TestSize.Level1)
 {
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(Constants::MAX_USER_ID + 1),
-        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -422,7 +422,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest016
 
     int localId = Constants::START_USER_ID - 1;
     EXPECT_EQ(osAccountManagerService_->SetOsAccountConstraints(localId, CONSTANTS_VECTOR, enable),
-        ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -465,9 +465,9 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest018
 
     int localId = Constants::START_USER_ID - 1;
     EXPECT_EQ(osAccountManagerService_->IsOsAccountConstraintEnable(localId, CONSTANTS_STRING_WIFI, isEnable),
-        ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
     EXPECT_EQ(osAccountManagerService_->CheckOsAccountConstraintEnabled(localId, CONSTANTS_STRING_WIFI, isEnable),
-        ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
@@ -694,7 +694,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest034
 
     int localId = Constants::START_USER_ID - 1;
     EXPECT_EQ(osAccountManagerService_->SetOsAccountName(localId, STRING_EMPTY),
-        ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
@@ -799,7 +799,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest041
     int localId = Constants::START_USER_ID - 1;
     EXPECT_EQ(
         osAccountManagerService_->SetOsAccountProfilePhoto(localId, STRING_PHOTO_OUT_OF_RANGE),
-        ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
@@ -921,7 +921,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest051
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 
     int localId = Constants::START_USER_ID - 1;
-    EXPECT_EQ(osAccountManagerService_->ActivateOsAccount(localId), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+    EXPECT_EQ(osAccountManagerService_->ActivateOsAccount(localId), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
@@ -994,7 +994,8 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest055
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest056, TestSize.Level1)
 {
     bool isVerified = true;
-    EXPECT_NE(osAccountManagerService_->SetCurrentOsAccountIsVerified(isVerified), ERR_OK);
+    EXPECT_EQ(
+        osAccountManagerService_->SetCurrentOsAccountIsVerified(isVerified), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
 }
 
 /**
@@ -1345,7 +1346,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest070
 
     int localId = Constants::START_USER_ID - 1;
     EXPECT_EQ(osAccountManagerService_->QueryOsAccountConstraintSourceTypes(localId, CONSTANT_WIFI,
-        constraintSourceTypeInfos), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+        constraintSourceTypeInfos), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**

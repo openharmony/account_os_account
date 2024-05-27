@@ -128,8 +128,11 @@ void AccountIamServiceTest::TearDown(void)
 HWTEST_F(AccountIamServiceTest, AccountIAMService_OpenSession_0100, TestSize.Level0)
 {
     std::vector<uint8_t> challenge;
-    int32_t res = accountIAMService_->OpenSession(0, challenge);
-    EXPECT_EQ(res, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    int32_t res = accountIAMService_->OpenSession(-1, challenge);
+    EXPECT_EQ(res, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
+
+    res = accountIAMService_->OpenSession(0, challenge);
+    EXPECT_EQ(res, ERR_ACCOUNT_COMMON_ACCOUNT_IS_RESTRICTED);
 }
 
 /**
@@ -153,8 +156,11 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_OpenSession_0200, TestSize.Lev
  */
 HWTEST_F(AccountIamServiceTest, AccountIAMService_CloseSession_0100, TestSize.Level0)
 {
-    int32_t res = accountIAMService_->CloseSession(0);
-    EXPECT_EQ(res, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    int32_t res = accountIAMService_->CloseSession(-1);
+    EXPECT_EQ(res, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
+
+    res = accountIAMService_->CloseSession(0);
+    EXPECT_EQ(res, ERR_ACCOUNT_COMMON_ACCOUNT_IS_RESTRICTED);
 }
 
 /**
@@ -180,8 +186,23 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_AddCredential_0100, TestSize.L
     CredentialParameters creInfo = {};
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
     ASSERT_NE(callback, nullptr);
+    accountIAMService_->AddCredential(-1, creInfo, callback);
+    EXPECT_EQ(callback->result_, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
+}
+
+/**
+ * @tc.name: AccountIAMService_AddCredential_01001
+ * @tc.desc: AddCredential test.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamServiceTest, AccountIAMService_AddCredential_01001, TestSize.Level0)
+{
+    CredentialParameters creInfo = {};
+    sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
+    ASSERT_NE(callback, nullptr);
     accountIAMService_->AddCredential(0, creInfo, callback);
-    EXPECT_EQ(callback->result_, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(callback->result_, ERR_ACCOUNT_COMMON_ACCOUNT_IS_RESTRICTED);
 }
 
 /**
@@ -210,8 +231,8 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_UpdateCredential_0100, TestSiz
     CredentialParameters creInfo = {};
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
     ASSERT_NE(callback, nullptr);
-    accountIAMService_->UpdateCredential(0, creInfo, callback);
-    EXPECT_EQ(callback->result_, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    accountIAMService_->UpdateCredential(-1, creInfo, callback);
+    EXPECT_EQ(callback->result_, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
 }
 
 /**
@@ -237,8 +258,8 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_UpdateCredential_0200, TestSiz
  */
 HWTEST_F(AccountIamServiceTest, AccountIAMService_Cancel_0100, TestSize.Level0)
 {
-    int32_t res = accountIAMService_->Cancel(0);
-    EXPECT_EQ(res, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    int32_t res = accountIAMService_->Cancel(-1);
+    EXPECT_EQ(res, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
 }
 
 /**
@@ -252,8 +273,8 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_DelCred_0100, TestSize.Level0)
     std::vector<uint8_t> token;
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
     ASSERT_NE(callback, nullptr);
-    accountIAMService_->DelCred(0, 0, token, callback);
-    EXPECT_EQ(callback->result_, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    accountIAMService_->DelCred(-1, 0, token, callback);
+    EXPECT_EQ(callback->result_, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
 }
 
 /**
@@ -267,8 +288,8 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_DelUser_0100, TestSize.Level0)
     std::vector<uint8_t> token;
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
     ASSERT_NE(callback, nullptr);
-    accountIAMService_->DelUser(0, token, callback);
-    EXPECT_EQ(callback->result_, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    accountIAMService_->DelUser(-1, token, callback);
+    EXPECT_EQ(callback->result_, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
 }
 
 /**
@@ -281,8 +302,8 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_GetCredentialInfo_0100, TestSi
 {
     sptr<MockGetCredInfoCallback> callback = new (std::nothrow) MockGetCredInfoCallback();
     ASSERT_NE(callback, nullptr);
-    int32_t res = accountIAMService_->GetCredentialInfo(0, AuthType::PIN, callback);
-    EXPECT_EQ(res, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    int32_t res = accountIAMService_->GetCredentialInfo(-1, AuthType::PIN, callback);
+    EXPECT_EQ(res, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
 }
 
 /**
@@ -384,14 +405,14 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_AuthUser_0100, TestSize.Level0
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
     ASSERT_NE(callback, nullptr);
     AccountSA::AuthParam authParam = {
-        .userId = 0,
+        .userId = -1,
         .challenge = challenge,
         .authType = AuthType::PIN,
         .authTrustLevel = AuthTrustLevel::ATL1
     };
     uint64_t contextId = 0;
     ErrCode res = accountIAMService_->AuthUser(authParam, callback, contextId);
-    EXPECT_EQ(res, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(res, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
 }
 
 /**
@@ -442,8 +463,8 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_GetProperty_0100, TestSize.Lev
     GetPropertyRequest request;
     sptr<MockGetSetPropCallback> callback = new (std::nothrow) MockGetSetPropCallback();
     ASSERT_NE(callback, nullptr);
-    accountIAMService_->GetProperty(0, request, callback);
-    EXPECT_EQ(callback->result_, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    accountIAMService_->GetProperty(-1, request, callback);
+    EXPECT_EQ(callback->result_, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
 }
 
 /**
@@ -472,8 +493,8 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_SetProperty_0100, TestSize.Lev
     SetPropertyRequest request;
     sptr<MockGetSetPropCallback> callback = new (std::nothrow) MockGetSetPropCallback();
     ASSERT_NE(callback, nullptr);
-    accountIAMService_->SetProperty(0, request, callback);
-    EXPECT_EQ(callback->result_, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    accountIAMService_->SetProperty(-1, request, callback);
+    EXPECT_EQ(callback->result_, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
 }
 }  // namespace AccountTest
 }  // namespace OHOS

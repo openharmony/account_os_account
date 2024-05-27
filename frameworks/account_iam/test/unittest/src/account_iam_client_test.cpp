@@ -265,13 +265,13 @@ void Wait(const std::shared_ptr<TestIDMCallback> &ptr)
 HWTEST_F(AccountIAMClientTest, AccountIAMClient_OpenSession_0100, TestSize.Level0)
 {
     std::vector<uint8_t> challenge;
-    AccountIAMClient::GetInstance().OpenSession(0, challenge);
+    AccountIAMClient::GetInstance().OpenSession(-1, challenge);
 #ifdef PROXY_MOCK
     EXPECT_FALSE(challenge.size() != 0);
 #else // BUNDLE_ADAPTER_MOCK
     EXPECT_TRUE(challenge.size() != 0);
 #endif
-    AccountIAMClient::GetInstance().CloseSession(0);
+    AccountIAMClient::GetInstance().CloseSession(-1);
 }
 
 /**
@@ -318,7 +318,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_AddCredential_0200, TestSize.Lev
     EXPECT_CALL(*callback, OnResult(_, _)).Times(Exactly(2));
 #endif
     auto testCallback = std::make_shared<TestIDMCallback>(callback);
-    AccountIAMClient::GetInstance().AddCredential(0, testPara, testCallback);
+    AccountIAMClient::GetInstance().AddCredential(-1, testPara, testCallback);
 #ifndef PROXY_MOCK
     {
         std::unique_lock<std::mutex> lock(testCallback->mutex);
