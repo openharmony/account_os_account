@@ -114,7 +114,7 @@ struct RemoteAuthOptions {
 };
 
 struct AuthOptions {
-    int32_t accountId = 0;
+    int32_t accountId = -1;
     AuthIntent authIntent = AuthIntent::DEFAULT;
     RemoteAuthOptions remoteAuthOptions;
     bool hasRemoteAuthOptions = false;

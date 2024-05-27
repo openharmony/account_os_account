@@ -91,6 +91,8 @@ int32_t AccountIAMConvertToJSErrCode(int32_t errCode)
         return ERR_JS_INVALID_PARAMETER;
     } else if (errCode == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR) {
         return ERR_JS_ACCOUNT_NOT_FOUND;
+    } else if (errCode == ERR_ACCOUNT_COMMON_ACCOUNT_IS_RESTRICTED) {
+        return ERR_JS_ACCOUNT_RESTRICTED;
     }
     return AccountIAMConvertOtherToJSErrCode(errCode);
 }
@@ -1145,13 +1147,13 @@ napi_value CreateErrorObject(napi_env env, int32_t code)
     return errObj;
 }
 
-bool IsRestrictedAccountId(int32_t accountId)
+bool IsAccountIdValid(int32_t accountId)
 {
-    if ((accountId >= RESTRICTED_ACCOUNT_ID_BEGINNING) && (accountId < RESTRICTED_ACCOUNT_ID_ENDDING)) {
-        ACCOUNT_LOGI("The account id is restricted");
-        return true;
+    if (accountId < 0) {
+        ACCOUNT_LOGI("The account id is invalid");
+        return false;
     }
-    return false;
+    return true;
 }
 }  // namespace AccountJsKit
 }  // namespace OHOS

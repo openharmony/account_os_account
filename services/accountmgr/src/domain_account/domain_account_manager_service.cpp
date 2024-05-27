@@ -101,7 +101,7 @@ ErrCode DomainAccountManagerService::AuthWithPopup(int32_t userId, const sptr<ID
 {
     if (userId < 0) {
         ACCOUNT_LOGE("invalid userId");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     return InnerDomainAccountManager::GetInstance().AuthWithPopup(userId, callback);
 }
