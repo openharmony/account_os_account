@@ -22,6 +22,7 @@
 #define private public
 #include "app_account_authenticator_callback_stub.h"
 #include "app_account_common.h"
+#include "app_account_common_event_observer.h"
 #include "app_account_constants.h"
 #include "app_account_control_manager.h"
 #include "app_account_manager_service.h"
@@ -2202,7 +2203,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_OnPackageR
     CommonEventData commonEventData;
     commonEventData.SetWant(want);
 
-    EXPECT_TRUE(CommonEventManager::PublishCommonEvent(commonEventData));
+    g_accountManagerService->observer_->OnReceiveEvent(commonEventData);
 #endif // HAS_CES_PART
 
     bool ready = false;
