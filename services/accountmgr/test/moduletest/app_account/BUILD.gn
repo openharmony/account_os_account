@@ -591,6 +591,8 @@ ohos_moduletest("app_account_manager_service_module_test") {
   cflags_cc = []
   cflags = []
   sources = [
+    "${app_account_services_path}/src/appaccount/app_account_common_event_observer.cpp",
+    "${app_account_services_path}/src/appaccount/app_account_common_event_subscriber.cpp",
     "${app_account_services_path}/src/appaccount/app_account_manager_service.cpp",
     "${app_account_services_path}/test/mock/app_account/accesstoken_kit.cpp",
     "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
