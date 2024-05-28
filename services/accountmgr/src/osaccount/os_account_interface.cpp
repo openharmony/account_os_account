@@ -435,10 +435,6 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
             osAccountInfo.SetLastLoginTime(std::chrono::duration_cast<std::chrono::seconds>(
                 std::chrono::system_clock::now().time_since_epoch()).count());
         }
-        PublishCommonEvent(osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED,
-            Constants::OPERATION_UNLOCK);
-        OsAccountSubscribeManager::GetInstance().Publish(osAccountInfo.GetLocalId(),
-            OS_ACCOUNT_SUBSCRIBE_TYPE::UNLOCKED);
     }
     ACCOUNT_LOGI("end, succeed!");
     return ERR_OK;
