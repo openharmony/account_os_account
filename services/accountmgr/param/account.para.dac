@@ -12,3 +12,4 @@
 # limitations under the License.
 
 bootevent.account.ready="account:account:755"
+persist.account.login_name_max="account:account:644"

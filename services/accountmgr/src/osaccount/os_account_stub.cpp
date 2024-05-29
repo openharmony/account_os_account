@@ -604,7 +604,7 @@ ErrCode OsAccountStub::ProcCreateOsAccountForDomain(MessageParcel &data, Message
         return ERR_NONE;
     }
 
-    if (info->accountName_.empty() || info->accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
+    if (info->accountName_.empty() || info->accountName_.size() > Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("read invalid domain account name length %{public}zu.", info->accountName_.size());
         reply.WriteInt32(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
         return ERR_NONE;
@@ -856,7 +856,7 @@ ErrCode OsAccountStub::ProcGetOsAccountLocalIdFromDomain(MessageParcel &data, Me
         return ERR_NONE;
     }
 
-    if (domainAccountName.empty() || domainAccountName.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
+    if (domainAccountName.empty() || domainAccountName.size() > Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("failed to read string for domainAccountName. length %{public}zu.", domainAccountName.size());
         reply.WriteInt32(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
         return ERR_NONE;

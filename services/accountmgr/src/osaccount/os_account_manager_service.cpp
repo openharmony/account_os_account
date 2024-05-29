@@ -228,7 +228,7 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(const OsAccountType &t
         ACCOUNT_LOGE("Domain account name is empty or domain is empty");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    if (domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE ||
+    if (domainInfo.accountName_.size() > Constants::LOCAL_NAME_MAX_SIZE ||
         domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("Domain account name is overlength or domain is overlength");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
@@ -402,7 +402,7 @@ ErrCode OsAccountManagerService::GetOsAccountLocalIdFromDomain(const DomainAccou
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
-    if (domainInfo.accountName_.empty() || domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
+    if (domainInfo.accountName_.empty() || domainInfo.accountName_.size() > Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("accountName length invalid. length %{public}zu.", domainInfo.accountName_.size());
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
