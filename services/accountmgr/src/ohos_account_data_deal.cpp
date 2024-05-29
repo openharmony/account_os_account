@@ -31,6 +31,7 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 const std::string ACCOUNT_CFG_FILE_NAME = "/account.json";
+const std::string ACCOUNT_AVATAR_NAME = "/account_avatar";
 const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_NAME = "account_name";
 const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_RAW_UID = "raw_uid";
 const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_UID = "open_id";
@@ -197,13 +198,20 @@ ErrCode OhosAccountDataDeal::SaveAccountInfo(const AccountInfo &accountInfo)
         {DATADEAL_JSON_KEY_OHOSACCOUNT_STATUS, accountInfo.ohosAccountInfo_.status_},
         {DATADEAL_JSON_KEY_OHOSACCOUNT_CALLINGUID, accountInfo.ohosAccountInfo_.callingUid_},
         {DATADEAL_JSON_KEY_OHOSACCOUNT_NICKNAME, accountInfo.ohosAccountInfo_.nickname_},
-        {DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR, accountInfo.ohosAccountInfo_.avatar_},
         {DATADEAL_JSON_KEY_OHOSACCOUNT_SCALABLEDATA, scalableDataStr}
     };
+
+    std::string avatarFile = configFileDir_ + std::to_string(accountInfo.userId_) + ACCOUNT_AVATAR_NAME;
+    ErrCode ret = accountFileOperator_->InputFileByPathAndContent(avatarFile, accountInfo.ohosAccountInfo_.avatar_);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Failed to save avatar! ret = %{public}d", ret);
+        return ret;
+    }
+
     std::string accountInfoValue = jsonData.dump(-1, ' ', false, json::error_handler_t::ignore);
     std::string configFile = configFileDir_ + std::to_string(accountInfo.userId_) + ACCOUNT_CFG_FILE_NAME;
 
-    ErrCode ret = accountFileOperator_->InputFileByPathAndContent(configFile, accountInfoValue);
+    ret = accountFileOperator_->InputFileByPathAndContent(configFile, accountInfoValue);
     if (ret == ERR_OHOSACCOUNT_SERVICE_FILE_CHANGE_DIR_MODE_ERROR) {
         ReportOhosAccountOperationFail(accountInfo.userId_, OPERATION_CHANGE_MODE_FILE, errno, configFile);
     }
@@ -228,6 +236,19 @@ ErrCode OhosAccountDataDeal::ParseJsonFromFile(const std::string &filePath, nloh
     if (jsonData.is_discarded() || !jsonData.is_structured()) {
         ACCOUNT_LOGE("Invalid json file,  %{public}s, remove", filePath.c_str());
         return ERR_ACCOUNT_DATADEAL_JSON_FILE_CORRUPTION;
+    }
+    std::string avatarData;
+    auto it = jsonData.find(DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR);
+    if (it != jsonData.end()) {
+        if (it->is_string()) {
+            avatarData = it->get<std::string>();
+        }
+    } else {
+        ACCOUNT_LOGI("Get avatar from account_avatar.");
+        std::string avatarFile = configFileDir_ + std::to_string(userId) + ACCOUNT_AVATAR_NAME;
+        if (accountFileOperator_->GetFileContentByPath(avatarFile, avatarData) == ERR_OK) {
+            jsonData[DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR] = avatarData;
+        }
     }
     return ERR_OK;
 }
