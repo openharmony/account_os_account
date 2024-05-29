@@ -14,11 +14,11 @@
  */
 
 #include <gtest/gtest.h>
-
 #define private public
 #include "account_log_wrapper.h"
 #include "os_account_info.h"
 #include "os_account_manager.h"
+#include "os_account_constants.h"
 #undef private
 
 using namespace testing::ext;
@@ -28,6 +28,7 @@ using namespace OHOS::AccountSA;
 namespace {
 const int INT_ID = 12;
 const std::string STRING_NAME = "account";
+const std::string OVER_LENGTH_ACCOUNT_NAME(Constants::LOCAL_NAME_MAX_SIZE + 1, '1');
 const OsAccountType INT_TYPE = OsAccountType::ADMIN;
 const int64_t STRING_SERIAL_NUMBER = 121012012;
 constexpr std::int32_t UID_TRANSFORM_DIVISOR = 200000;
@@ -897,5 +898,17 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount09, TestSize.Level1)
     EXPECT_EQ(OsAccountManager::CreateOsAccount("name4", "：", OsAccountType::NORMAL, osAccountInfoOne),
             ERR_OK);
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
+}
+
+HWTEST_F(OsAccountInfoTest, CreateOsAccount10, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfoOne;
+    EXPECT_NE(OsAccountManager::CreateOsAccount(OVER_LENGTH_ACCOUNT_NAME, OsAccountType::NORMAL, osAccountInfoOne),
+              ERR_OK);
+    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
+    OsAccountInfo osAccountInfoTwo;
+    EXPECT_NE(OsAccountManager::CreateOsAccount(OVER_LENGTH_ACCOUNT_NAME, "sn",
+        OsAccountType::NORMAL, osAccountInfoTwo), ERR_OK);
+    OsAccountManager::RemoveOsAccount(osAccountInfoTwo.GetLocalId());
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
