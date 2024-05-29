@@ -23,6 +23,7 @@
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <thread>
 #include <unistd.h>
 #include "account_log_wrapper.h"
 #include "directory_ex.h"
@@ -32,6 +33,8 @@ namespace AccountSA {
 namespace {
 const std::string ACCOUNT_INFO_DIGEST_FILE_PATH = "account_info_digest.json";
 const long MAX_FILE_SIZE = 1 << 24; // 16MB
+const uint32_t RETRY_TIMES = 3;
+const uint32_t RETRY_SLEEP_MS = 5;
 }
 AccountFileOperator::AccountFileOperator()
 {}
@@ -245,13 +248,22 @@ bool AccountFileOperator::IsExistFile(const std::string &path)
         return false;
     }
     std::shared_lock<std::shared_timed_mutex> lock(fileLock_);
-    struct stat buf = {};
-    if (stat(path.c_str(), &buf) != 0) {
-        ACCOUNT_LOGE("Stat %{public}s failed, errno=%{public}d.", path.c_str(), errno);
-        return false;
+    uint32_t retryCount = 0;
+    while (retryCount < RETRY_TIMES) {
+        struct stat buf = {};
+        if (stat(path.c_str(), &buf) == 0) {
+            return S_ISREG(buf.st_mode);
+        }
+        if (errno != ENOENT) {
+            ACCOUNT_LOGE("Stat %{public}s failed, errno=%{public}d. Retrying...", path.c_str(), errno);
+            std::this_thread::sleep_for(std::chrono::milliseconds(RETRY_SLEEP_MS));
+            retryCount++;
+        } else {
+            ACCOUNT_LOGE("Stat %{public}s failed, errno=%{public}d.", path.c_str(), errno);
+            return false;
+        }
     }
-
-    return S_ISREG(buf.st_mode);
+    return false;
 }
 
 bool AccountFileOperator::IsJsonFormat(const std::string &path)
