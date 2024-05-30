@@ -180,7 +180,8 @@ struct IsMultiEnAsyncContext : public CommonAsyncContext {
 
 struct IsVerifiedAsyncContext : public CommonAsyncContext {
     int id = -1;
-    bool isTestOA = false;
+    bool hasAccountId = false;
+    bool IsVerified = false;
 };
 
 struct GetSerialNumIdCBInfo : public CommonAsyncContext {
