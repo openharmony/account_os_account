@@ -22,8 +22,10 @@ group("fuzztest") {
     "procgetaccountserverconfigstub_fuzzer:ProcGetAccountServerConfigStubFuzzTest",
     "procgetdomainaccountinfostub_fuzzer:ProcGetDomainAccountInfoStubFuzzTest",
     "prochasdomainaccountstub_fuzzer:ProcHasDomainAccountStubFuzzTest",
+    "procisauthenticationexpiredstub_fuzzer:ProcIsAuthenticationExpiredStubFuzzTest",
     "procregisterpluginstub_fuzzer:ProcRegisterPluginStubFuzzTest",
     "procremoveserverconfigstub_fuzzer:ProcRemoveServerConfigStubFuzzTest",
+    "procsetauthenticationexpirythresholdstub_fuzzer:ProcSetAuthenticationExpiryThresholdStubFuzzTest",
     "procunregisterpluginstub_fuzzer:ProcUnregisterPluginStubFuzzTest",
     "procupdateaccountinfostub_fuzzer:ProcUpdateAccountInfoStubFuzzTest",
   ]
