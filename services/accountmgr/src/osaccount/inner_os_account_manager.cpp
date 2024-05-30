@@ -1196,6 +1196,14 @@ void IInnerOsAccountManager::CleanGarbageAccounts()
     ACCOUNT_LOGI("finished.");
 }
 
+bool IInnerOsAccountManager::IsSameAccount(
+    const DomainAccountInfo &domainInfoSrc, const DomainAccountInfo &domainInfoTar)
+{
+    return (((!domainInfoSrc.accountId_.empty()) && (domainInfoSrc.accountId_ == domainInfoTar.accountId_)) ||
+        ((!domainInfoSrc.accountName_.empty()) && (domainInfoSrc.accountName_ == domainInfoTar.accountName_) &&
+        (!domainInfoSrc.domain_.empty()) && (domainInfoSrc.domain_ == domainInfoTar.domain_)));
+}
+
 ErrCode IInnerOsAccountManager::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id)
 {
     if (domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
@@ -1219,9 +1227,7 @@ ErrCode IInnerOsAccountManager::GetOsAccountLocalIdFromDomain(const DomainAccoun
     for (auto osAccountInfosPtr = osAccountInfos.begin(); osAccountInfosPtr != osAccountInfos.end();
          ++osAccountInfosPtr) {
         osAccountInfosPtr->GetDomainInfo(curDomainInfo);
-        if (((!domainInfo.accountId_.empty()) && (domainInfo.accountId_ == curDomainInfo.accountId_)) ||
-            ((!domainInfo.accountName_.empty()) && (curDomainInfo.accountName_ == domainInfo.accountName_) &&
-            (!domainInfo.domain_.empty()) && (curDomainInfo.domain_ == domainInfo.domain_))) {
+        if (IsSameAccount(curDomainInfo, domainInfo)) {
             id = osAccountInfosPtr->GetLocalId();
             return ERR_OK;
         }

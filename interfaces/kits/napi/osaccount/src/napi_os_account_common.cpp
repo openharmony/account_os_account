@@ -1574,6 +1574,7 @@ static bool ParseParaIsVerifiedWithOneParam(
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
             return false;
         }
+        asyncContext->hasAccountId = true;
     } else if (valueType == napi_function) {
         if (!GetCallbackProperty(env, value, asyncContext->callbackRef, 1)) {
             ACCOUNT_LOGE("Get callbackRef failed");
@@ -1622,6 +1623,7 @@ bool ParseParaIsVerified(napi_env env, napi_callback_info cbInfo, IsVerifiedAsyn
                 AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
                 return false;
             }
+            asyncContext->hasAccountId = true;
         }
     }
     return true;
@@ -1630,10 +1632,10 @@ bool ParseParaIsVerified(napi_env env, napi_callback_info cbInfo, IsVerifiedAsyn
 void IsVerifiedExecuteCB(napi_env env, void *data)
 {
     IsVerifiedAsyncContext *asyncContext = reinterpret_cast<IsVerifiedAsyncContext *>(data);
-    if (asyncContext->id < 0) {
-        asyncContext->errCode = OsAccountManager::IsCurrentOsAccountVerified(asyncContext->isTestOA);
+    if (!asyncContext->hasAccountId) {
+        asyncContext->errCode = OsAccountManager::IsCurrentOsAccountVerified(asyncContext->IsVerified);
     } else {
-        asyncContext->errCode = OsAccountManager::IsOsAccountVerified(asyncContext->id, asyncContext->isTestOA);
+        asyncContext->errCode = OsAccountManager::IsOsAccountVerified(asyncContext->id, asyncContext->IsVerified);
     }
     // for compatibility
     if ((!asyncContext->throwErr) && (asyncContext->errCode == ERR_ACCOUNT_COMMON_PERMISSION_DENIED)) {
@@ -1650,13 +1652,13 @@ void IsVerifiedCompletedCB(napi_env env, napi_status status, void *data)
     napi_value dataJs = nullptr;
     if (asyncContext->status == napi_ok) {
         errJs = GenerateBusinessSuccess(env, asyncContext->throwErr);
-        napi_get_boolean(env, asyncContext->isTestOA, &dataJs);
+        napi_get_boolean(env, asyncContext->IsVerified, &dataJs);
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
         if (asyncContext->throwErr) {
             napi_get_null(env, &dataJs);
         } else {
-            napi_get_boolean(env, asyncContext->isTestOA, &dataJs);
+            napi_get_boolean(env, asyncContext->IsVerified, &dataJs);
         }
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);

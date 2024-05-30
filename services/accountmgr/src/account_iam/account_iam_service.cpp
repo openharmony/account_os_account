@@ -46,7 +46,7 @@ static bool IsRestrictedAccountId(int32_t accountId)
     return (accountId == 0);
 }
 
-static int32_t CheckAccountId(int32_t &accountId)
+static int32_t NormalizeAccountId(int32_t &accountId)
 {
     if (accountId < -1) {
         ACCOUNT_LOGE("The id = %{public}d is invalid", accountId);
@@ -68,7 +68,7 @@ static int32_t CheckAccountId(int32_t &accountId)
 
 int32_t AccountIAMService::OpenSession(int32_t userId, std::vector<uint8_t> &challenge)
 {
-    int32_t ret = CheckAccountId(userId);
+    int32_t ret = NormalizeAccountId(userId);
     if (ret != ERR_OK) {
         return ret;
     }
@@ -82,7 +82,7 @@ int32_t AccountIAMService::OpenSession(int32_t userId, std::vector<uint8_t> &cha
 
 int32_t AccountIAMService::CloseSession(int32_t userId)
 {
-    int32_t ret = CheckAccountId(userId);
+    int32_t ret = NormalizeAccountId(userId);
     if (ret != ERR_OK) {
         return ret;
     }
@@ -98,7 +98,7 @@ void AccountIAMService::AddCredential(
     int32_t userId, const CredentialParameters &credInfo, const sptr<IIDMCallback> &callback)
 {
     Attributes emptyResult;
-    int32_t ret = CheckAccountId(userId);
+    int32_t ret = NormalizeAccountId(userId);
     if (ret != ERR_OK) {
         callback->OnResult(ret, emptyResult);
         return;
@@ -114,7 +114,7 @@ void AccountIAMService::AddCredential(
 void AccountIAMService::UpdateCredential(int32_t userId, const CredentialParameters &credInfo,
     const sptr<IIDMCallback> &callback)
 {
-    int32_t ret = CheckAccountId(userId);
+    int32_t ret = NormalizeAccountId(userId);
     if (ret != ERR_OK) {
         Attributes emptyResult;
         callback->OnResult(ret, emptyResult);
@@ -125,7 +125,7 @@ void AccountIAMService::UpdateCredential(int32_t userId, const CredentialParamet
 
 int32_t AccountIAMService::Cancel(int32_t userId)
 {
-    int32_t ret = CheckAccountId(userId);
+    int32_t ret = NormalizeAccountId(userId);
     if (ret != ERR_OK) {
         return ret;
     }
@@ -135,7 +135,7 @@ int32_t AccountIAMService::Cancel(int32_t userId)
 void AccountIAMService::DelCred(
     int32_t userId, uint64_t credentialId, const std::vector<uint8_t> &authToken, const sptr<IIDMCallback> &callback)
 {
-    int32_t ret = CheckAccountId(userId);
+    int32_t ret = NormalizeAccountId(userId);
     if (ret != ERR_OK) {
         Attributes emptyResult;
         callback->OnResult(ret, emptyResult);
@@ -147,7 +147,7 @@ void AccountIAMService::DelCred(
 void AccountIAMService::DelUser(
     int32_t userId, const std::vector<uint8_t> &authToken, const sptr<IIDMCallback> &callback)
 {
-    int32_t ret = CheckAccountId(userId);
+    int32_t ret = NormalizeAccountId(userId);
     if (ret != ERR_OK) {
         Attributes emptyResult;
         callback->OnResult(ret, emptyResult);
@@ -159,7 +159,7 @@ void AccountIAMService::DelUser(
 int32_t AccountIAMService::GetCredentialInfo(
     int32_t userId, AuthType authType, const sptr<IGetCredInfoCallback> &callback)
 {
-    int32_t ret = CheckAccountId(userId);
+    int32_t ret = NormalizeAccountId(userId);
     if (ret != ERR_OK) {
         return ret;
     }
@@ -209,7 +209,7 @@ int32_t AccountIAMService::GetAvailableStatus(AuthType authType, AuthTrustLevel 
 void AccountIAMService::GetProperty(
     int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback)
 {
-    int32_t ret = CheckAccountId(userId);
+    int32_t ret = NormalizeAccountId(userId);
     if (ret != ERR_OK) {
         Attributes emptyResult;
         callback->OnResult(ret, emptyResult);
@@ -221,7 +221,7 @@ void AccountIAMService::GetProperty(
 void AccountIAMService::SetProperty(
     int32_t userId, const SetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback)
 {
-    int32_t ret = CheckAccountId(userId);
+    int32_t ret = NormalizeAccountId(userId);
     if (ret != ERR_OK) {
         Attributes emptyResult;
         callback->OnResult(ret, emptyResult);
@@ -239,7 +239,7 @@ void AccountIAMService::GetEnrolledId(
     int32_t accountId, AuthType authType, const sptr<IGetEnrolledIdCallback> &callback)
 {
     uint64_t emptyId = 0;
-    int32_t ret = CheckAccountId(accountId);
+    int32_t ret = NormalizeAccountId(accountId);
     if (ret != ERR_OK) {
         callback->OnEnrolledId(ret, emptyId);
         return;
