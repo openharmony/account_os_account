@@ -159,6 +159,7 @@ static void OnAcquireInfoWork(uv_work_t* work, int status)
 
 void NapiIDMCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (!callback_->hasOnAcquireInfo) {
         ACCOUNT_LOGE("no 'OnAcquireInfo' callback need return");
         return;
@@ -477,6 +478,7 @@ void NapiUserAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
 
 void NapiUserAuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (!callback_->hasOnAcquireInfo) {
         ACCOUNT_LOGE("no 'OnAcquireInfo' callback need return");
         return;

@@ -293,6 +293,7 @@ void AccountFileWatcherMgr::AddFileWatcher(
             return;
         }
     }
+    std::lock_guard<std::mutex> lock(fileWatcherMgrLock_);
     if (fileNameMgrMap_.size() > FILE_WATCHER_LIMIT) {
         ACCOUNT_LOGW("the fileWatcher limit has been reached, fileName = %{public}s", filePath.c_str());
         return;
@@ -309,7 +310,6 @@ void AccountFileWatcherMgr::AddFileWatcher(
         ACCOUNT_LOGI("fileWatcher StartNotify failed, fileName = %{public}s", filePath.c_str());
         return;
     }
-    std::lock_guard<std::mutex> lock(fileWatcherMgrLock_);
     fileNameMgrMap_[fileWatcher->GetWd()] = fileWatcher;
     {
         std::shared_lock<std::shared_timed_mutex> fileLock(accountFileOperator_->fileLock_);
