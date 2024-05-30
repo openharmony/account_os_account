@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,7 +29,7 @@
 #include "os_account_photo_operator.h"
 namespace OHOS {
 namespace AccountSA {
-using CheckNotifyEventCallbackFunc = std::function<bool(const std::string&, const int32_t, uint32_t)>;
+using CheckNotifyEventCallbackFunc = std::function<bool(const std::string&, int32_t, uint32_t)>;
 
 bool GetValidAccountID(const std::string& dirName, std::int32_t& accountID);
 

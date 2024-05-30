@@ -1599,6 +1599,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
     int32_t oldId = -1;
     bool oldIdExist = foregroundAccountMap_.Find(displayId, oldId);
     int localId = osAccountInfo.GetLocalId();
+    bool preVerified = osAccountInfo.GetIsVerified();
     subscribeManager_.Publish(localId, oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
     ErrCode errCode = ERR_OK;
     if (startStorage) {
@@ -1618,23 +1619,19 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
     if (errCode != ERR_OK) {
         return errCode;
     }
+    if (!preVerified && osAccountInfo.GetIsVerified()) {
+        OsAccountInterface::PublishCommonEvent(osAccountInfo,
+            OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED, Constants::OPERATION_UNLOCK);
+        subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::UNLOCKED);
+    }
+
     if (oldIdExist) {
         errCode = UpdateAccountToBackground(oldId);
         if (errCode != ERR_OK) {
             return errCode;
         }
-#ifdef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
-        bool isLoggedIn = false;
-        if (!loggedInAccounts_.Find(oldId, isLoggedIn)) {
-            DeactivateOsAccount(oldId);
-        }
-#endif // ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
     }
-#ifndef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
-    if (oldId >= Constants::START_USER_ID) {
-        DeactivateOsAccountById(oldId);
-    }
-#endif // ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
+
     PushIdIntoActiveList(localId);
     SetParameter(ACCOUNT_READY_EVENT.c_str(), "true");
     OsAccountInterface::SendToCESAccountSwitched(localId, oldId);
@@ -1750,12 +1747,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountIsVerified(const int id, const bool 
         ACCOUNT_LOGE("account %{public}d will be removed, cannot change verify state!", id);
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR;
     }
-
-    if (isVerified && !osAccountInfo.GetIsVerified()) {
-        OsAccountInterface::PublishCommonEvent(osAccountInfo,
-            OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED, Constants::OPERATION_UNLOCK);
-        subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::UNLOCKED);
-    }
+    bool preVerified = osAccountInfo.GetIsVerified();
 
     osAccountInfo.SetIsVerified(isVerified);
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
@@ -1763,6 +1755,11 @@ ErrCode IInnerOsAccountManager::SetOsAccountIsVerified(const int id, const bool 
         ACCOUNT_LOGE("update osaccount info error %{public}d, id: %{public}d",
             errCode, osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
+    }
+    if (isVerified && !preVerified) {
+        OsAccountInterface::PublishCommonEvent(osAccountInfo,
+            OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED, Constants::OPERATION_UNLOCK);
+        subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::UNLOCKED);
     }
     return ERR_OK;
 }
@@ -2117,6 +2114,15 @@ ErrCode IInnerOsAccountManager::UpdateAccountToBackground(int32_t oldId)
     }
     OsAccountInterface::PublishCommonEvent(oldOsAccountInfo,
         OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_BACKGROUND, Constants::OPERATION_SWITCH);
+
+#ifdef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
+    bool isLoggedIn = false;
+    if (!loggedInAccounts_.Find(oldId, isLoggedIn)) {
+        DeactivateOsAccount(oldId);
+    }
+#else
+    DeactivateOsAccountById(oldId);
+#endif // ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
     return errCode;
 }
 

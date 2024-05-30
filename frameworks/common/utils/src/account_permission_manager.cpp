@@ -50,5 +50,12 @@ ErrCode AccountPermissionManager::CheckSystemApp(bool isCallStub)
     }
     return ERR_OK;
 }
+
+bool AccountPermissionManager::CheckSaCall()
+{
+    AccessTokenID callingToken = IPCSkeleton::GetCallingTokenID();
+    TypeATokenTypeEnum res = AccessTokenKit::GetTokenType(callingToken);
+    return (res == TOKEN_NATIVE);
+}
 }  // namespace AccountSA
 }  // namespace OHOS
