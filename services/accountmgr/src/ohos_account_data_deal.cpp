@@ -50,7 +50,7 @@ OhosAccountDataDeal::OhosAccountDataDeal(const std::string &configFileDir)
 {
     accountFileOperator_ = accountFileWatcherMgr_.accountFileOperator_;
     initOk_ = false;
-    checkCallbackFunc_ = [this](const std::string &fileName, const int32_t id, uint32_t event) {
+    checkCallbackFunc_ = [this](const std::string &fileName, int32_t id, uint32_t event) {
         ACCOUNT_LOGI("inotify event = %{public}d, fileName = %{public}s", event, fileName.c_str());
         switch (event) {
             case IN_MODIFY: {

@@ -32,6 +32,8 @@ public:
 
     ErrCode CreateDir(const std::string &path);
     ErrCode DeleteDirOrFile(const std::string &path);
+    ErrCode DeleteDir(const std::string &path);
+    ErrCode DeleteFile(const std::string &path);
     ErrCode InputFileByPathAndContent(const std::string &path, const std::string &content);
     ErrCode GetFileContentByPath(const std::string &path, std::string &content);
     bool IsExistFile(const std::string &path);

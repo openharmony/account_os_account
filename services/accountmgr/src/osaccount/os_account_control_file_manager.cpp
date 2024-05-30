@@ -34,9 +34,9 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 const std::string DEFAULT_ACTIVATED_ACCOUNT_ID = "DefaultActivatedAccountID";
-const int32_t MAX_LOCAL_ID = 10736; // int32 max value reduce 200000 be divisible by 200000
+constexpr int32_t MAX_LOCAL_ID = 10736; // int32 max value reduce 200000 be divisible by 200000
 const std::string OS_ACCOUNT_STORE_ID = "os_account_info";
-const uint32_t ALG_COMMON_SIZE = 32;
+constexpr uint32_t ALG_COMMON_SIZE = 32;
 #ifndef ACCOUNT_TEST
 const std::string ACCOUNT_CFG_DIR_ROOT_PATH = "/data/service/el1/public/account/";
 const std::string DEFAULT_OS_ACCOUNT_CONFIG_FILE = "/system/etc/account/os_account_config.json";
@@ -154,7 +154,7 @@ bool OsAccountControlFileManager::DealWithFileModifyEvent(const std::string &fil
 {
     ACCOUNT_LOGI("enter");
     {
-        std::shared_lock<std::shared_timed_mutex> lock(accountFileOperator_->fileLock_);
+        std::unique_lock<std::shared_timed_mutex> lock(accountFileOperator_->fileLock_);
         if (accountFileOperator_->GetValidModifyFileOperationFlag(fileName)) {
             ACCOUNT_LOGD("this is valid service operate, no need to deal with it.");
             accountFileOperator_->SetValidModifyFileOperationFlag(fileName, false);
@@ -185,7 +185,7 @@ bool OsAccountControlFileManager::DealWithFileDeleteEvent(const std::string &fil
 {
     ACCOUNT_LOGI("enter");
     {
-        std::shared_lock<std::shared_timed_mutex> lock(accountFileOperator_->fileLock_);
+        std::unique_lock<std::shared_timed_mutex> lock(accountFileOperator_->fileLock_);
         if (accountFileOperator_->GetValidDeleteFileOperationFlag(fileName)) {
             ACCOUNT_LOGD("this is valid service operate, no need to deal with it.");
             accountFileOperator_->SetValidDeleteFileOperationFlag(fileName, false);
@@ -194,11 +194,9 @@ bool OsAccountControlFileManager::DealWithFileDeleteEvent(const std::string &fil
         }
     }
     ReportOsAccountDataTampered(id, fileName, "OS_ACCOUNT_INFO");
-    {
-        std::lock_guard<std::mutex> lock(accountInfoFileLock_);
-        if (!RecoverAccountData(fileName, id)) {
-            ACCOUNT_LOGE("recover account data failed.");
-        }
+    std::lock_guard<std::mutex> lock(accountInfoFileLock_);
+    if (!RecoverAccountData(fileName, id)) {
+        ACCOUNT_LOGE("recover account data failed.");
     }
     accountFileWatcherMgr_.AddFileWatcher(id, eventCallbackFunc_, fileName);
     return true;
@@ -227,7 +225,7 @@ OsAccountControlFileManager::OsAccountControlFileManager()
 #endif
     osAccountFileOperator_ = std::make_shared<OsAccountFileOperator>();
     osAccountPhotoOperator_ = std::make_shared<OsAccountPhotoOperator>();
-    eventCallbackFunc_ = [this](const std::string &fileName, const int32_t id, uint32_t event) {
+    eventCallbackFunc_ = [this](const std::string &fileName, int32_t id, uint32_t event) {
         ACCOUNT_LOGI("inotify event = %{public}d, fileName = %{public}s", event, fileName.c_str());
         switch (event) {
             case IN_MODIFY: {
@@ -1240,6 +1238,7 @@ ErrCode OsAccountControlFileManager::IsFromBaseOAConstraintsList(
 {
     isExist = false;
     std::vector<std::string> constraintsList;
+    std::lock_guard<std::mutex> lock(baseOAConstraintsFileLock_);
     ErrCode errCode = osAccountFileOperator_->GetBaseOAConstraintsList(id, constraintsList);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("GetBaseOAConstraintsList failed! error code %{public}d.", errCode);
@@ -1258,7 +1257,11 @@ ErrCode OsAccountControlFileManager::IsFromGlobalOAConstraintsList(const int32_t
 {
     globalSourceList.clear();
     std::vector<std::string> constraintsList;
-    ErrCode errCode = osAccountFileOperator_->GetGlobalOAConstraintsList(constraintsList);
+    ErrCode errCode = ERR_OK;
+    {
+        std::lock_guard<std::mutex> lock(globalOAConstraintsFileLock_);
+        errCode = osAccountFileOperator_->GetGlobalOAConstraintsList(constraintsList);
+    }
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("GetGlobalOAConstraintsList failed! error code %{public}d.", errCode);
         return errCode;
@@ -1301,7 +1304,11 @@ ErrCode OsAccountControlFileManager::IsFromSpecificOAConstraintsList(const int32
 {
     specificSourceList.clear();
     std::vector<std::string> constraintsList;
-    ErrCode errCode = osAccountFileOperator_->GetSpecificOAConstraintsList(id, constraintsList);
+    ErrCode errCode = ERR_OK;
+    {
+        std::lock_guard<std::mutex> lock(specificOAConstraintsFileLock_);
+        errCode = osAccountFileOperator_->GetSpecificOAConstraintsList(id, constraintsList);
+    }
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("GetSpecificOAConstraintsList failed! error code %{public}d.", errCode);
         return errCode;
@@ -1527,12 +1534,14 @@ ErrCode OsAccountControlFileManager::SetPhotoById(const int id, const std::strin
 
 ErrCode OsAccountControlFileManager::GetGlobalOAConstraintsList(std::vector<std::string> &constraintsList)
 {
+    std::lock_guard<std::mutex> lock(globalOAConstraintsFileLock_);
     return osAccountFileOperator_->GetGlobalOAConstraintsList(constraintsList);
 }
 
 ErrCode OsAccountControlFileManager::GetSpecificOAConstraintsList(
     const int32_t id, std::vector<std::string> &constraintsList)
 {
+    std::lock_guard<std::mutex> lock(specificOAConstraintsFileLock_);
     return osAccountFileOperator_->GetSpecificOAConstraintsList(id, constraintsList);
 }
 
