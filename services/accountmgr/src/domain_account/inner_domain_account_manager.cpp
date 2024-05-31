@@ -1599,11 +1599,14 @@ static ErrCode CheckNewDomainAccountInfo(const DomainAccountInfo &oldAccountInfo
             return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
         }
     }
-    int32_t userId = 0;
-    ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(newAccountInfo, userId);
-    if (result == ERR_OK && userId > 0) {
-        ACCOUNT_LOGE("NewAccountInfo already exists");
-        return ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR;
+    ErrCode result = ERR_OK;
+    if (!IInnerOsAccountManager::GetInstance().IsSameAccount(oldAccountInfo, newAccountInfo)) {
+        int32_t userId = 0;
+        result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(newAccountInfo, userId);
+        if (result == ERR_OK && userId > 0) {
+            ACCOUNT_LOGE("NewAccountInfo already exists");
+            return ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR;
+        }
     }
     std::shared_ptr<UpdateAccountInfoCallback> callback = std::make_shared<UpdateAccountInfoCallback>();
     sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);

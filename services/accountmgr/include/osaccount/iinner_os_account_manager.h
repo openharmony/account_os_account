@@ -114,6 +114,7 @@ public:
     ErrCode GetTypeNumber(const OsAccountType& type, int32_t& typeNumber) override;
     ErrCode CheckTypeNumber(const OsAccountType& type) override;
     ErrCode UpdateAccountInfoByDomainAccountInfo(int32_t userId, const DomainAccountInfo &newDomainAccountInfo);
+    bool IsSameAccount(const DomainAccountInfo &domainInfoSrc, const DomainAccountInfo &domainInfoTar);
 
 private:
     IInnerOsAccountManager();
