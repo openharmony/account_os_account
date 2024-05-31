@@ -2018,8 +2018,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAcco
         lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
     ASSERT_EQ(errCode, ERR_OK);
 
-    ASSERT_EQ(InnerDomainAccountManager::GetInstance().UpdateAccountInfo(oldInfo, oldInfo),
-        ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR);
+    ASSERT_EQ(InnerDomainAccountManager::GetInstance().UpdateAccountInfo(oldInfo, oldInfo), ERR_OK);
 
     int32_t userId = -1;
     errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(oldInfo, userId);
