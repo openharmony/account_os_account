@@ -455,8 +455,8 @@ void NapiCallVoidFunction(napi_env env, napi_value *argv, size_t argc, napi_ref 
     napi_value returnVal;
     napi_value func = nullptr;
     NAPI_CALL_RETURN_VOID(env, napi_get_reference_value(env, funcRef, &func));
-    napi_call_function(env, undefined, func, argc, argv, &returnVal);
-    ACCOUNT_LOGI("call js function finish");
+    napi_status status = napi_call_function(env, undefined, func, argc, argv, &returnVal);
+    ACCOUNT_LOGI("call js function finish, status: %{public}d", status);
 }
 
 void SetInt32ToJsProperty(napi_env env, int32_t number, const std::string &propertyName, napi_value &dataJs)
@@ -577,7 +577,11 @@ bool JsObjectToNativeString(napi_env env, napi_value jsData, std::string &native
     napi_get_named_property(env, jsonValue, "stringify", &stringifyValue);
     napi_value funcArgv[1] = { jsData };
     napi_value transValue = nullptr;
-    napi_call_function(env, jsonValue, stringifyValue, 1, funcArgv, &transValue);
+    napi_status status = napi_call_function(env, jsonValue, stringifyValue, 1, funcArgv, &transValue);
+    if (status != napi_ok) {
+        ACCOUNT_LOGE("Fail to call function, %{public}d", status);
+        return false;
+    }
 
     if (!GetStringProperty(env, transValue, nativeData)) {
         ACCOUNT_LOGE("Get native data failed");
@@ -604,7 +608,10 @@ napi_value NativeStringToJsObject(napi_env env, const std::string &nativeData)
     napi_value jsStringDate = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, nativeData.c_str(), NAPI_AUTO_LENGTH, &jsStringDate));
     napi_value funcArgv[1] = { jsStringDate };
-    NAPI_CALL(env, napi_call_function(env, jsonValue, parseValue, 1, funcArgv, &jsObjData));
+    napi_status status = napi_call_function(env, jsonValue, parseValue, 1, funcArgv, &jsObjData);
+    if (status != napi_ok) {
+        ACCOUNT_LOGE("Fail to call function, status: %{public}d", status);
+    }
     return jsObjData;
 }
 } // namespace AccountJsKit
