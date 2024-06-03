@@ -131,7 +131,7 @@ void OhosAccountDataDeal::AddFileWatcher(const int32_t id)
 ErrCode OhosAccountDataDeal::Init(int32_t userId)
 {
     std::string configFile = configFileDir_ + std::to_string(userId) + ACCOUNT_CFG_FILE_NAME;
-    if (!FileExists(configFile)) {
+    if (!accountFileOperator_->IsExistFile(configFile)) {
         ACCOUNT_LOGI("file %{public}s not exist, create!", configFile.c_str());
         BuildJsonFileFromScratch(userId);
     }
@@ -299,9 +299,15 @@ ErrCode OhosAccountDataDeal::GetAccountInfo(AccountInfo &accountInfo, const int3
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
     std::string configFile = configFileDir_ + std::to_string(userId) + ACCOUNT_CFG_FILE_NAME;
-    if (!FileExists(configFile)) {
-        ACCOUNT_LOGI("file %{public}s not exist, create!", configFile.c_str());
-        BuildJsonFileFromScratch(userId); // create default config file for first login
+    if (!accountFileOperator_->IsExistFile(configFile)) {
+        if (errno != ENOENT) {
+            std::string errorMsg = "Stat " + configFile + " failed";
+            ReportOhosAccountOperationFail(userId, OPERATION_OPEN_FILE_TO_READ, errno, errorMsg);
+            return ERR_ACCOUNT_DATADEAL_INPUT_FILE_ERROR;
+        } else {
+            ACCOUNT_LOGI("File %{public}s not exist, create!", configFile.c_str());
+            BuildJsonFileFromScratch(userId); // create default config file for first login
+        }
     }
     std::lock_guard<std::mutex> lock(mutex_);
     nlohmann::json jsonData;
