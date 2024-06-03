@@ -47,7 +47,7 @@ public:
     void OnResult(int32_t result, const Attributes &extraInfo) override;
 
 private:
-    ErrCode HandleAuthResult(const Attributes &extraInfo);
+    ErrCode HandleAuthResult(const Attributes &extraInfo, int32_t accontId);
 
 private:
     uint32_t userId_;
