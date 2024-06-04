@@ -50,12 +50,13 @@ AuthCallback::AuthCallback(
     : userId_(userId), credentialId_(credentialId), authType_(authType), innerCallback_(callback)
 {}
 
-ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo)
+ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo, int32_t accountId)
 {
     bool lockScreenStatus = false;
-    ErrCode ret = InnerAccountIAMManager::GetInstance().GetLockScreenStatus(userId_, lockScreenStatus);
+    ErrCode ret = InnerAccountIAMManager::GetInstance().GetLockScreenStatus(accountId, lockScreenStatus);
     if (ret != 0) {
-        ReportOsAccountOperationFail(userId_, "getLockScreenStatus", ret, "failed to get lock status msg from storage");
+        ReportOsAccountOperationFail(
+            accountId, "getLockScreenStatus", ret, "failed to get lock status msg from storage");
     }
     std::vector<uint8_t> token;
     extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
@@ -64,9 +65,9 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo)
     if (!lockScreenStatus) {
         ACCOUNT_LOGI("start unlock user screen");
         // el3\4 file decryption
-        ret = InnerAccountIAMManager::GetInstance().UnlockUserScreen(userId_, token, secret);
+        ret = InnerAccountIAMManager::GetInstance().UnlockUserScreen(accountId, token, secret);
         if (ret != 0) {
-            ReportOsAccountOperationFail(userId_, "unlockUserScreen", ret, "failed to send unlock msg for storage");
+            ReportOsAccountOperationFail(accountId, "unlockUserScreen", ret, "failed to send unlock msg for storage");
             return ret;
         }
     }
@@ -75,20 +76,20 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo)
     }
     if (authType_ == AuthType::PIN) {
         bool isVerified = false;
-        (void)IInnerOsAccountManager::GetInstance().IsOsAccountVerified(userId_, isVerified);
+        (void)IInnerOsAccountManager::GetInstance().IsOsAccountVerified(accountId, isVerified);
         if (!isVerified) {
             // el2 file decryption
-            ret = InnerAccountIAMManager::GetInstance().ActivateUserKey(userId_, token, secret);
+            ret = InnerAccountIAMManager::GetInstance().ActivateUserKey(accountId, token, secret);
             if (ret != 0) {
                 ACCOUNT_LOGE("failed to activate user key");
-                ReportOsAccountOperationFail(userId_, "activateUserKey", ret,
+                ReportOsAccountOperationFail(accountId, "activateUserKey", ret,
                     "failed to notice storage to activate user key");
                 return ret;
             }
         }
     }
     // domain account authentication
-    InnerDomainAccountManager::GetInstance().AuthWithToken(userId_, token);
+    InnerDomainAccountManager::GetInstance().AuthWithToken(accountId, token);
     return ret;
 }
 
@@ -128,8 +129,13 @@ static void GenerateAttributesInfo(const Attributes &extraInfo, Attributes &extr
 
 void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
-    ACCOUNT_LOGI("AuthCallback::OnResult, result=%{public}d", result);
-    InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
+    int32_t authedAccountId = 0;
+    if (!extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_USER_ID, authedAccountId)) {
+        ACCOUNT_LOGE("Get account id from auth result failed");
+        authedAccountId = userId_;
+    }
+    ACCOUNT_LOGI("AuthCallback::OnResult, result=%{public}d, accountId = %{public}d", result, authedAccountId);
+    InnerAccountIAMManager::GetInstance().SetState(authedAccountId, AFTER_OPEN_SESSION);
     if (innerCallback_ == nullptr) {
         ACCOUNT_LOGE("innerCallback_ is nullptr");
         return;
@@ -138,10 +144,10 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
     if (result != 0) {
         ACCOUNT_LOGE("authentication failed");
         innerCallback_->OnResult(result, extraInfo);
-        ReportOsAccountOperationFail(userId_, "authUser", result, "auth user failed");
-        return AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, result);
+        ReportOsAccountOperationFail(authedAccountId, "authUser", result, "auth user failed");
+        return AccountInfoReport::ReportSecurityInfo("", authedAccountId, ReportEvent::EVENT_LOGIN, result);
     }
-    if (HandleAuthResult(extraInfo) != ERR_OK) {
+    if (HandleAuthResult(extraInfo, authedAccountId) != ERR_OK) {
         int32_t remainTimes = 0;
         int32_t freezingTime = 0;
         extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, remainTimes);
@@ -150,7 +156,7 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         errInfo.SetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, remainTimes);
         errInfo.SetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, freezingTime);
         innerCallback_->OnResult(ResultCode::FAIL, errInfo);
-        return AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, ResultCode::FAIL);
+        return AccountInfoReport::ReportSecurityInfo("", authedAccountId, ReportEvent::EVENT_LOGIN, ResultCode::FAIL);
     }
     uint64_t credentialId = 0;
     if (!extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId) && (credentialId_ != 0)) {
@@ -161,9 +167,9 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
     } else {
         innerCallback_->OnResult(result, extraInfo);
     }
-    (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsVerified(userId_, true);
-    (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsLoggedIn(userId_, true);
-    AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, result);
+    (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsVerified(authedAccountId, true);
+    (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsLoggedIn(authedAccountId, true);
+    AccountInfoReport::ReportSecurityInfo("", authedAccountId, ReportEvent::EVENT_LOGIN, result);
 }
 
 void AuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
