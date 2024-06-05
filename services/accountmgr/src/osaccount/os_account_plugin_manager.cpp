@@ -149,7 +149,7 @@ ErrCode OsAccountPluginManager::PluginVerifyActivationLockFunc(bool& isAllowed)
 
 bool OsAccountPluginManager::IsCreationAllowed()
 {
-#ifdef ACCOUNT_TEST
+#if defined(ACCOUNT_TEST) || defined(ACCOUNT_COVERAGE_TEST)
     return true;
 #else
     if (!IsPluginAvailable()) {
