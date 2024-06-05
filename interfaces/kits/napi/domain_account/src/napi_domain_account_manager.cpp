@@ -353,7 +353,9 @@ static void GetDomainAccountInfoWork(uv_work_t *work, int status)
     param->lockInfo->count--;
     param->lockInfo->condition.notify_all();
     napi_close_handle_scope(param->env, scope);
-    delete param;
+    if (napiCallback == nullptr) {
+        delete param;
+    }
 }
 
 static napi_value OnAccountBoundCallback(napi_env env, napi_callback_info cbInfo)
@@ -398,7 +400,9 @@ static void OnAccountBoundWork(uv_work_t *work, int status)
     param->lockInfo->count--;
     param->lockInfo->condition.notify_all();
     napi_close_handle_scope(param->env, scope);
-    delete param;
+    if (napiCallback == nullptr) {
+        delete param;
+    }
 }
 
 static void OnAccountUnBoundWork(uv_work_t *work, int status)
@@ -417,7 +421,9 @@ static void OnAccountUnBoundWork(uv_work_t *work, int status)
     param->lockInfo->count--;
     param->lockInfo->condition.notify_all();
     napi_close_handle_scope(param->env, scope);
-    delete param;
+    if (napiCallback == nullptr) {
+        delete param;
+    }
 }
 
 static napi_value GetAuthStatusInfoCallback(napi_env env, napi_callback_info cbInfo)
@@ -514,7 +520,9 @@ static void GetAccessTokenWork(uv_work_t *work, int status)
     param->lockInfo->count--;
     param->lockInfo->condition.notify_all();
     napi_close_handle_scope(param->env, scope);
-    delete param;
+    if (napiCallback == nullptr) {
+        delete param;
+    }
 }
 
 static void IsUserTokenValidWork(uv_work_t *work, int status)
@@ -534,7 +542,9 @@ static void IsUserTokenValidWork(uv_work_t *work, int status)
     param->lockInfo->count--;
     param->lockInfo->condition.notify_all();
     napi_close_handle_scope(param->env, scope);
-    delete param;
+    if (napiCallback == nullptr) {
+        delete param;
+    }
 }
 
 static void GetAuthStatusInfoWork(uv_work_t *work, int status)
@@ -553,7 +563,9 @@ static void GetAuthStatusInfoWork(uv_work_t *work, int status)
     param->lockInfo->count--;
     param->lockInfo->condition.notify_all();
     napi_close_handle_scope(param->env, scope);
-    delete param;
+    if (napiCallback == nullptr) {
+        delete param;
+    }
 }
 
 NapiDomainAccountPlugin::NapiDomainAccountPlugin(napi_env env, const JsDomainPlugin &jsPlugin)
