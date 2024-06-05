@@ -360,6 +360,10 @@ ohos_shared_library("accountmgr") {
     cflags_cc += [ "-DIS_RELEASE_VERSION" ]
   }
 
+  if (use_clang_coverage) {
+    cflags_cc += [ "-DACCOUNT_COVERAGE_TEST" ]
+  }
+
   if (!use_clang_coverage) {
     shlib_type = "sa"
   }
