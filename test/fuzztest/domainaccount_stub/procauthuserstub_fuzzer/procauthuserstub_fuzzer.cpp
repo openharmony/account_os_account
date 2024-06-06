@@ -22,6 +22,7 @@
 #include "domain_account_callback.h"
 #include "domain_account_callback_service.h"
 #include "domain_account_manager_service.h"
+#include "fuzz_data.h"
 #include "idomain_account.h"
 
 using namespace std;
@@ -46,12 +47,12 @@ public:
         if ((data == nullptr) || (size == 0)) {
             return false;
         }
-
-        int32_t userId = static_cast<int32_t>(size);
+        FuzzData fuzzData(data, size);
+        int32_t userId = fuzzData.GetData<int32_t>();
         std::vector<uint8_t> password;
 
         for (int32_t i = 0; i < PASSWORD_LEN; i++) {
-            uint8_t bit = static_cast<uint8_t>(size);
+            uint8_t bit = fuzzData.GetData<uint8_t>();
             password.emplace_back(bit);
         }
 
