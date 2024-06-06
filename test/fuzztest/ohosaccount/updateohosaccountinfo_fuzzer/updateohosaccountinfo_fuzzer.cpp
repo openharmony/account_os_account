@@ -18,6 +18,7 @@
 #include "account_proxy.h"
 #include "ohos_account_kits.h"
 #include "account_log_wrapper.h"
+#include "fuzz_data.h"
 #include <string>
 #include <vector>
 
@@ -28,10 +29,11 @@ namespace OHOS {
     bool UpdateOhosAccountInfoFuzzTest(const uint8_t* data, size_t size)
     {
         bool result = false;
-        if (size > 0) {
-            std::string testAccountName(reinterpret_cast<const char*>(data), size);
-            std::string testUid(reinterpret_cast<const char*>(data), size);
-            std::string testEventStr(reinterpret_cast<const char*>(data), size);
+        if ((data != nullptr) && (size != 0)) {
+            FuzzData fuzzData(data, size);
+            std::string testAccountName(fuzzData.GenerateRandomString());
+            std::string testUid(fuzzData.GenerateRandomString());
+            std::string testEventStr(fuzzData.GenerateRandomString());
             result = OhosAccountKits::GetInstance().UpdateOhosAccountInfo(testAccountName, testUid, testEventStr);
         }
         return result;

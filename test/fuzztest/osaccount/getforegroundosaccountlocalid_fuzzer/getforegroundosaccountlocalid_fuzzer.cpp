@@ -17,6 +17,7 @@
 
 #include "os_account_manager.h"
 #include "account_log_wrapper.h"
+#include "fuzz_data.h"
 #include "os_account_constants.h"
 #include <string>
 #include <vector>
@@ -28,7 +29,10 @@ namespace OHOS {
 void GetForegroundOsAccountLocalIdFuzzTest(const uint8_t *data, size_t size)
 {
     int32_t localId = 0;
-    OsAccountManager::GetForegroundOsAccountLocalId(static_cast<uint64_t>(size), localId);
+    if ((data == nullptr) || (size == 0)) {
+        return;
+    }
+    OsAccountManager::GetForegroundOsAccountLocalId(FuzzData(data, size).GetData<uint64_t>(), localId);
 }
 }
 

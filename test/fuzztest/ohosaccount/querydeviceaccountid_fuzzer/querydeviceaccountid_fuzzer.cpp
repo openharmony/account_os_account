@@ -28,11 +28,8 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
     bool QueryDeviceAccountIdFuzzTest(const uint8_t* data, size_t size)
     {
-        int32_t result = ERR_OK;
-        if (size > 0) {
-            int testId = static_cast<int>(size);
-            result = OhosAccountKits::GetInstance().QueryDeviceAccountId(testId);
-        }
+        int testId = -1;
+        int32_t result = OhosAccountKits::GetInstance().QueryDeviceAccountId(testId);
         return result == ERR_OK;
     }
 }

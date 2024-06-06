@@ -18,6 +18,7 @@
 #include "account_proxy.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
+#include "fuzz_data.h"
 #include "ohos_account_kits.h"
 #include <string>
 #include <vector>
@@ -29,8 +30,9 @@ namespace OHOS {
     bool GetDeviceAccountIdByUIDFuzzTest(const uint8_t* data, size_t size)
     {
         int32_t result = ERR_OK;
-        if (size > 0) {
-            int32_t testUid = static_cast<int>(size);
+        if ((data != nullptr) && (size != 0)) {
+            FuzzData fuzzData(data, size);
+            int32_t testUid = fuzzData.GetData<int32_t>();
             result = OhosAccountKits::GetInstance().GetDeviceAccountIdByUID(testUid);
         }
         return result == ERR_OK;
