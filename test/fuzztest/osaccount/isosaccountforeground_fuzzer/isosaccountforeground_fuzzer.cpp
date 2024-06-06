@@ -17,6 +17,7 @@
 
 #include "os_account_manager.h"
 #include "account_log_wrapper.h"
+#include "fuzz_data.h"
 #include "os_account_constants.h"
 #include <string>
 #include <vector>
@@ -28,14 +29,22 @@ namespace OHOS {
 void IsOsAccountForegroundWith2ArgsFuzzTest(const uint8_t *data, size_t size)
 {
     bool isForeground = false;
-    int32_t localId = static_cast<int32_t>(size);
+    if ((data == nullptr) || (size == 0)) {
+        return;
+    }
+    FuzzData fuzzData(data, size);
+    int32_t localId = fuzzData.GetData<int32_t>();
     OsAccountManager::IsOsAccountForeground(localId, isForeground);
 }
 
 void IsOsAccountForegroundWith3ArgsFuzzTest(const uint8_t *data, size_t size)
 {
     bool isForeground = false;
-    int32_t localId = static_cast<int32_t>(size);
+    if ((data == nullptr) || (size == 0)) {
+        return;
+    }
+    FuzzData fuzzData(data, size);
+    int32_t localId = fuzzData.GetData<int32_t>();
     OsAccountManager::IsOsAccountForeground(localId, Constants::DEFAULT_DISPALY_ID, isForeground);
 }
 }

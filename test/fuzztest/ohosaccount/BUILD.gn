@@ -17,12 +17,14 @@ group("fuzztest") {
 
   deps += [
     # deps file
+    "getaccountservice_fuzzer:GetAccountServiceFuzzTest",
     "getdeviceaccountidbyuid_fuzzer:GetDeviceAccountIdByUIDFuzzTest",
     "getohosaccountinfo_fuzzer:GetOhosAccountInfoFuzzTest",
     "querydeviceaccountid_fuzzer:QueryDeviceAccountIdFuzzTest",
     "queryohosaccountinfo_fuzzer:QueryOhosAccountInfoFuzzTest",
     "queryohosaccountinfobyuserid_fuzzer:QueryOhosAccountInfoByUserIdFuzzTest",
     "setohosaccountinfo_fuzzer:SetOhosAccountInfoFuzzTest",
+    "setohosaccountinfobyuserid_fuzzer:SetOhosAccountInfoByUserIdFuzzTest",
     "updateohosaccountinfo_fuzzer:UpdateOhosAccountInfoFuzzTest",
   ]
 }

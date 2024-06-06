@@ -17,6 +17,7 @@
 
 #include "os_account_manager.h"
 #include "account_log_wrapper.h"
+#include "fuzz_data.h"
 #include "os_account_constants.h"
 #include <string>
 #include <vector>
@@ -30,8 +31,9 @@ namespace OHOS {
     bool SetCurrentOsAccountIsVerifiedFuzzTest(const uint8_t* data, size_t size)
     {
         int32_t result = ERR_OK;
-        if (size > 0) {
-            bool testIsVerified = (size % TEST_IS_VERIFIED_NUM) == 0;
+        if ((data != nullptr) && (size != 0)) {
+            FuzzData fuzzData(data, size);
+            bool testIsVerified = (fuzzData.GetData<int32_t>() % TEST_IS_VERIFIED_NUM) == 0;
             result = OsAccountManager::SetCurrentOsAccountIsVerified(testIsVerified);
         }
         return result == ERR_OK;
