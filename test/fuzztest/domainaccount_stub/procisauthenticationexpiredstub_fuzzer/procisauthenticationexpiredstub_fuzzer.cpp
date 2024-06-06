@@ -22,6 +22,7 @@
 #include "domain_account_callback_stub.h"
 #include "domain_account_common.h"
 #include "domain_account_manager_service.h"
+#include "fuzz_data.h"
 #include "idomain_account.h"
 
 using namespace std;
@@ -42,14 +43,11 @@ bool ProcIsAuthenticationExpiredStubFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    std::string domain(reinterpret_cast<const char*>(data), size);
-    std::string accountName(reinterpret_cast<const char*>(data), size);
-    std::string accountId(reinterpret_cast<const char*>(data), size);
-
     DomainAccountInfo info;
-    info.domain_ = domain;
-    info.accountName_ = accountName;
-    info.accountId_ = accountId;
+    FuzzData fuzzData(data, size);
+    info.domain_ = fuzzData.GenerateRandomString();
+    info.accountName_ = fuzzData.GenerateRandomString();
+    info.accountId_ = fuzzData.GenerateRandomString();
 
     if (!dataTemp.WriteParcelable(&info)) {
         return false;

@@ -28,6 +28,7 @@ ohos_fuzztest("DeactivateOsAccountStubFuzzTest") {
     "${services_path}/accountmgr/include",
     "${services_path}/accountmgr/include/osaccount",
     "${os_account_innerkits_native_path}/include",
+    "${os_account_path}/test/fuzztest/osaccount_stub/common",
   ]
   cflags = [
     "-g",

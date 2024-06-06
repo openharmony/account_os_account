@@ -18,6 +18,7 @@
 #include <thread>
 #include <vector>
 
+#include "fuzz_data.h"
 #include "ios_account.h"
 #include "os_account_manager_service.h"
 
@@ -30,6 +31,7 @@ public:
 };
 
 namespace OHOS {
+const int CONSTANTS_NUMBER_TEN = 10;
 const std::u16string IOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccount";
 bool SubscribeOsAccountStubFuzzTest(const uint8_t *data, size_t size)
 {
@@ -39,8 +41,12 @@ bool SubscribeOsAccountStubFuzzTest(const uint8_t *data, size_t size)
 
     MessageParcel datas;
     datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
-
+    FuzzData fuzzData(data, size);
     OsAccountSubscribeInfo subscribeInfo;
+    subscribeInfo.SetName(fuzzData.GenerateRandomString());
+    OS_ACCOUNT_SUBSCRIBE_TYPE testType = static_cast<OS_ACCOUNT_SUBSCRIBE_TYPE>(
+        fuzzData.GetData<int>() % CONSTANTS_NUMBER_TEN);
+    subscribeInfo.SetOsAccountSubscribeType(testType);
 
     if (!datas.WriteParcelable(&subscribeInfo)) {
         return false;
