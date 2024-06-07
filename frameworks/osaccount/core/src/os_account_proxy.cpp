@@ -602,7 +602,23 @@ ErrCode OsAccountProxy::GetOsAccountProfilePhoto(const int id, std::string &phot
     if (result != ERR_OK) {
         return result;
     }
-    photo = reply.ReadString();
+
+    int32_t photoSize;
+    if (!reply.ReadInt32(photoSize)) {
+        ACCOUNT_LOGE("Failed to read photoSize");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+
+    if (photoSize - 1 > Constants::LOCAL_PHOTO_MAX_SIZE || photoSize < 1) {
+        ACCOUNT_LOGE("PhotoSize is invalid, photosize = %{public}d", photoSize);
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    const char *photoData = reinterpret_cast<const char *>(reply.ReadRawData(photoSize));
+    if (photoData == nullptr) {
+        ACCOUNT_LOGE("Failed to read photoData, id=%{public}d", id);
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    photo = std::string(photoData, photoSize - 1);
 
     return ERR_OK;
 }
@@ -710,8 +726,12 @@ ErrCode OsAccountProxy::SetOsAccountProfilePhoto(const int id, const std::string
         ACCOUNT_LOGE("failed to write id for setting photo");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    if (!data.WriteString(photo)) {
-        ACCOUNT_LOGE("failed to write string for photo");
+    if (!data.WriteInt32(photo.size() + 1)) {
+        ACCOUNT_LOGE("Failed to write photo size");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteRawData(photo.c_str(), photo.size() + 1)) {
+        ACCOUNT_LOGE("Failed to write string for photo");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 

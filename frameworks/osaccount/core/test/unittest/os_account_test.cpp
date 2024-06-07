@@ -39,7 +39,8 @@ const std::int32_t MAIN_ACCOUNT_ID = 100;
 const std::int32_t WAIT_A_MOMENT = 3000;
 const std::int32_t ILLEGAL_LOCAL_ID = -1;
 const std::string STRING_NAME_OUT_OF_RANGE(1200, '1'); // length 1200
-const std::string STRING_PHOTO_OUT_OF_RANGE(1024 * 1024 * 10 + 1, '1'); // length 1024*1024*10+1
+const std::string STRING_PHOTO_MAX(1024 * 1024, '1'); // length 1024*1024*10
+const std::string STRING_PHOTO_OUT_OF_RANGE(1024 * 1024 + 1, '1'); // length 1024*1024*10+1
 const std::string STRING_DOMAIN_NAME_OUT_OF_RANGE(200, '1'); // length 200
 const std::string STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE(600, '1'); // length 600
 const std::string STRING_CONSTRAINT_OUT_OF_RANGE(200, '1'); // length 200
@@ -186,6 +187,8 @@ HWTEST_F(OsAccountTest, OsAccountTest006, TestSize.Level1)
 {
     ErrCode errCode = g_osAccount->SetOsAccountProfilePhoto(100, STRING_PHOTO_OUT_OF_RANGE);
     EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    errCode = g_osAccount->SetOsAccountProfilePhoto(100, STRING_PHOTO_MAX);
+    EXPECT_EQ(errCode, ERR_OK);
 }
 
 /**
