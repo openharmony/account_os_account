@@ -19,6 +19,7 @@
 #include <vector>
 #include "app_account_manager.h"
 #include "account_log_wrapper.h"
+#include "fuzz_data.h"
 
 using namespace std;
 using namespace OHOS::AccountSA;
@@ -28,8 +29,9 @@ namespace OHOS {
     {
         bool result = false;
         if (size > 0) {
-            std::string testName(reinterpret_cast<const char*>(data), size);
-            std::string testAuthorizedApp(reinterpret_cast<const char*>(data), size);
+            FuzzData fuzzData(data, size);
+            std::string testName(fuzzData.GenerateRandomString());
+            std::string testAuthorizedApp(fuzzData.GenerateRandomString());
             bool isAccessible;
             result = AppAccountManager::CheckAppAccess(testName, testAuthorizedApp, isAccessible);
         }

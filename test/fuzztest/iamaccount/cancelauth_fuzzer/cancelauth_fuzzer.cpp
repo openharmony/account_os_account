@@ -18,6 +18,7 @@
 #include <string>
 #include <vector>
 #include "account_iam_client.h"
+#include "fuzz_data.h"
 
 
 using namespace std;
@@ -26,7 +27,8 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
     bool CancelAuthFuzzTest(const uint8_t* data, size_t size)
     {
-        uint64_t contextId = static_cast<uint64_t>(size);
+        FuzzData fuzzData(data, size);
+        uint64_t contextId = fuzzData.GetData<uint64_t>();
         int32_t result = AccountIAMClient::GetInstance().CancelAuth(contextId);
         return result == ERR_OK;
     }

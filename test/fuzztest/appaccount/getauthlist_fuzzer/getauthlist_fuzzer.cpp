@@ -17,6 +17,7 @@
 
 #include "app_account_manager.h"
 #include "account_log_wrapper.h"
+#include "fuzz_data.h"
 #include <set>
 #include <string>
 #include <vector>
@@ -29,9 +30,10 @@ namespace OHOS {
     {
         bool result = false;
         if (size > 0) {
-            std::string testName(reinterpret_cast<const char*>(data), size);
-            std::string testAuthType(reinterpret_cast<const char*>(data), size);
-            std::string testValue(reinterpret_cast<const char*>(data), size);
+            FuzzData fuzzData(data, size);
+            std::string testName(fuzzData.GenerateRandomString());
+            std::string testAuthType(fuzzData.GenerateRandomString());
+            std::string testValue(fuzzData.GenerateRandomString());
             std::set<std::string> oauthList;
             oauthList.insert(testValue);
             result = AppAccountManager::GetAuthList(testName, testAuthType, oauthList);
