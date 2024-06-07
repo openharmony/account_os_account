@@ -100,7 +100,8 @@ const std::string CONSTANT_WIFI = "constraint.wifi";
 
 const std::string CONSTANT_PRINT = "constraint.print";
 const std::string STRING_NAME_OUT_OF_RANGE(1200, '1');  // length 1200
-const std::string STRING_PHOTO_OUT_OF_RANGE(1024 * 1024 * 10 + 1, '1');  // length 1024*1024*10+1
+const std::string STRING_PHOTO_OUT_OF_RANGE(1024 * 1024 + 1, '1');  // length 1024*1024*10+1
+const std::string STRING_PHOTO_MAX(1024 * 1024, '1');  // length 1024*1024*10+1
 const std::string PHOTO_IMG =
     "data:image/"
     "png;base64,"
@@ -1064,6 +1065,11 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest042, TestSize.Lev
     ASSERT_EQ(OsAccountManager::CreateOsAccount("ModuleTest042", OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
     EXPECT_NE(
         OsAccountManager::SetOsAccountProfilePhoto(osAccountInfoOne.GetLocalId(), STRING_PHOTO_OUT_OF_RANGE), ERR_OK);
+    EXPECT_EQ(
+        OsAccountManager::SetOsAccountProfilePhoto(osAccountInfoOne.GetLocalId(), STRING_PHOTO_MAX), ERR_OK);
+    std::string photo;
+    EXPECT_EQ(
+        OsAccountManager::GetOsAccountProfilePhoto(osAccountInfoOne.GetLocalId(), photo), ERR_OK);
     ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 

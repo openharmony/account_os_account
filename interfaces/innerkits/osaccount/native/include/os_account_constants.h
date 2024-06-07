@@ -68,7 +68,7 @@ const std::int32_t MAX_SYSTEM_UID_NUM = 2899;
 const int SUBSCRIBER_MAX_SIZE = 100;
 // account restrict
 const unsigned int LOCAL_NAME_MAX_SIZE = sysconf(_SC_LOGIN_NAME_MAX);
-const unsigned int LOCAL_PHOTO_MAX_SIZE = 1024 * 1024 * 10;
+const unsigned int LOCAL_PHOTO_MAX_SIZE = 1024 * 1024;
 const uint32_t SHORT_NAME_MAX_SIZE = 255;
 
 // domain info limits
