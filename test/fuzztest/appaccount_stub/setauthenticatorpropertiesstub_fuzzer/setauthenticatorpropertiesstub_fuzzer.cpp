@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,12 +15,13 @@
 
 #include "setauthenticatorpropertiesstub_fuzzer.h"
 
+#include <string>
+#include <vector>
 #include "account_log_wrapper.h"
 #include "app_account_authenticator_callback_stub.h"
 #include "app_account_manager_service.h"
 #include "iapp_account.h"
-#include <string>
-#include <vector>
+#include "fuzz_data.h"
 
 using namespace std;
 using namespace OHOS::AccountSA;
@@ -43,18 +44,16 @@ bool SetAuthenticatorPropertiesStubFuzzTest(const uint8_t* data, size_t size)
     if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
         return false;
     }
-
-    std::string owner(reinterpret_cast<const char*>(data), size);
+    FuzzData fuzzData(data, size);
+    std::string owner = fuzzData.GenerateRandomString();
     if (!dataTemp.WriteString(owner)) {
         return false;
     }
     sptr<MockAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
-
     if (callback == nullptr) {
         ACCOUNT_LOGI("AppAccountStub SetAuthenticatorProperties callback is null");
         return false;
     }
-
     SetPropertiesOptions options;
     if (!dataTemp.WriteParcelable(&options)) {
         return false;
@@ -62,13 +61,11 @@ bool SetAuthenticatorPropertiesStubFuzzTest(const uint8_t* data, size_t size)
     if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
         return false;
     }
-    
     MessageParcel reply;
     MessageOption option;
     uint32_t code = static_cast<uint32_t>(AppAccountInterfaceCode::SET_AUTHENTICATOR_PROPERTIES);
     auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
     appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
-    
     return true;
 }
 }

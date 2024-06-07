@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,11 +14,14 @@
  */
 
 #include "getcredentialinfostub_fuzzer.h"
+
 #include <string>
 #include <vector>
-#include "account_log_wrapper.h"
 #include "account_iam_service.h"
+#include "account_log_wrapper.h"
+#include "fuzz_data.h"
 #include "iaccount_iam.h"
+#include "securec.h"
 
 using namespace std;
 using namespace OHOS::AccountSA;
@@ -29,17 +32,15 @@ bool GetCredentialInfoStubFuzzTest(const uint8_t *data, size_t size)
     if ((data == nullptr) || (size == 0)) {
         return false;
     }
-
     MessageParcel dataTemp;
     if (!dataTemp.WriteInterfaceToken(IAMACCOUNT_TOKEN)) {
         return false;
     }
-
-    int32_t userId = static_cast<int32_t>(size);
+    FuzzData fuzzData(data, size);
+    int32_t userId = fuzzData.GetData<int32_t>();
     if (!dataTemp.WriteInt32(userId)) {
         return false;
     }
-
     MessageParcel reply;
     MessageOption option;
     uint32_t code = static_cast<uint32_t>(AccountIAMInterfaceCode::GET_CREDENTIAL_INFO);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,13 +14,14 @@
  */
 
 #include "verifycredentialstub_fuzzer.h"
+
 #include <string>
 #include <vector>
-
 #include "account_log_wrapper.h"
 #include "app_account_authenticator_callback_stub.h"
 #include "app_account_manager_service.h"
 #include "iapp_account.h"
+#include "fuzz_data.h"
 
 using namespace std;
 using namespace OHOS::AccountSA;
@@ -39,45 +40,39 @@ bool VerifyCredentialStubFuzzTest(const uint8_t* data, size_t size)
     if ((data == nullptr) || (size == 0)) {
         return false;
     }
-    std::string testName(reinterpret_cast<const char*>(data), size);
-    std::string testOwner(reinterpret_cast<const char*>(data), size);
-    std::string testValue(reinterpret_cast<const char*>(data), size);
+    FuzzData fuzzData(data, size);
+    std::string testName = fuzzData.GenerateRandomString();
+    std::string testOwner = fuzzData.GenerateRandomString();
+    std::string testValue = fuzzData.GenerateRandomString();
     VerifyCredentialOptions options;
     options.credentialType = testValue;
     options.credential = testValue;
     sptr<MockAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
-
     if (callback == nullptr) {
         ACCOUNT_LOGI("AppAccountStub VerifyCredential callback is null");
         return false;
     }
-    
     MessageParcel dataTemp;
     if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
         return false;
     }
-
     if (!dataTemp.WriteString(testName)) {
         return false;
     }
     if (!dataTemp.WriteString(testOwner)) {
         return false;
     }
-    
     if (!dataTemp.WriteParcelable(&options)) {
         return false;
     }
-    
     if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
         return false;
     }
-    
     MessageParcel reply;
     MessageOption option;
     uint32_t code = static_cast<uint32_t>(AppAccountInterfaceCode::VERIFY_CREDENTIAL);
     auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
     appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
-    
     return true;
 }
 }

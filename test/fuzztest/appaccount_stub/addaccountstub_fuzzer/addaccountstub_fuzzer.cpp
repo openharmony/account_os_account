@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,11 +15,12 @@
 
 #include "addaccountstub_fuzzer.h"
 
+#include <string>
+#include <vector>
 #include "account_log_wrapper.h"
 #include "app_account_manager_service.h"
 #include "iapp_account.h"
-#include <string>
-#include <vector>
+#include "fuzz_data.h"
 
 using namespace std;
 using namespace OHOS::AccountSA;
@@ -32,11 +33,12 @@ bool AddAccountStubFuzzTest(const uint8_t* data, size_t size)
         if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
             return false;
         }
-        std::string testName(reinterpret_cast<const char*>(data), size);
+        FuzzData fuzzData(data, size);
+        std::string testName = fuzzData.GenerateRandomString();
         if (!dataTemp.WriteString(testName)) {
             return false;
         }
-        std::string extraInfo(reinterpret_cast<const char*>(data), size);
+        std::string extraInfo = fuzzData.GenerateRandomString();
         if (!dataTemp.WriteString(extraInfo)) {
             return false;
         }

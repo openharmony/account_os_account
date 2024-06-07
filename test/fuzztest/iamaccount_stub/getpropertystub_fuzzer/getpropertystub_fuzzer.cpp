@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,12 +14,14 @@
  */
 
 #include "getpropertystub_fuzzer.h"
+
 #include <string>
 #include <vector>
-#include "account_log_wrapper.h"
-#include "account_iam_service.h"
-#include "account_iam_client.h"
 #include "account_iam_callback_service.h"
+#include "account_iam_client.h"
+#include "account_iam_service.h"
+#include "account_log_wrapper.h"
+#include "fuzz_data.h"
 #include "iaccount_iam.h"
 
 using namespace std;
@@ -41,10 +43,12 @@ bool GetPropertyStubFuzzTest(const uint8_t *data, size_t size)
     if ((data == nullptr) || (size == 0)) {
         return false;
     }
-
-    int32_t userId = static_cast<int32_t>(size);
-    AuthType authType = static_cast<AuthType>(size);
-    std::vector<Attributes::AttributeKey> keys = {static_cast<Attributes::AttributeKey>(size)};
+    FuzzData fuzzData(data, size);
+    int32_t userId = fuzzData.GetData<int32_t>();
+    AuthType authType = static_cast<AuthType>(fuzzData.GenerateRandomEnmu(IAMAuthType::TYPE_END));
+    std::vector<Attributes::AttributeKey> keys = {
+        fuzzData.GenerateRandomEnmu(Attributes::AttributeKey::ATTR_AUTH_INTENTION)
+    };
     GetPropertyRequest request = {
         .authType = authType,
         .keys = keys,
@@ -56,11 +60,9 @@ bool GetPropertyStubFuzzTest(const uint8_t *data, size_t size)
     if (!dataTemp.WriteInterfaceToken(IAMACCOUNT_TOKEN)) {
         return false;
     }
-
     if (!dataTemp.WriteInt32(userId)) {
         return false;
     }
-
     if (!dataTemp.WriteInt32(request.authType)) {
         return false;
     }

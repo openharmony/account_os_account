@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,10 +17,10 @@
 
 #include <string>
 #include <vector>
-
 #define private public
 #include "account_mgr_service.h"
 #undef private
+#include "fuzz_data.h"
 #include "iaccount.h"
 
 using namespace std;
@@ -37,6 +37,22 @@ bool CmdUpdateOhosAccountInfoStubFuzzTest(const uint8_t* data, size_t size)
     }
     MessageParcel dataTemp;
     if (!dataTemp.WriteInterfaceToken(ACCOUNT_TOKEN)) {
+        return false;
+    }
+    FuzzData fuzzData(data, size);
+    std::string accountName = fuzzData.GenerateRandomString();
+    if (!dataTemp.WriteString16(Str8ToStr16(accountName))) {
+        ACCOUNT_LOGE("Write accountName failed!");
+        return false;
+    }
+    std::string uid = fuzzData.GenerateRandomString();
+    if (!dataTemp.WriteString16(Str8ToStr16(uid))) {
+        ACCOUNT_LOGE("Write uid failed!");
+        return false;
+    }
+    std::string eventStr = fuzzData.GenerateRandomString();
+    if (!dataTemp.WriteString16(Str8ToStr16(eventStr))) {
+        ACCOUNT_LOGE("Write eventStr failed!");
         return false;
     }
     MessageParcel reply;
