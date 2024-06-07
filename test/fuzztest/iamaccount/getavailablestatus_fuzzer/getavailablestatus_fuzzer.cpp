@@ -18,6 +18,7 @@
 #include <string>
 #include <vector>
 #include "account_iam_client.h"
+#include "fuzz_data.h"
 
 
 using namespace std;
@@ -26,8 +27,9 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
     bool GetAvailableStatusFuzzTest(const uint8_t* data, size_t size)
     {
-        AuthType authType = static_cast<AuthType>(size);
-        AuthTrustLevel authTrustLevel = static_cast<AuthTrustLevel>(size);
+        FuzzData fuzzData(data, size);
+        AuthType authType = fuzzData.GenerateRandomEnmu(UserIam::UserAuth::RECOVERY_KEY);
+        AuthTrustLevel authTrustLevel = fuzzData.GenerateRandomEnmu(UserIam::UserAuth::ATL4);
         int32_t status;
         int32_t result = AccountIAMClient::GetInstance().GetAvailableStatus(authType, authTrustLevel, status);
         return result == ERR_OK;

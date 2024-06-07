@@ -23,7 +23,7 @@ ohos_fuzztest("OpenSessionFuzzTest") {
 
   fuzz_config_file =
       "${os_account_path}/test/fuzztest/iamaccount/opensession_fuzzer"
-  include_dirs = []
+  include_dirs = [ "${os_account_path}/test/fuzztest/iamaccount/common" ]
   cflags = [
     "-g",
     "-O0",

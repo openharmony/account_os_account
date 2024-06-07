@@ -18,6 +18,7 @@
 #include <string>
 #include <vector>
 #include "account_iam_client.h"
+#include "fuzz_data.h"
 
 
 using namespace std;
@@ -26,8 +27,9 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
     bool SetCredentialFuzzTest(const uint8_t* data, size_t size)
     {
-        int32_t userId = static_cast<int32_t>(size);
-        std::vector<uint8_t> credential = {static_cast<uint8_t>(size)};
+        FuzzData fuzzData(data, size);
+        int32_t userId = fuzzData.GetData<int32_t>();
+        std::vector<uint8_t> credential = {fuzzData.GetData<uint8_t>()};
         AccountIAMClient::GetInstance().SetCredential(userId, credential);
         return false;
     }
