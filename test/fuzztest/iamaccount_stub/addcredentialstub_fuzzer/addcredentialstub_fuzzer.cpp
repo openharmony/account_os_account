@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,12 +14,14 @@
  */
 
 #include "addcredentialstub_fuzzer.h"
+
 #include <string>
 #include <vector>
-#include "account_log_wrapper.h"
-#include "account_iam_service.h"
-#include "account_iam_client.h"
 #include "account_iam_callback_service.h"
+#include "account_iam_client.h"
+#include "account_iam_service.h"
+#include "account_log_wrapper.h"
+#include "fuzz_data.h"
 #include "iaccount_iam.h"
 
 using namespace std;
@@ -47,11 +49,11 @@ bool AddCredentialStubFuzzTest(const uint8_t *data, size_t size)
     if ((data == nullptr) || (size == 0)) {
         return false;
     }
-
-    int32_t userId = static_cast<int32_t>(size);
-    AuthType authType = static_cast<AuthType>(size);
-    std::optional<PinSubType> pinType = {static_cast<PinSubType>(size)};
-    std::vector<uint8_t> token = {static_cast<uint8_t>(size)};
+    FuzzData fuzzData(data, size);
+    int32_t userId = fuzzData.GetData<int32_t>();
+    AuthType authType = static_cast<AuthType>(fuzzData.GenerateRandomEnmu(IAMAuthType::TYPE_END));
+    std::optional<PinSubType> pinType = {fuzzData.GenerateRandomEnmu(PinSubType::PIN_MAX)};
+    std::vector<uint8_t> token = {fuzzData.GetData<uint8_t>()};
     std::shared_ptr<IDMCallback> ptr = make_shared<MockIDMCallback>();
     sptr<IIDMCallback> callback = new (std::nothrow) IDMCallbackService(userId, ptr);
 
@@ -59,11 +61,9 @@ bool AddCredentialStubFuzzTest(const uint8_t *data, size_t size)
     if (!dataTemp.WriteInterfaceToken(IAMACCOUNT_TOKEN)) {
         return false;
     }
-
     if (!dataTemp.WriteInt32(userId)) {
         return false;
     }
-
     if (!dataTemp.WriteInt32(authType)) {
         return false;
     }
@@ -74,11 +74,9 @@ bool AddCredentialStubFuzzTest(const uint8_t *data, size_t size)
     if (!dataTemp.WriteUInt8Vector(token)) {
         return false;
     }
-
     if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
         return false;
     }
-
     MessageParcel reply;
     MessageOption option;
     uint32_t code = static_cast<uint32_t>(AccountIAMInterfaceCode::ADD_CREDENTIAL);

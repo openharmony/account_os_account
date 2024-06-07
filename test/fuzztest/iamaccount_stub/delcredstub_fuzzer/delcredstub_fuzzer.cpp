@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,12 +14,14 @@
  */
 
 #include "delcredstub_fuzzer.h"
+
 #include <string>
 #include <vector>
-#include "account_log_wrapper.h"
-#include "account_iam_service.h"
-#include "account_iam_client.h"
 #include "account_iam_callback_service.h"
+#include "account_iam_client.h"
+#include "account_iam_service.h"
+#include "account_log_wrapper.h"
+#include "fuzz_data.h"
 #include "iaccount_iam.h"
 
 using namespace std;
@@ -45,10 +47,10 @@ bool DelCredStubFuzzTest(const uint8_t *data, size_t size)
     if ((data == nullptr) || (size == 0)) {
         return false;
     }
-
-    int32_t userId = static_cast<int32_t>(size);
-    uint64_t credentialId = static_cast<uint64_t>(size);
-    std::vector<uint8_t> authToken = {static_cast<uint8_t>(size)};
+    FuzzData fuzzData(data, size);
+    int32_t userId = fuzzData.GetData<int32_t>();
+    uint64_t credentialId = fuzzData.GetData<uint64_t>();
+    std::vector<uint8_t> authToken = {fuzzData.GetData<uint8_t>()};
     std::shared_ptr<IDMCallback> ptr = make_shared<MockIDMCallback>();
     sptr<IIDMCallback> callback = new (std::nothrow) IDMCallbackService(userId, ptr);
 
@@ -56,11 +58,9 @@ bool DelCredStubFuzzTest(const uint8_t *data, size_t size)
     if (!dataTemp.WriteInterfaceToken(IAMACCOUNT_TOKEN)) {
         return false;
     }
-
     if (!dataTemp.WriteInt32(userId)) {
         return false;
     }
-
     if (!dataTemp.WriteUint64(credentialId)) {
         return false;
     }
@@ -70,7 +70,6 @@ bool DelCredStubFuzzTest(const uint8_t *data, size_t size)
     if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
         return false;
     }
-
     MessageParcel reply;
     MessageOption option;
     uint32_t code = static_cast<uint32_t>(AccountIAMInterfaceCode::DEL_CRED);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,15 +14,16 @@
  */
 
 #include "subscribeappaccountstub_fuzzer.h"
+
 #include <string>
 #include <vector>
-
 #include "account_log_wrapper.h"
 #include "app_account_event_listener.h"
 #include "app_account_manager_service.h"
 #include "app_account_subscribe_info.h"
 #include "app_account_subscriber.h"
 #include "iapp_account.h"
+#include "fuzz_data.h"
 
 using namespace std;
 using namespace OHOS::AccountSA;
@@ -53,25 +54,23 @@ bool SubscribeAppAccountStubFuzzTest(const uint8_t* data, size_t size)
     if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
         return false;
     }
+    FuzzData fuzzData(data, size);
     AppAccountSubscribeInfo subscribeInfo;
+    subscribeInfo.SetOwners({fuzzData.GenerateRandomString()});
     if (!dataTemp.WriteParcelable(&subscribeInfo)) {
         return false;
     }
-
     std::shared_ptr<AppAccountSubscriberTest> appAccountSubscriberPtr =
         std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
     auto appAccountEventListenerSptr = new (std::nothrow) AppAccountEventListener(appAccountSubscriberPtr);
-    
     if (!dataTemp.WriteRemoteObject(appAccountEventListenerSptr->AsObject())) {
         return false;
     }
-    
     MessageParcel reply;
     MessageOption option;
     uint32_t code = static_cast<uint32_t>(AppAccountInterfaceCode::SUBSCRIBE_ACCOUNT);
     auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
     appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
-    
     return true;
 }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,10 +14,12 @@
  */
 
 #include "cancelauthstub_fuzzer.h"
+
 #include <string>
 #include <vector>
-#include "account_log_wrapper.h"
 #include "account_iam_service.h"
+#include "account_log_wrapper.h"
+#include "fuzz_data.h"
 #include "iaccount_iam.h"
 
 using namespace std;
@@ -29,17 +31,15 @@ bool CancelAuthStubFuzzTest(const uint8_t *data, size_t size)
     if ((data == nullptr) || (size == 0)) {
         return false;
     }
-
     MessageParcel dataTemp;
     if (!dataTemp.WriteInterfaceToken(IAMACCOUNT_TOKEN)) {
         return false;
     }
-
-    uint64_t contextId = static_cast<uint64_t>(size);
+    FuzzData fuzzData(data, size);
+    uint64_t contextId = fuzzData.GetData<uint64_t>();
     if (!dataTemp.WriteUint64(contextId)) {
         return false;
     }
-
     MessageParcel reply;
     MessageOption option;
     uint32_t code = static_cast<uint32_t>(AccountIAMInterfaceCode::CANCEL_AUTH);

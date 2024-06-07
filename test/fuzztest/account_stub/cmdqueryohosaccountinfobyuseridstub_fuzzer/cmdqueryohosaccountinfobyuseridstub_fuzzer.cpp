@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,12 +17,12 @@
 
 #include <string>
 #include <vector>
-#include "src/callbacks.h"
-
 #define private public
 #include "account_mgr_service.h"
 #undef private
+#include "fuzz_data.h"
 #include "iaccount.h"
+#include "src/callbacks.h"
 
 using namespace std;
 using namespace OHOS::AccountSA;
@@ -54,7 +54,8 @@ bool CmdQueryOhosAccountInfoByUserIdStubFuzzTest(const uint8_t* data, size_t siz
         return false;
     }
     MessageParcel dataTemp;
-    int32_t userId = static_cast<int32_t>(size);
+    FuzzData fuzzData(data, size);
+    int32_t userId = fuzzData.GetData<int32_t>();
     if (!dataTemp.WriteInterfaceToken(ACCOUNT_TOKEN)) {
         return false;
     }
