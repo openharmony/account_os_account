@@ -19,6 +19,7 @@
 #include <vector>
 #include "os_account_manager.h"
 #include "account_log_wrapper.h"
+#include "fuzz_data.h"
 #undef private
 #include "os_account_constants.h"
 
@@ -29,9 +30,10 @@ namespace OHOS {
     bool IsOsAccountConstraintEnableFuzzTest(const uint8_t* data, size_t size)
     {
         bool result = false;
-        if (size > 0) {
+        if ((data != nullptr) && (size != 0)) {
+            FuzzData fuzzData(data, size);
             bool isEnable = false;
-            std::string testConstraint(reinterpret_cast<const char*>(data), size);
+            std::string testConstraint(fuzzData.GenerateRandomString());
             result = OsAccountManager::IsOsAccountConstraintEnable(LOCAL_ID, testConstraint, isEnable);
         }
         return result;

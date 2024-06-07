@@ -17,6 +17,7 @@
 
 #include "os_account_manager.h"
 #include "account_log_wrapper.h"
+#include "fuzz_data.h"
 #include "os_account_constants.h"
 #include <cstdint>
 #include <string>
@@ -29,8 +30,12 @@ namespace OHOS {
     bool GetOsAccountTypeFuzzTest(const uint8_t* data, size_t size)
     {
         int32_t result = ERR_OK;
+        if ((data == nullptr) || (size == 0)) {
+            return false;
+        }
+        FuzzData fuzzData(data, size);
         OsAccountType type;
-        int testId = static_cast<int>(size);
+        int32_t testId = fuzzData.GetData<int32_t>();
         result = OsAccountManager::GetOsAccountType(testId, type);
         return result == ERR_OK;
     }

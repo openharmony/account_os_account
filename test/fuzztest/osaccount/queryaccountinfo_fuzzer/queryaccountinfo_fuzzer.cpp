@@ -17,6 +17,7 @@
 
 #include "os_account_manager.h"
 #include "account_log_wrapper.h"
+#include "fuzz_data.h"
 #include "os_account_constants.h"
 #include <cstdint>
 #include <string>
@@ -37,10 +38,11 @@ bool QueryActiveOsAccountIdsFuzzTest(const uint8_t* data, size_t size)
 bool QueryOsAccountConstraintSourceTypesFuzzTest(const uint8_t* data, size_t size)
 {
     int32_t result = ERR_OK;
-    if (size > 0) {
+    if ((data != nullptr) && (size != 0)) {
+        FuzzData fuzzData(data, size);
         std::vector<ConstraintSourceTypeInfo> testConstraintSourceTypeInfos;
-        int testId = static_cast<int>(size);
-        std::string testConstraint(reinterpret_cast<const char*>(data), size);
+        int32_t testId = fuzzData.GetData<int32_t>();
+        std::string testConstraint(fuzzData.GenerateRandomString());
         result = OsAccountManager::QueryOsAccountConstraintSourceTypes(
             testId, testConstraint, testConstraintSourceTypeInfos);
     }
@@ -50,8 +52,9 @@ bool QueryOsAccountConstraintSourceTypesFuzzTest(const uint8_t* data, size_t siz
 bool QueryOsAccountByIdFuzzTest(const uint8_t* data, size_t size)
 {
     int32_t result = ERR_OK;
-    if (size > 0) {
-        int testId = static_cast<int>(size);
+    if ((data != nullptr) && (size != 0)) {
+        FuzzData fuzzData(data, size);
+        int32_t testId = fuzzData.GetData<int32_t>();
         OsAccountInfo osAccountInfo;
         result = OsAccountManager::QueryOsAccountById(testId, osAccountInfo);
     }
@@ -76,8 +79,9 @@ bool QueryMaxLoggedInOsAccountNumberFuzzTest(const uint8_t* data, size_t size)
 bool QueryCurrentOsAccountFuzzTest(const uint8_t* data, size_t size)
 {
     int32_t result = ERR_OK;
-    if (size > 0) {
-        std::string testName(reinterpret_cast<const char*>(data), size);
+    if ((data != nullptr) && (size != 0)) {
+        FuzzData fuzzData(data, size);
+        std::string testName(fuzzData.GenerateRandomString());
         OsAccountInfo osAccountInfo;
         osAccountInfo.SetLocalName(testName);
         result = OsAccountManager::QueryCurrentOsAccount(osAccountInfo);

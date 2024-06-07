@@ -27,11 +27,8 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
     bool GetOsAccountLocalIdFromProcessFuzzTest(const uint8_t* data, size_t size)
     {
-        int32_t result = ERR_OK;
-        if (size > 0) {
-            int testId = static_cast<int>(size);
-            result = OsAccountManager::GetOsAccountLocalIdFromProcess(testId);
-        }
+        int testId = -1;
+        int32_t result = OsAccountManager::GetOsAccountLocalIdFromProcess(testId);
         return result == ERR_OK;
     }
 }
