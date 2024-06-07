@@ -17,6 +17,7 @@
 
 #include "account_log_wrapper.h"
 #include "domain_account_client.h"
+#include "fuzz_data.h"
 #include <string>
 
 using namespace std;
@@ -28,12 +29,13 @@ namespace OHOS {
         if ((data == nullptr) || (size == 0)) {
             return false;
         }
+        FuzzData fuzzData(data, size);
         DomainAccountInfo info;
         DomainServerConfig config;
-        std::string accoutId(reinterpret_cast<const char*>(data), size);
-        std::string accountName(reinterpret_cast<const char*>(data), size);
-        std::string domain(reinterpret_cast<const char*>(data), size);
-        std::string serverConfigId(reinterpret_cast<const char*>(data), size);
+        std::string accoutId(fuzzData.GenerateRandomString());
+        std::string accountName(fuzzData.GenerateRandomString());
+        std::string domain(fuzzData.GenerateRandomString());
+        std::string serverConfigId(fuzzData.GenerateRandomString());
         info.accountId_ = accoutId;
         info.accountName_ = accountName;
         info.domain_ = domain;

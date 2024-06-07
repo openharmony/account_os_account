@@ -15,16 +15,22 @@
 
 #include "setosaccounttoberemoved_fuzzer.h"
 
+#include "fuzz_data.h"
 #include "os_account_manager.h"
 
 using namespace std;
 using namespace OHOS::AccountSA;
-
+const int CONSTANTS_NUMBER_TWO = 2;
 namespace OHOS {
     bool SetOsAccountToBeRemovedFuzzTest(const uint8_t* data, size_t size)
     {
-        int32_t testId = static_cast<int32_t>(size) - 1;
-        return OsAccountManager::SetOsAccountToBeRemoved(testId, size < 1);
+        if ((data == nullptr) && (size == 0)) {
+            return false;
+        }
+        FuzzData fuzzData(data, size);
+        int32_t testId = fuzzData.GetData<int32_t>();
+        bool toBeRemoved = ((fuzzData.GetData<int32_t>() % CONSTANTS_NUMBER_TWO) == 0);
+        return OsAccountManager::SetOsAccountToBeRemoved(testId, toBeRemoved);
     }
 }
 

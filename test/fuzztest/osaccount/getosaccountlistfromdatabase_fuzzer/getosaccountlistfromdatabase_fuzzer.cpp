@@ -19,6 +19,7 @@
 #include <vector>
 #include "os_account_manager.h"
 #include "account_log_wrapper.h"
+#include "fuzz_data.h"
 #undef private
 #include "os_account_constants.h"
 
@@ -28,9 +29,10 @@ namespace OHOS {
     bool GetOsAccountListFromDatabaseFuzzTest(const uint8_t* data, size_t size)
     {
         bool result = false;
-        if (size > 0) {
+        if ((data != nullptr) && (size != 0)) {
+            FuzzData fuzzData(data, size);
             std::vector<OsAccountInfo> TEST_LIST{};
-            std::string randomId(reinterpret_cast<const char*>(data), size);
+            std::string randomId(fuzzData.GenerateRandomString());
             result = OsAccountManager::GetOsAccountListFromDatabase(randomId, TEST_LIST);
         }
         return result;

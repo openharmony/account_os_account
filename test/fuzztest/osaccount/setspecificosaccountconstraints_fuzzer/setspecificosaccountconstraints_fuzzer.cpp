@@ -19,6 +19,7 @@
 #include <vector>
 #include "os_account_manager.h"
 #include "account_log_wrapper.h"
+#include "fuzz_data.h"
 #undef private
 #include "os_account_constants.h"
 
@@ -32,14 +33,15 @@ namespace OHOS {
     bool SetSpecificOsAccountConstraintsFuzzTest(const uint8_t* data, size_t size)
     {
         bool result = false;
-        if (size > 0) {
+        if ((data != nullptr) && (size != 0)) {
+            FuzzData fuzzData(data, size);
             std::vector<std::string> CONSTANTS_VECTOR {
                 "constraint.print",
                 "constraint.screen.timeout.set",
                 "constraint.share.into.profile"
             };
-            bool enable = ((size % CONSTANTS_NUMBER_TWO) == 0);
-            bool isDeviceOwner = ((size % CONSTANTS_NUMBER_THREE) == 0);
+            bool enable = ((fuzzData.GetData<int32_t>() % CONSTANTS_NUMBER_TWO) == 0);
+            bool isDeviceOwner = ((fuzzData.GetData<int32_t>() % CONSTANTS_NUMBER_THREE) == 0);
             result = OsAccountManager::SetSpecificOsAccountConstraints(
                 CONSTANTS_VECTOR, enable, TARGET_ID, ENFORCER_ID, isDeviceOwner);
         }
