@@ -132,7 +132,7 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
     int32_t authedAccountId = 0;
     if (!extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_USER_ID, authedAccountId)) {
         ACCOUNT_LOGE("Get account id from auth result failed");
-        authedAccountId = userId_;
+        authedAccountId = static_cast<int32_t>(userId_);
     }
     ACCOUNT_LOGI("AuthCallback::OnResult, result=%{public}d, accountId = %{public}d", result, authedAccountId);
     InnerAccountIAMManager::GetInstance().SetState(authedAccountId, AFTER_OPEN_SESSION);
