@@ -17,6 +17,7 @@
 
 #include "app_account_manager.h"
 #include "account_log_wrapper.h"
+#include "fuzz_data.h"
 #include <string>
 #include <vector>
 
@@ -30,9 +31,10 @@ namespace OHOS {
     {
         bool result = false;
         if (size > 0) {
-            std::string testName(reinterpret_cast<const char*>(data), size);
-            std::string testAuthType(reinterpret_cast<const char*>(data), size);
-            std::string testBundleName(reinterpret_cast<const char*>(data), size);
+            FuzzData fuzzData(data, size);
+            std::string testName(fuzzData.GenerateRandomString());
+            std::string testAuthType(fuzzData.GenerateRandomString());
+            std::string testBundleName(fuzzData.GenerateRandomString());
             bool isVisible = ((size % CONSTANTS_NUMBER_TWO) == 0);
             result = AppAccountManager::SetAuthTokenVisibility(testName, testAuthType, testBundleName, isVisible);
         }

@@ -18,6 +18,7 @@
 #include <string>
 #include <vector>
 #include "account_iam_client.h"
+#include "fuzz_data.h"
 
 using namespace std;
 using namespace OHOS::AccountSA;
@@ -38,9 +39,10 @@ public:
 namespace OHOS {
     bool DelCredFuzzTest(const uint8_t* data, size_t size)
     {
-        int32_t userId = static_cast<int32_t>(size);
-        uint64_t credentialId = static_cast<uint64_t>(size);
-        std::vector<uint8_t> authToken = {static_cast<uint8_t>(size)};
+        FuzzData fuzzData(data, size);
+        int32_t userId = fuzzData.GetData<int32_t>();
+        uint64_t credentialId = fuzzData.GetData<uint64_t>();
+        std::vector<uint8_t> authToken = {fuzzData.GetData<uint8_t>()};
         std::shared_ptr<IDMCallback> callback = make_shared<MockIDMCallback>();
         AccountIAMClient::GetInstance().DelCred(userId, credentialId, authToken, callback);
         return false;
