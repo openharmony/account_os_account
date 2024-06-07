@@ -242,6 +242,7 @@ ErrCode OhosAccountDataDeal::ParseJsonFromFile(const std::string &filePath, nloh
     if (it != jsonData.end()) {
         if (it->is_string()) {
             avatarData = it->get<std::string>();
+            jsonData[DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR] = avatarData;
         }
     } else {
         ACCOUNT_LOGI("Get avatar from account_avatar.");
