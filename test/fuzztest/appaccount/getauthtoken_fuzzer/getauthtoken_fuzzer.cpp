@@ -19,6 +19,7 @@
 #include <vector>
 #include "app_account_manager.h"
 #include "account_log_wrapper.h"
+#include "fuzz_data.h"
 #undef private
 
 using namespace std;
@@ -29,10 +30,11 @@ namespace OHOS {
     {
         bool result = false;
         if (size > 0) {
-            std::string testName(reinterpret_cast<const char*>(data), size);
-            std::string testOwner(reinterpret_cast<const char*>(data), size);
-            std::string testAuthType(reinterpret_cast<const char*>(data), size);
-            std::string testToken(reinterpret_cast<const char*>(data), size);
+            FuzzData fuzzData(data, size);
+            std::string testName(fuzzData.GenerateRandomString());
+            std::string testOwner(fuzzData.GenerateRandomString());
+            std::string testAuthType(fuzzData.GenerateRandomString());
+            std::string testToken(fuzzData.GenerateRandomString());
             result = AppAccountManager::GetAuthToken(testName, testOwner, testAuthType, testToken);
         }
         return result;

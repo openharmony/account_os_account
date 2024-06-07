@@ -18,6 +18,7 @@
 #include <string>
 #include <vector>
 #include "account_iam_client.h"
+#include "fuzz_data.h"
 
 
 using namespace std;
@@ -35,7 +36,8 @@ public:
 namespace OHOS {
     bool RegisterInputerFuzzTest(const uint8_t* data, size_t size)
     {
-        int32_t authType = static_cast<int32_t>(size);
+        FuzzData fuzzData(data, size);
+        int32_t authType = fuzzData.GetData<int32_t>();
         std::shared_ptr<IInputer> inputer = make_shared<MockIInputer>();
         int32_t result = AccountIAMClient::GetInstance().RegisterInputer(authType, inputer);
         return result == ERR_OK;
