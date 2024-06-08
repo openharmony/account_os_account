@@ -1432,6 +1432,10 @@ ErrCode IInnerOsAccountManager::DeactivateOsAccountByInfo(OsAccountInfo &osAccou
     osAccountInfo.SetIsForeground(false);
     osAccountInfo.SetDisplayId(Constants::INVALID_DISPALY_ID);
     osAccountInfo.SetIsLoggedIn(false);
+    DomainAccountInfo domainAccountInfo;
+    osAccountInfo.GetDomainInfo(domainAccountInfo);
+    domainAccountInfo.status_ = DomainAccountStatus::LOGOUT;
+    osAccountInfo.SetDomainInfo(domainAccountInfo);
     ErrCode errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Update account failed, id=%{public}d, errCode=%{public}d.", osAccountInfo.GetLocalId(), errCode);
