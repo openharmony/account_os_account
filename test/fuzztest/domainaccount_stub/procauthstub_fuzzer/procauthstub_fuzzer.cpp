@@ -21,6 +21,7 @@
 #include "domain_account_callback.h"
 #include "domain_account_callback_service.h"
 #include "domain_account_manager_service.h"
+#include "fuzz_data.h"
 #include "idomain_account.h"
 
 using namespace std;
@@ -46,12 +47,11 @@ public:
             return false;
         }
 
-        std::string accountName(reinterpret_cast<const char*>(data), size);
-        std::string domain(reinterpret_cast<const char*>(data), size);
+        FuzzData fuzzData(data, size);
         std::vector<uint8_t> password;
 
         for (int32_t i = 0; i < PASSWORD_LEN; i++) {
-            uint8_t bit = static_cast<uint8_t>(size);
+            uint8_t bit = fuzzData.GetData<uint8_t>();
             password.emplace_back(bit);
         }
 
@@ -63,10 +63,10 @@ public:
         if (!dataTemp.WriteInterfaceToken(ACCOUNT_TOKEN)) {
             return false;
         }
-        if (!dataTemp.WriteString(accountName)) {
+        if (!dataTemp.WriteString(fuzzData.GenerateRandomString())) {
             return false;
         }
-        if (!dataTemp.WriteString(domain)) {
+        if (!dataTemp.WriteString(fuzzData.GenerateRandomString())) {
             return false;
         }
         if (!dataTemp.WriteUInt8Vector(password)) {

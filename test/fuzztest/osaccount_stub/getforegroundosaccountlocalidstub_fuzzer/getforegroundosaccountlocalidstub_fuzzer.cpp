@@ -18,6 +18,7 @@
 #include <thread>
 #include <vector>
 
+#include "fuzz_data.h"
 #include "ios_account.h"
 #include "os_account_manager_service.h"
 
@@ -28,10 +29,14 @@ namespace OHOS {
 const std::u16string IOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccount";
 void GetForegroundOsAccountLocalIdStubFuzzTest(const uint8_t *data, size_t size)
 {
+    if ((data == nullptr) || (size == 0)) {
+        return;
+    }
     MessageParcel datas;
+    FuzzData fuzzData(data, size);
     datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
 
-    if (!datas.WriteInt32(static_cast<int32_t>(size))) {
+    if (!datas.WriteInt32(fuzzData.GetData<int32_t>())) {
         return;
     }
 

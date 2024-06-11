@@ -15,6 +15,7 @@
 
 #include "setosaccounttoberemovedstub_fuzzer.h"
 
+#include "fuzz_data.h"
 #include "ios_account.h"
 #include "os_account_manager_service.h"
 
@@ -25,13 +26,17 @@ namespace OHOS {
 const std::u16string IOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccount";
 bool SetOsAccountToBeRemovedStubFuzzTest(const uint8_t* data, size_t size)
 {
+    if ((data == nullptr) || (size == 0)) {
+        return false;
+    }
     MessageParcel dataParcel;
+    FuzzData fuzzData(data, size);
     dataParcel.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
-    int32_t testId = static_cast<int32_t>(size) - 1;
+    int32_t testId = fuzzData.GetData<int32_t>() - 1;
     if (!dataParcel.WriteInt32(testId)) {
         return false;
     }
-    if (!dataParcel.WriteBool(size < 1)) {
+    if (!dataParcel.WriteBool(fuzzData.GetData<size_t>() < 1)) {
         return false;
     }
     MessageParcel reply;

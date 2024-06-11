@@ -21,6 +21,7 @@
 #include "domain_account_callback.h"
 #include "domain_account_callback_service.h"
 #include "domain_account_manager_service.h"
+#include "fuzz_data.h"
 #include "idomain_account.h"
 
 using namespace std;
@@ -37,14 +38,11 @@ bool ProcGetAccountServerConfigStubFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
     DomainAccountInfo info;
-    std::string accoutId(reinterpret_cast<const char*>(data), size);
-    std::string accountName(reinterpret_cast<const char*>(data), size);
-    std::string domain(reinterpret_cast<const char*>(data), size);
-    std::string serverConfigId(reinterpret_cast<const char*>(data), size);
-    info.accountId_ = accoutId;
-    info.accountName_ = accountName;
-    info.domain_ = domain;
-    info.serverConfigId_ = serverConfigId;
+    FuzzData fuzzData(data, size);
+    info.accountId_ = fuzzData.GenerateRandomString();
+    info.accountName_ = fuzzData.GenerateRandomString();
+    info.domain_ = fuzzData.GenerateRandomString();
+    info.serverConfigId_ = fuzzData.GenerateRandomString();
     MessageParcel dataTemp;
     if (!dataTemp.WriteInterfaceToken(ACCOUNT_TOKEN)) {
         return false;

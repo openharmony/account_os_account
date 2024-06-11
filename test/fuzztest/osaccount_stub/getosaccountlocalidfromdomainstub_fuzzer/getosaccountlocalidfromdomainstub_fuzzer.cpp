@@ -18,6 +18,7 @@
 #include <thread>
 #include <vector>
 
+#include "fuzz_data.h"
 #include "ios_account.h"
 #include "os_account_manager_service.h"
 
@@ -34,14 +35,12 @@ bool GetOsAccountLocalIdFromDomainStubFuzzTest(const uint8_t *data, size_t size)
 
     MessageParcel datas;
     datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
-
-    std::string domain(reinterpret_cast<const char *>(data), size);
-    if (!datas.WriteString(domain)) {
+    FuzzData fuzzData(data, size);
+    if (!datas.WriteString(fuzzData.GenerateRandomString())) {
         return false;
     }
 
-    std::string accountName(reinterpret_cast<const char *>(data), size);
-    if (!datas.WriteString(accountName)) {
+    if (!datas.WriteString(fuzzData.GenerateRandomString())) {
         return false;
     }
 

@@ -18,6 +18,7 @@
 #include <thread>
 #include <vector>
 
+#include "fuzz_data.h"
 #include "ios_account.h"
 #include "os_account_manager_service.h"
 
@@ -36,6 +37,7 @@ bool SetGlobalOsAccountConstraintsStubFuzzTest(const uint8_t *data, size_t size)
     }
 
     MessageParcel datas;
+    FuzzData fuzzData(data, size);
     datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
 
     if (!datas.WriteInt32(ENFORCER_ID)) {
@@ -49,8 +51,8 @@ bool SetGlobalOsAccountConstraintsStubFuzzTest(const uint8_t *data, size_t size)
     if (!datas.WriteStringVector(constraints)) {
         return false;
     }
-    bool enable = ((size % CONSTANTS_NUMBER_TWO) == 0);
-    bool isDeviceOwner = ((size % CONSTANTS_NUMBER_THREE) == 0);
+    bool enable = ((fuzzData.GetData<size_t>() % CONSTANTS_NUMBER_TWO) == 0);
+    bool isDeviceOwner = ((fuzzData.GetData<size_t>() % CONSTANTS_NUMBER_THREE) == 0);
 
     if (!datas.WriteBool(enable)) {
         return false;
