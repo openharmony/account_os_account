@@ -229,6 +229,7 @@ void AccountMgrService::OnStart()
     }
     AddSystemAbilityListener(STORAGE_MANAGER_MANAGER_ID);
     AddSystemAbilityListener(ABILITY_MGR_SERVICE_ID);
+    AddSystemAbilityListener(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID);
     ACCOUNT_LOGI("AccountMgrService::OnStart start service finished.");
     FinishTraceAdapter();
 
@@ -259,6 +260,16 @@ void AccountMgrService::OnAddSystemAbility(int32_t systemAbilityId, const std::s
         case BUNDLE_MGR_SERVICE_SYS_ABILITY_ID: {
             isBmsReady_ = true;
             break;
+        }
+        case DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID: {
+#ifdef HAS_APP_ACCOUNT_PART
+            auto task = [] { AppAccountControlManager::GetInstance().MoveData(); };
+            std::thread taskThread(task);
+            pthread_setname_np(taskThread.native_handle(), "MoveData");
+            taskThread.detach();
+            ACCOUNT_LOGD("Create thread success, move data to encrypted store");
+#endif
+            return;
         }
         default:
             break;
