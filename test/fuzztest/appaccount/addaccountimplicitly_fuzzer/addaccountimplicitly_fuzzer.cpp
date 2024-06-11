@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,14 +15,14 @@
 
 #include "addaccountimplicitly_fuzzer.h"
 
-#include "app_account_authenticator_callback_stub.h"
-#define private public
-#include "app_account_manager.h"
-#include "account_log_wrapper.h"
-#include "fuzz_data.h"
-#undef private
 #include <string>
 #include <vector>
+#include "account_log_wrapper.h"
+#define private public
+#include "app_account_authenticator_callback_stub.h"
+#include "app_account_manager.h"
+#undef private
+#include "fuzz_data.h"
 #include "want.h"
 
 using namespace std;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,11 +14,13 @@
  */
 
 #include "setoauthtokenstub_fuzzer.h"
+
 #include <string>
 #include <vector>
 #include "account_log_wrapper.h"
 #include "app_account_manager_service.h"
 #include "iapp_account.h"
+#include "fuzz_data.h"
 
 using namespace std;
 using namespace OHOS::AccountSA;
@@ -29,9 +31,10 @@ bool SetOAuthTokenStubFuzzTest(const uint8_t* data, size_t size)
     if ((data == nullptr) || (size == 0)) {
         return false;
     }
-    std::string name(reinterpret_cast<const char*>(data), size);
-    std::string token(reinterpret_cast<const char*>(data), size);
-    std::string authType(reinterpret_cast<const char*>(data), size);
+    FuzzData fuzzData(data, size);
+    std::string name = fuzzData.GenerateRandomString();
+    std::string token = fuzzData.GenerateRandomString();
+    std::string authType = fuzzData.GenerateRandomString();
     MessageParcel dataTemp;
     if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
         return false;
@@ -45,13 +48,11 @@ bool SetOAuthTokenStubFuzzTest(const uint8_t* data, size_t size)
     if (!dataTemp.WriteString(authType)) {
         return false;
     }
-    
     MessageParcel reply;
     MessageOption option;
     uint32_t code = static_cast<uint32_t>(AppAccountInterfaceCode::SET_OAUTH_TOKEN);
     auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
     appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
-    
     return true;
 }
 }

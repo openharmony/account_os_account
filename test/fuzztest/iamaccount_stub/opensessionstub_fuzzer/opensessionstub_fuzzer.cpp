@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,17 +14,19 @@
  */
 
 #include "opensessionstub_fuzzer.h"
+
 #include <string>
 #include <vector>
-
 #include "access_token.h"
 #include "access_token_error.h"
 #include "accesstoken_kit.h"
 #include "account_iam_service.h"
 #include "account_log_wrapper.h"
+#include "fuzz_data.h"
 #include "iaccount_iam.h"
 #include "nativetoken_kit.h"
 #include "token_setproc.h"
+
 using namespace std;
 using namespace OHOS::AccountSA;
 using namespace OHOS::Security::AccessToken;
@@ -34,9 +36,7 @@ void NativeTokenGet()
 {
     uint64_t tokenId;
     const char **perms = new const char *[1];
-    
     perms[0] = "ohos.permission.MANAGE_USER_IDM";
-
     NativeTokenInfoParams infoInstance = {
         .dcapsNum = 0,
         .permsNum = 1,
@@ -57,19 +57,16 @@ bool OpenSessionStubFuzzTest(const uint8_t *data, size_t size)
     if ((data == nullptr) || (size == 0)) {
         return false;
     }
-
     MessageParcel dataTemp;
     if (!dataTemp.WriteInterfaceToken(IAMACCOUNT_TOKEN)) {
         return false;
     }
-
-    int32_t userId = size;
+    FuzzData fuzzData(data, size);
+    int32_t userId = fuzzData.GetData<int32_t>();
     if (!dataTemp.WriteInt32(userId)) {
         return false;
     }
-
     NativeTokenGet();
-
     MessageParcel reply;
     MessageOption option;
     uint32_t code = static_cast<uint32_t>(AccountIAMInterfaceCode::OPEN_SESSION);
