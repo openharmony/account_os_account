@@ -22,6 +22,7 @@
 #include "domain_account_callback_stub.h"
 #include "domain_account_common.h"
 #include "domain_account_manager_service.h"
+#include "fuzz_data.h"
 #include "idomain_account.h"
 
 using namespace std;
@@ -41,8 +42,8 @@ bool ProcSetAuthenticationExpiryThresholdStubFuzzTest(const uint8_t* data, size_
     if (!dataTemp.WriteInterfaceToken(ACCOUNT_TOKEN)) {
         return false;
     }
-
-    if (!dataTemp.WriteInt32(static_cast<int32_t>(size))) {
+    FuzzData fuzzData(data, size);
+    if (!dataTemp.WriteInt32(fuzzData.GetData<int32_t>())) {
         return false;
     }
 

@@ -18,6 +18,7 @@
 #include <thread>
 #include <vector>
 
+#include "fuzz_data.h"
 #include "ios_account.h"
 #include "os_account_manager_service.h"
 
@@ -29,12 +30,16 @@ const std::u16string IOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccount";
 void IsOsAccountForegroundStubFuzzTest(const uint8_t *data, size_t size)
 {
     MessageParcel datas;
-    datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
-
-    if (!datas.WriteInt32(static_cast<int32_t>(size))) {
+    if ((data == nullptr) || (size == 0)) {
         return;
     }
-    if (!datas.WriteInt32(static_cast<int32_t>(size))) {
+    FuzzData fuzzData(data, size);
+    datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
+
+    if (!datas.WriteInt32(fuzzData.GetData<int32_t>())) {
+        return;
+    }
+    if (!datas.WriteInt32(fuzzData.GetData<int32_t>())) {
         return;
     }
 

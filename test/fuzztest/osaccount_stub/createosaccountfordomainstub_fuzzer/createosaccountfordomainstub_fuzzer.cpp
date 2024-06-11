@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "domain_account_callback_service.h"
+#include "fuzz_data.h"
 #include "ios_account.h"
 #include "os_account_manager_service.h"
 
@@ -34,10 +35,10 @@ bool CreateOsAccountForDomainStubFuzzTest(const uint8_t *data, size_t size)
         return false;
     }
 
-    std::string accountName(reinterpret_cast<const char*>(data), size);
-    std::string domain(reinterpret_cast<const char*>(data), size);
-    DomainAccountInfo domainInfo(accountName, domain);
-    OsAccountType testType = static_cast<OsAccountType>(size % CONSTANTS_NUMBER_FIVE);
+    FuzzData fuzzData(data, size);
+    DomainAccountInfo domainInfo(fuzzData.GenerateRandomString(),
+        fuzzData.GenerateRandomString());
+    OsAccountType testType = static_cast<OsAccountType>(fuzzData.GetData<size_t>() % CONSTANTS_NUMBER_FIVE);
     MessageParcel datas;
     datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
 

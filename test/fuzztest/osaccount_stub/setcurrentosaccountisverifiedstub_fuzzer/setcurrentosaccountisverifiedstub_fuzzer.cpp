@@ -18,6 +18,7 @@
 #include <thread>
 #include <vector>
 
+#include "fuzz_data.h"
 #include "ios_account.h"
 #include "os_account_manager_service.h"
 
@@ -31,8 +32,8 @@ bool SetCurrentOsAccountIsVerifiedStubFuzzTest(const uint8_t *data, size_t size)
     if ((data == nullptr) || (size == 0)) {
         return false;
     }
-
-    bool testIsVerified = (size % TEST_IS_VERIFIED_NUM) == 0;
+    FuzzData fuzzData(data, size);
+    bool testIsVerified = (fuzzData.GetData<size_t>() % TEST_IS_VERIFIED_NUM) == 0;
 
     MessageParcel datas;
     datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
