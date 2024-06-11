@@ -696,7 +696,7 @@ ErrCode OsAccountStub::ProcSetOsAccountProfilePhoto(MessageParcel &data, Message
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
 
-    if (photoSize - 1 > Constants::LOCAL_PHOTO_MAX_SIZE || photoSize < 1) {
+    if (photoSize - 1 > static_cast<int32_t>(Constants::LOCAL_PHOTO_MAX_SIZE) || photoSize < 1) {
         ACCOUNT_LOGE("PhotoSize is invalid, photosize = %{public}d", photoSize);
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
