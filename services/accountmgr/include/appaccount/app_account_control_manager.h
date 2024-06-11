@@ -107,9 +107,10 @@ public:
         DistributedKv::SecurityLevel securityLevel = DistributedKv::SecurityLevel::S1);
 
     void OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData);
+    void MoveData();
 
 private:
-    AppAccountControlManager();
+    AppAccountControlManager() = default;
     ~AppAccountControlManager() = default;
     DISALLOW_COPY_AND_MOVE(AppAccountControlManager);
     bool RegisterApplicationStateObserver();
@@ -139,7 +140,6 @@ private:
         const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
     ErrCode RemoveAuthorizedAccountFromDataStorage(const std::string &authorizedApp, AppAccountInfo &appAccountInfo,
         const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
-    void MoveData();
 
 private:
     std::mutex mutex_;
