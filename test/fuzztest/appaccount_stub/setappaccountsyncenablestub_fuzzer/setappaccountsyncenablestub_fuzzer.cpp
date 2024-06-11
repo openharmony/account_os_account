@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,11 +15,12 @@
 
 #include "setappaccountsyncenablestub_fuzzer.h"
 
+#include <string>
+#include <vector>
 #include "account_log_wrapper.h"
 #include "app_account_manager_service.h"
 #include "iapp_account.h"
-#include <string>
-#include <vector>
+#include "fuzz_data.h"
 
 using namespace std;
 using namespace OHOS::AccountSA;
@@ -30,7 +31,8 @@ bool SetAppAccountSyncEnableStubFuzzTest(const uint8_t* data, size_t size)
     if ((data == nullptr) || (size == 0)) {
         return false;
     }
-    std::string name(reinterpret_cast<const char*>(data), size);
+    FuzzData fuzzData(data, size);
+    std::string name = fuzzData.GenerateRandomString();
     MessageParcel dataTemp;
     if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
         return false;
@@ -38,17 +40,15 @@ bool SetAppAccountSyncEnableStubFuzzTest(const uint8_t* data, size_t size)
     if (!dataTemp.WriteString(name)) {
         return false;
     }
-    bool syncEnable = true;
+    bool syncEnable = fuzzData.GenerateRandomBool();
     if (!dataTemp.WriteBool(syncEnable)) {
         return false;
     }
-
     MessageParcel reply;
     MessageOption option;
     uint32_t code = static_cast<uint32_t>(AppAccountInterfaceCode::SET_APP_ACCOUNT_SYNC_ENABLE);
     auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
     appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
-    
     return true;
 }
 }

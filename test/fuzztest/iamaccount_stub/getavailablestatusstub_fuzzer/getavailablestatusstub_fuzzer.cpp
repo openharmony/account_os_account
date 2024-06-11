@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,14 +14,15 @@
  */
 
 #include "getavailablestatusstub_fuzzer.h"
+
 #include <string>
 #include <vector>
-
 #include "access_token.h"
 #include "access_token_error.h"
 #include "accesstoken_kit.h"
 #include "account_iam_service.h"
 #include "account_log_wrapper.h"
+#include "fuzz_data.h"
 #include "iaccount_iam.h"
 #include "nativetoken_kit.h"
 #include "token_setproc.h"
@@ -36,7 +37,7 @@ void NativeTokenGet()
 {
     uint64_t tokenId;
     const char **perms = new const char *[1];
-    
+
     perms[0] = "ohos.permission.ACCESS_USER_AUTH_INTERNAL";
 
     NativeTokenInfoParams infoInstance = {
@@ -59,24 +60,20 @@ bool GetAvailableStatusStubFuzzTest(const uint8_t *data, size_t size)
     if ((data == nullptr) || (size == 0)) {
         return false;
     }
-
-    AuthType authType = static_cast<AuthType>(size);
-    AuthTrustLevel authTrustLevel = static_cast<AuthTrustLevel>(size);
-
+    FuzzData fuzzData(data, size);
+    AuthType authType = static_cast<AuthType>(fuzzData.GenerateRandomEnmu(IAMAuthType::TYPE_END));
+    AuthTrustLevel authTrustLevel = fuzzData.GenerateRandomEnmu(AuthTrustLevel::ATL4);
     MessageParcel dataTemp;
     if (!dataTemp.WriteInterfaceToken(IAMACCOUNT_TOKEN)) {
         return false;
     }
-
     if (!dataTemp.WriteInt32(authType)) {
         return false;
     }
     if (!dataTemp.WriteUint32(authTrustLevel)) {
         return false;
     }
-
     NativeTokenGet();
-
     MessageParcel reply;
     MessageOption option;
     uint32_t code = static_cast<uint32_t>(AccountIAMInterfaceCode::GET_AVAILABLE_STATUS);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,6 +21,7 @@
 #define private public
 #include "account_mgr_service.h"
 #undef private
+#include "fuzz_data.h"
 #include "iaccount.h"
 
 using namespace std;
@@ -29,6 +30,42 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace {
 const std::u16string ACCOUNT_TOKEN = u"ohos.accountfwk.IAccount";
+bool WriteOhosAccountInfo(MessageParcel &data, const OhosAccountInfo &ohosAccountInfo)
+{
+    if (!data.WriteString16(Str8ToStr16(ohosAccountInfo.name_))) {
+        ACCOUNT_LOGE("write name failed!");
+        return false;
+    }
+    if (!data.WriteString16(Str8ToStr16(ohosAccountInfo.uid_))) {
+        ACCOUNT_LOGE("write uid failed!");
+        return false;
+    }
+    if (!data.WriteString16(Str8ToStr16(ohosAccountInfo.GetRawUid()))) {
+        ACCOUNT_LOGE("write rawUid failed!");
+        return false;
+    }
+    if (!data.WriteInt32(ohosAccountInfo.status_)) {
+        ACCOUNT_LOGE("write status failed!");
+        return false;
+    }
+    if (!data.WriteString16(Str8ToStr16(ohosAccountInfo.nickname_))) {
+        ACCOUNT_LOGE("write nickname failed!");
+        return false;
+    }
+    if (!data.WriteInt32(ohosAccountInfo.avatar_.size() + 1)) {
+        ACCOUNT_LOGE("write avatarSize failed!");
+        return false;
+    }
+    if (!data.WriteRawData(ohosAccountInfo.avatar_.c_str(), ohosAccountInfo.avatar_.size() + 1)) {
+        ACCOUNT_LOGE("write avatar failed!");
+        return false;
+    }
+    if (!data.WriteParcelable(&(ohosAccountInfo.scalableData_))) {
+        ACCOUNT_LOGE("write scalableData failed!");
+        return false;
+    }
+    return true;
+}
 }
 bool CmdSetOhosAccountInfoStubFuzzTest(const uint8_t* data, size_t size)
 {
@@ -37,6 +74,23 @@ bool CmdSetOhosAccountInfoStubFuzzTest(const uint8_t* data, size_t size)
     }
     MessageParcel dataTemp;
     if (!dataTemp.WriteInterfaceToken(ACCOUNT_TOKEN)) {
+        return false;
+    }
+    FuzzData fuzzData(data, size);
+    OhosAccountInfo ohosAccountInfo;
+    ohosAccountInfo.name_ = fuzzData.GenerateRandomString();
+    ohosAccountInfo.uid_ = fuzzData.GenerateRandomString();
+    ohosAccountInfo.status_ = fuzzData.GetData<int32_t>();
+    ohosAccountInfo.callingUid_ = fuzzData.GetData<int32_t>();
+    ohosAccountInfo.nickname_ = fuzzData.GenerateRandomString();
+    ohosAccountInfo.avatar_ = fuzzData.GenerateRandomString();
+    if (!WriteOhosAccountInfo(dataTemp, ohosAccountInfo)) {
+        ACCOUNT_LOGE("Write ohosAccountInfo failed!");
+        return false;
+    }
+    std::string eventStr = fuzzData.GenerateRandomString();
+    if (!dataTemp.WriteString16(Str8ToStr16(eventStr))) {
+        ACCOUNT_LOGE("Write eventStr failed!");
         return false;
     }
     MessageParcel reply;

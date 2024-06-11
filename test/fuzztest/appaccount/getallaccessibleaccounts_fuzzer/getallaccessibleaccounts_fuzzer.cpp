@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,14 +15,14 @@
 
 #include "getallaccessibleaccounts_fuzzer.h"
 
-#define private public
-#include "app_account_manager.h"
-#include "app_account_info.h"
-#include "account_log_wrapper.h"
-#include "fuzz_data.h"
-#undef private
 #include <string>
 #include <vector>
+#define private public
+#include "account_log_wrapper.h"
+#include "app_account_info.h"
+#include "app_account_manager.h"
+#undef private
+#include "fuzz_data.h"
 
 using namespace std;
 using namespace OHOS::AccountSA;
