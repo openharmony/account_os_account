@@ -19,6 +19,7 @@
 #include "app_account_manager.h"
 #include "app_account_info.h"
 #include "account_log_wrapper.h"
+#include "fuzz_data.h"
 #undef private
 #include <string>
 #include <vector>
@@ -31,7 +32,8 @@ namespace OHOS {
     {
         bool result = false;
         if (size > 0) {
-            std::string testOwner(reinterpret_cast<const char*>(data), size);
+            FuzzData fuzzData(data, size);
+            std::string testOwner(fuzzData.GenerateRandomString());
             std::vector<AppAccountInfo> appAccounts;
             AppAccountInfo appAccount;
             appAccount.owner_ = testOwner;

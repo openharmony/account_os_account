@@ -18,6 +18,7 @@
 #include <string>
 #include <vector>
 #include "account_iam_client.h"
+#include "fuzz_data.h"
 
 
 using namespace std;
@@ -35,9 +36,11 @@ public:
 namespace OHOS {
     bool GetPropertyFuzzTest(const uint8_t* data, size_t size)
     {
-        int32_t userId = static_cast<int32_t>(size);
-        AuthType authType = static_cast<AuthType>(size);
-        std::vector<Attributes::AttributeKey> keys = {static_cast<Attributes::AttributeKey>(size)};
+        FuzzData fuzzData(data, size);
+        int32_t userId = fuzzData.GetData<int32_t>();
+        AuthType authType = fuzzData.GenerateRandomEnmu(UserIam::UserAuth::RECOVERY_KEY);
+        std::vector<Attributes::AttributeKey> keys = {
+            fuzzData.GenerateRandomEnmu(UserIam::UserAuth::Attributes::ATTR_AUTH_INTENTION)};
         GetPropertyRequest request = {
             .authType = authType,
             .keys = keys,

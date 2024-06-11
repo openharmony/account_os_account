@@ -21,6 +21,7 @@
 #include "domain_account_callback.h"
 #include "domain_account_callback_service.h"
 #include "domain_account_manager_service.h"
+#include "fuzz_data.h"
 #include "idomain_account.h"
 
 using namespace std;
@@ -36,12 +37,12 @@ bool ProcRemoveServerConfigStubFuzzTest(const uint8_t* data, size_t size)
     if ((data == nullptr) || (size == 0)) {
         return false;
     }
-    std::string serverConfigId(reinterpret_cast<const char*>(data), size);
     MessageParcel dataTemp;
+    FuzzData fuzzData(data, size);
     if (!dataTemp.WriteInterfaceToken(ACCOUNT_TOKEN)) {
         return false;
     }
-    if (!dataTemp.WriteString(serverConfigId)) {
+    if (!dataTemp.WriteString(fuzzData.GenerateRandomString())) {
         return false;
     }
     MessageParcel reply;

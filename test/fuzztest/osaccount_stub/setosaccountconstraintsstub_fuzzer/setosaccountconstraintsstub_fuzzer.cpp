@@ -18,6 +18,7 @@
 #include <thread>
 #include <vector>
 
+#include "fuzz_data.h"
 #include "ios_account.h"
 #include "os_account_manager_service.h"
 
@@ -31,8 +32,11 @@ const std::u16string IOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccount";
 bool SetOsAccountConstraintsStubFuzzTest(const uint8_t *data, size_t size)
 {
     MessageParcel datas;
-    if ((data == nullptr) || (size == 0) || (!datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR)) ||
-        (!datas.WriteInt32(static_cast<int32_t>(size)))) {
+    if ((data == nullptr) || (size == 0) || (!datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR))) {
+        return false;
+    }
+    FuzzData fuzzData(data, size);
+    if (!datas.WriteInt32(fuzzData.GetData<int32_t>())) {
         return false;
     }
     std::vector<std::string> constraints {
@@ -40,12 +44,11 @@ bool SetOsAccountConstraintsStubFuzzTest(const uint8_t *data, size_t size)
         "constraint.screen.timeout.set",
         "constraint.share.into.profile"
     };
-    int temp = size % CONSTANTS_NUMBER_THREE;
-    std::string testConstraint(reinterpret_cast<const char*>(data), size);
+    int temp = fuzzData.GetData<size_t>() % CONSTANTS_NUMBER_THREE;
     if (!temp) {
-        constraints.push_back(testConstraint);
+        constraints.push_back(fuzzData.GenerateRandomString());
     }
-    bool enable = ((size % CONSTANTS_NUMBER_TWO) == 0);
+    bool enable = ((fuzzData.GetData<size_t>() % CONSTANTS_NUMBER_TWO) == 0);
     if (!datas.WriteStringVector(constraints)) {
         return false;
     }

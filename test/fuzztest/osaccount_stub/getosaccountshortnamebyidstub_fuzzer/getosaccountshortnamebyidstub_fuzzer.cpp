@@ -18,6 +18,7 @@
 #include <thread>
 #include <vector>
 
+#include "fuzz_data.h"
 #include "ios_account.h"
 #include "os_account_manager_service.h"
 
@@ -34,8 +35,8 @@ bool GetOsAccountShortNameByIdStubFuzzTest(const uint8_t *data, size_t size)
 
     MessageParcel datas;
     datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
-
-    if (!datas.WriteInt32(static_cast<int32_t>(size))) {
+    FuzzData fuzzData(data, size);
+    if (!datas.WriteInt32(fuzzData.GetData<int32_t>())) {
         return false;
     }
 

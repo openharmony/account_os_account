@@ -19,6 +19,7 @@
 #include <vector>
 #include "os_account_manager.h"
 #include "account_log_wrapper.h"
+#include "fuzz_data.h"
 #undef private
 #include "os_account_constants.h"
 #include "securec.h"
@@ -51,24 +52,22 @@ template <class T> T GetData()
 bool CreateOsAccountWithShortNameFuzzTest(const uint8_t* data, size_t size)
 {
     bool result = false;
-    if (size > 0) {
+    if ((data != nullptr) && (size != 0)) {
+        FuzzData fuzzData(data, size);
         OsAccountInfo osAccountInfoOne;
-        OsAccountType testType = static_cast<OsAccountType>(size % CONSTANTS_NUMBER_FIVE);
-        std::string accountName(reinterpret_cast<const char*>(data), size);
-        std::string shortName(reinterpret_cast<const char*>(data), size);
+        OsAccountType testType = static_cast<OsAccountType>(fuzzData.GetData<uint32_t>() % CONSTANTS_NUMBER_FIVE);
+        std::string accountName(fuzzData.GenerateRandomString());
+        std::string shortName(fuzzData.GenerateRandomString());
         result = OsAccountManager::CreateOsAccount(accountName, shortName, testType, osAccountInfoOne);
         if (result == ERR_OK) {
             ACCOUNT_LOGI("CreateOsAccountWithShortNameFuzzTest RemoveOsAccount");
             OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
         }
-        g_baseFuzzData = data;
-        g_baseFuzzSize = size;
-        g_baseFuzzPos = 0;
-        uint32_t listSize = GetData<uint32_t>();
+        uint32_t listSize = fuzzData.GetData<uint32_t>();
         CreateOsAccountOptions options;
         for (uint32_t i = 0; i < listSize % LIST_NUMBER_LIMIT; i++) {
-            uint32_t hapNameSize = GetData<uint32_t>();
-            std::string hapName(reinterpret_cast<const char*>(data), (hapNameSize % size) % HAP_NAME_LENGTH_LIMIT);
+            uint32_t hapNameSize = fuzzData.GetData<uint32_t>();
+            std::string hapName(fuzzData.GetStringFromData(0, hapNameSize % HAP_NAME_LENGTH_LIMIT));
             options.disallowedHapList.push_back(hapName);
         }
         result = OsAccountManager::CreateOsAccount(accountName, shortName, testType, options, osAccountInfoOne);
@@ -83,10 +82,11 @@ bool CreateOsAccountWithShortNameFuzzTest(const uint8_t* data, size_t size)
 bool CreateOsAccountFuzzTest(const uint8_t* data, size_t size)
 {
     bool result = false;
-    if (size > 0) {
+    if ((data != nullptr) && (size != 0)) {
+        FuzzData fuzzData(data, size);
         OsAccountInfo osAccountInfoOne;
-        OsAccountType testType = static_cast<OsAccountType>(size % CONSTANTS_NUMBER_FIVE);
-        std::string accountName(reinterpret_cast<const char*>(data), size);
+        OsAccountType testType = static_cast<OsAccountType>(fuzzData.GetData<uint32_t>() % CONSTANTS_NUMBER_FIVE);
+        std::string accountName(fuzzData.GenerateRandomString());
         result = OsAccountManager::CreateOsAccount(accountName, testType, osAccountInfoOne);
         if (result == ERR_OK) {
             ACCOUNT_LOGI("CreateOsAccountFuzzTest RemoveOsAccount");
@@ -99,11 +99,12 @@ bool CreateOsAccountFuzzTest(const uint8_t* data, size_t size)
 bool CreateOsAccountForDomainFuzzTest(const uint8_t* data, size_t size)
 {
     bool result = false;
-    if (size > 0) {
-        std::string accountName(reinterpret_cast<const char*>(data), size);
-        std::string domain(reinterpret_cast<const char*>(data), size);
+    if ((data != nullptr) && (size != 0)) {
+        FuzzData fuzzData(data, size);
+        std::string accountName(fuzzData.GenerateRandomString());
+        std::string domain(fuzzData.GenerateRandomString());
         DomainAccountInfo domainInfo(accountName, domain);
-        OsAccountType testType = static_cast<OsAccountType>(size % CONSTANTS_NUMBER_FIVE);
+        OsAccountType testType = static_cast<OsAccountType>(fuzzData.GetData<uint32_t>() % CONSTANTS_NUMBER_FIVE);
         OsAccountInfo osAccountInfo;
         result = OsAccountManager::CreateOsAccountForDomain(testType, domainInfo, nullptr);
         if (result == ERR_OK) {
