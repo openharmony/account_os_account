@@ -167,18 +167,3 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_CmdQueryOhosAccountInfoByU
     EXPECT_EQ(accountServie_->CmdGetOhosAccountInfoByUserId(data, reply), ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     setuid(ROOT_UID);
 }
-
-/**
- * @tc.name: AccountStubModuleTest_CmdQueryOhosQuitTips_001
- * @tc.desc: CmdQueryOhosQuitTips permission error.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_CmdQueryOhosQuitTips_001, TestSize.Level0)
-{
-    setuid(TEST_UID);
-    MessageParcel data;
-    MessageParcel reply;
-    EXPECT_EQ(accountServie_->CmdQueryOhosQuitTips(data, reply), ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
-    setuid(ROOT_UID);
-}
