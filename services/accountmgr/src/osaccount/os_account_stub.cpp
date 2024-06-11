@@ -20,6 +20,7 @@
 #include "idomain_account_callback.h"
 #include "ipc_skeleton.h"
 #include "memory_guard.h"
+#include "os_account_constants.h"
 #ifdef HICOLLIE_ENABLE
 #include "xcollie/xcollie.h"
 #endif // HICOLLIE_ENABLE
@@ -685,10 +686,26 @@ ErrCode OsAccountStub::ProcSetOsAccountProfilePhoto(MessageParcel &data, Message
 {
     int32_t localId;
     if (!data.ReadInt32(localId)) {
-        ACCOUNT_LOGE("failed to read localId");
+        ACCOUNT_LOGE("Failed to read localId");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    std::string photo = data.ReadString();
+
+    int32_t photoSize;
+    if (!data.ReadInt32(photoSize)) {
+        ACCOUNT_LOGE("Failed to read photoSize");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+
+    if (photoSize - 1 > static_cast<int32_t>(Constants::LOCAL_PHOTO_MAX_SIZE) || photoSize < 1) {
+        ACCOUNT_LOGE("PhotoSize is invalid, photosize = %{public}d", photoSize);
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    const char *photoData = reinterpret_cast<const char *>(data.ReadRawData(photoSize));
+    if (photoData == nullptr) {
+        ACCOUNT_LOGE("Failed to read photoData");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    std::string photo = std::string(photoData, photoSize - 1);
     ErrCode result = SetOsAccountProfilePhoto(localId, photo);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
@@ -840,8 +857,12 @@ ErrCode OsAccountStub::ProcGetOsAccountProfilePhoto(MessageParcel &data, Message
         ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-    if (!reply.WriteString(photo)) {
-        ACCOUNT_LOGE("failed to write reply");
+    if (!reply.WriteInt32(photo.size() + 1)) {
+        ACCOUNT_LOGE("Failed to write photo");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteRawData(photo.c_str(), photo.size() + 1)) {
+        ACCOUNT_LOGE("Failed to write photo");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     return ERR_NONE;

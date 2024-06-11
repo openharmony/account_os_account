@@ -19,6 +19,7 @@
 #include <vector>
 #include "os_account_manager.h"
 #include "account_log_wrapper.h"
+#include "fuzz_data.h"
 #undef private
 #include "os_account_constants.h"
 
@@ -29,9 +30,10 @@ namespace OHOS {
     bool GetOsAccountLocalIdBySerialNumberFuzzTest(const uint8_t* data, size_t size)
     {
         bool result = false;
-        if (size > 0) {
+        if ((data != nullptr) && (size != 0)) {
+            FuzzData fuzzData(data, size);
             int id = -1;
-            result = OsAccountManager::GetOsAccountLocalIdBySerialNumber((int64_t)size, id);
+            result = OsAccountManager::GetOsAccountLocalIdBySerialNumber(fuzzData.GetData<int64_t>(), id);
         }
         return result;
     }

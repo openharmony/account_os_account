@@ -19,6 +19,7 @@
 #include <vector>
 #include "os_account_manager.h"
 #include "account_log_wrapper.h"
+#include "fuzz_data.h"
 #undef private
 #include "os_account_constants.h"
 
@@ -28,9 +29,10 @@ namespace OHOS {
     bool GetOsAccountLocalIdFromDomainFuzzTest(const uint8_t* data, size_t size)
     {
         bool result = false;
-        if (size > 0) {
-            std::string accountName(reinterpret_cast<const char*>(data), size);
-            std::string domain(reinterpret_cast<const char*>(data), size);
+        if ((data != nullptr) && (size != 0)) {
+            FuzzData fuzzData(data, size);
+            std::string accountName(fuzzData.GenerateRandomString());
+            std::string domain(fuzzData.GenerateRandomString());
             DomainAccountInfo domainInfo(accountName, domain);
             int resID = -1;
             result = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, resID);

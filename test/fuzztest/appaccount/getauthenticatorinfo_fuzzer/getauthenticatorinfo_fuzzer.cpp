@@ -18,6 +18,7 @@
 #include "app_account_manager.h"
 #include "app_account_common.h"
 #include "account_log_wrapper.h"
+#include "fuzz_data.h"
 #include <string>
 #include <vector>
 
@@ -29,7 +30,8 @@ namespace OHOS {
     {
         bool result = false;
         if (size > 0) {
-            std::string testOwner(reinterpret_cast<const char*>(data), size);
+            FuzzData fuzzData(data, size);
+            std::string testOwner(fuzzData.GenerateRandomString());
             AuthenticatorInfo testInfo;
             testInfo.owner = testOwner;
             result = AppAccountManager::GetAuthenticatorInfo(testOwner, testInfo);

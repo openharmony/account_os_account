@@ -18,6 +18,7 @@
 #include "account_proxy.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
+#include "fuzz_data.h"
 #include "ohos_account_kits.h"
 #include <string>
 #include <vector>
@@ -26,18 +27,24 @@ using namespace std;
 using namespace OHOS::AccountSA;
 
 namespace OHOS {
-    bool SetOhosAccountInfoFuzzTest(const uint8_t* data, size_t size)
-    {
-        int32_t result = ERR_OK;
-        if (size > 0) {
-            std::string testName(reinterpret_cast<const char*>(data), size);
-            std::string testEventStr(reinterpret_cast<const char*>(data), size);
-            OhosAccountInfo testOhosAccountInfo;
-            testOhosAccountInfo.name_ = testName;
-            result = OhosAccountKits::GetInstance().SetOhosAccountInfo(testOhosAccountInfo, testEventStr);
-        }
-        return result == ERR_OK;
+namespace {
+static constexpr uint32_t OHOS_ACCOUNT_STATE_NUM = 5;
+}
+bool SetOhosAccountInfoFuzzTest(const uint8_t* data, size_t size)
+{
+    int32_t result = ERR_OK;
+    if ((data != nullptr) && (size != 0)) {
+        FuzzData fuzzData(data, size);
+        OhosAccountInfo testOhosAccountInfo(
+            fuzzData.GenerateRandomString(),
+            fuzzData.GenerateRandomString(),
+            fuzzData.GetData<int32_t>() % OHOS_ACCOUNT_STATE_NUM - 1
+        );
+        std::string testEventStr(fuzzData.GenerateRandomString());
+        result = OhosAccountKits::GetInstance().SetOhosAccountInfo(testOhosAccountInfo, testEventStr);
     }
+    return result == ERR_OK;
+}
 }
 
 /* Fuzzer entry point */

@@ -31,6 +31,7 @@ ohos_fuzztest("ProcAddServerConfigStubFuzzTest") {
     "${os_account_path}/dfx/hidumper_adapter",
     "${os_account_path}/dfx/hitrace_adapter",
     "${services_path}/accountmgr/include",
+    "${os_account_path}/test/fuzztest/domainaccount_stub/common",
   ]
   cflags = [
     "-g",

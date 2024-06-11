@@ -21,6 +21,7 @@
 #include "domain_account_manager_service.h"
 #include "domain_account_callback.h"
 #include "domain_account_callback_service.h"
+#include "fuzz_data.h"
 #include "idomain_account.h"
 
 using namespace std;
@@ -45,7 +46,8 @@ public:
             return false;
         }
 
-        int32_t userId = static_cast<int32_t>(size);
+        FuzzData fuzzData(data, size);
+        int32_t userId = fuzzData.GetData<int32_t>();
 
         auto callbackPtr = std::make_shared<TestDomainAuthCallback>();
         sptr<IDomainAccountCallback> callback = new (std::nothrow) DomainAccountCallbackService(callbackPtr);

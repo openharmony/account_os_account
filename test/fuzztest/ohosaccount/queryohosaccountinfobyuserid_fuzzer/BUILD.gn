@@ -25,6 +25,7 @@ ohos_fuzztest("QueryOhosAccountInfoByUserIdFuzzTest") {
   include_dirs = [
     "${innerkits_native_path}/include",
     "${innerkits_path}/include",
+    "${os_account_path}/test/fuzztest/ohosaccount/common",
   ]
   cflags = [
     "-g",

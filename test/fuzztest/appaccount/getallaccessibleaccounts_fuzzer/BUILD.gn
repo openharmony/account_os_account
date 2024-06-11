@@ -22,7 +22,7 @@ ohos_fuzztest("GetAllAccessibleAccountsFuzzTest") {
   module_out_path = fuzz_output_path
 
   fuzz_config_file = "${os_account_path}/test/fuzztest/appaccount/getallaccessibleaccounts_fuzzer"
-  include_dirs = []
+  include_dirs = [ "${os_account_path}/test/fuzztest/appaccount/common" ]
   cflags = [
     "-g",
     "-O0",

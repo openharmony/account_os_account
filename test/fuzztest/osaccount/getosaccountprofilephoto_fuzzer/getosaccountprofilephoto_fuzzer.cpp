@@ -17,6 +17,7 @@
 
 #include "os_account_manager.h"
 #include "account_log_wrapper.h"
+#include "fuzz_data.h"
 #include "os_account_constants.h"
 #include <string>
 #include <vector>
@@ -28,8 +29,9 @@ namespace OHOS {
     bool GetOsAccountProfilePhotoFuzzTest(const uint8_t* data, size_t size)
     {
         int32_t result = ERR_OK;
-        if (size > 0) {
-            int testId = static_cast<int>(size);
+        if ((data != nullptr) && (size != 0)) {
+            FuzzData fuzzData(data, size);
+            int32_t testId = fuzzData.GetData<int32_t>();
             std::string testPhoto;
             result = OsAccountManager::GetOsAccountProfilePhoto(testId, testPhoto);
         }

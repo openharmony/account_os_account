@@ -18,6 +18,7 @@
 #include <thread>
 #include <vector>
 
+#include "fuzz_data.h"
 #include "ios_account.h"
 #include "os_account_manager_service.h"
 
@@ -25,26 +26,25 @@ using namespace std;
 using namespace OHOS::AccountSA;
 
 namespace OHOS {
+const int CONSTANTS_NUMBER_FIVE = 5;
 const std::u16string IOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccount";
 bool ProcCreateOsAccountWithShortNameStubFuzzTest(const uint8_t *data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
         return false;
     }
-
-    std::string localName(reinterpret_cast<const char *>(data), size);
-    std::string shortName(reinterpret_cast<const char *>(data), size);
-
+    FuzzData fuzzData(data, size);
     MessageParcel datas;
     datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
 
-    if (!datas.WriteString(localName)) {
+    if (!datas.WriteString(fuzzData.GenerateRandomString())) {
         return false;
     }
-    if (!datas.WriteString(shortName)) {
+    if (!datas.WriteString(fuzzData.GenerateRandomString())) {
         return false;
     }
-    if (!datas.WriteInt32(OsAccountType::GUEST)) {
+    OsAccountType testType = static_cast<OsAccountType>(fuzzData.GetData<size_t>() % CONSTANTS_NUMBER_FIVE);
+    if (!datas.WriteInt32(testType)) {
         return false;
     }
 

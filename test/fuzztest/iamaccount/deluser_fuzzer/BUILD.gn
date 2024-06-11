@@ -23,7 +23,7 @@ ohos_fuzztest("DelUserFuzzTest") {
 
   fuzz_config_file =
       "${os_account_path}/test/fuzztest/iamaccount/deluser_fuzzer"
-  include_dirs = []
+  include_dirs = [ "${os_account_path}/test/fuzztest/iamaccount/common" ]
   cflags = [
     "-g",
     "-O0",

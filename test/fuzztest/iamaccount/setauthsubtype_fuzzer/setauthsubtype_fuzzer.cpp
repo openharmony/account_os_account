@@ -18,6 +18,7 @@
 #include <string>
 #include <vector>
 #include "account_iam_client.h"
+#include "fuzz_data.h"
 
 
 using namespace std;
@@ -26,8 +27,9 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
     bool SetAuthSubTypeFuzzTest(const uint8_t* data, size_t size)
     {
-        int32_t userId = static_cast<int32_t>(size);
-        int32_t authSubType = static_cast<int32_t>(size);
+        FuzzData fuzzData(data, size);
+        int32_t userId = fuzzData.GetData<int32_t>();
+        int32_t authSubType = fuzzData.GetData<int32_t>();
         AccountIAMClient::GetInstance().SetAuthSubType(userId, authSubType);
         return false;
     }

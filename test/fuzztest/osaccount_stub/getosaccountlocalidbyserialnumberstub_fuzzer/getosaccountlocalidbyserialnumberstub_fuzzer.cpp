@@ -18,6 +18,7 @@
 #include <thread>
 #include <vector>
 
+#include "fuzz_data.h"
 #include "ios_account.h"
 #include "os_account_manager_service.h"
 
@@ -34,8 +35,8 @@ bool GetOsAccountLocalIdBySerialNumberStubFuzzTest(const uint8_t *data, size_t s
 
     MessageParcel datas;
     datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
-
-    int64_t serialNumber = static_cast<int64_t>(size);
+    FuzzData fuzzData(data, size);
+    int64_t serialNumber = fuzzData.GetData<int64_t>();
     if (!datas.WriteInt64(serialNumber)) {
         return false;
     }

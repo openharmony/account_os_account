@@ -18,6 +18,7 @@
 #include <string>
 #include <vector>
 #include "account_iam_client.h"
+#include "fuzz_data.h"
 
 
 using namespace std;
@@ -39,10 +40,11 @@ public:
 namespace OHOS {
     bool UpdateCredentialFuzzTest(const uint8_t* data, size_t size)
     {
-        int32_t userId = static_cast<int32_t>(size);
-        AuthType authType = static_cast<AuthType>(size);
-        std::optional<PinSubType> pinType = {static_cast<PinSubType>(size)};
-        std::vector<uint8_t> token = {static_cast<uint8_t>(size)};
+        FuzzData fuzzData(data, size);
+        int32_t userId = fuzzData.GetData<int32_t>();
+        AuthType authType = fuzzData.GenerateRandomEnmu(UserIam::UserAuth::RECOVERY_KEY);
+        std::optional<PinSubType> pinType = {fuzzData.GenerateRandomEnmu(UserIam::UserAuth::PIN_MAX)};
+        std::vector<uint8_t> token = {fuzzData.GetData<uint8_t>()};
         CredentialParameters credInfo = {
             .authType = authType,
             .pinType = pinType,

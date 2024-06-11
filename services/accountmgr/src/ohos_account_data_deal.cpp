@@ -245,7 +245,6 @@ ErrCode OhosAccountDataDeal::ParseJsonFromFile(const std::string &filePath, nloh
             jsonData[DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR] = avatarData;
         }
     } else {
-        ACCOUNT_LOGI("Get avatar from account_avatar.");
         std::string avatarFile = configFileDir_ + std::to_string(userId) + ACCOUNT_AVATAR_NAME;
         if (accountFileOperator_->GetFileContentByPath(avatarFile, avatarData) == ERR_OK) {
             jsonData[DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR] = avatarData;

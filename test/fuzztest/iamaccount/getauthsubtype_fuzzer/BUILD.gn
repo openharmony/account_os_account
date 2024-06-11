@@ -23,7 +23,10 @@ ohos_fuzztest("GetAuthSubTypeFuzzTest") {
 
   fuzz_config_file =
       "${os_account_path}/test/fuzztest/iamaccount/getauthsubtype_fuzzer"
-  include_dirs = [ "${account_iam_interfaces_native_path}/include" ]
+  include_dirs = [
+    "${account_iam_interfaces_native_path}/include",
+    "${os_account_path}/test/fuzztest/iamaccount/common",
+  ]
   cflags = [
     "-g",
     "-O0",
