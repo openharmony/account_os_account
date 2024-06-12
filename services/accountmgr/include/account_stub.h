@@ -46,7 +46,6 @@ public:
     std::int32_t InnerQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
 
-    std::int32_t CmdQueryOhosQuitTips(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdQueryOhosAccountInfoByUserId(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdQueryDeviceAccountId(MessageParcel &data, MessageParcel &reply);
 

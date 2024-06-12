@@ -69,7 +69,6 @@ AccountStub::AccountStub()
         &AccountStub::CmdSetOhosAccountInfoByUserId;
     stubFuncMap_[AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_INFO] = &AccountStub::CmdQueryOhosAccountInfo;
     stubFuncMap_[AccountMgrInterfaceCode::GET_OHOS_ACCOUNT_INFO] = &AccountStub::CmdGetOhosAccountInfo;
-    stubFuncMap_[AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_QUIT_TIPS] = &AccountStub::CmdQueryOhosQuitTips;
     stubFuncMap_[AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_INFO_BY_USER_ID] =
         &AccountStub::CmdQueryOhosAccountInfoByUserId;
     stubFuncMap_[AccountMgrInterfaceCode::GET_OHOS_ACCOUNT_INFO_BY_USER_ID] =
@@ -338,26 +337,6 @@ std::int32_t AccountStub::CmdQueryOhosAccountInfoByUserId(MessageParcel &data, M
         ACCOUNT_LOGE("Write status data failed! userId %{public}d.", userId);
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    return ERR_OK;
-}
-
-std::int32_t AccountStub::CmdQueryOhosQuitTips(MessageParcel &data, MessageParcel &reply)
-{
-    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS) &&
-        !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC)) {
-        ACCOUNT_LOGE("Check permission failed");
-        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
-    }
-
-    if (!reply.WriteString16(Str8ToStr16(OHOS_ACCOUNT_QUIT_TIPS_TITLE))) {
-        ACCOUNT_LOGE("Write quit tips title failed");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-    }
-    if (!reply.WriteString16(Str8ToStr16(OHOS_ACCOUNT_QUIT_TIPS_CONTENT))) {
-        ACCOUNT_LOGE("Write quit tips content failed");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-    }
-
     return ERR_OK;
 }
 
