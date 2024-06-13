@@ -146,7 +146,7 @@ struct GetEnrolledIdContext : public CommonAsyncContext {
     int32_t accountId = -1;
     bool parseHasAccountId = false;
     AccountSA::AuthType authType {0};
-    uint64_t enrolledId;
+    uint64_t enrolledId = 0;
 };
 
 struct GetPropertyContext : public CommonAsyncContext {
