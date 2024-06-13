@@ -101,12 +101,8 @@ ErrCode OsAccountControlFileManager::GetOsAccountConfig(OsAccountConfig &config)
     if (maxOsAccountNum > 0) {
         config.maxOsAccountNum = static_cast<uint32_t>(maxOsAccountNum);
     }
-    int32_t maxLoggedInOsAccountNum = -1;
     OHOS::AccountSA::GetDataByType<int32_t>(configJson, jsonEnd, MAX_LOGGED_IN_OS_ACCOUNT_NUM,
         config.maxLoggedInOsAccountNum, OHOS::AccountSA::JsonType::NUMBER);
-    if (maxLoggedInOsAccountNum > 0) {
-        config.maxLoggedInOsAccountNum = static_cast<uint32_t>(maxLoggedInOsAccountNum);
-    }
     if (config.maxLoggedInOsAccountNum > config.maxOsAccountNum) {
         config.maxLoggedInOsAccountNum = config.maxOsAccountNum;
     }
