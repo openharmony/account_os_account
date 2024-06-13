@@ -27,7 +27,7 @@
  * @file os_account_common.h
  *
  * @brief Declare the common types for the native OsAccount.
- * @library libos_account.so
+ * @library libos_account_ndk.so
  * @syscap SystemCapability.Account.OsAccount
  * @since 12
  */
