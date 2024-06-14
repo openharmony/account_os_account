@@ -596,7 +596,7 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     info.serverConfigId_ = STRING_TEST_NAME;
     info.isAuthenticated = 0;
     EXPECT_EQ(instance->AddServerConfig(identifier, config), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
-    EXPECT_EQ(instance->GetAccountServerConfig(info, config), ERR_OK);
+    EXPECT_EQ(instance->GetAccountServerConfig(info, config), ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT);
     EXPECT_EQ(instance->RemoveServerConfig(configId), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
     EXPECT_EQ(instance->PluginAuth(info, password, resultParcel), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
     EXPECT_EQ(instance->PluginBindAccount(info, 100, resultParcel), ERR_OK);
