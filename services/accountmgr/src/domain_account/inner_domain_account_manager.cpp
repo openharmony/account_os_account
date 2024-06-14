@@ -535,7 +535,11 @@ ErrCode InnerDomainAccountManager::RemoveServerConfig(const std::string &configI
     SetPluginString(configId, serverConfigId);
     PluginBussnessError* error = (*reinterpret_cast<RemoveServerConfigFunc>(iter->second))(&serverConfigId, localId);
     CleanPluginString(&(serverConfigId.data), serverConfigId.length);
-    return GetAndCleanPluginBussnessError(&error, iter->first);
+    ErrCode errCode = GetAndCleanPluginBussnessError(&error, iter->first);
+    if (errCode == ERR_JS_INVALID_PARAMETER) {
+        return ERR_JS_SERVER_CONFIG_NOT_FOUND;
+    }
+    return errCode;
 }
 
 ErrCode InnerDomainAccountManager::GetAccountServerConfig(const DomainAccountInfo &info, DomainServerConfig &config)
@@ -545,6 +549,12 @@ ErrCode InnerDomainAccountManager::GetAccountServerConfig(const DomainAccountInf
     if (iter == methodMap.end() || iter->second == nullptr) {
         ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::GET_ACCOUNT_SERVER_CONFIG);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+    }
+    int32_t localId = 0;
+    ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, localId);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("get os account localId from domain failed, result: %{public}d", result);
+        return result;
     }
     PluginDomainAccountInfo domainAccountInfo;
     SetPluginDomainAccountInfo(info, domainAccountInfo);
