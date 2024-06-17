@@ -255,8 +255,8 @@ int32_t InnerAccountIAMManager::AuthUser(
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
 
-    auto callbackWrapper =
-        std::make_shared<AuthCallback>(authParam.userId, osAccountInfo.GetCredentialId(), authParam.authType, callback);
+    auto callbackWrapper = std::make_shared<AuthCallback>(authParam.userId,
+        osAccountInfo.GetCredentialId(), authParam.authType, (authParam.remoteAuthParam != std::nullopt), callback);
     callbackWrapper->SetDeathRecipient(deathRecipient);
 
     UserIam::UserAuth::AuthParam iamAuthParam;
