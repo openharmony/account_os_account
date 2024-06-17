@@ -1070,6 +1070,9 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest042, TestSize.Lev
     std::string photo;
     EXPECT_EQ(
         OsAccountManager::GetOsAccountProfilePhoto(osAccountInfoOne.GetLocalId(), photo), ERR_OK);
+    OsAccountInfo osAccountInfoTwo;
+    EXPECT_EQ(OsAccountManager::QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo), ERR_OK);
+    EXPECT_EQ(osAccountInfoTwo.GetLocalId(), osAccountInfoOne.GetLocalId());
     ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
