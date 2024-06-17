@@ -50,6 +50,12 @@ AuthCallback::AuthCallback(
     : userId_(userId), credentialId_(credentialId), authType_(authType), innerCallback_(callback)
 {}
 
+AuthCallback::AuthCallback(uint32_t userId, uint64_t credentialId, AuthType authType,
+    bool isRemoteAuth, const sptr<IIDMCallback> &callback)
+    : userId_(userId), credentialId_(credentialId), authType_(authType),
+    isRemoteAuth_(isRemoteAuth), innerCallback_(callback)
+{}
+
 ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo, int32_t accountId)
 {
     bool lockScreenStatus = false;
@@ -146,6 +152,11 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         innerCallback_->OnResult(result, extraInfo);
         ReportOsAccountOperationFail(authedAccountId, "authUser", result, "auth user failed");
         return AccountInfoReport::ReportSecurityInfo("", authedAccountId, ReportEvent::EVENT_LOGIN, result);
+    }
+    if (isRemoteAuth_) {
+        ACCOUNT_LOGI("Remote auth");
+        innerCallback_->OnResult(result, extraInfo);
+        return;
     }
     if (HandleAuthResult(extraInfo, authedAccountId) != ERR_OK) {
         int32_t remainTimes = 0;

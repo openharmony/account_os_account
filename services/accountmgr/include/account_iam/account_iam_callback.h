@@ -40,6 +40,8 @@ private:
 class AuthCallback : public AuthenticationCallback {
 public:
     AuthCallback(uint32_t userId, uint64_t credentialId, AuthType authType, const sptr<IIDMCallback> &callback);
+    AuthCallback(uint32_t userId, uint64_t credentialId, AuthType authType,
+        bool isRemoteAuth, const sptr<IIDMCallback> &callback);
     virtual ~AuthCallback() = default;
 
     void SetDeathRecipient(const sptr<AuthCallbackDeathRecipient> &deathRecipient);
@@ -53,6 +55,7 @@ private:
     uint32_t userId_;
     uint64_t credentialId_;
     AuthType authType_;
+    bool isRemoteAuth_ = false;
     sptr<IIDMCallback> innerCallback_ = nullptr;
     sptr<AuthCallbackDeathRecipient> deathRecipient_ = nullptr;
 };
