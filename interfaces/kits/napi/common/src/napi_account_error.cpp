@@ -70,7 +70,10 @@ static const std::unordered_map<uint32_t, std::string> g_errorStringMap = {
     {ERR_JS_CAPABILITY_NOT_SUPPORTED, "capability not supported"},
     {ERR_JS_ACCOUNT_LOGGED_IN_ACCOUNTS_OVERSIZE, "The number of the logged in OS accounts reaches upper limit"},
     {ERR_JS_COMPLEXITY_CHECK_FAILED, "The complexity of credential check failed"},
-    {ERR_JS_PIN_IS_EXPIRED, "The PIN credential is expored"},
+    {ERR_JS_PIN_IS_EXPIRED, "The PIN credential is expired"},
+    {ERR_JS_DOMAIN_PLUGIN_ALREADY_REGISTERED, "The domain plugin is already registered"},
+    {ERR_JS_SERVER_UNREACHABLE, "The server is unreachable"},
+    {ERR_JS_SERVER_CONFIG_NOT_FOUND, "The server config not found"},
 };
 
 napi_value GenerateBusinessError(napi_env env, int32_t jsErrCode, const std::string &jsErrMsg)
