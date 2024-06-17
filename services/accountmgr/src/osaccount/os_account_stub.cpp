@@ -480,9 +480,14 @@ bool OsAccountStub::WriteParcelableVector(const std::vector<T> &parcelableVector
     }
 
     for (auto parcelable : parcelableVector) {
-        if (!data.WriteParcelable(&parcelable)) {
-            ACCOUNT_LOGE("Account write ParcelableVector Parcelable failed");
-            return false;
+        std::string accountStr = parcelable.ToString();
+        if (!data.WriteInt32(accountStr.size() + 1)) {
+            ACCOUNT_LOGE("Failed to write accountStr size");
+            return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+        }
+        if (!data.WriteRawData(accountStr.c_str(), accountStr.size() + 1)) {
+            ACCOUNT_LOGE("Failed to write string for account");
+            return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
         }
     }
     return true;
@@ -494,9 +499,14 @@ static ErrCode WriteResultWithOsAccountInfo(MessageParcel &reply, int32_t result
         ACCOUNT_LOGE("failed to write result");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-    if (!reply.WriteParcelable(&info)) {
-        ACCOUNT_LOGE("failed to write os account info");
-        return IPC_STUB_WRITE_PARCEL_ERR;
+    std::string accountStr = info.ToString();
+    if (!reply.WriteInt32(accountStr.size() + 1)) {
+        ACCOUNT_LOGE("Failed to write accountStr size");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!reply.WriteRawData(accountStr.c_str(), accountStr.size() + 1)) {
+        ACCOUNT_LOGE("Failed to write string for account");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_NONE;
 }
