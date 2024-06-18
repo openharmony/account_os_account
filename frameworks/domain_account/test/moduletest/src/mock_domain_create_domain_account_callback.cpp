@@ -36,10 +36,20 @@ TestCreateDomainAccountCallback::~TestCreateDomainAccountCallback()
 
 void TestCreateDomainAccountCallback::OnResult(const int32_t errCode, Parcel &parcel)
 {
-    if (callback_ == nullptr) {
+    if (callback_ == nullptr || errCode != ERR_OK) {
+        std::unique_lock<std::mutex> lock(mutex);
+        isReady = true;
+        cv.notify_one();
         return;
     }
+
     OsAccountInfo *osAccountInfo = OsAccountInfo::Unmarshalling(parcel);
+    if (osAccountInfo == nullptr) {
+        std::unique_lock<std::mutex> lock(mutex);
+        isReady = true;
+        cv.notify_one();
+        return;
+    }
     DomainAccountInfo newDomainInfo;
     osAccountInfo->GetDomainInfo(newDomainInfo);
     callback_->OnResult(errCode, newDomainInfo.accountName_, newDomainInfo.domain_, newDomainInfo.accountId_);
