@@ -105,6 +105,7 @@ public:
 
 private:
     bool ReadOsAccountInfoList(MessageParcel &data, std::vector<OsAccountInfo> &parcelableInfos);
+    bool ReadOsAccountInfo(MessageParcel &data, OsAccountInfo &accountInfo);
     ErrCode SendRequest(OsAccountInterfaceCode code, MessageParcel &data, MessageParcel &reply);
     ErrCode CheckOsAccountConstraintEnabled(
         OsAccountInterfaceCode code, const int id, const std::string &constraint, bool &isConstraintEnable);

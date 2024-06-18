@@ -335,8 +335,7 @@ void OsAccountInfo::FromJson(const Json &jsonObject)
 
 bool OsAccountInfo::Marshalling(Parcel &parcel) const
 {
-    parcel.WriteString(ToString());
-    return true;
+    return parcel.WriteString(ToString());
 }
 
 bool OsAccountInfo::ReadFromParcel(Parcel &parcel)
@@ -344,7 +343,7 @@ bool OsAccountInfo::ReadFromParcel(Parcel &parcel)
     std::string jsonString = parcel.ReadString();
     nlohmann::json jsonObject = nlohmann::json::parse(jsonString, nullptr, false);
     if (jsonObject.is_discarded()) {
-        ACCOUNT_LOGI("jsonObject is discarded");
+        ACCOUNT_LOGE("jsonObject is discarded");
     }
     FromJson(jsonObject);
     return true;
