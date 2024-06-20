@@ -502,10 +502,6 @@ bool AccountStub::HasAccountRequestPermission(const std::string &permissionName)
         return true;
     }
 
-    // check trust list
-    if (CheckCallerForTrustList()) {
-        return true;
-    }
     ReportPermissionFail(uid, IPCSkeleton::GetCallingRealPid(), permissionName);
     ACCOUNT_LOGE("permission %{public}s denied!", permissionName.c_str());
     return false;
