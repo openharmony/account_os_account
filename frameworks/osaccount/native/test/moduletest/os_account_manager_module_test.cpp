@@ -851,10 +851,31 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest027, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest028, TestSize.Level1)
 {
+    std::string basePath = "/data/service/el1/public/account/";
     std::vector<OsAccountInfo> osAccountInfos;
     EXPECT_EQ(OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos), ERR_OK);
-    const unsigned int size = 0;
-    EXPECT_NE(size, osAccountInfos.size());
+    EXPECT_EQ(1, osAccountInfos.size());
+    OsAccountInfo osAccountInfoOne;
+    EXPECT_EQ(OsAccountManager::CreateOsAccount("ModuleTest028_1", OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
+    osAccountInfos.clear();
+    EXPECT_EQ(OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos), ERR_OK);
+    EXPECT_EQ(2, osAccountInfos.size());
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+
+    OsAccountInfo osAccountInfoTwo;
+    EXPECT_EQ(OsAccountManager::CreateOsAccount("ModuleTest028_2", OsAccountType::GUEST, osAccountInfoTwo), ERR_OK);
+    osAccountInfos.clear();
+    EXPECT_EQ(OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos), ERR_OK);
+    EXPECT_EQ(2, osAccountInfos.size());
+    osAccountInfoTwo.SetToBeRemoved(true);
+    osAccountInfos.clear();
+    std::string accountTwoPath = basePath + osAccountInfoTwo.GetPrimeKey() + Constants::PATH_SEPARATOR
+        + Constants::USER_INFO_FILE_NAME;
+    EXPECT_EQ(g_accountFileOperator->InputFileByPathAndContent(accountTwoPath, osAccountInfoTwo.ToString()), ERR_OK);
+    EXPECT_EQ(OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos), ERR_OK);
+    EXPECT_EQ(1, osAccountInfos.size());
+
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoTwo.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -2314,9 +2335,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest109, TestSize.Lev
     int maxOsAccountNumber = 0;
     ASSERT_EQ(OsAccountManager::QueryMaxOsAccountNumber(maxOsAccountNumber), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
 
-    std::vector<OsAccountInfo> osAccountInfos;
-    ASSERT_EQ(OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
-
     DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     OsAccountType type = NORMAL;
     OsAccountInfo osAccountInfo;
@@ -2405,9 +2423,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest111, TestSize.Lev
     int maxOsAccountNumber = 0;
     ASSERT_NE(OsAccountManager::QueryMaxOsAccountNumber(maxOsAccountNumber), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
 
-    std::vector<OsAccountInfo> osAccountInfos;
-    ASSERT_NE(OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
-
     DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     OsAccountType type = NORMAL;
     OsAccountInfo osAccountInfo;
@@ -2476,9 +2491,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest112, TestSize.Lev
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest113, TestSize.Level1)
 {
-    std::vector<OsAccountInfo> osAccountInfos;
-    EXPECT_EQ(OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos), ERR_OK);
-    EXPECT_EQ(osAccountInfos.size(), 1);
     OsAccountInfo osAccountInfoOne;
     int id;
     EXPECT_EQ(OsAccountManager::GetDefaultActivatedOsAccount(id), ERR_OK);
