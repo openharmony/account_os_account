@@ -1124,23 +1124,19 @@ ErrCode IInnerOsAccountManager::SetSpecificOsAccountConstraints(const std::vecto
     return ERR_OK;
 }
 
-ErrCode IInnerOsAccountManager::QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos)
+ErrCode IInnerOsAccountManager::QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &createdOsAccounts)
 {
-    ErrCode errCode = osAccountControl_->GetOsAccountList(osAccountInfos);
+    std::vector<OsAccountInfo> allOsAccounts;
+    ErrCode errCode = osAccountControl_->GetOsAccountList(allOsAccounts);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("get osaccount info list error, errCode %{public}d.", errCode);
         return errCode;
     }
-#ifndef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
-    for (auto osAccountInfosPtr = osAccountInfos.begin(); osAccountInfosPtr != osAccountInfos.end();
-         ++osAccountInfosPtr) {
-        if (IsOsAccountIDInActiveList(osAccountInfosPtr->GetLocalId())) {
-            osAccountInfosPtr->SetIsActived(true);
-        } else {
-            osAccountInfosPtr->SetIsActived(false);
+    for (auto osAccountInfo : allOsAccounts) {
+        if (osAccountInfo.GetIsCreateCompleted() && !osAccountInfo.GetToBeRemoved()) {
+            createdOsAccounts.push_back(osAccountInfo);
         }
     }
-#endif // ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
     return ERR_OK;
 }
 
@@ -1163,7 +1159,7 @@ void IInnerOsAccountManager::CleanGarbageAccounts()
 {
     ACCOUNT_LOGD("enter.");
     std::vector<OsAccountInfo> osAccountInfos;
-    if (QueryAllCreatedOsAccounts(osAccountInfos) != ERR_OK) {
+    if (osAccountControl_->GetOsAccountList(osAccountInfos) != ERR_OK) {
         ACCOUNT_LOGI("QueryAllCreatedOsAccounts failed.");
         return;
     }
