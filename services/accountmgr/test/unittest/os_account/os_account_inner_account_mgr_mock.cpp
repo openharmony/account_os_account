@@ -73,6 +73,11 @@ const int ACCOUNT_UID = 3058;
 const std::string STRING_DOMAIN_VALID = "TestDomainMT";
 const std::string STRING_DOMAIN_ACCOUNT_NAME_VALID = "TestDomainAccountNameMT";
 
+bool operator==(const ConstraintSourceTypeInfo &left, const ConstraintSourceTypeInfo &right)
+{
+    return left.localId == right.localId && left.typeInfo == right.typeInfo;
+}
+
 class OsAccountInnerAccmgrMockTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -127,6 +132,97 @@ void OsAccountInnerAccmgrMockTest::SetUp(void) __attribute__((no_sanitize("cfi")
 
 void OsAccountInnerAccmgrMockTest::TearDown(void)
 {}
+
+/*
+ * @tc.name: SetOsAccountConstraints001
+ * @tc.desc: SetOsAccountConstraints success
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, SetOsAccountConstraints001, TestSize.Level1)
+{
+    OsAccountInfo accountInfo;
+    EXPECT_EQ(ERR_OK, innerMgrService_->CreateOsAccount("SetOsAccountConstraints001", NORMAL, accountInfo));
+    int32_t localId = accountInfo.GetLocalId();
+    std::vector<std::string> testConstraints = {"constraint.fun"};
+
+    EXPECT_EQ(ERR_OK, innerMgrService_->SetBaseOsAccountConstraints(localId, testConstraints, true));
+    EXPECT_EQ(ERR_OK, innerMgrService_->SetGlobalOsAccountConstraints(testConstraints, true, localId, true));
+    EXPECT_EQ(ERR_OK,
+        innerMgrService_->SetSpecificOsAccountConstraints(testConstraints, true, localId, TEST_USER_ID100, false));
+
+    std::vector<ConstraintSourceTypeInfo> infos, emptyConstraintInfos{
+        {-1, ConstraintSourceType::CONSTRAINT_NOT_EXIST},
+    }, constraintInfos{
+        {-1, ConstraintSourceType::CONSTRAINT_TYPE_BASE},
+        {localId, ConstraintSourceType::CONSTRAINT_TYPE_DEVICE_OWNER},
+        {TEST_USER_ID100, ConstraintSourceType::CONSTRAINT_TYPE_PROFILE_OWNER},
+    };
+    EXPECT_EQ(ERR_OK, innerMgrService_->QueryOsAccountConstraintSourceTypes(localId, testConstraints[0], infos));
+    EXPECT_EQ(infos, constraintInfos);
+
+    EXPECT_EQ(ERR_OK, innerMgrService_->SetBaseOsAccountConstraints(localId, testConstraints, false));
+    EXPECT_EQ(ERR_OK, innerMgrService_->SetGlobalOsAccountConstraints(testConstraints, false, localId, false));
+    EXPECT_EQ(ERR_OK,
+        innerMgrService_->SetSpecificOsAccountConstraints(testConstraints, false, localId, TEST_USER_ID100, false));
+
+    infos.clear();
+    EXPECT_EQ(ERR_OK, innerMgrService_->QueryOsAccountConstraintSourceTypes(localId, testConstraints[0], infos));
+    EXPECT_EQ(infos, emptyConstraintInfos);
+
+    EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(localId));
+}
+
+/*
+ * @tc.name: SetOsAccountInfo001
+ * @tc.desc: SetOsAccountInfo success
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, SetOsAccountInfo001, TestSize.Level1)
+{
+    OsAccountInfo createInfo;
+    EXPECT_EQ(ERR_OK, innerMgrService_->CreateOsAccount("SetOsAccountInfo001", NORMAL, createInfo));
+    int32_t localId = createInfo.GetLocalId();
+
+    DomainAccountInfo createDomainInfo("test", "SetOsAccountInfo001");
+    EXPECT_EQ(ERR_OK, innerMgrService_->UpdateAccountInfoByDomainAccountInfo(localId, createDomainInfo));
+
+    OsAccountInfo accountInfo;
+    DomainAccountInfo domainInfo;
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountInfoById(localId, accountInfo));
+    accountInfo.GetDomainInfo(domainInfo);
+    EXPECT_EQ(domainInfo.accountName_, "SetOsAccountInfo001");
+    EXPECT_EQ(domainInfo.status_, DomainAccountStatus::LOG_END);
+
+    EXPECT_EQ(ERR_OK, innerMgrService_->UpdateAccountStatusForDomain(localId, DomainAccountStatus::LOGIN));
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountInfoById(localId, accountInfo));
+    accountInfo.GetDomainInfo(domainInfo);
+    EXPECT_EQ(domainInfo.status_, DomainAccountStatus::LOGIN);
+
+    EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(localId));
+}
+
+/*
+ * @tc.name: GetOsAccountInfo001
+ * @tc.desc: GetOsAccountInfo success
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, GetOsAccountInfo001, TestSize.Level1)
+{
+    bool isAllowed = false;
+    EXPECT_EQ(ERR_OK, innerMgrService_->IsAllowedCreateAdmin(isAllowed));
+    EXPECT_TRUE(isAllowed);
+
+    std::vector<int32_t> ids;
+    EXPECT_EQ(ERR_OK, innerMgrService_->QueryActiveOsAccountIds(ids));
+    EXPECT_EQ(ids.size(), 1);
+
+    int32_t typeNumber = 0;
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetTypeNumber(ADMIN, typeNumber));
+    EXPECT_EQ(typeNumber, 1);
+}
 
 /*
  * @tc.name: OsAccountInnerAccmgrMockTest001
