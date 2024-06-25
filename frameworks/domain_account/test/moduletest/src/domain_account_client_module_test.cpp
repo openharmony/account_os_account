@@ -696,7 +696,27 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAc
         std::unique_lock<std::mutex> lock(testCallback->mutex);
         testCallback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
                                   [lockCallback = testCallback]() { return lockCallback->isReady; });
+        EXPECT_EQ(OsAccountManager::QueryOsAccountById(testCallback->GetLocalId(), osAccountInfo), ERR_OK);
+        osAccountInfo.GetDomainInfo(startUserDomainInfo);
+        EXPECT_EQ(testCallback->GetLocalId(), OHOS::AccountSA::Constants::START_USER_ID);
+        EXPECT_EQ(startUserDomainInfo.accountName_, ACCOUNT_NAME);
     }
+
+    DomainAccountInfo newDomainInfo(STRING_DOMAIN_NEW, STRING_NAME_TWO, STRING_ACCOUNTID_FIVE);
+    testCallback = std::make_shared<TestCreateDomainAccountCallback>(callback);
+    EXPECT_CALL(*callback, OnResult(ERR_OK, STRING_NAME_TWO, STRING_DOMAIN_NEW, STRING_ACCOUNTID_FIVE))
+        .Times(Exactly(1));
+    ASSERT_NE(testCallback, nullptr);
+    errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, newDomainInfo, testCallback);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                              [lockCallback = testCallback]() { return lockCallback->isReady; });
+    EXPECT_EQ(errCode, ERR_OK);
+    EXPECT_EQ(OsAccountManager::QueryOsAccountById(testCallback->GetLocalId(), osAccountInfo), ERR_OK);
+    osAccountInfo.GetDomainInfo(startUserDomainInfo);
+    EXPECT_NE(testCallback->GetLocalId(), OHOS::AccountSA::Constants::START_USER_ID);
+    EXPECT_EQ(startUserDomainInfo.accountName_, STRING_NAME_TWO);
+
     errCode = OsAccountManager::SetOsAccountConstraints(TEST_UID, constraints, false);
     EXPECT_EQ(errCode, ERR_OK);
 }
