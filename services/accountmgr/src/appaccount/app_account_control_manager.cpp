@@ -14,9 +14,7 @@
  */
 
 #include "app_account_control_manager.h"
-#include <pthread.h>
-#include <thread>
-#include <unistd.h>
+
 #include "accesstoken_kit.h"
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
@@ -42,7 +40,6 @@ const std::string GET_ALL_APP_ACCOUNTS = "ohos.permission.GET_ALL_APP_ACCOUNTS";
 const std::string DATA_STORAGE_SUFFIX = "_sync";
 const std::string DATA_STORAGE_PREFIX = "encrypt_";
 const std::string AUTHORIZED_ACCOUNTS = "authorizedAccounts";
-const int32_t SLEEP_INTERVAL = 5 * 1000;
 #ifdef HAS_ASSET_PART
 const std::string ALIAS_SUFFIX_CREDENTIAL = "credential";
 const std::string ALIAS_SUFFIX_TOKEN = "token";
@@ -142,7 +139,7 @@ void AppAccountControlManager::MoveData()
     DistributedKv::DistributedKvDataManager dataManager;
     DistributedKv::AppId appId = { .appId = Constants::APP_ACCOUNT_APP_ID };
     std::vector<DistributedKv::StoreId> storeIdList;
-    usleep(SLEEP_INTERVAL);
+    std::lock_guard<std::mutex> lock(storePtrMutex_);
     OHOS::DistributedKv::Status status = dataManager.GetAllKvStoreId(appId, storeIdList);
     if (status != OHOS::DistributedKv::Status::SUCCESS) {
         ACCOUNT_LOGE("GetAllKvStoreId failed, status=%{public}u", status);
@@ -157,7 +154,6 @@ void AppAccountControlManager::MoveData()
         auto oldPtr = std::make_shared<AppAccountDataStorage>(storeId, options);
         options.encrypt = true;
         auto newPtr = std::make_shared<AppAccountDataStorage>(DATA_STORAGE_PREFIX + storeId, options);
-        std::lock_guard<std::mutex> lock(mutex_);
         ErrCode result = newPtr->MoveData(oldPtr);
         if (result != ERR_OK) {
             ACCOUNT_LOGE("MoveData to new store failed, storeId=%{public}s, result=%{public}u",
@@ -176,15 +172,6 @@ AppAccountControlManager &AppAccountControlManager::GetInstance()
 {
     static AppAccountControlManager *instance = new (std::nothrow) AppAccountControlManager();
     return *instance;
-}
-
-AppAccountControlManager::AppAccountControlManager()
-{
-    auto task = std::bind(&AppAccountControlManager::MoveData, this);
-    std::thread taskThread(task);
-    pthread_setname_np(taskThread.native_handle(), "MoveData");
-    taskThread.detach();
-    ACCOUNT_LOGD("Create thread success");
 }
 
 ErrCode AppAccountControlManager::AddAccount(const std::string &name, const std::string &extraInfo, const uid_t &uid,

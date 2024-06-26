@@ -335,25 +335,21 @@ bool AccountDataStorage::IsKeyExists(const std::string keyStr)
 
 ErrCode AccountDataStorage::MoveData(const std::shared_ptr<AccountDataStorage> &ptr)
 {
-    if (ptr == nullptr) {
+    if (ptr == nullptr || !ptr->CheckKvStore() || !CheckKvStore()) {
         ACCOUNT_LOGE("AccountDataStorage is nullptr");
         return ERR_ACCOUNT_COMMON_CHECK_KVSTORE_ERROR;
     }
-    std::map<std::string, std::shared_ptr<IAccountInfo>> infos;
-    ErrCode result = ptr->LoadAllData(infos);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("LoadAllData failed, result=%{public}u", result);
-        return result;
+    std::vector<OHOS::DistributedKv::Entry> entries;
+    OHOS::DistributedKv::Status status = ptr->GetEntries("", entries);
+    if (status != OHOS::DistributedKv::Status::SUCCESS) {
+        ACCOUNT_LOGE("GetEntries failed, result=%{public}u", status);
+        return ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
     }
-    for (const auto &info:  infos) {
-        if (info.second == nullptr) {
-            ACCOUNT_LOGE("AppAccountInfo %{public}s is nullptr", info.first.c_str());
-            continue;
-        }
-        result = AddAccountInfo(*info.second);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("Add AppAccountInfo failed, result=%{public}u", result);
-        }
+    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+    status = kvStorePtr_->PutBatch(entries);
+    if (status != OHOS::DistributedKv::Status::SUCCESS) {
+        ACCOUNT_LOGE("PutBatch failed, result=%{public}u", status);
+        return ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
     }
     return ERR_OK;
 }
