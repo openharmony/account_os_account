@@ -24,7 +24,6 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const int32_t PLUGIN_CALLBACK_TIMEOUT = 5000;
 #ifdef _ARM64_
 static const std::string OS_ACCOUNT_PLUGIN_LIB_PATH = "/system/lib64/platformsdk/";
 #else
@@ -136,14 +135,7 @@ ErrCode OsAccountPluginManager::PluginVerifyActivationLockFunc(bool& isAllowed)
         ACCOUNT_LOGE("Call plugin method failed.");
         return res;
     }
-    std::chrono::milliseconds span(PLUGIN_CALLBACK_TIMEOUT);
-    if (future.wait_for(span) == std::future_status::timeout) {
-        ACCOUNT_LOGE("Wait callback timeout.");
-        isAllowed = false;
-        return ERR_ACCOUNT_COMMON_OPERATION_TIMEOUT;
-    }
     isAllowed = future.get();
-
     return ERR_OK;
 }
 
