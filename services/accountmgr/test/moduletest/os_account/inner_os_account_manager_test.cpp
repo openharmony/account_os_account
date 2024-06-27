@@ -153,8 +153,13 @@ HWTEST_F(IInnerOsAccountManagerTest, InnerOsAccountManagerTest001, TestSize.Leve
  */
 HWTEST_F(IInnerOsAccountManagerTest, InnerOsAccountManagerTest002, TestSize.Level1)
 {
-    innerMgrService_->CheckAndRefreshLocalIdRecord(100);
+    int id;
+    EXPECT_EQ(innerMgrService_->GetDefaultActivatedOsAccount(id), ERR_OK);
+    innerMgrService_->CheckAndRefreshLocalIdRecord(id);
+    EXPECT_EQ(innerMgrService_->GetDefaultActivatedOsAccount(id), ERR_OK);
+    EXPECT_EQ(id, 100);
     innerMgrService_->CheckAndRefreshLocalIdRecord(199);
+    EXPECT_EQ(id, 100);
 }
 
 /**
