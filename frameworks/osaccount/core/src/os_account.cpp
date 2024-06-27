@@ -437,14 +437,12 @@ ErrCode OsAccount::SetOsAccountProfilePhoto(const int id, const std::string &pho
 ErrCode OsAccount::GetDistributedVirtualDeviceId(std::string &deviceId)
 {
     deviceId = "";
-    std::pair<bool, OhosAccountInfo> res = OhosAccountKits::GetInstance().QueryOhosAccountInfo();
-    if (res.first) {
-        if (res.second.uid_ != DEFAULT_OHOS_ACCOUNT_UID) {
-            deviceId = res.second.uid_;
-        }
-        return ERR_OK;
+    OhosAccountInfo accountInfo;
+    ErrCode result = OhosAccountKitsImpl::GetInstance().QueryOhosAccountInfo(accountInfo);
+    if (result == ERR_OK && accountInfo.uid_ != DEFAULT_OHOS_ACCOUNT_UID) {
+        deviceId = accountInfo.uid_;
     }
-    return ERR_OSACCOUNT_KIT_GET_DISTRIBUTED_VIRTUAL_DEVICE_ID_ERROR;
+    return result;
 }
 
 ErrCode OsAccount::ActivateOsAccount(const int id)

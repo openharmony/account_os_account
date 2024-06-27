@@ -199,14 +199,15 @@ std::int32_t AccountStub::CmdSetOhosAccountInfoByUserId(MessageParcel &data, Mes
 
 std::int32_t AccountStub::InnerQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
-    std::pair<bool, OhosAccountInfo> info = QueryOhosAccountInfo();
-    if (!info.first) {
+    OhosAccountInfo info;
+    ErrCode result = QueryOhosAccountInfo(info);
+    if (!result) {
         ACCOUNT_LOGE("Query ohos account info failed");
         return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
     }
 
-    std::string name = info.second.name_;
-    std::string id = info.second.uid_;
+    std::string name = info.name_;
+    std::string id = info.uid_;
     if (!reply.WriteString16(Str8ToStr16(name))) {
         ACCOUNT_LOGE("Write name data failed");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
@@ -215,7 +216,7 @@ std::int32_t AccountStub::InnerQueryOhosAccountInfo(MessageParcel &data, Message
         ACCOUNT_LOGE("Write id data failed");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    if (!reply.WriteInt32(info.second.status_)) {
+    if (!reply.WriteInt32(info.status_)) {
         ACCOUNT_LOGE("Write status data failed");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
@@ -319,14 +320,15 @@ std::int32_t AccountStub::CmdQueryOhosAccountInfoByUserId(MessageParcel &data, M
         return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_USERID_ERROR;
     }
 
-    std::pair<bool, OhosAccountInfo> info = QueryOhosAccountInfoByUserId(userId);
-    if (!info.first) {
+    OhosAccountInfo info;
+    ErrCode result = QueryOhosAccountInfoByUserId(userId, info);
+    if (!result) {
         ACCOUNT_LOGE("Query ohos account info failed! userId %{public}d.", userId);
         return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
     }
 
-    std::string name = info.second.name_;
-    std::string id = info.second.uid_;
+    std::string name = info.name_;
+    std::string id = info.uid_;
     if (!reply.WriteString16(Str8ToStr16(name))) {
         ACCOUNT_LOGE("Write name data failed! userId %{public}d.", userId);
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
@@ -335,7 +337,7 @@ std::int32_t AccountStub::CmdQueryOhosAccountInfoByUserId(MessageParcel &data, M
         ACCOUNT_LOGE("Write id data failed! userId %{public}d.", userId);
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    if (!reply.WriteInt32(info.second.status_)) {
+    if (!reply.WriteInt32(info.status_)) {
         ACCOUNT_LOGE("Write status data failed! userId %{public}d.", userId);
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
