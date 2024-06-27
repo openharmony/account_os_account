@@ -50,20 +50,20 @@ bool MockAccountMgrService::UpdateOhosAccountInfo(
     return true;
 }
 
-std::pair<bool, OhosAccountInfo> MockAccountMgrService::QueryOhosAccountInfo(void)
+ErrCode MockAccountMgrService::QueryOhosAccountInfo(OhosAccountInfo &accountInfo)
 {
-    std::string name = DEFAULT_OHOS_ACCOUNT_NAME;
-    std::string id = DEFAULT_OHOS_ACCOUNT_UID;
-    std::int32_t status = ACCOUNT_STATE_UNBOUND;
-    return std::make_pair(true, OhosAccountInfo(name, id, status));
+    accountInfo.name_ = DEFAULT_OHOS_ACCOUNT_NAME;
+    accountInfo.uid_ = DEFAULT_OHOS_ACCOUNT_UID;
+    accountInfo.status_ = ACCOUNT_STATE_UNBOUND;
+    return ERR_OK;
 }
 
-std::pair<bool, OhosAccountInfo> MockAccountMgrService::QueryOhosAccountInfoByUserId(std::int32_t userId)
+ErrCode MockAccountMgrService::QueryOhosAccountInfoByUserId(std::int32_t userId, OhosAccountInfo &accountInfo)
 {
-    std::string name = DEFAULT_OHOS_ACCOUNT_NAME;
-    std::string id = DEFAULT_OHOS_ACCOUNT_UID;
-    std::int32_t status = ACCOUNT_STATE_UNBOUND;
-    return std::make_pair(true, OhosAccountInfo(name, id, status));
+    accountInfo.name_ = DEFAULT_OHOS_ACCOUNT_NAME;
+    accountInfo.uid_ = DEFAULT_OHOS_ACCOUNT_UID;
+    accountInfo.status_ = ACCOUNT_STATE_UNBOUND;
+    return ERR_OK;
 }
 
 ErrCode MockAccountMgrService::SubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
