@@ -25,7 +25,7 @@ namespace OHOS {
 namespace AccountSA {
 class DomainAccountStub : public IRemoteStub<IDomainAccount> {
 public:
-    using DomainAccountStubFunc = ErrCode (DomainAccountStub::*)(MessageParcel &data, MessageParcel &reply);
+    using DomainAccountStubFunc = ErrCode (*)(DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply);
     DomainAccountStub();
     ~DomainAccountStub();
     int32_t OnRemoteRequest(

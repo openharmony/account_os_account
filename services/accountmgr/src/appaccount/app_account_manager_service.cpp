@@ -34,9 +34,10 @@ AppAccountManagerService::AppAccountManagerService()
     innerManager_ = std::make_shared<InnerAppAccountManager>();
 #ifdef HAS_CES_PART
     CommonEventCallback callback = {
-        std::bind(&AppAccountManagerService::OnPackageRemoved,
-            this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
-        std::bind(&AppAccountManagerService::OnUserRemoved, this, std::placeholders::_1),
+        [this](const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex) {
+            this->OnPackageRemoved(uid, bundleName, appIndex);
+        },
+        [this] (int32_t userId) { this->OnUserRemoved(userId); },
     };
     observer_ = std::make_shared<AppAccountCommonEventObserver>(callback);
 #endif // HAS_CES_PART

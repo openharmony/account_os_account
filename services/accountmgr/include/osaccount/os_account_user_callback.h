@@ -42,10 +42,6 @@ private:
 
     int OnStopUserDoneInner(MessageParcel &data, MessageParcel &reply);
     int OnStartUserDoneInner(MessageParcel &data, MessageParcel &reply);
-
-private:
-    using UserCallbackFunc = int (OsAccountUserCallback::*)(MessageParcel &data, MessageParcel &reply);
-    std::vector<UserCallbackFunc> vecMemberFunc_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

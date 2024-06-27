@@ -35,112 +35,128 @@ const std::map<uint32_t, AccountIAMMgrStub::AccountIAMMessageProc> messageProcMa
     {
         static_cast<uint32_t>(AccountIAMInterfaceCode::OPEN_SESSION),
         {
-            .messageProcFunction = &AccountIAMMgrStub::ProcOpenSession,
+            .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcOpenSession(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(AccountIAMInterfaceCode::CLOSE_SESSION),
         {
-            .messageProcFunction = &AccountIAMMgrStub::ProcCloseSession,
+            .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcCloseSession(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(AccountIAMInterfaceCode::ADD_CREDENTIAL),
         {
-            .messageProcFunction = &AccountIAMMgrStub::ProcAddCredential,
+            .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcAddCredential(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(AccountIAMInterfaceCode::UPDATE_CREDENTIAL),
         {
-            .messageProcFunction = &AccountIAMMgrStub::ProcUpdateCredential,
+            .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcUpdateCredential(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(AccountIAMInterfaceCode::DEL_CRED),
         {
-            .messageProcFunction = &AccountIAMMgrStub::ProcDelCred,
+            .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcDelCred(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(AccountIAMInterfaceCode::DEL_USER),
         {
-            .messageProcFunction = &AccountIAMMgrStub::ProcDelUser,
+            .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcDelUser(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(AccountIAMInterfaceCode::CANCEL),
         {
-            .messageProcFunction = &AccountIAMMgrStub::ProcCancel,
+            .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcCancel(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(AccountIAMInterfaceCode::GET_CREDENTIAL_INFO),
         {
-            .messageProcFunction = &AccountIAMMgrStub::ProcGetCredentialInfo,
+            .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcGetCredentialInfo(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(AccountIAMInterfaceCode::PREPARE_REMOTE_AUTH),
         {
-            .messageProcFunction = &AccountIAMMgrStub::ProcPrepareRemoteAuth,
+            .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcPrepareRemoteAuth(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(AccountIAMInterfaceCode::AUTH_USER),
         {
-            .messageProcFunction = &AccountIAMMgrStub::ProcAuthUser,
+            .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcAuthUser(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(AccountIAMInterfaceCode::CANCEL_AUTH),
         {
-            .messageProcFunction = &AccountIAMMgrStub::ProcCancelAuth,
+            .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcCancelAuth(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(AccountIAMInterfaceCode::GET_AVAILABLE_STATUS),
         {
-            .messageProcFunction = &AccountIAMMgrStub::ProcGetAvailableStatus,
+            .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcGetAvailableStatus(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(AccountIAMInterfaceCode::GET_PROPERTY),
         {
-            .messageProcFunction = &AccountIAMMgrStub::ProcGetProperty,
+            .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcGetProperty(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(AccountIAMInterfaceCode::SET_PROPERTY),
         {
-            .messageProcFunction = &AccountIAMMgrStub::ProcSetProperty,
+            .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcSetProperty(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(AccountIAMInterfaceCode::GET_ENROLLED_ID),
         {
-            .messageProcFunction = &AccountIAMMgrStub::ProcGetEnrolledId,
+            .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcGetEnrolledId(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(AccountIAMInterfaceCode::GET_ACCOUNT_STATE),
         {
-            .messageProcFunction = &AccountIAMMgrStub::ProcGetAccountState,
+            .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcGetAccountState(data, reply); },
         }
     }
 };
@@ -174,7 +190,7 @@ std::int32_t AccountIAMMgrStub::OnRemoteRequest(
                 return result;
             }
         }
-        return (this->*(itFunc->second.messageProcFunction))(data, reply);
+        return (itFunc->second.messageProcFunction)(this, data, reply);
     }
     ACCOUNT_LOGW("remote request unhandled: %{public}d", code);
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);

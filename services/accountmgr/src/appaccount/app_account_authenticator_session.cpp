@@ -127,8 +127,9 @@ ErrCode AppAccountAuthenticatorSession::Open()
     }
     AAFwk::Want want;
     want.SetElementName(request_.owner, info.abilityName);
-    auto task = std::bind(&AbilityManagerAdapter::ConnectAbility,
-        AbilityManagerAdapter::GetInstance(), want, conn_, nullptr, userId_);
+    auto task = [want, this] {
+        AbilityManagerAdapter::GetInstance()->ConnectAbility(want, this->conn_, nullptr, this->userId_);
+    };
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_AUTH_SESSION);
     taskThread.detach();
