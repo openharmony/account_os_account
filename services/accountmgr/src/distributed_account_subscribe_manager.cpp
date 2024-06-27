@@ -138,8 +138,7 @@ ErrCode DistributedAccountSubscribeManager::Publish(const int id, DISTRIBUTED_AC
     uint32_t sendCnt = 0;
     for (auto it = subscribeRecords_.begin(); it != subscribeRecords_.end(); ++it) {
         if ((*it)->types_.find(subscribeType) != (*it)->types_.end()) {
-            auto task = std::bind(
-                &DistributedAccountSubscribeManager::OnAccountsChanged, this, (*it), id, subscribeType);
+            auto task = [this, it, id, subscribeType] { this->OnAccountsChanged((*it), id, subscribeType); };
             std::thread taskThread(task);
             pthread_setname_np(taskThread.native_handle(), THREAD_DISTRIBUTED_ACCOUNT_EVENT);
             taskThread.detach();

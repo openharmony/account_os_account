@@ -50,7 +50,7 @@ ErrCode AbilityManagerAdapter::DisconnectAbility(const sptr<AAFwk::IAbilityConne
 
 ErrCode AbilityManagerAdapter::StartUser(int accountId, const sptr<AAFwk::IUserCallback> &callback)
 {
-    auto task = std::bind(&IUserCallback::OnStartUserDone, callback, accountId, 0);
+    auto task = [accountId, callback] { callback->OnStartUserDone(accountId, 0); };
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), "StartUser");
     taskThread.detach();
@@ -59,7 +59,7 @@ ErrCode AbilityManagerAdapter::StartUser(int accountId, const sptr<AAFwk::IUserC
 
 ErrCode AbilityManagerAdapter::StopUser(int accountId, const sptr<AAFwk::IUserCallback> &callback)
 {
-    auto task = std::bind(&AAFwk::IUserCallback::OnStopUserDone, callback, accountId, 0);
+    auto task = [accountId, callback] { callback->OnStopUserDone(accountId, 0); };
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), "StopUser");
     taskThread.detach();

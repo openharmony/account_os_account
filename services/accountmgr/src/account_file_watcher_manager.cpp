@@ -280,7 +280,7 @@ void AccountFileWatcherMgr::StartWatch() // start watcher
         return;
     }
     run_ = true;
-    auto task = std::bind(&AccountFileWatcherMgr::GetNotifyEvent, this);
+    auto task = [this] { this->GetNotifyEvent(); };
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), "fileWatcher");
     taskThread.detach();
