@@ -2253,6 +2253,14 @@ HWTEST_F(OsAccountManagerServiceModuleTest, PrivateTypeTest001, TestSize.Level1)
     ASSERT_EQ(osAccountManagerService_->CreateOsAccount(privateTestNameTwo,
         OsAccountType::PRIVATE, osAccountInfoC), ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR);
 
+    auto &innerMgr = osAccountManagerService_->innerManager_;
+    ASSERT_NE(innerMgr.osAccountControl_, nullptr);
+    osAccountInfoB.SetIsCreateCompleted(false);
+    innerMgr.osAccountControl_->UpdateOsAccount(osAccountInfoB);
+    ASSERT_EQ(osAccountManagerService_->CreateOsAccount(privateTestNameTwo,
+        OsAccountType::PRIVATE, osAccountInfoC), ERR_OK);
+    EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoC.GetLocalId()), ERR_OK);
+
     // test get os account type by id
     OsAccountType type;
     EXPECT_EQ(osAccountManagerService_->GetOsAccountType(osAccountInfoB.GetLocalId(), type), ERR_OK);
