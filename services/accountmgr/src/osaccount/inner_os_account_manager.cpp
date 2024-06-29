@@ -775,7 +775,7 @@ ErrCode IInnerOsAccountManager::GetTypeNumber(const OsAccountType& type, int32_t
 {
     typeNumber = 0;
     std::vector<OsAccountInfo> osAccountList;
-    ErrCode result = osAccountControl_->GetOsAccountList(osAccountList);
+    ErrCode result = QueryAllCreatedOsAccounts(osAccountList);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Get os account list failed.");
         return result;
