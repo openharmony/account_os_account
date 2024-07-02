@@ -56,7 +56,7 @@ AuthCallback::AuthCallback(uint32_t userId, uint64_t credentialId, AuthType auth
     isRemoteAuth_(isRemoteAuth), innerCallback_(callback)
 {}
 
-ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo, int32_t accountId)
+ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo, int32_t accountId, bool &isUpdateVerifiedStatus)
 {
     bool lockScreenStatus = false;
     ErrCode ret = InnerAccountIAMManager::GetInstance().GetLockScreenStatus(accountId, lockScreenStatus);
@@ -92,6 +92,7 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo, int32_t acco
                     "failed to notice storage to activate user key");
                 return ret;
             }
+            isUpdateVerifiedStatus = true;
         }
     }
     // domain account authentication
@@ -140,7 +141,7 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         ACCOUNT_LOGE("Get account id from auth result failed");
         authedAccountId = static_cast<int32_t>(userId_);
     }
-    ACCOUNT_LOGI("AuthCallback::OnResult, result=%{public}d, accountId = %{public}d", result, authedAccountId);
+    ACCOUNT_LOGI("Auth ret: authType=%{public}d, result=%{public}d, id=%{public}d", authType_, result, authedAccountId);
     InnerAccountIAMManager::GetInstance().SetState(authedAccountId, AFTER_OPEN_SESSION);
     if (innerCallback_ == nullptr) {
         ACCOUNT_LOGE("innerCallback_ is nullptr");
@@ -148,7 +149,6 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
     }
     innerCallback_->AsObject()->RemoveDeathRecipient(deathRecipient_);
     if (result != 0) {
-        ACCOUNT_LOGE("authentication failed");
         innerCallback_->OnResult(result, extraInfo);
         ReportOsAccountOperationFail(authedAccountId, "authUser", result, "auth user failed");
         return AccountInfoReport::ReportSecurityInfo("", authedAccountId, ReportEvent::EVENT_LOGIN, result);
@@ -158,7 +158,8 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         innerCallback_->OnResult(result, extraInfo);
         return;
     }
-    if (HandleAuthResult(extraInfo, authedAccountId) != ERR_OK) {
+    bool isUpdateVerifiedStatus = false;
+    if (HandleAuthResult(extraInfo, authedAccountId, isUpdateVerifiedStatus) != ERR_OK) {
         int32_t remainTimes = 0;
         int32_t freezingTime = 0;
         extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, remainTimes);
@@ -178,7 +179,9 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
     } else {
         innerCallback_->OnResult(result, extraInfo);
     }
-    (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsVerified(authedAccountId, true);
+    if (isUpdateVerifiedStatus) {
+        (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsVerified(authedAccountId, true);
+    }
     (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsLoggedIn(authedAccountId, true);
     AccountInfoReport::ReportSecurityInfo("", authedAccountId, ReportEvent::EVENT_LOGIN, result);
 }
