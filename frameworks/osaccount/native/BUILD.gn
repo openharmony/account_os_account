@@ -87,7 +87,6 @@ ohos_shared_library("os_account_innerkits") {
 
   external_deps = [
     "ability_base:want",
-    "ability_runtime:wantagent_innerkits",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
