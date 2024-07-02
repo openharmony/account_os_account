@@ -424,16 +424,43 @@ ohos_moduletest("app_account_control_manager_module_test") {
   }
 
   module_out_path = module_output_path
+  cflags_cc = []
+  cflags = []
+  sources = [
+    "${app_account_services_path}/src/appaccount/app_account_control_manager.cpp",
+    "${app_account_services_path}/src/appaccount/app_account_manager_service.cpp",
+    "${app_account_services_path}/src/appaccount/app_account_stub.cpp",
+    "${app_account_services_path}/src/appaccount/inner_app_account_manager.cpp",
+    "${app_account_services_path}/src/bundle_manager_adapter/bundle_manager_adapter_proxy.cpp",
+    "${app_account_services_path}/src/bundle_manager_adapter/bundle_user_manager_adapter_proxy.cpp",
+    "${app_account_services_path}/test/mock/app_account/accesstoken_kit.cpp",
+    "${app_account_services_path}/test/mock/app_account/account_data_storage.cpp",
+    "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
+    "${bundle_framework_path}/common/log/src/app_log_wrapper.cpp",
+    "${innerkits_native_path}/src/account_info_parcel.cpp",
+    "app_account_control_manager_module_test.cpp",
+  ]
 
-  sources = [ "app_account_control_manager_module_test.cpp" ]
+  sources += ability_base_sources
+  sources += app_account_sources_mock
 
-  configs = [ ":app_account_service_config_unittest" ]
+  use_exceptions = true
+
+  configs = [
+    ":app_account_service_config_unittest",
+    "${app_account_services_path}/test/mock:mock_accountmgr_config",
+    "${app_account_services_path}/test/mock:accountmgr_config",
+    "${app_account_services_path}/test/mock:ability_manager_config",
+  ]
+  include_dirs = [
+    "${app_account_services_path}/test/mock/common",
+    "${app_account_innerkits_native_path}/include",
+  ]
 
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
-    "${app_account_services_path}:accountmgr",
-    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
@@ -449,9 +476,67 @@ ohos_moduletest("app_account_control_manager_module_test") {
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
+    "mbedtls:mbedtls_shared",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+
+  external_deps += [
+    "ability_runtime:wantagent_innerkits",
+    "access_token:libtokenid_sdk",
+    "huks:libhukssdk",
+    "init:libbegetutil",
+  ]
+
+  if (has_storage_service_part && os_account_storage_feature) {
+    external_deps += [ "storage_service:storage_manager_sa_proxy" ]
+  }
+
+  if (build_selinux) {
+    external_deps += [ "selinux_adapter:librestorecon" ]
+  }
+
+  if (has_ces_part) {
+    external_deps += [ "common_event_service:cesfwk_innerkits" ]
+  }
+
+  if (has_hiviewdfx_hisysevent_part) {
+    external_deps += [ "hisysevent:libhisysevent" ]
+  }
+
+  if (hicollie_enable == true) {
+    external_deps += [ "hicollie:libhicollie" ]
+  }
+
+  if (security_guard_enabled) {
+    external_deps += [
+      "security_guard:libsg_collect_sdk",
+      "time_service:time_client",
+    ]
+  }
+
+  if (has_hiviewdfx_hitrace_part) {
+    external_deps += [ "hitrace:hitrace_meter" ]
+  }
+  if (has_user_auth_part) {
+    external_deps += [
+      "access_token:libtoken_setproc",
+      "user_auth_framework:userauth_client",
+    ]
+  }
+
+  if (has_kv_store_part) {
+    external_deps += [ "kv_store:distributeddata_inner" ]
+  }
+
+  if (has_ces_part) {
+    cflags_cc += [ "-DHAS_CES_PART" ]
+    external_deps += [ "common_event_service:cesfwk_innerkits" ]
+  }
+
+  if (os_account_distributed_feature) {
+    cflags += [ "-DDISTRIBUTED_FEATURE_ENABLED" ]
+  }
 }
 
 ohos_moduletest("app_account_authenticator_session_module_test") {
