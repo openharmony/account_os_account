@@ -867,11 +867,9 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest028, TestSize.Lev
     osAccountInfos.clear();
     EXPECT_EQ(OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos), ERR_OK);
     EXPECT_EQ(2, osAccountInfos.size());
-    osAccountInfoTwo.SetToBeRemoved(true);
+
+    EXPECT_EQ(OsAccountManager::SetOsAccountToBeRemoved(osAccountInfoTwo.GetLocalId(), true), ERR_OK);
     osAccountInfos.clear();
-    std::string accountTwoPath = basePath + osAccountInfoTwo.GetPrimeKey() + Constants::PATH_SEPARATOR
-        + Constants::USER_INFO_FILE_NAME;
-    EXPECT_EQ(g_accountFileOperator->InputFileByPathAndContent(accountTwoPath, osAccountInfoTwo.ToString()), ERR_OK);
     EXPECT_EQ(OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos), ERR_OK);
     EXPECT_EQ(1, osAccountInfos.size());
 
