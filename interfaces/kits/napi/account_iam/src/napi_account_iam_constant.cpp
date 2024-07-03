@@ -50,6 +50,8 @@ napi_value AuthSubTypeConstructor(napi_env env)
     napi_value pinSix = nullptr;
     napi_value pinNumber = nullptr;
     napi_value pinMixed = nullptr;
+    napi_value pinFour = nullptr;
+    napi_value pinPattern = nullptr;
     napi_value face2d = nullptr;
     napi_value face3d = nullptr;
     napi_value fingerprintCapacitive = nullptr;
@@ -60,6 +62,8 @@ napi_value AuthSubTypeConstructor(napi_env env)
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(PinSubType::PIN_SIX), &pinSix));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(PinSubType::PIN_NUMBER), &pinNumber));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(PinSubType::PIN_MIXED), &pinMixed));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(PinSubType::PIN_FOUR), &pinFour));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(PinSubType::PIN_PATTERN), &pinPattern));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(FACE_2D), &face2d));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(FACE_3D), &face3d));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(FINGERPRINT_CAPACITIVE), &fingerprintCapacitive));
@@ -69,6 +73,8 @@ napi_value AuthSubTypeConstructor(napi_env env)
     NAPI_CALL(env, napi_set_named_property(env, authSubType, "PIN_SIX", pinSix));
     NAPI_CALL(env, napi_set_named_property(env, authSubType, "PIN_NUMBER", pinNumber));
     NAPI_CALL(env, napi_set_named_property(env, authSubType, "PIN_MIXED", pinMixed));
+    NAPI_CALL(env, napi_set_named_property(env, authSubType, "PIN_FOUR", pinFour));
+    NAPI_CALL(env, napi_set_named_property(env, authSubType, "PIN_PATTERN", pinPattern));
     NAPI_CALL(env, napi_set_named_property(env, authSubType, "FACE_2D", face2d));
     NAPI_CALL(env, napi_set_named_property(env, authSubType, "FACE_3D", face3d));
     NAPI_CALL(env, napi_set_named_property(env, authSubType, "FINGERPRINT_CAPACITIVE", fingerprintCapacitive));
@@ -283,9 +289,12 @@ napi_value AuthIntentConstructorForInnerkits(napi_env env)
 {
     napi_value authIntent = nullptr;
     napi_value unlock = nullptr;
+    napi_value silent_auth = nullptr;
     NAPI_CALL(env, napi_create_object(env, &authIntent));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(AuthIntent::UNLOCK), &unlock));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(AuthIntent::SILENT_AUTH), &silent_auth));
     NAPI_CALL(env, napi_set_named_property(env, authIntent, "UNLOCK", unlock));
+    NAPI_CALL(env, napi_set_named_property(env, authIntent, "SILENT_AUTH", silent_auth));
     return authIntent;
 }
 

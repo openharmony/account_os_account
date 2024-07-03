@@ -86,7 +86,7 @@ struct CredentialItem {
 enum AuthIntent : int32_t {
     DEFAULT = 0,
     UNLOCK = 1,
-    INIT = 2,
+    SILENT_AUTH = 2,
 };
 
 struct RemoteAuthParam {
