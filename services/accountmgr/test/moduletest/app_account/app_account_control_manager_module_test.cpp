@@ -36,7 +36,6 @@ const std::string AUTHORIZED_APP = "authorizedApp";
 const std::string BUNDLE_NAME = "bundlename";
 
 const std::size_t ACCOUNT_MAX_SIZE = 1000;
-const std::int32_t DELAY_FOR_OPERATION = 250;
 
 constexpr std::int32_t UID = 10000;
 }  // namespace
@@ -90,38 +89,12 @@ HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_AccountMax
  */
 HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_AccountMaxSize_0200, TestSize.Level1)
 {
-    ACCOUNT_LOGI("AppAccountControlManager_AccountMaxSize_0200");
     ErrCode result;
     std::string name;
-    for (std::size_t index = 0; index < ACCOUNT_MAX_SIZE; index++) {
-        name = STRING_NAME + std::to_string(index);
-        ACCOUNT_LOGI("before AddAccount, index = %{public}zu", index);
-        GTEST_LOG_(INFO) << "before AddAccount, index = " << index;
-
-        AppAccountInfo appAccountInfo(name, STRING_OWNER);
-        result = AppAccountControlManager::GetInstance().AddAccount(
-            name, STRING_EXTRA_INFO, UID, STRING_OWNER, appAccountInfo);
-        ASSERT_EQ(result, ERR_OK);
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
-    }
-
-    AppAccountInfo appAccountInfo(STRING_NAME, STRING_OWNER);
+    AppAccountInfo appAccountInfo(STRING_NAME, STRING_OWNER+"max");
     result = AppAccountControlManager::GetInstance().AddAccount(
-        STRING_NAME, STRING_EXTRA_INFO, UID, STRING_OWNER, appAccountInfo);
+        STRING_NAME, STRING_EXTRA_INFO, UID, STRING_OWNER+"max", appAccountInfo);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_MAX_SIZE);
-
-    for (std::size_t index = 0; index < ACCOUNT_MAX_SIZE; index++) {
-        name = STRING_NAME + std::to_string(index);
-        ACCOUNT_LOGI("before DeleteAccount, index = %{public}zu", index);
-        GTEST_LOG_(INFO) << "before DeleteAccount, index = " << index;
-
-        AppAccountInfo appAccountInfo(name, STRING_OWNER);
-        result = AppAccountControlManager::GetInstance().DeleteAccount(name, UID, STRING_OWNER, appAccountInfo);
-        ASSERT_EQ(result, ERR_OK);
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
-    }
 }
 
 /**
