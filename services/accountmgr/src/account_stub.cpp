@@ -42,6 +42,7 @@ namespace {
 const std::string OHOS_ACCOUNT_QUIT_TIPS_TITLE = "";
 const std::string OHOS_ACCOUNT_QUIT_TIPS_CONTENT = "";
 const std::string PERMISSION_MANAGE_USERS = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
+const std::string PERMISSION_GET_LOCAL_ACCOUNTS = "ohos.permission.GET_LOCAL_ACCOUNTS";
 const std::string PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS = "ohos.permission.MANAGE_DISTRIBUTED_ACCOUNTS";
 const std::string PERMISSION_GET_DISTRIBUTED_ACCOUNTS = "ohos.permission.GET_DISTRIBUTED_ACCOUNTS";
 const std::string PERMISSION_DISTRIBUTED_DATASYNC = "ohos.permission.DISTRIBUTED_DATASYNC";
@@ -240,7 +241,8 @@ std::int32_t AccountStub::InnerGetOhosAccountInfo(MessageParcel &data, MessagePa
 std::int32_t AccountStub::CmdQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
     if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS) &&
-        !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC)) {
+        !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC) &&
+        !HasAccountRequestPermission(PERMISSION_GET_LOCAL_ACCOUNTS)) {
         ACCOUNT_LOGE("Check permission failed");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
