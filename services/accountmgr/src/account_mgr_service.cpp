@@ -232,8 +232,6 @@ void AccountMgrService::OnStart()
     AddSystemAbilityListener(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID);
     ACCOUNT_LOGI("AccountMgrService::OnStart start service finished.");
     FinishTraceAdapter();
-
-    IPCSkeleton::SetMaxWorkThreadNum(5); // 5: ipc thread num
 }
 
 void AccountMgrService::OnStop()
