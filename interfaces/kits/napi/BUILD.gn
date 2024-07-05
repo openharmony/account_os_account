@@ -15,7 +15,7 @@ import("//build/ohos.gni")
 
 group("napi_packages") {
   deps = []
-  if (support_jsapi) {
+  if (support_jsapi && !ohos_indep_compiler_enable) {
     deps += [
       "appaccount:appaccount",
       "distributedaccount:distributedaccount",
