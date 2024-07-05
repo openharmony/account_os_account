@@ -63,7 +63,7 @@ public:
         const int id, const std::vector<std::string> &constraints, const bool enable) override;
     ErrCode SetOsAccountProfilePhoto(const int id, const std::string &photo) override;
     ErrCode ActivateOsAccount(const int id, const bool startStorage = true, const uint64_t displayId = 0) override;
-    ErrCode DeactivateOsAccount(const int id) override;
+    ErrCode DeactivateOsAccount(const int id, bool isStopStorage = true) override;
     ErrCode StartOsAccount(const int id) override;
     ErrCode GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id) override;
     ErrCode GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber) override;
@@ -139,7 +139,7 @@ private:
     ErrCode PrepareOsAccountInfoWithFullInfo(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountActivate(OsAccountInfo &osAccountInfo, const bool startStorage = true,
                                       const uint64_t dispalyId = 0);
-    ErrCode SendMsgForAccountDeactivate(OsAccountInfo &osAccountInfo);
+    ErrCode SendMsgForAccountDeactivate(OsAccountInfo &osAccountInfo, bool isStopStorage = true);
     ErrCode SendMsgForAccountStop(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountRemove(OsAccountInfo &osAccountInfo);
     ErrCode ValidateOsAccount(const OsAccountInfo &osAccountInfo);
