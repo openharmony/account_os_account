@@ -84,10 +84,7 @@ ohos_shared_library("app_account_innerkits") {
     "src/app_account_subscriber.cpp",
   ]
 
-  configs = [
-    ":app_account_innnerkits_config",
-    "${account_coverage_config_path}:coverage_flags",
-  ]
+  configs = [ ":app_account_innnerkits_config" ]
 
   public_configs = [ ":app_account_innerkits_public_config" ]
 
@@ -112,7 +109,6 @@ ohos_shared_library("app_account_innerkits") {
     "ability_runtime:service_extension",
     "ability_runtime:ui_extension",
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "ipc:ipc_napi",
     "ipc:ipc_single",

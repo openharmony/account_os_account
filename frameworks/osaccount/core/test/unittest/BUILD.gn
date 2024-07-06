@@ -41,10 +41,7 @@ ohos_unittest("os_account_test") {
 
   sources = [ "os_account_test.cpp" ]
 
-  configs = [
-    ":os_account_core_config_unittest",
-    "${account_coverage_config_path}:coverage_flags",
-  ]
+  configs = [ ":os_account_core_config_unittest" ]
 
   deps = [
     "${common_path}:libaccount_common",
@@ -86,10 +83,7 @@ ohos_unittest("os_account_mock_test") {
     "os_account_mock_test.cpp",
   ]
 
-  configs = [
-    ":os_account_core_config_unittest",
-    "${account_coverage_config_path}:coverage_flags",
-  ]
+  configs = [ ":os_account_core_config_unittest" ]
 
   deps = [
     "${common_path}:libaccount_common",
@@ -102,7 +96,6 @@ ohos_unittest("os_account_mock_test") {
     "ability_base:want",
     "c_utils:utils",
     "hilog:libhilog",
-    "init:libbegetutil",
     "ipc:ipc_single",
   ]
 }

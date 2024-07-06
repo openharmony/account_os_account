@@ -57,8 +57,6 @@ ohos_shared_library("libaccount_common") {
     "-Wshadow",
   ]
 
-  configs = [ "${account_coverage_config_path}:coverage_flags" ]
-
   defines = [
     "ACCOUNT_LOG_TAG = \"AccountCommonFwk\"",
     "LOG_DOMAIN = 0xD001B00",

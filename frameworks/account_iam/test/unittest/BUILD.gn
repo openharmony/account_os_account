@@ -50,10 +50,7 @@ ohos_unittest("account_iam_client_test") {
     "src/test_common.cpp",
   ]
 
-  configs = [
-    ":account_iam_native_config_unittest",
-    "${account_coverage_config_path}:coverage_flags",
-  ]
+  configs = [ ":account_iam_native_config_unittest" ]
 
   deps = [
     "${account_iam_framework_path}:account_iam_innerkits",
@@ -101,10 +98,7 @@ ohos_unittest("account_iam_client_proxy_mock_test") {
     "src/test_common.cpp",
   ]
 
-  configs = [
-    ":account_iam_native_config_unittest",
-    "${account_coverage_config_path}:coverage_flags",
-  ]
+  configs = [ ":account_iam_native_config_unittest" ]
 
   deps = [
     "${account_iam_framework_path}:account_iam_innerkits",
@@ -149,10 +143,7 @@ ohos_unittest("account_iam_client_no_permission_proxy_mock_test") {
 
   sources = [ "src/account_iam_client_no_permission_test.cpp" ]
 
-  configs = [
-    ":account_iam_native_config_unittest",
-    "${account_coverage_config_path}:coverage_flags",
-  ]
+  configs = [ ":account_iam_native_config_unittest" ]
 
   deps = [
     "${account_iam_framework_path}:account_iam_innerkits",
@@ -197,10 +188,7 @@ ohos_unittest("account_iam_client_no_permission_test") {
 
   sources = [ "src/account_iam_client_no_permission_test.cpp" ]
 
-  configs = [
-    ":account_iam_native_config_unittest",
-    "${account_coverage_config_path}:coverage_flags",
-  ]
+  configs = [ ":account_iam_native_config_unittest" ]
 
   deps = [
     "${account_iam_framework_path}:account_iam_innerkits",
@@ -246,10 +234,7 @@ ohos_unittest("account_iam_mgr_proxy_test") {
     "src/test_common.cpp",
   ]
 
-  configs = [
-    ":account_iam_native_config_unittest",
-    "${account_coverage_config_path}:coverage_flags",
-  ]
+  configs = [ ":account_iam_native_config_unittest" ]
 
   deps = [
     "${account_iam_framework_path}:account_iam_innerkits",
