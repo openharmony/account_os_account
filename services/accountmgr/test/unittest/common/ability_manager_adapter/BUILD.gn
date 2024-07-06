@@ -47,7 +47,6 @@ ohos_unittest("AbilityManagerAdapterTest") {
   configs = [
     ":ability_manager_adapter_test_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
-    "${account_coverage_config_path}:coverage_flags",
   ]
 
   deps = [
@@ -88,7 +87,6 @@ ohos_unittest("AbilityManagerAdapterMockTest") {
   configs = [
     ":ability_manager_adapter_test_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
-    "${account_coverage_config_path}:coverage_flags",
   ]
 
   deps = [
@@ -100,7 +98,6 @@ ohos_unittest("AbilityManagerAdapterMockTest") {
     "ability_runtime:ability_manager",
     "c_utils:utils",
     "hilog:libhilog",
-    "init:libbegetutil",
     "ipc:ipc_single",
     "samgr:samgr_proxy",
   ]

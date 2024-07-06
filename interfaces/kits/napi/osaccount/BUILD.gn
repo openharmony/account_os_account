@@ -37,10 +37,7 @@ config("osaccount_kit_config") {
 }
 
 ohos_shared_library("osaccount") {
-  configs = [
-    ":osaccount_kit_config",
-    "${account_coverage_config_path}:coverage_flags",
-  ]
+  configs = [ ":osaccount_kit_config" ]
   sources = [
     "${os_account_kits_path}/src/napi_init.cpp",
     "${os_account_kits_path}/src/napi_os_account.cpp",

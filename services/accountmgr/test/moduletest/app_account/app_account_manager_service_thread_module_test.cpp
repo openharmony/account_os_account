@@ -50,8 +50,6 @@ public:
     void TearDown(void) override;
     std::shared_ptr<AppAccountManagerService>
         appAccountManagerServicePtr_ = std::make_shared<AppAccountManagerService>();
-    std::shared_ptr<OHOS::AppExecFwk::EventHandler>
-        handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create());
 
     void AddAccount(const std::shared_ptr<AppAccountManagerService> &servicePtr);
     void DeleteAccount(const std::shared_ptr<AppAccountManagerService> &servicePtr);

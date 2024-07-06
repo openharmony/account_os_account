@@ -70,10 +70,7 @@ ohos_shared_library("os_account_core") {
     "${os_account_path}/frameworks/domain_account/src/domain_account_common.cpp",
   ]
 
-  configs = [
-    ":os_account_core_config",
-    "${account_coverage_config_path}:coverage_flags",
-  ]
+  configs = [ ":os_account_core_config" ]
 
   public_configs = [ ":os_account_core_public_config" ]
 
