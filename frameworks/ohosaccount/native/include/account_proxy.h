@@ -34,10 +34,10 @@ public:
     ErrCode SetOhosAccountInfoByUserId(
         const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr) override;
     std::int32_t SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr) override;
-    std::pair<bool, OhosAccountInfo> QueryOhosAccountInfo(void) override;
+    ErrCode QueryOhosAccountInfo(OhosAccountInfo &accountInfo) override;
     ErrCode GetOhosAccountInfo(OhosAccountInfo &ohosAccountInfo) override;
     ErrCode GetOhosAccountInfoByUserId(std::int32_t userId, OhosAccountInfo &ohosAccountInfo) override;
-    std::pair<bool, OhosAccountInfo> QueryOhosAccountInfoByUserId(std::int32_t userId) override;
+    ErrCode QueryOhosAccountInfoByUserId(std::int32_t userId, OhosAccountInfo &info) override;
     std::int32_t QueryDeviceAccountId(std::int32_t &accountId) override;
     ErrCode SubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
         const sptr<IRemoteObject> &eventListener) override;

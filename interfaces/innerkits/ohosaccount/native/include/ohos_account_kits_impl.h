@@ -36,9 +36,11 @@ public:
     ErrCode SetOhosAccountInfoByUserId(
         const int32_t userId, const OhosAccountInfo& ohosAccountInfo, const std::string& eventStr) final;
     std::pair<bool, OhosAccountInfo> QueryOhosAccountInfo() final;
+    ErrCode QueryOhosAccountInfo(OhosAccountInfo &accountInfo);
     ErrCode GetOhosAccountInfo(OhosAccountInfo &accountInfo) final;
     ErrCode GetOhosAccountInfoByUserId(int32_t userId, OhosAccountInfo &accountInfo) final;
     std::pair<bool, OhosAccountInfo> QueryOhosAccountInfoByUserId(std::int32_t userId) final;
+    ErrCode QueryOhosAccountInfoByUserId(std::int32_t userId, OhosAccountInfo &accountInfo);
     ErrCode QueryDeviceAccountId(std::int32_t& accountId) final;
     std::int32_t GetDeviceAccountIdByUID(std::int32_t& uid) final;
     ErrCode SubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,

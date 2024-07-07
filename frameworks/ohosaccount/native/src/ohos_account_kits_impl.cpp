@@ -140,13 +140,20 @@ ErrCode OhosAccountKitsImpl::SetOhosAccountInfoByUserId(
 
 std::pair<bool, OhosAccountInfo> OhosAccountKitsImpl::QueryOhosAccountInfo()
 {
+    OhosAccountInfo accountInfo;
+    ErrCode result = QueryOhosAccountInfo(accountInfo);
+    return std::make_pair(result == ERR_OK, accountInfo);
+}
+
+ErrCode OhosAccountKitsImpl::QueryOhosAccountInfo(OhosAccountInfo &accountInfo)
+{
     auto accountProxy = GetService();
     if (accountProxy == nullptr) {
         ACCOUNT_LOGE("Get proxy failed");
-        return std::make_pair(false, OhosAccountInfo());
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
 
-    return accountProxy->QueryOhosAccountInfo();
+    return accountProxy->QueryOhosAccountInfo(accountInfo);
 }
 
 ErrCode OhosAccountKitsImpl::GetOhosAccountInfo(OhosAccountInfo &accountInfo)
@@ -173,13 +180,20 @@ ErrCode OhosAccountKitsImpl::GetOhosAccountInfoByUserId(int32_t userId, OhosAcco
 
 std::pair<bool, OhosAccountInfo> OhosAccountKitsImpl::QueryOhosAccountInfoByUserId(std::int32_t userId)
 {
+    OhosAccountInfo accountInfo;
+    ErrCode result = QueryOhosAccountInfoByUserId(userId, accountInfo);
+    return std::make_pair(result == ERR_OK, accountInfo);
+}
+
+ErrCode OhosAccountKitsImpl::QueryOhosAccountInfoByUserId(std::int32_t userId, OhosAccountInfo &accountInfo)
+{
     auto accountProxy = GetService();
     if (accountProxy == nullptr) {
         ACCOUNT_LOGE("Get proxy failed");
-        return std::make_pair(false, OhosAccountInfo());
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
 
-    return accountProxy->QueryOhosAccountInfoByUserId(userId);
+    return accountProxy->QueryOhosAccountInfoByUserId(userId, accountInfo);
 }
 
 ErrCode OhosAccountKitsImpl::QueryDeviceAccountId(std::int32_t& accountId)
