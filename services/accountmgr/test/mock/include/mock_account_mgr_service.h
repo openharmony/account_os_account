@@ -34,8 +34,8 @@ public:
     std::int32_t QueryDeviceAccountId(std::int32_t &accountId) override;
     bool UpdateOhosAccountInfo(
         const std::string &accountName, const std::string &uid, const std::string &eventStr) override;
-    std::pair<bool, OhosAccountInfo> QueryOhosAccountInfo(void) override;
-    std::pair<bool, OhosAccountInfo> QueryOhosAccountInfoByUserId(std::int32_t userId) override;
+    ErrCode QueryOhosAccountInfo(OhosAccountInfo &accountInfo) override;
+    ErrCode QueryOhosAccountInfoByUserId(std::int32_t userId, OhosAccountInfo &accountInfo) override;
     ErrCode SubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
         const sptr<IRemoteObject> &eventListener) override;
     ErrCode UnsubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
