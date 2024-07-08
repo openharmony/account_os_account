@@ -1073,7 +1073,13 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest042, TestSize.Lev
     OsAccountInfo osAccountInfoTwo;
     EXPECT_EQ(OsAccountManager::QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo), ERR_OK);
     EXPECT_EQ(osAccountInfoTwo.GetLocalId(), osAccountInfoOne.GetLocalId());
+    OsAccountInfo osAccountInfoThree;
+    ASSERT_EQ(OsAccountManager::CreateOsAccount("Modulelist042", OsAccountType::GUEST, osAccountInfoThree), ERR_OK);
+    std::vector<OsAccountInfo> osAccountInfos;
+    ASSERT_EQ(OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos), ERR_OK);
+    ASSERT_EQ(osAccountInfos.size(), 3);
     ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoThree.GetLocalId()), ERR_OK);
 }
 
 /**
