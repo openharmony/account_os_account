@@ -216,9 +216,9 @@ std::int32_t AccountStub::InnerQueryOhosAccountInfo(MessageParcel &data, Message
 {
     OhosAccountInfo info;
     ErrCode result = QueryOhosAccountInfo(info);
-    if (!result) {
+    if (result != ERR_OK) {
         ACCOUNT_LOGE("Query ohos account info failed");
-        return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
+        return result;
     }
 
     std::string name = info.name_;
@@ -337,9 +337,9 @@ std::int32_t AccountStub::CmdQueryOhosAccountInfoByUserId(MessageParcel &data, M
 
     OhosAccountInfo info;
     ErrCode result = QueryOhosAccountInfoByUserId(userId, info);
-    if (!result) {
+    if (result != ERR_OK) {
         ACCOUNT_LOGE("Query ohos account info failed! userId %{public}d.", userId);
-        return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
+        return result;
     }
 
     std::string name = info.name_;
