@@ -93,7 +93,7 @@ void AccountMgrServiceTest::SetUpTestCase()
         return;
     }
     ErrCode ret = accountMgr->QueryOhosAccountInfo(g_oldInfo);
-    if (!ret) {
+    if (ret != ERR_OK) {
         std::cout << "AccountMgrServiceTest::SetUpTestCase GET old info failed" << std::endl;
     }
 
@@ -142,7 +142,7 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosLoginTest001, TestSize.Leve
     // status check
     OhosAccountInfo testInfo;
     ErrCode result = accountMgr->QueryOhosAccountInfo(testInfo);
-    EXPECT_EQ(true, result);
+    EXPECT_EQ(ERR_OK, result);
     ret = (testInfo.uid_ == TEST_EXPECTED_UID);
     EXPECT_EQ(true, ret);
     ret = (testInfo.name_ == TEST_ACCOUNT_NAME);
@@ -156,7 +156,7 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosLoginTest001, TestSize.Leve
 
     // status check
     result = accountMgr->QueryOhosAccountInfo(testInfo);
-    EXPECT_EQ(true, result);
+    EXPECT_EQ(ERR_OK, result);
     EXPECT_EQ(testInfo.uid_, DEFAULT_OHOS_ACCOUNT_UID);
     EXPECT_EQ(testInfo.name_, DEFAULT_OHOS_ACCOUNT_NAME);
     EXPECT_EQ(testInfo.status_, ACCOUNT_STATE_UNBOUND);
@@ -180,7 +180,7 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosLoginTest002, TestSize.Leve
     // status check
     OhosAccountInfo testInfo;
     ErrCode result = accountMgr->QueryOhosAccountInfo(testInfo);
-    EXPECT_EQ(true, result);
+    EXPECT_EQ(ERR_OK, result);
     ret = (testInfo.uid_ == TEST_EXPECTED_UID);
     EXPECT_EQ(true, ret);
     ret = (testInfo.name_ == TEST_ACCOUNT_NAME);
@@ -202,7 +202,7 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosLoginTest002, TestSize.Leve
 
     // status check
     result = accountMgr->QueryOhosAccountInfo(testInfo);
-    EXPECT_EQ(true, result);
+    EXPECT_EQ(ERR_OK, result);
     EXPECT_EQ(testInfo.uid_, DEFAULT_OHOS_ACCOUNT_UID);
     EXPECT_EQ(testInfo.name_, DEFAULT_OHOS_ACCOUNT_NAME);
     EXPECT_EQ(testInfo.status_, ACCOUNT_STATE_UNBOUND);
@@ -227,7 +227,7 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosLogoffTest001, TestSize.Lev
     // status check
     OhosAccountInfo testInfo;
     ErrCode result = accountMgr->QueryOhosAccountInfo(testInfo);
-    EXPECT_EQ(true, result);
+    EXPECT_EQ(ERR_OK, result);
     ret = (testInfo.uid_ == TEST_DIFF_EXPECTED_UID);
     EXPECT_EQ(true, ret);
     ret = (testInfo.name_ == TEST_DIFF_ACCOUNT_NAME);
@@ -241,7 +241,7 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosLogoffTest001, TestSize.Lev
 
     // status check
     result = accountMgr->QueryOhosAccountInfo(testInfo);
-    EXPECT_EQ(true, result);
+    EXPECT_EQ(ERR_OK, result);
     EXPECT_EQ(testInfo.uid_, DEFAULT_OHOS_ACCOUNT_UID);
     EXPECT_EQ(testInfo.name_, DEFAULT_OHOS_ACCOUNT_NAME);
     EXPECT_EQ(testInfo.status_, ACCOUNT_STATE_UNBOUND);
@@ -265,7 +265,7 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosTokenInvalidTest001, TestSi
     // status check
     OhosAccountInfo testInfo;
     ErrCode result = accountMgr->QueryOhosAccountInfo(testInfo);
-    EXPECT_EQ(true, result);
+    EXPECT_EQ(ERR_OK, result);
     ret = (testInfo.uid_ == TEST_EXPECTED_UID);
     EXPECT_EQ(true, ret);
     ret = (testInfo.name_ == TEST_ACCOUNT_NAME);
@@ -279,7 +279,7 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosTokenInvalidTest001, TestSi
 
     // status check
     result = accountMgr->QueryOhosAccountInfo(testInfo);
-    EXPECT_EQ(true, result);
+    EXPECT_EQ(ERR_OK, result);
     ret = (testInfo.uid_ == TEST_EXPECTED_UID);
     EXPECT_EQ(true, ret);
     ret = (testInfo.name_ == TEST_ACCOUNT_NAME);
@@ -293,7 +293,7 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosTokenInvalidTest001, TestSi
 
     // status check
     result = accountMgr->QueryOhosAccountInfo(testInfo);
-    EXPECT_EQ(true, result);
+    EXPECT_EQ(ERR_OK, result);
     ret = (testInfo.uid_ == TEST_EXPECTED_UID);
     EXPECT_EQ(true, ret);
     ret = (testInfo.name_ == TEST_ACCOUNT_NAME);
@@ -307,7 +307,7 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosTokenInvalidTest001, TestSi
 
     // status check
     result = accountMgr->QueryOhosAccountInfo(testInfo);
-    EXPECT_EQ(true, result);
+    EXPECT_EQ(ERR_OK, result);
     EXPECT_EQ(testInfo.uid_, DEFAULT_OHOS_ACCOUNT_UID);
     EXPECT_EQ(testInfo.name_, DEFAULT_OHOS_ACCOUNT_NAME);
     EXPECT_EQ(testInfo.status_, ACCOUNT_STATE_UNBOUND);
