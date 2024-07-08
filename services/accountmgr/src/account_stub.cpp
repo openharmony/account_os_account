@@ -64,25 +64,40 @@ constexpr std::int32_t DSOFTBUS_UID = 5533;
 }  // namespace
 AccountStub::AccountStub()
 {
-    stubFuncMap_[AccountMgrInterfaceCode::UPDATE_OHOS_ACCOUNT_INFO] = &AccountStub::CmdUpdateOhosAccountInfo;
-    stubFuncMap_[AccountMgrInterfaceCode::SET_OHOS_ACCOUNT_INFO] = &AccountStub::CmdSetOhosAccountInfo;
+    stubFuncMap_[AccountMgrInterfaceCode::UPDATE_OHOS_ACCOUNT_INFO] =
+        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdUpdateOhosAccountInfo(data, reply); };
+    stubFuncMap_[AccountMgrInterfaceCode::SET_OHOS_ACCOUNT_INFO] =
+        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdSetOhosAccountInfo(data, reply); };
     stubFuncMap_[AccountMgrInterfaceCode::SET_OHOS_ACCOUNT_INFO_BY_USER_ID] =
-        &AccountStub::CmdSetOhosAccountInfoByUserId;
-    stubFuncMap_[AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_INFO] = &AccountStub::CmdQueryOhosAccountInfo;
-    stubFuncMap_[AccountMgrInterfaceCode::GET_OHOS_ACCOUNT_INFO] = &AccountStub::CmdGetOhosAccountInfo;
+        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdSetOhosAccountInfoByUserId(data, reply); };
+    stubFuncMap_[AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_INFO] =
+        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdQueryOhosAccountInfo(data, reply); };
+    stubFuncMap_[AccountMgrInterfaceCode::GET_OHOS_ACCOUNT_INFO] =
+        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdGetOhosAccountInfo(data, reply); };
     stubFuncMap_[AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_INFO_BY_USER_ID] =
-        &AccountStub::CmdQueryOhosAccountInfoByUserId;
+        [this] (MessageParcel &data, MessageParcel &reply) {
+        return this->CmdQueryOhosAccountInfoByUserId(data, reply);
+    };
     stubFuncMap_[AccountMgrInterfaceCode::GET_OHOS_ACCOUNT_INFO_BY_USER_ID] =
-        &AccountStub::CmdGetOhosAccountInfoByUserId;
-    stubFuncMap_[AccountMgrInterfaceCode::QUERY_DEVICE_ACCOUNT_ID] = &AccountStub::CmdQueryDeviceAccountId;
+        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdGetOhosAccountInfoByUserId(data, reply); };
+    stubFuncMap_[AccountMgrInterfaceCode::QUERY_DEVICE_ACCOUNT_ID] =
+        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdQueryDeviceAccountId(data, reply); };
     stubFuncMap_[AccountMgrInterfaceCode::SUBSCRIBE_DISTRIBUTED_ACCOUNT_EVENT] =
-        &AccountStub::CmdSubscribeDistributedAccountEvent;
+        [this] (MessageParcel &data, MessageParcel &reply) {
+        return this->CmdSubscribeDistributedAccountEvent(data, reply);
+    };
     stubFuncMap_[AccountMgrInterfaceCode::UNSUBSCRIBE_DISTRIBUTED_ACCOUNT_EVENT] =
-        &AccountStub::CmdUnsubscribeDistributedAccountEvent;
-    stubFuncMap_[AccountMgrInterfaceCode::GET_APP_ACCOUNT_SERVICE] = &AccountStub::CmdGetAppAccountService;
-    stubFuncMap_[AccountMgrInterfaceCode::GET_OS_ACCOUNT_SERVICE] = &AccountStub::CmdGetOsAccountService;
-    stubFuncMap_[AccountMgrInterfaceCode::GET_ACCOUNT_IAM_SERVICE] = &AccountStub::CmdGetAccountIAMService;
-    stubFuncMap_[AccountMgrInterfaceCode::GET_DOMAIN_ACCOUNT_SERVICE] = &AccountStub::CmdGetDomainAccountService;
+        [this] (MessageParcel &data, MessageParcel &reply) {
+        return this->CmdUnsubscribeDistributedAccountEvent(data, reply);
+    };
+    stubFuncMap_[AccountMgrInterfaceCode::GET_APP_ACCOUNT_SERVICE] =
+        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdGetAppAccountService(data, reply); };
+    stubFuncMap_[AccountMgrInterfaceCode::GET_OS_ACCOUNT_SERVICE] =
+        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdGetOsAccountService(data, reply); };
+    stubFuncMap_[AccountMgrInterfaceCode::GET_ACCOUNT_IAM_SERVICE] =
+        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdGetAccountIAMService(data, reply); };
+    stubFuncMap_[AccountMgrInterfaceCode::GET_DOMAIN_ACCOUNT_SERVICE] =
+        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdGetDomainAccountService(data, reply); };
 }
 
 std::int32_t AccountStub::InnerUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
@@ -482,7 +497,7 @@ std::int32_t AccountStub::OnRemoteRequest(
     if (interfaceCode <= AccountMgrInterfaceCode::SET_OHOS_ACCOUNT_INFO_BY_USER_ID) {
         (void)OhosAccountManager::GetInstance().OnInitialize();
     }
-    int32_t ret = (this->*(itFunc->second))(data, reply);
+    int32_t ret = (itFunc->second)(data, reply);
 #ifdef HICOLLIE_ENABLE
     HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
 #endif // HICOLLIE_ENABLE

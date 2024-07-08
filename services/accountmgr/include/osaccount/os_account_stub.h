@@ -24,7 +24,7 @@ namespace OHOS {
 namespace AccountSA {
 class OsAccountStub : public IRemoteStub<IOsAccount> {
 public:
-    using MessageProcFunction = ErrCode (OsAccountStub::*)(MessageParcel &data, MessageParcel &reply);
+    using MessageProcFunction = ErrCode (*)(OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply);
     typedef struct OsAccountMessageProc {
         MessageProcFunction messageProcFunction;
         bool isSyetemApi = false;

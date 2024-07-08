@@ -25,10 +25,7 @@
 namespace OHOS {
 namespace AccountSA {
 AppAccountAuthorizationExtensionStub::AppAccountAuthorizationExtensionStub()
-{
-    messageProcMap_[static_cast<uint32_t>(AppAccountAuthorizationExtensionInterfaceCode::START_AUTHENTICATION)] =
-        &AppAccountAuthorizationExtensionStub::ProcStartAuthorization;
-}
+{}
 
 AppAccountAuthorizationExtensionStub::~AppAccountAuthorizationExtensionStub()
 {}
@@ -41,9 +38,11 @@ int AppAccountAuthorizationExtensionStub::OnRemoteRequest(
         ACCOUNT_LOGE("check descriptor failed!");
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
     }
-    const auto &itFunc = messageProcMap_.find(code);
-    if (itFunc != messageProcMap_.end()) {
-        return (this->*(itFunc->second))(data, reply);
+    switch (code) {
+        case static_cast<uint32_t>(AppAccountAuthorizationExtensionInterfaceCode::START_AUTHENTICATION):
+            return ProcStartAuthorization(data, reply);
+        default:
+            break;
     }
     ACCOUNT_LOGD("Code is not find");
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);

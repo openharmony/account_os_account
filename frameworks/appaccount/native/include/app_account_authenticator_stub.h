@@ -23,7 +23,6 @@ namespace OHOS {
 namespace AccountSA {
 class AppAccountAuthenticatorStub : public IRemoteStub<IAppAccountAuthenticator> {
 public:
-    using MessageProcFunction = ErrCode (AppAccountAuthenticatorStub::*)(MessageParcel &data, MessageParcel &reply);
     AppAccountAuthenticatorStub();
     ~AppAccountAuthenticatorStub() override;
     int OnRemoteRequest(
@@ -40,7 +39,6 @@ public:
     ErrCode ProcAuth(MessageParcel &data, MessageParcel &reply);
 
 private:
-    std::map<uint32_t, MessageProcFunction> funcMap_;
     DISALLOW_COPY_AND_MOVE(AppAccountAuthenticatorStub);
 };
 }  // namespace AccountSA

@@ -24,9 +24,6 @@ namespace OHOS {
 namespace AccountSA {
 class AppAccountAuthorizationExtensionStub : public IRemoteStub<IAppAccountAuthorizationExtension> {
 public:
-    using MessageProcFunction = ErrCode (AppAccountAuthorizationExtensionStub::*)(
-        MessageParcel &data, MessageParcel &reply);
-
     AppAccountAuthorizationExtensionStub();
     ~AppAccountAuthorizationExtensionStub() override;
     int OnRemoteRequest(
@@ -36,8 +33,6 @@ private:
     ErrCode ProcStartAuthorization(MessageParcel &data, MessageParcel &reply);
 
 private:
-    std::map<uint32_t, MessageProcFunction> messageProcMap_;
-
     DISALLOW_COPY_AND_MOVE(AppAccountAuthorizationExtensionStub);
 };
 }  // namespace AccountSA

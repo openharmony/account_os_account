@@ -38,8 +38,7 @@ const std::string ACCOUNT_CFG_DIR_ROOT_PATH = "/data/service/el1/public/account/
 
 
 class OhosAccountManager;
-using OhosAccountEventFunc = bool (OhosAccountManager::*)(
-    const std::int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr);
+using OhosAccountEventFunc = std::function<bool(const std::int32_t, const OhosAccountInfo &, const std::string &)>;
 /**
  * Ohos account manager
  */
