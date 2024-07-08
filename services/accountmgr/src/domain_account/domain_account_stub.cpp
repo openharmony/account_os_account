@@ -35,75 +35,93 @@ const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS = "ohos.permission.INTERACT_ACR
 const std::map<DomainAccountInterfaceCode, DomainAccountStub::DomainAccountStubFunc> stubFuncMap = {
     {
         DomainAccountInterfaceCode::REGISTER_PLUGIN,
-        &DomainAccountStub::ProcRegisterPlugin
+        [] (DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcRegisterPlugin(data, reply); }
     },
     {
         DomainAccountInterfaceCode::UNREGISTER_PLUGIN,
-        &DomainAccountStub::ProcUnregisterPlugin
+        [] (DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcUnregisterPlugin(data, reply); }
     },
     {
         DomainAccountInterfaceCode::DOMAIN_AUTH,
-        &DomainAccountStub::ProcAuth
+        [] (DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcAuth(data, reply); }
     },
     {
         DomainAccountInterfaceCode::DOMAIN_AUTH_USER,
-        &DomainAccountStub::ProcAuthUser
+        [] (DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcAuthUser(data, reply); }
     },
     {
         DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_ENQUIRY,
-        &DomainAccountStub::ProcGetAccountStatus
+        [] (DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcGetAccountStatus(data, reply); }
     },
     {
         DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER,
-        &DomainAccountStub::ProcRegisterAccountStatusListener
+        [] (DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcRegisterAccountStatusListener(data, reply); }
     },
     {
         DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER,
-        &DomainAccountStub::ProcUnregisterAccountStatusListener
+        [] (DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcUnregisterAccountStatusListener(data, reply); }
     },
     {
         DomainAccountInterfaceCode::DOMAIN_AUTH_WITH_POPUP,
-        &DomainAccountStub::ProcAuthWithPopup
+        [] (DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcAuthWithPopup(data, reply); }
     },
     {
         DomainAccountInterfaceCode::DOMAIN_HAS_DOMAIN_ACCOUNT,
-        &DomainAccountStub::ProcHasDomainAccount
+        [] (DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcHasDomainAccount(data, reply); }
     },
     {
         DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_TOKEN,
-        &DomainAccountStub::ProcUpdateAccountToken
+        [] (DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcUpdateAccountToken(data, reply); }
     },
     {
         DomainAccountInterfaceCode::DOMAIN_IS_AUTHENTICATION_EXPIRED,
-        &DomainAccountStub::ProcIsAuthenticationExpired
+        [] (DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcIsAuthenticationExpired(data, reply); }
     },
     {
         DomainAccountInterfaceCode::DOMAIN_SET_ACCOUNT_POLICY,
-        &DomainAccountStub::ProcSetAuthenticationExpiryThreshold
+        [] (DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcSetAuthenticationExpiryThreshold(data, reply); }
     },
     {
         DomainAccountInterfaceCode::DOMAIN_GET_ACCESS_TOKEN,
-        &DomainAccountStub::ProcGetDomainAccessToken
+        [] (DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcGetDomainAccessToken(data, reply); }
     },
     {
         DomainAccountInterfaceCode::DOMAIN_GET_ACCOUNT_INFO,
-        &DomainAccountStub::ProcGetDomainAccountInfo
+        [] (DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcGetDomainAccountInfo(data, reply); }
     },
     {
         DomainAccountInterfaceCode::ADD_SERVER_CONFIG,
-        &DomainAccountStub::ProcAddServerConfig
+        [] (DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcAddServerConfig(data, reply); }
     },
     {
         DomainAccountInterfaceCode::REMOVE_SERVER_CONFIG,
-        &DomainAccountStub::ProcRemoveServerConfig
+        [] (DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcRemoveServerConfig(data, reply); }
     },
     {
         DomainAccountInterfaceCode::GET_ACCOUNT_SERVER_CONFIG,
-        &DomainAccountStub::ProcGetAccountServerConfig
+        [] (DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcGetAccountServerConfig(data, reply); }
     },
     {
         DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_INFO,
-        &DomainAccountStub::ProcUpdateAccountInfo
+        [] (DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcUpdateAccountInfo(data, reply); }
     },
 };
 
@@ -132,7 +150,7 @@ int32_t DomainAccountStub::OnRemoteRequest(
     }
     const auto &itFunc = stubFuncMap_.find(static_cast<DomainAccountInterfaceCode>(code));
     if (itFunc != stubFuncMap_.end()) {
-        return (this->*(itFunc->second))(data, reply);
+        return (itFunc->second)(this, data, reply);
     }
     ACCOUNT_LOGW("remote request unhandled: %{public}d", code);
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);

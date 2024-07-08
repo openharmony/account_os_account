@@ -26,7 +26,7 @@
 namespace OHOS {
 namespace AccountSA {
 class AccountStub;
-using AccountStubFunc = std::int32_t (AccountStub::*)(MessageParcel &data, MessageParcel &reply);
+using AccountStubFunc = std::function<std::int32_t(MessageParcel &data, MessageParcel &reply)>;
 class AccountStub : public IRemoteStub<IAccount>, public IAccountContext {
 public:
     AccountStub();

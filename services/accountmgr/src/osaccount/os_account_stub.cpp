@@ -30,395 +30,456 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::CREATE_OS_ACCOUNT),
         {
-            .messageProcFunction = &OsAccountStub::ProcCreateOsAccount,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcCreateOsAccount(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::CREATE_OS_ACCOUNT_WITH_SHORT_NAME),
         {
-            .messageProcFunction = &OsAccountStub::ProcCreateOsAccountWithShortName,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcCreateOsAccountWithShortName(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::CREATE_OS_ACCOUNT_WITH_FULL_INFO),
         {
-            .messageProcFunction = &OsAccountStub::ProcCreateOsAccountWithFullInfo,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcCreateOsAccountWithFullInfo(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::UPDATE_OS_ACCOUNT_WITH_FULL_INFO),
         {
-            .messageProcFunction = &OsAccountStub::ProcUpdateOsAccountWithFullInfo,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcUpdateOsAccountWithFullInfo(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::CREATE_OS_ACCOUNT_FOR_DOMAIN),
         {
-            .messageProcFunction = &OsAccountStub::ProcCreateOsAccountForDomain,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcCreateOsAccountForDomain(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::REMOVE_OS_ACCOUNT),
         {
-            .messageProcFunction = &OsAccountStub::ProcRemoveOsAccount,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcRemoveOsAccount(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::IS_OS_ACCOUNT_EXISTS),
         {
-            .messageProcFunction = &OsAccountStub::ProcIsOsAccountExists,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcIsOsAccountExists(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::IS_OS_ACCOUNT_ACTIVED),
         {
-            .messageProcFunction = &OsAccountStub::ProcIsOsAccountActived,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcIsOsAccountActived(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::IS_OS_ACCOUNT_CONSTRAINT_ENABLE),
         {
-            .messageProcFunction = &OsAccountStub::ProcIsOsAccountConstraintEnable,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcIsOsAccountConstraintEnable(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::CHECK_OS_ACCOUNT_CONSTRAINT_ENABLED),
         {
-            .messageProcFunction = &OsAccountStub::ProcCheckOsAccountConstraintEnabled,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcCheckOsAccountConstraintEnabled(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::IS_OS_ACCOUNT_VERIFIED),
         {
-            .messageProcFunction = &OsAccountStub::ProcIsOsAccountVerified,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcIsOsAccountVerified(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_CREATED_OS_ACCOUNT_COUNT),
         {
-            .messageProcFunction = &OsAccountStub::ProcGetCreatedOsAccountsCount,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcGetCreatedOsAccountsCount(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_LOCAL_ID_FROM_PROCESS),
         {
-            .messageProcFunction = &OsAccountStub::ProcGetOsAccountLocalIdFromProcess,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcGetOsAccountLocalIdFromProcess(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::IS_MAIN_OS_ACCOUNT),
         {
-            .messageProcFunction = &OsAccountStub::ProcIsMainOsAccount,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcIsMainOsAccount(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_LOCAL_ID_FROM_DOMAIN),
         {
-            .messageProcFunction = &OsAccountStub::ProcGetOsAccountLocalIdFromDomain,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcGetOsAccountLocalIdFromDomain(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::QUERY_MAX_OS_ACCOUNT_NUMBER),
         {
-            .messageProcFunction = &OsAccountStub::ProcQueryMaxOsAccountNumber,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcQueryMaxOsAccountNumber(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::QUERY_MAX_LOGGED_IN_OS_ACCOUNT_NUMBER),
         {
-            .messageProcFunction = &OsAccountStub::ProcQueryMaxLoggedInOsAccountNumber,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcQueryMaxLoggedInOsAccountNumber(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_ALL_CONSTRAINTS),
         {
-            .messageProcFunction = &OsAccountStub::ProcGetOsAccountAllConstraints,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcGetOsAccountAllConstraints(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::QUERY_ALL_CREATED_OS_ACCOUNTS),
         {
-            .messageProcFunction = &OsAccountStub::ProcQueryAllCreatedOsAccounts,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcQueryAllCreatedOsAccounts(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::QUERY_CURRENT_OS_ACCOUNT),
         {
-            .messageProcFunction = &OsAccountStub::ProcQueryCurrentOsAccount,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcQueryCurrentOsAccount(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::QUERY_OS_ACCOUNT_BY_ID),
         {
-            .messageProcFunction = &OsAccountStub::ProcQueryOsAccountById,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcQueryOsAccountById(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_TYPE_FROM_PROCESS),
         {
-            .messageProcFunction = &OsAccountStub::ProcGetOsAccountTypeFromProcess,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcGetOsAccountTypeFromProcess(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_TYPE),
         {
-            .messageProcFunction = &OsAccountStub::ProcGetOsAccountType,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcGetOsAccountType(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_PROFILE_PHOTO),
         {
-            .messageProcFunction = &OsAccountStub::ProcGetOsAccountProfilePhoto,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcGetOsAccountProfilePhoto(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::IS_MULTI_OS_ACCOUNT_ENABLE),
         {
-            .messageProcFunction = &OsAccountStub::ProcIsMultiOsAccountEnable,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcIsMultiOsAccountEnable(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::SET_OS_ACCOUNT_NAME),
         {
-            .messageProcFunction = &OsAccountStub::ProcSetOsAccountName,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcSetOsAccountName(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::SET_OS_ACCOUNT_CONSTRAINTS),
         {
-            .messageProcFunction = &OsAccountStub::ProcSetOsAccountConstraints,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcSetOsAccountConstraints(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::SET_OS_ACCOUNT_PROFILE_PHOTO),
         {
-            .messageProcFunction = &OsAccountStub::ProcSetOsAccountProfilePhoto,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcSetOsAccountProfilePhoto(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::ACTIVATE_OS_ACCOUNT),
         {
-            .messageProcFunction = &OsAccountStub::ProcActivateOsAccount,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcActivateOsAccount(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::DEACTIVATE_OS_ACCOUNT),
         {
-            .messageProcFunction = &OsAccountStub::ProcDeactivateOsAccount,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcDeactivateOsAccount(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::DEACTIVATE_ALL_OS_ACCOUNTS),
         {
-            .messageProcFunction = &OsAccountStub::ProcDeactivateAllOsAccounts,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcDeactivateAllOsAccounts(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::START_OS_ACCOUNT),
         {
-            .messageProcFunction = &OsAccountStub::ProcStartOsAccount,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcStartOsAccount(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::SUBSCRIBE_OS_ACCOUNT),
         {
-            .messageProcFunction = &OsAccountStub::ProcSubscribeOsAccount,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcSubscribeOsAccount(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::UNSUBSCRIBE_OS_ACCOUNT),
         {
-            .messageProcFunction = &OsAccountStub::ProcUnsubscribeOsAccount,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcUnsubscribeOsAccount(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_LOCAL_ID_FOR_SERIAL_NUMBER),
         {
-            .messageProcFunction = &OsAccountStub::ProcGetOsAccountLocalIdBySerialNumber,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcGetOsAccountLocalIdBySerialNumber(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_SERIAL_NUMBER_FOR_OS_ACCOUNT),
         {
-            .messageProcFunction = &OsAccountStub::ProcGetSerialNumberByOsAccountLocalId,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcGetSerialNumberByOsAccountLocalId(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_SWITCH_MOD),
         {
-            .messageProcFunction = &OsAccountStub::ProcGetOsAccountSwitchMod,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcGetOsAccountSwitchMod(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::IS_CURRENT_OS_ACCOUNT_VERIFIED),
         {
-            .messageProcFunction = &OsAccountStub::ProcIsCurrentOsAccountVerified,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcIsCurrentOsAccountVerified(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::IS_OS_ACCOUNT_COMPLETED),
         {
-            .messageProcFunction = &OsAccountStub::ProcIsOsAccountCompleted,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcIsOsAccountCompleted(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::SET_CURRENT_OS_ACCOUNT_IS_VERIFIED),
         {
-            .messageProcFunction = &OsAccountStub::ProcSetCurrentOsAccountIsVerified,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcSetCurrentOsAccountIsVerified(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::SET_OS_ACCOUNT_IS_VERIFIED),
         {
-            .messageProcFunction = &OsAccountStub::ProcSetOsAccountIsVerified,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcSetOsAccountIsVerified(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::DUMP_STATE),
         {
-            .messageProcFunction = &OsAccountStub::ProcDumpState,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcDumpState(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_CREATED_OS_ACCOUNT_NUM_FROM_DATABASE),
         {
-            .messageProcFunction = &OsAccountStub::ProcGetCreatedOsAccountNumFromDatabase,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcGetCreatedOsAccountNumFromDatabase(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_SERIAL_NUM_FROM_DATABASE),
         {
-            .messageProcFunction = &OsAccountStub::ProcGetSerialNumberFromDatabase,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcGetSerialNumberFromDatabase(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_MAX_ALLOW_CREATE_ID_FROM_DATABASE),
         {
-            .messageProcFunction = &OsAccountStub::ProcGetMaxAllowCreateIdFromDatabase,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcGetMaxAllowCreateIdFromDatabase(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_FROM_DATABASE),
         {
-            .messageProcFunction = &OsAccountStub::ProcGetOsAccountFromDatabase,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcGetOsAccountFromDatabase(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_LIST_FROM_DATABASE),
         {
-            .messageProcFunction = &OsAccountStub::ProcGetOsAccountListFromDatabase,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcGetOsAccountListFromDatabase(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::QUERY_ACTIVE_OS_ACCOUNT_IDS),
         {
-            .messageProcFunction = &OsAccountStub::ProcQueryActiveOsAccountIds,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcQueryActiveOsAccountIds(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::QUERY_OS_ACCOUNT_CONSTRAINT_SOURCE_TYPES),
         {
-            .messageProcFunction = &OsAccountStub::ProcQueryOsAccountConstraintSourceTypes,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcQueryOsAccountConstraintSourceTypes(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::SET_GLOBAL_OS_ACCOUNT_CONSTRAINTS),
         {
-            .messageProcFunction = &OsAccountStub::ProcSetGlobalOsAccountConstraints,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcSetGlobalOsAccountConstraints(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::SET_SPECIFIC_OS_ACCOUNT_CONSTRAINTS),
         {
-            .messageProcFunction = &OsAccountStub::ProcSetSpecificOsAccountConstraints,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcSetSpecificOsAccountConstraints(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::SET_DEFAULT_ACTIVATED_OS_ACCOUNT),
         {
-            .messageProcFunction = &OsAccountStub::ProcSetDefaultActivatedOsAccount,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcSetDefaultActivatedOsAccount(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_DEFAULT_ACTIVATED_OS_ACCOUNT),
         {
-            .messageProcFunction = &OsAccountStub::ProcGetDefaultActivatedOsAccount,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcGetDefaultActivatedOsAccount(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_SHORT_NAME),
         {
-            .messageProcFunction = &OsAccountStub::ProcGetOsAccountShortName,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcGetOsAccountShortName(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_NAME),
         {
-            .messageProcFunction = &OsAccountStub::ProcGetOsAccountName,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcGetOsAccountName(data, reply); },
             .isSyetemApi = false,
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::IS_OS_ACCOUNT_FOREGROUND),
         {
-            .messageProcFunction = &OsAccountStub::ProcIsOsAccountForeground,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcIsOsAccountForeground(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_FOREGROUND_OS_ACCOUNT_LOCAL_ID),
         {
-            .messageProcFunction = &OsAccountStub::ProcGetForegroundOsAccountLocalId,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcGetForegroundOsAccountLocalId(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_FOREGROUND_OS_ACCOUNTS),
         {
-            .messageProcFunction = &OsAccountStub::ProcGetForegroundOsAccounts,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcGetForegroundOsAccounts(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_BACKGROUND_OS_ACCOUNT_LOCAL_IDS),
         {
-            .messageProcFunction = &OsAccountStub::ProcGetBackgroundOsAccountLocalIds,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcGetBackgroundOsAccountLocalIds(data, reply); },
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_SHORT_NAME_BY_ID),
         {
-            .messageProcFunction = &OsAccountStub::ProcGetOsAccountShortNameById,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcGetOsAccountShortNameById(data, reply); },
             .isSyetemApi = true,
         }
     },
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::SET_OS_ACCOUNT_TO_BE_REMOVED),
         {
-            .messageProcFunction = &OsAccountStub::ProcSetOsAccountToBeRemoved,
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcSetOsAccountToBeRemoved(data, reply); },
             .isSyetemApi = true,
         }
     },
@@ -459,7 +520,7 @@ int OsAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
                 return result;
             }
         }
-        int ret = (this->*messageProcFunction.messageProcFunction)(data, reply);
+        int ret = (messageProcFunction.messageProcFunction)(this, data, reply);
 #ifdef HICOLLIE_ENABLE
         HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
 #endif // HICOLLIE_ENABLE

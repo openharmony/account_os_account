@@ -23,42 +23,9 @@
 
 namespace OHOS {
 namespace AccountSA {
-const std::map<DomainAccountPluginInterfaceCode, DomainAccountPluginStub::MessageProcFunction>
-    messageProcMap = {
-    {
-        DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_AUTH,
-        &DomainAccountPluginStub::ProcAuthCommonInterface
-    },
-    {
-        DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_GET_AUTH_STATUS_INFO,
-        &DomainAccountPluginStub::ProcGetAuthStatusInfo
-    },
-    {
-        DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_GET_DOMAIN_ACCOUNT_INFO,
-        &DomainAccountPluginStub::ProcGetDomainAccountInfo
-    },
-    {
-        DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_ON_ACCOUNT_BOUND,
-        &DomainAccountPluginStub::ProcOnAccountBound
-    },
-    {
-        DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_ON_ACCOUNT_UNBOUND,
-        &DomainAccountPluginStub::ProcOnAccountUnBound
-    },
-    {
-        DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_IS_ACCOUNT_TOKEN_VALID,
-        &DomainAccountPluginStub::ProcIsAccountTokenValid
-    },
-    {
-        DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_GET_ACCESS_TOKEN,
-        &DomainAccountPluginStub::ProcGetAccessToken
-    }
-};
 
 DomainAccountPluginStub::DomainAccountPluginStub()
-{
-    messageProcMap_ = messageProcMap;
-}
+{}
 
 DomainAccountPluginStub::~DomainAccountPluginStub()
 {}
@@ -71,9 +38,23 @@ int DomainAccountPluginStub::OnRemoteRequest(
         ACCOUNT_LOGE("check descriptor failed! code %{public}u.", code);
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
     }
-    const auto &itFunc = messageProcMap_.find(static_cast<DomainAccountPluginInterfaceCode>(code));
-    if (itFunc != messageProcMap_.end()) {
-        return (this->*(itFunc->second))(data, reply);
+    switch (static_cast<DomainAccountPluginInterfaceCode>(code)) {
+        case DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_AUTH:
+            return ProcAuthCommonInterface(data, reply);
+        case DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_GET_AUTH_STATUS_INFO:
+            return ProcGetAuthStatusInfo(data, reply);
+        case DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_GET_DOMAIN_ACCOUNT_INFO:
+            return ProcGetDomainAccountInfo(data, reply);
+        case DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_ON_ACCOUNT_BOUND:
+            return ProcOnAccountBound(data, reply);
+        case DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_ON_ACCOUNT_UNBOUND:
+            return ProcOnAccountUnBound(data, reply);
+        case DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_IS_ACCOUNT_TOKEN_VALID:
+            return ProcIsAccountTokenValid(data, reply);
+        case DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_GET_ACCESS_TOKEN:
+            return ProcGetAccessToken(data, reply);
+        default:
+            break;
     }
     ACCOUNT_LOGW("remote request unhandled: %{public}d", code);
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);

@@ -328,7 +328,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
 #ifdef HAS_THEME_SERVICE_PART
-    auto task = std::bind(&OsAccountInterface::InitThemeResource, osAccountInfo.GetLocalId());
+    auto task = [localId = osAccountInfo.GetLocalId()] { OsAccountInterface::InitThemeResource(localId); };
     std::thread theme_thread(task);
     pthread_setname_np(theme_thread.native_handle(), "InitTheme");
 #endif

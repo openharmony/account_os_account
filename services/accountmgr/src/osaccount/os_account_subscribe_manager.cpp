@@ -169,7 +169,7 @@ ErrCode OsAccountSubscribeManager::Publish(const int id, OS_ACCOUNT_SUBSCRIBE_TY
         OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType;
         (*it)->subscribeInfoPtr_->GetOsAccountSubscribeType(osAccountSubscribeType);
         if (osAccountSubscribeType == subscribeType) {
-            auto task = std::bind(&OsAccountSubscribeManager::OnAccountsChanged, this, (*it), id);
+            auto task = [this, it, id] { this->OnAccountsChanged((*it), id); };
             std::thread taskThread(task);
             pthread_setname_np(taskThread.native_handle(), THREAD_OS_ACCOUNT_EVENT);
             taskThread.detach();
@@ -199,7 +199,7 @@ ErrCode OsAccountSubscribeManager::Publish(const int newId, const int oldId, OS_
         OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType;
         (*it)->subscribeInfoPtr_->GetOsAccountSubscribeType(osAccountSubscribeType);
         if (osAccountSubscribeType == subscribeType) {
-            auto task = std::bind(&OsAccountSubscribeManager::OnAccountsSwitch, this, (*it), newId, oldId);
+            auto task = [this, it, newId, oldId] { this->OnAccountsSwitch((*it), newId, oldId); };
             std::thread taskThread(task);
             pthread_setname_np(taskThread.native_handle(), THREAD_OS_ACCOUNT_EVENT);
             taskThread.detach();
