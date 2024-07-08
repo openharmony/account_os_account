@@ -1428,6 +1428,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountProfilePhoto(const int id, const std
 ErrCode IInnerOsAccountManager::DeactivateOsAccountByInfo(OsAccountInfo &osAccountInfo)
 {
     osAccountInfo.SetIsActived(false);
+    osAccountInfo.SetIsVerified(false);
     osAccountInfo.SetIsForeground(false);
     osAccountInfo.SetDisplayId(Constants::INVALID_DISPALY_ID);
     osAccountInfo.SetIsLoggedIn(false);
