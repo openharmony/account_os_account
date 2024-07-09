@@ -103,7 +103,6 @@ ohos_shared_library("app_account_innerkits") {
   ]
 
   external_deps = [
-    "ability_base:want",
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
     "ability_runtime:abilitykit_native",
@@ -119,6 +118,8 @@ ohos_shared_library("app_account_innerkits") {
     "napi:ace_napi",
     "samgr:samgr_proxy",
   ]
+
+  public_external_deps = [ "ability_base:want" ]
 
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "account"
