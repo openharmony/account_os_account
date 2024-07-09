@@ -77,9 +77,6 @@ ohos_shared_library("account_iam_innerkits") {
   ]
 
   external_deps = [
-    "ability_base:base",
-    "ability_base:want",
-    "ability_base:zuri",
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
     "hilog:libhilog",
