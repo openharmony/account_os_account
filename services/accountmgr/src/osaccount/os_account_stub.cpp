@@ -532,24 +532,24 @@ int OsAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
-template<typename T>
-bool OsAccountStub::WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data)
+bool OsAccountStub::WriteOsAccountInfoList(const std::vector<OsAccountInfo> &accounts, MessageParcel &data)
 {
-    if (!data.WriteUint32(parcelableVector.size())) {
-        ACCOUNT_LOGE("Account write ParcelableVector size failed");
+    nlohmann::json accountJsonArray;
+    for (int i = 0; i < accounts.size(); i++) {
+        accountJsonArray.emplace_back(accounts[i].ToJson());
+    }
+    std::string accountJsonArrayStr = accountJsonArray.dump();
+    if (accountJsonArrayStr.size() >= Constants::IPC_WRITE_RAW_DATA_MAX_SIZE) {
+        ACCOUNT_LOGE("accountJsonArrayStr is too long");
         return false;
     }
-
-    for (auto parcelable : parcelableVector) {
-        std::string accountStr = parcelable.ToString();
-        if (!data.WriteInt32(accountStr.size() + 1)) {
-            ACCOUNT_LOGE("Failed to write accountStr size");
-            return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-        }
-        if (!data.WriteRawData(accountStr.c_str(), accountStr.size() + 1)) {
-            ACCOUNT_LOGE("Failed to write string for account");
-            return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-        }
+    if (!data.WriteUint32(accountJsonArrayStr.size() + 1)) {
+        ACCOUNT_LOGE("Failed to write accountJsonArrayStr size");
+        return false;
+    }
+    if (!data.WriteRawData(accountJsonArrayStr.c_str(), accountJsonArrayStr.size() + 1)) {
+        ACCOUNT_LOGE("Failed to write string for accountJsonArrayStr");
+        return false;
     }
     return true;
 }
@@ -813,7 +813,7 @@ ErrCode OsAccountStub::ProcQueryAllCreatedOsAccounts(MessageParcel &data, Messag
         ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-    if (!WriteParcelableVector(osAccountInfos, reply)) {
+    if (!WriteOsAccountInfoList(osAccountInfos, reply)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
@@ -1426,7 +1426,7 @@ ErrCode OsAccountStub::ProcGetOsAccountListFromDatabase(MessageParcel &data, Mes
         ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-    if (!WriteParcelableVector(osAccountList, reply)) {
+    if (!WriteOsAccountInfoList(osAccountList, reply)) {
         ACCOUNT_LOGE("ProcGetOsAccountListFromDatabase osAccountInfos failed stub");
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;

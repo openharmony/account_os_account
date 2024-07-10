@@ -70,6 +70,7 @@ const int SUBSCRIBER_MAX_SIZE = 100;
 const unsigned int LOCAL_NAME_MAX_SIZE = sysconf(_SC_LOGIN_NAME_MAX);
 const unsigned int LOCAL_PHOTO_MAX_SIZE = 1024 * 1024;
 const uint32_t SHORT_NAME_MAX_SIZE = 255;
+const uint32_t IPC_WRITE_RAW_DATA_MAX_SIZE = 1024 * 1024 * 128;
 
 // domain info limits
 const unsigned int DOMAIN_NAME_MAX_SIZE = 128;
