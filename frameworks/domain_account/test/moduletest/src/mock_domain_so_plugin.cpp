@@ -31,11 +31,16 @@ static void SetPluginString(const std::string &str, PluginString &pStr)
     if (str.empty()) {
         ACCOUNT_LOGE("Str is empty.");
         pStr.data = nullptr;
+        pStr.length = 0;
+        return;
+    }
+    pStr.data = strdup(str.c_str());
+    if (pStr.data == nullptr) {
+        ACCOUNT_LOGE("Failed to duplicate string.");
+        pStr.length = 0;
         return;
     }
     pStr.length = str.length();
-    pStr.data = strdup(str.c_str());
-    return;
 }
 
 static bool SetPluginUint8Vector(const std::vector<uint8_t> &vector, PluginUint8Vector &pVector)
