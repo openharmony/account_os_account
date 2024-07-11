@@ -2597,7 +2597,8 @@ HWMTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_OnUserRem
  * @tc.type: FUNC
  * @tc.require: issueI5N90B
  */
-HWMTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetDataStorageByUserIdM, TestSize.Level1, THREAD_NUM)
+HWMTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetDataStorageByUserIdM,
+    TestSize.Level1, THREAD_NUM)
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetDataStorageByUserIdM");
     auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
@@ -2656,7 +2657,8 @@ HWMTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAu
  * @tc.type: FUNC
  * @tc.require: issueI5N90B
  */
-HWMTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTokenVisibilityM, TestSize.Level1, THREAD_NUM)
+HWMTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTokenVisibilityM,
+    TestSize.Level1, THREAD_NUM)
 {
     ACCOUNT_LOGI("AppAccountManagerService_SetOAuthTokenVisibilityM");
 

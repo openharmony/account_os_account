@@ -302,7 +302,8 @@ HWTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_Se
  * @tc.type: FUNC
  * @tc.require: issueI5N90B
  */
-HWMTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_SetAssociatedDataM, TestSize.Level1, THREAD_NUM)
+HWMTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_SetAssociatedDataM,
+    TestSize.Level1, THREAD_NUM)
 {
     ACCOUNT_LOGI("AppAccountManagerService_SetAssociatedDataM");
 
@@ -323,7 +324,8 @@ HWMTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_S
  * @tc.type: FUNC
  * @tc.require: issueI5N90B
  */
-HWMTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_GetAssociatedDataM, TestSize.Level1, THREAD_NUM)
+HWMTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_GetAssociatedDataM,
+    TestSize.Level1, THREAD_NUM)
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAssociatedDataM");
 
@@ -344,7 +346,8 @@ HWMTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_G
  * @tc.type: FUNC
  * @tc.require: issueI5N90B
  */
-HWMTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_RemoveAssociatedDataCacheByUidM, TestSize.Level1, THREAD_NUM)
+HWMTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_RemoveAssociatedDataCacheByUidM,
+    TestSize.Level1, THREAD_NUM)
 {
     ACCOUNT_LOGI("AppAccountManagerService_RemoveAssociatedDataCacheByUidM");
 
@@ -355,7 +358,8 @@ HWMTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_R
     EXPECT_EQ(result, ERR_OK);
     AppAccountInfo appAccountInfo(STRING_NAME, bundleName);
     appAccountInfo.SetAppIndex(appIndex);
-    result = AppAccountControlManager::GetInstance().AddAccount(STRING_NAME, STRING_EXTRA_INFO, callingUid, bundleName, appAccountInfo);
+    result = AppAccountControlManager::GetInstance().AddAccount(
+        STRING_NAME, STRING_EXTRA_INFO, callingUid, bundleName, appAccountInfo);
 
     result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE);
     EXPECT_EQ(result, ERR_OK);
@@ -363,7 +367,8 @@ HWMTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_R
     AppAccountControlManager::GetInstance().RemoveAssociatedDataCacheByUid(callingUid);
 
     auto it = AppAccountControlManager::GetInstance().associatedDataCache_.find(callingUid);
-    if ((it == AppAccountControlManager::GetInstance().associatedDataCache_.end()) || (it->second.name != STRING_NAME)) {
+    if ((it == AppAccountControlManager::GetInstance().associatedDataCache_.end())
+        || (it->second.name != STRING_NAME)) {
         result = ERR_OK;
     }
     EXPECT_EQ(result, ERR_OK);
@@ -377,7 +382,8 @@ HWMTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_R
  * @tc.type: FUNC
  * @tc.require: issueI5N90B
  */
-HWMTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_RemoveAssociatedDataCacheByAccountM, TestSize.Level1, THREAD_NUM)
+HWMTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_RemoveAssociatedDataCacheByAccountM,
+    TestSize.Level1, THREAD_NUM)
 {
     ACCOUNT_LOGI("AppAccountManagerService_RemoveAssociatedDataCacheByAccountM");
 
@@ -388,7 +394,8 @@ HWMTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_R
     EXPECT_EQ(result, ERR_OK);
     AppAccountInfo appAccountInfo(STRING_NAME, bundleName);
     appAccountInfo.SetAppIndex(appIndex);
-    result = AppAccountControlManager::GetInstance().AddAccount(STRING_NAME, STRING_EXTRA_INFO, callingUid, bundleName, appAccountInfo);
+    result = AppAccountControlManager::GetInstance().AddAccount(
+        STRING_NAME, STRING_EXTRA_INFO, callingUid, bundleName, appAccountInfo);
 
     result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE);
     EXPECT_EQ(result, ERR_OK);
@@ -396,7 +403,8 @@ HWMTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_R
     AppAccountControlManager::GetInstance().RemoveAssociatedDataCacheByAccount(callingUid, STRING_NAME);
 
     auto it = AppAccountControlManager::GetInstance().associatedDataCache_.find(callingUid);
-    if ((it == AppAccountControlManager::GetInstance().associatedDataCache_.end()) || (it->second.name != STRING_NAME)) {
+    if ((it == AppAccountControlManager::GetInstance().associatedDataCache_.end())
+        || (it->second.name != STRING_NAME)) {
         result = ERR_OK;
     }
     EXPECT_EQ(result, ERR_OK);
