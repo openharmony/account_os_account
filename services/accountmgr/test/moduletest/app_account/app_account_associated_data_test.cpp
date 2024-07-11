@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <gtest/hwext/gtest-multithread.h>
 #include <gmock/gmock.h>
 #include <thread>
 
@@ -29,6 +30,7 @@
 #include "token_setproc.h"
 
 using namespace testing::ext;
+using namespace testing::mt;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
 using namespace OHOS::AppExecFwk;
@@ -44,6 +46,7 @@ const std::string STRING_VALUE = "value";
 const std::string STRING_VALUE_TWO = "value_two";
 const std::string STRING_EMPTY = "";
 constexpr std::int32_t UID = 10000;
+const int32_t THREAD_NUM = 10;
 std::shared_ptr<AppAccountManagerService> g_accountManagerService =
     std::make_shared<AppAccountManagerService>();
 static constexpr int32_t DEFAULT_API_VERSION = 8;
@@ -291,4 +294,112 @@ HWTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_Se
 
     ErrCode result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_SetAssociatedDataM
+ * @tc.desc: Set associated data with valid data.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+HWMTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_SetAssociatedDataM, TestSize.Level1, THREAD_NUM)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_SetAssociatedDataM");
+
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+
+    result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE);
+    EXPECT_EQ(result, ERR_OK);
+
+    std::string value;
+    result = g_accountManagerService->GetAssociatedData(STRING_NAME, STRING_KEY, value);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(value, STRING_VALUE);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_GetAssociatedDataM
+ * @tc.desc: Set associated data with valid data.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+HWMTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_GetAssociatedDataM, TestSize.Level1, THREAD_NUM)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_GetAssociatedDataM");
+
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+
+    result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE);
+    EXPECT_EQ(result, ERR_OK);
+
+    std::string value;
+    result = g_accountManagerService->GetAssociatedData(STRING_NAME, STRING_KEY, value);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(value, STRING_VALUE);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_RemoveAssociatedDataCacheByUidM
+ * @tc.desc: remove associated data cache by uid.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+HWMTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_RemoveAssociatedDataCacheByUidM, TestSize.Level1, THREAD_NUM)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_RemoveAssociatedDataCacheByUidM");
+
+    int32_t callingUid = -1;
+    std::string bundleName;
+    uint32_t appIndex;
+    ErrCode result = g_accountManagerService->GetCallingInfo(callingUid, bundleName, appIndex);
+    EXPECT_EQ(result, ERR_OK);
+    AppAccountInfo appAccountInfo(STRING_NAME, bundleName);
+    appAccountInfo.SetAppIndex(appIndex);
+    result = AppAccountControlManager::GetInstance().AddAccount(STRING_NAME, STRING_EXTRA_INFO, callingUid, bundleName, appAccountInfo);
+
+    result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE);
+    EXPECT_EQ(result, ERR_OK);
+
+    AppAccountControlManager::GetInstance().RemoveAssociatedDataCacheByUid(callingUid);
+
+    auto it = AppAccountControlManager::GetInstance().associatedDataCache_.find(callingUid);
+    if ((it == AppAccountControlManager::GetInstance().associatedDataCache_.end()) || (it->second.name != STRING_NAME)) {
+        result = ERR_OK;
+    }
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_RemoveAssociatedDataCacheByAccountM
+ * @tc.desc: remove associated data cache by uid.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+HWMTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_RemoveAssociatedDataCacheByAccountM, TestSize.Level1, THREAD_NUM)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_RemoveAssociatedDataCacheByAccountM");
+
+    int32_t callingUid = -1;
+    std::string bundleName;
+    uint32_t appIndex;
+    ErrCode result = g_accountManagerService->GetCallingInfo(callingUid, bundleName, appIndex);
+    EXPECT_EQ(result, ERR_OK);
+    AppAccountInfo appAccountInfo(STRING_NAME, bundleName);
+    appAccountInfo.SetAppIndex(appIndex);
+    result = AppAccountControlManager::GetInstance().AddAccount(STRING_NAME, STRING_EXTRA_INFO, callingUid, bundleName, appAccountInfo);
+
+    result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE);
+    EXPECT_EQ(result, ERR_OK);
+
+    AppAccountControlManager::GetInstance().RemoveAssociatedDataCacheByAccount(callingUid, STRING_NAME);
+
+    auto it = AppAccountControlManager::GetInstance().associatedDataCache_.find(callingUid);
+    if ((it == AppAccountControlManager::GetInstance().associatedDataCache_.end()) || (it->second.name != STRING_NAME)) {
+        result = ERR_OK;
+    }
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
 }
