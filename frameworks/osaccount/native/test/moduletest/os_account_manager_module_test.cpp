@@ -851,7 +851,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest027, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest028, TestSize.Level1)
 {
-    std::string basePath = "/data/service/el1/public/account/";
     std::vector<OsAccountInfo> osAccountInfos;
     EXPECT_EQ(OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos), ERR_OK);
     EXPECT_EQ(1, osAccountInfos.size());

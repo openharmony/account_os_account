@@ -535,7 +535,7 @@ int OsAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
 bool OsAccountStub::WriteOsAccountInfoList(const std::vector<OsAccountInfo> &accounts, MessageParcel &data)
 {
     nlohmann::json accountJsonArray;
-    for (int i = 0; i < accounts.size(); i++) {
+    for (uint32_t i = 0; i < accounts.size(); i++) {
         accountJsonArray.emplace_back(accounts[i].ToJson());
     }
     std::string accountJsonArrayStr = accountJsonArray.dump();
