@@ -17,6 +17,7 @@
 
 #include <securec.h>
 #include <string>
+#include "access_token.h"
 #include "account_iam_info.h"
 #include "account_info_report.h"
 #include "account_log_wrapper.h"
@@ -24,6 +25,8 @@
 #include "iinner_os_account_manager.h"
 #include "inner_account_iam_manager.h"
 #include "inner_domain_account_manager.h"
+#include "ipc_skeleton.h"
+#include "token_setproc.h"
 #include "user_auth_client.h"
 #include "user_idm_client.h"
 
@@ -301,6 +304,9 @@ void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
     uint64_t credentialId = 0;
     extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId);
     auto idmCallback = std::make_shared<CommitCredUpdateCallback>(userId_, credentialId, innerCallback_);
+    Security::AccessToken::AccessTokenID selfToken = IPCSkeleton::GetSelfTokenID();
+    result = SetFirstCallerTokenID(selfToken);
+    ACCOUNT_LOGI("Set first caller info result: %{public}d", result);
     UserIDMClient::GetInstance().DeleteCredential(userId_, oldCredentialId, credInfo_.token, idmCallback);
 }
 
