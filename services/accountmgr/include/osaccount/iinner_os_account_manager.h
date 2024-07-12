@@ -126,8 +126,8 @@ private:
     void CreateBaseAdminAccount();
     void CreateBaseStandardAccount();
     void ResetAccountStatus(void);
-    ErrCode RemoveOsAccountOperate(
-        const int id, OsAccountInfo &osAccountInfo, const DomainAccountInfo &domainAccountInfo);
+    ErrCode PrepareRemoveOsAccount(OsAccountInfo &osAccountInfo, bool isCleanGarbage = false);
+    ErrCode RemoveOsAccountOperate(const int id, OsAccountInfo &osAccountInfo, bool isCleanGarbage = false);
     ErrCode DeactivateOsAccountById(const int id);
     ErrCode DeactivateOsAccountByInfo(OsAccountInfo &osAccountInfo);
     ErrCode PrepareOsAccountInfo(const std::string &name, const OsAccountType &type,
