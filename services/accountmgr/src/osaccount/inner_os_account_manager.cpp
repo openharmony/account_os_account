@@ -44,11 +44,12 @@ namespace {
 const std::string CONSTRAINT_CREATE_ACCOUNT_DIRECTLY = "constraint.os.account.create.directly";
 const std::string ACCOUNT_READY_EVENT = "bootevent.account.ready";
 const std::string PARAM_LOGIN_NAME_MAX = "persist.account.login_name_max";
-constexpr std::int32_t DELAY_FOR_EXCEPTION = 50;
-constexpr std::int32_t MAX_RETRY_TIMES = 50;
 const std::string SPECIAL_CHARACTER_ARRAY = "<>|\":*?/\\";
 const std::vector<std::string> SHORT_NAME_CANNOT_BE_NAME_ARRAY = {".", ".."};
-const int32_t MAX_PRIVATE_TYPE_NUMBER = 1;
+constexpr int32_t DELAY_FOR_EXCEPTION = 50;
+constexpr int32_t MAX_RETRY_TIMES = 50;
+constexpr int32_t MAX_PRIVATE_TYPE_NUMBER = 1;
+constexpr int32_t DELAY_FOR_REMOVING_FOREGROUND_OS_ACCOUNT = 1500;
 }
 
 IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManager_(OsAccountSubscribeManager::GetInstance()),
@@ -655,6 +656,7 @@ ErrCode IInnerOsAccountManager::PrepareRemoveOsAccount(OsAccountInfo &osAccountI
             ACCOUNT_LOGE("RemoveOsAccount active base account failed");
             return ERR_OSACCOUNT_SERVICE_INNER_REMOVE_ACCOUNT_ACTIVED_ERROR;
         }
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_REMOVING_FOREGROUND_OS_ACCOUNT));
     }
     loggedInAccounts_.Erase(id);
     // stop account
@@ -2110,7 +2112,7 @@ ErrCode IInnerOsAccountManager::UpdateAccountToBackground(int32_t oldId)
 
 #ifdef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
     bool isLoggedIn = false;
-    if (!loggedInAccounts_.Find(oldId, isLoggedIn)) {
+    if ((oldOsAccountInfo.GetType() != OsAccountType::PRIVATE) && (!loggedInAccounts_.Find(oldId, isLoggedIn))) {
         DeactivateOsAccount(oldId);
     }
 #else
