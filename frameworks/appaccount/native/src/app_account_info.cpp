@@ -603,7 +603,7 @@ void AppAccountInfo::ParseTokenInfosFromJson(const Json &jsonObject)
     }
 }
 
-void AppAccountInfo::FromJson(const Json &jsonObject)
+bool AppAccountInfo::FromJson(const Json &jsonObject)
 {
     const auto &jsonObjectEnd = jsonObject.end();
 
@@ -626,6 +626,7 @@ void AppAccountInfo::FromJson(const Json &jsonObject)
     if (jsonObject.find(OAUTH_TOKEN_INFOS) != jsonObjectEnd) {
         ParseTokenInfosFromJson(jsonObject.at(OAUTH_TOKEN_INFOS));
     }
+    return true;
 }
 
 std::string AppAccountInfo::ToString() const

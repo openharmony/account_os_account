@@ -45,7 +45,6 @@ ohos_shared_library("libos_account_ndk") {
 
   external_deps = [
     "ability_base:want",
-    "bounds_checking_function:libsec_static",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",

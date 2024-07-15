@@ -514,7 +514,10 @@ ErrCode OsAccountControlFileManager::GetOsAccountInfoById(const int id, OsAccoun
         ACCOUNT_LOGE("parse os account info json data failed");
         return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
     }
-    osAccountInfo.FromJson(osAccountInfoJson);
+    if (!osAccountInfo.FromJson(osAccountInfoJson)) {
+        ACCOUNT_LOGE("parse os account info json for %{public}d failed", id);
+        return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
+    }
     return ERR_OK;
 }
 

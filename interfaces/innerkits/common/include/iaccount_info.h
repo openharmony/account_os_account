@@ -26,7 +26,7 @@ using Json = nlohmann::json;
 class IAccountInfo {
 public:
     virtual Json ToJson() const = 0;
-    virtual void FromJson(const Json &jsonObject) = 0;
+    virtual bool FromJson(const Json &jsonObject) = 0;
     virtual std::string ToString() const = 0;
     virtual std::string GetPrimeKey() const = 0;
 };
@@ -41,47 +41,48 @@ enum class JsonType {
 };
 
 template<typename T, typename dataType>
-void GetDataByType(const Json &jsonObject, const nlohmann::detail::iter_impl<const Json> &end, const std::string &key,
+bool GetDataByType(const Json &jsonObject, const nlohmann::detail::iter_impl<const Json> &end, const std::string &key,
     dataType &data, const JsonType jsonType)
 {
     if (jsonObject.find(key) != end) {
         switch (jsonType) {
             case JsonType::BOOLEAN:
                 if (!jsonObject.at(key).is_boolean()) {
-                    break;
+                    return false;
                 }
                 data = jsonObject.at(key).get<T>();
-                break;
+                return true;
             case JsonType::NUMBER:
                 if (!jsonObject.at(key).is_number()) {
-                    break;
+                    return false;
                 }
                 data = static_cast<dataType>(jsonObject.at(key).get<T>());
-                break;
+                return true;
             case JsonType::OBJECT:
                 if (!jsonObject.at(key).is_object()) {
-                    break;
+                    return false;
                 }
                 data = jsonObject.at(key).get<T>();
-                break;
+                return true;
             case JsonType::ARRAY:
                 if (!jsonObject.at(key).is_array()) {
-                    break;
+                    return false;
                 }
                 data = jsonObject.at(key).get<T>();
-                break;
+                return true;
             case JsonType::STRING:
                 if (!jsonObject.at(key).is_string()) {
-                    break;
+                    return false;
                 }
                 data = jsonObject.at(key).get<T>();
-                break;
+                return true;
             case JsonType::NULLABLE:
-                break;
+                return false;
             default:
-                break;
+                return false;
         }
     }
+    return false;
 }
 }  // namespace AccountSA
 }  // namespace OHOS
