@@ -48,9 +48,9 @@ AppAccountCommonEventObserver::AppAccountCommonEventObserver(const CommonEventCa
 
     CommonEventSubscribeInfo subscribeInfo(matchingSkills);
     subscriber_ = std::make_shared<AppAccountCommonEventSubscriber>(
-        subscribeInfo, std::bind(&AppAccountCommonEventObserver::OnReceiveEvent, this, std::placeholders::_1));
+        subscribeInfo, [this] (const CommonEventData &data) { this->OnReceiveEvent(data); });
 
-    auto task = std::bind(&AppAccountCommonEventObserver::SubscribeCommonEvent, this);
+    auto task = [this] { this->SubscribeCommonEvent(); };
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_COMMON_EVENT);
     taskThread.detach();

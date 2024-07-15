@@ -63,7 +63,7 @@ public:
         const int id, const std::vector<std::string> &constraints, const bool enable) override;
     ErrCode SetOsAccountProfilePhoto(const int id, const std::string &photo) override;
     ErrCode ActivateOsAccount(const int id, const bool startStorage = true, const uint64_t displayId = 0) override;
-    ErrCode DeactivateOsAccount(const int id) override;
+    ErrCode DeactivateOsAccount(const int id, bool isStopStorage = true) override;
     ErrCode StartOsAccount(const int id) override;
     ErrCode GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id) override;
     ErrCode GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber) override;
@@ -126,8 +126,8 @@ private:
     void CreateBaseAdminAccount();
     void CreateBaseStandardAccount();
     void ResetAccountStatus(void);
-    ErrCode RemoveOsAccountOperate(
-        const int id, OsAccountInfo &osAccountInfo, const DomainAccountInfo &domainAccountInfo);
+    ErrCode PrepareRemoveOsAccount(OsAccountInfo &osAccountInfo, bool isCleanGarbage = false);
+    ErrCode RemoveOsAccountOperate(const int id, OsAccountInfo &osAccountInfo, bool isCleanGarbage = false);
     ErrCode DeactivateOsAccountById(const int id);
     ErrCode DeactivateOsAccountByInfo(OsAccountInfo &osAccountInfo);
     ErrCode PrepareOsAccountInfo(const std::string &name, const OsAccountType &type,
@@ -139,7 +139,7 @@ private:
     ErrCode PrepareOsAccountInfoWithFullInfo(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountActivate(OsAccountInfo &osAccountInfo, const bool startStorage = true,
                                       const uint64_t dispalyId = 0);
-    ErrCode SendMsgForAccountDeactivate(OsAccountInfo &osAccountInfo);
+    ErrCode SendMsgForAccountDeactivate(OsAccountInfo &osAccountInfo, bool isStopStorage = true);
     ErrCode SendMsgForAccountStop(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountRemove(OsAccountInfo &osAccountInfo);
     ErrCode ValidateOsAccount(const OsAccountInfo &osAccountInfo);
@@ -157,8 +157,10 @@ private:
     bool CheckDomainAccountBound(const std::vector<OsAccountInfo> &osAccountInfos, const DomainAccountInfo &info);
     void RetryToGetAccount(OsAccountInfo &osAccountInfo);
     bool JudgeOsAccountUpdate(Json &accountIndexJson);
+    std::shared_ptr<std::mutex> GetOrInsertUpdateLock(int32_t id);
     ErrCode UpdateAccountToForeground(const uint64_t displayId, OsAccountInfo &osAccountInfo);
     ErrCode UpdateAccountToBackground(int32_t oldId);
+    ErrCode IsValidOsAccount(const OsAccountInfo &osAccountInfo);
 
 private:
     std::shared_ptr<IOsAccountControl> osAccountControl_;
@@ -170,9 +172,11 @@ private:
     OsAccountConfig config_;
     mutable std::mutex ativeMutex_;
     mutable std::mutex operatingMutex_;
+    mutable std::mutex updateLockMutex_;
     SafeMap<uint64_t, int32_t> foregroundAccountMap_;
     OsAccountPluginManager &pluginManager_;
     SafeMap<int32_t, bool> loggedInAccounts_;
+    std::map<int32_t, std::shared_ptr<std::mutex>> updateLocks_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

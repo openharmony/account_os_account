@@ -23,11 +23,7 @@
 namespace OHOS {
 namespace AccountSA {
 OsAccountUserCallback::OsAccountUserCallback()
-{
-    vecMemberFunc_.resize(UserCallbackCmd::CMD_MAX);
-    vecMemberFunc_[UserCallbackCmd::ON_STOP_USER_DONE] = &OsAccountUserCallback::OnStopUserDoneInner;
-    vecMemberFunc_[UserCallbackCmd::ON_START_USER_DONE] = &OsAccountUserCallback::OnStartUserDoneInner;
-}
+{}
 
 int OsAccountUserCallback::OnStopUserDoneInner(MessageParcel &data, MessageParcel &reply)
 {
@@ -55,9 +51,13 @@ int OsAccountUserCallback::OnRemoteRequest(
         return ERR_INVALID_STATE;
     }
 
-    if (code < UserCallbackCmd::CMD_MAX && code >= 0) {
-        auto memberFunc = vecMemberFunc_[code];
-        return (this->*memberFunc)(data, reply);
+    switch (code) {
+        case UserCallbackCmd::ON_STOP_USER_DONE:
+            return OnStopUserDoneInner(data, reply);
+        case UserCallbackCmd::ON_START_USER_DONE:
+            return OnStartUserDoneInner(data, reply);
+        default:
+            break;
     }
 
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);

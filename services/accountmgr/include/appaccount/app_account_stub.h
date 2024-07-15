@@ -23,7 +23,8 @@ namespace OHOS {
 namespace AccountSA {
 class AppAccountStub : public IRemoteStub<IAppAccount> {
 public:
-    using MessageProcFunction = ErrCode (AppAccountStub::*)(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    using MessageProcFunction = ErrCode(*)(
+        AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply);
 
     AppAccountStub();
     ~AppAccountStub() override;
