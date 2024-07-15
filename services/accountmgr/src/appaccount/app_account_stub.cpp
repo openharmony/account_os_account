@@ -60,171 +60,213 @@ namespace AccountSA {
 const std::map<uint32_t, AppAccountStub::MessageProcFunction> messageProcMap = {
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::ADD_ACCOUNT),
-        &AppAccountStub::ProcAddAccount,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcAddAccount(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::ADD_ACCOUNT_IMPLICITLY),
-        &AppAccountStub::ProcAddAccountImplicitly,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcAddAccountImplicitly(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::CREATE_ACCOUNT),
-        &AppAccountStub::ProcCreateAccount,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcCreateAccount(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::CREATE_ACCOUNT_IMPLICITLY),
-        &AppAccountStub::ProcCreateAccountImplicitly,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcCreateAccountImplicitly(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::DELETE_ACCOUNT),
-        &AppAccountStub::ProcDeleteAccount,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcDeleteAccount(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::GET_ACCOUNT_EXTRA_INFO),
-        &AppAccountStub::ProcGetAccountExtraInfo,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcGetAccountExtraInfo(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::SET_ACCOUNT_EXTRA_INFO),
-        &AppAccountStub::ProcSetAccountExtraInfo,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcSetAccountExtraInfo(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::ENABLE_APP_ACCESS),
-        &AppAccountStub::ProcSetAppAccess,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcSetAppAccess(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::DISABLE_APP_ACCESS),
-        &AppAccountStub::ProcSetAppAccess,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcSetAppAccess(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::SET_APP_ACCESS),
-        &AppAccountStub::ProcSetAppAccess,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcSetAppAccess(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::CHECK_APP_ACCESS),
-        &AppAccountStub::ProcCheckAppAccess,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcCheckAppAccess(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::CHECK_APP_ACCOUNT_SYNC_ENABLE),
-        &AppAccountStub::ProcCheckAppAccountSyncEnable,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcCheckAppAccountSyncEnable(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::SET_APP_ACCOUNT_SYNC_ENABLE),
-        &AppAccountStub::ProcSetAppAccountSyncEnable,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcSetAppAccountSyncEnable(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::GET_ASSOCIATED_DATA),
-        &AppAccountStub::ProcGetAssociatedData,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcGetAssociatedData(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::SET_ASSOCIATED_DATA),
-        &AppAccountStub::ProcSetAssociatedData,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcSetAssociatedData(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::GET_ACCOUNT_CREDENTIAL),
-        &AppAccountStub::ProcGetAccountCredential,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcGetAccountCredential(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::SET_ACCOUNT_CREDENTIAL),
-        &AppAccountStub::ProcSetAccountCredential,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcSetAccountCredential(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::DELETE_ACCOUNT_CREDENTIAL),
-        &AppAccountStub::ProcDeleteAccountCredential,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcDeleteAccountCredential(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::AUTHENTICATE),
-        &AppAccountStub::ProcAuthenticate,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcAuthenticate(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::GET_OAUTH_TOKEN),
-        &AppAccountStub::ProcGetAuthToken,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcGetAuthToken(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::GET_AUTH_TOKEN),
-        &AppAccountStub::ProcGetAuthToken,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcGetAuthToken(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::SET_OAUTH_TOKEN),
-        &AppAccountStub::ProcSetOAuthToken,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcSetOAuthToken(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::DELETE_OAUTH_TOKEN),
-        &AppAccountStub::ProcDeleteAuthToken,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcDeleteAuthToken(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::DELETE_AUTH_TOKEN),
-        &AppAccountStub::ProcDeleteAuthToken,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcDeleteAuthToken(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::SET_OAUTH_TOKEN_VISIBILITY),
-        &AppAccountStub::ProcSetAuthTokenVisibility,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcSetAuthTokenVisibility(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::SET_AUTH_TOKEN_VISIBILITY),
-        &AppAccountStub::ProcSetAuthTokenVisibility,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcSetAuthTokenVisibility(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::CHECK_OAUTH_TOKEN_VISIBILITY),
-        &AppAccountStub::ProcCheckAuthTokenVisibility,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcCheckAuthTokenVisibility(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::CHECK_AUTH_TOKEN_VISIBILITY),
-        &AppAccountStub::ProcCheckAuthTokenVisibility,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcCheckAuthTokenVisibility(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::GET_AUTHENTICATOR_CALLBACK),
-        &AppAccountStub::ProcGetAuthenticatorCallback,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcGetAuthenticatorCallback(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::GET_AUTHENTICATOR_INFO),
-        &AppAccountStub::ProcGetAuthenticatorInfo,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcGetAuthenticatorInfo(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::GET_ALL_OAUTH_TOKENS),
-        &AppAccountStub::ProcGetAllOAuthTokens,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcGetAllOAuthTokens(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::GET_OAUTH_LIST),
-        &AppAccountStub::ProcGetAuthList,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcGetAuthList(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::GET_AUTH_LIST),
-        &AppAccountStub::ProcGetAuthList,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcGetAuthList(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::GET_ALL_ACCOUNTS),
-        &AppAccountStub::ProcGetAllAccounts,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcGetAllAccounts(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::GET_ALL_ACCESSIBLE_ACCOUNTS),
-        &AppAccountStub::ProcGetAllAccessibleAccounts,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcGetAllAccessibleAccounts(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::QUERY_ALL_ACCESSIBLE_ACCOUNTS),
-        &AppAccountStub::ProcGetAllAccessibleAccounts,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcGetAllAccessibleAccounts(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::SELECT_ACCOUNTS_BY_OPTIONS),
-        &AppAccountStub::ProcSelectAccountsByOptions,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcSelectAccountsByOptions(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::VERIFY_CREDENTIAL),
-        &AppAccountStub::ProcVerifyCredential,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcVerifyCredential(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::CHECK_ACCOUNT_LABELS),
-        &AppAccountStub::ProcCheckAccountLabels,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcCheckAccountLabels(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::SET_AUTHENTICATOR_PROPERTIES),
-        &AppAccountStub::ProcSetAuthenticatorProperties,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcSetAuthenticatorProperties(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::SUBSCRIBE_ACCOUNT),
-        &AppAccountStub::ProcSubscribeAccount,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcSubscribeAccount(code, data, reply); }
     },
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::UNSUBSCRIBE_ACCOUNT),
-        &AppAccountStub::ProcUnsubscribeAccount,
+        [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcUnsubscribeAccount(code, data, reply); }
     },
 };
 
@@ -254,7 +296,7 @@ int AppAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageP
     if (messageProc != messageProcMap_.end()) {
         auto messageProcFunction = messageProc->second;
         if (messageProcFunction != nullptr) {
-            int ret = (this->*messageProcFunction)(code, data, reply);
+            int ret = (messageProcFunction)(this, code, data, reply);
 #ifdef HICOLLIE_ENABLE
             HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
 #endif // HICOLLIE_ENABLE

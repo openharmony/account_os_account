@@ -112,9 +112,9 @@ std::int32_t AccountMgrService::SetOhosAccountInfoByUserId(
     return ERR_OK;
 }
 
-std::pair<bool, OhosAccountInfo> AccountMgrService::QueryOhosAccountInfo(void)
+ErrCode AccountMgrService::QueryOhosAccountInfo(OhosAccountInfo &accountInfo)
 {
-    return QueryOhosAccountInfoByUserId(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR);
+    return QueryOhosAccountInfoByUserId(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR, accountInfo);
 }
 
 ErrCode AccountMgrService::GetOhosAccountInfo(OhosAccountInfo &info)
@@ -133,16 +133,17 @@ ErrCode AccountMgrService::GetOhosAccountInfoByUserId(int32_t userId, OhosAccoun
     return ERR_OK;
 }
 
-std::pair<bool, OhosAccountInfo> AccountMgrService::QueryOhosAccountInfoByUserId(std::int32_t userId)
+ErrCode AccountMgrService::QueryOhosAccountInfoByUserId(std::int32_t userId, OhosAccountInfo &accountInfo)
 {
-    AccountInfo accountInfo;
-    ErrCode ret = OhosAccountManager::GetInstance().GetAccountInfoByUserId(userId, accountInfo);
-    bool flag = true;
+    AccountInfo info;
+    ErrCode ret = OhosAccountManager::GetInstance().GetAccountInfoByUserId(userId, info);
     if (ret != ERR_OK) {
-        flag = false;
+        return ret;
     }
-    return std::make_pair(flag, OhosAccountInfo(
-        accountInfo.ohosAccountInfo_.name_, accountInfo.ohosAccountInfo_.uid_, accountInfo.ohosAccountInfo_.status_));
+    accountInfo.name_ = info.ohosAccountInfo_.name_;
+    accountInfo.uid_ = info.ohosAccountInfo_.uid_;
+    accountInfo.status_ = info.ohosAccountInfo_.status_;
+    return ERR_OK;
 }
 
 std::int32_t AccountMgrService::QueryDeviceAccountId(std::int32_t &accountId)

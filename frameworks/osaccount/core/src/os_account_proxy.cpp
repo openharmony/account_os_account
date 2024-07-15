@@ -18,7 +18,6 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const size_t MAX_INFO_SIZE = 1024;
 const uint32_t ACCOUNT_MAX_SIZE = 1000;
 }
 
@@ -1465,22 +1464,30 @@ bool OsAccountProxy::ReadOsAccountInfo(MessageParcel &data, OsAccountInfo &accou
 bool OsAccountProxy::ReadOsAccountInfoList(MessageParcel &data, std::vector<OsAccountInfo> &infoList)
 {
     infoList.clear();
-    uint32_t infoSize = 0;
-    if (!data.ReadUint32(infoSize)) {
-        ACCOUNT_LOGE("Account read Parcelable size failed.");
+    uint32_t accountsStrLength;
+    if (!data.ReadUint32(accountsStrLength)) {
+        ACCOUNT_LOGE("Failed to read accountsStrLength");
         return false;
     }
-    if (infoSize > MAX_INFO_SIZE) {
-        ACCOUNT_LOGE("the size of info list is too large");
+    if (accountsStrLength == 0) {
+        ACCOUNT_LOGE("accountsStrLength is invalid, accountsStrLength = %{public}d", accountsStrLength);
+        return false;
+    }
+    const char *accountsStrData = reinterpret_cast<const char *>(data.ReadRawData(accountsStrLength));
+    if (accountsStrData == nullptr) {
+        ACCOUNT_LOGE("Failed to read accountArrayData accountArraySize = %{public}d", accountsStrLength);
+        return false;
+    }
+    std::string accountsStr = std::string(accountsStrData, accountsStrLength - 1);
+    nlohmann::json accounts = nlohmann::json::parse(accountsStr, nullptr, false);
+    if (accounts.is_discarded()) {
+        ACCOUNT_LOGE("JsonArray is discarded");
         return false;
     }
 
-    for (uint32_t index = 0; index < infoSize; index++) {
+    for (const auto &json : accounts) {
         OsAccountInfo accountInfo;
-        if (!ReadOsAccountInfo(data, accountInfo)) {
-            ACCOUNT_LOGE("Failed to read account info.");
-            return false;
-        }
+        accountInfo.FromJson(json);
         infoList.emplace_back(accountInfo);
     }
 

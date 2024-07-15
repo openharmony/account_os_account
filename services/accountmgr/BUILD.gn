@@ -287,7 +287,7 @@ ohos_shared_library("accountmgr") {
     ]
     sources += account_iam_sources
     external_deps += [
-      "access_token:libtoken_setproc",
+      "access_token:libtokensetproc_shared",
       "user_auth_framework:userauth_client",
     ]
   }

@@ -266,7 +266,7 @@ bool AppAccountSubscribeManager::PublishAccount(
     eventRecordPtr->bundleName = bundleName;
     eventRecordPtr->appIndex = appIndex;
 
-    auto callback = std::bind(&AppAccountSubscribeManager::OnAccountsChanged, this, eventRecordPtr);
+    auto callback = [this, eventRecordPtr] { this->OnAccountsChanged(eventRecordPtr); };
 
     std::thread taskThread(callback);
     pthread_setname_np(taskThread.native_handle(), THREAD_APP_ACCOUNT_EVENT);

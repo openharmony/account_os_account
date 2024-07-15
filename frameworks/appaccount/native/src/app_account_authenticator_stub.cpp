@@ -20,47 +20,9 @@
 
 namespace OHOS {
 namespace AccountSA {
-namespace {
-std::map<uint32_t, AppAccountAuthenticatorStub::MessageProcFunction> funcMap = {
-    {
-        static_cast<uint32_t>(AppAccountAuthenticatorInterfaceCode::ADD_ACCOUNT_IMPLICITLY),
-        &AppAccountAuthenticatorStub::ProcAddAccountImplicitly,
-    },
-    {
-        static_cast<uint32_t>(AppAccountAuthenticatorInterfaceCode::AUTHENTICATE),
-        &AppAccountAuthenticatorStub::ProcAuthenticate,
-    },
-    {
-        static_cast<uint32_t>(AppAccountAuthenticatorInterfaceCode::VERIFY_CREDENTIAL),
-        &AppAccountAuthenticatorStub::ProcVerifyCredential,
-    },
-    {
-        static_cast<uint32_t>(AppAccountAuthenticatorInterfaceCode::CHECK_ACCOUNT_LABELS),
-        &AppAccountAuthenticatorStub::ProcCheckAccountLabels,
-    },
-    {
-        static_cast<uint32_t>(AppAccountAuthenticatorInterfaceCode::SET_PROPERTIES),
-        &AppAccountAuthenticatorStub::ProcSetProperties,
-    },
-    {
-        static_cast<uint32_t>(AppAccountAuthenticatorInterfaceCode::IS_ACCOUNT_REMOVABLE),
-        &AppAccountAuthenticatorStub::ProcIsAccountRemovable,
-    },
-    {
-        static_cast<uint32_t>(AppAccountAuthenticatorInterfaceCode::CREATE_ACCOUNT_IMPLICITLY),
-        &AppAccountAuthenticatorStub::ProcCreateAccountImplicitly,
-    },
-    {
-        static_cast<uint32_t>(AppAccountAuthenticatorInterfaceCode::AUTH),
-        &AppAccountAuthenticatorStub::ProcAuth,
-    }
-};
-}
 
 AppAccountAuthenticatorStub::AppAccountAuthenticatorStub()
-{
-    funcMap_ = funcMap;
-}
+{}
 
 AppAccountAuthenticatorStub::~AppAccountAuthenticatorStub()
 {}
@@ -73,12 +35,25 @@ int AppAccountAuthenticatorStub::OnRemoteRequest(
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
     }
 
-    auto messageProc = funcMap_.find(code);
-    if (messageProc != funcMap_.end()) {
-        auto messageProcFunction = messageProc->second;
-        if (messageProcFunction != nullptr) {
-            return (this->*messageProcFunction)(data, reply);
-        }
+    switch (code) {
+        case static_cast<uint32_t>(AppAccountAuthenticatorInterfaceCode::ADD_ACCOUNT_IMPLICITLY):
+            return ProcAddAccountImplicitly(data, reply);
+        case static_cast<uint32_t>(AppAccountAuthenticatorInterfaceCode::AUTHENTICATE):
+            return ProcAuthenticate(data, reply);
+        case static_cast<uint32_t>(AppAccountAuthenticatorInterfaceCode::VERIFY_CREDENTIAL):
+            return ProcVerifyCredential(data, reply);
+        case static_cast<uint32_t>(AppAccountAuthenticatorInterfaceCode::CHECK_ACCOUNT_LABELS):
+            return ProcCheckAccountLabels(data, reply);
+        case static_cast<uint32_t>(AppAccountAuthenticatorInterfaceCode::SET_PROPERTIES):
+            return ProcSetProperties(data, reply);
+        case static_cast<uint32_t>(AppAccountAuthenticatorInterfaceCode::IS_ACCOUNT_REMOVABLE):
+            return ProcIsAccountRemovable(data, reply);
+        case static_cast<uint32_t>(AppAccountAuthenticatorInterfaceCode::CREATE_ACCOUNT_IMPLICITLY):
+            return ProcCreateAccountImplicitly(data, reply);
+        case static_cast<uint32_t>(AppAccountAuthenticatorInterfaceCode::AUTH):
+            return ProcAuth(data, reply);
+        default:
+            break;
     }
 
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
