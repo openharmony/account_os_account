@@ -55,7 +55,6 @@ ohos_unittest("app_account_manager_test") {
   configs = [
     ":app_account_interfaces_native_config_mock",
     ":app_account_native_config_unittest",
-    "${account_coverage_config_path}:coverage_flags",
   ]
 
   deps = [
@@ -93,7 +92,6 @@ ohos_unittest("app_account_manager_proxy_mock_test") {
   configs = [
     ":app_account_interfaces_native_config_mock",
     ":app_account_native_config_unittest",
-    "${account_coverage_config_path}:coverage_flags",
   ]
 
   deps = [
@@ -133,7 +131,6 @@ ohos_unittest("app_account_manager_subscribe_test") {
   configs = [
     ":app_account_interfaces_native_config_mock",
     ":app_account_native_config_unittest",
-    "${account_coverage_config_path}:coverage_flags",
   ]
 
   deps = [
@@ -149,7 +146,6 @@ ohos_unittest("app_account_manager_subscribe_test") {
     "ability_base:want",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "ipc:ipc_single",
     "samgr:samgr_proxy",
@@ -173,7 +169,6 @@ ohos_unittest("app_account_common_test") {
   configs = [
     ":app_account_interfaces_native_config_mock",
     ":app_account_native_config_unittest",
-    "${account_coverage_config_path}:coverage_flags",
   ]
 
   deps = [
