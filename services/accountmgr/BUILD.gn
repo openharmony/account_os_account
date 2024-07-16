@@ -231,6 +231,7 @@ ohos_shared_library("accountmgr") {
     ":accountmgr_config",
     ":bundle_manager_config",
     ":domain_account_config",
+    "${account_coverage_config_path}:coverage_flags",
   ]
 
   public_configs = [
@@ -268,10 +269,7 @@ ohos_shared_library("accountmgr") {
   ]
 
   if (ohos_indep_compiler_enable) {
-    external_deps += [
-      "ability_base:session_info",
-      "ability_runtime:ability_connect_callback_stub",
-    ]
+    external_deps += [ "ability_base:session_info" ]
   }
 
   if (has_theme_mar_part) {
@@ -306,7 +304,7 @@ ohos_shared_library("accountmgr") {
     external_deps += [ "kv_store:distributeddata_inner" ]
   }
 
-  if (has_storage_service_part) {
+  if (has_storage_service_part && os_account_storage_feature) {
     cflags += [ "-DHAS_STORAGE_PART" ]
     external_deps += [ "storage_service:storage_manager_sa_proxy" ]
   }
@@ -348,7 +346,7 @@ ohos_shared_library("accountmgr") {
     cflags_cc += [ "-DHAS_HITRACE_PART" ]
   }
 
-  if (has_asset_part) {
+  if (has_asset_part && !ohos_indep_compiler_enable) {
     external_deps += [ "asset:asset_sdk" ]
     cflags_cc += [ "-DHAS_ASSET_PART" ]
   }

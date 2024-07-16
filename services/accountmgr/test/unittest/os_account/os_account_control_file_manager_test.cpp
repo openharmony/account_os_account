@@ -30,6 +30,7 @@
 #include "os_account_control_file_manager.h"
 #include "os_account_file_operator.h"
 #undef private
+#include "parameter.h"
 
 namespace OHOS {
 namespace AccountSA {

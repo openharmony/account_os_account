@@ -82,6 +82,7 @@ ohos_unittest("DomainAccountInnerServiceCovTest") {
     ":domain_account_amgr_mock_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
     "${services_path}/accountmgr/:ability_manager_config",
+    "${account_coverage_config_path}:coverage_flags",
   ]
 
   deps = [
@@ -143,7 +144,10 @@ ohos_unittest("domain_account_plugin_proxy_test") {
     "${services_path}/accountmgr/src/domain_account/domain_has_domain_info_callback.cpp",
     "domain_account_plugin_proxy_test.cpp",
   ]
-  configs = [ ":domain_account_service_config_unittest" ]
+  configs = [
+    ":domain_account_service_config_unittest",
+    "${account_coverage_config_path}:coverage_flags",
+  ]
 
   deps = [
     "${common_path}:libaccount_common",
