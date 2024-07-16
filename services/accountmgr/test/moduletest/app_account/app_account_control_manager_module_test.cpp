@@ -90,7 +90,6 @@ HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_AccountMax
 HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_AccountMaxSize_0200, TestSize.Level1)
 {
     ErrCode result;
-    std::string name;
     AppAccountInfo appAccountInfo(STRING_NAME, STRING_OWNER+"max");
     result = AppAccountControlManager::GetInstance().AddAccount(
         STRING_NAME, STRING_EXTRA_INFO, UID, STRING_OWNER+"max", appAccountInfo);
