@@ -131,12 +131,11 @@ public:
         return jsonObject;
     }
 
-    bool FromJson(const Json &jsonObject) override
+    void FromJson(const Json &jsonObject) override
     {
         ACCOUNT_LOGI("mock enter");
         name = jsonObject["name"];
         primeKey = jsonObject["primeKey"];
-        return true;
     }
   
     std::string ToString() const override

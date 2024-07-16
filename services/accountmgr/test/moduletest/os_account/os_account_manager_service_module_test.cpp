@@ -2160,7 +2160,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest124
  * @tc.name: OsAccountManagerServiceModuleTest125
  * @tc.desc: test CreateOsAccount permission with EDM
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI84ZLB
  */
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest125, TestSize.Level1)
