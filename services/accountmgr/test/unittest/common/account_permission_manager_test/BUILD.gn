@@ -59,6 +59,7 @@ ohos_unittest("account_permission_manager_test") {
   configs = [
     ":app_account_service_config_mock",
     ":app_account_service_config_unittest",
+    "${account_coverage_config_path}:coverage_flags",
   ]
 
   deps = [

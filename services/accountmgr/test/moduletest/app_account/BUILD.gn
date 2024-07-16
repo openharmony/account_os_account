@@ -218,6 +218,7 @@ ohos_moduletest("app_account_manager_service_associated_data_test") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
@@ -230,9 +231,10 @@ ohos_moduletest("app_account_manager_service_associated_data_test") {
     "ability_runtime:wantagent_innerkits",
     "access_token:libtokenid_sdk",
     "huks:libhukssdk",
+    "init:libbegetutil",
   ]
 
-  if (has_storage_service_part) {
+  if (has_storage_service_part && os_account_storage_feature) {
     external_deps += [ "storage_service:storage_manager_sa_proxy" ]
   }
 
@@ -349,6 +351,7 @@ ohos_moduletest("app_account_event_module_test") {
     "ability_base:want",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
@@ -469,6 +472,7 @@ ohos_moduletest("app_account_control_manager_module_test") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
@@ -481,9 +485,10 @@ ohos_moduletest("app_account_control_manager_module_test") {
     "ability_runtime:wantagent_innerkits",
     "access_token:libtokenid_sdk",
     "huks:libhukssdk",
+    "init:libbegetutil",
   ]
 
-  if (has_storage_service_part) {
+  if (has_storage_service_part && os_account_storage_feature) {
     external_deps += [ "storage_service:storage_manager_sa_proxy" ]
   }
 
@@ -643,6 +648,7 @@ ohos_moduletest("app_account_authenticator_session_module_test") {
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "huks:libhukssdk",
+    "init:libbegetutil",
     "selinux_adapter:librestorecon",
     "storage_service:storage_manager_sa_proxy",
     "user_auth_framework:userauth_client",
@@ -682,6 +688,7 @@ ohos_moduletest("app_account_manager_service_module_test") {
   configs = [
     ":app_account_service_config_mock",
     ":app_account_service_config_unittest",
+    "${account_coverage_config_path}:coverage_flags",
   ]
 
   deps = [
@@ -703,6 +710,7 @@ ohos_moduletest("app_account_manager_service_module_test") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
@@ -740,6 +748,7 @@ ohos_moduletest("app_account_manager_service_not_mock_module_test") {
   configs = [
     ":app_account_service_config_mock",
     ":app_account_service_config_unittest",
+    "${account_coverage_config_path}:coverage_flags",
   ]
 
   deps = [
@@ -761,6 +770,7 @@ ohos_moduletest("app_account_manager_service_not_mock_module_test") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
@@ -832,6 +842,7 @@ ohos_moduletest("at_not_mock_app_account_manager_service_module_test") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
@@ -845,9 +856,10 @@ ohos_moduletest("at_not_mock_app_account_manager_service_module_test") {
     "ability_runtime:wantagent_innerkits",
     "access_token:libtokenid_sdk",
     "huks:libhukssdk",
+    "init:libbegetutil",
   ]
 
-  if (has_storage_service_part) {
+  if (has_storage_service_part && os_account_storage_feature) {
     external_deps += [ "storage_service:storage_manager_sa_proxy" ]
   }
 
@@ -907,6 +919,7 @@ ohos_moduletest("app_account_manager_service_subscribe_module_test") {
   configs = [
     ":app_account_service_config_mock",
     ":app_account_service_config_unittest",
+    "${account_coverage_config_path}:coverage_flags",
   ]
 
   deps = [
@@ -928,6 +941,7 @@ ohos_moduletest("app_account_manager_service_subscribe_module_test") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
@@ -985,6 +999,7 @@ ohos_moduletest("app_account_manager_service_sync_module_test") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
@@ -1148,6 +1163,7 @@ ohos_moduletest("app_account_authenticator_session_manager_module_test") {
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "huks:libhukssdk",
+    "init:libbegetutil",
     "selinux_adapter:librestorecon",
     "storage_service:storage_manager_sa_proxy",
     "user_auth_framework:userauth_client",
@@ -1202,6 +1218,7 @@ ohos_moduletest("app_account_manager_service_thread_module_test") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
@@ -1259,6 +1276,7 @@ ohos_moduletest("app_account_subscribe_manager_test") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",

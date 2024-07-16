@@ -33,6 +33,8 @@ ohos_unittest("os_account_ndk_test") {
     "${os_account_path}/interfaces/kits/capi/osaccount/include",
   ]
 
+  configs = [ "${account_coverage_config_path}:coverage_flags" ]
+
   deps = [
     "${os_account_path}/interfaces/kits/capi/osaccount:libos_account_ndk",
     "//third_party/googletest:gmock_main",

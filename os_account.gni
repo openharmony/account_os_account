@@ -123,6 +123,18 @@ declare_args() {
 }
 
 declare_args() {
+  os_account_test_case_coverage_feature = false
+}
+
+declare_args() {
+  os_account_storage_feature = true
+}
+
+declare_args() {
+  os_account_file_encryption_el1_feature = true
+}
+
+declare_args() {
   os_account_enable_multiple_os_accounts = true
 }
 

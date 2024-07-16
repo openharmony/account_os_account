@@ -48,7 +48,10 @@ ohos_unittest("account_iam_service_test") {
 
   sources = [ "account_iam_service_test.cpp" ]
 
-  configs = [ ":account_iam_native_config_unittest" ]
+  configs = [
+    ":account_iam_native_config_unittest",
+    "${account_coverage_config_path}:coverage_flags",
+  ]
 
   deps = [
     "${account_iam_framework_path}:account_iam_innerkits",
@@ -95,7 +98,10 @@ ohos_unittest("account_iam_stub_test") {
     "account_iam_stub_test.cpp",
   ]
 
-  configs = [ ":account_iam_native_config_unittest" ]
+  configs = [
+    ":account_iam_native_config_unittest",
+    "${account_coverage_config_path}:coverage_flags",
+  ]
 
   deps = [
     "${account_iam_framework_path}:account_iam_innerkits",
@@ -142,7 +148,10 @@ ohos_unittest("account_iam_callback_test") {
     "account_iam_callback_test.cpp",
   ]
 
-  configs = [ ":account_iam_native_config_unittest" ]
+  configs = [
+    ":account_iam_native_config_unittest",
+    "${account_coverage_config_path}:coverage_flags",
+  ]
 
   deps = [
     "${account_iam_framework_path}:account_iam_innerkits",
@@ -197,6 +206,7 @@ ohos_unittest("account_iam_manager_test") {
   configs = [
     ":account_iam_native_config_unittest",
     "${services_path}/accountmgr:account_iam_config",
+    "${account_coverage_config_path}:coverage_flags",
   ]
 
   deps = [
@@ -222,7 +232,7 @@ ohos_unittest("account_iam_manager_test") {
     "user_auth_framework:userauth_client",
   ]
 
-  if (has_storage_service_part) {
+  if (has_storage_service_part && os_account_storage_feature) {
     cflags_cc += [ "-DHAS_STORAGE_PART" ]
     external_deps += [ "storage_service:storage_manager_sa_proxy" ]
   }

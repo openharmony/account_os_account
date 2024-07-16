@@ -64,6 +64,7 @@ ohos_unittest("OhosServiceTest") {
     ":accountmgr_data_deal_test_config",
     "${services_path}/accountmgr:accountmgr_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
+    "${account_coverage_config_path}:coverage_flags",
   ]
 
   deps = [
@@ -130,6 +131,7 @@ ohos_unittest("OhosDataDealTest") {
   configs = [
     ":accountmgr_data_deal_test_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
+    "${account_coverage_config_path}:coverage_flags",
   ]
 
   deps = [
