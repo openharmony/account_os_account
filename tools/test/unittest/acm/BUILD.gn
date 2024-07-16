@@ -37,6 +37,7 @@ ohos_unittest("account_command_create_test") {
   configs = [
     "${ability_runtime_path}/tools/aa:ability_command_config",
     "${tools_path}/acm:tools_acm_config",
+    "${account_coverage_config_path}:coverage_flags",
   ]
 
   cflags = []
@@ -79,6 +80,7 @@ ohos_unittest("account_command_delete_test") {
   configs = [
     "${ability_runtime_path}/tools/aa:ability_command_config",
     "${tools_path}/acm:tools_acm_config",
+    "${account_coverage_config_path}:coverage_flags",
   ]
 
   cflags = []
@@ -121,6 +123,7 @@ ohos_unittest("account_command_dump_test") {
   configs = [
     "${ability_runtime_path}/tools/aa:ability_command_config",
     "${tools_path}/acm:tools_acm_config",
+    "${account_coverage_config_path}:coverage_flags",
   ]
 
   cflags = []
@@ -163,6 +166,7 @@ ohos_unittest("account_command_set_test") {
   configs = [
     "${ability_runtime_path}/tools/aa:ability_command_config",
     "${tools_path}/acm:tools_acm_config",
+    "${account_coverage_config_path}:coverage_flags",
   ]
 
   cflags = []
@@ -205,6 +209,7 @@ ohos_unittest("account_command_switch_test") {
   configs = [
     "${ability_runtime_path}/tools/aa:ability_command_config",
     "${tools_path}/acm:tools_acm_config",
+    "${account_coverage_config_path}:coverage_flags",
   ]
 
   cflags = []
@@ -247,6 +252,7 @@ ohos_unittest("account_command_test") {
   configs = [
     "${ability_runtime_path}/tools/aa:ability_command_config",
     "${tools_path}/acm:tools_acm_config",
+    "${account_coverage_config_path}:coverage_flags",
   ]
 
   cflags = [ "-DENABLE_MULTIPLE_ACTIVE_ACCOUNTS" ]

@@ -62,7 +62,10 @@ ohos_shared_library("account_iam_innerkits") {
     "${account_iam_framework_path}/src/account_iam_mgr_proxy.cpp",
   ]
 
-  configs = [ ":account_iam_innnerkits_config" ]
+  configs = [
+    ":account_iam_innnerkits_config",
+    "${account_coverage_config_path}:coverage_flags",
+  ]
 
   public_configs = [ ":account_iam_innerkits_public_config" ]
 

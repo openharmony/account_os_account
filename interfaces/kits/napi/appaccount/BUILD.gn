@@ -40,7 +40,10 @@ ohos_shared_library("appaccount") {
   if (!use_clang_coverage) {
     version_script = "libappaccount.map"
   }
-  configs = [ ":appaccount_kit_config" ]
+  configs = [
+    ":appaccount_kit_config",
+    "${account_coverage_config_path}:coverage_flags",
+  ]
 
   public_configs = [ ":appaccount_kit_config" ]
   sources = [
@@ -73,6 +76,7 @@ ohos_shared_library("appaccount") {
     "ability_runtime:service_extension",
     "ability_runtime:ui_extension",
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "ipc:ipc_napi",
     "ipc:ipc_single",

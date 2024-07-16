@@ -61,7 +61,10 @@ ohos_shared_library("libaccountkits") {
     "-Wshadow",
   ]
 
-  configs = [ ":accountkits_config" ]
+  configs = [
+    ":accountkits_config",
+    "${account_coverage_config_path}:coverage_flags",
+  ]
 
   public_configs = [ ":public_account_config" ]
 
