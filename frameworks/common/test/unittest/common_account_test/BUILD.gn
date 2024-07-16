@@ -43,7 +43,6 @@ ohos_unittest("AccountCommonTest") {
   configs = [
     "${common_path}:account_common_config",
     "${common_path}/test:common_test_config",
-    "${account_coverage_config_path}:coverage_flags",
   ]
 
   deps = [

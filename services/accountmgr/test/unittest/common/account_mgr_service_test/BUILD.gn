@@ -61,7 +61,6 @@ ohos_unittest("account_mgr_test") {
     ":bundle_manager_config",
     "${services_path}/accountmgr:accountmgr_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
-    "${account_coverage_config_path}:coverage_flags",
   ]
   deps = [
     "${common_path}:libaccount_common",
@@ -80,7 +79,6 @@ ohos_unittest("account_mgr_test") {
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "hilog:libhilog",
-    "init:libbegetutil",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "mbedtls:mbedtls_shared",
@@ -153,7 +151,6 @@ ohos_unittest("account_stub_test") {
     "${services_path}/accountmgr:bundle_manager_config",
     "${services_path}/accountmgr:accountmgr_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
-    "${account_coverage_config_path}:coverage_flags",
   ]
   deps = [
     "${common_path}:libaccount_common",
@@ -171,7 +168,6 @@ ohos_unittest("account_stub_test") {
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "hilog:libhilog",
-    "init:libbegetutil",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "safwk:system_ability_fwk",

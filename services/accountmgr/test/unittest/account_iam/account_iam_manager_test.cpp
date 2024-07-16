@@ -293,7 +293,7 @@ public:
         return 0;
     }
 
-    int32_t UpdateMemoryPara(int32_t size, int32_t &oldSize)
+    virtual int32_t UpdateMemoryPara(int32_t size, int32_t &oldSize)
     {
         return 0;
     }
