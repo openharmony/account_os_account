@@ -92,13 +92,13 @@ struct OAuthTokenInfo {
     std::set<std::string> authList;
     bool status = true;
 };
-class AccountInfoMCOK : public IAccountInfo {
+class AccountInfoMOCK : public IAccountInfo {
 private:
     std::string name;
     std::string primeKey;
 
 public:
-    AccountInfoMCOK(const std::string &name, const std::string &key) : name(name), primeKey(key)
+    AccountInfoMOCK(const std::string &name, const std::string &key) : name(name), primeKey(key)
     {}
 
     Json ToJson() const override
@@ -167,12 +167,12 @@ public:
         oauthTokens_.emplace(authType, tokenInfo);
         return ERR_OK;
     }
-    virtual ~AccountInfoMCOK() {}
+    virtual ~AccountInfoMOCK() {}
 
     std::string owner_;
     std::string name_;
     std::string alias_;
-    uint32_t appIndex_;
+    uint32_t appIndex_ = 0;
     std::string extraInfo_;
     std::set<std::string> authorizedApps_;
     bool syncEnable_ = false;
@@ -185,7 +185,7 @@ ErrCode AccountDataStorage::GetAccountInfoById(const std::string id, IAccountInf
 {
     ACCOUNT_LOGI("mock enter");
     if (id != "com.example.ownermax#0#name#") {
-        AccountInfoMCOK appAccountInfo("name", "key");
+        AccountInfoMOCK appAccountInfo("name", "key");
         appAccountInfo.SetOAuthToken("test_authType1", "test_authToken1");
 
         Json mkckJson = appAccountInfo.ToJson();
@@ -203,7 +203,7 @@ ErrCode AccountDataStorage::LoadDataByLocalFuzzyQuery(
     if (subId == "com.example.ownermax#0") {
         for (int i = 0; i < 1002; ++i) { // 1002 is the maximum number created
             std::string accountKey = "Account" + std::to_string(i);
-            infos[accountKey] = std::make_shared<AccountInfoMCOK>(accountKey + "name", accountKey + "kkk");
+            infos[accountKey] = std::make_shared<AccountInfoMOCK>(accountKey + "name", accountKey + "kkk");
         }
         return ERR_OK;
     } else {
