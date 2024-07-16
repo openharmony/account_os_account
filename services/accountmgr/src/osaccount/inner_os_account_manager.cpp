@@ -177,6 +177,7 @@ void IInnerOsAccountManager::StartAccount()
     }
     // activate
     SendMsgForAccountActivate(osAccountInfo);
+    SetParameter(ACCOUNT_READY_EVENT.c_str(), "true");
 }
 
 void IInnerOsAccountManager::RestartActiveAccount()
@@ -1627,7 +1628,6 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
     }
 
     PushIdIntoActiveList(localId);
-    SetParameter(ACCOUNT_READY_EVENT.c_str(), "true");
     OsAccountInterface::SendToCESAccountSwitched(localId, oldId);
     subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED);
     subscribeManager_.Publish(localId, oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED);

@@ -17,14 +17,9 @@
       "SystemCapability.Account.OsAccount"
     ],
     "features": [
-      "os_account_enable_app_account = true",
-      "os_account_enable_os_account = true",
-      "os_account_multiple_active_accounts = false",
+      "os_account_multiple_active_accounts",
       "os_account_support_deactivate_main_os_account",
       "os_account_distributed_feature",
-      "os_account_storage_feature",
-      "os_account_test_case_coverage_feature = false",
-      "os_account_file_encryption_el1_feature",
       "os_account_enable_multiple_os_accounts",
       "os_account_enable_default_admin_name",
       "os_account_enable_account_short_name",
@@ -45,11 +40,9 @@
         "access_token",
         "ace_engine",
         "asset",
-        "bounds_checking_function",
         "bundle_framework",
         "common_event_service",
         "c_utils",
-        "eventhandler",
         "kv_store",
         "hicollie",
         "hilog",
@@ -73,9 +66,7 @@
         "json",
         "config_policy"
       ],
-      "third_party": [
-        "jsoncpp"
-      ]
+      "third_party": []
     },
     "build": {
       "group_type": {

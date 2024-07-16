@@ -101,7 +101,7 @@ public:
 
     Json ToJson() const override;
 
-    void FromJson(const Json &jsonObject) override;
+    bool FromJson(const Json &jsonObject) override;
 
     void GetDomainInfoFromJson(const Json &jsonObject);
 
