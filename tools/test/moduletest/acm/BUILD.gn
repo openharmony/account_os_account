@@ -49,6 +49,7 @@ ohos_moduletest("account_command_create_module_test") {
   deps = [
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -58,7 +59,6 @@ ohos_moduletest("account_command_create_module_test") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
-    "os_account:os_account_innerkits",
   ]
   cflags_cc = [ "-DACCOUNT_TEST" ]
 }
@@ -296,6 +296,7 @@ ohos_moduletest("account_command_delete_module_test") {
   deps = [
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -305,7 +306,6 @@ ohos_moduletest("account_command_delete_module_test") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
-    "os_account:os_account_innerkits",
   ]
   cflags_cc = [ "-DACCOUNT_TEST" ]
 }
@@ -343,6 +343,7 @@ ohos_moduletest("account_command_dump_module_test") {
   deps = [
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -352,7 +353,6 @@ ohos_moduletest("account_command_dump_module_test") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
-    "os_account:os_account_innerkits",
   ]
   cflags_cc = [ "-DACCOUNT_TEST" ]
 }
@@ -390,6 +390,7 @@ ohos_moduletest("account_command_set_module_test") {
   deps = [
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -399,7 +400,6 @@ ohos_moduletest("account_command_set_module_test") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
-    "os_account:os_account_innerkits",
   ]
   cflags_cc = [ "-DACCOUNT_TEST" ]
 }
@@ -437,6 +437,7 @@ ohos_moduletest("account_command_switch_module_test") {
   deps = [
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -446,7 +447,6 @@ ohos_moduletest("account_command_switch_module_test") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
-    "os_account:os_account_innerkits",
   ]
   cflags_cc = [ "-DACCOUNT_TEST" ]
 }

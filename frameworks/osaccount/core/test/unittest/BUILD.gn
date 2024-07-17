@@ -46,6 +46,7 @@ ohos_unittest("os_account_test") {
   deps = [
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
@@ -54,7 +55,6 @@ ohos_unittest("os_account_test") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
-    "os_account:os_account_innerkits",
     "samgr:samgr_proxy",
   ]
   cflags_cc = []
