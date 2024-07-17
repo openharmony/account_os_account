@@ -103,9 +103,11 @@ ErrCode OsAccountManagerService::CreateOsAccount(const std::string &localName, c
         return errCode;
     }
 
-    errCode = innerManager_.ValidateShortName(shortName);
-    if (errCode != ERR_OK) {
-        return errCode;
+    if (options.hasShortName) {
+        errCode = innerManager_.ValidateShortName(shortName);
+        if (errCode != ERR_OK) {
+            return errCode;
+        }
     }
 
     return innerManager_.CreateOsAccount(localName, shortName, type, osAccountInfo, options);

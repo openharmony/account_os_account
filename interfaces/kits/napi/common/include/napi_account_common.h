@@ -66,6 +66,8 @@ bool GetLongIntProperty(napi_env env, napi_value obj, int64_t &property);
 bool GetBoolProperty(napi_env env, napi_value obj, bool &property);
 bool GetStringProperty(napi_env env, napi_value obj, std::string &property);
 bool GetStringArrayProperty(napi_env env, napi_value obj, std::vector<std::string> &property, bool allowEmpty);
+bool GetStringArrayPropertyByKey(napi_env env, napi_value obj, const std::string &propertyName,
+    std::vector<std::string> &property, bool allowEmpty);
 bool GetStringPropertyByKey(napi_env env, napi_value obj, const std::string &propertyName, std::string &property);
 bool GetOptionalStringPropertyByKey(napi_env env, napi_value obj, const std::string &propertyName,
     std::string &property);
