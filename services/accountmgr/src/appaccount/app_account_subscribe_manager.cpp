@@ -305,6 +305,7 @@ ErrCode AppAccountSubscribeManager::OnAccountsChanged(const std::shared_ptr<AppA
             ACCOUNT_LOGE("failed to get app account event proxy");
             continue;
         }
+
         appAccountEventProxy->OnAccountsChanged(appAccounts);
     }
 

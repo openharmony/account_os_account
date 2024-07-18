@@ -16,7 +16,6 @@
 #include "account_log_wrapper.h"
 #include "os_account_constants.h"
 #include "os_account_data_storage.h"
-#include "parameter.h"
 
 namespace OHOS {
 namespace AccountSA {

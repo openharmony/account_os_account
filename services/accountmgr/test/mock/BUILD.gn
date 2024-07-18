@@ -109,7 +109,6 @@ config("mock_accountmgr_config") {
   configs = [
     ":bundle_manager_config",
     ":domain_account_config",
-    "${account_coverage_config_path}:coverage_flags",
     ":accountmgr_public_config",
   ]
 
@@ -127,7 +126,7 @@ config("mock_accountmgr_config") {
     ]
   }
 
-  if (has_storage_service_part && os_account_storage_feature) {
+  if (has_storage_service_part) {
     cflags += [ "-DHAS_STORAGE_PART" ]
   }
 

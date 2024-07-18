@@ -90,7 +90,7 @@ public:
     static AppAccountInfo *Unmarshalling(Parcel &parcel);
 
     Json ToJson() const override;
-    void FromJson(const Json &jsonObject) override;
+    bool FromJson(const Json &jsonObject) override;
     std::string ToString() const override;
     std::string GetPrimeKey() const override;
 

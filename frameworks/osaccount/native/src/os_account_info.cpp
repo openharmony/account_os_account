@@ -292,10 +292,10 @@ void OsAccountInfo::GetDomainInfoFromJson(const Json &jsonObject)
         OHOS::AccountSA::JsonType::STRING);
 }
 
-void OsAccountInfo::FromJson(const Json &jsonObject)
+bool OsAccountInfo::FromJson(const Json &jsonObject)
 {
     const auto &jsonObjectEnd = jsonObject.end();
-    OHOS::AccountSA::GetDataByType<int>(
+    bool parseSuccess = OHOS::AccountSA::GetDataByType<int>(
         jsonObject, jsonObjectEnd, LOCAL_ID, localId_, OHOS::AccountSA::JsonType::NUMBER);
     OHOS::AccountSA::GetDataByType<std::string>(
         jsonObject, jsonObjectEnd, LOCAL_NAME, localName_, OHOS::AccountSA::JsonType::STRING);
@@ -317,7 +317,7 @@ void OsAccountInfo::FromJson(const Json &jsonObject)
         jsonObject, jsonObjectEnd, SERIAL_NUMBER, serialNumber_, OHOS::AccountSA::JsonType::NUMBER);
     OHOS::AccountSA::GetDataByType<bool>(
         jsonObject, jsonObjectEnd, IS_ACTIVATED, isActivated_, OHOS::AccountSA::JsonType::BOOLEAN);
-    OHOS::AccountSA::GetDataByType<bool>(
+    parseSuccess = parseSuccess && OHOS::AccountSA::GetDataByType<bool>(
         jsonObject, jsonObjectEnd, IS_ACCOUNT_COMPLETED, isCreateCompleted_, OHOS::AccountSA::JsonType::BOOLEAN);
     OHOS::AccountSA::GetDataByType<bool>(
         jsonObject, jsonObjectEnd, TO_BE_REMOVED, toBeRemoved_, OHOS::AccountSA::JsonType::BOOLEAN);
@@ -331,6 +331,10 @@ void OsAccountInfo::FromJson(const Json &jsonObject)
         jsonObject, jsonObjectEnd, IS_LOGGED_IN, isLoggedIn_, OHOS::AccountSA::JsonType::BOOLEAN);
 
     GetDomainInfoFromJson(jsonObject);
+    if (!parseSuccess) {
+        ACCOUNT_LOGE("parse from json failed");
+    }
+    return parseSuccess;
 }
 
 bool OsAccountInfo::Marshalling(Parcel &parcel) const
