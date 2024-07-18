@@ -146,24 +146,31 @@ ErrCode AccountProxy::SetOhosAccountInfoByUserId(
     return result;
 }
 
-std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfo(void)
+ErrCode AccountProxy::QueryOhosAccountInfo(OhosAccountInfo &accountInfo)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("Write descriptor failed");
-        return std::make_pair(false, OhosAccountInfo());
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
     MessageParcel reply;
     auto ret = SendRequest(AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_INFO, data, reply);
     if (ret != ERR_NONE) {
-        return std::make_pair(false, OhosAccountInfo());
+        return ret;
     }
 
-    std::u16string name = reply.ReadString16();
-    std::u16string uid = reply.ReadString16();
-    std::int32_t status = reply.ReadInt32();
+    std::u16string name;
+    std::u16string uid;
+    std::int32_t status;
+    if ((!reply.ReadString16(name)) || (!reply.ReadString16(uid)) || (!reply.ReadInt32(status))) {
+        ACCOUNT_LOGE("failed to read from parcel");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    accountInfo.name_ = Str16ToStr8(name);
+    accountInfo.uid_ = Str16ToStr8(uid);
+    accountInfo.status_ = status;
     ACCOUNT_LOGD("QueryOhosAccountInfo exit");
-    return std::make_pair(true, OhosAccountInfo(Str16ToStr8(name), Str16ToStr8(uid), status));
+    return ERR_OK;
 }
 
 ErrCode AccountProxy::GetOhosAccountInfo(OhosAccountInfo &ohosAccountInfo)
@@ -210,22 +217,22 @@ ErrCode AccountProxy::GetOhosAccountInfoByUserId(int32_t userId, OhosAccountInfo
     return ERR_OK;
 }
 
-std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfoByUserId(std::int32_t userId)
+ErrCode AccountProxy::QueryOhosAccountInfoByUserId(std::int32_t userId, OhosAccountInfo &accountInfo)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("Write descriptor failed");
-        return std::make_pair(false, OhosAccountInfo());
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
 
     if (!data.WriteInt32(userId)) {
         ACCOUNT_LOGE("failed to write int for userId %{public}d.", userId);
-        return std::make_pair(false, OhosAccountInfo());
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
     auto ret = SendRequest(AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_INFO_BY_USER_ID, data, reply);
     if (ret != ERR_NONE) {
-        return std::make_pair(false, OhosAccountInfo());
+        return ret;
     }
 
     std::u16string name;
@@ -233,9 +240,12 @@ std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfoByUserId(std:
     std::int32_t status;
     if ((!reply.ReadString16(name)) || (!reply.ReadString16(uid)) || (!reply.ReadInt32(status))) {
         ACCOUNT_LOGE("failed to read from parcel");
-        return std::make_pair(false, OhosAccountInfo());
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    return std::make_pair(true, OhosAccountInfo(Str16ToStr8(name), Str16ToStr8(uid), status));
+    accountInfo.name_ = Str16ToStr8(name);
+    accountInfo.uid_ = Str16ToStr8(uid);
+    accountInfo.status_ = status;
+    return ERR_OK;
 }
 
 std::int32_t AccountProxy::QueryDeviceAccountId(std::int32_t &accountId)

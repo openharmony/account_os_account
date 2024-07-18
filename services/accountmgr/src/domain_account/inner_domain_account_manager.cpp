@@ -626,9 +626,9 @@ ErrCode InnerDomainAccountManager::Auth(const DomainAccountInfo &info, const std
         }
         return ERR_OK;
     }
-    auto task = std::bind(
-        &InnerDomainAccountManager::StartAuth,
-        this, plugin_, info, password, innerCallback, AUTH_WITH_CREDENTIAL_MODE);
+    auto task = [this, info, password, innerCallback] {
+        this->StartAuth(this->plugin_, info, password, innerCallback, AUTH_WITH_CREDENTIAL_MODE);
+    };
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_AUTH);
     taskThread.detach();
@@ -864,8 +864,9 @@ ErrCode InnerDomainAccountManager::InnerAuth(int32_t userId, const std::vector<u
         innerCallback->OnResult(errCode, emptyParcel);
         return ERR_OK;
     }
-    auto task = std::bind(&InnerDomainAccountManager::StartAuth,
-        this, plugin_, domainInfo, authData, innerCallback, authMode);
+    auto task = [this, domainInfo, authData, innerCallback, authMode] {
+        this->StartAuth(this->plugin_, domainInfo, authData, innerCallback, authMode);
+    };
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_INNER_AUTH);
     taskThread.detach();
@@ -1073,8 +1074,9 @@ ErrCode InnerDomainAccountManager::GetAccessToken(
         callback->OnResult(err, emptyParcel);
         return ERR_OK;
     }
-    auto task = std::bind(&InnerDomainAccountManager::StartGetAccessToken,
-        this, plugin_, accountToken, targetInfo, option, callback);
+    auto task = [this, accountToken, targetInfo, option, callback] {
+        this->StartGetAccessToken(this->plugin_, accountToken, targetInfo, option, callback);
+    };
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_GET_ACCESS_TOKEN);
     taskThread.detach();
@@ -1335,8 +1337,7 @@ ErrCode InnerDomainAccountManager::HasDomainAccount(
     GetDomainAccountInfoOptions options;
     options.accountInfo = info;
     options.callingUid = callingUid;
-    auto task =
-        std::bind(&InnerDomainAccountManager::StartHasDomainAccount, this, plugin_, options, callback);
+    auto task = [this, options, callback] { this->StartHasDomainAccount(this->plugin_, options, callback); };
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_HAS_ACCOUNT);
     taskThread.detach();
@@ -1372,8 +1373,9 @@ ErrCode InnerDomainAccountManager::OnAccountBound(const DomainAccountInfo &info,
         callbackService->OnResult(err, emptyParcel);
         return ERR_OK;
     }
-    auto task =
-        std::bind(&InnerDomainAccountManager::StartOnAccountBound, this, plugin_, info, localId, callbackService);
+    auto task = [this, info, localId, callbackService] {
+        this->StartOnAccountBound(this->plugin_, info, localId, callbackService);
+    };
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_BIND_ACCOUNT);
     taskThread.detach();
@@ -1409,8 +1411,9 @@ ErrCode InnerDomainAccountManager::OnAccountUnBound(const DomainAccountInfo &inf
         callbackService->OnResult(err, emptyParcel);
         return ERR_OK;
     }
-    auto task =
-        std::bind(&InnerDomainAccountManager::StartOnAccountUnBound, this, plugin_, info, callbackService);
+    auto task = [this, info, callbackService] {
+        this->StartOnAccountUnBound(this->plugin_, info, callbackService);
+    };
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_UNBIND_ACCOUNT);
     taskThread.detach();
@@ -1496,8 +1499,9 @@ ErrCode InnerDomainAccountManager::GetDomainAccountInfo(
         callbackService->OnResult(err, emptyParcel);
         return ERR_OK;
     }
-    auto task = std::bind(
-        &InnerDomainAccountManager::StartGetDomainAccountInfo, this, plugin_, options, callbackService);
+    auto task = [this, options, callbackService] {
+        this->StartGetDomainAccountInfo(this->plugin_, options, callbackService);
+    };
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_GET_ACCOUNT);
     taskThread.detach();
@@ -1537,8 +1541,9 @@ ErrCode InnerDomainAccountManager::IsAccountTokenValid(const DomainAccountInfo &
         callbackService->OnResult(err, emptyParcel);
         return ERR_OK;
     }
-    auto task = std::bind(
-        &InnerDomainAccountManager::StartIsAccountTokenValid, this, plugin_, info, token, callbackService);
+    auto task = [this, info, token, callbackService] {
+        this->StartIsAccountTokenValid(this->plugin_, info, token, callbackService);
+    };
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_IS_ACCOUNT_VALID);
     taskThread.detach();

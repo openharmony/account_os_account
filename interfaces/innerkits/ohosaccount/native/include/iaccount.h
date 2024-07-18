@@ -38,8 +38,8 @@ public:
         const std::string &eventStr) = 0;
     virtual std::int32_t SetOhosAccountInfoByUserId(
         const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr) = 0;
-    virtual std::pair<bool, OhosAccountInfo> QueryOhosAccountInfo(void) = 0;
-    virtual std::pair<bool, OhosAccountInfo> QueryOhosAccountInfoByUserId(std::int32_t userId) = 0;
+    virtual ErrCode QueryOhosAccountInfo(OhosAccountInfo &accountInfo) = 0;
+    virtual ErrCode QueryOhosAccountInfoByUserId(std::int32_t userId, OhosAccountInfo &info) = 0;
     virtual ErrCode GetOhosAccountInfo(OhosAccountInfo &accountInfo) = 0;
     virtual ErrCode GetOhosAccountInfoByUserId(int32_t userId, OhosAccountInfo &info) = 0;
     virtual std::int32_t QueryDeviceAccountId(std::int32_t &accountId) = 0;

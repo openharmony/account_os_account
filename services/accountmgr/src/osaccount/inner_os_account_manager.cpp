@@ -203,7 +203,7 @@ void IInnerOsAccountManager::ResetAccountStatus(void)
     std::vector<int32_t> idList;
     (void) osAccountControl_->GetOsAccountIdList(idList);
     for (const auto id : idList) {
-        DeactivateOsAccount(id);
+        DeactivateOsAccount(id, false);
     }
 }
 
@@ -328,7 +328,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
 #ifdef HAS_THEME_SERVICE_PART
-    auto task = std::bind(&OsAccountInterface::InitThemeResource, osAccountInfo.GetLocalId());
+    auto task = [localId = osAccountInfo.GetLocalId()] { OsAccountInterface::InitThemeResource(localId); };
     std::thread theme_thread(task);
     pthread_setname_np(theme_thread.native_handle(), "InitTheme");
 #endif
@@ -626,12 +626,73 @@ void IInnerOsAccountManager::CheckAndRefreshLocalIdRecord(const int id)
     return;
 }
 
-ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountInfo &osAccountInfo,
-    const DomainAccountInfo &domainAccountInfo)
+ErrCode IInnerOsAccountManager::PrepareRemoveOsAccount(OsAccountInfo &osAccountInfo, bool isCleanGarbage)
 {
+    int32_t id = osAccountInfo.GetLocalId();
+    ErrCode errCode = ERR_OK;
+#ifdef HAS_USER_IDM_PART
+    errCode = OsAccountInterface::SendToIDMAccountDelete(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("SendToIDMAccountDelete failed, id %{public}d, errCode %{public}d",
+            osAccountInfo.GetLocalId(), errCode);
+        return errCode;
+    }
+#endif // HAS_USER_IDM_PART
+    DomainAccountInfo curDomainInfo;
+    osAccountInfo.GetDomainInfo(curDomainInfo);
+    if (!curDomainInfo.accountId_.empty()) {
+        InnerDomainAccountManager::GetInstance().OnAccountUnBound(curDomainInfo, nullptr);
+        InnerDomainAccountManager::GetInstance().RemoveTokenFromMap(id);
+    }
+    if (isCleanGarbage) {
+        ACCOUNT_LOGI("Clean garbage account data, no need to deal foreground status.");
+        return ERR_OK;
+    }
+    if (osAccountInfo.GetIsForeground()) {
+        ACCOUNT_LOGI("Remove foreground account id=%{public}d.", id);
+        if (ActivateOsAccount(Constants::START_USER_ID) != ERR_OK) {
+            RemoveLocalIdToOperating(id);
+            ACCOUNT_LOGE("RemoveOsAccount active base account failed");
+            return ERR_OSACCOUNT_SERVICE_INNER_REMOVE_ACCOUNT_ACTIVED_ERROR;
+        }
+    }
+    loggedInAccounts_.Erase(id);
+    // stop account
+    errCode = SendMsgForAccountStop(osAccountInfo);
+    if (errCode != ERR_OK) {
+        RemoveLocalIdToOperating(id);
+        ReportOsAccountOperationFail(id, "stop", errCode, "stop os account failed");
+        return errCode;
+    }
+    return errCode;
+}
+
+ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountInfo &osAccountInfo, bool isCleanGarbage)
+{
+    ErrCode errCode = PrepareRemoveOsAccount(osAccountInfo, isCleanGarbage);
+    if (errCode != ERR_OK) {
+        RemoveLocalIdToOperating(id);
+        ACCOUNT_LOGE("PrepareRemoveOsAccount failed, errCode %{public}d.", errCode);
+        return errCode;
+    }
+    DomainAccountInfo domainAccountInfo;
+    osAccountInfo.GetDomainInfo(domainAccountInfo);
+    if (!domainAccountInfo.accountId_.empty()) {
+        InnerDomainAccountManager::GetInstance().NotifyDomainAccountEvent(
+            id, DomainAccountEvent::LOG_OUT, DomainAccountStatus::LOGOUT, domainAccountInfo);
+    }
     AccountInfo ohosInfo;
     (void)OhosAccountManager::GetInstance().GetAccountInfoByUserId(id, ohosInfo);
-    ErrCode errCode = SendMsgForAccountRemove(osAccountInfo);
+    if (ohosInfo.ohosAccountInfo_.name_ != DEFAULT_OHOS_ACCOUNT_NAME) {
+#ifdef HAS_CES_PART
+        AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, id, nullptr);
+        AccountEventProvider::EventPublish(
+            EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT, id, nullptr);
+#else  // HAS_CES_PART
+        ACCOUNT_LOGI("No common event part! Publish nothing!");
+#endif // HAS_CES_PART
+    }
+    errCode = SendMsgForAccountRemove(osAccountInfo);
     if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(id);
         return errCode;
@@ -644,19 +705,6 @@ ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountIn
         return errCode;
     }
     CheckAndRefreshLocalIdRecord(id);
-    if (!domainAccountInfo.accountId_.empty()) {
-        InnerDomainAccountManager::GetInstance().NotifyDomainAccountEvent(
-            id, DomainAccountEvent::LOG_OUT, DomainAccountStatus::LOGOUT, domainAccountInfo);
-    }
-    if (ohosInfo.ohosAccountInfo_.name_ != DEFAULT_OHOS_ACCOUNT_NAME) {
-#ifdef HAS_CES_PART
-        AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, id, nullptr);
-        AccountEventProvider::EventPublish(
-            EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT, id, nullptr);
-#else  // HAS_CES_PART
-        ACCOUNT_LOGI("No common event part! Publish nothing!");
-#endif // HAS_CES_PART
-    }
     subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::REMOVED);
     return errCode;
 }
@@ -676,36 +724,13 @@ ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
         ACCOUNT_LOGE("RemoveOsAccount cannot find os account info, errCode %{public}d.", errCode);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
-    if (osAccountInfo.GetIsForeground()) {
-        ACCOUNT_LOGI("Remove foreground account id=%{public}d.", id);
-        if (ActivateOsAccount(Constants::START_USER_ID) != ERR_OK) {
-            RemoveLocalIdToOperating(id);
-            ACCOUNT_LOGE("RemoveOsAccount active base account failed");
-            return ERR_OSACCOUNT_SERVICE_INNER_REMOVE_ACCOUNT_ACTIVED_ERROR;
-        }
-    }
 
-    DomainAccountInfo curDomainInfo;
-    osAccountInfo.GetDomainInfo(curDomainInfo);
-    if (!curDomainInfo.accountId_.empty()) {
-        InnerDomainAccountManager::GetInstance().OnAccountUnBound(curDomainInfo, nullptr);
-        InnerDomainAccountManager::GetInstance().RemoveTokenFromMap(id);
-    }
     // set remove flag first
     osAccountInfo.SetToBeRemoved(true);
-    loggedInAccounts_.Erase(id);
     osAccountControl_->UpdateOsAccount(osAccountInfo);
 
-    // stop account first
-    errCode = SendMsgForAccountStop(osAccountInfo);
-    if (errCode != ERR_OK) {
-        RemoveLocalIdToOperating(id);
-        ReportOsAccountOperationFail(id, "stop", errCode, "stop os account failed");
-        return errCode;
-    }
-
     // then remove account
-    return RemoveOsAccountOperate(id, osAccountInfo, curDomainInfo);
+    return RemoveOsAccountOperate(id, osAccountInfo);
 }
 
 ErrCode IInnerOsAccountManager::SendMsgForAccountStop(OsAccountInfo &osAccountInfo)
@@ -725,7 +750,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountStop(OsAccountInfo &osAccountIn
     return DeactivateOsAccountByInfo(osAccountInfo);
 }
 
-ErrCode IInnerOsAccountManager::SendMsgForAccountDeactivate(OsAccountInfo &osAccountInfo)
+ErrCode IInnerOsAccountManager::SendMsgForAccountDeactivate(OsAccountInfo &osAccountInfo, bool isStopStorage)
 {
     ErrCode errCode = OsAccountInterface::SendToAMSAccountDeactivate(osAccountInfo);
     if (errCode != ERR_OK) {
@@ -733,12 +758,15 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountDeactivate(OsAccountInfo &osAcc
             osAccountInfo.GetLocalId(), errCode);
         return errCode;
     }
-    errCode = OsAccountInterface::SendToStorageAccountStop(osAccountInfo);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("SendToStorageAccountStop failed, id %{public}d, errCode %{public}d",
-            osAccountInfo.GetLocalId(), errCode);
-        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
+    if (isStopStorage) {
+        errCode = OsAccountInterface::SendToStorageAccountStop(osAccountInfo);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("SendToStorageAccountStop failed, id %{public}d, errCode %{public}d",
+                osAccountInfo.GetLocalId(), errCode);
+            return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
+        }
     }
+
     return DeactivateOsAccountByInfo(osAccountInfo);
 }
 
@@ -822,14 +850,6 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountRemove(OsAccountInfo &osAccount
             osAccountInfo.GetLocalId(), errCode);
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
-#ifdef HAS_USER_IDM_PART
-    errCode = OsAccountInterface::SendToIDMAccountDelete(osAccountInfo);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("SendToIDMAccountDelete failed, id %{public}d, errCode %{public}d",
-            osAccountInfo.GetLocalId(), errCode);
-        return errCode;
-    }
-#endif // HAS_USER_IDM_PART
     errCode = osAccountControl_->DelOsAccount(osAccountInfo.GetLocalId());
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("remove osaccount info failed, id: %{public}d, errCode %{public}d",
@@ -1175,7 +1195,7 @@ void IInnerOsAccountManager::CleanGarbageAccounts()
             continue;
         }
 
-        ErrCode errCode = SendMsgForAccountRemove(osAccountInfos[i]);
+        ErrCode errCode = RemoveOsAccountOperate(osAccountInfos[i].GetLocalId(), osAccountInfos[i], true);
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("remove account %{public}d failed! errCode %{public}d.",
                 osAccountInfos[i].GetLocalId(), errCode);
@@ -1425,6 +1445,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountProfilePhoto(const int id, const std
 ErrCode IInnerOsAccountManager::DeactivateOsAccountByInfo(OsAccountInfo &osAccountInfo)
 {
     osAccountInfo.SetIsActived(false);
+    osAccountInfo.SetIsVerified(false);
     osAccountInfo.SetIsForeground(false);
     osAccountInfo.SetDisplayId(Constants::INVALID_DISPALY_ID);
     osAccountInfo.SetIsLoggedIn(false);
@@ -1469,7 +1490,7 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id, const bool start
         ACCOUNT_LOGE("the %{public}d already in operating", id);
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
     }
-
+    std::lock_guard<std::mutex> lock(*GetOrInsertUpdateLock(id));
     // get information
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
@@ -1486,18 +1507,10 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id, const bool start
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREADY_ACTIVE_ERROR;
     }
 
-    // check complete
-    if (!osAccountInfo.GetIsCreateCompleted()) {
+    errCode = IsValidOsAccount(osAccountInfo);
+    if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(id);
-        ACCOUNT_LOGE("account %{public}d is not completed", id);
-        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_IS_UNCOMPLETED_ERROR;
-    }
-
-    // check to be removed
-    if (osAccountInfo.GetToBeRemoved()) {
-        RemoveLocalIdToOperating(id);
-        ACCOUNT_LOGE("account %{public}d will be removed, cannot be activated!", id);
-        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR;
+        return errCode;
     }
 
     if (!osAccountInfo.GetIsActived() &&
@@ -1525,13 +1538,13 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id, const bool start
     return ERR_OK;
 }
 
-ErrCode IInnerOsAccountManager::DeactivateOsAccount(const int id)
+ErrCode IInnerOsAccountManager::DeactivateOsAccount(const int id, bool isStopStorage)
 {
     if (!CheckAndAddLocalIdOperating(id)) {
         ACCOUNT_LOGW("the %{public}d already in operating", id);
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
     }
-
+    std::lock_guard<std::mutex> lock(*GetOrInsertUpdateLock(id));
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
@@ -1545,22 +1558,17 @@ ErrCode IInnerOsAccountManager::DeactivateOsAccount(const int id)
         ACCOUNT_LOGW("account %{public}d is neither active nor verified, don't need to deactivate!", id);
         return ERR_OK;
     }
-    if (!osAccountInfo.GetIsCreateCompleted()) {
+    errCode = IsValidOsAccount(osAccountInfo);
+    if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(id);
-        ACCOUNT_LOGW("account %{public}d is not completed", id);
-        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_IS_UNCOMPLETED_ERROR;
-    }
-    if (osAccountInfo.GetToBeRemoved()) {
-        RemoveLocalIdToOperating(id);
-        ACCOUNT_LOGW("account %{public}d will be removed, don't need to deactivate!", id);
-        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR;
+        return errCode;
     }
 
     OsAccountInterface::PublishCommonEvent(
         osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_STOPPING, Constants::OPERATION_STOP);
     subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
 
-    errCode = SendMsgForAccountDeactivate(osAccountInfo);
+    errCode = SendMsgForAccountDeactivate(osAccountInfo, isStopStorage);
     if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(id);
         ReportOsAccountOperationFail(id, "deactivate", errCode, "deactivate os account failed");
@@ -1719,6 +1727,7 @@ ErrCode IInnerOsAccountManager::IsOsAccountCompleted(const int id, bool &isOsAcc
 
 ErrCode IInnerOsAccountManager::SetOsAccountIsVerified(const int id, const bool isVerified)
 {
+    std::lock_guard<std::mutex> lock(*GetOrInsertUpdateLock(id));
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
@@ -1750,6 +1759,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountIsVerified(const int id, const bool 
 
 ErrCode IInnerOsAccountManager::SetOsAccountIsLoggedIn(const int32_t id, const bool isLoggedIn)
 {
+    std::lock_guard<std::mutex> lock(*GetOrInsertUpdateLock(id));
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
@@ -1824,14 +1834,10 @@ ErrCode IInnerOsAccountManager::SetDefaultActivatedOsAccount(const int32_t id)
         ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
-    // to be removed, cannot change any thing
-    if (osAccountInfo.GetToBeRemoved()) {
-        ACCOUNT_LOGE("account %{public}d will be removed, cannot change verify state!", id);
-        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR;
-    }
-    if (!osAccountInfo.GetIsCreateCompleted()) {
-        ACCOUNT_LOGE("account %{public}d is not completed", id);
-        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_IS_UNCOMPLETED_ERROR;
+
+    errCode = IsValidOsAccount(osAccountInfo);
+    if (errCode != ERR_OK) {
+        return errCode;
     }
     errCode = osAccountControl_->SetDefaultActivatedOsAccount(id);
     if (errCode != ERR_OK) {
@@ -2083,18 +2089,21 @@ ErrCode IInnerOsAccountManager::UpdateAccountToForeground(const uint64_t display
 ErrCode IInnerOsAccountManager::UpdateAccountToBackground(int32_t oldId)
 {
     OsAccountInfo oldOsAccountInfo;
-    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(oldId, oldOsAccountInfo);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Get osaccount info failed, errCode=%{public}d.", errCode);
-        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
-    }
-    oldOsAccountInfo.SetIsForeground(false);
-    oldOsAccountInfo.SetDisplayId(Constants::INVALID_DISPALY_ID);
-    errCode = osAccountControl_->UpdateOsAccount(oldOsAccountInfo);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Update osaccount failed, errCode=%{public}d, id=%{public}d",
-            errCode, oldOsAccountInfo.GetLocalId());
-        return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
+    {
+        std::lock_guard<std::mutex> lock(*GetOrInsertUpdateLock(oldId));
+        ErrCode errCode = osAccountControl_->GetOsAccountInfoById(oldId, oldOsAccountInfo);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("Get osaccount info failed, errCode=%{public}d.", errCode);
+            return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+        }
+        oldOsAccountInfo.SetIsForeground(false);
+        oldOsAccountInfo.SetDisplayId(Constants::INVALID_DISPALY_ID);
+        errCode = osAccountControl_->UpdateOsAccount(oldOsAccountInfo);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("Update osaccount failed, errCode=%{public}d, id=%{public}d",
+                errCode, oldOsAccountInfo.GetLocalId());
+            return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
+        }
     }
     OsAccountInterface::PublishCommonEvent(oldOsAccountInfo,
         OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_BACKGROUND, Constants::OPERATION_SWITCH);
@@ -2105,9 +2114,22 @@ ErrCode IInnerOsAccountManager::UpdateAccountToBackground(int32_t oldId)
         DeactivateOsAccount(oldId);
     }
 #else
-    DeactivateOsAccountById(oldId);
+    DeactivateOsAccountByInfo(oldOsAccountInfo);
 #endif // ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
-    return errCode;
+    return ERR_OK;
+}
+
+std::shared_ptr<std::mutex> IInnerOsAccountManager::GetOrInsertUpdateLock(int32_t id)
+{
+    std::lock_guard<std::mutex> lock(updateLockMutex_);
+    auto it = updateLocks_.find(id);
+    if (it == updateLocks_.end()) {
+        auto mutexPtr = std::make_shared<std::mutex>();
+        updateLocks_.insert(std::make_pair(id, mutexPtr));
+        return mutexPtr;
+    } else {
+        return it->second;
+    }
 }
 
 ErrCode IInnerOsAccountManager::SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved)
@@ -2127,6 +2149,21 @@ ErrCode IInnerOsAccountManager::SetOsAccountToBeRemoved(int32_t localId, bool to
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     RemoveLocalIdToOperating(localId);
     return errCode;
+}
+
+ErrCode IInnerOsAccountManager::IsValidOsAccount(const OsAccountInfo &osAccountInfo)
+{
+    int32_t id = osAccountInfo.GetLocalId();
+    if (!osAccountInfo.GetIsCreateCompleted()) {
+        ACCOUNT_LOGE("Account %{public}d is not completed.", id);
+        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_IS_UNCOMPLETED_ERROR;
+    }
+
+    if (osAccountInfo.GetToBeRemoved()) {
+        ACCOUNT_LOGE("Account %{public}d will be removed.", id);
+        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR;
+    }
+    return ERR_OK;
 }
 }  // namespace AccountSA
 }  // namespace OHOS

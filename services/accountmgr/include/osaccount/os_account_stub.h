@@ -24,7 +24,7 @@ namespace OHOS {
 namespace AccountSA {
 class OsAccountStub : public IRemoteStub<IOsAccount> {
 public:
-    using MessageProcFunction = ErrCode (OsAccountStub::*)(MessageParcel &data, MessageParcel &reply);
+    using MessageProcFunction = ErrCode (*)(OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply);
     typedef struct OsAccountMessageProc {
         MessageProcFunction messageProcFunction;
         bool isSyetemApi = false;
@@ -102,8 +102,7 @@ public:
     ErrCode ProcSetOsAccountToBeRemoved(MessageParcel &data, MessageParcel &reply);
 
 private:
-    template<typename T>
-    bool WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data);
+    bool WriteOsAccountInfoList(const std::vector<OsAccountInfo> &accounts, MessageParcel &data);
     std::map<uint32_t, OsAccountMessageProc> messageProcMap_;
     DISALLOW_COPY_AND_MOVE(OsAccountStub);
     ErrCode ProcCheckOsAccountConstraintEnabled(uint32_t code, MessageParcel &data, MessageParcel &reply);

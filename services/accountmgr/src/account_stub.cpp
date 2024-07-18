@@ -42,6 +42,7 @@ namespace {
 const std::string OHOS_ACCOUNT_QUIT_TIPS_TITLE = "";
 const std::string OHOS_ACCOUNT_QUIT_TIPS_CONTENT = "";
 const std::string PERMISSION_MANAGE_USERS = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
+const std::string PERMISSION_GET_LOCAL_ACCOUNTS = "ohos.permission.GET_LOCAL_ACCOUNTS";
 const std::string PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS = "ohos.permission.MANAGE_DISTRIBUTED_ACCOUNTS";
 const std::string PERMISSION_GET_DISTRIBUTED_ACCOUNTS = "ohos.permission.GET_DISTRIBUTED_ACCOUNTS";
 const std::string PERMISSION_DISTRIBUTED_DATASYNC = "ohos.permission.DISTRIBUTED_DATASYNC";
@@ -63,25 +64,40 @@ constexpr std::int32_t DSOFTBUS_UID = 5533;
 }  // namespace
 AccountStub::AccountStub()
 {
-    stubFuncMap_[AccountMgrInterfaceCode::UPDATE_OHOS_ACCOUNT_INFO] = &AccountStub::CmdUpdateOhosAccountInfo;
-    stubFuncMap_[AccountMgrInterfaceCode::SET_OHOS_ACCOUNT_INFO] = &AccountStub::CmdSetOhosAccountInfo;
+    stubFuncMap_[AccountMgrInterfaceCode::UPDATE_OHOS_ACCOUNT_INFO] =
+        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdUpdateOhosAccountInfo(data, reply); };
+    stubFuncMap_[AccountMgrInterfaceCode::SET_OHOS_ACCOUNT_INFO] =
+        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdSetOhosAccountInfo(data, reply); };
     stubFuncMap_[AccountMgrInterfaceCode::SET_OHOS_ACCOUNT_INFO_BY_USER_ID] =
-        &AccountStub::CmdSetOhosAccountInfoByUserId;
-    stubFuncMap_[AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_INFO] = &AccountStub::CmdQueryOhosAccountInfo;
-    stubFuncMap_[AccountMgrInterfaceCode::GET_OHOS_ACCOUNT_INFO] = &AccountStub::CmdGetOhosAccountInfo;
+        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdSetOhosAccountInfoByUserId(data, reply); };
+    stubFuncMap_[AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_INFO] =
+        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdQueryOhosAccountInfo(data, reply); };
+    stubFuncMap_[AccountMgrInterfaceCode::GET_OHOS_ACCOUNT_INFO] =
+        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdGetOhosAccountInfo(data, reply); };
     stubFuncMap_[AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_INFO_BY_USER_ID] =
-        &AccountStub::CmdQueryOhosAccountInfoByUserId;
+        [this] (MessageParcel &data, MessageParcel &reply) {
+        return this->CmdQueryOhosAccountInfoByUserId(data, reply);
+    };
     stubFuncMap_[AccountMgrInterfaceCode::GET_OHOS_ACCOUNT_INFO_BY_USER_ID] =
-        &AccountStub::CmdGetOhosAccountInfoByUserId;
-    stubFuncMap_[AccountMgrInterfaceCode::QUERY_DEVICE_ACCOUNT_ID] = &AccountStub::CmdQueryDeviceAccountId;
+        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdGetOhosAccountInfoByUserId(data, reply); };
+    stubFuncMap_[AccountMgrInterfaceCode::QUERY_DEVICE_ACCOUNT_ID] =
+        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdQueryDeviceAccountId(data, reply); };
     stubFuncMap_[AccountMgrInterfaceCode::SUBSCRIBE_DISTRIBUTED_ACCOUNT_EVENT] =
-        &AccountStub::CmdSubscribeDistributedAccountEvent;
+        [this] (MessageParcel &data, MessageParcel &reply) {
+        return this->CmdSubscribeDistributedAccountEvent(data, reply);
+    };
     stubFuncMap_[AccountMgrInterfaceCode::UNSUBSCRIBE_DISTRIBUTED_ACCOUNT_EVENT] =
-        &AccountStub::CmdUnsubscribeDistributedAccountEvent;
-    stubFuncMap_[AccountMgrInterfaceCode::GET_APP_ACCOUNT_SERVICE] = &AccountStub::CmdGetAppAccountService;
-    stubFuncMap_[AccountMgrInterfaceCode::GET_OS_ACCOUNT_SERVICE] = &AccountStub::CmdGetOsAccountService;
-    stubFuncMap_[AccountMgrInterfaceCode::GET_ACCOUNT_IAM_SERVICE] = &AccountStub::CmdGetAccountIAMService;
-    stubFuncMap_[AccountMgrInterfaceCode::GET_DOMAIN_ACCOUNT_SERVICE] = &AccountStub::CmdGetDomainAccountService;
+        [this] (MessageParcel &data, MessageParcel &reply) {
+        return this->CmdUnsubscribeDistributedAccountEvent(data, reply);
+    };
+    stubFuncMap_[AccountMgrInterfaceCode::GET_APP_ACCOUNT_SERVICE] =
+        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdGetAppAccountService(data, reply); };
+    stubFuncMap_[AccountMgrInterfaceCode::GET_OS_ACCOUNT_SERVICE] =
+        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdGetOsAccountService(data, reply); };
+    stubFuncMap_[AccountMgrInterfaceCode::GET_ACCOUNT_IAM_SERVICE] =
+        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdGetAccountIAMService(data, reply); };
+    stubFuncMap_[AccountMgrInterfaceCode::GET_DOMAIN_ACCOUNT_SERVICE] =
+        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdGetDomainAccountService(data, reply); };
 }
 
 std::int32_t AccountStub::InnerUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
@@ -198,14 +214,15 @@ std::int32_t AccountStub::CmdSetOhosAccountInfoByUserId(MessageParcel &data, Mes
 
 std::int32_t AccountStub::InnerQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
-    std::pair<bool, OhosAccountInfo> info = QueryOhosAccountInfo();
-    if (!info.first) {
+    OhosAccountInfo info;
+    ErrCode result = QueryOhosAccountInfo(info);
+    if (result != ERR_OK) {
         ACCOUNT_LOGE("Query ohos account info failed");
-        return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
+        return result;
     }
 
-    std::string name = info.second.name_;
-    std::string id = info.second.uid_;
+    std::string name = info.name_;
+    std::string id = info.uid_;
     if (!reply.WriteString16(Str8ToStr16(name))) {
         ACCOUNT_LOGE("Write name data failed");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
@@ -214,7 +231,7 @@ std::int32_t AccountStub::InnerQueryOhosAccountInfo(MessageParcel &data, Message
         ACCOUNT_LOGE("Write id data failed");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    if (!reply.WriteInt32(info.second.status_)) {
+    if (!reply.WriteInt32(info.status_)) {
         ACCOUNT_LOGE("Write status data failed");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
@@ -240,7 +257,8 @@ std::int32_t AccountStub::InnerGetOhosAccountInfo(MessageParcel &data, MessagePa
 std::int32_t AccountStub::CmdQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
     if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS) &&
-        !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC)) {
+        !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC) &&
+        !HasAccountRequestPermission(PERMISSION_GET_LOCAL_ACCOUNTS)) {
         ACCOUNT_LOGE("Check permission failed");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -317,14 +335,15 @@ std::int32_t AccountStub::CmdQueryOhosAccountInfoByUserId(MessageParcel &data, M
         return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_USERID_ERROR;
     }
 
-    std::pair<bool, OhosAccountInfo> info = QueryOhosAccountInfoByUserId(userId);
-    if (!info.first) {
+    OhosAccountInfo info;
+    ErrCode result = QueryOhosAccountInfoByUserId(userId, info);
+    if (result != ERR_OK) {
         ACCOUNT_LOGE("Query ohos account info failed! userId %{public}d.", userId);
-        return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
+        return result;
     }
 
-    std::string name = info.second.name_;
-    std::string id = info.second.uid_;
+    std::string name = info.name_;
+    std::string id = info.uid_;
     if (!reply.WriteString16(Str8ToStr16(name))) {
         ACCOUNT_LOGE("Write name data failed! userId %{public}d.", userId);
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
@@ -333,7 +352,7 @@ std::int32_t AccountStub::CmdQueryOhosAccountInfoByUserId(MessageParcel &data, M
         ACCOUNT_LOGE("Write id data failed! userId %{public}d.", userId);
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    if (!reply.WriteInt32(info.second.status_)) {
+    if (!reply.WriteInt32(info.status_)) {
         ACCOUNT_LOGE("Write status data failed! userId %{public}d.", userId);
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
@@ -478,7 +497,7 @@ std::int32_t AccountStub::OnRemoteRequest(
     if (interfaceCode <= AccountMgrInterfaceCode::SET_OHOS_ACCOUNT_INFO_BY_USER_ID) {
         (void)OhosAccountManager::GetInstance().OnInitialize();
     }
-    int32_t ret = (this->*(itFunc->second))(data, reply);
+    int32_t ret = (itFunc->second)(data, reply);
 #ifdef HICOLLIE_ENABLE
     HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
 #endif // HICOLLIE_ENABLE

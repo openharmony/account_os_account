@@ -47,8 +47,8 @@ public:
         const std::string &eventStr) override;
     std::int32_t SetOhosAccountInfoByUserId(
         const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr) override;
-    std::pair<bool, OhosAccountInfo> QueryOhosAccountInfo(void) override;
-    std::pair<bool, OhosAccountInfo> QueryOhosAccountInfoByUserId(std::int32_t userId) override;
+    ErrCode QueryOhosAccountInfo(OhosAccountInfo &accountInfo) override;
+    ErrCode QueryOhosAccountInfoByUserId(std::int32_t userId, OhosAccountInfo &accountInfo) override;
     ErrCode GetOhosAccountInfo(OhosAccountInfo &info) override;
     ErrCode GetOhosAccountInfoByUserId(int32_t userId, OhosAccountInfo &info) override;
     std::int32_t QueryDeviceAccountId(std::int32_t &accountId) override;

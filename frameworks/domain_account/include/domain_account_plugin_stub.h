@@ -24,7 +24,6 @@ namespace OHOS {
 namespace AccountSA {
 class DomainAccountPluginStub : public IRemoteStub<IDomainAccountPlugin> {
 public:
-    using MessageProcFunction = ErrCode (DomainAccountPluginStub::*)(MessageParcel &data, MessageParcel &reply);
 
     DomainAccountPluginStub();
     ~DomainAccountPluginStub() override;
@@ -41,7 +40,6 @@ public:
     ErrCode ProcGetAccessToken(MessageParcel &data, MessageParcel &reply);
 
 private:
-    std::map<DomainAccountPluginInterfaceCode, MessageProcFunction> messageProcMap_;
 
     DISALLOW_COPY_AND_MOVE(DomainAccountPluginStub);
 };

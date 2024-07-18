@@ -60,13 +60,13 @@ ErrCode AccountCommand::CreateCommandMap()
     ACCOUNT_LOGD("enter");
 
     commandMap_ = {
-        {"help", std::bind(&AccountCommand::RunAsHelpCommand, this)},
-        {"create", std::bind(&AccountCommand::RunAsCreateCommand, this)},
-        {"delete", std::bind(&AccountCommand::RunAsDeleteCommand, this)},
-        {"dump", std::bind(&AccountCommand::RunAsDumpCommand, this)},
-        {"set", std::bind(&AccountCommand::RunAsSetCommand, this)},
-        {"switch", std::bind(&AccountCommand::RunAsSwitchCommand, this)},
-        {"deactivate", std::bind(&AccountCommand::RunAsDeactivateCommand, this)},
+        {"help", [this] { return this->RunAsHelpCommand(); }},
+        {"create", [this] { return this->RunAsCreateCommand(); }},
+        {"delete", [this] { return this->RunAsDeleteCommand(); }},
+        {"dump", [this] { return this->RunAsDumpCommand(); }},
+        {"set", [this] { return this->RunAsSetCommand(); }},
+        {"switch", [this] { return this->RunAsSwitchCommand(); }},
+        {"deactivate", [this] { return this->RunAsDeactivateCommand(); }},
     };
 
     return ERR_OK;

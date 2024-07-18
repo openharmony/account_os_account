@@ -442,6 +442,7 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
 
 ErrCode OsAccountInterface::SendToStorageAccountStop(OsAccountInfo &osAccountInfo)
 {
+    ACCOUNT_LOGI("Stop storage, account id = %{public}d", osAccountInfo.GetLocalId());
 #ifdef HAS_STORAGE_PART
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManager) {
