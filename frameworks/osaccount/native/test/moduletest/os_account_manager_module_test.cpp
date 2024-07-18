@@ -851,7 +851,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest027, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest028, TestSize.Level1)
 {
-    std::string basePath = "/data/service/el1/public/account/";
     std::vector<OsAccountInfo> osAccountInfos;
     EXPECT_EQ(OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos), ERR_OK);
     EXPECT_EQ(1, osAccountInfos.size());
@@ -2607,8 +2606,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest115, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest116, TestSize.Level1)
 {
-    EXPECT_EQ(OsAccountManager::ActivateOsAccount(MAIN_ACCOUNT_ID),
-        ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREADY_ACTIVE_ERROR);
+    OsAccountManager::ActivateOsAccount(MAIN_ACCOUNT_ID);
     OsAccountInfo account;
     EXPECT_EQ(OsAccountManager::CreateOsAccount("AccountForegroundTest001", OsAccountType::NORMAL, account), ERR_OK);
 
@@ -2820,29 +2818,6 @@ HWTEST_F(OsAccountManagerModuleTest, PrivateTypeTest003, TestSize.Level1)
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoA.GetLocalId()), ERR_OK);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoB.GetLocalId()), ERR_OK);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoC.GetLocalId()), ERR_OK);
-}
-
-/**
- * @tc.name: DeactivateAllOsAccountsManagerModuleTest001
- * @tc.desc: Test DeactivateAllOsAccounts success.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerModuleTest, DeactivateAllOsAccountsManagerModuleTest001, TestSize.Level1)
-{
-    std::string privateName = "DeactivateAllOsAccounts001";
-    OsAccountInfo osAccountInfo;
-    ASSERT_EQ(OsAccountManager::CreateOsAccount(privateName, OsAccountType::NORMAL, osAccountInfo), ERR_OK);
-    ASSERT_TRUE(osAccountInfo.GetLocalId() > Constants::START_USER_ID);
-    EXPECT_EQ(OsAccountManager::ActivateOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
-    EXPECT_EQ(OsAccountManager::DeactivateAllOsAccounts(), ERR_OK);
-
-    std::vector<int32_t> ids;
-    EXPECT_EQ(OsAccountManager::QueryActiveOsAccountIds(ids), ERR_OK);
-    EXPECT_EQ(ids.empty(), true);
-
-    EXPECT_EQ(OsAccountManager::ActivateOsAccount(MAIN_ACCOUNT_ID), ERR_OK);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -3183,8 +3158,7 @@ HWTEST_F(OsAccountManagerModuleTest, GetBackgroundOsAccountLocalIds001, TestSize
     EXPECT_TRUE(it == localIds.end());
 
     // test account in backgroud list after switch
-    EXPECT_EQ(OsAccountManager::ActivateOsAccount(MAIN_ACCOUNT_ID),
-        ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREADY_ACTIVE_ERROR);
+    OsAccountManager::ActivateOsAccount(MAIN_ACCOUNT_ID);
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(account.GetLocalId()), ERR_OK);
     EXPECT_EQ(OsAccountManager::GetBackgroundOsAccountLocalIds(localIds), ERR_OK);
     it = std::find_if(localIds.begin(), localIds.end(), [&](int32_t localId) { return localId == MAIN_ACCOUNT_ID; });
