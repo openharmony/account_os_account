@@ -1,4 +1,4 @@
-# Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+# Copyright (c) 2023 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -19,22 +19,17 @@ import("//build/ohos.gni")
 import("//build/test.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("GetAvailableStatusStubFuzzTest") {
+ohos_fuzztest("CmdGetOsAccountServiceStubFuzzTest") {
   module_out_path = fuzz_output_path
 
   fuzz_config_file = "."
   include_dirs = [
     "${innerkits_path}/include",
     "${os_account_core_path}/include",
+    "${os_account_interfaces_native_path}/include",
     "${os_account_path}/dfx/hidumper_adapter",
     "${os_account_path}/dfx/hitrace_adapter",
-    "${os_account_interfaces_native_path}/include",
-    "${services_path}/accountmgr/include/bundle_manager_adapter",
-    "${account_iam_interfaces_native_path}/include",
     "${services_path}/accountmgr/include",
-    "${services_path}/accountmgr/include/account_iam",
-    "${app_account_innerkits_native_path}/include",
-    "${os_account_path}/test/fuzztest/appaccount_stub/fuzz_data",
   ]
   cflags = [
     "-g",
@@ -42,26 +37,20 @@ ohos_fuzztest("GetAvailableStatusStubFuzzTest") {
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
-  cflags_cc = [
-    "-Wdate-time",
-    "-Wformat=2",
-    "-Wfloat-equal",
-    "-Wshadow",
-  ]
-
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
   sources = [
-    "${app_account_services_path}/src/account_iam/account_iam_service.cpp",
-    "getavailablestatusstub_fuzzer.cpp",
+    "${app_account_services_path}/src/account_mgr_service.cpp",
+    "cmdgetosaccountservicestub_fuzzer.cpp",
   ]
 
   deps = [
-    "${account_iam_framework_path}:account_iam_innerkits",
-    "${common_path}:libaccount_common",
-    "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_path}/frameworks/appaccount/native:app_account_innerkits",
+    "${os_account_path}/frameworks/common:libaccount_common",
     "${os_account_path}/services/accountmgr:accountmgr",
+    "${os_account_path}/services/accountmgr/src/appaccount:app_account_service_core",
+    "//third_party/selinux:libselinux",
   ]
 
   external_deps = [
@@ -69,9 +58,7 @@ ohos_fuzztest("GetAvailableStatusStubFuzzTest") {
     "ability_runtime:app_manager",
     "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
-    "access_token:libnativetoken_shared",
     "access_token:libtokenid_sdk",
-    "access_token:libtokensetproc_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "hilog:libhilog",
@@ -81,18 +68,8 @@ ohos_fuzztest("GetAvailableStatusStubFuzzTest") {
     "samgr:samgr_proxy",
   ]
 
-  if (has_pin_auth_part) {
-    cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
-    external_deps += [ "pin_auth:pinauth_framework" ]
-  }
-
-  if (has_user_auth_part) {
-    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
-    external_deps += [ "user_auth_framework:userauth_client" ]
-  }
-
   defines = [
-    "ACCOUNT_LOG_TAG = \"IamAccountFuzzTest\"",
+    "ACCOUNT_LOG_TAG = \"AppAccountFuzzTest\"",
     "LOG_DOMAIN = 0xD001B00",
   ]
 }
