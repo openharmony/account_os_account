@@ -22,5 +22,10 @@ group("fuzztest") {
     "cmdqueryohosaccountinfostub_fuzzer:CmdQueryOhosAccountInfoStubFuzzTest",
     "cmdsetohosaccountinfostub_fuzzer:CmdSetOhosAccountInfoStubFuzzTest",
     "cmdupdateohosaccountinfostub_fuzzer:CmdUpdateOhosAccountInfoStubFuzzTest",
+    "cmdgetaccountiamservicestub_fuzzer:CmdGetAccountIAMServiceStubFuzzTest",
+    "cmdgetappaccountservicestub_fuzzer:CmdGetAppAccountServiceStubFuzzTest",
+    "cmdgetosaccountservicestub_fuzzer:CmdGetOsAccountServiceStubFuzzTest",
+    "cmdgetdomainaccountservicestub_fuzzer:CmdGetDomainAccountServiceStubFuzzTest",
+    "cmdsetohosaccountinfobyuseridstub_fuzzer:CmdSetOhosAccountInfoByUserIdStubFuzzTest"
   ]
 }
