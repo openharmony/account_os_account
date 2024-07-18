@@ -182,7 +182,7 @@ bool OhosAccountManager::OhosAccountStateChange(const std::string &name, const s
     ohosAccountInfo.name_ = name;
     ohosAccountInfo.uid_ = uid;
     std::int32_t userId = AccountMgrService::GetInstance().GetCallingUserID();
-    return (this->*(itFunc->second))(userId, ohosAccountInfo, eventStr);
+    return (itFunc->second)(userId, ohosAccountInfo, eventStr);
 }
 
 bool OhosAccountManager::OhosAccountStateChange(
@@ -193,7 +193,7 @@ bool OhosAccountManager::OhosAccountStateChange(
         ACCOUNT_LOGE("invalid event: %{public}s", eventStr.c_str());
         return false;
     }
-    return (this->*(itFunc->second))(userId, ohosAccountInfo, eventStr);
+    return (itFunc->second)(userId, ohosAccountInfo, eventStr);
 }
 
 /**
@@ -530,10 +530,22 @@ void OhosAccountManager::BuildEventsMapper()
     eventMap_.insert(std::pair<std::string, ACCOUNT_INNER_EVENT_TYPE>(eventTokenInvalid, ACCOUNT_TOKEN_EXPIRED_EVT));
     eventMap_.insert(std::pair<std::string, ACCOUNT_INNER_EVENT_TYPE>(eventLogoff, ACCOUNT_MANUAL_LOGOFF_EVT));
 
-    eventFuncMap_.insert(std::make_pair(eventLogin, &OhosAccountManager::LoginOhosAccount));
-    eventFuncMap_.insert(std::make_pair(eventLogout, &OhosAccountManager::LogoutOhosAccount));
-    eventFuncMap_.insert(std::make_pair(eventLogoff, &OhosAccountManager::LogoffOhosAccount));
-    eventFuncMap_.insert(std::make_pair(eventTokenInvalid, &OhosAccountManager::HandleOhosAccountTokenInvalidEvent));
+    eventFuncMap_.insert(std::make_pair(eventLogin,
+        [this] (const std::int32_t userId, const OhosAccountInfo &info, const std::string &eventStr) {
+        return LoginOhosAccount(userId, info, eventStr);
+    }));
+    eventFuncMap_.insert(std::make_pair(eventLogout,
+        [this] (const std::int32_t userId, const OhosAccountInfo &info, const std::string &eventStr) {
+        return LogoutOhosAccount(userId, info, eventStr);
+    }));
+    eventFuncMap_.insert(std::make_pair(eventLogoff,
+        [this] (const std::int32_t userId, const OhosAccountInfo &info, const std::string &eventStr) {
+        return LogoffOhosAccount(userId, info, eventStr);
+    }));
+    eventFuncMap_.insert(std::make_pair(eventTokenInvalid,
+        [this] (const std::int32_t userId, const OhosAccountInfo &info, const std::string &eventStr) {
+        return HandleOhosAccountTokenInvalidEvent(userId, info, eventStr);
+    }));
 }
 
 OhosAccountManager &OhosAccountManager::GetInstance()
@@ -585,7 +597,7 @@ bool OhosAccountManager::CreateCommonEventSubscribe()
 {
     if (accountEventSubscribe_ == nullptr) {
         AccountCommonEventCallback callback = {
-            std::bind(&OhosAccountManager::OnPackageRemoved, this, std::placeholders::_1)};
+            [this](int32_t userId) { this->OnPackageRemoved(userId); } };
         accountEventSubscribe_ = std::make_shared<AccountEventSubscriber>(callback);
         if (!accountEventSubscribe_->CreateEventSubscribe()) {
             ACCOUNT_LOGE("CreateEventSubscribe is failed");
