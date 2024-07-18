@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -47,7 +47,7 @@ static void SelinuxSetCallback()
     selinux_set_callback(SELINUX_CB_LOG, cb);
 }
 
-bool CmdGetAccountIAMServiceStubFuzzTest(const uint8_t* data, size_t size)
+bool CmdGetAccountIAMServiceStubFuzzTest(const uint8_t *data, size_t size)
 {
     __selinux_once(g_fcOnce, SelinuxSetCallback);
     if ((data == nullptr) || (size == 0)) {
@@ -61,7 +61,7 @@ bool CmdGetAccountIAMServiceStubFuzzTest(const uint8_t* data, size_t size)
 
     MessageParcel reply;
     MessageOption option;
-    
+
     uint32_t code = static_cast<uint32_t>(AccountMgrInterfaceCode::GET_ACCOUNT_IAM_SERVICE);
     DelayedRefSingleton<AccountMgrService>::GetInstance().state_ = ServiceRunningState::STATE_RUNNING;
     DelayedRefSingleton<AccountMgrService>::GetInstance().OnRemoteRequest(code, dataTemp, reply, option);
@@ -71,10 +71,9 @@ bool CmdGetAccountIAMServiceStubFuzzTest(const uint8_t* data, size_t size)
 }
 
 /* Fuzzer entry point */
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
     OHOS::CmdGetAccountIAMServiceStubFuzzTest(data, size);
     return 0;
 }
-
