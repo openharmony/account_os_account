@@ -50,6 +50,9 @@ const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS = "ohos.permission.INTERACT_ACR
 #ifndef IS_RELEASE_VERSION
 constexpr std::int32_t ROOT_UID = 0;
 #endif
+#ifdef HICOLLIE_ENABLE
+constexpr std::int32_t RECOVERY_TIMEOUT = 6; // timeout 6s
+#endif // HICOLLIE_ENABLE
 constexpr std::int32_t INVALID_USERID = -1;
 const std::set<std::int32_t> WHITE_LIST = {
     3012, // DISTRIBUTED_KV_DATA_SA_UID
@@ -214,9 +217,16 @@ std::int32_t AccountStub::CmdSetOhosAccountInfoByUserId(MessageParcel &data, Mes
 std::int32_t AccountStub::InnerQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
     OhosAccountInfo info;
+#ifdef HICOLLIE_ENABLE
+    int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(
+        TIMER_NAME, RECOVERY_TIMEOUT, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_RECOVERY);
+#endif // HICOLLIE_ENABLE
     ErrCode result = QueryOhosAccountInfo(info);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Query ohos account info failed");
+#ifdef HICOLLIE_ENABLE
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
         return result;
     }
 
@@ -224,16 +234,28 @@ std::int32_t AccountStub::InnerQueryOhosAccountInfo(MessageParcel &data, Message
     std::string id = info.uid_;
     if (!reply.WriteString16(Str8ToStr16(name))) {
         ACCOUNT_LOGE("Write name data failed");
+#ifdef HICOLLIE_ENABLE
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!reply.WriteString16(Str8ToStr16(id))) {
         ACCOUNT_LOGE("Write id data failed");
+#ifdef HICOLLIE_ENABLE
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!reply.WriteInt32(info.status_)) {
         ACCOUNT_LOGE("Write status data failed");
+#ifdef HICOLLIE_ENABLE
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
+#ifdef HICOLLIE_ENABLE
+    HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
     return ERR_OK;
 }
 
@@ -488,10 +510,10 @@ std::int32_t AccountStub::OnRemoteRequest(
     const auto &itFunc = stubFuncMap_.find(interfaceCode);
     if (itFunc == stubFuncMap_.end()) {
 #ifdef HICOLLIE_ENABLE
-    HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
 #endif // HICOLLIE_ENABLE
-    ACCOUNT_LOGW("remote request unhandled: %{public}d", code);
-    return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+        ACCOUNT_LOGW("remote request unhandled: %{public}d", code);
+        return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
     if (interfaceCode <= AccountMgrInterfaceCode::SET_OHOS_ACCOUNT_INFO_BY_USER_ID) {
         (void)OhosAccountManager::GetInstance().OnInitialize();
