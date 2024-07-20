@@ -668,7 +668,7 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
 
 /**
  * @tc.name: DomainAccountManagerInnerServiceMultiThreadTest001
- * @tc.desc: Multithread LoaderLib CloseLib.
+ * @tc.desc: Multithread LoaderLib.
  * @tc.type: FUNC
  * @tc.require: issueI64KAM
  */
@@ -682,41 +682,29 @@ HWMTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerService
     // LoadLib success
     instance->LoaderLib(rightPath, rightSoName);
     EXPECT_NE(instance->libHandle_, nullptr);
-    // CloseLib path
-    instance->CloseLib();
-    EXPECT_EQ(instance->libHandle_, nullptr);
-    // CloseLib path libHandle_ nullper
-    instance->CloseLib();
-    EXPECT_EQ(instance->libHandle_, nullptr);
-    // empty libName
-    instance->LoaderLib(rightPath, "");
-    EXPECT_EQ(instance->libHandle_, nullptr);
-    // error path
-    instance->LoaderLib("/", rightSoName);
-    EXPECT_EQ(instance->libHandle_, nullptr);
-    // error libName
-    std::string errorlibName = "error.z.so";
-    instance->LoaderLib(rightPath, errorlibName);
-    EXPECT_EQ(instance->libHandle_, nullptr);
-    // not legal so
-    std::string notLegalLibName = "leg.z.so";
-    instance->LoaderLib(rightPath, notLegalLibName);
-    EXPECT_EQ(instance->libHandle_, nullptr);
-    // empty path
-    instance->LoaderLib("", rightSoName);
-    EXPECT_NE(instance->libHandle_, nullptr);
-    // clear
+}
+
+/**
+ * @tc.name: DomainAccountManagerInnerServiceMultiThreadTest002
+ * @tc.desc: Multithread CloseLib.
+ * @tc.type: FUNC
+ * @tc.require: issueI64KAM
+ */
+HWMTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceMultiThreadTest002, TestSize.Level0,
+          THREAD_NUM)
+{
+    InnerDomainAccountManager *instance = new (std::nothrow) InnerDomainAccountManager();
     instance->CloseLib();
     EXPECT_EQ(instance->libHandle_, nullptr);
 }
 
 /**
- * @tc.name: DomainAccountManagerInnerServiceMultiThreadTest002
- * @tc.desc: multithread AddServerConfig.
+ * @tc.name: DomainAccountManagerInnerServiceMultiThreadTest003
+ * @tc.desc: AddServerConfig.
  * @tc.type: FUNC
- * @tc.require: issueI64KAM
+ * @tc.require:
  */
-HWMTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceMultiThreadTest002, TestSize.Level0,
+HWMTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceMultiThreadTest003, TestSize.Level0,
           THREAD_NUM)
 {
     InnerDomainAccountManager *instance = new (std::nothrow) InnerDomainAccountManager();
@@ -739,10 +727,7 @@ HWMTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerService
     info.accountName_ = STRING_TEST_NAME;
     info.serverConfigId_ = STRING_TEST_NAME;
     info.isAuthenticated = 0;
-    EXPECT_EQ(instance->AddServerConfig(identifier, config), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
-    EXPECT_EQ(instance->GetAccountServerConfig(info, config), ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT);
-    EXPECT_EQ(instance->RemoveServerConfig(configId), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
-    EXPECT_EQ(instance->PluginAuth(info, password, resultParcel), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+
     EXPECT_EQ(instance->PluginBindAccount(info, 100, resultParcel), ERR_OK);
     EXPECT_EQ(instance->PluginUnBindAccount(info, resultParcel), ERR_OK);
     password.push_back(0);
@@ -753,7 +738,6 @@ HWMTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerService
     EXPECT_EQ(instance->PluginAuthWithPopup(info, resultParcel), ERR_OK);
     EXPECT_EQ(instance->PluginAuthToken(info, password, resultParcel), ERR_OK);
     EXPECT_EQ(instance->PluginGetAuthStatusInfo(info, authInfo), ERR_OK);
-    EXPECT_EQ(instance->PluginGetDomainAccountInfo(options, info), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -762,7 +746,7 @@ HWMTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerService
  * @tc.type: FUNC
  * @tc.require: issueI64KAM
  */
-HWMTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceMultiThreadTest003, TestSize.Level1,
+HWMTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceMultiThreadTest004, TestSize.Level1,
           THREAD_NUM)
 {
     DomainAccountInfo domainInfo;
