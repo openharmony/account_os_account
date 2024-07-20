@@ -16,7 +16,9 @@
 #include "napi_account_common.h"
 
 #include "account_log_wrapper.h"
+#include "bundle_mgr_proxy.h"
 #include "ipc_skeleton.h"
+#include "iservice_registry.h"
 #include "js_native_api.h"
 #include "js_native_api_types.h"
 #include "napi_account_error.h"
@@ -24,6 +26,7 @@
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"
 #include "securec.h"
+#include "system_ability_definition.h"
 #include "tokenid_kit.h"
 
 namespace OHOS {
@@ -613,6 +616,34 @@ napi_value NativeStringToJsObject(napi_env env, const std::string &nativeData)
         ACCOUNT_LOGE("Fail to call function, status: %{public}d", status);
     }
     return jsObjData;
+}
+
+bool GetSelfTargetVersion(uint32_t &targetVersion)
+{
+    sptr<ISystemAbilityManager> samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (samgr == nullptr) {
+        ACCOUNT_LOGE("Samgr error");
+        return false;
+    }
+    auto bundleObj = samgr->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
+    if (bundleObj == nullptr) {
+        ACCOUNT_LOGE("BundleObj error");
+        return false;
+    }
+    auto bundleMgrProxy = iface_cast<AppExecFwk::IBundleMgr>(bundleObj);
+    if (bundleMgrProxy == nullptr) {
+        ACCOUNT_LOGE("BundleMgrProxy error");
+        return false;
+    }
+    AppExecFwk::BundleInfo bundleInfo;
+    ErrCode ret = bundleMgrProxy->GetBundleInfoForSelf(OHOS::AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("GetBundleInfoForSelf error");
+        return false;
+    }
+    ACCOUNT_LOGI("Bundle targetVersion is %{public}d", bundleInfo.targetVersion);
+    targetVersion = bundleInfo.targetVersion;
+    return true;
 }
 } // namespace AccountJsKit
 } // namespace OHOS
