@@ -106,6 +106,7 @@ void OsAccountInnerAccmgrMockTest::SetUpTestCase(void)
     auto osAccountService = new (std::nothrow) OsAccountManagerService();
     ASSERT_NE(osAccountService, nullptr);
     IInnerOsAccountManager::GetInstance().Init();
+    IInnerOsAccountManager::GetInstance().ActivateDefaultOsAccount();
     OsAccount::GetInstance().proxy_ = new (std::nothrow) OsAccountProxy(osAccountService->AsObject());
     ASSERT_NE(OsAccount::GetInstance().proxy_, nullptr);
 #endif
@@ -610,7 +611,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest018, TestSize
     EXPECT_CALL(*ptr, GetOsAccountList(_))
         .WillRepeatedly(testing::Return(-1));
 
-    innerMgrService_->CleanGarbageAccounts();
+    innerMgrService_->CleanGarbageOsAccounts();
 
     ErrCode ret = innerMgrService_->QueryAllCreatedOsAccounts(accounts);
     EXPECT_NE(ret, ERR_OK);
@@ -1101,11 +1102,11 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest033, TestSize
         .WillRepeatedly(testing::Return(0));
 
     (void)setuid(ACCOUNT_UID);
-    innerMgrService_->StartAccount();
+    innerMgrService_->ActivateDefaultOsAccount();
     (void)setuid(0);
     EXPECT_CALL(*ptr, GetOsAccountInfoById(_, _))
         .WillRepeatedly(DoAll(testing::SetArgReferee<1>(osAccountInfo), testing::Return(0)));
-    innerMgrService_->StartAccount();
+    innerMgrService_->ActivateDefaultOsAccount();
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
@@ -1222,7 +1223,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest039, TestSize
     EXPECT_EQ(ret, 0);
 
     ret = innerMgrService_->RemoveOsAccount(osAccountInfoOne.GetLocalId());
-    innerMgrService_->CleanGarbageAccounts();
+    innerMgrService_->CleanGarbageOsAccounts();
 
     EXPECT_EQ(ret, 0);
 
@@ -1260,7 +1261,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest039, TestSize
     EXPECT_EQ(ret, 0);
     ret = innerMgrService_->RemoveOsAccount(osAccountInfoOne.GetLocalId());
     EXPECT_EQ(ret, 0);
-    innerMgrService_->CleanGarbageAccounts();
+    innerMgrService_->CleanGarbageOsAccounts();
 
     (void)setuid(0);
 }

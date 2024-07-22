@@ -918,8 +918,7 @@ ErrCode OsAccountControlFileManager::RemoveAccountIndex(const int32_t id)
 ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("enter");
-    if (osAccountInfo.GetLocalId() < Constants::ADMIN_LOCAL_ID ||
-        osAccountInfo.GetLocalId() > Constants::MAX_USER_ID) {
+    if (osAccountInfo.GetLocalId() < Constants::ADMIN_LOCAL_ID) {
         ACCOUNT_LOGE("error id %{public}d cannot insert", osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_CONTROL_ID_CANNOT_CREATE_ERROR;
     }

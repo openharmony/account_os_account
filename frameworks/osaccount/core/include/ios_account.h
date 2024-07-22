@@ -82,7 +82,6 @@ public:
     virtual ErrCode SetOsAccountIsVerified(const int id, const bool isVerified) = 0;
     virtual ErrCode DumpState(const int &id, std::vector<std::string> &state) = 0;
 
-    virtual void CreateBasicAccounts() = 0;
     virtual ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
         int &createdOsAccountNum) = 0;
     virtual ErrCode GetSerialNumberFromDatabase(const std::string& storeID, int64_t &serialNumber) = 0;
