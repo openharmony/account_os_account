@@ -507,18 +507,12 @@ bool ParseParaCreateOA(napi_env env, napi_callback_info cbInfo, CreateOAAsyncCon
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-    napi_valuetype valueType = napi_undefined;
     if (argc == ARGS_SIZE_THREE) {
-        napi_typeof(env, argv[ARGS_SIZE_TWO], &valueType);
         if (!GetCallbackProperty(env, argv[PARAMTWO], asyncContext->callbackRef, 1)) {
-            if (!GetStringPropertyByKey(env, argv[PARAMTWO], "shortName", asyncContext->shortName)) {
-                ACCOUNT_LOGE("get CreateOsAccountOptions's shortName failed");
-                std::string errMsg = "Parameter error. The type of arg 3 must be function or CreateOsAccountOptions";
-                AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-                return false;
-            } else {
-                asyncContext->hasShortName = true;
-            }
+            asyncContext->hasShortName = GetStringPropertyByKey(env, argv[PARAMTWO], "shortName",
+                asyncContext->shortName);
+            GetStringArrayPropertyByKey(env, argv[PARAMTWO], "disallowedBundleNames",
+                asyncContext->disallowedHapList, true);
         }
     }
 
@@ -627,14 +621,12 @@ void CreateOAExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGD("napi_create_async_work running");
     CreateOAAsyncContext *asyncContext = reinterpret_cast<CreateOAAsyncContext *>(data);
-    if (asyncContext->hasShortName) {
-        asyncContext->errCode =
-            OsAccountManager::CreateOsAccount(asyncContext->name, asyncContext->shortName,
-                asyncContext->type, asyncContext->osAccountInfos);
-    } else {
-        asyncContext->errCode =
-            OsAccountManager::CreateOsAccount(asyncContext->name, asyncContext->type, asyncContext->osAccountInfos);
-    }
+    CreateOsAccountOptions options;
+    options.shortName = asyncContext->shortName;
+    options.disallowedHapList = asyncContext->disallowedHapList;
+    options.hasShortName = asyncContext->hasShortName;
+    asyncContext->errCode = OsAccountManager::CreateOsAccount(asyncContext->name, asyncContext->shortName,
+        asyncContext->type, options, asyncContext->osAccountInfos);
     asyncContext->status = (asyncContext->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 

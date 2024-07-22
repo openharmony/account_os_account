@@ -427,7 +427,7 @@ ErrCode OsAccountInfo::ParamCheck()
 
 bool CreateOsAccountOptions::Marshalling(Parcel &parcel) const
 {
-    return parcel.WriteStringVector(disallowedHapList);
+    return parcel.WriteStringVector(disallowedHapList) && parcel.WriteBool(hasShortName);
 }
 
 CreateOsAccountOptions *CreateOsAccountOptions::Unmarshalling(Parcel &parcel)
@@ -443,7 +443,7 @@ CreateOsAccountOptions *CreateOsAccountOptions::Unmarshalling(Parcel &parcel)
 
 bool CreateOsAccountOptions::ReadFromParcel(Parcel &parcel)
 {
-    return parcel.ReadStringVector(&disallowedHapList);
+    return parcel.ReadStringVector(&disallowedHapList) && parcel.ReadBool(hasShortName);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

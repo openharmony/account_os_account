@@ -594,8 +594,14 @@ ErrCode OsAccountStub::ProcCreateOsAccountWithShortName(MessageParcel &data, Mes
         reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_LOCALNAME_ERROR);
         return ERR_NONE;
     }
+    bool hasShortName;
+    if (!data.ReadBool(hasShortName)) {
+        ACCOUNT_LOGE("failed to read bool for hasShortName");
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_LOCALNAME_ERROR);
+        return ERR_NONE;
+    }
     std::string shortName;
-    if (!data.ReadString(shortName)) {
+    if (hasShortName && !data.ReadString(shortName)) {
         ACCOUNT_LOGE("failed to read string for short name");
         reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_LOCALNAME_ERROR);
         return ERR_NONE;

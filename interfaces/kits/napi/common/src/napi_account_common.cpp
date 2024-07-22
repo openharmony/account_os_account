@@ -201,6 +201,14 @@ bool GetStringArrayProperty(napi_env env, napi_value obj, std::vector<std::strin
     return true;
 }
 
+bool GetStringArrayPropertyByKey(napi_env env, napi_value obj, const std::string &propertyName,
+    std::vector<std::string> &property, bool allowEmpty)
+{
+    napi_value value = nullptr;
+    NAPI_CALL_BASE(env, napi_get_named_property(env, obj, propertyName.c_str(), &value), false);
+    return GetStringArrayProperty(env, value, property, allowEmpty);
+}
+
 bool GetCallbackProperty(napi_env env, napi_value obj, napi_ref &property, int argNum)
 {
     napi_valuetype valueType = napi_undefined;
