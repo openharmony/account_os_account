@@ -28,6 +28,7 @@
 #include "account_hisysevent_adapter.h"
 #include "hitrace_adapter.h"
 #include "if_system_ability_manager.h"
+#include "iinner_os_account_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "perf_stat.h"
@@ -221,16 +222,12 @@ void AccountMgrService::OnStart()
         FinishTraceAdapter();
         return;
     }
-    bool isAccountCompleted = false;
-    std::int32_t defaultActivatedId = Constants::START_USER_ID;
-    osAccountManagerService_->GetDefaultActivatedOsAccount(defaultActivatedId);
-    osAccountManagerService_->IsOsAccountCompleted(defaultActivatedId, isAccountCompleted);
-    if (!isAccountCompleted) {
-        AddSystemAbilityListener(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
-    }
     AddSystemAbilityListener(STORAGE_MANAGER_MANAGER_ID);
+    AddSystemAbilityListener(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
     AddSystemAbilityListener(ABILITY_MGR_SERVICE_ID);
+#ifdef HAS_APP_ACCOUNT_PART
     AddSystemAbilityListener(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID);
+#endif
     ACCOUNT_LOGI("AccountMgrService::OnStart start service finished.");
     FinishTraceAdapter();
 }
@@ -243,10 +240,21 @@ void AccountMgrService::OnStop()
     SelfClean();
 }
 
+#ifdef HAS_APP_ACCOUNT_PART
+void AccountMgrService::MoveAppAccountData()
+{
+    auto task = [] { AppAccountControlManager::GetInstance().MoveData(); };
+    std::thread taskThread(task);
+    pthread_setname_np(taskThread.native_handle(), "MoveData");
+    taskThread.detach();
+    ACCOUNT_LOGI("Move app account data to encrypted store");
+}
+#endif
+
 void AccountMgrService::OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
 {
-    ACCOUNT_LOGI("OnAddSystemAbility systemAbilityId %{public}d", systemAbilityId);
     std::lock_guard<std::mutex> lock(statusMutex_);
+    ACCOUNT_LOGI("OnAddSystemAbility systemAbilityId %{public}d", systemAbilityId);
     switch (systemAbilityId) {
         case STORAGE_MANAGER_MANAGER_ID: {
             isStorageReady_ = true;
@@ -260,37 +268,36 @@ void AccountMgrService::OnAddSystemAbility(int32_t systemAbilityId, const std::s
             isBmsReady_ = true;
             break;
         }
-        case DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID: {
 #ifdef HAS_APP_ACCOUNT_PART
-            auto task = [] { AppAccountControlManager::GetInstance().MoveData(); };
-            std::thread taskThread(task);
-            pthread_setname_np(taskThread.native_handle(), "MoveData");
-            taskThread.detach();
-            ACCOUNT_LOGD("Create thread success, move data to encrypted store");
-#endif
+        case DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID: {
+            MoveAppAccountData();
             return;
         }
+#endif
         default:
-            break;
+            return;
     }
 
     if (!isStorageReady_) {
         return;
     }
-
     bool isAccountCompleted = false;
-    std::int32_t defaultActivatedId = Constants::START_USER_ID;
-    osAccountManagerService_->GetDefaultActivatedOsAccount(defaultActivatedId);
-    osAccountManagerService_->IsOsAccountCompleted(defaultActivatedId, isAccountCompleted);
-    if (!isAccountCompleted && !isBmsReady_) {
-        return;
+    IInnerOsAccountManager::GetInstance().IsOsAccountCompleted(Constants::START_USER_ID, isAccountCompleted);
+    if (!isAccountCompleted) {
+        if (!isBmsReady_) {
+            return;
+        }
+        IInnerOsAccountManager::GetInstance().Init();
     }
-
-    if (isAccountCompleted && !isAmsReady_) {
-        return;
+    if (!isDefaultOsAccountActivated_ && isAmsReady_) {
+        ErrCode errCode = IInnerOsAccountManager::GetInstance().ActivateDefaultOsAccount();
+        if (errCode == ERR_OK) {
+            isDefaultOsAccountActivated_ = true;
+        }
     }
-
-    osAccountManagerService_->CreateBasicAccounts();
+    if (isBmsReady_ && isAmsReady_) {
+        IInnerOsAccountManager::GetInstance().CleanGarbageOsAccounts();
+    }
 }
 
 bool AccountMgrService::Init()
@@ -310,6 +317,7 @@ bool AccountMgrService::Init()
         domainAccountMgrService_ = nullptr;
         return false;
     }
+    IInnerOsAccountManager::GetInstance().ResetAccountStatus();
     state_ = ServiceRunningState::STATE_RUNNING;
     if (!registerToService_) {
         if (!Publish(&DelayedRefSingleton<AccountMgrService>::GetInstance())) {

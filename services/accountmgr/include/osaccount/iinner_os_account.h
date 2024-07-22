@@ -102,6 +102,9 @@ public:
     virtual ErrCode GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts) = 0;
     virtual ErrCode GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds) = 0;
     virtual ErrCode SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved) = 0;
+    virtual ErrCode ActivateDefaultOsAccount() = 0;
+    virtual void CleanGarbageOsAccounts() = 0;
+    virtual void ResetAccountStatus() = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
