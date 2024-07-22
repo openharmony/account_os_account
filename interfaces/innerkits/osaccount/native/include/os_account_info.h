@@ -52,6 +52,7 @@ struct CreateOsAccountOptions: public Parcelable {
     bool Marshalling(Parcel &parcel) const override;
     static CreateOsAccountOptions *Unmarshalling(Parcel &parcel);
     std::string shortName;
+    bool hasShortName = true;
 };
 
 class OsAccountInfo : public IAccountInfo, public Parcelable {

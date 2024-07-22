@@ -80,7 +80,12 @@ ErrCode OsAccountProxy::CreateOsAccount(const std::string &localName, const std:
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
-    if (!data.WriteString(shortName)) {
+    if (!data.WriteBool(options.hasShortName)) {
+        ACCOUNT_LOGE("failed to write hasShortName");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    if (options.hasShortName && !data.WriteString(shortName)) {
         ACCOUNT_LOGE("failed to write os account short name");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }

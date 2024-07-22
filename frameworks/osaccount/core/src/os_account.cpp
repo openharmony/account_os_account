@@ -64,7 +64,7 @@ ErrCode OsAccount::CreateOsAccount(const std::string& localName, const std::stri
     }
 
     size_t shortNameSize = shortName.size();
-    if (shortNameSize == 0 || shortNameSize > Constants::SHORT_NAME_MAX_SIZE) {
+    if (options.hasShortName && (shortNameSize == 0 || shortNameSize > Constants::SHORT_NAME_MAX_SIZE)) {
         ACCOUNT_LOGE("CreateOsAccount short name length %{public}zu is invalid!", shortNameSize);
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
