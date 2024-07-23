@@ -509,8 +509,14 @@ bool ParseParaCreateOA(napi_env env, napi_callback_info cbInfo, CreateOAAsyncCon
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
     if (argc == ARGS_SIZE_THREE) {
         if (!GetCallbackProperty(env, argv[PARAMTWO], asyncContext->callbackRef, 1)) {
-            asyncContext->hasShortName = GetStringPropertyByKey(env, argv[PARAMTWO], "shortName",
-                asyncContext->shortName);
+            napi_has_named_property(env, argv[PARAMTWO], "shortName", &asyncContext->hasShortName);
+            if (asyncContext->hasShortName &&
+                !GetStringPropertyByKey(env, argv[PARAMTWO], "shortName", asyncContext->shortName)) {
+                ACCOUNT_LOGE("get CreateOsAccountOptions's shortName failed");
+                std::string errMsg = "Parameter error. The type of arg 3 must be function or CreateOsAccountOptions";
+                AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+                return false;
+            }
             GetStringArrayPropertyByKey(env, argv[PARAMTWO], "disallowedBundleNames",
                 asyncContext->disallowedHapList, true);
         }
