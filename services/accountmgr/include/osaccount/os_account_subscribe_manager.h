@@ -19,6 +19,7 @@
 #include <map>
 #include <set>
 
+#include "ios_account_event.h"
 #include "ios_account_subscribe.h"
 #include "singleton.h"
 
@@ -35,8 +36,8 @@ public:
         const sptr<IRemoteObject> &eventListener) override;
     ErrCode Publish(const int id, OS_ACCOUNT_SUBSCRIBE_TYPE subscribeType) override;
     ErrCode Publish(const int newId, const int oldId, OS_ACCOUNT_SUBSCRIBE_TYPE subscribeType) override;
-    bool OnAccountsChanged(const OsSubscribeRecordPtr &osSubscribeRecordPtr, const int id);
-    bool OnAccountsSwitch(const OsSubscribeRecordPtr &osSubscribeRecordPtr, const int newId, const int oldId);
+    bool OnAccountsChanged(const sptr<IOsAccountEvent> &eventProxy, const int id);
+    bool OnAccountsSwitch(const sptr<IOsAccountEvent> &eventProxy, const int newId, const int oldId);
 
 private:
     OsAccountSubscribeManager();
