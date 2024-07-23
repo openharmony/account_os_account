@@ -1056,7 +1056,6 @@ static void OnGetDataWork(uv_work_t* work, int status)
     }
 
     NapiCallVoidFunction(context->env, argv, ARG_SIZE_THREE, context->callback->callbackRef);
-    napi_close_handle_scope(env, scope);
 }
 
 NapiGetDataCallback::NapiGetDataCallback(napi_env env, const std::shared_ptr<NapiCallbackRef> &callback)
