@@ -17,7 +17,6 @@
 #include <pthread.h>
 #include <thread>
 #include "account_log_wrapper.h"
-#include "ios_account_event.h"
 #include "os_account_subscribe_death_recipient.h"
 
 namespace OHOS {
@@ -129,26 +128,24 @@ const std::shared_ptr<OsAccountSubscribeInfo> OsAccountSubscribeManager::GetSubs
     return nullptr;
 }
 
-bool OsAccountSubscribeManager::OnAccountsChanged(const OsSubscribeRecordPtr &osSubscribeRecordPtr, const int id)
+bool OsAccountSubscribeManager::OnAccountsChanged(const sptr<IOsAccountEvent> &eventProxy, const int id)
 {
-    auto osAccountEventProxy = iface_cast<IOsAccountEvent>(osSubscribeRecordPtr->eventListener_);
-    if (osAccountEventProxy == nullptr) {
-        ACCOUNT_LOGE("failed to get app account event proxy");
+    if (eventProxy == nullptr) {
+        ACCOUNT_LOGE("Account event proxy is nullptr");
         return false;
     }
-    osAccountEventProxy->OnAccountsChanged(id);
+    eventProxy->OnAccountsChanged(id);
     return true;
 }
 
-bool OsAccountSubscribeManager::OnAccountsSwitch(const OsSubscribeRecordPtr &osSubscribeRecordPtr, const int newId,
+bool OsAccountSubscribeManager::OnAccountsSwitch(const sptr<IOsAccountEvent> &eventProxy, const int newId,
                                                  const int oldId)
 {
-    auto osAccountEventProxy = iface_cast<IOsAccountEvent>(osSubscribeRecordPtr->eventListener_);
-    if (osAccountEventProxy == nullptr) {
-        ACCOUNT_LOGE("Get os account event proxy failed.");
+    if (eventProxy == nullptr) {
+        ACCOUNT_LOGE("Account event proxy is nullptr");
         return false;
     }
-    osAccountEventProxy->OnAccountsSwitch(newId, oldId);
+    eventProxy->OnAccountsSwitch(newId, oldId);
     return true;
 }
 
@@ -169,7 +166,12 @@ ErrCode OsAccountSubscribeManager::Publish(const int id, OS_ACCOUNT_SUBSCRIBE_TY
         OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType;
         (*it)->subscribeInfoPtr_->GetOsAccountSubscribeType(osAccountSubscribeType);
         if (osAccountSubscribeType == subscribeType) {
-            auto task = [this, it, id] { this->OnAccountsChanged((*it), id); };
+            sptr<IOsAccountEvent> eventProxy = iface_cast<IOsAccountEvent>((*it)->eventListener_);
+            if (eventProxy == nullptr) {
+                ACCOUNT_LOGE("Get eventProxy failed");
+                break;
+            }
+            auto task = [this, eventProxy, id] { this->OnAccountsChanged(eventProxy, id); };
             std::thread taskThread(task);
             pthread_setname_np(taskThread.native_handle(), THREAD_OS_ACCOUNT_EVENT);
             taskThread.detach();
@@ -199,7 +201,12 @@ ErrCode OsAccountSubscribeManager::Publish(const int newId, const int oldId, OS_
         OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType;
         (*it)->subscribeInfoPtr_->GetOsAccountSubscribeType(osAccountSubscribeType);
         if (osAccountSubscribeType == subscribeType) {
-            auto task = [this, it, newId, oldId] { this->OnAccountsSwitch((*it), newId, oldId); };
+            sptr<IOsAccountEvent> eventProxy = iface_cast<IOsAccountEvent>((*it)->eventListener_);
+            if (eventProxy == nullptr) {
+                ACCOUNT_LOGE("Get eventProxy failed");
+                break;
+            }
+            auto task = [this, eventProxy, newId, oldId] { this->OnAccountsSwitch(eventProxy, newId, oldId); };
             std::thread taskThread(task);
             pthread_setname_np(taskThread.native_handle(), THREAD_OS_ACCOUNT_EVENT);
             taskThread.detach();
