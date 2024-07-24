@@ -230,12 +230,12 @@ static bool AllocPermission(std::vector<std::string> permissions, AccessTokenID 
     tokenID = tokenIdEx.tokenIdExStruct.tokenID;
     return (INVALID_TOKENID != tokenIdEx.tokenIDEx) && (0 == SetSelfTokenID(tokenIdEx.tokenIDEx));
 }
-#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 static bool RecoveryPermission(AccessTokenID tokenID)
 {
     return (ERR_OK == AccessTokenKit::DeleteToken(tokenID)) && (ERR_OK == SetSelfTokenID(g_selfTokenID));
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 class OsAccountManagerModuleTest : public testing::Test {
 public:
@@ -348,12 +348,14 @@ private:
     const std::shared_ptr<MockSubscriberListener> listener_;
 };
 
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 static void Wait(const std::shared_ptr<AccountTestEventSubscriber> &ptr)
 {
     std::unique_lock<std::mutex> lock(ptr->mutex);
     ptr->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
         [lockPtr = ptr]() { return lockPtr->stoppingEventReady && lockPtr->stoppedEventReady; });
 }
+#endif
 
 class MockOsAccountSubscriber {
 public:
@@ -382,12 +384,14 @@ private:
     std::shared_ptr<MockOsAccountSubscriber> callback_;
 };
 
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 static void Wait(const std::shared_ptr<DeactivateOsAccountSubscriber> &ptr)
 {
     std::unique_lock<std::mutex> lock(ptr->mutex);
     ptr->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
         [lockPtr = ptr]() { return lockPtr->isReady; });
 }
+#endif
 
 class ActiveOsAccountSubscriber final : public OsAccountSubscriber {
 public:

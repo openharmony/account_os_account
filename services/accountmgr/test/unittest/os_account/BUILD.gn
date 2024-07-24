@@ -445,6 +445,7 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     "config_policy:configpolicy_util",
     "hilog:libhilog",
     "huks:libhukssdk",
+    "init:libbegetutil",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "mbedtls:mbedtls_shared",
