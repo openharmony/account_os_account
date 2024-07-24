@@ -115,17 +115,18 @@ public:
     ErrCode CheckTypeNumber(const OsAccountType& type) override;
     ErrCode UpdateAccountInfoByDomainAccountInfo(int32_t userId, const DomainAccountInfo &newDomainAccountInfo);
     bool IsSameAccount(const DomainAccountInfo &domainInfoSrc, const DomainAccountInfo &domainInfoTar);
+    ErrCode ActivateDefaultOsAccount() override;
+    void CleanGarbageOsAccounts() override;
+    void ResetAccountStatus() override;
 
 private:
     IInnerOsAccountManager();
     ~IInnerOsAccountManager() = default;
     DISALLOW_COPY_AND_MOVE(IInnerOsAccountManager);
     void SetOsAccountControl(std::shared_ptr<IOsAccountControl> ptr);
-    void StartAccount();
     void RestartActiveAccount();
     void CreateBaseAdminAccount();
     void CreateBaseStandardAccount();
-    void ResetAccountStatus(void);
     ErrCode PrepareRemoveOsAccount(OsAccountInfo &osAccountInfo, bool isCleanGarbage = false);
     ErrCode RemoveOsAccountOperate(const int id, OsAccountInfo &osAccountInfo, bool isCleanGarbage = false);
     ErrCode DeactivateOsAccountById(const int id);
@@ -145,7 +146,6 @@ private:
     ErrCode ValidateOsAccount(const OsAccountInfo &osAccountInfo);
     void RemoveLocalIdToOperating(int32_t localId);
     bool CheckAndAddLocalIdOperating(int32_t localId);
-    void CleanGarbageAccounts();
     ErrCode DealWithDeviceOwnerId(const bool isDeviceOwner, const int32_t localId);
     void CheckAndRefreshLocalIdRecord(const int id);
 

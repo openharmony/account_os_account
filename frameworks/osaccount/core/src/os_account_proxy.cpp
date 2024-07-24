@@ -1072,11 +1072,6 @@ ErrCode OsAccountProxy::DumpState(const int &id, std::vector<std::string> &state
     return ERR_OK;
 }
 
-void OsAccountProxy::CreateBasicAccounts()
-{
-    ACCOUNT_LOGI("Do nothing.");
-}
-
 ErrCode OsAccountProxy::GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
     int &createdOsAccountNum)
 {

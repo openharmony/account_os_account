@@ -17,6 +17,7 @@
 #include <chrono>
 #include <dlfcn.h>
 #include <unistd.h>
+#include "account_constants.h"
 #include "account_info.h"
 #include "account_info_report.h"
 #include "account_log_wrapper.h"
@@ -37,6 +38,9 @@
 #include <pthread.h>
 #include <thread>
 #include <unordered_set>
+#ifdef HICOLLIE_ENABLE
+#include "xcollie/xcollie.h"
+#endif // HICOLLIE_ENABLE
 
 namespace OHOS {
 namespace AccountSA {
@@ -104,35 +108,34 @@ void IInnerOsAccountManager::CreateBaseAdminAccount()
 void IInnerOsAccountManager::CreateBaseStandardAccount()
 {
     ACCOUNT_LOGI("start to create base account");
-    bool isExistsAccount = false;
-    osAccountControl_->IsOsAccountExists(Constants::START_USER_ID, isExistsAccount);
-    if (!isExistsAccount) {
-        int64_t serialNumber = 0;
-        osAccountControl_->GetSerialNumber(serialNumber);
+    int64_t serialNumber = 0;
+    osAccountControl_->GetSerialNumber(serialNumber);
 #ifdef ENABLE_DEFAULT_ADMIN_NAME
-        OsAccountInfo osAccountInfo(Constants::START_USER_ID, Constants::STANDARD_LOCAL_NAME,
-            OsAccountType::ADMIN, serialNumber);
+    OsAccountInfo osAccountInfo(Constants::START_USER_ID, Constants::STANDARD_LOCAL_NAME,
+        OsAccountType::ADMIN, serialNumber);
 #else
-        OsAccountInfo osAccountInfo(Constants::START_USER_ID, "", OsAccountType::ADMIN, serialNumber);
+    OsAccountInfo osAccountInfo(Constants::START_USER_ID, "", OsAccountType::ADMIN, serialNumber);
 #endif //ENABLE_DEFAULT_ADMIN_NAME
-        std::vector<std::string> constants;
-        ErrCode errCode = osAccountControl_->GetConstraintsByType(OsAccountType::ADMIN, constants);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("find first standard type err, errCode %{public}d.", errCode);
-            return;
-        }
-        osAccountInfo.SetConstraints(constants);
-        int64_t time =
-            std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch())
-                .count();
-        osAccountInfo.SetCreateTime(time);
-        osAccountInfo.SetIsCreateCompleted(false);
-        osAccountControl_->InsertOsAccount(osAccountInfo);
-        ReportOsAccountLifeCycle(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE);
-        ACCOUNT_LOGI("OsAccountAccountMgr created base account end");
-    } else {
-        ACCOUNT_LOGI("base account already exists");
+    std::vector<std::string> constraints;
+    ErrCode errCode = osAccountControl_->GetConstraintsByType(OsAccountType::ADMIN, constraints);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Fail to get constraints by type for the system OS account, errCode %{public}d.", errCode);
+        return;
     }
+    osAccountInfo.SetConstraints(constraints);
+    int64_t time =
+        std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch())
+            .count();
+    osAccountInfo.SetCreateTime(time);
+    osAccountInfo.SetIsCreateCompleted(false);
+    osAccountControl_->InsertOsAccount(osAccountInfo);
+    if (SendMsgForAccountCreate(osAccountInfo) != ERR_OK) {
+        ACCOUNT_LOGE("First OS account not created completely");
+        return;
+    }
+    SetDefaultActivatedOsAccount(Constants::START_USER_ID);
+    ReportOsAccountLifeCycle(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE);
+    ACCOUNT_LOGI("OsAccountAccountMgr created base account end");
 }
 
 void IInnerOsAccountManager::RetryToGetAccount(OsAccountInfo &osAccountInfo)
@@ -160,24 +163,29 @@ void IInnerOsAccountManager::RetryToGetAccount(OsAccountInfo &osAccountInfo)
     }
 }
 
-void IInnerOsAccountManager::StartAccount()
+ErrCode IInnerOsAccountManager::ActivateDefaultOsAccount()
 {
+#ifdef HICOLLIE_ENABLE
+    int timerId =
+        HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, TIMEOUT, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
+#endif // HICOLLIE_ENABLE
     ACCOUNT_LOGI("start to activate default account");
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(defaultActivatedId_, osAccountInfo);
     if (errCode != ERR_OK || osAccountInfo.GetToBeRemoved()) {
         ACCOUNT_LOGE("account not found, localId: %{public}d, error: %{public}d", defaultActivatedId_, errCode);
         RetryToGetAccount(osAccountInfo);
-        defaultActivatedId_ = osAccountInfo.GetLocalId();
-        osAccountControl_->SetDefaultActivatedOsAccount(defaultActivatedId_);
-    }
-    if (!osAccountInfo.GetIsCreateCompleted() && (SendMsgForAccountCreate(osAccountInfo) != ERR_OK)) {
-        ACCOUNT_LOGE("account %{public}d not created completely", defaultActivatedId_);
-        return;
+        SetDefaultActivatedOsAccount(osAccountInfo.GetLocalId());
     }
     // activate
-    SendMsgForAccountActivate(osAccountInfo);
-    SetParameter(ACCOUNT_READY_EVENT.c_str(), "true");
+    errCode = SendMsgForAccountActivate(osAccountInfo);
+    if (errCode == ERR_OK) {
+        SetParameter(ACCOUNT_READY_EVENT.c_str(), "true");
+    }
+#ifdef HICOLLIE_ENABLE
+    HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
+    return errCode;
 }
 
 void IInnerOsAccountManager::RestartActiveAccount()
@@ -205,7 +213,7 @@ void IInnerOsAccountManager::ResetAccountStatus(void)
     std::vector<int32_t> idList;
     (void) osAccountControl_->GetOsAccountIdList(idList);
     for (const auto id : idList) {
-        DeactivateOsAccount(id, false);
+        DeactivateOsAccountById(id);
     }
 }
 
@@ -268,7 +276,7 @@ ErrCode IInnerOsAccountManager::FillOsAccountInfo(const std::string &localName, 
     constraints.clear();
     errCode = osAccountControl_->GetConstraintsByType(type, constraints);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("failed to GetConstraintsByType, errCode %{public}d.", errCode);
+        ACCOUNT_LOGE("Failed to GetConstraintsByType, errCode %{public}d.", errCode);
         return errCode;
     }
 
@@ -866,12 +874,11 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountRemove(OsAccountInfo &osAccount
 
 void IInnerOsAccountManager::Init()
 {
+    ACCOUNT_LOGI("Start to create base os accounts");
     CreateBaseAdminAccount();
     CreateBaseStandardAccount();
-    ResetAccountStatus();
-    StartAccount();
-    CleanGarbageAccounts();
     SetParameter(PARAM_LOGIN_NAME_MAX.c_str(), std::to_string(Constants::LOCAL_NAME_MAX_SIZE).c_str());
+    ACCOUNT_LOGI("End to create base os accounts");
 }
 
 ErrCode IInnerOsAccountManager::IsOsAccountExists(const int id, bool &isOsAccountExits)
@@ -1178,7 +1185,7 @@ ErrCode IInnerOsAccountManager::DealWithDeviceOwnerId(const bool isDeviceOwner, 
     return ERR_OK;
 }
 
-void IInnerOsAccountManager::CleanGarbageAccounts()
+void IInnerOsAccountManager::CleanGarbageOsAccounts()
 {
     ACCOUNT_LOGD("enter.");
     std::vector<OsAccountInfo> osAccountInfos;
@@ -1593,7 +1600,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
     // activate
     int32_t oldId = -1;
     bool oldIdExist = foregroundAccountMap_.Find(displayId, oldId);
-    int localId = osAccountInfo.GetLocalId();
+    int32_t localId = static_cast<int32_t>(osAccountInfo.GetLocalId());
     bool preVerified = osAccountInfo.GetIsVerified();
     subscribeManager_.Publish(localId, oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
     ErrCode errCode = ERR_OK;
@@ -1620,7 +1627,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
         subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::UNLOCKED);
     }
 
-    if (oldIdExist) {
+    if (oldIdExist && (oldId != localId)) {
         errCode = UpdateAccountToBackground(oldId);
         if (errCode != ERR_OK) {
             return errCode;

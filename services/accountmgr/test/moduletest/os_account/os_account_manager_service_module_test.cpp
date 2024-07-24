@@ -121,6 +121,7 @@ void OsAccountManagerServiceModuleTest::SetUpTestCase(void)
 #endif  // ACCOUNT_TEST
     ASSERT_NE(g_accountFileOperator, nullptr);
     IInnerOsAccountManager::GetInstance().Init();
+    IInnerOsAccountManager::GetInstance().ActivateDefaultOsAccount();
 }
 
 void OsAccountManagerServiceModuleTest::TearDownTestCase(void)

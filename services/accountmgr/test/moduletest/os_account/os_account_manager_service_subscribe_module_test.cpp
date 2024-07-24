@@ -76,6 +76,7 @@ void OsAccountManagerServiceSubscribeModuleTest::SetUpTestCase(void)
     GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
 #endif  // ACCOUNT_TEST
     IInnerOsAccountManager::GetInstance().Init();
+    IInnerOsAccountManager::GetInstance().ActivateDefaultOsAccount();
 }
 
 void OsAccountManagerServiceSubscribeModuleTest::TearDownTestCase(void)

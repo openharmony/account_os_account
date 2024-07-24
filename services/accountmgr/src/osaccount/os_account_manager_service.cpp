@@ -22,9 +22,6 @@
 #include "iinner_os_account_manager.h"
 #include "ipc_skeleton.h"
 #include "os_account_constants.h"
-#ifdef HICOLLIE_ENABLE
-#include "xcollie/xcollie.h"
-#endif // HICOLLIE_ENABLE
 
 namespace OHOS {
 namespace AccountSA {
@@ -862,20 +859,6 @@ ErrCode OsAccountManagerService::GetCreatedOsAccountNumFromDatabase(const std::s
     }
 
     return innerManager_.GetCreatedOsAccountNumFromDatabase(storeID, createdOsAccountNum);
-}
-
-void OsAccountManagerService::CreateBasicAccounts()
-{
-    ACCOUNT_LOGI("enter!");
-#ifdef HICOLLIE_ENABLE
-    int timerId =
-        HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, TIMEOUT, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
-#endif // HICOLLIE_ENABLE
-    innerManager_.Init();
-#ifdef HICOLLIE_ENABLE
-        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
-#endif // HICOLLIE_ENABLE
-    ACCOUNT_LOGI("exit!");
 }
 
 ErrCode OsAccountManagerService::GetSerialNumberFromDatabase(const std::string& storeID,
