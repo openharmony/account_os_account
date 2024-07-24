@@ -159,12 +159,15 @@ ohos_moduletest("os_account_manager_service_module_test") {
     "hicollie:libhicollie",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
-    "huks:libhukssdk",
     "init:libbegetutil",
     "selinux_adapter:librestorecon",
     "storage_service:storage_manager_sa_proxy",
     "user_auth_framework:userauth_client",
   ]
+
+  if (has_huks_part) {
+    external_deps += [ "huks:libhukssdk" ]
+  }
 
   use_exceptions = true
 
@@ -341,12 +344,15 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
     "hicollie:libhicollie",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
-    "huks:libhukssdk",
     "init:libbegetutil",
     "selinux_adapter:librestorecon",
     "storage_service:storage_manager_sa_proxy",
     "user_auth_framework:userauth_client",
   ]
+
+  if (has_huks_part) {
+    external_deps += [ "huks:libhukssdk" ]
+  }
 
   use_exceptions = true
 
