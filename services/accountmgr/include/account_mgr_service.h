@@ -81,6 +81,9 @@ private:
     bool CreateAppAccountService();
     bool CreateIAMService();
     bool CreateDomainService();
+#ifdef HAS_APP_ACCOUNT_PART
+    void MoveAppAccountData();
+#endif
 
     bool registerToService_ = false;
     ServiceRunningState state_ = ServiceRunningState::STATE_NOT_START;
@@ -95,6 +98,7 @@ private:
     bool isStorageReady_ = false;
     bool isAmsReady_ = false;
     bool isBmsReady_ = false;
+    bool isDefaultOsAccountActivated_ = false;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
