@@ -103,13 +103,6 @@ if (!defined(global_parts_info) ||
   has_storage_service_part = false
 }
 
-if (!defined(global_parts_info) ||
-    defined(global_parts_info.arkui_ace_engine)) {
-  has_ace_engine_part = true
-} else {
-  has_ace_engine_part = false
-}
-
 declare_args() {
   os_account_multiple_active_accounts = false
 }
@@ -165,6 +158,12 @@ if (!defined(global_parts_info) || defined(global_parts_info.security_asset)) {
   has_asset_part = true
 } else {
   has_asset_part = false
+}
+
+if (!defined(global_parts_info) || defined(global_parts_info.security_huks)) {
+  has_huks_part = true
+} else {
+  has_huks_part = false
 }
 
 if (!defined(global_parts_info) || defined(global_parts_info.theme_theme_mgr)) {

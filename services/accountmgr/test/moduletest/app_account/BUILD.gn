@@ -118,7 +118,6 @@ ohos_moduletest("app_account_authorization_extension_ability_test") {
     "ability_runtime:abilitykit_native",
     "ability_runtime:app_context",
     "ability_runtime:runtime",
-    "ace_engine:ace_uicontent",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
@@ -229,8 +228,10 @@ ohos_moduletest("app_account_manager_service_associated_data_test") {
   external_deps += [
     "ability_runtime:wantagent_innerkits",
     "access_token:libtokenid_sdk",
-    "huks:libhukssdk",
   ]
+  if (has_huks_part) {
+    external_deps += [ "huks:libhukssdk" ]
+  }
 
   if (has_storage_service_part) {
     external_deps += [ "storage_service:storage_manager_sa_proxy" ]
@@ -480,8 +481,10 @@ ohos_moduletest("app_account_control_manager_module_test") {
   external_deps += [
     "ability_runtime:wantagent_innerkits",
     "access_token:libtokenid_sdk",
-    "huks:libhukssdk",
   ]
+  if (has_huks_part) {
+    external_deps += [ "huks:libhukssdk" ]
+  }
 
   if (has_storage_service_part) {
     external_deps += [ "storage_service:storage_manager_sa_proxy" ]
@@ -642,11 +645,13 @@ ohos_moduletest("app_account_authenticator_session_module_test") {
     "hicollie:libhicollie",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
-    "huks:libhukssdk",
     "selinux_adapter:librestorecon",
     "storage_service:storage_manager_sa_proxy",
     "user_auth_framework:userauth_client",
   ]
+  if (has_huks_part) {
+    external_deps += [ "huks:libhukssdk" ]
+  }
 
   if (security_guard_enabled) {
     external_deps += [
@@ -844,8 +849,10 @@ ohos_moduletest("at_not_mock_app_account_manager_service_module_test") {
   external_deps += [
     "ability_runtime:wantagent_innerkits",
     "access_token:libtokenid_sdk",
-    "huks:libhukssdk",
   ]
+  if (has_huks_part) {
+    external_deps += [ "huks:libhukssdk" ]
+  }
 
   if (has_storage_service_part) {
     external_deps += [ "storage_service:storage_manager_sa_proxy" ]
@@ -1147,11 +1154,13 @@ ohos_moduletest("app_account_authenticator_session_manager_module_test") {
     "hicollie:libhicollie",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
-    "huks:libhukssdk",
     "selinux_adapter:librestorecon",
     "storage_service:storage_manager_sa_proxy",
     "user_auth_framework:userauth_client",
   ]
+  if (has_huks_part) {
+    external_deps += [ "huks:libhukssdk" ]
+  }
 
   if (security_guard_enabled) {
     external_deps += [

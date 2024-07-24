@@ -144,12 +144,14 @@ ohos_moduletest("account_command_create_module_mock_test") {
     "c_utils:utils",
     "config_policy:configpolicy_util",
     "hilog:libhilog",
-    "huks:libhukssdk",
     "ipc:ipc_single",
     "mbedtls:mbedtls_shared",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+  if (has_huks_part) {
+    external_deps += [ "huks:libhukssdk" ]
+  }
   cflags_cc = []
   if (has_user_auth_part) {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
@@ -244,12 +246,14 @@ ohos_moduletest("account_command_delete_module_mock_test") {
     "c_utils:utils",
     "config_policy:configpolicy_util",
     "hilog:libhilog",
-    "huks:libhukssdk",
     "ipc:ipc_single",
     "mbedtls:mbedtls_shared",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+  if (has_huks_part) {
+    external_deps += [ "huks:libhukssdk" ]
+  }
   cflags_cc = []
   if (has_user_auth_part) {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]

@@ -146,7 +146,6 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
     "c_utils:utils",
     "config_policy:configpolicy_util",
     "hilog:libhilog",
-    "huks:libhukssdk",
     "init:libbegetutil",
     "ipc:ipc_single",
     "json:nlohmann_json_static",
@@ -154,6 +153,9 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+  if (has_huks_part) {
+    external_deps += [ "huks:libhukssdk" ]
+  }
   cflags_cc = []
   if (has_user_auth_part) {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
