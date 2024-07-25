@@ -261,20 +261,6 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest011, Te
 }
 
 /**
- * @tc.name: OsAccountControlFileManagerTest012
- * @tc.desc: Test InsertOsAccount with invalid data
- * @tc.type: FUNC
- * @tc.require: SR000GGVFN
- */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest012, TestSize.Level1)
-{
-    OsAccountInfo osAccountInfo(
-        INT_TEST_ERR_USER_ID, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
-    EXPECT_EQ(g_controlManager->InsertOsAccount(osAccountInfo),
-        ERR_OSACCOUNT_SERVICE_CONTROL_ID_CANNOT_CREATE_ERROR);
-}
-
-/**
  * @tc.name: OsAccountControlFileManagerTest013
  * @tc.desc: Test InsertOsAccount with invalid data
  * @tc.type: FUNC

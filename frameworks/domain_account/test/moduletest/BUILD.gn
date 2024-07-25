@@ -139,7 +139,6 @@ ohos_moduletest("domain_account_frameworks_module_mock_test") {
     "${domain_account_framework_path}:domain_account_innerkits",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
-    "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
@@ -161,6 +160,7 @@ ohos_moduletest("domain_account_frameworks_module_mock_test") {
     "config_policy:configpolicy_util",
     "hilog:libhilog",
     "huks:libhukssdk",
+    "init:libbegetutil",
     "ipc:ipc_single",
     "mbedtls:mbedtls_shared",
     "safwk:system_ability_fwk",
@@ -222,7 +222,6 @@ ohos_moduletest("domain_account_client_mock_plugin_so_module_test") {
     "${domain_account_framework_path}:domain_account_innerkits",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
-    "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
@@ -244,6 +243,7 @@ ohos_moduletest("domain_account_client_mock_plugin_so_module_test") {
     "config_policy:configpolicy_util",
     "hilog:libhilog",
     "huks:libhukssdk",
+    "init:libbegetutil",
     "ipc:ipc_single",
     "mbedtls:mbedtls_shared",
     "safwk:system_ability_fwk",

@@ -77,6 +77,7 @@ struct CreateOAAsyncContext : public CommonAsyncContext {
     OsAccountType type;
     std::string name;
     std::string shortName;
+    std::vector<std::string> disallowedHapList;
     OsAccountInfo osAccountInfos;
     bool hasShortName = false;
 };

@@ -99,7 +99,6 @@ public:
     ErrCode DumpState(const int &id, std::vector<std::string> &state) override;
     ErrCode DumpOsAccountInfo(std::vector<std::string> &state);
 
-    void CreateBasicAccounts() override;
     ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
         int &createdOsAccountNum) override;
     ErrCode GetSerialNumberFromDatabase(const std::string& storeID,

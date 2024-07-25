@@ -52,10 +52,14 @@ ohos_shared_library("account_napi_common") {
 
   external_deps = [
     "access_token:libtokenid_sdk",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
     "napi:ace_napi",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
   ]
 
   subsystem_name = "account"
