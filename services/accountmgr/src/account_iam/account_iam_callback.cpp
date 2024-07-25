@@ -291,7 +291,9 @@ void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
     extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, newSecret);
     std::vector<uint8_t> oldSecret;
     extraInfo.GetUint8ArrayValue(Attributes::ATTR_OLD_ROOT_SECRET, oldSecret);
-    ErrCode code = innerIamMgr_.UpdateStorageUserAuth(userId_, secureUid, credInfo_.token, oldSecret, newSecret);
+    std::vector<uint8_t> token;
+    extraInfo.GetUint8ArrayValue(Attributes::ATTR_AUTH_TOKEN, token);
+    ErrCode code = innerIamMgr_.UpdateStorageUserAuth(userId_, secureUid, token, oldSecret, newSecret);
     if (code != ERR_OK) {
         ACCOUNT_LOGE("Fail to update user auth, userId=%{public}d, code=%{public}d", userId_, code);
         innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
