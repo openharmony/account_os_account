@@ -88,7 +88,7 @@ std::int32_t AccountMgrService::GetCallingUserID()
 bool AccountMgrService::UpdateOhosAccountInfo(
     const std::string &accountName, const std::string &uid, const std::string &eventStr)
 {
-    if (!OhosAccountManager::GetInstance().OhosAccountStateChange(accountName, uid, eventStr)) {
+    if (OhosAccountManager::GetInstance().OhosAccountStateChange(accountName, uid, eventStr) != ERR_OK) {
         ACCOUNT_LOGE("Ohos account state change failed");
         return false;
     }
@@ -104,12 +104,12 @@ std::int32_t AccountMgrService::SetOhosAccountInfo(const OhosAccountInfo &ohosAc
 std::int32_t AccountMgrService::SetOhosAccountInfoByUserId(
     const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
 {
-    if (!OhosAccountManager::GetInstance().OhosAccountStateChange(userId, ohosAccountInfo, eventStr)) {
+    ErrCode res = OhosAccountManager::GetInstance().OhosAccountStateChange(userId, ohosAccountInfo, eventStr);
+    if (res != ERR_OK) {
         ACCOUNT_LOGE("Ohos account state change failed");
-        return ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR;
     }
 
-    return ERR_OK;
+    return res;
 }
 
 ErrCode AccountMgrService::QueryOhosAccountInfo(OhosAccountInfo &accountInfo)
@@ -130,6 +130,8 @@ ErrCode AccountMgrService::GetOhosAccountInfoByUserId(int32_t userId, OhosAccoun
         return ret;
     }
     info = accountInfo.ohosAccountInfo_;
+    ACCOUNT_LOGI("Get login time %{public}s, status %{public}d.", std::to_string(accountInfo.bindTime_).c_str(),
+                 info.status_);
     return ERR_OK;
 }
 

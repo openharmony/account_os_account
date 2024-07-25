@@ -22,6 +22,17 @@
 
 namespace OHOS {
 namespace AccountSA {
+const size_t INTERCEPT_HEAD_PART_LEN_FOR_NAME = 1;
+const std::string DEFAULT_ANON_STR = "**********";
+
+static std::string AnonymizeNameStr(const std::string& nameStr)
+{
+    if (nameStr.empty()) {
+        return nameStr;
+    }
+    return nameStr.substr(0, INTERCEPT_HEAD_PART_LEN_FOR_NAME) + DEFAULT_ANON_STR;
+}
+
 ErrCode AccountProxy::SendRequest(AccountMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> remote = Remote();
@@ -74,7 +85,6 @@ bool AccountProxy::UpdateOhosAccountInfo(
         return false;
     }
 
-    ACCOUNT_LOGD("UpdateOhosAccountInfo exit");
     return true;
 }
 
@@ -108,7 +118,7 @@ std::int32_t AccountProxy::SetOhosAccountInfo(const OhosAccountInfo &ohosAccount
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SetOhosAccountInfo failed: %{public}d", result);
     }
-    ACCOUNT_LOGD("SetOhosAccountInfo exit");
+
     return result;
 }
 
@@ -169,7 +179,6 @@ ErrCode AccountProxy::QueryOhosAccountInfo(OhosAccountInfo &accountInfo)
     accountInfo.name_ = Str16ToStr8(name);
     accountInfo.uid_ = Str16ToStr8(uid);
     accountInfo.status_ = status;
-    ACCOUNT_LOGD("QueryOhosAccountInfo exit");
     return ERR_OK;
 }
 
@@ -189,8 +198,7 @@ ErrCode AccountProxy::GetOhosAccountInfo(OhosAccountInfo &ohosAccountInfo)
     if (ret != ERR_OK) {
         return ret;
     }
-
-    ACCOUNT_LOGD("QueryOhosAccountInfo exit");
+    ACCOUNT_LOGI("Get ohos account %{public}s.", AnonymizeNameStr(ohosAccountInfo.nickname_).c_str());
     return ERR_OK;
 }
 
@@ -214,6 +222,7 @@ ErrCode AccountProxy::GetOhosAccountInfoByUserId(int32_t userId, OhosAccountInfo
     if (ret != ERR_OK) {
         return ret;
     }
+    ACCOUNT_LOGI("Get ohos account %{public}s.", AnonymizeNameStr(ohosAccountInfo.nickname_).c_str());
     return ERR_OK;
 }
 
