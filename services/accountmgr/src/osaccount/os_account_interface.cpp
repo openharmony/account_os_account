@@ -14,8 +14,8 @@
  */
 #include "os_account_interface.h"
 
-#include<cerrno>
-#include<thread>
+#include <cerrno>
+#include <thread>
 
 #include "ability_manager_adapter.h"
 #include "account_log_wrapper.h"
