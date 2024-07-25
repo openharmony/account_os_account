@@ -305,8 +305,6 @@ HWTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_Se
 HWMTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_SetAssociatedDataM,
     TestSize.Level1, THREAD_NUM)
 {
-    ACCOUNT_LOGI("AppAccountManagerService_SetAssociatedDataM");
-
     ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
 
     result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE);
@@ -327,8 +325,6 @@ HWMTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_S
 HWMTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_GetAssociatedDataM,
     TestSize.Level1, THREAD_NUM)
 {
-    ACCOUNT_LOGI("AppAccountManagerService_GetAssociatedDataM");
-
     ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
 
     result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE);
@@ -349,8 +345,6 @@ HWMTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_G
 HWMTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_RemoveAssociatedDataCacheByUidM,
     TestSize.Level1, THREAD_NUM)
 {
-    ACCOUNT_LOGI("AppAccountManagerService_RemoveAssociatedDataCacheByUidM");
-
     int32_t callingUid = -1;
     std::string bundleName;
     uint32_t appIndex;
@@ -385,8 +379,6 @@ HWMTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_R
 HWMTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_RemoveAssociatedDataCacheByAccountM,
     TestSize.Level1, THREAD_NUM)
 {
-    ACCOUNT_LOGI("AppAccountManagerService_RemoveAssociatedDataCacheByAccountM");
-
     int32_t callingUid = -1;
     std::string bundleName;
     uint32_t appIndex;

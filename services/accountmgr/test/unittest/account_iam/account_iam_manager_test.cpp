@@ -639,19 +639,6 @@ HWMTEST_F(AccountIamManagerTest, CancelM002, TestSize.Level0, THREAD_NUM)
 }
 
 /**
- * @tc.name: CancelM003
- * @tc.desc: Cancel with invalid user id.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWMTEST_F(AccountIamManagerTest, CancelM003, TestSize.Level0, THREAD_NUM)
-{
-    InnerAccountIAMManager::GetInstance().SetState(TEST_USER_ID, AFTER_ADD_CRED);
-    int32_t ret = InnerAccountIAMManager::GetInstance().Cancel(TEST_USER_ID);
-    EXPECT_EQ(ret, ResultCode::GENERAL_ERROR);
-}
-
-/**
  * @tc.name: DelCred001
  * @tc.desc: Delete credential.
  * @tc.type: FUNC

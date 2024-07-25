@@ -2600,7 +2600,6 @@ HWMTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_OnUserRem
 HWMTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetDataStorageByUserIdM,
     TestSize.Level1, THREAD_NUM)
 {
-    ACCOUNT_LOGI("AppAccountManagerService_GetDataStorageByUserIdM");
     auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
     ASSERT_NE(dataStoragePtr, nullptr);
 }
@@ -2613,8 +2612,6 @@ HWMTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetDataSt
  */
 HWMTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTokenM, TestSize.Level1, THREAD_NUM)
 {
-    ACCOUNT_LOGI("AppAccountManagerService_SetOAuthTokenM");
-
     ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
 
     result = g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
@@ -2644,8 +2641,6 @@ HWMTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthT
  */
 HWMTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAuthTokenM, TestSize.Level1, THREAD_NUM)
 {
-    ACCOUNT_LOGI("AppAccountManagerService_DeleteOAuthTokenM");
-
     ErrCode result = g_accountManagerService->DeleteOAuthToken(STRING_NAME,
         STRING_OWNER, STRING_AUTH_TYPE, STRING_TOKEN);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
@@ -2660,8 +2655,6 @@ HWMTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAu
 HWMTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTokenVisibilityM,
     TestSize.Level1, THREAD_NUM)
 {
-    ACCOUNT_LOGI("AppAccountManagerService_SetOAuthTokenVisibilityM");
-
     ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
 
     std::vector<AppAccountInfo> appAccounts;
