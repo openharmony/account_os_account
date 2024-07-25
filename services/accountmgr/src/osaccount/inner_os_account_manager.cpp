@@ -1858,8 +1858,6 @@ ErrCode IInnerOsAccountManager::IsOsAccountForeground(const int32_t localId, con
         ACCOUNT_LOGE("No foreground account in displayId %{public}llu.", static_cast<unsigned long long>(displayId));
         return ERR_ACCOUNT_COMMON_ACCOUNT_IN_DISPLAY_ID_NOT_FOUND_ERROR;
     }
-    ACCOUNT_LOGI("Get foreground account %{public}d in displayId %{public}llu, qurey localId=%{public}d.", id,
-                 static_cast<unsigned long long>(displayId), localId);
     isForeground = (id == localId);
     return ERR_OK;
 }
@@ -1870,8 +1868,6 @@ ErrCode IInnerOsAccountManager::GetForegroundOsAccountLocalId(const uint64_t dis
         ACCOUNT_LOGE("No foreground account in displayId %{public}llu.", static_cast<unsigned long long>(displayId));
         return ERR_ACCOUNT_COMMON_ACCOUNT_IN_DISPLAY_ID_NOT_FOUND_ERROR;
     }
-    ACCOUNT_LOGI("Get foreground account %{public}d in displayId %{public}llu.", localId,
-                 static_cast<unsigned long long>(displayId));
     return ERR_OK;
 }
 

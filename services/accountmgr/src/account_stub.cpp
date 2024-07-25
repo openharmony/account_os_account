@@ -148,7 +148,6 @@ std::int32_t AccountStub::InnerSetOhosAccountInfo(int32_t userId, MessageParcel 
     ret = SetOhosAccountInfoByUserId(userId, info, eventStr);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("Set ohos account info failed");
-        ret = ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
     }
     if (!reply.WriteInt32(ret)) {
         ACCOUNT_LOGE("Write result data failed");
