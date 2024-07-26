@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <gtest/hwext/gtest-multithread.h>
 
 #include <thread>
 #include <gmock/gmock.h>
@@ -37,6 +38,7 @@
 
 using namespace testing;
 using namespace testing::ext;
+using namespace testing::mt;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
 using namespace OHOS::AppExecFwk;
@@ -69,6 +71,7 @@ const std::string STRING_AUTH_TYPE = "read";
 const std::string STRING_AUTH_TYPE_TWO = "write";
 const std::string STRING_SESSION_ID = "100";
 const std::string STRING_ABILITY_NAME = "com.example.owner.MainAbility";
+const int32_t THREAD_NUM = 10;
 const std::vector<std::string> TEST_LABELS = {
     "test_label1",
     "test_label2",
@@ -2575,3 +2578,75 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_OnUserRemo
     EXPECT_EQ(result, ERR_OK);
 }
 
+/**
+ * @tc.name: AppAccountManagerService_SetOAuthTokenM
+ * @tc.desc: Set oauth token successfully.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+HWMTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTokenM, TestSize.Level1, THREAD_NUM)
+{
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+
+    result = g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE_TWO, STRING_TOKEN_TWO);
+    EXPECT_EQ(result, ERR_OK);
+
+    std::vector<AppAccountInfo> appAccounts;
+    result = g_accountManagerService->GetAllAccessibleAccounts(appAccounts);
+    EXPECT_EQ(result, ERR_OK);
+    ASSERT_EQ(appAccounts.size(), SIZE_ONE);
+    std::string owner;
+    appAccounts[0].GetOwner(owner);
+
+    std::string token;
+    result = g_accountManagerService->GetOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE_TWO, token);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(token, STRING_TOKEN_TWO);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_DeleteOAuthTokenM
+ * @tc.desc: Delete oauth token failed with non-exist account.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+HWMTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAuthTokenM, TestSize.Level1, THREAD_NUM)
+{
+    ErrCode result = g_accountManagerService->DeleteOAuthToken(STRING_NAME,
+        STRING_OWNER, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_SetOAuthTokenVisibilityM
+ * @tc.desc: Set oauth token visibility with existent authType successfully.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+HWMTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTokenVisibilityM,
+    TestSize.Level1, THREAD_NUM)
+{
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+
+    std::vector<AppAccountInfo> appAccounts;
+    g_accountManagerService->GetAllAccessibleAccounts(appAccounts);
+    ASSERT_EQ(appAccounts.size(), SIZE_ONE);
+    std::string owner;
+    appAccounts[0].GetOwner(owner);
+
+    result = g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->SetOAuthTokenVisibility(STRING_NAME,
+        STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
+    EXPECT_EQ(result, ERR_OK);
+
+    bool isVisible = false;
+    result = g_accountManagerService->CheckOAuthTokenVisibility(STRING_NAME,
+        STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(isVisible, true);
+}
