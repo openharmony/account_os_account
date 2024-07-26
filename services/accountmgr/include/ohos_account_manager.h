@@ -38,7 +38,7 @@ const std::string ACCOUNT_CFG_DIR_ROOT_PATH = "/data/service/el1/public/account/
 
 
 class OhosAccountManager;
-using OhosAccountEventFunc = std::function<bool(const std::int32_t, const OhosAccountInfo &, const std::string &)>;
+using OhosAccountEventFunc = std::function<ErrCode(const std::int32_t, const OhosAccountInfo &, const std::string &)>;
 /**
  * Ohos account manager
  */
@@ -110,7 +110,7 @@ public:
      * @param eventStr ohos account state change event
      * @return true if the processing was completed, otherwise false
      */
-    bool LoginOhosAccount(const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr);
+    ErrCode LoginOhosAccount(const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr);
 
     /**
      * logout ohos (for distributed network) account.
@@ -120,7 +120,8 @@ public:
      * @param eventStr ohos account state change event
      * @return true if the processing was completed, otherwise false
      */
-    bool LogoutOhosAccount(const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr);
+    ErrCode LogoutOhosAccount(const int32_t userId, const OhosAccountInfo &ohosAccountInfo,
+                              const std::string &eventStr);
 
     /**
      * logoff ohos (for distributed network) account.
@@ -130,7 +131,8 @@ public:
      * @param eventStr ohos account state change event
      * @return true if the processing was completed, otherwise false
      */
-    bool LogoffOhosAccount(const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr);
+    ErrCode LogoffOhosAccount(const int32_t userId, const OhosAccountInfo &ohosAccountInfo,
+                              const std::string &eventStr);
 
     /**
      * Handle token_invalid event of ohos (for distributed network) account .
@@ -140,7 +142,7 @@ public:
      * @param eventStr ohos account state change event
      * @return true if the processing was completed, otherwise false
      */
-    bool HandleOhosAccountTokenInvalidEvent(
+    ErrCode HandleOhosAccountTokenInvalidEvent(
         const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr);
 
     /**
@@ -159,7 +161,7 @@ public:
      * @param eventStr ohos account state change event
      * @return true if the processing was completed, otherwise false
      */
-    bool OhosAccountStateChange(const std::string &name, const std::string &uid, const std::string &eventStr);
+    ErrCode OhosAccountStateChange(const std::string &name, const std::string &uid, const std::string &eventStr);
 
     /**
      * Ohos account state change.
@@ -168,7 +170,7 @@ public:
      * @param eventStr ohos account state change event
      * @return true if the processing was completed, otherwise false
      */
-    bool OhosAccountStateChange(
+    ErrCode OhosAccountStateChange(
         const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr);
 
 private:

@@ -138,7 +138,8 @@ int32_t DomainAccountStub::OnRemoteRequest(
 {
     MemoryGuard cacheGuard;
     int32_t uid = IPCSkeleton::GetCallingUid();
-    ACCOUNT_LOGD("Received stub message: %{public}d, callingUid: %{public}d", code, uid);
+    ACCOUNT_LOGI("Received stub message: %{public}d, callingUid: %{public}d, callingPid: %{public}d", code, uid,
+                 IPCSkeleton::GetCallingRealPid());
     ErrCode errCode = CheckPermission(static_cast<DomainAccountInterfaceCode>(code), uid);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("check permission failed");
