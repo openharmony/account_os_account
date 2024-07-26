@@ -71,11 +71,12 @@ static ErrCode ReadAvatarData(MessageParcel &data, std::string &avatarStr)
         ACCOUNT_LOGE("avatarSize is invalid");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    const char *avatar = reinterpret_cast<const char *>(data.ReadRawData(avatarSize));
-    if (avatar == nullptr) {
+    auto readRawData = data.ReadRawData(avatarSize);
+    if (readRawData == nullptr) {
         ACCOUNT_LOGE("read avatar failed");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
+    const char *avatar = reinterpret_cast<const char *>(readRawData);
     avatarStr = std::string(avatar, avatarSize - 1);
     return ERR_OK;
 }

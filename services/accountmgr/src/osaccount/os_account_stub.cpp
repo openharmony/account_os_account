@@ -777,11 +777,12 @@ ErrCode OsAccountStub::ProcSetOsAccountProfilePhoto(MessageParcel &data, Message
         ACCOUNT_LOGE("PhotoSize is invalid, photosize = %{public}d", photoSize);
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    const char *photoData = reinterpret_cast<const char *>(data.ReadRawData(photoSize));
-    if (photoData == nullptr) {
+    auto readRawData = data.ReadRawData(photoSize);
+    if (readRawData == nullptr) {
         ACCOUNT_LOGE("Failed to read photoData");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
+    const char *photoData = reinterpret_cast<const char *>(readRawData);
     std::string photo = std::string(photoData, photoSize - 1);
     ErrCode result = SetOsAccountProfilePhoto(localId, photo);
     if (!reply.WriteInt32(result)) {

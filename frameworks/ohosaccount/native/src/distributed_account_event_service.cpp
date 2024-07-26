@@ -48,11 +48,13 @@ void DistributedAccountEventService::DeleteType(const DISTRIBUTED_ACCOUNT_SUBSCR
 
 int32_t DistributedAccountEventService::GetTypeSize()
 {
+    std::lock_guard<std::mutex> lock(typesLock_);
     return types_.size();
 }
 
 void DistributedAccountEventService::GetAllType(std::vector<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE> &typeList)
 {
+    std::lock_guard<std::mutex> lock(typesLock_);
     for (auto it : types_) {
         typeList.push_back(it);
     }
