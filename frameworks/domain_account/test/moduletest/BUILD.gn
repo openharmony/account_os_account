@@ -159,7 +159,6 @@ ohos_moduletest("domain_account_frameworks_module_mock_test") {
     "c_utils:utils",
     "config_policy:configpolicy_util",
     "hilog:libhilog",
-    "huks:libhukssdk",
     "init:libbegetutil",
     "ipc:ipc_single",
     "mbedtls:mbedtls_shared",
@@ -167,6 +166,10 @@ ohos_moduletest("domain_account_frameworks_module_mock_test") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+
+  if (has_huks_part) {
+    external_deps += [ "huks:libhukssdk" ]
+  }
 
   cflags_cc = []
 
@@ -243,7 +246,6 @@ ohos_moduletest("domain_account_client_mock_plugin_so_module_test") {
     "c_utils:utils",
     "config_policy:configpolicy_util",
     "hilog:libhilog",
-    "huks:libhukssdk",
     "init:libbegetutil",
     "ipc:ipc_single",
     "mbedtls:mbedtls_shared",
@@ -251,6 +253,10 @@ ohos_moduletest("domain_account_client_mock_plugin_so_module_test") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+
+  if (has_huks_part) {
+    external_deps += [ "huks:libhukssdk" ]
+  }
 
   cflags_cc = []
 

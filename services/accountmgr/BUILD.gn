@@ -258,7 +258,6 @@ ohos_shared_library("accountmgr") {
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "hilog:libhilog",
-    "huks:libhukssdk",
     "init:libbegetutil",
     "ipc:ipc_single",
     "json:nlohmann_json_static",
@@ -266,6 +265,10 @@ ohos_shared_library("accountmgr") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+  if (has_huks_part) {
+    external_deps += [ "huks:libhukssdk" ]
+    cflags_cc += [ "-DHAS_HUKS_PART" ]
+  }
 
   if (ohos_indep_compiler_enable) {
     external_deps += [

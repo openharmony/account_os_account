@@ -20,9 +20,11 @@
 #include <securec.h>
 #include <thread>
 #include "account_log_wrapper.h"
+#ifdef HAS_HUKS_PART
 #include "hks_api.h"
 #include "hks_param.h"
 #include "hks_type.h"
+#endif // HAS_HUKS_PART
 #include "os_account_constants.h"
 #include "hitrace_adapter.h"
 
@@ -31,6 +33,8 @@ namespace AccountSA {
 namespace {
 constexpr uint32_t FILE_WATCHER_LIMIT = 1024 * 100;
 constexpr uint32_t BUF_COMMON_SIZE = 1024 * 100;
+constexpr uint32_t ALG_COMMON_SIZE = 32;
+#ifdef HAS_HUKS_PART
 const struct HksParam g_genSignVerifyParams[] = {
     {
         .tag = HKS_TAG_ALGORITHM,
@@ -49,14 +53,15 @@ const struct HksParam g_genSignVerifyParams[] = {
         .uint32Param = HKS_AUTH_STORAGE_LEVEL_DE
     }
 };
-constexpr uint32_t ALG_COMMON_SIZE = 32;
 constexpr int32_t TIMES = 4;
 constexpr int32_t MAX_UPDATE_SIZE = 256 * 100;
 constexpr int32_t MAX_OUTDATA_SIZE = MAX_UPDATE_SIZE * TIMES;
 constexpr char ACCOUNT_KEY_ALIAS[] = "os_account_info_encryption_key";
 const HksBlob g_keyAlias = { (uint32_t)strlen(ACCOUNT_KEY_ALIAS), (uint8_t *)ACCOUNT_KEY_ALIAS };
+#endif // HAS_HUKS_PART
 }
 
+#ifdef HAS_HUKS_PART
 static int32_t InitParamSet(struct HksParamSet **paramSet, const struct HksParam *params, uint32_t paramCount)
 {
     int32_t ret = HksInitParamSet(paramSet);
@@ -215,10 +220,13 @@ int32_t GenerateAccountInfoDigest(const std::string &inData, uint8_t* outData, u
     free(buffer);
     return ret;
 }
+#endif // HAS_HUKS_PART
 
 AccountFileWatcherMgr::AccountFileWatcherMgr()
 {
+#ifdef HAS_HUKS_PART
     InitEncryptionKey();
+#endif // HAS_HUKS_PART
     inotifyFd_ = inotify_init();
     if (inotifyFd_ < 0) {
         ACCOUNT_LOGE("failed to init notify, errCode:%{public}d", errno);
@@ -369,9 +377,11 @@ ErrCode AccountFileWatcherMgr::GenerateAccountInfoDigestStr(
     const std::string &userInfoPath, const std::string &accountInfoStr, std::string &digestStr)
 {
     uint8_t digestOutData[ALG_COMMON_SIZE];
+#ifdef HAS_HUKS_PART
     StartTraceAdapter("GenerateAccountInfoDigest Using Huks");
     GenerateAccountInfoDigest(accountInfoStr, digestOutData, ALG_COMMON_SIZE);
     FinishTraceAdapter();
+#endif // HAS_HUKS_PART
 
     std::string accountInfoDigest;
     std::lock_guard<std::mutex> lock(accountInfoDigestFileLock_);

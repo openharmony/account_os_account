@@ -444,7 +444,6 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     "c_utils:utils",
     "config_policy:configpolicy_util",
     "hilog:libhilog",
-    "huks:libhukssdk",
     "init:libbegetutil",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
@@ -452,6 +451,9 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+  if (has_huks_part) {
+    external_deps += [ "huks:libhukssdk" ]
+  }
   cflags_cc = []
   if (has_user_auth_part) {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
@@ -543,13 +545,15 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
     "c_utils:utils",
     "config_policy:configpolicy_util",
     "hilog:libhilog",
-    "huks:libhukssdk",
     "init:libbegetutil",
     "ipc:ipc_single",
     "mbedtls:mbedtls_shared",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+  if (has_huks_part) {
+    external_deps += [ "huks:libhukssdk" ]
+  }
   cflags_cc = []
   if (has_user_auth_part) {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
