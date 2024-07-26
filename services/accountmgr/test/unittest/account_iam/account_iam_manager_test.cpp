@@ -14,6 +14,7 @@
  */
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <gtest/hwext/gtest-multithread.h>
 #include <unistd.h>
 #include <vector>
 
@@ -31,6 +32,7 @@
 
 using namespace testing;
 using namespace testing::ext;
+using namespace testing::mt;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
 using namespace Security::AccessToken;
@@ -50,6 +52,7 @@ namespace {
     static bool g_fscryptEnable = false;
     const uid_t ACCOUNT_UID = 3058;
     const int32_t WAIT_TIME = 20;
+    const int32_t THREAD_NUM = 10;
 }
 
 class MockStorageMgrProxy : public StorageManager::IStorageManager {
@@ -504,6 +507,22 @@ HWTEST_F(AccountIamManagerTest, OpenSession001, TestSize.Level2)
 }
 
 /**
+ * @tc.name: OpenSessionM001
+ * @tc.desc: Open Session.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWMTEST_F(AccountIamManagerTest, OpenSessionM001, TestSize.Level2, THREAD_NUM)
+{
+    std::vector<uint8_t> challenge;
+    InnerAccountIAMManager::GetInstance().OpenSession(TEST_USER_ID, challenge); // 1111: invalid userid
+    EXPECT_TRUE(challenge.size() != 0);
+
+    InnerAccountIAMManager::GetInstance().CloseSession(0);
+    InnerAccountIAMManager::GetInstance().CloseSession(TEST_USER_ID);
+}
+
+/**
  * @tc.name: AddCredential001
  * @tc.desc: Add credential.
  * @tc.type: FUNC
@@ -588,6 +607,32 @@ HWTEST_F(AccountIamManagerTest, Cancel002, TestSize.Level0)
  * @tc.require:
  */
 HWTEST_F(AccountIamManagerTest, Cancel003, TestSize.Level0)
+{
+    InnerAccountIAMManager::GetInstance().SetState(TEST_USER_ID, AFTER_ADD_CRED);
+    int32_t ret = InnerAccountIAMManager::GetInstance().Cancel(TEST_USER_ID);
+    EXPECT_EQ(ret, ResultCode::GENERAL_ERROR);
+}
+
+/**
+ * @tc.name: CancelM001
+ * @tc.desc: Cancel with .
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWMTEST_F(AccountIamManagerTest, CancelM001, TestSize.Level0, THREAD_NUM)
+{
+    InnerAccountIAMManager::GetInstance().SetState(TEST_USER_ID, AFTER_OPEN_SESSION);
+    int32_t ret = InnerAccountIAMManager::GetInstance().Cancel(TEST_USER_ID);
+    EXPECT_NE(ret, 0);
+}
+
+/**
+ * @tc.name: CancelM002
+ * @tc.desc: Cancel after add credential.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWMTEST_F(AccountIamManagerTest, CancelM002, TestSize.Level0, THREAD_NUM)
 {
     InnerAccountIAMManager::GetInstance().SetState(TEST_USER_ID, AFTER_ADD_CRED);
     int32_t ret = InnerAccountIAMManager::GetInstance().Cancel(TEST_USER_ID);
@@ -702,12 +747,63 @@ HWTEST_F(AccountIamManagerTest, GetState001, TestSize.Level0)
 }
 
 /**
+ * @tc.name: GetStateM001
+ * @tc.desc: Get state multithread.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWMTEST_F(AccountIamManagerTest, GetStateM001, TestSize.Level0, THREAD_NUM)
+{
+    int32_t userId = 4444; // 1111: invalid userId
+    EXPECT_EQ(IDLE, InnerAccountIAMManager::GetInstance().GetState(userId));
+
+    EXPECT_NE(IDLE, InnerAccountIAMManager::GetInstance().GetState(TEST_USER_ID));
+}
+
+/**
  * @tc.name: GetChallenge001
  * @tc.desc: Get Challenge.
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(AccountIamManagerTest, GetChallenge001, TestSize.Level2)
+{
+    std::vector<uint8_t> challenge;
+    InnerAccountIAMManager::GetInstance().OpenSession(TEST_USER_ID, challenge);
+
+    std::shared_ptr<MockIIDMCallback> callback = std::make_shared<MockIIDMCallback>();
+    EXPECT_NE(callback, nullptr);
+    sptr<TestIIDMCallback> testCallback = new(std::nothrow) TestIIDMCallback(callback);
+    EXPECT_NE(testCallback, nullptr);
+    EXPECT_CALL(*callback, OnResult(_, _)).Times(0);
+    AccountSA::AuthParam authParam = {
+        .userId = TEST_EXIST_ID,
+        .challenge = TEST_CHALLENGE,
+        .authType = AuthType::PIN,
+        .authTrustLevel = AuthTrustLevel::ATL1
+    };
+    uint64_t contextId = 0;
+    ErrCode errCode = InnerAccountIAMManager::GetInstance().AuthUser(authParam, testCallback, contextId);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT);
+
+    std::vector<uint8_t> outChallenge;
+    InnerAccountIAMManager::GetInstance().GetChallenge(TEST_USER_ID, outChallenge);
+    EXPECT_TRUE(outChallenge.size() != 0);
+
+    InnerAccountIAMManager::GetInstance().GetChallenge(12345, outChallenge); // 12345: userId
+    EXPECT_TRUE(outChallenge.empty());
+    InnerAccountIAMManager::GetInstance().CloseSession(TEST_USER_ID);
+
+    InnerAccountIAMManager::GetInstance().CancelAuth(contextId);
+}
+
+/**
+ * @tc.name: GetChallengeM001
+ * @tc.desc: Get Challenge.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWMTEST_F(AccountIamManagerTest, GetChallengeM001, TestSize.Level2, THREAD_NUM)
 {
     std::vector<uint8_t> challenge;
     InnerAccountIAMManager::GetInstance().OpenSession(TEST_USER_ID, challenge);
