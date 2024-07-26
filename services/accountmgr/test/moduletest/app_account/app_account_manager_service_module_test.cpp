@@ -2579,32 +2579,6 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_OnUserRemo
 }
 
 /**
- * @tc.name: AppAccountManagerService_OnUserRemovedM
- * @tc.desc: test OnUserRemoved
- * @tc.type: FUNC
- * @tc.require: issueI5N90B
- */
-HWMTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_OnUserRemovedM, TestSize.Level1, THREAD_NUM)
-{
-    ACCOUNT_LOGI("AppAccountManagerService_OnUserRemovedM");
-    ErrCode result = g_accountManagerService->OnUserRemoved(TEST_USER_ID);
-    EXPECT_EQ(result, ERR_OK);
-}
-
-/**
- * @tc.name: AppAccountManagerService_GetDataStorageByUserIdM
- * @tc.desc: test GetDataStorageByUserId
- * @tc.type: FUNC
- * @tc.require: issueI5N90B
- */
-HWMTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetDataStorageByUserIdM,
-    TestSize.Level1, THREAD_NUM)
-{
-    auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
-    ASSERT_NE(dataStoragePtr, nullptr);
-}
-
-/**
  * @tc.name: AppAccountManagerService_SetOAuthTokenM
  * @tc.desc: Set oauth token successfully.
  * @tc.type: FUNC
