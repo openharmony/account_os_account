@@ -94,12 +94,14 @@ bool OhosAccountDataDeal::DealWithFileModifyEvent(const std::string &fileName, c
     }
     uint8_t localDigestData[ALG_COMMON_SIZE] = {0};
     accountFileWatcherMgr_.GetAccountInfoDigestFromFile(fileName, localDigestData, ALG_COMMON_SIZE);
+#ifdef HAS_HUKS_PART
     uint8_t newDigestData[ALG_COMMON_SIZE] = {0};
     GenerateAccountInfoDigest(fileInfoStr, newDigestData, ALG_COMMON_SIZE);
     if (memcmp(localDigestData, newDigestData, ALG_COMMON_SIZE) == 0) {
         ACCOUNT_LOGD("No need to recover local file data.");
         return true;
     }
+#endif // HAS_HUKS_PART
     ReportOsAccountDataTampered(id, fileName, "DISTRIBUTED_ACCOUT_INFO");
     return true;
 }

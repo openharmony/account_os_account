@@ -236,11 +236,13 @@ ohos_unittest("account_iam_manager_test") {
 
 group("unittest") {
   testonly = true
-
-  deps = [
-    ":account_iam_callback_test",
-    ":account_iam_manager_test",
-    ":account_iam_service_test",
-    ":account_iam_stub_test",
-  ]
+  deps = []
+  if (!use_libfuzzer) {
+    deps += [
+      ":account_iam_callback_test",
+      ":account_iam_manager_test",
+      ":account_iam_service_test",
+      ":account_iam_stub_test",
+    ]
+  }
 }

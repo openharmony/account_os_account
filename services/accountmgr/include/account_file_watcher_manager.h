@@ -25,7 +25,9 @@
 
 namespace OHOS {
 namespace AccountSA {
+#ifdef HAS_HUKS_PART
 int32_t GenerateAccountInfoDigest(const std::string &inData, uint8_t* outData, uint32_t size);
+#endif // HAS_HUKS_PART
 
 using CheckNotifyEventCallbackFunc = std::function<bool(const std::string&, int32_t, uint32_t)>;
 class FileWatcher {

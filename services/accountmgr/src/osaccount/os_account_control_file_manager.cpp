@@ -169,6 +169,7 @@ bool OsAccountControlFileManager::DealWithFileModifyEvent(const std::string &fil
     }
     uint8_t localDigestData[ALG_COMMON_SIZE] = {0};
     accountFileWatcherMgr_.GetAccountInfoDigestFromFile(fileName, localDigestData, ALG_COMMON_SIZE);
+#ifdef HAS_HUKS_PART
     uint8_t newDigestData[ALG_COMMON_SIZE] = {0};
     GenerateAccountInfoDigest(fileInfoStr, newDigestData, ALG_COMMON_SIZE);
 
@@ -176,6 +177,7 @@ bool OsAccountControlFileManager::DealWithFileModifyEvent(const std::string &fil
         ACCOUNT_LOGD("No need to recover local file data.");
         return true;
     }
+#endif // HAS_HUKS_PART
     ReportOsAccountDataTampered(id, fileName, "OS_ACCOUNT_INFO");
     ACCOUNT_LOGW("local file data has been changed");
     return RecoverAccountData(fileName, id);
@@ -382,12 +384,14 @@ void OsAccountControlFileManager::RecoverAccountInfoDigestJsonFile()
 {
     std::string listInfoStr;
     accountFileOperator_->GetFileContentByPath(Constants::ACCOUNT_LIST_FILE_JSON_PATH, listInfoStr);
+#ifdef HAS_HUKS_PART
     uint8_t digestOutData[ALG_COMMON_SIZE] = {0};
     GenerateAccountInfoDigest(listInfoStr, digestOutData, ALG_COMMON_SIZE);
     Json digestJsonData = Json {
         {Constants::ACCOUNT_LIST_FILE_JSON_PATH, digestOutData},
     };
     accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_INFO_DIGEST_FILE_PATH, digestJsonData.dump());
+#endif // HAS_HUKS_PART
     return;
 }
 
