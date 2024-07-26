@@ -752,12 +752,15 @@ HWMTEST_F(OsAccountControlFileManagerTest, GetSerialNumberM, TestSize.Level1, TH
  */
 HWMTEST_F(OsAccountControlFileManagerTest, GetAllowCreateIdM, TestSize.Level1, THREAD_NUM)
 {
-    int id = 0;
-    EXPECT_EQ(g_controlManager->GetAllowCreateId(id), ERR_OK);
-    EXPECT_NE(id, 0);
-    bool isOsAccountExists = true;
-    EXPECT_EQ(g_controlManager->IsOsAccountExists(id, isOsAccountExists), ERR_OK);
-    EXPECT_EQ(isOsAccountExists, false);
+    int id1 = 0;
+    int id2 = 0;
+    EXPECT_EQ(g_controlManager->GetAllowCreateId(id1), ERR_OK);
+    EXPECT_EQ(g_controlManager->GetAllowCreateId(id2), ERR_OK);
+    bool ret = false;
+    if (id2 > id1) {
+        ret = true;
+    }
+    EXPECT_EQ(ret, true);
 }
 
 /**
