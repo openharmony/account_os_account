@@ -219,7 +219,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo002, TestSize.Level0)
     accountInfo.name_ = TEST_DIFF_ACCOUNT_NAME;
     accountInfo.uid_ = TEST_DIFF_ACCOUNT_UID;
     ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin);
-    EXPECT_EQ(ret, ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
     // logout
     accountInfo.name_ = TEST_ACCOUNT_NAME;
     accountInfo.uid_ = TEST_ACCOUNT_UID;
@@ -373,7 +373,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo007, TestSize.Level0)
     std::string eventStr = "invalid_test_event";
 
     auto ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, eventStr);
-    EXPECT_EQ(ret, ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -463,7 +463,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo009, TestSize.Level0)
     accountInfo.uid_ = TEST_DIFF_ACCOUNT_UID;
     ret = OhosAccountKits::GetInstance().SetOhosAccountInfoByUserId(
         osAccountInfoOne.GetLocalId(), accountInfo, g_eventLogin);
-    EXPECT_EQ(ret, ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
     // logout
     accountInfo.name_ = TEST_ACCOUNT_NAME;
     accountInfo.uid_ = TEST_ACCOUNT_UID;
