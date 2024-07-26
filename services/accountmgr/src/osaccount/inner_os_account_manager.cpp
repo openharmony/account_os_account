@@ -346,6 +346,11 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("create os account SendToBMSAccountCreate failed, errCode %{public}d.", errCode);
         (void)OsAccountInterface::SendToStorageAccountRemove(osAccountInfo);
+#ifdef HAS_THEME_SERVICE_PART
+        if (theme_thread.joinable()) {
+            theme_thread.join();
+        }
+#endif
         return errCode;
     }
 #ifdef HAS_THEME_SERVICE_PART

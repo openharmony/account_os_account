@@ -610,11 +610,12 @@ ErrCode OsAccountProxy::GetOsAccountProfilePhoto(const int id, std::string &phot
         ACCOUNT_LOGE("PhotoSize is invalid, photosize = %{public}d", photoSize);
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    const char *photoData = reinterpret_cast<const char *>(reply.ReadRawData(photoSize));
-    if (photoData == nullptr) {
+    auto readRawData = reply.ReadRawData(photoSize);
+    if (readRawData == nullptr) {
         ACCOUNT_LOGE("Failed to read photoData, id=%{public}d", id);
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
+    const char *photoData = reinterpret_cast<const char *>(readRawData);
     photo = std::string(photoData, photoSize - 1);
 
     return ERR_OK;
@@ -1445,11 +1446,12 @@ bool OsAccountProxy::ReadOsAccountInfo(MessageParcel &data, OsAccountInfo &accou
         ACCOUNT_LOGE("Failed to read accountSize");
         return false;
     }
-    const char *accountData = reinterpret_cast<const char *>(data.ReadRawData(accountSize));
-    if (accountData == nullptr) {
+    auto readRawData = data.ReadRawData(accountSize);
+    if (readRawData == nullptr) {
         ACCOUNT_LOGE("Failed to read accountData accountSize = %{public}d", accountSize);
         return false;
     }
+    const char *accountData = reinterpret_cast<const char *>(readRawData);
     std::string accountJson = std::string(accountData, accountSize - 1);
     nlohmann::json jsonObject = nlohmann::json::parse(accountJson, nullptr, false);
     if (jsonObject.is_discarded()) {
@@ -1473,11 +1475,12 @@ bool OsAccountProxy::ReadOsAccountInfoList(MessageParcel &data, std::vector<OsAc
         ACCOUNT_LOGE("accountsStrLength is invalid, accountsStrLength = %{public}d", accountsStrLength);
         return false;
     }
-    const char *accountsStrData = reinterpret_cast<const char *>(data.ReadRawData(accountsStrLength));
-    if (accountsStrData == nullptr) {
+    auto readRawData = data.ReadRawData(accountsStrLength);
+    if (readRawData == nullptr) {
         ACCOUNT_LOGE("Failed to read accountArrayData accountArraySize = %{public}d", accountsStrLength);
         return false;
     }
+    const char *accountsStrData = reinterpret_cast<const char *>(readRawData);
     std::string accountsStr = std::string(accountsStrData, accountsStrLength - 1);
     nlohmann::json accounts = nlohmann::json::parse(accountsStr, nullptr, false);
     if (accounts.is_discarded()) {
