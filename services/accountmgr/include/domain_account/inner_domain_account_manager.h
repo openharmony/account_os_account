@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -118,7 +118,7 @@ private:
     std::mutex libMutex_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
     sptr<IDomainAccountPlugin> plugin_;
-    std::map<PluginMethodEnum, void*> methodMap;
+    std::map<PluginMethodEnum, void*> methodMap_;
     void* libHandle_ = nullptr;
     std::map<int32_t, std::vector<uint8_t>> userTokenMap_;
 };
