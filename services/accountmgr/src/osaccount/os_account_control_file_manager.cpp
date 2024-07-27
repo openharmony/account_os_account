@@ -34,7 +34,6 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 const std::string DEFAULT_ACTIVATED_ACCOUNT_ID = "DefaultActivatedAccountID";
-constexpr int32_t MAX_LOCAL_ID = 10736; // int32 max value reduce 200000 be divisible by 200000
 const std::string OS_ACCOUNT_STORE_ID = "os_account_info";
 constexpr uint32_t ALG_COMMON_SIZE = 32;
 #ifndef ACCOUNT_TEST
@@ -1076,7 +1075,7 @@ ErrCode OsAccountControlFileManager::GetSerialNumber(int64_t &serialNumber)
 int OsAccountControlFileManager::GetNextLocalId(const std::vector<std::string> &accountIdList)
 {
     do {
-        if (nextLocalId_ > MAX_LOCAL_ID) {
+        if (nextLocalId_ > Constants::MAX_USER_ID) {
             nextLocalId_ = Constants::START_USER_ID;
         }
         if (std::find(accountIdList.begin(), accountIdList.end(), std::to_string(nextLocalId_)) ==
