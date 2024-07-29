@@ -31,7 +31,7 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 #ifdef HAS_STORAGE_PART
-const int32_t ERROR_STORAGE_KEY_NOT_EXIST = -2;
+constexpr int32_t ERROR_STORAGE_KEY_NOT_EXIST = -2;
 #endif
 }
 using UserIDMClient = UserIam::UserAuth::UserIdmClient;
@@ -491,15 +491,15 @@ ErrCode InnerAccountIAMManager::ActivateUserKey(
         return result;
     }
     result = storageMgrProxy_->ActiveUserKey(userId, token, secret);
+    ACCOUNT_LOGI("ActiveUserKey end, ret: %{public}d", result);
     if (result != ERR_OK && result != ERROR_STORAGE_KEY_NOT_EXIST) {
-        ACCOUNT_LOGE("fail to active user key, error code: %{public}d", result);
         return result;
     }
-    storageMgrProxy_->PrepareStartUser(userId);
+    result = storageMgrProxy_->PrepareStartUser(userId);
+    ACCOUNT_LOGI("PrepareStartUser end, ret: %{public}d", result);
 #endif
     return ERR_OK;
 }
-
 
 ErrCode InnerAccountIAMManager::GetStorageManagerProxy()
 {
