@@ -66,6 +66,7 @@ ohos_moduletest("domain_account_frameworks_module_test") {
     "${account_iam_framework_path}:account_iam_innerkits",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
@@ -78,7 +79,6 @@ ohos_moduletest("domain_account_frameworks_module_test") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
-    "os_account:os_account_innerkits",
   ]
 
   cflags_cc = []
@@ -162,7 +162,6 @@ ohos_moduletest("domain_account_frameworks_module_mock_test") {
     "init:libbegetutil",
     "ipc:ipc_single",
     "mbedtls:mbedtls_shared",
-    "os_account:os_account_innerkits",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
@@ -249,7 +248,6 @@ ohos_moduletest("domain_account_client_mock_plugin_so_module_test") {
     "init:libbegetutil",
     "ipc:ipc_single",
     "mbedtls:mbedtls_shared",
-    "os_account:os_account_innerkits",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
@@ -293,6 +291,7 @@ ohos_moduletest("domain_account_common_module_test") {
   deps = [
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
@@ -302,7 +301,6 @@ ohos_moduletest("domain_account_common_module_test") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
-    "os_account:os_account_innerkits",
   ]
 }
 
@@ -327,6 +325,7 @@ ohos_moduletest("domain_account_plugin_service_test") {
   deps = [
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
@@ -337,7 +336,6 @@ ohos_moduletest("domain_account_plugin_service_test") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
-    "os_account:os_account_innerkits",
   ]
 }
 
@@ -359,6 +357,7 @@ ohos_moduletest("domain_account_plugin_stub_test") {
   deps = [
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
@@ -368,7 +367,6 @@ ohos_moduletest("domain_account_plugin_stub_test") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
-    "os_account:os_account_innerkits",
   ]
 }
 
