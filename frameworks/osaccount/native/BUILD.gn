@@ -88,7 +88,11 @@ ohos_shared_library("os_account_innerkits") {
     "ipc:ipc_single",
     "samgr:samgr_proxy",
   ]
-  public_external_deps = [ "ability_base:want" ]
+
+  public_external_deps = [
+    "ability_base:base",
+    "ability_base:want",
+  ]
 
   innerapi_tags = [
     "platformsdk",
