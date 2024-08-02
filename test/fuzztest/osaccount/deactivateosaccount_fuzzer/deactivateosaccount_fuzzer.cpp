@@ -33,6 +33,7 @@ namespace OHOS {
             FuzzData fuzzData(data, size);
             int32_t testId = fuzzData.GetData<int32_t>();
             result = OsAccountManager::DeactivateOsAccount(testId);
+            OsAccountManager::DeactivateAllOsAccounts();
         }
         return result == ERR_OK;
     }
