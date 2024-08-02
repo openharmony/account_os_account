@@ -61,28 +61,11 @@ AuthCallback::AuthCallback(uint32_t userId, uint64_t credentialId, AuthType auth
 
 ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo, int32_t accountId, bool &isUpdateVerifiedStatus)
 {
-    bool lockScreenStatus = false;
-    ErrCode ret = InnerAccountIAMManager::GetInstance().GetLockScreenStatus(accountId, lockScreenStatus);
-    if (ret != 0) {
-        ReportOsAccountOperationFail(
-            accountId, "getLockScreenStatus", ret, "failed to get lock status msg from storage");
-    }
     std::vector<uint8_t> token;
     extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
     std::vector<uint8_t> secret;
     extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, secret);
-    if (!lockScreenStatus) {
-        ACCOUNT_LOGI("start unlock user screen");
-        // el3\4 file decryption
-        ret = InnerAccountIAMManager::GetInstance().UnlockUserScreen(accountId, token, secret);
-        if (ret != 0) {
-            ReportOsAccountOperationFail(accountId, "unlockUserScreen", ret, "failed to send unlock msg for storage");
-            return ret;
-        }
-    }
-    if (authType_ == static_cast<AuthType>(IAMAuthType::DOMAIN)) {
-        return ERR_OK;
-    }
+    ErrCode ret = ERR_OK;
     if (authType_ == AuthType::PIN) {
         bool isVerified = false;
         (void)IInnerOsAccountManager::GetInstance().IsOsAccountVerified(accountId, isVerified);
@@ -98,7 +81,28 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo, int32_t acco
             isUpdateVerifiedStatus = true;
         }
     }
+    if (!isUpdateVerifiedStatus) {
+        bool lockScreenStatus = false;
+        ret = InnerAccountIAMManager::GetInstance().GetLockScreenStatus(accountId, lockScreenStatus);
+        if (ret != 0) {
+            ReportOsAccountOperationFail(
+                accountId, "getLockScreenStatus", ret, "failed to get lock status msg from storage");
+        }
+        if (!lockScreenStatus) {
+            ACCOUNT_LOGI("start unlock user screen");
+            // el3\4 file decryption
+            ret = InnerAccountIAMManager::GetInstance().UnlockUserScreen(accountId, token, secret);
+            if (ret != 0) {
+                ReportOsAccountOperationFail(
+                    accountId, "unlockUserScreen", ret, "failed to send unlock msg for storage");
+                return ret;
+            }
+        }
+    }
     // domain account authentication
+    if (authType_ == static_cast<AuthType>(IAMAuthType::DOMAIN)) {
+        return ERR_OK;
+    }
     InnerDomainAccountManager::GetInstance().AuthWithToken(accountId, token);
     return ret;
 }
