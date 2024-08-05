@@ -68,8 +68,8 @@ static constexpr int32_t DEFAULT_API_VERSION = 8;
 const std::vector<uint8_t> DEFAULT_TOKEN = {49, 50, 51, 52, 53};
 static uint64_t g_selfTokenID;
 const std::string STRING_TEST_NAME = "name";
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 const int32_t WAIT_TIME = 2;
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 const std::string STRING_SHORT_NAME_OUT_OF_RANGE(256, '1');
 #endif
 const std::map<PluginMethodEnum, void *> PLUGIN_METHOD_MAP = {
