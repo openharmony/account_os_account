@@ -258,6 +258,19 @@ public:
         return 0;
     }
 
+    int32_t CreateRecoverKey(uint32_t userId,
+                             uint32_t userType,
+                             const std::vector<uint8_t> &token,
+                             const std::vector<uint8_t> &secret)
+    {
+        return 0;
+    }
+
+    int32_t SetRecoverKey(const std::vector<uint8_t> &key)
+    {
+        return 0;
+    }
+
     int32_t UnlockUserScreen(uint32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret)
     {
         return 0;
