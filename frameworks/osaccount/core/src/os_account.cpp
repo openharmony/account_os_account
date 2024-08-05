@@ -21,6 +21,7 @@
 #include "ohos_account_kits_impl.h"
 #include "os_account_constants.h"
 #include "os_account_death_recipient.h"
+#include "system_ability_definition.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -37,6 +38,39 @@ OsAccount &OsAccount::GetInstance()
 {
     static OsAccount *instance = new (std::nothrow) OsAccount();
     return *instance;
+}
+
+OsAccount::OsAccount()
+{
+    auto callbackFunc = [] (int32_t systemAbilityId, const std::string &deviceId) {
+        if (systemAbilityId == SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN) {
+            OsAccount::GetInstance().RestoreListenerRecords();
+        }
+    };
+    OhosAccountKitsImpl::GetInstance().SubscribeSystemAbility(callbackFunc);
+}
+
+void OsAccount::RestoreListenerRecords()
+{
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(eventListenersMutex_);
+    for (const auto &item : eventListeners_) {
+        OsAccountSubscribeInfo subscribeInfo;
+        if (item.first == nullptr) {
+            ACCOUNT_LOGE("OsAccountSubscriber is nullptr");
+            continue;
+        }
+        item.first->GetSubscribeInfo(subscribeInfo);
+        ErrCode result = proxy->SubscribeOsAccount(subscribeInfo, item.second);
+        if (result != ERR_OK) {
+            std::string name;
+            subscribeInfo.GetName(name);
+            ACCOUNT_LOGE("SubscribeOsAccount %{public}s failed, errCode=%{public}d", name.c_str(), result);
+        }
+    }
 }
 
 ErrCode OsAccount::CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
