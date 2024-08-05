@@ -96,10 +96,12 @@ const std::string STRING_DOMAIN_VALID = "TestDomainMT";
 const std::string STRING_DOMAIN_ACCOUNT_NAME_VALID = "TestDomainAccountNameMT";
 const std::int32_t MAIN_ACCOUNT_ID = 100;
 const std::int32_t INVALID_ACCOUNT_ID = 200;
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 const std::uint32_t MAX_OS_ACCOUNT_NUM = 5;
 const std::uint32_t MAX_LOGGED_IN_OS_ACCOUNT_NUM = 3;
 const std::uint32_t DEFAULT_MAX_OS_ACCOUNT_NUM = 999;
 const std::uint32_t DEFAULT_MAX_LOGGED_IN_OS_ACCOUNT_NUM = 999;
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 const std::shared_ptr<AccountFileOperator> g_accountFileOperator =
     AccountFileWatcherMgr::GetInstance().accountFileOperator_;
 
@@ -628,6 +630,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest029
  * @tc.type: FUNC
  * @tc.require:
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest030, TestSize.Level0)
 {
     OsAccountInfo osAccountInfoOne;
@@ -637,6 +640,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest030
     EXPECT_EQ(osAccountManagerService_->QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfo), ERR_OK);
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest031
