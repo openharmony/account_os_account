@@ -2121,7 +2121,7 @@ ErrCode IInnerOsAccountManager::UpdateAccountToBackground(int32_t oldId)
 #ifdef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
     bool isLoggedIn = false;
     if ((oldOsAccountInfo.GetType() != OsAccountType::PRIVATE) && (!loggedInAccounts_.Find(oldId, isLoggedIn))) {
-        DeactivateOsAccount(oldId);
+        DeactivateOsAccount(oldId, false);
     }
 #else
     DeactivateOsAccountByInfo(oldOsAccountInfo);
