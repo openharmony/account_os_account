@@ -96,7 +96,7 @@ public:
         return 0;
     }
 
-    int32_t GetBundleStats(std::string pkgName, BundleStats &bundleStats)
+    int32_t GetBundleStats(std::string pkgName, BundleStats &bundleStats, int32_t appIndex)
     {
         return 0;
     }
