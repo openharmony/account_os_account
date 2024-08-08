@@ -22,6 +22,7 @@
 #include <string>
 #include <sys/file.h>
 #include <sys/stat.h>
+#include <sys/statvfs.h>
 #include <sys/types.h>
 #include <thread>
 #include <unistd.h>
@@ -33,6 +34,7 @@ namespace AccountSA {
 namespace {
 const std::string ACCOUNT_INFO_DIGEST_FILE_PATH = "account_info_digest.json";
 const long MAX_FILE_SIZE = 1 << 24; // 16MB
+const unsigned long long BUFF_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 const uint32_t RETRY_TIMES = 3;
 const uint32_t RETRY_SLEEP_MS = 5;
 }
@@ -147,6 +149,23 @@ bool AccountFileOperator::GetValidDeleteFileOperationFlag(const std::string &fil
     return false;
 }
 
+static bool IsDataStorageSufficient(const unsigned long long reqFreeBytes)
+{
+    struct statvfs diskInfo;
+    int ret = statvfs("/data", &diskInfo);
+    if (ret != 0) {
+        ACCOUNT_LOGE("Get disk info failed, ret=%{public}d, errno=%{public}d.", ret, errno);
+        return false;
+    }
+
+    unsigned long long freeBytes =
+        static_cast<unsigned long long>(diskInfo.f_bsize) * static_cast<unsigned long long>(diskInfo.f_bavail);
+    bool isSufficient = (freeBytes > reqFreeBytes + BUFF_FILE_SIZE);
+    ACCOUNT_LOGI("Data freeBytes=%{public}llu, reqFreeBytes=%{public}llu, isSufficient=%{public}d.", freeBytes,
+                 reqFreeBytes, isSufficient);
+    return isSufficient;
+}
+
 ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, const std::string &content)
 {
     std::string str = path;
@@ -157,6 +176,9 @@ ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, 
             ACCOUNT_LOGE("failed to create dir, str = %{public}s errCode %{public}d.", str.c_str(), errCode);
             return errCode;
         }
+    }
+    if (!IsDataStorageSufficient(content.length())) {
+        return ERR_ACCOUNT_COMMON_DATA_NO_SPACE;
     }
     std::unique_lock<std::shared_timed_mutex> lock(fileLock_);
     SetValidModifyFileOperationFlag(path, true);
