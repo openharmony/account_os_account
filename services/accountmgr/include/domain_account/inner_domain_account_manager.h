@@ -94,7 +94,7 @@ private:
     sptr<IRemoteObject::DeathRecipient> GetDeathRecipient();
     ErrCode InnerAuth(int32_t userId, const std::vector<uint8_t> &authData,
         const sptr<IDomainAccountCallback> &callback, AuthMode authMode);
-    ErrCode CheckUserToken(const std::vector<uint8_t> &token, bool &isValid, int32_t userId);
+    ErrCode CheckUserToken(const std::vector<uint8_t> &token, bool &isValid, const DomainAccountInfo &info);
     ErrCode PluginAuth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
         DomainAuthResult &resultParcel);
     ErrCode PluginGetDomainAccountInfo(const GetDomainAccountInfoOptions &options,
