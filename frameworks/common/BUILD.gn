@@ -63,7 +63,7 @@ ohos_shared_library("libaccount_common") {
   ]
 
   if (use_musl) {
-    if (use_jemalloc && use_jemalloc_dfx_intf) {
+    if (musl_use_jemalloc && musl_use_jemalloc_dfx_intf) {
       defines += [ "CONFIG_USE_JEMALLOC_DFX_INTF" ]
     }
   }
