@@ -161,6 +161,7 @@ private:
     ErrCode UpdateAccountToForeground(const uint64_t displayId, OsAccountInfo &osAccountInfo);
     ErrCode UpdateAccountToBackground(int32_t oldId);
     ErrCode IsValidOsAccount(const OsAccountInfo &osAccountInfo);
+    ErrCode GetRealOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo);
 
 private:
     std::shared_ptr<IOsAccountControl> osAccountControl_;
@@ -176,6 +177,7 @@ private:
     SafeMap<uint64_t, int32_t> foregroundAccountMap_;
     OsAccountPluginManager &pluginManager_;
     SafeMap<int32_t, bool> loggedInAccounts_;
+    SafeMap<int32_t, bool> verifiedAccounts_;
     std::map<int32_t, std::shared_ptr<std::mutex>> updateLocks_;
 };
 }  // namespace AccountSA
