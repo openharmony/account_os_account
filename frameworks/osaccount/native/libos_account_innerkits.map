@@ -201,6 +201,8 @@
         "OHOS::AccountSA::OsAccountInfo::GetIsForeground() const";
         "OHOS::AccountSA::OsAccountInfo::SetIsLoggedIn(bool)";
         "OHOS::AccountSA::OsAccountInfo::GetIsLoggedIn() const";
+        "OHOS::AccountSA::OsAccountInfo::SetIsDataRemovable(bool)";
+        "OHOS::AccountSA::OsAccountInfo::GetIsDataRemovable() const";
         *OHOS::AccountSA::OsAccountInfo::SetDisplayId*;
         *OHOS::AccountSA::OsAccountInfo::GetDisplayId*;
         "OHOS::AccountSA::OsAccountInfo::OsAccountInfo(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, OHOS::AccountSA::OsAccountType, long long)";
