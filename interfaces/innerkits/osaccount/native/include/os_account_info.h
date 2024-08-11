@@ -152,6 +152,10 @@ public:
 
     void SetIsLoggedIn(const bool isLoggedIn);
 
+    bool GetIsDataRemovable() const;
+
+    void SetIsDataRemovable(const bool isLoggedIn);
+
     ErrCode ParamCheck();
 
     bool IsTypeOutOfRange() const;
@@ -175,6 +179,7 @@ private:
     uint64_t displayId_ = -1;
     bool isForeground_ = false;
     bool isLoggedIn_ = false;
+    bool isDataRemovable_ = true;
 };
 
 typedef enum {
