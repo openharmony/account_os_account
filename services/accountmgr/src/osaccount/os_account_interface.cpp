@@ -57,6 +57,8 @@ constexpr uint32_t CRYPTO_FLAG_EL1 = 1;
 constexpr uint32_t CRYPTO_FLAG_EL2 = 2;
 constexpr int32_t E_ACTIVE_EL2 = 32;
 #endif
+constexpr int32_t DELAY_FOR_CREATE_EXCEPTION = 100;
+constexpr int32_t MAX_CREATE_RETRY_TIMES = 10;
 }
 
 ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo)
@@ -159,7 +161,18 @@ void OsAccountInterface::InitThemeResource(int32_t localId)
 ErrCode OsAccountInterface::SendToBMSAccountCreate(
     OsAccountInfo &osAccountInfo, const std::vector<std::string> &disallowedHapList)
 {
-    return BundleManagerAdapter::GetInstance()->CreateNewUser(osAccountInfo.GetLocalId(), disallowedHapList);
+    ErrCode errCode = ERR_OK;
+    int32_t retryTimes = 0;
+    while (retryTimes < MAX_CREATE_RETRY_TIMES) {
+        errCode = BundleManagerAdapter::GetInstance()->CreateNewUser(osAccountInfo.GetLocalId(), disallowedHapList);
+        if (errCode == ERR_OK) {
+            break;
+        }
+        ACCOUNT_LOGE("Fail to SendToBMSAccountCreate, errCode %{public}d.", errCode);
+        retryTimes++;
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_CREATE_EXCEPTION));
+    }
+    return errCode;
 }
 
 ErrCode OsAccountInterface::SendToBMSAccountDelete(OsAccountInfo &osAccountInfo)
@@ -301,6 +314,23 @@ void OsAccountInterface::SendToCESAccountSwitched(int newId, int oldId)
 }
 
 ErrCode OsAccountInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountInfo)
+{
+    ErrCode errCode = ERR_OK;
+    int32_t retryTimes = 0;
+    while (retryTimes < MAX_CREATE_RETRY_TIMES) {
+        errCode = InnerSendToStorageAccountCreate(osAccountInfo);
+        if (errCode == ERR_OK) {
+            break;
+        }
+        ACCOUNT_LOGE("Fail to SendToStorageAccountCreate,id=%{public}d, errCode %{public}d.",
+            osAccountInfo.GetLocalId(), errCode);
+        retryTimes++;
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_CREATE_EXCEPTION));
+    }
+    return errCode;
+}
+
+ErrCode OsAccountInterface::InnerSendToStorageAccountCreate(OsAccountInfo &osAccountInfo)
 {
 #ifdef HAS_STORAGE_PART
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
