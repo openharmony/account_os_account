@@ -128,6 +128,7 @@ void IInnerOsAccountManager::CreateBaseStandardAccount()
             .count();
     osAccountInfo.SetCreateTime(time);
     osAccountInfo.SetIsCreateCompleted(false);
+    osAccountInfo.SetIsDataRemovable(false);
     osAccountControl_->InsertOsAccount(osAccountInfo);
     if (SendMsgForAccountCreate(osAccountInfo) != ERR_OK) {
         ACCOUNT_LOGE("First OS account not created completely");
@@ -322,8 +323,9 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfoWithFullInfo(OsAccountInfo &
         return errCode;
     }
     osAccountInfo.SetSerialNumber(serialNumber);
+    osAccountInfo.SetIsDataRemovable(false);
     errCode = osAccountControl_->InsertOsAccount(osAccountInfo);
-    if (errCode != ERR_OK) {
+    if ((errCode != ERR_OK) && (errCode != ERR_OSACCOUNT_SERVICE_CONTROL_INSERT_FILE_EXISTS_ERROR)) {
         ACCOUNT_LOGE("insert os account info err, errCode %{public}d.", errCode);
         return errCode;
     }
@@ -366,7 +368,9 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
     errCode = OsAccountInterface::SendToBMSAccountCreate(osAccountInfo, options.disallowedHapList);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("create os account SendToBMSAccountCreate failed, errCode %{public}d.", errCode);
-        (void)OsAccountInterface::SendToStorageAccountRemove(osAccountInfo);
+        if (osAccountInfo.GetIsDataRemovable()) {
+            (void)OsAccountInterface::SendToStorageAccountRemove(osAccountInfo);
+        }
 #ifdef HAS_THEME_SERVICE_PART
         if (theme_thread.joinable()) {
             theme_thread.join();
@@ -385,8 +389,10 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
         ACCOUNT_LOGE("create os account when update isCreateCompleted");
         ReportOsAccountOperationFail(
             osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE, errCode, "UpdateOsAccount failed!");
-        (void)OsAccountInterface::SendToStorageAccountRemove(osAccountInfo);
-        (void)OsAccountInterface::SendToBMSAccountDelete(osAccountInfo);
+        if (osAccountInfo.GetIsDataRemovable()) {
+            (void)OsAccountInterface::SendToBMSAccountDelete(osAccountInfo);
+            (void)OsAccountInterface::SendToStorageAccountRemove(osAccountInfo);
+        }
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
     ReportOsAccountLifeCycle(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE);
@@ -705,6 +711,10 @@ ErrCode IInnerOsAccountManager::PrepareRemoveOsAccount(OsAccountInfo &osAccountI
 
 ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountInfo &osAccountInfo, bool isCleanGarbage)
 {
+    if (isCleanGarbage && (!osAccountInfo.GetIsCreateCompleted()) && (!osAccountInfo.GetIsDataRemovable())) {
+        ACCOUNT_LOGI("Account cannot be removed id=%{public}d.", id);
+        return ERR_OK;
+    }
     ErrCode errCode = PrepareRemoveOsAccount(osAccountInfo, isCleanGarbage);
     if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(id);
@@ -1216,7 +1226,7 @@ void IInnerOsAccountManager::CleanGarbageOsAccounts()
 
     // check status and remove garbage accounts data
     for (size_t i = 0; i < osAccountInfos.size(); ++i) {
-        if (!osAccountInfos[i].GetToBeRemoved()) {
+        if (!osAccountInfos[i].GetToBeRemoved() && osAccountInfos[i].GetIsCreateCompleted()) {
             continue;
         }
 
