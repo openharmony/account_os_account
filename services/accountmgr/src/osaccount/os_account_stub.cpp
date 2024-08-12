@@ -26,6 +26,9 @@
 #endif // HICOLLIE_ENABLE
 namespace OHOS {
 namespace AccountSA {
+#ifdef HICOLLIE_ENABLE
+constexpr std::int32_t RECOVERY_TIMEOUT = 6; // timeout 6s
+#endif // HICOLLIE_ENABLE
 const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::CREATE_OS_ACCOUNT),
@@ -895,15 +898,28 @@ ErrCode OsAccountStub::ProcGetOsAccountAllConstraints(MessageParcel &data, Messa
 ErrCode OsAccountStub::ProcGetOsAccountLocalIdFromProcess(MessageParcel &data, MessageParcel &reply)
 {
     int localId = -1;
+#ifdef HICOLLIE_ENABLE
+    int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(
+        TIMER_NAME, RECOVERY_TIMEOUT, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_RECOVERY);
+#endif // HICOLLIE_ENABLE
     ErrCode result = GetOsAccountLocalIdFromProcess(localId);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
+#ifdef HICOLLIE_ENABLE
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     if (!reply.WriteInt32(localId)) {
         ACCOUNT_LOGE("failed to write reply");
+#ifdef HICOLLIE_ENABLE
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
+#ifdef HICOLLIE_ENABLE
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
     return ERR_NONE;
 }
 
@@ -1180,24 +1196,39 @@ ErrCode OsAccountStub::ProcIsOsAccountExists(MessageParcel &data, MessageParcel 
 
 ErrCode OsAccountStub::ProcSubscribeOsAccount(MessageParcel &data, MessageParcel &reply)
 {
+#ifdef HICOLLIE_ENABLE
+    int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(
+        TIMER_NAME, RECOVERY_TIMEOUT, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_RECOVERY);
+#endif // HICOLLIE_ENABLE
     std::unique_ptr<OsAccountSubscribeInfo> subscribeInfo(data.ReadParcelable<OsAccountSubscribeInfo>());
     if (!subscribeInfo) {
         ACCOUNT_LOGE("failed to read parcelable for subscribeInfo");
+#ifdef HICOLLIE_ENABLE
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
         return IPC_STUB_INVALID_DATA_ERR;
     }
 
     sptr<IRemoteObject> eventListener = data.ReadRemoteObject();
     if (eventListener == nullptr) {
         ACCOUNT_LOGE("failed to read remote object for eventListener");
+#ifdef HICOLLIE_ENABLE
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
         return IPC_STUB_INVALID_DATA_ERR;
     }
 
     ErrCode result = SubscribeOsAccount(*subscribeInfo, eventListener);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
+#ifdef HICOLLIE_ENABLE
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-
+#ifdef HICOLLIE_ENABLE
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
     return ERR_NONE;
 }
 
@@ -1444,15 +1475,28 @@ ErrCode OsAccountStub::ProcGetOsAccountListFromDatabase(MessageParcel &data, Mes
 ErrCode OsAccountStub::ProcQueryActiveOsAccountIds(MessageParcel &data, MessageParcel &reply)
 {
     std::vector<int32_t> ids;
+#ifdef HICOLLIE_ENABLE
+    int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(
+        TIMER_NAME, RECOVERY_TIMEOUT, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_RECOVERY);
+#endif // HICOLLIE_ENABLE
     ErrCode result = QueryActiveOsAccountIds(ids);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
+#ifdef HICOLLIE_ENABLE
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     if (!reply.WriteInt32Vector(ids)) {
         ACCOUNT_LOGE("failed to write active list");
+#ifdef HICOLLIE_ENABLE
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
+#ifdef HICOLLIE_ENABLE
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
     return ERR_NONE;
 }
 
