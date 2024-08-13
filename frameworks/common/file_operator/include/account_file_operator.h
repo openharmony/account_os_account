@@ -44,6 +44,7 @@ public:
     void SetValidDeleteFileOperationFlag(const std::string &fileName, bool flag);
     bool GetValidModifyFileOperationFlag(const std::string &fileName);
     void SetValidModifyFileOperationFlag(const std::string &fileName, bool flag);
+    bool SetDirDelFlags(const std::string &dirpath);
 
 public:
     mutable std::shared_timed_mutex fileLock_;
