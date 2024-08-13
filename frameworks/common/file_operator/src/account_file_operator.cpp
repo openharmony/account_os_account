@@ -15,12 +15,14 @@
 #include "account_file_operator.h"
 #include <cerrno>
 #include <cstdio>
+#include <fcntl.h>
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <shared_mutex>
 #include <sstream>
 #include <string>
 #include <sys/file.h>
+#include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/statvfs.h>
 #include <sys/types.h>
@@ -37,6 +39,9 @@ const long MAX_FILE_SIZE = 1 << 24; // 16MB
 const unsigned long long BUFF_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 const uint32_t RETRY_TIMES = 3;
 const uint32_t RETRY_SLEEP_MS = 5;
+#define HMFS_MONITOR_FL 0x00000002
+#define HMFS_IOCTL_HW_GET_FLAGS _IOR(0XF5, 70, unsigned int)
+#define HMFS_IOCTL_HW_SET_FLAGS _IOR(0XF5, 71, unsigned int)
 }
 AccountFileOperator::AccountFileOperator()
 {}
@@ -46,12 +51,13 @@ AccountFileOperator::~AccountFileOperator()
 
 ErrCode AccountFileOperator::CreateDir(const std::string &path)
 {
-    ACCOUNT_LOGD("enter");
+    ACCOUNT_LOGI("Start creating a directory");
     std::unique_lock<std::shared_timed_mutex> lock(fileLock_);
     if (!OHOS::ForceCreateDirectory(path)) {
         ACCOUNT_LOGE("failed to create %{public}s, errno %{public}d.", path.c_str(), errno);
         return ERR_OSACCOUNT_SERVICE_FILE_CREATE_DIR_ERROR;
     }
+    SetDirDelFlags(path);
     mode_t mode = S_IRWXU;
     bool createFlag = OHOS::ChangeModeDirectory(path, mode);
     if (!createFlag) {
@@ -99,7 +105,6 @@ ErrCode AccountFileOperator::DeleteFile(const std::string &path)
     SetValidDeleteFileOperationFlag(path, true);
     return ERR_OK;
 }
-
 
 void AccountFileOperator::SetValidModifyFileOperationFlag(const std::string &fileName, bool flag)
 {
@@ -164,6 +169,41 @@ static bool IsDataStorageSufficient(const unsigned long long reqFreeBytes)
     ACCOUNT_LOGI("Data freeBytes=%{public}llu, reqFreeBytes=%{public}llu, isSufficient=%{public}d.", freeBytes,
                  reqFreeBytes, isSufficient);
     return isSufficient;
+}
+
+bool AccountFileOperator::SetDirDelFlags(const std::string &dirpath)
+{
+    char realPath[PATH_MAX] = {0};
+    if (realpath(dirpath.c_str(), realPath) == nullptr) {
+        ACCOUNT_LOGE("Failed to get realpath");
+        return false;
+    }
+    int32_t fd = open(realPath, O_DIRECTORY);
+    if (fd < 0) {
+        ACCOUNT_LOGE("Failed to open dir, errno: %{public}d", errno);
+        return false;
+    }
+    unsigned int flags = 0;
+    int32_t ret = ioctl(fd, HMFS_IOCTL_HW_GET_FLAGS, &flags);
+    if (ret < 0) {
+        close(fd);
+        ACCOUNT_LOGE("Failed to get flags, errno: %{public}d", errno);
+        return false;
+    }
+    if (flags & HMFS_MONITOR_FL) {
+        close(fd);
+        ACCOUNT_LOGE("Delete control flag is already set");
+        return false;
+    }
+    flags |= HMFS_MONITOR_FL;
+    ret  = ioctl(fd, HMFS_IOCTL_HW_SET_FLAGS, &flags);
+    if (ret < 0) {
+        close(fd);
+        ACCOUNT_LOGE("Failed to set flags, errno: %{public}d", errno);
+        return false;
+    }
+    close(fd);
+    return true;
 }
 
 ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, const std::string &content)
