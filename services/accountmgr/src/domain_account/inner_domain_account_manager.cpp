@@ -36,6 +36,7 @@
 #include "inner_account_iam_manager.h"
 #include "int_wrapper.h"
 #include "ipc_skeleton.h"
+#include "parameters.h"
 #include "status_listener_manager.h"
 #include "string_wrapper.h"
 
@@ -58,6 +59,22 @@ static const std::string LIB_PATH = "/system/lib64/platformsdk/";
 static const std::string LIB_PATH = "/system/lib/platformsdk/";
 #endif
 static const std::string LIB_NAME = "libdomain_account_plugin.z.so";
+static const std::string EDM_FREEZE_BACKGROUND_PARAM = "persist.edm.inactive_user_freeze";
+}
+
+static bool IsSupportNetRequest()
+{
+    bool isBackgroundFreezeEnabled = OHOS::system::GetBoolParameter(EDM_FREEZE_BACKGROUND_PARAM, false);
+    if (!isBackgroundFreezeEnabled) {
+        return true;
+    }
+    int32_t accountId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+    if (accountId == 0) { // account 0 not limited by network policy
+        return true;
+    }
+    bool isForeground = false;
+    IInnerOsAccountManager::GetInstance().IsOsAccountForeground(accountId, 0, isForeground);
+    return isForeground;
 }
 
 InnerDomainAccountManager::InnerDomainAccountManager()
@@ -502,6 +519,10 @@ static void SetPluginGetDomainAccessTokenOptions(const GetAccessTokenOptions &op
 ErrCode InnerDomainAccountManager::AddServerConfig(
     const std::string &paremters, DomainServerConfig &config) __attribute__((no_sanitize("cfi")))
 {
+    if (!IsSupportNetRequest()) {
+        ACCOUNT_LOGE("Not support background account request");
+        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
+    }
     auto iter = methodMap_.find(PluginMethodEnum::ADD_SERVER_CONFIG);
     if (iter == methodMap_.end() || iter->second == nullptr) {
         ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::ADD_SERVER_CONFIG);
@@ -522,6 +543,10 @@ ErrCode InnerDomainAccountManager::AddServerConfig(
 
 ErrCode InnerDomainAccountManager::RemoveServerConfig(const std::string &configId) __attribute__((no_sanitize("cfi")))
 {
+    if (!IsSupportNetRequest()) {
+        ACCOUNT_LOGE("Not support background account request");
+        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
+    }
     auto iter = methodMap_.find(PluginMethodEnum::REMOVE_SERVER_CONFIG);
     if (iter == methodMap_.end() || iter->second == nullptr) {
         ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::REMOVE_SERVER_CONFIG);
@@ -545,6 +570,10 @@ ErrCode InnerDomainAccountManager::RemoveServerConfig(const std::string &configI
 ErrCode InnerDomainAccountManager::GetAccountServerConfig(
     const DomainAccountInfo &info, DomainServerConfig &config) __attribute__((no_sanitize("cfi")))
 {
+    if (!IsSupportNetRequest()) {
+        ACCOUNT_LOGE("Not support background account request");
+        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
+    }
     auto iter = methodMap_.find(PluginMethodEnum::GET_ACCOUNT_SERVER_CONFIG);
     if (iter == methodMap_.end() || iter->second == nullptr) {
         ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::GET_ACCOUNT_SERVER_CONFIG);
@@ -602,6 +631,10 @@ ErrCode InnerDomainAccountManager::PluginAuth(const DomainAccountInfo &info,
 ErrCode InnerDomainAccountManager::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
     const sptr<IDomainAccountCallback> &callback)
 {
+    if (!IsSupportNetRequest()) {
+        ACCOUNT_LOGE("Not support background account request");
+        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
+    }
     int32_t userId = -1;
     sptr<IDomainAccountCallback> innerCallback = callback;
     IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
@@ -870,6 +903,10 @@ ErrCode InnerDomainAccountManager::InnerAuth(int32_t userId, const std::vector<u
 ErrCode InnerDomainAccountManager::AuthUser(int32_t userId, const std::vector<uint8_t> &password,
     const sptr<IDomainAccountCallback> &callback)
 {
+    if (!IsSupportNetRequest()) {
+        ACCOUNT_LOGE("Not support background account request");
+        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
+    }
     bool isVerified = false;
     (void) IInnerOsAccountManager::GetInstance().IsOsAccountVerified(userId, isVerified);
     if (isVerified) {
@@ -887,6 +924,10 @@ ErrCode InnerDomainAccountManager::AuthUser(int32_t userId, const std::vector<ui
 
 ErrCode InnerDomainAccountManager::AuthWithPopup(int32_t userId, const sptr<IDomainAccountCallback> &callback)
 {
+    if (!IsSupportNetRequest()) {
+        ACCOUNT_LOGE("Not support background account request");
+        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
+    }
     if (userId == 0) {
         std::vector<int32_t> userIds;
         (void)IInnerOsAccountManager::GetInstance().QueryActiveOsAccountIds(userIds);
@@ -901,6 +942,10 @@ ErrCode InnerDomainAccountManager::AuthWithPopup(int32_t userId, const sptr<IDom
 
 ErrCode InnerDomainAccountManager::AuthWithToken(int32_t userId, const std::vector<uint8_t> &token)
 {
+    if (!IsSupportNetRequest()) {
+        ACCOUNT_LOGE("Not support background account request");
+        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
+    }
     return InnerAuth(userId, token, nullptr, AUTH_WITH_TOKEN_MODE);
 }
 
@@ -1044,6 +1089,10 @@ ErrCode InnerDomainAccountManager::GetAccessToken(
         ACCOUNT_LOGE("invalid callback");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
+    if (!IsSupportNetRequest()) {
+        ACCOUNT_LOGE("Not support background account request");
+        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
+    }
     int32_t callingUid = IPCSkeleton::GetCallingUid();
     int32_t userId = 0;
     DomainAccountInfo targetInfo = info;
@@ -1080,6 +1129,10 @@ ErrCode InnerDomainAccountManager::GetAccessToken(
 ErrCode InnerDomainAccountManager::IsAuthenticationExpired(
     const DomainAccountInfo &info, bool &isExpired) __attribute__((no_sanitize("cfi")))
 {
+    if (!IsSupportNetRequest()) {
+        ACCOUNT_LOGE("Not support background account request");
+        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
+    }
     auto iter = methodMap_.find(PluginMethodEnum::IS_AUTHENTICATION_EXPIRED);
     if (iter == methodMap_.end() || iter->second == nullptr) {
         ACCOUNT_LOGE("Caller method=%{public}d not exsit.", iter->first);
@@ -1118,6 +1171,10 @@ ErrCode InnerDomainAccountManager::IsAuthenticationExpired(
 ErrCode InnerDomainAccountManager::SetAccountPolicy(
     const DomainAccountPolicy &policy) __attribute__((no_sanitize("cfi")))
 {
+    if (!IsSupportNetRequest()) {
+        ACCOUNT_LOGE("Not support background account request");
+        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
+    }
     auto iter = methodMap_.find(PluginMethodEnum::SET_ACCOUNT_POLICY);
     if (iter == methodMap_.end() || iter->second == nullptr) {
         ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::SET_ACCOUNT_POLICY);
@@ -1176,6 +1233,10 @@ void CheckUserTokenCallback::NotifyCallbackEnd()
 
 ErrCode InnerDomainAccountManager::CheckUserToken(const std::vector<uint8_t> &token, bool &isValid, int32_t userId)
 {
+    if (!IsSupportNetRequest()) {
+        ACCOUNT_LOGE("Not support background account request");
+        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
+    }
     std::shared_ptr<CheckUserTokenCallback> callback = std::make_shared<CheckUserTokenCallback>();
     sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
     if (callbackService == nullptr) {
@@ -1251,6 +1312,10 @@ ErrCode InnerDomainAccountManager::UnregisterAccountStatusListener(const sptr<ID
 ErrCode InnerDomainAccountManager::GetAuthStatusInfo(
     const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback)
 {
+    if (!IsSupportNetRequest()) {
+        ACCOUNT_LOGE("Not support background account request");
+        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
+    }
     sptr<IDomainAccountCallback> callbackService =
         new (std::nothrow) DomainAccountCallbackService(callback);
     if (callbackService == nullptr) {
@@ -1327,6 +1392,10 @@ ErrCode InnerDomainAccountManager::StartHasDomainAccount(const sptr<IDomainAccou
 ErrCode InnerDomainAccountManager::HasDomainAccount(
     const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback)
 {
+    if (!IsSupportNetRequest()) {
+        ACCOUNT_LOGE("Not support background account request");
+        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
+    }
     int32_t callingUid = IPCSkeleton::GetCallingUid();
     GetDomainAccountInfoOptions options;
     options.accountInfo = info;
@@ -1351,6 +1420,10 @@ void InnerDomainAccountManager::StartOnAccountBound(const sptr<IDomainAccountPlu
 ErrCode InnerDomainAccountManager::OnAccountBound(const DomainAccountInfo &info, const int32_t localId,
     const std::shared_ptr<DomainAccountCallback> &callback)
 {
+    if (!IsSupportNetRequest()) {
+        ACCOUNT_LOGE("Not support background account request");
+        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
+    }
     sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
     if (callbackService == nullptr) {
         ACCOUNT_LOGE("make shared DomainAccountCallbackService failed");
@@ -1389,6 +1462,10 @@ void InnerDomainAccountManager::StartOnAccountUnBound(const sptr<IDomainAccountP
 ErrCode InnerDomainAccountManager::OnAccountUnBound(const DomainAccountInfo &info,
     const std::shared_ptr<DomainAccountCallback> &callback)
 {
+    if (!IsSupportNetRequest()) {
+        ACCOUNT_LOGE("Not support background account request");
+        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
+    }
     sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
     if (callbackService == nullptr) {
         ACCOUNT_LOGE("make shared DomainAccountCallbackService failed");
@@ -1460,6 +1537,10 @@ ErrCode InnerDomainAccountManager::PluginGetDomainAccountInfo(const GetDomainAcc
 ErrCode InnerDomainAccountManager::GetDomainAccountInfo(
     const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback)
 {
+    if (!IsSupportNetRequest()) {
+        ACCOUNT_LOGE("Not support background account request");
+        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
+    }
     DomainAccountCallbackFunc callbackFunc = [=](const int32_t errCode, Parcel &parcel) {
         if (callback != nullptr) {
             callback->OnResult(errCode, parcel);
@@ -1518,6 +1599,10 @@ void InnerDomainAccountManager::StartIsAccountTokenValid(const sptr<IDomainAccou
 ErrCode InnerDomainAccountManager::IsAccountTokenValid(const DomainAccountInfo &info,
     const std::vector<uint8_t> &token, const std::shared_ptr<DomainAccountCallback> &callback)
 {
+    if (!IsSupportNetRequest()) {
+        ACCOUNT_LOGE("Not support background account request");
+        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
+    }
     sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
     if (callbackService == nullptr) {
         ACCOUNT_LOGE("make shared DomainAccountCallbackService failed");
@@ -1640,6 +1725,10 @@ static ErrCode CheckNewDomainAccountInfo(const DomainAccountInfo &oldAccountInfo
 ErrCode InnerDomainAccountManager::UpdateAccountInfo(
     const DomainAccountInfo &oldAccountInfo, const DomainAccountInfo &newAccountInfo)
 {
+    if (!IsSupportNetRequest()) {
+        ACCOUNT_LOGE("Not support background account request");
+        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
+    }
     if (!IsPluginAvailable()) {
         ACCOUNT_LOGE("Plugin is nullptr.");
         return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
