@@ -15,7 +15,9 @@
 
 #include "app_account_data_storage.h"
 
+#include <sys/stat.h>
 #include "app_account_constants.h"
+#include "account_file_operator.h"
 #include "account_log_wrapper.h"
 
 namespace OHOS {
@@ -26,7 +28,12 @@ const std::string AUTHORIZED_ACCOUNTS = "authorizedAccounts";
 
 AppAccountDataStorage::AppAccountDataStorage(const std::string &storeId, const AccountDataStorageOptions &options)
     : AccountDataStorage(Constants::APP_ACCOUNT_APP_ID, storeId, options)
-{}
+{
+    if (!options.baseDir.empty()) {
+        AccountFileOperator fileOperator;
+        fileOperator.CreateDir(options.baseDir, S_IRWXU | S_IRWXG);
+    }
+}
 
 Json AppAccountDataStorage::GetAccessibleAccountsFromAuthorizedAccounts(const std::string &authorizedAccounts,
     const std::string &authorizedApp, std::vector<std::string> &accessibleAccounts)
