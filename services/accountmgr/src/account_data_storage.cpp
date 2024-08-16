@@ -34,7 +34,7 @@ AccountDataStorage::AccountDataStorage(const std::string &appId, const std::stri
     if (options_.area == DistributedKv::EL1) {
         baseDir_ = KV_STORE_EL1_BASE_DIR + appId;
     } else {
-        baseDir_ = KV_STORE_EL2_BASE_DIR + appId;
+        baseDir_ = options.baseDir;
     }
 }
 
