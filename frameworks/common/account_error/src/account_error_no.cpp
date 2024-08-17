@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -126,6 +126,8 @@ static int32_t DomainAccountConvertToJSErrCode(int32_t errCode)
         case ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT:
             return ERR_JS_ACCOUNT_NOT_FOUND;
         case ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST:
+            return ERR_JS_CAPABILITY_NOT_SUPPORTED;
+        case ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST:
             return ERR_JS_CAPABILITY_NOT_SUPPORTED;
         default:
             return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
