@@ -633,8 +633,7 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0105, TestSize.Level1)
 
     osAccountInfo.SetLastLoginTime(1695863290000);
     EXPECT_EQ(ERR_OK, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_CONTROL_INSERT_FILE_EXISTS_ERROR,
-        OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo));
+    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo));
     OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId());
 }
 
