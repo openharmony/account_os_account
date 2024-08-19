@@ -213,21 +213,17 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     sptr<IRemoteObject> osAccountEventListener = nullptr;
 
     OsAccountInfo osAccountInfo;
-    ErrCode result = osAccountManagerService_->CreateOsAccount(
+    ErrCode result = OsAccount::GetInstance().CreateOsAccount(
         "OsAccountManagerServiceSubscribeModuleTest_0001", OsAccountType::GUEST, osAccountInfo);
     EXPECT_EQ(result, ERR_OK);
     subscriberTestPtr->id_ = osAccountInfo.GetLocalId();
-    ErrCode subscribeState = OsAccount::GetInstance().CreateOsAccountEventListener(
-        subscriberTestPtr, osAccountEventListener);
-    EXPECT_EQ(subscribeState, OsAccount::INITIAL_SUBSCRIPTION);
-
-    // subscribe app account
-    result = osAccountManagerService_->SubscribeOsAccount(osAccountSubscribeInfo, osAccountEventListener);
+    // subscribe os account
+    result = OsAccount::GetInstance().SubscribeOsAccount(subscriberTestPtr);
     EXPECT_EQ(result, ERR_OK);
     // lock the mutex
     g_mtx.lock();
     EXPECT_EQ(result, ERR_OK);
-    result = osAccountManagerService_->ActivateOsAccount(osAccountInfo.GetLocalId());
+    result = OsAccount::GetInstance().ActivateOsAccount(osAccountInfo.GetLocalId());
     EXPECT_EQ(result, ERR_OK);
     struct tm startTime = {0};
     EXPECT_EQ(GetSystemCurrentTime(&startTime), true);
@@ -240,11 +236,11 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
         }
     }
     g_mtx.unlock();
-    result = osAccountManagerService_->UnsubscribeOsAccount(osAccountEventListener);
+    result = OsAccount::GetInstance().UnsubscribeOsAccount(subscriberTestPtr);
     EXPECT_EQ(result, ERR_OK);
-    osAccountManagerService_->ActivateOsAccount(Constants::START_USER_ID);
     // unlock the mutex
-    result = osAccountManagerService_->RemoveOsAccount(osAccountInfo.GetLocalId());
+    result = OsAccount::GetInstance().RemoveOsAccount(osAccountInfo.GetLocalId());
+    EXPECT_EQ(result, ERR_OK);
 }
 
 /**

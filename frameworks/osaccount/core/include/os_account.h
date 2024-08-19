@@ -103,7 +103,7 @@ public:
     ErrCode SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved);
 
 private:
-    OsAccount() = default;
+    OsAccount();
     ~OsAccount() = default;
     DISALLOW_COPY_AND_MOVE(OsAccount);
     sptr<IOsAccount> GetOsAccountProxy();
@@ -111,6 +111,7 @@ private:
         const std::shared_ptr<OsAccountSubscriber> &subscriber, sptr<IRemoteObject> &osAccountEventListener);
     ErrCode IsOsAccountForegroundCommon(int32_t localId, uint64_t displayId, bool &isForeground);
     ErrCode GetForegroundLocalIdCommon(uint64_t displayId, int32_t &localId);
+    void RestoreListenerRecords();
 
 private:
     std::mutex mutex_;
