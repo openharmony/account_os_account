@@ -15,6 +15,7 @@
 
 #include "inner_account_iam_manager.h"
 
+#include <thread>
 #include "account_iam_callback.h"
 #include "account_log_wrapper.h"
 #include "domain_account_callback_service.h"
@@ -33,6 +34,8 @@ namespace {
 #ifdef HAS_STORAGE_PART
 constexpr int32_t ERROR_STORAGE_KEY_NOT_EXIST = -2;
 #endif
+constexpr int32_t DELAY_FOR_EXCEPTION = 100;
+constexpr int32_t MAX_RETRY_TIMES = 20;
 }
 using UserIDMClient = UserIam::UserAuth::UserIdmClient;
 using UserAuthClient = UserIam::UserAuth::UserAuthClient;
@@ -380,19 +383,37 @@ ErrCode InnerAccountIAMManager::UpdateStorageKey(
     int32_t userId, uint64_t secureUid, const std::vector<uint8_t> &token,
     const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret)
 {
-#ifdef HAS_STORAGE_PART
-    ErrCode result = GetStorageManagerProxy();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("fail to get storage proxy");
-        return result;
+    int times = 0;
+    ErrCode errCode = ERR_OK;
+    while (times < MAX_RETRY_TIMES) {
+        errCode = InnerUpdateStorageKey(userId, secureUid, token, oldSecret, newSecret);
+        if (errCode == ERR_OK) {
+            return errCode;
+        }
+        ACCOUNT_LOGE("errCode=%{public}d, userId=%{public}d, times=%{public}d", errCode, userId, times);
+        times++;
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
     }
-    result = storageMgrProxy_->UpdateUserAuth(userId, secureUid, token, oldSecret, newSecret);
+    return errCode;
+}
+
+ErrCode InnerAccountIAMManager::InnerUpdateStorageKey(
+    int32_t userId, uint64_t secureUid, const std::vector<uint8_t> &token,
+    const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret)
+{
+#ifdef HAS_STORAGE_PART
+    auto storageMgrProxy = GetStorageManagerProxy();
+    if (storageMgrProxy == nullptr) {
+        ACCOUNT_LOGE("fail to get storage proxy");
+        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY;
+    }
+    ErrCode result = storageMgrProxy->UpdateUserAuth(userId, secureUid, token, oldSecret, newSecret);
     if ((result != ERR_OK) && (result != ERROR_STORAGE_KEY_NOT_EXIST)) {
         ACCOUNT_LOGE("fail to update user auth");
         return result;
     }
 
-    result = storageMgrProxy_->UpdateKeyContext(userId);
+    result = storageMgrProxy->UpdateKeyContext(userId);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Fail to update key context, userId=%{public}d, result=%{public}d", userId, result);
         ReportOsAccountOperationFail(userId, "updateStorageKeyContext", result,
@@ -406,14 +427,30 @@ ErrCode InnerAccountIAMManager::UpdateStorageKey(
 
 ErrCode InnerAccountIAMManager::UpdateStorageKeyContext(const int32_t userId)
 {
+    int times = 0;
+    ErrCode errCode = ERR_OK;
+    while (times < MAX_RETRY_TIMES) {
+        errCode = InnerUpdateStorageKeyContext(userId);
+        if (errCode == ERR_OK) {
+            return errCode;
+        }
+        ACCOUNT_LOGE("errCode=%{public}d, userId=%{public}d, times=%{public}d", errCode, userId, times);
+        times++;
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
+    }
+    return errCode;
+}
+
+ErrCode InnerAccountIAMManager::InnerUpdateStorageKeyContext(const int32_t userId)
+{
     ACCOUNT_LOGI("Enter, userId=%{public}d", userId);
 #ifdef HAS_STORAGE_PART
-    ErrCode code = GetStorageManagerProxy();
-    if (code != ERR_OK) {
+    auto storageMgrProxy = GetStorageManagerProxy();
+    if (storageMgrProxy == nullptr) {
         ACCOUNT_LOGE("Fail to get storage proxy");
-        return code;
+        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY;
     }
-    code = storageMgrProxy_->UpdateKeyContext(userId);
+    ErrCode code = storageMgrProxy->UpdateKeyContext(userId);
     if (code != ERR_OK) {
         ACCOUNT_LOGE("Fail to update key context, userId=%{public}d, code=%{public}d", userId, code);
         ReportOsAccountOperationFail(userId, "updateStorageKeyContext", code,
@@ -427,15 +464,32 @@ ErrCode InnerAccountIAMManager::UpdateStorageKeyContext(const int32_t userId)
 ErrCode InnerAccountIAMManager::UpdateStorageUserAuth(int32_t userId, uint64_t secureUid,
     const std::vector<uint8_t> &token, const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret)
 {
+    int times = 0;
+    ErrCode errCode = ERR_OK;
+    while (times < MAX_RETRY_TIMES) {
+        errCode = InnerUpdateStorageUserAuth(userId, secureUid, token, oldSecret, newSecret);
+        if (errCode == ERR_OK) {
+            return errCode;
+        }
+        ACCOUNT_LOGE("errCode=%{public}d, userId=%{public}d, times=%{public}d", errCode, userId, times);
+        times++;
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
+    }
+    return errCode;
+}
+
+ErrCode InnerAccountIAMManager::InnerUpdateStorageUserAuth(int32_t userId, uint64_t secureUid,
+    const std::vector<uint8_t> &token, const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret)
+{
     ACCOUNT_LOGI("Enter, userId=%{public}d", userId);
 #ifdef HAS_STORAGE_PART
-    ErrCode code = GetStorageManagerProxy();
-    if (code != ERR_OK) {
+    auto storageMgrProxy = GetStorageManagerProxy();
+    if (storageMgrProxy == nullptr) {
         ACCOUNT_LOGE("Fail to get storage proxy");
-        return code;
+        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY;
     }
 
-    code = storageMgrProxy_->UpdateUserAuth(userId, secureUid, token, oldSecret, newSecret);
+    ErrCode code = storageMgrProxy->UpdateUserAuth(userId, secureUid, token, oldSecret, newSecret);
     if ((code != ERR_OK) && (code != ERROR_STORAGE_KEY_NOT_EXIST)) {
         ACCOUNT_LOGE("Fail to update user auth, userId=%{public}d, code=%{public}d", userId, code);
         ReportOsAccountOperationFail(userId, "updateStorageUserAuth", code,
@@ -448,13 +502,29 @@ ErrCode InnerAccountIAMManager::UpdateStorageUserAuth(int32_t userId, uint64_t s
 
 ErrCode InnerAccountIAMManager::GetLockScreenStatus(uint32_t userId, bool &lockScreenStatus)
 {
-#ifdef HAS_STORAGE_PART
-    ErrCode result = GetStorageManagerProxy();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("fail to get storage proxy");
-        return result;
+    int times = 0;
+    ErrCode errCode = ERR_OK;
+    while (times < MAX_RETRY_TIMES) {
+        errCode = InnerGetLockScreenStatus(userId, lockScreenStatus);
+        if (errCode == ERR_OK) {
+            return errCode;
+        }
+        ACCOUNT_LOGE("errCode=%{public}d, userId=%{public}d, times=%{public}d", errCode, userId, times);
+        times++;
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
     }
-    result = storageMgrProxy_->GetLockScreenStatus(userId, lockScreenStatus);
+    return errCode;
+}
+
+ErrCode InnerAccountIAMManager::InnerGetLockScreenStatus(uint32_t userId, bool &lockScreenStatus)
+{
+#ifdef HAS_STORAGE_PART
+    auto storageMgrProxy = GetStorageManagerProxy();
+    if (storageMgrProxy == nullptr) {
+        ACCOUNT_LOGE("fail to get storage proxy");
+        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY;
+    }
+    ErrCode result = storageMgrProxy->GetLockScreenStatus(userId, lockScreenStatus);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get lock screen status");
         return result;
@@ -466,13 +536,30 @@ ErrCode InnerAccountIAMManager::GetLockScreenStatus(uint32_t userId, bool &lockS
 ErrCode InnerAccountIAMManager::UnlockUserScreen(
     int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret)
 {
-#ifdef HAS_STORAGE_PART
-    ErrCode result = GetStorageManagerProxy();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("fail to get storage proxy");
-        return result;
+    int times = 0;
+    ErrCode errCode = ERR_OK;
+    while (times < MAX_RETRY_TIMES) {
+        errCode = InnerUnlockUserScreen(userId, token, secret);
+        if (errCode == ERR_OK) {
+            return errCode;
+        }
+        ACCOUNT_LOGE("errCode=%{public}d, userId=%{public}d, times=%{public}d", errCode, userId, times);
+        times++;
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
     }
-    result = storageMgrProxy_->UnlockUserScreen(userId, token, secret);
+    return errCode;
+}
+
+ErrCode InnerAccountIAMManager::InnerUnlockUserScreen(
+    int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret)
+{
+#ifdef HAS_STORAGE_PART
+    auto storageMgrProxy = GetStorageManagerProxy();
+    if (storageMgrProxy == nullptr) {
+        ACCOUNT_LOGE("fail to get storage proxy");
+        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY;
+    }
+    ErrCode result = storageMgrProxy->UnlockUserScreen(userId, token, secret);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("fail to unlock screen");
         return result;
@@ -484,48 +571,56 @@ ErrCode InnerAccountIAMManager::UnlockUserScreen(
 ErrCode InnerAccountIAMManager::ActivateUserKey(
     int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret)
 {
-#ifdef HAS_STORAGE_PART
-    ErrCode result = GetStorageManagerProxy();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("fail to get storage proxy");
-        return result;
+    int times = 0;
+    ErrCode errCode = ERR_OK;
+    while (times < MAX_RETRY_TIMES) {
+        errCode = InnerActivateUserKey(userId, token, secret);
+        if (errCode == ERR_OK) {
+            return errCode;
+        }
+        ACCOUNT_LOGE("errCode=%{public}d, userId=%{public}d, times=%{public}d", errCode, userId, times);
+        times++;
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
     }
-    result = storageMgrProxy_->ActiveUserKey(userId, token, secret);
+    return errCode;
+}
+
+ErrCode InnerAccountIAMManager::InnerActivateUserKey(
+    int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret)
+{
+#ifdef HAS_STORAGE_PART
+    auto storageMgrProxy = GetStorageManagerProxy();
+    if (storageMgrProxy == nullptr) {
+        ACCOUNT_LOGE("fail to get storage proxy");
+        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY;
+    }
+    ErrCode result = storageMgrProxy->ActiveUserKey(userId, token, secret);
     ACCOUNT_LOGI("ActiveUserKey end, ret: %{public}d", result);
     if (result != ERR_OK && result != ERROR_STORAGE_KEY_NOT_EXIST) {
         return result;
     }
-    result = storageMgrProxy_->PrepareStartUser(userId);
+    result = storageMgrProxy->PrepareStartUser(userId);
     ACCOUNT_LOGI("PrepareStartUser end, ret: %{public}d", result);
 #endif
     return ERR_OK;
 }
 
-ErrCode InnerAccountIAMManager::GetStorageManagerProxy()
-{
 #ifdef HAS_STORAGE_PART
-    if (storageMgrProxy_ != nullptr) {
-        return ERR_OK;
-    }
+sptr<StorageManager::IStorageManager> InnerAccountIAMManager::GetStorageManagerProxy()
+{
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (systemAbilityManager == nullptr) {
         ACCOUNT_LOGE("failed to get system ability mgr");
-        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
+        return nullptr;
     }
     auto remote = systemAbilityManager->GetSystemAbility(STORAGE_MANAGER_MANAGER_ID);
     if (remote == nullptr) {
         ACCOUNT_LOGE("failed to get STORAGE_MANAGER_MANAGER_ID service");
-        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY;
+        return nullptr;
     }
-    storageMgrProxy_ = iface_cast<StorageManager::IStorageManager>(remote);
-    if (storageMgrProxy_ == nullptr) {
-        ACCOUNT_LOGE("failed to get STORAGE_MANAGER_MANAGER_ID proxy");
-        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY;
-    }
-    return ERR_OK;
-#else
-    return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY;
-#endif
+    auto storageMgrProxy = iface_cast<StorageManager::IStorageManager>(remote);
+    return storageMgrProxy;
 }
+#endif
 }  // namespace AccountSA
 }  // namespace OHOS
