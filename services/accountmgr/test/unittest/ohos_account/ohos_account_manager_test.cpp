@@ -137,10 +137,10 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest001, TestSize.Level0)
     accountInfo.name_ = TEST_NAME;
     accountInfo.uid_ = TEST_UID;
     auto ret = OhosAccountManager::GetInstance().LoginOhosAccount(-1, accountInfo, g_eventLogin);
-    EXPECT_EQ(false, ret);
+    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR, ret);
 
     ret = OhosAccountManager::GetInstance().HandleOhosAccountTokenInvalidEvent(-1, accountInfo, g_eventTokenInvalid);
-    EXPECT_EQ(false, ret);
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, ret);
     EXPECT_EQ(ACCOUNT_STATE_UNBOUND, OhosAccountManager::GetInstance().GetCurrentOhosAccountState());
 }
 
@@ -181,7 +181,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest004, TestSize.Level0)
 {
     OhosAccountInfo curOhosAccount;
     ErrCode ret = OhosAccountManager::GetInstance().LogoutOhosAccount(ACCOUNT_UID, curOhosAccount, TEST_EVENT_STR);
-    EXPECT_EQ(false, ret);
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, ret);
 }
 
 /**
@@ -194,7 +194,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest005, TestSize.Level0)
 {
     OhosAccountInfo curOhosAccount;
     ErrCode ret = OhosAccountManager::GetInstance().LogoffOhosAccount(ACCOUNT_UID, curOhosAccount, TEST_EVENT_STR);
-    EXPECT_EQ(false, ret);
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, ret);
 }
 
 /**
@@ -290,7 +290,8 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest007, TestSize.Level0)
  */
 HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest07, TestSize.Level0)
 {
-    EXPECT_EQ(OhosAccountManager::GetInstance().OhosAccountStateChange("test", "testuid", "testevent"), false);
+    EXPECT_EQ(OhosAccountManager::GetInstance().OhosAccountStateChange("test", "testuid", "testevent"),
+              ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -302,7 +303,8 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest07, TestSize.Level0)
 HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest008, TestSize.Level0)
 {
     OhosAccountInfo curOhosAccountInfo;
-    EXPECT_EQ(OhosAccountManager::GetInstance().LoginOhosAccount(0, curOhosAccountInfo, "test"), false);
+    EXPECT_EQ(OhosAccountManager::GetInstance().LoginOhosAccount(0, curOhosAccountInfo, "test"),
+              ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
 }
 
 /**
@@ -314,7 +316,8 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest008, TestSize.Level0)
 HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest009, TestSize.Level0)
 {
     OhosAccountInfo curOhosAccountInfo;
-    EXPECT_EQ(OhosAccountManager::GetInstance().LogoutOhosAccount(0, curOhosAccountInfo, "test"), false);
+    EXPECT_EQ(OhosAccountManager::GetInstance().LogoutOhosAccount(0, curOhosAccountInfo, "test"),
+              ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -326,7 +329,8 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest009, TestSize.Level0)
 HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest010, TestSize.Level0)
 {
     OhosAccountInfo curOhosAccountInfo;
-    EXPECT_EQ(OhosAccountManager::GetInstance().LogoffOhosAccount(0, curOhosAccountInfo, "test"), false);
+    EXPECT_EQ(OhosAccountManager::GetInstance().LogoffOhosAccount(0, curOhosAccountInfo, "test"),
+              ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -338,8 +342,8 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest010, TestSize.Level0)
 HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest011, TestSize.Level0)
 {
     OhosAccountInfo curOhosAccountInfo;
-    EXPECT_EQ(
-        OhosAccountManager::GetInstance().HandleOhosAccountTokenInvalidEvent(0, curOhosAccountInfo, "test"), false);
+    EXPECT_EQ(OhosAccountManager::GetInstance().HandleOhosAccountTokenInvalidEvent(0, curOhosAccountInfo, "test"),
+              ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
