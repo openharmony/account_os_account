@@ -82,7 +82,20 @@ private:
     InnerAccountIAMManager();
     ~InnerAccountIAMManager() = default;
     DISALLOW_COPY_AND_MOVE(InnerAccountIAMManager);
-    ErrCode GetStorageManagerProxy();
+#ifdef HAS_STORAGE_PART
+    sptr<StorageManager::IStorageManager> GetStorageManagerProxy();
+#endif
+    ErrCode InnerUpdateStorageKey(int32_t userId, uint64_t secureUid, const std::vector<uint8_t> &token,
+        const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret);
+    ErrCode InnerUpdateStorageKeyContext(const int32_t userId);
+    ErrCode InnerUpdateStorageUserAuth(int32_t userId, uint64_t secureUid,
+    const std::vector<uint8_t> &token, const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret);
+    ErrCode InnerGetLockScreenStatus(uint32_t userId, bool &lockScreenStatus);
+    ErrCode InnerUnlockUserScreen(
+        int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret);
+    ErrCode InnerActivateUserKey(
+        int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret);
+
     ErrCode GetDomainAuthStatusInfo(
         int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback);
     void CopyAuthParam(const AuthParam &authParam, UserIam::UserAuth::AuthParam &iamAuthParam);
@@ -92,9 +105,6 @@ private:
     std::map<int32_t, IAMState> userStateMap_;
     std::map<int32_t, std::vector<uint8_t>> userChallengeMap_;
     std::map<int32_t, AccountCredentialInfo> credInfoMap_;
-#ifdef HAS_STORAGE_PART
-    sptr<StorageManager::IStorageManager> storageMgrProxy_;
-#endif
 };
 }  // namespace AccountSA
 }  // namespace OHOS
