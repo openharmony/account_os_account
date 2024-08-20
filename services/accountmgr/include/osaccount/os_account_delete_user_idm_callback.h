@@ -14,13 +14,15 @@
  */
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_DELETE_USER_IAM_CALLBACK_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_DELETE_USER_IAM_CALLBACK_H
-#ifdef HAS_USER_IDM_PART
+#ifdef HAS_USER_AUTH_PART
 #include "user_idm_client_callback.h"
-#endif // HAS_USER_IDM_PART
+#include <mutex>
+#include <thread>
+#endif // HAS_USER_AUTH_PART
 
 namespace OHOS {
 namespace AccountSA {
-#ifdef HAS_USER_IDM_PART
+#ifdef HAS_USER_AUTH_PART
 class OsAccountDeleteUserIdmCallback : public OHOS::UserIam::UserAuth::UserIdmClientCallback {
 public:
     OsAccountDeleteUserIdmCallback() {}
@@ -44,8 +46,11 @@ public:
 
 public:
     bool isIdmOnResultCallBack_ = false;
+    int32_t resultCode_ = -1;
+    std::mutex mutex_;
+    std::condition_variable onResultCondition_;
 };
-#endif // HAS_USER_IDM_PART
+#endif // HAS_USER_AUTH_PART
 }  // namespace AccountSA
 }  // namespace OHOS
 

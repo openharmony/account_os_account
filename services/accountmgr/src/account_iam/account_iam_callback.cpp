@@ -26,6 +26,7 @@
 #include "inner_account_iam_manager.h"
 #include "inner_domain_account_manager.h"
 #include "ipc_skeleton.h"
+#include "os_account_delete_user_idm_callback.h"
 #include "token_setproc.h"
 #include "user_auth_client.h"
 #include "user_idm_client.h"
@@ -34,6 +35,8 @@ namespace OHOS {
 namespace AccountSA {
 using UserIDMClient = UserIam::UserAuth::UserIdmClient;
 using UserAuthClient = UserIam::UserAuth::UserAuthClient;
+
+const std::vector<uint8_t> TEMP_PIN = {50, 48, 50, 52, 48, 56};
 
 void AuthCallbackDeathRecipient::SetContextId(uint16_t contextId)
 {
@@ -324,6 +327,74 @@ void UpdateCredCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, con
     }
     innerCallback_->OnAcquireInfo(module, acquireInfo, extraInfo);
 }
+
+#ifdef HAS_PIN_AUTH_PART
+void DelUserInputer::OnGetData(int32_t authSubType, std::vector<uint8_t> challenge,
+    std::shared_ptr<IInputerData> inputerData)
+{
+    ACCOUNT_LOGI("Get temporary data, authSubType: %{public}d", authSubType);
+    if (inputerData == nullptr) {
+        ACCOUNT_LOGE("InputerData is nullptr");
+        return;
+    }
+    inputerData->OnSetData(authSubType, TEMP_PIN);
+}
+
+DelUserCallback::DelUserCallback(uint32_t userId, const sptr<IIDMCallback> &callback)
+    : userId_(userId), innerCallback_(callback)
+{}
+
+void DelUserCallback::OnResult(int32_t result, const Attributes &extraInfo)
+{
+    ACCOUNT_LOGI("DelUserCallback, userId: %{public}d, result: %{public}d", userId_, result);
+    if (innerCallback_ == nullptr) {
+        ACCOUNT_LOGE("Inner callbcak is nullptr");
+        return;
+    }
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("DelUserCallback fail code = %{public}d", result);
+        return innerCallback_->OnResult(result, extraInfo);
+    }
+    uint64_t secureUid = 0;
+    extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, secureUid);
+    std::vector<uint8_t> newSecret;
+    extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, newSecret);
+    std::vector<uint8_t> oldSecret;
+    extraInfo.GetUint8ArrayValue(Attributes::ATTR_OLD_ROOT_SECRET, oldSecret);
+    std::vector<uint8_t> token;
+    extraInfo.GetUint8ArrayValue(Attributes::ATTR_AUTH_TOKEN, token);
+    auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
+    ErrCode errCode = innerIamMgr_.UpdateStorageUserAuth(userId_, secureUid, token, oldSecret, newSecret);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Fail to update root secret, userId=%{public}d, errcode=%{public}d", userId_, errCode);
+        return innerCallback_->OnResult(errCode, extraInfo);
+    }
+    errCode = innerIamMgr_.UpdateStorageUserAuth(userId_, secureUid, token, oldSecret, {});
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Fail to delete root secret, userId=%{public}d, errcode=%{public}d", userId_, errCode);
+        return innerCallback_->OnResult(errCode, extraInfo);
+    }
+
+    auto eraseUserCallback = std::make_shared<OsAccountDeleteUserIdmCallback>();
+    std::unique_lock<std::mutex> lock(eraseUserCallback->mutex_);
+    errCode = UserIam::UserAuth::UserIdmClient::GetInstance().EraseUser(userId_, eraseUserCallback);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Fail to erase user, userId=%{public}d, errcode=%{public}d", userId_, errCode);
+        return innerCallback_->OnResult(errCode, extraInfo);
+    }
+    eraseUserCallback->onResultCondition_.wait(lock);
+    if (eraseUserCallback->resultCode_ != ERR_OK) {
+        ACCOUNT_LOGE("Fail to erase user, userId=%{public}d, errcode=%{public}d", userId_, errCode);
+        return innerCallback_->OnResult(errCode, extraInfo);
+    }
+    errCode = innerIamMgr_.UpdateStorageKeyContext(userId_);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Fail to update key context, userId=%{public}d, errcode=%{public}d", userId_, errCode);
+    }
+    innerCallback_->OnResult(errCode, extraInfo);
+    innerIamMgr_.OnDelUserDone(userId_);
+}
+#endif // HAS_PIN_AUTH_PART
 
 CommitCredUpdateCallback::CommitCredUpdateCallback(int32_t userId, uint64_t credentialId,
     const sptr<IIDMCallback> &callback)
