@@ -317,11 +317,11 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
 HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest015, TestSize.Level1)
 {
     std::vector<uint8_t> accountToken;
-    int32_t userId = -1;
+    DomainAccountInfo info;
     bool isValid = false;
     InnerDomainAccountManager::GetInstance().plugin_ = nullptr;
-    ASSERT_EQ(InnerDomainAccountManager::GetInstance().CheckUserToken(accountToken, isValid, userId),
-        ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+    ASSERT_EQ(InnerDomainAccountManager::GetInstance().CheckUserToken(accountToken, isValid, info),
+        ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST));
 }
 
 /**

@@ -1231,7 +1231,8 @@ void CheckUserTokenCallback::NotifyCallbackEnd()
     }
 }
 
-ErrCode InnerDomainAccountManager::CheckUserToken(const std::vector<uint8_t> &token, bool &isValid, int32_t userId)
+ErrCode InnerDomainAccountManager::CheckUserToken(
+    const std::vector<uint8_t> &token, bool &isValid, const DomainAccountInfo &info)
 {
     if (!IsSupportNetRequest()) {
         ACCOUNT_LOGE("Not support background account request");
@@ -1248,17 +1249,14 @@ ErrCode InnerDomainAccountManager::CheckUserToken(const std::vector<uint8_t> &to
     {
         std::lock_guard<std::mutex> lock(mutex_);
         if (plugin_ == nullptr) {
-            ACCOUNT_LOGE("plugin not exists");
-            return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
+            Parcel emptyParcel;
+            int32_t isTokenValid = -1;
+            ErrCode err = PluginIsAccountTokenValid(info, token, isTokenValid);
+            if (err == ERR_OK) {
+                isValid = (isTokenValid == 1);
+            }
+            return err;
         }
-
-        OsAccountInfo osAccountInfo;
-        errCode = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(userId, osAccountInfo);
-        if (errCode != ERR_OK) {
-            return errCode;
-        }
-        DomainAccountInfo info;
-        osAccountInfo.GetDomainInfo(info);
         errCode = plugin_->IsAccountTokenValid(info, token, callbackService);
     }
     callback->WaitForCallbackResult();
@@ -1282,7 +1280,7 @@ ErrCode InnerDomainAccountManager::GetAccountStatus(const DomainAccountInfo &inf
     }
 
     bool isValid = false;
-    res = CheckUserToken(token, isValid, userId);
+    res = CheckUserToken(token, isValid, info);
     if (!isValid) {
         ACCOUNT_LOGI("Token is invalid.");
         return res;
