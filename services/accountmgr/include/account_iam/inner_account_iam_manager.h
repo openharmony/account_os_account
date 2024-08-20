@@ -77,6 +77,9 @@ public:
     ErrCode UpdateStorageKeyContext(const int32_t userId);
     ErrCode UpdateStorageUserAuth(int32_t userId, uint64_t secureUid, const std::vector<uint8_t> &token,
         const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret);
+#ifdef HAS_PIN_AUTH_PART
+    void OnDelUserDone(int32_t userId);
+#endif // HAS_PIN_AUTH_PART
 
 private:
     InnerAccountIAMManager();
@@ -103,6 +106,10 @@ private:
 private:
     std::mutex mutex_;
     std::map<int32_t, IAMState> userStateMap_;
+#ifdef HAS_PIN_AUTH_PART
+    std::mutex delUserInputerMutex_;
+    std::vector<std::shared_ptr<DelUserInputer>> delUserInputerVec_;
+#endif // HAS_PIN_AUTH_PART
     std::map<int32_t, std::vector<uint8_t>> userChallengeMap_;
     std::map<int32_t, AccountCredentialInfo> credInfoMap_;
 };
