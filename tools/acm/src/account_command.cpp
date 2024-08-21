@@ -44,21 +44,33 @@ static const std::string SWITCH_COMMAND = "switch";
 static const std::string DUMP_COMMAND = "dump";
 static const std::string SET_COMMAND = "set";
 static const std::string CREATE_COMMAND = "create";
-
+static constexpr int MIN_ARGUMENT_NUMBER = 2;
+static constexpr int MAX_ARGUMENT_NUMBER = 4096;
 }  // namespace
 
-AccountCommand::AccountCommand(int argc, char *argv[]) : ShellCommand(argc, argv, TOOL_NAME)
+AccountCommand::AccountCommand(int argc, char *argv[])
 {
     ACCOUNT_LOGD("enter");
+    opterr = 0;
+    argc_ = argc;
+    argv_ = argv;
+    name_ = TOOL_NAME;
+
+    if (argc < MIN_ARGUMENT_NUMBER || argc > MAX_ARGUMENT_NUMBER) {
+        cmd_ = "help";
+        return;
+    }
+    cmd_ = argv[1];
+    for (int i = MIN_ARGUMENT_NUMBER; i < argc; i++) {
+        argList_.push_back(argv[i]);
+    }
     for (int i = 0; i < argc_; i++) {
         ACCOUNT_LOGD("argv_[%{public}d]: %{public}s", i, argv_[i]);
     }
 }
 
-ErrCode AccountCommand::CreateCommandMap()
+void AccountCommand::CreateCommandMap()
 {
-    ACCOUNT_LOGD("enter");
-
     commandMap_ = {
         {"help", [this] { return this->RunAsHelpCommand(); }},
         {"create", [this] { return this->RunAsCreateCommand(); }},
@@ -68,18 +80,46 @@ ErrCode AccountCommand::CreateCommandMap()
         {"switch", [this] { return this->RunAsSwitchCommand(); }},
         {"deactivate", [this] { return this->RunAsDeactivateCommand(); }},
     };
-
-    return ERR_OK;
 }
 
-ErrCode AccountCommand::CreateMessageMap()
+std::string AccountCommand::GetCommandErrorMsg() const
 {
-    return ERR_OK;
+    std::string commandErrorMsg =
+        name_ + ": '" + cmd_ + "' is not a valid " + name_ + " command. See '" + name_ + " help'.\n";
+
+    return commandErrorMsg;
 }
 
-ErrCode AccountCommand::init()
+std::string AccountCommand::GetUnknownOptionMsg(std::string& unknownOption) const
 {
-    return ERR_OK;
+    std::string result = "";
+
+    if (optind < 0 || optind > argc_) {
+        return result;
+    }
+
+    result.append("fail: unknown option");
+    result.append(".\n");
+
+    return result;
+}
+
+void AccountCommand::OnCommand()
+{
+    auto respond = commandMap_[cmd_];
+    if (respond == nullptr) {
+        resultReceiver_.append(GetCommandErrorMsg());
+        respond = commandMap_["help"];
+    }
+
+    respond();
+}
+
+std::string AccountCommand::ExecCommand()
+{
+    CreateCommandMap();
+    OnCommand();
+    return resultReceiver_;
 }
 
 ErrCode AccountCommand::RunAsHelpCommand(void)
@@ -123,18 +163,18 @@ ErrCode AccountCommand::RunAsCreateCommand(void)
     ErrCode result = ERR_OK;
     std::string name = "";
     std::string shortName = "";
-    OsAccountType osAccountType = static_cast<OsAccountType>(-1);
+    OsAccountType osAccountType = END;
     CreateOsAccountOptions options;
     result = ParseCreateCommandOpt(name, shortName, osAccountType, options.disallowedHapList);
     if (result == ERR_OK) {
-        if (name.size() == 0 || osAccountType == static_cast<OsAccountType>(-1)) {
+        if (name.size() == 0 || osAccountType == END) {
             ACCOUNT_LOGD("'acm create' without enough options");
 
             if (name.size() == 0) {
                 resultReceiver_.append(HELP_MSG_NO_NAME_OPTION + "\n");
             }
 
-            if (osAccountType == static_cast<OsAccountType>(-1)) {
+            if (osAccountType == END) {
                 resultReceiver_.append(HELP_MSG_NO_TYPE_OPTION + "\n");
             }
 
