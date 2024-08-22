@@ -1555,7 +1555,7 @@ NapiGetAccountInfoCallback::NapiGetAccountInfoCallback(napi_env env, napi_ref ca
     : env_(env), callbackRef_(callbackRef), deferred_(deferred)
 {}
 
-void NapiGetAccountInfoCallback::OnResult(const int32_t errCode, Parcel &parcel)
+void NapiGetAccountInfoCallback::OnResult(int32_t errCode, Parcel &parcel)
 {
     std::unique_lock<std::mutex> lock(lockInfo_.mutex);
     if ((callbackRef_ == nullptr) && (deferred_ == nullptr)) {
@@ -1575,6 +1575,10 @@ void NapiGetAccountInfoCallback::OnResult(const int32_t errCode, Parcel &parcel)
     }
     if (errCode == ERR_OK) {
         std::shared_ptr<AAFwk::WantParams> parameters(AAFwk::WantParams::Unmarshalling(parcel));
+        if (parameters == nullptr) {
+            ACCOUNT_LOGE("Parameters unmarshalling error");
+            errCode = ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+        }
         asyncContext->getAccountInfoParams = *parameters;
     }
     asyncContext->errCode = errCode;

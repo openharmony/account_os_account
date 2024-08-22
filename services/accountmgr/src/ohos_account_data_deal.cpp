@@ -79,7 +79,7 @@ bool OhosAccountDataDeal::DealWithFileModifyEvent(const std::string &fileName, c
 {
     ACCOUNT_LOGI("enter");
     {
-        std::shared_lock<std::shared_timed_mutex> lock(accountFileOperator_->fileLock_);
+        std::unique_lock<std::shared_timed_mutex> lock(accountFileOperator_->fileLock_);
         if (accountFileOperator_->GetValidModifyFileOperationFlag(fileName)) {
             ACCOUNT_LOGD("this is valid service operate, no need to deal with it.");
             accountFileOperator_->SetValidModifyFileOperationFlag(fileName, false);
@@ -109,7 +109,7 @@ bool OhosAccountDataDeal::DealWithFileModifyEvent(const std::string &fileName, c
 void OhosAccountDataDeal::DealWithFileDeleteEvent(const std::string &fileName, const int32_t id)
 {
     {
-        std::shared_lock<std::shared_timed_mutex> lock(accountFileOperator_->fileLock_);
+        std::unique_lock<std::shared_timed_mutex> lock(accountFileOperator_->fileLock_);
         if (accountFileOperator_->GetValidDeleteFileOperationFlag(fileName)) {
             ACCOUNT_LOGD("this is valid service operate, no need to deal with it.");
             accountFileOperator_->SetValidDeleteFileOperationFlag(fileName, false);
