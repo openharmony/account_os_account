@@ -28,7 +28,7 @@
 
 namespace OHOS {
 namespace AccountSA {
-class MockOsAccountControlFileManager : public IOsAccountControl {
+class MockOsAccountControlFileManager : public testing::NiceMock<IOsAccountControl> {
 public:
     MockOsAccountControlFileManager() {}
     virtual ~MockOsAccountControlFileManager() {}
