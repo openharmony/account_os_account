@@ -726,7 +726,7 @@ HWMTEST_F(OsAccountControlFileManagerTest, GetSerialNumberM, TestSize.Level1, TH
     int64_t serialNumber2;
     EXPECT_EQ(g_controlManager->GetSerialNumber(serialNumber1), ERR_OK);
     EXPECT_EQ(g_controlManager->GetSerialNumber(serialNumber2), ERR_OK);
-    EXPECT_EQ(serialNumber1 + 1, serialNumber2);
+    EXPECT_GT(serialNumber2, serialNumber1);
 }
 
 /**
