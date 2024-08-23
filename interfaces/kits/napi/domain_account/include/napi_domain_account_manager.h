@@ -155,7 +155,7 @@ private:
 class NapiGetAccountInfoCallback final : public AccountSA::DomainAccountCallback {
 public:
     NapiGetAccountInfoCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred);
-    void OnResult(const int32_t errCode, Parcel &parcel) override;
+    void OnResult(int32_t errCode, Parcel &parcel) override;
 
 private:
     AccountJsKit::ThreadLockInfo lockInfo_;
