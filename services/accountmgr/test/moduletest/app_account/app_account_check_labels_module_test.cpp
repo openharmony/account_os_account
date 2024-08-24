@@ -145,6 +145,7 @@ HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountCheckLabelsModuleTest_OnResu
     result.SetParam(Constants::KEY_BOOLEAN_RESULT, true);
     ASSERT_EQ(appAccountCheckLabelsCallbackPtr->accountsWithLabels_.size(), NUMBER_ZERO);
     ASSERT_EQ(appAccountCheckLabelsCallbackPtr->index_, NUMBER_ZERO);
+    appAccountCheckLabelsCallbackPtr->isRequesting_ = true;
     appAccountCheckLabelsCallbackPtr->OnResult(resultCode, result);
     ASSERT_EQ(appAccountCheckLabelsCallbackPtr->index_, NUMBER_SIZE);
     ASSERT_EQ(appAccountCheckLabelsCallbackPtr->accountsWithLabels_.size(), NUMBER_SIZE);
@@ -162,6 +163,7 @@ HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountCheckLabelsModuleTest_OnRequ
 
     AAFwk::Want request;
     ASSERT_EQ(appAccountCheckLabelsCallbackPtr->index_, NUMBER_ZERO);
+    appAccountCheckLabelsCallbackPtr->isRequesting_ = true;
     appAccountCheckLabelsCallbackPtr->OnRequestRedirected(request);
     ASSERT_EQ(appAccountCheckLabelsCallbackPtr->index_, NUMBER_SIZE);
 }
@@ -177,6 +179,7 @@ HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountCheckLabelsModuleTest_OnRequ
     ASSERT_NE(appAccountCheckLabelsCallbackPtr, nullptr);
 
     ASSERT_EQ(appAccountCheckLabelsCallbackPtr->index_, NUMBER_ZERO);
+    appAccountCheckLabelsCallbackPtr->isRequesting_ = true;
     appAccountCheckLabelsCallbackPtr->OnRequestContinued();
     ASSERT_EQ(appAccountCheckLabelsCallbackPtr->index_, NUMBER_SIZE);
 }

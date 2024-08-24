@@ -47,6 +47,7 @@ void AppAccountCheckLabelsCallback::SendResult(int32_t resultCode)
 
 ErrCode AppAccountCheckLabelsCallback::CheckLabels()
 {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     auto &sessionManager = AppAccountAuthenticatorSessionManager::GetInstance();
     while (index_ < accounts_.size()) {
         AppAccountInfo account = accounts_[index_];
@@ -54,9 +55,11 @@ ErrCode AppAccountCheckLabelsCallback::CheckLabels()
         account.GetOwner(newRequest.owner);
         account.GetName(newRequest.name);
         newRequest.callback = this;
+        isRequesting_ = true;
         if (sessionManager.CheckAccountLabels(newRequest) == ERR_OK) {
             break;
         }
+        isRequesting_ = false;
         index_++;
     }
     if (index_ >= accounts_.size()) {
@@ -69,7 +72,13 @@ ErrCode AppAccountCheckLabelsCallback::CheckLabels()
 
 void AppAccountCheckLabelsCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
 {
-    if (result.GetBoolParam(Constants::KEY_BOOLEAN_RESULT, false)) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    if (!isRequesting_) {
+        ACCOUNT_LOGE("Invalid request");
+        return;
+    }
+    isRequesting_ = false;
+    if (result.GetBoolParam(Constants::KEY_BOOLEAN_RESULT, false) && (index_ < accounts_.size())) {
         accountsWithLabels_.push_back(accounts_[index_]);
     }
     index_++;
@@ -78,12 +87,24 @@ void AppAccountCheckLabelsCallback::OnResult(int32_t resultCode, const AAFwk::Wa
 
 void AppAccountCheckLabelsCallback::OnRequestRedirected(AAFwk::Want &request)
 {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    if (!isRequesting_) {
+        ACCOUNT_LOGE("Invalid request");
+        return;
+    }
+    isRequesting_ = false;
     index_++;
     CheckLabels();
 }
 
 void AppAccountCheckLabelsCallback::OnRequestContinued()
 {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    if (!isRequesting_) {
+        ACCOUNT_LOGE("Invalid request");
+        return;
+    }
+    isRequesting_ = false;
     index_++;
     CheckLabels();
 }
