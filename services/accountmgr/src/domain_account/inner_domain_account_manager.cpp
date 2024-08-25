@@ -595,7 +595,11 @@ ErrCode InnerDomainAccountManager::GetAccountServerConfig(
     CleanPluginString(&(domainAccountInfo.serverConfigId.data), domainAccountInfo.serverConfigId.length);
     CleanPluginString(&(domainAccountInfo.accountName.data), domainAccountInfo.accountName.length);
     CleanPluginString(&(domainAccountInfo.accountId.data), domainAccountInfo.accountId.length);
-    return GetAndCleanPluginBussnessError(&error, iter->first);
+    ErrCode errCode = GetAndCleanPluginBussnessError(&error, iter->first);
+    if (errCode == ERR_JS_INVALID_PARAMETER) {
+        return ERR_JS_ACCOUNT_NOT_FOUND;
+    }
+    return errCode;
 }
 
 ErrCode InnerDomainAccountManager::PluginAuth(const DomainAccountInfo &info,
