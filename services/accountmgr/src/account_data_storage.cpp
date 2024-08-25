@@ -215,7 +215,6 @@ ErrCode AccountDataStorage::DeleteKvStore()
     {
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
         dataManager_.CloseKvStore(this->appId_, this->storeId_);
-        kvStorePtr_ = nullptr;
         status = dataManager_.DeleteKvStore(this->appId_, this->storeId_, baseDir_);
     }
     if (status != OHOS::DistributedKv::Status::SUCCESS) {

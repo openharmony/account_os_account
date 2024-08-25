@@ -38,6 +38,8 @@ private:
     void SendResult(int32_t resultCode);
 
 private:
+    std::recursive_mutex mutex_;
+    bool isRequesting_ = false;
     std::vector<AppAccountInfo> accounts_;
     AuthenticatorSessionRequest request_;
     std::vector<std::string> labels_;

@@ -50,7 +50,7 @@ const std::string ALIAS_SUFFIX_TOKEN = "token";
 }
 
 #ifdef HAS_ASSET_PART
-static ErrCode SaveDataToAsset(const std::string &hapLabel, const std::string &accountLabel,
+static ErrCode SaveDataToAsset(int32_t localId, const std::string &hapLabel, const std::string &accountLabel,
     const std::string &alias, const std::string &value)
 {
     if (value.empty()) {
@@ -64,17 +64,29 @@ static ErrCode SaveDataToAsset(const std::string &hapLabel, const std::string &a
         const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(alias.c_str())) } };
     AssetValue secretValue = { .blob = { static_cast<uint32_t>(value.size()),
         const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(value.c_str())) } };
-    AssetValue u32Value = { .u32 = SEC_ASSET_ACCESSIBILITY_DEVICE_POWERED_ON };
-    AssetAttr attr[] = {
-        { .tag = SEC_ASSET_TAG_ALIAS, .value = aliasValue },
+    AssetValue accessibilityValue;
+    if (localId == 0) {
+        accessibilityValue.u32 = SEC_ASSET_ACCESSIBILITY_DEVICE_POWERED_ON;
+    } else {
+        accessibilityValue.u32 = SEC_ASSET_ACCESSIBILITY_DEVICE_UNLOCKED;
+    }
+    std::vector<AssetAttr> attrs = {
         { .tag = SEC_ASSET_TAG_SECRET, .value = secretValue },
         { .tag = SEC_ASSET_TAG_DATA_LABEL_NORMAL_1, .value = hapLabelValue },
         { .tag = SEC_ASSET_TAG_DATA_LABEL_NORMAL_2, .value = accountLabelValue },
-        { .tag = SEC_ASSET_TAG_ACCESSIBILITY, .value = u32Value }
+        { .tag = SEC_ASSET_TAG_ACCESSIBILITY, .value = accessibilityValue },
+        { .tag = SEC_ASSET_TAG_ALIAS, .value = aliasValue }
     };
-    ErrCode ret = AssetAdd(attr, sizeof(attr) / sizeof(attr[0]));
+    uint32_t queryCnt = 1;
+    if (localId != 0) {
+        AssetValue localIdValue = { .u32 = localId };
+        attrs.push_back({ .tag = SEC_ASSET_TAG_USER_ID, .value = localIdValue });
+        queryCnt++;
+    }
+    const AssetAttr *attrArr = attrs.data();
+    ErrCode ret = AssetAdd(attrArr, attrs.size());
     if (ret == SEC_ASSET_DUPLICATED) {
-        ret = AssetUpdate(attr, 1, &attr[1], 1);
+        ret = AssetUpdate(&attrArr[4], queryCnt, attrArr, 1);  // 4 indicates the index four
     }
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("fail to save data to asset, error code: %{public}d", ret);
@@ -82,18 +94,22 @@ static ErrCode SaveDataToAsset(const std::string &hapLabel, const std::string &a
     return ret;
 }
 
-static ErrCode GetDataFromAsset(const std::string &alias, std::string &value)
+static ErrCode GetDataFromAsset(int32_t localId, const std::string &alias, std::string &value)
 {
     AssetValue aliasValue = { .blob = { static_cast<uint32_t>(alias.size()),
         const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(alias.c_str())) } };
     AssetValue u32Value = { .u32 = SEC_ASSET_RETURN_ALL };
-    AssetAttr attr[] = {
+    std::vector<AssetAttr> attrs = {
         { .tag = SEC_ASSET_TAG_ALIAS, .value = aliasValue },
         { .tag = SEC_ASSET_TAG_RETURN_TYPE, .value = u32Value }
     };
+    if (localId != 0) {
+        AssetValue localIdValue = { .u32 = localId };
+        attrs.push_back({ .tag = SEC_ASSET_TAG_USER_ID, .value = localIdValue });
+    }
 
     AssetResultSet resultSet = {0};
-    ErrCode ret = AssetQuery(attr, sizeof(attr) / sizeof(attr[0]), &resultSet);
+    ErrCode ret = AssetQuery(attrs.data(), attrs.size(), &resultSet);
     if (ret != SEC_ASSET_SUCCESS) {
         ACCOUNT_LOGE("fail to get data from asset, error code: %{public}d", ret);
     } else {
@@ -110,26 +126,36 @@ static ErrCode GetDataFromAsset(const std::string &alias, std::string &value)
     return ret;
 }
 
-static ErrCode RemoveDataFromAsset(const std::string &alias)
+static ErrCode RemoveDataFromAsset(int32_t localId, const std::string &alias)
 {
     AssetValue aliasValue = { .blob = { static_cast<uint32_t>(alias.size()),
         const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(alias.c_str())) } };
-    AssetAttr attr[] = { { .tag = SEC_ASSET_TAG_ALIAS, .value = aliasValue } };
+    std::vector<AssetAttr> attrs = {
+        { .tag = SEC_ASSET_TAG_ALIAS, .value = aliasValue }
+    };
+    if (localId != 0) {
+        AssetValue localIdValue = { .u32 = localId };
+        attrs.push_back({ .tag = SEC_ASSET_TAG_USER_ID, .value = localIdValue });
+    }
 
-    ErrCode ret = AssetRemove(attr, sizeof(attr) / sizeof(attr[0]));
+    ErrCode ret = AssetRemove(attrs.data(), attrs.size());
     if (ret != SEC_ASSET_SUCCESS) {
         ACCOUNT_LOGE("fail to remove data from asset");
     }
     return ret;
 }
 
-static ErrCode RemoveDataFromAssetByLabel(int32_t tag, const std::string &label)
+static ErrCode RemoveDataFromAssetByLabel(int32_t localId, int32_t tag, const std::string &label)
 {
     AssetValue labelValue = { .blob = { static_cast<uint32_t>(label.size()),
         const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(label.c_str())) } };
-    AssetAttr attr[] = { { .tag = tag, .value = labelValue } };
+    std::vector<AssetAttr> attrs = { { .tag = tag, .value = labelValue } };
+    if (localId != 0) {
+        AssetValue localIdValue = { .u32 = localId };
+        attrs.push_back({ .tag = SEC_ASSET_TAG_USER_ID, .value = localIdValue });
+    }
 
-    ErrCode ret = AssetRemove(attr, sizeof(attr) / sizeof(attr[0]));
+    ErrCode ret = AssetRemove(attrs.data(), attrs.size());
     if (ret != SEC_ASSET_SUCCESS) {
         ACCOUNT_LOGE("fail to remove data from asset");
     }
@@ -255,7 +281,8 @@ ErrCode AppAccountControlManager::DeleteAccount(
     }
     RemoveAssociatedDataCacheByAccount(uid, name);
 #ifdef HAS_ASSET_PART
-    RemoveDataFromAssetByLabel(SEC_ASSET_TAG_DATA_LABEL_NORMAL_2, appAccountInfo.GetPrimeKey());
+    RemoveDataFromAssetByLabel(uid / UID_TRANSFORM_DIVISOR, SEC_ASSET_TAG_DATA_LABEL_NORMAL_2,
+        appAccountInfo.GetPrimeKey());
 #endif
 
     std::set<std::string> authorizedApps;
@@ -557,7 +584,7 @@ ErrCode AppAccountControlManager::GetAccountCredential(const std::string &name, 
 #ifdef HAS_ASSET_PART
     std::string alias = credential;
     credential = "";
-    GetDataFromAsset(alias, credential);
+    GetDataFromAsset(appAccountCallingInfo.callingUid / UID_TRANSFORM_DIVISOR, alias, credential);
 #endif
     return result;
 }
@@ -590,7 +617,8 @@ ErrCode AppAccountControlManager::SetAccountCredential(const std::string &name, 
         std::to_string(appAccountCallingInfo.appIndex);
     std::string credentialAlias;
     appAccountInfo.GetAccountCredential(credentialType, credentialAlias);
-    result = SaveDataToAsset(hapLabel, appAccountInfo.GetAlias(), credentialAlias, credential);
+    int32_t localId = appAccountCallingInfo.callingUid / UID_TRANSFORM_DIVISOR;
+    result = SaveDataToAsset(localId, hapLabel, appAccountInfo.GetAlias(), credentialAlias, credential);
 #endif
     return result;
 }
@@ -609,7 +637,7 @@ ErrCode AppAccountControlManager::DeleteAccountCredential(const std::string &nam
 #ifdef HAS_ASSET_PART
     std::string alias;
     appAccountInfo.GetAccountCredential(credentialType, alias);
-    RemoveDataFromAsset(alias);
+    RemoveDataFromAsset(callingInfo.callingUid / UID_TRANSFORM_DIVISOR, alias);
 #endif
     result = appAccountInfo.DeleteAccountCredential(credentialType);
     if (result != ERR_OK) {
@@ -650,7 +678,7 @@ ErrCode AppAccountControlManager::GetOAuthToken(
 #ifdef HAS_ASSET_PART
     std::string alias = token;
     token = "";
-    GetDataFromAsset(alias, token);
+    GetDataFromAsset(request.callerUid / UID_TRANSFORM_DIVISOR, alias, token);
     if (token.empty() && (apiVersion < Constants::API_VERSION9)) {
         return ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST;
     }
@@ -684,7 +712,8 @@ ErrCode AppAccountControlManager::SetOAuthToken(const AuthenticatorSessionReques
     std::string hapLabel = request.callerBundleName + Constants::HYPHEN + std::to_string(request.appIndex);
     std::string authTypeAlias;
     appAccountInfo.GetOAuthToken(request.authType, authTypeAlias);
-    result = SaveDataToAsset(hapLabel, appAccountInfo.GetAlias(), authTypeAlias, request.token);
+    int32_t localId = request.callerUid / UID_TRANSFORM_DIVISOR;
+    result = SaveDataToAsset(localId, hapLabel, appAccountInfo.GetAlias(), authTypeAlias, request.token);
 #endif
     return result;
 }
@@ -714,11 +743,11 @@ ErrCode AppAccountControlManager::DeleteOAuthToken(
     if (ret != ERR_OK) {
         return apiVersion >= Constants::API_VERSION9 ? ret : ERR_OK;
     }
-    GetDataFromAsset(alias, token);
+    GetDataFromAsset(request.callerUid / UID_TRANSFORM_DIVISOR, alias, token);
     if (token != request.token) {
         return ERR_OK;
     }
-    RemoveDataFromAsset(alias);
+    RemoveDataFromAsset(request.callerUid / UID_TRANSFORM_DIVISOR, alias);
     token = alias;
 #endif
     if (apiVersion >= Constants::API_VERSION9) {
@@ -808,7 +837,7 @@ ErrCode AppAccountControlManager::GetAllOAuthTokens(
 #ifdef HAS_ASSET_PART
         std::string alias = tokenInfo.token;
         tokenInfo.token = "";
-        GetDataFromAsset(alias, tokenInfo.token);
+        GetDataFromAsset(request.callerUid / UID_TRANSFORM_DIVISOR, alias, tokenInfo.token);
 #endif
         if (tokenInfo.token.empty() && tokenInfo.authList.empty()) { // for api 8 logic
             continue;
@@ -1060,7 +1089,7 @@ ErrCode AppAccountControlManager::OnPackageRemoved(
 #endif // DISTRIBUTED_FEATURE_ENABLED
     }
 #ifdef HAS_ASSET_PART
-    RemoveDataFromAssetByLabel(SEC_ASSET_TAG_DATA_LABEL_NORMAL_1, key);
+    RemoveDataFromAssetByLabel(uid / UID_TRANSFORM_DIVISOR, SEC_ASSET_TAG_DATA_LABEL_NORMAL_1, key);
 #endif
     return ERR_OK;
 }
