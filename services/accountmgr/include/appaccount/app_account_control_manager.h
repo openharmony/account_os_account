@@ -107,6 +107,7 @@ public:
         DistributedKv::SecurityLevel securityLevel = DistributedKv::SecurityLevel::S1);
 
     void OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData);
+    void AddMigratedAccount(int32_t localId);
     void MoveData();
 
 private:
@@ -147,6 +148,8 @@ private:
     std::mutex associatedDataMutex_;
     std::map<uid_t, AssociatedDataCacheItem> associatedDataCache_;
     std::map<std::string, std::shared_ptr<AppAccountDataStorage>> storePtrMap_;
+    std::mutex migratedAccountMutex_;
+    std::set<int32_t> migratedAccounts_;
     sptr<AppExecFwk::IAppMgr> iAppMgr_;
     sptr<AppAccountAppStateObserver> appStateObserver_;
     std::size_t ACCOUNT_MAX_SIZE = 1000;

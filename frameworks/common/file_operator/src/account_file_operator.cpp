@@ -49,7 +49,7 @@ AccountFileOperator::AccountFileOperator()
 AccountFileOperator::~AccountFileOperator()
 {}
 
-ErrCode AccountFileOperator::CreateDir(const std::string &path)
+ErrCode AccountFileOperator::CreateDir(const std::string &path, mode_t mode)
 {
     ACCOUNT_LOGI("Start creating a directory");
     std::unique_lock<std::shared_timed_mutex> lock(fileLock_);
@@ -58,7 +58,6 @@ ErrCode AccountFileOperator::CreateDir(const std::string &path)
         return ERR_OSACCOUNT_SERVICE_FILE_CREATE_DIR_ERROR;
     }
     SetDirDelFlags(path);
-    mode_t mode = S_IRWXU;
     bool createFlag = OHOS::ChangeModeDirectory(path, mode);
     if (!createFlag) {
         ACCOUNT_LOGE("failed to change mode for %{public}s, errno %{public}d.", path.c_str(), errno);
