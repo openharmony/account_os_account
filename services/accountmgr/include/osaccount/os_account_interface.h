@@ -54,8 +54,6 @@ public:
 
 private:
     static ErrCode InnerSendToStorageAccountCreate(OsAccountInfo &osAccountInfo);
-    static ErrCode InnerSendToIDMAccountDelete(OsAccountInfo &osAccountInfo);
-    static ErrCode InnerSendToStorageAccountRemove(OsAccountInfo &osAccountInfo);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -177,40 +177,11 @@ ErrCode OsAccountInterface::SendToBMSAccountCreate(
 
 ErrCode OsAccountInterface::SendToBMSAccountDelete(OsAccountInfo &osAccountInfo)
 {
-    int32_t retryTimes = 0;
-    ErrCode err = 0;
-    while (retryTimes < MAX_CREATE_RETRY_TIMES) {
-        err = BundleManagerAdapter::GetInstance()->RemoveUser(osAccountInfo.GetLocalId());
-        if (err == ERR_OK) {
-            break;
-        }
-        ACCOUNT_LOGE("Fail to RemoveUser, id:%{public}d, errCode:%{public}d, retry!",
-            osAccountInfo.GetLocalId(), err);
-        retryTimes++;
-        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_CREATE_EXCEPTION));
-    }
-
-    return err;
+    return BundleManagerAdapter::GetInstance()->RemoveUser(osAccountInfo.GetLocalId());
 }
 
 #ifdef HAS_USER_IDM_PART
 ErrCode OsAccountInterface::SendToIDMAccountDelete(OsAccountInfo &osAccountInfo)
-{
-    ErrCode errCode = ERR_OK;
-    int32_t retryTimes = 0;
-    while (retryTimes < MAX_CREATE_RETRY_TIMES) {
-        errCode = InnerSendToIDMAccountDelete(osAccountInfo);
-        if (errCode == ERR_OK) {
-            break;
-        }
-        ACCOUNT_LOGE("Fail to SendToIDMAccountDelete, errCode:%{public}d, retry!", errCode);
-        retryTimes++;
-        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_CREATE_EXCEPTION));
-    }
-    return errCode;
-}
-
-ErrCode OsAccountInterface::InnerSendToIDMAccountDelete(OsAccountInfo &osAccountInfo)
 {
     std::shared_ptr<OsAccountDeleteUserIdmCallback> callback = std::make_shared<OsAccountDeleteUserIdmCallback>();
     if (callback == nullptr) {
@@ -401,23 +372,6 @@ ErrCode OsAccountInterface::InnerSendToStorageAccountCreate(OsAccountInfo &osAcc
 }
 
 ErrCode OsAccountInterface::SendToStorageAccountRemove(OsAccountInfo &osAccountInfo)
-{
-    ErrCode errCode = ERR_OK;
-    int32_t retryTimes = 0;
-    while (retryTimes < MAX_CREATE_RETRY_TIMES) {
-        errCode = InnerSendToStorageAccountRemove(osAccountInfo);
-        if (errCode == ERR_OK) {
-            break;
-        }
-        ACCOUNT_LOGE("Fail to SendToStorageAccountRemove, id:%{public}d, errCode:%{public}d.",
-            osAccountInfo.GetLocalId(), errCode);
-        retryTimes++;
-        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_CREATE_EXCEPTION));
-    }
-    return errCode;
-}
-
-ErrCode OsAccountInterface::InnerSendToStorageAccountRemove(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("start");
 #ifdef HAS_STORAGE_PART
