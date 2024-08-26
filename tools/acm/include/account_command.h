@@ -17,11 +17,11 @@
 #define OS_ACCOUNT_TOOLS_ACM_INCLUDE_ACCOUNT_COMMAND_H
 
 #include "os_account.h"
-#include "shell_command.h"
 
 namespace OHOS {
 namespace AccountSA {
 const std::string TOOL_NAME = "acm";
+const std::string HELP_MSG_NO_OPTION = "error: you must specify an option at least.";
 const std::string HELP_MSG = "usage: acm <command> [<options>]\n"
                              "These are acm commands list:\n"
                              "  help                list available commands\n"
@@ -103,15 +103,17 @@ const std::string STRING_DEACTIVATE_OS_ACCOUNT_NG = "error: failed to deactivate
 const std::string STRING_DEACTIVATE_ALL_OS_ACCOUNTS_OK = "deactivate all local account successfully.";
 const std::string STRING_DEACTIVATE_ALL_OS_ACCOUNTS_NG = "error: failed to deactivate all local account.";
 
-class AccountCommand : public OHOS::AAFwk::ShellCommand {
+class AccountCommand {
 public:
     AccountCommand(int argc, char *argv[]);
-    ~AccountCommand() override = default;
+    ~AccountCommand() = default;
+    std::string ExecCommand();
 
 private:
-    ErrCode CreateCommandMap() override;
-    ErrCode CreateMessageMap() override;
-    ErrCode init() override;
+    void CreateCommandMap();
+    void OnCommand();
+    std::string GetCommandErrorMsg() const;
+    std::string GetUnknownOptionMsg(std::string& unknownOption) const;
 
     ErrCode RunAsHelpCommand(void);
     ErrCode RunAsCreateCommand(void);
@@ -142,6 +144,18 @@ private:
     ErrCode AnalyzeDisallowedListArgument(std::vector<std::string> &disallowedList);
     ErrCode AnalyzeLocalIdArgument(int &id);
     ErrCode AnalyzeConstraintArgument(std::vector<std::string> &constraints);
+
+protected:
+    int argc_ = 0;
+    char** argv_ = nullptr;
+
+    std::string cmd_;
+    std::vector<std::string> argList_;
+
+    std::string name_;
+    std::map<std::string, std::function<int()>> commandMap_;
+
+    std::string resultReceiver_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
