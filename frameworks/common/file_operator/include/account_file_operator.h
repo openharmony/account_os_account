@@ -19,6 +19,7 @@
 #include <mutex>
 #include <shared_mutex>
 #include <string>
+#include <sys/stat.h>
 #include <vector>
 
 #include "account_error_no.h"
@@ -30,7 +31,7 @@ public:
     AccountFileOperator();
     virtual ~AccountFileOperator();
 
-    ErrCode CreateDir(const std::string &path);
+    ErrCode CreateDir(const std::string &path, mode_t mode = S_IRWXU);
     ErrCode DeleteDirOrFile(const std::string &path);
     ErrCode DeleteDir(const std::string &path);
     ErrCode DeleteFile(const std::string &path);

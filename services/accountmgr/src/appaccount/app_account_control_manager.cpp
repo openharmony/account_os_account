@@ -39,6 +39,9 @@ namespace {
 const std::string GET_ALL_APP_ACCOUNTS = "ohos.permission.GET_ALL_APP_ACCOUNTS";
 const std::string DATA_STORAGE_SUFFIX = "_sync";
 const std::string DATA_STORAGE_PREFIX = "encrypt_";
+const std::string EL2_DATA_STORE_PREFIX = "account_";
+const std::string EL2_DATA_STORAGE_PATH_PREFIX = "/data/service/el2/";
+const std::string EL2_DATA_STORAGE_PATH_SUFFIX = "/account/app_account/database/";
 const std::string AUTHORIZED_ACCOUNTS = "authorizedAccounts";
 #ifdef HAS_ASSET_PART
 const std::string ALIAS_SUFFIX_CREDENTIAL = "credential";
@@ -165,33 +168,53 @@ void AppAccountControlManager::MoveData()
     DistributedKv::DistributedKvDataManager dataManager;
     DistributedKv::AppId appId = { .appId = Constants::APP_ACCOUNT_APP_ID };
     std::vector<DistributedKv::StoreId> storeIdList;
-    std::lock_guard<std::mutex> lock(storePtrMutex_);
+    std::lock_guard<std::mutex> storeIdLock(storePtrMutex_);
     OHOS::DistributedKv::Status status = dataManager.GetAllKvStoreId(appId, storeIdList);
     if (status != OHOS::DistributedKv::Status::SUCCESS) {
         ACCOUNT_LOGE("GetAllKvStoreId failed, status=%{public}u", status);
         return;
     }
-    for (const std::string &storeId: storeIdList) {
-        if (storeId.find(DATA_STORAGE_PREFIX) != std::string::npos) {
-            continue;
+    std::lock_guard<std::mutex> accountIdLock(migratedAccountMutex_);
+    while (!migratedAccounts_.empty()) {
+        std::string userId = std::to_string(*(migratedAccounts_.begin()));
+        for (std::string &storeId : storeIdList) {
+            if (storeId.find(EL2_DATA_STORE_PREFIX) != std::string::npos
+                || storeId.find(userId) == std::string::npos) {
+                continue;
+            }
+            AccountDataStorageOptions options;
+            if (storeId.find(DATA_STORAGE_PREFIX) != std::string::npos) {
+                options.encrypt = true;
+            }
+            ACCOUNT_LOGI("MoveData start, storeId=%{public}s", storeId.c_str());
+            auto oldPtr = std::make_shared<AppAccountDataStorage>(storeId, options);
+            options.encrypt = false;
+            options.area = DistributedKv::EL2;
+            options.baseDir = EL2_DATA_STORAGE_PATH_PREFIX + userId + EL2_DATA_STORAGE_PATH_SUFFIX;
+            auto newPtr = std::make_shared<AppAccountDataStorage>(EL2_DATA_STORE_PREFIX + userId, options);
+            ErrCode result = newPtr->MoveData(oldPtr);
+            if (result != ERR_OK) {
+                ACCOUNT_LOGE("MoveData failed, storeId=%{public}s, result=%{public}u",
+                    storeId.c_str(), result);
+                continue;
+            }
+            result = oldPtr->DeleteKvStore();
+            if (result != ERR_OK) {
+                ACCOUNT_LOGE("DeleteKvStore failed, storeId=%{public}s, result=%{public}u", storeId.c_str(), result);
+            }
         }
-        ACCOUNT_LOGI("MoveData to new store, storeId=%{public}s", storeId.c_str());
-        AccountDataStorageOptions options;
-        auto oldPtr = std::make_shared<AppAccountDataStorage>(storeId, options);
-        options.encrypt = true;
-        auto newPtr = std::make_shared<AppAccountDataStorage>(DATA_STORAGE_PREFIX + storeId, options);
-        ErrCode result = newPtr->MoveData(oldPtr);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("MoveData to new store failed, storeId=%{public}s, result=%{public}u",
-                storeId.c_str(), result);
-            continue;
-        }
-        result = oldPtr->DeleteKvStore();
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("DeleteKvStore failed, storeId=%{public}s, result=%{public}u", storeId.c_str(), result);
-        }
+        migratedAccounts_.erase(migratedAccounts_.begin());
     }
     ACCOUNT_LOGI("MoveData complete");
+}
+
+void AppAccountControlManager::AddMigratedAccount(int32_t localId)
+{
+    {
+        std::lock_guard<std::mutex> lock(migratedAccountMutex_);
+        migratedAccounts_.insert(localId);
+    }
+    MoveData();
 }
 
 AppAccountControlManager &AppAccountControlManager::GetInstance()
@@ -1208,10 +1231,11 @@ std::shared_ptr<AppAccountDataStorage> AppAccountControlManager::GetDataStorageB
         return it->second;
     }
     AccountDataStorageOptions options;
-    options.encrypt = true;
+    options.area = DistributedKv::EL2;
     options.autoSync = autoSync;
     options.securityLevel = securityLevel;
-    auto storePtr = std::make_shared<AppAccountDataStorage>(DATA_STORAGE_PREFIX + storeId, options);
+    options.baseDir = EL2_DATA_STORAGE_PATH_PREFIX + std::to_string(userId) + EL2_DATA_STORAGE_PATH_SUFFIX;
+    auto storePtr = std::make_shared<AppAccountDataStorage>(EL2_DATA_STORE_PREFIX + storeId, options);
     storePtrMap_.emplace(storeId, storePtr);
     return storePtr;
 }

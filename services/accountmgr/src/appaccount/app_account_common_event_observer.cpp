@@ -18,6 +18,7 @@
 #include <thread>
 #include <unistd.h>
 #include "account_log_wrapper.h"
+#include "app_account_control_manager.h"
 #include "bundle_constants.h"
 #ifdef HAS_CES_PART
 #include "common_event_manager.h"
@@ -45,6 +46,7 @@ AppAccountCommonEventObserver::AppAccountCommonEventObserver(const CommonEventCa
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_USER_REMOVED);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_SANDBOX_PACKAGE_REMOVED);
+    matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_USER_UNLOCKED);
 
     CommonEventSubscribeInfo subscribeInfo(matchingSkills);
     subscriber_ = std::make_shared<AppAccountCommonEventSubscriber>(
@@ -86,6 +88,10 @@ void AppAccountCommonEventObserver::OnReceiveEvent(const CommonEventData &data)
     }
     if ((action == CommonEventSupport::COMMON_EVENT_USER_REMOVED) && (callback_.OnUserRemoved != nullptr)) {
         callback_.OnUserRemoved(data.GetCode());
+        return;
+    }
+    if (action == CommonEventSupport::COMMON_EVENT_USER_UNLOCKED) {
+        AppAccountControlManager::GetInstance().AddMigratedAccount(data.GetCode());
     }
 }
 
