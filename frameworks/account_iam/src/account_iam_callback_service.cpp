@@ -143,62 +143,6 @@ void DomainCredentialRecipient::OnSetData(int32_t authSubType, std::vector<uint8
         callback->OnResult(errCode, emptyParcel);
     }
 }
-
-IAMInputerData::IAMInputerData(int32_t userId, const std::shared_ptr<IInputerData> &inputerData)
-    : userId_(userId), innerInputerData_(inputerData)
-{}
-
-IAMInputerData::~IAMInputerData()
-{}
-
-void IAMInputerData::OnSetData(int32_t authSubType, std::vector<uint8_t> data)
-{
-    if (innerInputerData_ == nullptr) {
-        ACCOUNT_LOGE("innerInputerData_ is nullptr");
-        return;
-    }
-    innerInputerData_->OnSetData(authSubType, data);
-    innerInputerData_ = nullptr;
-    AccountIAMClient::GetInstance().SetCredential(userId_, data);
-}
-
-IAMInputer::IAMInputer(int32_t userId, const std::shared_ptr<IInputer> &inputer)
-    : userId_(userId), innerInputer_(inputer)
-{}
-
-IAMInputer::~IAMInputer()
-{}
-
-void IAMInputer::OnGetData(int32_t authSubType, std::vector<uint8_t> challenge,
-    std::shared_ptr<IInputerData> inputerData)
-{
-    if (inputerData == nullptr) {
-        ACCOUNT_LOGE("inputerData is nullptr");
-        return;
-    }
-    IAMState state = AccountIAMClient::GetInstance().GetAccountState(userId_);
-    if (authSubType == 0) {
-        authSubType = AccountIAMClient::GetInstance().GetAuthSubType(userId_);
-    }
-    if (state >= AFTER_ADD_CRED) {
-        CredentialItem credItem;
-        AccountIAMClient::GetInstance().GetCredential(userId_, credItem);
-        inputerData->OnSetData(authSubType, credItem.credential);
-        AccountIAMClient::GetInstance().ClearCredential(userId_);
-        return;
-    }
-    if (innerInputer_ == nullptr) {
-        ACCOUNT_LOGE("innerInputer_ is nullptr");
-        return;
-    }
-    auto iamInputerData = std::make_shared<IAMInputerData>(userId_, inputerData);
-    innerInputer_->OnGetData(authSubType, challenge, iamInputerData);
-}
-
-void IAMInputer::ResetInnerInputer(const std::shared_ptr<IInputer> &inputer)
-{
-    innerInputer_ = inputer;
-}
 #endif
 }  // namespace AccountSA
 }  // namespace OHOS
