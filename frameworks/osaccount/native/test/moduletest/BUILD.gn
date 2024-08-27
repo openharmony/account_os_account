@@ -80,7 +80,7 @@ ohos_moduletest("os_account_frameworks_module_test") {
     cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
   }
   if (os_account_support_deactivate_main_os_account) {
-    cflags_cc += [ "-DSUPPROT_STOP_MAIN_OS_ACCOUNT" ]
+    cflags_cc += [ "-DSUPPORT_STOP_MAIN_OS_ACCOUNT" ]
   }
   if (has_user_auth_part) {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
@@ -186,7 +186,7 @@ ohos_moduletest("os_account_frameworks_module_mock_test") {
   cflags_cc += [ "-DBUNDLE_ADAPTER_MOCK" ]
   cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
   if (os_account_support_deactivate_main_os_account) {
-    cflags_cc += [ "-DSUPPROT_STOP_MAIN_OS_ACCOUNT" ]
+    cflags_cc += [ "-DSUPPORT_STOP_MAIN_OS_ACCOUNT" ]
   }
   part_name = "os_account"
 }
@@ -279,7 +279,7 @@ ohos_moduletest("os_account_manager_no_bms_mock_test") {
   cflags_cc += [ "-DBUNDLE_ADAPTER_MOCK" ]
   cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
   if (os_account_support_deactivate_main_os_account) {
-    cflags_cc += [ "-DSUPPROT_STOP_MAIN_OS_ACCOUNT" ]
+    cflags_cc += [ "-DSUPPORT_STOP_MAIN_OS_ACCOUNT" ]
   }
   part_name = "os_account"
 }

@@ -51,7 +51,7 @@ ohos_source_set("tools_acm_source_set") {
     cflags += [ "-DENABLE_MULTIPLE_ACTIVE_ACCOUNTS" ]
   }
   if (os_account_support_deactivate_main_os_account) {
-    cflags += [ "-DSUPPROT_STOP_MAIN_OS_ACCOUNT" ]
+    cflags += [ "-DSUPPORT_STOP_MAIN_OS_ACCOUNT" ]
   }
   cflags += [ "-pipe" ]
   cflags_cc = [
