@@ -552,8 +552,7 @@ ErrCode IInnerOsAccountManager::UpdateOsAccountWithFullInfo(OsAccountInfo &newIn
     osAccountControl_->UpdateAccountIndex(oldInfo, false);
     newInfo = oldInfo;
     if (errCode != ERR_OK) {
-        ReportOsAccountOperationFail(
-            localId, Constants::OPERATION_UPDATE, errCode, "UpdateOsAccount failed!");
+        ReportOsAccountOperationFail(localId, Constants::OPERATION_UPDATE, errCode, "UpdateOsAccount failed!");
     } else {
         OsAccountInterface::PublishCommonEvent(oldInfo,
             OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::OPERATION_UPDATE);
@@ -857,12 +856,8 @@ ErrCode IInnerOsAccountManager::GetTypeNumber(const OsAccountType& type, int32_t
         return result;
     }
 
-    typeNumber = std::count_if(
-        osAccountList.begin(), osAccountList.end(),
-        [&type](const OsAccountInfo& info) {
-            return info.GetType() == type;
-        }
-    );
+    typeNumber = std::count_if(osAccountList.begin(), osAccountList.end(),
+        [&type](const OsAccountInfo& info) { return info.GetType() == type; });
     return ERR_OK;
 }
 
@@ -886,26 +881,24 @@ ErrCode IInnerOsAccountManager::CheckTypeNumber(const OsAccountType& type)
 
 ErrCode IInnerOsAccountManager::SendMsgForAccountRemove(OsAccountInfo &osAccountInfo)
 {
+    int32_t localId = osAccountInfo.GetLocalId();
     ErrCode errCode = OsAccountInterface::SendToBMSAccountDelete(osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("SendToBMSAccountDelete failed, id %{public}d, errCode %{public}d",
-            osAccountInfo.GetLocalId(), errCode);
+        ACCOUNT_LOGE("SendToBMSAccountDelete failed, id %{public}d, errCode %{public}d", localId, errCode);
         return errCode;
     }
     errCode = OsAccountInterface::SendToStorageAccountRemove(osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("SendToStorageAccountRemove failed, id %{public}d, errCode %{public}d",
-            osAccountInfo.GetLocalId(), errCode);
+        ACCOUNT_LOGE("SendToStorageAccountRemove failed, id %{public}d, errCode %{public}d", localId, errCode);
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
-    errCode = osAccountControl_->DelOsAccount(osAccountInfo.GetLocalId());
+    errCode = osAccountControl_->DelOsAccount(localId);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("remove osaccount info failed, id: %{public}d, errCode %{public}d",
-            osAccountInfo.GetLocalId(), errCode);
+        ACCOUNT_LOGE("remove osaccount info failed, id: %{public}d, errCode %{public}d", localId, errCode);
         return errCode;
     }
     OsAccountInterface::SendToCESAccountDelete(osAccountInfo);
-    ReportOsAccountLifeCycle(osAccountInfo.GetLocalId(), Constants::OPERATION_DELETE);
+    ReportOsAccountLifeCycle(localId, Constants::OPERATION_DELETE);
     return errCode;
 }
 
@@ -2144,6 +2137,11 @@ ErrCode IInnerOsAccountManager::UpdateAccountToBackground(int32_t oldId)
         OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_BACKGROUND, Constants::OPERATION_SWITCH);
 
 #ifdef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
+#ifndef SUPPORT_STOP_MAIN_OS_ACCOUNT
+    if (oldId == Constants::START_USER_ID) {
+        return ERR_OK;
+    }
+#endif
     bool isLoggedIn = false;
     if ((oldOsAccountInfo.GetType() != OsAccountType::PRIVATE) && (!loggedInAccounts_.Find(oldId, isLoggedIn))) {
         DeactivateOsAccount(oldId, false);
