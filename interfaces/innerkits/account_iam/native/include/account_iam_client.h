@@ -273,26 +273,6 @@ public:
      */
     int32_t GetAuthSubType(int32_t userId);
 
-    /**
-     * @brief Sets the credential of the specified account.
-     * @param userId - Indicates the user identification.
-     * @param credential - Indicates the credential.
-     */
-    void SetCredential(int32_t userId, const std::vector<uint8_t> &credential);
-
-    /**
-     * @brief Gets the credential information of the specified account.
-     * @param userId - Indicates the user identification.
-     * @param credItem - Indicates the credential information.
-     */
-    void GetCredential(int32_t userId, CredentialItem &credItem);
-
-    /**
-     * @brief Clears the credential of the specified account.
-     * @param userId - Indicates the user identification.
-     */
-    void ClearCredential(int32_t userId);
-
 private:
     AccountIAMClient() = default;
     ~AccountIAMClient() = default;
