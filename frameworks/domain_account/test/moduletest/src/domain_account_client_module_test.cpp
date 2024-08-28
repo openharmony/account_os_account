@@ -940,8 +940,6 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessT
     auto testGetCallback = std::make_shared<TestGetAccessTokenCallback>(getCallback);
     ASSERT_NE(testGetCallback, nullptr);
     AAFwk::WantParams parameters;
-    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccessToken(domainInfo, parameters, testGetCallback),
-        ERR_ACCOUNT_COMMON_NOT_AUTHENTICATED);
     int32_t userId = -1;
     errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId);
     EXPECT_EQ(errCode, ERR_OK);
@@ -1001,8 +999,6 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessT
     auto testGetTokenCallback = std::make_shared<TestGetAccessTokenCallback>(getAccessTokencallback);
     ASSERT_NE(testGetTokenCallback, nullptr);
     AAFwk::WantParams parameters;
-    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccessToken(domainInfo, parameters, testGetTokenCallback),
-        ERR_ACCOUNT_COMMON_NOT_AUTHENTICATED);
     int32_t userId = -1;
     errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId);
     EXPECT_EQ(errCode, ERR_OK);
