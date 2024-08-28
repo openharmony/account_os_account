@@ -181,7 +181,7 @@ ohos_shared_library("accountmgr") {
   }
 
   if (os_account_support_deactivate_main_os_account) {
-    cflags += [ "-DSUPPROT_STOP_MAIN_OS_ACCOUNT" ]
+    cflags += [ "-DSUPPORT_STOP_MAIN_OS_ACCOUNT" ]
   }
 
   if (os_account_distributed_feature) {

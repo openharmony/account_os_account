@@ -2591,7 +2591,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest114, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest115, TestSize.Level1)
 {
-#ifndef SUPPROT_STOP_MAIN_OS_ACCOUNT
+#ifndef SUPPORT_STOP_MAIN_OS_ACCOUNT
     EXPECT_EQ(OsAccountManager::DeactivateOsAccount(Constants::START_USER_ID),
               ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_STOP_ACTIVE_ERROR);
 #else
