@@ -694,31 +694,6 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_RegisterInputer_0100, TestSize.L
 #endif
 
 /**
- * @tc.name: AccountIAMClient_SetCredential_0100
- * @tc.desc: SetCredential.
- * @tc.type: FUNC
- * @tc.require: issueI5N90O
- */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient_SetCredential_0100, TestSize.Level0)
-{
-    int32_t userId = 1111; // 1111: userId
-    std::vector<uint8_t> cred1(10, 'a');
-    CredentialItem credItem;
-    AccountIAMClient::GetInstance().SetCredential(userId, cred1);
-    AccountIAMClient::GetInstance().GetCredential(userId, credItem);
-    EXPECT_TRUE(credItem.oldCredential.empty());
-    EXPECT_FALSE(credItem.credential.empty());
-
-    std::vector<uint8_t> cred2(10, 'b');
-    AccountIAMClient::GetInstance().SetCredential(userId, cred2);
-    AccountIAMClient::GetInstance().GetCredential(userId, credItem);
-    EXPECT_FALSE(credItem.oldCredential.empty());
-    EXPECT_FALSE(credItem.credential.empty());
-
-    AccountIAMClient::GetInstance().ClearCredential(userId);
-}
-
-/**
  * @tc.name: AccountIAMClient_SetAuthSubType_0100
  * @tc.desc: SetAuthSubType.
  * @tc.type: FUNC
@@ -734,8 +709,6 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_SetAuthSubType_0100, TestSize.Le
 
     AccountIAMClient::GetInstance().SetAuthSubType(userId, type + 1);
     EXPECT_EQ(type, AccountIAMClient::GetInstance().GetAuthSubType(userId));
-
-    AccountIAMClient::GetInstance().ClearCredential(userId);
 }
 
 /**
