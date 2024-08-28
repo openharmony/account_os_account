@@ -1106,8 +1106,7 @@ ErrCode InnerDomainAccountManager::GetAccessToken(
     }
     std::vector<uint8_t> accountToken;
     if (!GetTokenFromMap(userId, accountToken)) {
-        ACCOUNT_LOGE("the target domain account has not authenticated");
-        return ERR_ACCOUNT_COMMON_NOT_AUTHENTICATED;
+        ACCOUNT_LOGI("The target domain account has not authenticated");
     }
     GetAccessTokenOptions option(callingUid, parameters);
     if (plugin_ == nullptr) {
@@ -1151,9 +1150,7 @@ ErrCode InnerDomainAccountManager::IsAuthenticationExpired(
     }
     std::vector<uint8_t> accountToken;
     if (!GetTokenFromMap(userId, accountToken)) {
-        ACCOUNT_LOGI("The target domain account has not authenticated, isExpired=true.");
-        isExpired = true;
-        return ERR_OK;
+        ACCOUNT_LOGI("The target domain account has not authenticated");
     }
 
     PluginDomainAccountInfo domainAccountInfo;
