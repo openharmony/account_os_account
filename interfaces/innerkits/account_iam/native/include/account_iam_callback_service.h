@@ -96,33 +96,6 @@ private:
     int32_t userId_;
     std::shared_ptr<IDMCallback> idmCallback_;
 };
-
-class IAMInputerData : public IInputerData {
-public:
-    IAMInputerData(int32_t userId, const std::shared_ptr<IInputerData> &inputerData);
-    ~IAMInputerData() override;
-    void OnSetData(int32_t authSubType, std::vector<uint8_t> data) override;
-
-private:
-    int32_t userId_;
-    std::shared_ptr<IInputerData> innerInputerData_;
-    std::map<std::string, std::vector<uint8_t>> credMap_;
-};
-
-class IAMInputer : public IInputer {
-public:
-    IAMInputer(int32_t userId, const std::shared_ptr<IInputer> &inputer);
-    virtual ~IAMInputer();
-
-    void OnGetData(int32_t authSubType, std::vector<uint8_t> challenge,
-        std::shared_ptr<IInputerData> inputerData) override;
-    void ResetInnerInputer(const std::shared_ptr<IInputer> &inputer);
-private:
-    int32_t userId_;
-    std::vector<uint8_t> oldCredential_;
-    std::shared_ptr<IInputer> innerInputer_ = nullptr;
-    std::shared_ptr<IAMInputerData> inputerData_ = nullptr;
-};
 #endif
 }  // namespace AccountSA
 }  // namespace OHOS

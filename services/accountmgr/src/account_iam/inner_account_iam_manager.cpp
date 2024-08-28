@@ -63,7 +63,6 @@ void InnerAccountIAMManager::OpenSession(int32_t userId, std::vector<uint8_t> &c
     challenge = UserIDMClient::GetInstance().OpenSession(userId);
     std::lock_guard<std::mutex> lock(mutex_);
     userStateMap_[userId] = AFTER_OPEN_SESSION;
-    userChallengeMap_[userId] = challenge;
 }
 
 void InnerAccountIAMManager::CloseSession(int32_t userId)
@@ -75,7 +74,6 @@ void InnerAccountIAMManager::CloseSession(int32_t userId)
     } else {
         userStateMap_.erase(userId);
     }
-    userChallengeMap_.erase(userId);
 }
 
 void InnerAccountIAMManager::AddCredential(
@@ -412,17 +410,6 @@ void InnerAccountIAMManager::SetState(int32_t userId, IAMState state)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     userStateMap_[userId] = state;
-}
-
-void InnerAccountIAMManager::GetChallenge(int32_t userId, std::vector<uint8_t> &challenge)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto it = userChallengeMap_.find(userId);
-    if (it != userChallengeMap_.end()) {
-        challenge = it->second;
-    } else {
-        challenge = userChallengeMap_[0];
-    }
 }
 
 ErrCode InnerAccountIAMManager::UpdateStorageKey(
