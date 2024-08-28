@@ -27,6 +27,12 @@
 #include "user_auth_client.h"
 #include "user_auth_client_impl.h"
 #include "user_idm_client.h"
+#ifdef HAS_PIN_AUTH_PART
+#include "access_token.h"
+#include "ipc_skeleton.h"
+#include "pinauth_register.h"
+#include "token_setproc.h"
+#endif //HAS_PIN_AUTH_PART
 
 namespace OHOS {
 namespace AccountSA {
@@ -136,6 +142,21 @@ void InnerAccountIAMManager::DelCred(
     UserIDMClient::GetInstance().DeleteCredential(userId, credentialId, authToken, idmCallback);
 }
 
+#ifdef HAS_PIN_AUTH_PART
+void InnerAccountIAMManager::OnDelUserDone(int32_t userId)
+{
+    ACCOUNT_LOGI("Delete user credential successfully, userId: %{public}d", userId);
+    std::lock_guard<std::mutex> lock(delUserInputerMutex_);
+    delUserInputerVec_.pop_back();
+    if (delUserInputerVec_.empty()) {
+        Security::AccessToken::AccessTokenID selfToken = IPCSkeleton::GetSelfTokenID();
+        SetFirstCallerTokenID(selfToken);
+        UserIam::PinAuth::PinAuthRegister::GetInstance().UnRegisterInputer();
+        ACCOUNT_LOGI("Unregister inputer.");
+    }
+}
+#endif // HAS_PIN_AUTH_PART
+
 void InnerAccountIAMManager::DelUser(
     int32_t userId, const std::vector<uint8_t> &authToken, const sptr<IIDMCallback> &callback)
 {
@@ -144,6 +165,30 @@ void InnerAccountIAMManager::DelUser(
         return;
     }
     Attributes errResult;
+#ifdef HAS_PIN_AUTH_PART
+    Security::AccessToken::AccessTokenID selfToken = IPCSkeleton::GetSelfTokenID();
+    ErrCode errCode = SetFirstCallerTokenID(selfToken);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to set first caller token id, errCode: %{public}d", errCode);
+        return callback->OnResult(errCode, errResult);
+    }
+    std::lock_guard<std::mutex> lock(delUserInputerMutex_);
+    if (delUserInputerVec_.empty()) {
+        auto inputer = std::make_shared<DelUserInputer>();
+        if (!UserIam::PinAuth::PinAuthRegister::GetInstance().RegisterInputer(inputer)) {
+            ACCOUNT_LOGE("Failed to resgiter inputer, continue");
+        }
+        delUserInputerVec_.emplace_back(inputer);
+    } else {
+        delUserInputerVec_.emplace_back(delUserInputerVec_[0]);
+    }
+    CredentialParameters credInfo;
+    credInfo.authType = AuthType::PIN;
+    credInfo.pinType = PinSubType::PIN_SIX;
+    credInfo.token = authToken;
+    auto delUserCallback = std::make_shared<DelUserCallback>(userId, callback);
+    UserIDMClient::GetInstance().UpdateCredential(userId, credInfo, delUserCallback);
+#else
     if (authToken.empty()) {
         ACCOUNT_LOGE("token is empty");
         callback->OnResult(ResultCode::INVALID_PARAMETERS, errResult);
@@ -152,6 +197,7 @@ void InnerAccountIAMManager::DelUser(
 
     auto idmCallback = std::make_shared<DelCredCallback>(userId, true, authToken, callback);
     UserIDMClient::GetInstance().DeleteUser(userId, authToken, idmCallback);
+#endif
 }
 
 void InnerAccountIAMManager::GetCredentialInfo(
