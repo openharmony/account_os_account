@@ -28,6 +28,7 @@
 #include "domain_account_callback_service.h"
 #include "hitrace_adapter.h"
 #include "account_hisysevent_adapter.h"
+#include "account_permission_manager.h"
 #include "ohos_account_kits.h"
 #include "os_account_constants.h"
 #include "os_account_control_file_manager.h"
@@ -413,7 +414,7 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(
     }
     unsigned int osAccountNum = 0;
     GetCreatedOsAccountsCount(osAccountNum);
-    if (osAccountNum >= config_.maxOsAccountNum) {
+    if (!AccountPermissionManager::CheckSaCall() && osAccountNum >= config_.maxOsAccountNum) {
         ACCOUNT_LOGE("The number of OS accounts has oversize, max num: %{public}d", config_.maxOsAccountNum);
         return ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR;
     }
@@ -456,7 +457,7 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, co
 #endif // ENABLE_ACCOUNT_SHORT_NAME
     unsigned int osAccountNum = 0;
     GetCreatedOsAccountsCount(osAccountNum);
-    if (osAccountNum >= config_.maxOsAccountNum) {
+    if (!AccountPermissionManager::CheckSaCall() && osAccountNum >= config_.maxOsAccountNum) {
         ACCOUNT_LOGE("The number of OS accounts has oversize, max num: %{public}d", config_.maxOsAccountNum);
         return ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR;
     }
@@ -637,7 +638,7 @@ ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
         ACCOUNT_LOGE("the domain account is already bound");
         return ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR;
     }
-    if (osAccountInfos.size() >= config_.maxOsAccountNum) {
+    if (!AccountPermissionManager::CheckSaCall() && osAccountInfos.size() >= config_.maxOsAccountNum) {
         ACCOUNT_LOGE("The number of OS accounts has oversize, max num: %{public}d", config_.maxOsAccountNum);
         return ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR;
     }
