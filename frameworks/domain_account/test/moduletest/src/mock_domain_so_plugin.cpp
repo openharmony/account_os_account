@@ -125,19 +125,25 @@ PluginBussnessError *IsAuthenticationExpired(const PluginDomainAccountInfo *doma
                                              const PluginUint8Vector *token, int32_t *isValid)
 {
     ACCOUNT_LOGI("Mock IsAuthenticationExpired enter.");
+    if (domainAccountInfo == nullptr) {
+        return nullptr;
+    }
+    if (isValid == nullptr) {
+        return nullptr;
+    }
     PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
     if (error == nullptr) {
         return nullptr;
     }
-    if (domainAccountInfo == nullptr) {
-        return nullptr;
+    error->code = 0;
+    error->msg.data = nullptr;
+    if (token != nullptr && token->size == 0) {
+        *isValid = 0;
+        return error;
     }
-
     if (g_authenicationValidityPeriod == -1) {
         ACCOUNT_LOGI("Mock Auth not set.");
         *isValid = 1;
-        error->code = 0;
-        error->msg.data = nullptr;
         return error;
     }
 
@@ -151,9 +157,6 @@ PluginBussnessError *IsAuthenticationExpired(const PluginDomainAccountInfo *doma
         ACCOUNT_LOGI("Mock Auth not expired: %{public}d.", calTime);
         *isValid = 1;
     }
-
-    error->code = 0;
-    error->msg.data = nullptr;
     return error;
 }
 
