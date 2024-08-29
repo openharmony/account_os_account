@@ -2202,6 +2202,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_OnPackageR
 
     want.SetElement(element);
     want.SetParam(AppExecFwk::Constants::UID, UID);
+    want.SetParam(AppExecFwk::Constants::APP_INDEX, 0);
 
     CommonEventData commonEventData;
     commonEventData.SetWant(want);
