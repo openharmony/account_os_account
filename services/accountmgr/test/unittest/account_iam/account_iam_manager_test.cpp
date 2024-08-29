@@ -846,9 +846,6 @@ HWTEST_F(AccountIamManagerTest, ActivateUserKey001, TestSize.Level2)
     std::vector<uint8_t> testSecret = {1, 2, 3, 4};
 
     auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
-    sptr<MockStorageMgrProxy> ptr = new (std::nothrow) MockStorageMgrProxy();
-    ASSERT_NE(ptr, nullptr);
-    innerIamMgr_.storageMgrProxy_ = ptr;
 
     EXPECT_EQ(ERR_OK, innerIamMgr_.ActivateUserKey(TEST_USER_ID, testAuthToken, testSecret));
 
@@ -858,7 +855,6 @@ HWTEST_F(AccountIamManagerTest, ActivateUserKey001, TestSize.Level2)
     // userid is out of range
     userId = 11112;
     EXPECT_NE(ERR_OK, innerIamMgr_.ActivateUserKey(userId, testAuthToken, testSecret));
-    innerIamMgr_.storageMgrProxy_ = nullptr;
 }
 
 /**
@@ -874,14 +870,10 @@ HWTEST_F(AccountIamManagerTest, UpdateStorageKey001, TestSize.Level2)
     std::vector<uint8_t> testSecret = {1, 2, 3, 4};
     std::vector<uint8_t> token = {};
     auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
-    sptr<MockStorageMgrProxy> ptr = new (std::nothrow) MockStorageMgrProxy();
-    ASSERT_NE(ptr, nullptr);
-    innerIamMgr_.storageMgrProxy_ = ptr;
 
     int32_t res =
         innerIamMgr_.UpdateStorageKey(TEST_USER_ID, testCreId, token, testSecret, testSecret);
     EXPECT_EQ(g_fscryptEnable ? -2 : 0, res);
-    innerIamMgr_.storageMgrProxy_ = nullptr;
 }
 
 /**
@@ -897,10 +889,6 @@ HWTEST_F(AccountIamManagerTest, UpdateCredCallback_OnResult_0001, TestSize.Level
     credInfo.authType = AuthType::PIN;
     Attributes extraInfo;
     auto updateCredCallback = std::make_shared<UpdateCredCallback>(UPDATE_USER_ID, credInfo, callback);
-    auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
-    sptr<MockStorageMgrProxy> ptr = new (std::nothrow) MockStorageMgrProxy();
-    ASSERT_NE(ptr, nullptr);
-    innerIamMgr_.storageMgrProxy_ = ptr;
 
     EXPECT_TRUE(updateCredCallback->innerCallback_ != nullptr);
     int32_t errCode = 10;
@@ -909,7 +897,6 @@ HWTEST_F(AccountIamManagerTest, UpdateCredCallback_OnResult_0001, TestSize.Level
     errCode = 0;
     updateCredCallback->OnResult(errCode, extraInfo);
     EXPECT_NE(errCode, callback->result_);
-    innerIamMgr_.storageMgrProxy_ = nullptr;
 }
 
 /**
@@ -925,11 +912,6 @@ HWTEST_F(AccountIamManagerTest, UpdateCredCallback_OnResult_0002, TestSize.Level
     credInfo.authType = AuthType::PIN;
     Attributes extraInfo;
     auto updateCredCallback = std::make_shared<UpdateCredCallback>(UPDATE_FAIL_USER_ID, credInfo, callback);
-    auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
-    sptr<MockStorageMgrProxy> ptr = new (std::nothrow) MockStorageMgrProxy();
-    ASSERT_NE(ptr, nullptr);
-    innerIamMgr_.storageMgrProxy_ = ptr;
-
     EXPECT_TRUE(updateCredCallback->innerCallback_ != nullptr);
     int32_t errCode = 0;
     updateCredCallback->OnResult(errCode, extraInfo);
@@ -940,7 +922,6 @@ HWTEST_F(AccountIamManagerTest, UpdateCredCallback_OnResult_0002, TestSize.Level
         credentialId, callback);
     commitUpdateCredCallback->OnResult(errCode, extraInfo);
     commitUpdateCredCallback->OnResult(1, extraInfo);
-    innerIamMgr_.storageMgrProxy_ = nullptr;
 }
 
 /**
