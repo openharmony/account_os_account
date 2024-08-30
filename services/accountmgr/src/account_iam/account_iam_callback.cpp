@@ -294,13 +294,11 @@ void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
 
     uint64_t secureUid = 0;
     extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, secureUid);
-    std::vector<uint8_t> newSecret;
-    extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, newSecret);
     std::vector<uint8_t> oldSecret;
     extraInfo.GetUint8ArrayValue(Attributes::ATTR_OLD_ROOT_SECRET, oldSecret);
     std::vector<uint8_t> token;
     extraInfo.GetUint8ArrayValue(Attributes::ATTR_AUTH_TOKEN, token);
-    ErrCode code = innerIamMgr_.UpdateStorageUserAuth(userId_, secureUid, token, oldSecret, newSecret);
+    ErrCode code = innerIamMgr_.UpdateStorageUserAuth(userId_, secureUid, token, oldSecret, {});
     if (code != ERR_OK) {
         ACCOUNT_LOGE("Fail to update user auth, userId=%{public}d, code=%{public}d", userId_, code);
         innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
@@ -310,9 +308,12 @@ void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
     innerIamMgr_.SetState(userId_, AFTER_UPDATE_CRED);
     uint64_t oldCredentialId = 0;
     extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_OLD_CREDENTIAL_ID, oldCredentialId);
-    uint64_t credentialId = 0;
-    extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId);
-    auto idmCallback = std::make_shared<CommitCredUpdateCallback>(userId_, credentialId, innerCallback_);
+    UpdateCredInfo updateCredInfo;
+    updateCredInfo.secureUid = secureUid;
+    updateCredInfo.token = token;
+    extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, updateCredInfo.newSecret);
+    extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, updateCredInfo.credentialId);
+    auto idmCallback = std::make_shared<CommitCredUpdateCallback>(userId_, updateCredInfo, innerCallback_);
     Security::AccessToken::AccessTokenID selfToken = IPCSkeleton::GetSelfTokenID();
     result = SetFirstCallerTokenID(selfToken);
     ACCOUNT_LOGI("Set first caller info result: %{public}d", result);
@@ -357,19 +358,12 @@ void DelUserCallback::OnResult(int32_t result, const Attributes &extraInfo)
     }
     uint64_t secureUid = 0;
     extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, secureUid);
-    std::vector<uint8_t> newSecret;
-    extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, newSecret);
     std::vector<uint8_t> oldSecret;
     extraInfo.GetUint8ArrayValue(Attributes::ATTR_OLD_ROOT_SECRET, oldSecret);
     std::vector<uint8_t> token;
     extraInfo.GetUint8ArrayValue(Attributes::ATTR_AUTH_TOKEN, token);
     auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
-    ErrCode errCode = innerIamMgr_.UpdateStorageUserAuth(userId_, secureUid, token, oldSecret, newSecret);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Fail to update root secret, userId=%{public}d, errcode=%{public}d", userId_, errCode);
-        return innerCallback_->OnResult(errCode, extraInfo);
-    }
-    errCode = innerIamMgr_.UpdateStorageUserAuth(userId_, secureUid, token, oldSecret, {});
+    ErrCode errCode = innerIamMgr_.UpdateStorageUserAuth(userId_, secureUid, token, oldSecret, {});
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Fail to delete root secret, userId=%{public}d, errcode=%{public}d", userId_, errCode);
         return innerCallback_->OnResult(errCode, extraInfo);
@@ -396,9 +390,9 @@ void DelUserCallback::OnResult(int32_t result, const Attributes &extraInfo)
 }
 #endif // HAS_PIN_AUTH_PART
 
-CommitCredUpdateCallback::CommitCredUpdateCallback(int32_t userId, uint64_t credentialId,
-    const sptr<IIDMCallback> &callback)
-    : userId_(userId), credentialId_(credentialId), innerCallback_(callback)
+CommitCredUpdateCallback::CommitCredUpdateCallback(int32_t userId,
+    const UpdateCredInfo &extraUpdateInfo, const sptr<IIDMCallback> &callback)
+    : userId_(userId), extraUpdateInfo_(extraUpdateInfo), innerCallback_(callback)
 {}
 
 void CommitCredUpdateCallback::OnResult(int32_t result, const Attributes &extraInfo)
@@ -417,10 +411,18 @@ void CommitCredUpdateCallback::OnResult(int32_t result, const Attributes &extraI
         innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
         return;
     }
+    ErrCode code = innerIamMgr_.UpdateStorageUserAuth(
+        userId_, extraUpdateInfo_.secureUid, extraUpdateInfo_.token, {}, extraUpdateInfo_.newSecret);
+    if (code != ERR_OK) {
+        ACCOUNT_LOGE("Fail to update user auth, userId=%{public}d, code=%{public}d", userId_, code);
+        innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
+        innerCallback_->OnResult(code, extraInfo);
+        return;
+    }
     innerIamMgr_.UpdateStorageKeyContext(userId_);
     innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
     Attributes extraInfoResult;
-    extraInfoResult.SetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId_);
+    extraInfoResult.SetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, extraUpdateInfo_.credentialId);
     innerCallback_->OnResult(result, extraInfoResult);
 }
 
