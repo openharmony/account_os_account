@@ -1578,8 +1578,9 @@ void NapiGetAccountInfoCallback::OnResult(int32_t errCode, Parcel &parcel)
         if (parameters == nullptr) {
             ACCOUNT_LOGE("Parameters unmarshalling error");
             errCode = ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+        } else {
+            asyncContext->getAccountInfoParams = *parameters;
         }
-        asyncContext->getAccountInfoParams = *parameters;
     }
     asyncContext->errCode = errCode;
     asyncContext->callbackRef = callbackRef_;
