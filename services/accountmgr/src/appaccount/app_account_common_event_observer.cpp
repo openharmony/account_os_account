@@ -106,10 +106,12 @@ void AppAccountCommonEventObserver::DealWithRemoveEvent(const AAFwk::Want &want,
     int32_t appIndex = 0;
     if (action == CommonEventSupport::COMMON_EVENT_SANDBOX_PACKAGE_REMOVED) {
         appIndex = want.GetIntParam(AppExecFwk::Constants::SANDBOX_APP_INDEX, -1);
-        if (appIndex < 0) {
-            ACCOUNT_LOGW("appIndex = %{public}d is invalid.", appIndex);
-            return;
-        }
+    } else {
+        appIndex = want.GetIntParam(AppExecFwk::Constants::APP_INDEX, -1);
+    }
+    if (appIndex < 0) {
+        ACCOUNT_LOGW("appIndex = %{public}d is invalid.", appIndex);
+        return;
     }
     ACCOUNT_LOGD("uid = %{public}d, bundleName = %{public}s. appIndex = %{public}d",
         uid, bundleName.c_str(), appIndex);
