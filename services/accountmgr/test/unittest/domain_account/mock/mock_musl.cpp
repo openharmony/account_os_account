@@ -55,6 +55,7 @@ void *dlopen(const char* path, int flag)
         ACCOUNT_LOGI("mock dlopen equal");
         return g_ptr;
     }
+    errno = 1;
     return nullptr;
 }
 
