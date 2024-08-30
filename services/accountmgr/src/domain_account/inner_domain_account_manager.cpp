@@ -20,6 +20,7 @@
 #include <securec.h>
 #include <cstring>
 #include <vector>
+#include "account_hisysevent_adapter.h"
 #include "account_info_report.h"
 #include "account_log_wrapper.h"
 #include "bool_wrapper.h"
@@ -52,7 +53,9 @@ constexpr char THREAD_UNBIND_ACCOUNT[] = "unbindAccount";
 constexpr char THREAD_GET_ACCESS_TOKEN[] = "getAccessToken";
 constexpr char THREAD_IS_ACCOUNT_VALID[] = "isAccountTokenValid";
 constexpr int32_t INVALID_USERID = -1;
+constexpr int32_t ADMIN_USERID = 0;
 constexpr int32_t SELF_UID = 3058;
+static const std::string OPERATOR_LOAD_LIB = "LoaderLib";
 #ifdef _ARM64_
 static const std::string LIB_PATH = "/system/lib64/platformsdk/";
 #else
@@ -75,6 +78,20 @@ static bool IsSupportNetRequest()
     bool isForeground = false;
     IInnerOsAccountManager::GetInstance().IsOsAccountForeground(accountId, 0, isForeground);
     return isForeground;
+}
+
+static int32_t GetCallingUserID()
+{
+    std::int32_t userId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+    if (userId <= 0) {
+        std::vector<int32_t> userIds;
+        (void)IInnerOsAccountManager::GetInstance().QueryActiveOsAccountIds(userIds);
+        if (userIds.empty()) {
+            return INVALID_USERID;  // invalid user id
+        }
+        userId = userIds[0];
+    }
+    return userId;
 }
 
 InnerDomainAccountManager::InnerDomainAccountManager()
@@ -269,7 +286,10 @@ void InnerDomainAccountManager::LoaderLib(const std::string &path, const std::st
     std::string soPath = path + libName;
     libHandle_ = dlopen(soPath.c_str(), RTLD_LAZY);
     if (libHandle_ == nullptr) {
-        ACCOUNT_LOGE("Call dlopen failed error=%{public}s", dlerror());
+        const char *dlsym_error = dlerror();
+        ACCOUNT_LOGE("Call dlopen failed error=%{public}s", dlsym_error);
+        ReportOsAccountOperationFail(
+            ADMIN_USERID, OPERATOR_LOAD_LIB, ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, dlsym_error);
         return;
     }
     for (auto i = 0; i < static_cast<int>(PluginMethodEnum::COUNT); ++i) {
@@ -285,6 +305,8 @@ void InnerDomainAccountManager::LoaderLib(const std::string &path, const std::st
         const char *dlsym_error = dlerror();
         if (dlsym_error != nullptr) {
             ACCOUNT_LOGE("Call check method=%{public}s error=%{public}s", methodName.c_str(), dlsym_error);
+            ReportOsAccountOperationFail(
+                ADMIN_USERID, OPERATOR_LOAD_LIB, ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, dlsym_error);
             libHandle_ = nullptr;
             methodMap_.clear();
             return;
@@ -388,6 +410,7 @@ static ErrCode GetAndCleanPluginBussnessError(PluginBussnessError **error, Plugi
     }
     ACCOUNT_LOGE("Call method=%{public}s is error, errorCode=%{public}d msg=%{public}s.",
         methodName.c_str(), err, msg.c_str());
+    ReportOsAccountOperationFail(GetCallingUserID(), methodName, err, msg);
     return err;
 }
 
@@ -417,20 +440,6 @@ static void GetAndCleanPluginServerConfigInfo(PluginServerConfigInfo **pConfigIn
     GetAndCleanPluginString((*pConfigInfo)->parameters, parameters);
     free((*pConfigInfo));
     (*pConfigInfo) = nullptr;
-}
-
-static int32_t GetCallingUserID()
-{
-    std::int32_t userId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
-    if (userId <= 0) {
-        std::vector<int32_t> userIds;
-        (void)IInnerOsAccountManager::GetInstance().QueryActiveOsAccountIds(userIds);
-        if (userIds.empty()) {
-            return INVALID_USERID;  // invalid user id
-        }
-        userId = userIds[0];
-    }
-    return userId;
 }
 
 static void SetPluginDomainAccountInfo(const DomainAccountInfo &info, PluginDomainAccountInfo &pluginInfo)
