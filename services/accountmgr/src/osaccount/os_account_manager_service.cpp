@@ -709,6 +709,14 @@ ErrCode OsAccountManagerService::SubscribeOsAccount(
         }
     }
 
+    auto osSubscribeInfo = innerManager_.GetSubscribeRecordInfo(eventListener);
+    if (osSubscribeInfo != nullptr) {
+        std::string name;
+        osSubscribeInfo->GetName(name);
+        ACCOUNT_LOGI("Event listener %{public}s already exists.", name.c_str());
+        return ERR_OK;
+    }
+
     return innerManager_.SubscribeOsAccount(subscribeInfo, eventListener);
 }
 
