@@ -39,9 +39,11 @@
 #include "account_file_operator.h"
 #undef private
 #include "os_account_constants.h"
-#ifdef BUNDLE_ADAPTER_MOCK
 #define private public
 #include "os_account.h"
+#undef private
+#ifdef BUNDLE_ADAPTER_MOCK
+#define private public
 #include "os_account_manager_service.h"
 #include "os_account_proxy.h"
 #include "iinner_os_account_manager.h"
@@ -95,6 +97,12 @@ const std::vector<std::string> CONSTANTS_VECTOR {
 const std::vector<std::string> CONSTANTS_VECTOR_TEST {
     "constraint.private.dns.set",
 };
+
+const std::vector<std::string> PERMISSION_LIST {
+    "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS",
+    "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION"
+};
+
 const std::string CONSTRAINT_PRIVATE_DNS_SET = "constraint.private.dns.set";
 const std::string CONSTANT_WIFI = "constraint.wifi";
 
@@ -350,12 +358,14 @@ private:
 };
 
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
+#ifndef BUNDLE_ADAPTER_MOCK
 static void Wait(const std::shared_ptr<AccountTestEventSubscriber> &ptr)
 {
     std::unique_lock<std::mutex> lock(ptr->mutex);
     ptr->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
         [lockPtr = ptr]() { return lockPtr->stoppingEventReady && lockPtr->stoppedEventReady; });
 }
+#endif
 #endif
 
 class MockOsAccountSubscriber {
@@ -2529,14 +2539,13 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest113, TestSize.Lev
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest114, TestSize.Level1)
 {
     AccessTokenID tokenID;
-    ASSERT_TRUE(AllocPermission(
-        {"ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS", "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION"},
-        tokenID));
+    ASSERT_TRUE(AllocPermission(PERMISSION_LIST, tokenID));
 
     OsAccountInfo osAccountInfo;
     EXPECT_EQ(OsAccountManager::CreateOsAccount("ModuleTest114", OsAccountType::NORMAL, osAccountInfo), ERR_OK);
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
 
+#ifndef BUNDLE_ADAPTER_MOCK
     EventFwk::MatchingSkills matchingSkills;
     matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_STOPPING);
     matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_STOPPED);
@@ -2544,42 +2553,42 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest114, TestSize.Lev
     auto listener = std::make_shared<MockSubscriberListener>();
     std::shared_ptr<AccountTestEventSubscriber> subscriberPtr =
         std::make_shared<AccountTestEventSubscriber>(subscribeInfo, listener);
-    ASSERT_NE(subscriberPtr, nullptr);
     ASSERT_EQ(EventFwk::CommonEventManager::SubscribeCommonEvent(subscriberPtr), true);
     EXPECT_CALL(*listener, OnReceiveEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_STOPPING)).Times(Exactly(1));
     EXPECT_CALL(*listener, OnReceiveEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_STOPPED)).Times(Exactly(1));
+#endif
 
-    OsAccountSubscribeInfo subscribeStoppingInfo;
-    subscribeStoppingInfo.SetOsAccountSubscribeType(OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
-    subscribeStoppingInfo.SetName("subscribeStopping");
+    OsAccountSubscribeInfo subscribeStoppingInfo(OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING, "subscribeStopping");
     auto stoppingPtr = std::make_shared<MockOsAccountSubscriber>();
-    ASSERT_NE(nullptr, stoppingPtr);
     auto stoppingSubscriber = std::make_shared<DeactivateOsAccountSubscriber>(subscribeStoppingInfo, stoppingPtr);
-    ASSERT_NE(nullptr, stoppingSubscriber);
     EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(stoppingSubscriber));
     EXPECT_CALL(*stoppingPtr, OnAccountsChanged(osAccountInfo.GetLocalId())).Times(Exactly(1));
 
-    OsAccountSubscribeInfo subscribeStoppedInfo;
-    subscribeStoppedInfo.SetOsAccountSubscribeType(OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPED);
-    subscribeStoppedInfo.SetName("subscribeStopped");
+    OsAccountSubscribeInfo subscribeStoppedInfo(OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPED, "subscribeStopped");
     auto stoppedPtr = std::make_shared<MockOsAccountSubscriber>();
-    ASSERT_NE(nullptr, stoppedPtr);
     auto stoppedSubscriber = std::make_shared<DeactivateOsAccountSubscriber>(subscribeStoppedInfo, stoppedPtr);
-    ASSERT_NE(nullptr, stoppedSubscriber);
     EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(stoppedSubscriber));
     EXPECT_CALL(*stoppedPtr, OnAccountsChanged(osAccountInfo.GetLocalId())).Times(Exactly(1));
+    OsAccount::GetInstance().RestoreListenerRecords();
 
     EXPECT_EQ(OsAccountManager::DeactivateOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
 
+#ifndef BUNDLE_ADAPTER_MOCK
     Wait(subscriberPtr);
+#endif
     Wait(stoppingSubscriber);
     Wait(stoppedSubscriber);
 
+#ifndef BUNDLE_ADAPTER_MOCK
     EXPECT_EQ(EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriberPtr), true);
+#endif
     EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(stoppingSubscriber));
     EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(stoppedSubscriber));
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+#ifndef BUNDLE_ADAPTER_MOCK
     testing::Mock::AllowLeak(listener.get());
+#endif
+
     ASSERT_TRUE(RecoveryPermission(tokenID));
 }
 
@@ -2639,8 +2648,10 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest116, TestSize.Lev
     auto switchingSubscriber = std::make_shared<ActiveOsAccountSubscriber>(subscribeSwitchingInfo);
     EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(switchingSubscriber));
     EXPECT_CALL(*switchingSubscriber, OnAccountsSwitch(account.GetLocalId(), MAIN_ACCOUNT_ID)).Times(Exactly(1));
+    OsAccount::GetInstance().RestoreListenerRecords();
 
     // common event: COMMON_EVENT_USER_FOREGROUND 、 COMMON_EVENT_USER_BACKGROUND
+#ifndef BUNDLE_ADAPTER_MOCK
     MatchingSkills matchingSkills;
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_USER_FOREGROUND);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_USER_BACKGROUND);
@@ -2651,6 +2662,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest116, TestSize.Lev
     ASSERT_EQ(CommonEventManager::SubscribeCommonEvent(subscriberPtr), true);
     EXPECT_CALL(*listener, OnReceiveEvent(CommonEventSupport::COMMON_EVENT_USER_BACKGROUND)).Times(Exactly(1));
     EXPECT_CALL(*listener, OnReceiveEvent(CommonEventSupport::COMMON_EVENT_USER_FOREGROUND)).Times(Exactly(1));
+#endif
 
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(account.GetLocalId()), ERR_OK);
 
@@ -2659,11 +2671,15 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest116, TestSize.Lev
     EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(activedSubscriber));
     EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(switchedSubscriber));
     EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(switchingSubscriber));
+#ifndef BUNDLE_ADAPTER_MOCK
     EXPECT_EQ(CommonEventManager::UnSubscribeCommonEvent(subscriberPtr), true);
+#endif
 
     EXPECT_EQ(OsAccountManager::DeactivateOsAccount(account.GetLocalId()), ERR_OK);
     EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(account.GetLocalId()));
+#ifndef BUNDLE_ADAPTER_MOCK
     testing::Mock::AllowLeak(listener.get());
+#endif
     ASSERT_TRUE(RecoveryPermission(tokenID));
 }
 
