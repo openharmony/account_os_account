@@ -344,6 +344,25 @@ DelUserCallback::DelUserCallback(uint32_t userId, const sptr<IIDMCallback> &call
     : userId_(userId), innerCallback_(callback)
 {}
 
+DelUserCallback::~DelUserCallback()
+{
+    InnerAccountIAMManager::GetInstance().OnDelUserDone(userId_);
+}
+
+static int32_t AdaptDelUserErrCode(int32_t result)
+{
+    switch (result) {
+        case ResultCode::NOT_ENROLLED:
+        case ResultCode::INVALID_PARAMETERS:
+            return ERR_IAM_TOKEN_AUTH_FAILED;
+        case ResultCode::CANCELED:
+        case ResultCode::TIMEOUT:
+            return ERR_IAM_GENERAL_ERROR;
+        default:
+            return result;
+    }
+}
+
 void DelUserCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
     ACCOUNT_LOGI("DelUserCallback, userId: %{public}d, result: %{public}d", userId_, result);
@@ -351,6 +370,7 @@ void DelUserCallback::OnResult(int32_t result, const Attributes &extraInfo)
         ACCOUNT_LOGE("Inner callbcak is nullptr");
         return;
     }
+    result = AdaptDelUserErrCode(result);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("DelUserCallback fail code = %{public}d", result);
         return innerCallback_->OnResult(result, extraInfo);
@@ -392,7 +412,6 @@ void DelUserCallback::OnResult(int32_t result, const Attributes &extraInfo)
         ACCOUNT_LOGE("Fail to update key context, userId=%{public}d, errcode=%{public}d", userId_, errCode);
     }
     innerCallback_->OnResult(errCode, extraInfo);
-    innerIamMgr_.OnDelUserDone(userId_);
 }
 #endif // HAS_PIN_AUTH_PART
 
