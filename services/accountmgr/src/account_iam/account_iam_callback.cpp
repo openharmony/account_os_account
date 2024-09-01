@@ -349,7 +349,7 @@ DelUserCallback::~DelUserCallback()
     InnerAccountIAMManager::GetInstance().OnDelUserDone(userId_);
 }
 
-static int32_t AdaptDelUserErrCode(int32_t result)
+static int32_t ConvertDelUserErrCode(int32_t result)
 {
     switch (result) {
         case ResultCode::NOT_ENROLLED:
@@ -370,7 +370,7 @@ void DelUserCallback::OnResult(int32_t result, const Attributes &extraInfo)
         ACCOUNT_LOGE("Inner callbcak is nullptr");
         return;
     }
-    result = AdaptDelUserErrCode(result);
+    result = ConvertDelUserErrCode(result);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("DelUserCallback fail code = %{public}d", result);
         return innerCallback_->OnResult(result, extraInfo);
