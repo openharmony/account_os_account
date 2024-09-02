@@ -30,6 +30,7 @@
 #include "token_setproc.h"
 #include "user_auth_client.h"
 #include "user_idm_client.h"
+#include "os_account_constants.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -70,6 +71,7 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo, int32_t acco
     extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, secret);
     ErrCode ret = ERR_OK;
     if (authType_ == AuthType::PIN) {
+        (void)InnerAccountIAMManager::GetInstance().HandleFileKeyException(userId_, secret, token);
         bool isVerified = false;
         (void)IInnerOsAccountManager::GetInstance().IsOsAccountVerified(accountId, isVerified);
         if (!isVerified) {
@@ -248,7 +250,16 @@ void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
         std::vector<uint8_t> token;
         extraInfo.GetUint8ArrayValue(Attributes::ATTR_AUTH_TOKEN, token);
         std::vector<uint8_t> oldSecret;
-        (void) innerIamMgr_.UpdateStorageKey(userId_, secureUid, token, oldSecret, newSecret);
+        ErrCode code = innerIamMgr_.UpdateStorageKey(userId_, secureUid, token, oldSecret, newSecret);
+        if (code == ERR_OK) {
+            std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(userId_) +
+                Constants::PATH_SEPARATOR + Constants::USER_ADD_SECRET_FLAG_FILE_NAME;
+            auto accountFileOperator = std::make_shared<AccountFileOperator>();
+            code = accountFileOperator->DeleteDirOrFile(path);
+            if (code != ERR_OK) {
+                ACCOUNT_LOGE("Delete file fail, path=%{public}s", path.c_str());
+            }
+        }
     }
     if (result != 0) {
         ReportOsAccountOperationFail(userId_, "addCredential", result, "Add credential failed");
@@ -544,6 +555,17 @@ void GetSecUserInfoCallbackWrapper::OnSecUserInfo(const SecUserInfo &info)
     } else {
         return innerCallback_->OnEnrolledId(ERR_IAM_NOT_ENROLLED, 0);
     }
+}
+
+GetSecureUidCallback::GetSecureUidCallback(int32_t userId): userId_(userId)
+{}
+
+void GetSecureUidCallback::OnSecUserInfo(const SecUserInfo &info)
+{
+    ACCOUNT_LOGI("SecUserInfo call back userId=%{public}d", userId_);
+    std::unique_lock<std::mutex> lck(secureMtx_);
+    this->secureUid_ = info.secureUid;
+    secureCv_.notify_all();
 }
 
 PrepareRemoteAuthCallbackWrapper::PrepareRemoteAuthCallbackWrapper(const sptr<IPreRemoteAuthCallback> &callback)
