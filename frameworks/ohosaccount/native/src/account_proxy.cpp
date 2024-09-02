@@ -25,6 +25,11 @@ namespace AccountSA {
 const size_t INTERCEPT_HEAD_PART_LEN_FOR_NAME = 1;
 const std::string DEFAULT_ANON_STR = "**********";
 
+AccountProxy::~AccountProxy()
+{
+    destroyedMagic_ = 0x6b6b6b6b;
+}
+
 static std::string AnonymizeNameStr(const std::string& nameStr)
 {
     if (nameStr.empty()) {
