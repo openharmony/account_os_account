@@ -57,6 +57,8 @@ public:
     void SetProperty(
         int32_t userId, const SetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback);
     void GetEnrolledId(int32_t accountId, AuthType authType, const sptr<IGetEnrolledIdCallback> &callback);
+    void HandleFileKeyException(int32_t userId, const std::vector<uint8_t> &secret,
+        const std::vector<uint8_t> &token);
     IAMState GetState(int32_t userId);
     void SetState(int32_t userId, IAMState state);
     ErrCode ActivateUserKey(int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret);
