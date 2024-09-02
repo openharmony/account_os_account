@@ -26,8 +26,7 @@ class AccountProxy : public IRemoteProxy<IAccount> {
 public:
     explicit AccountProxy(const sptr<IRemoteObject> &impl) : IRemoteProxy<IAccount>(impl)
     {}
-    ~AccountProxy()
-    {}
+    ~AccountProxy();
 
     bool UpdateOhosAccountInfo(
         const std::string &accountName, const std::string &uid, const std::string &eventStr) override;
@@ -52,6 +51,7 @@ private:
     ErrCode SendRequest(AccountMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply);
     std::int32_t DeviceAccountRequest(std::uint32_t code, std::int32_t accountId);
     static inline BrokerDelegator<AccountProxy> delegator_;
+    uintptr_t destroyedMagic_ = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
