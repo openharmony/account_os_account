@@ -33,6 +33,8 @@
 #include "pinauth_register.h"
 #include "token_setproc.h"
 #endif //HAS_PIN_AUTH_PART
+#include "os_account_constants.h"
+#include "account_file_operator.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -42,6 +44,7 @@ constexpr int32_t ERROR_STORAGE_KEY_NOT_EXIST = -2;
 #endif
 constexpr int32_t DELAY_FOR_EXCEPTION = 100;
 constexpr int32_t MAX_RETRY_TIMES = 20;
+const int32_t TIME_WAIT_TIME_OUT = 5;
 }
 using UserIDMClient = UserIam::UserAuth::UserIdmClient;
 using UserAuthClient = UserIam::UserAuth::UserAuthClient;
@@ -92,6 +95,17 @@ void InnerAccountIAMManager::AddCredential(
     }
     auto idmCallbackWrapper = std::make_shared<AddCredCallback>(userId, credInfo, callback);
     idmCallbackWrapper->SetDeathRecipient(deathRecipient);
+    if (credInfo.authType == AuthType::PIN) {
+        std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(userId) +
+            Constants::PATH_SEPARATOR + Constants::USER_ADD_SECRET_FLAG_FILE_NAME;
+        auto accountFileOperator = std::make_shared<AccountFileOperator>();
+        ErrCode code = accountFileOperator->InputFileByPathAndContent(path, "");
+        if (code != ERR_OK) {
+            ReportOsAccountOperationFail(userId, "InputFileByPathAndContent", code,
+                "Failed to input add_secret_flag file");
+            ACCOUNT_LOGE("Input file fail, path=%{public}s", path.c_str());
+        }
+    }
     UserIDMClient::GetInstance().AddCredential(userId, credInfo, idmCallbackWrapper);
 }
 
@@ -394,6 +408,42 @@ void InnerAccountIAMManager::GetEnrolledId(
     }
     auto GetSecUserInfoCallback = std::make_shared<GetSecUserInfoCallbackWrapper>(authType, callback);
     UserIDMClient::GetInstance().GetSecUserInfo(accountId, GetSecUserInfoCallback);
+}
+
+void InnerAccountIAMManager::HandleFileKeyException(int32_t userId, const std::vector<uint8_t> &secret,
+    const std::vector<uint8_t> &token)
+{
+    std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(userId) +
+        Constants::PATH_SEPARATOR + Constants::USER_ADD_SECRET_FLAG_FILE_NAME;
+    auto accountFileOperator = std::make_shared<AccountFileOperator>();
+    bool isExistFile = accountFileOperator->IsExistFile(path);
+    ACCOUNT_LOGI("The add_secret_flag file existence status:%{public}d, localId:%{public}d", isExistFile, userId);
+    if (!isExistFile) {
+        return;
+    }
+    auto callback = std::make_shared<GetSecureUidCallback>(userId);
+    std::unique_lock<std::mutex> lck(callback->secureMtx_);
+    ErrCode code = UserIDMClient::GetInstance().GetSecUserInfo(userId, callback);
+    if (code != ERR_OK) {
+        return;
+    }
+    auto status = callback->secureCv_.wait_for(lck, std::chrono::seconds(TIME_WAIT_TIME_OUT));
+    if (status != std::cv_status::no_timeout) {
+        ACCOUNT_LOGE("GetSecureUidCallback time out");
+        return;
+    }
+    code = UpdateStorageKey(userId, callback->secureUid_, token, {}, secret);
+    if (code == ERR_OK) {
+        ACCOUNT_LOGI("Update storage key success, userId:%{public}d", userId);
+        code = accountFileOperator->DeleteDirOrFile(path);
+        if (code != ERR_OK) {
+            ReportOsAccountOperationFail(userId, "DeleteDirOrFile", code, "Failed to delete add_secret_flag file");
+            ACCOUNT_LOGE("Delete file fail, path=%{public}s", path.c_str());
+        }
+    } else {
+        ReportOsAccountOperationFail(userId, "UpdateStorageKey", code, "Failed to update storage key");
+        ACCOUNT_LOGE("Update storage key fail, userId:%{public}d", userId);
+    }
 }
 
 IAMState InnerAccountIAMManager::GetState(int32_t userId)
