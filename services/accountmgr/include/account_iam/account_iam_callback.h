@@ -18,6 +18,7 @@
 
 #include <map>
 #include <vector>
+#include "account_file_operator.h"
 #include "account_iam_info.h"
 #include "domain_account_callback.h"
 #include "iaccount_iam_callback.h"
@@ -203,6 +204,19 @@ public:
 private:
     AuthType authType_;
     sptr<IGetEnrolledIdCallback> innerCallback_;
+};
+
+class GetSecureUidCallback final : public GetSecUserInfoCallback {
+public:
+    GetSecureUidCallback(int32_t userId);
+
+    void OnSecUserInfo(const SecUserInfo &info) override;
+
+public:
+    int32_t userId_;
+    uint64_t secureUid_ = 0;
+    std::mutex secureMtx_;
+    std::condition_variable secureCv_;
 };
 
 class PrepareRemoteAuthCallbackWrapper : public PrepareRemoteAuthCallback {
