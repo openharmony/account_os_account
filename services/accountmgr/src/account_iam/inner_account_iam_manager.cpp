@@ -179,6 +179,11 @@ void InnerAccountIAMManager::DelUser(
         return;
     }
     Attributes errResult;
+    if (authToken.empty()) {
+        ACCOUNT_LOGE("token is empty");
+        callback->OnResult(ResultCode::FAIL, errResult);
+        return;
+    }
 #ifdef HAS_PIN_AUTH_PART
     Security::AccessToken::AccessTokenID selfToken = IPCSkeleton::GetSelfTokenID();
     ErrCode errCode = SetFirstCallerTokenID(selfToken);
@@ -203,11 +208,6 @@ void InnerAccountIAMManager::DelUser(
     auto delUserCallback = std::make_shared<DelUserCallback>(userId, callback);
     UserIDMClient::GetInstance().UpdateCredential(userId, credInfo, delUserCallback);
 #else
-    if (authToken.empty()) {
-        ACCOUNT_LOGE("token is empty");
-        callback->OnResult(ResultCode::INVALID_PARAMETERS, errResult);
-        return;
-    }
 
     auto idmCallback = std::make_shared<DelCredCallback>(userId, true, authToken, callback);
     UserIDMClient::GetInstance().DeleteUser(userId, authToken, idmCallback);

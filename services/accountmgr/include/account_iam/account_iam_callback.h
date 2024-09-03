@@ -117,7 +117,7 @@ public:
 class DelUserCallback : public UserIdmClientCallback {
 public:
     DelUserCallback(uint32_t userId, const sptr<IIDMCallback> &callback);
-    virtual ~DelUserCallback() = default;
+    virtual ~DelUserCallback();
 
     void OnResult(int32_t result, const Attributes &extraInfo) override;
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override {};
