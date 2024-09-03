@@ -54,6 +54,7 @@ public:
 
 private:
     static ErrCode InnerSendToStorageAccountCreate(OsAccountInfo &osAccountInfo);
+    static int32_t UnlockUser(const int localId);
 };
 }  // namespace AccountSA
 }  // namespace OHOS
