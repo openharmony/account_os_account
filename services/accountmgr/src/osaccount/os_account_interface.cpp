@@ -59,6 +59,9 @@ constexpr int32_t E_ACTIVE_EL2 = 32;
 #endif
 constexpr int32_t DELAY_FOR_CREATE_EXCEPTION = 100;
 constexpr int32_t MAX_CREATE_RETRY_TIMES = 10;
+constexpr int32_t MAX_GETBUNDLE_WAIT_TIMES = 10 * 1000 * 1000;
+constexpr int32_t GET_MSG_FREQ = 100 * 1000;
+constexpr int32_t DEAL_TIMES = MAX_GETBUNDLE_WAIT_TIMES / GET_MSG_FREQ;
 }
 
 ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo)
@@ -516,6 +519,22 @@ ErrCode OsAccountInterface::SendToStorageAccountStop(OsAccountInfo &osAccountInf
 #endif
     osAccountInfo.SetIsVerified(false);
     return ERR_OK;
+}
+
+ErrCode OsAccountInterface::GetAllAppDied(OsAccountInfo &osAccountInfo)
+{
+    int32_t dealTimes = DEAL_TIMES;
+    bool isAllDied = false;
+    while (dealTimes > 0) {
+        isAllDied = AbilityManagerAdapter::GetInstance()->IsAllAppDied(osAccountInfo.GetLocalId());
+        if (isAllDied) {
+            return ERR_OK;
+        }
+        ACCOUNT_LOGE("IsAllAppDied check failed");
+        usleep(GET_MSG_FREQ);
+        dealTimes--;
+    }
+    return ERR_ACCOUNT_COMMON_OPERATION_TIMEOUT;
 }
 }  // namespace AccountSA
 }  // namespace OHOS

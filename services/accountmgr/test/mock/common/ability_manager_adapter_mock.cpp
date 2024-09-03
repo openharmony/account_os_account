@@ -70,5 +70,10 @@ ErrCode AbilityManagerAdapter::LogoutUser(int accountId)
 {
     return ERR_OK;
 }
+
+bool AbilityManagerAdapter::IsAllAppDied(int32_t accountId)
+{
+    return true;
+}
 } // namespace AccountSA
 } // namespace OHOS
