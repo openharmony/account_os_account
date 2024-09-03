@@ -20,11 +20,13 @@
 #include "account_log_wrapper.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
+#include "app_mgr_interface.h"
 
 namespace OHOS {
 namespace AccountSA {
 namespace {
 const std::u16string ABILITY_MGR_DESCRIPTOR = u"ohos.aafwk.AbilityManager";
+constexpr int32_t UID_TRANSFORM_DIVISION = 200000;
 }
 using namespace AAFwk;
 AbilityManagerAdapter *AbilityManagerAdapter::GetInstance()
@@ -300,6 +302,39 @@ void AbilityManagerAdapter::AbilityMgrDeathRecipient::OnRemoteDied(const wptr<IR
 {
     ACCOUNT_LOGI("AbilityMgrDeathRecipient handle remote died.");
     AbilityManagerAdapter::GetInstance()->ResetProxy(remote);
+}
+
+bool AbilityManagerAdapter::IsAllAppDied(int32_t accountId)
+{
+    sptr<ISystemAbilityManager> abilityMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (abilityMgr == nullptr) {
+        ACCOUNT_LOGE("Failed to get ISystemAbilityManager");
+        return false;
+    }
+
+    sptr<IRemoteObject> remoteObject = abilityMgr->CheckSystemAbility(APP_MGR_SERVICE_ID);
+    if (remoteObject == nullptr) {
+        ACCOUNT_LOGE("Failed to get app Manager service");
+        return false;
+    }
+    sptr<AppExecFwk::IAppMgr> appMgrProxy = iface_cast<AppExecFwk::IAppMgr>(remoteObject);
+    if (appMgrProxy == nullptr || !appMgrProxy->AsObject()) {
+        ACCOUNT_LOGE("Failed to get app mgr proxy");
+        return false;
+    }
+    std::vector<AppExecFwk::AppStateData> appList;
+    int ret = appMgrProxy->GetForegroundApplications(appList);
+    ACCOUNT_LOGI("GetForegroundApplications ret: %{public}d", ret);
+    if (ret != 0) {
+        return false;
+    }
+    for (const auto &appData : appList) {
+        int32_t curId = appData.uid / UID_TRANSFORM_DIVISION;
+        if (curId == accountId) {
+            return false;
+        }
+    }
+    return true;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

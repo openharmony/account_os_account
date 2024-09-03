@@ -51,6 +51,7 @@ public:
     static ErrCode SendToStorageAccountStop(OsAccountInfo &osAccountInfo);
     static void PublishCommonEvent(
         const OsAccountInfo &osAccountInfo, const std::string &commonEvent, const std::string &operation);
+    static ErrCode GetAllAppDied(OsAccountInfo &osAccountInfo);
 
 private:
     static ErrCode InnerSendToStorageAccountCreate(OsAccountInfo &osAccountInfo);
