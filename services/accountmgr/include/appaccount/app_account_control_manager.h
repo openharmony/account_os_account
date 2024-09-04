@@ -24,6 +24,7 @@
 #include "iapp_account_authenticator_callback.h"
 #include "iremote_object.h"
 #include "want_params.h"
+#include "safe_map.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -109,6 +110,7 @@ public:
     void OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData);
     void AddMigratedAccount(int32_t localId);
     void MoveData();
+    void SetOsAccountRemoved(int32_t localId, bool isRemoved);
 
 private:
     AppAccountControlManager() = default;
@@ -141,6 +143,8 @@ private:
         const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
     ErrCode RemoveAuthorizedAccountFromDataStorage(const std::string &authorizedApp, AppAccountInfo &appAccountInfo,
         const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
+    bool IsOsAccountRemoved(int32_t localId);
+    ErrCode RemoveAppAccountData(const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
 
 private:
     std::mutex mutex_;
@@ -152,6 +156,7 @@ private:
     std::set<int32_t> migratedAccounts_;
     sptr<AppExecFwk::IAppMgr> iAppMgr_;
     sptr<AppAccountAppStateObserver> appStateObserver_;
+    SafeMap<int32_t, bool> removedOsAccounts_;
     std::size_t ACCOUNT_MAX_SIZE = 1000;
     std::size_t ASSOCIATED_DATA_CACHE_MAX_SIZE = 5;
 };

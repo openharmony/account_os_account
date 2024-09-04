@@ -380,12 +380,14 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
 
   module_out_path = module_output_path
   include_dirs = [
+    "${app_account_innerkits_native_path}/include",
     "${os_account_dfx_path}/hidumper_adapter",
     "${services_path}/accountmgr/include/bundle_manager_adapter",
     "${services_path}/accountmgr/include/ability_manager_adapter",
     "${services_path}/accountmgr/include",
     "${os_account_dfx_path}/hitrace_adapter",
     "${services_path}/accountmgr/include/account_iam",
+    "${services_path}/accountmgr/include/appaccount",
     "${services_path}/accountmgr/include/domain_account",
     "${services_path}/accountmgr/include/osaccount",
     "${bundle_framework_path}/interfaces/inner_api/appexecfwk_core/include",
@@ -405,6 +407,7 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     "${services_path}/accountmgr/src/account_iam/account_iam_mgr_stub.cpp",
     "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
     "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
+    "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
     "${services_path}/accountmgr/test/mock/os_account/os_account_interface.cpp",
     "${services_path}/accountmgr/test/unittest/os_account/mock/mock_os_account_musl.cpp",
     "os_account_inner_account_mgr_mock.cpp",
@@ -463,6 +466,9 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     cflags_cc += [ "-DHAS_CES_PART" ]
     external_deps += [ "common_event_service:cesfwk_innerkits" ]
   }
+  if (has_kv_store_part) {
+    external_deps += [ "kv_store:distributeddata_inner" ]
+  }
   if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
     cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
   }
@@ -485,12 +491,14 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
 
   module_out_path = module_output_path
   include_dirs = [
+    "${app_account_innerkits_native_path}/include",
     "${os_account_dfx_path}/hidumper_adapter",
     "${services_path}/accountmgr/include/bundle_manager_adapter",
     "${services_path}/accountmgr/include/ability_manager_adapter",
     "${services_path}/accountmgr/include",
     "${os_account_dfx_path}/hitrace_adapter",
     "${services_path}/accountmgr/include/account_iam",
+    "${services_path}/accountmgr/include/appaccount",
     "${services_path}/accountmgr/include/domain_account",
     "${services_path}/accountmgr/include/osaccount",
     "${bundle_framework_path}/interfaces/inner_api/appexecfwk_core/include",
@@ -510,6 +518,7 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
     "${services_path}/accountmgr/src/account_iam/account_iam_mgr_stub.cpp",
     "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
     "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
+    "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
     "os_account_event_manager_multiple_thread_test.cpp",
   ]
   sources += account_service_sources
@@ -562,6 +571,9 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
   if (has_ces_part) {
     cflags_cc += [ "-DHAS_CES_PART" ]
     external_deps += [ "common_event_service:cesfwk_innerkits" ]
+  }
+  if (has_kv_store_part) {
+    external_deps += [ "kv_store:distributeddata_inner" ]
   }
   cflags_cc += [ "-DACCOUNT_TEST" ]
   cflags_cc += [ "-DBUNDLE_ADAPTER_MOCK" ]
