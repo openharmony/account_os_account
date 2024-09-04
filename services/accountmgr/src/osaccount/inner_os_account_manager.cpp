@@ -29,6 +29,7 @@
 #include "hitrace_adapter.h"
 #include "account_hisysevent_adapter.h"
 #include "account_permission_manager.h"
+#include "app_account_control_manager.h"
 #include "ohos_account_kits.h"
 #include "os_account_constants.h"
 #include "os_account_control_file_manager.h"
@@ -386,6 +387,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
         theme_thread.join();
     }
 #endif
+    AppAccountControlManager::GetInstance().SetOsAccountRemoved(osAccountInfo.GetLocalId(), false);
     osAccountInfo.SetIsCreateCompleted(true);
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
@@ -883,6 +885,7 @@ ErrCode IInnerOsAccountManager::CheckTypeNumber(const OsAccountType& type)
 ErrCode IInnerOsAccountManager::SendMsgForAccountRemove(OsAccountInfo &osAccountInfo)
 {
     int32_t localId = osAccountInfo.GetLocalId();
+    AppAccountControlManager::GetInstance().SetOsAccountRemoved(localId, true);
     ErrCode errCode = OsAccountInterface::SendToBMSAccountDelete(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("SendToBMSAccountDelete failed, id %{public}d, errCode %{public}d", localId, errCode);
