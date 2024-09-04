@@ -104,7 +104,7 @@ if (!defined(global_parts_info) ||
 }
 
 declare_args() {
-  os_account_multiple_active_accounts = false
+  os_account_multiple_active_accounts = true
 }
 
 declare_args() {
