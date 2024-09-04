@@ -621,7 +621,7 @@ ErrCode OsAccountManagerService::DeactivateOsAccount(const int id)
     int32_t currentId = Constants::START_USER_ID;
     GetCurrentLocalId(currentId);
 
-#ifndef SUPPROT_STOP_MAIN_OS_ACCOUNT
+#ifndef SUPPORT_STOP_MAIN_OS_ACCOUNT
     if (id == Constants::START_USER_ID) {
         ACCOUNT_LOGW("the %{public}d os account can't stop", id);
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_STOP_ACTIVE_ERROR;
@@ -634,11 +634,11 @@ ErrCode OsAccountManagerService::DeactivateOsAccount(const int id)
     }
 
     if (currentId == id) { // if stop current account
-#ifdef SUPPROT_STOP_MAIN_OS_ACCOUNT
+#ifdef SUPPORT_STOP_MAIN_OS_ACCOUNT
         innerManager_.ActivateOsAccount(id, false);
 #else
         innerManager_.ActivateOsAccount(Constants::START_USER_ID, false);
-#endif // SUPPROT_STOP_MAIN_OS_ACCOUNT
+#endif // SUPPORT_STOP_MAIN_OS_ACCOUNT
     }
     return ERR_OK;
 }
