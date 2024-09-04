@@ -1041,10 +1041,36 @@ void AppAccountControlManager::RemoveAssociatedDataCacheByAccount(const uid_t &u
     }
 }
 
+void AppAccountControlManager::SetOsAccountRemoved(int32_t localId, bool isRemoved)
+{
+    if (isRemoved) {
+        removedOsAccounts_.EnsureInsert(localId, true);
+    } else {
+        removedOsAccounts_.Erase(localId);
+    }
+}
+
+bool AppAccountControlManager::IsOsAccountRemoved(int32_t localId)
+{
+    bool isRemoved = false;
+    return removedOsAccounts_.Find(localId, isRemoved);
+}
+
 ErrCode AppAccountControlManager::OnPackageRemoved(
     const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
 {
     RemoveAssociatedDataCacheByUid(uid);
+    int32_t localId = uid / UID_TRANSFORM_DIVISOR;
+    if (IsOsAccountRemoved(localId)) {
+        ACCOUNT_LOGI("Account %{public}d is removed", localId);
+        return ERR_OK;
+    }
+    return RemoveAppAccountData(uid, bundleName, appIndex);
+}
+
+ErrCode AppAccountControlManager::RemoveAppAccountData(
+    const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
+{
     auto dataStoragePtr = GetDataStorage(uid);
     if (dataStoragePtr == nullptr) {
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
