@@ -173,61 +173,6 @@ HWTEST_F(AccountIAMCallbackServiceTest, GetSetPropCallbackService_OnResult_0100,
     wrapper->OnResult(0, extraInfo);
 }
 
-#ifdef HAS_PIN_AUTH_PART
-/**
- * @tc.name: IAMInputer_OnGetData_0100
- * @tc.desc: OnGetData with inputerData_ nullptr.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AccountIAMCallbackServiceTest, IAMInputer_OnGetData_0100, TestSize.Level0)
-{
-    std::shared_ptr<MockIInputer> inputer = std::make_shared<MockIInputer>();
-    auto iamInputer = std::make_shared<IAMInputer>(TEST_USER_ID, inputer);
-    ASSERT_TRUE(iamInputer != nullptr);
-    int32_t authSubType = 0;
-    auto iamInputerData = std::make_shared<IAMInputerData>(TEST_USER_ID, nullptr);
-    EXPECT_TRUE(iamInputerData != nullptr);
-    iamInputer->inputerData_ = nullptr;
-    iamInputer->OnGetData(authSubType, std::vector<uint8_t>(), iamInputerData);
-}
-
-/**
- * @tc.name: IAMInputer_OnGetData_0200
- * @tc.desc: OnGetData.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AccountIAMCallbackServiceTest, IAMInputer_OnGetData_0200, TestSize.Level0)
-{
-    std::shared_ptr<MockIInputer> inputer = std::make_shared<MockIInputer>();
-    auto iamInputer = std::make_shared<IAMInputer>(TEST_USER_ID, inputer);
-    ASSERT_TRUE(iamInputer != nullptr);
-    int32_t authSubType = 0;
-    auto iamInputerData = std::make_shared<IAMInputerData>(TEST_USER_ID, nullptr);
-    EXPECT_TRUE(iamInputerData != nullptr);
-    iamInputer->OnGetData(authSubType, std::vector<uint8_t>(), iamInputerData);
-}
-
-/**
- * @tc.name: IAMInputer_OnGetData_0300
- * @tc.desc: test OnGetData.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AccountIAMCallbackServiceTest, IAMInputer_OnGetData_0300, TestSize.Level0)
-{
-    std::shared_ptr<MockIInputer> inputer = std::make_shared<MockIInputer>();
-    auto iamInputer = std::make_shared<IAMInputer>(TEST_USER_ID, inputer);
-    ASSERT_TRUE(iamInputer != nullptr);
-    int32_t authSubType = 0;
-    iamInputer->OnGetData(authSubType, std::vector<uint8_t>(), nullptr);
-    std::string cmd = "hilog -x | grep 'AccountIAMFwk'";
-    std::string cmdRes = RunCommand(cmd);
-    ASSERT_TRUE(cmdRes.find("inputerData is nullptr") != std::string::npos);
-}
-#endif
-
 /**
  * @tc.name: DomainAuthCallbackAdapter_OnResult_0100
  * @tc.desc: test OnResult.
@@ -258,20 +203,6 @@ HWTEST_F(AccountIAMCallbackServiceTest, DomainCredentialRecipient_OnSetData_0100
     std::vector<uint8_t> data = {1, 2, 3, 4};
     domainCredentialRecipient->OnSetData(0, data);
     EXPECT_EQ(domainCredentialRecipient->idmCallback_, nullptr);
-}
-
-/**
- * @tc.name: IAMInputerData_OnSetData_0100
- * @tc.desc: test OnSetData.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AccountIAMCallbackServiceTest, IAMInputerData_OnSetData_0100, TestSize.Level0)
-{
-    auto iamInputerData = new (std::nothrow) IAMInputerData(100, nullptr);
-    std::vector<uint8_t> data = {1, 2, 3, 4};
-    iamInputerData->OnSetData(0, data);
-    EXPECT_EQ(iamInputerData->innerInputerData_, nullptr);
 }
 #endif
 }  // namespace AccountTest

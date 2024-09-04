@@ -31,13 +31,6 @@
 
 namespace OHOS {
 namespace AccountSA {
-struct AccountCredentialInfo {
-    uint64_t oldSecureUid = 0;
-    uint64_t secureUid = 0;
-    std::vector<uint8_t> oldSecret;
-    std::vector<uint8_t> secret;
-};
-
 class InnerAccountIAMManager {
 public:
     static InnerAccountIAMManager &GetInstance();
@@ -66,7 +59,6 @@ public:
     void GetEnrolledId(int32_t accountId, AuthType authType, const sptr<IGetEnrolledIdCallback> &callback);
     IAMState GetState(int32_t userId);
     void SetState(int32_t userId, IAMState state);
-    void GetChallenge(int32_t userId, std::vector<uint8_t> &challenge);
     ErrCode ActivateUserKey(int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret);
 
     ErrCode UnlockUserScreen(int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret);
@@ -103,8 +95,6 @@ private:
 private:
     std::mutex mutex_;
     std::map<int32_t, IAMState> userStateMap_;
-    std::map<int32_t, std::vector<uint8_t>> userChallengeMap_;
-    std::map<int32_t, AccountCredentialInfo> credInfoMap_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
