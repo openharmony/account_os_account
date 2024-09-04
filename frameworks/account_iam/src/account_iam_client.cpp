@@ -370,10 +370,6 @@ ErrCode AccountIAMClient::RegisterPINInputer(const std::shared_ptr<IInputer> &in
         return ERR_ACCOUNT_IAM_KIT_GET_USERID_FAIL;
     }
     auto iamInputer = std::make_shared<IAMInputer>(userId, inputer);
-    if (iamInputer == nullptr) {
-        ACCOUNT_LOGE("failed to create IAMInputer");
-        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
-    }
     if (UserIam::PinAuth::PinAuthRegister::GetInstance().RegisterInputer(iamInputer)) {
         pinInputer_ = inputer;
         return ERR_OK;
@@ -469,35 +465,6 @@ IAMState AccountIAMClient::GetAccountState(int32_t userId)
         return IDLE;
     }
     return proxy->GetAccountState(userId);
-}
-
-void AccountIAMClient::GetCredential(int32_t userId, CredentialItem &credItem)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto it = credentialMap_.find(userId);
-    if (it != credentialMap_.end()) {
-        credItem = it->second;
-    }
-}
-
-void AccountIAMClient::SetCredential(int32_t userId, const std::vector<uint8_t> &credential)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto it = credentialMap_.find(userId);
-    if (it != credentialMap_.end()) {
-        it->second.oldCredential = it->second.credential;
-        it->second.credential = credential;
-        return;
-    }
-    credentialMap_[userId] = {
-        .credential = credential
-    };
-}
-
-void AccountIAMClient::ClearCredential(int32_t userId)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    credentialMap_.erase(userId);
 }
 
 void AccountIAMClient::SetAuthSubType(int32_t userId, int32_t authSubType)
