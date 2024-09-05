@@ -581,7 +581,8 @@ ErrCode AccountIAMMgrStub::ProcGetAvailableStatus(MessageParcel &data, MessagePa
     return ERR_NONE;
 }
 
-ErrCode AccountIAMMgrStub::ProcGetProperty(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountIAMMgrStub::ProcGetProperty(MessageParcel &data,
+    MessageParcel &reply) __attribute__((no_sanitize("cfi")))
 {
     if (!CheckPermission(ACCESS_USER_AUTH_INTERNAL)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
