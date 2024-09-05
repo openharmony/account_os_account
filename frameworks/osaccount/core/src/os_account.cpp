@@ -57,6 +57,10 @@ void OsAccount::RestoreListenerRecords()
         return;
     }
     std::lock_guard<std::mutex> lock(eventListenersMutex_);
+    if (eventListeners_.empty()) {
+        return;
+    }
+    size_t successCount = 0;
     for (const auto &item : eventListeners_) {
         OsAccountSubscribeInfo subscribeInfo;
         if (item.first == nullptr) {
@@ -69,8 +73,11 @@ void OsAccount::RestoreListenerRecords()
             std::string name;
             subscribeInfo.GetName(name);
             ACCOUNT_LOGE("SubscribeOsAccount %{public}s failed, errCode=%{public}d", name.c_str(), result);
+        } else {
+            successCount++;
         }
     }
+    ACCOUNT_LOGI("Restore records %{public}zu/%{public}zu", successCount, eventListeners_.size());
 }
 
 ErrCode OsAccount::CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
@@ -572,9 +579,13 @@ ErrCode OsAccount::SubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber>
     ErrCode subscribeState = CreateOsAccountEventListener(subscriber, osAccountEventListener);
     if (subscribeState == INITIAL_SUBSCRIPTION) {
         subscribeState = proxy->SubscribeOsAccount(subscribeInfo, osAccountEventListener);
-        if (subscribeState != ERR_OK) {
+        {
             std::lock_guard<std::mutex> lock(eventListenersMutex_);
-            eventListeners_.erase(subscriber);
+            if (subscribeState != ERR_OK) {
+                eventListeners_.erase(subscriber);
+            } else {
+                ACCOUNT_LOGI("Subscribe success, %{public}zu.", eventListeners_.size());
+            }
         }
         return subscribeState;
     } else if (subscribeState == ALREADY_SUBSCRIBED) {
@@ -609,6 +620,7 @@ ErrCode OsAccount::UnsubscribeOsAccount(const std::shared_ptr<OsAccountSubscribe
         if (result == ERR_OK) {
             eventListener->second->Stop();
             eventListeners_.erase(eventListener);
+            ACCOUNT_LOGI("Unsubscribe success, %{public}zu.", eventListeners_.size());
         }
         return result;
     } else {
