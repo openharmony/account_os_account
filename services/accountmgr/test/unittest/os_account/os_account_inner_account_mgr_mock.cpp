@@ -932,20 +932,24 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest009, TestSize
     DomainAccountInfo domainInfo2(STRING_DOMAIN_NAME_OUT_OF_RANGE, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     OsAccountInfo accountInfo;
     int ret = innerMgrService_->PrepareOsAccountInfo(name, type, domainInfo1, accountInfo);
+    innerMgrService_->RemoveLocalIdToOperating(accountInfo.GetLocalId());
     EXPECT_EQ(ret, -1);
     EXPECT_CALL(*ptr, GetAllowCreateId(::testing::_))
         .WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*ptr, GetConstraintsByType(::testing::_, ::testing::_))
         .WillRepeatedly(testing::Return(-1));
     ret = innerMgrService_->PrepareOsAccountInfo(name, type, domainInfo1, accountInfo);
+    innerMgrService_->RemoveLocalIdToOperating(accountInfo.GetLocalId());
     EXPECT_NE(ret, ERR_OK);
     EXPECT_CALL(*ptr, GetConstraintsByType(::testing::_, ::testing::_))
         .WillRepeatedly(testing::Return(0));
     ret = innerMgrService_->PrepareOsAccountInfo(name, type, domainInfo2, accountInfo);
+    innerMgrService_->RemoveLocalIdToOperating(accountInfo.GetLocalId());
     EXPECT_EQ(ret, ERR_OSACCOUNT_KIT_CREATE_OS_ACCOUNT_FOR_DOMAIN_ERROR);
     EXPECT_CALL(*ptr, InsertOsAccount(::testing::_))
         .WillRepeatedly(testing::Return(-1));
     ret = innerMgrService_->PrepareOsAccountInfo(name, type, domainInfo1, accountInfo);
+    innerMgrService_->RemoveLocalIdToOperating(accountInfo.GetLocalId());
     EXPECT_NE(ret, ERR_OK);
     EXPECT_CALL(*ptr, InsertOsAccount(::testing::_))
         .WillRepeatedly(testing::Return(0));
@@ -953,9 +957,11 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest009, TestSize
         .WillRepeatedly(testing::Return(-1));
     ret = innerMgrService_->PrepareOsAccountInfo(name, type, domainInfo1, accountInfo);
     EXPECT_NE(ret, ERR_OK);
+    innerMgrService_->RemoveLocalIdToOperating(accountInfo.GetLocalId());
     EXPECT_CALL(*ptr, UpdateBaseOAConstraints(::testing::_, ::testing::_, ::testing::_))
         .WillRepeatedly(testing::Return(0));
     ret = innerMgrService_->PrepareOsAccountInfo(name, type, domainInfo1, accountInfo);
+    innerMgrService_->RemoveLocalIdToOperating(accountInfo.GetLocalId());
     EXPECT_EQ(ret, ERR_OK);
     innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId());
 }
