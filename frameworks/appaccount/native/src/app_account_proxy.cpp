@@ -738,8 +738,8 @@ ErrCode AppAccountProxy::GetAuthenticatorInfo(const std::string &owner, Authenti
     }
     result = reply.ReadInt32();
     info.owner = reply.ReadString();
-    info.iconId = reply.ReadInt32();
-    info.labelId = reply.ReadInt32();
+    info.iconId = reply.ReadUint32();
+    info.labelId = reply.ReadUint32();
     return result;
 }
 
