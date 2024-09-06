@@ -545,5 +545,41 @@ ErrCode OsAccountInterface::SendToStorageAccountStop(OsAccountInfo &osAccountInf
     osAccountInfo.SetIsVerified(false);
     return ERR_OK;
 }
+
+ErrCode OsAccountInterface::SendToStorageAccountCreateComplete(int32_t localId)
+{
+    ErrCode errCode = ERR_OK;
+    int32_t retryTimes = 0;
+    while (retryTimes < MAX_RETRY_TIMES) {
+        errCode = InnerSendToStorageAccountCreateComplete(localId);
+        if (errCode == ERR_OK) {
+            break;
+        }
+        ACCOUNT_LOGE("Fail to complete account, localId=%{public}d, errCode=%{public}d.", localId, errCode);
+        retryTimes++;
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
+    }
+    return errCode;
+}
+
+ErrCode OsAccountInterface::InnerSendToStorageAccountCreateComplete(int32_t localId)
+{
+#ifdef HAS_STORAGE_PART
+    sptr<StorageManager::IStorageManager> proxy = nullptr;
+    if (GetStorageProxy(proxy) != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get STORAGE_MANAGER_MANAGER_ID proxy.");
+        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
+    }
+    StartTraceAdapter("StorageManager CompleteAddUser");
+    int errCode = proxy->CompleteAddUser(localId);
+    if (errCode != 0) {
+        ACCOUNT_LOGE("Failed to CompleteAddUser, localId=%{public}d, errCode=%{public}d", localId, errCode);
+        ReportOsAccountOperationFail(localId, Constants::OPERATION_CREATE, errCode, "Storage CompleteAddUser failed!");
+        return errCode;
+    }
+    FinishTraceAdapter();
+#endif
+    return ERR_OK;
+}
 }  // namespace AccountSA
 }  // namespace OHOS
