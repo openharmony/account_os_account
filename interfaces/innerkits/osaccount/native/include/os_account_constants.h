@@ -46,6 +46,7 @@ const char USER_PHOTO_FILE_TXT_NAME[] = "photo.txt";
 const char USER_PHOTO_BASE_JPG_HEAD[] = "data:image/jpeg;base64,";
 const char USER_PHOTO_BASE_PNG_HEAD[] = "data:image/png;base64,";
 const char USER_INFO_FILE_NAME[] = "account_info.json";
+const char USER_ADD_SECRET_FLAG_FILE_NAME[] = "add_secret_flag";
 const char OPERATION_ACTIVATE[] = "activate";
 const char OPERATION_CREATE[] = "create";
 const char OPERATION_DELETE[] = "delete";
