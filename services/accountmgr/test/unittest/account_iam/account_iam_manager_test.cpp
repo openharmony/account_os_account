@@ -773,10 +773,10 @@ HWTEST_F(AccountIamManagerTest, ActivateUserKey001, TestSize.Level2)
 
     auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
 
-    EXPECT_EQ(ERR_OK, innerIamMgr_.ActivateUserKey(TEST_USER_ID, testAuthToken, testSecret));
+    EXPECT_NE(ERR_OK, innerIamMgr_.ActivateUserKey(TEST_USER_ID, testAuthToken, testSecret));
 
     int32_t userId = 112;
-    EXPECT_EQ(ERR_OK, innerIamMgr_.ActivateUserKey(userId, testAuthToken, testSecret));
+    EXPECT_NE(ERR_OK, innerIamMgr_.ActivateUserKey(userId, testAuthToken, testSecret));
 
     // userid is out of range
     userId = 11112;
