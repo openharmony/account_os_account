@@ -432,11 +432,11 @@ void GetAuthenticatorInfoForResult(napi_env env, const AuthenticatorInfo &info, 
     napi_set_named_property(env, result, "owner", nOwner);
 
     napi_value nIconId = nullptr;
-    napi_create_int32(env, info.iconId, &nIconId);
+    napi_create_uint32(env, info.iconId, &nIconId);
     napi_set_named_property(env, result, "iconId", nIconId);
 
     napi_value nLabelId = nullptr;
-    napi_create_int32(env, info.labelId, &nLabelId);
+    napi_create_uint32(env, info.labelId, &nLabelId);
     napi_set_named_property(env, result, "labelId", nLabelId);
 }
 
