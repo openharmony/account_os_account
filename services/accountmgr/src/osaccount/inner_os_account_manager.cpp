@@ -367,8 +367,9 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
         ACCOUNT_LOGE("create os account SendToStorageAccountCreate failed, errCode %{public}d.", errCode);
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
+    int32_t localId = osAccountInfo.GetLocalId();
 #ifdef HAS_THEME_SERVICE_PART
-    auto task = [localId = osAccountInfo.GetLocalId()] { OsAccountInterface::InitThemeResource(localId); };
+    auto task = OsAccountInterface::InitThemeResource(localId);
     std::thread theme_thread(task);
     pthread_setname_np(theme_thread.native_handle(), "InitTheme");
 #endif
@@ -396,16 +397,17 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("create os account when update isCreateCompleted");
         ReportOsAccountOperationFail(
-            osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE, errCode, "UpdateOsAccount failed!");
+            localId, Constants::OPERATION_CREATE, errCode, "UpdateOsAccount failed!");
         if (osAccountInfo.GetIsDataRemovable()) {
             (void)OsAccountInterface::SendToBMSAccountDelete(osAccountInfo);
             (void)OsAccountInterface::SendToStorageAccountRemove(osAccountInfo);
         }
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
-    ReportOsAccountLifeCycle(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE);
+    (void)OsAccountInterface::SendToStorageAccountCreateComplete(localId);
+    ReportOsAccountLifeCycle(localId, Constants::OPERATION_CREATE);
     OsAccountInterface::SendToCESAccountCreate(osAccountInfo);
-    subscribeManager_.Publish(osAccountInfo.GetLocalId(), OS_ACCOUNT_SUBSCRIBE_TYPE::CREATED);
+    subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::CREATED);
     ACCOUNT_LOGI("OsAccountAccountMgr send to storage and bm for start success");
     return ERR_OK;
 }
@@ -784,7 +786,12 @@ ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
         ACCOUNT_LOGE("RemoveOsAccount cannot find os account info, errCode %{public}d.", errCode);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
-
+    errCode = OsAccountInterface::SendToStorageAccountCreateComplete(id);
+    if (errCode != ERR_OK) {
+        RemoveLocalIdToOperating(id);
+        ACCOUNT_LOGE("SendToStorageAccountCreateComplete failed, errCode=%{public}d, id=%{public}d", errCode, id);
+        return errCode;
+    }
     // set remove flag first
     osAccountInfo.SetToBeRemoved(true);
     osAccountControl_->UpdateOsAccount(osAccountInfo);
