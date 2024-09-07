@@ -369,7 +369,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
     }
     int32_t localId = osAccountInfo.GetLocalId();
 #ifdef HAS_THEME_SERVICE_PART
-    auto task = OsAccountInterface::InitThemeResource(localId);
+    auto task = [localId] { OsAccountInterface::InitThemeResource(localId); };
     std::thread theme_thread(task);
     pthread_setname_np(theme_thread.native_handle(), "InitTheme");
 #endif
