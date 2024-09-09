@@ -21,7 +21,6 @@
 #include "app_account_manager_service.h"
 #undef private
 #include "ipc_skeleton.h"
-#include "app_account_manager_service.h"
 
 using namespace testing::ext;
 using namespace OHOS;
