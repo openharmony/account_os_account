@@ -191,15 +191,17 @@ void InnerAccountIAMManager::DelUser(
         ACCOUNT_LOGE("Failed to set first caller token id, errCode: %{public}d", errCode);
         return callback->OnResult(errCode, errResult);
     }
-    std::lock_guard<std::mutex> lock(delUserInputerMutex_);
-    if (delUserInputerVec_.empty()) {
-        auto inputer = std::make_shared<DelUserInputer>();
-        if (!UserIam::PinAuth::PinAuthRegister::GetInstance().RegisterInputer(inputer)) {
-            ACCOUNT_LOGE("Failed to resgiter inputer, continue");
+    {
+        std::lock_guard<std::mutex> lock(delUserInputerMutex_);
+        if (delUserInputerVec_.empty()) {
+            auto inputer = std::make_shared<DelUserInputer>();
+            if (!UserIam::PinAuth::PinAuthRegister::GetInstance().RegisterInputer(inputer)) {
+                ACCOUNT_LOGE("Failed to resgiter inputer, continue");
+            }
+            delUserInputerVec_.emplace_back(inputer);
+        } else {
+            delUserInputerVec_.emplace_back(delUserInputerVec_[0]);
         }
-        delUserInputerVec_.emplace_back(inputer);
-    } else {
-        delUserInputerVec_.emplace_back(delUserInputerVec_[0]);
     }
     CredentialParameters credInfo;
     credInfo.authType = AuthType::PIN;
