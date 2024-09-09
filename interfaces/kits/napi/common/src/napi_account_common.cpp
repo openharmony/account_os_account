@@ -17,7 +17,6 @@
 
 #include "account_log_wrapper.h"
 #include "bundle_mgr_proxy.h"
-#include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "js_native_api.h"
 #include "js_native_api_types.h"

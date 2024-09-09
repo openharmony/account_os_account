@@ -38,7 +38,7 @@ int AccessTokenKit::GetHapTokenInfo(AccessTokenID tokenID, HapTokenInfo& hapToke
 
 ATokenTypeEnum AccessTokenKit::GetTokenType(AccessTokenID tokenID)
 {
-    ACCOUNT_LOGI("mock GetHapTokenInfo enter");
+    ACCOUNT_LOGI("mock GetTokenType enter");
     return TOKEN_SHELL;
 }
 
