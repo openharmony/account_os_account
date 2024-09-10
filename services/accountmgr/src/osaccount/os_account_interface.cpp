@@ -60,8 +60,8 @@ constexpr int32_t E_ACTIVE_EL2 = 30;
 constexpr int32_t E_IPC_ERROR = 29189;
 constexpr int32_t E_IPC_SA_DIED = 32;
 #endif
-constexpr int32_t DELAY_FOR_CREATE_EXCEPTION = 100;
-constexpr int32_t MAX_CREATE_RETRY_TIMES = 10;
+constexpr int32_t DELAY_FOR_EXCEPTION = 100;
+constexpr int32_t MAX_RETRY_TIMES = 10;
 constexpr int32_t MAX_GETBUNDLE_WAIT_TIMES = 10 * 1000 * 1000;
 constexpr int32_t GET_MSG_FREQ = 100 * 1000;
 constexpr int32_t DEAL_TIMES = MAX_GETBUNDLE_WAIT_TIMES / GET_MSG_FREQ;
@@ -585,12 +585,12 @@ ErrCode OsAccountInterface::InnerSendToStorageAccountCreateComplete(int32_t loca
     return ERR_OK;
 }
 
-ErrCode OsAccountInterface::GetAllAppDied(OsAccountInfo &osAccountInfo)
+ErrCode OsAccountInterface::CheckAllAppDied(int32_t accountId)
 {
     int32_t dealTimes = DEAL_TIMES;
     bool isAllDied = false;
     while (dealTimes > 0) {
-        isAllDied = AbilityManagerAdapter::GetInstance()->IsAllAppDied(osAccountInfo.GetLocalId());
+        isAllDied = AbilityManagerAdapter::GetInstance()->IsAllAppDied(accountId);
         if (isAllDied) {
             return ERR_OK;
         }

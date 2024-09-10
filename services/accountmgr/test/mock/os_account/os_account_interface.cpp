@@ -119,9 +119,9 @@ ErrCode OsAccountInterface::SendToStorageAccountStop(OsAccountInfo &osAccountInf
     return ERR_OK;
 }
 
-ErrCode OsAccountInterface::GetAllAppDied(OsAccountInfo &osAccountInfo)
+ErrCode OsAccountInterface::CheckAllAppDied(int32_t accountId)
 {
-    ACCOUNT_LOGI("mock OsAccountInterface GetAllAppDied start");
+    ACCOUNT_LOGI("mock OsAccountInterface CheckAllAppDied start");
     return ERR_OK;
 }
 }  // namespace AccountSA
