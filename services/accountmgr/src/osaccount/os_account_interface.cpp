@@ -60,7 +60,6 @@ constexpr int32_t E_ACTIVE_EL2 = 30;
 constexpr int32_t E_IPC_ERROR = 29189;
 constexpr int32_t E_IPC_SA_DIED = 32;
 #endif
-<<<<<master
 constexpr int32_t DELAY_FOR_CREATE_EXCEPTION = 100;
 constexpr int32_t MAX_CREATE_RETRY_TIMES = 10;
 constexpr int32_t MAX_GETBUNDLE_WAIT_TIMES = 10 * 1000 * 1000;
@@ -547,6 +546,42 @@ ErrCode OsAccountInterface::SendToStorageAccountStop(OsAccountInfo &osAccountInf
     FinishTraceAdapter();
 #endif
     osAccountInfo.SetIsVerified(false);
+    return ERR_OK;
+}
+
+ErrCode OsAccountInterface::SendToStorageAccountCreateComplete(int32_t localId)
+{
+    ErrCode errCode = ERR_OK;
+    int32_t retryTimes = 0;
+    while (retryTimes < MAX_RETRY_TIMES) {
+        errCode = InnerSendToStorageAccountCreateComplete(localId);
+        if (errCode == ERR_OK) {
+            break;
+        }
+        ACCOUNT_LOGE("Fail to complete account, localId=%{public}d, errCode=%{public}d.", localId, errCode);
+        retryTimes++;
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
+    }
+    return errCode;
+}
+
+ErrCode OsAccountInterface::InnerSendToStorageAccountCreateComplete(int32_t localId)
+{
+#ifdef HAS_STORAGE_PART
+    sptr<StorageManager::IStorageManager> proxy = nullptr;
+    if (GetStorageProxy(proxy) != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get STORAGE_MANAGER_MANAGER_ID proxy.");
+        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
+    }
+    StartTraceAdapter("StorageManager CompleteAddUser");
+    int errCode = proxy->CompleteAddUser(localId);
+    if (errCode != 0) {
+        ACCOUNT_LOGE("Failed to CompleteAddUser, localId=%{public}d, errCode=%{public}d", localId, errCode);
+        ReportOsAccountOperationFail(localId, Constants::OPERATION_CREATE, errCode, "Storage CompleteAddUser failed!");
+        return errCode;
+    }
+    FinishTraceAdapter();
+#endif
     return ERR_OK;
 }
 
