@@ -1702,10 +1702,6 @@ DomainAccountInfo UpdateAccountInfoCallback::GetAccountInfo()
 
 static ErrCode CheckNewDomainAccountInfo(const DomainAccountInfo &oldAccountInfo, DomainAccountInfo &newAccountInfo)
 {
-    if (newAccountInfo.domain_ != oldAccountInfo.domain_) {
-        ACCOUNT_LOGE("NewAccountInfo's domain is invalid");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
     if (!oldAccountInfo.serverConfigId_.empty()) {
         if (newAccountInfo.serverConfigId_.empty()) {
             newAccountInfo.serverConfigId_ = oldAccountInfo.serverConfigId_;
@@ -1780,18 +1776,19 @@ ErrCode InnerDomainAccountManager::UpdateAccountInfo(
         }
         if (err != ERR_OK) {
             ACCOUNT_LOGE("PluginBindAccount failed, errCode = %{public}d", err);
+            return err;
         }
-        return err;
+    } else {
+        // update account info
+        if (plugin_ == nullptr) {
+            result = PluginUpdateAccountInfo(oldAccountInfo, newDomainAccountInfo);
+            if (result != ERR_OK) {
+                ACCOUNT_LOGE("PluginUpdateAccountInfo failed, errCode = %{public}d", result);
+                return result;
+            }
+        }
     }
     
-    // update account info
-    if (plugin_ == nullptr) {
-        result = PluginUpdateAccountInfo(oldAccountInfo, newDomainAccountInfo);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("PluginUpdateAccountInfo failed, errCode = %{public}d", result);
-            return result;
-        }
-    }
     // update local info
     return IInnerOsAccountManager::GetInstance().UpdateAccountInfoByDomainAccountInfo(
         userId, newDomainAccountInfo);
