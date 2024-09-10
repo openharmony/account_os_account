@@ -45,6 +45,7 @@ public:
     static void SendToCESAccountCreate(OsAccountInfo &osAccountInfo);
     static void SendToCESAccountDelete(OsAccountInfo &osAccountInfo);
     static void SendToCESAccountSwitched(int newId, int oldId);
+    static ErrCode SendToStorageAccountCreateComplete(int32_t localId);
     static ErrCode SendToStorageAccountCreate(OsAccountInfo &osAccountInfo);
     static ErrCode SendToStorageAccountRemove(OsAccountInfo &osAccountInfo);
     static ErrCode SendToStorageAccountStart(OsAccountInfo &osAccountInfo);
@@ -54,7 +55,9 @@ public:
     static ErrCode GetAllAppDied(OsAccountInfo &osAccountInfo);
 
 private:
+    static ErrCode InnerSendToStorageAccountCreateComplete(int32_t localId);
     static ErrCode InnerSendToStorageAccountCreate(OsAccountInfo &osAccountInfo);
+    static int32_t UnlockUser(const int localId);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

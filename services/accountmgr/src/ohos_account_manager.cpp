@@ -557,6 +557,7 @@ OhosAccountManager::OhosAccountManager() : subscribeManager_(DistributedAccountS
 {
     accountState_ = std::make_unique<AccountStateMachine>();
     dataDealer_ = std::make_unique<OhosAccountDataDeal>(ACCOUNT_CFG_DIR_ROOT_PATH);
+    BuildEventsMapper();
 }
 
 /**
@@ -569,7 +570,6 @@ bool OhosAccountManager::OnInitialize()
     if (isInit_) {
         return true;
     }
-    BuildEventsMapper();
 
     std::int32_t tryTimes = 0;
     while (tryTimes < MAX_RETRY_TIMES) {

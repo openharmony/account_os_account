@@ -85,12 +85,14 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
   module_out_path = module_output_path
 
   include_dirs = [
+    "${app_account_innerkits_native_path}/include",
     "${os_account_dfx_path}/hidumper_adapter",
     "${services_path}/accountmgr/include/bundle_manager_adapter",
     "${services_path}/accountmgr/include/ability_manager_adapter",
     "${services_path}/accountmgr/include",
     "${os_account_dfx_path}/hitrace_adapter",
     "${services_path}/accountmgr/include/account_iam",
+    "${services_path}/accountmgr/include/appaccount",
     "${services_path}/accountmgr/include/domain_account",
     "${services_path}/accountmgr/include/osaccount",
     "${bundle_framework_path}/interfaces/inner_api/appexecfwk_core/include",
@@ -111,6 +113,7 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
     "${services_path}/accountmgr/src/account_iam/account_iam_mgr_stub.cpp",
     "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
     "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
+    "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
   ]
   sources += account_service_sources
   sources += [ "account_mgr_inner_sdk_func_test.cpp" ]
@@ -164,6 +167,9 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
   if (has_ces_part) {
     cflags_cc += [ "-DHAS_CES_PART" ]
     external_deps += [ "common_event_service:cesfwk_innerkits" ]
+  }
+  if (has_kv_store_part) {
+    external_deps += [ "kv_store:distributeddata_inner" ]
   }
   cflags_cc += [ "-DACCOUNT_TEST" ]
   cflags_cc += [ "-DBUNDLE_ADAPTER_MOCK" ]
