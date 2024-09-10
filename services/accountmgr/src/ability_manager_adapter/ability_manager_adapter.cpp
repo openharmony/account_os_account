@@ -329,8 +329,7 @@ bool AbilityManagerAdapter::IsAllAppDied(int32_t accountId)
         return false;
     }
     for (const auto &appData : appList) {
-        int32_t curId = appData.uid / UID_TRANSFORM_DIVISION;
-        if (curId == accountId) {
+        if (appData.uid / UID_TRANSFORM_DIVISION == accountId) {
             return false;
         }
     }

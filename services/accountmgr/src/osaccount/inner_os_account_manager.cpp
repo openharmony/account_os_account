@@ -810,9 +810,9 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountStop(OsAccountInfo &osAccountIn
             osAccountInfo.GetLocalId(), errCode);
         return errCode;
     }
-    errCode = OsAccountInterface::GetAllAppDied(osAccountInfo);
+    errCode = OsAccountInterface::CheckAllAppDied(osAccountInfo.GetLocalId());
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("IsAllAppDied failed, operation is timeout");
+        ACCOUNT_LOGE("CheckAllAppDied failed, operation is timeout");
         return errCode;
     }
     errCode = OsAccountInterface::SendToStorageAccountStop(osAccountInfo);
@@ -833,9 +833,9 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountDeactivate(OsAccountInfo &osAcc
         return errCode;
     }
 
-    errCode = OsAccountInterface::GetAllAppDied(osAccountInfo);
+    errCode = OsAccountInterface::CheckAllAppDied(osAccountInfo.GetLocalId());
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("IsAllAppDied failed, operation is timeout");
+        ACCOUNT_LOGE("CheckAllAppDied failed, operation is timeout");
         return errCode;
     }
     if (isStopStorage) {
