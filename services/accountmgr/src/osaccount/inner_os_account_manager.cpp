@@ -2101,6 +2101,9 @@ ErrCode IInnerOsAccountManager::UpdateAccountInfoByDomainAccountInfo(
         oldDomainAccountInfo.serverConfigId_ =
             newDomainAccountInfo.serverConfigId_;
     }
+    if (!newDomainAccountInfo.domain_.empty()) {
+        oldDomainAccountInfo.domain_ = newDomainAccountInfo.domain_;
+    }
     accountInfo.SetDomainInfo(oldDomainAccountInfo);
     accountInfo.SetLocalName(newDomainAccountInfo.domain_ + "/" + newDomainAccountInfo.accountName_);
     result = osAccountControl_->UpdateOsAccount(accountInfo);
