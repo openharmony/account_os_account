@@ -55,8 +55,12 @@ namespace {
 #ifdef HAS_STORAGE_PART
 constexpr uint32_t CRYPTO_FLAG_EL1 = 1;
 constexpr uint32_t CRYPTO_FLAG_EL2 = 2;
-constexpr int32_t E_ACTIVE_EL2 = 32;
+constexpr int32_t E_ACTIVE_EL2 = 30;
+// an error code of ipc which means peer end is dead
+constexpr int32_t E_IPC_ERROR = 29189;
+constexpr int32_t E_IPC_SA_DIED = 32;
 #endif
+<<<<<master
 constexpr int32_t DELAY_FOR_CREATE_EXCEPTION = 100;
 constexpr int32_t MAX_CREATE_RETRY_TIMES = 10;
 constexpr int32_t MAX_GETBUNDLE_WAIT_TIMES = 10 * 1000 * 1000;
@@ -166,14 +170,14 @@ ErrCode OsAccountInterface::SendToBMSAccountCreate(
 {
     ErrCode errCode = ERR_OK;
     int32_t retryTimes = 0;
-    while (retryTimes < MAX_CREATE_RETRY_TIMES) {
+    while (retryTimes < MAX_RETRY_TIMES) {
         errCode = BundleManagerAdapter::GetInstance()->CreateNewUser(osAccountInfo.GetLocalId(), disallowedHapList);
         if (errCode == ERR_OK) {
             break;
         }
         ACCOUNT_LOGE("Fail to SendToBMSAccountCreate, errCode %{public}d.", errCode);
         retryTimes++;
-        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_CREATE_EXCEPTION));
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
     }
     return errCode;
 }
@@ -320,7 +324,7 @@ ErrCode OsAccountInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountI
 {
     ErrCode errCode = ERR_OK;
     int32_t retryTimes = 0;
-    while (retryTimes < MAX_CREATE_RETRY_TIMES) {
+    while (retryTimes < MAX_RETRY_TIMES) {
         errCode = InnerSendToStorageAccountCreate(osAccountInfo);
         if (errCode == ERR_OK) {
             break;
@@ -328,7 +332,7 @@ ErrCode OsAccountInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountI
         ACCOUNT_LOGE("Fail to SendToStorageAccountCreate,id=%{public}d, errCode %{public}d.",
             osAccountInfo.GetLocalId(), errCode);
         retryTimes++;
-        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_CREATE_EXCEPTION));
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
     }
     return errCode;
 }
@@ -415,24 +419,56 @@ ErrCode OsAccountInterface::SendToStorageAccountRemove(OsAccountInfo &osAccountI
 }
 
 #ifdef HAS_STORAGE_PART
-static ErrCode GetStorageProxy(OsAccountInfo &osAccountInfo, sptr<StorageManager::IStorageManager> &proxy)
+static ErrCode GetStorageProxy(sptr<StorageManager::IStorageManager> &proxy)
 {
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManager) {
         ACCOUNT_LOGE("failed to get system ability mgr.");
-        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_ACTIVATE,
-            ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, "GetSystemAbilityManager for storage failed!");
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
     auto remote = systemAbilityManager->CheckSystemAbility(STORAGE_MANAGER_MANAGER_ID);
     if (!remote) {
         ACCOUNT_LOGE("failed to get STORAGE_MANAGER_MANAGER_ID service.");
-        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_ACTIVATE,
-            ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, "CheckSystemAbility for storage failed!");
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
     proxy = iface_cast<StorageManager::IStorageManager>(remote);
     return ERR_OK;
+}
+
+int32_t OsAccountInterface::UnlockUser(const int localId)
+{
+    int32_t retryTimes = 0;
+    int32_t errCode = 0;
+    while (retryTimes < MAX_RETRY_TIMES) {
+        sptr<StorageManager::IStorageManager> proxy = nullptr;
+        if (GetStorageProxy(proxy) != ERR_OK) {
+            ACCOUNT_LOGE("Failed to get STORAGE_MANAGER_MANAGER_ID proxy, retry!");
+            errCode = ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
+            retryTimes++;
+            std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
+            continue;
+        }
+        std::vector<uint8_t> emptyData;
+        errCode = proxy->ActiveUserKey(localId, emptyData, emptyData);
+        ACCOUNT_LOGI("ActiveUserKey end, ret %{public}d.", errCode);
+        if (errCode != E_ACTIVE_EL2) {
+            errCode = proxy->PrepareStartUser(localId);
+            ACCOUNT_LOGI("PrepareStartUser end, ret %{public}d.", errCode);
+            if (errCode != 0) {
+                ReportOsAccountOperationFail(localId, Constants::OPERATION_ACTIVATE,
+                    errCode, "Storage PrepareStartUser failed!");
+            }
+        }
+        if (errCode == E_IPC_ERROR || errCode == E_IPC_SA_DIED) {
+            ACCOUNT_LOGE("Failed to PrepareStartUser, id:%{public}d, errCode:%{public}d, retry!", localId, errCode);
+            retryTimes++;
+            std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
+            continue;
+        } else {
+            break;
+        }
+    }
+    return errCode;
 }
 #endif
 
@@ -441,24 +477,17 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
     ACCOUNT_LOGI("start");
     bool isUserUnlocked = false;
 #ifdef HAS_STORAGE_PART
-    sptr<StorageManager::IStorageManager> proxy = nullptr;
-    if (GetStorageProxy(osAccountInfo, proxy) != ERR_OK) {
-        ACCOUNT_LOGE("failed to get STORAGE_MANAGER_MANAGER_ID proxy.");
-        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
-    }
+    int localId = osAccountInfo.GetLocalId();
     StartTraceAdapter("StorageManager PrepareStartUser");
-    std::vector<uint8_t> emptyData;
-    int32_t err = proxy->ActiveUserKey(osAccountInfo.GetLocalId(), emptyData, emptyData);
-    ACCOUNT_LOGI("Storage ActiveUserKey end, ret %{public}d.", err);
-    if (err == 0) {
-        isUserUnlocked = true;
+    int32_t err = UnlockUser(localId);
+    if (err == ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER) {
+        ReportOsAccountOperationFail(localId, Constants::OPERATION_ACTIVATE,
+            ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, "failed to get STORAGE_MANAGER_MANAGER_ID proxy!");
+        ACCOUNT_LOGE("Failed to get STORAGE_MANAGER_MANAGER_ID proxy.");
+        return err;
     }
-    if (err != E_ACTIVE_EL2) {
-        err = proxy->PrepareStartUser(osAccountInfo.GetLocalId());
-        if (err != 0) {
-            ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_ACTIVATE,
-                err, "Storage PrepareStartUser failed!");
-        }
+    if (err == ERR_OK) {
+        isUserUnlocked = true;
     }
     ACCOUNT_LOGI("end, Storage PrepareStartUser ret %{public}d.", err);
     FinishTraceAdapter();

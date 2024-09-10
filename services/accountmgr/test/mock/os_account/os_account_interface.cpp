@@ -87,6 +87,12 @@ void OsAccountInterface::PublishCommonEvent(
     return;
 }
 
+ErrCode OsAccountInterface::SendToStorageAccountCreateComplete(int32_t localId)
+{
+    ACCOUNT_LOGI("mock OsAccountInterface SendToStorageAccountCreateComplete start");
+    return ERR_OK;
+}
+
 ErrCode OsAccountInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("mock OsAccountInterface SendToStorageAccountCreate start");
