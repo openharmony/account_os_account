@@ -282,27 +282,8 @@ UpdateCredCallback::UpdateCredCallback(
     : userId_(userId), credInfo_(credInfo), innerCallback_(callback)
 {}
 
-void UpdateCredCallback::SetDeathRecipient(const sptr<IDMCallbackDeathRecipient> &deathRecipient)
+void UpdateCredCallback::HandleAuthResult(const Attributes &extraInfo)
 {
-    deathRecipient_ = deathRecipient;
-}
-
-void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
-{
-    ACCOUNT_LOGI("UpdateCredCallback, userId=%{public}d, result=%{public}d.", userId_, result);
-    if (innerCallback_ == nullptr || innerCallback_->AsObject() == nullptr) {
-        ACCOUNT_LOGE("inner callback is nullptr");
-        return;
-    }
-    innerCallback_->AsObject()->RemoveDeathRecipient(deathRecipient_);
-    auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
-    if ((result != 0) || (credInfo_.authType != AuthType::PIN)) {
-        ACCOUNT_LOGE("UpdateCredCallback fail code=%{public}d, authType=%{public}d", result, credInfo_.authType);
-        innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
-        innerCallback_->OnResult(result, extraInfo);
-        return;
-    }
-
     uint64_t secureUid = 0;
     extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, secureUid);
     std::vector<uint8_t> newSecret;
@@ -338,6 +319,29 @@ void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
     result = SetFirstCallerTokenID(selfToken);
     ACCOUNT_LOGI("Set first caller info result: %{public}d", result);
     UserIDMClient::GetInstance().DeleteCredential(userId_, oldCredentialId, credInfo_.token, idmCallback);
+}
+
+void UpdateCredCallback::SetDeathRecipient(const sptr<IDMCallbackDeathRecipient> &deathRecipient)
+{
+    deathRecipient_ = deathRecipient;
+}
+
+void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
+{
+    ACCOUNT_LOGI("UpdateCredCallback, userId=%{public}d, result=%{public}d.", userId_, result);
+    if (innerCallback_ == nullptr || innerCallback_->AsObject() == nullptr) {
+        ACCOUNT_LOGE("inner callback is nullptr");
+        return;
+    }
+    innerCallback_->AsObject()->RemoveDeathRecipient(deathRecipient_);
+    auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
+    if ((result != 0) || (credInfo_.authType != AuthType::PIN)) {
+        ACCOUNT_LOGE("UpdateCredCallback fail code=%{public}d, authType=%{public}d", result, credInfo_.authType);
+        innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
+        innerCallback_->OnResult(result, extraInfo);
+        return;
+    }
+    HandleAuthResult(extraInfo);
 }
 
 void UpdateCredCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
