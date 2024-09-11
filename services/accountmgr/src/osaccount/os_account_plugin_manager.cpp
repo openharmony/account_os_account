@@ -179,7 +179,7 @@ int32_t OsAccountPluginManager::UpdateUserAuthWithRecoveryKey(const std::vector<
         ACCOUNT_LOGE("Call dlopen failed, error=%{public}s.", dlerror());
         return ERR_INVALID_VALUE;
     }
-    updateUserAuthWithRecoveryKey = (UpdateUserAuthWithRecoveryKey)dlsym(handle, methodName.c_str());
+    updateUserAuthWithRecoveryKey = (UpdateUserAuthWithRecoveryKeyFunc)dlsym(handle, methodName.c_str());
     if (!updateUserAuthWithRecoveryKey) {
         ACCOUNT_LOGE("Call dlsym failed, method=%{public}s error=%{public}s.", methodName.c_str(), dlerror());
         return ERR_INVALID_VALUE;
@@ -187,7 +187,7 @@ int32_t OsAccountPluginManager::UpdateUserAuthWithRecoveryKey(const std::vector<
     ErrCode res = updateUserAuthWithRecoveryKey(authToken, newSecret, secureUid, userId);
     dlclose(handle);
     if (res != ERR_OK) {
-        ACCOUNT_LOGE("Call updateUserAuthWithRecoveryKey failed, error=%{public}s.", res);
+        ACCOUNT_LOGE("Call updateUserAuthWithRecoveryKey failed, error=%{public}d.", res);
     }
     return res;
 } // namespace AccountSA
