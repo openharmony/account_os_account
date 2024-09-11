@@ -34,8 +34,6 @@ public:
     bool IsPluginAvailable();
     bool IsCreationAllowed();
     ErrCode PluginVerifyActivationLockFunc(bool& isAllowed);
-    int32_t UpdateUserAuthWithRecoveryKey(const std::vector<uint8_t> &authToken,
-        const std::vector<uint8_t> &newSecret, uint64_t secureUid, uint32_t userId);
 
 private:
     std::mutex libMutex_;

@@ -163,30 +163,5 @@ bool OsAccountPluginManager::IsCreationAllowed()
     return isAllowed;
 #endif
 }
-
-int32_t OsAccountPluginManager::UpdateUserAuthWithRecoveryKey(const std::vector<uint8_t> &authToken,
-    const std::vector<uint8_t> &newSecret, uint64_t secureUid, uint32_t userId)
-{
-    void *handle;
-    std::string soPath = OS_ACCOUNT_PLUGIN_LIB_PATH + OS_ACCOUNT_PLUGIN_LIB_NAME;
-    std::string methodName = "UpdateUseAuthWithRecoveryKey";
-    UpdateUserAuthWithRecoveryKeyFunc updateUserAuthWithRecoveryKey;
-
-    handle = dlopen(soPath.c_str(), RTLD_LAZY);
-    if (!handle) {
-        ACCOUNT_LOGE("Call dlopen failed, error=%{public}s.", dlerror());
-        return ERR_INVALID_VALUE;
-    }
-    updateUserAuthWithRecoveryKey = (UpdateUserAuthWithRecoveryKeyFunc)dlsym(handle, methodName.c_str());
-    if (!updateUserAuthWithRecoveryKey) {
-        ACCOUNT_LOGE("Call dlsym failed, method=%{public}s error=%{public}s.", methodName.c_str(), dlerror());
-        return ERR_INVALID_VALUE;
-    }
-    ErrCode res = updateUserAuthWithRecoveryKey(authToken, newSecret, secureUid, userId);
-    dlclose(handle);
-    if (res != ERR_OK) {
-        ACCOUNT_LOGE("Call updateUserAuthWithRecoveryKey failed, error=%{public}d.", res);
-    }
-    return res;
 } // namespace AccountSA
 }  // namespace OHOS

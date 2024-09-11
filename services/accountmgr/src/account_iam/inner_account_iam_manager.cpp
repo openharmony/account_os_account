@@ -45,10 +45,20 @@ constexpr int32_t ERROR_STORAGE_KEY_NOT_EXIST = -2;
 constexpr int32_t DELAY_FOR_EXCEPTION = 100;
 constexpr int32_t MAX_RETRY_TIMES = 20;
 const int32_t TIME_WAIT_TIME_OUT = 5;
+
+#ifdef _ARM64_
+static const std::string OS_ACCOUNT_RECOVERY_LIB_PATH = "/system/lib64/";
+#else
+static const std::string OS_ACCOUNT_RECOVERY_LIB_PATH = "/system/lib/";
+#endif
+static const std::string OS_ACCOUNT_RECOVERY_LIB_NAME = "librecovery_key_service_client.z.so";
 }
 using UserIDMClient = UserIam::UserAuth::UserIdmClient;
 using UserAuthClient = UserIam::UserAuth::UserAuthClient;
 using UserAuthClientImpl = UserIam::UserAuth::UserAuthClientImpl;
+
+typedef int32_t (*UpdateUserAuthWithRecoveryKeyFunc)(const std::vector<uint8_t> &authToken,
+    const std::vector<uint8_t> &newSecret, uint64_t secureUid, uint32_t userId);
 
 InnerAccountIAMManager::InnerAccountIAMManager()
 {
@@ -583,6 +593,32 @@ ErrCode InnerAccountIAMManager::InnerUpdateStorageUserAuth(int32_t userId, uint6
     }
 #endif
     return ERR_OK;
+}
+
+ErrCode InnerAccountIAMManager::UpdateUserAuthWithRecoveryKey(const std::vector<uint8_t> &authToken,
+    const std::vector<uint8_t> &newSecret, uint64_t secureUid, uint32_t userId)
+{
+    void *handle;
+    std::string soPath = OS_ACCOUNT_PLUGIN_LIB_PATH + OS_ACCOUNT_PLUGIN_LIB_NAME;
+    std::string methodName = "UpdateUseAuthWithRecoveryKey";
+    UpdateUserAuthWithRecoveryKeyFunc updateUserAuthWithRecoveryKey;
+
+    handle = dlopen(soPath.c_str(), RTLD_LAZY);
+    if (!handle) {
+        ACCOUNT_LOGE("Call dlopen failed, error=%{public}s.", dlerror());
+        return ERR_INVALID_VALUE;
+    }
+    updateUserAuthWithRecoveryKey = (UpdateUserAuthWithRecoveryKeyFunc)dlsym(handle, methodName.c_str());
+    if (!updateUserAuthWithRecoveryKey) {
+        ACCOUNT_LOGE("Call dlsym failed, method=%{public}s error=%{public}s.", methodName.c_str(), dlerror());
+        return ERR_INVALID_VALUE;
+    }
+    ErrCode res = updateUserAuthWithRecoveryKey(authToken, newSecret, secureUid, userId);
+    dlclose(handle);
+    if (res != ERR_OK) {
+        ACCOUNT_LOGE("Call updateUserAuthWithRecoveryKey failed, error=%{public}d.", res);
+    }
+    return res;
 }
 
 ErrCode InnerAccountIAMManager::GetLockScreenStatus(uint32_t userId, bool &lockScreenStatus)

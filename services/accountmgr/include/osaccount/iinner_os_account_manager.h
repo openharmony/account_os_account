@@ -118,8 +118,6 @@ public:
     ErrCode ActivateDefaultOsAccount() override;
     void CleanGarbageOsAccounts() override;
     void ResetAccountStatus() override;
-    ErrCode UpdateUserAuthWithRecoveryKey(const std::vector<uint8_t> &authToken, const std::vector<uint8_t> &newSecret,
-        uint64_t secureUid, uint32_t userId);
 
 private:
     IInnerOsAccountManager();
