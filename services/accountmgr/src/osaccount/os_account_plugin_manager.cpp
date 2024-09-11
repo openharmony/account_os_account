@@ -30,12 +30,6 @@ static const std::string OS_ACCOUNT_PLUGIN_LIB_PATH = "/system/lib64/platformsdk
 static const std::string OS_ACCOUNT_PLUGIN_LIB_PATH = "/system/lib/platformsdk/";
 #endif
 static const std::string OS_ACCOUNT_PLUGIN_LIB_NAME = "libactivation_lock_sdk.z.so";
-#ifdef _ARM64_
-static const std::string OS_ACCOUNT_RECOVERY_LIB_PATH = "/system/lib64/";
-#else
-static const std::string OS_ACCOUNT_RECOVERY_LIB_PATH = "/system/lib/";
-#endif
-static const std::string OS_ACCOUNT_RECOVERY_LIB_NAME = "librecovery_key_service_client.z.so";
 }
 
 OsAccountPluginManager::OsAccountPluginManager()
@@ -163,5 +157,5 @@ bool OsAccountPluginManager::IsCreationAllowed()
     return isAllowed;
 #endif
 }
-} // namespace AccountSA
+}  // namespace AccountSA
 }  // namespace OHOS

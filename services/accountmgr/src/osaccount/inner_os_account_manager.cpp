@@ -2219,16 +2219,5 @@ ErrCode IInnerOsAccountManager::IsValidOsAccount(const OsAccountInfo &osAccountI
     }
     return ERR_OK;
 }
-
-ErrCode IInnerOsAccountManager::UpdateUserAuthWithRecoveryKey(const std::vector<uint8_t> &authToken,
-    const std::vector<uint8_t> &newSecret, uint64_t secureUid, uint32_t userId)
-{
-    ErrCode errCode = pluginManager_.UpdateUserAuthWithRecoveryKey(authToken, newSecret, secureUid,
-        userId);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("UpdateUserAuthWithRecoveryKey, errCode=%{public}d", errCode);
-    }
-    return errCode;
-}
 }  // namespace AccountSA
 }  // namespace OHOS
