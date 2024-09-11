@@ -172,7 +172,7 @@ int32_t OsAccountPluginManager::UpdateUserAuthWithRecoveryKey(const std::vector<
     void *handle;
     std::string soPath = OS_ACCOUNT_PLUGIN_LIB_PATH + OS_ACCOUNT_PLUGIN_LIB_NAME;
     std::string methodName = "UpdateUseAuthWithRecoveryKey";
-    UpdateUserAuthWithRecoveryKey updateUserAuthWithRecoveryKey;
+    UpdateUserAuthWithRecoveryKeyFunc updateUserAuthWithRecoveryKey;
 
     handle = dlopen(soPath.c_str(), RTLD_LAZY);
     if (!handle) {
