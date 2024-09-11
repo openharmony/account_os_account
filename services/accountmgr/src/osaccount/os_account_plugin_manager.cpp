@@ -30,6 +30,12 @@ static const std::string OS_ACCOUNT_PLUGIN_LIB_PATH = "/system/lib64/platformsdk
 static const std::string OS_ACCOUNT_PLUGIN_LIB_PATH = "/system/lib/platformsdk/";
 #endif
 static const std::string OS_ACCOUNT_PLUGIN_LIB_NAME = "libactivation_lock_sdk.z.so";
+#ifdef _ARM64_
+static const std::string OS_ACCOUNT_RECOVERY_LIB_PATH = "/system/lib64/";
+#else
+static const std::string OS_ACCOUNT_RECOVERY_LIB_PATH = "/system/lib/";
+#endif
+static const std::string OS_ACCOUNT_RECOVERY_LIB_NAME = "librecovery_key_service_client.z.so";
 }
 
 OsAccountPluginManager::OsAccountPluginManager()
@@ -157,5 +163,32 @@ bool OsAccountPluginManager::IsCreationAllowed()
     return isAllowed;
 #endif
 }
-}  // namespace AccountSA
+
+int32_t OsAccountPluginManager::UpdateUserAuthWithRecoveryKey(const std::vector<uint8_t> &authToken,
+    const std::vector<uint8_t> &newSecret, uint64_t secureUid, uint32_t userId)
+{
+    std::lock_guard<std::mutex> lock(libMutex_);
+
+    void *handle;
+    std::string soPath = OS_ACCOUNT_PLUGIN_LIB_PATH + OS_ACCOUNT_PLUGIN_LIB_NAME;
+    std::string methodName = "UpdateUseAuthWithRecoveryKey";
+    UpdateUserAuthWithRecoveryKey updateUserAuthWithRecoveryKey;
+
+    handle = dlopen(soPath.c_str(), RTLD_LAZY);
+    if (!handle) {
+        ACCOUNT_LOGE("Call dlopen failed, error=%{public}s.", dlerror());
+        return ERR_INVALID_VALUE;
+    }
+    updateUserAuthWithRecoveryKey = (UpdateUserAuthWithRecoveryKey)dlsym(handle, methodName.c_str());
+    if (!updateUserAuthWithRecoveryKey) {
+        ACCOUNT_LOGE("Call dlsym failed, method=%{public}s error=%{public}s.", methodName.c_str(), dlerror());
+        return ERR_INVALID_VALUE;
+    }
+    ErrCode res = updateUserAuthWithRecoveryKey(authToken, newSecret, secureUid, userId);
+    dlclose(handle);
+    if (res != ERR_OK) {
+        ACCOUNT_LOGE("Call updateUserAuthWithRecoveryKey failed, error=%{public}s.", res);
+    }
+    return res;
+} // namespace AccountSA
 }  // namespace OHOS
