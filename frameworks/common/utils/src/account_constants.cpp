@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,29 +12,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "account_constants.h"
 
-#ifndef OS_ACCOUNT_FRAMEWORKS_ACCOUNT_CONSTANTS_H
-#define OS_ACCOUNT_FRAMEWORKS_ACCOUNT_CONSTANTS_H
-#include <stdint.h>
-
-#define TOKEN_ID_LOWMASK 0xffffffff
-namespace OHOS {
-namespace AccountSA {
-// for watchdog func
 #ifdef HICOLLIE_ENABLE
-const uint32_t TIMEOUT = 30; // 30s
-constexpr const char TIMER_NAME[] = "AccountMgrTimer";
+#include "xcollie/xcollie.h"
 #endif // HICOLLIE_ENABLE
 
-class AccountTimer {
-public:
-    AccountTimer(bool needInit = true);
-    ~AccountTimer();
-    void Init();
+namespace OHOS {
+namespace AccountSA {
+AccountTimer::AccountTimer(bool needInit)
+{
+    if (needInit) {
+        Init();
+    }
+}
 
-private:
-    int64_t timerId_ = -1;
-};
+AccountTimer::~AccountTimer()
+{
+#ifdef HICOLLIE_ENABLE
+    HiviewDFX::XCollie::GetInstance().CancelTimer(timerId_);
+#endif // HICOLLIE_ENABLE
+}
+
+void AccountTimer::Init()
+{
+#ifdef HICOLLIE_ENABLE
+    timerId_ = HiviewDFX::XCollie::GetInstance().SetTimer(
+        TIMER_NAME, TIMEOUT, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
+#endif // HICOLLIE_ENABLE
+}
 } // namespace AccountSA
 } // namespace OHOS
-#endif // OS_ACCOUNT_FRAMEWORKS_ACCOUNT_CONSTANTS_H
