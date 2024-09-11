@@ -86,6 +86,14 @@ public:
      */
     ErrCode LogoutUser(int32_t accountId);
 
+    /**
+     * @brief all app is died.
+     * @param accountId accountId.
+     *
+     * @return Returns true on success, false on failure.
+     */
+    bool IsAllAppDied(int32_t accountId);
+
 private:
     void Connect();
     ErrCode DoConnectAbility(

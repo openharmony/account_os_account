@@ -84,6 +84,14 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode LogoutUser(int32_t accountId);
+
+    /**
+     * @brief all app is died.
+     * @param accountId accountId.
+     *
+     * @return Returns true on success, false on failure.
+     */
+    bool IsAllAppDied(int32_t accountId);
 };
 }  // namespace AAFwk
 }  // namespace OHOS
