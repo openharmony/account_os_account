@@ -283,12 +283,17 @@ UpdateCredCallback::UpdateCredCallback(
 {}
 
 
-void UpdateCredCallback::HandleAuthResult(const Attributes &extraInfo, UpdateCredInfo &updateCredInfo)
+void UpdateCredCallback::UpdateUserAuthAndDeleteCredential(const Attributes &extraInfo)
 {
+    UpdateCredInfo updateCredInfo;
+    extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, updateCredInfo.credentialId);
+    extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, updateCredInfo.secureUid);
+    extraInfo.GetUint8ArrayValue(Attributes::ATTR_AUTH_TOKEN, updateCredInfo.token);
+    extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, updateCredInfo.newSecret);
     std::vector<uint8_t> oldSecret;
     extraInfo.GetUint8ArrayValue(Attributes::ATTR_OLD_ROOT_SECRET, oldSecret);
     if (oldSecret.empty()) {
-        ErrCode code = IInnerOsAccountManager::GetInstance().UpdateUserAuthWithRecoveryKey(credInfo_.token,
+        ErrCode code = innerIamMgr_.UpdateUserAuthWithRecoveryKey(credInfo_.token,
             updateCredInfo.newSecret, updateCredInfo.secureUid, userId_);
         if (code != ERR_OK) {
             ACCOUNT_LOGE("Fail to update user auth with recovery key, userId=%{public}d, code=%{public}d",
@@ -310,8 +315,7 @@ void UpdateCredCallback::HandleAuthResult(const Attributes &extraInfo, UpdateCre
     extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_OLD_CREDENTIAL_ID, oldCredentialId);
     auto idmCallback = std::make_shared<CommitCredUpdateCallback>(userId_, updateCredInfo, innerCallback_);
     Security::AccessToken::AccessTokenID selfToken = IPCSkeleton::GetSelfTokenID();
-    result = SetFirstCallerTokenID(selfToken);
-    ACCOUNT_LOGI("Set first caller info result: %{public}d", result);
+    ACCOUNT_LOGI("Set first caller info result: %{public}d", SetFirstCallerTokenID(selfToken));
     UserIDMClient::GetInstance().DeleteCredential(userId_, oldCredentialId, credInfo_.token, idmCallback);
 }
 
@@ -335,12 +339,7 @@ void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
         innerCallback_->OnResult(result, extraInfo);
         return;
     }
-    UpdateCredInfo updateCredInfo;
-    extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, updateCredInfo.credentialId);
-    extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, updateCredInfo.secureUid);
-    extraInfo.GetUint8ArrayValue(Attributes::ATTR_AUTH_TOKEN, updateCredInfo.token);
-    extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, updateCredInfo.newSecret);
-    HandleAuthResult(extraInfo, updateCredInfo);
+    UpdateUserAuthAndDeleteCredential(extraInfo);
 }
 
 void UpdateCredCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)

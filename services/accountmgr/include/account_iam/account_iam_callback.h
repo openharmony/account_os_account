@@ -98,7 +98,7 @@ public:
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override;
 
 private:
-    void HandleAuthResult(const Attributes &extraInfo, UpdateCredInfo &updateCredInfo);
+    void UpdateUserAuthAndDeleteCredential(const Attributes &extraInfo);
 
 private:
     std::uint32_t userId_;

@@ -20,8 +20,6 @@
 extern "C" {
 #endif
 typedef int32_t (*VerifyActivationLockFunc)(std::function<int32_t(bool)> callback);
-typedef int32_t (*UpdateUserAuthWithRecoveryKeyFunc)(const std::vector<uint8_t> &authToken,
-    const std::vector<uint8_t> &newSecret, uint64_t secureUid, uint32_t userId);
 
 enum OsPluginMethodEnum {
     VERIFY_ACTIVATION_LOCK = 0,
