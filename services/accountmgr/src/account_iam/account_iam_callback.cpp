@@ -292,6 +292,7 @@ void UpdateCredCallback::UpdateUserAuthAndDeleteCredential(const Attributes &ext
     extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, updateCredInfo.newSecret);
     std::vector<uint8_t> oldSecret;
     extraInfo.GetUint8ArrayValue(Attributes::ATTR_OLD_ROOT_SECRET, oldSecret);
+    auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
     if (oldSecret.empty()) {
         ErrCode code = innerIamMgr_.UpdateUserAuthWithRecoveryKey(credInfo_.token,
             updateCredInfo.newSecret, updateCredInfo.secureUid, userId_);
