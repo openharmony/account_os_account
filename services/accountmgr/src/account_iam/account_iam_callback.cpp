@@ -298,8 +298,7 @@ void UpdateCredCallback::HandleAuthResult(const Attributes &extraInfo, UpdateCre
     } else {
         ErrCode code = innerIamMgr_.UpdateStorageUserAuth(userId_, updateCredInfo.secureUid,
             updateCredInfo.token, oldSecret, {});
-        if (code != ERR_OK)
-        {
+        if (code != ERR_OK) {
             ACCOUNT_LOGE("Fail to update user auth, userId=%{public}d, code=%{public}d", userId_, code);
             innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
             innerCallback_->OnResult(code, extraInfo);

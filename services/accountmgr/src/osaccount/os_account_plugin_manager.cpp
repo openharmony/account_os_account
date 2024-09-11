@@ -167,8 +167,6 @@ bool OsAccountPluginManager::IsCreationAllowed()
 int32_t OsAccountPluginManager::UpdateUserAuthWithRecoveryKey(const std::vector<uint8_t> &authToken,
     const std::vector<uint8_t> &newSecret, uint64_t secureUid, uint32_t userId)
 {
-    std::lock_guard<std::mutex> lock(libMutex_);
-
     void *handle;
     std::string soPath = OS_ACCOUNT_PLUGIN_LIB_PATH + OS_ACCOUNT_PLUGIN_LIB_NAME;
     std::string methodName = "UpdateUseAuthWithRecoveryKey";
