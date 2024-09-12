@@ -1151,19 +1151,14 @@ ErrCode InnerDomainAccountManager::IsAuthenticationExpired(
         return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
     }
     int32_t userId = 0;
-    ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
+    OsAccountInfo osAccountInfo;
+    ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountFromDomain(info, userId, osAccountInfo);
     if (result != ERR_OK) {
         ACCOUNT_LOGI("The target domain account not found, isExpired=true.");
         isExpired = true;
         return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
     }
 
-    OsAccountInfo osAccountInfo;
-    result = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(userId, osAccountInfo);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get account info");
-        return result;
-    }
     DomainAccountInfo domainInfo;
     osAccountInfo.GetDomainInfo(domainInfo);
     if (domainInfo.serverConfigId_.empty()) {
@@ -1770,12 +1765,13 @@ ErrCode InnerDomainAccountManager::UpdateAccountInfo(
         Parcel emptyParcel;
         AccountSA::DomainAuthResult authResult;
         ErrCode err = PluginBindAccount(newAccountInfo, userId, authResult);
+        if (err != ERR_OK) {
+            ACCOUNT_LOGE("PluginBindAccount failed, errCode = %{public}d", err);
+            return err;
+        }
         if (!authResult.Marshalling(emptyParcel)) {
             ACCOUNT_LOGE("DomainAuthResult marshalling failed.");
             err = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
-        }
-        if (err != ERR_OK) {
-            ACCOUNT_LOGE("PluginBindAccount failed, errCode = %{public}d", err);
             return err;
         }
     } else {
