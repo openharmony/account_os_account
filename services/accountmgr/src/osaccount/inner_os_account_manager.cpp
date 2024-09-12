@@ -506,7 +506,8 @@ ErrCode IInnerOsAccountManager::ValidateShortName(const std::string &shortName)
     return ERR_OK;
 }
 
-ErrCode IInnerOsAccountManager::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
+ErrCode IInnerOsAccountManager::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo,
+    const CreateOsAccountOptions &options)
 {
     if (!pluginManager_.IsCreationAllowed()) {
         ACCOUNT_LOGI("Not allow creation account.");
@@ -521,7 +522,7 @@ ErrCode IInnerOsAccountManager::CreateOsAccountWithFullInfo(OsAccountInfo &osAcc
         RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
         return errCode;
     }
-    errCode = SendMsgForAccountCreate(osAccountInfo);
+    errCode = SendMsgForAccountCreate(osAccountInfo, options);
     RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
     if (errCode != ERR_OK) {
         (void)osAccountControl_->DelOsAccount(osAccountInfo.GetLocalId());
