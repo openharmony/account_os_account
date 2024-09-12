@@ -769,7 +769,7 @@ ErrCode AppAccountStub::ProcGetAuthenticatorInfo(uint32_t code, MessageParcel &d
     AuthenticatorInfo info;
     ErrCode result = GetAuthenticatorInfo(owner, info);
     if ((!reply.WriteInt32(result)) || (!reply.WriteString(info.owner)) ||
-        (!reply.WriteInt32(info.iconId)) || (!reply.WriteInt32(info.labelId))) {
+        (!reply.WriteUint32(info.iconId)) || (!reply.WriteUint32(info.labelId))) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }

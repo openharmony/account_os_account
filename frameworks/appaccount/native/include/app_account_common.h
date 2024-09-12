@@ -32,8 +32,8 @@ struct AppAccountCallingInfo {
 struct AuthenticatorInfo {
     std::string owner;
     std::string abilityName;
-    int32_t iconId = -1;
-    int32_t labelId = -1;
+    uint32_t iconId = 0;
+    uint32_t labelId = 0;
 };
 
 struct SelectAccountsOptions : public Parcelable {
