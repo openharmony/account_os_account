@@ -451,11 +451,11 @@ int32_t OsAccountInterface::UnlockUser(const int localId)
         errCode = proxy->ActiveUserKey(localId, emptyData, emptyData);
         ACCOUNT_LOGI("ActiveUserKey end, ret %{public}d.", errCode);
         if (errCode != E_ACTIVE_EL2) {
-            errCode = proxy->PrepareStartUser(localId);
-            ACCOUNT_LOGI("PrepareStartUser end, ret %{public}d.", errCode);
-            if (errCode != 0) {
+            int32_t ret = proxy->PrepareStartUser(localId);
+            ACCOUNT_LOGI("PrepareStartUser end, ret %{public}d.", ret);
+            if (ret != 0) {
                 ReportOsAccountOperationFail(localId, Constants::OPERATION_ACTIVATE,
-                    errCode, "Storage PrepareStartUser failed!");
+                    ret, "Storage PrepareStartUser failed!");
             }
         }
         if (errCode == E_IPC_ERROR || errCode == E_IPC_SA_DIED) {
