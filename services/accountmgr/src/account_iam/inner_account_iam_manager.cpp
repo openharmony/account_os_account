@@ -604,12 +604,12 @@ ErrCode InnerAccountIAMManager::UpdateUserAuthWithRecoveryKey(const std::vector<
     UpdateUserAuthWithRecoveryKeyFunc updateUserAuthWithRecoveryKey;
 
     handle = dlopen(soPath.c_str(), RTLD_LAZY);
-    if (!handle) {
+    if (handle != nullptr) {
         ACCOUNT_LOGE("Call dlopen failed, error=%{public}s.", dlerror());
         return ERR_INVALID_VALUE;
     }
     updateUserAuthWithRecoveryKey = (UpdateUserAuthWithRecoveryKeyFunc)dlsym(handle, methodName.c_str());
-    if (!updateUserAuthWithRecoveryKey) {
+    if (updateUserAuthWithRecoveryKey != nullptr) {
         ACCOUNT_LOGE("Call dlsym failed, method=%{public}s error=%{public}s.", methodName.c_str(), dlerror());
         return ERR_INVALID_VALUE;
     }

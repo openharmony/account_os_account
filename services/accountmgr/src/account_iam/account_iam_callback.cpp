@@ -299,8 +299,8 @@ void UpdateCredCallback::UpdateUserAuthAndDeleteCredential(const Attributes &ext
         if (code != ERR_OK) {
             ACCOUNT_LOGE("Fail to update user auth with recovery key, userId=%{public}d, code=%{public}d",
                 userId_, code);
-            return;
         }
+        return;
     } else {
         ErrCode code = innerIamMgr_.UpdateStorageUserAuth(userId_, updateCredInfo.secureUid,
             updateCredInfo.token, oldSecret, {});
