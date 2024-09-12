@@ -598,8 +598,8 @@ ErrCode InnerAccountIAMManager::InnerUpdateStorageUserAuth(int32_t userId, uint6
 ErrCode InnerAccountIAMManager::UpdateUserAuthWithRecoveryKey(const std::vector<uint8_t> &authToken,
     const std::vector<uint8_t> &newSecret, uint64_t secureUid, uint32_t userId)
 {
-    std::string soPath = OS_ACCOUNT_RECOVERY_LIB_PATH + OS_ACCOUNT_RECOVERY_LIB_NAME;
-    const string methodName = "UpdateUseAuthWithRecoveryKey";
+    const std::string soPath = OS_ACCOUNT_RECOVERY_LIB_PATH + OS_ACCOUNT_RECOVERY_LIB_NAME;
+    const std::string methodName = "UpdateUseAuthWithRecoveryKey";
     UpdateUserAuthWithRecoveryKeyFunc updateUserAuthWithRecoveryKey;
 
     void *handle = dlopen(soPath.c_str(), RTLD_LAZY);
