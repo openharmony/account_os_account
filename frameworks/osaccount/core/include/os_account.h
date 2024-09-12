@@ -29,7 +29,7 @@ public:
     ErrCode CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo);
     ErrCode CreateOsAccount(const std::string &localName, const std::string &shortName, const OsAccountType &type,
         OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options = {});
-    ErrCode CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo);
+    ErrCode CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options = {});
     ErrCode UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo);
     ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
         const std::shared_ptr<DomainAccountCallback> &callback, const CreateOsAccountForDomainOptions& options = {});

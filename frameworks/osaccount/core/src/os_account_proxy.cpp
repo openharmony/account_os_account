@@ -119,7 +119,7 @@ ErrCode OsAccountProxy::CreateOsAccount(const std::string &localName, const std:
     return ERR_OK;
 }
 
-ErrCode OsAccountProxy::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
+ErrCode OsAccountProxy::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
@@ -129,6 +129,11 @@ ErrCode OsAccountProxy::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo
 
     if (!data.WriteParcelable(&osAccountInfo)) {
         ACCOUNT_LOGE("failed to write osAccountInfo info ");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    if (!data.WriteParcelable(&options)) {
+        ACCOUNT_LOGE("failed to write options");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 

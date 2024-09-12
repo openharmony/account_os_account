@@ -152,7 +152,8 @@ ErrCode OsAccountManagerService::ValidateAccountCreateParamAndPermission(const s
     return ERR_OK;
 }
 
-ErrCode OsAccountManagerService::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
+ErrCode OsAccountManagerService::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo,
+    const CreateOsAccountOptions &options)
 {
     bool isMultiOsAccountEnable = false;
     innerManager_.IsMultiOsAccountEnable(isMultiOsAccountEnable);
@@ -178,7 +179,7 @@ ErrCode OsAccountManagerService::CreateOsAccountWithFullInfo(OsAccountInfo &osAc
         return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
     }
 
-    return innerManager_.CreateOsAccountWithFullInfo(osAccountInfo);
+    return innerManager_.CreateOsAccountWithFullInfo(osAccountInfo, options);
 }
 
 ErrCode OsAccountManagerService::UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
