@@ -263,7 +263,10 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &localNam
         ACCOUNT_LOGE("Check type number failed.");
         return errCode;
     }
-
+    if (!CheckAndAddLocalIdOperating(osAccountInfo.GetLocalId())) {
+        ACCOUNT_LOGW("Account id = %{public}d already in operating", osAccountInfo.GetLocalId());
+        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
+    }
     errCode = osAccountControl_->InsertOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("insert os account info err, errCode %{public}d.", errCode);
@@ -420,9 +423,11 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(
     DomainAccountInfo domainInfo;  // default empty domain info
     ErrCode errCode = PrepareOsAccountInfo(name, type, domainInfo, osAccountInfo);
     if (errCode != ERR_OK) {
+        RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
         return errCode;
     }
     errCode = SendMsgForAccountCreate(osAccountInfo);
+    RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
     if (errCode != ERR_OK) {
         (void)osAccountControl_->DelOsAccount(osAccountInfo.GetLocalId());
     }
@@ -463,9 +468,11 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, co
     DomainAccountInfo domainInfo;  // default empty domain info
     ErrCode errCode = PrepareOsAccountInfo(localName, shortName, type, domainInfo, osAccountInfo);
     if (errCode != ERR_OK) {
+        RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
         return errCode;
     }
     errCode = SendMsgForAccountCreate(osAccountInfo, options);
+    RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
     if (errCode != ERR_OK) {
         (void)osAccountControl_->DelOsAccount(osAccountInfo.GetLocalId());
     }
@@ -500,11 +507,17 @@ ErrCode IInnerOsAccountManager::CreateOsAccountWithFullInfo(OsAccountInfo &osAcc
         ACCOUNT_LOGI("Not allow creation account.");
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_PLUGIN_NOT_ALLOWED_CREATION_ERROR;
     }
+    if (!CheckAndAddLocalIdOperating(osAccountInfo.GetLocalId())) {
+        ACCOUNT_LOGW("Account id = %{public}d already in operating", osAccountInfo.GetLocalId());
+        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
+    }
     ErrCode errCode = PrepareOsAccountInfoWithFullInfo(osAccountInfo);
     if (errCode != ERR_OK) {
+        RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
         return errCode;
     }
     errCode = SendMsgForAccountCreate(osAccountInfo);
+    RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
     if (errCode != ERR_OK) {
         (void)osAccountControl_->DelOsAccount(osAccountInfo.GetLocalId());
     }
@@ -606,8 +619,10 @@ ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type, con
         ErrCode errCode = PrepareOsAccountInfo(domainAccountInfo.accountName_, options.shortName,
             type, domainAccountInfo, osAccountInfo);
         if (errCode != ERR_OK) {
+            RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
             return errCode;
         }
+        RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
 #else
         ACCOUNT_LOGW("multiple os accounts feature not enabled");
         return ERR_OSACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR;
@@ -692,7 +707,6 @@ ErrCode IInnerOsAccountManager::PrepareRemoveOsAccount(OsAccountInfo &osAccountI
     if (osAccountInfo.GetIsForeground()) {
         ACCOUNT_LOGI("Remove foreground account id=%{public}d.", id);
         if (ActivateOsAccount(Constants::START_USER_ID) != ERR_OK) {
-            RemoveLocalIdToOperating(id);
             ACCOUNT_LOGE("RemoveOsAccount active base account failed");
             return ERR_OSACCOUNT_SERVICE_INNER_REMOVE_ACCOUNT_ACTIVED_ERROR;
         }
@@ -703,7 +717,6 @@ ErrCode IInnerOsAccountManager::PrepareRemoveOsAccount(OsAccountInfo &osAccountI
     // stop account
     errCode = SendMsgForAccountStop(osAccountInfo);
     if (errCode != ERR_OK) {
-        RemoveLocalIdToOperating(id);
         ReportOsAccountOperationFail(id, "stop", errCode, "stop os account failed");
         return errCode;
     }
@@ -718,7 +731,6 @@ ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountIn
     }
     ErrCode errCode = PrepareRemoveOsAccount(osAccountInfo, isCleanGarbage);
     if (errCode != ERR_OK) {
-        RemoveLocalIdToOperating(id);
         ACCOUNT_LOGE("PrepareRemoveOsAccount failed, errCode %{public}d.", errCode);
         return errCode;
     }
@@ -741,10 +753,8 @@ ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountIn
     }
     errCode = SendMsgForAccountRemove(osAccountInfo);
     if (errCode != ERR_OK) {
-        RemoveLocalIdToOperating(id);
         return errCode;
     }
-    RemoveLocalIdToOperating(id);
 
     errCode = osAccountControl_->RemoveOAConstraintsInfo(id);
     if (errCode != ERR_OK) {
@@ -777,7 +787,9 @@ ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
     osAccountControl_->UpdateOsAccount(osAccountInfo);
 
     // then remove account
-    return RemoveOsAccountOperate(id, osAccountInfo);
+    errCode = RemoveOsAccountOperate(id, osAccountInfo);
+    RemoveLocalIdToOperating(id);
+    return errCode;
 }
 
 ErrCode IInnerOsAccountManager::SendMsgForAccountStop(OsAccountInfo &osAccountInfo)
@@ -1213,30 +1225,32 @@ ErrCode IInnerOsAccountManager::DealWithDeviceOwnerId(const bool isDeviceOwner, 
 
 void IInnerOsAccountManager::CleanGarbageOsAccounts()
 {
-    ACCOUNT_LOGD("enter.");
-    std::vector<OsAccountInfo> osAccountInfos;
-    if (osAccountControl_->GetOsAccountList(osAccountInfos) != ERR_OK) {
-        ACCOUNT_LOGI("QueryAllCreatedOsAccounts failed.");
+    ACCOUNT_LOGI("enter");
+    std::vector<int32_t> idList;
+    if (osAccountControl_->GetOsAccountIdList(idList) != ERR_OK) {
+        ACCOUNT_LOGI("GetOsAccountIdList failed.");
         return;
     }
-
-    // check status and remove garbage accounts data
-    for (size_t i = 0; i < osAccountInfos.size(); ++i) {
-        if (!osAccountInfos[i].GetToBeRemoved() && osAccountInfos[i].GetIsCreateCompleted()) {
+    for (auto id : idList) {
+        if (id == Constants::START_USER_ID || id == Constants::ADMIN_LOCAL_ID) {
             continue;
         }
-
-        if (osAccountInfos[i].GetLocalId() == Constants::START_USER_ID ||
-            osAccountInfos[i].GetLocalId() == Constants::ADMIN_LOCAL_ID) {
+        if (!CheckAndAddLocalIdOperating(id)) {
+            ACCOUNT_LOGI("Account id = %{public}d already in operating", id);
             continue;
         }
-
-        ErrCode errCode = RemoveOsAccountOperate(osAccountInfos[i].GetLocalId(), osAccountInfos[i], true);
+        OsAccountInfo osAccountInfo;
+        osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
+        if (!osAccountInfo.GetToBeRemoved() && osAccountInfo.GetIsCreateCompleted()) {
+            RemoveLocalIdToOperating(id);
+            continue;
+        }
+        ErrCode errCode = RemoveOsAccountOperate(id, osAccountInfo, true);
+        RemoveLocalIdToOperating(id);
         if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("remove account %{public}d failed! errCode %{public}d.",
-                osAccountInfos[i].GetLocalId(), errCode);
+            ACCOUNT_LOGE("remove account %{public}d failed! errCode %{public}d.", id, errCode);
         } else {
-            ACCOUNT_LOGI("remove account %{public}d succeed!", osAccountInfos[i].GetLocalId());
+            ACCOUNT_LOGI("remove account %{public}d succeed!", id);
         }
     }
     ACCOUNT_LOGI("finished.");
