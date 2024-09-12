@@ -98,9 +98,6 @@ public:
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override;
 
 private:
-    void UpdateUserAuthAndDeleteCredential(const Attributes &extraInfo);
-
-private:
     std::uint32_t userId_;
     CredentialParameters credInfo_;
     sptr<IDMCallbackDeathRecipient> deathRecipient_ = nullptr;
