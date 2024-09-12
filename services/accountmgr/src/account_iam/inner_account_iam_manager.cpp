@@ -598,18 +598,17 @@ ErrCode InnerAccountIAMManager::InnerUpdateStorageUserAuth(int32_t userId, uint6
 ErrCode InnerAccountIAMManager::UpdateUserAuthWithRecoveryKey(const std::vector<uint8_t> &authToken,
     const std::vector<uint8_t> &newSecret, uint64_t secureUid, uint32_t userId)
 {
-    void *handle;
     std::string soPath = OS_ACCOUNT_RECOVERY_LIB_PATH + OS_ACCOUNT_RECOVERY_LIB_NAME;
-    std::string methodName = "UpdateUseAuthWithRecoveryKey";
+    const string methodName = "UpdateUseAuthWithRecoveryKey";
     UpdateUserAuthWithRecoveryKeyFunc updateUserAuthWithRecoveryKey;
 
-    handle = dlopen(soPath.c_str(), RTLD_LAZY);
-    if (handle != nullptr) {
+    void *handle = dlopen(soPath.c_str(), RTLD_LAZY);
+    if (handle == nullptr) {
         ACCOUNT_LOGE("Call dlopen failed, error=%{public}s.", dlerror());
         return ERR_INVALID_VALUE;
     }
     updateUserAuthWithRecoveryKey = (UpdateUserAuthWithRecoveryKeyFunc)dlsym(handle, methodName.c_str());
-    if (updateUserAuthWithRecoveryKey != nullptr) {
+    if (updateUserAuthWithRecoveryKey == nullptr) {
         ACCOUNT_LOGE("Call dlsym failed, method=%{public}s error=%{public}s.", methodName.c_str(), dlerror());
         return ERR_INVALID_VALUE;
     }
