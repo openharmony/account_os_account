@@ -1160,7 +1160,7 @@ ErrCode InnerDomainAccountManager::IsAuthenticationExpired(
     OsAccountInfo osAccountInfo;
     result = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(userId, osAccountInfo);
     if (result != ERR_OK) {
-        ACCOUNT_LOGI("failed to get account info");
+        ACCOUNT_LOGI("Failed to get account info");
         return result;
     }
 
