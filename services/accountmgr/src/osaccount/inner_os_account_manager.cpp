@@ -1305,43 +1305,6 @@ ErrCode IInnerOsAccountManager::GetOsAccountLocalIdFromDomain(const DomainAccoun
     return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
 }
 
-ErrCode IInnerOsAccountManager::GetOsAccountFromDomain(
-    const DomainAccountInfo &domainInfo, int &id, OsAccountInfo &osAccountInfo)
-{
-    if (domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("invalid domain name length %{public}zu.", domainInfo.domain_.size());
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-
-    if (domainInfo.accountName_.size() > Constants::LOCAL_NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("invalid domain account name length %{public}zu.", domainInfo.accountName_.size());
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-
-    id = -1;
-    std::vector<OsAccountInfo> osAccountInfos;
-    ErrCode errCode = osAccountControl_->GetOsAccountList(osAccountInfos);
-    if (errCode != ERR_OK) {
-        return errCode;
-    }
-
-    DomainAccountInfo curDomainInfo;
-    for (auto osAccountInfosPtr = osAccountInfos.begin(); osAccountInfosPtr != osAccountInfos.end();
-         ++osAccountInfosPtr) {
-        osAccountInfosPtr->GetDomainInfo(curDomainInfo);
-        if (IsSameAccount(curDomainInfo, domainInfo)) {
-            id = osAccountInfosPtr->GetLocalId();
-            errCode = GetRealOsAccountInfoById(id, osAccountInfo);
-            if (errCode != ERR_OK) {
-                ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
-                return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
-            }
-            return ERR_OK;
-        }
-    }
-    return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
-}
-
 ErrCode IInnerOsAccountManager::GetOsAccountShortName(const int id, std::string &shortName)
 {
     OsAccountInfo osAccountInfo;
