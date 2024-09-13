@@ -312,11 +312,8 @@ void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
     if (oldSecret.empty()) {
         ErrCode code = innerIamMgr_.UpdateUserAuthWithRecoveryKey(credInfo_.token,
             updateCredInfo.newSecret, updateCredInfo.secureUid, userId_);
-        if (code != ERR_OK) {
-            innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
-            innerCallback_->OnResult(code, extraInfo);
-        }
-        return;
+        innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
+        return innerCallback_->OnResult(code, extraInfo);
     } else {
         ErrCode code = innerIamMgr_.UpdateStorageUserAuth(userId_, updateCredInfo.secureUid,
             updateCredInfo.token, oldSecret, {});

@@ -47,11 +47,12 @@ constexpr int32_t MAX_RETRY_TIMES = 20;
 const int32_t TIME_WAIT_TIME_OUT = 5;
 
 #ifdef _ARM64_
-static const std::string OS_ACCOUNT_RECOVERY_LIB_PATH = "/system/lib64/";
+static const std::string RECOVERY_LIB_PATH = "/system/lib64/";
 #else
-static const std::string OS_ACCOUNT_RECOVERY_LIB_PATH = "/system/lib/";
+static const std::string RECOVERY_LIB_PATH = "/system/lib/";
 #endif
-static const std::string OS_ACCOUNT_RECOVERY_LIB_NAME = "librecovery_key_service_client.z.so";
+static const std::string RECOVERY_SO_PATH = RECOVERY_LIB_PATH + "librecovery_key_service_client.z.so";
+static const std::string RECOVERY_METHOD_NAME = "UpdateUseAuthWithRecoveryKey";
 }
 using UserIDMClient = UserIam::UserAuth::UserIdmClient;
 using UserAuthClient = UserIam::UserAuth::UserAuthClient;
@@ -598,18 +599,16 @@ ErrCode InnerAccountIAMManager::InnerUpdateStorageUserAuth(int32_t userId, uint6
 ErrCode InnerAccountIAMManager::UpdateUserAuthWithRecoveryKey(const std::vector<uint8_t> &authToken,
     const std::vector<uint8_t> &newSecret, uint64_t secureUid, uint32_t userId)
 {
-    const std::string soPath = OS_ACCOUNT_RECOVERY_LIB_PATH + OS_ACCOUNT_RECOVERY_LIB_NAME;
-    const std::string methodName = "UpdateUseAuthWithRecoveryKey";
-    UpdateUserAuthWithRecoveryKeyFunc updateUserAuthWithRecoveryKey;
-
-    void *handle = dlopen(soPath.c_str(), RTLD_LAZY);
+    void *handle = dlopen(RECOVERY_SO_PATH.c_str(), RTLD_LAZY);
     if (handle == nullptr) {
         ACCOUNT_LOGE("Call dlopen failed, error=%{public}s.", dlerror());
         return ERR_INVALID_VALUE;
     }
-    updateUserAuthWithRecoveryKey = (UpdateUserAuthWithRecoveryKeyFunc)dlsym(handle, methodName.c_str());
+    UpdateUserAuthWithRecoveryKeyFunc updateUserAuthWithRecoveryKey =
+        (UpdateUserAuthWithRecoveryKeyFunc)dlsym(handle, RECOVERY_METHOD_NAME.c_str());
     if (updateUserAuthWithRecoveryKey == nullptr) {
-        ACCOUNT_LOGE("Call dlsym failed, method=%{public}s error=%{public}s.", methodName.c_str(), dlerror());
+        ACCOUNT_LOGE("Call dlsym failed, method=%{public}s error=%{public}s.",
+            RECOVERY_METHOD_NAME.c_str(), dlerror());
         return ERR_INVALID_VALUE;
     }
     ErrCode res = updateUserAuthWithRecoveryKey(authToken, newSecret, secureUid, userId);
