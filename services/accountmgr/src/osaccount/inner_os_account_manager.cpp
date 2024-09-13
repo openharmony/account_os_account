@@ -419,7 +419,6 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(
         ACCOUNT_LOGI("Not allow creation account.");
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_PLUGIN_NOT_ALLOWED_CREATION_ERROR;
     }
-    AccountTimer timer;
     unsigned int osAccountNum = 0;
     GetCreatedOsAccountsCount(osAccountNum);
     if (!AccountPermissionManager::CheckSaCall() && osAccountNum >= config_.maxOsAccountNum) {
@@ -447,7 +446,6 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, co
         ACCOUNT_LOGI("Not allow creation account.");
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_PLUGIN_NOT_ALLOWED_CREATION_ERROR;
     }
-    AccountTimer timer;
     osAccountInfo.SetLocalName(localName);
 #ifdef ENABLE_ACCOUNT_SHORT_NAME
     OsAccountInfo accountInfoOld;
@@ -515,7 +513,6 @@ ErrCode IInnerOsAccountManager::CreateOsAccountWithFullInfo(OsAccountInfo &osAcc
         ACCOUNT_LOGI("Not allow creation account.");
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_PLUGIN_NOT_ALLOWED_CREATION_ERROR;
     }
-    AccountTimer timer;
     if (!CheckAndAddLocalIdOperating(osAccountInfo.GetLocalId())) {
         ACCOUNT_LOGW("Account id = %{public}d already in operating", osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
@@ -655,7 +652,6 @@ ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
         ACCOUNT_LOGI("Not allow creation account.");
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_PLUGIN_NOT_ALLOWED_CREATION_ERROR;
     }
-    AccountTimer timer;
     std::vector<OsAccountInfo> osAccountInfos;
     (void)QueryAllCreatedOsAccounts(osAccountInfos);
     if (CheckDomainAccountBound(osAccountInfos, domainInfo)) {
