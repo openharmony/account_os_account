@@ -15,7 +15,6 @@
 
 #ifndef OS_ACCOUNT_FRAMEWORKS_ACCOUNT_CONSTANTS_H
 #define OS_ACCOUNT_FRAMEWORKS_ACCOUNT_CONSTANTS_H
-#include <stdint.h>
 
 #define TOKEN_ID_LOWMASK 0xffffffff
 namespace OHOS {
@@ -26,15 +25,6 @@ const uint32_t TIMEOUT = 30; // 30s
 constexpr const char TIMER_NAME[] = "AccountMgrTimer";
 #endif // HICOLLIE_ENABLE
 
-class AccountTimer {
-public:
-    AccountTimer(bool needInit = true);
-    ~AccountTimer();
-    void Init();
-
-private:
-    int64_t timerId_ = -1;
-};
 } // namespace AccountSA
 } // namespace OHOS
 #endif // OS_ACCOUNT_FRAMEWORKS_ACCOUNT_CONSTANTS_H

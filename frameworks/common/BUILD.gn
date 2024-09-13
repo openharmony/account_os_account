@@ -45,7 +45,6 @@ ohos_shared_library("libaccount_common") {
     "file_operator/src/account_file_operator.cpp",
     "log/src/account_log_wrapper.cpp",
     "perf_stat/src/perf_stat.cpp",
-    "utils/src/account_constants.cpp",
     "utils/src/account_permission_manager.cpp",
     "utils/src/memory_guard.cpp",
   ]
@@ -84,11 +83,6 @@ ohos_shared_library("libaccount_common") {
   if (build_selinux) {
     external_deps += [ "selinux_adapter:librestorecon" ]
     cflags += [ "-DWITH_SELINUX" ]
-  }
-
-  if (hicollie_enable == true) {
-    external_deps += [ "hicollie:libhicollie" ]
-    cflags_cc += [ "-DHICOLLIE_ENABLE" ]
   }
 
   subsystem_name = "account"
