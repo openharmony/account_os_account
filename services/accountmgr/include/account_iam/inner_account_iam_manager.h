@@ -71,6 +71,8 @@ public:
     ErrCode UpdateStorageKeyContext(const int32_t userId);
     ErrCode UpdateStorageUserAuth(int32_t userId, uint64_t secureUid, const std::vector<uint8_t> &token,
         const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret);
+    ErrCode UpdateUserAuthWithRecoveryKey(const std::vector<uint8_t> &authToken,
+        const std::vector<uint8_t> &newSecret, uint64_t secureUid, uint32_t userId);
 #ifdef HAS_PIN_AUTH_PART
     void OnDelUserDone(int32_t userId);
 #endif // HAS_PIN_AUTH_PART
