@@ -85,6 +85,12 @@ ohos_shared_library("libaccount_common") {
     cflags += [ "-DWITH_SELINUX" ]
   }
 
+  if (hicollie_enable == true) {
+    sources += [ "utils/src/account_timer.cpp" ]
+    external_deps += [ "hicollie:libhicollie" ]
+    cflags_cc += [ "-DHICOLLIE_ENABLE" ]
+  }
+
   subsystem_name = "account"
   innerapi_tags = [ "platformsdk" ]
   part_name = "os_account"

@@ -149,7 +149,9 @@ bool OsAccountPluginManager::IsCreationAllowed()
         return true;
     }
     bool isAllowed = false;
+    ACCOUNT_LOGI("Call plugin method start.");
     ErrCode res = PluginVerifyActivationLockFunc(isAllowed);
+    ACCOUNT_LOGI("Call plugin method end.");
     if (res != ERR_OK) {
         ACCOUNT_LOGE("Call IsOsAccountCreationAllowed failed, ErrCode=%{public}d", res);
         return false;

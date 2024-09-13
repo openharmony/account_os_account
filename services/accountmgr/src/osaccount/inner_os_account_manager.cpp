@@ -41,6 +41,7 @@
 #include <thread>
 #include <unordered_set>
 #ifdef HICOLLIE_ENABLE
+#include "account_timer.h"
 #include "xcollie/xcollie.h"
 #endif // HICOLLIE_ENABLE
 
@@ -419,6 +420,9 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(
         ACCOUNT_LOGI("Not allow creation account.");
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_PLUGIN_NOT_ALLOWED_CREATION_ERROR;
     }
+#ifdef HICOLLIE_ENABLE
+    AccountTimer timer;
+#endif // HICOLLIE_ENABLE
     unsigned int osAccountNum = 0;
     GetCreatedOsAccountsCount(osAccountNum);
     if (!AccountPermissionManager::CheckSaCall() && osAccountNum >= config_.maxOsAccountNum) {
@@ -446,6 +450,9 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, co
         ACCOUNT_LOGI("Not allow creation account.");
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_PLUGIN_NOT_ALLOWED_CREATION_ERROR;
     }
+#ifdef HICOLLIE_ENABLE
+    AccountTimer timer;
+#endif // HICOLLIE_ENABLE
     osAccountInfo.SetLocalName(localName);
 #ifdef ENABLE_ACCOUNT_SHORT_NAME
     OsAccountInfo accountInfoOld;
@@ -512,6 +519,9 @@ ErrCode IInnerOsAccountManager::CreateOsAccountWithFullInfo(OsAccountInfo &osAcc
         ACCOUNT_LOGI("Not allow creation account.");
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_PLUGIN_NOT_ALLOWED_CREATION_ERROR;
     }
+#ifdef HICOLLIE_ENABLE
+    AccountTimer timer;
+#endif // HICOLLIE_ENABLE
     if (!CheckAndAddLocalIdOperating(osAccountInfo.GetLocalId())) {
         ACCOUNT_LOGW("Account id = %{public}d already in operating", osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
@@ -651,6 +661,9 @@ ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
         ACCOUNT_LOGI("Not allow creation account.");
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_PLUGIN_NOT_ALLOWED_CREATION_ERROR;
     }
+#ifdef HICOLLIE_ENABLE
+    AccountTimer timer;
+#endif // HICOLLIE_ENABLE
     std::vector<OsAccountInfo> osAccountInfos;
     (void)QueryAllCreatedOsAccounts(osAccountInfos);
     if (CheckDomainAccountBound(osAccountInfos, domainInfo)) {
