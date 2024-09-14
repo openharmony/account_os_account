@@ -1157,6 +1157,21 @@ ErrCode InnerDomainAccountManager::IsAuthenticationExpired(
         isExpired = true;
         return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
     }
+    OsAccountInfo osAccountInfo;
+    result = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(userId, osAccountInfo);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGI("Failed to get account info");
+        return result;
+    }
+
+    DomainAccountInfo domainInfo;
+    osAccountInfo.GetDomainInfo(domainInfo);
+    if (domainInfo.serverConfigId_.empty()) {
+        ACCOUNT_LOGI("No server config id, isExpired=false");
+        isExpired = false;
+        return ERR_OK;
+    }
+
     std::vector<uint8_t> accountToken;
     if (!GetTokenFromMap(userId, accountToken)) {
         ACCOUNT_LOGI("The target domain account has not authenticated");
@@ -1687,10 +1702,6 @@ DomainAccountInfo UpdateAccountInfoCallback::GetAccountInfo()
 
 static ErrCode CheckNewDomainAccountInfo(const DomainAccountInfo &oldAccountInfo, DomainAccountInfo &newAccountInfo)
 {
-    if (newAccountInfo.domain_ != oldAccountInfo.domain_) {
-        ACCOUNT_LOGE("NewAccountInfo's domain is invalid");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
     if (!oldAccountInfo.serverConfigId_.empty()) {
         if (newAccountInfo.serverConfigId_.empty()) {
             newAccountInfo.serverConfigId_ = oldAccountInfo.serverConfigId_;
@@ -1754,14 +1765,30 @@ ErrCode InnerDomainAccountManager::UpdateAccountInfo(
     if (result != ERR_OK) {
         return result;
     }
-    // update account info
-    if (plugin_ == nullptr) {
-        result = PluginUpdateAccountInfo(oldAccountInfo, newDomainAccountInfo);
+
+    if (oldAccountInfo.serverConfigId_.empty() && !newAccountInfo.serverConfigId_.empty()) {
+        Parcel emptyParcel;
+        AccountSA::DomainAuthResult authResult;
+        result = PluginBindAccount(newAccountInfo, userId, authResult);
         if (result != ERR_OK) {
-            ACCOUNT_LOGE("PluginUpdateAccountInfo failed, errCode = %{public}d", result);
+            ACCOUNT_LOGE("PluginBindAccount failed, errCode = %{public}d", result);
             return result;
         }
+        if (!authResult.Marshalling(emptyParcel)) {
+            ACCOUNT_LOGE("DomainAuthResult marshalling failed.");
+            return ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
+        }
+    } else {
+        // update account info
+        if (plugin_ == nullptr) {
+            result = PluginUpdateAccountInfo(oldAccountInfo, newDomainAccountInfo);
+            if (result != ERR_OK) {
+                ACCOUNT_LOGE("PluginUpdateAccountInfo failed, errCode = %{public}d", result);
+                return result;
+            }
+        }
     }
+    
     // update local info
     return IInnerOsAccountManager::GetInstance().UpdateAccountInfoByDomainAccountInfo(
         userId, newDomainAccountInfo);
