@@ -26,7 +26,6 @@
 #undef private
 #include "accesstoken_kit.h"
 #include "account_iam_client.h"
-#include "account_log_wrapper.h"
 #include "account_iam_callback.h"
 #include "account_iam_mgr_proxy.h"
 #include "account_iam_callback_stub.h"
