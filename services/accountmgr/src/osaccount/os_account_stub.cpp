@@ -22,12 +22,19 @@
 #include "memory_guard.h"
 #include "os_account_constants.h"
 #ifdef HICOLLIE_ENABLE
+#include "account_timer.h"
 #include "xcollie/xcollie.h"
 #endif // HICOLLIE_ENABLE
 namespace OHOS {
 namespace AccountSA {
 #ifdef HICOLLIE_ENABLE
 constexpr std::int32_t RECOVERY_TIMEOUT = 6; // timeout 6s
+const std::set<uint32_t> WATCH_DOG_WHITE_LIST = {
+    static_cast<uint32_t>(OsAccountInterfaceCode::CREATE_OS_ACCOUNT),
+    static_cast<uint32_t>(OsAccountInterfaceCode::CREATE_OS_ACCOUNT_WITH_SHORT_NAME),
+    static_cast<uint32_t>(OsAccountInterfaceCode::CREATE_OS_ACCOUNT_WITH_FULL_INFO),
+    static_cast<uint32_t>(OsAccountInterfaceCode::CREATE_OS_ACCOUNT_FOR_DOMAIN),
+};
 #endif // HICOLLIE_ENABLE
 const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
     {
@@ -506,8 +513,10 @@ int OsAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
     }
 
 #ifdef HICOLLIE_ENABLE
-    int timerId =
-        HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, TIMEOUT, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
+    AccountTimer timer(false);
+    if (WATCH_DOG_WHITE_LIST.find(code) == WATCH_DOG_WHITE_LIST.end()) {
+        timer.Init();
+    }
 #endif // HICOLLIE_ENABLE
 
     auto messageProc = messageProcMap_.find(code);
@@ -517,21 +526,12 @@ int OsAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
             ErrCode result = AccountPermissionManager::CheckSystemApp();
             if (result != ERR_OK) {
                 ACCOUNT_LOGE("is not system application, result = %{public}u.", result);
-#ifdef HICOLLIE_ENABLE
-                HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
-#endif // HICOLLIE_ENABLE
                 return result;
             }
         }
         int ret = (messageProcFunction.messageProcFunction)(this, data, reply);
-#ifdef HICOLLIE_ENABLE
-        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
-#endif // HICOLLIE_ENABLE
         return ret;
     }
-#ifdef HICOLLIE_ENABLE
-    HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
-#endif // HICOLLIE_ENABLE
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
