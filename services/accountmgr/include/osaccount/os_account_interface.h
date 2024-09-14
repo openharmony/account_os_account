@@ -45,6 +45,7 @@ public:
     static void SendToCESAccountCreate(OsAccountInfo &osAccountInfo);
     static void SendToCESAccountDelete(OsAccountInfo &osAccountInfo);
     static void SendToCESAccountSwitched(int newId, int oldId);
+    static ErrCode SendToStorageAccountCreateComplete(int32_t localId);
     static ErrCode SendToStorageAccountCreate(OsAccountInfo &osAccountInfo);
     static ErrCode SendToStorageAccountRemove(OsAccountInfo &osAccountInfo);
     static ErrCode SendToStorageAccountStart(OsAccountInfo &osAccountInfo);
@@ -53,6 +54,7 @@ public:
         const OsAccountInfo &osAccountInfo, const std::string &commonEvent, const std::string &operation);
 
 private:
+    static ErrCode InnerSendToStorageAccountCreateComplete(int32_t localId);
     static ErrCode InnerSendToStorageAccountCreate(OsAccountInfo &osAccountInfo);
 };
 }  // namespace AccountSA
