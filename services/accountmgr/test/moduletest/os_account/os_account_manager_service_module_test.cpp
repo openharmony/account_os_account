@@ -2497,6 +2497,65 @@ HWTEST_F(OsAccountManagerServiceModuleTest, MaxNumTest005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: MaxNumTest006
+ * @tc.desc: test create account failed in accounts reaches upper limit. and success in after clean garbages.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, MaxNumTest006, TestSize.Level1)
+{
+    AccountFileOperator osAccountFileOperator;
+    osAccountFileOperator.InputFileByPathAndContent(CONFIG_PATH, CONFIG_JSON_NORMAL);
+    auto &innerMgr = osAccountManagerService_->innerManager_;
+    ASSERT_NE(innerMgr.osAccountControl_, nullptr);
+    innerMgr.osAccountControl_->GetOsAccountConfig(innerMgr.config_);
+
+    uint32_t maxOsAccountNum = 0;
+    EXPECT_EQ(osAccountManagerService_->QueryMaxOsAccountNumber(maxOsAccountNum), ERR_OK);
+    ASSERT_EQ(maxOsAccountNum, MAX_OS_ACCOUNT_NUM);
+
+    uint32_t maxLoggedInOsAccountNum = 0;
+    EXPECT_EQ(osAccountManagerService_->QueryMaxLoggedInOsAccountNumber(maxLoggedInOsAccountNum), ERR_OK);
+    ASSERT_EQ(maxLoggedInOsAccountNum, MAX_LOGGED_IN_OS_ACCOUNT_NUM);
+
+    std::vector<OsAccountInfo> osAccountInfos;
+    EXPECT_EQ(osAccountManagerService_->QueryAllCreatedOsAccounts(osAccountInfos), ERR_OK);
+    for (const auto &osAccountInfo : osAccountInfos) {
+        if (osAccountInfo.GetLocalId() == START_USER_ID) {
+            continue;
+        }
+        osAccountManagerService_->RemoveOsAccount(osAccountInfo.GetLocalId());
+    }
+
+    innerMgr.CleanGarbageOsAccounts();
+
+    std::vector<int32_t> createdOsAccounts;
+    OsAccountInfo osAccountInfo;
+    for (uint32_t i = 1; i < maxOsAccountNum; ++i) {
+        EXPECT_EQ(osAccountManagerService_->CreateOsAccount(
+            "MaxNumTest006" + std::to_string(i), OsAccountType::NORMAL, osAccountInfo), ERR_OK);
+        createdOsAccounts.emplace_back(osAccountInfo.GetLocalId());
+    }
+
+    EXPECT_EQ(osAccountManagerService_->CreateOsAccount(
+            "MaxNumTest006" + std::to_string(maxOsAccountNum), OsAccountType::NORMAL, osAccountInfo),
+            ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR);
+
+    int32_t lastAccountId = createdOsAccounts.back();
+    EXPECT_EQ(osAccountManagerService_->SetOsAccountToBeRemoved(lastAccountId, true), ERR_OK);
+
+    EXPECT_EQ(osAccountManagerService_->CreateOsAccount(
+            "MaxNumTest006_New", OsAccountType::NORMAL, osAccountInfo), ERR_OK);
+    createdOsAccounts.emplace_back(osAccountInfo.GetLocalId());
+
+
+    for (const auto &id : createdOsAccounts) {
+        osAccountManagerService_->RemoveOsAccount(id);
+    }
+    osAccountFileOperator.DeleteDirOrFile(CONFIG_PATH);
+}
+
+/**
  * @tc.name: SetOsAccountIsLoggedInTest001
  * @tc.desc: coverage SetOsAccountIsLoggedIn
  * @tc.type: FUNC
