@@ -27,6 +27,7 @@
 #ifdef HAS_CONFIG_POLICY_PART
 #include "config_policy_utils.h"
 #endif
+#include "string_ex.h"
 #include "os_account_constants.h"
 #include "os_account_interface.h"
 
@@ -263,7 +264,12 @@ void OsAccountControlFileManager::Init()
         accountListJson, jsonEnd, Constants::ACCOUNT_LIST, accountIdList, OHOS::AccountSA::JsonType::ARRAY);
     if (!accountIdList.empty()) {
         std::lock_guard<std::mutex> lock(operatingIdMutex_);
-        nextLocalId_ = atoi(accountIdList[accountIdList.size() - 1].c_str()) + 1;
+        int32_t id = 0;
+        if (!StrToInt(accountIdList[accountIdList.size() - 1], id)) {
+            ACCOUNT_LOGE("Convert localId failed");
+            return;
+        }
+        nextLocalId_ = id + 1;
         InitFileWatcherInfo(accountIdList);
     }
     ACCOUNT_LOGI("OsAccountControlFileManager Init end");
@@ -454,7 +460,12 @@ ErrCode OsAccountControlFileManager::GetOsAccountIdList(std::vector<int32_t> &id
     OHOS::AccountSA::GetDataByType<std::vector<std::string>>(accountListJson, accountListJson.end(),
         Constants::ACCOUNT_LIST, idStrList, OHOS::AccountSA::JsonType::ARRAY);
     for (const auto &idStr : idStrList) {
-        idList.emplace_back(atoi(idStr.c_str()));
+        int32_t id = 0;
+        if (!StrToInt(idStr, id)) {
+            ACCOUNT_LOGE("Convert localId failed");
+            continue;
+        }
+        idList.emplace_back(id);
     }
     return errCode;
 }
@@ -483,7 +494,12 @@ ErrCode OsAccountControlFileManager::GetOsAccountList(std::vector<OsAccountInfo>
 
     for (const auto& it : idList) {
         OsAccountInfo osAccountInfo;
-        if (GetOsAccountInfoById(std::atoi(it.c_str()), osAccountInfo) == ERR_OK) {
+        int32_t id = 0;
+        if (!StrToInt(it, id)) {
+            ACCOUNT_LOGE("Convert localId failed");
+            continue;
+        }
+        if (GetOsAccountInfoById(id, osAccountInfo) == ERR_OK) {
             if (osAccountInfo.GetPhoto() != "") {
                 std::string photo = osAccountInfo.GetPhoto();
                 GetPhotoById(osAccountInfo.GetLocalId(), photo);
