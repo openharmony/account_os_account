@@ -435,13 +435,15 @@ void InnerAccountIAMManager::HandleFileKeyException(int32_t userId, const std::v
         return;
     }
     auto callback = std::make_shared<GetSecureUidCallback>(userId);
-    std::unique_lock<std::mutex> lck(callback->secureMtx_);
     ErrCode code = UserIDMClient::GetInstance().GetSecUserInfo(userId, callback);
     if (code != ERR_OK) {
         return;
     }
-    auto status = callback->secureCv_.wait_for(lck, std::chrono::seconds(TIME_WAIT_TIME_OUT));
-    if (status != std::cv_status::no_timeout) {
+    std::unique_lock<std::mutex> lck(callback->secureMtx_);
+    auto status = callback->secureCv_.wait_for(lck, std::chrono::seconds(TIME_WAIT_TIME_OUT), [callback] {
+        return callback->isCalled_;
+    });
+    if (!status) {
         ACCOUNT_LOGE("GetSecureUidCallback time out");
         return;
     }

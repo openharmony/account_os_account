@@ -402,16 +402,19 @@ void DelUserCallback::OnResult(int32_t result, const Attributes &extraInfo)
     }
 
     auto eraseUserCallback = std::make_shared<OsAccountDeleteUserIdmCallback>();
-    std::unique_lock<std::mutex> lock(eraseUserCallback->mutex_);
     errCode = UserIam::UserAuth::UserIdmClient::GetInstance().EraseUser(userId_, eraseUserCallback);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Fail to erase user, userId=%{public}d, errcode=%{public}d", userId_, errCode);
         return innerCallback_->OnResult(errCode, extraInfo);
     }
-    eraseUserCallback->onResultCondition_.wait(lock);
+    std::unique_lock<std::mutex> lock(eraseUserCallback->mutex_);
+    eraseUserCallback->onResultCondition_.wait(lock, [eraseUserCallback] {
+        return eraseUserCallback->isCalled_;
+    });
     if (eraseUserCallback->resultCode_ != ERR_OK) {
-        ACCOUNT_LOGE("Fail to erase user, userId=%{public}d, errcode=%{public}d", userId_, errCode);
-        return innerCallback_->OnResult(errCode, extraInfo);
+        ACCOUNT_LOGE("Fail to erase user, userId=%{public}d, errcode=%{public}d",
+            userId_, eraseUserCallback->resultCode_);
+        return innerCallback_->OnResult(eraseUserCallback->resultCode_, extraInfo);
     }
     errCode = innerIamMgr_.UpdateStorageKeyContext(userId_);
     if (errCode != ERR_OK) {
@@ -587,6 +590,7 @@ void GetSecureUidCallback::OnSecUserInfo(const SecUserInfo &info)
     ACCOUNT_LOGI("SecUserInfo call back userId=%{public}d", userId_);
     std::unique_lock<std::mutex> lck(secureMtx_);
     this->secureUid_ = info.secureUid;
+    isCalled_ = true;
     secureCv_.notify_all();
 }
 

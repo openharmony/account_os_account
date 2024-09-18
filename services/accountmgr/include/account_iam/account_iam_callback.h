@@ -222,6 +222,7 @@ public:
 public:
     int32_t userId_;
     uint64_t secureUid_ = 0;
+    bool isCalled_ = false;
     std::mutex secureMtx_;
     std::condition_variable secureCv_;
 };

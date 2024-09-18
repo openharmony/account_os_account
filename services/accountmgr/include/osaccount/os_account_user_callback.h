@@ -33,7 +33,8 @@ public:
     void OnStartUserDone(int userId, int errcode) override;
 
 public:
-    bool isReturnOk_ = false;
+    bool isCalled_ = false;
+    int32_t resultCode_ = -1;
     std::mutex mutex_;
     std::condition_variable onStartCondition_;
     std::condition_variable onStopCondition_;
