@@ -117,8 +117,9 @@ public:
     ErrCode UpdateAccountInfoByDomainAccountInfo(int32_t userId, const DomainAccountInfo &newDomainAccountInfo);
     bool IsSameAccount(const DomainAccountInfo &domainInfoSrc, const DomainAccountInfo &domainInfoTar);
     ErrCode ActivateDefaultOsAccount() override;
-    void CleanGarbageOsAccounts() override;
+    int32_t CleanGarbageOsAccounts(int32_t excludeId = -1) override;
     void ResetAccountStatus() override;
+    bool CheckAndCleanOsAccounts();
 
 private:
     IInnerOsAccountManager();
@@ -149,6 +150,7 @@ private:
     bool CheckAndAddLocalIdOperating(int32_t localId);
     ErrCode DealWithDeviceOwnerId(const bool isDeviceOwner, const int32_t localId);
     void CheckAndRefreshLocalIdRecord(const int id);
+    bool IsToBeRemoved(int32_t localId);
 
     // operations for active list
     void PushIdIntoActiveList(int32_t id);
