@@ -104,7 +104,7 @@ public:
     virtual ErrCode GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds) = 0;
     virtual ErrCode SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved) = 0;
     virtual ErrCode ActivateDefaultOsAccount() = 0;
-    virtual void CleanGarbageOsAccounts() = 0;
+    virtual int32_t CleanGarbageOsAccounts(int32_t excludeId = -1) = 0;
     virtual void ResetAccountStatus() = 0;
 };
 }  // namespace AccountSA
