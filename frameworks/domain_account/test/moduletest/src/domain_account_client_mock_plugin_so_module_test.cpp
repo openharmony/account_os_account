@@ -212,9 +212,9 @@ static void LoadPluginMethods()
 {
     std::lock_guard<std::mutex> lock(InnerDomainAccountManager::GetInstance().libMutex_);
     InnerDomainAccountManager::GetInstance().libHandle_ = g_ptr;
-    InnerDomainAccountManager::GetInstance().methodMap_.clear();
+    InnerDomainAccountManager::GetInstance().methodMap.clear();
     for (const auto &mockMethod : PLUGIN_METHOD_MAP) {
-        InnerDomainAccountManager::GetInstance().methodMap_.emplace(mockMethod.first, mockMethod.second);
+        InnerDomainAccountManager::GetInstance().methodMap.emplace(mockMethod.first, mockMethod.second);
     }
 }
 
@@ -222,7 +222,7 @@ static void UnloadPluginMethods()
 {
     std::lock_guard<std::mutex> lock(InnerDomainAccountManager::GetInstance().libMutex_);
     InnerDomainAccountManager::GetInstance().libHandle_ = nullptr;
-    InnerDomainAccountManager::GetInstance().methodMap_.clear();
+    InnerDomainAccountManager::GetInstance().methodMap.clear();
 }
 
 int32_t TestPluginSoCreateDomainAccountCallback::GetLocalId(void)
@@ -716,7 +716,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     domainInfo.accountName_ = "testaccount";
     domainInfo.domain_ = "test.example.com";
     domainInfo.accountId_ = "testid";
-
+    
     CreateOsAccountForDomainOptions options;
     options.hasShortName = true;
 
@@ -736,7 +736,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     options.shortName = "";
     EXPECT_NE(OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo,
         testCallback1, options), ERR_OK);
-
+    
     options.shortName = STRING_SHORT_NAME_OUT_OF_RANGE;
     EXPECT_NE(OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo,
         testCallback1, options), ERR_OK);
@@ -744,7 +744,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     options.shortName = "shortExist";
     EXPECT_NE(OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo,
         testCallback1, options), ERR_OK);
-
+    
     LoadPluginMethods();
     auto callback = std::make_shared<MockPluginSoDomainCreateDomainAccountCallback>();
     ASSERT_NE(callback, nullptr);
