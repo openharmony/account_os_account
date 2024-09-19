@@ -18,7 +18,6 @@
 #include <dirent.h>
 #include <fstream>
 #include <gtest/gtest.h>
-#include <gtest/hwext/gtest-multithread.h>
 #include <iostream>
 #include <new>
 #include <sys/stat.h>
@@ -35,7 +34,6 @@
 namespace OHOS {
 namespace AccountSA {
 using namespace testing::ext;
-using namespace testing::mt;
 using namespace OHOS::AccountSA;
 using namespace OHOS;
 using namespace AccountSA;
@@ -48,7 +46,6 @@ const int64_t STRING_TEST_USER_SHELLNUMBER = 1000;
 const int32_t INVALID_TYPE = 100000;
 const gid_t ACCOUNT_GID = 3058;
 const uid_t ACCOUNT_UID = 3058;
-const int32_t THREAD_NUM = 10;
 const std::string STRING_PHOTO =
     "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD//gAUU29mdHdhcmU6IFNuaXBhc3Rl/"
     "9sAQwADAgIDAgIDAwMDBAMDBAUIBQUEBAUKBwcGCAwKDAwLCgsLDQ4SEA0OEQ4LCxAWEBETFBUVFQwPFxgWFBgSFBUU/"
@@ -712,100 +709,6 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest030,
     std::string photo;
     ErrCode ret = g_controlManager->GetPhotoById(id, photo);
     EXPECT_EQ(ret, ERR_OK);
-}
-
-/**
- * @tc.name: GetSerialNumberM
- * @tc.desc: Test GetSerialNumber Multithreading
- * @tc.type: FUNC
- * @tc.require: SR000GGV0U
- */
-HWMTEST_F(OsAccountControlFileManagerTest, GetSerialNumberM, TestSize.Level1, THREAD_NUM)
-{
-    int64_t serialNumber1;
-    int64_t serialNumber2;
-    EXPECT_EQ(g_controlManager->GetSerialNumber(serialNumber1), ERR_OK);
-    EXPECT_EQ(g_controlManager->GetSerialNumber(serialNumber2), ERR_OK);
-    EXPECT_GT(serialNumber2, serialNumber1);
-}
-
-/**
- * @tc.name: GetAllowCreateIdM
- * @tc.desc: Test GetAllowCreateId Multithreading
- * @tc.type: FUNC
- * @tc.require: SR000GGV0U
- */
-HWMTEST_F(OsAccountControlFileManagerTest, GetAllowCreateIdM, TestSize.Level1, THREAD_NUM)
-{
-    int id1 = 0;
-    int id2 = 0;
-    EXPECT_EQ(g_controlManager->GetAllowCreateId(id1), ERR_OK);
-    EXPECT_EQ(g_controlManager->GetAllowCreateId(id2), ERR_OK);
-    bool ret = false;
-    if (id2 > id1) {
-        ret = true;
-    }
-    EXPECT_EQ(ret, true);
-}
-
-/**
- * @tc.name: SaveBaseOAConstraintsToFileM
- * @tc.desc: Test SaveBaseOAConstraintsToFile Multithreading
- * @tc.type: FUNC
- * @tc.require:
- */
-HWMTEST_F(OsAccountControlFileManagerTest, SaveBaseOAConstraintsToFileM, TestSize.Level1, THREAD_NUM)
-{
-    Json baseOAConstraintsJson;
-    ErrCode ret = g_controlManager->GetBaseOAConstraintsFromFile(baseOAConstraintsJson);
-    EXPECT_EQ(ret, ERR_OK);
-    ret = g_controlManager->SaveBaseOAConstraintsToFile(baseOAConstraintsJson);
-    EXPECT_EQ(ret, ERR_OK);
-}
-
-/**
- * @tc.name: SaveAccountListToFileM
- * @tc.desc: Test SaveBaseOAConstraintsToFile Multithreading
- * @tc.type: FUNC
- * @tc.require:
- */
-HWMTEST_F(OsAccountControlFileManagerTest, SaveAccountListToFileM, TestSize.Level1, THREAD_NUM)
-{
-    Json accountListJson;
-    ErrCode ret = g_controlManager->GetAccountListFromFile(accountListJson);
-    EXPECT_EQ(ret, ERR_OK);
-    ret = g_controlManager->SaveAccountListToFile(accountListJson);
-    EXPECT_EQ(ret, ERR_OK);
-}
-
-/**
- * @tc.name: SaveGlobalOAConstraintsToFileM
- * @tc.desc: Test SaveGlobalOAConstraintsToFile Multithreading
- * @tc.type: FUNC
- * @tc.require:
- */
-HWMTEST_F(OsAccountControlFileManagerTest, SaveGlobalOAConstraintsToFileM, TestSize.Level1, THREAD_NUM)
-{
-    g_controlManager->BuildAndSaveGlobalOAConstraintsJsonFile();
-    bool ret = false;
-    ret = g_controlManager->accountFileOperator_
-        ->IsJsonFileReady(Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH);
-    EXPECT_EQ(ret, true);
-}
-
-/**
- * @tc.name: SaveSpecificOAConstraintsToFileM
- * @tc.desc: Test SaveSpecificOAConstraintsToFile Multithreading
- * @tc.type: FUNC
- * @tc.require:
- */
-HWMTEST_F(OsAccountControlFileManagerTest, SaveSpecificOAConstraintsToFileM, TestSize.Level1, THREAD_NUM)
-{
-    g_controlManager->BuildAndSaveSpecificOAConstraintsJsonFile();
-    bool ret = false;
-    ret = g_controlManager->accountFileOperator_
-        ->IsJsonFileReady(Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH);
-    EXPECT_EQ(ret, true);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

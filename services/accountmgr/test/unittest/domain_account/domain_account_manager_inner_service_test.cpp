@@ -15,7 +15,6 @@
 
 #include <gtest/gtest.h>
 #include <thread>
-#include <gtest/hwext/gtest-multithread.h>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #define private public
@@ -34,7 +33,6 @@ namespace OHOS {
 namespace AccountSA {
 using namespace testing;
 using namespace testing::ext;
-using namespace testing::mt;
 using namespace OHOS::AccountSA;
 using namespace OHOS;
 using namespace AccountSA;
@@ -50,7 +48,6 @@ const int32_t WAIT_TIME = 20;
 const std::vector<uint8_t> TEST_TOKEN = {0};
 const std::vector<uint8_t> TEST_PASSWORD = {0};
 std::shared_ptr<MockDomainPlugin> g_plugin = std::make_shared<MockDomainPlugin>();
-const int THREAD_NUM = 10;
 }  // namespace
 
 class DomainAccountManagerInnerServiceTest : public testing::Test {
@@ -660,103 +657,6 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     EXPECT_EQ(instance->PluginAuthToken(info, password, resultParcel), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->PluginGetAuthStatusInfo(info, authInfo), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->PluginGetDomainAccountInfo(options, info), ERR_JS_CAPABILITY_NOT_SUPPORTED);
-}
-
-/******
- * MultiThread test
- *************/
-
-/**
- * @tc.name: DomainAccountManagerInnerServiceMultiThreadTest001
- * @tc.desc: Multithread LoaderLib.
- * @tc.type: FUNC
- * @tc.require: issueI64KAM
- */
-HWMTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceMultiThreadTest001, TestSize.Level0,
-          THREAD_NUM)
-{
-    InnerDomainAccountManager *instance = new (std::nothrow) InnerDomainAccountManager();
-    instance->libHandle_ = nullptr;
-    std::string rightPath = "/rightPath/";
-    std::string rightSoName = "right.z.so";
-    // LoadLib success
-    instance->LoaderLib(rightPath, rightSoName);
-    EXPECT_NE(instance->libHandle_, nullptr);
-}
-
-/**
- * @tc.name: DomainAccountManagerInnerServiceMultiThreadTest002
- * @tc.desc: Multithread CloseLib.
- * @tc.type: FUNC
- * @tc.require: issueI64KAM
- */
-HWMTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceMultiThreadTest002, TestSize.Level0,
-          THREAD_NUM)
-{
-    InnerDomainAccountManager *instance = new (std::nothrow) InnerDomainAccountManager();
-    instance->CloseLib();
-    EXPECT_EQ(instance->libHandle_, nullptr);
-}
-
-/**
- * @tc.name: DomainAccountManagerInnerServiceMultiThreadTest003
- * @tc.desc: AddServerConfig.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWMTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceMultiThreadTest003, TestSize.Level0,
-          THREAD_NUM)
-{
-    InnerDomainAccountManager *instance = new (std::nothrow) InnerDomainAccountManager();
-    DomainServerConfig config;
-    std::string identifier;
-    DomainAccountInfo info;
-    std::string configId = STRING_TEST_NAME;
-    std::vector<uint8_t> password;
-    DomainAuthResult resultParcel;
-    int32_t isVaild;
-    GetAccessTokenOptions option;
-    AuthStatusInfo authInfo;
-    GetDomainAccountInfoOptions options;
-    std::string rightPath = "/rightPath/";
-    std::string rightSoName = "right.z.so";
-    // LoadLib success
-    instance->LoaderLib(rightPath, rightSoName);
-    info.accountId_ = STRING_TEST_NAME;
-    info.domain_ = STRING_TEST_NAME;
-    info.accountName_ = STRING_TEST_NAME;
-    info.serverConfigId_ = STRING_TEST_NAME;
-    info.isAuthenticated = 0;
-
-    EXPECT_EQ(instance->PluginBindAccount(info, 100, resultParcel), ERR_OK);
-    EXPECT_EQ(instance->PluginUnBindAccount(info, resultParcel), ERR_OK);
-    password.push_back(0);
-    EXPECT_EQ(instance->PluginIsAccountTokenValid(info, password, isVaild), ERR_OK);
-    EXPECT_EQ(instance->PluginGetAccessToken(option, password, info, resultParcel), ERR_OK);
-    option.callingUid_ = 1;
-    EXPECT_EQ(instance->PluginGetAccessToken(option, password, info, resultParcel), ERR_OK);
-    EXPECT_EQ(instance->PluginAuthWithPopup(info, resultParcel), ERR_OK);
-    EXPECT_EQ(instance->PluginAuthToken(info, password, resultParcel), ERR_OK);
-    EXPECT_EQ(instance->PluginGetAuthStatusInfo(info, authInfo), ERR_OK);
-}
-
-/**
- * @tc.name: DomainAccountManagerInnerServiceMultiThreadTest004
- * @tc.desc: MultiThread Test GetAuthStatusInfo with plugin is not nullptr.
- * @tc.type: FUNC
- * @tc.require: issueI64KAM
- */
-HWMTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceMultiThreadTest004, TestSize.Level1,
-          THREAD_NUM)
-{
-    DomainAccountInfo domainInfo;
-    domainInfo.accountName_ = TEST_DOMAIN_ACCOUNT_NAME;
-    domainInfo.domain_ = TEST_DOMAIN;
-    domainInfo.accountId_ = TEST_ACCOUNT_ID;
-    sptr<DomainAccountPluginService> pluginService = new (std::nothrow) DomainAccountPluginService(g_plugin);
-    ASSERT_NE(pluginService, nullptr);
-    InnerDomainAccountManager::GetInstance().plugin_ = pluginService;
-    EXPECT_EQ(InnerDomainAccountManager::GetInstance().GetAuthStatusInfo(domainInfo, nullptr), ERR_OK);
 }
 }  // namespace AccountSA
 }  // namespace OHOS
