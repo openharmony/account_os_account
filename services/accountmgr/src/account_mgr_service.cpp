@@ -297,9 +297,6 @@ void AccountMgrService::OnAddSystemAbility(int32_t systemAbilityId, const std::s
             isDefaultOsAccountActivated_ = true;
         }
     }
-    if (isBmsReady_ && isAmsReady_) {
-        IInnerOsAccountManager::GetInstance().CleanGarbageOsAccounts();
-    }
 }
 
 bool AccountMgrService::Init()

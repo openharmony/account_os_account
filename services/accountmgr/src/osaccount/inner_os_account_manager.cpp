@@ -1697,6 +1697,11 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
         subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::UNLOCKED);
     }
 
+    auto task = [] { IInnerOsAccountManager::GetInstance().CleanGarbageOsAccounts(); };
+    std::thread cleanThread(task);
+    pthread_setname_np(cleanThread.native_handle(), "CleanGarbageOsAccounts");
+    cleanThread.detach();
+
     if (oldIdExist && (oldId != localId)) {
         errCode = UpdateAccountToBackground(oldId);
         if (errCode != ERR_OK) {
@@ -1837,6 +1842,12 @@ ErrCode IInnerOsAccountManager::SetOsAccountIsVerified(const int id, const bool 
             OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED, Constants::OPERATION_UNLOCK);
         subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::UNLOCKED);
     }
+
+    auto task = [] { IInnerOsAccountManager::GetInstance().CleanGarbageOsAccounts(); };
+    std::thread cleanThread(task);
+    pthread_setname_np(cleanThread.native_handle(), "CleanGarbageOsAccounts");
+    cleanThread.detach();
+
     return ERR_OK;
 }
 
