@@ -122,7 +122,6 @@
         "OHOS::AccountSA::GetValidAccountID(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, int&)";
         "OHOS::AccountSA::IAccountContext::instance_";
         "OHOS::AccountSA::AccountMgrService::GetCallingUserID()";
-        "OHOS::AccountSA::AccountHelperData::GetBundleNameTrustList()";
         *OHOS::AccountSA::CommitCredUpdateCallback::CommitCredUpdateCallback*;
         "OHOS::AccountSA::IInnerOsAccountManager::CheckAndAddLocalIdOperating(int)";
         "OHOS::AccountSA::IInnerOsAccountManager::UpdateAccountStatusForDomain(int, OHOS::AccountSA::DomainAccountStatus)";
