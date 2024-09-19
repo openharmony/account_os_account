@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -42,14 +42,14 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-constexpr char THREAD_AUTH[] = "auth";
-constexpr char THREAD_INNER_AUTH[] = "innerAuth";
-constexpr char THREAD_HAS_ACCOUNT[] = "hasAccount";
-constexpr char THREAD_GET_ACCOUNT[] = "getAccount";
-constexpr char THREAD_BIND_ACCOUNT[] = "bindAccount";
-constexpr char THREAD_UNBIND_ACCOUNT[] = "unbindAccount";
-constexpr char THREAD_GET_ACCESS_TOKEN[] = "getAccessToken";
-constexpr char THREAD_IS_ACCOUNT_VALID[] = "isAccountTokenValid";
+const char THREAD_AUTH[] = "auth";
+const char THREAD_INNER_AUTH[] = "innerAuth";
+const char THREAD_HAS_ACCOUNT[] = "hasAccount";
+const char THREAD_GET_ACCOUNT[] = "getAccount";
+const char THREAD_BIND_ACCOUNT[] = "bindAccount";
+const char THREAD_UNBIND_ACCOUNT[] = "unbindAccount";
+const char THREAD_GET_ACCESS_TOKEN[] = "getAccessToken";
+const char THREAD_IS_ACCOUNT_VALID[] = "isAccountTokenValid";
 constexpr int32_t INVALID_USERID = -1;
 constexpr int32_t SELF_UID = 3058;
 #ifdef _ARM64_
@@ -248,6 +248,10 @@ std::string GetMethodNameByEnum(PluginMethodEnum methondEnum)
 
 void InnerDomainAccountManager::LoaderLib(const std::string &path, const std::string &libName)
 {
+    if (IsPluginAvailable()) {
+        ACCOUNT_LOGE("LibHandle_ is not nullptr.");
+        return;
+    }
     std::lock_guard<std::mutex> lock(libMutex_);
     std::string soPath = path + libName;
     libHandle_ = dlopen(soPath.c_str(), RTLD_LAZY);
@@ -260,7 +264,7 @@ void InnerDomainAccountManager::LoaderLib(const std::string &path, const std::st
         if (methodName.empty()) {
             ACCOUNT_LOGE("Call check methodName emtpty");
             libHandle_ = nullptr;
-            methodMap_.clear();
+            methodMap.clear();
             return;
         }
         dlerror();
@@ -269,10 +273,10 @@ void InnerDomainAccountManager::LoaderLib(const std::string &path, const std::st
         if (dlsym_error != nullptr) {
             ACCOUNT_LOGE("Call check method=%{public}s error=%{public}s", methodName.c_str(), dlsym_error);
             libHandle_ = nullptr;
-            methodMap_.clear();
+            methodMap.clear();
             return;
         }
-        methodMap_.emplace(static_cast<PluginMethodEnum>(i), func);
+        methodMap.emplace(static_cast<PluginMethodEnum>(i), func);
     }
 }
 
@@ -499,11 +503,11 @@ static void SetPluginGetDomainAccessTokenOptions(const GetAccessTokenOptions &op
     pluginOptions.callerUid = option.callingUid_;
 }
 
-ErrCode InnerDomainAccountManager::AddServerConfig(
-    const std::string &paremters, DomainServerConfig &config) __attribute__((no_sanitize("cfi")))
+ErrCode InnerDomainAccountManager::AddServerConfig(const std::string &paremters, DomainServerConfig &config)
 {
-    auto iter = methodMap_.find(PluginMethodEnum::ADD_SERVER_CONFIG);
-    if (iter == methodMap_.end() || iter->second == nullptr) {
+    std::lock_guard<std::mutex> lock(libMutex_);
+    auto iter = methodMap.find(PluginMethodEnum::ADD_SERVER_CONFIG);
+    if (iter == methodMap.end() || iter->second == nullptr) {
         ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::ADD_SERVER_CONFIG);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
@@ -520,10 +524,11 @@ ErrCode InnerDomainAccountManager::AddServerConfig(
     return GetAndCleanPluginBussnessError(&error, iter->first);
 }
 
-ErrCode InnerDomainAccountManager::RemoveServerConfig(const std::string &configId) __attribute__((no_sanitize("cfi")))
+ErrCode InnerDomainAccountManager::RemoveServerConfig(const std::string &configId)
 {
-    auto iter = methodMap_.find(PluginMethodEnum::REMOVE_SERVER_CONFIG);
-    if (iter == methodMap_.end() || iter->second == nullptr) {
+    std::lock_guard<std::mutex> lock(libMutex_);
+    auto iter = methodMap.find(PluginMethodEnum::REMOVE_SERVER_CONFIG);
+    if (iter == methodMap.end() || iter->second == nullptr) {
         ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::REMOVE_SERVER_CONFIG);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
@@ -542,11 +547,11 @@ ErrCode InnerDomainAccountManager::RemoveServerConfig(const std::string &configI
     return errCode;
 }
 
-ErrCode InnerDomainAccountManager::GetAccountServerConfig(
-    const DomainAccountInfo &info, DomainServerConfig &config) __attribute__((no_sanitize("cfi")))
+ErrCode InnerDomainAccountManager::GetAccountServerConfig(const DomainAccountInfo &info, DomainServerConfig &config)
 {
-    auto iter = methodMap_.find(PluginMethodEnum::GET_ACCOUNT_SERVER_CONFIG);
-    if (iter == methodMap_.end() || iter->second == nullptr) {
+    std::lock_guard<std::mutex> lock(libMutex_);
+    auto iter = methodMap.find(PluginMethodEnum::GET_ACCOUNT_SERVER_CONFIG);
+    if (iter == methodMap.end() || iter->second == nullptr) {
         ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::GET_ACCOUNT_SERVER_CONFIG);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
@@ -569,11 +574,12 @@ ErrCode InnerDomainAccountManager::GetAccountServerConfig(
     return GetAndCleanPluginBussnessError(&error, iter->first);
 }
 
-ErrCode InnerDomainAccountManager::PluginAuth(const DomainAccountInfo &info,
-    const std::vector<uint8_t> &password, DomainAuthResult &resultParcel) __attribute__((no_sanitize("cfi")))
+ErrCode InnerDomainAccountManager::PluginAuth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
+    DomainAuthResult &resultParcel)
 {
-    auto iter = methodMap_.find(PluginMethodEnum::AUTH);
-    if (iter == methodMap_.end() || iter->second == nullptr) {
+    std::lock_guard<std::mutex> lock(libMutex_);
+    auto iter = methodMap.find(PluginMethodEnum::AUTH);
+    if (iter == methodMap.end() || iter->second == nullptr) {
         ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::AUTH);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
@@ -635,10 +641,11 @@ ErrCode InnerDomainAccountManager::Auth(const DomainAccountInfo &info, const std
 }
 
 ErrCode InnerDomainAccountManager::PluginBindAccount(const DomainAccountInfo &info, const int32_t localId,
-    DomainAuthResult &resultParcel) __attribute__((no_sanitize("cfi")))
+    DomainAuthResult &resultParcel)
 {
-    auto iter = methodMap_.find(PluginMethodEnum::BIND_ACCOUNT);
-    if (iter == methodMap_.end() || iter->second == nullptr) {
+    std::lock_guard<std::mutex> lock(libMutex_);
+    auto iter = methodMap.find(PluginMethodEnum::BIND_ACCOUNT);
+    if (iter == methodMap.end() || iter->second == nullptr) {
         ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::BIND_ACCOUNT);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
@@ -659,11 +666,11 @@ ErrCode InnerDomainAccountManager::PluginBindAccount(const DomainAccountInfo &in
     return GetAndCleanPluginBussnessError(&error, iter->first);
 }
 
-ErrCode InnerDomainAccountManager::PluginUnBindAccount(
-    const DomainAccountInfo &info, DomainAuthResult &resultParcel) __attribute__((no_sanitize("cfi")))
+ErrCode InnerDomainAccountManager::PluginUnBindAccount(const DomainAccountInfo &info, DomainAuthResult &resultParcel)
 {
-    auto iter = methodMap_.find(PluginMethodEnum::UNBIND_ACCOUNT);
-    if (iter == methodMap_.end() || iter->second == nullptr) {
+    std::lock_guard<std::mutex> lock(libMutex_);
+    auto iter = methodMap.find(PluginMethodEnum::UNBIND_ACCOUNT);
+    if (iter == methodMap.end() || iter->second == nullptr) {
         ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::UNBIND_ACCOUNT);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
@@ -678,10 +685,11 @@ ErrCode InnerDomainAccountManager::PluginUnBindAccount(
 }
 
 ErrCode InnerDomainAccountManager::PluginIsAccountTokenValid(const DomainAccountInfo &info,
-    const std::vector<uint8_t> &token, int32_t &isValid) __attribute__((no_sanitize("cfi")))
+    const std::vector<uint8_t> &token, int32_t &isValid)
 {
-    auto iter = methodMap_.find(PluginMethodEnum::IS_ACCOUNT_TOKEN_VALID);
-    if (iter == methodMap_.end() || iter->second == nullptr) {
+    std::lock_guard<std::mutex> lock(libMutex_);
+    auto iter = methodMap.find(PluginMethodEnum::IS_ACCOUNT_TOKEN_VALID);
+    if (iter == methodMap.end() || iter->second == nullptr) {
         ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::IS_ACCOUNT_TOKEN_VALID);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
@@ -700,11 +708,11 @@ ErrCode InnerDomainAccountManager::PluginIsAccountTokenValid(const DomainAccount
 }
 
 ErrCode InnerDomainAccountManager::PluginGetAccessToken(const GetAccessTokenOptions &option,
-    const std::vector<uint8_t> &token, const DomainAccountInfo &info,
-    DomainAuthResult &resultParcel) __attribute__((no_sanitize("cfi")))
+    const std::vector<uint8_t> &token, const DomainAccountInfo &info, DomainAuthResult &resultParcel)
 {
-    auto iter = methodMap_.find(PluginMethodEnum::GET_ACCESS_TOKEN);
-    if (iter == methodMap_.end() || iter->second == nullptr) {
+    std::lock_guard<std::mutex> lock(libMutex_);
+    auto iter = methodMap.find(PluginMethodEnum::GET_ACCESS_TOKEN);
+    if (iter == methodMap.end() || iter->second == nullptr) {
         ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::GET_ACCESS_TOKEN);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
@@ -729,11 +737,11 @@ ErrCode InnerDomainAccountManager::PluginGetAccessToken(const GetAccessTokenOpti
     return GetAndCleanPluginBussnessError(&error, iter->first);
 }
 
-ErrCode InnerDomainAccountManager::PluginAuthWithPopup(
-    const DomainAccountInfo &info, DomainAuthResult &resultParcel) __attribute__((no_sanitize("cfi")))
+ErrCode InnerDomainAccountManager::PluginAuthWithPopup(const DomainAccountInfo &info, DomainAuthResult &resultParcel)
 {
-    auto iter = methodMap_.find(PluginMethodEnum::AUTH_WITH_POPUP);
-    if (iter == methodMap_.end() || iter->second == nullptr) {
+    std::lock_guard<std::mutex> lock(libMutex_);
+    auto iter = methodMap.find(PluginMethodEnum::AUTH_WITH_POPUP);
+    if (iter == methodMap.end() || iter->second == nullptr) {
         ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::AUTH_WITH_POPUP);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
@@ -751,11 +759,12 @@ ErrCode InnerDomainAccountManager::PluginAuthWithPopup(
     return GetAndCleanPluginBussnessError(&error, iter->first);
 }
 
-ErrCode InnerDomainAccountManager::PluginAuthToken(const DomainAccountInfo &info,
-    const std::vector<uint8_t> &authData, DomainAuthResult &resultParcel) __attribute__((no_sanitize("cfi")))
+ErrCode InnerDomainAccountManager::PluginAuthToken(const DomainAccountInfo &info, const std::vector<uint8_t> &authData,
+    DomainAuthResult &resultParcel)
 {
-    auto iter = methodMap_.find(PluginMethodEnum::AUTH_WITH_TOKEN);
-    if (iter == methodMap_.end() || iter->second == nullptr) {
+    std::lock_guard<std::mutex> lock(libMutex_);
+    auto iter = methodMap.find(PluginMethodEnum::AUTH_WITH_TOKEN);
+    if (iter == methodMap.end() || iter->second == nullptr) {
         ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::AUTH_WITH_TOKEN);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
@@ -776,10 +785,11 @@ ErrCode InnerDomainAccountManager::PluginAuthToken(const DomainAccountInfo &info
 }
 
 ErrCode InnerDomainAccountManager::PluginGetAuthStatusInfo(const DomainAccountInfo &info,
-    AuthStatusInfo &authInfo) __attribute__((no_sanitize("cfi")))
+    AuthStatusInfo &authInfo)
 {
-    auto iter = methodMap_.find(PluginMethodEnum::GET_AUTH_STATUS_INFO);
-    if (iter == methodMap_.end() || iter->second == nullptr) {
+    std::lock_guard<std::mutex> lock(libMutex_);
+    auto iter = methodMap.find(PluginMethodEnum::GET_AUTH_STATUS_INFO);
+    if (iter == methodMap.end() || iter->second == nullptr) {
         ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::GET_AUTH_STATUS_INFO);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
@@ -797,10 +807,11 @@ ErrCode InnerDomainAccountManager::PluginGetAuthStatusInfo(const DomainAccountIn
 }
 
 ErrCode InnerDomainAccountManager::PluginUpdateAccountInfo(const DomainAccountInfo &oldAccountInfo,
-    const DomainAccountInfo &newAccountInfo) __attribute__((no_sanitize("cfi")))
+    const DomainAccountInfo &newAccountInfo)
 {
-    auto iter = methodMap_.find(PluginMethodEnum::UPDATE_ACCOUNT_INFO);
-    if (iter == methodMap_.end() || iter->second == nullptr) {
+    std::lock_guard<std::mutex> lock(libMutex_);
+    auto iter = methodMap.find(PluginMethodEnum::UPDATE_ACCOUNT_INFO);
+    if (iter == methodMap.end() || iter->second == nullptr) {
         ACCOUNT_LOGE("Caller method = %{public}d not exsit.", PluginMethodEnum::UPDATE_ACCOUNT_INFO);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
@@ -1077,11 +1088,11 @@ ErrCode InnerDomainAccountManager::GetAccessToken(
     return ERR_OK;
 }
 
-ErrCode InnerDomainAccountManager::IsAuthenticationExpired(
-    const DomainAccountInfo &info, bool &isExpired) __attribute__((no_sanitize("cfi")))
+ErrCode InnerDomainAccountManager::IsAuthenticationExpired(const DomainAccountInfo &info, bool &isExpired)
 {
-    auto iter = methodMap_.find(PluginMethodEnum::IS_AUTHENTICATION_EXPIRED);
-    if (iter == methodMap_.end() || iter->second == nullptr) {
+    std::lock_guard<std::mutex> lock(libMutex_);
+    auto iter = methodMap.find(PluginMethodEnum::IS_AUTHENTICATION_EXPIRED);
+    if (iter == methodMap.end() || iter->second == nullptr) {
         ACCOUNT_LOGE("Caller method=%{public}d not exsit.", iter->first);
         return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
     }
@@ -1115,11 +1126,11 @@ ErrCode InnerDomainAccountManager::IsAuthenticationExpired(
     return GetAndCleanPluginBussnessError(&error, iter->first);
 }
 
-ErrCode InnerDomainAccountManager::SetAccountPolicy(
-    const DomainAccountPolicy &policy) __attribute__((no_sanitize("cfi")))
+ErrCode InnerDomainAccountManager::SetAccountPolicy(const DomainAccountPolicy &policy)
 {
-    auto iter = methodMap_.find(PluginMethodEnum::SET_ACCOUNT_POLICY);
-    if (iter == methodMap_.end() || iter->second == nullptr) {
+    std::lock_guard<std::mutex> lock(libMutex_);
+    auto iter = methodMap.find(PluginMethodEnum::SET_ACCOUNT_POLICY);
+    if (iter == methodMap.end() || iter->second == nullptr) {
         ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::SET_ACCOUNT_POLICY);
         return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
     }
@@ -1429,10 +1440,11 @@ void InnerDomainAccountManager::StartGetDomainAccountInfo(const sptr<IDomainAcco
 }
 
 ErrCode InnerDomainAccountManager::PluginGetDomainAccountInfo(const GetDomainAccountInfoOptions &options,
-    DomainAccountInfo &info) __attribute__((no_sanitize("cfi")))
+    DomainAccountInfo &info)
 {
-    auto iter = methodMap_.find(PluginMethodEnum::GET_ACCOUNT_INFO);
-    if (iter == methodMap_.end() || iter->second == nullptr) {
+    std::lock_guard<std::mutex> lock(libMutex_);
+    auto iter = methodMap.find(PluginMethodEnum::GET_ACCOUNT_INFO);
+    if (iter == methodMap.end() || iter->second == nullptr) {
         ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::GET_ACCOUNT_INFO);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
