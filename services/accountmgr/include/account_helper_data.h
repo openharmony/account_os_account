@@ -24,7 +24,6 @@ namespace OHOS {
 namespace AccountSA {
 class AccountHelperData {
 public:
-    static std::vector<std::string> GetBundleNameTrustList();
     static std::map<std::string, std::string> GetAccountEventMap();
 };
 }  // namespace AccountSA

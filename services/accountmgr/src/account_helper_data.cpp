@@ -57,21 +57,6 @@ static bool ParseJsonData(nlohmann::json &jsonData)
 }
 }
 
-std::vector<std::string> AccountHelperData::GetBundleNameTrustList()
-{
-    std::vector<std::string> result = {""};
-    nlohmann::json jsonData;
-    if (!ParseJsonData(jsonData)) {
-        return result;
-    }
-
-    if (jsonData.find(KEY_BUNDLE_NAME_LIST) != jsonData.end() && jsonData.at(KEY_BUNDLE_NAME_LIST).is_array()) {
-        result = jsonData.at(KEY_BUNDLE_NAME_LIST).get<std::vector<std::string>>();
-    }
-
-    return result;
-}
-
 std::map<std::string, std::string> AccountHelperData::GetAccountEventMap()
 {
     std::map<std::string, std::string> result = {};
