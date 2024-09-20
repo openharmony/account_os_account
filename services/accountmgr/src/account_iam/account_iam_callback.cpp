@@ -413,6 +413,7 @@ void DelUserCallback::OnResult(int32_t result, const Attributes &extraInfo)
         ACCOUNT_LOGE("Fail to erase user, userId=%{public}d, errcode=%{public}d", userId_, errCode);
         return innerCallback_->OnResult(errCode, extraInfo);
     }
+    (void)IInnerOsAccountManager::GetInstance().SetOsAccountCredentialId(userId_, 0);
     errCode = innerIamMgr_.UpdateStorageKeyContext(userId_);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Fail to update key context, userId=%{public}d, errcode=%{public}d", userId_, errCode);
