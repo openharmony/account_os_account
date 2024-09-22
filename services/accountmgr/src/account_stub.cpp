@@ -543,21 +543,5 @@ bool AccountStub::HasAccountRequestPermission(const std::string &permissionName)
     ACCOUNT_LOGE("permission %{public}s denied!", permissionName.c_str());
     return false;
 }
-
-bool AccountStub::CheckCallerForTrustList()
-{
-    std::string bundleName;
-    std::int32_t uid = IPCSkeleton::GetCallingUid();
-    if (BundleManagerAdapter::GetInstance()->GetNameForUid(uid, bundleName) != ERR_OK) {
-        return false;
-    }
-
-    std::vector<std::string> trustList = AccountHelperData::GetBundleNameTrustList();
-    if (std::find(trustList.begin(), trustList.end(), bundleName) == trustList.end()) {
-        return false;
-    }
-
-    return true;
-}
 }  // namespace AccountSA
 }  // namespace OHOS

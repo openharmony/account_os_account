@@ -57,7 +57,6 @@ public:
     std::int32_t CmdGetAccountIAMService(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdGetDomainAccountService(MessageParcel &data, MessageParcel &reply);
     bool HasAccountRequestPermission(const std::string &permissionName);
-    bool CheckCallerForTrustList();
 
 private:
     std::map<AccountMgrInterfaceCode, AccountStubFunc> stubFuncMap_;
