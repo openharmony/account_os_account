@@ -360,6 +360,24 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfoWithFullInfo(OsAccountInfo &
     return ERR_OK;
 }
 
+bool IInnerOsAccountManager::CheckAndCleanOsAccounts()
+{
+    unsigned int osAccountNum = 0;
+    GetCreatedOsAccountsCount(osAccountNum);
+
+    if (osAccountNum < config_.maxOsAccountNum) {
+        return true;
+    }
+
+    ACCOUNT_LOGI("The number of OS accounts has oversize, attempting to clean garbage accounts.");
+    if (CleanGarbageOsAccounts() <= 0) {
+        ACCOUNT_LOGE("The number of OS accounts still oversize after cleaning, max num: %{public}d",
+            config_.maxOsAccountNum);
+        return false;
+    }
+    return true;
+}
+
 ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
     OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options)
 {
@@ -423,10 +441,7 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(
 #ifdef HICOLLIE_ENABLE
     AccountTimer timer;
 #endif // HICOLLIE_ENABLE
-    unsigned int osAccountNum = 0;
-    GetCreatedOsAccountsCount(osAccountNum);
-    if (!AccountPermissionManager::CheckSaCall() && osAccountNum >= config_.maxOsAccountNum) {
-        ACCOUNT_LOGE("The number of OS accounts has oversize, max num: %{public}d", config_.maxOsAccountNum);
+    if (!AccountPermissionManager::CheckSaCall() && !CheckAndCleanOsAccounts()) {
         return ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR;
     }
     DomainAccountInfo domainInfo;  // default empty domain info
@@ -471,10 +486,7 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, co
         return code;
     }
 #endif // ENABLE_ACCOUNT_SHORT_NAME
-    unsigned int osAccountNum = 0;
-    GetCreatedOsAccountsCount(osAccountNum);
-    if (!AccountPermissionManager::CheckSaCall() && osAccountNum >= config_.maxOsAccountNum) {
-        ACCOUNT_LOGE("The number of OS accounts has oversize, max num: %{public}d", config_.maxOsAccountNum);
+    if (!AccountPermissionManager::CheckSaCall() && !CheckAndCleanOsAccounts()) {
         return ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR;
     }
     DomainAccountInfo domainInfo;  // default empty domain info
@@ -864,6 +876,16 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountDeactivate(OsAccountInfo &osAcc
     return DeactivateOsAccountByInfo(osAccountInfo);
 }
 
+bool IInnerOsAccountManager::IsToBeRemoved(int32_t localId)
+{
+    OsAccountInfo osAccountInfo;
+    ErrCode ret = QueryOsAccountById(localId, osAccountInfo);
+    if (ret == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR) {
+        return true;
+    }
+    return osAccountInfo.GetToBeRemoved();
+}
+
 ErrCode IInnerOsAccountManager::ValidateOsAccount(const OsAccountInfo &osAccountInfo)
 {
     if (osAccountInfo.GetType() == OsAccountType::PRIVATE) {
@@ -879,12 +901,14 @@ ErrCode IInnerOsAccountManager::ValidateOsAccount(const OsAccountInfo &osAccount
         std::string localIdKey = element.key();
         auto value = element.value();
         std::string localName = value[Constants::LOCAL_NAME].get<std::string>();
-        if ((osAccountInfo.GetLocalName() == localName) && (localIdKey != localIdStr)) {
+        if ((osAccountInfo.GetLocalName() == localName) && (localIdKey != localIdStr)
+            && !IsToBeRemoved(std::stoi(localIdKey))) {
             return ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED;
         }
         if (!osAccountInfo.GetShortName().empty() && value.contains(Constants::SHORT_NAME)) {
             std::string shortName = value[Constants::SHORT_NAME].get<std::string>();
-            if ((osAccountInfo.GetShortName() == shortName) && (localIdKey != localIdStr)) {
+            if ((osAccountInfo.GetShortName() == shortName) && (localIdKey != localIdStr)
+                && !IsToBeRemoved(std::stoi(localIdKey))) {
                 return ERR_ACCOUNT_COMMON_SHORT_NAME_HAD_EXISTED;
             }
         }
@@ -1258,16 +1282,19 @@ ErrCode IInnerOsAccountManager::DealWithDeviceOwnerId(const bool isDeviceOwner, 
     return ERR_OK;
 }
 
-void IInnerOsAccountManager::CleanGarbageOsAccounts()
+int32_t IInnerOsAccountManager::CleanGarbageOsAccounts(int32_t excludeId)
 {
     ACCOUNT_LOGI("enter");
     std::vector<int32_t> idList;
     if (osAccountControl_->GetOsAccountIdList(idList) != ERR_OK) {
         ACCOUNT_LOGI("GetOsAccountIdList failed.");
-        return;
+        return 0;
     }
+
+    int32_t removeNum = 0;
+
     for (auto id : idList) {
-        if (id == Constants::START_USER_ID || id == Constants::ADMIN_LOCAL_ID) {
+        if (id == Constants::START_USER_ID || id == Constants::ADMIN_LOCAL_ID || id == excludeId) {
             continue;
         }
         if (!CheckAndAddLocalIdOperating(id)) {
@@ -1275,7 +1302,12 @@ void IInnerOsAccountManager::CleanGarbageOsAccounts()
             continue;
         }
         OsAccountInfo osAccountInfo;
-        osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
+        ErrCode ret = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
+        if (ret != ERR_OK && ret != ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR) {
+            continue;
+        }
+        osAccountInfo.SetLocalId(id);
+
         if (!osAccountInfo.GetToBeRemoved() && osAccountInfo.GetIsCreateCompleted()) {
             RemoveLocalIdToOperating(id);
             continue;
@@ -1286,9 +1318,11 @@ void IInnerOsAccountManager::CleanGarbageOsAccounts()
             ACCOUNT_LOGE("remove account %{public}d failed! errCode %{public}d.", id, errCode);
         } else {
             ACCOUNT_LOGI("remove account %{public}d succeed!", id);
+            removeNum++;
         }
     }
     ACCOUNT_LOGI("finished.");
+    return removeNum;
 }
 
 bool IInnerOsAccountManager::IsSameAccount(
@@ -1695,12 +1729,12 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
         OsAccountInterface::PublishCommonEvent(osAccountInfo,
             OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED, Constants::OPERATION_UNLOCK);
         subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::UNLOCKED);
-    }
 
-    auto task = [] { IInnerOsAccountManager::GetInstance().CleanGarbageOsAccounts(); };
-    std::thread cleanThread(task);
-    pthread_setname_np(cleanThread.native_handle(), "CleanGarbageOsAccounts");
-    cleanThread.detach();
+        auto task = [] { IInnerOsAccountManager::GetInstance().CleanGarbageOsAccounts(); };
+        std::thread cleanThread(task);
+        pthread_setname_np(cleanThread.native_handle(), "CleanGarbageOsAccounts");
+        cleanThread.detach();
+    }
 
     if (oldIdExist && (oldId != localId)) {
         errCode = UpdateAccountToBackground(oldId);
@@ -1841,12 +1875,12 @@ ErrCode IInnerOsAccountManager::SetOsAccountIsVerified(const int id, const bool 
         OsAccountInterface::PublishCommonEvent(osAccountInfo,
             OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED, Constants::OPERATION_UNLOCK);
         subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::UNLOCKED);
-    }
 
-    auto task = [] { IInnerOsAccountManager::GetInstance().CleanGarbageOsAccounts(); };
-    std::thread cleanThread(task);
-    pthread_setname_np(cleanThread.native_handle(), "CleanGarbageOsAccounts");
-    cleanThread.detach();
+        auto task = [] { IInnerOsAccountManager::GetInstance().CleanGarbageOsAccounts(); };
+        std::thread cleanThread(task);
+        pthread_setname_np(cleanThread.native_handle(), "CleanGarbageOsAccounts");
+        cleanThread.detach();
+    }
 
     return ERR_OK;
 }
