@@ -306,7 +306,12 @@ void OsAccountControlFileManager::FileInit()
 void OsAccountControlFileManager::InitFileWatcherInfo(std::vector<std::string> &accountIdList)
 {
     for (std::string i : accountIdList) {
-        accountFileWatcherMgr_.AddFileWatcher(stoi(i), eventCallbackFunc_);
+        int32_t id = 0;
+        if (!StrToInt(i, id)) {
+            ACCOUNT_LOGE("Convert localId failed");
+            continue;
+        }
+        accountFileWatcherMgr_.AddFileWatcher(id, eventCallbackFunc_);
     }
 }
 
@@ -1289,12 +1294,17 @@ ErrCode OsAccountControlFileManager::IsFromGlobalOAConstraintsList(const int32_t
             OHOS::AccountSA::JsonType::ARRAY);
         ConstraintSourceTypeInfo constraintSourceTypeInfo;
         for (auto it = globalOAConstraintsList.begin(); it != globalOAConstraintsList.end(); it++) {
-            if (stoi(*it) == deviceOwnerId) {
-                constraintSourceTypeInfo.localId = stoi(*it);
+            int32_t localId = 0;
+            if (!StrToInt(*it, localId)) {
+                ACCOUNT_LOGE("Convert localId failed");
+                continue;
+            }
+            if (localId == deviceOwnerId) {
+                constraintSourceTypeInfo.localId = localId;
                 constraintSourceTypeInfo.typeInfo = ConstraintSourceType::CONSTRAINT_TYPE_DEVICE_OWNER;
                 globalSourceList.push_back(constraintSourceTypeInfo);
             } else {
-                constraintSourceTypeInfo.localId = stoi(*it);
+                constraintSourceTypeInfo.localId = localId;
                 constraintSourceTypeInfo.typeInfo = ConstraintSourceType::CONSTRAINT_TYPE_PROFILE_OWNER;
                 globalSourceList.push_back(constraintSourceTypeInfo);
             }
@@ -1334,13 +1344,18 @@ ErrCode OsAccountControlFileManager::IsFromSpecificOAConstraintsList(const int32
             specificConstraintSource, OHOS::AccountSA::JsonType::ARRAY);
         ConstraintSourceTypeInfo constraintSourceTypeInfo;
         for (auto it = specificConstraintSource.begin(); it != specificConstraintSource.end(); it++) {
-            if (stoi(*it) == deviceOwnerId) {
-                constraintSourceTypeInfo.localId =stoi(*it);
-                constraintSourceTypeInfo.typeInfo =  ConstraintSourceType::CONSTRAINT_TYPE_DEVICE_OWNER;
+            int32_t localId = 0;
+            if (!StrToInt(*it, localId)) {
+                ACCOUNT_LOGE("Convert localId failed");
+                continue;
+            }
+            if (localId == deviceOwnerId) {
+                constraintSourceTypeInfo.localId = localId;
+                constraintSourceTypeInfo.typeInfo = ConstraintSourceType::CONSTRAINT_TYPE_DEVICE_OWNER;
                 specificSourceList.push_back(constraintSourceTypeInfo);
             } else {
-                constraintSourceTypeInfo.localId =stoi(*it);
-                constraintSourceTypeInfo.typeInfo =  ConstraintSourceType::CONSTRAINT_TYPE_PROFILE_OWNER;
+                constraintSourceTypeInfo.localId = localId;
+                constraintSourceTypeInfo.typeInfo = ConstraintSourceType::CONSTRAINT_TYPE_PROFILE_OWNER;
                 specificSourceList.push_back(constraintSourceTypeInfo);
             }
         }
