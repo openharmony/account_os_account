@@ -195,7 +195,10 @@ void AccountDumpHelper::SetLogLevel(const std::string& levelStr, std::string& re
         result.append("Invalid format of log level\n");
         return;
     }
-    auto level = std::stoi(levelStr);
+    int32_t level = 0;
+    if (!StrToInt(levelStr, level)) {
+        result.append("Invalid logLevel\n");
+    }
     if ((level < static_cast<std::int32_t>(AccountLogLevel::DEBUG)) ||
         (level > static_cast<std::int32_t>(AccountLogLevel::FATAL))) {
         result.append("Invalid logLevel\n");
