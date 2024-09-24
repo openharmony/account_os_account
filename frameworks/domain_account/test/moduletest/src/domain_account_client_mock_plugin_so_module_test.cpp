@@ -817,6 +817,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest,
     domainInfo.accountName_ = "testaccount";
     domainInfo.domain_ = "test.example.com";
     domainInfo.accountId_ = "testid";
+    domainInfo.serverConfigId_ = "100";
 
     LoadPluginMethods();
     auto callback = std::make_shared<MockPluginSoDomainCreateDomainAccountCallback>();
