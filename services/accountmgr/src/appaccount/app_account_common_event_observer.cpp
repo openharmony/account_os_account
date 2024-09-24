@@ -81,7 +81,6 @@ void AppAccountCommonEventObserver::OnReceiveEvent(const CommonEventData &data)
 {
     auto want = data.GetWant();
     std::string action = want.GetAction();
-    ACCOUNT_LOGI("Receive event: %{public}s", action.c_str());
     if (action == CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED ||
         action == CommonEventSupport::COMMON_EVENT_SANDBOX_PACKAGE_REMOVED) {
         DealWithRemoveEvent(want, action);

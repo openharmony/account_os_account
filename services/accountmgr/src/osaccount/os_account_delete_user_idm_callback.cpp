@@ -24,7 +24,7 @@ void OsAccountDeleteUserIdmCallback::OnResult(int32_t result, const UserIam::Use
 {
     std::unique_lock<std::mutex> lock(mutex_);
     ACCOUNT_LOGI("IAM OnResult callback! result %{public}d", result);
-    isIdmOnResultCallBack_ = true;
+    isCalled_ = true;
     resultCode_ = result;
     onResultCondition_.notify_one();
 }

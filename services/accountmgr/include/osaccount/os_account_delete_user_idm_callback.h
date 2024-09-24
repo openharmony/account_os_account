@@ -45,7 +45,7 @@ public:
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const UserIam::UserAuth::Attributes &extraInfo) override;
 
 public:
-    bool isIdmOnResultCallBack_ = false;
+    bool isCalled_ = false;
     int32_t resultCode_ = -1;
     std::mutex mutex_;
     std::condition_variable onResultCondition_;
