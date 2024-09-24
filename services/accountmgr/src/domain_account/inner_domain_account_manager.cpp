@@ -1051,7 +1051,7 @@ ErrCode InnerDomainAccountManager::StartGetAccessToken(const sptr<IDomainAccount
         OnResultForGetAccessToken(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, callback);
         return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
     }
-    DomainAccountCallbackFunc callbackFunc = [=](const int32_t errCode, Parcel &parcel) {
+    DomainAccountCallbackFunc callbackFunc = [callback](const int32_t errCode, Parcel &parcel) {
         if (callback != nullptr) {
             callback->OnResult(errCode, parcel);
         }
@@ -1564,7 +1564,7 @@ ErrCode InnerDomainAccountManager::GetDomainAccountInfo(
         ACCOUNT_LOGE("Not support background account request");
         return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
     }
-    DomainAccountCallbackFunc callbackFunc = [=](const int32_t errCode, Parcel &parcel) {
+    DomainAccountCallbackFunc callbackFunc = [callback](const int32_t errCode, Parcel &parcel) {
         if (callback != nullptr) {
             callback->OnResult(errCode, parcel);
         }
