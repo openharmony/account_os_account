@@ -604,14 +604,14 @@ ErrCode InnerAccountIAMManager::UpdateUserAuthWithRecoveryKey(const std::vector<
         ACCOUNT_LOGE("Call dlopen failed, error=%{public}s.", dlerror());
         return ERR_INVALID_VALUE;
     }
-    UpdateUserAuthWithRecoveryKeyFunc updateUserAuthWithRecoveryKey =
-        (UpdateUserAuthWithRecoveryKeyFunc)dlsym(handle, RECOVERY_METHOD_NAME.c_str());
+    void *updateUserAuthWithRecoveryKey = dlsym(handle, RECOVERY_METHOD_NAME.c_str());
     if (updateUserAuthWithRecoveryKey == nullptr) {
         ACCOUNT_LOGE("Call dlsym failed, method=%{public}s error=%{public}s.",
             RECOVERY_METHOD_NAME.c_str(), dlerror());
         return ERR_INVALID_VALUE;
     }
-    ErrCode res = updateUserAuthWithRecoveryKey(authToken, newSecret, secureUid, userId);
+    ErrCode res = (*reinterpret_cast<UpdateUserAuthWithRecoveryKeyFunc>(updateUserAuthWithRecoveryKey))(
+        authToken, newSecret, secureUid, userId);
     dlclose(handle);
     if (res != ERR_OK) {
         ACCOUNT_LOGE("Call updateUserAuthWithRecoveryKey failed, error=%{public}d.", res);

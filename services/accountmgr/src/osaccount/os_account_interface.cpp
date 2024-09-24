@@ -615,9 +615,8 @@ ErrCode OsAccountInterface::InnerSendToStorageAccountCreateComplete(int32_t loca
 ErrCode OsAccountInterface::CheckAllAppDied(int32_t accountId)
 {
     int32_t dealTimes = DEAL_TIMES;
-    bool isAllDied = false;
     while (dealTimes > 0) {
-        isAllDied = AbilityManagerAdapter::GetInstance()->IsAllAppDied(accountId);
+        bool isAllDied = AbilityManagerAdapter::GetInstance()->IsAllAppDied(accountId);
         if (isAllDied) {
             return ERR_OK;
         }
