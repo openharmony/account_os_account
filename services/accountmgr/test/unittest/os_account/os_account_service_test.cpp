@@ -72,7 +72,7 @@ HWTEST_F(OsAccountServiceTest, OnStopUserDone001, TestSize.Level1)
     ASSERT_NE(nullptr, osAccountStopUserCallback);
     int errCode = 0;
     osAccountStopUserCallback->OnStopUserDone(TEST_USER_ID, errCode);
-    EXPECT_TRUE(osAccountStopUserCallback->isReturnOk_);
+    EXPECT_EQ(osAccountStopUserCallback->resultCode_, ERR_OK);
 }
 
 /**
@@ -87,7 +87,7 @@ HWTEST_F(OsAccountServiceTest, OnStartUserDone001, TestSize.Level1)
     ASSERT_NE(nullptr, osAccountStartUserCallback);
     int errCode = 0;
     osAccountStartUserCallback->OnStartUserDone(TEST_USER_ID, errCode);
-    EXPECT_TRUE(osAccountStartUserCallback->isReturnOk_);
+    EXPECT_EQ(osAccountStartUserCallback->resultCode_, ERR_OK);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

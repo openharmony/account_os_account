@@ -80,7 +80,6 @@ ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo)
     }
     StartTraceAdapter("AbilityManagerAdapter StartUser");
 
-    std::unique_lock<std::mutex> lock(osAccountStartUserCallback->mutex_);
     ErrCode code = AbilityManagerAdapter::GetInstance()->StartUser(osAccountInfo.GetLocalId(),
         osAccountStartUserCallback);
     if (code != ERR_OK) {
@@ -90,9 +89,12 @@ ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo)
         FinishTraceAdapter();
         return code;
     }
-    osAccountStartUserCallback->onStartCondition_.wait(lock);
+    std::unique_lock<std::mutex> lock(osAccountStartUserCallback->mutex_);
+    osAccountStartUserCallback->onStartCondition_.wait(lock, [osAccountStartUserCallback] {
+        return osAccountStartUserCallback->isCalled_;
+    });
     FinishTraceAdapter();
-    if (!osAccountStartUserCallback->isReturnOk_) {
+    if (osAccountStartUserCallback->resultCode_ != ERR_OK) {
         ACCOUNT_LOGE("failed to AbilityManagerService in call back");
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_START, -1,
             "AbilityManagerService failed!");
@@ -114,7 +116,6 @@ ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
     }
     StartTraceAdapter("AbilityManagerAdapter StopUser");
 
-    std::unique_lock<std::mutex> lock(osAccountStopUserCallback->mutex_);
     ErrCode code = AbilityManagerAdapter::GetInstance()->StopUser(osAccountInfo.GetLocalId(),
         osAccountStopUserCallback);
     if (code != ERR_OK) {
@@ -124,9 +125,12 @@ ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
         FinishTraceAdapter();
         return code;
     }
-    osAccountStopUserCallback->onStopCondition_.wait(lock);
+    std::unique_lock<std::mutex> lock(osAccountStopUserCallback->mutex_);
+    osAccountStopUserCallback->onStopCondition_.wait(lock, [osAccountStopUserCallback] {
+        return osAccountStopUserCallback->isCalled_;
+    });
     FinishTraceAdapter();
-    if (!osAccountStopUserCallback->isReturnOk_) {
+    if (osAccountStopUserCallback->resultCode_ != ERR_OK) {
         ACCOUNT_LOGE("failed to AbilityManagerService in call back");
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_STOP, -1,
             "AbilityManagerService failed!");
@@ -214,11 +218,11 @@ ErrCode OsAccountInterface::SendToIDMAccountDelete(OsAccountInfo &osAccountInfo)
     OHOS::GetSystemCurrentTime(&startTime);
     OHOS::GetSystemCurrentTime(&nowTime);
     while (OHOS::GetSecondsBetween(startTime, nowTime) < Constants::TIME_WAIT_TIME_OUT &&
-        !callback->isIdmOnResultCallBack_) {
+        !callback->isCalled_) {
         std::this_thread::sleep_for(std::chrono::milliseconds(Constants::WAIT_ONE_TIME));
         OHOS::GetSystemCurrentTime(&nowTime);
     }
-    if (!callback->isIdmOnResultCallBack_) {
+    if (!callback->isCalled_) {
         ACCOUNT_LOGE("idm did not call back! timeout!");
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_DELETE, -1,
             "UserIDMClient EnforceDelUser timeout!");

@@ -68,7 +68,8 @@ void OsAccountUserCallback::OnStopUserDone(int userId, int errcode)
     std::unique_lock<std::mutex> lock(mutex_);
     ACCOUNT_LOGI("in call back account, OnStopUserDone id is %{public}d, errcode is %{public}d.",
         userId, errcode);
-    isReturnOk_ = (errcode == 0);
+    isCalled_ = true;
+    resultCode_ = errcode;
     onStopCondition_.notify_one();
 }
 
@@ -77,7 +78,8 @@ void OsAccountUserCallback::OnStartUserDone(int userId, int errcode)
     std::unique_lock<std::mutex> lock(mutex_);
     ACCOUNT_LOGI("in call back account, OnStartUserDone id is %{public}d, errcode is %{public}d.",
         userId, errcode);
-    isReturnOk_ = (errcode == 0);
+    isCalled_ = true;
+    resultCode_ = errcode;
     onStartCondition_.notify_one();
 }
 }  // namespace AccountSA
