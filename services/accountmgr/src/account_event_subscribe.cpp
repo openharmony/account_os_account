@@ -52,6 +52,11 @@ AccountEventSubscriber::AccountEventSubscriber(const AccountCommonEventCallback 
     subscriber_ = std::make_shared<AccountEventSubscriberCallback>(subscribeInfo, callback_);
 }
 
+AccountEventSubscriber::~AccountEventSubscriber()
+{
+    EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriber_);
+}
+
 bool AccountEventSubscriber::CreateEventSubscribe()
 {
     return EventFwk::CommonEventManager::SubscribeCommonEvent(subscriber_);
