@@ -328,12 +328,9 @@ bool AbilityManagerAdapter::IsAllAppDied(int32_t accountId)
     if (ret != 0) {
         return false;
     }
-    for (const auto &appData : appList) {
-        if (appData.uid / UID_TRANSFORM_DIVISION == accountId) {
-            return false;
-        }
-    }
-    return true;
+    return std::all_of(appList.begin(), appList.end(), [accountId] (const auto &appData) {
+        return (appData.uid / UID_TRANSFORM_DIVISION) != accountId;
+    });
 }
 }  // namespace AAFwk
 }  // namespace OHOS
