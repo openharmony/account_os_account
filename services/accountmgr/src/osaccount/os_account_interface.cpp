@@ -521,9 +521,11 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
     isUserUnlocked = true;
 #endif
     if (!osAccountInfo.GetIsVerified() && isUserUnlocked) {
+        ACCOUNT_LOGI("OS account:%{public}d is unlocked.", osAccountInfo.GetLocalId());
         osAccountInfo.SetIsVerified(true);
         bool hasCredential = osAccountInfo.GetCredentialId() > 0;
         if (!hasCredential) {
+            ACCOUNT_LOGI("OS account:%{public}d is loggen in.", osAccountInfo.GetLocalId());
             osAccountInfo.SetIsLoggedIn(true);
             osAccountInfo.SetLastLoginTime(std::chrono::duration_cast<std::chrono::seconds>(
                 std::chrono::system_clock::now().time_since_epoch()).count());
