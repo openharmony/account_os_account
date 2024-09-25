@@ -454,11 +454,11 @@ void CommitCredUpdateCallback::OnResult(int32_t result, const Attributes &extraI
         innerCallback_->OnResult(code, extraInfo);
         return;
     }
-    innerIamMgr_.UpdateStorageKeyContext(userId_);
-    innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
     Attributes extraInfoResult;
     extraInfoResult.SetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, extraUpdateInfo_.credentialId);
     innerCallback_->OnResult(result, extraInfoResult);
+    innerIamMgr_.UpdateStorageKeyContext(userId_);
+    innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
 }
 
 void CommitCredUpdateCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
