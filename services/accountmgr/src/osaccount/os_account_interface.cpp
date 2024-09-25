@@ -40,6 +40,7 @@
 #ifdef HAS_STORAGE_PART
 #include "storage_manager_proxy.h"
 #endif
+#include "iinner_os_account_manager.h"
 #include "system_ability_definition.h"
 #ifdef HAS_USER_IDM_PART
 #include "user_idm_client.h"
@@ -57,6 +58,9 @@ constexpr uint32_t CRYPTO_FLAG_EL1 = 1;
 constexpr uint32_t CRYPTO_FLAG_EL2 = 2;
 constexpr int32_t E_ACTIVE_EL2 = 32;
 #endif
+// an error code of ipc which means peer end is dead
+constexpr int32_t E_IPC_ERROR = 29189;
+constexpr int32_t E_IPC_SA_DIED = 32;
 constexpr int32_t DELAY_FOR_CREATE_EXCEPTION = 100;
 constexpr int32_t MAX_CREATE_RETRY_TIMES = 10;
 }
@@ -165,7 +169,7 @@ ErrCode OsAccountInterface::SendToBMSAccountCreate(
     int32_t retryTimes = 0;
     while (retryTimes < MAX_CREATE_RETRY_TIMES) {
         errCode = BundleManagerAdapter::GetInstance()->CreateNewUser(osAccountInfo.GetLocalId(), disallowedHapList);
-        if (errCode == ERR_OK) {
+        if (errCode != E_IPC_ERROR && errCode != E_IPC_SA_DIED) {
             break;
         }
         ACCOUNT_LOGE("Fail to SendToBMSAccountCreate, errCode %{public}d.", errCode);
@@ -330,13 +334,29 @@ ErrCode OsAccountInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountI
     return errCode;
 }
 
+#ifdef HAS_STORAGE_PART
+static ErrCode PrepareAddUser(sptr<StorageManager::IStorageManager> &proxy, int32_t userId)
+{
+    ErrCode err = proxy->PrepareAddUser(userId, CRYPTO_FLAG_EL1 | CRYPTO_FLAG_EL2);
+    if (err == 0) {
+        return ERR_OK;
+    }
+    ReportOsAccountOperationFail(userId, Constants::OPERATION_CREATE, err, "Storage PrepareAddUser failed!");
+    if (err == -EEXIST) {
+        return ERR_OK;
+    }
+    return err;
+}
+#endif
+
 ErrCode OsAccountInterface::InnerSendToStorageAccountCreate(OsAccountInfo &osAccountInfo)
 {
 #ifdef HAS_STORAGE_PART
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    int32_t localId = osAccountInfo.GetLocalId();
     if (!systemAbilityManager) {
         ACCOUNT_LOGE("failed to get system ability mgr.");
-        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE,
+        ReportOsAccountOperationFail(localId, Constants::OPERATION_CREATE,
             ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
             "GetSystemAbilityManager for storage failed!");
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
@@ -344,7 +364,7 @@ ErrCode OsAccountInterface::InnerSendToStorageAccountCreate(OsAccountInfo &osAcc
     auto remote = systemAbilityManager->CheckSystemAbility(STORAGE_MANAGER_MANAGER_ID);
     if (!remote) {
         ACCOUNT_LOGE("failed to get STORAGE_MANAGER_MANAGER_ID service.");
-        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE,
+        ReportOsAccountOperationFail(localId, Constants::OPERATION_CREATE,
             ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
             "CheckSystemAbility for storage failed!");
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
@@ -355,17 +375,24 @@ ErrCode OsAccountInterface::InnerSendToStorageAccountCreate(OsAccountInfo &osAcc
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
     StartTraceAdapter("StorageManager PrepareAddUser");
-    int err = proxy->PrepareAddUser(osAccountInfo.GetLocalId(),
-        CRYPTO_FLAG_EL1 | CRYPTO_FLAG_EL2);
-    if (err != 0) {
-        ReportOsAccountOperationFail(
-            osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE, err, "Storage PrepareAddUser failed!");
-        if (err != -EEXIST) {
-            FinishTraceAdapter();
-            return ERR_OSACCOUNT_SERVICE_STORAGE_PREPARE_ADD_USER_FAILED;
-        }
+    ErrCode err = PrepareAddUser(proxy, localId);
+    if (err == ERR_OK) {
+        FinishTraceAdapter();
+        return ERR_OK;
     }
-
+    ACCOUNT_LOGI("PrepareAddUser Failed, start check and clear accounts.");
+    auto &osAccountManager = IInnerOsAccountManager::GetInstance();
+    if (osAccountManager.CleanGarbageOsAccounts(localId) <= 0) {
+        FinishTraceAdapter();
+        return err;
+    }
+    ACCOUNT_LOGI("Clean garbage account data, Retry storage PrepareAddUser.");
+    err = PrepareAddUser(proxy, localId);
+    if (err != ERR_OK) {
+        ReportOsAccountOperationFail(localId,
+            Constants::OPERATION_CREATE, err, "Storage PrepareAddUser failed!");
+        return err;
+    }
     FinishTraceAdapter();
 #endif
     return ERR_OK;
@@ -403,6 +430,9 @@ ErrCode OsAccountInterface::SendToStorageAccountRemove(OsAccountInfo &osAccountI
     if (err != 0) {
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_DELETE,
             err, "Storage RemoveUser failed!");
+        ACCOUNT_LOGE("Storage RemoveUser failed, ret %{public}d", err);
+        FinishTraceAdapter();
+        return err;
     }
 
     ACCOUNT_LOGI("end, Storage RemoveUser ret %{public}d.", err);
