@@ -103,6 +103,7 @@ void AccountMgrInnerSdkFuncTest::SetUpTestCase(void)
     ASSERT_NE(osAccountService, nullptr);
     IInnerOsAccountManager::GetInstance().Init();
     IInnerOsAccountManager::GetInstance().ActivateDefaultOsAccount();
+    OhosAccountManager::GetInstance().OnInitialize();
     OsAccount::GetInstance().proxy_ = new (std::nothrow) OsAccountProxy(osAccountService->AsObject());
     ASSERT_NE(OsAccount::GetInstance().proxy_, nullptr);
 #endif
