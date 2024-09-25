@@ -515,9 +515,6 @@ std::int32_t AccountStub::OnRemoteRequest(
         ACCOUNT_LOGW("remote request unhandled: %{public}d", code);
         return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
-    if (interfaceCode <= AccountMgrInterfaceCode::SET_OHOS_ACCOUNT_INFO_BY_USER_ID) {
-        (void)OhosAccountManager::GetInstance().OnInitialize();
-    }
     int32_t ret = (itFunc->second)(data, reply);
 #ifdef HICOLLIE_ENABLE
     HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);

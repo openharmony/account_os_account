@@ -317,6 +317,11 @@ bool AccountMgrService::Init()
         return false;
     }
     IInnerOsAccountManager::GetInstance().ResetAccountStatus();
+    if (!OhosAccountManager::GetInstance().OnInitialize()) {
+        ACCOUNT_LOGE("Ohos account manager initialize failed");
+        ReportServiceStartFail(ERR_ACCOUNT_MGR_OHOS_MGR_INIT_ERROR, "OnInitialize failed!");
+        return false;
+    }
     state_ = ServiceRunningState::STATE_RUNNING;
     if (!registerToService_) {
         if (!Publish(&DelayedRefSingleton<AccountMgrService>::GetInstance())) {
@@ -327,11 +332,7 @@ bool AccountMgrService::Init()
         registerToService_ = true;
     }
     PerfStat::GetInstance().SetInstanceInitTime(GetTickCount());
-    if (!OhosAccountManager::GetInstance().OnInitialize()) {
-        ACCOUNT_LOGE("Ohos account manager initialize failed");
-        ReportServiceStartFail(ERR_ACCOUNT_MGR_OHOS_MGR_INIT_ERROR, "OnInitialize failed!");
-        return false;
-    }
+
     dumpHelper_ = std::make_unique<AccountDumpHelper>(osAccountManagerService_.GetRefPtr());
     ACCOUNT_LOGI("init end success");
     return true;
