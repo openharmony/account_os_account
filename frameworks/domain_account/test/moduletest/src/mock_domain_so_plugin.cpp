@@ -119,7 +119,7 @@ PluginBussnessError *GetAccountInfo(const PluginGetDomainAccountInfoOptions *opt
     SetPluginString(options->domainAccountInfo.accountName.data, (*domainAccountInfo)->accountName);
     SetPluginString(options->domainAccountInfo.accountId.data, (*domainAccountInfo)->accountId);
 
-    if (strcmp(options->domainAccountInfo.accountName.data, "testaccountisExpired") == 0) {
+    if (options->domainAccountInfo.accountName.serverConfigId.data != nullptr) {
         SetPluginString(options->domainAccountInfo.serverConfigId.data,
             (*domainAccountInfo)->serverConfigId);
     } else {

@@ -562,7 +562,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
          TestSize.Level0)
 {
     DomainAccountInfo domainInfo;
-    domainInfo.accountName_ = "testaccountisExpired";
+    domainInfo.accountName_ = "testaccount";
     domainInfo.domain_ = "test.example.com";
     domainInfo.accountId_ = "testid";
     domainInfo.serverConfigId_ = "100";
@@ -571,7 +571,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     auto callback = std::make_shared<MockPluginSoDomainCreateDomainAccountCallback>();
     ASSERT_NE(callback, nullptr);
     auto testCallback = std::make_shared<TestPluginSoCreateDomainAccountCallback>(callback);
-    EXPECT_CALL(*callback, OnResult(ERR_OK, "testaccountisExpired", "test.example.com", _)).Times(Exactly(1));
+    EXPECT_CALL(*callback, OnResult(ERR_OK, "testaccount", "test.example.com", _)).Times(Exactly(1));
     ASSERT_NE(testCallback, nullptr);
     ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
     std::unique_lock<std::mutex> lock(testCallback->mutex);
@@ -667,14 +667,14 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     ASSERT_TRUE(RecoveryPermission(tokenID));
 
     DomainAccountInfo domainInfo;
-    domainInfo.accountName_ = "testaccountisExpired";
+    domainInfo.accountName_ = "testaccount";
     domainInfo.domain_ = "test.example.com";
     domainInfo.accountId_ = "testid";
     domainInfo.serverConfigId_ = "100";
     auto callback = std::make_shared<MockPluginSoDomainCreateDomainAccountCallback>();
     ASSERT_NE(callback, nullptr);
     auto testCallback = std::make_shared<TestPluginSoCreateDomainAccountCallback>(callback);
-    EXPECT_CALL(*callback, OnResult(ERR_OK, "testaccountisExpired", "test.example.com", _)).Times(Exactly(1));
+    EXPECT_CALL(*callback, OnResult(ERR_OK, "testaccount", "test.example.com", _)).Times(Exactly(1));
     ASSERT_NE(testCallback, nullptr);
     ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
     std::unique_lock<std::mutex> lock(testCallback->mutex);
@@ -814,7 +814,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest,
          DomainAccountClientModuleTest_IsAuthenticationExpired_MultiThread_001, TestSize.Level0)
 {
     DomainAccountInfo domainInfo;
-    domainInfo.accountName_ = "testaccountisExpired";
+    domainInfo.accountName_ = "testaccount";
     domainInfo.domain_ = "test.example.com";
     domainInfo.accountId_ = "testid";
     domainInfo.serverConfigId_ = "100";
@@ -823,7 +823,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest,
     auto callback = std::make_shared<MockPluginSoDomainCreateDomainAccountCallback>();
     ASSERT_NE(callback, nullptr);
     auto testCallback = std::make_shared<TestPluginSoCreateDomainAccountCallback>(callback);
-    EXPECT_CALL(*callback, OnResult(ERR_OK, "testaccountisExpired", "test.example.com", _)).Times(Exactly(1));
+    EXPECT_CALL(*callback, OnResult(ERR_OK, "testaccount", "test.example.com", _)).Times(Exactly(1));
     ASSERT_NE(testCallback, nullptr);
     ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
     std::unique_lock<std::mutex> lock(testCallback->mutex);
@@ -833,7 +833,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest,
 
     auto func = [] {
         DomainAccountInfo domainInfo;
-        domainInfo.accountName_ = "testaccountisExpired";
+        domainInfo.accountName_ = "testaccount";
         domainInfo.domain_ = "test.example.com";
         domainInfo.accountId_ = "testid";
         bool isExpired = false;
