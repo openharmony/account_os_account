@@ -133,6 +133,7 @@ struct UpdateCredInfo {
     uint64_t secureUid = 0;
     std::vector<uint8_t> token;
     std::vector<uint8_t> newSecret;
+    std::vector<uint8_t> oldSecret;
 };
 
 class CommitCredUpdateCallback : public UserIdmClientCallback {
