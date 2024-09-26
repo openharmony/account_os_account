@@ -13,17 +13,8 @@
  * limitations under the License.
  */
 
-#include <cerrno>
-#include <filesystem>
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-#include <thread>
-#include <unistd.h>
-#include "access_token.h"
-#include "accesstoken_kit.h"
-#include "account_info.h"
-#include "account_log_wrapper.h"
-#include "account_proxy.h"
+#include "os_account_manager_module_test.h"
+
 #ifdef HAS_CES_PART
 #include "common_event_manager.h"
 #include "common_event_subscriber.h"
@@ -31,15 +22,8 @@
 #include "common_event_subscribe_info.h"
 #include "matching_skills.h"
 #endif // HAS_CES_PART
-#include "if_system_ability_manager.h"
-#include "ipc_skeleton.h"
-#include "iservice_registry.h"
-#include "os_account_manager.h"
 #define private public
 #include "account_file_operator.h"
-#undef private
-#include "os_account_constants.h"
-#define private public
 #include "os_account.h"
 #undef private
 #ifdef BUNDLE_ADAPTER_MOCK
@@ -49,10 +33,6 @@
 #include "iinner_os_account_manager.h"
 #undef private
 #endif
-#include "parameter.h"
-#include "system_ability.h"
-#include "system_ability_definition.h"
-#include "token_setproc.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -64,21 +44,9 @@ using namespace OHOS::EventFwk;
 
 namespace {
 static uint64_t g_selfTokenID;
-const std::string STRING_EMPTY = "";
-const std::string STRING_NAME = "name";
-const std::string STRING_TEST_NAME_TWO = "test_account_name_2";
-const std::uint32_t INVALID_TOKEN_ID = 0;
 #ifdef DOMAIN_ACCOUNT_TEST_CASE
 const std::uint32_t INVALID_BUNDLE_ID = -1;
 #endif
-const std::int32_t ERROR_LOCAL_ID = -1;
-const std::int32_t LOCAL_ID = 105;
-const std::int64_t INVALID_SERIAL_NUM = 123;
-const std::int32_t WAIT_A_MOMENT = 3000;
-const std::int32_t MAIN_ACCOUNT_ID = 100;
-const std::int32_t INVALID_ID = 200;
-const std::uint32_t MAX_WAIT_FOR_READY_CNT = 10;
-const std::int32_t DEFAULT_API_VERSION = 8;
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 const int32_t WAIT_TIME = 20;
 #ifdef BUNDLE_ADAPTER_MOCK
@@ -87,52 +55,6 @@ const gid_t ACCOUNT_GID = 3058;
 #endif
 const uid_t ROOT_UID = 0;
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
-
-const std::vector<std::string> CONSTANTS_VECTOR {
-    "constraint.print",
-    "constraint.screen.timeout.set",
-    "constraint.share.into.profile"
-};
-
-const std::vector<std::string> CONSTANTS_VECTOR_TEST {
-    "constraint.private.dns.set",
-};
-
-const std::vector<std::string> PERMISSION_LIST {
-    "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS",
-    "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION"
-};
-
-const std::string CONSTRAINT_PRIVATE_DNS_SET = "constraint.private.dns.set";
-const std::string CONSTANT_WIFI = "constraint.wifi";
-
-const std::string CONSTANT_PRINT = "constraint.print";
-const std::string STRING_NAME_OUT_OF_RANGE(1200, '1');  // length 1200
-const std::string STRING_PHOTO_OUT_OF_RANGE(1024 * 1024 + 1, '1');  // length 1024*1024*10+1
-const std::string STRING_PHOTO_MAX(1024 * 1024, '1');  // length 1024*1024*10+1
-const std::string PHOTO_IMG =
-    "data:image/"
-    "png;base64,"
-    "iVBORw0KGgoAAAANSUhEUgAAABUAAAAXCAIAAABrvZPKAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAEXRFWHRTb2Z0d2FyZQBTbmlwYXN0ZV0Xzt0AAA"
-    "FBSURBVDiN7ZQ/S8NQFMVPxU/QCx06GBzrkqUZ42rBbHWUBDqYxSnUoTxXydCSycVsgltfBiFDR8HNdHGxY4nQQAPvMzwHsWn+KMWsPdN7h/"
-    "vj3He5vIaUEjV0UAfe85X83KMBT7N75JEXVdSlfEAVfPRyZ5yfIrBoUkVlMU82Hkp8wu9ddt1vFew4sIiIiKwgzcXIvN7GTZOvpZRrbja3tDG/"
-    "D3I1NZvmdCXz+XOv5wJANKHOVYjRTAghxIyh0FHKb+0QQH5+kXf2zkYGAG0oFr5RfnK8DAGkwY19wliRT2L448vjv0YGQFVa8VKdDXUU+"
-    "faFUxpblhxYRNRzmd6FNnS0H3/X/VH6j0IIIRxMLJ5k/j/2L/"
-    "zchW8pKj7iFAA0R2wajl5d46idlR3+GtPV2XOvQ3bBNvyFs8U39v9PLX0Bp0CN+yY0OAEAAAAASUVORK5CYII=";
-const std::string PHOTO_IMG_ERROR =
-    "iVBORw0KGgoAAAANSUhEUgAAABUAAAAXCAIAAABrvZPKAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAEXRFWHRTb2Z0d2FyZQBTbmlwYXN0ZV0Xzt0AAA"
-    "FBSURBVDiN7ZQ/S8NQFMVPxU/QCx06GBzrkqUZ42rBbHWUBDqYxSnUoTxXydCSycVsgltfBiFDR8HNdHGxY4nQQAPvMzwHsWn+KMWsPdN7h/"
-    "vj3He5vIaUEjV0UAfe85X83KMBT7N75JEXVdSlfEAVfPRyZ5yfIrBoUkVlMU82Hkp8wu9ddt1vFew4sIiIiKwgzcXIvN7GTZOvpZRrbja3tDG/"
-    "D3I1NZvmdCXz+XOv5wJANKHOVYjRTAghxIyh0FHKb+0QQH5+kXf2zkYGAG0oFr5RfnK8DAGkwY19wliRT2L448vjv0YGQFVa8VKdDXUU+"
-    "faFUxpblhxYRNRzmd6FNnS0H3/X/VH6j0IIIRxMLJ5k/j/2L/"
-    "zchW8pKj7iFAA0R2wajl5d46idlR3+GtPV2XOvQ3bBNvyFs8U39v9PLX0Bp0CN+yY0OAEAAAAASUVORK5CYII=";
-const std::string STRING_DOMAIN_NAME_OUT_OF_RANGE(200, '1');  // length 200
-const std::string STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE(600, '1');  // length 600
-const std::string STRING_DOMAIN_VALID = "TestDomainMT";
-const std::string STRING_DOMAIN_ACCOUNT_NAME_VALID = "TestDomainAccountNameMT";
-const std::string TEST_ACCOUNT_NAME = "TestAccountNameOS";
-const std::string TEST_ACCOUNT_UID = "123456789os";
-const std::string TEST_EXPECTED_UID = "4E7FA9CA2E8760692F2ADBA7AE59B37E02E650670E5FA5F3D01232DCD52D3893";
 std::shared_ptr<AccountFileOperator> g_accountFileOperator = std::make_shared<AccountFileOperator>();
 
 static PermissionDef INFO_MANAGER_TEST_PERM_DEF1 = {
@@ -2735,6 +2657,74 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest117, TestSize.Lev
     EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(account.GetLocalId()));
 }
 #endif
+
+#ifdef SUPPORT_STOP_MAIN_OS_ACCOUNT
+/**
+ * @tc.name: OsAccountManagerModuleTest118
+ * @tc.desc: Test ActivateOsAccount.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest118, TestSize.Level1)
+{
+    OsAccountInfo account;
+    EXPECT_EQ(OsAccountManager::CreateOsAccount("AccountPublishOnceTest003", OsAccountType::NORMAL, account), ERR_OK);
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(account.GetLocalId()), ERR_OK);
+
+    // activing os account
+    OsAccountSubscribeInfo subscribeActivingInfo(OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING, "subscribeActiving");
+    auto activingSubscriber = std::make_shared<ActiveOsAccountSubscriber>(subscribeActivingInfo);
+    EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(activingSubscriber));
+    EXPECT_CALL(*activingSubscriber, OnAccountsChanged(account.GetLocalId())).Times(Exactly(1));
+    // activated os account
+    OsAccountSubscribeInfo subscribeActivatedInfo(OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED, "subscribeActived");
+    auto activedSubscriber = std::make_shared<ActiveOsAccountSubscriber>(subscribeActivatedInfo);
+    EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(activedSubscriber));
+    EXPECT_CALL(*activedSubscriber, OnAccountsChanged(account.GetLocalId())).Times(Exactly(1));
+
+    // switched os account
+    OsAccountSubscribeInfo subscribeSwitchedInfo(OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, "subscribeSwitched");
+    auto switchedSubscriber = std::make_shared<ActiveOsAccountSubscriber>(subscribeSwitchedInfo);
+    EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(switchedSubscriber));
+    EXPECT_CALL(*switchedSubscriber, OnAccountsSwitch(account.GetLocalId(), _)).Times(Exactly(1));
+
+    // switching os account
+    OsAccountSubscribeInfo subscribeSwitchingInfo(OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING, "subscribeSwitching");
+    auto switchingSubscriber = std::make_shared<ActiveOsAccountSubscriber>(subscribeSwitchingInfo);
+    EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(switchingSubscriber));
+    EXPECT_CALL(*switchingSubscriber, OnAccountsSwitch(account.GetLocalId(), _)).Times(Exactly(1));
+    OsAccount::GetInstance().RestoreListenerRecords();
+
+    // common event: COMMON_EVENT_USER_FOREGROUND 、 COMMON_EVENT_USER_BACKGROUND
+#ifndef BUNDLE_ADAPTER_MOCK
+    MatchingSkills matchingSkills;
+    matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_USER_FOREGROUND);
+    matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_USER_BACKGROUND);
+    CommonEventSubscribeInfo subscribeInfo(matchingSkills);
+    auto listener = std::make_shared<MockSubscriberListener>();
+    std::shared_ptr<AccountTestEventSubscriber> subscriberPtr =
+        std::make_shared<AccountTestEventSubscriber>(subscribeInfo, listener);
+    ASSERT_EQ(CommonEventManager::SubscribeCommonEvent(subscriberPtr), true);
+    EXPECT_CALL(*listener, OnReceiveEvent(CommonEventSupport::COMMON_EVENT_USER_BACKGROUND)).Times(Exactly(1));
+    EXPECT_CALL(*listener, OnReceiveEvent(CommonEventSupport::COMMON_EVENT_USER_FOREGROUND)).Times(Exactly(1));
+#endif
+
+    EXPECT_EQ(OsAccountManager::DeactivateOsAccount(account.GetLocalId()), ERR_OK);
+    sleep(1);
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(account.GetLocalId()), ERR_OK);
+    sleep(1);
+
+    EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(activingSubscriber));
+    EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(activedSubscriber));
+    EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(switchedSubscriber));
+    EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(switchingSubscriber));
+#ifndef BUNDLE_ADAPTER_MOCK
+    EXPECT_EQ(CommonEventManager::UnSubscribeCommonEvent(subscriberPtr), true);
+#endif
+
+    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(account.GetLocalId()));
+}
+#endif // SUPPORT_STOP_MAIN_OS_ACCOUNT
 
 /**
  * @tc.name: GetOsAccountType001

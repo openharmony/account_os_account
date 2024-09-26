@@ -1635,7 +1635,9 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id, const bool start
         return ERR_OSACCOUNT_SERVICE_LOGGED_IN_ACCOUNTS_OVERSIZE;
     }
 
-    subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
+    if (foregroundId != id) {
+        subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
+    }
     errCode = SendMsgForAccountActivate(osAccountInfo, startStorage);
     RemoveLocalIdToOperating(id);
     if (errCode != ERR_OK) {
@@ -1706,7 +1708,9 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
     bool oldIdExist = foregroundAccountMap_.Find(displayId, oldId);
     int32_t localId = static_cast<int32_t>(osAccountInfo.GetLocalId());
     bool preVerified = osAccountInfo.GetIsVerified();
-    subscribeManager_.Publish(localId, oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
+    if (oldId != localId) {
+        subscribeManager_.Publish(localId, oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
+    }
     ErrCode errCode = ERR_OK;
     if (startStorage) {
         errCode = OsAccountInterface::SendToStorageAccountStart(osAccountInfo);
@@ -1742,13 +1746,14 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
             return errCode;
         }
     }
-
-    PushIdIntoActiveList(localId);
-    OsAccountInterface::SendToCESAccountSwitched(localId, oldId);
-    subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED);
-    subscribeManager_.Publish(localId, oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED);
+    if (oldId != localId) {
+        PushIdIntoActiveList(localId);
+        OsAccountInterface::SendToCESAccountSwitched(localId, oldId);
+        subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED);
+        subscribeManager_.Publish(localId, oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED);
+        ReportOsAccountSwitch(localId, oldId);
+    }
     ACCOUNT_LOGI("SendMsgForAccountActivate ok");
-    ReportOsAccountSwitch(localId, oldId);
     return errCode;
 }
 
@@ -2210,9 +2215,12 @@ ErrCode IInnerOsAccountManager::UpdateAccountToForeground(const uint64_t display
             localId, errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
-    foregroundAccountMap_.EnsureInsert(displayId, localId);
-    OsAccountInterface::PublishCommonEvent(osAccountInfo,
-        OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_FOREGROUND, Constants::OPERATION_SWITCH);
+    int32_t foregroundId = -1;
+    if (!foregroundAccountMap_.Find(displayId, foregroundId) || (foregroundId != localId)) {
+        foregroundAccountMap_.EnsureInsert(displayId, localId);
+        OsAccountInterface::PublishCommonEvent(osAccountInfo,
+            OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_FOREGROUND, Constants::OPERATION_SWITCH);
+    }
     return ERR_OK;
 }
 
