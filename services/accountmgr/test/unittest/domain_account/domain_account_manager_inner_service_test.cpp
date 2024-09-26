@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -645,7 +645,7 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     info.isAuthenticated = 0;
     password.push_back(0);
     option.callingUid_ = 1;
-    instance->methodMap_.clear();
+    instance->methodMap.clear();
     EXPECT_EQ(instance->AddServerConfig(identifier, config), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->GetAccountServerConfig(info, config), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->RemoveServerConfig(configId), ERR_JS_CAPABILITY_NOT_SUPPORTED);
