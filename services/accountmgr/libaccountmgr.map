@@ -34,6 +34,7 @@
         "OHOS::AccountSA::AccountStateMachine::Clean()";
         "OHOS::AccountSA::OhosAccountManager::GetInstance()";
         "OHOS::AccountSA::AccountEventSubscriber::AccountEventSubscriber(OHOS::AccountSA::AccountCommonEventCallback const&)";
+        "OHOS::AccountSA::AccountEventSubscriber::~AccountEventSubscriber()";
         "OHOS::AccountSA::AccountEventSubscriber::CreateEventSubscribe()";
         "OHOS::AccountSA::AccountStateMachine::OnInitialize()";
         "OHOS::AccountSA::AccountStateMachine::StateChangeProcess(int)";
