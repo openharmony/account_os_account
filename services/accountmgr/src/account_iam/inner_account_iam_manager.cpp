@@ -174,9 +174,24 @@ void InnerAccountIAMManager::DelUser(
     UserIDMClient::GetInstance().DeleteUser(userId, authToken, idmCallback);
 }
 
+static bool IsNonPINAllowed(int32_t userId)
+{
+    bool isVerified = false;
+    (void) IInnerOsAccountManager::GetInstance().IsOsAccountVerified(userId, isVerified);
+    return isVerified;
+}
+
 void InnerAccountIAMManager::GetCredentialInfo(
     int32_t userId, AuthType authType, const sptr<IGetCredInfoCallback> &callback)
 {
+    if (!IsNonPINAllowed(userId)) {
+        if ((authType != AuthType::PIN) && (authType != AuthType::ALL)) {
+            ACCOUNT_LOGD("unsupported auth type: %{public}d", authType);
+            std::vector<CredentialInfo> infoList;
+            return callback->OnCredentialInfo(infoList);
+        }
+        authType = AuthType::PIN;
+    }
     if (static_cast<int32_t>(authType) == static_cast<int32_t>(IAMAuthType::DOMAIN)) {
         std::vector<CredentialInfo> infoList;
         if (CheckDomainAuthAvailable(userId)) {
@@ -243,6 +258,11 @@ int32_t InnerAccountIAMManager::AuthUser(
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
+    if ((authParam.remoteAuthParam == std::nullopt) &&
+        (authParam.authType != AuthType::PIN) && (!IsNonPINAllowed(authParam.userId))) {
+        ACCOUNT_LOGE("unsupported auth type: %{public}d", authParam.authType);
+        return ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE;
     }
     OsAccountInfo osAccountInfo;
     if ((authParam.remoteAuthParam == std::nullopt) &&
@@ -333,6 +353,12 @@ void InnerAccountIAMManager::GetProperty(
         ACCOUNT_LOGE("callback is nullptr");
         return;
     }
+    Attributes attributes;
+    if ((request.authType != AuthType::PIN) && (!IsNonPINAllowed(userId))) {
+        ACCOUNT_LOGE("unsupported auth type: %{public}d", request.authType);
+        callback->OnResult(ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE, attributes);
+        return;
+    }
     if (static_cast<int32_t>(request.authType) != static_cast<int32_t>(IAMAuthType::DOMAIN)) {
         auto getCallback = std::make_shared<GetPropCallbackWrapper>(userId, callback);
         UserAuthClient::GetInstance().GetProperty(userId, request, getCallback);
@@ -340,7 +366,6 @@ void InnerAccountIAMManager::GetProperty(
     }
     ErrCode result = GetDomainAuthStatusInfo(userId, request, callback);
     if (result != ERR_OK) {
-        Attributes attributes;
         callback->OnResult(result, attributes);
     }
 }
