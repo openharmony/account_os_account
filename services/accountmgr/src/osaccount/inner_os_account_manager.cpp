@@ -1707,16 +1707,14 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
             return errCode;
         }
     }
-    if (oldId == localId) {
-        ACCOUNT_LOGI("SendMsgForAccountActivate ok");
-        return errCode;
+    if (oldId != localId) {
+        PushIdIntoActiveList(localId);
+        OsAccountInterface::SendToCESAccountSwitched(localId, oldId);
+        subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED);
+        subscribeManager_.Publish(localId, oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED);
+        ReportOsAccountSwitch(localId, oldId);
     }
-    PushIdIntoActiveList(localId);
-    OsAccountInterface::SendToCESAccountSwitched(localId, oldId);
-    subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED);
-    subscribeManager_.Publish(localId, oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED);
     ACCOUNT_LOGI("SendMsgForAccountActivate ok");
-    ReportOsAccountSwitch(localId, oldId);
     return errCode;
 }
 
