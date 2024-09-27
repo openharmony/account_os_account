@@ -595,8 +595,8 @@ ErrCode IInnerOsAccountManager::UpdateOsAccountWithFullInfo(OsAccountInfo &newIn
     if (errCode != ERR_OK) {
         ReportOsAccountOperationFail(localId, Constants::OPERATION_UPDATE, errCode, "UpdateOsAccount failed!");
     } else {
-        OsAccountInterface::PublishCommonEvent(oldInfo,
-            OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::OPERATION_UPDATE);
+        AccountEventProvider::EventPublishAsUser(
+            EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, oldInfo.GetLocalId());
     }
     RemoveLocalIdToOperating(localId);
     return errCode;
@@ -775,9 +775,10 @@ ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountIn
     (void)OhosAccountManager::GetInstance().GetAccountInfoByUserId(id, ohosInfo);
     if (ohosInfo.ohosAccountInfo_.name_ != DEFAULT_OHOS_ACCOUNT_NAME) {
 #ifdef HAS_CES_PART
-        AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, id, nullptr);
-        AccountEventProvider::EventPublish(
-            EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT, id, nullptr);
+        AccountEventProvider::EventPublishAsUser(
+            EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, id);
+        AccountEventProvider::EventPublishAsUser(
+            EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT, id);
 #else  // HAS_CES_PART
         ACCOUNT_LOGI("No common event part! Publish nothing!");
 #endif // HAS_CES_PART
@@ -1475,8 +1476,8 @@ ErrCode IInnerOsAccountManager::SetOsAccountName(const int id, const std::string
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
     osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
-    OsAccountInterface::PublishCommonEvent(
-        osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::OPERATION_UPDATE);
+    AccountEventProvider::EventPublishAsUser(
+        EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, osAccountInfo.GetLocalId());
     return ERR_OK;
 }
 
@@ -1550,8 +1551,8 @@ ErrCode IInnerOsAccountManager::SetOsAccountProfilePhoto(const int id, const std
         ACCOUNT_LOGE("Update osaccount info faile code=%{public}d, id=%{public}d", errCode, osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
-    OsAccountInterface::PublishCommonEvent(
-        osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::OPERATION_UPDATE);
+    AccountEventProvider::EventPublishAsUser(
+        EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, osAccountInfo.GetLocalId());
     return ERR_OK;
 }
 
@@ -2188,8 +2189,8 @@ ErrCode IInnerOsAccountManager::UpdateAccountInfoByDomainAccountInfo(
     }
     RemoveLocalIdToOperating(userId);
 #ifdef HAS_CES_PART
-    AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED,
-        userId, nullptr);
+    AccountEventProvider::EventPublishAsUser(
+        EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, userId);
 #endif // HAS_CES_PART
     return ERR_OK;
 }
