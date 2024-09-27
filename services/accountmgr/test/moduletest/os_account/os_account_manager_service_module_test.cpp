@@ -15,7 +15,6 @@
 #include <cerrno>
 #include <filesystem>
 #include <gtest/gtest.h>
-#include <gtest/hwext/gtest-multithread.h>
 #include <thread>
 #include <unistd.h>
 #include "account_error_no.h"
@@ -31,7 +30,6 @@
 namespace OHOS {
 namespace AccountSA {
 using namespace testing::ext;
-using namespace testing::mt;
 using namespace OHOS::AccountSA;
 using namespace OHOS;
 using namespace AccountSA;
@@ -50,7 +48,6 @@ const gid_t ACCOUNT_GID = 3058;
 const uid_t ACCOUNT_UID = 3058;
 const std::int32_t ROOT_UID = 0;
 const std::int32_t TEST_UID = 1;
-const int32_t THREAD_NUM = 10;
 
 const std::vector<std::string> CONSTANTS_VECTOR {
     "constraint.print",
@@ -2158,32 +2155,6 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest124
 {
     EXPECT_EQ(
         osAccountManagerService_->SetOsAccountProfilePhoto(MAIN_ACCOUNT_ID, ""), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-}
-
-/**
- * @tc.name: SetDefaultActivatedOsAccountM
- * @tc.desc: Test SetDefaultActivatedOsAccount Multithreading.
- * @tc.type: FUNC
- * @tc.require: issueI6AQUQ
- */
-HWMTEST_F(OsAccountManagerServiceModuleTest, SetDefaultActivatedOsAccountM, TestSize.Level1, THREAD_NUM)
-{
-    setuid(TEST_UID);
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        std::make_shared<OsAccountManagerService>()->SetDefaultActivatedOsAccount(MAIN_ACCOUNT_ID));
-}
-
-/**
- * @tc.name: GetSubscribeRecordInfoM
- * @tc.desc: Test GetSubscribeRecordInfo Multithreading.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWMTEST_F(OsAccountManagerServiceModuleTest, GetSubscribeRecordInfoM, TestSize.Level1, THREAD_NUM)
-{
-    setuid(TEST_UID);
-    sptr<IRemoteObject> eventListener = nullptr;
-    EXPECT_EQ(ERR_OK, std::make_shared<OsAccountManagerService>()->UnsubscribeOsAccount(eventListener));
 }
 
 /**

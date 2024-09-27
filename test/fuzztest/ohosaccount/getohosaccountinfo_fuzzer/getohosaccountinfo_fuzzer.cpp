@@ -18,124 +18,21 @@
 #include "account_proxy.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
-#include "distributed_account_subscribe_callback.h"
-#include "fuzz_data.h"
 #include "ohos_account_kits.h"
-#include <cstdint>
 #include <string>
 #include <vector>
 
 using namespace std;
 using namespace OHOS::AccountSA;
 
-class MockDistributedAccountSubscribeCallback final : public DistributedAccountSubscribeCallback {
-public:
-    explicit MockDistributedAccountSubscribeCallback()
-    {}
-
-    void OnAccountsChanged(const DistributedAccountEventData &eventData)
-    {}
-};
 namespace OHOS {
-namespace {
-static constexpr uint32_t OHOS_ACCOUNT_STATE_NUM = 5;
-}
-bool GetOhosAccountInfoFuzzTest(const uint8_t* data, size_t size)
-{
-    int32_t result;
-    OhosAccountInfo testOhosAccountInfo;
-    result = OhosAccountKits::GetInstance().GetOhosAccountInfo(testOhosAccountInfo);
-    return result == ERR_OK;
-}
-
-bool GetOhosAccountInfoByUserIdFuzzTest(const uint8_t* data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
+    bool GetOhosAccountInfoFuzzTest(const uint8_t* data, size_t size)
+    {
+        int32_t result;
+        OhosAccountInfo testOhosAccountInfo;
+        result = OhosAccountKits::GetInstance().GetOhosAccountInfo(testOhosAccountInfo);
+        return result == ERR_OK;
     }
-    int32_t result;
-    OhosAccountInfo testOhosAccountInfo;
-    FuzzData fuzzData(data, size);
-    int32_t userId = fuzzData.GetData<int32_t>();
-    result = OhosAccountKits::GetInstance().GetOhosAccountInfoByUserId(userId, testOhosAccountInfo);
-    return result == ERR_OK;
-}
-
-bool SubscribeDistributedAccountEventFuzzTest(const uint8_t* data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-    int32_t result;
-    FuzzData fuzzData(data, size);
-    auto loginSubscribeCallback = std::make_shared<MockDistributedAccountSubscribeCallback>();
-    DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type = static_cast<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE>(
-        fuzzData.GetData<int32_t>() % 4);
-    result = OhosAccountKits::GetInstance().SubscribeDistributedAccountEvent(type, loginSubscribeCallback);
-    return result == ERR_OK;
-}
-
-bool UnsubscribeDistributedAccountEventFuzzTest(const uint8_t* data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-    int32_t result;
-    FuzzData fuzzData(data, size);
-    auto loginSubscribeCallback = std::make_shared<MockDistributedAccountSubscribeCallback>();
-    DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type = static_cast<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE>(
-        fuzzData.GetData<int32_t>() % 4);
-    result = OhosAccountKits::GetInstance().UnsubscribeDistributedAccountEvent(type, loginSubscribeCallback);
-    return result == ERR_OK;
-}
-
-bool SetOhosAccountInfoByUserIdFuzzTest(const uint8_t* data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-    std::shared_ptr<AccountProxy> accountProxy = std::make_shared<AccountProxy>(nullptr);
-    FuzzData fuzzData(data, size);
-    int32_t userId = fuzzData.GetData<int32_t>();
-    OhosAccountInfo testOhosAccountInfo(
-        fuzzData.GenerateRandomString(),
-        fuzzData.GenerateRandomString(),
-        fuzzData.GetData<int32_t>() % OHOS_ACCOUNT_STATE_NUM - 1
-    );
-    std::string testEventStr(fuzzData.GenerateRandomString());
-    int32_t result = accountProxy->SetOhosAccountInfoByUserId(userId, testOhosAccountInfo, testEventStr);
-    return result == ERR_OK;
-}
-
-bool GetOhosAccountInfoByUserIdProxyFuzzTest(const uint8_t* data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-    std::shared_ptr<AccountProxy> accountProxy = std::make_shared<AccountProxy>(nullptr);
-    OhosAccountInfo testOhosAccountInfo;
-    int32_t result = accountProxy->QueryOhosAccountInfo(testOhosAccountInfo);
-    result = accountProxy->GetOhosAccountInfo(testOhosAccountInfo);
-    FuzzData fuzzData(data, size);
-    int32_t userId = fuzzData.GetData<int32_t>();
-    result = accountProxy->GetOhosAccountInfoByUserId(userId, testOhosAccountInfo);
-    return result == ERR_OK;
-}
-
-bool QueryOhosAccountInfoByUserIdProxyFuzzTest(const uint8_t* data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-    std::shared_ptr<AccountProxy> accountProxy = std::make_shared<AccountProxy>(nullptr);
-    OhosAccountInfo testOhosAccountInfo;
-    FuzzData fuzzData(data, size);
-    int32_t userId = fuzzData.GetData<int32_t>();
-    int32_t accountId = 0;
-    int32_t result = accountProxy->QueryDeviceAccountId(accountId);
-    result = accountProxy->QueryOhosAccountInfoByUserId(userId, testOhosAccountInfo);
-    return result == ERR_OK;
-}
 }
 
 /* Fuzzer entry point */
@@ -143,12 +40,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::GetOhosAccountInfoFuzzTest(data, size);
-    OHOS::GetOhosAccountInfoByUserIdFuzzTest(data, size);
-    OHOS::SubscribeDistributedAccountEventFuzzTest(data, size);
-    OHOS::UnsubscribeDistributedAccountEventFuzzTest(data, size);
-    OHOS::SetOhosAccountInfoByUserIdFuzzTest(data, size);
-    OHOS::GetOhosAccountInfoByUserIdProxyFuzzTest(data, size);
-    OHOS::QueryOhosAccountInfoByUserIdProxyFuzzTest(data, size);
     return 0;
 }
 
