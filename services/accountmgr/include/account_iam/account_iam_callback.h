@@ -85,7 +85,6 @@ public:
     bool isCalled_ = false;
     std::condition_variable onResultCondition_;
 
-
 private:
     std::uint32_t userId_;
     CredentialParameters credInfo_;
@@ -102,6 +101,9 @@ public:
     void SetDeathRecipient(const sptr<IDMCallbackDeathRecipient> &deathRecipient);
     void OnResult(int32_t result, const Attributes &extraInfo) override;
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override;
+
+private:
+    void InnerOnResult(int32_t result, const Attributes &extraInfo);
 
 public:
     std::mutex mutex_;
@@ -133,6 +135,9 @@ public:
     void OnResult(int32_t result, const Attributes &extraInfo) override;
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override {};
 
+private:
+    void InnerOnResult(int32_t result, const Attributes &extraInfo);
+
 public:
     std::mutex mutex_;
     bool isCalled_ = false;
@@ -159,6 +164,9 @@ public:
 
     void OnResult(int32_t result, const Attributes &extraInfo) override;
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override;
+
+private:
+    void InnerOnResult(int32_t result, const Attributes &extraInfo);
 
 public:
     std::mutex mutex_;
