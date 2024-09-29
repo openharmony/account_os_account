@@ -339,14 +339,14 @@ void UpdateCredCallback::InnerOnResult(int32_t result, const Attributes &extraIn
     innerIamMgr_.SetState(userId_, AFTER_UPDATE_CRED);
     uint64_t oldCredentialId = 0;
     extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_OLD_CREDENTIAL_ID, oldCredentialId);
-    auto delOldCredCallback = std::make_shared<CommitCredUpdateCallback>(userId_, updateCredInfo, innerCallback_);
+    auto idmCallback = std::make_shared<CommitCredUpdateCallback>(userId_, updateCredInfo, innerCallback_);
     Security::AccessToken::AccessTokenID selfToken = IPCSkeleton::GetSelfTokenID();
     result = SetFirstCallerTokenID(selfToken);
     ACCOUNT_LOGI("Set first caller info result: %{public}d", result);
-    UserIDMClient::GetInstance().DeleteCredential(userId_, oldCredentialId, credInfo_.token, delOldCredCallback);
-    std::unique_lock<std::mutex> delLock(delOldCredCallback->mutex_);
-    delOldCredCallback->onResultCondition_.wait(delLock, [delOldCredCallback] {
-        return delOldCredCallback->isCalled_;
+    UserIDMClient::GetInstance().DeleteCredential(userId_, oldCredentialId, credInfo_.token, idmCallback);
+    std::unique_lock<std::mutex> delLock(idmCallback->mutex_);
+    idmCallback->onResultCondition_.wait(delLock, [idmCallback] {
+        return idmCallback->isCalled_;
     });
 }
 
@@ -433,8 +433,8 @@ void DelUserCallback::InnerOnResult(int32_t result, const Attributes &extraInfo)
         ACCOUNT_LOGE("Fail to erase user, userId=%{public}d, errcode=%{public}d", userId_, errCode);
         return innerCallback_->OnResult(errCode, extraInfo);
     }
-    std::unique_lock<std::mutex> eraseLock(eraseUserCallback->mutex_);
-    eraseUserCallback->onResultCondition_.wait(eraseLock, [eraseUserCallback] {
+    std::unique_lock<std::mutex> lock(eraseUserCallback->mutex_);
+    eraseUserCallback->onResultCondition_.wait(lock, [eraseUserCallback] {
         return eraseUserCallback->isCalled_;
     });
     if (eraseUserCallback->resultCode_ != ERR_OK) {
