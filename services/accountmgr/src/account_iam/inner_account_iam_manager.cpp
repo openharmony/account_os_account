@@ -72,6 +72,19 @@ InnerAccountIAMManager &InnerAccountIAMManager::GetInstance()
     return *instance;
 }
 
+std::shared_ptr<std::mutex> InnerAccountIAMManager::GetOperatingUserLock(int32_t id)
+{
+    std::lock_guard<std::mutex> lock(operatingMutex_);
+    auto it = userLocks_.find(id);
+    if (it == userLocks_.end()) {
+        auto mutexPtr = std::make_shared<std::mutex>();
+        userLocks_.insert(std::make_pair(id, mutexPtr));
+        return mutexPtr;
+    } else {
+        return it->second;
+    }
+}
+
 void InnerAccountIAMManager::OpenSession(int32_t userId, std::vector<uint8_t> &challenge)
 {
     challenge = UserIDMClient::GetInstance().OpenSession(userId);
@@ -104,8 +117,6 @@ void InnerAccountIAMManager::AddCredential(
         ACCOUNT_LOGE("Failed to add death recipient for AddCred");
         return;
     }
-    auto idmCallbackWrapper = std::make_shared<AddCredCallback>(userId, credInfo, callback);
-    idmCallbackWrapper->SetDeathRecipient(deathRecipient);
     if (credInfo.authType == AuthType::PIN) {
         std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(userId) +
             Constants::PATH_SEPARATOR + Constants::USER_ADD_SECRET_FLAG_FILE_NAME;
@@ -117,7 +128,14 @@ void InnerAccountIAMManager::AddCredential(
             ACCOUNT_LOGE("Input file fail, path=%{public}s", path.c_str());
         }
     }
-    UserIDMClient::GetInstance().AddCredential(userId, credInfo, idmCallbackWrapper);
+    auto addCredCallback = std::make_shared<AddCredCallback>(userId, credInfo, callback);
+    addCredCallback->SetDeathRecipient(deathRecipient);
+    std::lock_guard<std::mutex> userLock(*GetOperatingUserLock(userId));
+    UserIDMClient::GetInstance().AddCredential(userId, credInfo, addCredCallback);
+    std::unique_lock<std::mutex> lock(addCredCallback->mutex_);
+    addCredCallback->onResultCondition_.wait(lock, [addCredCallback] {
+        return addCredCallback->isCalled_;
+    });
 }
 
 void InnerAccountIAMManager::UpdateCredential(
@@ -141,9 +159,14 @@ void InnerAccountIAMManager::UpdateCredential(
         return;
     }
 
-    auto idmCallbackWrapper = std::make_shared<UpdateCredCallback>(userId, credInfo, callback);
-    idmCallbackWrapper->SetDeathRecipient(deathRecipient);
-    UserIDMClient::GetInstance().UpdateCredential(userId, credInfo, idmCallbackWrapper);
+    auto updateCredCallback = std::make_shared<UpdateCredCallback>(userId, credInfo, callback);
+    updateCredCallback->SetDeathRecipient(deathRecipient);
+    std::lock_guard<std::mutex> userLock(*GetOperatingUserLock(userId));
+    UserIDMClient::GetInstance().UpdateCredential(userId, credInfo, updateCredCallback);
+    std::unique_lock<std::mutex> lock(updateCredCallback->mutex_);
+    updateCredCallback->onResultCondition_.wait(lock, [updateCredCallback] {
+        return updateCredCallback->isCalled_;
+    });
 }
 
 void InnerAccountIAMManager::DelCred(
@@ -218,8 +241,13 @@ void InnerAccountIAMManager::DelUser(
     credInfo.authType = AuthType::PIN;
     credInfo.pinType = PinSubType::PIN_SIX;
     credInfo.token = authToken;
+    std::lock_guard<std::mutex> userLock(*GetOperatingUserLock(userId));
     auto delUserCallback = std::make_shared<DelUserCallback>(userId, callback);
     UserIDMClient::GetInstance().UpdateCredential(userId, credInfo, delUserCallback);
+    std::unique_lock<std::mutex> lock(delUserCallback->mutex_);
+    delUserCallback->onResultCondition_.wait(lock, [delUserCallback] {
+        return delUserCallback->isCalled_;
+    });
 #else
 
     auto idmCallback = std::make_shared<DelCredCallback>(userId, true, authToken, callback);
