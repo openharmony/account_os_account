@@ -294,7 +294,7 @@ public:
         return 0;
     }
 
-    int32_t GetFileEncryptStatus(uint32_t userId, bool &isEncrypted)
+    int32_t GetFileEncryptStatus(uint32_t userId, bool &isEncrypted, bool needCheckDirMount)
     {
         return 0;
     }
