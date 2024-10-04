@@ -595,8 +595,8 @@ ErrCode IInnerOsAccountManager::UpdateOsAccountWithFullInfo(OsAccountInfo &newIn
     if (errCode != ERR_OK) {
         ReportOsAccountOperationFail(localId, Constants::OPERATION_UPDATE, errCode, "UpdateOsAccount failed!");
     } else {
-        AccountEventProvider::EventPublishAsUser(
-            EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, oldInfo.GetLocalId());
+        OsAccountInterface::PublishCommonEvent(oldInfo,
+            OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::OPERATION_UPDATE);
     }
     RemoveLocalIdToOperating(localId);
     return errCode;
@@ -1476,8 +1476,8 @@ ErrCode IInnerOsAccountManager::SetOsAccountName(const int id, const std::string
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
     osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
-    AccountEventProvider::EventPublishAsUser(
-        EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, osAccountInfo.GetLocalId());
+    OsAccountInterface::PublishCommonEvent(
+        osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::OPERATION_UPDATE);
     return ERR_OK;
 }
 
@@ -1551,8 +1551,8 @@ ErrCode IInnerOsAccountManager::SetOsAccountProfilePhoto(const int id, const std
         ACCOUNT_LOGE("Update osaccount info faile code=%{public}d, id=%{public}d", errCode, osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
-    AccountEventProvider::EventPublishAsUser(
-        EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, osAccountInfo.GetLocalId());
+    OsAccountInterface::PublishCommonEvent(
+        osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::OPERATION_UPDATE);
     return ERR_OK;
 }
 
@@ -2189,8 +2189,8 @@ ErrCode IInnerOsAccountManager::UpdateAccountInfoByDomainAccountInfo(
     }
     RemoveLocalIdToOperating(userId);
 #ifdef HAS_CES_PART
-    AccountEventProvider::EventPublishAsUser(
-        EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, userId);
+    AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED,
+        userId, nullptr);
 #endif // HAS_CES_PART
     return ERR_OK;
 }
