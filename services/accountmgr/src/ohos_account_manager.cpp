@@ -366,7 +366,7 @@ ErrCode OhosAccountManager::LoginOhosAccount(const int32_t userId, const OhosAcc
 
 #ifdef HAS_CES_PART
     if (!isPubLoginEvent) {
-        AccountEventProvider::EventPublishAsUser(CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, userId);
+        AccountEventProvider::EventPublish(CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, userId, nullptr);
         (void)CreateCommonEventSubscribe();
         return ERR_OK;
     }
