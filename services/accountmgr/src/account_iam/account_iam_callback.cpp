@@ -230,9 +230,12 @@ void AddCredCallback::SetDeathRecipient(const sptr<IDMCallbackDeathRecipient> &d
 
 void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
+    std::unique_lock<std::mutex> lock(mutex_);
     ACCOUNT_LOGI("AddCredCallback, result=%{public}d.", result);
     if (innerCallback_ == nullptr || innerCallback_->AsObject() == nullptr) {
         ACCOUNT_LOGE("innerCallback_ is nullptr");
+        isCalled_ = true;
+        onResultCondition_.notify_one();
         return;
     }
     innerCallback_->AsObject()->RemoveDeathRecipient(deathRecipient_);
@@ -266,6 +269,8 @@ void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
     }
     innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
     innerCallback_->OnResult(result, extraInfo);
+    isCalled_ = true;
+    onResultCondition_.notify_one();
 }
 
 void AddCredCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
@@ -293,7 +298,7 @@ static void DeleteCredential(uint32_t userId, uint64_t credentialId, const std::
     UserIDMClient::GetInstance().DeleteCredential(userId, credentialId, token, idmCallback);
 }
 
-void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
+void UpdateCredCallback::InnerOnResult(int32_t result, const Attributes &extraInfo)
 {
     ACCOUNT_LOGI("UpdateCredCallback, userId=%{public}d, result=%{public}d.", userId_, result);
     if (innerCallback_ == nullptr || innerCallback_->AsObject() == nullptr) {
@@ -339,6 +344,18 @@ void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
     result = SetFirstCallerTokenID(selfToken);
     ACCOUNT_LOGI("Set first caller info result: %{public}d", result);
     UserIDMClient::GetInstance().DeleteCredential(userId_, oldCredentialId, credInfo_.token, idmCallback);
+    std::unique_lock<std::mutex> delLock(idmCallback->mutex_);
+    idmCallback->onResultCondition_.wait(delLock, [idmCallback] {
+        return idmCallback->isCalled_;
+    });
+}
+
+void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
+{
+    std::unique_lock<std::mutex> updateLock(mutex_);
+    InnerOnResult(result, extraInfo);
+    isCalled_ = true;
+    onResultCondition_.notify_one();
 }
 
 void UpdateCredCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
@@ -385,7 +402,7 @@ static int32_t ConvertDelUserErrCode(int32_t result)
     }
 }
 
-void DelUserCallback::OnResult(int32_t result, const Attributes &extraInfo)
+void DelUserCallback::InnerOnResult(int32_t result, const Attributes &extraInfo)
 {
     ACCOUNT_LOGI("DelUserCallback, userId: %{public}d, result: %{public}d", userId_, result);
     if (innerCallback_ == nullptr) {
@@ -432,6 +449,14 @@ void DelUserCallback::OnResult(int32_t result, const Attributes &extraInfo)
     }
     innerCallback_->OnResult(errCode, extraInfo);
 }
+
+void DelUserCallback::OnResult(int32_t result, const Attributes &extraInfo)
+{
+    std::unique_lock<std::mutex> delLock(mutex_);
+    InnerOnResult(result, extraInfo);
+    isCalled_ = true;
+    onResultCondition_.notify_one();
+}
 #endif // HAS_PIN_AUTH_PART
 
 CommitCredUpdateCallback::CommitCredUpdateCallback(int32_t userId,
@@ -439,7 +464,7 @@ CommitCredUpdateCallback::CommitCredUpdateCallback(int32_t userId,
     : userId_(userId), extraUpdateInfo_(extraUpdateInfo), innerCallback_(callback)
 {}
 
-void CommitCredUpdateCallback::OnResult(int32_t result, const Attributes &extraInfo)
+void CommitCredUpdateCallback::InnerOnResult(int32_t result, const Attributes &extraInfo)
 {
     ACCOUNT_LOGI("CommitCredUpdateCallback, result=%{public}d.", result);
     if (innerCallback_ == nullptr) {
@@ -470,6 +495,14 @@ void CommitCredUpdateCallback::OnResult(int32_t result, const Attributes &extraI
     innerCallback_->OnResult(result, extraInfoResult);
     innerIamMgr_.UpdateStorageKeyContext(userId_);
     innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
+}
+
+void CommitCredUpdateCallback::OnResult(int32_t result, const Attributes &extraInfo)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    InnerOnResult(result, extraInfo);
+    isCalled_ = true;
+    onResultCondition_.notify_one();
 }
 
 void CommitCredUpdateCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)

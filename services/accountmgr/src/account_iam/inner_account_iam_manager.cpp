@@ -72,6 +72,18 @@ InnerAccountIAMManager &InnerAccountIAMManager::GetInstance()
     return *instance;
 }
 
+std::shared_ptr<std::mutex> InnerAccountIAMManager::GetOperatingUserLock(int32_t id)
+{
+    std::lock_guard<std::mutex> lock(operatingMutex_);
+    auto it = userLocks_.find(id);
+    if (it == userLocks_.end()) {
+        auto mutexPtr = std::make_shared<std::mutex>();
+        userLocks_.insert(std::make_pair(id, mutexPtr));
+        return mutexPtr;
+    }
+    return it->second;
+}
+
 void InnerAccountIAMManager::OpenSession(int32_t userId, std::vector<uint8_t> &challenge)
 {
     challenge = UserIDMClient::GetInstance().OpenSession(userId);
@@ -98,14 +110,13 @@ void InnerAccountIAMManager::AddCredential(
         return;
     }
 
+    std::lock_guard<std::mutex> userLock(*GetOperatingUserLock(userId));
     sptr<IDMCallbackDeathRecipient> deathRecipient = new (std::nothrow) IDMCallbackDeathRecipient(userId);
     if ((deathRecipient == nullptr) || (callback->AsObject() == nullptr) ||
         (!callback->AsObject()->AddDeathRecipient(deathRecipient))) {
         ACCOUNT_LOGE("Failed to add death recipient for AddCred");
         return;
     }
-    auto idmCallbackWrapper = std::make_shared<AddCredCallback>(userId, credInfo, callback);
-    idmCallbackWrapper->SetDeathRecipient(deathRecipient);
     if (credInfo.authType == AuthType::PIN) {
         std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(userId) +
             Constants::PATH_SEPARATOR + Constants::USER_ADD_SECRET_FLAG_FILE_NAME;
@@ -117,7 +128,13 @@ void InnerAccountIAMManager::AddCredential(
             ACCOUNT_LOGE("Input file fail, path=%{public}s", path.c_str());
         }
     }
+    auto idmCallbackWrapper = std::make_shared<AddCredCallback>(userId, credInfo, callback);
+    idmCallbackWrapper->SetDeathRecipient(deathRecipient);
     UserIDMClient::GetInstance().AddCredential(userId, credInfo, idmCallbackWrapper);
+    std::unique_lock<std::mutex> lock(idmCallbackWrapper->mutex_);
+    idmCallbackWrapper->onResultCondition_.wait(lock, [idmCallbackWrapper] {
+        return idmCallbackWrapper->isCalled_;
+    });
 }
 
 void InnerAccountIAMManager::UpdateCredential(
@@ -134,6 +151,7 @@ void InnerAccountIAMManager::UpdateCredential(
         return;
     }
 
+    std::lock_guard<std::mutex> userLock(*GetOperatingUserLock(userId));
     sptr<IDMCallbackDeathRecipient> deathRecipient = new (std::nothrow) IDMCallbackDeathRecipient(userId);
     if ((deathRecipient == nullptr) || (callback->AsObject() == nullptr) ||
         (!callback->AsObject()->AddDeathRecipient(deathRecipient))) {
@@ -144,6 +162,10 @@ void InnerAccountIAMManager::UpdateCredential(
     auto idmCallbackWrapper = std::make_shared<UpdateCredCallback>(userId, credInfo, callback);
     idmCallbackWrapper->SetDeathRecipient(deathRecipient);
     UserIDMClient::GetInstance().UpdateCredential(userId, credInfo, idmCallbackWrapper);
+    std::unique_lock<std::mutex> lock(idmCallbackWrapper->mutex_);
+    idmCallbackWrapper->onResultCondition_.wait(lock, [idmCallbackWrapper] {
+        return idmCallbackWrapper->isCalled_;
+    });
 }
 
 void InnerAccountIAMManager::DelCred(
@@ -196,6 +218,7 @@ void InnerAccountIAMManager::DelUser(
         return;
     }
 #ifdef HAS_PIN_AUTH_PART
+    std::lock_guard<std::mutex> userLock(*GetOperatingUserLock(userId));
     Security::AccessToken::AccessTokenID selfToken = IPCSkeleton::GetSelfTokenID();
     ErrCode errCode = SetFirstCallerTokenID(selfToken);
     if (errCode != ERR_OK) {
@@ -220,6 +243,10 @@ void InnerAccountIAMManager::DelUser(
     credInfo.token = authToken;
     auto delUserCallback = std::make_shared<DelUserCallback>(userId, callback);
     UserIDMClient::GetInstance().UpdateCredential(userId, credInfo, delUserCallback);
+    std::unique_lock<std::mutex> lock(delUserCallback->mutex_);
+    delUserCallback->onResultCondition_.wait(lock, [delUserCallback] {
+        return delUserCallback->isCalled_;
+    });
 #else
 
     auto idmCallback = std::make_shared<DelCredCallback>(userId, true, authToken, callback);

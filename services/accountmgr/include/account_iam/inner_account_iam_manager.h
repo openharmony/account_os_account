@@ -98,10 +98,13 @@ private:
     ErrCode GetDomainAuthStatusInfo(
         int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback);
     void CopyAuthParam(const AuthParam &authParam, UserIam::UserAuth::AuthParam &iamAuthParam);
+    std::shared_ptr<std::mutex> GetOperatingUserLock(int32_t id);
 
 private:
     std::mutex mutex_;
     std::map<int32_t, IAMState> userStateMap_;
+    mutable std::mutex operatingMutex_;
+    std::map<int32_t, std::shared_ptr<std::mutex>> userLocks_;
 #ifdef HAS_PIN_AUTH_PART
     std::mutex delUserInputerMutex_;
     std::vector<std::shared_ptr<DelUserInputer>> delUserInputerVec_;
