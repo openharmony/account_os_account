@@ -118,6 +118,13 @@ PluginBussnessError *GetAccountInfo(const PluginGetDomainAccountInfoOptions *opt
     SetPluginString(options->domainAccountInfo.domain.data, (*domainAccountInfo)->domain);
     SetPluginString(options->domainAccountInfo.accountName.data, (*domainAccountInfo)->accountName);
     SetPluginString(options->domainAccountInfo.accountId.data, (*domainAccountInfo)->accountId);
+
+    if (options->domainAccountInfo.serverConfigId.data != nullptr) {
+        SetPluginString(options->domainAccountInfo.serverConfigId.data,
+            (*domainAccountInfo)->serverConfigId);
+    } else {
+        (*domainAccountInfo)->serverConfigId.data = nullptr;
+    }
     return error;
 }
 

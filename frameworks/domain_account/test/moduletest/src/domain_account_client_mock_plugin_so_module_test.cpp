@@ -565,6 +565,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     domainInfo.accountName_ = "testaccount";
     domainInfo.domain_ = "test.example.com";
     domainInfo.accountId_ = "testid";
+    domainInfo.serverConfigId_ = "100";
 
     LoadPluginMethods();
     auto callback = std::make_shared<MockPluginSoDomainCreateDomainAccountCallback>();
@@ -669,6 +670,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     domainInfo.accountName_ = "testaccount";
     domainInfo.domain_ = "test.example.com";
     domainInfo.accountId_ = "testid";
+    domainInfo.serverConfigId_ = "100";
     auto callback = std::make_shared<MockPluginSoDomainCreateDomainAccountCallback>();
     ASSERT_NE(callback, nullptr);
     auto testCallback = std::make_shared<TestPluginSoCreateDomainAccountCallback>(callback);
@@ -815,6 +817,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest,
     domainInfo.accountName_ = "testaccount";
     domainInfo.domain_ = "test.example.com";
     domainInfo.accountId_ = "testid";
+    domainInfo.serverConfigId_ = "100";
 
     LoadPluginMethods();
     auto callback = std::make_shared<MockPluginSoDomainCreateDomainAccountCallback>();
