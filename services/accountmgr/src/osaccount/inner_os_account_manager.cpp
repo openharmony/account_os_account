@@ -702,6 +702,7 @@ ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
 
 void IInnerOsAccountManager::CheckAndRefreshLocalIdRecord(const int id)
 {
+    std::lock_guard<std::mutex> lock(operatingMutex_);
     if (id == defaultActivatedId_) {
         ACCOUNT_LOGI("remove default activated id %{public}d", id);
         osAccountControl_->SetDefaultActivatedOsAccount(Constants::START_USER_ID);
@@ -1906,7 +1907,11 @@ ErrCode IInnerOsAccountManager::SetOsAccountIsLoggedIn(const int32_t id, const b
     }
     if (!osAccountInfo.GetIsLoggedIn()) {
 #ifdef ACTIVATE_LAST_LOGGED_IN_ACCOUNT
-        osAccountControl_->SetDefaultActivatedOsAccount(id);
+        {
+            std::lock_guard<std::mutex> lock(operatingMutex_);
+            osAccountControl_->SetDefaultActivatedOsAccount(id);
+            defaultActivatedId_ = id;
+        }
 #endif
         osAccountInfo.SetIsLoggedIn(isLoggedIn);
         osAccountInfo.SetLastLoginTime(std::chrono::duration_cast<std::chrono::seconds>(
@@ -2180,7 +2185,6 @@ ErrCode IInnerOsAccountManager::UpdateAccountInfoByDomainAccountInfo(
         oldDomainAccountInfo.domain_ = newDomainAccountInfo.domain_;
     }
     accountInfo.SetDomainInfo(oldDomainAccountInfo);
-    accountInfo.SetLocalName(newDomainAccountInfo.domain_ + "/" + newDomainAccountInfo.accountName_);
     result = osAccountControl_->UpdateOsAccount(accountInfo);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Update account info failed, result = %{public}d", result);
