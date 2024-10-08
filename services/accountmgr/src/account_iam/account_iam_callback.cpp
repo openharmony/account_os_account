@@ -284,6 +284,12 @@ void UpdateCredCallback::SetDeathRecipient(const sptr<IDMCallbackDeathRecipient>
     deathRecipient_ = deathRecipient;
 }
 
+static void DeleteCredential(uint32_t userId, uint64_t credentialId, const std::vector<uint8_t> &token)
+{
+    auto idmCallback = std::make_shared<DelCredCallback>(userId, true, token, nullptr);
+    UserIDMClient::GetInstance().DeleteCredential(userId, credentialId, token, idmCallback);
+}
+
 void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
     ACCOUNT_LOGI("UpdateCredCallback, userId=%{public}d, result=%{public}d.", userId_, result);
@@ -300,6 +306,8 @@ void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
         return;
     }
 
+    uint64_t credentialId = 0;
+    extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId);
     uint64_t secureUid = 0;
     extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, secureUid);
     std::vector<uint8_t> newSecret;
@@ -311,6 +319,7 @@ void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
     ErrCode code = innerIamMgr_.UpdateStorageUserAuth(userId_, secureUid, token, oldSecret, newSecret);
     if (code != ERR_OK) {
         ACCOUNT_LOGE("Fail to update user auth, userId=%{public}d, code=%{public}d", userId_, code);
+        DeleteCredential(userId_, credentialId, token);
         innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
         innerCallback_->OnResult(code, extraInfo);
         return;
@@ -318,8 +327,6 @@ void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
     innerIamMgr_.SetState(userId_, AFTER_UPDATE_CRED);
     uint64_t oldCredentialId = 0;
     extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_OLD_CREDENTIAL_ID, oldCredentialId);
-    uint64_t credentialId = 0;
-    extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId);
     auto idmCallback = std::make_shared<CommitCredUpdateCallback>(userId_, credentialId, innerCallback_);
     Security::AccessToken::AccessTokenID selfToken = IPCSkeleton::GetSelfTokenID();
     result = SetFirstCallerTokenID(selfToken);
