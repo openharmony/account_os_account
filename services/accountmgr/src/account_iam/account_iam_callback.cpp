@@ -424,6 +424,9 @@ void DelUserCallback::InnerOnResult(int32_t result, const Attributes &extraInfo)
     ErrCode errCode = innerIamMgr_.UpdateStorageUserAuth(userId_, secureUid, token, oldSecret, {});
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Fail to delete root secret, userId=%{public}d, errcode=%{public}d", userId_, errCode);
+        uint64_t credentialId = 0;
+        extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId);
+        DeleteCredential(userId_, credentialId, token);
         return innerCallback_->OnResult(errCode, extraInfo);
     }
 
