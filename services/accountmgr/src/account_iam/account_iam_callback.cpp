@@ -78,9 +78,8 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo, int32_t acco
             // el2 file decryption
             ret = InnerAccountIAMManager::GetInstance().ActivateUserKey(accountId, token, secret);
             if (ret != 0) {
-                ACCOUNT_LOGE("failed to activate user key");
-                ReportOsAccountOperationFail(accountId, "activateUserKey", ret,
-                    "failed to notice storage to activate user key");
+                ACCOUNT_LOGE("Failed to activate user key");
+                ReportOsAccountOperationFail(accountId, "auth", ret, "Failed to activate user key");
                 return ret;
             }
             isUpdateVerifiedStatus = true;
@@ -90,16 +89,14 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo, int32_t acco
         bool lockScreenStatus = false;
         ret = InnerAccountIAMManager::GetInstance().GetLockScreenStatus(accountId, lockScreenStatus);
         if (ret != 0) {
-            ReportOsAccountOperationFail(
-                accountId, "getLockScreenStatus", ret, "failed to get lock status msg from storage");
+            ReportOsAccountOperationFail(accountId, "auth", ret, "Failed to get lock status");
         }
         if (!lockScreenStatus && authType_ != AuthType::RECOVERY_KEY) {
             ACCOUNT_LOGI("start unlock user screen");
             // el3\4 file decryption
             ret = InnerAccountIAMManager::GetInstance().UnlockUserScreen(accountId, token, secret);
             if (ret != 0) {
-                ReportOsAccountOperationFail(
-                    accountId, "unlockUserScreen", ret, "failed to send unlock msg for storage");
+                ReportOsAccountOperationFail(accountId, "auth", ret, "Failed to unlock user");
                 return ret;
             }
         }
@@ -162,7 +159,7 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
     innerCallback_->AsObject()->RemoveDeathRecipient(deathRecipient_);
     if (result != 0) {
         innerCallback_->OnResult(result, extraInfo);
-        ReportOsAccountOperationFail(authedAccountId, "authUser", result, "auth user failed");
+        ReportOsAccountOperationFail(authedAccountId, "auth", result, "Failed to auth");
         return AccountInfoReport::ReportSecurityInfo("", authedAccountId, ReportEvent::EVENT_LOGIN, result);
     }
     if (isRemoteAuth_) {
@@ -228,6 +225,22 @@ void AddCredCallback::SetDeathRecipient(const sptr<IDMCallbackDeathRecipient> &d
     deathRecipient_ = deathRecipient;
 }
 
+static ErrCode AddUserKey(int32_t userId, uint64_t secureUid, const std::vector<uint8_t> &token,
+    const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret)
+{
+    ErrCode errCode = InnerAccountIAMManager::GetInstance().UpdateStorageUserAuth(
+        userId, secureUid, token, oldSecret, newSecret);
+    if (errCode != ERR_OK) {
+        ReportOsAccountOperationFail(userId, "addCredential", errCode, "Failed to update user auth");
+        return errCode;
+    }
+    errCode = InnerAccountIAMManager::GetInstance().UpdateStorageKeyContext(userId);
+    if (errCode != ERR_OK) {
+        ReportOsAccountOperationFail(userId, "addCredential", errCode, "Failed to update key context");
+    }
+    return errCode;
+}
+
 void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
     std::unique_lock<std::mutex> lock(mutex_);
@@ -253,19 +266,21 @@ void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
         std::vector<uint8_t> token;
         extraInfo.GetUint8ArrayValue(Attributes::ATTR_AUTH_TOKEN, token);
         std::vector<uint8_t> oldSecret;
-        ErrCode code = innerIamMgr_.UpdateStorageKey(userId_, secureUid, token, oldSecret, newSecret);
+        ErrCode code = AddUserKey(userId_, secureUid, token, oldSecret, newSecret);
         if (code == ERR_OK) {
             std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(userId_) +
                 Constants::PATH_SEPARATOR + Constants::USER_ADD_SECRET_FLAG_FILE_NAME;
             auto accountFileOperator = std::make_shared<AccountFileOperator>();
             code = accountFileOperator->DeleteDirOrFile(path);
             if (code != ERR_OK) {
+                ReportOsAccountOperationFail(userId_, "addCredential", code, "Failed to delete add_secret_flag file");
                 ACCOUNT_LOGE("Delete file fail, path=%{public}s", path.c_str());
             }
         }
     }
     if (result != 0) {
-        ReportOsAccountOperationFail(userId_, "addCredential", result, "Add credential failed");
+        ReportOsAccountOperationFail(userId_, "addCredential", result,
+            "Failed to add credential, type: " + std::to_string(credInfo_.authType));
     }
     innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
     innerCallback_->OnResult(result, extraInfo);
@@ -307,11 +322,13 @@ void UpdateCredCallback::InnerOnResult(int32_t result, const Attributes &extraIn
     }
     innerCallback_->AsObject()->RemoveDeathRecipient(deathRecipient_);
     auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
+    if (result != 0) {
+        ReportOsAccountOperationFail(userId_, "updateCredential", result,
+            "Failed to update credential, type: " + std::to_string(credInfo_.authType));
+    }
     if ((result != 0) || (credInfo_.authType != AuthType::PIN)) {
         ACCOUNT_LOGE("UpdateCredCallback fail code=%{public}d, authType=%{public}d", result, credInfo_.authType);
-        innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
-        innerCallback_->OnResult(result, extraInfo);
-        return;
+        return innerCallback_->OnResult(result, extraInfo);
     }
     UpdateCredInfo updateCredInfo;
     extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, updateCredInfo.credentialId);
@@ -324,7 +341,8 @@ void UpdateCredCallback::InnerOnResult(int32_t result, const Attributes &extraIn
             updateCredInfo.newSecret, updateCredInfo.secureUid, userId_);
         if (code != ERR_OK) {
             DeleteCredential(userId_, updateCredInfo.credentialId, credInfo_.token);
-            innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
+            ReportOsAccountOperationFail(userId_, "updateCredential", code,
+                "Failed to update user auth with recovery key");
             return innerCallback_->OnResult(code, extraInfo);
         }
     } else {
@@ -332,11 +350,10 @@ void UpdateCredCallback::InnerOnResult(int32_t result, const Attributes &extraIn
             updateCredInfo.token, updateCredInfo.oldSecret, {});
         if (code != ERR_OK) {
             DeleteCredential(userId_, updateCredInfo.credentialId, credInfo_.token);
-            innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
+            ReportOsAccountOperationFail(userId_, "updateCredential", code, "Failed to update user auth");
             return innerCallback_->OnResult(code, extraInfo);
         }
     }
-    innerIamMgr_.SetState(userId_, AFTER_UPDATE_CRED);
     uint64_t oldCredentialId = 0;
     extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_OLD_CREDENTIAL_ID, oldCredentialId);
     auto idmCallback = std::make_shared<CommitCredUpdateCallback>(userId_, updateCredInfo, innerCallback_);
@@ -345,9 +362,7 @@ void UpdateCredCallback::InnerOnResult(int32_t result, const Attributes &extraIn
     ACCOUNT_LOGI("Set first caller info result: %{public}d", result);
     UserIDMClient::GetInstance().DeleteCredential(userId_, oldCredentialId, credInfo_.token, idmCallback);
     std::unique_lock<std::mutex> delLock(idmCallback->mutex_);
-    idmCallback->onResultCondition_.wait(delLock, [idmCallback] {
-        return idmCallback->isCalled_;
-    });
+    idmCallback->onResultCondition_.wait(delLock, [idmCallback] { return idmCallback->isCalled_; });
 }
 
 void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
@@ -406,12 +421,13 @@ void DelUserCallback::InnerOnResult(int32_t result, const Attributes &extraInfo)
 {
     ACCOUNT_LOGI("DelUserCallback, userId: %{public}d, result: %{public}d", userId_, result);
     if (innerCallback_ == nullptr) {
-        ACCOUNT_LOGE("Inner callbcak is nullptr");
+        ACCOUNT_LOGE("Inner callback is nullptr");
         return;
     }
     result = ConvertDelUserErrCode(result);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("DelUserCallback fail code = %{public}d", result);
+        ReportOsAccountOperationFail(userId_, "deleteCredential", result, "Failed to delete user");
         return innerCallback_->OnResult(result, extraInfo);
     }
     uint64_t secureUid = 0;
@@ -423,7 +439,7 @@ void DelUserCallback::InnerOnResult(int32_t result, const Attributes &extraInfo)
     auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
     ErrCode errCode = innerIamMgr_.UpdateStorageUserAuth(userId_, secureUid, token, oldSecret, {});
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Fail to delete root secret, userId=%{public}d, errcode=%{public}d", userId_, errCode);
+        ReportOsAccountOperationFail(userId_, "deleteCredential", errCode, "Failed to update user auth");
         uint64_t credentialId = 0;
         extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId);
         DeleteCredential(userId_, credentialId, token);
@@ -433,22 +449,23 @@ void DelUserCallback::InnerOnResult(int32_t result, const Attributes &extraInfo)
     auto eraseUserCallback = std::make_shared<OsAccountDeleteUserIdmCallback>();
     errCode = UserIam::UserAuth::UserIdmClient::GetInstance().EraseUser(userId_, eraseUserCallback);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Fail to erase user, userId=%{public}d, errcode=%{public}d", userId_, errCode);
+        ACCOUNT_LOGE("Failed to erase user, userId=%{public}d, errcode=%{public}d", userId_, errCode);
+        ReportOsAccountOperationFail(userId_, "deleteCredential", errCode, "Failed to erase user");
         return innerCallback_->OnResult(errCode, extraInfo);
     }
     std::unique_lock<std::mutex> lock(eraseUserCallback->mutex_);
-    eraseUserCallback->onResultCondition_.wait(lock, [eraseUserCallback] {
-        return eraseUserCallback->isCalled_;
-    });
+    eraseUserCallback->onResultCondition_.wait(lock, [eraseUserCallback] { return eraseUserCallback->isCalled_; });
     if (eraseUserCallback->resultCode_ != ERR_OK) {
-        ACCOUNT_LOGE("Fail to erase user, userId=%{public}d, errcode=%{public}d",
+        ACCOUNT_LOGE("Failed to erase user in callback, userId=%{public}d, errcode=%{public}d",
             userId_, eraseUserCallback->resultCode_);
+        ReportOsAccountOperationFail(userId_, "deleteCredential", eraseUserCallback->resultCode_,
+            "Failed to erase user");
         return innerCallback_->OnResult(eraseUserCallback->resultCode_, extraInfo);
     }
     (void)IInnerOsAccountManager::GetInstance().SetOsAccountCredentialId(userId_, 0);
     errCode = innerIamMgr_.UpdateStorageKeyContext(userId_);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Fail to update key context, userId=%{public}d, errcode=%{public}d", userId_, errCode);
+        ReportOsAccountOperationFail(userId_, "deleteCredential", errCode, "Failed to update key context");
     }
     innerCallback_->OnResult(errCode, extraInfo);
 }
@@ -478,7 +495,7 @@ void CommitCredUpdateCallback::InnerOnResult(int32_t result, const Attributes &e
     auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
     if (result != 0) {
         ACCOUNT_LOGE("CommitCredUpdateCallback fail code=%{public}d", result);
-        ReportOsAccountOperationFail(userId_, "CommitCredUpdated", result, "Fail to commit cred updated");
+        ReportOsAccountOperationFail(userId_, "commitCredUpdate", result, "Failed to commit credential update");
         innerCallback_->OnResult(result, extraInfo);
         innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
         return;
@@ -489,6 +506,7 @@ void CommitCredUpdateCallback::InnerOnResult(int32_t result, const Attributes &e
         if (code != ERR_OK) {
             ACCOUNT_LOGE("Fail to update user auth, userId=%{public}d, code=%{public}d", userId_, code);
             innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
+            ReportOsAccountOperationFail(userId_, "commitCredUpdate", code, "Failed to update user auth");
             innerCallback_->OnResult(code, extraInfo);
             return;
         }
@@ -496,7 +514,10 @@ void CommitCredUpdateCallback::InnerOnResult(int32_t result, const Attributes &e
     Attributes extraInfoResult;
     extraInfoResult.SetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, extraUpdateInfo_.credentialId);
     innerCallback_->OnResult(result, extraInfoResult);
-    innerIamMgr_.UpdateStorageKeyContext(userId_);
+    ErrCode updateRet = innerIamMgr_.UpdateStorageKeyContext(userId_);
+    if (updateRet != ERR_OK) {
+        ReportOsAccountOperationFail(userId_, "commitCredUpdate", updateRet, "Failed to update key context");
+    }
     innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
 }
 
@@ -533,11 +554,18 @@ void DelCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
         extraInfo.GetUint8ArrayValue(Attributes::ATTR_OLD_ROOT_SECRET, oldSecret);
         uint64_t secureUid = 0;
         extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, secureUid);
-        (void) innerIamMgr_.UpdateStorageKey(userId_, secureUid, token_, oldSecret, newSecret);
+        ErrCode updateRet = innerIamMgr_.UpdateStorageUserAuth(userId_, secureUid, token_, oldSecret, newSecret);
+        if (updateRet != ERR_OK) {
+            ReportOsAccountOperationFail(userId_, "deleteCredential", updateRet, "Failed to update user auth");
+        }
+        updateRet = innerIamMgr_.UpdateStorageKeyContext(userId_);
+        if (updateRet != ERR_OK) {
+            ReportOsAccountOperationFail(userId_, "deleteCredential", updateRet, "Failed to update key context");
+        }
     }
     if (result != 0) {
         ACCOUNT_LOGE("DelCredCallback fail code=%{public}d, userId=%{public}d", result, userId_);
-        ReportOsAccountOperationFail(userId_, "deleteCredential", result, "fail to delete credential");
+        ReportOsAccountOperationFail(userId_, "deleteCredential", result, "Failed to delete credential");
     }
 
     innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
@@ -588,7 +616,7 @@ void GetPropCallbackWrapper::OnResult(int32_t result, const Attributes &extraInf
         return;
     }
     if (result != 0) {
-        ReportOsAccountOperationFail(userId_, "getProperty", result, "fail to get property");
+        ReportOsAccountOperationFail(userId_, "getProperty", result, "Failed to get property");
     }
     innerCallback_->OnResult(result, extraInfo);
 }
@@ -604,7 +632,7 @@ void SetPropCallbackWrapper::OnResult(int32_t result, const Attributes &extraInf
         return;
     }
     if (result != 0) {
-        ReportOsAccountOperationFail(userId_, "setProperty", result, "fail to set property");
+        ReportOsAccountOperationFail(userId_, "setProperty", result, "Failed to set property");
     }
     innerCallback_->OnResult(result, extraInfo);
 }
