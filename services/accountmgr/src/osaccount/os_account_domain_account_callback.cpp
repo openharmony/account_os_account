@@ -98,8 +98,8 @@ void BindDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo_);
     if ((osAccountInfo_.GetLocalId() == Constants::START_USER_ID) && (errCode == ERR_OK)) {
 #ifdef HAS_CES_PART
-        AccountEventProvider::EventPublishAsUser(
-            EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::START_USER_ID);
+        AccountEventProvider::EventPublish(
+            EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::START_USER_ID, nullptr);
 #else  // HAS_CES_PART
         ACCOUNT_LOGI("No common event part! Publish nothing!");
 #endif // HAS_CES_PART
