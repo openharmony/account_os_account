@@ -999,6 +999,7 @@ napi_value OnSetData(napi_env env, napi_callback_info info)
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return nullptr;
     }
+    ACCOUNT_LOGI("Call OnSetData, authSubType: %{public}d", authSubType);
     context->inputerData->OnSetData(authSubType, data);
     context->inputerData = nullptr;
     return nullptr;

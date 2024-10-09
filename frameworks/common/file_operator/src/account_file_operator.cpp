@@ -165,8 +165,10 @@ static bool IsDataStorageSufficient(const unsigned long long reqFreeBytes)
     unsigned long long freeBytes =
         static_cast<unsigned long long>(diskInfo.f_bsize) * static_cast<unsigned long long>(diskInfo.f_bavail);
     bool isSufficient = (freeBytes > reqFreeBytes + BUFF_FILE_SIZE);
-    ACCOUNT_LOGI("Data freeBytes=%{public}llu, reqFreeBytes=%{public}llu, isSufficient=%{public}d.", freeBytes,
-                 reqFreeBytes, isSufficient);
+    if (!isSufficient) {
+        ACCOUNT_LOGE("Data storage is insufficient, freeBytes=%{public}llu, reqFreeBytes=%{public}llu.", freeBytes,
+                     reqFreeBytes);
+    }
     return isSufficient;
 }
 
