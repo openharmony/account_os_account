@@ -87,7 +87,6 @@ public:
     {
         return 0;
     }
-    
 
     int32_t StopUser(int32_t userId)
     {
@@ -95,6 +94,17 @@ public:
     }
 
     int32_t CompleteAddUser(int32_t userId)
+    {
+        return 0;
+    }
+
+    
+    int32_t NotifyMtpMounted(std::string id, std::string path)
+    {
+        return 0;
+    }
+
+    int32_t NotifyMtpUnmounted(std::string id, std::string path)
     {
         return 0;
     }
