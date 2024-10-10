@@ -769,9 +769,10 @@ ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountIn
     (void)OhosAccountManager::GetInstance().GetAccountInfoByUserId(id, ohosInfo);
     if (ohosInfo.ohosAccountInfo_.name_ != DEFAULT_OHOS_ACCOUNT_NAME) {
 #ifdef HAS_CES_PART
-        AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, id, nullptr);
-        AccountEventProvider::EventPublish(
-            EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT, id, nullptr);
+        AccountEventProvider::EventPublishAsUser(
+            EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, id);
+        AccountEventProvider::EventPublishAsUser(
+            EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT, id);
 #else  // HAS_CES_PART
         ACCOUNT_LOGI("No common event part! Publish nothing!");
 #endif // HAS_CES_PART

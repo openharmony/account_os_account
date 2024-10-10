@@ -370,8 +370,9 @@ ErrCode OhosAccountManager::LoginOhosAccount(const int32_t userId, const OhosAcc
         (void)CreateCommonEventSubscribe();
         return ERR_OK;
     }
-    AccountEventProvider::EventPublish(CommonEventSupport::COMMON_EVENT_HWID_LOGIN, userId, nullptr);
-    AccountEventProvider::EventPublish(CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGIN, userId, nullptr);
+    AccountEventProvider::EventPublishAsUser(CommonEventSupport::COMMON_EVENT_HWID_LOGIN, userId);
+    AccountEventProvider::EventPublishAsUser(
+        CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGIN, userId);
 #else  // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, publish nothing!");
 #endif // HAS_CES_PART
@@ -414,9 +415,10 @@ ErrCode OhosAccountManager::LogoutOhosAccount(
     subscribeManager_.Publish(userId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGOUT);
 
 #ifdef HAS_CES_PART
-    AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, userId, nullptr);
-    AccountEventProvider::EventPublish(
-        EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT, userId, nullptr);
+    AccountEventProvider::EventPublishAsUser(
+        EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, userId);
+    AccountEventProvider::EventPublishAsUser(
+        EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT, userId);
 #else  // HAS_CES_PART
     ACCOUNT_LOGI("No common event part! Publish nothing!");
 #endif // HAS_CES_PART
@@ -457,9 +459,10 @@ ErrCode OhosAccountManager::LogoffOhosAccount(
     subscribeManager_.Publish(userId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGOFF);
 
 #ifdef HAS_CES_PART
-    AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOFF, userId, nullptr);
-    AccountEventProvider::EventPublish(
-        EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOFF, userId, nullptr);
+    AccountEventProvider::EventPublishAsUser(
+        EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOFF, userId);
+    AccountEventProvider::EventPublishAsUser(
+        EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOFF, userId);
 #else  // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, publish nothing for logoff!");
 #endif // HAS_CES_PART
@@ -501,10 +504,10 @@ ErrCode OhosAccountManager::HandleOhosAccountTokenInvalidEvent(
     subscribeManager_.Publish(userId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::TOKEN_INVALID);
 
 #ifdef HAS_CES_PART
-    AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_TOKEN_INVALID,
-        userId, nullptr);
-    AccountEventProvider::EventPublish(
-        EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_TOKEN_INVALID, userId, nullptr);
+    AccountEventProvider::EventPublishAsUser(
+        EventFwk::CommonEventSupport::COMMON_EVENT_HWID_TOKEN_INVALID, userId);
+    AccountEventProvider::EventPublishAsUser(
+        EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_TOKEN_INVALID, userId);
 #else  // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, publish nothing for token invalid event.");
 #endif // HAS_CES_PART
@@ -615,10 +618,10 @@ void OhosAccountManager::OnPackageRemoved(const std::int32_t callingUid)
         (void)GetAccountInfoByUserId(info.GetLocalId(), accountInfo);
         if (accountInfo.ohosAccountInfo_.callingUid_ == callingUid) {
             (void)ClearOhosAccount(accountInfo);
-            AccountEventProvider::EventPublish(
-                EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, info.GetLocalId(), nullptr);
-            AccountEventProvider::EventPublish(
-                EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT, info.GetLocalId(), nullptr);
+            AccountEventProvider::EventPublishAsUser(
+                EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, info.GetLocalId());
+            AccountEventProvider::EventPublishAsUser(
+                EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT, info.GetLocalId());
         }
     }
 }
