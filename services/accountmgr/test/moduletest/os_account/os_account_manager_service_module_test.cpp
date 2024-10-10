@@ -21,6 +21,9 @@
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "os_account_constants.h"
+#include "accesstoken_kit.h"
+#include "token_setproc.h"
+#include "ipc_skeleton.h"
 #define private public
 #include "account_file_operator.h"
 #include "iinner_os_account_manager.h"
@@ -36,6 +39,7 @@ using namespace OHOS::AccountSA;
 using namespace OHOS;
 using namespace AccountSA;
 using namespace OHOS::AccountSA::Constants;
+using namespace OHOS::Security::AccessToken;
 
 namespace {
 const std::string STRING_EMPTY = "";
@@ -51,6 +55,7 @@ const uid_t ACCOUNT_UID = 3058;
 const std::int32_t ROOT_UID = 0;
 const std::int32_t TEST_UID = 1;
 const int32_t THREAD_NUM = 10;
+const int32_t NATIVE_TOKEN = 1;
 
 const std::vector<std::string> CONSTANTS_VECTOR {
     "constraint.print",
@@ -2552,6 +2557,112 @@ HWTEST_F(OsAccountManagerServiceModuleTest, MaxNumTest006, TestSize.Level1)
             "MaxNumTest006_New", OsAccountType::NORMAL, osAccountInfo), ERR_OK);
     createdOsAccounts.emplace_back(osAccountInfo.GetLocalId());
 
+
+    for (const auto &id : createdOsAccounts) {
+        osAccountManagerService_->RemoveOsAccount(id);
+    }
+    osAccountFileOperator.DeleteDirOrFile(CONFIG_PATH);
+}
+
+/**
+ * @tc.name: MaxNumTest007
+ * @tc.desc: test create account failed in accounts reaches upper limit, and not limited by sa call
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, MaxNumTest007, TestSize.Level1)
+{
+    AccountFileOperator osAccountFileOperator;
+    osAccountFileOperator.InputFileByPathAndContent(CONFIG_PATH, CONFIG_JSON_NORMAL);
+    auto &innerMgr = osAccountManagerService_->innerManager_;
+    ASSERT_NE(innerMgr.osAccountControl_, nullptr);
+    innerMgr.osAccountControl_->GetOsAccountConfig(innerMgr.config_);
+
+    uint32_t maxOsAccountNum = 0;
+    EXPECT_EQ(osAccountManagerService_->QueryMaxOsAccountNumber(maxOsAccountNum), ERR_OK);
+    ASSERT_EQ(maxOsAccountNum, MAX_OS_ACCOUNT_NUM);
+
+    std::vector<OsAccountInfo> osAccountInfos;
+    EXPECT_EQ(osAccountManagerService_->QueryAllCreatedOsAccounts(osAccountInfos), ERR_OK);
+    for (const auto &osAccountInfo : osAccountInfos) {
+        if (osAccountInfo.GetLocalId() == START_USER_ID) {
+            continue;
+        }
+        osAccountManagerService_->RemoveOsAccount(osAccountInfo.GetLocalId());
+    }
+
+    innerMgr.CleanGarbageOsAccounts();
+
+    std::vector<int32_t> createdOsAccounts;
+    OsAccountInfo osAccountInfo;
+    for (uint32_t i = 1; i < maxOsAccountNum; ++i) {
+        EXPECT_EQ(osAccountManagerService_->CreateOsAccount(
+            "MaxNumTest007" + std::to_string(i), OsAccountType::NORMAL, osAccountInfo), ERR_OK);
+        createdOsAccounts.emplace_back(osAccountInfo.GetLocalId());
+    }
+
+    EXPECT_EQ(osAccountManagerService_->CreateOsAccount(
+            "MaxNumTest007" + std::to_string(maxOsAccountNum), OsAccountType::NORMAL, osAccountInfo),
+            ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR);
+
+    AccessTokenID selfTokenId = IPCSkeleton::GetSelfTokenID();
+    AccessTokenID tokenId = AccessTokenKit::GetNativeTokenId("accountmgr");
+    EXPECT_EQ(ERR_OK, SetSelfTokenID(tokenId));
+    EXPECT_EQ(osAccountManagerService_->CreateOsAccount(
+            "MaxNumTest007_SaCreated", OsAccountType::NORMAL, osAccountInfo), ERR_OK);
+    EXPECT_EQ(NATIVE_TOKEN, osAccountInfo.GetCreatorType());
+    createdOsAccounts.emplace_back(osAccountInfo.GetLocalId());
+    EXPECT_EQ(ERR_OK, SetSelfTokenID(selfTokenId));
+
+    for (const auto &id : createdOsAccounts) {
+        osAccountManagerService_->RemoveOsAccount(id);
+    }
+    osAccountFileOperator.DeleteDirOrFile(CONFIG_PATH);
+}
+
+/**
+ * @tc.name: MaxNumTest008
+ * @tc.desc: test sa created account does not affect upper limit
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, MaxNumTest008, TestSize.Level1)
+{
+    AccountFileOperator osAccountFileOperator;
+    osAccountFileOperator.InputFileByPathAndContent(CONFIG_PATH, CONFIG_JSON_NORMAL);
+    auto &innerMgr = osAccountManagerService_->innerManager_;
+    ASSERT_NE(innerMgr.osAccountControl_, nullptr);
+    innerMgr.osAccountControl_->GetOsAccountConfig(innerMgr.config_);
+
+    uint32_t maxOsAccountNum = 0;
+    EXPECT_EQ(osAccountManagerService_->QueryMaxOsAccountNumber(maxOsAccountNum), ERR_OK);
+    ASSERT_EQ(maxOsAccountNum, MAX_OS_ACCOUNT_NUM);
+
+    std::vector<OsAccountInfo> osAccountInfos;
+    EXPECT_EQ(osAccountManagerService_->QueryAllCreatedOsAccounts(osAccountInfos), ERR_OK);
+    for (const auto &osAccountInfo : osAccountInfos) {
+        if (osAccountInfo.GetLocalId() == START_USER_ID) {
+            continue;
+        }
+        osAccountManagerService_->RemoveOsAccount(osAccountInfo.GetLocalId());
+    }
+
+    innerMgr.CleanGarbageOsAccounts();
+
+    std::vector<int32_t> createdOsAccounts;
+    OsAccountInfo osAccountInfo;
+    AccessTokenID selfTokenId = IPCSkeleton::GetSelfTokenID();
+    AccessTokenID tokenId = AccessTokenKit::GetNativeTokenId("accountmgr");
+    EXPECT_EQ(ERR_OK, SetSelfTokenID(tokenId));
+    for (uint32_t i = 1; i < maxOsAccountNum; ++i) {
+        EXPECT_EQ(osAccountManagerService_->CreateOsAccount(
+            "MaxNumTest008_sa_" + std::to_string(i), OsAccountType::NORMAL, osAccountInfo), ERR_OK);
+        createdOsAccounts.emplace_back(osAccountInfo.GetLocalId());
+    }
+    EXPECT_EQ(ERR_OK, SetSelfTokenID(selfTokenId));
+
+    EXPECT_EQ(osAccountManagerService_->CreateOsAccount(
+            "MaxNumTest008" + std::to_string(maxOsAccountNum), OsAccountType::NORMAL, osAccountInfo), ERR_OK);
 
     for (const auto &id : createdOsAccounts) {
         osAccountManagerService_->RemoveOsAccount(id);
