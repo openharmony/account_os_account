@@ -98,7 +98,7 @@ public:
         return 0;
     }
 
-    int32_t NotifyMtpMounted(std::string id, std::string path)
+    int32_t NotifyMtpMounted(std::string &id, std::string &path, std::string &desc)
     {
         return 0;
     }
