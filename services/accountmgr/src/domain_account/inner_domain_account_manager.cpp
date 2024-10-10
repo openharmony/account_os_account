@@ -993,7 +993,7 @@ ErrCode InnerDomainAccountManager::StartGetAccessToken(const sptr<IDomainAccount
         OnResultForGetAccessToken(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, callback);
         return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
     }
-    DomainAccountCallbackFunc callbackFunc = [=](const int32_t errCode, Parcel &parcel) {
+    DomainAccountCallbackFunc callbackFunc = [callback](const int32_t errCode, Parcel &parcel) {
         if (callback != nullptr) {
             callback->OnResult(errCode, parcel);
         }
@@ -1460,7 +1460,7 @@ ErrCode InnerDomainAccountManager::PluginGetDomainAccountInfo(const GetDomainAcc
 ErrCode InnerDomainAccountManager::GetDomainAccountInfo(
     const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback)
 {
-    DomainAccountCallbackFunc callbackFunc = [=](const int32_t errCode, Parcel &parcel) {
+    DomainAccountCallbackFunc callbackFunc = [callback](const int32_t errCode, Parcel &parcel) {
         if (callback != nullptr) {
             callback->OnResult(errCode, parcel);
         }
