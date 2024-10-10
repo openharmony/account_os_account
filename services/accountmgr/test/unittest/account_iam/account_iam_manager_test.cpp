@@ -98,7 +98,6 @@ public:
         return 0;
     }
 
-    
     int32_t NotifyMtpMounted(std::string id, std::string path)
     {
         return 0;
