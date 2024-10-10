@@ -85,6 +85,7 @@ int32_t OsAccountConvertToJSErrCode(int32_t errCode)
         return ERR_JS_INVALID_PARAMETER;
     }
     switch (errCode) {
+        case ERR_OSACCOUNT_SERVICE_INNER_SELECT_ERROR:
         case ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR:
             return ERR_JS_ACCOUNT_NOT_FOUND;
         case ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR:
