@@ -19,6 +19,7 @@
 #include "account_log_wrapper.h"
 #include "nlohmann/json.hpp"
 #include "securec.h"
+#include "string_ex.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -524,7 +525,12 @@ bool BundleManagerAdapterProxy::GetParcelableFromAshmem(MessageParcel &reply, T 
         return false;
     }
 
-    int strLen = atoi(lenStr.c_str());
+    int32_t strLen = 0;
+    if (!StrToInt(lenStr, strLen)) {
+        ACCOUNT_LOGE("Convert lenStr failed");
+        ClearAshmem(ashmem);
+        return false;
+    }
     offset += ASHMEM_LEN;
     std::string infoStr;
     if (!ParseStr(dataStr, strLen, offset, infoStr)) {
@@ -648,7 +654,11 @@ bool BundleManagerAdapterProxy::ParseAshmem(
         if (!ParseStr(dataStr, ASHMEM_LEN, offset, lenStr)) {
             return false;
         }
-        int strLen = atoi(lenStr.c_str());
+        int32_t strLen = 0;
+        if (!StrToInt(lenStr, strLen)) {
+            ACCOUNT_LOGE("Convert lenStr failed");
+            return false;
+        }
         offset += ASHMEM_LEN;
         std::string infoStr;
         if (!ParseStr(dataStr, strLen, offset, infoStr)) {
