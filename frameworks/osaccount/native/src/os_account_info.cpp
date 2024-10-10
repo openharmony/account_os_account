@@ -44,6 +44,7 @@ const std::string DISPLAY_ID = "displayId";
 const std::string IS_FOREGROUND = "isForeground";
 const std::string IS_LOGGED_IN = "isLoggedIn";
 const std::string IS_DATA_REMOVABLE = "isDataRemovable";
+const std::string CREATOR_TYPE = "creatorType";
 const std::string DOMAIN_ACCOUNT_STATUS = "domainAccountStatus";
 const std::string DOMAIN_ACCOUNT_CONFIG = "domainServerConfigId";
 }  // namespace
@@ -180,6 +181,16 @@ void OsAccountInfo::SetIsDataRemovable(bool isDataRemovable)
     isDataRemovable_ = isDataRemovable;
 }
 
+int32_t OsAccountInfo::GetCreatorType() const
+{
+    return creatorType_;
+}
+
+void OsAccountInfo::SetCreatorType(int32_t creatorType)
+{
+    creatorType_ = creatorType;
+}
+
 bool OsAccountInfo::SetDomainInfo(const DomainAccountInfo &domainInfo)
 {
     if (domainInfo.accountName_.size() > Constants::LOCAL_NAME_MAX_SIZE) {
@@ -260,6 +271,7 @@ Json OsAccountInfo::ToJson() const
         {IS_FOREGROUND, isForeground_},
         {IS_LOGGED_IN, isLoggedIn_},
         {IS_DATA_REMOVABLE, isDataRemovable_},
+        {CREATOR_TYPE, creatorType_},
         {DOMAIN_INFO, {
             {DOMAIN_NAME, domainInfo_.domain_},
             {DOMAIN_ACCOUNT_NAME, domainInfo_.accountName_},
@@ -343,6 +355,8 @@ bool OsAccountInfo::FromJson(const Json &jsonObject)
         jsonObject, jsonObjectEnd, IS_LOGGED_IN, isLoggedIn_, OHOS::AccountSA::JsonType::BOOLEAN);
     OHOS::AccountSA::GetDataByType<bool>(
         jsonObject, jsonObjectEnd, IS_DATA_REMOVABLE, isDataRemovable_, OHOS::AccountSA::JsonType::BOOLEAN);
+    OHOS::AccountSA::GetDataByType<int32_t>(
+        jsonObject, jsonObjectEnd, CREATOR_TYPE, creatorType_, OHOS::AccountSA::JsonType::NUMBER);
 
     GetDomainInfoFromJson(jsonObject);
     if (!parseSuccess) {

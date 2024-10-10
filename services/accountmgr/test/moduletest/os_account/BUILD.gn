@@ -138,6 +138,7 @@ ohos_moduletest("os_account_manager_service_module_test") {
     "ability_base:want",
     "ability_runtime:ability_manager",
     "ability_runtime:app_manager",
+    "access_token:libtokensetproc_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
