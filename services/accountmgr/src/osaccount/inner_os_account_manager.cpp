@@ -2248,6 +2248,9 @@ ErrCode IInnerOsAccountManager::UpdateAccountToBackground(int32_t oldId)
         if (errCode != ERR_OK) {
             return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
         }
+        if (oldOsAccountInfo.GetIsForeground()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_REMOVING_FOREGROUND_OS_ACCOUNT));
+        }
         oldOsAccountInfo.SetIsForeground(false);
         oldOsAccountInfo.SetDisplayId(Constants::INVALID_DISPALY_ID);
         errCode = osAccountControl_->UpdateOsAccount(oldOsAccountInfo);
