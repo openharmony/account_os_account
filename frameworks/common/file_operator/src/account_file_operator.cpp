@@ -338,6 +338,7 @@ bool AccountFileOperator::IsJsonFormat(const std::string &path)
 
     nlohmann::json jsonData = nlohmann::json::parse(content, nullptr, false);
     if (jsonData.is_discarded() || !jsonData.is_structured()) {
+        ACCOUNT_LOGE("File %{public}s is invalid json format, size: %{public}zu", path.c_str(), content.size());
         return false;
     }
     return true;

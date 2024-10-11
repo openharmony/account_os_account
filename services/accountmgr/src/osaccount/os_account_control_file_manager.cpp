@@ -949,7 +949,7 @@ ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInf
     std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + osAccountInfo.GetPrimeKey() +
                        Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
     if (accountFileOperator_->IsExistFile(path) && accountFileOperator_->IsJsonFormat(path)) {
-        ACCOUNT_LOGE("OsAccountControlFileManagerInsertOsAccountControlFileManagerCreateAccountDir ERR");
+        ACCOUNT_LOGE("Account %{public}d already exists", osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_CONTROL_INSERT_FILE_EXISTS_ERROR;
     }
 
@@ -959,6 +959,13 @@ ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInf
         return ERR_OSACCOUNT_SERVICE_ACCOUNT_INFO_EMPTY_ERROR;
     }
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
+    if (osAccountInfo.GetLocalId() >= Constants::START_USER_ID) {
+        ErrCode updateRet = UpdateAccountList(osAccountInfo.GetPrimeKey(), true);
+        if (updateRet != ERR_OK) {
+            ACCOUNT_LOGE("Update account list failed, errCode: %{public}d", updateRet);
+            return updateRet;
+        }
+    }
     ErrCode result = accountFileOperator_->InputFileByPathAndContent(path, accountInfoStr);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("InputFileByPathAndContent failed! path %{public}s.", path.c_str());
@@ -971,7 +978,6 @@ ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInf
     if (osAccountInfo.GetLocalId() >= Constants::START_USER_ID) {
         accountFileWatcherMgr_.AddAccountInfoDigest(accountInfoStr, path);
         accountFileWatcherMgr_.AddFileWatcher(osAccountInfo.GetLocalId(), eventCallbackFunc_);
-        return UpdateAccountList(osAccountInfo.GetPrimeKey(), true);
     }
     ACCOUNT_LOGI("end");
     return ERR_OK;
