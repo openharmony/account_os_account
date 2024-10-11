@@ -45,6 +45,7 @@ private:
 class AccountEventSubscriber {
 public:
     explicit AccountEventSubscriber(const AccountCommonEventCallback &callback);
+    ~AccountEventSubscriber();
     bool CreateEventSubscribe();
     bool DestroyEventSubscribe();
 
