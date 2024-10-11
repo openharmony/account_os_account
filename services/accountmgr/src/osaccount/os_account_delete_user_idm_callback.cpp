@@ -19,11 +19,14 @@
 
 namespace OHOS {
 namespace AccountSA {
-#ifdef HAS_USER_IDM_PART
+#ifdef HAS_USER_AUTH_PART
 void OsAccountDeleteUserIdmCallback::OnResult(int32_t result, const UserIam::UserAuth::Attributes &extraInfo)
 {
+    std::unique_lock<std::mutex> lock(mutex_);
     ACCOUNT_LOGI("IAM OnResult callback! result %{public}d", result);
     isIdmOnResultCallBack_ = true;
+    resultCode_ = result;
+    onResultCondition_.notify_one();
 }
 
 void OsAccountDeleteUserIdmCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo,
@@ -31,6 +34,6 @@ void OsAccountDeleteUserIdmCallback::OnAcquireInfo(int32_t module, uint32_t acqu
 {
     ACCOUNT_LOGI("IAM OnAcquireInfo callback! module %{public}d, acquire %{public}u.", module, acquireInfo);
 }
-#endif // HAS_USER_IDM_PART
+#endif // HAS_USER_AUTH_PART
 }  // namespace AccountSA
 }  // namespace OHOS

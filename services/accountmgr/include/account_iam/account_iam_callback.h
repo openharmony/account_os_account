@@ -99,15 +99,45 @@ public:
 
 private:
     std::uint32_t userId_;
-    std::vector<uint8_t> oldCredential_;
     CredentialParameters credInfo_;
     sptr<IDMCallbackDeathRecipient> deathRecipient_ = nullptr;
     const sptr<IIDMCallback> innerCallback_ = nullptr;
 };
 
+#ifdef HAS_PIN_AUTH_PART
+class DelUserInputer : public IInputer {
+public:
+    DelUserInputer() = default;
+    virtual ~DelUserInputer() = default;
+
+    void OnGetData(int32_t authSubType, std::vector<uint8_t> challenge,
+        std::shared_ptr<IInputerData> inputerData) override;
+};
+
+class DelUserCallback : public UserIdmClientCallback {
+public:
+    DelUserCallback(uint32_t userId, const sptr<IIDMCallback> &callback);
+    virtual ~DelUserCallback();
+
+    void OnResult(int32_t result, const Attributes &extraInfo) override;
+    void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override {};
+
+private:
+    std::uint32_t userId_;
+    const sptr<IIDMCallback> innerCallback_ = nullptr;
+};
+#endif // HAS_PIN_AUTH_PART
+
+struct UpdateCredInfo {
+    uint64_t credentialId = 0;
+    uint64_t secureUid = 0;
+    std::vector<uint8_t> token;
+    std::vector<uint8_t> newSecret;
+};
+
 class CommitCredUpdateCallback : public UserIdmClientCallback {
 public:
-    CommitCredUpdateCallback(int32_t userId, uint64_t credentialId, const sptr<IIDMCallback> &callback);
+    CommitCredUpdateCallback(int32_t userId, const UpdateCredInfo &extraUpdateInfo, const sptr<IIDMCallback> &callback);
     virtual ~CommitCredUpdateCallback() = default;
 
     void OnResult(int32_t result, const Attributes &extraInfo) override;
@@ -115,7 +145,7 @@ public:
 
 private:
     int32_t userId_;
-    uint64_t credentialId_;
+    UpdateCredInfo extraUpdateInfo_;
     sptr<IIDMCallback> innerCallback_ = nullptr;
 };
 
