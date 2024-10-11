@@ -98,12 +98,12 @@ public:
         return 0;
     }
 
-    int32_t NotifyMtpMounted(std::string &id, std::string &path, std::string &desc)
+    int32_t NotifyMtpMounted(const std::string &id, const std::string &path, const std::string &desc)
     {
         return 0;
     }
 
-    int32_t NotifyMtpUnmounted(std::string id, std::string path)
+    int32_t NotifyMtpUnmounted(const std::string &id, const std::string &path)
     {
         return 0;
     }
