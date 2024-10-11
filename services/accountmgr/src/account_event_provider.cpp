@@ -26,6 +26,7 @@
 #endif // HAS_CES_PART
 #include "account_hisysevent_adapter.h"
 #include "hitrace_adapter.h"
+#include "common_event_constant.h"
 
 #ifdef HAS_CES_PART
 using namespace OHOS::EventFwk;
@@ -60,9 +61,44 @@ bool AccountEventProvider::EventPublish(const std::string& event, int32_t userId
     if (!CommonEventManager::PublishCommonEvent(data)) {
         ACCOUNT_LOGE("PublishCommonEvent failed! event %{public}s. userId is %{public}d", event.c_str(), userId);
         ReportOhosAccountOperationFail(userId, EVENT_PUBLISH, false, "PublishCommonEvent failed");
+        FinishTraceAdapter();
         return false;
     } else {
         ACCOUNT_LOGI("PublishCommonEvent succeed! event %{public}s.", event.c_str());
+    }
+    FinishTraceAdapter();
+#else // HAS_CES_PART
+    ACCOUNT_LOGI("No common event part, do not publish anything! event %{public}s.", event.c_str());
+#endif // HAS_CES_PART
+    return true;
+}
+
+bool AccountEventProvider::EventPublishAsUser(const std::string& event, int32_t userId)
+{
+    if (userId == UNDEFINED_USER) {
+        ACCOUNT_LOGE("EventPublishAsUser failed, userId is UNDEFINED_USER");
+        return EventPublish(event, userId, nullptr);
+    }
+#ifdef HAS_CES_PART
+    Want want;
+    want.SetAction(event);
+    CommonEventData data;
+    if (event == EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED) {
+        data.SetCode(userId);
+    } else {
+        want.SetParam("userId", userId);
+    }
+
+    data.SetWant(want);
+    StartTraceAdapter("Ohos account event publish.");
+    /* publish */
+    if (!CommonEventManager::PublishCommonEventAsUser(data, userId)) {
+        ACCOUNT_LOGE("PublishCommonEventAsUser failed! event %{public}s. userId is %{public}d", event.c_str(), userId);
+        ReportOhosAccountOperationFail(userId, EVENT_PUBLISH, false, "PublishCommonEventAsUser failed");
+        FinishTraceAdapter();
+        return false;
+    } else {
+        ACCOUNT_LOGI("PublishCommonEventAsUser succeed! event %{public}s.", event.c_str());
     }
     FinishTraceAdapter();
 #else // HAS_CES_PART

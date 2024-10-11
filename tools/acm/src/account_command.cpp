@@ -18,6 +18,7 @@
 #include <sys/stat.h>
 #include "account_log_wrapper.h"
 #include "singleton.h"
+#include "string_ex.h"
 
 using namespace OHOS::AAFwk;
 
@@ -731,17 +732,10 @@ ErrCode AccountCommand::AnalyzeDisallowedListArgument(std::vector<std::string> &
 ErrCode AccountCommand::AnalyzeLocalIdArgument(int &id)
 {
     std::string idByUser = optarg;
-    if (idByUser == "0") {
-        id = 0;
-        return ERR_OK;
-    }
-
-    if (atoi(optarg) == 0) {
+    if (!StrToInt(idByUser, id)) {
         resultReceiver_.append(HELP_MSG_INVALID_ID_ARGUMENT + "\n");
         return ERR_INVALID_VALUE;
     }
-
-    id = atoi(optarg);
 
     return ERR_OK;
 }

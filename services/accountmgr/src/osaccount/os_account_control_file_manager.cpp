@@ -27,6 +27,7 @@
 #ifdef HAS_CONFIG_POLICY_PART
 #include "config_policy_utils.h"
 #endif
+#include "string_ex.h"
 #include "os_account_constants.h"
 #include "os_account_interface.h"
 
@@ -263,7 +264,12 @@ void OsAccountControlFileManager::Init()
         accountListJson, jsonEnd, Constants::ACCOUNT_LIST, accountIdList, OHOS::AccountSA::JsonType::ARRAY);
     if (!accountIdList.empty()) {
         std::lock_guard<std::mutex> lock(operatingIdMutex_);
-        nextLocalId_ = atoi(accountIdList[accountIdList.size() - 1].c_str()) + 1;
+        int32_t id = 0;
+        if (!StrToInt(accountIdList[accountIdList.size() - 1], id)) {
+            ACCOUNT_LOGE("Convert localId failed");
+            return;
+        }
+        nextLocalId_ = id + 1;
         InitFileWatcherInfo(accountIdList);
     }
     ACCOUNT_LOGI("OsAccountControlFileManager Init end");
@@ -306,7 +312,12 @@ void OsAccountControlFileManager::FileInit()
 void OsAccountControlFileManager::InitFileWatcherInfo(std::vector<std::string> &accountIdList)
 {
     for (std::string i : accountIdList) {
-        accountFileWatcherMgr_.AddFileWatcher(stoi(i), eventCallbackFunc_);
+        int32_t id = 0;
+        if (!StrToInt(i, id)) {
+            ACCOUNT_LOGE("Convert localId failed");
+            continue;
+        }
+        accountFileWatcherMgr_.AddFileWatcher(id, eventCallbackFunc_);
     }
 }
 
@@ -454,7 +465,12 @@ ErrCode OsAccountControlFileManager::GetOsAccountIdList(std::vector<int32_t> &id
     OHOS::AccountSA::GetDataByType<std::vector<std::string>>(accountListJson, accountListJson.end(),
         Constants::ACCOUNT_LIST, idStrList, OHOS::AccountSA::JsonType::ARRAY);
     for (const auto &idStr : idStrList) {
-        idList.emplace_back(atoi(idStr.c_str()));
+        int32_t id = 0;
+        if (!StrToInt(idStr, id)) {
+            ACCOUNT_LOGE("Convert localId failed");
+            continue;
+        }
+        idList.emplace_back(id);
     }
     return errCode;
 }
@@ -483,7 +499,12 @@ ErrCode OsAccountControlFileManager::GetOsAccountList(std::vector<OsAccountInfo>
 
     for (const auto& it : idList) {
         OsAccountInfo osAccountInfo;
-        if (GetOsAccountInfoById(std::atoi(it.c_str()), osAccountInfo) == ERR_OK) {
+        int32_t id = 0;
+        if (!StrToInt(it, id)) {
+            ACCOUNT_LOGE("Convert localId failed");
+            continue;
+        }
+        if (GetOsAccountInfoById(id, osAccountInfo) == ERR_OK) {
             if (osAccountInfo.GetPhoto() != "") {
                 std::string photo = osAccountInfo.GetPhoto();
                 GetPhotoById(osAccountInfo.GetLocalId(), photo);
@@ -513,13 +534,12 @@ ErrCode OsAccountControlFileManager::GetOsAccountInfoById(const int id, OsAccoun
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     Json osAccountInfoJson = Json::parse(accountInfoStr, nullptr, false);
-    if (osAccountInfoJson.is_discarded()) {
-        ACCOUNT_LOGE("parse os account info json data failed");
-        return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
-    }
-    if (!osAccountInfo.FromJson(osAccountInfoJson)) {
+    if (osAccountInfoJson.is_discarded() || !osAccountInfo.FromJson(osAccountInfoJson)) {
         ACCOUNT_LOGE("parse os account info json for %{public}d failed", id);
-        return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
+        if (GetOsAccountFromDatabase("", id, osAccountInfo) != ERR_OK) {
+            ACCOUNT_LOGE("GetOsAccountFromDatabase failed id=%{public}d", id);
+            return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
+        }
     }
     return ERR_OK;
 }
@@ -1290,12 +1310,17 @@ ErrCode OsAccountControlFileManager::IsFromGlobalOAConstraintsList(const int32_t
             OHOS::AccountSA::JsonType::ARRAY);
         ConstraintSourceTypeInfo constraintSourceTypeInfo;
         for (auto it = globalOAConstraintsList.begin(); it != globalOAConstraintsList.end(); it++) {
-            if (stoi(*it) == deviceOwnerId) {
-                constraintSourceTypeInfo.localId = stoi(*it);
+            int32_t localId = 0;
+            if (!StrToInt(*it, localId)) {
+                ACCOUNT_LOGE("Convert localId failed");
+                continue;
+            }
+            if (localId == deviceOwnerId) {
+                constraintSourceTypeInfo.localId = localId;
                 constraintSourceTypeInfo.typeInfo = ConstraintSourceType::CONSTRAINT_TYPE_DEVICE_OWNER;
                 globalSourceList.push_back(constraintSourceTypeInfo);
             } else {
-                constraintSourceTypeInfo.localId = stoi(*it);
+                constraintSourceTypeInfo.localId = localId;
                 constraintSourceTypeInfo.typeInfo = ConstraintSourceType::CONSTRAINT_TYPE_PROFILE_OWNER;
                 globalSourceList.push_back(constraintSourceTypeInfo);
             }
@@ -1335,13 +1360,18 @@ ErrCode OsAccountControlFileManager::IsFromSpecificOAConstraintsList(const int32
             specificConstraintSource, OHOS::AccountSA::JsonType::ARRAY);
         ConstraintSourceTypeInfo constraintSourceTypeInfo;
         for (auto it = specificConstraintSource.begin(); it != specificConstraintSource.end(); it++) {
-            if (stoi(*it) == deviceOwnerId) {
-                constraintSourceTypeInfo.localId =stoi(*it);
-                constraintSourceTypeInfo.typeInfo =  ConstraintSourceType::CONSTRAINT_TYPE_DEVICE_OWNER;
+            int32_t localId = 0;
+            if (!StrToInt(*it, localId)) {
+                ACCOUNT_LOGE("Convert localId failed");
+                continue;
+            }
+            if (localId == deviceOwnerId) {
+                constraintSourceTypeInfo.localId = localId;
+                constraintSourceTypeInfo.typeInfo = ConstraintSourceType::CONSTRAINT_TYPE_DEVICE_OWNER;
                 specificSourceList.push_back(constraintSourceTypeInfo);
             } else {
-                constraintSourceTypeInfo.localId =stoi(*it);
-                constraintSourceTypeInfo.typeInfo =  ConstraintSourceType::CONSTRAINT_TYPE_PROFILE_OWNER;
+                constraintSourceTypeInfo.localId = localId;
+                constraintSourceTypeInfo.typeInfo = ConstraintSourceType::CONSTRAINT_TYPE_PROFILE_OWNER;
                 specificSourceList.push_back(constraintSourceTypeInfo);
             }
         }
