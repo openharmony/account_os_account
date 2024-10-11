@@ -98,6 +98,16 @@ public:
         return 0;
     }
 
+    int32_t NotifyMtpMounted(const std::string &id, const std::string &path, const std::string &desc)
+    {
+        return 0;
+    }
+
+    int32_t NotifyMtpUnmounted(const std::string &id, const std::string &path)
+    {
+        return 0;
+    }
+
     int32_t GetFreeSizeOfVolume(std::string volumeUuid, int64_t &freeSize)
     {
         return 0;
