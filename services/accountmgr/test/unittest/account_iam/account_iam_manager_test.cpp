@@ -86,6 +86,11 @@ public:
         return 0;
     }
 
+    int32_t CompleteAddUser(int32_t userId)
+    {
+        return 0;
+    }
+
     int32_t GetFreeSizeOfVolume(std::string volumeUuid, int64_t &freeSize)
     {
         return 0;
