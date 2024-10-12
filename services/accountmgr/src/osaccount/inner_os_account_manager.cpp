@@ -1721,18 +1721,16 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
     if (oldId != localId) {
         subscribeManager_.Publish(localId, oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
     }
-    ErrCode errCode = ERR_OK;
     if (startStorage) {
-        errCode = OsAccountInterface::SendToStorageAccountStart(osAccountInfo);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("account %{public}d call storage active failed, errCode %{public}d.", localId, errCode);
+        ErrCode err = OsAccountInterface::SendToStorageAccountStart(osAccountInfo);
+        if (err != ERR_OK) {
+            ACCOUNT_LOGE("Failed to SendToStorageAccountStart, localId %{public}d, error: %{public}d.", localId, err);
             return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
         }
     }
-    errCode = OsAccountInterface::SendToAMSAccountStart(osAccountInfo);
+    ErrCode errCode = OsAccountInterface::SendToAMSAccountStart(osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("account %{public}d call ams active failed, errCode %{public}d.",
-            localId, errCode);
+        ACCOUNT_LOGE("Failed to call SendToAMSAccountStart, localId: %{public}d, error: %{public}d.", localId, errCode);
         return errCode;
     }
     errCode = UpdateAccountToForeground(displayId, osAccountInfo);
