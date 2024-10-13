@@ -211,6 +211,10 @@ public:
 
     void OnResult(int32_t result, const AccountSA::Attributes &extraInfo) override;
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const AccountSA::Attributes &extraInfo) override;
+
+private:
+    void PrepareAuthResult(int32_t result, const AccountSA::Attributes &extraInfo, AuthCallbackParam &param);
+
 private:
     napi_env env_;
     std::shared_ptr<JsIAMCallback> callback_;
