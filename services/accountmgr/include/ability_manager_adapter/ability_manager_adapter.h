@@ -67,7 +67,7 @@ public:
      *
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode StartUser(int32_t accountId, const sptr<IUserCallback> &callback);
+    ErrCode StartUser(int32_t accountId, const sptr<IUserCallback> &callback, bool isAppRecovery = false);
 
     /**
      * @brief stop user.
