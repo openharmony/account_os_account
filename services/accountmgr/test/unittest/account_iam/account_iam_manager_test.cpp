@@ -253,7 +253,7 @@ public:
         return 0;
     }
 
-    int32_t GenerateAppkey(uint32_t appUid, std::string &keyId)
+    int32_t GenerateAppkey(uint32_t hashId, uint32_t userId, std::string &keyId)
     {
         return 0;
     }
