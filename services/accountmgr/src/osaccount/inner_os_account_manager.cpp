@@ -37,6 +37,7 @@
 #include "os_account_subscribe_manager.h"
 #include "parameter.h"
 #include "parcel.h"
+#include "string_ex.h"
 #include <pthread.h>
 #include <thread>
 #include <unordered_set>
@@ -906,19 +907,23 @@ ErrCode IInnerOsAccountManager::ValidateOsAccount(const OsAccountInfo &osAccount
     if (result != ERR_OK) {
         return result;
     }
-    std::string localIdStr = std::to_string(osAccountInfo.GetLocalId());
+    int32_t id = osAccountInfo.GetLocalId();
     for (const auto& element : accountIndexJson.items()) {
-        std::string localIdKey = element.key();
+        int32_t localId = 0;
+        if (!StrToInt(element.key(), localId)) {
+            ACCOUNT_LOGE("Convert localId failed");
+            continue;
+        }
         auto value = element.value();
         std::string localName = value[Constants::LOCAL_NAME].get<std::string>();
-        if ((osAccountInfo.GetLocalName() == localName) && (localIdKey != localIdStr)
-            && !IsToBeRemoved(std::stoi(localIdKey))) {
+        if ((osAccountInfo.GetLocalName() == localName) && (localId != id)
+            && !IsToBeRemoved(localId)) {
             return ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED;
         }
         if (!osAccountInfo.GetShortName().empty() && value.contains(Constants::SHORT_NAME)) {
             std::string shortName = value[Constants::SHORT_NAME].get<std::string>();
-            if ((osAccountInfo.GetShortName() == shortName) && (localIdKey != localIdStr)
-                && !IsToBeRemoved(std::stoi(localIdKey))) {
+            if ((osAccountInfo.GetShortName() == shortName) && (localId != id)
+                && !IsToBeRemoved(localId)) {
                 return ERR_ACCOUNT_COMMON_SHORT_NAME_HAD_EXISTED;
             }
         }
