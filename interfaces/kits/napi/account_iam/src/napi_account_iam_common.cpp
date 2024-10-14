@@ -453,45 +453,34 @@ static napi_value GenerateAuthResult(napi_env env, AuthCallbackParam *param)
     return object;
 }
 
-static void OnUserAuthResultWork(uv_work_t *work, int status)
-{
-    ACCOUNT_LOGI("enter");
-    std::unique_ptr<uv_work_t> workPtr(work);
-    napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
-        return;
-    }
-    std::unique_ptr<AuthCallbackParam> param(reinterpret_cast<AuthCallbackParam *>(work->data));
-    napi_value argv[ARG_SIZE_TWO] = {nullptr};
-    napi_create_int32(param->env, AccountIAMConvertToJSErrCode(param->resultCode), &argv[PARAM_ZERO]);
-    argv[PARAM_ONE] = GenerateAuthResult(param->env, param.get());
-    NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->callback->onResult);
-    napi_close_handle_scope(param->env, scope);
-}
-
-static void OnUserAuthAcquireInfoWork(uv_work_t *work, int status)
-{
-    ACCOUNT_LOGI("enter");
-    std::unique_ptr<uv_work_t> workPtr(work);
-    napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
-        return;
-    }
-    std::unique_ptr<AuthCallbackParam> param(reinterpret_cast<AuthCallbackParam *>(work->data));
-    napi_value argv[ARG_SIZE_THREE] = {nullptr};
-    napi_create_int32(param->env, param->module, &argv[PARAM_ZERO]);
-    napi_create_uint32(param->env, param->acquireInfo, &argv[PARAM_ONE]);
-    argv[PARAM_TWO] = CreateUint8Array(param->env, param->extraInfo.data(), param->extraInfo.size());
-    NapiCallVoidFunction(param->env, argv, ARG_SIZE_THREE, param->callback->onAcquireInfo);
-    napi_close_handle_scope(param->env, scope);
-}
-
 NapiUserAuthCallback::NapiUserAuthCallback(napi_env env, const std::shared_ptr<JsIAMCallback> &callback)
     : env_(env), callback_(callback)
 {}
 
 NapiUserAuthCallback::~NapiUserAuthCallback()
 {}
+
+void NapiUserAuthCallback::PrepareAuthResult(int32_t result, const Attributes &extraInfo, AuthCallbackParam &param)
+{
+    param.resultCode = result;
+    extraInfo.GetUint8ArrayValue(Attributes::AttributeKey::ATTR_SIGNATURE, param.token);
+    extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, param.remainTimes);
+    extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, param.freezingTime);
+    if (extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION,
+                                param.nextPhaseFreezingTime)) {
+        param.hasNextPhaseFreezingTime = true;
+    }
+    if (extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, param.credentialId)) {
+        param.hasCredentialId = true;
+    }
+    if (extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_USER_ID, param.accountId)) {
+        param.hasAccountId = true;
+    }
+    if (extraInfo.GetInt64Value(Attributes::AttributeKey::ATTR_PIN_EXPIRED_INFO, param.pinValidityPeriod)) {
+        param.hasPinValidityPeriod = true;
+    }
+    param.callback = callback_;
+}
 
 void NapiUserAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
@@ -501,38 +490,34 @@ void NapiUserAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         return;
     }
     callback_->onResultCalled = true;
-    std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
-    std::unique_ptr<AuthCallbackParam> param = std::make_unique<AuthCallbackParam>(env_);
-    uv_loop_s *loop = nullptr;
-    napi_get_uv_event_loop(env_, &loop);
-    if (loop == nullptr || work == nullptr || param == nullptr) {
+    AuthCallbackParam *param = new (std::nothrow) AuthCallbackParam(env_);
+    if (param == nullptr) {
         ACCOUNT_LOGE("fail for nullptr");
         return;
     }
-    param->resultCode = result;
-    extraInfo.GetUint8ArrayValue(Attributes::AttributeKey::ATTR_SIGNATURE, param->token);
-    extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, param->remainTimes);
-    extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, param->freezingTime);
-    if (extraInfo.GetInt32Value(
-        Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION, param->nextPhaseFreezingTime)) {
-        param->hasNextPhaseFreezingTime = true;
+    PrepareAuthResult(result, extraInfo, *param);
+    auto task = [param = std::move(param)]() {
+        ACCOUNT_LOGI("Enter NapiUserAuthCallback::OnResult task");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(param->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            delete param;
+            return;
+        }
+        napi_value argv[ARG_SIZE_TWO] = {nullptr};
+        napi_create_int32(param->env, AccountIAMConvertToJSErrCode(param->resultCode), &argv[PARAM_ZERO]);
+        argv[PARAM_ONE] = GenerateAuthResult(param->env, param);
+        NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->callback->onResult);
+        napi_close_handle_scope(param->env, scope);
+        delete param;
+        return;
+    };
+    if (napi_status::napi_ok !=  napi_send_event(env_, task, napi_eprio_vip)) {
+        delete param;
+        return;
     }
-    if (extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, param->credentialId)) {
-        param->hasCredentialId = true;
-    }
-    if (extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_USER_ID, param->accountId)) {
-        param->hasAccountId = true;
-    }
-    if (extraInfo.GetInt64Value(Attributes::AttributeKey::ATTR_PIN_EXPIRED_INFO, param->pinValidityPeriod)) {
-        param->hasPinValidityPeriod = true;
-    }
-    param->callback = callback_;
-    work->data = reinterpret_cast<void *>(param.get());
-    NAPI_CALL_RETURN_VOID(env_, uv_queue_work_with_qos(
-        loop, work.get(), [] (uv_work_t *work) {}, OnUserAuthResultWork, uv_qos_user_initiated));
-    ACCOUNT_LOGI("create user auth result work finish");
-    work.release();
-    param.release();
+    ACCOUNT_LOGI("Post NapiUserAuthCallback::OnResult task finish");
 }
 
 void NapiUserAuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
@@ -546,24 +531,39 @@ void NapiUserAuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, c
         ACCOUNT_LOGE("call after OnResult is not allowed");
         return;
     }
-    std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
-    std::unique_ptr<AuthCallbackParam> param = std::make_unique<AuthCallbackParam>(env_);
-    uv_loop_s *loop = nullptr;
-    napi_get_uv_event_loop(env_, &loop);
-    if (loop == nullptr || work == nullptr || param == nullptr) {
-        ACCOUNT_LOGE("fail for nullptr");
+    AuthCallbackParam *param = new (std::nothrow) AuthCallbackParam(env_);
+    if (param == nullptr) {
+        ACCOUNT_LOGE("Failed for nullptr");
         return;
     }
     param->module = module;
     param->acquireInfo = acquireInfo;
     extraInfo.GetUint8ArrayValue(Attributes::AttributeKey::ATTR_EXTRA_INFO, param->extraInfo);
     param->callback = callback_;
-    work->data = reinterpret_cast<void *>(param.get());
-    NAPI_CALL_RETURN_VOID(env_, uv_queue_work_with_qos(
-        loop, work.get(), [] (uv_work_t *work) {}, OnUserAuthAcquireInfoWork, uv_qos_user_initiated));
-    ACCOUNT_LOGI("create user auth acquire info work finish");
-    work.release();
-    param.release();
+    auto task = [param = std::move(param)]() {
+        ACCOUNT_LOGI("Enter NapiUserAuthCallback::OnAcquireInfo task");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(param->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            delete param;
+            return;
+        }
+        napi_value argv[ARG_SIZE_THREE] = {nullptr};
+        napi_create_int32(param->env, param->module, &argv[PARAM_ZERO]);
+        napi_create_uint32(param->env, param->acquireInfo, &argv[PARAM_ONE]);
+        argv[PARAM_TWO] = CreateUint8Array(param->env, param->extraInfo.data(), param->extraInfo.size());
+        NapiCallVoidFunction(param->env, argv, ARG_SIZE_THREE, param->callback->onAcquireInfo);
+        napi_close_handle_scope(param->env, scope);
+        delete param;
+        return;
+    };
+    if (napi_status::napi_ok !=  napi_send_event(env_, task, napi_eprio_vip)) {
+        ACCOUNT_LOGE("Failed to send event for auth");
+        delete param;
+        return;
+    }
+    ACCOUNT_LOGI("Post NapiUserAuthCallback::OnAcquireInfo task finish");
 }
 
 NapiGetInfoCallback::NapiGetInfoCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred)
