@@ -18,7 +18,7 @@
 namespace OHOS {
 namespace AccountSA {
 
-ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo)
+ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo, bool isAppRecovery)
 {
     ACCOUNT_LOGI("mock OsAccountInterface SendToAMSAccountStart start");
     return ERR_OK;

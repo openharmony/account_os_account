@@ -68,7 +68,7 @@ constexpr int32_t GET_MSG_FREQ = 100 * 1000;
 constexpr int32_t DEAL_TIMES = MAX_GETBUNDLE_WAIT_TIMES / GET_MSG_FREQ;
 }
 
-ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo)
+ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo, bool isAppRecovery)
 {
     int32_t localId = osAccountInfo.GetLocalId();
     ACCOUNT_LOGI("Start OS account %{public}d", localId);
@@ -81,7 +81,8 @@ ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo)
     }
     StartTraceAdapter("AbilityManagerAdapter StartUser");
 
-    ErrCode code = AbilityManagerAdapter::GetInstance()->StartUser(localId, osAccountStartUserCallback);
+    ErrCode code = AbilityManagerAdapter::GetInstance()->StartUser(localId,
+        osAccountStartUserCallback, isAppRecovery);
     if (code != ERR_OK) {
         ACCOUNT_LOGE("AbilityManagerAdapter StartUser failed! errcode is %{public}d", code);
         ReportOsAccountOperationFail(localId, Constants::OPERATION_ACTIVATE, code,

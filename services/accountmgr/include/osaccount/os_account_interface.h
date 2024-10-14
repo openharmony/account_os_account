@@ -30,7 +30,7 @@ namespace OHOS {
 namespace AccountSA {
 class OsAccountInterface {
 public:
-    static ErrCode SendToAMSAccountStart(OsAccountInfo &osAccountInfo);
+    static ErrCode SendToAMSAccountStart(OsAccountInfo &osAccountInfo, bool isAppRecovery = false);
     static ErrCode SendToAMSAccountStop(OsAccountInfo &osAccountInfo);
     static ErrCode SendToAMSAccountDeactivate(OsAccountInfo &osAccountInfo);
     static ErrCode SendToBMSAccountCreate(
