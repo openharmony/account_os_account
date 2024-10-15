@@ -1,0 +1,83 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("../../../os_account.gni")
+
+config("app_account_kits_config") {
+  include_dirs = [
+    "${app_account_interfaces_native_path}/include",
+    "${app_account_kits_path}/include",
+    "include",
+    "${app_account_innerkits_native_path}/include",
+  ]
+
+  cflags = []
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+
+  cflags += [ "-pipe" ]
+
+  defines = [
+    "ACCOUNT_LOG_TAG = \"AppAccountFwk\"",
+    "LOG_DOMAIN = 0xD001B00",
+  ]
+}
+
+ohos_shared_library("cj_appAccount_ffi") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  include_dirs = []
+
+  sources = [
+    "src/appaccount_common.cpp",
+    "src/appaccount_ffi.cpp",
+    "src/appaccount_impl.cpp",
+    "src/appaccount_parameter_parse.cpp",
+  ]
+  configs = [ ":app_account_kits_config" ]
+
+  deps = [
+    "${app_account_innerkits_native_path}:app_account_innerkits",
+    "${common_path}:libaccount_common",
+  ]
+
+  external_deps = [
+    "ability_runtime:ability_context_native",
+    "ability_runtime:ability_manager",
+    "ability_runtime:abilitykit_native",
+    "ability_runtime:app_context",
+    "ability_runtime:extensionkit_native",
+    "ability_runtime:runtime",
+    "ability_runtime:service_extension",
+    "ability_runtime:ui_extension",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "napi:cj_bind_ffi",
+    "napi:cj_bind_native",
+    "samgr:samgr_proxy",
+  ]
+
+  public_external_deps = [ "ability_base:want" ]
+
+  innerapi_tags = [ "platformsdk" ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
