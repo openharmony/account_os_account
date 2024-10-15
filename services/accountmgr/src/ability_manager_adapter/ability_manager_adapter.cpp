@@ -115,7 +115,8 @@ void AbilityManagerAdapter::Connect()
     proxy_ = remoteObj;
 }
 
-ErrCode AbilityManagerAdapter::StartUser(int32_t accountId, const sptr<AAFwk::IUserCallback> &callback)
+ErrCode AbilityManagerAdapter::StartUser
+    (int32_t accountId, const sptr<AAFwk::IUserCallback> &callback, bool isAppRecovery)
 {
     auto abms = GetAbilityManager();
     if (abms == nullptr) {
@@ -147,6 +148,12 @@ ErrCode AbilityManagerAdapter::StartUser(int32_t accountId, const sptr<AAFwk::IU
             return ERR_INVALID_VALUE;
         }
     }
+
+    if (!data.WriteBool(isAppRecovery)) {
+        ACCOUNT_LOGE("StartUser:WriteBool fail.");
+        return ERR_INVALID_VALUE;
+    }
+
     error = abms->SendRequest(static_cast<uint32_t>(AbilityManagerInterfaceCode::START_USER), data, reply, option);
     if (error != NO_ERROR) {
         ACCOUNT_LOGE("StartUser:SendRequest error: %{public}d", error);

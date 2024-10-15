@@ -1613,7 +1613,18 @@ ErrCode IInnerOsAccountManager::DeactivateOsAccountById(const int id)
     return DeactivateOsAccountByInfo(osAccountInfo);
 }
 
-ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id, const bool startStorage, const uint64_t displayId)
+static void SetAppRecovery(bool &isAppRecovery,
+    const std::vector<int32_t> &activeAccountId, std::int32_t id, std::int32_t defaultActivatedId)
+{
+#ifdef SUPPORT_STOP_MAIN_OS_ACCOUNT
+    if (!isAppRecovery && activeAccountId.empty() && id == defaultActivatedId) {
+        isAppRecovery = true;
+    }
+#endif
+}
+
+ErrCode IInnerOsAccountManager::ActivateOsAccount
+    (const int id, const bool startStorage, const uint64_t displayId, bool isAppRecovery)
 {
     if (!CheckAndAddLocalIdOperating(id)) {
         ACCOUNT_LOGE("the %{public}d already in operating", id);
@@ -1653,7 +1664,9 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id, const bool start
     if (foregroundId != id) {
         subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
     }
-    errCode = SendMsgForAccountActivate(osAccountInfo, startStorage);
+
+    SetAppRecovery(isAppRecovery, activeAccountId_, id, defaultActivatedId_);
+    errCode = SendMsgForAccountActivate(osAccountInfo, startStorage, displayId, isAppRecovery);
     RemoveLocalIdToOperating(id);
     if (errCode != ERR_OK) {
         return errCode;
@@ -1716,7 +1729,7 @@ ErrCode IInnerOsAccountManager::DeactivateOsAccount(const int id, bool isStopSto
 }
 
 ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccountInfo, const bool startStorage,
-                                                          const uint64_t displayId)
+                                                        const uint64_t displayId, const bool isAppRecovery)
 {
     // activate
     int32_t oldId = -1;
@@ -1733,7 +1746,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
             return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
         }
     }
-    ErrCode errCode = OsAccountInterface::SendToAMSAccountStart(osAccountInfo);
+    ErrCode errCode = OsAccountInterface::SendToAMSAccountStart(osAccountInfo, isAppRecovery);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Failed to call SendToAMSAccountStart, localId: %{public}d, error: %{public}d.", localId, errCode);
         return errCode;
