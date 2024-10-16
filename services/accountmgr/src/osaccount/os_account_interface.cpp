@@ -480,11 +480,11 @@ int32_t OsAccountInterface::UnlockUser(const int localId)
         errCode = proxy->ActiveUserKey(localId, emptyData, emptyData);
         ACCOUNT_LOGI("ActiveUserKey end, ret %{public}d.", errCode);
         if (errCode != E_ACTIVE_EL2) {
-            int32_t ret = proxy->PrepareStartUser(localId);
-            ACCOUNT_LOGI("PrepareStartUser end, ret %{public}d.", ret);
-            if (ret != 0) {
+            errCode = proxy->PrepareStartUser(localId);
+            ACCOUNT_LOGI("PrepareStartUser end, errCode %{public}d.", errCode);
+            if (errCode != 0) {
                 ReportOsAccountOperationFail(localId, Constants::OPERATION_ACTIVATE,
-                    ret, "StorageManager failed to start user");
+                    errCode, "StorageManager failed to start user");
             }
         }
         if (errCode == E_IPC_ERROR || errCode == E_IPC_SA_DIED) {
