@@ -14,8 +14,5 @@
 import("//build/ohos.gni")
 
 group("tools_acm") {
-  deps = []
-  if (!ohos_indep_compiler_enable) {
-    deps += [ "acm:acm" ]
-  }
+  deps = [ "acm:acm" ]
 }

@@ -55,6 +55,7 @@ ohos_shared_library("account_iam_napi") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "ipc:ipc_core",
     "napi:ace_napi",
   ]
 

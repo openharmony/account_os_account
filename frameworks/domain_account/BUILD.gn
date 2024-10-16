@@ -85,11 +85,8 @@ ohos_shared_library("domain_account_innerkits") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "samgr:samgr_proxy",
   ]
-
-  if (ohos_indep_compiler_enable) {
-    external_deps += [ "samgr:samgr_proxy" ]
-  }
 
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "account"

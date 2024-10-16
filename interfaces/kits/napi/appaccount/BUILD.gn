@@ -72,6 +72,7 @@ ohos_shared_library("appaccount") {
     "ability_runtime:runtime",
     "ability_runtime:service_extension",
     "ability_runtime:ui_extension",
+    "ability_runtime:wantagent_innerkits",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_napi",
