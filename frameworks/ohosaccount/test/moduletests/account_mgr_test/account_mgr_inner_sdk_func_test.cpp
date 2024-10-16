@@ -584,20 +584,37 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo011, TestSize.Level0)
     EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA), TEST_EMPTY_STRING);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(localId), ERR_OK);
 }
-#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
- * @tc.name: SetOhosAccountInfo013
- * @tc.desc: Test SetOhosAccountInfo with invalid userId.
+ * @tc.name: SetOhosAccountInfo012
+ * @tc.desc: Test ohos account with big avatar
  * @tc.type: FUNC
- * @tc.require: issueI6ZFWR issueI6ZFYI
+ * @tc.require:
  */
 HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo012, TestSize.Level0)
 {
+    OsAccountInfo osAccountInfoOne;
+    EXPECT_EQ(OsAccountManager::CreateOsAccount("OhosAccountInfo012", OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
     OhosAccountInfo accountInfo;
-    auto ret = OhosAccountKits::GetInstance().SetOhosAccountInfoByUserId(LOCAL_ID, accountInfo, g_eventLogin);
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, ret);
+    OhosAccountInfo accountInfoget;
+    accountInfo.name_ = TEST_ACCOUNT_NAME;
+    accountInfo.status_ = ACCOUNT_STATE_UNBOUND;
+    accountInfo.uid_ = TEST_ACCOUNT_UID;
+    accountInfo.nickname_ = TEST_NICKNAME;
+    accountInfo.avatar_ = ""; // 10*1024*1024
+    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
+    for (std::size_t i = 0; i < Constants::AVATAR_MAX_SIZE - 1; i++) {
+        accountInfo.avatar_.push_back('a');
+    }
+
+    auto ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin);
+    EXPECT_EQ(ret, ERR_OK);
+    ret = OhosAccountKits::GetInstance().GetOhosAccountInfo(accountInfoget);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
  * @tc.name: SetOhosAccountInfo013
@@ -608,8 +625,65 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo012, TestSize.Level0)
 HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo013, TestSize.Level0)
 {
     OhosAccountInfo accountInfo;
+    auto ret = OhosAccountKits::GetInstance().SetOhosAccountInfoByUserId(LOCAL_ID, accountInfo, g_eventLogin);
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, ret);
+}
+
+/**
+ * @tc.name: SetOhosAccountInfo014
+ * @tc.desc: Test SetOhosAccountInfo with invalid userId.
+ * @tc.type: FUNC
+ * @tc.require: issueI6ZFWR issueI6ZFYI
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo014, TestSize.Level0)
+{
+    OhosAccountInfo accountInfo;
     auto ret = OhosAccountKits::GetInstance().SetOhosAccountInfoByUserId(INVALID_LOCAL_ID, accountInfo, g_eventLogin);
     EXPECT_EQ(ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR, ret);
+}
+
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
+/**
+ * @tc.name: SetOhosAccountInfo015
+ * @tc.desc: Test ohos account with big name_
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo015, TestSize.Level0)
+{
+    OsAccountInfo osAccountInfoOne;
+    EXPECT_EQ(OsAccountManager::CreateOsAccount(
+        "SetOhosAccountInfo015", OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    OhosAccountInfo accountInfo;
+    OhosAccountInfo accountInfoget;
+    for (std::size_t i = 0; i < 256 + 1; i++) { // The max value of name is 256
+        accountInfo.name_.push_back('a');
+    }
+    accountInfo.status_ = ACCOUNT_STATE_UNBOUND;
+    accountInfo.uid_ = TEST_ACCOUNT_UID;
+    accountInfo.nickname_ = TEST_NICKNAME;
+    accountInfo.avatar_ = "";
+    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
+    auto ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin);
+    EXPECT_EQ(ret, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
+
+    accountInfo.name_ = TEST_ACCOUNT_NAME;
+    for (std::size_t i = 0; i < 512 + 1; i++) { // The max value of uid_ is 512
+        accountInfo.uid_.push_back('a');
+    }
+    ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin);
+    EXPECT_EQ(ret, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
+
+    std::string eventLogin;
+    for (std::size_t i = 0; i < 1024 + 1; i++) { // The max value of eventLogin is 1024
+        eventLogin.push_back('a');
+    }
+    accountInfo.uid_ = TEST_ACCOUNT_UID;
+    ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, eventLogin);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -631,7 +705,6 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserId001, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: issueI6ZFWR issueI6ZFYI
  */
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserId002, TestSize.Level0)
 {
     OsAccountInfo osAccountInfoOne;
