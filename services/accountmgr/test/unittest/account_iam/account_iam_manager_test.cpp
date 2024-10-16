@@ -848,9 +848,9 @@ HWTEST_F(AccountIamManagerTest, UpdateCredCallback_OnResult_0002, TestSize.Level
     updateCredCallback->OnResult(errCode, extraInfo);
     EXPECT_NE(errCode, callback->result_);
 
-    uint64_t credentialId;
+    UpdateCredInfo extraUpdateInfo;
     auto commitUpdateCredCallback = std::make_shared<CommitCredUpdateCallback>(UPDATE_FAIL_USER_ID,
-        credentialId, callback);
+        extraUpdateInfo, callback);
     commitUpdateCredCallback->OnResult(errCode, extraInfo);
     commitUpdateCredCallback->OnResult(1, extraInfo);
 }
