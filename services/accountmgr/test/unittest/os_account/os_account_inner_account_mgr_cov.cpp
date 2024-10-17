@@ -285,6 +285,24 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, SetOsAccountCredentialId002, TestSize
 
     ASSERT_EQ(innerMgrService_->RemoveOsAccount(localID), ERR_OK);
 }
+
+/*
+ * @tc.name: CreateOsAccountRollback001
+ * @tc.desc: Test SetOsAccountCredentialId with valid userid.
+ * @tc.type: FUNC
+ * @tc.require: #I6JV5X
+ */
+HWTEST_F(OsAccountInnerAccmgrCoverageTest, CreateOsAccountRollback001, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    ErrCode errCode =
+        innerMgrService_->CreateOsAccount("CreateOsAccountRollback001", OsAccountType::NORMAL, osAccountInfo);
+    ASSERT_NE(errCode, ERR_OK);
+    OsAccountInfo osAccountInfoQuery;
+    errCode = innerMgrService_->QueryOsAccountById(osAccountInfo.GetLocalId(), osAccountInfoQuery);
+    ASSERT_EQ(errCode, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    innerMgrService_->RemoveOsAccount(osAccountInfo.GetLocalId());
+}
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 }  // namespace AccountSA
 }  // namespace OHOS
