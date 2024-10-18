@@ -166,6 +166,7 @@ private:
     ErrCode UpdateAccountToBackground(int32_t oldId);
     ErrCode IsValidOsAccount(const OsAccountInfo &osAccountInfo);
     ErrCode GetRealOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo);
+    ErrCode GetNonSACreatedOACount(unsigned int &nonSACreatedOACount) const;
 
 private:
     std::shared_ptr<IOsAccountControl> osAccountControl_;

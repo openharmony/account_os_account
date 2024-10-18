@@ -54,6 +54,7 @@ const std::string ACCOUNT_READY_EVENT = "bootevent.account.ready";
 const std::string PARAM_LOGIN_NAME_MAX = "persist.account.login_name_max";
 const std::string SPECIAL_CHARACTER_ARRAY = "<>|\":*?/\\";
 const std::vector<std::string> SHORT_NAME_CANNOT_BE_NAME_ARRAY = {".", ".."};
+constexpr int32_t TOKEN_NATIVE = 1;
 constexpr int32_t DELAY_FOR_EXCEPTION = 50;
 constexpr int32_t MAX_RETRY_TIMES = 50;
 constexpr int32_t MAX_PRIVATE_TYPE_NUMBER = 1;
@@ -310,6 +311,9 @@ ErrCode IInnerOsAccountManager::FillOsAccountInfo(const std::string &localName, 
     }
 
     osAccountInfo = OsAccountInfo(id, localName, shortName, type, serialNumber);
+    if (AccountPermissionManager::CheckSaCall()) {
+        osAccountInfo.SetCreatorType(TOKEN_NATIVE);
+    }
     osAccountInfo.SetConstraints(constraints);
     int64_t time =
         std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -364,7 +368,7 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfoWithFullInfo(OsAccountInfo &
 bool IInnerOsAccountManager::CheckAndCleanOsAccounts()
 {
     unsigned int osAccountNum = 0;
-    GetCreatedOsAccountsCount(osAccountNum);
+    GetNonSACreatedOACount(osAccountNum);
 
     if (osAccountNum < config_.maxOsAccountNum) {
         return true;
@@ -687,7 +691,13 @@ ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
         ACCOUNT_LOGE("the domain account is already bound");
         return ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR;
     }
-    if (!AccountPermissionManager::CheckSaCall() && osAccountInfos.size() >= config_.maxOsAccountNum) {
+    unsigned int saCreatedNum = 0;
+    for (const auto& it : osAccountInfos) {
+        if (it.GetCreatorType() == TOKEN_NATIVE) {
+            ++saCreatedNum;
+        }
+    }
+    if (!AccountPermissionManager::CheckSaCall() && (osAccountInfos.size() - saCreatedNum) >= config_.maxOsAccountNum) {
         ACCOUNT_LOGE("The number of OS accounts has oversize, max num: %{public}d", config_.maxOsAccountNum);
         return ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR;
     }
@@ -1077,6 +1087,26 @@ ErrCode IInnerOsAccountManager::GetCreatedOsAccountsCount(unsigned int &createdO
         return errCode;
     }
     createdOsAccountCount = idList.size();
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::GetNonSACreatedOACount(unsigned int &nonSACreatedOACount) const
+{
+    std::vector<int32_t> idList;
+    ErrCode errCode = osAccountControl_->GetOsAccountIdList(idList);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("get osaccount info list error, errCode %{public}d.", errCode);
+        return errCode;
+    }
+    unsigned int saCreatedNum = 0;
+    for (const auto& it : idList) {
+        OsAccountInfo osAccountInfo;
+        if (osAccountControl_->GetOsAccountInfoById(it, osAccountInfo) == ERR_OK &&
+            osAccountInfo.GetCreatorType() == TOKEN_NATIVE) {
+            ++saCreatedNum;
+        }
+    }
+    nonSACreatedOACount = idList.size() - saCreatedNum;
     return ERR_OK;
 }
 
