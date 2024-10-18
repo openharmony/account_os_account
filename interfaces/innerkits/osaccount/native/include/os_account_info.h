@@ -156,6 +156,10 @@ public:
 
     void SetIsDataRemovable(const bool isLoggedIn);
 
+    int32_t GetCreatorType() const;
+
+    void SetCreatorType(const int32_t creatorType);
+
     ErrCode ParamCheck();
 
     bool IsTypeOutOfRange() const;
@@ -180,6 +184,7 @@ private:
     bool isForeground_ = false;
     bool isLoggedIn_ = false;
     bool isDataRemovable_ = true;
+    int32_t creatorType_ = 0;
 };
 
 typedef enum {
