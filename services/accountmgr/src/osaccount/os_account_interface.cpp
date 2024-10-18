@@ -398,8 +398,9 @@ ErrCode OsAccountInterface::InnerSendToStorageAccountCreate(OsAccountInfo &osAcc
     err = PrepareAddUser(proxy, localId);
     FinishTraceAdapter();
     return err;
-#endif
+#else
     return ERR_OK;
+#endif
 }
 
 ErrCode OsAccountInterface::SendToStorageAccountRemove(OsAccountInfo &osAccountInfo)
