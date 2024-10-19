@@ -80,7 +80,8 @@
           "//base/account/os_account/frameworks/common:common_target",
           "//base/account/os_account/frameworks/domain_account:domain_account_innerkits",
           "//base/account/os_account/frameworks/ohosaccount/native:libaccountkits",
-          "//base/account/os_account/frameworks/osaccount/native:os_account_innerkits"
+          "//base/account/os_account/frameworks/osaccount/native:os_account_innerkits",
+          "//base/account/os_account/frameworks/appaccount/cj:cj_appAccount_ffi"
         ],
         "service_group": [
           "//base/account/os_account/services:services_target",
