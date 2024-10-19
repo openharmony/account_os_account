@@ -59,11 +59,13 @@ ohos_shared_library("cj_appAccount_ffi") {
   ]
 
   external_deps = [
+    "ability_base:base",
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
     "ability_runtime:abilitykit_native",
     "ability_runtime:app_context",
     "ability_runtime:extensionkit_native",
+    "ability_runtime:napi_base_context",
     "ability_runtime:runtime",
     "ability_runtime:service_extension",
     "ability_runtime:ui_extension",
