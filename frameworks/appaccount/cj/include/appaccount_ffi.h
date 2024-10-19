@@ -41,7 +41,7 @@ extern "C" {
 #endif
 #endif
 
-FFI_EXPORT int64_t FfiAppAccountCreateAppAccountManager();
+FFI_EXPORT RetDataI64 FfiAppAccountCreateAppAccountManager(void);
 FFI_EXPORT int32_t FfiAppAccountAppAccountManagerCreateAccount(int id, char *name, CCreateAccountOptions options);
 FFI_EXPORT int32_t FfiAppAccountAppAccountManagerRemoveAccount(int id, char *name);
 FFI_EXPORT int32_t FfiAppAccountAppAccountManagerSetAppAccess(int id, char *name, char *bundleName, bool isAccessible);
