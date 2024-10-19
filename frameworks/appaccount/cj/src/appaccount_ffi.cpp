@@ -22,13 +22,16 @@ using namespace OHOS::FFI;
 
 namespace OHOS::AccountSA {
 extern "C" {
-int64_t FfiAppAccountCreateAppAccountManager()
+RetDataI64 FfiAppAccountCreateAppAccountManager(void)
 {
+    RetDataI64 ret = {.code = ERR_OK, .data = -1};
     auto nativeAppAccountManager = FFIData::Create<CJAppAccountImpl>();
     if (nativeAppAccountManager == nullptr) {
-        return ERR_CJ_SYSTEM_SERVICE_EXCEPTION;
+        ret.code = ERR_CJ_SYSTEM_SERVICE_EXCEPTION;
+        return ret;
     }
-    return nativeAppAccountManager->GetID();
+    ret.data = nativeAppAccountManager->GetID();
+    return ret;
 }
 
 int32_t FfiAppAccountAppAccountManagerCreateAccount(int id, char *name, CCreateAccountOptions options)
