@@ -486,7 +486,7 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, co
         accountInfoOld.SetShortName(shortName);
         code = osAccountControl_->UpdateOsAccount(accountInfoOld);
         if (code != ERR_OK) {
-            ReportOsAccountOperationFail(accountInfoOld, Constants::OPERATION_CREATE, errCode,
+            ReportOsAccountOperationFail(Constants::START_USER_ID, Constants::OPERATION_CREATE, code,
                 "Failed to update OS account");
         }
         osAccountControl_->UpdateAccountIndex(accountInfoOld, false);
