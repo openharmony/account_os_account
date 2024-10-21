@@ -71,7 +71,7 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo, int32_t acco
     extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, secret);
     ErrCode ret = ERR_OK;
     if (authType_ == AuthType::PIN) {
-        (void)InnerAccountIAMManager::GetInstance().HandleFileKeyException(userId_, secret, token);
+        (void)InnerAccountIAMManager::GetInstance().HandleFileKeyException(accountId, secret, token);
         bool isVerified = false;
         (void)IInnerOsAccountManager::GetInstance().IsOsAccountVerified(accountId, isVerified);
         if (!isVerified) {
@@ -281,6 +281,12 @@ void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
     if (result != 0) {
         ReportOsAccountOperationFail(userId_, "addCredential", result,
             "Failed to add credential, type: " + std::to_string(credInfo_.authType));
+        if (credInfo_.authType == AuthType::PIN) {
+            std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(userId_) +
+                Constants::PATH_SEPARATOR + Constants::USER_ADD_SECRET_FLAG_FILE_NAME;
+            auto accountFileOperator = std::make_shared<AccountFileOperator>();
+            accountFileOperator->DeleteDirOrFile(path);
+        }
     }
     innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
     innerCallback_->OnResult(result, extraInfo);
