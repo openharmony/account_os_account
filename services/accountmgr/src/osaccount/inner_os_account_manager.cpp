@@ -59,6 +59,9 @@ constexpr int32_t DELAY_FOR_EXCEPTION = 50;
 constexpr int32_t MAX_RETRY_TIMES = 50;
 constexpr int32_t MAX_PRIVATE_TYPE_NUMBER = 1;
 constexpr int32_t DELAY_FOR_REMOVING_FOREGROUND_OS_ACCOUNT = 1500;
+#ifdef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
+constexpr int32_t DELAY_FOR_DEACTIVATE_OS_ACCOUNT = 3000;
+#endif
 }
 
 IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManager_(OsAccountSubscribeManager::GetInstance()),
@@ -2288,15 +2291,14 @@ ErrCode IInnerOsAccountManager::UpdateAccountToForeground(const uint64_t display
 ErrCode IInnerOsAccountManager::UpdateAccountToBackground(int32_t oldId)
 {
     OsAccountInfo oldOsAccountInfo;
+    bool isNeedDelay = false;
     {
         std::lock_guard<std::mutex> lock(*GetOrInsertUpdateLock(oldId));
         ErrCode errCode = osAccountControl_->GetOsAccountInfoById(oldId, oldOsAccountInfo);
         if (errCode != ERR_OK) {
             return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
         }
-        if (oldOsAccountInfo.GetIsForeground()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_REMOVING_FOREGROUND_OS_ACCOUNT));
-        }
+        isNeedDelay = oldOsAccountInfo.GetIsForeground();
         oldOsAccountInfo.SetIsForeground(false);
         oldOsAccountInfo.SetDisplayId(Constants::INVALID_DISPALY_ID);
         errCode = osAccountControl_->UpdateOsAccount(oldOsAccountInfo);
@@ -2317,6 +2319,9 @@ ErrCode IInnerOsAccountManager::UpdateAccountToBackground(int32_t oldId)
 #endif
     bool isLoggedIn = false;
     if ((oldOsAccountInfo.GetType() != OsAccountType::PRIVATE) && (!loggedInAccounts_.Find(oldId, isLoggedIn))) {
+        if (isNeedDelay) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_DEACTIVATE_OS_ACCOUNT));
+        }
         DeactivateOsAccount(oldId, false);
     }
 #else
