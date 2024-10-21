@@ -30,6 +30,7 @@
 #include "string_ex.h"
 #include "os_account_constants.h"
 #include "os_account_interface.h"
+#include "parameters.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -50,6 +51,8 @@ const std::string OS_ACCOUNT_CONFIG_FILE = "etc/os_account/os_account_config.jso
 #endif // HAS_CONFIG_POLICY_PART
 const std::string MAX_OS_ACCOUNT_NUM = "maxOsAccountNum";
 const std::string MAX_LOGGED_IN_OS_ACCOUNT_NUM = "maxLoggedInOsAccountNum";
+const std::string DEVELOPER_MODE_STATE = "const.security.developermode.state";
+const std::string DEVELOPER_MODE = "developerMode";
 }
 
 bool GetValidAccountID(const std::string& dirName, std::int32_t& accountID)
@@ -106,7 +109,15 @@ ErrCode OsAccountControlFileManager::GetOsAccountConfig(OsAccountConfig &config)
     }
     OHOS::AccountSA::GetDataByType<int32_t>(configJson, jsonEnd, MAX_LOGGED_IN_OS_ACCOUNT_NUM,
         config.maxLoggedInOsAccountNum, OHOS::AccountSA::JsonType::NUMBER);
-    if (config.maxLoggedInOsAccountNum > config.maxOsAccountNum) {
+
+    bool isDeveloperMode = OHOS::system::GetBoolParameter(DEVELOPER_MODE_STATE, false);
+    if (isDeveloperMode && configJson.find(DEVELOPER_MODE) != jsonEnd) {
+        Json modeJson = configJson.at(DEVELOPER_MODE);
+        OHOS::AccountSA::GetDataByType<int32_t>(modeJson, modeJson.end(), MAX_LOGGED_IN_OS_ACCOUNT_NUM,
+            config.maxLoggedInOsAccountNum, OHOS::AccountSA::JsonType::NUMBER);
+    }
+    if ((config.maxLoggedInOsAccountNum > config.maxOsAccountNum) ||
+        (config.maxLoggedInOsAccountNum <= 0)) {
         config.maxLoggedInOsAccountNum = config.maxOsAccountNum;
     }
     return ERR_OK;
