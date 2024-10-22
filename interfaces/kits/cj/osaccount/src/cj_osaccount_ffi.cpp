@@ -31,12 +31,6 @@ namespace OHOS::AccountJsKit {
                 *errCode);
             return false;
         }
-        if (AccountPermissionManager::CheckSystemApp(false) != ERR_OK) {
-            *errCode = ERR_JS_IS_NOT_SYSTEM_APP;
-            ACCOUNT_LOGE("[osAccount] IsOsAccountConstraintEnabled CheckSystemApp failed! errCode %{public}d",
-                *errCode);
-            return false;
-        }
         ACCOUNT_LOGE("[osAccount] IsOsAccountConstraintEnabled start");
         bool ret = OsAccountManagerImpl::IsOsAccountConstraintEnabled(constraint, errCode);
         ACCOUNT_LOGE("[osAccount] IsOsAccountConstraintEnabled success. errCode %{public}d", *errCode);
@@ -92,7 +86,7 @@ namespace OHOS::AccountJsKit {
                 ret.code = ERR_JS_SYSTEM_SERVICE_EXCEPTION;
                 return ret;
             }
-            for (int32_t i = 0; i < listSize; i++) {
+            for (size_t i = 0; i < listSize; i++) {
                 retValue[i] = osAccountIds[i];
             }
             ret.data.head = retValue;
@@ -103,7 +97,7 @@ namespace OHOS::AccountJsKit {
     uint32_t FfiOHOSOsAccountGetOsAccountCount(int32_t *errCode)
     {
         ACCOUNT_LOGE("[osAccount] GetOsAccountCount start");
-        int32_t ret = OsAccountManagerImpl::GetOsAccountCount(errCode);
+        uint32_t ret = OsAccountManagerImpl::GetOsAccountCount(errCode);
         ACCOUNT_LOGE("[osAccount] GetOsAccountCount success. errCode %{public}d", *errCode);
         return ret;
     }
@@ -116,10 +110,10 @@ namespace OHOS::AccountJsKit {
         return ret;
     }
 
-    int64_t FfiOHOSOsAccountGetSerialNumberForOsAccountLocalId(uint32_t localId, int32_t *errCode)
+    int64_t FfiOHOSOsAccountGetSerialNumberForOsAccountLocalId(int32_t localId, int32_t *errCode)
     {
         ACCOUNT_LOGE("[osAccount] GetSerialNumberForOsAccountLocalId start");
-        int32_t ret = OsAccountManagerImpl::GetSerialNumberForOsAccountLocalId(localId, errCode);
+        int64_t ret = OsAccountManagerImpl::GetSerialNumberForOsAccountLocalId(localId, errCode);
         ACCOUNT_LOGE("[osAccount] GetSerialNumberForOsAccountLocalId success. errCode %{public}d", *errCode);
         return ret;
     }
@@ -159,11 +153,6 @@ namespace OHOS::AccountJsKit {
 
     bool FfiOHOSOsAccountIsOsAccountUnlocked(int32_t *errCode)
     {
-        if (AccountPermissionManager::CheckSystemApp(false) != ERR_OK) {
-            *errCode = ERR_JS_IS_NOT_SYSTEM_APP;
-            ACCOUNT_LOGE("[osAccount] IsOsAccountUnlocked CheckSystemApp failed! errCode %{public}d", *errCode);
-            return false;
-        }
         ACCOUNT_LOGE("[osAccount] IsOsAccountUnlocked start");
         bool ret = OsAccountManagerImpl::IsOsAccountUnlocked(errCode);
         ACCOUNT_LOGE("[osAccount] IsOsAccountUnlocked success. errCode %{public}d", *errCode);
