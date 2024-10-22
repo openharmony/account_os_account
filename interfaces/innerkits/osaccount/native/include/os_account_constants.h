@@ -97,6 +97,10 @@ const std::int32_t WAIT_ONE_TIME = 1000;
 const uint64_t DEFAULT_DISPALY_ID = 0;
 const uint64_t INVALID_DISPALY_ID = -1ull;
 
+// an error code of ipc which means peer end is dead
+const int32_t E_IPC_ERROR = 29189;
+const int32_t E_IPC_SA_DIED = 32;
+
 // type template
 const char DEVICE_OWNER_ID[] = "deviceOwnerId";
 const char ALL_GLOBAL_CONSTRAINTS[] = "allGlobalConstraints";

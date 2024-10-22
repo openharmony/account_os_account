@@ -58,9 +58,7 @@ constexpr uint32_t CRYPTO_FLAG_EL1 = 1;
 constexpr uint32_t CRYPTO_FLAG_EL2 = 2;
 constexpr int32_t E_ACTIVE_EL2 = 30;
 #endif
-// an error code of ipc which means peer end is dead
-constexpr int32_t E_IPC_ERROR = 29189;
-constexpr int32_t E_IPC_SA_DIED = 32;
+
 constexpr int32_t DELAY_FOR_EXCEPTION = 100;
 constexpr int32_t MAX_RETRY_TIMES = 10;
 constexpr int32_t MAX_GETBUNDLE_WAIT_TIMES = 10 * 1000 * 1000;
@@ -178,7 +176,7 @@ ErrCode OsAccountInterface::SendToBMSAccountCreate(
     int32_t retryTimes = 0;
     while (retryTimes < MAX_RETRY_TIMES) {
         errCode = BundleManagerAdapter::GetInstance()->CreateNewUser(osAccountInfo.GetLocalId(), disallowedHapList);
-        if (errCode != E_IPC_ERROR && errCode != E_IPC_SA_DIED) {
+        if ((errCode != Constants::E_IPC_ERROR) && (errCode != Constants::E_IPC_SA_DIED)) {
             break;
         }
         ACCOUNT_LOGE("Fail to SendToBMSAccountCreate, errCode %{public}d.", errCode);
@@ -487,7 +485,7 @@ int32_t OsAccountInterface::UnlockUser(const int localId)
                     ret, "StorageManager failed to start user");
             }
         }
-        if (errCode == E_IPC_ERROR || errCode == E_IPC_SA_DIED) {
+        if ((errCode == Constants::E_IPC_ERROR) || (errCode == Constants::E_IPC_SA_DIED)) {
             ACCOUNT_LOGE("Failed to PrepareStartUser, id:%{public}d, errCode:%{public}d, retry!", localId, errCode);
             retryTimes++;
             std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
