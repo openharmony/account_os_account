@@ -30,7 +30,7 @@ FFI_EXPORT int32_t FfiOHOSOsAccountGetOsAccountLocalId(int32_t *errCode);
 FFI_EXPORT RetDataCArrI32 FfiOHOSOsAccountGetActivatedOsAccountLocalIds();
 FFI_EXPORT uint32_t FfiOHOSOsAccountGetOsAccountCount(int32_t *errCode);
 FFI_EXPORT char* FfiOHOSOsAccountQueryDistributedVirtualDeviceId(int32_t *errCode);
-FFI_EXPORT int64_t FfiOHOSOsAccountGetSerialNumberForOsAccountLocalId(uint32_t localId, int32_t *errCode);
+FFI_EXPORT int64_t FfiOHOSOsAccountGetSerialNumberForOsAccountLocalId(int32_t localId, int32_t *errCode);
 FFI_EXPORT int32_t FfiOHOSOsAccountGetOsAccountLocalIdForSerialNumber(int64_t serialNumber, int32_t *errCode);
 FFI_EXPORT int32_t FfiOHOSOsAccountGetOsAccountLocalIdForDomain(CDomainAccountInfo cDoaminInfo, int32_t *errCode);
 FFI_EXPORT int32_t FfiOHOSOsAccountGetOsAccountLocalIdForUid(int32_t uid, int32_t *errCode);
