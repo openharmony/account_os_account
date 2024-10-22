@@ -522,7 +522,7 @@ ErrCode InnerAccountIAMManager::UpdateStorageKey(
     ErrCode errCode = ERR_OK;
     while (times < MAX_RETRY_TIMES) {
         errCode = InnerUpdateStorageKey(userId, secureUid, token, oldSecret, newSecret);
-        if (errCode == ERR_OK) {
+        if ((errCode != Constants::E_IPC_ERROR) && (errCode != Constants::E_IPC_SA_DIED)) {
             return errCode;
         }
         ACCOUNT_LOGE("errCode=%{public}d, userId=%{public}d, times=%{public}d", errCode, userId, times);
@@ -564,7 +564,7 @@ ErrCode InnerAccountIAMManager::UpdateStorageKeyContext(const int32_t userId)
     ErrCode errCode = ERR_OK;
     while (times < MAX_RETRY_TIMES) {
         errCode = InnerUpdateStorageKeyContext(userId);
-        if (errCode == ERR_OK) {
+        if ((errCode != Constants::E_IPC_ERROR) && (errCode != Constants::E_IPC_SA_DIED)) {
             return errCode;
         }
         ACCOUNT_LOGE("errCode=%{public}d, userId=%{public}d, times=%{public}d", errCode, userId, times);
@@ -599,7 +599,7 @@ ErrCode InnerAccountIAMManager::UpdateStorageUserAuth(int32_t userId, uint64_t s
     ErrCode errCode = ERR_OK;
     while (times < MAX_RETRY_TIMES) {
         errCode = InnerUpdateStorageUserAuth(userId, secureUid, token, oldSecret, newSecret);
-        if (errCode == ERR_OK) {
+        if ((errCode != Constants::E_IPC_ERROR) && (errCode != Constants::E_IPC_SA_DIED)) {
             return errCode;
         }
         ACCOUNT_LOGE("errCode=%{public}d, userId=%{public}d, times=%{public}d", errCode, userId, times);
@@ -658,7 +658,7 @@ ErrCode InnerAccountIAMManager::GetLockScreenStatus(uint32_t userId, bool &lockS
     ErrCode errCode = ERR_OK;
     while (times < MAX_RETRY_TIMES) {
         errCode = InnerGetLockScreenStatus(userId, lockScreenStatus);
-        if (errCode == ERR_OK) {
+        if ((errCode != Constants::E_IPC_ERROR) && (errCode != Constants::E_IPC_SA_DIED)) {
             return errCode;
         }
         ACCOUNT_LOGE("errCode=%{public}d, userId=%{public}d, times=%{public}d", errCode, userId, times);
@@ -692,7 +692,7 @@ ErrCode InnerAccountIAMManager::UnlockUserScreen(
     ErrCode errCode = ERR_OK;
     while (times < MAX_RETRY_TIMES) {
         errCode = InnerUnlockUserScreen(userId, token, secret);
-        if (errCode == ERR_OK) {
+        if ((errCode != Constants::E_IPC_ERROR) && (errCode != Constants::E_IPC_SA_DIED)) {
             return errCode;
         }
         ACCOUNT_LOGE("errCode=%{public}d, userId=%{public}d, times=%{public}d", errCode, userId, times);
@@ -727,7 +727,7 @@ ErrCode InnerAccountIAMManager::ActivateUserKey(
     ErrCode errCode = ERR_OK;
     while (times < MAX_RETRY_TIMES) {
         errCode = InnerActivateUserKey(userId, token, secret);
-        if (errCode == ERR_OK) {
+        if ((errCode != Constants::E_IPC_ERROR) && (errCode != Constants::E_IPC_SA_DIED)) {
             return errCode;
         }
         ACCOUNT_LOGE("errCode=%{public}d, userId=%{public}d, times=%{public}d", errCode, userId, times);
