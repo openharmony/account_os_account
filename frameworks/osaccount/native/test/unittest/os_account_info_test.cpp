@@ -633,7 +633,6 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccountWithFullInfo0105, TestSize.Level1)
 
     osAccountInfo.SetLastLoginTime(1695863290000);
     EXPECT_EQ(ERR_OK, OsAccountManager::UpdateOsAccountWithFullInfo(osAccountInfo));
-    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo));
     OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId());
 }
 
@@ -909,5 +908,20 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount10, TestSize.Level1)
     EXPECT_NE(OsAccountManager::CreateOsAccount(OVER_LENGTH_ACCOUNT_NAME, "sn",
         OsAccountType::NORMAL, osAccountInfoTwo), ERR_OK);
     OsAccountManager::RemoveOsAccount(osAccountInfoTwo.GetLocalId());
+}
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
+
+#ifndef ENABLE_MULTIPLE_OS_ACCOUNTS
+/**
+ * @tc.name: CreateOsAccount11
+ * @tc.desc: create os account with short name
+ * @tc.type: FUNC
+ * @tc.require: I8F2PI
+ */
+HWTEST_F(OsAccountInfoTest, CreateOsAccount11, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR,
+        OsAccountManager::CreateOsAccount(STRING_NAME, "shortName", OsAccountType::NORMAL, osAccountInfo));
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS

@@ -42,6 +42,9 @@ ErrCode OsAccountInterface::SendToBMSAccountCreate(
     OsAccountInfo &osAccountInfo, const std::vector<std::string> &disallowedHapList)
 {
     ACCOUNT_LOGI("mock OsAccountInterface SendToBMSAccountCreate start");
+    if (osAccountInfo.GetLocalName() == "CreateOsAccountRollback001") {
+        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
+    }
     return ERR_OK;
 }
 
