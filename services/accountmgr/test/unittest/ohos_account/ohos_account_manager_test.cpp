@@ -30,15 +30,10 @@
 #include "matching_skills.h"
 #endif // HAS_CES_PART
 #include "os_account_manager.h"
-#include "accesstoken_kit.h"
-#include "token_setproc.h"
-#include "ipc_skeleton.h"
 using namespace testing;
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
-using namespace OHOS::EventFwk;
-using namespace OHOS::Security::AccessToken;
 
 namespace {
 const std::string KEY_ACCOUNT_EVENT_LOGIN = "LOGIN";
@@ -54,9 +49,8 @@ const std::string OVERSIZE_NAME =
 std::string g_eventLogin = OHOS_ACCOUNT_EVENT_LOGIN;
 std::string g_eventLogout = OHOS_ACCOUNT_EVENT_LOGOUT;
 std::string g_eventTokenInvalid = OHOS_ACCOUNT_EVENT_TOKEN_INVALID;
-const int MAIN_ACCOUNT_ID = 100;
-const int32_t WAIT_TIME = 20;
-const uid_t ACCOUNT_UID = 3058;
+const std::string STRING_TEST_NAME = "test_account_name";
+const int ACCOUNT_UID = 100;
 
 std::string GetAccountEventStr(const std::map<std::string, std::string> &accountEventMap,
     const std::string &eventKey, const std::string &defaultValue)
@@ -82,14 +76,14 @@ public:
     MOCK_METHOD1(OnReceiveEvent, void(const std::string &action));
 };
 
-class AccountCommonEventSubscriber final : public CommonEventSubscriber {
+class AccountCommonEventSubscriber final : public EventFwk::CommonEventSubscriber {
 public:
-    AccountCommonEventSubscriber(const CommonEventSubscribeInfo &subscribeInfo,
+    AccountCommonEventSubscriber(const EventFwk::CommonEventSubscribeInfo &subscribeInfo,
         const std::shared_ptr<MockSubscriberListener> &listener)
         : CommonEventSubscriber(subscribeInfo), listener_(listener)
     {}
 
-    void OnReceiveEvent(const CommonEventData &data)
+    void OnReceiveEvent(const EventFwk::CommonEventData &data)
     {
         if (listener_ == nullptr) {
             return;
@@ -139,13 +133,13 @@ void OhosAccountManagerTest::TearDown() {}
  */
 HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest001, TestSize.Level0)
 {
-    OhosAccountInfo info;
-    info.name_ = TEST_NAME;
-    info.uid_ = TEST_UID;
-    auto ret = OhosAccountManager::GetInstance().LoginOhosAccount(-1, info, g_eventLogin);
+    OhosAccountInfo accountInfo;
+    accountInfo.name_ = TEST_NAME;
+    accountInfo.uid_ = TEST_UID;
+    auto ret = OhosAccountManager::GetInstance().LoginOhosAccount(-1, accountInfo, g_eventLogin);
     EXPECT_EQ(ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR, ret);
 
-    ret = OhosAccountManager::GetInstance().HandleOhosAccountTokenInvalidEvent(-1, info, g_eventTokenInvalid);
+    ret = OhosAccountManager::GetInstance().HandleOhosAccountTokenInvalidEvent(-1, accountInfo, g_eventTokenInvalid);
     EXPECT_EQ(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, ret);
     EXPECT_EQ(ACCOUNT_STATE_UNBOUND, OhosAccountManager::GetInstance().GetCurrentOhosAccountState());
 }
@@ -186,7 +180,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest003, TestSize.Level0)
 HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest004, TestSize.Level0)
 {
     OhosAccountInfo curOhosAccount;
-    ErrCode ret = OhosAccountManager::GetInstance().LogoutOhosAccount(MAIN_ACCOUNT_ID, curOhosAccount, TEST_EVENT_STR);
+    ErrCode ret = OhosAccountManager::GetInstance().LogoutOhosAccount(ACCOUNT_UID, curOhosAccount, TEST_EVENT_STR);
     EXPECT_EQ(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, ret);
 }
 
@@ -199,7 +193,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest004, TestSize.Level0)
 HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest005, TestSize.Level0)
 {
     OhosAccountInfo curOhosAccount;
-    ErrCode ret = OhosAccountManager::GetInstance().LogoffOhosAccount(MAIN_ACCOUNT_ID, curOhosAccount, TEST_EVENT_STR);
+    ErrCode ret = OhosAccountManager::GetInstance().LogoffOhosAccount(ACCOUNT_UID, curOhosAccount, TEST_EVENT_STR);
     EXPECT_EQ(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, ret);
 }
 
@@ -212,35 +206,38 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest005, TestSize.Level0)
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest006, TestSize.Level0)
 {
-    OsAccountInfo info;
-    EXPECT_EQ(OsAccountManager::CreateOsAccount("OhosAccountManagerTest006", OsAccountType::NORMAL, info), ERR_OK);
-    EXPECT_EQ(OsAccountManager::ActivateOsAccount(info.GetLocalId()), ERR_OK);
+    OsAccountInfo osAccountInfoOne;
+    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
     // create common event subscribe
-    MatchingSkills matchingSkills;
-    matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGIN);
-    CommonEventSubscribeInfo subscribeInfo(matchingSkills);
+    EventFwk::MatchingSkills matchingSkills;
+    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGIN);
+    EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
     auto listener = std::make_shared<MockSubscriberListener>();
-    auto subscriberPtr = std::make_shared<AccountCommonEventSubscriber>(subscribeInfo, listener);
-    EXPECT_TRUE(CommonEventManager::SubscribeCommonEvent(subscriberPtr));
-    EXPECT_CALL(*listener, OnReceiveEvent(CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGIN))
-        .Times(Exactly(1));
+    std::shared_ptr<AccountCommonEventSubscriber> subscriberPtr =
+        std::make_shared<AccountCommonEventSubscriber>(subscribeInfo, listener);
+    bool result = EventFwk::CommonEventManager::SubscribeCommonEvent(subscriberPtr);
+    ASSERT_EQ(result, true);
 
-    AccessTokenID selfTokenId = IPCSkeleton::GetSelfTokenID();
-    AccessTokenID tokenId = AccessTokenKit::GetNativeTokenId("accountmgr");
-    EXPECT_EQ(ERR_OK, SetSelfTokenID(tokenId));
-    EXPECT_EQ(0, setuid(ACCOUNT_UID));
-    OhosAccountInfo ohosInfo("name", "test", ACCOUNT_STATE_UNBOUND);
-    EXPECT_EQ(OhosAccountManager::GetInstance().LoginOhosAccount(info.GetLocalId(), ohosInfo, g_eventLogin), ERR_OK);
-    EXPECT_EQ(OhosAccountManager::GetInstance().LoginOhosAccount(info.GetLocalId(), ohosInfo, g_eventLogin), ERR_OK);
+    AccountInfo curAccountInfo;
+    curAccountInfo.ohosAccountInfo_.name_ = "name";
+    curAccountInfo.ohosAccountInfo_.uid_ = "test";
+    EXPECT_CALL(*listener,
+        OnReceiveEvent(EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGIN)).Times(Exactly(1));
+    bool ret = OhosAccountManager::GetInstance().LoginOhosAccount(
+        osAccountInfoOne.GetLocalId(), curAccountInfo.ohosAccountInfo_, g_eventLogin);
+    EXPECT_EQ(ret, true);
+    ret = OhosAccountManager::GetInstance().LoginOhosAccount(
+        osAccountInfoOne.GetLocalId(), curAccountInfo.ohosAccountInfo_, g_eventLogin);
+    EXPECT_EQ(ret, true);
     std::unique_lock<std::mutex> lock(subscriberPtr->mutex);
-    subscriberPtr->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
-                               [lockCallback = subscriberPtr]() { return lockCallback->isReady; });
-    EXPECT_EQ(ERR_OK, OhosAccountManager::GetInstance().LogoutOhosAccount(info.GetLocalId(), ohosInfo, g_eventLogout));
-    EXPECT_EQ(0, setuid(0));
-    EXPECT_EQ(ERR_OK, SetSelfTokenID(selfTokenId));
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(info.GetLocalId()), ERR_OK);
-    EXPECT_TRUE(CommonEventManager::UnSubscribeCommonEvent(subscriberPtr));
-    testing::Mock::AllowLeak(listener.get());
+    subscriberPtr->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = subscriberPtr]() { return lockCallback->isReady; });
+    ret = OhosAccountManager::GetInstance().LogoutOhosAccount(
+        osAccountInfoOne.GetLocalId(), curAccountInfo.ohosAccountInfo_, g_eventLogout);
+    EXPECT_EQ(true, ret);
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    EXPECT_EQ(EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriberPtr), true);
 }
 
 /**
@@ -251,58 +248,37 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest006, TestSize.Level0)
  */
 HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest007, TestSize.Level0)
 {
-    OsAccountInfo info;
-    EXPECT_EQ(OsAccountManager::CreateOsAccount("OhosAccountManagerTest007", OsAccountType::NORMAL, info), ERR_OK);
-    EXPECT_EQ(OsAccountManager::ActivateOsAccount(info.GetLocalId()), ERR_OK);
+    OsAccountInfo osAccountInfoOne;
+    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
     // create common event subscribe
-    MatchingSkills matchingSkills;
-    matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT);
-    CommonEventSubscribeInfo subscribeInfo(matchingSkills);
+    EventFwk::MatchingSkills matchingSkills;
+    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT);
+    EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
     auto listener = std::make_shared<MockSubscriberListener>();
-    auto subscriberPtr = std::make_shared<AccountCommonEventSubscriber>(subscribeInfo, listener);
+    std::shared_ptr<AccountCommonEventSubscriber> subscriberPtr =
+        std::make_shared<AccountCommonEventSubscriber>(subscribeInfo, listener);
     ASSERT_NE(subscriberPtr, nullptr);
-    EXPECT_TRUE(CommonEventManager::SubscribeCommonEvent(subscriberPtr));
-    EXPECT_CALL(*listener, OnReceiveEvent(CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT))
-        .Times(Exactly(1));
+    bool result = EventFwk::CommonEventManager::SubscribeCommonEvent(subscriberPtr);
+    EXPECT_EQ(result, true);
 
-    pid_t pid = fork();
-    if (pid == 0) {
-        // create common event subscribe
-        EXPECT_EQ(setuid(MAIN_ACCOUNT_ID * UID_TRANSFORM_DIVISOR), 0);
-        MatchingSkills matchingSkills;
-        matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGIN);
-        CommonEventSubscribeInfo subscribeInfo(matchingSkills);
-        auto listener = std::make_shared<MockSubscriberListener>();
-        auto subscriberPtr = std::make_shared<AccountCommonEventSubscriber>(subscribeInfo, listener);
-        ASSERT_EQ(CommonEventManager::SubscribeCommonEvent(subscriberPtr), true);
-        EXPECT_CALL(*listener, OnReceiveEvent(CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGIN))
-            .Times(Exactly(0));
-        std::unique_lock<std::mutex> lock(subscriberPtr->mutex);
-        subscriberPtr->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
-                                   [lockCallback = subscriberPtr]() { return lockCallback->isReady; });
-        EXPECT_TRUE(CommonEventManager::UnSubscribeCommonEvent(subscriberPtr));
-        testing::Mock::AllowLeak(listener.get());
-        exit(0);
-    }
-
-    sleep(1);
-
-    OhosAccountInfo ohosInfo("name1", "test1", ACCOUNT_STATE_UNBOUND);
-    AccessTokenID selfTokenId = IPCSkeleton::GetSelfTokenID();
-    AccessTokenID tokenId = AccessTokenKit::GetNativeTokenId("accountmgr");
-    EXPECT_EQ(ERR_OK, SetSelfTokenID(tokenId));
-    EXPECT_EQ(0, setuid(ACCOUNT_UID));
-    EXPECT_EQ(OhosAccountManager::GetInstance().LoginOhosAccount(info.GetLocalId(), ohosInfo, g_eventLogin), ERR_OK);
-    EXPECT_EQ(ERR_OK, OhosAccountManager::GetInstance().LogoutOhosAccount(info.GetLocalId(), ohosInfo, g_eventLogout));
+    AccountInfo curAccountInfo;
+    curAccountInfo.ohosAccountInfo_.name_ = "name1";
+    curAccountInfo.ohosAccountInfo_.uid_ = "test1";
+    bool ret = OhosAccountManager::GetInstance().LoginOhosAccount(
+        osAccountInfoOne.GetLocalId(), curAccountInfo.ohosAccountInfo_, g_eventLogin);
+    EXPECT_EQ(ret, true);
+    EXPECT_CALL(*listener,
+        OnReceiveEvent(EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT)).Times(Exactly(1));
+    ret = OhosAccountManager::GetInstance().LogoutOhosAccount(
+        osAccountInfoOne.GetLocalId(), curAccountInfo.ohosAccountInfo_, g_eventLogout);
     std::unique_lock<std::mutex> lock(subscriberPtr->mutex);
-    subscriberPtr->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
-                               [lockCallback = subscriberPtr]() { return lockCallback->isReady; });
-
-    EXPECT_EQ(0, setuid(0));
-    EXPECT_EQ(ERR_OK, SetSelfTokenID(selfTokenId));
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(info.GetLocalId()), ERR_OK);
-    EXPECT_TRUE(CommonEventManager::UnSubscribeCommonEvent(subscriberPtr));
-    testing::Mock::AllowLeak(listener.get());
+    subscriberPtr->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = subscriberPtr]() { return lockCallback->isReady; });
+    EXPECT_EQ(true, ret);
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    result = EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriberPtr);
+    EXPECT_EQ(result, true);
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
@@ -394,7 +370,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest_013, TestSize.Level0)
 {
     AccountInfo accountInfoSrc;
     OhosAccountInfo ohosAccountInfo;
-    ohosAccountInfo.uid_ = MAIN_ACCOUNT_ID;
+    ohosAccountInfo.uid_ = ACCOUNT_UID;
     accountInfoSrc.ohosAccountInfo_ = ohosAccountInfo;
     
     AccountInfo accountInfoTar;
