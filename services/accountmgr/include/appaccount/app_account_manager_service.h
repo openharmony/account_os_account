@@ -100,7 +100,7 @@ public:
         const sptr<IAppAccountAuthenticatorCallback> &callback) override;
 
     ErrCode SubscribeAppAccount(
-        const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener) override;
+        AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener) override;
     ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener) override;
 
     virtual ErrCode OnPackageRemoved(const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
