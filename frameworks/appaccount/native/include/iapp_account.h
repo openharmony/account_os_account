@@ -100,7 +100,7 @@ public:
         const sptr<IAppAccountAuthenticatorCallback> &callback) = 0;
 
     virtual ErrCode SubscribeAppAccount(
-        const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener) = 0;
+        AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener) = 0;
     virtual ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener) = 0;
 };
 }  // namespace AccountSA

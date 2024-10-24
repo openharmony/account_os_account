@@ -1071,7 +1071,7 @@ ErrCode AppAccountProxy::SetAuthenticatorProperties(const std::string &owner,
 }
 
 ErrCode AppAccountProxy::SubscribeAppAccount(
-    const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener)
+    AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener)
 {
     MessageParcel data;
     MessageParcel reply;
