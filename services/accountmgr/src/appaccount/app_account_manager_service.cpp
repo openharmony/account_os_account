@@ -609,7 +609,7 @@ ErrCode AppAccountManagerService::QueryAllAccessibleAccounts(
     bool ret = BundleManagerAdapter::GetInstance()->GetBundleInfo(
         owner, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
     if (!ret) {
-        return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO;
+        return ERR_OK;
     }
     return innerManager_->GetAllAccounts(owner, appAccounts, callingUid, bundleName, appIndex);
 }
@@ -725,7 +725,7 @@ ErrCode AppAccountManagerService::SubscribeAppAccount(
             AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
         if (!bundleRet) {
             ACCOUNT_LOGE("failed to get bundle info");
-            return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO;
+            return ERR_OK;
         }
     }
 
