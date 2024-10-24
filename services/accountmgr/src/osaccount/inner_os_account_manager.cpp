@@ -1965,7 +1965,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountIsLoggedIn(const int32_t id, const b
     if (!osAccountInfo.GetIsLoggedIn()) {
 #ifdef ACTIVATE_LAST_LOGGED_IN_ACCOUNT
         {
-            std::lock_guard<std::mutex> lock(operatingMutex_);
+            std::lock_guard<std::mutex> operatingLock(operatingMutex_);
             osAccountControl_->SetDefaultActivatedOsAccount(id);
             defaultActivatedId_ = id;
         }
@@ -2267,7 +2267,11 @@ ErrCode IInnerOsAccountManager::UpdateAccountToForeground(const uint64_t display
     if (osAccountInfo.GetIsLoggedIn()) {
         loggedInAccounts_.EnsureInsert(localId, true);
 #ifdef ACTIVATE_LAST_LOGGED_IN_ACCOUNT
-        osAccountControl_->SetDefaultActivatedOsAccount(localId);
+        {
+            std::lock_guard<std::mutex> operatingLock(operatingMutex_);
+            osAccountControl_->SetDefaultActivatedOsAccount(localId);
+            defaultActivatedId_ = localId;
+        }
 #endif
     }
     if (osAccountInfo.GetIsVerified()) {
