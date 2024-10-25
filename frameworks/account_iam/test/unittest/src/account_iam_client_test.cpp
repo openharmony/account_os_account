@@ -430,35 +430,6 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_DelCred_0100, TestSize.Level0)
 }
 
 /**
- * @tc.name: AccountIAMClient_DelUser_0100
- * @tc.desc: Delete user.
- * @tc.type: FUNC
- * @tc.require: issueI5N90O
- */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient_DelUser_0100, TestSize.Level0)
-{
-    std::vector<uint8_t> testAuthToken = {1, 2, 3, 4};
-    auto callback = std::make_shared<MockIDMCallback>();
-    EXPECT_NE(callback, nullptr);
-    EXPECT_CALL(*callback, OnResult(_, _)).Times(Exactly(2));
-    auto testCallback = std::make_shared<TestIDMCallback>(callback);
-    AccountIAMClient::GetInstance().DelUser(TEST_USER_ID, testAuthToken, nullptr);
-    AccountIAMClient::GetInstance().DelUser(0, testAuthToken, testCallback);
-    {
-        std::unique_lock<std::mutex> lock(testCallback->mutex);
-        testCallback->cv.wait_for(
-            lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
-    }
-    testCallback->isReady = false;
-    AccountIAMClient::GetInstance().DelUser(TEST_USER_ID, testAuthToken, testCallback);
-    {
-        std::unique_lock<std::mutex> lock(testCallback->mutex);
-        testCallback->cv.wait_for(
-            lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
-    }
-}
-
-/**
  * @tc.name: AccountIAMClient_GetCredentialInfo_0100
  * @tc.desc: Get credential info.
  * @tc.type: FUNC
@@ -670,6 +641,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_RegisterPINInputer_0100, TestSiz
 {
     std::shared_ptr<IInputer> inputer = std::make_shared<TestIInputer>();
     EXPECT_NE(nullptr, inputer);
+    AccountIAMClient::GetInstance().UnregisterPINInputer();
     EXPECT_EQ(ERR_OK, AccountIAMClient::GetInstance().RegisterPINInputer(inputer));
     EXPECT_EQ(ERR_ACCOUNT_IAM_KIT_INPUTER_ALREADY_REGISTERED,
         AccountIAMClient::GetInstance().RegisterPINInputer(inputer));
@@ -1191,6 +1163,37 @@ HWTEST_F(AccountIAMClientTest, ResetAccountIAMProxy001, TestSize.Level0)
     EXPECT_NE(AccountIAMClient::GetInstance().proxy_, nullptr);
     AccountIAMClient::GetInstance().ResetAccountIAMProxy(remote);
     AccountIAMClient::GetInstance().proxy_ = proxy;
+}
+
+/**
+ * @tc.name: AccountIAMClient_DelUser_0100
+ * @tc.desc: Delete user.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90O
+ */
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_DelUser_0100, TestSize.Level0)
+{
+    AccountIAMClient::GetInstance().UnregisterPINInputer();
+    std::vector<uint8_t> testAuthToken = {1, 2, 3, 4};
+    auto callback = std::make_shared<MockIDMCallback>();
+    EXPECT_NE(callback, nullptr);
+    EXPECT_CALL(*callback, OnResult(_, _)).Times(Exactly(2));
+    auto testCallback = std::make_shared<TestIDMCallback>(callback);
+    AccountIAMClient::GetInstance().DelUser(TEST_USER_ID, testAuthToken, nullptr);
+    AccountIAMClient::GetInstance().DelUser(0, testAuthToken, testCallback);
+    {
+        std::unique_lock<std::mutex> lock(testCallback->mutex);
+        testCallback->cv.wait_for(
+            lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    }
+    testCallback->isReady = false;
+    AccountIAMClient::GetInstance().DelUser(TEST_USER_ID, testAuthToken, testCallback);
+    {
+        std::unique_lock<std::mutex> lock(testCallback->mutex);
+        testCallback->cv.wait_for(
+            lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    }
+    AccountIAMClient::GetInstance().UnregisterPINInputer();
 }
 }  // namespace AccountTest
 }  // namespace OHOS
