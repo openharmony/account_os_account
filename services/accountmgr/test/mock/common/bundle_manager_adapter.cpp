@@ -104,6 +104,14 @@ bool BundleManagerAdapter::GetBundleInfo(const std::string &bundleName, const Ap
     return true;
 }
 
+ErrCode BundleManagerAdapter::GetBundleInfosV9(int32_t flags,
+    std::vector<AppExecFwk::BundleInfo> &bundleInfos, int32_t userId)
+{
+    AppExecFwk::BundleInfo bundleInfo;
+    bundleInfos.emplace_back(bundleInfo);
+    return ERR_OK;
+}
+
 bool BundleManagerAdapter::QueryAbilityInfos(const AAFwk::Want &want, int32_t flags, int32_t userId,
     std::vector<AppExecFwk::AbilityInfo> &abilityInfos)
 {

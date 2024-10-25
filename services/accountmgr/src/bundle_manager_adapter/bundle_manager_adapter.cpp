@@ -78,6 +78,21 @@ bool BundleManagerAdapter::GetBundleInfo(const std::string &bundleName, const Ap
     return ret;
 }
 
+ErrCode BundleManagerAdapter::GetBundleInfosV9(int32_t flags,
+    std::vector<AppExecFwk::BundleInfo> &bundleInfos, int32_t userId)
+{
+    std::lock_guard<std::mutex> lock(proxyMutex_);
+    ErrCode result = Connect();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Failed to connect bundle manager service.");
+        return false;
+    }
+    StartTraceAdapter("Bundle manager service, GetBundleInfosV9");
+    auto ret = proxy_->GetBundleInfosV9(flags, bundleInfos, userId);
+    FinishTraceAdapter();
+    return ret;
+}
+
 bool BundleManagerAdapter::QueryAbilityInfos(const AAFwk::Want &want, int32_t flags, int32_t userId,
     std::vector<AppExecFwk::AbilityInfo> &abilityInfos)
 {
