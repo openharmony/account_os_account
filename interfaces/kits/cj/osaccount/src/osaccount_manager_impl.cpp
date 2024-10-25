@@ -38,61 +38,61 @@ namespace OHOS::AccountJsKit {
             return false;
         }
         id = ids[0];
-        *errCode = OsAccountManager::CheckOsAccountConstraintEnabled(id, constraint, isConsEnable);
+        *errCode = ConvertToJSErrCode(OsAccountManager::CheckOsAccountConstraintEnabled(id, constraint, isConsEnable));
         return isConsEnable;
     }
 
     int32_t OsAccountManagerImpl::GetOsAccountType(int32_t *errCode)
     {
         OsAccountType type;
-        *errCode = OsAccountManager::GetOsAccountTypeFromProcess(type);
+        *errCode = ConvertToJSErrCode(OsAccountManager::GetOsAccountTypeFromProcess(type));
         return type;
     }
 
     bool OsAccountManagerImpl::CheckMultiOsAccountEnabled(int32_t *errCode)
     {
         bool isMultiOAEnable = false;
-        *errCode = OsAccountManager::IsMultiOsAccountEnable(isMultiOAEnable);
+        *errCode = ConvertToJSErrCode(OsAccountManager::IsMultiOsAccountEnable(isMultiOAEnable));
         return isMultiOAEnable;
     }
 
     int32_t OsAccountManagerImpl::GetOsAccountLocalId(int32_t *errCode)
     {
         int32_t id = 0;
-        *errCode = OsAccountManager::GetOsAccountLocalIdFromProcess(id);
+        *errCode = ConvertToJSErrCode(OsAccountManager::GetOsAccountLocalIdFromProcess(id));
         return id;
     }
 
     int32_t OsAccountManagerImpl::GetActivatedOsAccountLocalIds(std::vector<int32_t> &osAccountIds)
     {
-        return OsAccountManager::QueryActiveOsAccountIds(osAccountIds);
+        return ConvertToJSErrCode(OsAccountManager::QueryActiveOsAccountIds(osAccountIds));
     }
 
     uint32_t OsAccountManagerImpl::GetOsAccountCount(int32_t *errCode)
     {
         uint32_t osAccountCount = 0;
-        *errCode = OsAccountManager::GetCreatedOsAccountsCount(osAccountCount);
+        *errCode = ConvertToJSErrCode(OsAccountManager::GetCreatedOsAccountsCount(osAccountCount));
         return osAccountCount;
     }
 
     char *OsAccountManagerImpl::QueryDistributedVirtualDeviceId(int32_t *errCode)
     {
         std::string deviceId;
-        *errCode = OsAccountManager::GetDistributedVirtualDeviceId(deviceId);
+        *errCode = ConvertToJSErrCode(OsAccountManager::GetDistributedVirtualDeviceId(deviceId));
         return MallocCString(deviceId);
     }
 
     int64_t OsAccountManagerImpl::GetSerialNumberForOsAccountLocalId(uint32_t localId, int32_t *errCode)
     {
         int64_t serialNum;
-        *errCode = OsAccountManager::GetSerialNumberByOsAccountLocalId(localId, serialNum);
+        *errCode = ConvertToJSErrCode(OsAccountManager::GetSerialNumberByOsAccountLocalId(localId, serialNum));
         return serialNum;
     }
 
     int32_t OsAccountManagerImpl::GetOsAccountLocalIdForSerialNumber(int64_t serialNumber, int32_t *errCode)
     {
         int32_t id = 0;
-        *errCode = OsAccountManager::GetOsAccountLocalIdBySerialNumber(serialNumber, id);
+        *errCode = ConvertToJSErrCode(OsAccountManager::GetOsAccountLocalIdBySerialNumber(serialNumber, id));
         return id;
     }
 
@@ -102,28 +102,28 @@ namespace OHOS::AccountJsKit {
         DomainAccountInfo domainInfo;
         domainInfo.accountId_ = domain;
         domainInfo.accountName_ = accountName;
-        *errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, id);
+        *errCode = ConvertToJSErrCode(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, id));
         return id;
     }
 
     int32_t OsAccountManagerImpl::GetOsAccountLocalIdForUid(int32_t uid, int32_t *errCode)
     {
         int32_t id = 0;
-        *errCode = OsAccountManager::GetOsAccountLocalIdFromUid(uid, id);
+        *errCode = ConvertToJSErrCode(OsAccountManager::GetOsAccountLocalIdFromUid(uid, id));
         return id;
     }
 
     char *OsAccountManagerImpl::GetOsAccountName(int32_t *errCode)
     {
         std::string name;
-        *errCode = OsAccountManager::GetOsAccountName(name);
+        *errCode = ConvertToJSErrCode(OsAccountManager::GetOsAccountName(name));
         return MallocCString(name);
     }
 
     bool OsAccountManagerImpl::IsOsAccountUnlocked(int32_t *errCode)
     {
         bool isVerified = false;
-        *errCode = OsAccountManager::IsCurrentOsAccountVerified(isVerified);
+        *errCode = ConvertToJSErrCode(OsAccountManager::IsCurrentOsAccountVerified(isVerified));
         return isVerified;
     }
 
