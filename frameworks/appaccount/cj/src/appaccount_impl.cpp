@@ -30,7 +30,7 @@ int32_t CJAppAccountImpl::createAccount(std::string name, CCreateAccountOptions 
 {
     CreateAccountOptions options{};
     Convert2CreateAccountOptions(cOptions, options);
-    int32_t ret = AppAccountManager::CreateAccount(name, options);
+    int32_t ret = ConvertToJSErrCode(AppAccountManager::CreateAccount(name, options));
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("create account failed");
         return ret;
@@ -40,7 +40,7 @@ int32_t CJAppAccountImpl::createAccount(std::string name, CCreateAccountOptions 
 
 int32_t CJAppAccountImpl::removeAccount(std::string name)
 {
-    int32_t ret = AppAccountManager::DeleteAccount(name);
+    int32_t ret = ConvertToJSErrCode(AppAccountManager::DeleteAccount(name));
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("remove account failed");
         return ret;
@@ -50,7 +50,7 @@ int32_t CJAppAccountImpl::removeAccount(std::string name)
 
 int32_t CJAppAccountImpl::setAppAccess(std::string name, std::string bundleNmae, bool isAccessible)
 {
-    int32_t ret = AppAccountManager::SetAppAccess(name, bundleNmae, isAccessible);
+    int32_t ret = ConvertToJSErrCode(AppAccountManager::SetAppAccess(name, bundleNmae, isAccessible));
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("setAppAccess failed");
         return ret;
@@ -62,7 +62,7 @@ RetDataBool CJAppAccountImpl::checkAppAccess(std::string name, std::string bundl
 {
     RetDataBool ret = { .code = ERR_CJ_INVALID_INSTANCE_CODE, .data = 0 };
     bool isAccessible;
-    int32_t err = AppAccountManager::CheckAppAccess(name, bundleNmae, isAccessible);
+    int32_t err = ConvertToJSErrCode(AppAccountManager::CheckAppAccess(name, bundleNmae, isAccessible));
     if (err != ERR_OK) {
         ACCOUNT_LOGE("checkAppAccess failed");
         ret.code = err;
@@ -78,7 +78,7 @@ RetDataBool CJAppAccountImpl::checkDataSyncEnabled(std::string name)
 {
     RetDataBool ret = { .code = ERR_CJ_INVALID_INSTANCE_CODE, .data = 0 };
     bool result;
-    int32_t err = AppAccountManager::CheckAppAccountSyncEnable(name, result);
+    int32_t err = ConvertToJSErrCode(AppAccountManager::CheckAppAccountSyncEnable(name, result));
     if (err != ERR_OK) {
         ACCOUNT_LOGE("checkDataSyncEnabled failed");
         ret.code = err;
@@ -92,7 +92,7 @@ RetDataBool CJAppAccountImpl::checkDataSyncEnabled(std::string name)
 
 int32_t CJAppAccountImpl::setCredential(std::string name, std::string credentialType, std::string credential)
 {
-    int32_t ret = AppAccountManager::SetAccountCredential(name, credentialType, credential);
+    int32_t ret = ConvertToJSErrCode(AppAccountManager::SetAccountCredential(name, credentialType, credential));
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("setCredential failed");
         return ret;
@@ -102,7 +102,7 @@ int32_t CJAppAccountImpl::setCredential(std::string name, std::string credential
 
 int32_t CJAppAccountImpl::setDataSyncEnabled(std::string name, bool isEnabled)
 {
-    int32_t ret = AppAccountManager::SetAppAccountSyncEnable(name, isEnabled);
+    int32_t ret = ConvertToJSErrCode(AppAccountManager::SetAppAccountSyncEnable(name, isEnabled));
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("setDataSyncEnabled failed");
         return ret;
@@ -112,7 +112,7 @@ int32_t CJAppAccountImpl::setDataSyncEnabled(std::string name, bool isEnabled)
 
 int32_t CJAppAccountImpl::setCustomData(std::string name, std::string key, std::string value)
 {
-    int32_t ret = AppAccountManager::SetAssociatedData(name, key, value);
+    int32_t ret = ConvertToJSErrCode(AppAccountManager::SetAssociatedData(name, key, value));
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("setCustomData failed");
         return ret;
@@ -124,7 +124,7 @@ ErrCArrAppAccountInfo CJAppAccountImpl::getAccountsByOwner(std::string owner)
 {
     ErrCArrAppAccountInfo res{};
     std::vector<AppAccountInfo> appAccounts;
-    int32_t err = AppAccountManager::QueryAllAccessibleAccounts(owner, appAccounts);
+    int32_t err = ConvertToJSErrCode(AppAccountManager::QueryAllAccessibleAccounts(owner, appAccounts));
     if (err != ERR_OK) {
         ACCOUNT_LOGE("getAccountsByOwner failed");
         res.err = err;
@@ -139,7 +139,7 @@ RetDataCString CJAppAccountImpl::getCredential(std::string name, std::string cre
 {
     RetDataCString ret = { .code = ERR_CJ_SUCCESS, .data = nullptr };
     std::string credential;
-    int32_t err = AppAccountManager::GetAccountCredential(name, credentialType, credential);
+    int32_t err = ConvertToJSErrCode(AppAccountManager::GetAccountCredential(name, credentialType, credential));
     if (err != ERR_OK) {
         ACCOUNT_LOGE("getCredential failed");
         ret.code = err;
@@ -155,7 +155,7 @@ RetDataCString CJAppAccountImpl::getCustomData(std::string name, std::string key
 {
     RetDataCString ret = { .code = ERR_CJ_SUCCESS, .data = nullptr };
     std::string value;
-    int32_t err = AppAccountManager::GetAssociatedData(name, key, value);
+    int32_t err = ConvertToJSErrCode(AppAccountManager::GetAssociatedData(name, key, value));
     if (err != ERR_OK) {
         ACCOUNT_LOGE("getCustomDataSync failed");
         ret.code = err;
@@ -171,7 +171,7 @@ RetDataCString CJAppAccountImpl::getAuthToken(std::string name, std::string owne
 {
     RetDataCString ret = { .code = ERR_CJ_SUCCESS, .data = nullptr };
     std::string token;
-    int32_t err = AppAccountManager::GetAuthToken(name, owner, authType, token);
+    int32_t err = ConvertToJSErrCode(AppAccountManager::GetAuthToken(name, owner, authType, token));
     if (err != ERR_OK) {
         ACCOUNT_LOGE("getAuthToken failed");
         ret.code = err;
@@ -185,7 +185,7 @@ RetDataCString CJAppAccountImpl::getAuthToken(std::string name, std::string owne
 
 int32_t CJAppAccountImpl::setAuthToken(std::string name, std::string authType, std::string token)
 {
-    int32_t err = AppAccountManager::SetOAuthToken(name, authType, token);
+    int32_t err = ConvertToJSErrCode(AppAccountManager::SetOAuthToken(name, authType, token));
     if (err != ERR_OK) {
         ACCOUNT_LOGE("setAuthToken failed");
         return err;
@@ -196,7 +196,7 @@ int32_t CJAppAccountImpl::setAuthToken(std::string name, std::string authType, s
 int32_t CJAppAccountImpl::deleteAuthToken(
     std::string name, std::string owner, std::string authType, std::string token)
 {
-    int32_t err = AppAccountManager::DeleteAuthToken(name, owner, authType, token);
+    int32_t err = ConvertToJSErrCode(AppAccountManager::DeleteAuthToken(name, owner, authType, token));
     if (err != ERR_OK) {
         ACCOUNT_LOGE("deleteAuthToken failed");
         return err;
@@ -207,7 +207,7 @@ int32_t CJAppAccountImpl::deleteAuthToken(
 int32_t CJAppAccountImpl::setAuthTokenVisibility(
     std::string name, std::string authType, std::string bundleName, bool isVisible)
 {
-    int32_t err = AppAccountManager::SetAuthTokenVisibility(name, authType, bundleName, isVisible);
+    int32_t err = ConvertToJSErrCode(AppAccountManager::SetAuthTokenVisibility(name, authType, bundleName, isVisible));
     if (err != ERR_OK) {
         ACCOUNT_LOGE("setAuthTokenVisibility failed");
         return err;
@@ -219,7 +219,8 @@ RetDataBool CJAppAccountImpl::checkAuthTokenVisibility(std::string name, std::st
 {
     RetDataBool ret = { .code = ERR_CJ_INVALID_INSTANCE_CODE, .data = 0 };
     bool isVisible;
-    int32_t err = AppAccountManager::CheckAuthTokenVisibility(name, authType, bundleName, isVisible);
+    int32_t err = ConvertToJSErrCode(
+        AppAccountManager::CheckAuthTokenVisibility(name, authType, bundleName, isVisible));
     if (err != ERR_OK) {
         ACCOUNT_LOGE("checkAuthTokenVisibility failed");
         ret.code = err;
@@ -235,7 +236,7 @@ ErrCArrAuthTokenInfo CJAppAccountImpl::getAllAuthTokens(std::string name, std::s
 {
     ErrCArrAuthTokenInfo res{};
     std::vector<OAuthTokenInfo> tokenInfos;
-    int32_t err = AppAccountManager::GetAllOAuthTokens(name, owner, tokenInfos);
+    int32_t err = ConvertToJSErrCode(AppAccountManager::GetAllOAuthTokens(name, owner, tokenInfos));
     if (err != ERR_OK) {
         ACCOUNT_LOGE("getAllAuthTokens failed");
         res.err = err;
@@ -250,7 +251,7 @@ RetDataCArrString CJAppAccountImpl::getAuthList(std::string name, std::string au
 {
     RetDataCArrString res = { .code = ERR_CJ_INVALID_INSTANCE_CODE, .data = {.head = nullptr, .size = 0}};
     std::set<std::string> authList;
-    int32_t err = AppAccountManager::GetAuthList(name, authType, authList);
+    int32_t err = ConvertToJSErrCode(AppAccountManager::GetAuthList(name, authType, authList));
     if (err != ERR_OK) {
         ACCOUNT_LOGE("getAuthList failed");
         res.code = err;
@@ -265,9 +266,9 @@ ErrCAuthenticatorInfo CJAppAccountImpl::queryAuthenticatorInfo(std::string owner
 {
     ErrCAuthenticatorInfo res{};
     AuthenticatorInfo info;
-    int32_t err = AppAccountManager::GetAuthenticatorInfo(owner, info);
+    int32_t err = ConvertToJSErrCode(AppAccountManager::GetAuthenticatorInfo(owner, info));
     if (err != ERR_OK) {
-        ACCOUNT_LOGE("getAuthList failed");
+        ACCOUNT_LOGE("queryAuthenticatorInfo failed");
         return {err, {}};
     }
     res.err = err;
@@ -277,7 +278,7 @@ ErrCAuthenticatorInfo CJAppAccountImpl::queryAuthenticatorInfo(std::string owner
 
 int32_t CJAppAccountImpl::deleteCredential(std::string name, std::string credentialType)
 {
-    int32_t err = AppAccountManager::DeleteAccountCredential(name, credentialType);
+    int32_t err = ConvertToJSErrCode(AppAccountManager::DeleteAccountCredential(name, credentialType));
     if (err != ERR_OK) {
         ACCOUNT_LOGE("deleteCredential failed");
         return err;
@@ -289,7 +290,7 @@ ErrCArrAppAccountInfo CJAppAccountImpl::getAllAccounts()
 {
     ErrCArrAppAccountInfo res{};
     std::vector<AppAccountInfo> appAccounts;
-    int32_t err = AppAccountManager::GetAllAccessibleAccounts(appAccounts);
+    int32_t err = ConvertToJSErrCode(AppAccountManager::GetAllAccessibleAccounts(appAccounts));
     if (err != ERR_OK) {
         ACCOUNT_LOGE("getAllAccounts failed");
         res.err = err;
@@ -337,7 +338,7 @@ int32_t CJAppAccountImpl::on(
     if (IsExitSubscibe(context.get())) {
         return ERR_CJ_INVALID_INSTANCE_CODE;
     }
-    int32_t ret = AppAccountManager::SubscribeAppAccount(context->subscriber);
+    int32_t ret = ConvertToJSErrCode(AppAccountManager::SubscribeAppAccount(context->subscriber));
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("accountChange subscribe failed");
         return ret;
@@ -369,7 +370,7 @@ int32_t CJAppAccountImpl::off(std::string type, void (*callback)(CArrAppAccountI
     if (callback == nullptr) {
         std::lock_guard<std::mutex> lock(mutex_);
         for (auto offSubscriber : context->subscribers) {
-            ret = AppAccountManager::UnsubscribeAppAccount(offSubscriber);
+            ret = ConvertToJSErrCode(AppAccountManager::UnsubscribeAppAccount(offSubscriber));
             if (ret != ERR_OK) {
                 hasFailed = true;
                 E_ERROR = ret;
@@ -382,7 +383,8 @@ int32_t CJAppAccountImpl::off(std::string type, void (*callback)(CArrAppAccountI
             if (!IsSameFunction(&context->callbackRef, &context->subscribers[idx]->ref_)) {
                 continue;
             }
-            ret = AppAccountManager::UnsubscribeAppAccount(context->subscribers[idx]);
+            ret = ConvertToJSErrCode(
+                AppAccountManager::UnsubscribeAppAccount(context->subscribers[idx]));
             if (ret != ERR_OK) {
                 hasFailed = true;
                 E_ERROR = ret;
@@ -424,7 +426,8 @@ int32_t CJAppAccountImpl::checkAccountLabels(std::string name, std::string owner
         callbackRef(ret);
         return ERR_CJ_INVALID_INSTANCE_CODE;
     }
-    int err =  AppAccountManager::CheckAccountLabels(name, owner, Convert2VecString(labels), callback);
+    int err =  ConvertToJSErrCode(
+        AppAccountManager::CheckAccountLabels(name, owner, Convert2VecString(labels), callback));
     if (callback->errCode == ERR_OK) {
         ret.data = callback->onResultRetBool;
     } else {
@@ -483,7 +486,8 @@ int32_t CJAppAccountImpl::selectAccountByOptions(
         callbackRef(ret);
         return ERR_CJ_INVALID_INSTANCE_CODE;
     }
-    int err = AppAccountManager::SelectAccountsByOptions(context->options, callback);
+    int err = ConvertToJSErrCode(
+        AppAccountManager::SelectAccountsByOptions(context->options, callback));
     std::vector<std::string> names = callback->onResultRetNames;
     std::vector<std::string> owners = callback->onResultRetOwners;
     if (names.size() != owners.size()) {
@@ -536,7 +540,8 @@ int32_t CJAppAccountImpl::verifyCredential(
         callback.onResult(ERR_CJ_SYSTEM_SERVICE_EXCEPTION, Convert2CAuthResult(value, value, value, value));
         return ERR_CJ_SYSTEM_SERVICE_EXCEPTION;
     }
-    int32_t errCode = AppAccountManager::VerifyCredential(name, owner, options, appAccountMgrCb);
+    int32_t errCode = ConvertToJSErrCode(
+        AppAccountManager::VerifyCredential(name, owner, options, appAccountMgrCb));
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("verifyCredential failed");
         AAFwk::Want result;
@@ -587,7 +592,8 @@ int32_t CJAppAccountImpl::setAuthenticatorProperties(
         callback.onResult(ERR_CJ_SYSTEM_SERVICE_EXCEPTION, Convert2CAuthResult(value, value, value, value));
         return ERR_CJ_SYSTEM_SERVICE_EXCEPTION;
     }
-    int32_t errCode = AppAccountManager::SetAuthenticatorProperties(owner, options, appAccountMgrCb);
+    int32_t errCode = ConvertToJSErrCode(
+        AppAccountManager::SetAuthenticatorProperties(owner, options, appAccountMgrCb));
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("setAuthenticatorProperties failed");
         AAFwk::Want result;
