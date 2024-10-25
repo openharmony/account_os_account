@@ -43,6 +43,7 @@ const std::string EL2_DATA_STORE_PREFIX = "account_";
 const std::string EL2_DATA_STORAGE_PATH_PREFIX = "/data/service/el2/";
 const std::string EL2_DATA_STORAGE_PATH_SUFFIX = "/account/app_account/database/";
 const std::string AUTHORIZED_ACCOUNTS = "authorizedAccounts";
+const size_t  MAX_ACCESS_NUMBER = 64;
 #ifdef HAS_ASSET_PART
 const std::string ALIAS_SUFFIX_CREDENTIAL = "credential";
 const std::string ALIAS_SUFFIX_TOKEN = "token";
@@ -339,6 +340,27 @@ ErrCode AppAccountControlManager::SetAccountExtraInfo(const std::string &name, c
     return result;
 }
 
+ErrCode CheckAppSetLimit(const size_t &appSetSize, const int32_t callingUid)
+{
+    std::vector<AppExecFwk::BundleInfo> bundleInfos;
+    int32_t userId = callingUid / UID_TRANSFORM_DIVISOR;
+    ErrCode bundleRet = BundleManagerAdapter::GetInstance()->GetBundleInfosV9(
+        static_cast<int32_t>(AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT), bundleInfos, userId);
+    if (bundleRet != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get bundle infos errorCode=%{public}d.", bundleRet);
+        return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO_RETURN_ERROR;
+    }
+    if (appSetSize <= MAX_ACCESS_NUMBER) {
+        return ERR_OK;
+    }
+    if (appSetSize - MAX_ACCESS_NUMBER > bundleInfos.size()) {
+        ACCOUNT_LOGE("List is too large, authorizedApps size is %{public}zu, installedBundleNumber is %{public}zu",
+            appSetSize, bundleInfos.size());
+        return ERR_APPACCOUNT_SERVICE_OAUTH_LIST_MAX_SIZE;
+    }
+    return ERR_OK;
+}
+
 ErrCode AppAccountControlManager::EnableAppAccess(const std::string &name, const std::string &authorizedApp,
     AppAccountCallingInfo &appAccountCallingInfo, AppAccountInfo &appAccountInfo, const uint32_t apiVersion)
 {
@@ -351,10 +373,15 @@ ErrCode AppAccountControlManager::EnableAppAccess(const std::string &name, const
 
     result = appAccountInfo.EnableAppAccess(authorizedApp, apiVersion);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to enable app access, result %{public}d.", result);
-        return ERR_APPACCOUNT_SERVICE_ENABLE_APP_ACCESS_ALREADY_EXISTS;
+        ACCOUNT_LOGE("Failed to enable app access, result=%{public}d.", result);
+        return result;
     }
-
+    std::set<std::string> apps;
+    appAccountInfo.GetAuthorizedApps(apps);
+    result = CheckAppSetLimit(apps.size(), appAccountCallingInfo.callingUid);
+    if (result != ERR_OK) {
+        return result;
+    }
     result = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, appAccountCallingInfo.callingUid);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to save account info into data storage, result %{public}d.", result);
@@ -362,9 +389,10 @@ ErrCode AppAccountControlManager::EnableAppAccess(const std::string &name, const
     }
 
     // save authorized account into data storage
-    result = SaveAuthorizedAccount(authorizedApp, appAccountInfo, dataStoragePtr, appAccountCallingInfo.callingUid);
+    result = SaveAuthorizedAccount(authorizedApp, appAccountInfo, dataStoragePtr,
+        appAccountCallingInfo.callingUid);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to save authorized account into data storage, result %{public}d.", result);
+        ACCOUNT_LOGE("Failed to save authorized account into data storage, result=%{public}d.", result);
         return result;
     }
 
