@@ -18,19 +18,26 @@
 
 namespace OHOS {
 namespace AccountSA {
-char *convertStrToChar(std::string str)
+char *MallocCString(const std::string &origin)
 {
-    static char *res = const_cast<char *>(str.c_str());
-    return res;
+    if (origin.empty()) {
+        return nullptr;
+    }
+    auto len = origin.length() + 1;
+    char *res = static_cast<char *>(malloc(sizeof(char) * len));
+    if (res == nullptr) {
+        return nullptr;
+    }
+    return std::char_traits<char>::copy(res, origin.c_str(), len);
 }
 
 RetDistributedInfo convertToRet(AccountSA::OhosAccountInfo ohosInfo)
 {
     RetDistributedInfo retInfo{0};
-    retInfo.name = convertStrToChar(ohosInfo.name_);
-    retInfo.id = convertStrToChar(ohosInfo.uid_);
-    retInfo.nickname = convertStrToChar(ohosInfo.nickname_);
-    retInfo.avatar = convertStrToChar(ohosInfo.avatar_);
+    retInfo.name = MallocCString(ohosInfo.name_);
+    retInfo.id = MallocCString(ohosInfo.uid_);
+    retInfo.nickname = MallocCString(ohosInfo.nickname_);
+    retInfo.avatar = MallocCString(ohosInfo.avatar_);
     retInfo.status = ohosInfo.status_;
     return retInfo;
 }
@@ -55,7 +62,7 @@ extern "C"
         if (errCode == nullptr) {
             return convertToRet(ohosAccountInfo);
         }
-        *errCode = OhosAccountKits::GetInstance().GetOhosAccountInfo(ohosAccountInfo);
+        *errCode = ConvertToJSErrCode(OhosAccountKits::GetInstance().GetOhosAccountInfo(ohosAccountInfo));
         return convertToRet(ohosAccountInfo);
     }
 
@@ -65,7 +72,8 @@ extern "C"
         if (errCode == nullptr) {
             return;
         }
-        *errCode = OhosAccountKits::GetInstance().SetOhosAccountInfo(ohosAccountInfo, retInfo.event);
+        *errCode = ConvertToJSErrCode(
+            OhosAccountKits::GetInstance().SetOhosAccountInfo(ohosAccountInfo, retInfo.event));
     }
 }
 }  // namespace AccountSA
