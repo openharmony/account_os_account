@@ -149,7 +149,7 @@ private:
     bool CheckAndAddLocalIdOperating(int32_t localId);
     ErrCode DealWithDeviceOwnerId(const bool isDeviceOwner, const int32_t localId);
     void CheckAndRefreshLocalIdRecord(const int id);
-    bool IsToBeRemoved(int32_t localId);
+    bool IsToBeRemoved(const int32_t localId);
 
     // operations for active list
     void PushIdIntoActiveList(int32_t id);
