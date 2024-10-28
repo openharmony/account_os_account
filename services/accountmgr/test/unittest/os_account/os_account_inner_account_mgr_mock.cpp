@@ -15,10 +15,11 @@
 
 #include <filesystem>
 #include <gtest/gtest.h>
-#include <gtest/hwext/gtest-multithread.h>
 #include <map>
+#include <string>
 
 #include "account_error_no.h"
+#include "errors.h"
 #include "os_account_constants.h"
 #include "os_account_manager.h"
 #include "os_account_interface.h"
@@ -44,9 +45,7 @@
 
 namespace OHOS {
 namespace AccountSA {
-using namespace testing;
 using namespace testing::ext;
-using namespace testing::mt;
 using namespace OHOS::AccountSA;
 using namespace OHOS;
 using namespace AccountSA;
@@ -66,11 +65,6 @@ const int TEST_USER_ID10 = 10;
 const int TEST_USER_ID55 = 55;
 const int TEST_USER_ID100 = 100;
 const int TEST_USER_ID108 = 108;
-const int THREAD_NUM = 10;
-const std::int32_t MAIN_ACCOUNT_ID = 100;
-
-OsAccountInfo osAccountInfo;
-const std::string STRING_PHOTO_MAX(1024 * 1024, '1');  // length 1024*1024*10+1
 
 const std::string STRING_TEST_NAME = "test_account_name";
 const std::string STRING_DOMAIN_NAME_OUT_OF_RANGE(200, '1');  // length 200
@@ -80,6 +74,7 @@ const int ACCOUNT_UID = 3058;
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 const std::string STRING_DOMAIN_VALID = "TestDomainMT";
 const std::string STRING_DOMAIN_ACCOUNT_NAME_VALID = "TestDomainAccountNameMT";
+OsAccountControlFileManager *g_controlManager = new (std::nothrow) OsAccountControlFileManager();
 
 bool operator==(const ConstraintSourceTypeInfo &left, const ConstraintSourceTypeInfo &right)
 {
@@ -94,6 +89,24 @@ public:
     void TearDown();
 public:
     IInnerOsAccountManager *innerMgrService_ = &IInnerOsAccountManager::GetInstance();
+};
+
+class MockDomainAccountCallback {
+public:
+    MOCK_METHOD2(OnResult, void(int32_t resultCode, Parcel &parcel));
+};
+
+class MockDomainAccountCallbackStub : public DomainAccountCallbackStub {
+public:
+    explicit MockDomainAccountCallbackStub(const std::shared_ptr<MockDomainAccountCallback> &callback);
+    virtual ~MockDomainAccountCallbackStub();
+    void OnResult(const int32_t errCode, Parcel &parcel) override;
+    std::condition_variable cv;
+    bool isReady = false;
+    std::mutex mutex;
+
+private:
+    std::shared_ptr<MockDomainAccountCallback> innerCallback_;
 };
 
 void OsAccountInnerAccmgrMockTest::SetUpTestCase(void)
@@ -141,6 +154,502 @@ void OsAccountInnerAccmgrMockTest::SetUp(void) __attribute__((no_sanitize("cfi")
 
 void OsAccountInnerAccmgrMockTest::TearDown(void)
 {}
+
+/*
+ * @tc.name: CreateOsAccount001
+ * @tc.desc: Create os account without shortname successfully and save status to account_info.json
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, CreateOsAccount001, TestSize.Level1)
+{
+    OsAccountInfo createInfo;
+    EXPECT_EQ(ERR_OK, innerMgrService_->CreateOsAccount("CreateOsAccount001", NORMAL, createInfo));
+    EXPECT_TRUE(createInfo.GetLocalId() > START_USER_ID);
+
+    // account info has been saved to account_info.json
+    OsAccountInfo accountInfo;
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountInfoById(createInfo.GetLocalId(), accountInfo));
+
+    // some status
+    EXPECT_EQ(accountInfo.ToString(), createInfo.ToString());
+    EXPECT_EQ(accountInfo.GetLocalId(), createInfo.GetLocalId());
+    EXPECT_EQ(accountInfo.GetLocalName(), "CreateOsAccount001");
+    EXPECT_EQ(accountInfo.GetShortName(), "");
+    EXPECT_EQ(accountInfo.GetType(), NORMAL);
+    EXPECT_FALSE(accountInfo.GetIsVerified());
+    EXPECT_TRUE(accountInfo.GetPhoto().empty());
+    EXPECT_TRUE(accountInfo.GetCreateTime() > 0);
+    EXPECT_EQ(accountInfo.GetLastLoginTime(), 0);
+    EXPECT_TRUE(accountInfo.GetSerialNumber() > 0);
+    EXPECT_FALSE(accountInfo.GetIsActived());
+    EXPECT_TRUE(accountInfo.GetIsCreateCompleted());
+    EXPECT_FALSE(accountInfo.GetToBeRemoved());
+    EXPECT_EQ(accountInfo.GetCredentialId(), 0);
+    EXPECT_EQ(accountInfo.GetDisplayId(), -1);
+    EXPECT_FALSE(accountInfo.GetIsForeground());
+    EXPECT_FALSE(accountInfo.GetIsLoggedIn());
+
+    // constraints has been saved to base_os_account_constraints.json
+    std::vector<std::string> constraintsByType;
+    EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetConstraintsByType(NORMAL, constraintsByType));
+    EXPECT_THAT(accountInfo.GetConstraints(), testing::ElementsAreArray(constraintsByType));
+    Json constraintsFromFileJson;
+    EXPECT_EQ(ERR_OK, g_controlManager->GetBaseOAConstraintsFromFile(constraintsFromFileJson));
+    std::vector<std::string> constraintsFromFile;
+    GetDataByType<std::vector<std::string>>(constraintsFromFileJson, constraintsFromFileJson.end(),
+        std::to_string(accountInfo.GetLocalId()), constraintsFromFile, JsonType::ARRAY);
+    EXPECT_THAT(accountInfo.GetConstraints(), testing::ElementsAreArray(constraintsFromFile));
+
+    // account index has been saved to account_index_info.json
+    Json accountIndexJson;
+    EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetAccountIndexFromFile(accountIndexJson));
+    auto iter = accountIndexJson.find(std::to_string(accountInfo.GetLocalId()));
+    bool isExist = (iter != accountIndexJson.end());
+    EXPECT_TRUE(isExist);
+    if (isExist) {
+        EXPECT_EQ(iter.value()[Constants::LOCAL_NAME].get<std::string>(), accountInfo.GetLocalName());
+    }
+    EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId()));
+}
+
+/*
+ * @tc.name: CreateOsAccount002
+ * @tc.desc: Create os account with shortname successfully and save status to account_info.json
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, CreateOsAccount002, TestSize.Level1)
+{
+    OsAccountInfo createInfo;
+    EXPECT_EQ(ERR_OK, innerMgrService_->CreateOsAccount("CreateOsAccount001", "CreateOsAccount001ShortName", NORMAL,
+                                                        createInfo));
+    EXPECT_TRUE(createInfo.GetLocalId() > START_USER_ID);
+    OsAccountInfo accountInfo;
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountInfoById(createInfo.GetLocalId(), accountInfo));
+
+    // some status
+    EXPECT_EQ(accountInfo.ToString(), createInfo.ToString());
+    EXPECT_EQ(accountInfo.GetLocalId(), createInfo.GetLocalId());
+    EXPECT_EQ(accountInfo.GetLocalName(), "CreateOsAccount001");
+    EXPECT_EQ(accountInfo.GetShortName(), "CreateOsAccount001ShortName");
+    EXPECT_EQ(accountInfo.GetType(), NORMAL);
+    EXPECT_FALSE(accountInfo.GetIsVerified());
+    EXPECT_TRUE(accountInfo.GetPhoto().empty());
+    EXPECT_TRUE(accountInfo.GetCreateTime() > 0);
+    EXPECT_EQ(accountInfo.GetLastLoginTime(), 0);
+    EXPECT_TRUE(accountInfo.GetSerialNumber() > 0);
+    EXPECT_FALSE(accountInfo.GetIsActived());
+    EXPECT_TRUE(accountInfo.GetIsCreateCompleted());
+    EXPECT_FALSE(accountInfo.GetToBeRemoved());
+    EXPECT_EQ(accountInfo.GetCredentialId(), 0);
+    EXPECT_EQ(accountInfo.GetDisplayId(), -1);
+    EXPECT_FALSE(accountInfo.GetIsForeground());
+    EXPECT_FALSE(accountInfo.GetIsLoggedIn());
+
+    // constraints has been saved to base_os_account_constraints.json
+    std::vector<std::string> constraintsByType;
+    EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetConstraintsByType(NORMAL, constraintsByType));
+    EXPECT_THAT(accountInfo.GetConstraints(), testing::ElementsAreArray(constraintsByType));
+    Json constraintsFromFileJson;
+    EXPECT_EQ(ERR_OK, g_controlManager->GetBaseOAConstraintsFromFile(constraintsFromFileJson));
+    std::vector<std::string> constraintsFromFile;
+    GetDataByType<std::vector<std::string>>(constraintsFromFileJson, constraintsFromFileJson.end(),
+        std::to_string(accountInfo.GetLocalId()), constraintsFromFile, JsonType::ARRAY);
+    EXPECT_THAT(accountInfo.GetConstraints(), testing::ElementsAreArray(constraintsFromFile));
+
+    // account index has been saved to account_index_info.json
+    Json accountIndexJson;
+    EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetAccountIndexFromFile(accountIndexJson));
+    auto iter = accountIndexJson.find(std::to_string(accountInfo.GetLocalId()));
+    bool isExist = (iter != accountIndexJson.end());
+    EXPECT_TRUE(isExist);
+    if (isExist) {
+        EXPECT_EQ(iter.value()[Constants::LOCAL_NAME].get<std::string>(), accountInfo.GetLocalName());
+    }
+    EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId()));
+}
+
+/*
+ * @tc.name: CreateOsAccountWithFullInfo001
+ * @tc.desc: Create os account with full info successfully and save status to account_info.json
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, CreateOsAccountWithFullInfo001, TestSize.Level1)
+{
+    OsAccountInfo createInfo;
+    createInfo.SetLocalName("CreateOsAccountWithFullInfo001");
+    createInfo.SetShortName("CreateOsAccountWithFullInfo001ShortName");
+    createInfo.SetType(NORMAL);
+    createInfo.SetLocalId(999);
+    createInfo.SetSerialNumber(1100); // this will not take effect
+    createInfo.SetPhoto("test photo");
+    createInfo.SetCreateTime(1695883215000);
+    createInfo.SetConstraints({"test constraints"});
+    EXPECT_EQ(ERR_OK, innerMgrService_->CreateOsAccountWithFullInfo(createInfo));
+    OsAccountInfo accountInfo;
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountInfoById(999, accountInfo));
+
+    // some status
+    EXPECT_EQ(accountInfo.ToString(), createInfo.ToString());
+    EXPECT_EQ(accountInfo.GetLocalId(), 999);
+    EXPECT_EQ(accountInfo.GetLocalName(), "CreateOsAccountWithFullInfo001");
+    EXPECT_EQ(accountInfo.GetShortName(), "CreateOsAccountWithFullInfo001ShortName");
+    EXPECT_EQ(accountInfo.GetType(), NORMAL);
+    EXPECT_FALSE(accountInfo.GetIsVerified());
+    EXPECT_EQ(accountInfo.GetPhoto(), "test photo");
+    EXPECT_EQ(accountInfo.GetCreateTime(), 1695883215000);
+    EXPECT_EQ(accountInfo.GetLastLoginTime(), 0);
+    EXPECT_TRUE(accountInfo.GetSerialNumber() > 0);
+    EXPECT_FALSE(accountInfo.GetIsActived());
+    EXPECT_TRUE(accountInfo.GetIsCreateCompleted());
+    EXPECT_FALSE(accountInfo.GetToBeRemoved());
+    EXPECT_EQ(accountInfo.GetCredentialId(), 0);
+    EXPECT_EQ(accountInfo.GetDisplayId(), -1);
+    EXPECT_FALSE(accountInfo.GetIsForeground());
+    EXPECT_FALSE(accountInfo.GetIsLoggedIn());
+
+    // constraints has been saved to base_os_account_constraints.json
+    std::vector<std::string> constraintsByType;
+    EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetConstraintsByType(NORMAL, constraintsByType));
+    constraintsByType.emplace_back("test constraints");
+    EXPECT_THAT(accountInfo.GetConstraints(), testing::ElementsAreArray(constraintsByType));
+    Json constraintsFromFileJson;
+    EXPECT_EQ(ERR_OK, g_controlManager->GetBaseOAConstraintsFromFile(constraintsFromFileJson));
+    std::vector<std::string> constraintsFromFile;
+    GetDataByType<std::vector<std::string>>(constraintsFromFileJson, constraintsFromFileJson.end(),
+        std::to_string(accountInfo.GetLocalId()), constraintsFromFile, JsonType::ARRAY);
+    EXPECT_THAT(accountInfo.GetConstraints(), testing::ElementsAreArray(constraintsFromFile));
+
+    // account index has been saved to account_index_info.json
+    Json accountIndexJson;
+    EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetAccountIndexFromFile(accountIndexJson));
+    auto iter = accountIndexJson.find(std::to_string(accountInfo.GetLocalId()));
+    bool isExist = (iter != accountIndexJson.end());
+    EXPECT_TRUE(isExist);
+    if (isExist) {
+        EXPECT_EQ(iter.value()[Constants::LOCAL_NAME].get<std::string>(), accountInfo.GetLocalName());
+    }
+    EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId()));
+}
+
+/*
+ * @tc.name: UpdateOsAccountWithFullInfo001
+ * @tc.desc: Update os account with full info successfully and save status to account_info.json
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, UpdateOsAccountWithFullInfo001, TestSize.Level1)
+{
+    OsAccountInfo createInfo;
+    EXPECT_EQ(ERR_OK, innerMgrService_->CreateOsAccount("UpdateOsAccountWithFullInfo001",
+                                                        "UpdateOsAccountWithFullInfo001ShortName", NORMAL, createInfo));
+    EXPECT_TRUE(createInfo.GetLocalId() > START_USER_ID);
+
+    OsAccountInfo updateInfo;
+    updateInfo.SetLocalName("UpdateOsAccountWithFullInfo001Change");
+    updateInfo.SetShortName("UpdateOsAccountWithFullInfo001ShortNameChange"); // short name is unchangeable
+    updateInfo.SetType(GUEST);
+    updateInfo.SetLocalId(createInfo.GetLocalId());
+    updateInfo.SetPhoto("test photo");
+    updateInfo.SetConstraints({"test constraints"});
+    EXPECT_EQ(ERR_OK, innerMgrService_->UpdateOsAccountWithFullInfo(updateInfo));
+
+    // account info has been saved to account_info.json
+    OsAccountInfo accountInfo;
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountInfoById(createInfo.GetLocalId(), accountInfo));
+
+    // some status
+    EXPECT_EQ(accountInfo.ToString(), updateInfo.ToString());
+    EXPECT_EQ(accountInfo.GetLocalId(), createInfo.GetLocalId());
+    EXPECT_EQ(accountInfo.GetLocalName(), "UpdateOsAccountWithFullInfo001Change");
+    EXPECT_EQ(accountInfo.GetShortName(), "UpdateOsAccountWithFullInfo001ShortName");
+    EXPECT_EQ(accountInfo.GetType(), GUEST);
+    EXPECT_FALSE(accountInfo.GetIsVerified());
+    EXPECT_EQ(accountInfo.GetPhoto(), "test photo");
+    EXPECT_TRUE(accountInfo.GetCreateTime() > 0);
+    EXPECT_EQ(accountInfo.GetLastLoginTime(), 0);
+    EXPECT_TRUE(accountInfo.GetSerialNumber() > 0);
+    EXPECT_FALSE(accountInfo.GetIsActived());
+    EXPECT_TRUE(accountInfo.GetIsCreateCompleted());
+    EXPECT_FALSE(accountInfo.GetToBeRemoved());
+    EXPECT_EQ(accountInfo.GetCredentialId(), 0);
+    EXPECT_EQ(accountInfo.GetDisplayId(), -1);
+    EXPECT_FALSE(accountInfo.GetIsForeground());
+    EXPECT_FALSE(accountInfo.GetIsLoggedIn());
+
+    // constraints has been saved to base_os_account_constraints.json
+    EXPECT_THAT(accountInfo.GetConstraints(), testing::ElementsAreArray({"test constraints"}));
+    Json constraintsFromFileJson;
+    EXPECT_EQ(ERR_OK, g_controlManager->GetBaseOAConstraintsFromFile(constraintsFromFileJson));
+    std::vector<std::string> constraintsFromFile;
+    GetDataByType<std::vector<std::string>>(constraintsFromFileJson, constraintsFromFileJson.end(),
+        std::to_string(accountInfo.GetLocalId()), constraintsFromFile, JsonType::ARRAY);
+
+    // account index has been saved to account_index_info.json
+    Json accountIndexJson;
+    EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetAccountIndexFromFile(accountIndexJson));
+    auto iter = accountIndexJson.find(std::to_string(accountInfo.GetLocalId()));
+    bool isExist = (iter != accountIndexJson.end());
+    EXPECT_TRUE(isExist);
+    if (isExist) {
+        EXPECT_EQ(iter.value()[Constants::LOCAL_NAME].get<std::string>(), accountInfo.GetLocalName());
+    }
+    EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId()));
+}
+
+/*
+ * @tc.name: RemoveOsAccount001
+ * @tc.desc: Remove background os account successfully and update status in
+ * account_info.json/base_os_account_constraints.json/account_index_info.json
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, RemoveOsAccount001, TestSize.Level1)
+{
+    OsAccountInfo createInfo;
+    EXPECT_EQ(ERR_OK, innerMgrService_->CreateOsAccount("RemoveOsAccount001", NORMAL, createInfo));
+    EXPECT_TRUE(createInfo.GetLocalId() > START_USER_ID);
+
+    // account info has been saved to account_info.json
+    OsAccountInfo accountInfo;
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountInfoById(createInfo.GetLocalId(), accountInfo));
+
+    // constraints has been saved to base_os_account_constraints.json
+    std::vector<std::string> constraintsByType;
+    EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetConstraintsByType(NORMAL, constraintsByType));
+    EXPECT_THAT(accountInfo.GetConstraints(), testing::ElementsAreArray(constraintsByType));
+    Json constraintsFromFileJson;
+    EXPECT_EQ(ERR_OK, g_controlManager->GetBaseOAConstraintsFromFile(constraintsFromFileJson));
+    std::vector<std::string> constraintsFromFile;
+    GetDataByType<std::vector<std::string>>(constraintsFromFileJson, constraintsFromFileJson.end(),
+        std::to_string(accountInfo.GetLocalId()), constraintsFromFile, JsonType::ARRAY);
+    EXPECT_THAT(accountInfo.GetConstraints(), testing::ElementsAreArray(constraintsFromFile));
+
+    // account index has been saved to account_index_info.json
+    Json accountIndexJson;
+    EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetAccountIndexFromFile(accountIndexJson));
+    auto iter = accountIndexJson.find(std::to_string(accountInfo.GetLocalId()));
+    bool isExist = (iter != accountIndexJson.end());
+    EXPECT_TRUE(isExist);
+    if (isExist) {
+        EXPECT_EQ(iter.value()[Constants::LOCAL_NAME].get<std::string>(), accountInfo.GetLocalName());
+    }
+
+    EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId()));
+
+    // account info in account_info.json has been erased
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR,
+              innerMgrService_->GetOsAccountInfoById(accountInfo.GetLocalId(), createInfo));
+
+    // constraints in base_os_account_constraints.json has been erased
+    EXPECT_EQ(ERR_OK, g_controlManager->GetBaseOAConstraintsFromFile(constraintsFromFileJson));
+    constraintsFromFile.clear();
+    GetDataByType<std::vector<std::string>>(constraintsFromFileJson, constraintsFromFileJson.end(),
+        std::to_string(accountInfo.GetLocalId()), constraintsFromFile, JsonType::ARRAY);
+    EXPECT_TRUE(constraintsFromFile.empty());
+
+    // account index in account_index_info.json has been erased
+    EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetAccountIndexFromFile(accountIndexJson));
+    iter = accountIndexJson.find(std::to_string(accountInfo.GetLocalId()));
+    EXPECT_EQ(iter, accountIndexJson.end());
+}
+
+/*
+ * @tc.name: RemoveOsAccount002
+ * @tc.desc: Remove foreground os account successfully and update status in
+ * account_info.json/base_os_account_constraints.json/account_index_info.json
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, RemoveOsAccount002, TestSize.Level1)
+{
+    OsAccountInfo createInfo;
+    EXPECT_EQ(ERR_OK, innerMgrService_->CreateOsAccount("RemoveOsAccount002", NORMAL, createInfo));
+    EXPECT_TRUE(createInfo.GetLocalId() > START_USER_ID);
+
+    // account info has been saved to account_info.json
+    OsAccountInfo accountInfo;
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountInfoById(createInfo.GetLocalId(), accountInfo));
+
+    // constraints has been saved to base_os_account_constraints.json
+    std::vector<std::string> constraintsByType;
+    EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetConstraintsByType(NORMAL, constraintsByType));
+    EXPECT_THAT(accountInfo.GetConstraints(), testing::ElementsAreArray(constraintsByType));
+    Json constraintsFromFileJson;
+    EXPECT_EQ(ERR_OK, g_controlManager->GetBaseOAConstraintsFromFile(constraintsFromFileJson));
+    std::vector<std::string> constraintsFromFile;
+    GetDataByType<std::vector<std::string>>(constraintsFromFileJson, constraintsFromFileJson.end(),
+        std::to_string(accountInfo.GetLocalId()), constraintsFromFile, JsonType::ARRAY);
+    EXPECT_THAT(accountInfo.GetConstraints(), testing::ElementsAreArray(constraintsFromFile));
+
+    // account index has been saved to account_index_info.json
+    Json accountIndexJson;
+    EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetAccountIndexFromFile(accountIndexJson));
+    auto iter = accountIndexJson.find(std::to_string(accountInfo.GetLocalId()));
+    bool isExist = (iter != accountIndexJson.end());
+    EXPECT_TRUE(isExist);
+    if (isExist) {
+        EXPECT_EQ(iter.value()[Constants::LOCAL_NAME].get<std::string>(), accountInfo.GetLocalName());
+    }
+
+    EXPECT_EQ(ERR_OK, innerMgrService_->ActivateOsAccount(accountInfo.GetLocalId()));
+    int id = 0;
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetForegroundOsAccountLocalId(0, id));
+    EXPECT_EQ(accountInfo.GetLocalId(), id);
+    EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId()));
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetForegroundOsAccountLocalId(0, id));
+    EXPECT_EQ(START_USER_ID, id);
+
+    // account info in account_info.json has been erased
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR,
+              innerMgrService_->GetOsAccountInfoById(accountInfo.GetLocalId(), createInfo));
+
+    // constraints in base_os_account_constraints.json has been erased
+    EXPECT_EQ(ERR_OK, g_controlManager->GetBaseOAConstraintsFromFile(constraintsFromFileJson));
+    constraintsFromFile.clear();
+    GetDataByType<std::vector<std::string>>(constraintsFromFileJson, constraintsFromFileJson.end(),
+        std::to_string(accountInfo.GetLocalId()), constraintsFromFile, JsonType::ARRAY);
+    EXPECT_TRUE(constraintsFromFile.empty());
+
+    // account index in account_index_info.json has been erased
+    EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetAccountIndexFromFile(accountIndexJson));
+    iter = accountIndexJson.find(std::to_string(accountInfo.GetLocalId()));
+    EXPECT_EQ(iter, accountIndexJson.end());
+}
+
+/*
+ * @tc.name: AccountStatusTest001
+ * @tc.desc: Get os account status and info successfully
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, AccountStatusTest001, TestSize.Level1)
+{
+    OsAccountInfo createInfo;
+    createInfo.SetLocalName("AccountStatusTest001");
+    createInfo.SetShortName("AccountStatusTest001ShortName");
+    createInfo.SetType(NORMAL);
+    createInfo.SetLocalId(999);
+    createInfo.SetSerialNumber(1100); // this will not take effect
+    createInfo.SetPhoto("test photo");
+    createInfo.SetCreateTime(1695883215000);
+    createInfo.SetConstraints({"test constraints"});
+    EXPECT_EQ(ERR_OK, innerMgrService_->CreateOsAccountWithFullInfo(createInfo));
+
+    OsAccountInfo accountInfo;
+    int id = createInfo.GetLocalId();
+    EXPECT_EQ(ERR_OK, innerMgrService_->QueryOsAccountById(id, accountInfo));
+
+    bool status = false;
+    EXPECT_EQ(ERR_OK, innerMgrService_->IsOsAccountExists(id, status));
+    EXPECT_TRUE(status);
+    EXPECT_EQ(ERR_OK, innerMgrService_->IsOsAccountActived(id, status));
+    EXPECT_FALSE(status);
+    EXPECT_EQ(ERR_OK, innerMgrService_->IsOsAccountCompleted(id, status));
+    EXPECT_TRUE(status);
+    EXPECT_EQ(ERR_OK, innerMgrService_->IsOsAccountConstraintEnable(id, "test constraints", status));
+    EXPECT_TRUE(status);
+    EXPECT_EQ(ERR_OK, innerMgrService_->IsOsAccountConstraintEnable(id, "no constraints", status));
+    EXPECT_FALSE(status);
+    EXPECT_EQ(ERR_OK, innerMgrService_->IsOsAccountVerified(id, status));
+    EXPECT_FALSE(status);
+
+    std::string resStr;
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountShortName(id, resStr));
+    EXPECT_EQ("AccountStatusTest001ShortName", resStr);
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountName(id, resStr));
+    EXPECT_EQ("AccountStatusTest001", resStr);
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountProfilePhoto(id, resStr));
+    EXPECT_EQ("test photo", resStr);
+
+    OsAccountType type;
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountType(id, type));
+    EXPECT_EQ(NORMAL, type);
+    int localId;
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountLocalIdBySerialNumber(accountInfo.GetSerialNumber(), localId));
+    EXPECT_EQ(accountInfo.GetLocalId(), localId);
+    int64_t serialNumber;
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetSerialNumberByOsAccountLocalId(id, serialNumber));
+    EXPECT_EQ(accountInfo.GetSerialNumber(), serialNumber);
+    uint64_t credentialId;
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountCredentialId(id, credentialId));
+    EXPECT_EQ(0, credentialId);
+
+    EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(id));
+}
+
+/*
+ * @tc.name: AccountStatusTest002
+ * @tc.desc: Get os account all constraints successfully
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, AccountStatusTest002, TestSize.Level1)
+{
+    unsigned int countBefore = 0;
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetCreatedOsAccountsCount(countBefore));
+    std::vector<OsAccountInfo> osAccountInfosBefore;
+    EXPECT_EQ(ERR_OK, innerMgrService_->QueryAllCreatedOsAccounts(osAccountInfosBefore));
+
+    OsAccountInfo createInfo;
+    createInfo.SetLocalName("AccountStatusTest002");
+    createInfo.SetType(NORMAL);
+    createInfo.SetLocalId(999);
+    createInfo.SetCreateTime(1695883215000);
+    createInfo.SetConstraints({"test constraints"});
+    EXPECT_EQ(ERR_OK, innerMgrService_->CreateOsAccountWithFullInfo(createInfo));
+
+    OsAccountInfo accountInfo;
+    int id = createInfo.GetLocalId();
+    EXPECT_EQ(ERR_OK, innerMgrService_->QueryOsAccountById(id, accountInfo));
+
+    unsigned int countAfter = 0;
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetCreatedOsAccountsCount(countAfter));
+    EXPECT_EQ(countAfter, countBefore + 1);
+    std::vector<OsAccountInfo> osAccountInfosAfter;
+    EXPECT_EQ(ERR_OK, innerMgrService_->QueryAllCreatedOsAccounts(osAccountInfosAfter));
+    EXPECT_EQ(osAccountInfosBefore.size() + 1, osAccountInfosAfter.size());
+    std::vector<std::string> constraints;
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountAllConstraints(id, constraints));
+    EXPECT_THAT(accountInfo.GetConstraints(), testing::ElementsAreArray(constraints));
+
+    EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(id));
+}
+
+/*
+ * @tc.name: SetOsAccountName001
+ * @tc.desc: Set os account name successfully and save to account_info.json/account_index_info.json
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, SetOsAccountName001, TestSize.Level1)
+{
+    OsAccountInfo createInfo;
+    EXPECT_EQ(ERR_OK, innerMgrService_->CreateOsAccount("SetOsAccountName001", NORMAL, createInfo));
+    EXPECT_TRUE(createInfo.GetLocalId() > START_USER_ID);
+
+    EXPECT_EQ(ERR_OK, innerMgrService_->SetOsAccountName(createInfo.GetLocalId(), "SetOsAccountName001After"));
+
+    // account info has been saved to account_info.json
+    OsAccountInfo accountInfo;
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountInfoById(createInfo.GetLocalId(), accountInfo));
+    createInfo.SetLocalName("SetOsAccountName001After");
+    EXPECT_EQ(accountInfo.ToString(), createInfo.ToString());
+
+    // account index has been saved to account_index_info.json
+    Json accountIndexJson;
+    EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetAccountIndexFromFile(accountIndexJson));
+    auto iter = accountIndexJson.find(std::to_string(accountInfo.GetLocalId()));
+    bool isExist = (iter != accountIndexJson.end());
+    EXPECT_TRUE(isExist);
+    if (isExist) {
+        EXPECT_EQ(iter.value()[Constants::LOCAL_NAME].get<std::string>(), accountInfo.GetLocalName());
+    }
+
+    EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(createInfo.GetLocalId()));
+}
 
 /*
  * @tc.name: SetOsAccountConstraints001
@@ -231,6 +740,70 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, GetOsAccountInfo001, TestSize.Level1)
     int32_t typeNumber = 0;
     EXPECT_EQ(ERR_OK, innerMgrService_->GetTypeNumber(ADMIN, typeNumber));
     EXPECT_EQ(typeNumber, 1);
+}
+
+/*
+ * @tc.name: SetOsAccountIsVerified001
+ * @tc.desc: Set os account verify status successfully and save to account_info.json
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, SetOsAccountIsVerified001, TestSize.Level1)
+{
+    OsAccountInfo createInfo;
+    createInfo.SetLocalName("SetOsAccountIsVerified001");
+    createInfo.SetType(NORMAL);
+    createInfo.SetLocalId(999);
+    createInfo.SetSerialNumber(1100); // this will not take effect
+    createInfo.SetPhoto("test photo");
+    createInfo.SetCreateTime(1695883215000);
+    createInfo.SetConstraints({"test constraints"});
+    EXPECT_EQ(ERR_OK, innerMgrService_->CreateOsAccountWithFullInfo(createInfo));
+
+    int id = createInfo.GetLocalId();
+    OsAccountInfo accountInfo;
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountInfoById(id, accountInfo));
+    EXPECT_FALSE(accountInfo.GetIsVerified());
+
+    EXPECT_EQ(ERR_OK, innerMgrService_->SetOsAccountIsVerified(id, true));
+
+    OsAccountInfo accountInfoAfter;
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountInfoById(id, accountInfoAfter));
+    EXPECT_TRUE(accountInfoAfter.GetIsVerified());
+
+    EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(createInfo.GetLocalId()));
+}
+
+/*
+ * @tc.name: SetOsAccountIsLoggedIn001
+ * @tc.desc: Set os account login status successfully and save to account_info.json
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, SetOsAccountIsLoggedIn001, TestSize.Level1)
+{
+    OsAccountInfo createInfo;
+    createInfo.SetLocalName("SetOsAccountIsLoggedIn001");
+    createInfo.SetType(NORMAL);
+    createInfo.SetLocalId(999);
+    createInfo.SetSerialNumber(1100); // this will not take effect
+    createInfo.SetPhoto("test photo");
+    createInfo.SetCreateTime(1695883215000);
+    createInfo.SetConstraints({"test constraints"});
+    EXPECT_EQ(ERR_OK, innerMgrService_->CreateOsAccountWithFullInfo(createInfo));
+
+    int id = createInfo.GetLocalId();
+    OsAccountInfo accountInfo;
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountInfoById(id, accountInfo));
+    EXPECT_FALSE(accountInfo.GetIsLoggedIn());
+
+    EXPECT_EQ(ERR_OK, innerMgrService_->SetOsAccountIsLoggedIn(id, true));
+
+    OsAccountInfo accountInfoAfter;
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountInfoById(id, accountInfoAfter));
+    EXPECT_TRUE(accountInfoAfter.GetIsLoggedIn());
+
+    EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(createInfo.GetLocalId()));
 }
 
 /*
@@ -1429,216 +2002,6 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountPluginMockTest001, TestSize.Leve
     EXPECT_EQ(innerMgrService_->pluginManager_.libHandle_, nullptr);
 
     innerMgrService_->pluginManager_.CloseLib();
-}
-
-/******
- * MultiThread test
- *************/
-
-/*
- * @tc.name: OsAccountInnerAccmgrMockTestMultiThread001
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWMTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTestMultiThread001, TestSize.Level1, THREAD_NUM)
-{
-    bool ret = false;
-    IInnerOsAccountManager::GetInstance().RemoveLocalIdToOperating(TEST_USER_ID10);
-    ret = IInnerOsAccountManager::GetInstance().CheckAndAddLocalIdOperating(TEST_USER_ID10);
-    EXPECT_EQ(ret, true);
-}
-
-/*
- * @tc.name: OsAccountInnerAccmgrMockTestMultiThread002
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWMTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTestMultiThread002, TestSize.Level1, THREAD_NUM)
-{
-    bool ret = false;
-    IInnerOsAccountManager::GetInstance().PushIdIntoActiveList(TEST_USER_ID10);
-    ret = IInnerOsAccountManager::GetInstance().IsOsAccountIDInActiveList(TEST_USER_ID10);
-    EXPECT_EQ(ret, true);
-}
-
-/*
- * @tc.name: OsAccountInnerAccmgrMockTestMultiThread003
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWMTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTestMultiThread003, TestSize.Level1, THREAD_NUM)
-{
-    bool ret = false;
-    IInnerOsAccountManager::GetInstance().EraseIdFromActiveList(TEST_USER_ID10);
-    ret = IInnerOsAccountManager::GetInstance().IsOsAccountIDInActiveList(TEST_USER_ID10);
-    EXPECT_EQ(ret, false);
-}
-
-/*
- * @tc.name: OsAccountInnerAccmgrMockTestMultiThread004
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWMTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTestMultiThread004, TestSize.Level1, THREAD_NUM)
-{
-    std::vector<int32_t> activatedIds;
-    IInnerOsAccountManager::GetInstance().CopyFromActiveList(activatedIds);
-    EXPECT_EQ(activatedIds, IInnerOsAccountManager::GetInstance().activeAccountId_);
-}
-
-/*
- * @tc.name: OsAccountInnerAccmgrMockTestMultiThread005
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTestMultiThread005, TestSize.Level1)
-{
-    std::string privateTestName = "PrivateTestName001";
-    ASSERT_EQ(
-        IInnerOsAccountManager::GetInstance().CreateOsAccount(privateTestName, OsAccountType::PRIVATE, osAccountInfo),
-        ERR_OK);
-    GTEST_RUN_TASK([]() {
-        std::string privateTestName = "PrivateTestName001";
-        EXPECT_EQ(IInnerOsAccountManager::GetInstance().SetOsAccountName(osAccountInfo.GetLocalId(), privateTestName),
-                  ERR_OK);
-    });
-
-    EXPECT_EQ(IInnerOsAccountManager::GetInstance().RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
-}
-
-/*
- * @tc.name: OsAccountInnerAccmgrMockTestMultiThread006
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTestMultiThread006, TestSize.Level1)
-{
-    std::string privateTestName = "PrivateTestName001";
-    ASSERT_EQ(
-        IInnerOsAccountManager::GetInstance().CreateOsAccount(privateTestName, OsAccountType::GUEST, osAccountInfo),
-        ERR_OK);
-    GTEST_RUN_TASK([]() {
-        EXPECT_EQ(IInnerOsAccountManager::GetInstance().SetOsAccountProfilePhoto(osAccountInfo.GetLocalId(),
-                                                                                 STRING_PHOTO_MAX),
-                  ERR_OK);
-    });
-
-    ASSERT_EQ(IInnerOsAccountManager::GetInstance().RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
-}
-
-/*
- * @tc.name: OsAccountInnerAccmgrMockTestMultiThread007
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTestMultiThread007, TestSize.Level1)
-{
-    ErrCode ret = IInnerOsAccountManager::GetInstance().CreateOsAccount("OsAccountInnerAccmgrMockTestMultiThread007",
-                                                                        OsAccountType::NORMAL, osAccountInfo);
-    ASSERT_EQ(ret, ERR_OK);
-    GTEST_RUN_TASK([]() {
-        // login
-        int localId = osAccountInfo.GetLocalId();
-        EXPECT_EQ(IInnerOsAccountManager::GetInstance().SetOsAccountIsLoggedIn(localId, true), ERR_OK);
-    });
-
-    IInnerOsAccountManager::GetInstance().RemoveOsAccount(osAccountInfo.GetLocalId());
-}
-
-/*
- * @tc.name: OsAccountInnerAccmgrMockTestMultiThread008
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTestMultiThread008, TestSize.Level1)
-{
-    ErrCode ret = IInnerOsAccountManager::GetInstance().CreateOsAccount("OsAccountInnerAccmgrMockTestMultiThread008",
-                                                                        OsAccountType::NORMAL, osAccountInfo);
-    ASSERT_EQ(ret, ERR_OK);
-    GTEST_RUN_TASK([]() {
-        // login
-        int localId = osAccountInfo.GetLocalId();
-        EXPECT_EQ(IInnerOsAccountManager::GetInstance().SetOsAccountCredentialId(localId, true), ERR_OK);
-    });
-
-    IInnerOsAccountManager::GetInstance().RemoveOsAccount(osAccountInfo.GetLocalId());
-}
-
-/*
- * @tc.name: OsAccountInnerAccmgrMockTestMultiThread009
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTestMultiThread009, TestSize.Level1)
-{
-    ErrCode ret = IInnerOsAccountManager::GetInstance().CreateOsAccount("OsAccountInnerAccmgrMockTestMultiThread009",
-                                                                        OsAccountType::NORMAL, osAccountInfo);
-    ASSERT_EQ(ret, ERR_OK);
-    GTEST_RUN_TASK([]() {
-        // login
-        int localId = osAccountInfo.GetLocalId();
-        EXPECT_EQ(ERR_OK, IInnerOsAccountManager::GetInstance().UpdateAccountToBackground(localId));
-    });
-
-    IInnerOsAccountManager::GetInstance().RemoveOsAccount(osAccountInfo.GetLocalId());
-}
-
-/*
- * @tc.name: OsAccountInnerAccmgrMockTestMultiThread010
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTestMultiThread010, TestSize.Level1)
-{
-    ErrCode ret = IInnerOsAccountManager::GetInstance().CreateOsAccount("OsAccountInnerAccmgrMockTestMultiThread010",
-                                                                        OsAccountType::NORMAL, osAccountInfo);
-    ASSERT_EQ(ret, ERR_OK);
-    GTEST_RUN_TASK([]() {
-        // login
-        EXPECT_EQ(ERR_OK, IInnerOsAccountManager::GetInstance().UpdateAccountToForeground(0, osAccountInfo));
-    });
-
-    IInnerOsAccountManager::GetInstance().RemoveOsAccount(osAccountInfo.GetLocalId());
-}
-
-/*
- * @tc.name: OsAccountInnerAccmgrMockTestMultiThread011
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTestMultiThread011, TestSize.Level1)
-{
-    GTEST_RUN_TASK([]() {
-        ErrCode ret = IInnerOsAccountManager::GetInstance().DeactivateOsAccountById(Constants::ADMIN_LOCAL_ID);
-        EXPECT_EQ(ret, ERR_OK);
-    });
-}
-
-/*
- * @tc.name: OsAccountInnerAccmgrMockTestMultiThread012
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTestMultiThread012, TestSize.Level1)
-{
-    GTEST_RUN_TASK([]() {
-        int id;
-        ErrCode ret = IInnerOsAccountManager::GetInstance().GetDefaultActivatedOsAccount(id);
-        EXPECT_EQ(ret, ERR_OK);
-        EXPECT_EQ(id, MAIN_ACCOUNT_ID);
-    });
 }
 }  // namespace AccountSA
 }  // namespace OHOS

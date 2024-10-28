@@ -335,6 +335,8 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfoWithFullInfo(OsAccountInfo &
         return errCode;
     }
 
+    osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
+
     std::vector<std::string> constraints;
     constraints.clear();
     OsAccountType type = static_cast<OsAccountType>(osAccountInfo.GetType());
