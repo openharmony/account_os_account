@@ -284,15 +284,16 @@ void AccountMgrService::OnAddSystemAbility(int32_t systemAbilityId, const std::s
         return;
     }
     bool isAccountCompleted = false;
-    IInnerOsAccountManager::GetInstance().IsOsAccountCompleted(Constants::START_USER_ID, isAccountCompleted);
-    if (!isAccountCompleted) {
+    ErrCode errCode =
+        IInnerOsAccountManager::GetInstance().IsOsAccountCompleted(Constants::START_USER_ID, isAccountCompleted);
+    if (errCode == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR || (errCode == ERR_OK && !isAccountCompleted)) {
         if (!isBmsReady_) {
             return;
         }
         IInnerOsAccountManager::GetInstance().Init();
     }
     if (!isDefaultOsAccountActivated_ && isAmsReady_) {
-        ErrCode errCode = IInnerOsAccountManager::GetInstance().ActivateDefaultOsAccount();
+        errCode = IInnerOsAccountManager::GetInstance().ActivateDefaultOsAccount();
         if (errCode == ERR_OK) {
             isDefaultOsAccountActivated_ = true;
         }
