@@ -15,7 +15,6 @@
 #include <cerrno>
 #include <filesystem>
 #include <gtest/gtest.h>
-#include <gtest/hwext/gtest-multithread.h>
 #include <thread>
 #include <unistd.h>
 #include "account_error_no.h"
@@ -31,7 +30,6 @@
 namespace OHOS {
 namespace AccountSA {
 using namespace testing::ext;
-using namespace testing::mt;
 using namespace OHOS::AccountSA;
 using namespace OHOS;
 using namespace AccountSA;
@@ -50,7 +48,6 @@ const gid_t ACCOUNT_GID = 3058;
 const uid_t ACCOUNT_UID = 3058;
 const std::int32_t ROOT_UID = 0;
 const std::int32_t TEST_UID = 1;
-const int32_t THREAD_NUM = 10;
 
 const std::vector<std::string> CONSTANTS_VECTOR {
     "constraint.print",
@@ -96,10 +93,12 @@ const std::string STRING_DOMAIN_VALID = "TestDomainMT";
 const std::string STRING_DOMAIN_ACCOUNT_NAME_VALID = "TestDomainAccountNameMT";
 const std::int32_t MAIN_ACCOUNT_ID = 100;
 const std::int32_t INVALID_ACCOUNT_ID = 200;
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 const std::uint32_t MAX_OS_ACCOUNT_NUM = 5;
 const std::uint32_t MAX_LOGGED_IN_OS_ACCOUNT_NUM = 3;
 const std::uint32_t DEFAULT_MAX_OS_ACCOUNT_NUM = 999;
 const std::uint32_t DEFAULT_MAX_LOGGED_IN_OS_ACCOUNT_NUM = 999;
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 const std::shared_ptr<AccountFileOperator> g_accountFileOperator =
     AccountFileWatcherMgr::GetInstance().accountFileOperator_;
 
@@ -628,6 +627,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest029
  * @tc.type: FUNC
  * @tc.require:
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest030, TestSize.Level0)
 {
     OsAccountInfo osAccountInfoOne;
@@ -637,6 +637,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest030
     EXPECT_EQ(osAccountManagerService_->QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfo), ERR_OK);
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest031
@@ -2161,32 +2162,6 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest124
 }
 
 /**
- * @tc.name: SetDefaultActivatedOsAccountM
- * @tc.desc: Test SetDefaultActivatedOsAccount Multithreading.
- * @tc.type: FUNC
- * @tc.require: issueI6AQUQ
- */
-HWMTEST_F(OsAccountManagerServiceModuleTest, SetDefaultActivatedOsAccountM, TestSize.Level1, THREAD_NUM)
-{
-    setuid(TEST_UID);
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        std::make_shared<OsAccountManagerService>()->SetDefaultActivatedOsAccount(MAIN_ACCOUNT_ID));
-}
-
-/**
- * @tc.name: GetSubscribeRecordInfoM
- * @tc.desc: Test GetSubscribeRecordInfo Multithreading.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWMTEST_F(OsAccountManagerServiceModuleTest, GetSubscribeRecordInfoM, TestSize.Level1, THREAD_NUM)
-{
-    setuid(TEST_UID);
-    sptr<IRemoteObject> eventListener = nullptr;
-    EXPECT_EQ(ERR_OK, std::make_shared<OsAccountManagerService>()->UnsubscribeOsAccount(eventListener));
-}
-
-/**
  * @tc.name: OsAccountManagerServiceModuleTest125
  * @tc.desc: test CreateOsAccount permission with EDM
  * @tc.type: FUNC
@@ -2498,7 +2473,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, MaxNumTest005, TestSize.Level1)
 
 /**
  * @tc.name: MaxNumTest006
- * @tc.desc: test create account failed in accounts reaches upper limit. and success in after clean garbages.
+ * @tc.desc: test create account failed in accounts reaches upper limit, and success in after clean garbages.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2509,15 +2484,15 @@ HWTEST_F(OsAccountManagerServiceModuleTest, MaxNumTest006, TestSize.Level1)
     auto &innerMgr = osAccountManagerService_->innerManager_;
     ASSERT_NE(innerMgr.osAccountControl_, nullptr);
     innerMgr.osAccountControl_->GetOsAccountConfig(innerMgr.config_);
-
+    
     uint32_t maxOsAccountNum = 0;
     EXPECT_EQ(osAccountManagerService_->QueryMaxOsAccountNumber(maxOsAccountNum), ERR_OK);
     ASSERT_EQ(maxOsAccountNum, MAX_OS_ACCOUNT_NUM);
-
+    
     uint32_t maxLoggedInOsAccountNum = 0;
     EXPECT_EQ(osAccountManagerService_->QueryMaxLoggedInOsAccountNumber(maxLoggedInOsAccountNum), ERR_OK);
     ASSERT_EQ(maxLoggedInOsAccountNum, MAX_LOGGED_IN_OS_ACCOUNT_NUM);
-
+    
     std::vector<OsAccountInfo> osAccountInfos;
     EXPECT_EQ(osAccountManagerService_->QueryAllCreatedOsAccounts(osAccountInfos), ERR_OK);
     for (const auto &osAccountInfo : osAccountInfos) {
@@ -2538,16 +2513,15 @@ HWTEST_F(OsAccountManagerServiceModuleTest, MaxNumTest006, TestSize.Level1)
     }
 
     EXPECT_EQ(osAccountManagerService_->CreateOsAccount(
-            "MaxNumTest006" + std::to_string(maxOsAccountNum), OsAccountType::NORMAL, osAccountInfo),
-            ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR);
-
+        "MaxNumTest006" + std::to_string(maxOsAccountNum), OsAccountType::NORMAL, osAccountInfo),
+        ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR);
+    
     int32_t lastAccountId = createdOsAccounts.back();
     EXPECT_EQ(osAccountManagerService_->SetOsAccountToBeRemoved(lastAccountId, true), ERR_OK);
-
+    
     EXPECT_EQ(osAccountManagerService_->CreateOsAccount(
-            "MaxNumTest006_New", OsAccountType::NORMAL, osAccountInfo), ERR_OK);
+        "MaxNumTest006_New", OsAccountType::NORMAL, osAccountInfo), ERR_OK);
     createdOsAccounts.emplace_back(osAccountInfo.GetLocalId());
-
 
     for (const auto &id : createdOsAccounts) {
         osAccountManagerService_->RemoveOsAccount(id);

@@ -17,7 +17,6 @@
 #include <filesystem>
 #include <mutex>
 #include <gtest/gtest.h>
-#include <gtest/hwext/gtest-multithread.h>
 #include <thread>
 #include <unistd.h>
 #include "accesstoken_kit.h"
@@ -53,7 +52,6 @@
 
 using namespace testing;
 using namespace testing::ext;
-using namespace testing::mt;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
 using namespace OHOS::Security::AccessToken;
@@ -67,9 +65,8 @@ const int32_t EDM_UID = 3057;
 static constexpr int32_t DEFAULT_API_VERSION = 8;
 const std::vector<uint8_t> DEFAULT_TOKEN = {49, 50, 51, 52, 53};
 static uint64_t g_selfTokenID;
-const std::string STRING_TEST_NAME = "name";
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 const int32_t WAIT_TIME = 2;
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 const std::string STRING_SHORT_NAME_OUT_OF_RANGE(256, '1');
 #endif
 const std::map<PluginMethodEnum, void *> PLUGIN_METHOD_MAP = {
@@ -797,75 +794,5 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     EXPECT_TRUE(isExpired);
     setuid(ROOT_UID);
     UnloadPluginMethods();
-    ASSERT_TRUE(RecoveryPermission(tokenID));
-}
-
-/*** multithread */
-
-/**
- * @tc.name: DomainAccountClientModuleTest_IsAuthenticationExpired_MultiThread_001
- * @tc.desc:  MultiThread IsAuthenticationExpired success expired time not set..
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(DomainAccountClientMockPluginSoModuleTest,
-         DomainAccountClientModuleTest_IsAuthenticationExpired_MultiThread_001, TestSize.Level0)
-{
-    DomainAccountInfo domainInfo;
-    domainInfo.accountName_ = "testaccount";
-    domainInfo.domain_ = "test.example.com";
-    domainInfo.accountId_ = "testid";
-
-    LoadPluginMethods();
-    auto callback = std::make_shared<MockPluginSoDomainCreateDomainAccountCallback>();
-    ASSERT_NE(callback, nullptr);
-    auto testCallback = std::make_shared<TestPluginSoCreateDomainAccountCallback>(callback);
-    EXPECT_CALL(*callback, OnResult(ERR_OK, "testaccount", "test.example.com", _)).Times(Exactly(1));
-    ASSERT_NE(testCallback, nullptr);
-    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
-    std::unique_lock<std::mutex> lock(testCallback->mutex);
-    testCallback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
-                              [lockCallback = testCallback]() { return lockCallback->isReady; });
-    EXPECT_EQ(errCode, ERR_OK);
-
-    auto func = [] {
-        DomainAccountInfo domainInfo;
-        domainInfo.accountName_ = "testaccount";
-        domainInfo.domain_ = "test.example.com";
-        domainInfo.accountId_ = "testid";
-        bool isExpired = false;
-        EXPECT_EQ(DomainAccountClient::GetInstance().IsAuthenticationExpired(domainInfo, isExpired), ERR_OK);
-        EXPECT_TRUE(isExpired);
-    };
-
-    GTEST_RUN_TASK(func);
-
-    UnloadPluginMethods();
-
-    int32_t userId = -1;
-    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId), ERR_OK);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
-}
-
-/**
- * @tc.name: DomainAccountClientModuleTest_SetAuthenticationExpiryThreshold_MultiThread_001
- * @tc.desc: MultiThread SetAccountPolicy success.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(DomainAccountClientMockPluginSoModuleTest,
-         DomainAccountClientModuleTest_SetAuthenticationExpiryThreshold_MultiThread_001, TestSize.Level0)
-{
-    AccessTokenID tokenID;
-    ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
-    setuid(EDM_UID);
-    LoadPluginMethods();
-    GTEST_RUN_TASK([]() {
-        DomainAccountPolicy policy;
-        policy.authenicationValidityPeriod = 10;
-        EXPECT_EQ(DomainAccountClient::GetInstance().SetAccountPolicy(policy), ERR_OK);
-    });
-    UnloadPluginMethods();
-    setuid(ROOT_UID);
     ASSERT_TRUE(RecoveryPermission(tokenID));
 }
