@@ -68,7 +68,6 @@ ohos_shared_library("appaccount") {
     "ability_runtime:app_context",
     "ability_runtime:extensionkit_native",
     "ability_runtime:napi_base_context",
-    "ability_runtime:napi_common",
     "ability_runtime:runtime",
     "ability_runtime:service_extension",
     "ability_runtime:ui_extension",
