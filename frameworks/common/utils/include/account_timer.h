@@ -17,6 +17,7 @@
 #define OS_ACCOUNT_FRAMEWORKS_ACCOUNT_TIMER_H
 
 #include <stdint.h>
+#include "account_constants.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -24,7 +25,7 @@ class AccountTimer {
 public:
     AccountTimer(bool needInit = true);
     ~AccountTimer();
-    void Init();
+    void Init(int32_t timeout = TIMEOUT);
 
 private:
     int64_t timerId_;

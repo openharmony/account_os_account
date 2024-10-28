@@ -19,7 +19,9 @@
 #include <pthread.h>
 #include <securec.h>
 #include <thread>
+#include "account_hisysevent_adapter.h"
 #include "account_log_wrapper.h"
+#include "account_timeout_task.h"
 #ifdef HAS_HUKS_PART
 #include "hks_api.h"
 #include "hks_param.h"
@@ -224,9 +226,15 @@ int32_t GenerateAccountInfoDigest(const std::string &inData, uint8_t* outData, u
 
 AccountFileWatcherMgr::AccountFileWatcherMgr()
 {
+    std::shared_ptr<AccountTimeoutTask> task = std::make_shared<AccountTimeoutTask>();
+    bool state = task->RunTask("InitEncryptionKey", [] {
 #ifdef HAS_HUKS_PART
-    InitEncryptionKey();
+        InitEncryptionKey();
 #endif // HAS_HUKS_PART
+    });
+    if (!state) {
+        ReportServiceStartFail(ERR_ACCOUNT_COMMON_OPERATION_TIMEOUT, "InitEncryptionKey timeout");
+    }
     inotifyFd_ = inotify_init();
     if (inotifyFd_ < 0) {
         ACCOUNT_LOGE("failed to init notify, errCode:%{public}d", errno);
