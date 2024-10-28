@@ -190,6 +190,10 @@ ErrCode IInnerOsAccountManager::GetRealOsAccountInfoById(const int id, OsAccount
     bool isActivated = IsOsAccountIDInActiveList(id);
     osAccountInfo.SetIsActived(isActivated);
 
+    int32_t foregroundId = -1;
+    foregroundAccountMap_.Find(Constants::DEFAULT_DISPALY_ID, foregroundId);
+    osAccountInfo.SetIsForeground(foregroundId == id);
+
     return ERR_OK;
 }
 
@@ -1605,6 +1609,15 @@ ErrCode IInnerOsAccountManager::SetOsAccountProfilePhoto(const int id, const std
 
 ErrCode IInnerOsAccountManager::DeactivateOsAccountByInfo(OsAccountInfo &osAccountInfo)
 {
+    int localId = osAccountInfo.GetLocalId();
+    loggedInAccounts_.Erase(localId);
+    verifiedAccounts_.Erase(localId);
+    int32_t foregroundId = -1;
+    if (foregroundAccountMap_.Find(Constants::DEFAULT_DISPALY_ID, foregroundId) && foregroundId == localId) {
+        foregroundAccountMap_.Erase(Constants::DEFAULT_DISPALY_ID);
+    }
+    EraseIdFromActiveList(localId);
+
     osAccountInfo.SetIsActived(false);
     osAccountInfo.SetIsVerified(false);
     osAccountInfo.SetIsForeground(false);
@@ -1619,15 +1632,6 @@ ErrCode IInnerOsAccountManager::DeactivateOsAccountByInfo(OsAccountInfo &osAccou
         ACCOUNT_LOGE("Update account failed, id=%{public}d, errCode=%{public}d.", osAccountInfo.GetLocalId(), errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
-    int localId = osAccountInfo.GetLocalId();
-    loggedInAccounts_.Erase(localId);
-    verifiedAccounts_.Erase(localId);
-    int32_t foregroundId = -1;
-    if (foregroundAccountMap_.Find(Constants::DEFAULT_DISPALY_ID, foregroundId) && foregroundId == localId) {
-        foregroundAccountMap_.Erase(Constants::DEFAULT_DISPALY_ID);
-    }
-
-    EraseIdFromActiveList(localId);
 
     AccountInfoReport::ReportSecurityInfo(osAccountInfo.GetLocalName(), localId,
                                           ReportEvent::EVENT_LOGOUT, 0);
@@ -1768,26 +1772,60 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
     int32_t oldId = -1;
     bool oldIdExist = foregroundAccountMap_.Find(displayId, oldId);
     int32_t localId = static_cast<int32_t>(osAccountInfo.GetLocalId());
-    bool preVerified = osAccountInfo.GetIsVerified();
     if (oldId != localId) {
         subscribeManager_.Publish(localId, oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
     }
     if (startStorage) {
-        ErrCode err = OsAccountInterface::SendToStorageAccountStart(osAccountInfo);
-        if (err != ERR_OK) {
-            ACCOUNT_LOGE("Failed to SendToStorageAccountStart, localId %{public}d, error: %{public}d.", localId, err);
-            return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
+        ErrCode errCode = SendToStorageAccountStart(osAccountInfo);
+        if (errCode != ERR_OK) {
+            return errCode;
         }
     }
-    ErrCode errCode = OsAccountInterface::SendToAMSAccountStart(osAccountInfo, isAppRecovery);
+    ErrCode errCode = SendToAMSAccountStart(osAccountInfo, displayId, isAppRecovery);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Failed to call SendToAMSAccountStart, localId: %{public}d, error: %{public}d.", localId, errCode);
         return errCode;
+    }
+    if (oldId != localId) {
+        OsAccountInterface::PublishCommonEvent(osAccountInfo,
+            OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_FOREGROUND, Constants::OPERATION_SWITCH);
     }
     errCode = UpdateAccountToForeground(displayId, osAccountInfo);
     if (errCode != ERR_OK) {
         return errCode;
     }
+
+    if (oldIdExist && (oldId != localId)) {
+        errCode = UpdateAccountToBackground(oldId);
+        if (errCode != ERR_OK) {
+            return errCode;
+        }
+    }
+    if (oldId != localId) {
+        OsAccountInterface::SendToCESAccountSwitched(localId, oldId);
+        subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED);
+        subscribeManager_.Publish(localId, oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED);
+        ReportOsAccountSwitch(localId, oldId);
+    }
+    ACCOUNT_LOGI("SendMsgForAccountActivate ok");
+    return errCode;
+}
+
+ErrCode  IInnerOsAccountManager::SendToStorageAccountStart(OsAccountInfo &osAccountInfo)
+{
+    bool preVerified = osAccountInfo.GetIsVerified();
+    int32_t localId = osAccountInfo.GetLocalId();
+    ErrCode err = OsAccountInterface::SendToStorageAccountStart(osAccountInfo);
+    if (err != ERR_OK) {
+        ACCOUNT_LOGE("Failed to SendToStorageAccountStart, localId %{public}d, error: %{public}d.", localId, err);
+        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
+    }
+    if (osAccountInfo.GetIsVerified()) {
+        verifiedAccounts_.EnsureInsert(osAccountInfo.GetLocalId(), true);
+    }
+    if (osAccountInfo.GetIsLoggedIn()) {
+        loggedInAccounts_.EnsureInsert(osAccountInfo.GetLocalId(), true);
+    }
+
     if (!preVerified && osAccountInfo.GetIsVerified()) {
         OsAccountInterface::PublishCommonEvent(osAccountInfo,
             OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED, Constants::OPERATION_UNLOCK);
@@ -1798,22 +1836,24 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
         pthread_setname_np(cleanThread.native_handle(), "CleanGarbageOsAccounts");
         cleanThread.detach();
     }
+    return ERR_OK;
+}
 
-    if (oldIdExist && (oldId != localId)) {
-        errCode = UpdateAccountToBackground(oldId);
-        if (errCode != ERR_OK) {
-            return errCode;
-        }
+ErrCode  IInnerOsAccountManager::SendToAMSAccountStart(OsAccountInfo &osAccountInfo,
+    uint64_t displayId, const bool isAppRecovery)
+{
+    OsAccountStartCallbackFunc callbackFunc = [this, displayId](int32_t localId) {
+        this->PushIdIntoActiveList(localId);
+        this->foregroundAccountMap_.EnsureInsert(displayId, localId);
+    };
+    ErrCode errCode = OsAccountInterface::SendToAMSAccountStart(osAccountInfo, callbackFunc, isAppRecovery);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to call SendToAMSAccountStart, localId: %{public}d, error: %{public}d.",
+            osAccountInfo.GetLocalId(), errCode);
+        return errCode;
     }
-    if (oldId != localId) {
-        PushIdIntoActiveList(localId);
-        OsAccountInterface::SendToCESAccountSwitched(localId, oldId);
-        subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED);
-        subscribeManager_.Publish(localId, oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED);
-        ReportOsAccountSwitch(localId, oldId);
-    }
-    ACCOUNT_LOGI("SendMsgForAccountActivate ok");
-    return errCode;
+
+    return ERR_OK;
 }
 
 ErrCode IInnerOsAccountManager::StartOsAccount(const int id)
@@ -1962,6 +2002,11 @@ ErrCode IInnerOsAccountManager::SetOsAccountIsLoggedIn(const int32_t id, const b
         ACCOUNT_LOGE("account %{public}d will be removed, cannot change verify state!", id);
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR;
     }
+    if (isLoggedIn) {
+        loggedInAccounts_.EnsureInsert(id, true);
+    } else {
+        loggedInAccounts_.Erase(id);
+    }
     if (!osAccountInfo.GetIsLoggedIn()) {
 #ifdef ACTIVATE_LAST_LOGGED_IN_ACCOUNT
         {
@@ -1978,11 +2023,6 @@ ErrCode IInnerOsAccountManager::SetOsAccountIsLoggedIn(const int32_t id, const b
     if (errCode != ERR_OK && errCode != ERR_ACCOUNT_COMMON_DATA_NO_SPACE) {
         ACCOUNT_LOGE("Update account info failed, errCode: %{public}d, id: %{public}d", errCode, id);
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
-    }
-    if (isLoggedIn) {
-        loggedInAccounts_.EnsureInsert(id, true);
-    } else {
-        loggedInAccounts_.Erase(id);
     }
     return ERR_OK;
 }
@@ -2265,7 +2305,6 @@ ErrCode IInnerOsAccountManager::UpdateAccountToForeground(const uint64_t display
     osAccountInfo.SetDisplayId(displayId);
     osAccountInfo.SetIsForeground(true);
     if (osAccountInfo.GetIsLoggedIn()) {
-        loggedInAccounts_.EnsureInsert(localId, true);
 #ifdef ACTIVATE_LAST_LOGGED_IN_ACCOUNT
         {
             std::lock_guard<std::mutex> operatingLock(operatingMutex_);
@@ -2274,20 +2313,10 @@ ErrCode IInnerOsAccountManager::UpdateAccountToForeground(const uint64_t display
         }
 #endif
     }
-    if (osAccountInfo.GetIsVerified()) {
-        verifiedAccounts_.EnsureInsert(localId, true);
-    }
     ErrCode errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK && errCode != ERR_ACCOUNT_COMMON_DATA_NO_SPACE) {
         ACCOUNT_LOGE("Update account failed, localId=%{public}d, errCode=%{public}d.",
             localId, errCode);
-        return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
-    }
-    int32_t foregroundId = -1;
-    if (!foregroundAccountMap_.Find(displayId, foregroundId) || (foregroundId != localId)) {
-        foregroundAccountMap_.EnsureInsert(displayId, localId);
-        OsAccountInterface::PublishCommonEvent(osAccountInfo,
-            OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_FOREGROUND, Constants::OPERATION_SWITCH);
     }
     return ERR_OK;
 }
@@ -2309,7 +2338,6 @@ ErrCode IInnerOsAccountManager::UpdateAccountToBackground(int32_t oldId)
         if (errCode != ERR_OK && errCode != ERR_ACCOUNT_COMMON_DATA_NO_SPACE) {
             ACCOUNT_LOGE("Update osaccount failed, errCode=%{public}d, id=%{public}d",
                 errCode, oldOsAccountInfo.GetLocalId());
-            return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
         }
     }
     OsAccountInterface::PublishCommonEvent(oldOsAccountInfo,
