@@ -12,28 +12,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "account_timer.h"
 
-#include "xcollie/xcollie.h"
+#ifndef OS_ACCOUNT_FRAMEWORKS_ACCOUNT_TIMEOUT_TASK_H
+#define OS_ACCOUNT_FRAMEWORKS_ACCOUNT_TIMEOUT_TASK_H
+
+#include <condition_variable>
+#include <functional>
+#include <memory>
+#include <mutex>
+#include "account_constants.h"
 
 namespace OHOS {
 namespace AccountSA {
-AccountTimer::AccountTimer(bool needInit) : timerId_(-1)
-{
-    if (needInit) {
-        Init();
-    }
-}
+class AccountTimeoutTask : public std::enable_shared_from_this<AccountTimeoutTask> {
+public:
+    bool RunTask(std::string taskName, std::function<void()> callback, int32_t timeout = WAIT_TIME);
 
-AccountTimer::~AccountTimer()
-{
-    HiviewDFX::XCollie::GetInstance().CancelTimer(timerId_);
-}
-
-void AccountTimer::Init(int32_t timeout)
-{
-    timerId_ = HiviewDFX::XCollie::GetInstance().SetTimer(
-        TIMER_NAME, timeout, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
-}
-} // namespace AccountSA
-} // namespace OHOS
+    bool isCalled_ = false;
+    std::mutex mutex_;
+    std::condition_variable cv_;
+};
+} // AccountSA
+} // OHOS
+#endif // OS_ACCOUNT_FRAMEWORKS_ACCOUNT_TIMEOUT_TASK_H
