@@ -648,7 +648,7 @@ CArrAppAccountInfo CJAppAccountImpl::Convert2CArrAppAccountInfo(const std::vecto
         res.head[i].name = MallocCString(name);
         i++;
     }
-    res.size = i;
+    res.size = static_cast<int64_t>(i);
     return res;
 }
 
@@ -670,7 +670,7 @@ CArrAppAccountInfo CJAppAccountImpl::Convert2CArrAppAccountInfo(
         tmp.name = MallocCString(names[i]);
         res.head[i] = tmp;
     }
-    res.size = i;
+    res.size = static_cast<int64_t>(i);
     return res;
 }
 
@@ -689,7 +689,7 @@ CArrAuthTokenInfo CJAppAccountImpl::Convert2CArrAuthTokenInfo(const std::vector<
         res.head[i].authType = MallocCString(in[i].authType);
         res.head[i].token = MallocCString(in[i].token);
     }
-    res.size = i;
+    res.size = static_cast<int64_t>(i);
     return res;
 }
 
@@ -761,8 +761,8 @@ CAuthenticatorInfo CJAppAccountImpl::Convert2CAuthenticatorInfo(AuthenticatorInf
 {
     CAuthenticatorInfo cInfo{};
     cInfo.owner = MallocCString(in.owner);
-    cInfo.iconId = in.iconId;
-    cInfo.labelId = in.labelId;
+    cInfo.iconId = static_cast<int32_t>(in.iconId);
+    cInfo.labelId = static_cast<int32_t>(in.labelId);
     return cInfo;
 }
 
