@@ -66,11 +66,12 @@ constexpr int32_t GET_MSG_FREQ = 100 * 1000;
 constexpr int32_t DEAL_TIMES = MAX_GETBUNDLE_WAIT_TIMES / GET_MSG_FREQ;
 }
 
-ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo, bool isAppRecovery)
+ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo,
+    const OsAccountStartCallbackFunc &callbackFunc, bool isAppRecovery)
 {
     int32_t localId = osAccountInfo.GetLocalId();
     ACCOUNT_LOGI("Start OS account %{public}d", localId);
-    sptr<OsAccountUserCallback> osAccountStartUserCallback = new (std::nothrow) OsAccountUserCallback();
+    sptr<OsAccountUserCallback> osAccountStartUserCallback = new (std::nothrow) OsAccountUserCallback(callbackFunc);
     if (osAccountStartUserCallback == nullptr) {
         ACCOUNT_LOGE("alloc memory for start user callback failed!");
         ReportOsAccountOperationFail(localId, Constants::OPERATION_START,

@@ -17,11 +17,13 @@
 #include <vector>
 #include "account_error_no.h"
 #include "os_account_info.h"
+#include "os_account_user_callback.h"
 namespace OHOS {
 namespace AccountSA {
 class OsAccountInterface {
 public:
-    static ErrCode SendToAMSAccountStart(OsAccountInfo &osAccountInfo, bool isAppRecovery = false);
+    static ErrCode SendToAMSAccountStart(OsAccountInfo &osAccountInfo,
+        const OsAccountStartCallbackFunc &callbackFunc, bool isAppRecovery = false);
     static ErrCode SendToAMSAccountStop(OsAccountInfo &osAccountInfo);
     static ErrCode SendToAMSAccountDeactivate(OsAccountInfo &osAccountInfo);
 #ifdef HAS_THEME_SERVICE_PART
