@@ -83,7 +83,7 @@ HWTEST_F(OsAccountServiceTest, OnStopUserDone001, TestSize.Level1)
  */
 HWTEST_F(OsAccountServiceTest, OnStartUserDone001, TestSize.Level1)
 {
-    sptr<OsAccountUserCallback> osAccountStartUserCallback = new (std::nothrow) OsAccountUserCallback();
+    sptr<OsAccountUserCallback> osAccountStartUserCallback = new (std::nothrow) OsAccountUserCallback(nullptr);
     ASSERT_NE(nullptr, osAccountStartUserCallback);
     int errCode = 0;
     osAccountStartUserCallback->OnStartUserDone(TEST_USER_ID, errCode);

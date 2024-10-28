@@ -22,9 +22,11 @@
 
 namespace OHOS {
 namespace AccountSA {
+using OsAccountStartCallbackFunc = std::function<void(int32_t)>;
 class OsAccountUserCallback : public IRemoteStub<AAFwk::IUserCallback> {
 public:
     OsAccountUserCallback();
+    OsAccountUserCallback(const OsAccountStartCallbackFunc &callbackFunc);
     virtual ~OsAccountUserCallback() = default;
 
     virtual int OnRemoteRequest(
@@ -38,6 +40,7 @@ public:
     std::mutex mutex_;
     std::condition_variable onStartCondition_;
     std::condition_variable onStopCondition_;
+    OsAccountStartCallbackFunc startUserCallbackFunc_;
 private:
     DISALLOW_COPY_AND_MOVE(OsAccountUserCallback);
 
