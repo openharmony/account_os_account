@@ -46,6 +46,7 @@ ohos_shared_library("libaccount_common") {
     "log/src/account_log_wrapper.cpp",
     "perf_stat/src/perf_stat.cpp",
     "utils/src/account_permission_manager.cpp",
+    "utils/src/account_timeout_task.cpp",
     "utils/src/memory_guard.cpp",
   ]
 
