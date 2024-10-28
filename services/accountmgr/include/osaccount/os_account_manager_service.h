@@ -38,7 +38,8 @@ public:
     ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
         const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options = {}) override;
 
-    ErrCode CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo) override;
+    ErrCode CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo,
+        const CreateOsAccountOptions &options = {}) override;
     ErrCode UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo) override;
 
     ErrCode RemoveOsAccount(const int id) override;
