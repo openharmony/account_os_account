@@ -38,10 +38,16 @@
 #ifdef HAS_USER_AUTH_PART
 #include "account_iam_service.h"
 #endif
+#ifdef HICOLLIE_ENABLE
+#include "account_timer.h"
+#endif // HICOLLIE_ENABLE
 
 namespace OHOS {
 namespace AccountSA {
 namespace {
+#ifdef HICOLLIE_ENABLE
+constexpr int32_t MAX_INIT_TIME = 120;
+#endif // HICOLLIE_ENABLE
 const bool REGISTER_RESULT =
     SystemAbility::MakeAndRegisterAbility(&DelayedRefSingleton<AccountMgrService>::GetInstance());
 const std::string DEVICE_OWNER_DIR = "/data/service/el1/public/account/0/";
@@ -305,7 +311,10 @@ bool AccountMgrService::Init()
         ACCOUNT_LOGW("Service is already running!");
         return false;
     }
-
+#ifdef HICOLLIE_ENABLE
+    AccountTimer timer(false);
+    timer.Init(MAX_INIT_TIME);
+#endif // HICOLLIE_ENABLE
     CreateDeviceDir();
     IAccountContext::SetInstance(this);
     if ((!CreateOsAccountService()) || (!CreateAppAccountService()) || (!CreateIAMService()) ||
