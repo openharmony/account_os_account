@@ -46,7 +46,6 @@ ohos_unittest("account_command_create_test") {
 
   deps = [
     "${common_path}:libaccount_common",
-    "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -55,6 +54,7 @@ ohos_unittest("account_command_create_test") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "os_account:os_account_innerkits",
   ]
 }
 
@@ -88,7 +88,6 @@ ohos_unittest("account_command_delete_test") {
 
   deps = [
     "${common_path}:libaccount_common",
-    "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -97,6 +96,7 @@ ohos_unittest("account_command_delete_test") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "os_account:os_account_innerkits",
   ]
 }
 
@@ -130,7 +130,6 @@ ohos_unittest("account_command_dump_test") {
 
   deps = [
     "${common_path}:libaccount_common",
-    "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -139,6 +138,7 @@ ohos_unittest("account_command_dump_test") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "os_account:os_account_innerkits",
   ]
 }
 
@@ -172,7 +172,6 @@ ohos_unittest("account_command_set_test") {
 
   deps = [
     "${common_path}:libaccount_common",
-    "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -181,6 +180,7 @@ ohos_unittest("account_command_set_test") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "os_account:os_account_innerkits",
   ]
 }
 
@@ -214,7 +214,6 @@ ohos_unittest("account_command_switch_test") {
 
   deps = [
     "${common_path}:libaccount_common",
-    "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -223,6 +222,7 @@ ohos_unittest("account_command_switch_test") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "os_account:os_account_innerkits",
   ]
 }
 
@@ -257,7 +257,6 @@ ohos_unittest("account_command_test") {
 
   deps = [
     "${common_path}:libaccount_common",
-    "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -266,6 +265,7 @@ ohos_unittest("account_command_test") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "os_account:os_account_innerkits",
   ]
 }
 

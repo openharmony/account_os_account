@@ -148,7 +148,6 @@ ohos_unittest("domain_account_plugin_proxy_test") {
   deps = [
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
-    "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
@@ -159,6 +158,7 @@ ohos_unittest("domain_account_plugin_proxy_test") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "os_account:os_account_innerkits",
   ]
 }
 
