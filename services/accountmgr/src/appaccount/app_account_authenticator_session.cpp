@@ -139,6 +139,7 @@ ErrCode AppAccountAuthenticatorSession::Open()
 
 void AppAccountAuthenticatorSession::Close()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if ((authenticatorProxy_ != nullptr) && (authenticatorProxy_->AsObject() != nullptr)) {
         authenticatorProxy_->AsObject()->RemoveDeathRecipient(serverDeathRecipient_);
     }
@@ -174,11 +175,11 @@ ErrCode AppAccountAuthenticatorSession::AddClientDeathRecipient()
 void AppAccountAuthenticatorSession::OnAbilityConnectDone(
     const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int32_t resultCode)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     isConnected_ = true;
     AAFwk::Want errResult;
     authenticatorProxy_ = iface_cast<IAppAccountAuthenticator>(remoteObject);
     if ((!authenticatorProxy_) || (!authenticatorProxy_->AsObject())) {
-        ACCOUNT_LOGE("failed to cast app account authenticator proxy");
         OnResult(ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION, errResult);
         return;
     }
