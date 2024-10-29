@@ -1382,7 +1382,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAuthTok
 
     result = g_accountManagerService->SetAuthTokenVisibility(STRING_NAME,
         STRING_AUTH_TYPE, STRING_BUNDLE_NAME_NOT_INSTALLED, true);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TYPE_NOT_EXIST);
 
     result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
