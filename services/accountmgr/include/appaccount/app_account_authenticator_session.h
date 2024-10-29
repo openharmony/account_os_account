@@ -95,6 +95,7 @@ private:
     int32_t OnAddAccountImplicitlyDone(const AAFwk::Want &result) const;
 
 private:
+    std::mutex mutex_;
     sptr<SessionConnection> conn_ = nullptr;
     sptr<SessionClientDeathRecipient> clientDeathRecipient_ = nullptr;
     sptr<SessionServerDeathRecipient> serverDeathRecipient_ = nullptr;
