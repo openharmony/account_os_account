@@ -117,7 +117,7 @@ ErrCode OsAccount::CreateOsAccount(const std::string& localName, const std::stri
     return proxy->CreateOsAccount(localName, shortName, type, osAccountInfo, options);
 }
 
-ErrCode OsAccount::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
+ErrCode OsAccount::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options)
 {
     ErrCode code = osAccountInfo.ParamCheck();
     if (code != ERR_OK) {
@@ -128,7 +128,7 @@ ErrCode OsAccount::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->CreateOsAccountWithFullInfo(osAccountInfo);
+    return proxy->CreateOsAccountWithFullInfo(osAccountInfo, options);
 }
 
 ErrCode OsAccount::UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)

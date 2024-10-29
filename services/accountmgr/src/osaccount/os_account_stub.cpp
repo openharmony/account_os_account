@@ -641,7 +641,13 @@ ErrCode OsAccountStub::ProcCreateOsAccountWithFullInfo(MessageParcel &data, Mess
         return code;
     }
 
-    ErrCode result = CreateOsAccountWithFullInfo(*info);
+    sptr<CreateOsAccountOptions> options = data.ReadParcelable<CreateOsAccountOptions>();
+    if (options == nullptr) {
+        ACCOUNT_LOGE("read options failed");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+
+    ErrCode result = CreateOsAccountWithFullInfo(*info, *options);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write result");
         return IPC_STUB_WRITE_PARCEL_ERR;

@@ -89,7 +89,8 @@ public:
      * @param osAccountInfo - Indicates the information about the created OS account.
      * @return error code, see account_error_no.h
      */
-    static ErrCode CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo);
+    static ErrCode CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo,
+        const CreateOsAccountOptions& options = {});
 
     /**
      * @brief Updates an OS account using full user info
