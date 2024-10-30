@@ -137,7 +137,6 @@ void IInnerOsAccountManager::CreateBaseStandardAccount()
         return;
     }
     SetDefaultActivatedOsAccount(Constants::START_USER_ID);
-    ReportOsAccountLifeCycle(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE);
     ACCOUNT_LOGI("OsAccountAccountMgr created base account end");
 }
 
@@ -198,7 +197,11 @@ ErrCode IInnerOsAccountManager::ActivateDefaultOsAccount()
     ErrCode errCode = GetRealOsAccountInfoById(defaultActivatedId_, osAccountInfo);
     if (errCode != ERR_OK || osAccountInfo.GetToBeRemoved()) {
         ACCOUNT_LOGE("account not found, localId: %{public}d, error: %{public}d", defaultActivatedId_, errCode);
+        ReportOsAccountOperationFail(defaultActivatedId_, Constants::OPERATION_ACTIVATE, errCode,
+            "Account not found or to be removed");
         RetryToGetAccount(osAccountInfo);
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_ACTIVATE, errCode,
+            "Retry to get account");
         SetDefaultActivatedOsAccount(osAccountInfo.GetLocalId());
     }
     // activate
@@ -412,8 +415,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("create os account when update isCreateCompleted");
-        ReportOsAccountOperationFail(
-            localId, Constants::OPERATION_CREATE, errCode, "UpdateOsAccount failed!");
+        ReportOsAccountOperationFail(localId, Constants::OPERATION_CREATE, errCode, "Failed to update OS account");
         if (osAccountInfo.GetIsDataRemovable()) {
             (void)OsAccountInterface::SendToBMSAccountDelete(osAccountInfo);
             (void)OsAccountInterface::SendToStorageAccountRemove(osAccountInfo);
@@ -478,6 +480,10 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, co
         accountInfoOld.SetLocalName(localName);
         accountInfoOld.SetShortName(shortName);
         code = osAccountControl_->UpdateOsAccount(accountInfoOld);
+        if (code != ERR_OK) {
+            ReportOsAccountOperationFail(Constants::START_USER_ID, Constants::OPERATION_CREATE, code,
+                "Failed to update OS account");
+        }
         osAccountControl_->UpdateAccountIndex(accountInfoOld, false);
         osAccountInfo = accountInfoOld;
         return code;
@@ -818,7 +824,12 @@ ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
     }
     // set remove flag first
     osAccountInfo.SetToBeRemoved(true);
-    osAccountControl_->UpdateOsAccount(osAccountInfo);
+    errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to update ToBeRemoved status, errCode=%{public}d.", errCode);
+        ReportOsAccountOperationFail(id, Constants::OPERATION_REMOVE, errCode, "Failed to update ToBeRemoved status");
+        return errCode;
+    }
 
     // then remove account
     errCode = RemoveOsAccountOperate(id, osAccountInfo);
@@ -957,7 +968,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountRemove(OsAccountInfo &osAccount
         return errCode;
     }
     OsAccountInterface::SendToCESAccountDelete(osAccountInfo);
-    ReportOsAccountLifeCycle(localId, Constants::OPERATION_DELETE);
+    ReportOsAccountLifeCycle(localId, Constants::OPERATION_REMOVE);
     return errCode;
 }
 
@@ -2158,6 +2169,8 @@ ErrCode IInnerOsAccountManager::UpdateAccountInfoByDomainAccountInfo(
     result = osAccountControl_->UpdateOsAccount(accountInfo);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Update account info failed, result = %{public}d", result);
+        ReportOsAccountOperationFail(userId, Constants::OPERATION_UPDATE, result,
+            "Failed to update domain account info");
         RemoveLocalIdToOperating(userId);
         return result;
     }
