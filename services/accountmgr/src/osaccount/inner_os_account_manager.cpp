@@ -932,10 +932,13 @@ ErrCode IInnerOsAccountManager::ValidateOsAccount(const OsAccountInfo &osAccount
             continue;
         }
         auto value = element.value();
-        std::string localName = value[Constants::LOCAL_NAME].get<std::string>();
-        if ((osAccountInfo.GetLocalName() == localName) && (localId != id)
-            && !IsToBeRemoved(localId)) {
-            return ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED;
+        auto localNameIter = value.find(Constants::LOCAL_NAME);
+        if (localNameIter != value.end()) {
+            std::string localName = localNameIter->get<std::string>();
+            if ((osAccountInfo.GetLocalName() == localName) && (localId != id)
+                && !IsToBeRemoved(localId)) {
+                return ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED;
+            }
         }
         if (!osAccountInfo.GetShortName().empty() && value.contains(Constants::SHORT_NAME)) {
             std::string shortName = value[Constants::SHORT_NAME].get<std::string>();

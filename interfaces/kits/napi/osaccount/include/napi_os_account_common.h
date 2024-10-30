@@ -41,6 +41,7 @@ constexpr std::int32_t ARGS_SIZE_FOUR = 4;
 class NapiCreateDomainCallback final : public DomainAccountCallback {
 public:
     NapiCreateDomainCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred);
+    ~NapiCreateDomainCallback();
     void OnResult(const int32_t errCode, Parcel &parcel) override;
 
 private:

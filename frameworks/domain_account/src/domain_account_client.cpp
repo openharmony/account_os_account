@@ -80,7 +80,11 @@ ErrCode DomainAccountClient::UnregisterPlugin()
         ACCOUNT_LOGE("failed to get domain account proxy");
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->UnregisterPlugin();
+    ErrCode ret = proxy->UnregisterPlugin();
+    if (ret == ERR_OK) {
+        pluginService_ = nullptr;
+    }
+    return ret;
 }
 
 ErrCode DomainAccountClient::AuthProxyInit(const std::shared_ptr<DomainAccountCallback> &callback,
@@ -321,6 +325,8 @@ ErrCode DomainAccountClient::UnregisterAccountStatusListener(
         listenerManager_->InsertRecord(listener);
         return result;
     }
+    listenerManager_ = nullptr;
+    callback_ = nullptr;
     return ERR_OK;
 }
 
