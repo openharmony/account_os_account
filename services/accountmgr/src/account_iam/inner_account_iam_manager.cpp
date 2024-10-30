@@ -101,8 +101,7 @@ void InnerAccountIAMManager::AddCredential(
         auto accountFileOperator = std::make_shared<AccountFileOperator>();
         ErrCode code = accountFileOperator->InputFileByPathAndContent(path, "");
         if (code != ERR_OK) {
-            ReportOsAccountOperationFail(userId, "InputFileByPathAndContent", code,
-                "Failed to input add_secret_flag file");
+            ReportOsAccountOperationFail(userId, "addCredential", code, "Failed to write add_secret_flag file");
             ACCOUNT_LOGE("Input file fail, path=%{public}s", path.c_str());
         }
     }
@@ -427,24 +426,35 @@ void InnerAccountIAMManager::HandleFileKeyException(int32_t userId, const std::v
     std::unique_lock<std::mutex> lck(callback->secureMtx_);
     ErrCode code = UserIDMClient::GetInstance().GetSecUserInfo(userId, callback);
     if (code != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get secure uid, userId: %{public}d", userId);
+        ReportOsAccountOperationFail(userId, "addCredential", code,
+            "Failed to get secure uid when restoring key context");
         return;
     }
     auto status = callback->secureCv_.wait_for(lck, std::chrono::seconds(TIME_WAIT_TIME_OUT));
     if (status != std::cv_status::no_timeout) {
         ACCOUNT_LOGE("GetSecureUidCallback time out");
+        ReportOsAccountOperationFail(userId, "addCredential", -1, "Get secure uid timeout when restoring key context");
         return;
     }
-    code = UpdateStorageKey(userId, callback->secureUid_, token, {}, secret);
-    if (code == ERR_OK) {
-        ACCOUNT_LOGI("Update storage key success, userId:%{public}d", userId);
-        code = accountFileOperator->DeleteDirOrFile(path);
-        if (code != ERR_OK) {
-            ReportOsAccountOperationFail(userId, "DeleteDirOrFile", code, "Failed to delete add_secret_flag file");
-            ACCOUNT_LOGE("Delete file fail, path=%{public}s", path.c_str());
-        }
-    } else {
-        ReportOsAccountOperationFail(userId, "UpdateStorageKey", code, "Failed to update storage key");
-        ACCOUNT_LOGE("Update storage key fail, userId:%{public}d", userId);
+    code = UpdateStorageUserAuth(userId, callback->secureUid_, token, {}, secret);
+    if (code != ERR_OK) {
+        ACCOUNT_LOGE("Restore user auth fail, userId: %{public}d", userId);
+        ReportOsAccountOperationFail(userId, "addCredential", code, "Failed to restore user auth");
+        return;
+    }
+    code = UpdateStorageKeyContext(userId);
+    if (code != ERR_OK) {
+        ACCOUNT_LOGE("Restore key context fail, userId:%{public}d", userId);
+        ReportOsAccountOperationFail(userId, "addCredential", code, "Failed to restore key context");
+        return;
+    }
+    ACCOUNT_LOGI("Restore key context successfully, userId:%{public}d", userId);
+    code = accountFileOperator->DeleteDirOrFile(path);
+    if (code != ERR_OK) {
+        ReportOsAccountOperationFail(userId, "addCredential", code,
+            "Failed to delete add_secret_flag file after restoring key context");
+        ACCOUNT_LOGE("Delete file fail, path=%{public}s", path.c_str());
     }
 }
 
@@ -501,8 +511,6 @@ ErrCode InnerAccountIAMManager::InnerUpdateStorageKey(
     result = storageMgrProxy->UpdateKeyContext(userId);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Fail to update key context, userId=%{public}d, result=%{public}d", userId, result);
-        ReportOsAccountOperationFail(userId, "updateStorageKeyContext", result,
-            "Failed to notice storage update key context");
     }
     return result;
 #else
@@ -538,8 +546,6 @@ ErrCode InnerAccountIAMManager::InnerUpdateStorageKeyContext(const int32_t userI
     ErrCode code = storageMgrProxy->UpdateKeyContext(userId);
     if (code != ERR_OK) {
         ACCOUNT_LOGE("Fail to update key context, userId=%{public}d, code=%{public}d", userId, code);
-        ReportOsAccountOperationFail(userId, "updateStorageKeyContext", code,
-            "Failed to notice storage update key context");
         return code;
     }
 #endif
@@ -577,8 +583,6 @@ ErrCode InnerAccountIAMManager::InnerUpdateStorageUserAuth(int32_t userId, uint6
     ErrCode code = storageMgrProxy->UpdateUserAuth(userId, secureUid, token, oldSecret, newSecret);
     if ((code != ERR_OK) && (code != ERROR_STORAGE_KEY_NOT_EXIST)) {
         ACCOUNT_LOGE("Fail to update user auth, userId=%{public}d, code=%{public}d", userId, code);
-        ReportOsAccountOperationFail(userId, "updateStorageUserAuth", code,
-            "Failed to notice storage update user auth");
         return code;
     }
 #endif

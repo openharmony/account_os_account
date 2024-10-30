@@ -130,9 +130,7 @@ ErrCode BundleManagerAdapter::CreateNewUser(int32_t userId, const std::vector<st
     ErrCode result = Connect();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to connect bundle manager service.");
-        ReportOsAccountOperationFail(userId, "create",
-            ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_CREATE_ERROR,
-            "Connect bundle manager service failed!");
+        ReportOsAccountOperationFail(userId, "create", result, "Failed to connect BundleManager service");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_CREATE_ERROR;
     }
 
@@ -141,12 +139,15 @@ ErrCode BundleManagerAdapter::CreateNewUser(int32_t userId, const std::vector<st
         ACCOUNT_LOGE("failed to get bundleUserMgrProxy");
         ReportOsAccountOperationFail(userId, "create",
             ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_CREATE_ERROR,
-            "GetBundleUserMgr from BundleManager proxy failed!");
+            "Failed to get BundleUserMgr");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_CREATE_ERROR;
     }
     StartTraceAdapter("BundleManageService CreateNewUser");
     result = bundleUserMgrProxy->CreateNewUser(userId, disallowedHapList);
     FinishTraceAdapter();
+    if (result != ERR_OK) {
+        ReportOsAccountOperationFail(userId, "create", result, "BundleManager failed to create new user");
+    }
     return result;
 }
 
@@ -156,22 +157,24 @@ ErrCode BundleManagerAdapter::RemoveUser(int32_t userId)
     ErrCode result = Connect();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to connect bundle manager service.");
-        ReportOsAccountOperationFail(userId, "delete",
-            result, "Connect bundle manager service failed!");
+        ReportOsAccountOperationFail(userId, "remove", result, "Failed to connect BundleManager service");
         return result;
     }
 
     auto bundleUserMgrProxy = proxy_->GetBundleUserMgr();
     if (!bundleUserMgrProxy) {
         ACCOUNT_LOGE("failed to get bundleUserMgrProxy");
-        ReportOsAccountOperationFail(userId, "delete",
+        ReportOsAccountOperationFail(userId, "remove",
             ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_DELETE_ERROR,
-            "GetBundleUserMgr from BundleManager proxy failed!");
+            "Failed to get BundleUserMgr");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_DELETE_ERROR;
     }
     StartTraceAdapter("BundleManageService RemoveUser");
-    bundleUserMgrProxy->RemoveUser(userId);
+    result = bundleUserMgrProxy->RemoveUser(userId);
     FinishTraceAdapter();
+    if (result != ERR_OK) {
+        ReportOsAccountOperationFail(userId, "remove", result, "BundleManager failed to remove user");
+    }
     return ERR_OK;
 }
 
