@@ -18,6 +18,7 @@
 
 #include <map>
 #include <set>
+#include "idistributed_account_event.h"
 #include "idistributed_account_subscribe.h"
 #include "singleton.h"
 
@@ -37,7 +38,7 @@ private:
     DistributedAccountSubscribeManager();
     ~DistributedAccountSubscribeManager() = default;
     DISALLOW_COPY_AND_MOVE(DistributedAccountSubscribeManager);
-    bool OnAccountsChanged(const DistributedSubscribeRecordPtr &distributedSubscribeRecordPtr,
+    bool OnAccountsChanged(const sptr<IDistributedAccountEvent> &eventProxy,
         const int id, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE subscribeType);
 
 private:
