@@ -16,7 +16,9 @@
 #include <chrono>
 #include <thread>
 #include "account_error_no.h"
+#include "account_hisysevent_adapter.h"
 #include "account_log_wrapper.h"
+#include "os_account_constants.h"
 #include "os_account_manager.h"
 #include "os_account_interface.h"
 
@@ -68,6 +70,10 @@ void OsAccountUserCallback::OnStopUserDone(int userId, int errcode)
     std::unique_lock<std::mutex> lock(mutex_);
     ACCOUNT_LOGI("in call back account, OnStopUserDone id is %{public}d, errcode is %{public}d.",
         userId, errcode);
+    if (errcode != 0) {
+        ReportOsAccountOperationFail(
+            userId, Constants::OPERATION_STOP, errcode, "AbilityManager failed to stop user in callback");
+    }
     isReturnOk_ = (errcode == 0);
     onStopCondition_.notify_one();
 }
@@ -77,6 +83,10 @@ void OsAccountUserCallback::OnStartUserDone(int userId, int errcode)
     std::unique_lock<std::mutex> lock(mutex_);
     ACCOUNT_LOGI("in call back account, OnStartUserDone id is %{public}d, errcode is %{public}d.",
         userId, errcode);
+    if (errcode != 0) {
+        ReportOsAccountOperationFail(
+            userId, Constants::OPERATION_START, errcode, "AbilityManager failed to start user in callback");
+    }
     isReturnOk_ = (errcode == 0);
     onStartCondition_.notify_one();
 }

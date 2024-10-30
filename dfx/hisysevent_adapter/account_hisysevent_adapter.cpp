@@ -135,7 +135,7 @@ void ReportOsAccountLifeCycle(int32_t id, const std::string& operationStr)
 #ifdef HAS_HISYSEVENT_PART
     int ret = HiSysEventWrite(HiSysEvent::Domain::ACCOUNT, "OS_ACCOUNT_LIFE_CYCLE",
         HiSysEvent::EventType::BEHAVIOR,
-        "ACCOUNT_ID", id,
+        "ID", id,
         "OPERATE_TYPE", operationStr);
     if (ret != 0) {
         ACCOUNT_LOGE("ret %{public}d, operationStr %{public}s, id %{public}d.",
