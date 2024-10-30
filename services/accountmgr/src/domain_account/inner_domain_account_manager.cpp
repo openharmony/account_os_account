@@ -324,6 +324,7 @@ void InnerDomainAccountManager::CloseLib()
     }
     dlclose(libHandle_);
     libHandle_ = nullptr;
+    methodMap_.clear();
 }
 
 static void SetPluginString(const std::string &str, PluginString &pStr)

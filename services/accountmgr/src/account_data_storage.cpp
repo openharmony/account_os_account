@@ -22,8 +22,7 @@ namespace OHOS {
 namespace AccountSA {
 const int32_t MAX_TIMES = 10;
 const int32_t SLEEP_INTERVAL = 100 * 1000;
-const std::string KV_STORE_EL1_BASE_DIR = "/data/service/el1/public/database/";
-const std::string KV_STORE_EL2_BASE_DIR = "/data/service/el2/public/database/";
+constexpr char KV_STORE_EL1_BASE_DIR[] = "/data/service/el1/public/database/";
 
 AccountDataStorage::AccountDataStorage(const std::string &appId, const std::string &storeId,
     const AccountDataStorageOptions &options)

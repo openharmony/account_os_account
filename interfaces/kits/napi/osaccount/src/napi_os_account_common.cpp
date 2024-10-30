@@ -27,6 +27,15 @@ NapiCreateDomainCallback::NapiCreateDomainCallback(napi_env env, napi_ref callba
     : env_(env), callbackRef_(callbackRef), deferred_(deferred)
 {}
 
+NapiCreateDomainCallback::~NapiCreateDomainCallback()
+{
+    std::unique_lock<std::mutex> lock(lockInfo_.mutex);
+    if (callbackRef_ != nullptr) {
+        ReleaseNapiRefAsync(env_, callbackRef_);
+        callbackRef_ = nullptr;
+    }
+}
+
 void NapiCreateDomainCallback::OnResult(const int32_t errCode, Parcel &parcel)
 {
     std::shared_ptr<OsAccountInfo> osAccountInfo(OsAccountInfo::Unmarshalling(parcel));
@@ -56,6 +65,9 @@ void NapiCreateDomainCallback::OnResult(const int32_t errCode, Parcel &parcel)
     asyncContext->callbackRef = callbackRef_;
     asyncContext->deferred = deferred_;
     work->data = reinterpret_cast<void *>(asyncContext);
+    // transfer control of callbackRef & deferred to asyncContext, they would be released in async context
+    callbackRef_ = nullptr;
+    deferred_ = nullptr;
     int resultCode = uv_queue_work_with_qos(
         loop, work, [](uv_work_t *work) {}, CreateOAForDomainCallbackCompletedWork, uv_qos_default);
     if (resultCode != 0) {
@@ -64,8 +76,6 @@ void NapiCreateDomainCallback::OnResult(const int32_t errCode, Parcel &parcel)
         delete work;
         return;
     }
-    callbackRef_ = nullptr;
-    deferred_ = nullptr;
 }
 
 napi_value WrapVoidToJS(napi_env env)

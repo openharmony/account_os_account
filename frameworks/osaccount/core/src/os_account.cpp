@@ -728,6 +728,8 @@ sptr<IOsAccount> OsAccount::GetOsAccountProxy()
     proxy_ = iface_cast<IOsAccount>(object);
     if (proxy_ == nullptr) {
         ACCOUNT_LOGE("failed to get os account proxy");
+        object->RemoveDeathRecipient(deathRecipient_);
+        deathRecipient_ = nullptr;
     }
     return proxy_;
 }
