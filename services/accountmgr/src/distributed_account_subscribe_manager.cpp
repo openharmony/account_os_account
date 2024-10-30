@@ -16,7 +16,6 @@
 #include <pthread.h>
 #include <thread>
 #include "account_log_wrapper.h"
-#include "idistributed_account_event.h"
 #include "distributed_account_subscribe_death_recipient.h"
 #include "distributed_account_subscribe_manager.h"
 
@@ -115,12 +114,9 @@ ErrCode DistributedAccountSubscribeManager::UnsubscribeDistributedAccountEvent(
 }
 
 bool DistributedAccountSubscribeManager::OnAccountsChanged(
-    const DistributedSubscribeRecordPtr &distributedSubscribeRecordPtr, const int id,
-    DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE subscribeType)
+    const sptr<IDistributedAccountEvent> &eventProxy, const int id, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE subscribeType)
 {
-    auto distributedAccountEventProxy = iface_cast<IDistributedAccountEvent>(
-        distributedSubscribeRecordPtr->eventListener_);
-    if (distributedAccountEventProxy == nullptr) {
+    if (eventProxy == nullptr) {
         ACCOUNT_LOGE("Get app account event proxy failed.");
         return false;
     }
@@ -128,7 +124,7 @@ bool DistributedAccountSubscribeManager::OnAccountsChanged(
     eventData.id_ = id;
     eventData.type_ = subscribeType;
 
-    distributedAccountEventProxy->OnAccountsChanged(eventData);
+    eventProxy->OnAccountsChanged(eventData);
     return true;
 }
 
@@ -138,7 +134,14 @@ ErrCode DistributedAccountSubscribeManager::Publish(const int id, DISTRIBUTED_AC
     uint32_t sendCnt = 0;
     for (auto it = subscribeRecords_.begin(); it != subscribeRecords_.end(); ++it) {
         if ((*it)->types_.find(subscribeType) != (*it)->types_.end()) {
-            auto task = [this, it, id, subscribeType] { this->OnAccountsChanged((*it), id, subscribeType); };
+            auto eventProxy = iface_cast<IDistributedAccountEvent>((*it)->eventListener_);
+            if (eventProxy == nullptr) {
+                ACCOUNT_LOGE("Get eventProxy failed");
+                break;
+            }
+            auto task = [this, eventProxy, id, subscribeType] {
+                this->OnAccountsChanged(eventProxy, id, subscribeType);
+            };
             std::thread taskThread(task);
             pthread_setname_np(taskThread.native_handle(), THREAD_DISTRIBUTED_ACCOUNT_EVENT);
             taskThread.detach();
