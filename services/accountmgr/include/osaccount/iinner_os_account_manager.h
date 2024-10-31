@@ -130,6 +130,9 @@ private:
     void RestartActiveAccount();
     void CreateBaseAdminAccount();
     void CreateBaseStandardAccount();
+    void ExecuteDeactivationAnimation(int32_t pipeFd, const OsAccountInfo &osAccountInfo);
+    ErrCode WaitForAnimationReady(int32_t pipeFd);
+    void LaunchDeactivationAnimation(const OsAccountInfo &osAccountInfo);
     ErrCode PrepareRemoveOsAccount(OsAccountInfo &osAccountInfo, bool isCleanGarbage = false);
     ErrCode RemoveOsAccountOperate(const int id, OsAccountInfo &osAccountInfo, bool isCleanGarbage = false);
     ErrCode DeactivateOsAccountById(const int id);
