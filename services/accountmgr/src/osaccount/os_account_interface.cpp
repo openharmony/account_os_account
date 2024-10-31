@@ -169,7 +169,7 @@ ErrCode OsAccountInterface::SendToBMSAccountCreate(
     int32_t retryTimes = 0;
     while (retryTimes < MAX_RETRY_TIMES) {
         errCode = BundleManagerAdapter::GetInstance()->CreateNewUser(osAccountInfo.GetLocalId(), disallowedHapList);
-        if (errCode != E_IPC_ERROR && errCode != E_IPC_SA_DIED) {
+        if (errCode == ERR_OK) {
             break;
         }
         ACCOUNT_LOGE("Fail to SendToBMSAccountCreate, errCode %{public}d.", errCode);
@@ -323,7 +323,7 @@ ErrCode OsAccountInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountI
     int32_t retryTimes = 0;
     while (retryTimes < MAX_RETRY_TIMES) {
         errCode = InnerSendToStorageAccountCreate(osAccountInfo);
-        if (errCode == ERR_OK) {
+        if (errCode != E_IPC_ERROR && errCode != E_IPC_SA_DIED) {
             break;
         }
         ACCOUNT_LOGE("Fail to SendToStorageAccountCreate,id=%{public}d, errCode %{public}d.",
@@ -335,7 +335,7 @@ ErrCode OsAccountInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountI
 }
 
 #ifdef HAS_STORAGE_PART
-static ErrCode PrepareAddUser(sptr<StorageManager::IStorageManager> &proxy, int32_t userId)
+static ErrCode PrepareAddUser(const sptr<StorageManager::IStorageManager> &proxy, int32_t userId)
 {
     ErrCode err = proxy->PrepareAddUser(userId, CRYPTO_FLAG_EL1 | CRYPTO_FLAG_EL2);
     if (err == 0) {
@@ -380,13 +380,14 @@ ErrCode OsAccountInterface::InnerSendToStorageAccountCreate(OsAccountInfo &osAcc
         FinishTraceAdapter();
         return ERR_OK;
     }
-    ACCOUNT_LOGI("PrepareAddUser Failed, start check and clear accounts.");
+
+    ACCOUNT_LOGI("PrepareAddUser Failed, start check and clean accounts.");
     auto &osAccountManager = IInnerOsAccountManager::GetInstance();
     if (osAccountManager.CleanGarbageOsAccounts(localId) <= 0) {
         FinishTraceAdapter();
         return err;
     }
-    ACCOUNT_LOGI("Clean garbage account data, Retry storage PrepareAddUser.");
+    ACCOUNT_LOGI("Clean garbage account data, Retry Storage PrepareAddUser.");
     err = PrepareAddUser(proxy, localId);
     FinishTraceAdapter();
     return err;
