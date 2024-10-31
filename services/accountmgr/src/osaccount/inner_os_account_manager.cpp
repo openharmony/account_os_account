@@ -487,7 +487,9 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, co
         ACCOUNT_LOGE("QueryOsAccountById error, errCode %{public}d.", code);
         return code;
     }
-    if (accountInfoOld.GetShortName().empty()) {
+    DomainAccountInfo domainAccountInfo;
+    accountInfoOld.GetDomainInfo(domainAccountInfo);
+    if (accountInfoOld.GetShortName().empty() && domainAccountInfo.accountName_.empty()) {
         accountInfoOld.SetType(type);
         accountInfoOld.SetLocalName(localName);
         accountInfoOld.SetShortName(shortName);
