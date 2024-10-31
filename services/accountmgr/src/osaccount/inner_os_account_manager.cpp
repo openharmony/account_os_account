@@ -390,7 +390,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
     }
     int32_t localId = osAccountInfo.GetLocalId();
 #ifdef HAS_THEME_SERVICE_PART
-    auto task = OsAccountInterface::InitThemeResource(localId);
+    auto task = [localId] { OsAccountInterface::InitThemeResource(localId); };
     std::thread theme_thread(task);
     pthread_setname_np(theme_thread.native_handle(), "InitTheme");
 #endif
@@ -2240,7 +2240,7 @@ ErrCode IInnerOsAccountManager::UpdateAccountToBackground(int32_t oldId)
 #endif
     bool isLoggedIn = false;
     if ((oldOsAccountInfo.GetType() != OsAccountType::PRIVATE) && (!loggedInAccounts_.Find(oldId, isLoggedIn))) {
-        DeactivateOsAccount(oldId);
+        DeactivateOsAccount(oldId, false);
     }
 #else
     DeactivateOsAccountByInfo(oldOsAccountInfo);

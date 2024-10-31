@@ -419,6 +419,7 @@ void DelUserCallback::OnResult(int32_t result, const Attributes &extraInfo)
         uint64_t credentialId = 0;
         extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId);
         DeleteCredential(userId_, credentialId, token);
+        ACCOUNT_LOGE("Fail to delete root secret, userId=%{public}d, errcode=%{public}d", userId_, errCode);
         return innerCallback_->OnResult(errCode, extraInfo);
     }
 
