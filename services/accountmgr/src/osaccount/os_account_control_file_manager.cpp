@@ -537,19 +537,22 @@ ErrCode OsAccountControlFileManager::GetOsAccountInfoById(const int id, OsAccoun
             InsertOsAccount(osAccountInfo);
             return ERR_OK;
         }
-        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+        return errno == ENOENT ? ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR : ERR_ACCOUNT_COMMON_FILE_READ_FAILED;
     }
     std::string accountInfoStr;
     if (accountFileOperator_->GetFileContentByPath(path, accountInfoStr) != ERR_OK) {
         ACCOUNT_LOGE("get content from file %{public}s failed!", path.c_str());
-        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+        if (GetOsAccountFromDatabase("", id, osAccountInfo) == ERR_OK) {
+            return ERR_OK;
+        }
+        return ERR_ACCOUNT_COMMON_FILE_READ_FAILED;
     }
     Json osAccountInfoJson = Json::parse(accountInfoStr, nullptr, false);
     if (osAccountInfoJson.is_discarded() || !osAccountInfo.FromJson(osAccountInfoJson)) {
         ACCOUNT_LOGE("parse os account info json for %{public}d failed", id);
         if (GetOsAccountFromDatabase("", id, osAccountInfo) != ERR_OK) {
             ACCOUNT_LOGE("GetOsAccountFromDatabase failed id=%{public}d", id);
-            return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
+            return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
         }
     }
     return ERR_OK;
