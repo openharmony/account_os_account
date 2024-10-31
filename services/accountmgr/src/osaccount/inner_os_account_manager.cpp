@@ -16,6 +16,9 @@
 #include "account_event_provider.h"
 #include <chrono>
 #include <dlfcn.h>
+#include <poll.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include "account_constants.h"
 #include "account_info.h"
@@ -52,6 +55,7 @@ namespace {
 const std::string CONSTRAINT_CREATE_ACCOUNT_DIRECTLY = "constraint.os.account.create.directly";
 const std::string ACCOUNT_READY_EVENT = "bootevent.account.ready";
 const std::string PARAM_LOGIN_NAME_MAX = "persist.account.login_name_max";
+constexpr const char DEACTIVATION_ANIMATION_PATH[] = "/system/bin/deactivation_animation";
 const std::string SPECIAL_CHARACTER_ARRAY = "<>|\":*?/\\";
 const std::vector<std::string> SHORT_NAME_CANNOT_BE_NAME_ARRAY = {".", ".."};
 constexpr int32_t TOKEN_NATIVE = 1;
@@ -62,6 +66,11 @@ constexpr int32_t DELAY_FOR_REMOVING_FOREGROUND_OS_ACCOUNT = 1500;
 #ifdef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
 constexpr int32_t DELAY_FOR_DEACTIVATE_OS_ACCOUNT = 3000;
 #endif
+constexpr int32_t MAX_WAIT_ANIMATION_MSG_BUFFER = 256;
+constexpr int32_t MAX_WAIT_ANIMATION_READY_TIMEOUT = 1000;
+constexpr int32_t PIPE_FD_COUNT = 2;
+constexpr int32_t PIPE_READ_END = 0;
+constexpr int32_t PIPE_WRITE_END = 1;
 }
 
 IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManager_(OsAccountSubscribeManager::GetInstance()),
@@ -1719,6 +1728,93 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount
     return ERR_OK;
 }
 
+void IInnerOsAccountManager::ExecuteDeactivationAnimation(int32_t pipeFd, const OsAccountInfo &osAccountInfo)
+{
+    std::string pipeFdStr = std::to_string(pipeFd);
+    std::string displayIdStr = std::to_string(osAccountInfo.GetDisplayId());
+    char *const args[] = {const_cast<char *>(DEACTIVATION_ANIMATION_PATH),
+        const_cast<char *>(displayIdStr.c_str()), const_cast<char *>(pipeFdStr.c_str()), nullptr};
+    if (execv(DEACTIVATION_ANIMATION_PATH, args) == -1) {
+        ACCOUNT_LOGE("Failed to execv animation: %{public}s", strerror(errno));
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), "deactivate", errno,
+            "Failed to launch deactivation animation, execv error");
+        close(pipeFd);
+        exit(EXIT_FAILURE);
+    }
+}
+
+ErrCode IInnerOsAccountManager::WaitForAnimationReady(int32_t pipeFd)
+{
+    char buf[MAX_WAIT_ANIMATION_MSG_BUFFER];
+    struct pollfd fds[1];
+    fds[0].fd = pipeFd;
+    fds[0].events = POLLIN;
+
+    int ret = poll(fds, 1, MAX_WAIT_ANIMATION_READY_TIMEOUT);
+    if (ret < 0) {
+        ACCOUNT_LOGE("Error in poll: %{public}s", strerror(errno));
+        close(pipeFd);
+        return ERR_OSACCOUNT_SERVICE_INNER_ANIMATION_POLL_ERROR;
+    }
+    if (ret == 0) {
+        ACCOUNT_LOGE("Timeout waiting for message from child process.");
+        close(pipeFd);
+        return ERR_OSACCOUNT_SERVICE_INNER_ANIMATION_TIMEOUT;
+    }
+    if (!(fds[0].revents & POLLIN)) {
+        ACCOUNT_LOGE("Unexpected event in poll: %{public}d", fds[0].revents);
+        close(pipeFd);
+        return ERR_OSACCOUNT_SERVICE_INNER_ANIMATION_UNEXPECTED_EVENT;
+    }
+    ssize_t bytesRead = read(pipeFd, buf, sizeof(buf));
+    if (bytesRead <= 0) {
+        ACCOUNT_LOGE("Error reading from pipe: %{public}s", strerror(errno));
+        close(pipeFd);
+        return ERR_OSACCOUNT_SERVICE_INNER_ANIMATION_READ_ERROR;
+    }
+    buf[bytesRead] = '\0';
+    ACCOUNT_LOGI("Received message from child process: %{public}s", buf);
+    close(pipeFd);
+    return ERR_OK;
+}
+
+void IInnerOsAccountManager::LaunchDeactivationAnimation(const OsAccountInfo &osAccountInfo)
+{
+    int32_t localId = osAccountInfo.GetLocalId();
+    ACCOUNT_LOGI("Start launching deactivation animation for account: %{public}d", localId);
+    struct stat buffer;
+    if (stat(DEACTIVATION_ANIMATION_PATH, &buffer) != 0) {
+        ACCOUNT_LOGW("Animation launch file does not exist: %{public}s, %{public}s,",
+            DEACTIVATION_ANIMATION_PATH, strerror(errno));
+        return;
+    }
+
+    int pipeFd[PIPE_FD_COUNT];
+    if (pipe(pipeFd) == -1) {
+        ACCOUNT_LOGE("Failed to create pipe: %{public}s", strerror(errno));
+        ReportOsAccountOperationFail(localId, "deactivate", errno,
+            "Failed to launch deactivation animation, create pipe error");
+        return;
+    }
+
+    pid_t pid = fork();
+    if (pid == 0) {
+        close(pipeFd[PIPE_READ_END]);
+        ExecuteDeactivationAnimation(pipeFd[PIPE_WRITE_END], osAccountInfo);
+    } else if (pid > 0) {
+        close(pipeFd[PIPE_WRITE_END]);
+        ErrCode ret = WaitForAnimationReady(pipeFd[PIPE_READ_END]);
+        ReportOsAccountOperationFail(localId, "deactivate", ret,
+            "Failed to launch deactivation animation, wait msg error");
+    } else {
+        ACCOUNT_LOGE("Failed to fork deactivation animation process: %{public}s", strerror(errno));
+        ReportOsAccountOperationFail(localId, "deactivate", errno,
+            "Failed to launch deactivation animation, fork error");
+        close(pipeFd[PIPE_READ_END]);
+        close(pipeFd[PIPE_WRITE_END]);
+    }
+}
+
 ErrCode IInnerOsAccountManager::DeactivateOsAccount(const int id, bool isStopStorage)
 {
     if (!CheckAndAddLocalIdOperating(id)) {
@@ -1748,6 +1844,10 @@ ErrCode IInnerOsAccountManager::DeactivateOsAccount(const int id, bool isStopSto
     OsAccountInterface::PublishCommonEvent(
         osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_STOPPING, Constants::OPERATION_STOP);
     subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
+
+    if (osAccountInfo.GetIsForeground()) {
+        LaunchDeactivationAnimation(osAccountInfo);
+    }
 
     errCode = SendMsgForAccountDeactivate(osAccountInfo, isStopStorage);
     if (errCode != ERR_OK) {
