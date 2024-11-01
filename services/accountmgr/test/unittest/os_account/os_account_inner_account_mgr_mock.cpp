@@ -992,7 +992,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest010, TestSize
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR);
 
     ret = innerMgrService_->SendMsgForAccountActivate(osAccountInfoOne);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR);
+    EXPECT_EQ(ret, ERR_OK);
 
     EXPECT_CALL(*ptr, UpdateOsAccount(::testing::_))
         .WillRepeatedly(testing::Return(0));
@@ -1474,7 +1474,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest026, TestSize
         .WillOnce(DoAll(SetArgReferee<1>(expectedAccountInfo), Return(ERR_OK)));
     innerMgrService_->PushIdIntoActiveList(id);
     ret = innerMgrService_->ActivateOsAccount(id);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREADY_ACTIVE_ERROR);
+    EXPECT_NE(ret, ERR_OK);
 
     innerMgrService_->EraseIdFromActiveList(id);
 

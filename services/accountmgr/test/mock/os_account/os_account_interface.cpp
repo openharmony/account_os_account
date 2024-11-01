@@ -18,9 +18,12 @@
 namespace OHOS {
 namespace AccountSA {
 
-ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo)
+ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo,
+    const OsAccountStartCallbackFunc &callbackFunc)
 {
     ACCOUNT_LOGI("mock OsAccountInterface SendToAMSAccountStart start");
+    sptr<OsAccountUserCallback> osAccountStartUserCallback = new (std::nothrow) OsAccountUserCallback(callbackFunc);
+    osAccountStartUserCallback->OnStartUserDone(osAccountInfo.GetLocalId(), 0);
     return ERR_OK;
 }
 

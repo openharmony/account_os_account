@@ -65,11 +65,12 @@ constexpr int32_t DELAY_FOR_EXCEPTION = 100;
 constexpr int32_t MAX_RETRY_TIMES = 10;
 }
 
-ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo)
+ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo,
+    const OsAccountStartCallbackFunc &callbackFunc)
 {
     int32_t localId = osAccountInfo.GetLocalId();
     ACCOUNT_LOGI("Start OS account %{public}d", localId);
-    sptr<OsAccountUserCallback> osAccountStartUserCallback = new (std::nothrow) OsAccountUserCallback();
+    sptr<OsAccountUserCallback> osAccountStartUserCallback = new (std::nothrow) OsAccountUserCallback(callbackFunc);
     if (osAccountStartUserCallback == nullptr) {
         ACCOUNT_LOGE("alloc memory for start user callback failed!");
         ReportOsAccountOperationFail(localId, Constants::OPERATION_START,
