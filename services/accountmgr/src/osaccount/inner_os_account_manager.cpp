@@ -146,7 +146,7 @@ void IInnerOsAccountManager::RetryToGetAccount(OsAccountInfo &osAccountInfo)
     while (retryTimes < MAX_RETRY_TIMES) {
         std::vector<OsAccountInfo> osAccountInfos;
         QueryAllCreatedOsAccounts(osAccountInfos);
-        if (!osAccountInfos.empty() && !osAccountInfos[0].GetToBeRemoved()) {
+        if (!osAccountInfos.empty() && (IsValidOsAccount(osAccountInfos[0]) == ERR_OK)) {
             osAccountInfo = osAccountInfos[0];
             return;
         }
@@ -195,7 +195,7 @@ ErrCode IInnerOsAccountManager::ActivateDefaultOsAccount()
     ACCOUNT_LOGI("start to activate default account");
     OsAccountInfo osAccountInfo;
     ErrCode errCode = GetRealOsAccountInfoById(defaultActivatedId_, osAccountInfo);
-    if (errCode != ERR_OK || osAccountInfo.GetToBeRemoved()) {
+    if ((errCode != ERR_OK) || (IsValidOsAccount(osAccountInfo) != ERR_OK)) {
         ACCOUNT_LOGE("account not found, localId: %{public}d, error: %{public}d", defaultActivatedId_, errCode);
         ReportOsAccountOperationFail(defaultActivatedId_, Constants::OPERATION_ACTIVATE, errCode,
             "Account not found or to be removed");
