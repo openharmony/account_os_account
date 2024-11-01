@@ -15,9 +15,11 @@
 
 #include "account_iam_callback.h"
 
+#include <mutex>
 #include <securec.h>
 #include <string>
 #include "access_token.h"
+#include "accesstoken_kit.h"
 #include "account_iam_info.h"
 #include "account_info_report.h"
 #include "account_log_wrapper.h"
@@ -55,13 +57,105 @@ void AuthCallbackDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 AuthCallback::AuthCallback(
     uint32_t userId, uint64_t credentialId, AuthType authType, const sptr<IIDMCallback> &callback)
     : userId_(userId), credentialId_(credentialId), authType_(authType), innerCallback_(callback)
-{}
+{
+    // save caller tokenId for pin re-enroll
+    if (authType == AuthType::PIN) {
+        callerTokenId_ = IPCSkeleton::GetCallingTokenID();
+    }
+}
 
 AuthCallback::AuthCallback(uint32_t userId, uint64_t credentialId, AuthType authType,
     bool isRemoteAuth, const sptr<IIDMCallback> &callback)
     : userId_(userId), credentialId_(credentialId), authType_(authType),
     isRemoteAuth_(isRemoteAuth), innerCallback_(callback)
+{
+    // save caller tokenId for pin re-enroll
+    if (authType == AuthType::PIN) {
+        callerTokenId_ = IPCSkeleton::GetCallingTokenID();
+    }
+}
+
+UpdateCredInfo::UpdateCredInfo(const Attributes &extraInfo)
+{
+    extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId);
+    extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, secureUid);
+    extraInfo.GetUint8ArrayValue(Attributes::ATTR_AUTH_TOKEN, token);
+    extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, newSecret);
+    extraInfo.GetUint8ArrayValue(Attributes::ATTR_OLD_ROOT_SECRET, oldSecret);
+}
+
+ReEnrollCallback::ReEnrollCallback()
 {}
+
+void ReEnrollCallback::OnResult(int32_t result, const Attributes &extraInfo)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    ACCOUNT_LOGE("ReEnroll: UpdateCredential call to ReEnroll OnResult, result is %{public}d", result);
+    result_ = result;
+    isCalled_ = true;
+    onResultCondition_.notify_one();
+    return;
+}
+
+void ReEnrollCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const AccountSA::Attributes &extraInfo)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    ACCOUNT_LOGE("ReEnroll: UpdateCredential unexpected call to OnAcquireInfo");
+    isCalled_ = true;
+    onResultCondition_.notify_one();
+    return;
+}
+
+ErrCode AuthCallback::InnerHandleReEnroll(const std::vector<uint8_t> &token)
+{
+    //set first caller to sceneboard
+    SetFirstCallerTokenID(callerTokenId_);
+    sptr<ReEnrollCallback> callback = new (std::nothrow) ReEnrollCallback();
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("ReEnroll: failed to allocate callback");
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
+    CredentialParameters credInfo = {
+        .authType = AuthType::PIN,
+        // `pinType` is unused in iam
+        .pinType = PinSubType::PIN_SIX,
+        .token = token
+    };
+    InnerAccountIAMManager::GetInstance().UpdateCredential(userId_, credInfo, callback);
+    std::unique_lock<std::mutex> lock(callback->mutex_);
+    bool done = callback->onResultCondition_.wait_for(lock, std::chrono::seconds(Constants::REENROLL_WAIT_TIME),
+        [cb = callback]() { return cb->isCalled_; });
+    ErrCode result = callback->result_;
+    if (!done) {
+        ACCOUNT_LOGE("ReEnroll: UpdateCredential failed, timeout");
+        return ERR_ACCOUNT_COMMON_OPERATION_TIMEOUT;
+    }
+    return result;
+}
+
+void AuthCallback::HandleReEnroll(const Attributes &extraInfo, int32_t accountId, const std::vector<uint8_t> &token)
+{
+    bool needReEnroll = false;
+    extraInfo.GetBoolValue(Attributes::ATTR_RE_ENROLL_FLAG, needReEnroll);
+    if (!needReEnroll) {
+        return;
+    }
+    if (authType_ == AuthType::PIN) {
+        ACCOUNT_LOGI("ReEnroll: need re-enroll for accountId %{public}d", accountId);
+        ErrCode result = InnerHandleReEnroll(token);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGE("ReEnroll: UpdateCredential failed, result is %{public}d", result);
+            ReportOsAccountOperationFail(accountId, "ReEnroll", result, "UpdateCredential failed");
+        } else {
+            ACCOUNT_LOGI("ReEnroll: UpdateCredential successful");
+            ReportOsAccountLifeCycle(accountId, Constants::OPERATION_REENROLL);
+        }
+    } else {
+        ACCOUNT_LOGW("ReEnroll: re-enroll flag exist but authType:%{public}d is not pin", authType_);
+    }
+    // ATTR_RE_ENROLL_FLAG is true means iam opened a session, remeber to close it
+    InnerAccountIAMManager::GetInstance().CloseSession(userId_);
+}
 
 ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo, int32_t accountId, bool &isUpdateVerifiedStatus)
 {
@@ -106,6 +200,7 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo, int32_t acco
         return ERR_OK;
     }
     InnerDomainAccountManager::GetInstance().AuthWithToken(accountId, token);
+    HandleReEnroll(extraInfo, accountId, token);
     return ret;
 }
 
@@ -336,12 +431,7 @@ void UpdateCredCallback::InnerOnResult(int32_t result, const Attributes &extraIn
         ACCOUNT_LOGE("UpdateCredCallback fail code=%{public}d, authType=%{public}d", result, credInfo_.authType);
         return innerCallback_->OnResult(result, extraInfo);
     }
-    UpdateCredInfo updateCredInfo;
-    extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, updateCredInfo.credentialId);
-    extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, updateCredInfo.secureUid);
-    extraInfo.GetUint8ArrayValue(Attributes::ATTR_AUTH_TOKEN, updateCredInfo.token);
-    extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, updateCredInfo.newSecret);
-    extraInfo.GetUint8ArrayValue(Attributes::ATTR_OLD_ROOT_SECRET, updateCredInfo.oldSecret);
+    UpdateCredInfo updateCredInfo(extraInfo);
     if (updateCredInfo.oldSecret.empty()) {
         ErrCode code = innerIamMgr_.UpdateUserAuthWithRecoveryKey(credInfo_.token,
             updateCredInfo.newSecret, updateCredInfo.secureUid, userId_);
@@ -397,7 +487,7 @@ void DelUserInputer::OnGetData(int32_t authSubType, std::vector<uint8_t> challen
         ACCOUNT_LOGE("InputerData is nullptr");
         return;
     }
-    inputerData->OnSetData(authSubType, TEMP_PIN);
+    inputerData->OnSetData(PinSubType::PIN_SIX, TEMP_PIN);
 }
 
 DelUserCallback::DelUserCallback(uint32_t userId, const sptr<IIDMCallback> &callback)

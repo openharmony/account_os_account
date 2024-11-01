@@ -152,8 +152,9 @@ void InnerAccountIAMManager::UpdateCredential(
 
     std::lock_guard<std::mutex> userLock(*GetOperatingUserLock(userId));
     sptr<IDMCallbackDeathRecipient> deathRecipient = new (std::nothrow) IDMCallbackDeathRecipient(userId);
-    if ((deathRecipient == nullptr) || (callback->AsObject() == nullptr) ||
-        (!callback->AsObject()->AddDeathRecipient(deathRecipient))) {
+    sptr<IRemoteObject> object = callback->AsObject();
+    if ((deathRecipient == nullptr) || object == nullptr ||
+        ((object->IsProxyObject()) && (!object->AddDeathRecipient(deathRecipient)))) {
         ACCOUNT_LOGE("Failed to add death recipient for UpdateCred");
         return;
     }
