@@ -55,6 +55,7 @@ const char OPERATION_STOP[] = "stop";
 const char OPERATION_START[] = "start";
 const char OPERATION_UPDATE[] = "update";
 const char OPERATION_UNLOCK[] = "unlock";
+const char OPERATION_REENROLL[] = "re-enroll";
 
 // distributed database
 const char APP_ID[] = "os_account_mgr_service";
@@ -96,6 +97,7 @@ const int64_t TIME_WAIT_TIME_OUT = 5;
 const std::int32_t WAIT_ONE_TIME = 1000;
 const uint64_t DEFAULT_DISPALY_ID = 0;
 const uint64_t INVALID_DISPALY_ID = -1ull;
+const uint64_t REENROLL_WAIT_TIME = 3;
 
 // an error code of ipc which means peer end is dead
 const int32_t E_IPC_ERROR = 29189;

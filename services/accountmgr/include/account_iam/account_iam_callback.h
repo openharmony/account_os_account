@@ -16,6 +16,7 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_IAM_CALLBACK_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_IAM_CALLBACK_H
 
+#include <condition_variable>
 #include <map>
 #include <vector>
 #include "account_file_operator.h"
@@ -23,6 +24,7 @@
 #include "domain_account_callback.h"
 #include "iaccount_iam_callback.h"
 #include "iremote_object.h"
+#include "iremote_stub.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -51,9 +53,12 @@ public:
 
 private:
     ErrCode HandleAuthResult(const Attributes &extraInfo, int32_t accountId, bool &isUpdateVerifiedStatus);
+    void HandleReEnroll(const Attributes &extraInfo, int32_t accountId, const std::vector<uint8_t> &token);
+    ErrCode InnerHandleReEnroll(const std::vector<uint8_t> &token);
 
 private:
     uint32_t userId_;
+    uint32_t callerTokenId_;
     uint64_t credentialId_;
     AuthType authType_;
     bool isRemoteAuth_ = false;
@@ -155,6 +160,9 @@ struct UpdateCredInfo {
     std::vector<uint8_t> token;
     std::vector<uint8_t> newSecret;
     std::vector<uint8_t> oldSecret;
+
+    UpdateCredInfo() = default;
+    UpdateCredInfo(const Attributes &extraInfo);
 };
 
 class CommitCredUpdateCallback : public UserIdmClientCallback {
@@ -277,6 +285,18 @@ public:
 private:
     GetPropertyRequest request_;
     sptr<IGetSetPropCallback> innerCallback_;
+};
+
+class ReEnrollCallback final : public IRemoteStub<IIDMCallback> {
+public:
+    bool isCalled_ = false;
+    ErrCode result_ = ERR_ACCOUNT_COMMON_NOT_INIT_ERROR;
+    std::mutex mutex_;
+    std::condition_variable onResultCondition_;
+
+    ReEnrollCallback();
+    void OnResult(int32_t result, const Attributes &extraInfo) override;
+    void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
