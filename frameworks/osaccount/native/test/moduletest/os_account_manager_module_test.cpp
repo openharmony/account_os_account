@@ -2657,8 +2657,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest116, TestSize.Lev
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_USER_BACKGROUND);
     CommonEventSubscribeInfo subscribeInfo(matchingSkills);
     auto listener = std::make_shared<MockSubscriberListener>();
-    std::shared_ptr<AccountTestEventSubscriber> subscriberPtr =
-        std::make_shared<AccountTestEventSubscriber>(subscribeInfo, listener);
+    auto subscriberPtr = std::make_shared<AccountTestEventSubscriber>(subscribeInfo, listener);
     ASSERT_EQ(CommonEventManager::SubscribeCommonEvent(subscriberPtr), true);
     EXPECT_CALL(*listener, OnReceiveEvent(CommonEventSupport::COMMON_EVENT_USER_BACKGROUND)).Times(Exactly(1));
     EXPECT_CALL(*listener, OnReceiveEvent(CommonEventSupport::COMMON_EVENT_USER_FOREGROUND)).Times(Exactly(1));
