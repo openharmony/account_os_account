@@ -27,6 +27,10 @@ namespace AccountSA {
 OsAccountUserCallback::OsAccountUserCallback()
 {}
 
+OsAccountUserCallback::OsAccountUserCallback(const OsAccountStartCallbackFunc &callbackFunc)
+    :startUserCallbackFunc_(callbackFunc)
+{}
+
 int OsAccountUserCallback::OnStopUserDoneInner(MessageParcel &data, MessageParcel &reply)
 {
     auto accountId = data.ReadInt32();
@@ -83,6 +87,9 @@ void OsAccountUserCallback::OnStartUserDone(int userId, int errcode)
     std::unique_lock<std::mutex> lock(mutex_);
     ACCOUNT_LOGI("in call back account, OnStartUserDone id is %{public}d, errcode is %{public}d.",
         userId, errcode);
+    if (errcode == ERR_OK && startUserCallbackFunc_ != nullptr) {
+        startUserCallbackFunc_(userId);
+    }
     if (errcode != 0) {
         ReportOsAccountOperationFail(
             userId, Constants::OPERATION_START, errcode, "AbilityManager failed to start user in callback");
