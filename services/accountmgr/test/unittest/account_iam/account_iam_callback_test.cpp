@@ -194,6 +194,30 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0300, TestSize.Level0)
 }
 
 /**
+ * @tc.name: AuthCallback_OnResult_0400
+ * @tc.desc: OnResult test with ReEnroll flag.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0400, TestSize.Level0)
+{
+    AccessTokenID tokenId = AccessTokenKit::GetHapTokenID(DEFAULT_USER_ID, "com.ohos.settings", 0);
+    SetSelfTokenID(tokenId);
+    sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
+    auto userAuthCallback = std::make_shared<AuthCallback>(TEST_USER_ID, TEST_CREDENTIAL_ID, AuthType::PIN, callback);
+    EXPECT_TRUE(userAuthCallback->innerCallback_ != nullptr);
+    Attributes extraInfo;
+    EXPECT_EQ(extraInfo.SetBoolValue(Attributes::ATTR_RE_ENROLL_FLAG, true), true);
+    int32_t errCode = 0;
+    userAuthCallback->OnResult(errCode, extraInfo);
+    EXPECT_EQ(ResultCode::FAIL, callback->result_);
+    errCode = 10; // result != 0
+    userAuthCallback->OnResult(errCode, extraInfo);
+    EXPECT_EQ(errCode, callback->result_);
+    SetSelfTokenID(g_accountMgrTokenID);
+}
+
+/**
  * @tc.name: AuthCallback_OnAcquireInfo_0100
  * @tc.desc: OnAcquireInfo with nullptr.
  * @tc.type: FUNC

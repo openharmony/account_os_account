@@ -597,7 +597,7 @@ HWTEST_F(AccountIamManagerTest, UpdateCredential001, TestSize.Level0)
     EXPECT_NE(callback, nullptr);
     sptr<TestIIDMCallback> testCallback = new(std::nothrow) TestIIDMCallback(callback);
     EXPECT_NE(testCallback, nullptr);
-    EXPECT_CALL(*callback, OnResult(_, _)).Times(Exactly(1));
+    EXPECT_CALL(*callback, OnResult(_, _)).Times(Exactly(2));
     InnerAccountIAMManager::GetInstance().UpdateCredential(TEST_USER_ID, testPara, nullptr);
     InnerAccountIAMManager::GetInstance().UpdateCredential(TEST_USER_ID, testPara, testCallback);
     {
