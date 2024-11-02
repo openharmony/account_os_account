@@ -34,7 +34,7 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const std::string ACCOUNT_INFO_DIGEST_FILE_PATH = "account_info_digest.json";
+constexpr char ACCOUNT_INFO_DIGEST_FILE_PATH[] = "account_info_digest.json";
 const long MAX_FILE_SIZE = 1 << 24; // 16MB
 const unsigned long long BUFF_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 const uint32_t RETRY_TIMES = 3;

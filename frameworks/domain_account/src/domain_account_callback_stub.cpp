@@ -81,6 +81,7 @@ int32_t DomainAccountCallbackStub::ProcOnResult(MessageParcel &data, MessageParc
         buffer_new = nullptr;
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
+    // buffer_new would be realeased with parcel
     OnResult(result, parcel);
     return ERR_NONE;
 }
