@@ -19,6 +19,7 @@
 #define TOKEN_ID_LOWMASK 0xffffffff
 namespace OHOS {
 namespace AccountSA {
+constexpr int32_t WAIT_TIME = 60;
 // for watchdog func
 #ifdef HICOLLIE_ENABLE
 const uint32_t TIMEOUT = 30; // 30s
