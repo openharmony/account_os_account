@@ -947,15 +947,15 @@ static bool ParseContextForRegisterPlugin(napi_env env, napi_callback_info cbInf
         return false;
     }
     if (!GetNamedJsFunction(env, argv[0], "auth", jsPlugin.auth)) {
-        ACCOUNT_LOGE("fail to parse getAuthStatusInfo function");
+        ACCOUNT_LOGE("fail to parse auth function");
         return false;
     }
     if (!GetNamedJsFunction(env, argv[0], "authWithPopup", jsPlugin.authWithPopup)) {
-        ACCOUNT_LOGE("fail to parse getAuthStatusInfo function");
+        ACCOUNT_LOGE("fail to parse authWithPopup function");
         return false;
     }
     if (!GetNamedJsFunction(env, argv[0], "authWithToken", jsPlugin.authWithToken)) {
-        ACCOUNT_LOGE("fail to parse getAuthStatusInfo function");
+        ACCOUNT_LOGE("fail to parse authWithToken function");
         return false;
     }
     if (!GetNamedJsFunction(env, argv[0], "bindAccount", jsPlugin.onAccountBound)) {
@@ -971,7 +971,7 @@ static bool ParseContextForRegisterPlugin(napi_env env, napi_callback_info cbInf
         return false;
     }
     if (!GetNamedJsFunction(env, argv[0], "isAccountTokenValid", jsPlugin.isAccountTokenValid)) {
-        ACCOUNT_LOGE("fail to parse isUserTokenValid function");
+        ACCOUNT_LOGE("fail to parse isAccountTokenValid function");
         return false;
     }
     if (!GetNamedJsFunction(env, argv[0], "getAccessToken", jsPlugin.getAccessToken)) {
