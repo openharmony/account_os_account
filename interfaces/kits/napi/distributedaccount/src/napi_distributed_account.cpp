@@ -391,7 +391,7 @@ static void UpdateOhosAccountInfoExecuteCB(napi_env env, void *data)
     DistributedAccountAsyncContext *context = reinterpret_cast<DistributedAccountAsyncContext *>(data);
     if (!context->throwErr) {
         context->errCode = OhosAccountKits::GetInstance().UpdateOhosAccountInfo(context->ohosAccountInfo.name_,
-            context->ohosAccountInfo.uid_, context->event) ? napi_ok: napi_generic_failure;
+            context->ohosAccountInfo.uid_, context->event);
     } else if (context->withLocalId) {
         context->errCode = OhosAccountKits::GetInstance().SetOhosAccountInfoByUserId(
             context->localId, context->ohosAccountInfo, context->event);

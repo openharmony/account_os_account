@@ -42,8 +42,8 @@ private:
 
 class AuthCallback : public AuthenticationCallback {
 public:
-    AuthCallback(uint32_t userId, uint64_t credentialId, AuthType authType, const sptr<IIDMCallback> &callback);
-    AuthCallback(uint32_t userId, uint64_t credentialId, AuthType authType,
+    AuthCallback(uint32_t userId, AuthType authType, const sptr<IIDMCallback> &callback);
+    AuthCallback(uint32_t userId, AuthType authType,
         bool isRemoteAuth, const sptr<IIDMCallback> &callback);
     virtual ~AuthCallback() = default;
 
@@ -59,7 +59,6 @@ private:
 private:
     uint32_t userId_;
     uint32_t callerTokenId_;
-    uint64_t credentialId_;
     AuthType authType_;
     bool isRemoteAuth_ = false;
     sptr<IIDMCallback> innerCallback_ = nullptr;

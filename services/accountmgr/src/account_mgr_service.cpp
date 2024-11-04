@@ -92,23 +92,23 @@ std::int32_t AccountMgrService::GetCallingUserID()
     return userId;
 }
 
-bool AccountMgrService::UpdateOhosAccountInfo(
+ErrCode AccountMgrService::UpdateOhosAccountInfo(
     const std::string &accountName, const std::string &uid, const std::string &eventStr)
 {
-    if (OhosAccountManager::GetInstance().OhosAccountStateChange(accountName, uid, eventStr) != ERR_OK) {
-        ACCOUNT_LOGE("Ohos account state change failed");
-        return false;
+    ErrCode res = OhosAccountManager::GetInstance().OhosAccountStateChange(accountName, uid, eventStr);
+    if (res != ERR_OK) {
+        ACCOUNT_LOGE("Ohos account state change failed, res = %{public}d.", res);
     }
 
-    return true;
+    return res;
 }
 
-std::int32_t AccountMgrService::SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
+ErrCode AccountMgrService::SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
 {
     return ERR_OK;
 }
 
-std::int32_t AccountMgrService::SetOhosAccountInfoByUserId(
+ErrCode AccountMgrService::SetOhosAccountInfoByUserId(
     const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
 {
     ErrCode res = OhosAccountManager::GetInstance().OhosAccountStateChange(userId, ohosAccountInfo, eventStr);
@@ -155,7 +155,7 @@ ErrCode AccountMgrService::QueryOhosAccountInfoByUserId(std::int32_t userId, Oho
     return ERR_OK;
 }
 
-std::int32_t AccountMgrService::QueryDeviceAccountId(std::int32_t &accountId)
+ErrCode AccountMgrService::QueryDeviceAccountId(std::int32_t &accountId)
 {
     const std::int32_t uid = IPCSkeleton::GetCallingUid();
     accountId = uid / UID_TRANSFORM_DIVISOR;
@@ -400,7 +400,7 @@ bool AccountMgrService::CreateDomainService()
     return true;
 }
 
-std::int32_t AccountMgrService::Dump(std::int32_t fd, const std::vector<std::u16string> &args)
+ErrCode AccountMgrService::Dump(std::int32_t fd, const std::vector<std::u16string> &args)
 {
     if (fd < 0) {
         ACCOUNT_LOGE("dump fd invalid");

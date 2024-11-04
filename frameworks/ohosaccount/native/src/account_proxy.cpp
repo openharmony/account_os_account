@@ -53,47 +53,46 @@ ErrCode AccountProxy::SendRequest(AccountMgrInterfaceCode code, MessageParcel &d
     return result;
 }
 
-bool AccountProxy::UpdateOhosAccountInfo(
+ErrCode AccountProxy::UpdateOhosAccountInfo(
     const std::string &accountName, const std::string &uid, const std::string &eventStr)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("Write descriptor failed!");
-        return false;
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
     if (!data.WriteString16(Str8ToStr16(accountName))) {
         ACCOUNT_LOGE("Write accountName failed!");
-        return false;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString16(Str8ToStr16(uid))) {
         ACCOUNT_LOGE("Write uid failed!");
-        return false;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString16(Str8ToStr16(eventStr))) {
         ACCOUNT_LOGE("Write eventStr failed!");
-        return false;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
     auto ret = SendRequest(AccountMgrInterfaceCode::UPDATE_OHOS_ACCOUNT_INFO, data, reply);
     if (ret != ERR_NONE) {
-        return false;
+        return ret;
     }
 
     std::int32_t result = ERR_OK;
     if (!reply.ReadInt32(result)) {
         ACCOUNT_LOGE("reply ReadInt32 failed");
-        return false;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
 
     if (result != ERR_OK) {
         ACCOUNT_LOGE("UpdateOhosAccountInfo failed: %{public}d", result);
-        return false;
     }
 
-    return true;
+    return ERR_OK;
 }
 
-std::int32_t AccountProxy::SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
+ErrCode AccountProxy::SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
