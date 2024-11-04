@@ -83,6 +83,7 @@ IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManager_(OsAccountSu
     osAccountControl_->GetDeviceOwnerId(deviceOwnerId_);
     osAccountControl_->GetDefaultActivatedOsAccount(defaultActivatedId_);
     osAccountControl_->GetOsAccountConfig(config_);
+    SetParameter(PARAM_LOGIN_NAME_MAX.c_str(), std::to_string(Constants::LOCAL_NAME_MAX_SIZE).c_str());
     ACCOUNT_LOGI("Init end, maxOsAccountNum: %{public}d, maxLoggedInOsAccountNum: %{public}d",
         config_.maxOsAccountNum, config_.maxLoggedInOsAccountNum);
 }
@@ -1025,7 +1026,6 @@ void IInnerOsAccountManager::Init()
     ACCOUNT_LOGI("Start to create base os accounts");
     CreateBaseAdminAccount();
     CreateBaseStandardAccount();
-    SetParameter(PARAM_LOGIN_NAME_MAX.c_str(), std::to_string(Constants::LOCAL_NAME_MAX_SIZE).c_str());
     ACCOUNT_LOGI("End to create base os accounts");
 }
 
