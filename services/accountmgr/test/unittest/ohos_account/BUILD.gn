@@ -155,11 +155,54 @@ ohos_unittest("OhosDataDealTest") {
   part_name = "os_account"
 }
 
+ohos_unittest("OhosEventManagerMultipleThreadTest") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  module_out_path = module_output_path
+  cflags_cc = []
+  include_dirs = [
+    "${services_path}/accountmgr/include",
+    "${os_account_dfx_path}/hidumper_adapter",
+  ]
+
+  sources = [
+    "${services_path}/accountmgr/src/distributed_account_subscribe_death_recipient.cpp",
+    "${services_path}/accountmgr/src/distributed_account_subscribe_manager.cpp",
+    "ohos_account_event_manager_multiple_thread_test.cpp",
+  ]
+
+  configs = [ "${services_path}/accountmgr/test:accountmgr_test_config" ]
+
+  deps = [
+    "${common_path}:libaccount_common",
+    "${innerkits_native_path}:libaccountkits",
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "ability_base:base",
+    "ability_base:want",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+
+  part_name = "os_account"
+}
+
 group("unittest") {
   testonly = true
 
   deps = [
     ":OhosDataDealTest",
+    ":OhosEventManagerMultipleThreadTest",
     ":OhosServiceTest",
   ]
 }
