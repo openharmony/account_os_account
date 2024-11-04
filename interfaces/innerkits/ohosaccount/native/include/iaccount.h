@@ -32,9 +32,9 @@ class IAccount : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IAccount");
 
-    virtual bool UpdateOhosAccountInfo(
+    virtual ErrCode UpdateOhosAccountInfo(
         const std::string &accountName, const std::string &uid, const std::string &eventStr) = 0;
-    virtual std::int32_t SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo,
+    virtual ErrCode SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo,
         const std::string &eventStr) = 0;
     virtual std::int32_t SetOhosAccountInfoByUserId(
         const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr) = 0;

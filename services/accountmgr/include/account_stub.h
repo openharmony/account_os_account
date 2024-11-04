@@ -34,28 +34,28 @@ public:
         std::uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
 public:
-    std::int32_t InnerUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
-    std::int32_t CmdUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
-    std::int32_t InnerSetOhosAccountInfo(int32_t userId, MessageParcel &data, MessageParcel &reply);
-    std::int32_t CmdSetOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
-    std::int32_t CmdSetOhosAccountInfoByUserId(MessageParcel &data, MessageParcel &reply);
+    ErrCode InnerUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
+    ErrCode CmdUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
+    ErrCode InnerSetOhosAccountInfo(int32_t userId, MessageParcel &data, MessageParcel &reply);
+    ErrCode CmdSetOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
+    ErrCode CmdSetOhosAccountInfoByUserId(MessageParcel &data, MessageParcel &reply);
 
-    std::int32_t InnerGetOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
-    std::int32_t CmdGetOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
-    std::int32_t CmdGetOhosAccountInfoByUserId(MessageParcel &data, MessageParcel &reply);
-    std::int32_t InnerQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
-    std::int32_t CmdQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
+    ErrCode InnerGetOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
+    ErrCode CmdGetOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
+    ErrCode CmdGetOhosAccountInfoByUserId(MessageParcel &data, MessageParcel &reply);
+    ErrCode InnerQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
+    ErrCode CmdQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
 
-    std::int32_t CmdQueryOhosAccountInfoByUserId(MessageParcel &data, MessageParcel &reply);
-    std::int32_t CmdQueryDeviceAccountId(MessageParcel &data, MessageParcel &reply);
+    ErrCode CmdQueryOhosAccountInfoByUserId(MessageParcel &data, MessageParcel &reply);
+    ErrCode CmdQueryDeviceAccountId(MessageParcel &data, MessageParcel &reply);
 
-    std::int32_t CmdSubscribeDistributedAccountEvent(MessageParcel &data, MessageParcel &reply);
-    std::int32_t CmdUnsubscribeDistributedAccountEvent(MessageParcel &data, MessageParcel &reply);
+    ErrCode CmdSubscribeDistributedAccountEvent(MessageParcel &data, MessageParcel &reply);
+    ErrCode CmdUnsubscribeDistributedAccountEvent(MessageParcel &data, MessageParcel &reply);
 
-    std::int32_t CmdGetAppAccountService(MessageParcel &data, MessageParcel &reply);
-    std::int32_t CmdGetOsAccountService(MessageParcel &data, MessageParcel &reply);
-    std::int32_t CmdGetAccountIAMService(MessageParcel &data, MessageParcel &reply);
-    std::int32_t CmdGetDomainAccountService(MessageParcel &data, MessageParcel &reply);
+    ErrCode CmdGetAppAccountService(MessageParcel &data, MessageParcel &reply);
+    ErrCode CmdGetOsAccountService(MessageParcel &data, MessageParcel &reply);
+    ErrCode CmdGetAccountIAMService(MessageParcel &data, MessageParcel &reply);
+    ErrCode CmdGetDomainAccountService(MessageParcel &data, MessageParcel &reply);
     bool HasAccountRequestPermission(const std::string &permissionName);
 
 private:

@@ -29,9 +29,9 @@ class OhosAccountKitsImpl final : public OhosAccountKits {
 public:
     DISALLOW_COPY_AND_MOVE(OhosAccountKitsImpl);
     static OhosAccountKitsImpl &GetInstance();
-    bool UpdateOhosAccountInfo(const std::string& accountName, const std::string& uid,
+    ErrCode UpdateOhosAccountInfo(const std::string& accountName, const std::string& uid,
         const std::string& eventStr) final;
-    std::int32_t SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo,
+    ErrCode SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo,
         const std::string &eventStr) final;
     ErrCode SetOhosAccountInfoByUserId(
         const int32_t userId, const OhosAccountInfo& ohosAccountInfo, const std::string& eventStr) final;

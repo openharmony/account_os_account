@@ -95,10 +95,9 @@ public:
      * @param accountName Indicates the name of the OS account used for a distributed system.
      * @param uid Uniquely identifies the OS account used for a distributed system.
      * @param eventStr Indicates the event of the OS account used for a distributed system.
-     * @return Returns {@code true} if the distributed information of the account is updated;
-     *     returns {@code false} otherwise.
+     * @return Return error code.
      */
-    virtual bool UpdateOhosAccountInfo(const std::string& accountName, const std::string& uid,
+    virtual ErrCode UpdateOhosAccountInfo(const std::string& accountName, const std::string& uid,
         const std::string& eventStr) = 0;
 
     /**
@@ -110,7 +109,7 @@ public:
      * @return Returns {@code true} if the distributed information of the account is updated;
      *     returns {@code false} otherwise.
      */
-    virtual std::int32_t SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo,
+    virtual ErrCode SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo,
         const std::string &eventStr) = 0;
 
     /**
