@@ -81,7 +81,7 @@ static bool ParseOneParaContext(napi_env env, napi_callback_info cbInfo, CommonA
     napi_value argv[ARGS_SIZE_ONE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
     if (argc >= ARGS_SIZE_ONE) {
-        if (!GetCallbackProperty(env, argv[0], asyncContext->callbackRef, 1)) {
+        if (!GetCallbackProperty(env, argv[PARAMZERO], asyncContext->callbackRef, 1)) {
             ACCOUNT_LOGE("Get callbackRef failed");
             std::string errMsg = "Parameter error. The type of \"callback\" must be function";
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
