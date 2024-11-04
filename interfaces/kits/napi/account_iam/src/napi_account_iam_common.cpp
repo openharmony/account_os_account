@@ -106,99 +106,89 @@ NapiIDMCallback::NapiIDMCallback(napi_env env, const std::shared_ptr<JsIAMCallba
 NapiIDMCallback::~NapiIDMCallback()
 {}
 
-static void OnIDMResultWork(uv_work_t* work, int status)
-{
-    ACCOUNT_LOGI("enter");
-    std::unique_ptr<uv_work_t> workPtr(work);
-    napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
-        return;
-    }
-    std::unique_ptr<IDMCallbackParam> param(reinterpret_cast<IDMCallbackParam *>(work->data));
-    napi_value argv[ARG_SIZE_TWO] = {0};
-    napi_create_int32(param->env, AccountIAMConvertToJSErrCode(param->result), &argv[PARAM_ZERO]);
-    napi_create_object(param->env, &argv[PARAM_ONE]);
-    napi_value credentialId = CreateUint8Array(
-        param->env, reinterpret_cast<uint8_t *>(&param->credentialId), sizeof(uint64_t));
-    napi_set_named_property(param->env, argv[PARAM_ONE], "credentialId", credentialId);
-    NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->callback->onResult);
-    napi_close_handle_scope(param->env, scope);
-}
-
 void NapiIDMCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (callback_->onResultCalled) {
-        ACCOUNT_LOGE("call twice is not allowed");
+        ACCOUNT_LOGE("Call twice is not allowed");
         return;
     }
     callback_->onResultCalled = true;
-    std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
-    std::unique_ptr<IDMCallbackParam> param = std::make_unique<IDMCallbackParam>(env_);
-    uv_loop_s *loop = nullptr;
-    napi_get_uv_event_loop(env_, &loop);
-    if (loop == nullptr || work == nullptr || param == nullptr) {
-        ACCOUNT_LOGE("fail for nullptr");
+    std::shared_ptr<IDMCallbackParam> param = std::make_shared<IDMCallbackParam>(env_);
+    if (param == nullptr) {
+        ACCOUNT_LOGE("Failed for nullptr");
         return;
     }
     param->result = result;
     extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, param->credentialId);
     param->callback = callback_;
-    work->data = reinterpret_cast<void *>(param.get());
-    NAPI_CALL_RETURN_VOID(env_, uv_queue_work_with_qos(
-        loop, work.get(), [] (uv_work_t *work) {}, OnIDMResultWork, uv_qos_user_initiated));
-    ACCOUNT_LOGI("create idm result work finish");
-    work.release();
-    param.release();
-}
-
-static void OnAcquireInfoWork(uv_work_t* work, int status)
-{
-    ACCOUNT_LOGI("enter");
-    std::unique_ptr<uv_work_t> workPtr(work);
-    napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
+    auto task = [param]() {
+        ACCOUNT_LOGI("Enter NapiIDMCallback::OnResult task");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(param->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Failed to open scope");
+            return;
+        }
+        napi_value argv[ARG_SIZE_TWO] = {0};
+        napi_create_int32(param->env, AccountIAMConvertToJSErrCode(param->result), &argv[PARAM_ZERO]);
+        napi_create_object(param->env, &argv[PARAM_ONE]);
+        napi_value credentialId =
+            CreateUint8Array(param->env, reinterpret_cast<uint8_t *>(&param->credentialId), sizeof(uint64_t));
+        napi_set_named_property(param->env, argv[PARAM_ONE], "credentialId", credentialId);
+        NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->callback->onResult);
+        napi_close_handle_scope(param->env, scope);
+        return;
+    };
+    if (napi_status::napi_ok !=  napi_send_event(env_, task, napi_eprio_vip)) {
+        ACCOUNT_LOGE("Failed to send event for auth");
         return;
     }
-    std::unique_ptr<IDMCallbackParam> param(reinterpret_cast<IDMCallbackParam *>(work->data));
-    napi_value argv[ARG_SIZE_THREE] = {0};
-    napi_env env = param->env;
-    napi_create_int32(env, param->module, &argv[PARAM_ZERO]);
-    napi_create_int32(env, param->acquire, &argv[PARAM_ONE]);
-    argv[PARAM_TWO] = CreateUint8Array(env, param->extraInfo.data(), param->extraInfo.size());
-    NapiCallVoidFunction(env, argv, ARG_SIZE_THREE, param->callback->onAcquireInfo);
-    napi_close_handle_scope(env, scope);
+    ACCOUNT_LOGI("Post OnResult task finish");
 }
 
 void NapiIDMCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!callback_->hasOnAcquireInfo) {
-        ACCOUNT_LOGE("no 'OnAcquireInfo' callback need return");
+        ACCOUNT_LOGE("No 'OnAcquireInfo' callback need return");
         return;
     }
     if (callback_->onResultCalled) {
-        ACCOUNT_LOGE("call after OnResult is not allowed");
+        ACCOUNT_LOGE("Call after OnResult is not allowed");
         return;
     }
-    std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
-    std::unique_ptr<IDMCallbackParam> param = std::make_unique<IDMCallbackParam>(env_);
-    uv_loop_s *loop = nullptr;
-    napi_get_uv_event_loop(env_, &loop);
-    if (loop == nullptr || work == nullptr || param == nullptr) {
-        ACCOUNT_LOGE("fail for nullptr");
+    std::shared_ptr<IDMCallbackParam> param = std::make_shared<IDMCallbackParam>(env_);
+    if (param == nullptr) {
+        ACCOUNT_LOGE("Failed for nullptr");
         return;
     }
     param->callback = callback_;
     param->module = module;
     param->acquire = acquireInfo;
     extraInfo.GetUint8ArrayValue(Attributes::AttributeKey::ATTR_EXTRA_INFO, param->extraInfo);
-    work->data = reinterpret_cast<void *>(param.get());
-    NAPI_CALL_RETURN_VOID(env_, uv_queue_work_with_qos(
-        loop, work.get(), [] (uv_work_t *work) { }, OnAcquireInfoWork, uv_qos_user_initiated));
-    ACCOUNT_LOGI("create acquire info work finish");
-    work.release();
-    param.release();
+    auto task = [param]() {
+        ACCOUNT_LOGI("Enter NapiIDMCallback::OnAcquireInfo task");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(param->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            return;
+        }
+        napi_value argv[ARG_SIZE_THREE] = {0};
+        napi_env env = param->env;
+        napi_create_int32(env, param->module, &argv[PARAM_ZERO]);
+        napi_create_int32(env, param->acquire, &argv[PARAM_ONE]);
+        argv[PARAM_TWO] = CreateUint8Array(env, param->extraInfo.data(), param->extraInfo.size());
+        NapiCallVoidFunction(env, argv, ARG_SIZE_THREE, param->callback->onAcquireInfo);
+        napi_close_handle_scope(param->env, scope);
+        return;
+    };
+    if (napi_status::napi_ok !=  napi_send_event(env_, task, napi_eprio_vip)) {
+        ACCOUNT_LOGE("Failed to send event for auth");
+        return;
+    }
+    ACCOUNT_LOGI("Post OnAcquireInfo task finish");
 }
 
 napi_status ParseAddCredInfo(napi_env env, napi_value value, IDMContext &context)
@@ -571,56 +561,54 @@ NapiGetInfoCallback::NapiGetInfoCallback(napi_env env, napi_ref callbackRef, nap
 {}
 
 NapiGetInfoCallback::~NapiGetInfoCallback()
-{}
-
-static void OnGetInfoWork(uv_work_t *work, int status)
 {
-    ACCOUNT_LOGI("enter");
-    std::unique_ptr<uv_work_t> workPtr(work);
-    napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
-        return;
+    if (callbackRef_ != nullptr) {
+        ReleaseNapiRefAsync(env_, callbackRef_);
+        callbackRef_ = nullptr;
     }
-    std::unique_ptr<GetAuthInfoContext> context(reinterpret_cast<GetAuthInfoContext *>(work->data));
-    napi_env env = context->env;
-    napi_value errJs = nullptr;
-    napi_value dataJs = nullptr;
-    if (context->errCode != ERR_OK) {
-        int32_t jsErrCode = AccountIAMConvertToJSErrCode(context->errCode);
-        errJs = GenerateBusinessError(env, jsErrCode, ConvertToJsErrMsg(jsErrCode));
-        napi_get_null(env, &dataJs);
-    } else {
-        napi_get_null(env, &errJs);
-        dataJs = CreateCredInfoArray(env, context->credInfo);
-    }
-    CallbackAsyncOrPromise(env, context.get(), errJs, dataJs);
-    napi_close_handle_scope(env, scope);
+    deferred_ = nullptr;
 }
 
 void NapiGetInfoCallback::OnCredentialInfo(int32_t result, const std::vector<AccountSA::CredentialInfo> &infoList)
 {
-    std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
-    std::unique_ptr<GetAuthInfoContext> context = std::make_unique<GetAuthInfoContext>(env_);
-    uv_loop_s *loop = nullptr;
-    napi_get_uv_event_loop(env_, &loop);
-    if (loop == nullptr || work == nullptr || context == nullptr) {
-        ACCOUNT_LOGE("fail for nullptr");
+    std::shared_ptr<GetAuthInfoContext> context = std::make_shared<GetAuthInfoContext>(env_);
+    if (context == nullptr) {
+        ACCOUNT_LOGE("Failed for nullptr");
         return;
     }
     context->callbackRef = callbackRef_;
     context->deferred = deferred_;
     context->errCode = result;
     context->credInfo = infoList;
-    work->data = reinterpret_cast<void *>(context.get());
-    ErrCode ret = uv_queue_work_with_qos(
-        loop, work.get(), [] (uv_work_t *work) {}, OnGetInfoWork, uv_qos_user_initiated);
-    if (ret != ERR_OK) {
-        ReleaseNapiRefAsync(env_, callbackRef_);
+    callbackRef_ = nullptr;
+    auto task = [context]() {
+        ACCOUNT_LOGI("Enter NapiGetInfoCallback::OnCredentialInfo task");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(context->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Failed to open scope");
+            return;
+        }
+        napi_env env = context->env;
+        napi_value errJs = nullptr;
+        napi_value dataJs = nullptr;
+        if (context->errCode != ERR_OK) {
+            int32_t jsErrCode = AccountIAMConvertToJSErrCode(context->errCode);
+            errJs = GenerateBusinessError(env, jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            napi_get_null(env, &dataJs);
+        } else {
+            napi_get_null(env, &errJs);
+            dataJs = CreateCredInfoArray(env, context->credInfo);
+        }
+        CallbackAsyncOrPromise(env, context.get(), errJs, dataJs);
+        napi_close_handle_scope(context->env, scope);
+        return;
+    };
+    if (napi_status::napi_ok !=  napi_send_event(env_, task, napi_eprio_vip)) {
+        ACCOUNT_LOGE("Failed to send event for auth");
         return;
     }
-    ACCOUNT_LOGI("create get credential info work finish");
-    work.release();
-    context.release();
+    ACCOUNT_LOGI("Post OnCredentialInfo task finish");
 }
 
 NapiGetEnrolledIdCallback::NapiGetEnrolledIdCallback(napi_env env, napi_deferred deferred)
@@ -630,54 +618,44 @@ NapiGetEnrolledIdCallback::NapiGetEnrolledIdCallback(napi_env env, napi_deferred
 NapiGetEnrolledIdCallback::~NapiGetEnrolledIdCallback()
 {}
 
-static void OnGetEnrolledIdWork(uv_work_t *work, int status)
-{
-    ACCOUNT_LOGI("enter");
-    std::unique_ptr<uv_work_t> workPtr(work);
-    napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
-        ACCOUNT_LOGI("enter");
-        return;
-    }
-    std::unique_ptr<GetEnrolledIdContext> context(reinterpret_cast<GetEnrolledIdContext *>(work->data));
-    napi_env env = context->env;
-    napi_value errJs = nullptr;
-    napi_value dataJs = nullptr;
-    if (context->errCode != ERR_OK) {
-        int32_t jsErrCode = AccountIAMConvertToJSErrCode(context->errCode);
-        errJs = GenerateBusinessError(env, jsErrCode, ConvertToJsErrMsg(jsErrCode));
-        napi_get_null(env, &dataJs);
-    } else {
-        napi_get_null(env, &errJs);
-        dataJs = CreateUint8Array(env, reinterpret_cast<uint8_t *>(&context->enrolledId), sizeof(uint64_t));
-    }
-    CallbackAsyncOrPromise(env, context.get(), errJs, dataJs);
-    napi_close_handle_scope(env, scope);
-}
-
 void NapiGetEnrolledIdCallback::OnEnrolledId(int32_t result, uint64_t enrolledId)
 {
-    std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
-    std::unique_ptr<GetEnrolledIdContext> context = std::make_unique<GetEnrolledIdContext>(env_);
-    uv_loop_s *loop = nullptr;
-    napi_get_uv_event_loop(env_, &loop);
-    if (loop == nullptr || work == nullptr || context == nullptr) {
+    std::shared_ptr<GetEnrolledIdContext> context = std::make_shared<GetEnrolledIdContext>(env_);
+    if (context == nullptr) {
         ACCOUNT_LOGE("Failed for nullptr");
         return;
     }
     context->deferred = deferred_;
     context->errCode = result;
     context->enrolledId = enrolledId;
-    work->data = reinterpret_cast<void *>(context.get());
-    ErrCode ret = uv_queue_work_with_qos(
-        loop, work.get(), [] (uv_work_t *work) {}, OnGetEnrolledIdWork, uv_qos_user_initiated);
-    if (ret != ERR_OK) {
-        ACCOUNT_LOGE("Create get enrolled id work failed");
+    auto task = [context]() {
+        ACCOUNT_LOGI("Enter NapiGetEnrolledIdCallback::OnEnrolledId task");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(context->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Failed to open scope");
+            return;
+        }
+        napi_env env = context->env;
+        napi_value errJs = nullptr;
+        napi_value dataJs = nullptr;
+        if (context->errCode != ERR_OK) {
+            int32_t jsErrCode = AccountIAMConvertToJSErrCode(context->errCode);
+            errJs = GenerateBusinessError(env, jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            napi_get_null(env, &dataJs);
+        } else {
+            napi_get_null(env, &errJs);
+            dataJs = CreateUint8Array(env, reinterpret_cast<uint8_t *>(&context->enrolledId), sizeof(uint64_t));
+        }
+        CallbackAsyncOrPromise(env, context.get(), errJs, dataJs);
+        napi_close_handle_scope(env, scope);
+        return;
+    };
+    if (napi_status::napi_ok !=  napi_send_event(env_, task, napi_eprio_vip)) {
+        ACCOUNT_LOGE("Failed to send event for auth");
         return;
     }
-    ACCOUNT_LOGI("Create get enrolled id work finish");
-    work.release();
-    context.release();
+    ACCOUNT_LOGI("Post OnEnrolledId task finish");
 }
 
 NapiGetPropCallback::NapiGetPropCallback(
@@ -692,22 +670,6 @@ NapiGetPropCallback::~NapiGetPropCallback()
         callbackRef_ = nullptr;
     }
     deferred_ = nullptr;
-}
-
-static void OnGetPropertyWork(uv_work_t* work, int status)
-{
-    ACCOUNT_LOGI("enter");
-    std::unique_ptr<uv_work_t> workPtr(work);
-    napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
-        return;
-    }
-    std::unique_ptr<GetPropertyContext> context(reinterpret_cast<GetPropertyContext *>(work->data));
-    napi_value errJs = nullptr;
-    napi_value dataJs = nullptr;
-    CreateExecutorProperty(context->env, *context, errJs, dataJs);
-    CallbackAsyncOrPromise(context->env, context.get(), errJs, dataJs);
-    napi_close_handle_scope(context->env, scope);
 }
 
 void NapiGetPropCallback::GetContextParams(
@@ -767,12 +729,9 @@ void NapiGetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attr
     if ((callbackRef_ == nullptr) && (deferred_ == nullptr)) {
         return;
     }
-    std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
-    std::unique_ptr<GetPropertyContext> context = std::make_unique<GetPropertyContext>(env_);
-    uv_loop_s *loop = nullptr;
-    napi_get_uv_event_loop(env_, &loop);
-    if (loop == nullptr || work == nullptr || context == nullptr) {
-        ACCOUNT_LOGE("fail for nullptr");
+    std::shared_ptr<GetPropertyContext> context = std::make_shared<GetPropertyContext>(env_);
+    if (context == nullptr) {
+        ACCOUNT_LOGE("Failed for nullptr");
         return;
     }
     // create context data
@@ -782,19 +741,27 @@ void NapiGetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attr
     context->errCode = ERR_OK;
     context->result = result;
     context->request = request_;
-    work->data = reinterpret_cast<void *>(context.get());
-    ErrCode ret = uv_queue_work_with_qos(
-        loop, work.get(), [] (uv_work_t *work) {}, OnGetPropertyWork, uv_qos_user_initiated);
-    ACCOUNT_LOGI("create get property work finish");
-    if (ret != ERR_OK) {
-        context->callbackRef = nullptr;
-        ACCOUNT_LOGE("create uv work failed");
+    callbackRef_ = nullptr;
+    auto task = [context]() {
+        ACCOUNT_LOGI("Enter NapiGetPropCallback::OnResult task");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(context->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Failed to open scope");
+            return;
+        }
+        napi_value errJs = nullptr;
+        napi_value dataJs = nullptr;
+        CreateExecutorProperty(context->env, *context, errJs, dataJs);
+        CallbackAsyncOrPromise(context->env, context.get(), errJs, dataJs);
+        napi_close_handle_scope(context->env, scope);
+        return;
+    };
+    if (napi_status::napi_ok !=  napi_send_event(env_, task, napi_eprio_vip)) {
+        ACCOUNT_LOGE("Failed to send event for auth");
         return;
     }
-    callbackRef_ = nullptr;
-    deferred_ = nullptr;
-    work.release();
-    context.release();
+    ACCOUNT_LOGI("Post OnResult task finish");
 }
 
 NapiSetPropCallback::NapiSetPropCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred)
@@ -823,83 +790,49 @@ NapiPrepareRemoteAuthCallback::~NapiPrepareRemoteAuthCallback()
     deferred_ = nullptr;
 }
 
-static void OnPrepareRemoteAuthWork(uv_work_t* work, int status)
-{
-    std::unique_ptr<uv_work_t> workPtr(work);
-    napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
-        return;
-    }
-    std::unique_ptr<PrepareRemoteAuthContext> context(reinterpret_cast<PrepareRemoteAuthContext *>(work->data));
-    napi_env env = context->env;
-    napi_value errJs = nullptr;
-    napi_value dataJs = nullptr;
-    context->errCode = context->result;
-    if (context->result != ERR_OK) {
-        int32_t jsErrCode = AccountIAMConvertToJSErrCode(context->result);
-        errJs = GenerateBusinessError(env, jsErrCode, ConvertToJsErrMsg(jsErrCode));
-        napi_get_null(env, &dataJs);
-    } else {
-        napi_get_null(env, &errJs);
-        napi_get_null(env, &dataJs);
-    }
-    CallbackAsyncOrPromise(env, context.get(), errJs, dataJs);
-    napi_close_handle_scope(env, scope);
-}
-
 void NapiPrepareRemoteAuthCallback::OnResult(int32_t result)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if ((callbackRef_ == nullptr) && (deferred_ == nullptr)) {
         return;
     }
-    std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
-    std::unique_ptr<PrepareRemoteAuthContext> context = std::make_unique<PrepareRemoteAuthContext>(env_);
-    uv_loop_s *loop = nullptr;
-    napi_get_uv_event_loop(env_, &loop);
-    if (loop == nullptr || work == nullptr || context == nullptr) {
+    std::shared_ptr<PrepareRemoteAuthContext> context = std::make_shared<PrepareRemoteAuthContext>(env_);
+    if (context == nullptr) {
         ACCOUNT_LOGE("Nullptr fail.");
         return;
     }
     context->deferred = deferred_;
     context->errCode = ERR_OK;
     context->result = result;
-    work->data = reinterpret_cast<void *>(context.get());
-    ErrCode ret = uv_queue_work_with_qos(
-        loop, work.get(), [] (uv_work_t *work) {}, OnPrepareRemoteAuthWork, uv_qos_user_initiated);
-    if (ret != ERR_OK) {
-        context->callbackRef = nullptr;
-        ACCOUNT_LOGE("Create uv work failed.");
+    auto task = [context]() {
+        ACCOUNT_LOGI("Enter NapiPrepareRemoteAuthCallback::OnResult task");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(context->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Failed to open scope");
+            return;
+        }
+        napi_env env = context->env;
+        napi_value errJs = nullptr;
+        napi_value dataJs = nullptr;
+        context->errCode = context->result;
+        if (context->result != ERR_OK) {
+            int32_t jsErrCode = AccountIAMConvertToJSErrCode(context->result);
+            errJs = GenerateBusinessError(env, jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            napi_get_null(env, &dataJs);
+        } else {
+            napi_get_null(env, &errJs);
+            napi_get_null(env, &dataJs);
+        }
+        CallbackAsyncOrPromise(env, context.get(), errJs, dataJs);
+        napi_close_handle_scope(context->env, scope);
+        return;
+    };
+    if (napi_status::napi_ok !=  napi_send_event(env_, task, napi_eprio_vip)) {
+        ACCOUNT_LOGE("Failed to send event for auth");
         return;
     }
-    ACCOUNT_LOGI("Create prepare remote auth work finish.");
-    deferred_ = nullptr;
-    work.release();
-    context.release();
-}
-
-static void OnSetPropertyWork(uv_work_t* work, int status)
-{
-    std::unique_ptr<uv_work_t> workPtr(work);
-    napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
-        return;
-    }
-    std::unique_ptr<SetPropertyContext> context(reinterpret_cast<SetPropertyContext *>(work->data));
-    napi_env env = context->env;
-    napi_value errJs = nullptr;
-    napi_value dataJs = nullptr;
-    context->errCode = context->result;
-    if (context->result != ERR_OK) {
-        int32_t jsErrCode = AccountIAMConvertToJSErrCode(context->result);
-        errJs = GenerateBusinessError(env, jsErrCode, ConvertToJsErrMsg(jsErrCode));
-        napi_get_null(env, &dataJs);
-    } else {
-        napi_get_null(env, &errJs);
-        napi_get_null(env, &dataJs);
-    }
-    CallbackAsyncOrPromise(env, context.get(), errJs, dataJs);
-    napi_close_handle_scope(env, scope);
+    ACCOUNT_LOGI("Post OnResult task finish");
 }
 
 void NapiSetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attributes &extraInfo)
@@ -908,31 +841,45 @@ void NapiSetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attr
     if ((callbackRef_ == nullptr) && (deferred_ == nullptr)) {
         return;
     }
-    std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
-    std::unique_ptr<SetPropertyContext> context = std::make_unique<SetPropertyContext>(env_);
-    uv_loop_s *loop = nullptr;
-    napi_get_uv_event_loop(env_, &loop);
-    if (loop == nullptr || work == nullptr || context == nullptr) {
-        ACCOUNT_LOGE("fail for nullptr");
+    std::shared_ptr<SetPropertyContext> context = std::make_shared<SetPropertyContext>(env_);
+    if (context == nullptr) {
+        ACCOUNT_LOGE("Failed for nullptr");
         return;
     }
     context->callbackRef = callbackRef_;
     context->deferred = deferred_;
     context->errCode = ERR_OK;
     context->result = result;
-    work->data = reinterpret_cast<void *>(context.get());
-    ErrCode ret = uv_queue_work_with_qos(
-        loop, work.get(), [] (uv_work_t *work) {}, OnSetPropertyWork, uv_qos_user_initiated);
-    ACCOUNT_LOGI("create set property work finish");
-    if (ret != ERR_OK) {
-        context->callbackRef = nullptr;
-        ACCOUNT_LOGE("create uv work failed");
+    callbackRef_ = nullptr;
+    auto task = [context]() {
+        ACCOUNT_LOGI("Enter NapiSetPropCallback::OnResult task");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(context->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Failed to open scope");
+            return;
+        }
+        napi_env env = context->env;
+        napi_value errJs = nullptr;
+        napi_value dataJs = nullptr;
+        context->errCode = context->result;
+        if (context->result != ERR_OK) {
+            int32_t jsErrCode = AccountIAMConvertToJSErrCode(context->result);
+            errJs = GenerateBusinessError(env, jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            napi_get_null(env, &dataJs);
+        } else {
+            napi_get_null(env, &errJs);
+            napi_get_null(env, &dataJs);
+        }
+        CallbackAsyncOrPromise(env, context.get(), errJs, dataJs);
+        napi_close_handle_scope(env, scope);
+        return;
+    };
+    if (napi_status::napi_ok !=  napi_send_event(env_, task, napi_eprio_vip)) {
+        ACCOUNT_LOGE("Failed to send event for auth");
         return;
     }
-    callbackRef_ = nullptr;
-    deferred_ = nullptr;
-    work.release();
-    context.release();
+    ACCOUNT_LOGI("Post OnResult task finish");
 }
 #endif  // HAS_USER_AUTH_PART
 
@@ -1037,30 +984,6 @@ static napi_status GetInputerInstance(InputerContext *context, napi_value *input
     return napi_new_instance(context->env, cons, 0, nullptr, inputerDataVarCtor);
 }
 
-static void OnGetDataWork(uv_work_t* work, int status)
-{
-    ACCOUNT_LOGI("enter");
-    std::unique_ptr<uv_work_t> workPtr(work);
-    napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
-        return;
-    }
-    std::unique_ptr<InputerContext> context(reinterpret_cast<InputerContext *>(work->data));
-    napi_value argv[ARG_SIZE_THREE] = {0};
-    napi_create_int32(context->env, context->authSubType, &argv[PARAM_ZERO]);
-    GetInputerInstance(context.get(), &argv[PARAM_ONE]);
-
-    napi_create_object(context->env, &argv[PARAM_TWO]);
-    if (!(context->challenge.empty())) {
-        napi_value dataJs = nullptr;
-        dataJs = CreateUint8Array(context->env, context->challenge.data(), context->challenge.size());
-        napi_set_named_property(context->env, argv[PARAM_TWO], "challenge", dataJs);
-    }
-
-    NapiCallVoidFunction(context->env, argv, ARG_SIZE_THREE, context->callback->callbackRef);
-    napi_close_handle_scope(context->env, scope);
-}
-
 NapiGetDataCallback::NapiGetDataCallback(napi_env env, const std::shared_ptr<NapiCallbackRef> &callback)
     : env_(env), callback_(callback)
 {}
@@ -1072,15 +995,12 @@ void NapiGetDataCallback::OnGetData(int32_t authSubType, std::vector<uint8_t> ch
     const std::shared_ptr<AccountSA::IInputerData> inputerData)
 {
     if (callback_ == nullptr) {
-        ACCOUNT_LOGE("the onGetData function is undefined");
+        ACCOUNT_LOGE("The onGetData function is undefined");
         return;
     }
-    std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
-    std::unique_ptr<InputerContext> context = std::make_unique<InputerContext>();
-    uv_loop_s *loop = nullptr;
-    napi_get_uv_event_loop(env_, &loop);
-    if (loop == nullptr || work == nullptr || context == nullptr) {
-        ACCOUNT_LOGE("fail for nullptr");
+    std::shared_ptr<InputerContext> context = std::make_shared<InputerContext>();
+    if (context == nullptr) {
+        ACCOUNT_LOGE("Failed for nullptr");
         return;
     }
     context->env = env_;
@@ -1088,16 +1008,33 @@ void NapiGetDataCallback::OnGetData(int32_t authSubType, std::vector<uint8_t> ch
     context->authSubType = authSubType;
     context->challenge = challenge;
     context->inputerData = inputerData;
-    work->data = reinterpret_cast<void *>(context.get());
-    int errCode = uv_queue_work_with_qos(
-        loop, work.get(), [] (uv_work_t *work) {}, OnGetDataWork, uv_qos_user_initiated);
-    ACCOUNT_LOGI("create get data work finish");
-    if (errCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
+    auto task = [context]() {
+        ACCOUNT_LOGI("Enter NapiGetDataCallback::OnGetData task");
+        napi_env env = context->env;
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Failed to open scope");
+            return;
+        }
+        napi_value argv[ARG_SIZE_THREE] = {0};
+        napi_create_int32(env, context->authSubType, &argv[PARAM_ZERO]);
+        GetInputerInstance(context.get(), &argv[PARAM_ONE]);
+        napi_create_object(env, &argv[PARAM_TWO]);
+        if (!(context->challenge.empty())) {
+            napi_value dataJs = nullptr;
+            dataJs = CreateUint8Array(env, context->challenge.data(), context->challenge.size());
+            napi_set_named_property(env, argv[PARAM_TWO], "challenge", dataJs);
+        }
+        NapiCallVoidFunction(env, argv, ARG_SIZE_THREE, context->callback->callbackRef);
+        napi_close_handle_scope(env, scope);
+        return;
+    };
+    if (napi_status::napi_ok !=  napi_send_event(env_, task, napi_eprio_vip)) {
+        ACCOUNT_LOGE("Failed to send event for auth");
         return;
     }
-    work.release();
-    context.release();
+    ACCOUNT_LOGI("Post OnGetData task finish");
 }
 #endif  // HAS_PIN_AUTH_PART
 
