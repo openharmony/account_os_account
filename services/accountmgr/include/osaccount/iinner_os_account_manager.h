@@ -142,6 +142,8 @@ private:
     ErrCode PrepareOsAccountInfoWithFullInfo(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountActivate(OsAccountInfo &osAccountInfo, const bool startStorage = true,
                                       const uint64_t dispalyId = 0);
+    ErrCode SendToStorageAccountStart(OsAccountInfo &osAccountInfo);
+    ErrCode SendToAMSAccountStart(OsAccountInfo &osAccountInfo, const uint64_t dispalyId);
     ErrCode SendMsgForAccountDeactivate(OsAccountInfo &osAccountInfo, bool isStopStorage = true);
     ErrCode SendMsgForAccountStop(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountRemove(OsAccountInfo &osAccountInfo);
