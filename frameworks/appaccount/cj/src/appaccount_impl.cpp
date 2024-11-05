@@ -688,6 +688,8 @@ CArrAuthTokenInfo CJAppAccountImpl::Convert2CArrAuthTokenInfo(const std::vector<
     for (; i < in.size(); ++i) {
         res.head[i].authType = MallocCString(in[i].authType);
         res.head[i].token = MallocCString(in[i].token);
+        res.head[i].account.owner = MallocCString(std::string());
+        res.head[i].account.name = MallocCString(std::string());
     }
     res.size = i;
     return res;
