@@ -81,6 +81,7 @@ private:
     bool CreateAppAccountService();
     bool CreateIAMService();
     bool CreateDomainService();
+    bool IsDefaultOsAccountVerified();
 #ifdef HAS_APP_ACCOUNT_PART
     void MoveAppAccountData();
 #endif
