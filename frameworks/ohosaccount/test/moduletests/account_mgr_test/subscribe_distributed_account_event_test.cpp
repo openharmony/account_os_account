@@ -109,9 +109,9 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
     EXPECT_CALL(*logoutSubscribeCallback, OnAccountsChanged(logoutEventData)).Times(Exactly(1));
 
     EXPECT_EQ(OhosAccountKits::GetInstance().UpdateOhosAccountInfo(
-        "TestName001", "TestUID001", "Ohos.account.event.LOGIN"), true);
+        "TestName001", "TestUID001", "Ohos.account.event.LOGIN"), ERR_OK);
     EXPECT_EQ(OhosAccountKits::GetInstance().UpdateOhosAccountInfo(
-        "TestName001", "TestUID001", "Ohos.account.event.LOGOUT"), true);
+        "TestName001", "TestUID001", "Ohos.account.event.LOGOUT"), ERR_OK);
 
     sleep(1);
     EXPECT_EQ(ERR_OK, OhosAccountKits::GetInstance().UnsubscribeDistributedAccountEvent(
@@ -157,13 +157,13 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
 
     // 2 times
     EXPECT_EQ(OhosAccountKits::GetInstance().UpdateOhosAccountInfo(
-        "TestName002", "TestUID002", "Ohos.account.event.LOGIN"), true);
+        "TestName002", "TestUID002", "Ohos.account.event.LOGIN"), ERR_OK);
     EXPECT_EQ(OhosAccountKits::GetInstance().UpdateOhosAccountInfo(
-        "TestName002", "TestUID002", "Ohos.account.event.LOGOFF"), true);
+        "TestName002", "TestUID002", "Ohos.account.event.LOGOFF"), ERR_OK);
     EXPECT_EQ(OhosAccountKits::GetInstance().UpdateOhosAccountInfo(
-        "TestName002", "TestUID002", "Ohos.account.event.LOGIN"), true);
+        "TestName002", "TestUID002", "Ohos.account.event.LOGIN"), ERR_OK);
     EXPECT_EQ(OhosAccountKits::GetInstance().UpdateOhosAccountInfo(
-        "TestName002", "TestUID002", "Ohos.account.event.LOGOFF"), true);
+        "TestName002", "TestUID002", "Ohos.account.event.LOGOFF"), ERR_OK);
 
     sleep(1);
     EXPECT_EQ(ERR_OK, OhosAccountKits::GetInstance().UnsubscribeDistributedAccountEvent(
@@ -205,9 +205,9 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
     EXPECT_CALL(*loginSubscribeCallback, OnAccountsChanged(tokenInvalidEventData)).Times(Exactly(1));
 
     EXPECT_EQ(OhosAccountKits::GetInstance().UpdateOhosAccountInfo(
-        "TestName003", "TestUID003", "Ohos.account.event.LOGIN"), true);
+        "TestName003", "TestUID003", "Ohos.account.event.LOGIN"), ERR_OK);
     EXPECT_EQ(OhosAccountKits::GetInstance().UpdateOhosAccountInfo(
-        "TestName003", "TestUID003", "Ohos.account.event.TOKEN_INVALID"), true);
+        "TestName003", "TestUID003", "Ohos.account.event.TOKEN_INVALID"), ERR_OK);
 
     sleep(1);
     EXPECT_EQ(ERR_OK, OhosAccountKits::GetInstance().UnsubscribeDistributedAccountEvent(
@@ -262,7 +262,7 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
     EXPECT_CALL(*loginSubscribeCallback, OnAccountsChanged(loginEventData)).Times(Exactly(1));
 
     EXPECT_EQ(OhosAccountKits::GetInstance().UpdateOhosAccountInfo(
-        "TestName005", "TestUID005", "Ohos.account.event.LOGIN"), true);
+        "TestName005", "TestUID005", "Ohos.account.event.LOGIN"), ERR_OK);
 
     sleep(1);
     // unsub not exist type
@@ -308,7 +308,7 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
     EXPECT_CALL(*loginSubscribeCallbackTwo, OnAccountsChanged(loginEventData)).Times(Exactly(1));
 
     EXPECT_EQ(OhosAccountKits::GetInstance().UpdateOhosAccountInfo(
-        "TestName006", "TestUID006", "Ohos.account.event.LOGIN"), true);
+        "TestName006", "TestUID006", "Ohos.account.event.LOGIN"), ERR_OK);
 
     sleep(1);
     EXPECT_EQ(ERR_OK, OhosAccountKits::GetInstance().UnsubscribeDistributedAccountEvent(

@@ -28,11 +28,11 @@ public:
     {}
     ~AccountProxy();
 
-    bool UpdateOhosAccountInfo(
+    ErrCode UpdateOhosAccountInfo(
         const std::string &accountName, const std::string &uid, const std::string &eventStr) override;
     ErrCode SetOhosAccountInfoByUserId(
         const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr) override;
-    std::int32_t SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr) override;
+    ErrCode SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr) override;
     ErrCode QueryOhosAccountInfo(OhosAccountInfo &accountInfo) override;
     ErrCode GetOhosAccountInfo(OhosAccountInfo &ohosAccountInfo) override;
     ErrCode GetOhosAccountInfoByUserId(std::int32_t userId, OhosAccountInfo &ohosAccountInfo) override;
