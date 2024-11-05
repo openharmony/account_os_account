@@ -236,6 +236,7 @@ public:
 
     /**
      * @brief Queries the list of all the OS accounts that have been created in the system.
+     * @selinux The caller needs to configure selinux permissions: allow Caller_SA_Name accountmgr:fd {use}.
      * @permission ohos.permission.MANAGE_LOCAL_ACCOUNTS
      * @param osAccountInfos - Indicates a list of OS accounts.
      * @return error code, see account_error_no.h
@@ -244,6 +245,7 @@ public:
 
     /**
      * @brief Gets information about the current OS account.
+     * @selinux The caller needs to configure selinux permissions: allow Caller_SA_Name accountmgr:fd {use}.
      * @permission ohos.permission.MANAGE_LOCAL_ACCOUNTS
      * @param osAccountInfo - Indicates the information about the current OS account.
      * @return error code, see account_error_no.h
@@ -252,6 +254,7 @@ public:
 
     /**
      * @brief Queries OS account information based on the local ID.
+     * @selinux The caller needs to configure selinux permissions: allow Caller_SA_Name accountmgr:fd {use}.
      * @permission ohos.permission.MANAGE_LOCAL_ACCOUNTS or ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION
      * @param localId - Indicates the local ID of the OS account.
      * @param osAccountInfo - Indicates the OS account information.
@@ -277,6 +280,7 @@ public:
 
     /**
      * @brief Gets the profile photo of an OS account based on its local ID.
+     * @selinux The caller needs to configure selinux permissions: allow Caller_SA_Name accountmgr:fd {use}.
      * @permission ohos.permission.MANAGE_LOCAL_ACCOUNTS
      * @param id - Indicates the local ID of the OS account.
      * @param photo - Indicates the profile photo.
@@ -480,6 +484,7 @@ public:
 
     /**
      * @brief Sets the specified OS account from database.
+     * @selinux The caller needs to configure selinux permissions: allow Caller_SA_Name accountmgr:fd {use}.
      * @param storeID - Indicates the store ID.
      * @param id - Indicates the local ID of the specified OS account.
      * @param osAccountInfo - Indicates the OS account information.
@@ -489,6 +494,7 @@ public:
 
     /**
      * @brief Get a list of OS accounts from database.
+     * @selinux The caller needs to configure selinux permissions: allow Caller_SA_Name accountmgr:fd {use}.
      * @param storeID - Indicates the store ID.
      * @param osAccountList - Indicates a list of OS accounts.
      * @return error code, see account_error_no.h
