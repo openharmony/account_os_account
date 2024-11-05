@@ -55,8 +55,8 @@ void AuthCallbackDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 }
 
 AuthCallback::AuthCallback(
-    uint32_t userId, uint64_t credentialId, AuthType authType, const sptr<IIDMCallback> &callback)
-    : userId_(userId), credentialId_(credentialId), authType_(authType), innerCallback_(callback)
+    uint32_t userId, AuthType authType, const sptr<IIDMCallback> &callback)
+    : userId_(userId), authType_(authType), innerCallback_(callback)
 {
     // save caller tokenId for pin re-enroll
     if (authType == AuthType::PIN) {
@@ -64,9 +64,9 @@ AuthCallback::AuthCallback(
     }
 }
 
-AuthCallback::AuthCallback(uint32_t userId, uint64_t credentialId, AuthType authType,
+AuthCallback::AuthCallback(uint32_t userId, AuthType authType,
     bool isRemoteAuth, const sptr<IIDMCallback> &callback)
-    : userId_(userId), credentialId_(credentialId), authType_(authType),
+    : userId_(userId), authType_(authType),
     isRemoteAuth_(isRemoteAuth), innerCallback_(callback)
 {
     // save caller tokenId for pin re-enroll
@@ -209,45 +209,6 @@ void AuthCallback::SetDeathRecipient(const sptr<AuthCallbackDeathRecipient> &dea
     deathRecipient_ = deathRecipient;
 }
 
-static void GenerateAttributesInfo(const Attributes &extraInfo, Attributes &extraAuthInfo)
-{
-    std::vector<uint8_t> token;
-    if (extraInfo.GetUint8ArrayValue(Attributes::AttributeKey::ATTR_SIGNATURE, token)) {
-        extraAuthInfo.SetUint8ArrayValue(Attributes::AttributeKey::ATTR_SIGNATURE, token);
-    }
-    int32_t remainTimes = 0;
-    if (extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, remainTimes)) {
-        extraAuthInfo.SetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, remainTimes);
-    }
-    int32_t freezingTime = 0;
-    if (extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, freezingTime)) {
-        extraAuthInfo.SetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, freezingTime);
-    }
-    int32_t nextPhaseFreezingTime = 0;
-    if (extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION, nextPhaseFreezingTime)) {
-        extraAuthInfo.SetInt32Value(Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION, nextPhaseFreezingTime);
-    }
-    int32_t accountId = 0;
-    if (extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_USER_ID, accountId)) {
-        extraAuthInfo.SetInt32Value(Attributes::AttributeKey::ATTR_USER_ID, accountId);
-    }
-    // pinValidityPeriod
-    int64_t pinValidityPeriod = 0;
-    if (extraInfo.GetInt64Value(Attributes::AttributeKey::ATTR_PIN_EXPIRED_INFO, pinValidityPeriod)) {
-        extraAuthInfo.SetInt64Value(Attributes::AttributeKey::ATTR_PIN_EXPIRED_INFO, pinValidityPeriod);
-    }
-}
-
-namespace {
-static void RemoveDeathRecipient(const sptr<IRemoteObject> &remoteObj, sptr<AuthCallbackDeathRecipient> &deathRecipient)
-{
-    if ((remoteObj == nullptr) || (deathRecipient == nullptr)) {
-        return;
-    }
-    remoteObj->RemoveDeathRecipient(deathRecipient);
-}
-}
-
 void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
     int32_t authedAccountId = 0;
@@ -261,7 +222,10 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         ACCOUNT_LOGE("innerCallback_ is nullptr");
         return;
     }
-    RemoveDeathRecipient(innerCallback_->AsObject(), deathRecipient_);
+    sptr<IRemoteObject> remoteObject = innerCallback_->AsObject();
+    if ((deathRecipient_ != nullptr) && (remoteObject != nullptr)) {
+        remoteObject->RemoveDeathRecipient(deathRecipient_);
+    }
     if (result != 0) {
         innerCallback_->OnResult(result, extraInfo);
         ReportOsAccountOperationFail(authedAccountId, "auth", result, "Failed to auth");
@@ -284,15 +248,7 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         innerCallback_->OnResult(ResultCode::FAIL, errInfo);
         return AccountInfoReport::ReportSecurityInfo("", authedAccountId, ReportEvent::EVENT_LOGIN, ResultCode::FAIL);
     }
-    uint64_t credentialId = 0;
-    if (!extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId) && (credentialId_ != 0)) {
-        Attributes extraAuthInfo;
-        GenerateAttributesInfo(extraInfo, extraAuthInfo);
-        extraAuthInfo.SetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId_);
-        innerCallback_->OnResult(result, extraAuthInfo);
-    } else {
-        innerCallback_->OnResult(result, extraInfo);
-    }
+    innerCallback_->OnResult(result, extraInfo);
     if (isUpdateVerifiedStatus) {
         (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsVerified(authedAccountId, true);
     }

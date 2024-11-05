@@ -103,26 +103,25 @@ AccountStub::AccountStub()
         [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdGetDomainAccountService(data, reply); };
 }
 
-std::int32_t AccountStub::InnerUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountStub::InnerUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
     // ignore the real account name
     const std::string accountName = Str16ToStr8(data.ReadString16());
     if (accountName.empty()) {
         ACCOUNT_LOGE("empty account name!");
-        return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     const std::string uid = Str16ToStr8(data.ReadString16());
     if (uid.empty()) {
         ACCOUNT_LOGE("empty uid!");
-        return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     const std::string eventStr = Str16ToStr8(data.ReadString16());
 
-    std::int32_t ret = ERR_OK;
-    bool result = UpdateOhosAccountInfo(accountName, uid, eventStr);
-    if (!result) {
+    ErrCode ret = UpdateOhosAccountInfo(accountName, uid, eventStr);
+    if (ret != ERR_OK) {
         ACCOUNT_LOGE("Update ohos account info failed");
-        ret = ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
+        return ret;
     }
     if (!reply.WriteInt32(ret)) {
         ACCOUNT_LOGE("Write result data failed");
@@ -131,7 +130,7 @@ std::int32_t AccountStub::InnerUpdateOhosAccountInfo(MessageParcel &data, Messag
     return ret;
 }
 
-std::int32_t AccountStub::InnerSetOhosAccountInfo(int32_t userId, MessageParcel &data, MessageParcel &reply)
+ErrCode AccountStub::InnerSetOhosAccountInfo(int32_t userId, MessageParcel &data, MessageParcel &reply)
 {
     OhosAccountInfo info;
     std::int32_t ret = ReadOhosAccountInfo(data, info);
@@ -159,7 +158,7 @@ std::int32_t AccountStub::InnerSetOhosAccountInfo(int32_t userId, MessageParcel 
     return ret;
 }
 
-std::int32_t AccountStub::CmdUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountStub::CmdUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
     if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS)) {
         ACCOUNT_LOGE("Check permission failed");
@@ -169,7 +168,7 @@ std::int32_t AccountStub::CmdUpdateOhosAccountInfo(MessageParcel &data, MessageP
     return InnerUpdateOhosAccountInfo(data, reply);
 }
 
-std::int32_t AccountStub::CmdSetOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountStub::CmdSetOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
     if (!HasAccountRequestPermission(PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS)) {
         ACCOUNT_LOGE("Check permission failed");
@@ -194,7 +193,7 @@ static int32_t CheckUserIdValid(const int32_t userId)
     return ERR_OK;
 }
 
-std::int32_t AccountStub::CmdSetOhosAccountInfoByUserId(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountStub::CmdSetOhosAccountInfoByUserId(MessageParcel &data, MessageParcel &reply)
 {
     std::int32_t ret = AccountPermissionManager::CheckSystemApp();
     if (ret != ERR_OK) {
@@ -214,7 +213,7 @@ std::int32_t AccountStub::CmdSetOhosAccountInfoByUserId(MessageParcel &data, Mes
     return InnerSetOhosAccountInfo(userId, data, reply);
 }
 
-std::int32_t AccountStub::InnerQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountStub::InnerQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
     OhosAccountInfo info;
 #ifdef HICOLLIE_ENABLE
@@ -259,14 +258,14 @@ std::int32_t AccountStub::InnerQueryOhosAccountInfo(MessageParcel &data, Message
     return ERR_OK;
 }
 
-std::int32_t AccountStub::InnerGetOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountStub::InnerGetOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
     OhosAccountInfo ohosAccountInfo;
-    int ret = GetOhosAccountInfo(ohosAccountInfo);
+    ErrCode ret = GetOhosAccountInfo(ohosAccountInfo);
     ohosAccountInfo.SetRawUid("");
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("Get ohos account info failed");
-        return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
+        return ret;
     }
     if (!WriteOhosAccountInfo(reply, ohosAccountInfo)) {
         ACCOUNT_LOGE("Write ohosAccountInfo failed!");
@@ -275,7 +274,7 @@ std::int32_t AccountStub::InnerGetOhosAccountInfo(MessageParcel &data, MessagePa
     return ERR_OK;
 }
 
-std::int32_t AccountStub::CmdQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountStub::CmdQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
     if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS) &&
         !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC) &&
@@ -341,7 +340,7 @@ ErrCode AccountStub::CmdGetOhosAccountInfoByUserId(MessageParcel &data, MessageP
     return ERR_OK;
 }
 
-std::int32_t AccountStub::CmdQueryOhosAccountInfoByUserId(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountStub::CmdQueryOhosAccountInfoByUserId(MessageParcel &data, MessageParcel &reply)
 {
     if ((!HasAccountRequestPermission(PERMISSION_MANAGE_USERS)) &&
         (!HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC)) &&
@@ -380,7 +379,7 @@ std::int32_t AccountStub::CmdQueryOhosAccountInfoByUserId(MessageParcel &data, M
     return ERR_OK;
 }
 
-std::int32_t AccountStub::CmdQueryDeviceAccountId(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountStub::CmdQueryDeviceAccountId(MessageParcel &data, MessageParcel &reply)
 {
     std::int32_t id;
     auto ret = QueryDeviceAccountId(id);
@@ -396,7 +395,7 @@ std::int32_t AccountStub::CmdQueryDeviceAccountId(MessageParcel &data, MessagePa
     return ERR_OK;
 }
 
-std::int32_t AccountStub::CmdSubscribeDistributedAccountEvent(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountStub::CmdSubscribeDistributedAccountEvent(MessageParcel &data, MessageParcel &reply)
 {
     int32_t type;
     if (!data.ReadInt32(type)) {
@@ -420,7 +419,7 @@ std::int32_t AccountStub::CmdSubscribeDistributedAccountEvent(MessageParcel &dat
     return ERR_OK;
 }
 
-std::int32_t AccountStub::CmdUnsubscribeDistributedAccountEvent(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountStub::CmdUnsubscribeDistributedAccountEvent(MessageParcel &data, MessageParcel &reply)
 {
     int32_t type;
     if (!data.ReadInt32(type)) {
@@ -444,7 +443,7 @@ std::int32_t AccountStub::CmdUnsubscribeDistributedAccountEvent(MessageParcel &d
     return ERR_OK;
 }
 
-std::int32_t AccountStub::CmdGetAppAccountService(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountStub::CmdGetAppAccountService(MessageParcel &data, MessageParcel &reply)
 {
     auto remoteObject = GetAppAccountService();
     if (!reply.WriteRemoteObject(remoteObject)) {
@@ -454,7 +453,7 @@ std::int32_t AccountStub::CmdGetAppAccountService(MessageParcel &data, MessagePa
 
     return ERR_OK;
 }
-std::int32_t AccountStub::CmdGetOsAccountService(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountStub::CmdGetOsAccountService(MessageParcel &data, MessageParcel &reply)
 {
     auto remoteObject = GetOsAccountService();
     if (!reply.WriteRemoteObject(remoteObject)) {
@@ -465,7 +464,7 @@ std::int32_t AccountStub::CmdGetOsAccountService(MessageParcel &data, MessagePar
     return ERR_OK;
 }
 
-std::int32_t AccountStub::CmdGetAccountIAMService(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountStub::CmdGetAccountIAMService(MessageParcel &data, MessageParcel &reply)
 {
     auto remoteObject = GetAccountIAMService();
     if (!reply.WriteRemoteObject(remoteObject)) {
@@ -476,7 +475,7 @@ std::int32_t AccountStub::CmdGetAccountIAMService(MessageParcel &data, MessagePa
     return ERR_OK;
 }
 
-std::int32_t AccountStub::CmdGetDomainAccountService(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountStub::CmdGetDomainAccountService(MessageParcel &data, MessageParcel &reply)
 {
     auto remoteObject = GetDomainAccountService();
     if (!reply.WriteRemoteObject(remoteObject)) {

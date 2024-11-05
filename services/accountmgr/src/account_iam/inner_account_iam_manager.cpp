@@ -337,7 +337,7 @@ int32_t InnerAccountIAMManager::AuthUser(
     }
 
     auto callbackWrapper = std::make_shared<AuthCallback>(authParam.userId,
-        osAccountInfo.GetCredentialId(), authParam.authType, (authParam.remoteAuthParam != std::nullopt), callback);
+        authParam.authType, (authParam.remoteAuthParam != std::nullopt), callback);
     callbackWrapper->SetDeathRecipient(deathRecipient);
 
     UserIam::UserAuth::AuthParam iamAuthParam;

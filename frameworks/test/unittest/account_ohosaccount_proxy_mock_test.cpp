@@ -102,9 +102,9 @@ HWTEST_F(AccountOhosProxyMockTest, QueryOhosAccountInfoByUserIdTest, TestSize.Le
  */
 HWTEST_F(AccountOhosProxyMockTest, UpdateOhosAccountInfoTest, TestSize.Level0)
 {
-    bool ret = OhosAccountKits::GetInstance().UpdateOhosAccountInfo(
+    ErrCode ret = OhosAccountKits::GetInstance().UpdateOhosAccountInfo(
         TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, OHOS_ACCOUNT_EVENT_LOGIN);
-    ASSERT_EQ(false, ret);
+    ASSERT_NE(ERR_OK, ret);
 }
 
 /**

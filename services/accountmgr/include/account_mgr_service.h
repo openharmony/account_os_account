@@ -41,17 +41,17 @@ public:
     ~AccountMgrService() override;
     DISALLOW_COPY_AND_MOVE(AccountMgrService);
     DECLARE_SYSTEM_ABILITY(AccountMgrService);
-    bool UpdateOhosAccountInfo(
+    ErrCode UpdateOhosAccountInfo(
         const std::string &accountName, const std::string &uid, const std::string &eventStr) override;
-    std::int32_t SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo,
+    ErrCode SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo,
         const std::string &eventStr) override;
-    std::int32_t SetOhosAccountInfoByUserId(
+    ErrCode SetOhosAccountInfoByUserId(
         const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr) override;
     ErrCode QueryOhosAccountInfo(OhosAccountInfo &accountInfo) override;
     ErrCode QueryOhosAccountInfoByUserId(std::int32_t userId, OhosAccountInfo &accountInfo) override;
     ErrCode GetOhosAccountInfo(OhosAccountInfo &info) override;
     ErrCode GetOhosAccountInfoByUserId(int32_t userId, OhosAccountInfo &info) override;
-    std::int32_t QueryDeviceAccountId(std::int32_t &accountId) override;
+    ErrCode QueryDeviceAccountId(std::int32_t &accountId) override;
     ErrCode SubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
         const sptr<IRemoteObject> &eventListener) override;
     ErrCode UnsubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
@@ -69,7 +69,7 @@ public:
     {
         return DelayedRefSingleton<AccountMgrService>::GetInstance();
     }
-    std::int32_t Dump(std::int32_t fd, const std::vector<std::u16string> &args) override;
+    ErrCode Dump(std::int32_t fd, const std::vector<std::u16string> &args) override;
     void HandleNotificationEvents(const std::string &eventStr) override;
     std::int32_t GetCallingUserID();
 

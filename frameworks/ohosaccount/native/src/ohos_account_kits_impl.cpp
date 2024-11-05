@@ -97,18 +97,18 @@ void OhosAccountKitsImpl::DeathRecipient::OnRemoteDied(const wptr<IRemoteObject>
     OhosAccountKitsImpl::GetInstance().ResetService(remote);
 }
 
-bool OhosAccountKitsImpl::UpdateOhosAccountInfo(const std::string& accountName, const std::string& uid,
+ErrCode OhosAccountKitsImpl::UpdateOhosAccountInfo(const std::string& accountName, const std::string& uid,
     const std::string& eventStr)
 {
     auto accountProxy = GetService();
     if (accountProxy == nullptr) {
         ACCOUNT_LOGE("Get proxy failed");
-        return false;
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     return accountProxy->UpdateOhosAccountInfo(accountName, uid, eventStr);
 }
 
-std::int32_t OhosAccountKitsImpl::SetOhosAccountInfo(
+ErrCode OhosAccountKitsImpl::SetOhosAccountInfo(
     const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
 {
     auto accountProxy = GetService();

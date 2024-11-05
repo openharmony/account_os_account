@@ -37,17 +37,17 @@ void MockAccountMgrService::HandleNotificationEvents(const std::string &eventStr
     ACCOUNT_LOGI("Get event: %{public}s", eventStr.c_str());
 }
 
-std::int32_t MockAccountMgrService::QueryDeviceAccountId(std::int32_t &accountId)
+ErrCode MockAccountMgrService::QueryDeviceAccountId(std::int32_t &accountId)
 {
     accountId = devAccountId_;
     return ERR_OK;
 }
 
-bool MockAccountMgrService::UpdateOhosAccountInfo(
+ErrCode MockAccountMgrService::UpdateOhosAccountInfo(
     const std::string &accountName, const std::string &uid, const std::string &eventStr)
 {
     ACCOUNT_LOGI("MockUpdateOhosAccountInfo: success done");
-    return true;
+    return ERR_OK;
 }
 
 ErrCode MockAccountMgrService::QueryOhosAccountInfo(OhosAccountInfo &accountInfo)

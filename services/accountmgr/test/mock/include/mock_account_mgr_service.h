@@ -32,7 +32,7 @@ public:
 
     void HandleNotificationEvents(const std::string &eventStr) override;
     std::int32_t QueryDeviceAccountId(std::int32_t &accountId) override;
-    bool UpdateOhosAccountInfo(
+    ErrCode UpdateOhosAccountInfo(
         const std::string &accountName, const std::string &uid, const std::string &eventStr) override;
     ErrCode QueryOhosAccountInfo(OhosAccountInfo &accountInfo) override;
     ErrCode QueryOhosAccountInfoByUserId(std::int32_t userId, OhosAccountInfo &accountInfo) override;

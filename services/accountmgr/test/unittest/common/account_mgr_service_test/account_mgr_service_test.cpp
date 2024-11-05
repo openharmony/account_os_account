@@ -136,8 +136,8 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosLoginTest001, TestSize.Leve
     ASSERT_TRUE(accountMgr != nullptr);
 
     // login
-    bool ret = accountMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, g_eventLogin);
-    EXPECT_EQ(true, ret);
+    ErrCode ret = accountMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, g_eventLogin);
+    EXPECT_EQ(ERR_OK, ret);
 
     // status check
     OhosAccountInfo testInfo;
@@ -152,7 +152,7 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosLoginTest001, TestSize.Leve
 
     // logout
     ret = accountMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, g_eventLogoff);
-    EXPECT_EQ(true, ret);
+    EXPECT_EQ(ERR_OK, ret);
 
     // status check
     result = accountMgr->QueryOhosAccountInfo(testInfo);
@@ -174,8 +174,8 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosLoginTest002, TestSize.Leve
     ASSERT_TRUE(accountMgr != nullptr);
 
     // login
-    bool ret = accountMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, g_eventLogin);
-    EXPECT_EQ(true, ret);
+    ErrCode ret = accountMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, g_eventLogin);
+    EXPECT_EQ(ERR_OK, ret);
 
     // status check
     OhosAccountInfo testInfo;
@@ -190,15 +190,15 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosLoginTest002, TestSize.Leve
 
     // repeat login
     ret = accountMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, g_eventLogin);
-    EXPECT_EQ(true, ret);
+    EXPECT_EQ(ERR_OK, ret);
 
     // repeat login
     ret = accountMgr->UpdateOhosAccountInfo(TEST_DIFF_ACCOUNT_NAME, TEST_DIFF_ACCOUNT_UID, g_eventLogin);
-    EXPECT_EQ(false, ret);
+    EXPECT_NE(ERR_OK, ret);
 
     // logout
     ret = accountMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, g_eventLogoff);
-    EXPECT_EQ(true, ret);
+    EXPECT_EQ(ERR_OK, ret);
 
     // status check
     result = accountMgr->QueryOhosAccountInfo(testInfo);
@@ -221,8 +221,8 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosLogoffTest001, TestSize.Lev
 
     // login
     // param 1: name, param 2: UID, param 3: status
-    bool ret = accountMgr->UpdateOhosAccountInfo(TEST_DIFF_ACCOUNT_NAME, TEST_DIFF_ACCOUNT_UID, g_eventLogin);
-    EXPECT_EQ(true, ret);
+    ErrCode ret = accountMgr->UpdateOhosAccountInfo(TEST_DIFF_ACCOUNT_NAME, TEST_DIFF_ACCOUNT_UID, g_eventLogin);
+    EXPECT_EQ(ERR_OK, ret);
 
     // status check
     OhosAccountInfo testInfo;
@@ -237,7 +237,7 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosLogoffTest001, TestSize.Lev
 
     // logoff
     ret = accountMgr->UpdateOhosAccountInfo(TEST_DIFF_ACCOUNT_NAME, TEST_DIFF_ACCOUNT_UID, g_eventLogoff);
-    EXPECT_EQ(true, ret);
+    EXPECT_EQ(ERR_OK, ret);
 
     // status check
     result = accountMgr->QueryOhosAccountInfo(testInfo);
@@ -259,8 +259,8 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosTokenInvalidTest001, TestSi
     ASSERT_TRUE(accountMgr != nullptr);
 
     // login
-    bool ret = accountMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, g_eventLogin);
-    EXPECT_EQ(true, ret);
+    ErrCode ret = accountMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, g_eventLogin);
+    EXPECT_EQ(ERR_OK, ret);
 
     // status check
     OhosAccountInfo testInfo;
@@ -275,7 +275,7 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosTokenInvalidTest001, TestSi
 
     // token invalid
     ret = accountMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, g_eventTokenInvalid);
-    EXPECT_EQ(true, ret);
+    EXPECT_EQ(ERR_OK, ret);
 
     // status check
     result = accountMgr->QueryOhosAccountInfo(testInfo);
@@ -289,7 +289,7 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosTokenInvalidTest001, TestSi
 
     // login again after token invalid
     ret = accountMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, g_eventLogin);
-    EXPECT_EQ(true, ret);
+    EXPECT_EQ(ERR_OK, ret);
 
     // status check
     result = accountMgr->QueryOhosAccountInfo(testInfo);
@@ -303,7 +303,7 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosTokenInvalidTest001, TestSi
 
     // logout
     ret = accountMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, g_eventLogoff);
-    EXPECT_EQ(true, ret);
+    EXPECT_EQ(ERR_OK, ret);
 
     // status check
     result = accountMgr->QueryOhosAccountInfo(testInfo);
