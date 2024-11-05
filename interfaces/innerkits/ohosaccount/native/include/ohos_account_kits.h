@@ -60,6 +60,7 @@ public:
     /**
      * Query OHOS Account Info.
      *
+     * @selinux The caller needs to configure selinux permissions: allow Caller_SA_Name accountmgr:fd {use}.
      * @param VOID.
      * @return Return a pair of operation result and ohos account info.
      */
@@ -68,6 +69,7 @@ public:
     /**
      * Query OHOS Account Info.
      *
+     * @selinux The caller needs to configure selinux permissions: allow Caller_SA_Name accountmgr:fd {use}.
      * @param OhosAccountInfo. ohos account info
      * @return Return error code.
      */
@@ -76,6 +78,7 @@ public:
     /**
      * Get OHOS account info by user id.
      *
+     * @selinux The caller needs to configure selinux permissions: allow Caller_SA_Name accountmgr:fd {use}.
      * @param OhosAccountInfo. ohos account info
      * @return Return error code.
      */
@@ -84,6 +87,7 @@ public:
     /**
      * Query OHOS Account Info By user ID.
      *
+     * @selinux The caller needs to configure selinux permissions: allow Caller_SA_Name accountmgr:fd {use}.
      * @param userId. target local user id
      * @return Return a pair of operation result and ohos account info.
      */
