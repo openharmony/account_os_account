@@ -21,7 +21,6 @@
 #include "account_error_no.h"
 #include "iaccount_info.h"
 #include "app_account_constants.h"
-#include "app_account_common.h"
 #include "parcel.h"
 
 namespace OHOS {

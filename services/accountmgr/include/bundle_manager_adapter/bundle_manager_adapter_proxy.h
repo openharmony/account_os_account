@@ -56,15 +56,6 @@ public:
         BundleInfo &bundleInfo, int32_t userId = Constants::UNSPECIFIED_USERID) override;
 
     /**
-     * @brief Obtains BundleInfo of all bundles available in the system.
-     * @param flags Indicates the flag used to specify information contained in the BundleInfo that will be returned.
-     * @param bundleInfos Indicates all of the obtained BundleInfo objects.
-     * @param userId Indicates the user ID.
-     * @return Returns ERR_OK if the BundleInfos is successfully obtained; returns error code otherwise.
-     */
-    ErrCode GetBundleInfosV9(int32_t flags, std::vector<BundleInfo> &bundleInfos, int32_t userId) override;
-
-    /**
      * @brief Obtains the application UID based on the given bundle name and user ID through the proxy object.
      * @param bundleName Indicates the bundle name of the application.
      * @param userId Indicates the user ID.
@@ -170,10 +161,6 @@ private:
     template<typename T>
     ErrCode InnerGetVectorFromParcelIntelligent(
         MessageParcel &reply, std::vector<T> &parcelableInfos);
-
-    template<typename T>
-    ErrCode GetVectorFromParcelIntelligentWithErrCode(
-        BundleMgrInterfaceCode code, MessageParcel &data, std::vector<T> &parcelableInfos);
 
     bool SendData(void *&buffer, size_t size, const void *data);
     bool GetData(void *&buffer, size_t size, const void *data);
