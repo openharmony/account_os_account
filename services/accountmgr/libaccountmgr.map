@@ -313,7 +313,6 @@
         "OHOS::AccountSA::BundleManagerAdapter::QueryExtensionAbilityInfos(OHOS::AAFwk::Want const&, int const&, int const&, std::__h::vector<OHOS::AppExecFwk::ExtensionAbilityInfo, std::__h::allocator<OHOS::AppExecFwk::ExtensionAbilityInfo>>&)";
         "OHOS::AccountSA::BundleManagerAdapter::GetUidByBundleName(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, int)";
         "OHOS::AccountSA::BundleManagerAdapter::GetBundleInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AppExecFwk::BundleFlag, OHOS::AppExecFwk::BundleInfo&, int)";
-        "OHOS::AccountSA::BundleManagerAdapter::GetBundleInfosV9(int, std::__h::vector<OHOS::AppExecFwk::BundleInfo, std::__h::allocator<OHOS::AppExecFwk::BundleInfo>>&, int)";
         "OHOS::AccountSA::BundleManagerAdapter::QueryExtensionAbilityInfos(OHOS::AAFwk::Want const&, OHOS::AppExecFwk::ExtensionAbilityType const&, int const&, int const&, std::__h::vector<OHOS::AppExecFwk::ExtensionAbilityInfo, std::__h::allocator<OHOS::AppExecFwk::ExtensionAbilityInfo>>&)";
         "OHOS::AccountSA::BundleManagerAdapter::Connect()";
         "OHOS::AccountSA::BundleManagerAdapter::ResetProxy(OHOS::wptr<OHOS::IRemoteObject> const&)";

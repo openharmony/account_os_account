@@ -1965,7 +1965,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcco
     appAccountCallingInfo.callingUid = UID;
     appAccountCallingInfo.bundleName = STRING_BUNDLE_NAME;
     result = AppAccountControlManager::GetInstance().EnableAppAccess(
-        STRING_NAME, STRING_BUNDLE_NAME, appAccountCallingInfo, appAccountInfo);
+        STRING_NAME, STRING_OWNER, appAccountCallingInfo, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
     std::vector<AppAccountInfo> appAccounts;

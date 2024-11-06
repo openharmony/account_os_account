@@ -205,26 +205,6 @@ bool BundleManagerAdapterProxy::GetBundleInfo(
     return GetParcelInfo<BundleInfo>(BundleMgrInterfaceCode::GET_BUNDLE_INFO, data, bundleInfo);
 }
 
-ErrCode BundleManagerAdapterProxy::GetBundleInfosV9(int32_t flags,
-    std::vector<BundleInfo> &bundleInfos, int32_t userId)
-{
-    MessageParcel data;
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGE("Fail to getBundleInfosV9 due to write InterfaceToken fail.");
-        return false;
-    }
-    if (!data.WriteInt32(flags)) {
-        ACCOUNT_LOGE("Fail to getBundleInfosV9 due to write flag fail.");
-        return false;
-    }
-    if (!data.WriteInt32(userId)) {
-        ACCOUNT_LOGE("Fail to getBundleInfosV9 due to write userId fail.");
-        return false;
-    }
-    return GetVectorFromParcelIntelligentWithErrCode<BundleInfo>(
-        BundleMgrInterfaceCode::GET_BUNDLE_INFOS_WITH_INT_FLAGS_V9, data, bundleInfos);
-}
-
 int BundleManagerAdapterProxy::GetUidByBundleName(const std::string &bundleName, const int userId)
 {
     if (bundleName.empty()) {
@@ -772,24 +752,6 @@ bool BundleManagerAdapterProxy::SendTransactCmd(
         return false;
     }
     return true;
-}
-
-template<typename T>
-ErrCode BundleManagerAdapterProxy::GetVectorFromParcelIntelligentWithErrCode(
-    BundleMgrInterfaceCode code, MessageParcel &data, std::vector<T> &parcelableInfos)
-{
-    MessageParcel reply;
-    if (!SendTransactCmd(code, data, reply)) {
-        ACCOUNT_LOGE("SendTransactCmd failed.");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-    }
-
-    ErrCode res = reply.ReadInt32();
-    if (res != ERR_OK) {
-        return res;
-    }
-
-    return InnerGetVectorFromParcelIntelligent<T>(reply, parcelableInfos);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

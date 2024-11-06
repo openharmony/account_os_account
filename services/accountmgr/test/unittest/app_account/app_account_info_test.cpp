@@ -237,6 +237,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_EnableAppAccess_0100, TestSize.Level
 
     // make info
     AppAccountInfo appAccountInfo;
+
     // enable the app access
     ErrCode result = appAccountInfo.EnableAppAccess(bundleName);
     EXPECT_EQ(result, ERR_OK);
