@@ -447,15 +447,6 @@ ErrCode AppAccountManagerService::SetAuthTokenVisibility(
             return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
         }
     }
-    if (isVisible) {
-        AppExecFwk::BundleInfo bundleInfo;
-        int32_t userId = request.callerUid / UID_TRANSFORM_DIVISOR;
-        bool ret = BundleManagerAdapter::GetInstance()->GetBundleInfo(
-            bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
-        if (!ret) {
-            return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO;
-        }
-    }
     request.isTokenVisible = isVisible;
     return innerManager_->SetOAuthTokenVisibility(request, Constants::API_VERSION9);
 }
