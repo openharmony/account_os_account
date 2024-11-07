@@ -29,7 +29,7 @@
 
 namespace OHOS {
 namespace AccountSA {
-class IInnerOsAccountManager : public IInnerOsAccount {
+class IInnerOsAccountManager : public IInnerOsAccount, public std::enable_shared_from_this<IInnerOsAccountManager> {
 public:
     static IInnerOsAccountManager &GetInstance();
     void Init() override;
@@ -121,6 +121,7 @@ public:
     int32_t CleanGarbageOsAccounts(int32_t excludeId = -1) override;
     void ResetAccountStatus() override;
     bool CheckAndCleanOsAccounts();
+    void CleanGarbageOsAccountsAsync() override;
 
 private:
     IInnerOsAccountManager();

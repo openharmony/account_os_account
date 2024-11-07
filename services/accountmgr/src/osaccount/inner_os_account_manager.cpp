@@ -1935,11 +1935,6 @@ ErrCode  IInnerOsAccountManager::SendToStorageAccountStart(OsAccountInfo &osAcco
         OsAccountInterface::PublishCommonEvent(osAccountInfo,
             OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED, Constants::OPERATION_UNLOCK);
         subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::UNLOCKED);
-
-        auto task = [] { IInnerOsAccountManager::GetInstance().CleanGarbageOsAccounts(); };
-        std::thread cleanThread(task);
-        pthread_setname_np(cleanThread.native_handle(), "CleanGarbageOsAccounts");
-        cleanThread.detach();
     }
     return ERR_OK;
 }
@@ -2051,6 +2046,19 @@ ErrCode IInnerOsAccountManager::IsOsAccountCompleted(const int id, bool &isOsAcc
     return ERR_OK;
 }
 
+void IInnerOsAccountManager::CleanGarbageOsAccountsAsync()
+{
+    std::weak_ptr<IInnerOsAccountManager> weakThis = weak_from_this();
+    auto task = [weakThis] {
+        if (auto sharedThis = weakThis.lock()) {
+            sharedThis->CleanGarbageOsAccounts();
+        }
+    };
+    std::thread cleanThread(task);
+    pthread_setname_np(cleanThread.native_handle(), "CleanGarbageOsAccounts");
+    cleanThread.detach();
+}
+
 ErrCode IInnerOsAccountManager::SetOsAccountIsVerified(const int id, const bool isVerified)
 {
     std::lock_guard<std::mutex> lock(*GetOrInsertUpdateLock(id));
@@ -2085,10 +2093,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountIsVerified(const int id, const bool 
             OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED, Constants::OPERATION_UNLOCK);
         subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::UNLOCKED);
 
-        auto task = [] { IInnerOsAccountManager::GetInstance().CleanGarbageOsAccounts(); };
-        std::thread cleanThread(task);
-        pthread_setname_np(cleanThread.native_handle(), "CleanGarbageOsAccounts");
-        cleanThread.detach();
+        CleanGarbageOsAccountsAsync();
     }
 
     return ERR_OK;

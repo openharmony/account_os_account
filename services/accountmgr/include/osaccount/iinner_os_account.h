@@ -107,6 +107,7 @@ public:
     virtual ErrCode ActivateDefaultOsAccount() = 0;
     virtual int32_t CleanGarbageOsAccounts(int32_t excludeId = -1) = 0;
     virtual void ResetAccountStatus() = 0;
+    virtual void CleanGarbageOsAccountsAsync() = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
