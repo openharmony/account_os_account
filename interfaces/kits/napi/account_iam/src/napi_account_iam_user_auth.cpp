@@ -168,12 +168,16 @@ napi_value NapiAccountIAMUserAuth::GetProperty(napi_env env, napi_callback_info 
             GetPropertyContext *context = reinterpret_cast<GetPropertyContext *>(data);
             auto getPropCallback = std::make_shared<NapiGetPropCallback>(
                 context->env, context->callbackRef, context->deferred, context->request);
+            if (getPropCallback == nullptr) {
+                ACCOUNT_LOGE("Failed for nullptr");
+                return;
+            }
+            context->callbackRef = nullptr;
             if ((context->parseHasAccountId) && (!IsAccountIdValid(context->accountId))) {
                 AccountSA::Attributes emptyInfo;
                 getPropCallback->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, emptyInfo);
                 return;
             }
-            context->callbackRef = nullptr;
             AccountIAMClient::GetInstance().GetProperty(context->accountId, context->request, getPropCallback);
         },
         [](napi_env env, napi_status status, void *data) {
