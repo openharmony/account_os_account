@@ -259,6 +259,24 @@ void AccountMgrService::MoveAppAccountData()
 }
 #endif
 
+bool AccountMgrService::IsDefaultOsAccountVerified()
+{
+    int32_t defaultAccountId = -1;
+    ErrCode errCode = IInnerOsAccountManager::GetInstance().GetDefaultActivatedOsAccount(defaultAccountId);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get default activated OS account, errCode: %{public}d", errCode);
+        return false;
+    }
+
+    bool isVerified = false;
+    errCode = IInnerOsAccountManager::GetInstance().IsOsAccountVerified(defaultAccountId, isVerified);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed get default activated OS account verified info, errCode: %{public}d", errCode);
+        return false;
+    }
+    return isVerified;
+}
+
 void AccountMgrService::OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
 {
     std::lock_guard<std::mutex> lock(statusMutex_);
@@ -303,6 +321,9 @@ void AccountMgrService::OnAddSystemAbility(int32_t systemAbilityId, const std::s
         if (errCode == ERR_OK) {
             isDefaultOsAccountActivated_ = true;
         }
+    }
+    if (isBmsReady_ && IsDefaultOsAccountVerified()) {
+        IInnerOsAccountManager::GetInstance().CleanGarbageOsAccountsAsync();
     }
 }
 
