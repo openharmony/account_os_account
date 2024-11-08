@@ -335,13 +335,38 @@ public:
     MOCK_METHOD2(OnAccountsSwitch, void(const int &newId, const int &oldId));
 };
 
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
+/**
+ * @tc.name: CreateOsAccountWithFullInfo001
+ * @tc.desc: Test next id.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, CreateOsAccountWithFullInfo001, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetLocalName("testNextID_001");
+    int expectUid = 1000; // test random uid, next account should start from 1000
+    osAccountInfo.SetLocalId(expectUid);
+    osAccountInfo.SetSerialNumber(2023023100000033); // test random input
+    osAccountInfo.SetCreateTime(1695883215000); // test random input
+    osAccountInfo.SetLastLoginTime(1695863215000); // test random input
+    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo));
+    EXPECT_EQ(osAccountInfo.GetLocalId(), expectUid);
+    OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId());
+    
+    OsAccountInfo osAccountInfoOne;
+    ASSERT_EQ(OsAccountManager::CreateOsAccount("testNextID_002", OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
+    EXPECT_EQ(osAccountInfoOne.GetLocalId(), expectUid + 1);
+    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
+}
+
 /**
  * @tc.name: OsAccountManagerModuleTest001
  * @tc.desc: Test create guest account.
  * @tc.type: FUNC
  * @tc.require: issueI4IU74
  */
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest001, TestSize.Level0)
 {
     OsAccountInfo osAccountInfoOne;
