@@ -1565,7 +1565,7 @@ static napi_value CreateSwitchEventInfoObj(const std::shared_ptr<SubscriberOAWor
     return objInfo;
 }
 
-std::function<void()> OnAccountsSubNotifyTask(std::shared_ptr<SubscriberOAWorker> subscriberOAWorkerData)
+std::function<void()> OnAccountsSubNotifyTask(const std::shared_ptr<SubscriberOAWorker> &subscriberOAWorkerData)
 {
     return [subscriberOAWorkerData] {
         ACCOUNT_LOGI("Enter OnAccountsSubNotify task");
@@ -1582,7 +1582,7 @@ std::function<void()> OnAccountsSubNotifyTask(std::shared_ptr<SubscriberOAWorker
             for (auto subscriberInstance : g_osAccountSubscribers) {
                 isFound = std::any_of(subscriberInstance.second.begin(), subscriberInstance.second.end(),
                     [subscriber] (const SubscribeCBInfo *item) {
-                    return item->subscriber.get() == subscriber;
+                        return item->subscriber.get() == subscriber;
                 });
                 if (isFound) {
                     ACCOUNT_LOGD("OsAccount subscriber has been found.");
