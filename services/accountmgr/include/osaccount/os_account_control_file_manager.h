@@ -91,11 +91,12 @@ public:
         const std::string &userInfoPath, const std::string &accountInfoStr, std::string &digestStr);
     ErrCode DeleteAccountInfoDigest(const std::string &userInfoPath);
     ErrCode UpdateAccountIndex(const OsAccountInfo &osAccountInfo, const bool isDelete) override;
+    ErrCode SetNextLocalId(const int32_t &nextLocalId) override;
 
 private:
     ErrCode GetDefaultOsAccountConfig(OsAccountConfig &config);
     ErrCode RemoveAccountIndex(const int32_t id);
-    int GetNextLocalId(const std::vector<std::string> &accountIdList);
+    int32_t GetNextLocalId(const std::vector<std::string> &accountIdList, int32_t startId);
     ErrCode UpdateAccountList(const std::string &idStr, bool isAdd);
     ErrCode GetAccountListFromFile(Json& accountListJson);
     ErrCode GetAccountIndexInfo(std::string &accountIndexInfo);
@@ -108,7 +109,6 @@ private:
     void BuildAndSaveBaseOAConstraintsJsonFile();
     void BuildAndSaveGlobalOAConstraintsJsonFile();
     void BuildAndSaveSpecificOAConstraintsJsonFile();
-    void GetNextLocalId(int &id, const std::vector<std::string> &accountIdList, const int nextLocalId);
     void GlobalConstraintsDataOperate(const std::string& idStr,
         const std::vector<std::string>& ConstraintStr, bool isAdd, Json &globalOAConstraintsJson);
     void SpecificConstraintsDataOperate(const std::string& idStr, const std::string& targetIdStr,
@@ -137,7 +137,6 @@ private:
 #ifdef HAS_KV_STORE_PART
     std::shared_ptr<OsAccountDatabaseOperator> osAccountDataBaseOperator_;
 #endif
-    std::int32_t nextLocalId_ = Constants::START_USER_ID;
     AccountFileWatcherMgr &accountFileWatcherMgr_;
     std::shared_ptr<OsAccountFileOperator> osAccountFileOperator_;
     std::shared_ptr<OsAccountPhotoOperator> osAccountPhotoOperator_;
