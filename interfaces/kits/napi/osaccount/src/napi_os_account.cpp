@@ -1532,21 +1532,9 @@ void SubscriberPtr::OnAccountsSwitch(const int &newId, const int &oldId)
 
 void SubscriberPtr::OnAccountsSubNotify(const int &newId, const int &oldId)
 {
-    uv_loop_s *loop = nullptr;
-    napi_get_uv_event_loop(env_, &loop);
-    if (loop == nullptr) {
-        ACCOUNT_LOGE("loop instance is nullptr");
-        return;
-    }
-    uv_work_t *work = new (std::nothrow) uv_work_t;
-    if (work == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for work!");
-        return;
-    }
-    SubscriberOAWorker *subscriberOAWorker = new (std::nothrow) SubscriberOAWorker();
+    std::shared_ptr<SubscriberOAWorker> subscriberOAWorker = std::make_shared<SubscriberOAWorker>();
     if (subscriberOAWorker == nullptr) {
         ACCOUNT_LOGE("insufficient memory for SubscriberAccountsWorker!");
-        delete work;
         return;
     }
     subscriberOAWorker->oldId = oldId;
@@ -1554,17 +1542,15 @@ void SubscriberPtr::OnAccountsSubNotify(const int &newId, const int &oldId)
     subscriberOAWorker->env = env_;
     subscriberOAWorker->ref = ref_;
     subscriberOAWorker->subscriber = this;
-    work->data = reinterpret_cast<void *>(subscriberOAWorker);
-    int32_t ret =
-        uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnAccountsSubNotify, uv_qos_default);
-    if (ret != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", ret);
-        delete work;
-        delete subscriberOAWorker;
+    auto task = OnAccountsSubNotifyTask(subscriberOAWorker);
+    if (napi_ok != napi_send_event(env_, task, napi_eprio_vip)) {
+        ACCOUNT_LOGE("Post task failed");
+        return;
     }
+    ACCOUNT_LOGI("Post task finish");
 }
 
-static napi_value CreateSwitchEventInfoObj(std::unique_ptr<SubscriberOAWorker> &subscriberOAWorker)
+static napi_value CreateSwitchEventInfoObj(const std::shared_ptr<SubscriberOAWorker> &subscriberOAWorker)
 {
     napi_env env = subscriberOAWorker->env;
     napi_value objInfo = nullptr;
@@ -1579,52 +1565,50 @@ static napi_value CreateSwitchEventInfoObj(std::unique_ptr<SubscriberOAWorker> &
     return objInfo;
 }
 
-void UvQueueWorkOnAccountsSubNotify(uv_work_t *work, int status)
+std::function<void()> OnAccountsSubNotifyTask(const std::shared_ptr<SubscriberOAWorker> &subscriberOAWorkerData)
 {
-    std::unique_ptr<uv_work_t> workPtr(work);
-    napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
-        return;
-    }
-    std::unique_ptr<SubscriberOAWorker> subscriberOAWorkerData(reinterpret_cast<SubscriberOAWorker *>(work->data));
-    bool isFound = false;
-    {
-        std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
-        SubscriberPtr *subscriber = subscriberOAWorkerData->subscriber;
-        for (auto subscriberInstance : g_osAccountSubscribers) {
-            isFound = std::any_of(subscriberInstance.second.begin(), subscriberInstance.second.end(),
-                [subscriber](const SubscribeCBInfo *item) {
-                    return item->subscriber.get() == subscriber;
+    return [subscriberOAWorkerData] {
+        ACCOUNT_LOGI("Enter OnAccountsSubNotify task");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(subscriberOAWorkerData->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            return;
+        }
+        bool isFound = false;
+        {
+            std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
+            SubscriberPtr *subscriber = subscriberOAWorkerData->subscriber;
+            for (auto subscriberInstance : g_osAccountSubscribers) {
+                isFound = std::any_of(subscriberInstance.second.begin(), subscriberInstance.second.end(),
+                    [subscriber] (const SubscribeCBInfo *item) {
+                        return item->subscriber.get() == subscriber;
                 });
-            if (isFound) {
-                ACCOUNT_LOGD("os account subscriber has been found.");
-                break;
+                if (isFound) {
+                    ACCOUNT_LOGD("OsAccount subscriber has been found.");
+                    break;
+                }
             }
         }
-    }
-    if (isFound) {
-        OsAccountSubscribeInfo subscribeInfo;
-        OS_ACCOUNT_SUBSCRIBE_TYPE osSubscribeType;
-        subscriberOAWorkerData->subscriber->GetSubscribeInfo(subscribeInfo);
-        subscribeInfo.GetOsAccountSubscribeType(osSubscribeType);
+        if (isFound) {
+            OsAccountSubscribeInfo subscribeInfo;
+            OS_ACCOUNT_SUBSCRIBE_TYPE osSubscribeType;
+            subscriberOAWorkerData->subscriber->GetSubscribeInfo(subscribeInfo);
+            subscribeInfo.GetOsAccountSubscribeType(osSubscribeType);
 
-        napi_value result[ARGS_SIZE_ONE] = {nullptr};
-        if ((osSubscribeType == SWITCHING || osSubscribeType == SWITCHED)) {
-            ACCOUNT_LOGI("Switch condition, return oldId=%{public}d and newId=%{public}d.",
-                         subscriberOAWorkerData->oldId, subscriberOAWorkerData->newId);
-            result[PARAMZERO] = CreateSwitchEventInfoObj(subscriberOAWorkerData);
-        } else {
-            napi_create_int32(subscriberOAWorkerData->env, subscriberOAWorkerData->newId, &result[PARAMZERO]);
+            napi_value result[ARGS_SIZE_ONE] = { nullptr };
+            if ((osSubscribeType == SWITCHING || osSubscribeType == SWITCHED)) {
+                ACCOUNT_LOGI("Switch condition, return oldId=%{public}d and newId=%{public}d.",
+                    subscriberOAWorkerData->oldId, subscriberOAWorkerData->newId);
+                result[PARAMZERO] = CreateSwitchEventInfoObj(subscriberOAWorkerData);
+            } else {
+                napi_create_int32(subscriberOAWorkerData->env, subscriberOAWorkerData->newId, &result[PARAMZERO]);
+            }
+            NapiCallVoidFunction(
+                subscriberOAWorkerData->env, &result[PARAMZERO], ARGS_SIZE_ONE, subscriberOAWorkerData->ref);
         }
-        napi_value undefined = nullptr;
-        napi_get_undefined(subscriberOAWorkerData->env, &undefined);
-        napi_value callback = nullptr;
-        napi_get_reference_value(subscriberOAWorkerData->env, subscriberOAWorkerData->ref, &callback);
-        napi_value resultOut = nullptr;
-        napi_call_function(
-            subscriberOAWorkerData->env, undefined, callback, ARGS_SIZE_ONE, &result[0], &resultOut);
-    }
-    napi_close_handle_scope(subscriberOAWorkerData->env, scope);
+        napi_close_handle_scope(subscriberOAWorkerData->env, scope);
+    };
 }
 
 void SubscriberPtr::SetEnv(const napi_env &env)
