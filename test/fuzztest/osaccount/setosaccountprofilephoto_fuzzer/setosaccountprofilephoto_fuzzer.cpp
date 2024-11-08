@@ -26,15 +26,25 @@
 using namespace std;
 using namespace OHOS::AccountSA;
 const int LOCAL_ID = 100;
+const uint8_t ARRAY_CHAR_SIZE = 62;
+const char CHAR_ARRAY[] = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+static void GenerateRandStr(uint32_t len, const uint8_t *data, std::string& res)
+{
+    for (uint32_t i = 0; i < len; i++) {
+        uint32_t index = data[i] % ARRAY_CHAR_SIZE;
+        res.push_back(CHAR_ARRAY[index]);
+    }
+}
 
 namespace OHOS {
     bool SetOsAccountProfilePhotoFuzzTest(const uint8_t* data, size_t size)
     {
         bool result = false;
         if ((data != nullptr) && (size != 0)) {
-            FuzzData fuzzData(data, size);
-            std::string testPhotoStr(fuzzData.GenerateRandomString());
-            result = OsAccountManager::SetOsAccountProfilePhoto(LOCAL_ID, testPhotoStr);
+            std::string photo;
+            GenerateRandStr(size, data, photo);
+            result = OsAccountManager::SetOsAccountProfilePhoto(LOCAL_ID, photo);
         }
         return result;
     }
