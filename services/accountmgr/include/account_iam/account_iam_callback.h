@@ -58,7 +58,7 @@ private:
 
 private:
     uint32_t userId_;
-    uint32_t callerTokenId_;
+    uint32_t callerTokenId_ = 0;
     AuthType authType_;
     bool isRemoteAuth_ = false;
     sptr<IIDMCallback> innerCallback_ = nullptr;
