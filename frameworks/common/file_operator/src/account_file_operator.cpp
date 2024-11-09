@@ -329,6 +329,35 @@ bool AccountFileOperator::IsExistFile(const std::string &path)
     return false;
 }
 
+ErrCode AccountFileOperator::CheckFileExistence(const std::string &path)
+{
+    if (path.empty()) {
+        ACCOUNT_LOGE("Path is empty.");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    std::shared_lock<std::shared_timed_mutex> lock(fileLock_);
+    uint32_t retryCount = 0;
+    while (retryCount < RETRY_TIMES) {
+        struct stat buf = {};
+        if (stat(path.c_str(), &buf) == 0) {
+            if (S_ISREG(buf.st_mode)) {
+                return ERR_OK;
+            }
+            ACCOUNT_LOGE("S_ISREG failed, errno=%{public}d.", errno);
+            return ERR_ACCOUNT_COMMON_FILE_OTHER_ERROR;
+        }
+        if (errno != ENOENT) {
+            ACCOUNT_LOGE("Stat %{public}s failed, errno=%{public}d. Retrying...", path.c_str(), errno);
+            std::this_thread::sleep_for(std::chrono::milliseconds(RETRY_SLEEP_MS));
+            retryCount++;
+        } else {
+            ACCOUNT_LOGE("Stat %{public}s failed, errno=%{public}d.", path.c_str(), errno);
+            return ERR_ACCOUNT_COMMON_FILE_NOT_EXIST;
+        }
+    }
+    return ERR_ACCOUNT_COMMON_FILE_OTHER_ERROR;
+}
+
 bool AccountFileOperator::IsJsonFormat(const std::string &path)
 {
     std::string content;
