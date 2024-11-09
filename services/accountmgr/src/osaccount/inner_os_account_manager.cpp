@@ -347,14 +347,19 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfoWithFullInfo(OsAccountInfo &
     int64_t serialNumber;
     ErrCode errCode = osAccountControl_->GetSerialNumber(serialNumber);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("failed to GetSerialNumber, errCode %{public}d.", errCode);
+        ACCOUNT_LOGE("Failed to GetSerialNumber, errCode %{public}d.", errCode);
         return errCode;
     }
     osAccountInfo.SetSerialNumber(serialNumber);
     osAccountInfo.SetIsDataRemovable(false);
+    errCode = osAccountControl_->SetNextLocalId(osAccountInfo.GetLocalId() + 1);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to SetNextLocalId, errCode %{public}d.", errCode);
+        return errCode;
+    }
     errCode = osAccountControl_->InsertOsAccount(osAccountInfo);
     if ((errCode != ERR_OK) && (errCode != ERR_OSACCOUNT_SERVICE_CONTROL_INSERT_FILE_EXISTS_ERROR)) {
-        ACCOUNT_LOGE("insert os account info err, errCode %{public}d.", errCode);
+        ACCOUNT_LOGE("Insert os account info err, errCode %{public}d.", errCode);
         return errCode;
     }
 
@@ -365,7 +370,7 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfoWithFullInfo(OsAccountInfo &
     OsAccountType type = static_cast<OsAccountType>(osAccountInfo.GetType());
     errCode = osAccountControl_->GetConstraintsByType(type, constraints);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("failed to GetConstraintsByType, errCode %{public}d.", errCode);
+        ACCOUNT_LOGE("Failed to GetConstraintsByType, errCode %{public}d.", errCode);
         return errCode;
     }
     std::vector<std::string> constraintsExists = osAccountInfo.GetConstraints();
