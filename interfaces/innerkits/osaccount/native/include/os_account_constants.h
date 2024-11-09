@@ -110,6 +110,7 @@ const char ALL_SPECIFIC_CONSTRAINTS[] = "allSpecificConstraints";
 const char USER_CONSTRAINTS_TEMPLATE[] = "UserConstraintsTemplate";
 const char TYPE_LIST[] = "TypeList";
 const char ACCOUNT_LIST[] = "AccountList";
+const char NEXT_LOCAL_ID[] = "NextLocalId";
 const char COUNT_ACCOUNT_NUM[] = "CountAccountNum";
 const char MAX_ALLOW_CREATE_ACCOUNT_ID[] = "MaxAllowCreateAccountID";
 const char SERIAL_NUMBER_NUM[] = "SerialNumber";
