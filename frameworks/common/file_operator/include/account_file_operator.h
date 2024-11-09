@@ -41,6 +41,7 @@ public:
     bool IsJsonFormat(const std::string &path);
     bool IsJsonFileReady(const std::string &path);
     bool IsExistDir(const std::string &path);
+    ErrCode CheckFileExistence(const std::string &path);
     bool GetValidDeleteFileOperationFlag(const std::string &fileName);
     void SetValidDeleteFileOperationFlag(const std::string &fileName, bool flag);
     bool GetValidModifyFileOperationFlag(const std::string &fileName);
