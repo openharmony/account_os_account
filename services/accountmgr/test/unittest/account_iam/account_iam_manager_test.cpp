@@ -119,7 +119,7 @@ public:
         return 0;
     }
 
-    int32_t GetBundleStats(std::string pkgName, BundleStats &bundleStats, int32_t appIndex)
+    int32_t GetBundleStats(std::string pkgName, BundleStats &bundleStats, int32_t appIndex, uint32_t statFlag)
     {
         return 0;
     }
@@ -154,7 +154,7 @@ public:
         return 0;
     }
 
-    int32_t GetCurrentBundleStats(BundleStats &bundleStats)
+    int32_t GetCurrentBundleStats(BundleStats &bundleStats, uint32_t statFlag)
     {
         return 0;
     }
