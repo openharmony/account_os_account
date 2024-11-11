@@ -276,6 +276,7 @@ int32_t InnerAccountIAMManager::Cancel(int32_t userId)
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = userStateMap_.find(userId);
     if ((it == userStateMap_.end()) || (it->second >= AFTER_ADD_CRED)) {
+        ACCOUNT_LOGE("Failed to cancel after 'addCredential' success");
         return ResultCode::GENERAL_ERROR;
     }
     return UserIDMClient::GetInstance().Cancel(userId);
