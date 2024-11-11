@@ -119,13 +119,9 @@ static void OnAuthenticatorWorkComplete(napi_env env, napi_status status, void *
 
 napi_value NapiAppAccountAuthenticatorCallback::JsOnResult(napi_env env, napi_callback_info cbInfo)
 {
-    auto *param = new (std::nothrow) CallbackParam();
-    if (param == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for param!");
-        return NapiGetNull(env);
-    }
+    auto param = std::make_unique<CallbackParam>();
     param->env = env;
-    ParseContextForOnResult(env, cbInfo, param);
+    ParseContextForOnResult(env, cbInfo, param.get());
 
     napi_value resourceName = nullptr;
     NAPI_CALL(env, napi_create_string_latin1(env, "JsOnResult", NAPI_AUTO_LENGTH, &resourceName));
@@ -145,20 +141,17 @@ napi_value NapiAppAccountAuthenticatorCallback::JsOnResult(napi_env env, napi_ca
                 }
             },
             OnAuthenticatorWorkComplete,
-            reinterpret_cast<void *>(param), &param->work));
+            reinterpret_cast<void *>(param.get()), &param->work));
     NAPI_CALL(env, napi_queue_async_work_with_qos(env, param->work, napi_qos_default));
+    param.release();
     return NapiGetNull(env);
 }
 
 napi_value NapiAppAccountAuthenticatorCallback::JsOnRequestRedirected(napi_env env, napi_callback_info cbInfo)
 {
-    auto *param = new (std::nothrow) CallbackParam();
-    if (param == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for param!");
-        return NapiGetNull(env);
-    }
+    auto param = std::make_unique<CallbackParam>();
     param->env = env;
-    ParseContextForRequestRedirected(env, cbInfo, param);
+    ParseContextForRequestRedirected(env, cbInfo, param.get());
 
     napi_value resourceName = nullptr;
     NAPI_CALL(env, napi_create_string_latin1(env, "JsOnRequestRedirected", NAPI_AUTO_LENGTH, &resourceName));
@@ -176,18 +169,15 @@ napi_value NapiAppAccountAuthenticatorCallback::JsOnRequestRedirected(napi_env e
                 }
             },
             OnAuthenticatorWorkComplete,
-            reinterpret_cast<void *>(param), &param->work));
+            reinterpret_cast<void *>(param.get()), &param->work));
     NAPI_CALL(env, napi_queue_async_work_with_qos(env, param->work, napi_qos_default));
+    param.release();
     return NapiGetNull(env);
 }
 
 napi_value NapiAppAccountAuthenticatorCallback::JsOnRequestContinued(napi_env env, napi_callback_info cbInfo)
 {
-    auto *param = new (std::nothrow) CallbackParam();
-    if (param == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for param!");
-        return NapiGetNull(env);
-    }
+    auto param = std::make_unique<CallbackParam>();
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, cbInfo, nullptr, nullptr, &thisVar, nullptr);
     napi_unwrap(env, thisVar, reinterpret_cast<void **>(&(param->callback)));
@@ -206,9 +196,10 @@ napi_value NapiAppAccountAuthenticatorCallback::JsOnRequestContinued(napi_env en
                 }
             },
             OnAuthenticatorWorkComplete,
-            reinterpret_cast<void *>(param),
+            reinterpret_cast<void *>(param.get()),
             &param->work));
     NAPI_CALL(env, napi_queue_async_work_with_qos(env, param->work, napi_qos_default));
+    param.release();
     return NapiGetNull(env);
 }
 
