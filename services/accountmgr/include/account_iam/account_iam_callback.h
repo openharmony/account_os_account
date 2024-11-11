@@ -131,9 +131,24 @@ public:
         std::shared_ptr<IInputerData> inputerData) override;
 };
 
+class CommitDelCredCallback : public UserIdmClientCallback {
+public:
+    CommitDelCredCallback() {}
+    virtual ~CommitDelCredCallback() {}
+
+    void OnResult(int32_t result, const UserIam::UserAuth::Attributes &extraInfo) override;
+    void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const UserIam::UserAuth::Attributes &extraInfo) override;
+
+public:
+    bool isCalled_ = false;
+    int32_t resultCode_ = -1;
+    std::mutex mutex_;
+    std::condition_variable onResultCondition_;
+};
+
 class DelUserCallback : public UserIdmClientCallback {
 public:
-    DelUserCallback(uint32_t userId, const sptr<IIDMCallback> &callback);
+    DelUserCallback(uint32_t userId, const std::vector<uint8_t> &token, const sptr<IIDMCallback> &callback);
     virtual ~DelUserCallback();
 
     void OnResult(int32_t result, const Attributes &extraInfo) override;
@@ -149,6 +164,7 @@ public:
 
 private:
     std::uint32_t userId_;
+    std::vector<uint8_t> token_;
     const sptr<IIDMCallback> innerCallback_ = nullptr;
 };
 #endif // HAS_PIN_AUTH_PART

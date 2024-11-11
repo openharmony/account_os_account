@@ -456,8 +456,23 @@ void DelUserInputer::OnGetData(int32_t authSubType, std::vector<uint8_t> challen
     inputerData->OnSetData(PinSubType::PIN_SIX, TEMP_PIN);
 }
 
-DelUserCallback::DelUserCallback(uint32_t userId, const sptr<IIDMCallback> &callback)
-    : userId_(userId), innerCallback_(callback)
+void CommitDelCredCallback::OnResult(int32_t result, const UserIam::UserAuth::Attributes &extraInfo)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    ACCOUNT_LOGI("IAM OnResult callback! result %{public}d", result);
+    isCalled_ = true;
+    resultCode_ = result;
+    onResultCondition_.notify_one();
+}
+
+void CommitDelCredCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo,
+    const UserIam::UserAuth::Attributes &extraInfo)
+{
+    ACCOUNT_LOGI("IAM OnAcquireInfo callback! module %{public}d, acquire %{public}u.", module, acquireInfo);
+}
+
+DelUserCallback::DelUserCallback(uint32_t userId, const std::vector<uint8_t> &token, const sptr<IIDMCallback> &callback)
+    : userId_(userId), token_(token), innerCallback_(callback)
 {}
 
 DelUserCallback::~DelUserCallback()
@@ -508,21 +523,16 @@ void DelUserCallback::InnerOnResult(int32_t result, const Attributes &extraInfo)
         return innerCallback_->OnResult(errCode, extraInfo);
     }
 
-    auto eraseUserCallback = std::make_shared<OsAccountDeleteUserIdmCallback>();
-    errCode = UserIam::UserAuth::UserIdmClient::GetInstance().EraseUser(userId_, eraseUserCallback);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Failed to erase user, userId=%{public}d, errcode=%{public}d", userId_, errCode);
-        ReportOsAccountOperationFail(userId_, "deleteCredential", errCode, "Failed to erase user");
-        return innerCallback_->OnResult(errCode, extraInfo);
-    }
-    std::unique_lock<std::mutex> lock(eraseUserCallback->mutex_);
-    eraseUserCallback->onResultCondition_.wait(lock, [eraseUserCallback] { return eraseUserCallback->isCalled_; });
-    if (eraseUserCallback->resultCode_ != ERR_OK) {
+    auto deleteUserCallback = std::make_shared<CommitDelCredCallback>();
+    UserIDMClient::GetInstance().DeleteUser(userId_, token_, deleteUserCallback);
+    std::unique_lock<std::mutex> lock(deleteUserCallback->mutex_);
+    deleteUserCallback->onResultCondition_.wait(lock, [deleteUserCallback] { return deleteUserCallback->isCalled_; });
+    if (deleteUserCallback->resultCode_ != ERR_OK) {
         ACCOUNT_LOGE("Failed to erase user in callback, userId=%{public}d, errcode=%{public}d",
-            userId_, eraseUserCallback->resultCode_);
-        ReportOsAccountOperationFail(userId_, "deleteCredential", eraseUserCallback->resultCode_,
+            userId_, deleteUserCallback->resultCode_);
+        ReportOsAccountOperationFail(userId_, "deleteCredential", deleteUserCallback->resultCode_,
             "Failed to erase user");
-        return innerCallback_->OnResult(eraseUserCallback->resultCode_, extraInfo);
+        return innerCallback_->OnResult(deleteUserCallback->resultCode_, extraInfo);
     }
     (void)IInnerOsAccountManager::GetInstance().SetOsAccountCredentialId(userId_, 0);
     errCode = innerIamMgr.UpdateStorageKeyContext(userId_);

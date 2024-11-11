@@ -241,7 +241,7 @@ void InnerAccountIAMManager::DelUser(
     credInfo.authType = AuthType::PIN;
     credInfo.pinType = PinSubType::PIN_SIX;
     credInfo.token = authToken;
-    auto delUserCallback = std::make_shared<DelUserCallback>(userId, callback);
+    auto delUserCallback = std::make_shared<DelUserCallback>(userId, authToken, callback);
     UserIDMClient::GetInstance().UpdateCredential(userId, credInfo, delUserCallback);
     std::unique_lock<std::mutex> lock(delUserCallback->mutex_);
     delUserCallback->onResultCondition_.wait(lock, [delUserCallback] {
