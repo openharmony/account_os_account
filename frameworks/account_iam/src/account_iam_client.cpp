@@ -155,14 +155,19 @@ void AccountIAMClient::DelUser(
 int32_t AccountIAMClient::GetCredentialInfo(
     int32_t userId, AuthType authType, const std::shared_ptr<GetCredInfoCallback> &callback)
 {
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("The callback for get credential info is nullptr");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
+    std::vector<CredentialInfo> infoList;
     auto proxy = GetAccountIAMProxy();
     if (proxy == nullptr) {
+        callback->OnCredentialInfo(ERR_ACCOUNT_COMMON_GET_PROXY, infoList);
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     sptr<IGetCredInfoCallback> wrapper = new (std::nothrow) GetCredInfoCallbackService(callback);
     ErrCode result = proxy->GetCredentialInfo(userId, authType, wrapper);
-    if ((result != ERR_OK) && (callback != nullptr)) {
-        std::vector<CredentialInfo> infoList;
+    if (result != ERR_OK) {
         callback->OnCredentialInfo(result, infoList);
     }
     return result;
@@ -224,12 +229,15 @@ uint64_t AccountIAMClient::AuthUser(
         ACCOUNT_LOGE("callback is nullptr");
         return contextId;
     }
+    Attributes emptyResult;
     auto proxy = GetAccountIAMProxy();
     if (proxy == nullptr) {
+        callback->OnResult(ERR_ACCOUNT_COMMON_GET_PROXY, emptyResult);
         return contextId;
     }
     if ((!authOptions.hasRemoteAuthOptions) && (authOptions.accountId == -1) &&
         (!GetCurrentUserId(authOptions.accountId))) {
+        callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
         return contextId;
     }
 #ifdef HAS_PIN_AUTH_PART
@@ -258,7 +266,6 @@ uint64_t AccountIAMClient::AuthUser(
     }
     ErrCode result = proxy->AuthUser(authParam, wrapper, contextId);
     if (result != ERR_OK) {
-        Attributes emptyResult;
         callback->OnResult(result, emptyResult);
     }
     return contextId;
