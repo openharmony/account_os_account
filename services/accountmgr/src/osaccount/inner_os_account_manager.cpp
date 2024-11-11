@@ -1735,8 +1735,8 @@ void IInnerOsAccountManager::ExecuteDeactivationAnimation(int32_t pipeFd, const 
 {
     std::string pipeFdStr = std::to_string(pipeFd);
     std::string displayIdStr = std::to_string(osAccountInfo.GetDisplayId());
-    char *const args[] = {const_cast<char *>(DEACTIVATION_ANIMATION_PATH),
-        const_cast<char *>(displayIdStr.c_str()), const_cast<char *>(pipeFdStr.c_str()), nullptr};
+    char *const args[] = { const_cast<char *>(DEACTIVATION_ANIMATION_PATH),
+        const_cast<char *>(displayIdStr.c_str()), const_cast<char *>(pipeFdStr.c_str()), nullptr };
     if (execv(DEACTIVATION_ANIMATION_PATH, args) == -1) {
         ACCOUNT_LOGE("Failed to execv animation: %{public}s", strerror(errno));
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), "deactivate", errno,
@@ -1756,28 +1756,23 @@ ErrCode IInnerOsAccountManager::WaitForAnimationReady(int32_t pipeFd)
     int ret = poll(fds, 1, MAX_WAIT_ANIMATION_READY_TIMEOUT);
     if (ret < 0) {
         ACCOUNT_LOGE("Error in poll: %{public}s", strerror(errno));
-        close(pipeFd);
         return ERR_OSACCOUNT_SERVICE_INNER_ANIMATION_POLL_ERROR;
     }
     if (ret == 0) {
         ACCOUNT_LOGE("Timeout waiting for message from child process.");
-        close(pipeFd);
         return ERR_OSACCOUNT_SERVICE_INNER_ANIMATION_TIMEOUT;
     }
     if (!(fds[0].revents & POLLIN)) {
         ACCOUNT_LOGE("Unexpected event in poll: %{public}d", fds[0].revents);
-        close(pipeFd);
         return ERR_OSACCOUNT_SERVICE_INNER_ANIMATION_UNEXPECTED_EVENT;
     }
     ssize_t bytesRead = read(pipeFd, buf, sizeof(buf));
     if (bytesRead <= 0) {
         ACCOUNT_LOGE("Error reading from pipe: %{public}s", strerror(errno));
-        close(pipeFd);
         return ERR_OSACCOUNT_SERVICE_INNER_ANIMATION_READ_ERROR;
     }
     buf[bytesRead] = '\0';
     ACCOUNT_LOGI("Received message from child process: %{public}s", buf);
-    close(pipeFd);
     return ERR_OK;
 }
 
@@ -1809,6 +1804,7 @@ void IInnerOsAccountManager::LaunchDeactivationAnimation(const OsAccountInfo &os
         ErrCode ret = WaitForAnimationReady(pipeFd[PIPE_READ_END]);
         ReportOsAccountOperationFail(localId, "deactivate", ret,
             "Failed to launch deactivation animation, wait msg error");
+        close(pipeFd[PIPE_READ_END]);
     } else {
         ACCOUNT_LOGE("Failed to fork deactivation animation process: %{public}s", strerror(errno));
         ReportOsAccountOperationFail(localId, "deactivate", errno,
@@ -2046,14 +2042,9 @@ ErrCode IInnerOsAccountManager::IsOsAccountCompleted(const int id, bool &isOsAcc
 
 void IInnerOsAccountManager::CleanGarbageOsAccountsAsync()
 {
-    std::weak_ptr<IInnerOsAccountManager> weakThis = weak_from_this();
-    auto task = [weakThis] {
-        if (auto sharedThis = weakThis.lock()) {
-            sharedThis->CleanGarbageOsAccounts();
-        }
-    };
+    auto task = [] { IInnerOsAccountManager::GetInstance().CleanGarbageOsAccounts(); };
     std::thread cleanThread(task);
-    pthread_setname_np(cleanThread.native_handle(), "CleanGarbageOsAccounts");
+    pthread_setname_np(cleanThread.native_handle(), "CleanGarbage");
     cleanThread.detach();
 }
 
