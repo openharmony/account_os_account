@@ -351,10 +351,9 @@ ErrCode AppAccountControlManager::EnableAppAccess(const std::string &name, const
 
     result = appAccountInfo.EnableAppAccess(authorizedApp, apiVersion);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to enable app access, result %{public}d.", result);
-        return ERR_APPACCOUNT_SERVICE_ENABLE_APP_ACCESS_ALREADY_EXISTS;
+        ACCOUNT_LOGE("Failed to enable app access, result=%{public}d.", result);
+        return result;
     }
-
     result = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, appAccountCallingInfo.callingUid);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to save account info into data storage, result %{public}d.", result);
@@ -364,7 +363,7 @@ ErrCode AppAccountControlManager::EnableAppAccess(const std::string &name, const
     // save authorized account into data storage
     result = SaveAuthorizedAccount(authorizedApp, appAccountInfo, dataStoragePtr, appAccountCallingInfo.callingUid);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to save authorized account into data storage, result %{public}d.", result);
+        ACCOUNT_LOGE("Failed to save authorized account into data storage, result=%{public}d.", result);
         return result;
     }
 
