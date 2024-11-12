@@ -1168,8 +1168,14 @@ ErrCode OsAccountControlFileManager::GetAllowCreateId(int &id)
     }
     if (!GetDataByType<std::int32_t>(accountListJson, jsonEnd,
         Constants::NEXT_LOCAL_ID, nextLocalId, JsonType::NUMBER)) {
-        ACCOUNT_LOGW("GetAllowCreateId get next localId failed");
-        nextLocalId = Constants::START_USER_ID + 1;
+        ACCOUNT_LOGW("Get next localId failed");
+        int32_t lastLocalId = -1;
+        if (!accountIdList.empty() && StrToInt(accountIdList[accountIdList.size() - 1], lastLocalId)) {
+            nextLocalId = lastLocalId + 1;
+        } else {
+            nextLocalId = Constants::START_USER_ID + 1;
+            ACCOUNT_LOGW("Convert last item in accountIdList to string failed.");
+        }
     }
 
     id = GetNextLocalId(accountIdList, nextLocalId);
