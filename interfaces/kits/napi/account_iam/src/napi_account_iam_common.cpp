@@ -557,31 +557,32 @@ void NapiUserAuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, c
 }
 
 NapiGetInfoCallback::NapiGetInfoCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred)
-    : env_(env), callbackRef_(callbackRef), deferred_(deferred)
-{}
+    : env_(env), deferred_(deferred)
+{
+    callback_ = std::make_shared<NapiCallbackRef>(env, callbackRef);
+}
 
 NapiGetInfoCallback::~NapiGetInfoCallback()
-{
-    if (callbackRef_ != nullptr) {
-        ReleaseNapiRefAsync(env_, callbackRef_);
-        callbackRef_ = nullptr;
-    }
-    deferred_ = nullptr;
-}
+{}
 
 void NapiGetInfoCallback::OnCredentialInfo(int32_t result, const std::vector<AccountSA::CredentialInfo> &infoList)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (onResultCalled_) {
+        ACCOUNT_LOGE("Call twice is not allowed");
+        return;
+    }
+    onResultCalled_ = true;
     std::shared_ptr<GetAuthInfoContext> context = std::make_shared<GetAuthInfoContext>(env_);
     if (context == nullptr) {
         ACCOUNT_LOGE("Failed for nullptr");
         return;
     }
-    context->callbackRef = callbackRef_;
+    context->callback = callback_;
     context->deferred = deferred_;
     context->errCode = result;
     context->credInfo = infoList;
-    callbackRef_ = nullptr;
-    auto task = [context]() {
+    auto task = [context = std::move(context)]() {
         ACCOUNT_LOGI("Enter NapiGetInfoCallback::OnCredentialInfo task");
         napi_handle_scope scope = nullptr;
         napi_open_handle_scope(context->env, &scope);
@@ -590,17 +591,19 @@ void NapiGetInfoCallback::OnCredentialInfo(int32_t result, const std::vector<Acc
             return;
         }
         napi_env env = context->env;
-        napi_value errJs = nullptr;
-        napi_value dataJs = nullptr;
+        CommonCallbackInfo callbackInfo(env);
+        callbackInfo.callbackRef = context->callback->callbackRef;
+        callbackInfo.deferred = context->deferred;
+        callbackInfo.errCode = context->errCode;
         if (context->errCode != ERR_OK) {
             int32_t jsErrCode = AccountIAMConvertToJSErrCode(context->errCode);
-            errJs = GenerateBusinessError(env, jsErrCode, ConvertToJsErrMsg(jsErrCode));
-            napi_get_null(env, &dataJs);
+            callbackInfo.errJs = GenerateBusinessError(env, jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            napi_get_null(env, &callbackInfo.dataJs);
         } else {
-            napi_get_null(env, &errJs);
-            dataJs = CreateCredInfoArray(env, context->credInfo);
+            napi_get_null(env, &callbackInfo.errJs);
+            callbackInfo.dataJs = CreateCredInfoArray(env, context->credInfo);
         }
-        CallbackAsyncOrPromise(env, context.get(), errJs, dataJs);
+        CallbackAsyncOrPromise(callbackInfo);
         napi_close_handle_scope(context->env, scope);
         return;
     };
@@ -660,17 +663,13 @@ void NapiGetEnrolledIdCallback::OnEnrolledId(int32_t result, uint64_t enrolledId
 
 NapiGetPropCallback::NapiGetPropCallback(
     napi_env env, napi_ref callbackRef, napi_deferred deferred, const AccountSA::GetPropertyRequest &request)
-    : env_(env), callbackRef_(callbackRef), deferred_(deferred), request_(request)
-{}
+    : env_(env), deferred_(deferred), request_(request)
+{
+    callback_ = std::make_shared<NapiCallbackRef>(env, callbackRef);
+}
 
 NapiGetPropCallback::~NapiGetPropCallback()
-{
-    if (callbackRef_ != nullptr) {
-        ReleaseNapiRefAsync(env_, callbackRef_);
-        callbackRef_ = nullptr;
-    }
-    deferred_ = nullptr;
-}
+{}
 
 void NapiGetPropCallback::GetContextParams(
     const UserIam::UserAuth::Attributes &extraInfo, GetPropertyContext &context)
@@ -726,9 +725,14 @@ void NapiGetPropCallback::GetContextParams(
 void NapiGetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attributes &extraInfo)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    if ((callbackRef_ == nullptr) && (deferred_ == nullptr)) {
+    if ((callback_->callbackRef == nullptr) && (deferred_ == nullptr)) {
         return;
     }
+    if (onResultCalled_) {
+        ACCOUNT_LOGE("Call twice is not allowed");
+        return;
+    }
+    onResultCalled_ = true;
     std::shared_ptr<GetPropertyContext> context = std::make_shared<GetPropertyContext>(env_);
     if (context == nullptr) {
         ACCOUNT_LOGE("Failed for nullptr");
@@ -736,13 +740,12 @@ void NapiGetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attr
     }
     // create context data
     GetContextParams(extraInfo, *context);
-    context->callbackRef = callbackRef_;
+    context->callback = callback_;
     context->deferred = deferred_;
     context->errCode = ERR_OK;
     context->result = result;
     context->request = request_;
-    callbackRef_ = nullptr;
-    auto task = [context]() {
+    auto task = [context = std::move(context)]() {
         ACCOUNT_LOGI("Enter NapiGetPropCallback::OnResult task");
         napi_handle_scope scope = nullptr;
         napi_open_handle_scope(context->env, &scope);
@@ -750,10 +753,12 @@ void NapiGetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attr
             ACCOUNT_LOGE("Failed to open scope");
             return;
         }
-        napi_value errJs = nullptr;
-        napi_value dataJs = nullptr;
-        CreateExecutorProperty(context->env, *context, errJs, dataJs);
-        CallbackAsyncOrPromise(context->env, context.get(), errJs, dataJs);
+        CommonCallbackInfo callbackInfo(context->env);
+        callbackInfo.callbackRef = context->callback->callbackRef;
+        callbackInfo.deferred = context->deferred;
+        CreateExecutorProperty(context->env, *context, callbackInfo.errJs, callbackInfo.dataJs);
+        callbackInfo.errCode = context->errCode;
+        CallbackAsyncOrPromise(callbackInfo);
         napi_close_handle_scope(context->env, scope);
         return;
     };
@@ -765,17 +770,13 @@ void NapiGetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attr
 }
 
 NapiSetPropCallback::NapiSetPropCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred)
-    : env_(env), callbackRef_(callbackRef), deferred_(deferred)
-{}
+    : env_(env), deferred_(deferred)
+{
+    callback_ = std::make_shared<NapiCallbackRef>(env, callbackRef);
+}
 
 NapiSetPropCallback::~NapiSetPropCallback()
-{
-    if (callbackRef_ != nullptr) {
-        ReleaseNapiRefAsync(env_, callbackRef_);
-        callbackRef_ = nullptr;
-    }
-    deferred_ = nullptr;
-}
+{}
 
 NapiPrepareRemoteAuthCallback::NapiPrepareRemoteAuthCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred)
     : env_(env), callbackRef_(callbackRef), deferred_(deferred)
@@ -838,20 +839,24 @@ void NapiPrepareRemoteAuthCallback::OnResult(int32_t result)
 void NapiSetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attributes &extraInfo)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    if ((callbackRef_ == nullptr) && (deferred_ == nullptr)) {
+    if ((callback_->callbackRef == nullptr) && (deferred_ == nullptr)) {
         return;
     }
+    if (onResultCalled_) {
+        ACCOUNT_LOGE("Call twice is not allowed");
+        return;
+    }
+    onResultCalled_ = true;
     std::shared_ptr<SetPropertyContext> context = std::make_shared<SetPropertyContext>(env_);
     if (context == nullptr) {
         ACCOUNT_LOGE("Failed for nullptr");
         return;
     }
-    context->callbackRef = callbackRef_;
+    context->callback = callback_;
     context->deferred = deferred_;
     context->errCode = ERR_OK;
     context->result = result;
-    callbackRef_ = nullptr;
-    auto task = [context]() {
+    auto task = [context = std::move(context)]() {
         ACCOUNT_LOGI("Enter NapiSetPropCallback::OnResult task");
         napi_handle_scope scope = nullptr;
         napi_open_handle_scope(context->env, &scope);
@@ -860,18 +865,19 @@ void NapiSetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attr
             return;
         }
         napi_env env = context->env;
-        napi_value errJs = nullptr;
-        napi_value dataJs = nullptr;
-        context->errCode = context->result;
+        CommonCallbackInfo callbackInfo(env);
+        callbackInfo.callbackRef = context->callback->callbackRef;
+        callbackInfo.deferred = context->deferred;
+        callbackInfo.errCode = context->result;
         if (context->result != ERR_OK) {
             int32_t jsErrCode = AccountIAMConvertToJSErrCode(context->result);
-            errJs = GenerateBusinessError(env, jsErrCode, ConvertToJsErrMsg(jsErrCode));
-            napi_get_null(env, &dataJs);
+            callbackInfo.errJs = GenerateBusinessError(env, jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            napi_get_null(env, &callbackInfo.dataJs);
         } else {
-            napi_get_null(env, &errJs);
-            napi_get_null(env, &dataJs);
+            napi_get_null(env, &callbackInfo.errJs);
+            napi_get_null(env, &callbackInfo.dataJs);
         }
-        CallbackAsyncOrPromise(env, context.get(), errJs, dataJs);
+        CallbackAsyncOrPromise(callbackInfo);
         napi_close_handle_scope(env, scope);
         return;
     };
@@ -1038,19 +1044,30 @@ void NapiGetDataCallback::OnGetData(int32_t authSubType, std::vector<uint8_t> ch
 }
 #endif  // HAS_PIN_AUTH_PART
 
-void CallbackAsyncOrPromise(napi_env env, CommonAsyncContext *context, napi_value errJs, napi_value dataJs)
+void CallbackAsyncOrPromise(const CommonCallbackInfo &callbackInfo)
 {
-    if (context->callbackRef) {
-        napi_value argv[ARG_SIZE_TWO] = {errJs, dataJs};
+    if (callbackInfo.callbackRef) {
+        napi_value argv[ARG_SIZE_TWO] = {callbackInfo.errJs, callbackInfo.dataJs};
         ACCOUNT_LOGI("call js function");
-        NapiCallVoidFunction(env, argv, ARG_SIZE_TWO, context->callbackRef);
+        NapiCallVoidFunction(callbackInfo.env, argv, ARG_SIZE_TWO, callbackInfo.callbackRef);
     } else {
-        if (context->errCode == ERR_OK) {
-            napi_resolve_deferred(env, context->deferred, dataJs);
+        if (callbackInfo.errCode == ERR_OK) {
+            napi_resolve_deferred(callbackInfo.env, callbackInfo.deferred, callbackInfo.dataJs);
         } else {
-            napi_reject_deferred(env, context->deferred, errJs);
+            napi_reject_deferred(callbackInfo.env, callbackInfo.deferred, callbackInfo.errJs);
         }
     }
+}
+
+void CallbackAsyncOrPromise(napi_env env, CommonAsyncContext *context, napi_value errJs, napi_value dataJs)
+{
+    CommonCallbackInfo callbackInfo(env);
+    callbackInfo.callbackRef = context->callbackRef;
+    callbackInfo.deferred = context->deferred;
+    callbackInfo.errJs = errJs;
+    callbackInfo.dataJs = dataJs;
+    callbackInfo.errCode = context->errCode;
+    CallbackAsyncOrPromise(callbackInfo);
 }
 
 napi_status ParseUInt32Array(napi_env env, napi_value value, std::vector<uint32_t> &data)
