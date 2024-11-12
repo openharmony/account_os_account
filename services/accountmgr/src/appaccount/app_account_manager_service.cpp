@@ -153,16 +153,9 @@ ErrCode AppAccountManagerService::EnableAppAccess(
     if (result != ERR_OK) {
         return result;
     }
-    AppExecFwk::BundleInfo bundleInfo;
-    int32_t userId = appAccountCallingInfo.callingUid / UID_TRANSFORM_DIVISOR;
-    bool bundleRet = BundleManagerAdapter::GetInstance()->GetBundleInfo(
-        authorizedApp, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
-    if (!bundleRet) {
-        ACCOUNT_LOGE("failed to get bundle info");
-        return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO;
-    }
+
     if (authorizedApp == appAccountCallingInfo.bundleName) {
-        ACCOUNT_LOGE("authorizedApp is the same to owner");
+        ACCOUNT_LOGE("AuthorizedApp is the same to owner.");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
@@ -178,21 +171,10 @@ ErrCode AppAccountManagerService::DisableAppAccess(
     if (ret != ERR_OK) {
         return ret;
     }
-    AppExecFwk::BundleInfo bundleInfo;
-
-    int32_t userId = appAccountCallingInfo.callingUid / UID_TRANSFORM_DIVISOR;
-    bool bundleRet = BundleManagerAdapter::GetInstance()->GetBundleInfo(
-        authorizedApp, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
-    if (!bundleRet) {
-        ACCOUNT_LOGE("failed to get bundle info");
-        return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO;
-    }
-
     if (authorizedApp == appAccountCallingInfo.bundleName) {
-        ACCOUNT_LOGE("authorizedApp is the same to owner");
+        ACCOUNT_LOGE("AuthorizedApp is the same to owner.");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-
     return innerManager_->DisableAppAccess(name, authorizedApp, appAccountCallingInfo);
 }
 
@@ -208,23 +190,14 @@ ErrCode AppAccountManagerService::SetAppAccess(
 
     if (authorizedApp == appAccountCallingInfo.bundleName) {
         if (isAccessible) {
-            ACCOUNT_LOGI("authorizedApp name is the self, invalid operate.");
+            ACCOUNT_LOGI("AuthorizedApp name is the self, invalid operate.");
             return ERR_OK;
         } else {
-            ACCOUNT_LOGE("authorizedApp is the same to owner");
+            ACCOUNT_LOGE("AuthorizedApp is the same to owner.");
             return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
         }
     }
-
     if (isAccessible) {
-        AppExecFwk::BundleInfo bundleInfo;
-        int32_t userId = appAccountCallingInfo.callingUid / UID_TRANSFORM_DIVISOR;
-        bool bundleRet = BundleManagerAdapter::GetInstance()->GetBundleInfo(
-            authorizedApp, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
-        if (!bundleRet) {
-            ACCOUNT_LOGE("failed to get bundle info");
-            return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO;
-        }
         return innerManager_->EnableAppAccess(name, authorizedApp, appAccountCallingInfo, Constants::API_VERSION9);
     }
 
