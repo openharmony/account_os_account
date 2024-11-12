@@ -29,7 +29,7 @@
 
 namespace OHOS {
 namespace AccountSA {
-class IInnerOsAccountManager : public IInnerOsAccount, public std::enable_shared_from_this<IInnerOsAccountManager> {
+class IInnerOsAccountManager : public IInnerOsAccount {
 public:
     static IInnerOsAccountManager &GetInstance();
     void Init() override;
