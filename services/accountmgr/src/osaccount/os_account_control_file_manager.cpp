@@ -263,13 +263,6 @@ void OsAccountControlFileManager::Init()
     OHOS::AccountSA::GetDataByType<std::vector<std::string>>(
         accountListJson, jsonEnd, Constants::ACCOUNT_LIST, accountIdList, OHOS::AccountSA::JsonType::ARRAY);
     if (!accountIdList.empty()) {
-        std::lock_guard<std::mutex> lock(operatingIdMutex_);
-        int32_t id = 0;
-        if (!StrToInt(accountIdList[accountIdList.size() - 1], id)) {
-            ACCOUNT_LOGE("Convert localId failed");
-            return;
-        }
-        nextLocalId_ = id + 1;
         InitFileWatcherInfo(accountIdList);
     }
     ACCOUNT_LOGI("OsAccountControlFileManager Init end");
@@ -332,6 +325,7 @@ void OsAccountControlFileManager::BuildAndSaveAccountListJsonFile(const std::vec
         {Constants::MAX_ALLOW_CREATE_ACCOUNT_ID, Constants::MAX_USER_ID},
         {Constants::SERIAL_NUMBER_NUM, Constants::SERIAL_NUMBER_NUM_START},
         {Constants::IS_SERIAL_NUMBER_FULL, Constants::IS_SERIAL_NUMBER_FULL_INIT_VALUE},
+        {Constants::NEXT_LOCAL_ID, Constants::START_USER_ID + 1},
     };
     SaveAccountListToFile(accountList);
 }
@@ -918,6 +912,30 @@ ErrCode OsAccountControlFileManager::UpdateAccountIndex(const OsAccountInfo &osA
     return ERR_OK;
 }
 
+ErrCode OsAccountControlFileManager::SetNextLocalId(const int32_t &nextLocalId)
+{
+    std::lock_guard<std::mutex> lock(operatingIdMutex_);
+    Json accountListJson;
+    ErrCode result = GetAccountListFromFile(accountListJson);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SetNextLocalId get accountList error.");
+        return result;
+    }
+    int32_t nextLocalIdJson = -1;
+    auto jsonEnd = accountListJson.end();
+    if (!GetDataByType<std::int32_t>(accountListJson, jsonEnd,
+        Constants::NEXT_LOCAL_ID, nextLocalIdJson, JsonType::NUMBER)) {
+        ACCOUNT_LOGW("SetNextLocalId get next localId failed");
+        nextLocalIdJson = Constants::START_USER_ID + 1;
+    }
+    accountListJson[Constants::NEXT_LOCAL_ID] = std::max(nextLocalId, nextLocalIdJson);
+    result = SaveAccountListToFileAndDataBase(accountListJson);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SetNextLocalId save accountListJson error.");
+    }
+    return result;
+}
+
 ErrCode OsAccountControlFileManager::RemoveAccountIndex(const int32_t id)
 {
     Json accountIndexJson;
@@ -1098,39 +1116,58 @@ ErrCode OsAccountControlFileManager::GetSerialNumber(int64_t &serialNumber)
     return ERR_OK;
 }
 
-int OsAccountControlFileManager::GetNextLocalId(const std::vector<std::string> &accountIdList)
+int32_t OsAccountControlFileManager::GetNextLocalId(const std::vector<std::string> &accountIdList, int32_t startId)
 {
     do {
-        if (nextLocalId_ > Constants::MAX_USER_ID) {
-            nextLocalId_ = Constants::START_USER_ID;
+        if ((startId <= Constants::START_USER_ID) || (startId > Constants::MAX_USER_ID)) {
+            startId = Constants::START_USER_ID + 1;
         }
-        if (std::find(accountIdList.begin(), accountIdList.end(), std::to_string(nextLocalId_)) ==
+        if (std::find(accountIdList.begin(), accountIdList.end(), std::to_string(startId)) ==
             accountIdList.end()) {
             break;
         }
-        nextLocalId_++;
+        ++startId;
     } while (true);
-    return nextLocalId_;
+    return startId;
 }
 
 ErrCode OsAccountControlFileManager::GetAllowCreateId(int &id)
 {
+    std::lock_guard<std::mutex> lock(operatingIdMutex_);
     Json accountListJson;
     ErrCode result = GetAccountListFromFile(accountListJson);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("GetAllowCreateId get accountList error");
+        ACCOUNT_LOGE("GetAllowCreateId get accountList error.");
         return result;
     }
     auto jsonEnd = accountListJson.end();
     std::vector<std::string> accountIdList;
-    OHOS::AccountSA::GetDataByType<std::vector<std::string>>(
-        accountListJson, jsonEnd, Constants::ACCOUNT_LIST, accountIdList, OHOS::AccountSA::JsonType::ARRAY);
-    std::lock_guard<std::mutex> lock(operatingIdMutex_);
-    id = GetNextLocalId(accountIdList);
-    nextLocalId_++;
-    return ERR_OK;
-}
+    int32_t nextLocalId = -1;
+    if (!GetDataByType<std::vector<std::string>>(accountListJson, jsonEnd,
+        Constants::ACCOUNT_LIST, accountIdList, JsonType::ARRAY)) {
+        ACCOUNT_LOGE("GetAllowCreateId get accountIdList error");
+        return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
+    }
+    if (!GetDataByType<std::int32_t>(accountListJson, jsonEnd,
+        Constants::NEXT_LOCAL_ID, nextLocalId, JsonType::NUMBER)) {
+        ACCOUNT_LOGW("Get next localId failed");
+        int32_t lastLocalId = -1;
+        if (!accountIdList.empty() && StrToInt(accountIdList[accountIdList.size() - 1], lastLocalId)) {
+            nextLocalId = lastLocalId + 1;
+        } else {
+            nextLocalId = Constants::START_USER_ID + 1;
+            ACCOUNT_LOGW("Convert last item in accountIdList to string failed.");
+        }
+    }
 
+    id = GetNextLocalId(accountIdList, nextLocalId);
+    accountListJson[Constants::NEXT_LOCAL_ID] = id + 1;
+    result = SaveAccountListToFileAndDataBase(accountListJson);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("GetAllowCreateId save accountListJson error, errCode %{public}d.", result);
+    }
+    return result;
+}
 
 ErrCode OsAccountControlFileManager::GetAccountListFromFile(Json &accountListJson)
 {
