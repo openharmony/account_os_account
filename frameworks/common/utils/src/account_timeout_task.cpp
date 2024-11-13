@@ -17,7 +17,7 @@
 
 namespace OHOS {
 namespace AccountSA {
-bool AccountTimeoutTask::RunTask(std::string taskName, std::function<void()> callback, int32_t timeout)
+bool AccountTimeoutTask::RunTask(std::string taskName, const std::function<void()> &callback, int32_t timeout)
 {
     auto task = [callback, weakPtr = weak_from_this()] {
         callback();
