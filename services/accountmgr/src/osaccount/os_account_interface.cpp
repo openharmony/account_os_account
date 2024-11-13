@@ -331,7 +331,7 @@ ErrCode OsAccountInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountI
     int32_t retryTimes = 0;
     while (retryTimes < MAX_RETRY_TIMES) {
         errCode = InnerSendToStorageAccountCreate(osAccountInfo);
-        if (errCode == ERR_OK) {
+        if (errCode != Constants::E_IPC_ERROR && errCode != Constants::E_IPC_SA_DIED) {
             break;
         }
         ACCOUNT_LOGE("Fail to SendToStorageAccountCreate,id=%{public}d, errCode %{public}d.",
