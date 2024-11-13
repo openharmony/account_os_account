@@ -368,7 +368,7 @@ napi_value Subscribe(napi_env env, napi_callback_info cbInfo);
 
 napi_value Unsubscribe(napi_env env, napi_callback_info cbInfo);
 
-void UvQueueWorkOnAccountsSubNotify(uv_work_t *work, int status);
+std::function<void()> OnAccountsSubNotifyTask(const std::shared_ptr<SubscriberOAWorker> &subscriberOAWorkerData);
 
 void UnsubscribeSync(napi_env env, UnsubscribeCBInfo *unsubscribeCBInfo);
 
