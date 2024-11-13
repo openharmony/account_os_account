@@ -75,6 +75,7 @@ public:
     virtual ErrCode SetDefaultActivatedOsAccount(const int32_t id) = 0;
     virtual ErrCode GetDefaultActivatedOsAccount(int32_t &id) = 0;
     virtual ErrCode UpdateAccountIndex(const OsAccountInfo &osAccountInfo, const bool isDelete) = 0;
+    virtual ErrCode SetNextLocalId(const int32_t &nextLocalId) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
