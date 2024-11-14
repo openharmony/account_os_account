@@ -343,7 +343,7 @@ ErrCode OsAccountInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountI
 }
 
 #ifdef HAS_STORAGE_PART
-static ErrCode PrepareAddUser(sptr<StorageManager::IStorageManager> &proxy, int32_t userId)
+static ErrCode PrepareAddUser(const sptr<StorageManager::IStorageManager> &proxy, int32_t userId)
 {
     ErrCode err = proxy->PrepareAddUser(userId, CRYPTO_FLAG_EL1 | CRYPTO_FLAG_EL2);
     if (err == 0) {
@@ -383,18 +383,20 @@ ErrCode OsAccountInterface::InnerSendToStorageAccountCreate(OsAccountInfo &osAcc
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
     StartTraceAdapter("StorageManager PrepareAddUser");
+
     ErrCode err = PrepareAddUser(proxy, localId);
     if (err == ERR_OK) {
         FinishTraceAdapter();
         return ERR_OK;
     }
-    ACCOUNT_LOGI("PrepareAddUser Failed, start check and clear accounts.");
+
+    ACCOUNT_LOGI("PrepareAddUser Failed, start check and clean accounts.");
     auto &osAccountManager = IInnerOsAccountManager::GetInstance();
     if (osAccountManager.CleanGarbageOsAccounts(localId) <= 0) {
         FinishTraceAdapter();
         return err;
     }
-    ACCOUNT_LOGI("Clean garbage account data, Retry storage PrepareAddUser.");
+    ACCOUNT_LOGI("Clean garbage account data, Retry Storage PrepareAddUser.");
     err = PrepareAddUser(proxy, localId);
     FinishTraceAdapter();
     return err;
