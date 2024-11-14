@@ -364,7 +364,7 @@ ErrCode MockAppAccountStub::SetAuthenticatorProperties(const std::string &owner,
 }
 
 ErrCode MockAppAccountStub::SubscribeAppAccount(
-    const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener)
+    AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener)
 {
     ACCOUNT_LOGI("mock enter");
 
