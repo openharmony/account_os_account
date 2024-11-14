@@ -665,7 +665,7 @@ ErrCode AppAccountManagerService::SetAuthenticatorProperties(const std::string &
 }
 
 ErrCode AppAccountManagerService::SubscribeAppAccount(
-    const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener)
+    AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener)
 {
     int32_t callingUid = -1;
     std::string bundleName;
@@ -683,16 +683,22 @@ ErrCode AppAccountManagerService::SubscribeAppAccount(
     }
 
     int32_t userId = callingUid / UID_TRANSFORM_DIVISOR;
+    std::vector<std::string> existOwners;
     for (auto owner : owners) {
         AppExecFwk::BundleInfo bundleInfo;
         bool bundleRet = BundleManagerAdapter::GetInstance()->GetBundleInfo(owner,
             AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
         if (!bundleRet) {
-            ACCOUNT_LOGE("failed to get bundle info");
-            return ERR_OK;
+            ACCOUNT_LOGE("Failed to get bundle info, name=%{public}s", owner.c_str());
+            continue;
         }
+        existOwners.push_back(owner);
     }
-
+    if (existOwners.size() == 0) {
+        ACCOUNT_LOGI("ExistOwners is empty.");
+        return ERR_OK;
+    }
+    subscribeInfo.SetOwners(existOwners);
     return innerManager_->SubscribeAppAccount(subscribeInfo, eventListener, callingUid, bundleName, appIndex);
 }
 
