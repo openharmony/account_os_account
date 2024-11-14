@@ -581,7 +581,7 @@ void NapiGetInfoCallback::OnCredentialInfo(int32_t result, const std::vector<Acc
     context->errCode = result;
     context->credInfo = infoList;
     callbackRef_ = nullptr;
-    auto task = [context]() {
+    auto task = [context = std::move(context)]() {
         ACCOUNT_LOGI("Enter NapiGetInfoCallback::OnCredentialInfo task");
         napi_handle_scope scope = nullptr;
         napi_open_handle_scope(context->env, &scope);
@@ -742,7 +742,7 @@ void NapiGetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attr
     context->result = result;
     context->request = request_;
     callbackRef_ = nullptr;
-    auto task = [context]() {
+    auto task = [context = std::move(context)]() {
         ACCOUNT_LOGI("Enter NapiGetPropCallback::OnResult task");
         napi_handle_scope scope = nullptr;
         napi_open_handle_scope(context->env, &scope);
@@ -851,7 +851,7 @@ void NapiSetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attr
     context->errCode = ERR_OK;
     context->result = result;
     callbackRef_ = nullptr;
-    auto task = [context]() {
+    auto task = [context = std::move(context)]() {
         ACCOUNT_LOGI("Enter NapiSetPropCallback::OnResult task");
         napi_handle_scope scope = nullptr;
         napi_open_handle_scope(context->env, &scope);
