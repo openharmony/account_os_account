@@ -160,6 +160,38 @@ ErrCode AccountProxy::SetOhosAccountInfoByUserId(
     return result;
 }
 
+ErrCode AccountProxy::QueryDistributedVirtualDeviceId(std::string &dvid)
+{
+    dvid = "";
+    MessageParcel data;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
+    MessageParcel reply;
+    ErrCode code = SendRequest(AccountMgrInterfaceCode::QUERY_DISTRIBUTE_VIRTUAL_DEVICE_ID, data, reply);
+    if (code != ERR_OK) {
+        ACCOUNT_LOGE("Failed to send request, code %{public}d.", code);
+        return code;
+    }
+    int32_t result = ERR_OK;
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("Failed to read result");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Failed to query dvid, result %{public}d.", result);
+        return result;
+    }
+    if (!reply.ReadString(dvid)) {
+        ACCOUNT_LOGE("Failed to read dvid");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return ERR_OK;
+}
+
 ErrCode AccountProxy::QueryOhosAccountInfo(OhosAccountInfo &accountInfo)
 {
     MessageParcel data;

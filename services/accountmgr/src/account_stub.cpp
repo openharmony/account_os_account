@@ -75,6 +75,10 @@ AccountStub::AccountStub()
         [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdSetOhosAccountInfoByUserId(data, reply); };
     stubFuncMap_[AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_INFO] =
         [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdQueryOhosAccountInfo(data, reply); };
+    stubFuncMap_[AccountMgrInterfaceCode::QUERY_DISTRIBUTE_VIRTUAL_DEVICE_ID] =
+        [this] (MessageParcel &data, MessageParcel &reply) {
+            return this->CmdQueryDistributedVirtualDeviceId(data, reply);
+        };
     stubFuncMap_[AccountMgrInterfaceCode::GET_OHOS_ACCOUNT_INFO] =
         [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdGetOhosAccountInfo(data, reply); };
     stubFuncMap_[AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_INFO_BY_USER_ID] =
@@ -213,6 +217,25 @@ ErrCode AccountStub::CmdSetOhosAccountInfoByUserId(MessageParcel &data, MessageP
     return InnerSetOhosAccountInfo(userId, data, reply);
 }
 
+ErrCode AccountStub::InnerQueryDistributedVirtualDeviceId(MessageParcel &data, MessageParcel &reply)
+{
+    std::string dvid = "";
+    ErrCode result = QueryDistributedVirtualDeviceId(dvid);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Failed to write reply, result=%{public}d.", result);
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get dvid");
+        return result;
+    }
+    if (!reply.WriteString(dvid)) {
+        ACCOUNT_LOGE("Failed to write dvid");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return result;
+}
+
 ErrCode AccountStub::InnerQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
     OhosAccountInfo info;
@@ -272,6 +295,16 @@ ErrCode AccountStub::InnerGetOhosAccountInfo(MessageParcel &data, MessageParcel 
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_OK;
+}
+
+ErrCode AccountStub::CmdQueryDistributedVirtualDeviceId(MessageParcel &data, MessageParcel &reply)
+{
+    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS) &&
+        !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC)) {
+        ACCOUNT_LOGE("Check permission failed");
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    return InnerQueryDistributedVirtualDeviceId(data, reply);
 }
 
 ErrCode AccountStub::CmdQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
