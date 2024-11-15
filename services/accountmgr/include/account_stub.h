@@ -44,6 +44,8 @@ public:
     ErrCode CmdGetOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
     ErrCode CmdGetOhosAccountInfoByUserId(MessageParcel &data, MessageParcel &reply);
     ErrCode InnerQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
+    ErrCode InnerQueryDistributedVirtualDeviceId(MessageParcel &data, MessageParcel &reply);
+    ErrCode CmdQueryDistributedVirtualDeviceId(MessageParcel &data, MessageParcel &reply);
     ErrCode CmdQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
 
     ErrCode CmdQueryOhosAccountInfoByUserId(MessageParcel &data, MessageParcel &reply);

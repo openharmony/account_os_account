@@ -475,15 +475,9 @@ ErrCode OsAccount::SetOsAccountProfilePhoto(const int id, const std::string &pho
     return proxy->SetOsAccountProfilePhoto(id, photo);
 }
 
-ErrCode OsAccount::GetDistributedVirtualDeviceId(std::string &deviceId)
+ErrCode OsAccount::GetDistributedVirtualDeviceId(std::string &dvid)
 {
-    deviceId = "";
-    OhosAccountInfo accountInfo;
-    ErrCode result = OhosAccountKitsImpl::GetInstance().QueryOhosAccountInfo(accountInfo);
-    if (result == ERR_OK && accountInfo.uid_ != DEFAULT_OHOS_ACCOUNT_UID) {
-        deviceId = accountInfo.uid_;
-    }
-    return result;
+    return OhosAccountKitsImpl::GetInstance().QueryDistributedVirtualDeviceId(dvid);
 }
 
 ErrCode OsAccount::ActivateOsAccount(const int id)
