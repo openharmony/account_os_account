@@ -267,7 +267,7 @@ void AuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Att
 
 void IDMCallbackDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
-    ACCOUNT_LOGI("Remote callback died, cancel cred");
+    ACCOUNT_LOGW("Remote callback died, cancel cred");
     if (userId_ > 0) {
         UserIDMClient::GetInstance().Cancel(userId_);
     }
@@ -315,7 +315,7 @@ void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
     innerCallback_->AsObject()->RemoveDeathRecipient(deathRecipient_);
     auto &innerIamMgr = InnerAccountIAMManager::GetInstance();
     if ((result == 0) && (credInfo_.authType == AuthType::PIN)) {
-        InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_ADD_CRED);
+        innerIamMgr.SetState(userId_, AFTER_ADD_CRED);
         uint64_t credentialId = 0;
         extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId);
         (void)IInnerOsAccountManager::GetInstance().SetOsAccountCredentialId(userId_, credentialId);
@@ -397,6 +397,7 @@ void UpdateCredCallback::InnerOnResult(int32_t result, const Attributes &extraIn
         ACCOUNT_LOGE("UpdateCredCallback fail code=%{public}d, authType=%{public}d", result, credInfo_.authType);
         return innerCallback_->OnResult(result, extraInfo);
     }
+    innerIamMgr.SetState(userId_, AFTER_OPEN_SESSION);
     UpdateCredInfo updateCredInfo(extraInfo);
     if (updateCredInfo.oldSecret.empty()) {
         ErrCode code = innerIamMgr.UpdateUserAuthWithRecoveryKey(credInfo_.token,
@@ -575,12 +576,12 @@ void CommitCredUpdateCallback::InnerOnResult(int32_t result, const Attributes &e
     }
     Attributes extraInfoResult;
     extraInfoResult.SetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, extraUpdateInfo_.credentialId);
+    innerIamMgr.SetState(userId_, AFTER_UPDATE_CRED);
     innerCallback_->OnResult(result, extraInfoResult);
     ErrCode updateRet = innerIamMgr.UpdateStorageKeyContext(userId_);
     if (updateRet != ERR_OK) {
         ReportOsAccountOperationFail(userId_, "commitCredUpdate", updateRet, "Failed to update key context");
     }
-    innerIamMgr.SetState(userId_, AFTER_OPEN_SESSION);
 }
 
 void CommitCredUpdateCallback::OnResult(int32_t result, const Attributes &extraInfo)
@@ -762,7 +763,8 @@ void GetDomainAuthStatusInfoCallback::OnResult(int32_t result, Parcel &parcel)
     Attributes attributes;
     std::shared_ptr<AuthStatusInfo> infoPtr(AuthStatusInfo::Unmarshalling(parcel));
     if (infoPtr == nullptr) {
-        innerCallback_->OnResult(result, attributes);
+        ACCOUNT_LOGE("Unmarshalling parcel to auth status info failed.");
+        innerCallback_->OnResult(ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR, attributes);
         return;
     }
     attributes.SetInt32Value(Attributes::ATTR_PIN_SUB_TYPE, static_cast<int32_t>(IAMAuthSubType::DOMAIN_MIXED));

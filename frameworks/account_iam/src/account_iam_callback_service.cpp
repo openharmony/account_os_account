@@ -109,12 +109,13 @@ void DomainAuthCallbackAdapter::OnResult(const int32_t errCode, Parcel &parcel)
         ACCOUNT_LOGE("callback is nullptr");
         return;
     }
+    Attributes attr;
     std::shared_ptr<DomainAuthResult> authResult(DomainAuthResult::Unmarshalling(parcel));
     if (authResult == nullptr) {
         ACCOUNT_LOGE("authResult is nullptr");
+        callback_->OnResult(ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR, attr);
         return;
     }
-    Attributes attr;
     attr.SetUint8ArrayValue(Attributes::AttributeKey::ATTR_SIGNATURE, (*authResult).token);
     attr.SetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, (*authResult).authStatusInfo.remainingTimes);
     attr.SetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, (*authResult).authStatusInfo.freezingTime);
@@ -138,6 +139,7 @@ void DomainCredentialRecipient::OnSetData(int32_t authSubType, std::vector<uint8
         AccountSA::DomainAuthResult emptyResult;
         if (!emptyResult.Marshalling(emptyParcel)) {
             ACCOUNT_LOGE("authResult Marshalling failed");
+            callback->OnResult(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyParcel);
             return;
         }
         callback->OnResult(errCode, emptyParcel);
