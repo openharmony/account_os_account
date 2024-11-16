@@ -362,6 +362,7 @@ ErrCode DomainAccountClient::GetAccountServerConfig(const DomainAccountInfo &inf
 
 void DomainAccountClient::RestoreListenerRecords()
 {
+    std::lock_guard<std::mutex> lock(recordMutex_);
     if (listenerManager_ == nullptr) {
         ACCOUNT_LOGI("listenerManager_ is nullptr");
         return;

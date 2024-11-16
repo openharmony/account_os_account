@@ -35,7 +35,7 @@ class InnerDomainAccountManager {
 public:
     static InnerDomainAccountManager &GetInstance();
     ErrCode RegisterPlugin(const sptr<IDomainAccountPlugin> &plugin);
-    void UnregisterPlugin();
+    ErrCode UnregisterPlugin();
     ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
         const sptr<IDomainAccountCallback> &callback);
     ErrCode AuthUser(int32_t userId, const std::vector<uint8_t> &password,

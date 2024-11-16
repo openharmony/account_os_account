@@ -119,10 +119,15 @@ InnerDomainAuthCallback::~InnerDomainAuthCallback()
 
 void InnerDomainAuthCallback::OnResult(const int32_t errCode, Parcel &parcel)
 {
+    if (callback_ == nullptr) {
+        ACCOUNT_LOGI("callback_ is nullptr");
+        return;
+    }
+    Parcel resultParcel;
     std::shared_ptr<DomainAuthResult> authResult(DomainAuthResult::Unmarshalling(parcel));
     if (authResult == nullptr) {
         ACCOUNT_LOGE("authResult is nullptr");
-        return;
+        return callback_->OnResult(ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR, resultParcel);
     }
     if ((errCode == ERR_OK) && (userId_ != 0)) {
         InnerDomainAccountManager::GetInstance().InsertTokenToMap(userId_, (*authResult).token);
@@ -137,16 +142,12 @@ void InnerDomainAuthCallback::OnResult(const int32_t errCode, Parcel &parcel)
     }
     (void)memset_s(authResult->token.data(), authResult->token.size(), 0, authResult->token.size());
     authResult->token.clear();
-    Parcel resultParcel;
+
     if (!(*authResult).Marshalling(resultParcel)) {
         ACCOUNT_LOGE("authResult Marshalling failed");
-        return;
+        return callback_->OnResult(ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR, resultParcel);
     }
     AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, errCode);
-    if (callback_ == nullptr) {
-        ACCOUNT_LOGI("callback_ is nullptr");
-        return;
-    }
     return callback_->OnResult(errCode, resultParcel);
 }
 
@@ -172,15 +173,21 @@ ErrCode InnerDomainAccountManager::RegisterPlugin(const sptr<IDomainAccountPlugi
     return ERR_OK;
 }
 
-void InnerDomainAccountManager::UnregisterPlugin()
+ErrCode InnerDomainAccountManager::UnregisterPlugin()
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    if (callingUid_ != IPCSkeleton::GetCallingUid()) {
+        ACCOUNT_LOGE("Failed to check callingUid, register callingUid=%{public}d, unregister callingUid=%{public}d.",
+            callingUid_, IPCSkeleton::GetCallingUid());
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
     if ((plugin_ != nullptr) && (plugin_->AsObject() != nullptr)) {
         plugin_->AsObject()->RemoveDeathRecipient(deathRecipient_);
     }
     plugin_ = nullptr;
     callingUid_ = -1;
     deathRecipient_ = nullptr;
+    return ERR_OK;
 }
 
 ErrCode InnerDomainAccountManager::StartAuth(const sptr<IDomainAccountPlugin> &plugin, const DomainAccountInfo &info,
@@ -1789,7 +1796,7 @@ ErrCode InnerDomainAccountManager::UpdateAccountInfo(
             }
         }
     }
-    
+
     // update local info
     return IInnerOsAccountManager::GetInstance().UpdateAccountInfoByDomainAccountInfo(
         userId, newDomainAccountInfo);
