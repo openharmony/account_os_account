@@ -56,6 +56,16 @@ struct JsIAMCallback {
     bool hasOnAcquireInfo = false;
 };
 
+struct CommonCallbackInfo {
+    CommonCallbackInfo(napi_env env) : env(env) {}
+    napi_env env;
+    napi_ref callbackRef = nullptr;
+    napi_deferred deferred = nullptr;
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    int32_t errCode;
+};
+
 #ifdef HAS_USER_AUTH_PART
 struct IDMCallbackParam : public CommonAsyncContext {
     explicit IDMCallbackParam(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
@@ -136,6 +146,7 @@ struct GetAuthInfoContext : public CommonAsyncContext {
     bool parseHasAccountId = false;
     AccountSA::AuthType authType {0};
     std::vector<AccountSA::CredentialInfo> credInfo;
+    std::shared_ptr<NapiCallbackRef> callback;
 };
 
 struct GetEnrolledIdContext : public CommonAsyncContext {
@@ -158,6 +169,7 @@ struct GetPropertyContext : public CommonAsyncContext {
     int32_t accountId = -1;
     bool parseHasAccountId = false;
     int32_t nextPhaseFreezingTime = -1;
+    std::shared_ptr<NapiCallbackRef> callback;
 };
 
 struct SetPropertyContext : public CommonAsyncContext {
@@ -165,6 +177,7 @@ struct SetPropertyContext : public CommonAsyncContext {
     AccountSA::SetPropertyRequest request;
     int32_t result = 0;
     int32_t accountId = -1;
+    std::shared_ptr<NapiCallbackRef> callback;
 };
 
 class NapiIDMCallback : public AccountSA::IDMCallback {
@@ -187,10 +200,13 @@ public:
     virtual ~NapiGetInfoCallback();
 
     void OnCredentialInfo(int32_t result, const std::vector<AccountSA::CredentialInfo> &infoList) override;
+
 private:
     napi_env env_;
-    napi_ref callbackRef_;
+    std::shared_ptr<NapiCallbackRef> callback_;
     napi_deferred deferred_;
+    std::mutex mutex_;
+    bool onResultCalled_ = false;
 };
 
 class NapiGetEnrolledIdCallback : public AccountSA::GetEnrolledIdCallback {
@@ -228,12 +244,14 @@ public:
     virtual ~NapiGetPropCallback();
     void GetContextParams(const UserIam::UserAuth::Attributes &extraInfo, GetPropertyContext &context);
     void OnResult(int32_t result, const AccountSA::Attributes &extraInfo) override;
+
 private:
     napi_env env_ = nullptr;
-    napi_ref callbackRef_ = nullptr;
+    std::shared_ptr<NapiCallbackRef> callback_;
     napi_deferred deferred_ = nullptr;
     AccountSA::GetPropertyRequest request_;
     std::mutex mutex_;
+    bool onResultCalled_ = false;
 };
 
 class NapiSetPropCallback : public AccountSA::GetSetPropCallback {
@@ -245,9 +263,10 @@ public:
 
 private:
     napi_env env_ = nullptr;
-    napi_ref callbackRef_ = nullptr;
+    std::shared_ptr<NapiCallbackRef> callback_;
     napi_deferred deferred_ = nullptr;
     std::mutex mutex_;
+    bool onResultCalled_ = false;
 };
 #endif  // HAS_USER_AUTH_PART
 
@@ -274,6 +293,7 @@ private:
 };
 #endif  // HAS_PIN_AUTH_PART
 
+void CallbackAsyncOrPromise(const CommonCallbackInfo &callbackInfo);
 void CallbackAsyncOrPromise(napi_env env, CommonAsyncContext *context, napi_value errJs, napi_value dataJs);
 napi_value CreateErrorObject(napi_env env, int32_t code);
 napi_status ParseUInt32Array(napi_env env, napi_value value, std::vector<uint32_t> &data);
