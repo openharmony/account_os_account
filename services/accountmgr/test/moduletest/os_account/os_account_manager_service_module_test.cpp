@@ -982,7 +982,13 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest054
     OsAccountInfo osAccountInfoTwo;
     EXPECT_EQ(osAccountManagerService_->QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo), ERR_OK);
     EXPECT_EQ(isVerified, osAccountInfoTwo.GetIsVerified());
-    EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    ErrCode ret = osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId());
+    if (ret == ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR) {
+        sleep(1);
+        EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    } else {
+        EXPECT_EQ(ret, ERR_OK);
+    }
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
