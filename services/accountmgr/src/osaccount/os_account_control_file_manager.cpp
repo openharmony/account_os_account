@@ -525,17 +525,15 @@ ErrCode OsAccountControlFileManager::GetOsAccountInfoById(const int id, OsAccoun
 {
     std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(id) +
                        Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
-    ErrCode err = ERR_ACCOUNT_COMMON_FILE_READ_FAILED;
-    if (!accountFileOperator_->IsExistFile(path)) {
-        if (errno == ENOENT) {
-            err = ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
-        }
-        ACCOUNT_LOGE("file %{public}s does not exist err", path.c_str());
+    ErrCode err = accountFileOperator_->CheckFileExistence(path);
+    if (err != ERR_OK) {
+        ACCOUNT_LOGE("file %{public}s does not exist err, errcode=%{public}d", path.c_str(), err);
         if (GetOsAccountFromDatabase("", id, osAccountInfo) == ERR_OK) {
             InsertOsAccount(osAccountInfo);
             return ERR_OK;
         }
-        return err;
+        return err == ERR_ACCOUNT_COMMON_FILE_NOT_EXIST ?
+            ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR : ERR_ACCOUNT_COMMON_FILE_READ_FAILED;
     }
     std::string accountInfoStr;
     if (accountFileOperator_->GetFileContentByPath(path, accountInfoStr) != ERR_OK) {
