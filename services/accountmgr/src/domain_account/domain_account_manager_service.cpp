@@ -39,8 +39,7 @@ ErrCode DomainAccountManagerService::RegisterPlugin(const sptr<IDomainAccountPlu
 
 ErrCode DomainAccountManagerService::UnregisterPlugin()
 {
-    InnerDomainAccountManager::GetInstance().UnregisterPlugin();
-    return ERR_OK;
+    return InnerDomainAccountManager::GetInstance().UnregisterPlugin();
 }
 
 ErrCode DomainAccountManagerService::HasDomainAccount(
