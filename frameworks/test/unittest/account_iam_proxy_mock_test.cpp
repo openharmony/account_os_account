@@ -76,6 +76,15 @@ public:
     int32_t result_;
 };
 
+class GetCredCallbackMockTest final : public AccountSA::GetCredInfoCallback {
+public:
+    void  OnCredentialInfo(int32_t result, const std::vector<CredentialInfo> &infoList)
+    {
+        result_ = result;
+    }
+    int32_t result_;
+};
+
 class PreRemoteAuthCallbackMockTest final : public AccountSA::PreRemoteAuthCallback {
 public:
     void OnResult(int32_t result) override
@@ -182,14 +191,27 @@ HWTEST_F(AccountIAMProxyMockTest, AccountIAMClient_DelUser_0100, TestSize.Level0
 
 /**
  * @tc.name: AccountIAMClient_GetCredentialInfo_0100
- * @tc.desc: Test func with proxy is nullptr.
+ * @tc.desc: Test func with callback is nullptr.
  * @tc.type: FUNC
- * @tc.require: issueI5N90O
+ * @tc.require:
  */
 HWTEST_F(AccountIAMProxyMockTest, AccountIAMClient_GetCredentialInfo_0100, TestSize.Level0)
 {
-    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_PROXY,
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_NULL_PTR_ERROR,
         AccountIAMClient::GetInstance().GetCredentialInfo(TEST_USER_ID, AuthType::PIN, nullptr));
+}
+
+/**
+ * @tc.name: AccountIAMClient_GetCredentialInfo_0200
+ * @tc.desc: Test func with proxy is nullptr.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMProxyMockTest, AccountIAMClient_GetCredentialInfo_0200, TestSize.Level0)
+{
+    std::shared_ptr<GetCredCallbackMockTest> testCallbcak = std::make_shared<GetCredCallbackMockTest>();
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_PROXY,
+        AccountIAMClient::GetInstance().GetCredentialInfo(TEST_USER_ID, AuthType::PIN, testCallbcak));
 }
 
 /**
