@@ -73,17 +73,17 @@ std::string GetAccountEventStr(const std::map<std::string, std::string> &account
     return defaultValue;
 }
 
-bool GetCallerBundleName(std::string &bundleName)
+bool GetCallerBundleName(std::string &bundleName, bool &isSystemApp)
 {
     uint64_t fullTokenId = IPCSkeleton::GetCallingFullTokenID();
     Security::AccessToken::AccessTokenID tokenId = fullTokenId & TOKEN_ID_LOWMASK;
     Security::AccessToken::ATokenTypeEnum tokenType = Security::AccessToken::AccessTokenKit::GetTokenType(tokenId);
-    if ((tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_HAP) &&
-        (!Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId))) {
+    isSystemApp = Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId);
+    if (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_HAP) {
         Security::AccessToken::HapTokenInfo hapTokenInfo;
         int result = Security::AccessToken::AccessTokenKit::GetHapTokenInfo(tokenId, hapTokenInfo);
         if (result) {
-            ACCOUNT_LOGE("failed to get hap token info, result = %{public}d", result);
+            ACCOUNT_LOGE("Failed to get hap token info, result = %{public}d", result);
             return false;
         }
         bundleName = hapTokenInfo.bundleName;
@@ -112,26 +112,8 @@ std::string ReturnOhosUdidWithSha256(const std::string &uid)
     return ohosUidStr;
 }
 
-std::string GenerateOhosUdidWithSha256(const std::string &name, const std::string &uid)
+std::string GenerateDVID(const std::string &bundleName, const std::string &uid)
 {
-    if (name.empty() || name.length() > MAX_NAME_LENGTH) {
-        ACCOUNT_LOGE("input name empty or too long, length %{public}zu", name.length());
-        return std::string("");
-    }
-
-    if (uid.empty() || uid.length() > MAX_UID_LENGTH) {
-        ACCOUNT_LOGE("input uid empty or too long, length %{public}zu", uid.length());
-        return std::string("");
-    }
-
-    std::string bundleName = "";
-    if (!GetCallerBundleName(bundleName)) {
-        ACCOUNT_LOGE("GetCallerBundleName failed");
-        return std::string("");
-    }
-    if (bundleName.empty()) {
-        return ReturnOhosUdidWithSha256(uid);
-    }
     unsigned char newId[OUTPUT_LENGTH_IN_BYTES + 1] = {};
     mbedtls_md_context_t md_context;
     mbedtls_md_init(&md_context);
@@ -159,6 +141,29 @@ std::string GenerateOhosUdidWithSha256(const std::string &name, const std::strin
         ohosUidStr.append(DexToHexString(newId[i], true));
     }
     return ohosUidStr;
+}
+
+std::string GenerateOhosUdidWithSha256(const std::string &name, const std::string &uid)
+{
+    if (name.empty() || name.length() > MAX_NAME_LENGTH) {
+        ACCOUNT_LOGE("Input name empty or too long, length %{public}zu", name.length());
+        return std::string("");
+    }
+
+    if (uid.empty() || uid.length() > MAX_UID_LENGTH) {
+        ACCOUNT_LOGE("Input uid empty or too long, length %{public}zu", uid.length());
+        return std::string("");
+    }
+
+    std::string bundleName = "";
+    bool isSystemApp = false;
+    if (!GetCallerBundleName(bundleName, isSystemApp) && !isSystemApp) {
+        return std::string("");
+    }
+    if (isSystemApp || bundleName.empty()) {
+        return ReturnOhosUdidWithSha256(uid);
+    }
+    return GenerateDVID(bundleName, uid);
 }
 }
 
@@ -242,6 +247,27 @@ AccountInfo OhosAccountManager::GetCurrentOhosAccountInfo()
         currOhosAccountInfo.clear();
     }
     return currOhosAccountInfo;
+}
+
+ErrCode OhosAccountManager::QueryDistributedVirtualDeviceId(std::string &dvid)
+{
+    int32_t localId = AccountMgrService::GetInstance().GetCallingUserID();
+    AccountInfo accountInfo;
+    ErrCode errCode = GetAccountInfoByUserId(localId, accountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Get ohos account info failed, errcode=%{public}d, localId=%{public}d.", errCode, localId);
+        return errCode;
+    }
+    OhosAccountInfo ohosAccountInfo = accountInfo.ohosAccountInfo_;
+    if (ohosAccountInfo.uid_ == DEFAULT_OHOS_ACCOUNT_UID) {
+        return ERR_OK;
+    }
+    std::string bundleName = "";
+    bool isSystemApp = false;
+    GetCallerBundleName(bundleName, isSystemApp);
+
+    dvid = GenerateDVID(bundleName, ohosAccountInfo.GetRawUid());
+    return ERR_OK;
 }
 
 ErrCode OhosAccountManager::GetAccountInfoByUserId(std::int32_t userId, AccountInfo &info)

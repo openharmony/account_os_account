@@ -35,6 +35,7 @@ public:
         const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr) override;
     std::int32_t SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr) override;
     ErrCode QueryOhosAccountInfo(OhosAccountInfo &accountInfo) override;
+    ErrCode QueryDistributedVirtualDeviceId(std::string &dvid) override;
     ErrCode GetOhosAccountInfo(OhosAccountInfo &ohosAccountInfo) override;
     ErrCode GetOhosAccountInfoByUserId(std::int32_t userId, OhosAccountInfo &ohosAccountInfo) override;
     ErrCode QueryOhosAccountInfoByUserId(std::int32_t userId, OhosAccountInfo &info) override;
