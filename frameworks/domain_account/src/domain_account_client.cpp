@@ -218,7 +218,7 @@ void DomainAccountClient::ResetDomainAccountProxy(const wptr<IRemoteObject>& rem
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (proxy_ == nullptr) {
-        ACCOUNT_LOGD("proxy is nullptr");
+        ACCOUNT_LOGE("Proxy is nullptr");
         return;
     }
     auto serviceRemote = proxy_->AsObject();

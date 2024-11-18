@@ -202,11 +202,11 @@ napi_status ParseAddCredInfo(napi_env env, napi_value value, IDMContext &context
     napi_value result = nullptr;
     napi_get_named_property(env, value, "credType", &result);
     int32_t credType = -1;
-    napi_get_value_int32(env, result, &credType);
+    NAPI_CALL_BASE(env, napi_get_value_int32(env, result, &credType), napi_invalid_arg);
     context.addCredInfo.authType = static_cast<AuthType>(credType);
     napi_get_named_property(env, value, "credSubType", &result);
     int32_t credSubType = -1;
-    napi_get_value_int32(env, result, &credSubType);
+    NAPI_CALL_BASE(env, napi_get_value_int32(env, result, &credSubType), napi_invalid_arg);
     context.addCredInfo.pinType = static_cast<PinSubType>(credSubType);
     napi_get_named_property(env, value, "token", &result);
     if (ParseUint8TypedArrayToVector(env, result, context.addCredInfo.token) != napi_ok) {

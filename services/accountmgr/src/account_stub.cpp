@@ -39,8 +39,6 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const std::string OHOS_ACCOUNT_QUIT_TIPS_TITLE = "";
-const std::string OHOS_ACCOUNT_QUIT_TIPS_CONTENT = "";
 const std::string PERMISSION_MANAGE_USERS = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
 const std::string PERMISSION_GET_LOCAL_ACCOUNTS = "ohos.permission.GET_LOCAL_ACCOUNTS";
 const std::string PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS = "ohos.permission.MANAGE_DISTRIBUTED_ACCOUNTS";
@@ -572,7 +570,6 @@ bool AccountStub::HasAccountRequestPermission(const std::string &permissionName)
     }
 
     ReportPermissionFail(uid, IPCSkeleton::GetCallingRealPid(), permissionName);
-    ACCOUNT_LOGE("permission %{public}s denied!", permissionName.c_str());
     return false;
 }
 }  // namespace AccountSA

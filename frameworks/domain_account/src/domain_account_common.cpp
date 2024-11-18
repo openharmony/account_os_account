@@ -75,7 +75,7 @@ bool DomainAccountInfo::ReadFromParcel(Parcel &parcel)
 bool DomainAccountInfo::Marshalling(Parcel &parcel) const
 {
     if (!parcel.WriteString(accountName_)) {
-        ACCOUNT_LOGE("failed to read write account name");
+        ACCOUNT_LOGE("Failed to write account name");
         return false;
     }
     if (!parcel.WriteString(domain_)) {
@@ -83,15 +83,15 @@ bool DomainAccountInfo::Marshalling(Parcel &parcel) const
         return false;
     }
     if (!parcel.WriteString(accountId_)) {
-        ACCOUNT_LOGE("failed to read write accountId");
+        ACCOUNT_LOGE("Failed to write accountId");
         return false;
     }
     if (!parcel.WriteBool(isAuthenticated)) {
-        ACCOUNT_LOGE("Failed to read write isAuthenticated.");
+        ACCOUNT_LOGE("Failed to write isAuthenticated.");
         return false;
     }
     if (!parcel.WriteString(serverConfigId_)) {
-        ACCOUNT_LOGE("Failed to read write serverConfigId.");
+        ACCOUNT_LOGE("Failed to write serverConfigId.");
         return false;
     }
     return true;
@@ -139,7 +139,7 @@ bool GetAccessTokenOptions::ReadFromParcel(Parcel &parcel)
 bool GetAccessTokenOptions::Marshalling(Parcel &parcel) const
 {
     if (!parcel.WriteInt32(callingUid_)) {
-        ACCOUNT_LOGE("failed to read write callingUid");
+        ACCOUNT_LOGE("Failed to write callingUid");
         return false;
     }
     if (!parcel.WriteParcelable(&getTokenParams_)) {
@@ -283,7 +283,7 @@ bool AuthStatusInfo::ReadFromParcel(Parcel &parcel)
 bool AuthStatusInfo::Marshalling(Parcel &parcel) const
 {
     if (!parcel.WriteInt32(remainingTimes)) {
-        ACCOUNT_LOGE("failed to read write remainingTimes");
+        ACCOUNT_LOGE("Failed to write remainingTimes");
         return false;
     }
     if (!parcel.WriteInt32(freezingTime)) {
@@ -326,7 +326,7 @@ bool DomainAuthResult::ReadFromParcel(Parcel &parcel)
 bool DomainAuthResult::Marshalling(Parcel &parcel) const
 {
     if (!parcel.WriteUInt8Vector(token)) {
-        ACCOUNT_LOGE("failed to read write token");
+        ACCOUNT_LOGE("Failed to write token");
         return false;
     }
     if (!parcel.WriteParcelable(&authStatusInfo)) {

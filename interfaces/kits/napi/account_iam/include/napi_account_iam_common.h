@@ -63,7 +63,7 @@ struct CommonCallbackInfo {
     napi_deferred deferred = nullptr;
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
-    int32_t errCode;
+    int32_t errCode = 0;
 };
 
 #ifdef HAS_USER_AUTH_PART

@@ -368,7 +368,7 @@ napi_value NapiAccountIAMUserAuth::Auth(napi_env env, napi_callback_info info)
 {
     size_t argc = ARG_SIZE_FIVE;
     napi_value argv[ARG_SIZE_FIVE] = {0};
-    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
     if (argc < ARG_SIZE_FOUR) {
         ACCOUNT_LOGE("the number of parameter is incorrect, expect 4, but got %{public}zu", argc);
         std::string errMsg = "Parameter error. The number of parameters should be at least 4";
@@ -394,7 +394,7 @@ napi_value NapiAccountIAMUserAuth::AuthUser(napi_env env, napi_callback_info inf
 {
     size_t argc = ARG_SIZE_FIVE;
     napi_value argv[ARG_SIZE_FIVE] = {0};
-    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
     AuthContext context;
     if (ParseContextForAuthUser(env, argv, argc, context) == napi_invalid_arg) {
         return nullptr;
@@ -414,7 +414,7 @@ napi_value NapiAccountIAMUserAuth::CancelAuth(napi_env env, napi_callback_info i
 {
     size_t argc = ARG_SIZE_ONE;
     napi_value argv[ARG_SIZE_ONE] = {0};
-    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
     if (argc != ARG_SIZE_ONE) {
         ACCOUNT_LOGE("failed to parse parameters, expect at least one parameter, but got %zu", argc);
         std::string errMsg = "Parameter error. The number of parameters should be at least 1";
