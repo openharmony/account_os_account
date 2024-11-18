@@ -23,7 +23,7 @@ namespace OHOS {
 namespace AccountSA {
 typedef enum {
     INVALID_TYPE = -1,
-    ACTIVED = 0,
+    ACTIVATED = 0,
     ACTIVATING,
     UNLOCKED,
     CREATED,

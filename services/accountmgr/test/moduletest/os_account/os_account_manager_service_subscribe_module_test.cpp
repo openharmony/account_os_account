@@ -187,8 +187,8 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
 {
     ACCOUNT_LOGI("OsAccountManagerServiceSubscribeModuleTest_0001");
     OsAccountSubscribeInfo osAccountSubscribeInfo;
-    osAccountSubscribeInfo.SetOsAccountSubscribeType(OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED);
-    osAccountSubscribeInfo.SetName("subscribeActive");
+    osAccountSubscribeInfo.SetOsAccountSubscribeType(OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATED);
+    osAccountSubscribeInfo.SetName("subscribeActivated");
 
     // make a subscriber
     auto subscriberTestPtr = std::make_shared<OsAccountSubscriberTest>(osAccountSubscribeInfo);
