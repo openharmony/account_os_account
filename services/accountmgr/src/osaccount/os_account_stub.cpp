@@ -42,7 +42,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcCreateOsAccount(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -50,7 +50,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcCreateOsAccountWithShortName(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -58,7 +58,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcCreateOsAccountWithFullInfo(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -66,7 +66,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcUpdateOsAccountWithFullInfo(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -74,7 +74,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcCreateOsAccountForDomain(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -82,7 +82,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcRemoveOsAccount(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -139,7 +139,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcIsMainOsAccount(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -154,7 +154,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcQueryMaxOsAccountNumber(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -162,7 +162,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcQueryMaxLoggedInOsAccountNumber(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -177,7 +177,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcQueryAllCreatedOsAccounts(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -192,7 +192,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcQueryOsAccountById(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -207,7 +207,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcGetOsAccountType(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -215,7 +215,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcGetOsAccountProfilePhoto(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -230,7 +230,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcSetOsAccountName(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -238,7 +238,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcSetOsAccountConstraints(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -246,7 +246,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcSetOsAccountProfilePhoto(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -254,7 +254,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcActivateOsAccount(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -262,7 +262,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcDeactivateOsAccount(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -270,7 +270,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcDeactivateAllOsAccounts(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -285,7 +285,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcSubscribeOsAccount(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -293,7 +293,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcUnsubscribeOsAccount(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -399,7 +399,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcQueryOsAccountConstraintSourceTypes(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -435,7 +435,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcGetOsAccountShortName(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -443,7 +443,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcGetOsAccountName(data, reply); },
-            .isSyetemApi = false,
+            .isSystemApi = false,
         }
     },
     {
@@ -451,7 +451,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcIsOsAccountForeground(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -459,7 +459,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcGetForegroundOsAccountLocalId(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -467,7 +467,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcGetForegroundOsAccounts(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -482,7 +482,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcGetOsAccountShortNameById(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -490,7 +490,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcSetOsAccountToBeRemoved(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
 };
@@ -522,7 +522,7 @@ int OsAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
     auto messageProc = messageProcMap_.find(code);
     if (messageProc != messageProcMap_.end()) {
         auto messageProcFunction = messageProc->second;
-        if (messageProcFunction.isSyetemApi) {
+        if (messageProcFunction.isSystemApi) {
             ErrCode result = AccountPermissionManager::CheckSystemApp();
             if (result != ERR_OK) {
                 ACCOUNT_LOGE("is not system application, result = %{public}u.", result);

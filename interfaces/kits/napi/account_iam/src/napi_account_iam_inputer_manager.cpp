@@ -52,7 +52,7 @@ static bool ParseContextForRegisterInputer(
 {
     size_t argc = ARG_SIZE_TWO;
     napi_value argv[ARG_SIZE_TWO] = {nullptr};
-    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    NAPI_CALL_BASE(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr), false);
     if (argc != ARG_SIZE_TWO) {
         std::string errMsg = "Parameter error. The number of parameters should be at least 2";
         ACCOUNT_LOGE("%{public}s", errMsg.c_str());
@@ -105,7 +105,7 @@ napi_value NapiAccountIAMInputerManager::UnregisterInputer(napi_env env, napi_ca
 {
     size_t argc = ARG_SIZE_ONE;
     napi_value argv[ARG_SIZE_ONE] = {nullptr};
-    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
     if (argc != ARG_SIZE_ONE) {
         std::string errMsg = "Parameter error. The number of parameters should be at least 1";
         ACCOUNT_LOGE("%{public}s", errMsg.c_str());

@@ -68,7 +68,7 @@ void UvQueueWorkOnAppAccountsChanged(uv_work_t *work, int status)
                     return item->subscriber.get() == subscriber;
                 });
             if (isFound) {
-                ACCOUNT_LOGD("app account subscriber has been found.");
+                ACCOUNT_LOGI("App account subscriber has been found.");
                 break;
             }
         }
@@ -390,14 +390,14 @@ std::string GetNamedProperty(napi_env env, napi_value obj)
 void SetNamedProperty(napi_env env, napi_value dstObj, const char *objName, const char *propName)
 {
     napi_value prop = nullptr;
-    napi_create_string_utf8(env, objName, NAPI_AUTO_LENGTH, &prop);
+    NAPI_CALL_RETURN_VOID(env, napi_create_string_utf8(env, objName, NAPI_AUTO_LENGTH, &prop));
     napi_set_named_property(env, dstObj, propName, prop);
 }
 
 void SetNamedProperty(napi_env env, napi_value dstObj, const int32_t objValue, const char *propName)
 {
     napi_value prop = nullptr;
-    napi_create_int32(env, objValue, &prop);
+    NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, objValue, &prop));
     napi_set_named_property(env, dstObj, propName, prop);
 }
 
@@ -448,11 +448,11 @@ void GetOAuthTokenInfoForResult(napi_env env, const std::vector<OAuthTokenInfo> 
         napi_create_object(env, &objOAuthTokenInfo);
 
         napi_value nToken = nullptr;
-        napi_create_string_utf8(env, item.token.c_str(), NAPI_AUTO_LENGTH, &nToken);
+        NAPI_CALL_RETURN_VOID(env, napi_create_string_utf8(env, item.token.c_str(), NAPI_AUTO_LENGTH, &nToken));
         napi_set_named_property(env, objOAuthTokenInfo, "token", nToken);
 
         napi_value nAuthType = nullptr;
-        napi_create_string_utf8(env, item.authType.c_str(), NAPI_AUTO_LENGTH, &nAuthType);
+        NAPI_CALL_RETURN_VOID(env, napi_create_string_utf8(env, item.authType.c_str(), NAPI_AUTO_LENGTH, &nAuthType));
         napi_set_named_property(env, objOAuthTokenInfo, "authType", nAuthType);
 
         napi_set_element(env, result, index, objOAuthTokenInfo);
@@ -465,7 +465,7 @@ void GetOAuthListForResult(napi_env env, const std::set<std::string> &info, napi
     int32_t index = 0;
     for (auto item : info) {
         napi_value nBundleName = nullptr;
-        napi_create_string_utf8(env, item.c_str(), NAPI_AUTO_LENGTH, &nBundleName);
+        NAPI_CALL_RETURN_VOID(env, napi_create_string_utf8(env, item.c_str(), NAPI_AUTO_LENGTH, &nBundleName));
         napi_set_element(env, result, index, nBundleName);
         index++;
     }

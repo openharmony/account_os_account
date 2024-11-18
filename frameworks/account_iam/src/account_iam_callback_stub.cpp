@@ -186,7 +186,7 @@ int GetEnrolledIdCallbackStub::OnRemoteRequest(
     ACCOUNT_LOGD("Received stub message: %{public}d, callingUid: %{public}d, callingPid: %{public}d",
         code, IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingRealPid());
     if (data.ReadInterfaceToken() != GetDescriptor()) {
-        ACCOUNT_LOGE("Check GetCredInfoCallbackStub descriptor failed! code %{public}u.", code);
+        ACCOUNT_LOGE("Check GetEnrolledIdCallbackStub descriptor failed! code %{public}u.", code);
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
     }
     switch (code) {
