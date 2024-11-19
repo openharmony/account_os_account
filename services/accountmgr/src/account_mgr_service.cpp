@@ -126,12 +126,12 @@ ErrCode AccountMgrService::QueryDistributedVirtualDeviceId(std::string &dvid)
 
 ErrCode AccountMgrService::QueryOhosAccountInfo(OhosAccountInfo &accountInfo)
 {
-    return QueryOhosAccountInfoByUserId(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR, accountInfo);
+    return QueryOhosAccountInfoByUserId(GetCallingUserID(), accountInfo);
 }
 
 ErrCode AccountMgrService::GetOhosAccountInfo(OhosAccountInfo &info)
 {
-    return GetOhosAccountInfoByUserId(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR, info);
+    return GetOhosAccountInfoByUserId(GetCallingUserID(), info);
 }
 
 ErrCode AccountMgrService::GetOhosAccountInfoByUserId(int32_t userId, OhosAccountInfo &info)
