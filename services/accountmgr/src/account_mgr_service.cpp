@@ -119,6 +119,11 @@ std::int32_t AccountMgrService::SetOhosAccountInfoByUserId(
     return res;
 }
 
+ErrCode AccountMgrService::QueryDistributedVirtualDeviceId(std::string &dvid)
+{
+    return OhosAccountManager::GetInstance().QueryDistributedVirtualDeviceId(dvid);
+}
+
 ErrCode AccountMgrService::QueryOhosAccountInfo(OhosAccountInfo &accountInfo)
 {
     return QueryOhosAccountInfoByUserId(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR, accountInfo);
