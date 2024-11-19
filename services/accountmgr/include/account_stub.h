@@ -44,6 +44,8 @@ public:
     std::int32_t CmdGetOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdGetOhosAccountInfoByUserId(MessageParcel &data, MessageParcel &reply);
     std::int32_t InnerQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
+    ErrCode InnerQueryDistributedVirtualDeviceId(MessageParcel &data, MessageParcel &reply);
+    ErrCode CmdQueryDistributedVirtualDeviceId(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
 
     std::int32_t CmdQueryOhosAccountInfoByUserId(MessageParcel &data, MessageParcel &reply);

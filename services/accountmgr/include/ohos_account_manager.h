@@ -61,6 +61,13 @@ public:
     ErrCode GetAccountInfoByUserId(std::int32_t userId, AccountInfo &info);
 
     /**
+     * Get ohos account device id.
+     *
+     * @return ohos account device id.
+     */
+    ErrCode QueryDistributedVirtualDeviceId(std::string &dvid);
+
+    /**
      * Subscribe distributed account event by type.
      *
      * @param type event type

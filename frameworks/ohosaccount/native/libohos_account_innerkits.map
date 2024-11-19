@@ -23,6 +23,7 @@
         "OHOS::AccountSA::OhosAccountKitsImpl::GetOsAccountService()";
         "OHOS::AccountSA::OhosAccountKitsImpl::GetAccountIAMService()";
         "OHOS::AccountSA::OhosAccountKitsImpl::QueryOhosAccountInfo(OHOS::AccountSA::OhosAccountInfo&)";
+        "OHOS::AccountSA::OhosAccountKitsImpl::QueryDistributedVirtualDeviceId(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&)";
         "OHOS::AccountSA::WriteOhosAccountInfo(OHOS::MessageParcel&, OHOS::AccountSA::OhosAccountInfo const&)";
         "OHOS::AccountSA::ReadOhosAccountInfo(OHOS::MessageParcel&, OHOS::AccountSA::OhosAccountInfo&)";
         "OHOS::AccountSA::SystemAbilityStatusChangeListener::SystemAbilityStatusChangeListener(std::__h::function<void (int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>)> const&)";

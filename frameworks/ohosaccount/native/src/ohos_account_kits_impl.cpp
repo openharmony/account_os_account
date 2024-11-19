@@ -24,7 +24,7 @@ namespace OHOS {
 namespace AccountSA {
 std::function<void(int32_t, const std::string &)> ohosCallbackFunc()
 {
-    return [](int32_t systemAbilityId, const std::string &deviceId) {
+    return [](int32_t systemAbilityId, const std::string &dvid) {
         if (systemAbilityId == SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN) {
             OhosAccountKitsImpl::GetInstance().RestoreSubscribe();
         }
@@ -143,6 +143,17 @@ std::pair<bool, OhosAccountInfo> OhosAccountKitsImpl::QueryOhosAccountInfo()
     OhosAccountInfo accountInfo;
     ErrCode result = QueryOhosAccountInfo(accountInfo);
     return std::make_pair(result == ERR_OK, accountInfo);
+}
+
+ErrCode OhosAccountKitsImpl::QueryDistributedVirtualDeviceId(std::string &dvid)
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+
+    return accountProxy->QueryDistributedVirtualDeviceId(dvid);
 }
 
 ErrCode OhosAccountKitsImpl::QueryOhosAccountInfo(OhosAccountInfo &accountInfo)
