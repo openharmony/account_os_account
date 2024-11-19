@@ -90,19 +90,31 @@ void BindDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
     Parcel resultParcel;
     if (osAccountInfo_.GetLocalId() != Constants::START_USER_ID) {
         errCode = IInnerOsAccountManager::GetInstance().SendMsgForAccountCreate(osAccountInfo_);
+        if (errCode != ERR_OK) {
+            DomainAccountInfo curDomainInfo;
+            osAccountInfo_.GetDomainInfo(curDomainInfo);
+            (void)InnerDomainAccountManager::GetInstance().OnAccountUnBound(curDomainInfo, nullptr);
+            (void)osAccountControl_->DelOsAccount(osAccountInfo_.GetLocalId());
+        }
         osAccountInfo_.Marshalling(resultParcel);
         return innerCallback_->OnResult(errCode, resultParcel);
     }
-    osAccountControl_->UpdateAccountIndex(osAccountInfo_, false);
-    errCode = osAccountControl_->UpdateOsAccount(osAccountInfo_);
-    if ((osAccountInfo_.GetLocalId() == Constants::START_USER_ID) && (errCode == ERR_OK)) {
-#ifdef HAS_CES_PART
-        AccountEventProvider::EventPublish(
-            EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::START_USER_ID, nullptr);
-#else  // HAS_CES_PART
-        ACCOUNT_LOGI("No common event part! Publish nothing!");
-#endif // HAS_CES_PART
+    errCode = osAccountControl_->UpdateAccountIndex(osAccountInfo_, false);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to update account index.");
+        return innerCallback_->OnResult(errCode, parcel);
     }
+    errCode = osAccountControl_->UpdateOsAccount(osAccountInfo_);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to update osaccount.");
+        return innerCallback_->OnResult(errCode, parcel);
+    }
+#ifdef HAS_CES_PART
+    AccountEventProvider::EventPublish(
+        EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::START_USER_ID, nullptr);
+#else  // HAS_CES_PART
+    ACCOUNT_LOGI("No common event part! Publish nothing!");
+#endif // HAS_CES_PART
     osAccountInfo_.Marshalling(resultParcel);
     innerCallback_->OnResult(errCode, resultParcel);
 }
