@@ -154,6 +154,11 @@ ohos_unittest("os_account_domain_account_callback_test") {
   module_out_path = module_output_path
 
   sources = [
+    "${services_path}/accountmgr/src/domain_account/domain_account_plugin_death_recipient.cpp",
+    "${services_path}/accountmgr/src/domain_account/domain_has_domain_info_callback.cpp",
+    "${services_path}/accountmgr/src/domain_account/inner_domain_account_manager.cpp",
+    "${services_path}/accountmgr/src/domain_account/status_listener_death_recipient.cpp",
+    "${services_path}/accountmgr/src/domain_account/status_listener_manager.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_domain_account_callback.cpp",
     "os_account_domain_account_callback_test.cpp",
   ]
@@ -164,7 +169,9 @@ ohos_unittest("os_account_domain_account_callback_test") {
   ]
 
   deps = [
+    "${account_iam_framework_path}:account_iam_innerkits",
     "${common_path}:libaccount_common",
+    "${domain_account_framework_path}:domain_account_innerkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
   ]
@@ -175,10 +182,16 @@ ohos_unittest("os_account_domain_account_callback_test") {
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "init:libbegetutil",
     "ipc:ipc_single",
     "json:nlohmann_json_static",
     "kv_store:distributeddata_inner",
   ]
+
+  if (has_user_auth_part) {
+    cflags_cc = [ "-DHAS_USER_AUTH_PART" ]
+    external_deps += [ "user_auth_framework:userauth_client" ]
+  }
   part_name = "os_account"
 }
 
