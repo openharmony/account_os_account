@@ -57,7 +57,7 @@ void AccountInfoReport::ReportSecurityInfo(const std::string &user, int32_t id, 
     int64_t eventId = 1011015001; // 1011015001: report event id
     std::string content = TransformIntoJson(userName, id, event, result);
     std::shared_ptr<EventInfo> eventInfo = std::make_shared<EventInfo>(eventId, "1.0", content);
-    NativeDataCollectKit::ReportSecurityInfo(eventInfo);
+    NativeDataCollectKit::ReportSecurityInfoAsync(eventInfo);
 #endif
 }
 } // namespace AccountSA
