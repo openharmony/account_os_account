@@ -1769,7 +1769,7 @@ ErrCode IInnerOsAccountManager::WaitForAnimationReady(int32_t pipeFd)
         ACCOUNT_LOGE("Timeout waiting for message from child process.");
         return ERR_OSACCOUNT_SERVICE_INNER_ANIMATION_TIMEOUT;
     }
-    if (!(fds[0].revents & POLLIN)) {
+    if (!(static_cast<uint16_t>(fds[0].revents) & POLLIN)) {
         ACCOUNT_LOGE("Unexpected event in poll: %{public}d", fds[0].revents);
         return ERR_OSACCOUNT_SERVICE_INNER_ANIMATION_UNEXPECTED_EVENT;
     }
