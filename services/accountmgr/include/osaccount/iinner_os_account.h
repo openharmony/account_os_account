@@ -96,7 +96,6 @@ public:
         const std::vector<std::string> &constraints, const bool enable) = 0;
     virtual ErrCode SetDefaultActivatedOsAccount(const int32_t id) = 0;
     virtual ErrCode GetDefaultActivatedOsAccount(int32_t &id) = 0;
-    virtual ErrCode ValidateShortName(const std::string &shortName) = 0;
     virtual ErrCode GetTypeNumber(const OsAccountType& type, int32_t& typeNumber) = 0;
     virtual ErrCode CheckTypeNumber(const OsAccountType& type) = 0;
     virtual ErrCode IsOsAccountForeground(const int32_t localId, const uint64_t displayId, bool &isForeground) = 0;

@@ -102,7 +102,6 @@ public:
 
     ErrCode SetDefaultActivatedOsAccount(const int32_t id) override;
     ErrCode GetDefaultActivatedOsAccount(int32_t &id) override;
-    ErrCode ValidateShortName(const std::string &shortName) override;
     ErrCode IsOsAccountForeground(const int32_t localId, const uint64_t displayId, bool &isForeground) override;
     ErrCode GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId) override;
     ErrCode GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts) override;
@@ -127,7 +126,6 @@ private:
     IInnerOsAccountManager();
     ~IInnerOsAccountManager() = default;
     DISALLOW_COPY_AND_MOVE(IInnerOsAccountManager);
-    void SetOsAccountControl(std::shared_ptr<IOsAccountControl> ptr);
     void RestartActiveAccount();
     void CreateBaseAdminAccount();
     void CreateBaseStandardAccount();

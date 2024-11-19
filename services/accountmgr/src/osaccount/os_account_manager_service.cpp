@@ -50,6 +50,8 @@ const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION =
     "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION";
 const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
 const std::set<uint32_t> uidWhiteListForCreation { 3057 };
+const std::string SPECIAL_CHARACTER_ARRAY = "<>|\":*?/\\";
+const std::vector<std::string> SHORT_NAME_CANNOT_BE_NAME_ARRAY = {".", ".."};
 
 std::string AnonymizeNameStr(const std::string& nameStr)
 {
@@ -92,6 +94,28 @@ ErrCode OsAccountManagerService::CreateOsAccount(
     return innerManager_.CreateOsAccount(name, type, osAccountInfo);
 }
 
+ErrCode OsAccountManagerService::ValidateShortName(const std::string &shortName)
+{
+    size_t shortNameSize = shortName.size();
+    if (shortNameSize == 0 || shortNameSize > Constants::SHORT_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("CreateOsAccount short name length %{public}zu is invalid!", shortNameSize);
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    if (shortName.find_first_of(SPECIAL_CHARACTER_ARRAY) != std::string::npos) {
+        ACCOUNT_LOGE("CreateOsAccount short name is invalidate, short name is %{public}s !", shortName.c_str());
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    for (size_t i = 0; i < SHORT_NAME_CANNOT_BE_NAME_ARRAY.size(); i++) {
+        if (shortName == SHORT_NAME_CANNOT_BE_NAME_ARRAY[i]) {
+            ACCOUNT_LOGE("CreateOsAccount short name is invalidate, short name is %{public}s !", shortName.c_str());
+            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+        }
+    }
+    return ERR_OK;
+}
+
 ErrCode OsAccountManagerService::CreateOsAccount(const std::string &localName, const std::string &shortName,
     const OsAccountType &type, OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options)
 {
@@ -101,7 +125,7 @@ ErrCode OsAccountManagerService::CreateOsAccount(const std::string &localName, c
     }
 
     if (options.hasShortName) {
-        errCode = innerManager_.ValidateShortName(shortName);
+        errCode = ValidateShortName(shortName);
         if (errCode != ERR_OK) {
             return errCode;
         }
@@ -230,7 +254,7 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(const OsAccountType &t
     }
 
     if (options.hasShortName || (options.shortName != "")) {
-        ErrCode code = innerManager_.ValidateShortName(options.shortName);
+        ErrCode code = ValidateShortName(options.shortName);
         if (code != ERR_OK) {
             ACCOUNT_LOGE("Failed to create os account for domain, shortName=%{public}s is invalid!",
                 options.shortName.c_str());

@@ -912,7 +912,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest008, TestSize
     EXPECT_CALL(*ptr, GetOsAccountIdList(::testing::_))
         .WillRepeatedly(testing::Return(-1));
 
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
     unsigned int count;
     int ret = innerMgrService_->GetCreatedOsAccountsCount(count);
     EXPECT_EQ(ret, -1);
@@ -931,7 +931,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest009, TestSize
         .WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*ptr, GetAllowCreateId(::testing::_))
         .WillRepeatedly(testing::Return(-1));
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
     std::string name;
     OsAccountType type = OsAccountType::GUEST;
     DomainAccountInfo domainInfo1(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
@@ -983,7 +983,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest010, TestSize
 {
     int ret;
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
 
     OsAccountInfo osAccountInfoOne;
 #ifdef BUNDLE_ADAPTER_MOCK
@@ -1039,7 +1039,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest012, TestSize
 {
     int ret;
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
 
     OsAccountInfo osAccountInfoOne;
 
@@ -1089,7 +1089,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest013, TestSize
 {
     int ret;
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
 
     EXPECT_CALL(*ptr, GetOsAccountList(::testing::_))
         .WillRepeatedly(testing::Return(0));
@@ -1166,7 +1166,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest015, TestSize
 HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest017, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
 
     int id = 0;
     std::vector<std::string> constraints;
@@ -1205,7 +1205,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest017, TestSize
 HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest018, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
 
     std::vector<OsAccountInfo> accounts;
 
@@ -1227,7 +1227,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest018, TestSize
 HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest019, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
 
     int id = TEST_USER_ID100;
     OsAccountInfo osAccountInfo;
@@ -1259,7 +1259,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest019, TestSize
 HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest020, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
 
     int id = TEST_USER_ID100;
     OsAccountType type = OsAccountType::GUEST;
@@ -1280,7 +1280,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest020, TestSize
 HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest021, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
 
     int id = TEST_USER_ID100;
     std::string photo = "";
@@ -1301,7 +1301,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest021, TestSize
 HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest022, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
 
     bool isMultiOsAccountEnabled = false;
 
@@ -1326,7 +1326,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest022, TestSize
 HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest023, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
 
     int id = TEST_USER_ID100;
     std::string name = "test";
@@ -1365,7 +1365,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest023, TestSize
 HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest024, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
 
     int id = TEST_USER_ID100;
     std::string name = "";
@@ -1429,7 +1429,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest024, TestSize
 HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest025, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
 
     int id = TEST_USER_ID100;
     std::string photo = "";
@@ -1472,7 +1472,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest025, TestSize
 HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest026, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
 
     int id = TEST_USER_ID100;
     std::string photo = "";
@@ -1512,7 +1512,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest026, TestSize
 HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest027, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
 
     int64_t serialNumber = Constants::CARRY_NUM * Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN
         + Constants::ADMIN_LOCAL_ID;
@@ -1543,7 +1543,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest027, TestSize
 HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest029, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
 
     int id = TEST_USER_ID100;
     bool isVerified = false;
@@ -1584,7 +1584,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest029, TestSize
 HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest030, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
 
     int id = TEST_USER_ID100;
 
@@ -1612,7 +1612,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest030, TestSize
 HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest031, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
 
     int id = TEST_USER_ID100;
     const std::string constraint;
@@ -1634,7 +1634,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest031, TestSize
 HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest032, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
 
     const std::string constraint;
     std::vector<ConstraintSourceTypeInfo> constraintSourceTypeInfos;
@@ -1692,7 +1692,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest032, TestSize
 HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest033, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
 
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetIsCreateCompleted(false);
@@ -1720,7 +1720,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest033, TestSize
 HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest034, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
 
     std::vector<OsAccountInfo> accounts;
 
@@ -1749,7 +1749,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest034, TestSize
 HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest036, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
 
     std::vector<OsAccountInfo> accounts;
     OsAccountInfo account1;
@@ -1783,7 +1783,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest036, TestSize
 HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest037, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
 
     ErrCode ret = innerMgrService_->DeactivateOsAccountById(Constants::ADMIN_LOCAL_ID);
     EXPECT_EQ(ret, ERR_OK);
@@ -1836,7 +1836,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest039, TestSize
     accounts.push_back(account1);
     innerMgrService_->PushIdIntoActiveList(TEST_USER_ID55);
 
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
     EXPECT_CALL(*ptr, GetOsAccountList(_))
         .WillRepeatedly(DoAll(SetArgReferee<0>(accounts), testing::Return(0)));
     EXPECT_CALL(*ptr, GetSerialNumber(::testing::_))
@@ -1877,7 +1877,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest039, TestSize
 HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest040, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
 
     OsAccountInfo account1;
     account1.SetLocalId(TEST_USER_ID108);
@@ -1900,7 +1900,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest040, TestSize
 HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest041, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
 
     OsAccountInfo account1;
     account1.SetLocalId(TEST_USER_ID108);
@@ -1923,7 +1923,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest041, TestSize
 HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest042, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
 
     OsAccountInfo account1;
     account1.SetLocalId(TEST_USER_ID108);
@@ -1946,7 +1946,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest042, TestSize
 HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest043, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
 
     OsAccountInfo account1;
     account1.SetLocalId(TEST_USER_ID108);
@@ -1972,7 +1972,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest043, TestSize
 HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest044, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
+    innerMgrService_->osAccountControl_ = ptr;
 
     OsAccountInfo account1;
     account1.SetLocalId(TEST_USER_ID108);
