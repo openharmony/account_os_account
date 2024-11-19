@@ -1735,6 +1735,7 @@ napi_value NapiAppAccount::Unsubscribe(napi_env env, napi_callback_info cbInfo)
         napi_value result = GetSubscriberByUnsubscribe(env, subscribers, context, isFind);
         if (!result) {
             ACCOUNT_LOGE("Unsubscribe failed. The current subscriber does not exist");
+            delete context;
             return NapiGetNull(env);
         }
         context->subscribers = subscribers;
