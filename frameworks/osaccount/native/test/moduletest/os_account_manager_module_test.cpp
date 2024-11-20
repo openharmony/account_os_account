@@ -2579,7 +2579,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest116, TestSize.Lev
     EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(activingSubscriber));
     EXPECT_CALL(*activingSubscriber, OnAccountsChanged(account.GetLocalId())).Times(Exactly(1));
     // activated os account
-    OsAccountSubscribeInfo subscribeActivatedInfo(OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED, "subscribeActived");
+    OsAccountSubscribeInfo subscribeActivatedInfo(OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATED, "subscribeActivated");
     auto activedSubscriber = std::make_shared<ActiveOsAccountSubscriber>(subscribeActivatedInfo);
     EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(activedSubscriber));
     EXPECT_CALL(*activedSubscriber, OnAccountsChanged(account.GetLocalId())).Times(Exactly(1));
@@ -2702,7 +2702,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest118, TestSize.Lev
     EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(activingSubscriber));
     EXPECT_CALL(*activingSubscriber, OnAccountsChanged(account.GetLocalId())).Times(Exactly(1));
     // activated os account
-    OsAccountSubscribeInfo subscribeActivatedInfo(OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED, "subscribeActived");
+    OsAccountSubscribeInfo subscribeActivatedInfo(OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATED, "subscribeActived");
     auto activedSubscriber = std::make_shared<ActiveOsAccountSubscriber>(subscribeActivatedInfo);
     EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(activedSubscriber));
     EXPECT_CALL(*activedSubscriber, OnAccountsChanged(account.GetLocalId())).Times(Exactly(1));

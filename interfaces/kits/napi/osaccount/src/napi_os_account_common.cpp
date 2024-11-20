@@ -1798,7 +1798,7 @@ static bool ParseParamForActiveSubscriber(const napi_env &env, const std::string
 
     // argv[0] type: 'activate' | 'activating'
     if (type == "activate") {
-        asyncContext->osSubscribeType = OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED;
+        asyncContext->osSubscribeType = OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATED;
     } else {
         asyncContext->osSubscribeType = OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING;
     }
@@ -1899,7 +1899,7 @@ static bool ParseParamForActiveUnsubscriber(const napi_env &env, const std::stri
 
     // argv[0] type: 'activate' | 'activating'
     if (type == "activate") {
-        asyncContext->osSubscribeType = OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED;
+        asyncContext->osSubscribeType = OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATED;
     } else {
         asyncContext->osSubscribeType = OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING;
     }
