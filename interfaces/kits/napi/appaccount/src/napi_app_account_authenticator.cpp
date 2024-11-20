@@ -351,9 +351,10 @@ napi_value NapiAppAccountAuthenticator::CreateAuthenticatorCallback(
         },
         nullptr, nullptr);
     if (status != napi_ok) {
+        ACCOUNT_LOGE("Wrap js AuthenticatorStub and native callback failed");
         delete callback;
+        return nullptr;
     }
-    NAPI_ASSERT(env, status == napi_ok, "wrap js AuthenticatorStub and native callback failed");
     return jsCallback;
 }
 
