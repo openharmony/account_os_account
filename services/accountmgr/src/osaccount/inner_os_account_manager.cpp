@@ -1701,6 +1701,7 @@ ErrCode IInnerOsAccountManager::DeactivateOsAccount(const int id, bool isStopSto
     OsAccountInterface::PublishCommonEvent(osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_STOPPED,
                                            Constants::OPERATION_STOP);
     subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPED);
+    ReportOsAccountLifeCycle(id, Constants::OPERATION_STOP);
 
     RemoveLocalIdToOperating(id);
     ACCOUNT_LOGI("IInnerOsAccountManager DeactivateOsAccount end");
@@ -1714,6 +1715,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
     int32_t oldId = -1;
     bool oldIdExist = foregroundAccountMap_.Find(displayId, oldId);
     int32_t localId = static_cast<int32_t>(osAccountInfo.GetLocalId());
+    bool preActivated = osAccountInfo.GetIsActived();
     subscribeManager_.Publish(localId, oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
 
     if (startStorage) {
@@ -1745,6 +1747,9 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
     OsAccountInterface::SendToCESAccountSwitched(localId, oldId);
     subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED);
     subscribeManager_.Publish(localId, oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED);
+    if (!preActivated) {
+        ReportOsAccountLifeCycle(defaultActivatedId_, Constants::OPERATION_ACTIVATE);
+    }
     ACCOUNT_LOGI("SendMsgForAccountActivate ok");
     ReportOsAccountSwitch(localId, oldId);
     return errCode;
@@ -1770,6 +1775,7 @@ ErrCode  IInnerOsAccountManager::SendToStorageAccountStart(OsAccountInfo &osAcco
         OsAccountInterface::PublishCommonEvent(osAccountInfo,
             OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED, Constants::OPERATION_UNLOCK);
         subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::UNLOCKED);
+        ReportOsAccountLifeCycle(localId, Constants::OPERATION_UNLOCK);
 
         auto task = [] { IInnerOsAccountManager::GetInstance().CleanGarbageOsAccounts(); };
         std::thread cleanThread(task);
@@ -1919,6 +1925,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountIsVerified(const int id, const bool 
         OsAccountInterface::PublishCommonEvent(osAccountInfo,
             OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED, Constants::OPERATION_UNLOCK);
         subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::UNLOCKED);
+        ReportOsAccountLifeCycle(id, Constants::OPERATION_UNLOCK);
 
         auto task = [] { IInnerOsAccountManager::GetInstance().CleanGarbageOsAccounts(); };
         std::thread cleanThread(task);
