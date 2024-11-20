@@ -1910,7 +1910,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
     }
     if (oldId != localId) {
         OsAccountInterface::SendToCESAccountSwitched(localId, oldId);
-        subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED);
+        subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATED);
         subscribeManager_.Publish(localId, oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED);
         ReportOsAccountSwitch(localId, oldId);
     }

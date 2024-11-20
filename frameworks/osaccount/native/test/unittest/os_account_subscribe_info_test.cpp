@@ -62,7 +62,7 @@ void OsAccountSubscribeInfoTest::TearDown(void)
  */
 HWTEST_F(OsAccountSubscribeInfoTest, OsAccountSubscribeInfoTestTest01, TestSize.Level0)
 {
-    OsAccountSubscribeInfo osAccountSubscribeInfo(ACTIVED, STRING_NAME);
+    OsAccountSubscribeInfo osAccountSubscribeInfo(ACTIVATED, STRING_NAME);
 
     Parcel parcel;
     EXPECT_EQ(true, osAccountSubscribeInfo.Marshalling(parcel));
