@@ -53,6 +53,7 @@ public:
     ErrCode QueryMaxLoggedInOsAccountNumber(uint32_t &maxNum) override;
     ErrCode GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints) override;
     ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos) override;
+    ErrCode QueryOsAccountWithoutPhotoById(const int id, OsAccountInfo &osAccountInfo) override;
     ErrCode QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo) override;
     ErrCode GetOsAccountShortName(const int id, std::string &shortName) override;
     ErrCode GetOsAccountName(const int id, std::string &name) override;
