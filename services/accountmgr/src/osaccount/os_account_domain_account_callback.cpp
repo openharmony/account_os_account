@@ -31,7 +31,7 @@ namespace AccountSA {
 CheckAndCreateDomainAccountCallback::CheckAndCreateDomainAccountCallback(
     const OsAccountType &type, const DomainAccountInfo &domainAccountInfo,
     const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &accountOptions)
-    : type_(type), domainAccountInfo_(domainAccountInfo), accountOptions_(accountOptions), innerCallback_(callback)
+    : type_(type), accountOptions_(accountOptions), innerCallback_(callback)
 {}
 
 void CheckAndCreateDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
@@ -71,8 +71,7 @@ void CheckAndCreateDomainAccountCallback::OnResult(int32_t errCode, Parcel &parc
 BindDomainAccountCallback::BindDomainAccountCallback(
     std::shared_ptr<IOsAccountControl> &osAccountControl, const DomainAccountInfo &domainAccountInfo,
     const OsAccountInfo &osAccountInfo, const sptr<IDomainAccountCallback> &callback)
-    : osAccountControl_(osAccountControl), domainAccountInfo_(domainAccountInfo),
-    osAccountInfo_(osAccountInfo), innerCallback_(callback)
+    : osAccountControl_(osAccountControl), osAccountInfo_(osAccountInfo), innerCallback_(callback)
 {}
 
 void BindDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)

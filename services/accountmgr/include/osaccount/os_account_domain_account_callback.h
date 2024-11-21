@@ -33,7 +33,6 @@ public:
 
 private:
     OsAccountType type_;
-    DomainAccountInfo domainAccountInfo_;
     CreateOsAccountForDomainOptions accountOptions_;
     sptr<IDomainAccountCallback> innerCallback_ = nullptr;
 };
@@ -47,7 +46,6 @@ public:
 
 private:
     std::shared_ptr<IOsAccountControl> osAccountControl_;
-    DomainAccountInfo domainAccountInfo_;
     OsAccountInfo osAccountInfo_;
     sptr<IDomainAccountCallback> innerCallback_ = nullptr;
 };
