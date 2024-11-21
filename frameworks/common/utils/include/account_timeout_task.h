@@ -26,7 +26,7 @@ namespace OHOS {
 namespace AccountSA {
 class AccountTimeoutTask : public std::enable_shared_from_this<AccountTimeoutTask> {
 public:
-    bool RunTask(std::string taskName, std::function<void()> callback, int32_t timeout = WAIT_TIME);
+    bool RunTask(std::string taskName, const std::function<void()> &callback, int32_t timeout = WAIT_TIME);
 
     bool isCalled_ = false;
     std::mutex mutex_;
