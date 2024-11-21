@@ -415,9 +415,15 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
     }
     int32_t localId = osAccountInfo.GetLocalId();
 #ifdef HAS_THEME_SERVICE_PART
-    auto task = [localId] { OsAccountInterface::InitThemeResource(localId); };
+    auto task = [localId] {
+#ifdef HICOLLIE_ENABLE
+        AccountTimer timer;
+#endif // HICOLLIE_ENABLE
+        OsAccountInterface::InitThemeResource(localId);
+    };
     std::thread theme_thread(task);
     pthread_setname_np(theme_thread.native_handle(), "InitTheme");
+    theme_thread.detach();
 #endif
     errCode = OsAccountInterface::SendToBMSAccountCreate(osAccountInfo, options.disallowedHapList);
     if (errCode != ERR_OK) {
@@ -425,18 +431,8 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
         if (osAccountInfo.GetIsDataRemovable()) {
             (void)OsAccountInterface::SendToStorageAccountRemove(osAccountInfo);
         }
-#ifdef HAS_THEME_SERVICE_PART
-        if (theme_thread.joinable()) {
-            theme_thread.join();
-        }
-#endif
         return errCode;
     }
-#ifdef HAS_THEME_SERVICE_PART
-    if (theme_thread.joinable()) {
-        theme_thread.join();
-    }
-#endif
     AppAccountControlManager::GetInstance().SetOsAccountRemoved(osAccountInfo.GetLocalId(), false);
     osAccountInfo.SetIsCreateCompleted(true);
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
