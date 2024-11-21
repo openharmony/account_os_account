@@ -33,7 +33,7 @@ namespace OHOS {
         if ((data != nullptr) && (size != 0)) {
             FuzzData fuzzData(data, size);
             bool isEnable = false;
-            std::string testConstraint(fuzzData.GenerateRandomString());
+            std::string testConstraint(fuzzData.GenerateString());
             result = OsAccountManager::IsOsAccountConstraintEnable(LOCAL_ID, testConstraint, isEnable);
         }
         return result;

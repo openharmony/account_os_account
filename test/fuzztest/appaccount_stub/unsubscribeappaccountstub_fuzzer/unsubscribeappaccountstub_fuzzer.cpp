@@ -57,7 +57,7 @@ bool UnSubscribeAppAccountStubFuzzTest(const uint8_t* data, size_t size)
     }
     FuzzData fuzzData(data, size);
     AppAccountSubscribeInfo subscribeInfo;
-    subscribeInfo.SetOwners({fuzzData.GenerateRandomString()});
+    subscribeInfo.SetOwners({fuzzData.GenerateString()});
     std::shared_ptr<AppAccountSubscriberTest> appAccountSubscriberPtr =
         std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
     auto appAccountEventListenerSptr = new (std::nothrow) AppAccountEventListener(appAccountSubscriberPtr);

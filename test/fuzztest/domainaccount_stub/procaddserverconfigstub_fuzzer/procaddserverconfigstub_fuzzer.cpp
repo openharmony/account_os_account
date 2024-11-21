@@ -58,7 +58,7 @@ bool ProcAddServerConfigStubFuzzTest(const uint8_t* data, size_t size)
     if (!dataTemp.WriteInterfaceToken(ACCOUNT_TOKEN)) {
         return false;
     }
-    if (!dataTemp.WriteString(fuzzData.GenerateRandomString())) {
+    if (!dataTemp.WriteString(fuzzData.GenerateString())) {
         return false;
     }
     MessageParcel reply;
@@ -83,11 +83,11 @@ bool ProcGetAccountStatusStubFuzzTest(const uint8_t *data, size_t size)
 
     DomainAccountInfo info;
     FuzzData fuzzData(data, size);
-    info.domain_ = fuzzData.GenerateRandomString();
-    info.accountName_ = fuzzData.GenerateRandomString();
-    info.accountId_ = fuzzData.GenerateRandomString();
-    info.isAuthenticated = fuzzData.GenerateRandomBool();
-    info.serverConfigId_ = fuzzData.GenerateRandomString();
+    info.domain_ = fuzzData.GenerateString();
+    info.accountName_ = fuzzData.GenerateString();
+    info.accountId_ = fuzzData.GenerateString();
+    info.isAuthenticated = fuzzData.GenerateBool();
+    info.serverConfigId_ = fuzzData.GenerateString();
     int typeNumber = fuzzData.GetData<int>() % ENUM_MAX;
     info.status_ = static_cast<DomainAccountStatus>(typeNumber);
 
@@ -117,11 +117,11 @@ bool ProcGetDomainAccessTokenStubFuzzTest(const uint8_t *data, size_t size)
 
     DomainAccountInfo info;
     FuzzData fuzzData(data, size);
-    info.domain_ = fuzzData.GenerateRandomString();
-    info.accountName_ = fuzzData.GenerateRandomString();
-    info.accountId_ = fuzzData.GenerateRandomString();
-    info.isAuthenticated = fuzzData.GenerateRandomBool();
-    info.serverConfigId_ = fuzzData.GenerateRandomString();
+    info.domain_ = fuzzData.GenerateString();
+    info.accountName_ = fuzzData.GenerateString();
+    info.accountId_ = fuzzData.GenerateString();
+    info.isAuthenticated = fuzzData.GenerateBool();
+    info.serverConfigId_ = fuzzData.GenerateString();
     int typeNumber = fuzzData.GetData<int>() % ENUM_MAX;
     info.status_ = static_cast<DomainAccountStatus>(typeNumber);
 
@@ -153,66 +153,6 @@ bool ProcGetDomainAccessTokenStubFuzzTest(const uint8_t *data, size_t size)
     return true;
 }
 
-bool ProcRegisterAccountStatusListenerStubFuzzTest(const uint8_t *data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-
-    MessageParcel dataTemp;
-    if (!dataTemp.WriteInterfaceToken(ACCOUNT_TOKEN)) {
-        return false;
-    }
-
-    auto testCallback = new TestGetDomainAccountInfoCallback();
-
-    if (testCallback == nullptr) {
-        return false;
-    }
-
-    if (!dataTemp.WriteRemoteObject(testCallback->AsObject())) {
-        return false;
-    }
-
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code = static_cast<uint32_t>(DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER);
-    auto domainAccountService = std::make_shared<DomainAccountManagerService>();
-    domainAccountService->OnRemoteRequest(code, dataTemp, reply, option);
-
-    return true;
-}
-
-bool ProcUnregisterAccountStatusListenerStubFuzzTest(const uint8_t *data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-
-    MessageParcel dataTemp;
-    if (!dataTemp.WriteInterfaceToken(ACCOUNT_TOKEN)) {
-        return false;
-    }
-
-    auto testCallback = new TestGetDomainAccountInfoCallback();
-
-    if (testCallback == nullptr) {
-        return false;
-    }
-
-    if (!dataTemp.WriteRemoteObject(testCallback->AsObject())) {
-        return false;
-    }
-
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code = static_cast<uint32_t>(DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER);
-    auto domainAccountService = std::make_shared<DomainAccountManagerService>();
-    domainAccountService->OnRemoteRequest(code, dataTemp, reply, option);
-
-    return true;
-}
-
 bool ProcUpdateAccountTokenStubFuzzTest(const uint8_t *data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
@@ -226,11 +166,11 @@ bool ProcUpdateAccountTokenStubFuzzTest(const uint8_t *data, size_t size)
 
     DomainAccountInfo info;
     FuzzData fuzzData(data, size);
-    info.domain_ = fuzzData.GenerateRandomString();
-    info.accountName_ = fuzzData.GenerateRandomString();
-    info.accountId_ = fuzzData.GenerateRandomString();
-    info.isAuthenticated = fuzzData.GenerateRandomBool();
-    info.serverConfigId_ = fuzzData.GenerateRandomString();
+    info.domain_ = fuzzData.GenerateString();
+    info.accountName_ = fuzzData.GenerateString();
+    info.accountId_ = fuzzData.GenerateString();
+    info.isAuthenticated = fuzzData.GenerateBool();
+    info.serverConfigId_ = fuzzData.GenerateString();
     int typeNumber = fuzzData.GetData<int>() % ENUM_MAX;
     info.status_ = static_cast<DomainAccountStatus>(typeNumber);
 
@@ -264,8 +204,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::ProcAddServerConfigStubFuzzTest(data, size);
     OHOS::ProcGetAccountStatusStubFuzzTest(data, size);
     OHOS::ProcGetDomainAccessTokenStubFuzzTest(data, size);
-    OHOS::ProcRegisterAccountStatusListenerStubFuzzTest(data, size);
-    OHOS::ProcUnregisterAccountStatusListenerStubFuzzTest(data, size);
     OHOS::ProcUpdateAccountTokenStubFuzzTest(data, size);
     return 0;
 }

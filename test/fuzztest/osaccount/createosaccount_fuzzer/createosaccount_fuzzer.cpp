@@ -57,8 +57,8 @@ bool CreateOsAccountWithShortNameFuzzTest(const uint8_t* data, size_t size)
         FuzzData fuzzData(data, size);
         OsAccountInfo osAccountInfoOne;
         OsAccountType testType = static_cast<OsAccountType>(fuzzData.GetData<uint32_t>() % CONSTANTS_NUMBER_FIVE);
-        std::string accountName(fuzzData.GenerateRandomString());
-        std::string shortName(fuzzData.GenerateRandomString());
+        std::string accountName(fuzzData.GenerateString());
+        std::string shortName(fuzzData.GenerateString());
         result = OsAccountManager::CreateOsAccount(accountName, shortName, testType, osAccountInfoOne);
         if (result == ERR_OK) {
             ACCOUNT_LOGI("CreateOsAccountWithShortNameFuzzTest RemoveOsAccount");
@@ -87,7 +87,7 @@ bool CreateOsAccountFuzzTest(const uint8_t* data, size_t size)
         FuzzData fuzzData(data, size);
         OsAccountInfo osAccountInfoOne;
         OsAccountType testType = static_cast<OsAccountType>(fuzzData.GetData<uint32_t>() % CONSTANTS_NUMBER_FIVE);
-        std::string accountName(fuzzData.GenerateRandomString());
+        std::string accountName(fuzzData.GenerateString());
         result = OsAccountManager::CreateOsAccount(accountName, testType, osAccountInfoOne);
         if (result == ERR_OK) {
             ACCOUNT_LOGI("CreateOsAccountFuzzTest RemoveOsAccount");
@@ -102,8 +102,8 @@ bool CreateOsAccountForDomainFuzzTest(const uint8_t* data, size_t size)
     bool result = false;
     if ((data != nullptr) && (size != 0)) {
         FuzzData fuzzData(data, size);
-        std::string accountName(fuzzData.GenerateRandomString());
-        std::string domain(fuzzData.GenerateRandomString());
+        std::string accountName(fuzzData.GenerateString());
+        std::string domain(fuzzData.GenerateString());
         DomainAccountInfo domainInfo(accountName, domain);
         OsAccountType testType = static_cast<OsAccountType>(fuzzData.GetData<uint32_t>() % CONSTANTS_NUMBER_FIVE);
         OsAccountInfo osAccountInfo;
@@ -122,7 +122,7 @@ bool UpdateOsAccountWithFullInfoFuzzTest(const uint8_t* data, size_t size)
     if ((data != nullptr) && (size != 0)) {
         FuzzData fuzzData(data, size);
         OsAccountInfo osAccountInfo;
-        osAccountInfo.SetLocalName(fuzzData.GenerateRandomString());
+        osAccountInfo.SetLocalName(fuzzData.GenerateString());
         osAccountInfo.SetLocalId(fuzzData.GetData<int64_t>());
         osAccountInfo.SetSerialNumber(fuzzData.GetData<int64_t>());
         osAccountInfo.SetCreateTime(fuzzData.GetData<int64_t>());
@@ -142,7 +142,7 @@ bool CreateOsAccountWithFullInfoFuzzTest(const uint8_t* data, size_t size)
     if ((data != nullptr) && (size != 0)) {
         FuzzData fuzzData(data, size);
         OsAccountInfo osAccountInfo;
-        osAccountInfo.SetLocalName(fuzzData.GenerateRandomString());
+        osAccountInfo.SetLocalName(fuzzData.GenerateString());
         osAccountInfo.SetLocalId(fuzzData.GetData<int64_t>());
         osAccountInfo.SetSerialNumber(fuzzData.GetData<int64_t>());
         osAccountInfo.SetCreateTime(fuzzData.GetData<int64_t>());
@@ -156,28 +156,13 @@ bool CreateOsAccountWithFullInfoFuzzTest(const uint8_t* data, size_t size)
     return result;
 }
 
-bool CovWithoutParamFunctionFuzzTest(const uint8_t* data, size_t size)
-{
-    bool result = false;
-    if ((data != nullptr) && (size != 0)) {
-        std::string nameStr;
-        std::vector<ForegroundOsAccount> accounts;
-        std::vector<int32_t> localIds;
-        OsAccountManager::GetOsAccountShortName(nameStr);
-        OsAccountManager::GetOsAccountName(nameStr);
-        OsAccountManager::GetForegroundOsAccounts(accounts);
-        OsAccountManager::GetBackgroundOsAccountLocalIds(localIds);
-    }
-    return result;
-}
-
 bool CheckOsAccountConstraintEnabledFuzzTest(const uint8_t* data, size_t size)
 {
     bool result = false;
     if ((data != nullptr) && (size != 0)) {
         FuzzData fuzzData(data, size);
         int32_t userId = fuzzData.GetData<int32_t>();
-        std::string constraintStr(fuzzData.GenerateRandomString());
+        std::string constraintStr(fuzzData.GenerateString());
         bool isEnabled = false;
         result = OsAccountManager::CheckOsAccountConstraintEnabled(userId, constraintStr, isEnabled);
     }
@@ -194,7 +179,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::CreateOsAccountForDomainFuzzTest(data, size);
     OHOS::UpdateOsAccountWithFullInfoFuzzTest(data, size);
     OHOS::CreateOsAccountWithFullInfoFuzzTest(data, size);
-    OHOS::CovWithoutParamFunctionFuzzTest(data, size);
     OHOS::CheckOsAccountConstraintEnabledFuzzTest(data, size);
     return 0;
 }

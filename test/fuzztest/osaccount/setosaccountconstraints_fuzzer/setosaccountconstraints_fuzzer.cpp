@@ -41,7 +41,7 @@ namespace OHOS {
                 "constraint.share.into.profile"
             };
             int32_t temp = fuzzData.GetData<int32_t>() % CONSTANTS_NUMBER_THREE;
-            std::string testConstraint(fuzzData.GenerateRandomString());
+            std::string testConstraint(fuzzData.GenerateString());
             if (!temp) {
                 CONSTANTS_VECTOR.push_back(testConstraint);
             }

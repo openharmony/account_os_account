@@ -30,9 +30,9 @@ namespace OHOS {
         bool result = false;
         if (size > 0) {
             FuzzData fuzzData(data, size);
-            std::string testName(fuzzData.GenerateRandomString());
-            std::string testAuthType(fuzzData.GenerateRandomString());
-            std::string testBundleName(fuzzData.GenerateRandomString());
+            std::string testName(fuzzData.GenerateString());
+            std::string testAuthType(fuzzData.GenerateString());
+            std::string testBundleName(fuzzData.GenerateString());
             bool isVisible = false;
             result = AppAccountManager::SetOAuthTokenVisibility(testName, testAuthType, testBundleName, isVisible);
         }

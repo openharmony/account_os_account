@@ -51,7 +51,7 @@ namespace OHOS {
         bool result = false;
         if (size > 0) {
             FuzzData fuzzData(data, size);
-            std::string testOwner(fuzzData.GenerateRandomString());
+            std::string testOwner(fuzzData.GenerateString());
             sptr<MockAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
             SetPropertiesOptions options;
             result = AppAccountManager::SetAuthenticatorProperties(testOwner, options, callback);

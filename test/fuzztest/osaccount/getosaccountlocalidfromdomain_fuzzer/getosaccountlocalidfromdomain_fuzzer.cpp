@@ -31,8 +31,8 @@ namespace OHOS {
         bool result = false;
         if ((data != nullptr) && (size != 0)) {
             FuzzData fuzzData(data, size);
-            std::string accountName(fuzzData.GenerateRandomString());
-            std::string domain(fuzzData.GenerateRandomString());
+            std::string accountName(fuzzData.GenerateString());
+            std::string domain(fuzzData.GenerateString());
             DomainAccountInfo domainInfo(accountName, domain);
             int resID = -1;
             result = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, resID);

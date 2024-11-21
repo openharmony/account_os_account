@@ -30,8 +30,8 @@ namespace OHOS {
         bool result = false;
         if (size > 0) {
             FuzzData fuzzData(data, size);
-            std::string testName(fuzzData.GenerateRandomString());
-            std::string testAuthorizedApp(fuzzData.GenerateRandomString());
+            std::string testName(fuzzData.GenerateString());
+            std::string testAuthorizedApp(fuzzData.GenerateString());
             bool isAccessible;
             result = AppAccountManager::CheckAppAccess(testName, testAuthorizedApp, isAccessible);
         }

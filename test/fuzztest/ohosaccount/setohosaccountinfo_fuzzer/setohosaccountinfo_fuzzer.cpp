@@ -36,11 +36,11 @@ bool SetOhosAccountInfoFuzzTest(const uint8_t* data, size_t size)
     if ((data != nullptr) && (size != 0)) {
         FuzzData fuzzData(data, size);
         OhosAccountInfo testOhosAccountInfo(
-            fuzzData.GenerateRandomString(),
-            fuzzData.GenerateRandomString(),
+            fuzzData.GenerateString(),
+            fuzzData.GenerateString(),
             fuzzData.GetData<int32_t>() % OHOS_ACCOUNT_STATE_NUM - 1
         );
-        std::string testEventStr(fuzzData.GenerateRandomString());
+        std::string testEventStr(fuzzData.GenerateString());
         result = OhosAccountKits::GetInstance().SetOhosAccountInfo(testOhosAccountInfo, testEventStr);
     }
     return result == ERR_OK;

@@ -32,10 +32,10 @@ namespace OHOS {
         FuzzData fuzzData(data, size);
         DomainAccountInfo info;
         DomainServerConfig config;
-        std::string accoutId(fuzzData.GenerateRandomString());
-        std::string accountName(fuzzData.GenerateRandomString());
-        std::string domain(fuzzData.GenerateRandomString());
-        std::string serverConfigId(fuzzData.GenerateRandomString());
+        std::string accoutId(fuzzData.GenerateString());
+        std::string accountName(fuzzData.GenerateString());
+        std::string domain(fuzzData.GenerateString());
+        std::string serverConfigId(fuzzData.GenerateString());
         info.accountId_ = accoutId;
         info.accountName_ = accountName;
         info.domain_ = domain;

@@ -32,7 +32,7 @@ namespace OHOS {
         bool result = false;
         if ((data != nullptr) && (size != 0)) {
             FuzzData fuzzData(data, size);
-            std::string testName(fuzzData.GenerateRandomString());
+            std::string testName(fuzzData.GenerateString());
             int createdOsAccountNum = -1;
             result = OsAccountManager::GetCreatedOsAccountNumFromDatabase(testName, createdOsAccountNum);
         }

@@ -40,8 +40,8 @@ namespace OHOS {
         int32_t userId = fuzzData.GetData<int32_t>();
         std::vector<uint8_t> attr = {fuzzData.GetData<uint8_t>()};
         SetPropertyRequest request = {
-            .authType = fuzzData.GenerateRandomEnmu(UserIam::UserAuth::RECOVERY_KEY),
-            .mode = fuzzData.GenerateRandomEnmu(UserIam::UserAuth::PROPERTY_MODE_NOTIFY_COLLECTOR_READY),
+            .authType = fuzzData.GenerateEnmu(UserIam::UserAuth::RECOVERY_KEY),
+            .mode = fuzzData.GenerateEnmu(UserIam::UserAuth::PROPERTY_MODE_NOTIFY_COLLECTOR_READY),
             .attrs = Attributes(attr),
         };
         std::shared_ptr<GetSetPropCallback> callback = make_shared<MockGetSetPropCallback>();

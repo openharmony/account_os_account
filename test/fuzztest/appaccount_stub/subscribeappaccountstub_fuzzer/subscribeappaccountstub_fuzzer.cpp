@@ -56,7 +56,7 @@ bool SubscribeAppAccountStubFuzzTest(const uint8_t* data, size_t size)
     }
     FuzzData fuzzData(data, size);
     AppAccountSubscribeInfo subscribeInfo;
-    subscribeInfo.SetOwners({fuzzData.GenerateRandomString()});
+    subscribeInfo.SetOwners({fuzzData.GenerateString()});
     if (!dataTemp.WriteParcelable(&subscribeInfo)) {
         return false;
     }

@@ -49,8 +49,8 @@ bool UpdateCredentialStubFuzzTest(const uint8_t *data, size_t size)
     }
     FuzzData fuzzData(data, size);
     int32_t userId = fuzzData.GetData<int32_t>();
-    AuthType authType = static_cast<AuthType>(fuzzData.GenerateRandomEnmu(IAMAuthType::TYPE_END));
-    std::optional<PinSubType> pinType = {fuzzData.GenerateRandomEnmu(PinSubType::PIN_MAX)};
+    AuthType authType = static_cast<AuthType>(fuzzData.GenerateEnmu(IAMAuthType::TYPE_END));
+    std::optional<PinSubType> pinType = {fuzzData.GenerateEnmu(PinSubType::PIN_MAX)};
     std::vector<uint8_t> token = {fuzzData.GetData<uint8_t>()};
     std::shared_ptr<IDMCallback> ptr = make_shared<MockIDMCallback>();
     sptr<IIDMCallback> callback = new (std::nothrow) IDMCallbackService(userId, ptr);

@@ -34,7 +34,7 @@ namespace OHOS {
         if ((data != nullptr) && (size != 0)) {
             FuzzData fuzzData(data, size);
             OsAccountInfo osAccountInfoOne;
-            std::string stroeID(fuzzData.GenerateRandomString());
+            std::string stroeID(fuzzData.GenerateString());
             result = OsAccountManager::GetOsAccountFromDatabase(stroeID, LOCAL_ID, osAccountInfoOne);
         }
         return result;

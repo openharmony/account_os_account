@@ -42,7 +42,7 @@ bool ProcRemoveServerConfigStubFuzzTest(const uint8_t* data, size_t size)
     if (!dataTemp.WriteInterfaceToken(ACCOUNT_TOKEN)) {
         return false;
     }
-    if (!dataTemp.WriteString(fuzzData.GenerateRandomString())) {
+    if (!dataTemp.WriteString(fuzzData.GenerateString())) {
         return false;
     }
     MessageParcel reply;

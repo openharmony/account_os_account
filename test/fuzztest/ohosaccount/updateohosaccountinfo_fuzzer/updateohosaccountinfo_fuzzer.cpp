@@ -31,9 +31,9 @@ namespace OHOS {
         bool result = false;
         if ((data != nullptr) && (size != 0)) {
             FuzzData fuzzData(data, size);
-            std::string testAccountName(fuzzData.GenerateRandomString());
-            std::string testUid(fuzzData.GenerateRandomString());
-            std::string testEventStr(fuzzData.GenerateRandomString());
+            std::string testAccountName(fuzzData.GenerateString());
+            std::string testUid(fuzzData.GenerateString());
+            std::string testEventStr(fuzzData.GenerateString());
             result = OhosAccountKits::GetInstance().UpdateOhosAccountInfo(testAccountName, testUid, testEventStr);
         }
         return result;

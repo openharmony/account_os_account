@@ -48,8 +48,8 @@ bool SetPropertyStubFuzzTest(const uint8_t *data, size_t size)
     int32_t userId = fuzzData.GetData<int32_t>();
     std::vector<uint8_t> attr = {fuzzData.GetData<uint8_t>()};
     SetPropertyRequest request = {
-        .authType = static_cast<AuthType>(fuzzData.GenerateRandomEnmu(IAMAuthType::TYPE_END)),
-        .mode = fuzzData.GenerateRandomEnmu(PropertyMode::PROPERTY_MODE_NOTIFY_COLLECTOR_READY),
+        .authType = static_cast<AuthType>(fuzzData.GenerateEnmu(IAMAuthType::TYPE_END)),
+        .mode = fuzzData.GenerateEnmu(PropertyMode::PROPERTY_MODE_NOTIFY_COLLECTOR_READY),
         .attrs = Attributes(attr),
     };
     std::shared_ptr<GetSetPropCallback> ptr = make_shared<MockGetSetPropCallback>();

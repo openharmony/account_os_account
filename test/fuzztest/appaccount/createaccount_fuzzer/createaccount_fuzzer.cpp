@@ -31,9 +31,9 @@ namespace OHOS {
         bool result = false;
         if (size > 0) {
             FuzzData fuzzData(data, size);
-            std::string testName(fuzzData.GenerateRandomString());
-            std::string testKey(fuzzData.GenerateRandomString());
-            std::string testValue(fuzzData.GenerateRandomString());
+            std::string testName(fuzzData.GenerateString());
+            std::string testKey(fuzzData.GenerateString());
+            std::string testValue(fuzzData.GenerateString());
             CreateAccountOptions options;
             options.customData[testKey] = testValue;
             result = AppAccountManager::CreateAccount(testName, options);

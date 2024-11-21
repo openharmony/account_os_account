@@ -33,9 +33,9 @@ bool SetAccountCredentialStubFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
     FuzzData fuzzData(data, size);
-    std::string name = fuzzData.GenerateRandomString();
-    std::string credentialType = fuzzData.GenerateRandomString();
-    std::string credential = fuzzData.GenerateRandomString();
+    std::string name = fuzzData.GenerateString();
+    std::string credentialType = fuzzData.GenerateString();
+    std::string credential = fuzzData.GenerateString();
     MessageParcel dataTemp;
     if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
         return false;

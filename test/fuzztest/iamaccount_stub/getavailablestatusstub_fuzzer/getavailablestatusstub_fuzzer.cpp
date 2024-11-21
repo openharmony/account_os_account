@@ -61,8 +61,8 @@ bool GetAvailableStatusStubFuzzTest(const uint8_t *data, size_t size)
         return false;
     }
     FuzzData fuzzData(data, size);
-    AuthType authType = static_cast<AuthType>(fuzzData.GenerateRandomEnmu(IAMAuthType::TYPE_END));
-    AuthTrustLevel authTrustLevel = fuzzData.GenerateRandomEnmu(AuthTrustLevel::ATL4);
+    AuthType authType = static_cast<AuthType>(fuzzData.GenerateEnmu(IAMAuthType::TYPE_END));
+    AuthTrustLevel authTrustLevel = fuzzData.GenerateEnmu(AuthTrustLevel::ATL4);
     MessageParcel dataTemp;
     if (!dataTemp.WriteInterfaceToken(IAMACCOUNT_TOKEN)) {
         return false;

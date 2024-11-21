@@ -31,9 +31,9 @@ namespace OHOS {
         bool result = false;
         if (size > 0) {
             FuzzData fuzzData(data, size);
-            std::string testName(fuzzData.GenerateRandomString());
-            std::string testCredentialType(fuzzData.GenerateRandomString());
-            std::string testCredential(fuzzData.GenerateRandomString());
+            std::string testName(fuzzData.GenerateString());
+            std::string testCredentialType(fuzzData.GenerateString());
+            std::string testCredential(fuzzData.GenerateString());
             result = AppAccountManager::GetAccountCredential(testName, testCredentialType, testCredential);
         }
         return result;
