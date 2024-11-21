@@ -862,7 +862,7 @@ ErrCode OsAccountManagerService::DumpState(const int &id, std::vector<std::strin
         }
     } else {
         OsAccountInfo osAccountInfo;
-        result = innerManager_.QueryOsAccountById(id, osAccountInfo);
+        result = innerManager_.QueryOsAccountWithoutPhotoById(id, osAccountInfo);
         if (result != ERR_OK) {
             return result;
         }

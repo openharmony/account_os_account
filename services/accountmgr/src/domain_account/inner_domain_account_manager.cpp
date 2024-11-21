@@ -233,7 +233,7 @@ ErrCode InnerDomainAccountManager::StartAuth(const sptr<IDomainAccountPlugin> &p
 ErrCode InnerDomainAccountManager::GetDomainAccountInfoByUserId(int32_t userId, DomainAccountInfo &domainInfo)
 {
     OsAccountInfo accountInfo;
-    ErrCode errCode = IInnerOsAccountManager::GetInstance().QueryOsAccountById(userId, accountInfo);
+    ErrCode errCode = IInnerOsAccountManager::GetInstance().QueryOsAccountWithoutPhotoById(userId, accountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("get os account info failed, errCode: %{public}d", errCode);
         return errCode;
@@ -461,7 +461,7 @@ static void SetPluginDomainAccountInfo(const DomainAccountInfo &info, PluginDoma
     }
     int32_t userId = GetCallingUserID();
     OsAccountInfo accountInfo;
-    ErrCode errCode = IInnerOsAccountManager::GetInstance().QueryOsAccountById(userId, accountInfo);
+    ErrCode errCode = IInnerOsAccountManager::GetInstance().QueryOsAccountWithoutPhotoById(userId, accountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("QueryOsAccountById fail code=%{public}d.", errCode);
         pluginInfo.serverConfigId.data = nullptr;
@@ -1093,7 +1093,7 @@ static ErrCode QueryAccountInfo(const DomainAccountInfo &info, const int32_t &ca
     } else {
         userId = callingUid / UID_TRANSFORM_DIVISOR;
         OsAccountInfo osAccountInfo;
-        (void) IInnerOsAccountManager::GetInstance().QueryOsAccountById(userId, osAccountInfo);
+        (void) IInnerOsAccountManager::GetInstance().QueryOsAccountWithoutPhotoById(userId, osAccountInfo);
         osAccountInfo.GetDomainInfo(targetInfo);
         if (targetInfo.accountName_.empty()) {
             ACCOUNT_LOGE("domain account not found");

@@ -511,7 +511,7 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, co
     osAccountInfo.SetLocalName(localName);
 #ifdef ENABLE_ACCOUNT_SHORT_NAME
     OsAccountInfo accountInfoOld;
-    ErrCode code = QueryOsAccountById(Constants::START_USER_ID, accountInfoOld);
+    ErrCode code = QueryOsAccountWithoutPhotoById(Constants::START_USER_ID, accountInfoOld);
     if (code != ERR_OK) {
         ACCOUNT_LOGE("QueryOsAccountById error, errCode %{public}d.", code);
         return code;
@@ -925,7 +925,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountDeactivate(OsAccountInfo &osAcc
 bool IInnerOsAccountManager::IsToBeRemoved(int32_t localId)
 {
     OsAccountInfo osAccountInfo;
-    ErrCode ret = QueryOsAccountById(localId, osAccountInfo);
+    ErrCode ret = QueryOsAccountWithoutPhotoById(localId, osAccountInfo);
     if (ret == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR) {
         return true;
     }
@@ -1455,6 +1455,16 @@ ErrCode IInnerOsAccountManager::GetOsAccountName(const int id, std::string &name
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     name = osAccountInfo.GetLocalName();
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::QueryOsAccountWithoutPhotoById(const int id, OsAccountInfo &osAccountInfo)
+{
+    ErrCode errCode = GetRealOsAccountInfoById(id, osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Get osaccount info error, errCode=%{public}d.", errCode);
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
     return ERR_OK;
 }
 
