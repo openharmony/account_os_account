@@ -44,9 +44,9 @@ const std::u16string ACCOUNT_TOKEN = u"ohos.accountfwk.IDomainAccount";
         FuzzData fuzzData(data, size);
 
         DomainAccountInfo info;
-        info.domain_ = fuzzData.GenerateRandomString();
-        info.accountName_ = fuzzData.GenerateRandomString();
-        info.accountId_ = fuzzData.GenerateRandomString();
+        info.domain_ = fuzzData.GenerateString();
+        info.accountName_ = fuzzData.GenerateString();
+        info.accountId_ = fuzzData.GenerateString();
 
         if (!dataTemp.WriteParcelable(&info)) {
             return false;

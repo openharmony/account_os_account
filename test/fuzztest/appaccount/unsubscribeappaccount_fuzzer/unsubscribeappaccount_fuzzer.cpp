@@ -47,7 +47,7 @@ namespace OHOS {
         bool result = false;
         if (size > 0) {
             FuzzData fuzzData(data, size);
-            std::string testOwner(fuzzData.GenerateRandomString());
+            std::string testOwner(fuzzData.GenerateString());
             std::vector<std::string> owners;
             owners.emplace_back(testOwner);
             AppAccountSubscribeInfo subscribeInfo(owners);

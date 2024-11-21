@@ -30,9 +30,9 @@ namespace OHOS {
         bool result = false;
         if (size > 0) {
             FuzzData fuzzData(data, size);
-            std::string testName(fuzzData.GenerateRandomString());
-            std::string testAuthType(fuzzData.GenerateRandomString());
-            std::string testToken(fuzzData.GenerateRandomString());
+            std::string testName(fuzzData.GenerateString());
+            std::string testAuthType(fuzzData.GenerateString());
+            std::string testToken(fuzzData.GenerateString());
             result = AppAccountManager::SetOAuthToken(testName, testAuthType, testToken);
         }
         return result;

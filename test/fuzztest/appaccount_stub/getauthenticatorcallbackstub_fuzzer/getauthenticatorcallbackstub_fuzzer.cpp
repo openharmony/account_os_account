@@ -36,7 +36,7 @@ bool GetAuthenticatorCallbackStubFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
     FuzzData fuzzData(data, size);
-    std::string sessionId = fuzzData.GenerateRandomString();
+    std::string sessionId = fuzzData.GenerateString();
     if (!dataTemp.WriteString(sessionId)) {
         return false;
     }

@@ -42,8 +42,8 @@ namespace OHOS {
     {
         FuzzData fuzzData(data, size);
         int32_t userId = fuzzData.GetData<int32_t>();
-        AuthType authType = fuzzData.GenerateRandomEnmu(UserIam::UserAuth::RECOVERY_KEY);
-        std::optional<PinSubType> pinType = {fuzzData.GenerateRandomEnmu(UserIam::UserAuth::PIN_MAX)};
+        AuthType authType = fuzzData.GenerateEnmu(UserIam::UserAuth::RECOVERY_KEY);
+        std::optional<PinSubType> pinType = {fuzzData.GenerateEnmu(UserIam::UserAuth::PIN_MAX)};
         std::vector<uint8_t> token = {fuzzData.GetData<uint8_t>()};
         CredentialParameters credInfo = {
             .authType = authType,

@@ -31,7 +31,7 @@ namespace OHOS {
         bool result = false;
         if (size > 0) {
             FuzzData fuzzData(data, size);
-            std::string testOwner(fuzzData.GenerateRandomString());
+            std::string testOwner(fuzzData.GenerateString());
             AuthenticatorInfo testInfo;
             testInfo.owner = testOwner;
             result = AppAccountManager::GetAuthenticatorInfo(testOwner, testInfo);

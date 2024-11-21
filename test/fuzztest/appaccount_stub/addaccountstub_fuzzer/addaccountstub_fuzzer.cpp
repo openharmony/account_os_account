@@ -34,11 +34,11 @@ bool AddAccountStubFuzzTest(const uint8_t* data, size_t size)
             return false;
         }
         FuzzData fuzzData(data, size);
-        std::string testName = fuzzData.GenerateRandomString();
+        std::string testName = fuzzData.GenerateString();
         if (!dataTemp.WriteString(testName)) {
             return false;
         }
-        std::string extraInfo = fuzzData.GenerateRandomString();
+        std::string extraInfo = fuzzData.GenerateString();
         if (!dataTemp.WriteString(extraInfo)) {
             return false;
         }

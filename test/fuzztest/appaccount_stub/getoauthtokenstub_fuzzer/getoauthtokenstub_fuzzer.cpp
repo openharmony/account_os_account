@@ -32,9 +32,9 @@ bool GetOAuthTokenStubFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
     FuzzData fuzzData(data, size);
-    std::string name = fuzzData.GenerateRandomString();
-    std::string owner = fuzzData.GenerateRandomString();
-    std::string authType = fuzzData.GenerateRandomString();
+    std::string name = fuzzData.GenerateString();
+    std::string owner = fuzzData.GenerateString();
+    std::string authType = fuzzData.GenerateString();
     MessageParcel dataTemp;
     if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
         return false;

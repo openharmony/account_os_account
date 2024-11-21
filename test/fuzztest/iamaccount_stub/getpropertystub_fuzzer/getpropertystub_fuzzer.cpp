@@ -45,9 +45,9 @@ bool GetPropertyStubFuzzTest(const uint8_t *data, size_t size)
     }
     FuzzData fuzzData(data, size);
     int32_t userId = fuzzData.GetData<int32_t>();
-    AuthType authType = static_cast<AuthType>(fuzzData.GenerateRandomEnmu(IAMAuthType::TYPE_END));
+    AuthType authType = static_cast<AuthType>(fuzzData.GenerateEnmu(IAMAuthType::TYPE_END));
     std::vector<Attributes::AttributeKey> keys = {
-        fuzzData.GenerateRandomEnmu(Attributes::AttributeKey::ATTR_AUTH_INTENTION)
+        fuzzData.GenerateEnmu(Attributes::AttributeKey::ATTR_AUTH_INTENTION)
     };
     GetPropertyRequest request = {
         .authType = authType,

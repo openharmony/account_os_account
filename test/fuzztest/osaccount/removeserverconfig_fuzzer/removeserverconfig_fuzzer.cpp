@@ -30,7 +30,7 @@ namespace OHOS {
             return false;
         }
         FuzzData fuzzData(data, size);
-        std::string id(fuzzData.GenerateRandomString());
+        std::string id(fuzzData.GenerateString());
         DomainAccountClient::GetInstance().RemoveServerConfig(id);
         return true;
     }

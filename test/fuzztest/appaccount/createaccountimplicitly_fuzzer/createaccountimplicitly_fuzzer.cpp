@@ -51,8 +51,8 @@ namespace OHOS {
         bool result = false;
         if (size > 0) {
             FuzzData fuzzData(data, size);
-            std::string testOwner(fuzzData.GenerateRandomString());
-            std::string testValue(fuzzData.GenerateRandomString());
+            std::string testOwner(fuzzData.GenerateString());
+            std::string testValue(fuzzData.GenerateString());
             CreateAccountImplicitlyOptions options;
             options.authType = testValue;
             options.requiredLabels.emplace_back(testValue);

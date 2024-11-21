@@ -46,7 +46,7 @@ bool SetOsAccountConstraintsStubFuzzTest(const uint8_t *data, size_t size)
     };
     int temp = fuzzData.GetData<size_t>() % CONSTANTS_NUMBER_THREE;
     if (!temp) {
-        constraints.push_back(fuzzData.GenerateRandomString());
+        constraints.push_back(fuzzData.GenerateString());
     }
     bool enable = ((fuzzData.GetData<size_t>() % CONSTANTS_NUMBER_TWO) == 0);
     if (!datas.WriteStringVector(constraints)) {

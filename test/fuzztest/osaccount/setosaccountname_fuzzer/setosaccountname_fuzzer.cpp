@@ -33,7 +33,7 @@ namespace OHOS {
         bool result = false;
         if ((data != nullptr) && (size != 0)) {
             FuzzData fuzzData(data, size);
-            std::string testName(fuzzData.GenerateRandomString());
+            std::string testName(fuzzData.GenerateString());
             result = OsAccountManager::SetOsAccountName(LOCAL_ID, testName);
         }
         return result;

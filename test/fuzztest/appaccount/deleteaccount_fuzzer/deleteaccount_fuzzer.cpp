@@ -31,7 +31,7 @@ namespace OHOS {
         bool result = false;
         if (size > 0) {
             FuzzData fuzzData(data, size);
-            std::string testName(fuzzData.GenerateRandomString());
+            std::string testName(fuzzData.GenerateString());
             result = AppAccountManager::DeleteAccount(testName);
         }
         return result;

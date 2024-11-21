@@ -59,9 +59,9 @@ bool ProcGetDomainAccountInfoStubFuzzTest(const uint8_t* data, size_t size)
 
     DomainAccountInfo info;
     FuzzData fuzzData(data, size);
-    info.domain_ = fuzzData.GenerateRandomString();
-    info.accountName_ = fuzzData.GenerateRandomString();
-    info.accountId_ = fuzzData.GenerateRandomString();
+    info.domain_ = fuzzData.GenerateString();
+    info.accountName_ = fuzzData.GenerateString();
+    info.accountId_ = fuzzData.GenerateString();
 
     if (!dataTemp.WriteParcelable(&info)) {
         return false;

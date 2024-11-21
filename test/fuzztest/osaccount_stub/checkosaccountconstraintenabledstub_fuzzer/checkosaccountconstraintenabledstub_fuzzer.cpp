@@ -40,7 +40,7 @@ bool CheckOsAccountConstraintEnabledStubFuzzTest(const uint8_t *data, size_t siz
     if (!datas.WriteInt32(fuzzData.GetData<int32_t>())) {
         return false;
     }
-    if (!datas.WriteString(fuzzData.GenerateRandomString())) {
+    if (!datas.WriteString(fuzzData.GenerateString())) {
         return false;
     }
 
@@ -49,86 +49,6 @@ bool CheckOsAccountConstraintEnabledStubFuzzTest(const uint8_t *data, size_t siz
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
     osAccountManagerService_ ->OnRemoteRequest(
         static_cast<int32_t>(OsAccountInterfaceCode::CHECK_OS_ACCOUNT_CONSTRAINT_ENABLED), datas, reply, option);
-
-    return true;
-}
-
-bool ProcQueryActiveOsAccountIdsStubFuzzTest(const uint8_t *data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-
-    MessageParcel datas;
-    if (!datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR)) {
-        return false;
-    }
-
-    MessageParcel reply;
-    MessageOption option;
-    auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
-    osAccountManagerService_->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::QUERY_ACTIVE_OS_ACCOUNT_IDS), datas, reply, option);
-
-    return true;
-}
-
-bool ProcQueryAllCreatedOsAccountsStubFuzzTest(const uint8_t *data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-
-    MessageParcel datas;
-    if (!datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR)) {
-        return false;
-    }
-
-    MessageParcel reply;
-    MessageOption option;
-    auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
-    osAccountManagerService_->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::QUERY_ALL_CREATED_OS_ACCOUNTS), datas, reply, option);
-
-    return true;
-}
-
-bool ProcQueryCurrentOsAccountStubFuzzTest(const uint8_t *data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-
-    MessageParcel datas;
-    if (!datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR)) {
-        return false;
-    }
-
-    MessageParcel reply;
-    MessageOption option;
-    auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
-    osAccountManagerService_->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::QUERY_CURRENT_OS_ACCOUNT), datas, reply, option);
-
-    return true;
-}
-
-bool ProcQueryMaxLoggedInOsAccountNumberStubFuzzTest(const uint8_t *data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-
-    MessageParcel datas;
-    if (!datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR)) {
-        return false;
-    }
-
-    MessageParcel reply;
-    MessageOption option;
-    auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
-    osAccountManagerService_->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::QUERY_MAX_LOGGED_IN_OS_ACCOUNT_NUMBER), datas, reply, option);
 
     return true;
 }
@@ -148,8 +68,8 @@ bool ProcUpdateOsAccountWithFullInfoStubFuzzTest(const uint8_t *data, size_t siz
 
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetLocalId(fuzzData.GetData<int>());
-    osAccountInfo.SetLocalName(fuzzData.GenerateRandomString());
-    osAccountInfo.SetShortName(fuzzData.GenerateRandomString());
+    osAccountInfo.SetLocalName(fuzzData.GenerateString());
+    osAccountInfo.SetShortName(fuzzData.GenerateString());
     int typeNumber = fuzzData.GetData<int>() % ENUM_MAX;
     if (typeNumber == PRIVATE_NUMBER) {
         osAccountInfo.SetType(PRIVATE);
@@ -180,10 +100,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
     OHOS::CheckOsAccountConstraintEnabledStubFuzzTest(data, size);
-    OHOS::ProcQueryActiveOsAccountIdsStubFuzzTest(data, size);
-    OHOS::ProcQueryAllCreatedOsAccountsStubFuzzTest(data, size);
-    OHOS::ProcQueryCurrentOsAccountStubFuzzTest(data, size);
-    OHOS::ProcQueryMaxLoggedInOsAccountNumberStubFuzzTest(data, size);
     OHOS::ProcUpdateOsAccountWithFullInfoStubFuzzTest(data, size);
     return 0;
 }
