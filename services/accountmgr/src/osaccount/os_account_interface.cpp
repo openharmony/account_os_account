@@ -214,22 +214,20 @@ ErrCode OsAccountInterface::SendToIDMAccountDelete(OsAccountInfo &osAccountInfo)
     }
 
     // wait callback
-    struct tm startTime = {0};
-    struct tm nowTime = {0};
-    OHOS::GetSystemCurrentTime(&startTime);
-    OHOS::GetSystemCurrentTime(&nowTime);
-    while (OHOS::GetSecondsBetween(startTime, nowTime) < Constants::TIME_WAIT_TIME_OUT &&
-        !callback->isCalled_) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(Constants::WAIT_ONE_TIME));
-        OHOS::GetSystemCurrentTime(&nowTime);
+    {
+        std::unique_lock<std::mutex> lck(callback->mutex_);
+        if (!callback->isCalled_) {
+            callback->onResultCondition_.wait_for(lck, std::chrono::seconds(Constants::TIME_WAIT_TIME_OUT));
+        }
+        if (!callback->isCalled_) {
+            ACCOUNT_LOGE("idm did not call back! timeout!");
+            ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_REMOVE, -1,
+                "UserIDM erase user timeout");
+            FinishTraceAdapter();
+            return ERR_OK;    // do not return fail
+        }
     }
-    if (!callback->isCalled_) {
-        ACCOUNT_LOGE("idm did not call back! timeout!");
-        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_REMOVE, -1,
-            "UserIDM erase user timeout");
-        FinishTraceAdapter();
-        return ERR_OK;    // do not return fail
-    }
+
     ACCOUNT_LOGI("send to idm account delete and get callback succeed!");
     FinishTraceAdapter();
     return ERR_OK;
