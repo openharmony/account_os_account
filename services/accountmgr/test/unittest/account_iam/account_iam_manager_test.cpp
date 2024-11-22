@@ -349,6 +349,16 @@ public:
         return 0;
     }
 
+    int32_t MountMediaFuse(int32_t userId, int32_t &devFd)
+    {
+        return 0;
+    }
+
+    int32_t UMountMediaFuse(int32_t userId)
+    {
+        return 0;
+    }
+
     sptr<IRemoteObject> AsObject()
     {
         return nullptr;
