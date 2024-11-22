@@ -57,6 +57,7 @@ namespace {
 constexpr uint32_t CRYPTO_FLAG_EL1 = 1;
 constexpr uint32_t CRYPTO_FLAG_EL2 = 2;
 constexpr int32_t E_ACTIVE_EL2 = 30;
+constexpr int32_t E_UMOUNT = 10;
 #endif
 
 constexpr int32_t DELAY_FOR_EXCEPTION = 100;
@@ -562,21 +563,26 @@ ErrCode OsAccountInterface::SendToStorageAccountStop(OsAccountInfo &osAccountInf
         ACCOUNT_LOGE("failed to get STORAGE_MANAGER_MANAGER_ID proxy.");
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
+    osAccountInfo.SetIsVerified(false);
     StartTraceAdapter("StorageManager StopUser");
     int localId = osAccountInfo.GetLocalId();
     int err = proxy->StopUser(localId);
-    if (err != 0) {
+    if (err != E_UMOUNT && err != 0) {
+        ACCOUNT_LOGE("StorageManager failed to stop user, err: %{public}d", err);
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_STOP,
             err, "StorageManager failed to stop user");
+        return ERR_OK;
     }
     err = proxy->InactiveUserKey(localId);
     if (err != 0) {
+        ACCOUNT_LOGE("StorageManager failed to inactivate user key, err: %{public}d", err);
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_STOP,
             err, "StorageManager failed to inactivate user key");
     }
     FinishTraceAdapter();
-#endif
+#else
     osAccountInfo.SetIsVerified(false);
+#endif
     return ERR_OK;
 }
 
