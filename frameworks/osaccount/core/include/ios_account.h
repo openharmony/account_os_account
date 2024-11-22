@@ -82,6 +82,7 @@ public:
     virtual ErrCode SetCurrentOsAccountIsVerified(const bool isVerified) = 0;
     virtual ErrCode SetOsAccountIsVerified(const int id, const bool isVerified) = 0;
     virtual ErrCode DumpState(const int &id, std::vector<std::string> &state) = 0;
+    virtual ErrCode GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo) = 0;
 
     virtual ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
         int &createdOsAccountNum) = 0;

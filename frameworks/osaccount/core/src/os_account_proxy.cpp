@@ -1762,5 +1762,41 @@ ErrCode OsAccountProxy::SetOsAccountToBeRemoved(int32_t localId, bool toBeRemove
     }
     return result;
 }
+
+ErrCode OsAccountProxy::GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo)
+{
+    MessageParcel data;
+    domainInfo.Clear();
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Write descriptor failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteInt32(localId)) {
+        ACCOUNT_LOGE("Write localId failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    MessageParcel reply;
+    ErrCode result = SendRequest(OsAccountInterfaceCode::GET_OS_ACCOUNT_DOMAIN_INFO, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest failed, result=%{public}d.", result);
+        return result;
+    }
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("Read result failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("GetOsAccountDomainInfo failed, result=%{public}d.", result);
+        return result;
+    }
+    std::shared_ptr<DomainAccountInfo> info(reply.ReadParcelable<DomainAccountInfo>());
+    if (info == nullptr) {
+        ACCOUNT_LOGE("Read DomainAccountInfo failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    domainInfo = *info;
+    return result;
+}
+
 }  // namespace AccountSA
 }  // namespace OHOS

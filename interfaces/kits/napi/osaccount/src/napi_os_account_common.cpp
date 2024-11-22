@@ -1979,5 +1979,34 @@ bool ParseParaToUnsubscriber(const napi_env &env, napi_callback_info cbInfo, Uns
     AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, errMsg, asyncContext->throwErr);
     return false;
 }
+
+void GetOsAccountDomainInfoExecuteCB(napi_env env, void *data)
+{
+    GetIdByDomainAsyncContext* asyncContext = reinterpret_cast<GetIdByDomainAsyncContext *>(data);
+    asyncContext->errCode = OsAccountManager::GetOsAccountDomainInfo(asyncContext->id, asyncContext->domainInfo);
+}
+
+void GetOsAccountDomainInfoCompletedCB(napi_env env, napi_status status, void *data)
+{
+    GetIdByDomainAsyncContext* contextPtr = reinterpret_cast<GetIdByDomainAsyncContext *>(data);
+    std::unique_ptr<GetIdByDomainAsyncContext> asyncContext(contextPtr);
+
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    if (asyncContext->errCode == ERR_OK) {
+        errJs = GenerateBusinessSuccess(env, asyncContext->throwErr);
+        CreateJsDomainInfo(env, asyncContext->domainInfo, dataJs);
+    } else {
+        // If local account exists but no domain info, need return success, but info is null.
+        if (asyncContext->errCode == ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT) {
+            errJs = GenerateBusinessSuccess(env, false);
+            asyncContext->errCode = ERR_OK;
+        } else {
+            errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
+        }
+        napi_get_null(env, &dataJs);
+    }
+    ProcessCallbackOrPromise(env, contextPtr, errJs, dataJs);
+}
 }  // namespace AccountJsKit
 }  // namespace OHOS
