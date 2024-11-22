@@ -108,6 +108,7 @@ public:
     virtual int32_t CleanGarbageOsAccounts(int32_t excludeId = -1) = 0;
     virtual void ResetAccountStatus() = 0;
     virtual void CleanGarbageOsAccountsAsync() = 0;
+    virtual ErrCode GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

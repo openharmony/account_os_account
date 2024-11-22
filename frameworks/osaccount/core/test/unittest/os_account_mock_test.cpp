@@ -661,3 +661,17 @@ HWTEST_F(OsAccountMockTest, GetDefaultActivatedOsAccountMockTest001, TestSize.Le
     EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->GetDefaultActivatedOsAccount(id));
 }
+
+/**
+ * @tc.name: GetOsAccountDomainInfoMockTest001
+ * @tc.desc: Test GetOsAccountDomainInfo getosaccountproxy faild
+ * @tc.type: FUNC
+ * @tc.require: issueI6AQUQ
+ */
+HWTEST_F(OsAccountMockTest, GetOsAccountDomainInfoMockTest001, TestSize.Level1)
+{
+    int id;
+    DomainAccountInfo domainAccountInfo;
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
+        g_osAccount->GetOsAccountDomainInfo(id, domainAccountInfo));
+}

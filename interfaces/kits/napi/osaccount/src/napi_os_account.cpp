@@ -103,6 +103,7 @@ static napi_property_descriptor g_osAccountProperties[] = {
     DECLARE_NAPI_FUNCTION("isOsAccountUnlocked", IsOsAccountUnlocked),
     DECLARE_NAPI_FUNCTION("getEnabledOsAccountConstraints", GetEnabledOsAccountConstraints),
     DECLARE_NAPI_FUNCTION("queryOsAccount", QueryOsAccount),
+    DECLARE_NAPI_FUNCTION("getOsAccountDomainInfo", GetOsAccountDomainInfo),
 };
 }  // namespace
 napi_value OsAccountInit(napi_env env, napi_value exports)
@@ -1736,6 +1737,37 @@ napi_value QueryOsAccount(napi_env env, napi_callback_info cbInfo)
         return nullptr;
     }
     return QueryCurrentOsAccountInner(env, cbInfo, true);
+}
+
+napi_value InnerGetOsAccountDomainInfo(napi_env env, napi_callback_info cbInfo, bool throwErr)
+{
+    auto domainAccountInfoById = std::make_unique<GetIdByDomainAsyncContext>();
+    domainAccountInfoById->env = env;
+    domainAccountInfoById->throwErr = throwErr;
+    if (!ParseUidFromCbInfo(env, cbInfo, domainAccountInfoById->id)) {
+        return nullptr;
+    }
+
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_promise(env, &domainAccountInfoById->deferred, &result));
+
+    napi_value resource = nullptr;
+    napi_create_string_utf8(env, "GetOsAccountDomainInfo", NAPI_AUTO_LENGTH, &resource);
+
+    napi_create_async_work(env, nullptr, resource,
+        GetOsAccountDomainInfoExecuteCB,
+        GetOsAccountDomainInfoCompletedCB,
+        reinterpret_cast<void *>(domainAccountInfoById.get()),
+        &domainAccountInfoById->work);
+
+    napi_queue_async_work_with_qos(env, domainAccountInfoById->work, napi_qos_default);
+    domainAccountInfoById.release();
+    return result;
+}
+
+napi_value GetOsAccountDomainInfo(napi_env env, napi_callback_info cbInfo)
+{
+    return InnerGetOsAccountDomainInfo(env, cbInfo, true);
 }
 }  // namespace AccountJsKit
 }  // namespace OHOS
