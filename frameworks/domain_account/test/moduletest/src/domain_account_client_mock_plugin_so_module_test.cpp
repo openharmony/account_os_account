@@ -802,6 +802,113 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     ASSERT_TRUE(RecoveryPermission(tokenID));
 }
 
+/**
+ * @tc.name: DomainAccountClientModuleTest_GetOsAccountDomainInfo_001
+ * @tc.desc: GetOsAccountDomainInfo success.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_GetOsAccountDomainInfo_001,
+         TestSize.Level0)
+{
+    AccessTokenID tokenID;
+    std::vector<std::string> needPermissions = {
+        "ohos.permission.GET_DOMAIN_ACCOUNTS",
+        "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS",
+    };
+    ASSERT_TRUE(AllocPermission(needPermissions, tokenID));
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = "testaccount";
+    domainInfo.domain_ = "test.example.com";
+    domainInfo.accountId_ = "testid";
+
+    CreateOsAccountForDomainOptions options;
+    LoadPluginMethods();
+    auto callback = std::make_shared<MockPluginSoDomainCreateDomainAccountCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestPluginSoCreateDomainAccountCallback>(callback);
+    EXPECT_CALL(*callback, OnResult(ERR_OK, "testaccount", "test.example.com", _)).Times(Exactly(1));
+    ASSERT_NE(testCallback, nullptr);
+    options.shortName = "shortNameTest";
+    options.hasShortName = false;
+    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo,
+        testCallback, options);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                              [lockCallback = testCallback]() { return lockCallback->isReady; });
+    ASSERT_EQ(errCode, ERR_OK);
+
+    int32_t userId = -1;
+    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId), ERR_OK);
+    ASSERT_NE(userId, -1);
+    DomainAccountInfo queryDomainInfo;
+    EXPECT_EQ(OsAccountManager::GetOsAccountDomainInfo(userId, queryDomainInfo), ERR_OK);
+    EXPECT_EQ(queryDomainInfo.accountId_, domainInfo.accountId_);
+    EXPECT_EQ(queryDomainInfo.accountName_, domainInfo.accountName_);
+    EXPECT_EQ(queryDomainInfo.domain_, domainInfo.domain_);
+    
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
+    EXPECT_EQ(OsAccountManager::GetOsAccountDomainInfo(userId, queryDomainInfo),
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    RecoveryPermission(tokenID);
+}
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_GetOsAccountDomainInfo_002
+ * @tc.desc: GetOsAccountDomainInfo fail with invalid input.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_GetOsAccountDomainInfo_002,
+         TestSize.Level0)
+{
+    AccessTokenID tokenID;
+    
+    std::vector<std::string> needPermissions = {
+        "ohos.permission.GET_DOMAIN_ACCOUNTS",
+        "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS",
+    };
+    ASSERT_TRUE(AllocPermission(needPermissions, tokenID));
+    DomainAccountInfo queryDomainInfo;
+    EXPECT_EQ(OsAccountManager::GetOsAccountDomainInfo(-1, queryDomainInfo),
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    RecoveryPermission(tokenID);
+}
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_GetOsAccountDomainInfo_003
+ * @tc.desc: GetOsAccountDomainInfo fail with no permission.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_GetOsAccountDomainInfo_003,
+         TestSize.Level0)
+{
+    AccessTokenID tokenID;
+    ASSERT_TRUE(AllocPermission({}, tokenID));
+    setuid(EDM_UID);
+    int32_t testUserId = 1;
+    DomainAccountInfo queryDomainInfo;
+    EXPECT_EQ(OsAccountManager::GetOsAccountDomainInfo(testUserId, queryDomainInfo),
+        ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    setuid(ROOT_UID);
+    RecoveryPermission(tokenID);
+
+    ASSERT_TRUE(AllocPermission({"ohos.permission.GET_DOMAIN_ACCOUNTS"}, tokenID));
+    setuid(EDM_UID);
+    EXPECT_EQ(OsAccountManager::GetOsAccountDomainInfo(testUserId, queryDomainInfo),
+        ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    setuid(ROOT_UID);
+    RecoveryPermission(tokenID);
+    
+    ASSERT_TRUE(AllocPermission({"ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS"}, tokenID));
+    setuid(EDM_UID);
+    EXPECT_EQ(OsAccountManager::GetOsAccountDomainInfo(testUserId, queryDomainInfo),
+        ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    setuid(ROOT_UID);
+    RecoveryPermission(tokenID);
+}
+
 /*** multithread */
 
 /**
