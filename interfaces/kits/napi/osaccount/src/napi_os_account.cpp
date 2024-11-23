@@ -1739,35 +1739,29 @@ napi_value QueryOsAccount(napi_env env, napi_callback_info cbInfo)
     return QueryCurrentOsAccountInner(env, cbInfo, true);
 }
 
-napi_value InnerGetOsAccountDomainInfo(napi_env env, napi_callback_info cbInfo, bool throwErr)
+napi_value GetOsAccountDomainInfo(napi_env env, napi_callback_info cbInfo)
 {
-    auto domainAccountInfoById = std::make_unique<GetIdByDomainAsyncContext>();
-    domainAccountInfoById->env = env;
-    domainAccountInfoById->throwErr = throwErr;
-    if (!ParseUidFromCbInfo(env, cbInfo, domainAccountInfoById->id)) {
+    auto getDomainInfoContext = std::make_unique<GetOsAccountDomainInfoAsyncContext>();
+    getDomainInfoContext->env = env;
+    if (!ParseUidFromCbInfo(env, cbInfo, getDomainInfoContext->id)) {
         return nullptr;
     }
 
     napi_value result = nullptr;
-    NAPI_CALL(env, napi_create_promise(env, &domainAccountInfoById->deferred, &result));
+    NAPI_CALL(env, napi_create_promise(env, &getDomainInfoContext->deferred, &result));
 
     napi_value resource = nullptr;
-    napi_create_string_utf8(env, "GetOsAccountDomainInfo", NAPI_AUTO_LENGTH, &resource);
+    NAPI_CALL(env, napi_create_string_utf8(env, "GetOsAccountDomainInfo", NAPI_AUTO_LENGTH, &resource));
 
-    napi_create_async_work(env, nullptr, resource,
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         GetOsAccountDomainInfoExecuteCB,
         GetOsAccountDomainInfoCompletedCB,
-        reinterpret_cast<void *>(domainAccountInfoById.get()),
-        &domainAccountInfoById->work);
+        reinterpret_cast<void *>(getDomainInfoContext.get()),
+        &getDomainInfoContext->work));
 
-    napi_queue_async_work_with_qos(env, domainAccountInfoById->work, napi_qos_default);
-    domainAccountInfoById.release();
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, getDomainInfoContext->work, napi_qos_default));
+    getDomainInfoContext.release();
     return result;
-}
-
-napi_value GetOsAccountDomainInfo(napi_env env, napi_callback_info cbInfo)
-{
-    return InnerGetOsAccountDomainInfo(env, cbInfo, true);
 }
 }  // namespace AccountJsKit
 }  // namespace OHOS

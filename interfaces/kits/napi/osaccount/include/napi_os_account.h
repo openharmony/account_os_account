@@ -226,6 +226,11 @@ struct UnsubscribeCBInfo : public CommonAsyncContext {
     std::vector<std::shared_ptr<SubscriberPtr>> subscribers;
 };
 
+struct GetOsAccountDomainInfoAsyncContext : public CommonAsyncContext {
+    int32_t id = 0;
+    DomainAccountInfo domainInfo;
+};
+
 napi_value OsAccountInit(napi_env env, napi_value exports);
 
 napi_value GetAccountManager(napi_env env, napi_callback_info cbInfo);
