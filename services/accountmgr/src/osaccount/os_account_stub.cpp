@@ -459,7 +459,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcGetForegroundOsAccountLocalId(data, reply); },
-            .isSyetemApi = true,
+            .isSyetemApi = false,
         }
     },
     {
@@ -491,6 +491,14 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcSetOsAccountToBeRemoved(data, reply); },
             .isSyetemApi = true,
+        }
+    },
+    {
+        static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_DOMAIN_INFO),
+        {
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcGetOsAccountDomainInfo(data, reply); },
+            .isSyetemApi = false,
         }
     },
 };
@@ -1780,6 +1788,29 @@ ErrCode OsAccountStub::ProcSetOsAccountToBeRemoved(MessageParcel &data, MessageP
     ErrCode result = SetOsAccountToBeRemoved(localId, toBeRemoved);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("Write result failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcGetOsAccountDomainInfo(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("Read localId failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    DomainAccountInfo domainInfo;
+    ErrCode result = GetOsAccountDomainInfo(localId, domainInfo);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Write result failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        return result;
+    }
+    if (!reply.WriteParcelable(&domainInfo)) {
+        ACCOUNT_LOGE("Write domainAccountInfo failed.");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_NONE;

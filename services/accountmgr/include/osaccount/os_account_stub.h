@@ -100,7 +100,7 @@ public:
     ErrCode ProcGetForegroundOsAccounts(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetBackgroundOsAccountLocalIds(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetOsAccountToBeRemoved(MessageParcel &data, MessageParcel &reply);
-
+    ErrCode ProcGetOsAccountDomainInfo(MessageParcel &data, MessageParcel &reply);
 private:
     bool WriteOsAccountInfoList(const std::vector<OsAccountInfo> &accounts, MessageParcel &data);
     std::map<uint32_t, OsAccountMessageProc> messageProcMap_;

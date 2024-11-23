@@ -387,5 +387,10 @@ ErrCode OsAccountManager::SetOsAccountToBeRemoved(int32_t localId, bool toBeRemo
 {
     return OsAccount::GetInstance().SetOsAccountToBeRemoved(localId, toBeRemoved);
 }
+
+ErrCode OsAccountManager::GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo)
+{
+    return OsAccount::GetInstance().GetOsAccountDomainInfo(localId, domainInfo);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

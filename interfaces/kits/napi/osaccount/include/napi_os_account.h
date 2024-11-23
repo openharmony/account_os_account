@@ -383,6 +383,8 @@ napi_value IsOsAccountUnlocked(napi_env env, napi_callback_info cbInfo);
 napi_value GetEnabledOsAccountConstraints(napi_env env, napi_callback_info cbInfo);
 
 napi_value QueryOsAccount(napi_env env, napi_callback_info cbInfo);
+
+napi_value GetOsAccountDomainInfo(napi_env env, napi_callback_info cbInfo);
 }  // namespace AccountJsKit
 }  // namespace OHOS
 
