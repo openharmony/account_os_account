@@ -1199,6 +1199,7 @@ ErrCode OsAccountControlFileManager::GetAccountListFromFile(Json &accountListJso
     }
     accountListJson = Json::parse(accountList, nullptr, false);
     if (accountListJson.is_discarded()) {
+        ACCOUNT_LOGE("AccountListFile does not comply with the json format.");
 #ifdef HAS_KV_STORE_PART
         return osAccountDataBaseOperator_->GetAccountListFromStoreID(OS_ACCOUNT_STORE_ID, accountListJson);
 #else

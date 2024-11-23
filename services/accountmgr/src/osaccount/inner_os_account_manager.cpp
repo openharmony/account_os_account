@@ -445,7 +445,12 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
         }
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
-    (void)OsAccountInterface::SendToStorageAccountCreateComplete(localId);
+    errCode = OsAccountInterface::SendToStorageAccountCreateComplete(localId);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to send storage account create complete.");
+        ReportOsAccountOperationFail(localId, Constants::OPERATION_CREATE, errCode,
+            "Failed to send storage account create complete");
+    }
     ReportOsAccountLifeCycle(localId, Constants::OPERATION_CREATE);
     OsAccountInterface::SendToCESAccountCreate(osAccountInfo);
     subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::CREATED);
