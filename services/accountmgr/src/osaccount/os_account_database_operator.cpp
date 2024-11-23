@@ -247,6 +247,7 @@ ErrCode OsAccountDatabaseOperator::GetAccountListFromStoreID(
     }
     accountListJson = Json::parse(accountList, nullptr, false);
     if (accountListJson.is_discarded()) {
+        ACCOUNT_LOGE("AccountListFile does not comply with the json format.");
         return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
     }
     return ERR_OK;
