@@ -262,6 +262,10 @@ void QueryOAContSrcTypeExecuteCB(napi_env env, void *data);
 void QueryOAContSrcTypeCallbackCompletedCB(napi_env env, napi_status status, void *data);
 
 void QueryOAContSrcTypeForResult(napi_env env, const std::vector<ConstraintSourceTypeInfo> &infos, napi_value &result);
+
+void GetOsAccountDomainInfoExecuteCB(napi_env env, void *data);
+
+void GetOsAccountDomainInfoCompletedCB(napi_env env, napi_status status, void *data);
 }  // namespace AccountJsKit
 }  // namespace OHOS
 
