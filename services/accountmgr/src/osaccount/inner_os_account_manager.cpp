@@ -61,6 +61,7 @@ const std::vector<std::string> SHORT_NAME_CANNOT_BE_NAME_ARRAY = {".", ".."};
 constexpr int32_t TOKEN_NATIVE = 1;
 constexpr int32_t DELAY_FOR_EXCEPTION = 50;
 constexpr int32_t MAX_RETRY_TIMES = 50;
+constexpr int32_t MAX_INSERT_RETRY_TIMES = 3;
 constexpr int32_t MAX_PRIVATE_TYPE_NUMBER = 1;
 constexpr int32_t DELAY_FOR_REMOVING_FOREGROUND_OS_ACCOUNT = 1500;
 #ifdef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
@@ -97,6 +98,22 @@ IInnerOsAccountManager &IInnerOsAccountManager::GetInstance()
 void IInnerOsAccountManager::SetOsAccountControl(std::shared_ptr<IOsAccountControl> ptr)
 {
     osAccountControl_ = ptr;
+}
+
+ErrCode IInnerOsAccountManager::RetryToInsertOsAccount(OsAccountInfo &osAccountInfo)
+{
+    int32_t retryTimes = 0;
+    ErrCode result;
+    while (retryTimes < MAX_INSERT_RETRY_TIMES) {
+        result = osAccountControl_->InsertOsAccount(osAccountInfo);
+        if (result == ERR_OK || result == ERR_OSACCOUNT_SERVICE_CONTROL_INSERT_FILE_EXISTS_ERROR) {
+            return ERR_OK;
+        }
+        ACCOUNT_LOGE("Fail to insert account");
+        retryTimes++;
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
+    }
+    return result;
 }
 
 void IInnerOsAccountManager::CreateBaseAdminAccount()
@@ -147,7 +164,11 @@ void IInnerOsAccountManager::CreateBaseStandardAccount()
     osAccountInfo.SetCreateTime(time);
     osAccountInfo.SetIsCreateCompleted(false);
     osAccountInfo.SetIsDataRemovable(false);
-    osAccountControl_->InsertOsAccount(osAccountInfo);
+    errCode = RetryToInsertOsAccount(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ReportOsAccountOperationFail(Constants::START_USER_ID, Constants::OPERATION_CREATE, errCode,
+            "Failed to insert start user OS account");
+    }
     if (SendMsgForAccountCreate(osAccountInfo) != ERR_OK) {
         ACCOUNT_LOGE("First OS account not created completely");
         return;
