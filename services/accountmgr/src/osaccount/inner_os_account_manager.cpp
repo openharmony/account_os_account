@@ -1810,8 +1810,10 @@ void IInnerOsAccountManager::LaunchDeactivationAnimation(const OsAccountInfo &os
     } else if (pid > 0) {
         close(pipeFd[PIPE_WRITE_END]);
         ErrCode ret = WaitForAnimationReady(pipeFd[PIPE_READ_END]);
-        ReportOsAccountOperationFail(localId, "deactivate", ret,
-            "Failed to launch deactivation animation, wait msg error");
+        if (ret != ERR_OK) {
+            ReportOsAccountOperationFail(localId, "deactivate", ret,
+                "Failed to launch deactivation animation, wait msg error");
+        }
         close(pipeFd[PIPE_READ_END]);
     } else {
         ACCOUNT_LOGE("Failed to fork deactivation animation process: %{public}s", strerror(errno));
