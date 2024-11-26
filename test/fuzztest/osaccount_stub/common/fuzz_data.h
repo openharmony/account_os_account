@@ -62,17 +62,17 @@ public:
         return str;
     }
 
-    std::string GenerateRandomString()
+    std::string GenerateString()
     {
         return GetStringFromData(0, (GetData<uint32_t>() % size_));
     }
 
-    template <class T> T GenerateRandomEnmu(T enmuMax)
+    template <class T> T GenerateEnmu(T enmuMax)
     {
         return static_cast<T>(GetData<uint32_t>() % (static_cast<uint32_t>(enmuMax) + 1));
     }
 
-    bool GenerateRandomBool()
+    bool GenerateBool()
     {
         return (GetData<uint32_t>() % BOOL_MODULO_NUM) == 0;
     }

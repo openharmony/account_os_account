@@ -37,7 +37,7 @@ bool IsOsAccountConstraintEnableStubFuzzTest(const uint8_t *data, size_t size)
     if (!datas.WriteInt32(fuzzData.GetData<int32_t>())) {
         return false;
     }
-    if (!datas.WriteString(fuzzData.GenerateRandomString())) {
+    if (!datas.WriteString(fuzzData.GenerateString())) {
         return false;
     }
 

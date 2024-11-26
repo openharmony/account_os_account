@@ -54,7 +54,7 @@ namespace OHOS {
         bool result = false;
         if (size > 0) {
             FuzzData fuzzData(data, size);
-            std::string testValue(fuzzData.GenerateRandomString());
+            std::string testValue(fuzzData.GenerateString());
             SelectAccountsOptions options;
             options.hasAccounts = (size % CONSTANTS_NUMBER_TWO) == 0 ? true : false;
             options.hasOwners = (size % CONSTANTS_NUMBER_TWO) == 0 ? true : false;

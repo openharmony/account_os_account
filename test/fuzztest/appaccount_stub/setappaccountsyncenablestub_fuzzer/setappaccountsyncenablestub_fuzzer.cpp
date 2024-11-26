@@ -32,7 +32,7 @@ bool SetAppAccountSyncEnableStubFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
     FuzzData fuzzData(data, size);
-    std::string name = fuzzData.GenerateRandomString();
+    std::string name = fuzzData.GenerateString();
     MessageParcel dataTemp;
     if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
         return false;
@@ -40,7 +40,7 @@ bool SetAppAccountSyncEnableStubFuzzTest(const uint8_t* data, size_t size)
     if (!dataTemp.WriteString(name)) {
         return false;
     }
-    bool syncEnable = fuzzData.GenerateRandomBool();
+    bool syncEnable = fuzzData.GenerateBool();
     if (!dataTemp.WriteBool(syncEnable)) {
         return false;
     }

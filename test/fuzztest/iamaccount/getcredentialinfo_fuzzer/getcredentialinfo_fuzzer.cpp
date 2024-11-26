@@ -96,7 +96,7 @@ bool GetCredentialInfoFuzzTest(const uint8_t* data, size_t size)
     }
     FuzzData fuzzData(data, size);
     int32_t userId = fuzzData.GetData<int32_t>();
-    AuthType authType = fuzzData.GenerateRandomEnmu(UserIam::UserAuth::RECOVERY_KEY);
+    AuthType authType = fuzzData.GenerateEnmu(UserIam::UserAuth::RECOVERY_KEY);
     std::shared_ptr<GetCredInfoCallback> callback = make_shared<MockIDMCallback>();
     int32_t result = AccountIAMClient::GetInstance().GetCredentialInfo(userId, authType, callback);
     return result == ERR_OK;
@@ -120,7 +120,7 @@ bool PrepareRemoteAuthFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
     FuzzData fuzzData(data, size);
-    std::string remoteNetworkId(fuzzData.GenerateRandomString());
+    std::string remoteNetworkId(fuzzData.GenerateString());
     std::shared_ptr<PreRemoteAuthCallback> callback = make_shared<MockPreRemoteAuthCallback>();
     int32_t result = AccountIAMClient::GetInstance().PrepareRemoteAuth(remoteNetworkId, callback);
     return result == ERR_OK;
@@ -133,21 +133,10 @@ bool GetEnrolledIdFuzzTest(const uint8_t* data, size_t size)
     }
     FuzzData fuzzData(data, size);
     int32_t userId = fuzzData.GetData<int32_t>();
-    AuthType authType = static_cast<AuthType>(fuzzData.GenerateRandomEnmu(IAMAuthType::TYPE_END));
+    AuthType authType = static_cast<AuthType>(fuzzData.GenerateEnmu(IAMAuthType::TYPE_END));
     auto callback = std::make_shared<MockGetEnrolledIdCallback>();
     AccountIAMClient::GetInstance().GetEnrolledId(userId, authType, callback);
     return callback->result_ == ERR_OK;
-}
-
-bool RegisterPINInputerTest(const uint8_t* data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-    std::shared_ptr<IInputer> inputer = make_shared<MockIInputer>();
-    int32_t result = AccountIAMClient::GetInstance().RegisterPINInputer(inputer);
-    result = AccountIAMClient::GetInstance().RegisterDomainInputer(inputer);
-    return result == ERR_OK;
 }
 
 bool OpenSessionFuzzTest(const uint8_t* data, size_t size)
@@ -196,7 +185,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::StartDomainAuthFuzzTest(data, size);
     OHOS::PrepareRemoteAuthFuzzTest(data, size);
     OHOS::GetEnrolledIdFuzzTest(data, size);
-    OHOS::RegisterPINInputerTest(data, size);
     OHOS::OpenSessionFuzzTest(data, size);
     OHOS::CloseSessionFuzzTest(data, size);
     OHOS::CancelFuzzTest(data, size);

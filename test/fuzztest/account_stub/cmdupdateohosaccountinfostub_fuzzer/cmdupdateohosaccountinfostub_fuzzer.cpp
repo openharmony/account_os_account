@@ -40,17 +40,17 @@ bool CmdUpdateOhosAccountInfoStubFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
     FuzzData fuzzData(data, size);
-    std::string accountName = fuzzData.GenerateRandomString();
+    std::string accountName = fuzzData.GenerateString();
     if (!dataTemp.WriteString16(Str8ToStr16(accountName))) {
         ACCOUNT_LOGE("Write accountName failed!");
         return false;
     }
-    std::string uid = fuzzData.GenerateRandomString();
+    std::string uid = fuzzData.GenerateString();
     if (!dataTemp.WriteString16(Str8ToStr16(uid))) {
         ACCOUNT_LOGE("Write uid failed!");
         return false;
     }
-    std::string eventStr = fuzzData.GenerateRandomString();
+    std::string eventStr = fuzzData.GenerateString();
     if (!dataTemp.WriteString16(Str8ToStr16(eventStr))) {
         ACCOUNT_LOGE("Write eventStr failed!");
         return false;

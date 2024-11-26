@@ -51,11 +51,11 @@ namespace OHOS {
         bool result = false;
         if (size > 0) {
             FuzzData fuzzData(data, size);
-            std::string testName(fuzzData.GenerateRandomString());
-            std::string testOwner(fuzzData.GenerateRandomString());
-            std::string testAuthType(fuzzData.GenerateRandomString());
-            std::string testKey(fuzzData.GenerateRandomString());
-            std::string testValue(fuzzData.GenerateRandomString());
+            std::string testName(fuzzData.GenerateString());
+            std::string testOwner(fuzzData.GenerateString());
+            std::string testAuthType(fuzzData.GenerateString());
+            std::string testKey(fuzzData.GenerateString());
+            std::string testValue(fuzzData.GenerateString());
             AAFwk::Want options;
             options.SetParam(testKey, testValue);
             sptr<MockAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();

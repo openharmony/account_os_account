@@ -39,10 +39,10 @@ bool ProcGetAccountServerConfigStubFuzzTest(const uint8_t* data, size_t size)
     }
     DomainAccountInfo info;
     FuzzData fuzzData(data, size);
-    info.accountId_ = fuzzData.GenerateRandomString();
-    info.accountName_ = fuzzData.GenerateRandomString();
-    info.domain_ = fuzzData.GenerateRandomString();
-    info.serverConfigId_ = fuzzData.GenerateRandomString();
+    info.accountId_ = fuzzData.GenerateString();
+    info.accountName_ = fuzzData.GenerateString();
+    info.domain_ = fuzzData.GenerateString();
+    info.serverConfigId_ = fuzzData.GenerateString();
     MessageParcel dataTemp;
     if (!dataTemp.WriteInterfaceToken(ACCOUNT_TOKEN)) {
         return false;

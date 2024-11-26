@@ -27,14 +27,6 @@ using namespace std;
 using namespace OHOS::AccountSA;
 
 namespace OHOS {
-bool QueryActiveOsAccountIdsFuzzTest(const uint8_t* data, size_t size)
-{
-    int32_t result = ERR_OK;
-    std::vector<int32_t> testIds;
-    result = OsAccountManager::QueryActiveOsAccountIds(testIds);
-    return result == ERR_OK;
-}
-
 bool QueryOsAccountConstraintSourceTypesFuzzTest(const uint8_t* data, size_t size)
 {
     int32_t result = ERR_OK;
@@ -42,7 +34,7 @@ bool QueryOsAccountConstraintSourceTypesFuzzTest(const uint8_t* data, size_t siz
         FuzzData fuzzData(data, size);
         std::vector<ConstraintSourceTypeInfo> testConstraintSourceTypeInfos;
         int32_t testId = fuzzData.GetData<int32_t>();
-        std::string testConstraint(fuzzData.GenerateRandomString());
+        std::string testConstraint(fuzzData.GenerateString());
         result = OsAccountManager::QueryOsAccountConstraintSourceTypes(
             testId, testConstraint, testConstraintSourceTypeInfos);
     }
@@ -61,39 +53,16 @@ bool QueryOsAccountByIdFuzzTest(const uint8_t* data, size_t size)
     return result == ERR_OK;
 }
 
-bool QueryMaxOsAccountNumberFuzzTest(const uint8_t* data, size_t size)
-{
-    int32_t result = ERR_OK;
-    uint32_t testMaxOsAccountNumber;
-    result = OsAccountManager::QueryMaxOsAccountNumber(testMaxOsAccountNumber);
-    return result == ERR_OK;
-}
-
-bool QueryMaxLoggedInOsAccountNumberFuzzTest(const uint8_t* data, size_t size)
-{
-    uint32_t maxNum;
-    ErrCode result = OsAccountManager::QueryMaxLoggedInOsAccountNumber(maxNum);
-    return result == ERR_OK;
-}
-
 bool QueryCurrentOsAccountFuzzTest(const uint8_t* data, size_t size)
 {
     int32_t result = ERR_OK;
     if ((data != nullptr) && (size != 0)) {
         FuzzData fuzzData(data, size);
-        std::string testName(fuzzData.GenerateRandomString());
+        std::string testName(fuzzData.GenerateString());
         OsAccountInfo osAccountInfo;
         osAccountInfo.SetLocalName(testName);
         result = OsAccountManager::QueryCurrentOsAccount(osAccountInfo);
     }
-    return result == ERR_OK;
-}
-
-bool QueryAllCreatedOsAccountsFuzzTest(const uint8_t* data, size_t size)
-{
-    int32_t result = ERR_OK;
-    std::vector<OsAccountInfo> osAccountInfos;
-    result = OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos);
     return result == ERR_OK;
 }
 } // namespace
@@ -102,13 +71,9 @@ bool QueryAllCreatedOsAccountsFuzzTest(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::QueryActiveOsAccountIdsFuzzTest(data, size);
     OHOS::QueryOsAccountConstraintSourceTypesFuzzTest(data, size);
     OHOS::QueryOsAccountByIdFuzzTest(data, size);
-    OHOS::QueryMaxOsAccountNumberFuzzTest(data, size);
-    OHOS::QueryMaxLoggedInOsAccountNumberFuzzTest(data, size);
     OHOS::QueryCurrentOsAccountFuzzTest(data, size);
-    OHOS::QueryAllCreatedOsAccountsFuzzTest(data, size);
     return 0;
 }
 

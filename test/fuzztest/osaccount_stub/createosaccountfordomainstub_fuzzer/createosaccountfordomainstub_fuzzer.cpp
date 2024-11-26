@@ -36,8 +36,8 @@ bool CreateOsAccountForDomainStubFuzzTest(const uint8_t *data, size_t size)
     }
 
     FuzzData fuzzData(data, size);
-    DomainAccountInfo domainInfo(fuzzData.GenerateRandomString(),
-        fuzzData.GenerateRandomString());
+    DomainAccountInfo domainInfo(fuzzData.GenerateString(),
+        fuzzData.GenerateString());
     OsAccountType testType = static_cast<OsAccountType>(fuzzData.GetData<size_t>() % CONSTANTS_NUMBER_FIVE);
     MessageParcel datas;
     datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);

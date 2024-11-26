@@ -43,7 +43,7 @@ bool SubscribeOsAccountStubFuzzTest(const uint8_t *data, size_t size)
     datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
     FuzzData fuzzData(data, size);
     OsAccountSubscribeInfo subscribeInfo;
-    subscribeInfo.SetName(fuzzData.GenerateRandomString());
+    subscribeInfo.SetName(fuzzData.GenerateString());
     OS_ACCOUNT_SUBSCRIBE_TYPE testType = static_cast<OS_ACCOUNT_SUBSCRIBE_TYPE>(
         fuzzData.GetData<int>() % CONSTANTS_NUMBER_TEN);
     subscribeInfo.SetOsAccountSubscribeType(testType);

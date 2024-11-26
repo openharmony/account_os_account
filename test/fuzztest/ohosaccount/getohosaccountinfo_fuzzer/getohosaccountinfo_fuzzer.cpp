@@ -40,13 +40,6 @@ namespace OHOS {
 namespace {
 static constexpr uint32_t OHOS_ACCOUNT_STATE_NUM = 5;
 }
-bool GetOhosAccountInfoFuzzTest(const uint8_t* data, size_t size)
-{
-    int32_t result;
-    OhosAccountInfo testOhosAccountInfo;
-    result = OhosAccountKits::GetInstance().GetOhosAccountInfo(testOhosAccountInfo);
-    return result == ERR_OK;
-}
 
 bool GetOhosAccountInfoByUserIdFuzzTest(const uint8_t* data, size_t size)
 {
@@ -98,11 +91,11 @@ bool SetOhosAccountInfoByUserIdFuzzTest(const uint8_t* data, size_t size)
     FuzzData fuzzData(data, size);
     int32_t userId = fuzzData.GetData<int32_t>();
     OhosAccountInfo testOhosAccountInfo(
-        fuzzData.GenerateRandomString(),
-        fuzzData.GenerateRandomString(),
+        fuzzData.GenerateString(),
+        fuzzData.GenerateString(),
         fuzzData.GetData<int32_t>() % OHOS_ACCOUNT_STATE_NUM - 1
     );
-    std::string testEventStr(fuzzData.GenerateRandomString());
+    std::string testEventStr(fuzzData.GenerateString());
     int32_t result = accountProxy->SetOhosAccountInfoByUserId(userId, testOhosAccountInfo, testEventStr);
     return result == ERR_OK;
 }
@@ -142,7 +135,6 @@ bool QueryOhosAccountInfoByUserIdProxyFuzzTest(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::GetOhosAccountInfoFuzzTest(data, size);
     OHOS::GetOhosAccountInfoByUserIdFuzzTest(data, size);
     OHOS::SubscribeDistributedAccountEventFuzzTest(data, size);
     OHOS::UnsubscribeDistributedAccountEventFuzzTest(data, size);

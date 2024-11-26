@@ -52,8 +52,8 @@ bool AuthUserStubFuzzTest(const uint8_t *data, size_t size)
     FuzzData fuzzData(data, size);
     int32_t userId = fuzzData.GetData<int32_t>();
     std::vector<uint8_t> challenge = {fuzzData.GetData<uint8_t>()};
-    AuthType authType = static_cast<AuthType>(fuzzData.GenerateRandomEnmu(IAMAuthType::TYPE_END));
-    AuthTrustLevel authTrustLevel = fuzzData.GenerateRandomEnmu(AuthTrustLevel::ATL4);
+    AuthType authType = static_cast<AuthType>(fuzzData.GenerateEnmu(IAMAuthType::TYPE_END));
+    AuthTrustLevel authTrustLevel = fuzzData.GenerateEnmu(AuthTrustLevel::ATL4);
     std::shared_ptr<IDMCallback> ptr = make_shared<MockIDMCallback>();
     sptr<IIDMCallback> callback = new (std::nothrow) IDMCallbackService(userId, ptr);
 

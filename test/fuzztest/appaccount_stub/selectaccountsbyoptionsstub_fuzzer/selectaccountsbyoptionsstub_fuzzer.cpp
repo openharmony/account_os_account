@@ -41,11 +41,11 @@ bool SelectAccountsByOptionsStubFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
     FuzzData fuzzData(data, size);
-    std::string testValue = fuzzData.GenerateRandomString();
+    std::string testValue = fuzzData.GenerateString();
     SelectAccountsOptions options;
-    options.hasAccounts = fuzzData.GenerateRandomBool();
-    options.hasOwners = fuzzData.GenerateRandomBool();
-    options.hasLabels = fuzzData.GenerateRandomBool();
+    options.hasAccounts = fuzzData.GenerateBool();
+    options.hasOwners = fuzzData.GenerateBool();
+    options.hasLabels = fuzzData.GenerateBool();
     options.allowedOwners.emplace_back(testValue);
     options.requiredLabels.emplace_back(testValue);
     sptr<MockAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();

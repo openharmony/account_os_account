@@ -32,8 +32,8 @@ namespace OHOS {
         if ((data != nullptr) && (size != 0)) {
             FuzzData fuzzData(data, size);
             std::vector<OsAccountInfo> TEST_LIST{};
-            std::string randomId(fuzzData.GenerateRandomString());
-            result = OsAccountManager::GetOsAccountListFromDatabase(randomId, TEST_LIST);
+            std::string id(fuzzData.GenerateString());
+            result = OsAccountManager::GetOsAccountListFromDatabase(id, TEST_LIST);
         }
         return result;
     }
