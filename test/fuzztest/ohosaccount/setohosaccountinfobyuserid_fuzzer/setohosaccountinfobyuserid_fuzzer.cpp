@@ -37,11 +37,11 @@ bool SetOhosAccountInfoByUserIdFuzzTest(const uint8_t* data, size_t size)
         FuzzData fuzzData(data, size);
         int32_t testId = fuzzData.GetData<int32_t>();
         OhosAccountInfo testOhosAccountInfo(
-            fuzzData.GenerateRandomString(),
-            fuzzData.GenerateRandomString(),
+            fuzzData.GenerateString(),
+            fuzzData.GenerateString(),
             fuzzData.GetData<int32_t>() % OHOS_ACCOUNT_STATE_NUM - 1
         );
-        std::string testEventStr(fuzzData.GenerateRandomString());
+        std::string testEventStr(fuzzData.GenerateString());
         result = OhosAccountKits::GetInstance().SetOhosAccountInfoByUserId(testId, testOhosAccountInfo, testEventStr);
     }
     return result == ERR_OK;

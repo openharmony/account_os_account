@@ -31,8 +31,8 @@ namespace OHOS {
         bool result = false;
         if (size > 0) {
             FuzzData fuzzData(data, size);
-            std::string testName(fuzzData.GenerateRandomString());
-            std::string testExtraInfo(fuzzData.GenerateRandomString());
+            std::string testName(fuzzData.GenerateString());
+            std::string testExtraInfo(fuzzData.GenerateString());
             result = AppAccountManager::GetAccountExtraInfo(testName, testExtraInfo);
         }
         return result;

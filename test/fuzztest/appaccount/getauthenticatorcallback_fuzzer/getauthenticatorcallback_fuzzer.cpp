@@ -30,7 +30,7 @@ namespace OHOS {
         bool result = false;
         if (size > 0) {
             FuzzData fuzzData(data, size);
-            std::string testSessionId(fuzzData.GenerateRandomString());
+            std::string testSessionId(fuzzData.GenerateString());
             sptr<IRemoteObject> callback;
             result = AppAccountManager::GetAuthenticatorCallback(testSessionId, callback);
         }

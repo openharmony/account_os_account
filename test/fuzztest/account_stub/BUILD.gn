@@ -15,15 +15,8 @@ group("fuzztest") {
 
   deps = [
     # deps file
-    "cmdgetaccountiamservicestub_fuzzer:CmdGetAccountIAMServiceStubFuzzTest",
-    "cmdgetappaccountservicestub_fuzzer:CmdGetAppAccountServiceStubFuzzTest",
-    "cmdgetdomainaccountservicestub_fuzzer:CmdGetDomainAccountServiceStubFuzzTest",
     "cmdgetohosaccountinfobyuseridstub_fuzzer:CmdGetOhosAccountInfoByUserIdStubFuzzTest",
-    "cmdgetohosaccountinfostub_fuzzer:CmdGetOhosAccountInfoStubFuzzTest",
-    "cmdgetosaccountservicestub_fuzzer:CmdGetOsAccountServiceStubFuzzTest",
-    "cmdquerydeviceaccountidstub_fuzzer:CmdQueryDeviceAccountIdStubFuzzTest",
     "cmdqueryohosaccountinfobyuseridstub_fuzzer:CmdQueryOhosAccountInfoByUserIdStubFuzzTest",
-    "cmdqueryohosaccountinfostub_fuzzer:CmdQueryOhosAccountInfoStubFuzzTest",
     "cmdsetohosaccountinfobyuseridstub_fuzzer:CmdSetOhosAccountInfoByUserIdStubFuzzTest",
     "cmdsetohosaccountinfostub_fuzzer:CmdSetOhosAccountInfoStubFuzzTest",
     "cmdupdateohosaccountinfostub_fuzzer:CmdUpdateOhosAccountInfoStubFuzzTest",

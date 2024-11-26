@@ -38,7 +38,7 @@ bool QueryOsAccountConstraintSourceTypesStubFuzzTest(const uint8_t *data, size_t
         return false;
     }
 
-    if (!datas.WriteString(fuzzData.GenerateRandomString())) {
+    if (!datas.WriteString(fuzzData.GenerateString())) {
         return false;
     }
 

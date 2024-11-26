@@ -36,11 +36,11 @@ bool GetOsAccountLocalIdFromDomainStubFuzzTest(const uint8_t *data, size_t size)
     MessageParcel datas;
     datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
     FuzzData fuzzData(data, size);
-    if (!datas.WriteString(fuzzData.GenerateRandomString())) {
+    if (!datas.WriteString(fuzzData.GenerateString())) {
         return false;
     }
 
-    if (!datas.WriteString(fuzzData.GenerateRandomString())) {
+    if (!datas.WriteString(fuzzData.GenerateString())) {
         return false;
     }
 

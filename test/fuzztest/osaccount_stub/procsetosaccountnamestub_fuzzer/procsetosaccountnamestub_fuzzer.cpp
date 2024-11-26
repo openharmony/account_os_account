@@ -42,7 +42,7 @@ bool ProcSetOsAccountNameStubFuzzTest(const uint8_t *data, size_t size)
         return false;
     }
 
-    if (!datas.WriteString(fuzzData.GenerateRandomString())) {
+    if (!datas.WriteString(fuzzData.GenerateString())) {
         return false;
     }
 

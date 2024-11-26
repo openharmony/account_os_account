@@ -33,9 +33,9 @@ bool SetAssociatedDataStubFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
     FuzzData fuzzData(data, size);
-    std::string name = fuzzData.GenerateRandomString();
-    std::string key = fuzzData.GenerateRandomString();
-    std::string value = fuzzData.GenerateRandomString();
+    std::string name = fuzzData.GenerateString();
+    std::string key = fuzzData.GenerateString();
+    std::string value = fuzzData.GenerateString();
     MessageParcel dataTemp;
     if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
         return false;

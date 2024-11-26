@@ -32,8 +32,8 @@ bool CheckAppAccessStubFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
     FuzzData fuzzData(data, size);
-    std::string authorizedApp = fuzzData.GenerateRandomString();
-    std::string name = fuzzData.GenerateRandomString();
+    std::string authorizedApp = fuzzData.GenerateString();
+    std::string name = fuzzData.GenerateString();
     MessageParcel dataTemp;
     if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
         return false;

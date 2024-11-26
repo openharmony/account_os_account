@@ -29,7 +29,6 @@ group("fuzztest") {
     "deleteoauthtokenstub_fuzzer:DeleteOAuthTokenStubFuzzTest",
     "getaccountcredentialstub_fuzzer:GetAccountCredentialStubFuzzTest",
     "getaccountextrainfostub_fuzzer:GetAccountExtraInfoStubFuzzTest",
-    "getallaccessibleaccountsstub_fuzzer:GetAllAccessibleAccountsStubFuzzTest",
     "getallaccountsstub_fuzzer:GetAllAccountsStubFuzzTest",
     "getalloauthtokensstub_fuzzer:GetAllOAuthTokensStubFuzzTest",
     "getassociateddatastub_fuzzer:GetAssociatedDataStubFuzzTest",

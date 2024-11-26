@@ -41,9 +41,9 @@ bool CheckAccountLabelsStubFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
     FuzzData fuzzData(data, size);
-    std::string testName = fuzzData.GenerateRandomString();
-    std::string testOwner = fuzzData.GenerateRandomString();
-    std::string testValue = fuzzData.GenerateRandomString();
+    std::string testName = fuzzData.GenerateString();
+    std::string testOwner = fuzzData.GenerateString();
+    std::string testValue = fuzzData.GenerateString();
     std::vector<std::string> testLabels;
         testLabels.emplace_back(testValue);
     sptr<MockAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();

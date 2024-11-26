@@ -38,9 +38,9 @@ namespace OHOS {
     {
         FuzzData fuzzData(data, size);
         int32_t userId = fuzzData.GetData<int32_t>();
-        AuthType authType = fuzzData.GenerateRandomEnmu(UserIam::UserAuth::RECOVERY_KEY);
+        AuthType authType = fuzzData.GenerateEnmu(UserIam::UserAuth::RECOVERY_KEY);
         std::vector<Attributes::AttributeKey> keys = {
-            fuzzData.GenerateRandomEnmu(UserIam::UserAuth::Attributes::ATTR_AUTH_INTENTION)};
+            fuzzData.GenerateEnmu(UserIam::UserAuth::Attributes::ATTR_AUTH_INTENTION)};
         GetPropertyRequest request = {
             .authType = authType,
             .keys = keys,

@@ -68,8 +68,8 @@ bool ProcCreateOsAccountWithFullInfoStubFuzzTest(const uint8_t *data, size_t siz
 
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetLocalId(fuzzData.GetData<int>());
-    osAccountInfo.SetLocalName(fuzzData.GenerateRandomString());
-    osAccountInfo.SetShortName(fuzzData.GenerateRandomString());
+    osAccountInfo.SetLocalName(fuzzData.GenerateString());
+    osAccountInfo.SetShortName(fuzzData.GenerateString());
     int typeNumber = fuzzData.GetData<int>() % ENUM_TYPE_MAX;
     if (typeNumber == PRIVATE_NUMBER) {
         osAccountInfo.SetType(PRIVATE);
@@ -94,46 +94,6 @@ bool ProcCreateOsAccountWithFullInfoStubFuzzTest(const uint8_t *data, size_t siz
     return true;
 }
 
-bool ProcDeactivateAllOsAccountsStubFuzzTest(const uint8_t *data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-
-    MessageParcel datas;
-    if (!datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR)) {
-        return false;
-    }
-
-    MessageParcel reply;
-    MessageOption option;
-    auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
-    osAccountManagerService_->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::DEACTIVATE_ALL_OS_ACCOUNTS), datas, reply, option);
-
-    return true;
-}
-
-bool ProcGetBackgroundOsAccountLocalIdsStubFuzzTest(const uint8_t *data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-
-    MessageParcel datas;
-    if (!datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR)) {
-        return false;
-    }
-
-    MessageParcel reply;
-    MessageOption option;
-    auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
-    osAccountManagerService_->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::GET_BACKGROUND_OS_ACCOUNT_LOCAL_IDS), datas, reply, option);
-
-    return true;
-}
-
 bool ProcGetCreatedOsAccountNumFromDatabaseStubFuzzTest(const uint8_t *data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
@@ -146,7 +106,7 @@ bool ProcGetCreatedOsAccountNumFromDatabaseStubFuzzTest(const uint8_t *data, siz
     }
 
     FuzzData fuzzData(data, size);
-    if (!datas.WriteString(fuzzData.GenerateRandomString())) {
+    if (!datas.WriteString(fuzzData.GenerateString())) {
         return false;
     }
 
@@ -155,46 +115,6 @@ bool ProcGetCreatedOsAccountNumFromDatabaseStubFuzzTest(const uint8_t *data, siz
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
     osAccountManagerService_->OnRemoteRequest(
         static_cast<int32_t>(OsAccountInterfaceCode::GET_CREATED_OS_ACCOUNT_NUM_FROM_DATABASE), datas, reply, option);
-
-    return true;
-}
-
-bool ProcGetDefaultActivatedOsAccountStubFuzzTest(const uint8_t *data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-
-    MessageParcel datas;
-    if (!datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR)) {
-        return false;
-    }
-
-    MessageParcel reply;
-    MessageOption option;
-    auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
-    osAccountManagerService_->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::GET_DEFAULT_ACTIVATED_OS_ACCOUNT), datas, reply, option);
-
-    return true;
-}
-
-bool ProcGetForegroundOsAccountsStubFuzzTest(const uint8_t *data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-
-    MessageParcel datas;
-    if (!datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR)) {
-        return false;
-    }
-
-    MessageParcel reply;
-    MessageOption option;
-    auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
-    osAccountManagerService_->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::GET_FOREGROUND_OS_ACCOUNTS), datas, reply, option);
 
     return true;
 }
@@ -211,7 +131,7 @@ bool ProcGetMaxAllowCreateIdFromDatabaseStubFuzzTest(const uint8_t *data, size_t
     }
 
     FuzzData fuzzData(data, size);
-    if (!datas.WriteString(fuzzData.GenerateRandomString())) {
+    if (!datas.WriteString(fuzzData.GenerateString())) {
         return false;
     }
 
@@ -236,7 +156,7 @@ bool ProcGetOsAccountFromDatabaseStubFuzzTest(const uint8_t *data, size_t size)
     }
 
     FuzzData fuzzData(data, size);
-    if (!datas.WriteString(fuzzData.GenerateRandomString())) {
+    if (!datas.WriteString(fuzzData.GenerateString())) {
         return false;
     }
 
@@ -265,7 +185,7 @@ bool ProcGetOsAccountListFromDatabaseStubFuzzTest(const uint8_t *data, size_t si
     }
 
     FuzzData fuzzData(data, size);
-    if (!datas.WriteString(fuzzData.GenerateRandomString())) {
+    if (!datas.WriteString(fuzzData.GenerateString())) {
         return false;
     }
 
@@ -274,46 +194,6 @@ bool ProcGetOsAccountListFromDatabaseStubFuzzTest(const uint8_t *data, size_t si
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
     osAccountManagerService_->OnRemoteRequest(
         static_cast<int32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_LIST_FROM_DATABASE), datas, reply, option);
-
-    return true;
-}
-
-bool ProcGetOsAccountShortNameStubFuzzTest(const uint8_t *data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-
-    MessageParcel datas;
-    if (!datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR)) {
-        return false;
-    }
-
-    MessageParcel reply;
-    MessageOption option;
-    auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
-    osAccountManagerService_->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_SHORT_NAME), datas, reply, option);
-
-    return true;
-}
-
-bool ProcGetOsAccountTypeFromProcessStubFuzzTest(const uint8_t *data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-
-    MessageParcel datas;
-    if (!datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR)) {
-        return false;
-    }
-
-    MessageParcel reply;
-    MessageOption option;
-    auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
-    osAccountManagerService_->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_TYPE_FROM_PROCESS), datas, reply, option);
 
     return true;
 }
@@ -330,7 +210,7 @@ bool ProcGetSerialNumberFromDatabaseStubFuzzTest(const uint8_t *data, size_t siz
     }
 
     FuzzData fuzzData(data, size);
-    if (!datas.WriteString(fuzzData.GenerateRandomString())) {
+    if (!datas.WriteString(fuzzData.GenerateString())) {
         return false;
     }
 
@@ -342,46 +222,6 @@ bool ProcGetSerialNumberFromDatabaseStubFuzzTest(const uint8_t *data, size_t siz
 
     return true;
 }
-
-bool ProcIsCurrentOsAccountVerifiedStubFuzzTest(const uint8_t *data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-
-    MessageParcel datas;
-    if (!datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR)) {
-        return false;
-    }
-
-    MessageParcel reply;
-    MessageOption option;
-    auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
-    osAccountManagerService_->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::IS_CURRENT_OS_ACCOUNT_VERIFIED), datas, reply, option);
-
-    return true;
-}
-
-bool ProcIsMultiOsAccountEnableStubFuzzTest(const uint8_t *data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-
-    MessageParcel datas;
-    if (!datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR)) {
-        return false;
-    }
-
-    MessageParcel reply;
-    MessageOption option;
-    auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
-    osAccountManagerService_->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::IS_MULTI_OS_ACCOUNT_ENABLE), datas, reply, option);
-
-    return true;
-}
 } // namespace OHOS
 
 /* Fuzzer entry point */
@@ -390,18 +230,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     /* Run your code on data */
     OHOS::ActivateOsAccountStubFuzzTest(data, size);
     OHOS::ProcGetCreatedOsAccountNumFromDatabaseStubFuzzTest(data, size);
-    OHOS::ProcDeactivateAllOsAccountsStubFuzzTest(data, size);
     OHOS::ProcCreateOsAccountWithFullInfoStubFuzzTest(data, size);
-    OHOS::ProcGetBackgroundOsAccountLocalIdsStubFuzzTest(data, size);
-    OHOS::ProcGetDefaultActivatedOsAccountStubFuzzTest(data, size);
-    OHOS::ProcGetForegroundOsAccountsStubFuzzTest(data, size);
     OHOS::ProcGetMaxAllowCreateIdFromDatabaseStubFuzzTest(data, size);
     OHOS::ProcGetOsAccountFromDatabaseStubFuzzTest(data, size);
     OHOS::ProcGetOsAccountListFromDatabaseStubFuzzTest(data, size);
-    OHOS::ProcGetOsAccountShortNameStubFuzzTest(data, size);
-    OHOS::ProcGetOsAccountTypeFromProcessStubFuzzTest(data, size);
     OHOS::ProcGetSerialNumberFromDatabaseStubFuzzTest(data, size);
-    OHOS::ProcIsCurrentOsAccountVerifiedStubFuzzTest(data, size);
-    OHOS::ProcIsMultiOsAccountEnableStubFuzzTest(data, size);
     return 0;
 }

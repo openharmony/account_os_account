@@ -31,7 +31,7 @@ namespace OHOS {
         }
         FuzzData fuzzData(data, size);
         DomainServerConfig info;
-        std::string param(fuzzData.GenerateRandomString());
+        std::string param(fuzzData.GenerateString());
         DomainAccountClient::GetInstance().AddServerConfig(param, info);
         return true;
     }

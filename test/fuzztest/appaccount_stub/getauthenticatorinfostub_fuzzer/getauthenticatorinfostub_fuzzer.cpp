@@ -36,7 +36,7 @@ bool GetAuthenticatorInfoStubFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
     FuzzData fuzzData(data, size);
-    std::string owner = fuzzData.GenerateRandomString();
+    std::string owner = fuzzData.GenerateString();
     if (!dataTemp.WriteString(owner)) {
         return false;
     }

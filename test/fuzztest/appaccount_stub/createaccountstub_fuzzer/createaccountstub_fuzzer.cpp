@@ -32,10 +32,10 @@ bool CreateAccountStubFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
     FuzzData fuzzData(data, size);
-    std::string name = fuzzData.GenerateRandomString();
+    std::string name = fuzzData.GenerateString();
     CreateAccountOptions options;
-    std::string testKey = fuzzData.GenerateRandomString();
-    std::string testValue = fuzzData.GenerateRandomString();
+    std::string testKey = fuzzData.GenerateString();
+    std::string testValue = fuzzData.GenerateString();
     options.customData.emplace(testKey, testValue);
     MessageParcel dataTemp;
     if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
