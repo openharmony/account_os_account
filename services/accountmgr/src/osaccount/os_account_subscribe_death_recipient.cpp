@@ -24,19 +24,19 @@ void OsAccountSubscribeDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &r
 {
     ACCOUNT_LOGI("enter");
     if (remote == nullptr) {
-        ACCOUNT_LOGE("remote object is nullptr");
+        ACCOUNT_LOGE("Remote object is nullptr");
         return;
     }
 
     sptr<IRemoteObject> object = remote.promote();
     if (object == nullptr) {
-        ACCOUNT_LOGE("object is nullptr");
+        ACCOUNT_LOGE("Object is nullptr");
         return;
     }
 
     OsAccountSubscribeManager::GetInstance().UnsubscribeOsAccount(object);
 
-    ACCOUNT_LOGI("end");
+    ACCOUNT_LOGI("End");
 }
 }  // namespace AccountSA
 }  // namespace OHOS

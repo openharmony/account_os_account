@@ -50,15 +50,15 @@ void DomainAccountInfo::Clear()
 bool DomainAccountInfo::ReadFromParcel(Parcel &parcel)
 {
     if (!parcel.ReadString(accountName_)) {
-        ACCOUNT_LOGE("failed to read domain account name");
+        ACCOUNT_LOGE("Failed to read domain account name");
         return false;
     }
     if (!parcel.ReadString(domain_)) {
-        ACCOUNT_LOGE("failed to read domain");
+        ACCOUNT_LOGE("Failed to read domain");
         return false;
     }
     if (!parcel.ReadString(accountId_)) {
-        ACCOUNT_LOGE("failed to read domain accountId");
+        ACCOUNT_LOGE("Failed to read domain accountId");
         return false;
     }
     if (!parcel.ReadBool(isAuthenticated)) {
@@ -79,7 +79,7 @@ bool DomainAccountInfo::Marshalling(Parcel &parcel) const
         return false;
     }
     if (!parcel.WriteString(domain_)) {
-        ACCOUNT_LOGE("failed to write domain");
+        ACCOUNT_LOGE("Failed to write domain");
         return false;
     }
     if (!parcel.WriteString(accountId_)) {
@@ -105,7 +105,7 @@ DomainAccountInfo *DomainAccountInfo::Unmarshalling(Parcel &parcel)
     }
 
     if (!domainAccountInfo->ReadFromParcel(parcel)) {
-        ACCOUNT_LOGE("failed to read from parcel");
+        ACCOUNT_LOGE("Failed to read from parcel");
         delete domainAccountInfo;
         domainAccountInfo = nullptr;
     }
@@ -123,12 +123,12 @@ GetAccessTokenOptions::GetAccessTokenOptions()
 bool GetAccessTokenOptions::ReadFromParcel(Parcel &parcel)
 {
     if (!parcel.ReadInt32(callingUid_)) {
-        ACCOUNT_LOGE("failed to read callingUid");
+        ACCOUNT_LOGE("Failed to read callingUid");
         return false;
     }
     auto param = parcel.ReadParcelable<AAFwk::WantParams>();
     if (param == nullptr) {
-        ACCOUNT_LOGE("failed to read wantParams");
+        ACCOUNT_LOGE("Failed to read wantParams");
         return false;
     }
     getTokenParams_ = (*param);
@@ -143,7 +143,7 @@ bool GetAccessTokenOptions::Marshalling(Parcel &parcel) const
         return false;
     }
     if (!parcel.WriteParcelable(&getTokenParams_)) {
-        ACCOUNT_LOGE("failed to write getTokenParams");
+        ACCOUNT_LOGE("Failed to write getTokenParams");
         return false;
     }
     return true;
@@ -157,7 +157,7 @@ GetAccessTokenOptions *GetAccessTokenOptions::Unmarshalling(Parcel &parcel)
     }
 
     if (!getAccessTokenOptions->ReadFromParcel(parcel)) {
-        ACCOUNT_LOGE("failed to read from parcel");
+        ACCOUNT_LOGE("Failed to read from parcel");
         delete getAccessTokenOptions;
         getAccessTokenOptions = nullptr;
     }
@@ -169,12 +169,12 @@ bool GetDomainAccountInfoOptions::ReadFromParcel(Parcel &parcel)
 {
     std::shared_ptr<DomainAccountInfo> infoPtr(parcel.ReadParcelable<DomainAccountInfo>());
     if (infoPtr == nullptr) {
-        ACCOUNT_LOGE("failed to read authStatusInfo");
+        ACCOUNT_LOGE("Failed to read authStatusInfo");
         return false;
     }
     accountInfo = *infoPtr;
     if (!parcel.ReadInt32(callingUid)) {
-        ACCOUNT_LOGE("failed to read callingUid");
+        ACCOUNT_LOGE("Failed to read callingUid");
         return false;
     }
     return true;
@@ -183,11 +183,11 @@ bool GetDomainAccountInfoOptions::ReadFromParcel(Parcel &parcel)
 bool GetDomainAccountInfoOptions::Marshalling(Parcel &parcel) const
 {
     if (!parcel.WriteParcelable(&accountInfo)) {
-        ACCOUNT_LOGE("failed to write authStatusInfo");
+        ACCOUNT_LOGE("Failed to write authStatusInfo");
         return false;
     }
     if (!parcel.WriteInt32(callingUid)) {
-        ACCOUNT_LOGE("failed to read write callingUid");
+        ACCOUNT_LOGE("Failed to write callingUid");
         return false;
     }
     return true;
@@ -201,7 +201,7 @@ GetDomainAccountInfoOptions *GetDomainAccountInfoOptions::Unmarshalling(Parcel &
     }
 
     if (!getAccountInfoOptions->ReadFromParcel(parcel)) {
-        ACCOUNT_LOGE("failed to read from parcel");
+        ACCOUNT_LOGE("Failed to read from parcel");
         delete getAccountInfoOptions;
         getAccountInfoOptions = nullptr;
     }
@@ -270,11 +270,11 @@ DomainServerConfig *DomainServerConfig::Unmarshalling(Parcel &parcel)
 bool AuthStatusInfo::ReadFromParcel(Parcel &parcel)
 {
     if (!parcel.ReadInt32(remainingTimes)) {
-        ACCOUNT_LOGE("failed to read remainingTimes");
+        ACCOUNT_LOGE("Failed to read remainingTimes");
         return false;
     }
     if (!parcel.ReadInt32(freezingTime)) {
-        ACCOUNT_LOGE("failed to read freezingTime");
+        ACCOUNT_LOGE("Failed to read freezingTime");
         return false;
     }
     return true;
@@ -287,7 +287,7 @@ bool AuthStatusInfo::Marshalling(Parcel &parcel) const
         return false;
     }
     if (!parcel.WriteInt32(freezingTime)) {
-        ACCOUNT_LOGE("failed to write freezingTime");
+        ACCOUNT_LOGE("Failed to write freezingTime");
         return false;
     }
     return true;
@@ -297,11 +297,11 @@ AuthStatusInfo *AuthStatusInfo::Unmarshalling(Parcel &parcel)
 {
     AuthStatusInfo *info = new (std::nothrow) AuthStatusInfo();
     if (info == nullptr) {
-        ACCOUNT_LOGE("failed to create AuthStatusInfo");
+        ACCOUNT_LOGE("Failed to create AuthStatusInfo");
         return nullptr;
     }
     if (!info->ReadFromParcel(parcel)) {
-        ACCOUNT_LOGE("failed to read from parcel");
+        ACCOUNT_LOGE("Failed to read from parcel");
         delete info;
         info = nullptr;
     }
@@ -311,12 +311,12 @@ AuthStatusInfo *AuthStatusInfo::Unmarshalling(Parcel &parcel)
 bool DomainAuthResult::ReadFromParcel(Parcel &parcel)
 {
     if (!parcel.ReadUInt8Vector(&token)) {
-        ACCOUNT_LOGE("failed to read remainingTimes");
+        ACCOUNT_LOGE("Failed to read remainingTimes");
         return false;
     }
     std::shared_ptr<AuthStatusInfo> infoPtr(parcel.ReadParcelable<AuthStatusInfo>());
     if (infoPtr == nullptr) {
-        ACCOUNT_LOGE("failed to read authStatusInfo");
+        ACCOUNT_LOGE("Failed to read authStatusInfo");
         return false;
     }
     authStatusInfo = *infoPtr;
@@ -330,7 +330,7 @@ bool DomainAuthResult::Marshalling(Parcel &parcel) const
         return false;
     }
     if (!parcel.WriteParcelable(&authStatusInfo)) {
-        ACCOUNT_LOGE("failed to write authStatusInfo");
+        ACCOUNT_LOGE("Failed to write authStatusInfo");
         return false;
     }
     return true;
@@ -340,11 +340,11 @@ DomainAuthResult *DomainAuthResult::Unmarshalling(Parcel &parcel)
 {
     DomainAuthResult *result = new (std::nothrow) DomainAuthResult();
     if (result == nullptr) {
-        ACCOUNT_LOGE("failed to create DomainAuthResult");
+        ACCOUNT_LOGE("Failed to create DomainAuthResult");
         return nullptr;
     }
     if (!result->ReadFromParcel(parcel)) {
-        ACCOUNT_LOGE("failed to read from parcel");
+        ACCOUNT_LOGE("Failed to read from parcel");
         delete result;
         result = nullptr;
     }

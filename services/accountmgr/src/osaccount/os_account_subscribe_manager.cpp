@@ -40,17 +40,17 @@ ErrCode OsAccountSubscribeManager::SubscribeOsAccount(
     const std::shared_ptr<OsAccountSubscribeInfo> &subscribeInfoPtr, const sptr<IRemoteObject> &eventListener)
 {
     if (subscribeInfoPtr == nullptr) {
-        ACCOUNT_LOGE("subscribeInfoPtr is nullptr");
+        ACCOUNT_LOGE("SubscribeInfoPtr is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
 
     if (eventListener == nullptr) {
-        ACCOUNT_LOGE("eventListener is nullptr");
+        ACCOUNT_LOGE("EventListener is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
     auto subscribeRecordPtr = std::make_shared<OsSubscribeRecord>(subscribeInfoPtr, eventListener);
     if (subscribeRecordPtr == nullptr) {
-        ACCOUNT_LOGE("subscribeRecordPtr is nullptr");
+        ACCOUNT_LOGE("SubscribeRecordPtr is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
     if (subscribeDeathRecipient_ != nullptr) {
@@ -64,7 +64,7 @@ ErrCode OsAccountSubscribeManager::SubscribeOsAccount(
 ErrCode OsAccountSubscribeManager::UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener)
 {
     if (eventListener == nullptr) {
-        ACCOUNT_LOGE("eventListener is nullptr");
+        ACCOUNT_LOGE("EventListener is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
 
@@ -78,7 +78,7 @@ ErrCode OsAccountSubscribeManager::UnsubscribeOsAccount(const sptr<IRemoteObject
 ErrCode OsAccountSubscribeManager::InsertSubscribeRecord(const OsSubscribeRecordPtr &subscribeRecordPtr)
 {
     if (subscribeRecordPtr == nullptr) {
-        ACCOUNT_LOGE("subscribeRecordPtr is nullptr");
+        ACCOUNT_LOGE("SubscribeRecordPtr is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
 
@@ -92,7 +92,7 @@ ErrCode OsAccountSubscribeManager::InsertSubscribeRecord(const OsSubscribeRecord
 ErrCode OsAccountSubscribeManager::RemoveSubscribeRecord(const sptr<IRemoteObject> &eventListener)
 {
     if (eventListener == nullptr) {
-        ACCOUNT_LOGE("eventListener is nullptr");
+        ACCOUNT_LOGE("EventListener is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
 
@@ -113,7 +113,7 @@ const std::shared_ptr<OsAccountSubscribeInfo> OsAccountSubscribeManager::GetSubs
     const sptr<IRemoteObject> &eventListener)
 {
     if (eventListener == nullptr) {
-        ACCOUNT_LOGE("eventListener is nullptr");
+        ACCOUNT_LOGE("EventListener is nullptr");
         return nullptr;
     }
 
@@ -160,7 +160,7 @@ ErrCode OsAccountSubscribeManager::Publish(const int id, OS_ACCOUNT_SUBSCRIBE_TY
     uint32_t sendCnt = 0;
     for (auto it = subscribeRecords_.begin(); it != subscribeRecords_.end(); ++it) {
         if ((*it)->subscribeInfoPtr_ == nullptr) {
-            ACCOUNT_LOGE("subscribeInfoPtr_ is null, id %{public}d.", id);
+            ACCOUNT_LOGE("SubscribeInfoPtr_ is null, id %{public}d.", id);
             continue;
         }
         OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType;
