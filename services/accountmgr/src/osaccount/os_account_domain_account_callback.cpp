@@ -37,19 +37,19 @@ CheckAndCreateDomainAccountCallback::CheckAndCreateDomainAccountCallback(
 void CheckAndCreateDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
 {
     if (innerCallback_ == nullptr) {
-        ACCOUNT_LOGE("innerPlugin_ is nullptr");
+        ACCOUNT_LOGE("InnerPlugin_ is nullptr");
         return;
     }
     OsAccountInfo osAccountInfo;
     Parcel resultParcel;
     osAccountInfo.Marshalling(resultParcel);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("check domain account failed");
+        ACCOUNT_LOGE("Check domain account failed");
         return innerCallback_->OnResult(errCode, resultParcel);
     }
     std::shared_ptr<AAFwk::WantParams> parameters(AAFwk::WantParams::Unmarshalling(parcel));
     if (parameters == nullptr) {
-        ACCOUNT_LOGE("parameters unmarshalling error");
+        ACCOUNT_LOGE("Parameters unmarshalling error");
         return innerCallback_->OnResult(ERR_JS_SYSTEM_SERVICE_EXCEPTION, resultParcel);
     }
     DomainAccountInfo domainAccountInfo;
@@ -58,7 +58,7 @@ void CheckAndCreateDomainAccountCallback::OnResult(int32_t errCode, Parcel &parc
     domainAccountInfo.accountId_ = parameters->GetStringParam("accountId");
     domainAccountInfo.serverConfigId_ = parameters->GetStringParam("serverConfigId");
     if ((domainAccountInfo.accountName_.empty()) || (domainAccountInfo.domain_.empty())) {
-        ACCOUNT_LOGE("domain account not found");
+        ACCOUNT_LOGE("Domain account not found");
         return innerCallback_->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, resultParcel);
     }
     errCode = IInnerOsAccountManager::GetInstance().BindDomainAccount(type_, domainAccountInfo,
@@ -77,11 +77,11 @@ BindDomainAccountCallback::BindDomainAccountCallback(
 void BindDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
 {
     if (innerCallback_ == nullptr) {
-        ACCOUNT_LOGE("inner callback is nullptr");
+        ACCOUNT_LOGE("Inner callback is nullptr");
         return;
     }
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("failed to bind domain account");
+        ACCOUNT_LOGE("Failed to bind domain account");
         if (osAccountInfo_.GetLocalId() != Constants::START_USER_ID) {
             (void)osAccountControl_->DelOsAccount(osAccountInfo_.GetLocalId());
         }
