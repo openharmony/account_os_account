@@ -35,7 +35,7 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 constexpr char ACCOUNT_INFO_DIGEST_FILE_PATH[] = "account_info_digest.json";
-const long MAX_FILE_SIZE = 1 << 24; // 16MB
+const long MAX_FILE_SIZE = 16 * 1024 * 1024; // 16MB
 const unsigned long long BUFF_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 const uint32_t RETRY_TIMES = 3;
 const uint32_t RETRY_SLEEP_MS = 5;
@@ -308,6 +308,7 @@ ErrCode AccountFileOperator::GetFileContentByPath(const std::string &path, std::
 bool AccountFileOperator::IsExistFile(const std::string &path)
 {
     if (path.empty()) {
+        ACCOUNT_LOGE("Path is empty.");
         return false;
     }
     std::shared_lock<std::shared_timed_mutex> lock(fileLock_);

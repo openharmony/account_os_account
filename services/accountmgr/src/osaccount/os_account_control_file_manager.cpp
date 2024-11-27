@@ -454,7 +454,9 @@ void OsAccountControlFileManager::RecoverAccountListJsonFile()
         }
     }
 
-    (void)closedir(rootDir);
+    if (closedir(rootDir) != 0) {
+        ACCOUNT_LOGE("Cannot closedir dir %{public}s, err %{public}d.", Constants::USER_INFO_BASE.c_str(), errno);
+    }
     BuildAndSaveAccountListJsonFile(accounts);
 }
 

@@ -28,9 +28,11 @@ constexpr uint32_t MAX_VEC_SIZE = 1024;
 bool SelectAccountsOptions::Marshalling(Parcel &parcel) const
 {
     if (!parcel.WriteBool(hasAccounts) || !parcel.WriteBool(hasOwners) || !parcel.WriteBool(hasLabels)) {
+        ACCOUNT_LOGE("WriteBool failed");
         return false;
     }
     if (!parcel.WriteUint32(allowedAccounts.size())) {
+        ACCOUNT_LOGE("WriteUint32 failed");
         return false;
     }
     for (auto item : allowedAccounts) {

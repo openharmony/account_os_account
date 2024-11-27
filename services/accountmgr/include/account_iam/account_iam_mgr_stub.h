@@ -30,7 +30,7 @@ public:
     using MessageProcFunction = ErrCode (*)(AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply);
     typedef struct AccountIAMMessageProc {
         MessageProcFunction messageProcFunction;
-        bool isSyetemApi = false;
+        bool isSystemApi = false;
     } AccountIAMMessageProc;
     AccountIAMMgrStub();
     ~AccountIAMMgrStub() override;

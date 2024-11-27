@@ -260,8 +260,7 @@ void IInnerOsAccountManager::RestartActiveAccount()
     if (QueryAllCreatedOsAccounts(osAccountInfos) != ERR_OK) {
         return;
     }
-    for (size_t i = 0; i < osAccountInfos.size(); ++i) {
-        OsAccountInfo osAccountInfo = osAccountInfos[i];
+    for (const auto& osAccountInfo : osAccountInfos) {
         std::int32_t id = osAccountInfo.GetLocalId();
         if (osAccountInfo.GetIsActived() && id != Constants::START_USER_ID) {
             // reactivate account state
@@ -2224,7 +2223,6 @@ ErrCode IInnerOsAccountManager::IsOsAccountForeground(const int32_t localId, con
 {
     int32_t id;
     if (!foregroundAccountMap_.Find(displayId, id)) {
-        ACCOUNT_LOGE("No foreground account in displayId %{public}llu.", static_cast<unsigned long long>(displayId));
         return ERR_ACCOUNT_COMMON_ACCOUNT_IN_DISPLAY_ID_NOT_FOUND_ERROR;
     }
     isForeground = (id == localId);
@@ -2234,7 +2232,6 @@ ErrCode IInnerOsAccountManager::IsOsAccountForeground(const int32_t localId, con
 ErrCode IInnerOsAccountManager::GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId)
 {
     if (!foregroundAccountMap_.Find(displayId, localId)) {
-        ACCOUNT_LOGE("No foreground account in displayId %{public}llu.", static_cast<unsigned long long>(displayId));
         return ERR_ACCOUNT_COMMON_ACCOUNT_IN_DISPLAY_ID_NOT_FOUND_ERROR;
     }
     return ERR_OK;
@@ -2250,7 +2247,6 @@ ErrCode IInnerOsAccountManager::GetForegroundOsAccounts(std::vector<ForegroundOs
         accounts.emplace_back(foregroundOsAccount);
     };
     foregroundAccountMap_.Iterate(it);
-    ACCOUNT_LOGI("Get foreground list successful, total=%{public}zu.", accounts.size());
     return ERR_OK;
 }
 

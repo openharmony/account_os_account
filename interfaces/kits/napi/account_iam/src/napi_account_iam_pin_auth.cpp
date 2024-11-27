@@ -52,7 +52,7 @@ static bool ParseContextForRegisterInputer(napi_env env, napi_callback_info info
 {
     size_t argc = ARG_SIZE_ONE;
     napi_value argv[ARG_SIZE_ONE] = {nullptr};
-    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    NAPI_CALL_BASE(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr), false);
     if (argc != ARG_SIZE_ONE) {
         ACCOUNT_LOGE("expect at least one parameter, but got %zu", argc);
         std::string errMsg = "Parameter error. The number of parameters should be at least 1";
