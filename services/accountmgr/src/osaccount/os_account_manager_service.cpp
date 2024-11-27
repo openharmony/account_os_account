@@ -1094,7 +1094,6 @@ bool OsAccountManagerService::PermissionCheck(const std::string& permissionName,
         return true;
     }
 
-    ACCOUNT_LOGE("failed to verify permission for %{public}s.", permissionName.c_str());
     ReportPermissionFail(callerUid, IPCSkeleton::GetCallingRealPid(), permissionName);
     return false;
 }

@@ -142,8 +142,6 @@ ErrCode AccountMgrService::GetOhosAccountInfoByUserId(int32_t userId, OhosAccoun
         return ret;
     }
     info = accountInfo.ohosAccountInfo_;
-    ACCOUNT_LOGI("Get login time %{public}s, status %{public}d.", std::to_string(accountInfo.bindTime_).c_str(),
-                 info.status_);
     return ERR_OK;
 }
 

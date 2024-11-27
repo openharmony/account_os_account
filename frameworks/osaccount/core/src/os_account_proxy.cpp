@@ -1654,7 +1654,6 @@ ErrCode OsAccountProxy::GetForegroundOsAccountLocalId(const uint64_t displayId, 
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("GetForegroundOsAccountLocalId failed, result=%{public}d.", result);
         return result;
     }
     if (!reply.ReadInt32(localId)) {

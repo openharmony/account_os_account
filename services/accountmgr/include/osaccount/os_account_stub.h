@@ -27,7 +27,7 @@ public:
     using MessageProcFunction = ErrCode (*)(OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply);
     typedef struct OsAccountMessageProc {
         MessageProcFunction messageProcFunction;
-        bool isSyetemApi = false;
+        bool isSystemApi = false;
     } OsAccountMessageProc;
     OsAccountStub();
     ~OsAccountStub() override;

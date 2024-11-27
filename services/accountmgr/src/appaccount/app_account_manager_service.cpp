@@ -768,7 +768,7 @@ ErrCode AppAccountManagerService::GetCallingInfo(int32_t &callingUid, std::strin
 {
     ErrCode result = GetBundleNameAndCallingUid(callingUid, bundleName);
     if (result != ERR_OK) {
-        ACCOUNT_LOGD("failed to get bundle name");
+        ACCOUNT_LOGE("Failed to get bundle name");
         return result;
     }
     result = GetCallingTokenInfoAndAppIndex(appIndex);

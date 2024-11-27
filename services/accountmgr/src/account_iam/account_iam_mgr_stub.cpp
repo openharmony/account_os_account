@@ -37,7 +37,7 @@ const std::map<uint32_t, AccountIAMMgrStub::AccountIAMMessageProc> messageProcMa
         {
             .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcOpenSession(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -45,7 +45,7 @@ const std::map<uint32_t, AccountIAMMgrStub::AccountIAMMessageProc> messageProcMa
         {
             .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcCloseSession(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -53,7 +53,7 @@ const std::map<uint32_t, AccountIAMMgrStub::AccountIAMMessageProc> messageProcMa
         {
             .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcAddCredential(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -61,7 +61,7 @@ const std::map<uint32_t, AccountIAMMgrStub::AccountIAMMessageProc> messageProcMa
         {
             .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcUpdateCredential(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -69,7 +69,7 @@ const std::map<uint32_t, AccountIAMMgrStub::AccountIAMMessageProc> messageProcMa
         {
             .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcDelCred(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -77,7 +77,7 @@ const std::map<uint32_t, AccountIAMMgrStub::AccountIAMMessageProc> messageProcMa
         {
             .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcDelUser(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -85,7 +85,7 @@ const std::map<uint32_t, AccountIAMMgrStub::AccountIAMMessageProc> messageProcMa
         {
             .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcCancel(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -93,7 +93,7 @@ const std::map<uint32_t, AccountIAMMgrStub::AccountIAMMessageProc> messageProcMa
         {
             .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcGetCredentialInfo(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -101,7 +101,7 @@ const std::map<uint32_t, AccountIAMMgrStub::AccountIAMMessageProc> messageProcMa
         {
             .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcPrepareRemoteAuth(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -109,7 +109,7 @@ const std::map<uint32_t, AccountIAMMgrStub::AccountIAMMessageProc> messageProcMa
         {
             .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcAuthUser(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -117,7 +117,7 @@ const std::map<uint32_t, AccountIAMMgrStub::AccountIAMMessageProc> messageProcMa
         {
             .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcCancelAuth(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -125,7 +125,7 @@ const std::map<uint32_t, AccountIAMMgrStub::AccountIAMMessageProc> messageProcMa
         {
             .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcGetAvailableStatus(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -133,7 +133,7 @@ const std::map<uint32_t, AccountIAMMgrStub::AccountIAMMessageProc> messageProcMa
         {
             .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcGetProperty(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -141,7 +141,7 @@ const std::map<uint32_t, AccountIAMMgrStub::AccountIAMMessageProc> messageProcMa
         {
             .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcSetProperty(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -149,7 +149,7 @@ const std::map<uint32_t, AccountIAMMgrStub::AccountIAMMessageProc> messageProcMa
         {
             .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcGetEnrolledId(data, reply); },
-            .isSyetemApi = true,
+            .isSystemApi = true,
         }
     },
     {
@@ -183,7 +183,7 @@ std::int32_t AccountIAMMgrStub::OnRemoteRequest(
     }
     const auto &itFunc = messageProcMap_.find(code);
     if (itFunc != messageProcMap_.end()) {
-        if (itFunc->second.isSyetemApi) {
+        if (itFunc->second.isSystemApi) {
             result = AccountPermissionManager::CheckSystemApp();
             if (result != ERR_OK) {
                 ACCOUNT_LOGE("is not system application, result = %{public}u.", result);

@@ -239,7 +239,7 @@ napi_value NapiAccountIAMIdentityManager::Cancel(napi_env env, napi_callback_inf
 {
     size_t argc = ARG_SIZE_ONE;
     napi_value argv[ARG_SIZE_ONE] = {0};
-    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
     if (argc < ARG_SIZE_ONE) {
         ACCOUNT_LOGE("failed to parse parameters, expect one parameter, but got %{public}zu", argc);
         std::string errMsg = "Parameter error. The number of parameters should be 1";
@@ -260,7 +260,7 @@ napi_value NapiAccountIAMIdentityManager::Cancel(napi_env env, napi_callback_inf
         napi_create_int32(env, ret, &napiResult);
         return napiResult;
     }
-    ACCOUNT_LOGE("Failed to cancel account, ret = %d", ret);
+    ACCOUNT_LOGE("Failed to cancel account, ret = %{public}d", ret);
     AccountIAMNapiThrow(env, AccountIAMConvertToJSErrCode(ret), true);
     return nullptr;
 }
@@ -269,7 +269,7 @@ static napi_status ParseContextForDelUser(napi_env env, napi_callback_info info,
 {
     size_t argc = ARG_SIZE_TWO;
     napi_value argv[ARG_SIZE_TWO] = {0};
-    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    NAPI_CALL_BASE(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr), napi_generic_failure);
     if (argc != ARG_SIZE_TWO) {
         ACCOUNT_LOGE("failed to parse parameters, expect two parameters, but got one");
         std::string errMsg = "Parameter error. The number of parameters should be 2";
@@ -315,7 +315,7 @@ static napi_status ParseContextForDelCred(napi_env env, napi_callback_info info,
 {
     size_t argc = ARG_SIZE_THREE;
     napi_value argv[ARG_SIZE_THREE] = {0};
-    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    NAPI_CALL_BASE(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr), napi_generic_failure);
     if (argc < ARG_SIZE_THREE) {
         ACCOUNT_LOGE("failed to parse parameters, expect three parameters, but got %zu", argc);
         std::string errMsg = "Parameter error. The number of parameters should be 3";
@@ -497,7 +497,7 @@ static bool ParseContextForGetEnrolledId(
     size_t argc = ARG_SIZE_TWO;
     napi_value argv[ARG_SIZE_TWO] = {0};
 
-    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    NAPI_CALL_BASE(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr), false);
     if (argc < ARG_SIZE_ONE) {
         errMsg = "Parameter error. the parameter of number should be at least one";
         return false;

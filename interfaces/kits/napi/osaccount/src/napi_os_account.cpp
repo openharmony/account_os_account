@@ -174,7 +174,6 @@ napi_value GetAccountManager(napi_env env, napi_callback_info cbInfo)
     }
     napi_status status = napi_wrap(env, instance, objectInfo,
         [](napi_env env, void *data, void *hint) {
-            ACCOUNT_LOGI("Js instance release.");
             delete reinterpret_cast<OsAccountManager *>(data);
         }, nullptr, nullptr);
     if (status != napi_ok) {

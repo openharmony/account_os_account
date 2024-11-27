@@ -14,10 +14,10 @@
  */
 
 #include "account_error_no.h"
-#include <map>
+#include <unordered_map>
 
 namespace OHOS {
-const std::map<int32_t, int32_t> errorMap = {
+const std::unordered_map<int32_t, int32_t> errorMap = {
     { ERR_OK, ERR_JS_SUCCESS },
     { ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR, ERR_JS_IS_NOT_SYSTEM_APP },
     { ERR_ACCOUNT_COMMON_INVALID_PARAMETER, ERR_JS_INVALID_PARAMETER },
