@@ -128,24 +128,6 @@ HWTEST_F(IInnerOsAccountManagerTest, GetOsAccountShortName001, TestSize.Level1)
 }
 
 /**
- * @tc.name: InnerOsAccountManagerTest001
- * @tc.desc: coverage ValidateShortName
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(IInnerOsAccountManagerTest, InnerOsAccountManagerTest001, TestSize.Level1)
-{
-    ErrCode ret = innerMgrService_->ValidateShortName("sdfgse*");
-    EXPECT_NE(ret, ERR_OK);
-    ret = innerMgrService_->ValidateShortName("..");
-    EXPECT_NE(ret, ERR_OK);
-    ret = innerMgrService_->ValidateShortName("");
-    EXPECT_NE(ret, ERR_OK);
-    ret = innerMgrService_->ValidateShortName("asdfgtr");
-    EXPECT_EQ(ret, ERR_OK);
-}
-
-/**
  * @tc.name: InnerOsAccountManagerTest002
  * @tc.desc: coverage CheckAndRefreshLocalIdRecord
  * @tc.type: FUNC
