@@ -29,7 +29,8 @@ using namespace testing::ext;
 using namespace OHOS::AccountSA;
 using namespace OHOS::UserIam::UserAuth;
 namespace {
-    const int32_t TEST_USER_ID = 200;
+constexpr int32_t TEST_USER_ID = 200;
+constexpr uint64_t TEST_CREDENTIAL_ID = 200;
 } // namespace
 
 class AccountIAMMgrProxyTest : public testing::Test {
@@ -94,12 +95,15 @@ HWTEST_F(AccountIAMMgrProxyTest, AccountIAMMgrProxy001, TestSize.Level0)
     accountIAMMgrProxy->DelCred(TEST_USER_ID, 0, authToken, nullptr);
     accountIAMMgrProxy->DelUser(TEST_USER_ID, authToken, nullptr);
     accountIAMMgrProxy->GetProperty(TEST_USER_ID, g_request, nullptr);
+    std::vector<Attributes::AttributeKey> keys { Attributes::AttributeKey::ATTR_PIN_SUB_TYPE };
+    accountIAMMgrProxy->GetPropertyByCredentialId(TEST_CREDENTIAL_ID, keys, nullptr);
     accountIAMMgrProxy->SetProperty(TEST_USER_ID, s_request, nullptr);
 
     std::string cmd = "hilog -x | grep 'AccountIAMFwk'";
     std::string cmdRes = RunCommand(cmd);
     ASSERT_TRUE(cmdRes.find("callback is nullptr") != std::string::npos);
     ASSERT_TRUE(cmdRes.find("get property callback is nullptr") != std::string::npos);
+    ASSERT_TRUE(cmdRes.find("Get property by id callback is nullptr") != std::string::npos);
     ASSERT_TRUE(cmdRes.find("set property callback is nullptr") != std::string::npos);
 
     int32_t ret = accountIAMMgrProxy->GetCredentialInfo(TEST_USER_ID, AuthType::ALL, nullptr);

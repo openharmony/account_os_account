@@ -55,8 +55,8 @@ void AuthCallbackDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 }
 
 AuthCallback::AuthCallback(
-    uint32_t userId, AuthType authType, const sptr<IIDMCallback> &callback)
-    : userId_(userId), authType_(authType), innerCallback_(callback)
+    uint32_t userId, AuthType authType, AuthIntent authIntent, const sptr<IIDMCallback> &callback)
+    : userId_(userId), authType_(authType), authIntent_(authIntent), innerCallback_(callback)
 {
     // save caller tokenId for pin re-enroll
     if (authType == AuthType::PIN) {
@@ -64,9 +64,9 @@ AuthCallback::AuthCallback(
     }
 }
 
-AuthCallback::AuthCallback(uint32_t userId, AuthType authType,
+AuthCallback::AuthCallback(uint32_t userId, AuthType authType, AuthIntent authIntent,
     bool isRemoteAuth, const sptr<IIDMCallback> &callback)
-    : userId_(userId), authType_(authType),
+    : userId_(userId), authType_(authType), authIntent_(authIntent),
     isRemoteAuth_(isRemoteAuth), innerCallback_(callback)
 {
     // save caller tokenId for pin re-enroll
@@ -157,12 +157,9 @@ void AuthCallback::HandleReEnroll(const Attributes &extraInfo, int32_t accountId
     InnerAccountIAMManager::GetInstance().CloseSession(userId_);
 }
 
-ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo, int32_t accountId, bool &isUpdateVerifiedStatus)
+ErrCode AuthCallback::UnlockAccount(int32_t accountId, const std::vector<uint8_t> &token,
+    const std::vector<uint8_t> &secret, bool &isUpdateVerifiedStatus)
 {
-    std::vector<uint8_t> token;
-    extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
-    std::vector<uint8_t> secret;
-    extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, secret);
     ErrCode ret = ERR_OK;
     if (authType_ == AuthType::PIN) {
         (void)InnerAccountIAMManager::GetInstance().HandleFileKeyException(accountId, secret, token);
@@ -195,10 +192,24 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo, int32_t acco
             }
         }
     }
+    return ret;
+}
+
+ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo, int32_t accountId, bool &isUpdateVerifiedStatus)
+{
     // domain account authentication
     if (authType_ == static_cast<AuthType>(IAMAuthType::DOMAIN)) {
         return ERR_OK;
     }
+    std::vector<uint8_t> token;
+    extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
+    std::vector<uint8_t> secret;
+    extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, secret);
+    ErrCode ret = UnlockAccount(accountId, token, secret, isUpdateVerifiedStatus);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    // send msg for domain account offline authentication
     InnerDomainAccountManager::GetInstance().AuthWithToken(accountId, token);
     HandleReEnroll(extraInfo, accountId, token);
     return ret;
@@ -217,7 +228,6 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         authedAccountId = static_cast<int32_t>(userId_);
     }
     ACCOUNT_LOGI("Auth ret: authType=%{public}d, result=%{public}d, id=%{public}d", authType_, result, authedAccountId);
-    InnerAccountIAMManager::GetInstance().SetState(authedAccountId, AFTER_OPEN_SESSION);
     if (innerCallback_ == nullptr) {
         ACCOUNT_LOGE("innerCallback_ is nullptr");
         return;
@@ -230,6 +240,12 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         innerCallback_->OnResult(result, extraInfo);
         ReportOsAccountOperationFail(authedAccountId, "auth", result, "Failed to auth");
         return AccountInfoReport::ReportSecurityInfo("", authedAccountId, ReportEvent::EVENT_LOGIN, result);
+    }
+    // private pin auth
+    if ((authType_ == AuthType::PRIVATE_PIN) || (authIntent_ == AuthIntent::QUESTION_AUTH)) {
+        ACCOUNT_LOGI("Private pin auth");
+        innerCallback_->OnResult(result, extraInfo);
+        return;
     }
     if (isRemoteAuth_) {
         ACCOUNT_LOGI("Remote auth");

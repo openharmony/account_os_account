@@ -48,6 +48,8 @@ public:
     virtual int32_t GetAvailableStatus(AuthType authType, AuthTrustLevel authTrustLevel, int32_t &status) = 0;
     virtual void GetProperty(
         int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback) = 0;
+    virtual void GetPropertyByCredentialId(uint64_t credentialId,
+        std::vector<Attributes::AttributeKey> &keys, const sptr<IGetSetPropCallback> &callback) = 0;
     virtual void SetProperty(
         int32_t userId, const SetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback) = 0;
     virtual void GetEnrolledId(

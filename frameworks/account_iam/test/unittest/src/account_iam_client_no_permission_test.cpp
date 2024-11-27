@@ -31,9 +31,10 @@
 namespace OHOS {
 namespace AccountTest {
 namespace {
-    const int32_t TEST_USER_ID = 200;
-    const uint64_t TEST_CONTEXT_ID = 122;
-    const std::vector<uint8_t> TEST_CHALLENGE = {1, 2, 3, 4};
+constexpr int32_t TEST_USER_ID = 200;
+constexpr uint64_t TEST_CONTEXT_ID = 122;
+constexpr uint64_t TEST_CREDENTIAL_ID = 0;
+const std::vector<uint8_t> TEST_CHALLENGE = {1, 2, 3, 4};
 }
 
 using namespace testing;
@@ -299,6 +300,21 @@ HWTEST_F(AccountIAMClientNoPermissionTest, AccountIAMClientNoPermission_GetPrope
     auto callback = std::make_shared<MockGetSetPropCallback>();
     ASSERT_NE(callback, nullptr);
     AccountIAMClient::GetInstance().GetProperty(TEST_USER_ID, testRequest, callback);
+}
+
+/**
+ * @tc.name: AccountIAMClientNoPermission_GetPropertyById_0100
+ * @tc.desc: Get property by id without permission.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMClientNoPermissionTest, AccountIAMClientNoPermission_GetPropertyById_0100, TestSize.Level0)
+{
+    auto callback = std::make_shared<MockGetSetPropCallback>();
+    ASSERT_NE(callback, nullptr);
+    std::vector<Attributes::AttributeKey> keys { Attributes::AttributeKey::ATTR_PIN_SUB_TYPE };
+    AccountIAMClient::GetInstance().GetPropertyByCredentialId(TEST_CREDENTIAL_ID, keys, callback);
+    EXPECT_EQ(callback->result_, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
 }
 
 /**
