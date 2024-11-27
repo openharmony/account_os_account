@@ -144,7 +144,6 @@
         "OHOS::AccountSA::IInnerOsAccountManager::SendMsgForAccountCreate(OHOS::AccountSA::OsAccountInfo&)";
         "OHOS::AccountSA::DomainHasDomainInfoCallback::DomainHasDomainInfoCallback(OHOS::sptr<OHOS::AccountSA::IDomainGetDomainInfoCallback> const&)";
         "OHOS::AccountSA::IInnerOsAccountManager::SendMsgForAccountRemove(OHOS::AccountSA::OsAccountInfo&)";
-        "OHOS::AccountSA::IInnerOsAccountManager::SetOsAccountControl(std::__h::shared_ptr<OHOS::AccountSA::IOsAccountControl>)";
         "OHOS::AccountSA::IInnerOsAccountManager::SetOsAccountForDomain(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, OHOS::AccountSA::OsAccountType const&, OHOS::AccountSA::OsAccountInfo&, OHOS::AccountSA::DomainAccountInfo const&)";
         "OHOS::AccountSA::IInnerOsAccountManager::ActivateDefaultOsAccount()";
         "OHOS::AccountSA::InnerAppAccountManager::AddAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int const&)";
@@ -175,7 +174,6 @@
         "OHOS::AccountSA::InnerAppAccountManager::OnPackageRemoved(unsigned int const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int const&)";
         "OHOS::AccountSA::InnerAppAccountManager::OnUserRemoved(int)";
         "OHOS::AccountSA::IInnerOsAccountManager::CheckAndRefreshLocalIdRecord(int)";
-        "OHOS::AccountSA::IInnerOsAccountManager::ValidateShortName(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::InnerAppAccountManager::SelectAccountsByOptions(OHOS::AccountSA::SelectAccountsOptions const&, OHOS::sptr<OHOS::AccountSA::IAppAccountAuthenticatorCallback> const&, unsigned int const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int const&)";
         "OHOS::AccountSA::InnerAppAccountManager::SetAccountCredential(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::AppAccountCallingInfo const&)";
         "OHOS::AccountSA::InnerAppAccountManager::SetAccountExtraInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int const&)";
@@ -217,6 +215,7 @@
         "OHOS::AccountSA::OsAccountDataStorage::OsAccountDataStorage(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, bool const&)";
         "OHOS::AccountSA::OsAccountManagerService::DumpOsAccountInfo(std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>&)";
         "OHOS::AccountSA::OsAccountManagerService::OsAccountManagerService()";
+        "OHOS::AccountSA::OsAccountManagerService::ValidateShortName(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::OsAccountSubscribeManager::InsertSubscribeRecord(std::__h::shared_ptr<OHOS::AccountSA::OsSubscribeRecord> const&)";
         "OHOS::AccountSA::OsAccountSubscribeManager::OsAccountSubscribeManager()";
         "OHOS::AccountSA::OsAccountSubscribeManager::RemoveSubscribeRecord(OHOS::sptr<OHOS::IRemoteObject> const&)";

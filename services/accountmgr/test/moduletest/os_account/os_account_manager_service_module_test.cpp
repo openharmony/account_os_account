@@ -160,6 +160,25 @@ void OsAccountManagerServiceModuleTest::TearDown(void)
     setuid(ROOT_UID);
 }
 
+
+/**
+ * @tc.name: InnerOsAccountManagerTest001
+ * @tc.desc: coverage ValidateShortName
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, InnerOsAccountManagerTest001, TestSize.Level1)
+{
+    ErrCode ret = osAccountManagerService_->ValidateShortName("sdfgse*");
+    EXPECT_NE(ret, ERR_OK);
+    ret = osAccountManagerService_->ValidateShortName("..");
+    EXPECT_NE(ret, ERR_OK);
+    ret = osAccountManagerService_->ValidateShortName("");
+    EXPECT_NE(ret, ERR_OK);
+    ret = osAccountManagerService_->ValidateShortName("asdfgtr");
+    EXPECT_EQ(ret, ERR_OK);
+}
+
 /**
  * @tc.name: OsAccountManagerServiceModuleTest001
  * @tc.desc: Test CreateOsAccount with valid data.

@@ -56,8 +56,6 @@ const std::string CONSTRAINT_CREATE_ACCOUNT_DIRECTLY = "constraint.os.account.cr
 const std::string ACCOUNT_READY_EVENT = "bootevent.account.ready";
 const std::string PARAM_LOGIN_NAME_MAX = "persist.account.login_name_max";
 constexpr const char DEACTIVATION_ANIMATION_PATH[] = "/system/bin/deactivation_animation";
-const std::string SPECIAL_CHARACTER_ARRAY = "<>|\":*?/\\";
-const std::vector<std::string> SHORT_NAME_CANNOT_BE_NAME_ARRAY = {".", ".."};
 constexpr int32_t TOKEN_NATIVE = 1;
 constexpr int32_t DELAY_FOR_EXCEPTION = 50;
 constexpr int32_t MAX_RETRY_TIMES = 50;
@@ -93,11 +91,6 @@ IInnerOsAccountManager &IInnerOsAccountManager::GetInstance()
 {
     static IInnerOsAccountManager *instance = new (std::nothrow) IInnerOsAccountManager();
     return *instance;
-}
-
-void IInnerOsAccountManager::SetOsAccountControl(std::shared_ptr<IOsAccountControl> ptr)
-{
-    osAccountControl_ = ptr;
 }
 
 ErrCode IInnerOsAccountManager::RetryToInsertOsAccount(OsAccountInfo &osAccountInfo)
@@ -554,28 +547,6 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, co
         (void)osAccountControl_->DelOsAccount(osAccountInfo.GetLocalId());
     }
     return errCode;
-}
-
-ErrCode IInnerOsAccountManager::ValidateShortName(const std::string &shortName)
-{
-    size_t shortNameSize = shortName.size();
-    if (shortNameSize == 0 || shortNameSize > Constants::SHORT_NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("CreateOsAccount short name length %{public}zu is invalid!", shortNameSize);
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-
-    if (shortName.find_first_of(SPECIAL_CHARACTER_ARRAY) != std::string::npos) {
-        ACCOUNT_LOGE("CreateOsAccount short name is invalidate, short name is %{public}s !", shortName.c_str());
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-
-    for (size_t i = 0; i < SHORT_NAME_CANNOT_BE_NAME_ARRAY.size(); i++) {
-        if (shortName == SHORT_NAME_CANNOT_BE_NAME_ARRAY[i]) {
-            ACCOUNT_LOGE("CreateOsAccount short name is invalidate, short name is %{public}s !", shortName.c_str());
-            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-        }
-    }
-    return ERR_OK;
 }
 
 ErrCode IInnerOsAccountManager::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo,
