@@ -58,7 +58,7 @@ ErrCode MockAccountMgrService::QueryOhosAccountInfo(OhosAccountInfo &accountInfo
     return ERR_OK;
 }
 
-ErrCode MockAccountMgrService::QueryOhosAccountInfoByUserId(std::int32_t userId, OhosAccountInfo &accountInfo)
+ErrCode MockAccountMgrService::QueryOsAccountDistributedInfo(std::int32_t localId, OhosAccountInfo &accountInfo)
 {
     accountInfo.name_ = DEFAULT_OHOS_ACCOUNT_NAME;
     accountInfo.uid_ = DEFAULT_OHOS_ACCOUNT_UID;

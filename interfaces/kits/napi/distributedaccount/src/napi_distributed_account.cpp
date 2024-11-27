@@ -324,7 +324,7 @@ static void QueryOhosAccountInfoExecuteCB(napi_env env, void *data)
     } else if (!asyncContext->withLocalId) {
         asyncContext->errCode = OhosAccountKits::GetInstance().GetOhosAccountInfo(asyncContext->ohosAccountInfo);
     } else {
-        asyncContext->errCode = OhosAccountKits::GetInstance().GetOhosAccountInfoByUserId(
+        asyncContext->errCode = OhosAccountKits::GetInstance().GetOsAccountDistributedInfo(
             asyncContext->localId, asyncContext->ohosAccountInfo);
     }
 }
@@ -393,7 +393,7 @@ static void UpdateOhosAccountInfoExecuteCB(napi_env env, void *data)
         context->errCode = OhosAccountKits::GetInstance().UpdateOhosAccountInfo(context->ohosAccountInfo.name_,
             context->ohosAccountInfo.uid_, context->event);
     } else if (context->withLocalId) {
-        context->errCode = OhosAccountKits::GetInstance().SetOhosAccountInfoByUserId(
+        context->errCode = OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(
             context->localId, context->ohosAccountInfo, context->event);
     } else {
         context->errCode = OhosAccountKits::GetInstance().SetOhosAccountInfo(context->ohosAccountInfo, context->event);

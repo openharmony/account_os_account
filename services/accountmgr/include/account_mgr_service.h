@@ -45,13 +45,13 @@ public:
         const std::string &accountName, const std::string &uid, const std::string &eventStr) override;
     ErrCode SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo,
         const std::string &eventStr) override;
-    ErrCode SetOhosAccountInfoByUserId(
-        const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr) override;
+    ErrCode SetOsAccountDistributedInfo(
+        const int32_t localId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr) override;
     ErrCode QueryOhosAccountInfo(OhosAccountInfo &accountInfo) override;
     ErrCode QueryDistributedVirtualDeviceId(std::string &dvid) override;
-    ErrCode QueryOhosAccountInfoByUserId(std::int32_t userId, OhosAccountInfo &accountInfo) override;
+    ErrCode QueryOsAccountDistributedInfo(std::int32_t localId, OhosAccountInfo &accountInfo) override;
     ErrCode GetOhosAccountInfo(OhosAccountInfo &info) override;
-    ErrCode GetOhosAccountInfoByUserId(int32_t userId, OhosAccountInfo &info) override;
+    ErrCode GetOsAccountDistributedInfo(int32_t localId, OhosAccountInfo &info) override;
     ErrCode QueryDeviceAccountId(std::int32_t &accountId) override;
     ErrCode SubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
         const sptr<IRemoteObject> &eventListener) override;

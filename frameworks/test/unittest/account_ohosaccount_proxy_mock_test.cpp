@@ -77,7 +77,7 @@ HWTEST_F(AccountOhosProxyMockTest, GetOhosAccountInfoByUserIdTest, TestSize.Leve
 {
     OhosAccountInfo accountInfo;
     std::int32_t testUserId = 200; // 200 is test user id.
-    ErrCode ret = OhosAccountKits::GetInstance().GetOhosAccountInfoByUserId(testUserId, accountInfo);
+    ErrCode ret = OhosAccountKits::GetInstance().GetOsAccountDistributedInfo(testUserId, accountInfo);
     ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_PROXY, ret);
 }
 
@@ -90,7 +90,7 @@ HWTEST_F(AccountOhosProxyMockTest, GetOhosAccountInfoByUserIdTest, TestSize.Leve
 HWTEST_F(AccountOhosProxyMockTest, QueryOhosAccountInfoByUserIdTest, TestSize.Level0)
 {
     std::int32_t testUserId = 200; // 200 is test user id.
-    auto ret = OhosAccountKits::GetInstance().QueryOhosAccountInfoByUserId(testUserId);
+    auto ret = OhosAccountKits::GetInstance().QueryOsAccountDistributedInfo(testUserId);
     ASSERT_EQ(false, ret.first);
 }
 

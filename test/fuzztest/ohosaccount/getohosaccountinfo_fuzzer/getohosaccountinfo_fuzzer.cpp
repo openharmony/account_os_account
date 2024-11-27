@@ -50,7 +50,7 @@ bool GetOhosAccountInfoByUserIdFuzzTest(const uint8_t* data, size_t size)
     OhosAccountInfo testOhosAccountInfo;
     FuzzData fuzzData(data, size);
     int32_t userId = fuzzData.GetData<int32_t>();
-    result = OhosAccountKits::GetInstance().GetOhosAccountInfoByUserId(userId, testOhosAccountInfo);
+    result = OhosAccountKits::GetInstance().GetOsAccountDistributedInfo(userId, testOhosAccountInfo);
     return result == ERR_OK;
 }
 
@@ -96,7 +96,7 @@ bool SetOhosAccountInfoByUserIdFuzzTest(const uint8_t* data, size_t size)
         fuzzData.GetData<int32_t>() % OHOS_ACCOUNT_STATE_NUM - 1
     );
     std::string testEventStr(fuzzData.GenerateString());
-    int32_t result = accountProxy->SetOhosAccountInfoByUserId(userId, testOhosAccountInfo, testEventStr);
+    int32_t result = accountProxy->SetOsAccountDistributedInfo(userId, testOhosAccountInfo, testEventStr);
     return result == ERR_OK;
 }
 
@@ -111,7 +111,7 @@ bool GetOhosAccountInfoByUserIdProxyFuzzTest(const uint8_t* data, size_t size)
     result = accountProxy->GetOhosAccountInfo(testOhosAccountInfo);
     FuzzData fuzzData(data, size);
     int32_t userId = fuzzData.GetData<int32_t>();
-    result = accountProxy->GetOhosAccountInfoByUserId(userId, testOhosAccountInfo);
+    result = accountProxy->GetOsAccountDistributedInfo(userId, testOhosAccountInfo);
     return result == ERR_OK;
 }
 
@@ -126,7 +126,7 @@ bool QueryOhosAccountInfoByUserIdProxyFuzzTest(const uint8_t* data, size_t size)
     int32_t userId = fuzzData.GetData<int32_t>();
     int32_t accountId = 0;
     int32_t result = accountProxy->QueryDeviceAccountId(accountId);
-    result = accountProxy->QueryOhosAccountInfoByUserId(userId, testOhosAccountInfo);
+    result = accountProxy->QueryOsAccountDistributedInfo(userId, testOhosAccountInfo);
     return result == ERR_OK;
 }
 }

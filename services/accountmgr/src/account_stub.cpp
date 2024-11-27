@@ -149,7 +149,7 @@ ErrCode AccountStub::InnerSetOhosAccountInfo(int32_t userId, MessageParcel &data
     if (userId == INVALID_USERID) {
         userId = AccountMgrService::GetInstance().GetCallingUserID();
     }
-    ret = SetOhosAccountInfoByUserId(userId, info, eventStr);
+    ret = SetOsAccountDistributedInfo(userId, info, eventStr);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("Set ohos account info failed");
     }
@@ -355,7 +355,7 @@ ErrCode AccountStub::CmdGetOhosAccountInfoByUserId(MessageParcel &data, MessageP
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     OhosAccountInfo ohosAccountInfo;
-    errCode = GetOhosAccountInfoByUserId(userId, ohosAccountInfo);
+    errCode = GetOsAccountDistributedInfo(userId, ohosAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Get ohos account info failed");
         return errCode;
@@ -387,7 +387,7 @@ ErrCode AccountStub::CmdQueryOhosAccountInfoByUserId(MessageParcel &data, Messag
     }
 
     OhosAccountInfo info;
-    ErrCode result = QueryOhosAccountInfoByUserId(userId, info);
+    ErrCode result = QueryOsAccountDistributedInfo(userId, info);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Query ohos account info failed! userId %{public}d.", userId);
         return result;
