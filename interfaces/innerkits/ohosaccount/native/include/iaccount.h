@@ -36,13 +36,13 @@ public:
         const std::string &accountName, const std::string &uid, const std::string &eventStr) = 0;
     virtual ErrCode SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo,
         const std::string &eventStr) = 0;
-    virtual std::int32_t SetOhosAccountInfoByUserId(
-        const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr) = 0;
+    virtual std::int32_t SetOsAccountDistributedInfo(
+        const int32_t localId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr) = 0;
     virtual ErrCode QueryOhosAccountInfo(OhosAccountInfo &accountInfo) = 0;
     virtual ErrCode QueryDistributedVirtualDeviceId(std::string &dvid) = 0;
-    virtual ErrCode QueryOhosAccountInfoByUserId(std::int32_t userId, OhosAccountInfo &info) = 0;
+    virtual ErrCode QueryOsAccountDistributedInfo(std::int32_t localId, OhosAccountInfo &info) = 0;
     virtual ErrCode GetOhosAccountInfo(OhosAccountInfo &accountInfo) = 0;
-    virtual ErrCode GetOhosAccountInfoByUserId(int32_t userId, OhosAccountInfo &info) = 0;
+    virtual ErrCode GetOsAccountDistributedInfo(int32_t localId, OhosAccountInfo &info) = 0;
     virtual std::int32_t QueryDeviceAccountId(std::int32_t &accountId) = 0;
     virtual ErrCode SubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
         const sptr<IRemoteObject> &eventListener) = 0;

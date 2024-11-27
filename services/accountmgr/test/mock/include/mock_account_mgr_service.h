@@ -35,7 +35,7 @@ public:
     ErrCode UpdateOhosAccountInfo(
         const std::string &accountName, const std::string &uid, const std::string &eventStr) override;
     ErrCode QueryOhosAccountInfo(OhosAccountInfo &accountInfo) override;
-    ErrCode QueryOhosAccountInfoByUserId(std::int32_t userId, OhosAccountInfo &accountInfo) override;
+    ErrCode QueryOsAccountDistributedInfo(std::int32_t localId, OhosAccountInfo &accountInfo) override;
     ErrCode SubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
         const sptr<IRemoteObject> &eventListener) override;
     ErrCode UnsubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
@@ -48,8 +48,8 @@ public:
         return 0;
     }
 
-    std::int32_t SetOhosAccountInfoByUserId(
-        const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr) override
+    std::int32_t SetOsAccountDistributedInfo(
+        const int32_t localId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr) override
     {
         return 0;
     }
@@ -59,7 +59,7 @@ public:
         return 0;
     }
 
-    ErrCode GetOhosAccountInfoByUserId(int32_t userId, OhosAccountInfo &info) override
+    ErrCode GetOsAccountDistributedInfo(int32_t localId, OhosAccountInfo &info) override
     {
         return 0;
     }

@@ -108,10 +108,10 @@ ErrCode AccountMgrService::SetOhosAccountInfo(const OhosAccountInfo &ohosAccount
     return ERR_OK;
 }
 
-ErrCode AccountMgrService::SetOhosAccountInfoByUserId(
-    const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
+ErrCode AccountMgrService::SetOsAccountDistributedInfo(
+    const int32_t localId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
 {
-    ErrCode res = OhosAccountManager::GetInstance().OhosAccountStateChange(userId, ohosAccountInfo, eventStr);
+    ErrCode res = OhosAccountManager::GetInstance().OhosAccountStateChange(localId, ohosAccountInfo, eventStr);
     if (res != ERR_OK) {
         ACCOUNT_LOGE("Ohos account state change failed");
     }
@@ -126,18 +126,18 @@ ErrCode AccountMgrService::QueryDistributedVirtualDeviceId(std::string &dvid)
 
 ErrCode AccountMgrService::QueryOhosAccountInfo(OhosAccountInfo &accountInfo)
 {
-    return QueryOhosAccountInfoByUserId(GetCallingUserID(), accountInfo);
+    return QueryOsAccountDistributedInfo(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR, accountInfo);
 }
 
 ErrCode AccountMgrService::GetOhosAccountInfo(OhosAccountInfo &info)
 {
-    return GetOhosAccountInfoByUserId(GetCallingUserID(), info);
+    return GetOsAccountDistributedInfo(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR, info);
 }
 
-ErrCode AccountMgrService::GetOhosAccountInfoByUserId(int32_t userId, OhosAccountInfo &info)
+ErrCode AccountMgrService::GetOsAccountDistributedInfo(int32_t localId, OhosAccountInfo &info)
 {
     AccountInfo accountInfo;
-    ErrCode ret = OhosAccountManager::GetInstance().GetAccountInfoByUserId(userId, accountInfo);
+    ErrCode ret = OhosAccountManager::GetInstance().GetAccountInfoByUserId(localId, accountInfo);
     if (ret != ERR_OK) {
         return ret;
     }
@@ -145,10 +145,10 @@ ErrCode AccountMgrService::GetOhosAccountInfoByUserId(int32_t userId, OhosAccoun
     return ERR_OK;
 }
 
-ErrCode AccountMgrService::QueryOhosAccountInfoByUserId(std::int32_t userId, OhosAccountInfo &accountInfo)
+ErrCode AccountMgrService::QueryOsAccountDistributedInfo(std::int32_t localId, OhosAccountInfo &accountInfo)
 {
     AccountInfo info;
-    ErrCode ret = OhosAccountManager::GetInstance().GetAccountInfoByUserId(userId, info);
+    ErrCode ret = OhosAccountManager::GetInstance().GetAccountInfoByUserId(localId, info);
     if (ret != ERR_OK) {
         return ret;
     }
