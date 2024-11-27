@@ -314,6 +314,23 @@ void AccountIAMClient::GetProperty(
     proxy->GetProperty(userId, request, wrapper);
 }
 
+void AccountIAMClient::GetPropertyByCredentialId(uint64_t credentialId,
+    std::vector<Attributes::AttributeKey> &keys, const std::shared_ptr<GetSetPropCallback> &callback)
+{
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("The callback for getting property is nullptr");
+        return;
+    }
+    Attributes emptyResult;
+    auto proxy = GetAccountIAMProxy();
+    if (proxy == nullptr) {
+        callback->OnResult(ERR_ACCOUNT_COMMON_GET_PROXY, emptyResult);
+        return;
+    }
+    sptr<IGetSetPropCallback> wrapper = new (std::nothrow) GetSetPropCallbackService(callback);
+    proxy->GetPropertyByCredentialId(credentialId, keys, wrapper);
+}
+
 void AccountIAMClient::SetProperty(
     int32_t userId, const SetPropertyRequest &request, const std::shared_ptr<GetSetPropCallback> &callback)
 {
