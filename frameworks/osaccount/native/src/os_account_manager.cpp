@@ -199,9 +199,15 @@ ErrCode OsAccountManager::SetOsAccountProfilePhoto(const int id, const std::stri
     return OsAccount::GetInstance().SetOsAccountProfilePhoto(id, photo);
 }
 
-ErrCode OsAccountManager::GetDistributedVirtualDeviceId(std::string &deviceId)
+ErrCode OsAccountManager::GetDistributedVirtualDeviceId(std::string &dvid)
 {
-    return OsAccount::GetInstance().GetDistributedVirtualDeviceId(deviceId);
+    return OsAccount::GetInstance().GetDistributedVirtualDeviceId(dvid);
+}
+
+ErrCode OsAccountManager::QueryDistributedVirtualDeviceId(const std::string &bundleName, int32_t localId,
+    std::string &dvid)
+{
+    return OsAccount::GetInstance().QueryDistributedVirtualDeviceId(bundleName, localId, dvid);
 }
 
 ErrCode OsAccountManager::ActivateOsAccount(const int id)

@@ -25,6 +25,7 @@
 #define private public
 #include "account_file_operator.h"
 #include "os_account.h"
+#include "ohos_account_kits_impl.h"
 #undef private
 #ifdef BUNDLE_ADAPTER_MOCK
 #define private public
@@ -3235,3 +3236,68 @@ HWTEST_F(OsAccountManagerModuleTest, DeactivateAllOsAccountsModuleTest001, TestS
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(MAIN_ACCOUNT_ID), ERR_OK);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
 }
+
+
+#ifndef BUNDLE_ADAPTER_MOCK
+/**
+ * @tc.name: QueryDistributedVirtualDeviceId001
+ * @tc.desc: Test QueryDistributedVirtualDeviceId.
+ * @tc.type: FUNC
+ * @tc.require: issueI4JBFF
+ */
+HWTEST_F(OsAccountManagerModuleTest, QueryDistributedVirtualDeviceId001, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    ASSERT_EQ(OsAccountManager::CreateOsAccount("test", "test", OsAccountType::NORMAL, osAccountInfo), ERR_OK);
+    int32_t localId = osAccountInfo.GetLocalId();
+    ASSERT_EQ(OsAccountManager::ActivateOsAccount(localId), ERR_OK);
+    std::string dvid1 = "";
+    std::string bundleName1 = "bundleName1";
+    ErrCode ret = OsAccountManager::QueryDistributedVirtualDeviceId(bundleName1, localId, dvid1);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(dvid1, "");
+
+    ret = OsAccountManager::QueryDistributedVirtualDeviceId(bundleName1, localId + 1, dvid1);
+    EXPECT_EQ(dvid1, "");
+
+    OhosAccountInfo ohosInfo;
+    ohosInfo.SetRawUid("65689555212565665");
+    ohosInfo.uid_ = "656895552125sdsdsdaaqw65665";
+    ohosInfo.name_ = "name";
+    ret = OhosAccountKits::GetInstance().SetOhosAccountInfoByUserId(localId, ohosInfo, OHOS_ACCOUNT_EVENT_LOGIN);
+    EXPECT_EQ(ret, ERR_OK);
+
+    EXPECT_EQ(OsAccountManager::QueryDistributedVirtualDeviceId(bundleName1, localId, dvid1), ERR_OK);
+    EXPECT_NE(dvid1, "");
+
+    std::string dvid2 = "";
+    std::string bundleName2 = "bundleName2";
+    EXPECT_EQ(OsAccountManager::QueryDistributedVirtualDeviceId(bundleName2, localId, dvid2), ERR_OK);
+    EXPECT_NE(dvid2, "");
+    EXPECT_NE(dvid2, dvid1);
+
+    EXPECT_EQ(OhosAccountKits::GetInstance().UpdateOhosAccountInfo("name", ohosInfo.uid_, OHOS_ACCOUNT_EVENT_LOGOUT),
+        ERR_OK);
+    dvid1 = "";
+    EXPECT_EQ(OsAccountManager::QueryDistributedVirtualDeviceId(bundleName1, localId, dvid1), ERR_OK);
+    EXPECT_EQ(dvid1, "");
+
+    OhosAccountInfo ohosInfo2;
+    ohosInfo2.SetRawUid("65689555212568888");
+    ohosInfo2.uid_ = "656895552125fgfghhgjjhkhw68888";
+    ohosInfo2.name_ = "name2";
+    ret = OhosAccountKits::GetInstance().SetOhosAccountInfoByUserId(localId, ohosInfo2, OHOS_ACCOUNT_EVENT_LOGIN);
+    EXPECT_EQ(ret, ERR_OK);
+
+    std::string dvid3 = "";
+    ret = OsAccountManager::QueryDistributedVirtualDeviceId(bundleName2, localId, dvid3);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_NE(dvid3, dvid2);
+
+    setuid(osAccountInfo.GetLocalId() * UID_TRANSFORM_DIVISOR);
+    ret = OsAccountManager::QueryDistributedVirtualDeviceId(bundleName2, localId, dvid3);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    setuid(ROOT_UID);
+    ASSERT_EQ(OsAccountManager::RemoveOsAccount(localId), ERR_OK);
+}
+#endif
