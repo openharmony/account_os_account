@@ -53,6 +53,7 @@ group("fuzztest") {
     "isosaccountforeground_fuzzer:IsOsAccountForegroundFuzzTest",
     "isosaccountverified_fuzzer:IsOsAccountVerifiedFuzzTest",
     "queryaccountinfo_fuzzer:QueryAccountInfoFuzzTest",
+    "querydistributedvirtualdeviceid_fuzzer:QueryDistributedVirtualDeviceIdTest",
     "removeosaccount_fuzzer:RemoveOsAccountFuzzTest",
     "removeserverconfig_fuzzer:RemoveServerConfigFuzzTest",
     "setcurrentosaccountisverified_fuzzer:SetCurrentOsAccountIsVerifiedFuzzTest",
