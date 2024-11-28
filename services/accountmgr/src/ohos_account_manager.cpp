@@ -270,6 +270,25 @@ ErrCode OhosAccountManager::QueryDistributedVirtualDeviceId(std::string &dvid)
     return ERR_OK;
 }
 
+ErrCode OhosAccountManager::QueryDistributedVirtualDeviceId(const std::string &bundleName, int32_t localId,
+    std::string &dvid)
+{
+    dvid = "";
+    AccountInfo accountInfo;
+    ErrCode errCode = GetAccountInfoByUserId(localId, accountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Get ohos account info failed, errcode=%{public}d, localId=%{public}d.", errCode, localId);
+        return errCode;
+    }
+    OhosAccountInfo ohosAccountInfo = accountInfo.ohosAccountInfo_;
+    if (ohosAccountInfo.uid_ == DEFAULT_OHOS_ACCOUNT_UID) {
+        return ERR_OK;
+    }
+
+    dvid = GenerateDVID(bundleName, ohosAccountInfo.GetRawUid());
+    return ERR_OK;
+}
+
 ErrCode OhosAccountManager::GetAccountInfoByUserId(std::int32_t userId, AccountInfo &info)
 {
     if (userId == 0) {

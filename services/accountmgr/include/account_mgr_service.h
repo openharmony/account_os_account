@@ -49,6 +49,7 @@ public:
         const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr) override;
     ErrCode QueryOhosAccountInfo(OhosAccountInfo &accountInfo) override;
     ErrCode QueryDistributedVirtualDeviceId(std::string &dvid) override;
+    ErrCode QueryDistributedVirtualDeviceId(const std::string &bundleName, int32_t localId, std::string &dvid) override;
     ErrCode QueryOhosAccountInfoByUserId(std::int32_t userId, OhosAccountInfo &accountInfo) override;
     ErrCode GetOhosAccountInfo(OhosAccountInfo &info) override;
     ErrCode GetOhosAccountInfoByUserId(int32_t userId, OhosAccountInfo &info) override;

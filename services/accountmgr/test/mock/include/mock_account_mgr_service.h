@@ -69,6 +69,11 @@ public:
         return 0;
     }
 
+    ErrCode QueryDistributedVirtualDeviceId(const std::string &bundleName, int32_t localId, std::string &dvid) override
+    {
+        return 0;
+    }
+
     sptr<IRemoteObject> GetAccountIAMService() override
     {
         return nullptr;
