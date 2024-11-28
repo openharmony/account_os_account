@@ -68,6 +68,15 @@ public:
     ErrCode QueryDistributedVirtualDeviceId(std::string &dvid);
 
     /**
+     * Get ohos account device id.
+     *
+     * @param bundleName target bundle name
+     * @param localId target local account id
+     * @return dvid ohos account device id.
+     */
+    ErrCode QueryDistributedVirtualDeviceId(const std::string &bundleName, int32_t localId, std::string &dvid);
+
+    /**
      * Subscribe distributed account event by type.
      *
      * @param type event type
