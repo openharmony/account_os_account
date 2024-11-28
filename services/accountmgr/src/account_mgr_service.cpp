@@ -353,8 +353,8 @@ bool AccountMgrService::Init()
     IInnerOsAccountManager::GetInstance().ResetAccountStatus();
     if (!OhosAccountManager::GetInstance().OnInitialize()) {
         ACCOUNT_LOGE("Ohos account manager initialize failed");
-        ReportServiceStartFail(ERR_ACCOUNT_MGR_OHOS_MGR_INIT_ERROR, "OnInitialize failed!");
-        return false;
+        ReportServiceStartFail(ERR_ACCOUNT_MGR_OHOS_MGR_INIT_ERROR,
+            "OhosAccountManager::OnInitialize failed, do not block sa startup!");
     }
     state_ = ServiceRunningState::STATE_RUNNING;
     if (!registerToService_) {
