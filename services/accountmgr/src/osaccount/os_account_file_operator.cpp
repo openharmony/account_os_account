@@ -58,7 +58,7 @@ void OsAccountFileOperator::Init()
 
 ErrCode OsAccountFileOperator::GetConstraintsByType(const int type, std::vector<std::string> &constraints)
 {
-    ACCOUNT_LOGD("start");
+    ACCOUNT_LOGD("Start");
     if (!isAlreadyInit_) {
         return ERR_OSACCOUNT_SERVICE_OS_FILE_GET_CONFIG_ERROR;
     }
@@ -78,7 +78,7 @@ ErrCode OsAccountFileOperator::GetConstraintsByType(const int type, std::vector<
     constraints.clear();
     OHOS::AccountSA::GetDataByType<std::vector<std::string>>(
         typeJson, typeJson.end(), std::to_string(type), constraints, OHOS::AccountSA::JsonType::ARRAY);
-    ACCOUNT_LOGD("end");
+    ACCOUNT_LOGD("End");
     return ERR_OK;
 }
 
@@ -95,7 +95,7 @@ ErrCode OsAccountFileOperator::GetBaseOAConstraintsList(const int id, std::vecto
         }
     }
     if (baseOsAccountConstraintsConfig.size() == 0) {
-        ACCOUNT_LOGE("baseOsAccountConstraints data is empty");
+        ACCOUNT_LOGE("BaseOsAccountConstraints data is empty");
         return ERR_OSACCOUNT_SERVICE_GET_DATA_FROM_BASE_CONSTRAINTS_FILE_EMPTY;
     }
     OHOS::AccountSA::GetDataByType<std::vector<std::string>>(baseOsAccountConstraintsConfig,
@@ -120,7 +120,7 @@ ErrCode OsAccountFileOperator::GetGlobalOAConstraintsList(std::vector<std::strin
     }
 
     if (globalOsAccountConstraintsConfig.size() == 0) {
-        ACCOUNT_LOGE("globalOsAccountConstraints data is empty");
+        ACCOUNT_LOGE("GlobalOsAccountConstraints data is empty");
         return ERR_OSACCOUNT_SERVICE_GET_DATA_FROM_GLOBAL_CONSTRAINTS_FILE_EMPTY;
     }
     OHOS::AccountSA::GetDataByType<std::vector<std::string>>(globalOsAccountConstraintsConfig,
@@ -145,7 +145,7 @@ ErrCode OsAccountFileOperator::GetSpecificOAConstraintsList(const int id, std::v
     }
 
     if (specificOsAccountConstraintsConfig.size() == 0) {
-        ACCOUNT_LOGE("globalOsAccountConstraints data is empty");
+        ACCOUNT_LOGE("GlobalOsAccountConstraints data is empty");
         return ERR_OSACCOUNT_SERVICE_GET_DATA_FROM_SPECIFIC_CONSTRAINTS_FILE_EMPTY;
     }
     Json SpecificOAConstraintsData;
@@ -196,12 +196,12 @@ ErrCode OsAccountFileOperator::CheckConstraintsList(const std::vector<std::strin
     isOverSize = false;
     isExists = true;
     if (constraintList_.size() == 0) {
-        ACCOUNT_LOGE("constraintList_ zero error!");
+        ACCOUNT_LOGE("ConstraintList_ zero error!");
         return ERR_OSACCOUNT_SERVICE_OS_FILE_GET_CONSTRAINTS_LITS_ERROR;
     }
 
     if (constraints.size() > constraintList_.size()) {
-        ACCOUNT_LOGE("input constraints list size %{public}zu is larger than %{public}zu.",
+        ACCOUNT_LOGE("Input constraints list size %{public}zu is larger than %{public}zu.",
             constraints.size(), constraintList_.size());
         isOverSize = true;
         return ERR_OK;

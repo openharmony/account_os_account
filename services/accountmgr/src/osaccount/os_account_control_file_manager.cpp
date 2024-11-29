@@ -92,12 +92,12 @@ ErrCode OsAccountControlFileManager::GetOsAccountConfig(OsAccountConfig &config)
     std::string configStr;
     ErrCode errCode = accountFileOperator_->GetFileContentByPath(cfgPath, configStr);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("get content from file %{public}s failed!", cfgPath.c_str());
+        ACCOUNT_LOGE("Get content from file %{public}s failed!", cfgPath.c_str());
         return errCode;
     }
     Json configJson = Json::parse(configStr, nullptr, false);
     if (configJson.is_discarded()) {
-        ACCOUNT_LOGE("parse os account info json data failed");
+        ACCOUNT_LOGE("Parse os account info json data failed");
         return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
     }
     auto jsonEnd = configJson.end();
@@ -134,27 +134,27 @@ bool OsAccountControlFileManager::RecoverAccountData(const std::string &fileName
     } else if (id >= Constants::START_USER_ID) {
         OsAccountInfo osAccountInfo;
         if (GetOsAccountFromDatabase(OS_ACCOUNT_STORE_ID, id, osAccountInfo) != ERR_OK) {
-            ACCOUNT_LOGW("get recover file data failed");
+            ACCOUNT_LOGW("Get recover file data failed");
             return false;
         }
         recoverDataStr = osAccountInfo.ToString();
     } else {
-        ACCOUNT_LOGW("get recover file data failed");
+        ACCOUNT_LOGW("Get recover file data failed");
         return false;
     }
     if (recoverDataStr.empty()) {
-        ACCOUNT_LOGW("get recover file data failed");
+        ACCOUNT_LOGW("Get recover file data failed");
         return false;
     }
     // recover data
     ErrCode result = accountFileOperator_->InputFileByPathAndContent(fileName, recoverDataStr);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("recover local file data failed, err = %{public}d", result);
+        ACCOUNT_LOGE("Recover local file data failed, err = %{public}d", result);
         return false;
     }
     // update local digest
     if (accountFileWatcherMgr_.AddAccountInfoDigest(recoverDataStr, fileName) != ERR_OK) {
-        ACCOUNT_LOGE("failed to update local digest");
+        ACCOUNT_LOGE("Failed to update local digest");
         return false;
     }
 #endif
@@ -163,11 +163,11 @@ bool OsAccountControlFileManager::RecoverAccountData(const std::string &fileName
 
 bool OsAccountControlFileManager::DealWithFileModifyEvent(const std::string &fileName, const int32_t id)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("Enter");
     {
         std::unique_lock<std::shared_timed_mutex> lock(accountFileOperator_->fileLock_);
         if (accountFileOperator_->GetValidModifyFileOperationFlag(fileName)) {
-            ACCOUNT_LOGD("this is valid service operate, no need to deal with it.");
+            ACCOUNT_LOGD("This is valid service operate, no need to deal with it.");
             accountFileOperator_->SetValidModifyFileOperationFlag(fileName, false);
             return true;
         }
@@ -175,7 +175,7 @@ bool OsAccountControlFileManager::DealWithFileModifyEvent(const std::string &fil
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
     std::string fileInfoStr;
     if (accountFileOperator_->GetFileContentByPath(fileName, fileInfoStr) != ERR_OK) {
-        ACCOUNT_LOGE("get content from file %{public}s failed!", fileName.c_str());
+        ACCOUNT_LOGE("Get content from file %{public}s failed!", fileName.c_str());
         return false;
     }
     uint8_t localDigestData[ALG_COMMON_SIZE] = {0};
@@ -190,17 +190,17 @@ bool OsAccountControlFileManager::DealWithFileModifyEvent(const std::string &fil
     }
 #endif // HAS_HUKS_PART
     ReportOsAccountDataTampered(id, fileName, "OS_ACCOUNT_INFO");
-    ACCOUNT_LOGW("local file data has been changed");
+    ACCOUNT_LOGW("Local file data has been changed");
     return RecoverAccountData(fileName, id);
 }
 
 bool OsAccountControlFileManager::DealWithFileDeleteEvent(const std::string &fileName, const int32_t id)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("Enter");
     {
         std::unique_lock<std::shared_timed_mutex> lock(accountFileOperator_->fileLock_);
         if (accountFileOperator_->GetValidDeleteFileOperationFlag(fileName)) {
-            ACCOUNT_LOGD("this is valid service operate, no need to deal with it.");
+            ACCOUNT_LOGD("This is valid service operate, no need to deal with it.");
             accountFileOperator_->SetValidDeleteFileOperationFlag(fileName, false);
             accountFileWatcherMgr_.RemoveFileWatcher(id, fileName);
             return true;
@@ -209,7 +209,7 @@ bool OsAccountControlFileManager::DealWithFileDeleteEvent(const std::string &fil
     ReportOsAccountDataTampered(id, fileName, "OS_ACCOUNT_INFO");
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
     if (!RecoverAccountData(fileName, id)) {
-        ACCOUNT_LOGE("recover account data failed.");
+        ACCOUNT_LOGE("Recover account data failed.");
     }
     accountFileWatcherMgr_.AddFileWatcher(id, eventCallbackFunc_, fileName);
     return true;
@@ -217,13 +217,13 @@ bool OsAccountControlFileManager::DealWithFileDeleteEvent(const std::string &fil
 
 bool OsAccountControlFileManager::DealWithFileMoveEvent(const std::string &fileName, const int32_t id)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("Enter");
     // delete old file watcher
     accountFileWatcherMgr_.RemoveFileWatcher(id, fileName);
     ReportOsAccountDataTampered(id, fileName, "OS_ACCOUNT_INFO");
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
     if (!RecoverAccountData(fileName, id)) {
-        ACCOUNT_LOGE("recover account data failed.");
+        ACCOUNT_LOGE("Recover account data failed.");
     }
     accountFileWatcherMgr_.AddFileWatcher(id, eventCallbackFunc_, fileName);
     return true;
@@ -239,7 +239,7 @@ OsAccountControlFileManager::OsAccountControlFileManager()
     osAccountFileOperator_ = std::make_shared<OsAccountFileOperator>();
     osAccountPhotoOperator_ = std::make_shared<OsAccountPhotoOperator>();
     eventCallbackFunc_ = [this](const std::string &fileName, int32_t id, uint32_t event) {
-        ACCOUNT_LOGI("inotify event = %{public}d, fileName = %{public}s", event, fileName.c_str());
+        ACCOUNT_LOGI("Inotify event = %{public}d, fileName = %{public}s", event, fileName.c_str());
         switch (event) {
             case IN_MODIFY: {
                 return DealWithFileModifyEvent(fileName, id);
@@ -251,7 +251,7 @@ OsAccountControlFileManager::OsAccountControlFileManager()
                 return DealWithFileDeleteEvent(fileName, id);
             }
             default: {
-                ACCOUNT_LOGW("get event invalid!");
+                ACCOUNT_LOGW("Get event invalid!");
                 return false;
             }
         }
@@ -327,7 +327,7 @@ void OsAccountControlFileManager::InitFileWatcherInfo(std::vector<std::string> &
 
 void OsAccountControlFileManager::BuildAndSaveAccountListJsonFile(const std::vector<std::string>& accounts)
 {
-    ACCOUNT_LOGD("enter.");
+    ACCOUNT_LOGD("Enter.");
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
     Json accountList = Json {
         {Constants::ACCOUNT_LIST, accounts},
@@ -343,11 +343,11 @@ void OsAccountControlFileManager::BuildAndSaveAccountListJsonFile(const std::vec
 
 void OsAccountControlFileManager::BuildAndSaveBaseOAConstraintsJsonFile()
 {
-    ACCOUNT_LOGI("enter.");
+    ACCOUNT_LOGI("Enter.");
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
     std::vector<std::string> baseOAConstraints;
     if (osAccountFileOperator_->GetConstraintsByType(OsAccountType::ADMIN, baseOAConstraints) != ERR_OK) {
-        ACCOUNT_LOGE("get %{public}d base os account constraints failed.", Constants::START_USER_ID);
+        ACCOUNT_LOGE("Get %{public}d base os account constraints failed.", Constants::START_USER_ID);
         return;
     }
     Json baseOsAccountConstraints = Json {
@@ -358,7 +358,7 @@ void OsAccountControlFileManager::BuildAndSaveBaseOAConstraintsJsonFile()
 
 void OsAccountControlFileManager::BuildAndSaveGlobalOAConstraintsJsonFile()
 {
-    ACCOUNT_LOGI("enter.");
+    ACCOUNT_LOGI("Enter.");
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
     Json globalOsAccountConstraints = Json {
         {Constants::DEVICE_OWNER_ID, -1},
@@ -384,13 +384,13 @@ void OsAccountControlFileManager::BuildAndSaveOsAccountIndexJsonFile()
     std::string accountIndex;
     ErrCode result = GetAccountIndexInfo(accountIndex);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("get account index info error code %{public}d.", result);
+        ACCOUNT_LOGE("Get account index info error code %{public}d.", result);
         return;
     }
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
     result = accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_INDEX_JSON_PATH, accountIndex);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to input account index info to file!");
+        ACCOUNT_LOGE("Failed to input account index info to file!");
     }
     return;
 }
@@ -418,7 +418,7 @@ void OsAccountControlFileManager::RecoverAccountListJsonFile()
     if (rootDir == nullptr) {
         accounts.push_back(std::to_string(Constants::START_USER_ID));  // account 100 always exists
         BuildAndSaveAccountListJsonFile(accounts);
-        ACCOUNT_LOGE("cannot open dir %{public}s, err %{public}d.", Constants::USER_INFO_BASE.c_str(), errno);
+        ACCOUNT_LOGE("Cannot open dir %{public}s, err %{public}d.", Constants::USER_INFO_BASE.c_str(), errno);
         return;
     }
 
@@ -432,7 +432,7 @@ void OsAccountControlFileManager::RecoverAccountListJsonFile()
         // get and check os account id
         std::int32_t accountID = Constants::INVALID_OS_ACCOUNT_ID;
         if (!GetValidAccountID(curDirName, accountID)) {
-            ACCOUNT_LOGE("invalid account id %{public}s detected in %{public}s.", curDirName.c_str(),
+            ACCOUNT_LOGE("Invalid account id %{public}s detected in %{public}s.", curDirName.c_str(),
                 Constants::USER_INFO_BASE.c_str());
             continue;
         }
@@ -442,7 +442,7 @@ void OsAccountControlFileManager::RecoverAccountListJsonFile()
         std::string curAccountIDStr = std::to_string(accountID);
         for (size_t i = 0; i < accounts.size(); ++i) {
             if (accounts[i] == curAccountIDStr) {
-                ACCOUNT_LOGE("repeated account id %{public}s detected in %{public}s.", curAccountIDStr.c_str(),
+                ACCOUNT_LOGE("Repeated account id %{public}s detected in %{public}s.", curAccountIDStr.c_str(),
                     Constants::USER_INFO_BASE.c_str());
                 sameAccountID = true;
                 break;
@@ -529,7 +529,7 @@ ErrCode OsAccountControlFileManager::GetOsAccountInfoById(const int id, OsAccoun
                        Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
     ErrCode err = accountFileOperator_->CheckFileExistence(path);
     if (err != ERR_OK) {
-        ACCOUNT_LOGE("file %{public}s does not exist err, errcode=%{public}d", path.c_str(), err);
+        ACCOUNT_LOGE("File %{public}s does not exist err, errcode=%{public}d", path.c_str(), err);
         if (GetOsAccountFromDatabase("", id, osAccountInfo) == ERR_OK) {
             InsertOsAccount(osAccountInfo);
             return ERR_OK;
@@ -539,7 +539,7 @@ ErrCode OsAccountControlFileManager::GetOsAccountInfoById(const int id, OsAccoun
     }
     std::string accountInfoStr;
     if (accountFileOperator_->GetFileContentByPath(path, accountInfoStr) != ERR_OK) {
-        ACCOUNT_LOGE("get content from file %{public}s failed!", path.c_str());
+        ACCOUNT_LOGE("Get content from file %{public}s failed!", path.c_str());
         if (GetOsAccountFromDatabase("", id, osAccountInfo) == ERR_OK) {
             return ERR_OK;
         }
@@ -547,7 +547,7 @@ ErrCode OsAccountControlFileManager::GetOsAccountInfoById(const int id, OsAccoun
     }
     Json osAccountInfoJson = Json::parse(accountInfoStr, nullptr, false);
     if (osAccountInfoJson.is_discarded() || !osAccountInfo.FromJson(osAccountInfoJson)) {
-        ACCOUNT_LOGE("parse os account info json for %{public}d failed", id);
+        ACCOUNT_LOGE("Parse os account info json for %{public}d failed", id);
         if (GetOsAccountFromDatabase("", id, osAccountInfo) != ERR_OK) {
             ACCOUNT_LOGE("GetOsAccountFromDatabase failed id=%{public}d", id);
             return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
@@ -570,7 +570,7 @@ ErrCode OsAccountControlFileManager::UpdateBaseOAConstraints(const std::string& 
     Json baseOAConstraintsJson;
     ErrCode result = GetBaseOAConstraintsFromFile(baseOAConstraintsJson);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("get baseOAConstraints from json file failed!");
+        ACCOUNT_LOGE("Get baseOAConstraints from json file failed!");
         return result;
     }
 
@@ -606,7 +606,7 @@ ErrCode OsAccountControlFileManager::UpdateGlobalOAConstraints(
     Json globalOAConstraintsJson;
     ErrCode result = GetGlobalOAConstraintsFromFile(globalOAConstraintsJson);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("get globalOAConstraints from file failed!");
+        ACCOUNT_LOGE("Get globalOAConstraints from file failed!");
         return result;
     }
     GlobalConstraintsDataOperate(idStr, ConstraintStr, isAdd, globalOAConstraintsJson);
@@ -671,7 +671,7 @@ ErrCode OsAccountControlFileManager::UpdateSpecificOAConstraints(
     Json specificOAConstraintsJson;
     ErrCode result = GetSpecificOAConstraintsFromFile(specificOAConstraintsJson);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("get specificOAConstraints from file failed!");
+        ACCOUNT_LOGE("Get specificOAConstraints from file failed!");
         return result;
     }
     if (specificOAConstraintsJson.find(targetIdStr) == specificOAConstraintsJson.end()) {
@@ -745,17 +745,17 @@ ErrCode OsAccountControlFileManager::RemoveOAConstraintsInfo(const int32_t id)
 {
     ErrCode errCode = RemoveOABaseConstraintsInfo(id);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("remove os account %{public}d base constraints info failed!", id);
+        ACCOUNT_LOGE("Remove os account %{public}d base constraints info failed!", id);
         return errCode;
     }
     errCode = RemoveOAGlobalConstraintsInfo(id);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("remove os account %{public}d global constraints info failed!", id);
+        ACCOUNT_LOGE("Remove os account %{public}d global constraints info failed!", id);
         return errCode;
     }
     errCode = RemoveOASpecificConstraintsInfo(id);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("remove os account %{public}d specific constraints info failed!", id);
+        ACCOUNT_LOGE("Remove os account %{public}d specific constraints info failed!", id);
         return errCode;
     }
     return ERR_OK;
@@ -767,7 +767,7 @@ ErrCode OsAccountControlFileManager::RemoveOABaseConstraintsInfo(const int32_t i
     Json baseOAConstraintsJson;
     ErrCode result = GetBaseOAConstraintsFromFile(baseOAConstraintsJson);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("get baseOAConstraints from file failed!");
+        ACCOUNT_LOGE("Get baseOAConstraints from file failed!");
         return result;
     }
     baseOAConstraintsJson.erase(std::to_string(id));
@@ -785,7 +785,7 @@ ErrCode OsAccountControlFileManager::RemoveOAGlobalConstraintsInfo(const int32_t
     Json globalOAConstraintsJson;
     ErrCode result = GetGlobalOAConstraintsFromFile(globalOAConstraintsJson);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("get globalOAConstraints from file failed!");
+        ACCOUNT_LOGE("Get globalOAConstraints from file failed!");
         return result;
     }
     std::vector<std::string> waitForErase;
@@ -826,7 +826,7 @@ ErrCode OsAccountControlFileManager::RemoveOASpecificConstraintsInfo(const int32
     Json specificOAConstraintsJson;
     ErrCode result = GetSpecificOAConstraintsFromFile(specificOAConstraintsJson);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("get specificOAConstraints from file failed!");
+        ACCOUNT_LOGE("Get specificOAConstraints from file failed!");
         return result;
     }
     if (specificOAConstraintsJson.find(std::to_string(id)) != specificOAConstraintsJson.end()) {
@@ -875,7 +875,7 @@ ErrCode OsAccountControlFileManager::UpdateAccountList(const std::string& idStr,
     Json accountListJson;
     ErrCode result = GetAccountListFromFile(accountListJson);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("get account list failed!");
+        ACCOUNT_LOGE("Get account list failed!");
         return result;
     }
 
@@ -908,7 +908,7 @@ ErrCode OsAccountControlFileManager::UpdateAccountIndex(const OsAccountInfo &osA
     Json accountIndexJson;
     ErrCode result = GetAccountIndexFromFile(accountIndexJson);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("get account index failed!");
+        ACCOUNT_LOGE("Get account index failed!");
         return result;
     }
     std::string localIdStr = std::to_string(osAccountInfo.GetLocalId());
@@ -923,7 +923,7 @@ ErrCode OsAccountControlFileManager::UpdateAccountIndex(const OsAccountInfo &osA
     std::string lastAccountIndexStr = accountIndexJson.dump();
     result = accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_INDEX_JSON_PATH, lastAccountIndexStr);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to input account index info to file!");
+        ACCOUNT_LOGE("Failed to input account index info to file!");
         return result;
     }
     accountFileWatcherMgr_.AddAccountInfoDigest(lastAccountIndexStr, Constants::ACCOUNT_INDEX_JSON_PATH);
@@ -959,7 +959,7 @@ ErrCode OsAccountControlFileManager::RemoveAccountIndex(const int32_t id)
     Json accountIndexJson;
     ErrCode result = GetAccountIndexFromFile(accountIndexJson);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("get account index failed!");
+        ACCOUNT_LOGE("Get account index failed!");
         return result;
     }
     std::string localIdStr = std::to_string(id);
@@ -967,7 +967,7 @@ ErrCode OsAccountControlFileManager::RemoveAccountIndex(const int32_t id)
     std::string lastAccountIndexStr = accountIndexJson.dump();
     result = accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_INDEX_JSON_PATH, lastAccountIndexStr);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to input account index info to file!");
+        ACCOUNT_LOGE("Failed to input account index info to file!");
         return result;
     }
     accountFileWatcherMgr_.AddAccountInfoDigest(lastAccountIndexStr, Constants::ACCOUNT_INDEX_JSON_PATH);
@@ -976,9 +976,9 @@ ErrCode OsAccountControlFileManager::RemoveAccountIndex(const int32_t id)
 
 ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("Enter");
     if (osAccountInfo.GetLocalId() < Constants::ADMIN_LOCAL_ID) {
-        ACCOUNT_LOGE("error id %{public}d cannot insert", osAccountInfo.GetLocalId());
+        ACCOUNT_LOGE("Error id %{public}d cannot insert", osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_CONTROL_ID_CANNOT_CREATE_ERROR;
     }
 
@@ -991,7 +991,7 @@ ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInf
 
     std::string accountInfoStr = osAccountInfo.ToString();
     if (accountInfoStr.empty()) {
-        ACCOUNT_LOGE("os account info is empty! maybe some illegal characters caused exception!");
+        ACCOUNT_LOGE("Os account info is empty! maybe some illegal characters caused exception!");
         return ERR_OSACCOUNT_SERVICE_ACCOUNT_INFO_EMPTY_ERROR;
     }
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
@@ -1015,15 +1015,15 @@ ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInf
         accountFileWatcherMgr_.AddAccountInfoDigest(accountInfoStr, path);
         accountFileWatcherMgr_.AddFileWatcher(osAccountInfo.GetLocalId(), eventCallbackFunc_);
     }
-    ACCOUNT_LOGI("end");
+    ACCOUNT_LOGI("End");
     return ERR_OK;
 }
 
 ErrCode OsAccountControlFileManager::DelOsAccount(const int id)
 {
-    ACCOUNT_LOGD("enter");
+    ACCOUNT_LOGD("Enter");
     if (id <= Constants::START_USER_ID || id > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("invalid input id %{public}d to delete!", id);
+        ACCOUNT_LOGE("Ivalid input id %{public}d to delete!", id);
         return ERR_OSACCOUNT_SERVICE_CONTROL_CANNOT_DELETE_ID_ERROR;
     }
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
@@ -1048,17 +1048,17 @@ ErrCode OsAccountControlFileManager::DelOsAccount(const int id)
 
 ErrCode OsAccountControlFileManager::UpdateOsAccount(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGD("start");
+    ACCOUNT_LOGD("Start");
     std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + osAccountInfo.GetPrimeKey() +
                        Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
     if (!accountFileOperator_->IsExistFile(path)) {
-        ACCOUNT_LOGE("path %{public}s does not exist!", path.c_str());
+        ACCOUNT_LOGE("Path %{public}s does not exist!", path.c_str());
         return ERR_OSACCOUNT_SERVICE_CONTROL_UPDATE_FILE_NOT_EXISTS_ERROR;
     }
 
     std::string accountInfoStr = osAccountInfo.ToString();
     if (accountInfoStr.empty()) {
-        ACCOUNT_LOGE("account info str is empty!");
+        ACCOUNT_LOGE("Account info str is empty!");
         return ERR_OSACCOUNT_SERVICE_ACCOUNT_INFO_EMPTY_ERROR;
     }
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
@@ -1077,7 +1077,7 @@ ErrCode OsAccountControlFileManager::UpdateOsAccount(OsAccountInfo &osAccountInf
 #endif // DISTRIBUTED_FEATURE_ENABLED
 
     accountFileWatcherMgr_.AddAccountInfoDigest(accountInfoStr, path);
-    ACCOUNT_LOGD("end");
+    ACCOUNT_LOGD("End");
     return ERR_OK;
 }
 
@@ -1189,7 +1189,7 @@ ErrCode OsAccountControlFileManager::GetAllowCreateId(int &id)
 
 ErrCode OsAccountControlFileManager::GetAccountListFromFile(Json &accountListJson)
 {
-    ACCOUNT_LOGD("enter");
+    ACCOUNT_LOGD("Enter");
     accountListJson.clear();
     std::string accountList;
     std::lock_guard<std::mutex> lock(accountListFileLock_);
@@ -1208,7 +1208,7 @@ ErrCode OsAccountControlFileManager::GetAccountListFromFile(Json &accountListJso
         return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
 #endif
     }
-    ACCOUNT_LOGD("end");
+    ACCOUNT_LOGD("End");
     return ERR_OK;
 }
 
@@ -1273,7 +1273,7 @@ ErrCode OsAccountControlFileManager::GetBaseOAConstraintsFromFile(Json &baseOACo
     }
     baseOAConstraintsJson = Json::parse(baseOAConstraints, nullptr, false);
     if (baseOAConstraintsJson.is_discarded() || !baseOAConstraintsJson.is_object()) {
-        ACCOUNT_LOGE("base constraints json data parse failed code.");
+        ACCOUNT_LOGE("Base constraints json data parse failed code.");
         return errCode;
     }
 
@@ -1293,7 +1293,7 @@ ErrCode OsAccountControlFileManager::GetGlobalOAConstraintsFromFile(Json &global
     }
     globalOAConstraintsJson = Json::parse(globalOAConstraints, nullptr, false);
     if (globalOAConstraintsJson.is_discarded() || !globalOAConstraintsJson.is_object()) {
-        ACCOUNT_LOGE("global constraints json data parse failed code.");
+        ACCOUNT_LOGE("Global constraints json data parse failed code.");
         return errCode;
     }
 
@@ -1313,7 +1313,7 @@ ErrCode OsAccountControlFileManager::GetSpecificOAConstraintsFromFile(Json &spec
     }
     specificOAConstraintsJson = Json::parse(specificOAConstraints, nullptr, false);
     if (specificOAConstraintsJson.is_discarded() || !specificOAConstraintsJson.is_object()) {
-        ACCOUNT_LOGE("specific constraints json data parse failed code.");
+        ACCOUNT_LOGE("Specific constraints json data parse failed code.");
         return errCode;
     }
 
@@ -1360,7 +1360,7 @@ ErrCode OsAccountControlFileManager::IsFromGlobalOAConstraintsList(const int32_t
         Json globalOAConstraintsJson;
         errCode = GetGlobalOAConstraintsFromFile(globalOAConstraintsJson);
         if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("get globalOAConstraints from file failed!");
+            ACCOUNT_LOGE("Get globalOAConstraints from file failed!");
             return errCode;
         }
         std::vector<std::string> globalOAConstraintsList;
@@ -1410,7 +1410,7 @@ ErrCode OsAccountControlFileManager::IsFromSpecificOAConstraintsList(const int32
         Json specificOAConstraintsJson;
         errCode = GetSpecificOAConstraintsFromFile(specificOAConstraintsJson);
         if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("get specificOAConstraints from file failed!");
+            ACCOUNT_LOGE("Get specificOAConstraints from file failed!");
             return errCode;
         }
         Json specificOAConstraintsInfo;
@@ -1447,11 +1447,11 @@ ErrCode OsAccountControlFileManager::SaveAccountListToFile(const Json &accountLi
     ErrCode result =
         accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_LIST_FILE_JSON_PATH, accountListJson.dump());
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("cannot save save account list file content!");
+        ACCOUNT_LOGE("Cannot save save account list file content!");
         return result;
     }
     accountFileWatcherMgr_.AddAccountInfoDigest(accountListJson.dump(), Constants::ACCOUNT_LIST_FILE_JSON_PATH);
-    ACCOUNT_LOGD("save account list file succeed!");
+    ACCOUNT_LOGD("Save account list file succeed!");
     return ERR_OK;
 }
 
@@ -1461,7 +1461,7 @@ ErrCode OsAccountControlFileManager::SaveBaseOAConstraintsToFile(const Json &bas
     ErrCode result = accountFileOperator_->InputFileByPathAndContent(
         Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH, baseOAConstraints.dump());
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("cannot save base osaccount constraints file content!");
+        ACCOUNT_LOGE("Cannot save base osaccount constraints file content!");
         return result;
     }
     accountFileWatcherMgr_.AddAccountInfoDigest(
@@ -1475,7 +1475,7 @@ ErrCode OsAccountControlFileManager::SaveGlobalOAConstraintsToFile(const Json &g
     ErrCode result = accountFileOperator_->InputFileByPathAndContent(
         Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH, globalOAConstraints.dump());
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("cannot save global osAccount constraints file content!");
+        ACCOUNT_LOGE("Cannot save global osAccount constraints file content!");
         return result;
     }
     accountFileWatcherMgr_.AddAccountInfoDigest(
@@ -1489,7 +1489,7 @@ ErrCode OsAccountControlFileManager::SaveSpecificOAConstraintsToFile(const Json 
     ErrCode result = accountFileOperator_->InputFileByPathAndContent(
         Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH, specificOAConstraints.dump());
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("cannot save specific osAccount constraints file content!");
+        ACCOUNT_LOGE("Cannot save specific osAccount constraints file content!");
         return result;
     }
     accountFileWatcherMgr_.AddAccountInfoDigest(
@@ -1502,7 +1502,7 @@ ErrCode OsAccountControlFileManager::GetDeviceOwnerId(int &deviceOwnerId)
     Json globalOAConstraintsJson;
     ErrCode result = GetGlobalOAConstraintsFromFile(globalOAConstraintsJson);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("get global json data from file failed!");
+        ACCOUNT_LOGE("Get global json data from file failed!");
         return result;
     }
     OHOS::AccountSA::GetDataByType<int>(
@@ -1520,7 +1520,7 @@ ErrCode OsAccountControlFileManager::UpdateDeviceOwnerId(const int deviceOwnerId
     Json globalOAConstraintsJson;
     ErrCode result = GetGlobalOAConstraintsFromFile(globalOAConstraintsJson);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("get global json data from file failed!");
+        ACCOUNT_LOGE("Get global json data from file failed!");
         return result;
     }
     globalOAConstraintsJson[Constants::DEVICE_OWNER_ID] = deviceOwnerId;
@@ -1533,7 +1533,7 @@ ErrCode OsAccountControlFileManager::SetDefaultActivatedOsAccount(const int32_t 
     Json accountListJson;
     ErrCode result = GetAccountListFromFile(accountListJson);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("get account list failed!");
+        ACCOUNT_LOGE("Get account list failed!");
         return result;
     }
 
