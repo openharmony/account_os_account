@@ -1029,8 +1029,13 @@ ErrCode InnerDomainAccountManager::UpdateAccountToken(const DomainAccountInfo &i
 
     if (token.empty()) {
         RemoveTokenFromMap(userId);
+        result =
+            IInnerOsAccountManager::GetInstance().UpdateAccountStatusForDomain(userId, DomainAccountStatus::LOGOUT);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGE("Update domain account status failed, result: %{public}d", result);
+            return result;
+        }
         NotifyDomainAccountEvent(userId, DomainAccountEvent::TOKEN_INVALID, DomainAccountStatus::LOGOUT, info);
-        IInnerOsAccountManager::GetInstance().UpdateAccountStatusForDomain(userId, DomainAccountStatus::LOGOUT);
         return ERR_OK;
     }
     InsertTokenToMap(userId, token);
