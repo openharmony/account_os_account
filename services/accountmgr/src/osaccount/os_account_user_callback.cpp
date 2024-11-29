@@ -70,7 +70,7 @@ int OsAccountUserCallback::OnRemoteRequest(
 void OsAccountUserCallback::OnStopUserDone(int userId, int errcode)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    ACCOUNT_LOGI("in call back account, OnStopUserDone id is %{public}d, errcode is %{public}d.",
+    ACCOUNT_LOGI("In call back account, OnStopUserDone id is %{public}d, errcode is %{public}d.",
         userId, errcode);
     isCalled_ = true;
     resultCode_ = errcode;
@@ -80,7 +80,7 @@ void OsAccountUserCallback::OnStopUserDone(int userId, int errcode)
 void OsAccountUserCallback::OnStartUserDone(int userId, int errcode)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    ACCOUNT_LOGI("in call back account, OnStartUserDone id is %{public}d, errcode is %{public}d.",
+    ACCOUNT_LOGI("In call back account, OnStartUserDone id is %{public}d, errcode is %{public}d.",
         userId, errcode);
     if (errcode == ERR_OK && startUserCallbackFunc_ != nullptr) {
         startUserCallbackFunc_(userId);

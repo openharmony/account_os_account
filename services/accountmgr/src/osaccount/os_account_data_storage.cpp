@@ -30,12 +30,12 @@ OsAccountDataStorage::OsAccountDataStorage(const std::string &appId, const std::
 void OsAccountDataStorage::SaveEntries(
     std::vector<OHOS::DistributedKv::Entry> allEntries, std::map<std::string, std::shared_ptr<IAccountInfo>> &infos)
 {
-    ACCOUNT_LOGD("start, allEntries size is: %{public}zu", allEntries.size());
+    ACCOUNT_LOGD("Start, allEntries size is: %{public}zu", allEntries.size());
     for (auto const &item : allEntries) {
         OsAccountInfo osAccountInfo;
         nlohmann::json jsonObject = nlohmann::json::parse(item.value.ToString(), nullptr, false);
         if (jsonObject.is_discarded()) {
-            ACCOUNT_LOGE("error key: %{private}s", item.key.ToString().c_str());
+            ACCOUNT_LOGE("Error key: %{private}s", item.key.ToString().c_str());
             // it's a bad json, delete it
             {
                 std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
@@ -46,7 +46,7 @@ void OsAccountDataStorage::SaveEntries(
         osAccountInfo.FromJson(jsonObject);
         infos.emplace(item.key.ToString(), std::make_shared<OsAccountInfo>(osAccountInfo));
     }
-    ACCOUNT_LOGD("end");
+    ACCOUNT_LOGD("End");
 }
 }  // namespace AccountSA
 }  // namespace OHOS

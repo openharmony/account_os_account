@@ -78,7 +78,7 @@ std::string OsAccountPhotoOperator::DeCode(std::string const &baseStr)
     std::string byteStr;
     size_t in_len = baseStr.size();
     if (in_len == 0) {
-        ACCOUNT_LOGE("empty input baseStr!");
+        ACCOUNT_LOGE("Empty input baseStr!");
         return byteStr;
     }
 
