@@ -126,16 +126,16 @@ ErrCode AccountProxy::SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo,
     return result;
 }
 
-ErrCode AccountProxy::SetOhosAccountInfoByUserId(
-    const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
+ErrCode AccountProxy::SetOsAccountDistributedInfo(
+    const int32_t localId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("Write descriptor failed!");
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
-    if (!data.WriteInt32(userId)) {
-        ACCOUNT_LOGE("failed to write userId failed");
+    if (!data.WriteInt32(localId)) {
+        ACCOUNT_LOGE("Failed to write localId.");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!WriteOhosAccountInfo(data, ohosAccountInfo)) {
@@ -238,15 +238,15 @@ ErrCode AccountProxy::GetOhosAccountInfo(OhosAccountInfo &ohosAccountInfo)
     return ERR_OK;
 }
 
-ErrCode AccountProxy::GetOhosAccountInfoByUserId(int32_t userId, OhosAccountInfo &ohosAccountInfo)
+ErrCode AccountProxy::GetOsAccountDistributedInfo(int32_t localId, OhosAccountInfo &ohosAccountInfo)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("Write descriptor failed");
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
-    if (!data.WriteInt32(userId)) {
-        ACCOUNT_LOGE("failed to write int for userId %{public}d.", userId);
+    if (!data.WriteInt32(localId)) {
+        ACCOUNT_LOGE("Failed to write localId %{public}d.", localId);
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
@@ -262,7 +262,7 @@ ErrCode AccountProxy::GetOhosAccountInfoByUserId(int32_t userId, OhosAccountInfo
     return ERR_OK;
 }
 
-ErrCode AccountProxy::QueryOhosAccountInfoByUserId(std::int32_t userId, OhosAccountInfo &accountInfo)
+ErrCode AccountProxy::QueryOsAccountDistributedInfo(std::int32_t localId, OhosAccountInfo &accountInfo)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
@@ -270,8 +270,8 @@ ErrCode AccountProxy::QueryOhosAccountInfoByUserId(std::int32_t userId, OhosAcco
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
 
-    if (!data.WriteInt32(userId)) {
-        ACCOUNT_LOGE("failed to write int for userId %{public}d.", userId);
+    if (!data.WriteInt32(localId)) {
+        ACCOUNT_LOGE("Failed to write localId %{public}d.", localId);
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;

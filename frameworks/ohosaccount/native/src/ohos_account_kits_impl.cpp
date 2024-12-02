@@ -123,8 +123,8 @@ ErrCode OhosAccountKitsImpl::SetOhosAccountInfo(
     return accountProxy->SetOhosAccountInfo(ohosAccountInfo, eventStr);
 }
 
-ErrCode OhosAccountKitsImpl::SetOhosAccountInfoByUserId(
-    const int32_t userId, const OhosAccountInfo& ohosAccountInfo, const std::string& eventStr)
+ErrCode OhosAccountKitsImpl::SetOsAccountDistributedInfo(
+    const int32_t localId, const OhosAccountInfo& ohosAccountInfo, const std::string& eventStr)
 {
     auto accountProxy = GetService();
     if (accountProxy == nullptr) {
@@ -135,7 +135,7 @@ ErrCode OhosAccountKitsImpl::SetOhosAccountInfoByUserId(
         ACCOUNT_LOGE("OhosAccountInfo check failed");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    return accountProxy->SetOhosAccountInfoByUserId(userId, ohosAccountInfo, eventStr);
+    return accountProxy->SetOsAccountDistributedInfo(localId, ohosAccountInfo, eventStr);
 }
 
 std::pair<bool, OhosAccountInfo> OhosAccountKitsImpl::QueryOhosAccountInfo()
@@ -178,7 +178,7 @@ ErrCode OhosAccountKitsImpl::GetOhosAccountInfo(OhosAccountInfo &accountInfo)
     return accountProxy->GetOhosAccountInfo(accountInfo);
 }
 
-ErrCode OhosAccountKitsImpl::GetOhosAccountInfoByUserId(int32_t userId, OhosAccountInfo &accountInfo)
+ErrCode OhosAccountKitsImpl::GetOsAccountDistributedInfo(int32_t localId, OhosAccountInfo &accountInfo)
 {
     auto accountProxy = GetService();
     if (accountProxy == nullptr) {
@@ -186,17 +186,17 @@ ErrCode OhosAccountKitsImpl::GetOhosAccountInfoByUserId(int32_t userId, OhosAcco
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
 
-    return accountProxy->GetOhosAccountInfoByUserId(userId, accountInfo);
+    return accountProxy->GetOsAccountDistributedInfo(localId, accountInfo);
 }
 
-std::pair<bool, OhosAccountInfo> OhosAccountKitsImpl::QueryOhosAccountInfoByUserId(std::int32_t userId)
+std::pair<bool, OhosAccountInfo> OhosAccountKitsImpl::QueryOsAccountDistributedInfo(std::int32_t localId)
 {
     OhosAccountInfo accountInfo;
-    ErrCode result = QueryOhosAccountInfoByUserId(userId, accountInfo);
+    ErrCode result = QueryOsAccountDistributedInfo(localId, accountInfo);
     return std::make_pair(result == ERR_OK, accountInfo);
 }
 
-ErrCode OhosAccountKitsImpl::QueryOhosAccountInfoByUserId(std::int32_t userId, OhosAccountInfo &accountInfo)
+ErrCode OhosAccountKitsImpl::QueryOsAccountDistributedInfo(std::int32_t localId, OhosAccountInfo &accountInfo)
 {
     auto accountProxy = GetService();
     if (accountProxy == nullptr) {
@@ -204,7 +204,7 @@ ErrCode OhosAccountKitsImpl::QueryOhosAccountInfoByUserId(std::int32_t userId, O
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
 
-    return accountProxy->QueryOhosAccountInfoByUserId(userId, accountInfo);
+    return accountProxy->QueryOsAccountDistributedInfo(localId, accountInfo);
 }
 
 ErrCode OhosAccountKitsImpl::QueryDeviceAccountId(std::int32_t& accountId)

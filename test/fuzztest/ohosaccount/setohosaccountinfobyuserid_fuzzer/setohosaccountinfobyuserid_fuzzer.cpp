@@ -42,7 +42,7 @@ bool SetOhosAccountInfoByUserIdFuzzTest(const uint8_t* data, size_t size)
             fuzzData.GetData<int32_t>() % OHOS_ACCOUNT_STATE_NUM - 1
         );
         std::string testEventStr(fuzzData.GenerateString());
-        result = OhosAccountKits::GetInstance().SetOhosAccountInfoByUserId(testId, testOhosAccountInfo, testEventStr);
+        result = OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(testId, testOhosAccountInfo, testEventStr);
     }
     return result == ERR_OK;
 }
