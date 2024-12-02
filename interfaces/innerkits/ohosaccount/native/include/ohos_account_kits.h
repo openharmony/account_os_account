@@ -79,19 +79,20 @@ public:
      * Get OHOS account info by user id.
      *
      * @selinux The caller needs to configure selinux permissions: allow Caller_SA_Name accountmgr:fd {use}.
+     * @param localId. target local user id
      * @param OhosAccountInfo. ohos account info
      * @return Return error code.
      */
-    virtual ErrCode GetOhosAccountInfoByUserId(int32_t userId, OhosAccountInfo &accountInfo) = 0;
+    virtual ErrCode GetOsAccountDistributedInfo(int32_t localId, OhosAccountInfo &accountInfo) = 0;
 
     /**
      * Query OHOS Account Info By user ID.
      *
      * @selinux The caller needs to configure selinux permissions: allow Caller_SA_Name accountmgr:fd {use}.
-     * @param userId. target local user id
+     * @param localId. target local user id
      * @return Return a pair of operation result and ohos account info.
      */
-    virtual std::pair<bool, OhosAccountInfo> QueryOhosAccountInfoByUserId(std::int32_t userId) = 0;
+    virtual std::pair<bool, OhosAccountInfo> QueryOsAccountDistributedInfo(std::int32_t localId) = 0;
 
     /**
      * Update OHOS Account Info.
@@ -119,15 +120,15 @@ public:
     /**
      * Sets OHOS Account Info.
      *
-     * @param userId target local account id.
+     * @param localId target local account id.
      * @param ohosAccountInfo Indicates the information of the distributed account.
      * Update OHOS Account Info.
      * @param eventStr Indicates the event of the OS account used for a distributed system.
      * @return Returns {@code true} if the distributed information of the account is updated;
      *     returns {@code false} otherwise.
      */
-    virtual ErrCode SetOhosAccountInfoByUserId(
-        const int32_t userId, const OhosAccountInfo& ohosAccountInfo, const std::string& eventStr) = 0;
+    virtual ErrCode SetOsAccountDistributedInfo(
+        const int32_t localId, const OhosAccountInfo& ohosAccountInfo, const std::string& eventStr) = 0;
 
     /**
      * Query Device Account Id.

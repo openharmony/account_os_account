@@ -34,7 +34,7 @@ namespace OHOS {
             FuzzData fuzzData(data, size);
             result.first = false;
             int32_t testId = fuzzData.GetData<int32_t>();
-            result = OhosAccountKits::GetInstance().QueryOhosAccountInfoByUserId(testId);
+            result = OhosAccountKits::GetInstance().QueryOsAccountDistributedInfo(testId);
         }
         return result.first;
     }
