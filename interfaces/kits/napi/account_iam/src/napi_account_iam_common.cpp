@@ -200,15 +200,15 @@ napi_status ParseAddCredInfo(napi_env env, napi_value value, IDMContext &context
         return napi_invalid_arg;
     }
     napi_value result = nullptr;
-    napi_get_named_property(env, value, "credType", &result);
+    NAPI_CALL_BASE(env, napi_get_named_property(env, value, "credType", &result), napi_invalid_arg);
     int32_t credType = -1;
     NAPI_CALL_BASE(env, napi_get_value_int32(env, result, &credType), napi_invalid_arg);
     context.addCredInfo.authType = static_cast<AuthType>(credType);
-    napi_get_named_property(env, value, "credSubType", &result);
+    NAPI_CALL_BASE(env, napi_get_named_property(env, value, "credSubType", &result), napi_invalid_arg);
     int32_t credSubType = -1;
     NAPI_CALL_BASE(env, napi_get_value_int32(env, result, &credSubType), napi_invalid_arg);
     context.addCredInfo.pinType = static_cast<PinSubType>(credSubType);
-    napi_get_named_property(env, value, "token", &result);
+    NAPI_CALL_BASE(env, napi_get_named_property(env, value, "token", &result), napi_invalid_arg);
     if (ParseUint8TypedArrayToVector(env, result, context.addCredInfo.token) != napi_ok) {
         ACCOUNT_LOGE("Get Uint8Array data failed");
         return napi_invalid_arg;
@@ -229,7 +229,7 @@ napi_status ParseIAMCallback(napi_env env, napi_value object, std::shared_ptr<Js
         return napi_invalid_arg;
     }
     napi_value result = nullptr;
-    napi_get_named_property(env, object, "onResult", &result);
+    NAPI_CALL_BASE(env, napi_get_named_property(env, object, "onResult", &result), napi_invalid_arg);
     napi_typeof(env, result, &valueType);
     if (valueType == napi_function) {
         NAPI_CALL_BASE(env, napi_create_reference(env, result, 1, &callback->onResult), napi_generic_failure);
@@ -241,7 +241,7 @@ napi_status ParseIAMCallback(napi_env env, napi_value object, std::shared_ptr<Js
     if (!callback->hasOnAcquireInfo) {
         return napi_ok;
     }
-    napi_get_named_property(env, object, "onAcquireInfo", &result);
+    NAPI_CALL_BASE(env, napi_get_named_property(env, object, "onAcquireInfo", &result), napi_invalid_arg);
     napi_typeof(env, result, &valueType);
     if (valueType == napi_function) {
         NAPI_CALL_BASE(env, napi_create_reference(env, result, 1, &callback->onAcquireInfo), napi_generic_failure);
@@ -312,12 +312,12 @@ napi_status ParseGetPropRequest(napi_env env, napi_value object, GetPropertyCont
         return napi_invalid_arg;
     }
     napi_value napiAuthType = nullptr;
-    napi_get_named_property(env, object, "authType", &napiAuthType);
+    NAPI_CALL_BASE(env, napi_get_named_property(env, object, "authType", &napiAuthType), napi_invalid_arg);
     int32_t authType = -1;
     napi_get_value_int32(env, napiAuthType, &authType);
     context.request.authType = static_cast<AuthType>(authType);
     napi_value napiKeys = nullptr;
-    napi_get_named_property(env, object, "keys", &napiKeys);
+    NAPI_CALL_BASE(env, napi_get_named_property(env, object, "keys", &napiKeys), napi_invalid_arg);
     std::vector<uint32_t> keys;
     ParseUInt32Array(env, napiKeys, keys);
     for (const auto &item : keys) {
@@ -345,17 +345,17 @@ napi_status ParseSetPropRequest(napi_env env, napi_value object, SetPropertyRequ
         return napi_invalid_arg;
     }
     napi_value napiKey = nullptr;
-    napi_get_named_property(env, object, "key", &napiKey);
+    NAPI_CALL_BASE(env, napi_get_named_property(env, object, "key", &napiKey), napi_invalid_arg);
     int32_t key = -1;
     napi_get_value_int32(env, napiKey, &key);
     request.mode = static_cast<PropertyMode>(key);
     napi_value napiAuthType = nullptr;
-    napi_get_named_property(env, object, "authType", &napiAuthType);
+    NAPI_CALL_BASE(env, napi_get_named_property(env, object, "authType", &napiAuthType), napi_invalid_arg);
     int32_t authType = -1;
     napi_get_value_int32(env, napiAuthType, &authType);
     request.authType = static_cast<AuthType>(authType);
     napi_value napiSetInfo = nullptr;
-    napi_get_named_property(env, object, "setInfo", &napiSetInfo);
+    NAPI_CALL_BASE(env, napi_get_named_property(env, object, "setInfo", &napiSetInfo), napi_invalid_arg);
     std::vector<uint8_t> setInfo;
     ParseUint8TypedArrayToVector(env, napiSetInfo, setInfo);
     request.attrs.SetUint8ArrayValue(Attributes::AttributeKey(key), setInfo);
