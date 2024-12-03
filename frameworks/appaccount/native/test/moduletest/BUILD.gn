@@ -64,13 +64,13 @@ ohos_moduletest("app_account_manager_module_test") {
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${common_path}:libaccount_common",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "ability_base:want",
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
   ]
