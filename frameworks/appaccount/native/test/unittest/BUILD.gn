@@ -60,13 +60,13 @@ ohos_unittest("app_account_manager_test") {
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${common_path}:libaccount_common",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "ability_base:want",
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
   ]
@@ -98,8 +98,6 @@ ohos_unittest("app_account_manager_proxy_mock_test") {
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_services_path}:accountmgr",
     "${common_path}:libaccount_common",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -107,6 +105,8 @@ ohos_unittest("app_account_manager_proxy_mock_test") {
     "ability_runtime:ability_manager",
     "ability_runtime:app_manager",
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
@@ -138,14 +138,14 @@ ohos_unittest("app_account_manager_subscribe_test") {
     "${app_account_services_path}:accountmgr",
     "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "ability_base:want",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
     "samgr:samgr_proxy",
@@ -174,13 +174,13 @@ ohos_unittest("app_account_common_test") {
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${common_path}:libaccount_common",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "ability_base:want",
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
   ]

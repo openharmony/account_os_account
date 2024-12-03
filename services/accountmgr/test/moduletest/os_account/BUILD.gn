@@ -59,11 +59,12 @@ ohos_moduletest("inner_os_account_manager_test") {
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
-    "//third_party/googletest:gtest_main",
   ]
   external_deps = [
     "ability_runtime:ability_manager",
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
@@ -129,8 +130,6 @@ ohos_moduletest("os_account_manager_service_module_test") {
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -144,6 +143,8 @@ ohos_moduletest("os_account_manager_service_module_test") {
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "config_policy:configpolicy_util",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
@@ -220,14 +221,14 @@ ohos_moduletest("os_account_manager_service_create_os_account_test") {
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "ability_runtime:ability_manager",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
@@ -313,8 +314,6 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
   external_deps = [
     "ability_base:base",
@@ -328,6 +327,8 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "config_policy:configpolicy_util",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
@@ -403,13 +404,13 @@ ohos_moduletest("os_account_control_file_manager_test") {
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
   external_deps = [
     "ability_runtime:ability_manager",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
@@ -442,13 +443,13 @@ ohos_moduletest("os_account_database_operator_test") {
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
   external_deps = [
     "ability_runtime:ability_manager",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
@@ -481,13 +482,13 @@ ohos_moduletest("os_account_file_operator_test") {
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
   external_deps = [
     "ability_runtime:ability_manager",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
@@ -533,14 +534,14 @@ ohos_moduletest("os_account_photo_operator_test") {
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "ability_runtime:ability_manager",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
