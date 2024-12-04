@@ -56,13 +56,14 @@ ohos_moduletest("AccountInnerSdkModuleTest") {
   deps = [
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "ability_base:base",
     "ability_base:want",
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
     "json:nlohmann_json_static",
@@ -129,8 +130,6 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
     "${domain_account_framework_path}:domain_account_innerkits",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
 
   use_exceptions = true
@@ -148,6 +147,8 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "config_policy:configpolicy_util",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_single",
@@ -199,10 +200,10 @@ ohos_moduletest("DeviceAccountInfoModuleTest") {
 
   configs = [ "${services_path}/accountmgr/test:accountmgr_test_config" ]
 
-  deps = [ "//third_party/googletest:gtest_main" ]
-
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
     "os_account:libaccountkits",
@@ -244,14 +245,14 @@ ohos_moduletest("SubscribeDistributedAccountModuleTest") {
   deps = [
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "ability_base:base",
     "ability_base:want",
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
     "json:nlohmann_json_static",

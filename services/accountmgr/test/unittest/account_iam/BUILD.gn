@@ -55,14 +55,14 @@ ohos_unittest("account_iam_service_test") {
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
     "access_token:libtokensetproc_shared",
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
   ]
@@ -102,14 +102,14 @@ ohos_unittest("account_iam_stub_test") {
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
     "access_token:libtokensetproc_shared",
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
   ]
@@ -151,8 +151,6 @@ ohos_unittest("account_iam_callback_test") {
     "${os_account_core_path}:os_account_core",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
 
   include_dirs = [
@@ -164,6 +162,8 @@ ohos_unittest("account_iam_callback_test") {
     "access_token:libaccesstoken_sdk",
     "access_token:libtokensetproc_shared",
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
   ]
@@ -203,8 +203,6 @@ ohos_unittest("account_iam_manager_test") {
     "${account_iam_framework_path}:account_iam_innerkits",
     "${common_path}:libaccount_common",
     "${services_path}/accountmgr:accountmgr",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
 
   cflags_cc = []
@@ -217,6 +215,8 @@ ohos_unittest("account_iam_manager_test") {
     "access_token:libaccesstoken_sdk",
     "access_token:libtokensetproc_shared",
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_single",

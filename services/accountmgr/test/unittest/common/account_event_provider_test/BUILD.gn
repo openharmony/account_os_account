@@ -55,11 +55,7 @@ ohos_unittest("AccountEventProviderTest") {
     "${services_path}/accountmgr/test:accountmgr_test_config",
   ]
 
-  deps = [
-    "${common_path}:libaccount_common",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
-  ]
+  deps = [ "${common_path}:libaccount_common" ]
   external_deps = [
     "ability_base:base",
     "ability_base:want",
@@ -67,6 +63,8 @@ ohos_unittest("AccountEventProviderTest") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
     "json:nlohmann_json_static",

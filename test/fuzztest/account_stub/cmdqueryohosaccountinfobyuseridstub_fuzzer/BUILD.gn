@@ -51,7 +51,6 @@ ohos_fuzztest("CmdQueryOhosAccountInfoByUserIdStubFuzzTest") {
     "${os_account_path}/frameworks/common:libaccount_common",
     "${os_account_path}/services/accountmgr:accountmgr",
     "${os_account_path}/services/accountmgr/src/appaccount:app_account_service_core",
-    "//third_party/selinux:libselinux",
   ]
 
   external_deps = [
@@ -67,6 +66,7 @@ ohos_fuzztest("CmdQueryOhosAccountInfoByUserIdStubFuzzTest") {
     "kv_store:distributeddata_inner",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "selinux:libselinux",
   ]
 
   defines = [
