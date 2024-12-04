@@ -217,6 +217,7 @@ ErrCode IInnerOsAccountManager::GetRealOsAccountInfoById(const int id, OsAccount
     int32_t foregroundId = -1;
     foregroundAccountMap_.Find(Constants::DEFAULT_DISPALY_ID, foregroundId);
     osAccountInfo.SetIsForeground(foregroundId == id);
+    osAccountInfo.SetDisplayId(foregroundId == id ? Constants::DEFAULT_DISPALY_ID : Constants::INVALID_DISPALY_ID);
 
     return ERR_OK;
 }
@@ -847,7 +848,7 @@ ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
     }
 
     OsAccountInfo osAccountInfo;
-    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
+    ErrCode errCode = GetRealOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(id);
         ACCOUNT_LOGE("RemoveOsAccount cannot find os account info, errCode %{public}d.", errCode);
@@ -1325,13 +1326,15 @@ ErrCode IInnerOsAccountManager::SetSpecificOsAccountConstraints(const std::vecto
 
 ErrCode IInnerOsAccountManager::QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &createdOsAccounts)
 {
-    std::vector<OsAccountInfo> allOsAccounts;
-    ErrCode errCode = osAccountControl_->GetOsAccountList(allOsAccounts);
+    std::vector<int32_t> allOsAccountIds;
+    ErrCode errCode = osAccountControl_->GetOsAccountIdList(allOsAccountIds);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Get osaccount info list error, errCode %{public}d.", errCode);
         return errCode;
     }
-    for (auto osAccountInfo : allOsAccounts) {
+    for (auto id : allOsAccountIds) {
+        OsAccountInfo osAccountInfo;
+        GetRealOsAccountInfoById(id, osAccountInfo);
         if (osAccountInfo.GetIsCreateCompleted() && !osAccountInfo.GetToBeRemoved()) {
             createdOsAccounts.push_back(osAccountInfo);
         }
@@ -1374,7 +1377,7 @@ int32_t IInnerOsAccountManager::CleanGarbageOsAccounts(int32_t excludeId)
             continue;
         }
         OsAccountInfo osAccountInfo;
-        ErrCode ret = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
+        ErrCode ret = GetRealOsAccountInfoById(id, osAccountInfo);
         if (ret != ERR_OK && ret != ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR) {
             continue;
         }
@@ -1638,11 +1641,6 @@ ErrCode IInnerOsAccountManager::DeactivateOsAccountByInfo(OsAccountInfo &osAccou
     }
     EraseIdFromActiveList(localId);
 
-    osAccountInfo.SetIsActived(false);
-    osAccountInfo.SetIsVerified(false);
-    osAccountInfo.SetIsForeground(false);
-    osAccountInfo.SetDisplayId(Constants::INVALID_DISPALY_ID);
-    osAccountInfo.SetIsLoggedIn(false);
     DomainAccountInfo domainAccountInfo;
     osAccountInfo.GetDomainInfo(domainAccountInfo);
     domainAccountInfo.status_ = DomainAccountStatus::LOGOUT;
@@ -1900,9 +1898,12 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
         OsAccountInterface::PublishCommonEvent(osAccountInfo,
             OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_FOREGROUND, Constants::OPERATION_SWITCH);
     }
-    errCode = UpdateAccountToForeground(displayId, osAccountInfo);
-    if (errCode != ERR_OK) {
-        return errCode;
+    if (osAccountInfo.GetIsLoggedIn()) {
+#ifdef ACTIVATE_LAST_LOGGED_IN_ACCOUNT
+        std::lock_guard<std::mutex> operatingLock(operatingMutex_);
+        osAccountControl_->SetDefaultActivatedOsAccount(localId);
+        defaultActivatedId_ = localId;
+#endif
     }
 
     if (oldIdExist && (oldId != localId)) {
@@ -2081,17 +2082,10 @@ ErrCode IInnerOsAccountManager::SetOsAccountIsVerified(const int id, const bool 
     }
     bool preVerified = osAccountInfo.GetIsVerified();
 
-    osAccountInfo.SetIsVerified(isVerified);
     if (isVerified) {
         verifiedAccounts_.EnsureInsert(id, true);
     } else {
         verifiedAccounts_.Erase(id);
-    }
-    errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
-    if (errCode != ERR_OK && errCode != ERR_ACCOUNT_COMMON_DATA_NO_SPACE) {
-        ACCOUNT_LOGE("Update osaccount info error %{public}d, id: %{public}d",
-            errCode, osAccountInfo.GetLocalId());
-        return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
     if (isVerified && !preVerified) {
         OsAccountInterface::PublishCommonEvent(osAccountInfo,
@@ -2131,7 +2125,6 @@ ErrCode IInnerOsAccountManager::SetOsAccountIsLoggedIn(const int32_t id, const b
             defaultActivatedId_ = id;
         }
 #endif
-        osAccountInfo.SetIsLoggedIn(isLoggedIn);
         osAccountInfo.SetLastLoginTime(std::chrono::duration_cast<std::chrono::seconds>(
             std::chrono::system_clock::now().time_since_epoch()).count());
     }
@@ -2411,46 +2404,14 @@ ErrCode IInnerOsAccountManager::UpdateAccountInfoByDomainAccountInfo(
     return ERR_OK;
 }
 
-ErrCode IInnerOsAccountManager::UpdateAccountToForeground(const uint64_t displayId, OsAccountInfo &osAccountInfo)
-{
-    int32_t localId = osAccountInfo.GetLocalId();
-    osAccountInfo.SetIsActived(true);
-    osAccountInfo.SetDisplayId(displayId);
-    osAccountInfo.SetIsForeground(true);
-    if (osAccountInfo.GetIsLoggedIn()) {
-#ifdef ACTIVATE_LAST_LOGGED_IN_ACCOUNT
-        {
-            std::lock_guard<std::mutex> operatingLock(operatingMutex_);
-            osAccountControl_->SetDefaultActivatedOsAccount(localId);
-            defaultActivatedId_ = localId;
-        }
-#endif
-    }
-    ErrCode errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
-    if (errCode != ERR_OK && errCode != ERR_ACCOUNT_COMMON_DATA_NO_SPACE) {
-        ACCOUNT_LOGE("Update account failed, localId=%{public}d, errCode=%{public}d.",
-            localId, errCode);
-    }
-    return ERR_OK;
-}
-
 ErrCode IInnerOsAccountManager::UpdateAccountToBackground(int32_t oldId)
 {
     OsAccountInfo oldOsAccountInfo;
-    bool isNeedDelay = false;
     {
         std::lock_guard<std::mutex> lock(*GetOrInsertUpdateLock(oldId));
         ErrCode errCode = osAccountControl_->GetOsAccountInfoById(oldId, oldOsAccountInfo);
         if (errCode != ERR_OK) {
             return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
-        }
-        isNeedDelay = oldOsAccountInfo.GetIsForeground();
-        oldOsAccountInfo.SetIsForeground(false);
-        oldOsAccountInfo.SetDisplayId(Constants::INVALID_DISPALY_ID);
-        errCode = osAccountControl_->UpdateOsAccount(oldOsAccountInfo);
-        if (errCode != ERR_OK && errCode != ERR_ACCOUNT_COMMON_DATA_NO_SPACE) {
-            ACCOUNT_LOGE("Update osaccount failed, errCode=%{public}d, id=%{public}d",
-                errCode, oldOsAccountInfo.GetLocalId());
         }
     }
     OsAccountInterface::PublishCommonEvent(oldOsAccountInfo,
@@ -2464,9 +2425,7 @@ ErrCode IInnerOsAccountManager::UpdateAccountToBackground(int32_t oldId)
 #endif
     bool isLoggedIn = false;
     if ((oldOsAccountInfo.GetType() != OsAccountType::PRIVATE) && (!loggedInAccounts_.Find(oldId, isLoggedIn))) {
-        if (isNeedDelay) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_DEACTIVATE_OS_ACCOUNT));
-        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_DEACTIVATE_OS_ACCOUNT));
         DeactivateOsAccount(oldId, false);
     }
 #else

@@ -167,7 +167,6 @@ private:
     ErrCode RetryToInsertOsAccount(OsAccountInfo &osAccountInfo);
     bool JudgeOsAccountUpdate(Json &accountIndexJson);
     std::shared_ptr<std::mutex> GetOrInsertUpdateLock(int32_t id);
-    ErrCode UpdateAccountToForeground(const uint64_t displayId, OsAccountInfo &osAccountInfo);
     ErrCode UpdateAccountToBackground(int32_t oldId);
     ErrCode IsValidOsAccount(const OsAccountInfo &osAccountInfo);
     ErrCode GetRealOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo);
