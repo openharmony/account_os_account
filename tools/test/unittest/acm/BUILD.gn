@@ -47,12 +47,13 @@ ohos_unittest("account_command_create_test") {
   deps = [
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "ability_runtime:tools_aa_source_set",
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
   ]
@@ -89,12 +90,13 @@ ohos_unittest("account_command_delete_test") {
   deps = [
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "ability_runtime:tools_aa_source_set",
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
   ]
@@ -131,12 +133,13 @@ ohos_unittest("account_command_dump_test") {
   deps = [
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "ability_runtime:tools_aa_source_set",
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
   ]
@@ -173,12 +176,13 @@ ohos_unittest("account_command_set_test") {
   deps = [
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "ability_runtime:tools_aa_source_set",
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
   ]
@@ -215,12 +219,13 @@ ohos_unittest("account_command_switch_test") {
   deps = [
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "ability_runtime:tools_aa_source_set",
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
   ]
@@ -258,12 +263,13 @@ ohos_unittest("account_command_test") {
   deps = [
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "ability_runtime:tools_aa_source_set",
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
   ]

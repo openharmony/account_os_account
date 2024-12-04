@@ -33,13 +33,14 @@ ohos_unittest("os_account_ndk_test") {
     "${os_account_path}/interfaces/kits/capi/osaccount/include",
   ]
 
-  deps = [
-    "${os_account_path}/interfaces/kits/capi/osaccount:libos_account_ndk",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
-  ]
+  deps =
+      [ "${os_account_path}/interfaces/kits/capi/osaccount:libos_account_ndk" ]
 
-  external_deps = [ "c_utils:utils" ]
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+  ]
 }
 
 group("unittest") {

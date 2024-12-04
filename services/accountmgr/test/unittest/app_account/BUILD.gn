@@ -66,8 +66,6 @@ ohos_unittest("app_account_data_storage_test") {
     "${app_account_services_path}:accountmgr",
     "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -83,6 +81,8 @@ ohos_unittest("app_account_data_storage_test") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
@@ -107,12 +107,12 @@ ohos_unittest("app_account_info_test") {
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${common_path}:libaccount_common",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
   ]
 }
@@ -146,8 +146,6 @@ ohos_unittest("app_account_manager_service_test") {
     "${app_account_services_path}:accountmgr",
     "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -159,6 +157,8 @@ ohos_unittest("app_account_manager_service_test") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
@@ -196,8 +196,6 @@ ohos_unittest("app_account_stub_test") {
     "${app_account_services_path}:accountmgr",
     "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -209,6 +207,8 @@ ohos_unittest("app_account_stub_test") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
@@ -238,12 +238,12 @@ ohos_unittest("app_account_subscribe_info_test") {
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${common_path}:libaccount_common",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
   ]
 }
@@ -274,13 +274,13 @@ ohos_unittest("app_account_test") {
     "${app_account_services_path}:accountmgr",
     "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "ability_base:want",
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
   ]
