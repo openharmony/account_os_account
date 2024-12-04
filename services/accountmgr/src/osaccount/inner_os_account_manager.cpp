@@ -777,11 +777,20 @@ ErrCode IInnerOsAccountManager::PrepareRemoveOsAccount(OsAccountInfo &osAccountI
     loggedInAccounts_.Erase(id);
     verifiedAccounts_.Erase(id);
     // stop account
+    OsAccountInterface::PublishCommonEvent(
+        osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_STOPPING, Constants::OPERATION_STOP);
+    subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
+    
     errCode = SendMsgForAccountStop(osAccountInfo);
     if (errCode != ERR_OK) {
         ReportOsAccountOperationFail(id, "stop", errCode, "stop os account failed");
         return errCode;
     }
+
+    OsAccountInterface::PublishCommonEvent(
+        osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_STOPPED, Constants::OPERATION_STOP);
+    subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPED);
+    ReportOsAccountLifeCycle(id, Constants::OPERATION_STOP);
     return errCode;
 }
 
