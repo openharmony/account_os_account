@@ -310,6 +310,21 @@ ErrCode OsAccountProxy::IsOsAccountVerified(const int id, bool &isVerified)
     return result;
 }
 
+ErrCode OsAccountProxy::IsOsAccountDeactivating(const int id, bool &isDeactivating)
+{
+    MessageParcel reply;
+    ErrCode result = SendRequestWithAccountId(OsAccountInterfaceCode::IS_OS_ACCOUNT_DEACTIVATING, reply, id);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
+        return result;
+    }
+    if (!reply.ReadBool(isDeactivating)) {
+        ACCOUNT_LOGE("Failed to read result for check os account deactivating state.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return ERR_OK;
+}
+
 ErrCode OsAccountProxy::GetCreatedOsAccountsCount(unsigned int &osAccountsCount)
 {
     osAccountsCount = 0;
