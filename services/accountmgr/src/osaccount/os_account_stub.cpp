@@ -121,6 +121,13 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
         }
     },
     {
+        static_cast<uint32_t>(OsAccountInterfaceCode::IS_OS_ACCOUNT_DEACTIVATING),
+        {
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcIsOsAccountDeactivating(data, reply); },
+        }
+    },
+    {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_CREATED_OS_ACCOUNT_COUNT),
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
@@ -1178,6 +1185,30 @@ ErrCode OsAccountStub::ProcIsOsAccountVerified(MessageParcel &data, MessageParce
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcIsOsAccountDeactivating(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("Failed to read localId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    bool isDeactivating = false;
+    ErrCode result = IsOsAccountDeactivating(localId, isDeactivating);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Failed to write result.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get deactivate status, result %{public}d.", result);
+        return ERR_OK;
+    }
+    if (!reply.WriteBool(isDeactivating)) {
+        ACCOUNT_LOGE("Failed to write deactivate status.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    return ERR_OK;
 }
 
 ErrCode OsAccountStub::ProcIsOsAccountExists(MessageParcel &data, MessageParcel &reply)

@@ -66,6 +66,7 @@ public:
     ErrCode ProcCheckOsAccountConstraintEnabled(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcIsMultiOsAccountEnable(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcIsOsAccountVerified(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcIsOsAccountDeactivating(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcIsOsAccountExists(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSubscribeOsAccount(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcUnsubscribeOsAccount(MessageParcel &data, MessageParcel &reply);
