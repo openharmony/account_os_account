@@ -35,6 +35,7 @@
         "OHOS::AccountSA::OsAccount::IsOsAccountConstraintEnable(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, bool&)";
         "OHOS::AccountSA::OsAccount::CheckOsAccountConstraintEnabled(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, bool&)";
         "OHOS::AccountSA::OsAccount::IsOsAccountVerified(int, bool&)";
+        "OHOS::AccountSA::OsAccount::IsOsAccountDeactivating(int, bool&)";
         "OHOS::AccountSA::OsAccount::GetCreatedOsAccountsCount(unsigned int&)";
         "OHOS::AccountSA::OsAccount::GetOsAccountLocalIdFromProcess(int&)";
         "OHOS::AccountSA::OsAccount::IsMainOsAccount(bool&)";
@@ -93,6 +94,7 @@
         "OHOS::AccountSA::OsAccountManager::IsOsAccountActived(int, bool&)";
         "OHOS::AccountSA::OsAccountManager::IsOsAccountConstraintEnable(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&,, bool&)";
         "OHOS::AccountSA::OsAccountManager::IsOsAccountVerified(int, bool&)";
+        "OHOS::AccountSA::OsAccountManager::IsOsAccountDeactivating(int, bool&)";
         "OHOS::AccountSA::OsAccountManager::CheckOsAccountConstraintEnabled(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&,, bool&)";
         "OHOS::AccountSA::OsAccountManager::GetCreatedOsAccountsCount(unsigned int&)";
         "OHOS::AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(int, int&)";

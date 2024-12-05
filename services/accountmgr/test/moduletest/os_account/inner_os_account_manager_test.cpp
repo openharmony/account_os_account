@@ -157,5 +157,24 @@ HWTEST_F(IInnerOsAccountManagerTest, InnerOsAccountManagerTest003, TestSize.Leve
     EXPECT_NE(ret, ERR_OK);
     innerMgrService_->RemoveOsAccount(osAccountInfo.GetLocalId());
 }
+
+/**
+ * @tc.name: InnerOsAccountManagerTest004
+ * @tc.desc: coverage IsOsAccountDeactivating
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(IInnerOsAccountManagerTest, InnerOsAccountManagerTest004, TestSize.Level1)
+{
+    int id;
+    EXPECT_EQ(innerMgrService_->GetDefaultActivatedOsAccount(id), ERR_OK);
+    innerMgrService_->deactivatingAccounts_.EnsureInsert(id, true);
+
+    bool isDeactivating = false;
+    ErrCode ret = innerMgrService_->IsOsAccountDeactivating(id, isDeactivating);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_TRUE(isDeactivating);
+    innerMgrService_->deactivatingAccounts_.Erase(id);
+}
 }  // namespace AccountSA
 }  // namespace OHOS
