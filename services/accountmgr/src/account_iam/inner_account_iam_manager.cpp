@@ -327,7 +327,7 @@ int32_t InnerAccountIAMManager::AuthUser(
     }
     OsAccountInfo osAccountInfo;
     if ((authParam.remoteAuthParam == std::nullopt) &&
-        (IInnerOsAccountManager::GetInstance().QueryOsAccountWithoutPhotoById(authParam.userId,
+        (IInnerOsAccountManager::GetInstance().GetRealOsAccountInfoById(authParam.userId,
             osAccountInfo)) != ERR_OK) {
         ACCOUNT_LOGE("Account does not exist");
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
@@ -375,10 +375,10 @@ ErrCode InnerAccountIAMManager::GetDomainAuthStatusInfo(
     int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback)
 {
     OsAccountInfo osAccountInfo;
-    ErrCode result = IInnerOsAccountManager::GetInstance().QueryOsAccountWithoutPhotoById(userId, osAccountInfo);
+    ErrCode result = IInnerOsAccountManager::GetInstance().GetRealOsAccountInfoById(userId, osAccountInfo);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info");
-        return result;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     DomainAccountInfo domainAccountInfo;
     osAccountInfo.GetDomainInfo(domainAccountInfo);
@@ -398,7 +398,7 @@ ErrCode InnerAccountIAMManager::GetDomainAuthStatusInfo(
 bool InnerAccountIAMManager::CheckDomainAuthAvailable(int32_t userId)
 {
     OsAccountInfo osAccountInfo;
-    if (IInnerOsAccountManager::GetInstance().QueryOsAccountWithoutPhotoById(userId, osAccountInfo) != ERR_OK) {
+    if (IInnerOsAccountManager::GetInstance().GetRealOsAccountInfoById(userId, osAccountInfo) != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info");
         return false;
     }

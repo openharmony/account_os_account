@@ -862,9 +862,9 @@ ErrCode OsAccountManagerService::DumpState(const int &id, std::vector<std::strin
         }
     } else {
         OsAccountInfo osAccountInfo;
-        result = innerManager_.QueryOsAccountWithoutPhotoById(id, osAccountInfo);
+        result = innerManager_.GetRealOsAccountInfoById(id, osAccountInfo);
         if (result != ERR_OK) {
-            return result;
+            return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
         }
 
         osAccountInfos.emplace_back(osAccountInfo);

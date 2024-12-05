@@ -511,10 +511,10 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, co
     osAccountInfo.SetLocalName(localName);
 #ifdef ENABLE_ACCOUNT_SHORT_NAME
     OsAccountInfo accountInfoOld;
-    ErrCode code = QueryOsAccountWithoutPhotoById(Constants::START_USER_ID, accountInfoOld);
+    ErrCode code = GetRealOsAccountInfoById(Constants::START_USER_ID, accountInfoOld);
     if (code != ERR_OK) {
         ACCOUNT_LOGE("QueryOsAccountById error, errCode %{public}d.", code);
-        return code;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     DomainAccountInfo domainAccountInfo;
     accountInfoOld.GetDomainInfo(domainAccountInfo);
@@ -780,7 +780,6 @@ ErrCode IInnerOsAccountManager::PrepareRemoveOsAccount(OsAccountInfo &osAccountI
     OsAccountInterface::PublishCommonEvent(
         osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_STOPPING, Constants::OPERATION_STOP);
     subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
-    
     errCode = SendMsgForAccountStop(osAccountInfo);
     if (errCode != ERR_OK) {
         ReportOsAccountOperationFail(id, "stop", errCode, "stop os account failed");
@@ -925,7 +924,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountDeactivate(OsAccountInfo &osAcc
 bool IInnerOsAccountManager::IsToBeRemoved(int32_t localId)
 {
     OsAccountInfo osAccountInfo;
-    ErrCode ret = QueryOsAccountWithoutPhotoById(localId, osAccountInfo);
+    ErrCode ret = GetRealOsAccountInfoById(localId, osAccountInfo);
     if (ret == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR) {
         return true;
     }
@@ -1455,16 +1454,6 @@ ErrCode IInnerOsAccountManager::GetOsAccountName(const int id, std::string &name
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     name = osAccountInfo.GetLocalName();
-    return ERR_OK;
-}
-
-ErrCode IInnerOsAccountManager::QueryOsAccountWithoutPhotoById(const int id, OsAccountInfo &osAccountInfo)
-{
-    ErrCode errCode = GetRealOsAccountInfoById(id, osAccountInfo);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Get osaccount info error, errCode=%{public}d.", errCode);
-        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
-    }
     return ERR_OK;
 }
 
