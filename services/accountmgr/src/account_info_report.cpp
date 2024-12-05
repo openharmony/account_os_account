@@ -51,7 +51,7 @@ void AccountInfoReport::ReportSecurityInfo(const std::string &user, int32_t id, 
     std::string userName = user;
     if (user.empty()) {
         OsAccountInfo osAccountInfo;
-        (void)IInnerOsAccountManager::GetInstance().QueryOsAccountWithoutPhotoById(id, osAccountInfo);
+        (void)IInnerOsAccountManager::GetInstance().GetRealOsAccountInfoById(id, osAccountInfo);
         userName = osAccountInfo.GetLocalName();
     }
     int64_t eventId = 1011015001; // 1011015001: report event id
