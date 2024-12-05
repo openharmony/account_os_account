@@ -52,6 +52,7 @@ public:
     ErrCode CheckOsAccountConstraintEnabled(
         const int id, const std::string &constraint, bool &isEnabled) override;
     ErrCode IsOsAccountVerified(const int id, bool &isVerified) override;
+    ErrCode IsOsAccountDeactivating(const int id, bool &isDeactivating) override;
 
     ErrCode GetCreatedOsAccountsCount(unsigned int &osAccountsCount) override;
     ErrCode GetOsAccountLocalIdFromProcess(int &id) override;
