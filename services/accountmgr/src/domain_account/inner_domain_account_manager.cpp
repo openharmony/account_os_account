@@ -1155,7 +1155,7 @@ ErrCode InnerDomainAccountManager::IsAuthenticationExpired(
     }
     auto iter = methodMap_.find(PluginMethodEnum::IS_AUTHENTICATION_EXPIRED);
     if (iter == methodMap_.end() || iter->second == nullptr) {
-        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", iter->first);
+        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::IS_AUTHENTICATION_EXPIRED);
         return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
     }
     int32_t userId = 0;
