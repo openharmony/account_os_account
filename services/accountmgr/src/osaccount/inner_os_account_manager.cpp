@@ -1905,17 +1905,17 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
         return errCode;
     }
 
-    if (oldIdExist && (oldId != localId)) {
-        errCode = UpdateAccountToBackground(oldId);
-        if (errCode != ERR_OK) {
-            return errCode;
-        }
-    }
     if (oldId != localId) {
         OsAccountInterface::SendToCESAccountSwitched(localId, oldId);
         subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATED);
         subscribeManager_.Publish(localId, oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED);
         ReportOsAccountSwitch(localId, oldId);
+    }
+    if (oldIdExist && (oldId != localId)) {
+        errCode = UpdateAccountToBackground(oldId);
+        if (errCode != ERR_OK) {
+            return errCode;
+        }
     }
     if (!preActivated) {
         ReportOsAccountLifeCycle(defaultActivatedId_, Constants::OPERATION_ACTIVATE);
