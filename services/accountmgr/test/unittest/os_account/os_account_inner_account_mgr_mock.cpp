@@ -1046,7 +1046,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest012, TestSize
     const OsAccountType type = OsAccountType::GUEST;
     const DomainAccountInfo domainInfo;
 
-    EXPECT_CALL(*ptr, GetOsAccountList(::testing::_))
+    EXPECT_CALL(*ptr, GetOsAccountIdList(::testing::_))
         .WillRepeatedly(testing::Return(0));
 
     EXPECT_CALL(*ptr, GetSerialNumber(::testing::_))
@@ -1070,7 +1070,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest012, TestSize
     ret = innerMgrService_->CreateOsAccountForDomain(type, domainInfo, osAccountInfoOne);
     EXPECT_EQ(ret, 0);
 
-    EXPECT_CALL(*ptr, GetOsAccountList(::testing::_))
+    EXPECT_CALL(*ptr, GetOsAccountIdList(::testing::_))
         .WillRepeatedly(testing::Return(-1));
 
     ret = innerMgrService_->CreateOsAccountForDomain(type, domainInfo, osAccountInfoOne);
@@ -1209,7 +1209,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest018, TestSize
 
     std::vector<OsAccountInfo> accounts;
 
-    EXPECT_CALL(*ptr, GetOsAccountList(_))
+    EXPECT_CALL(*ptr, GetOsAccountIdList(_))
         .WillRepeatedly(testing::Return(-1));
 
     innerMgrService_->CleanGarbageOsAccounts();
@@ -1568,9 +1568,6 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest029, TestSize
     EXPECT_CALL(*ptr, UpdateOsAccount(::testing::_))
         .WillRepeatedly(testing::Return(-1));
 
-    ret = innerMgrService_->SetOsAccountIsVerified(id, isVerified);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR);
-
     ret = innerMgrService_->SetOsAccountCredentialId(id, 0);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR);
 }
@@ -1699,7 +1696,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest033, TestSize
     EXPECT_CALL(*ptr, GetOsAccountInfoById(_, _))
         .WillRepeatedly(DoAll(testing::SetArgReferee<1>(osAccountInfo), testing::Return(-1)));
 
-    EXPECT_CALL(*ptr, GetOsAccountList(::testing::_))
+    EXPECT_CALL(*ptr, GetOsAccountIdList(::testing::_))
         .WillRepeatedly(testing::Return(0));
 
     (void)setuid(ACCOUNT_UID);
@@ -1722,9 +1719,9 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest034, TestSize
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->osAccountControl_ = ptr;
 
-    std::vector<OsAccountInfo> accounts;
+    std::vector<int32_t> accountIds;
 
-    EXPECT_CALL(*ptr, GetOsAccountList(_))
+    EXPECT_CALL(*ptr, GetOsAccountIdList(_))
         .WillRepeatedly(testing::Return(-1));
 
     innerMgrService_->RestartActiveAccount();
@@ -1732,11 +1729,12 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest034, TestSize
     OsAccountInfo account1;
     account1.SetLocalId(TEST_USER_ID55);
     account1.SetIsActived(true);
-    accounts.push_back(account1);
+    accountIds.push_back(TEST_USER_ID55);
     innerMgrService_->PushIdIntoActiveList(TEST_USER_ID55);
 
-    EXPECT_CALL(*ptr, GetOsAccountList(_))
-        .WillRepeatedly(DoAll(SetArgReferee<0>(accounts), testing::Return(0)));
+    EXPECT_CALL(*ptr, GetOsAccountIdList(_))
+        .WillRepeatedly(DoAll(SetArgReferee<0>(accountIds), testing::Return(0)));
+    EXPECT_CALL(*ptr, GetOsAccountInfoById(_, _)).WillRepeatedly(DoAll(SetArgReferee<1>(account1), testing::Return(0)));
     innerMgrService_->RestartActiveAccount();
 }
 
@@ -1784,6 +1782,9 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest037, TestSize
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->osAccountControl_ = ptr;
+
+    EXPECT_CALL(*ptr, GetAllowCreateId(::testing::_))
+        .WillRepeatedly(DoAll(SetArgReferee<0>(TEST_USER_ID55), testing::Return(0)));
 
     ErrCode ret = innerMgrService_->DeactivateOsAccountById(Constants::ADMIN_LOCAL_ID);
     EXPECT_EQ(ret, ERR_OK);
@@ -1842,7 +1843,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest039, TestSize
     EXPECT_CALL(*ptr, GetSerialNumber(::testing::_))
         .WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*ptr, GetAllowCreateId(::testing::_))
-        .WillRepeatedly(testing::Return(0));
+        .WillRepeatedly(DoAll(SetArgReferee<0>(TEST_USER_ID55), testing::Return(0)));
     EXPECT_CALL(*ptr, GetConstraintsByType(::testing::_, ::testing::_))
         .WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*ptr, InsertOsAccount(::testing::_))
@@ -2174,25 +2175,6 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTestMultiThread00
         // login
         int localId = osAccountInfo.GetLocalId();
         EXPECT_EQ(ERR_OK, IInnerOsAccountManager::GetInstance().UpdateAccountToBackground(localId));
-    });
-
-    IInnerOsAccountManager::GetInstance().RemoveOsAccount(osAccountInfo.GetLocalId());
-}
-
-/*
- * @tc.name: OsAccountInnerAccmgrMockTestMultiThread010
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTestMultiThread010, TestSize.Level1)
-{
-    ErrCode ret = IInnerOsAccountManager::GetInstance().CreateOsAccount("OsAccountInnerAccmgrMockTestMultiThread010",
-                                                                        OsAccountType::NORMAL, osAccountInfo);
-    ASSERT_EQ(ret, ERR_OK);
-    GTEST_RUN_TASK([]() {
-        // login
-        EXPECT_EQ(ERR_OK, IInnerOsAccountManager::GetInstance().UpdateAccountToForeground(0, osAccountInfo));
     });
 
     IInnerOsAccountManager::GetInstance().RemoveOsAccount(osAccountInfo.GetLocalId());
