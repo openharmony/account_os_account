@@ -120,6 +120,7 @@ public:
     int32_t CleanGarbageOsAccounts(int32_t excludeId = -1) override;
     void ResetAccountStatus() override;
     bool CheckAndCleanOsAccounts();
+    ErrCode GetRealOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo);
     void CleanGarbageOsAccountsAsync() override;
 
 private:
@@ -170,7 +171,6 @@ private:
     ErrCode UpdateAccountToForeground(const uint64_t displayId, OsAccountInfo &osAccountInfo);
     ErrCode UpdateAccountToBackground(int32_t oldId);
     ErrCode IsValidOsAccount(const OsAccountInfo &osAccountInfo);
-    ErrCode GetRealOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo);
     ErrCode GetNonSACreatedOACount(unsigned int &nonSACreatedOACount) const;
 
 private:
