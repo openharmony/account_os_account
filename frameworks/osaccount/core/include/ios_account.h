@@ -49,6 +49,7 @@ public:
     virtual ErrCode CheckOsAccountConstraintEnabled(
         const int id, const std::string &constraint, bool &isEnabled) = 0;
     virtual ErrCode IsOsAccountVerified(const int id, bool &isVerified) = 0;
+    virtual ErrCode IsOsAccountDeactivating(const int id, bool &isDeactivating) = 0;
     virtual ErrCode GetCreatedOsAccountsCount(unsigned int &osAccountsCount) = 0;
     virtual ErrCode GetOsAccountLocalIdFromProcess(int &id) = 0;
     virtual ErrCode IsMainOsAccount(bool &isMainOsAccount) = 0;

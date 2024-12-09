@@ -407,3 +407,15 @@ HWTEST_F(OsAccountTest, OsAccountTest019, TestSize.Level1)
 {
     EXPECT_EQ(g_osAccount->ResetOsAccountProxy(), ERR_OK);
 }
+
+/**
+ * @tc.name: OsAccountTest020
+ * @tc.desc: test IsOsAccountDeactivating normal branch.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountTest020, TestSize.Level1)
+{
+    bool isDeactivating;
+    EXPECT_EQ(osAccountProxy_->IsOsAccountDeactivating(MAIN_ACCOUNT_ID, isDeactivating), ERR_OK);
+}

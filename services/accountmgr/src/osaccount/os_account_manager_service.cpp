@@ -382,6 +382,27 @@ ErrCode OsAccountManagerService::IsOsAccountVerified(const int id, bool &isVerif
     return innerManager_.IsOsAccountVerified(id, isVerified);
 }
 
+ErrCode OsAccountManagerService::IsOsAccountDeactivating(const int id, bool &isDeactivating)
+{
+    ErrCode res = CheckLocalId(id);
+    if (res != ERR_OK) {
+        return res;
+    }
+    // check current account state
+    int callerUserId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+    if (callerUserId == id) {
+        return innerManager_.IsOsAccountDeactivating(id, isDeactivating);
+    }
+
+    // check other account state, check permission first
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "") && !PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("Account manager service, permission denied!");
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+
+    return innerManager_.IsOsAccountDeactivating(id, isDeactivating);
+}
+
 ErrCode OsAccountManagerService::GetCreatedOsAccountsCount(unsigned int &osAccountsCount)
 {
     // permission check
