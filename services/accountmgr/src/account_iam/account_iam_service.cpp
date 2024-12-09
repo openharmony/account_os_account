@@ -218,6 +218,12 @@ void AccountIAMService::GetProperty(
     InnerAccountIAMManager::GetInstance().GetProperty(userId, request, callback);
 }
 
+void AccountIAMService::GetPropertyByCredentialId(uint64_t credentialId,
+    std::vector<Attributes::AttributeKey> &keys, const sptr<IGetSetPropCallback> &callback)
+{
+    InnerAccountIAMManager::GetInstance().GetPropertyByCredentialId(credentialId, keys, callback);
+}
+
 void AccountIAMService::SetProperty(
     int32_t userId, const SetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback)
 {

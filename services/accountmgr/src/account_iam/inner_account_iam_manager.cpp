@@ -338,7 +338,7 @@ int32_t InnerAccountIAMManager::AuthUser(
     }
 
     auto callbackWrapper = std::make_shared<AuthCallback>(authParam.userId,
-        authParam.authType, (authParam.remoteAuthParam != std::nullopt), callback);
+        authParam.authType, authParam.authIntent, (authParam.remoteAuthParam != std::nullopt), callback);
     callbackWrapper->SetDeathRecipient(deathRecipient);
 
     UserIam::UserAuth::AuthParam iamAuthParam;
@@ -424,6 +424,18 @@ void InnerAccountIAMManager::GetProperty(
         Attributes attributes;
         callback->OnResult(result, attributes);
     }
+}
+
+void InnerAccountIAMManager::GetPropertyByCredentialId(uint64_t credentialId,
+    std::vector<Attributes::AttributeKey> &keys, const sptr<IGetSetPropCallback> &callback)
+{
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("Callback is nullptr");
+        return;
+    }
+    auto getPropCallback = std::make_shared<GetPropCallbackWrapper>(-1, callback);
+    UserAuthClient::GetInstance().GetPropertyById(credentialId, keys, getPropCallback);
+    return;
 }
 
 void InnerAccountIAMManager::SetProperty(
