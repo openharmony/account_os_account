@@ -30,6 +30,7 @@ private:
     static napi_value GetVersion(napi_env env, napi_callback_info info);
     static napi_value GetAvailableStatus(napi_env env, napi_callback_info info);
     static napi_value GetProperty(napi_env env, napi_callback_info info);
+    static napi_value GetPropertyByCredentialId(napi_env env, napi_callback_info info);
     static napi_value SetProperty(napi_env env, napi_callback_info info);
     static napi_value Auth(napi_env env, napi_callback_info info);
     static napi_value AuthUser(napi_env env, napi_callback_info info);

@@ -143,7 +143,8 @@ void AccountIamCallbackTest::TearDown(void)
  */
 HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0100, TestSize.Level0)
 {
-    auto userAuthCallback = std::make_shared<AuthCallback>(TEST_USER_ID, AuthType::PIN, nullptr);
+    auto userAuthCallback = std::make_shared<AuthCallback>(
+        TEST_USER_ID, AuthType::PIN, AccountSA::AuthIntent::DEFAULT, nullptr);
     EXPECT_TRUE(userAuthCallback->innerCallback_ == nullptr);
     Attributes extraInfo;
     userAuthCallback->OnResult(0, extraInfo);
@@ -160,7 +161,8 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0200, TestSize.Level0)
     AccessTokenID tokenId = AccessTokenKit::GetHapTokenID(DEFAULT_USER_ID, "com.ohos.settings", 0);
     SetSelfTokenID(tokenId);
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
-    auto userAuthCallback = std::make_shared<AuthCallback>(TEST_USER_ID, AuthType::PIN, callback);
+    auto userAuthCallback = std::make_shared<AuthCallback>(
+        TEST_USER_ID, AuthType::PIN, AccountSA::AuthIntent::DEFAULT, callback);
     EXPECT_TRUE(userAuthCallback->innerCallback_ != nullptr);
     Attributes extraInfo;
     int32_t errCode = 0;
@@ -181,7 +183,8 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0200, TestSize.Level0)
 HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0300, TestSize.Level0)
 {
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
-    auto userAuthCallback = std::make_shared<AuthCallback>(TEST_USER_ID, AuthType::FACE, callback);
+    auto userAuthCallback = std::make_shared<AuthCallback>(
+        TEST_USER_ID, AuthType::FACE, AccountSA::AuthIntent::DEFAULT, callback);
     EXPECT_TRUE(userAuthCallback->innerCallback_ != nullptr);
     Attributes extraInfo;
     int32_t errCode = 1;
@@ -203,7 +206,8 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0400, TestSize.Level0)
     AccessTokenID tokenId = AccessTokenKit::GetHapTokenID(DEFAULT_USER_ID, "com.ohos.settings", 0);
     SetSelfTokenID(tokenId);
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
-    auto userAuthCallback = std::make_shared<AuthCallback>(TEST_USER_ID, AuthType::PIN, callback);
+    auto userAuthCallback = std::make_shared<AuthCallback>(
+        TEST_USER_ID, AuthType::PIN, AccountSA::AuthIntent::DEFAULT, callback);
     EXPECT_TRUE(userAuthCallback->innerCallback_ != nullptr);
     Attributes extraInfo;
     EXPECT_EQ(extraInfo.SetBoolValue(Attributes::ATTR_RE_ENROLL_FLAG, true), true);
@@ -224,7 +228,8 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0400, TestSize.Level0)
  */
 HWTEST_F(AccountIamCallbackTest, AuthCallback_OnAcquireInfo_0100, TestSize.Level0)
 {
-    auto userAuthCallback = std::make_shared<AuthCallback>(TEST_USER_ID, AuthType::PIN, nullptr);
+    auto userAuthCallback = std::make_shared<AuthCallback>(
+        TEST_USER_ID, AuthType::PIN, AccountSA::AuthIntent::DEFAULT, nullptr);
     EXPECT_TRUE(userAuthCallback->innerCallback_ == nullptr);
     Attributes extraInfo;
     userAuthCallback->OnAcquireInfo(0, 0, extraInfo);
@@ -240,7 +245,8 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_OnAcquireInfo_0100, TestSize.Level
 HWTEST_F(AccountIamCallbackTest, AuthCallback_OnAcquireInfo_0200, TestSize.Level0)
 {
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
-    auto userAuthCallback = std::make_shared<AuthCallback>(TEST_USER_ID, AuthType::PIN, callback);
+    auto userAuthCallback = std::make_shared<AuthCallback>(
+        TEST_USER_ID, AuthType::PIN, AccountSA::AuthIntent::DEFAULT, callback);
     EXPECT_TRUE(userAuthCallback->innerCallback_ != nullptr);
     Attributes extraInfo;
     userAuthCallback->OnAcquireInfo(TEST_MODULE, TEST_ACQUIRE_INFO, extraInfo);

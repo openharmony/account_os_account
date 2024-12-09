@@ -137,6 +137,14 @@ const std::map<uint32_t, AccountIAMMgrStub::AccountIAMMessageProc> messageProcMa
         }
     },
     {
+        static_cast<uint32_t>(AccountIAMInterfaceCode::GET_PROPERTY_BY_CREDENTIAL_ID),
+        {
+            .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcGetPropertyById(data, reply); },
+            .isSystemApi = true,
+        }
+    },
+    {
         static_cast<uint32_t>(AccountIAMInterfaceCode::SET_PROPERTY),
         {
             .messageProcFunction = [] (AccountIAMMgrStub *ptr, MessageParcel &data, MessageParcel &reply) {
@@ -608,6 +616,35 @@ ErrCode AccountIAMMgrStub::ProcGetProperty(MessageParcel &data,
         request.keys.push_back(static_cast<Attributes::AttributeKey>(key));
     }
     GetProperty(userId, request, callback);
+    return ERR_NONE;
+}
+
+ErrCode AccountIAMMgrStub::ProcGetPropertyById(MessageParcel &data,
+    MessageParcel &reply) __attribute__((no_sanitize("cfi")))
+{
+    if (!CheckPermission(ACCESS_USER_AUTH_INTERNAL)) {
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    uint64_t credentialId;
+    if (!data.ReadUint64(credentialId)) {
+        ACCOUNT_LOGE("Failed to read credentialId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    std::vector<uint32_t> tempKeys;
+    if (!data.ReadUInt32Vector(&tempKeys)) {
+        ACCOUNT_LOGE("Failed to read attribute keys");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    sptr<IGetSetPropCallback> callback = iface_cast<IGetSetPropCallback>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("IGetSetPropCallback is nullptr");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    std::vector<Attributes::AttributeKey> keys;
+    for (auto &key : tempKeys) {
+        keys.push_back(static_cast<Attributes::AttributeKey>(key));
+    }
+    GetPropertyByCredentialId(credentialId, keys, callback);
     return ERR_NONE;
 }
 
