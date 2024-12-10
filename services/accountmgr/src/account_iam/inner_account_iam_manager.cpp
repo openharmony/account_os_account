@@ -529,50 +529,6 @@ void InnerAccountIAMManager::SetState(int32_t userId, IAMState state)
     userStateMap_[userId] = state;
 }
 
-ErrCode InnerAccountIAMManager::UpdateStorageKey(
-    int32_t userId, uint64_t secureUid, const std::vector<uint8_t> &token,
-    const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret)
-{
-    int times = 0;
-    ErrCode errCode = ERR_OK;
-    while (times < MAX_RETRY_TIMES) {
-        errCode = InnerUpdateStorageKey(userId, secureUid, token, oldSecret, newSecret);
-        if ((errCode != Constants::E_IPC_ERROR) && (errCode != Constants::E_IPC_SA_DIED)) {
-            return errCode;
-        }
-        ACCOUNT_LOGE("errCode=%{public}d, userId=%{public}d, times=%{public}d", errCode, userId, times);
-        times++;
-        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
-    }
-    return errCode;
-}
-
-ErrCode InnerAccountIAMManager::InnerUpdateStorageKey(
-    int32_t userId, uint64_t secureUid, const std::vector<uint8_t> &token,
-    const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret)
-{
-#ifdef HAS_STORAGE_PART
-    auto storageMgrProxy = GetStorageManagerProxy();
-    if (storageMgrProxy == nullptr) {
-        ACCOUNT_LOGE("fail to get storage proxy");
-        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY;
-    }
-    ErrCode result = storageMgrProxy->UpdateUserAuth(userId, secureUid, token, oldSecret, newSecret);
-    if ((result != ERR_OK) && (result != ERROR_STORAGE_KEY_NOT_EXIST)) {
-        ACCOUNT_LOGE("fail to update user auth");
-        return result;
-    }
-
-    result = storageMgrProxy->UpdateKeyContext(userId);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("Fail to update key context, userId=%{public}d, result=%{public}d", userId, result);
-    }
-    return result;
-#else
-    return ERR_OK;
-#endif
-}
-
 ErrCode InnerAccountIAMManager::UpdateStorageKeyContext(const int32_t userId)
 {
     int times = 0;
