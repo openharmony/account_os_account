@@ -509,27 +509,17 @@ void ReleaseNapiRefArray(napi_env env, const std::vector<napi_ref> &napiRefVec)
         ACCOUNT_LOGE("invalid env");
         return;
     }
-    std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
-    std::unique_ptr<NapiRefArrayContext> context = std::make_unique<NapiRefArrayContext>();
-    uv_loop_s *loop = nullptr;
-    napi_get_uv_event_loop(env, &loop);
-    if ((loop == nullptr) || (work == nullptr) || (context == nullptr)) {
+    std::shared_ptr<NapiRefArrayContext> context = std::make_shared<NapiRefArrayContext>();
+    if (context == nullptr) {
         ACCOUNT_LOGE("fail to init execution environment");
         return;
     }
     context->env = env;
     context->napiRefVec = napiRefVec;
-    work->data = reinterpret_cast<void *>(context.get());
-    NAPI_CALL_RETURN_VOID(env, uv_queue_work_with_qos(loop, work.get(), [] (uv_work_t *work) {},
-        [] (uv_work_t *work, int status) {
-            if (work == nullptr) {
-                ACCOUNT_LOGE("work is nullptr");
-                return;
-            }
-            auto context = reinterpret_cast<NapiRefArrayContext *>(work->data);
+    NAPI_CALL_RETURN_VOID(env, napi_send_event(env,
+        [context = std::move(context)] () {
             if (context == nullptr) {
                 ACCOUNT_LOGE("context is nullptr");
-                delete work;
                 return;
             }
             for (auto &napiRef : context->napiRefVec) {
@@ -537,11 +527,7 @@ void ReleaseNapiRefArray(napi_env env, const std::vector<napi_ref> &napiRefVec)
                     napi_delete_reference(context->env, napiRef);
                 }
             }
-            delete context;
-            delete work;
-        }, uv_qos_default));
-    context.release();
-    work.release();
+        }, napi_eprio_vip));
 }
 
 NapiCallbackRef::~NapiCallbackRef()

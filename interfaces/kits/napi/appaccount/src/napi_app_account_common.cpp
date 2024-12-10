@@ -85,17 +85,17 @@ static std::function<void()> OnAppAccountsChangedWork(const std::shared_ptr<Subs
 
 void SubscriberPtr::OnAccountsChanged(const std::vector<AppAccountInfo> &accounts_)
 {
-    std::shared_ptr<SubscriberAccountsWorker> subscriberAccountsWorker = std::make_shared<SubscriberAccountsWorker>(env_);
-    if (subscriberAccountsWorker == nullptr) {
+    std::shared_ptr<SubscriberAccountsWorker> worker = std::make_shared<SubscriberAccountsWorker>(env_);
+    if (worker == nullptr) {
         ACCOUNT_LOGE("SubscriberAccountsWorker is null");
         return;
     }
 
-    subscriberAccountsWorker->accounts = accounts_;
-    subscriberAccountsWorker->ref = ref_;
-    subscriberAccountsWorker->subscriber = this;
+    worker->accounts = accounts_;
+    worker->ref = ref_;
+    worker->subscriber = this;
 
-    if (napi_ok != napi_send_event(env_, OnAppAccountsChangedWork(subscriberAccountsWorker), napi_eprio_vip)) {
+    if (napi_ok != napi_send_event(env_, OnAppAccountsChangedWork(worker), napi_eprio_vip)) {
         ACCOUNT_LOGE("Post task failed");
     }
 }
@@ -1098,8 +1098,8 @@ bool ParseJSAuthCallback(napi_env env, napi_value object, JSAuthCallback &callba
         GetNamedFunction(env, object, "onRequestRedirected", callback.onRequestRedirected);
 }
 
-bool ParseContextForVerifyCredential(napi_env env, napi_callback_info info, VerifyCredentialContext *context)
 {
+bool ParseContextForVerifyCredential(napi_env env, napi_callback_info info, VerifyCredentialContext *context)
     size_t argc = ARGS_SIZE_FOUR;
     napi_value argv[ARGS_SIZE_FOUR] = {0};
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);

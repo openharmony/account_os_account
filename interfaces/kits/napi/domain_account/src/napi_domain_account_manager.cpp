@@ -1138,17 +1138,15 @@ static void GetAccessTokenCompleteCB(napi_env env, napi_status status, void *dat
     delete reinterpret_cast<GetAccessTokenAsyncContext *>(data);
 }
 
-static void GetAccessTokenCompleteWork(uv_work_t *work, int status)
+static std::function<void()> GetAccessTokenCompleteWork(GetAccessTokenAsyncContext *param)
 {
-    std::unique_ptr<uv_work_t> workPtr(work);
+    return [asyncContext = std::move(param)] {
     napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
-        if ((work != nullptr) && (work->data != nullptr)) {
-            delete reinterpret_cast<GetAccessTokenAsyncContext *>(work->data);
-        }
+    napi_open_handle_scope(asyncContext->env, &scope);
+    if (scope == nullptr) {
+        ACCOUNT_LOGE("fail to open scope");
         return;
     }
-    GetAccessTokenAsyncContext *asyncContext = reinterpret_cast<GetAccessTokenAsyncContext *>(work->data);
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
     if (asyncContext->errCode == ERR_OK) {
@@ -1160,6 +1158,7 @@ static void GetAccessTokenCompleteWork(uv_work_t *work, int status)
     ReturnCallbackOrPromise(asyncContext->env, asyncContext, errJs, dataJs);
     napi_close_handle_scope(asyncContext->env, scope);
     delete asyncContext;
+    };
 }
 
 napi_value NapiDomainAccountManager::AuthWithPopup(napi_env env, napi_callback_info cbInfo)
@@ -1194,14 +1193,15 @@ napi_value NapiDomainAccountManager::AuthWithPopup(napi_env env, napi_callback_i
     return nullptr;
 }
 
-static void HasDomainAccountCompletedWork(uv_work_t *work, int status)
+static std::function<void()> HasDomainAccountCompletedWork(HasDomainAccountAsyncContext *param)
 {
-    std::unique_ptr<uv_work_t> workPtr(work);
+    return [asyncContext = std::move(param)] {
     napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
+    napi_open_handle_scope(asyncContext->env, &scope);
+    if (scope == nullptr) {
+        ACCOUNT_LOGE("fail to open scope");
         return;
     }
-    HasDomainAccountAsyncContext *asyncContext = reinterpret_cast<HasDomainAccountAsyncContext *>(work->data);
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
     if (asyncContext->errCode == ERR_OK) {
@@ -1212,85 +1212,64 @@ static void HasDomainAccountCompletedWork(uv_work_t *work, int status)
     ReturnCallbackOrPromise(asyncContext->env, asyncContext, errJs, dataJs);
     napi_close_handle_scope(asyncContext->env, scope);
     delete asyncContext;
+    };
 }
 
 NapiHasDomainInfoCallback::NapiHasDomainInfoCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred)
-    : env_(env), callbackRef_(callbackRef), deferred_(deferred)
+    : env_(env), callbackRef_(env, callbackRef), deferred_(deferred)
 {}
 
 void NapiHasDomainInfoCallback::OnResult(const int32_t errCode, Parcel &parcel)
 {
     std::unique_lock<std::mutex> lock(lockInfo_.mutex);
-    if ((callbackRef_ == nullptr) && (deferred_ == nullptr)) {
+    if ((callbackRef_.callbackRef == nullptr) && (deferred_ == nullptr)) {
         ACCOUNT_LOGE("js callback is nullptr");
-        return;
-    }
-    uv_loop_s *loop = nullptr;
-    uv_work_t *work = nullptr;
-    if (!CreateExecEnv(env_, &loop, &work)) {
-        ACCOUNT_LOGE("failed to init domain plugin execution environment");
         return;
     }
     auto *asyncContext = new (std::nothrow) HasDomainAccountAsyncContext(env_);
     if (asyncContext == nullptr) {
-        delete work;
         return;
     }
     if (errCode == ERR_OK) {
         parcel.ReadBool(asyncContext->isHasDomainAccount);
     }
     asyncContext->errCode = errCode;
-    asyncContext->callbackRef = callbackRef_;
+    asyncContext->callbackRef = callbackRef_.callbackRef;
     asyncContext->deferred = deferred_;
-    work->data = reinterpret_cast<void *>(asyncContext);
-    int resultCode = uv_queue_work_with_qos(
-        loop, work, [](uv_work_t *work) {}, HasDomainAccountCompletedWork, uv_qos_default);
-    if (resultCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
+    if (napi_ok != napi_send_event(env_, HasDomainAccountCompletedWork(asyncContext), napi_eprio_vip)) {
+        ACCOUNT_LOGE("Post task failed");
         delete asyncContext;
-        delete work;
         return;
     }
-    callbackRef_ = nullptr;
+    callbackRef_.callbackRef = nullptr;
     deferred_ = nullptr;
 }
 
 NapiGetAccessTokenCallback::NapiGetAccessTokenCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred)
-    : env_(env), callbackRef_(callbackRef), deferred_(deferred)
+    : env_(env), callbackRef_(env, callbackRef), deferred_(deferred)
 {}
 
 void NapiGetAccessTokenCallback::OnResult(const int32_t errCode, const std::vector<uint8_t> &accessToken)
 {
     std::unique_lock<std::mutex> lock(lockInfo_.mutex);
-    if ((callbackRef_ == nullptr) && (deferred_ == nullptr)) {
+    if ((callbackRef_.callbackRef == nullptr) && (deferred_ == nullptr)) {
         ACCOUNT_LOGE("js callback is nullptr");
-        return;
-    }
-    uv_loop_s *loop = nullptr;
-    uv_work_t *work = nullptr;
-    if (!CreateExecEnv(env_, &loop, &work)) {
-        ACCOUNT_LOGE("failed to init domain plugin execution environment");
         return;
     }
     auto *asyncContext = new (std::nothrow) GetAccessTokenAsyncContext(env_);
     if (asyncContext == nullptr) {
-        delete work;
         return;
     }
     asyncContext->errCode = errCode;
     asyncContext->accessToken = accessToken;
-    asyncContext->callbackRef = callbackRef_;
+    asyncContext->callbackRef = callbackRef_.callbackRef;
     asyncContext->deferred = deferred_;
-    work->data = reinterpret_cast<void *>(asyncContext);
-    int resultCode = uv_queue_work_with_qos(
-        loop, work, [](uv_work_t *work) {}, GetAccessTokenCompleteWork, uv_qos_default);
-    if (resultCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
+    if (napi_ok != napi_send_event(env_, GetAccessTokenCompleteWork(asyncContext), napi_eprio_vip)) {
+        ACCOUNT_LOGE("Post task failed");
         delete asyncContext;
-        delete work;
         return;
     }
-    callbackRef_ = nullptr;
+    callbackRef_.callbackRef = nullptr;
     deferred_ = nullptr;
 }
 
