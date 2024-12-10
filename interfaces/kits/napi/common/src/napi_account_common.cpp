@@ -510,10 +510,6 @@ void ReleaseNapiRefArray(napi_env env, const std::vector<napi_ref> &napiRefVec)
         return;
     }
     std::shared_ptr<NapiRefArrayContext> context = std::make_shared<NapiRefArrayContext>();
-    if (context == nullptr) {
-        ACCOUNT_LOGE("fail to init execution environment");
-        return;
-    }
     context->env = env;
     context->napiRefVec = napiRefVec;
     NAPI_CALL_RETURN_VOID(env, napi_send_event(env,

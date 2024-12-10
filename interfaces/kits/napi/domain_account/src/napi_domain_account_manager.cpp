@@ -322,24 +322,25 @@ static napi_value CreatePluginAccountInfoOptions(const JsDomainPluginParam *para
 static std::function<void()> GetDomainAccountInfoWork(JsDomainPluginParam *param)
 {
     return [param = std::move(param)] {
-    napi_handle_scope scope = nullptr;
-    napi_open_handle_scope(param->env, &scope);
-    if (scope == nullptr) {
-        ACCOUNT_LOGE("Fail to open scope");
-        delete param;
-        return;
-    }
-    napi_value napiCallback = CreatePluginAsyncCallback(param->env, GetDomainAccountInfoCallback, param);
-    napi_value getDomainAccountInfoPLuginOptions = CreatePluginAccountInfoOptions(param);
-    napi_value argv[] = {getDomainAccountInfoPLuginOptions, napiCallback};
-    NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->func);
-    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-    param->lockInfo->count--;
-    param->lockInfo->condition.notify_all();
-    napi_close_handle_scope(param->env, scope);
-    if (napiCallback == nullptr) {
-        delete param;
-    }
+        ACCOUNT_LOGI("Enter GetDomainAccountInfoWork");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(param->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            delete param;
+            return;
+        }
+        napi_value napiCallback = CreatePluginAsyncCallback(param->env, GetDomainAccountInfoCallback, param);
+        napi_value getDomainAccountInfoPLuginOptions = CreatePluginAccountInfoOptions(param);
+        napi_value argv[] = {getDomainAccountInfoPLuginOptions, napiCallback};
+        NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->func);
+        std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+        param->lockInfo->count--;
+        param->lockInfo->condition.notify_all();
+        napi_close_handle_scope(param->env, scope);
+        if (napiCallback == nullptr) {
+            delete param;
+        }
     };
 }
 
@@ -370,50 +371,52 @@ static napi_value OnAccountBoundCallback(napi_env env, napi_callback_info cbInfo
 static std::function<void()> OnAccountBoundWork(JsDomainPluginParam *param)
 {
     return [param = std::move(param)] {
-    napi_handle_scope scope = nullptr;
-    napi_open_handle_scope(param->env, &scope);
-    if (scope == nullptr) {
-        ACCOUNT_LOGE("Fail to open scope");
-        delete param;
-        return;
-    }
-    napi_value napiLocalId = nullptr;
-    napi_create_int32(param->env, param->userId, &napiLocalId);
-    napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
-    napi_value napiCallback = CreatePluginAsyncCallback(param->env, OnAccountBoundCallback, param);
-    napi_value argv[] = {napiDomainAccountInfo, napiLocalId, napiCallback};
-    NapiCallVoidFunction(param->env, argv, ARG_SIZE_THREE, param->func);
-    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-    param->lockInfo->count--;
-    param->lockInfo->condition.notify_all();
-    napi_close_handle_scope(param->env, scope);
-    if (napiCallback == nullptr) {
-        delete param;
-    }
+        ACCOUNT_LOGI("Enter OnAccountBoundWork");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(param->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            delete param;
+            return;
+        }
+        napi_value napiLocalId = nullptr;
+        napi_create_int32(param->env, param->userId, &napiLocalId);
+        napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
+        napi_value napiCallback = CreatePluginAsyncCallback(param->env, OnAccountBoundCallback, param);
+        napi_value argv[] = {napiDomainAccountInfo, napiLocalId, napiCallback};
+        NapiCallVoidFunction(param->env, argv, ARG_SIZE_THREE, param->func);
+        std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+        param->lockInfo->count--;
+        param->lockInfo->condition.notify_all();
+        napi_close_handle_scope(param->env, scope);
+        if (napiCallback == nullptr) {
+            delete param;
+        }
     };
 }
 
 static std::function<void()> OnAccountUnBoundWork(JsDomainPluginParam *param)
 {
     return [param = std::move(param)] {
-    napi_handle_scope scope = nullptr;
-    napi_open_handle_scope(param->env, &scope);
-    if (scope == nullptr) {
-        ACCOUNT_LOGE("Fail to open scope");
-        delete param;
-        return;
-    }
-    napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
-    napi_value napiCallback = CreatePluginAsyncCallback(param->env, OnAccountBoundCallback, param);
-    napi_value argv[] = {napiDomainAccountInfo, napiCallback};
-    NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->func);
-    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-    param->lockInfo->count--;
-    param->lockInfo->condition.notify_all();
-    napi_close_handle_scope(param->env, scope);
-    if (napiCallback == nullptr) {
-        delete param;
-    }
+        ACCOUNT_LOGI("Enter OnAccountUnBoundWork");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(param->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            delete param;
+            return;
+        }
+        napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
+        napi_value napiCallback = CreatePluginAsyncCallback(param->env, OnAccountBoundCallback, param);
+        napi_value argv[] = {napiDomainAccountInfo, napiCallback};
+        NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->func);
+        std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+        param->lockInfo->count--;
+        param->lockInfo->condition.notify_all();
+        napi_close_handle_scope(param->env, scope);
+        if (napiCallback == nullptr) {
+            delete param;
+        }
     };
 }
 
@@ -498,73 +501,76 @@ static napi_value IsUserTokenValidCallback(napi_env env, napi_callback_info cbIn
 static std::function<void()> GetAccessTokenWork(JsDomainPluginParam *param)
 {
     return [param = std::move(param)] {
-    napi_handle_scope scope = nullptr;
-    napi_open_handle_scope(param->env, &scope);
-    if (scope == nullptr) {
-        ACCOUNT_LOGE("Fail to open scope");
-        delete param;
-        return;
-    }
-    napi_value napiCallback = CreatePluginAsyncCallback(param->env, GetAccessTokenCallback, param);
-    napi_value napiOptions = CreateNapiGetAccessTokenOptions(param);
-    napi_value argv[] = {napiOptions, napiCallback};
-    NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->func);
-    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-    param->lockInfo->count--;
-    param->lockInfo->condition.notify_all();
-    napi_close_handle_scope(param->env, scope);
-    if (napiCallback == nullptr) {
-        delete param;
-    }
+        ACCOUNT_LOGI("Enter GetAccessTokenWork");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(param->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            delete param;
+            return;
+        }
+        napi_value napiCallback = CreatePluginAsyncCallback(param->env, GetAccessTokenCallback, param);
+        napi_value napiOptions = CreateNapiGetAccessTokenOptions(param);
+        napi_value argv[] = {napiOptions, napiCallback};
+        NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->func);
+        std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+        param->lockInfo->count--;
+        param->lockInfo->condition.notify_all();
+        napi_close_handle_scope(param->env, scope);
+        if (napiCallback == nullptr) {
+            delete param;
+        }
     };
 }
 
 static std::function<void()> IsUserTokenValidWork(JsDomainPluginParam *param)
 {
     return [param = std::move(param)] {
-    napi_handle_scope scope = nullptr;
-    napi_open_handle_scope(param->env, &scope);
-    if (scope == nullptr) {
-        ACCOUNT_LOGE("Fail to open scope");
-        delete param;
-        return;
-    }
-    napi_value napiCallback = CreatePluginAsyncCallback(param->env, IsUserTokenValidCallback, param);
-    napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
-    napi_value napiUserToken = CreateUint8Array(param->env, param->authData.data(), param->authData.size());
-    napi_value argv[] = {napiDomainAccountInfo, napiUserToken, napiCallback};
-    NapiCallVoidFunction(param->env, argv, ARG_SIZE_THREE, param->func);
-    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-    param->lockInfo->count--;
-    param->lockInfo->condition.notify_all();
-    napi_close_handle_scope(param->env, scope);
-    if (napiCallback == nullptr) {
-        delete param;
-    }
+        ACCOUNT_LOGI("Enter IsUserTokenValidWork");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(param->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            delete param;
+            return;
+        }
+        napi_value napiCallback = CreatePluginAsyncCallback(param->env, IsUserTokenValidCallback, param);
+        napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
+        napi_value napiUserToken = CreateUint8Array(param->env, param->authData.data(), param->authData.size());
+        napi_value argv[] = {napiDomainAccountInfo, napiUserToken, napiCallback};
+        NapiCallVoidFunction(param->env, argv, ARG_SIZE_THREE, param->func);
+        std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+        param->lockInfo->count--;
+        param->lockInfo->condition.notify_all();
+        napi_close_handle_scope(param->env, scope);
+        if (napiCallback == nullptr) {
+            delete param;
+        }
     };
 }
 
 static std::function<void()> GetAuthStatusInfoWork(JsDomainPluginParam *param)
 {
     return [param = std::move(param)] {
-    napi_handle_scope scope = nullptr;
-    napi_open_handle_scope(param->env, &scope);
-    if (scope == nullptr) {
-        ACCOUNT_LOGE("Fail to open scope");
-        delete param;
-        return;
-    }
-    napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
-    napi_value napiCallback = CreatePluginAsyncCallback(param->env, GetAuthStatusInfoCallback, param);
-    napi_value argv[] = { napiDomainAccountInfo, napiCallback };
-    NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->func);
-    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-    param->lockInfo->count--;
-    param->lockInfo->condition.notify_all();
-    napi_close_handle_scope(param->env, scope);
-    if (napiCallback == nullptr) {
-        delete param;
-    }
+        ACCOUNT_LOGI("Enter GetAuthStatusInfoWork");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(param->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            delete param;
+            return;
+        }
+        napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
+        napi_value napiCallback = CreatePluginAsyncCallback(param->env, GetAuthStatusInfoCallback, param);
+        napi_value argv[] = { napiDomainAccountInfo, napiCallback };
+        NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->func);
+        std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+        param->lockInfo->count--;
+        param->lockInfo->condition.notify_all();
+        napi_close_handle_scope(param->env, scope);
+        if (napiCallback == nullptr) {
+            delete param;
+        }
     };
 }
 
@@ -603,26 +609,27 @@ NapiDomainAccountPlugin::~NapiDomainAccountPlugin()
 static std::function<void()> AuthCommonWork(JsDomainPluginParam *param)
 {
     return [param = std::move(param)] {
-    napi_handle_scope scope = nullptr;
-    napi_open_handle_scope(param->env, &scope);
-    if (scope == nullptr) {
-        ACCOUNT_LOGE("fail to open scope");
+        ACCOUNT_LOGI("Enter AuthCommonWork");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(param->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            delete param;
+            return;
+        }
+        int argc = 0;
+        napi_value argv[ARG_SIZE_THREE] = {0};
+        argv[argc++] = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
+        if (param->authMode != AUTH_WITH_POPUP_MODE) {
+            argv[argc++] = CreateUint8Array(param->env, param->authData.data(), param->authData.size());
+        }
+        argv[argc++] = CreateNapiDomainAuthCallback(param->env, param->callback);
+        NapiCallVoidFunction(param->env, argv, argc, param->func);
+        std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+        param->lockInfo->count--;
+        param->lockInfo->condition.notify_all();
+        napi_close_handle_scope(param->env, scope);
         delete param;
-        return;
-    }
-    int argc = 0;
-    napi_value argv[ARG_SIZE_THREE] = {0};
-    argv[argc++] = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
-    if (param->authMode != AUTH_WITH_POPUP_MODE) {
-        argv[argc++] = CreateUint8Array(param->env, param->authData.data(), param->authData.size());
-    }
-    argv[argc++] = CreateNapiDomainAuthCallback(param->env, param->callback);
-    NapiCallVoidFunction(param->env, argv, argc, param->func);
-    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-    param->lockInfo->count--;
-    param->lockInfo->condition.notify_all();
-    napi_close_handle_scope(param->env, scope);
-    delete param;
     };
 }
 
@@ -636,7 +643,7 @@ void NapiDomainAccountPlugin::AuthCommon(AccountSA::AuthMode authMode, const Acc
     }
     JsDomainPluginParam *param = new (std::nothrow) JsDomainPluginParam(env_);
     if (param == nullptr) {
-        ACCOUNT_LOGE("failed to create JsDomainPluginParam");
+        ACCOUNT_LOGE("Failed to create JsDomainPluginParam");
         return;
     }
     switch (authMode) {
@@ -668,6 +675,7 @@ void NapiDomainAccountPlugin::AuthCommon(AccountSA::AuthMode authMode, const Acc
         return;
     }
     lockInfo_.count++;
+    ACCOUNT_LOGI("Post task finish");
 }
 
 void NapiDomainAccountPlugin::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &credential,
@@ -702,7 +710,7 @@ void NapiDomainAccountPlugin::GetAuthStatusInfo(
     }
     JsDomainPluginParam *param = new (std::nothrow) JsDomainPluginParam(env_);
     if (param == nullptr) {
-        ACCOUNT_LOGE("failed to create JsDomainPluginParam");
+        ACCOUNT_LOGE("Failed to create JsDomainPluginParam");
         return;
     }
     param->lockInfo = &lockInfo_;
@@ -715,6 +723,7 @@ void NapiDomainAccountPlugin::GetAuthStatusInfo(
         return;
     }
     lockInfo_.count++;
+    ACCOUNT_LOGI("Post task finish");
 }
 
 void NapiDomainAccountPlugin::OnAccountBound(const DomainAccountInfo &info, const int32_t localId,
@@ -731,7 +740,7 @@ void NapiDomainAccountPlugin::OnAccountBound(const DomainAccountInfo &info, cons
     }
     JsDomainPluginParam *param = new (std::nothrow) JsDomainPluginParam(env_);
     if (param == nullptr) {
-        ACCOUNT_LOGE("failed to create JsDomainPluginParam");
+        ACCOUNT_LOGE("Failed to create JsDomainPluginParam");
         return;
     }
     param->lockInfo = &lockInfo_;
@@ -745,6 +754,7 @@ void NapiDomainAccountPlugin::OnAccountBound(const DomainAccountInfo &info, cons
         return;
     }
     lockInfo_.count++;
+    ACCOUNT_LOGI("Post task finish");
 }
 
 void NapiDomainAccountPlugin::OnAccountUnBound(const DomainAccountInfo &info,
@@ -761,7 +771,7 @@ void NapiDomainAccountPlugin::OnAccountUnBound(const DomainAccountInfo &info,
     }
     JsDomainPluginParam *param = new (std::nothrow) JsDomainPluginParam(env_);
     if (param == nullptr) {
-        ACCOUNT_LOGE("failed to create JsDomainPluginParam");
+        ACCOUNT_LOGE("Failed to create JsDomainPluginParam");
         return;
     }
     param->lockInfo = &lockInfo_;
@@ -774,6 +784,7 @@ void NapiDomainAccountPlugin::OnAccountUnBound(const DomainAccountInfo &info,
         return;
     }
     lockInfo_.count++;
+    ACCOUNT_LOGI("Post task finish");
 }
 
 void NapiDomainAccountPlugin::GetDomainAccountInfo(const GetDomainAccountInfoOptions &options,
@@ -790,7 +801,7 @@ void NapiDomainAccountPlugin::GetDomainAccountInfo(const GetDomainAccountInfoOpt
     }
     JsDomainPluginParam *param = new (std::nothrow) JsDomainPluginParam(env_);
     if (param == nullptr) {
-        ACCOUNT_LOGE("failed to create JsDomainPluginParam");
+        ACCOUNT_LOGE("Failed to create JsDomainPluginParam");
         return;
     }
     param->lockInfo = &lockInfo_;
@@ -804,6 +815,7 @@ void NapiDomainAccountPlugin::GetDomainAccountInfo(const GetDomainAccountInfoOpt
         return;
     }
     lockInfo_.count++;
+    ACCOUNT_LOGI("Post task finish");
 }
 
 void NapiDomainAccountPlugin::IsAccountTokenValid(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
@@ -820,7 +832,7 @@ void NapiDomainAccountPlugin::IsAccountTokenValid(const DomainAccountInfo &info,
     }
     JsDomainPluginParam *param = new (std::nothrow) JsDomainPluginParam(env_);
     if (param == nullptr) {
-        ACCOUNT_LOGE("failed to create JsDomainPluginParam");
+        ACCOUNT_LOGE("Failed to create JsDomainPluginParam");
         return;
     }
     param->lockInfo = &lockInfo_;
@@ -834,6 +846,7 @@ void NapiDomainAccountPlugin::IsAccountTokenValid(const DomainAccountInfo &info,
         return;
     }
     lockInfo_.count++;
+    ACCOUNT_LOGI("Post task finish");
 }
 
 void NapiDomainAccountPlugin::GetAccessToken(const AccountSA::DomainAccountInfo &domainInfo,
@@ -851,7 +864,7 @@ void NapiDomainAccountPlugin::GetAccessToken(const AccountSA::DomainAccountInfo 
     }
     JsDomainPluginParam *param = new (std::nothrow) JsDomainPluginParam(env_);
     if (param == nullptr) {
-        ACCOUNT_LOGE("failed to create JsDomainPluginParam");
+        ACCOUNT_LOGE("Failed to create JsDomainPluginParam");
         return;
     }
     param->lockInfo = &lockInfo_;
@@ -866,6 +879,7 @@ void NapiDomainAccountPlugin::GetAccessToken(const AccountSA::DomainAccountInfo 
         return;
     }
     lockInfo_.count++;
+    ACCOUNT_LOGI("Post task finish");
 }
 
 napi_value NapiDomainAccountManager::Init(napi_env env, napi_value exports)
@@ -1141,23 +1155,24 @@ static void GetAccessTokenCompleteCB(napi_env env, napi_status status, void *dat
 static std::function<void()> GetAccessTokenCompleteWork(GetAccessTokenAsyncContext *param)
 {
     return [asyncContext = std::move(param)] {
-    napi_handle_scope scope = nullptr;
-    napi_open_handle_scope(asyncContext->env, &scope);
-    if (scope == nullptr) {
-        ACCOUNT_LOGE("fail to open scope");
-        return;
-    }
-    napi_value errJs = nullptr;
-    napi_value dataJs = nullptr;
-    if (asyncContext->errCode == ERR_OK) {
-        dataJs =
-            CreateUint8Array(asyncContext->env, asyncContext->accessToken.data(), asyncContext->accessToken.size());
-    } else {
-        errJs = GenerateBusinessError(asyncContext->env, asyncContext->errCode);
-    }
-    ReturnCallbackOrPromise(asyncContext->env, asyncContext, errJs, dataJs);
-    napi_close_handle_scope(asyncContext->env, scope);
-    delete asyncContext;
+        ACCOUNT_LOGI("Enter GetAccessTokenCompleteWork");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(asyncContext->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            return;
+        }
+        napi_value errJs = nullptr;
+        napi_value dataJs = nullptr;
+        if (asyncContext->errCode == ERR_OK) {
+            dataJs =
+                CreateUint8Array(asyncContext->env, asyncContext->accessToken.data(), asyncContext->accessToken.size());
+        } else {
+            errJs = GenerateBusinessError(asyncContext->env, asyncContext->errCode);
+        }
+        ReturnCallbackOrPromise(asyncContext->env, asyncContext, errJs, dataJs);
+        napi_close_handle_scope(asyncContext->env, scope);
+        delete asyncContext;
     };
 }
 
@@ -1196,22 +1211,23 @@ napi_value NapiDomainAccountManager::AuthWithPopup(napi_env env, napi_callback_i
 static std::function<void()> HasDomainAccountCompletedWork(HasDomainAccountAsyncContext *param)
 {
     return [asyncContext = std::move(param)] {
-    napi_handle_scope scope = nullptr;
-    napi_open_handle_scope(asyncContext->env, &scope);
-    if (scope == nullptr) {
-        ACCOUNT_LOGE("fail to open scope");
-        return;
-    }
-    napi_value errJs = nullptr;
-    napi_value dataJs = nullptr;
-    if (asyncContext->errCode == ERR_OK) {
-        napi_get_boolean(asyncContext->env, asyncContext->isHasDomainAccount, &dataJs);
-    } else {
-        errJs = GenerateBusinessError(asyncContext->env, asyncContext->errCode);
-    }
-    ReturnCallbackOrPromise(asyncContext->env, asyncContext, errJs, dataJs);
-    napi_close_handle_scope(asyncContext->env, scope);
-    delete asyncContext;
+        ACCOUNT_LOGI("Enter HasDomainAccountCompletedWork");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(asyncContext->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            return;
+        }
+        napi_value errJs = nullptr;
+        napi_value dataJs = nullptr;
+        if (asyncContext->errCode == ERR_OK) {
+            napi_get_boolean(asyncContext->env, asyncContext->isHasDomainAccount, &dataJs);
+        } else {
+            errJs = GenerateBusinessError(asyncContext->env, asyncContext->errCode);
+        }
+        ReturnCallbackOrPromise(asyncContext->env, asyncContext, errJs, dataJs);
+        napi_close_handle_scope(asyncContext->env, scope);
+        delete asyncContext;
     };
 }
 
@@ -1243,6 +1259,7 @@ void NapiHasDomainInfoCallback::OnResult(const int32_t errCode, Parcel &parcel)
     }
     callbackRef_.callbackRef = nullptr;
     deferred_ = nullptr;
+    ACCOUNT_LOGI("Post task finish");
 }
 
 NapiGetAccessTokenCallback::NapiGetAccessTokenCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred)
@@ -1271,6 +1288,7 @@ void NapiGetAccessTokenCallback::OnResult(const int32_t errCode, const std::vect
     }
     callbackRef_.callbackRef = nullptr;
     deferred_ = nullptr;
+    ACCOUNT_LOGI("Post task finish");
 }
 
 static void HasDomainAccountCompleteCB(napi_env env, napi_status status, void *data)

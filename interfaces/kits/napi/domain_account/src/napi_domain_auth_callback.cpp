@@ -184,18 +184,19 @@ NapiDomainAccountCallback::~NapiDomainAccountCallback()
 static std::function<void()> DomainAuthResultWork(std::shared_ptr<DomainAccountAuthCallbackParam> &param)
 {
     return [param = std::move(param)] {
-    napi_handle_scope scope = nullptr;
-    napi_open_handle_scope(param->env, &scope);
-    if (scope == nullptr) {
-        ACCOUNT_LOGE("fail to open scope");
-        return;
-    }
-    napi_value argv[ARGS_SIZE_TWO] = { nullptr };
-    napi_create_int32(param->env, param->errCode, &argv[0]);
-    argv[1] = CreateAuthResult(param->env, param->authResult.token,
-        param->authResult.authStatusInfo.remainingTimes, param->authResult.authStatusInfo.freezingTime);
-    NapiCallVoidFunction(param->env, argv, ARGS_SIZE_TWO, param->callback->onResult);
-    napi_close_handle_scope(param->env, scope);
+        ACCOUNT_LOGI("Enter DomainAuthResultWork");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(param->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            return;
+        }
+        napi_value argv[ARGS_SIZE_TWO] = { nullptr };
+        napi_create_int32(param->env, param->errCode, &argv[0]);
+        argv[1] = CreateAuthResult(param->env, param->authResult.token,
+            param->authResult.authStatusInfo.remainingTimes, param->authResult.authStatusInfo.freezingTime);
+        NapiCallVoidFunction(param->env, argv, ARGS_SIZE_TWO, param->callback->onResult);
+        napi_close_handle_scope(param->env, scope);
     };
 }
 
@@ -207,12 +208,7 @@ void NapiDomainAccountCallback::OnResult(const int32_t errCode, Parcel &parcel)
         return;
     }
     callback_->onResultCalled = true;
-    std::shared_ptr<DomainAccountAuthCallbackParam> param =
-        std::make_shared<DomainAccountAuthCallbackParam>(env_);
-    if (param == nullptr) {
-        ACCOUNT_LOGE("fail for nullptr");
-        return;
-    }
+    std::shared_ptr<DomainAccountAuthCallbackParam> param = std::make_shared<DomainAccountAuthCallbackParam>(env_);
     param->errCode = errCode;
     std::shared_ptr<DomainAuthResult> authResult(DomainAuthResult::Unmarshalling(parcel));
     if (authResult == nullptr) {
@@ -225,6 +221,7 @@ void NapiDomainAccountCallback::OnResult(const int32_t errCode, Parcel &parcel)
         ACCOUNT_LOGE("Post task failed");
         return;
     }
+    ACCOUNT_LOGI("Post task finish");
 }
 }  // namespace AccountJsKit
 }  // namespace OHOS

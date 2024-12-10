@@ -49,9 +49,6 @@ void NapiCreateDomainCallback::OnResult(const int32_t errCode, Parcel &parcel)
         return;
     }
     auto asyncContext = std::make_shared<CreateOAForDomainAsyncContext>();
-    if (asyncContext == nullptr) {
-        return;
-    }
     asyncContext->osAccountInfos = *osAccountInfo;
     asyncContext->errCode = errCode;
     asyncContext->env = env_;
@@ -64,6 +61,7 @@ void NapiCreateDomainCallback::OnResult(const int32_t errCode, Parcel &parcel)
         ACCOUNT_LOGE("Post task failed");
         return;
     }
+    ACCOUNT_LOGI("Post task finish");
 }
 
 napi_value WrapVoidToJS(napi_env env)
@@ -675,21 +673,22 @@ void CreateOACallbackCompletedCB(napi_env env, napi_status status, void *data)
 std::function<void()> CreateOAForDomainCallbackCompletedWork(std::shared_ptr<CreateOAForDomainAsyncContext> param)
 {
     return [asyncContext = std::move(param)] {
-    napi_handle_scope scope = nullptr;
-    napi_open_handle_scope(asyncContext->env, &scope);
-    if (scope == nullptr) {
-        ACCOUNT_LOGE("fail to open scope");
-        return;
-    }
-    napi_value errJs = nullptr;
-    napi_value dataJs = nullptr;
-    if (asyncContext->errCode == ERR_OK) {
-        GetOACBInfoToJs(asyncContext->env, asyncContext->osAccountInfos, dataJs);
-    } else {
-        errJs = GenerateBusinessError(asyncContext->env, asyncContext->errCode);
-    }
-    ReturnCallbackOrPromise(asyncContext->env, asyncContext.get(), errJs, dataJs);
-    napi_close_handle_scope(asyncContext->env, scope);
+        ACCOUNT_LOGI("Enter CreateOAForDomainCallbackCompletedWork");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(asyncContext->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            return;
+        }
+        napi_value errJs = nullptr;
+        napi_value dataJs = nullptr;
+        if (asyncContext->errCode == ERR_OK) {
+            GetOACBInfoToJs(asyncContext->env, asyncContext->osAccountInfos, dataJs);
+        } else {
+            errJs = GenerateBusinessError(asyncContext->env, asyncContext->errCode);
+        }
+        ReturnCallbackOrPromise(asyncContext->env, asyncContext.get(), errJs, dataJs);
+        napi_close_handle_scope(asyncContext->env, scope);
     };
 }
 
