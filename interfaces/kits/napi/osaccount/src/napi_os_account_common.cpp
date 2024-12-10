@@ -48,15 +48,8 @@ void NapiCreateDomainCallback::OnResult(const int32_t errCode, Parcel &parcel)
         ACCOUNT_LOGE("js callback is nullptr");
         return;
     }
-    uv_loop_s *loop = nullptr;
-    uv_work_t *work = nullptr;
-    if (!CreateExecEnv(env_, &loop, &work)) {
-        ACCOUNT_LOGE("failed to init domain plugin execution environment");
-        return;
-    }
-    auto *asyncContext = new (std::nothrow) CreateOAForDomainAsyncContext();
+    auto asyncContext = std::make_shared<CreateOAForDomainAsyncContext>();
     if (asyncContext == nullptr) {
-        delete work;
         return;
     }
     asyncContext->osAccountInfos = *osAccountInfo;
@@ -64,16 +57,11 @@ void NapiCreateDomainCallback::OnResult(const int32_t errCode, Parcel &parcel)
     asyncContext->env = env_;
     asyncContext->callbackRef = callbackRef_;
     asyncContext->deferred = deferred_;
-    work->data = reinterpret_cast<void *>(asyncContext);
     // transfer control of callbackRef & deferred to asyncContext, they would be released in async context
     callbackRef_ = nullptr;
     deferred_ = nullptr;
-    int resultCode = uv_queue_work_with_qos(
-        loop, work, [](uv_work_t *work) {}, CreateOAForDomainCallbackCompletedWork, uv_qos_default);
-    if (resultCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
-        delete asyncContext;
-        delete work;
+    if (napi_ok != napi_send_event(env_, CreateOAForDomainCallbackCompletedWork(asyncContext), napi_eprio_vip)) {
+        ACCOUNT_LOGE("Post task failed");
         return;
     }
 }
@@ -684,15 +672,15 @@ void CreateOACallbackCompletedCB(napi_env env, napi_status status, void *data)
     delete asyncContext;
 }
 
-void CreateOAForDomainCallbackCompletedWork(uv_work_t *work, int status)
+std::function<void()> CreateOAForDomainCallbackCompletedWork(std::shared_ptr<CreateOAForDomainAsyncContext> param)
 {
-    std::unique_ptr<uv_work_t> workPtr(work);
+    return [asyncContext = std::move(param)] {
     napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
+    napi_open_handle_scope(asyncContext->env, &scope);
+    if (scope == nullptr) {
+        ACCOUNT_LOGE("fail to open scope");
         return;
     }
-    std::unique_ptr<CreateOAForDomainAsyncContext> asyncContext(
-        reinterpret_cast<CreateOAForDomainAsyncContext *>(work->data));
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
     if (asyncContext->errCode == ERR_OK) {
@@ -702,6 +690,7 @@ void CreateOAForDomainCallbackCompletedWork(uv_work_t *work, int status)
     }
     ReturnCallbackOrPromise(asyncContext->env, asyncContext.get(), errJs, dataJs);
     napi_close_handle_scope(asyncContext->env, scope);
+    };
 }
 
 bool ParseParaGetOACount(napi_env env, napi_callback_info cbInfo, GetOACountAsyncContext *asyncContext)
