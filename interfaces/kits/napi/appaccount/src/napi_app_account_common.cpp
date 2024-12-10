@@ -50,14 +50,15 @@ std::map<AppAccountManager *, std::vector<AsyncContextForSubscribe *>> g_AppAcco
 SubscriberPtr::SubscriberPtr(const AppAccountSubscribeInfo &subscribeInfo) : AppAccountSubscriber(subscribeInfo)
 {}
 
-void UvQueueWorkOnAppAccountsChanged(uv_work_t *work, int status)
+static std::function<void()> OnAppAccountsChangedWork(const std::shared_ptr<SubscriberAccountsWorker> &data)
 {
-    std::unique_ptr<uv_work_t> workPtr(work);
+    return [data = std::move(data)] {
     napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
+    napi_open_handle_scope(data->env, &scope);
+    if (scope == nullptr) {
+        ACCOUNT_LOGE("fail to open scope");
         return;
     }
-    std::unique_ptr<SubscriberAccountsWorker> data(reinterpret_cast<SubscriberAccountsWorker *>(work->data));
     bool isFound = false;
     {
         std::lock_guard<std::mutex> lock(g_lockForAppAccountSubscribers);
@@ -74,31 +75,19 @@ void UvQueueWorkOnAppAccountsChanged(uv_work_t *work, int status)
         }
     }
     if (isFound) {
-        napi_value results[ARGS_SIZE_ONE] = {nullptr};
+        napi_value results[ARGS_SIZE_ONE] = { nullptr };
         GetAppAccountInfoForResult(data->env, data->accounts, results[0]);
         NapiCallVoidFunction(data->env, results, ARGS_SIZE_ONE, data->ref);
     }
     napi_close_handle_scope(data->env, scope);
+    };
 }
 
 void SubscriberPtr::OnAccountsChanged(const std::vector<AppAccountInfo> &accounts_)
 {
-    uv_loop_s *loop = nullptr;
-    napi_get_uv_event_loop(env_, &loop);
-    if (loop == nullptr) {
-        ACCOUNT_LOGE("loop instance is nullptr");
-        return;
-    }
-    uv_work_t *work = new (std::nothrow) uv_work_t;
-    if (work == nullptr) {
-        ACCOUNT_LOGE("work is null");
-        return;
-    }
-
-    SubscriberAccountsWorker *subscriberAccountsWorker = new (std::nothrow) SubscriberAccountsWorker(env_);
+    std::shared_ptr<SubscriberAccountsWorker> subscriberAccountsWorker = std::make_shared<SubscriberAccountsWorker>(env_);
     if (subscriberAccountsWorker == nullptr) {
         ACCOUNT_LOGE("SubscriberAccountsWorker is null");
-        delete work;
         return;
     }
 
@@ -106,14 +95,8 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AppAccountInfo> &account
     subscriberAccountsWorker->ref = ref_;
     subscriberAccountsWorker->subscriber = this;
 
-    work->data = reinterpret_cast<void *>(subscriberAccountsWorker);
-
-    int32_t ret =
-        uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnAppAccountsChanged, uv_qos_default);
-    if (ret != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", ret);
-        delete work;
-        delete subscriberAccountsWorker;
+    if (napi_ok != napi_send_event(env_, OnAppAccountsChangedWork(subscriberAccountsWorker), napi_eprio_vip)) {
+        ACCOUNT_LOGE("Post task failed");
     }
 }
 
@@ -127,15 +110,16 @@ void SubscriberPtr::SetCallbackRef(const napi_ref &ref)
     ref_ = ref;
 }
 
-void CheckAccountLabelsOnResultWork(uv_work_t *work, int status)
+std::function<void()> CheckAccountLabelsOnResultWork(const std::shared_ptr<AuthenticatorCallbackParam> &param)
 {
-    std::unique_ptr<uv_work_t> workPtr(work);
+    return [data = std::move(param)] {
     napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
+    napi_open_handle_scope(data->env, &scope);
+    if (scope == nullptr) {
+        ACCOUNT_LOGE("fail to open scope");
         return;
     }
-    std::unique_ptr<AuthenticatorCallbackParam> data(reinterpret_cast<AuthenticatorCallbackParam *>(work->data));
-    napi_value checkResult[RESULT_COUNT] = {NapiGetNull(data->context.env)};
+    napi_value checkResult[RESULT_COUNT] = { NapiGetNull(data->context.env) };
     if (data->context.errCode == ERR_JS_SUCCESS) {
         bool hasLabels = data->result.GetBoolParam(Constants::KEY_BOOLEAN_RESULT, false);
         napi_get_boolean(data->context.env, hasLabels, &checkResult[PARAMONE]);
@@ -144,6 +128,7 @@ void CheckAccountLabelsOnResultWork(uv_work_t *work, int status)
     }
     ProcessCallbackOrPromise(data->context.env, &(data->context), checkResult[PARAMZERO], checkResult[PARAMONE]);
     napi_close_handle_scope(data->context.env, scope);
+    };
 }
 
 static napi_value CreateJSAppAccountInfo(napi_env env, const std::string &name, const std::string &owner)
@@ -158,21 +143,22 @@ static napi_value CreateJSAppAccountInfo(napi_env env, const std::string &name, 
     return object;
 }
 
-void SelectAccountsOnResultWork(uv_work_t *work, int status)
+std::function<void()> SelectAccountsOnResultWork(const std::shared_ptr<AuthenticatorCallbackParam> &param)
 {
+    return [param = std::move(param)] {
     napi_handle_scope scope = nullptr;
-    std::unique_ptr<uv_work_t> workPtr(work);
-    if (!InitUvWorkCallbackEnv(work, scope)) {
+    napi_open_handle_scope(param->env, &scope);
+    if (scope == nullptr) {
+        ACCOUNT_LOGE("fail to open scope");
         return;
     }
-    std::unique_ptr<AuthenticatorCallbackParam> param(reinterpret_cast<AuthenticatorCallbackParam *>(work->data));
     std::vector<std::string> names = param->result.GetStringArrayParam(Constants::KEY_ACCOUNT_NAMES);
     std::vector<std::string> owners = param->result.GetStringArrayParam(Constants::KEY_ACCOUNT_OWNERS);
     if (names.size() != owners.size()) {
         param->context.errCode = ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
     }
     napi_env env = param->context.env;
-    napi_value selectResult[RESULT_COUNT] = {0};
+    napi_value selectResult[RESULT_COUNT] = { 0 };
     if (param->context.errCode == ERR_JS_SUCCESS) {
         napi_create_array(env, &selectResult[PARAMONE]);
         for (size_t i = 0; i < names.size(); ++i) {
@@ -184,10 +170,11 @@ void SelectAccountsOnResultWork(uv_work_t *work, int status)
     }
     ProcessCallbackOrPromise(env, &(param->context), selectResult[PARAMZERO], selectResult[PARAMONE]);
     napi_close_handle_scope(env, scope);
+    };
 }
 
-AuthenticatorAsyncCallback::AuthenticatorAsyncCallback(
-    napi_env env, napi_ref ref, napi_deferred deferred, uv_after_work_cb workCb)
+AuthenticatorAsyncCallback::AuthenticatorAsyncCallback(napi_env env, napi_ref ref, napi_deferred deferred,
+    std::function<std::function<void()>(const std::shared_ptr<AuthenticatorCallbackParam> &)> workCb)
     : env_(env), callbackRef_(ref), deferred_(deferred), workCb_(workCb)
 {}
 
@@ -203,11 +190,9 @@ void AuthenticatorAsyncCallback::OnResult(int32_t resultCode, const AAFwk::Want 
         }
         isDone = true;
     }
-    uv_loop_s *loop = nullptr;
-    uv_work_t *work = nullptr;
-    AuthenticatorCallbackParam *param = nullptr;
-    if (!InitAuthenticatorWorkEnv(env_, &loop, &work, &param)) {
-        ACCOUNT_LOGE("failed to init work environment");
+    std::shared_ptr<AuthenticatorCallbackParam> param = std::make_shared<AuthenticatorCallbackParam>(env_);
+    if (param == nullptr) {
+        ACCOUNT_LOGE("failed to create AuthenticatorCallbackParam");
         return;
     }
     param->context.env = env_;
@@ -215,14 +200,11 @@ void AuthenticatorAsyncCallback::OnResult(int32_t resultCode, const AAFwk::Want 
     param->context.deferred = deferred_;
     param->context.errCode = resultCode;
     param->result = result;
-    work->data = param;
-    if (uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, workCb_, uv_qos_default) == ERR_OK) {
+    if (napi_ok == napi_send_event(env_, workCb_(param), napi_eprio_vip)) {
         return;
     }
     param->context.callbackRef = nullptr;
     ReleaseNapiRefAsync(env_, callbackRef_);
-    delete param;
-    delete work;
 }
 
 void AuthenticatorAsyncCallback::OnRequestRedirected(AAFwk::Want &request)
@@ -238,41 +220,47 @@ AppAccountManagerCallback::AppAccountManagerCallback(napi_env env, JSAuthCallbac
 AppAccountManagerCallback::~AppAccountManagerCallback()
 {}
 
-void UvQueueWorkOnResult(uv_work_t *work, int status)
+static std::function<void()> OnResultWork(const std::shared_ptr<AuthenticatorCallbackParam> &param)
 {
-    std::unique_ptr<uv_work_t> workPtr(work);
+    return [data = std::move(param)] {
     napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
+    napi_open_handle_scope(data->env, &scope);
+    if (scope == nullptr) {
+        ACCOUNT_LOGE("fail to open scope");
         return;
     }
-    std::unique_ptr<AuthenticatorCallbackParam> data(reinterpret_cast<AuthenticatorCallbackParam *>(work->data));
     ProcessOnResultCallback(data->env, data->callback, data->resultCode, data->result.GetParams());
     napi_close_handle_scope(data->env, scope);
+    };
 }
 
-void UvQueueWorkOnRequestRedirected(uv_work_t *work, int status)
+static std::function<void()> OnRequestRedirectedWork(const std::shared_ptr<AuthenticatorCallbackParam> &param)
 {
-    std::unique_ptr<uv_work_t> workPtr(work);
+    return [data = std::move(param)] {
     napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
+    napi_open_handle_scope(data->env, &scope);
+    if (scope == nullptr) {
+        ACCOUNT_LOGE("fail to open scope");
         return;
     }
-    std::unique_ptr<AuthenticatorCallbackParam> data(reinterpret_cast<AuthenticatorCallbackParam *>(work->data));
-    napi_value results[ARGS_SIZE_ONE] = {AppExecFwk::WrapWant(data->env, data->request)};
+    napi_value results[ARGS_SIZE_ONE] = { AppExecFwk::WrapWant(data->env, data->request) };
     NapiCallVoidFunction(data->env, results, ARGS_SIZE_ONE, data->callback.onRequestRedirected);
     napi_close_handle_scope(data->env, scope);
+    };
 }
 
-void UvQueueWorkOnRequestContinued(uv_work_t *work, int status)
+static std::function<void()> OnRequestContinuedWork(const std::shared_ptr<AuthenticatorCallbackParam> &param)
 {
-    std::unique_ptr<uv_work_t> workPtr(work);
+    return [data = std::move(param)] {
     napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
+    napi_open_handle_scope(data->env, &scope);
+    if (scope == nullptr) {
+        ACCOUNT_LOGE("fail to open scope");
         return;
     }
-    std::unique_ptr<AuthenticatorCallbackParam> data(reinterpret_cast<AuthenticatorCallbackParam *>(work->data));
     NapiCallVoidFunction(data->env, nullptr, 0, data->callback.onRequestContinued);
     napi_close_handle_scope(data->env, scope);
+    };
 }
 
 void AppAccountManagerCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
@@ -284,63 +272,51 @@ void AppAccountManagerCallback::OnResult(int32_t resultCode, const AAFwk::Want &
         }
         isDone = true;
     }
-    uv_loop_s *loop = nullptr;
-    uv_work_t *work = nullptr;
-    AuthenticatorCallbackParam *param = nullptr;
-    if (!InitAuthenticatorWorkEnv(env_, &loop, &work, &param)) {
-        ACCOUNT_LOGE("failed to init authenticator work environment");
+    std::shared_ptr<AuthenticatorCallbackParam> param = std::make_shared<AuthenticatorCallbackParam>(env_);
+    if (param == nullptr) {
+        ACCOUNT_LOGE("failed to create AuthenticatorCallbackParam");
         return;
     }
     param->resultCode = resultCode;
     param->result = result;
     param->callback = callback_;
-    work->data = reinterpret_cast<void *>(param);
-    int32_t ret = uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnResult, uv_qos_default);
-    if (ret != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", ret);
-        delete work;
-        delete param;
+    if (napi_ok != napi_send_event(env_, OnResultWork(param), napi_eprio_vip)) {
+        ACCOUNT_LOGE("Post task failed");
+        ReleaseNapiRefArray(env_, {
+            callback_.onResult,
+            callback_.onRequestRedirected,
+            callback_.onRequestContinued,
+        });
+        callback_.onResult = nullptr;
+        callback_.onRequestRedirected = nullptr;
+        callback_.onRequestContinued = nullptr;
     }
 }
 
 void AppAccountManagerCallback::OnRequestRedirected(AAFwk::Want &request)
 {
-    uv_loop_s *loop = nullptr;
-    uv_work_t *work = nullptr;
-    AuthenticatorCallbackParam *param = nullptr;
-    if (!InitAuthenticatorWorkEnv(env_, &loop, &work, &param)) {
-        ACCOUNT_LOGE("failed to init authenticator work environment");
+    std::shared_ptr<AuthenticatorCallbackParam> param = std::make_shared<AuthenticatorCallbackParam>(env_);
+    if (param == nullptr) {
+        ACCOUNT_LOGE("failed to create AuthenticatorCallbackParam");
         return;
     }
     param->request = request;
     param->callback = callback_;
-    work->data = reinterpret_cast<void *>(param);
-    int32_t ret =
-        uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnRequestRedirected, uv_qos_default);
-    if (ret != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", ret);
-        delete work;
-        delete param;
+    if (napi_ok != napi_send_event(env_, OnRequestRedirectedWork(param), napi_eprio_vip)) {
+        ACCOUNT_LOGE("Post task failed");
     }
 }
 
 void AppAccountManagerCallback::OnRequestContinued()
 {
-    uv_loop_s *loop = nullptr;
-    uv_work_t *work = nullptr;
-    AuthenticatorCallbackParam *param = nullptr;
-    if (!InitAuthenticatorWorkEnv(env_, &loop, &work, &param)) {
-        ACCOUNT_LOGE("failed to init authenticator work environment");
+    std::shared_ptr<AuthenticatorCallbackParam> param = std::make_shared<AuthenticatorCallbackParam>(env_);
+    if (param == nullptr) {
+        ACCOUNT_LOGE("failed to create AuthenticatorCallbackParam");
         return;
     }
     param->callback = callback_;
-    work->data = reinterpret_cast<void *>(param);
-    int32_t ret =
-        uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnRequestContinued, uv_qos_default);
-    if (ret != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", ret);
-        delete work;
-        delete param;
+    if (napi_ok != napi_send_event(env_, OnRequestContinuedWork(param), napi_eprio_vip)) {
+        ACCOUNT_LOGE("Post task failed");
     }
 }
 
