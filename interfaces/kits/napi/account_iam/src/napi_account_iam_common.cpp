@@ -303,6 +303,25 @@ napi_status ConvertGetPropertyTypeToAttributeKey(GetPropertyType in,
     return napi_ok;
 }
 
+napi_status ParseGetPropKeys(napi_env env, napi_value napiKeys, std::vector<Attributes::AttributeKey> &keys)
+{
+    std::vector<uint32_t> tempKeys;
+    if (ParseUInt32Array(env, napiKeys, tempKeys) != napi_ok) {
+        ACCOUNT_LOGE("Parameter error. The type of \"keys\" must be GetPropertyType's array");
+        return napi_invalid_arg;
+    }
+    for (const auto &item : tempKeys) {
+        Attributes::AttributeKey key;
+        napi_status status = ConvertGetPropertyTypeToAttributeKey(static_cast<GetPropertyType>(item), key);
+        if (status != napi_ok) {
+            ACCOUNT_LOGE("Parameter error. The type of \"key\" must be 'GetPropertyType'");
+            return napi_invalid_arg;
+        }
+        keys.push_back(key);
+    }
+    return napi_ok;
+}
+
 napi_status ParseGetPropRequest(napi_env env, napi_value object, GetPropertyContext &context)
 {
     napi_valuetype valueType = napi_undefined;
@@ -317,17 +336,10 @@ napi_status ParseGetPropRequest(napi_env env, napi_value object, GetPropertyCont
     napi_get_value_int32(env, napiAuthType, &authType);
     context.request.authType = static_cast<AuthType>(authType);
     napi_value napiKeys = nullptr;
-    NAPI_CALL_BASE(env, napi_get_named_property(env, object, "keys", &napiKeys), napi_invalid_arg);
-    std::vector<uint32_t> keys;
-    ParseUInt32Array(env, napiKeys, keys);
-    for (const auto &item : keys) {
-        Attributes::AttributeKey key;
-        napi_status status = ConvertGetPropertyTypeToAttributeKey(static_cast<GetPropertyType>(item), key);
-        if (status != napi_ok) {
-            ACCOUNT_LOGE("failed to convert get property type");
-            return status;
-        }
-        context.request.keys.push_back(key);
+    NAPI_CALL_BASE(env, napi_get_named_property(env, object, "keys", &napiKeys), napi_generic_failure);
+    if (ParseGetPropKeys(env, napiKeys, context.request.keys) != napi_ok) {
+        ACCOUNT_LOGE("Get getPropRequest's keys failed");
+        return napi_invalid_arg;
     }
     if (!GetOptionalNumberPropertyByKey(env, object, "accountId", context.accountId, context.parseHasAccountId)) {
         ACCOUNT_LOGE("Get getPropRequest's accountId failed");
@@ -362,43 +374,42 @@ napi_status ParseSetPropRequest(napi_env env, napi_value object, SetPropertyRequ
     return napi_ok;
 }
 
-static void GeneratePropertyJs(napi_env env, const GetPropertyContext &prop, napi_value &dataJs)
+static void GeneratePropertyJs(napi_env env, const GetPropertyCommonContext &context, napi_value &dataJs)
 {
     NAPI_CALL_RETURN_VOID(env, napi_create_object(env, &dataJs));
     napi_value napiResult = nullptr;
-    NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, prop.result, &napiResult));
+    NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, context.propertyInfo.result, &napiResult));
     NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, dataJs, "result", napiResult));
-    for (const auto &key : prop.request.keys) {
+    for (const auto &key : context.keys) {
         switch (key) {
             case Attributes::AttributeKey::ATTR_PIN_SUB_TYPE: {
-                SetInt32ToJsProperty(env, prop.authSubType, "authSubType", dataJs);
+                SetInt32ToJsProperty(env, context.propertyInfo.authSubType, "authSubType", dataJs);
                 break;
             }
             case Attributes::AttributeKey::ATTR_REMAIN_TIMES: {
-                SetInt32ToJsProperty(env, prop.remainTimes, "remainTimes", dataJs);
+                SetInt32ToJsProperty(env, context.propertyInfo.remainTimes, "remainTimes", dataJs);
                 break;
             }
             case Attributes::AttributeKey::ATTR_FREEZING_TIME: {
-                SetInt32ToJsProperty(env, prop.freezingTime, "freezingTime", dataJs);
+                SetInt32ToJsProperty(env, context.propertyInfo.freezingTime, "freezingTime", dataJs);
                 break;
             }
             case Attributes::AttributeKey::ATTR_ENROLL_PROGRESS: {
                 napi_value napiEnrollmentProgress = nullptr;
-                NAPI_CALL_RETURN_VOID(env, napi_create_string_utf8(
-                    env, prop.enrollmentProgress.c_str(), NAPI_AUTO_LENGTH, &napiEnrollmentProgress));
-                NAPI_CALL_RETURN_VOID(
-                    env, napi_set_named_property(env, dataJs, "enrollmentProgress", napiEnrollmentProgress));
+                napi_create_string_utf8(
+                    env, context.propertyInfo.enrollmentProgress.c_str(), NAPI_AUTO_LENGTH, &napiEnrollmentProgress);
+                napi_set_named_property(env, dataJs, "enrollmentProgress", napiEnrollmentProgress);
                 break;
             }
             case Attributes::AttributeKey::ATTR_SENSOR_INFO: {
                 napi_value napiSensorInfo = nullptr;
-                NAPI_CALL_RETURN_VOID(env,
-                    napi_create_string_utf8(env, prop.sensorInfo.c_str(), NAPI_AUTO_LENGTH, &napiSensorInfo));
-                NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, dataJs, "sensorInfo", napiSensorInfo));
+                napi_create_string_utf8(env,
+                    context.propertyInfo.sensorInfo.c_str(), NAPI_AUTO_LENGTH, &napiSensorInfo);
+                napi_set_named_property(env, dataJs, "sensorInfo", napiSensorInfo);
                 break;
             }
             case Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION: {
-                SetInt32ToJsProperty(env, prop.nextPhaseFreezingTime, "nextPhaseFreezingTime", dataJs);
+                SetInt32ToJsProperty(env, context.propertyInfo.nextPhaseFreezingTime, "nextPhaseFreezingTime", dataJs);
                 break;
             }
             default:
@@ -407,18 +418,22 @@ static void GeneratePropertyJs(napi_env env, const GetPropertyContext &prop, nap
     }
 }
 
-static void CreateExecutorProperty(napi_env env, GetPropertyContext &prop, napi_value &errJs, napi_value &dataJs)
+static void CreateExecutorProperty(
+    napi_env env, GetPropertyCommonContext &context, napi_value &errJs, napi_value &dataJs)
 {
-    if (prop.result != ERR_OK && prop.result != ERR_IAM_NOT_ENROLLED) {
-        prop.errCode = prop.result;
-        int32_t jsErrCode = AccountIAMConvertToJSErrCode(prop.result);
+    context.errCode = context.propertyInfo.result;
+    if (!context.isGetById && context.errCode == ERR_IAM_NOT_ENROLLED) {
+        context.errCode = ERR_OK;
+    }
+    if (context.errCode != ERR_OK) {
+        int32_t jsErrCode = AccountIAMConvertToJSErrCode(context.propertyInfo.result);
         errJs = GenerateBusinessError(env, jsErrCode, ConvertToJsErrMsg(jsErrCode));
         napi_get_null(env, &dataJs);
-    } else {
-        prop.errCode = 0;
-        napi_get_null(env, &errJs);
-        GeneratePropertyJs(env, prop, dataJs);
+        return;
     }
+    context.errCode = ERR_OK;
+    napi_get_null(env, &errJs);
+    GeneratePropertyJs(env, context, dataJs);
 }
 
 static napi_value GenerateAuthResult(napi_env env, AuthCallbackParam *param)
@@ -662,8 +677,8 @@ void NapiGetEnrolledIdCallback::OnEnrolledId(int32_t result, uint64_t enrolledId
 }
 
 NapiGetPropCallback::NapiGetPropCallback(
-    napi_env env, napi_ref callbackRef, napi_deferred deferred, const AccountSA::GetPropertyRequest &request)
-    : env_(env), deferred_(deferred), request_(request)
+    napi_env env, napi_ref callbackRef, napi_deferred deferred, const std::vector<Attributes::AttributeKey> &keys)
+    : env_(env), deferred_(deferred), keys_(keys)
 {
     callback_ = std::make_shared<NapiCallbackRef>(env, callbackRef);
 }
@@ -671,45 +686,46 @@ NapiGetPropCallback::NapiGetPropCallback(
 NapiGetPropCallback::~NapiGetPropCallback()
 {}
 
-void NapiGetPropCallback::GetContextParams(
-    const UserIam::UserAuth::Attributes &extraInfo, GetPropertyContext &context)
+void NapiGetPropCallback::GetExecutorPropertys(
+    const UserIam::UserAuth::Attributes &extraInfo, ExecutorProperty &propertyInfo)
 {
-    for (const auto &key : request_.keys) {
+    for (const auto &key : keys_) {
         switch (key) {
             case Attributes::AttributeKey::ATTR_PIN_SUB_TYPE: {
-                if (!extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_PIN_SUB_TYPE, context.authSubType)) {
+                if (!extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_PIN_SUB_TYPE, propertyInfo.authSubType)) {
                     ACCOUNT_LOGE("get authSubType failed");
                 }
                 break;
             }
             case Attributes::AttributeKey::ATTR_REMAIN_TIMES: {
-                if (!extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, context.remainTimes)) {
+                if (!extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, propertyInfo.remainTimes)) {
                     ACCOUNT_LOGE("get remainTimes failed");
                 }
                 break;
             }
             case Attributes::AttributeKey::ATTR_FREEZING_TIME: {
-                if (!extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, context.freezingTime)) {
+                if (!extraInfo.GetInt32Value(
+                    Attributes::AttributeKey::ATTR_FREEZING_TIME, propertyInfo.freezingTime)) {
                     ACCOUNT_LOGE("get freezingTime failed");
                 }
                 break;
             }
             case Attributes::AttributeKey::ATTR_ENROLL_PROGRESS: {
                 if (!extraInfo.GetStringValue(
-                    Attributes::AttributeKey::ATTR_ENROLL_PROGRESS, context.enrollmentProgress)) {
+                    Attributes::AttributeKey::ATTR_ENROLL_PROGRESS, propertyInfo.enrollmentProgress)) {
                     ACCOUNT_LOGE("get enrollmentProgress failed");
                 }
                 break;
             }
             case Attributes::AttributeKey::ATTR_SENSOR_INFO: {
-                if (!extraInfo.GetStringValue(Attributes::AttributeKey::ATTR_SENSOR_INFO, context.sensorInfo)) {
+                if (!extraInfo.GetStringValue(Attributes::AttributeKey::ATTR_SENSOR_INFO, propertyInfo.sensorInfo)) {
                     ACCOUNT_LOGE("get sensorInfo failed");
                 }
                 break;
             }
             case Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION: {
-                if (!extraInfo.GetInt32Value(
-                    Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION, context.nextPhaseFreezingTime)) {
+                if (!extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION,
+                    propertyInfo.nextPhaseFreezingTime)) {
                     ACCOUNT_LOGE("get nextPhaseFreezingTime failed");
                 }
                 break;
@@ -733,18 +749,19 @@ void NapiGetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attr
         return;
     }
     onResultCalled_ = true;
-    std::shared_ptr<GetPropertyContext> context = std::make_shared<GetPropertyContext>(env_);
+    std::shared_ptr<GetPropertyCommonContext> context = std::make_shared<GetPropertyCommonContext>(env_);
     if (context == nullptr) {
         ACCOUNT_LOGE("Failed for nullptr");
         return;
     }
     // create context data
-    GetContextParams(extraInfo, *context);
+    GetExecutorPropertys(extraInfo, context->propertyInfo);
+    context->isGetById = isGetById_;
     context->callback = callback_;
     context->deferred = deferred_;
     context->errCode = ERR_OK;
-    context->result = result;
-    context->request = request_;
+    context->propertyInfo.result = result;
+    context->keys = keys_;
     auto task = [context = std::move(context)]() {
         ACCOUNT_LOGI("Enter NapiGetPropCallback::OnResult task");
         napi_handle_scope scope = nullptr;

@@ -42,8 +42,8 @@ private:
 
 class AuthCallback : public AuthenticationCallback {
 public:
-    AuthCallback(uint32_t userId, AuthType authType, const sptr<IIDMCallback> &callback);
-    AuthCallback(uint32_t userId, AuthType authType,
+    AuthCallback(uint32_t userId, AuthType authType, AuthIntent authIntent, const sptr<IIDMCallback> &callback);
+    AuthCallback(uint32_t userId, AuthType authType, AuthIntent authIntent,
         bool isRemoteAuth, const sptr<IIDMCallback> &callback);
     virtual ~AuthCallback() = default;
 
@@ -52,6 +52,8 @@ public:
     void OnResult(int32_t result, const Attributes &extraInfo) override;
 
 private:
+    ErrCode UnlockAccount(int32_t accountId, const std::vector<uint8_t> &token,
+        const std::vector<uint8_t> &secret, bool &isUpdateVerifiedStatus);
     ErrCode HandleAuthResult(const Attributes &extraInfo, int32_t accountId, bool &isUpdateVerifiedStatus);
     void HandleReEnroll(const Attributes &extraInfo, int32_t accountId, const std::vector<uint8_t> &token);
     ErrCode InnerHandleReEnroll(const std::vector<uint8_t> &token);
@@ -60,6 +62,7 @@ private:
     uint32_t userId_;
     uint32_t callerTokenId_ = 0;
     AuthType authType_;
+    AuthIntent authIntent_;
     bool isRemoteAuth_ = false;
     sptr<IIDMCallback> innerCallback_ = nullptr;
     sptr<AuthCallbackDeathRecipient> deathRecipient_ = nullptr;
