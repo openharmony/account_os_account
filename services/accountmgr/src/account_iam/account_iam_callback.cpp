@@ -162,6 +162,10 @@ ErrCode AuthCallback::UnlockAccount(int32_t accountId, const std::vector<uint8_t
 {
     ErrCode ret = ERR_OK;
     if (authType_ == AuthType::PIN) {
+        if (secret.empty()) {
+            ACCOUNT_LOGI("No need to active user.");
+            return ERR_OK;
+        }
         (void)InnerAccountIAMManager::GetInstance().HandleFileKeyException(accountId, secret, token);
         bool isVerified = false;
         (void)IInnerOsAccountManager::GetInstance().IsOsAccountVerified(accountId, isVerified);
@@ -177,12 +181,16 @@ ErrCode AuthCallback::UnlockAccount(int32_t accountId, const std::vector<uint8_t
         }
     }
     if (!isUpdateVerifiedStatus) {
+        if (authType_ == AuthType::RECOVERY_KEY) {
+            ACCOUNT_LOGI("No need to unlock screen.");
+            return ERR_OK;
+        }
         bool lockScreenStatus = false;
         ret = InnerAccountIAMManager::GetInstance().GetLockScreenStatus(accountId, lockScreenStatus);
         if (ret != 0) {
             ReportOsAccountOperationFail(accountId, "auth", ret, "Failed to get lock status");
         }
-        if (!lockScreenStatus && authType_ != AuthType::RECOVERY_KEY) {
+        if (!lockScreenStatus) {
             ACCOUNT_LOGI("start unlock user screen");
             // el3\4 file decryption
             ret = InnerAccountIAMManager::GetInstance().UnlockUserScreen(accountId, token, secret);
@@ -204,7 +212,10 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo, int32_t acco
     std::vector<uint8_t> token;
     extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
     std::vector<uint8_t> secret;
-    extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, secret);
+    if (!extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, secret)) {
+        ACCOUNT_LOGW("No secret to support user unlock");
+        secret.clear();
+    }
     ErrCode ret = UnlockAccount(accountId, token, secret, isUpdateVerifiedStatus);
     if (ret != ERR_OK) {
         return ret;

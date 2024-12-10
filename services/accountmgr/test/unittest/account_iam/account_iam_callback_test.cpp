@@ -167,7 +167,7 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0200, TestSize.Level0)
     Attributes extraInfo;
     int32_t errCode = 0;
     userAuthCallback->OnResult(errCode, extraInfo);
-    EXPECT_EQ(ResultCode::FAIL, callback->result_);
+    EXPECT_EQ(errCode, callback->result_);
     errCode = 10; // result != 0
     userAuthCallback->OnResult(errCode, extraInfo);
     EXPECT_EQ(errCode, callback->result_);
@@ -213,7 +213,7 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0400, TestSize.Level0)
     EXPECT_EQ(extraInfo.SetBoolValue(Attributes::ATTR_RE_ENROLL_FLAG, true), true);
     int32_t errCode = 0;
     userAuthCallback->OnResult(errCode, extraInfo);
-    EXPECT_EQ(ResultCode::FAIL, callback->result_);
+    EXPECT_EQ(errCode, callback->result_);
     errCode = 10; // result != 0
     userAuthCallback->OnResult(errCode, extraInfo);
     EXPECT_EQ(errCode, callback->result_);
