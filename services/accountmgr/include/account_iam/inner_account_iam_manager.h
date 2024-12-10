@@ -68,8 +68,6 @@ public:
     ErrCode UnlockUserScreen(int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret);
     ErrCode GetLockScreenStatus(uint32_t userId, bool &lockScreenStatus);
     bool CheckDomainAuthAvailable(int32_t userId);
-    ErrCode UpdateStorageKey(int32_t userId, uint64_t secureUid, const std::vector<uint8_t> &token,
-        const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret);
     ErrCode UpdateStorageKeyContext(const int32_t userId);
     ErrCode UpdateStorageUserAuth(int32_t userId, uint64_t secureUid, const std::vector<uint8_t> &token,
         const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret);
@@ -86,8 +84,6 @@ private:
 #ifdef HAS_STORAGE_PART
     sptr<StorageManager::IStorageManager> GetStorageManagerProxy();
 #endif
-    ErrCode InnerUpdateStorageKey(int32_t userId, uint64_t secureUid, const std::vector<uint8_t> &token,
-        const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret);
     ErrCode InnerUpdateStorageKeyContext(const int32_t userId);
     ErrCode InnerUpdateStorageUserAuth(int32_t userId, uint64_t secureUid,
     const std::vector<uint8_t> &token, const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret);
