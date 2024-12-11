@@ -64,6 +64,7 @@ public:
     IAMState GetState(int32_t userId);
     void SetState(int32_t userId, IAMState state);
     ErrCode ActivateUserKey(int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret);
+    ErrCode PrepareStartUser(int32_t userId);
 
     ErrCode UnlockUserScreen(int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret);
     ErrCode GetLockScreenStatus(uint32_t userId, bool &lockScreenStatus);
@@ -92,6 +93,7 @@ private:
         int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret);
     ErrCode InnerActivateUserKey(
         int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret);
+    ErrCode InnerPrepareStartUser(int32_t userId);
 
     ErrCode GetDomainAuthStatusInfo(
         int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback);
