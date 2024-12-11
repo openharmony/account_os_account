@@ -2485,5 +2485,10 @@ ErrCode IInnerOsAccountManager::IsValidOsAccount(const OsAccountInfo &osAccountI
     }
     return ERR_OK;
 }
+
+ErrCode IInnerOsAccountManager::GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo)
+{
+    return InnerDomainAccountManager::GetInstance().GetDomainAccountInfoByUserId(localId, domainInfo);
+}
 }  // namespace AccountSA
 }  // namespace OHOS
