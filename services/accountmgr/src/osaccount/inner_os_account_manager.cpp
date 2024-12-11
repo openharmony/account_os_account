@@ -840,7 +840,7 @@ ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountIn
 
 ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
 {
-    ACCOUNT_LOGI("RemoveOsAccount delete id is %{public}d", id);
+    ACCOUNT_LOGI("Remove id is %{public}d", id);
     if (!CheckAndAddLocalIdOperating(id)) {
         ACCOUNT_LOGE("The %{public}d already in operating", id);
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
@@ -1732,10 +1732,9 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount
     DomainAccountInfo domainInfo;
     osAccountInfo.GetDomainInfo(domainInfo);
     if (domainInfo.accountId_.empty() && (osAccountInfo.GetCredentialId() == 0)) {
-        AccountInfoReport::ReportSecurityInfo(
-            osAccountInfo.GetLocalName(), osAccountInfo.GetLocalId(), ReportEvent::EVENT_LOGIN, 0);
+        AccountInfoReport::ReportSecurityInfo(osAccountInfo.GetLocalName(), id, ReportEvent::EVENT_LOGIN, 0);
     }
-    ACCOUNT_LOGI("IInnerOsAccountManager ActivateOsAccount end");
+    ACCOUNT_LOGI("Activate end");
     return ERR_OK;
 }
 
@@ -1871,7 +1870,7 @@ ErrCode IInnerOsAccountManager::DeactivateOsAccount(const int id, bool isStopSto
     ReportOsAccountLifeCycle(id, Constants::OPERATION_STOP);
 
     RemoveLocalIdToOperating(id);
-    ACCOUNT_LOGI("IInnerOsAccountManager DeactivateOsAccount end");
+    ACCOUNT_LOGI("Deactivate end");
     return ERR_OK;
 }
 

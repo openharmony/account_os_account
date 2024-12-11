@@ -577,6 +577,8 @@ static ErrCode WriteResultWithOsAccountInfo(MessageParcel &reply, int32_t result
 
 ErrCode OsAccountStub::ProcCreateOsAccount(MessageParcel &data, MessageParcel &reply)
 {
+    ACCOUNT_LOGI("Calling uid: %{public}d, pid: %{public}d",
+        IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingRealPid());
     std::string name;
     if (!data.ReadString(name)) {
         ACCOUNT_LOGE("Failed to read string for name");
@@ -591,6 +593,8 @@ ErrCode OsAccountStub::ProcCreateOsAccount(MessageParcel &data, MessageParcel &r
 
 ErrCode OsAccountStub::ProcCreateOsAccountWithShortName(MessageParcel &data, MessageParcel &reply)
 {
+    ACCOUNT_LOGI("Calling uid: %{public}d, pid: %{public}d",
+        IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingRealPid());
     std::string localName;
     if (!data.ReadString(localName)) {
         ACCOUNT_LOGE("Failed to read string for local name");
@@ -629,6 +633,8 @@ ErrCode OsAccountStub::ProcCreateOsAccountWithShortName(MessageParcel &data, Mes
 
 ErrCode OsAccountStub::ProcCreateOsAccountWithFullInfo(MessageParcel &data, MessageParcel &reply)
 {
+    ACCOUNT_LOGI("Calling uid: %{public}d, pid: %{public}d",
+        IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingRealPid());
     std::shared_ptr<OsAccountInfo> info(data.ReadParcelable<OsAccountInfo>());
     if (info == nullptr) {
         ACCOUNT_LOGE("Failed to read OsAccountInfo");
@@ -679,6 +685,8 @@ ErrCode OsAccountStub::ProcUpdateOsAccountWithFullInfo(MessageParcel &data, Mess
 
 ErrCode OsAccountStub::ProcCreateOsAccountForDomain(MessageParcel &data, MessageParcel &reply)
 {
+    ACCOUNT_LOGI("Calling uid: %{public}d, pid: %{public}d",
+        IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingRealPid());
     OsAccountType type = static_cast<OsAccountType>(data.ReadInt32());
     std::shared_ptr<DomainAccountInfo> info(data.ReadParcelable<DomainAccountInfo>());
     if (info == nullptr) {
@@ -716,6 +724,8 @@ ErrCode OsAccountStub::ProcCreateOsAccountForDomain(MessageParcel &data, Message
 
 ErrCode OsAccountStub::ProcRemoveOsAccount(MessageParcel &data, MessageParcel &reply)
 {
+    ACCOUNT_LOGI("Calling uid: %{public}d, pid: %{public}d",
+        IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingRealPid());
     int32_t localId;
     if (!data.ReadInt32(localId)) {
         ACCOUNT_LOGE("Failed to read localId");
@@ -1256,6 +1266,8 @@ ErrCode OsAccountStub::ProcUnsubscribeOsAccount(MessageParcel &data, MessageParc
 
 ErrCode OsAccountStub::ProcActivateOsAccount(MessageParcel &data, MessageParcel &reply)
 {
+    ACCOUNT_LOGI("Calling uid: %{public}d, pid: %{public}d",
+        IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingRealPid());
     int32_t localId;
     if (!data.ReadInt32(localId)) {
         ACCOUNT_LOGE("Failed to read localId");
@@ -1274,6 +1286,8 @@ ErrCode OsAccountStub::ProcActivateOsAccount(MessageParcel &data, MessageParcel 
 
 ErrCode OsAccountStub::ProcDeactivateOsAccount(MessageParcel &data, MessageParcel &reply)
 {
+    ACCOUNT_LOGI("Calling uid: %{public}d, pid: %{public}d",
+        IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingRealPid());
     int32_t localId;
     if (!data.ReadInt32(localId)) {
         ACCOUNT_LOGE("Failed to read localId");
