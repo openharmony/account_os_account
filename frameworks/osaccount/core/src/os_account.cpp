@@ -995,5 +995,18 @@ ErrCode OsAccount::SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved)
     }
     return proxy->SetOsAccountToBeRemoved(localId, toBeRemoved);
 }
+
+ErrCode OsAccount::GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo)
+{
+    ErrCode result = CheckLocalId(localId);
+    if (result != ERR_OK) {
+        return result;
+    }
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->GetOsAccountDomainInfo(localId, domainInfo);
+}
 }  // namespace AccountSA
 }  // namespace OHOS
