@@ -123,6 +123,7 @@ public:
     bool CheckAndCleanOsAccounts();
     ErrCode GetRealOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo);
     void CleanGarbageOsAccountsAsync() override;
+    ErrCode GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo) override;
 
 private:
     IInnerOsAccountManager();
