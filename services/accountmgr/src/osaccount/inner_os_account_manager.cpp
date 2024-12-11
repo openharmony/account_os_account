@@ -759,7 +759,7 @@ ErrCode IInnerOsAccountManager::PrepareRemoveOsAccount(OsAccountInfo &osAccountI
 #endif // HAS_USER_IDM_PART
     DomainAccountInfo curDomainInfo;
     osAccountInfo.GetDomainInfo(curDomainInfo);
-    if (!curDomainInfo.accountId_.empty()) {
+    if (!curDomainInfo.accountName_.empty()) {
         InnerDomainAccountManager::GetInstance().OnAccountUnBound(curDomainInfo, nullptr);
         InnerDomainAccountManager::GetInstance().RemoveTokenFromMap(id);
     }
@@ -807,7 +807,7 @@ ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountIn
     }
     DomainAccountInfo domainAccountInfo;
     osAccountInfo.GetDomainInfo(domainAccountInfo);
-    if (!domainAccountInfo.accountId_.empty()) {
+    if (!domainAccountInfo.accountName_.empty()) {
         InnerDomainAccountManager::GetInstance().NotifyDomainAccountEvent(
             id, DomainAccountEvent::LOG_OUT, DomainAccountStatus::LOGOUT, domainAccountInfo);
     }

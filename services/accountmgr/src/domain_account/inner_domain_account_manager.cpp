@@ -176,6 +176,10 @@ ErrCode InnerDomainAccountManager::RegisterPlugin(const sptr<IDomainAccountPlugi
 ErrCode InnerDomainAccountManager::UnregisterPlugin()
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    if (callingUid_ == -1) {
+        ACCOUNT_LOGI("No plugin register.");
+        return ERR_OK;
+    }
     if (callingUid_ != IPCSkeleton::GetCallingUid()) {
         ACCOUNT_LOGE("Failed to check callingUid, register callingUid=%{public}d, unregister callingUid=%{public}d.",
             callingUid_, IPCSkeleton::GetCallingUid());
