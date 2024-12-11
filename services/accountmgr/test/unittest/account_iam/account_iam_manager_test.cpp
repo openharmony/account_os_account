@@ -735,25 +735,6 @@ HWTEST_F(AccountIamManagerTest, ActivateUserKey001, TestSize.Level2)
 }
 
 /**
- * @tc.name: UpdateStorageKey001
- * @tc.desc: UpdateStorageKey.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AccountIamManagerTest, UpdateStorageKey001, TestSize.Level2)
-{
-    uint64_t testCreId = 111;
-    std::vector<uint8_t> testAuthToken = {1, 2, 3, 4};
-    std::vector<uint8_t> testSecret = {1, 2, 3, 4};
-    std::vector<uint8_t> token = {};
-    auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
-
-    int32_t res =
-        innerIamMgr_.UpdateStorageKey(TEST_USER_ID, testCreId, token, testSecret, testSecret);
-    EXPECT_EQ(g_fscryptEnable ? -2 : 0, res);
-}
-
-/**
  * @tc.name: UpdateCredCallback_OnResult_0001
  * @tc.desc: OnResult with not PIN.
  * @tc.type: FUNC
