@@ -20,7 +20,6 @@
 #include "app_account_common.h"
 #include "app_account_info.h"
 #include "app_mgr_interface.h"
-#include "app_mgr_proxy.h"
 #include "iapp_account_authenticator_callback.h"
 #include "iremote_object.h"
 #include "singleton.h"
@@ -31,14 +30,6 @@ namespace AccountSA {
 class AppAccountAuthenticatorSession;
 class AppAccountCheckLabelsSession;
 class AppAccountAuthenticatorSessionManager;
-
-class SessionAppStateObserver : public AppExecFwk::ApplicationStateObserverStub {
-public:
-    explicit SessionAppStateObserver();
-    ~SessionAppStateObserver() override = default;
-
-    void OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData) override;
-};
 
 class AppAccountAuthenticatorSessionManager {
 public:
@@ -54,7 +45,6 @@ public:
     ErrCode SelectAccountsByOptions(
         const std::vector<AppAccountInfo> accounts, const AuthenticatorSessionRequest &request);
     ErrCode SetAuthenticatorProperties(const AuthenticatorSessionRequest &request);
-    void OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData);
     void Init();
     void CloseSession(const std::string &sessionId);
     ErrCode OpenSession(const std::shared_ptr<AppAccountAuthenticatorSession> &session);
@@ -72,13 +62,9 @@ private:
     AppAccountAuthenticatorSessionManager() = default;
     ~AppAccountAuthenticatorSessionManager();
     DISALLOW_COPY_AND_MOVE(AppAccountAuthenticatorSessionManager);
-    void RegisterApplicationStateObserver();
-    void UnregisterApplicationStateObserver();
 
 private:
     std::mutex mutex_;
-    sptr<AppExecFwk::IAppMgr> iAppMgr_;
-    sptr<SessionAppStateObserver> appStateObserver_;
     std::map<std::string, std::shared_ptr<AppAccountAuthenticatorSession>> sessionMap_;
     std::map<std::string, std::set<std::string>> abilitySessions_;
     bool isInitialized_ = false;

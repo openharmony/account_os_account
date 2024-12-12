@@ -18,7 +18,6 @@
 #include "accesstoken_kit.h"
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
-#include "app_account_app_state_observer.h"
 #include "app_account_check_labels_session.h"
 #include "app_account_data_storage.h"
 #include "app_account_info.h"
@@ -497,10 +496,6 @@ ErrCode AppAccountControlManager::GetAssociatedDataFromStorage(const std::string
         value = it->second;
     } else {
         result = ERR_APPACCOUNT_SERVICE_ASSOCIATED_DATA_KEY_NOT_EXIST;
-    }
-    if ((associatedDataCache_.size() == 0) && (!RegisterApplicationStateObserver())) {
-        ACCOUNT_LOGE("failed to register application state observer");
-        return result;
     }
     if (associatedDataCache_.size() >= ASSOCIATED_DATA_CACHE_MAX_SIZE) {
         PopDataFromAssociatedDataCache();
@@ -1022,9 +1017,6 @@ void AppAccountControlManager::RemoveAssociatedDataCacheByUid(const uid_t &uid)
 {
     std::lock_guard<std::mutex> lock(associatedDataMutex_);
     associatedDataCache_.erase(uid);
-    if (associatedDataCache_.empty()) {
-        UnregisterApplicationStateObserver();
-    }
 }
 
 void AppAccountControlManager::RemoveAssociatedDataCacheByAccount(const uid_t &uid, const std::string &name)
@@ -1035,9 +1027,6 @@ void AppAccountControlManager::RemoveAssociatedDataCacheByAccount(const uid_t &u
         return;
     }
     associatedDataCache_.erase(it);
-    if (associatedDataCache_.empty()) {
-        UnregisterApplicationStateObserver();
-    }
 }
 
 void AppAccountControlManager::SetOsAccountRemoved(int32_t localId, bool isRemoved)
@@ -1127,51 +1116,6 @@ ErrCode AppAccountControlManager::OnUserRemoved(int32_t userId)
     storePtrMap_.erase(storeId);
     storePtrMap_.erase(syncStoreId);
     return ERR_OK;
-}
-
-bool AppAccountControlManager::RegisterApplicationStateObserver()
-{
-    if (appStateObserver_ != nullptr) {
-        return false;
-    }
-    appStateObserver_ = new (std::nothrow) AppAccountAppStateObserver();
-    if (appStateObserver_ == nullptr) {
-        ACCOUNT_LOGE("failed to create AppAccountAppStateObserver instance");
-        return false;
-    }
-    sptr<ISystemAbilityManager> samgrClient = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (samgrClient == nullptr) {
-        ACCOUNT_LOGE("failed to system ability manager");
-        return false;
-    }
-    iAppMgr_ = iface_cast<AppExecFwk::IAppMgr>(samgrClient->GetSystemAbility(APP_MGR_SERVICE_ID));
-    if (iAppMgr_ == nullptr) {
-        appStateObserver_ = nullptr;
-        ACCOUNT_LOGE("failed to get ability manager service");
-        return false;
-    }
-    int32_t result = iAppMgr_->RegisterApplicationStateObserver(appStateObserver_);
-    if (result != ERR_OK) {
-        return false;
-    }
-    return true;
-}
-
-void AppAccountControlManager::UnregisterApplicationStateObserver()
-{
-    if (iAppMgr_) {
-        iAppMgr_->UnregisterApplicationStateObserver(appStateObserver_);
-    }
-    iAppMgr_ = nullptr;
-    appStateObserver_ = nullptr;
-}
-
-void AppAccountControlManager::OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData)
-{
-    if (abilityStateData.abilityState != static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_TERMINATED)) {
-        return;
-    }
-    RemoveAssociatedDataCacheByUid(abilityStateData.uid);
 }
 
 ErrCode AppAccountControlManager::GetAllAccountsFromDataStorage(const std::string &owner,

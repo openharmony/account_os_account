@@ -16,9 +16,7 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_CONTROL_MANAGER_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_CONTROL_MANAGER_H
 
-#include "app_account_app_state_observer.h"
 #include "app_mgr_interface.h"
-#include "app_mgr_proxy.h"
 #include "app_account_authenticator_manager.h"
 #include "app_account_data_storage.h"
 #include "iapp_account_authenticator_callback.h"
@@ -107,7 +105,6 @@ public:
     std::shared_ptr<AppAccountDataStorage> GetDataStorage(const uid_t &uid, const bool &autoSync = false,
         DistributedKv::SecurityLevel securityLevel = DistributedKv::SecurityLevel::S1);
 
-    void OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData);
     void AddMigratedAccount(int32_t localId);
     void MoveData();
     void SetOsAccountRemoved(int32_t localId, bool isRemoved);
@@ -116,8 +113,6 @@ private:
     AppAccountControlManager() = default;
     ~AppAccountControlManager() = default;
     DISALLOW_COPY_AND_MOVE(AppAccountControlManager);
-    bool RegisterApplicationStateObserver();
-    void UnregisterApplicationStateObserver();
     void PopDataFromAssociatedDataCache();
     void RemoveAssociatedDataCacheByUid(const uid_t &uid);
     void RemoveAssociatedDataCacheByAccount(const uid_t &uid, const std::string &name);
@@ -154,8 +149,6 @@ private:
     std::map<std::string, std::shared_ptr<AppAccountDataStorage>> storePtrMap_;
     std::mutex migratedAccountMutex_;
     std::set<int32_t> migratedAccounts_;
-    sptr<AppExecFwk::IAppMgr> iAppMgr_;
-    sptr<AppAccountAppStateObserver> appStateObserver_;
     SafeMap<int32_t, bool> removedOsAccounts_;
     std::size_t ACCOUNT_MAX_SIZE = 1000;
     std::size_t ASSOCIATED_DATA_CACHE_MAX_SIZE = 5;
