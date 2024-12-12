@@ -318,14 +318,6 @@ ErrCode OsAccountProxy::IsOsAccountDeactivating(const int id, bool &isDeactivati
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
     }
-    if (!reply.ReadInt32(result)) {
-        ACCOUNT_LOGE("Failed to read result for check os account deactivating state.");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-    }
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("Failed to read result for check os account deactivating state, result %{public}d.", result);
-        return result;
-    }
     if (!reply.ReadBool(isDeactivating)) {
         ACCOUNT_LOGE("Failed to read result for check os account deactivating state.");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
