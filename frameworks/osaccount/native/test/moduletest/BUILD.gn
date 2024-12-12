@@ -50,12 +50,15 @@ ohos_moduletest("os_account_frameworks_module_test") {
   sources = [
     "${innerkits_native_path}/src/account_info_parcel.cpp",
     "${innerkits_native_path}/src/account_proxy.cpp",
+    "${innerkits_native_path}/src/ohos_account_kits.cpp",
+    "${innerkits_native_path}/src/ohos_account_kits_impl.cpp",
     "os_account_manager_module_test.cpp",
   ]
   configs = [ ":os_account_frameworks_config_unittest" ]
 
   deps = [
     "${common_path}:libaccount_common",
+    "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
 
