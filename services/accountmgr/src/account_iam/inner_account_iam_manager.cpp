@@ -39,9 +39,6 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-#ifdef HAS_STORAGE_PART
-constexpr int32_t ERROR_STORAGE_KEY_NOT_EXIST = -2;
-#endif
 constexpr int32_t DELAY_FOR_EXCEPTION = 100;
 constexpr int32_t MAX_RETRY_TIMES = 20;
 const int32_t TIME_WAIT_TIME_OUT = 5;
@@ -592,7 +589,7 @@ ErrCode InnerAccountIAMManager::InnerUpdateStorageUserAuth(int32_t userId, uint6
     }
 
     ErrCode code = storageMgrProxy->UpdateUserAuth(userId, secureUid, token, oldSecret, newSecret);
-    if ((code != ERR_OK) && (code != ERROR_STORAGE_KEY_NOT_EXIST)) {
+    if ((code != ERR_OK) && (code != Constants::ERROR_STORAGE_KEY_NOT_EXIST)) {
         ACCOUNT_LOGE("Fail to update user auth, userId=%{public}d, code=%{public}d", userId, code);
         return code;
     }
@@ -698,10 +695,12 @@ ErrCode InnerAccountIAMManager::ActivateUserKey(
     ErrCode errCode = ERR_OK;
     while (times < MAX_RETRY_TIMES) {
         errCode = InnerActivateUserKey(userId, token, secret);
-        if ((errCode != Constants::E_IPC_ERROR) && (errCode != Constants::E_IPC_SA_DIED)) {
+        if ((errCode != Constants::E_IPC_ERROR) && (errCode != Constants::E_IPC_SA_DIED) &&
+            (errCode != ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY)) {
             return errCode;
         }
-        ACCOUNT_LOGE("errCode=%{public}d, userId=%{public}d, times=%{public}d", errCode, userId, times);
+        ACCOUNT_LOGE("Fail to activate user key, errCode=%{public}d, userId=%{public}d, times=%{public}d",
+            errCode, userId, times);
         times++;
         std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
     }
@@ -711,21 +710,50 @@ ErrCode InnerAccountIAMManager::ActivateUserKey(
 ErrCode InnerAccountIAMManager::InnerActivateUserKey(
     int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret)
 {
+    ErrCode result = ERR_OK;
 #ifdef HAS_STORAGE_PART
     auto storageMgrProxy = GetStorageManagerProxy();
     if (storageMgrProxy == nullptr) {
-        ACCOUNT_LOGE("fail to get storage proxy");
+        ACCOUNT_LOGE("Fail to get storage proxy");
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY;
     }
-    ErrCode result = storageMgrProxy->ActiveUserKey(userId, token, secret);
+    result = storageMgrProxy->ActiveUserKey(userId, token, secret);
     ACCOUNT_LOGI("ActiveUserKey end, ret: %{public}d", result);
-    if (result != ERR_OK && result != ERROR_STORAGE_KEY_NOT_EXIST) {
-        return result;
+#endif
+    return result;
+}
+
+ErrCode InnerAccountIAMManager::PrepareStartUser(int32_t userId)
+{
+    int times = 0;
+    ErrCode errCode = ERR_OK;
+    while (times < MAX_RETRY_TIMES) {
+        errCode = InnerPrepareStartUser(userId);
+        if ((errCode != Constants::E_IPC_ERROR) && (errCode != Constants::E_IPC_SA_DIED) &&
+            (errCode != ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY)) {
+            return errCode;
+        }
+        ACCOUNT_LOGE("Fail to prepare start user, errCode=%{public}d, userId=%{public}d, times=%{public}d",
+            errCode, userId, times);
+        times++;
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
+    }
+    return errCode;
+}
+
+ErrCode InnerAccountIAMManager::InnerPrepareStartUser(int32_t userId)
+{
+    ErrCode result = ERR_OK;
+#ifdef HAS_STORAGE_PART
+    auto storageMgrProxy = GetStorageManagerProxy();
+    if (storageMgrProxy == nullptr) {
+        ACCOUNT_LOGE("Fail to get storage proxy");
+        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY;
     }
     result = storageMgrProxy->PrepareStartUser(userId);
     ACCOUNT_LOGI("PrepareStartUser end, ret: %{public}d", result);
 #endif
-    return ERR_OK;
+    return result;
 }
 
 #ifdef HAS_STORAGE_PART

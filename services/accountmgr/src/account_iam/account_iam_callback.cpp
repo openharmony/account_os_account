@@ -168,10 +168,15 @@ ErrCode AuthCallback::UnlockAccount(int32_t accountId, const std::vector<uint8_t
         if (!isVerified) {
             // el2 file decryption
             ret = InnerAccountIAMManager::GetInstance().ActivateUserKey(accountId, token, secret);
-            if (ret != 0) {
+            if (ret != 0 && ret != Constants::ERROR_STORAGE_KEY_NOT_EXIST) {
                 ACCOUNT_LOGE("Failed to activate user key");
                 ReportOsAccountOperationFail(accountId, "auth", ret, "Failed to activate user key");
                 return ret;
+            }
+            ret = InnerAccountIAMManager::GetInstance().PrepareStartUser(accountId);
+            if (ret != 0) {
+                ACCOUNT_LOGE("Failed to prepare start user");
+                ReportOsAccountOperationFail(accountId, "auth", ret, "Failed to prepare start user");
             }
             isUpdateVerifiedStatus = true;
         }
