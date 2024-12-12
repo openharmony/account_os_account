@@ -41,7 +41,6 @@ const std::string VALUE = "VALUE";
 const std::string SESSION_ID = "sessionId";
 const std::string SESSION_ID_OTHER = "sessionId1";
 const int32_t SESSION_MAX_NUM = 256;
-const int32_t UID = 1;
 }  // namespace
 
 bool g_status = false;
@@ -151,86 +150,6 @@ HWTEST_F(AppAccountSessionManagerModuleTest, AppAccountSessionManagerModuleTest_
     request.owner = STRING_OWNER;
     ErrCode result = appAccountAuthenticatorSessionManagerPtr_->IsAccountRemovable(request);
     ASSERT_EQ(result, ERR_OK);
-}
-
-/**
- * @tc.name: AppAccountAuthenticateTest_OnAbilityStateChanged_0100
- * @tc.desc: test session manager func OnAbilityStateChanged.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(
-    AppAccountSessionManagerModuleTest, AppAccountSessionManagerModuleTest_OnAbilityStateChanged_0100, TestSize.Level1)
-{
-    ASSERT_NE(appAccountAuthenticatorSessionManagerPtr_, nullptr);
-
-    SessionAppStateObserver obServer;
-    AppExecFwk::AbilityStateData abilityStateData;
-    obServer.OnAbilityStateChanged(abilityStateData);
-
-    abilityStateData.abilityState = static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_TERMINATED);
-    abilityStateData.abilityName = ABILITY_NAME;
-    abilityStateData.uid = UID;
-    std::string key = abilityStateData.abilityName + std::to_string(abilityStateData.uid);
-    auto size = appAccountAuthenticatorSessionManagerPtr_->abilitySessions_.size();
-    appAccountAuthenticatorSessionManagerPtr_->OnAbilityStateChanged(abilityStateData);
-    ASSERT_EQ(size, appAccountAuthenticatorSessionManagerPtr_->abilitySessions_.size());
-
-    std::set<std::string> abilitySessionsValue;
-    abilitySessionsValue.insert(VALUE);
-    appAccountAuthenticatorSessionManagerPtr_->abilitySessions_[key] = abilitySessionsValue;
-    appAccountAuthenticatorSessionManagerPtr_->OnAbilityStateChanged(abilityStateData);
-    ASSERT_EQ(appAccountAuthenticatorSessionManagerPtr_->abilitySessions_.empty(), true);
-
-    abilitySessionsValue.insert(VALUE);
-    appAccountAuthenticatorSessionManagerPtr_->abilitySessions_[key] = abilitySessionsValue;
-    AuthenticatorAction action;
-    AuthenticatorSessionRequest request;
-    auto sessionPtr = std::make_shared<AppAccountAuthenticatorSession>(action, request);
-    appAccountAuthenticatorSessionManagerPtr_->sessionMap_[VALUE] = sessionPtr;
-    ASSERT_NE(appAccountAuthenticatorSessionManagerPtr_->sessionMap_[VALUE], nullptr);
-    appAccountAuthenticatorSessionManagerPtr_->OnAbilityStateChanged(abilityStateData);
-    ASSERT_EQ(appAccountAuthenticatorSessionManagerPtr_->sessionMap_[VALUE], nullptr);
-    ASSERT_EQ(appAccountAuthenticatorSessionManagerPtr_->abilitySessions_.empty(), true);
-}
-
-/**
- * @tc.name: AppAccountAuthenticateTest_UnregisterApplicationStateObserver_0100
- * @tc.desc: test session manager func UnregisterApplicationStateObserver.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AppAccountSessionManagerModuleTest, AppAccountSessionManagerModuleTest_UnregisterApplicationStateObserver_0100,
-    TestSize.Level1)
-{
-    ASSERT_NE(appAccountAuthenticatorSessionManagerPtr_, nullptr);
-
-    sptr<ISystemAbilityManager> samgrClient = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    ASSERT_NE(samgrClient, nullptr);
-    appAccountAuthenticatorSessionManagerPtr_->iAppMgr_ =
-        iface_cast<AppExecFwk::IAppMgr>(samgrClient->GetSystemAbility(APP_MGR_SERVICE_ID));
-    ASSERT_NE(appAccountAuthenticatorSessionManagerPtr_->iAppMgr_, nullptr);
-    appAccountAuthenticatorSessionManagerPtr_->appStateObserver_ = new (std::nothrow) SessionAppStateObserver();
-    ASSERT_NE(appAccountAuthenticatorSessionManagerPtr_->appStateObserver_, nullptr);
-    appAccountAuthenticatorSessionManagerPtr_->UnregisterApplicationStateObserver();
-    ASSERT_EQ(appAccountAuthenticatorSessionManagerPtr_->iAppMgr_, nullptr);
-    ASSERT_EQ(appAccountAuthenticatorSessionManagerPtr_->appStateObserver_, nullptr);
-}
-
-/**
- * @tc.name: AppAccountAuthenticateTest_RegisterApplicationStateObserver_0100
- * @tc.desc: test session manager func RegisterApplicationStateObserver.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AppAccountSessionManagerModuleTest, AppAccountSessionManagerModuleTest_RegisterApplicationStateObserver_0100,
-    TestSize.Level1)
-{
-    ASSERT_NE(appAccountAuthenticatorSessionManagerPtr_, nullptr);
-
-    ASSERT_EQ(appAccountAuthenticatorSessionManagerPtr_->appStateObserver_, nullptr);
-    appAccountAuthenticatorSessionManagerPtr_->RegisterApplicationStateObserver();
-    ASSERT_NE(appAccountAuthenticatorSessionManagerPtr_->appStateObserver_, nullptr);
 }
 
 /**
@@ -366,22 +285,6 @@ HWTEST_F(
     ASSERT_EQ(sessionPtr, session);
     EXPECT_CALL(*testCallBack, OnResult(_, _)).Times(Exactly(1));
     appAccountAuthenticatorSessionManagerPtr_->OnSessionServerDied(sessionId);
-}
-
-/**
- * @tc.name: AppAccountAuthenticateTest_RegisterApplicationStateObserver_0200
- * @tc.desc: test session manager func RegisterApplicationStateObserver appStateObserver is exist.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(
-    AppAccountSessionManagerModuleTest, AppAccountSessionManagerModuleTest_OnSessionServerDied_0200, TestSize.Level1)
-{
-    ASSERT_NE(appAccountAuthenticatorSessionManagerPtr_, nullptr);
-
-    appAccountAuthenticatorSessionManagerPtr_->appStateObserver_ = new (std::nothrow) SessionAppStateObserver();
-    appAccountAuthenticatorSessionManagerPtr_->RegisterApplicationStateObserver();
-    ASSERT_NE(appAccountAuthenticatorSessionManagerPtr_->appStateObserver_, nullptr);
 }
 
 /**

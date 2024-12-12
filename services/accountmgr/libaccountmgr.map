@@ -60,7 +60,6 @@
         "OHOS::AccountSA::AppAccountAuthenticatorSessionManager::GetInstance()";
         "OHOS::AccountSA::AppAccountAuthenticatorSessionManager::GetSession(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::AppAccountAuthenticatorSessionManager::IsAccountRemovable(OHOS::AccountSA::AuthenticatorSessionRequest const&)";
-        "OHOS::AccountSA::AppAccountAuthenticatorSessionManager::OnAbilityStateChanged(OHOS::AppExecFwk::AbilityStateData const&)";
         "OHOS::AccountSA::AppAccountAuthenticatorSessionManager::OnSessionAbilityConnectDone(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AppExecFwk::ElementName const&, OHOS::sptr<OHOS::IRemoteObject> const&, int)";
         "OHOS::AccountSA::AppAccountAuthenticatorSessionManager::OnSessionAbilityDisconnectDone(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AppExecFwk::ElementName const&, int)";
         "OHOS::AccountSA::AppAccountAuthenticatorSessionManager::OnSessionRequestContinued(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
@@ -88,7 +87,6 @@
         "OHOS::AccountSA::AppAccountControlManager::GetAllOAuthTokens(OHOS::AccountSA::AuthenticatorSessionRequest const&, std::__h::vector<OHOS::AccountSA::OAuthTokenInfo, std::__h::allocator<OHOS::AccountSA::OAuthTokenInfo>>&)";
         "OHOS::AccountSA::AppAccountControlManager::GetDataStorage(unsigned int const&, bool const&, OHOS::DistributedKv::SecurityLevel)";
         "OHOS::AccountSA::AppAccountControlManager::NeedSyncDataStorage(OHOS::AccountSA::AppAccountInfo const&)";
-        "OHOS::AccountSA::AppAccountControlManager::OnAbilityStateChanged(OHOS::AppExecFwk::AbilityStateData const&)";
         "OHOS::AccountSA::AppAccountControlManager::RemoveAuthorizedAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::AppAccountInfo&, std::__h::shared_ptr<OHOS::AccountSA::AppAccountDataStorage> const&, unsigned int const&)";
         "OHOS::AccountSA::AppAccountControlManager::RemoveAuthorizedAccountFromDataStorage(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::AppAccountInfo&, std::__h::shared_ptr<OHOS::AccountSA::AppAccountDataStorage> const&)";
         "OHOS::AccountSA::AppAccountControlManager::SaveAccountInfoIntoDataStorage(OHOS::AccountSA::AppAccountInfo&, std::__h::shared_ptr<OHOS::AccountSA::AppAccountDataStorage> const&, unsigned int const&)";
@@ -225,8 +223,6 @@
         "OHOS::AccountSA::IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccountInfo)";
         "OHOS::AccountSA::IInnerOsAccountManager::UpdateAccountInfoByDomainAccountInfo(int, OHOS::AccountSA::DomainAccountInfo const&)";
         "OHOS::AccountSA::OsAccountPluginManager::IsCreationAllowed()";
-        "OHOS::AccountSA::SessionAppStateObserver::OnAbilityStateChanged(OHOS::AppExecFwk::AbilityStateData const&)";
-        "OHOS::AccountSA::SessionAppStateObserver::SessionAppStateObserver()";
         "OHOS::AccountSA::SessionConnection::SessionConnection(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::SessionServerDeathRecipient::OnRemoteDied(OHOS::wptr<OHOS::IRemoteObject> const&)";
         "OHOS::AccountSA::SessionServerDeathRecipient::SessionServerDeathRecipient(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
@@ -238,7 +234,6 @@
         "VTT for OHOS::AccountSA::SessionServerDeathRecipient";
         "vtable for OHOS::AccountSA::SessionServerDeathRecipient";
         "VTT for OHOS::AccountSA::OsAccountStopUserCallback";
-        "VTT for OHOS::AccountSA::SessionAppStateObserver";
         "OHOS::AccountSA::AccountInfoReport::ReportSecurityInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, int, OHOS::AccountSA::ReportEvent, int)";
         *OHOS::AccountSA::AbilityManagerAdapter*;
         *OHOS::AccountSA::BundleManagerAdapter*;

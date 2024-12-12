@@ -67,7 +67,6 @@ app_account_sources_mock = [
   "${app_account_innerkits_native_path}/src/app_account_common.cpp",
   "${app_account_innerkits_native_path}/src/app_account_info.cpp",
   "${app_account_innerkits_native_path}/src/app_account_subscribe_info.cpp",
-  "${app_account_services_path}/src/appaccount/app_account_app_state_observer.cpp",
   "${app_account_services_path}/src/appaccount/app_account_authenticator_callback.cpp",
   "${app_account_services_path}/src/appaccount/app_account_authenticator_manager.cpp",
   "${app_account_services_path}/src/appaccount/app_account_authenticator_proxy.cpp",

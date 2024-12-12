@@ -165,31 +165,6 @@ HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_NeedSyncDa
 }
 
 /**
- * @tc.name: AppAccountControlManager_GetAllAccountsFromDataStorage_0100
- * @tc.desc: GetAllAccountsFromDataStorage abnormal branch.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(
-    AppAccountControlManagerModuleTest, AppAccountControlManager_GetAllAccountsFromDataStorage_0100, TestSize.Level1)
-{
-    ACCOUNT_LOGI("AppAccountControlManager_GetAllAccountsFromDataStorage_0100");
-    AppExecFwk::AbilityStateData abilityStateData;
-    abilityStateData.abilityState = static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_TERMINATED);
-    AppAccountControlManager::GetInstance().OnAbilityStateChanged(abilityStateData);
-    ASSERT_EQ(AppAccountControlManager::GetInstance().associatedDataCache_.empty(), true);
-
-    abilityStateData.abilityState = static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_BACKGROUND);
-    AppAccountControlManager::GetInstance().OnAbilityStateChanged(abilityStateData);
-    std::vector<AppAccountInfo> appAccounts;
-
-    std::shared_ptr<AppAccountDataStorage> dataStoragePtr = nullptr;
-    ErrCode result = AppAccountControlManager::GetInstance().GetAllAccountsFromDataStorage(
-        STRING_OWNER, appAccounts, BUNDLE_NAME, dataStoragePtr);
-    ASSERT_EQ(result, ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR);
-}
-
-/**
  * @tc.name: AppAccountControlManager_GetAllOAuthTokens_0100
  * @tc.desc: GetAllOAuthTokens abnormal branch.
  * @tc.type: FUNC
