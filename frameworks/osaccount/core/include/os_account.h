@@ -57,7 +57,8 @@ public:
     ErrCode SetOsAccountName(const int id, const std::string &localName);
     ErrCode SetOsAccountConstraints(const int id, const std::vector<std::string> &constraints, const bool enable);
     ErrCode SetOsAccountProfilePhoto(const int id, const std::string &photo);
-    ErrCode GetDistributedVirtualDeviceId(std::string &deviceId);
+    ErrCode GetDistributedVirtualDeviceId(std::string &dvid);
+    ErrCode QueryDistributedVirtualDeviceId(const std::string &bundleName, int32_t localId, std::string &dvid);
     ErrCode ActivateOsAccount(const int id);
     ErrCode DeactivateOsAccount(const int id);
     ErrCode DeactivateAllOsAccounts();

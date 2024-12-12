@@ -77,6 +77,10 @@ AccountStub::AccountStub()
         [this] (MessageParcel &data, MessageParcel &reply) {
             return this->CmdQueryDistributedVirtualDeviceId(data, reply);
         };
+    stubFuncMap_[AccountMgrInterfaceCode::QUERY_DISTRIBUTE_VIRTUAL_DEVICE_ID_BY_BUNDLE_NAME] =
+        [this] (MessageParcel &data, MessageParcel &reply) {
+            return this->CmdQueryDVIDByBundleName(data, reply);
+        };
     stubFuncMap_[AccountMgrInterfaceCode::GET_OHOS_ACCOUNT_INFO] =
         [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdGetOhosAccountInfo(data, reply); };
     stubFuncMap_[AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_INFO_BY_USER_ID] =
@@ -293,6 +297,46 @@ ErrCode AccountStub::InnerGetOhosAccountInfo(MessageParcel &data, MessageParcel 
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_OK;
+}
+
+ErrCode AccountStub::CmdQueryDVIDByBundleName(MessageParcel &data, MessageParcel &reply)
+{
+    ErrCode errCode = AccountPermissionManager::CheckSystemApp();
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("The caller is not system application, errCode = %{public}d.", errCode);
+        return errCode;
+    }
+    if (!HasAccountRequestPermission(PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS) &&
+        !HasAccountRequestPermission(PERMISSION_MANAGE_USERS) &&
+        !HasAccountRequestPermission(PERMISSION_GET_DISTRIBUTED_ACCOUNTS)) {
+        ACCOUNT_LOGE("Failed to check permission");
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    std::string bundleName = "";
+    if (!data.ReadString(bundleName)) {
+        ACCOUNT_LOGE("Failed to read bundleName");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("Failed to read localId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    std::string dvid = "";
+    ErrCode result = QueryDistributedVirtualDeviceId(bundleName, localId, dvid);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Failed to write reply, result=%{public}d.", result);
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get dvid");
+        return ERR_OK;
+    }
+    if (!reply.WriteString(dvid)) {
+        ACCOUNT_LOGE("Failed to write dvid");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    return result;
 }
 
 ErrCode AccountStub::CmdQueryDistributedVirtualDeviceId(MessageParcel &data, MessageParcel &reply)

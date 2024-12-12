@@ -351,10 +351,29 @@ public:
      * <p>
      *
      * @permission ohos.permission.DISTRIBUTED_DATASYNC or ohos.permission.MANAGE_LOCAL_ACCOUNTS
-     * @param deviceId - Indicates the DVID if obtained; returns an empty string if no OHOS account has logged in.
+     * @param dvid - Indicates the DVID if obtained; returns an empty string if no OHOS account has logged in.
      * @return error code, see account_error_no.h
      */
-    static ErrCode GetDistributedVirtualDeviceId(std::string &deviceId);
+    static ErrCode GetDistributedVirtualDeviceId(std::string &dvid);
+
+    /**
+     * @brief Gets the distributed virtual device ID (DVID).
+     * <p>
+     * If the same OHOS account has logged in to multiple devices, these devices constitute a super device
+     * through the distributed networking. On the connected devices, you can call this method to obtain the DVIDs.
+     * The same application running on different devices obtains the same DVID, whereas different applications
+     * obtain different DVIDs.
+     * <p>
+     *
+     * @permission ohos.permission.GET_DISTRIBUTED_ACCOUNTS or ohos.permission.MANAGE_LOCAL_ACCOUNTS or
+     * ohos.permission.MANAGE_DISTRIBUTED_ACCOUNTS
+     * @param bundleName - Indicates the target bundle name.
+     * @param localId - Indicates the local ID of the OS account.
+     * @param dvid - Indicates the DVID if obtained; returns an empty string if no OHOS account has logged in.
+     * @return error code, see account_error_no.h
+     * @SystemAPI
+     */
+    static ErrCode QueryDistributedVirtualDeviceId(const std::string &bundleName, int32_t localId, std::string &dvid);
 
     /**
      * @brief Activates a specified OS account.
