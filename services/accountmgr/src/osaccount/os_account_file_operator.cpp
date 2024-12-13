@@ -20,6 +20,13 @@
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
+const char USER_CONSTRAINTS_TEMPLATE[] = "UserConstraintsTemplate";
+const char TYPE_LIST[] = "TypeList";
+const char CONSTRAINTS_LIST[] = "constraints";
+const char IS_ALLOWED_CREATE_ADMIN[] = "IsAllowedCreateAdmin";
+}
+
 OsAccountFileOperator::OsAccountFileOperator()
 {
     accountFileOperator_ = std::make_shared<AccountFileOperator>();
@@ -50,7 +57,7 @@ void OsAccountFileOperator::Init()
         }
         OHOS::AccountSA::GetDataByType<std::vector<std::string>>(constraintListCollecting,
             constraintListCollecting.end(),
-            Constants::CONSTRAINTS_LIST,
+            CONSTRAINTS_LIST,
             constraintList_,
             OHOS::AccountSA::JsonType::ARRAY);
     }
@@ -64,7 +71,7 @@ ErrCode OsAccountFileOperator::GetConstraintsByType(const int type, std::vector<
     }
     std::vector<std::string> typeList;
     OHOS::AccountSA::GetDataByType<std::vector<std::string>>(
-        constraintsConfig_, constraintsConfig_.end(), Constants::TYPE_LIST, typeList, OHOS::AccountSA::JsonType::ARRAY);
+        constraintsConfig_, constraintsConfig_.end(), TYPE_LIST, typeList, OHOS::AccountSA::JsonType::ARRAY);
     if (std::find(typeList.begin(), typeList.end(), std::to_string(type)) == typeList.end()) {
         ACCOUNT_LOGE("GetConstraintsByType get type error");
         return ERR_OSACCOUNT_SERVICE_CONTROL_GET_TYPE_ERROR;
@@ -72,7 +79,7 @@ ErrCode OsAccountFileOperator::GetConstraintsByType(const int type, std::vector<
     Json typeJson;
     OHOS::AccountSA::GetDataByType<Json>(constraintsConfig_,
         constraintsConfig_.end(),
-        Constants::USER_CONSTRAINTS_TEMPLATE,
+        USER_CONSTRAINTS_TEMPLATE,
         typeJson,
         OHOS::AccountSA::JsonType::OBJECT);
     constraints.clear();
@@ -184,7 +191,7 @@ ErrCode OsAccountFileOperator::IsAllowedCreateAdmin(bool &isAllowedCreateAdmin)
     }
     OHOS::AccountSA::GetDataByType<Json>(constraintsConfig_,
         constraintsConfig_.end(),
-        Constants::IS_ALLOWED_CREATE_ADMIN,
+        IS_ALLOWED_CREATE_ADMIN,
         isAllowedCreateAdmin,
         OHOS::AccountSA::JsonType::BOOLEAN);
     return ERR_OK;
