@@ -53,22 +53,6 @@ CommonAsyncContext::~CommonAsyncContext()
     }
 }
 
-bool CreateExecEnv(napi_env env, uv_loop_s **loop, uv_work_t **work)
-{
-    *loop = nullptr;
-    napi_get_uv_event_loop(env, loop);
-    if (*loop == nullptr) {
-        ACCOUNT_LOGE("failed to get uv event loop");
-        return false;
-    }
-    *work = new (std::nothrow) uv_work_t;
-    if (*work == nullptr) {
-        ACCOUNT_LOGE("failed to create uv_work_t");
-        return false;
-    }
-    return true;
-}
-
 void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data)
 {
     napi_value args[BUSINESS_ERROR_ARG_SIZE] = {0};
@@ -533,27 +517,6 @@ NapiCallbackRef::~NapiCallbackRef()
     }
     ReleaseNapiRefArray(env, {callbackRef});
     callbackRef = nullptr;
-}
-
-bool InitUvWorkCallbackEnv(uv_work_t *work, napi_handle_scope &scope)
-{
-    if (work == nullptr) {
-        ACCOUNT_LOGE("work is nullptr");
-        return false;
-    }
-    if (work->data == nullptr) {
-        ACCOUNT_LOGE("data is nullptr");
-        return false;
-    }
-    CommonAsyncContext *data = reinterpret_cast<CommonAsyncContext *>(work->data);
-    napi_open_handle_scope(data->env, &scope);
-    if (scope == nullptr) {
-        ACCOUNT_LOGE("fail to open scope");
-        delete data;
-        work->data = nullptr;
-        return false;
-    }
-    return true;
 }
 
 bool JsObjectToNativeString(napi_env env, napi_value jsData, std::string &nativeData)

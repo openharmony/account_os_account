@@ -58,7 +58,6 @@ struct NapiRefArrayContext {
 
 void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data);
 void ReturnCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data);
-bool CreateExecEnv(napi_env env, uv_loop_s **loop, uv_work_t **work);
 bool GetCallbackProperty(napi_env env, napi_value obj, napi_ref &property, int argNum);
 bool GetIntProperty(napi_env env, napi_value obj, int32_t &property);
 bool GetOptionIntProperty(napi_env env, napi_value obj, int32_t &property, bool &hasProperty);
@@ -91,7 +90,6 @@ napi_value CreateAuthResult(
     napi_env env, const std::vector<uint8_t> &authData, int32_t remainTimes, int32_t freezingTime);
 void ReleaseNapiRefAsync(napi_env env, napi_ref napiRef);
 void ReleaseNapiRefArray(napi_env env, const std::vector<napi_ref> &napiRefVec);
-bool InitUvWorkCallbackEnv(uv_work_t *work, napi_handle_scope &scope);
 bool JsObjectToNativeString(napi_env env, napi_value jsData, std::string &nativeData);
 napi_value NativeStringToJsObject(napi_env env, const std::string &nativeData);
 bool GetSelfTargetVersion(uint32_t &targetVersion);
