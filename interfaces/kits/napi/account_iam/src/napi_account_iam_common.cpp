@@ -742,6 +742,7 @@ void NapiGetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attr
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if ((callback_->callbackRef == nullptr) && (deferred_ == nullptr)) {
+        ACCOUNT_LOGE("Return for nullptr");
         return;
     }
     if (onResultCalled_) {
