@@ -90,14 +90,14 @@ private:
     static void CallJsFunction(napi_env env, napi_ref funcRef, napi_value *argv, size_t argc);
     static void CreateJsVerifyCredentialOptions(napi_env env, VerifyCredentialOptions &options, napi_value *jsOptions);
     static void CreateJsSetPropertiesOptions(napi_env env, SetPropertiesOptions &options, napi_value *jsOptions);
-    static void AddAccountImplicitlyWork(uv_work_t *work, int status);
-    static void AuthenticateWork(uv_work_t *work, int status);
-    static void VerifyCredentialWork(uv_work_t *work, int status);
-    static void CheckAccountLabelsWork(uv_work_t *work, int status);
-    static void SetPropertiesWork(uv_work_t *work, int status);
-    static void IsAccountRemovableWork(uv_work_t *work, int status);
-    static void CreateAccountImplicitlyWork(uv_work_t *work, int status);
-    static void AuthWork(uv_work_t *work, int status);
+    static std::function<void()> AddAccountImplicitlyWork(const std::shared_ptr<JsAuthenticatorParam> &param);
+    static std::function<void()> AuthenticateWork(const std::shared_ptr<JsAuthenticatorParam> &param);
+    static std::function<void()> VerifyCredentialWork(const std::shared_ptr<JsAuthenticatorParam> &param);
+    static std::function<void()> CheckAccountLabelsWork(const std::shared_ptr<JsAuthenticatorParam> &param);
+    static std::function<void()> SetPropertiesWork(const std::shared_ptr<JsAuthenticatorParam> &param);
+    static std::function<void()> IsAccountRemovableWork(const std::shared_ptr<JsAuthenticatorParam> &param);
+    static std::function<void()> CreateAccountImplicitlyWork(const std::shared_ptr<JsAuthenticatorParam> &param);
+    static std::function<void()> AuthWork(const std::shared_ptr<JsAuthenticatorParam> &param);
 
 private:
     napi_env env_ = nullptr;

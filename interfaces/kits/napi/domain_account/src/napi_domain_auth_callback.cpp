@@ -181,21 +181,23 @@ NapiDomainAccountCallback::NapiDomainAccountCallback(napi_env env,
 NapiDomainAccountCallback::~NapiDomainAccountCallback()
 {}
 
-static void DomainAuthResultWork(uv_work_t *work, int status)
+static std::function<void()> DomainAuthResultWork(std::shared_ptr<DomainAccountAuthCallbackParam> &param)
 {
-    std::unique_ptr<uv_work_t> workPtr(work);
-    napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
-        return;
-    }
-    std::unique_ptr<DomainAccountAuthCallbackParam> param(
-        reinterpret_cast<DomainAccountAuthCallbackParam *>(work->data));
-    napi_value argv[ARGS_SIZE_TWO] = {nullptr};
-    napi_create_int32(param->env, param->errCode, &argv[0]);
-    argv[1] = CreateAuthResult(param->env, param->authResult.token,
-        param->authResult.authStatusInfo.remainingTimes, param->authResult.authStatusInfo.freezingTime);
-    NapiCallVoidFunction(param->env, argv, ARGS_SIZE_TWO, param->callback->onResult);
-    napi_close_handle_scope(param->env, scope);
+    return [param = std::move(param)] {
+        ACCOUNT_LOGI("Enter DomainAuthResultWork");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(param->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            return;
+        }
+        napi_value argv[ARGS_SIZE_TWO] = { nullptr };
+        napi_create_int32(param->env, param->errCode, &argv[0]);
+        argv[1] = CreateAuthResult(param->env, param->authResult.token,
+            param->authResult.authStatusInfo.remainingTimes, param->authResult.authStatusInfo.freezingTime);
+        NapiCallVoidFunction(param->env, argv, ARGS_SIZE_TWO, param->callback->onResult);
+        napi_close_handle_scope(param->env, scope);
+    };
 }
 
 void NapiDomainAccountCallback::OnResult(const int32_t errCode, Parcel &parcel)
@@ -206,15 +208,7 @@ void NapiDomainAccountCallback::OnResult(const int32_t errCode, Parcel &parcel)
         return;
     }
     callback_->onResultCalled = true;
-    std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
-    std::unique_ptr<DomainAccountAuthCallbackParam> param =
-        std::make_unique<DomainAccountAuthCallbackParam>(env_);
-    uv_loop_s *loop = nullptr;
-    NAPI_CALL_RETURN_VOID(env_, napi_get_uv_event_loop(env_, &loop));
-    if (loop == nullptr || work == nullptr || param == nullptr) {
-        ACCOUNT_LOGE("fail for nullptr");
-        return;
-    }
+    std::shared_ptr<DomainAccountAuthCallbackParam> param = std::make_shared<DomainAccountAuthCallbackParam>(env_);
     param->errCode = errCode;
     std::shared_ptr<DomainAuthResult> authResult(DomainAuthResult::Unmarshalling(parcel));
     if (authResult == nullptr) {
@@ -223,15 +217,11 @@ void NapiDomainAccountCallback::OnResult(const int32_t errCode, Parcel &parcel)
     }
     param->authResult = (*authResult);
     param->callback = callback_;
-    work->data = reinterpret_cast<void *>(param.get());
-    ErrCode ret = uv_queue_work_with_qos(
-        loop, work.get(), [] (uv_work_t *work) {}, DomainAuthResultWork, uv_qos_user_initiated);
-    if (ret != ERR_OK) {
-        ACCOUNT_LOGE("fail to queue work");
+    if (napi_ok != napi_send_event(env_, DomainAuthResultWork(param), napi_eprio_vip)) {
+        ACCOUNT_LOGE("Post task failed");
         return;
     }
-    work.release();
-    param.release();
+    ACCOUNT_LOGI("Post task finish");
 }
 }  // namespace AccountJsKit
 }  // namespace OHOS
