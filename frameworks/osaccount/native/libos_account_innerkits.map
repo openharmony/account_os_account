@@ -116,6 +116,7 @@
         "OHOS::AccountSA::OsAccountManager::SetOsAccountName(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::OsAccountManager::CreateOsAccountForDomain(OHOS::AccountSA::OsAccountType const&, OHOS::AccountSA::DomainAccountInfo const&, std::__h::shared_ptr<OHOS::AccountSA::DomainAccountCallback> const&)";
         "OHOS::AccountSA::OsAccountManager::GetDistributedVirtualDeviceId(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&)";
+        OHOS::AccountSA::OsAccountManager::QueryDistributedVirtualDeviceId*;
         "OHOS::AccountSA::OsAccountManager::GetOsAccountAllConstraints(int, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>&)";
         "OHOS::AccountSA::OsAccountManager::QueryOsAccountConstraintSourceTypes(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::vector<OHOS::AccountSA::ConstraintSourceTypeInfo, std::__h::allocator<OHOS::AccountSA::ConstraintSourceTypeInfo>>&)";
         "OHOS::AccountSA::OsAccountManager::QueryAllCreatedOsAccounts(std::__h::vector<OHOS::AccountSA::OsAccountInfo, std::__h::allocator<OHOS::AccountSA::OsAccountInfo>>&)";

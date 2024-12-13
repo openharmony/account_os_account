@@ -40,6 +40,8 @@ public:
         const int32_t localId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr) = 0;
     virtual ErrCode QueryOhosAccountInfo(OhosAccountInfo &accountInfo) = 0;
     virtual ErrCode QueryDistributedVirtualDeviceId(std::string &dvid) = 0;
+    virtual ErrCode QueryDistributedVirtualDeviceId(const std::string &bundleName, int32_t localId,
+        std::string &dvid) = 0;
     virtual ErrCode QueryOsAccountDistributedInfo(std::int32_t localId, OhosAccountInfo &info) = 0;
     virtual ErrCode GetOhosAccountInfo(OhosAccountInfo &accountInfo) = 0;
     virtual ErrCode GetOsAccountDistributedInfo(int32_t localId, OhosAccountInfo &info) = 0;
