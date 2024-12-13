@@ -1501,27 +1501,29 @@ static bool ParseParamForGetAccountInfo(
     return true;
 }
 
-static void GetAccountInfoCompleteWork(uv_work_t *work, int status)
+static std::function<void()> GetAccountInfoCompleteWork(GetAccountInfoAsyncContext *param)
 {
-    std::unique_ptr<uv_work_t> workPtr(work);
-    napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
-        if ((work != nullptr) && (work->data != nullptr)) {
-            delete reinterpret_cast<GetAccountInfoAsyncContext *>(work->data);
+    return [asyncContext = std::move(param)] {
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(asyncContext->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            if (asyncContext != nullptr) {
+                delete asyncContext;
+            }
+            return;
         }
-        return;
-    }
-    GetAccountInfoAsyncContext *asyncContext = reinterpret_cast<GetAccountInfoAsyncContext *>(work->data);
-    napi_value errJs = nullptr;
-    napi_value dataJs = nullptr;
-    if (asyncContext->errCode == ERR_OK) {
-        dataJs = AppExecFwk::WrapWantParams(asyncContext->env, asyncContext->getAccountInfoParams);
-    } else {
-        errJs = GenerateBusinessError(asyncContext->env, asyncContext->errCode);
-    }
-    ReturnCallbackOrPromise(asyncContext->env, asyncContext, errJs, dataJs);
-    napi_close_handle_scope(asyncContext->env, scope);
-    delete asyncContext;
+        napi_value errJs = nullptr;
+        napi_value dataJs = nullptr;
+        if (asyncContext->errCode == ERR_OK) {
+            dataJs = AppExecFwk::WrapWantParams(asyncContext->env, asyncContext->getAccountInfoParams);
+        } else {
+            errJs = GenerateBusinessError(asyncContext->env, asyncContext->errCode);
+        }
+        ReturnCallbackOrPromise(asyncContext->env, asyncContext, errJs, dataJs);
+        napi_close_handle_scope(asyncContext->env, scope);
+        delete asyncContext;
+    };
 }
 
 NapiGetAccountInfoCallback::NapiGetAccountInfoCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred)
@@ -1535,15 +1537,8 @@ void NapiGetAccountInfoCallback::OnResult(int32_t errCode, Parcel &parcel)
         ACCOUNT_LOGE("js callback is nullptr");
         return;
     }
-    uv_loop_s *loop = nullptr;
-    uv_work_t *work = nullptr;
-    if (!CreateExecEnv(env_, &loop, &work)) {
-        ACCOUNT_LOGE("failed to init domain plugin execution environment");
-        return;
-    }
     auto *asyncContext = new (std::nothrow) GetAccountInfoAsyncContext(env_);
     if (asyncContext == nullptr) {
-        delete work;
         return;
     }
     if (errCode == ERR_OK) {
@@ -1558,13 +1553,9 @@ void NapiGetAccountInfoCallback::OnResult(int32_t errCode, Parcel &parcel)
     asyncContext->errCode = errCode;
     asyncContext->callbackRef = callbackRef_;
     asyncContext->deferred = deferred_;
-    work->data = reinterpret_cast<void *>(asyncContext);
-    int resultCode = uv_queue_work(
-        loop, work, [](uv_work_t *work) {}, GetAccountInfoCompleteWork);
-    if (resultCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+    if (napi_ok !=  napi_send_event(env_, GetAccountInfoCompleteWork(asyncContext), napi_eprio_vip)) {
+        ACCOUNT_LOGE("Post task failed");
         delete asyncContext;
-        delete work;
         return;
     }
     callbackRef_ = nullptr;
