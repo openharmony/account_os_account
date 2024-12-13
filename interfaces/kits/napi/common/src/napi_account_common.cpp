@@ -53,22 +53,6 @@ CommonAsyncContext::~CommonAsyncContext()
     }
 }
 
-bool CreateExecEnv(napi_env env, uv_loop_s **loop, uv_work_t **work)
-{
-    *loop = nullptr;
-    napi_get_uv_event_loop(env, loop);
-    if (*loop == nullptr) {
-        ACCOUNT_LOGE("failed to get uv event loop");
-        return false;
-    }
-    *work = new (std::nothrow) uv_work_t;
-    if (*work == nullptr) {
-        ACCOUNT_LOGE("failed to create uv_work_t");
-        return false;
-    }
-    return true;
-}
-
 void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data)
 {
     napi_value args[BUSINESS_ERROR_ARG_SIZE] = {0};
@@ -509,27 +493,13 @@ void ReleaseNapiRefArray(napi_env env, const std::vector<napi_ref> &napiRefVec)
         ACCOUNT_LOGE("invalid env");
         return;
     }
-    std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
-    std::unique_ptr<NapiRefArrayContext> context = std::make_unique<NapiRefArrayContext>();
-    uv_loop_s *loop = nullptr;
-    napi_get_uv_event_loop(env, &loop);
-    if ((loop == nullptr) || (work == nullptr) || (context == nullptr)) {
-        ACCOUNT_LOGE("fail to init execution environment");
-        return;
-    }
+    std::shared_ptr<NapiRefArrayContext> context = std::make_shared<NapiRefArrayContext>();
     context->env = env;
     context->napiRefVec = napiRefVec;
-    work->data = reinterpret_cast<void *>(context.get());
-    NAPI_CALL_RETURN_VOID(env, uv_queue_work_with_qos(loop, work.get(), [] (uv_work_t *work) {},
-        [] (uv_work_t *work, int status) {
-            if (work == nullptr) {
-                ACCOUNT_LOGE("work is nullptr");
-                return;
-            }
-            auto context = reinterpret_cast<NapiRefArrayContext *>(work->data);
+    NAPI_CALL_RETURN_VOID(env, napi_send_event(env,
+        [context = std::move(context)] () {
             if (context == nullptr) {
                 ACCOUNT_LOGE("context is nullptr");
-                delete work;
                 return;
             }
             for (auto &napiRef : context->napiRefVec) {
@@ -537,11 +507,7 @@ void ReleaseNapiRefArray(napi_env env, const std::vector<napi_ref> &napiRefVec)
                     napi_delete_reference(context->env, napiRef);
                 }
             }
-            delete context;
-            delete work;
-        }, uv_qos_default));
-    context.release();
-    work.release();
+        }, napi_eprio_vip));
 }
 
 NapiCallbackRef::~NapiCallbackRef()
@@ -551,27 +517,6 @@ NapiCallbackRef::~NapiCallbackRef()
     }
     ReleaseNapiRefArray(env, {callbackRef});
     callbackRef = nullptr;
-}
-
-bool InitUvWorkCallbackEnv(uv_work_t *work, napi_handle_scope &scope)
-{
-    if (work == nullptr) {
-        ACCOUNT_LOGE("work is nullptr");
-        return false;
-    }
-    if (work->data == nullptr) {
-        ACCOUNT_LOGE("data is nullptr");
-        return false;
-    }
-    CommonAsyncContext *data = reinterpret_cast<CommonAsyncContext *>(work->data);
-    napi_open_handle_scope(data->env, &scope);
-    if (scope == nullptr) {
-        ACCOUNT_LOGE("fail to open scope");
-        delete data;
-        work->data = nullptr;
-        return false;
-    }
-    return true;
 }
 
 bool JsObjectToNativeString(napi_env env, napi_value jsData, std::string &nativeData)

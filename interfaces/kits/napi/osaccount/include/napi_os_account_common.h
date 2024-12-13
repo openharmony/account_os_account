@@ -108,7 +108,7 @@ void CreateOAForDomainCompletedCB(napi_env env, napi_status status, void *data);
 
 void CreateOACallbackCompletedCB(napi_env env, napi_status status, void *data);
 
-void CreateOAForDomainCallbackCompletedWork(uv_work_t *work, int status);
+std::function<void()> CreateOAForDomainCallbackCompletedWork(std::shared_ptr<CreateOAForDomainAsyncContext> param);
 
 bool ParseParaGetOACount(napi_env env, napi_callback_info cbInfo, GetOACountAsyncContext *asyncContext);
 
