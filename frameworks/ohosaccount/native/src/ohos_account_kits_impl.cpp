@@ -156,6 +156,18 @@ ErrCode OhosAccountKitsImpl::QueryDistributedVirtualDeviceId(std::string &dvid)
     return accountProxy->QueryDistributedVirtualDeviceId(dvid);
 }
 
+ErrCode OhosAccountKitsImpl::QueryDistributedVirtualDeviceId(const std::string &bundleName, int32_t localId,
+    std::string &dvid)
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+
+    return accountProxy->QueryDistributedVirtualDeviceId(bundleName, localId, dvid);
+}
+
 ErrCode OhosAccountKitsImpl::QueryOhosAccountInfo(OhosAccountInfo &accountInfo)
 {
     auto accountProxy = GetService();

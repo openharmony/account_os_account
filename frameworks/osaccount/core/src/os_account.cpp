@@ -491,6 +491,11 @@ ErrCode OsAccount::GetDistributedVirtualDeviceId(std::string &dvid)
     return OhosAccountKitsImpl::GetInstance().QueryDistributedVirtualDeviceId(dvid);
 }
 
+ErrCode OsAccount::QueryDistributedVirtualDeviceId(const std::string &bundleName, int32_t localId, std::string &dvid)
+{
+    return OhosAccountKitsImpl::GetInstance().QueryDistributedVirtualDeviceId(bundleName, localId, dvid);
+}
+
 ErrCode OsAccount::ActivateOsAccount(const int id)
 {
     ErrCode result = CheckLocalId(id);

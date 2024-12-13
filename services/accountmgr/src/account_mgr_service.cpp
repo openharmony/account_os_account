@@ -124,6 +124,12 @@ ErrCode AccountMgrService::QueryDistributedVirtualDeviceId(std::string &dvid)
     return OhosAccountManager::GetInstance().QueryDistributedVirtualDeviceId(dvid);
 }
 
+ErrCode AccountMgrService::QueryDistributedVirtualDeviceId(const std::string &bundleName, int32_t localId,
+    std::string &dvid)
+{
+    return OhosAccountManager::GetInstance().QueryDistributedVirtualDeviceId(bundleName, localId, dvid);
+}
+
 ErrCode AccountMgrService::QueryOhosAccountInfo(OhosAccountInfo &accountInfo)
 {
     return QueryOsAccountDistributedInfo(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR, accountInfo);

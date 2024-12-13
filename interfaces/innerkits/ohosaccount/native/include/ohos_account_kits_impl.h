@@ -38,6 +38,7 @@ public:
     std::pair<bool, OhosAccountInfo> QueryOhosAccountInfo() final;
     ErrCode QueryOhosAccountInfo(OhosAccountInfo &accountInfo);
     ErrCode QueryDistributedVirtualDeviceId(std::string &dvid);
+    ErrCode QueryDistributedVirtualDeviceId(const std::string &bundleName, int32_t localId, std::string &dvid);
     ErrCode GetOhosAccountInfo(OhosAccountInfo &accountInfo) final;
     ErrCode GetOsAccountDistributedInfo(int32_t localId, OhosAccountInfo &accountInfo) final;
     std::pair<bool, OhosAccountInfo> QueryOsAccountDistributedInfo(std::int32_t localId) final;
