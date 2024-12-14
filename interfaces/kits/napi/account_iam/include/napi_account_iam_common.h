@@ -187,6 +187,8 @@ struct GetPropertyContext : public GetPropertyCommonContext {
 
 struct GetPropertyByIdContext : public GetPropertyCommonContext {
     explicit GetPropertyByIdContext(napi_env napiEnv) : GetPropertyCommonContext(napiEnv) {};
+    uint8_t *credentialIdData = nullptr;
+    size_t credentialIdLength = 0;
     uint64_t credentialId = 0;
 };
 
