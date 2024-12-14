@@ -134,16 +134,16 @@ bool OsAccountControlFileManager::RecoverAccountData(const std::string &fileName
     } else if (id >= Constants::START_USER_ID) {
         OsAccountInfo osAccountInfo;
         if (GetOsAccountFromDatabase(OS_ACCOUNT_STORE_ID, id, osAccountInfo) != ERR_OK) {
-            ACCOUNT_LOGW("Get recover file data failed");
+            ACCOUNT_LOGW("Failed to get osaccount from database");
             return false;
         }
         recoverDataStr = osAccountInfo.ToString();
     } else {
-        ACCOUNT_LOGW("Get recover file data failed");
+        ACCOUNT_LOGW("Failed to parse parameters");
         return false;
     }
     if (recoverDataStr.empty()) {
-        ACCOUNT_LOGW("Get recover file data failed");
+        ACCOUNT_LOGW("Get empty recover file data");
         return false;
     }
     // recover data

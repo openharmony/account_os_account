@@ -650,7 +650,7 @@ bool ParseContextOAuthProperty(napi_env env, napi_value &argv, PropertyType type
             result = GetStringProperty(env, argv, asyncContext->sessionId);
             break;
         case PropertyType::IS_VISIBLE :
-            result = (napi_get_value_bool(env, argv, &asyncContext->isVisible) == napi_ok) ? true : false;
+            result = napi_get_value_bool(env, argv, &asyncContext->isVisible) == napi_ok;
             break;
         case PropertyType::TOKEN :
             result = GetStringProperty(env, argv, asyncContext->token);
@@ -723,10 +723,10 @@ bool ParseAppAccountProperty(napi_env env, napi_value &argv, PropertyType type, 
             result = GetStringProperty(env, argv, asyncContext->value);
             break;
         case PropertyType::IS_ACCESSIBLE :
-            result = (napi_get_value_bool(env, argv, &asyncContext->isAccessible) == napi_ok) ? true : false;
+            result = napi_get_value_bool(env, argv, &asyncContext->isAccessible) == napi_ok;
             break;
         case PropertyType::IS_ENABLE :
-            result = (napi_get_value_bool(env, argv, &asyncContext->isEnable) == napi_ok) ? true : false;
+            result = napi_get_value_bool(env, argv, &asyncContext->isEnable) == napi_ok;
             break;
         default:
             break;
