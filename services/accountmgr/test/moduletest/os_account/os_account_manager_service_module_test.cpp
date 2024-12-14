@@ -50,12 +50,12 @@ const std::string EMPTY_STORE_ID = "";
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 const OsAccountType INT_TEST_TYPE = OsAccountType::GUEST;
 const gid_t ACCOUNT_GID = 3058;
+const int32_t NATIVE_TOKEN = 1;
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 const uid_t ACCOUNT_UID = 3058;
 const std::int32_t ROOT_UID = 0;
 const std::int32_t TEST_UID = 1;
 const int32_t THREAD_NUM = 10;
-const int32_t NATIVE_TOKEN = 1;
 
 const std::vector<std::string> CONSTANTS_VECTOR {
     "constraint.print",
