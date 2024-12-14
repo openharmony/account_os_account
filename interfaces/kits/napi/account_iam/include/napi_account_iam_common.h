@@ -25,6 +25,7 @@
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "napi_account_common.h"
+#include "napi_account_iam_constant.h"
 
 namespace OHOS {
 namespace AccountJsKit {
@@ -326,6 +327,7 @@ napi_status ParseSetPropRequest(napi_env env, napi_value object, AccountSA::SetP
 napi_value CreateCredInfoArray(napi_env env, const std::vector<AccountSA::CredentialInfo> &info);
 napi_value CreateAuthResult(napi_env env, const std::vector<uint8_t> &token, int32_t remainTimes, int32_t freezingTime);
 bool IsAccountIdValid(int32_t accountId);
+napi_status ConvertGetPropertyTypeToAttributeKey(GetPropertyType in, Attributes::AttributeKey &out);
 #endif
 }  // namespace AccountJsKit
 }  // namespace OHOS
