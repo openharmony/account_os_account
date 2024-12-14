@@ -17,9 +17,9 @@
 
 #include "account_iam_client.h"
 #include "account_log_wrapper.h"
-#include "napi_account_iam_common.h"
 #include "napi_account_common.h"
 #include "napi_account_error.h"
+#include "napi_account_iam_common.h"
 
 namespace OHOS {
 namespace AccountJsKit {
@@ -190,6 +190,29 @@ napi_value NapiAccountIAMUserAuth::GetProperty(napi_env env, napi_callback_info 
     return result;
 }
 
+static napi_status ParseUint8TypedArrayToCredentialId(napi_env env, napi_value value, uint64_t &result, ErrCode &err)
+{
+    uint8_t *data = nullptr;
+    size_t length = 0;
+    napi_status status = ParseUint8TypedArray(env, value, &data, &length);
+    if (status != napi_ok) {
+        ACCOUNT_LOGE("Failed to ParseUint8TypedArray");
+        return status;
+    }
+    if (data == nullptr) {
+        ACCOUNT_LOGE("Parse array is empty");
+        err = ERR_JS_CREDENTIAL_NOT_EXIST;
+        return napi_ok;
+    }
+    if (length != sizeof(uint64_t)) {
+        ACCOUNT_LOGW("Failed to convert to uint64_t value");
+        err = ERR_JS_CREDENTIAL_NOT_EXIST;
+        return napi_ok;
+    }
+    result = *(reinterpret_cast<uint64_t *>(data));
+    return napi_ok;
+}
+
 static napi_status ParseContextForGetPropertyById(
     napi_env env, napi_callback_info info, GetPropertyByIdContext &context, napi_value &result)
 {
@@ -202,19 +225,30 @@ static napi_status ParseContextForGetPropertyById(
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return napi_invalid_arg;
     }
-    if (ParseUint8TypedArrayToUint64(env, argv[0], context.credentialId) != napi_ok) {
+    if (ParseUint8TypedArrayToCredentialId(env, argv[0], context.credentialId, context.errCode) != napi_ok) {
         ACCOUNT_LOGE("Parse credentialId from 'Uint8TypedArray' to 'Uint64' failed");
         std::string errMsg = "Parameter error. The type of \"credentialId\" must be Uint8Array";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return napi_invalid_arg;
     }
-    if (ParseGetPropKeys(env, argv[1], context.keys) != napi_ok) {
-        ACCOUNT_LOGE("Parse keys of the 'GetPropertyType' failed");
-        std::string errMsg = "Parameter error. The type of \"keys\" must be 'GetPropertyType'";
+    std::vector<uint32_t> tempKeys;
+    if (ParseUInt32Array(env, argv[1], tempKeys) != napi_ok) {
+        ACCOUNT_LOGE("Parameter error. The type of \"keys\" must be GetPropertyType's array");
+        std::string errMsg = "Parameter error. The type of \"keys\" must be GetPropertyType's array";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return napi_invalid_arg;
     }
     NAPI_CALL_BASE(env, napi_create_promise(env, &context.deferred, &result), napi_generic_failure);
+    for (const auto &item : tempKeys) {
+        Attributes::AttributeKey key;
+        napi_status status = ConvertGetPropertyTypeToAttributeKey(static_cast<GetPropertyType>(item), key);
+        if (status != napi_ok) {
+            ACCOUNT_LOGE("Parameter error. The type of \"key\" must be 'GetPropertyType'");
+            context.errCode = ERR_JS_INVALID_PARAMETER;
+            return napi_ok;
+        }
+        context.keys.push_back(key);
+    }
     return napi_ok;
 }
 
@@ -238,6 +272,11 @@ napi_value NapiAccountIAMUserAuth::GetPropertyByCredentialId(napi_env env, napi_
             auto getPropCallback = std::make_shared<NapiGetPropCallback>(
                 context->env, nullptr, context->deferred, context->keys);
             getPropCallback->isGetById_ = true;
+            if (context->errCode != ERR_OK) {
+                UserIam::UserAuth::Attributes extraInfo;
+                getPropCallback->OnResult(context->errCode, extraInfo);
+                return;
+            }
             AccountIAMClient::GetInstance().GetPropertyByCredentialId(
                 context->credentialId, context->keys, getPropCallback);
         },
