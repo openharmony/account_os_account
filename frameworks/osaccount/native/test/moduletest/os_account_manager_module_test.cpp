@@ -812,6 +812,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest027, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: issueI4RCGG
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest028, TestSize.Level1)
 {
     std::vector<OsAccountInfo> osAccountInfos;
@@ -837,6 +838,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest028, TestSize.Lev
 
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoTwo.GetLocalId()), ERR_OK);
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
  * @tc.name: OsAccountManagerModuleTest029
@@ -3220,6 +3222,7 @@ HWTEST_F(OsAccountManagerModuleTest, GetBackgroundOsAccountLocalIds001, TestSize
  * @tc.type: FUNC
  * @tc.require:
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(OsAccountManagerModuleTest, DeactivateAllOsAccountsModuleTest001, TestSize.Level1)
 {
     std::string privateName = "DeactivateAllOsAccounts001";
@@ -3236,7 +3239,7 @@ HWTEST_F(OsAccountManagerModuleTest, DeactivateAllOsAccountsModuleTest001, TestS
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(MAIN_ACCOUNT_ID), ERR_OK);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
 }
-
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 /**
  * @tc.name: IsOsAccountDeactivatingModuleTest001
  * @tc.desc: Test IsOsAccountDeactivating success.
@@ -3250,6 +3253,7 @@ HWTEST_F(OsAccountManagerModuleTest, IsOsAccountDeactivatingModuleTest001, TestS
 }
 
 #ifndef BUNDLE_ADAPTER_MOCK
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 /**
  * @tc.name: QueryDistributedVirtualDeviceId001
  * @tc.desc: Test QueryDistributedVirtualDeviceId.
@@ -3311,4 +3315,5 @@ HWTEST_F(OsAccountManagerModuleTest, QueryDistributedVirtualDeviceId001, TestSiz
     setuid(ROOT_UID);
     ASSERT_EQ(OsAccountManager::RemoveOsAccount(localId), ERR_OK);
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 #endif

@@ -68,8 +68,8 @@ static constexpr int32_t DEFAULT_API_VERSION = 8;
 const std::vector<uint8_t> DEFAULT_TOKEN = {49, 50, 51, 52, 53};
 static uint64_t g_selfTokenID;
 const std::string STRING_TEST_NAME = "name";
-const int32_t WAIT_TIME = 2;
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
+const int32_t WAIT_TIME = 2;
 const std::string STRING_SHORT_NAME_OUT_OF_RANGE(256, '1');
 #endif
 const std::map<PluginMethodEnum, void *> PLUGIN_METHOD_MAP = {
@@ -163,6 +163,7 @@ void TestPluginSoDomainAuthCallback::SetOsAccountInfo(const OsAccountInfo &accou
     accountInfo_ = accountInfo;
 }
 
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 class MockPluginSoDomainCreateDomainAccountCallback {
 public:
     MOCK_METHOD4(OnResult, void(const int32_t errCode, const std::string &accountName, const std::string &domain,
@@ -208,6 +209,12 @@ void TestPluginSoCreateDomainAccountCallback::OnResult(const int32_t errCode, Pa
     return;
 }
 
+int32_t TestPluginSoCreateDomainAccountCallback::GetLocalId(void)
+{
+    return localId_;
+}
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
+
 static void LoadPluginMethods()
 {
     std::lock_guard<std::mutex> lock(InnerDomainAccountManager::GetInstance().libMutex_);
@@ -223,11 +230,6 @@ static void UnloadPluginMethods()
     std::lock_guard<std::mutex> lock(InnerDomainAccountManager::GetInstance().libMutex_);
     InnerDomainAccountManager::GetInstance().libHandle_ = nullptr;
     InnerDomainAccountManager::GetInstance().methodMap_.clear();
-}
-
-int32_t TestPluginSoCreateDomainAccountCallback::GetLocalId(void)
-{
-    return localId_;
 }
 
 class DomainAccountClientMockPluginSoModuleTest : public testing::Test {
@@ -382,6 +384,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
  * @tc.type: FUNC
  * @tc.require:
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_UpdateAccountInfo_001,
          TestSize.Level0)
 {
@@ -503,6 +506,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     UnloadPluginMethods();
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(oldUserId), ERR_OK);
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
  * @tc.name: DomainAccountClientModuleTest_IsAuthenticationExpired_001
@@ -558,6 +562,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
  * @tc.type: FUNC
  * @tc.require:
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_IsAuthenticationExpired_003,
          TestSize.Level0)
 {
@@ -589,7 +594,6 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
 }
 
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 /**
  * @tc.name: DomainAccountClientModuleTest_IsAuthenticationExpired_004
  * @tc.desc: IsAuthenticationExpired success expired time not set.
@@ -808,6 +812,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
  * @tc.type: FUNC
  * @tc.require:
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_GetOsAccountDomainInfo_001,
          TestSize.Level0)
 {
@@ -852,6 +857,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
         ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
     RecoveryPermission(tokenID);
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
  * @tc.name: DomainAccountClientModuleTest_GetOsAccountDomainInfo_002
@@ -917,6 +923,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
  * @tc.type: FUNC
  * @tc.require:
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest,
          DomainAccountClientModuleTest_IsAuthenticationExpired_MultiThread_001, TestSize.Level0)
 {
@@ -979,3 +986,4 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest,
     setuid(ROOT_UID);
     ASSERT_TRUE(RecoveryPermission(tokenID));
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS

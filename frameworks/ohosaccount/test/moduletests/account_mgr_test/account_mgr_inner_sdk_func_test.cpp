@@ -80,8 +80,11 @@ const std::string TEST_DIFF_ACCOUNT_UID = "9876432";
 const std::string TEST_DIFF_EXPECTED_UID = "FB293C538C2CD118B0441AB3B2EC429A5EA629286A04F31E0CC2EFB96525ADCC";
 const std::string TEST_EMPTY_STRING = "";
 const std::string STRING_TEST_NAME = "test_account_name";
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 const int32_t ACCOUNT_SA_UID = 3058; // this is accountmgr uid
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 static void RemoveOsAccountWithPermission(const int32_t id)
 {
     AccessTokenID originaltoken = GetSelfTokenID();
@@ -93,6 +96,7 @@ static void RemoveOsAccountWithPermission(const int32_t id)
     ASSERT_EQ(0, setuid(0));
     ASSERT_EQ(0, SetSelfTokenID(originaltoken));
 };
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 }
 
 class AccountMgrInnerSdkFuncTest : public testing::Test {

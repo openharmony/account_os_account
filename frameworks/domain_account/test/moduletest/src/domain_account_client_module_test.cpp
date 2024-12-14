@@ -1992,6 +1992,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAcco
  * @tc.type: FUNC
  * @tc.require:
  */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAccountInfo_003, TestSize.Level0)
 {
     DomainAccountInfo oldInfo(STRING_DOMAIN, STRING_NAME), newInfo(STRING_DOMAIN, STRING_NAME_INVALID);
@@ -2073,6 +2074,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAcco
     EXPECT_EQ(oldUserId, newUserId);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(oldUserId), ERR_OK);
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
  * @tc.name: DomainAccountClientModuleTest_UpdateAccountInfo_006

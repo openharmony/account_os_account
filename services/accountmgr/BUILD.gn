@@ -348,7 +348,7 @@ ohos_shared_library("accountmgr") {
     cflags_cc += [ "-DHAS_ASSET_PART" ]
   }
 
-  if (has_config_policy_part) {
+  if (has_config_policy_part && os_account_enable_multiple_os_accounts) {
     external_deps += [ "config_policy:configpolicy_util" ]
     cflags_cc += [ "-DHAS_CONFIG_POLICY_PART" ]
   }

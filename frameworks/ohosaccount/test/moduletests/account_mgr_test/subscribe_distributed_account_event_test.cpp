@@ -83,6 +83,7 @@ public:
  * @tc.type: FUNC
  * @tc.require:
 */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest001, TestSize.Level0)
 {
     OsAccountInfo SubDistributedAccount;
@@ -217,6 +218,7 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
 
     EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(SubDistributedAccount.GetLocalId()));
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
  * @tc.name: SubscribeDistributedAccountTest004
@@ -242,6 +244,7 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
  * @tc.type: FUNC
  * @tc.require:
 */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest005, TestSize.Level0)
 {
     OsAccountInfo SubDistributedAccount;
@@ -318,3 +321,4 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
 
     EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(SubDistributedAccount.GetLocalId()));
 }
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
