@@ -421,6 +421,29 @@ napi_status ParseUint8TypedArrayToUint64(napi_env env, napi_value value, uint64_
     return napi_ok;
 }
 
+napi_status ParseUint8ArrayToNativeUint8Array(napi_env env, napi_value value, uint8_t **data, size_t *length)
+{
+    *data = nullptr;
+    *length = 0;
+    bool isTypedArray = false;
+    napi_is_typedarray(env, value, &isTypedArray);
+    if (!isTypedArray) {
+        ACCOUNT_LOGE("Invalid uint8 array");
+        return napi_invalid_arg;
+    }
+    napi_typedarray_type arrayType = static_cast<napi_typedarray_type>(-1);  // -1 indicates invalid type
+    napi_value buffer = nullptr;
+    size_t offset = 0;
+    napi_get_typedarray_info(env, value, &arrayType, length, reinterpret_cast<void **>(data), &buffer, &offset);
+    if (arrayType != napi_uint8_array) {
+        ACCOUNT_LOGE("Invalid uint8 array");
+        *data = nullptr;
+        *length = 0;
+        return napi_invalid_arg;
+    }
+    return napi_ok;
+}
+
 bool ParseBusinessError(napi_env env, napi_value value, BusinessError &error)
 {
     napi_valuetype valueType = napi_undefined;

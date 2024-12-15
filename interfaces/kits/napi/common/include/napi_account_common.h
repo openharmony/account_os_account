@@ -84,6 +84,7 @@ bool GetNamedJsFunction(napi_env env, napi_value object, const std::string &name
 napi_value CreateStringArray(napi_env env, const std::vector<std::string> &strVec);
 napi_value CreateUint8Array(napi_env env, const uint8_t *data, size_t length);
 napi_status ParseUint8TypedArray(napi_env env, napi_value value, uint8_t **data, size_t *length);
+napi_status ParseUint8ArrayToNativeUint8Array(napi_env env, napi_value value, uint8_t **data, size_t *length);
 napi_status ParseUint8TypedArrayToVector(napi_env env, napi_value value, std::vector<uint8_t> &vec);
 napi_status ParseUint8TypedArrayToUint64(napi_env env, napi_value value, uint64_t &result);
 void NapiCallVoidFunction(napi_env env, napi_value *argv, size_t argc, napi_ref funcRef);
