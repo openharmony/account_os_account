@@ -84,7 +84,7 @@ UpdateCredInfo::UpdateCredInfo(const Attributes &extraInfo)
     extraInfo.GetUint8ArrayValue(Attributes::ATTR_OLD_ROOT_SECRET, oldSecret);
 }
 
-ReEnrollCallback::ReEnrollCallback()
+ReEnrollCallback::ReEnrollCallback(sptr<IIDMCallback> &innerCallback) : innerCallback_(innerCallback)
 {}
 
 void ReEnrollCallback::OnResult(int32_t result, const Attributes &extraInfo)
@@ -100,9 +100,8 @@ void ReEnrollCallback::OnResult(int32_t result, const Attributes &extraInfo)
 void ReEnrollCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const AccountSA::Attributes &extraInfo)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    ACCOUNT_LOGE("ReEnroll: UpdateCredential unexpected call to OnAcquireInfo");
-    isCalled_ = true;
-    onResultCondition_.notify_one();
+    ACCOUNT_LOGI("ReEnroll: UpdateCredential call to ReEnroll OnAcquireInfo");
+    innerCallback_->OnAcquireInfo(module, acquireInfo, extraInfo);
     return;
 }
 
@@ -110,7 +109,7 @@ ErrCode AuthCallback::InnerHandleReEnroll(const std::vector<uint8_t> &token)
 {
     //set first caller to sceneboard
     SetFirstCallerTokenID(callerTokenId_);
-    sptr<ReEnrollCallback> callback = new (std::nothrow) ReEnrollCallback();
+    sptr<ReEnrollCallback> callback = new (std::nothrow) ReEnrollCallback(innerCallback_);
     if (callback == nullptr) {
         ACCOUNT_LOGE("ReEnroll: failed to allocate callback");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
