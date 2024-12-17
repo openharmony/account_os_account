@@ -1708,6 +1708,25 @@ ErrCode IInnerOsAccountManager::DeactivateOsAccount(const int id, bool isStopSto
     return ERR_OK;
 }
 
+void IInnerOsAccountManager::RollBackToEarlierAccount(int32_t fromId, int32_t toId)
+{
+    ACCOUNT_LOGI("Enter.");
+    if (fromId == toId) {
+        return;
+    }
+    subscribeManager_.Publish(fromId, toId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
+    ReportOsAccountSwitch(fromId, toId);
+    ACCOUNT_LOGI("End pushlishing pre switch event.");
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetLocalId(toId);
+    subscribeManager_.Publish(toId, fromId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
+    OsAccountInterface::PublishCommonEvent(osAccountInfo,
+            OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_FOREGROUND, Constants::OPERATION_SWITCH);
+    subscribeManager_.Publish(toId, fromId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED);
+    ReportOsAccountSwitch(toId, fromId);
+    ACCOUNT_LOGI("End pushlishing post switch event.");
+}
+
 ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccountInfo, const bool startStorage,
                                                           const uint64_t displayId)
 {
@@ -1721,11 +1740,13 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
     if (startStorage) {
         ErrCode errCode = SendToStorageAccountStart(osAccountInfo);
         if (errCode != ERR_OK) {
+            RollBackToEarlierAccount(localId, oldId);
             return errCode;
         }
     }
     ErrCode errCode = SendToAMSAccountStart(osAccountInfo, displayId);
     if (errCode != ERR_OK) {
+        RollBackToEarlierAccount(localId, oldId);
         return errCode;
     }
     if (oldId != localId) {
@@ -1738,8 +1759,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
     }
 
     if (oldIdExist && (oldId != localId)) {
-        errCode = UpdateAccountToBackground(oldId);
-        if (errCode != ERR_OK) {
+        if ((errCode = UpdateAccountToBackground(oldId)) != ERR_OK) {
             return errCode;
         }
     }
