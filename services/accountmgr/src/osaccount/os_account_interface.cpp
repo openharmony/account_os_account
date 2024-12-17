@@ -57,7 +57,6 @@ namespace {
 constexpr uint32_t CRYPTO_FLAG_EL1 = 1;
 constexpr uint32_t CRYPTO_FLAG_EL2 = 2;
 constexpr int32_t E_ACTIVE_EL2 = 30;
-constexpr int32_t E_UMOUNT = 10;
 #endif
 
 constexpr int32_t DELAY_FOR_EXCEPTION = 100;
@@ -567,11 +566,11 @@ ErrCode OsAccountInterface::SendToStorageAccountStop(OsAccountInfo &osAccountInf
     StartTraceAdapter("StorageManager StopUser");
     int localId = osAccountInfo.GetLocalId();
     int err = proxy->StopUser(localId);
-    if (err != E_UMOUNT && err != 0) {
+    if (err != 0) {
         ACCOUNT_LOGE("StorageManager failed to stop user, err: %{public}d", err);
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_STOP,
             err, "StorageManager failed to stop user");
-        return ERR_OK;
+        return err;
     }
     err = proxy->InactiveUserKey(localId);
     if (err != 0) {
