@@ -136,7 +136,7 @@ public:
 private:
     AccountJsKit::ThreadLockInfo lockInfo_;
     napi_env env_;
-    napi_ref callbackRef_ = nullptr;
+    NapiCallbackRef callbackRef_;
     napi_deferred deferred_ = nullptr;
 };
 
@@ -148,7 +148,7 @@ public:
 private:
     AccountJsKit::ThreadLockInfo lockInfo_;
     napi_env env_ = nullptr;
-    napi_ref callbackRef_ = nullptr;
+    NapiCallbackRef callbackRef_;
     napi_deferred deferred_ = nullptr;
 };
 
