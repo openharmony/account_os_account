@@ -210,7 +210,8 @@ struct AuthenticatorCallbackParam : public CommonAsyncContext {
 
 class AuthenticatorAsyncCallback : public AppAccountAuthenticatorCallbackStub {
 public:
-    explicit AuthenticatorAsyncCallback(napi_env env, napi_ref ref, napi_deferred deferred, uv_after_work_cb workCb);
+    explicit AuthenticatorAsyncCallback(napi_env env, napi_ref ref, napi_deferred deferred,
+        std::function<std::function<void()>(const std::shared_ptr<AuthenticatorCallbackParam> &)> workCb);
     ~AuthenticatorAsyncCallback();
 
     void OnResult(int32_t resultCode, const AAFwk::Want &result) override;
@@ -223,7 +224,7 @@ private:
     napi_env env_ = nullptr;
     napi_ref callbackRef_ = nullptr;
     napi_deferred deferred_ = nullptr;
-    uv_after_work_cb workCb_ = nullptr;
+    std::function<std::function<void()>(const std::shared_ptr<AuthenticatorCallbackParam>&)> workCb_;
 };
 
 class AppAccountManagerCallback : public AppAccountAuthenticatorCallbackStub {
@@ -257,9 +258,9 @@ napi_value GetErrorCodeValue(napi_env env, int errCode);
 
 bool GetArrayLength(napi_env env, napi_value value, uint32_t &length);
 
-void CheckAccountLabelsOnResultWork(uv_work_t *work, int status);
+std::function<void()> CheckAccountLabelsOnResultWork(const std::shared_ptr<AuthenticatorCallbackParam> &param);
 
-void SelectAccountsOnResultWork(uv_work_t *work, int status);
+std::function<void()> SelectAccountsOnResultWork(const std::shared_ptr<AuthenticatorCallbackParam> &param);
 
 void GetAppAccountInfoForResult(napi_env env, const std::vector<AppAccountInfo> &info, napi_value &result);
 
