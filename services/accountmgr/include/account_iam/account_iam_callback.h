@@ -312,7 +312,7 @@ public:
     std::mutex mutex_;
     std::condition_variable onResultCondition_;
 
-    ReEnrollCallback(sptr<IIDMCallback> &innerCallback);
+    ReEnrollCallback(const sptr<IIDMCallback> &innerCallback);
     void OnResult(int32_t result, const Attributes &extraInfo) override;
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override;
 private:

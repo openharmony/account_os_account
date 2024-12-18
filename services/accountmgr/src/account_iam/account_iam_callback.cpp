@@ -84,7 +84,7 @@ UpdateCredInfo::UpdateCredInfo(const Attributes &extraInfo)
     extraInfo.GetUint8ArrayValue(Attributes::ATTR_OLD_ROOT_SECRET, oldSecret);
 }
 
-ReEnrollCallback::ReEnrollCallback(sptr<IIDMCallback> &innerCallback) : innerCallback_(innerCallback)
+ReEnrollCallback::ReEnrollCallback(const sptr<IIDMCallback> &innerCallback) : innerCallback_(innerCallback)
 {}
 
 void ReEnrollCallback::OnResult(int32_t result, const Attributes &extraInfo)
