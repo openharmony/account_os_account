@@ -39,24 +39,6 @@ const size_t PARAM_ZERO = 0;
 
 using namespace OHOS::AccountSA;
 
-static bool InitDomainPluginExecEnv(
-    napi_env env, uv_loop_s **loop, uv_work_t **work, JsDomainPluginParam **param, ThreadLockInfo *lockInfo)
-{
-    if (!CreateExecEnv(env, loop, work)) {
-        return false;
-    }
-    *param = new (std::nothrow) JsDomainPluginParam(env);
-    if (*param == nullptr) {
-        ACCOUNT_LOGE("failed to create JsDomainPluginParam");
-        delete *work;
-        *work = nullptr;
-        return false;
-    }
-    (*param)->lockInfo = lockInfo;
-    (*work)->data = reinterpret_cast<void *>(*param);
-    return true;
-}
-
 static napi_value CreatePluginAsyncCallback(napi_env env, napi_callback callback, JsDomainPluginParam *param)
 {
     napi_value napiCallback = nullptr;
@@ -337,25 +319,29 @@ static napi_value CreatePluginAccountInfoOptions(const JsDomainPluginParam *para
     return napiOptions;
 }
 
-static void GetDomainAccountInfoWork(uv_work_t *work, int status)
+static std::function<void()> GetDomainAccountInfoWork(JsDomainPluginParam *param)
 {
-    std::unique_ptr<uv_work_t> workPtr(work);
-    napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
-        return;
-    }
-    JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
-    napi_value napiCallback = CreatePluginAsyncCallback(param->env, GetDomainAccountInfoCallback, param);
-    napi_value getDomainAccountInfoPLuginOptions = CreatePluginAccountInfoOptions(param);
-    napi_value argv[] = {getDomainAccountInfoPLuginOptions, napiCallback};
-    NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->func);
-    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-    param->lockInfo->count--;
-    param->lockInfo->condition.notify_all();
-    napi_close_handle_scope(param->env, scope);
-    if (napiCallback == nullptr) {
-        delete param;
-    }
+    return [param = std::move(param)] {
+        ACCOUNT_LOGI("Enter GetDomainAccountInfoWork");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(param->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            delete param;
+            return;
+        }
+        napi_value napiCallback = CreatePluginAsyncCallback(param->env, GetDomainAccountInfoCallback, param);
+        napi_value getDomainAccountInfoPLuginOptions = CreatePluginAccountInfoOptions(param);
+        napi_value argv[] = {getDomainAccountInfoPLuginOptions, napiCallback};
+        NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->func);
+        std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+        param->lockInfo->count--;
+        param->lockInfo->condition.notify_all();
+        napi_close_handle_scope(param->env, scope);
+        if (napiCallback == nullptr) {
+            delete param;
+        }
+    };
 }
 
 static napi_value OnAccountBoundCallback(napi_env env, napi_callback_info cbInfo)
@@ -382,48 +368,56 @@ static napi_value OnAccountBoundCallback(napi_env env, napi_callback_info cbInfo
     return nullptr;
 }
 
-static void OnAccountBoundWork(uv_work_t *work, int status)
+static std::function<void()> OnAccountBoundWork(JsDomainPluginParam *param)
 {
-    std::unique_ptr<uv_work_t> workPtr(work);
-    napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
-        return;
-    }
-    JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
-    napi_value napiLocalId = nullptr;
-    napi_create_int32(param->env, param->userId, &napiLocalId);
-    napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
-    napi_value napiCallback = CreatePluginAsyncCallback(param->env, OnAccountBoundCallback, param);
-    napi_value argv[] = {napiDomainAccountInfo, napiLocalId, napiCallback};
-    NapiCallVoidFunction(param->env, argv, ARG_SIZE_THREE, param->func);
-    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-    param->lockInfo->count--;
-    param->lockInfo->condition.notify_all();
-    napi_close_handle_scope(param->env, scope);
-    if (napiCallback == nullptr) {
-        delete param;
-    }
+    return [param = std::move(param)] {
+        ACCOUNT_LOGI("Enter OnAccountBoundWork");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(param->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            delete param;
+            return;
+        }
+        napi_value napiLocalId = nullptr;
+        napi_create_int32(param->env, param->userId, &napiLocalId);
+        napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
+        napi_value napiCallback = CreatePluginAsyncCallback(param->env, OnAccountBoundCallback, param);
+        napi_value argv[] = {napiDomainAccountInfo, napiLocalId, napiCallback};
+        NapiCallVoidFunction(param->env, argv, ARG_SIZE_THREE, param->func);
+        std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+        param->lockInfo->count--;
+        param->lockInfo->condition.notify_all();
+        napi_close_handle_scope(param->env, scope);
+        if (napiCallback == nullptr) {
+            delete param;
+        }
+    };
 }
 
-static void OnAccountUnBoundWork(uv_work_t *work, int status)
+static std::function<void()> OnAccountUnBoundWork(JsDomainPluginParam *param)
 {
-    std::unique_ptr<uv_work_t> workPtr(work);
-    napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
-        return;
-    }
-    JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
-    napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
-    napi_value napiCallback = CreatePluginAsyncCallback(param->env, OnAccountBoundCallback, param);
-    napi_value argv[] = {napiDomainAccountInfo, napiCallback};
-    NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->func);
-    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-    param->lockInfo->count--;
-    param->lockInfo->condition.notify_all();
-    napi_close_handle_scope(param->env, scope);
-    if (napiCallback == nullptr) {
-        delete param;
-    }
+    return [param = std::move(param)] {
+        ACCOUNT_LOGI("Enter OnAccountUnBoundWork");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(param->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            delete param;
+            return;
+        }
+        napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
+        napi_value napiCallback = CreatePluginAsyncCallback(param->env, OnAccountBoundCallback, param);
+        napi_value argv[] = {napiDomainAccountInfo, napiCallback};
+        NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->func);
+        std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+        param->lockInfo->count--;
+        param->lockInfo->condition.notify_all();
+        napi_close_handle_scope(param->env, scope);
+        if (napiCallback == nullptr) {
+            delete param;
+        }
+    };
 }
 
 static napi_value GetAuthStatusInfoCallback(napi_env env, napi_callback_info cbInfo)
@@ -504,68 +498,80 @@ static napi_value IsUserTokenValidCallback(napi_env env, napi_callback_info cbIn
     return nullptr;
 }
 
-static void GetAccessTokenWork(uv_work_t *work, int status)
+static std::function<void()> GetAccessTokenWork(JsDomainPluginParam *param)
 {
-    std::unique_ptr<uv_work_t> workPtr(work);
-    napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
-        return;
-    }
-    JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
-    napi_value napiCallback = CreatePluginAsyncCallback(param->env, GetAccessTokenCallback, param);
-    napi_value napiOptions = CreateNapiGetAccessTokenOptions(param);
-    napi_value argv[] = {napiOptions, napiCallback};
-    NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->func);
-    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-    param->lockInfo->count--;
-    param->lockInfo->condition.notify_all();
-    napi_close_handle_scope(param->env, scope);
-    if (napiCallback == nullptr) {
-        delete param;
-    }
+    return [param = std::move(param)] {
+        ACCOUNT_LOGI("Enter GetAccessTokenWork");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(param->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            delete param;
+            return;
+        }
+        napi_value napiCallback = CreatePluginAsyncCallback(param->env, GetAccessTokenCallback, param);
+        napi_value napiOptions = CreateNapiGetAccessTokenOptions(param);
+        napi_value argv[] = {napiOptions, napiCallback};
+        NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->func);
+        std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+        param->lockInfo->count--;
+        param->lockInfo->condition.notify_all();
+        napi_close_handle_scope(param->env, scope);
+        if (napiCallback == nullptr) {
+            delete param;
+        }
+    };
 }
 
-static void IsUserTokenValidWork(uv_work_t *work, int status)
+static std::function<void()> IsUserTokenValidWork(JsDomainPluginParam *param)
 {
-    std::unique_ptr<uv_work_t> workPtr(work);
-    napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
-        return;
-    }
-    JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
-    napi_value napiCallback = CreatePluginAsyncCallback(param->env, IsUserTokenValidCallback, param);
-    napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
-    napi_value napiUserToken = CreateUint8Array(param->env, param->authData.data(), param->authData.size());
-    napi_value argv[] = {napiDomainAccountInfo, napiUserToken, napiCallback};
-    NapiCallVoidFunction(param->env, argv, ARG_SIZE_THREE, param->func);
-    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-    param->lockInfo->count--;
-    param->lockInfo->condition.notify_all();
-    napi_close_handle_scope(param->env, scope);
-    if (napiCallback == nullptr) {
-        delete param;
-    }
+    return [param = std::move(param)] {
+        ACCOUNT_LOGI("Enter IsUserTokenValidWork");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(param->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            delete param;
+            return;
+        }
+        napi_value napiCallback = CreatePluginAsyncCallback(param->env, IsUserTokenValidCallback, param);
+        napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
+        napi_value napiUserToken = CreateUint8Array(param->env, param->authData.data(), param->authData.size());
+        napi_value argv[] = {napiDomainAccountInfo, napiUserToken, napiCallback};
+        NapiCallVoidFunction(param->env, argv, ARG_SIZE_THREE, param->func);
+        std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+        param->lockInfo->count--;
+        param->lockInfo->condition.notify_all();
+        napi_close_handle_scope(param->env, scope);
+        if (napiCallback == nullptr) {
+            delete param;
+        }
+    };
 }
 
-static void GetAuthStatusInfoWork(uv_work_t *work, int status)
+static std::function<void()> GetAuthStatusInfoWork(JsDomainPluginParam *param)
 {
-    std::unique_ptr<uv_work_t> workPtr(work);
-    napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
-        return;
-    }
-    JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
-    napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
-    napi_value napiCallback = CreatePluginAsyncCallback(param->env, GetAuthStatusInfoCallback, param);
-    napi_value argv[] = {napiDomainAccountInfo, napiCallback};
-    NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->func);
-    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-    param->lockInfo->count--;
-    param->lockInfo->condition.notify_all();
-    napi_close_handle_scope(param->env, scope);
-    if (napiCallback == nullptr) {
-        delete param;
-    }
+    return [param = std::move(param)] {
+        ACCOUNT_LOGI("Enter GetAuthStatusInfoWork");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(param->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            delete param;
+            return;
+        }
+        napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
+        napi_value napiCallback = CreatePluginAsyncCallback(param->env, GetAuthStatusInfoCallback, param);
+        napi_value argv[] = { napiDomainAccountInfo, napiCallback };
+        NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->func);
+        std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+        param->lockInfo->count--;
+        param->lockInfo->condition.notify_all();
+        napi_close_handle_scope(param->env, scope);
+        if (napiCallback == nullptr) {
+            delete param;
+        }
+    };
 }
 
 NapiDomainAccountPlugin::NapiDomainAccountPlugin(napi_env env, const JsDomainPlugin &jsPlugin)
@@ -600,27 +606,31 @@ NapiDomainAccountPlugin::~NapiDomainAccountPlugin()
     jsPlugin_.getAccessToken = nullptr;
 }
 
-static void AuthCommonWork(uv_work_t *work, int status)
+static std::function<void()> AuthCommonWork(JsDomainPluginParam *param)
 {
-    std::unique_ptr<uv_work_t> workPtr(work);
-    napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
-        return;
-    }
-    JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
-    int argc = 0;
-    napi_value argv[ARG_SIZE_THREE] = {0};
-    argv[argc++] = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
-    if (param->authMode != AUTH_WITH_POPUP_MODE) {
-        argv[argc++] = CreateUint8Array(param->env, param->authData.data(), param->authData.size());
-    }
-    argv[argc++] = CreateNapiDomainAuthCallback(param->env, param->callback);
-    NapiCallVoidFunction(param->env, argv, argc, param->func);
-    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
-    param->lockInfo->count--;
-    param->lockInfo->condition.notify_all();
-    napi_close_handle_scope(param->env, scope);
-    delete param;
+    return [param = std::move(param)] {
+        ACCOUNT_LOGI("Enter AuthCommonWork");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(param->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            delete param;
+            return;
+        }
+        int argc = 0;
+        napi_value argv[ARG_SIZE_THREE] = {0};
+        argv[argc++] = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
+        if (param->authMode != AUTH_WITH_POPUP_MODE) {
+            argv[argc++] = CreateUint8Array(param->env, param->authData.data(), param->authData.size());
+        }
+        argv[argc++] = CreateNapiDomainAuthCallback(param->env, param->callback);
+        NapiCallVoidFunction(param->env, argv, argc, param->func);
+        std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+        param->lockInfo->count--;
+        param->lockInfo->condition.notify_all();
+        napi_close_handle_scope(param->env, scope);
+        delete param;
+    };
 }
 
 void NapiDomainAccountPlugin::AuthCommon(AccountSA::AuthMode authMode, const AccountSA::DomainAccountInfo &info,
@@ -631,11 +641,9 @@ void NapiDomainAccountPlugin::AuthCommon(AccountSA::AuthMode authMode, const Acc
         ACCOUNT_LOGE("the plugin has been released");
         return;
     }
-    uv_loop_s *loop = nullptr;
-    uv_work_t *work = nullptr;
-    JsDomainPluginParam *param = nullptr;
-    if (!InitDomainPluginExecEnv(env_, &loop, &work, &param, &lockInfo_)) {
-        ACCOUNT_LOGE("failed to init domain plugin execution environment");
+    JsDomainPluginParam *param = new (std::nothrow) JsDomainPluginParam(env_);
+    if (param == nullptr) {
+        ACCOUNT_LOGE("Failed to create JsDomainPluginParam");
         return;
     }
     switch (authMode) {
@@ -653,22 +661,21 @@ void NapiDomainAccountPlugin::AuthCommon(AccountSA::AuthMode authMode, const Acc
     }
     if (param->func == nullptr) {
         ACCOUNT_LOGE("func is nullptr");
-        delete work;
         delete param;
         return;
     }
+    param->lockInfo = &lockInfo_;
     param->callback = callback;
     param->domainAccountInfo = info;
     param->authMode = authMode;
     param->authData = authData;
-    int errCode = uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, AuthCommonWork, uv_qos_user_initiated);
-    if (errCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
+    if (napi_ok != napi_send_event(env_, AuthCommonWork(param), napi_eprio_vip)) {
+        ACCOUNT_LOGE("Post task failed");
         delete param;
-        delete work;
         return;
     }
     lockInfo_.count++;
+    ACCOUNT_LOGI("Post task finish");
 }
 
 void NapiDomainAccountPlugin::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &credential,
@@ -701,25 +708,22 @@ void NapiDomainAccountPlugin::GetAuthStatusInfo(
         ACCOUNT_LOGE("getAuthStatusInfo function of the js plugin is undefined");
         return;
     }
-    uv_loop_s *loop = nullptr;
-    uv_work_t *work = nullptr;
-    JsDomainPluginParam *param = nullptr;
-    if (!InitDomainPluginExecEnv(env_, &loop, &work, &param, &lockInfo_)) {
-        ACCOUNT_LOGE("failed to init domain plugin execution environment");
+    JsDomainPluginParam *param = new (std::nothrow) JsDomainPluginParam(env_);
+    if (param == nullptr) {
+        ACCOUNT_LOGE("Failed to create JsDomainPluginParam");
         return;
     }
+    param->lockInfo = &lockInfo_;
     param->func = jsPlugin_.getAuthStatusInfo;
     param->domainAccountInfo = info;
     param->callback = callback;
-    int errCode = uv_queue_work_with_qos(
-        loop, work, [](uv_work_t *work) {}, GetAuthStatusInfoWork, uv_qos_default);
-    if (errCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
+    if (napi_ok != napi_send_event(env_, GetAuthStatusInfoWork(param), napi_eprio_vip)) {
+        ACCOUNT_LOGE("Post task failed");
         delete param;
-        delete work;
         return;
     }
     lockInfo_.count++;
+    ACCOUNT_LOGI("Post task finish");
 }
 
 void NapiDomainAccountPlugin::OnAccountBound(const DomainAccountInfo &info, const int32_t localId,
@@ -734,25 +738,23 @@ void NapiDomainAccountPlugin::OnAccountBound(const DomainAccountInfo &info, cons
         ACCOUNT_LOGE("OnAccountBound function of the js plugin is undefined");
         return;
     }
-    uv_loop_s *loop = nullptr;
-    uv_work_t *work = nullptr;
-    JsDomainPluginParam *param = nullptr;
-    if (!InitDomainPluginExecEnv(env_, &loop, &work, &param, &lockInfo_)) {
-        ACCOUNT_LOGE("failed to init domain plugin execution environment");
+    JsDomainPluginParam *param = new (std::nothrow) JsDomainPluginParam(env_);
+    if (param == nullptr) {
+        ACCOUNT_LOGE("Failed to create JsDomainPluginParam");
         return;
     }
+    param->lockInfo = &lockInfo_;
     param->domainAccountInfo = info;
     param->func = jsPlugin_.onAccountBound;
     param->callback = callback;
     param->userId = localId;
-    int errCode = uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, OnAccountBoundWork, uv_qos_default);
-    if (errCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
-        delete work;
+    if (napi_ok != napi_send_event(env_, OnAccountBoundWork(param), napi_eprio_vip)) {
+        ACCOUNT_LOGE("Post task failed");
         delete param;
         return;
     }
     lockInfo_.count++;
+    ACCOUNT_LOGI("Post task finish");
 }
 
 void NapiDomainAccountPlugin::OnAccountUnBound(const DomainAccountInfo &info,
@@ -767,25 +769,22 @@ void NapiDomainAccountPlugin::OnAccountUnBound(const DomainAccountInfo &info,
         ACCOUNT_LOGE("OnAccountUnBound function of the js plugin is undefined");
         return;
     }
-    uv_loop_s *loop = nullptr;
-    uv_work_t *work = nullptr;
-    JsDomainPluginParam *param = nullptr;
-    if (!InitDomainPluginExecEnv(env_, &loop, &work, &param, &lockInfo_)) {
-        ACCOUNT_LOGE("failed to init domain plugin execution environment");
+    JsDomainPluginParam *param = new (std::nothrow) JsDomainPluginParam(env_);
+    if (param == nullptr) {
+        ACCOUNT_LOGE("Failed to create JsDomainPluginParam");
         return;
     }
+    param->lockInfo = &lockInfo_;
     param->domainAccountInfo = info;
     param->func = jsPlugin_.onAccountUnbound;
     param->callback = callback;
-    int errCode = uv_queue_work_with_qos(
-        loop, work, [](uv_work_t *work) {}, OnAccountUnBoundWork, uv_qos_default);
-    if (errCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
-        delete work;
+    if (napi_ok != napi_send_event(env_, OnAccountUnBoundWork(param), napi_eprio_vip)) {
+        ACCOUNT_LOGE("Post task failed");
         delete param;
         return;
     }
     lockInfo_.count++;
+    ACCOUNT_LOGI("Post task finish");
 }
 
 void NapiDomainAccountPlugin::GetDomainAccountInfo(const GetDomainAccountInfoOptions &options,
@@ -800,26 +799,23 @@ void NapiDomainAccountPlugin::GetDomainAccountInfo(const GetDomainAccountInfoOpt
         ACCOUNT_LOGE("GetDomainAccountInfo function of the js plugin is undefined");
         return;
     }
-    uv_loop_s *loop = nullptr;
-    uv_work_t *work = nullptr;
-    JsDomainPluginParam *param = nullptr;
-    if (!InitDomainPluginExecEnv(env_, &loop, &work, &param, &lockInfo_)) {
-        ACCOUNT_LOGE("failed to init domain plugin execution environment");
+    JsDomainPluginParam *param = new (std::nothrow) JsDomainPluginParam(env_);
+    if (param == nullptr) {
+        ACCOUNT_LOGE("Failed to create JsDomainPluginParam");
         return;
     }
+    param->lockInfo = &lockInfo_;
     param->domainAccountInfo = options.accountInfo;
     param->callingUid = options.callingUid;
     param->callback = callback;
     param->func = jsPlugin_.getDomainAccountInfo;
-    int errCode = uv_queue_work_with_qos(
-        loop, work, [](uv_work_t *work) {}, GetDomainAccountInfoWork, uv_qos_default);
-    if (errCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
-        delete work;
+    if (napi_ok != napi_send_event(env_, GetDomainAccountInfoWork(param), napi_eprio_vip)) {
+        ACCOUNT_LOGE("Post task failed");
         delete param;
         return;
     }
     lockInfo_.count++;
+    ACCOUNT_LOGI("Post task finish");
 }
 
 void NapiDomainAccountPlugin::IsAccountTokenValid(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
@@ -834,26 +830,23 @@ void NapiDomainAccountPlugin::IsAccountTokenValid(const DomainAccountInfo &info,
         ACCOUNT_LOGE("isUserTokenValid function of the js plugin is undefined");
         return;
     }
-    uv_loop_s *loop = nullptr;
-    uv_work_t *work = nullptr;
-    JsDomainPluginParam *param = nullptr;
-    if (!InitDomainPluginExecEnv(env_, &loop, &work, &param, &lockInfo_)) {
-        ACCOUNT_LOGE("failed to init domain plugin execution environment");
+    JsDomainPluginParam *param = new (std::nothrow) JsDomainPluginParam(env_);
+    if (param == nullptr) {
+        ACCOUNT_LOGE("Failed to create JsDomainPluginParam");
         return;
     }
+    param->lockInfo = &lockInfo_;
     param->callback = callback;
     param->authData = token;
     param->domainAccountInfo = info;
     param->func = jsPlugin_.isAccountTokenValid;
-    int errCode = uv_queue_work_with_qos(
-        loop, work, [](uv_work_t *work) {}, IsUserTokenValidWork, uv_qos_default);
-    if (errCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
-        delete work;
+    if (napi_ok != napi_send_event(env_, IsUserTokenValidWork(param), napi_eprio_vip)) {
+        ACCOUNT_LOGE("Post task failed");
         delete param;
         return;
     }
     lockInfo_.count++;
+    ACCOUNT_LOGI("Post task finish");
 }
 
 void NapiDomainAccountPlugin::GetAccessToken(const AccountSA::DomainAccountInfo &domainInfo,
@@ -869,27 +862,24 @@ void NapiDomainAccountPlugin::GetAccessToken(const AccountSA::DomainAccountInfo 
         ACCOUNT_LOGE("getAccessToken function of the js plugin is undefined");
         return;
     }
-    uv_loop_s *loop = nullptr;
-    uv_work_t *work = nullptr;
-    JsDomainPluginParam *param = nullptr;
-    if (!InitDomainPluginExecEnv(env_, &loop, &work, &param, &lockInfo_)) {
-        ACCOUNT_LOGE("failed to init domain plugin execution environment");
+    JsDomainPluginParam *param = new (std::nothrow) JsDomainPluginParam(env_);
+    if (param == nullptr) {
+        ACCOUNT_LOGE("Failed to create JsDomainPluginParam");
         return;
     }
+    param->lockInfo = &lockInfo_;
     param->domainAccountInfo = domainInfo;
     param->callback = callback;
     param->authData = accountToken;
     param->option = option;
     param->func = jsPlugin_.getAccessToken;
-    int errCode = uv_queue_work_with_qos(
-        loop, work, [](uv_work_t *work) {}, GetAccessTokenWork, uv_qos_default);
-    if (errCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
-        delete work;
+    if (napi_ok != napi_send_event(env_, GetAccessTokenWork(param), napi_eprio_vip)) {
+        ACCOUNT_LOGE("Post task failed");
         delete param;
         return;
     }
     lockInfo_.count++;
+    ACCOUNT_LOGI("Post task finish");
 }
 
 napi_value NapiDomainAccountManager::Init(napi_env env, napi_value exports)
@@ -1162,28 +1152,28 @@ static void GetAccessTokenCompleteCB(napi_env env, napi_status status, void *dat
     delete reinterpret_cast<GetAccessTokenAsyncContext *>(data);
 }
 
-static void GetAccessTokenCompleteWork(uv_work_t *work, int status)
+static std::function<void()> GetAccessTokenCompleteWork(GetAccessTokenAsyncContext *param)
 {
-    std::unique_ptr<uv_work_t> workPtr(work);
-    napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
-        if ((work != nullptr) && (work->data != nullptr)) {
-            delete reinterpret_cast<GetAccessTokenAsyncContext *>(work->data);
+    return [asyncContext = std::move(param)] {
+        ACCOUNT_LOGI("Enter GetAccessTokenCompleteWork");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(asyncContext->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            return;
         }
-        return;
-    }
-    GetAccessTokenAsyncContext *asyncContext = reinterpret_cast<GetAccessTokenAsyncContext *>(work->data);
-    napi_value errJs = nullptr;
-    napi_value dataJs = nullptr;
-    if (asyncContext->errCode == ERR_OK) {
-        dataJs =
-            CreateUint8Array(asyncContext->env, asyncContext->accessToken.data(), asyncContext->accessToken.size());
-    } else {
-        errJs = GenerateBusinessError(asyncContext->env, asyncContext->errCode);
-    }
-    ReturnCallbackOrPromise(asyncContext->env, asyncContext, errJs, dataJs);
-    napi_close_handle_scope(asyncContext->env, scope);
-    delete asyncContext;
+        napi_value errJs = nullptr;
+        napi_value dataJs = nullptr;
+        if (asyncContext->errCode == ERR_OK) {
+            dataJs =
+                CreateUint8Array(asyncContext->env, asyncContext->accessToken.data(), asyncContext->accessToken.size());
+        } else {
+            errJs = GenerateBusinessError(asyncContext->env, asyncContext->errCode);
+        }
+        ReturnCallbackOrPromise(asyncContext->env, asyncContext, errJs, dataJs);
+        napi_close_handle_scope(asyncContext->env, scope);
+        delete asyncContext;
+    };
 }
 
 napi_value NapiDomainAccountManager::AuthWithPopup(napi_env env, napi_callback_info cbInfo)
@@ -1218,104 +1208,87 @@ napi_value NapiDomainAccountManager::AuthWithPopup(napi_env env, napi_callback_i
     return nullptr;
 }
 
-static void HasDomainAccountCompletedWork(uv_work_t *work, int status)
+static std::function<void()> HasDomainAccountCompletedWork(HasDomainAccountAsyncContext *param)
 {
-    std::unique_ptr<uv_work_t> workPtr(work);
-    napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
-        return;
-    }
-    HasDomainAccountAsyncContext *asyncContext = reinterpret_cast<HasDomainAccountAsyncContext *>(work->data);
-    napi_value errJs = nullptr;
-    napi_value dataJs = nullptr;
-    if (asyncContext->errCode == ERR_OK) {
-        napi_get_boolean(asyncContext->env, asyncContext->isHasDomainAccount, &dataJs);
-    } else {
-        errJs = GenerateBusinessError(asyncContext->env, asyncContext->errCode);
-    }
-    ReturnCallbackOrPromise(asyncContext->env, asyncContext, errJs, dataJs);
-    napi_close_handle_scope(asyncContext->env, scope);
-    delete asyncContext;
+    return [asyncContext = std::move(param)] {
+        ACCOUNT_LOGI("Enter HasDomainAccountCompletedWork");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(asyncContext->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            return;
+        }
+        napi_value errJs = nullptr;
+        napi_value dataJs = nullptr;
+        if (asyncContext->errCode == ERR_OK) {
+            napi_get_boolean(asyncContext->env, asyncContext->isHasDomainAccount, &dataJs);
+        } else {
+            errJs = GenerateBusinessError(asyncContext->env, asyncContext->errCode);
+        }
+        ReturnCallbackOrPromise(asyncContext->env, asyncContext, errJs, dataJs);
+        napi_close_handle_scope(asyncContext->env, scope);
+        delete asyncContext;
+    };
 }
 
 NapiHasDomainInfoCallback::NapiHasDomainInfoCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred)
-    : env_(env), callbackRef_(callbackRef), deferred_(deferred)
+    : env_(env), callbackRef_(env, callbackRef), deferred_(deferred)
 {}
 
 void NapiHasDomainInfoCallback::OnResult(const int32_t errCode, Parcel &parcel)
 {
     std::unique_lock<std::mutex> lock(lockInfo_.mutex);
-    if ((callbackRef_ == nullptr) && (deferred_ == nullptr)) {
+    if ((callbackRef_.callbackRef == nullptr) && (deferred_ == nullptr)) {
         ACCOUNT_LOGE("js callback is nullptr");
-        return;
-    }
-    uv_loop_s *loop = nullptr;
-    uv_work_t *work = nullptr;
-    if (!CreateExecEnv(env_, &loop, &work)) {
-        ACCOUNT_LOGE("failed to init domain plugin execution environment");
         return;
     }
     auto *asyncContext = new (std::nothrow) HasDomainAccountAsyncContext(env_);
     if (asyncContext == nullptr) {
-        delete work;
         return;
     }
     if (errCode == ERR_OK) {
         parcel.ReadBool(asyncContext->isHasDomainAccount);
     }
     asyncContext->errCode = errCode;
-    asyncContext->callbackRef = callbackRef_;
+    asyncContext->callbackRef = callbackRef_.callbackRef;
     asyncContext->deferred = deferred_;
-    work->data = reinterpret_cast<void *>(asyncContext);
-    int resultCode = uv_queue_work_with_qos(
-        loop, work, [](uv_work_t *work) {}, HasDomainAccountCompletedWork, uv_qos_default);
-    if (resultCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
+    if (napi_ok != napi_send_event(env_, HasDomainAccountCompletedWork(asyncContext), napi_eprio_vip)) {
+        ACCOUNT_LOGE("Post task failed");
         delete asyncContext;
-        delete work;
         return;
     }
-    callbackRef_ = nullptr;
+    callbackRef_.callbackRef = nullptr;
     deferred_ = nullptr;
+    ACCOUNT_LOGI("Post task finish");
 }
 
 NapiGetAccessTokenCallback::NapiGetAccessTokenCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred)
-    : env_(env), callbackRef_(callbackRef), deferred_(deferred)
+    : env_(env), callbackRef_(env, callbackRef), deferred_(deferred)
 {}
 
 void NapiGetAccessTokenCallback::OnResult(const int32_t errCode, const std::vector<uint8_t> &accessToken)
 {
     std::unique_lock<std::mutex> lock(lockInfo_.mutex);
-    if ((callbackRef_ == nullptr) && (deferred_ == nullptr)) {
+    if ((callbackRef_.callbackRef == nullptr) && (deferred_ == nullptr)) {
         ACCOUNT_LOGE("js callback is nullptr");
-        return;
-    }
-    uv_loop_s *loop = nullptr;
-    uv_work_t *work = nullptr;
-    if (!CreateExecEnv(env_, &loop, &work)) {
-        ACCOUNT_LOGE("failed to init domain plugin execution environment");
         return;
     }
     auto *asyncContext = new (std::nothrow) GetAccessTokenAsyncContext(env_);
     if (asyncContext == nullptr) {
-        delete work;
         return;
     }
     asyncContext->errCode = errCode;
     asyncContext->accessToken = accessToken;
-    asyncContext->callbackRef = callbackRef_;
+    asyncContext->callbackRef = callbackRef_.callbackRef;
     asyncContext->deferred = deferred_;
-    work->data = reinterpret_cast<void *>(asyncContext);
-    int resultCode = uv_queue_work_with_qos(
-        loop, work, [](uv_work_t *work) {}, GetAccessTokenCompleteWork, uv_qos_default);
-    if (resultCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
+    if (napi_ok != napi_send_event(env_, GetAccessTokenCompleteWork(asyncContext), napi_eprio_vip)) {
+        ACCOUNT_LOGE("Post task failed");
         delete asyncContext;
-        delete work;
         return;
     }
-    callbackRef_ = nullptr;
+    callbackRef_.callbackRef = nullptr;
     deferred_ = nullptr;
+    ACCOUNT_LOGI("Post task finish");
 }
 
 static void HasDomainAccountCompleteCB(napi_env env, napi_status status, void *data)
@@ -1528,27 +1501,29 @@ static bool ParseParamForGetAccountInfo(
     return true;
 }
 
-static void GetAccountInfoCompleteWork(uv_work_t *work, int status)
+static std::function<void()> GetAccountInfoCompleteWork(GetAccountInfoAsyncContext *param)
 {
-    std::unique_ptr<uv_work_t> workPtr(work);
-    napi_handle_scope scope = nullptr;
-    if (!InitUvWorkCallbackEnv(work, scope)) {
-        if ((work != nullptr) && (work->data != nullptr)) {
-            delete reinterpret_cast<GetAccountInfoAsyncContext *>(work->data);
+    return [asyncContext = std::move(param)] {
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(asyncContext->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            if (asyncContext != nullptr) {
+                delete asyncContext;
+            }
+            return;
         }
-        return;
-    }
-    GetAccountInfoAsyncContext *asyncContext = reinterpret_cast<GetAccountInfoAsyncContext *>(work->data);
-    napi_value errJs = nullptr;
-    napi_value dataJs = nullptr;
-    if (asyncContext->errCode == ERR_OK) {
-        dataJs = AppExecFwk::WrapWantParams(asyncContext->env, asyncContext->getAccountInfoParams);
-    } else {
-        errJs = GenerateBusinessError(asyncContext->env, asyncContext->errCode);
-    }
-    ReturnCallbackOrPromise(asyncContext->env, asyncContext, errJs, dataJs);
-    napi_close_handle_scope(asyncContext->env, scope);
-    delete asyncContext;
+        napi_value errJs = nullptr;
+        napi_value dataJs = nullptr;
+        if (asyncContext->errCode == ERR_OK) {
+            dataJs = AppExecFwk::WrapWantParams(asyncContext->env, asyncContext->getAccountInfoParams);
+        } else {
+            errJs = GenerateBusinessError(asyncContext->env, asyncContext->errCode);
+        }
+        ReturnCallbackOrPromise(asyncContext->env, asyncContext, errJs, dataJs);
+        napi_close_handle_scope(asyncContext->env, scope);
+        delete asyncContext;
+    };
 }
 
 NapiGetAccountInfoCallback::NapiGetAccountInfoCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred)
@@ -1562,15 +1537,8 @@ void NapiGetAccountInfoCallback::OnResult(int32_t errCode, Parcel &parcel)
         ACCOUNT_LOGE("js callback is nullptr");
         return;
     }
-    uv_loop_s *loop = nullptr;
-    uv_work_t *work = nullptr;
-    if (!CreateExecEnv(env_, &loop, &work)) {
-        ACCOUNT_LOGE("failed to init domain plugin execution environment");
-        return;
-    }
     auto *asyncContext = new (std::nothrow) GetAccountInfoAsyncContext(env_);
     if (asyncContext == nullptr) {
-        delete work;
         return;
     }
     if (errCode == ERR_OK) {
@@ -1585,13 +1553,9 @@ void NapiGetAccountInfoCallback::OnResult(int32_t errCode, Parcel &parcel)
     asyncContext->errCode = errCode;
     asyncContext->callbackRef = callbackRef_;
     asyncContext->deferred = deferred_;
-    work->data = reinterpret_cast<void *>(asyncContext);
-    int resultCode = uv_queue_work(
-        loop, work, [](uv_work_t *work) {}, GetAccountInfoCompleteWork);
-    if (resultCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+    if (napi_ok !=  napi_send_event(env_, GetAccountInfoCompleteWork(asyncContext), napi_eprio_vip)) {
+        ACCOUNT_LOGE("Post task failed");
         delete asyncContext;
-        delete work;
         return;
     }
     callbackRef_ = nullptr;
