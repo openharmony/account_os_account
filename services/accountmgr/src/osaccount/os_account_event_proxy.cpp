@@ -73,6 +73,26 @@ void OsAccountEventProxy::OnAccountsSwitch(const int &newId, const int &oldId)
     }
 }
 
+ErrCode OsAccountEventProxy::OnStateChanged(const OsAccountStateParcel &stateParcel)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Failed to write descriptor");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    if (!data.WriteParcelable(&stateParcel)) {
+        ACCOUNT_LOGE("Failed to write state parcel");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    MessageParcel reply;
+    ErrCode result = SendRequest(OsAccountEventInterfaceCode::ON_STATE_CHANGED, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest failed, result=%{public}d.", result);
+    }
+    return result;
+}
+
 ErrCode OsAccountEventProxy::SendRequest(OsAccountEventInterfaceCode code, MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> remote = Remote();

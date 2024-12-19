@@ -13,12 +13,17 @@
  * limitations under the License.
  */
 
-#include "account_log_wrapper.h"
-
 #include "os_account_event_stub.h"
+
+#include "account_log_wrapper.h"
+#include "ipc_skeleton.h"
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
+const uid_t ACCOUNT_UID = 3058;
+}
+
 OsAccountEventStub::OsAccountEventStub()
 {}
 
@@ -27,12 +32,25 @@ OsAccountEventStub::~OsAccountEventStub()
 
 int OsAccountEventStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
+    uid_t callingUid = IPCSkeleton::GetCallingUid();
+    if (callingUid != ACCOUNT_UID) {
+        ACCOUNT_LOGE("Permission denied, callingUid: %{public}d", callingUid);
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
     if (data.ReadInterfaceToken() != GetDescriptor()) {
         ACCOUNT_LOGE("check descriptor failed! code %{public}u.", code);
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
     }
 
     switch (code) {
+        case static_cast<uint32_t>(OsAccountEventInterfaceCode::ON_STATE_CHANGED): {
+            std::shared_ptr<OsAccountStateParcel> stateParcelPtr(data.ReadParcelable<OsAccountStateParcel>());
+            if (stateParcelPtr == nullptr) {
+                ACCOUNT_LOGE("Failed to read state parcel");
+                return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+            }
+            return OnStateChanged(*stateParcelPtr);
+        }
         case static_cast<uint32_t>(OsAccountEventInterfaceCode::ACCOUNT_CHANGED): {
             int id;
             if (!data.ReadInt32(id)) {

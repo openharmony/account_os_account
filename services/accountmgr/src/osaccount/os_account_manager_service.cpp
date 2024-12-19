@@ -747,6 +747,12 @@ ErrCode OsAccountManagerService::SubscribeOsAccount(
     // permission check
     OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType;
     subscribeInfo.GetOsAccountSubscribeType(osAccountSubscribeType);
+    std::set<OsAccountState> states;
+    subscribeInfo.GetStates(states);
+    if (osAccountSubscribeType == OsAccountState::INVALID_TYPE && states.empty()) {
+        ACCOUNT_LOGE("Invalid subscriber information");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
     if (osAccountSubscribeType == SWITCHED || osAccountSubscribeType == SWITCHING) {
         if (!(PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "") ||
               (AccountPermissionManager::CheckSaCall() && PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")))) {
@@ -759,14 +765,6 @@ ErrCode OsAccountManagerService::SubscribeOsAccount(
             ACCOUNT_LOGE("Account manager service, permission denied!");
             return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
         }
-    }
-
-    auto osSubscribeInfo = innerManager_.GetSubscribeRecordInfo(eventListener);
-    if (osSubscribeInfo != nullptr) {
-        std::string name;
-        osSubscribeInfo->GetName(name);
-        ACCOUNT_LOGI("Event listener %{public}s already exists.", name.c_str());
-        return ERR_OK;
     }
 
     return innerManager_.SubscribeOsAccount(subscribeInfo, eventListener);

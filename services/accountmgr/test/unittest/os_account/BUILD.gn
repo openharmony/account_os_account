@@ -288,7 +288,6 @@ ohos_unittest("OsAccountInnerAccmgrCovTest") {
 
   deps = [
     "${common_path}:libaccount_common",
-    "${os_account_core_path}:os_account_core",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
   ]
@@ -353,7 +352,6 @@ ohos_unittest("OsAccountInnerAccmgrMockTest") {
 
   deps = [
     "${common_path}:libaccount_common",
-    "${os_account_core_path}:os_account_core",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
   ]
