@@ -45,6 +45,7 @@ constexpr uint32_t APP_INDEX = 0;
 constexpr uint32_t MAX_TOKEN_NUMBER = 128;
 constexpr uint32_t MAX_OAUTH_LIST_SIZE = 512;
 constexpr uint32_t MAX_ASSOCIATED_DATA_NUMBER = 1024;
+constexpr uint32_t MAX_APP_AUTH_LIST_SIZE = 1024;
 #ifdef HAS_ASSET_PART
 constexpr uint32_t HASH_LENGTH = 32;
 constexpr uint32_t WIDTH_FOR_HEX = 2;
@@ -157,6 +158,12 @@ ErrCode AppAccountInfo::EnableAppAccess(const std::string &authorizedApp, const 
     auto it = authorizedApps_.emplace(authorizedApp);
     if (!it.second && apiVersion < Constants::API_VERSION9) {
         return ERR_APPACCOUNT_SERVICE_ENABLE_APP_ACCESS_ALREADY_EXISTS;
+    }
+    if (authorizedApps_.size() > MAX_APP_AUTH_LIST_SIZE) {
+        ACCOUNT_LOGE("the authorization list is too large, whose capacity for each authType is %{public}d",
+            MAX_OAUTH_LIST_SIZE);
+        authorizedApps_.erase(authorizedApp);
+        return ERR_APPACCOUNT_SERVICE_OAUTH_LIST_MAX_SIZE;
     }
     return ERR_OK;
 }
