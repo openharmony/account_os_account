@@ -544,6 +544,9 @@ void DelUserCallback::InnerOnResult(int32_t result, const Attributes &extraInfo)
         return innerCallback_->OnResult(errCode, extraInfo);
     }
 
+    Security::AccessToken::AccessTokenID selfToken = IPCSkeleton::GetSelfTokenID();
+    result = SetFirstCallerTokenID(selfToken);
+    ACCOUNT_LOGI("Set first caller info result: %{public}d", result);
     auto deleteUserCallback = std::make_shared<CommitDelCredCallback>();
     UserIDMClient::GetInstance().DeleteUser(userId_, token_, deleteUserCallback);
     std::unique_lock<std::mutex> lock(deleteUserCallback->mutex_);
