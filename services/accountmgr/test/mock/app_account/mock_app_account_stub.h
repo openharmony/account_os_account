@@ -96,7 +96,7 @@ public:
         const sptr<IAppAccountAuthenticatorCallback> &callback) override;
 
     ErrCode SubscribeAppAccount(
-        const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener) override;
+        AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener) override;
     ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener) override;
 };
 }  // namespace AccountSA
