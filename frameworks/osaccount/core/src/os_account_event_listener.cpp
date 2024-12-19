@@ -15,15 +15,41 @@
 
 #include "account_log_wrapper.h"
 #include "os_account_event_listener.h"
+#include <pthread.h>
+#include <thread>
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
+const char THREAD_OS_ACCOUNT_EVENT[] = "OsAccountEvent";
+}
 OsAccountEventListener::OsAccountEventListener(const std::shared_ptr<OsAccountSubscriber> &subscriber)
     : osAccountSubscriber_(subscriber)
 {}
 
 OsAccountEventListener::~OsAccountEventListener()
 {}
+
+ErrCode OsAccountEventListener::OnStateChanged(const OsAccountStateParcel &parcel)
+{
+    ACCOUNT_LOGI("State: %{public}d, fromId: %{public}d, toId: %{public}d", parcel.state, parcel.fromId, parcel.toId);
+    if (osAccountSubscriber_ == nullptr) {
+        ACCOUNT_LOGE("Subscriber is nullptr");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
+    OsAccountStateData data;
+    data.fromId = parcel.fromId;
+    data.toId = parcel.toId;
+    data.state = parcel.state;
+    if (parcel.callback != nullptr) {
+        data.callback = iface_cast<OsAccountStateReplyCallback>(parcel.callback);
+    }
+    auto task = [this, data] { this->osAccountSubscriber_->OnStateChanged(data); };
+    std::thread taskThread(task);
+    pthread_setname_np(taskThread.native_handle(), THREAD_OS_ACCOUNT_EVENT);
+    taskThread.detach();
+    return ERR_OK;
+}
 
 void OsAccountEventListener::OnAccountsChanged(const int &id)
 {

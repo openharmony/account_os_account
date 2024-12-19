@@ -14,11 +14,16 @@
  */
 #include "os_account_subscribe_info.h"
 #include "account_log_wrapper.h"
+#include "os_account_constants.h"
 
 namespace OHOS {
 namespace AccountSA {
 OsAccountSubscribeInfo::OsAccountSubscribeInfo()
     : osAccountSubscribeType_(ACTIVATING), name_("")
+{}
+
+OsAccountSubscribeInfo::OsAccountSubscribeInfo(const std::set<OsAccountState> &states, bool withHandshake)
+    : states_(states), withHandshake_(withHandshake)
 {}
 
 OsAccountSubscribeInfo::OsAccountSubscribeInfo(const OS_ACCOUNT_SUBSCRIBE_TYPE &osAccountSubscribeType,
@@ -48,14 +53,38 @@ void OsAccountSubscribeInfo::SetName(const std::string &name)
     name_ = name;
 }
 
+void OsAccountSubscribeInfo::GetStates(std::set<OsAccountState> &states) const
+{
+    states = states_;
+}
+
+bool OsAccountSubscribeInfo::IsWithHandshake() const
+{
+    return withHandshake_;
+}
+
 bool OsAccountSubscribeInfo::Marshalling(Parcel &parcel) const
 {
     if (!parcel.WriteInt32(osAccountSubscribeType_)) {
-        ACCOUNT_LOGE("failed to write osAccountSubscribeType_");
+        ACCOUNT_LOGE("Failed to write osAccountSubscribeType_");
         return false;
     }
     if (!parcel.WriteString(name_)) {
-        ACCOUNT_LOGE("failed to write name_");
+        ACCOUNT_LOGE("Failed to write name");
+        return false;
+    }
+    if (!parcel.WriteUint32(states_.size())) {
+        ACCOUNT_LOGE("Failed to write the size of states");
+        return false;
+    }
+    for (auto state : states_) {
+        if (!parcel.WriteInt32(state)) {
+            ACCOUNT_LOGE("Failed to write state");
+            return false;
+        }
+    }
+    if (!parcel.WriteBool(withHandshake_)) {
+        ACCOUNT_LOGE("Failed to write withHandshake");
         return false;
     }
 
@@ -79,15 +108,35 @@ bool OsAccountSubscribeInfo::ReadFromParcel(Parcel &parcel)
 {
     int type = -1;
     if (!parcel.ReadInt32(type)) {
-        ACCOUNT_LOGE("failed to read OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType_");
+        ACCOUNT_LOGE("Failed to read type");
         return false;
     }
     osAccountSubscribeType_ = static_cast<OS_ACCOUNT_SUBSCRIBE_TYPE>(type);
     if (!parcel.ReadString(name_)) {
-        ACCOUNT_LOGE("failed to read string  name_");
+        ACCOUNT_LOGE("Failed to read name");
         return false;
     }
-
+    uint32_t stateSize = 0;
+    if (!parcel.ReadUint32(stateSize)) {
+        ACCOUNT_LOGE("Failed to read the size of states");
+        return false;
+    }
+    if (stateSize > Constants::MAX_SUBSCRIBED_STATES_SIZE) {
+        ACCOUNT_LOGE("The states is oversize");
+        return false;
+    }
+    int32_t state;
+    for (uint32_t i = 0; i < stateSize; ++i) {
+        if (!parcel.ReadInt32(state)) {
+            ACCOUNT_LOGE("Failed to read state");
+            return false;
+        }
+        states_.emplace(static_cast<OsAccountState>(state));
+    }
+    if (!parcel.ReadBool(withHandshake_)) {
+        ACCOUNT_LOGE("Failed to read withHandshake");
+        return false;
+    }
     return true;
 }
 }  // namespace AccountSA

@@ -17,17 +17,47 @@
 #define OS_ACCOUNT_INTERFACES_INNERKITS_OSACCOUNT_NATIVE_INCLUDE_OS_ACCOUNT_SUBSCRIBER_H
 
 #include "os_account_info.h"
+#include "os_account_state_reply_callback.h"
 #include "os_account_subscribe_info.h"
 
 namespace OHOS {
 namespace AccountSA {
+struct OsAccountStateData {
+    OsAccountState state = OsAccountState::INVALID_TYPE;
+    int32_t fromId = -1;
+    int32_t toId = -1;
+    sptr<OsAccountStateReplyCallback> callback = nullptr;
+};
+
 class OsAccountSubscriber {
 public:
     OsAccountSubscriber();
-    explicit OsAccountSubscriber(const OsAccountSubscribeInfo &subscribeInfo);
+    OsAccountSubscriber(const OsAccountSubscribeInfo &subscribeInfo);
     virtual ~OsAccountSubscriber();
 
-    virtual void OnAccountsChanged(const int &id) = 0;
+    /**
+     * Notify the account state changed.
+     *
+     * @since 16
+     */
+    virtual void OnStateChanged(const OsAccountStateData &data) {};
+    
+    /**
+     * Notify the account changed.
+     *
+     * @deprecated since 16
+     * @useinstead OnStateChanged
+     * @since 7
+     */
+    virtual void OnAccountsChanged(const int &id) {};
+
+    /**
+     * Notify the account swtiching or switched.
+     *
+     * @deprecated since 16
+     * @useinstead OnStateChanged
+     * @since 12
+     */
     virtual void OnAccountsSwitch(const int &newId, const int &oldId) {};
 
     void GetSubscribeInfo(OsAccountSubscribeInfo &subscribeInfo) const;

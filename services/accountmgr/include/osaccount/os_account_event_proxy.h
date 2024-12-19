@@ -26,6 +26,7 @@ public:
     explicit OsAccountEventProxy(const sptr<IRemoteObject> &object);
     ~OsAccountEventProxy() override;
 
+    ErrCode OnStateChanged(const OsAccountStateParcel &parcel) override;
     void OnAccountsChanged(const int &localId) override;
     void OnAccountsSwitch(const int &newId, const int &oldId) override;
 

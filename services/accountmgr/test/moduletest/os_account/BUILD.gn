@@ -104,10 +104,10 @@ ohos_moduletest("os_account_manager_service_module_test") {
     "${domain_account_framework_path}/src/domain_account_callback_stub.cpp",
     "${domain_account_framework_path}/src/domain_account_common.cpp",
     "${innerkits_native_path}/src/account_info_parcel.cpp",
-    "${os_account_core_path}/src/os_account_event_proxy.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_event_proxy.cpp",
   ]
   sources += account_service_sources_mock
   sources += ability_base_sources
@@ -286,10 +286,10 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
     "${domain_account_framework_path}/src/domain_account_callback_stub.cpp",
     "${domain_account_framework_path}/src/domain_account_common.cpp",
     "${innerkits_native_path}/src/account_info_parcel.cpp",
-    "${os_account_core_path}/src/os_account_event_proxy.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_event_proxy.cpp",
   ]
   sources += account_service_sources_mock
   sources += ability_base_sources

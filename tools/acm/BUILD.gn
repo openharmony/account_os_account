@@ -63,7 +63,7 @@ ohos_source_set("tools_acm_source_set") {
 
   deps = [
     "${common_path}:libaccount_common",
-    "${os_account_core_path}:os_account_core",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
 
   external_deps = [

@@ -898,14 +898,18 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountStop(OsAccountInfo &osAccountIn
 
 ErrCode IInnerOsAccountManager::SendMsgForAccountDeactivate(OsAccountInfo &osAccountInfo, bool isStopStorage)
 {
+    int32_t localId = osAccountInfo.GetLocalId();
     ErrCode errCode = OsAccountInterface::SendToAMSAccountDeactivate(osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("SendToAMSAccountDeactivate failed, id %{public}d, errCode %{public}d",
-            osAccountInfo.GetLocalId(), errCode);
+        ACCOUNT_LOGE("SendToAMSAccountDeactivate failed, id %{public}d, errCode %{public}d", localId, errCode);
         return errCode;
     }
-
-    errCode = OsAccountInterface::CheckAllAppDied(osAccountInfo.GetLocalId());
+    errCode = subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
+    if (errCode != ERR_OK) {
+        ReportOsAccountOperationFail(localId, Constants::OPERATION_STOP, errCode,
+            "Failed to publish stopping notification");
+    }
+    errCode = OsAccountInterface::CheckAllAppDied(localId);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("CheckAllAppDied failed, operation is timeout");
         return errCode;
@@ -913,8 +917,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountDeactivate(OsAccountInfo &osAcc
     if (isStopStorage) {
         errCode = OsAccountInterface::SendToStorageAccountStop(osAccountInfo);
         if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("SendToStorageAccountStop failed, id %{public}d, errCode %{public}d",
-                osAccountInfo.GetLocalId(), errCode);
+            ACCOUNT_LOGE("SendToStorageAccountStop failed, id %{public}d, errCode %{public}d", localId, errCode);
             return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
         }
     }
@@ -1857,7 +1860,6 @@ ErrCode IInnerOsAccountManager::DeactivateOsAccount(const int id, bool isStopSto
 
     OsAccountInterface::PublishCommonEvent(
         osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_STOPPING, Constants::OPERATION_STOP);
-    subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
 
     if (osAccountInfo.GetIsForeground()) {
         LaunchDeactivationAnimation(osAccountInfo);
@@ -1887,15 +1889,15 @@ void IInnerOsAccountManager::RollBackToEarlierAccount(int32_t fromId, int32_t to
     if (fromId == toId) {
         return;
     }
-    subscribeManager_.Publish(fromId, toId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
+    subscribeManager_.Publish(toId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING, fromId);
     ReportOsAccountSwitch(fromId, toId);
     ACCOUNT_LOGI("End pushlishing pre switch event.");
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetLocalId(toId);
-    subscribeManager_.Publish(toId, fromId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
+    subscribeManager_.Publish(fromId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING, toId);
     OsAccountInterface::PublishCommonEvent(osAccountInfo,
             OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_FOREGROUND, Constants::OPERATION_SWITCH);
-    subscribeManager_.Publish(toId, fromId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED);
+    subscribeManager_.Publish(fromId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, toId);
     ReportOsAccountSwitch(toId, fromId);
     ACCOUNT_LOGI("End pushlishing post switch event.");
 }
@@ -1909,7 +1911,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
     int32_t localId = static_cast<int32_t>(osAccountInfo.GetLocalId());
     bool preActivated = osAccountInfo.GetIsActived();
     if (oldId != localId) {
-        subscribeManager_.Publish(localId, oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
+        subscribeManager_.Publish(oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING, localId);
     }
     if (startStorage) {
         ErrCode errCode = SendToStorageAccountStart(osAccountInfo);
@@ -1938,7 +1940,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
     if (oldId != localId) {
         OsAccountInterface::SendToCESAccountSwitched(localId, oldId);
         subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATED);
-        subscribeManager_.Publish(localId, oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED);
+        subscribeManager_.Publish(oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, localId);
         ReportOsAccountSwitch(localId, oldId);
     }
     if (oldIdExist && (oldId != localId)) {
