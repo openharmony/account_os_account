@@ -56,6 +56,7 @@ ohos_unittest("account_proxy_mock_test") {
     "${os_account_core_path}/src/os_account_death_recipient.cpp",
     "${os_account_core_path}/src/os_account_event_listener.cpp",
     "${os_account_core_path}/src/os_account_event_stub.cpp",
+    "${os_account_core_path}/src/os_account_state_parcel.cpp",
     "${os_account_innerkits_native_path}/src/os_account_manager.cpp",
     "${os_account_innerkits_native_path}/src/os_account_subscriber.cpp",
     "account_iam_proxy_mock_test.cpp",

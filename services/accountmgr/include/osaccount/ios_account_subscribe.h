@@ -25,11 +25,13 @@ namespace AccountSA {
 struct OsSubscribeRecord {
     std::shared_ptr<OsAccountSubscribeInfo> subscribeInfoPtr_;
     sptr<IRemoteObject> eventListener_;
+    uid_t callingUid_;
 
-    OsSubscribeRecord() : subscribeInfoPtr_(nullptr), eventListener_(nullptr)
+    OsSubscribeRecord() : subscribeInfoPtr_(nullptr), eventListener_(nullptr), callingUid_(-1)
     {}
-    OsSubscribeRecord(std::shared_ptr<OsAccountSubscribeInfo> subscribeInfoPtr, sptr<IRemoteObject> eventListener)
-        : subscribeInfoPtr_(subscribeInfoPtr), eventListener_(eventListener)
+    OsSubscribeRecord(std::shared_ptr<OsAccountSubscribeInfo> subscribeInfoPtr, sptr<IRemoteObject> eventListener,
+        uid_t callingUid)
+        : subscribeInfoPtr_(subscribeInfoPtr), eventListener_(eventListener), callingUid_(callingUid)
     {}
 };
 
@@ -42,8 +44,7 @@ public:
     virtual ErrCode UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener) = 0;
     virtual const std::shared_ptr<OsAccountSubscribeInfo> GetSubscribeRecordInfo(
         const sptr<IRemoteObject> &eventListener) = 0;
-    virtual ErrCode Publish(const int id, OS_ACCOUNT_SUBSCRIBE_TYPE subscribeType) = 0;
-    virtual ErrCode Publish(const int newId, const int oldId, OS_ACCOUNT_SUBSCRIBE_TYPE subscribeType) = 0;
+    virtual ErrCode Publish(int32_t fromId, OsAccountState state, int32_t toId = -1) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

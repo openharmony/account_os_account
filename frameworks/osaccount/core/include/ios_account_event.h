@@ -19,6 +19,7 @@
 #include "accountmgr_service_ipc_interface_code.h"
 #include "iremote_broker.h"
 #include "account_error_no.h"
+#include "os_account_state_parcel.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -26,6 +27,7 @@ class IOsAccountEvent : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IOsAccountEvent");
 
+    virtual ErrCode OnStateChanged(const OsAccountStateParcel &parcel) = 0;
     virtual void OnAccountsChanged(const int &id) = 0;
     virtual void OnAccountsSwitch(const int &newId, const int &oldId) = 0;
 };

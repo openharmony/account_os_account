@@ -185,18 +185,6 @@ HWTEST_F(OsAccountCoverageTest, UnsubscribeOsAccount_0001, TestSize.Level1)
 }
 
 /**
- * @tc.name: InsertSubscribeRecord_0001
- * @tc.desc: Test InsertSubscribeRecord with nullptr
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountCoverageTest, InsertSubscribeRecord_0001, TestSize.Level1)
-{
-    ErrCode result = OsAccountSubscribeManager::GetInstance().InsertSubscribeRecord(nullptr);
-    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
-}
-
-/**
  * @tc.name: RemoveSubscribeRecord_0001
  * @tc.desc: Test RemoveSubscribeRecord with nullptr
  * @tc.type: FUNC
@@ -205,7 +193,7 @@ HWTEST_F(OsAccountCoverageTest, InsertSubscribeRecord_0001, TestSize.Level1)
 HWTEST_F(OsAccountCoverageTest, RemoveSubscribeRecord_0001, TestSize.Level1)
 {
     ErrCode result = OsAccountSubscribeManager::GetInstance().RemoveSubscribeRecord(nullptr);
-    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
+    EXPECT_EQ(result, ERR_OK);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

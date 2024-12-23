@@ -21,8 +21,8 @@
 
 #include "ios_account_event.h"
 #include "ios_account_subscribe.h"
+#include "os_account_state_parcel.h"
 #include "singleton.h"
-
 
 namespace OHOS {
 namespace AccountSA {
@@ -34,16 +34,18 @@ public:
     ErrCode UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener) override;
     const std::shared_ptr<OsAccountSubscribeInfo> GetSubscribeRecordInfo(
         const sptr<IRemoteObject> &eventListener) override;
-    ErrCode Publish(const int id, OS_ACCOUNT_SUBSCRIBE_TYPE subscribeType) override;
-    ErrCode Publish(const int newId, const int oldId, OS_ACCOUNT_SUBSCRIBE_TYPE subscribeType) override;
-    bool OnAccountsChanged(const sptr<IOsAccountEvent> &eventProxy, const int id);
-    bool OnAccountsSwitch(const sptr<IOsAccountEvent> &eventProxy, const int newId, const int oldId);
+    ErrCode Publish(int32_t fromId, OsAccountState state, int32_t toId) override;
 
 private:
     OsAccountSubscribeManager();
     ~OsAccountSubscribeManager() = default;
+    bool OnStateChanged(const sptr<IOsAccountEvent> &eventProxy, OsAccountStateParcel &stateParcel, uid_t targetUid);
+    // Compatible with historical versions
+    bool OnStateChangedV0(const sptr<IOsAccountEvent> &eventProxy, OsAccountState state, int32_t fromId, int32_t toId,
+        uid_t targetUid);
+    bool OnAccountsChanged(const sptr<IOsAccountEvent> &eventProxy, OsAccountState state, int32_t id, uid_t targetUid);
+    bool OnAccountsSwitch(const sptr<IOsAccountEvent> &eventProxy, const int newId, const int oldId);
     DISALLOW_COPY_AND_MOVE(OsAccountSubscribeManager);
-    ErrCode InsertSubscribeRecord(const OsSubscribeRecordPtr &subscribeRecordPtr);
     ErrCode RemoveSubscribeRecord(const sptr<IRemoteObject> &eventListener);
 
 private:

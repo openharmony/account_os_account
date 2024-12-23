@@ -55,6 +55,8 @@ ohos_shared_library("os_account_innerkits") {
     "${os_account_core_path}/src/os_account_event_listener.cpp",
     "${os_account_core_path}/src/os_account_event_stub.cpp",
     "${os_account_core_path}/src/os_account_proxy.cpp",
+    "${os_account_core_path}/src/os_account_state_parcel.cpp",
+    "${os_account_core_path}/src/os_account_state_reply_callback.cpp",
     "src/os_account_info.cpp",
     "src/os_account_manager.cpp",
     "src/os_account_subscribe_info.cpp",
@@ -83,15 +85,15 @@ ohos_shared_library("os_account_innerkits") {
   }
 
   external_deps = [
-    "c_utils:utils",
     "hilog:libhilog",
-    "ipc:ipc_single",
     "samgr:samgr_proxy",
   ]
 
   public_external_deps = [
     "ability_base:base",
     "ability_base:want",
+    "c_utils:utils",
+    "ipc:ipc_single",
   ]
 
   innerapi_tags = [
