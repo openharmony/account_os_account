@@ -16,13 +16,18 @@
 #include "os_account_subscribe_manager.h"
 #include <pthread.h>
 #include <thread>
+#include "account_hisysevent_adapter.h"
 #include "account_log_wrapper.h"
+#include "ipc_skeleton.h"
+#include "os_account_state_parcel.h"
+#include "os_account_state_reply_callback_stub.h"
 #include "os_account_subscribe_death_recipient.h"
 
 namespace OHOS {
 namespace AccountSA {
 namespace {
 const char THREAD_OS_ACCOUNT_EVENT[] = "osAccountEvent";
+constexpr int32_t DEACTIVATION_WAIT_SECONDS = 5;
 }
 
 OsAccountSubscribeManager::OsAccountSubscribeManager()
@@ -48,7 +53,16 @@ ErrCode OsAccountSubscribeManager::SubscribeOsAccount(
         ACCOUNT_LOGE("EventListener is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
-    auto subscribeRecordPtr = std::make_shared<OsSubscribeRecord>(subscribeInfoPtr, eventListener);
+    std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
+    auto osSubscribeInfo = GetSubscribeRecordInfo(eventListener);
+    if (osSubscribeInfo != nullptr) {
+        std::string name;
+        osSubscribeInfo->GetName(name);
+        ACCOUNT_LOGI("Event listener %{public}s already exists.", name.c_str());
+        return ERR_OK;
+    }
+    uid_t callingUid = IPCSkeleton::GetCallingUid();
+    auto subscribeRecordPtr = std::make_shared<OsSubscribeRecord>(subscribeInfoPtr, eventListener, callingUid);
     if (subscribeRecordPtr == nullptr) {
         ACCOUNT_LOGE("SubscribeRecordPtr is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
@@ -56,9 +70,8 @@ ErrCode OsAccountSubscribeManager::SubscribeOsAccount(
     if (subscribeDeathRecipient_ != nullptr) {
         eventListener->AddDeathRecipient(subscribeDeathRecipient_);
     }
-    subscribeRecordPtr->subscribeInfoPtr_ = subscribeInfoPtr;
-    subscribeRecordPtr->eventListener_ = eventListener;
-    return InsertSubscribeRecord(subscribeRecordPtr);
+    subscribeRecords_.emplace_back(subscribeRecordPtr);
+    return ERR_OK;
 }
 
 ErrCode OsAccountSubscribeManager::UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener)
@@ -67,7 +80,7 @@ ErrCode OsAccountSubscribeManager::UnsubscribeOsAccount(const sptr<IRemoteObject
         ACCOUNT_LOGE("EventListener is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
-
+    std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
     if (subscribeDeathRecipient_ != nullptr) {
         eventListener->RemoveDeathRecipient(subscribeDeathRecipient_);
     }
@@ -75,29 +88,8 @@ ErrCode OsAccountSubscribeManager::UnsubscribeOsAccount(const sptr<IRemoteObject
     return RemoveSubscribeRecord(eventListener);
 }
 
-ErrCode OsAccountSubscribeManager::InsertSubscribeRecord(const OsSubscribeRecordPtr &subscribeRecordPtr)
-{
-    if (subscribeRecordPtr == nullptr) {
-        ACCOUNT_LOGE("SubscribeRecordPtr is nullptr");
-        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
-    }
-
-    std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
-
-    subscribeRecords_.emplace_back(subscribeRecordPtr);
-
-    return ERR_OK;
-}
-
 ErrCode OsAccountSubscribeManager::RemoveSubscribeRecord(const sptr<IRemoteObject> &eventListener)
 {
-    if (eventListener == nullptr) {
-        ACCOUNT_LOGE("EventListener is nullptr");
-        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
-    }
-
-    std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
-
     for (auto it = subscribeRecords_.begin(); it != subscribeRecords_.end(); ++it) {
         if (eventListener == (*it)->eventListener_) {
             (*it)->eventListener_ = nullptr;
@@ -117,8 +109,6 @@ const std::shared_ptr<OsAccountSubscribeInfo> OsAccountSubscribeManager::GetSubs
         return nullptr;
     }
 
-    std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
-
     for (auto it = subscribeRecords_.begin(); it != subscribeRecords_.end(); ++it) {
         if (eventListener == (*it)->eventListener_) {
             return (*it)->subscribeInfoPtr_;
@@ -128,94 +118,121 @@ const std::shared_ptr<OsAccountSubscribeInfo> OsAccountSubscribeManager::GetSubs
     return nullptr;
 }
 
-bool OsAccountSubscribeManager::OnAccountsChanged(const sptr<IOsAccountEvent> &eventProxy, const int id)
+bool OsAccountSubscribeManager::OnStateChanged(
+    const sptr<IOsAccountEvent> &eventProxy, OsAccountStateParcel &stateParcel, uid_t targetUid)
 {
-    if (eventProxy == nullptr) {
-        ACCOUNT_LOGE("Account event proxy is nullptr");
-        return false;
+    auto task = [eventProxy, stateParcel, targetUid]() mutable {
+        if (stateParcel.toId == -1 && (stateParcel.state != OsAccountState::SWITCHED)
+            && (stateParcel.state != OsAccountState::SWITCHING)) {
+            stateParcel.toId = stateParcel.fromId;
+        }
+        ACCOUNT_LOGI("Publish start, state=%{public}d to uid=%{public}d async, "
+            "fromId=%{public}d, toId=%{public}d, withHandshake=%{public}d",
+            stateParcel.state, targetUid, stateParcel.fromId, stateParcel.toId, stateParcel.callback != nullptr);
+        ErrCode errCode =  eventProxy->OnStateChanged(stateParcel);
+        ACCOUNT_LOGI("Publish end, state=%{public}d to uid=%{public}d asynch, "
+            "fromId=%{public}d, toId=%{public}d, withHandshake=%{public}d, result=%{public}d", stateParcel.state,
+            targetUid, stateParcel.fromId, stateParcel.toId, stateParcel.callback != nullptr, errCode);
+        auto callback = iface_cast<OsAccountStateReplyCallbackStub>(stateParcel.callback);
+        if (callback == nullptr) {
+            return;
+        }
+        std::chrono::system_clock::time_point startTime = std::chrono::system_clock::now();
+        callback->SetStartTime(startTime);
+        if (errCode != ERR_OK) {
+            callback->OnComplete();
+            ACCOUNT_LOGE("Failed to publish state: %{public}d to %{public}d, id: %{public}d",
+                stateParcel.state, targetUid, stateParcel.fromId);
+        }
+    };
+    std::thread taskThread(task);
+    pthread_setname_np(taskThread.native_handle(), THREAD_OS_ACCOUNT_EVENT);
+    taskThread.detach();
+    return true;
+}
+
+bool OsAccountSubscribeManager::OnStateChangedV0(const sptr<IOsAccountEvent> &eventProxy,
+    OsAccountState state, int32_t fromId, int32_t toId, uid_t targetUid)
+{
+    if (state == SWITCHING || state == SWITCHED) {
+        return OnAccountsSwitch(eventProxy, toId, fromId);
     }
-    eventProxy->OnAccountsChanged(id);
+    return OnAccountsChanged(eventProxy, state, fromId, targetUid);
+}
+
+bool OsAccountSubscribeManager::OnAccountsChanged(
+    const sptr<IOsAccountEvent> &eventProxy, OsAccountState state, int32_t id, uid_t targetUid)
+{
+    auto task = [eventProxy, state, id, targetUid] {
+        ACCOUNT_LOGI("Publish start, state=%{public}d to uid=%{public}d asynch, accountId=%{public}d",
+            state, targetUid, id);
+        eventProxy->OnAccountsChanged(id);
+        ACCOUNT_LOGI("Publish end, state=%{public}d to uid=%{public}d asynch, accountId=%{public}d",
+            state, targetUid, id);
+    };
+    std::thread taskThread(task);
+    pthread_setname_np(taskThread.native_handle(), THREAD_OS_ACCOUNT_EVENT);
+    taskThread.detach();
     return true;
 }
 
 bool OsAccountSubscribeManager::OnAccountsSwitch(const sptr<IOsAccountEvent> &eventProxy, const int newId,
                                                  const int oldId)
 {
-    if (eventProxy == nullptr) {
-        ACCOUNT_LOGE("Account event proxy is nullptr");
-        return false;
-    }
-    eventProxy->OnAccountsSwitch(newId, oldId);
+    auto task = [eventProxy, newId, oldId] { eventProxy->OnAccountsSwitch(newId, oldId); };
+    std::thread taskThread(task);
+    pthread_setname_np(taskThread.native_handle(), THREAD_OS_ACCOUNT_EVENT);
+    taskThread.detach();
     return true;
 }
 
-ErrCode OsAccountSubscribeManager::Publish(const int id, OS_ACCOUNT_SUBSCRIBE_TYPE subscribeType)
+ErrCode OsAccountSubscribeManager::Publish(int32_t fromId, OsAccountState state, int32_t toId)
 {
-    if (subscribeType == SWITCHING || subscribeType == SWITCHED) {
-        ACCOUNT_LOGE("Switch event need two ids.");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-
     std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
-    uint32_t sendCnt = 0;
-    for (auto it = subscribeRecords_.begin(); it != subscribeRecords_.end(); ++it) {
-        if ((*it)->subscribeInfoPtr_ == nullptr) {
-            ACCOUNT_LOGE("SubscribeInfoPtr_ is null, id %{public}d.", id);
+    auto cvPtr = std::make_shared<std::condition_variable>();
+    auto safeQueue = std::make_shared<SafeQueue<uint8_t>>();
+    for (const auto &subscribeRecord : subscribeRecords_) {
+        if (subscribeRecord->subscribeInfoPtr_ == nullptr) {
+            ACCOUNT_LOGE("Subscribe info is null, fromId: %{public}d, toId: %{public}d", fromId, toId);
             continue;
         }
-        OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType;
-        (*it)->subscribeInfoPtr_->GetOsAccountSubscribeType(osAccountSubscribeType);
-        if (osAccountSubscribeType == subscribeType) {
-            sptr<IOsAccountEvent> eventProxy = iface_cast<IOsAccountEvent>((*it)->eventListener_);
-            if (eventProxy == nullptr) {
-                ACCOUNT_LOGE("Get eventProxy failed");
-                break;
-            }
-            auto task = [this, eventProxy, id] { this->OnAccountsChanged(eventProxy, id); };
-            std::thread taskThread(task);
-            pthread_setname_np(taskThread.native_handle(), THREAD_OS_ACCOUNT_EVENT);
-            taskThread.detach();
-            ++sendCnt;
-        }
-    }
-
-    ACCOUNT_LOGI("Publish OsAccountEvent %{public}d succeed! id %{public}d, sendCnt %{public}u.",
-        subscribeType, id, sendCnt);
-    return ERR_OK;
-}
-
-ErrCode OsAccountSubscribeManager::Publish(const int newId, const int oldId, OS_ACCOUNT_SUBSCRIBE_TYPE subscribeType)
-{
-    if (subscribeType != SWITCHING && subscribeType != SWITCHED) {
-        ACCOUNT_LOGE("Only switch event need two ids.");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-
-    std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
-    uint32_t sendCnt = 0;
-    for (auto it = subscribeRecords_.begin(); it != subscribeRecords_.end(); ++it) {
-        if ((*it)->subscribeInfoPtr_ == nullptr) {
-            ACCOUNT_LOGE("SubscribeInfoPtr_ is null.");
+        auto eventProxy = iface_cast<IOsAccountEvent>(subscribeRecord->eventListener_);
+        if (eventProxy == nullptr) {
+            ACCOUNT_LOGE("Event proxy is nullptr");
             continue;
         }
-        OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType;
-        (*it)->subscribeInfoPtr_->GetOsAccountSubscribeType(osAccountSubscribeType);
-        if (osAccountSubscribeType == subscribeType) {
-            sptr<IOsAccountEvent> eventProxy = iface_cast<IOsAccountEvent>((*it)->eventListener_);
-            if (eventProxy == nullptr) {
-                ACCOUNT_LOGE("Get eventProxy failed");
-                break;
-            }
-            auto task = [this, eventProxy, newId, oldId] { this->OnAccountsSwitch(eventProxy, newId, oldId); };
-            std::thread taskThread(task);
-            pthread_setname_np(taskThread.native_handle(), THREAD_OS_ACCOUNT_EVENT);
-            taskThread.detach();
-            ++sendCnt;
+        uid_t subscriberUid = subscribeRecord->callingUid_;
+        OS_ACCOUNT_SUBSCRIBE_TYPE subscribeType;
+        subscribeRecord->subscribeInfoPtr_->GetOsAccountSubscribeType(subscribeType);
+        if (subscribeType == state) { // For old version
+            OnStateChangedV0(eventProxy, state, fromId, toId, subscriberUid);
+            continue;
         }
+        std::set<OsAccountState> states;
+        subscribeRecord->subscribeInfoPtr_->GetStates(states);
+        if (states.find(state) == states.end()) {
+            continue;
+        }
+        OsAccountStateParcel stateParcel;
+        stateParcel.fromId = fromId;
+        stateParcel.toId = toId;
+        stateParcel.state = state;
+        if ((state == OsAccountState::STOPPING) && (subscribeRecord->subscribeInfoPtr_->IsWithHandshake())) {
+            safeQueue->Push(1);
+            stateParcel.callback = new (std::nothrow) OsAccountStateReplyCallbackStub(
+                fromId, state, cvPtr, safeQueue, subscriberUid);
+        }
+        OnStateChanged(eventProxy, stateParcel, subscriberUid);
     }
-
-    ACCOUNT_LOGI("Publish %{public}d successful, newId=%{public}d, oldId=%{public}d, sendCnt=%{public}u.",
-                 subscribeType, newId, oldId, sendCnt);
+    ACCOUNT_LOGI("End, state: %{public}d, fromId: %{public}d, toId: %{public}d", state, fromId, toId);
+    std::mutex mutex;
+    std::unique_lock<std::mutex> waitLock(mutex);
+    auto result = cvPtr->wait_for(waitLock, std::chrono::seconds(DEACTIVATION_WAIT_SECONDS),
+        [safeQueue]() { return safeQueue->Size() == 0; });
+    if (!result) {
+        ACCOUNT_LOGE("Wait reply timed out");
+        return ERR_ACCOUNT_COMMON_OPERATION_TIMEOUT;
+    }
     return ERR_OK;
 }
 }  // namespace AccountSA

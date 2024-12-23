@@ -35,6 +35,7 @@ group("fuzztest") {
     "isosaccountexistsstub_fuzzer:IsOsAccountExistsStubFuzzTest",
     "isosaccountforegroundstub_fuzzer:IsOsAccountForegroundStubFuzzTest",
     "isosaccountverifiedstub_fuzzer:IsOsAccountVerifiedStubFuzzTest",
+    "osaccountstatereplycallbackstub_fuzzer:OsAccountStateReplyCallbackStubFuzzTest",
     "proccreateosaccountstub_fuzzer:ProcCreateOsAccountStubFuzzTest",
     "proccreateosaccountwithshortnamestub_fuzzer:ProcCreateOsAccountWithShortNameStubFuzzTest",
     "procsetosaccountnamestub_fuzzer:ProcSetOsAccountNameStubFuzzTest",

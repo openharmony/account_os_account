@@ -104,6 +104,9 @@ const int32_t E_IPC_ERROR = 29189;
 const int32_t E_IPC_SA_DIED = 32;
 const int32_t ERROR_STORAGE_KEY_NOT_EXIST = -2;
 
+// max size of subscribed states
+constexpr uint8_t MAX_SUBSCRIBED_STATES_SIZE = 32;
+
 // type template
 const char DEVICE_OWNER_ID[] = "deviceOwnerId";
 const char ALL_GLOBAL_CONSTRAINTS[] = "allGlobalConstraints";
@@ -121,7 +124,6 @@ const char CONSTRAINTS_LIST[] = "constraints";
 const char IS_ALLOWED_CREATE_ADMIN[] = "IsAllowedCreateAdmin";
 const char LOCAL_NAME[] = "localName";
 const char SHORT_NAME[] = "shortName";
-
 
 // start type
 const OS_ACCOUNT_SWITCH_MOD NOW_OS_ACCOUNT_SWITCH_MOD = OS_ACCOUNT_SWITCH_MOD::HOT_SWITCH;

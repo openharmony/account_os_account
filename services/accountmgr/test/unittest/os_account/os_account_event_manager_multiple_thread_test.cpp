@@ -110,7 +110,7 @@ void TestWriteReadFileInfo()
             IInnerOsAccountManager::
                 GetInstance().subscribeManager_.Publish(TEST_ID, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
             IInnerOsAccountManager::
-                GetInstance().subscribeManager_.Publish(START_USER_ID, TEST_ID, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED);
+                GetInstance().subscribeManager_.Publish(TEST_ID, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, START_USER_ID);
         }
     }
 }

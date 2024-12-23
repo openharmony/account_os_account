@@ -575,10 +575,12 @@ ErrCode OsAccount::SubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber>
 
     OsAccountSubscribeInfo subscribeInfo;
     subscriber->GetSubscribeInfo(subscribeInfo);
-    OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType;
-    subscribeInfo.GetOsAccountSubscribeType(osAccountSubscribeType);
-    std::string name;
-    subscribeInfo.GetName(name);
+    std::set<OsAccountState> states;
+    subscribeInfo.GetStates(states);
+    if (states.size() > Constants::MAX_SUBSCRIBED_STATES_SIZE) {
+        ACCOUNT_LOGE("The states is oversize");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
 
     auto proxy = GetOsAccountProxy();
     if (proxy == nullptr) {
