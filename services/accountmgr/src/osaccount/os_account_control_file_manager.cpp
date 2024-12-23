@@ -37,7 +37,9 @@ namespace AccountSA {
 namespace {
 const std::string DEFAULT_ACTIVATED_ACCOUNT_ID = "DefaultActivatedAccountID";
 const std::string OS_ACCOUNT_STORE_ID = "os_account_info";
+#ifdef ENABLE_FILE_WATCHER
 constexpr uint32_t ALG_COMMON_SIZE = 32;
+#endif // ENABLE_FILE_WATCHER
 #ifndef ACCOUNT_TEST
 const std::string ACCOUNT_CFG_DIR_ROOT_PATH = "/data/service/el1/public/account/";
 const std::string DEFAULT_OS_ACCOUNT_CONFIG_FILE = "/system/etc/account/os_account_config.json";
@@ -123,6 +125,7 @@ ErrCode OsAccountControlFileManager::GetOsAccountConfig(OsAccountConfig &config)
     return ERR_OK;
 }
 
+#ifdef ENABLE_FILE_WATCHER
 bool OsAccountControlFileManager::RecoverAccountData(const std::string &fileName, const int32_t id)
 {
 #ifdef HAS_KV_STORE_PART
@@ -228,7 +231,9 @@ bool OsAccountControlFileManager::DealWithFileMoveEvent(const std::string &fileN
     accountFileWatcherMgr_.AddFileWatcher(id, eventCallbackFunc_, fileName);
     return true;
 }
+#endif // ENABLE_FILE_WATCHER
 
+#ifdef ENABLE_FILE_WATCHER
 OsAccountControlFileManager::OsAccountControlFileManager()
     : accountFileWatcherMgr_(AccountFileWatcherMgr::GetInstance())
 {
@@ -257,6 +262,17 @@ OsAccountControlFileManager::OsAccountControlFileManager()
         }
     };
 }
+#else
+OsAccountControlFileManager::OsAccountControlFileManager()
+{
+    accountFileOperator_ = std::make_shared<AccountFileOperator>();
+#ifdef HAS_KV_STORE_PART
+    osAccountDataBaseOperator_ = std::make_shared<OsAccountDatabaseOperator>();
+#endif // HAS_KV_STORE_PART
+    osAccountFileOperator_ = std::make_shared<OsAccountFileOperator>();
+    osAccountPhotoOperator_ = std::make_shared<OsAccountPhotoOperator>();
+}
+#endif // ENABLE_FILE_WATCHER
 OsAccountControlFileManager::~OsAccountControlFileManager()
 {}
 
@@ -273,9 +289,11 @@ void OsAccountControlFileManager::Init()
     std::vector<std::string> accountIdList;
     OHOS::AccountSA::GetDataByType<std::vector<std::string>>(
         accountListJson, jsonEnd, Constants::ACCOUNT_LIST, accountIdList, OHOS::AccountSA::JsonType::ARRAY);
+#ifdef ENABLE_FILE_WATCHER
     if (!accountIdList.empty()) {
         InitFileWatcherInfo(accountIdList);
     }
+#endif // ENABLE_FILE_WATCHER
     ACCOUNT_LOGI("OsAccountControlFileManager Init end");
 }
 
@@ -285,34 +303,47 @@ void OsAccountControlFileManager::FileInit()
         ACCOUNT_LOGI("OsAccountControlFileManager there is not have valid account list, create!");
         RecoverAccountListJsonFile();
     }
+#ifdef ENABLE_FILE_WATCHER
     if (!accountFileOperator_->IsJsonFileReady(Constants::ACCOUNT_INFO_DIGEST_FILE_PATH)) {
         ACCOUNT_LOGI("OsAccountControlFileManager there is not have valid account info digest file, create!");
         RecoverAccountInfoDigestJsonFile();
     }
+#endif // ENABLE_FILE_WATCHER
     // -1 is special refers to conmon account data file.
+#ifdef ENABLE_FILE_WATCHER
     accountFileWatcherMgr_.AddFileWatcher(-1, eventCallbackFunc_, Constants::ACCOUNT_LIST_FILE_JSON_PATH);
+#endif // ENABLE_FILE_WATCHER
     if (!accountFileOperator_->IsJsonFileReady(Constants::ACCOUNT_INDEX_JSON_PATH)) {
         ACCOUNT_LOGI("OsAccountControlFileManager there is not have valid account index file, create!");
         BuildAndSaveOsAccountIndexJsonFile();
     }
+#ifdef ENABLE_FILE_WATCHER
     accountFileWatcherMgr_.AddFileWatcher(-1, eventCallbackFunc_, Constants::ACCOUNT_INDEX_JSON_PATH);
+#endif // ENABLE_FILE_WATCHER
     if (!accountFileOperator_->IsJsonFileReady(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH)) {
         ACCOUNT_LOGI("OsAccountControlFileManager there is not have valid account list, create!");
         BuildAndSaveBaseOAConstraintsJsonFile();
     }
+#ifdef ENABLE_FILE_WATCHER
     accountFileWatcherMgr_.AddFileWatcher(-1, eventCallbackFunc_, Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH);
+#endif // ENABLE_FILE_WATCHER
     if (!accountFileOperator_->IsJsonFileReady(Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH)) {
         ACCOUNT_LOGI("OsAccountControlFileManager there is not have valid account list, create!");
         BuildAndSaveGlobalOAConstraintsJsonFile();
     }
+#ifdef ENABLE_FILE_WATCHER
     accountFileWatcherMgr_.AddFileWatcher(-1, eventCallbackFunc_, Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH);
+#endif // ENABLE_FILE_WATCHER
     if (!accountFileOperator_->IsJsonFileReady(Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH)) {
         ACCOUNT_LOGI("OsAccountControlFileManager there is not have valid account list, create!");
         BuildAndSaveSpecificOAConstraintsJsonFile();
     }
+#ifdef ENABLE_FILE_WATCHER
     accountFileWatcherMgr_.AddFileWatcher(-1, eventCallbackFunc_, Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH);
+#endif // ENABLE_FILE_WATCHER
 }
 
+#ifdef ENABLE_FILE_WATCHER
 void OsAccountControlFileManager::InitFileWatcherInfo(std::vector<std::string> &accountIdList)
 {
     for (std::string i : accountIdList) {
@@ -324,6 +355,7 @@ void OsAccountControlFileManager::InitFileWatcherInfo(std::vector<std::string> &
         accountFileWatcherMgr_.AddFileWatcher(id, eventCallbackFunc_);
     }
 }
+#endif // ENABLE_FILE_WATCHER
 
 void OsAccountControlFileManager::BuildAndSaveAccountListJsonFile(const std::vector<std::string>& accounts)
 {
@@ -926,7 +958,9 @@ ErrCode OsAccountControlFileManager::UpdateAccountIndex(const OsAccountInfo &osA
         ACCOUNT_LOGE("Failed to input account index info to file!");
         return result;
     }
+#ifdef ENABLE_FILE_WATCHER
     accountFileWatcherMgr_.AddAccountInfoDigest(lastAccountIndexStr, Constants::ACCOUNT_INDEX_JSON_PATH);
+#endif // ENABLE_FILE_WATCHER
     return ERR_OK;
 }
 
@@ -970,7 +1004,9 @@ ErrCode OsAccountControlFileManager::RemoveAccountIndex(const int32_t id)
         ACCOUNT_LOGE("Failed to input account index info to file!");
         return result;
     }
+#ifdef ENABLE_FILE_WATCHER
     accountFileWatcherMgr_.AddAccountInfoDigest(lastAccountIndexStr, Constants::ACCOUNT_INDEX_JSON_PATH);
+#endif // ENABLE_FILE_WATCHER
     return ERR_OK;
 }
 
@@ -1011,10 +1047,12 @@ ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInf
     osAccountDataBaseOperator_->InsertOsAccountIntoDataBase(osAccountInfo);
 #endif
 
+#ifdef ENABLE_FILE_WATCHER
     if (osAccountInfo.GetLocalId() >= Constants::START_USER_ID) {
         accountFileWatcherMgr_.AddAccountInfoDigest(accountInfoStr, path);
         accountFileWatcherMgr_.AddFileWatcher(osAccountInfo.GetLocalId(), eventCallbackFunc_);
     }
+#endif // ENABLE_FILE_WATCHER
     ACCOUNT_LOGI("End");
     return ERR_OK;
 }
@@ -1036,11 +1074,13 @@ ErrCode OsAccountControlFileManager::DelOsAccount(const int id)
 #ifdef HAS_KV_STORE_PART
     osAccountDataBaseOperator_->DelOsAccountFromDatabase(id);
 #endif
+#ifdef ENABLE_FILE_WATCHER
     path += Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
     accountFileWatcherMgr_.DeleteAccountInfoDigest(path);
     std::string distributedDataPath =
         Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(id) + DISTRIBUTED_ACCOUNT_FILE_NAME;
     accountFileWatcherMgr_.DeleteAccountInfoDigest(distributedDataPath);
+#endif // ENABLE_FILE_WATCHER
     RemoveAccountIndex(id);
     return UpdateAccountList(std::to_string(id), false);
 }
@@ -1075,8 +1115,9 @@ ErrCode OsAccountControlFileManager::UpdateOsAccount(OsAccountInfo &osAccountInf
 #else  // DISTRIBUTED_FEATURE_ENABLED
     ACCOUNT_LOGI("No distributed feature!");
 #endif // DISTRIBUTED_FEATURE_ENABLED
-
+#ifdef ENABLE_FILE_WATCHER
     accountFileWatcherMgr_.AddAccountInfoDigest(accountInfoStr, path);
+#endif // ENABLE_FILE_WATCHER
     ACCOUNT_LOGD("End");
     return ERR_OK;
 }
@@ -1450,7 +1491,9 @@ ErrCode OsAccountControlFileManager::SaveAccountListToFile(const Json &accountLi
         ACCOUNT_LOGE("Cannot save save account list file content!");
         return result;
     }
+#ifdef ENABLE_FILE_WATCHER
     accountFileWatcherMgr_.AddAccountInfoDigest(accountListJson.dump(), Constants::ACCOUNT_LIST_FILE_JSON_PATH);
+#endif // ENABLE_FILE_WATCHER
     ACCOUNT_LOGD("Save account list file succeed!");
     return ERR_OK;
 }
@@ -1464,8 +1507,10 @@ ErrCode OsAccountControlFileManager::SaveBaseOAConstraintsToFile(const Json &bas
         ACCOUNT_LOGE("Cannot save base osaccount constraints file content!");
         return result;
     }
+#ifdef ENABLE_FILE_WATCHER
     accountFileWatcherMgr_.AddAccountInfoDigest(
         baseOAConstraints.dump(), Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH);
+#endif // ENABLE_FILE_WATCHER
     return ERR_OK;
 }
 
@@ -1478,8 +1523,10 @@ ErrCode OsAccountControlFileManager::SaveGlobalOAConstraintsToFile(const Json &g
         ACCOUNT_LOGE("Cannot save global osAccount constraints file content!");
         return result;
     }
+#ifdef ENABLE_FILE_WATCHER
     accountFileWatcherMgr_.AddAccountInfoDigest(
         globalOAConstraints.dump(), Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH);
+#endif // ENABLE_FILE_WATCHER
     return ERR_OK;
 }
 
@@ -1492,8 +1539,10 @@ ErrCode OsAccountControlFileManager::SaveSpecificOAConstraintsToFile(const Json 
         ACCOUNT_LOGE("Cannot save specific osAccount constraints file content!");
         return result;
     }
+#ifdef ENABLE_FILE_WATCHER
     accountFileWatcherMgr_.AddAccountInfoDigest(
         specificOAConstraints.dump(), Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH);
+#endif // ENABLE_FILE_WATCHER
     return ERR_OK;
 }
 
