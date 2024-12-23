@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,6 +25,7 @@
 
 namespace OHOS {
 namespace AccountSA {
+#ifdef ENABLE_FILE_WATCHER
 #ifdef HAS_HUKS_PART
 int32_t GenerateAccountInfoDigest(const std::string &inData, uint8_t* outData, uint32_t size);
 #endif // HAS_HUKS_PART
@@ -81,6 +82,7 @@ public:
     fd_set fds_;
     bool run_ = false;
 };
+#endif // ENABLE_FILE_WATCHER
 }  // namespace AccountSA
 }  // namespace OHOS
 

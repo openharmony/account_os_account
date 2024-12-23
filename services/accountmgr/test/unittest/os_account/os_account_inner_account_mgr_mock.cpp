@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -127,10 +127,12 @@ void OsAccountInnerAccmgrMockTest::SetUpTestCase(void)
     IInnerOsAccountManager *innerMgrService = &IInnerOsAccountManager::GetInstance();
     std::shared_ptr<OsAccountControlFileManager> osAccountControl =
         std::static_pointer_cast<OsAccountControlFileManager>(innerMgrService->osAccountControl_);
+#ifdef ENABLE_FILE_WATCHER
     osAccountControl->eventCallbackFunc_ = nullptr;
     for (auto &fileNameMgr : osAccountControl->accountFileWatcherMgr_.fileNameMgrMap_) {
         fileNameMgr.second->eventCallbackFunc_ = nullptr;
     }
+#endif // ENABLE_FILE_WATCHER
 #ifdef BUNDLE_ADAPTER_MOCK
     auto osAccountService = new (std::nothrow) OsAccountManagerService();
     ASSERT_NE(osAccountService, nullptr);

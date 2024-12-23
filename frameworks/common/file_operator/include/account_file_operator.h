@@ -36,24 +36,29 @@ public:
     ErrCode DeleteDir(const std::string &path);
     ErrCode DeleteFile(const std::string &path);
     ErrCode InputFileByPathAndContent(const std::string &path, const std::string &content);
+    ErrCode WriteFile(const std::string &path, const std::string &content);
     ErrCode GetFileContentByPath(const std::string &path, std::string &content);
     bool IsExistFile(const std::string &path);
     bool IsJsonFormat(const std::string &path);
     bool IsJsonFileReady(const std::string &path);
     bool IsExistDir(const std::string &path);
     ErrCode CheckFileExistence(const std::string &path);
+#ifdef ENABLE_FILE_WATCHER
     bool GetValidDeleteFileOperationFlag(const std::string &fileName);
     void SetValidDeleteFileOperationFlag(const std::string &fileName, bool flag);
     bool GetValidModifyFileOperationFlag(const std::string &fileName);
     void SetValidModifyFileOperationFlag(const std::string &fileName, bool flag);
+#endif // ENABLE_FILE_WATCHER
     bool SetDirDelFlags(const std::string &dirpath);
 
 public:
     mutable std::shared_timed_mutex fileLock_;
 
+#ifdef ENABLE_FILE_WATCHER
 private:
     std::vector<std::string> validModifyFileOperationFlag_;
     std::vector<std::string> validDeleteFileOperationFlag_;
+#endif // ENABLE_FILE_WATCHER
 };
 }  // namespace AccountSA
 }  // namespace OHOS

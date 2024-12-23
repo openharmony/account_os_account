@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -280,6 +280,10 @@ ohos_moduletest("app_account_manager_service_associated_data_test") {
   if (os_account_distributed_feature) {
     cflags += [ "-DDISTRIBUTED_FEATURE_ENABLED" ]
   }
+
+  if (os_account_enable_file_watcher) {
+    cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
+  }
 }
 
 ohos_moduletest("app_account_authenticator_callback_test") {
@@ -534,6 +538,10 @@ ohos_moduletest("app_account_control_manager_module_test") {
   if (os_account_distributed_feature) {
     cflags += [ "-DDISTRIBUTED_FEATURE_ENABLED" ]
   }
+
+  if (os_account_enable_file_watcher) {
+    cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
+  }
 }
 
 ohos_moduletest("app_account_authenticator_session_module_test") {
@@ -648,15 +656,16 @@ ohos_moduletest("app_account_authenticator_session_module_test") {
     "storage_service:storage_manager_sa_proxy",
     "user_auth_framework:userauth_client",
   ]
-  if (has_huks_part) {
-    external_deps += [ "huks:libhukssdk" ]
-  }
 
   if (security_guard_enabled) {
     external_deps += [
       "security_guard:libsg_collect_sdk",
       "time_service:time_client",
     ]
+  }
+  cflags_cc = []
+  if (os_account_enable_file_watcher) {
+    cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
   }
 }
 

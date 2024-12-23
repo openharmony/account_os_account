@@ -19,7 +19,9 @@
 #include <memory>
 #include <mutex>
 #include <sys/inotify.h>
+#ifdef ENABLE_FILE_WATCHER
 #include "account_file_watcher_manager.h"
+#endif // ENABLE_FILE_WATCHER
 #include "ios_account_control.h"
 #include "os_account_constants.h"
 #ifdef HAS_KV_STORE_PART
@@ -137,18 +139,18 @@ private:
 #ifdef HAS_KV_STORE_PART
     std::shared_ptr<OsAccountDatabaseOperator> osAccountDataBaseOperator_;
 #endif
+#ifdef ENABLE_FILE_WATCHER
     AccountFileWatcherMgr &accountFileWatcherMgr_;
+    CheckNotifyEventCallbackFunc eventCallbackFunc_;
+#endif // ENABLE_FILE_WATCHER
     std::shared_ptr<OsAccountFileOperator> osAccountFileOperator_;
     std::shared_ptr<OsAccountPhotoOperator> osAccountPhotoOperator_;
-    std::mutex fileWatcherMgrLock_;
     std::mutex accountListFileLock_;
     std::mutex accountInfoFileLock_;
     std::mutex operatingIdMutex_;
     std::mutex baseOAConstraintsFileLock_;
     std::mutex globalOAConstraintsFileLock_;
     std::mutex specificOAConstraintsFileLock_;
-
-    CheckNotifyEventCallbackFunc eventCallbackFunc_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

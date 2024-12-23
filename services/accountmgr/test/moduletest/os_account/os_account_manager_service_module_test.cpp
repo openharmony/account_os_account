@@ -107,9 +107,12 @@ const std::uint32_t MAX_LOGGED_IN_OS_ACCOUNT_NUM = 3;
 const std::uint32_t DEFAULT_MAX_OS_ACCOUNT_NUM = 999;
 const std::uint32_t DEFAULT_MAX_LOGGED_IN_OS_ACCOUNT_NUM = 999;
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
+#ifdef ENABLE_FILE_WATCHER
 const std::shared_ptr<AccountFileOperator> g_accountFileOperator =
     AccountFileWatcherMgr::GetInstance().accountFileOperator_;
-
+#else
+const std::shared_ptr<AccountFileOperator> g_accountFileOperator = std::make_shared<AccountFileOperator>();
+#endif // ENABLE_FILE_WATCHER
 }  // namespace
 
 class OsAccountManagerServiceModuleTest : public testing::Test {

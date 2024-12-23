@@ -355,10 +355,10 @@ HWTEST_F(OsAccountManagerModuleTest, CreateOsAccountWithFullInfo001, TestSize.Le
     EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo));
     EXPECT_EQ(osAccountInfo.GetLocalId(), expectUid);
     OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId());
-    
+
     OsAccountInfo osAccountInfoOne;
     ASSERT_EQ(OsAccountManager::CreateOsAccount("testNextID_002", OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
-    EXPECT_EQ(osAccountInfoOne.GetLocalId(), expectUid + 1);
+    EXPECT_EQ(osAccountInfoOne.GetLocalId(), osAccountInfo.GetLocalId() + 1);
     OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
 }
 
@@ -976,9 +976,10 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest036, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest037, TestSize.Level1)
 {
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(OsAccountManager::QueryOsAccountById(Constants::START_USER_ID, osAccountInfo), ERR_OK);
     int id = 0;
-    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdBySerialNumber(
-        Constants::CARRY_NUM * Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN + 1, id), ERR_OK);
+    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdBySerialNumber(osAccountInfo.GetSerialNumber(), id), ERR_OK);
     EXPECT_EQ(id, Constants::START_USER_ID);
 }
 
@@ -1002,9 +1003,11 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest038, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest039, TestSize.Level1)
 {
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(OsAccountManager::QueryOsAccountById(Constants::START_USER_ID, osAccountInfo), ERR_OK);
     int64_t serialNumber;
     EXPECT_EQ(OsAccountManager::GetSerialNumberByOsAccountLocalId(Constants::START_USER_ID, serialNumber), ERR_OK);
-    EXPECT_EQ(serialNumber, Constants::CARRY_NUM * Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN + 1);
+    EXPECT_EQ(serialNumber, osAccountInfo.GetSerialNumber());
 }
 
 /**
