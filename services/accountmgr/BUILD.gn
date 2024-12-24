@@ -282,11 +282,6 @@ ohos_shared_library("accountmgr") {
     ]
   }
 
-  if (has_pin_auth_part) {
-    cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
-    external_deps += [ "pin_auth:pinauth_framework" ]
-  }
-
   if (has_kv_store_part) {
     cflags_cc += [
       "-DHAS_APP_ACCOUNT_PART",

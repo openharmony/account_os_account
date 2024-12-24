@@ -53,6 +53,14 @@ const std::string MAX_OS_ACCOUNT_NUM = "maxOsAccountNum";
 const std::string MAX_LOGGED_IN_OS_ACCOUNT_NUM = "maxLoggedInOsAccountNum";
 const std::string DEVELOPER_MODE_STATE = "const.security.developermode.state";
 const std::string DEVELOPER_MODE = "developerMode";
+const char USER_PHOTO_FILE_PNG_NAME[] = "fase.png";
+const char USER_PHOTO_FILE_JPG_NAME[] = "fase.jpg";
+const char USER_PHOTO_BASE_JPG_HEAD[] = "data:image/jpeg;base64,";
+const char USER_PHOTO_BASE_PNG_HEAD[] = "data:image/png;base64,";
+const char START_USER_STRING_ID[] = "100";
+const char DEVICE_OWNER_ID[] = "deviceOwnerId";
+const char NEXT_LOCAL_ID[] = "NextLocalId";
+const char IS_SERIAL_NUMBER_FULL[] = "isSerialNumberFull";
 }
 
 bool GetValidAccountID(const std::string& dirName, std::int32_t& accountID)
@@ -335,8 +343,8 @@ void OsAccountControlFileManager::BuildAndSaveAccountListJsonFile(const std::vec
         {DEFAULT_ACTIVATED_ACCOUNT_ID, Constants::START_USER_ID},
         {Constants::MAX_ALLOW_CREATE_ACCOUNT_ID, Constants::MAX_USER_ID},
         {Constants::SERIAL_NUMBER_NUM, Constants::SERIAL_NUMBER_NUM_START},
-        {Constants::IS_SERIAL_NUMBER_FULL, Constants::IS_SERIAL_NUMBER_FULL_INIT_VALUE},
-        {Constants::NEXT_LOCAL_ID, Constants::START_USER_ID + 1},
+        {IS_SERIAL_NUMBER_FULL, Constants::IS_SERIAL_NUMBER_FULL_INIT_VALUE},
+        {NEXT_LOCAL_ID, Constants::START_USER_ID + 1},
     };
     SaveAccountListToFile(accountList);
 }
@@ -351,7 +359,7 @@ void OsAccountControlFileManager::BuildAndSaveBaseOAConstraintsJsonFile()
         return;
     }
     Json baseOsAccountConstraints = Json {
-        {Constants::START_USER_STRING_ID, baseOAConstraints}
+        {START_USER_STRING_ID, baseOAConstraints}
     };
     SaveBaseOAConstraintsToFile(baseOsAccountConstraints);
 }
@@ -361,7 +369,7 @@ void OsAccountControlFileManager::BuildAndSaveGlobalOAConstraintsJsonFile()
     ACCOUNT_LOGI("Enter.");
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
     Json globalOsAccountConstraints = Json {
-        {Constants::DEVICE_OWNER_ID, -1},
+        {DEVICE_OWNER_ID, -1},
         {Constants::ALL_GLOBAL_CONSTRAINTS, {}}
     };
     SaveGlobalOAConstraintsToFile(globalOsAccountConstraints);
@@ -374,7 +382,7 @@ void OsAccountControlFileManager::BuildAndSaveSpecificOAConstraintsJsonFile()
         {Constants::ALL_SPECIFIC_CONSTRAINTS, {}},
     };
     Json specificOsAccountConstraints = Json {
-        {Constants::START_USER_STRING_ID, OsAccountConstraintsList},
+        {START_USER_STRING_ID, OsAccountConstraintsList},
     };
     SaveSpecificOAConstraintsToFile(specificOsAccountConstraints);
 }
@@ -790,7 +798,7 @@ ErrCode OsAccountControlFileManager::RemoveOAGlobalConstraintsInfo(const int32_t
     }
     std::vector<std::string> waitForErase;
     for (auto it = globalOAConstraintsJson.begin(); it != globalOAConstraintsJson.end(); it++) {
-        if (it.key() != Constants::ALL_GLOBAL_CONSTRAINTS && it.key() != Constants::DEVICE_OWNER_ID) {
+        if (it.key() != Constants::ALL_GLOBAL_CONSTRAINTS && it.key() != DEVICE_OWNER_ID) {
             std::vector<std::string> sourceList;
             OHOS::AccountSA::GetDataByType<std::vector<std::string>>(globalOAConstraintsJson,
                 globalOAConstraintsJson.end(),
@@ -942,11 +950,11 @@ ErrCode OsAccountControlFileManager::SetNextLocalId(const int32_t &nextLocalId)
     int32_t nextLocalIdJson = -1;
     auto jsonEnd = accountListJson.end();
     if (!GetDataByType<std::int32_t>(accountListJson, jsonEnd,
-        Constants::NEXT_LOCAL_ID, nextLocalIdJson, JsonType::NUMBER)) {
+        NEXT_LOCAL_ID, nextLocalIdJson, JsonType::NUMBER)) {
         ACCOUNT_LOGW("SetNextLocalId get next localId failed");
         nextLocalIdJson = Constants::START_USER_ID + 1;
     }
-    accountListJson[Constants::NEXT_LOCAL_ID] = std::max(nextLocalId, nextLocalIdJson);
+    accountListJson[NEXT_LOCAL_ID] = std::max(nextLocalId, nextLocalIdJson);
     result = SaveAccountListToFileAndDataBase(accountListJson);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SetNextLocalId save accountListJson error.");
@@ -1102,11 +1110,11 @@ ErrCode OsAccountControlFileManager::GetSerialNumber(int64_t &serialNumber)
     OHOS::AccountSA::GetDataByType<int64_t>(accountListJson, accountListJson.end(), Constants::SERIAL_NUMBER_NUM,
         serialNumber, OHOS::AccountSA::JsonType::NUMBER);
     if (serialNumber == Constants::CARRY_NUM) {
-        accountListJson[Constants::IS_SERIAL_NUMBER_FULL] = true;
+        accountListJson[IS_SERIAL_NUMBER_FULL] = true;
         serialNumber = Constants::SERIAL_NUMBER_NUM_START;
     }
     bool isSerialNumberFull = false;
-    OHOS::AccountSA::GetDataByType<bool>(accountListJson, accountListJson.end(), Constants::IS_SERIAL_NUMBER_FULL,
+    OHOS::AccountSA::GetDataByType<bool>(accountListJson, accountListJson.end(), IS_SERIAL_NUMBER_FULL,
         isSerialNumberFull, OHOS::AccountSA::JsonType::BOOLEAN);
     if (isSerialNumberFull) {
         std::vector<OsAccountInfo> osAccountInfos;
@@ -1167,7 +1175,7 @@ ErrCode OsAccountControlFileManager::GetAllowCreateId(int &id)
         return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
     }
     if (!GetDataByType<std::int32_t>(accountListJson, jsonEnd,
-        Constants::NEXT_LOCAL_ID, nextLocalId, JsonType::NUMBER)) {
+        NEXT_LOCAL_ID, nextLocalId, JsonType::NUMBER)) {
         ACCOUNT_LOGW("Get next localId failed");
         int32_t lastLocalId = -1;
         if (!accountIdList.empty() && StrToInt(accountIdList[accountIdList.size() - 1], lastLocalId)) {
@@ -1179,7 +1187,7 @@ ErrCode OsAccountControlFileManager::GetAllowCreateId(int &id)
     }
 
     id = GetNextLocalId(accountIdList, nextLocalId);
-    accountListJson[Constants::NEXT_LOCAL_ID] = id + 1;
+    accountListJson[NEXT_LOCAL_ID] = id + 1;
     result = SaveAccountListToFileAndDataBase(accountListJson);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("GetAllowCreateId save accountListJson error, errCode %{public}d.", result);
@@ -1508,7 +1516,7 @@ ErrCode OsAccountControlFileManager::GetDeviceOwnerId(int &deviceOwnerId)
     OHOS::AccountSA::GetDataByType<int>(
         globalOAConstraintsJson,
         globalOAConstraintsJson.end(),
-        Constants::DEVICE_OWNER_ID,
+        DEVICE_OWNER_ID,
         deviceOwnerId,
         OHOS::AccountSA::JsonType::NUMBER);
     return ERR_OK;
@@ -1523,7 +1531,7 @@ ErrCode OsAccountControlFileManager::UpdateDeviceOwnerId(const int deviceOwnerId
         ACCOUNT_LOGE("Get global json data from file failed!");
         return result;
     }
-    globalOAConstraintsJson[Constants::DEVICE_OWNER_ID] = deviceOwnerId;
+    globalOAConstraintsJson[DEVICE_OWNER_ID] = deviceOwnerId;
     return SaveGlobalOAConstraintsToFile(globalOAConstraintsJson);
 }
 
@@ -1587,7 +1595,7 @@ ErrCode OsAccountControlFileManager::IsOsAccountExists(const int id, bool &isExi
 
 ErrCode OsAccountControlFileManager::GetPhotoById(const int id, std::string &photo)
 {
-    if ((photo != Constants::USER_PHOTO_FILE_JPG_NAME) && (photo != Constants::USER_PHOTO_FILE_PNG_NAME)
+    if ((photo != USER_PHOTO_FILE_JPG_NAME) && (photo != USER_PHOTO_FILE_PNG_NAME)
         && (photo != Constants::USER_PHOTO_FILE_TXT_NAME)) {
         return ERR_OK;
     }
@@ -1604,12 +1612,10 @@ ErrCode OsAccountControlFileManager::GetPhotoById(const int id, std::string &pho
         return ERR_OK;
     }
     // USER_PHOTO_FILE_JPG_NAME and USER_PHOTO_FILE_PNG_NAME are compatible with previous data
-    if (photo == Constants::USER_PHOTO_FILE_JPG_NAME) {
-        photo =
-            Constants::USER_PHOTO_BASE_JPG_HEAD + osAccountPhotoOperator_->EnCode(byteStr.c_str(), byteStr.length());
+    if (photo == USER_PHOTO_FILE_JPG_NAME) {
+        photo = USER_PHOTO_BASE_JPG_HEAD + osAccountPhotoOperator_->EnCode(byteStr.c_str(), byteStr.length());
     } else {
-        photo =
-            Constants::USER_PHOTO_BASE_PNG_HEAD + osAccountPhotoOperator_->EnCode(byteStr.c_str(), byteStr.length());
+        photo = USER_PHOTO_BASE_PNG_HEAD + osAccountPhotoOperator_->EnCode(byteStr.c_str(), byteStr.length());
     }
     std::string substr = "\r\n";
     while (photo.find(substr) != std::string::npos) {

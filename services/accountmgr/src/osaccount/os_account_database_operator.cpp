@@ -21,6 +21,7 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 const std::string OS_ACCOUNT_STORE_ID = "os_account_info";
+const char APP_ID[] = "os_account_mgr_service";
 }
 
 OsAccountDatabaseOperator::OsAccountDatabaseOperator()
@@ -34,7 +35,7 @@ bool OsAccountDatabaseOperator::InnerInit()
     if (accountDataStorage_ == nullptr) {
         ACCOUNT_LOGI("Database operator inner init, enter!");
         accountDataStorage_ = std::make_shared<OsAccountDataStorage>(
-            Constants::APP_ID, OS_ACCOUNT_STORE_ID, Constants::SYNC_OS_ACCOUNT_DATABASE);
+            APP_ID, OS_ACCOUNT_STORE_ID, Constants::SYNC_OS_ACCOUNT_DATABASE);
         if (accountDataStorage_ == nullptr) {
             ACCOUNT_LOGE("AccountDataStorage_ is still nullptr.");
             return false;
@@ -70,7 +71,7 @@ ErrCode OsAccountDatabaseOperator::GetOsAccountListFromDatabase(const std::strin
         errCode = accountDataStorage_->LoadAllData(osAccountMapInfos);
     } else {
         std::shared_ptr<AccountDataStorage> storagePtr = std::make_shared<OsAccountDataStorage>(
-            Constants::APP_ID, storeID, Constants::SYNC_OS_ACCOUNT_DATABASE);
+            APP_ID, storeID, Constants::SYNC_OS_ACCOUNT_DATABASE);
         if (storagePtr == nullptr) {
             ACCOUNT_LOGE("StoragePtr is still nullptr, storeID %{public}s.", storeID.c_str());
             return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
@@ -158,7 +159,7 @@ ErrCode OsAccountDatabaseOperator::GetOsAccountFromDatabase(const std::string& s
     }
 
     std::shared_ptr<AccountDataStorage> storagePtr = std::make_shared<OsAccountDataStorage>(
-        Constants::APP_ID, storeID, Constants::SYNC_OS_ACCOUNT_DATABASE);
+        APP_ID, storeID, Constants::SYNC_OS_ACCOUNT_DATABASE);
     if (storagePtr == nullptr) {
         ACCOUNT_LOGE("StoragePtr is nullptr, for other storeID %{public}s, id %{public}d.", storeID.c_str(), id);
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
@@ -233,7 +234,7 @@ ErrCode OsAccountDatabaseOperator::GetAccountListFromStoreID(
         errCode = accountDataStorage_->GetValueFromKvStore(Constants::ACCOUNT_LIST, accountList);
     } else {
         std::shared_ptr<AccountDataStorage> storagePtr = std::make_shared<OsAccountDataStorage>(
-            Constants::APP_ID, storeID, Constants::SYNC_OS_ACCOUNT_DATABASE);
+            APP_ID, storeID, Constants::SYNC_OS_ACCOUNT_DATABASE);
         if (storagePtr == nullptr) {
             ACCOUNT_LOGE("StoragePtr is nullptr, for other storeID %{public}s.", storeID.c_str());
             return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
