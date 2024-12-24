@@ -24,13 +24,18 @@
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
+const char SYSTEM_ACTION_APP_ACCOUNT_AUTH[] = "ohos.appAccount.action.auth";
+const char SYSTEM_ACTION_APP_ACCOUNT_OAUTH[] = "ohos.account.appAccount.action.oauth";
+}
+
 static ErrCode QueryAbilityInfos(const std::string &owner, int32_t userId,
     std::vector<AppExecFwk::AbilityInfo> &abilityInfos,
     std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos)
 {
     AAFwk::Want want;
     want.SetBundle(owner);
-    want.SetAction(Constants::SYSTEM_ACTION_APP_ACCOUNT_AUTH);
+    want.SetAction(SYSTEM_ACTION_APP_ACCOUNT_AUTH);
     bool result = BundleManagerAdapter::GetInstance()->QueryAbilityInfos(
         want, AppExecFwk::BundleFlag::GET_BUNDLE_WITH_ABILITIES, userId, abilityInfos);
     if (!result) {
@@ -38,7 +43,7 @@ static ErrCode QueryAbilityInfos(const std::string &owner, int32_t userId,
             want, AppExecFwk::BundleFlag::GET_BUNDLE_WITH_ABILITIES, userId, extensionInfos);
     }
     if (!result) {
-        want.SetAction(Constants::SYSTEM_ACTION_APP_ACCOUNT_OAUTH);
+        want.SetAction(SYSTEM_ACTION_APP_ACCOUNT_OAUTH);
         result = BundleManagerAdapter::GetInstance()->QueryAbilityInfos(
             want, AppExecFwk::BundleFlag::GET_BUNDLE_WITH_ABILITIES, userId, abilityInfos);
     }

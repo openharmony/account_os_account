@@ -53,6 +53,8 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
+const char OPERATION_START[] = "start";
+
 #ifdef HAS_STORAGE_PART
 constexpr uint32_t CRYPTO_FLAG_EL1 = 1;
 constexpr uint32_t CRYPTO_FLAG_EL2 = 2;
@@ -75,7 +77,7 @@ ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo,
     sptr<OsAccountUserCallback> osAccountStartUserCallback = new (std::nothrow) OsAccountUserCallback(callbackFunc);
     if (osAccountStartUserCallback == nullptr) {
         ACCOUNT_LOGE("Alloc memory for start user callback failed!");
-        ReportOsAccountOperationFail(localId, Constants::OPERATION_START,
+        ReportOsAccountOperationFail(localId, OPERATION_START,
             ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, "malloc for OsAccountUserCallback failed!");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
@@ -96,7 +98,7 @@ ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo,
     FinishTraceAdapter();
     if (osAccountStartUserCallback->resultCode_ != ERR_OK) {
         ACCOUNT_LOGE("Failed to AbilityManagerService in call back");
-        ReportOsAccountOperationFail(localId, Constants::OPERATION_START, osAccountStartUserCallback->resultCode_,
+        ReportOsAccountOperationFail(localId, OPERATION_START, osAccountStartUserCallback->resultCode_,
                                      "AbilityManager failed to start user in callback");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_AM_ACCOUNT_START_ERROR;
     }
