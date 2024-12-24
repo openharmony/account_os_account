@@ -1350,6 +1350,9 @@ ErrCode IInnerOsAccountManager::QueryAllCreatedOsAccounts(std::vector<OsAccountI
         OsAccountInfo osAccountInfo;
         GetRealOsAccountInfoById(id, osAccountInfo);
         if (osAccountInfo.GetIsCreateCompleted() && !osAccountInfo.GetToBeRemoved()) {
+            std::string photo = osAccountInfo.GetPhoto();
+            osAccountControl_->GetPhotoById(id, photo);
+            osAccountInfo.SetPhoto(photo);
             createdOsAccounts.push_back(osAccountInfo);
         }
     }

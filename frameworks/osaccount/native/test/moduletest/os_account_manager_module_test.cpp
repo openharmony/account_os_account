@@ -827,9 +827,17 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest028, TestSize.Lev
 
     OsAccountInfo osAccountInfoTwo;
     EXPECT_EQ(OsAccountManager::CreateOsAccount("ModuleTest028_2", OsAccountType::GUEST, osAccountInfoTwo), ERR_OK);
+    EXPECT_EQ(OsAccountManager::SetOsAccountProfilePhoto(osAccountInfoTwo.GetLocalId(), PHOTO_IMG), ERR_OK);
     osAccountInfos.clear();
     EXPECT_EQ(OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos), ERR_OK);
     EXPECT_EQ(2, osAccountInfos.size());
+
+    osAccountInfoTwo.SetPhoto(PHOTO_IMG);
+    for (size_t i = 0;i < osAccountInfos.size();i++) {
+        if (osAccountInfos[i].GetLocalId() == osAccountInfoTwo.GetLocalId()) {
+            EXPECT_EQ(osAccountInfos[i].ToString(), osAccountInfoTwo.ToString());
+        }
+    }
 
     EXPECT_EQ(OsAccountManager::SetOsAccountToBeRemoved(osAccountInfoTwo.GetLocalId(), true), ERR_OK);
     osAccountInfos.clear();
