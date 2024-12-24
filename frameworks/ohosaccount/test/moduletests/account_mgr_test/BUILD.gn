@@ -262,6 +262,9 @@ ohos_moduletest("SubscribeDistributedAccountModuleTest") {
   ]
   part_name = "os_account"
   cflags_cc = [ "-DACCOUNT_TEST" ]
+  if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
+    cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
+  }
 }
 
 group("moduletest") {
