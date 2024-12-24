@@ -23,17 +23,8 @@
 namespace OHOS {
 namespace AccountSA {
 namespace Constants {
-const char SYSTEM_ACTION_APP_ACCOUNT_AUTH[] = "ohos.appAccount.action.auth";
-const char SYSTEM_ACTION_APP_ACCOUNT_OAUTH[] = "ohos.account.appAccount.action.oauth";
-const char OAUTH_ACTION_ADD_ACCOUNT_IMPLICITLY[] = "addAccountImplicitly";
-const char OAUTH_ACTION_AUTHENTICATE[] = "authenticate";
-const char ACTION_CREATE_ACCOUNT_IMPLICITLY[] = "createAccountImplicitly";
-const char ACTION_AUTH[] = "auth";
-const char ACTION_VERIFY_CREDENTIAL[] = "verifyCredential";
-const char ACTION_SET_AUTHENTICATOR_PROPERTIES[] = "setAuthenticatorProperties";
 const char APP_ACCOUNT_APP_ID[] = "app_account_manager_service";
 const char KEY_NAME[] = "name";
-const char KEY_OWNER[] = "owner";
 const char KEY_TOKEN[] = "token";
 const char KEY_ACTION[] = "action";
 const char KEY_AUTH_TYPE[] = "authType";
@@ -42,7 +33,6 @@ const char KEY_CALLER_BUNDLE_NAME[] = "callerBundleName";
 const char KEY_CALLER_ABILITY_NAME[] = "callerAbilityName";
 const char KEY_CALLER_PID[] = "callerPid";
 const char KEY_CALLER_UID[] = "callerUid";
-const char KEY_REQUIRED_LABELS[] = "requiredLabels";
 const char KEY_BOOLEAN_RESULT[] = "booleanResult";
 const char KEY_ACCOUNT_NAMES[] = "accountNames";
 const char KEY_ACCOUNT_OWNERS[] = "accountOwners";

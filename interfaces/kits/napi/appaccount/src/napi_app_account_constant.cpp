@@ -22,6 +22,17 @@
 
 namespace OHOS {
 namespace AccountJsKit {
+namespace {
+const char OAUTH_ACTION_ADD_ACCOUNT_IMPLICITLY[] = "addAccountImplicitly";
+const char OAUTH_ACTION_AUTHENTICATE[] = "authenticate";
+const char ACTION_CREATE_ACCOUNT_IMPLICITLY[] = "createAccountImplicitly";
+const char ACTION_AUTH[] = "auth";
+const char ACTION_VERIFY_CREDENTIAL[] = "verifyCredential";
+const char ACTION_SET_AUTHENTICATOR_PROPERTIES[] = "setAuthenticatorProperties";
+const char KEY_OWNER[] = "owner";
+const char KEY_REQUIRED_LABELS[] = "requiredLabels";
+}
+
 static void ResultCodeInit(napi_env env, napi_value *resultCode)
 {
     SetNamedProperty(env, (*resultCode), ERR_JS_SUCCESS_V8, "SUCCESS");
@@ -52,17 +63,17 @@ napi_value NapiAppAccountConstant::Init(napi_env env, napi_value exports)
     napi_create_object(env, &constants);
     ResultCodeInit(env, &resultCode);
 
-    SetNamedProperty(env, constants, Constants::OAUTH_ACTION_ADD_ACCOUNT_IMPLICITLY,
+    SetNamedProperty(env, constants, OAUTH_ACTION_ADD_ACCOUNT_IMPLICITLY,
         "ACTION_ADD_ACCOUNT_IMPLICITLY");
-    SetNamedProperty(env, constants, Constants::OAUTH_ACTION_AUTHENTICATE, "ACTION_AUTHENTICATE");
-    SetNamedProperty(env, constants, Constants::ACTION_CREATE_ACCOUNT_IMPLICITLY,
+    SetNamedProperty(env, constants, OAUTH_ACTION_AUTHENTICATE, "ACTION_AUTHENTICATE");
+    SetNamedProperty(env, constants, ACTION_CREATE_ACCOUNT_IMPLICITLY,
         "ACTION_CREATE_ACCOUNT_IMPLICITLY");
-    SetNamedProperty(env, constants, Constants::ACTION_AUTH, "ACTION_AUTH");
-    SetNamedProperty(env, constants, Constants::ACTION_VERIFY_CREDENTIAL, "ACTION_VERIFY_CREDENTIAL");
-    SetNamedProperty(env, constants, Constants::ACTION_SET_AUTHENTICATOR_PROPERTIES,
+    SetNamedProperty(env, constants, ACTION_AUTH, "ACTION_AUTH");
+    SetNamedProperty(env, constants, ACTION_VERIFY_CREDENTIAL, "ACTION_VERIFY_CREDENTIAL");
+    SetNamedProperty(env, constants, ACTION_SET_AUTHENTICATOR_PROPERTIES,
         "ACTION_SET_AUTHENTICATOR_PROPERTIES");
     SetNamedProperty(env, constants, Constants::KEY_NAME, "KEY_NAME");
-    SetNamedProperty(env, constants, Constants::KEY_OWNER, "KEY_OWNER");
+    SetNamedProperty(env, constants, KEY_OWNER, "KEY_OWNER");
     SetNamedProperty(env, constants, Constants::KEY_TOKEN, "KEY_TOKEN");
     SetNamedProperty(env, constants, Constants::KEY_ACTION, "KEY_ACTION");
     SetNamedProperty(env, constants, Constants::KEY_AUTH_TYPE, "KEY_AUTH_TYPE");
@@ -70,7 +81,7 @@ napi_value NapiAppAccountConstant::Init(napi_env env, napi_value exports)
     SetNamedProperty(env, constants, Constants::KEY_CALLER_BUNDLE_NAME, "KEY_CALLER_BUNDLE_NAME");
     SetNamedProperty(env, constants, Constants::KEY_CALLER_PID, "KEY_CALLER_PID");
     SetNamedProperty(env, constants, Constants::KEY_CALLER_UID, "KEY_CALLER_UID");
-    SetNamedProperty(env, constants, Constants::KEY_REQUIRED_LABELS, "KEY_REQUIRED_LABELS");
+    SetNamedProperty(env, constants, KEY_REQUIRED_LABELS, "KEY_REQUIRED_LABELS");
     SetNamedProperty(env, constants, Constants::KEY_BOOLEAN_RESULT, "KEY_BOOLEAN_RESULT");
 
     napi_property_descriptor exportFuncs[] = {

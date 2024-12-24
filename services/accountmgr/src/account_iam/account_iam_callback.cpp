@@ -36,6 +36,10 @@
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
+const char OPERATION_REENROLL[] = "re-enroll";
+}
+
 using UserIDMClient = UserIam::UserAuth::UserIdmClient;
 using UserAuthClient = UserIam::UserAuth::UserAuthClient;
 
@@ -147,7 +151,7 @@ void AuthCallback::HandleReEnroll(const Attributes &extraInfo, int32_t accountId
             ReportOsAccountOperationFail(accountId, "ReEnroll", result, "UpdateCredential failed");
         } else {
             ACCOUNT_LOGI("ReEnroll: UpdateCredential successful");
-            ReportOsAccountLifeCycle(accountId, Constants::OPERATION_REENROLL);
+            ReportOsAccountLifeCycle(accountId, OPERATION_REENROLL);
         }
     } else {
         ACCOUNT_LOGW("ReEnroll: re-enroll flag exist but authType:%{public}d is not pin", authType_);
