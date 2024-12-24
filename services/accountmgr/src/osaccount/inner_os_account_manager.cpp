@@ -52,6 +52,11 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
+const char OPERATION_UPDATE[] = "update";
+const char ADMIN_LOCAL_NAME[] = "admin";
+#ifdef ENABLE_DEFAULT_ADMIN_NAME
+const char STANDARD_LOCAL_NAME[] = "user";
+#endif
 const std::string CONSTRAINT_CREATE_ACCOUNT_DIRECTLY = "constraint.os.account.create.directly";
 const std::string ACCOUNT_READY_EVENT = "bootevent.account.ready";
 const std::string PARAM_LOGIN_NAME_MAX = "persist.account.login_name_max";
@@ -118,7 +123,7 @@ void IInnerOsAccountManager::CreateBaseAdminAccount()
         int64_t serialNumber =
             Constants::CARRY_NUM * Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN + Constants::ADMIN_LOCAL_ID;
         OsAccountInfo osAccountInfo(
-            Constants::ADMIN_LOCAL_ID, Constants::ADMIN_LOCAL_NAME, OsAccountType::ADMIN, serialNumber);
+            Constants::ADMIN_LOCAL_ID, ADMIN_LOCAL_NAME, OsAccountType::ADMIN, serialNumber);
         int64_t time =
             std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch())
                 .count();
@@ -139,7 +144,7 @@ void IInnerOsAccountManager::CreateBaseStandardAccount()
     int64_t serialNumber = 0;
     osAccountControl_->GetSerialNumber(serialNumber);
 #ifdef ENABLE_DEFAULT_ADMIN_NAME
-    OsAccountInfo osAccountInfo(Constants::START_USER_ID, Constants::STANDARD_LOCAL_NAME,
+    OsAccountInfo osAccountInfo(Constants::START_USER_ID, STANDARD_LOCAL_NAME,
         OsAccountType::ADMIN, serialNumber);
 #else
     OsAccountInfo osAccountInfo(Constants::START_USER_ID, "", OsAccountType::ADMIN, serialNumber);
@@ -187,7 +192,7 @@ void IInnerOsAccountManager::RetryToGetAccount(OsAccountInfo &osAccountInfo)
     }
 
 #ifdef ENABLE_DEFAULT_ADMIN_NAME
-    while (CreateOsAccount(Constants::STANDARD_LOCAL_NAME, ADMIN, osAccountInfo) != ERR_OK) {
+    while (CreateOsAccount(STANDARD_LOCAL_NAME, ADMIN, osAccountInfo) != ERR_OK) {
 #else
     while (CreateOsAccount("", ADMIN, osAccountInfo) != ERR_OK) {
 #endif
@@ -618,10 +623,10 @@ ErrCode IInnerOsAccountManager::UpdateOsAccountWithFullInfo(OsAccountInfo &newIn
     osAccountControl_->UpdateAccountIndex(oldInfo, false);
     newInfo = oldInfo;
     if (errCode != ERR_OK) {
-        ReportOsAccountOperationFail(localId, Constants::OPERATION_UPDATE, errCode, "UpdateOsAccount failed!");
+        ReportOsAccountOperationFail(localId, OPERATION_UPDATE, errCode, "UpdateOsAccount failed!");
     } else {
         OsAccountInterface::PublishCommonEvent(oldInfo,
-            OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::OPERATION_UPDATE);
+            OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, OPERATION_UPDATE);
     }
     RemoveLocalIdToOperating(localId);
     return errCode;
@@ -1560,7 +1565,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountName(const int id, const std::string
     }
     osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
     OsAccountInterface::PublishCommonEvent(
-        osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::OPERATION_UPDATE);
+        osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, OPERATION_UPDATE);
     return ERR_OK;
 }
 
@@ -1635,7 +1640,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountProfilePhoto(const int id, const std
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
     OsAccountInterface::PublishCommonEvent(
-        osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::OPERATION_UPDATE);
+        osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, OPERATION_UPDATE);
     return ERR_OK;
 }
 
@@ -2421,7 +2426,7 @@ ErrCode IInnerOsAccountManager::UpdateAccountInfoByDomainAccountInfo(
     result = osAccountControl_->UpdateOsAccount(accountInfo);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Update account info failed, result = %{public}d", result);
-        ReportOsAccountOperationFail(userId, Constants::OPERATION_UPDATE, result,
+        ReportOsAccountOperationFail(userId, OPERATION_UPDATE, result,
             "Failed to update domain account info");
         RemoveLocalIdToOperating(userId);
         return result;
