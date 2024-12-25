@@ -23,7 +23,6 @@
 #include "ios_account_subscribe.h"
 #include "ohos_account_manager.h"
 #include "os_account_interface.h"
-#include "os_account_plugin_manager.h"
 #include "safe_map.h"
 #include "singleton.h"
 
@@ -187,7 +186,6 @@ private:
     mutable std::mutex operatingMutex_;
     mutable std::mutex updateLockMutex_;
     SafeMap<uint64_t, int32_t> foregroundAccountMap_;
-    OsAccountPluginManager &pluginManager_;
     SafeMap<int32_t, bool> loggedInAccounts_;
     SafeMap<int32_t, bool> verifiedAccounts_;
     SafeMap<int32_t, bool> deactivatingAccounts_;
