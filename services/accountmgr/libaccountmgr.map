@@ -224,7 +224,6 @@
         "OHOS::AccountSA::IInnerOsAccountManager::SendMsgForAccountCreate(OsAccountInfo &osAccountInfo)";
         "OHOS::AccountSA::IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccountInfo)";
         "OHOS::AccountSA::IInnerOsAccountManager::UpdateAccountInfoByDomainAccountInfo(int, OHOS::AccountSA::DomainAccountInfo const&)";
-        "OHOS::AccountSA::OsAccountPluginManager::GetInstance()";
         "OHOS::AccountSA::OsAccountPluginManager::IsCreationAllowed()";
         "OHOS::AccountSA::SessionAppStateObserver::OnAbilityStateChanged(OHOS::AppExecFwk::AbilityStateData const&)";
         "OHOS::AccountSA::SessionAppStateObserver::SessionAppStateObserver()";

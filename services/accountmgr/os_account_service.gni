@@ -10,6 +10,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import("//build/ohos.gni")
 import("../../os_account.gni")
 account_service_sources = [
   "${os_account_core_path}/src/os_account_state_parcel.cpp",
@@ -45,13 +46,18 @@ account_service_sources = [
   "${services_path}/accountmgr/src/osaccount/os_account_interface.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_manager_service.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_photo_operator.cpp",
-  "${services_path}/accountmgr/src/osaccount/os_account_plugin_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_state_reply_callback_stub.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_stub.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_subscribe_death_recipient.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_subscribe_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_user_callback.cpp",
 ]
+
+if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
+  account_service_sources += [
+    "${services_path}/accountmgr/src/osaccount/os_account_plugin_manager.cpp",
+  ]
+}
 
 app_account_sources_mock = [
   "${app_account_innerkits_native_path}/src/app_account_authenticator_callback_proxy.cpp",
@@ -109,13 +115,18 @@ account_service_sources_mock = [
   "${services_path}/accountmgr/src/osaccount/os_account_file_operator.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_manager_service.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_photo_operator.cpp",
-  "${services_path}/accountmgr/src/osaccount/os_account_plugin_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_user_callback.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_state_reply_callback_stub.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_stub.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_subscribe_death_recipient.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_subscribe_manager.cpp",
 ]
+
+if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
+  account_service_sources_mock += [
+    "${services_path}/accountmgr/src/osaccount/os_account_plugin_manager.cpp",
+  ]
+}
 
 ability_base_sources = [
   "${ability_runtime_path}/services/abilitymgr/src/ability_connect_callback_stub.cpp",
