@@ -26,7 +26,8 @@ using namespace OHOS::AccountSA;
 
 namespace {
 const std::string ACCOUNT_NAME = "Zhangsan";
-constexpr int32_t SLEEP_SECONDS = 7;
+constexpr int32_t SLEEP_SECONDS = 6;
+constexpr int32_t TWICE = 2;
 }  // namespace
 class OsAccountSubscribeTest : public testing::Test {
 public:
@@ -59,6 +60,11 @@ public:
 
     void OnStateChanged(const OsAccountStateData &data) override;
 
+public:
+    bool isRemoved_ = false;
+    std::mutex mutex_;
+    std::condition_variable condVar_;
+
 private:
     OsAccountSubscribeInfo info_;
     std::shared_ptr<MockSubscriber> mockSubscriber_;
@@ -75,11 +81,17 @@ void TestSubscriber::OnStateChanged(const OsAccountStateData &data)
         ACCOUNT_LOGE("The state=%{public}d is not expected", data.state);
         return;
     }
+    if (data.state == OsAccountState::REMOVED) {
+        std::lock_guard<std::mutex> lock(mutex_);
+        isRemoved_ = true;
+        condVar_.notify_one();
+    }
     if (mockSubscriber_ != nullptr) {
         mockSubscriber_->OnStateChanged(data.state, data.fromId, data.toId);
     }
-    if (data.state == OsAccountState::STOPPING && isBlock_) {
+    if (isBlock_ && data.state == OsAccountState::STOPPING) {
         ACCOUNT_LOGI("Sleep start, %{public}d seconds", SLEEP_SECONDS);
+        isBlock_ = false;
         sleep(SLEEP_SECONDS);
         ACCOUNT_LOGI("Sleep seconds end");
     }
@@ -106,15 +118,17 @@ void TestStateMachine(bool withHandshake, bool isBlock)
     EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::UNLOCKED, localId, localId)).Times(Exactly(1));
     EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::SWITCHED, _, localId)).Times(Exactly(1));
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(localId), ERR_OK);
-    EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::STOPPING, localId, localId)).Times(Exactly(1));
-    EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::STOPPED, localId, localId)).Times(Exactly(1));
+    EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::STOPPING, localId, localId)).Times(Exactly(TWICE));
+    EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::STOPPED, localId, localId)).Times(Exactly(TWICE));
     EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::SWITCHING, -1, _)).Times(Exactly(1));
     EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::SWITCHED, -1, _)).Times(Exactly(1));
     EXPECT_EQ(OsAccountManager::DeactivateOsAccount(localId), ERR_OK);
-    EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::STOPPING, localId, localId)).Times(Exactly(1));
-    EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::STOPPED, localId, localId)).Times(Exactly(1));
     EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::REMOVED, localId, localId)).Times(Exactly(1));
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(localId), ERR_OK);
+    std::unique_lock<std::mutex> lock(subscriber->mutex_);
+    if (!subscriber->isRemoved_) {
+        subscriber->condVar_.wait(lock, [subscriber] { return subscriber->isRemoved_; });
+    }
     EXPECT_EQ(OsAccountManager::UnsubscribeOsAccount(subscriber), ERR_OK);
 }
 
