@@ -17,9 +17,9 @@
 
 #include "account_iam_client.h"
 #include "account_log_wrapper.h"
-#include "napi_account_iam_common.h"
 #include "napi_account_common.h"
 #include "napi_account_error.h"
+#include "napi_account_iam_common.h"
 
 namespace OHOS {
 namespace AccountJsKit {
@@ -32,6 +32,7 @@ napi_value NapiAccountIAMUserAuth::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("getVersion", GetVersion),
         DECLARE_NAPI_FUNCTION("getAvailableStatus", GetAvailableStatus),
         DECLARE_NAPI_FUNCTION("getProperty", GetProperty),
+        DECLARE_NAPI_FUNCTION("getPropertyByCredentialId", GetPropertyByCredentialId),
         DECLARE_NAPI_FUNCTION("setProperty", SetProperty),
         DECLARE_NAPI_FUNCTION("auth", Auth),
         DECLARE_NAPI_FUNCTION("authUser", AuthUser),
@@ -167,17 +168,104 @@ napi_value NapiAccountIAMUserAuth::GetProperty(napi_env env, napi_callback_info 
         [](napi_env env, void *data) {
             GetPropertyContext *context = reinterpret_cast<GetPropertyContext *>(data);
             auto getPropCallback = std::make_shared<NapiGetPropCallback>(
-                context->env, context->callbackRef, context->deferred, context->request);
+                context->env, context->callbackRef, context->deferred, context->request.keys);
+            if (getPropCallback == nullptr) {
+                ACCOUNT_LOGE("Failed for nullptr");
+                return;
+            }
+            context->callbackRef = nullptr;
             if ((context->parseHasAccountId) && (!IsAccountIdValid(context->accountId))) {
                 AccountSA::Attributes emptyInfo;
                 getPropCallback->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, emptyInfo);
                 return;
             }
-            context->callbackRef = nullptr;
             AccountIAMClient::GetInstance().GetProperty(context->accountId, context->request, getPropCallback);
         },
         [](napi_env env, napi_status status, void *data) {
             delete reinterpret_cast<GetPropertyContext *>(data);
+        },
+        reinterpret_cast<void *>(context), &context->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_user_initiated));
+    contextPtr.release();
+    return result;
+}
+
+static napi_status ParseContextForGetPropertyById(
+    napi_env env, napi_callback_info info, GetPropertyByIdContext &context, napi_value &result)
+{
+    size_t argc = ARG_SIZE_TWO;
+    napi_value argv[ARG_SIZE_TWO] = {0};
+    NAPI_CALL_BASE(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr), napi_generic_failure);
+    if (argc < ARG_SIZE_TWO) {
+        ACCOUNT_LOGE("Expect 2 parameters, but got %{public}zu", argc);
+        std::string errMsg = "Parameter error. The number of parameters should be at least 2";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return napi_invalid_arg;
+    }
+    napi_status status = ParseUint8ArrayToNativeUint8Array(
+        env, argv[0], &context.credentialIdData, &context.credentialIdLength);
+    if (status != napi_ok) {
+        ACCOUNT_LOGE("Parse credentialId from 'Uint8TypedArray' failed");
+        std::string errMsg = "Parameter error. The type of \"credentialId\" must be Uint8Array";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return napi_invalid_arg;
+    }
+    std::vector<uint32_t> tempKeys;
+    if (ParseUInt32Array(env, argv[1], tempKeys) != napi_ok) {
+        ACCOUNT_LOGE("Parameter error. The type of \"keys\" must be GetPropertyType's array");
+        std::string errMsg = "Parameter error. The type of \"keys\" must be GetPropertyType's array";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return napi_invalid_arg;
+    }
+    NAPI_CALL_BASE(env, napi_create_promise(env, &context.deferred, &result), napi_generic_failure);
+    for (const auto &item : tempKeys) {
+        Attributes::AttributeKey key;
+        status = ConvertGetPropertyTypeToAttributeKey(static_cast<GetPropertyType>(item), key);
+        if (status != napi_ok) {
+            ACCOUNT_LOGE("Parameter error. The type of \"key\" must be 'GetPropertyType'");
+            context.errCode = ERR_JS_INVALID_PARAMETER;
+            return napi_ok;
+        }
+        context.keys.push_back(key);
+    }
+    return napi_ok;
+}
+
+napi_value NapiAccountIAMUserAuth::GetPropertyByCredentialId(napi_env env, napi_callback_info info)
+{
+    napi_value result = nullptr;
+    GetPropertyByIdContext *context = new (std::nothrow) GetPropertyByIdContext(env);
+    if (context == nullptr) {
+        ACCOUNT_LOGE("Failed to create GetPropertyContext");
+        return result;
+    }
+    std::unique_ptr<GetPropertyByIdContext> contextPtr(context);
+    if (ParseContextForGetPropertyById(env, info, *context, result) != napi_ok) {
+        return nullptr;
+    }
+    napi_value resourceName = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, "GetPropertyByCredentialId", NAPI_AUTO_LENGTH, &resourceName));
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resourceName,
+        [](napi_env env, void *data) {
+            GetPropertyByIdContext *context = reinterpret_cast<GetPropertyByIdContext *>(data);
+            auto getPropCallback = std::make_shared<NapiGetPropCallback>(
+                context->env, nullptr, context->deferred, context->keys);
+            getPropCallback->isGetById_ = true;
+            if ((context->credentialIdLength != sizeof(uint64_t)) || (context->credentialIdData == nullptr)) {
+                ACCOUNT_LOGE("Failed to convert uint8array data to uint64_t value");
+                context->errCode = ERR_JS_CREDENTIAL_NOT_EXIST;
+            }
+            if (context->errCode != ERR_OK) {
+                UserIam::UserAuth::Attributes extraInfo;
+                getPropCallback->OnResult(context->errCode, extraInfo);
+                return;
+            }
+            context->credentialId = *(reinterpret_cast<uint64_t *>(context->credentialIdData));
+            AccountIAMClient::GetInstance().GetPropertyByCredentialId(
+                context->credentialId, context->keys, getPropCallback);
+        },
+        [](napi_env env, napi_status status, void *data) {
+            delete reinterpret_cast<GetPropertyByIdContext *>(data);
         },
         reinterpret_cast<void *>(context), &context->work));
     NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_user_initiated));

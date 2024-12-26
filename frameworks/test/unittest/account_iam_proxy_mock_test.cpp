@@ -20,9 +20,10 @@
 namespace OHOS {
 namespace AccountTest {
 namespace {
-    const int32_t TEST_USER_ID = 200;
-    const uint64_t TEST_CONTEXT_ID = 122;
-    const std::vector<uint8_t> TEST_CHALLENGE = {1, 2, 3, 4};
+constexpr int32_t TEST_USER_ID = 200;
+constexpr uint64_t TEST_CONTEXT_ID = 122;
+constexpr uint64_t TEST_CREDENTIAL_ID = 0;
+const std::vector<uint8_t> TEST_CHALLENGE = {1, 2, 3, 4};
 }
 
 using namespace testing;
@@ -245,6 +246,21 @@ HWTEST_F(AccountIAMProxyMockTest, AccountIAMClient_GetProperty_0100, TestSize.Le
     auto testCallback = std::make_shared<GetSetPropCallbackMockTest>();
     ASSERT_NE(testCallback, nullptr);
     AccountIAMClient::GetInstance().GetProperty(TEST_USER_ID, testRequest, testCallback);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_PROXY, testCallback->result_);
+}
+
+/**
+ * @tc.name: AccountIAMClient_GetPropertyById_0100
+ * @tc.desc: Test GetPropertyByCredentialId func with proxy is nullptr.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMProxyMockTest, AccountIAMClient_GetPropertyById_0100, TestSize.Level0)
+{
+    auto testCallback = std::make_shared<GetSetPropCallbackMockTest>();
+    ASSERT_NE(testCallback, nullptr);
+    std::vector<Attributes::AttributeKey> keys { Attributes::AttributeKey::ATTR_PIN_SUB_TYPE };
+    AccountIAMClient::GetInstance().GetPropertyByCredentialId(TEST_CREDENTIAL_ID, keys, testCallback);
     ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_PROXY, testCallback->result_);
 }
 

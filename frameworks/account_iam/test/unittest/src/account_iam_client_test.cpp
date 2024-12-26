@@ -50,6 +50,7 @@ const uint32_t INVALID_IPC_CODE = 1000;
 const uint32_t INVALID_TOKEN_ID = 0;
 const int32_t WAIT_TIME = 20;
 const uint64_t TEST_CONTEXT_ID = 122;
+const uint64_t TEST_CREDENTIAL_ID = 0;
 const std::vector<uint8_t> TEST_CHALLENGE = {1, 2, 3, 4};
 
 static PermissionDef INFO_MANAGER_TEST_PERM_DEF1 = {
@@ -555,6 +556,28 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetProperty_0100, TestSize.Level
     EXPECT_CALL(*callback, OnResult(_, _)).Times(1);
     AccountIAMClient::GetInstance().GetProperty(TEST_USER_ID, testRequest, nullptr);
     AccountIAMClient::GetInstance().GetProperty(TEST_USER_ID, testRequest, testCallback);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+}
+
+/**
+ * @tc.name: AccountIAMClient_GetPropertyById_0100
+ * @tc.desc: Get property by id.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetPropertyById_0100, TestSize.Level0)
+{
+    auto callback = std::make_shared<MockGetSetPropCallback>();
+    EXPECT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestGetSetPropCallback>(callback);
+    EXPECT_CALL(*callback, OnResult(_, _)).Times(1);
+    std::vector<Attributes::AttributeKey> keys { Attributes::AttributeKey::ATTR_PIN_SUB_TYPE };
+    AccountIAMClient::GetInstance().GetPropertyByCredentialId(
+        TEST_CREDENTIAL_ID, keys, nullptr);
+    AccountIAMClient::GetInstance().GetPropertyByCredentialId(
+        TEST_CREDENTIAL_ID, keys, testCallback);
     std::unique_lock<std::mutex> lock(testCallback->mutex);
     testCallback->cv.wait_for(
         lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });

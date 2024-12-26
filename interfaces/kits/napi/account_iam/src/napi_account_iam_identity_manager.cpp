@@ -260,7 +260,7 @@ napi_value NapiAccountIAMIdentityManager::Cancel(napi_env env, napi_callback_inf
         napi_create_int32(env, ret, &napiResult);
         return napiResult;
     }
-    ACCOUNT_LOGE("Failed to cancel account, ret = %d", ret);
+    ACCOUNT_LOGE("Failed to cancel account, ret = %{public}d", ret);
     AccountIAMNapiThrow(env, AccountIAMConvertToJSErrCode(ret), true);
     return nullptr;
 }
@@ -470,13 +470,17 @@ napi_value NapiAccountIAMIdentityManager::GetAuthInfo(napi_env env, napi_callbac
             GetAuthInfoContext *context = reinterpret_cast<GetAuthInfoContext *>(data);
             auto idmCallback = std::make_shared<NapiGetInfoCallback>(
                 context->env, context->callbackRef, context->deferred);
+            if (idmCallback == nullptr) {
+                ACCOUNT_LOGE("Failed for nullptr");
+                return;
+            }
+            context->callbackRef = nullptr;
             if ((context->parseHasAccountId) && (!IsAccountIdValid(context->accountId))) {
                 std::vector<AccountSA::CredentialInfo> emptyInfoList;
                 idmCallback->OnCredentialInfo(ERR_JS_ACCOUNT_NOT_FOUND, emptyInfoList);
                 return;
             }
             AccountIAMClient::GetInstance().GetCredentialInfo(context->accountId, context->authType, idmCallback);
-            context->callbackRef = nullptr;
         },
         [](napi_env env, napi_status status, void *data) {
             delete reinterpret_cast<GetAuthInfoContext *>(data);

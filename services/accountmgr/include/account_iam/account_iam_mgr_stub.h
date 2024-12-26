@@ -51,6 +51,7 @@ public:
     ErrCode ProcCancelAuth(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetAvailableStatus(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetProperty(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetPropertyById(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetProperty(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetEnrolledId(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetAccountState(MessageParcel &data, MessageParcel &reply);
