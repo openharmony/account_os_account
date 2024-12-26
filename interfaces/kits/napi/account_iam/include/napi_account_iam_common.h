@@ -25,9 +25,12 @@
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "napi_account_common.h"
+#include "napi_account_iam_constant.h"
 
 namespace OHOS {
 namespace AccountJsKit {
+using namespace OHOS::AccountSA;
+
 constexpr size_t ARG_SIZE_ONE = 1;
 constexpr size_t ARG_SIZE_TWO = 2;
 constexpr size_t ARG_SIZE_THREE = 3;
@@ -54,6 +57,26 @@ struct JsIAMCallback {
     napi_ref onResult = nullptr;
     napi_ref onAcquireInfo = nullptr;
     bool hasOnAcquireInfo = false;
+};
+
+struct ExecutorProperty {
+    int32_t result = 0;
+    int32_t authSubType = 0;
+    int32_t remainTimes = 0;
+    int32_t freezingTime = 0;
+    int32_t nextPhaseFreezingTime = -1;
+    std::string enrollmentProgress;
+    std::string sensorInfo;
+};
+
+struct CommonCallbackInfo {
+    CommonCallbackInfo(napi_env env) : env(env) {}
+    napi_env env;
+    napi_ref callbackRef = nullptr;
+    napi_deferred deferred = nullptr;
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    int32_t errCode = 0;
 };
 
 #ifdef HAS_USER_AUTH_PART
@@ -136,6 +159,7 @@ struct GetAuthInfoContext : public CommonAsyncContext {
     bool parseHasAccountId = false;
     AccountSA::AuthType authType {0};
     std::vector<AccountSA::CredentialInfo> credInfo;
+    std::shared_ptr<NapiCallbackRef> callback;
 };
 
 struct GetEnrolledIdContext : public CommonAsyncContext {
@@ -146,18 +170,26 @@ struct GetEnrolledIdContext : public CommonAsyncContext {
     uint64_t enrolledId = 0;
 };
 
-struct GetPropertyContext : public CommonAsyncContext {
-    explicit GetPropertyContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
+struct GetPropertyCommonContext : public CommonAsyncContext {
+    explicit GetPropertyCommonContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
+    bool isGetById = false;
+    std::vector<Attributes::AttributeKey> keys {};
+    ExecutorProperty propertyInfo;
+    std::shared_ptr<NapiCallbackRef> callback;
+};
+
+struct GetPropertyContext : public GetPropertyCommonContext {
+    explicit GetPropertyContext(napi_env napiEnv) : GetPropertyCommonContext(napiEnv) {};
     AccountSA::GetPropertyRequest request;
-    int32_t result = 0;
-    int32_t authSubType = 0;
-    int32_t remainTimes = 0;
-    int32_t freezingTime = 0;
-    std::string enrollmentProgress;
-    std::string sensorInfo;
     int32_t accountId = -1;
     bool parseHasAccountId = false;
-    int32_t nextPhaseFreezingTime = -1;
+};
+
+struct GetPropertyByIdContext : public GetPropertyCommonContext {
+    explicit GetPropertyByIdContext(napi_env napiEnv) : GetPropertyCommonContext(napiEnv) {};
+    uint8_t *credentialIdData = nullptr;
+    size_t credentialIdLength = 0;
+    uint64_t credentialId = 0;
 };
 
 struct SetPropertyContext : public CommonAsyncContext {
@@ -165,6 +197,7 @@ struct SetPropertyContext : public CommonAsyncContext {
     AccountSA::SetPropertyRequest request;
     int32_t result = 0;
     int32_t accountId = -1;
+    std::shared_ptr<NapiCallbackRef> callback;
 };
 
 class NapiIDMCallback : public AccountSA::IDMCallback {
@@ -187,10 +220,13 @@ public:
     virtual ~NapiGetInfoCallback();
 
     void OnCredentialInfo(int32_t result, const std::vector<AccountSA::CredentialInfo> &infoList) override;
+
 private:
     napi_env env_;
-    napi_ref callbackRef_;
+    std::shared_ptr<NapiCallbackRef> callback_;
     napi_deferred deferred_;
+    std::mutex mutex_;
+    bool onResultCalled_ = false;
 };
 
 class NapiGetEnrolledIdCallback : public AccountSA::GetEnrolledIdCallback {
@@ -223,17 +259,22 @@ private:
 
 class NapiGetPropCallback : public AccountSA::GetSetPropCallback {
 public:
-    explicit NapiGetPropCallback(
-        napi_env env, napi_ref callbackRef, napi_deferred deferred, const AccountSA::GetPropertyRequest &request);
+    NapiGetPropCallback(
+        napi_env env, napi_ref callbackRef, napi_deferred deferred, const std::vector<Attributes::AttributeKey> &keys);
     virtual ~NapiGetPropCallback();
-    void GetContextParams(const UserIam::UserAuth::Attributes &extraInfo, GetPropertyContext &context);
+    void GetExecutorPropertys(const UserIam::UserAuth::Attributes &extraInfo, ExecutorProperty &propertyInfo);
     void OnResult(int32_t result, const AccountSA::Attributes &extraInfo) override;
+
+public:
+    bool isGetById_ = false;
+
 private:
     napi_env env_ = nullptr;
-    napi_ref callbackRef_ = nullptr;
+    std::shared_ptr<NapiCallbackRef> callback_;
     napi_deferred deferred_ = nullptr;
-    AccountSA::GetPropertyRequest request_;
+    std::vector<Attributes::AttributeKey> keys_ {};
     std::mutex mutex_;
+    bool onResultCalled_ = false;
 };
 
 class NapiSetPropCallback : public AccountSA::GetSetPropCallback {
@@ -245,9 +286,10 @@ public:
 
 private:
     napi_env env_ = nullptr;
-    napi_ref callbackRef_ = nullptr;
+    std::shared_ptr<NapiCallbackRef> callback_;
     napi_deferred deferred_ = nullptr;
     std::mutex mutex_;
+    bool onResultCalled_ = false;
 };
 #endif  // HAS_USER_AUTH_PART
 
@@ -274,17 +316,20 @@ private:
 };
 #endif  // HAS_PIN_AUTH_PART
 
+void CallbackAsyncOrPromise(const CommonCallbackInfo &callbackInfo);
 void CallbackAsyncOrPromise(napi_env env, CommonAsyncContext *context, napi_value errJs, napi_value dataJs);
 napi_value CreateErrorObject(napi_env env, int32_t code);
 napi_status ParseUInt32Array(napi_env env, napi_value value, std::vector<uint32_t> &data);
 napi_status ParseIAMCallback(napi_env env, napi_value object, std::shared_ptr<JsIAMCallback> &callback);
 #ifdef HAS_USER_AUTH_PART
 napi_status ParseAddCredInfo(napi_env env, napi_value value, IDMContext &context);
+napi_status ParseGetPropKeys(napi_env env, napi_value napiKeys, std::vector<Attributes::AttributeKey> &keys);
 napi_status ParseGetPropRequest(napi_env env, napi_value object, GetPropertyContext &context);
 napi_status ParseSetPropRequest(napi_env env, napi_value object, AccountSA::SetPropertyRequest &request);
 napi_value CreateCredInfoArray(napi_env env, const std::vector<AccountSA::CredentialInfo> &info);
 napi_value CreateAuthResult(napi_env env, const std::vector<uint8_t> &token, int32_t remainTimes, int32_t freezingTime);
 bool IsAccountIdValid(int32_t accountId);
+napi_status ConvertGetPropertyTypeToAttributeKey(GetPropertyType in, Attributes::AttributeKey &out);
 #endif
 }  // namespace AccountJsKit
 }  // namespace OHOS

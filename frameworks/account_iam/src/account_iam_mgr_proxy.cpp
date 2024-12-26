@@ -515,6 +515,46 @@ void AccountIAMMgrProxy::GetProperty(
     }
 }
 
+void AccountIAMMgrProxy::GetPropertyByCredentialId(uint64_t credentialId,
+    std::vector<Attributes::AttributeKey> &keys, const sptr<IGetSetPropCallback> &callback)
+{
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("Get property by id callback is nullptr");
+        return;
+    }
+    Attributes emptyResult;
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Failed to write descriptor!");
+        callback->OnResult(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyResult);
+        return;
+    }
+    if (!data.WriteUint64(credentialId)) {
+        ACCOUNT_LOGE("Failed to write credentialId");
+        callback->OnResult(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyResult);
+        return;
+    }
+    std::vector<uint32_t> attrKeys;
+    std::transform(keys.begin(), keys.end(), std::back_inserter(attrKeys),
+        [](const auto &key) { return static_cast<uint32_t>(key); });
+
+    if (!data.WriteUInt32Vector(attrKeys)) {
+        ACCOUNT_LOGE("Failed to write keys");
+        callback->OnResult(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyResult);
+        return;
+    }
+    if (!data.WriteRemoteObject(callback->AsObject())) {
+        ACCOUNT_LOGE("Failed to write callback");
+        callback->OnResult(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyResult);
+        return;
+    }
+    MessageParcel reply;
+    int32_t result = SendRequest(AccountIAMInterfaceCode::GET_PROPERTY_BY_CREDENTIAL_ID, data, reply);
+    if (result != ERR_OK) {
+        callback->OnResult(result, emptyResult);
+    }
+}
+
 void AccountIAMMgrProxy::SetProperty(
     int32_t userId, const SetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback)
 {

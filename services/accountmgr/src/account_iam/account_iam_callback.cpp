@@ -53,22 +53,19 @@ void AuthCallbackDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 }
 
 AuthCallback::AuthCallback(
-    uint32_t userId, uint64_t credentialId, AuthType authType, const sptr<IIDMCallback> &callback)
-    : userId_(userId), credentialId_(credentialId), authType_(authType), innerCallback_(callback)
+    uint32_t userId, AuthType authType, AuthIntent authIntent, const sptr<IIDMCallback> &callback)
+    : userId_(userId), authType_(authType), authIntent_(authIntent), innerCallback_(callback)
 {}
 
-AuthCallback::AuthCallback(uint32_t userId, uint64_t credentialId, AuthType authType,
+AuthCallback::AuthCallback(uint32_t userId, AuthType authType, AuthIntent authIntent,
     bool isRemoteAuth, const sptr<IIDMCallback> &callback)
-    : userId_(userId), credentialId_(credentialId), authType_(authType),
+    : userId_(userId), authType_(authType), authIntent_(authIntent),
     isRemoteAuth_(isRemoteAuth), innerCallback_(callback)
 {}
 
-ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo, int32_t accountId, bool &isUpdateVerifiedStatus)
+ErrCode AuthCallback::UnlockAccount(int32_t accountId, const std::vector<uint8_t> &token,
+    const std::vector<uint8_t> &secret, bool &isUpdateVerifiedStatus)
 {
-    std::vector<uint8_t> token;
-    extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
-    std::vector<uint8_t> secret;
-    extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, secret);
     ErrCode ret = ERR_OK;
     if (authType_ == AuthType::PIN) {
         (void)InnerAccountIAMManager::GetInstance().HandleFileKeyException(accountId, secret, token);
@@ -101,10 +98,24 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo, int32_t acco
             }
         }
     }
+    return ret;
+}
+
+ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo, int32_t accountId, bool &isUpdateVerifiedStatus)
+{
     // domain account authentication
     if (authType_ == static_cast<AuthType>(IAMAuthType::DOMAIN)) {
         return ERR_OK;
     }
+    std::vector<uint8_t> token;
+    extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
+    std::vector<uint8_t> secret;
+    extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, secret);
+    ErrCode ret = UnlockAccount(accountId, token, secret, isUpdateVerifiedStatus);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    // send msg for domain account offline authentication
     InnerDomainAccountManager::GetInstance().AuthWithToken(accountId, token);
     return ret;
 }
@@ -112,35 +123,6 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo, int32_t acco
 void AuthCallback::SetDeathRecipient(const sptr<AuthCallbackDeathRecipient> &deathRecipient)
 {
     deathRecipient_ = deathRecipient;
-}
-
-static void GenerateAttributesInfo(const Attributes &extraInfo, Attributes &extraAuthInfo)
-{
-    std::vector<uint8_t> token;
-    if (extraInfo.GetUint8ArrayValue(Attributes::AttributeKey::ATTR_SIGNATURE, token)) {
-        extraAuthInfo.SetUint8ArrayValue(Attributes::AttributeKey::ATTR_SIGNATURE, token);
-    }
-    int32_t remainTimes = 0;
-    if (extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, remainTimes)) {
-        extraAuthInfo.SetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, remainTimes);
-    }
-    int32_t freezingTime = 0;
-    if (extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, freezingTime)) {
-        extraAuthInfo.SetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, freezingTime);
-    }
-    int32_t nextPhaseFreezingTime = 0;
-    if (extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION, nextPhaseFreezingTime)) {
-        extraAuthInfo.SetInt32Value(Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION, nextPhaseFreezingTime);
-    }
-    int32_t accountId = 0;
-    if (extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_USER_ID, accountId)) {
-        extraAuthInfo.SetInt32Value(Attributes::AttributeKey::ATTR_USER_ID, accountId);
-    }
-    // pinValidityPeriod
-    int64_t pinValidityPeriod = 0;
-    if (extraInfo.GetInt64Value(Attributes::AttributeKey::ATTR_PIN_EXPIRED_INFO, pinValidityPeriod)) {
-        extraAuthInfo.SetInt64Value(Attributes::AttributeKey::ATTR_PIN_EXPIRED_INFO, pinValidityPeriod);
-    }
 }
 
 void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
@@ -151,7 +133,6 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         authedAccountId = static_cast<int32_t>(userId_);
     }
     ACCOUNT_LOGI("Auth ret: authType=%{public}d, result=%{public}d, id=%{public}d", authType_, result, authedAccountId);
-    InnerAccountIAMManager::GetInstance().SetState(authedAccountId, AFTER_OPEN_SESSION);
     if (innerCallback_ == nullptr) {
         ACCOUNT_LOGE("innerCallback_ is nullptr");
         return;
@@ -161,6 +142,12 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         innerCallback_->OnResult(result, extraInfo);
         ReportOsAccountOperationFail(authedAccountId, "auth", result, "Failed to auth");
         return AccountInfoReport::ReportSecurityInfo("", authedAccountId, ReportEvent::EVENT_LOGIN, result);
+    }
+    // private pin auth
+    if ((authType_ == AuthType::PRIVATE_PIN) || (authIntent_ == AuthIntent::QUESTION_AUTH)) {
+        ACCOUNT_LOGI("Private pin auth");
+        innerCallback_->OnResult(result, extraInfo);
+        return;
     }
     if (isRemoteAuth_) {
         ACCOUNT_LOGI("Remote auth");
@@ -179,15 +166,7 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         innerCallback_->OnResult(ResultCode::FAIL, errInfo);
         return AccountInfoReport::ReportSecurityInfo("", authedAccountId, ReportEvent::EVENT_LOGIN, ResultCode::FAIL);
     }
-    uint64_t credentialId = 0;
-    if (!extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId) && (credentialId_ != 0)) {
-        Attributes extraAuthInfo;
-        GenerateAttributesInfo(extraInfo, extraAuthInfo);
-        extraAuthInfo.SetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId_);
-        innerCallback_->OnResult(result, extraAuthInfo);
-    } else {
-        innerCallback_->OnResult(result, extraInfo);
-    }
+    innerCallback_->OnResult(result, extraInfo);
     if (isUpdateVerifiedStatus) {
         (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsVerified(authedAccountId, true);
     }
@@ -373,11 +352,26 @@ void DelUserInputer::OnGetData(int32_t authSubType, std::vector<uint8_t> challen
         ACCOUNT_LOGE("InputerData is nullptr");
         return;
     }
-    inputerData->OnSetData(authSubType, TEMP_PIN);
+    inputerData->OnSetData(PinSubType::PIN_SIX, TEMP_PIN);
 }
 
-DelUserCallback::DelUserCallback(uint32_t userId, const sptr<IIDMCallback> &callback)
-    : userId_(userId), innerCallback_(callback)
+void CommitDelCredCallback::OnResult(int32_t result, const UserIam::UserAuth::Attributes &extraInfo)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    ACCOUNT_LOGI("IAM OnResult callback! result %{public}d", result);
+    isCalled_ = true;
+    resultCode_ = result;
+    onResultCondition_.notify_one();
+}
+
+void CommitDelCredCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo,
+    const UserIam::UserAuth::Attributes &extraInfo)
+{
+    ACCOUNT_LOGI("IAM OnAcquireInfo callback! module %{public}d, acquire %{public}u.", module, acquireInfo);
+}
+
+DelUserCallback::DelUserCallback(uint32_t userId, const std::vector<uint8_t> &token, const sptr<IIDMCallback> &callback)
+    : userId_(userId), token_(token), innerCallback_(callback)
 {}
 
 DelUserCallback::~DelUserCallback()
@@ -429,20 +423,19 @@ void DelUserCallback::OnResult(int32_t result, const Attributes &extraInfo)
         return innerCallback_->OnResult(errCode, extraInfo);
     }
 
-    auto eraseCallback = std::make_shared<OsAccountDeleteUserIdmCallback>();
-    errCode = UserIam::UserAuth::UserIdmClient::GetInstance().EraseUser(userId_, eraseCallback);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Failed to erase user, userId=%{public}d, errcode=%{public}d", userId_, errCode);
-        ReportOsAccountOperationFail(userId_, "deleteCredential", errCode, "Failed to erase user");
-        return innerCallback_->OnResult(errCode, extraInfo);
-    }
-    std::unique_lock<std::mutex> lock(eraseCallback->mutex_);
-    eraseCallback->onResultCondition_.wait(lock, [eraseCallback] { return eraseCallback->isIdmOnResultCallBack_; });
-    if (eraseCallback->resultCode_ != ERR_OK) {
+    Security::AccessToken::AccessTokenID selfToken = IPCSkeleton::GetSelfTokenID();
+    result = SetFirstCallerTokenID(selfToken);
+    ACCOUNT_LOGI("Set first caller info result: %{public}d", result);
+    auto deleteUserCallback = std::make_shared<CommitDelCredCallback>();
+    UserIDMClient::GetInstance().DeleteUser(userId_, token_, deleteUserCallback);
+    std::unique_lock<std::mutex> lock(deleteUserCallback->mutex_);
+    deleteUserCallback->onResultCondition_.wait(lock, [deleteUserCallback] { return deleteUserCallback->isCalled_; });
+    if (deleteUserCallback->resultCode_ != ERR_OK) {
         ACCOUNT_LOGE("Failed to erase user in callback, userId=%{public}d, errcode=%{public}d",
-            userId_, eraseCallback->resultCode_);
-        ReportOsAccountOperationFail(userId_, "deleteCredential", eraseCallback->resultCode_, "Failed to erase user");
-        return innerCallback_->OnResult(eraseCallback->resultCode_, extraInfo);
+            userId_, deleteUserCallback->resultCode_);
+        ReportOsAccountOperationFail(userId_, "deleteCredential", deleteUserCallback->resultCode_,
+            "Failed to erase user");
+        return innerCallback_->OnResult(deleteUserCallback->resultCode_, extraInfo);
     }
     (void)IInnerOsAccountManager::GetInstance().SetOsAccountCredentialId(userId_, 0);
     errCode = innerIamMgr_.UpdateStorageKeyContext(userId_);
