@@ -535,10 +535,13 @@ ohos_unittest("OsAccountInnerAccmgrPluginMockTest") {
     "os_account_inner_account_mgr_plugin_mock.cpp",
   ]
   sources += account_service_sources
-  sources -= [
-    "${services_path}/accountmgr/src/osaccount/os_account_interface.cpp",
-    "${services_path}/accountmgr/src/osaccount/os_account_plugin_manager.cpp",
-  ]
+  sources -=
+      [ "${services_path}/accountmgr/src/osaccount/os_account_interface.cpp" ]
+  if (os_account_enable_multiple_os_accounts) {
+    sources -= [
+      "${services_path}/accountmgr/src/osaccount/os_account_plugin_manager.cpp",
+    ]
+  }
   configs = [
     ":os_account_amgr_test_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
@@ -701,7 +704,9 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
   }
   cflags_cc += [ "-DACCOUNT_TEST" ]
   cflags_cc += [ "-DBUNDLE_ADAPTER_MOCK" ]
-  cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
+  if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
+    cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
+  }
   part_name = "os_account"
 }
 

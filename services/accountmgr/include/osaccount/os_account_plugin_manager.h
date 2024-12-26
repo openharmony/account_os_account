@@ -27,7 +27,6 @@ class OsAccountPluginManager {
 public:
     OsAccountPluginManager();
     ~OsAccountPluginManager();
-    static OsAccountPluginManager &GetInstance();
 
     void LoaderLib(const std::string &path, const std::string &libName);
     void CloseLib();

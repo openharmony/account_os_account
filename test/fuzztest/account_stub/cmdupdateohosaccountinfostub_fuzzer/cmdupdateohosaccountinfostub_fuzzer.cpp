@@ -17,6 +17,7 @@
 
 #include <string>
 #include <vector>
+#include "account_log_wrapper.h"
 #define private public
 #include "account_mgr_service.h"
 #undef private
