@@ -37,7 +37,7 @@ ErrCode OsAccountStateReplyCallback::SendRequest(
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Failed to send request, code = %{public}d, result = %{public}d", code, result);
     } else {
-        ACCOUNT_LOGI("Send OnComplete successfully, code = %{publid}d", code);
+        ACCOUNT_LOGI("Send OnComplete successfully, code = %{public}d", code);
     }
     return result;
 }
