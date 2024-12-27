@@ -52,6 +52,7 @@ constexpr char THREAD_BIND_ACCOUNT[] = "bindAccount";
 constexpr char THREAD_UNBIND_ACCOUNT[] = "unbindAccount";
 constexpr char THREAD_GET_ACCESS_TOKEN[] = "getAccessToken";
 constexpr char THREAD_IS_ACCOUNT_VALID[] = "isAccountTokenValid";
+constexpr char DLOPEN_ERR[] = "dlopen failed";
 constexpr int32_t INVALID_USERID = -1;
 constexpr int32_t ADMIN_USERID = 0;
 constexpr int32_t SELF_UID = 3058;
@@ -299,6 +300,9 @@ void InnerDomainAccountManager::LoaderLib(const std::string &path, const std::st
     if (libHandle_ == nullptr) {
         const char *dlsym_error = dlerror();
         ACCOUNT_LOGE("Call dlopen failed error=%{public}s", dlsym_error);
+        if (dlsym_error == NULL) {
+            dlsym_error = DLOPEN_ERR;
+        }
         ReportOsAccountOperationFail(
             ADMIN_USERID, OPERATOR_LOAD_LIB, ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, dlsym_error);
         return;

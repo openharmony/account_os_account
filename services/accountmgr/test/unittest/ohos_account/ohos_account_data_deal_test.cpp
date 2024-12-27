@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -76,7 +76,9 @@ HWTEST_F(OhosAccountDataDealTest, OhosAccountJsonNotInitTest001, TestSize.Level0
 {
     AccountInfo accountInfo;
     OhosAccountDataDeal dataDeal(RESOURCE_ROOT_PATH);
+#ifdef ENABLE_FILE_WATCHER
     dataDeal.checkCallbackFunc_ = nullptr;
+#endif // ENABLE_FILE_WATCHER
     ErrCode errCode = dataDeal.AccountInfoFromJson(accountInfo, TEST_VALID_USER_ID);
     EXPECT_EQ(errCode, ERR_ACCOUNT_DATADEAL_NOT_READY);
 }
@@ -91,7 +93,9 @@ HWTEST_F(OhosAccountDataDealTest, ValidOhosAccountJsonTest001, TestSize.Level0)
 {
     AccountInfo accountInfo;
     OhosAccountDataDeal dataDeal(RESOURCE_ROOT_PATH);
+#ifdef ENABLE_FILE_WATCHER
     dataDeal.checkCallbackFunc_ = nullptr;
+#endif // ENABLE_FILE_WATCHER
     ErrCode errCode = dataDeal.Init(TEST_VALID_USER_ID);
     EXPECT_EQ(errCode, ERR_OK);
 
@@ -116,7 +120,9 @@ HWTEST_F(OhosAccountDataDealTest, ValidOhosAccountJsonTest002, TestSize.Level0)
      */
     AccountInfo accountInfo;
     OhosAccountDataDeal dataDeal(RESOURCE_ROOT_PATH);
+#ifdef ENABLE_FILE_WATCHER
     dataDeal.checkCallbackFunc_ = nullptr;
+#endif // ENABLE_FILE_WATCHER
     ErrCode errCode = dataDeal.Init(TEST_VALID_USER_ID);
     EXPECT_EQ(errCode, ERR_OK);
 
@@ -144,7 +150,9 @@ HWTEST_F(OhosAccountDataDealTest, ValidOhosAccountJsonTest002, TestSize.Level0)
 HWTEST_F(OhosAccountDataDealTest, ValidOhosAccountJsonTest003, TestSize.Level0)
 {
     OhosAccountDataDeal dataDeal(RESOURCE_ROOT_PATH);
+#ifdef ENABLE_FILE_WATCHER
     dataDeal.checkCallbackFunc_ = nullptr;
+#endif // ENABLE_FILE_WATCHER
     dataDeal.initOk_ = false;
     AccountInfo accountInfo;
     ErrCode result = dataDeal.AccountInfoToJson(accountInfo);
@@ -164,7 +172,9 @@ HWTEST_F(OhosAccountDataDealTest, InvalidOhosAccountJsonTest001, TestSize.Level0
      */
     AccountInfo accountInfo;
     OhosAccountDataDeal dataDeal(RESOURCE_ROOT_PATH);
+#ifdef ENABLE_FILE_WATCHER
     dataDeal.checkCallbackFunc_ = nullptr;
+#endif // ENABLE_FILE_WATCHER
     ErrCode errCode = dataDeal.Init(TEST_INVALID_USER_ID);
     EXPECT_EQ(errCode, ERR_ACCOUNT_DATADEAL_JSON_FILE_CORRUPTION);
 

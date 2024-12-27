@@ -42,9 +42,12 @@ const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR = "account_avatar";
 const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_SCALABLEDATA = "account_scalableData";
 const std::string DATADEAL_JSON_KEY_USERID = "user_id";
 const std::string DATADEAL_JSON_KEY_BIND_TIME = "bind_time";
+#ifdef ENABLE_FILE_WATCHER
 const uint32_t ALG_COMMON_SIZE = 32;
+#endif // ENABLE_FILE_WATCHER
 } // namespace
 
+#ifdef ENABLE_FILE_WATCHER
 OhosAccountDataDeal::OhosAccountDataDeal(const std::string &configFileDir)
     : configFileDir_(configFileDir),
     accountFileWatcherMgr_(AccountFileWatcherMgr::GetInstance())
@@ -74,7 +77,16 @@ OhosAccountDataDeal::OhosAccountDataDeal(const std::string &configFileDir)
         return true;
     };
 }
+#else
+OhosAccountDataDeal::OhosAccountDataDeal(const std::string &configFileDir)
+    : configFileDir_(configFileDir)
+{
+    accountFileOperator_ = std::make_shared<AccountFileOperator>();
+    initOk_ = false;
+}
+#endif // ENABLE_FILE_WATCHER
 
+#ifdef ENABLE_FILE_WATCHER
 bool OhosAccountDataDeal::DealWithFileModifyEvent(const std::string &fileName, const int32_t id)
 {
     ACCOUNT_LOGI("enter");
@@ -130,6 +142,7 @@ void OhosAccountDataDeal::AddFileWatcher(const int32_t id)
     std::string configFile = configFileDir_ + std::to_string(id) + ACCOUNT_CFG_FILE_NAME;
     accountFileWatcherMgr_.AddFileWatcher(id, checkCallbackFunc_, configFile);
 }
+#endif // ENABLE_FILE_WATCHER
 
 ErrCode OhosAccountDataDeal::Init(int32_t userId)
 {
@@ -162,9 +175,11 @@ ErrCode OhosAccountDataDeal::Init(int32_t userId)
     // recover watch for exist account info
     std::vector<OsAccountInfo> osAccountInfos;
     IInnerOsAccountManager::GetInstance().QueryAllCreatedOsAccounts(osAccountInfos);
+#ifdef ENABLE_FILE_WATCHER
     for (const auto &info : osAccountInfos) {
         AddFileWatcher(info.GetLocalId());
     }
+#endif // ENABLE_FILE_WATCHER
     initOk_ = true;
     return ERR_OK;
 }
@@ -220,7 +235,9 @@ ErrCode OhosAccountDataDeal::SaveAccountInfo(const AccountInfo &accountInfo)
     if (ret != ERR_OK && ret != ERR_OHOSACCOUNT_SERVICE_FILE_CHANGE_DIR_MODE_ERROR) {
         ReportOhosAccountOperationFail(accountInfo.userId_, OPERATION_OPEN_FILE_TO_WRITE, errno, configFile);
     }
+#ifdef ENABLE_FILE_WATCHER
     accountFileWatcherMgr_.AddAccountInfoDigest(accountInfoValue, configFile);
+#endif // ENABLE_FILE_WATCHER
     return ret;
 }
 
@@ -353,7 +370,9 @@ void OhosAccountDataDeal::BuildJsonFileFromScratch(int32_t userId)
     accountInfo.digest_ = "";
     accountInfo.ohosAccountInfo_.SetRawUid(DEFAULT_OHOS_ACCOUNT_UID);
     SaveAccountInfo(accountInfo);
+#ifdef ENABLE_FILE_WATCHER
     AddFileWatcher(userId);
+#endif // ENABLE_FILE_WATCHER
 }
 } // namespace AccountSA
 } // namespace OHOS

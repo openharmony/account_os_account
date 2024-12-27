@@ -32,6 +32,7 @@
 
 namespace OHOS {
 namespace AccountSA {
+#ifdef ENABLE_FILE_WATCHER
 namespace {
 constexpr uint32_t FILE_WATCHER_LIMIT = 1024 * 100;
 constexpr uint32_t BUF_COMMON_SIZE = 1024 * 100;
@@ -515,5 +516,6 @@ void FileWatcher::CloseNotify(int32_t fd)
     }
     wd_ = -1;
 }
+#endif // ENABLE_FILE_WATCHER
 }  // namespace AccountSA
 }  // namespace OHOS

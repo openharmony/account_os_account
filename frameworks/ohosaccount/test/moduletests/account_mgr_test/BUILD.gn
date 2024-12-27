@@ -157,10 +157,16 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
-  if (has_huks_part) {
-    external_deps += [ "huks:libhukssdk" ]
-  }
   cflags_cc = []
+  if (os_account_enable_file_watcher) {
+    cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
+    sources +=
+        [ "${services_path}/accountmgr/src/account_file_watcher_manager.cpp" ]
+    if (has_huks_part) {
+      external_deps += [ "huks:libhukssdk" ]
+      cflags_cc += [ "-DHAS_HUKS_PART" ]
+    }
+  }
   if (has_user_auth_part) {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
     external_deps += [ "user_auth_framework:userauth_client" ]

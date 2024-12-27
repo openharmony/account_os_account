@@ -58,6 +58,10 @@ ohos_unittest("OsAccountControlFileManagerTest") {
     "json:nlohmann_json_static",
     "kv_store:distributeddata_inner",
   ]
+  cflags_cc = []
+  if (os_account_enable_file_watcher) {
+    cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
+  }
   part_name = "os_account"
 }
 
@@ -465,10 +469,16 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
-  if (has_huks_part) {
-    external_deps += [ "huks:libhukssdk" ]
-  }
   cflags_cc = []
+  if (os_account_enable_file_watcher) {
+    cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
+    sources +=
+        [ "${services_path}/accountmgr/src/account_file_watcher_manager.cpp" ]
+    if (has_huks_part) {
+      external_deps += [ "huks:libhukssdk" ]
+      cflags_cc += [ "-DHAS_HUKS_PART" ]
+    }
+  }
   if (has_user_auth_part) {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
     external_deps += [ "user_auth_framework:userauth_client" ]
@@ -581,10 +591,16 @@ ohos_unittest("OsAccountInnerAccmgrPluginMockTest") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
-  if (has_huks_part) {
-    external_deps += [ "huks:libhukssdk" ]
-  }
   cflags_cc = []
+  if (os_account_enable_file_watcher) {
+    cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
+    sources +=
+        [ "${services_path}/accountmgr/src/account_file_watcher_manager.cpp" ]
+    if (has_huks_part) {
+      external_deps += [ "huks:libhukssdk" ]
+      cflags_cc += [ "-DHAS_HUKS_PART" ]
+    }
+  }
   if (has_user_auth_part) {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
     external_deps += [ "user_auth_framework:userauth_client" ]
@@ -687,10 +703,16 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
-  if (has_huks_part) {
-    external_deps += [ "huks:libhukssdk" ]
-  }
   cflags_cc = []
+  if (os_account_enable_file_watcher) {
+    cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
+    sources +=
+        [ "${services_path}/accountmgr/src/account_file_watcher_manager.cpp" ]
+    if (has_huks_part) {
+      external_deps += [ "huks:libhukssdk" ]
+      cflags_cc += [ "-DHAS_HUKS_PART" ]
+    }
+  }
   if (has_user_auth_part) {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
     external_deps += [ "user_auth_framework:userauth_client" ]
