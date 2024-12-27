@@ -1,4 +1,4 @@
-# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Copyright (c) 2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -19,7 +19,6 @@ account_service_sources = [
   "${os_account_innerkits_native_path}/src/os_account_subscribe_info.cpp",
   "${services_path}/accountmgr/src/account_event_provider.cpp",
   "${services_path}/accountmgr/src/account_event_subscribe.cpp",
-  "${services_path}/accountmgr/src/account_file_watcher_manager.cpp",
   "${services_path}/accountmgr/src/account_helper_data.cpp",
   "${services_path}/accountmgr/src/account_info_report.cpp",
   "${services_path}/accountmgr/src/account_mgr_service.cpp",
@@ -90,7 +89,6 @@ account_service_sources_mock = [
   "${os_account_innerkits_native_path}/src/os_account_subscribe_info.cpp",
   "${services_path}/accountmgr/src/account_event_provider.cpp",
   "${services_path}/accountmgr/src/account_event_subscribe.cpp",
-  "${services_path}/accountmgr/src/account_file_watcher_manager.cpp",
   "${services_path}/accountmgr/src/account_helper_data.cpp",
   "${services_path}/accountmgr/src/account_info_report.cpp",
   "${services_path}/accountmgr/src/account_mgr_service.cpp",

@@ -62,10 +62,12 @@ void OsAccountEventManagerTest::SetUpTestCase(void)
     IInnerOsAccountManager *innerMgrService = &IInnerOsAccountManager::GetInstance();
     std::shared_ptr<OsAccountControlFileManager> osAccountControl =
         std::static_pointer_cast<OsAccountControlFileManager>(innerMgrService->osAccountControl_);
+#ifdef ENABLE_FILE_WATCHER
     osAccountControl->eventCallbackFunc_ = nullptr;
     for (auto &fileNameMgr : osAccountControl->accountFileWatcherMgr_.fileNameMgrMap_) {
         fileNameMgr.second->eventCallbackFunc_ = nullptr;
     }
+#endif // ENABLE_FILE_WATCHER
 #ifdef BUNDLE_ADAPTER_MOCK
     auto osAccountService = new (std::nothrow) OsAccountManagerService();
     ASSERT_NE(osAccountService, nullptr);

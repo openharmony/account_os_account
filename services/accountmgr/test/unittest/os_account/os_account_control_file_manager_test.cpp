@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -49,7 +49,9 @@ const int32_t INVALID_TYPE = 100000;
 const gid_t ACCOUNT_GID = 3058;
 const uid_t ACCOUNT_UID = 3058;
 const int32_t THREAD_NUM = 10;
+#ifdef ENABLE_FILE_WATCHER
 const int32_t TEST_USER_ID100 = 100;
+#endif // ENABLE_FILE_WATCHER
 const std::string STRING_PHOTO =
     "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD//gAUU29mdHdhcmU6IFNuaXBhc3Rl/"
     "9sAQwADAgIDAgIDAwMDBAMDBAUIBQUEBAUKBwcGCAwKDAwLCgsLDQ4SEA0OEQ4LCxAWEBETFBUVFQwPFxgWFBgSFBUU/"
@@ -715,6 +717,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest030,
     EXPECT_EQ(ret, ERR_OK);
 }
 
+#ifdef ENABLE_FILE_WATCHER
 /**
  * @tc.name: QueryOsAccountInfo001
  * @tc.desc: Test QueryOsAccountInfo001
@@ -740,6 +743,7 @@ HWTEST_F(OsAccountControlFileManagerTest, QueryOsAccountInfo001, TestSize.Level1
     EXPECT_EQ(accountInfo1.GetLocalName(), accountInfo.GetLocalName());
     EXPECT_EQ(accountInfo1.GetSerialNumber(), accountInfo.GetSerialNumber());
 }
+#endif // ENABLE_FILE_WATCHER
 
 /**
  * @tc.name: GetSerialNumberM

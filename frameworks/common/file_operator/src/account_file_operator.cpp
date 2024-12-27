@@ -34,7 +34,9 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
+#ifdef ENABLE_FILE_WATCHER
 constexpr char ACCOUNT_INFO_DIGEST_FILE_PATH[] = "account_info_digest.json";
+#endif // ENABLE_FILE_WATCHER
 const long MAX_FILE_SIZE = 16 * 1024 * 1024; // 16MB
 const unsigned long long BUFF_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 const uint32_t RETRY_TIMES = 3;
@@ -88,7 +90,9 @@ ErrCode AccountFileOperator::DeleteDir(const std::string &path)
         ACCOUNT_LOGE("DeleteDirOrFile failed, path %{public}s errno %{public}d.", path.c_str(), errno);
         return ERR_OSACCOUNT_SERVICE_FILE_DELE_ERROR;
     }
+#ifdef ENABLE_FILE_WATCHER
     SetValidDeleteFileOperationFlag(path, true);
+#endif // ENABLE_FILE_WATCHER
     return ERR_OK;
 }
 
@@ -101,10 +105,13 @@ ErrCode AccountFileOperator::DeleteFile(const std::string &path)
         ACCOUNT_LOGE("DeleteDirOrFile failed, path %{public}s errno %{public}d.", path.c_str(), errno);
         return ERR_OSACCOUNT_SERVICE_FILE_DELE_ERROR;
     }
+#ifdef ENABLE_FILE_WATCHER
     SetValidDeleteFileOperationFlag(path, true);
+#endif // ENABLE_FILE_WATCHER
     return ERR_OK;
 }
 
+#ifdef ENABLE_FILE_WATCHER
 void AccountFileOperator::SetValidModifyFileOperationFlag(const std::string &fileName, bool flag)
 {
     if (fileName.find(ACCOUNT_INFO_DIGEST_FILE_PATH) != std::string::npos) { // ignore digest file record
@@ -152,6 +159,7 @@ bool AccountFileOperator::GetValidDeleteFileOperationFlag(const std::string &fil
     }
     return false;
 }
+#endif // ENABLE_FILE_WATCHER
 
 static bool IsDataStorageSufficient(const unsigned long long reqFreeBytes)
 {
@@ -207,26 +215,18 @@ bool AccountFileOperator::SetDirDelFlags(const std::string &dirpath)
     return true;
 }
 
-ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, const std::string &content)
+ErrCode AccountFileOperator::WriteFile(const std::string &path, const std::string &content)
 {
-    std::string str = path;
-    str.erase(str.rfind('/'));
-    if (!IsExistDir(str)) {
-        ErrCode errCode = CreateDir(str);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("failed to create dir, str = %{public}s errCode %{public}d.", str.c_str(), errCode);
-            return errCode;
-        }
-    }
-    if (!IsDataStorageSufficient(content.length())) {
-        return ERR_ACCOUNT_COMMON_DATA_NO_SPACE;
-    }
     std::unique_lock<std::shared_timed_mutex> lock(fileLock_);
+#ifdef ENABLE_FILE_WATCHER
     SetValidModifyFileOperationFlag(path, true);
+#endif // ENABLE_FILE_WATCHER
     FILE *fp = fopen(path.c_str(), "wb");
     if (fp == nullptr) {
         ACCOUNT_LOGE("failed to open %{public}s, errno %{public}d.", path.c_str(), errno);
+#ifdef ENABLE_FILE_WATCHER
         SetValidModifyFileOperationFlag(path, false);
+#endif // ENABLE_FILE_WATCHER
         return ERR_ACCOUNT_COMMON_FILE_OPEN_FAILED;
     }
     int fd = fileno(fp);
@@ -246,7 +246,7 @@ ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, 
             break;
         }
         flock(fd, LOCK_UN);
-        fclose(fp);
+        (void)fclose(fp);
         // change mode
         if (!ChangeModeFile(path, S_IRUSR | S_IWUSR)) {
             ACCOUNT_LOGW("failed to change mode for file %{public}s, errno %{public}d.", path.c_str(), errno);
@@ -255,9 +255,28 @@ ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, 
         return ERR_OK;
     } while (0);
     flock(fd, LOCK_UN);
-    fclose(fp);
+    (void)fclose(fp);
+#ifdef ENABLE_FILE_WATCHER
     SetValidModifyFileOperationFlag(path, false);
+#endif // ENABLE_FILE_WATCHER
     return ERR_ACCOUNT_COMMON_FILE_WRITE_FAILED;
+}
+
+ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, const std::string &content)
+{
+    std::string str = path;
+    str.erase(str.rfind('/'));
+    if (!IsExistDir(str)) {
+        ErrCode errCode = CreateDir(str);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("failed to create dir, str = %{public}s errCode %{public}d.", str.c_str(), errCode);
+            return errCode;
+        }
+    }
+    if (!IsDataStorageSufficient(content.length())) {
+        return ERR_ACCOUNT_COMMON_DATA_NO_SPACE;
+    }
+    return WriteFile(path, content);
 }
 
 ErrCode AccountFileOperator::GetFileContentByPath(const std::string &path, std::string &content)
