@@ -152,6 +152,7 @@ private:
     bool CheckAndAddLocalIdOperating(int32_t localId);
     ErrCode DealWithDeviceOwnerId(const bool isDeviceOwner, const int32_t localId);
     void CheckAndRefreshLocalIdRecord(const int id);
+    void RollBackToEarlierAccount(int32_t fromId, int32_t toId);
     bool IsToBeRemoved(const int32_t localId);
 
     // operations for active list
