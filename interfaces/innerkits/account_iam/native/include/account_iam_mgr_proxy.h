@@ -47,6 +47,8 @@ public:
     int32_t GetAvailableStatus(const AuthType authType, const AuthTrustLevel authTrustLevel, int32_t &status) override;
     void GetProperty(
         int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback) override;
+    void GetPropertyByCredentialId(uint64_t credentialId,
+        std::vector<Attributes::AttributeKey> &keys, const sptr<IGetSetPropCallback> &callback) override;
     void SetProperty(
         int32_t userId, const SetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback) override;
     void GetEnrolledId(int32_t accountId, AuthType authType, const sptr<IGetEnrolledIdCallback> &callback) override;
