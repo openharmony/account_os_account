@@ -198,6 +198,17 @@ public:
         int32_t userId, const GetPropertyRequest &request, const std::shared_ptr<GetSetPropCallback> &callback);
 
     /**
+     * @brief Gets the property based on the specified credential id.
+     * @permission ohos.permission.ACCESS_USER_AUTH_INTERNAL
+     * @param credentialId - Indicates the credential index.
+     * @param keys - Indicates the property type list for getting corresponding information.
+     * @param callback - Indicates the callback for getting an executor property.
+     * @return void. callback result error code, see account_error_no.h
+     */
+    void GetPropertyByCredentialId(uint64_t credentialId,
+        std::vector<Attributes::AttributeKey> &keys, const std::shared_ptr<GetSetPropCallback> &callback);
+
+    /**
      * @brief Sets property that can be used to initialize algorithms.
      * @permission ohos.permission.ACCESS_USER_AUTH_INTERNAL
      * @param userId - Indicates the user identification.

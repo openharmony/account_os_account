@@ -29,17 +29,20 @@ napi_value AuthTypeConstructor(napi_env env)
     napi_value face = nullptr;
     napi_value fingerPrint = nullptr;
     napi_value recoveryKey = nullptr;
+    napi_value privatePin  = nullptr;
     napi_value domain = nullptr;
     NAPI_CALL(env, napi_create_object(env, &authType));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(AuthType::PIN), &pin));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(AuthType::FACE), &face));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(AuthType::FINGERPRINT), &fingerPrint));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(AuthType::RECOVERY_KEY), &recoveryKey));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(AuthType::PRIVATE_PIN), &privatePin));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(IAMAuthType::DOMAIN), &domain));
     NAPI_CALL(env, napi_set_named_property(env, authType, "PIN", pin));
     NAPI_CALL(env, napi_set_named_property(env, authType, "FACE", face));
     NAPI_CALL(env, napi_set_named_property(env, authType, "FINGERPRINT", fingerPrint));
     NAPI_CALL(env, napi_set_named_property(env, authType, "RECOVERY_KEY", recoveryKey));
+    NAPI_CALL(env, napi_set_named_property(env, authType, "PRIVATE_PIN", privatePin));
     NAPI_CALL(env, napi_set_named_property(env, authType, "DOMAIN", domain));
     return authType;
 }
@@ -57,6 +60,7 @@ napi_value AuthSubTypeConstructor(napi_env env)
     napi_value fingerprintCapacitive = nullptr;
     napi_value fingerprintOptical = nullptr;
     napi_value fingerprintUltrasonic = nullptr;
+    napi_value pinQuestion  = nullptr;
     napi_value domainMixed = nullptr;
     NAPI_CALL(env, napi_create_object(env, &authSubType));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(PinSubType::PIN_SIX), &pinSix));
@@ -69,6 +73,7 @@ napi_value AuthSubTypeConstructor(napi_env env)
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(FINGERPRINT_CAPACITIVE), &fingerprintCapacitive));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(FINGERPRINT_OPTICAL), &fingerprintOptical));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(FINGERPRINT_ULTRASONIC), &fingerprintUltrasonic));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(PinSubType::PIN_QUESTION), &pinQuestion));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(IAMAuthSubType::DOMAIN_MIXED), &domainMixed));
     NAPI_CALL(env, napi_set_named_property(env, authSubType, "PIN_SIX", pinSix));
     NAPI_CALL(env, napi_set_named_property(env, authSubType, "PIN_NUMBER", pinNumber));
@@ -80,6 +85,7 @@ napi_value AuthSubTypeConstructor(napi_env env)
     NAPI_CALL(env, napi_set_named_property(env, authSubType, "FINGERPRINT_CAPACITIVE", fingerprintCapacitive));
     NAPI_CALL(env, napi_set_named_property(env, authSubType, "FINGERPRINT_OPTICAL", fingerprintOptical));
     NAPI_CALL(env, napi_set_named_property(env, authSubType, "FINGERPRINT_ULTRASONIC", fingerprintUltrasonic));
+    NAPI_CALL(env, napi_set_named_property(env, authSubType, "PIN_QUESTION", pinQuestion));
     NAPI_CALL(env, napi_set_named_property(env, authSubType, "DOMAIN_MIXED", domainMixed));
     return authSubType;
 }
@@ -290,11 +296,14 @@ napi_value AuthIntentConstructorForInnerkits(napi_env env)
     napi_value authIntent = nullptr;
     napi_value unlock = nullptr;
     napi_value silent_auth = nullptr;
+    napi_value question_auth = nullptr;
     NAPI_CALL(env, napi_create_object(env, &authIntent));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(AuthIntent::UNLOCK), &unlock));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(AuthIntent::SILENT_AUTH), &silent_auth));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(AuthIntent::QUESTION_AUTH), &question_auth));
     NAPI_CALL(env, napi_set_named_property(env, authIntent, "UNLOCK", unlock));
     NAPI_CALL(env, napi_set_named_property(env, authIntent, "SILENT_AUTH", silent_auth));
+    NAPI_CALL(env, napi_set_named_property(env, authIntent, "QUESTION_AUTH", question_auth));
     return authIntent;
 }
 

@@ -40,8 +40,8 @@ private:
 
 class AuthCallback : public AuthenticationCallback {
 public:
-    AuthCallback(uint32_t userId, uint64_t credentialId, AuthType authType, const sptr<IIDMCallback> &callback);
-    AuthCallback(uint32_t userId, uint64_t credentialId, AuthType authType,
+    AuthCallback(uint32_t userId, AuthType authType, AuthIntent authIntent, const sptr<IIDMCallback> &callback);
+    AuthCallback(uint32_t userId, AuthType authType, AuthIntent authIntent,
         bool isRemoteAuth, const sptr<IIDMCallback> &callback);
     virtual ~AuthCallback() = default;
 
@@ -50,12 +50,14 @@ public:
     void OnResult(int32_t result, const Attributes &extraInfo) override;
 
 private:
+    ErrCode UnlockAccount(int32_t accountId, const std::vector<uint8_t> &token,
+        const std::vector<uint8_t> &secret, bool &isUpdateVerifiedStatus);
     ErrCode HandleAuthResult(const Attributes &extraInfo, int32_t accountId, bool &isUpdateVerifiedStatus);
 
 private:
     uint32_t userId_;
-    uint64_t credentialId_;
     AuthType authType_;
+    AuthIntent authIntent_;
     bool isRemoteAuth_ = false;
     sptr<IIDMCallback> innerCallback_ = nullptr;
     sptr<AuthCallbackDeathRecipient> deathRecipient_ = nullptr;
@@ -114,9 +116,24 @@ public:
         std::shared_ptr<IInputerData> inputerData) override;
 };
 
+class CommitDelCredCallback : public UserIdmClientCallback {
+public:
+    CommitDelCredCallback() {}
+    virtual ~CommitDelCredCallback() {}
+
+    void OnResult(int32_t result, const UserIam::UserAuth::Attributes &extraInfo) override;
+    void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const UserIam::UserAuth::Attributes &extraInfo) override;
+
+public:
+    bool isCalled_ = false;
+    int32_t resultCode_ = -1;
+    std::mutex mutex_;
+    std::condition_variable onResultCondition_;
+};
+
 class DelUserCallback : public UserIdmClientCallback {
 public:
-    DelUserCallback(uint32_t userId, const sptr<IIDMCallback> &callback);
+    DelUserCallback(uint32_t userId, const std::vector<uint8_t> &token, const sptr<IIDMCallback> &callback);
     virtual ~DelUserCallback();
 
     void OnResult(int32_t result, const Attributes &extraInfo) override;
@@ -124,6 +141,7 @@ public:
 
 private:
     std::uint32_t userId_;
+    std::vector<uint8_t> token_;
     const sptr<IIDMCallback> innerCallback_ = nullptr;
 };
 #endif // HAS_PIN_AUTH_PART
