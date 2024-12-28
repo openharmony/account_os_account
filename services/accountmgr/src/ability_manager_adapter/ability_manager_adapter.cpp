@@ -20,13 +20,18 @@
 #include "account_log_wrapper.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
+#ifdef ENABLE_DEACTIVATE_OS_ACCOUNTS
 #include "app_mgr_interface.h"
+#include "app_mgr_proxy.h"
+#endif
 
 namespace OHOS {
 namespace AccountSA {
 namespace {
 const std::u16string ABILITY_MGR_DESCRIPTOR = u"ohos.aafwk.AbilityManager";
+#ifdef ENABLE_DEACTIVATE_OS_ACCOUNTS
 constexpr int32_t UID_TRANSFORM_DIVISION = 200000;
+#endif
 }
 using namespace AAFwk;
 AbilityManagerAdapter *AbilityManagerAdapter::GetInstance()
@@ -313,6 +318,7 @@ void AbilityManagerAdapter::AbilityMgrDeathRecipient::OnRemoteDied(const wptr<IR
 
 bool AbilityManagerAdapter::IsAllAppDied(int32_t accountId)
 {
+#ifdef ENABLE_DEACTIVATE_OS_ACCOUNTS
     sptr<ISystemAbilityManager> abilityMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (abilityMgr == nullptr) {
         ACCOUNT_LOGE("Failed to get ISystemAbilityManager");
@@ -338,6 +344,9 @@ bool AbilityManagerAdapter::IsAllAppDied(int32_t accountId)
     return std::all_of(appList.begin(), appList.end(), [accountId] (const auto &appData) {
         return (appData.uid / UID_TRANSFORM_DIVISION) != accountId;
     });
+#else
+    return true;
+#endif
 }
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -224,7 +224,6 @@ ErrCode AppAccountSubscribeManager::RemoveSubscribeRecord(const sptr<IRemoteObje
     std::vector<std::string> owners;
     for (auto it = subscribeRecords_.begin(); it != subscribeRecords_.end(); ++it) {
         if (eventListener == (*it)->eventListener) {
-            (*it)->eventListener = nullptr;
             (*it)->subscribeInfoPtr->GetOwners(owners);
             subscribeRecords_.erase(it);
             break;

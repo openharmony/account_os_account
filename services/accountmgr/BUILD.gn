@@ -113,7 +113,6 @@ if (has_kv_store_part) {
     "${app_account_innerkits_native_path}/src/app_account_common.cpp",
     "${app_account_innerkits_native_path}/src/app_account_info.cpp",
     "${app_account_innerkits_native_path}/src/app_account_subscribe_info.cpp",
-    "src/appaccount/app_account_app_state_observer.cpp",
     "src/appaccount/app_account_authenticator_callback.cpp",
     "src/appaccount/app_account_authenticator_manager.cpp",
     "src/appaccount/app_account_authenticator_proxy.cpp",
@@ -244,7 +243,6 @@ ohos_shared_library("accountmgr") {
     "ability_base:base",
     "ability_base:want",
     "ability_runtime:ability_connect_callback_stub",
-    "ability_runtime:app_manager",
     "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
     "access_token:libtokenid_sdk",
@@ -259,6 +257,13 @@ ohos_shared_library("accountmgr") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+
+  if (os_account_multiple_active_accounts ||
+      os_account_support_deactivate_main_os_account) {
+    external_deps += [ "ability_runtime:app_manager" ]
+    cflags_cc += [ "-DENABLE_DEACTIVATE_OS_ACCOUNTS" ]
+  }
+
   if (os_account_enable_file_watcher) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
     sources +=

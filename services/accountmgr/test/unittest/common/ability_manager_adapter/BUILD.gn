@@ -61,6 +61,12 @@ ohos_unittest("AbilityManagerAdapterTest") {
     "samgr:samgr_proxy",
   ]
 
+  if (os_account_multiple_active_accounts ||
+      os_account_support_deactivate_main_os_account) {
+    external_deps += [ "ability_runtime:app_manager" ]
+    cflags_cc += [ "-DENABLE_DEACTIVATE_OS_ACCOUNTS" ]
+  }
+
   part_name = "os_account"
 }
 
@@ -99,6 +105,12 @@ ohos_unittest("AbilityManagerAdapterMockTest") {
     "ipc:ipc_single",
     "samgr:samgr_proxy",
   ]
+
+  if (os_account_multiple_active_accounts ||
+      os_account_support_deactivate_main_os_account) {
+    external_deps += [ "ability_runtime:app_manager" ]
+    cflags_cc += [ "-DENABLE_DEACTIVATE_OS_ACCOUNTS" ]
+  }
 
   part_name = "os_account"
 }
