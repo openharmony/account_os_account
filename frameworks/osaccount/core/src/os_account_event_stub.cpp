@@ -32,7 +32,7 @@ OsAccountEventStub::~OsAccountEventStub()
 
 int OsAccountEventStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    uid_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = IPCSkeleton::GetCallingUid();
     if (callingUid != ACCOUNT_UID) {
         ACCOUNT_LOGE("Permission denied, callingUid: %{public}d", callingUid);
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
