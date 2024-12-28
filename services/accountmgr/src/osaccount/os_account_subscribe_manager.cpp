@@ -61,7 +61,7 @@ ErrCode OsAccountSubscribeManager::SubscribeOsAccount(
         ACCOUNT_LOGI("Event listener %{public}s already exists.", name.c_str());
         return ERR_OK;
     }
-    uid_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = IPCSkeleton::GetCallingUid();
     auto subscribeRecordPtr = std::make_shared<OsSubscribeRecord>(subscribeInfoPtr, eventListener, callingUid);
     if (subscribeRecordPtr == nullptr) {
         ACCOUNT_LOGE("SubscribeRecordPtr is nullptr");

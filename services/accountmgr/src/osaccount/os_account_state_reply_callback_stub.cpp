@@ -64,7 +64,7 @@ void OsAccountStateReplyCallbackStub::OnComplete()
         ACCOUNT_LOGE("Already completed, callingUid: %{public}d", subscriberUid_);
         return;
     }
-    uid_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingUid();
     if (callerUid != subscriberUid_) {
         ACCOUNT_LOGE("Permission denied");
         ReportOsAccountOperationFail(accountId_, ConvertStateToSceneFlag(state_), ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
