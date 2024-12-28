@@ -28,58 +28,15 @@ namespace {
 constexpr size_t SESSION_MAX_NUM = 256;
 }
 
-SessionAppStateObserver::SessionAppStateObserver()
-{}
-
-void SessionAppStateObserver::OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData)
-{
-    AppAccountAuthenticatorSessionManager::GetInstance().OnAbilityStateChanged(abilityStateData);
-}
-
 AppAccountAuthenticatorSessionManager::~AppAccountAuthenticatorSessionManager()
 {
-    UnregisterApplicationStateObserver();
     sessionMap_.clear();
     abilitySessions_.clear();
 }
-
 AppAccountAuthenticatorSessionManager &AppAccountAuthenticatorSessionManager::GetInstance()
 {
     static AppAccountAuthenticatorSessionManager instance;
     return instance;
-}
-
-void AppAccountAuthenticatorSessionManager::RegisterApplicationStateObserver()
-{
-    if (appStateObserver_ != nullptr) {
-        return;
-    }
-    appStateObserver_ = new (std::nothrow) SessionAppStateObserver();
-    if (appStateObserver_ == nullptr) {
-        ACCOUNT_LOGE("failed to create SessionAppStateObserver instance");
-        return;
-    }
-    sptr<ISystemAbilityManager> samgrClient = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (samgrClient == nullptr) {
-        ACCOUNT_LOGE("failed to system ability manager");
-        return;
-    }
-    iAppMgr_ = iface_cast<AppExecFwk::IAppMgr>(samgrClient->GetSystemAbility(APP_MGR_SERVICE_ID));
-    if (iAppMgr_ == nullptr) {
-        appStateObserver_ = nullptr;
-        ACCOUNT_LOGE("failed to get ability manager service");
-        return;
-    }
-    iAppMgr_->RegisterApplicationStateObserver(appStateObserver_);
-}
-
-void AppAccountAuthenticatorSessionManager::UnregisterApplicationStateObserver()
-{
-    if (iAppMgr_) {
-        iAppMgr_->UnregisterApplicationStateObserver(appStateObserver_);
-    }
-    iAppMgr_ = nullptr;
-    appStateObserver_ = nullptr;
 }
 
 ErrCode AppAccountAuthenticatorSessionManager::AddAccountImplicitly(const AuthenticatorSessionRequest &request)
@@ -158,9 +115,6 @@ ErrCode AppAccountAuthenticatorSessionManager::OpenSession(
             ACCOUNT_LOGE("failed to open session, result: %{public}d.", result);
             return result;
         }
-        if (sessionMap_.size() == 0) {
-            RegisterApplicationStateObserver();
-        }
         sessionMap_.emplace(sessionId, session);
         AuthenticatorSessionRequest request;
         session->GetRequest(request);
@@ -200,27 +154,6 @@ ErrCode AppAccountAuthenticatorSessionManager::GetAuthenticatorCallback(
         return ERR_APPACCOUNT_SERVICE_OAUTH_SESSION_NOT_EXIST;
     }
     return it->second->GetAuthenticatorCallback(request, callback);
-}
-
-void AppAccountAuthenticatorSessionManager::OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData)
-{
-    if (abilityStateData.abilityState != static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_TERMINATED)) {
-        return;
-    }
-    std::string key = abilityStateData.abilityName + std::to_string(abilityStateData.uid);
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto it = abilitySessions_.find(key);
-    if (it == abilitySessions_.end()) {
-        return;
-    }
-    for (auto sessionId : it->second) {
-        auto sessionIt = sessionMap_.find(sessionId);
-        if (sessionIt != sessionMap_.end()) {
-            ACCOUNT_LOGI("session{id=%{private}s} will be cleared", sessionId.c_str());
-            sessionMap_.erase(sessionIt);
-        }
-    }
-    abilitySessions_.erase(it);
 }
 
 void AppAccountAuthenticatorSessionManager::OnSessionServerDied(const std::string &sessionId)
@@ -289,11 +222,11 @@ void AppAccountAuthenticatorSessionManager::CloseSession(const std::string &sess
     auto asIt = abilitySessions_.find(key);
     if (asIt != abilitySessions_.end()) {
         asIt->second.erase(sessionId);
+        if (asIt->second.empty()) {
+            abilitySessions_.erase(asIt);
+        }
     }
     sessionMap_.erase(it);
-    if (sessionMap_.size() == 0) {
-        iAppMgr_->UnregisterApplicationStateObserver(appStateObserver_);
-    }
 }
 }  // namespace AccountSA
 }  // namespace OHOS
