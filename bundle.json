@@ -23,8 +23,7 @@
       "os_account_enable_multiple_os_accounts",
       "os_account_enable_default_admin_name",
       "os_account_enable_account_short_name",
-      "os_account_activate_last_logged_in_account",
-      "os_account_enable_file_watcher"
+      "os_account_activate_last_logged_in_account"
     ],
     "hisysevent_config": [
       "//base/account/os_account/hisysevent.yaml"

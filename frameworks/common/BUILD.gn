@@ -92,7 +92,7 @@ ohos_shared_library("libaccount_common") {
     cflags_cc += [ "-DHICOLLIE_ENABLE" ]
   }
 
-  if (os_account_enable_file_watcher) {
+  if (os_account_distributed_feature) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
   }
 
