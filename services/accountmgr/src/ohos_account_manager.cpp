@@ -28,7 +28,6 @@
 #include "account_constants.h"
 #include "account_event_provider.h"
 #include "account_event_subscribe.h"
-#include "account_helper_data.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "account_mgr_service.h"
@@ -59,19 +58,6 @@ constexpr std::uint32_t MAX_UID_LENGTH = 512;
 constexpr std::uint32_t HASH_LENGTH = 32;
 constexpr std::uint32_t WIDTH_FOR_HEX = 2;
 constexpr std::uint32_t OHOS_ACCOUNT_UDID_LENGTH = HASH_LENGTH * 2;
-const std::string KEY_ACCOUNT_EVENT_LOGIN = "LOGIN";
-const std::string KEY_ACCOUNT_EVENT_LOGOUT = "LOGOUT";
-const std::string KEY_ACCOUNT_EVENT_TOKEN_INVALID = "TOKEN_INVALID";
-const std::string KEY_ACCOUNT_EVENT_LOGOFF = "LOGOFF";
-std::string GetAccountEventStr(const std::map<std::string, std::string> &accountEventMap,
-    const std::string &eventKey, const std::string &defaultValue)
-{
-    const auto &it = accountEventMap.find(eventKey);
-    if (it != accountEventMap.end()) {
-        return it->second;
-    }
-    return defaultValue;
-}
 
 bool GetCallerBundleName(std::string &bundleName, bool &isSystemApp)
 {
@@ -167,6 +153,43 @@ std::string GenerateOhosUdidWithSha256(const std::string &name, const std::strin
 }
 }
 
+static ErrCode ProcDistributedAccountStateChange(
+    OhosAccountManager *ptr, const std::int32_t userId, const OhosAccountInfo &info, const std::string &eventStr)
+{
+    static const std::map<std::string, OhosAccountEventFunc> eventFuncMap = {
+        {
+            OHOS_ACCOUNT_EVENT_LOGIN,
+            [ptr] (const std::int32_t userId, const OhosAccountInfo &info, const std::string &eventStr) {
+                return ptr->LoginOhosAccount(userId, info, eventStr);
+            }
+        },
+        {
+            OHOS_ACCOUNT_EVENT_LOGOUT,
+            [ptr] (const std::int32_t userId, const OhosAccountInfo &info, const std::string &eventStr) {
+                return ptr->LogoutOhosAccount(userId, info, eventStr);
+            }
+        },
+        {
+            OHOS_ACCOUNT_EVENT_LOGOFF,
+            [ptr] (const std::int32_t userId, const OhosAccountInfo &info, const std::string &eventStr) {
+                return ptr->LogoffOhosAccount(userId, info, eventStr);
+            }
+        },
+        {
+            OHOS_ACCOUNT_EVENT_TOKEN_INVALID,
+            [ptr] (const std::int32_t userId, const OhosAccountInfo &info, const std::string &eventStr) {
+                return ptr->HandleOhosAccountTokenInvalidEvent(userId, info, eventStr);
+            }
+        },
+    };
+    auto itFunc = eventFuncMap.find(eventStr);
+    if (itFunc == eventFuncMap.end()) {
+        ACCOUNT_LOGE("invalid event: %{public}s", eventStr.c_str());
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    return (itFunc->second)(userId, info, eventStr);
+}
+
 /**
  * Ohos account state change.
  *
@@ -178,27 +201,17 @@ std::string GenerateOhosUdidWithSha256(const std::string &name, const std::strin
 ErrCode OhosAccountManager::OhosAccountStateChange(const std::string &name, const std::string &uid,
     const std::string &eventStr)
 {
-    auto itFunc = eventFuncMap_.find(eventStr);
-    if (itFunc == eventFuncMap_.end()) {
-        ACCOUNT_LOGE("invalid event: %{public}s", eventStr.c_str());
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
     OhosAccountInfo ohosAccountInfo;
     ohosAccountInfo.name_ = name;
     ohosAccountInfo.uid_ = uid;
     std::int32_t userId = AccountMgrService::GetInstance().GetCallingUserID();
-    return (itFunc->second)(userId, ohosAccountInfo, eventStr);
+    return ProcDistributedAccountStateChange(this, userId, ohosAccountInfo, eventStr);
 }
 
 ErrCode OhosAccountManager::OhosAccountStateChange(
     const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
 {
-    auto itFunc = eventFuncMap_.find(eventStr);
-    if (itFunc == eventFuncMap_.end()) {
-        ACCOUNT_LOGE("invalid event: %{public}s", eventStr.c_str());
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-    return (itFunc->second)(userId, ohosAccountInfo, eventStr);
+    return ProcDistributedAccountStateChange(this, userId, ohosAccountInfo, eventStr);
 }
 
 /**
@@ -334,14 +347,31 @@ std::int32_t OhosAccountManager::GetCurrentOhosAccountState()
  * @param eventStr ohos account state change event
  * @return true if the processing was completed, otherwise false
  */
-bool OhosAccountManager::HandleEvent(AccountInfo &curOhosAccount, const std::string &eventStr)
+
+static bool CheckEventValid(const std::string &eventStr, int &event)
 {
-    auto iter = eventMap_.find(eventStr);
-    if (iter == eventMap_.end()) {
+    static const std::map<std::string, ACCOUNT_INNER_EVENT_TYPE> eventMap = {
+        { OHOS_ACCOUNT_EVENT_LOGIN, ACCOUNT_BIND_SUCCESS_EVT },
+        { OHOS_ACCOUNT_EVENT_LOGOUT, ACCOUNT_MANUAL_UNBOUND_EVT },
+        { OHOS_ACCOUNT_EVENT_TOKEN_INVALID, ACCOUNT_TOKEN_EXPIRED_EVT },
+        { OHOS_ACCOUNT_EVENT_LOGOFF, ACCOUNT_MANUAL_LOGOFF_EVT },
+    };
+    auto iter = eventMap.find(eventStr);
+    if (iter == eventMap.end()) {
         ACCOUNT_LOGE("invalid event: %{public}s", eventStr.c_str());
         return false;
     }
-    int event = iter->second;
+    event = iter->second;
+    return true;
+}
+
+bool OhosAccountManager::HandleEvent(AccountInfo &curOhosAccount, const std::string &eventStr)
+{
+    int event;
+    if (!CheckEventValid(eventStr, event)) {
+        ACCOUNT_LOGE("invalid event: %{public}s", eventStr.c_str());
+        return false;
+    }
     accountState_->SetAccountState(curOhosAccount.ohosAccountInfo_.status_);
     bool ret = accountState_->StateChangeProcess(event);
     if (!ret) {
@@ -560,40 +590,6 @@ ErrCode OhosAccountManager::HandleOhosAccountTokenInvalidEvent(
     return ERR_OK;
 }
 
-/**
- * Init event mapper.
- */
-void OhosAccountManager::BuildEventsMapper()
-{
-    const std::map<std::string, std::string> accountEventMap = AccountHelperData::GetAccountEventMap();
-    std::string eventLogin = GetAccountEventStr(accountEventMap, KEY_ACCOUNT_EVENT_LOGIN, OHOS_ACCOUNT_EVENT_LOGIN);
-    std::string eventLogout = GetAccountEventStr(accountEventMap, KEY_ACCOUNT_EVENT_LOGOUT, OHOS_ACCOUNT_EVENT_LOGOUT);
-    std::string eventTokenInvalid = GetAccountEventStr(accountEventMap, KEY_ACCOUNT_EVENT_TOKEN_INVALID,
-        OHOS_ACCOUNT_EVENT_TOKEN_INVALID);
-    std::string eventLogoff = GetAccountEventStr(accountEventMap, KEY_ACCOUNT_EVENT_LOGOFF, OHOS_ACCOUNT_EVENT_LOGOFF);
-
-    eventMap_.insert(std::pair<std::string, ACCOUNT_INNER_EVENT_TYPE>(eventLogin, ACCOUNT_BIND_SUCCESS_EVT));
-    eventMap_.insert(std::pair<std::string, ACCOUNT_INNER_EVENT_TYPE>(eventLogout, ACCOUNT_MANUAL_UNBOUND_EVT));
-    eventMap_.insert(std::pair<std::string, ACCOUNT_INNER_EVENT_TYPE>(eventTokenInvalid, ACCOUNT_TOKEN_EXPIRED_EVT));
-    eventMap_.insert(std::pair<std::string, ACCOUNT_INNER_EVENT_TYPE>(eventLogoff, ACCOUNT_MANUAL_LOGOFF_EVT));
-
-    eventFuncMap_.insert(std::make_pair(eventLogin,
-        [this] (const std::int32_t userId, const OhosAccountInfo &info, const std::string &eventStr) {
-        return LoginOhosAccount(userId, info, eventStr);
-    }));
-    eventFuncMap_.insert(std::make_pair(eventLogout,
-        [this] (const std::int32_t userId, const OhosAccountInfo &info, const std::string &eventStr) {
-        return LogoutOhosAccount(userId, info, eventStr);
-    }));
-    eventFuncMap_.insert(std::make_pair(eventLogoff,
-        [this] (const std::int32_t userId, const OhosAccountInfo &info, const std::string &eventStr) {
-        return LogoffOhosAccount(userId, info, eventStr);
-    }));
-    eventFuncMap_.insert(std::make_pair(eventTokenInvalid,
-        [this] (const std::int32_t userId, const OhosAccountInfo &info, const std::string &eventStr) {
-        return HandleOhosAccountTokenInvalidEvent(userId, info, eventStr);
-    }));
-}
 
 OhosAccountManager &OhosAccountManager::GetInstance()
 {
@@ -605,7 +601,6 @@ OhosAccountManager::OhosAccountManager() : subscribeManager_(DistributedAccountS
 {
     accountState_ = std::make_unique<AccountStateMachine>();
     dataDealer_ = std::make_unique<OhosAccountDataDeal>(ACCOUNT_CFG_DIR_ROOT_PATH);
-    BuildEventsMapper();
 }
 
 /**
@@ -630,8 +625,6 @@ bool OhosAccountManager::OnInitialize()
         // when json file corrupted, have it another try
         if ((tryTimes == MAX_RETRY_TIMES) || (errCode != ERR_ACCOUNT_DATADEAL_JSON_FILE_CORRUPTION)) {
             ACCOUNT_LOGE("parse json file failed: %{public}d, tryTime: %{public}d", errCode, tryTimes);
-            eventMap_.clear();
-            eventFuncMap_.clear();
             return false;
         }
     }
@@ -671,24 +664,6 @@ void OhosAccountManager::OnPackageRemoved(const std::int32_t callingUid)
     }
 }
 #endif // HAS_CES_PART
-
-/**
- * Handle device account switch event.
- *
- * @param None
- * @return None
- */
-void OhosAccountManager::HandleDevAccountSwitchEvent()
-{
-    std::lock_guard<std::mutex> mutexLock(mgrMutex_);
-    eventMap_.clear();
-    eventFuncMap_.clear();
-
-    // Re-Init
-    if (!OnInitialize()) {
-        ACCOUNT_LOGE("Handle dev Account SwitchEvent failed");
-    }
-}
 
 bool OhosAccountManager::CheckOhosAccountCanBind(const AccountInfo &currAccountInfo,
     const OhosAccountInfo &newOhosAccountInfo, const std::string &newOhosUid) const

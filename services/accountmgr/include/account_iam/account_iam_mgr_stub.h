@@ -62,7 +62,6 @@ public:
     bool CheckPermission(const std::string &permission);
 
 private:
-    std::map<uint32_t, AccountIAMMessageProc> messageProcMap_;
     DISALLOW_COPY_AND_MOVE(AccountIAMMgrStub);
 };
 }  // namespace AccountSA

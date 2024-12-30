@@ -16,7 +16,6 @@
 #include <gtest/gtest.h>
 
 #include "account_dump_helper.h"
-#include "account_helper_data.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #define private public
@@ -65,16 +64,6 @@ sptr<IAccount> GetAccountMgr()
     sptr<IRemoteObject> accountObj = systemMgr->GetSystemAbility(SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN);
     return iface_cast<AccountProxy>(accountObj);
 }
-
-std::string GetAccountEventStr(const std::map<std::string, std::string> &accountEventMap,
-    const std::string &eventKey, const std::string &defaultValue)
-{
-    const auto &it = accountEventMap.find(eventKey);
-    if (it != accountEventMap.end()) {
-        return it->second;
-    }
-    return defaultValue;
-}
 }
 
 class AccountMgrServiceTest : public testing::Test {
@@ -96,14 +85,6 @@ void AccountMgrServiceTest::SetUpTestCase()
     if (ret != ERR_OK) {
         std::cout << "AccountMgrServiceTest::SetUpTestCase GET old info failed" << std::endl;
     }
-
-    const std::map<std::string, std::string> accountEventMap = AccountHelperData::GetAccountEventMap();
-    g_eventLogin = GetAccountEventStr(accountEventMap, KEY_ACCOUNT_EVENT_LOGIN, OHOS_ACCOUNT_EVENT_LOGIN);
-    g_eventLogout = GetAccountEventStr(accountEventMap, KEY_ACCOUNT_EVENT_LOGOUT, OHOS_ACCOUNT_EVENT_LOGOUT);
-    g_eventTokenInvalid = GetAccountEventStr(accountEventMap, KEY_ACCOUNT_EVENT_TOKEN_INVALID,
-        OHOS_ACCOUNT_EVENT_TOKEN_INVALID);
-    g_eventLogoff = GetAccountEventStr(accountEventMap, KEY_ACCOUNT_EVENT_LOGOFF, OHOS_ACCOUNT_EVENT_LOGOFF);
-
     g_accountMgrService = std::make_shared<AccountMgrService>();
 }
 

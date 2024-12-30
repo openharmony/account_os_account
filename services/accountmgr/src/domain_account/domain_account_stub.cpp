@@ -32,7 +32,7 @@ const std::string GET_DOMAIN_ACCOUNTS = "ohos.permission.GET_DOMAIN_ACCOUNTS";
 const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
 }
 
-const std::map<DomainAccountInterfaceCode, DomainAccountStub::DomainAccountStubFunc> stubFuncMap = {
+static const std::map<DomainAccountInterfaceCode, DomainAccountStub::DomainAccountStubFunc> stubFuncMap = {
     {
         DomainAccountInterfaceCode::REGISTER_PLUGIN,
         [] (DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
@@ -126,9 +126,7 @@ const std::map<DomainAccountInterfaceCode, DomainAccountStub::DomainAccountStubF
 };
 
 DomainAccountStub::DomainAccountStub()
-{
-    stubFuncMap_ = stubFuncMap;
-}
+{}
 
 DomainAccountStub::~DomainAccountStub()
 {}
@@ -149,8 +147,8 @@ int32_t DomainAccountStub::OnRemoteRequest(
         ACCOUNT_LOGE("check descriptor failed! code %{public}u.", code);
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
     }
-    const auto &itFunc = stubFuncMap_.find(static_cast<DomainAccountInterfaceCode>(code));
-    if (itFunc != stubFuncMap_.end()) {
+    const auto &itFunc = stubFuncMap.find(static_cast<DomainAccountInterfaceCode>(code));
+    if (itFunc != stubFuncMap.end()) {
         return (itFunc->second)(this, data, reply);
     }
     ACCOUNT_LOGW("remote request unhandled: %{public}d", code);

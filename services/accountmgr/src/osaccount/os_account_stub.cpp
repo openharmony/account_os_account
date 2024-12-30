@@ -36,7 +36,7 @@ const std::set<uint32_t> WATCH_DOG_WHITE_LIST = {
     static_cast<uint32_t>(OsAccountInterfaceCode::CREATE_OS_ACCOUNT_FOR_DOMAIN),
 };
 #endif // HICOLLIE_ENABLE
-const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
+static const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::CREATE_OS_ACCOUNT),
         {
@@ -511,9 +511,7 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
 };
 
 OsAccountStub::OsAccountStub()
-{
-    messageProcMap_ = messageProcMap;
-}
+{}
 
 OsAccountStub::~OsAccountStub()
 {}
@@ -534,8 +532,8 @@ int OsAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
     }
 #endif // HICOLLIE_ENABLE
 
-    auto messageProc = messageProcMap_.find(code);
-    if (messageProc != messageProcMap_.end()) {
+    auto messageProc = messageProcMap.find(code);
+    if (messageProc != messageProcMap.end()) {
         auto messageProcFunction = messageProc->second;
         if (messageProcFunction.isSystemApi) {
             ErrCode result = AccountPermissionManager::CheckSystemApp();

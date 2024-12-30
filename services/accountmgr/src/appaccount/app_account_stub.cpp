@@ -57,7 +57,7 @@ namespace AccountSA {
         return ERR_NONE;                                                                                        \
     }                                                                                                           \
 
-const std::map<uint32_t, AppAccountStub::MessageProcFunction> messageProcMap = {
+static const std::map<uint32_t, AppAccountStub::MessageProcFunction> messageProcMap = {
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::ADD_ACCOUNT),
         [] (AppAccountStub *ptr, uint32_t code, MessageParcel &data, MessageParcel &reply) {
@@ -271,9 +271,7 @@ const std::map<uint32_t, AppAccountStub::MessageProcFunction> messageProcMap = {
 };
 
 AppAccountStub::AppAccountStub()
-{
-    messageProcMap_ = messageProcMap;
-}
+{}
 
 AppAccountStub::~AppAccountStub()
 {}
@@ -292,8 +290,8 @@ int AppAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageP
         HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, TIMEOUT, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
 #endif // HICOLLIE_ENABLE
 
-    auto messageProc = messageProcMap_.find(code);
-    if (messageProc != messageProcMap_.end()) {
+    auto messageProc = messageProcMap.find(code);
+    if (messageProc != messageProcMap.end()) {
         auto messageProcFunction = messageProc->second;
         if (messageProcFunction != nullptr) {
             int ret = (messageProcFunction)(this, code, data, reply);
