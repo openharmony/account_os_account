@@ -49,6 +49,7 @@ public:
     ErrCode SetAccountPolicy(const DomainAccountPolicy &policy);
     ErrCode GetAccessToken(const DomainAccountInfo &info, const AAFwk::WantParams &parameters,
         const sptr<IDomainAccountCallback> &callback);
+    ErrCode GetDomainAccountInfo(const DomainAccountInfo &info, DomainAccountInfo &result);
     ErrCode GetDomainAccountInfo(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback);
     ErrCode OnAccountBound(const DomainAccountInfo &info, const int32_t localId,
         const std::shared_ptr<DomainAccountCallback> &callback);
