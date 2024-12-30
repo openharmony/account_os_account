@@ -172,7 +172,7 @@ ohos_moduletest("os_account_manager_service_module_test") {
   part_name = "os_account"
   cflags_cc = [ "-DACCOUNT_TEST" ]
 
-  if (os_account_enable_file_watcher) {
+  if (os_account_distributed_feature) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
     sources +=
         [ "${services_path}/accountmgr/src/account_file_watcher_manager.cpp" ]
@@ -359,7 +359,7 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
   ]
 
   cflags_cc = []
-  if (os_account_enable_file_watcher) {
+  if (os_account_distributed_feature) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
     sources +=
         [ "${services_path}/accountmgr/src/account_file_watcher_manager.cpp" ]

@@ -264,7 +264,7 @@ ohos_shared_library("accountmgr") {
     cflags_cc += [ "-DENABLE_DEACTIVATE_OS_ACCOUNTS" ]
   }
 
-  if (os_account_enable_file_watcher) {
+  if (os_account_distributed_feature) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
     sources +=
         [ "${services_path}/accountmgr/src/account_file_watcher_manager.cpp" ]
