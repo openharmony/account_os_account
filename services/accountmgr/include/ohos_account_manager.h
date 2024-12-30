@@ -85,7 +85,7 @@ public:
      */
     ErrCode SubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
         const sptr<IRemoteObject> &eventListener);
-    
+
     /**
      * Unsubscribe distributed account event by type.
      *
@@ -162,14 +162,6 @@ public:
         const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr);
 
     /**
-     * Handle device account switch event.
-     *
-     * @param None
-     * @return None
-     */
-    void HandleDevAccountSwitchEvent();
-
-    /**
      * Ohos account state change.
      *
      * @param name ohos account name
@@ -206,20 +198,10 @@ private:
     std::unique_ptr<OhosAccountDataDeal> dataDealer_{};
 
     /**
-     * event mapper.
-     */
-    std::map<std::string, ACCOUNT_INNER_EVENT_TYPE> eventMap_;
-
-    /**
      * mutex lock for synchronization.
      */
     std::mutex mgrMutex_;
     std::mutex initMutex_;
-
-    /**
-     * build event mapper.
-     */
-    void BuildEventsMapper();
 
     /**
      * Config current account config.
@@ -252,10 +234,6 @@ private:
                                         const std::string &inputUid,
                                         const std::int32_t callingUserId) const;
 
-    /**
-     * event function map
-     */
-    std::map<std::string, OhosAccountEventFunc> eventFuncMap_;
 #ifdef HAS_CES_PART
     void OnPackageRemoved(const std::int32_t callingUid);
     bool CreateCommonEventSubscribe();

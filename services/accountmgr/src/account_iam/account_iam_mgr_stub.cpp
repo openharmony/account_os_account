@@ -31,7 +31,7 @@ const std::string MANAGE_USER_IDM = "ohos.permission.MANAGE_USER_IDM";
 const std::string USE_USER_IDM = "ohos.permission.USE_USER_IDM";
 }
 
-const std::map<uint32_t, AccountIAMMgrStub::AccountIAMMessageProc> messageProcMap = {
+static const std::map<uint32_t, AccountIAMMgrStub::AccountIAMMessageProc> messageProcMap = {
     {
         static_cast<uint32_t>(AccountIAMInterfaceCode::OPEN_SESSION),
         {
@@ -170,9 +170,7 @@ const std::map<uint32_t, AccountIAMMgrStub::AccountIAMMessageProc> messageProcMa
 };
 
 AccountIAMMgrStub::AccountIAMMgrStub()
-{
-    messageProcMap_ = messageProcMap;
-}
+{}
 
 AccountIAMMgrStub::~AccountIAMMgrStub()
 {}
@@ -189,8 +187,8 @@ std::int32_t AccountIAMMgrStub::OnRemoteRequest(
         ACCOUNT_LOGE("check descriptor failed! code %{public}u.", code);
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
     }
-    const auto &itFunc = messageProcMap_.find(code);
-    if (itFunc != messageProcMap_.end()) {
+    const auto &itFunc = messageProcMap.find(code);
+    if (itFunc != messageProcMap.end()) {
         if (itFunc->second.isSystemApi) {
             result = AccountPermissionManager::CheckSystemApp();
             if (result != ERR_OK) {

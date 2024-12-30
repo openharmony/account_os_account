@@ -104,7 +104,6 @@ public:
     ErrCode ProcGetOsAccountDomainInfo(MessageParcel &data, MessageParcel &reply);
 private:
     bool WriteOsAccountInfoList(const std::vector<OsAccountInfo> &accounts, MessageParcel &data);
-    std::map<uint32_t, OsAccountMessageProc> messageProcMap_;
     DISALLOW_COPY_AND_MOVE(OsAccountStub);
     ErrCode ProcCheckOsAccountConstraintEnabled(uint32_t code, MessageParcel &data, MessageParcel &reply);
 };

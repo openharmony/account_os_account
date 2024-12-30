@@ -71,8 +71,6 @@ public:
     ErrCode ProcSetAuthenticatorProperties(uint32_t code, MessageParcel &data, MessageParcel &reply);
 
 private:
-    std::map<uint32_t, MessageProcFunction> messageProcMap_;
-
     DISALLOW_COPY_AND_MOVE(AppAccountStub);
 };
 }  // namespace AccountSA

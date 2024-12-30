@@ -62,7 +62,8 @@ public:
     bool HasAccountRequestPermission(const std::string &permissionName);
 
 private:
-    std::map<AccountMgrInterfaceCode, AccountStubFunc> stubFuncMap_;
+    ErrCode ProcAccountStubRequest(
+        std::uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
 };
 }  // namespace AccountSA
 }  // namespace OHOS
