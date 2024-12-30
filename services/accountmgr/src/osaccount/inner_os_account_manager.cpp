@@ -1714,7 +1714,7 @@ void IInnerOsAccountManager::RollBackToEarlierAccount(int32_t fromId, int32_t to
     if (fromId == toId) {
         return;
     }
-    subscribeManager_.Publish(fromId, toId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
+    subscribeManager_.Publish(fromId, toId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED);
     ReportOsAccountSwitch(fromId, toId);
     ACCOUNT_LOGI("End pushlishing pre switch event.");
     OsAccountInfo osAccountInfo;
