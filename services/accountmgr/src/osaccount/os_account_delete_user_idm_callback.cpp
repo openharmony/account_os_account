@@ -15,7 +15,6 @@
 #include "os_account_delete_user_idm_callback.h"
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
-#include "os_account_manager.h"
 
 namespace OHOS {
 namespace AccountSA {

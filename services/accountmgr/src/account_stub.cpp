@@ -508,12 +508,16 @@ ErrCode AccountStub::CmdGetAccountIAMService(MessageParcel &data, MessageParcel 
 
 ErrCode AccountStub::CmdGetDomainAccountService(MessageParcel &data, MessageParcel &reply)
 {
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     auto remoteObject = GetDomainAccountService();
     if (!reply.WriteRemoteObject(remoteObject)) {
         ACCOUNT_LOGE("failed to write remote object");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_OK;
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
 int32_t AccountStub::ProcAccountStubRequest(

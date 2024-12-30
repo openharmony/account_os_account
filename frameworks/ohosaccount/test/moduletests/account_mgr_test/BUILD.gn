@@ -183,6 +183,9 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
   if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
     cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
   }
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
   part_name = "os_account"
 }
 

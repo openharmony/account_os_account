@@ -45,6 +45,7 @@ ohos_fuzztest("CreateOsAccountForDomainStubFuzzTest") {
   ]
 
   deps = [
+    "${domain_account_framework_path}:domain_account_innerkits",
     "${os_account_path}/frameworks/common:libaccount_common",
     "${os_account_path}/frameworks/osaccount/native:os_account_innerkits",
     "${os_account_path}/services/accountmgr:accountmgr",
@@ -69,4 +70,9 @@ ohos_fuzztest("CreateOsAccountForDomainStubFuzzTest") {
     "ACCOUNT_LOG_TAG = \"OsAccountFuzzTest\"",
     "LOG_DOMAIN = 0xD001B00",
   ]
+
+  cflags_cc = []
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
 }

@@ -1387,6 +1387,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest059, TestSize.Lev
 #endif // DOMAIN_ACCOUNT_TEST_CASE
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
+#ifdef DOMAIN_ACCOUNT_TEST_CASE
 /**
  * @tc.name: OsAccountManagerModuleTest060
  * @tc.desc: query os account by domain info
@@ -1420,6 +1421,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest060, TestSize.Lev
     ret = OsAccountManager::GetOsAccountLocalIdFromDomain(domainAccountTooLong, resID);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
+#endif // DOMAIN_ACCOUNT_TEST_CASE
 
 /**
  * @tc.name: OsAccountManagerModuleTest061

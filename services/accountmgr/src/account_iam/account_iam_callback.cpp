@@ -26,7 +26,9 @@
 #include "account_hisysevent_adapter.h"
 #include "iinner_os_account_manager.h"
 #include "inner_account_iam_manager.h"
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
 #include "inner_domain_account_manager.h"
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 #include "ipc_skeleton.h"
 #include "os_account_delete_user_idm_callback.h"
 #include "token_setproc.h"
@@ -228,8 +230,10 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo, int32_t acco
     if (ret != ERR_OK) {
         return ret;
     }
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     // send msg for domain account offline authentication
     InnerDomainAccountManager::GetInstance().AuthWithToken(accountId, token);
+#endif // SUPPORT_DOMAIN_ACCOUNTS
     HandleReEnroll(extraInfo, accountId, token);
     return ret;
 }
@@ -797,6 +801,7 @@ void PrepareRemoteAuthCallbackWrapper::OnResult(int32_t result)
     innerCallback_->OnResult(result);
 }
 
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
 GetDomainAuthStatusInfoCallback::GetDomainAuthStatusInfoCallback(
     const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback)
     : request_(request), innerCallback_(callback)
@@ -820,5 +825,6 @@ void GetDomainAuthStatusInfoCallback::OnResult(int32_t result, Parcel &parcel)
     attributes.SetInt32Value(Attributes::ATTR_FREEZING_TIME, infoPtr->freezingTime);
     innerCallback_->OnResult(result, attributes);
 }
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 }  // namespace AccountSA
 }  // namespace OHOS

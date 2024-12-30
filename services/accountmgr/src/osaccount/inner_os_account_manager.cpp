@@ -36,7 +36,9 @@
 #include "ohos_account_kits.h"
 #include "os_account_constants.h"
 #include "os_account_control_file_manager.h"
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
 #include "os_account_domain_account_callback.h"
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 #include "os_account_plugin_manager.h"
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
@@ -594,6 +596,7 @@ ErrCode IInnerOsAccountManager::CreateOsAccountWithFullInfo(OsAccountInfo &osAcc
     return errCode;
 }
 
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
 ErrCode IInnerOsAccountManager::UpdateAccountStatusForDomain(const int id, DomainAccountStatus status)
 {
     OsAccountInfo accountInfo;
@@ -613,6 +616,7 @@ ErrCode IInnerOsAccountManager::UpdateAccountStatusForDomain(const int id, Domai
     }
     return ERR_OK;
 }
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 
 ErrCode IInnerOsAccountManager::UpdateOsAccountWithFullInfo(OsAccountInfo &newInfo)
 {
@@ -644,6 +648,7 @@ ErrCode IInnerOsAccountManager::UpdateOsAccountWithFullInfo(OsAccountInfo &newIn
     return errCode;
 }
 
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
 bool IInnerOsAccountManager::CheckDomainAccountBound(
     const std::vector<OsAccountInfo> &osAccountInfos, const DomainAccountInfo &info)
 {
@@ -747,6 +752,7 @@ ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
     }
     return InnerDomainAccountManager::GetInstance().GetDomainAccountInfo(domainInfo, callbackWrapper);
 }
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 
 void IInnerOsAccountManager::CheckAndRefreshLocalIdRecord(const int id)
 {
@@ -774,12 +780,14 @@ ErrCode IInnerOsAccountManager::PrepareRemoveOsAccount(OsAccountInfo &osAccountI
         return errCode;
     }
 #endif // HAS_USER_IDM_PART
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     DomainAccountInfo curDomainInfo;
     osAccountInfo.GetDomainInfo(curDomainInfo);
     if (!curDomainInfo.accountName_.empty()) {
         InnerDomainAccountManager::GetInstance().OnAccountUnBound(curDomainInfo, nullptr);
         InnerDomainAccountManager::GetInstance().RemoveTokenFromMap(id);
     }
+#endif // SUPPORT_DOMAIN_ACCOUNTS
     if (isCleanGarbage) {
         ACCOUNT_LOGI("Clean garbage account data, no need to deal foreground status.");
         return ERR_OK;
@@ -822,12 +830,14 @@ ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountIn
         ACCOUNT_LOGE("PrepareRemoveOsAccount failed, errCode %{public}d.", errCode);
         return errCode;
     }
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     DomainAccountInfo domainAccountInfo;
     osAccountInfo.GetDomainInfo(domainAccountInfo);
     if (!domainAccountInfo.accountName_.empty()) {
         InnerDomainAccountManager::GetInstance().NotifyDomainAccountEvent(
             id, DomainAccountEvent::LOG_OUT, DomainAccountStatus::LOGOUT, domainAccountInfo);
     }
+#endif // SUPPORT_DOMAIN_ACCOUNTS
     AccountInfo ohosInfo;
     (void)OhosAccountManager::GetInstance().GetAccountInfoByUserId(id, ohosInfo);
     if (ohosInfo.ohosAccountInfo_.name_ != DEFAULT_OHOS_ACCOUNT_NAME) {
@@ -1429,6 +1439,7 @@ int32_t IInnerOsAccountManager::CleanGarbageOsAccounts(int32_t excludeId)
     return removeNum;
 }
 
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
 bool IInnerOsAccountManager::IsSameAccount(
     const DomainAccountInfo &domainInfoSrc, const DomainAccountInfo &domainInfoTar)
 {
@@ -1467,6 +1478,7 @@ ErrCode IInnerOsAccountManager::GetOsAccountLocalIdFromDomain(const DomainAccoun
     }
     return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
 }
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 
 ErrCode IInnerOsAccountManager::GetOsAccountShortName(const int id, std::string &shortName)
 {
@@ -2410,6 +2422,7 @@ void IInnerOsAccountManager::CopyFromActiveList(std::vector<int32_t>& idList)
     }
 }
 
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
 ErrCode IInnerOsAccountManager::UpdateAccountInfoByDomainAccountInfo(
     int32_t userId, const DomainAccountInfo &newDomainAccountInfo)
 {
@@ -2453,6 +2466,7 @@ ErrCode IInnerOsAccountManager::UpdateAccountInfoByDomainAccountInfo(
 #endif // HAS_CES_PART
     return ERR_OK;
 }
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 
 ErrCode IInnerOsAccountManager::UpdateAccountToBackground(int32_t oldId)
 {
@@ -2527,9 +2541,11 @@ ErrCode IInnerOsAccountManager::IsValidOsAccount(const OsAccountInfo &osAccountI
     return ERR_OK;
 }
 
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
 ErrCode IInnerOsAccountManager::GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo)
 {
     return InnerDomainAccountManager::GetInstance().GetDomainAccountInfoByUserId(localId, domainInfo);
 }
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 }  // namespace AccountSA
 }  // namespace OHOS

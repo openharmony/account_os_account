@@ -94,9 +94,10 @@ private:
     ErrCode InnerActivateUserKey(
         int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret);
     ErrCode InnerPrepareStartUser(int32_t userId);
-
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     ErrCode GetDomainAuthStatusInfo(
         int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback);
+#endif // SUPPORT_DOMAIN_ACCOUNTS
     void CopyAuthParam(const AuthParam &authParam, UserIam::UserAuth::AuthParam &iamAuthParam);
     std::shared_ptr<std::mutex> GetOperatingUserLock(int32_t id);
 

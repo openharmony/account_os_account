@@ -27,6 +27,7 @@ config("account_common_config") {
     "${os_account_dfx_path}/hisysevent_adapter",
     "utils/include",
     "${innerkits_common}/include",
+    "${innerkits_path}/include",
   ]
 }
 
@@ -40,6 +41,7 @@ ohos_shared_library("libaccount_common") {
   }
 
   sources = [
+    "${innerkits_native_path}/src/distributed_account_subscribe_callback.cpp",
     "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
     "account_error/src/account_error_no.cpp",
     "file_operator/src/account_file_operator.cpp",
@@ -80,11 +82,6 @@ ohos_shared_library("libaccount_common") {
   ]
 
   public_external_deps = [ "json:nlohmann_json_static" ]
-
-  if (build_selinux) {
-    external_deps += [ "selinux_adapter:librestorecon" ]
-    cflags += [ "-DWITH_SELINUX" ]
-  }
 
   if (hicollie_enable == true) {
     sources += [ "utils/src/account_timer.cpp" ]

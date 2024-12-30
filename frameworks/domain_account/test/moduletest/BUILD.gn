@@ -196,6 +196,9 @@ ohos_moduletest("domain_account_frameworks_module_mock_test") {
   if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
     cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
   }
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
 }
 
 ohos_moduletest("domain_account_client_mock_plugin_so_module_test") {
@@ -293,6 +296,9 @@ ohos_moduletest("domain_account_client_mock_plugin_so_module_test") {
   if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
     cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
   }
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
 }
 
 ohos_moduletest("domain_account_common_module_test") {
@@ -324,6 +330,11 @@ ohos_moduletest("domain_account_common_module_test") {
     "hilog:libhilog",
     "ipc:ipc_single",
   ]
+
+  cflags_cc = []
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
 }
 
 ohos_moduletest("domain_account_plugin_service_test") {
@@ -359,6 +370,10 @@ ohos_moduletest("domain_account_plugin_service_test") {
     "hilog:libhilog",
     "ipc:ipc_single",
   ]
+  cflags_cc = []
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
 }
 
 ohos_moduletest("domain_account_plugin_stub_test") {
@@ -390,16 +405,25 @@ ohos_moduletest("domain_account_plugin_stub_test") {
     "hilog:libhilog",
     "ipc:ipc_single",
   ]
+
+  cflags_cc = []
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
 }
 
 group("moduletest") {
   testonly = true
 
-  deps = [
-    ":domain_account_client_mock_plugin_so_module_test",
-    ":domain_account_common_module_test",
-    ":domain_account_frameworks_module_mock_test",
-    ":domain_account_plugin_service_test",
-    ":domain_account_plugin_stub_test",
-  ]
+  deps = []
+
+  if (os_account_support_domain_accounts) {
+    deps += [
+      ":domain_account_client_mock_plugin_so_module_test",
+      ":domain_account_common_module_test",
+      ":domain_account_frameworks_module_mock_test",
+      ":domain_account_plugin_service_test",
+      ":domain_account_plugin_stub_test",
+    ]
+  }
 }

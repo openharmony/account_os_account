@@ -34,6 +34,13 @@ const std::string BUNDLE_INFO_IS_NATIVE_APP = "isNativeApp";
 const std::string BUNDLE_INFO_APPID = "appId";
 const std::string BUNDLE_INFO_APP_INDEX = "appIndex";
 const std::string BUNDLE_INFO_EXTENSION_ABILITY_INFOS = "extensionAbilityInfo";
+const std::string EXTENSION_NAME = "name";
+const std::string EXTENSION_LABEL = "label";
+const std::string EXTENSION_DESCRIPTION = "description";
+const std::string EXTENSION_TYPE = "type";
+const std::string EXTENSION_VISIBLE = "visible";
+const std::string EXTENSION_UID = "uid";
+}
 
 inline void ClearAshmem(sptr<Ashmem> &optMem)
 {
@@ -41,14 +48,6 @@ inline void ClearAshmem(sptr<Ashmem> &optMem)
         optMem->UnmapAshmem();
         optMem->CloseAshmem();
     }
-}
-
-const std::string EXTENSION_NAME = "name";
-const std::string EXTENSION_LABEL = "label";
-const std::string EXTENSION_DESCRIPTION = "description";
-const std::string EXTENSION_TYPE = "type";
-const std::string EXTENSION_VISIBLE = "visible";
-const std::string EXTENSION_UID = "uid";
 }
 
 bool BundleManagerAdapterProxy::ParseExtensionInfo(std::string infoStr, ExtensionAbilityInfo &extensionInfo)

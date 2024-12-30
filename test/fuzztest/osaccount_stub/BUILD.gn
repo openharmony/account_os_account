@@ -10,6 +10,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import("../../../os_account.gni")
 group("fuzztest") {
   testonly = true
 
@@ -17,14 +19,11 @@ group("fuzztest") {
     # deps file
     "activateosaccountstub_fuzzer:ActivateOsAccountStubFuzzTest",
     "checkosaccountconstraintenabledstub_fuzzer:CheckOsAccountConstraintEnabledStubFuzzTest",
-    "createosaccountfordomainstub_fuzzer:CreateOsAccountForDomainStubFuzzTest",
     "deactivateosaccountstub_fuzzer:DeactivateOsAccountStubFuzzTest",
     "dumpstatestub_fuzzer:DumpStateStubFuzzTest",
     "getforegroundosaccountlocalidstub_fuzzer:GetForegroundOsAccountLocalIdStubFuzzTest",
     "getosaccountallconstraintsstub_fuzzer:GetOsAccountAllConstraintsStubFuzzTest",
-    "getosaccountdomaininfostub_fuzzer:GetOsAccountDomainInfoStubFuzzTest",
     "getosaccountlocalidbyserialnumberstub_fuzzer:GetOsAccountLocalIdBySerialNumberStubFuzzTest",
-    "getosaccountlocalidfromdomainstub_fuzzer:GetOsAccountLocalIdFromDomainStubFuzzTest",
     "getosaccountprofilephotostub_fuzzer:GetOsAccountProfilePhotoStubFuzzTest",
     "getosaccountshortnamebyidstub_fuzzer:GetOsAccountShortNameByIdStubFuzzTest",
     "getosaccounttypestub_fuzzer:GetOsAccountTypeStubFuzzTest",
@@ -53,4 +52,12 @@ group("fuzztest") {
     "setspecificosaccountconstraintsstub_fuzzer:SetSpecificOsAccountConstraintsStubFuzzTest",
     "subscribeosaccountstub_fuzzer:SubscribeOsAccountStubFuzzTest",
   ]
+
+  if (os_account_support_domain_accounts) {
+    deps += [
+      "createosaccountfordomainstub_fuzzer:CreateOsAccountForDomainStubFuzzTest",
+      "getosaccountdomaininfostub_fuzzer:GetOsAccountDomainInfoStubFuzzTest",
+      "getosaccountlocalidfromdomainstub_fuzzer:GetOsAccountLocalIdFromDomainStubFuzzTest",
+    ]
+  }
 }

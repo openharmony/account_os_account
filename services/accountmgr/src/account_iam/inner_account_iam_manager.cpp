@@ -21,7 +21,9 @@
 #include "domain_account_callback_service.h"
 #include "account_hisysevent_adapter.h"
 #include "iinner_os_account_manager.h"
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
 #include "inner_domain_account_manager.h"
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
 #include "user_auth_client.h"
@@ -359,15 +361,20 @@ int32_t InnerAccountIAMManager::GetAvailableStatus(
         status = UserAuthClientImpl::Instance().GetAvailableStatus(authType, authTrustLevel);
         return ERR_OK;
     }
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     bool isPluginAvailable = InnerDomainAccountManager::GetInstance().IsPluginAvailable();
     if (isPluginAvailable) {
         status = ERR_JS_SUCCESS;
     } else {
         status = ERR_JS_AUTH_TYPE_NOT_SUPPORTED;
     }
+#else
+    status = ERR_JS_AUTH_TYPE_NOT_SUPPORTED;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
     return ERR_OK;
 }
 
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
 ErrCode InnerAccountIAMManager::GetDomainAuthStatusInfo(
     int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback)
 {
@@ -391,9 +398,11 @@ ErrCode InnerAccountIAMManager::GetDomainAuthStatusInfo(
     }
     return InnerDomainAccountManager::GetInstance().GetAuthStatusInfo(domainAccountInfo, statusCallback);
 }
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 
 bool InnerAccountIAMManager::CheckDomainAuthAvailable(int32_t userId)
 {
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     OsAccountInfo osAccountInfo;
     if (IInnerOsAccountManager::GetInstance().GetRealOsAccountInfoById(userId, osAccountInfo) != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info");
@@ -403,6 +412,9 @@ bool InnerAccountIAMManager::CheckDomainAuthAvailable(int32_t userId)
     osAccountInfo.GetDomainInfo(domainAccountInfo);
     bool isAvailable = InnerDomainAccountManager::GetInstance().IsPluginAvailable();
     return !domainAccountInfo.accountName_.empty() && isAvailable;
+#else
+    return false;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
 void InnerAccountIAMManager::GetProperty(
@@ -417,11 +429,16 @@ void InnerAccountIAMManager::GetProperty(
         UserAuthClient::GetInstance().GetProperty(userId, request, getCallback);
         return;
     }
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     ErrCode result = GetDomainAuthStatusInfo(userId, request, callback);
     if (result != ERR_OK) {
         Attributes attributes;
         callback->OnResult(result, attributes);
     }
+#else
+    Attributes attributes;
+    callback->OnResult(ResultCode::NOT_ENROLLED, attributes);
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
 void InnerAccountIAMManager::GetPropertyByCredentialId(uint64_t credentialId,

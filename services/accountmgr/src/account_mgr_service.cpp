@@ -420,6 +420,7 @@ bool AccountMgrService::CreateIAMService()
 
 bool AccountMgrService::CreateDomainService()
 {
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     domainAccountMgrService_ = new (std::nothrow) DomainAccountManagerService();
     if (domainAccountMgrService_ == nullptr) {
         ACCOUNT_LOGE("memory alloc for DomainAccountManagerService failed!");
@@ -427,6 +428,7 @@ bool AccountMgrService::CreateDomainService()
             "Insufficient memory to create domain account manager service");
         return false;
     }
+#endif // SUPPORT_DOMAIN_ACCOUNTS
     return true;
 }
 

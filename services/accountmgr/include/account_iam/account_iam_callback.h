@@ -294,6 +294,7 @@ private:
     sptr<IPreRemoteAuthCallback> innerCallback_;
 };
 
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
 class GetDomainAuthStatusInfoCallback final : public DomainAccountCallback {
 public:
     GetDomainAuthStatusInfoCallback(const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback);
@@ -304,6 +305,7 @@ private:
     GetPropertyRequest request_;
     sptr<IGetSetPropCallback> innerCallback_;
 };
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 
 class ReEnrollCallback final : public IRemoteStub<IIDMCallback> {
 public:
