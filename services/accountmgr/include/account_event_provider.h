@@ -17,9 +17,7 @@
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_EVENT_PROVIDER_H
 
 #include <string>
-#include "account_error_no.h"
 #include "domain_account_common.h"
-#include "nocopyable.h"
 
 namespace OHOS {
 namespace AccountSA {

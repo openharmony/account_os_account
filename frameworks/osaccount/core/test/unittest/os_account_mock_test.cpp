@@ -213,6 +213,7 @@ HWTEST_F(OsAccountMockTest, IsMainOsAccountMockTest001, TestSize.Level1)
         g_osAccount->IsMainOsAccount(isMainOsAccount));
 }
 
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
 /**
  * @tc.name: GetOsAccountLocalIdFromDomainMockTest001
  * @tc.desc: Test GetOsAccountLocalIdFromDomain getosaccountproxy faild
@@ -226,6 +227,7 @@ HWTEST_F(OsAccountMockTest, GetOsAccountLocalIdFromDomainMockTest001, TestSize.L
     EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->GetOsAccountLocalIdFromDomain(domainInfo, id));
 }
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 
 /**
  * @tc.name: QueryMaxOsAccountNumberMockTest001
@@ -662,6 +664,7 @@ HWTEST_F(OsAccountMockTest, GetDefaultActivatedOsAccountMockTest001, TestSize.Le
         g_osAccount->GetDefaultActivatedOsAccount(id));
 }
 
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
 /**
  * @tc.name: GetOsAccountDomainInfoMockTest001
  * @tc.desc: Test GetOsAccountDomainInfo getosaccountproxy faild
@@ -675,3 +678,4 @@ HWTEST_F(OsAccountMockTest, GetOsAccountDomainInfoMockTest001, TestSize.Level1)
     EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->GetOsAccountDomainInfo(id, domainAccountInfo));
 }
+#endif // SUPPORT_DOMAIN_ACCOUNTS

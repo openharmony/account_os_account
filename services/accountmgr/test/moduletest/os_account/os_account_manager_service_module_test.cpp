@@ -52,7 +52,9 @@ const OsAccountType INT_TEST_TYPE = OsAccountType::GUEST;
 const gid_t ACCOUNT_GID = 3058;
 const int32_t NATIVE_TOKEN = 1;
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
+#ifdef DOMAIN_ACCOUNT_TEST_CASE
 const uid_t ACCOUNT_UID = 3058;
+#endif // DOMAIN_ACCOUNT_TEST_CASE
 const std::int32_t ROOT_UID = 0;
 const std::int32_t TEST_UID = 1;
 const int32_t THREAD_NUM = 10;
@@ -302,7 +304,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest007
     if (chmod(Constants::ACCOUNT_LIST_FILE_JSON_PATH.c_str(), S_IRUSR | S_IWUSR) != 0) {
         ACCOUNT_LOGE("OsAccountManagerServiceModuleTest007, chmod failed! errno %{public}d.", errno);
     }
-    if (chown(Constants::ACCOUNT_LIST_FILE_JSON_PATH.c_str(), ACCOUNT_UID, ACCOUNT_GID) != 0) {
+    if (chown(Constants::ACCOUNT_LIST_FILE_JSON_PATH.c_str(), ACCOUNT_GID, ACCOUNT_GID) != 0) {
         ACCOUNT_LOGE("OsAccountManagerServiceModuleTest007, chown failed! errno %{public}d.", errno);
     }
 }
@@ -1251,7 +1253,6 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest063
     EXPECT_EQ(osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainInfo, resID),
         ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
-#endif // DOMAIN_ACCOUNT_TEST_CASE
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest064
@@ -1286,6 +1287,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest064
     ret = osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainAccountTooLong, resLocalId);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
+#endif // DOMAIN_ACCOUNT_TEST_CASE
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest065
@@ -1777,6 +1779,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest093
         osAccountManagerService_->IsMainOsAccount(isMainOsAccount));
 }
 
+#ifdef DOMAIN_ACCOUNT_TEST_CASE
 /**
  * @tc.name: OsAccountManagerServiceModuleTest094
  * @tc.desc: Test GetOsAccountLocalIdFromDomain PermissionCheck failed.
@@ -1791,6 +1794,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest094
     EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainInfo, id));
 }
+#endif // DOMAIN_ACCOUNT_TEST_CASE
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest095
@@ -2118,6 +2122,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest118
         ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
+#ifdef DOMAIN_ACCOUNT_TEST_CASE
 /**
  * @tc.name: OsAccountManagerServiceModuleTest119
  * @tc.desc: test CreateOsAccountForDomain permission error
@@ -2184,6 +2189,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest123
     EXPECT_EQ(osAccountManagerService_->CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, nullptr),
         ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
+#endif // DOMAIN_ACCOUNT_TEST_CASE
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest124

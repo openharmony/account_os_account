@@ -76,6 +76,9 @@ ohos_moduletest("os_account_frameworks_module_test") {
     "samgr:samgr_proxy",
   ]
   cflags_cc = []
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
   if (os_account_multiple_active_accounts) {
     cflags_cc += [ "-DENABLE_MULTIPLE_ACTIVE_ACCOUNTS" ]
   }
@@ -210,6 +213,9 @@ ohos_moduletest("os_account_frameworks_module_mock_test") {
   }
   if (os_account_support_deactivate_main_os_account) {
     cflags_cc += [ "-DSUPPORT_STOP_MAIN_OS_ACCOUNT" ]
+  }
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
   }
   part_name = "os_account"
 }

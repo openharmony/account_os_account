@@ -18,6 +18,7 @@
 #include "ability_manager_adapter.h"
 #undef private
 #include "ability_connect_callback_stub.h"
+#include "account_error_no.h"
 #include "account_event_provider.h"
 #include "account_log_wrapper.h"
 

@@ -10,21 +10,26 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import("../../../os_account.gni")
 group("fuzztest") {
   testonly = true
 
-  deps = [
+  deps = []
+  if (os_account_support_domain_accounts) {
     # deps file
-    "procaddserverconfigstub_fuzzer:ProcAddServerConfigStubFuzzTest",
-    "procauthstub_fuzzer:ProcAuthStubFuzzTest",
-    "procauthuserstub_fuzzer:ProcAuthUserStubFuzzTest",
-    "procauthwithpopupstub_fuzzer:ProcAuthWithPopupStubFuzzTest",
-    "procgetaccountserverconfigstub_fuzzer:ProcGetAccountServerConfigStubFuzzTest",
-    "procgetdomainaccountinfostub_fuzzer:ProcGetDomainAccountInfoStubFuzzTest",
-    "prochasdomainaccountstub_fuzzer:ProcHasDomainAccountStubFuzzTest",
-    "procisauthenticationexpiredstub_fuzzer:ProcIsAuthenticationExpiredStubFuzzTest",
-    "procremoveserverconfigstub_fuzzer:ProcRemoveServerConfigStubFuzzTest",
-    "procsetauthenticationexpirythresholdstub_fuzzer:ProcSetAuthenticationExpiryThresholdStubFuzzTest",
-    "procupdateaccountinfostub_fuzzer:ProcUpdateAccountInfoStubFuzzTest",
-  ]
+    deps += [
+      "procaddserverconfigstub_fuzzer:ProcAddServerConfigStubFuzzTest",
+      "procauthstub_fuzzer:ProcAuthStubFuzzTest",
+      "procauthuserstub_fuzzer:ProcAuthUserStubFuzzTest",
+      "procauthwithpopupstub_fuzzer:ProcAuthWithPopupStubFuzzTest",
+      "procgetaccountserverconfigstub_fuzzer:ProcGetAccountServerConfigStubFuzzTest",
+      "procgetdomainaccountinfostub_fuzzer:ProcGetDomainAccountInfoStubFuzzTest",
+      "prochasdomainaccountstub_fuzzer:ProcHasDomainAccountStubFuzzTest",
+      "procisauthenticationexpiredstub_fuzzer:ProcIsAuthenticationExpiredStubFuzzTest",
+      "procremoveserverconfigstub_fuzzer:ProcRemoveServerConfigStubFuzzTest",
+      "procsetauthenticationexpirythresholdstub_fuzzer:ProcSetAuthenticationExpiryThresholdStubFuzzTest",
+      "procupdateaccountinfostub_fuzzer:ProcUpdateAccountInfoStubFuzzTest",
+    ]
+  }
 }

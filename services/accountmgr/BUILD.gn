@@ -56,6 +56,9 @@ config("accountmgr_config") {
     "${os_account_dfx_path}/hisysevent_adapter",
     "${os_account_dfx_path}/hitrace_adapter",
     "${app_account_innerkits_native_path}/include",
+    "${os_account_path}/frameworks/ohosaccount/native/include",
+    "${os_account_core_path}/include",
+    "${os_account_interfaces_native_path}/include",
   ]
 }
 
@@ -107,9 +110,6 @@ if (has_kv_store_part) {
   app_account_sources = [
     "${app_account_innerkits_native_path}/src/app_account_authenticator_callback_proxy.cpp",
     "${app_account_innerkits_native_path}/src/app_account_authenticator_callback_stub.cpp",
-    "${app_account_innerkits_native_path}/src/app_account_authorization_extension_callback_proxy.cpp",
-    "${app_account_innerkits_native_path}/src/app_account_authorization_extension_callback_service.cpp",
-    "${app_account_innerkits_native_path}/src/app_account_authorization_extension_callback_stub.cpp",
     "${app_account_innerkits_native_path}/src/app_account_common.cpp",
     "${app_account_innerkits_native_path}/src/app_account_info.cpp",
     "${app_account_innerkits_native_path}/src/app_account_subscribe_info.cpp",
@@ -118,7 +118,6 @@ if (has_kv_store_part) {
     "src/appaccount/app_account_authenticator_proxy.cpp",
     "src/appaccount/app_account_authenticator_session.cpp",
     "src/appaccount/app_account_authenticator_session_manager.cpp",
-    "src/appaccount/app_account_authorization_extension_proxy.cpp",
     "src/appaccount/app_account_check_labels_callback.cpp",
     "src/appaccount/app_account_check_labels_session.cpp",
     "src/appaccount/app_account_common_event_observer.cpp",
@@ -200,14 +199,9 @@ ohos_shared_library("accountmgr") {
   }
 
   sources = [
-    "${common_path}/utils/src/account_permission_manager.cpp",
-    "${domain_account_framework_path}/src/domain_account_callback_proxy.cpp",
-    "${domain_account_framework_path}/src/domain_account_callback_service.cpp",
-    "${domain_account_framework_path}/src/domain_account_callback_stub.cpp",
     "${domain_account_framework_path}/src/domain_account_common.cpp",
     "${innerkits_native_path}/src/account_info_parcel.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
-    "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
   ]
   sources += account_service_sources
@@ -234,10 +228,7 @@ ohos_shared_library("accountmgr") {
 
   use_exceptions = true
 
-  deps = [
-    "${common_path}:libaccount_common",
-    "${innerkits_native_path}:libaccountkits",
-  ]
+  deps = [ "${common_path}:libaccount_common" ]
 
   external_deps = [
     "ability_base:base",
@@ -246,8 +237,6 @@ ohos_shared_library("accountmgr") {
     "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
     "access_token:libtokenid_sdk",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "hilog:libhilog",
     "init:libbegetutil",
@@ -272,6 +261,15 @@ ohos_shared_library("accountmgr") {
       external_deps += [ "huks:libhukssdk" ]
       cflags_cc += [ "-DHAS_HUKS_PART" ]
     }
+  }
+
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+    sources += [
+      "${domain_account_framework_path}/src/domain_account_callback_proxy.cpp",
+      "${domain_account_framework_path}/src/domain_account_callback_service.cpp",
+      "${domain_account_framework_path}/src/domain_account_callback_stub.cpp",
+    ]
   }
 
   if (has_theme_mar_part) {
@@ -309,11 +307,6 @@ ohos_shared_library("accountmgr") {
   if (has_storage_service_part) {
     cflags += [ "-DHAS_STORAGE_PART" ]
     external_deps += [ "storage_service:storage_manager_sa_proxy" ]
-  }
-
-  if (build_selinux) {
-    external_deps += [ "selinux_adapter:librestorecon" ]
-    cflags += [ "-DWITH_SELINUX" ]
   }
 
   if (has_ces_part) {

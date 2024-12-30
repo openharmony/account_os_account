@@ -1059,6 +1059,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient004, TestSize.Level0)
     SetSelfTokenID(g_selfTokenID);
 }
 
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
 #ifdef HAS_PIN_AUTH_PART
 /**
  * @tc.name: StartDomainAuth001
@@ -1100,6 +1101,7 @@ HWTEST_F(AccountIAMClientTest, StartDomainAuth002, TestSize.Level0)
     testing::Mock::AllowLeak(testCallback.get());
 }
 #endif
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 
 /**
  * @tc.name: PrepareRemoteAuthTest001

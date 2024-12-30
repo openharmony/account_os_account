@@ -26,20 +26,11 @@ account_service_sources = [
   "${services_path}/accountmgr/src/account_stub.cpp",
   "${services_path}/accountmgr/src/distributed_account_subscribe_death_recipient.cpp",
   "${services_path}/accountmgr/src/distributed_account_subscribe_manager.cpp",
-  "${services_path}/accountmgr/src/domain_account/domain_account_manager_service.cpp",
-  "${services_path}/accountmgr/src/domain_account/domain_account_plugin_death_recipient.cpp",
-  "${services_path}/accountmgr/src/domain_account/domain_account_plugin_proxy.cpp",
-  "${services_path}/accountmgr/src/domain_account/domain_account_stub.cpp",
-  "${services_path}/accountmgr/src/domain_account/domain_has_domain_info_callback.cpp",
-  "${services_path}/accountmgr/src/domain_account/inner_domain_account_manager.cpp",
-  "${services_path}/accountmgr/src/domain_account/status_listener_death_recipient.cpp",
-  "${services_path}/accountmgr/src/domain_account/status_listener_manager.cpp",
   "${services_path}/accountmgr/src/ohos_account_data_deal.cpp",
   "${services_path}/accountmgr/src/ohos_account_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/inner_os_account_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_control_file_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_delete_user_idm_callback.cpp",
-  "${services_path}/accountmgr/src/osaccount/os_account_domain_account_callback.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_event_proxy.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_file_operator.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_interface.cpp",
@@ -57,12 +48,23 @@ if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
     "${services_path}/accountmgr/src/osaccount/os_account_plugin_manager.cpp",
   ]
 }
+if (os_account_support_domain_accounts) {
+  account_service_sources += [
+    "${services_path}/accountmgr/src/domain_account/domain_account_manager_service.cpp",
+    "${services_path}/accountmgr/src/domain_account/domain_account_plugin_death_recipient.cpp",
+    "${services_path}/accountmgr/src/domain_account/domain_account_plugin_proxy.cpp",
+    "${services_path}/accountmgr/src/domain_account/domain_account_stub.cpp",
+    "${services_path}/accountmgr/src/domain_account/domain_has_domain_info_callback.cpp",
+    "${services_path}/accountmgr/src/domain_account/inner_domain_account_manager.cpp",
+    "${services_path}/accountmgr/src/domain_account/status_listener_death_recipient.cpp",
+    "${services_path}/accountmgr/src/domain_account/status_listener_manager.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_domain_account_callback.cpp",
+  ]
+}
 
 app_account_sources_mock = [
-  "${app_account_innerkits_native_path}/src/app_account_authenticator_callback_proxy.cpp",
   "${app_account_innerkits_native_path}/src/app_account_authenticator_callback_stub.cpp",
   "${app_account_innerkits_native_path}/src/app_account_authorization_extension_callback_proxy.cpp",
-  "${app_account_innerkits_native_path}/src/app_account_authorization_extension_callback_service.cpp",
   "${app_account_innerkits_native_path}/src/app_account_authorization_extension_callback_stub.cpp",
   "${app_account_innerkits_native_path}/src/app_account_common.cpp",
   "${app_account_innerkits_native_path}/src/app_account_info.cpp",
@@ -95,20 +97,11 @@ account_service_sources_mock = [
   "${services_path}/accountmgr/src/account_stub.cpp",
   "${services_path}/accountmgr/src/distributed_account_subscribe_death_recipient.cpp",
   "${services_path}/accountmgr/src/distributed_account_subscribe_manager.cpp",
-  "${services_path}/accountmgr/src/domain_account/domain_account_manager_service.cpp",
-  "${services_path}/accountmgr/src/domain_account/domain_account_plugin_death_recipient.cpp",
-  "${services_path}/accountmgr/src/domain_account/domain_account_plugin_proxy.cpp",
-  "${services_path}/accountmgr/src/domain_account/domain_account_stub.cpp",
-  "${services_path}/accountmgr/src/domain_account/domain_has_domain_info_callback.cpp",
-  "${services_path}/accountmgr/src/domain_account/inner_domain_account_manager.cpp",
-  "${services_path}/accountmgr/src/domain_account/status_listener_death_recipient.cpp",
-  "${services_path}/accountmgr/src/domain_account/status_listener_manager.cpp",
   "${services_path}/accountmgr/src/ohos_account_data_deal.cpp",
   "${services_path}/accountmgr/src/ohos_account_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/inner_os_account_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_control_file_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_delete_user_idm_callback.cpp",
-  "${services_path}/accountmgr/src/osaccount/os_account_domain_account_callback.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_file_operator.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_manager_service.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_photo_operator.cpp",
@@ -122,6 +115,19 @@ account_service_sources_mock = [
 if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
   account_service_sources_mock += [
     "${services_path}/accountmgr/src/osaccount/os_account_plugin_manager.cpp",
+  ]
+}
+if (os_account_support_domain_accounts) {
+  account_service_sources_mock += [
+    "${services_path}/accountmgr/src/osaccount/os_account_domain_account_callback.cpp",
+    "${services_path}/accountmgr/src/domain_account/domain_account_manager_service.cpp",
+    "${services_path}/accountmgr/src/domain_account/domain_account_plugin_death_recipient.cpp",
+    "${services_path}/accountmgr/src/domain_account/domain_account_plugin_proxy.cpp",
+    "${services_path}/accountmgr/src/domain_account/domain_account_stub.cpp",
+    "${services_path}/accountmgr/src/domain_account/domain_has_domain_info_callback.cpp",
+    "${services_path}/accountmgr/src/domain_account/inner_domain_account_manager.cpp",
+    "${services_path}/accountmgr/src/domain_account/status_listener_death_recipient.cpp",
+    "${services_path}/accountmgr/src/domain_account/status_listener_manager.cpp",
   ]
 }
 
