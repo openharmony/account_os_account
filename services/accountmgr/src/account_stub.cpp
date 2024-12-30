@@ -19,7 +19,6 @@
 #include <ipc_types.h>
 #include "accesstoken_kit.h"
 #include "account_error_no.h"
-#include "account_helper_data.h"
 #include "account_info.h"
 #include "account_info_parcel.h"
 #include "account_log_wrapper.h"
@@ -64,50 +63,7 @@ constexpr std::int32_t DSOFTBUS_UID = 5533;
 #endif
 }  // namespace
 AccountStub::AccountStub()
-{
-    stubFuncMap_[AccountMgrInterfaceCode::UPDATE_OHOS_ACCOUNT_INFO] =
-        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdUpdateOhosAccountInfo(data, reply); };
-    stubFuncMap_[AccountMgrInterfaceCode::SET_OHOS_ACCOUNT_INFO] =
-        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdSetOhosAccountInfo(data, reply); };
-    stubFuncMap_[AccountMgrInterfaceCode::SET_OHOS_ACCOUNT_INFO_BY_USER_ID] =
-        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdSetOhosAccountInfoByUserId(data, reply); };
-    stubFuncMap_[AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_INFO] =
-        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdQueryOhosAccountInfo(data, reply); };
-    stubFuncMap_[AccountMgrInterfaceCode::QUERY_DISTRIBUTE_VIRTUAL_DEVICE_ID] =
-        [this] (MessageParcel &data, MessageParcel &reply) {
-            return this->CmdQueryDistributedVirtualDeviceId(data, reply);
-        };
-    stubFuncMap_[AccountMgrInterfaceCode::QUERY_DISTRIBUTE_VIRTUAL_DEVICE_ID_BY_BUNDLE_NAME] =
-        [this] (MessageParcel &data, MessageParcel &reply) {
-            return this->CmdQueryDVIDByBundleName(data, reply);
-        };
-    stubFuncMap_[AccountMgrInterfaceCode::GET_OHOS_ACCOUNT_INFO] =
-        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdGetOhosAccountInfo(data, reply); };
-    stubFuncMap_[AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_INFO_BY_USER_ID] =
-        [this] (MessageParcel &data, MessageParcel &reply) {
-        return this->CmdQueryOhosAccountInfoByUserId(data, reply);
-    };
-    stubFuncMap_[AccountMgrInterfaceCode::GET_OHOS_ACCOUNT_INFO_BY_USER_ID] =
-        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdGetOhosAccountInfoByUserId(data, reply); };
-    stubFuncMap_[AccountMgrInterfaceCode::QUERY_DEVICE_ACCOUNT_ID] =
-        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdQueryDeviceAccountId(data, reply); };
-    stubFuncMap_[AccountMgrInterfaceCode::SUBSCRIBE_DISTRIBUTED_ACCOUNT_EVENT] =
-        [this] (MessageParcel &data, MessageParcel &reply) {
-        return this->CmdSubscribeDistributedAccountEvent(data, reply);
-    };
-    stubFuncMap_[AccountMgrInterfaceCode::UNSUBSCRIBE_DISTRIBUTED_ACCOUNT_EVENT] =
-        [this] (MessageParcel &data, MessageParcel &reply) {
-        return this->CmdUnsubscribeDistributedAccountEvent(data, reply);
-    };
-    stubFuncMap_[AccountMgrInterfaceCode::GET_APP_ACCOUNT_SERVICE] =
-        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdGetAppAccountService(data, reply); };
-    stubFuncMap_[AccountMgrInterfaceCode::GET_OS_ACCOUNT_SERVICE] =
-        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdGetOsAccountService(data, reply); };
-    stubFuncMap_[AccountMgrInterfaceCode::GET_ACCOUNT_IAM_SERVICE] =
-        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdGetAccountIAMService(data, reply); };
-    stubFuncMap_[AccountMgrInterfaceCode::GET_DOMAIN_ACCOUNT_SERVICE] =
-        [this] (MessageParcel &data, MessageParcel &reply) { return this->CmdGetDomainAccountService(data, reply); };
-}
+{}
 
 ErrCode AccountStub::InnerUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
@@ -560,6 +516,48 @@ ErrCode AccountStub::CmdGetDomainAccountService(MessageParcel &data, MessageParc
     return ERR_OK;
 }
 
+int32_t AccountStub::ProcAccountStubRequest(
+    std::uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    AccountMgrInterfaceCode interfaceCode = static_cast<AccountMgrInterfaceCode>(code);
+    switch (interfaceCode) {
+        case AccountMgrInterfaceCode::UPDATE_OHOS_ACCOUNT_INFO:
+            return CmdUpdateOhosAccountInfo(data, reply);
+        case AccountMgrInterfaceCode::SET_OHOS_ACCOUNT_INFO:
+            return CmdSetOhosAccountInfo(data, reply);
+        case AccountMgrInterfaceCode::SET_OHOS_ACCOUNT_INFO_BY_USER_ID:
+            return CmdSetOhosAccountInfoByUserId(data, reply);
+        case AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_INFO:
+            return CmdQueryOhosAccountInfo(data, reply);
+        case AccountMgrInterfaceCode::QUERY_DISTRIBUTE_VIRTUAL_DEVICE_ID:
+            return CmdQueryDistributedVirtualDeviceId(data, reply);
+        case AccountMgrInterfaceCode::QUERY_DISTRIBUTE_VIRTUAL_DEVICE_ID_BY_BUNDLE_NAME:
+            return CmdQueryDVIDByBundleName(data, reply);
+        case AccountMgrInterfaceCode::GET_OHOS_ACCOUNT_INFO:
+            return CmdGetOhosAccountInfo(data, reply);
+        case AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_INFO_BY_USER_ID:
+            return CmdQueryOhosAccountInfoByUserId(data, reply);
+        case AccountMgrInterfaceCode::GET_OHOS_ACCOUNT_INFO_BY_USER_ID:
+            return CmdGetOhosAccountInfoByUserId(data, reply);
+        case AccountMgrInterfaceCode::QUERY_DEVICE_ACCOUNT_ID:
+            return CmdQueryDeviceAccountId(data, reply);
+        case AccountMgrInterfaceCode::SUBSCRIBE_DISTRIBUTED_ACCOUNT_EVENT:
+            return CmdSubscribeDistributedAccountEvent(data, reply);
+        case AccountMgrInterfaceCode::UNSUBSCRIBE_DISTRIBUTED_ACCOUNT_EVENT:
+            return CmdUnsubscribeDistributedAccountEvent(data, reply);
+        case AccountMgrInterfaceCode::GET_APP_ACCOUNT_SERVICE:
+            return CmdGetAppAccountService(data, reply);
+        case AccountMgrInterfaceCode::GET_OS_ACCOUNT_SERVICE:
+            return CmdGetOsAccountService(data, reply);
+        case AccountMgrInterfaceCode::GET_ACCOUNT_IAM_SERVICE:
+            return CmdGetAccountIAMService(data, reply);
+        case AccountMgrInterfaceCode::GET_DOMAIN_ACCOUNT_SERVICE:
+            return CmdGetDomainAccountService(data, reply);
+        default:
+            return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+    }
+}
+
 std::int32_t AccountStub::OnRemoteRequest(
     std::uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
@@ -579,17 +577,7 @@ std::int32_t AccountStub::OnRemoteRequest(
     int timerId =
         HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, TIMEOUT, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
 #endif // HICOLLIE_ENABLE
-
-    AccountMgrInterfaceCode interfaceCode = static_cast<AccountMgrInterfaceCode>(code);
-    const auto &itFunc = stubFuncMap_.find(interfaceCode);
-    if (itFunc == stubFuncMap_.end()) {
-#ifdef HICOLLIE_ENABLE
-        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
-#endif // HICOLLIE_ENABLE
-        ACCOUNT_LOGW("remote request unhandled: %{public}d", code);
-        return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
-    }
-    int32_t ret = (itFunc->second)(data, reply);
+    int32_t ret =  ProcAccountStubRequest(code, data, reply, option);
 #ifdef HICOLLIE_ENABLE
     HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
 #endif // HICOLLIE_ENABLE

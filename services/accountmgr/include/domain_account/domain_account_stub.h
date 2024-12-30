@@ -51,9 +51,6 @@ public:
     ErrCode ProcAddServerConfig(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcRemoveServerConfig(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetAccountServerConfig(MessageParcel &data, MessageParcel &reply);
-
-private:
-    std::map<DomainAccountInterfaceCode, DomainAccountStubFunc> stubFuncMap_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

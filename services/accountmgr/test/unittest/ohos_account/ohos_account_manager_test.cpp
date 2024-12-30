@@ -19,7 +19,6 @@
 #define private public
 #include "ohos_account_manager.h"
 #undef private
-#include "account_helper_data.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #ifdef HAS_CES_PART
@@ -51,16 +50,6 @@ std::string g_eventLogout = OHOS_ACCOUNT_EVENT_LOGOUT;
 std::string g_eventTokenInvalid = OHOS_ACCOUNT_EVENT_TOKEN_INVALID;
 const std::string STRING_TEST_NAME = "test_account_name";
 const int ACCOUNT_UID = 100;
-
-std::string GetAccountEventStr(const std::map<std::string, std::string> &accountEventMap,
-    const std::string &eventKey, const std::string &defaultValue)
-{
-    const auto &it = accountEventMap.find(eventKey);
-    if (it != accountEventMap.end()) {
-        return it->second;
-    }
-    return defaultValue;
-}
 }
 
 class OhosAccountManagerTest : public testing::Test {
@@ -106,11 +95,6 @@ private:
 void OhosAccountManagerTest::SetUpTestCase()
 {
     OhosAccountManager::GetInstance().OnInitialize();
-    const std::map<std::string, std::string> accountEventMap = AccountHelperData::GetAccountEventMap();
-    g_eventLogin = GetAccountEventStr(accountEventMap, KEY_ACCOUNT_EVENT_LOGIN, OHOS_ACCOUNT_EVENT_LOGIN);
-    g_eventLogout = GetAccountEventStr(accountEventMap, KEY_ACCOUNT_EVENT_LOGOUT, OHOS_ACCOUNT_EVENT_LOGOUT);
-    g_eventTokenInvalid = GetAccountEventStr(accountEventMap, KEY_ACCOUNT_EVENT_TOKEN_INVALID,
-        OHOS_ACCOUNT_EVENT_TOKEN_INVALID);
 }
 
 void OhosAccountManagerTest::TearDownTestCase() {}
@@ -372,7 +356,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest_013, TestSize.Level0)
     OhosAccountInfo ohosAccountInfo;
     ohosAccountInfo.uid_ = ACCOUNT_UID;
     accountInfoSrc.ohosAccountInfo_ = ohosAccountInfo;
-    
+
     AccountInfo accountInfoTar;
     accountInfoTar.ohosAccountInfo_ = ohosAccountInfo;
     bool ret = (accountInfoSrc == accountInfoTar);
