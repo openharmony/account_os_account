@@ -90,6 +90,26 @@ static bool IsCreateOsAccountAllowed()
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 }
 
+static ErrCode GetDomainAccountStatus(OsAccountInfo &osAccountInfo)
+{
+    DomainAccountInfo domainAccountInfo;
+    osAccountInfo.GetDomainInfo(domainAccountInfo);
+    DomainAccountInfo resultInfo;
+    ErrCode errCode = InnerDomainAccountManager::GetInstance().GetDomainAccountInfo(domainAccountInfo, resultInfo);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+    if (!resultInfo.isAuthenticated) {
+        domainAccountInfo.status_ = DomainAccountStatus::LOGOUT;
+    } else {
+        bool isActivated = false;
+        (void)IInnerOsAccountManager::GetInstance().IsOsAccountActived(osAccountInfo.GetLocalId(), isActivated);
+        domainAccountInfo.status_ = isActivated ? DomainAccountStatus::LOGIN : DomainAccountStatus::LOGIN_BACKGROUND;
+    }
+    osAccountInfo.SetDomainInfo(domainAccountInfo);
+    return ERR_OK;
+}
+
 IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManager_(OsAccountSubscribeManager::GetInstance())
 {
     activeAccountId_.clear();
@@ -1507,6 +1527,7 @@ ErrCode IInnerOsAccountManager::QueryOsAccountById(const int id, OsAccountInfo &
         }
         osAccountInfo.SetPhoto(photo);
     }
+    GetDomainAccountStatus(osAccountInfo);
     return ERR_OK;
 }
 
