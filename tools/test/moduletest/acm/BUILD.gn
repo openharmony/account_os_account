@@ -61,7 +61,7 @@ ohos_moduletest("account_command_create_module_test") {
     "ipc:ipc_single",
   ]
   cflags_cc = [ "-DACCOUNT_TEST" ]
-  if (os_account_enable_file_watcher) {
+  if (os_account_distributed_feature) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
   }
 }
@@ -156,7 +156,7 @@ ohos_moduletest("account_command_create_module_mock_test") {
     "samgr:samgr_proxy",
   ]
   cflags_cc = []
-  if (os_account_enable_file_watcher) {
+  if (os_account_distributed_feature) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
     sources +=
         [ "${services_path}/accountmgr/src/account_file_watcher_manager.cpp" ]
@@ -270,7 +270,7 @@ ohos_moduletest("account_command_delete_module_mock_test") {
     "samgr:samgr_proxy",
   ]
   cflags_cc = []
-  if (os_account_enable_file_watcher) {
+  if (os_account_distributed_feature) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
     sources +=
         [ "${services_path}/accountmgr/src/account_file_watcher_manager.cpp" ]
@@ -339,7 +339,7 @@ ohos_moduletest("account_command_delete_module_test") {
     "ipc:ipc_single",
   ]
   cflags_cc = [ "-DACCOUNT_TEST" ]
-  if (os_account_enable_file_watcher) {
+  if (os_account_distributed_feature) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
   }
 }
@@ -389,7 +389,7 @@ ohos_moduletest("account_command_dump_module_test") {
     "ipc:ipc_single",
   ]
   cflags_cc = [ "-DACCOUNT_TEST" ]
-  if (os_account_enable_file_watcher) {
+  if (os_account_distributed_feature) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
   }
 }
@@ -439,7 +439,7 @@ ohos_moduletest("account_command_set_module_test") {
     "ipc:ipc_single",
   ]
   cflags_cc = [ "-DACCOUNT_TEST" ]
-  if (os_account_enable_file_watcher) {
+  if (os_account_distributed_feature) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
   }
 }

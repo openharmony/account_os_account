@@ -97,7 +97,7 @@ ohos_unittest("OhosServiceTest") {
     cflags_cc += [ "-DHAS_CES_PART" ]
     external_deps += [ "common_event_service:cesfwk_innerkits" ]
   }
-  if (os_account_enable_file_watcher) {
+  if (os_account_distributed_feature) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
   }
   part_name = "os_account"
@@ -155,7 +155,7 @@ ohos_unittest("OhosDataDealTest") {
     cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
     external_deps += [ "hisysevent:libhisysevent" ]
   }
-  if (os_account_enable_file_watcher) {
+  if (os_account_distributed_feature) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
   }
   part_name = "os_account"
