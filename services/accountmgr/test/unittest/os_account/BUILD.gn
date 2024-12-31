@@ -59,7 +59,7 @@ ohos_unittest("OsAccountControlFileManagerTest") {
     "kv_store:distributeddata_inner",
   ]
   cflags_cc = []
-  if (os_account_enable_file_watcher) {
+  if (os_account_distributed_feature) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
   }
   part_name = "os_account"
@@ -470,7 +470,7 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     "samgr:samgr_proxy",
   ]
   cflags_cc = []
-  if (os_account_enable_file_watcher) {
+  if (os_account_distributed_feature) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
     sources +=
         [ "${services_path}/accountmgr/src/account_file_watcher_manager.cpp" ]
@@ -592,7 +592,7 @@ ohos_unittest("OsAccountInnerAccmgrPluginMockTest") {
     "samgr:samgr_proxy",
   ]
   cflags_cc = []
-  if (os_account_enable_file_watcher) {
+  if (os_account_distributed_feature) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
     sources +=
         [ "${services_path}/accountmgr/src/account_file_watcher_manager.cpp" ]
@@ -704,7 +704,7 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
     "samgr:samgr_proxy",
   ]
   cflags_cc = []
-  if (os_account_enable_file_watcher) {
+  if (os_account_distributed_feature) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
     sources +=
         [ "${services_path}/accountmgr/src/account_file_watcher_manager.cpp" ]
