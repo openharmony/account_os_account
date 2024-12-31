@@ -30,6 +30,10 @@ config("domain_account_innnerkits_config") {
     "-Wshadow",
   ]
 
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
+
   defines = [
     "ACCOUNT_LOG_TAG = \"DomainAccountFwk\"",
     "LOG_DOMAIN = 0xD001B00",

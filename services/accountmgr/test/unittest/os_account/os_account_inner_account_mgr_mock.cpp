@@ -101,6 +101,7 @@ public:
     IInnerOsAccountManager *innerMgrService_ = &IInnerOsAccountManager::GetInstance();
 };
 
+#ifdef DOMAIN_ACCOUNT_TEST_CASE
 class MockDomainAccountCallback {
 public:
     MOCK_METHOD2(OnResult, void(int32_t resultCode, Parcel &parcel));
@@ -118,6 +119,7 @@ public:
 private:
     std::shared_ptr<MockDomainAccountCallback> innerCallback_;
 };
+#endif // DOMAIN_ACCOUNT_TEST_CASE
 
 void OsAccountInnerAccmgrMockTest::SetUpTestCase(void)
 {
@@ -703,6 +705,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, SetOsAccountConstraints001, TestSize.Leve
     EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(localId));
 }
 
+#ifdef DOMAIN_ACCOUNT_TEST_CASE
 /*
  * @tc.name: SetOsAccountInfo001
  * @tc.desc: SetOsAccountInfo success
@@ -732,6 +735,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, SetOsAccountInfo001, TestSize.Level1)
 
     EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(localId));
 }
+#endif // DOMAIN_ACCOUNT_TEST_CASE
 
 /*
  * @tc.name: GetOsAccountInfo001
@@ -1576,6 +1580,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest029, TestSize
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR);
 }
 
+#ifdef DOMAIN_ACCOUNT_TEST_CASE
 /*
  * @tc.name: OsAccountInnerAccmgrMockTest030
  * @tc.desc: coverage test
@@ -1603,6 +1608,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest030, TestSize
     ret = innerMgrService_->GetOsAccountLocalIdFromDomain(domainInfo1, id);
     EXPECT_NE(ret, ERR_OK);
 }
+#endif // DOMAIN_ACCOUNT_TEST_CASE
 
 /*
  * @tc.name: OsAccountInnerAccmgrMockTest031

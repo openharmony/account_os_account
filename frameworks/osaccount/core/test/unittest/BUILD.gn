@@ -61,6 +61,9 @@ ohos_unittest("os_account_test") {
   if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
     cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
   }
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
 }
 
 ohos_unittest("os_account_mock_test") {
@@ -99,6 +102,11 @@ ohos_unittest("os_account_mock_test") {
     "hilog:libhilog",
     "ipc:ipc_single",
   ]
+
+  cflags_cc = []
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
 }
 group("unittest") {
   testonly = true

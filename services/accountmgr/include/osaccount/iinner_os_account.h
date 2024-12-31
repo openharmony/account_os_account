@@ -35,8 +35,6 @@ public:
     virtual ErrCode CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo,
         const CreateOsAccountOptions &options = {}) = 0;
     virtual ErrCode UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo) = 0;
-    virtual ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
-        const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options = {}) = 0;
     virtual ErrCode RemoveOsAccount(const int id) = 0;
     virtual ErrCode IsOsAccountExists(const int id, bool &isOsAccountExits) = 0;
     virtual ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived) = 0;
@@ -77,7 +75,6 @@ public:
     virtual ErrCode GetOsAccountCredentialId(const int id, uint64_t &credentialId) = 0;
     virtual ErrCode SetOsAccountCredentialId(const int id, uint64_t credentialId) = 0;
     virtual ErrCode IsAllowedCreateAdmin(bool &isAllowedCreateAdmin) = 0;
-    virtual ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id) = 0;
     virtual ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
         int &createdOsAccountNum) = 0;
     virtual ErrCode GetSerialNumberFromDatabase(const std::string& storeID, int64_t &serialNumber) = 0;
@@ -108,7 +105,12 @@ public:
     virtual int32_t CleanGarbageOsAccounts(int32_t excludeId = -1) = 0;
     virtual void ResetAccountStatus() = 0;
     virtual void CleanGarbageOsAccountsAsync() = 0;
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+    virtual ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
+        const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options = {}) = 0;
+    virtual ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id) = 0;
     virtual ErrCode GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo) = 0;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 };
 }  // namespace AccountSA
 }  // namespace OHOS

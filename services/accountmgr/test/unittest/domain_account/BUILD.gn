@@ -123,6 +123,9 @@ ohos_unittest("DomainAccountInnerServiceCovTest") {
     external_deps += [ "hitrace:hitrace_meter" ]
     cflags_cc += [ "-DHAS_HITRACE_PART" ]
   }
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
 
   part_name = "os_account"
 }
@@ -166,8 +169,11 @@ ohos_unittest("domain_account_plugin_proxy_test") {
 group("unittest") {
   testonly = true
 
-  deps = [
-    ":DomainAccountInnerServiceCovTest",
-    ":domain_account_plugin_proxy_test",
-  ]
+  deps = []
+  if (os_account_support_domain_accounts) {
+    deps += [
+      ":DomainAccountInnerServiceCovTest",
+      ":domain_account_plugin_proxy_test",
+    ]
+  }
 }

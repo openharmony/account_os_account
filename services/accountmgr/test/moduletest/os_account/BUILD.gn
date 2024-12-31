@@ -182,6 +182,10 @@ ohos_moduletest("os_account_manager_service_module_test") {
     }
   }
 
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
+
   if (security_guard_enabled) {
     external_deps += [
       "security_guard:libsg_collect_sdk",
@@ -388,6 +392,9 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
     ]
   }
   cflags_cc += [ "-DACCOUNT_TEST" ]
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
 }
 
 ohos_moduletest("os_account_control_file_manager_test") {

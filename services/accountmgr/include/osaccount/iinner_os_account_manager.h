@@ -18,7 +18,9 @@
 
 #include <memory>
 #include "iinner_os_account.h"
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
 #include "inner_domain_account_manager.h"
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 #include "ios_account_control.h"
 #include "ios_account_subscribe.h"
 #include "ohos_account_manager.h"
@@ -39,8 +41,6 @@ public:
     ErrCode CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo,
         const CreateOsAccountOptions &options = {}) override;
     ErrCode UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo) override;
-    ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
-        const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options = {}) override;
     ErrCode RemoveOsAccount(const int id) override;
     ErrCode IsOsAccountExists(const int id, bool &isOsAccountExits) override;
     ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived) override;
@@ -81,7 +81,6 @@ public:
     ErrCode GetOsAccountCredentialId(const int id, uint64_t &credentialId) override;
     ErrCode SetOsAccountCredentialId(const int id, uint64_t credentialId) override;
     ErrCode IsAllowedCreateAdmin(bool &isAllowedCreateAdmin) override;
-    ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id) override;
     ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
         int &createdOsAccountNum) override;
     ErrCode GetSerialNumberFromDatabase(const std::string& storeID, int64_t &serialNumber) override;
@@ -107,22 +106,27 @@ public:
     ErrCode GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts) override;
     ErrCode GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds) override;
     ErrCode SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved) override;
-    ErrCode BindDomainAccount(const OsAccountType &type, const DomainAccountInfo &domainAccountInfo,
-        const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options = {});
     ErrCode SendMsgForAccountCreate(OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options = {});
     ErrCode GetOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo);
-    ErrCode UpdateAccountStatusForDomain(const int id, DomainAccountStatus status);
     ErrCode GetTypeNumber(const OsAccountType& type, int32_t& typeNumber) override;
     ErrCode CheckTypeNumber(const OsAccountType& type) override;
-    ErrCode UpdateAccountInfoByDomainAccountInfo(int32_t userId, const DomainAccountInfo &newDomainAccountInfo);
-    bool IsSameAccount(const DomainAccountInfo &domainInfoSrc, const DomainAccountInfo &domainInfoTar);
     ErrCode ActivateDefaultOsAccount() override;
     int32_t CleanGarbageOsAccounts(int32_t excludeId = -1) override;
     void ResetAccountStatus() override;
     bool CheckAndCleanOsAccounts();
     ErrCode GetRealOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo);
     void CleanGarbageOsAccountsAsync() override;
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+    ErrCode BindDomainAccount(const OsAccountType &type, const DomainAccountInfo &domainAccountInfo,
+        const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options = {});
+    ErrCode UpdateAccountStatusForDomain(const int id, DomainAccountStatus status);
+    ErrCode UpdateAccountInfoByDomainAccountInfo(int32_t userId, const DomainAccountInfo &newDomainAccountInfo);
+    bool IsSameAccount(const DomainAccountInfo &domainInfoSrc, const DomainAccountInfo &domainInfoTar);
+    ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
+        const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options = {}) override;
+    ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id) override;
     ErrCode GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo) override;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 
 private:
     IInnerOsAccountManager();
@@ -165,7 +169,9 @@ private:
     void EraseIdFromActiveList(int32_t id);
     bool IsOsAccountIDInActiveList(int32_t id);
     void CopyFromActiveList(std::vector<int32_t>& idList);
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     bool CheckDomainAccountBound(const std::vector<OsAccountInfo> &osAccountInfos, const DomainAccountInfo &info);
+#endif // SUPPORT_DOMAIN_ACCOUNTS
     void RetryToGetAccount(OsAccountInfo &osAccountInfo);
     ErrCode RetryToInsertOsAccount(OsAccountInfo &osAccountInfo);
     bool JudgeOsAccountUpdate(Json &accountIndexJson);

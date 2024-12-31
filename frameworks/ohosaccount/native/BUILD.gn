@@ -47,7 +47,6 @@ ohos_shared_library("libaccountkits") {
     "src/distributed_account_event_proxy.cpp",
     "src/distributed_account_event_service.cpp",
     "src/distributed_account_event_stub.cpp",
-    "src/distributed_account_subscribe_callback.cpp",
     "src/ohos_account_kits.cpp",
     "src/ohos_account_kits_impl.cpp",
     "src/system_ability_status_change_listener.cpp",

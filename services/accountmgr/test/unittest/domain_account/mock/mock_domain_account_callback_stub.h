@@ -21,6 +21,7 @@
 
 namespace OHOS {
 namespace AccountSA {
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
 class MockDomainAccountCallback {
 public:
     MOCK_METHOD2(OnResult, void(int32_t resultCode, Parcel &parcel));
@@ -38,6 +39,7 @@ public:
 private:
     std::shared_ptr<MockDomainAccountCallback> innerCallback_;
 };
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 } // namespace AccountSA
 } // namespace OHOS
 

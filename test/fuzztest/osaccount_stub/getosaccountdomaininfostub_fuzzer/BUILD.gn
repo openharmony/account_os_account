@@ -69,4 +69,8 @@ ohos_fuzztest("GetOsAccountDomainInfoStubFuzzTest") {
     "ACCOUNT_LOG_TAG = \"OsAccountFuzzTest\"",
     "LOG_DOMAIN = 0xD001B00",
   ]
+  cflags_cc = []
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
 }
