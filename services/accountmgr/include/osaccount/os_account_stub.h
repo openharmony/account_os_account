@@ -39,7 +39,6 @@ public:
     ErrCode ProcCreateOsAccountWithShortName(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcCreateOsAccountWithFullInfo(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcUpdateOsAccountWithFullInfo(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcCreateOsAccountForDomain(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcRemoveOsAccount(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetOsAccountName(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetOsAccountConstraints(MessageParcel &data, MessageParcel &reply);
@@ -54,7 +53,6 @@ public:
     ErrCode ProcGetOsAccountLocalIdFromProcess(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcIsMainOsAccount(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountProfilePhoto(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcGetOsAccountLocalIdFromDomain(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountTypeFromProcess(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountType(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetApplicationConstraints(MessageParcel &data, MessageParcel &reply);
@@ -101,7 +99,11 @@ public:
     ErrCode ProcGetForegroundOsAccounts(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetBackgroundOsAccountLocalIds(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetOsAccountToBeRemoved(MessageParcel &data, MessageParcel &reply);
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+    ErrCode ProcCreateOsAccountForDomain(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetOsAccountLocalIdFromDomain(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountDomainInfo(MessageParcel &data, MessageParcel &reply);
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 private:
     bool WriteOsAccountInfoList(const std::vector<OsAccountInfo> &accounts, MessageParcel &data);
     DISALLOW_COPY_AND_MOVE(OsAccountStub);

@@ -121,6 +121,10 @@ declare_args() {
 }
 
 declare_args() {
+  os_account_support_domain_accounts = os_account_enable_multiple_os_accounts
+}
+
+declare_args() {
   os_account_enable_default_admin_name = true
 }
 

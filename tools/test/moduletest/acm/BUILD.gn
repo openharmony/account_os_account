@@ -178,6 +178,9 @@ ohos_moduletest("account_command_create_module_mock_test") {
   }
   cflags_cc += [ "-DACCOUNT_TEST" ]
   cflags_cc += [ "-DBUNDLE_ADAPTER_MOCK" ]
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
 }
 
 ohos_moduletest("account_command_delete_module_mock_test") {
@@ -292,6 +295,9 @@ ohos_moduletest("account_command_delete_module_mock_test") {
   }
   cflags_cc += [ "-DACCOUNT_TEST" ]
   cflags_cc += [ "-DBUNDLE_ADAPTER_MOCK" ]
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
 }
 
 ohos_moduletest("account_command_delete_module_test") {

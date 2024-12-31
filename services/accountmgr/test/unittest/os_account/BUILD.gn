@@ -196,6 +196,9 @@ ohos_unittest("os_account_domain_account_callback_test") {
     cflags_cc = [ "-DHAS_USER_AUTH_PART" ]
     external_deps += [ "user_auth_framework:userauth_client" ]
   }
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
   part_name = "os_account"
 }
 
@@ -366,6 +369,10 @@ ohos_unittest("OsAccountInnerAccmgrMockTest") {
     cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
   }
 
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
+
   external_deps = [
     "ability_base:want",
     "ability_runtime:wantagent_innerkits",
@@ -497,6 +504,10 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     "-DBUNDLE_ADAPTER_MOCK",
     "-DACCOUNT_TEST",
   ]
+
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
   part_name = "os_account"
 }
 
@@ -619,6 +630,9 @@ ohos_unittest("OsAccountInnerAccmgrPluginMockTest") {
     "-DBUNDLE_ADAPTER_MOCK",
     "-DACCOUNT_TEST",
   ]
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
   part_name = "os_account"
 }
 
@@ -729,6 +743,9 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
   if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
     cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
   }
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
   part_name = "os_account"
 }
 
@@ -743,8 +760,11 @@ group("unittest") {
     ":OsAccountInnerAccmgrCovTest",
     ":OsAccountInnerAccmgrPluginMockTest",
     ":OsAccountSubscribeDeathRecipientTest",
-    ":os_account_domain_account_callback_test",
   ]
+
+  if (os_account_support_domain_accounts) {
+    deps += [ ":os_account_domain_account_callback_test" ]
+  }
 
   if (has_kv_store_part) {
     deps += [ ":OsAccountDataStorageTest" ]

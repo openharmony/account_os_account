@@ -28,6 +28,7 @@ DomainAccountProxy::~DomainAccountProxy()
 
 ErrCode DomainAccountProxy::SendRequest(DomainAccountInterfaceCode code, MessageParcel &data, MessageParcel &reply)
 {
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
         ACCOUNT_LOGE("remote is nullptr, code = %{public}d", code);
@@ -44,6 +45,9 @@ ErrCode DomainAccountProxy::SendRequest(DomainAccountInterfaceCode code, Message
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     return result;
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
 ErrCode DomainAccountProxy::HasDomainAccount(

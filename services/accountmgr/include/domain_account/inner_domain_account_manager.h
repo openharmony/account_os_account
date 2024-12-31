@@ -20,10 +20,10 @@
 #include <mutex>
 #include "domain_account_common.h"
 #include "domain_account_plugin_death_recipient.h"
-#include "domain_account_plugin_proxy.h"
 #include "domain_account_callback.h"
 #include "domain_account_callback_stub.h"
 #include "domain_plugin.h"
+#include "idomain_account_plugin.h"
 #include "int_wrapper.h"
 #include "bool_wrapper.h"
 #include "os_account_info.h"

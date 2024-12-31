@@ -315,6 +315,7 @@ HWTEST_F(OsAccountTest, OsAccountTest013, TestSize.Level1)
 }
 #endif // DOMAIN_ACCOUNT_TEST_CASE
 
+#ifdef DOMAIN_ACCOUNT_TEST_CASE
 /**
  * @tc.name: OsAccountTest014
  * @tc.desc: Test GetOsAccountLocalIdFromDomain domain is illegal.
@@ -350,6 +351,7 @@ HWTEST_F(OsAccountTest, OsAccountTest015, TestSize.Level1)
     EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
         osAccountProxy_->GetOsAccountLocalIdFromDomain(domainInfo, id));
 }
+#endif // DOMAIN_ACCOUNT_TEST_CASE
 
 /**
  * @tc.name: OsAccountTest016

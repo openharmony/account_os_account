@@ -72,6 +72,10 @@ ohos_unittest("account_iam_client_test") {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
     external_deps += [ "user_auth_framework:userauth_client" ]
   }
+
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
 }
 
 ohos_unittest("account_iam_client_proxy_mock_test") {
@@ -116,6 +120,9 @@ ohos_unittest("account_iam_client_proxy_mock_test") {
     external_deps += [ "user_auth_framework:userauth_client" ]
   }
   cflags_cc += [ "-DPROXY_MOCK" ]
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
 }
 
 ohos_unittest("account_iam_client_no_permission_proxy_mock_test") {

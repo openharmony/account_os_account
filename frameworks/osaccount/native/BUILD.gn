@@ -43,13 +43,7 @@ ohos_shared_library("os_account_innerkits") {
   }
 
   sources = [
-    "${domain_account_framework_path}/src/domain_account_callback_proxy.cpp",
-    "${domain_account_framework_path}/src/domain_account_callback_service.cpp",
-    "${domain_account_framework_path}/src/domain_account_callback_stub.cpp",
-    "${domain_account_framework_path}/src/domain_account_client.cpp",
     "${domain_account_framework_path}/src/domain_account_common.cpp",
-    "${domain_account_framework_path}/src/domain_account_proxy.cpp",
-    "${domain_account_framework_path}/src/domain_account_status_listener_manager.cpp",
     "${os_account_core_path}/src/os_account.cpp",
     "${os_account_core_path}/src/os_account_death_recipient.cpp",
     "${os_account_core_path}/src/os_account_event_listener.cpp",
@@ -82,6 +76,11 @@ ohos_shared_library("os_account_innerkits") {
 
   if (!use_clang_coverage) {
     version_script = "libos_account_innerkits.map"
+  }
+
+  cflags_cc = []
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
   }
 
   external_deps = [
