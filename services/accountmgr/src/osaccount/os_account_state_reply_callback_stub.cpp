@@ -95,7 +95,7 @@ void OsAccountStateReplyCallbackStub::SetStartTime(const std::chrono::system_clo
     startTime_ = startTime;
 }
 
-uid_t OsAccountStateReplyCallbackStub::GetSubscriberUid() const
+int32_t OsAccountStateReplyCallbackStub::GetSubscriberUid() const
 {
     return subscriberUid_;
 }
