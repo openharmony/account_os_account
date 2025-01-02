@@ -56,14 +56,14 @@ constexpr char DLOPEN_ERR[] = "dlopen failed";
 constexpr int32_t INVALID_USERID = -1;
 constexpr int32_t ADMIN_USERID = 0;
 constexpr int32_t SELF_UID = 3058;
-static const std::string OPERATOR_LOAD_LIB = "LoaderLib";
+static const char OPERATOR_LOAD_LIB[] = "LoaderLib";
 #ifdef _ARM64_
-static const std::string LIB_PATH = "/system/lib64/platformsdk/";
+static const char LIB_PATH[] = "/system/lib64/platformsdk/";
 #else
-static const std::string LIB_PATH = "/system/lib/platformsdk/";
+static const char LIB_PATH[] = "/system/lib/platformsdk/";
 #endif
-static const std::string LIB_NAME = "libdomain_account_plugin.z.so";
-static const std::string EDM_FREEZE_BACKGROUND_PARAM = "persist.edm.inactive_user_freeze";
+static const char LIB_NAME[] = "libdomain_account_plugin.z.so";
+static const char EDM_FREEZE_BACKGROUND_PARAM[] = "persist.edm.inactive_user_freeze";
 }
 
 static bool IsSupportNetRequest()

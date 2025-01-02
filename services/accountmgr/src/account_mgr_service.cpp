@@ -50,7 +50,7 @@ constexpr int32_t MAX_INIT_TIME = 120;
 #endif // HICOLLIE_ENABLE
 const bool REGISTER_RESULT =
     SystemAbility::MakeAndRegisterAbility(&DelayedRefSingleton<AccountMgrService>::GetInstance());
-const std::string DEVICE_OWNER_DIR = "/data/service/el1/public/account/0/";
+const char DEVICE_OWNER_DIR[] = "/data/service/el1/public/account/0/";
 void CreateDeviceDir()
 {
     if (!OHOS::FileExists(DEVICE_OWNER_DIR)) {
@@ -62,7 +62,7 @@ void CreateDeviceDir()
             if (!OHOS::ChangeModeDirectory(DEVICE_OWNER_DIR, S_IRWXU)) {
                 ReportOsAccountOperationFail(0, OPERATION_CHANGE_MODE_DIRECTORY, errno, DEVICE_OWNER_DIR);
                 ACCOUNT_LOGW("failed to create dir, path = %{public}s errno %{public}d.",
-                    DEVICE_OWNER_DIR.c_str(), errno);
+                    DEVICE_OWNER_DIR, errno);
             }
         }
     }

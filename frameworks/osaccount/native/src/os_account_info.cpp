@@ -22,31 +22,31 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const std::string LOCAL_ID = "localId";
-const std::string LOCAL_NAME = "localName";
-const std::string SHORT_NAME = "shortName";
-const std::string TYPE = "type";
-const std::string CONSTRAINTS = "constraints";
-const std::string IS_OS_ACCOUNT_VERIFIED = "isVerified";
-const std::string PHOTO = "photo";
-const std::string CREATE_TIME = "createTime";
-const std::string LAST_LOGGED_IN_TIME = "lastLoginTime";
-const std::string SERIAL_NUMBER = "serialNumber";
-const std::string IS_ACTIVATED = "isActived";
-const std::string IS_ACCOUNT_COMPLETED = "isCreateCompleted";
-const std::string DOMAIN_INFO = "domainInfo";
-const std::string DOMAIN_NAME = "domain";
-const std::string DOMAIN_ACCOUNT_NAME = "accountName";
-const std::string DOMAIN_ACCOUNT_ID = "accountId";
-const std::string TO_BE_REMOVED = "toBeRemoved";
-const std::string CREDENTIAL_ID = "credentialId";
-const std::string DISPLAY_ID = "displayId";
-const std::string IS_FOREGROUND = "isForeground";
-const std::string IS_LOGGED_IN = "isLoggedIn";
-const std::string IS_DATA_REMOVABLE = "isDataRemovable";
-const std::string CREATOR_TYPE = "creatorType";
-const std::string DOMAIN_ACCOUNT_STATUS = "domainAccountStatus";
-const std::string DOMAIN_ACCOUNT_CONFIG = "domainServerConfigId";
+const char LOCAL_ID[] = "localId";
+const char LOCAL_NAME[] = "localName";
+const char SHORT_NAME[] = "shortName";
+const char TYPE[] = "type";
+const char CONSTRAINTS[] = "constraints";
+const char IS_OS_ACCOUNT_VERIFIED[] = "isVerified";
+const char PHOTO[] = "photo";
+const char CREATE_TIME[] = "createTime";
+const char LAST_LOGGED_IN_TIME[] = "lastLoginTime";
+const char SERIAL_NUMBER[] = "serialNumber";
+const char IS_ACTIVATED[] = "isActived";
+const char IS_ACCOUNT_COMPLETED[] = "isCreateCompleted";
+const char DOMAIN_INFO[] = "domainInfo";
+const char DOMAIN_NAME[] = "domain";
+const char DOMAIN_ACCOUNT_NAME[] = "accountName";
+const char DOMAIN_ACCOUNT_ID[] = "accountId";
+const char TO_BE_REMOVED[] = "toBeRemoved";
+const char CREDENTIAL_ID[] = "credentialId";
+const char DISPLAY_ID[] = "displayId";
+const char IS_FOREGROUND[] = "isForeground";
+const char IS_LOGGED_IN[] = "isLoggedIn";
+const char IS_DATA_REMOVABLE[] = "isDataRemovable";
+const char CREATOR_TYPE[] = "creatorType";
+const char DOMAIN_ACCOUNT_STATUS[] = "domainAccountStatus";
+const char DOMAIN_ACCOUNT_CONFIG[] = "domainServerConfigId";
 }  // namespace
 
 OsAccountInfo::OsAccountInfo()

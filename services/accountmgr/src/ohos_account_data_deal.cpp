@@ -30,18 +30,18 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const std::string ACCOUNT_CFG_FILE_NAME = "/account.json";
-const std::string ACCOUNT_AVATAR_NAME = "/account_avatar";
-const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_NAME = "account_name";
-const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_RAW_UID = "raw_uid";
-const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_UID = "open_id";
-const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_STATUS = "bind_status";
-const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_CALLINGUID = "calling_uid";
-const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_NICKNAME = "account_nickname";
-const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR = "account_avatar";
-const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_SCALABLEDATA = "account_scalableData";
-const std::string DATADEAL_JSON_KEY_USERID = "user_id";
-const std::string DATADEAL_JSON_KEY_BIND_TIME = "bind_time";
+const char ACCOUNT_CFG_FILE_NAME[] = "/account.json";
+const char ACCOUNT_AVATAR_NAME[] = "/account_avatar";
+const char DATADEAL_JSON_KEY_OHOSACCOUNT_NAME[] = "account_name";
+const char DATADEAL_JSON_KEY_OHOSACCOUNT_RAW_UID[] = "raw_uid";
+const char DATADEAL_JSON_KEY_OHOSACCOUNT_UID[] = "open_id";
+const char DATADEAL_JSON_KEY_OHOSACCOUNT_STATUS[] = "bind_status";
+const char DATADEAL_JSON_KEY_OHOSACCOUNT_CALLINGUID[] = "calling_uid";
+const char DATADEAL_JSON_KEY_OHOSACCOUNT_NICKNAME[] = "account_nickname";
+const char DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR[] = "account_avatar";
+const char DATADEAL_JSON_KEY_OHOSACCOUNT_SCALABLEDATA[] = "account_scalableData";
+const char DATADEAL_JSON_KEY_USERID[] = "user_id";
+const char DATADEAL_JSON_KEY_BIND_TIME[] = "bind_time";
 #ifdef ENABLE_FILE_WATCHER
 const uint32_t ALG_COMMON_SIZE = 32;
 #endif // ENABLE_FILE_WATCHER

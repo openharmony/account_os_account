@@ -25,8 +25,8 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 constexpr int32_t UID_TRANSFORM_DIVISOR = 200000;  // local account id = uid / UID_TRANSFORM_DIVISOR
-const std::string DISTRIBUTED_DATASYNC = "ohos.permission.DISTRIBUTED_DATASYNC";
-const std::string GET_ALL_APP_ACCOUNTS = "ohos.permission.GET_ALL_APP_ACCOUNTS";
+const char DISTRIBUTED_DATASYNC[] = "ohos.permission.DISTRIBUTED_DATASYNC";
+const char GET_ALL_APP_ACCOUNTS[] = "ohos.permission.GET_ALL_APP_ACCOUNTS";
 }
 
 AppAccountManagerService::AppAccountManagerService()
@@ -522,7 +522,7 @@ ErrCode AppAccountManagerService::GetAllAccounts(const std::string &owner, std::
     }
     if ((owner != bundleName) &&
         (AccountPermissionManager::VerifyPermission(GET_ALL_APP_ACCOUNTS) != ERR_OK)) {
-        ACCOUNT_LOGE("failed to verify permission for %{public}s", GET_ALL_APP_ACCOUNTS.c_str());
+        ACCOUNT_LOGE("failed to verify permission for %{public}s", GET_ALL_APP_ACCOUNTS);
         ReportPermissionFail(callingUid, IPCSkeleton::GetCallingRealPid(), GET_ALL_APP_ACCOUNTS);
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
