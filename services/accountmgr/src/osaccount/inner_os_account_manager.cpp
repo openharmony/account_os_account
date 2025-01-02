@@ -63,8 +63,8 @@ const char ADMIN_LOCAL_NAME[] = "admin";
 const char STANDARD_LOCAL_NAME[] = "user";
 #endif
 const std::string CONSTRAINT_CREATE_ACCOUNT_DIRECTLY = "constraint.os.account.create.directly";
-const std::string ACCOUNT_READY_EVENT = "bootevent.account.ready";
-const std::string PARAM_LOGIN_NAME_MAX = "persist.account.login_name_max";
+const char ACCOUNT_READY_EVENT[] = "bootevent.account.ready";
+const char PARAM_LOGIN_NAME_MAX[] = "persist.account.login_name_max";
 constexpr const char DEACTIVATION_ANIMATION_PATH[] = "/system/bin/deactivation_animation";
 constexpr int32_t TOKEN_NATIVE = 1;
 constexpr int32_t DELAY_FOR_EXCEPTION = 50;
@@ -101,7 +101,7 @@ IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManager_(OsAccountSu
     osAccountControl_->GetDeviceOwnerId(deviceOwnerId_);
     osAccountControl_->GetDefaultActivatedOsAccount(defaultActivatedId_);
     osAccountControl_->GetOsAccountConfig(config_);
-    SetParameter(PARAM_LOGIN_NAME_MAX.c_str(), std::to_string(Constants::LOCAL_NAME_MAX_SIZE).c_str());
+    SetParameter(PARAM_LOGIN_NAME_MAX, std::to_string(Constants::LOCAL_NAME_MAX_SIZE).c_str());
     ACCOUNT_LOGI("Init end, maxOsAccountNum: %{public}d, maxLoggedInOsAccountNum: %{public}d",
         config_.maxOsAccountNum, config_.maxLoggedInOsAccountNum);
 }
@@ -258,7 +258,7 @@ ErrCode IInnerOsAccountManager::ActivateDefaultOsAccount()
     // activate
     errCode = SendMsgForAccountActivate(osAccountInfo);
     if (errCode == ERR_OK) {
-        SetParameter(ACCOUNT_READY_EVENT.c_str(), "true");
+        SetParameter(ACCOUNT_READY_EVENT, "true");
     }
 #ifdef HICOLLIE_ENABLE
     HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);

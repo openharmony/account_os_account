@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace AccountSA {
 const size_t INTERCEPT_HEAD_PART_LEN_FOR_NAME = 1;
-const std::string DEFAULT_ANON_STR = "**********";
+const char DEFAULT_ANON_STR[] = "**********";
 
 AccountProxy::~AccountProxy()
 {

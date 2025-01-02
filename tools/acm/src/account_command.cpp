@@ -25,7 +25,7 @@ using namespace OHOS::AAFwk;
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const std::string SHORT_OPTIONS = "hn:t:i:s:l:c:ea";
+const char SHORT_OPTIONS[] = "hn:t:i:s:l:c:ea";
 const struct option LONG_OPTIONS[] = {
     {"help", no_argument, nullptr, 'h'},
     {"name", required_argument, nullptr, 'n'},
@@ -39,12 +39,12 @@ const struct option LONG_OPTIONS[] = {
     {nullptr, no_argument, nullptr, no_argument}
 };
 
-static const std::string DEACTIVATE_COMMAND = "deactivate";
-static const std::string DELETE_COMMAND = "delete";
-static const std::string SWITCH_COMMAND = "switch";
-static const std::string DUMP_COMMAND = "dump";
-static const std::string SET_COMMAND = "set";
-static const std::string CREATE_COMMAND = "create";
+static const char DEACTIVATE_COMMAND[] = "deactivate";
+static const char DELETE_COMMAND[] = "delete";
+static const char SWITCH_COMMAND[] = "switch";
+static const char DUMP_COMMAND[] = "dump";
+static const char SET_COMMAND[] = "set";
+static const char CREATE_COMMAND[] = "create";
 static constexpr int MIN_ARGUMENT_NUMBER = 2;
 static constexpr int MAX_ARGUMENT_NUMBER = 4096;
 }  // namespace
@@ -138,7 +138,7 @@ ErrCode AccountCommand::ParseCreateCommandOpt(std::string &name,
     while (true) {
         counter++;
 
-        int option = getopt_long(argc_, argv_, SHORT_OPTIONS.c_str(), LONG_OPTIONS, nullptr);
+        int option = getopt_long(argc_, argv_, SHORT_OPTIONS, LONG_OPTIONS, nullptr);
         ACCOUNT_LOGD("option: %{public}d, optopt: %{public}d, optind: %{public}d", option, optopt, optind);
 
         if (option == -1) {
@@ -270,7 +270,7 @@ void AccountCommand::RunCommand(
     while (true) {
         counter++;
 
-        int option = getopt_long(argc_, argv_, SHORT_OPTIONS.c_str(), LONG_OPTIONS, nullptr);
+        int option = getopt_long(argc_, argv_, SHORT_OPTIONS, LONG_OPTIONS, nullptr);
         ACCOUNT_LOGD("option: %{public}d, optopt: %{public}d, optind: %{public}d", option, optopt, optind);
 
         if (option == -1) {
@@ -343,7 +343,7 @@ void AccountCommand::ParseCommandOpt(const std::string &command, ErrCode &result
     while (true) {
         counter++;
 
-        int option = getopt_long(argc_, argv_, SHORT_OPTIONS.c_str(), LONG_OPTIONS, nullptr);
+        int option = getopt_long(argc_, argv_, SHORT_OPTIONS, LONG_OPTIONS, nullptr);
         ACCOUNT_LOGD("option: %{public}d, optopt: %{public}d, optind: %{public}d", option, optopt, optind);
 
         if (option == -1) {

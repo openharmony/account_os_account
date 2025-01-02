@@ -38,12 +38,12 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const std::string PERMISSION_MANAGE_USERS = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
-const std::string PERMISSION_GET_LOCAL_ACCOUNTS = "ohos.permission.GET_LOCAL_ACCOUNTS";
-const std::string PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS = "ohos.permission.MANAGE_DISTRIBUTED_ACCOUNTS";
-const std::string PERMISSION_GET_DISTRIBUTED_ACCOUNTS = "ohos.permission.GET_DISTRIBUTED_ACCOUNTS";
-const std::string PERMISSION_DISTRIBUTED_DATASYNC = "ohos.permission.DISTRIBUTED_DATASYNC";
-const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
+const char PERMISSION_MANAGE_USERS[] = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
+const char PERMISSION_GET_LOCAL_ACCOUNTS[] = "ohos.permission.GET_LOCAL_ACCOUNTS";
+const char PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS[] = "ohos.permission.MANAGE_DISTRIBUTED_ACCOUNTS";
+const char PERMISSION_GET_DISTRIBUTED_ACCOUNTS[] = "ohos.permission.GET_DISTRIBUTED_ACCOUNTS";
+const char PERMISSION_DISTRIBUTED_DATASYNC[] = "ohos.permission.DISTRIBUTED_DATASYNC";
+const char INTERACT_ACROSS_LOCAL_ACCOUNTS[] = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
 #ifndef IS_RELEASE_VERSION
 constexpr std::int32_t ROOT_UID = 0;
 #endif

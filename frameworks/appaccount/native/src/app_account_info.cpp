@@ -26,21 +26,21 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const std::string OWNER = "owner";
-const std::string NAME = "name";
-const std::string ALIAS = "alias";
-const std::string EXTRA_INFO = "extraInfo";
-const std::string SYNC_ENABLE = "syncEnable";
-const std::string AUTHORIZED_APPS = "authorizedApps";
-const std::string ASSOCIATED_DATA = "associatedData";
-const std::string ACCOUNT_CREDENTIAL = "accountCredential";
-const std::string OAUTH_TOKEN = "oauthToken";
-const std::string OAUTH_TOKEN_INFOS = "tokenInfos";
-const std::string OAUTH_TYPE = "authType";
-const std::string OAUTH_TOKEN_STATUS = "status";
-const std::string OAUTH_AUTH_LIST = "authList";
+const char OWNER[] = "owner";
+const char NAME[] = "name";
+const char ALIAS[] = "alias";
+const char EXTRA_INFO[] = "extraInfo";
+const char SYNC_ENABLE[] = "syncEnable";
+const char AUTHORIZED_APPS[] = "authorizedApps";
+const char ASSOCIATED_DATA[] = "associatedData";
+const char ACCOUNT_CREDENTIAL[] = "accountCredential";
+const char OAUTH_TOKEN[] = "oauthToken";
+const char OAUTH_TOKEN_INFOS[] = "tokenInfos";
+const char OAUTH_TYPE[] = "authType";
+const char OAUTH_TOKEN_STATUS[] = "status";
+const char OAUTH_AUTH_LIST[] = "authList";
 const std::string OAUTH_TOKEN_TO_TYPE = "tokenToType";
-const std::string HYPHEN = "#";
+const char HYPHEN[] = "#";
 constexpr uint32_t APP_INDEX = 0;
 constexpr uint32_t MAX_TOKEN_NUMBER = 128;
 constexpr uint32_t MAX_OAUTH_LIST_SIZE = 512;
