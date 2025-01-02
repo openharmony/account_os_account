@@ -19,12 +19,17 @@
 #include <string>
 #include <map>
 
-#include "distributed_kv_data_manager.h"
 #include "account_error_no.h"
+#ifndef SQLITE_DLCLOSE_ENABLE
+#include "distributed_kv_data_manager.h"
+#else
+#include "database_adapter_loader.h"
+#endif // SQLITE_DLCLOSE_ENABLE
 #include "iaccount_info.h"
 
 namespace OHOS {
 namespace AccountSA {
+#ifndef SQLITE_DLCLOSE_ENABLE
 struct AccountDataStorageOptions {
     bool encrypt = false;
     bool autoSync = false;
@@ -32,7 +37,9 @@ struct AccountDataStorageOptions {
     OHOS::DistributedKv::Area area = OHOS::DistributedKv::EL1;
     std::string baseDir;
 };
+#endif // SQLITE_DLCLOSE_ENABLE
 
+#ifndef SQLITE_DLCLOSE_ENABLE
 class AccountDataStorage {
 public:
     AccountDataStorage() = delete;
@@ -67,6 +74,42 @@ protected:
     AccountDataStorageOptions options_;
     std::string baseDir_;
 };
+#else
+class AccountDataStorage {
+public:
+    AccountDataStorage() = delete;
+    AccountDataStorage(const std::string &appId, const std::string &storeId, const DbAdapterOptions &options);
+    virtual ~AccountDataStorage();
+    ErrCode LoadAllData(std::map<std::string, std::shared_ptr<IAccountInfo>> &infos);
+    ErrCode AddAccountInfo(const IAccountInfo &iAccountInfo);
+    ErrCode SaveAccountInfo(const IAccountInfo &iAccountInfo);
+    ErrCode LoadDataByLocalFuzzyQuery(std::string subId, std::map<std::string, std::shared_ptr<IAccountInfo>> &infos);
+    void TryTwice(const std::function<DbAdapterStatus()> &func) const;
+    virtual void SaveEntries(std::vector<DbAdapterEntry> allEntries,
+        std::map<std::string, std::shared_ptr<IAccountInfo>> &infos) = 0;
+    ErrCode Close();
+    int DeleteKvStore();
+    ErrCode GetAccountInfoById(const std::string id, IAccountInfo &iAccountInfo);
+    bool IsKeyExists(const std::string keyStr);
+    ErrCode PutValueToKvStore(const std::string &keyStr, const std::string &valueStr);
+    ErrCode GetValueFromKvStore(const std::string &keyStr, std::string &valueStr);
+    ErrCode RemoveValueFromKvStore(const std::string &keyStr);
+    ErrCode MoveData(const std::shared_ptr<AccountDataStorage> &ptr);
+
+protected:
+    DbAdapterStatus GetEntries(
+        std::string subId, std::vector<DbAdapterEntry> &allEntries) const;
+    DbAdapterStatus GetKvStore();
+    bool CheckKvStore();
+    std::shared_ptr<IDbAdapterDataManager> dataManager_ = nullptr;
+    std::shared_ptr<IDbAdapterSingleStore> kvStorePtr_ = nullptr;
+    mutable std::mutex kvStorePtrMutex_;
+    std::string appId_;
+    std::string storeId_;
+    DbAdapterOptions options_;
+    std::string baseDir_;
+};
+#endif // SQLITE_DLCLOSE_ENABLE
 }  // namespace AccountSA
 }  // namespace OHOS
 
