@@ -33,22 +33,22 @@ const std::map<OsAccountType, std::string> DUMP_TYPE_MAP = {
     {OsAccountType::GUEST, "guest"},
     {OsAccountType::PRIVATE, "private"},
 };
-const std::string CONSTANT_CREATE = "constraint.os.account.create";
-const std::string CONSTANT_CREATE_DIRECTLY = "constraint.os.account.create.directly";
-const std::string CONSTANT_REMOVE = "constraint.os.account.remove";
-const std::string CONSTANT_ACTIVATE = "constraint.os.account.activate";
-const std::string CONSTANT_SET_ICON = "constraint.os.account.set.icon";
+const char CONSTANT_CREATE[] = "constraint.os.account.create";
+const char CONSTANT_CREATE_DIRECTLY[] = "constraint.os.account.create.directly";
+const char CONSTANT_REMOVE[] = "constraint.os.account.remove";
+const char CONSTANT_ACTIVATE[] = "constraint.os.account.activate";
+const char CONSTANT_SET_ICON[] = "constraint.os.account.set.icon";
 #ifndef IS_RELEASE_VERSION
 const std::int32_t ROOT_UID = 0;
 #endif
-const std::string DEFAULT_ANON_STR = "**********";
+const char DEFAULT_ANON_STR[] = "**********";
 const size_t INTERCEPT_HEAD_PART_LEN_FOR_NAME = 1;
 
-const std::string MANAGE_LOCAL_ACCOUNTS = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
-const std::string GET_LOCAL_ACCOUNTS = "ohos.permission.GET_LOCAL_ACCOUNTS";
-const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION =
+const char MANAGE_LOCAL_ACCOUNTS[] = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
+const char GET_LOCAL_ACCOUNTS[] = "ohos.permission.GET_LOCAL_ACCOUNTS";
+const char INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION[] =
     "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION";
-const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
+const char INTERACT_ACROSS_LOCAL_ACCOUNTS[] = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
 const std::string GET_DOMAIN_ACCOUNTS = "ohos.permission.GET_DOMAIN_ACCOUNTS";
 const std::set<uint32_t> uidWhiteListForCreation { 3057 };
 const std::int32_t EDM_UID = 3057;

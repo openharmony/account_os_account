@@ -26,9 +26,9 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const std::string ACCESS_USER_AUTH_INTERNAL = "ohos.permission.ACCESS_USER_AUTH_INTERNAL";
-const std::string MANAGE_USER_IDM = "ohos.permission.MANAGE_USER_IDM";
-const std::string USE_USER_IDM = "ohos.permission.USE_USER_IDM";
+const char ACCESS_USER_AUTH_INTERNAL[] = "ohos.permission.ACCESS_USER_AUTH_INTERNAL";
+const char MANAGE_USER_IDM[] = "ohos.permission.MANAGE_USER_IDM";
+const char USE_USER_IDM[] = "ohos.permission.USE_USER_IDM";
 }
 
 static const std::map<uint32_t, AccountIAMMgrStub::AccountIAMMessageProc> messageProcMap = {

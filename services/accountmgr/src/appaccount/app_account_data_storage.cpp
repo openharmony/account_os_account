@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const std::string AUTHORIZED_ACCOUNTS = "authorizedAccounts";
+const char AUTHORIZED_ACCOUNTS[] = "authorizedAccounts";
 }
 
 AppAccountDataStorage::AppAccountDataStorage(const std::string &storeId, const AccountDataStorageOptions &options)

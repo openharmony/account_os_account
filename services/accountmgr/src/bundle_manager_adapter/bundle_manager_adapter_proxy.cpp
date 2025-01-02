@@ -26,20 +26,20 @@ namespace AccountSA {
 namespace {
 const int32_t ASHMEM_LEN = 16;
 const int32_t MAX_INFO_SIZE = 1048576; // 1024 x 1024
-const std::string BUNDLE_INFO_NAME = "name";
-const std::string BUNDLE_INFO_LABEL = "label";
-const std::string BUNDLE_INFO_DESCRIPTION = "description";
-const std::string BUNDLE_INFO_SINGLETON = "singleton";
-const std::string BUNDLE_INFO_IS_NATIVE_APP = "isNativeApp";
-const std::string BUNDLE_INFO_APPID = "appId";
-const std::string BUNDLE_INFO_APP_INDEX = "appIndex";
-const std::string BUNDLE_INFO_EXTENSION_ABILITY_INFOS = "extensionAbilityInfo";
-const std::string EXTENSION_NAME = "name";
-const std::string EXTENSION_LABEL = "label";
-const std::string EXTENSION_DESCRIPTION = "description";
-const std::string EXTENSION_TYPE = "type";
-const std::string EXTENSION_VISIBLE = "visible";
-const std::string EXTENSION_UID = "uid";
+const char BUNDLE_INFO_NAME[] = "name";
+const char BUNDLE_INFO_LABEL[] = "label";
+const char BUNDLE_INFO_DESCRIPTION[] = "description";
+const char BUNDLE_INFO_SINGLETON[] = "singleton";
+const char BUNDLE_INFO_IS_NATIVE_APP[] = "isNativeApp";
+const char BUNDLE_INFO_APPID[] = "appId";
+const char BUNDLE_INFO_APP_INDEX[] = "appIndex";
+const char BUNDLE_INFO_EXTENSION_ABILITY_INFOS[] = "extensionAbilityInfo";
+const char EXTENSION_NAME[] = "name";
+const char EXTENSION_LABEL[] = "label";
+const char EXTENSION_DESCRIPTION[] = "description";
+const char EXTENSION_TYPE[] = "type";
+const char EXTENSION_VISIBLE[] = "visible";
+const char EXTENSION_UID[] = "uid";
 }
 
 inline void ClearAshmem(sptr<Ashmem> &optMem)
@@ -124,7 +124,7 @@ bool BundleManagerAdapterProxy::ParseExtensionAbilityInfos(
     }
     for (const auto &iter : arrays) {
         if (!iter.is_object()) {
-            ACCOUNT_LOGE("array %{public}s exist error type info", BUNDLE_INFO_EXTENSION_ABILITY_INFOS.c_str());
+            ACCOUNT_LOGE("array %{public}s exist error type info", BUNDLE_INFO_EXTENSION_ABILITY_INFOS);
             continue;
         }
         ExtensionAbilityInfo abilityInfo;

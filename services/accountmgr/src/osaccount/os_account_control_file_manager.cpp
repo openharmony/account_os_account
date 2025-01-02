@@ -35,7 +35,7 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const std::string DEFAULT_ACTIVATED_ACCOUNT_ID = "DefaultActivatedAccountID";
+const char DEFAULT_ACTIVATED_ACCOUNT_ID[] = "DefaultActivatedAccountID";
 const std::string OS_ACCOUNT_STORE_ID = "os_account_info";
 #ifdef ENABLE_FILE_WATCHER
 constexpr uint32_t ALG_COMMON_SIZE = 32;
@@ -47,14 +47,14 @@ const std::string DEFAULT_OS_ACCOUNT_CONFIG_FILE = "/system/etc/account/os_accou
 const std::string ACCOUNT_CFG_DIR_ROOT_PATH = "/data/service/el1/public/account/test/";
 const std::string DEFAULT_OS_ACCOUNT_CONFIG_FILE = ACCOUNT_CFG_DIR_ROOT_PATH + "os_account_config.json";
 #endif // ACCOUNT_TEST
-const std::string DISTRIBUTED_ACCOUNT_FILE_NAME = "/account.json";
+const char DISTRIBUTED_ACCOUNT_FILE_NAME[] = "/account.json";
 #ifdef HAS_CONFIG_POLICY_PART
-const std::string OS_ACCOUNT_CONFIG_FILE = "etc/os_account/os_account_config.json";
+const char OS_ACCOUNT_CONFIG_FILE[] = "etc/os_account/os_account_config.json";
 #endif // HAS_CONFIG_POLICY_PART
-const std::string MAX_OS_ACCOUNT_NUM = "maxOsAccountNum";
-const std::string MAX_LOGGED_IN_OS_ACCOUNT_NUM = "maxLoggedInOsAccountNum";
-const std::string DEVELOPER_MODE_STATE = "const.security.developermode.state";
-const std::string DEVELOPER_MODE = "developerMode";
+const char MAX_OS_ACCOUNT_NUM[] = "maxOsAccountNum";
+const char MAX_LOGGED_IN_OS_ACCOUNT_NUM[] = "maxLoggedInOsAccountNum";
+const char DEVELOPER_MODE_STATE[] = "const.security.developermode.state";
+const char DEVELOPER_MODE[] = "developerMode";
 const char USER_PHOTO_FILE_PNG_NAME[] = "fase.png";
 const char USER_PHOTO_FILE_JPG_NAME[] = "fase.jpg";
 const char USER_PHOTO_BASE_JPG_HEAD[] = "data:image/jpeg;base64,";
@@ -91,7 +91,7 @@ ErrCode OsAccountControlFileManager::GetOsAccountConfig(OsAccountConfig &config)
 {
     std::string cfgPath = DEFAULT_OS_ACCOUNT_CONFIG_FILE;
 #ifdef HAS_CONFIG_POLICY_PART
-    CfgFiles *cfgFiles = GetCfgFiles(OS_ACCOUNT_CONFIG_FILE.c_str());
+    CfgFiles *cfgFiles = GetCfgFiles(OS_ACCOUNT_CONFIG_FILE);
     if (cfgFiles != nullptr) {
         if (cfgFiles->paths[0] != nullptr) {
             cfgPath = cfgFiles->paths[0];

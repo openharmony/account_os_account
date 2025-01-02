@@ -28,19 +28,19 @@ const std::int32_t ARGS_SIZE_ONE = 1;
 const std::int32_t ARGS_SIZE_TWO = 2;
 const std::int32_t FIRST_PARAMETER = 0;
 const std::int32_t SECOND_PARAMETER = 1;
-const std::string ARGS_HELP = "-h";
-const std::string ARGS_OHOS_ACCOUNT_INFOS = "-ohos_account_infos";
-const std::string ARGS_OS_ACCOUNT_INFOS = "-os_account_infos";
-const std::string ARGS_SHOW_LOG_LEVEL = "-show_log_level";
-const std::string ARGS_SET_LOG_LEVEL = "-set_log_level";
-const std::string ARGS_DUMP_TIME_INFO = "-time_info_dump";
-const std::string ILLEGAL_INFORMATION = "Account Manager service, enter '-h' for usage.\n";
+const char ARGS_HELP[] = "-h";
+const char ARGS_OHOS_ACCOUNT_INFOS[] = "-ohos_account_infos";
+const char ARGS_OS_ACCOUNT_INFOS[] = "-os_account_infos";
+const char ARGS_SHOW_LOG_LEVEL[] = "-show_log_level";
+const char ARGS_SET_LOG_LEVEL[] = "-set_log_level";
+const char ARGS_DUMP_TIME_INFO[] = "-time_info_dump";
+const char ILLEGAL_INFORMATION[] = "Account Manager service, enter '-h' for usage.\n";
 const std::string SYSTEM_ERROR = "System error: ";
 const double ANONYMIZE_RATIO = 0.8;
 const size_t MIN_ANONYMIZE_PART_LEN = 10;
 const size_t MAX_INTERCEPT_PART_LEN = 4;
 const size_t INTERCEPT_HEAD_PART_LEN_FOR_NAME = 1;
-const std::string DEFAULT_ANON_STR = "**********";
+const char DEFAULT_ANON_STR[] = "**********";
 } // namespace
 
 std::string AccountDumpHelper::AnonymizeNameStr(const std::string& nameStr) const

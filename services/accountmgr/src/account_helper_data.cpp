@@ -25,9 +25,9 @@ namespace OHOS {
 namespace AccountSA {
 using json = nlohmann::json;
 namespace {
-const std::string ACCOUNTMGR_HELPER_JSON_FILE = "/system/etc/account/accountmgr_helper.json";
+const char ACCOUNTMGR_HELPER_JSON_FILE[] = "/system/etc/account/accountmgr_helper.json";
 const std::string KEY_BUNDLE_NAME_LIST = "BundleNameTrustList";
-const std::string KEY_ACCOUNT_EVENT_MAP = "AccountEventMap";
+const char KEY_ACCOUNT_EVENT_MAP[] = "AccountEventMap";
 const std::string KEY_ACCOUNT_EVENT_LOGIN = "LOGIN";
 const std::string KEY_ACCOUNT_EVENT_LOGOUT = "LOGOUT";
 const std::string KEY_ACCOUNT_EVENT_TOKEN_INVALID = "TOKEN_INVALID";
@@ -36,13 +36,13 @@ const std::string KEY_ACCOUNT_EVENT_LOGOFF = "LOGOFF";
 static bool ParseJsonData(nlohmann::json &jsonData)
 {
     if (!FileExists(ACCOUNTMGR_HELPER_JSON_FILE)) {
-        ACCOUNT_LOGI("File %{public}s not exist, empty default!", ACCOUNTMGR_HELPER_JSON_FILE.c_str());
+        ACCOUNT_LOGI("File %{public}s not exist, empty default!", ACCOUNTMGR_HELPER_JSON_FILE);
         return false;
     }
 
     std::ifstream fin(ACCOUNTMGR_HELPER_JSON_FILE);
     if (!fin) {
-        ACCOUNT_LOGE("Failed to open file %{public}s", ACCOUNTMGR_HELPER_JSON_FILE.c_str());
+        ACCOUNT_LOGE("Failed to open file %{public}s", ACCOUNTMGR_HELPER_JSON_FILE);
         return false;
     }
 
