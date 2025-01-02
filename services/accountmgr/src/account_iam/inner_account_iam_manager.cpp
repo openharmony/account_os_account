@@ -51,7 +51,7 @@ static const std::string RECOVERY_LIB_PATH = "/system/lib64/";
 static const std::string RECOVERY_LIB_PATH = "/system/lib/";
 #endif
 static const std::string RECOVERY_SO_PATH = RECOVERY_LIB_PATH + "librecovery_key_service_client.z.so";
-static const std::string RECOVERY_METHOD_NAME = "UpdateUseAuthWithRecoveryKey";
+static const char RECOVERY_METHOD_NAME[] = "UpdateUseAuthWithRecoveryKey";
 }
 using UserIDMClient = UserIam::UserAuth::UserIdmClient;
 using UserAuthClient = UserIam::UserAuth::UserAuthClient;
@@ -622,10 +622,10 @@ ErrCode InnerAccountIAMManager::UpdateUserAuthWithRecoveryKey(const std::vector<
         ACCOUNT_LOGE("Call dlopen failed, error=%{public}s.", dlerror());
         return ERR_INVALID_VALUE;
     }
-    void *updateUserAuthWithRecoveryKey = dlsym(handle, RECOVERY_METHOD_NAME.c_str());
+    void *updateUserAuthWithRecoveryKey = dlsym(handle, RECOVERY_METHOD_NAME);
     if (updateUserAuthWithRecoveryKey == nullptr) {
         ACCOUNT_LOGE("Call dlsym failed, method=%{public}s error=%{public}s.",
-            RECOVERY_METHOD_NAME.c_str(), dlerror());
+            RECOVERY_METHOD_NAME, dlerror());
         return ERR_INVALID_VALUE;
     }
     ErrCode res = (*reinterpret_cast<UpdateUserAuthWithRecoveryKeyFunc>(updateUserAuthWithRecoveryKey))(

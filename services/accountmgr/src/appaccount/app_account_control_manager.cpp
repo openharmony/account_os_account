@@ -35,13 +35,13 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const std::string GET_ALL_APP_ACCOUNTS = "ohos.permission.GET_ALL_APP_ACCOUNTS";
-const std::string DATA_STORAGE_SUFFIX = "_sync";
-const std::string DATA_STORAGE_PREFIX = "encrypt_";
-const std::string EL2_DATA_STORE_PREFIX = "account_";
-const std::string EL2_DATA_STORAGE_PATH_PREFIX = "/data/service/el2/";
-const std::string EL2_DATA_STORAGE_PATH_SUFFIX = "/account/app_account/database/";
-const std::string AUTHORIZED_ACCOUNTS = "authorizedAccounts";
+const char GET_ALL_APP_ACCOUNTS[] = "ohos.permission.GET_ALL_APP_ACCOUNTS";
+const char DATA_STORAGE_SUFFIX[] = "_sync";
+const char DATA_STORAGE_PREFIX[] = "encrypt_";
+const char EL2_DATA_STORE_PREFIX[] = "account_";
+const char EL2_DATA_STORAGE_PATH_PREFIX[] = "/data/service/el2/";
+const char EL2_DATA_STORAGE_PATH_SUFFIX[] = "/account/app_account/database/";
+const char AUTHORIZED_ACCOUNTS[] = "authorizedAccounts";
 #ifdef HAS_ASSET_PART
 const std::string ALIAS_SUFFIX_CREDENTIAL = "credential";
 const std::string ALIAS_SUFFIX_TOKEN = "token";

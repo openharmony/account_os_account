@@ -20,7 +20,7 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const std::string OS_ACCOUNT_STORE_ID = "os_account_info";
+const char OS_ACCOUNT_STORE_ID[] = "os_account_info";
 const char APP_ID[] = "os_account_mgr_service";
 }
 

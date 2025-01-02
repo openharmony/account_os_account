@@ -31,9 +31,9 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const std::string PERMISSION_ACCESS_PIN_AUTH = "ohos.permission.ACCESS_PIN_AUTH";
-const std::string PERMISSION_MANAGE_USER_IDM = "ohos.permission.MANAGE_USER_IDM";
-const std::string PERMISSION_ACCESS_USER_AUTH_INTERNAL = "ohos.permission.ACCESS_USER_AUTH_INTERNAL";
+const char PERMISSION_ACCESS_PIN_AUTH[] = "ohos.permission.ACCESS_PIN_AUTH";
+const char PERMISSION_MANAGE_USER_IDM[] = "ohos.permission.MANAGE_USER_IDM";
+const char PERMISSION_ACCESS_USER_AUTH_INTERNAL[] = "ohos.permission.ACCESS_USER_AUTH_INTERNAL";
 }
 
 AccountIAMClient &AccountIAMClient::GetInstance()
