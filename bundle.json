@@ -56,6 +56,7 @@
         "samgr",
         "security_guard",
         "selinux_adapter",
+        "sqlite",
         "storage_service",
         "time_service",
         "user_auth_framework",
