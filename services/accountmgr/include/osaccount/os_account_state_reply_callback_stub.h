@@ -32,7 +32,7 @@ public:
 
     void OnComplete() override;
     void SetStartTime(const std::chrono::system_clock::time_point &startTime);
-    uid_t GetSubscriberUid() const;
+    int32_t GetSubscriberUid() const;
     int OnRemoteRequest(
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
@@ -41,7 +41,7 @@ private:
     OsAccountState state_;
     std::shared_ptr<std::condition_variable> cvPtr_;
     std::shared_ptr<SafeQueue<uint8_t>> safeQueue_;
-    uid_t subscriberUid_;
+    int32_t subscriberUid_;
     std::mutex mutex_;
     bool isCompleted_ = false;
     std::chrono::system_clock::time_point startTime_;
