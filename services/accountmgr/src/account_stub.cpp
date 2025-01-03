@@ -241,8 +241,14 @@ std::int32_t AccountStub::InnerQueryOhosAccountInfo(MessageParcel &data, Message
 {
     OhosAccountInfo info;
 #ifdef HICOLLIE_ENABLE
+    unsigned int flag = HiviewDFX::XCOLLIE_FLAG_LOG | HiviewDFX::XCOLLIE_FLAG_RECOVERY;
+    XCollieCallback callbackFunc = [](void *) {
+        ACCOUNT_LOGE("InnerQueryOhosAccountInfo failed due to timeout.");
+        ReportOhosAccountOperationFail(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR,
+            "watchDog", -1, "Query ohos account info time out");
+    };
     int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(
-        TIMER_NAME, RECOVERY_TIMEOUT, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_RECOVERY);
+        TIMER_NAME, RECOVERY_TIMEOUT, callbackFunc, nullptr, flag);
 #endif // HICOLLIE_ENABLE
     ErrCode result = QueryOhosAccountInfo(info);
     if (result != ERR_OK) {
