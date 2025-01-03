@@ -16,6 +16,8 @@
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
 #include "account_constants.h"
+#include "account_info.h"
+#include "account_hisysevent_adapter.h"
 #include "hitrace_adapter.h"
 #include "idomain_account_callback.h"
 #include "ipc_skeleton.h"
@@ -936,8 +938,14 @@ ErrCode OsAccountStub::ProcGetOsAccountLocalIdFromProcess(MessageParcel &data, M
 {
     int localId = -1;
 #ifdef HICOLLIE_ENABLE
+    unsigned int flag = HiviewDFX::XCOLLIE_FLAG_LOG | HiviewDFX::XCOLLIE_FLAG_RECOVERY;
+    XCollieCallback callbackFunc = [](void *) {
+        ACCOUNT_LOGE("ProcGetOsAccountLocalIdFromProcess failed due to timeout.");
+        ReportOsAccountOperationFail(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR,
+            "watchDog", -1, "Get osaccount local id time out");
+    };
     int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(
-        TIMER_NAME, RECOVERY_TIMEOUT, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_RECOVERY);
+        TIMER_NAME, RECOVERY_TIMEOUT, callbackFunc, nullptr, flag);
 #endif // HICOLLIE_ENABLE
     ErrCode result = GetOsAccountLocalIdFromProcess(localId);
     if (!reply.WriteInt32(result)) {
@@ -1260,8 +1268,14 @@ ErrCode OsAccountStub::ProcIsOsAccountExists(MessageParcel &data, MessageParcel 
 ErrCode OsAccountStub::ProcSubscribeOsAccount(MessageParcel &data, MessageParcel &reply)
 {
 #ifdef HICOLLIE_ENABLE
+    unsigned int flag = HiviewDFX::XCOLLIE_FLAG_LOG | HiviewDFX::XCOLLIE_FLAG_RECOVERY;
+    XCollieCallback callbackFunc = [](void *) {
+        ACCOUNT_LOGE("ProcSubscribeOsAccount failed due to timeout.");
+        ReportOsAccountOperationFail(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR,
+            "watchDog", -1, "Subscribe osaccount time out");
+    };
     int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(
-        TIMER_NAME, RECOVERY_TIMEOUT, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_RECOVERY);
+        TIMER_NAME, RECOVERY_TIMEOUT, callbackFunc, nullptr, flag);
 #endif // HICOLLIE_ENABLE
     std::unique_ptr<OsAccountSubscribeInfo> subscribeInfo(data.ReadParcelable<OsAccountSubscribeInfo>());
     if (!subscribeInfo) {
@@ -1549,8 +1563,14 @@ ErrCode OsAccountStub::ProcQueryActiveOsAccountIds(MessageParcel &data, MessageP
 {
     std::vector<int32_t> ids;
 #ifdef HICOLLIE_ENABLE
+    unsigned int flag = HiviewDFX::XCOLLIE_FLAG_LOG | HiviewDFX::XCOLLIE_FLAG_RECOVERY;
+    XCollieCallback callbackFunc = [](void *) {
+        ACCOUNT_LOGE("ProcQueryActiveOsAccountIds failed due to timeout.");
+        ReportOsAccountOperationFail(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR,
+            "watchDog", -1, "Query active account id time out");
+    };
     int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(
-        TIMER_NAME, RECOVERY_TIMEOUT, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_RECOVERY);
+        TIMER_NAME, RECOVERY_TIMEOUT, callbackFunc, nullptr, flag);
 #endif // HICOLLIE_ENABLE
     ErrCode result = QueryActiveOsAccountIds(ids);
     if (!reply.WriteInt32(result)) {
