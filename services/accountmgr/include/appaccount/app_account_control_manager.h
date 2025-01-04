@@ -102,8 +102,13 @@ public:
     ErrCode GetAllAccessibleAccountsFromDataStorage(std::vector<AppAccountInfo> &appAccounts,
         const std::string &bundleName, const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr,
         const uint32_t &appIndex);
+#ifndef SQLITE_DLCLOSE_ENABLE
     std::shared_ptr<AppAccountDataStorage> GetDataStorage(const uid_t &uid, const bool &autoSync = false,
         DistributedKv::SecurityLevel securityLevel = DistributedKv::SecurityLevel::S1);
+#else
+    std::shared_ptr<AppAccountDataStorage> GetDataStorage(const uid_t &uid, const bool &autoSync = false,
+        DbAdapterSecurityLevel securityLevel = DbAdapterSecurityLevel::S1);
+#endif // SQLITE_DLCLOSE_ENABLE
     void CloseDataStorage();
 
     void AddMigratedAccount(int32_t localId);
@@ -119,8 +124,13 @@ private:
     void RemoveAssociatedDataCacheByAccount(const uid_t &uid, const std::string &name);
     ErrCode GetAssociatedDataFromStorage(const std::string &name, const std::string &key, std::string &value,
         const uid_t &uid, const uint32_t &appIndex);
+#ifndef SQLITE_DLCLOSE_ENABLE
     std::shared_ptr<AppAccountDataStorage> GetDataStorageByUserId(int32_t userId, const bool &autoSync = false,
         DistributedKv::SecurityLevel securityLevel = DistributedKv::SecurityLevel::S1);
+#else
+    std::shared_ptr<AppAccountDataStorage> GetDataStorageByUserId(int32_t userId, const bool &autoSync = false,
+        DbAdapterSecurityLevel securityLevel = DbAdapterSecurityLevel::S1);
+#endif // SQLITE_DLCLOSE_ENABLE
     bool NeedSyncDataStorage(const AppAccountInfo &appAccountInfo);
     ErrCode GetAccountInfoFromDataStorage(
         AppAccountInfo &appAccountInfo, std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);

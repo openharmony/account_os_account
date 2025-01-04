@@ -26,7 +26,11 @@ namespace {
 const char AUTHORIZED_ACCOUNTS[] = "authorizedAccounts";
 }
 
+#ifndef SQLITE_DLCLOSE_ENABLE
 AppAccountDataStorage::AppAccountDataStorage(const std::string &storeId, const AccountDataStorageOptions &options)
+#else
+AppAccountDataStorage::AppAccountDataStorage(const std::string &storeId, const DbAdapterOptions &options)
+#endif // SQLITE_DLCLOSE_ENABLE
     : AccountDataStorage(Constants::APP_ACCOUNT_APP_ID, storeId, options)
 {
     ACCOUNT_LOGI("Constructed");
@@ -112,6 +116,7 @@ ErrCode AppAccountDataStorage::DeleteAccountInfoFromDataStorage(AppAccountInfo &
     return ret;
 }
 
+#ifndef SQLITE_DLCLOSE_ENABLE
 void AppAccountDataStorage::SaveEntries(
     std::vector<OHOS::DistributedKv::Entry> allEntries, std::map<std::string, std::shared_ptr<IAccountInfo>> &infos)
 {
@@ -132,5 +137,27 @@ void AppAccountDataStorage::SaveEntries(
         infos.emplace(item.key.ToString(), std::make_shared<AppAccountInfo>(appAccountInfo));
     }
 }
+#else
+void AppAccountDataStorage::SaveEntries(std::vector<DbAdapterEntry> allEntries,
+    std::map<std::string, std::shared_ptr<IAccountInfo>> &infos)
+{
+    for (auto const &item : allEntries) {
+        Json jsonObject = Json::parse(item.value, nullptr, false);
+        if (jsonObject.is_discarded()) {
+            ACCOUNT_LOGE("error key: %{private}s", item.key.c_str());
+            // it's a bad json, delete it
+            {
+                std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+                kvStorePtr_->Delete(item.key);
+            }
+            continue;
+        }
+
+        AppAccountInfo appAccountInfo;
+        appAccountInfo.FromJson(jsonObject);
+        infos.emplace(item.key, std::make_shared<AppAccountInfo>(appAccountInfo));
+    }
+}
+#endif // SQLITE_DLCLOSE_ENABLE
 }  // namespace AccountSA
 }  // namespace OHOS

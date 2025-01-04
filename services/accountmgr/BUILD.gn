@@ -47,6 +47,7 @@ config("accountmgr_config") {
     "./include",
     "./include/ability_manager_adapter",
     "./include/appaccount",
+    "./include/common/database",
     "./include/osaccount",
     "${innerkits_path}/include",
     "${os_account_core_path}/include",
@@ -295,21 +296,20 @@ ohos_shared_library("accountmgr") {
     ]
   }
 
-  if (has_kv_store_part) {
-    cflags_cc += [
-      "-DHAS_APP_ACCOUNT_PART",
-      "-DHAS_KV_STORE_PART",
-    ]
-    sources += app_account_sources
-    sources += [ "src/account_data_storage.cpp" ]
-    external_deps += [ "kv_store:distributeddata_inner" ]
-  }
+  cflags_cc += [ "-DHAS_APP_ACCOUNT_PART" ]
+  sources += app_account_sources
+  sources += [ "src/account_data_storage.cpp" ]
 
   if (has_kv_store_part && os_account_distributed_feature) {
+    external_deps += [ "kv_store:distributeddata_inner" ]
     sources += [
       "src/osaccount/os_account_data_storage.cpp",
       "src/osaccount/os_account_database_operator.cpp",
     ]
+    cflags_cc += [ "-DHAS_KV_STORE_PART" ]
+  } else {
+    cflags_cc += [ "-DSQLITE_DLCLOSE_ENABLE" ]
+    sources += [ "src/common/database/database_adapter_loader.cpp" ]
   }
 
   if (has_storage_service_part) {
@@ -374,6 +374,60 @@ ohos_shared_library("accountmgr") {
   part_name = "os_account"
 }
 
+if (!(has_kv_store_part && os_account_distributed_feature)) {
+  ohos_shared_library("account_database_adapter") {
+    branch_protector_ret = "pac_ret"
+
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      debug = false
+    }
+
+    visibility = [ "${os_account_path}/*" ]
+    cflags = [ "-pipe" ]
+    cflags_cc = [
+      "-Wdate-time",
+      "-Wformat=2",
+      "-Wfloat-equal",
+      "-Wshadow",
+      "-fvisibility=hidden",
+    ]
+
+    defines = [
+      "ACCOUNT_LOG_TAG = \"AccountMgrDatabaseAdapter\"",
+      "LOG_DOMAIN = 0xD001B00",
+    ]
+
+    sources = []
+    include_dirs = [
+      "include/common/database/sqlite",
+      "include/common/database",
+    ]
+    deps = [ "${common_path}:libaccount_common" ]
+
+    external_deps = [
+      "c_utils:utils",
+      "hilog:libhilog",
+    ]
+
+    if (!os_account_distributed_feature) {
+      sources += [
+        "src/common/database/sqlite/generic_values.cpp",
+        "src/common/database/sqlite/sqlite_adapter_impl.cpp",
+        "src/common/database/sqlite/sqlite_helper.cpp",
+        "src/common/database/sqlite/statement.cpp",
+        "src/common/database/sqlite/variant_value.cpp",
+      ]
+      external_deps += [ "sqlite:sqlite" ]
+      cflags_cc += [ "-DSQLITE_DLCLOSE_ENABLE" ]
+    }
+
+    subsystem_name = "account"
+    part_name = "os_account"
+  }
+}
+
 group("accountmgr_target") {
   deps = [
     ":accountmgr",
@@ -382,4 +436,7 @@ group("accountmgr_target") {
     ":os_account_config",
     ":osaccount_constraint",
   ]
+  if (!(has_kv_store_part && os_account_distributed_feature)) {
+    deps += [ ":account_database_adapter" ]
+  }
 }
