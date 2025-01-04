@@ -148,7 +148,6 @@ ErrCode OsAccount::UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
 ErrCode OsAccount::CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
     const std::shared_ptr<DomainAccountCallback> &callback, const CreateOsAccountForDomainOptions& options)
 {
-#ifdef SUPPORT_DOMAIN_ACCOUNTS
     if (domainInfo.domain_.empty() ||
         domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("Domain is empty or too long, len=%{public}zu.", domainInfo.domain_.size());
@@ -173,9 +172,6 @@ ErrCode OsAccount::CreateOsAccountForDomain(const OsAccountType &type, const Dom
     }
     sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
     return proxy->CreateOsAccountForDomain(type, domainInfo, callbackService, options);
-#else
-    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
-#endif
 }
 
 ErrCode OsAccount::RemoveOsAccount(const int id)
@@ -302,7 +298,6 @@ ErrCode OsAccount::IsMainOsAccount(bool &isMainOsAccount)
 
 ErrCode OsAccount::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id)
 {
-#ifdef SUPPORT_DOMAIN_ACCOUNTS
     if (domainInfo.domain_.empty() ||
         domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("invalid domain name length %{public}zu.", domainInfo.domain_.size());
@@ -321,9 +316,6 @@ ErrCode OsAccount::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domain
     }
 
     return proxy->GetOsAccountLocalIdFromDomain(domainInfo, id);
-#else
-    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
-#endif
 }
 
 ErrCode OsAccount::QueryMaxOsAccountNumber(uint32_t &maxOsAccountNumber)
@@ -1015,7 +1007,6 @@ ErrCode OsAccount::SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved)
 
 ErrCode OsAccount::GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo)
 {
-#ifdef SUPPORT_DOMAIN_ACCOUNTS
     ErrCode result = CheckLocalId(localId);
     if (result != ERR_OK) {
         return result;
@@ -1025,12 +1016,6 @@ ErrCode OsAccount::GetOsAccountDomainInfo(const int32_t localId, DomainAccountIn
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     return proxy->GetOsAccountDomainInfo(localId, domainInfo);
-#else
-    if (localId == Constants::START_USER_ID) {
-        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
-    }
-    return ERR_OK;
-#endif
 }
 }  // namespace AccountSA
 }  // namespace OHOS

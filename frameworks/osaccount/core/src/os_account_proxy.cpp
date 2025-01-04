@@ -178,7 +178,6 @@ ErrCode OsAccountProxy::UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo
     return ERR_OK;
 }
 
-#ifdef SUPPORT_DOMAIN_ACCOUNTS
 ErrCode OsAccountProxy::CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
     const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions& options)
 {
@@ -223,7 +222,6 @@ ErrCode OsAccountProxy::CreateOsAccountForDomain(const OsAccountType &type, cons
     }
     return ERR_OK;
 }
-#endif // SUPPORT_DOMAIN_ACCOUNTS
 
 ErrCode OsAccountProxy::RemoveOsAccount(const int id)
 {
@@ -403,7 +401,6 @@ ErrCode OsAccountProxy::IsMainOsAccount(bool &isMainOsAccount)
     return ERR_OK;
 }
 
-#ifdef SUPPORT_DOMAIN_ACCOUNTS
 ErrCode OsAccountProxy::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id)
 {
     MessageParcel data;
@@ -436,7 +433,6 @@ ErrCode OsAccountProxy::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &d
 
     return ERR_OK;
 }
-#endif // SUPPORT_DOMAIN_ACCOUNTS
 
 ErrCode OsAccountProxy::QueryMaxOsAccountNumber(uint32_t &maxOsAccountNumber)
 {
@@ -1781,7 +1777,6 @@ ErrCode OsAccountProxy::SetOsAccountToBeRemoved(int32_t localId, bool toBeRemove
     return result;
 }
 
-#ifdef SUPPORT_DOMAIN_ACCOUNTS
 ErrCode OsAccountProxy::GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo)
 {
     MessageParcel data;
@@ -1816,7 +1811,5 @@ ErrCode OsAccountProxy::GetOsAccountDomainInfo(const int32_t localId, DomainAcco
     domainInfo = *info;
     return result;
 }
-#endif // SUPPORT_DOMAIN_ACCOUNTS
-
 }  // namespace AccountSA
 }  // namespace OHOS

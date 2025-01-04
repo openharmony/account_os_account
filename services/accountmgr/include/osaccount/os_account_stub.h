@@ -99,11 +99,10 @@ public:
     ErrCode ProcGetForegroundOsAccounts(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetBackgroundOsAccountLocalIds(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetOsAccountToBeRemoved(MessageParcel &data, MessageParcel &reply);
-#ifdef SUPPORT_DOMAIN_ACCOUNTS
     ErrCode ProcCreateOsAccountForDomain(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountLocalIdFromDomain(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountDomainInfo(MessageParcel &data, MessageParcel &reply);
-#endif // SUPPORT_DOMAIN_ACCOUNTS
+
 private:
     bool WriteOsAccountInfoList(const std::vector<OsAccountInfo> &accounts, MessageParcel &data);
     DISALLOW_COPY_AND_MOVE(OsAccountStub);

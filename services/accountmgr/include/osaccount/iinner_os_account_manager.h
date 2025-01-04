@@ -122,11 +122,11 @@ public:
     ErrCode UpdateAccountStatusForDomain(const int id, DomainAccountStatus status);
     ErrCode UpdateAccountInfoByDomainAccountInfo(int32_t userId, const DomainAccountInfo &newDomainAccountInfo);
     bool IsSameAccount(const DomainAccountInfo &domainInfoSrc, const DomainAccountInfo &domainInfoTar);
+#endif // SUPPORT_DOMAIN_ACCOUNTS
     ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
         const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options = {}) override;
     ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id) override;
     ErrCode GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo) override;
-#endif // SUPPORT_DOMAIN_ACCOUNTS
 
 private:
     IInnerOsAccountManager();
