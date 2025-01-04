@@ -234,7 +234,6 @@ ErrCode OsAccountManagerService::UpdateOsAccountWithFullInfo(OsAccountInfo &osAc
     return innerManager_.UpdateOsAccountWithFullInfo(osAccountInfo);
 }
 
-#ifdef SUPPORT_DOMAIN_ACCOUNTS
 ErrCode OsAccountManagerService::CreateOsAccountForDomain(const OsAccountType &type,
     const DomainAccountInfo &domainInfo, const sptr<IDomainAccountCallback> &callback,
     const CreateOsAccountForDomainOptions &options)
@@ -282,7 +281,6 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(const OsAccountType &t
     }
     return innerManager_.CreateOsAccountForDomain(type, domainInfo, callback, options);
 }
-#endif // SUPPORT_DOMAIN_ACCOUNTS
 
 ErrCode OsAccountManagerService::RemoveOsAccount(const int id)
 {
@@ -438,7 +436,6 @@ ErrCode OsAccountManagerService::IsMainOsAccount(bool &isMainOsAccount)
     return ERR_OK;
 }
 
-#ifdef SUPPORT_DOMAIN_ACCOUNTS
 ErrCode OsAccountManagerService::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id)
 {
     if (domainInfo.domain_.empty() || domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
@@ -458,7 +455,6 @@ ErrCode OsAccountManagerService::GetOsAccountLocalIdFromDomain(const DomainAccou
 
     return innerManager_.GetOsAccountLocalIdFromDomain(domainInfo, id);
 }
-#endif // SUPPORT_DOMAIN_ACCOUNTS
 
 ErrCode OsAccountManagerService::QueryMaxOsAccountNumber(uint32_t &maxOsAccountNumber)
 {
@@ -1242,7 +1238,6 @@ ErrCode OsAccountManagerService::SetOsAccountToBeRemoved(int32_t localId, bool t
     return innerManager_.SetOsAccountToBeRemoved(localId, toBeRemoved);
 }
 
-#ifdef SUPPORT_DOMAIN_ACCOUNTS
 ErrCode OsAccountManagerService::GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo)
 {
     if (!(PermissionCheck(GET_DOMAIN_ACCOUNTS, "") &&
@@ -1256,6 +1251,5 @@ ErrCode OsAccountManagerService::GetOsAccountDomainInfo(const int32_t localId, D
     }
     return innerManager_.GetOsAccountDomainInfo(localId, domainInfo);
 }
-#endif // SUPPORT_DOMAIN_ACCOUNTS
 }  // namespace AccountSA
 }  // namespace OHOS

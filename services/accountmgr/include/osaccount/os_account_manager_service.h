@@ -35,11 +35,8 @@ public:
         const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo) override;
     ErrCode CreateOsAccount(const std::string &localName, const std::string &shortName,
         const OsAccountType &type, OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options = {}) override;
-#ifdef SUPPORT_DOMAIN_ACCOUNTS
     ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
         const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options = {}) override;
-#endif // SUPPORT_DOMAIN_ACCOUNTS
-
     ErrCode CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo,
         const CreateOsAccountOptions &options = {}) override;
     ErrCode UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo) override;
@@ -59,9 +56,7 @@ public:
     ErrCode GetCreatedOsAccountsCount(unsigned int &osAccountsCount) override;
     ErrCode GetOsAccountLocalIdFromProcess(int &id) override;
     ErrCode IsMainOsAccount(bool &isMainOsAccount) override;
-#ifdef SUPPORT_DOMAIN_ACCOUNTS
     ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id) override;
-#endif // SUPPORT_DOMAIN_ACCOUNTS
     ErrCode QueryMaxOsAccountNumber(uint32_t &maxOsAccountNumber) override;
     ErrCode QueryMaxLoggedInOsAccountNumber(uint32_t &maxNum) override;
 
@@ -133,9 +128,7 @@ public:
     ErrCode GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts) override;
     ErrCode GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds) override;
     ErrCode SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved) override;
-#ifdef SUPPORT_DOMAIN_ACCOUNTS
     ErrCode GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo) override;
-#endif // SUPPORT_DOMAIN_ACCOUNTS
 
 private:
     virtual ErrCode DumpStateByAccounts(
