@@ -170,6 +170,11 @@ ohos_shared_library("accountmgr") {
     "-Wfloat-equal",
     "-Wshadow",
   ]
+
+  if (!os_account_distributed_feature) {
+    cflags_cc += [ "-fvisibility=hidden" ]
+  }
+
   if (os_account_multiple_active_accounts) {
     cflags += [ "-DENABLE_MULTIPLE_ACTIVE_ACCOUNTS" ]
   }
