@@ -15,6 +15,7 @@
 
 #include "account_mgr_service.h"
 #include <cerrno>
+#include <thread>
 #include "account_dump_helper.h"
 #include "account_log_wrapper.h"
 #ifdef HAS_APP_ACCOUNT_PART

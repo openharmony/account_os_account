@@ -24,6 +24,7 @@ const int32_t MAX_TIMES = 10;
 const int32_t SLEEP_INTERVAL = 100 * 1000;
 constexpr char KV_STORE_EL1_BASE_DIR[] = "/data/service/el1/public/database/";
 
+#ifndef SQLITE_DLCLOSE_ENABLE
 AccountDataStorage::AccountDataStorage(const std::string &appId, const std::string &storeId,
     const AccountDataStorageOptions &options)
 {
@@ -37,15 +38,36 @@ AccountDataStorage::AccountDataStorage(const std::string &appId, const std::stri
         baseDir_ = options.baseDir;
     }
 }
+#else
+AccountDataStorage::AccountDataStorage(const std::string &appId, const std::string &storeId,
+    const DbAdapterOptions &options)
+{
+    appId_ = appId;
+    storeId_ = storeId;
+    options_ = options;
+    dataManager_ = DatabaseAdapterLoader::GetInstance().GetDataManager();
+    if (options_.area == DbAdapterArea::EL1) {
+        baseDir_ = KV_STORE_EL1_BASE_DIR + appId;
+    } else {
+        baseDir_ = options.baseDir;
+    }
+    options_.baseDir = baseDir_;
+}
+#endif // SQLITE_DLCLOSE_ENABLE
 
 AccountDataStorage::~AccountDataStorage()
 {
     ACCOUNT_LOGI("Destroyed");
     if (kvStorePtr_ != nullptr) {
+    #ifndef SQLITE_DLCLOSE_ENABLE
         dataManager_.CloseKvStore(appId_, kvStorePtr_);
+    #else
+        dataManager_->CloseKvStore(appId_, kvStorePtr_);
+    #endif // SQLITE_DLCLOSE_ENABLE
     }
 }
 
+#ifndef SQLITE_DLCLOSE_ENABLE
 void AccountDataStorage::TryTwice(const std::function<DistributedKv::Status()> &func) const
 {
     OHOS::DistributedKv::Status status = func();
@@ -54,7 +76,18 @@ void AccountDataStorage::TryTwice(const std::function<DistributedKv::Status()> &
         ACCOUNT_LOGE("distribute database ipc error and try again, status = %{public}d", status);
     }
 }
+#else
+void AccountDataStorage::TryTwice(const std::function<DbAdapterStatus()> &func) const
+{
+    DbAdapterStatus status = func();
+    if (status == DbAdapterStatus::IPC_ERROR) {
+        status = func();
+        ACCOUNT_LOGE("distribute database ipc error and try again, status = %{public}d", status);
+    }
+}
+#endif // SQLITE_DLCLOSE_ENABLE
 
+#ifndef SQLITE_DLCLOSE_ENABLE
 OHOS::DistributedKv::Status AccountDataStorage::GetKvStore()
 {
     OHOS::DistributedKv::Options options = {
@@ -70,6 +103,12 @@ OHOS::DistributedKv::Status AccountDataStorage::GetKvStore()
 
     OHOS::DistributedKv::Status status = dataManager_.GetSingleKvStore(options, appId_, storeId_, kvStorePtr_);
     if (status != OHOS::DistributedKv::Status::SUCCESS || kvStorePtr_ == nullptr) {
+#else
+DbAdapterStatus AccountDataStorage::GetKvStore()
+{
+    DbAdapterStatus status = dataManager_->GetSingleKvStore(options_, appId_, storeId_, kvStorePtr_);
+    if (status != DbAdapterStatus::SUCCESS || kvStorePtr_ == nullptr) {
+#endif // SQLITE_DLCLOSE_ENABLE
         ACCOUNT_LOGE("GetSingleKvStore failed! status %{public}d, kvStorePtr_ is nullptr", status);
         return status;
     }
@@ -84,12 +123,22 @@ bool AccountDataStorage::CheckKvStore()
         return true;
     }
     int32_t tryTimes = MAX_TIMES;
+#ifndef SQLITE_DLCLOSE_ENABLE
     OHOS::DistributedKv::Status status = OHOS::DistributedKv::Status::SUCCESS;
+#else
+    DbAdapterStatus status = DbAdapterStatus::SUCCESS;
+#endif // SQLITE_DLCLOSE_ENABLE
     while (tryTimes > 0) {
         status = GetKvStore();
+    #ifndef SQLITE_DLCLOSE_ENABLE
         if (status == OHOS::DistributedKv::Status::SUCCESS && kvStorePtr_ != nullptr) {
             break;
         }
+    #else
+        if (status == DbAdapterStatus::SUCCESS && kvStorePtr_ != nullptr) {
+            break;
+        }
+    #endif // SQLITE_DLCLOSE_ENABLE
 
         usleep(SLEEP_INTERVAL);
         tryTimes--;
@@ -108,7 +157,7 @@ ErrCode AccountDataStorage::LoadAllData(std::map<std::string, std::shared_ptr<IA
         ACCOUNT_LOGE("kvStore is nullptr");
         return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
     }
-
+#ifndef SQLITE_DLCLOSE_ENABLE
     OHOS::DistributedKv::Status status = DistributedKv::Status::SUCCESS;
     std::vector<OHOS::DistributedKv::Entry> allEntries;
     TryTwice([this, &status, &allEntries] {
@@ -117,6 +166,16 @@ ErrCode AccountDataStorage::LoadAllData(std::map<std::string, std::shared_ptr<IA
     });
 
     if (status != OHOS::DistributedKv::Status::SUCCESS) {
+#else
+    DbAdapterStatus status = DbAdapterStatus::SUCCESS;
+    std::vector<DbAdapterEntry> allEntries;
+    TryTwice([this, &status, &allEntries] {
+        status = GetEntries("", allEntries);
+        return status;
+    });
+
+    if (status != DbAdapterStatus::SUCCESS) {
+#endif // SQLITE_DLCLOSE_ENABLE
         ACCOUNT_LOGE("get entries error: %{public}d", status);
         return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
     }
@@ -155,6 +214,7 @@ ErrCode AccountDataStorage::SaveAccountInfo(const IAccountInfo &iAccountInfo)
     return PutValueToKvStore(iAccountInfo.GetPrimeKey(), accountInfoStr);
 }
 
+#ifndef SQLITE_DLCLOSE_ENABLE
 ErrCode AccountDataStorage::RemoveValueFromKvStore(const std::string &keyStr)
 {
     if (!CheckKvStore()) {
@@ -194,7 +254,48 @@ ErrCode AccountDataStorage::RemoveValueFromKvStore(const std::string &keyStr)
     ACCOUNT_LOGD("delete key from kvStore succeed!");
     return ERR_OK;
 }
+#else
+ErrCode AccountDataStorage::RemoveValueFromKvStore(const std::string &keyStr)
+{
+    if (!CheckKvStore()) {
+        ACCOUNT_LOGE("kvStore is nullptr");
+        return ERR_ACCOUNT_COMMON_CHECK_KVSTORE_ERROR;
+    }
 
+    DbAdapterStatus status;
+    std::string value;
+    {
+        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        // check exist
+        status = kvStorePtr_->Get(keyStr, value);
+        if (status == DbAdapterStatus::IPC_ERROR) {
+            ACCOUNT_LOGE("kvstore ipc error and try again, status = %{public}d", status);
+            status = kvStorePtr_->Get(keyStr, value);
+        }
+        if (status != DbAdapterStatus::SUCCESS) {
+            ACCOUNT_LOGI("key does not exist in kvStore.");
+            return ERR_OK;
+        }
+
+        // delete
+        status = kvStorePtr_->Delete(keyStr);
+        if (status == DbAdapterStatus::IPC_ERROR) {
+            status = kvStorePtr_->Delete(keyStr);
+            ACCOUNT_LOGE("kvstore ipc error and try to call again, status = %{public}d", status);
+        }
+    }
+
+    if (status != DbAdapterStatus::SUCCESS) {
+        ACCOUNT_LOGE("delete key from kvstore failed, status %{public}d.", status);
+        return ERR_ACCOUNT_COMMON_DELETE_KEY_FROM_KVSTORE_ERROR;
+    }
+
+    ACCOUNT_LOGD("delete key from kvStore succeed!");
+    return ERR_OK;
+}
+#endif // SQLITE_DLCLOSE_ENABLE
+
+#ifndef SQLITE_DLCLOSE_ENABLE
 OHOS::DistributedKv::Status AccountDataStorage::GetEntries(
     std::string subId, std::vector<OHOS::DistributedKv::Entry> &allEntries) const
 {
@@ -204,17 +305,32 @@ OHOS::DistributedKv::Status AccountDataStorage::GetEntries(
 
     return status;
 }
+#else
+DbAdapterStatus AccountDataStorage::GetEntries(
+    std::string subId, std::vector<DbAdapterEntry> &allEntries) const
+{
+    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+    DbAdapterStatus status = kvStorePtr_->GetEntries(subId, allEntries);
+
+    return status;
+}
+#endif // SQLITE_DLCLOSE_ENABLE
 
 ErrCode AccountDataStorage::Close()
 {
     std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+#ifndef SQLITE_DLCLOSE_ENABLE
     ErrCode errCode = dataManager_.CloseKvStore(appId_, kvStorePtr_);
+#else
+    ErrCode errCode = dataManager_->CloseKvStore(appId_, kvStorePtr_);
+#endif // SQLITE_DLCLOSE_ENABLE
     kvStorePtr_ = nullptr;
     return errCode;
 }
 
 ErrCode AccountDataStorage::DeleteKvStore()
 {
+#ifndef SQLITE_DLCLOSE_ENABLE
     if (!CheckKvStore()) {
         ACCOUNT_LOGE("kvStore is nullptr");
         return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
@@ -230,7 +346,9 @@ ErrCode AccountDataStorage::DeleteKvStore()
         ACCOUNT_LOGE("error, status = %{public}d", status);
         return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
     }
-
+#else
+    ACCOUNT_LOGI("DeleteKvStore not enabled.");
+#endif // SQLITE_DLCLOSE_ENABLE
     return ERR_OK;
 }
 
@@ -259,15 +377,22 @@ ErrCode AccountDataStorage::LoadDataByLocalFuzzyQuery(
         ACCOUNT_LOGE("kvStore is nullptr");
         return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
     }
-
+#ifndef SQLITE_DLCLOSE_ENABLE
     OHOS::DistributedKv::Status status = OHOS::DistributedKv::Status::SUCCESS;
     std::vector<OHOS::DistributedKv::Entry> allEntries;
+#else
+    DbAdapterStatus status = DbAdapterStatus::SUCCESS;
+    std::vector<DbAdapterEntry> allEntries;
+#endif // SQLITE_DLCLOSE_ENABLE
     TryTwice([this, &status, &allEntries, subId] {
         status = GetEntries(subId, allEntries);
         return status;
     });
-
+#ifndef SQLITE_DLCLOSE_ENABLE
     if (status != OHOS::DistributedKv::Status::SUCCESS) {
+#else
+    if (status != DbAdapterStatus::SUCCESS) {
+#endif // SQLITE_DLCLOSE_ENABLE
         ACCOUNT_LOGE("get entries error: %{public}d", status);
         return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
     }
@@ -282,7 +407,7 @@ ErrCode AccountDataStorage::PutValueToKvStore(const std::string &keyStr, const s
         ACCOUNT_LOGE("kvStore is nullptr");
         return ERR_ACCOUNT_COMMON_CHECK_KVSTORE_ERROR;
     }
-
+#ifndef SQLITE_DLCLOSE_ENABLE
     OHOS::DistributedKv::Key key(keyStr);
     OHOS::DistributedKv::Value value(valueStr);
     OHOS::DistributedKv::Status status;
@@ -296,6 +421,18 @@ ErrCode AccountDataStorage::PutValueToKvStore(const std::string &keyStr, const s
     }
 
     if (status != OHOS::DistributedKv::Status::SUCCESS) {
+#else
+    DbAdapterStatus status = DbAdapterStatus::SUCCESS;
+    {
+        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        status = kvStorePtr_->Put(keyStr, valueStr);
+        if (status == DbAdapterStatus::IPC_ERROR) {
+            status = kvStorePtr_->Put(keyStr, valueStr);
+        }
+    }
+
+    if (status != DbAdapterStatus::SUCCESS) {
+#endif // SQLITE_DLCLOSE_ENABLE
         ACCOUNT_LOGE("put value to kvStore error, status = %{public}d", status);
         return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
     }
@@ -309,7 +446,7 @@ ErrCode AccountDataStorage::GetValueFromKvStore(const std::string &keyStr, std::
         ACCOUNT_LOGE("kvStore is nullptr");
         return ERR_ACCOUNT_COMMON_CHECK_KVSTORE_ERROR;
     }
-
+#ifndef SQLITE_DLCLOSE_ENABLE
     OHOS::DistributedKv::Key key(keyStr);
     OHOS::DistributedKv::Value value;
     OHOS::DistributedKv::Status status;
@@ -324,11 +461,26 @@ ErrCode AccountDataStorage::GetValueFromKvStore(const std::string &keyStr, std::
     }
 
     if (status != OHOS::DistributedKv::Status::SUCCESS) {
+#else
+    DbAdapterStatus status;
+
+    {
+        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        status = kvStorePtr_->Get(keyStr, valueStr);
+        if (status == DbAdapterStatus::IPC_ERROR) {
+            ACCOUNT_LOGE("kvstore ipc error and try again, status = %{public}d", status);
+            status = kvStorePtr_->Get(keyStr, valueStr);
+        }
+    }
+
+    if (status != DbAdapterStatus::SUCCESS) {
+#endif // SQLITE_DLCLOSE_ENABLE
         ACCOUNT_LOGE("get value from kvstore error, status %{public}d.", status);
         return ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
     }
-
+#ifndef SQLITE_DLCLOSE_ENABLE
     valueStr = value.ToString();
+#endif
     return ERR_OK;
 }
 
@@ -343,6 +495,7 @@ bool AccountDataStorage::IsKeyExists(const std::string keyStr)
 
 ErrCode AccountDataStorage::MoveData(const std::shared_ptr<AccountDataStorage> &ptr)
 {
+#ifndef SQLITE_DLCLOSE_ENABLE
     if (ptr == nullptr || !ptr->CheckKvStore() || !CheckKvStore()) {
         ACCOUNT_LOGE("AccountDataStorage is nullptr");
         return ERR_ACCOUNT_COMMON_CHECK_KVSTORE_ERROR;
@@ -359,6 +512,9 @@ ErrCode AccountDataStorage::MoveData(const std::shared_ptr<AccountDataStorage> &
         ACCOUNT_LOGE("PutBatch failed, result=%{public}u", status);
         return ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
     }
+#else
+    ACCOUNT_LOGI("MoveData not enabled.");
+#endif
     return ERR_OK;
 }
 }  // namespace AccountSA
