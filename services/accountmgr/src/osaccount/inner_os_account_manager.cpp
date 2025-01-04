@@ -458,6 +458,21 @@ bool IInnerOsAccountManager::CheckAndCleanOsAccounts()
     return true;
 }
 
+#ifdef HAS_THEME_SERVICE_PART
+static void InitTheme(int32_t localId)
+{
+    auto task = [localId] {
+#ifdef HICOLLIE_ENABLE
+        AccountTimer timer;
+#endif // HICOLLIE_ENABLE
+        OsAccountInterface::InitThemeResource(localId);
+    };
+    std::thread theme_thread(task);
+    pthread_setname_np(theme_thread.native_handle(), "InitTheme");
+    theme_thread.detach();
+}
+#endif // HAS_THEME_SERVICE_PART
+
 ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
     OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options)
 {
@@ -468,16 +483,8 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
     }
     int32_t localId = osAccountInfo.GetLocalId();
 #ifdef HAS_THEME_SERVICE_PART
-    auto task = [localId] {
-#ifdef HICOLLIE_ENABLE
-        AccountTimer timer;
-#endif // HICOLLIE_ENABLE
-        OsAccountInterface::InitThemeResource(localId);
-    };
-    std::thread theme_thread(task);
-    pthread_setname_np(theme_thread.native_handle(), "InitTheme");
-    theme_thread.detach();
-#endif
+    InitTheme(localId);
+#endif // HAS_THEME_SERVICE_PART
     errCode = OsAccountInterface::SendToBMSAccountCreate(osAccountInfo, options.disallowedHapList);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Create os account SendToBMSAccountCreate failed, errCode %{public}d.", errCode);
@@ -486,7 +493,9 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
         }
         return errCode;
     }
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
     AppAccountControlManager::GetInstance().SetOsAccountRemoved(osAccountInfo.GetLocalId(), false);
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
     osAccountInfo.SetIsCreateCompleted(true);
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
@@ -1056,7 +1065,9 @@ ErrCode IInnerOsAccountManager::CheckTypeNumber(const OsAccountType& type)
 ErrCode IInnerOsAccountManager::SendMsgForAccountRemove(OsAccountInfo &osAccountInfo)
 {
     int32_t localId = osAccountInfo.GetLocalId();
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
     AppAccountControlManager::GetInstance().SetOsAccountRemoved(localId, true);
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
     ErrCode errCode = OsAccountInterface::SendToBMSAccountDelete(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("SendToBMSAccountDelete failed, id %{public}d, errCode %{public}d", localId, errCode);

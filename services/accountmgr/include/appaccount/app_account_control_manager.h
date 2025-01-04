@@ -104,6 +104,7 @@ public:
         const uint32_t &appIndex);
     std::shared_ptr<AppAccountDataStorage> GetDataStorage(const uid_t &uid, const bool &autoSync = false,
         DistributedKv::SecurityLevel securityLevel = DistributedKv::SecurityLevel::S1);
+    void CloseDataStorage();
 
     void AddMigratedAccount(int32_t localId);
     void MoveData();

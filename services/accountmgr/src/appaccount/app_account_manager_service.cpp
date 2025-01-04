@@ -31,6 +31,7 @@ const char GET_ALL_APP_ACCOUNTS[] = "ohos.permission.GET_ALL_APP_ACCOUNTS";
 
 AppAccountManagerService::AppAccountManagerService()
 {
+    ACCOUNT_LOGI("Constructed");
     innerManager_ = std::make_shared<InnerAppAccountManager>();
 #ifdef HAS_CES_PART
     CommonEventCallback callback = {
@@ -44,7 +45,9 @@ AppAccountManagerService::AppAccountManagerService()
 }
 
 AppAccountManagerService::~AppAccountManagerService()
-{}
+{
+    ACCOUNT_LOGI("Destroyed");
+}
 
 ErrCode AppAccountManagerService::AddAccount(const std::string &name, const std::string &extraInfo)
 {
