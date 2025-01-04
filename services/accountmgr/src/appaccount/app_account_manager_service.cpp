@@ -16,6 +16,7 @@
 #include "app_account_manager_service.h"
 #include "accesstoken_kit.h"
 #include "account_log_wrapper.h"
+#include "account_permission_manager.h"
 #include "bundle_manager_adapter.h"
 #include "account_hisysevent_adapter.h"
 #include "inner_app_account_manager.h"
@@ -30,18 +31,12 @@ const char GET_ALL_APP_ACCOUNTS[] = "ohos.permission.GET_ALL_APP_ACCOUNTS";
 }
 
 AppAccountManagerService::AppAccountManagerService()
+#ifdef HAS_CES_PART
+    : observer_(AppAccountCommonEventObserver::GetInstance())
+#endif // HAS_CES_PART
 {
     ACCOUNT_LOGI("Constructed");
     innerManager_ = std::make_shared<InnerAppAccountManager>();
-#ifdef HAS_CES_PART
-    CommonEventCallback callback = {
-        [this](const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex) {
-            this->OnPackageRemoved(uid, bundleName, appIndex);
-        },
-        [this] (int32_t userId) { this->OnUserRemoved(userId); },
-    };
-    observer_ = std::make_shared<AppAccountCommonEventObserver>(callback);
-#endif // HAS_CES_PART
 }
 
 AppAccountManagerService::~AppAccountManagerService()

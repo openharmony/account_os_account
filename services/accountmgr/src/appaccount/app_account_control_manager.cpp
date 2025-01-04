@@ -1061,7 +1061,9 @@ ErrCode AppAccountControlManager::OnPackageRemoved(
         ACCOUNT_LOGI("Account %{public}d is removed", localId);
         return ERR_OK;
     }
-    return RemoveAppAccountData(uid, bundleName, appIndex);
+    ErrCode errCode = RemoveAppAccountData(uid, bundleName, appIndex);
+    CloseDataStorage();
+    return errCode;
 }
 
 ErrCode AppAccountControlManager::RemoveAppAccountData(
@@ -1230,7 +1232,7 @@ std::shared_ptr<AppAccountDataStorage> AppAccountControlManager::GetDataStorageB
     options.securityLevel = securityLevel;
     options.baseDir = EL2_DATA_STORAGE_PATH_PREFIX + std::to_string(userId) + EL2_DATA_STORAGE_PATH_SUFFIX;
     auto storePtr = std::make_shared<AppAccountDataStorage>(EL2_DATA_STORE_PREFIX + storeId, options);
-    storePtrMap_.emplace(storeId, storePtr);
+    storePtrMap_[storeId] = storePtr;
     return storePtr;
 }
 

@@ -38,9 +38,15 @@ constexpr int32_t DELAY_FOR_TIME_INTERVAL = 1 * 1000;
 constexpr int32_t MAX_TRY_TIMES = 10;
 }
 
-AppAccountCommonEventObserver::AppAccountCommonEventObserver(const CommonEventCallback &callback)
-    : callback_(callback)
+AppAccountCommonEventObserver &AppAccountCommonEventObserver::GetInstance()
 {
+    static AppAccountCommonEventObserver *instance = new (std::nothrow) AppAccountCommonEventObserver();
+    return *instance;
+}
+
+AppAccountCommonEventObserver::AppAccountCommonEventObserver()
+{
+    ACCOUNT_LOGI("Constructed");
     counter_ = 0;
     MatchingSkills matchingSkills;
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED);
@@ -60,6 +66,7 @@ AppAccountCommonEventObserver::AppAccountCommonEventObserver(const CommonEventCa
 
 AppAccountCommonEventObserver::~AppAccountCommonEventObserver()
 {
+    ACCOUNT_LOGI("Destroyed");
     CommonEventManager::UnSubscribeCommonEvent(subscriber_);
 }
 
@@ -67,6 +74,7 @@ void AppAccountCommonEventObserver::SubscribeCommonEvent(void)
 {
     while (counter_ != MAX_TRY_TIMES) {
         if (CommonEventManager::SubscribeCommonEvent(subscriber_)) {
+            ACCOUNT_LOGI("Successfully");
             counter_ = 0;
             break;
         }
@@ -86,8 +94,8 @@ void AppAccountCommonEventObserver::OnReceiveEvent(const CommonEventData &data)
         DealWithRemoveEvent(want, action);
         return;
     }
-    if ((action == CommonEventSupport::COMMON_EVENT_USER_REMOVED) && (callback_.OnUserRemoved != nullptr)) {
-        callback_.OnUserRemoved(data.GetCode());
+    if (action == CommonEventSupport::COMMON_EVENT_USER_REMOVED) {
+        AppAccountControlManager::GetInstance().OnUserRemoved(data.GetCode());
         return;
     }
     if (action == CommonEventSupport::COMMON_EVENT_USER_UNLOCKED) {
@@ -97,9 +105,6 @@ void AppAccountCommonEventObserver::OnReceiveEvent(const CommonEventData &data)
 
 void AppAccountCommonEventObserver::DealWithRemoveEvent(const AAFwk::Want &want, const std::string action)
 {
-    if (callback_.OnPackageRemoved == nullptr) {
-        return;
-    }
     auto element = want.GetElement();
     std::string bundleName = element.GetBundleName();
     auto uid = want.GetIntParam(AppExecFwk::Constants::UID, -1);
@@ -115,7 +120,7 @@ void AppAccountCommonEventObserver::DealWithRemoveEvent(const AAFwk::Want &want,
     }
     ACCOUNT_LOGD("uid = %{public}d, bundleName = %{public}s. appIndex = %{public}d",
         uid, bundleName.c_str(), appIndex);
-    callback_.OnPackageRemoved(uid, bundleName, appIndex);
+    AppAccountControlManager::GetInstance().OnPackageRemoved(uid, bundleName, appIndex);
 }
 #endif // HAS_CES_PART
 }  // namespace AccountSA

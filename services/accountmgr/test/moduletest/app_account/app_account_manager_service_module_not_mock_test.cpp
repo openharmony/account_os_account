@@ -28,9 +28,6 @@ using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
 using namespace OHOS::AppExecFwk;
-#ifdef HAS_CES_PART
-using namespace OHOS::EventFwk;
-#endif // HAS_CES_PART
 namespace {
 const std::string STRING_NAME = "name";
 const std::string AUTH_TYPE = "type";

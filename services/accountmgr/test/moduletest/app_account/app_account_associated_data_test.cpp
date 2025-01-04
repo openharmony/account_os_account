@@ -34,9 +34,6 @@ using namespace testing::mt;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
 using namespace OHOS::AppExecFwk;
-#ifdef HAS_CES_PART
-using namespace OHOS::EventFwk;
-#endif // HAS_CES_PART
 namespace {
 const std::string STRING_NAME = "name";
 const std::string STRING_EXTRA_INFO = "extra_info";
