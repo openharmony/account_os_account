@@ -39,6 +39,7 @@ const char DEFAULT_ACTIVATED_ACCOUNT_ID[] = "DefaultActivatedAccountID";
 const std::string OS_ACCOUNT_STORE_ID = "os_account_info";
 #ifdef ENABLE_FILE_WATCHER
 constexpr uint32_t ALG_COMMON_SIZE = 32;
+const char DISTRIBUTED_ACCOUNT_FILE_NAME[] = "/account.json";
 #endif // ENABLE_FILE_WATCHER
 #ifndef ACCOUNT_TEST
 const std::string ACCOUNT_CFG_DIR_ROOT_PATH = "/data/service/el1/public/account/";
@@ -47,7 +48,6 @@ const std::string DEFAULT_OS_ACCOUNT_CONFIG_FILE = "/system/etc/account/os_accou
 const std::string ACCOUNT_CFG_DIR_ROOT_PATH = "/data/service/el1/public/account/test/";
 const std::string DEFAULT_OS_ACCOUNT_CONFIG_FILE = ACCOUNT_CFG_DIR_ROOT_PATH + "os_account_config.json";
 #endif // ACCOUNT_TEST
-const char DISTRIBUTED_ACCOUNT_FILE_NAME[] = "/account.json";
 #ifdef HAS_CONFIG_POLICY_PART
 const char OS_ACCOUNT_CONFIG_FILE[] = "etc/os_account/os_account_config.json";
 #endif // HAS_CONFIG_POLICY_PART
@@ -136,7 +136,7 @@ ErrCode OsAccountControlFileManager::GetOsAccountConfig(OsAccountConfig &config)
 #ifdef ENABLE_FILE_WATCHER
 bool OsAccountControlFileManager::RecoverAccountData(const std::string &fileName, const int32_t id)
 {
-#ifdef HAS_KV_STORE_PART
+#if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
     std::string recoverDataStr;
     if (fileName == Constants::ACCOUNT_LIST_FILE_JSON_PATH) {
         Json accountListJson;
@@ -168,7 +168,7 @@ bool OsAccountControlFileManager::RecoverAccountData(const std::string &fileName
         ACCOUNT_LOGE("Failed to update local digest");
         return false;
     }
-#endif
+#endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
     return true;
 }
 
@@ -246,9 +246,9 @@ OsAccountControlFileManager::OsAccountControlFileManager()
     : accountFileWatcherMgr_(AccountFileWatcherMgr::GetInstance())
 {
     accountFileOperator_ = accountFileWatcherMgr_.accountFileOperator_;
-#ifdef HAS_KV_STORE_PART
+#if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
     osAccountDataBaseOperator_ = std::make_shared<OsAccountDatabaseOperator>();
-#endif
+#endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
     osAccountFileOperator_ = std::make_shared<OsAccountFileOperator>();
     osAccountPhotoOperator_ = std::make_shared<OsAccountPhotoOperator>();
     eventCallbackFunc_ = [this](const std::string &fileName, int32_t id, uint32_t event) {
@@ -274,9 +274,9 @@ OsAccountControlFileManager::OsAccountControlFileManager()
 OsAccountControlFileManager::OsAccountControlFileManager()
 {
     accountFileOperator_ = std::make_shared<AccountFileOperator>();
-#ifdef HAS_KV_STORE_PART
+#if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
     osAccountDataBaseOperator_ = std::make_shared<OsAccountDatabaseOperator>();
-#endif // HAS_KV_STORE_PART
+#endif // HAS_KV_STORE_PART && defined(DISTRIBUTED_FEATURE_ENABLED)
     osAccountFileOperator_ = std::make_shared<OsAccountFileOperator>();
     osAccountPhotoOperator_ = std::make_shared<OsAccountPhotoOperator>();
 }
@@ -529,7 +529,7 @@ ErrCode OsAccountControlFileManager::GetOsAccountList(std::vector<OsAccountInfo>
     ErrCode result = GetAccountListFromFile(accountListJson);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("GetAccountListFromFile failed!");
-#ifdef HAS_KV_STORE_PART
+#if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
         if (osAccountDataBaseOperator_->GetAccountListFromStoreID("", accountListJson) == ERR_OK) {
             SaveAccountListToFile(accountListJson);
         } else {
@@ -537,7 +537,7 @@ ErrCode OsAccountControlFileManager::GetOsAccountList(std::vector<OsAccountInfo>
         }
 #else
         return result;
-#endif
+#endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
     }
     const auto &jsonObjectEnd = accountListJson.end();
     std::vector<std::string> idList;
@@ -1051,9 +1051,9 @@ ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInf
         ACCOUNT_LOGE("InputFileByPathAndContent failed! path %{public}s.", path.c_str());
         return result;
     }
-#ifdef HAS_KV_STORE_PART
+#if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
     osAccountDataBaseOperator_->InsertOsAccountIntoDataBase(osAccountInfo);
-#endif
+#endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 
 #ifdef ENABLE_FILE_WATCHER
     if (osAccountInfo.GetLocalId() >= Constants::START_USER_ID) {
@@ -1079,9 +1079,9 @@ ErrCode OsAccountControlFileManager::DelOsAccount(const int id)
         ACCOUNT_LOGE("DeleteDirOrFile failed! path %{public}s.", path.c_str());
         return result;
     }
-#ifdef HAS_KV_STORE_PART
+#if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
     osAccountDataBaseOperator_->DelOsAccountFromDatabase(id);
-#endif
+#endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 #ifdef ENABLE_FILE_WATCHER
     path += Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
     accountFileWatcherMgr_.DeleteAccountInfoDigest(path);
@@ -1122,7 +1122,7 @@ ErrCode OsAccountControlFileManager::UpdateOsAccount(OsAccountInfo &osAccountInf
     }
 #else  // DISTRIBUTED_FEATURE_ENABLED
     ACCOUNT_LOGI("No distributed feature!");
-#endif // DISTRIBUTED_FEATURE_ENABLED
+#endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 #ifdef ENABLE_FILE_WATCHER
     accountFileWatcherMgr_.AddAccountInfoDigest(accountInfoStr, path);
 #endif // ENABLE_FILE_WATCHER
@@ -1251,11 +1251,11 @@ ErrCode OsAccountControlFileManager::GetAccountListFromFile(Json &accountListJso
     accountListJson = Json::parse(accountList, nullptr, false);
     if (accountListJson.is_discarded()) {
         ACCOUNT_LOGE("AccountListFile does not comply with the json format.");
-#ifdef HAS_KV_STORE_PART
+#if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
         return osAccountDataBaseOperator_->GetAccountListFromStoreID(OS_ACCOUNT_STORE_ID, accountListJson);
 #else
         return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
-#endif
+#endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
     }
     ACCOUNT_LOGD("End");
     return ERR_OK;
@@ -1615,9 +1615,9 @@ ErrCode OsAccountControlFileManager::GetDefaultActivatedOsAccount(int32_t &id)
 
 ErrCode OsAccountControlFileManager::SaveAccountListToFileAndDataBase(const Json &accountListJson)
 {
-#ifdef HAS_KV_STORE_PART
+#if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
     osAccountDataBaseOperator_->UpdateOsAccountIDListInDatabase(accountListJson);
-#endif
+#endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
     return SaveAccountListToFile(accountListJson);
 }
 
@@ -1715,51 +1715,51 @@ ErrCode OsAccountControlFileManager::IsAllowedCreateAdmin(bool &isAllowedCreateA
 ErrCode OsAccountControlFileManager::GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
     int &createdOsAccountNum)
 {
-#ifdef HAS_KV_STORE_PART
+#if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
     return osAccountDataBaseOperator_->GetCreatedOsAccountNumFromDatabase(storeID, createdOsAccountNum);
 #else
     return ERR_ACCOUNT_COMMON_INTERFACE_NOT_SUPPORT_ERROR;
-#endif
+#endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 }
 
 ErrCode OsAccountControlFileManager::GetSerialNumberFromDatabase(const std::string& storeID,
     int64_t &serialNumber)
 {
-#ifdef HAS_KV_STORE_PART
+#if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
     return osAccountDataBaseOperator_->GetSerialNumberFromDatabase(storeID, serialNumber);
 #else
     return ERR_ACCOUNT_COMMON_INTERFACE_NOT_SUPPORT_ERROR;
-#endif
+#endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 }
 
 ErrCode OsAccountControlFileManager::GetMaxAllowCreateIdFromDatabase(const std::string& storeID,
     int &id)
 {
-#ifdef HAS_KV_STORE_PART
+#if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
     return osAccountDataBaseOperator_->GetMaxAllowCreateIdFromDatabase(storeID, id);
 #else
     return ERR_ACCOUNT_COMMON_INTERFACE_NOT_SUPPORT_ERROR;
-#endif
+#endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 }
 
 ErrCode OsAccountControlFileManager::GetOsAccountFromDatabase(const std::string& storeID,
     const int id, OsAccountInfo &osAccountInfo)
 {
-#ifdef HAS_KV_STORE_PART
+#if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
     return osAccountDataBaseOperator_->GetOsAccountFromDatabase(storeID, id, osAccountInfo);
 #else
     return ERR_ACCOUNT_COMMON_INTERFACE_NOT_SUPPORT_ERROR;
-#endif
+#endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 }
 
 ErrCode OsAccountControlFileManager::GetOsAccountListFromDatabase(const std::string& storeID,
     std::vector<OsAccountInfo> &osAccountList)
 {
-#ifdef HAS_KV_STORE_PART
+#if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
     return osAccountDataBaseOperator_->GetOsAccountListFromDatabase(storeID, osAccountList);
 #else
     return ERR_ACCOUNT_COMMON_INTERFACE_NOT_SUPPORT_ERROR;
-#endif
+#endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 }
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -24,9 +24,9 @@
 #endif // ENABLE_FILE_WATCHER
 #include "ios_account_control.h"
 #include "os_account_constants.h"
-#ifdef HAS_KV_STORE_PART
+#if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 #include "os_account_database_operator.h"
-#endif
+#endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 #include "os_account_file_operator.h"
 #include "os_account_photo_operator.h"
 namespace OHOS {
@@ -136,9 +136,9 @@ private:
 
 private:
     std::shared_ptr<AccountFileOperator> accountFileOperator_;
-#ifdef HAS_KV_STORE_PART
+#if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
     std::shared_ptr<OsAccountDatabaseOperator> osAccountDataBaseOperator_;
-#endif
+#endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 #ifdef ENABLE_FILE_WATCHER
     AccountFileWatcherMgr &accountFileWatcherMgr_;
     CheckNotifyEventCallbackFunc eventCallbackFunc_;

@@ -31,10 +31,15 @@ InnerAppAccountManager::InnerAppAccountManager()
     : controlManager_(AppAccountControlManager::GetInstance()),
       subscribeManager_(AppAccountSubscribeManager::GetInstance()),
       sessionManager_(AppAccountAuthenticatorSessionManager::GetInstance())
-{}
+{
+    ACCOUNT_LOGI("Constructed");
+}
 
 InnerAppAccountManager::~InnerAppAccountManager()
-{}
+{
+    ACCOUNT_LOGI("Destroyed");
+    controlManager_.CloseDataStorage();
+}
 
 ErrCode InnerAppAccountManager::AddAccount(const std::string &name, const std::string &extraInfo,
     const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)

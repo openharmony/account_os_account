@@ -573,12 +573,14 @@ group("moduletest") {
   deps = [
     ":inner_os_account_manager_test",
     ":os_account_control_file_manager_test",
-    ":os_account_database_operator_test",
     ":os_account_file_operator_test",
     ":os_account_manager_service_module_test",
     ":os_account_photo_operator_test",
   ]
   if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
     deps += [ ":os_account_manager_service_subscribe_module_test" ]
+  }
+  if (has_kv_store_part && os_account_distributed_feature) {
+    deps += [ ":os_account_database_operator_test" ]
   }
 }

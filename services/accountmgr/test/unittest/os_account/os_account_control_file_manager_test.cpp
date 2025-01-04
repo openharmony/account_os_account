@@ -377,6 +377,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest019, Te
     g_controlManager->DelOsAccount(id);
 }
 
+#if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 /**
  * @tc.name: OsAccountControlFileManagerTest020
  * @tc.desc: GetCreatedOsAccountNumFromDatabase
@@ -475,6 +476,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest021, Te
             << "osAccountList.size() = " << osAccountList.size() << std::endl;
     }
 }
+#endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 
 /**
  * @tc.name: OsAccountControlFileManagerTest022

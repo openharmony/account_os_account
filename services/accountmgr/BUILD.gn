@@ -301,12 +301,15 @@ ohos_shared_library("accountmgr") {
       "-DHAS_KV_STORE_PART",
     ]
     sources += app_account_sources
+    sources += [ "src/account_data_storage.cpp" ]
+    external_deps += [ "kv_store:distributeddata_inner" ]
+  }
+
+  if (has_kv_store_part && os_account_distributed_feature) {
     sources += [
-      "src/account_data_storage.cpp",
       "src/osaccount/os_account_data_storage.cpp",
       "src/osaccount/os_account_database_operator.cpp",
     ]
-    external_deps += [ "kv_store:distributeddata_inner" ]
   }
 
   if (has_storage_service_part) {

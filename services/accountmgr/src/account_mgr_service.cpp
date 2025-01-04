@@ -195,25 +195,58 @@ ErrCode AccountMgrService::UnsubscribeDistributedAccountEvent(const DISTRIBUTED_
 
 sptr<IRemoteObject> AccountMgrService::GetAppAccountService()
 {
-    return appAccountManagerService_;
+#ifdef HAS_APP_ACCOUNT_PART
+    std::lock_guard<std::mutex> lock(serviceMutex_);
+    auto service = appAccountManagerService_.promote();
+    if (service == nullptr) {
+        service = new (std::nothrow) AppAccountManagerService();
+        appAccountManagerService_ = service;
+    }
+    return service;
+#else
+    return nullptr;
+#endif
 }
 
 sptr<IRemoteObject> AccountMgrService::GetOsAccountService()
 {
-    if (osAccountManagerService_ != nullptr) {
-        return osAccountManagerService_->AsObject();
+    std::lock_guard<std::mutex> lock(serviceMutex_);
+    auto service = osAccountManagerService_.promote();
+    if (service == nullptr) {
+        service = new (std::nothrow) OsAccountManagerService();
+        osAccountManagerService_ = service;
     }
-    return nullptr;
+    return service;
 }
 
 sptr<IRemoteObject> AccountMgrService::GetAccountIAMService()
 {
-    return accountIAMService_;
+#ifdef HAS_USER_AUTH_PART
+    std::lock_guard<std::mutex> lock(serviceMutex_);
+    auto service = accountIAMService_.promote();
+    if (service == nullptr) {
+        service = new (std::nothrow) AccountIAMService();
+        accountIAMService_ = service;
+    }
+    return service;
+#else
+    return nullptr;
+#endif // HAS_USER_AUTH_PART
 }
 
 sptr<IRemoteObject> AccountMgrService::GetDomainAccountService()
 {
-    return domainAccountMgrService_;
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+    std::lock_guard<std::mutex> lock(serviceMutex_);
+    auto service = domainAccountMgrService_.promote();
+    if (service == nullptr) {
+        service = new (std::nothrow) DomainAccountManagerService();
+        domainAccountMgrService_ = service;
+    }
+    return service;
+#else
+    return nullptr;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
 bool AccountMgrService::IsServiceStarted(void) const
@@ -257,7 +290,7 @@ void AccountMgrService::OnStop()
     SelfClean();
 }
 
-#ifdef HAS_APP_ACCOUNT_PART
+#if defined(HAS_APP_ACCOUNT_PART) && defined(ENABLE_MULTIPLE_OS_ACCOUNTS)
 void AccountMgrService::MoveAppAccountData()
 {
     auto task = [] { AppAccountControlManager::GetInstance().MoveData(); };
@@ -266,7 +299,7 @@ void AccountMgrService::MoveAppAccountData()
     taskThread.detach();
     ACCOUNT_LOGI("Move app account data to encrypted store");
 }
-#endif
+#endif // defined(HAS_APP_ACCOUNT_PART) && defined(ENABLE_MULTIPLE_OS_ACCOUNTS)
 
 bool AccountMgrService::IsDefaultOsAccountVerified()
 {
@@ -303,12 +336,12 @@ void AccountMgrService::OnAddSystemAbility(int32_t systemAbilityId, const std::s
             isBmsReady_ = true;
             break;
         }
-#ifdef HAS_APP_ACCOUNT_PART
+#if defined(HAS_APP_ACCOUNT_PART) && defined(ENABLE_MULTIPLE_OS_ACCOUNTS)
         case DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID: {
             MoveAppAccountData();
             return;
         }
-#endif
+#endif // defined(HAS_APP_ACCOUNT_PART) && defined(ENABLE_MULTIPLE_OS_ACCOUNTS)
         default:
             return;
     }
@@ -348,14 +381,6 @@ bool AccountMgrService::Init()
 #endif // HICOLLIE_ENABLE
     CreateDeviceDir();
     IAccountContext::SetInstance(this);
-    if ((!CreateOsAccountService()) || (!CreateAppAccountService()) || (!CreateIAMService()) ||
-        (!CreateDomainService())) {
-        appAccountManagerService_ = nullptr;
-        osAccountManagerService_ = nullptr;
-        accountIAMService_ = nullptr;
-        domainAccountMgrService_ = nullptr;
-        return false;
-    }
     IInnerOsAccountManager::GetInstance().ResetAccountStatus();
     if (!OhosAccountManager::GetInstance().OnInitialize()) {
         ACCOUNT_LOGE("Ohos account manager initialize failed");

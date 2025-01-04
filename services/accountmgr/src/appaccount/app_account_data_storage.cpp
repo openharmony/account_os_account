@@ -29,6 +29,7 @@ const char AUTHORIZED_ACCOUNTS[] = "authorizedAccounts";
 AppAccountDataStorage::AppAccountDataStorage(const std::string &storeId, const AccountDataStorageOptions &options)
     : AccountDataStorage(Constants::APP_ACCOUNT_APP_ID, storeId, options)
 {
+    ACCOUNT_LOGI("Constructed");
     if (!options.baseDir.empty()) {
         AccountFileOperator fileOperator;
         fileOperator.CreateDir(options.baseDir, S_IRWXU | S_IRWXG);
