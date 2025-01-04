@@ -766,7 +766,7 @@ group("unittest") {
     deps += [ ":os_account_domain_account_callback_test" ]
   }
 
-  if (has_kv_store_part) {
+  if (has_kv_store_part && os_account_distributed_feature) {
     deps += [ ":OsAccountDataStorageTest" ]
   }
 }

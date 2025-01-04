@@ -563,8 +563,7 @@ ErrCode AppAccountControlManager::GetAccountCredential(const std::string &name, 
 {
     AppAccountInfo appAccountInfo(name, appAccountCallingInfo.bundleName);
     appAccountInfo.SetAppIndex(appAccountCallingInfo.appIndex);
-    std::shared_ptr<AppAccountDataStorage> dataStoragePtr =
-        GetDataStorage(appAccountCallingInfo.callingUid, false, DistributedKv::SecurityLevel::S4);
+    std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(appAccountCallingInfo.callingUid, false);
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
@@ -586,8 +585,7 @@ ErrCode AppAccountControlManager::GetAccountCredential(const std::string &name, 
 ErrCode AppAccountControlManager::SetAccountCredential(const std::string &name, const std::string &credentialType,
     const std::string &credential, const AppAccountCallingInfo &appAccountCallingInfo)
 {
-    std::shared_ptr<AppAccountDataStorage> dataStoragePtr =
-        GetDataStorage(appAccountCallingInfo.callingUid, false, DistributedKv::SecurityLevel::S4);
+    std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(appAccountCallingInfo.callingUid, false);
     AppAccountInfo appAccountInfo(name, appAccountCallingInfo.bundleName);
     appAccountInfo.SetAppIndex(appAccountCallingInfo.appIndex);
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
@@ -622,7 +620,7 @@ ErrCode AppAccountControlManager::DeleteAccountCredential(const std::string &nam
 {
     AppAccountInfo appAccountInfo(name, callingInfo.bundleName);
     appAccountInfo.SetAppIndex(callingInfo.appIndex);
-    auto dataStoragePtr = GetDataStorage(callingInfo.callingUid, false, DistributedKv::SecurityLevel::S4);
+    auto dataStoragePtr = GetDataStorage(callingInfo.callingUid, false);
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
@@ -651,8 +649,7 @@ ErrCode AppAccountControlManager::GetOAuthToken(
 {
     AppAccountInfo appAccountInfo(request.name, request.owner);
     appAccountInfo.SetAppIndex(request.appIndex);
-    std::shared_ptr<AppAccountDataStorage> dataStoragePtr =
-        GetDataStorage(request.callerUid, false, DistributedKv::SecurityLevel::S4);
+    std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(request.callerUid, false);
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
@@ -685,8 +682,7 @@ ErrCode AppAccountControlManager::SetOAuthToken(const AuthenticatorSessionReques
     std::lock_guard<std::mutex> lock(mutex_);
     AppAccountInfo appAccountInfo(request.name, request.callerBundleName);
     appAccountInfo.SetAppIndex(request.appIndex);
-    std::shared_ptr<AppAccountDataStorage> dataStoragePtr =
-        GetDataStorage(request.callerUid, false, DistributedKv::SecurityLevel::S4);
+    std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(request.callerUid, false);
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
@@ -1196,7 +1192,7 @@ std::shared_ptr<AppAccountDataStorage> AppAccountControlManager::GetDataStorageB
     }
     std::lock_guard<std::mutex> lock(storePtrMutex_);
     auto it = storePtrMap_.find(storeId);
-    if (it != storePtrMap_.end()) {
+    if ((it != storePtrMap_.end()) && (it->second != nullptr)) {
         return it->second;
     }
     AccountDataStorageOptions options;
@@ -1213,6 +1209,24 @@ std::shared_ptr<AppAccountDataStorage> AppAccountControlManager::GetDataStorage(
     const uid_t &uid, const bool &autoSync, DistributedKv::SecurityLevel securityLevel)
 {
     return GetDataStorageByUserId(uid / UID_TRANSFORM_DIVISOR, autoSync, securityLevel);
+}
+
+void AppAccountControlManager::CloseDataStorage()
+{
+    if (!storePtrMutex_.try_lock()) {
+        return;
+    }
+    for (auto &item : storePtrMap_) {
+        if (item.second == nullptr || item.second.use_count() > 1) {
+            continue;
+        }
+        ErrCode result = item.second->Close();
+        if (result == ERR_OK) {
+            item.second = nullptr;
+        }
+        ACCOUNT_LOGI("Close storage, storeId: %{public}s, result: %{public}d", item.first.c_str(), result);
+    }
+    storePtrMutex_.unlock();
 }
 
 bool AppAccountControlManager::NeedSyncDataStorage(const AppAccountInfo &appAccountInfo)

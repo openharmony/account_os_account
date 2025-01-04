@@ -1320,6 +1320,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest066
     }
 }
 
+#if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 /**
  * @tc.name: OsAccountManagerServiceModuleTest067
  * @tc.desc: Test GetCreatedOsAccountNumFromDatabase with empty storeID.
@@ -1346,6 +1347,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest068
     ErrCode ret = osAccountManagerService_->GetCreatedOsAccountNumFromDatabase(STORE_ID, createdOsAccountNum);
     EXPECT_NE(ret, ERR_OK);
 }
+#endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest069
@@ -1419,6 +1421,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest072
     EXPECT_NE(osAccountManagerService_->DumpState(INVALID_ACCOUNT_ID, state), ERR_OK);
 }
 
+#if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 /**
  * @tc.name: OsAccountManagerServiceModuleTest073
  * @tc.desc: Test GetSerialNumberFromDatabase with invalid store id.
@@ -1539,6 +1542,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest081
     EXPECT_EQ(osAccountManagerService_->GetOsAccountListFromDatabase(STORE_ID, osAccountList), ERR_OK);
     EXPECT_EQ(osAccountList.size(), 0);
 }
+#endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest082
@@ -1987,6 +1991,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest108
         osAccountManagerService_->DumpState(id, state));
 }
 
+#if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 /**
  * @tc.name: OsAccountManagerServiceModuleTest109
  * @tc.desc: Test GetCreatedOsAccountNumFromDatabase PermissionCheck failed.
@@ -2028,6 +2033,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest111
     EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->GetOsAccountListFromDatabase(STORE_ID, osAccountList));
 }
+#endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest112

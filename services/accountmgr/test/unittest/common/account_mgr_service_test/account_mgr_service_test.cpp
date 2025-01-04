@@ -305,7 +305,11 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceGetAppAccountService001, TestSi
     ASSERT_NE(g_accountMgrService, nullptr);
     g_accountMgrService->appAccountManagerService_ = nullptr;
     auto servicePtr = g_accountMgrService->GetAppAccountService();
+#ifdef HAS_APP_ACCOUNT_PART
+    ASSERT_NE(servicePtr, nullptr);
+#else
     ASSERT_EQ(servicePtr, nullptr);
+#endif // HAS_APP_ACCOUNT_PART
 }
 
 /**
@@ -319,7 +323,7 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceGetOsAccountServicee001, TestSi
     ASSERT_NE(g_accountMgrService, nullptr);
     g_accountMgrService->osAccountManagerService_ = nullptr;
     auto servicePtr = g_accountMgrService->GetOsAccountService();
-    ASSERT_EQ(servicePtr, nullptr);
+    ASSERT_NE(servicePtr, nullptr);
 }
 
 /**
@@ -335,7 +339,11 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceGetAccountIAMService001, TestSi
     g_accountMgrService->OnStart();
     g_accountMgrService->accountIAMService_ = nullptr;
     auto servicePtr = g_accountMgrService->GetAccountIAMService();
+#ifdef HAS_USER_AUTH_PART
+    ASSERT_NE(servicePtr, nullptr);
+#else
     ASSERT_EQ(servicePtr, nullptr);
+#endif // HAS_USER_AUTH_PART
 }
 
 /**

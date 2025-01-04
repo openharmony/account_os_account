@@ -27,6 +27,7 @@ constexpr char KV_STORE_EL1_BASE_DIR[] = "/data/service/el1/public/database/";
 AccountDataStorage::AccountDataStorage(const std::string &appId, const std::string &storeId,
     const AccountDataStorageOptions &options)
 {
+    ACCOUNT_LOGI("Constructed");
     appId_.appId = appId;
     storeId_.storeId = storeId;
     options_ = options;
@@ -39,6 +40,7 @@ AccountDataStorage::AccountDataStorage(const std::string &appId, const std::stri
 
 AccountDataStorage::~AccountDataStorage()
 {
+    ACCOUNT_LOGI("Destroyed");
     if (kvStorePtr_ != nullptr) {
         dataManager_.CloseKvStore(appId_, kvStorePtr_);
     }
@@ -201,6 +203,14 @@ OHOS::DistributedKv::Status AccountDataStorage::GetEntries(
     OHOS::DistributedKv::Status status = kvStorePtr_->GetEntries(allEntryKeyPrefix, allEntries);
 
     return status;
+}
+
+ErrCode AccountDataStorage::Close()
+{
+    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+    ErrCode errCode = dataManager_.CloseKvStore(appId_, kvStorePtr_);
+    kvStorePtr_ = nullptr;
+    return errCode;
 }
 
 ErrCode AccountDataStorage::DeleteKvStore()
