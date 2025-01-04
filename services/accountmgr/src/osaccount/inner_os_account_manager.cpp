@@ -92,6 +92,7 @@ static bool IsCreateOsAccountAllowed()
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 }
 
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
 static ErrCode GetDomainAccountStatus(OsAccountInfo &osAccountInfo)
 {
     DomainAccountInfo domainAccountInfo;
@@ -111,6 +112,7 @@ static ErrCode GetDomainAccountStatus(OsAccountInfo &osAccountInfo)
     osAccountInfo.SetDomainInfo(domainAccountInfo);
     return ERR_OK;
 }
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 
 IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManager_(OsAccountSubscribeManager::GetInstance())
 {
@@ -732,11 +734,13 @@ ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type, con
     return InnerDomainAccountManager::GetInstance().OnAccountBound(
         domainAccountInfo, osAccountInfo.GetLocalId(), callbackWrapper);
 }
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 
 ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
     const OsAccountType &type, const DomainAccountInfo &domainInfo, const sptr<IDomainAccountCallback> &callback,
     const CreateOsAccountForDomainOptions &options)
 {
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     if (!IsCreateOsAccountAllowed()) {
         ACCOUNT_LOGI("Not allow creation account.");
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_PLUGIN_NOT_ALLOWED_CREATION_ERROR;
@@ -771,8 +775,10 @@ ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
     return InnerDomainAccountManager::GetInstance().GetDomainAccountInfo(domainInfo, callbackWrapper);
-}
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
 #endif // SUPPORT_DOMAIN_ACCOUNTS
+}
 
 void IInnerOsAccountManager::CheckAndRefreshLocalIdRecord(const int id)
 {
@@ -1467,9 +1473,11 @@ bool IInnerOsAccountManager::IsSameAccount(
         ((!domainInfoSrc.accountName_.empty()) && (domainInfoSrc.accountName_ == domainInfoTar.accountName_) &&
         (!domainInfoSrc.domain_.empty()) && (domainInfoSrc.domain_ == domainInfoTar.domain_)));
 }
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 
 ErrCode IInnerOsAccountManager::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id)
 {
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     if (domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("Invalid domain name length %{public}zu.", domainInfo.domain_.size());
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
@@ -1497,8 +1505,10 @@ ErrCode IInnerOsAccountManager::GetOsAccountLocalIdFromDomain(const DomainAccoun
         }
     }
     return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
-}
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
 #endif // SUPPORT_DOMAIN_ACCOUNTS
+}
 
 ErrCode IInnerOsAccountManager::GetOsAccountShortName(const int id, std::string &shortName)
 {
@@ -1539,7 +1549,9 @@ ErrCode IInnerOsAccountManager::QueryOsAccountById(const int id, OsAccountInfo &
         }
         osAccountInfo.SetPhoto(photo);
     }
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     GetDomainAccountStatus(osAccountInfo);
+#endif // SUPPORT_DOMAIN_ACCOUNTS
     return ERR_OK;
 }
 
@@ -2562,11 +2574,22 @@ ErrCode IInnerOsAccountManager::IsValidOsAccount(const OsAccountInfo &osAccountI
     return ERR_OK;
 }
 
-#ifdef SUPPORT_DOMAIN_ACCOUNTS
 ErrCode IInnerOsAccountManager::GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo)
 {
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     return InnerDomainAccountManager::GetInstance().GetDomainAccountInfoByUserId(localId, domainInfo);
-}
+#else
+    OsAccountInfo accountInfo;
+    ErrCode errCode = GetRealOsAccountInfoById(localId, accountInfo);
+    if (errCode != ERR_OK) {
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    accountInfo.GetDomainInfo(domainInfo);
+    if (domainInfo.accountName_.empty()) {
+        return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
+    }
+    return ERR_OK;
 #endif // SUPPORT_DOMAIN_ACCOUNTS
+}
 }  // namespace AccountSA
 }  // namespace OHOS

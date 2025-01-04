@@ -70,6 +70,7 @@ ohos_unittest("account_proxy_mock_test") {
     "${account_iam_framework_path}:account_iam_innerkits",
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${common_path}:libaccount_common",
+    "${domain_account_framework_path}:domain_account_innerkits",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
   ]

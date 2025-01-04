@@ -105,12 +105,10 @@ public:
     virtual int32_t CleanGarbageOsAccounts(int32_t excludeId = -1) = 0;
     virtual void ResetAccountStatus() = 0;
     virtual void CleanGarbageOsAccountsAsync() = 0;
-#ifdef SUPPORT_DOMAIN_ACCOUNTS
     virtual ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
         const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options = {}) = 0;
     virtual ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id) = 0;
     virtual ErrCode GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo) = 0;
-#endif // SUPPORT_DOMAIN_ACCOUNTS
 };
 }  // namespace AccountSA
 }  // namespace OHOS
