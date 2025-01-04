@@ -22,24 +22,20 @@
 namespace OHOS {
 namespace AccountSA {
 #ifdef HAS_CES_PART
-struct CommonEventCallback {
-    std::function<void(const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)> OnPackageRemoved;
-    std::function<void(int32_t userId)> OnUserRemoved;
-};
-
 class AppAccountCommonEventObserver {
 public:
-    explicit AppAccountCommonEventObserver(const CommonEventCallback &callback);
-    ~AppAccountCommonEventObserver();
+    static AppAccountCommonEventObserver &GetInstance();
 
     void SubscribeCommonEvent(void);
 private:
+    AppAccountCommonEventObserver();
+    ~AppAccountCommonEventObserver();
+    DISALLOW_COPY_AND_MOVE(AppAccountCommonEventObserver);
     void OnReceiveEvent(const CommonEventData &data);
     void DealWithRemoveEvent(const AAFwk::Want &want, const std::string action);
 
 private:
     std::shared_ptr<AppAccountCommonEventSubscriber> subscriber_ = nullptr;
-    CommonEventCallback callback_;
     std::int32_t counter_;
 };
 #endif // HAS_CES_PART

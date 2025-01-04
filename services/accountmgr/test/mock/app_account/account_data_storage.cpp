@@ -80,6 +80,12 @@ OHOS::DistributedKv::Status AccountDataStorage::GetEntries(
     return OHOS::DistributedKv::Status::SUCCESS;
 }
 
+ErrCode AccountDataStorage::Close()
+{
+    ACCOUNT_LOGI("mock enter");
+    return ERR_OK;
+}
+
 ErrCode AccountDataStorage::DeleteKvStore()
 {
     ACCOUNT_LOGI("mock enter");

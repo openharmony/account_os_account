@@ -34,7 +34,6 @@
 #include "common_event_support.h"
 #endif // HAS_CES_PART
 #include "iremote_object.h"
-#include "app_account_manager_service.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -2207,7 +2206,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_OnPackageR
     CommonEventData commonEventData;
     commonEventData.SetWant(want);
 
-    g_accountManagerService->observer_->OnReceiveEvent(commonEventData);
+    g_accountManagerService->observer_.OnReceiveEvent(commonEventData);
 #endif // HAS_CES_PART
 
     bool ready = false;
