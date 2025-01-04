@@ -1449,6 +1449,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest062, TestSize.Lev
     EXPECT_EQ(ret, 0);
 }
 
+#if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 /**
  * @tc.name: OsAccountManagerModuleTest063
  * @tc.desc: Test get os account info from database
@@ -1505,6 +1506,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest065, TestSize.Lev
     EXPECT_NE(ret, ERR_OK);
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
+#endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 
 /**
  * @tc.name: OsAccountManagerModuleTest066
@@ -1851,6 +1853,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest079, TestSize.Lev
     EXPECT_EQ(isVerified, false);
 }
 
+#if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 /**
  * @tc.name: OsAccountManagerModuleTest080
  * @tc.desc: Test GetCreatedOsAccountNumFromDatabase.
@@ -1973,6 +1976,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest087, TestSize.Lev
     EXPECT_EQ(osAccountList.size(), 0);
     #endif
 }
+#endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 
 /**
  * @tc.name: OsAccountManagerModuleTest088
@@ -2156,6 +2160,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest098, TestSize.Lev
         OsAccountManager::UnsubscribeOsAccount(subscriber));
 }
 
+#if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 /**
  * @tc.name: OsAccountManagerModuleTest099
  * @tc.desc: test GetOsAccountFromDatabase normal branch.
@@ -2171,6 +2176,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest099, TestSize.Lev
     EXPECT_EQ(ERR_OK, OsAccountManager::GetOsAccountFromDatabase("", MAIN_ACCOUNT_ID, osAccountInfo));
 #endif
 }
+#endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 
 /**
  * @tc.name: OsAccountManagerModuleTest100

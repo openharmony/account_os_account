@@ -45,6 +45,7 @@ public:
     void TryTwice(const std::function<DistributedKv::Status()> &func) const;
     virtual void SaveEntries(std::vector<OHOS::DistributedKv::Entry> allEntries,
         std::map<std::string, std::shared_ptr<IAccountInfo>> &infos) = 0;
+    ErrCode Close();
     int DeleteKvStore();
     ErrCode GetAccountInfoById(const std::string id, IAccountInfo &iAccountInfo);
     bool IsKeyExists(const std::string keyStr);

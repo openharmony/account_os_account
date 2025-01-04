@@ -92,10 +92,11 @@ private:
     ServiceRunningState state_ = ServiceRunningState::STATE_NOT_START;
     std::unique_ptr<AccountDumpHelper> dumpHelper_{};
 
-    sptr<IRemoteObject> appAccountManagerService_ = nullptr;
-    sptr<OsAccountManagerService> osAccountManagerService_ = nullptr;
-    sptr<IRemoteObject> accountIAMService_ = nullptr;
-    sptr<IRemoteObject> domainAccountMgrService_ = nullptr;
+    std::mutex serviceMutex_;
+    wptr<IRemoteObject> appAccountManagerService_ = nullptr;
+    wptr<OsAccountManagerService> osAccountManagerService_ = nullptr;
+    wptr<IRemoteObject> accountIAMService_ = nullptr;
+    wptr<IRemoteObject> domainAccountMgrService_ = nullptr;
 
     std::mutex statusMutex_;
     bool isStorageReady_ = false;
