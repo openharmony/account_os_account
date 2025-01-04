@@ -69,7 +69,6 @@ static const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProc
             .isSystemApi = true,
         }
     },
-#ifdef SUPPORT_DOMAIN_ACCOUNTS
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::CREATE_OS_ACCOUNT_FOR_DOMAIN),
         {
@@ -78,7 +77,6 @@ static const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProc
             .isSystemApi = true,
         }
     },
-#endif // SUPPORT_DOMAIN_ACCOUNTS
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::REMOVE_OS_ACCOUNT),
         {
@@ -151,7 +149,6 @@ static const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProc
             .isSystemApi = true,
         }
     },
-#ifdef SUPPORT_DOMAIN_ACCOUNTS
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_LOCAL_ID_FROM_DOMAIN),
         {
@@ -159,7 +156,6 @@ static const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProc
                 return ptr->ProcGetOsAccountLocalIdFromDomain(data, reply); },
         }
     },
-#endif // SUPPORT_DOMAIN_ACCOUNTS
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::QUERY_MAX_OS_ACCOUNT_NUMBER),
         {
@@ -504,7 +500,6 @@ static const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProc
             .isSystemApi = true,
         }
     },
-#ifdef SUPPORT_DOMAIN_ACCOUNTS
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_DOMAIN_INFO),
         {
@@ -513,7 +508,6 @@ static const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProc
             .isSystemApi = false,
         }
     },
-#endif // SUPPORT_DOMAIN_ACCOUNTS
 };
 
 OsAccountStub::OsAccountStub()
@@ -702,7 +696,6 @@ ErrCode OsAccountStub::ProcUpdateOsAccountWithFullInfo(MessageParcel &data, Mess
     return ERR_NONE;
 }
 
-#ifdef SUPPORT_DOMAIN_ACCOUNTS
 ErrCode OsAccountStub::ProcCreateOsAccountForDomain(MessageParcel &data, MessageParcel &reply)
 {
     ACCOUNT_LOGI("Calling uid: %{public}d, pid: %{public}d",
@@ -741,7 +734,6 @@ ErrCode OsAccountStub::ProcCreateOsAccountForDomain(MessageParcel &data, Message
     ErrCode result = CreateOsAccountForDomain(type, *info, callback, *options);
     return WriteResultWithOsAccountInfo(reply, result, osAccountInfo);
 }
-#endif // SUPPORT_DOMAIN_ACCOUNTS
 
 ErrCode OsAccountStub::ProcRemoveOsAccount(MessageParcel &data, MessageParcel &reply)
 {
@@ -999,7 +991,6 @@ ErrCode OsAccountStub::ProcGetOsAccountProfilePhoto(MessageParcel &data, Message
     return ERR_NONE;
 }
 
-#ifdef SUPPORT_DOMAIN_ACCOUNTS
 ErrCode OsAccountStub::ProcGetOsAccountLocalIdFromDomain(MessageParcel &data, MessageParcel &reply)
 {
     std::string domain = data.ReadString();
@@ -1029,7 +1020,6 @@ ErrCode OsAccountStub::ProcGetOsAccountLocalIdFromDomain(MessageParcel &data, Me
     }
     return ERR_NONE;
 }
-#endif // SUPPORT_DOMAIN_ACCOUNTS
 
 ErrCode OsAccountStub::ProcGetOsAccountTypeFromProcess(MessageParcel &data, MessageParcel &reply)
 {
@@ -1852,7 +1842,6 @@ ErrCode OsAccountStub::ProcSetOsAccountToBeRemoved(MessageParcel &data, MessageP
     return ERR_NONE;
 }
 
-#ifdef SUPPORT_DOMAIN_ACCOUNTS
 ErrCode OsAccountStub::ProcGetOsAccountDomainInfo(MessageParcel &data, MessageParcel &reply)
 {
     int32_t localId;
@@ -1875,6 +1864,5 @@ ErrCode OsAccountStub::ProcGetOsAccountDomainInfo(MessageParcel &data, MessagePa
     }
     return ERR_NONE;
 }
-#endif // SUPPORT_DOMAIN_ACCOUNTS
 }  // namespace AccountSA
 }  // namespace OHOS

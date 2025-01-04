@@ -39,10 +39,8 @@ public:
     virtual ErrCode CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo,
         const CreateOsAccountOptions &options = {}) = 0;
     virtual ErrCode UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo) = 0;
-#ifdef SUPPORT_DOMAIN_ACCOUNTS
     virtual ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
         const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions& options = {}) = 0;
-#endif // SUPPORT_DOMAIN_ACCOUNTS
     virtual ErrCode RemoveOsAccount(const int id) = 0;
     virtual ErrCode IsOsAccountExists(const int id, bool &isOsAccountExists) = 0;
     virtual ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived) = 0;
@@ -55,9 +53,7 @@ public:
     virtual ErrCode GetCreatedOsAccountsCount(unsigned int &osAccountsCount) = 0;
     virtual ErrCode GetOsAccountLocalIdFromProcess(int &id) = 0;
     virtual ErrCode IsMainOsAccount(bool &isMainOsAccount) = 0;
-#ifdef SUPPORT_DOMAIN_ACCOUNTS
     virtual ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id) = 0;
-#endif // SUPPORT_DOMAIN_ACCOUNTS
     virtual ErrCode QueryMaxOsAccountNumber(uint32_t &maxOsAccountNumber) = 0;
     virtual ErrCode QueryMaxLoggedInOsAccountNumber(uint32_t &maxNum) = 0;
     virtual ErrCode GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints) = 0;
@@ -87,9 +83,7 @@ public:
     virtual ErrCode SetCurrentOsAccountIsVerified(const bool isVerified) = 0;
     virtual ErrCode SetOsAccountIsVerified(const int id, const bool isVerified) = 0;
     virtual ErrCode DumpState(const int &id, std::vector<std::string> &state) = 0;
-#ifdef SUPPORT_DOMAIN_ACCOUNTS
     virtual ErrCode GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo) = 0;
-#endif // SUPPORT_DOMAIN_ACCOUNTS
 
     virtual ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
         int &createdOsAccountNum) = 0;
