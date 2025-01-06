@@ -694,8 +694,9 @@ bool IInnerOsAccountManager::CheckDomainAccountBound(
     return false;
 }
 
-ErrCode IInnerOsAccountManager::PrepareAccountInfoBeforeBind(const DomainAccountInfo &domainAccountInfo,
-    OsAccountInfo &osAccountInfo)
+ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type,
+    const DomainAccountInfo &domainAccountInfo, OsAccountInfo &osAccountInfo,
+    const CreateOsAccountForDomainOptions &options)
 {
     std::vector<OsAccountInfo> osAccountInfos;
     (void)QueryAllCreatedOsAccounts(osAccountInfos);
@@ -733,20 +734,16 @@ ErrCode IInnerOsAccountManager::PrepareAccountInfoBeforeBind(const DomainAccount
         return ERR_OSACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR;
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
     }
-}
-
-ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type, const DomainAccountInfo &domainAccountInfo,
-    const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options,
-    const OsAccountInfo &osAccountInfo)
-{
-    auto callbackWrapper =
-        std::make_shared<BindDomainAccountCallback>(osAccountControl_, domainAccountInfo, osAccountInfo, callback);
-    if (callbackWrapper == nullptr) {
-        ACCOUNT_LOGE("Create BindDomainAccountCallback failed");
-        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    ErrCode errCode = osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to update account index.");
+        return errCode;
     }
-    return InnerDomainAccountManager::GetInstance().OnAccountBound(
-        domainAccountInfo, osAccountInfo.GetLocalId(), callbackWrapper);
+    errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to update osaccount.");
+    }
+    return errCode;
 }
 #endif // SUPPORT_DOMAIN_ACCOUNTS
 
@@ -783,7 +780,7 @@ ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
         return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
     }
     sptr<CheckAndCreateDomainAccountCallback> callbackWrapper =
-        new (std::nothrow) CheckAndCreateDomainAccountCallback(type, domainInfo, callback, options);
+        new (std::nothrow) CheckAndCreateDomainAccountCallback(osAccountControl_, type, callback, options);
     if (callbackWrapper == nullptr) {
         ACCOUNT_LOGE("New DomainCreateDomainCallback failed");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
