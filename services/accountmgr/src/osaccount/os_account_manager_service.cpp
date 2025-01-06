@@ -682,18 +682,17 @@ ErrCode OsAccountManagerService::DeactivateOsAccount(const int id)
 #endif // SUPPORT_STOP_OS_ACCOUNT
 
     res = innerManager_.DeactivateOsAccount(id);
-    if (res != ERR_OK) {
-        return res;
-    }
 
     if (currentId == id) { // if stop current account
 #ifdef SUPPORT_STOP_MAIN_OS_ACCOUNT
-        innerManager_.ActivateOsAccount(id, false, Constants::DEFAULT_DISPALY_ID, true);
+        if (res == ERR_OK) {
+            innerManager_.ActivateOsAccount(id, false, Constants::DEFAULT_DISPALY_ID, true);
+        }
 #else
         innerManager_.ActivateOsAccount(Constants::START_USER_ID, false, Constants::DEFAULT_DISPALY_ID);
 #endif // SUPPORT_STOP_MAIN_OS_ACCOUNT
     }
-    return ERR_OK;
+    return res;
 }
 
 ErrCode OsAccountManagerService::DeactivateAllOsAccounts()
