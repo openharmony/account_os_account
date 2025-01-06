@@ -118,13 +118,15 @@ public:
     void CleanGarbageOsAccountsAsync() override;
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
     ErrCode BindDomainAccount(const OsAccountType &type, const DomainAccountInfo &domainAccountInfo,
-        const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options = {});
+        const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options = {},
+        const OsAccountInfo &osAccountInfo);
     ErrCode UpdateAccountStatusForDomain(const int id, DomainAccountStatus status);
     ErrCode UpdateAccountInfoByDomainAccountInfo(int32_t userId, const DomainAccountInfo &newDomainAccountInfo);
     bool IsSameAccount(const DomainAccountInfo &domainInfoSrc, const DomainAccountInfo &domainInfoTar);
 #endif // SUPPORT_DOMAIN_ACCOUNTS
     ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
         const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options = {}) override;
+    ErrCode PrepareAccountInfoBeforeBind(const DomainAccountInfo &domainAccountInfo, OsAccountInfo &osAccountInfo);
     ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id) override;
     ErrCode GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo) override;
 

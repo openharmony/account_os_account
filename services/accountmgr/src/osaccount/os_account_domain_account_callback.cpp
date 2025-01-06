@@ -61,8 +61,23 @@ void CheckAndCreateDomainAccountCallback::OnResult(int32_t errCode, Parcel &parc
         ACCOUNT_LOGE("Domain account not found");
         return innerCallback_->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, resultParcel);
     }
+    OsAccountInfo osAccountInfo;
+    errCode = IInnerOsAccountManager::GetInstance().PrepareAccountInfoBeforeBind(domainAccountInfo, osAccountInfo);
+    if (errCode != ERR_OK) {
+        return innerCallback_->OnResult(errCode, resultParcel);
+    }
+    errCode = osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to update account index.");
+        return innerCallback_->OnResult(errCode, parcel);
+    }
+    errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to update osaccount.");
+        return innerCallback_->OnResult(errCode, parcel);
+    }
     errCode = IInnerOsAccountManager::GetInstance().BindDomainAccount(type_, domainAccountInfo,
-        innerCallback_, accountOptions_);
+        innerCallback_, accountOptions_, osAccountInfo);
     if (errCode != ERR_OK) {
         return innerCallback_->OnResult(errCode, resultParcel);
     }
@@ -99,16 +114,7 @@ void BindDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
         osAccountInfo_.Marshalling(resultParcel);
         return innerCallback_->OnResult(errCode, resultParcel);
     }
-    errCode = osAccountControl_->UpdateAccountIndex(osAccountInfo_, false);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Failed to update account index.");
-        return innerCallback_->OnResult(errCode, parcel);
-    }
-    errCode = osAccountControl_->UpdateOsAccount(osAccountInfo_);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Failed to update osaccount.");
-        return innerCallback_->OnResult(errCode, parcel);
-    }
+
 #ifdef HAS_CES_PART
     AccountEventProvider::EventPublish(
         EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::START_USER_ID, nullptr);
