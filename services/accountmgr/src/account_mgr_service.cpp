@@ -19,6 +19,9 @@
 #include "account_dump_helper.h"
 #include "account_log_wrapper.h"
 #ifdef HAS_APP_ACCOUNT_PART
+#ifdef HAS_CES_PART
+#include "app_account_common_event_observer.h"
+#endif // HAS_CES_PART
 #include "app_account_manager_service.h"
 #endif
 #include "datetime_ex.h"
@@ -388,6 +391,9 @@ bool AccountMgrService::Init()
         ReportServiceStartFail(ERR_ACCOUNT_MGR_OHOS_MGR_INIT_ERROR,
             "OhosAccountManager::OnInitialize failed, do not block sa startup!");
     }
+#if defined(HAS_APP_ACCOUNT_PART) && defined(HAS_CES_PART)
+    AppAccountCommonEventObserver::GetInstance();
+#endif // defined(HAS_APP_ACCOUNT_PART) && defined(HAS_CES_PART)
     state_ = ServiceRunningState::STATE_RUNNING;
     if (!registerToService_) {
         if (!Publish(&DelayedRefSingleton<AccountMgrService>::GetInstance())) {

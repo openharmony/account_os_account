@@ -73,8 +73,7 @@
         "OHOS::AccountSA::AppAccountCheckLabelsCallback::AppAccountCheckLabelsCallback(std::__h::vector<OHOS::AccountSA::AppAccountInfo, std::__h::allocator<OHOS::AccountSA::AppAccountInfo>>, OHOS::AccountSA::AuthenticatorSessionRequest const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::AppAccountCheckLabelsSession::AppAccountCheckLabelsSession(std::__h::vector<OHOS::AccountSA::AppAccountInfo, std::__h::allocator<OHOS::AccountSA::AppAccountInfo>>, OHOS::AccountSA::AuthenticatorSessionRequest const&)";
         "OHOS::AccountSA::AppAccountCheckLabelsSession::CheckLabels()";
-        "OHOS::AccountSA::AppAccountCommonEventObserver::AppAccountCommonEventObserver(OHOS::AccountSA::CommonEventCallback const&)";
-        "OHOS::AccountSA::AppAccountCommonEventObserver::~AppAccountCommonEventObserver()";
+        "OHOS::AccountSA::AppAccountCommonEventObserver::GetInstance()";
         "OHOS::AccountSA::AppAccountControlManager::AddAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::AppAccountInfo&)";
         "OHOS::AccountSA::AppAccountControlManager::AddAccountInfoIntoDataStorage(OHOS::AccountSA::AppAccountInfo&, std::__h::shared_ptr<OHOS::AccountSA::AppAccountDataStorage> const&, unsigned int const&)";
         "OHOS::AccountSA::AppAccountControlManager::AppAccountControlManager()";
@@ -96,6 +95,8 @@
         "OHOS::AccountSA::AppAccountControlManager::PopDataFromAssociatedDataCache()";
         "OHOS::AccountSA::AppAccountControlManager::SelectAccountsByOptions(const SelectAccountsOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback, const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)";
         "OHOS::AccountSA::AppAccountControlManager::AddMigratedAccount(int)";
+        "OHOS::AccountSA::AppAccountControlManager::OnUserRemoved(int)";
+        "OHOS::AccountSA::AppAccountControlManager::OnPackageRemoved(unsigned int const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int const&)";
         "OHOS::AccountSA::AppAccountDataStorage::AddAccountInfoIntoDataStorage(OHOS::AccountSA::AppAccountInfo&)";
         "OHOS::AccountSA::AppAccountDataStorage::AppAccountDataStorage(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::AccountDataStorageOptions const&)";
         "OHOS::AccountSA::AppAccountDataStorage::AUTHORIZED_ACCOUNTS";
