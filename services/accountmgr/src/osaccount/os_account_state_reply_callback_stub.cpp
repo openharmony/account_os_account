@@ -57,9 +57,12 @@ static const char *ConvertStateToSceneFlag(OsAccountState state)
 
 void OsAccountStateReplyCallbackStub::OnComplete()
 {
-    int64_t duration = std::chrono::duration_cast<std::chrono::microseconds>(
-        std::chrono::system_clock::now() - startTime_).count();
     std::lock_guard lock(mutex_);
+    int64_t duration = 0;
+    if (startTime_.time_since_epoch().count() != 0) {
+        duration = std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::system_clock::now() - startTime_).count();
+    }
     if (isCompleted_) {
         ACCOUNT_LOGE("Already completed, callingUid: %{public}d", subscriberUid_);
         return;
@@ -92,6 +95,7 @@ void OsAccountStateReplyCallbackStub::OnComplete()
 
 void OsAccountStateReplyCallbackStub::SetStartTime(const std::chrono::system_clock::time_point &startTime)
 {
+    std::lock_guard lock(mutex_);
     startTime_ = startTime;
 }
 

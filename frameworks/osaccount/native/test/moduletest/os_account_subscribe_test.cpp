@@ -114,15 +114,30 @@ void TestStateMachine(bool withHandshake, bool isBlock)
     OsAccountInfo info;
     EXPECT_EQ(OsAccountManager::CreateOsAccount(ACCOUNT_NAME, OsAccountType::NORMAL, info), ERR_OK);
     int32_t localId = info.GetLocalId();
-    EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::SWITCHING, _, localId)).Times(Exactly(1));
+    int32_t currentId = -1;
+    EXPECT_EQ(OsAccountManager::GetForegroundOsAccountLocalId(currentId), ERR_OK);
+    EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::SWITCHING, currentId, localId)).Times(Exactly(1));
     EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::UNLOCKED, localId, localId)).Times(Exactly(1));
-    EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::SWITCHED, _, localId)).Times(Exactly(1));
+    EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::SWITCHED, currentId, localId)).Times(Exactly(1));
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(localId), ERR_OK);
     EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::STOPPING, localId, localId)).Times(Exactly(TWICE));
     EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::STOPPED, localId, localId)).Times(Exactly(TWICE));
-    EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::SWITCHING, -1, _)).Times(Exactly(1));
-    EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::SWITCHED, -1, _)).Times(Exactly(1));
+#ifdef SUPPORT_STOP_MAIN_OS_ACCOUNT
+    EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::SWITCHING, -1, localId)).Times(Exactly(1));
+    EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::SWITCHED, -1, localId)).Times(Exactly(1));
+#else
+    EXPECT_CALL(*mockSubscriber,
+        OnStateChanged(OsAccountState::SWITCHING, -1, Constants::START_USER_ID)).Times(Exactly(1));
+    EXPECT_CALL(*mockSubscriber,
+        OnStateChanged(OsAccountState::SWITCHED, -1, Constants::START_USER_ID)).Times(Exactly(1));
+#endif // SUPPORT_STOP_MAIN_OS_ACCOUNT
     EXPECT_EQ(OsAccountManager::DeactivateOsAccount(localId), ERR_OK);
+#ifdef SUPPORT_STOP_MAIN_OS_ACCOUNT
+    EXPECT_CALL(*mockSubscriber,
+        OnStateChanged(OsAccountState::SWITCHING, localId, Constants::START_USER_ID)).Times(Exactly(1));
+    EXPECT_CALL(*mockSubscriber,
+        OnStateChanged(OsAccountState::SWITCHED, localId, Constants::START_USER_ID)).Times(Exactly(1));
+#endif // SUPPORT_STOP_MAIN_OS_ACCOUNT
     EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::REMOVED, localId, localId)).Times(Exactly(1));
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(localId), ERR_OK);
     std::unique_lock<std::mutex> lock(subscriber->mutex_);
