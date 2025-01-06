@@ -694,8 +694,8 @@ bool IInnerOsAccountManager::CheckDomainAccountBound(
     return false;
 }
 
-ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type, const DomainAccountInfo &domainAccountInfo,
-    const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options)
+ErrCode IInnerOsAccountManager::PrepareAccountInfoBeforeBind(const DomainAccountInfo &domainAccountInfo,
+    OsAccountInfo &osAccountInfo)
 {
     std::vector<OsAccountInfo> osAccountInfos;
     (void)QueryAllCreatedOsAccounts(osAccountInfos);
@@ -709,7 +709,6 @@ ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type, con
 #else
     bool isEnabled = true;
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
-    OsAccountInfo osAccountInfo;
     if (isEnabled && (osAccountInfos.size() == 1) && (osAccountInfos[0].GetLocalId() == Constants::START_USER_ID)) {
         DomainAccountInfo curDomainInfo;
         osAccountInfos[0].GetDomainInfo(curDomainInfo);
@@ -734,6 +733,12 @@ ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type, con
         return ERR_OSACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR;
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
     }
+}
+
+ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type, const DomainAccountInfo &domainAccountInfo,
+    const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options,
+    const OsAccountInfo &osAccountInfo)
+{
     auto callbackWrapper =
         std::make_shared<BindDomainAccountCallback>(osAccountControl_, domainAccountInfo, osAccountInfo, callback);
     if (callbackWrapper == nullptr) {
