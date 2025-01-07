@@ -268,12 +268,16 @@ public:
         } else {
             stoppedEventReady = true;
         }
+        if (want.GetAction() == EventFwk::CommonEventSupport::COMMON_EVENT_USER_BACKGROUND) {
+            isReady = true;
+        }
         cv.notify_one();
         return;
     }
     std::condition_variable cv;
     bool stoppingEventReady = false;
     bool stoppedEventReady = false;
+    bool isReady = false;
     std::mutex mutex;
 
 private:
@@ -286,7 +290,9 @@ static void Wait(const std::shared_ptr<AccountTestEventSubscriber> &ptr)
 {
     std::unique_lock<std::mutex> lock(ptr->mutex);
     ptr->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
-        [lockPtr = ptr]() { return lockPtr->stoppingEventReady && lockPtr->stoppedEventReady; });
+        [lockPtr = ptr]() {
+            return (lockPtr->stoppingEventReady && lockPtr->stoppedEventReady) || lockPtr->isReady;
+        });
 }
 #endif
 #endif
@@ -2614,7 +2620,9 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest116, TestSize.Lev
 
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(account.GetLocalId()), ERR_OK);
 
-    sleep(1);
+#ifndef BUNDLE_ADAPTER_MOCK
+    Wait(subscriberPtr);
+#endif
     EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(activingSubscriber));
     EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(activedSubscriber));
     EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(switchedSubscriber));
