@@ -18,6 +18,8 @@
 #include "ability_manager_ipc_interface_code.h"
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
+#include "account_hisysevent_adapter.h"
+#include "os_account_constants.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
 #ifdef ENABLE_DEACTIVATE_OS_ACCOUNTS
@@ -313,6 +315,7 @@ void AbilityManagerAdapter::ResetProxy(const wptr<IRemoteObject>& remote)
 void AbilityManagerAdapter::AbilityMgrDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remote)
 {
     ACCOUNT_LOGI("AbilityMgrDeathRecipient handle remote died.");
+    ReportOsAccountOperationFail(Constants::ADMIN_LOCAL_ID, "resetService", ERR_OK, "AMS remote died");
     AbilityManagerAdapter::GetInstance()->ResetProxy(remote);
 }
 
