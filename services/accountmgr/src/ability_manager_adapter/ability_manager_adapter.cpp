@@ -19,7 +19,6 @@
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "account_hisysevent_adapter.h"
-#include "os_account_constants.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
 #ifdef ENABLE_DEACTIVATE_OS_ACCOUNTS
@@ -31,6 +30,7 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 const std::u16string ABILITY_MGR_DESCRIPTOR = u"ohos.aafwk.AbilityManager";
+constexpr int32_t INVALID_ID = -1;
 #ifdef ENABLE_DEACTIVATE_OS_ACCOUNTS
 constexpr int32_t UID_TRANSFORM_DIVISION = 200000;
 #endif
@@ -315,7 +315,7 @@ void AbilityManagerAdapter::ResetProxy(const wptr<IRemoteObject>& remote)
 void AbilityManagerAdapter::AbilityMgrDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remote)
 {
     ACCOUNT_LOGI("AbilityMgrDeathRecipient handle remote died.");
-    ReportOsAccountOperationFail(Constants::ADMIN_LOCAL_ID, "resetService", ERR_OK, "AMS remote died");
+    ReportOsAccountOperationFail(INVALID_ID, "resetService", ERR_OK, "AbilityMgr remote died");
     AbilityManagerAdapter::GetInstance()->ResetProxy(remote);
 }
 
