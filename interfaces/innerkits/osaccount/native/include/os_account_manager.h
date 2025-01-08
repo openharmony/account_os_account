@@ -164,6 +164,14 @@ public:
     static ErrCode IsOsAccountVerified(const int id, bool &isVerified);
 
     /**
+     * @brief Checks whether the specified OS account is deactivating.
+     * @param id - Indicates the local ID of the OS account.
+     * @param isDeactivating - Indicates whether the current OS account is deactivating.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode IsOsAccountDeactivating(const int id, bool &isDeactivating);
+    
+    /**
      * @brief Gets the number of all OS accounts created on a device.
      * @permission ohos.permission.MANAGE_LOCAL_ACCOUNTS
      * @param osAccountsCount - Returns the number of created OS accounts.

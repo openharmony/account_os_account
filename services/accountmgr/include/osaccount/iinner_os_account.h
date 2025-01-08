@@ -43,6 +43,7 @@ public:
     virtual ErrCode IsOsAccountConstraintEnable(
         const int id, const std::string &constraint, bool &isOsAccountConstraintEnable) = 0;
     virtual ErrCode IsOsAccountVerified(const int id, bool &isVerified) = 0;
+    virtual ErrCode IsOsAccountDeactivating(const int id, bool &isDeactivating) = 0;
     virtual ErrCode GetCreatedOsAccountsCount(unsigned int &createdOsAccountCount) = 0;
     virtual ErrCode QueryMaxOsAccountNumber(uint32_t &maxOsAccountNumber) = 0;
     virtual ErrCode QueryMaxLoggedInOsAccountNumber(uint32_t &maxNum) = 0;

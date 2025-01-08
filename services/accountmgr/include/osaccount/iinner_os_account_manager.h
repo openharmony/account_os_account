@@ -48,6 +48,7 @@ public:
     ErrCode IsOsAccountConstraintEnable(
         const int id, const std::string &constraint, bool &isOsAccountConstraintEnable) override;
     ErrCode IsOsAccountVerified(const int id, bool &isVerified) override;
+    ErrCode IsOsAccountDeactivating(const int id, bool &isDeactivating) override;
     ErrCode GetCreatedOsAccountsCount(unsigned int &createdOsAccountCount) override;
     ErrCode QueryMaxOsAccountNumber(uint32_t &maxOsAccountNumber) override;
     ErrCode QueryMaxLoggedInOsAccountNumber(uint32_t &maxNum) override;
@@ -184,6 +185,7 @@ private:
     OsAccountPluginManager &pluginManager_;
     SafeMap<int32_t, bool> loggedInAccounts_;
     SafeMap<int32_t, bool> verifiedAccounts_;
+    SafeMap<int32_t, bool> deactivatingAccounts_;
     std::map<int32_t, std::shared_ptr<std::mutex>> updateLocks_;
 };
 }  // namespace AccountSA

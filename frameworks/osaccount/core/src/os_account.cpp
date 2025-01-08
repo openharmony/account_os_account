@@ -254,6 +254,17 @@ ErrCode OsAccount::IsOsAccountVerified(const int id, bool &isVerified)
     return proxy->IsOsAccountVerified(id, isVerified);
 }
 
+ErrCode OsAccount::IsOsAccountDeactivating(const int id, bool &isDeactivating)
+{
+    isDeactivating = false;
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+
+    return proxy->IsOsAccountDeactivating(id, isDeactivating);
+}
+
 ErrCode OsAccount::GetCreatedOsAccountsCount(unsigned int &osAccountsCount)
 {
     auto proxy = GetOsAccountProxy();
