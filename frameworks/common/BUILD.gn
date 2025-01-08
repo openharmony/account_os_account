@@ -93,6 +93,11 @@ ohos_shared_library("libaccount_common") {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
   }
 
+  if (has_hiviewdfx_hitrace_part) {
+    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
+    external_deps += [ "hisysevent:libhisysevent" ]
+  }
+
   subsystem_name = "account"
   innerapi_tags = [ "platformsdk" ]
   part_name = "os_account"
