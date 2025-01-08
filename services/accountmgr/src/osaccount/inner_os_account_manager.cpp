@@ -1062,6 +1062,13 @@ ErrCode IInnerOsAccountManager::IsOsAccountVerified(const int id, bool &isVerifi
     return ERR_OK;
 }
 
+ErrCode IInnerOsAccountManager::IsOsAccountDeactivating(const int id, bool &isDeactivating)
+{
+    isDeactivating = false;
+    deactivatingAccounts_.Find(id, isDeactivating);
+    return ERR_OK;
+}
+
 ErrCode IInnerOsAccountManager::GetCreatedOsAccountsCount(unsigned int &createdOsAccountCount)
 {
     std::vector<int32_t> idList;
@@ -1687,11 +1694,14 @@ ErrCode IInnerOsAccountManager::DeactivateOsAccount(const int id, bool isStopSto
         return errCode;
     }
 
+    deactivatingAccounts_.EnsureInsert(id, true);
+
     OsAccountInterface::PublishCommonEvent(
         osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_STOPPING, Constants::OPERATION_STOP);
     subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
 
     errCode = SendMsgForAccountDeactivate(osAccountInfo, isStopStorage);
+    deactivatingAccounts_.Erase(id);
     if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(id);
         ReportOsAccountOperationFail(id, "deactivate", errCode, "deactivate os account failed");

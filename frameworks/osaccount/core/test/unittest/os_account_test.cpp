@@ -407,3 +407,4 @@ HWTEST_F(OsAccountTest, OsAccountTest019, TestSize.Level1)
 {
     EXPECT_EQ(g_osAccount->ResetOsAccountProxy(), ERR_OK);
 }
+

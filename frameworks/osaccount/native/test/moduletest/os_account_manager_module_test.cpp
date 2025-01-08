@@ -3244,3 +3244,15 @@ HWTEST_F(OsAccountManagerModuleTest, DeactivateAllOsAccountsModuleTest001, TestS
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(MAIN_ACCOUNT_ID), ERR_OK);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
 }
+
+/**
+ * @tc.name: IsOsAccountDeactivatingModuleTest001
+ * @tc.desc: Test IsOsAccountDeactivating success.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, IsOsAccountDeactivatingModuleTest001, TestSize.Level1)
+{
+    bool isDeactivating;
+    EXPECT_EQ(OsAccountManager::IsOsAccountDeactivating(MAIN_ACCOUNT_ID, isDeactivating), ERR_OK);
+}

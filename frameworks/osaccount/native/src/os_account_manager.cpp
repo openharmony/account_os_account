@@ -88,6 +88,11 @@ ErrCode OsAccountManager::IsOsAccountVerified(const int id, bool &isVerified)
     return OsAccount::GetInstance().IsOsAccountVerified(id, isVerified);
 }
 
+ErrCode OsAccountManager::IsOsAccountDeactivating(const int id, bool &isDeactivating)
+{
+    return OsAccount::GetInstance().IsOsAccountDeactivating(id, isDeactivating);
+}
+
 ErrCode OsAccountManager::GetCreatedOsAccountsCount(unsigned int &osAccountsCount)
 {
     return OsAccount::GetInstance().GetCreatedOsAccountsCount(osAccountsCount);
