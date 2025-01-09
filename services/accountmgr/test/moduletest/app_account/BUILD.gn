@@ -22,6 +22,8 @@ config("app_account_service_config_mock") {
     "${app_account_services_path}/test/mock/app_account",
     "${app_account_services_path}/test/mock/common",
     "${app_account_innerkits_native_path}/include",
+    "${os_account_path}/frameworks/osaccount/core/include",
+    "${os_account_path}/interfaces/innerkits/osaccount/native/include",
   ]
 }
 
@@ -181,6 +183,12 @@ ohos_moduletest("app_account_manager_service_associated_data_test") {
     "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
     "${bundle_framework_path}/common/log/src/app_log_wrapper.cpp",
     "${innerkits_native_path}/src/account_info_parcel.cpp",
+    "${os_account_core_path}/src/os_account_event_stub.cpp",
+    "${os_account_core_path}/src/os_account_state_parcel.cpp",
+    "${services_path}/accountmgr/src/appaccount/os_account_state_subscriber.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_state_reply_callback_stub.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_subscribe_death_recipient.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_subscribe_manager.cpp",
     "app_account_associated_data_test.cpp",
   ]
 
@@ -439,6 +447,12 @@ ohos_moduletest("app_account_control_manager_module_test") {
     "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
     "${bundle_framework_path}/common/log/src/app_log_wrapper.cpp",
     "${innerkits_native_path}/src/account_info_parcel.cpp",
+    "${os_account_core_path}/src/os_account_event_stub.cpp",
+    "${os_account_core_path}/src/os_account_state_parcel.cpp",
+    "${services_path}/accountmgr/src/appaccount/os_account_state_subscriber.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_state_reply_callback_stub.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_subscribe_death_recipient.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_subscribe_manager.cpp",
     "app_account_control_manager_module_test.cpp",
   ]
 
@@ -558,6 +572,8 @@ ohos_moduletest("app_account_authenticator_session_module_test") {
   include_dirs = [
     "${app_account_services_path}/test/mock/app_account",
     "${innerkits_native_path}/include",
+    "${os_account_path}/frameworks/osaccount/core/include",
+    "${os_account_path}/interfaces/innerkits/osaccount/native/include",
   ]
   sources = [
     "${app_account_services_path}/src/appaccount/app_account_control_manager.cpp",
@@ -600,6 +616,12 @@ ohos_moduletest("app_account_authenticator_session_module_test") {
     "${app_account_services_path}/src/bundle_manager_adapter/bundle_user_manager_adapter_proxy.cpp",
     "${bundle_framework_path}/common/log/src/app_log_wrapper.cpp",
     "${innerkits_native_path}/src/account_info_parcel.cpp",
+    "${os_account_core_path}/src/os_account_event_stub.cpp",
+    "${os_account_core_path}/src/os_account_state_parcel.cpp",
+    "${services_path}/accountmgr/src/appaccount/os_account_state_subscriber.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_state_reply_callback_stub.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_subscribe_death_recipient.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_subscribe_manager.cpp",
     "${services_path}/accountmgr/test/mock/common/bundle_manager_adapter.cpp",
   ]
 
@@ -619,6 +641,7 @@ ohos_moduletest("app_account_authenticator_session_module_test") {
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
 
   external_deps = [
@@ -682,14 +705,24 @@ ohos_moduletest("app_account_manager_service_module_test") {
   cflags_cc = []
   cflags = []
   sources = [
+    "${app_account_services_path}/src/account_data_storage.cpp",
     "${app_account_services_path}/src/appaccount/app_account_common_event_observer.cpp",
     "${app_account_services_path}/src/appaccount/app_account_common_event_subscriber.cpp",
     "${app_account_services_path}/src/appaccount/app_account_manager_service.cpp",
     "${app_account_services_path}/test/mock/app_account/accesstoken_kit.cpp",
     "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
     "${common_path}/utils/src/account_permission_manager.cpp",
+    "${os_account_core_path}/src/os_account_event_stub.cpp",
+    "${os_account_core_path}/src/os_account_state_parcel.cpp",
+    "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
+    "${services_path}/accountmgr/src/appaccount/os_account_state_subscriber.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_state_reply_callback_stub.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_subscribe_death_recipient.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_subscribe_manager.cpp",
     "app_account_manager_service_module_test.cpp",
   ]
+
+  use_exceptions = true
 
   configs = [
     ":app_account_service_config_mock",
@@ -702,6 +735,7 @@ ohos_moduletest("app_account_manager_service_module_test") {
     "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
 
   external_deps = [
@@ -807,6 +841,12 @@ ohos_moduletest("at_not_mock_app_account_manager_service_module_test") {
     "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
     "${bundle_framework_path}/common/log/src/app_log_wrapper.cpp",
     "${innerkits_native_path}/src/account_info_parcel.cpp",
+    "${os_account_core_path}/src/os_account_event_stub.cpp",
+    "${os_account_core_path}/src/os_account_state_parcel.cpp",
+    "${services_path}/accountmgr/src/appaccount/os_account_state_subscriber.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_state_reply_callback_stub.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_subscribe_death_recipient.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_subscribe_manager.cpp",
     "at_not_mock_app_account_manager_service_module_test.cpp",
   ]
 
@@ -1060,6 +1100,9 @@ ohos_moduletest("app_account_authenticator_session_manager_module_test") {
   include_dirs = [
     "${app_account_services_path}/test/mock/app_account",
     "${innerkits_native_path}/include",
+    "${app_account_innerkits_native_path}/include",
+    "${os_account_path}/frameworks/osaccount/core/include",
+    "${os_account_path}/interfaces/innerkits/osaccount/native/include",
   ]
 
   sources = [
@@ -1103,6 +1146,12 @@ ohos_moduletest("app_account_authenticator_session_manager_module_test") {
     "${app_account_services_path}/src/bundle_manager_adapter/bundle_user_manager_adapter_proxy.cpp",
     "${bundle_framework_path}/common/log/src/app_log_wrapper.cpp",
     "${innerkits_native_path}/src/account_info_parcel.cpp",
+    "${os_account_core_path}/src/os_account_event_stub.cpp",
+    "${os_account_core_path}/src/os_account_state_parcel.cpp",
+    "${services_path}/accountmgr/src/appaccount/os_account_state_subscriber.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_state_reply_callback_stub.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_subscribe_death_recipient.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_subscribe_manager.cpp",
     "${services_path}/accountmgr/test/mock/common/bundle_manager_adapter.cpp",
   ]
 
@@ -1121,6 +1170,7 @@ ohos_moduletest("app_account_authenticator_session_manager_module_test") {
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
 
   external_deps = [

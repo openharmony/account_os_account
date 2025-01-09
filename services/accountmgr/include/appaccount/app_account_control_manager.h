@@ -95,6 +95,7 @@ public:
         const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
 
     ErrCode OnPackageRemoved(const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
+    ErrCode OnUserStopping(int32_t userId);
     ErrCode OnUserRemoved(int32_t userId);
 
     ErrCode GetAllAccountsFromDataStorage(const std::string &owner, std::vector<AppAccountInfo> &appAccounts,
