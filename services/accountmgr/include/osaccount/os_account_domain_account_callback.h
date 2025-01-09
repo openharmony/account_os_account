@@ -27,20 +27,20 @@ namespace OHOS {
 namespace AccountSA {
 class CheckAndCreateDomainAccountCallback final : public DomainAccountCallbackStub {
 public:
-    CheckAndCreateDomainAccountCallback(const OsAccountType &type, const DomainAccountInfo &domainAccountInfo_,
+    CheckAndCreateDomainAccountCallback(std::shared_ptr<IOsAccountControl> &osAccountControl, const OsAccountType &type,
         const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &accountOptions);
     void OnResult(const int32_t errCode, Parcel &parcel) override;
 
 private:
     OsAccountType type_;
+    std::shared_ptr<IOsAccountControl> osAccountControl_;
     CreateOsAccountForDomainOptions accountOptions_;
     sptr<IDomainAccountCallback> innerCallback_ = nullptr;
 };
 
 class BindDomainAccountCallback final : public DomainAccountCallback {
 public:
-    BindDomainAccountCallback(std::shared_ptr<IOsAccountControl> &osAccountControl,
-        const DomainAccountInfo &domainAccountInfo, const OsAccountInfo &osAccountInfo,
+    BindDomainAccountCallback(std::shared_ptr<IOsAccountControl> &osAccountControl, const OsAccountInfo &osAccountInfo,
         const sptr<IDomainAccountCallback> &callback);
     void OnResult(const int32_t errCode, Parcel &parcel) override;
 

@@ -29,9 +29,9 @@
 namespace OHOS {
 namespace AccountSA {
 CheckAndCreateDomainAccountCallback::CheckAndCreateDomainAccountCallback(
-    const OsAccountType &type, const DomainAccountInfo &domainAccountInfo,
+    std::shared_ptr<IOsAccountControl> &osAccountControl, const OsAccountType &type,
     const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &accountOptions)
-    : type_(type), accountOptions_(accountOptions), innerCallback_(callback)
+    : type_(type), osAccountControl_(osAccountControl), accountOptions_(accountOptions), innerCallback_(callback)
 {}
 
 void CheckAndCreateDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
@@ -62,15 +62,26 @@ void CheckAndCreateDomainAccountCallback::OnResult(int32_t errCode, Parcel &parc
         return innerCallback_->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, resultParcel);
     }
     errCode = IInnerOsAccountManager::GetInstance().BindDomainAccount(type_, domainAccountInfo,
-        innerCallback_, accountOptions_);
+        osAccountInfo, accountOptions_);
+    if (errCode != ERR_OK) {
+        return innerCallback_->OnResult(errCode, resultParcel);
+    }
+    auto callbackWrapper =
+        std::make_shared<BindDomainAccountCallback>(osAccountControl_, osAccountInfo, innerCallback_);
+    if (callbackWrapper == nullptr) {
+        ACCOUNT_LOGE("Create BindDomainAccountCallback failed");
+        return innerCallback_->OnResult(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, resultParcel);
+    }
+    errCode = InnerDomainAccountManager::GetInstance().OnAccountBound(domainAccountInfo,
+        osAccountInfo.GetLocalId(), callbackWrapper);
     if (errCode != ERR_OK) {
         return innerCallback_->OnResult(errCode, resultParcel);
     }
 }
 
 BindDomainAccountCallback::BindDomainAccountCallback(
-    std::shared_ptr<IOsAccountControl> &osAccountControl, const DomainAccountInfo &domainAccountInfo,
-    const OsAccountInfo &osAccountInfo, const sptr<IDomainAccountCallback> &callback)
+    std::shared_ptr<IOsAccountControl> &osAccountControl, const OsAccountInfo &osAccountInfo,
+    const sptr<IDomainAccountCallback> &callback)
     : osAccountControl_(osAccountControl), osAccountInfo_(osAccountInfo), innerCallback_(callback)
 {}
 
@@ -99,16 +110,7 @@ void BindDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
         osAccountInfo_.Marshalling(resultParcel);
         return innerCallback_->OnResult(errCode, resultParcel);
     }
-    errCode = osAccountControl_->UpdateAccountIndex(osAccountInfo_, false);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Failed to update account index.");
-        return innerCallback_->OnResult(errCode, parcel);
-    }
-    errCode = osAccountControl_->UpdateOsAccount(osAccountInfo_);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Failed to update osaccount.");
-        return innerCallback_->OnResult(errCode, parcel);
-    }
+
 #ifdef HAS_CES_PART
     AccountEventProvider::EventPublish(
         EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::START_USER_ID, nullptr);

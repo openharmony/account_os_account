@@ -65,10 +65,10 @@ void DomainAccountCallbackTest::TearDown(void)
  */
 HWTEST_F(DomainAccountCallbackTest, DomainAccountCallbackTest_OnResult_001, TestSize.Level0)
 {
-    DomainAccountInfo info;
     CreateOsAccountForDomainOptions accountOptions;
-    auto callbackPtr = std::make_shared<CheckAndCreateDomainAccountCallback>(OsAccountType::NORMAL,
-        info, nullptr, accountOptions);
+    std::shared_ptr<IOsAccountControl> testOsAccountControl = nullptr;
+    auto callbackPtr = std::make_shared<CheckAndCreateDomainAccountCallback>(testOsAccountControl,
+        OsAccountType::NORMAL, nullptr, accountOptions);
     Parcel parcel;
     callbackPtr->OnResult(0, parcel);
     EXPECT_EQ(callbackPtr->innerCallback_, nullptr);
@@ -82,10 +82,9 @@ HWTEST_F(DomainAccountCallbackTest, DomainAccountCallbackTest_OnResult_001, Test
  */
 HWTEST_F(DomainAccountCallbackTest, DomainAccountCallbackTest_OnResult_002, TestSize.Level0)
 {
-    DomainAccountInfo info;
     OsAccountInfo osAccountInfo;
     std::shared_ptr<IOsAccountControl> testOsAccountControl = nullptr;
-    auto callbackPtr = std::make_shared<BindDomainAccountCallback>(testOsAccountControl, info, osAccountInfo, nullptr);
+    auto callbackPtr = std::make_shared<BindDomainAccountCallback>(testOsAccountControl, osAccountInfo, nullptr);
     Parcel parcel;
     callbackPtr->OnResult(0, parcel);
     EXPECT_EQ(callbackPtr->innerCallback_, nullptr);

@@ -118,7 +118,7 @@ public:
     void CleanGarbageOsAccountsAsync() override;
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
     ErrCode BindDomainAccount(const OsAccountType &type, const DomainAccountInfo &domainAccountInfo,
-        const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options = {});
+        OsAccountInfo &osAccountInfo, const CreateOsAccountForDomainOptions &options = {});
     ErrCode UpdateAccountStatusForDomain(const int id, DomainAccountStatus status);
     ErrCode UpdateAccountInfoByDomainAccountInfo(int32_t userId, const DomainAccountInfo &newDomainAccountInfo);
     bool IsSameAccount(const DomainAccountInfo &domainInfoSrc, const DomainAccountInfo &domainInfoTar);
