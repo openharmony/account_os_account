@@ -342,6 +342,9 @@ ohos_moduletest("os_account_subscribe_test") {
     "hilog:libhilog",
   ]
   cflags_cc = [ "-DACCOUNT_TEST" ]
+  if (os_account_support_deactivate_main_os_account) {
+    cflags_cc += [ "-DSUPPORT_STOP_MAIN_OS_ACCOUNT" ]
+  }
 }
 
 group("moduletest") {
