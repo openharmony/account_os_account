@@ -21,7 +21,6 @@
 #include "account_file_operator.h"
 #include "account_log_wrapper.h"
 #include "os_account_manager.h"
-#include "tool_system_test.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -77,6 +76,23 @@ void AccountCommandSetModuleTest::SetUp(void) __attribute__((no_sanitize("cfi"))
 void AccountCommandSetModuleTest::TearDown()
 {}
 
+static std::string ExecuteCommand(const std::string& command)
+{
+    std::string result = "";
+    FILE* file = popen(command.c_str(), "r");
+
+    if (file != nullptr) {
+        char commandResult[1024] = { 0 };
+        while ((fgets(commandResult, sizeof(commandResult), file)) != nullptr) {
+            result.append(commandResult);
+        }
+        pclose(file);
+        file = nullptr;
+    }
+
+    return result;
+}
+
 /**
  * @tc.name: Acm_Command_Set_0100
  * @tc.desc: Verify the "acm set -i <local-account-id> -c <constraints>" command.
@@ -97,7 +113,7 @@ HWTEST_F(AccountCommandSetModuleTest, Acm_Command_Set_0100, TestSize.Level1)
     std::string command = TOOL_NAME + " set -i " + localAccountId + " -c " + STRING_CONSTRAINT_INVALID;
     GTEST_LOG_(INFO) << "command = " << command;
 
-    std::string commandResult = ToolSystemTest::ExecuteCommand(command);
+    std::string commandResult = ExecuteCommand(command);
     ASSERT_EQ(commandResult, STRING_SET_OS_ACCOUNT_CONSTRAINTS_NG + "\n");
 
     commandResult = AccountCommandUtil::DeleteLastOsAccount();
@@ -124,13 +140,13 @@ HWTEST_F(AccountCommandSetModuleTest, Acm_Command_Set_0200, TestSize.Level1)
     std::string command = TOOL_NAME + " set -i " + localAccountId + " -c " + STRING_CONSTRAINT + " -e";
     GTEST_LOG_(INFO) << "command = " << command;
 
-    std::string commandResult = ToolSystemTest::ExecuteCommand(command);
+    std::string commandResult = ExecuteCommand(command);
     ASSERT_EQ(commandResult, STRING_SET_OS_ACCOUNT_CONSTRAINTS_OK + "\n");
 
     command = TOOL_NAME + " set -i " + localAccountId + " -c " + STRING_CONSTRAINT + " -e";
     GTEST_LOG_(INFO) << "command = " << command;
 
-    commandResult = ToolSystemTest::ExecuteCommand(command);
+    commandResult = ExecuteCommand(command);
     ASSERT_EQ(commandResult, STRING_SET_OS_ACCOUNT_CONSTRAINTS_OK + "\n");
 
     commandResult = AccountCommandUtil::DeleteLastOsAccount();

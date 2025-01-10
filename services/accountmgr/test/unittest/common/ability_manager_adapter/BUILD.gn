@@ -24,7 +24,6 @@ config("ability_manager_adapter_test_config") {
     "${domain_account_interfaces_native_path}/include",
     "${services_path}/accountmgr/include",
     "${services_path}/accountmgr/include/ability_manager_adapter",
-    "${ability_runtime_path}/interfaces/inner_api/ability_manager/include",
   ]
 }
 
