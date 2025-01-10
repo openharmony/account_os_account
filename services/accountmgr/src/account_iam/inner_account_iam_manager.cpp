@@ -26,15 +26,13 @@
 #endif // SUPPORT_DOMAIN_ACCOUNTS
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
+#include "user_access_ctrl_client.h"
 #include "user_auth_client.h"
 #include "user_auth_client_impl.h"
 #include "user_idm_client.h"
-#ifdef HAS_PIN_AUTH_PART
 #include "access_token.h"
 #include "ipc_skeleton.h"
-#include "pinauth_register.h"
 #include "token_setproc.h"
-#endif //HAS_PIN_AUTH_PART
 #include "os_account_constants.h"
 #include "account_file_operator.h"
 
@@ -43,7 +41,8 @@ namespace AccountSA {
 namespace {
 constexpr int32_t DELAY_FOR_EXCEPTION = 100;
 constexpr int32_t MAX_RETRY_TIMES = 20;
-const int32_t TIME_WAIT_TIME_OUT = 5;
+constexpr int32_t TIME_WAIT_TIME_OUT = 5;
+constexpr uint64_t TOKEN_ALLOWABLE_DURATION = 60 * 1000; // 60s -> 60 * 1000ms
 
 #ifdef _ARM64_
 static const std::string RECOVERY_LIB_PATH = "/system/lib64/";
@@ -56,6 +55,7 @@ static const char RECOVERY_METHOD_NAME[] = "UpdateUseAuthWithRecoveryKey";
 using UserIDMClient = UserIam::UserAuth::UserIdmClient;
 using UserAuthClient = UserIam::UserAuth::UserAuthClient;
 using UserAuthClientImpl = UserIam::UserAuth::UserAuthClientImpl;
+using UserAccessCtrlClient = UserIam::UserAuth::UserAccessCtrlClient;
 
 typedef int32_t (*UpdateUserAuthWithRecoveryKeyFunc)(const std::vector<uint8_t> &authToken,
     const std::vector<uint8_t> &newSecret, uint64_t secureUid, uint32_t userId);
@@ -188,21 +188,6 @@ void InnerAccountIAMManager::DelCred(
     UserIDMClient::GetInstance().DeleteCredential(userId, credentialId, authToken, idmCallback);
 }
 
-#ifdef HAS_PIN_AUTH_PART
-void InnerAccountIAMManager::OnDelUserDone(int32_t userId)
-{
-    ACCOUNT_LOGI("Delete user credential successfully, userId: %{public}d", userId);
-    std::lock_guard<std::mutex> lock(delUserInputerMutex_);
-    delUserInputerVec_.pop_back();
-    if (delUserInputerVec_.empty()) {
-        Security::AccessToken::AccessTokenID selfToken = IPCSkeleton::GetSelfTokenID();
-        SetFirstCallerTokenID(selfToken);
-        UserIam::PinAuth::PinAuthRegister::GetInstance().UnRegisterInputer();
-        ACCOUNT_LOGI("Unregister inputer.");
-    }
-}
-#endif // HAS_PIN_AUTH_PART
-
 void InnerAccountIAMManager::DelUser(
     int32_t userId, const std::vector<uint8_t> &authToken, const sptr<IIDMCallback> &callback)
 {
@@ -216,41 +201,14 @@ void InnerAccountIAMManager::DelUser(
         callback->OnResult(ResultCode::FAIL, errResult);
         return;
     }
-#ifdef HAS_PIN_AUTH_PART
     std::lock_guard<std::mutex> userLock(*GetOperatingUserLock(userId));
-    Security::AccessToken::AccessTokenID selfToken = IPCSkeleton::GetSelfTokenID();
-    ErrCode errCode = SetFirstCallerTokenID(selfToken);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Failed to set first caller token id, errCode: %{public}d", errCode);
-        return callback->OnResult(errCode, errResult);
-    }
-    {
-        std::lock_guard<std::mutex> lock(delUserInputerMutex_);
-        if (delUserInputerVec_.empty()) {
-            auto inputer = std::make_shared<DelUserInputer>();
-            if (!UserIam::PinAuth::PinAuthRegister::GetInstance().RegisterInputer(inputer)) {
-                ACCOUNT_LOGE("Failed to resgiter inputer, continue");
-            }
-            delUserInputerVec_.emplace_back(inputer);
-        } else {
-            delUserInputerVec_.emplace_back(delUserInputerVec_[0]);
-        }
-    }
-    CredentialParameters credInfo;
-    credInfo.authType = AuthType::PIN;
-    credInfo.pinType = PinSubType::PIN_SIX;
-    credInfo.token = authToken;
-    auto delUserCallback = std::make_shared<DelUserCallback>(userId, authToken, callback);
-    UserIDMClient::GetInstance().UpdateCredential(userId, credInfo, delUserCallback);
-    std::unique_lock<std::mutex> lock(delUserCallback->mutex_);
-    delUserCallback->onResultCondition_.wait(lock, [delUserCallback] {
-        return delUserCallback->isCalled_;
+    Security::AccessToken::AccessTokenID callerTokenId = IPCSkeleton::GetCallingTokenID();
+    auto verifyTokenCallback = std::make_shared<VerifyTokenCallbackWrapper>(userId, authToken, callerTokenId, callback);
+    UserAccessCtrlClient::GetInstance().VerifyAuthToken(authToken, TOKEN_ALLOWABLE_DURATION, verifyTokenCallback);
+    std::unique_lock<std::mutex> lock(verifyTokenCallback->mutex_);
+    verifyTokenCallback->onResultCondition_.wait(lock, [verifyTokenCallback] {
+        return verifyTokenCallback->isCalled_;
     });
-#else
-
-    auto idmCallback = std::make_shared<DelCredCallback>(userId, true, authToken, callback);
-    UserIDMClient::GetInstance().DeleteUser(userId, authToken, idmCallback);
-#endif
 }
 
 void InnerAccountIAMManager::GetCredentialInfo(
