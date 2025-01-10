@@ -131,12 +131,6 @@ if (os_account_support_domain_accounts) {
   ]
 }
 
-ability_base_sources = [
-  "${ability_runtime_path}/services/abilitymgr/src/ability_connect_callback_stub.cpp",
-  "${ability_runtime_path}/services/abilitymgr/src/user_callback_stub.cpp",
-  "${app_account_services_path}/src/ability_manager_adapter/ability_manager_adapter.cpp",
-]
-
 account_data_storage_source = [
   "${services_path}/accountmgr/src/account_data_storage.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_data_storage.cpp",

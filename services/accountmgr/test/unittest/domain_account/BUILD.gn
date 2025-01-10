@@ -81,7 +81,6 @@ ohos_unittest("DomainAccountInnerServiceCovTest") {
   configs = [
     ":domain_account_amgr_mock_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
-    "${services_path}/accountmgr/:ability_manager_config",
   ]
 
   deps = [
