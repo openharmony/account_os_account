@@ -21,6 +21,7 @@
 #ifdef HAS_PIN_AUTH_PART
 #include "i_inputer.h"
 #endif
+#include "user_access_ctrl_client_callback.h"
 #include "user_auth_client_callback.h"
 #include "user_auth_client_defines.h"
 #include "user_idm_client.h"
@@ -47,6 +48,7 @@ typedef UserIam::UserAuth::SetPropertyRequest SetPropertyRequest;
 typedef UserIam::UserAuth::PropertyMode PropertyMode;
 typedef UserIam::UserAuth::PinSubType PinSubType;
 typedef UserIam::UserAuth::UserIdmClientCallback UserIdmClientCallback;
+typedef UserIam::UserAuth::VerifyTokenCallback VerifyTokenCallback;
 typedef UserIam::UserAuth::CredentialParameters CredentialParameters;
 typedef UserIam::UserAuth::CredentialInfo CredentialInfo;
 typedef UserIam::UserAuth::GetSecUserInfoCallback GetSecUserInfoCallback;

@@ -484,24 +484,64 @@ void UpdateCredCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, con
     innerCallback_->OnAcquireInfo(module, acquireInfo, extraInfo);
 }
 
-#ifdef HAS_PIN_AUTH_PART
-void DelUserInputer::OnGetData(int32_t authSubType, std::vector<uint8_t> challenge,
-    std::shared_ptr<IInputerData> inputerData)
+VerifyTokenCallbackWrapper::VerifyTokenCallbackWrapper(uint32_t userId, const std::vector<uint8_t> &token,
+    Security::AccessToken::AccessTokenID callerTokenId, const sptr<IIDMCallback> &callback)
+    : userId_(userId), token_(token), callerTokenId_(callerTokenId), innerCallback_(callback)
+{}
+
+void VerifyTokenCallbackWrapper::OnResult(int32_t result, const Attributes &extraInfo)
 {
-    ACCOUNT_LOGI("Get temporary data, authSubType: %{public}d", authSubType);
-    if (inputerData == nullptr) {
-        ACCOUNT_LOGE("InputerData is nullptr");
-        return;
-    }
-    inputerData->OnSetData(PinSubType::PIN_SIX, TEMP_PIN);
+    std::unique_lock<std::mutex> verifyLock(mutex_);
+    InnerOnResult(result, extraInfo);
+    isCalled_ = true;
+    onResultCondition_.notify_one();
 }
+
+void VerifyTokenCallbackWrapper::InnerOnResult(int32_t result, const Attributes &extraInfo)
+{
+    ACCOUNT_LOGI("Verify token result = %{public}d, userId = %{public}d", result, userId_);
+    if (result != ERR_OK) {
+        ReportOsAccountOperationFail(userId_, "deleteCredential", result, "Failed to verify token");
+        return innerCallback_->OnResult(result, extraInfo);
+    }
+    uint64_t secureUid = 0;
+    extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, secureUid);
+    std::vector<uint8_t> rootSecret;
+    extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, rootSecret);
+    auto &innerIamMgr = InnerAccountIAMManager::GetInstance();
+    ErrCode errCode = innerIamMgr.UpdateStorageUserAuth(userId_, secureUid, token_, rootSecret, {});
+    if (errCode != ERR_OK) {
+        ReportOsAccountOperationFail(userId_, "deleteCredential", errCode, "Failed to update user auth");
+        Attributes emptyExtraInfo;
+        return innerCallback_->OnResult(ResultCode::FAIL, emptyExtraInfo);
+    }
+    result = SetFirstCallerTokenID(callerTokenId_);
+    ACCOUNT_LOGI("Set first caller info result: %{public}d", result);
+    auto deleteUserCallback = std::make_shared<CommitDelCredCallback>(userId_, innerCallback_);
+    UserIDMClient::GetInstance().DeleteUser(userId_, token_, deleteUserCallback);
+    std::unique_lock<std::mutex> lock(deleteUserCallback->mutex_);
+    deleteUserCallback->onResultCondition_.wait(lock, [deleteUserCallback] { return deleteUserCallback->isCalled_; });
+}
+
+CommitDelCredCallback::CommitDelCredCallback(uint32_t userId, const sptr<IIDMCallback> callback)
+    : userId_(userId), innerCallback_(callback)
+{}
 
 void CommitDelCredCallback::OnResult(int32_t result, const UserIam::UserAuth::Attributes &extraInfo)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    ACCOUNT_LOGI("IAM OnResult callback! result %{public}d", result);
+    ACCOUNT_LOGI("Commit delete user result = %{public}d, userId = %{public}d", result, userId_);
     isCalled_ = true;
-    resultCode_ = result;
+    if (result != ERR_OK) {
+        ReportOsAccountOperationFail(userId_, "deleteCredential", result, "Failed to delete user's credential");
+    } else {
+        ErrCode errCode = InnerAccountIAMManager::GetInstance().UpdateStorageKeyContext(userId_);
+        if (errCode != ERR_OK) {
+            ReportOsAccountOperationFail(userId_, "deleteCredential", errCode, "Failed to update key context");
+        }
+        (void)IInnerOsAccountManager::GetInstance().SetOsAccountCredentialId(userId_, 0);
+    }
+    innerCallback_->OnResult(result, extraInfo);
     onResultCondition_.notify_one();
 }
 
@@ -510,89 +550,6 @@ void CommitDelCredCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo,
 {
     ACCOUNT_LOGI("IAM OnAcquireInfo callback! module %{public}d, acquire %{public}u.", module, acquireInfo);
 }
-
-DelUserCallback::DelUserCallback(uint32_t userId, const std::vector<uint8_t> &token, const sptr<IIDMCallback> &callback)
-    : userId_(userId), token_(token), innerCallback_(callback)
-{}
-
-DelUserCallback::~DelUserCallback()
-{
-    InnerAccountIAMManager::GetInstance().OnDelUserDone(userId_);
-}
-
-static int32_t ConvertDelUserErrCode(int32_t result)
-{
-    switch (result) {
-        case ResultCode::NOT_ENROLLED:
-        case ResultCode::INVALID_PARAMETERS:
-            return ERR_IAM_TOKEN_AUTH_FAILED;
-        case ResultCode::CANCELED:
-        case ResultCode::TIMEOUT:
-            return ERR_IAM_GENERAL_ERROR;
-        default:
-            return result;
-    }
-}
-
-void DelUserCallback::InnerOnResult(int32_t result, const Attributes &extraInfo)
-{
-    ACCOUNT_LOGI("DelUserCallback, userId: %{public}d, result: %{public}d", userId_, result);
-    if (innerCallback_ == nullptr) {
-        ACCOUNT_LOGE("Inner callback is nullptr");
-        return;
-    }
-    result = ConvertDelUserErrCode(result);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("DelUserCallback fail code = %{public}d", result);
-        ReportOsAccountOperationFail(userId_, "deleteCredential", result, "Failed to delete user");
-        return innerCallback_->OnResult(result, extraInfo);
-    }
-    uint64_t secureUid = 0;
-    extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, secureUid);
-    std::vector<uint8_t> oldSecret;
-    extraInfo.GetUint8ArrayValue(Attributes::ATTR_OLD_ROOT_SECRET, oldSecret);
-    std::vector<uint8_t> token;
-    extraInfo.GetUint8ArrayValue(Attributes::ATTR_AUTH_TOKEN, token);
-    auto &innerIamMgr = InnerAccountIAMManager::GetInstance();
-    ErrCode errCode = innerIamMgr.UpdateStorageUserAuth(userId_, secureUid, token, oldSecret, {});
-    if (errCode != ERR_OK) {
-        ReportOsAccountOperationFail(userId_, "deleteCredential", errCode, "Failed to update user auth");
-        uint64_t credentialId = 0;
-        extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId);
-        DeleteCredential(userId_, credentialId, token);
-        return innerCallback_->OnResult(errCode, extraInfo);
-    }
-
-    Security::AccessToken::AccessTokenID selfToken = IPCSkeleton::GetSelfTokenID();
-    result = SetFirstCallerTokenID(selfToken);
-    ACCOUNT_LOGI("Set first caller info result: %{public}d", result);
-    auto deleteUserCallback = std::make_shared<CommitDelCredCallback>();
-    UserIDMClient::GetInstance().DeleteUser(userId_, token_, deleteUserCallback);
-    std::unique_lock<std::mutex> lock(deleteUserCallback->mutex_);
-    deleteUserCallback->onResultCondition_.wait(lock, [deleteUserCallback] { return deleteUserCallback->isCalled_; });
-    if (deleteUserCallback->resultCode_ != ERR_OK) {
-        ACCOUNT_LOGE("Failed to erase user in callback, userId=%{public}d, errcode=%{public}d",
-            userId_, deleteUserCallback->resultCode_);
-        ReportOsAccountOperationFail(userId_, "deleteCredential", deleteUserCallback->resultCode_,
-            "Failed to erase user");
-        return innerCallback_->OnResult(deleteUserCallback->resultCode_, extraInfo);
-    }
-    (void)IInnerOsAccountManager::GetInstance().SetOsAccountCredentialId(userId_, 0);
-    errCode = innerIamMgr.UpdateStorageKeyContext(userId_);
-    if (errCode != ERR_OK) {
-        ReportOsAccountOperationFail(userId_, "deleteCredential", errCode, "Failed to update key context");
-    }
-    innerCallback_->OnResult(errCode, extraInfo);
-}
-
-void DelUserCallback::OnResult(int32_t result, const Attributes &extraInfo)
-{
-    std::unique_lock<std::mutex> delLock(mutex_);
-    InnerOnResult(result, extraInfo);
-    isCalled_ = true;
-    onResultCondition_.notify_one();
-}
-#endif // HAS_PIN_AUTH_PART
 
 CommitCredUpdateCallback::CommitCredUpdateCallback(int32_t userId,
     const UpdateCredInfo &extraUpdateInfo, const sptr<IIDMCallback> &callback)
