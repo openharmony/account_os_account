@@ -17,7 +17,6 @@
 #define OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_DOMAIN_ACCOUNT_CALLBACK_H
 
 #include <cstdint>
-#include "domain_account_common.h"
 #include "parcel.h"
 
 namespace OHOS {

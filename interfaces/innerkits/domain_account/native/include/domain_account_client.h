@@ -36,19 +36,16 @@
 #ifndef OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_DOMAIN_ACCOUNT_CLIENT_H
 #define OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_DOMAIN_ACCOUNT_CLIENT_H
 
-#include <map>
 #include <mutex>
-#include <set>
-#include "account_error_no.h"
 #include "domain_account_callback.h"
 #include "domain_account_plugin.h"
-#include "idomain_account_plugin.h"
-#include "domain_account_status_listener.h"
 #include "domain_account_status_listener_manager.h"
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+#include "idomain_account_plugin.h"
 #include "domain_account_callback_service.h"
-#include "get_access_token_callback.h"
 #include "idomain_account.h"
-#include "want.h"
+#endif // SUPPORT_DOMAIN_ACCOUNTS
+#include "get_access_token_callback.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -134,11 +131,14 @@ public:
 private:
     DomainAccountClient();
     ~DomainAccountClient() = default;
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     void RestoreListenerRecords();
     void RestorePlugin();
+#endif // SUPPORT_DOMAIN_ACCOUNTS
     DISALLOW_COPY_AND_MOVE(DomainAccountClient);
 
 private:
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     class DomainAccountDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
         DomainAccountDeathRecipient() = default;
@@ -152,8 +152,10 @@ private:
     void ResetDomainAccountProxy(const wptr<IRemoteObject> &remote);
     ErrCode AuthProxyInit(const std::shared_ptr<DomainAccountCallback> &callback,
         sptr<DomainAccountCallbackService> &callbackService, sptr<IDomainAccount> &proxy);
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 
 private:
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     std::mutex mutex_;
     std::mutex recordMutex_;
     sptr<IDomainAccount> proxy_ = nullptr;
@@ -161,6 +163,7 @@ private:
     sptr<IDomainAccountPlugin> pluginService_ = nullptr;
     sptr<IDomainAccountCallback> callback_ = nullptr;
     std::shared_ptr<DomainAccountStatusListenerManager> listenerManager_ = nullptr;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 };
 }  // namespace AccountSA
 }  // namespace OHOS
