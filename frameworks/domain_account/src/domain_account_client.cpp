@@ -17,15 +17,13 @@
 
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
-#include "account_proxy.h"
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
 #include "domain_account_callback_adapters.h"
-#include "domain_account_callback_service.h"
 #include "domain_account_plugin_service.h"
 #include "domain_account_proxy.h"
-#include "domain_account_status_listener.h"
-#include "domain_account_status_listener_manager.h"
 #include "ohos_account_kits_impl.h"
 #include "system_ability_definition.h"
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 
 namespace OHOS {
 namespace AccountSA {
@@ -35,6 +33,7 @@ DomainAccountClient &DomainAccountClient::GetInstance()
     return *instance;
 }
 
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
 std::function<void(int32_t, const std::string &)> callbackFunc()
 {
     return [](int32_t systemAbilityId, const std::string &deviceId) {
@@ -44,14 +43,18 @@ std::function<void(int32_t, const std::string &)> callbackFunc()
         }
     };
 }
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 
 DomainAccountClient::DomainAccountClient()
 {
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     (void)OhosAccountKitsImpl::GetInstance().SubscribeSystemAbility(callbackFunc());
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
 ErrCode DomainAccountClient::RegisterPlugin(const std::shared_ptr<DomainAccountPlugin> &plugin)
 {
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     if (plugin == nullptr) {
         ACCOUNT_LOGE("plugin is nullptr");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
@@ -71,10 +74,14 @@ ErrCode DomainAccountClient::RegisterPlugin(const std::shared_ptr<DomainAccountP
         pluginService_ = pluginService;
     }
     return result;
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
 ErrCode DomainAccountClient::UnregisterPlugin()
 {
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     auto proxy = GetDomainAccountProxy();
     if (proxy == nullptr) {
         ACCOUNT_LOGE("failed to get domain account proxy");
@@ -85,8 +92,12 @@ ErrCode DomainAccountClient::UnregisterPlugin()
         pluginService_ = nullptr;
     }
     return ret;
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
 ErrCode DomainAccountClient::AuthProxyInit(const std::shared_ptr<DomainAccountCallback> &callback,
     sptr<DomainAccountCallbackService> &callbackService, sptr<IDomainAccount> &proxy)
 {
@@ -106,10 +117,12 @@ ErrCode DomainAccountClient::AuthProxyInit(const std::shared_ptr<DomainAccountCa
     }
     return ERR_OK;
 }
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 
 ErrCode DomainAccountClient::GetAccessToken(const DomainAccountInfo &info, const AAFwk::WantParams &parameters,
     const std::shared_ptr<GetAccessTokenCallback> &callback)
 {
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
@@ -126,11 +139,15 @@ ErrCode DomainAccountClient::GetAccessToken(const DomainAccountInfo &info, const
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     return proxy->GetAccessToken(info, parameters, callbackService);
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
 ErrCode DomainAccountClient::HasAccount(
     const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback)
 {
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
@@ -146,11 +163,15 @@ ErrCode DomainAccountClient::HasAccount(
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     return proxy->HasDomainAccount(info, callbackService);
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
 ErrCode DomainAccountClient::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
     const std::shared_ptr<DomainAccountCallback> &callback)
 {
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     sptr<DomainAccountCallbackService> callbackService = nullptr;
     sptr<IDomainAccount> proxy = nullptr;
     ErrCode result = AuthProxyInit(callback, callbackService, proxy);
@@ -158,11 +179,15 @@ ErrCode DomainAccountClient::Auth(const DomainAccountInfo &info, const std::vect
         return result;
     }
     return proxy->Auth(info, password, callbackService);
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
 ErrCode DomainAccountClient::AuthUser(int32_t userId, const std::vector<uint8_t> &password,
     const std::shared_ptr<DomainAccountCallback> &callback)
 {
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     sptr<DomainAccountCallbackService> callbackService = nullptr;
     sptr<IDomainAccount> proxy = nullptr;
     ErrCode result = AuthProxyInit(callback, callbackService, proxy);
@@ -170,10 +195,14 @@ ErrCode DomainAccountClient::AuthUser(int32_t userId, const std::vector<uint8_t>
         return result;
     }
     return proxy->AuthUser(userId, password, callbackService);
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
 ErrCode DomainAccountClient::AuthWithPopup(int32_t userId, const std::shared_ptr<DomainAccountCallback> &callback)
 {
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     sptr<DomainAccountCallbackService> callbackService = nullptr;
     sptr<IDomainAccount> proxy = nullptr;
     ErrCode result = AuthProxyInit(callback, callbackService, proxy);
@@ -181,20 +210,28 @@ ErrCode DomainAccountClient::AuthWithPopup(int32_t userId, const std::shared_ptr
         return result;
     }
     return proxy->AuthWithPopup(userId, callbackService);
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
 ErrCode DomainAccountClient::UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token)
 {
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     auto proxy = GetDomainAccountProxy();
     if (proxy == nullptr) {
         ACCOUNT_LOGE("failed to get domain account proxy");
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     return proxy->UpdateAccountToken(info, token);
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
 ErrCode DomainAccountClient::IsAuthenticationExpired(const DomainAccountInfo &info, bool &isExpired)
 {
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     isExpired = true;
     auto proxy = GetDomainAccountProxy();
     if (proxy == nullptr) {
@@ -202,18 +239,26 @@ ErrCode DomainAccountClient::IsAuthenticationExpired(const DomainAccountInfo &in
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     return proxy->IsAuthenticationExpired(info, isExpired);
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
 ErrCode DomainAccountClient::SetAccountPolicy(const DomainAccountPolicy &policy)
 {
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     auto proxy = GetDomainAccountProxy();
     if (proxy == nullptr) {
         ACCOUNT_LOGE("Get domain account proxy failed.");
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     return proxy->SetAccountPolicy(policy);
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
 void DomainAccountClient::ResetDomainAccountProxy(const wptr<IRemoteObject>& remote)
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -228,20 +273,26 @@ void DomainAccountClient::ResetDomainAccountProxy(const wptr<IRemoteObject>& rem
     proxy_ = nullptr;
     deathRecipient_ = nullptr;
 }
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 
 ErrCode DomainAccountClient::GetAccountStatus(const DomainAccountInfo &info, DomainAccountStatus &status)
 {
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     auto proxy = GetDomainAccountProxy();
     if (proxy == nullptr) {
         ACCOUNT_LOGE("failed to get domain account proxy");
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     return proxy->GetAccountStatus(info, status);
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
 ErrCode DomainAccountClient::GetDomainAccountInfo(
     const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback)
 {
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
@@ -253,21 +304,29 @@ ErrCode DomainAccountClient::GetDomainAccountInfo(
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     return proxy->GetDomainAccountInfo(info, callbackService);
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
 ErrCode DomainAccountClient::UpdateAccountInfo(
     const DomainAccountInfo &oldAccountInfo, const DomainAccountInfo &newAccountInfo)
 {
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     auto proxy = GetDomainAccountProxy();
     if (proxy == nullptr) {
         ACCOUNT_LOGE("Failed to get domain account proxy");
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     return proxy->UpdateAccountInfo(oldAccountInfo, newAccountInfo);
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
 ErrCode DomainAccountClient::RegisterAccountStatusListener(const std::shared_ptr<DomainAccountStatusListener> &listener)
 {
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     if (listener == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
@@ -297,11 +356,15 @@ ErrCode DomainAccountClient::RegisterAccountStatusListener(const std::shared_ptr
         listenerManager_->InsertRecord(listener);
     }
     return result;
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
 ErrCode DomainAccountClient::UnregisterAccountStatusListener(
     const std::shared_ptr<DomainAccountStatusListener> &listener)
 {
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     if (listener == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
@@ -328,38 +391,54 @@ ErrCode DomainAccountClient::UnregisterAccountStatusListener(
     listenerManager_ = nullptr;
     callback_ = nullptr;
     return ERR_OK;
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
 ErrCode DomainAccountClient::AddServerConfig(const std::string &parameters, DomainServerConfig &config)
 {
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     auto proxy = GetDomainAccountProxy();
     if (proxy == nullptr) {
         ACCOUNT_LOGE("Failed to get domain account proxy.");
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     return proxy->AddServerConfig(parameters, config);
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
 ErrCode DomainAccountClient::RemoveServerConfig(const std::string &configId)
 {
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     auto proxy = GetDomainAccountProxy();
     if (proxy == nullptr) {
         ACCOUNT_LOGE("Failed to get domain account proxy.");
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     return proxy->RemoveServerConfig(configId);
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
 ErrCode DomainAccountClient::GetAccountServerConfig(const DomainAccountInfo &info, DomainServerConfig &config)
 {
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
     auto proxy = GetDomainAccountProxy();
     if (proxy == nullptr) {
         ACCOUNT_LOGE("Failed to get domain account proxy.");
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     return proxy->GetAccountServerConfig(info, config);
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
 void DomainAccountClient::RestoreListenerRecords()
 {
     std::lock_guard<std::mutex> lock(recordMutex_);
@@ -424,5 +503,6 @@ sptr<IDomainAccount> DomainAccountClient::GetDomainAccountProxy()
     proxy_ = iface_cast<IDomainAccount>(object);
     return proxy_;
 }
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 }  // namespace AccountSA
 }  // namespace OHOS
