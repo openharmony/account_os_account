@@ -75,15 +75,6 @@ config("domain_account_config") {
   ]
 }
 
-config("ability_manager_config") {
-  include_dirs = [
-    "${ability_runtime_path}/interfaces/inner_api/ability_manager/include",
-    "${ability_runtime_path}/ability_base/interfaces/inner_api/want/include",
-    "${ability_runtime_path}/services/abilitymgr/include",
-    "${ability_runtime_path}/services/common/include",
-  ]
-}
-
 config("accountmgr_public_config") {
   visibility = [ ":*" ]
 

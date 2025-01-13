@@ -12,9 +12,6 @@
 # limitations under the License.
 
 os_account_path = "//base/account/os_account"
-ability_runtime_path = "//foundation/ability/ability_runtime"
-ability_runtime_napi_path = "${ability_runtime_path}/frameworks/js/napi"
-bundle_framework_path = "//foundation/bundlemanager/bundle_framework"
 common_path = "${os_account_path}/frameworks/common"
 services_path = "${os_account_path}/services"
 tools_path = "${os_account_path}/tools"

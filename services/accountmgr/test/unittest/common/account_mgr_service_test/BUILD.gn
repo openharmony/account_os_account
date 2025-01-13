@@ -139,8 +139,6 @@ ohos_unittest("account_stub_test") {
     "${innerkits_native_path}/include",
     "${services_path}/accountmgr/include/bundle_manager_adapter",
     "${services_path}/accountmgr/include/bundle_manager_adapter",
-    "${bundle_framework_path}/common/log/include",
-    "${bundle_framework_path}/interfaces/inner_api/appexecfwk_core/include/bundlemgr",
   ]
 
   sources = [

@@ -42,15 +42,6 @@ config("domain_account_config") {
   ]
 }
 
-config("ability_manager_config") {
-  include_dirs = [
-    "${ability_runtime_path}/interfaces/inner_api/ability_manager/include",
-    "${ability_runtime_path}/ability_base/interfaces/inner_api/want/include",
-    "${ability_runtime_path}/services/abilitymgr/include",
-    "${ability_runtime_path}/services/common/include",
-  ]
-}
-
 config("accountmgr_public_config") {
   visibility = [ ":*" ]
 
@@ -67,11 +58,8 @@ config("accountmgr_public_config") {
 }
 
 config("bundle_manager_config") {
-  include_dirs = [
-    "${services_path}/accountmgr/include/bundle_manager_adapter",
-    "${bundle_framework_path}/common/log/include",
-    "${bundle_framework_path}/interfaces/inner_api/appexecfwk_core/include",
-  ]
+  include_dirs =
+      [ "${services_path}/accountmgr/include/bundle_manager_adapter" ]
 }
 
 config("mock_accountmgr_config") {
