@@ -76,7 +76,8 @@ const char DEFAULT_OHOS_ACCOUNT_UID[] = "ohosAnonymousUid"; // default UID
 constexpr std::int32_t UID_TRANSFORM_DIVISOR = 200000; // local account id = uid / UID_TRANSFORM_DIVISOR
 constexpr std::int32_t MAIN_OS_ACCOUNT_LOCAL_ID = 100; // main os account local id = 100
 constexpr std::int32_t DEFAULT_CALLING_UID = -1; // main os account local id = 100
-
+constexpr std::int32_t ACCOUNT_VERSION_DEFAULT = 0;
+constexpr std::int32_t ACCOUNT_VERSION_ANON = 1;
 class OhosAccountInfo {
 public:
     std::string name_;
@@ -149,11 +150,13 @@ public:
     std::time_t bindTime_;
     std::int32_t userId_;
     std::string digest_;
+    std::int32_t version_;
     AccountInfo()
     {
         bindTime_ = 0;
         userId_ = 0;
         digest_ = "";
+        version_ = ACCOUNT_VERSION_DEFAULT;
     }
 
     explicit AccountInfo(const OhosAccountInfo &ohosAccountInfo)
@@ -162,6 +165,7 @@ public:
         bindTime_ = 0;
         userId_ = 0;
         digest_ = "";
+        version_ = ACCOUNT_VERSION_DEFAULT;
     }
 
     bool operator==(const AccountInfo &info)

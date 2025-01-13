@@ -153,25 +153,23 @@ ErrCode AccountMgrService::GetOhosAccountInfo(OhosAccountInfo &info)
 
 ErrCode AccountMgrService::GetOsAccountDistributedInfo(int32_t localId, OhosAccountInfo &info)
 {
-    AccountInfo accountInfo;
-    ErrCode ret = OhosAccountManager::GetInstance().GetAccountInfoByUserId(localId, accountInfo);
+    ErrCode ret = OhosAccountManager::GetInstance().GetOhosAccountDistributedInfo(localId, info);
     if (ret != ERR_OK) {
         return ret;
     }
-    info = accountInfo.ohosAccountInfo_;
     return ERR_OK;
 }
 
 ErrCode AccountMgrService::QueryOsAccountDistributedInfo(std::int32_t localId, OhosAccountInfo &accountInfo)
 {
-    AccountInfo info;
-    ErrCode ret = OhosAccountManager::GetInstance().GetAccountInfoByUserId(localId, info);
+    OhosAccountInfo ohosAccountInfo;
+    ErrCode ret = OhosAccountManager::GetInstance().GetOhosAccountDistributedInfo(localId, ohosAccountInfo);
     if (ret != ERR_OK) {
         return ret;
     }
-    accountInfo.name_ = info.ohosAccountInfo_.name_;
-    accountInfo.uid_ = info.ohosAccountInfo_.uid_;
-    accountInfo.status_ = info.ohosAccountInfo_.status_;
+    accountInfo.name_ = ohosAccountInfo.name_;
+    accountInfo.uid_ = ohosAccountInfo.uid_;
+    accountInfo.status_ = ohosAccountInfo.status_;
     return ERR_OK;
 }
 
