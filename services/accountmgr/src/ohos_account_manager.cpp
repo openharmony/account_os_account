@@ -15,9 +15,11 @@
 
 #include "ohos_account_manager.h"
 #include <cerrno>
+#include <codecvt>
 #include <dirent.h>
 #include <dlfcn.h>
 #include <iomanip>
+#include <locale>
 #include <mbedtls/aes.h>
 #include <mbedtls/cipher.h>
 #include <mbedtls/pkcs5.h>
@@ -58,6 +60,19 @@ constexpr std::uint32_t MAX_UID_LENGTH = 512;
 constexpr std::uint32_t HASH_LENGTH = 32;
 constexpr std::uint32_t WIDTH_FOR_HEX = 2;
 constexpr std::uint32_t OHOS_ACCOUNT_UDID_LENGTH = HASH_LENGTH * 2;
+constexpr unsigned char UTF8_SINGLE_BYTE_MASK = 0x80;
+constexpr unsigned char UTF8_DOUBLE_BYTE_MASK = 0xE0;
+constexpr unsigned char UTF8_TRIPLE_BYTE_MASK = 0xF0;
+constexpr unsigned char UTF8_QUAD_BYTE_MASK = 0xF8;
+constexpr unsigned char UTF8_SINGLE_BYTE_PREFIX = 0x00; // 00000000
+constexpr unsigned char UTF8_DOUBLE_BYTE_PREFIX = 0xC0; // 11000000
+constexpr unsigned char UTF8_TRIPLE_BYTE_PREFIX = 0xE0; // 11100000
+constexpr unsigned char UTF8_QUAD_BYTE_PREFIX = 0xF0;   // 11110000
+constexpr size_t UTF8_SINGLE_BYTE_CHAR_LENGTH = 1;
+constexpr size_t UTF8_DOUBLE_BYTE_CHAR_LENGTH = 2;
+constexpr size_t UTF8_TRIPLE_BYTE_CHAR_LENGTH = 3;
+constexpr size_t UTF8_QUAD_BYTE_CHAR_LENGTH = 4;
+const char DEFAULT_ANON_STR[] = "**********";
 
 bool GetCallerBundleName(std::string &bundleName, bool &isSystemApp)
 {
@@ -141,15 +156,7 @@ std::string GenerateOhosUdidWithSha256(const std::string &name, const std::strin
         return std::string("");
     }
 
-    std::string bundleName = "";
-    bool isSystemApp = false;
-    if (!GetCallerBundleName(bundleName, isSystemApp) && !isSystemApp) {
-        return std::string("");
-    }
-    if (isSystemApp || bundleName.empty()) {
-        return ReturnOhosUdidWithSha256(uid);
-    }
-    return GenerateDVID(bundleName, uid);
+    return ReturnOhosUdidWithSha256(uid);
 }
 }
 
@@ -302,6 +309,77 @@ ErrCode OhosAccountManager::QueryDistributedVirtualDeviceId(const std::string &b
     return ERR_OK;
 }
 
+std::string ExtractFirstUtf8Char(const std::string &str)
+{
+    if (str.empty()) {
+        return std::string("");
+    }
+    unsigned char firstByte = static_cast<unsigned char>(str[0]);
+    size_t charLength = UTF8_SINGLE_BYTE_CHAR_LENGTH;
+
+    if ((firstByte & UTF8_SINGLE_BYTE_MASK) == UTF8_SINGLE_BYTE_PREFIX) {
+        charLength = UTF8_SINGLE_BYTE_CHAR_LENGTH;
+    } else if ((firstByte & UTF8_DOUBLE_BYTE_MASK) == UTF8_DOUBLE_BYTE_PREFIX) {
+        charLength = UTF8_DOUBLE_BYTE_CHAR_LENGTH;
+    } else if ((firstByte & UTF8_TRIPLE_BYTE_MASK) == UTF8_TRIPLE_BYTE_PREFIX) {
+        charLength = UTF8_TRIPLE_BYTE_CHAR_LENGTH;
+    } else if ((firstByte & UTF8_QUAD_BYTE_MASK) == UTF8_QUAD_BYTE_PREFIX) {
+        charLength = UTF8_QUAD_BYTE_CHAR_LENGTH;
+    } else {
+        return std::string("");
+    }
+    charLength = std::min(charLength, str.length());
+
+    return str.substr(0, charLength);
+}
+
+void AnonymizeOhosAccountInfo(OhosAccountInfo &ohosAccountInfo, const std::string &bundleName)
+{
+    if (!(ohosAccountInfo.uid_ == DEFAULT_OHOS_ACCOUNT_UID || ohosAccountInfo.uid_.empty())) {
+        ohosAccountInfo.uid_ = GenerateDVID(bundleName, ohosAccountInfo.GetRawUid());
+    }
+
+    if (!(ohosAccountInfo.name_ == DEFAULT_OHOS_ACCOUNT_NAME || ohosAccountInfo.name_.empty())) {
+        std::string firstChar = ExtractFirstUtf8Char(ohosAccountInfo.name_);
+        ohosAccountInfo.name_ = firstChar + DEFAULT_ANON_STR;
+    }
+
+    if (!ohosAccountInfo.nickname_.empty()) {
+        std::string firstChar = ExtractFirstUtf8Char(ohosAccountInfo.nickname_);
+        ohosAccountInfo.nickname_ = firstChar + DEFAULT_ANON_STR;
+    }
+
+    if (!ohosAccountInfo.avatar_.empty()) {
+        ohosAccountInfo.avatar_ = DEFAULT_ANON_STR;
+    }
+    
+    ohosAccountInfo.scalableData_ = {};
+}
+
+ErrCode OhosAccountManager::GetOhosAccountDistributedInfo(const int32_t userId, OhosAccountInfo &ohosAccountInfo)
+{
+    AccountInfo osAccountInfo;
+    ErrCode ret = GetAccountInfoByUserId(userId, osAccountInfo);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("get ohos account info failed, userId %{public}d.", userId);
+        return ret;
+    }
+    ohosAccountInfo = osAccountInfo.ohosAccountInfo_;
+    std::string rawUid = ohosAccountInfo.GetRawUid();
+    if (rawUid == DEFAULT_OHOS_ACCOUNT_UID || osAccountInfo.version_ == ACCOUNT_VERSION_DEFAULT) {
+        return ERR_OK;
+    }
+    std::string bundleName = "";
+    bool isSystemApp = false;
+    GetCallerBundleName(bundleName, isSystemApp);
+    if (isSystemApp || bundleName.empty()) {
+        return ERR_OK;
+    }
+    ReportOsAccountLifeCycle(userId, "GetDistributedInfo_" + bundleName);
+    AnonymizeOhosAccountInfo(ohosAccountInfo, bundleName);
+    return ERR_OK;
+}
+
 ErrCode OhosAccountManager::GetAccountInfoByUserId(std::int32_t userId, AccountInfo &info)
 {
     if (userId == 0) {
@@ -414,10 +492,7 @@ ErrCode OhosAccountManager::LoginOhosAccount(const int32_t userId, const OhosAcc
 
 #ifdef HAS_CES_PART
     // check whether need to publish event or not
-    bool isPubLoginEvent = false;
-    if (currAccountInfo.ohosAccountInfo_.status_ != ACCOUNT_STATE_LOGIN) {
-        isPubLoginEvent = true;
-    }
+    bool isPubLoginEvent = (currAccountInfo.ohosAccountInfo_.status_ != ACCOUNT_STATE_LOGIN);
 #endif // HAS_CES_PART
     // update account status
     if (!HandleEvent(currAccountInfo, eventStr)) {
@@ -431,6 +506,7 @@ ErrCode OhosAccountManager::LoginOhosAccount(const int32_t userId, const OhosAcc
     currAccountInfo.ohosAccountInfo_.uid_ = ohosAccountUid;
     currAccountInfo.ohosAccountInfo_.status_ = ACCOUNT_STATE_LOGIN;
     currAccountInfo.bindTime_ = std::time(nullptr);
+    currAccountInfo.version_ = ACCOUNT_VERSION_ANON;
     currAccountInfo.ohosAccountInfo_.callingUid_ = IPCSkeleton::GetCallingUid();
 
     if (!SaveOhosAccountInfo(currAccountInfo)) {
