@@ -26,6 +26,7 @@ class AppAccountCommonEventObserver {
 public:
     static AppAccountCommonEventObserver &GetInstance();
 
+    void SubscribeOsAccountEvent(void);
     void SubscribeCommonEvent(void);
 private:
     AppAccountCommonEventObserver();
@@ -37,6 +38,7 @@ private:
 private:
     std::shared_ptr<AppAccountCommonEventSubscriber> subscriber_ = nullptr;
     std::int32_t counter_;
+    sptr<IRemoteObject> subscriberOsAccountPtr_;
 };
 #endif // HAS_CES_PART
 }  // namespace AccountSA
