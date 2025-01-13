@@ -24,6 +24,8 @@
 #include "common_event_manager.h"
 #include "common_event_support.h"
 #endif // HAS_CES_PART
+#include "os_account_state_subscriber.h"
+#include "os_account_subscribe_manager.h"
 
 #ifdef HAS_CES_PART
 using namespace OHOS::EventFwk;
@@ -58,7 +60,12 @@ AppAccountCommonEventObserver::AppAccountCommonEventObserver()
     subscriber_ = std::make_shared<AppAccountCommonEventSubscriber>(
         subscribeInfo, [this] (const CommonEventData &data) { this->OnReceiveEvent(data); });
 
-    auto task = [this] { this->SubscribeCommonEvent(); };
+    auto task = [this] {
+        this->SubscribeCommonEvent();
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
+        this->SubscribeOsAccountEvent();
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
+    };
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_COMMON_EVENT);
     taskThread.detach();
@@ -68,6 +75,21 @@ AppAccountCommonEventObserver::~AppAccountCommonEventObserver()
 {
     ACCOUNT_LOGI("Destroyed");
     CommonEventManager::UnSubscribeCommonEvent(subscriber_);
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
+    OsAccountSubscribeManager::GetInstance().UnsubscribeOsAccount(subscriberOsAccountPtr_);
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
+}
+
+void AppAccountCommonEventObserver::SubscribeOsAccountEvent(void)
+{
+    std::set<OsAccountState> states = { OsAccountState::STOPPING };
+    OsAccountSubscribeInfo subscribeInfo(states, true);
+    subscriberOsAccountPtr_ = (new (std::nothrow) OsAccountStateSubscriber());
+    auto subscribeInfoPtr = std::make_shared<OsAccountSubscribeInfo>(subscribeInfo);
+    if (subscribeInfoPtr == nullptr) {
+        ACCOUNT_LOGE("SubscribeInfoPtr is nullptr");
+    }
+    OsAccountSubscribeManager::GetInstance().SubscribeOsAccount(subscribeInfoPtr, subscriberOsAccountPtr_);
 }
 
 void AppAccountCommonEventObserver::SubscribeCommonEvent(void)

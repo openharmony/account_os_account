@@ -1118,7 +1118,7 @@ ErrCode AppAccountControlManager::RemoveAppAccountData(
     return ERR_OK;
 }
 
-ErrCode AppAccountControlManager::OnUserRemoved(int32_t userId)
+ErrCode AppAccountControlManager::OnUserStopping(int32_t userId)
 {
     std::string storeId = std::to_string(userId);
     std::string syncStoreId = storeId + DATA_STORAGE_SUFFIX;
@@ -1126,6 +1126,11 @@ ErrCode AppAccountControlManager::OnUserRemoved(int32_t userId)
     storePtrMap_.erase(storeId);
     storePtrMap_.erase(syncStoreId);
     return ERR_OK;
+}
+
+ErrCode AppAccountControlManager::OnUserRemoved(int32_t userId)
+{
+    return OnUserStopping(userId);
 }
 
 ErrCode AppAccountControlManager::GetAllAccountsFromDataStorage(const std::string &owner,
