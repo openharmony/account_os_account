@@ -27,19 +27,13 @@ ohos_moduletest("account_command_create_module_test") {
 
   module_out_path = module_output_path
 
-  include_dirs = [ "${ability_runtime_path}/tools/test/systemtest/aa" ]
-
   sources = [
-    "${ability_runtime_path}/tools/test/systemtest/aa/tool_system_test.cpp",
     "${tools_path}/acm/src/account_command.cpp",
     "account_command_create_module_test.cpp",
     "account_command_util.cpp",
   ]
 
-  configs = [
-    "${ability_runtime_path}/interfaces/inner_api/ability_manager:ability_manager_public_config",
-    "${tools_path}/acm:tools_acm_config",
-  ]
+  configs = [ "${tools_path}/acm:tools_acm_config" ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -53,6 +47,7 @@ ohos_moduletest("account_command_create_module_test") {
 
   external_deps = [
     "ability_base:base",
+    "ability_runtime:runtime",
     "ability_runtime:tools_aa_source_set",
     "c_utils:utils",
     "googletest:gmock_main",
@@ -78,7 +73,6 @@ ohos_moduletest("account_command_create_module_mock_test") {
   module_out_path = module_output_path
 
   include_dirs = [
-    "${ability_runtime_path}/tools/test/systemtest/aa",
     "${app_account_innerkits_native_path}/include",
     "${os_account_dfx_path}/hidumper_adapter",
     "${services_path}/accountmgr/include/bundle_manager_adapter",
@@ -89,12 +83,10 @@ ohos_moduletest("account_command_create_module_mock_test") {
     "${services_path}/accountmgr/include/appaccount",
     "${services_path}/accountmgr/include/domain_account",
     "${services_path}/accountmgr/include/osaccount",
-    "${bundle_framework_path}/interfaces/inner_api/appexecfwk_core/include",
     "${os_account_path}/interfaces/innerkits/ohosaccount/native/include/",
   ]
 
   sources = [
-    "${ability_runtime_path}/tools/test/systemtest/aa/tool_system_test.cpp",
     "${app_account_services_path}/test/mock/common/ability_manager_adapter_mock.cpp",
     "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
     "${common_path}/log/src/account_log_wrapper.cpp",
@@ -114,10 +106,7 @@ ohos_moduletest("account_command_create_module_mock_test") {
     "account_command_util.cpp",
   ]
   sources += account_service_sources
-  configs = [
-    "${ability_runtime_path}/interfaces/inner_api/ability_manager:ability_manager_public_config",
-    "${tools_path}/acm:tools_acm_config",
-  ]
+  configs = [ "${tools_path}/acm:tools_acm_config" ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -195,7 +184,6 @@ ohos_moduletest("account_command_delete_module_mock_test") {
   module_out_path = module_output_path
 
   include_dirs = [
-    "${ability_runtime_path}/tools/test/systemtest/aa",
     "${app_account_innerkits_native_path}/include",
     "${os_account_dfx_path}/hidumper_adapter",
     "${services_path}/accountmgr/include/bundle_manager_adapter",
@@ -206,12 +194,10 @@ ohos_moduletest("account_command_delete_module_mock_test") {
     "${services_path}/accountmgr/include/appaccount",
     "${services_path}/accountmgr/include/domain_account",
     "${services_path}/accountmgr/include/osaccount",
-    "${bundle_framework_path}/interfaces/inner_api/appexecfwk_core/include",
     "${os_account_path}/interfaces/innerkits/ohosaccount/native/include/",
   ]
 
   sources = [
-    "${ability_runtime_path}/tools/test/systemtest/aa/tool_system_test.cpp",
     "${app_account_services_path}/test/mock/common/ability_manager_adapter_mock.cpp",
     "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
     "${common_path}/log/src/account_log_wrapper.cpp",
@@ -231,10 +217,7 @@ ohos_moduletest("account_command_delete_module_mock_test") {
     "account_command_util.cpp",
   ]
   sources += account_service_sources
-  configs = [
-    "${ability_runtime_path}/interfaces/inner_api/ability_manager:ability_manager_public_config",
-    "${tools_path}/acm:tools_acm_config",
-  ]
+  configs = [ "${tools_path}/acm:tools_acm_config" ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -311,19 +294,13 @@ ohos_moduletest("account_command_delete_module_test") {
 
   module_out_path = module_output_path
 
-  include_dirs = [ "${ability_runtime_path}/tools/test/systemtest/aa" ]
-
   sources = [
-    "${ability_runtime_path}/tools/test/systemtest/aa/tool_system_test.cpp",
     "${tools_path}/acm/src/account_command.cpp",
     "account_command_delete_module_test.cpp",
     "account_command_util.cpp",
   ]
 
-  configs = [
-    "${ability_runtime_path}/interfaces/inner_api/ability_manager:ability_manager_public_config",
-    "${tools_path}/acm:tools_acm_config",
-  ]
+  configs = [ "${tools_path}/acm:tools_acm_config" ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -337,6 +314,7 @@ ohos_moduletest("account_command_delete_module_test") {
 
   external_deps = [
     "ability_base:base",
+    "ability_runtime:ability_manager",
     "ability_runtime:tools_aa_source_set",
     "c_utils:utils",
     "googletest:gmock_main",
@@ -361,19 +339,13 @@ ohos_moduletest("account_command_dump_module_test") {
 
   module_out_path = module_output_path
 
-  include_dirs = [ "${ability_runtime_path}/tools/test/systemtest/aa" ]
-
   sources = [
-    "${ability_runtime_path}/tools/test/systemtest/aa/tool_system_test.cpp",
     "${tools_path}/acm/src/account_command.cpp",
     "account_command_dump_module_test.cpp",
     "account_command_util.cpp",
   ]
 
-  configs = [
-    "${ability_runtime_path}/interfaces/inner_api/ability_manager:ability_manager_public_config",
-    "${tools_path}/acm:tools_acm_config",
-  ]
+  configs = [ "${tools_path}/acm:tools_acm_config" ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -387,6 +359,7 @@ ohos_moduletest("account_command_dump_module_test") {
 
   external_deps = [
     "ability_base:base",
+    "ability_runtime:ability_manager",
     "ability_runtime:tools_aa_source_set",
     "c_utils:utils",
     "googletest:gmock_main",
@@ -411,19 +384,13 @@ ohos_moduletest("account_command_set_module_test") {
 
   module_out_path = module_output_path
 
-  include_dirs = [ "${ability_runtime_path}/tools/test/systemtest/aa" ]
-
   sources = [
-    "${ability_runtime_path}/tools/test/systemtest/aa/tool_system_test.cpp",
     "${tools_path}/acm/src/account_command.cpp",
     "account_command_set_module_test.cpp",
     "account_command_util.cpp",
   ]
 
-  configs = [
-    "${ability_runtime_path}/interfaces/inner_api/ability_manager:ability_manager_public_config",
-    "${tools_path}/acm:tools_acm_config",
-  ]
+  configs = [ "${tools_path}/acm:tools_acm_config" ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -437,6 +404,7 @@ ohos_moduletest("account_command_set_module_test") {
 
   external_deps = [
     "ability_base:base",
+    "ability_runtime:ability_manager",
     "ability_runtime:tools_aa_source_set",
     "c_utils:utils",
     "googletest:gmock_main",
@@ -461,19 +429,13 @@ ohos_moduletest("account_command_switch_module_test") {
 
   module_out_path = module_output_path
 
-  include_dirs = [ "${ability_runtime_path}/tools/test/systemtest/aa" ]
-
   sources = [
-    "${ability_runtime_path}/tools/test/systemtest/aa/tool_system_test.cpp",
     "${tools_path}/acm/src/account_command.cpp",
     "account_command_switch_module_test.cpp",
     "account_command_util.cpp",
   ]
 
-  configs = [
-    "${ability_runtime_path}/interfaces/inner_api/ability_manager:ability_manager_public_config",
-    "${tools_path}/acm:tools_acm_config",
-  ]
+  configs = [ "${tools_path}/acm:tools_acm_config" ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -487,6 +449,7 @@ ohos_moduletest("account_command_switch_module_test") {
 
   external_deps = [
     "ability_base:base",
+    "ability_runtime:ability_manager",
     "ability_runtime:tools_aa_source_set",
     "c_utils:utils",
     "googletest:gmock_main",
