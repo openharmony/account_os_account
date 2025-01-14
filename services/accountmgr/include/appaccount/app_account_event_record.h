@@ -27,6 +27,7 @@ struct AppAccountSubscribeRecord {
     sptr<IRemoteObject> eventListener;
     std::string bundleName;
     uint32_t appIndex;
+    uint32_t subscribedAppIndex;
 
     AppAccountSubscribeRecord() : subscribeInfoPtr(nullptr), eventListener(nullptr), appIndex(0)
     {}
