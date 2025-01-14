@@ -152,6 +152,7 @@ private:
         const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
     bool IsOsAccountRemoved(int32_t localId);
     ErrCode RemoveAppAccountData(const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
+    std::string GetBundleKeySuffix(const uint32_t &appIndex);
 
 private:
     std::mutex mutex_;
