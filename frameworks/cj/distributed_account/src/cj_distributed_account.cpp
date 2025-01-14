@@ -31,49 +31,65 @@ char *MallocCString(const std::string &origin)
     return std::char_traits<char>::copy(res, origin.c_str(), len);
 }
 
-RetDistributedInfo convertToRet(AccountSA::OhosAccountInfo ohosInfo)
+CJDistributedInfo convertToCJInfo(AccountSA::OhosAccountInfo ohosInfo)
 {
-    RetDistributedInfo retInfo{0};
-    retInfo.name = MallocCString(ohosInfo.name_);
-    retInfo.id = MallocCString(ohosInfo.uid_);
-    retInfo.nickname = MallocCString(ohosInfo.nickname_);
-    retInfo.avatar = MallocCString(ohosInfo.avatar_);
-    retInfo.status = ohosInfo.status_;
-    return retInfo;
+    CJDistributedInfo cjInfo{0};
+    cjInfo.name = MallocCString(ohosInfo.name_);
+    cjInfo.id = MallocCString(ohosInfo.uid_);
+    cjInfo.nickname = MallocCString(ohosInfo.nickname_);
+    cjInfo.avatar = MallocCString(ohosInfo.avatar_);
+    cjInfo.status = ohosInfo.status_;
+    cjInfo.scalableData = MallocCString(ohosInfo.scalableData_.ToString());
+    return cjInfo;
 }
 
-AccountSA::OhosAccountInfo getOhosInfoFromRet(RetDistributedInfo retInfo)
+AccountSA::OhosAccountInfo getOhosInfoFromCJInfo(CJDistributedInfo cjInfo)
 {
     AccountSA::OhosAccountInfo ohosInfo;
     OhosAccountKits::GetInstance().GetOhosAccountInfo(ohosInfo);
-    ohosInfo.name_ = retInfo.name;
-    ohosInfo.uid_ = retInfo.id;
-    ohosInfo.nickname_ = retInfo.nickname;
-    ohosInfo.avatar_ = retInfo.avatar;
-    ohosInfo.status_ = retInfo.status;
+    if (cjInfo.name != nullptr) {
+        ohosInfo.name_ = cjInfo.name;
+    }
+    if (cjInfo.id != nullptr) {
+        ohosInfo.uid_ = cjInfo.id;
+    }
+    if (cjInfo.nickname != nullptr) {
+        ohosInfo.nickname_ = cjInfo.nickname;
+    }
+    if (cjInfo.avatar != nullptr) {
+        ohosInfo.avatar_ = cjInfo.avatar;
+    }
+    ohosInfo.status_ = cjInfo.status;
+    if (cjInfo.scalableData != nullptr) {
+        std::string scalableStr = std ::string(cjInfo.scalableData);
+        auto scalableWant = AAFwk::Want::FromString(scalableStr);
+        if (scalableWant != nullptr) {
+            ohosInfo.scalableData_ = *scalableWant;
+        }
+    }
     return ohosInfo;
 }
 
 extern "C"
 {
-    RetDistributedInfo FfiOHOSDistributedAccountDistributedInfoGetOsAccountDistributedInfo(int32_t *errCode)
+    CJDistributedInfo FfiOHOSDistributedAccountDistributedInfoGetOsAccountDistributedInfo(int32_t *errCode)
     {
         AccountSA::OhosAccountInfo ohosAccountInfo;
         if (errCode == nullptr) {
-            return convertToRet(ohosAccountInfo);
+            return convertToCJInfo(ohosAccountInfo);
         }
         *errCode = ConvertToJSErrCode(OhosAccountKits::GetInstance().GetOhosAccountInfo(ohosAccountInfo));
-        return convertToRet(ohosAccountInfo);
+        return convertToCJInfo(ohosAccountInfo);
     }
 
-    void FfiOHOSDistributedAccountUnitSetOsAccountDistributedInfo(RetDistributedInfo retInfo, int32_t *errCode)
+    void FfiOHOSDistributedAccountUnitSetOsAccountDistributedInfo(CJDistributedInfo cjInfo, int32_t *errCode)
     {
-        AccountSA::OhosAccountInfo ohosAccountInfo = getOhosInfoFromRet(retInfo);
+        AccountSA::OhosAccountInfo ohosAccountInfo = getOhosInfoFromCJInfo(cjInfo);
         if (errCode == nullptr) {
             return;
         }
         *errCode = ConvertToJSErrCode(
-            OhosAccountKits::GetInstance().SetOhosAccountInfo(ohosAccountInfo, retInfo.event));
+            OhosAccountKits::GetInstance().SetOhosAccountInfo(ohosAccountInfo, cjInfo.event));
     }
 }
 }  // namespace AccountSA
