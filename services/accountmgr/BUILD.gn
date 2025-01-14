@@ -315,11 +315,6 @@ ohos_shared_library("accountmgr") {
     external_deps += [ "common_event_service:cesfwk_innerkits" ]
   }
 
-  if (has_hiviewdfx_hisysevent_part) {
-    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
-    external_deps += [ "hisysevent:libhisysevent" ]
-  }
-
   if (use_musl) {
     cflags_cc += [ "-DUSE_MUSL" ]
   }
