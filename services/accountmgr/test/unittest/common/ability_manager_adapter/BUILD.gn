@@ -22,6 +22,7 @@ config("ability_manager_adapter_test_config") {
     "${common_path}/log/include",
     "${innerkits_common}/include",
     "${domain_account_interfaces_native_path}/include",
+    "${os_account_interfaces_native_path}/include",
     "${services_path}/accountmgr/include",
     "${services_path}/accountmgr/include/ability_manager_adapter",
   ]
@@ -48,7 +49,7 @@ ohos_unittest("AbilityManagerAdapterTest") {
     "${services_path}/accountmgr/test:accountmgr_test_config",
   ]
 
-  deps = []
+  deps = [ "${common_path}:libaccount_common" ]
   external_deps = [
     "ability_base:want",
     "ability_runtime:ability_manager",
@@ -93,7 +94,7 @@ ohos_unittest("AbilityManagerAdapterMockTest") {
     "${services_path}/accountmgr/test:accountmgr_test_config",
   ]
 
-  deps = []
+  deps = [ "${common_path}:libaccount_common" ]
   external_deps = [
     "ability_base:want",
     "ability_runtime:ability_manager",
