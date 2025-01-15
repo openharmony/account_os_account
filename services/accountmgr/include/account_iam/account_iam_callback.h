@@ -225,7 +225,7 @@ public:
     GetCredInfoCallbackWrapper(int32_t userId, int32_t authType, const sptr<IGetCredInfoCallback> &callback);
     virtual ~GetCredInfoCallbackWrapper() = default;
 
-    void OnCredentialInfo(const std::vector<CredentialInfo> &infoList) override;
+    void OnCredentialInfo(int32_t result, const std::vector<CredentialInfo> &infoList) override;
 
 private:
     int32_t userId_;
