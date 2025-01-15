@@ -57,6 +57,8 @@ private:
     ErrCode HandleAuthResult(const Attributes &extraInfo, int32_t accountId, bool &isUpdateVerifiedStatus);
     void HandleReEnroll(const Attributes &extraInfo, int32_t accountId, const std::vector<uint8_t> &token);
     ErrCode InnerHandleReEnroll(const std::vector<uint8_t> &token);
+    ErrCode UnlockUserScreen(int32_t accountId, const std::vector<uint8_t> &token,
+        const std::vector<uint8_t> &secret, bool &isUpdateVerifiedStatus);
 
 private:
     uint32_t userId_;
