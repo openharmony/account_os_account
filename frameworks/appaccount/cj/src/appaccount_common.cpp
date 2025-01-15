@@ -40,7 +40,7 @@ void AuthenticatorAsyncCallback::OnResult(int32_t resultCode, const AAFwk::Want 
     this->errCode = resultCode;
     this->onResultRetBool = result.GetBoolParam(Constants::KEY_BOOLEAN_RESULT, false);
     this->onResultRetNames = result.GetStringArrayParam(Constants::KEY_ACCOUNT_NAMES);
-    this->onResultRetNames = result.GetStringArrayParam(Constants::KEY_ACCOUNT_OWNERS);
+    this->onResultRetOwners = result.GetStringArrayParam(Constants::KEY_ACCOUNT_OWNERS);
 }
 
 void AuthenticatorAsyncCallback::OnRequestRedirected(AAFwk::Want &request) {}
