@@ -83,12 +83,22 @@ InnerDomainAuthCallback::InnerDomainAuthCallback(int32_t userId, const sptr<IDom
 InnerDomainAuthCallback::~InnerDomainAuthCallback()
 {}
 
+static void CallbackOnResult(sptr<IDomainAccountCallback> &callback, const int32_t errCode, Parcel &resultParcel)
+{
+    if (callback == nullptr) {
+        ACCOUNT_LOGI("callback_ is nullptr");
+        return;
+    }
+    return callback->OnResult(errCode, resultParcel);
+}
+
 void InnerDomainAuthCallback::OnResult(const int32_t errCode, Parcel &parcel)
 {
+    Parcel resultParcel;
     std::shared_ptr<DomainAuthResult> authResult(DomainAuthResult::Unmarshalling(parcel));
     if (authResult == nullptr) {
         ACCOUNT_LOGE("authResult is nullptr");
-        return;
+        return CallbackOnResult(callback_, ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR, resultParcel);
     }
     if ((errCode == ERR_OK) && (userId_ != 0)) {
         InnerDomainAccountManager::GetInstance().InsertTokenToMap(userId_, (*authResult).token);
@@ -103,17 +113,13 @@ void InnerDomainAuthCallback::OnResult(const int32_t errCode, Parcel &parcel)
     }
     (void)memset_s(authResult->token.data(), authResult->token.size(), 0, authResult->token.size());
     authResult->token.clear();
-    Parcel resultParcel;
+
     if (!(*authResult).Marshalling(resultParcel)) {
         ACCOUNT_LOGE("authResult Marshalling failed");
-        return;
+        return CallbackOnResult(callback_, ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR, resultParcel);
     }
     AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, errCode);
-    if (callback_ == nullptr) {
-        ACCOUNT_LOGI("callback_ is nullptr");
-        return;
-    }
-    return callback_->OnResult(errCode, resultParcel);
+    return CallbackOnResult(callback_, errCode, resultParcel);
 }
 
 ErrCode InnerDomainAccountManager::RegisterPlugin(const sptr<IDomainAccountPlugin> &plugin)
@@ -1457,6 +1463,21 @@ ErrCode InnerDomainAccountManager::PluginGetDomainAccountInfo(const GetDomainAcc
     CleanPluginString(&(pluginOptions.domainAccountInfo.accountId.data),
         pluginOptions.domainAccountInfo.accountId.length);
     return GetAndCleanPluginBussnessError(&error, iter->first);
+}
+
+ErrCode InnerDomainAccountManager::GetDomainAccountInfo(const DomainAccountInfo &info, DomainAccountInfo &result)
+{
+    if (info.accountName_.empty()) {
+        ACCOUNT_LOGI("Domian Account not bind");
+        return ERR_OK;
+    }
+    if (plugin_ == nullptr) {
+        GetDomainAccountInfoOptions options;
+        options.accountInfo = info;
+        options.callingUid = IPCSkeleton::GetCallingUid();
+        return PluginGetDomainAccountInfo(options, result);
+    }
+    return ERR_OK;
 }
 
 ErrCode InnerDomainAccountManager::GetDomainAccountInfo(

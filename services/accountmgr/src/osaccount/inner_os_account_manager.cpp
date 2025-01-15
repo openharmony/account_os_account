@@ -58,6 +58,26 @@ constexpr int32_t MAX_PRIVATE_TYPE_NUMBER = 1;
 constexpr int32_t DELAY_FOR_REMOVING_FOREGROUND_OS_ACCOUNT = 1500;
 }
 
+static ErrCode GetDomainAccountStatus(OsAccountInfo &osAccountInfo)
+{
+    DomainAccountInfo domainAccountInfo;
+    osAccountInfo.GetDomainInfo(domainAccountInfo);
+    DomainAccountInfo resultInfo;
+    ErrCode errCode = InnerDomainAccountManager::GetInstance().GetDomainAccountInfo(domainAccountInfo, resultInfo);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+    if (!resultInfo.isAuthenticated) {
+        domainAccountInfo.status_ = DomainAccountStatus::LOGOUT;
+    } else {
+        bool isActivated = false;
+        (void)IInnerOsAccountManager::GetInstance().IsOsAccountActived(osAccountInfo.GetLocalId(), isActivated);
+        domainAccountInfo.status_ = isActivated ? DomainAccountStatus::LOGIN : DomainAccountStatus::LOGIN_BACKGROUND;
+    }
+    osAccountInfo.SetDomainInfo(domainAccountInfo);
+    return ERR_OK;
+}
+
 IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManager_(OsAccountSubscribeManager::GetInstance()),
     pluginManager_(OsAccountPluginManager::GetInstance())
 {
@@ -630,8 +650,9 @@ bool IInnerOsAccountManager::CheckDomainAccountBound(
     return false;
 }
 
-ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type, const DomainAccountInfo &domainAccountInfo,
-    const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options)
+ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type,
+    const DomainAccountInfo &domainAccountInfo, OsAccountInfo &osAccountInfo,
+    const CreateOsAccountForDomainOptions &options)
 {
     std::vector<OsAccountInfo> osAccountInfos;
     (void)QueryAllCreatedOsAccounts(osAccountInfos);
@@ -645,7 +666,6 @@ ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type, con
 #else
     bool isEnabled = true;
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
-    OsAccountInfo osAccountInfo;
     if (isEnabled && (osAccountInfos.size() == 1) && (osAccountInfos[0].GetLocalId() == Constants::START_USER_ID)) {
         DomainAccountInfo curDomainInfo;
         osAccountInfos[0].GetDomainInfo(curDomainInfo);
@@ -670,14 +690,16 @@ ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type, con
         return ERR_OSACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR;
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
     }
-    auto callbackWrapper =
-        std::make_shared<BindDomainAccountCallback>(osAccountControl_, domainAccountInfo, osAccountInfo, callback);
-    if (callbackWrapper == nullptr) {
-        ACCOUNT_LOGE("create BindDomainAccountCallback failed");
-        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    ErrCode errCode = osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to update account index.");
+        return errCode;
     }
-    return InnerDomainAccountManager::GetInstance().OnAccountBound(
-        domainAccountInfo, osAccountInfo.GetLocalId(), callbackWrapper);
+    errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to update osaccount.");
+    }
+    return errCode;
 }
 
 ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
@@ -706,7 +728,7 @@ ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
         return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
     }
     sptr<CheckAndCreateDomainAccountCallback> callbackWrapper =
-        new (std::nothrow) CheckAndCreateDomainAccountCallback(type, domainInfo, callback, options);
+        new (std::nothrow) CheckAndCreateDomainAccountCallback(osAccountControl_, type, callback, options);
     if (callbackWrapper == nullptr) {
         ACCOUNT_LOGE("new DomainCreateDomainCallback failed");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
@@ -1419,6 +1441,7 @@ ErrCode IInnerOsAccountManager::QueryOsAccountById(const int id, OsAccountInfo &
         }
         osAccountInfo.SetPhoto(photo);
     }
+    GetDomainAccountStatus(osAccountInfo);
     return ERR_OK;
 }
 
