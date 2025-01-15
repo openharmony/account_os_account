@@ -109,7 +109,7 @@ public:
     ErrCode GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds) override;
     ErrCode SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved) override;
     ErrCode BindDomainAccount(const OsAccountType &type, const DomainAccountInfo &domainAccountInfo,
-        const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options = {});
+        OsAccountInfo &osAccountInfo, const CreateOsAccountForDomainOptions &options = {});
     ErrCode SendMsgForAccountCreate(OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options = {});
     ErrCode GetOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo);
     ErrCode UpdateAccountStatusForDomain(const int id, DomainAccountStatus status);
