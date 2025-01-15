@@ -316,7 +316,7 @@ public:
         return 0;
     }
 
-    int32_t UpdateKeyContext(uint32_t userId)
+    int32_t UpdateKeyContext(uint32_t userId, bool needRemoveTmpKey = false)
     {
         return g_fscryptEnable ? ERROR_STORAGE_KEY_NOT_EXIST : 0;
     }
