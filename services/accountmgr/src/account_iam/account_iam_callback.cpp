@@ -701,7 +701,7 @@ GetCredInfoCallbackWrapper::GetCredInfoCallbackWrapper(
     : userId_(userId), authType_(authType), innerCallback_(callback)
 {}
 
-void GetCredInfoCallbackWrapper::OnCredentialInfo(const std::vector<CredentialInfo> &infoList)
+void GetCredInfoCallbackWrapper::OnCredentialInfo(int32_t result, const std::vector<CredentialInfo> &infoList)
 {
     if (innerCallback_ == nullptr) {
         return;
