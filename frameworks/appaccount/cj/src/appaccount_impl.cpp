@@ -48,9 +48,9 @@ int32_t CJAppAccountImpl::removeAccount(std::string name)
     return ret;
 }
 
-int32_t CJAppAccountImpl::setAppAccess(std::string name, std::string bundleNmae, bool isAccessible)
+int32_t CJAppAccountImpl::setAppAccess(std::string name, std::string bundleName, bool isAccessible)
 {
-    int32_t ret = ConvertToJSErrCode(AppAccountManager::SetAppAccess(name, bundleNmae, isAccessible));
+    int32_t ret = ConvertToJSErrCode(AppAccountManager::SetAppAccess(name, bundleName, isAccessible));
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("setAppAccess failed");
         return ret;
@@ -58,11 +58,11 @@ int32_t CJAppAccountImpl::setAppAccess(std::string name, std::string bundleNmae,
     return ret;
 }
 
-RetDataBool CJAppAccountImpl::checkAppAccess(std::string name, std::string bundleNmae)
+RetDataBool CJAppAccountImpl::checkAppAccess(std::string name, std::string bundleName)
 {
     RetDataBool ret = { .code = ERR_CJ_INVALID_INSTANCE_CODE, .data = 0 };
     bool isAccessible;
-    int32_t err = ConvertToJSErrCode(AppAccountManager::CheckAppAccess(name, bundleNmae, isAccessible));
+    int32_t err = ConvertToJSErrCode(AppAccountManager::CheckAppAccess(name, bundleName, isAccessible));
     if (err != ERR_OK) {
         ACCOUNT_LOGE("checkAppAccess failed");
         ret.code = err;
@@ -536,7 +536,6 @@ int32_t CJAppAccountImpl::verifyCredential(
         ACCOUNT_LOGE("Failed to create AppAccountManagerCallback for insufficient memory");
         AAFwk::Want result;
         std::string value = std::string();
-        appAccountMgrCb->OnResult(ERR_CJ_SYSTEM_SERVICE_EXCEPTION, result);
         callback.onResult(ERR_CJ_SYSTEM_SERVICE_EXCEPTION, Convert2CAuthResult(value, value, value, value));
         return ERR_CJ_SYSTEM_SERVICE_EXCEPTION;
     }
@@ -588,7 +587,6 @@ int32_t CJAppAccountImpl::setAuthenticatorProperties(
         ACCOUNT_LOGD("failed to create AppAccountManagerCallback for insufficient memory");
         AAFwk::Want result;
         std::string value = std::string();
-        appAccountMgrCb->OnResult(ERR_CJ_SYSTEM_SERVICE_EXCEPTION, result);
         callback.onResult(ERR_CJ_SYSTEM_SERVICE_EXCEPTION, Convert2CAuthResult(value, value, value, value));
         return ERR_CJ_SYSTEM_SERVICE_EXCEPTION;
     }
