@@ -20,6 +20,7 @@
 #include "app_account_event_listener.h"
 #include "app_account_subscriber.h"
 #define private public
+#include "app_account.h"
 #include "app_account_subscribe_death_recipient.h"
 #include "app_account_subscribe_manager.h"
 #undef private
@@ -42,6 +43,23 @@ public:
     static void TearDownTestCase(void);
     void SetUp(void) override;
     void TearDown(void) override;
+};
+
+class AppAccountSubscriberTest : public AppAccountSubscriber {
+public:
+    explicit AppAccountSubscriberTest(const AppAccountSubscribeInfo &subscribeInfo)
+        : AppAccountSubscriber(subscribeInfo)
+    {
+        ACCOUNT_LOGI("enter");
+    }
+
+    ~AppAccountSubscriberTest()
+    {}
+
+    virtual void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts)
+    {
+        ACCOUNT_LOGI("enter");
+    }
 };
 
 void AppAccountSubscribeManagerTest::SetUpTestCase(void)
@@ -211,4 +229,39 @@ HWTEST_F(AppAccountSubscribeManagerTest, GetAccessibleAccountsBySubscribeInfo_01
     ErrCode ret = AppAccountSubscribeManager::GetInstance().
         GetAccessibleAccountsBySubscribeInfo(nullptr, accessibleAccounts, appAccounts);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
+}
+
+/**
+ * @tc.name: AppAccountSubscribeManager_SubscribeAppAccount_0200
+ * @tc.desc: SubscribeAppAccount with nullptr param.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountSubscribeManagerTest, SubscribeAppAccount_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountSubscribeManager_SubscribeAppAccount_0200");
+    std::vector<std::string> owners;
+    owners.emplace_back(STRING_OWNER);
+
+    // make subscribe info with owners.
+    AppAccountSubscribeInfo subscribeInfo(owners);
+    auto subscribeInfoPtr = std::make_shared<AppAccountSubscribeInfo>(subscribeInfo);
+    auto subscriberPtr = std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
+
+    sptr<IRemoteObject> appAccountEventListener = nullptr;
+    ErrCode subscribeState = AppAccount::GetInstance().CreateAppAccountEventListener(subscriberPtr,
+        appAccountEventListener);
+    EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
+    ErrCode ret = AppAccountSubscribeManager::GetInstance().SubscribeAppAccount(
+        subscribeInfoPtr, appAccountEventListener, TEST_UID, TEST_BUNDLE_NAME, 1);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    ret = AppAccountSubscribeManager::GetInstance().SubscribeAppAccount(
+        subscribeInfoPtr, appAccountEventListener, TEST_UID, TEST_BUNDLE_NAME, TEST_APP_INDEX);
+    EXPECT_EQ(ret, ERR_OK);
+    auto AppAccountSubscribeRecordPtrs = AppAccountSubscribeManager::GetInstance().GetSubscribeRecords(STRING_OWNER);
+    EXPECT_EQ(AppAccountSubscribeRecordPtrs.size(), 1);
+    EXPECT_EQ(AppAccountSubscribeRecordPtrs[0]->appIndex, TEST_APP_INDEX);
+    EXPECT_EQ(AppAccountSubscribeRecordPtrs[0]->subscribedAppIndex, TEST_APP_INDEX);
+    EXPECT_EQ(AppAccountSubscribeRecordPtrs[0]->bundleName, STRING_OWNER);
+    ACCOUNT_LOGI("end AppAccountSubscribeManager_SubscribeAppAccount_0200");
 }

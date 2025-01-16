@@ -2650,3 +2650,257 @@ HWMTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthT
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(isVisible, true);
 }
+
+/**
+ * @tc.name: AppAccountManagerService_GetAllAccounts_0700
+ * @tc.desc: test GetAllAccounts With AppClone.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAccounts_0700, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_GetAllAccounts_0700");
+    AppAccountInfo appAccountInfo(STRING_NAME, STRING_BUNDLE_NAME);
+    appAccountInfo.SetAppIndex(1);
+    ErrCode result =
+        AppAccountControlManager::GetInstance().AddAccount(
+            STRING_NAME, STRING_EMPTY, UID, STRING_BUNDLE_NAME, appAccountInfo);
+    EXPECT_EQ(result, ERR_OK);
+
+    AppAccountCallingInfo appAccountCallingInfo;
+    appAccountCallingInfo.callingUid = UID;
+    appAccountCallingInfo.bundleName = STRING_BUNDLE_NAME;
+    result = AppAccountControlManager::GetInstance().EnableAppAccess(
+        STRING_NAME, STRING_OWNER, appAccountCallingInfo, appAccountInfo);
+    EXPECT_EQ(result, ERR_OK);
+
+    std::vector<AppAccountInfo> appAccounts;
+    result = g_accountManagerService->GetAllAccounts(STRING_BUNDLE_NAME, appAccounts);
+    EXPECT_EQ(result, ERR_OK);
+    ASSERT_EQ(appAccounts.size(), SIZE_ZERO);
+
+    AppAccountInfo appAccountInfoTwo(STRING_NAME_TWO, STRING_BUNDLE_NAME);
+    appAccountInfoTwo.SetAppIndex(0);
+    result =
+        AppAccountControlManager::GetInstance().AddAccount(
+            STRING_NAME_TWO, STRING_EMPTY, UID, STRING_BUNDLE_NAME, appAccountInfoTwo);
+    EXPECT_EQ(result, ERR_OK);
+    result = AppAccountControlManager::GetInstance().EnableAppAccess(
+        STRING_NAME_TWO, STRING_OWNER, appAccountCallingInfo, appAccountInfoTwo);
+    EXPECT_EQ(result, ERR_OK);
+    result = g_accountManagerService->GetAllAccounts(STRING_BUNDLE_NAME, appAccounts);
+    EXPECT_EQ(result, ERR_OK);
+    ASSERT_EQ(appAccounts.size(), SIZE_ONE);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_GetOAuthToken_0400
+ * @tc.desc: test GetOAuthToken With AppClone.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthToken_0400, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_GetOAuthToken_0400");
+    AppAccountInfo appAccountInfo(STRING_NAME, STRING_OWNER);
+    appAccountInfo.SetAppIndex(1);
+    appAccountInfo.SetOAuthToken(STRING_AUTH_TYPE, STRING_TOKEN);
+
+    ErrCode result =
+        AppAccountControlManager::GetInstance().AddAccount(
+            STRING_NAME, STRING_EMPTY, UID, STRING_OWNER, appAccountInfo);
+    EXPECT_EQ(result, ERR_OK);
+
+    std::vector<AppAccountInfo> appAccounts;
+    g_accountManagerService->GetAllAccessibleAccounts(appAccounts);
+    ASSERT_EQ(appAccounts.size(), SIZE_ONE);
+    std::string owner;
+    appAccounts[0].GetOwner(owner);
+
+    std::string token;
+    result = g_accountManagerService->GetOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
+    EXPECT_EQ(token, "");
+
+    AppAccountInfo appAccountInfoTwo(STRING_NAME_TWO, STRING_OWNER);
+    appAccountInfoTwo.SetAppIndex(0);
+    result = AppAccountControlManager::GetInstance().AddAccount(
+            STRING_NAME_TWO, STRING_EXTRA_INFO, UID, STRING_OWNER, appAccountInfoTwo);
+    EXPECT_EQ(result, ERR_OK);
+    g_accountManagerService->GetAllAccessibleAccounts(appAccounts);
+    ASSERT_EQ(appAccounts.size(), SIZE_TWO);
+    result = g_accountManagerService->SetOAuthToken(STRING_NAME_TWO, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_OK);
+    appAccounts[1].GetOwner(owner);
+    result = g_accountManagerService->GetOAuthToken(STRING_NAME_TWO, owner, STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(token, STRING_TOKEN);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_DeleteOAuthToken_0400
+ * @tc.desc: test DeleteOAuthToken With AppClone.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAuthToken_0400, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_DeleteOAuthToken_0400");
+    AppAccountInfo appAccountInfo(STRING_NAME, STRING_OWNER);
+    appAccountInfo.SetAppIndex(1);
+    ErrCode result = AppAccountControlManager::GetInstance().AddAccount(
+            STRING_NAME, STRING_EXTRA_INFO, UID, STRING_OWNER, appAccountInfo);
+    EXPECT_EQ(result, ERR_OK);
+
+    std::vector<AppAccountInfo> appAccounts;
+    g_accountManagerService->GetAllAccessibleAccounts(appAccounts);
+    ASSERT_EQ(appAccounts.size(), SIZE_ONE);
+    std::string owner;
+    appAccounts[0].GetOwner(owner);
+    result = appAccountInfo.SetOAuthToken(STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->DeleteOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
+
+    AppAccountInfo appAccountInfoTwo(STRING_NAME_TWO, STRING_OWNER);
+    appAccountInfoTwo.SetAppIndex(0);
+    result = AppAccountControlManager::GetInstance().AddAccount(
+            STRING_NAME_TWO, STRING_EXTRA_INFO, UID, STRING_OWNER, appAccountInfoTwo);
+    EXPECT_EQ(result, ERR_OK);
+    g_accountManagerService->GetAllAccessibleAccounts(appAccounts);
+    ASSERT_EQ(appAccounts.size(), SIZE_TWO);
+    result = g_accountManagerService->SetOAuthToken(STRING_NAME_TWO, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_OK);
+    appAccounts[1].GetOwner(owner);
+    result = g_accountManagerService->DeleteOAuthToken(STRING_NAME_TWO, owner, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_GetAllOAuthTokens_0300
+ * @tc.desc: test GetAllOAuthTokens With AppClone.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllOAuthTokens_0300, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_GetAllOAuthTokens_0300");
+    AppAccountInfo appAccountInfo(STRING_NAME, STRING_OWNER);
+    appAccountInfo.SetAppIndex(0);
+
+    ErrCode result = AppAccountControlManager::GetInstance().AddAccount(
+            STRING_NAME, STRING_EXTRA_INFO, UID, STRING_OWNER, appAccountInfo);
+    EXPECT_EQ(result, ERR_OK);
+
+    std::vector<AppAccountInfo> appAccounts;
+    result = g_accountManagerService->GetAllAccessibleAccounts(appAccounts);
+    EXPECT_EQ(result, ERR_OK);
+    ASSERT_EQ(appAccounts.size(), SIZE_ONE);
+    std::string owner;
+    appAccounts[0].GetOwner(owner);
+    result = g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE_TWO, STRING_TOKEN_TWO);
+    EXPECT_EQ(result, ERR_OK);
+    std::vector<OAuthTokenInfo> tokenInfos;
+    result = g_accountManagerService->GetAllOAuthTokens(STRING_NAME, owner, tokenInfos);
+    EXPECT_EQ(result, ERR_OK);
+    ASSERT_EQ(tokenInfos.size(), SIZE_TWO);
+    EXPECT_EQ(tokenInfos[0].token, STRING_TOKEN);
+    EXPECT_EQ(tokenInfos[1].token, STRING_TOKEN_TWO);
+
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+
+    tokenInfos.clear();
+    AppAccountInfo appAccountInfoTwo(STRING_NAME_TWO, STRING_OWNER);
+    appAccountInfoTwo.SetAppIndex(1);
+    appAccountInfoTwo.SetOAuthToken(STRING_AUTH_TYPE, STRING_TOKEN);
+    appAccountInfoTwo.SetOAuthToken(STRING_AUTH_TYPE_TWO, STRING_TOKEN_TWO);
+    result = AppAccountControlManager::GetInstance().AddAccount(
+            STRING_NAME_TWO, STRING_EXTRA_INFO, UID, STRING_OWNER, appAccountInfoTwo);
+    EXPECT_EQ(result, ERR_OK);
+    result = g_accountManagerService->GetAllAccessibleAccounts(appAccounts);
+    EXPECT_EQ(result, ERR_OK);
+    ASSERT_EQ(appAccounts.size(), SIZE_ONE);
+    appAccounts[0].GetOwner(owner);
+    result = g_accountManagerService->GetAllOAuthTokens(STRING_NAME, owner, tokenInfos);
+    ASSERT_EQ(tokenInfos.size(), SIZE_ZERO);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_CheckAppAccess_0500
+ * @tc.desc: test CheckAppAccess With AppClone.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckAppAccess_0500, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_CheckAppAccess_0500");
+    AppAccountInfo appAccountInfoTwo(STRING_NAME_TWO, STRING_OWNER);
+    appAccountInfoTwo.SetAppIndex(0);
+    bool isAccessible = false;
+    ErrCode result = AppAccountControlManager::GetInstance().AddAccount(
+        STRING_NAME_TWO, STRING_EXTRA_INFO, UID, STRING_OWNER, appAccountInfoTwo);
+    EXPECT_EQ(result, ERR_OK);
+    result = g_accountManagerService->EnableAppAccess(STRING_NAME_TWO, STRING_BUNDLE_NAME);
+    EXPECT_EQ(result, ERR_OK);
+    result = g_accountManagerService->CheckAppAccess(STRING_NAME_TWO, STRING_BUNDLE_NAME, isAccessible);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(isAccessible, true);
+
+    AppAccountInfo appAccountInfo(STRING_NAME, STRING_OWNER);
+    appAccountInfo.SetAppIndex(1);
+    result = AppAccountControlManager::GetInstance().AddAccount(
+        STRING_NAME, STRING_EXTRA_INFO, UID, STRING_OWNER, appAccountInfo);
+    result = g_accountManagerService->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID);
+    isAccessible = false;
+    result = g_accountManagerService->CheckAppAccess(STRING_NAME, STRING_BUNDLE_NAME, isAccessible);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
+    EXPECT_EQ(isAccessible, false);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_CheckAuthTokenVisibility_0200
+ * @tc.desc: test CheckAuthTokenVisibility With AppClone.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckAuthTokenVisibility_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_CheckAuthTokenVisibility_0200");
+    CreateAccountOptions option;
+    ErrCode result = g_accountManagerService->CreateAccount(STRING_NAME, option);
+    EXPECT_EQ(result, ERR_OK);
+
+    bool isVisible = false;
+    result = g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->SetAuthTokenVisibility(STRING_NAME,
+        STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->CheckAuthTokenVisibility(STRING_NAME,
+        STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(isVisible, true);
+
+    AppAccountInfo appAccountInfoTwo(STRING_NAME_TWO, STRING_OWNER);
+    appAccountInfoTwo.SetAppIndex(1);
+    appAccountInfoTwo.SetOAuthToken(STRING_AUTH_TYPE, STRING_TOKEN);
+    appAccountInfoTwo.SetOAuthTokenVisibility(
+        STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true, 9);
+    result = AppAccountControlManager::GetInstance().AddAccount(
+            STRING_NAME_TWO, STRING_EXTRA_INFO, UID, STRING_OWNER, appAccountInfoTwo);
+    EXPECT_EQ(result, ERR_OK);
+    isVisible = false;
+    result = g_accountManagerService->CheckAuthTokenVisibility(STRING_NAME_TWO,
+        STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
+}
