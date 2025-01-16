@@ -28,6 +28,7 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 const char THREAD_APP_ACCOUNT_EVENT[] = "appAccountEvent";
+const std::string HYPHEN = "#";
 }
 
 AppAccountSubscribeManager::AppAccountSubscribeManager()
@@ -79,6 +80,7 @@ ErrCode AppAccountSubscribeManager::SubscribeAppAccount(
     subscribeRecordPtr->eventListener = eventListener;
     subscribeRecordPtr->bundleName = bundleName;
     subscribeRecordPtr->appIndex = appIndex;
+    subscribeRecordPtr->subscribedAppIndex = 0;
 
     if (subscribeDeathRecipient_ != nullptr) {
         eventListener->AddDeathRecipient(subscribeDeathRecipient_);
@@ -101,7 +103,8 @@ ErrCode AppAccountSubscribeManager::UnsubscribeAppAccount(const sptr<IRemoteObje
     return RemoveSubscribeRecord(eventListener);
 }
 
-std::vector<AppAccountSubscribeRecordPtr> AppAccountSubscribeManager::GetSubscribeRecords(const std::string &owner)
+std::vector<AppAccountSubscribeRecordPtr> AppAccountSubscribeManager::GetSubscribeRecords(const std::string &owner,
+    const uint32_t &appIndex)
 {
     auto records = std::vector<AppAccountSubscribeRecordPtr>();
 
@@ -129,10 +132,32 @@ std::vector<AppAccountSubscribeRecordPtr> AppAccountSubscribeManager::GetSubscri
             return records;
         }
 
+        if (appIndex != (*it)->subscribedAppIndex) {
+            continue;
+        }
+
         records.emplace_back(*it);
     }
 
     return records;
+}
+
+bool AppAccountSubscribeManager::CheckAppIsMaster(const std::string &account)
+{
+    size_t firstHashPos = account.find('#');
+    if (firstHashPos == std::string::npos) {
+        return false;
+    }
+    size_t secondHashPos = account.find('#', firstHashPos + 1);
+    if (secondHashPos == std::string::npos) {
+        return false;
+    }
+    std::string indexStr = account.substr(firstHashPos + 1, secondHashPos - firstHashPos - 1);
+    int index = -1;
+    if (!StrToInt(indexStr, index)) {
+        return false;
+    }
+    return (index == 0);
 }
 
 ErrCode AppAccountSubscribeManager::CheckAppAccess(const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr,
@@ -152,13 +177,21 @@ ErrCode AppAccountSubscribeManager::CheckAppAccess(const std::shared_ptr<AppAcco
     }
 
     std::vector<std::string> accessibleAccounts;
-    ErrCode ret = dataStoragePtr->GetAccessibleAccountsFromDataStorage(bundleName, accessibleAccounts);
+    std::string bundleKey = bundleName + (appIndex == 0 ? "" : HYPHEN + std::to_string(appIndex));
+    ErrCode ret = dataStoragePtr->GetAccessibleAccountsFromDataStorage(bundleKey, accessibleAccounts);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("failed to get accessible account from data storage, ret %{public}d.", ret);
         return ret;
     }
+    for (auto it = accessibleAccounts.begin(); it != accessibleAccounts.end();) {
+        if (!CheckAppIsMaster(*it)) {
+            it = accessibleAccounts.erase(it);
+        } else {
+            it++;
+        }
+    }
     for (auto owner : owners) {
-        if (owner == bundleName) {
+        if (owner == bundleKey) {
             continue;
         }
         auto it = std::find_if(

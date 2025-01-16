@@ -31,6 +31,7 @@ public:
         const sptr<IRemoteObject> &eventListener, const uid_t &uid,
         const std::string &bundleName, const uint32_t &appIndex);
     ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener);
+    static bool CheckAppIsMaster(const std::string &account);
 
     bool PublishAccount(AppAccountInfo &appAccountInfo, const uid_t &uid, const std::string &bundleName);
 
@@ -40,7 +41,8 @@ private:
     DISALLOW_COPY_AND_MOVE(AppAccountSubscribeManager);
     ErrCode GetStoreId(const uid_t &uid, std::string &storeId);
 
-    std::vector<AppAccountSubscribeRecordPtr> GetSubscribeRecords(const std::string &owner);
+    std::vector<AppAccountSubscribeRecordPtr> GetSubscribeRecords(const std::string &owner,
+        const uint32_t &appIndex = 0);
     ErrCode OnAccountsChanged(const std::shared_ptr<AppAccountEventRecord> &record);
     ErrCode GetAccessibleAccountsBySubscribeInfo(const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr,
         const std::vector<AppAccountInfo> &accessibleAccounts, std::vector<AppAccountInfo> &appAccounts);
