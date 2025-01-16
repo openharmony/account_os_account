@@ -703,6 +703,7 @@ GetCredInfoCallbackWrapper::GetCredInfoCallbackWrapper(
 
 void GetCredInfoCallbackWrapper::OnCredentialInfo(int32_t result, const std::vector<CredentialInfo> &infoList)
 {
+    static_cast<void>(result);
     if (innerCallback_ == nullptr) {
         return;
     }
