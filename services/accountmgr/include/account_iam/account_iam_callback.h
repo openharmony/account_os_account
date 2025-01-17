@@ -262,7 +262,7 @@ public:
     GetSecUserInfoCallbackWrapper(AuthType authType, const sptr<IGetEnrolledIdCallback> &callback);
     virtual ~GetSecUserInfoCallbackWrapper() = default;
 
-    void OnSecUserInfo(const SecUserInfo &info) override;
+    void OnSecUserInfo(int32_t result, const SecUserInfo &info) override;
 
 private:
     AuthType authType_;
@@ -273,7 +273,7 @@ class GetSecureUidCallback final : public GetSecUserInfoCallback {
 public:
     GetSecureUidCallback(int32_t userId);
 
-    void OnSecUserInfo(const SecUserInfo &info) override;
+    void OnSecUserInfo(int32_t result, const SecUserInfo &info) override;
 
 public:
     int32_t userId_;
