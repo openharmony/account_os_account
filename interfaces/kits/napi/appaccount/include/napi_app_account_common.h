@@ -319,7 +319,6 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
 void VerifyCredCompleteCB(napi_env env, napi_status status, void *data);
 void ProcessOnResultCallback(
     napi_env env, JSAuthCallback &callback, int32_t resultCode, const AAFwk::WantParams &result);
-bool GetAbilityName(napi_env env, std::string &abilityName);
 }  // namespace AccountJsKit
 }  // namespace OHOS
 

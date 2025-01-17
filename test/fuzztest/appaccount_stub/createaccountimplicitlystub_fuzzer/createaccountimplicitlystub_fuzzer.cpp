@@ -50,8 +50,6 @@ bool CreateAccountImplicitlyStubFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
     CreateAccountImplicitlyOptions options;
-    std::string testName = fuzzData.GenerateString();
-    options.parameters.SetParam(Constants::KEY_CALLER_ABILITY_NAME, testName);
     if (!dataTemp.WriteParcelable(&options)) {
         return false;
     }

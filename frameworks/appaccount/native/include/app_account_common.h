@@ -92,7 +92,6 @@ struct AuthenticatorSessionRequest {
     std::string token;
     std::string bundleName;
     std::string callerBundleName;
-    std::string callerAbilityName;
     uint32_t appIndex;
     bool isTokenVisible = false;
     pid_t callerPid;

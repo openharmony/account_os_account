@@ -55,7 +55,6 @@ bool AddAccountImplicitlyStubFuzzTest(const uint8_t* data, size_t size)
     }
     AAFwk::Want options;
     std::string testName = fuzzData.GenerateString();
-    options.SetParam(Constants::KEY_CALLER_ABILITY_NAME, testName);
     if (!dataTemp.WriteParcelable(&options)) {
         return false;
     }
