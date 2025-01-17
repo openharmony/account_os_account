@@ -476,6 +476,7 @@ ohos_moduletest("app_account_control_manager_module_test") {
   external_deps = [
     "ability_base:base",
     "ability_base:want",
+    "ability_runtime:ability_connect_callback_stub",
     "ability_runtime:app_manager",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
