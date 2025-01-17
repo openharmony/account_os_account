@@ -350,7 +350,9 @@ group("moduletest") {
 
   deps = [
     ":os_account_frameworks_module_mock_test",
-    ":os_account_frameworks_module_test",
     ":os_account_subscribe_test",
   ]
+  if (!use_clang_coverage) {
+    deps += [ ":os_account_frameworks_module_test" ]
+  }
 }
