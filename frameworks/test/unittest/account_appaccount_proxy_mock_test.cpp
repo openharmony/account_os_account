@@ -106,7 +106,6 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_CreateAccount_0100, TestSize
 HWTEST_F(AppAccountProxyMockTest, AppAccountManager_AddAccountImplicitly_0100, TestSize.Level1)
 {
     AAFwk::Want options;
-    options.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
     sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) AuthenticatorCallbackMockTest();
     ASSERT_NE(callback, nullptr);
     ErrCode result = AppAccountManager::AddAccountImplicitly(STRING_OWNER, STRING_AUTH_TYPE, options, callback);
@@ -122,7 +121,6 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_AddAccountImplicitly_0100, T
 HWTEST_F(AppAccountProxyMockTest, AppAccountManager_CreateAccountImplicitly_0100, TestSize.Level1)
 {
     CreateAccountImplicitlyOptions options;
-    options.parameters.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
     sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) AuthenticatorCallbackMockTest();
     ASSERT_NE(callback, nullptr);
     ErrCode result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, callback);

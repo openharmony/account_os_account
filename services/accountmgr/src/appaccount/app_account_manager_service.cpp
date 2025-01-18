@@ -68,9 +68,7 @@ ErrCode AppAccountManagerService::AddAccountImplicitly(const std::string &owner,
     request.owner = owner;
     request.authType = authType;
     request.options = options;
-    request.callerAbilityName = options.GetStringParam(Constants::KEY_CALLER_ABILITY_NAME);
     request.callback = callback;
-    request.options.RemoveParam(Constants::KEY_CALLER_ABILITY_NAME);
     request.options.SetParam(Constants::KEY_CALLER_PID, request.callerPid);
     request.options.SetParam(Constants::KEY_CALLER_UID, request.callerUid);
     return innerManager_->AddAccountImplicitly(request);
@@ -98,10 +96,8 @@ ErrCode AppAccountManagerService::CreateAccountImplicitly(const std::string &own
         return result;
     }
     request.owner = owner;
-    request.callerAbilityName = options.parameters.GetStringParam(Constants::KEY_CALLER_ABILITY_NAME);
     request.callback = callback;
     request.createOptions = options;
-    request.createOptions.parameters.RemoveParam(Constants::KEY_CALLER_ABILITY_NAME);
     request.createOptions.parameters.SetParam(Constants::KEY_CALLER_BUNDLE_NAME, request.callerBundleName);
     return innerManager_->CreateAccountImplicitly(request);
 }
@@ -294,9 +290,7 @@ ErrCode AppAccountManagerService::Authenticate(const std::string &name, const st
     request.owner = owner;
     request.authType = authType;
     request.options = options;
-    request.callerAbilityName = options.GetStringParam(Constants::KEY_CALLER_ABILITY_NAME);
     request.callback = callback;
-    request.options.RemoveParam(Constants::KEY_CALLER_ABILITY_NAME);
     request.options.SetParam(Constants::KEY_CALLER_BUNDLE_NAME, request.callerBundleName);
     request.options.SetParam(Constants::KEY_CALLER_UID, request.callerUid);
     return innerManager_->Authenticate(request);

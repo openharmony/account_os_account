@@ -271,25 +271,14 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_AddAccountImplicitly_0100, Tes
 {
     ACCOUNT_LOGI("AppAccountManager_AddAccountImplicitly_0100");
     AAFwk::Want options;
-    options.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
-    ErrCode result = AppAccountManager::AddAccountImplicitly(STRING_OWNER, STRING_AUTH_TYPE, options, nullptr);
-    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 
-    result = AppAccountManager::AddAccountImplicitly(
+    ErrCode result = AppAccountManager::AddAccountImplicitly(
         STRING_OWNER_OUT_OF_RANGE, STRING_AUTH_TYPE, options, nullptr);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     result = AppAccountManager::AddAccountImplicitly(STRING_EMPTY, STRING_AUTH_TYPE, options, nullptr);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 
     result = AppAccountManager::AddAccountImplicitly(STRING_OWNER, STRING_OUT_OF_RANGE, options, nullptr);
-    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-
-    options.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_EMPTY);
-    result = AppAccountManager::AddAccountImplicitly(STRING_OWNER, STRING_AUTH_TYPE, options, nullptr);
-    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    std::string abilityName = STRING_OUT_OF_RANGE;
-    options.SetParam(Constants::KEY_CALLER_ABILITY_NAME, abilityName);
-    result = AppAccountManager::AddAccountImplicitly(STRING_OWNER, STRING_AUTH_TYPE, options, nullptr);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
@@ -303,7 +292,6 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_AddAccountImplicitly_0200, Tes
 {
     ACCOUNT_LOGI("AppAccountManager_AddAccountImplicitly_0200");
     AAFwk::Want options;
-    options.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
     sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
     EXPECT_NE(callback, nullptr);
     ErrCode result = AppAccountManager::AddAccountImplicitly(STRING_OWNER, STRING_AUTH_TYPE, options, callback);
@@ -332,15 +320,9 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_CreateAccountImplicitly_0100, 
     result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, nullptr);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     options.authType = "";
-    options.parameters.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_EMPTY);
-    result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, nullptr);
-    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    std::string abilityName = STRING_OUT_OF_RANGE;
-    options.parameters.SetParam(Constants::KEY_CALLER_ABILITY_NAME, abilityName);
     result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, nullptr);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     // check callback nullptr
-    options.parameters.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
     result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, nullptr);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     // check options.requiredLabels
@@ -365,7 +347,6 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_CreateAccountImplicitly_0200, 
 {
     ACCOUNT_LOGI("AppAccountManager_CreateAccountImplicitly_0200");
     CreateAccountImplicitlyOptions options;
-    options.parameters.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
     sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
     EXPECT_NE(callback, nullptr);
     ErrCode result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, callback);
@@ -382,7 +363,6 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_Authenticate_0100, TestSize.Le
 {
     ACCOUNT_LOGI("AppAccountManager_Authenticate_0100");
     AAFwk::Want options;
-    options.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
     ErrCode result = AppAccountManager::Authenticate(
         STRING_NAME, STRING_OWNER, STRING_AUTH_TYPE, options, nullptr);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
@@ -404,11 +384,6 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_Authenticate_0100, TestSize.Le
     result = AppAccountManager::Authenticate(
         STRING_NAME, STRING_OWNER, STRING_OUT_OF_RANGE, options, nullptr);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    std::string abilityName = STRING_OUT_OF_RANGE;
-    options.SetParam(Constants::KEY_CALLER_ABILITY_NAME, abilityName);
-    result = AppAccountManager::Authenticate(
-        STRING_NAME, STRING_OWNER, STRING_AUTH_TYPE, options, nullptr);
-    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -421,7 +396,6 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_Authenticate_0200, TestSize.Le
 {
     ACCOUNT_LOGI("AppAccountManager_Authenticate_0200");
     AAFwk::Want options;
-    options.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
     sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
     EXPECT_NE(callback, nullptr);
     ErrCode result = AppAccountManager::Authenticate(STRING_NAME, STRING_OWNER, STRING_AUTH_TYPE, options, callback);

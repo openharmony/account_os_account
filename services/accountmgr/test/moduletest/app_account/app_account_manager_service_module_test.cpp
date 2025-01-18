@@ -1815,7 +1815,6 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount
     ACCOUNT_LOGI("AppAccountManagerService_AddAccountImplicitly_0100");
 
     AAFwk::Want options;
-    options.SetParam(AccountSA::Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
     sptr<IAppAccountAuthenticatorCallback> callback = nullptr;
     ErrCode result = g_accountManagerService->AddAccountImplicitly(
         STRING_OWNER, STRING_AUTH_TYPE, options, callback);
@@ -1833,7 +1832,6 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CreateAcco
     ACCOUNT_LOGI("AppAccountManagerService_CreateAccountImplicitly_0100");
 
     CreateAccountImplicitlyOptions options;
-    options.parameters.SetParam(AccountSA::Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
     sptr<IAppAccountAuthenticatorCallback> callback = nullptr;
     ErrCode result = g_accountManagerService->CreateAccountImplicitly(
         STRING_OWNER, options, callback);
@@ -1851,7 +1849,6 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_Authentica
     ACCOUNT_LOGI("AppAccountManagerService_Authenticate_0100");
 
     AAFwk::Want options;
-    options.SetParam(AccountSA::Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
     sptr<IAppAccountAuthenticatorCallback> callback = nullptr;
     ErrCode result = g_accountManagerService->Authenticate(STRING_NAME,
         STRING_OWNER, STRING_AUTH_TYPE, options, callback);
@@ -1869,7 +1866,6 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_Authentica
     ACCOUNT_LOGI("AppAccountManagerService_Authenticate_0100");
 
     AAFwk::Want options;
-    options.SetParam(AccountSA::Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
     options.SetParam(AccountSA::Constants::API_V9, true);
     sptr<IAppAccountAuthenticatorCallback> callback = nullptr;
     ErrCode result = g_accountManagerService->Authenticate(STRING_NAME,

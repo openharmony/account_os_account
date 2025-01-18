@@ -31,8 +31,8 @@ constexpr size_t SESSION_MAX_NUM = 256;
 AppAccountAuthenticatorSessionManager::~AppAccountAuthenticatorSessionManager()
 {
     sessionMap_.clear();
-    abilitySessions_.clear();
 }
+
 AppAccountAuthenticatorSessionManager &AppAccountAuthenticatorSessionManager::GetInstance()
 {
     static AppAccountAuthenticatorSessionManager instance;
@@ -118,15 +118,6 @@ ErrCode AppAccountAuthenticatorSessionManager::OpenSession(
         sessionMap_.emplace(sessionId, session);
         AuthenticatorSessionRequest request;
         session->GetRequest(request);
-        std::string key = request.callerAbilityName + std::to_string(request.callerUid);
-        auto it = abilitySessions_.find(key);
-        if (it != abilitySessions_.end()) {
-            it->second.emplace(sessionId);
-        } else {
-            std::set<std::string> sessionSet;
-            sessionSet.emplace(sessionId);
-            abilitySessions_.emplace(key, sessionSet);
-        }
     }
     session->AddClientDeathRecipient();
     return ERR_OK;
@@ -218,14 +209,6 @@ void AppAccountAuthenticatorSessionManager::CloseSession(const std::string &sess
     }
     AuthenticatorSessionRequest request;
     it->second->GetRequest(request);
-    std::string key = request.callerAbilityName + std::to_string(request.callerUid);
-    auto asIt = abilitySessions_.find(key);
-    if (asIt != abilitySessions_.end()) {
-        asIt->second.erase(sessionId);
-        if (asIt->second.empty()) {
-            abilitySessions_.erase(asIt);
-        }
-    }
     sessionMap_.erase(it);
 }
 }  // namespace AccountSA

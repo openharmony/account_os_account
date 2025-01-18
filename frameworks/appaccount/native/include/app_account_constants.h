@@ -30,7 +30,6 @@ const char KEY_ACTION[] = "action";
 const char KEY_AUTH_TYPE[] = "authType";
 const char KEY_SESSION_ID[] = "sessionId";
 const char KEY_CALLER_BUNDLE_NAME[] = "callerBundleName";
-const char KEY_CALLER_ABILITY_NAME[] = "callerAbilityName";
 const char KEY_CALLER_PID[] = "callerPid";
 const char KEY_CALLER_UID[] = "callerUid";
 const char KEY_BOOLEAN_RESULT[] = "booleanResult";
