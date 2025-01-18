@@ -22,12 +22,99 @@
 #include "os_account_state_parcel.h"
 #include "os_account_state_reply_callback_stub.h"
 #include "os_account_subscribe_death_recipient.h"
+#ifdef HICOLLIE_ENABLE
+#include "account_timer.h"
+#include "xcollie/xcollie.h"
+#endif // HICOLLIE_ENABLE
 
 namespace OHOS {
 namespace AccountSA {
 namespace {
 const char THREAD_OS_ACCOUNT_EVENT[] = "osAccountEvent";
 constexpr int32_t DEACTIVATION_WAIT_SECONDS = 5;
+}
+
+SwitchSubcribeWork::SwitchSubcribeWork(const sptr<IOsAccountEvent> &eventProxy, OsAccountState state,
+    int32_t fromId, int32_t toId)
+{
+    eventProxy_ = eventProxy;
+    type_ = state;
+    fromId_ = fromId;
+    toId_ = toId;
+}
+
+SwitchSubscribeInfo::SwitchSubscribeInfo(OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType)
+{
+    if (osAccountSubscribeType == OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING ||
+        osAccountSubscribeType == OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED) {
+        count_ = 1;
+    }
+}
+
+void SwitchSubscribeInfo::AddSubscribeInfo(OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType)
+{
+    if (osAccountSubscribeType == OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING ||
+        osAccountSubscribeType == OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED) {
+        count_++;
+    }
+}
+
+bool SwitchSubscribeInfo::SubSubscribeInfo(OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType)
+{
+    if (osAccountSubscribeType == OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING ||
+        osAccountSubscribeType == OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED) {
+        if (count_ == 0) {
+            return false;
+        }
+        count_--;
+        return true;
+    }
+    return false;
+}
+
+bool SwitchSubscribeInfo::IsEmpty()
+{
+    return count_ == 0;
+}
+
+void SwitchSubscribeInfo::ConsumerTask()
+{
+    bool exitFlag = false;
+    while (!exitFlag) {
+        SwitchSubcribeWork work;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            if (workDeque_.empty()) {
+                workThread_ = nullptr;
+                exitFlag = true;
+                return;
+            }
+            work = workDeque_.front();
+            workDeque_.pop_front();
+        }
+#ifdef HICOLLIE_ENABLE
+        int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME,
+            TIMEOUT, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
+#endif // HICOLLIE_ENABLE
+        work.eventProxy_->OnAccountsSwitch(work.fromId_, work.toId_);
+#ifdef HICOLLIE_ENABLE
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
+    }
+}
+
+bool SwitchSubscribeInfo::ProductTask(const sptr<IOsAccountEvent> &eventProxy, OsAccountState state, const int newId,
+    const int oldId)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    SwitchSubcribeWork work(eventProxy, state, newId, oldId);
+    workDeque_.push_back(work);
+    if (workThread_ == nullptr) {
+        workThread_ = std::make_unique<std::thread>(&SwitchSubscribeInfo::ConsumerTask, this);
+        pthread_setname_np(workThread_->native_handle(), THREAD_OS_ACCOUNT_EVENT);
+        workThread_->detach();
+    }
+    return true;
 }
 
 OsAccountSubscribeManager::OsAccountSubscribeManager()
@@ -71,6 +158,15 @@ ErrCode OsAccountSubscribeManager::SubscribeOsAccount(
         eventListener->AddDeathRecipient(subscribeDeathRecipient_);
     }
     subscribeRecords_.emplace_back(subscribeRecordPtr);
+    OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType;
+    subscribeInfoPtr->GetOsAccountSubscribeType(osAccountSubscribeType);
+    if (osAccountSubscribeType == SWITCHING || osAccountSubscribeType == SWITCHED) {
+        if (switchRecordMap_.count(callingUid) != 0) {
+            switchRecordMap_[callingUid]->AddSubscribeInfo(osAccountSubscribeType);
+            return ERR_OK;
+        }
+        switchRecordMap_.emplace(callingUid, std::make_shared<SwitchSubscribeInfo>(osAccountSubscribeType));
+    }
     return ERR_OK;
 }
 
@@ -93,11 +189,23 @@ ErrCode OsAccountSubscribeManager::RemoveSubscribeRecord(const sptr<IRemoteObjec
     for (auto it = subscribeRecords_.begin(); it != subscribeRecords_.end(); ++it) {
         if (eventListener == (*it)->eventListener_) {
             (*it)->eventListener_ = nullptr;
+            int32_t callingUid = (*it)->callingUid_;
+            OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType;
+            (*it)->subscribeInfoPtr_->GetOsAccountSubscribeType(osAccountSubscribeType);
             subscribeRecords_.erase(it);
+            if (osAccountSubscribeType != SWITCHING && osAccountSubscribeType != SWITCHED) {
+                break;
+            }
+            if (switchRecordMap_.count(callingUid) == 0) {
+                break;
+            }
+            switchRecordMap_[callingUid]->SubSubscribeInfo(osAccountSubscribeType);
+            if (switchRecordMap_[callingUid]->IsEmpty()) {
+                switchRecordMap_.erase(callingUid);
+            }
             break;
         }
     }
-
     return ERR_OK;
 }
 
@@ -155,7 +263,10 @@ bool OsAccountSubscribeManager::OnStateChangedV0(const sptr<IOsAccountEvent> &ev
     OsAccountState state, int32_t fromId, int32_t toId, uid_t targetUid)
 {
     if (state == SWITCHING || state == SWITCHED) {
-        return OnAccountsSwitch(eventProxy, toId, fromId);
+        if (switchRecordMap_.count(targetUid) == 0) {
+            return false;
+        }
+        return switchRecordMap_[targetUid]->ProductTask(eventProxy, state, toId, fromId);
     }
     return OnAccountsChanged(eventProxy, state, fromId, targetUid);
 }
@@ -170,16 +281,6 @@ bool OsAccountSubscribeManager::OnAccountsChanged(
         ACCOUNT_LOGI("Publish end, state=%{public}d to uid=%{public}d asynch, accountId=%{public}d",
             state, targetUid, id);
     };
-    std::thread taskThread(task);
-    pthread_setname_np(taskThread.native_handle(), THREAD_OS_ACCOUNT_EVENT);
-    taskThread.detach();
-    return true;
-}
-
-bool OsAccountSubscribeManager::OnAccountsSwitch(const sptr<IOsAccountEvent> &eventProxy, const int newId,
-                                                 const int oldId)
-{
-    auto task = [eventProxy, newId, oldId] { eventProxy->OnAccountsSwitch(newId, oldId); };
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_OS_ACCOUNT_EVENT);
     taskThread.detach();
