@@ -530,9 +530,6 @@ bool ParseArguments(napi_env env, napi_value *argv, const napi_valuetype *valueT
 
 bool ParseContextForAuth(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *context)
 {
-    std::string abilityName;
-    GetAbilityName(env, abilityName);
-    context->options.SetParam(Constants::KEY_CALLER_ABILITY_NAME, abilityName);
     size_t argc = ARGS_SIZE_FIVE;
     napi_value argv[ARGS_SIZE_FIVE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -567,7 +564,6 @@ bool ParseContextForAuth(napi_env env, napi_callback_info cbInfo, OAuthAsyncCont
         }
     }
     context->options.SetParams(params);
-    context->options.SetParam(Constants::KEY_CALLER_ABILITY_NAME, abilityName);
     JSAuthCallback callback;
     if (!ParseJSAuthCallback(env, argv[argc - 1], callback)) {
         context->errMsg = "Parameter error. The type of \"callback\" must be AuthCallback";
@@ -598,9 +594,6 @@ void ParseContextForAuthenticate(napi_env env, napi_callback_info cbInfo, OAuthA
         ACCOUNT_LOGE("UnwrapWantParams failed");
     }
     asyncContext->options.SetParams(params);
-    std::string abilityName;
-    GetAbilityName(env, abilityName);
-    asyncContext->options.SetParam(Constants::KEY_CALLER_ABILITY_NAME, abilityName);
     JSAuthCallback callback;
     ParseJSAuthCallback(env, argv[index], callback);
     asyncContext->appAccountMgrCb = new (std::nothrow) AppAccountManagerCallback(env, callback);
@@ -1462,31 +1455,6 @@ bool ParseContextForCreateAccountImplicitly(
         context->errMsg = "Parameter error. The type of \"callback\" must be AuthCallback";
         return false;
     }
-    std::string abilityName;
-    GetAbilityName(env, abilityName);
-    context->options.parameters.SetParam(Constants::KEY_CALLER_ABILITY_NAME, abilityName);
-    return true;
-}
-
-bool GetAbilityName(napi_env env, std::string &abilityName)
-{
-    napi_value global;
-    napi_get_global(env, &global);
-    napi_value abilityObj;
-    napi_get_named_property(env, global, "ability", &abilityObj);
-    if (abilityObj == nullptr) {
-        return false;
-    }
-    AppExecFwk::Ability *ability = nullptr;
-    napi_get_value_external(env, abilityObj, reinterpret_cast<void **>(&ability));
-    if (ability == nullptr) {
-        return false;
-    }
-    auto abilityInfo = ability->GetAbilityInfo();
-    if (abilityInfo == nullptr) {
-        return false;
-    }
-    abilityName = abilityInfo->name;
     return true;
 }
 }  // namespace AccountJsKit
