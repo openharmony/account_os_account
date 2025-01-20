@@ -34,10 +34,7 @@ ohos_unittest("account_command_create_test") {
     "account_command_create_test.cpp",
   ]
 
-  configs = [
-    "${ability_runtime_path}/tools/aa:ability_command_config",
-    "${tools_path}/acm:tools_acm_config",
-  ]
+  configs = [ "${tools_path}/acm:tools_acm_config" ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -77,10 +74,7 @@ ohos_unittest("account_command_delete_test") {
     "account_command_delete_test.cpp",
   ]
 
-  configs = [
-    "${ability_runtime_path}/tools/aa:ability_command_config",
-    "${tools_path}/acm:tools_acm_config",
-  ]
+  configs = [ "${tools_path}/acm:tools_acm_config" ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -120,10 +114,7 @@ ohos_unittest("account_command_dump_test") {
     "account_command_dump_test.cpp",
   ]
 
-  configs = [
-    "${ability_runtime_path}/tools/aa:ability_command_config",
-    "${tools_path}/acm:tools_acm_config",
-  ]
+  configs = [ "${tools_path}/acm:tools_acm_config" ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -163,10 +154,7 @@ ohos_unittest("account_command_set_test") {
     "account_command_set_test.cpp",
   ]
 
-  configs = [
-    "${ability_runtime_path}/tools/aa:ability_command_config",
-    "${tools_path}/acm:tools_acm_config",
-  ]
+  configs = [ "${tools_path}/acm:tools_acm_config" ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -206,10 +194,7 @@ ohos_unittest("account_command_switch_test") {
     "account_command_switch_test.cpp",
   ]
 
-  configs = [
-    "${ability_runtime_path}/tools/aa:ability_command_config",
-    "${tools_path}/acm:tools_acm_config",
-  ]
+  configs = [ "${tools_path}/acm:tools_acm_config" ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -249,10 +234,7 @@ ohos_unittest("account_command_test") {
     "account_command_test.cpp",
   ]
 
-  configs = [
-    "${ability_runtime_path}/tools/aa:ability_command_config",
-    "${tools_path}/acm:tools_acm_config",
-  ]
+  configs = [ "${tools_path}/acm:tools_acm_config" ]
 
   cflags = [ "-DENABLE_MULTIPLE_ACTIVE_ACCOUNTS" ]
 

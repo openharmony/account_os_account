@@ -19,7 +19,6 @@
 
 #include "account_command.h"
 #include "os_account_manager.h"
-#include "tool_system_test.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -33,12 +32,29 @@ const std::string STRING_TYPE = "normal";
 const std::string STRING_EMPTY = "";
 }  // namespace
 
+static std::string ExecuteCommand(const std::string& command)
+{
+    std::string result = "";
+    FILE* file = popen(command.c_str(), "r");
+
+    if (file != nullptr) {
+        char commandResult[1024] = { 0 };
+        while ((fgets(commandResult, sizeof(commandResult), file)) != nullptr) {
+            result.append(commandResult);
+        }
+        pclose(file);
+        file = nullptr;
+    }
+
+    return result;
+}
+
 std::string AccountCommandUtil::CreateOsAccount()
 {
     std::string command = TOOL_NAME + " create -n " + STRING_LOCAL_ACCOUNT_NAME + " -t " + STRING_TYPE;
     GTEST_LOG_(INFO) << "command = " << command;
 
-    std::string commandResult = ToolSystemTest::ExecuteCommand(command);
+    std::string commandResult = ExecuteCommand(command);
     GTEST_LOG_(INFO) << "AccountCommandUtil::CreateOsAccount commandResult = " << commandResult;
     return commandResult;
 }
@@ -48,7 +64,7 @@ std::string AccountCommandUtil::CreateOsAccount(const std::string &name)
     std::string command = TOOL_NAME + " create -n " + name + " -t " + STRING_TYPE;
     GTEST_LOG_(INFO) << "command = " << command;
 
-    std::string commandResult = ToolSystemTest::ExecuteCommand(command);
+    std::string commandResult = ExecuteCommand(command);
     GTEST_LOG_(INFO) << "AccountCommandUtil::CreateOsAccount commandResult = " << commandResult;
     return commandResult;
 }
@@ -68,7 +84,7 @@ std::string AccountCommandUtil::DeleteLastOsAccount()
     std::string command = TOOL_NAME + " delete -i " + localAccountId;
     GTEST_LOG_(INFO) << "command = " << command;
 
-    std::string commandResult = ToolSystemTest::ExecuteCommand(command);
+    std::string commandResult = ExecuteCommand(command);
     GTEST_LOG_(INFO) << "commandResult = " << commandResult;
     return commandResult;
 }
@@ -89,7 +105,7 @@ std::string AccountCommandUtil::DumpLastOsAccount()
     std::string command = TOOL_NAME + " dump -i " + localAccountId;
     GTEST_LOG_(INFO) << "command = " << command;
 
-    std::string commandResult = ToolSystemTest::ExecuteCommand(command);
+    std::string commandResult = ExecuteCommand(command);
     GTEST_LOG_(INFO) << "AccountCommandUtil::DumpLastOsAccount commandResult " << commandResult;
     return commandResult;
 }
@@ -110,7 +126,7 @@ std::string AccountCommandUtil::SwitchToFirstOsAccount()
     std::string command = TOOL_NAME + " switch -i " + localAccountId;
     GTEST_LOG_(INFO) << "command = " << command;
 
-    std::string commandResult = ToolSystemTest::ExecuteCommand(command);
+    std::string commandResult = ExecuteCommand(command);
     GTEST_LOG_(INFO) << "AccountCommandUtil::SwitchToFirstOsAccount commandResult = " << commandResult;
     return commandResult;
 }
@@ -131,7 +147,7 @@ std::string AccountCommandUtil::SwitchToLastOsAccount()
     std::string command = TOOL_NAME + " switch -i " + localAccountId;
     GTEST_LOG_(INFO) << "command = " << command;
 
-    std::string commandResult = ToolSystemTest::ExecuteCommand(command);
+    std::string commandResult = ExecuteCommand(command);
     GTEST_LOG_(INFO) << "AccountCommandUtil::SwitchToLastOsAccount commandResult = " << commandResult;
     return commandResult;
 }

@@ -320,7 +320,7 @@ int32_t AppAccountAuthenticatorSession::OnAddAccountImplicitlyDone(const AAFwk::
         return ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
     }
     AppAccountInfo info(name, request_.owner);
-    info.SetAppIndex(request_.appIndex);
+    info.SetAppIndex(0);
     AppAccountControlManager::GetInstance().AddAccount(name, "", ownerUid_, request_.owner, info);
     return ERR_OK;
 }

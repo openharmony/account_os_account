@@ -95,6 +95,7 @@ public:
         const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
 
     ErrCode OnPackageRemoved(const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
+    ErrCode OnUserStopping(int32_t userId);
     ErrCode OnUserRemoved(int32_t userId);
 
     ErrCode GetAllAccountsFromDataStorage(const std::string &owner, std::vector<AppAccountInfo> &appAccounts,
@@ -151,6 +152,7 @@ private:
         const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
     bool IsOsAccountRemoved(int32_t localId);
     ErrCode RemoveAppAccountData(const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
+    std::string GetBundleKeySuffix(const uint32_t &appIndex);
 
 private:
     std::mutex mutex_;

@@ -15,9 +15,6 @@
 
 #include "domain_account_callback_client.h"
 
-#include "account_error_no.h"
-#include "account_log_wrapper.h"
-
 namespace OHOS {
 namespace AccountSA {
 DomainAccountCallbackClient::DomainAccountCallbackClient(const sptr<IDomainAccountCallback> &proxy)

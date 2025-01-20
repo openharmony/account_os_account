@@ -127,7 +127,6 @@ ohos_moduletest("os_account_frameworks_module_mock_test") {
     "${services_path}/accountmgr/include/appaccount",
     "${services_path}/accountmgr/include/domain_account",
     "${services_path}/accountmgr/include/osaccount",
-    "${bundle_framework_path}/interfaces/inner_api/appexecfwk_core/include",
     "${os_account_path}/interfaces/innerkits/ohosaccount/native/include/",
   ]
   sources = [
@@ -241,7 +240,6 @@ ohos_moduletest("os_account_manager_no_bms_mock_test") {
     "${services_path}/accountmgr/include/appaccount",
     "${services_path}/accountmgr/include/domain_account",
     "${services_path}/accountmgr/include/osaccount",
-    "${bundle_framework_path}/interfaces/inner_api/appexecfwk_core/include",
     "${os_account_path}/interfaces/innerkits/ohosaccount/native/include/",
   ]
   sources = [
@@ -352,7 +350,9 @@ group("moduletest") {
 
   deps = [
     ":os_account_frameworks_module_mock_test",
-    ":os_account_frameworks_module_test",
     ":os_account_subscribe_test",
   ]
+  if (!use_clang_coverage) {
+    deps += [ ":os_account_frameworks_module_test" ]
+  }
 }

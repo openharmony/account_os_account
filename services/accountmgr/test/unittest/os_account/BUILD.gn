@@ -167,7 +167,6 @@ ohos_unittest("os_account_domain_account_callback_test") {
     "os_account_domain_account_callback_test.cpp",
   ]
   configs = [
-    "${app_account_services_path}/test/mock:ability_manager_config",
     ":os_account_data_storage_test_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
   ]
@@ -182,6 +181,7 @@ ohos_unittest("os_account_domain_account_callback_test") {
 
   external_deps = [
     "ability_base:want",
+    "ability_runtime:runtime",
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
     "googletest:gmock_main",
@@ -235,7 +235,6 @@ ohos_unittest("OsAccountSubscribeDeathRecipientTest") {
   configs = [
     ":os_account_subscribe_death_recipient_test_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
-    "${services_path}/accountmgr/:ability_manager_config",
   ]
 
   deps = [
@@ -291,7 +290,6 @@ ohos_unittest("OsAccountInnerAccmgrCovTest") {
   configs = [
     ":os_account_amgr_test_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
-    "${services_path}/accountmgr/:ability_manager_config",
   ]
 
   deps = [
@@ -355,7 +353,6 @@ ohos_unittest("OsAccountInnerAccmgrMockTest") {
   configs = [
     ":os_account_amgr_mock_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
-    "${services_path}/accountmgr/:ability_manager_config",
   ]
 
   deps = [
@@ -413,7 +410,6 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     "${services_path}/accountmgr/include/appaccount",
     "${services_path}/accountmgr/include/domain_account",
     "${services_path}/accountmgr/include/osaccount",
-    "${bundle_framework_path}/interfaces/inner_api/appexecfwk_core/include",
     "${os_account_path}/interfaces/innerkits/ohosaccount/native/include/",
   ]
   sources = [
@@ -441,7 +437,6 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
   configs = [
     ":os_account_amgr_mock_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
-    "${services_path}/accountmgr/:ability_manager_config",
   ]
 
   deps = [
@@ -535,7 +530,6 @@ ohos_unittest("OsAccountInnerAccmgrPluginMockTest") {
     "${services_path}/accountmgr/include/appaccount",
     "${services_path}/accountmgr/include/domain_account",
     "${services_path}/accountmgr/include/osaccount",
-    "${bundle_framework_path}/interfaces/inner_api/appexecfwk_core/include",
     "${os_account_path}/interfaces/innerkits/ohosaccount/native/include/",
     "${account_iam_interfaces_native_path}/include",
   ]
@@ -567,7 +561,6 @@ ohos_unittest("OsAccountInnerAccmgrPluginMockTest") {
   configs = [
     ":os_account_amgr_test_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
-    "${services_path}/accountmgr/:ability_manager_config",
   ]
 
   deps = [
@@ -659,7 +652,6 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
     "${services_path}/accountmgr/include/appaccount",
     "${services_path}/accountmgr/include/domain_account",
     "${services_path}/accountmgr/include/osaccount",
-    "${bundle_framework_path}/interfaces/inner_api/appexecfwk_core/include",
     "${os_account_path}/interfaces/innerkits/ohosaccount/native/include/",
   ]
   sources = [
@@ -683,7 +675,6 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
   configs = [
     ":os_account_amgr_mock_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
-    "${services_path}/accountmgr/:ability_manager_config",
   ]
 
   deps = [
