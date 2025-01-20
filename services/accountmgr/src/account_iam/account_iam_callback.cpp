@@ -174,7 +174,16 @@ ErrCode AuthCallback::UnlockAccount(int32_t accountId, const std::vector<uint8_t
         (void)InnerAccountIAMManager::GetInstance().HandleFileKeyException(accountId, secret, token);
         bool isVerified = false;
         (void)IInnerOsAccountManager::GetInstance().IsOsAccountVerified(accountId, isVerified);
-        if (!isVerified) {
+        bool needActivateKey = true;
+        if (isVerified) {
+            ret = InnerAccountIAMManager::GetInstance().CheckNeedReactivateUserKey(accountId, needActivateKey);
+            if (ret != ERR_OK) {
+                ReportOsAccountOperationFail(accountId, "auth", ret, "Failed to check need reactivate user key");
+                ACCOUNT_LOGE("Failed to check need reactivate key, ret = %{public}d.", ret);
+            }
+        }
+
+        if (needActivateKey) {
             // el2 file decryption
             ret = InnerAccountIAMManager::GetInstance().ActivateUserKey(accountId, token, secret);
             if (ret != 0 && ret != Constants::ERROR_STORAGE_KEY_NOT_EXIST) {
@@ -190,6 +199,14 @@ ErrCode AuthCallback::UnlockAccount(int32_t accountId, const std::vector<uint8_t
             isUpdateVerifiedStatus = true;
         }
     }
+    ret = UnlockUserScreen(accountId, token, secret, isUpdateVerifiedStatus);
+    return ret;
+}
+
+ErrCode AuthCallback::UnlockUserScreen(int32_t accountId, const std::vector<uint8_t> &token,
+    const std::vector<uint8_t> &secret, bool &isUpdateVerifiedStatus)
+{
+    ErrCode ret = ERR_OK;
     if (!isUpdateVerifiedStatus) {
         if (authType_ == AuthType::RECOVERY_KEY) {
             ACCOUNT_LOGI("No need to unlock screen.");
