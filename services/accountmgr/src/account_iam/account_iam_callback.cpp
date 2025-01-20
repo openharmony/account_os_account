@@ -718,8 +718,9 @@ GetCredInfoCallbackWrapper::GetCredInfoCallbackWrapper(
     : userId_(userId), authType_(authType), innerCallback_(callback)
 {}
 
-void GetCredInfoCallbackWrapper::OnCredentialInfo(const std::vector<CredentialInfo> &infoList)
+void GetCredInfoCallbackWrapper::OnCredentialInfo(int32_t result, const std::vector<CredentialInfo> &infoList)
 {
+    static_cast<void>(result);
     if (innerCallback_ == nullptr) {
         return;
     }
@@ -774,8 +775,9 @@ GetSecUserInfoCallbackWrapper::GetSecUserInfoCallbackWrapper(
     : authType_(authType), innerCallback_(callback)
 {}
 
-void GetSecUserInfoCallbackWrapper::OnSecUserInfo(const SecUserInfo &info)
+void GetSecUserInfoCallbackWrapper::OnSecUserInfo(int32_t result, const SecUserInfo &info)
 {
+    static_cast<void>(result);
     if (innerCallback_ == nullptr) {
         return;
     }
@@ -793,8 +795,9 @@ void GetSecUserInfoCallbackWrapper::OnSecUserInfo(const SecUserInfo &info)
 GetSecureUidCallback::GetSecureUidCallback(int32_t userId): userId_(userId)
 {}
 
-void GetSecureUidCallback::OnSecUserInfo(const SecUserInfo &info)
+void GetSecureUidCallback::OnSecUserInfo(int32_t result, const SecUserInfo &info)
 {
+    static_cast<void>(result);
     ACCOUNT_LOGI("SecUserInfo call back userId=%{public}d", userId_);
     std::unique_lock<std::mutex> lck(secureMtx_);
     this->secureUid_ = info.secureUid;
