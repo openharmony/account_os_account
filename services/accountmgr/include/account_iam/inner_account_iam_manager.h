@@ -76,6 +76,7 @@ public:
 #ifdef HAS_PIN_AUTH_PART
     void OnDelUserDone(int32_t userId);
 #endif // HAS_PIN_AUTH_PART
+    ErrCode CheckNeedReactivateUserKey(int32_t userId, bool &needReactivateKey);
 
 private:
     InnerAccountIAMManager();
