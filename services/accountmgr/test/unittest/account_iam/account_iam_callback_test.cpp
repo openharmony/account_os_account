@@ -430,7 +430,7 @@ HWTEST_F(AccountIamCallbackTest, GetCredInfoCallbackWrapper_OnCredentialInfo_010
     auto getCredInfoCallback = std::make_shared<GetCredInfoCallbackWrapper>(0, 0, nullptr);
     EXPECT_TRUE(getCredInfoCallback->innerCallback_ == nullptr);
     std::vector<CredentialInfo> infoList;
-    getCredInfoCallback->OnCredentialInfo(infoList);
+    getCredInfoCallback->OnCredentialInfo(0, infoList);
 }
 
 /**

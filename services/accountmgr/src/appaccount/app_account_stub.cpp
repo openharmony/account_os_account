@@ -368,8 +368,6 @@ ErrCode AppAccountStub::ProcAddAccountImplicitly(uint32_t code, MessageParcel &d
         ACCOUNT_LOGE("invalid options");
         result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     } else {
-        RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(options->GetStringParam(Constants::KEY_CALLER_ABILITY_NAME),
-            Constants::ABILITY_NAME_MAX_SIZE, "abilityName is empty or oversize", reply);
         result = AddAccountImplicitly(owner, authType, *options, callback);
     }
     if (!reply.WriteInt32(result)) {
@@ -419,8 +417,6 @@ ErrCode AppAccountStub::ProcCreateAccountImplicitly(uint32_t code, MessageParcel
     } else {
         RETURN_IF_STRING_IS_OVERSIZE(
             options->authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is empty or oversize", reply);
-        RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(options->parameters.GetStringParam(Constants::KEY_CALLER_ABILITY_NAME),
-            Constants::ABILITY_NAME_MAX_SIZE, "abilityName is empty or oversize", reply);
         RETURN_IF_STRING_IS_OVERSIZE(options->requiredLabels,
             Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "requiredLabels array is oversize", reply);
         result = CreateAccountImplicitly(owner, *options, callback);
@@ -624,8 +620,6 @@ ErrCode AppAccountStub::ProcAuthenticate(uint32_t code, MessageParcel &data, Mes
         ACCOUNT_LOGE("invalid options");
         result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     } else {
-        RETURN_IF_STRING_IS_OVERSIZE(options->GetStringParam(Constants::KEY_CALLER_ABILITY_NAME),
-            Constants::ABILITY_NAME_MAX_SIZE, "abilityName is empty or oversize", reply);
         result = Authenticate(name, owner, authType, *options, callback);
     }
     if (!reply.WriteInt32(result)) {

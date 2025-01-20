@@ -20,20 +20,21 @@
 
 namespace OHOS {
 namespace AccountSA {
-struct RetDistributedInfo {
+struct CJDistributedInfo {
     char *name;
     char *id;
     char *event;
     char *nickname;
     char *avatar;
     int32_t status;
+    char *scalableData;
 };
 
 extern "C"
 {
-FFI_EXPORT RetDistributedInfo FfiOHOSDistributedAccountDistributedInfoGetOsAccountDistributedInfo(int32_t *errCode);
+FFI_EXPORT CJDistributedInfo FfiOHOSDistributedAccountDistributedInfoGetOsAccountDistributedInfo(int32_t *errCode);
 
-FFI_EXPORT void FfiOHOSDistributedAccountUnitSetOsAccountDistributedInfo(RetDistributedInfo retInfo, int32_t *errCode);
+FFI_EXPORT void FfiOHOSDistributedAccountUnitSetOsAccountDistributedInfo(CJDistributedInfo cjInfo, int32_t *errCode);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

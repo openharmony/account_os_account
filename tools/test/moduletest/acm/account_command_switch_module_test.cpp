@@ -18,7 +18,6 @@
 #include "account_command.h"
 #include "account_command_util.h"
 #include "account_log_wrapper.h"
-#include "tool_system_test.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -59,6 +58,23 @@ void AccountCommandSwitchModuleTest::SetUp(void) __attribute__((no_sanitize("cfi
 void AccountCommandSwitchModuleTest::TearDown()
 {}
 
+static std::string ExecuteCommand(const std::string& command)
+{
+    std::string result = "";
+    FILE* file = popen(command.c_str(), "r");
+
+    if (file != nullptr) {
+        char commandResult[1024] = { 0 };
+        while ((fgets(commandResult, sizeof(commandResult), file)) != nullptr) {
+            result.append(commandResult);
+        }
+        pclose(file);
+        file = nullptr;
+    }
+
+    return result;
+}
+
 /**
  * @tc.name: Acm_Command_Switch_0100
  * @tc.desc: Verify the "acm delete -i <local-account-id>" command.
@@ -70,7 +86,7 @@ HWTEST_F(AccountCommandSwitchModuleTest, Acm_Command_Switch_0100, TestSize.Level
     std::string command = TOOL_NAME + " " + cmd_ + " -i " + STRING_LOCAL_ACCOUNT_ID_INVALID;
     GTEST_LOG_(INFO) << "command = " << command;
 
-    std::string commandResult = ToolSystemTest::ExecuteCommand(command);
+    std::string commandResult = ExecuteCommand(command);
     EXPECT_EQ(commandResult, HELP_MSG_INVALID_ID_ARGUMENT + "\n" + HELP_MSG_SWITCH);
 }
 
@@ -85,7 +101,7 @@ HWTEST_F(AccountCommandSwitchModuleTest, Acm_Command_Switch_0200, TestSize.Level
     std::string command = TOOL_NAME + " " + cmd_ + " -i " + STRING_LOCAL_ACCOUNT_ID_INVALID_TWO;
     GTEST_LOG_(INFO) << "command = " << command;
 
-    std::string commandResult = ToolSystemTest::ExecuteCommand(command);
+    std::string commandResult = ExecuteCommand(command);
     EXPECT_EQ(commandResult, STRING_SWITCH_OS_ACCOUNT_NG + "\n");
 }
 

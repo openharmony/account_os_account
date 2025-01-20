@@ -47,6 +47,7 @@ const char EL2_DATA_STORE_PREFIX[] = "account_";
 const char EL2_DATA_STORAGE_PATH_PREFIX[] = "/data/service/el2/";
 const char EL2_DATA_STORAGE_PATH_SUFFIX[] = "/account/app_account/database/";
 const char AUTHORIZED_ACCOUNTS[] = "authorizedAccounts";
+const std::string HYPHEN = "#";
 #ifdef HAS_ASSET_PART
 const std::string ALIAS_SUFFIX_CREDENTIAL = "credential";
 const std::string ALIAS_SUFFIX_TOKEN = "token";
@@ -660,7 +661,7 @@ ErrCode AppAccountControlManager::GetOAuthToken(
     const AuthenticatorSessionRequest &request, std::string &token, const uint32_t apiVersion)
 {
     AppAccountInfo appAccountInfo(request.name, request.owner);
-    appAccountInfo.SetAppIndex(request.appIndex);
+    appAccountInfo.SetAppIndex(0);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(request.callerUid, false);
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (result != ERR_OK) {
@@ -668,8 +669,8 @@ ErrCode AppAccountControlManager::GetOAuthToken(
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
     bool isVisible = false;
-    result = appAccountInfo.CheckOAuthTokenVisibility(
-        request.authType, request.callerBundleName, isVisible, apiVersion);
+    result = appAccountInfo.CheckOAuthTokenVisibility(request.authType, request.callerBundleName +
+        GetBundleKeySuffix(request.appIndex), isVisible, apiVersion);
     if ((result != ERR_OK) || (!isVisible)) {
         ACCOUNT_LOGE("failed to get oauth token for permission denied, result %{public}d.", result);
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
@@ -725,7 +726,7 @@ ErrCode AppAccountControlManager::DeleteOAuthToken(
 {
     std::lock_guard<std::mutex> lock(mutex_);
     AppAccountInfo appAccountInfo(request.name, request.owner);
-    appAccountInfo.SetAppIndex(request.appIndex);
+    appAccountInfo.SetAppIndex(0);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(request.callerUid);
     ErrCode ret = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (ret != ERR_OK) {
@@ -733,7 +734,8 @@ ErrCode AppAccountControlManager::DeleteOAuthToken(
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
     bool isVisible = false;
-    ret = appAccountInfo.CheckOAuthTokenVisibility(request.authType, request.callerBundleName, isVisible, apiVersion);
+    ret = appAccountInfo.CheckOAuthTokenVisibility(request.authType, request.callerBundleName +
+        GetBundleKeySuffix(request.appIndex), isVisible, apiVersion);
     if ((!isVisible) || (ret != ERR_OK)) {
         ACCOUNT_LOGE("failed to delete oauth token for permission denied, result %{public}d.", ret);
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
@@ -818,13 +820,14 @@ ErrCode AppAccountControlManager::GetAllOAuthTokens(
 {
     tokenInfos.clear();
     AppAccountInfo appAccountInfo(request.name, request.owner);
-    appAccountInfo.SetAppIndex(request.appIndex);
+    appAccountInfo.SetAppIndex(0);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(request.callerUid);
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
+    std::string bundleKey = request.callerBundleName + GetBundleKeySuffix(request.appIndex);
     std::vector<OAuthTokenInfo> allTokenInfos;
     result = appAccountInfo.GetAllOAuthTokens(allTokenInfos);
     if (result != ERR_OK) {
@@ -832,8 +835,8 @@ ErrCode AppAccountControlManager::GetAllOAuthTokens(
         return result;
     }
     for (auto tokenInfo : allTokenInfos) {
-        if ((request.callerBundleName != request.owner) &&
-            (tokenInfo.authList.find(request.callerBundleName) == tokenInfo.authList.end())) {
+        if ((bundleKey != request.owner) &&
+            (tokenInfo.authList.find(bundleKey) == tokenInfo.authList.end())) {
             continue;
         }
 #ifdef HAS_ASSET_PART
@@ -864,6 +867,11 @@ ErrCode AppAccountControlManager::GetOAuthList(
     return appAccountInfo.GetOAuthList(request.authType, oauthList, apiVersion);
 }
 
+std::string AppAccountControlManager::GetBundleKeySuffix(const uint32_t &appIndex)
+{
+    return (appIndex == 0 ? "" : HYPHEN + std::to_string(appIndex));
+}
+
 ErrCode AppAccountControlManager::GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts,
     const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
 {
@@ -875,8 +883,9 @@ ErrCode AppAccountControlManager::GetAllAccounts(const std::string &owner, std::
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
     }
     ErrCode result = AccountPermissionManager::VerifyPermission(GET_ALL_APP_ACCOUNTS);
-    if ((bundleName == owner) || (result == ERR_OK)) {
-        std::string key = owner + Constants::HYPHEN + std::to_string(appIndex);
+    std::string bundleKey = bundleName + GetBundleKeySuffix(appIndex);
+    if ((bundleKey == owner) || (result == ERR_OK)) {
+        std::string key = owner + Constants::HYPHEN + std::to_string(0);
         result = GetAllAccountsFromDataStorage(key, appAccounts, owner, dataStoragePtr);
         if (result != ERR_OK) {
             ACCOUNT_LOGE("failed to get all accounts from data storage, result = %{public}d", result);
@@ -886,7 +895,7 @@ ErrCode AppAccountControlManager::GetAllAccounts(const std::string &owner, std::
     }
 
     std::vector<std::string> accessibleAccounts;
-    result = dataStoragePtr->GetAccessibleAccountsFromDataStorage(bundleName, accessibleAccounts);
+    result = dataStoragePtr->GetAccessibleAccountsFromDataStorage(bundleKey, accessibleAccounts);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get accessible account from data storage, result %{public}d.", result);
         return result;
@@ -898,7 +907,7 @@ ErrCode AppAccountControlManager::GetAllAccounts(const std::string &owner, std::
             ACCOUNT_LOGE("failed to get account info by id, result %{public}d.", result);
             return ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID;
         }
-        if (appAccountInfo.GetOwner() == owner) {
+        if (appAccountInfo.GetOwner() == owner && AppAccountSubscribeManager::CheckAppIsMaster(account)) {
             appAccounts.emplace_back(appAccountInfo);
         }
     }
@@ -1118,7 +1127,7 @@ ErrCode AppAccountControlManager::RemoveAppAccountData(
     return ERR_OK;
 }
 
-ErrCode AppAccountControlManager::OnUserRemoved(int32_t userId)
+ErrCode AppAccountControlManager::OnUserStopping(int32_t userId)
 {
     std::string storeId = std::to_string(userId);
     std::string syncStoreId = storeId + DATA_STORAGE_SUFFIX;
@@ -1126,6 +1135,11 @@ ErrCode AppAccountControlManager::OnUserRemoved(int32_t userId)
     storePtrMap_.erase(storeId);
     storePtrMap_.erase(syncStoreId);
     return ERR_OK;
+}
+
+ErrCode AppAccountControlManager::OnUserRemoved(int32_t userId)
+{
+    return OnUserStopping(userId);
 }
 
 ErrCode AppAccountControlManager::GetAllAccountsFromDataStorage(const std::string &owner,

@@ -113,7 +113,6 @@ ohos_moduletest("domain_account_frameworks_module_mock_test") {
     "${services_path}/accountmgr/include/appaccount",
     "${services_path}/accountmgr/include/domain_account",
     "${services_path}/accountmgr/include/osaccount",
-    "${bundle_framework_path}/interfaces/inner_api/appexecfwk_core/include",
   ]
   sources = [
     "${app_account_services_path}/test/mock/common/ability_manager_adapter_mock.cpp",
@@ -216,7 +215,6 @@ ohos_moduletest("domain_account_client_mock_plugin_so_module_test") {
     "${services_path}/accountmgr/include/appaccount",
     "${services_path}/accountmgr/include/domain_account",
     "${services_path}/accountmgr/include/osaccount",
-    "${bundle_framework_path}/interfaces/inner_api/appexecfwk_core/include",
   ]
   sources = [
     "${app_account_services_path}/test/mock/common/ability_manager_adapter_mock.cpp",

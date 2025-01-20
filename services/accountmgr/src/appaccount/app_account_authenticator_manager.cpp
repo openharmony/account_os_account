@@ -70,7 +70,8 @@ ErrCode AppAccountAuthenticatorManager::GetAuthenticatorInfo(
 
     auto iter = std::find_if(abilityInfos.begin(), abilityInfos.end(),
         [abilityInfos](AppExecFwk::AbilityInfo abilityInfo) {
-            return ((abilityInfo.type == AppExecFwk::AbilityType::SERVICE) && (abilityInfo.visible));
+            return ((abilityInfo.type == AppExecFwk::AbilityType::SERVICE) && (abilityInfo.visible)
+            && (abilityInfo.appIndex == 0));
         });
     if (iter != abilityInfos.end()) {
         info.owner = owner;
@@ -82,7 +83,8 @@ ErrCode AppAccountAuthenticatorManager::GetAuthenticatorInfo(
 
     auto iter_extensionInfos = std::find_if(extensionInfos.begin(), extensionInfos.end(),
         [extensionInfos](AppExecFwk::ExtensionAbilityInfo extensionInfo) {
-            return ((extensionInfo.type == AppExecFwk::ExtensionAbilityType::SERVICE) && (extensionInfo.visible));
+            return ((extensionInfo.type == AppExecFwk::ExtensionAbilityType::SERVICE) && (extensionInfo.visible)
+            && (extensionInfo.appIndex == 0));
         });
     if (iter_extensionInfos != extensionInfos.end()) {
         info.owner = owner;

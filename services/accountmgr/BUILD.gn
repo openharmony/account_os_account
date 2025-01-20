@@ -75,15 +75,6 @@ config("domain_account_config") {
   ]
 }
 
-config("ability_manager_config") {
-  include_dirs = [
-    "${ability_runtime_path}/interfaces/inner_api/ability_manager/include",
-    "${ability_runtime_path}/ability_base/interfaces/inner_api/want/include",
-    "${ability_runtime_path}/services/abilitymgr/include",
-    "${ability_runtime_path}/services/common/include",
-  ]
-}
-
 config("accountmgr_public_config") {
   visibility = [ ":*" ]
 
@@ -114,6 +105,7 @@ if (has_kv_store_part) {
     "${app_account_innerkits_native_path}/src/app_account_common.cpp",
     "${app_account_innerkits_native_path}/src/app_account_info.cpp",
     "${app_account_innerkits_native_path}/src/app_account_subscribe_info.cpp",
+    "${os_account_core_path}/src/os_account_event_stub.cpp",
     "src/appaccount/app_account_authenticator_callback.cpp",
     "src/appaccount/app_account_authenticator_manager.cpp",
     "src/appaccount/app_account_authenticator_proxy.cpp",
@@ -131,6 +123,7 @@ if (has_kv_store_part) {
     "src/appaccount/app_account_subscribe_death_recipient.cpp",
     "src/appaccount/app_account_subscribe_manager.cpp",
     "src/appaccount/inner_app_account_manager.cpp",
+    "src/appaccount/os_account_state_subscriber.cpp",
   ]
 }
 
@@ -320,11 +313,6 @@ ohos_shared_library("accountmgr") {
   if (has_ces_part) {
     cflags_cc += [ "-DHAS_CES_PART" ]
     external_deps += [ "common_event_service:cesfwk_innerkits" ]
-  }
-
-  if (has_hiviewdfx_hisysevent_part) {
-    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
-    external_deps += [ "hisysevent:libhisysevent" ]
   }
 
   if (use_musl) {
