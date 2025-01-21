@@ -36,8 +36,8 @@ public:
 
     int32_t createAccount(std::string name, CCreateAccountOptions cOptions);
     int32_t removeAccount(std::string name);
-    int32_t setAppAccess(std::string name, std::string bundleNmae, bool isAccessible);
-    RetDataBool checkAppAccess(std::string name, std::string bundleNmae);
+    int32_t setAppAccess(std::string name, std::string bundleName, bool isAccessible);
+    RetDataBool checkAppAccess(std::string name, std::string bundleName);
     RetDataBool checkDataSyncEnabled(std::string name);
     int32_t setCredential(std::string name, std::string credentialType, std::string credential);
     int32_t setDataSyncEnabled(std::string name, bool isEnabled);
