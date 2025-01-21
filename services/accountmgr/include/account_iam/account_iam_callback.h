@@ -19,6 +19,7 @@
 #include <condition_variable>
 #include <map>
 #include <vector>
+#include "access_token.h"
 #include "account_file_operator.h"
 #include "account_iam_info.h"
 #include "domain_account_callback.h"
@@ -136,21 +137,6 @@ public:
         std::shared_ptr<IInputerData> inputerData) override;
 };
 
-class CommitDelCredCallback : public UserIdmClientCallback {
-public:
-    CommitDelCredCallback() {}
-    virtual ~CommitDelCredCallback() {}
-
-    void OnResult(int32_t result, const UserIam::UserAuth::Attributes &extraInfo) override;
-    void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const UserIam::UserAuth::Attributes &extraInfo) override;
-
-public:
-    bool isCalled_ = false;
-    int32_t resultCode_ = -1;
-    std::mutex mutex_;
-    std::condition_variable onResultCondition_;
-};
-
 class DelUserCallback : public UserIdmClientCallback {
 public:
     DelUserCallback(uint32_t userId, const std::vector<uint8_t> &token, const sptr<IIDMCallback> &callback);
@@ -173,6 +159,46 @@ private:
     const sptr<IIDMCallback> innerCallback_ = nullptr;
 };
 #endif // HAS_PIN_AUTH_PART
+
+class VerifyTokenCallbackWrapper : public VerifyTokenCallback {
+public:
+    VerifyTokenCallbackWrapper(uint32_t userId, const std::vector<uint8_t> &token,
+        Security::AccessToken::AccessTokenID callerTokenId, const sptr<IIDMCallback> &callback);
+    virtual ~VerifyTokenCallbackWrapper() = default;
+    void OnResult(int32_t result, const Attributes &extraInfo) override;
+
+private:
+    void InnerOnResult(int32_t result, const Attributes &extraInfo);
+
+public:
+    std::mutex mutex_;
+    bool isCalled_ = false;
+    std::condition_variable onResultCondition_;
+
+private:
+    std::uint32_t userId_;
+    std::vector<uint8_t> token_;
+    Security::AccessToken::AccessTokenID callerTokenId_;
+    const sptr<IIDMCallback> innerCallback_ = nullptr;
+};
+
+class CommitDelCredCallback : public UserIdmClientCallback {
+public:
+    CommitDelCredCallback(uint32_t userId, const sptr<IIDMCallback> callback);
+    virtual ~CommitDelCredCallback() = default;
+
+    void OnResult(int32_t result, const UserIam::UserAuth::Attributes &extraInfo) override;
+    void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const UserIam::UserAuth::Attributes &extraInfo) override;
+
+public:
+    bool isCalled_ = false;
+    std::mutex mutex_;
+    std::condition_variable onResultCondition_;
+
+private:
+    std::uint32_t userId_;
+    const sptr<IIDMCallback> innerCallback_ = nullptr;
+};
 
 struct UpdateCredInfo {
     uint64_t credentialId = 0;
