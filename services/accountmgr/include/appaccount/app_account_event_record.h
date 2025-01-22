@@ -29,7 +29,7 @@ struct AppAccountSubscribeRecord {
     uint32_t appIndex;
     uint32_t subscribedAppIndex;
 
-    AppAccountSubscribeRecord() : subscribeInfoPtr(nullptr), eventListener(nullptr), appIndex(0)
+    AppAccountSubscribeRecord() : subscribeInfoPtr(nullptr), eventListener(nullptr), appIndex(0), subscribedAppIndex(0)
     {}
 };
 
