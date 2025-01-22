@@ -293,7 +293,7 @@ bool AppAccountSubscribeManager::PublishAccount(
         return false;
     }
     eventRecordPtr->info = std::make_shared<AppAccountInfo>(appAccountInfo);
-    eventRecordPtr->receivers = GetSubscribeRecords(bundleName);
+    eventRecordPtr->receivers = GetSubscribeRecords(bundleName, appIndex);
     eventRecordPtr->uid = uid;
     eventRecordPtr->bundleName = bundleName;
     eventRecordPtr->appIndex = appIndex;
@@ -319,7 +319,7 @@ ErrCode AppAccountSubscribeManager::OnAccountsChanged(const std::shared_ptr<AppA
     for (auto receiver : record->receivers) {
         std::vector<AppAccountInfo> accessibleAccounts;
         ErrCode result = controlManagerPtr.GetAllAccessibleAccountsFromDataStorage(
-            accessibleAccounts, receiver->bundleName, dataStoragePtr, record->appIndex);
+            accessibleAccounts, receiver->bundleName, dataStoragePtr, receiver->appIndex);
         if (result != ERR_OK) {
             ACCOUNT_LOGE("failed to get all accessible accounts from data storage, result = %{public}d", result);
             return result;
