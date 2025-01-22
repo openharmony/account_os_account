@@ -338,15 +338,13 @@ bool AbilityManagerAdapter::IsAllAppDied(int32_t accountId)
         ACCOUNT_LOGE("Failed to get app mgr proxy");
         return false;
     }
-    std::vector<AppExecFwk::AppStateData> appList;
-    int ret = appMgrProxy->GetForegroundApplications(appList);
-    ACCOUNT_LOGI("GetForegroundApplications ret: %{public}d", ret);
+    std::vector<AppExecFwk::RunningProcessInfo> appList;
+    int ret = appMgrProxy->GetProcessRunningInfosByUserId(appList, accountId);
+    ACCOUNT_LOGI("GetProcessRunningInfosByUserId ret: %{public}d", ret);
     if (ret != 0) {
         return false;
     }
-    return std::all_of(appList.begin(), appList.end(), [accountId] (const auto &appData) {
-        return (appData.uid / UID_TRANSFORM_DIVISION) != accountId;
-    });
+    return appList.empty();
 #else
     return true;
 #endif
