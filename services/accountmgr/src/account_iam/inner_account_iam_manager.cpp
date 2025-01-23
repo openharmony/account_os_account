@@ -41,6 +41,7 @@ namespace AccountSA {
 namespace {
 #ifdef HAS_STORAGE_PART
 constexpr int32_t ERROR_STORAGE_KEY_NOT_EXIST = -2;
+constexpr int32_t E_ACTIVE_EL2 = 30;
 #endif
 constexpr int32_t DELAY_FOR_EXCEPTION = 100;
 constexpr int32_t MAX_RETRY_TIMES = 20;
@@ -685,13 +686,15 @@ ErrCode InnerAccountIAMManager::InnerActivateUserKey(
     }
     ErrCode result = storageMgrProxy->ActiveUserKey(userId, token, secret);
     ACCOUNT_LOGI("ActiveUserKey end, ret: %{public}d", result);
-    if (result != ERR_OK && result != ERROR_STORAGE_KEY_NOT_EXIST) {
+    if (result == E_ACTIVE_EL2) {
         return result;
     }
     result = storageMgrProxy->PrepareStartUser(userId);
     ACCOUNT_LOGI("PrepareStartUser end, ret: %{public}d", result);
-#endif
+    return result;
+#else
     return ERR_OK;
+#endif
 }
 
 #ifdef HAS_STORAGE_PART
