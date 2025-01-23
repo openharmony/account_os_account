@@ -31,9 +31,6 @@ namespace AccountSA {
 namespace {
 const std::u16string ABILITY_MGR_DESCRIPTOR = u"ohos.aafwk.AbilityManager";
 constexpr int32_t INVALID_ID = -1;
-#ifdef ENABLE_DEACTIVATE_OS_ACCOUNTS
-constexpr int32_t UID_TRANSFORM_DIVISION = 200000;
-#endif
 }
 using namespace AAFwk;
 AbilityManagerAdapter *AbilityManagerAdapter::GetInstance()
