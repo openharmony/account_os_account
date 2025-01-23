@@ -725,7 +725,7 @@ sptr<IOsAccount> OsAccount::GetOsAccountProxy()
         ACCOUNT_LOGE("failed to create os account death recipient");
         return nullptr;
     }
-    if (!object->AddDeathRecipient(deathRecipient_)) {
+    if ((object->IsProxyObject()) && (!object->AddDeathRecipient(deathRecipient_))) {
         ACCOUNT_LOGE("failed to add os account death recipient");
         deathRecipient_ = nullptr;
         return nullptr;
