@@ -33,7 +33,7 @@ public:
 class IGetCredInfoCallback : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IGetCredInfoCallback");
-    virtual void OnCredentialInfo(const std::vector<CredentialInfo> &infoList) = 0;
+    virtual void OnCredentialInfo(int32_t result, const std::vector<CredentialInfo> &infoList) = 0;
 };
 
 class IGetSetPropCallback : public IRemoteBroker {

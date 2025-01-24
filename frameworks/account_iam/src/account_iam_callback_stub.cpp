@@ -106,14 +106,19 @@ int GetCredInfoCallbackStub::OnRemoteRequest(
 
 ErrCode GetCredInfoCallbackStub::ProcOnCredentialInfo(MessageParcel &data, MessageParcel &reply)
 {
+    int32_t result;
+    if (!data.ReadInt32(result)) {
+        ACCOUNT_LOGE("Failed to read result for IDMCallback OnResult");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
     uint32_t vectorSize = 0;
     std::vector<CredentialInfo> infoList;
     if (!data.ReadUint32(vectorSize)) {
-        ACCOUNT_LOGE("read size fail");
+        ACCOUNT_LOGE("Read size fail");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     if (vectorSize > MAX_VEC_SIZE) {
-        ACCOUNT_LOGE("credential info list is oversize, the limit is %{public}d", MAX_VEC_SIZE);
+        ACCOUNT_LOGE("Credential info list is oversize, the limit is %{public}d", MAX_VEC_SIZE);
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     for (uint32_t i = 0; i < vectorSize; ++i) {
@@ -121,26 +126,26 @@ ErrCode GetCredInfoCallbackStub::ProcOnCredentialInfo(MessageParcel &data, Messa
         int32_t authType = 0;
         int32_t pinType = 0;
         if (!data.ReadUint64(info.credentialId)) {
-            ACCOUNT_LOGE("failed to read credentialId");
+            ACCOUNT_LOGE("Failed to read credentialId");
             return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
         }
         if (!data.ReadInt32(authType)) {
-            ACCOUNT_LOGE("failed to read authType");
+            ACCOUNT_LOGE("Failed to read authType");
             return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
         }
         if (!data.ReadInt32(pinType)) {
-            ACCOUNT_LOGE("failed to read pinSubType");
+            ACCOUNT_LOGE("Failed to read pinSubType");
             return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
         }
         if (!data.ReadUint64(info.templateId)) {
-            ACCOUNT_LOGE("failed to read templateId");
+            ACCOUNT_LOGE("Failed to read templateId");
             return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
         }
         info.authType = static_cast<AuthType>(authType);
         info.pinType = static_cast<PinSubType>(pinType);
         infoList.push_back(info);
     }
-    OnCredentialInfo(infoList);
+    OnCredentialInfo(result, infoList);
     return ERR_OK;
 }
 
