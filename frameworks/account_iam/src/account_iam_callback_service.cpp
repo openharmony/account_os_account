@@ -51,7 +51,7 @@ GetCredInfoCallbackService::GetCredInfoCallbackService(const std::shared_ptr<Get
     : callback_(callback)
 {}
 
-void GetCredInfoCallbackService::OnCredentialInfo(const std::vector<CredentialInfo> &infoList)
+void GetCredInfoCallbackService::OnCredentialInfo(int32_t result, const std::vector<CredentialInfo> &infoList)
 {
     if (callback_ == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
