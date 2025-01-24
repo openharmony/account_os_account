@@ -385,7 +385,6 @@ bool AccountMgrService::Init()
 #endif // HICOLLIE_ENABLE
     CreateDeviceDir();
     IAccountContext::SetInstance(this);
-    IInnerOsAccountManager::GetInstance().ResetAccountStatus();
     if (!OhosAccountManager::GetInstance().OnInitialize()) {
         ACCOUNT_LOGE("Ohos account manager initialize failed");
         ReportServiceStartFail(ERR_ACCOUNT_MGR_OHOS_MGR_INIT_ERROR,
