@@ -753,18 +753,12 @@ ErrCode OsAccountManagerService::SubscribeOsAccount(
         ACCOUNT_LOGE("Invalid subscriber information");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    if (osAccountSubscribeType == SWITCHED || osAccountSubscribeType == SWITCHING) {
-        if (!(PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "") ||
-              (AccountPermissionManager::CheckSaCall() && PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")))) {
-            ACCOUNT_LOGE("Account manager service, permission denied!");
-            return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
-        }
-    } else {
-        if (!(PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "") ||
-              (AccountPermissionManager::CheckSaCall() && PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")))) {
-            ACCOUNT_LOGE("Account manager service, permission denied!");
-            return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
-        }
+    // permission check
+    if (!(PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "") ||
+          PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "") ||
+          (AccountPermissionManager::CheckSaCall() && PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")))) {
+        ACCOUNT_LOGE("Account manager service, permission denied!");
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 
     return innerManager_.SubscribeOsAccount(subscribeInfo, eventListener);
@@ -773,23 +767,11 @@ ErrCode OsAccountManagerService::SubscribeOsAccount(
 ErrCode OsAccountManagerService::UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener)
 {
     // permission check
-    auto osSubscribeInfo = innerManager_.GetSubscribeRecordInfo(eventListener);
-    if (osSubscribeInfo == nullptr) {
-        ACCOUNT_LOGI("Event listener is not exist.");
-        return ERR_OK;
-    }
-    OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType;
-    osSubscribeInfo->GetOsAccountSubscribeType(osAccountSubscribeType);
-    if (osAccountSubscribeType == SWITCHED || osAccountSubscribeType == SWITCHING) {
-        if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
-            ACCOUNT_LOGE("Account manager service, permission denied!");
-            return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
-        }
-    } else {
-        if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "")) {
-            ACCOUNT_LOGE("Account manager service, permission denied!");
-            return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
-        }
+    if (!(PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "") ||
+          PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "") ||
+          (AccountPermissionManager::CheckSaCall() && PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")))) {
+        ACCOUNT_LOGE("Account manager service, permission denied!");
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 
     return innerManager_.UnsubscribeOsAccount(eventListener);
