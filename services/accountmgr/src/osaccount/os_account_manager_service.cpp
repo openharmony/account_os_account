@@ -1196,6 +1196,14 @@ ErrCode OsAccountManagerService::GetBackgroundOsAccountLocalIds(std::vector<int3
 
 ErrCode OsAccountManagerService::SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved)
 {
+    ErrCode res = CheckLocalId(localId);
+    if (res != ERR_OK) {
+        return res;
+    }
+    if ((localId == Constants::START_USER_ID) || (localId == Constants::ADMIN_LOCAL_ID)) {
+        ACCOUNT_LOGE("Cannot remove system preinstalled user.");
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
     if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("Permission denied.");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
