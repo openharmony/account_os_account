@@ -433,7 +433,7 @@ static void SetPluginDomainAccountInfo(const DomainAccountInfo &info, PluginDoma
     }
     int32_t userId = GetCallingUserID();
     OsAccountInfo accountInfo;
-    ErrCode errCode = IInnerOsAccountManager::GetInstance().QueryOsAccountById(userId, accountInfo);
+    ErrCode errCode = IInnerOsAccountManager::GetInstance().GetRealOsAccountInfoById(userId, accountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("QueryOsAccountById fail code=%{public}d.", errCode);
         pluginInfo.serverConfigId.data = nullptr;
