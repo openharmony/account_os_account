@@ -25,14 +25,15 @@ using namespace OHOS::AAFwk;
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const char SHORT_OPTIONS[] = "hn:t:i:s:l:c:ea";
+const char SHORT_OPTIONS[] = "hn:t:i:s:d:p:c:ea";
 const struct option LONG_OPTIONS[] = {
     {"help", no_argument, nullptr, 'h'},
     {"name", required_argument, nullptr, 'n'},
     {"type", required_argument, nullptr, 't'},
     {"id", required_argument, nullptr, 'i'},
     {"shortName", optional_argument, nullptr, 's'},
-    {"disallowedlist", optional_argument, nullptr, 'l'},
+    {"disallowedPreinstalledBundles", optional_argument, nullptr, 'd'},
+    {"allowedPreinstalledBundles", optional_argument, nullptr, 'p'},
     {"constraint", required_argument, nullptr, 'c'},
     {"enable", no_argument, nullptr, 'e'},
     {"all", no_argument, nullptr, 'a'},
@@ -131,7 +132,7 @@ ErrCode AccountCommand::RunAsHelpCommand(void)
 }
 
 ErrCode AccountCommand::ParseCreateCommandOpt(std::string &name,
-    std::string &shortName, OsAccountType &osAccountType, std::vector<std::string> &disallowedList)
+    std::string &shortName, OsAccountType &osAccountType, CreateOsAccountOptions &options)
 {
     int counter = 0;
     ErrCode result = ERR_OK;
@@ -153,7 +154,7 @@ ErrCode AccountCommand::ParseCreateCommandOpt(std::string &name,
             break;
         }
 
-        result = RunAsCreateCommandExistentOptionArgument(option, name, shortName, osAccountType, disallowedList);
+        result = RunAsCreateCommandExistentOptionArgument(option, name, shortName, osAccountType, options);
     }
     return result;
 }
@@ -166,7 +167,7 @@ ErrCode AccountCommand::RunAsCreateCommand(void)
     std::string shortName = "";
     OsAccountType osAccountType = END;
     CreateOsAccountOptions options;
-    result = ParseCreateCommandOpt(name, shortName, osAccountType, options.disallowedHapList);
+    result = ParseCreateCommandOpt(name, shortName, osAccountType, options);
     if (result == ERR_OK) {
         if (name.size() == 0 || osAccountType == END) {
             ACCOUNT_LOGD("'acm create' without enough options");
@@ -462,7 +463,7 @@ ErrCode AccountCommand::RunAsCreateCommandMissingOptionArgument(void)
 }
 
 ErrCode AccountCommand::RunAsCreateCommandExistentOptionArgument(const int &option, std::string &name,
-    std::string &shortName, OsAccountType &type, std::vector<std::string> &disallowedList)
+    std::string &shortName, OsAccountType &type, CreateOsAccountOptions &options)
 {
     ErrCode result = ERR_OK;
 
@@ -491,10 +492,18 @@ ErrCode AccountCommand::RunAsCreateCommandExistentOptionArgument(const int &opti
             shortName = optarg;
             break;
         }
-        case 'l': {
-            // 'acm create -l <disallowedlist>'
-            // 'acm create --disallowedlist <disallowedlist>'
-            result = AnalyzeDisallowedListArgument(disallowedList);
+        case 'd': {
+            // 'acm create -d <disallowedPreinstalledBundles>'
+            // 'acm create --disallowedPreinstalledBundles <disallowedPreinstalledBundles>'
+            result = AnalyzeListArgument(options.disallowedHapList);
+            break;
+        }
+        case 'p': {
+            // 'acm create -p <allowedPreinstalledBundles>'
+            // 'acm create --allowedPreinstalledBundles <allowedPreinstalledBundles>'
+            std::vector<std::string> list = {};
+            result = AnalyzeListArgument(list);
+            options.allowedHapList = std::make_optional<std::vector<std::string>>(list);
             break;
         }
         default: {
@@ -702,7 +711,7 @@ static bool IsExistFile(const std::string &path)
     return S_ISREG(buf.st_mode);
 }
 
-static ErrCode GetDisallowedListByPath(const std::string &path, std::vector<std::string> &disallowedList)
+static ErrCode GetListByPath(const std::string &path, std::vector<std::string> &list)
 {
     if (!IsExistFile(path)) {
         ACCOUNT_LOGE("cannot find file, path = %{public}s", path.c_str());
@@ -717,16 +726,16 @@ static ErrCode GetDisallowedListByPath(const std::string &path, std::vector<std:
     std::string str;
     while (getline(readFile, str)) {
         ACCOUNT_LOGI("read file, str = %{public}s", str.c_str());
-        disallowedList.emplace_back(str);
+        list.emplace_back(str);
     }
     readFile.close();
     return ERR_OK;
 }
 
-ErrCode AccountCommand::AnalyzeDisallowedListArgument(std::vector<std::string> &disallowedList)
+ErrCode AccountCommand::AnalyzeListArgument(std::vector<std::string> &list)
 {
     std::string listPath = optarg;
-    return GetDisallowedListByPath(listPath, disallowedList);
+    return GetListByPath(listPath, list);
 }
 
 ErrCode AccountCommand::AnalyzeLocalIdArgument(int &id)

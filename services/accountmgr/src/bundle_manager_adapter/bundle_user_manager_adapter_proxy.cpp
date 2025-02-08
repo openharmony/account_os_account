@@ -20,6 +20,7 @@
 namespace OHOS {
 namespace AccountSA {
 constexpr size_t DISALLOWED_HAP_LIST_MAX_SIZE = 1000;
+constexpr size_t ALLOWED_HAP_LIST_MAX_SIZE = 1000;
 
 BundleUserManagerAdapterProxy::BundleUserManagerAdapterProxy(const sptr<IRemoteObject> &object)
     : IRemoteProxy<AppExecFwk::IBundleUserMgr>(object)
@@ -28,7 +29,8 @@ BundleUserManagerAdapterProxy::BundleUserManagerAdapterProxy(const sptr<IRemoteO
 BundleUserManagerAdapterProxy::~BundleUserManagerAdapterProxy()
 {}
 
-ErrCode BundleUserManagerAdapterProxy::CreateNewUser(int32_t userId, const std::vector<std::string> &disallowedHapList)
+ErrCode BundleUserManagerAdapterProxy::CreateNewUser(int32_t userId, const std::vector<std::string> &disallowedHapList,
+    const std::optional<std::vector<std::string>> &allowedHapList)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(BundleUserManagerAdapterProxy::GetDescriptor())) {
@@ -39,15 +41,17 @@ ErrCode BundleUserManagerAdapterProxy::CreateNewUser(int32_t userId, const std::
         ACCOUNT_LOGE("fail to CreateNewUser due to write userId fail");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    uint32_t disallowedListMatchSize = (disallowedHapList.size() > DISALLOWED_HAP_LIST_MAX_SIZE) ?
-        DISALLOWED_HAP_LIST_MAX_SIZE : disallowedHapList.size();
-    if (!data.WriteInt32(disallowedListMatchSize)) {
-        ACCOUNT_LOGE("Write BundleNameListVector failed");
+    if (!WriteStrListToData(data, disallowedHapList, DISALLOWED_HAP_LIST_MAX_SIZE)) {
+        ACCOUNT_LOGE("Write disallowedHapList failed");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    for (uint32_t index = 0; index < disallowedListMatchSize; ++index) {
-        if (!data.WriteString(disallowedHapList.at(index))) {
-            ACCOUNT_LOGE("Write BundleNameListVector failed");
+
+    if (!allowedHapList.has_value()) {
+        data.WriteBool(false);
+    } else {
+        data.WriteBool(true);
+        if (!WriteStrListToData(data, allowedHapList.value(), ALLOWED_HAP_LIST_MAX_SIZE)) {
+            ACCOUNT_LOGE("Write allowedHapList failed");
             return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
         }
     }
@@ -56,13 +60,31 @@ ErrCode BundleUserManagerAdapterProxy::CreateNewUser(int32_t userId, const std::
         ACCOUNT_LOGE("fail to CreateNewUser from server");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-
     ErrCode ret = reply.ReadInt32();
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("host reply errCode : %{public}d", ret);
         return ret;
     }
     return ERR_OK;
+}
+
+bool BundleUserManagerAdapterProxy::WriteStrListToData(
+    MessageParcel &data, const std::vector<std::string> &list, size_t maxListSize)
+{
+    size_t listSize = list.size();
+    if (listSize > maxListSize) {
+        ACCOUNT_LOGE("Abnormal list data size, size %{public}zu", listSize);
+        return false;
+    }
+    if (!data.WriteInt32(listSize)) {
+        return false;
+    }
+    for (size_t index = 0; index < listSize; ++index) {
+        if (!data.WriteString(list.at(index))) {
+            return false;
+        }
+    }
+    return true;
 }
 
 ErrCode BundleUserManagerAdapterProxy::RemoveUser(int32_t userId)

@@ -35,11 +35,13 @@ const std::string HELP_MSG = "usage: acm <command> [<options>]\n"
 const std::string HELP_MSG_CREATE =
     "usage: acm create <options>\n"
     "options list:\n"
-    "  -h, --help                           list available commands\n"
-    "  -n <local-account-name> [-s] <shortName> -t <type> [-l] <disallowed-install-hap-list>\n"
-    "                                       create a local account with a name and a type\n"
-    "                                       <type>: admin, normal, guest, private\n"
-    "                                       <disallowed-install-hap-list>: can set disallowed pre-installed hap list\n";
+    "  -h, --help                 list available commands\n"
+    "  -n <local-account-name> [-s] <shortName>\n"
+    "  -t <type> [-d] <disallowed-pre-install-hap-bundles> [-p] <allowed-pre-install-hap-bundles>\n"
+    "                             create a local account with a name and a type\n"
+    "                             <type>: admin, normal, guest, private\n"
+    "                             <disallowed-pre-install-hap-bundles>: can set disallowed pre-installed hap bundles\n"
+    "                             <allowed-pre-install-hap-bundles>: can set allowed pre-installed hap bundles\n";
 
 const std::string HELP_MSG_DELETE =
     "usage: acm delete <options>\n"
@@ -126,7 +128,7 @@ private:
     ErrCode RunAsCreateCommandError(void);
     ErrCode RunAsCreateCommandMissingOptionArgument(void);
     ErrCode RunAsCreateCommandExistentOptionArgument(const int &option, std::string &name,
-        std::string &shortName, OsAccountType &type, std::vector<std::string> &disallowedList);
+        std::string &shortName, OsAccountType &type, CreateOsAccountOptions &options);
     ErrCode RunAsSetCommandError(void);
     ErrCode RunAsSetCommandMissingOptionArgument(void);
     ErrCode RunAsSetCommandExistentOptionArgument(
@@ -138,10 +140,10 @@ private:
     void ParseCommandOpt(const std::string &command, ErrCode &result, int &id);
     void RunCommand(int &counter, ErrCode &result, bool &enable, int &id, std::vector<std::string> &constraints);
     ErrCode ParseCreateCommandOpt(std::string &name,
-        std::string &shortName, OsAccountType &osAccountType, std::vector<std::string> &disallowedList);
+        std::string &shortName, OsAccountType &osAccountType, CreateOsAccountOptions &options);
 
     ErrCode AnalyzeTypeArgument(OsAccountType &type);
-    ErrCode AnalyzeDisallowedListArgument(std::vector<std::string> &disallowedList);
+    ErrCode AnalyzeListArgument(std::vector<std::string> &list);
     ErrCode AnalyzeLocalIdArgument(int &id);
     ErrCode AnalyzeConstraintArgument(std::vector<std::string> &constraints);
 

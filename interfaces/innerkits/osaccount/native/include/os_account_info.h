@@ -48,6 +48,7 @@ struct ForegroundOsAccount {
 
 struct CreateOsAccountOptions: public Parcelable {
     std::vector<std::string> disallowedHapList = {};
+    std::optional<std::vector<std::string>> allowedHapList = std::nullopt;
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
     static CreateOsAccountOptions *Unmarshalling(Parcel &parcel);
