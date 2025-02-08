@@ -16,6 +16,7 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APP_ACCOUNT_SUBSCRIBE_MANAGER_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APP_ACCOUNT_SUBSCRIBE_MANAGER_H
 
+#include <deque>
 #include <map>
 #include <set>
 
@@ -26,6 +27,35 @@
 
 namespace OHOS {
 namespace AccountSA {
+struct SwitchSubcribeWork {
+    SwitchSubcribeWork() = default;
+    SwitchSubcribeWork(const sptr<IOsAccountEvent> &eventProxy, OsAccountState state,  int32_t fromId, int32_t toId);
+    ~SwitchSubcribeWork() = default;
+    sptr<IOsAccountEvent> eventProxy_ = nullptr;
+    OS_ACCOUNT_SUBSCRIBE_TYPE type_ = INVALID_TYPE;
+    int32_t fromId_ = -1;
+    int32_t toId_ = -1;
+};
+
+class SwitchSubscribeInfo {
+public:
+    SwitchSubscribeInfo() = default;
+    SwitchSubscribeInfo(OS_ACCOUNT_SUBSCRIBE_TYPE);
+    ~SwitchSubscribeInfo() = default;
+    void AddSubscribeInfo(OS_ACCOUNT_SUBSCRIBE_TYPE);
+    bool SubSubscribeInfo(OS_ACCOUNT_SUBSCRIBE_TYPE);
+    bool IsEmpty();
+    void ConsumerTask();
+    bool ProductTask(const sptr<IOsAccountEvent> &eventProxy, OsAccountState state, const int newId,
+        const int oldId);
+
+private:
+    uint8_t count_ = 0;
+    std::mutex mutex_;
+    std::deque<SwitchSubcribeWork> workDeque_;
+    std::unique_ptr<std::thread> workThread_;
+};
+
 class OsAccountSubscribeManager : public IOsAccountSubscribe {
 public:
     static OsAccountSubscribeManager &GetInstance();
@@ -44,7 +74,6 @@ private:
     bool OnStateChangedV0(const sptr<IOsAccountEvent> &eventProxy, OsAccountState state, int32_t fromId, int32_t toId,
         uid_t targetUid);
     bool OnAccountsChanged(const sptr<IOsAccountEvent> &eventProxy, OsAccountState state, int32_t id, uid_t targetUid);
-    bool OnAccountsSwitch(const sptr<IOsAccountEvent> &eventProxy, const int newId, const int oldId);
     DISALLOW_COPY_AND_MOVE(OsAccountSubscribeManager);
     ErrCode RemoveSubscribeRecord(const sptr<IRemoteObject> &eventListener);
 
@@ -53,6 +82,7 @@ private:
     sptr<IRemoteObject::DeathRecipient> subscribeDeathRecipient_;
     std::mutex subscribeRecordMutex_;
     std::vector<OsSubscribeRecordPtr> subscribeRecords_;
+    std::map<int32_t, std::shared_ptr<SwitchSubscribeInfo>> switchRecordMap_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
