@@ -581,13 +581,16 @@ ErrCode OsAccountInterface::SendToStorageAccountStop(OsAccountInfo &osAccountInf
         ACCOUNT_LOGE("StorageManager failed to stop user, err: %{public}d", err);
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_STOP,
             err, "StorageManager failed to stop user");
-        return err;
+        FinishTraceAdapter();
+        return ERR_OSACCOUNT_SERVICE_STORAGE_STOP_USER_FAILED;
     }
     err = proxy->InactiveUserKey(localId);
     if (err != 0) {
         ACCOUNT_LOGE("StorageManager failed to inactivate user key, err: %{public}d", err);
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_STOP,
             err, "StorageManager failed to inactivate user key");
+        FinishTraceAdapter();
+        return ERR_OSACCOUNT_SERVICE_STORAGE_STOP_USER_FAILED;
     }
     FinishTraceAdapter();
 #else
