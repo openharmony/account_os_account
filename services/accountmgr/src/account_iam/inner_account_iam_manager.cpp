@@ -25,6 +25,9 @@
 #include "inner_domain_account_manager.h"
 #endif // SUPPORT_DOMAIN_ACCOUNTS
 #include "iservice_registry.h"
+#ifdef HAS_STORAGE_PART
+#include "storage_service_errno.h"
+#endif
 #include "system_ability_definition.h"
 #include "user_access_ctrl_client.h"
 #include "user_auth_client.h"
@@ -564,7 +567,7 @@ ErrCode InnerAccountIAMManager::InnerUpdateStorageUserAuth(int32_t userId, uint6
     }
 
     ErrCode code = storageMgrProxy->UpdateUserAuth(userId, secureUid, token, oldSecret, newSecret);
-    if ((code != ERR_OK) && (code != Constants::ERROR_STORAGE_KEY_NOT_EXIST)) {
+    if ((code != ERR_OK) && (code != ErrNo::E_PARAMS_NULLPTR_ERR)) {
         ACCOUNT_LOGE("Fail to update user auth, userId=%{public}d, code=%{public}d", userId, code);
         return code;
     }

@@ -145,6 +145,9 @@ ohos_moduletest("account_command_create_module_mock_test") {
     "samgr:samgr_proxy",
   ]
   cflags_cc = []
+  if (has_storage_service_part) {
+    external_deps += [ "storage_service:storage_manager_sa_proxy" ]
+  }
   if (os_account_distributed_feature) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
     sources +=
@@ -255,6 +258,9 @@ ohos_moduletest("account_command_delete_module_mock_test") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+  if (has_storage_service_part) {
+    external_deps += [ "storage_service:storage_manager_sa_proxy" ]
+  }
   cflags_cc = []
   if (os_account_distributed_feature) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]

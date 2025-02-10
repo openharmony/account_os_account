@@ -31,6 +31,7 @@
 #endif // SUPPORT_DOMAIN_ACCOUNTS
 #include "ipc_skeleton.h"
 #include "os_account_delete_user_idm_callback.h"
+#include "storage_service_errno.h"
 #include "token_setproc.h"
 #include "user_auth_client.h"
 #include "user_idm_client.h"
@@ -186,7 +187,7 @@ ErrCode AuthCallback::UnlockAccount(int32_t accountId, const std::vector<uint8_t
         if (needActivateKey) {
             // el2 file decryption
             ret = InnerAccountIAMManager::GetInstance().ActivateUserKey(accountId, token, secret);
-            if (ret != 0 && ret != Constants::ERROR_STORAGE_KEY_NOT_EXIST) {
+            if (ret != 0 && ret != ErrNo::E_PARAMS_NULLPTR_ERR) {
                 ACCOUNT_LOGE("Failed to activate user key");
                 ReportOsAccountOperationFail(accountId, "auth", ret, "Failed to activate user key");
                 return ret;
