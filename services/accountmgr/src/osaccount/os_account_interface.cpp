@@ -39,6 +39,7 @@
 #include "os_account_subscribe_manager.h"
 #ifdef HAS_STORAGE_PART
 #include "storage_manager_proxy.h"
+#include "storage_service_errno.h"
 #endif
 #include "iinner_os_account_manager.h"
 #include "system_ability_definition.h"
@@ -58,7 +59,6 @@ const char OPERATION_START[] = "start";
 #ifdef HAS_STORAGE_PART
 constexpr uint32_t CRYPTO_FLAG_EL1 = 1;
 constexpr uint32_t CRYPTO_FLAG_EL2 = 2;
-constexpr int32_t E_ACTIVE_EL2 = 30;
 #endif
 
 constexpr int32_t DELAY_FOR_EXCEPTION = 100;
@@ -490,7 +490,7 @@ int32_t OsAccountInterface::UnlockUser(const int localId)
         std::vector<uint8_t> emptyData;
         errCode = proxy->ActiveUserKey(localId, emptyData, emptyData);
         ACCOUNT_LOGI("ActiveUserKey end, ret %{public}d.", errCode);
-        if (errCode != E_ACTIVE_EL2) {
+        if (errCode != ErrNo::E_ACTIVE_EL2_FAILED) {
             errCode = proxy->PrepareStartUser(localId);
             ACCOUNT_LOGI("PrepareStartUser end, errCode %{public}d.", errCode);
             if (errCode != 0) {

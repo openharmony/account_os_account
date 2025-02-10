@@ -472,6 +472,9 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+  if (has_storage_service_part) {
+    external_deps += [ "storage_service:storage_manager_sa_proxy" ]
+  }
   cflags_cc = []
   if (os_account_distributed_feature) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
@@ -596,6 +599,9 @@ ohos_unittest("OsAccountInnerAccmgrPluginMockTest") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+  if (has_storage_service_part) {
+    external_deps += [ "storage_service:storage_manager_sa_proxy" ]
+  }
   cflags_cc = []
   if (os_account_distributed_feature) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
@@ -710,6 +716,9 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
     "samgr:samgr_proxy",
   ]
   cflags_cc = []
+  if (has_storage_service_part) {
+    external_deps += [ "storage_service:storage_manager_sa_proxy" ]
+  }
   if (os_account_distributed_feature) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
     sources +=
