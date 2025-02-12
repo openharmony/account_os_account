@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "procsetauthenticationexpirythresholdstub_fuzzer.h"
+#include "procgetaccountpolicystub_fuzzer.h"
 
 #include <memory>
 #include <string>
@@ -33,7 +33,7 @@ namespace OHOS {
 namespace {
 const std::u16string ACCOUNT_TOKEN = u"ohos.accountfwk.IDomainAccount";
 }
-bool ProcSetAuthenticationExpiryThresholdStubFuzzTest(const uint8_t* data, size_t size)
+bool ProcGetAccountPolicyStubFuzzTest(const uint8_t* data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
         return false;
@@ -42,21 +42,20 @@ bool ProcSetAuthenticationExpiryThresholdStubFuzzTest(const uint8_t* data, size_
     if (!dataTemp.WriteInterfaceToken(ACCOUNT_TOKEN)) {
         return false;
     }
-    FuzzData fuzzData(data, size);
+
     DomainAccountInfo info;
+    FuzzData fuzzData(data, size);
     info.domain_ = fuzzData.GenerateString();
     info.accountName_ = fuzzData.GenerateString();
     info.accountId_ = fuzzData.GenerateString();
-    std::string policy = fuzzData.GenerateString();
+
     if (!dataTemp.WriteParcelable(&info)) {
         return false;
     }
-    if (!dataTemp.WriteString(policy)) {
-        return false;
-    }
+
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(DomainAccountInterfaceCode::DOMAIN_SET_ACCOUNT_POLICY);
+    uint32_t code = static_cast<uint32_t>(DomainAccountInterfaceCode::DOMAIN_GET_ACCOUNT_POLICY);
     auto domainAccountService = std::make_shared<DomainAccountManagerService>();
     domainAccountService->OnRemoteRequest(code, dataTemp, reply, option);
 
@@ -68,7 +67,7 @@ bool ProcSetAuthenticationExpiryThresholdStubFuzzTest(const uint8_t* data, size_
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::ProcSetAuthenticationExpiryThresholdStubFuzzTest(data, size);
+    OHOS::ProcGetAccountPolicyStubFuzzTest(data, size);
     return 0;
 }
 

@@ -65,6 +65,27 @@ static const char LIB_PATH[] = "/system/lib/platformsdk/";
 static const char LIB_NAME[] = "libdomain_account_plugin.z.so";
 static const char EDM_FREEZE_BACKGROUND_PARAM[] = "persist.edm.inactive_user_freeze";
 }
+static const std::map<PluginMethodEnum, std::string> METHOD_NAME_MAP = {
+    {PluginMethodEnum::ADD_SERVER_CONFIG, "AddServerConfig"},
+    {PluginMethodEnum::REMOVE_SERVER_CONFIG, "RemoveServerConfig"},
+    {PluginMethodEnum::UPDATE_SERVER_CONFIG, "UpdateServerConfig"},
+    {PluginMethodEnum::GET_SERVER_CONFIG, "GetServerConfig"},
+    {PluginMethodEnum::GET_ALL_SERVER_CONFIGS, "GetServerConfigList"},
+    {PluginMethodEnum::GET_ACCOUNT_SERVER_CONFIG, "GetAccountServerConfig"},
+    {PluginMethodEnum::AUTH, "Auth"},
+    {PluginMethodEnum::AUTH_WITH_POPUP, "AuthWithPopup"},
+    {PluginMethodEnum::AUTH_WITH_TOKEN, "AuthWithToken"},
+    {PluginMethodEnum::GET_ACCOUNT_INFO, "GetAccountInfo"},
+    {PluginMethodEnum::GET_AUTH_STATUS_INFO, "GetAuthStatusInfo"},
+    {PluginMethodEnum::BIND_ACCOUNT, "BindAccount"},
+    {PluginMethodEnum::UNBIND_ACCOUNT, "UnbindAccount"},
+    {PluginMethodEnum::IS_ACCOUNT_TOKEN_VALID, "IsAccountTokenValid"},
+    {PluginMethodEnum::GET_ACCESS_TOKEN, "GetAccessToken"},
+    {PluginMethodEnum::UPDATE_ACCOUNT_INFO, "UpdateAccountInfo"},
+    {PluginMethodEnum::IS_AUTHENTICATION_EXPIRED, "IsAuthenticationExpired"},
+    {PluginMethodEnum::SET_ACCOUNT_POLICY, "SetAccountPolicy"},
+    {PluginMethodEnum::GET_ACCOUNT_POLICY, "GetAccountPolicy"},
+};
 
 static bool IsSupportNetRequest()
 {
@@ -258,47 +279,12 @@ ErrCode InnerDomainAccountManager::GetDomainAccountInfoByUserId(int32_t userId, 
 
 std::string GetMethodNameByEnum(PluginMethodEnum methondEnum)
 {
-    switch (methondEnum) {
-        case PluginMethodEnum::ADD_SERVER_CONFIG:
-            return "AddServerConfig";
-        case PluginMethodEnum::REMOVE_SERVER_CONFIG:
-            return "RemoveServerConfig";
-        case PluginMethodEnum::UPDATE_SERVER_CONFIG:
-            return "UpdateServerConfig";
-        case PluginMethodEnum::GET_SERVER_CONFIG:
-            return "GetServerConfig";
-        case PluginMethodEnum::GET_ALL_SERVER_CONFIGS:
-            return "GetServerConfigList";
-        case PluginMethodEnum::GET_ACCOUNT_SERVER_CONFIG:
-            return "GetAccountServerConfig";
-        case PluginMethodEnum::AUTH:
-            return "Auth";
-        case PluginMethodEnum::AUTH_WITH_POPUP:
-            return "AuthWithPopup";
-        case PluginMethodEnum::AUTH_WITH_TOKEN:
-            return "AuthWithToken";
-        case PluginMethodEnum::GET_ACCOUNT_INFO:
-            return "GetAccountInfo";
-        case PluginMethodEnum::GET_AUTH_STATUS_INFO:
-            return "GetAuthStatusInfo";
-        case PluginMethodEnum::BIND_ACCOUNT:
-            return "BindAccount";
-        case PluginMethodEnum::UNBIND_ACCOUNT:
-            return "UnbindAccount";
-        case PluginMethodEnum::IS_ACCOUNT_TOKEN_VALID:
-            return "IsAccountTokenValid";
-        case PluginMethodEnum::GET_ACCESS_TOKEN:
-            return "GetAccessToken";
-        case PluginMethodEnum::UPDATE_ACCOUNT_INFO:
-            return "UpdateAccountInfo";
-        case PluginMethodEnum::IS_AUTHENTICATION_EXPIRED:
-            return "IsAuthenticationExpired";
-        case PluginMethodEnum::SET_ACCOUNT_POLICY:
-            return "SetAccountPolicy";
-        default:
-            ACCOUNT_LOGE("enum=%{public}d can not find string", methondEnum);
-            return "";
+    const auto& it = METHOD_NAME_MAP.find(methondEnum);
+    if (it != METHOD_NAME_MAP.end()) {
+        return it->second;
     }
+    ACCOUNT_LOGE("enum=%{public}d can not find string", methondEnum);
+    return "";
 }
 
 void InnerDomainAccountManager::LoaderLib(const std::string &path, const std::string &libName)
@@ -530,6 +516,17 @@ static void GetAndCleanPluginAuthStatusInfo(PluginAuthStatusInfo **statusInfo,
     freezingTime = (*statusInfo)->freezingTime;
     free((*statusInfo));
     (*statusInfo) = nullptr;
+}
+
+static void GetAndCleanPluginDomainAccountPolicy(PluginDomainAccountPolicy **accountPolicy, std::string &policy)
+{
+    if (accountPolicy == nullptr || *accountPolicy == nullptr) {
+        ACCOUNT_LOGE("PluginDomainAccountPolicy is null.");
+        return;
+    }
+    GetAndCleanPluginString((*accountPolicy)->parameters, policy);
+    free(*accountPolicy);
+    *accountPolicy = nullptr;
 }
 
 static void SetPluginGetDomainAccessTokenOptions(const GetAccessTokenOptions &option,
@@ -1318,8 +1315,8 @@ ErrCode InnerDomainAccountManager::IsAuthenticationExpired(
     return GetAndCleanPluginBussnessError(&error, iter->first);
 }
 
-ErrCode InnerDomainAccountManager::SetAccountPolicy(
-    const DomainAccountPolicy &policy) __attribute__((no_sanitize("cfi")))
+ErrCode InnerDomainAccountManager::SetAccountPolicy(const DomainAccountInfo &info,
+    const std::string &policy) __attribute__((no_sanitize("cfi")))
 {
     if (!IsSupportNetRequest()) {
         ACCOUNT_LOGE("Not support background account request");
@@ -1330,14 +1327,62 @@ ErrCode InnerDomainAccountManager::SetAccountPolicy(
         ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::SET_ACCOUNT_POLICY);
         return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
     }
-    PluginDomainAccountPolicy domainAccountPolicy;
-    domainAccountPolicy.authenicationValidityPeriod = policy.authenicationValidityPeriod;
+    int32_t callerLocalId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+    if (!info.IsEmpty()) {
+        int32_t userId = 0;
+        ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGI("The target domain account not found.");
+            return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
+        }
+    }
+    PluginString parameters;
+    SetPluginString(policy, parameters);
+    PluginDomainAccountInfo domainAccountInfo;
+    SetPluginDomainAccountInfo(info, domainAccountInfo);
     PluginBussnessError* error =
-        (*reinterpret_cast<SetAccountPolicyFunc>(iter->second))(&domainAccountPolicy);
-    if (error == nullptr) {
-        ACCOUNT_LOGE("Error is nullptr.");
+        (*reinterpret_cast<SetAccountPolicyFunc>(iter->second))(&parameters, &domainAccountInfo, callerLocalId);
+    CleanPluginString(&(domainAccountInfo.domain.data), domainAccountInfo.domain.length);
+    CleanPluginString(&(domainAccountInfo.serverConfigId.data), domainAccountInfo.serverConfigId.length);
+    CleanPluginString(&(domainAccountInfo.accountName.data), domainAccountInfo.accountName.length);
+    CleanPluginString(&(domainAccountInfo.accountId.data), domainAccountInfo.accountId.length);
+    CleanPluginString(&(parameters.data), parameters.length);
+    return GetAndCleanPluginBussnessError(&error, iter->first);
+}
+
+ErrCode InnerDomainAccountManager::GetAccountPolicy(const DomainAccountInfo &info,
+    std::string &policy) __attribute__((no_sanitize("cfi")))
+{
+    if (!IsSupportNetRequest()) {
+        ACCOUNT_LOGE("Not support background account request");
+        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
+    }
+    auto iter = methodMap_.find(PluginMethodEnum::GET_ACCOUNT_POLICY);
+    if (iter == methodMap_.end() || iter->second == nullptr) {
+        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::GET_ACCOUNT_POLICY);
         return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
     }
+    int32_t callerLocalId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+    if (!info.IsEmpty()) {
+        int32_t userId = 0;
+        ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGI("The target domain account not found.");
+            return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
+        }
+    }
+    PluginDomainAccountInfo domainAccountInfo;
+    SetPluginDomainAccountInfo(info, domainAccountInfo);
+    PluginDomainAccountPolicy *domainAccountPolicy = nullptr;
+    PluginBussnessError* error = (*reinterpret_cast<GetAccountPolicyFunc>(iter->second))(&domainAccountInfo,
+        callerLocalId, &domainAccountPolicy);
+    if (domainAccountPolicy != nullptr) {
+        GetAndCleanPluginDomainAccountPolicy(&domainAccountPolicy, policy);
+    }
+    CleanPluginString(&(domainAccountInfo.domain.data), domainAccountInfo.domain.length);
+    CleanPluginString(&(domainAccountInfo.serverConfigId.data), domainAccountInfo.serverConfigId.length);
+    CleanPluginString(&(domainAccountInfo.accountName.data), domainAccountInfo.accountName.length);
+    CleanPluginString(&(domainAccountInfo.accountId.data), domainAccountInfo.accountId.length);
     return GetAndCleanPluginBussnessError(&error, iter->first);
 }
 

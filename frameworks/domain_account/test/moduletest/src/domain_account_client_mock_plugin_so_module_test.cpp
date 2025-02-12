@@ -64,6 +64,7 @@ static int g_a = 1;
 static void *g_ptr = &g_a;
 const int32_t ROOT_UID = 0;
 const int32_t EDM_UID = 3057;
+const int32_t NOT_EDM_UID = 3058;
 static constexpr int32_t DEFAULT_API_VERSION = 8;
 const std::vector<uint8_t> DEFAULT_TOKEN = {49, 50, 51, 52, 53};
 static uint64_t g_selfTokenID;
@@ -78,6 +79,7 @@ const std::map<PluginMethodEnum, void *> PLUGIN_METHOD_MAP = {
     {PluginMethodEnum::BIND_ACCOUNT, reinterpret_cast<void *>(BindAccount)},
     {PluginMethodEnum::IS_AUTHENTICATION_EXPIRED, reinterpret_cast<void *>(IsAuthenticationExpired)},
     {PluginMethodEnum::SET_ACCOUNT_POLICY, reinterpret_cast<void *>(SetAccountPolicy)},
+    {PluginMethodEnum::GET_ACCOUNT_POLICY, reinterpret_cast<void *>(GetAccountPolicy)},
     {PluginMethodEnum::UPDATE_ACCOUNT_INFO, reinterpret_cast<void *>(UpdateAccountInfo)},
 };
 }
@@ -300,79 +302,131 @@ void DomainAccountClientMockPluginSoModuleTest::TearDown(void)
 {}
 
 /**
- * @tc.name: DomainAccountClientModuleTest_SetAuthenticationExpiryThreshold_001
+ * @tc.name: DomainAccountClientModuleTest_SetAccountPolicy_001
  * @tc.desc: SetAccountPolicy failed with no plugin so.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_SetAuthenticationExpiryThreshold_001,
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_SetAccountPolicy_001,
          TestSize.Level0)
 {
     AccessTokenID tokenID;
     ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
     setuid(EDM_UID);
     UnloadPluginMethods();
-
-    DomainAccountPolicy policy;
-    policy.authenicationValidityPeriod = 1;
-    EXPECT_EQ(DomainAccountClient::GetInstance().SetAccountPolicy(policy), ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+    DomainAccountInfo info;
+    std::string policy;
+    EXPECT_EQ(DomainAccountClient::GetInstance().SetAccountPolicy(info, policy),
+        ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccountPolicy(info, policy),
+        ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     setuid(ROOT_UID);
     ASSERT_TRUE(RecoveryPermission(tokenID));
 }
 
 /**
- * @tc.name: DomainAccountClientModuleTest_SetAuthenticationExpiryThreshold_002
+ * @tc.name: DomainAccountClientModuleTest_SetAccountPolicy_002
  * @tc.desc: SetAccountPolicy failed with not EDM.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_SetAuthenticationExpiryThreshold_002,
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_SetAccountPolicy_002,
          TestSize.Level0)
 {
+    DomainAccountInfo info;
+    LoadPluginMethods();
     AccessTokenID tokenID;
     ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
-    LoadPluginMethods();
-    DomainAccountPolicy policy;
-    policy.authenicationValidityPeriod = 10;
-    EXPECT_EQ(DomainAccountClient::GetInstance().SetAccountPolicy(policy),
+    std::string policy;
+    EXPECT_EQ(DomainAccountClient::GetInstance().SetAccountPolicy(info, policy),
+              ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccountPolicy(info, policy),
               ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     UnloadPluginMethods();
     ASSERT_TRUE(RecoveryPermission(tokenID));
 }
 
 /**
- * @tc.name: DomainAccountClientModuleTest_SetAuthenticationExpiryThreshold_003
+ * @tc.name: DomainAccountClientModuleTest_SetAccountPolicy_003
  * @tc.desc: SetAccountPolicy failed with no ohos.permission.MANAGE_LOCAL_ACCOUNTS permission.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_SetAuthenticationExpiryThreshold_003,
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_SetAccountPolicy_003,
          TestSize.Level0)
 {
     LoadPluginMethods();
-    DomainAccountPolicy policy;
-    policy.authenicationValidityPeriod = 10;
-    EXPECT_EQ(DomainAccountClient::GetInstance().SetAccountPolicy(policy),
+    DomainAccountInfo info;
+    std::string policy;
+    setuid(NOT_EDM_UID);
+    EXPECT_EQ(DomainAccountClient::GetInstance().SetAccountPolicy(info, policy),
               ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccountPolicy(info, policy),
+              ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    setuid(ROOT_UID);
     UnloadPluginMethods();
 }
 
 /**
- * @tc.name: DomainAccountClientModuleTest_SetAuthenticationExpiryThreshold_004
- * @tc.desc: SetAccountPolicy success.
+ * @tc.name: DomainAccountClientModuleTest_SetAccountPolicy_004
+ * @tc.desc: SetAccountPolicy domain not exist.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_SetAuthenticationExpiryThreshold_004,
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_SetAccountPolicy_004,
          TestSize.Level0)
 {
     AccessTokenID tokenID;
     ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
     setuid(EDM_UID);
     LoadPluginMethods();
-    DomainAccountPolicy policy;
-    policy.authenicationValidityPeriod = 10;
-    EXPECT_EQ(DomainAccountClient::GetInstance().SetAccountPolicy(policy), ERR_OK);
+    DomainAccountInfo info;
+    std::string policy;
+    EXPECT_EQ(DomainAccountClient::GetInstance().SetAccountPolicy(info, policy),
+        ERR_OK);
+    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccountPolicy(info, policy),
+        ERR_OK);
+    info.domain_ = "test";
+    EXPECT_EQ(DomainAccountClient::GetInstance().SetAccountPolicy(info, policy),
+        ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT);
+    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccountPolicy(info, policy),
+        ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT);
+    UnloadPluginMethods();
+    setuid(ROOT_UID);
+    ASSERT_TRUE(RecoveryPermission(tokenID));
+}
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_SetAccountPolicy_005
+ * @tc.desc: SetAccountPolicy success.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_SetAccountPolicy_005,
+         TestSize.Level0)
+{
+    DomainAccountInfo info;
+    info.accountName_ = "testAccount";
+    info.domain_ = "test.example.com";
+    info.accountId_ = "testAccountId";
+    LoadPluginMethods();
+    auto callback = std::make_shared<MockPluginSoDomainCreateDomainAccountCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestPluginSoCreateDomainAccountCallback>(callback);
+    EXPECT_CALL(*callback, OnResult(ERR_OK, "testAccount", "test.example.com", _)).Times(Exactly(1));
+    ASSERT_NE(testCallback, nullptr);
+    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, info, testCallback);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                              [lockCallback = testCallback]() { return lockCallback->isReady; });
+    EXPECT_EQ(errCode, ERR_OK);
+    AccessTokenID tokenID;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
+    setuid(EDM_UID);
+
+    std::string policy;
+    EXPECT_EQ(DomainAccountClient::GetInstance().SetAccountPolicy(info, policy), ERR_OK);
+    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccountPolicy(info, policy), ERR_OK);
     UnloadPluginMethods();
     setuid(ROOT_UID);
     ASSERT_TRUE(RecoveryPermission(tokenID));
@@ -658,20 +712,11 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_IsAuthenticationExpired_004,
          TestSize.Level0)
 {
-    AccessTokenID tokenID;
-    ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
-    setuid(EDM_UID);
-    LoadPluginMethods();
-    DomainAccountPolicy policy;
-    policy.authenicationValidityPeriod = -1;
-    EXPECT_EQ(DomainAccountClient::GetInstance().SetAccountPolicy(policy), ERR_OK);
-    setuid(ROOT_UID);
-    ASSERT_TRUE(RecoveryPermission(tokenID));
-
     DomainAccountInfo domainInfo;
     domainInfo.accountName_ = "testaccount";
     domainInfo.domain_ = "test.example.com";
     domainInfo.accountId_ = "testid";
+    LoadPluginMethods();
     auto callback = std::make_shared<MockPluginSoDomainCreateDomainAccountCallback>();
     ASSERT_NE(callback, nullptr);
     auto testCallback = std::make_shared<TestPluginSoCreateDomainAccountCallback>(callback);
@@ -682,6 +727,14 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     testCallback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
                               [lockCallback = testCallback]() { return lockCallback->isReady; });
     ASSERT_EQ(errCode, ERR_OK);
+    AccessTokenID tokenID;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
+    setuid(EDM_UID);
+
+    std::string policy = "{\"authenicationValidityPeriod\":-1}";
+    EXPECT_EQ(DomainAccountClient::GetInstance().SetAccountPolicy(domainInfo, policy), ERR_OK);
+    setuid(ROOT_UID);
+    ASSERT_TRUE(RecoveryPermission(tokenID));
 
     auto authCallback = std::make_shared<MockPluginSoDomainAuthCallback>();
     ASSERT_NE(authCallback, nullptr);
@@ -715,16 +768,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_IsAuthenticationExpired_005,
          TestSize.Level0)
 {
-    AccessTokenID tokenID;
-    ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
-    setuid(EDM_UID);
     LoadPluginMethods();
-    DomainAccountPolicy policy;
-    policy.authenicationValidityPeriod = 1;
-    EXPECT_EQ(DomainAccountClient::GetInstance().SetAccountPolicy(policy), ERR_OK);
-    setuid(ROOT_UID);
-    ASSERT_TRUE(RecoveryPermission(tokenID));
-
     DomainAccountInfo domainInfo;
     domainInfo.accountName_ = "testaccount";
     domainInfo.domain_ = "test.example.com";
@@ -740,6 +784,14 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     testCallback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
                               [lockCallback = testCallback]() { return lockCallback->isReady; });
     ASSERT_EQ(errCode, ERR_OK);
+    AccessTokenID tokenID;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
+    setuid(EDM_UID);
+
+    std::string policy = "{\"authenicationValidityPeriod\":1}";
+    EXPECT_EQ(DomainAccountClient::GetInstance().SetAccountPolicy(domainInfo, policy), ERR_OK);
+    setuid(ROOT_UID);
+    ASSERT_TRUE(RecoveryPermission(tokenID));
 
     auto authCallback = std::make_shared<MockPluginSoDomainAuthCallback>();
     ASSERT_NE(authCallback, nullptr);
@@ -1028,17 +1080,39 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest,
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest,
          DomainAccountClientModuleTest_SetAuthenticationExpiryThreshold_MultiThread_001, TestSize.Level0)
 {
+    LoadPluginMethods();
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = "testaccount";
+    domainInfo.domain_ = "test.example.com";
+    domainInfo.accountId_ = "testid";
+    auto callback = std::make_shared<MockPluginSoDomainCreateDomainAccountCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestPluginSoCreateDomainAccountCallback>(callback);
+    EXPECT_CALL(*callback, OnResult(ERR_OK, "testaccount", "test.example.com", _)).Times(Exactly(1));
+    ASSERT_NE(testCallback, nullptr);
+    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                              [lockCallback = testCallback]() { return lockCallback->isReady; });
+    ASSERT_EQ(errCode, ERR_OK);
     AccessTokenID tokenID;
     ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
     setuid(EDM_UID);
-    LoadPluginMethods();
     GTEST_RUN_TASK([]() {
-        DomainAccountPolicy policy;
-        policy.authenicationValidityPeriod = 10;
-        EXPECT_EQ(DomainAccountClient::GetInstance().SetAccountPolicy(policy), ERR_OK);
+        DomainAccountInfo domainInfo;
+        domainInfo.accountName_ = "testaccount";
+        domainInfo.domain_ = "test.example.com";
+        domainInfo.accountId_ = "testid";
+        std::string policy = "{\"authenicationValidityPeriod\":10}";
+        std::string policyFromGet;
+        EXPECT_EQ(DomainAccountClient::GetInstance().SetAccountPolicy(domainInfo, policy), ERR_OK);
+        EXPECT_EQ(DomainAccountClient::GetInstance().GetAccountPolicy(domainInfo, policyFromGet), ERR_OK);
     });
     UnloadPluginMethods();
     setuid(ROOT_UID);
     ASSERT_TRUE(RecoveryPermission(tokenID));
+    int32_t userId = -1;
+    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId), ERR_OK);
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
