@@ -90,7 +90,6 @@ private:
 extern "C" {
     IDbAdapterDataManager* __attribute__((visibility("default"))) CreateDataManager();
     void __attribute__((visibility("default"))) DestroyDataManager(IDbAdapterDataManager* ptr);
-    void __attribute__((visibility("default"))) __attribute__((destructor)) OnDlclose();
 };
 }
 }
