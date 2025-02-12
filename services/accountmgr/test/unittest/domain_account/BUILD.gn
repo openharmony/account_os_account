@@ -129,6 +129,77 @@ ohos_unittest("DomainAccountInnerServiceCovTest") {
   part_name = "os_account"
 }
 
+ohos_unittest("DomainAccountInnerServiceMockTest") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "${os_account_path}/cfi_blocklist.txt"
+  }
+
+  cflags_cc = []
+  module_out_path = module_output_path
+
+  sources = [
+    "${domain_account_framework_path}/test/moduletest/src/mock_domain_plugin.cpp",
+    "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
+    "${services_path}/accountmgr/src/account_event_provider.cpp",
+    "${services_path}/accountmgr/src/domain_account/domain_account_plugin_death_recipient.cpp",
+    "${services_path}/accountmgr/src/domain_account/domain_has_domain_info_callback.cpp",
+    "${services_path}/accountmgr/src/domain_account/inner_domain_account_manager.cpp",
+    "${services_path}/accountmgr/src/domain_account/status_listener_death_recipient.cpp",
+    "${services_path}/accountmgr/src/domain_account/status_listener_manager.cpp",
+    "${services_path}/accountmgr/test/unittest/domain_account/mock/mock_domain_account_callback_stub.cpp",
+    "${services_path}/accountmgr/test/unittest/domain_account/mock/mock_inner_os_account_manager.cpp",
+    "${services_path}/accountmgr/test/unittest/domain_account/mock/mock_musl.cpp",
+    "domain_account_manager_inner_service_mock_test.cpp",
+  ]
+  configs = [
+    ":domain_account_amgr_mock_config",
+    "${services_path}/accountmgr/test:accountmgr_test_config",
+  ]
+
+  deps = [
+    "${account_iam_framework_path}:account_iam_innerkits",
+    "${common_path}:libaccount_common",
+    "${domain_account_framework_path}:domain_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${services_path}/accountmgr:accountmgr",
+  ]
+
+  external_deps = [
+    "ability_runtime:wantagent_innerkits",
+    "access_token:libaccesstoken_sdk",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "init:libbegetutil",
+  ]
+  if (has_ces_part) {
+    cflags_cc += [ "-DHAS_CES_PART" ]
+    external_deps += [ "common_event_service:cesfwk_innerkits" ]
+  }
+  if (has_hiviewdfx_hisysevent_part) {
+    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
+    external_deps += [ "hisysevent:libhisysevent" ]
+  }
+  if (has_user_auth_part) {
+    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
+    external_deps += [ "user_auth_framework:userauth_client" ]
+  }
+  if (has_hiviewdfx_hitrace_part) {
+    external_deps += [ "hitrace:hitrace_meter" ]
+    cflags_cc += [ "-DHAS_HITRACE_PART" ]
+  }
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
+
+  part_name = "os_account"
+}
+
 ohos_unittest("domain_account_plugin_proxy_test") {
   branch_protector_ret = "pac_ret"
 
@@ -172,6 +243,7 @@ group("unittest") {
   if (os_account_support_domain_accounts) {
     deps += [
       ":DomainAccountInnerServiceCovTest",
+      ":DomainAccountInnerServiceMockTest",
       ":domain_account_plugin_proxy_test",
     ]
   }

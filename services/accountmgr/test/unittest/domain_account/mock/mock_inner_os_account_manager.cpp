@@ -48,6 +48,14 @@ ErrCode IInnerOsAccountManager::QueryActiveOsAccountIds(std::vector<int32_t>& id
     ids.clear();
     return ERR_OK;
 }
+
+ErrCode IInnerOsAccountManager::IsOsAccountForeground(const int32_t localId, const uint64_t displayId,
+                                                      bool &isForeground)
+{
+    ACCOUNT_LOGI("mock IInnerOsAccountManager IsOsAccountForeground enter");
+    isForeground = false;
+    return ERR_OK;
+}
 }  // namespace AccountSA
 }  // namespace OHOS
 
