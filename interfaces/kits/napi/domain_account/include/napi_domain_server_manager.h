@@ -39,6 +39,24 @@ struct RemoveServerConfigAsyncContext : public CommonAsyncContext {
     std::string configId;
 };
 
+struct UpdateServerConfigAsyncContext : public CommonAsyncContext {
+    UpdateServerConfigAsyncContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
+    std::string configId;
+    std::string parameters;
+    AccountSA::DomainServerConfig domainServerConfig;
+};
+
+struct GetServerConfigAsyncContext : public CommonAsyncContext {
+    GetServerConfigAsyncContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
+    std::string configId;
+    AccountSA::DomainServerConfig domainServerConfig;
+};
+
+struct GetAllServerConfigsAsyncContext : public CommonAsyncContext {
+    GetAllServerConfigsAsyncContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
+    std::vector<AccountSA::DomainServerConfig> domainServerConfigs;
+};
+
 class NapiDomainServerConfigManager {
 public:
     static napi_value Init(napi_env env, napi_value exports);
@@ -47,7 +65,10 @@ private:
     static napi_value JsConstructor(napi_env env, napi_callback_info cbInfo);
     static napi_value AddServerConfig(napi_env env, napi_callback_info cbInfo);
     static napi_value RemoveServerConfig(napi_env env, napi_callback_info cbInfo);
+    static napi_value UpdateServerConfig(napi_env env, napi_callback_info cbInfo);
     static napi_value GetAccountServerConfig(napi_env env, napi_callback_info cbInfo);
+    static napi_value GetServerConfig(napi_env env, napi_callback_info cbInfo);
+    static napi_value GetAllServerConfigs(napi_env env, napi_callback_info cbInfo);
 };
 }  // namespace AccountJsKit
 }  // namespace OHOS
