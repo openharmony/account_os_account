@@ -179,6 +179,10 @@ ohos_moduletest("domain_account_frameworks_module_mock_test") {
     }
   }
 
+  if (has_storage_service_part) {
+    external_deps += [ "storage_service:storage_manager_sa_proxy" ]
+  }
+
   if (has_user_auth_part) {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
     external_deps += [ "user_auth_framework:userauth_client" ]
@@ -276,6 +280,10 @@ ohos_moduletest("domain_account_client_mock_plugin_so_module_test") {
       external_deps += [ "huks:libhukssdk" ]
       cflags_cc += [ "-DHAS_HUKS_PART" ]
     }
+  }
+
+  if (has_storage_service_part) {
+    external_deps += [ "storage_service:storage_manager_sa_proxy" ]
   }
 
   if (has_user_auth_part) {

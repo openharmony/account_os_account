@@ -91,7 +91,6 @@ const uint64_t REENROLL_WAIT_TIME = 3;
 // an error code of ipc which means peer end is dead
 const int32_t E_IPC_ERROR = 29189;
 const int32_t E_IPC_SA_DIED = 32;
-const int32_t ERROR_STORAGE_KEY_NOT_EXIST = -2;
 
 // max size of subscribed states
 constexpr uint8_t MAX_SUBSCRIBED_STATES_SIZE = 32;
