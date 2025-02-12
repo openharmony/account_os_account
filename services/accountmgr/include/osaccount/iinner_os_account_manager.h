@@ -121,6 +121,7 @@ public:
     int32_t CleanGarbageOsAccounts(int32_t excludeId = -1) override;
     void ResetAccountStatus() override;
     bool CheckAndCleanOsAccounts();
+    ErrCode GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo) override;
 
 private:
     IInnerOsAccountManager();
