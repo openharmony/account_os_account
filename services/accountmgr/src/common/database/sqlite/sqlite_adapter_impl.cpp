@@ -321,14 +321,6 @@ void DestroyDataManager(IDbAdapterDataManager* ptr)
 {
     delete reinterpret_cast<SqliteAdapterDataManager*>(ptr);
 }
-
-void __attribute__((destructor)) OnDlclose()
-{
-    std::shared_ptr<AppAccountSqliteHelper> instance = AppAccountSqliteHelper::GetInstance();
-    instance->Close();
-    instance.reset();
-    ACCOUNT_LOGI("Instance is released.");
-}
 };
 } // AccountSA
 } // OHOS
