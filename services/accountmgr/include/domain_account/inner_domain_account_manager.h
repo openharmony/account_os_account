@@ -68,6 +68,9 @@ public:
     ErrCode GetDomainAccountInfoByUserId(int32_t userId, DomainAccountInfo &domainInfo);
     ErrCode AddServerConfig(const std::string &paremters, DomainServerConfig &config);
     ErrCode RemoveServerConfig(const std::string &configId);
+    ErrCode UpdateServerConfig(const std::string &configId, const std::string &paremters, DomainServerConfig &config);
+    ErrCode GetServerConfig(const std::string &configId, DomainServerConfig &config);
+    ErrCode GetAllServerConfigs(std::vector<DomainServerConfig> &configs);
     ErrCode GetAccountServerConfig(const DomainAccountInfo &info, DomainServerConfig &config);
     void LoaderLib(const std::string &path, const std::string &libName);
     void CloseLib();

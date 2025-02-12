@@ -270,6 +270,9 @@
         "OHOS::AccountSA::InnerDomainAccountManager::GetDomainAccountInfo(OHOS::AccountSA::DomainAccountInfo const&, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
         "OHOS::AccountSA::InnerDomainAccountManager::AddServerConfig(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::DomainServerConfig&)";
         "OHOS::AccountSA::InnerDomainAccountManager::RemoveServerConfig(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+        "OHOS::AccountSA::InnerDomainAccountManager::UpdateServerConfig(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::DomainServerConfig&)";
+        "OHOS::AccountSA::InnerDomainAccountManager::GetServerConfig(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::DomainServerConfig&)";
+        "OHOS::AccountSA::InnerDomainAccountManager::GetAllServerConfigs(std::__h::vector<OHOS::AccountSA::DomainServerConfig, std::__h::allocator<OHOS::AccountSA::DomainServerConfig>>&)";
         "OHOS::AccountSA::InnerDomainAccountManager::GetAccountServerConfig(OHOS::AccountSA::DomainAccountInfo const&, OHOS::AccountSA::DomainServerConfig&)";
         "OHOS::AccountSA::InnerDomainAccountManager::UpdateAccountInfo(OHOS::AccountSA::DomainAccountInfo const&, OHOS::AccountSA::DomainAccountInfo const&)";
         "OHOS::AccountSA::DomainAccountStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
