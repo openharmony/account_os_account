@@ -49,6 +49,7 @@ const std::string GET_LOCAL_ACCOUNTS = "ohos.permission.GET_LOCAL_ACCOUNTS";
 const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION =
     "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION";
 const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
+const std::string GET_DOMAIN_ACCOUNTS = "ohos.permission.GET_DOMAIN_ACCOUNTS";
 const std::set<uint32_t> uidWhiteListForCreation { 3057 };
 const std::int32_t EDM_UID = 3057;
 
@@ -1209,6 +1210,20 @@ ErrCode OsAccountManagerService::SetOsAccountToBeRemoved(int32_t localId, bool t
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     return innerManager_.SetOsAccountToBeRemoved(localId, toBeRemoved);
+}
+
+ErrCode OsAccountManagerService::GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo)
+{
+    if (!(PermissionCheck(GET_DOMAIN_ACCOUNTS, "") &&
+        PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, ""))) {
+        ACCOUNT_LOGE("Permission denied.");
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    ErrCode res = CheckLocalId(localId);
+    if (res != ERR_OK) {
+        return res;
+    }
+    return innerManager_.GetOsAccountDomainInfo(localId, domainInfo);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

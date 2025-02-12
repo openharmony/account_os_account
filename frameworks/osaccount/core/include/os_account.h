@@ -102,7 +102,7 @@ public:
     ErrCode GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts);
     ErrCode GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds);
     ErrCode SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved);
-
+    ErrCode GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo);
 private:
     OsAccount();
     ~OsAccount() = default;

@@ -644,6 +644,16 @@ public:
      * @return error code, see account_error_no.h
      */
     static ErrCode SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved);
+
+    /**
+     * @brief Get domain account info by a given os account id
+     *
+     * @permission ohos.permission.GET_DOMAIN_ACCOUNTS and ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS
+     * @param localId - Indicates the target OS account.
+     * @param domainInfo - Returns the domain account information.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

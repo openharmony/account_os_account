@@ -30,6 +30,7 @@ group("fuzztest") {
     "getforegroundosaccountlocalid_fuzzer:GetForegroundOsAccountLocalIdFuzzTest",
     "getmaxallowcreateidfromdatabase_fuzzer:GetMaxAllowCreateIdFromDatabaseFuzzTest",
     "getosaccountallconstraints_fuzzer:GetOsAccountAllConstraintsFuzzTest",
+    "getosaccountdomaininfo_fuzzer:GetOsAccountDomainInfoFuzzTest",
     "getosaccountfromdatabase_fuzzer:GetOsAccountFromDatabaseFuzzTest",
     "getosaccountlistfromdatabase_fuzzer:GetOsAccountListFromDatabaseFuzzTest",
     "getosaccountlocalidbyserialnumber_fuzzer:GetOsAccountLocalIdBySerialNumberFuzzTest",
