@@ -39,7 +39,7 @@ private:
 class GetCredInfoCallbackService : public GetCredInfoCallbackStub {
 public:
     explicit GetCredInfoCallbackService(const std::shared_ptr<GetCredInfoCallback> &callback);
-    void OnCredentialInfo(const std::vector<CredentialInfo> &infoList) override;
+    void OnCredentialInfo(int32_t result, const std::vector<CredentialInfo> &infoList) override;
 
 private:
     std::shared_ptr<GetCredInfoCallback> callback_;

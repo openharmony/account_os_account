@@ -156,7 +156,7 @@ HWTEST_F(AccountIAMCallbackServiceTest, GetCredInfoCallbackService_OnCredentialI
     sptr<GetCredInfoCallbackService> wrapper = new (std::nothrow) GetCredInfoCallbackService(nullptr);
     EXPECT_TRUE(wrapper->callback_ == nullptr);
     std::vector<CredentialInfo> infoList;
-    wrapper->OnCredentialInfo(infoList);
+    wrapper->OnCredentialInfo(0, infoList);
 }
 
 /**

@@ -39,7 +39,7 @@ private:
 class GetCredInfoCallbackProxy : public IRemoteProxy<IGetCredInfoCallback> {
 public:
     explicit GetCredInfoCallbackProxy(const sptr<IRemoteObject> &object);
-    void OnCredentialInfo(const std::vector<CredentialInfo> &infoList) override;
+    void OnCredentialInfo(int32_t result, const std::vector<CredentialInfo> &infoList) override;
 
 private:
     ErrCode SendRequest(GetCredInfoCallbackInterfaceCode code, MessageParcel &data, MessageParcel &reply);

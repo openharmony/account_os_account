@@ -95,37 +95,41 @@ GetCredInfoCallbackProxy::GetCredInfoCallbackProxy(const sptr<IRemoteObject> &ob
     : IRemoteProxy<IGetCredInfoCallback>(object)
 {}
 
-void GetCredInfoCallbackProxy::OnCredentialInfo(const std::vector<CredentialInfo> &infoList)
+void GetCredInfoCallbackProxy::OnCredentialInfo(int32_t result, const std::vector<CredentialInfo> &infoList)
 {
     MessageParcel data;
-    MessageParcel reply;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGE("write descriptor fail");
+        ACCOUNT_LOGE("Write descriptor fail");
+        return;
+    }
+    if (!data.WriteInt32(result)) {
+        ACCOUNT_LOGE("Write result fail");
         return;
     }
     if (!data.WriteUint32(infoList.size())) {
-        ACCOUNT_LOGE("write info size fail");
+        ACCOUNT_LOGE("Write info size fail");
         return;
     }
     for (const auto &info : infoList) {
         if (!data.WriteUint64(info.credentialId)) {
-            ACCOUNT_LOGE("write credentialId fail");
+            ACCOUNT_LOGE("Write credentialId fail");
             return;
         }
         if (!data.WriteInt32(info.authType)) {
-            ACCOUNT_LOGE("write authType fail");
+            ACCOUNT_LOGE("Write authType fail");
             return;
         }
         PinSubType pinType = info.pinType.value_or(PinSubType::PIN_MAX);
         if (!data.WriteInt32(pinType)) {
-            ACCOUNT_LOGE("write authSubType fail");
+            ACCOUNT_LOGE("Write authSubType fail");
             return;
         }
         if (!data.WriteUint64(info.templateId)) {
-            ACCOUNT_LOGE("write templateId fail");
+            ACCOUNT_LOGE("Write templateId fail");
             return;
         }
     }
+    MessageParcel reply;
     uint32_t code = static_cast<uint32_t>(GetCredInfoCallbackInterfaceCode::ON_CREDENTIAL_INFO);
     SendRequestFunc(Remote(), code, data, reply);
 }
