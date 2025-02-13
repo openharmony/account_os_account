@@ -678,22 +678,26 @@ GetCredInfoCallbackWrapper::GetCredInfoCallbackWrapper(
 
 void GetCredInfoCallbackWrapper::OnCredentialInfo(int32_t result, const std::vector<CredentialInfo> &infoList)
 {
-    static_cast<void>(result);
+    ACCOUNT_LOGI("Get credential info ret = %{public}d, userId = %{public}d", result, userId_);
     if (innerCallback_ == nullptr) {
         return;
     }
-    if (authType_ == 0) {
+    if (result == ERR_IAM_NOT_ENROLLED) {
+        result = 0;
+    }
+    if ((result == 0) && (authType_ == 0)) {
         bool isAvailable = InnerAccountIAMManager::GetInstance().CheckDomainAuthAvailable(userId_);
         if (isAvailable) {
+            ACCOUNT_LOGI("Domain auth is support");
             std::vector<CredentialInfo> newInfoList = infoList;
             CredentialInfo info;
             info.authType = static_cast<AuthType>(IAMAuthType::DOMAIN);
             info.pinType = static_cast<PinSubType>(IAMAuthSubType::DOMAIN_MIXED);
             newInfoList.emplace_back(info);
-            return innerCallback_->OnCredentialInfo(newInfoList);
+            return innerCallback_->OnCredentialInfo(result, newInfoList);
         }
     }
-    return innerCallback_->OnCredentialInfo(infoList);
+    return innerCallback_->OnCredentialInfo(result, infoList);
 }
 
 GetPropCallbackWrapper::GetPropCallbackWrapper(int32_t userId, const sptr<IGetSetPropCallback> &callback)

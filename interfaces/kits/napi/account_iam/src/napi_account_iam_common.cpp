@@ -582,6 +582,7 @@ NapiGetInfoCallback::~NapiGetInfoCallback()
 
 void NapiGetInfoCallback::OnCredentialInfo(int32_t result, const std::vector<AccountSA::CredentialInfo> &infoList)
 {
+    ACCOUNT_LOGI("Get gredential info result = %{public}d", result);
     std::lock_guard<std::mutex> lock(mutex_);
     if (onResultCalled_) {
         ACCOUNT_LOGE("Call twice is not allowed");
