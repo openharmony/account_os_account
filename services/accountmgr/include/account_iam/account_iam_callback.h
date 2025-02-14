@@ -53,6 +53,8 @@ private:
     ErrCode UnlockAccount(int32_t accountId, const std::vector<uint8_t> &token,
         const std::vector<uint8_t> &secret, bool &isUpdateVerifiedStatus);
     ErrCode HandleAuthResult(const Attributes &extraInfo, int32_t accountId, bool &isUpdateVerifiedStatus);
+    ErrCode UnlockUserScreen(int32_t accountId, const std::vector<uint8_t> &token,
+        const std::vector<uint8_t> &secret, bool &isUpdateVerifiedStatus);
 
 private:
     uint32_t userId_;

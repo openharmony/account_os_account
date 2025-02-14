@@ -723,5 +723,41 @@ sptr<StorageManager::IStorageManager> InnerAccountIAMManager::GetStorageManagerP
     return storageMgrProxy;
 }
 #endif
+
+ErrCode InnerAccountIAMManager::CheckNeedReactivateUserKey(int32_t userId, bool &needReactivateKey)
+{
+#ifdef HAS_STORAGE_PART
+    int32_t errCode = 0;
+    int32_t retryTimes = 0;
+    while (retryTimes < MAX_RETRY_TIMES) {
+        sptr<StorageManager::IStorageManager> proxy = GetStorageManagerProxy();
+        if (proxy == nullptr) {
+            ACCOUNT_LOGE("Failed to get STORAGE_MANAGER_MANAGER_ID proxy, retry!");
+            errCode = ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
+            retryTimes++;
+            std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
+            continue;
+        }
+        errCode = proxy->GetUserNeedActiveStatus(userId, needReactivateKey);
+        if ((errCode == Constants::E_IPC_ERROR) || (errCode == Constants::E_IPC_SA_DIED)) {
+            ACCOUNT_LOGE("Failed to PrepareStartUser, id:%{public}d, errCode:%{public}d, retry!", userId, errCode);
+            retryTimes++;
+            std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
+            continue;
+        } else {
+            break;
+        }
+    }
+    if (errCode != ERR_OK) {
+        needReactivateKey = true;
+    }
+    ACCOUNT_LOGI("Get user %{public}d need active status, ret = %{public}d, needReactivateKey = %{public}d.",
+        userId, errCode, needReactivateKey);
+    return errCode;
+#else
+    needReactivateKey = false;
+    return ERR_OK;
+#endif // HAS_STORAGE_PART
+}
 }  // namespace AccountSA
 }  // namespace OHOS
