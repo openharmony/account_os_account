@@ -287,6 +287,11 @@ public:
         return g_fscryptEnable ? ERROR_STORAGE_KEY_NOT_EXIST : 0;
     }
 
+    int32_t GetUserNeedActiveStatus(uint32_t userId, bool &needActive)
+    {
+        return 0;
+    }
+
     std::vector<int32_t> CreateShareFile(const std::vector<std::string> &uriList, uint32_t tokenId, uint32_t flag)
     {
         return std::vector<int32_t>{0};
