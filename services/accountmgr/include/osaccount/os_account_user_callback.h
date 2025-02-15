@@ -33,6 +33,7 @@ public:
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
     void OnStopUserDone(int userId, int errcode) override;
     void OnStartUserDone(int userId, int errcode) override;
+    void OnLogoutUserDone(int userId, int errcode) override;
 
 public:
     bool isCalled_ = false;
@@ -40,12 +41,14 @@ public:
     std::mutex mutex_;
     std::condition_variable onStartCondition_;
     std::condition_variable onStopCondition_;
+    std::condition_variable onLogoutCondition_;
     OsAccountStartCallbackFunc startUserCallbackFunc_;
 private:
     DISALLOW_COPY_AND_MOVE(OsAccountUserCallback);
 
     int OnStopUserDoneInner(MessageParcel &data, MessageParcel &reply);
     int OnStartUserDoneInner(MessageParcel &data, MessageParcel &reply);
+    int OnLogoutUserDoneInner(MessageParcel &data, MessageParcel &reply);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

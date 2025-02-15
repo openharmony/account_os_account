@@ -145,14 +145,35 @@ ErrCode OsAccountInterface::SendToAMSAccountDeactivate(OsAccountInfo &osAccountI
 {
     int32_t localId = osAccountInfo.GetLocalId();
     ACCOUNT_LOGI("Deactivate OS account %{public}d", localId);
+    sptr<OsAccountUserCallback> deactivateUserCallback = new (std::nothrow) OsAccountUserCallback();
+    if (deactivateUserCallback == nullptr) {
+        ACCOUNT_LOGE("Alloc memory for deactivate user callback failed!");
+        ReportOsAccountOperationFail(localId, Constants::OPERATION_STOP,
+            ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, "malloc for OsAccountUserCallback failed!");
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
+
     StartTraceAdapter("AbilityManagerAdapter LogoutUser");
-    ErrCode code = AbilityManagerAdapter::GetInstance()->LogoutUser(osAccountInfo.GetLocalId());
+    ErrCode code = AbilityManagerAdapter::GetInstance()->LogoutUser(localId, deactivateUserCallback);
     if (code != ERR_OK) {
         ACCOUNT_LOGE("Failed to AbilityManagerAdapter logout errcode is %{public}d", code);
-        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_STOP, code,
+        ReportOsAccountOperationFail(localId, Constants::OPERATION_STOP, code,
             "AbilityManager failed to logout user");
+        FinishTraceAdapter();
+        return code;
     }
+    std::unique_lock<std::mutex> lock(deactivateUserCallback->mutex_);
+    deactivateUserCallback->onLogoutCondition_.wait(lock, [deactivateUserCallback] {
+        return deactivateUserCallback->isCalled_;
+    });
     FinishTraceAdapter();
+    if (deactivateUserCallback->resultCode_ != ERR_OK) {
+        ACCOUNT_LOGE("Failed to logout user in call back");
+        ReportOsAccountOperationFail(localId, Constants::OPERATION_STOP,
+            deactivateUserCallback->resultCode_, "AbilityManager failed to logout user in callback");
+        return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_AM_ACCOUNT_START_ERROR;
+    }
+    ACCOUNT_LOGI("Deactivate End, succeed %{public}d", localId);
     return code;
 }
 
