@@ -206,7 +206,7 @@ ErrCode AbilityManagerAdapter::StopUser(int32_t accountId, const sptr<AAFwk::IUs
     return reply.ReadInt32();
 }
 
-ErrCode AbilityManagerAdapter::LogoutUser(int32_t accountId)
+ErrCode AbilityManagerAdapter::LogoutUser(int32_t accountId, const sptr<IUserCallback> &callback)
 {
     auto abms = GetAbilityManager();
     if (abms == nullptr) {
@@ -226,7 +226,15 @@ ErrCode AbilityManagerAdapter::LogoutUser(int32_t accountId)
         ACCOUNT_LOGE("write accountId failed.");
         return ERR_INVALID_VALUE;
     }
-
+    if (callback == nullptr) {
+        data.WriteBool(false);
+    } else {
+        data.WriteBool(true);
+        if (!data.WriteRemoteObject(callback->AsObject())) {
+            ACCOUNT_LOGE("Write IUserCallback fail.");
+            return ERR_INVALID_VALUE;
+        }
+    }
     int32_t errCode =
         abms->SendRequest(static_cast<uint32_t>(AbilityManagerInterfaceCode::LOGOUT_USER), data, reply, option);
     if (errCode != NO_ERROR) {
