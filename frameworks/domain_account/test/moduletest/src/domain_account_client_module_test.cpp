@@ -82,7 +82,49 @@ const int32_t WAIT_TIME = 20;
 const int32_t INVALID_CODE = -1;
 const uid_t TEST_UID = 100;
 const uid_t ROOT_UID = 0;
+static constexpr int32_t DEFAULT_API_VERSION = 8;
+static uint64_t g_selfTokenID;
 std::shared_ptr<MockDomainPlugin> g_plugin = std::make_shared<MockDomainPlugin>();
+}
+
+static bool AllocPermission(std::vector<std::string> permissions, AccessTokenID &tokenID, bool isSystemApp = true)
+{
+    std::vector<PermissionStateFull> permissionStates;
+    for (const auto& permission : permissions) {
+        PermissionStateFull permissionState = {
+            .permissionName = permission,
+            .isGeneral = true,
+            .resDeviceID = {"local"},
+            .grantStatus = {PermissionState::PERMISSION_GRANTED},
+            .grantFlags = {PERMISSION_SYSTEM_FIXED}
+        };
+        permissionStates.emplace_back(permissionState);
+    }
+    HapPolicyParams hapPolicyParams = {
+        .apl = APL_NORMAL,
+        .domain = "test.domain",
+        .permList = {},
+        .permStateList = permissionStates
+    };
+
+    HapInfoParams hapInfoParams = {
+        .userID = 100,
+        .bundleName = "account_test",
+        .instIndex = 0,
+        .appIDDesc = "account_test",
+        .apiVersion = DEFAULT_API_VERSION,
+        .isSystemApp = isSystemApp
+    };
+
+    AccessTokenIDEx tokenIdEx = {0};
+    tokenIdEx = AccessTokenKit::AllocHapToken(hapInfoParams, hapPolicyParams);
+    tokenID = tokenIdEx.tokenIdExStruct.tokenID;
+    return (INVALID_TOKENID != tokenIdEx.tokenIDEx) && (0 == SetSelfTokenID(tokenIdEx.tokenIDEx));
+}
+
+bool RecoveryPermission(AccessTokenID tokenID)
+{
+    return (ERR_OK == AccessTokenKit::DeleteToken(tokenID)) && (ERR_OK == SetSelfTokenID(g_selfTokenID));
 }
 
 class DomainAccountClientModuleTest : public testing::Test {
@@ -112,6 +154,7 @@ void DomainAccountClientModuleTest::SetUpTestCase(void)
     IInnerOsAccountManager::GetInstance().ActivateDefaultOsAccount();
     OsAccount::GetInstance().proxy_ = new (std::nothrow) OsAccountProxy(osAccountService->AsObject());
     ASSERT_NE(OsAccount::GetInstance().proxy_, nullptr);
+    g_selfTokenID = IPCSkeleton::GetSelfTokenID();
 #endif
 }
 
@@ -1115,14 +1158,18 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAcco
  */
 HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAccountToken_004, TestSize.Level0)
 {
+    AccessTokenID tokenID;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
+    setuid(TEST_UID);
     DomainAccountInfo domainInfo;
     domainInfo.accountName_ = "11";
     domainInfo.domain_ = STRING_DOMAIN_NEW;
     domainInfo.accountId_ = "testid";
-    DomainAccountClient::GetInstance().UnregisterPlugin();
     std::vector<uint8_t> token = {1};
     EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountToken(domainInfo, token),
         ERR_DOMAIN_ACCOUNT_SERVICE_INVALID_CALLING_UID);
+    setuid(ROOT_UID);
+    ASSERT_TRUE(RecoveryPermission(tokenID));
 }
 
 /**
