@@ -84,7 +84,7 @@ std::vector<std::string> GenericValues::GetAllKeys() const
 
 void GenericValues::Remove(const std::string& key)
 {
-    if (map_.count(key) > 0) {
+    if (map_.find(key) != map_.end()) {
         map_.erase(key);
     }
 }

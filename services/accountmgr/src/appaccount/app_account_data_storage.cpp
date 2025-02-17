@@ -117,8 +117,8 @@ ErrCode AppAccountDataStorage::DeleteAccountInfoFromDataStorage(AppAccountInfo &
 }
 
 #ifndef SQLITE_DLCLOSE_ENABLE
-void AppAccountDataStorage::SaveEntries(
-    std::vector<OHOS::DistributedKv::Entry> allEntries, std::map<std::string, std::shared_ptr<IAccountInfo>> &infos)
+void AppAccountDataStorage::SaveEntries(const std::vector<OHOS::DistributedKv::Entry> &allEntries,
+    std::map<std::string, std::shared_ptr<IAccountInfo>> &infos)
 {
     for (auto const &item : allEntries) {
         Json jsonObject = Json::parse(item.value.ToString(), nullptr, false);
@@ -138,7 +138,7 @@ void AppAccountDataStorage::SaveEntries(
     }
 }
 #else
-void AppAccountDataStorage::SaveEntries(std::vector<DbAdapterEntry> allEntries,
+void AppAccountDataStorage::SaveEntries(const std::vector<DbAdapterEntry> &allEntries,
     std::map<std::string, std::shared_ptr<IAccountInfo>> &infos)
 {
     for (auto const &item : allEntries) {

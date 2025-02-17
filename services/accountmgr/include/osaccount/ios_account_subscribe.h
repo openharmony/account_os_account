@@ -25,12 +25,12 @@ namespace AccountSA {
 struct OsSubscribeRecord {
     std::shared_ptr<OsAccountSubscribeInfo> subscribeInfoPtr_;
     sptr<IRemoteObject> eventListener_;
-    uid_t callingUid_;
+    int32_t callingUid_;
 
     OsSubscribeRecord() : subscribeInfoPtr_(nullptr), eventListener_(nullptr), callingUid_(-1)
     {}
     OsSubscribeRecord(std::shared_ptr<OsAccountSubscribeInfo> subscribeInfoPtr, sptr<IRemoteObject> eventListener,
-        uid_t callingUid)
+        int32_t callingUid)
         : subscribeInfoPtr_(subscribeInfoPtr), eventListener_(eventListener), callingUid_(callingUid)
     {}
 };

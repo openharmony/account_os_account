@@ -43,10 +43,10 @@ public:
 
 private:
 #ifndef SQLITE_DLCLOSE_ENABLE
-    void SaveEntries(std::vector<OHOS::DistributedKv::Entry> allEntries,
+    void SaveEntries(const std::vector<OHOS::DistributedKv::Entry> &allEntries,
         std::map<std::string, std::shared_ptr<IAccountInfo>> &infos) override;
 #else
-    void SaveEntries(std::vector<DbAdapterEntry> allEntries,
+    void SaveEntries(const std::vector<DbAdapterEntry> &allEntries,
         std::map<std::string, std::shared_ptr<IAccountInfo>> &infos) override;
 #endif // SQLITE_DLCLOSE_ENABLE
 };
