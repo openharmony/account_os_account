@@ -28,7 +28,7 @@ constexpr int64_t TIMEOUT_THRESHOLD = 5000000; // 5s
 
 OsAccountStateReplyCallbackStub::OsAccountStateReplyCallbackStub(int32_t accountId, OsAccountState state,
     const std::shared_ptr<std::condition_variable> &cvPtr, const std::shared_ptr<SafeQueue<uint8_t>> &safeQueue,
-    uid_t subscriberUid)
+    int32_t subscriberUid)
     : accountId_(accountId), state_(state), cvPtr_(cvPtr), safeQueue_(safeQueue), subscriberUid_(subscriberUid)
 {}
 
