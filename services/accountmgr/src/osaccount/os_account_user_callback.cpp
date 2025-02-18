@@ -47,8 +47,18 @@ int OsAccountUserCallback::OnStartUserDoneInner(MessageParcel &data, MessageParc
 
 int OsAccountUserCallback::OnLogoutUserDoneInner(MessageParcel &data, MessageParcel &reply)
 {
-    auto accountId = data.ReadInt32();
-    auto errCode = data.ReadInt32();
+    int32_t accountId;
+    if (!data.ReadInt32(accountId)) {
+        ACCOUNT_LOGE("Read accountId from reply failed.");
+        OnLogoutUserDone(-1, ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR);
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    int32_t errCode;
+    if (!data.ReadInt32(errCode)) {
+        ACCOUNT_LOGE("Read errCode from reply failed.");
+        OnLogoutUserDone(accountId, ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR);
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
     OnLogoutUserDone(accountId, errCode);
     return ERR_OK;
 }
