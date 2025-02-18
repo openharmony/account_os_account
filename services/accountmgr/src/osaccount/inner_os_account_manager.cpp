@@ -977,11 +977,6 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountDeactivate(OsAccountInfo &osAcc
         ReportOsAccountOperationFail(localId, Constants::OPERATION_STOP, errCode,
             "Failed to publish stopping notification");
     }
-    errCode = OsAccountInterface::CheckAllAppDied(localId);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("CheckAllAppDied failed, operation is timeout");
-        return errCode;
-    }
     if (isStopStorage) {
         errCode = OsAccountInterface::SendToStorageAccountStop(osAccountInfo);
         if (errCode != ERR_OK) {

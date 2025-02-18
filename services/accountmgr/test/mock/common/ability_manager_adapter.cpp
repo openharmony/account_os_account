@@ -111,7 +111,7 @@ ErrCode AbilityManagerAdapter::StopUser(int accountId, const sptr<AAFwk::IUserCa
     return ERR_OK;
 }
 
-ErrCode AbilityManagerAdapter::LogoutUser(int accountId)
+ErrCode AbilityManagerAdapter::LogoutUser(int32_t accountId, const sptr<IUserCallback> &callback)
 {
     return ERR_OK;
 }
