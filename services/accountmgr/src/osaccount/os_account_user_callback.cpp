@@ -45,6 +45,14 @@ int OsAccountUserCallback::OnStartUserDoneInner(MessageParcel &data, MessageParc
     return ERR_OK;
 }
 
+int OsAccountUserCallback::OnLogoutUserDoneInner(MessageParcel &data, MessageParcel &reply)
+{
+    auto accountId = data.ReadInt32();
+    auto errCode = data.ReadInt32();
+    OnLogoutUserDone(accountId, errCode);
+    return ERR_OK;
+}
+
 int OsAccountUserCallback::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
@@ -60,6 +68,8 @@ int OsAccountUserCallback::OnRemoteRequest(
             return OnStopUserDoneInner(data, reply);
         case UserCallbackCmd::ON_START_USER_DONE:
             return OnStartUserDoneInner(data, reply);
+        case UserCallbackCmd::ON_LOGOUT_USER_DONE:
+            return OnLogoutUserDoneInner(data, reply);
         default:
             break;
     }
@@ -88,6 +98,16 @@ void OsAccountUserCallback::OnStartUserDone(int userId, int errcode)
     isCalled_ = true;
     resultCode_ = errcode;
     onStartCondition_.notify_one();
+}
+
+void OsAccountUserCallback::OnLogoutUserDone(int userId, int errcode)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    ACCOUNT_LOGI("In call back account, OnLogoutUserDone id is %{public}d, errcode is %{public}d.",
+        userId, errcode);
+    isCalled_ = true;
+    resultCode_ = errcode;
+    onLogoutCondition_.notify_one();
 }
 }  // namespace AccountSA
 }  // namespace OHOS

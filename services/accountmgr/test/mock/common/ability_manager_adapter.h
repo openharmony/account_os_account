@@ -83,7 +83,7 @@ public:
      *
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode LogoutUser(int32_t accountId);
+    ErrCode LogoutUser(int32_t accountId, const sptr<IUserCallback> &callback);
 
     /**
      * @brief all app is died.
@@ -101,7 +101,7 @@ private:
         const sptr<IAbilityConnection> &connect,
         const sptr<IRemoteObject> &callerToken,
         int32_t userId = -1);
-    
+
     class AbilityMgrDeathRecipient : public IRemoteObject::DeathRecipient {
         public:
             AbilityMgrDeathRecipient() = default;

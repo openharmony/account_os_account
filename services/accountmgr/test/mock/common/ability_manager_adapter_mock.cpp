@@ -67,8 +67,12 @@ ErrCode AbilityManagerAdapter::StopUser(int accountId, const sptr<AAFwk::IUserCa
     return ERR_OK;
 }
 
-ErrCode AbilityManagerAdapter::LogoutUser(int accountId)
+ErrCode AbilityManagerAdapter::LogoutUser(int32_t accountId, const sptr<IUserCallback> &callback)
 {
+    auto task = [accountId, callback] { callback->OnLogoutUserDone(accountId, 0); };
+    std::thread taskThread(task);
+    pthread_setname_np(taskThread.native_handle(), "LogoutUser");
+    taskThread.detach();
     return ERR_OK;
 }
 
