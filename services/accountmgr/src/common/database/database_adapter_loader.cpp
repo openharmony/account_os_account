@@ -60,10 +60,11 @@ bool DatabaseAdapterLoader::CheckAndUnload()
 
 bool DatabaseAdapterLoader::CheckAndLoad()
 {
-    if (IsLoaded()) {
+    std::lock_guard<std::mutex> lock(loadMutex_);
+    if ((handle_ != nullptr) && (createFunc_ != nullptr) && (destroyFunc_ != nullptr)) {
         return true;
     }
-    std::lock_guard<std::mutex> lock(loadMutex_);
+
     if (handle_ == nullptr) {
         handle_ = dlopen("libaccount_database_adapter.z.so", RTLD_LAZY);
         if (handle_ == nullptr) {
@@ -87,12 +88,6 @@ bool DatabaseAdapterLoader::CheckAndLoad()
     return true;
 }
 
-bool DatabaseAdapterLoader::IsLoaded()
-{
-    std::lock_guard<std::mutex> lock(loadMutex_);
-    return (handle_ != nullptr) && (createFunc_ != nullptr) && (destroyFunc_ != nullptr);
-}
-
 std::shared_ptr<IDbAdapterDataManager> DatabaseAdapterLoader::GetDataManager()
 {
     if (!CheckAndLoad()) {
@@ -107,6 +102,11 @@ std::shared_ptr<IDbAdapterDataManager> DatabaseAdapterLoader::GetDataManager()
 
 void DatabaseAdapterLoader::DestroyDataManager(IDbAdapterDataManager* dataManager)
 {
+    std::lock_guard<std::mutex> lock(loadMutex_);
+    if (destroyFunc_ == nullptr) {
+        ACCOUNT_LOGE("Destroy func is null, destroy failed.");
+        return;
+    }
     destroyFunc_(dataManager);
 }
 } // namespace AccountSA
