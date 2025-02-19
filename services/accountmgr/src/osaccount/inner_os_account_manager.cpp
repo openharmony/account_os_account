@@ -889,6 +889,11 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountStop(OsAccountInfo &osAccountIn
 
 ErrCode IInnerOsAccountManager::SendMsgForAccountDeactivate(OsAccountInfo &osAccountInfo, bool isStopStorage)
 {
+    int32_t localId = osAccountInfo.GetLocalId();
+    int32_t foregroundId = -1;
+    if (foregroundAccountMap_.Find(Constants::DEFAULT_DISPALY_ID, foregroundId) && foregroundId == localId) {
+        foregroundAccountMap_.Erase(Constants::DEFAULT_DISPALY_ID);
+    }
     ErrCode errCode = OsAccountInterface::SendToAMSAccountDeactivate(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("SendToAMSAccountDeactivate failed, id %{public}d, errCode %{public}d",
@@ -900,7 +905,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountDeactivate(OsAccountInfo &osAcc
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("SendToStorageAccountStop failed, id %{public}d, errCode %{public}d",
                 osAccountInfo.GetLocalId(), errCode);
-            return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
+            return errCode;
         }
     }
 
