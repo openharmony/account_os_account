@@ -227,9 +227,15 @@ ErrCode AbilityManagerAdapter::LogoutUser(int32_t accountId, const sptr<IUserCal
         return ERR_INVALID_VALUE;
     }
     if (callback == nullptr) {
-        data.WriteBool(false);
+        if (!data.WriteBool(false)) {
+            ACCOUNT_LOGE("Write without callback fail.");
+            return ERR_INVALID_VALUE;
+        }
     } else {
-        data.WriteBool(true);
+        if (!data.WriteBool(true)) {
+            ACCOUNT_LOGE("Write with callback fail.");
+            return ERR_INVALID_VALUE;
+        }
         if (!data.WriteRemoteObject(callback->AsObject())) {
             ACCOUNT_LOGE("Write IUserCallback fail.");
             return ERR_INVALID_VALUE;
