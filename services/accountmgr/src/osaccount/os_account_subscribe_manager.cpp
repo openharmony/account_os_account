@@ -51,6 +51,13 @@ SwitchSubscribeInfo::SwitchSubscribeInfo(OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubs
     }
 }
 
+SwitchSubscribeInfo::~SwitchSubscribeInfo()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    workDeque_.clear();
+    workThread_ = nullptr;
+}
+
 void SwitchSubscribeInfo::AddSubscribeInfo(OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType)
 {
     if (osAccountSubscribeType == OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING ||
@@ -81,7 +88,7 @@ void SwitchSubscribeInfo::ConsumerTask()
 {
     bool exitFlag = false;
     while (!exitFlag) {
-        SwitchSubcribeWork work;
+        std::shared_ptr<SwitchSubcribeWork> work;
         {
             std::lock_guard<std::mutex> lock(mutex_);
             if (workDeque_.empty()) {
@@ -96,7 +103,9 @@ void SwitchSubscribeInfo::ConsumerTask()
         int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME,
             TIMEOUT, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
 #endif // HICOLLIE_ENABLE
-        work.eventProxy_->OnAccountsSwitch(work.fromId_, work.toId_);
+        if (work != nullptr && work->eventProxy_ != nullptr) {
+            work->eventProxy_->OnAccountsSwitch(work->fromId_, work->toId_);
+        }
 #ifdef HICOLLIE_ENABLE
         HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
 #endif // HICOLLIE_ENABLE
@@ -107,7 +116,7 @@ bool SwitchSubscribeInfo::ProductTask(const sptr<IOsAccountEvent> &eventProxy, O
     const int oldId)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    SwitchSubcribeWork work(eventProxy, state, newId, oldId);
+    auto work = std::make_shared<SwitchSubcribeWork>(eventProxy, state, newId, oldId);
     workDeque_.push_back(work);
     if (workThread_ == nullptr) {
         workThread_ = std::make_unique<std::thread>(&SwitchSubscribeInfo::ConsumerTask, this);
