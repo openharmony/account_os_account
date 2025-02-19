@@ -171,7 +171,7 @@ ErrCode OsAccountInterface::SendToAMSAccountDeactivate(OsAccountInfo &osAccountI
         ACCOUNT_LOGE("Failed to logout user in call back");
         ReportOsAccountOperationFail(localId, Constants::OPERATION_STOP,
             deactivateUserCallback->resultCode_, "AbilityManager failed to logout user in callback");
-        return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_AM_ACCOUNT_START_ERROR;
+        return deactivateUserCallback->resultCode_;
     }
     ACCOUNT_LOGI("Deactivate End, succeed %{public}d", localId);
     return code;
