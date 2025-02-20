@@ -424,6 +424,49 @@ ErrCode DomainAccountClient::RemoveServerConfig(const std::string &configId)
 #endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
+ErrCode DomainAccountClient::UpdateServerConfig(const std::string &configId, const std::string &parameters,
+    DomainServerConfig &config)
+{
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+    auto proxy = GetDomainAccountProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("Failed to get domain account proxy.");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->UpdateServerConfig(configId, parameters, config);
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
+}
+
+ErrCode DomainAccountClient::GetServerConfig(const std::string &configId, DomainServerConfig &config)
+{
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+    auto proxy = GetDomainAccountProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("Failed to get domain account proxy.");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->GetServerConfig(configId, config);
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
+}
+
+ErrCode DomainAccountClient::GetAllServerConfigs(std::vector<DomainServerConfig> &configs)
+{
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+    auto proxy = GetDomainAccountProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("Failed to get domain account proxy.");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->GetAllServerConfigs(configs);
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
+}
+
 ErrCode DomainAccountClient::GetAccountServerConfig(const DomainAccountInfo &info, DomainServerConfig &config)
 {
 #ifdef SUPPORT_DOMAIN_ACCOUNTS

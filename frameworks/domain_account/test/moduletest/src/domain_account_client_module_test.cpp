@@ -1956,6 +1956,15 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AddServerC
         ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(DomainAccountClient::GetInstance().RemoveServerConfig(identifier),
         ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    std::string configId = "testConfigId";
+    std::string parameters = "testParameters";
+    std::vector<DomainServerConfig> configs;
+    EXPECT_EQ(DomainAccountClient::GetInstance().UpdateServerConfig(configId, parameters, config),
+        ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(DomainAccountClient::GetInstance().GetServerConfig(configId, config),
+        ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(DomainAccountClient::GetInstance().GetAllServerConfigs(configs),
+        ERR_JS_CAPABILITY_NOT_SUPPORTED);
 }
 
 /**
