@@ -170,7 +170,7 @@ public:
      * @return error code, see account_error_no.h
      */
     static ErrCode IsOsAccountDeactivating(const int id, bool &isDeactivating);
-    
+
     /**
      * @brief Gets the number of all OS accounts created on a device.
      * @permission ohos.permission.MANAGE_LOCAL_ACCOUNTS
@@ -592,10 +592,18 @@ public:
 
     /**
      * @brief Gets the currend user local name.
-     * @param shortName - Indicates the current user local name of the OS account.
+     * @param name - Indicates the current user local name of the OS account.
      * @return error code, see account_error_no.h
      */
     static ErrCode GetOsAccountName(std::string &name);
+
+    /**
+     * @brief Gets the user name by specified id.
+     * @permission ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS or ohos.permission.MANAGE_LOCAL_ACCOUNTS
+     * @param name - Indicates the user name of the specified OS account.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode GetOsAccountNameById(int32_t id, std::string &name);
 
     /**
      * @brief Gets the user short name, based on account id.
