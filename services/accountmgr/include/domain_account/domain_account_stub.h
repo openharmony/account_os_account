@@ -50,6 +50,9 @@ public:
     ErrCode ProcRegisterAccountStatusListener(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcAddServerConfig(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcRemoveServerConfig(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcUpdateServerConfig(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetServerConfig(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetAllServerConfigs(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetAccountServerConfig(MessageParcel &data, MessageParcel &reply);
 };
 }  // namespace AccountSA

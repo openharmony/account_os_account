@@ -45,9 +45,13 @@ public:
     ErrCode GetAccessToken(const DomainAccountInfo &info, const AAFwk::WantParams &parameters,
         const sptr<IDomainAccountCallback> &callback) override;
     ErrCode GetDomainAccountInfo(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback) override;
-    ErrCode AddServerConfig(const std::string &paramter, DomainServerConfig &config) override;
+    ErrCode AddServerConfig(const std::string &parameter, DomainServerConfig &config) override;
     ErrCode RemoveServerConfig(const std::string &configId) override;
     ErrCode GetAccountServerConfig(const DomainAccountInfo &info, DomainServerConfig &config) override;
+    ErrCode UpdateServerConfig(const std::string &configId, const std::string &parameter,
+        DomainServerConfig &config) override;
+    ErrCode GetServerConfig(const std::string &configId, DomainServerConfig &config) override;
+    ErrCode GetAllServerConfigs(std::vector<DomainServerConfig> &configs) override;
     ErrCode UpdateAccountInfo(
         const DomainAccountInfo &oldAccountInfo, const DomainAccountInfo &newAccountInfo) override;
 

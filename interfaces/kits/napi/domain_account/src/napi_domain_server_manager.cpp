@@ -29,6 +29,7 @@ namespace AccountJsKit {
 using namespace OHOS::AccountSA;
 namespace {
 const size_t ARG_SIZE_ONE = 1;
+const size_t ARG_SIZE_TWO = 2;
 }
 
 napi_value NapiDomainServerConfigManager::Init(napi_env env, napi_value exports)
@@ -37,9 +38,15 @@ napi_value NapiDomainServerConfigManager::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_STATIC_FUNCTION("addServerConfig", AddServerConfig),
         DECLARE_NAPI_STATIC_FUNCTION("removeServerConfig", RemoveServerConfig),
         DECLARE_NAPI_STATIC_FUNCTION("getAccountServerConfig", GetAccountServerConfig),
+        DECLARE_NAPI_STATIC_FUNCTION("updateServerConfig", UpdateServerConfig),
+        DECLARE_NAPI_STATIC_FUNCTION("getServerConfig", GetServerConfig),
+        DECLARE_NAPI_STATIC_FUNCTION("getAllServerConfigs", GetAllServerConfigs),
         DECLARE_NAPI_FUNCTION("addServerConfig", AddServerConfig),
         DECLARE_NAPI_FUNCTION("removeServerConfig", RemoveServerConfig),
         DECLARE_NAPI_FUNCTION("getAccountServerConfig", GetAccountServerConfig),
+        DECLARE_NAPI_FUNCTION("updateServerConfig", UpdateServerConfig),
+        DECLARE_NAPI_FUNCTION("getServerConfig", GetServerConfig),
+        DECLARE_NAPI_FUNCTION("getAllServerConfigs", GetAllServerConfigs),
     };
     napi_value cons;
     NAPI_CALL(env, napi_define_class(env, "DomainServerConfigManager", NAPI_AUTO_LENGTH, JsConstructor,
@@ -273,5 +280,197 @@ napi_value NapiDomainServerConfigManager::GetAccountServerConfig(napi_env env, n
     return result;
 }
 
+static bool ParseContextForUpdateServerConfig(
+    napi_env env, napi_callback_info info, UpdateServerConfigAsyncContext *context)
+{
+    size_t argc = ARG_SIZE_TWO;
+    napi_value argv[ARG_SIZE_TWO] = {0};
+    NAPI_CALL_BASE(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr), false);
+    if (argc < ARG_SIZE_TWO) {
+        ACCOUNT_LOGE("The parameter of number should be at least two.");
+        std::string errMsg = "The number of parameters should be at least two.";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return false;
+    }
+    if (!GetStringProperty(env, argv[0], context->configId)) {
+        ACCOUNT_LOGE("Get updateServerconfig's configId failed");
+        std::string errMsg = "The type of configId is error.";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return false;
+    }
+    if (!JsObjectToNativeString(env, argv[1], context->parameters)) {
+        ACCOUNT_LOGE("Get parameters failed.");
+        std::string errMsg = "The type of parameter is error.";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return false;
+    }
+    return true;
+}
+
+static void UpdateServerConfigExecuteCB(napi_env env, void *data)
+{
+    UpdateServerConfigAsyncContext *asyncContext = reinterpret_cast<UpdateServerConfigAsyncContext *>(data);
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGE("asyncContext is nullptr.");
+        return;
+    }
+    asyncContext->errCode = DomainAccountClient::GetInstance().UpdateServerConfig(asyncContext->configId,
+        asyncContext->parameters, asyncContext->domainServerConfig);
+}
+
+
+static void UpdateServerConfigCompletedCB(napi_env env, napi_status status, void *data)
+{
+    UpdateServerConfigAsyncContext *asyncContext = reinterpret_cast<UpdateServerConfigAsyncContext *>(data);
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGE("AsyncContext is nullptr.");
+        return;
+    }
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    if (asyncContext->errCode == 0) {
+        napi_get_null(env, &errJs);
+        ServerConfigToJs(env, asyncContext->domainServerConfig, dataJs);
+    } else {
+        errJs = GenerateBusinessError(env, asyncContext->errCode);
+        napi_get_null(env, &dataJs);
+    }
+    ReturnCallbackOrPromise(env, asyncContext, errJs, dataJs);
+    delete asyncContext;
+}
+
+napi_value NapiDomainServerConfigManager::UpdateServerConfig(napi_env env, napi_callback_info info)
+{
+    auto context = std::make_unique<UpdateServerConfigAsyncContext>(env);
+    if (!ParseContextForUpdateServerConfig(env, info, context.get())) {
+        return nullptr;
+    }
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_promise(env, &context->deferred, &result));
+    napi_value resource = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, "UpdateServerConfig", NAPI_AUTO_LENGTH, &resource));
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource, UpdateServerConfigExecuteCB,
+        UpdateServerConfigCompletedCB, reinterpret_cast<void *>(context.get()), &context->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_default));
+    context.release();
+    return result;
+}
+
+static bool ParseContextForGetServerConfig(napi_env env, napi_callback_info info, GetServerConfigAsyncContext *context)
+{
+    size_t argc = ARG_SIZE_ONE;
+    napi_value argv[ARG_SIZE_ONE] = {0};
+    NAPI_CALL_BASE(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr), false);
+    if (argc < ARG_SIZE_ONE) {
+        ACCOUNT_LOGE("The parameter of number should be at least one.");
+        std::string errMsg = "The number of parameters should be at least one.";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return false;
+    }
+    if (!GetStringProperty(env, argv[0], context->configId)) {
+        ACCOUNT_LOGE("Get getServerConfig's configId failed");
+        std::string errMsg = "The type of configId is error.";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return false;
+    }
+    return true;
+}
+
+static void GetServerConfigExecuteCB(napi_env env, void *data)
+{
+    GetServerConfigAsyncContext *asyncContext = reinterpret_cast<GetServerConfigAsyncContext *>(data);
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGE("In GetServerConfigExecuteCB asyncContext is nullptr.");
+        return;
+    }
+    asyncContext->errCode = DomainAccountClient::GetInstance().GetServerConfig(asyncContext->configId,
+        asyncContext->domainServerConfig);
+}
+
+static void GetServerConfigCompletedCB(napi_env env, napi_status status, void *data)
+{
+    GetServerConfigAsyncContext *asyncContext = reinterpret_cast<GetServerConfigAsyncContext *>(data);
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGE("AsyncContext is nullptr.");
+        return;
+    }
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    if (asyncContext->errCode == 0) {
+        napi_get_null(env, &errJs);
+        ServerConfigToJs(env, asyncContext->domainServerConfig, dataJs);
+    } else {
+        errJs = GenerateBusinessError(env, asyncContext->errCode);
+        napi_get_null(env, &dataJs);
+    }
+    ReturnCallbackOrPromise(env, asyncContext, errJs, dataJs);
+    delete asyncContext;
+}
+
+napi_value NapiDomainServerConfigManager::GetServerConfig(napi_env env, napi_callback_info info)
+{
+    auto context = std::make_unique<GetServerConfigAsyncContext>(env);
+    if (!ParseContextForGetServerConfig(env, info, context.get())) {
+        return nullptr;
+    }
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_promise(env, &context->deferred, &result));
+    napi_value resource = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, "GetServerConfig", NAPI_AUTO_LENGTH, &resource));
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource, GetServerConfigExecuteCB,
+        GetServerConfigCompletedCB, reinterpret_cast<void *>(context.get()), &context->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_default));
+    context.release();
+    return result;
+}
+
+static void GetAllServerConfigsExecuteCB(napi_env env, void *data)
+{
+    GetAllServerConfigsAsyncContext *asyncContext = reinterpret_cast<GetAllServerConfigsAsyncContext *>(data);
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGE("In GetAllServerConfigsExecuteCB asyncContext is nullptr.");
+        return;
+    }
+    asyncContext->errCode = DomainAccountClient::GetInstance().GetAllServerConfigs(asyncContext->domainServerConfigs);
+}
+
+static void GetAllServerConfigsCompletedCB(napi_env env, napi_status status, void *data)
+{
+    GetAllServerConfigsAsyncContext *asyncContext = reinterpret_cast<GetAllServerConfigsAsyncContext *>(data);
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGE("AsyncContext is nullptr.");
+        return;
+    }
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    if (asyncContext->errCode == 0) {
+        napi_get_null(env, &errJs);
+        napi_create_array_with_length(env, asyncContext->domainServerConfigs.size(), &dataJs);
+        for (size_t i = 0; i < asyncContext->domainServerConfigs.size(); ++i) {
+            napi_value configJs;
+            ServerConfigToJs(env, asyncContext->domainServerConfigs[i], configJs);
+            napi_set_element(env, dataJs, i, configJs);
+        }
+    } else {
+        errJs = GenerateBusinessError(env, asyncContext->errCode);
+        napi_get_null(env, &dataJs);
+    }
+    ReturnCallbackOrPromise(env, asyncContext, errJs, dataJs);
+    delete asyncContext;
+}
+
+napi_value NapiDomainServerConfigManager::GetAllServerConfigs(napi_env env, napi_callback_info info)
+{
+    auto context = std::make_unique<GetAllServerConfigsAsyncContext>(env);
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_promise(env, &context->deferred, &result));
+    napi_value resource = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, "GetAllServerConfigs", NAPI_AUTO_LENGTH, &resource));
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource, GetAllServerConfigsExecuteCB,
+        GetAllServerConfigsCompletedCB, reinterpret_cast<void *>(context.get()), &context->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_default));
+    context.release();
+    return result;
+}
 }  // namespace AccountJsKit
 }  // namespace OHOS

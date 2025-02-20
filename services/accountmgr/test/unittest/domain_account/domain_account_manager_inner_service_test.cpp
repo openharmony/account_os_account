@@ -545,6 +545,7 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
 {
     InnerDomainAccountManager *instance = new (std::nothrow) InnerDomainAccountManager();
     DomainServerConfig config;
+    std::vector<DomainServerConfig> configs;
     std::string identifier;
     //libHandle_ is null
     EXPECT_EQ(instance->AddServerConfig(identifier, config), ERR_JS_CAPABILITY_NOT_SUPPORTED);
@@ -552,6 +553,9 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     EXPECT_EQ(instance->GetAccountServerConfig(info, config), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     std::string configId = STRING_TEST_NAME;
     EXPECT_EQ(instance->RemoveServerConfig(configId), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(instance->UpdateServerConfig(configId, STRING_TEST_NAME, config), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(instance->GetServerConfig(configId, config), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(instance->GetAllServerConfigs(configs), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     std::vector<uint8_t> password;
     DomainAuthResult resultParcel;
     EXPECT_EQ(instance->PluginAuth(info, password, resultParcel), ERR_JS_CAPABILITY_NOT_SUPPORTED);
@@ -589,6 +593,7 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     GetAccessTokenOptions option;
     AuthStatusInfo authInfo;
     GetDomainAccountInfoOptions options;
+    std::vector<DomainServerConfig> configs;
     std::string rightPath = "/rightPath/";
     std::string rightSoName = "right.z.so";
     //LoadLib success
@@ -601,6 +606,10 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     EXPECT_EQ(instance->AddServerConfig(identifier, config), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
     EXPECT_EQ(instance->GetAccountServerConfig(info, config), ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT);
     EXPECT_EQ(instance->RemoveServerConfig(configId), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    EXPECT_EQ(instance->UpdateServerConfig(configId, STRING_TEST_NAME, config),
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    EXPECT_EQ(instance->GetServerConfig(configId, config), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    EXPECT_EQ(instance->GetAllServerConfigs(configs), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
     EXPECT_EQ(instance->PluginAuth(info, password, resultParcel), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
     EXPECT_EQ(instance->PluginBindAccount(info, 100, resultParcel), ERR_OK);
     EXPECT_EQ(instance->PluginUnBindAccount(info, resultParcel), ERR_OK);
@@ -634,6 +643,7 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     GetAccessTokenOptions option;
     AuthStatusInfo authInfo;
     GetDomainAccountInfoOptions options;
+    std::vector<DomainServerConfig> configs;
     std::string rightPath = "/rightPath/";
     std::string rightSoName = "right.z.so";
     //LoadLib success
@@ -649,6 +659,9 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     EXPECT_EQ(instance->AddServerConfig(identifier, config), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->GetAccountServerConfig(info, config), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->RemoveServerConfig(configId), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(instance->UpdateServerConfig(configId, STRING_TEST_NAME, config), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(instance->GetServerConfig(configId, config), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(instance->GetAllServerConfigs(configs), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->PluginAuth(info, password, resultParcel), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->PluginBindAccount(info, 100, resultParcel), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->PluginUnBindAccount(info, resultParcel), ERR_JS_CAPABILITY_NOT_SUPPORTED);

@@ -142,9 +142,25 @@ ErrCode DomainAccountManagerService::RemoveServerConfig(const std::string &confi
     return InnerDomainAccountManager::GetInstance().RemoveServerConfig(configId);
 }
 
+ErrCode DomainAccountManagerService::UpdateServerConfig(const std::string &configId, const std::string &parameters,
+    DomainServerConfig &config)
+{
+    return InnerDomainAccountManager::GetInstance().UpdateServerConfig(configId, parameters, config);
+}
+
 ErrCode DomainAccountManagerService::GetAccountServerConfig(const DomainAccountInfo &info, DomainServerConfig &config)
 {
     return InnerDomainAccountManager::GetInstance().GetAccountServerConfig(info, config);
+}
+
+ErrCode DomainAccountManagerService::GetServerConfig(const std::string &configId, DomainServerConfig &config)
+{
+    return InnerDomainAccountManager::GetInstance().GetServerConfig(configId, config);
+}
+
+ErrCode DomainAccountManagerService::GetAllServerConfigs(std::vector<DomainServerConfig> &configs)
+{
+    return InnerDomainAccountManager::GetInstance().GetAllServerConfigs(configs);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -126,6 +126,9 @@ public:
 
     ErrCode AddServerConfig(const std::string &parameters, DomainServerConfig &config);
     ErrCode RemoveServerConfig(const std::string &configId);
+    ErrCode UpdateServerConfig(const std::string &configId, const std::string &parameters, DomainServerConfig &config);
+    ErrCode GetServerConfig(const std::string &configId, DomainServerConfig &config);
+    ErrCode GetAllServerConfigs(std::vector<DomainServerConfig> &configs);
     ErrCode GetAccountServerConfig(const DomainAccountInfo &info, DomainServerConfig &config);
 
 private:

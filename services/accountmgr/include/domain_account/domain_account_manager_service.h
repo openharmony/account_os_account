@@ -46,7 +46,11 @@ public:
     ErrCode GetDomainAccountInfo(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback) override;
     ErrCode AddServerConfig(const std::string &identifier, DomainServerConfig &config) override;
     ErrCode RemoveServerConfig(const std::string &configId) override;
+    ErrCode UpdateServerConfig(const std::string &configId, const std::string &parameters,
+        DomainServerConfig &config) override;
     ErrCode GetAccountServerConfig(const DomainAccountInfo &info, DomainServerConfig &config) override;
+    ErrCode GetServerConfig(const std::string &configId, DomainServerConfig &config) override;
+    ErrCode GetAllServerConfigs(std::vector<DomainServerConfig> &configs) override;
     ErrCode UpdateAccountInfo(
         const DomainAccountInfo &oldAccountInfo, const DomainAccountInfo &newAccountInfo) override;
 
