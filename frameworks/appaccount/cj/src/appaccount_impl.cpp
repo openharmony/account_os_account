@@ -362,6 +362,10 @@ int32_t CJAppAccountImpl::off(std::string type, void (*callback)(CArrAppAccountI
     bool hasFailed = false;
     int32_t E_ERROR = 0;
     AsyncContextForUnSubscribe *context = new (std::nothrow) AsyncContextForUnSubscribe();
+    if (context == nullptr) {
+        ACCOUNT_LOGE("asyncContextForOff is null");
+        return ERR_CJ_NO_MEMORY;
+    }
     context->type = type;
     context->callbackRef = CJLambda::Create(callback);
     std::vector<std::shared_ptr<SubscribePtr>> subscribers = {nullptr};
