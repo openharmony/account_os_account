@@ -969,12 +969,13 @@ ErrCode InnerDomainAccountManager::PluginUpdateAccountInfo(const DomainAccountIn
         ACCOUNT_LOGE("Caller method = %{public}d not exsit.", PluginMethodEnum::UPDATE_ACCOUNT_INFO);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
+    int32_t callerLocalId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     PluginDomainAccountInfo oldDomainAccountInfo;
     SetPluginDomainAccountInfo(oldAccountInfo, oldDomainAccountInfo);
     PluginDomainAccountInfo newDomainAccountInfo;
     SetPluginDomainAccountInfo(newAccountInfo, newDomainAccountInfo);
-    PluginBussnessError* error =
-        (*reinterpret_cast<UpdateAccountInfoFunc>(iter->second))(&oldDomainAccountInfo, &newDomainAccountInfo);
+    PluginBussnessError* error = (*reinterpret_cast<UpdateAccountInfoFunc>(iter->second))(&oldDomainAccountInfo,
+        &newDomainAccountInfo, callerLocalId);
     CleanPluginString(&(oldDomainAccountInfo.domain.data), oldDomainAccountInfo.domain.length);
     CleanPluginString(&(oldDomainAccountInfo.serverConfigId.data), oldDomainAccountInfo.serverConfigId.length);
     CleanPluginString(&(oldDomainAccountInfo.accountName.data), oldDomainAccountInfo.accountName.length);
@@ -1844,10 +1845,6 @@ static ErrCode CheckNewDomainAccountInfo(const DomainAccountInfo &oldAccountInfo
     if (!oldAccountInfo.serverConfigId_.empty()) {
         if (newAccountInfo.serverConfigId_.empty()) {
             newAccountInfo.serverConfigId_ = oldAccountInfo.serverConfigId_;
-        }
-        if (newAccountInfo.serverConfigId_ != oldAccountInfo.serverConfigId_) {
-            ACCOUNT_LOGE("NewAccountInfo's serverConfigId is invalid");
-            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
         }
     }
     ErrCode result = ERR_OK;

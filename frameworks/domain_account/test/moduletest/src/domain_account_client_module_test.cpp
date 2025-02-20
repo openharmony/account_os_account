@@ -1991,6 +1991,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAcco
 HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAccountInfo_002, TestSize.Level0)
 {
     DomainAccountInfo oldInfo, newInfo;
+    setuid(ROOT_UID);
     ASSERT_EQ(DomainAccountClient::GetInstance().UpdateAccountInfo(oldInfo, newInfo),
         ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT);
 }

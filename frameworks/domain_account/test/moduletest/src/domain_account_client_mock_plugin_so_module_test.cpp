@@ -411,8 +411,14 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     EXPECT_EQ(errCode, ERR_OK);
     int32_t oldUserId = -1;
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(oldDomainInfo, oldUserId), ERR_OK);
-
+    setuid(EDM_UID);
+    ASSERT_EQ(DomainAccountClient::GetInstance().UpdateAccountInfo(oldDomainInfo, newDomainInfo),
+        ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    setuid(ROOT_UID);
+    AccessTokenID tokenID;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_DOMAIN_ACCOUNTS"}, tokenID));
     ASSERT_EQ(DomainAccountClient::GetInstance().UpdateAccountInfo(oldDomainInfo, newDomainInfo), ERR_OK);
+    ASSERT_TRUE(RecoveryPermission(tokenID));
     UnloadPluginMethods();
     int32_t newUserId = -1;
 
@@ -453,9 +459,13 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     EXPECT_EQ(errCode, ERR_OK);
     int32_t oldUserId = -1;
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(oldDomainInfo, oldUserId), ERR_OK);
-
+    AccessTokenID tokenID;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_DOMAIN_ACCOUNTS"}, tokenID));
+    setuid(EDM_UID);
     EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountInfo(oldDomainInfo, newDomainInfo),
         ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    setuid(ROOT_UID);
+    ASSERT_TRUE(RecoveryPermission(tokenID));
     UnloadPluginMethods();
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(oldUserId), ERR_OK);
 }
@@ -492,7 +502,9 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     EXPECT_EQ(errCode, ERR_OK);
     int32_t oldUserId = -1;
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(oldDomainInfo, oldUserId), ERR_OK);
-
+    AccessTokenID tokenID;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_DOMAIN_ACCOUNTS"}, tokenID));
+    setuid(EDM_UID);
     // test new accountInfo's domain is invalid
     EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountInfo(oldDomainInfo, newDomainInfo),
         ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
@@ -501,8 +513,51 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     oldDomainInfo.serverConfigId_ = "testId";
     DomainAccountInfo newInfo2(oldDomainInfo);
     newInfo2.serverConfigId_ = "invalidTestId";
-    EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountInfo(oldDomainInfo, newInfo2),
-        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountInfo(oldDomainInfo, newInfo2), ERR_OK);
+    setuid(ROOT_UID);
+    ASSERT_TRUE(RecoveryPermission(tokenID));
+    UnloadPluginMethods();
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(oldUserId), ERR_OK);
+}
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_UpdateAccountInfo_004
+ * @tc.desc: not systemapp UpdateAccountInfo success.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest,
+         DomainAccountClientModuleTest_UpdateAccountInfo_004, TestSize.Level0)
+{
+    DomainAccountInfo oldDomainInfo;
+    oldDomainInfo.accountName_ = "testAccount";
+    oldDomainInfo.domain_ = "test.example.com";
+    oldDomainInfo.accountId_ = "testAccountId";
+
+    DomainAccountInfo newDomainInfo;
+    newDomainInfo.accountName_ = "testNewAccount";
+    newDomainInfo.domain_ = "test.example.com";
+    newDomainInfo.accountId_ = "testAccountId2";
+
+    LoadPluginMethods();
+    auto callback = std::make_shared<MockPluginSoDomainCreateDomainAccountCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestPluginSoCreateDomainAccountCallback>(callback);
+    EXPECT_CALL(*callback, OnResult(ERR_OK, "testAccount", "test.example.com", _)).Times(Exactly(1));
+    ASSERT_NE(testCallback, nullptr);
+    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, oldDomainInfo, testCallback);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                              [lockCallback = testCallback]() { return lockCallback->isReady; });
+    EXPECT_EQ(errCode, ERR_OK);
+    int32_t oldUserId = -1;
+    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(oldDomainInfo, oldUserId), ERR_OK);
+    AccessTokenID tokenID;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_DOMAIN_ACCOUNTS"}, tokenID, false));
+    setuid(ROOT_UID);
+    // test not systemApi
+    EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountInfo(oldDomainInfo, newDomainInfo), ERR_OK);
+    ASSERT_TRUE(RecoveryPermission(tokenID));
     UnloadPluginMethods();
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(oldUserId), ERR_OK);
 }
@@ -851,7 +906,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     EXPECT_EQ(queryDomainInfo.accountId_, domainInfo.accountId_);
     EXPECT_EQ(queryDomainInfo.accountName_, domainInfo.accountName_);
     EXPECT_EQ(queryDomainInfo.domain_, domainInfo.domain_);
-    
+
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
     EXPECT_EQ(OsAccountManager::GetOsAccountDomainInfo(userId, queryDomainInfo),
         ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
@@ -869,7 +924,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
          TestSize.Level0)
 {
     AccessTokenID tokenID;
-    
+
     std::vector<std::string> needPermissions = {
         "ohos.permission.GET_DOMAIN_ACCOUNTS",
         "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS",
@@ -906,7 +961,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
         ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     setuid(ROOT_UID);
     RecoveryPermission(tokenID);
-    
+
     ASSERT_TRUE(AllocPermission({"ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS"}, tokenID));
     setuid(EDM_UID);
     EXPECT_EQ(OsAccountManager::GetOsAccountDomainInfo(testUserId, queryDomainInfo),

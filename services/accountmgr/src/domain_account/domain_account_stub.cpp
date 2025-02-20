@@ -16,6 +16,7 @@
 #include "domain_account_stub.h"
 
 #include <securec.h>
+#include <set>
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
 #include "domain_account_callback_proxy.h"
@@ -26,12 +27,17 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 const char MANAGE_LOCAL_ACCOUNTS[] = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
+const char MANAGE_DOMAIN_ACCOUNTS[] = "ohos.permission.MANAGE_DOMAIN_ACCOUNTS";
 const char GET_LOCAL_ACCOUNTS[] = "ohos.permission.GET_LOCAL_ACCOUNTS";
 const char ACCESS_USER_AUTH_INTERNAL[] = "ohos.permission.ACCESS_USER_AUTH_INTERNAL";
 const char GET_DOMAIN_ACCOUNTS[] = "ohos.permission.GET_DOMAIN_ACCOUNTS";
 const char INTERACT_ACROSS_LOCAL_ACCOUNTS[] = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
 const char MANAGE_DOMAIN_ACCOUNT_SERVER_CONFIGS[] = "ohos.permission.MANAGE_DOMAIN_ACCOUNT_SERVER_CONFIGS";
 }
+
+static const std::set<DomainAccountInterfaceCode> NON_SYSTEM_API_SET = {
+    DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_INFO
+};
 
 static const std::map<DomainAccountInterfaceCode, DomainAccountStub::DomainAccountStubFunc> stubFuncMap = {
     {
@@ -616,7 +622,7 @@ static const std::map<DomainAccountInterfaceCode, std::vector<std::string>> perm
     {DomainAccountInterfaceCode::DOMAIN_SET_ACCOUNT_POLICY, {MANAGE_LOCAL_ACCOUNTS}},
     {DomainAccountInterfaceCode::DOMAIN_HAS_DOMAIN_ACCOUNT, {MANAGE_LOCAL_ACCOUNTS}},
     {DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_TOKEN, {MANAGE_LOCAL_ACCOUNTS}},
-    {DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_INFO, {MANAGE_LOCAL_ACCOUNTS}},
+    {DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_INFO, {MANAGE_LOCAL_ACCOUNTS, MANAGE_DOMAIN_ACCOUNTS}},
     {DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_ENQUIRY, {GET_LOCAL_ACCOUNTS}},
     {DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER, {GET_LOCAL_ACCOUNTS}},
     {DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER, {GET_LOCAL_ACCOUNTS}},
@@ -638,10 +644,12 @@ static const std::map<DomainAccountInterfaceCode, std::vector<std::string>> perm
 
 ErrCode DomainAccountStub::CheckPermission(DomainAccountInterfaceCode code, int32_t uid)
 {
-    ErrCode errCode = AccountPermissionManager::CheckSystemApp();
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("the caller is not system application, errCode = %{public}d.", errCode);
-        return errCode;
+    if (NON_SYSTEM_API_SET.find(code) == NON_SYSTEM_API_SET.end()) {
+        ErrCode errCode = AccountPermissionManager::CheckSystemApp();
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("the caller is not system application, errCode = %{public}d.", errCode);
+            return errCode;
+        }
     }
     if (uid == 0) {
         return ERR_OK;
