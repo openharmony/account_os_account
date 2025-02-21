@@ -471,14 +471,13 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
     std::vector<uint8_t> emptyData;
     int32_t err = proxy->ActiveUserKey(osAccountInfo.GetLocalId(), emptyData, emptyData);
     ACCOUNT_LOGI("Storage ActiveUserKey end, ret %{public}d.", err);
-    if (err == 0) {
-        isUserUnlocked = true;
-    }
     if (err != E_ACTIVE_EL2) {
         err = proxy->PrepareStartUser(osAccountInfo.GetLocalId());
         if (err != 0) {
             ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_ACTIVATE,
                 err, "Storage PrepareStartUser failed!");
+        } else {
+            isUserUnlocked = true;
         }
     }
     ACCOUNT_LOGI("end, Storage PrepareStartUser ret %{public}d.", err);
