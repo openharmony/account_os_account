@@ -194,12 +194,14 @@ void OsAccountInterface::InitThemeResource(int32_t localId)
 #endif
 
 ErrCode OsAccountInterface::SendToBMSAccountCreate(
-    OsAccountInfo &osAccountInfo, const std::vector<std::string> &disallowedHapList)
+    OsAccountInfo &osAccountInfo, const std::vector<std::string> &disallowedHapList,
+    const std::optional<std::vector<std::string>> &allowedHapList)
 {
     ErrCode errCode = ERR_OK;
     int32_t retryTimes = 0;
     while (retryTimes < MAX_RETRY_TIMES) {
-        errCode = BundleManagerAdapter::GetInstance()->CreateNewUser(osAccountInfo.GetLocalId(), disallowedHapList);
+        errCode = BundleManagerAdapter::GetInstance()->CreateNewUser(osAccountInfo.GetLocalId(),
+            disallowedHapList, allowedHapList);
         if ((errCode != Constants::E_IPC_ERROR) && (errCode != Constants::E_IPC_SA_DIED)) {
             break;
         }

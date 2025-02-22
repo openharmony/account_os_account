@@ -487,7 +487,8 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
 #ifdef HAS_THEME_SERVICE_PART
     InitTheme(localId);
 #endif // HAS_THEME_SERVICE_PART
-    errCode = OsAccountInterface::SendToBMSAccountCreate(osAccountInfo, options.disallowedHapList);
+    errCode = OsAccountInterface::SendToBMSAccountCreate(
+        osAccountInfo, options.disallowedHapList, options.allowedHapList);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Create os account SendToBMSAccountCreate failed, errCode %{public}d.", errCode);
         if (osAccountInfo.GetIsDataRemovable()) {
