@@ -70,14 +70,24 @@ ErrCode DomainAccountManagerService::IsAuthenticationExpired(const DomainAccount
     return InnerDomainAccountManager::GetInstance().IsAuthenticationExpired(info, isExpired);
 }
 
-ErrCode DomainAccountManagerService::SetAccountPolicy(const DomainAccountPolicy &policy)
+ErrCode DomainAccountManagerService::SetAccountPolicy(const DomainAccountInfo &info, const std::string &policy)
 {
     // check EDM uid
     if (!CheckManageExpiryThresholdWhiteList()) {
         ACCOUNT_LOGE("Permission denied, callingUid=%{public}d.", IPCSkeleton::GetCallingUid());
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
-    return InnerDomainAccountManager::GetInstance().SetAccountPolicy(policy);
+    return InnerDomainAccountManager::GetInstance().SetAccountPolicy(info, policy);
+}
+
+ErrCode DomainAccountManagerService::GetAccountPolicy(const DomainAccountInfo &info, std::string &policy)
+{
+    // check EDM uid
+    if (!CheckManageExpiryThresholdWhiteList()) {
+        ACCOUNT_LOGE("Permission denied, callingUid=%{public}d.", IPCSkeleton::GetCallingUid());
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    return InnerDomainAccountManager::GetInstance().GetAccountPolicy(info, policy);
 }
 
 ErrCode DomainAccountManagerService::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,

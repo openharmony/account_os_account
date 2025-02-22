@@ -244,20 +244,6 @@ ErrCode DomainAccountClient::IsAuthenticationExpired(const DomainAccountInfo &in
 #endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
-ErrCode DomainAccountClient::SetAccountPolicy(const DomainAccountPolicy &policy)
-{
-#ifdef SUPPORT_DOMAIN_ACCOUNTS
-    auto proxy = GetDomainAccountProxy();
-    if (proxy == nullptr) {
-        ACCOUNT_LOGE("Get domain account proxy failed.");
-        return ERR_ACCOUNT_COMMON_GET_PROXY;
-    }
-    return proxy->SetAccountPolicy(policy);
-#else
-    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
-#endif // SUPPORT_DOMAIN_ACCOUNTS
-}
-
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
 void DomainAccountClient::ResetDomainAccountProxy(const wptr<IRemoteObject>& remote)
 {
@@ -476,6 +462,34 @@ ErrCode DomainAccountClient::GetAccountServerConfig(const DomainAccountInfo &inf
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     return proxy->GetAccountServerConfig(info, config);
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
+}
+
+ErrCode DomainAccountClient::SetAccountPolicy(const DomainAccountInfo &info, const std::string &policy)
+{
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+    auto proxy = GetDomainAccountProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("Failed to get domain account proxy.");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->SetAccountPolicy(info, policy);
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
+}
+
+ErrCode DomainAccountClient::GetAccountPolicy(const DomainAccountInfo &info, std::string &policy)
+{
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+    auto proxy = GetDomainAccountProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("Failed to get domain account proxy.");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->GetAccountPolicy(info, policy);
 #else
     return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
 #endif // SUPPORT_DOMAIN_ACCOUNTS

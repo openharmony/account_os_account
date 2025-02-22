@@ -63,6 +63,7 @@ public:
     DomainAccountInfo(const std::string &domain, const std::string &domainAccountName, const std::string &accountId,
         const bool &isAuthed, const std::string &serverConfigId);
     void Clear();
+    bool IsEmpty() const;
 
 public:
     std::string domain_;
@@ -135,10 +136,6 @@ struct DomainAccountEventData {
     DomainAccountInfo domainAccountInfo;
     DomainAccountEvent event;
     DomainAccountStatus status;
-};
-
-struct DomainAccountPolicy {
-    int32_t authenicationValidityPeriod = -1;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

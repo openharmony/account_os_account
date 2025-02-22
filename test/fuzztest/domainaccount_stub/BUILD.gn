@@ -23,6 +23,7 @@ group("fuzztest") {
       "procauthstub_fuzzer:ProcAuthStubFuzzTest",
       "procauthuserstub_fuzzer:ProcAuthUserStubFuzzTest",
       "procauthwithpopupstub_fuzzer:ProcAuthWithPopupStubFuzzTest",
+      "procgetaccountpolicystub_fuzzer:ProcGetAccountPolicyStubFuzzTest",
       "procgetaccountserverconfigstub_fuzzer:ProcGetAccountServerConfigStubFuzzTest",
       "procgetdomainaccountinfostub_fuzzer:ProcGetDomainAccountInfoStubFuzzTest",
       "procgetserverconfigstub_fuzzer:ProcGetServerConfigStubFuzzTest",

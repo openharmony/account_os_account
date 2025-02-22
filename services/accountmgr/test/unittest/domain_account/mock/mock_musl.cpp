@@ -256,7 +256,20 @@ PluginBussnessError* GetAccessToken(const PluginGetDomainAccessTokenOptions *opt
     return error;
 }
 
-PluginBussnessError* SetAccountPolicy(const PluginDomainAccountPolicy *domainAccountPolicy)
+PluginBussnessError* SetAccountPolicy(const PluginString *parameters,
+    const PluginDomainAccountInfo *domainAccountInfo, const int32_t callerLocalId)
+{
+    PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    if (error == nullptr) {
+        return nullptr;
+    }
+    error->code = 0;
+    error->msg.data = nullptr;
+    return error;
+}
+
+PluginBussnessError* GetAccountPolicy(const PluginDomainAccountInfo *domainAccountInfo,
+    const int32_t callerLocalId, PluginDomainAccountPolicy **domainAccountPolicy)
 {
     PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
     if (error == nullptr) {
@@ -286,7 +299,8 @@ static const std::map<std::string, PluginFunction> pluginFunctions = {
     {"IsAccountTokenValid", reinterpret_cast<PluginFunction>(IsAccountTokenValid)},
     {"GetAccessToken", reinterpret_cast<PluginFunction>(GetAccessToken)},
     {"UpdateAccountInfo", reinterpret_cast<PluginFunction>(UpdateAccountInfo)},
-    {"SetAccountPolicy", reinterpret_cast<PluginFunction>(SetAccountPolicy)}
+    {"SetAccountPolicy", reinterpret_cast<PluginFunction>(SetAccountPolicy)},
+    {"GetAccountPolicy", reinterpret_cast<PluginFunction>(GetAccountPolicy)}
 };
 
 void *dlsym(void *__restrict, const char *methodName)
