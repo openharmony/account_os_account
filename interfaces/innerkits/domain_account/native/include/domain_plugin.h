@@ -78,7 +78,7 @@ typedef struct {
 } PluginGetDomainAccessTokenOptions;
 
 typedef struct {
-    int32_t authenicationValidityPeriod;
+    PluginString parameters;
 } PluginDomainAccountPolicy;
 
 typedef PluginBussnessError* (*AddServerConfigFunc)(const PluginString *parameters, const int32_t callerLocalId,
@@ -112,7 +112,12 @@ typedef PluginBussnessError* (*IsAuthenticationExpiredFunc)(const PluginDomainAc
     const PluginUint8Vector *token, int32_t *isValid);
 typedef PluginBussnessError* (*GetAccessTokenFunc)(const PluginGetDomainAccessTokenOptions *options,
     PluginUint8Vector **accessToken);
-typedef PluginBussnessError* (*SetAccountPolicyFunc)(const PluginDomainAccountPolicy *domainAccountPolicy);
+typedef PluginBussnessError* (*GetAccountPolicyFunc)(const PluginDomainAccountInfo *domainAccountInfo,
+    const int32_t callerLocalId, PluginDomainAccountPolicy **domainAccountPolicy);
+typedef PluginBussnessError* (*SetAccountPolicyFunc)(const PluginString *parameters,
+    const PluginDomainAccountInfo *domainAccountInfo, const int32_t callerLocalId);
+typedef PluginBussnessError* (*GetServerConfigFunc)(const PluginString *serverConfigId, const int32_t callerLocalId,
+    PluginServerConfigInfo **serverConfigInfo);
 
 enum PluginMethodEnum {
     ADD_SERVER_CONFIG = 0,
@@ -133,6 +138,7 @@ enum PluginMethodEnum {
     UPDATE_ACCOUNT_INFO,
     IS_AUTHENTICATION_EXPIRED,
     SET_ACCOUNT_POLICY,
+    GET_ACCOUNT_POLICY,
     //this is last just for count enum
     COUNT,
 };

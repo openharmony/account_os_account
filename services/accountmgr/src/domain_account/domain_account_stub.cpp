@@ -36,7 +36,13 @@ const char MANAGE_DOMAIN_ACCOUNT_SERVER_CONFIGS[] = "ohos.permission.MANAGE_DOMA
 }
 
 static const std::set<DomainAccountInterfaceCode> NON_SYSTEM_API_SET = {
-    DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_INFO
+    DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_INFO,
+    DomainAccountInterfaceCode::UPDATE_SERVER_CONFIG,
+    DomainAccountInterfaceCode::GET_SERVER_CONFIG,
+    DomainAccountInterfaceCode::GET_ALL_SERVER_CONFIGS,
+    DomainAccountInterfaceCode::ADD_SERVER_CONFIG,
+    DomainAccountInterfaceCode::REMOVE_SERVER_CONFIG,
+    DomainAccountInterfaceCode::GET_ACCOUNT_SERVER_CONFIG,
 };
 
 static const std::map<DomainAccountInterfaceCode, DomainAccountStub::DomainAccountStubFunc> stubFuncMap = {
@@ -98,7 +104,7 @@ static const std::map<DomainAccountInterfaceCode, DomainAccountStub::DomainAccou
     {
         DomainAccountInterfaceCode::DOMAIN_SET_ACCOUNT_POLICY,
         [] (DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
-            return ptr->ProcSetAuthenticationExpiryThreshold(data, reply); }
+            return ptr->ProcSetAccountPolicy(data, reply); }
     },
     {
         DomainAccountInterfaceCode::DOMAIN_GET_ACCESS_TOKEN,
@@ -144,6 +150,11 @@ static const std::map<DomainAccountInterfaceCode, DomainAccountStub::DomainAccou
         DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_INFO,
         [] (DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
             return ptr->ProcUpdateAccountInfo(data, reply); }
+    },
+    {
+        DomainAccountInterfaceCode::DOMAIN_GET_ACCOUNT_POLICY,
+        [] (DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcGetAccountPolicy(data, reply); }
     },
 };
 
@@ -241,16 +252,45 @@ ErrCode DomainAccountStub::ProcIsAuthenticationExpired(MessageParcel &data, Mess
     return ERR_OK;
 }
 
-ErrCode DomainAccountStub::ProcSetAuthenticationExpiryThreshold(MessageParcel &data, MessageParcel &reply)
+ErrCode DomainAccountStub::ProcSetAccountPolicy(MessageParcel &data, MessageParcel &reply)
 {
-    DomainAccountPolicy policy;
-    if (!data.ReadInt32(policy.authenicationValidityPeriod)) {
+    std::shared_ptr<DomainAccountInfo> info(data.ReadParcelable<DomainAccountInfo>());
+    if (info == nullptr) {
+        ACCOUNT_LOGE("failed to read domain account info");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    std::string policy;
+    if (!data.ReadString(policy)) {
         ACCOUNT_LOGE("Read threshold failed.");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    ErrCode result = SetAccountPolicy(policy);
+    ErrCode result = SetAccountPolicy(*info, policy);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("Write reply failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    return ERR_OK;
+}
+
+ErrCode DomainAccountStub::ProcGetAccountPolicy(MessageParcel &data, MessageParcel &reply)
+{
+    std::shared_ptr<DomainAccountInfo> info(data.ReadParcelable<DomainAccountInfo>());
+    if (info == nullptr) {
+        ACCOUNT_LOGE("failed to read domain account info");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    std::string policy;
+    ErrCode result = GetAccountPolicy(*info, policy);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Write reply failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("GetAccountPolicy failed %{public}d.", result);
+        return result;
+    }
+    if (!reply.WriteString(policy)) {
+        ACCOUNT_LOGE("Write reply policy failed.");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_OK;
@@ -620,6 +660,7 @@ static const std::map<DomainAccountInterfaceCode, std::vector<std::string>> perm
     {DomainAccountInterfaceCode::REGISTER_PLUGIN, {MANAGE_LOCAL_ACCOUNTS}},
     {DomainAccountInterfaceCode::UNREGISTER_PLUGIN, {MANAGE_LOCAL_ACCOUNTS}},
     {DomainAccountInterfaceCode::DOMAIN_SET_ACCOUNT_POLICY, {MANAGE_LOCAL_ACCOUNTS}},
+    {DomainAccountInterfaceCode::DOMAIN_GET_ACCOUNT_POLICY, {MANAGE_LOCAL_ACCOUNTS}},
     {DomainAccountInterfaceCode::DOMAIN_HAS_DOMAIN_ACCOUNT, {MANAGE_LOCAL_ACCOUNTS}},
     {DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_TOKEN, {MANAGE_LOCAL_ACCOUNTS}},
     {DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_INFO, {MANAGE_LOCAL_ACCOUNTS, MANAGE_DOMAIN_ACCOUNTS}},

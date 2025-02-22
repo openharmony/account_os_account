@@ -47,6 +47,11 @@ void DomainAccountInfo::Clear()
     accountId_.clear();
 }
 
+bool DomainAccountInfo::IsEmpty() const
+{
+    return domain_.empty() && accountName_.empty() && accountId_.empty() && serverConfigId_.empty();
+}
+
 bool DomainAccountInfo::ReadFromParcel(Parcel &parcel)
 {
     if (!parcel.ReadString(accountName_)) {

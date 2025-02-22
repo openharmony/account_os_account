@@ -29,7 +29,10 @@ PluginBussnessError *GetAccountInfo(const PluginGetDomainAccountInfoOptions *opt
                                     PluginDomainAccountInfo **domainAccountInfo);
 PluginBussnessError *IsAuthenticationExpired(const PluginDomainAccountInfo *domainAccountInfo,
                                              const PluginUint8Vector *token, int32_t *isValid);
-PluginBussnessError *SetAccountPolicy(PluginDomainAccountPolicy *domainAccountPolicy);
+PluginBussnessError *SetAccountPolicy(const PluginString *parameters,
+    const PluginDomainAccountInfo *domainAccountInfo, const int32_t callerLocalId);
+PluginBussnessError *GetAccountPolicy(const PluginDomainAccountInfo *domainAccountInfo,
+    const int32_t callerLocalId, PluginDomainAccountPolicy **domainAccountPolicy);
 PluginBussnessError *UpdateAccountInfo(const PluginDomainAccountInfo *domainAccountInfo,
                                        const PluginDomainAccountInfo *newDomainAccountInfo);
 #ifdef __cplusplus

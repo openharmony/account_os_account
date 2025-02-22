@@ -40,7 +40,7 @@ public:
     ErrCode AuthWithPopup(int32_t userId, const sptr<IDomainAccountCallback> &callback) override;
     ErrCode UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token) override;
     ErrCode IsAuthenticationExpired(const DomainAccountInfo &info, bool &isExpired) override;
-    ErrCode SetAccountPolicy(const DomainAccountPolicy &policy) override;
+    ErrCode SetAccountPolicy(const DomainAccountInfo &info, const std::string &policy) override;
     ErrCode GetAccessToken(const DomainAccountInfo &info, const AAFwk::WantParams &parameters,
         const sptr<IDomainAccountCallback> &callback) override;
     ErrCode GetDomainAccountInfo(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback) override;
@@ -53,6 +53,7 @@ public:
     ErrCode GetAllServerConfigs(std::vector<DomainServerConfig> &configs) override;
     ErrCode UpdateAccountInfo(
         const DomainAccountInfo &oldAccountInfo, const DomainAccountInfo &newAccountInfo) override;
+    ErrCode GetAccountPolicy(const DomainAccountInfo &info, std::string &policy) override;
 
 private:
     std::mutex mutex_;

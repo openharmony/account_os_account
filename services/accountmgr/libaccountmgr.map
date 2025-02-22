@@ -257,7 +257,6 @@
         "OHOS::AccountSA::InnerDomainAccountManager::HasDomainAccount(OHOS::AccountSA::DomainAccountInfo const&, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
         "OHOS::AccountSA::InnerDomainAccountManager::GetAccessToken(OHOS::AccountSA::DomainAccountInfo const&, OHOS::AAFwk::WantParams const&, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
         "OHOS::AccountSA::InnerDomainAccountManager::UpdateAccountToken(OHOS::AccountSA::DomainAccountInfo const&, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>> const&)";
-        "OHOS::AccountSA::InnerDomainAccountManager::SetAccountPolicy(OHOS::AccountSA::DomainAccountPolicy const&)";
         "OHOS::AccountSA::InnerDomainAccountManager::IsAuthenticationExpired(OHOS::AccountSA::DomainAccountInfo const&, bool&)";
         "OHOS::AccountSA::InnerDomainAccountManager::Auth(OHOS::AccountSA::DomainAccountInfo const&, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>> const&, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
         "OHOS::AccountSA::InnerDomainAccountManager::AuthUser(int, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>> const&, OHOS::sptr<OHOS::AccountSA::IDomainAuthCallback> const&)";
@@ -275,6 +274,8 @@
         "OHOS::AccountSA::InnerDomainAccountManager::GetAllServerConfigs(std::__h::vector<OHOS::AccountSA::DomainServerConfig, std::__h::allocator<OHOS::AccountSA::DomainServerConfig>>&)";
         "OHOS::AccountSA::InnerDomainAccountManager::GetAccountServerConfig(OHOS::AccountSA::DomainAccountInfo const&, OHOS::AccountSA::DomainServerConfig&)";
         "OHOS::AccountSA::InnerDomainAccountManager::UpdateAccountInfo(OHOS::AccountSA::DomainAccountInfo const&, OHOS::AccountSA::DomainAccountInfo const&)";
+        "OHOS::AccountSA::InnerDomainAccountManager::SetAccountPolicy(OHOS::AccountSA::DomainAccountInfo const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+        "OHOS::AccountSA::InnerDomainAccountManager::GetAccountPolicy(OHOS::AccountSA::DomainAccountInfo const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&)";
         "OHOS::AccountSA::DomainAccountStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
         "OHOS::AccountSA::DomainAccountInfo::DomainAccountInfo()";
         "VTT for OHOS::AccountSA::DomainAccountInfo";
