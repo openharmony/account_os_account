@@ -1186,6 +1186,9 @@ ErrCode AppAccountControlManager::GetAllAccessibleAccountsFromDataStorage(
     }
 
     for (auto account : accessibleAccounts) {
+        if (!AppAccountSubscribeManager::CheckAppIsMaster(account)) {
+            continue;
+        }
         AppAccountInfo appAccountInfo;
 
         result = dataStoragePtr->GetAccountInfoById(account, appAccountInfo);
