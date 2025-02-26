@@ -953,7 +953,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountStop(OsAccountInfo &osAccountIn
         return errCode;
     }
     errCode = OsAccountInterface::SendToStorageAccountStop(osAccountInfo);
-    if (errCode != ERR_OK) {
+    if (errCode != ERR_OK && errCode != ERR_OSACCOUNT_SERVICE_STORAGE_STOP_USER_FAILED) {
         ACCOUNT_LOGE("SendToStorageAccountStop failed, id %{public}d, errCode %{public}d",
             osAccountInfo.GetLocalId(), errCode);
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
