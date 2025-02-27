@@ -103,6 +103,8 @@ public:
     ErrCode GetAllAccessibleAccountsFromDataStorage(std::vector<AppAccountInfo> &appAccounts,
         const std::string &bundleName, const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr,
         const uint32_t &appIndex);
+    ErrCode GetAccountInfoFromDataStorage(
+        AppAccountInfo &appAccountInfo, std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
 #ifndef SQLITE_DLCLOSE_ENABLE
     std::shared_ptr<AppAccountDataStorage> GetDataStorage(const uid_t &uid, const bool &autoSync = false,
         DistributedKv::SecurityLevel securityLevel = DistributedKv::SecurityLevel::S1);
@@ -133,8 +135,6 @@ private:
         DbAdapterSecurityLevel securityLevel = DbAdapterSecurityLevel::S1);
 #endif // SQLITE_DLCLOSE_ENABLE
     bool NeedSyncDataStorage(const AppAccountInfo &appAccountInfo);
-    ErrCode GetAccountInfoFromDataStorage(
-        AppAccountInfo &appAccountInfo, std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
     ErrCode AddAccountInfoIntoDataStorage(AppAccountInfo &appAccountInfo,
         const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr, const uid_t &uid);
     ErrCode SaveAccountInfoIntoDataStorage(AppAccountInfo &appAccountInfo,
