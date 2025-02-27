@@ -25,6 +25,7 @@ typedef enum {
     ADMIN = 0,
     NORMAL,
     GUEST,
+    MAINTENANCE = 4,
     PRIVATE = 1024,
     END, // the upper bound of OsAccountType.
 } OsAccountType;
