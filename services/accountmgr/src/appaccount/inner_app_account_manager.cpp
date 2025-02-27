@@ -72,8 +72,23 @@ ErrCode InnerAppAccountManager::DeleteAccount(
 {
     AppAccountInfo appAccountInfo(name, bundleName);
     appAccountInfo.SetAppIndex(appIndex);
+    // After deleting the account, the AuthorizedApp information not exists in the appAccountInfo
+    std::shared_ptr<AppAccountDataStorage> dataStoragePtr =
+        controlManager_.GetDataStorage(uid);
+    auto ret = controlManager_.GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get account info from data storage, result %{public}d.", ret);
+        return ret;
+    }
+    std::set<std::string> authorizedApps;
+    appAccountInfo.GetAuthorizedApps(authorizedApps);
     ErrCode result = controlManager_.DeleteAccount(name, uid, bundleName, appAccountInfo);
-    if ((result == ERR_OK) && (!subscribeManager_.PublishAccount(appAccountInfo, uid, bundleName))) {
+    AppAccountInfo appAccountInfoTemp(name, bundleName);
+    appAccountInfoTemp.SetAppIndex(appIndex);
+    if (result == ERR_OK) {
+        appAccountInfoTemp.SetAuthorizedApps(authorizedApps);
+    }
+    if ((result == ERR_OK) && (!subscribeManager_.PublishAccount(appAccountInfoTemp, uid, bundleName))) {
         ACCOUNT_LOGE("failed to publish account");
     }
     return result;
@@ -118,6 +133,10 @@ ErrCode InnerAppAccountManager::DisableAppAccess(const std::string &name, const 
     appAccountInfo.SetAppIndex(appAccountCallingInfo.appIndex);
     ErrCode result = controlManager_.DisableAppAccess(
         name, authorizedApp, appAccountCallingInfo, appAccountInfo, apiVersion);
+    if (result == ERR_OK) {
+        // After DisableAppAccess, the AuthorizedApp information not exists in the appAccountInfo
+        appAccountInfo.EnableAppAccess(authorizedApp, apiVersion);
+    }
     if ((result == ERR_OK) && (!subscribeManager_.PublishAccount(
         appAccountInfo, appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName))) {
         ACCOUNT_LOGE("failed to publish account");
@@ -158,8 +177,16 @@ ErrCode InnerAppAccountManager::SetAssociatedData(const std::string &name, const
     if (result != ERR_OK) {
         return result;
     }
+    // Need to query the real appAccountInfo in the database.
     AppAccountInfo appAccountInfo(name, appAccountCallingInfo.bundleName);
     appAccountInfo.SetAppIndex(appAccountCallingInfo.appIndex);
+    std::shared_ptr<AppAccountDataStorage> dataStoragePtr =
+        controlManager_.GetDataStorage(appAccountCallingInfo.callingUid);
+    auto ret = controlManager_.GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get account info from data storage, result %{public}d.", ret);
+        return ret;
+    }
     if (!subscribeManager_.PublishAccount(appAccountInfo,
         appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName)) {
         ACCOUNT_LOGE("failed to publish account");
@@ -182,6 +209,14 @@ ErrCode InnerAppAccountManager::SetAccountCredential(const std::string &name, co
     }
     AppAccountInfo appAccountInfo(name, appAccountCallingInfo.bundleName);
     appAccountInfo.SetAppIndex(appAccountCallingInfo.appIndex);
+    // Need to query the real appAccountInfo in the database.
+    std::shared_ptr<AppAccountDataStorage> dataStoragePtr =
+        controlManager_.GetDataStorage(appAccountCallingInfo.callingUid);
+    auto ret = controlManager_.GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get account info from data storage, result %{public}d.", ret);
+        return ret;
+    }
     if (!subscribeManager_.PublishAccount(appAccountInfo,
         appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName)) {
         ACCOUNT_LOGE("failed to publish account");
@@ -202,6 +237,14 @@ ErrCode InnerAppAccountManager::DeleteAccountCredential(const std::string &name,
     }
     AppAccountInfo appAccountInfo(name, bundleName);
     appAccountInfo.SetAppIndex(appIndex);
+    // Need to query the real appAccountInfo in the database.
+    std::shared_ptr<AppAccountDataStorage> dataStoragePtr =
+        controlManager_.GetDataStorage(appAccountCallingInfo.callingUid);
+    auto ret = controlManager_.GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get account info from data storage, result %{public}d.", ret);
+        return ret;
+    }
     if (!subscribeManager_.PublishAccount(appAccountInfo, uid, bundleName)) {
         ACCOUNT_LOGE("failed to publish account");
     }
@@ -248,6 +291,14 @@ ErrCode InnerAppAccountManager::SetOAuthToken(const AuthenticatorSessionRequest 
     }
     AppAccountInfo appAccountInfo(request.name, request.callerBundleName);
     appAccountInfo.SetAppIndex(request.appIndex);
+    // Need to query the real appAccountInfo in the database.
+    std::shared_ptr<AppAccountDataStorage> dataStoragePtr =
+        controlManager_.GetDataStorage(request.callerUid);
+    auto ret = controlManager_.GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get account info from data storage, result %{public}d.", ret);
+        return ret;
+    }
     if (!subscribeManager_.PublishAccount(appAccountInfo, request.callerUid, request.callerBundleName)) {
         ACCOUNT_LOGE("failed to publish account");
     }
