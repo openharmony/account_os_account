@@ -82,3 +82,19 @@ HWTEST_F(AccountCommandCreateModuleTest, Acm_Command_Create_0100, TestSize.Level
     commandResult = AccountCommandUtil::DeleteLastOsAccount();
     ASSERT_NE(commandResult.find(STRING_DELETE_OS_ACCOUNT_OK), std::string::npos);
 }
+
+/**
+ * @tc.name: Acm_Command_Create_0200
+ * @tc.desc: Verify the "acm create -n <local-account-name> -t <type>" command.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountCommandCreateModuleTest, Acm_Command_Create_0200, TestSize.Level1)
+{
+    std::string commandResult = AccountCommandUtil::CreateOsAccount(
+        "Acm_Command_Create_0200", "maintenance");
+    ASSERT_NE(commandResult.find(STRING_CREATE_OS_ACCOUNT_OK), std::string::npos);
+
+    commandResult = AccountCommandUtil::DeleteLastOsAccount();
+    ASSERT_NE(commandResult.find(STRING_DELETE_OS_ACCOUNT_OK), std::string::npos);
+}
