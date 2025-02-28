@@ -74,6 +74,9 @@ static const std::unordered_map<uint32_t, std::string> g_errorStringMap = {
     {ERR_JS_DOMAIN_PLUGIN_ALREADY_REGISTERED, "The domain plugin is already registered"},
     {ERR_JS_SERVER_UNREACHABLE, "The server is unreachable"},
     {ERR_JS_SERVER_CONFIG_NOT_FOUND, "The server config not found"},
+    {ERR_JS_SERVER_CONFIG_ALREADY_EXISTS, "Server config already exists"},
+    {ERR_JS_SERVER_CONFIG_ASSOCIATED_ACCOUNT, "Server config has been associated with an account"},
+    {ERR_JS_SERVER_CONFIG_UPPER_LIMIT, "The number of server config reaches the upper limit"},
 };
 
 napi_value GenerateBusinessError(napi_env env, int32_t jsErrCode, const std::string &jsErrMsg)
