@@ -212,6 +212,12 @@ bool GetCallbackProperty(napi_env env, napi_value obj, napi_ref &property, int a
 
 bool GetStringPropertyByKey(napi_env env, napi_value obj, const std::string &propertyName, std::string &property)
 {
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, obj, &valueType);
+    if (valueType != napi_object) {
+        ACCOUNT_LOGE("Obj is not an object");
+        return false;
+    }
     napi_value value = nullptr;
     NAPI_CALL_BASE(env, napi_get_named_property(env, obj, propertyName.c_str(), &value), false);
     return GetStringProperty(env, value, property);

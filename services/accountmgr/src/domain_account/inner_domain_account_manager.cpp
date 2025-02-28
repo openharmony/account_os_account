@@ -684,11 +684,15 @@ ErrCode InnerDomainAccountManager::GetAllServerConfigs(
     }
     for (size_t i = 0; i < configInfoList->size; ++i) {
         DomainServerConfig config;
-        config.id_ = configInfoList->items[i].id.data;
-        config.domain_ = configInfoList->items[i].domain.data;
+        if (GetAndCleanPluginString(configInfoList->items[i].id, config.id_) != ERR_OK) {
+            ACCOUNT_LOGE("Failed to get server config id at index %{public}zu", i);
+            continue;
+        }
+        if (GetAndCleanPluginString(configInfoList->items[i].domain, config.domain_) != ERR_OK) {
+            ACCOUNT_LOGE("Failed to get server config domain at index %{public}zu", i);
+            continue;
+        }
         configs.push_back(config);
-        CleanPluginString(&(configInfoList->items[i].id.data), configInfoList->items[i].id.length);
-        CleanPluginString(&(configInfoList->items[i].domain.data), configInfoList->items[i].domain.length);
     }
     delete[] configInfoList->items;
     delete configInfoList;
