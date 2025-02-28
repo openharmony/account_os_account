@@ -364,6 +364,16 @@ public:
         return 0;
     }
 
+    int32_t MountFileMgrFuse(int32_t userId, const std::string &path, int32_t &fuseFd)
+    {
+        return 0;
+    }
+
+    int32_t UMountFileMgrFuse(int32_t userId, const std::string &path)
+    {
+        return 0;
+    }
+
     sptr<IRemoteObject> AsObject()
     {
         return nullptr;
