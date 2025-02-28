@@ -1139,7 +1139,7 @@ ErrCode OsAccountStub::ProcCheckOsAccountConstraintEnabled(uint32_t code, Messag
     std::string constraint = data.ReadString();
     if (constraint.empty() || constraint.size() > Constants::CONSTRAINT_MAX_SIZE) {
         ACCOUNT_LOGE("Failed to read string for constraint. length %{public}zu.", constraint.size());
-        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_CONSTRAINTS_ERROR);
+        reply.WriteInt32(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
         return ERR_NONE;
     }
 
