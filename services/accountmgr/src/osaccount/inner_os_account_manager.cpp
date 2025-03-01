@@ -372,7 +372,7 @@ ErrCode IInnerOsAccountManager::FillOsAccountInfo(const std::string &localName, 
     int id = 0;
     if (type == OsAccountType::MAINTENANCE) {
 #ifndef IS_RELEASE_VERSION
-    // root check in none release version for test
+        // root check in none release version for test
         if (!AccountPermissionManager::CheckSaCall() && !AccountPermissionManager::CheckShellCall()) {
 #else
         if (!AccountPermissionManager::CheckSaCall()) {
