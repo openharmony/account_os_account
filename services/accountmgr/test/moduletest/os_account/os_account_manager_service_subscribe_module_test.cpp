@@ -19,6 +19,7 @@
 #include <thread>
 #include "account_log_wrapper.h"
 #include "datetime_ex.h"
+#include "os_account_state_parcel.h"
 #define private public
 #include "iinner_os_account_manager.h"
 #include "os_account.h"
@@ -194,7 +195,10 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     auto subscriberTestPtr = std::make_shared<OsAccountSubscriberTest>(osAccountSubscribeInfo);
 
     // make an event listener
-    sptr<IRemoteObject> osAccountEventListener = nullptr;
+    auto osAccountEventListener = std::make_shared<OsAccountEventListener>(subscriberTestPtr);
+    OsAccountStateParcel *stateParcel = new (std::nothrow) OsAccountStateParcel();
+    osAccountEventListener->OnStateChanged(*stateParcel);
+    osAccountEventListener->OnAccountsChanged(0);
 
     OsAccountInfo osAccountInfo;
     ErrCode result = OsAccount::GetInstance().CreateOsAccount(
