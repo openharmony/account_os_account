@@ -24,6 +24,7 @@ class AccountCommandUtil {
 public:
     static std::string CreateOsAccount();
     static std::string CreateOsAccount(const std::string &name);
+    static std::string CreateOsAccount(const std::string &name, const std::string &type);
     static std::string DeleteLastOsAccount();
     static std::string DumpLastOsAccount();
     static std::string SwitchToFirstOsAccount();

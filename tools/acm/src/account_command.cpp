@@ -689,6 +689,8 @@ ErrCode AccountCommand::AnalyzeTypeArgument(OsAccountType &type)
         type = OsAccountType::GUEST;
     } else if (typeByUser == "private") {
         type = OsAccountType::PRIVATE;
+    } else if (typeByUser == "maintenance") {
+        type = OsAccountType::MAINTENANCE;
     } else {
         resultReceiver_.append(HELP_MSG_INVALID_TYPE_ARGUMENT + "\n");
         result = ERR_INVALID_VALUE;

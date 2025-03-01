@@ -1186,7 +1186,7 @@ ErrCode OsAccountControlFileManager::GetSerialNumber(int64_t &serialNumber)
 int32_t OsAccountControlFileManager::GetNextLocalId(const std::vector<std::string> &accountIdList, int32_t startId)
 {
     do {
-        if ((startId <= Constants::START_USER_ID) || (startId > Constants::MAX_USER_ID)) {
+        if ((startId <= Constants::START_USER_ID) || (startId >= Constants::MAX_USER_ID)) {
             startId = Constants::START_USER_ID + 1;
         }
         if (std::find(accountIdList.begin(), accountIdList.end(), std::to_string(startId)) ==
