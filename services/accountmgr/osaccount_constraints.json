@@ -47,14 +47,14 @@
             "constraint.calls.outgoing",
             "constraint.sms.use"
         ],
-        "4": [],
+        "512": [],
         "1024": []
     },
     "TypeList": [
         "0",
         "1",
         "2",
-        "4",
+        "12",
         "1024"
     ],
     "IsMultiOsAccountEnable": true,
