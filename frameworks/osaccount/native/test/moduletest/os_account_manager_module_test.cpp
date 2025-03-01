@@ -3298,3 +3298,77 @@ HWTEST_F(OsAccountManagerModuleTest, QueryDistributedVirtualDeviceId001, TestSiz
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 #endif
+
+#ifdef BUNDLE_ADAPTER_MOCK
+/**
+ * @tc.name: GetCreatedOsAccountNumFromDatabaseMockTest001
+ * @tc.desc: Test GetCreatedOsAccountNumFromDatabase.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, GetCreatedOsAccountNumFromDatabaseMockTest001, TestSize.Level1)
+{
+    int createdOsAccountNum;
+    EXPECT_NE(OsAccountManager::GetCreatedOsAccountNumFromDatabase("", createdOsAccountNum), ERR_OK);
+}
+
+/**
+ * @tc.name: GetSerialNumberFromDatabaseMockTest001
+ * @tc.desc: Test GetSerialNumberFromDatabase.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, GetSerialNumberFromDatabaseMockTest001, TestSize.Level1)
+{
+    int64_t serialNumber;
+    EXPECT_NE(ERR_OK, OsAccountManager::GetSerialNumberFromDatabase("", serialNumber));
+}
+
+/**
+ * @tc.name: GetMaxAllowCreateIdFromDatabaseMockTest001
+ * @tc.desc: Test GetMaxAllowCreateIdFromDatabase.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, GetMaxAllowCreateIdFromDatabaseMockTest001, TestSize.Level1)
+{
+    int id;
+    EXPECT_NE(ERR_OK, OsAccountManager::GetMaxAllowCreateIdFromDatabase("", id));
+}
+
+/**
+ * @tc.name: GetOsAccountFromDatabaseMockTest001
+ * @tc.desc: Test GetOsAccountFromDatabase.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, GetOsAccountFromDatabaseMockTest001, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    EXPECT_NE(ERR_OK, OsAccountManager::GetOsAccountFromDatabase("", MAIN_ACCOUNT_ID, osAccountInfo));
+}
+
+/**
+ * @tc.name: GetOsAccountListFromDatabaseMockTest001
+ * @tc.desc: Test GetOsAccountListFromDatabase.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, GetOsAccountListFromDatabaseMockTest001, TestSize.Level1)
+{
+    std::vector<OsAccountInfo> osAccountList;
+    EXPECT_NE(ERR_OK, OsAccountManager::GetOsAccountListFromDatabase("", osAccountList));
+}
+#endif
+
+/**
+ * @tc.name: QueryDistributedVirtualDeviceId002
+ * @tc.desc: Test QueryDistributedVirtualDeviceId.
+ * @tc.type: FUNC
+ * @tc.require: issueI4JBFF
+ */
+HWTEST_F(OsAccountManagerModuleTest, QueryDistributedVirtualDeviceId002, TestSize.Level1)
+{
+    std::string dvid = "";
+    EXPECT_EQ(OsAccountManager::QueryDistributedVirtualDeviceId("", 100, dvid), ERR_OK);
+}

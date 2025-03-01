@@ -2010,6 +2010,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AddServerC
         ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(DomainAccountClient::GetInstance().GetServerConfig(configId, config),
         ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    DomainAccountClient::GetInstance().deathRecipient_->OnRemoteDied(nullptr);
     EXPECT_EQ(DomainAccountClient::GetInstance().GetAllServerConfigs(configs),
         ERR_JS_CAPABILITY_NOT_SUPPORTED);
 }
