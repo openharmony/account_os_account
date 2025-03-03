@@ -18,6 +18,7 @@
 #include <thread>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
+#include "account_test_common.h"
 #include "account_proxy.h"
 #include "iremote_object.h"
 #include "iservice_registry.h"
@@ -64,6 +65,7 @@ public:
 
 void OsAccountTest::SetUpTestCase(void)
 {
+    ASSERT_TRUE(MockTokenId("accountmgr"));
     g_osAccount = std::make_shared<OsAccount>();
     GTEST_LOG_(INFO) << "SetUpTestCase enter";
     bool isOsAccountActived = false;

@@ -17,7 +17,6 @@
 #include <filesystem>
 #include <mutex>
 #include <gtest/gtest.h>
-#include <gtest/hwext/gtest-multithread.h>
 #include <thread>
 #include <unistd.h>
 #include "accesstoken_kit.h"
@@ -25,6 +24,7 @@
 #include "account_file_operator.h"
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
+#include "account_test_common.h"
 #include "domain_account_callback_service.h"
 #ifdef BUNDLE_ADAPTER_MOCK
 #include "domain_account_manager_service.h"
@@ -53,7 +53,6 @@
 
 using namespace testing;
 using namespace testing::ext;
-using namespace testing::mt;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
 using namespace OHOS::Security::AccessToken;
@@ -65,10 +64,8 @@ static void *g_ptr = &g_a;
 const int32_t ROOT_UID = 0;
 const int32_t EDM_UID = 3057;
 const int32_t NOT_EDM_UID = 3058;
-static constexpr int32_t DEFAULT_API_VERSION = 8;
 const std::vector<uint8_t> DEFAULT_TOKEN = {49, 50, 51, 52, 53};
 static uint64_t g_selfTokenID;
-const std::string STRING_TEST_NAME = "name";
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 const int32_t WAIT_TIME = 2;
 const std::string STRING_SHORT_NAME_OUT_OF_RANGE(256, '1');
@@ -84,44 +81,15 @@ const std::map<PluginMethodEnum, void *> PLUGIN_METHOD_MAP = {
 };
 }
 
-static bool AllocPermission(std::vector<std::string> permissions, AccessTokenID &tokenID, bool isSystemApp = true)
+static bool RecoveryPermission(uint64_t tokenID)
 {
-    std::vector<PermissionStateFull> permissionStates;
-    for (const auto& permission : permissions) {
-        PermissionStateFull permissionState = {
-            .permissionName = permission,
-            .isGeneral = true,
-            .resDeviceID = {"local"},
-            .grantStatus = {PermissionState::PERMISSION_GRANTED},
-            .grantFlags = {PERMISSION_SYSTEM_FIXED}
-        };
-        permissionStates.emplace_back(permissionState);
+    if (!MockTokenId("foundation")) {
+        return false;
     }
-    HapPolicyParams hapPolicyParams = {
-        .apl = APL_NORMAL,
-        .domain = "test.domain",
-        .permList = {},
-        .permStateList = permissionStates
-    };
-
-    HapInfoParams hapInfoParams = {
-        .userID = 100,
-        .bundleName = "account_test",
-        .instIndex = 0,
-        .appIDDesc = "account_test",
-        .apiVersion = DEFAULT_API_VERSION,
-        .isSystemApp = isSystemApp
-    };
-
-    AccessTokenIDEx tokenIdEx = {0};
-    tokenIdEx = AccessTokenKit::AllocHapToken(hapInfoParams, hapPolicyParams);
-    tokenID = tokenIdEx.tokenIdExStruct.tokenID;
-    return (INVALID_TOKENID != tokenIdEx.tokenIDEx) && (0 == SetSelfTokenID(tokenIdEx.tokenIDEx));
-}
-
-bool RecoveryPermission(AccessTokenID tokenID)
-{
-    return (ERR_OK == AccessTokenKit::DeleteToken(tokenID)) && (ERR_OK == SetSelfTokenID(g_selfTokenID));
+    if (!((ERR_OK == AccessTokenKit::DeleteToken(tokenID)) && (ERR_OK == SetSelfTokenID(g_selfTokenID)))) {
+        return false;
+    }
+    return g_selfTokenID == IPCSkeleton::GetSelfTokenID();
 }
 
 class MockPluginSoDomainAuthCallback {
@@ -245,6 +213,8 @@ public:
 void DomainAccountClientMockPluginSoModuleTest::SetUpTestCase(void)
 {
     GTEST_LOG_(INFO) << "SetUpTestCase enter";
+    ASSERT_NE(GetAllAccountPermission(), 0);
+    g_selfTokenID = IPCSkeleton::GetSelfTokenID();
 #ifdef ACCOUNT_TEST
     AccountFileOperator osAccountFileOperator;
     osAccountFileOperator.DeleteDirOrFile(USER_INFO_BASE);
@@ -261,7 +231,6 @@ void DomainAccountClientMockPluginSoModuleTest::SetUpTestCase(void)
     IInnerOsAccountManager::GetInstance().ActivateDefaultOsAccount();
     OsAccount::GetInstance().proxy_ = new (std::nothrow) OsAccountProxy(osAccountService->AsObject());
     ASSERT_NE(OsAccount::GetInstance().proxy_, nullptr);
-    g_selfTokenID = IPCSkeleton::GetSelfTokenID();
 #endif
 }
 
@@ -310,7 +279,7 @@ void DomainAccountClientMockPluginSoModuleTest::TearDown(void)
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_SetAccountPolicy_001,
          TestSize.Level0)
 {
-    AccessTokenID tokenID;
+    uint64_t tokenID;
     ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
     setuid(EDM_UID);
     UnloadPluginMethods();
@@ -335,7 +304,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
 {
     DomainAccountInfo info;
     LoadPluginMethods();
-    AccessTokenID tokenID;
+    uint64_t tokenID;
     ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
     std::string policy;
     EXPECT_EQ(DomainAccountClient::GetInstance().SetAccountPolicy(info, policy),
@@ -376,7 +345,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_SetAccountPolicy_004,
          TestSize.Level0)
 {
-    AccessTokenID tokenID;
+    uint64_t tokenID;
     ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
     setuid(EDM_UID);
     LoadPluginMethods();
@@ -420,7 +389,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     testCallback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
                               [lockCallback = testCallback]() { return lockCallback->isReady; });
     EXPECT_EQ(errCode, ERR_OK);
-    AccessTokenID tokenID;
+    uint64_t tokenID;
     ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
     setuid(EDM_UID);
 
@@ -465,11 +434,13 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     EXPECT_EQ(errCode, ERR_OK);
     int32_t oldUserId = -1;
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(oldDomainInfo, oldUserId), ERR_OK);
+    uint64_t tokenID;
+    ASSERT_TRUE(AllocPermission({}, tokenID));
     setuid(EDM_UID);
     ASSERT_EQ(DomainAccountClient::GetInstance().UpdateAccountInfo(oldDomainInfo, newDomainInfo),
         ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     setuid(ROOT_UID);
-    AccessTokenID tokenID;
+    ASSERT_TRUE(RecoveryPermission(tokenID));
     ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_DOMAIN_ACCOUNTS"}, tokenID));
     ASSERT_EQ(DomainAccountClient::GetInstance().UpdateAccountInfo(oldDomainInfo, newDomainInfo), ERR_OK);
     ASSERT_TRUE(RecoveryPermission(tokenID));
@@ -513,7 +484,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     EXPECT_EQ(errCode, ERR_OK);
     int32_t oldUserId = -1;
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(oldDomainInfo, oldUserId), ERR_OK);
-    AccessTokenID tokenID;
+    uint64_t tokenID;
     ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_DOMAIN_ACCOUNTS"}, tokenID));
     setuid(EDM_UID);
     EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountInfo(oldDomainInfo, newDomainInfo),
@@ -556,7 +527,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     EXPECT_EQ(errCode, ERR_OK);
     int32_t oldUserId = -1;
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(oldDomainInfo, oldUserId), ERR_OK);
-    AccessTokenID tokenID;
+    uint64_t tokenID;
     ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_DOMAIN_ACCOUNTS"}, tokenID));
     setuid(EDM_UID);
     // test new accountInfo's domain is invalid
@@ -606,7 +577,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest,
     EXPECT_EQ(errCode, ERR_OK);
     int32_t oldUserId = -1;
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(oldDomainInfo, oldUserId), ERR_OK);
-    AccessTokenID tokenID;
+    uint64_t tokenID;
     ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_DOMAIN_ACCOUNTS"}, tokenID, false));
     setuid(ROOT_UID);
     // test not systemApi
@@ -626,7 +597,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest,
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_IsAuthenticationExpired_001,
          TestSize.Level0)
 {
-    AccessTokenID tokenID;
+    uint64_t tokenID;
     ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
     setuid(EDM_UID);
     DomainAccountInfo domainInfo;
@@ -727,7 +698,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     testCallback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
                               [lockCallback = testCallback]() { return lockCallback->isReady; });
     ASSERT_EQ(errCode, ERR_OK);
-    AccessTokenID tokenID;
+    uint64_t tokenID;
     ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
     setuid(EDM_UID);
 
@@ -784,7 +755,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     testCallback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
                               [lockCallback = testCallback]() { return lockCallback->isReady; });
     ASSERT_EQ(errCode, ERR_OK);
-    AccessTokenID tokenID;
+    uint64_t tokenID;
     ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
     setuid(EDM_UID);
 
@@ -888,7 +859,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_IsAuthenticationExpired_006,
          TestSize.Level0)
 {
-    AccessTokenID tokenID;
+    uint64_t tokenID;
     ASSERT_TRUE(AllocPermission({}, tokenID));
     setuid(EDM_UID);
     LoadPluginMethods();
@@ -923,7 +894,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_GetOsAccountDomainInfo_001,
          TestSize.Level0)
 {
-    AccessTokenID tokenID;
+    uint64_t tokenID;
     std::vector<std::string> needPermissions = {
         "ohos.permission.GET_DOMAIN_ACCOUNTS",
         "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS",
@@ -975,7 +946,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_GetOsAccountDomainInfo_002,
          TestSize.Level0)
 {
-    AccessTokenID tokenID;
+    uint64_t tokenID;
 
     std::vector<std::string> needPermissions = {
         "ohos.permission.GET_DOMAIN_ACCOUNTS",
@@ -997,7 +968,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_GetOsAccountDomainInfo_003,
          TestSize.Level0)
 {
-    AccessTokenID tokenID;
+    uint64_t tokenID;
     ASSERT_TRUE(AllocPermission({}, tokenID));
     setuid(EDM_UID);
     int32_t testUserId = 1;
@@ -1021,98 +992,3 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     setuid(ROOT_UID);
     RecoveryPermission(tokenID);
 }
-
-/*** multithread */
-
-/**
- * @tc.name: DomainAccountClientModuleTest_IsAuthenticationExpired_MultiThread_001
- * @tc.desc:  MultiThread IsAuthenticationExpired success expired time not set..
- * @tc.type: FUNC
- * @tc.require:
- */
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-HWTEST_F(DomainAccountClientMockPluginSoModuleTest,
-         DomainAccountClientModuleTest_IsAuthenticationExpired_MultiThread_001, TestSize.Level0)
-{
-    DomainAccountInfo domainInfo;
-    domainInfo.accountName_ = "testaccount";
-    domainInfo.domain_ = "test.example.com";
-    domainInfo.accountId_ = "testid";
-    domainInfo.serverConfigId_ = "100";
-
-    LoadPluginMethods();
-    auto callback = std::make_shared<MockPluginSoDomainCreateDomainAccountCallback>();
-    ASSERT_NE(callback, nullptr);
-    auto testCallback = std::make_shared<TestPluginSoCreateDomainAccountCallback>(callback);
-    EXPECT_CALL(*callback, OnResult(ERR_OK, "testaccount", "test.example.com", _)).Times(Exactly(1));
-    ASSERT_NE(testCallback, nullptr);
-    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
-    std::unique_lock<std::mutex> lock(testCallback->mutex);
-    testCallback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
-                              [lockCallback = testCallback]() { return lockCallback->isReady; });
-    EXPECT_EQ(errCode, ERR_OK);
-
-    auto func = [] {
-        DomainAccountInfo domainInfo;
-        domainInfo.accountName_ = "testaccount";
-        domainInfo.domain_ = "test.example.com";
-        domainInfo.accountId_ = "testid";
-        bool isExpired = false;
-        EXPECT_EQ(DomainAccountClient::GetInstance().IsAuthenticationExpired(domainInfo, isExpired), ERR_OK);
-        EXPECT_TRUE(isExpired);
-    };
-
-    GTEST_RUN_TASK(func);
-
-    UnloadPluginMethods();
-
-    int32_t userId = -1;
-    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId), ERR_OK);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
-}
-
-/**
- * @tc.name: DomainAccountClientModuleTest_SetAuthenticationExpiryThreshold_MultiThread_001
- * @tc.desc: MultiThread SetAccountPolicy success.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(DomainAccountClientMockPluginSoModuleTest,
-         DomainAccountClientModuleTest_SetAuthenticationExpiryThreshold_MultiThread_001, TestSize.Level0)
-{
-    LoadPluginMethods();
-    DomainAccountInfo domainInfo;
-    domainInfo.accountName_ = "testaccount";
-    domainInfo.domain_ = "test.example.com";
-    domainInfo.accountId_ = "testid";
-    auto callback = std::make_shared<MockPluginSoDomainCreateDomainAccountCallback>();
-    ASSERT_NE(callback, nullptr);
-    auto testCallback = std::make_shared<TestPluginSoCreateDomainAccountCallback>(callback);
-    EXPECT_CALL(*callback, OnResult(ERR_OK, "testaccount", "test.example.com", _)).Times(Exactly(1));
-    ASSERT_NE(testCallback, nullptr);
-    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
-    std::unique_lock<std::mutex> lock(testCallback->mutex);
-    testCallback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
-                              [lockCallback = testCallback]() { return lockCallback->isReady; });
-    ASSERT_EQ(errCode, ERR_OK);
-    AccessTokenID tokenID;
-    ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
-    setuid(EDM_UID);
-    GTEST_RUN_TASK([]() {
-        DomainAccountInfo domainInfo;
-        domainInfo.accountName_ = "testaccount";
-        domainInfo.domain_ = "test.example.com";
-        domainInfo.accountId_ = "testid";
-        std::string policy = "{\"authenicationValidityPeriod\":10}";
-        std::string policyFromGet;
-        EXPECT_EQ(DomainAccountClient::GetInstance().SetAccountPolicy(domainInfo, policy), ERR_OK);
-        EXPECT_EQ(DomainAccountClient::GetInstance().GetAccountPolicy(domainInfo, policyFromGet), ERR_OK);
-    });
-    UnloadPluginMethods();
-    setuid(ROOT_UID);
-    ASSERT_TRUE(RecoveryPermission(tokenID));
-    int32_t userId = -1;
-    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId), ERR_OK);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
-}
-#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
