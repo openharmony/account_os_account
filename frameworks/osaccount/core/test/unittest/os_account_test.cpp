@@ -362,14 +362,14 @@ HWTEST_F(OsAccountTest, OsAccountTest015, TestSize.Level1)
 HWTEST_F(OsAccountTest, OsAccountTest016, TestSize.Level1)
 {
     bool isConstraintEnable;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_READ_CONSTRAINTS_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
         osAccountProxy_->IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, STRING_EMPTY, isConstraintEnable));
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_READ_CONSTRAINTS_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
         osAccountProxy_->CheckOsAccountConstraintEnabled(MAIN_ACCOUNT_ID, STRING_EMPTY, isConstraintEnable));
 
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_READ_CONSTRAINTS_ERROR, osAccountProxy_->IsOsAccountConstraintEnable(
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, osAccountProxy_->IsOsAccountConstraintEnable(
         MAIN_ACCOUNT_ID, STRING_CONSTRAINT_OUT_OF_RANGE, isConstraintEnable));
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_READ_CONSTRAINTS_ERROR, osAccountProxy_->CheckOsAccountConstraintEnabled(
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, osAccountProxy_->CheckOsAccountConstraintEnabled(
         MAIN_ACCOUNT_ID, STRING_CONSTRAINT_OUT_OF_RANGE, isConstraintEnable));
 }
 
