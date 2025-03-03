@@ -18,6 +18,7 @@
 #include <thread>
 #include "accesstoken_kit.h"
 #include "account_log_wrapper.h"
+#include "account_test_common.h"
 #define private public
 #include "account_iam_mgr_stub.h"
 #include "account_iam_service.h"
@@ -46,9 +47,7 @@ public:
 
 void AccountIAMStubModuleTest::SetUpTestCase(void)
 {
-    OHOS::Security::AccessToken::AccessTokenID tokenId =
-        OHOS::Security::AccessToken::AccessTokenKit::GetNativeTokenId("accountmgr");
-    SetSelfTokenID(tokenId);
+    ASSERT_TRUE(MockTokenId("accountmgr"));
 }
 
 void AccountIAMStubModuleTest::TearDownTestCase(void)

@@ -39,6 +39,7 @@ public:
 
 void AccountCommandCreateModuleTest::SetUpTestCase()
 {
+    ASSERT_TRUE(MockTokenId("accountmgr"));
 #ifdef ACCOUNT_TEST
     AccountFileOperator osAccountFileOperator;
     osAccountFileOperator.DeleteDirOrFile(USER_INFO_BASE);

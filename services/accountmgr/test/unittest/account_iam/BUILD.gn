@@ -99,6 +99,7 @@ ohos_unittest("account_iam_stub_test") {
 
   deps = [
     "${account_iam_framework_path}:account_iam_innerkits",
+    "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
@@ -204,6 +205,7 @@ ohos_unittest("account_iam_manager_test") {
 
   deps = [
     "${account_iam_framework_path}:account_iam_innerkits",
+    "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
     "${services_path}/accountmgr:accountmgr",
   ]

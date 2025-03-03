@@ -35,6 +35,13 @@ config("account_iam_native_config_unittest") {
 ohos_unittest("account_iam_client_test") {
   branch_protector_ret = "pac_ret"
 
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "${os_account_path}/cfi_blocklist.txt"
+  }
+
   module_out_path = module_output_path
 
   sources = [
@@ -47,6 +54,7 @@ ohos_unittest("account_iam_client_test") {
 
   deps = [
     "${account_iam_framework_path}:account_iam_innerkits",
+    "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
   ]
@@ -81,6 +89,13 @@ ohos_unittest("account_iam_client_test") {
 ohos_unittest("account_iam_client_proxy_mock_test") {
   branch_protector_ret = "pac_ret"
 
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "${os_account_path}/cfi_blocklist.txt"
+  }
+
   module_out_path = module_output_path
 
   sources = [
@@ -93,6 +108,7 @@ ohos_unittest("account_iam_client_proxy_mock_test") {
 
   deps = [
     "${account_iam_framework_path}:account_iam_innerkits",
+    "${account_test_common}:account_test_common_source_set",
     "${app_account_services_path}:accountmgr",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",

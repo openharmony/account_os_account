@@ -16,6 +16,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include "account_log_wrapper.h"
+#include "account_test_common.h"
 #include "os_account_constants.h"
 #include "os_account_manager.h"
 
@@ -31,11 +32,16 @@ constexpr int32_t TWICE = 2;
 }  // namespace
 class OsAccountSubscribeTest : public testing::Test {
 public:
-    static void SetUpTestCase(void) {};
+    static void SetUpTestCase(void);
     static void TearDownTestCase(void) {};
     void SetUp(void) override;
     void TearDown(void) override {};
 };
+
+void OsAccountSubscribeTest::SetUpTestCase(void)
+{
+    ASSERT_NE(GetAllAccountPermission(), 0);
+}
 
 void OsAccountSubscribeTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 {
