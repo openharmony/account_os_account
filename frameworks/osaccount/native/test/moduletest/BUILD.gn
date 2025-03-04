@@ -57,6 +57,7 @@ ohos_moduletest("os_account_frameworks_module_test") {
   configs = [ ":os_account_frameworks_config_unittest" ]
 
   deps = [
+    "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
@@ -151,6 +152,7 @@ ohos_moduletest("os_account_frameworks_module_mock_test") {
 
   deps = [
     "${account_iam_framework_path}:account_iam_innerkits",
+    "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
     "${innerkits_native_path}:libaccountkits",
@@ -337,6 +339,7 @@ ohos_moduletest("os_account_subscribe_test") {
   sources = [ "os_account_subscribe_test.cpp" ]
   configs = [ ":os_account_frameworks_config_unittest" ]
   deps = [
+    "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
   ]

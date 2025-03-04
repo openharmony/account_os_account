@@ -96,7 +96,6 @@ void AppAccountSessionManagerModuleTest::SetUp(void) __attribute__((no_sanitize(
 
 void AppAccountSessionManagerModuleTest::TearDown(void)
 {
-    GTEST_LOG_(INFO) << "TearDownTestCase exit";
     std::lock_guard<std::mutex> lock(appAccountAuthenticatorSessionManagerPtr_->mutex_);
     appAccountAuthenticatorSessionManagerPtr_->sessionMap_.clear();
     appAccountAuthenticatorSessionManagerPtr_->abilitySessions_.clear();

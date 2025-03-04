@@ -18,6 +18,7 @@
 #include <gmock/gmock.h>
 #include <thread>
 #include "account_log_wrapper.h"
+#include "account_test_common.h"
 #include "datetime_ex.h"
 #include "os_account_state_parcel.h"
 #define private public
@@ -70,6 +71,7 @@ public:
 
 void OsAccountManagerServiceSubscribeModuleTest::SetUpTestCase(void)
 {
+    ASSERT_NE(GetAllAccountPermission(), 0);
 #ifdef ACCOUNT_TEST
     AccountFileOperator osAccountFileOperator;
     osAccountFileOperator.DeleteDirOrFile(USER_INFO_BASE);

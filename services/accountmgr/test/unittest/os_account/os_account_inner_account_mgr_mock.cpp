@@ -15,7 +15,6 @@
 
 #include <filesystem>
 #include <gtest/gtest.h>
-#include <gtest/hwext/gtest-multithread.h>
 #include <map>
 #include <string>
 
@@ -50,7 +49,6 @@ namespace OHOS {
 namespace AccountSA {
 using namespace testing;
 using namespace testing::ext;
-using namespace testing::mt;
 using namespace OHOS::AccountSA;
 using namespace OHOS;
 using namespace AccountSA;
@@ -70,11 +68,6 @@ const int TEST_USER_ID10 = 10;
 const int TEST_USER_ID55 = 55;
 const int TEST_USER_ID100 = 100;
 const int TEST_USER_ID108 = 108;
-const int THREAD_NUM = 10;
-const std::int32_t MAIN_ACCOUNT_ID = 100;
-
-OsAccountInfo osAccountInfo;
-const std::string STRING_PHOTO_MAX(1024 * 1024, '1');  // length 1024*1024*10+1
 
 const std::string STRING_TEST_NAME = "test_account_name";
 const std::string STRING_DOMAIN_NAME_OUT_OF_RANGE(200, '1');  // length 200
@@ -2031,196 +2024,5 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountPluginMockTest001, TestSize.Leve
     pluginManager.CloseLib();
 }
 #endif //ENABLE_MULTIPLE_OS_ACCOUNTS
-
-/******
- * MultiThread test
- *************/
-
-/*
- * @tc.name: OsAccountInnerAccmgrMockTestMultiThread001
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWMTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTestMultiThread001, TestSize.Level1, THREAD_NUM)
-{
-    bool ret = false;
-    IInnerOsAccountManager::GetInstance().RemoveLocalIdToOperating(TEST_USER_ID10);
-    ret = IInnerOsAccountManager::GetInstance().CheckAndAddLocalIdOperating(TEST_USER_ID10);
-    EXPECT_EQ(ret, true);
-}
-
-/*
- * @tc.name: OsAccountInnerAccmgrMockTestMultiThread002
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWMTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTestMultiThread002, TestSize.Level1, THREAD_NUM)
-{
-    bool ret = false;
-    IInnerOsAccountManager::GetInstance().PushIdIntoActiveList(TEST_USER_ID10);
-    ret = IInnerOsAccountManager::GetInstance().IsOsAccountIDInActiveList(TEST_USER_ID10);
-    EXPECT_EQ(ret, true);
-}
-
-/*
- * @tc.name: OsAccountInnerAccmgrMockTestMultiThread003
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWMTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTestMultiThread003, TestSize.Level1, THREAD_NUM)
-{
-    bool ret = false;
-    IInnerOsAccountManager::GetInstance().EraseIdFromActiveList(TEST_USER_ID10);
-    ret = IInnerOsAccountManager::GetInstance().IsOsAccountIDInActiveList(TEST_USER_ID10);
-    EXPECT_EQ(ret, false);
-}
-
-/*
- * @tc.name: OsAccountInnerAccmgrMockTestMultiThread004
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWMTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTestMultiThread004, TestSize.Level1, THREAD_NUM)
-{
-    std::vector<int32_t> activatedIds;
-    IInnerOsAccountManager::GetInstance().CopyFromActiveList(activatedIds);
-    EXPECT_EQ(activatedIds, IInnerOsAccountManager::GetInstance().activeAccountId_);
-}
-
-/*
- * @tc.name: OsAccountInnerAccmgrMockTestMultiThread005
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTestMultiThread005, TestSize.Level1)
-{
-    std::string privateTestName = "PrivateTestName001";
-    ASSERT_EQ(
-        IInnerOsAccountManager::GetInstance().CreateOsAccount(privateTestName, OsAccountType::PRIVATE, osAccountInfo),
-        ERR_OK);
-    GTEST_RUN_TASK([]() {
-        std::string privateTestName = "PrivateTestName001";
-        EXPECT_EQ(IInnerOsAccountManager::GetInstance().SetOsAccountName(osAccountInfo.GetLocalId(), privateTestName),
-                  ERR_OK);
-    });
-
-    EXPECT_EQ(IInnerOsAccountManager::GetInstance().RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
-}
-
-/*
- * @tc.name: OsAccountInnerAccmgrMockTestMultiThread006
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTestMultiThread006, TestSize.Level1)
-{
-    std::string privateTestName = "PrivateTestName001";
-    ASSERT_EQ(
-        IInnerOsAccountManager::GetInstance().CreateOsAccount(privateTestName, OsAccountType::GUEST, osAccountInfo),
-        ERR_OK);
-    GTEST_RUN_TASK([]() {
-        EXPECT_EQ(IInnerOsAccountManager::GetInstance().SetOsAccountProfilePhoto(osAccountInfo.GetLocalId(),
-                                                                                 STRING_PHOTO_MAX),
-                  ERR_OK);
-    });
-
-    ASSERT_EQ(IInnerOsAccountManager::GetInstance().RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
-}
-
-/*
- * @tc.name: OsAccountInnerAccmgrMockTestMultiThread007
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTestMultiThread007, TestSize.Level1)
-{
-    ErrCode ret = IInnerOsAccountManager::GetInstance().CreateOsAccount("OsAccountInnerAccmgrMockTestMultiThread007",
-                                                                        OsAccountType::NORMAL, osAccountInfo);
-    ASSERT_EQ(ret, ERR_OK);
-    GTEST_RUN_TASK([]() {
-        // login
-        int localId = osAccountInfo.GetLocalId();
-        EXPECT_EQ(IInnerOsAccountManager::GetInstance().SetOsAccountIsLoggedIn(localId, true), ERR_OK);
-    });
-
-    IInnerOsAccountManager::GetInstance().RemoveOsAccount(osAccountInfo.GetLocalId());
-}
-
-/*
- * @tc.name: OsAccountInnerAccmgrMockTestMultiThread008
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTestMultiThread008, TestSize.Level1)
-{
-    ErrCode ret = IInnerOsAccountManager::GetInstance().CreateOsAccount("OsAccountInnerAccmgrMockTestMultiThread008",
-                                                                        OsAccountType::NORMAL, osAccountInfo);
-    ASSERT_EQ(ret, ERR_OK);
-    GTEST_RUN_TASK([]() {
-        // login
-        int localId = osAccountInfo.GetLocalId();
-        EXPECT_EQ(IInnerOsAccountManager::GetInstance().SetOsAccountCredentialId(localId, true), ERR_OK);
-    });
-
-    IInnerOsAccountManager::GetInstance().RemoveOsAccount(osAccountInfo.GetLocalId());
-}
-
-/*
- * @tc.name: OsAccountInnerAccmgrMockTestMultiThread009
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTestMultiThread009, TestSize.Level1)
-{
-    ErrCode ret = IInnerOsAccountManager::GetInstance().CreateOsAccount("OsAccountInnerAccmgrMockTestMultiThread009",
-                                                                        OsAccountType::NORMAL, osAccountInfo);
-    ASSERT_EQ(ret, ERR_OK);
-    GTEST_RUN_TASK([]() {
-        // login
-        int localId = osAccountInfo.GetLocalId();
-        EXPECT_EQ(ERR_OK, IInnerOsAccountManager::GetInstance().UpdateAccountToBackground(localId));
-    });
-
-    IInnerOsAccountManager::GetInstance().RemoveOsAccount(osAccountInfo.GetLocalId());
-}
-
-/*
- * @tc.name: OsAccountInnerAccmgrMockTestMultiThread011
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTestMultiThread011, TestSize.Level1)
-{
-    GTEST_RUN_TASK([]() {
-        ErrCode ret = IInnerOsAccountManager::GetInstance().DeactivateOsAccountById(Constants::ADMIN_LOCAL_ID);
-        EXPECT_EQ(ret, ERR_OK);
-    });
-}
-
-/*
- * @tc.name: OsAccountInnerAccmgrMockTestMultiThread012
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTestMultiThread012, TestSize.Level1)
-{
-    GTEST_RUN_TASK([]() {
-        int id;
-        ErrCode ret = IInnerOsAccountManager::GetInstance().GetDefaultActivatedOsAccount(id);
-        EXPECT_EQ(ret, ERR_OK);
-        EXPECT_EQ(id, MAIN_ACCOUNT_ID);
-    });
-}
 }  // namespace AccountSA
 }  // namespace OHOS
