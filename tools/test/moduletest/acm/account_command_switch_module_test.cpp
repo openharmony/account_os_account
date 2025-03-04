@@ -40,7 +40,9 @@ public:
 };
 
 void AccountCommandSwitchModuleTest::SetUpTestCase()
-{}
+{
+    ASSERT_NE(GetAllAccountPermission(), 0);
+}
 
 void AccountCommandSwitchModuleTest::TearDownTestCase()
 {}

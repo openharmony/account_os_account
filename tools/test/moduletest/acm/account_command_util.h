@@ -17,6 +17,7 @@
 #define OS_ACCOUNT_TOOLS_TEST_MODULETEST_ACM_ACCOUNT_COMMAND_UTIL_H
 
 #include <string>
+#include "account_test_common.h"
 
 namespace OHOS {
 namespace AccountSA {

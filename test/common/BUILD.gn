@@ -1,0 +1,61 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("../../os_account.gni")
+
+config("account_test_config") {
+  include_dirs = [ "include" ]
+}
+
+ohos_source_set("account_test_common_source_set") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  sources = [ "src/account_test_common.cpp" ]
+
+  public_configs = [ ":account_test_config" ]
+
+  cflags = [ "-pipe" ]
+  cflags_cc = [
+    "-Wdate-time",
+    "-Wformat=2",
+    "-Wfloat-equal",
+    "-Wshadow",
+  ]
+
+  defines = [
+    "ACCOUNT_LOG_TAG = \"AccountTest\"",
+    "LOG_DOMAIN = 0xD001B00",
+  ]
+  if (target_cpu == "arm64") {
+    defines += [ "_ARM64_" ]
+  }
+
+  deps = [ "${common_path}:libaccount_common" ]
+
+  external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtokenid_sdk",
+    "access_token:libtokensetproc_shared",
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}

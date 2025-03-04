@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include "account_test_common.h"
 #define private public
 #include "account_log_wrapper.h"
 #include "os_account_info.h"
@@ -90,7 +91,9 @@ public:
 };
 
 void OsAccountInfoTest::SetUpTestCase(void)
-{}
+{
+    ASSERT_TRUE(MockTokenId("accountmgr"));
+}
 
 void OsAccountInfoTest::TearDownTestCase(void)
 {}

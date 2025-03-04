@@ -15,11 +15,11 @@
 #include <cerrno>
 #include <filesystem>
 #include <gtest/gtest.h>
-#include <gtest/hwext/gtest-multithread.h>
 #include <thread>
 #include <unistd.h>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
+#include "account_test_common.h"
 #include "os_account_constants.h"
 #include "accesstoken_kit.h"
 #include "token_setproc.h"
@@ -34,7 +34,6 @@
 namespace OHOS {
 namespace AccountSA {
 using namespace testing::ext;
-using namespace testing::mt;
 using namespace OHOS::AccountSA;
 using namespace OHOS;
 using namespace AccountSA;
@@ -57,7 +56,6 @@ const uid_t ACCOUNT_UID = 3058;
 #endif // DOMAIN_ACCOUNT_TEST_CASE
 const std::int32_t ROOT_UID = 0;
 const std::int32_t TEST_UID = 1;
-const int32_t THREAD_NUM = 10;
 
 const std::vector<std::string> CONSTANTS_VECTOR {
     "constraint.print",
@@ -129,6 +127,7 @@ public:
 
 void OsAccountManagerServiceModuleTest::SetUpTestCase(void)
 {
+    ASSERT_NE(GetAllAccountPermission(), 0);
 #ifdef ACCOUNT_TEST
     AccountFileOperator osAccountFileOperator;
     osAccountFileOperator.DeleteDirOrFile(USER_INFO_BASE);
@@ -1665,443 +1664,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest085
 
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
 }
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest086
- * @tc.desc: Test CreateOsAccount PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest086, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    OsAccountInfo osAccountInfo;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->CreateOsAccount("Test086", INT_TEST_TYPE, osAccountInfo));
-}
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest087
- * @tc.desc: Test CreateOsAccountForDomain PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-#ifdef DOMAIN_ACCOUNT_TEST_CASE
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest087, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    OsAccountType type = NORMAL;
-    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
-    OsAccountInfo osAccountInfo;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->CreateOsAccountForDomain(type, domainInfo, osAccountInfo));
-}
-#endif // DOMAIN_ACCOUNT_TEST_CASE
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest088
- * @tc.desc: Test RemoveOsAccount PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest088, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    int id = MAIN_ACCOUNT_ID + 1;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->RemoveOsAccount(id));
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest089
- * @tc.desc: Test IsOsAccountActived PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest089, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    bool isOsAccountActived;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->IsOsAccountActived(MAIN_ACCOUNT_ID, isOsAccountActived));
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest090
- * @tc.desc: Test IsOsAccountConstraintEnable PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest090, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    bool isOsAccountActived;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isOsAccountActived));
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest091
- * @tc.desc: Test IsOsAccountVerified PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest091, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    bool isVerified;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->IsOsAccountVerified(MAIN_ACCOUNT_ID, isVerified));
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest092
- * @tc.desc: Test GetCreatedOsAccountsCount PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest092, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    unsigned int osAccountsCount;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->GetCreatedOsAccountsCount(osAccountsCount));
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest093
- * @tc.desc: Test IsMainOsAccount PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest093, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    bool isMainOsAccount;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->IsMainOsAccount(isMainOsAccount));
-}
-
-#ifdef DOMAIN_ACCOUNT_TEST_CASE
-/**
- * @tc.name: OsAccountManagerServiceModuleTest094
- * @tc.desc: Test GetOsAccountLocalIdFromDomain PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest094, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
-    int id;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainInfo, id));
-}
-#endif // DOMAIN_ACCOUNT_TEST_CASE
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest095
- * @tc.desc: Test GetOsAccountAllConstraints PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest095, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    std::vector<std::string> constraints;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->GetOsAccountAllConstraints(MAIN_ACCOUNT_ID, constraints));
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest096
- * @tc.desc: Test QueryAllCreatedOsAccounts PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest096, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    std::vector<OsAccountInfo> osAccountInfos;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->QueryAllCreatedOsAccounts(osAccountInfos));
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest097
- * @tc.desc: Test QueryCurrentOsAccount PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest097, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    OsAccountInfo osAccountInfo;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->QueryCurrentOsAccount(osAccountInfo));
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest098
- * @tc.desc: Test QueryOsAccountById PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest098, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    OsAccountInfo osAccountInfo;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->QueryOsAccountById(MAIN_ACCOUNT_ID, osAccountInfo));
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest099
- * @tc.desc: Test GetOsAccountProfilePhoto PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest099, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    std::string photo;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->GetOsAccountProfilePhoto(MAIN_ACCOUNT_ID, photo));
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest100
- * @tc.desc: Test SetOsAccountName PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest100, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->SetOsAccountName(MAIN_ACCOUNT_ID, STRING_NAME));
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest101
- * @tc.desc: Test SetOsAccountConstraints PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest101, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->SetOsAccountConstraints(MAIN_ACCOUNT_ID, CONSTANTS_VECTOR, true));
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest102
- * @tc.desc: Test SetOsAccountProfilePhoto PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest102, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->SetOsAccountProfilePhoto(MAIN_ACCOUNT_ID, PHOTO_IMG));
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest103
- * @tc.desc: Test ActivateOsAccount PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest103, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->ActivateOsAccount(MAIN_ACCOUNT_ID));
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest104
- * @tc.desc: Test SubscribeOsAccount PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest104, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    OsAccountSubscribeInfo subscribeInfo;
-    sptr<IRemoteObject> eventListener = nullptr;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->SubscribeOsAccount(subscribeInfo, eventListener));
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest105
- * @tc.desc: Test UnsubscribeOsAccount PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest105, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    sptr<IRemoteObject> eventListener = nullptr;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED, osAccountManagerService_->UnsubscribeOsAccount(eventListener));
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest106
- * @tc.desc: Test SetCurrentOsAccountIsVerified PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest106, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->SetCurrentOsAccountIsVerified(true));
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest107
- * @tc.desc: Test SetOsAccountIsVerified PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest107, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->SetOsAccountIsVerified(MAIN_ACCOUNT_ID, true));
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest108
- * @tc.desc: Test DumpState PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest108, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    int id = MAIN_ACCOUNT_ID;
-    std::vector<std::string> state;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->DumpState(id, state));
-}
-
-#if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
-/**
- * @tc.name: OsAccountManagerServiceModuleTest109
- * @tc.desc: Test GetCreatedOsAccountNumFromDatabase PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest109, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    int createdOsAccountNum;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->GetCreatedOsAccountNumFromDatabase(STORE_ID, createdOsAccountNum));
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest110
- * @tc.desc: Test GetOsAccountFromDatabase PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest110, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    OsAccountInfo osAccountInfo;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->GetOsAccountFromDatabase(STORE_ID, MAIN_ACCOUNT_ID, osAccountInfo));
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest111
- * @tc.desc: Test GetOsAccountListFromDatabase PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest111, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    std::vector<OsAccountInfo> osAccountList;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->GetOsAccountListFromDatabase(STORE_ID, osAccountList));
-}
-#endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest112
- * @tc.desc: Test QueryOsAccountConstraintSourceTypes PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest112, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    std::vector<ConstraintSourceTypeInfo> constraintSourceTypeInfos;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED, osAccountManagerService_->QueryOsAccountConstraintSourceTypes(
-            MAIN_ACCOUNT_ID, CONSTANT_WIFI, constraintSourceTypeInfos));
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest113
- * @tc.desc: Test SetGlobalOsAccountConstraints PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest113, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->SetGlobalOsAccountConstraints(CONSTANTS_VECTOR, true, MAIN_ACCOUNT_ID, true));
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest114
- * @tc.desc: Test SetSpecificOsAccountConstraints PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest114, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED, osAccountManagerService_->SetSpecificOsAccountConstraints(
-        CONSTANTS_VECTOR, false, MAIN_ACCOUNT_ID, MAIN_ACCOUNT_ID, false));
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest115
- * @tc.desc: Test SetDefaultActivatedOsAccount PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require: issueI6AQUQ
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest115, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->SetDefaultActivatedOsAccount(MAIN_ACCOUNT_ID));
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest116
- * @tc.desc: Test GetDefaultActivatedOsAccount PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require: issueI6AQUQ
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest116, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    int id;
-    EXPECT_NE(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->GetDefaultActivatedOsAccount(id));
-    EXPECT_EQ(id, MAIN_ACCOUNT_ID);
-}
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest117
@@ -2129,21 +1692,6 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest118
 }
 
 #ifdef DOMAIN_ACCOUNT_TEST_CASE
-/**
- * @tc.name: OsAccountManagerServiceModuleTest119
- * @tc.desc: test CreateOsAccountForDomain permission error
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest119, TestSize.Level1)
-{
-    setuid(ACCOUNT_UID);
-    DomainAccountInfo domainInfo;
-    EXPECT_EQ(osAccountManagerService_->CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, nullptr),
-        ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
-    setuid(ROOT_UID);
-}
-
 /**
  * @tc.name: OsAccountManagerServiceModuleTest120
  * @tc.desc: test CreateOsAccountForDomain type is invalid
@@ -2209,46 +1757,25 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest124
         osAccountManagerService_->SetOsAccountProfilePhoto(MAIN_ACCOUNT_ID, ""), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
-/**
- * @tc.name: SetDefaultActivatedOsAccountM
- * @tc.desc: Test SetDefaultActivatedOsAccount Multithreading.
- * @tc.type: FUNC
- * @tc.require: issueI6AQUQ
- */
-HWMTEST_F(OsAccountManagerServiceModuleTest, SetDefaultActivatedOsAccountM, TestSize.Level1, THREAD_NUM)
-{
-    setuid(TEST_UID);
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        std::make_shared<OsAccountManagerService>()->SetDefaultActivatedOsAccount(MAIN_ACCOUNT_ID));
-}
-
-/**
- * @tc.name: GetSubscribeRecordInfoM
- * @tc.desc: Test GetSubscribeRecordInfo Multithreading.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWMTEST_F(OsAccountManagerServiceModuleTest, GetSubscribeRecordInfoM, TestSize.Level1, THREAD_NUM)
-{
-    setuid(TEST_UID);
-    sptr<IRemoteObject> eventListener = nullptr;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        std::make_shared<OsAccountManagerService>()->UnsubscribeOsAccount(eventListener));
-}
-
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 /**
  * @tc.name: OsAccountManagerServiceModuleTest125
  * @tc.desc: test CreateOsAccount permission with EDM
  * @tc.type: FUNC
  * @tc.require:
  */
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest125, TestSize.Level1)
 {
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    uint64_t tokenID;
+    ASSERT_TRUE(AllocPermission({}, tokenID));
     setuid(TEST_UID);
     OsAccountInfo osAccountInfo;
     EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfo));
+
+    setuid(ROOT_UID);
+    ASSERT_TRUE(RecoveryPermission(tokenID, selfTokenId));
     setuid(3057);
     EXPECT_EQ(ERR_OK,
         osAccountManagerService_->CreateOsAccount("Test125", INT_TEST_TYPE, osAccountInfo));
@@ -2647,7 +2174,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, MaxNumTest007, TestSize.Level1)
             ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR);
 
     AccessTokenID selfTokenId = IPCSkeleton::GetSelfTokenID();
-    AccessTokenID tokenId = AccessTokenKit::GetNativeTokenId("accountmgr");
+    AccessTokenID tokenId = GetTokenIdFromProcess("accountmgr");
     EXPECT_EQ(ERR_OK, SetSelfTokenID(tokenId));
     EXPECT_EQ(osAccountManagerService_->CreateOsAccount(
             "MaxNumTest007_SaCreated", OsAccountType::NORMAL, osAccountInfo), ERR_OK);
@@ -2693,7 +2220,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, MaxNumTest008, TestSize.Level1)
     std::vector<int32_t> createdOsAccounts;
     OsAccountInfo osAccountInfo;
     AccessTokenID selfTokenId = IPCSkeleton::GetSelfTokenID();
-    AccessTokenID tokenId = AccessTokenKit::GetNativeTokenId("accountmgr");
+    AccessTokenID tokenId = GetTokenIdFromProcess("accountmgr");
     EXPECT_EQ(ERR_OK, SetSelfTokenID(tokenId));
     for (uint32_t i = 1; i < maxOsAccountNum; ++i) {
         EXPECT_EQ(osAccountManagerService_->CreateOsAccount(
@@ -2756,6 +2283,8 @@ HWTEST_F(OsAccountManagerServiceModuleTest, SetOsAccountIsLoggedInTest001, TestS
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, MaintenanceTypeTest001, TestSize.Level1)
 {
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    ASSERT_TRUE(MockTokenId("accountmgr"));
     std::string maintenanceTestName = "MaintenanceTypeTest001";
     // test create maintenance os account
     OsAccountInfo osAccountInfoA;
@@ -2779,6 +2308,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, MaintenanceTypeTest001, TestSize.Lev
         OsAccountType::MAINTENANCE, osAccountInfoC), ERR_OK);
     EXPECT_EQ(osAccountInfoC.GetLocalId(), Constants::MAINTENANCE_USER_ID);
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoC.GetLocalId()), ERR_OK);
+    SetSelfTokenID(selfTokenId);
 }
 #endif //ENABLE_MULTIPLE_OS_ACCOUNTS
 }  // namespace AccountSA

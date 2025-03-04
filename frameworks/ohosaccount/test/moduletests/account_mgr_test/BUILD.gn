@@ -24,56 +24,6 @@ config("accountmgr_mst_test_config") {
   configs = []
 }
 
-ohos_moduletest("AccountInnerSdkModuleTest") {
-  branch_protector_ret = "pac_ret"
-
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-
-  module_out_path = module_output_path
-
-  sources = [
-    "${common_path}/log/src/account_log_wrapper.cpp",
-    "${innerkits_native_path}/src/account_info_parcel.cpp",
-    "${innerkits_native_path}/src/account_proxy.cpp",
-    "${innerkits_native_path}/src/ohos_account_kits.cpp",
-    "${innerkits_native_path}/src/ohos_account_kits_impl.cpp",
-  ]
-
-  sources += [ "account_mgr_inner_sdk_func_test.cpp" ]
-
-  include_dirs =
-      [ "${os_account_path}/interfaces/innerkits/ohosaccount/native/include/" ]
-
-  configs = [
-    ":accountmgr_mst_test_config",
-    "${services_path}/accountmgr/test:accountmgr_test_config",
-  ]
-
-  deps = [
-    "${common_path}:libaccount_common",
-    "${os_account_innerkits_native_path}:os_account_innerkits",
-  ]
-
-  external_deps = [
-    "ability_base:base",
-    "ability_base:want",
-    "c_utils:utils",
-    "googletest:gmock_main",
-    "googletest:gtest_main",
-    "hilog:libhilog",
-    "ipc:ipc_single",
-    "json:nlohmann_json_static",
-    "os_account:libaccountkits",
-    "safwk:system_ability_fwk",
-    "samgr:samgr_proxy",
-  ]
-  part_name = "os_account"
-}
-
 ohos_moduletest("AccountInnerSdkModuleMockTest") {
   branch_protector_ret = "pac_ret"
 
@@ -125,6 +75,7 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
 
   deps = [
     "${account_iam_framework_path}:account_iam_innerkits",
+    "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
     "${innerkits_native_path}:libaccountkits",
@@ -254,6 +205,7 @@ ohos_moduletest("SubscribeDistributedAccountModuleTest") {
   ]
 
   deps = [
+    "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
