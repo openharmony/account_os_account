@@ -18,6 +18,7 @@
 #include "account_dump_helper.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
+#include "account_test_common.h"
 #define private public
 #include "account_mgr_service.h"
 #undef private
@@ -76,6 +77,7 @@ public:
 
 void AccountMgrServiceTest::SetUpTestCase()
 {
+    ASSERT_TRUE(MockTokenId("accountmgr"));
     sptr<IAccount> accountMgr = GetAccountMgr();
     if (!accountMgr) {
         std::cout << "AccountMgrServiceTest::SetUpTestCase  failed" << std::endl;

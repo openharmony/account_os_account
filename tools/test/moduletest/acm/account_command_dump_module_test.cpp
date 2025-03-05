@@ -44,6 +44,7 @@ public:
 
 void AccountCommandDumpModuleTest::SetUpTestCase()
 {
+    ASSERT_NE(GetAllAccountPermission(), 0);
 #ifdef ACCOUNT_TEST
     AccountFileOperator osAccountFileOperator;
     osAccountFileOperator.DeleteDirOrFile(USER_INFO_BASE);

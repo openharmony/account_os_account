@@ -26,6 +26,8 @@ public:
     ErrCode QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo);
     ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id);
     ErrCode QueryActiveOsAccountIds(std::vector<int32_t>& ids);
+    ErrCode IsOsAccountForeground(const int32_t localId, const uint64_t displayId,
+                                                      bool &isForeground);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

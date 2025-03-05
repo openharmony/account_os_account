@@ -17,6 +17,7 @@
 
 #include "account_command.h"
 #include "account_log_wrapper.h"
+#include "account_test_common.h"
 #include "singleton.h"
 
 using namespace testing::ext;
@@ -40,7 +41,9 @@ public:
 };
 
 void AccountCommandSwitchTest::SetUpTestCase()
-{}
+{
+    ASSERT_NE(GetAllAccountPermission(), 0);
+}
 
 void AccountCommandSwitchTest::TearDownTestCase()
 {}

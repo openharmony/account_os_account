@@ -41,7 +41,7 @@ class SwitchSubscribeInfo {
 public:
     SwitchSubscribeInfo() = default;
     SwitchSubscribeInfo(OS_ACCOUNT_SUBSCRIBE_TYPE);
-    ~SwitchSubscribeInfo() = default;
+    ~SwitchSubscribeInfo();
     void AddSubscribeInfo(OS_ACCOUNT_SUBSCRIBE_TYPE);
     bool SubSubscribeInfo(OS_ACCOUNT_SUBSCRIBE_TYPE);
     bool IsEmpty();
@@ -52,7 +52,7 @@ public:
 private:
     uint8_t count_ = 0;
     std::mutex mutex_;
-    std::deque<SwitchSubcribeWork> workDeque_;
+    std::deque<std::shared_ptr<SwitchSubcribeWork>> workDeque_;
     std::unique_ptr<std::thread> workThread_;
 };
 

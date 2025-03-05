@@ -42,7 +42,7 @@ public:
     ErrCode ProcHasDomainAccount(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcUpdateAccountToken(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcIsAuthenticationExpired(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcSetAuthenticationExpiryThreshold(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcSetAccountPolicy(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetDomainAccessToken(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetDomainAccountInfo(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcUpdateAccountInfo(MessageParcel &data, MessageParcel &reply);
@@ -50,7 +50,11 @@ public:
     ErrCode ProcRegisterAccountStatusListener(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcAddServerConfig(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcRemoveServerConfig(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcUpdateServerConfig(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetServerConfig(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetAllServerConfigs(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetAccountServerConfig(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetAccountPolicy(MessageParcel &data, MessageParcel &reply);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

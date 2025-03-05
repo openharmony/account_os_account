@@ -163,6 +163,9 @@ ohos_shared_library("accountmgr") {
     "-Wformat=2",
     "-Wfloat-equal",
     "-Wshadow",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-Os",
   ]
 
   if (!os_account_distributed_feature) {

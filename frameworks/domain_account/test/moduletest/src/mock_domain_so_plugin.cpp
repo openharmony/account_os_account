@@ -167,14 +167,34 @@ PluginBussnessError *IsAuthenticationExpired(const PluginDomainAccountInfo *doma
     return error;
 }
 
-PluginBussnessError *SetAccountPolicy(PluginDomainAccountPolicy *domainAccountPolicy)
+PluginBussnessError* SetAccountPolicy(const PluginString *parameters,
+    const PluginDomainAccountInfo *domainAccountInfo, const int32_t callerLocalId)
 {
     ACCOUNT_LOGI("Mock SetAccountPolicy enter.");
     PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
     if (error == nullptr) {
         return nullptr;
     }
-    g_authenicationValidityPeriod = domainAccountPolicy->authenicationValidityPeriod;
+    error->code = 0;
+    error->msg.data = nullptr;
+    if (parameters == nullptr || parameters->data == nullptr) {
+        ACCOUNT_LOGI("Mock SetAccountPolicy data is nullptr.");
+        g_authenicationValidityPeriod = -1;
+        return error;
+    }
+    const char *found = std::find(parameters->data, parameters->data + parameters->length, '-');
+    g_authenicationValidityPeriod = found != parameters->data + parameters->length ? -1 : 1;
+    return error;
+}
+
+PluginBussnessError *GetAccountPolicy(const PluginDomainAccountInfo *domainAccountInfo,
+    const int32_t callerLocalId, PluginDomainAccountPolicy **domainAccountPolicy)
+{
+    ACCOUNT_LOGI("Mock GetAccountPolicy enter.");
+    PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    if (error == nullptr) {
+        return nullptr;
+    }
     error->code = 0;
     error->msg.data = nullptr;
     return error;

@@ -55,7 +55,6 @@ constexpr char THREAD_IS_ACCOUNT_VALID[] = "isAccountTokenValid";
 constexpr char DLOPEN_ERR[] = "dlopen failed";
 constexpr int32_t INVALID_USERID = -1;
 constexpr int32_t ADMIN_USERID = 0;
-constexpr int32_t SELF_UID = 3058;
 static const char OPERATOR_LOAD_LIB[] = "LoaderLib";
 #ifdef _ARM64_
 static const char LIB_PATH[] = "/system/lib64/platformsdk/";
@@ -65,6 +64,27 @@ static const char LIB_PATH[] = "/system/lib/platformsdk/";
 static const char LIB_NAME[] = "libdomain_account_plugin.z.so";
 static const char EDM_FREEZE_BACKGROUND_PARAM[] = "persist.edm.inactive_user_freeze";
 }
+static const std::map<PluginMethodEnum, std::string> METHOD_NAME_MAP = {
+    {PluginMethodEnum::ADD_SERVER_CONFIG, "AddServerConfig"},
+    {PluginMethodEnum::REMOVE_SERVER_CONFIG, "RemoveServerConfig"},
+    {PluginMethodEnum::UPDATE_SERVER_CONFIG, "UpdateServerConfig"},
+    {PluginMethodEnum::GET_SERVER_CONFIG, "GetServerConfig"},
+    {PluginMethodEnum::GET_ALL_SERVER_CONFIGS, "GetServerConfigList"},
+    {PluginMethodEnum::GET_ACCOUNT_SERVER_CONFIG, "GetAccountServerConfig"},
+    {PluginMethodEnum::AUTH, "Auth"},
+    {PluginMethodEnum::AUTH_WITH_POPUP, "AuthWithPopup"},
+    {PluginMethodEnum::AUTH_WITH_TOKEN, "AuthWithToken"},
+    {PluginMethodEnum::GET_ACCOUNT_INFO, "GetAccountInfo"},
+    {PluginMethodEnum::GET_AUTH_STATUS_INFO, "GetAuthStatusInfo"},
+    {PluginMethodEnum::BIND_ACCOUNT, "BindAccount"},
+    {PluginMethodEnum::UNBIND_ACCOUNT, "UnbindAccount"},
+    {PluginMethodEnum::IS_ACCOUNT_TOKEN_VALID, "IsAccountTokenValid"},
+    {PluginMethodEnum::GET_ACCESS_TOKEN, "GetAccessToken"},
+    {PluginMethodEnum::UPDATE_ACCOUNT_INFO, "UpdateAccountInfo"},
+    {PluginMethodEnum::IS_AUTHENTICATION_EXPIRED, "IsAuthenticationExpired"},
+    {PluginMethodEnum::SET_ACCOUNT_POLICY, "SetAccountPolicy"},
+    {PluginMethodEnum::GET_ACCOUNT_POLICY, "GetAccountPolicy"},
+};
 
 static bool IsSupportNetRequest()
 {
@@ -258,43 +278,12 @@ ErrCode InnerDomainAccountManager::GetDomainAccountInfoByUserId(int32_t userId, 
 
 std::string GetMethodNameByEnum(PluginMethodEnum methondEnum)
 {
-    switch (methondEnum) {
-        case PluginMethodEnum::ADD_SERVER_CONFIG:
-            return "AddServerConfig";
-        case PluginMethodEnum::REMOVE_SERVER_CONFIG:
-            return "RemoveServerConfig";
-        case PluginMethodEnum::GET_ACCOUNT_SERVER_CONFIG:
-            return "GetAccountServerConfig";
-        case PluginMethodEnum::AUTH:
-            return "Auth";
-        case PluginMethodEnum::AUTH_WITH_POPUP:
-            return "AuthWithPopup";
-        case PluginMethodEnum::AUTH_WITH_TOKEN:
-            return "AuthWithToken";
-        case PluginMethodEnum::GET_ACCOUNT_INFO:
-            return "GetAccountInfo";
-        case PluginMethodEnum::GET_AUTH_STATUS_INFO:
-            return "GetAuthStatusInfo";
-        case PluginMethodEnum::BIND_ACCOUNT:
-            return "BindAccount";
-        case PluginMethodEnum::UNBIND_ACCOUNT:
-            return "UnbindAccount";
-        case PluginMethodEnum::IS_ACCOUNT_TOKEN_VALID:
-            return "IsAccountTokenValid";
-        case PluginMethodEnum::GET_ACCESS_TOKEN:
-            return "GetAccessToken";
-        case PluginMethodEnum::GET_SERVER_CONFIG:
-            return "GetServerConfig";
-        case PluginMethodEnum::UPDATE_ACCOUNT_INFO:
-            return "UpdateAccountInfo";
-        case PluginMethodEnum::IS_AUTHENTICATION_EXPIRED:
-            return "IsAuthenticationExpired";
-        case PluginMethodEnum::SET_ACCOUNT_POLICY:
-            return "SetAccountPolicy";
-        default:
-            ACCOUNT_LOGE("enum=%{public}d can not find string", methondEnum);
-            return "";
+    const auto& it = METHOD_NAME_MAP.find(methondEnum);
+    if (it != METHOD_NAME_MAP.end()) {
+        return it->second;
     }
+    ACCOUNT_LOGE("enum=%{public}d can not find string", methondEnum);
+    return "";
 }
 
 void InnerDomainAccountManager::LoaderLib(const std::string &path, const std::string &libName)
@@ -528,6 +517,17 @@ static void GetAndCleanPluginAuthStatusInfo(PluginAuthStatusInfo **statusInfo,
     (*statusInfo) = nullptr;
 }
 
+static void GetAndCleanPluginDomainAccountPolicy(PluginDomainAccountPolicy **accountPolicy, std::string &policy)
+{
+    if (accountPolicy == nullptr || *accountPolicy == nullptr) {
+        ACCOUNT_LOGE("PluginDomainAccountPolicy is null.");
+        return;
+    }
+    GetAndCleanPluginString((*accountPolicy)->parameters, policy);
+    free(*accountPolicy);
+    *accountPolicy = nullptr;
+}
+
 static void SetPluginGetDomainAccessTokenOptions(const GetAccessTokenOptions &option,
     const std::vector<uint8_t> &token, const DomainAccountInfo &info, PluginGetDomainAccessTokenOptions &pluginOptions)
 {
@@ -595,6 +595,104 @@ ErrCode InnerDomainAccountManager::RemoveServerConfig(const std::string &configI
         return ERR_JS_SERVER_CONFIG_NOT_FOUND;
     }
     return errCode;
+}
+
+ErrCode InnerDomainAccountManager::UpdateServerConfig(const std::string &configId,
+    const std::string &paremters, DomainServerConfig &config) __attribute__((no_sanitize("cfi")))
+{
+    if (!IsSupportNetRequest()) {
+        ACCOUNT_LOGE("Not support background account request");
+        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
+    }
+    auto iter = methodMap_.find(PluginMethodEnum::UPDATE_SERVER_CONFIG);
+    if (iter == methodMap_.end() || iter->second == nullptr) {
+        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::UPDATE_SERVER_CONFIG);
+        return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+    }
+    int32_t localId = GetCallingUserID();
+    if (localId == INVALID_USERID) {
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    PluginString serverConfigId;
+    PluginString param;
+    SetPluginString(configId, serverConfigId);
+    SetPluginString(paremters, param);
+    PluginServerConfigInfo *configInfo = nullptr;
+    PluginBussnessError* error = (*reinterpret_cast<UpdateServerConfigFunc>(iter->second))(&serverConfigId, &param,
+        localId, &configInfo);
+    GetAndCleanPluginServerConfigInfo(&configInfo, config.id_, config.domain_, config.parameters_);
+    CleanPluginString(&(param.data), param.length);
+    CleanPluginString(&(serverConfigId.data), serverConfigId.length);
+    return GetAndCleanPluginBussnessError(&error, iter->first);
+}
+
+ErrCode InnerDomainAccountManager::GetServerConfig(const std::string &configId,
+    DomainServerConfig &config) __attribute__((no_sanitize("cfi")))
+{
+    if (!IsSupportNetRequest()) {
+        ACCOUNT_LOGE("Not support background account request");
+        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
+    }
+    auto iter = methodMap_.find(PluginMethodEnum::GET_SERVER_CONFIG);
+    if (iter == methodMap_.end() || iter->second == nullptr) {
+        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::GET_SERVER_CONFIG);
+        return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+    }
+    int32_t localId = GetCallingUserID();
+    if (localId == INVALID_USERID) {
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    PluginString serverConfigId;
+    SetPluginString(configId, serverConfigId);
+    PluginServerConfigInfo *configInfo = nullptr;
+    PluginBussnessError* error = (*reinterpret_cast<GetServerConfigFunc>(iter->second))(
+            &serverConfigId, localId, &configInfo);
+    GetAndCleanPluginServerConfigInfo(&configInfo, config.id_, config.domain_, config.parameters_);
+    CleanPluginString(&(serverConfigId.data), serverConfigId.length);
+    return GetAndCleanPluginBussnessError(&error, iter->first);
+}
+
+ErrCode InnerDomainAccountManager::GetAllServerConfigs(
+    std::vector<DomainServerConfig> &configs) __attribute__((no_sanitize("cfi")))
+{
+    if (!IsSupportNetRequest()) {
+        ACCOUNT_LOGE("Not support background account request");
+        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
+    }
+    auto iter = methodMap_.find(PluginMethodEnum::GET_ALL_SERVER_CONFIGS);
+    if (iter == methodMap_.end() || iter->second == nullptr) {
+        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::GET_ALL_SERVER_CONFIGS);
+        return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+    }
+    int32_t localId = GetCallingUserID();
+    if (localId == INVALID_USERID) {
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    PluginServerConfigInfoList *configInfoList = nullptr;
+    PluginBussnessError* error = (*reinterpret_cast<GetServerConfigListFunc>(iter->second))(&configInfoList);
+    if (configInfoList == nullptr) {
+        ACCOUNT_LOGE("configInfoList is nullptr");
+        return GetAndCleanPluginBussnessError(&error, iter->first);
+    }
+    if (configInfoList->size == 0) {
+        delete configInfoList;
+        return GetAndCleanPluginBussnessError(&error, iter->first);
+    }
+    for (size_t i = 0; i < configInfoList->size; ++i) {
+        DomainServerConfig config;
+        if (GetAndCleanPluginString(configInfoList->items[i].id, config.id_) != ERR_OK) {
+            ACCOUNT_LOGE("Failed to get server config id at index %{public}zu", i);
+            continue;
+        }
+        if (GetAndCleanPluginString(configInfoList->items[i].domain, config.domain_) != ERR_OK) {
+            ACCOUNT_LOGE("Failed to get server config domain at index %{public}zu", i);
+            continue;
+        }
+        configs.push_back(config);
+    }
+    delete[] configInfoList->items;
+    delete configInfoList;
+    return GetAndCleanPluginBussnessError(&error, iter->first);
 }
 
 ErrCode InnerDomainAccountManager::GetAccountServerConfig(
@@ -871,12 +969,13 @@ ErrCode InnerDomainAccountManager::PluginUpdateAccountInfo(const DomainAccountIn
         ACCOUNT_LOGE("Caller method = %{public}d not exsit.", PluginMethodEnum::UPDATE_ACCOUNT_INFO);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
+    int32_t callerLocalId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     PluginDomainAccountInfo oldDomainAccountInfo;
     SetPluginDomainAccountInfo(oldAccountInfo, oldDomainAccountInfo);
     PluginDomainAccountInfo newDomainAccountInfo;
     SetPluginDomainAccountInfo(newAccountInfo, newDomainAccountInfo);
-    PluginBussnessError* error =
-        (*reinterpret_cast<UpdateAccountInfoFunc>(iter->second))(&oldDomainAccountInfo, &newDomainAccountInfo);
+    PluginBussnessError* error = (*reinterpret_cast<UpdateAccountInfoFunc>(iter->second))(&oldDomainAccountInfo,
+        &newDomainAccountInfo, callerLocalId);
     CleanPluginString(&(oldDomainAccountInfo.domain.data), oldDomainAccountInfo.domain.length);
     CleanPluginString(&(oldDomainAccountInfo.serverConfigId.data), oldDomainAccountInfo.serverConfigId.length);
     CleanPluginString(&(oldDomainAccountInfo.accountName.data), oldDomainAccountInfo.accountName.length);
@@ -1029,7 +1128,7 @@ void InnerDomainAccountManager::NotifyDomainAccountEvent(
 ErrCode InnerDomainAccountManager::UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token)
 {
     int32_t callingUid = IPCSkeleton::GetCallingUid();
-    if ((callingUid != callingUid_) && (callingUid != SELF_UID)) {
+    if ((callingUid_ != -1) && (callingUid != callingUid_)) {
         ACCOUNT_LOGE("callingUid and register callinguid is not same!");
         return ERR_DOMAIN_ACCOUNT_SERVICE_INVALID_CALLING_UID;
     }
@@ -1219,8 +1318,8 @@ ErrCode InnerDomainAccountManager::IsAuthenticationExpired(
     return GetAndCleanPluginBussnessError(&error, iter->first);
 }
 
-ErrCode InnerDomainAccountManager::SetAccountPolicy(
-    const DomainAccountPolicy &policy) __attribute__((no_sanitize("cfi")))
+ErrCode InnerDomainAccountManager::SetAccountPolicy(const DomainAccountInfo &info,
+    const std::string &policy) __attribute__((no_sanitize("cfi")))
 {
     if (!IsSupportNetRequest()) {
         ACCOUNT_LOGE("Not support background account request");
@@ -1231,14 +1330,62 @@ ErrCode InnerDomainAccountManager::SetAccountPolicy(
         ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::SET_ACCOUNT_POLICY);
         return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
     }
-    PluginDomainAccountPolicy domainAccountPolicy;
-    domainAccountPolicy.authenicationValidityPeriod = policy.authenicationValidityPeriod;
+    int32_t callerLocalId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+    if (!info.IsEmpty()) {
+        int32_t userId = 0;
+        ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGI("The target domain account not found.");
+            return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
+        }
+    }
+    PluginString parameters;
+    SetPluginString(policy, parameters);
+    PluginDomainAccountInfo domainAccountInfo;
+    SetPluginDomainAccountInfo(info, domainAccountInfo);
     PluginBussnessError* error =
-        (*reinterpret_cast<SetAccountPolicyFunc>(iter->second))(&domainAccountPolicy);
-    if (error == nullptr) {
-        ACCOUNT_LOGE("Error is nullptr.");
+        (*reinterpret_cast<SetAccountPolicyFunc>(iter->second))(&parameters, &domainAccountInfo, callerLocalId);
+    CleanPluginString(&(domainAccountInfo.domain.data), domainAccountInfo.domain.length);
+    CleanPluginString(&(domainAccountInfo.serverConfigId.data), domainAccountInfo.serverConfigId.length);
+    CleanPluginString(&(domainAccountInfo.accountName.data), domainAccountInfo.accountName.length);
+    CleanPluginString(&(domainAccountInfo.accountId.data), domainAccountInfo.accountId.length);
+    CleanPluginString(&(parameters.data), parameters.length);
+    return GetAndCleanPluginBussnessError(&error, iter->first);
+}
+
+ErrCode InnerDomainAccountManager::GetAccountPolicy(const DomainAccountInfo &info,
+    std::string &policy) __attribute__((no_sanitize("cfi")))
+{
+    if (!IsSupportNetRequest()) {
+        ACCOUNT_LOGE("Not support background account request");
+        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
+    }
+    auto iter = methodMap_.find(PluginMethodEnum::GET_ACCOUNT_POLICY);
+    if (iter == methodMap_.end() || iter->second == nullptr) {
+        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::GET_ACCOUNT_POLICY);
         return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
     }
+    int32_t callerLocalId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+    if (!info.IsEmpty()) {
+        int32_t userId = 0;
+        ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGI("The target domain account not found.");
+            return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
+        }
+    }
+    PluginDomainAccountInfo domainAccountInfo;
+    SetPluginDomainAccountInfo(info, domainAccountInfo);
+    PluginDomainAccountPolicy *domainAccountPolicy = nullptr;
+    PluginBussnessError* error = (*reinterpret_cast<GetAccountPolicyFunc>(iter->second))(&domainAccountInfo,
+        callerLocalId, &domainAccountPolicy);
+    if (domainAccountPolicy != nullptr) {
+        GetAndCleanPluginDomainAccountPolicy(&domainAccountPolicy, policy);
+    }
+    CleanPluginString(&(domainAccountInfo.domain.data), domainAccountInfo.domain.length);
+    CleanPluginString(&(domainAccountInfo.serverConfigId.data), domainAccountInfo.serverConfigId.length);
+    CleanPluginString(&(domainAccountInfo.accountName.data), domainAccountInfo.accountName.length);
+    CleanPluginString(&(domainAccountInfo.accountId.data), domainAccountInfo.accountId.length);
     return GetAndCleanPluginBussnessError(&error, iter->first);
 }
 
@@ -1746,10 +1893,6 @@ static ErrCode CheckNewDomainAccountInfo(const DomainAccountInfo &oldAccountInfo
     if (!oldAccountInfo.serverConfigId_.empty()) {
         if (newAccountInfo.serverConfigId_.empty()) {
             newAccountInfo.serverConfigId_ = oldAccountInfo.serverConfigId_;
-        }
-        if (newAccountInfo.serverConfigId_ != oldAccountInfo.serverConfigId_) {
-            ACCOUNT_LOGE("NewAccountInfo's serverConfigId is invalid");
-            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
         }
     }
     ErrCode result = ERR_OK;

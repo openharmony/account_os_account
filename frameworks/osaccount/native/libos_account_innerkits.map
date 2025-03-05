@@ -68,6 +68,7 @@
         "OHOS::AccountSA::OsAccount::IsCurrentOsAccountVerified(bool&)";
         "OHOS::AccountSA::OsAccount::SetCurrentOsAccountIsVerified(bool)";
         "OHOS::AccountSA::OsAccount::SetOsAccountIsVerified(int, bool)";
+        "OHOS::AccountSA::OsAccountEventListener::OsAccountEventListener(std::__h::shared_ptr<OHOS::AccountSA::OsAccountSubscriber> const&)";
         "OHOS::AccountSA::OsAccount::GetCreatedOsAccountNumFromDatabase(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, int&)";
         "OHOS::AccountSA::OsAccount::GetSerialNumberFromDatabase(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long long&)";
         "OHOS::AccountSA::OsAccount::GetSerialNumberFromDatabase(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long&)";

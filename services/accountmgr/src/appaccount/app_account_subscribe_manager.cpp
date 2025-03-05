@@ -317,6 +317,11 @@ ErrCode AppAccountSubscribeManager::OnAccountsChanged(const std::shared_ptr<AppA
     }
 
     for (auto receiver : record->receivers) {
+        bool isAuthorizedApp = false;
+        record->info->CheckAppAccess(receiver->bundleName, isAuthorizedApp);
+        if (!isAuthorizedApp && receiver->bundleName != record->info->GetOwner()) {
+            continue;
+        }
         std::vector<AppAccountInfo> accessibleAccounts;
         ErrCode result = controlManagerPtr.GetAllAccessibleAccountsFromDataStorage(
             accessibleAccounts, receiver->bundleName, dataStoragePtr, receiver->appIndex);

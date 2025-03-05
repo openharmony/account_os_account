@@ -20,6 +20,7 @@
 
 #include "accesstoken_kit.h"
 #include "account_error_no.h"
+#include "account_test_common.h"
 #ifdef HAS_CES_PART
 #include "common_event_manager.h"
 #include "common_event_subscriber.h"
@@ -60,7 +61,6 @@ const std::string ACCOUNT_PHOTO =
     "ugsXRjAT0EHCOuFIBwkbdIRewi6unbiAyoGgSn1SFH85+Yq/"
     "4ljARW62X+LHS8uIzjm4dXUYF+utzBikB52Jo5e5iEPKqpACk7R9NM2RvWm5tIkD2czLCUFNKLD6IjdMHFHDzws285MgGrT0xCtp3WOKHo+"
     "7q0mP0DZW9pNmoEFUzrQjp5cCnaen2kSJXLFD8ghbXyZCMQf/8e8Ns1XVAG/XAgqKzVnJFAAAAABJRU5ErkJggg==";
-const AccessTokenID accountMgrTokenID = AccessTokenKit::GetNativeTokenId("accountmgr");
 
 class OsAccountInnerAccmgrCoverageTest : public testing::Test {
 public:
@@ -102,7 +102,7 @@ private:
 
 void OsAccountInnerAccmgrCoverageTest::SetUpTestCase(void)
 {
-    SetSelfTokenID(accountMgrTokenID);
+    ASSERT_TRUE(MockTokenId("accountmgr"));
 }
 
 void OsAccountInnerAccmgrCoverageTest::TearDownTestCase(void)

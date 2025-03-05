@@ -42,16 +42,21 @@ public:
     virtual ErrCode HasDomainAccount(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback) = 0;
     virtual ErrCode UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token) = 0;
     virtual ErrCode IsAuthenticationExpired(const DomainAccountInfo &info, bool &isExpired) = 0;
-    virtual ErrCode SetAccountPolicy(const DomainAccountPolicy &policy) = 0;
     virtual ErrCode GetAccessToken(const DomainAccountInfo &info, const AAFwk::WantParams &parameters,
         const sptr<IDomainAccountCallback> &callback) = 0;
     virtual ErrCode GetDomainAccountInfo(
         const DomainAccountInfo &Info, const sptr<IDomainAccountCallback> &callback) = 0;
-    virtual ErrCode AddServerConfig(const std::string &paramter, DomainServerConfig &config) = 0;
+    virtual ErrCode AddServerConfig(const std::string &parameter, DomainServerConfig &config) = 0;
     virtual ErrCode RemoveServerConfig(const std::string &configId) = 0;
     virtual ErrCode GetAccountServerConfig(const DomainAccountInfo &info, DomainServerConfig &config) = 0;
+    virtual ErrCode UpdateServerConfig(const std::string &configId, const std::string &parameter,
+        DomainServerConfig &config) = 0;
+    virtual ErrCode GetServerConfig(const std::string &configId, DomainServerConfig &config) = 0;
+    virtual ErrCode GetAllServerConfigs(std::vector<DomainServerConfig> &configs) = 0;
     virtual ErrCode UpdateAccountInfo(
         const DomainAccountInfo &oldAccountInfo, const DomainAccountInfo &newAccountInfo) = 0;
+    virtual ErrCode SetAccountPolicy(const DomainAccountInfo &info, const std::string &policy) = 0;
+    virtual ErrCode GetAccountPolicy(const DomainAccountInfo &info, std::string &policy) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

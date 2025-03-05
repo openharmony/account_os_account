@@ -42,7 +42,8 @@ void OsAccountInterface::InitThemeResource(int32_t localId)
 #endif
 
 ErrCode OsAccountInterface::SendToBMSAccountCreate(
-    OsAccountInfo &osAccountInfo, const std::vector<std::string> &disallowedHapList)
+    OsAccountInfo &osAccountInfo, const std::vector<std::string> &disallowedHapList,
+    const std::optional<std::vector<std::string>> &allowedHapList)
 {
     ACCOUNT_LOGI("mock OsAccountInterface SendToBMSAccountCreate start");
     if (osAccountInfo.GetLocalName() == "CreateOsAccountRollback001") {

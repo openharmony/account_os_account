@@ -23,6 +23,7 @@
 #include "account_file_operator.h"
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
+#include "account_test_common.h"
 #include "domain_account_callback_service.h"
 #include "os_account_info.h"
 #ifdef BUNDLE_ADAPTER_MOCK
@@ -82,7 +83,19 @@ const int32_t WAIT_TIME = 20;
 const int32_t INVALID_CODE = -1;
 const uid_t TEST_UID = 100;
 const uid_t ROOT_UID = 0;
+static uint64_t g_selfTokenID;
 std::shared_ptr<MockDomainPlugin> g_plugin = std::make_shared<MockDomainPlugin>();
+}
+
+static bool RecoveryPermission(uint64_t tokenID)
+{
+    if (!MockTokenId("foundation")) {
+        return false;
+    }
+    if (!((ERR_OK == AccessTokenKit::DeleteToken(tokenID)) && (ERR_OK == SetSelfTokenID(g_selfTokenID)))) {
+        return false;
+    }
+    return g_selfTokenID == IPCSkeleton::GetSelfTokenID();
 }
 
 class DomainAccountClientModuleTest : public testing::Test {
@@ -112,6 +125,7 @@ void DomainAccountClientModuleTest::SetUpTestCase(void)
     IInnerOsAccountManager::GetInstance().ActivateDefaultOsAccount();
     OsAccount::GetInstance().proxy_ = new (std::nothrow) OsAccountProxy(osAccountService->AsObject());
     ASSERT_NE(OsAccount::GetInstance().proxy_, nullptr);
+    g_selfTokenID = IPCSkeleton::GetSelfTokenID();
 #endif
 }
 
@@ -211,9 +225,8 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Plugin_004
  */
 HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Plugin_005, TestSize.Level0)
 {
-    AccessTokenID selfTokenId = IPCSkeleton::GetSelfTokenID();
-    AccessTokenID tokenId = AccessTokenKit::GetNativeTokenId("accountmgr");
-    SetSelfTokenID(tokenId);
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    ASSERT_TRUE(MockTokenId("accountmgr"));
     ASSERT_EQ(DomainAccountClient::GetInstance().UnregisterPlugin(), ERR_OK);
     ASSERT_EQ(DomainAccountClient::GetInstance().RegisterPlugin(g_plugin), ERR_OK);
     SetSelfTokenID(selfTokenId);
@@ -1115,14 +1128,18 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAcco
  */
 HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAccountToken_004, TestSize.Level0)
 {
+    uint64_t tokenID;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
+    setuid(TEST_UID);
     DomainAccountInfo domainInfo;
     domainInfo.accountName_ = "11";
     domainInfo.domain_ = STRING_DOMAIN_NEW;
     domainInfo.accountId_ = "testid";
-    DomainAccountClient::GetInstance().UnregisterPlugin();
     std::vector<uint8_t> token = {1};
     EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountToken(domainInfo, token),
         ERR_DOMAIN_ACCOUNT_SERVICE_INVALID_CALLING_UID);
+    setuid(ROOT_UID);
+    ASSERT_TRUE(RecoveryPermission(tokenID));
 }
 
 /**
@@ -1956,6 +1973,16 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AddServerC
         ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(DomainAccountClient::GetInstance().RemoveServerConfig(identifier),
         ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    std::string configId = "testConfigId";
+    std::string parameters = "testParameters";
+    std::vector<DomainServerConfig> configs;
+    EXPECT_EQ(DomainAccountClient::GetInstance().UpdateServerConfig(configId, parameters, config),
+        ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(DomainAccountClient::GetInstance().GetServerConfig(configId, config),
+        ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    DomainAccountClient::GetInstance().deathRecipient_->OnRemoteDied(nullptr);
+    EXPECT_EQ(DomainAccountClient::GetInstance().GetAllServerConfigs(configs),
+        ERR_JS_CAPABILITY_NOT_SUPPORTED);
 }
 
 /**
@@ -1982,6 +2009,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAcco
 HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAccountInfo_002, TestSize.Level0)
 {
     DomainAccountInfo oldInfo, newInfo;
+    setuid(ROOT_UID);
     ASSERT_EQ(DomainAccountClient::GetInstance().UpdateAccountInfo(oldInfo, newInfo),
         ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT);
 }

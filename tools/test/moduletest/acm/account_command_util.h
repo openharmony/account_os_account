@@ -17,6 +17,7 @@
 #define OS_ACCOUNT_TOOLS_TEST_MODULETEST_ACM_ACCOUNT_COMMAND_UTIL_H
 
 #include <string>
+#include "account_test_common.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -24,6 +25,7 @@ class AccountCommandUtil {
 public:
     static std::string CreateOsAccount();
     static std::string CreateOsAccount(const std::string &name);
+    static std::string CreateOsAccount(const std::string &name, const std::string &type);
     static std::string DeleteLastOsAccount();
     static std::string DumpLastOsAccount();
     static std::string SwitchToFirstOsAccount();

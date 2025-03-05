@@ -78,6 +78,7 @@ void SqliteHelper::Close()
         return;
     }
     db_ = nullptr;
+    ACCOUNT_LOGI("Close sqlite database.");
 }
 
 int32_t SqliteHelper::BeginTransaction() const
