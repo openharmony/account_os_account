@@ -57,5 +57,12 @@ bool AccountPermissionManager::CheckSaCall()
     TypeATokenTypeEnum res = AccessTokenKit::GetTokenType(callingToken);
     return (res == TOKEN_NATIVE);
 }
+
+bool AccountPermissionManager::CheckShellCall()
+{
+    AccessTokenID callingToken = IPCSkeleton::GetCallingTokenID();
+    TypeATokenTypeEnum res = AccessTokenKit::GetTokenType(callingToken);
+    return (res == TOKEN_SHELL);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

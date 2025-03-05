@@ -43,10 +43,17 @@ bool ProcSetAuthenticationExpiryThresholdStubFuzzTest(const uint8_t* data, size_
         return false;
     }
     FuzzData fuzzData(data, size);
-    if (!dataTemp.WriteInt32(fuzzData.GetData<int32_t>())) {
+    DomainAccountInfo info;
+    info.domain_ = fuzzData.GenerateString();
+    info.accountName_ = fuzzData.GenerateString();
+    info.accountId_ = fuzzData.GenerateString();
+    std::string policy = fuzzData.GenerateString();
+    if (!dataTemp.WriteParcelable(&info)) {
         return false;
     }
-
+    if (!dataTemp.WriteString(policy)) {
+        return false;
+    }
     MessageParcel reply;
     MessageOption option;
     uint32_t code = static_cast<uint32_t>(DomainAccountInterfaceCode::DOMAIN_SET_ACCOUNT_POLICY);

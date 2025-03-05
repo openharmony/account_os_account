@@ -16,6 +16,7 @@
 #include "domain_account_stub.h"
 
 #include <securec.h>
+#include <set>
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
 #include "domain_account_callback_proxy.h"
@@ -26,11 +27,23 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 const char MANAGE_LOCAL_ACCOUNTS[] = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
+const char MANAGE_DOMAIN_ACCOUNTS[] = "ohos.permission.MANAGE_DOMAIN_ACCOUNTS";
 const char GET_LOCAL_ACCOUNTS[] = "ohos.permission.GET_LOCAL_ACCOUNTS";
 const char ACCESS_USER_AUTH_INTERNAL[] = "ohos.permission.ACCESS_USER_AUTH_INTERNAL";
 const char GET_DOMAIN_ACCOUNTS[] = "ohos.permission.GET_DOMAIN_ACCOUNTS";
 const char INTERACT_ACROSS_LOCAL_ACCOUNTS[] = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
+const char MANAGE_DOMAIN_ACCOUNT_SERVER_CONFIGS[] = "ohos.permission.MANAGE_DOMAIN_ACCOUNT_SERVER_CONFIGS";
 }
+
+static const std::set<DomainAccountInterfaceCode> NON_SYSTEM_API_SET = {
+    DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_INFO,
+    DomainAccountInterfaceCode::UPDATE_SERVER_CONFIG,
+    DomainAccountInterfaceCode::GET_SERVER_CONFIG,
+    DomainAccountInterfaceCode::GET_ALL_SERVER_CONFIGS,
+    DomainAccountInterfaceCode::ADD_SERVER_CONFIG,
+    DomainAccountInterfaceCode::REMOVE_SERVER_CONFIG,
+    DomainAccountInterfaceCode::GET_ACCOUNT_SERVER_CONFIG,
+};
 
 static const std::map<DomainAccountInterfaceCode, DomainAccountStub::DomainAccountStubFunc> stubFuncMap = {
     {
@@ -91,7 +104,7 @@ static const std::map<DomainAccountInterfaceCode, DomainAccountStub::DomainAccou
     {
         DomainAccountInterfaceCode::DOMAIN_SET_ACCOUNT_POLICY,
         [] (DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
-            return ptr->ProcSetAuthenticationExpiryThreshold(data, reply); }
+            return ptr->ProcSetAccountPolicy(data, reply); }
     },
     {
         DomainAccountInterfaceCode::DOMAIN_GET_ACCESS_TOKEN,
@@ -114,6 +127,21 @@ static const std::map<DomainAccountInterfaceCode, DomainAccountStub::DomainAccou
             return ptr->ProcRemoveServerConfig(data, reply); }
     },
     {
+        DomainAccountInterfaceCode::UPDATE_SERVER_CONFIG,
+        [] (DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcUpdateServerConfig(data, reply); }
+    },
+    {
+        DomainAccountInterfaceCode::GET_SERVER_CONFIG,
+        [] (DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcGetServerConfig(data, reply); }
+    },
+    {
+        DomainAccountInterfaceCode::GET_ALL_SERVER_CONFIGS,
+        [] (DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcGetAllServerConfigs(data, reply); }
+    },
+    {
         DomainAccountInterfaceCode::GET_ACCOUNT_SERVER_CONFIG,
         [] (DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
             return ptr->ProcGetAccountServerConfig(data, reply); }
@@ -122,6 +150,11 @@ static const std::map<DomainAccountInterfaceCode, DomainAccountStub::DomainAccou
         DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_INFO,
         [] (DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
             return ptr->ProcUpdateAccountInfo(data, reply); }
+    },
+    {
+        DomainAccountInterfaceCode::DOMAIN_GET_ACCOUNT_POLICY,
+        [] (DomainAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+            return ptr->ProcGetAccountPolicy(data, reply); }
     },
 };
 
@@ -219,16 +252,45 @@ ErrCode DomainAccountStub::ProcIsAuthenticationExpired(MessageParcel &data, Mess
     return ERR_OK;
 }
 
-ErrCode DomainAccountStub::ProcSetAuthenticationExpiryThreshold(MessageParcel &data, MessageParcel &reply)
+ErrCode DomainAccountStub::ProcSetAccountPolicy(MessageParcel &data, MessageParcel &reply)
 {
-    DomainAccountPolicy policy;
-    if (!data.ReadInt32(policy.authenicationValidityPeriod)) {
+    std::shared_ptr<DomainAccountInfo> info(data.ReadParcelable<DomainAccountInfo>());
+    if (info == nullptr) {
+        ACCOUNT_LOGE("failed to read domain account info");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    std::string policy;
+    if (!data.ReadString(policy)) {
         ACCOUNT_LOGE("Read threshold failed.");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    ErrCode result = SetAccountPolicy(policy);
+    ErrCode result = SetAccountPolicy(*info, policy);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("Write reply failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    return ERR_OK;
+}
+
+ErrCode DomainAccountStub::ProcGetAccountPolicy(MessageParcel &data, MessageParcel &reply)
+{
+    std::shared_ptr<DomainAccountInfo> info(data.ReadParcelable<DomainAccountInfo>());
+    if (info == nullptr) {
+        ACCOUNT_LOGE("failed to read domain account info");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    std::string policy;
+    ErrCode result = GetAccountPolicy(*info, policy);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Write reply failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("GetAccountPolicy failed %{public}d.", result);
+        return result;
+    }
+    if (!reply.WriteString(policy)) {
+        ACCOUNT_LOGE("Write reply policy failed.");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_OK;
@@ -496,6 +558,81 @@ ErrCode DomainAccountStub::ProcRemoveServerConfig(MessageParcel &data, MessagePa
     return result;
 }
 
+ErrCode DomainAccountStub::ProcUpdateServerConfig(MessageParcel &data, MessageParcel &reply)
+{
+    std::string configId;
+    if (!data.ReadString(configId)) {
+        ACCOUNT_LOGE("Fail to configId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    std::string parameters;
+    if (!data.ReadString(parameters)) {
+        ACCOUNT_LOGE("Failed to read domain server config.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    DomainServerConfig config;
+    ErrCode result = UpdateServerConfig(configId, parameters, config);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Failed to write reply, result=%{public}d.", result);
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (result != ERR_OK) {
+        return result;
+    }
+    if (!reply.WriteParcelable(&config)) {
+        ACCOUNT_LOGE("Failed to write identifier.");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return result;
+}
+
+ErrCode DomainAccountStub::ProcGetServerConfig(MessageParcel &data, MessageParcel &reply)
+{
+    std::string configId;
+    if (!data.ReadString(configId)) {
+        ACCOUNT_LOGE("Fail to configId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    DomainServerConfig config;
+    ErrCode result = GetServerConfig(configId, config);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Failed to write reply, result=%{public}d.", result);
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (result != ERR_OK) {
+        return result;
+    }
+    if (!reply.WriteParcelable(&config)) {
+        ACCOUNT_LOGE("Failed to write identifier.");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return result;
+}
+
+ErrCode DomainAccountStub::ProcGetAllServerConfigs(MessageParcel &data, MessageParcel &reply)
+{
+    std::vector<DomainServerConfig> configs;
+    ErrCode result = GetAllServerConfigs(configs);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Failed to write reply, result=%{public}d.", result);
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (result != ERR_OK) {
+        return result;
+    }
+    if (!reply.WriteInt32(static_cast<uint32_t>(configs.size()))) {
+        ACCOUNT_LOGE("Failed to write config count.");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    for (const auto &config : configs) {
+        if (!reply.WriteParcelable(&config)) {
+            ACCOUNT_LOGE("Failed to write config.");
+            return IPC_STUB_WRITE_PARCEL_ERR;
+        }
+    }
+    return result;
+}
+
 ErrCode DomainAccountStub::ProcGetAccountServerConfig(MessageParcel &data, MessageParcel &reply)
 {
     std::shared_ptr<DomainAccountInfo> info(data.ReadParcelable<DomainAccountInfo>());
@@ -519,55 +656,62 @@ ErrCode DomainAccountStub::ProcGetAccountServerConfig(MessageParcel &data, Messa
     return ERR_NONE;
 }
 
+static const std::map<DomainAccountInterfaceCode, std::vector<std::string>> permissionMap = {
+    {DomainAccountInterfaceCode::REGISTER_PLUGIN, {MANAGE_LOCAL_ACCOUNTS}},
+    {DomainAccountInterfaceCode::UNREGISTER_PLUGIN, {MANAGE_LOCAL_ACCOUNTS}},
+    {DomainAccountInterfaceCode::DOMAIN_SET_ACCOUNT_POLICY, {MANAGE_LOCAL_ACCOUNTS}},
+    {DomainAccountInterfaceCode::DOMAIN_GET_ACCOUNT_POLICY, {MANAGE_LOCAL_ACCOUNTS}},
+    {DomainAccountInterfaceCode::DOMAIN_HAS_DOMAIN_ACCOUNT, {MANAGE_LOCAL_ACCOUNTS}},
+    {DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_TOKEN, {MANAGE_LOCAL_ACCOUNTS}},
+    {DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_INFO, {MANAGE_LOCAL_ACCOUNTS, MANAGE_DOMAIN_ACCOUNTS}},
+    {DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_ENQUIRY, {GET_LOCAL_ACCOUNTS}},
+    {DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER, {GET_LOCAL_ACCOUNTS}},
+    {DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER, {GET_LOCAL_ACCOUNTS}},
+    {DomainAccountInterfaceCode::DOMAIN_AUTH, {ACCESS_USER_AUTH_INTERNAL}},
+    {DomainAccountInterfaceCode::DOMAIN_AUTH_USER, {ACCESS_USER_AUTH_INTERNAL}},
+    {DomainAccountInterfaceCode::DOMAIN_GET_ACCOUNT_INFO, {GET_DOMAIN_ACCOUNTS}},
+    {DomainAccountInterfaceCode::DOMAIN_IS_AUTHENTICATION_EXPIRED,
+        {MANAGE_LOCAL_ACCOUNTS, INTERACT_ACROSS_LOCAL_ACCOUNTS}},
+    {DomainAccountInterfaceCode::ADD_SERVER_CONFIG,
+        {MANAGE_LOCAL_ACCOUNTS, MANAGE_DOMAIN_ACCOUNT_SERVER_CONFIGS}},
+    {DomainAccountInterfaceCode::REMOVE_SERVER_CONFIG,
+        {MANAGE_LOCAL_ACCOUNTS, MANAGE_DOMAIN_ACCOUNT_SERVER_CONFIGS}},
+    {DomainAccountInterfaceCode::GET_ACCOUNT_SERVER_CONFIG,
+        {MANAGE_LOCAL_ACCOUNTS, MANAGE_DOMAIN_ACCOUNT_SERVER_CONFIGS}},
+    {DomainAccountInterfaceCode::UPDATE_SERVER_CONFIG, {MANAGE_DOMAIN_ACCOUNT_SERVER_CONFIGS}},
+    {DomainAccountInterfaceCode::GET_SERVER_CONFIG, {MANAGE_DOMAIN_ACCOUNT_SERVER_CONFIGS}},
+    {DomainAccountInterfaceCode::GET_ALL_SERVER_CONFIGS, {MANAGE_DOMAIN_ACCOUNT_SERVER_CONFIGS}}
+};
+
 ErrCode DomainAccountStub::CheckPermission(DomainAccountInterfaceCode code, int32_t uid)
 {
-    ErrCode errCode = AccountPermissionManager::CheckSystemApp();
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("the caller is not system application, errCode = %{public}d.", errCode);
-        return errCode;
+    if (NON_SYSTEM_API_SET.find(code) == NON_SYSTEM_API_SET.end()) {
+        ErrCode errCode = AccountPermissionManager::CheckSystemApp();
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("the caller is not system application, errCode = %{public}d.", errCode);
+            return errCode;
+        }
     }
     if (uid == 0) {
         return ERR_OK;
     }
-    std::vector<std::string> orPermissions;
-    switch (code) {
-        case DomainAccountInterfaceCode::REGISTER_PLUGIN:
-        case DomainAccountInterfaceCode::UNREGISTER_PLUGIN:
-        case DomainAccountInterfaceCode::DOMAIN_SET_ACCOUNT_POLICY:
-        case DomainAccountInterfaceCode::DOMAIN_HAS_DOMAIN_ACCOUNT:
-        case DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_TOKEN:
-        case DomainAccountInterfaceCode::ADD_SERVER_CONFIG:
-        case DomainAccountInterfaceCode::REMOVE_SERVER_CONFIG:
-        case DomainAccountInterfaceCode::GET_ACCOUNT_SERVER_CONFIG:
-        case DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_INFO:
-            orPermissions.emplace_back(MANAGE_LOCAL_ACCOUNTS);
-            break;
-        case DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_ENQUIRY:
-        case DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER:
-        case DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER:
-            orPermissions.emplace_back(GET_LOCAL_ACCOUNTS);
-            break;
-        case DomainAccountInterfaceCode::DOMAIN_AUTH:
-        case DomainAccountInterfaceCode::DOMAIN_AUTH_USER:
-            orPermissions.emplace_back(ACCESS_USER_AUTH_INTERNAL);
-            break;
-        case DomainAccountInterfaceCode::DOMAIN_GET_ACCOUNT_INFO:
-            orPermissions.emplace_back(GET_DOMAIN_ACCOUNTS);
-            break;
-        case DomainAccountInterfaceCode::DOMAIN_IS_AUTHENTICATION_EXPIRED:
-            orPermissions.emplace_back(MANAGE_LOCAL_ACCOUNTS);
-            orPermissions.emplace_back(INTERACT_ACROSS_LOCAL_ACCOUNTS);
-            break;
-        default:
-            break;
+    const auto& it = permissionMap.find(code);
+    if (it == permissionMap.end()) {
+        ACCOUNT_LOGW("No specific permission defined for code %{public}d, returning OK", static_cast<int>(code));
+        return ERR_OK;
     }
-    for (const auto &permission : orPermissions) {
-        errCode = AccountPermissionManager::VerifyPermission(permission);
-        if (errCode == ERR_OK) {
-            return ERR_OK;
-        }
+    const auto& requiredPermissions = it->second;
+    if (requiredPermissions.empty()) {
+        return ERR_OK;
     }
-    return orPermissions.empty() ? ERR_OK : ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    bool hasAnyPermission = std::any_of(requiredPermissions.begin(), requiredPermissions.end(),
+        [](const std::string& permission) {
+            return AccountPermissionManager::VerifyPermission(permission) == ERR_OK;
+        });
+    if (!hasAnyPermission) {
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    return ERR_OK;
 }
 }  // namespace AccountSA
 }  // namespace OHOS

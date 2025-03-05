@@ -46,7 +46,7 @@ public:
     ErrCode HasDomainAccount(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback);
     ErrCode UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token);
     ErrCode IsAuthenticationExpired(const DomainAccountInfo &info, bool &isExpired);
-    ErrCode SetAccountPolicy(const DomainAccountPolicy &policy);
+    ErrCode SetAccountPolicy(const DomainAccountInfo &info, const std::string &policy);
     ErrCode GetAccessToken(const DomainAccountInfo &info, const AAFwk::WantParams &parameters,
         const sptr<IDomainAccountCallback> &callback);
     ErrCode GetDomainAccountInfo(const DomainAccountInfo &info, DomainAccountInfo &result);
@@ -68,10 +68,14 @@ public:
     ErrCode GetDomainAccountInfoByUserId(int32_t userId, DomainAccountInfo &domainInfo);
     ErrCode AddServerConfig(const std::string &paremters, DomainServerConfig &config);
     ErrCode RemoveServerConfig(const std::string &configId);
+    ErrCode UpdateServerConfig(const std::string &configId, const std::string &paremters, DomainServerConfig &config);
+    ErrCode GetServerConfig(const std::string &configId, DomainServerConfig &config);
+    ErrCode GetAllServerConfigs(std::vector<DomainServerConfig> &configs);
     ErrCode GetAccountServerConfig(const DomainAccountInfo &info, DomainServerConfig &config);
     void LoaderLib(const std::string &path, const std::string &libName);
     void CloseLib();
     ErrCode UpdateAccountInfo(const DomainAccountInfo &oldAccountInfo, const DomainAccountInfo &newAccountInfo);
+    ErrCode GetAccountPolicy(const DomainAccountInfo &info, std::string &policy);
 
 private:
     InnerDomainAccountManager();

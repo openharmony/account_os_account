@@ -272,20 +272,48 @@ ErrCode DomainAccountProxy::IsAuthenticationExpired(const DomainAccountInfo &inf
     return ERR_OK;
 }
 
-ErrCode DomainAccountProxy::SetAccountPolicy(const DomainAccountPolicy &policy)
+ErrCode DomainAccountProxy::SetAccountPolicy(const DomainAccountInfo &info, const std::string &policy)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("Write descriptor failed.");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-
-    if (!data.WriteInt32(policy.authenicationValidityPeriod)) {
-        ACCOUNT_LOGE("Write threshold failed.");
+    if (!data.WriteParcelable(&info)) {
+        ACCOUNT_LOGE("Fail to write account.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteString(policy)) {
+        ACCOUNT_LOGE("Fail to write policy.");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
     return SendRequest(DomainAccountInterfaceCode::DOMAIN_SET_ACCOUNT_POLICY, data, reply);
+}
+
+ErrCode DomainAccountProxy::GetAccountPolicy(const DomainAccountInfo &info, std::string &policy)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Fail to write descriptor.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteParcelable(&info)) {
+        ACCOUNT_LOGE("Fail to write account.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    MessageParcel reply;
+    ErrCode result = SendRequest(DomainAccountInterfaceCode::DOMAIN_GET_ACCOUNT_POLICY, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Result is error=%{public}d.", result);
+        return result;
+    }
+    if (!reply.ReadString(policy)) {
+        ACCOUNT_LOGE("Read policy failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return ERR_OK;
 }
 
 ErrCode DomainAccountProxy::GetAccessToken(
@@ -377,6 +405,97 @@ ErrCode DomainAccountProxy::RemoveServerConfig(const std::string &configId)
         ACCOUNT_LOGE("Result is error=%{public}d.", result);
     }
     return result;
+}
+
+ErrCode DomainAccountProxy::UpdateServerConfig(const std::string &configId, const std::string &parameters,
+    DomainServerConfig &config)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Fail to write descriptor.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteString(configId)) {
+        ACCOUNT_LOGE("Fail to write config.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteString(parameters)) {
+        ACCOUNT_LOGE("Fail to write parameters.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    MessageParcel reply;
+    ErrCode result = SendRequest(DomainAccountInterfaceCode::UPDATE_SERVER_CONFIG, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Result is error=%{public}d.", result);
+        return result;
+    }
+    std::unique_ptr<DomainServerConfig> serverConfig(reply.ReadParcelable<DomainServerConfig>());
+    if (serverConfig == nullptr) {
+        ACCOUNT_LOGE("ReadParcelable domainServerConfig fail");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    config = *serverConfig;
+    return ERR_OK;
+}
+
+ErrCode DomainAccountProxy::GetServerConfig(const std::string &configId, DomainServerConfig &config)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Fail to write descriptor.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteString(configId)) {
+        ACCOUNT_LOGE("Fail to write configId.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    MessageParcel reply;
+    ErrCode result = SendRequest(DomainAccountInterfaceCode::GET_SERVER_CONFIG, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Result is error=%{public}d.", result);
+        return result;
+    }
+    std::unique_ptr<DomainServerConfig> serverConfig(reply.ReadParcelable<DomainServerConfig>());
+    if (serverConfig == nullptr) {
+        ACCOUNT_LOGE("ReadParcelable domainServerConfig fail");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    config = *serverConfig;
+    return ERR_OK;
+}
+
+ErrCode DomainAccountProxy::GetAllServerConfigs(std::vector<DomainServerConfig> &configs)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Fail to write descriptor.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    MessageParcel reply;
+    ErrCode result = SendRequest(DomainAccountInterfaceCode::GET_ALL_SERVER_CONFIGS, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Result is error=%{public}d.", result);
+        return result;
+    }
+    uint32_t configCount;
+    if (!reply.ReadUint32(configCount)) {
+        ACCOUNT_LOGE("ReadParcelable configCount fail");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+
+    configs.reserve(configCount);
+    for (uint32_t i = 0; i < configCount; ++i) {
+        std::unique_ptr<DomainServerConfig> serverConfig(reply.ReadParcelable<DomainServerConfig>());
+        if (serverConfig == nullptr) {
+            ACCOUNT_LOGE("ReadParcelable domainServerConfig fail");
+            return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+        }
+        configs.push_back(*serverConfig);
+    }
+    return ERR_OK;
 }
 
 ErrCode DomainAccountProxy::GetAccountServerConfig(const DomainAccountInfo &info, DomainServerConfig &config)

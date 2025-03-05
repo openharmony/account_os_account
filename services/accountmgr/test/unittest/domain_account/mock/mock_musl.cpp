@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include <map>
 #include "dlfcn.h"
 #include "account_log_wrapper.h"
 #include "domain_plugin.h"
@@ -75,6 +75,49 @@ PluginBussnessError* RemoveServerConfig(const PluginString *serverConfigId, cons
 {
     PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
     if (error == nullptr) {
+        return nullptr;
+    }
+    error->code = 0;
+    error->msg.data = nullptr;
+    return error;
+}
+
+PluginBussnessError* UpdateServerConfig(const PluginString *serverConfigId, const PluginString *parameters,
+    const int32_t localId, PluginServerConfigInfo **serverConfigInfo)
+{
+    PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    if (error == nullptr) {
+        return nullptr;
+    }
+    error->code = 0;
+    error->msg.data = nullptr;
+    return error;
+}
+
+PluginBussnessError* GetServerConfig(const PluginString *serverConfigId, const int32_t callerLocalId,
+    PluginServerConfigInfo **serverConfigInfo)
+{
+    PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    if (error == nullptr) {
+        return nullptr;
+    }
+    error->code = 0;
+    error->msg.data = nullptr;
+    return error;
+}
+
+PluginBussnessError* GetServerConfigList(PluginServerConfigInfoList **serverConfigInfoList)
+{
+    PluginServerConfigInfoList *list = (PluginServerConfigInfoList *)malloc(sizeof(PluginServerConfigInfoList));
+    if (list == nullptr) {
+        return nullptr;
+    }
+    list->items = nullptr;
+    list->size = 0;
+    *serverConfigInfoList = list;
+    PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    if (error == nullptr) {
+        free(list);
         return nullptr;
     }
     error->code = 0;
@@ -213,7 +256,8 @@ PluginBussnessError* GetAccessToken(const PluginGetDomainAccessTokenOptions *opt
     return error;
 }
 
-PluginBussnessError* SetAccountPolicy(const PluginDomainAccountPolicy *domainAccountPolicy)
+PluginBussnessError* SetAccountPolicy(const PluginString *parameters,
+    const PluginDomainAccountInfo *domainAccountInfo, const int32_t callerLocalId)
 {
     PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
     if (error == nullptr) {
@@ -224,8 +268,8 @@ PluginBussnessError* SetAccountPolicy(const PluginDomainAccountPolicy *domainAcc
     return error;
 }
 
-PluginBussnessError* GetServerConfig(const PluginString *serverConfigId, const int32_t callerLocalId,
-    PluginServerConfigInfo **serverConfigInfo)
+PluginBussnessError* GetAccountPolicy(const PluginDomainAccountInfo *domainAccountInfo,
+    const int32_t callerLocalId, PluginDomainAccountPolicy **domainAccountPolicy)
 {
     PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
     if (error == nullptr) {
@@ -236,52 +280,34 @@ PluginBussnessError* GetServerConfig(const PluginString *serverConfigId, const i
     return error;
 }
 
-void *dlsym(void *__restrict, const char * methodName)
+using PluginFunction = void* (*)();
+
+static const std::map<std::string, PluginFunction> pluginFunctions = {
+    {"AddServerConfig", reinterpret_cast<PluginFunction>(AddServerConfig)},
+    {"RemoveServerConfig", reinterpret_cast<PluginFunction>(RemoveServerConfig)},
+    {"UpdateServerConfig", reinterpret_cast<PluginFunction>(UpdateServerConfig)},
+    {"GetServerConfig", reinterpret_cast<PluginFunction>(GetServerConfig)},
+    {"GetServerConfigList", reinterpret_cast<PluginFunction>(GetServerConfigList)},
+    {"GetAccountServerConfig", reinterpret_cast<PluginFunction>(GetAccountServerConfig)},
+    {"Auth", reinterpret_cast<PluginFunction>(Auth)},
+    {"AuthWithPopup", reinterpret_cast<PluginFunction>(AuthWithPopup)},
+    {"AuthWithToken", reinterpret_cast<PluginFunction>(AuthWithToken)},
+    {"GetAccountInfo", reinterpret_cast<PluginFunction>(GetAccountInfo)},
+    {"GetAuthStatusInfo", reinterpret_cast<PluginFunction>(GetAuthStatusInfo)},
+    {"BindAccount", reinterpret_cast<PluginFunction>(BindAccount)},
+    {"UnbindAccount", reinterpret_cast<PluginFunction>(UnbindAccount)},
+    {"IsAccountTokenValid", reinterpret_cast<PluginFunction>(IsAccountTokenValid)},
+    {"GetAccessToken", reinterpret_cast<PluginFunction>(GetAccessToken)},
+    {"UpdateAccountInfo", reinterpret_cast<PluginFunction>(UpdateAccountInfo)},
+    {"SetAccountPolicy", reinterpret_cast<PluginFunction>(SetAccountPolicy)},
+    {"GetAccountPolicy", reinterpret_cast<PluginFunction>(GetAccountPolicy)}
+};
+
+void *dlsym(void *__restrict, const char *methodName)
 {
-    if (strcmp(methodName, "AddServerConfig") == 0) {
-        return reinterpret_cast<void *>(AddServerConfig);
-    }
-    if (strcmp(methodName, "RemoveServerConfig") == 0) {
-        return reinterpret_cast<void *>(RemoveServerConfig);
-    }
-    if (strcmp(methodName, "GetAccountServerConfig") == 0) {
-        return reinterpret_cast<void *>(GetAccountServerConfig);
-    }
-    if (strcmp(methodName, "Auth") == 0) {
-        return reinterpret_cast<void *>(Auth);
-    }
-    if (strcmp(methodName, "AuthWithPopup") == 0) {
-        return reinterpret_cast<void *>(AuthWithPopup);
-    }
-    if (strcmp(methodName, "AuthWithToken") == 0) {
-        return reinterpret_cast<void *>(AuthWithToken);
-    }
-    if (strcmp(methodName, "GetAccountInfo") == 0) {
-        return reinterpret_cast<void *>(GetAccountInfo);
-    }
-    if (strcmp(methodName, "GetAuthStatusInfo") == 0) {
-        return reinterpret_cast<void *>(GetAuthStatusInfo);
-    }
-    if (strcmp(methodName, "BindAccount") == 0) {
-        return reinterpret_cast<void *>(BindAccount);
-    }
-    if (strcmp(methodName, "UnbindAccount") == 0) {
-        return reinterpret_cast<void *>(UnbindAccount);
-    }
-    if (strcmp(methodName, "IsAccountTokenValid") == 0) {
-        return reinterpret_cast<void *>(IsAccountTokenValid);
-    }
-    if (strcmp(methodName, "GetAccessToken") == 0) {
-        return reinterpret_cast<void *>(GetAccessToken);
-    }
-    if (strcmp(methodName, "UpdateAccountInfo") == 0) {
-        return reinterpret_cast<void *>(UpdateAccountInfo);
-    }
-    if (strcmp(methodName, "SetAccountPolicy") == 0) {
-        return reinterpret_cast<void *>(SetAccountPolicy);
-    }
-    if (strcmp(methodName, "GetServerConfig") == 0) {
-        return reinterpret_cast<void *>(GetServerConfig);
+    const auto it = pluginFunctions.find(methodName);
+    if (it != pluginFunctions.end()) {
+        return reinterpret_cast<void*>(it->second);
     }
     return nullptr;
 }

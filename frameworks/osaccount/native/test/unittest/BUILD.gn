@@ -52,6 +52,7 @@ ohos_unittest("os_account_info_test") {
   configs = [ ":os_account_service_config_unittest" ]
 
   deps = [
+    "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
   ]

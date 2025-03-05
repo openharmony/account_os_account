@@ -27,6 +27,7 @@
 #include "account_iam_service.h"
 #undef private
 #endif
+#include "account_test_common.h"
 #include "account_iam_mgr_proxy.h"
 #include "token_setproc.h"
 #include "iam_common_defines.h"
@@ -216,9 +217,8 @@ public:
 
 void AccountIAMClientTest::SetUpTestCase(void)
 {
-    AccessTokenID tokenId = AccessTokenKit::GetNativeTokenId("accountmgr");
-    SetSelfTokenID(tokenId);
-    g_selfTokenID = tokenId;
+    ASSERT_TRUE(MockTokenId("accountmgr"));
+    g_selfTokenID = IPCSkeleton::GetSelfTokenID();
 #ifdef PROXY_MOCK
     sptr<IAccountIAM> service = new (std::nothrow) AccountIAMService();
     ASSERT_NE(service, nullptr);
@@ -830,6 +830,7 @@ HWTEST_F(AccountIAMClientTest, GetSetPropCallbackStub_OnRemoteRequest_0100, Test
  */
 HWTEST_F(AccountIAMClientTest, AccountIAMClient001, TestSize.Level0)
 {
+    ASSERT_TRUE(MockTokenId("foundation"));
     Security::AccessToken::AccessTokenIDEx tokenIdEx = {0};
     tokenIdEx = AccessTokenKit::AllocHapToken(infoManagerTestNormalInfoParms, INFO_MANAGER_TEST_POLICY_PRAMS);
     ASSERT_NE(INVALID_TOKEN_ID, tokenIdEx.tokenIDEx);
@@ -896,6 +897,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient001, TestSize.Level0)
  */
 HWTEST_F(AccountIAMClientTest, AccountIAMClient002, TestSize.Level0)
 {
+    ASSERT_TRUE(MockTokenId("foundation"));
     Security::AccessToken::AccessTokenIDEx tokenIdEx = {0};
     tokenIdEx = AccessTokenKit::AllocHapToken(infoManagerTestNormalInfoParms, INFO_MANAGER_TEST_POLICY_PRAMS);
     ASSERT_NE(INVALID_TOKEN_ID, tokenIdEx.tokenIDEx);
@@ -954,6 +956,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient002, TestSize.Level0)
  */
 HWTEST_F(AccountIAMClientTest, AccountIAMClient003, TestSize.Level0)
 {
+    ASSERT_TRUE(MockTokenId("foundation"));
     Security::AccessToken::AccessTokenIDEx tokenIdEx = {0};
     tokenIdEx = AccessTokenKit::AllocHapToken(infoManagerTestSystemInfoParms, INFO_MANAGER_TEST_POLICY_PRAMS);
     ASSERT_NE(INVALID_TOKEN_ID, tokenIdEx.tokenIDEx);
@@ -1016,6 +1019,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient003, TestSize.Level0)
  */
 HWTEST_F(AccountIAMClientTest, AccountIAMClient004, TestSize.Level0)
 {
+    ASSERT_TRUE(MockTokenId("foundation"));
     Security::AccessToken::AccessTokenIDEx tokenIdEx = {0};
     tokenIdEx = AccessTokenKit::AllocHapToken(infoManagerTestSystemInfoParms, INFO_MANAGER_TEST_POLICY_PRAMS);
     ASSERT_NE(INVALID_TOKEN_ID, tokenIdEx.tokenIDEx);

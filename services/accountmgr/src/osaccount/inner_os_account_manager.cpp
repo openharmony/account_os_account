@@ -71,6 +71,7 @@ constexpr int32_t DELAY_FOR_EXCEPTION = 50;
 constexpr int32_t MAX_RETRY_TIMES = 50;
 constexpr int32_t MAX_INSERT_RETRY_TIMES = 3;
 constexpr int32_t MAX_PRIVATE_TYPE_NUMBER = 1;
+constexpr int32_t MAX_MAINTENANCE_TYPE_NUMBER = 1;
 constexpr int32_t DELAY_FOR_REMOVING_FOREGROUND_OS_ACCOUNT = 1500;
 #ifdef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
 constexpr int32_t DELAY_FOR_DEACTIVATE_OS_ACCOUNT = 3000;
@@ -369,10 +370,22 @@ ErrCode IInnerOsAccountManager::FillOsAccountInfo(const std::string &localName, 
         return errCode;
     }
     int id = 0;
-    errCode = osAccountControl_->GetAllowCreateId(id);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Failed to GetAllowCreateId, errCode %{public}d.", errCode);
-        return errCode;
+    if (type == OsAccountType::MAINTENANCE) {
+#ifndef IS_RELEASE_VERSION
+        // root check in none release version for test
+        if (!AccountPermissionManager::CheckSaCall() && !AccountPermissionManager::CheckShellCall()) {
+#else
+        if (!AccountPermissionManager::CheckSaCall()) {
+#endif
+            return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
+        }
+        id = Constants::MAINTENANCE_USER_ID;
+    } else {
+        errCode = osAccountControl_->GetAllowCreateId(id);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("Failed to GetAllowCreateId, errCode %{public}d.", errCode);
+            return errCode;
+        }
     }
     std::vector<std::string> constraints;
     constraints.clear();
@@ -487,7 +500,8 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
 #ifdef HAS_THEME_SERVICE_PART
     InitTheme(localId);
 #endif // HAS_THEME_SERVICE_PART
-    errCode = OsAccountInterface::SendToBMSAccountCreate(osAccountInfo, options.disallowedHapList);
+    errCode = OsAccountInterface::SendToBMSAccountCreate(
+        osAccountInfo, options.disallowedHapList, options.allowedHapList);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Create os account SendToBMSAccountCreate failed, errCode %{public}d.", errCode);
         if (osAccountInfo.GetIsDataRemovable()) {
@@ -952,7 +966,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountStop(OsAccountInfo &osAccountIn
         return errCode;
     }
     errCode = OsAccountInterface::SendToStorageAccountStop(osAccountInfo);
-    if (errCode != ERR_OK) {
+    if (errCode != ERR_OK && errCode != ERR_OSACCOUNT_SERVICE_STORAGE_STOP_USER_FAILED) {
         ACCOUNT_LOGE("SendToStorageAccountStop failed, id %{public}d, errCode %{public}d",
             osAccountInfo.GetLocalId(), errCode);
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
@@ -1053,7 +1067,7 @@ ErrCode IInnerOsAccountManager::GetTypeNumber(const OsAccountType& type, int32_t
 
 ErrCode IInnerOsAccountManager::CheckTypeNumber(const OsAccountType& type)
 {
-    if (type != OsAccountType::PRIVATE) {
+    if (type != OsAccountType::PRIVATE && type != OsAccountType::MAINTENANCE) {
         return ERR_OK;
     }
     int32_t typeNumber = 0;
@@ -1064,6 +1078,10 @@ ErrCode IInnerOsAccountManager::CheckTypeNumber(const OsAccountType& type)
     }
     if (type == OsAccountType::PRIVATE && typeNumber >= MAX_PRIVATE_TYPE_NUMBER) {
         ACCOUNT_LOGE("Check type number failed, private type number=%{public}d", typeNumber);
+        return ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR;
+    }
+    if (type == OsAccountType::MAINTENANCE && typeNumber >= MAX_MAINTENANCE_TYPE_NUMBER) {
+        ACCOUNT_LOGE("Check type number failed, maintenance type number=%{public}d", typeNumber);
         return ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR;
     }
     return ERR_OK;

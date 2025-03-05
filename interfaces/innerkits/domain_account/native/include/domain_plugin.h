@@ -50,6 +50,11 @@ typedef struct {
 } PluginDomainAccountInfo;
 
 typedef struct {
+    PluginServerConfigInfo *items;
+    size_t size;
+} PluginServerConfigInfoList;
+
+typedef struct {
     PluginUint8Vector accountToken;
     int32_t remainTimes;
     int32_t freezingTime;
@@ -73,12 +78,17 @@ typedef struct {
 } PluginGetDomainAccessTokenOptions;
 
 typedef struct {
-    int32_t authenicationValidityPeriod;
+    PluginString parameters;
 } PluginDomainAccountPolicy;
 
 typedef PluginBussnessError* (*AddServerConfigFunc)(const PluginString *parameters, const int32_t callerLocalId,
     PluginServerConfigInfo **serverConfigInfo);
 typedef PluginBussnessError* (*RemoveServerConfigFunc)(const PluginString *serverConfigId, const int32_t callerLocalId);
+typedef PluginBussnessError* (*UpdateServerConfigFunc)(const PluginString *serverConfigId,
+    const PluginString *parameters, const int32_t callerLocalId, PluginServerConfigInfo **serverConfigInfo);
+typedef PluginBussnessError* (*GetServerConfigFunc)(const PluginString *serverConfigId, const int32_t callerLocalId,
+    PluginServerConfigInfo **serverConfigInfo);
+typedef PluginBussnessError* (*GetServerConfigListFunc)(PluginServerConfigInfoList **serverConfigInfoList);
 typedef PluginBussnessError* (*GetAccountServerConfigFunc)(const PluginDomainAccountInfo *domainAccountInfo,
     PluginServerConfigInfo **serverConfigInfo);
 typedef PluginBussnessError* (*AuthFunc)(const PluginDomainAccountInfo *domainAccountInfo,
@@ -95,20 +105,26 @@ typedef PluginBussnessError* (*BindAccountFunc)(const PluginDomainAccountInfo *d
     const int32_t callerLocalId);
 typedef PluginBussnessError* (*UnbindAccountFunc)(const PluginDomainAccountInfo *domainAccountInfo);
 typedef PluginBussnessError* (*UpdateAccountInfoFunc)(const PluginDomainAccountInfo *domainAccountInfo,
-    const PluginDomainAccountInfo *newDomainAccountInfo);
+    const PluginDomainAccountInfo *newDomainAccountInfo, const int32_t callerLocalId);
 typedef PluginBussnessError* (*IsAccountTokenValidFunc)(const PluginDomainAccountInfo *domainAccountInfo,
     const PluginUint8Vector *token, int32_t *isValid);
 typedef PluginBussnessError* (*IsAuthenticationExpiredFunc)(const PluginDomainAccountInfo *domainAccountInfo,
     const PluginUint8Vector *token, int32_t *isValid);
 typedef PluginBussnessError* (*GetAccessTokenFunc)(const PluginGetDomainAccessTokenOptions *options,
     PluginUint8Vector **accessToken);
-typedef PluginBussnessError* (*SetAccountPolicyFunc)(const PluginDomainAccountPolicy *domainAccountPolicy);
+typedef PluginBussnessError* (*GetAccountPolicyFunc)(const PluginDomainAccountInfo *domainAccountInfo,
+    const int32_t callerLocalId, PluginDomainAccountPolicy **domainAccountPolicy);
+typedef PluginBussnessError* (*SetAccountPolicyFunc)(const PluginString *parameters,
+    const PluginDomainAccountInfo *domainAccountInfo, const int32_t callerLocalId);
 typedef PluginBussnessError* (*GetServerConfigFunc)(const PluginString *serverConfigId, const int32_t callerLocalId,
     PluginServerConfigInfo **serverConfigInfo);
 
 enum PluginMethodEnum {
     ADD_SERVER_CONFIG = 0,
     REMOVE_SERVER_CONFIG,
+    UPDATE_SERVER_CONFIG,
+    GET_SERVER_CONFIG,
+    GET_ALL_SERVER_CONFIGS,
     GET_ACCOUNT_SERVER_CONFIG,
     AUTH,
     AUTH_WITH_POPUP,
@@ -119,10 +135,10 @@ enum PluginMethodEnum {
     UNBIND_ACCOUNT,
     IS_ACCOUNT_TOKEN_VALID,
     GET_ACCESS_TOKEN,
-    GET_SERVER_CONFIG,
     UPDATE_ACCOUNT_INFO,
     IS_AUTHENTICATION_EXPIRED,
     SET_ACCOUNT_POLICY,
+    GET_ACCOUNT_POLICY,
     //this is last just for count enum
     COUNT,
 };

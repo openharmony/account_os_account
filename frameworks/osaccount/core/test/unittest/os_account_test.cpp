@@ -18,6 +18,7 @@
 #include <thread>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
+#include "account_test_common.h"
 #include "account_proxy.h"
 #include "iremote_object.h"
 #include "iservice_registry.h"
@@ -64,6 +65,7 @@ public:
 
 void OsAccountTest::SetUpTestCase(void)
 {
+    ASSERT_TRUE(MockTokenId("accountmgr"));
     g_osAccount = std::make_shared<OsAccount>();
     GTEST_LOG_(INFO) << "SetUpTestCase enter";
     bool isOsAccountActived = false;
@@ -362,14 +364,14 @@ HWTEST_F(OsAccountTest, OsAccountTest015, TestSize.Level1)
 HWTEST_F(OsAccountTest, OsAccountTest016, TestSize.Level1)
 {
     bool isConstraintEnable;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_READ_CONSTRAINTS_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
         osAccountProxy_->IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, STRING_EMPTY, isConstraintEnable));
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_READ_CONSTRAINTS_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
         osAccountProxy_->CheckOsAccountConstraintEnabled(MAIN_ACCOUNT_ID, STRING_EMPTY, isConstraintEnable));
 
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_READ_CONSTRAINTS_ERROR, osAccountProxy_->IsOsAccountConstraintEnable(
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, osAccountProxy_->IsOsAccountConstraintEnable(
         MAIN_ACCOUNT_ID, STRING_CONSTRAINT_OUT_OF_RANGE, isConstraintEnable));
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_READ_CONSTRAINTS_ERROR, osAccountProxy_->CheckOsAccountConstraintEnabled(
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, osAccountProxy_->CheckOsAccountConstraintEnabled(
         MAIN_ACCOUNT_ID, STRING_CONSTRAINT_OUT_OF_RANGE, isConstraintEnable));
 }
 

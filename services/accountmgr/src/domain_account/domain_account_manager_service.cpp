@@ -70,14 +70,24 @@ ErrCode DomainAccountManagerService::IsAuthenticationExpired(const DomainAccount
     return InnerDomainAccountManager::GetInstance().IsAuthenticationExpired(info, isExpired);
 }
 
-ErrCode DomainAccountManagerService::SetAccountPolicy(const DomainAccountPolicy &policy)
+ErrCode DomainAccountManagerService::SetAccountPolicy(const DomainAccountInfo &info, const std::string &policy)
 {
     // check EDM uid
     if (!CheckManageExpiryThresholdWhiteList()) {
         ACCOUNT_LOGE("Permission denied, callingUid=%{public}d.", IPCSkeleton::GetCallingUid());
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
-    return InnerDomainAccountManager::GetInstance().SetAccountPolicy(policy);
+    return InnerDomainAccountManager::GetInstance().SetAccountPolicy(info, policy);
+}
+
+ErrCode DomainAccountManagerService::GetAccountPolicy(const DomainAccountInfo &info, std::string &policy)
+{
+    // check EDM uid
+    if (!CheckManageExpiryThresholdWhiteList()) {
+        ACCOUNT_LOGE("Permission denied, callingUid=%{public}d.", IPCSkeleton::GetCallingUid());
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    return InnerDomainAccountManager::GetInstance().GetAccountPolicy(info, policy);
 }
 
 ErrCode DomainAccountManagerService::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
@@ -142,9 +152,25 @@ ErrCode DomainAccountManagerService::RemoveServerConfig(const std::string &confi
     return InnerDomainAccountManager::GetInstance().RemoveServerConfig(configId);
 }
 
+ErrCode DomainAccountManagerService::UpdateServerConfig(const std::string &configId, const std::string &parameters,
+    DomainServerConfig &config)
+{
+    return InnerDomainAccountManager::GetInstance().UpdateServerConfig(configId, parameters, config);
+}
+
 ErrCode DomainAccountManagerService::GetAccountServerConfig(const DomainAccountInfo &info, DomainServerConfig &config)
 {
     return InnerDomainAccountManager::GetInstance().GetAccountServerConfig(info, config);
+}
+
+ErrCode DomainAccountManagerService::GetServerConfig(const std::string &configId, DomainServerConfig &config)
+{
+    return InnerDomainAccountManager::GetInstance().GetServerConfig(configId, config);
+}
+
+ErrCode DomainAccountManagerService::GetAllServerConfigs(std::vector<DomainServerConfig> &configs)
+{
+    return InnerDomainAccountManager::GetInstance().GetAllServerConfigs(configs);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

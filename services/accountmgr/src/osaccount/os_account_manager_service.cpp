@@ -32,6 +32,7 @@ const std::map<OsAccountType, std::string> DUMP_TYPE_MAP = {
     {OsAccountType::NORMAL, "normal"},
     {OsAccountType::GUEST, "guest"},
     {OsAccountType::PRIVATE, "private"},
+    {OsAccountType::MAINTENANCE, "maintenance"},
 };
 const char CONSTANT_CREATE[] = "constraint.os.account.create";
 const char CONSTANT_CREATE_DIRECTLY[] = "constraint.os.account.create.directly";
@@ -75,6 +76,9 @@ ErrCode CheckLocalId(int localId)
 
 bool IsTypeOutOfRange(const OsAccountType& type)
 {
+    if (type == OsAccountType::MAINTENANCE) {
+        return false;
+    }
     if ((type < OsAccountType::ADMIN) || (type >= OsAccountType::END)) {
         return true;
     }

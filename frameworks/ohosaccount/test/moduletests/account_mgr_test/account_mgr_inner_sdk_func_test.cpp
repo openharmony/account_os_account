@@ -24,6 +24,7 @@
 #include "accesstoken_kit.h"
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
+#include "account_test_common.h"
 #ifdef BUNDLE_ADAPTER_MOCK
 #define private public
 #include "account_mgr_service.h"
@@ -88,9 +89,7 @@ const int32_t ACCOUNT_SA_UID = 3058; // this is accountmgr uid
 static void RemoveOsAccountWithPermission(const int32_t id)
 {
     AccessTokenID originaltoken = GetSelfTokenID();
-    AccessTokenID accountSaToken = AccessTokenKit::GetNativeTokenId("accountmgr");
-    ASSERT_NE(0, accountSaToken);
-    ASSERT_EQ(ERR_OK, SetSelfTokenID(accountSaToken));
+    ASSERT_TRUE(MockTokenId("accountmgr"));
     ASSERT_EQ(0, setuid(ACCOUNT_SA_UID));
     EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(id));
     ASSERT_EQ(0, setuid(0));
