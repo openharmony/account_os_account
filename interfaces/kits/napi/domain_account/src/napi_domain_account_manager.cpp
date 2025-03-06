@@ -1160,6 +1160,7 @@ static std::function<void()> GetAccessTokenCompleteWork(GetAccessTokenAsyncConte
         napi_open_handle_scope(asyncContext->env, &scope);
         if (scope == nullptr) {
             ACCOUNT_LOGE("Fail to open scope");
+            delete asyncContext;
             return;
         }
         napi_value errJs = nullptr;
@@ -1216,6 +1217,7 @@ static std::function<void()> HasDomainAccountCompletedWork(HasDomainAccountAsync
         napi_open_handle_scope(asyncContext->env, &scope);
         if (scope == nullptr) {
             ACCOUNT_LOGE("Fail to open scope");
+            delete asyncContext;
             return;
         }
         napi_value errJs = nullptr;
