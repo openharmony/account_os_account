@@ -711,7 +711,7 @@ ErrCode InnerDomainAccountManager::GetAccountServerConfig(
     ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, localId);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("get os account localId from domain failed, result: %{public}d", result);
-        return result;
+        return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
     }
     PluginDomainAccountInfo domainAccountInfo;
     SetPluginDomainAccountInfo(info, domainAccountInfo);
@@ -1941,7 +1941,7 @@ ErrCode InnerDomainAccountManager::UpdateAccountInfo(
     ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(oldAccountInfo, userId);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("GetOsAccountLocalIdFromDomain failed, result = %{public}d", result);
-        return result;
+        return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
     }
     // check new account info
     DomainAccountInfo newDomainAccountInfo(newAccountInfo);
