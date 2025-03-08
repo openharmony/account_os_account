@@ -339,10 +339,11 @@ ErrCode OhosAccountDataDeal::GetAccountInfo(AccountInfo &accountInfo, const int3
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
     std::string configFile = configFileDir_ + std::to_string(userId) + ACCOUNT_CFG_FILE_NAME;
-    if (!accountFileOperator_->IsExistFile(configFile)) {
-        if (errno != ENOENT) {
+    ErrCode ret = accountFileOperator_->CheckFileExistence(configFile);
+    if (ret != ERR_OK) {
+        if (ret != ERR_ACCOUNT_COMMON_FILE_NOT_EXIST) {
             std::string errorMsg = "Stat " + configFile + " failed";
-            ReportOhosAccountOperationFail(userId, OPERATION_OPEN_FILE_TO_READ, errno, errorMsg);
+            ReportOhosAccountOperationFail(userId, OPERATION_OPEN_FILE_TO_READ, ret, errorMsg);
             return ERR_ACCOUNT_DATADEAL_INPUT_FILE_ERROR;
         } else {
             ACCOUNT_LOGI("File %{public}s not exist, create!", configFile.c_str());
@@ -351,7 +352,7 @@ ErrCode OhosAccountDataDeal::GetAccountInfo(AccountInfo &accountInfo, const int3
     }
     std::lock_guard<std::mutex> lock(mutex_);
     nlohmann::json jsonData;
-    ErrCode ret = ParseJsonFromFile(configFile, jsonData, userId);
+    ret = ParseJsonFromFile(configFile, jsonData, userId);
     if (ret != ERR_OK) {
         return ret;
     }
