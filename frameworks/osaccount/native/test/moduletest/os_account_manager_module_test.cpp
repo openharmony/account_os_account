@@ -3146,7 +3146,7 @@ HWTEST_F(OsAccountManagerModuleTest, GetOsAccountNameById002, TestSize.Level1)
     ASSERT_TRUE(AllocPermission({"ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS"}, tokenID));
     setuid(MAIN_ACCOUNT_ID * UID_TRANSFORM_DIVISOR); // test main uid
     std::string name;
-    EXPECT_NE(OsAccountManager::GetOsAccountNameById(MAIN_ACCOUNT_ID, name), ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    EXPECT_EQ(OsAccountManager::GetOsAccountNameById(MAIN_ACCOUNT_ID, name), ERR_OK);
     setuid(ROOT_UID);
     ASSERT_TRUE(RecoveryPermission(tokenID));
 }
@@ -3170,11 +3170,29 @@ HWTEST_F(OsAccountManagerModuleTest, GetOsAccountNameById003, TestSize.Level1)
 
 /**
  * @tc.name: GetOsAccountNameById004
- * @tc.desc: Test GetOsAccountNameById with caller is not system object.
+ * @tc.desc: Test GetOsAccountNameById with permission MANAGE_LOCAL_ACCOUNTS and INTERACT_ACROSS_LOCAL_ACCOUNTS.
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(OsAccountManagerModuleTest, GetOsAccountNameById004, TestSize.Level1)
+{
+    uint64_t tokenID;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS"}, tokenID));
+    ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
+    setuid(MAIN_ACCOUNT_ID * UID_TRANSFORM_DIVISOR); // test main uid
+    std::string name;
+    EXPECT_EQ(OsAccountManager::GetOsAccountNameById(MAIN_ACCOUNT_ID, name), ERR_OK);
+    setuid(ROOT_UID);
+    ASSERT_TRUE(RecoveryPermission(tokenID));
+}
+
+/**
+ * @tc.name: GetOsAccountNameById005
+ * @tc.desc: Test GetOsAccountNameById with caller is not system item.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, GetOsAccountNameById005, TestSize.Level1)
 {
     uint64_t tokenID;
     ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID, false));
