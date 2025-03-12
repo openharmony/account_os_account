@@ -16,7 +16,7 @@ import("//build/test.gni")
 import("../../../../../os_account.gni")
 import("../../../os_account_service.gni")
 
-module_output_path = "os_account/services/os_account"
+module_output_path = "os_account/os_account"
 
 config("os_account_manager_service_test_config") {
   include_dirs = [

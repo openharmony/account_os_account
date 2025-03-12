@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("../../../../services/accountmgr/os_account_service.gni")
 
-module_output_path = "os_account/tools"
+module_output_path = "os_account/os_account"
 
 ohos_moduletest("account_command_module_mock_test") {
   branch_protector_ret = "pac_ret"

@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("../../../../os_account.gni")
 
-module_output_path = "os_account/frameworks/account_iam"
+module_output_path = "os_account/os_account"
 
 config("account_iam_native_config_unittest") {
   visibility = [ ":*" ]

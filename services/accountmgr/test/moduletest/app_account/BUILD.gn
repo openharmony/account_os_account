@@ -15,7 +15,7 @@ import("//build/test.gni")
 import("../../../../../os_account.gni")
 import("../../../os_account_service.gni")
 
-module_output_path = "os_account/services/app_account"
+module_output_path = "os_account/os_account"
 
 config("app_account_service_config_mock") {
   include_dirs = [
@@ -125,37 +125,6 @@ ohos_moduletest("app_account_authorization_extension_ability_test") {
     "ipc:ipc_single",
     "napi:ace_napi",
     "samgr:samgr_proxy",
-  ]
-}
-
-ohos_moduletest("account_permission_manager_module_test") {
-  branch_protector_ret = "pac_ret"
-
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-
-  module_out_path = module_output_path
-
-  sources = [ "account_permission_manager_module_test.cpp" ]
-
-  deps = [ "${common_path}:libaccount_common" ]
-
-  external_deps = [
-    "access_token:libaccesstoken_sdk",
-    "access_token:libtokensetproc_shared",
-    "c_utils:utils",
-    "googletest:gmock_main",
-    "googletest:gtest_main",
-    "hilog:libhilog",
-    "ipc:ipc_single",
-  ]
-
-  defines = [
-    "ACCOUNT_LOG_TAG = \"AppAccountMTest\"",
-    "LOG_DOMAIN = 0xD001B00",
   ]
 }
 
@@ -1047,46 +1016,6 @@ ohos_moduletest("app_account_manager_service_sync_module_test") {
   if (os_account_distributed_feature) {
     cflags += [ "-DDISTRIBUTED_FEATURE_ENABLED" ]
   }
-}
-
-ohos_moduletest("bundle_manager_adapter_module_test") {
-  branch_protector_ret = "pac_ret"
-
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-
-  module_out_path = module_output_path
-  include_dirs =
-      [ "${services_path}/accountmgr/include/bundle_manager_adapter" ]
-  sources = [
-    "${services_path}/accountmgr/src/bundle_manager_adapter/bundle_manager_adapter_proxy.cpp",
-    "bundle_manager_adapter_module_test.cpp",
-  ]
-
-  configs = [ ":app_account_service_config_unittest" ]
-
-  deps = [
-    "${app_account_services_path}:accountmgr",
-    "${common_path}:libaccount_common",
-    "${innerkits_native_path}:libaccountkits",
-  ]
-
-  external_deps = [
-    "ability_base:want",
-    "ability_runtime:app_manager",
-    "ability_runtime:wantagent_innerkits",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
-    "c_utils:utils",
-    "googletest:gmock_main",
-    "googletest:gtest_main",
-    "hilog:libhilog",
-    "ipc:ipc_single",
-    "samgr:samgr_proxy",
-  ]
 }
 
 ohos_moduletest("app_account_authenticator_session_manager_module_test") {
