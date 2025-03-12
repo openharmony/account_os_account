@@ -103,7 +103,8 @@ typedef PluginBussnessError* (*GetAuthStatusInfoFunc)(const PluginDomainAccountI
     PluginAuthStatusInfo **authStatusInfo);
 typedef PluginBussnessError* (*BindAccountFunc)(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId,
     const int32_t callerLocalId);
-typedef PluginBussnessError* (*UnbindAccountFunc)(const PluginDomainAccountInfo *domainAccountInfo);
+typedef PluginBussnessError* (*UnbindAccountFunc)(const PluginDomainAccountInfo *domainAccountInfo,
+    const int32_t localId);
 typedef PluginBussnessError* (*UpdateAccountInfoFunc)(const PluginDomainAccountInfo *domainAccountInfo,
     const PluginDomainAccountInfo *newDomainAccountInfo, const int32_t callerLocalId);
 typedef PluginBussnessError* (*IsAccountTokenValidFunc)(const PluginDomainAccountInfo *domainAccountInfo,
