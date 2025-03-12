@@ -15,7 +15,7 @@ import("//build/ohos.gni")
 import("//build/test.gni")
 import("../../../../../os_account.gni")
 
-module_output_path = "os_account/frameworks/accountdfx"
+module_output_path = "os_account/os_account"
 
 ohos_unittest("AccountCommonTest") {
   branch_protector_ret = "pac_ret"
