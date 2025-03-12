@@ -55,7 +55,8 @@ public:
         const std::shared_ptr<DomainAccountCallback> &callback);
     ErrCode IsAccountTokenValid(const AccountSA::DomainAccountInfo &info, const std::vector<uint8_t> &token,
         const std::shared_ptr<DomainAccountCallback> &callback);
-    ErrCode OnAccountUnBound(const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback);
+    ErrCode OnAccountUnBound(const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback,
+        const int32_t localId);
     bool IsPluginAvailable();
     void InsertTokenToMap(int32_t userId, const std::vector<uint8_t> &token);
     bool GetTokenFromMap(int32_t userId, std::vector<uint8_t> &token);
@@ -109,7 +110,7 @@ private:
         DomainAuthResult &resultParcel);
     ErrCode PluginGetAuthStatusInfo(const DomainAccountInfo &info, AuthStatusInfo &resultParcel);
     ErrCode PluginBindAccount(const DomainAccountInfo &info, const int32_t localId, DomainAuthResult &resultParcel);
-    ErrCode PluginUnBindAccount(const DomainAccountInfo &info, DomainAuthResult &resultParcel);
+    ErrCode PluginUnBindAccount(const DomainAccountInfo &info, DomainAuthResult &resultParcel, const int32_t localId);
     ErrCode PluginIsAccountTokenValid(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
         int32_t &isValid);
     ErrCode PluginGetAccessToken(const GetAccessTokenOptions &option,
