@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("../../../../../services/accountmgr/os_account_service.gni")
 
-module_output_path = "os_account/frameworks/os_account"
+module_output_path = "os_account/os_account"
 
 config("os_account_frameworks_config_unittest") {
   visibility = [ ":*" ]
@@ -73,6 +73,7 @@ ohos_moduletest("os_account_frameworks_module_test") {
     "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_single",
+    "json:nlohmann_json_static",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
@@ -99,10 +100,7 @@ ohos_moduletest("os_account_frameworks_module_test") {
   }
 
   if (os_account_distributed_feature) {
-    cflags_cc += [
-      "-DACCOUNT_TEST",
-      "-DENABLE_FILE_WATCHER",
-    ]
+    cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
   }
 }
 
@@ -179,6 +177,7 @@ ohos_moduletest("os_account_frameworks_module_mock_test") {
     "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_single",
+    "json:nlohmann_json_static",
     "mbedtls:mbedtls_shared",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",

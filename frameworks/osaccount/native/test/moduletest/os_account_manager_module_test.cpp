@@ -23,6 +23,7 @@
 #include "common_event_subscribe_info.h"
 #include "matching_skills.h"
 #endif // HAS_CES_PART
+#include "nlohmann/json.hpp"
 #define private public
 #include "account_file_operator.h"
 #include "os_account.h"
@@ -350,9 +351,16 @@ public:
  */
 HWTEST_F(OsAccountManagerModuleTest, CreateOsAccountWithFullInfo001, TestSize.Level1)
 {
+    std::string fileContext;
+    EXPECT_EQ(ERR_OK, g_accountFileOperator->GetFileContentByPath(Constants::ACCOUNT_LIST_FILE_JSON_PATH, fileContext));
+    auto accountListJson = Json::parse(fileContext, nullptr, false);
+    ASSERT_TRUE(!accountListJson.is_discarded() && accountListJson.is_structured());
+    ASSERT_TRUE(accountListJson.at("NextLocalId").is_number());
+    int32_t nextLocalId = static_cast<int32_t>(accountListJson.at("NextLocalId").get<int32_t>());
+    ASSERT_TRUE(nextLocalId > 100);
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetLocalName("testNextID_001");
-    int expectUid = 1000; // test random uid, next account should start from 1000
+    int32_t expectUid = nextLocalId + 2; // test random uid, next account should start from nextLocalId + 2
     osAccountInfo.SetLocalId(expectUid);
     osAccountInfo.SetSerialNumber(2023023100000033); // test random input
     osAccountInfo.SetCreateTime(1695883215000); // test random input
@@ -361,11 +369,13 @@ HWTEST_F(OsAccountManagerModuleTest, CreateOsAccountWithFullInfo001, TestSize.Le
     EXPECT_EQ(osAccountInfo.GetLocalId(), expectUid);
     OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId());
 
-    OsAccountInfo osAccountInfoOne;
-    int32_t id = std::max(commonOsAccountInfo.GetLocalId(), osAccountInfo.GetLocalId());
-    ASSERT_EQ(OsAccountManager::CreateOsAccount("testNextID_002", OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
-    EXPECT_EQ(osAccountInfoOne.GetLocalId(), id + 1);
-    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(ERR_OK, g_accountFileOperator->GetFileContentByPath(Constants::ACCOUNT_LIST_FILE_JSON_PATH, fileContext));
+    accountListJson = Json::parse(fileContext, nullptr, false);
+    ASSERT_TRUE(!accountListJson.is_discarded() && accountListJson.is_structured());
+    ASSERT_TRUE(accountListJson.at("NextLocalId").is_number());
+    nextLocalId = static_cast<int32_t>(accountListJson.at("NextLocalId").get<int32_t>());
+    ASSERT_TRUE(nextLocalId > 100);
+    EXPECT_EQ(nextLocalId, (expectUid + 1));
 }
 
 /**
