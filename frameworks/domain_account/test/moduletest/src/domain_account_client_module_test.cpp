@@ -85,6 +85,10 @@ const uid_t TEST_UID = 100;
 const uid_t ROOT_UID = 0;
 static uint64_t g_selfTokenID;
 std::shared_ptr<MockDomainPlugin> g_plugin = std::make_shared<MockDomainPlugin>();
+const std::string LONG_STR = "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"
+    "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"
+    "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111";
 }
 
 static bool RecoveryPermission(uint64_t tokenID)
@@ -1099,6 +1103,13 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAcco
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
     InnerDomainAccountManager::GetInstance().GetTokenFromMap(userId, resultToken);
     EXPECT_EQ(resultToken.empty(), true);
+    domainInfo.accountName_ = LONG_STR;
+    EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountToken(domainInfo, DEFAULT_TOKEN),
+        ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT);
+    domainInfo.domain_ = LONG_STR;
+    domainInfo.accountName_ = STRING_NAME_NEW;
+    EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountToken(domainInfo, DEFAULT_TOKEN),
+        ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT);
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
@@ -2037,7 +2048,14 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAcco
 
     newInfo.accountName_ = STRING_NAME_INVALID;
     ASSERT_EQ(InnerDomainAccountManager::GetInstance().UpdateAccountInfo(oldInfo, newInfo), INVALID_CODE);
-
+    DomainAccountInfo newDomainInfo;
+    newDomainInfo.accountName_ = LONG_STR;
+    EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountInfo(oldInfo, newDomainInfo),
+        ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT);
+    newDomainInfo.domain_ = LONG_STR;
+    newDomainInfo.accountName_ = STRING_NAME;
+    EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountInfo(oldInfo, newDomainInfo),
+        ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT);
     int32_t userId = -1;
     errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(oldInfo, userId);
     EXPECT_EQ(errCode, ERR_OK);

@@ -711,6 +711,9 @@ ErrCode InnerDomainAccountManager::GetAccountServerConfig(
     ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, localId);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("get os account localId from domain failed, result: %{public}d", result);
+        if (result != ERR_ACCOUNT_COMMON_INVALID_PARAMETER) {
+            return result;
+        }
         return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
     }
     PluginDomainAccountInfo domainAccountInfo;
@@ -1136,8 +1139,11 @@ ErrCode InnerDomainAccountManager::UpdateAccountToken(const DomainAccountInfo &i
     int32_t userId = 0;
     ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("get os account localId from domain failed, result: %{public}d", result);
-        return result;
+        ACCOUNT_LOGE("Get localId failed, result: %{public}d", result);
+        if (result != ERR_ACCOUNT_COMMON_INVALID_PARAMETER) {
+            return result;
+        }
+        return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
     }
 
     if (token.empty()) {
@@ -1904,6 +1910,9 @@ static ErrCode CheckNewDomainAccountInfo(const DomainAccountInfo &oldAccountInfo
             ACCOUNT_LOGE("NewAccountInfo already exists");
             return ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR;
         }
+        if (result != ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT) {
+            return result;
+        }
     }
     std::shared_ptr<UpdateAccountInfoCallback> callback = std::make_shared<UpdateAccountInfoCallback>();
     sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
@@ -1942,6 +1951,9 @@ ErrCode InnerDomainAccountManager::UpdateAccountInfo(
     ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(oldAccountInfo, userId);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("GetOsAccountLocalIdFromDomain failed, result = %{public}d", result);
+        if (result != ERR_ACCOUNT_COMMON_INVALID_PARAMETER) {
+            return result;
+        }
         return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
     }
     // check new account info
