@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("../../../../services/accountmgr/os_account_service.gni")
 
-module_output_path = "os_account/frameworks/domain_account"
+module_output_path = "os_account/os_account"
 
 config("domain_account_frameworks_config_moduletest") {
   visibility = [ ":*" ]

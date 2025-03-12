@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("../../../../../../os_account.gni")
 
-module_output_path = "os_account/interfaces/kit/ndk"
+module_output_path = "os_account/os_account"
 
 ohos_unittest("os_account_ndk_test") {
   branch_protector_ret = "pac_ret"
