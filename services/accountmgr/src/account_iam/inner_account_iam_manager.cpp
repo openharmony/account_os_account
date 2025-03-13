@@ -88,7 +88,12 @@ std::shared_ptr<std::mutex> InnerAccountIAMManager::GetOperatingUserLock(int32_t
 
 void InnerAccountIAMManager::OpenSession(int32_t userId, std::vector<uint8_t> &challenge)
 {
+    ACCOUNT_LOGI("Start open session, userId:%{public}d", userId);
     challenge = UserIDMClient::GetInstance().OpenSession(userId);
+    if (challenge.empty()) {
+        ACCOUNT_LOGE("Failed to open session, userId:%{public}d", userId);
+        REPORT_OS_ACCOUNT_FAIL(userId, "openSession", -1, "Failed to open session");
+    }
     std::lock_guard<std::mutex> lock(mutex_);
     userStateMap_[userId] = AFTER_OPEN_SESSION;
 }
@@ -321,6 +326,8 @@ int32_t InnerAccountIAMManager::GetAvailableStatus(
 {
     if (static_cast<int32_t>(authType) != static_cast<int32_t>(IAMAuthType::DOMAIN)) {
         status = UserAuthClientImpl::Instance().GetAvailableStatus(authType, authTrustLevel);
+        ACCOUNT_LOGI("Get available status ret:%{public}d, authType:%{public}d, authTrustLevel:%{public}d",
+            status, authType, authTrustLevel);
         return ERR_OK;
     }
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
@@ -328,9 +335,11 @@ int32_t InnerAccountIAMManager::GetAvailableStatus(
     if (isPluginAvailable) {
         status = ERR_JS_SUCCESS;
     } else {
+        ACCOUNT_LOGI("Domain auth is not support");
         status = ERR_JS_AUTH_TYPE_NOT_SUPPORTED;
     }
 #else
+    ACCOUNT_LOGI("Domain auth is not support");
     status = ERR_JS_AUTH_TYPE_NOT_SUPPORTED;
 #endif // SUPPORT_DOMAIN_ACCOUNTS
     return ERR_OK;
@@ -436,7 +445,7 @@ void InnerAccountIAMManager::GetEnrolledId(
         callback->OnEnrolledId(ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE, emptyId);
         return;
     }
-    auto GetSecUserInfoCallback = std::make_shared<GetSecUserInfoCallbackWrapper>(authType, callback);
+    auto GetSecUserInfoCallback = std::make_shared<GetSecUserInfoCallbackWrapper>(accountId, authType, callback);
     UserIDMClient::GetInstance().GetSecUserInfo(accountId, GetSecUserInfoCallback);
 }
 
@@ -625,7 +634,7 @@ ErrCode InnerAccountIAMManager::InnerGetLockScreenStatus(uint32_t userId, bool &
     }
     ErrCode result = storageMgrProxy->GetLockScreenStatus(userId, lockScreenStatus);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get lock screen status");
+        ACCOUNT_LOGE("Failed to get lock screen status, ret:%{public}d, userId:%{public}d", result, userId);
         return result;
     }
 #endif
@@ -660,7 +669,7 @@ ErrCode InnerAccountIAMManager::InnerUnlockUserScreen(
     }
     ErrCode result = storageMgrProxy->UnlockUserScreen(userId, token, secret);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("fail to unlock screen");
+        ACCOUNT_LOGE("Fail to unlock screen, ret:%{public}d, userId:%{public}d", result, userId);
         return result;
     }
 #endif

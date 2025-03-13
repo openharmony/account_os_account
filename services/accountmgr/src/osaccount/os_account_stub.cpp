@@ -1269,8 +1269,7 @@ ErrCode OsAccountStub::ProcSubscribeOsAccount(MessageParcel &data, MessageParcel
     unsigned int flag = HiviewDFX::XCOLLIE_FLAG_LOG | HiviewDFX::XCOLLIE_FLAG_RECOVERY;
     XCollieCallback callbackFunc = [](void *) {
         ACCOUNT_LOGE("ProcSubscribeOsAccount failed due to timeout.");
-        ReportOsAccountOperationFail(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR,
-            "watchDog", -1, "Subscribe osaccount time out");
+        ReportOsAccountOperationFail(IPCSkeleton::GetCallingUid(), "watchDog", -1, "Subscribe osaccount time out");
     };
     int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(
         TIMER_NAME, RECOVERY_TIMEOUT, callbackFunc, nullptr, flag);

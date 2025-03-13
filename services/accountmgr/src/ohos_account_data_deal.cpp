@@ -154,8 +154,9 @@ ErrCode OhosAccountDataDeal::Init(int32_t userId)
 
     std::ifstream fin(configFile);
     if (!fin) {
-        ACCOUNT_LOGE("Failed to open config file %{public}s, errno %{public}d.", configFile.c_str(), errno);
-        ReportOhosAccountOperationFail(userId, OPERATION_INIT_OPEN_FILE_TO_READ, errno, configFile);
+        int32_t err = errno;
+        ACCOUNT_LOGE("Failed to open config file %{public}s, errno %{public}d.", configFile.c_str(), err);
+        ReportOhosAccountOperationFail(userId, OPERATION_INIT_OPEN_FILE_TO_READ, err, configFile);
         return ERR_ACCOUNT_DATADEAL_INPUT_FILE_ERROR;
     }
 
@@ -166,8 +167,9 @@ ErrCode OhosAccountDataDeal::Init(int32_t userId)
     if (jsonData.is_discarded() || !jsonData.is_structured()) {
         ACCOUNT_LOGE("Invalid json file, remove");
         if (RemoveFile(configFile)) {
-            ACCOUNT_LOGE("Remove invalid json file %{public}s failed, errno %{public}d.", configFile.c_str(), errno);
-            ReportOhosAccountOperationFail(userId, OPERATION_REMOVE_FILE, errno, configFile);
+            int32_t err = errno;
+            ACCOUNT_LOGE("Remove invalid json file %{public}s failed, errno %{public}d.", configFile.c_str(), err);
+            ReportOhosAccountOperationFail(userId, OPERATION_REMOVE_FILE, err, configFile);
         }
         return ERR_ACCOUNT_DATADEAL_JSON_FILE_CORRUPTION;
     }
@@ -230,10 +232,10 @@ ErrCode OhosAccountDataDeal::SaveAccountInfo(const AccountInfo &accountInfo)
 
     ret = accountFileOperator_->InputFileByPathAndContent(configFile, accountInfoValue);
     if (ret == ERR_OHOSACCOUNT_SERVICE_FILE_CHANGE_DIR_MODE_ERROR) {
-        ReportOhosAccountOperationFail(accountInfo.userId_, OPERATION_CHANGE_MODE_FILE, errno, configFile);
+        ReportOhosAccountOperationFail(accountInfo.userId_, OPERATION_CHANGE_MODE_FILE, ret, configFile);
     }
     if (ret != ERR_OK && ret != ERR_OHOSACCOUNT_SERVICE_FILE_CHANGE_DIR_MODE_ERROR) {
-        ReportOhosAccountOperationFail(accountInfo.userId_, OPERATION_OPEN_FILE_TO_WRITE, errno, configFile);
+        ReportOhosAccountOperationFail(accountInfo.userId_, OPERATION_OPEN_FILE_TO_WRITE, ret, configFile);
     }
 #ifdef ENABLE_FILE_WATCHER
     accountFileWatcherMgr_.AddAccountInfoDigest(accountInfoValue, configFile);
@@ -245,8 +247,9 @@ ErrCode OhosAccountDataDeal::ParseJsonFromFile(const std::string &filePath, nloh
 {
     std::ifstream fin(filePath);
     if (!fin) {
-        ACCOUNT_LOGE("Failed to open config file %{public}s, errno %{public}d.", filePath.c_str(), errno);
-        ReportOhosAccountOperationFail(userId, OPERATION_OPEN_FILE_TO_READ, errno, filePath);
+        int32_t err = errno;
+        ACCOUNT_LOGE("Failed to open config file %{public}s, errno %{public}d.", filePath.c_str(), err);
+        ReportOhosAccountOperationFail(userId, OPERATION_OPEN_FILE_TO_READ, err, filePath);
         return ERR_ACCOUNT_DATADEAL_INPUT_FILE_ERROR;
     }
     // NOT-allow exceptions when parse json file

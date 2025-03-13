@@ -157,6 +157,7 @@ void IInnerOsAccountManager::CreateBaseAdminAccount()
     bool isExistsAccount = false;
     osAccountControl_->IsOsAccountExists(Constants::ADMIN_LOCAL_ID, isExistsAccount);
     if (!isExistsAccount) {
+        ReportOsAccountLifeCycle(Constants::ADMIN_LOCAL_ID, Constants::OPERATION_BOOT_CREATE);
         int64_t serialNumber =
             Constants::CARRY_NUM * Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN + Constants::ADMIN_LOCAL_ID;
         OsAccountInfo osAccountInfo(
@@ -186,6 +187,7 @@ void IInnerOsAccountManager::CreateBaseStandardAccount()
 #else
     OsAccountInfo osAccountInfo(Constants::START_USER_ID, "", OsAccountType::ADMIN, serialNumber);
 #endif //ENABLE_DEFAULT_ADMIN_NAME
+    ReportOsAccountLifeCycle(osAccountInfo.GetLocalId(), Constants::OPERATION_BOOT_CREATE);
     std::vector<std::string> constraints;
     ErrCode errCode = osAccountControl_->GetConstraintsByType(OsAccountType::ADMIN, constraints);
     if (errCode != ERR_OK) {
@@ -267,8 +269,14 @@ ErrCode IInnerOsAccountManager::GetRealOsAccountInfoById(const int id, OsAccount
 ErrCode IInnerOsAccountManager::ActivateDefaultOsAccount()
 {
 #ifdef HICOLLIE_ENABLE
+    XCollieCallback callbackFunc = [this](void *) {
+        ACCOUNT_LOGE("ActivateDefaultOsAccount failed due to timeout.");
+        REPORT_OS_ACCOUNT_FAIL(this->defaultActivatedId_, Constants::OPERATION_BOOT_ACTIVATING,
+            ERR_ACCOUNT_COMMON_OPERATION_TIMEOUT, "Activate default os account over time.");
+    };
     int timerId =
-        HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, TIMEOUT, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
+        HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, TIMEOUT, callbackFunc, nullptr,
+            HiviewDFX::XCOLLIE_FLAG_LOG);
 #endif // HICOLLIE_ENABLE
     ACCOUNT_LOGI("Start to activate default account");
     OsAccountInfo osAccountInfo;
@@ -282,6 +290,7 @@ ErrCode IInnerOsAccountManager::ActivateDefaultOsAccount()
     errCode = SendMsgForAccountActivate(osAccountInfo);
     if (errCode == ERR_OK) {
         SetParameter(ACCOUNT_READY_EVENT, "true");
+        ReportOsAccountLifeCycle(osAccountInfo.GetLocalId(), Constants::OPERATION_BOOT_ACTIVATED);
     }
 #ifdef HICOLLIE_ENABLE
     HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
@@ -1485,11 +1494,16 @@ int32_t IInnerOsAccountManager::CleanGarbageOsAccounts(int32_t excludeId)
         ErrCode errCode = RemoveOsAccountOperate(id, osAccountInfo, true);
         RemoveLocalIdToOperating(id);
         if (errCode != ERR_OK) {
+            REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_CLEAN,
+                errCode, "Clean garbage os accounts failed");
             ACCOUNT_LOGE("Remove account %{public}d failed! errCode %{public}d.", id, errCode);
         } else {
             ACCOUNT_LOGI("Remove account %{public}d succeed!", id);
             removeNum++;
         }
+    }
+    if (removeNum > 0) {
+        ReportOsAccountLifeCycle(removeNum, Constants::OPERATION_CLEAN);
     }
     ACCOUNT_LOGI("Finished.");
     return removeNum;
@@ -1847,8 +1861,9 @@ void IInnerOsAccountManager::ExecuteDeactivationAnimation(int32_t pipeFd, const 
     char *const args[] = { const_cast<char *>(DEACTIVATION_ANIMATION_PATH),
         const_cast<char *>(displayIdStr.c_str()), const_cast<char *>(pipeFdStr.c_str()), nullptr };
     if (execv(DEACTIVATION_ANIMATION_PATH, args) == -1) {
-        ACCOUNT_LOGE("Failed to execv animation: %{public}s", strerror(errno));
-        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), "deactivate", errno,
+        int32_t err = errno;
+        ACCOUNT_LOGE("Failed to execv animation: %{public}s", strerror(err));
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), "deactivate", err,
             "Failed to launch deactivation animation, execv error");
         close(pipeFd);
         exit(EXIT_FAILURE);
@@ -1898,8 +1913,9 @@ void IInnerOsAccountManager::LaunchDeactivationAnimation(const OsAccountInfo &os
 
     int pipeFd[PIPE_FD_COUNT];
     if (pipe(pipeFd) == -1) {
-        ACCOUNT_LOGE("Failed to create pipe: %{public}s", strerror(errno));
-        ReportOsAccountOperationFail(localId, "deactivate", errno,
+        int32_t err = errno;
+        ACCOUNT_LOGE("Failed to create pipe: %{public}s", strerror(err));
+        ReportOsAccountOperationFail(localId, "deactivate", err,
             "Failed to launch deactivation animation, create pipe error");
         return;
     }
@@ -1917,8 +1933,9 @@ void IInnerOsAccountManager::LaunchDeactivationAnimation(const OsAccountInfo &os
         }
         close(pipeFd[PIPE_READ_END]);
     } else {
-        ACCOUNT_LOGE("Failed to fork deactivation animation process: %{public}s", strerror(errno));
-        ReportOsAccountOperationFail(localId, "deactivate", errno,
+        int32_t err = errno;
+        ACCOUNT_LOGE("Failed to fork deactivation animation process: %{public}s", strerror(err));
+        ReportOsAccountOperationFail(localId, "deactivate", err,
             "Failed to launch deactivation animation, fork error");
         close(pipeFd[PIPE_READ_END]);
         close(pipeFd[PIPE_WRITE_END]);

@@ -287,12 +287,13 @@ private:
 
 class GetSecUserInfoCallbackWrapper : public GetSecUserInfoCallback {
 public:
-    GetSecUserInfoCallbackWrapper(AuthType authType, const sptr<IGetEnrolledIdCallback> &callback);
+    GetSecUserInfoCallbackWrapper(int32_t userId, AuthType authType, const sptr<IGetEnrolledIdCallback> &callback);
     virtual ~GetSecUserInfoCallbackWrapper() = default;
 
     void OnSecUserInfo(int32_t result, const SecUserInfo &info) override;
 
 private:
+    int32_t userId_;
     AuthType authType_;
     sptr<IGetEnrolledIdCallback> innerCallback_;
 };
