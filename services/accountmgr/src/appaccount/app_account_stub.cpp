@@ -16,11 +16,13 @@
 #include "app_account_stub.h"
 
 #include "account_error_no.h"
+#include "account_hisysevent_adapter.h"
 #include "account_log_wrapper.h"
 #include "app_account_constants.h"
 #include "account_constants.h"
 #include "ipc_skeleton.h"
 #include "memory_guard.h"
+#include "os_account_constants.h"
 #ifdef HICOLLIE_ENABLE
 #include "xcollie/xcollie.h"
 #endif // HICOLLIE_ENABLE
@@ -286,8 +288,14 @@ int AppAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageP
     }
 
 #ifdef HICOLLIE_ENABLE
-    int timerId =
-        HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, TIMEOUT, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
+    XCollieCallback callbackFunc = [code = code](void *) {
+        ACCOUNT_LOGE("Call app account interface timeout, code = %{public}d.", code);
+        std::string errMsg = "Call app account interface timeout, code = " + std::to_string(code) + ".";
+        REPORT_APP_ACCOUNT_FAIL("", "", Constants::OPERATION_LOG_ERROR,
+            ERR_ACCOUNT_COMMON_OPERATION_TIMEOUT, errMsg);
+    };
+    int32_t timerId = HiviewDFX::XCollie::GetInstance().SetTimer(
+        TIMER_NAME, TIMEOUT, callbackFunc, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
 #endif // HICOLLIE_ENABLE
 
     auto messageProc = messageProcMap.find(code);
@@ -495,6 +503,7 @@ ErrCode AppAccountStub::ProcSetAppAccess(uint32_t code, MessageParcel &data, Mes
         bool isAccessible = data.ReadBool();
         result = SetAppAccess(name, authorizedApp, isAccessible);
     } else {
+        ACCOUNT_LOGE("Stub code is invalid, code = %{public}u", code);
         return IPC_INVOKER_ERR;
     }
 
@@ -689,6 +698,7 @@ ErrCode AppAccountStub::ProcDeleteAuthToken(uint32_t code, MessageParcel &data, 
     } else if (code == static_cast<uint32_t>(AppAccountInterfaceCode::DELETE_AUTH_TOKEN)) {
         result = DeleteAuthToken(name, owner, authType, token);
     } else {
+        ACCOUNT_LOGE("Stub code is invalid, code = %{public}u", code);
         return IPC_INVOKER_ERR;
     }
 
@@ -716,6 +726,7 @@ ErrCode AppAccountStub::ProcSetAuthTokenVisibility(uint32_t code, MessageParcel 
     } else if (code == static_cast<uint32_t>(AppAccountInterfaceCode::SET_AUTH_TOKEN_VISIBILITY)) {
         result = SetAuthTokenVisibility(name, authType, bundleName, isVisible);
     } else {
+        ACCOUNT_LOGE("Stub code is invalid, code = %{public}u", code);
         return IPC_INVOKER_ERR;
     }
 
@@ -861,6 +872,7 @@ ErrCode AppAccountStub::ProcGetAllAccessibleAccounts(uint32_t code, MessageParce
         RETURN_IF_STRING_IS_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is or oversize", reply);
         result = QueryAllAccessibleAccounts(owner, appAccounts);
     } else {
+        ACCOUNT_LOGE("Stub code is invalid, code = %{public}u", code);
         return IPC_INVOKER_ERR;
     }
     if (!reply.WriteInt32(result)) {

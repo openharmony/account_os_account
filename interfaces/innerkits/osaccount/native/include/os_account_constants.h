@@ -43,12 +43,20 @@ const std::string SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH =
 const char USER_PHOTO_FILE_TXT_NAME[] = "photo.txt";
 const char USER_INFO_FILE_NAME[] = "account_info.json";
 const char USER_ADD_SECRET_FLAG_FILE_NAME[] = "add_secret_flag";
+const char OPERATION_BOOT_ACTIVATED[] = "boot_activated";
+const char OPERATION_BOOT_CREATE[] = "boot_create";
+const char OPERATION_BOOT_ACTIVATING[] = "boot_activating";
+const char OPERATION_CLEAN[] = "cleanGarbage";
 const char OPERATION_ACTIVATE[] = "activate";
 const char OPERATION_CREATE[] = "create";
 const char OPERATION_REMOVE[] = "remove";
 const char OPERATION_SWITCH[] = "switch";
 const char OPERATION_STOP[] = "stop";
 const char OPERATION_UNLOCK[] = "unlock";
+const char OPERATION_UPDATE_CRED[] = "updateCredential";
+const char OPERATION_ADD_CRED[] = "addCredential";
+const char OPERATION_DELETE_CRED[] = "deleteCredential";
+const char OPERATION_LOG_ERROR[] = "ErrLog";
 
 // distributed database
 const bool SYNC_OS_ACCOUNT_DATABASE = false;
