@@ -30,6 +30,8 @@ config("app_account_service_core_public_config") {
   include_dirs = [
     "${services_path}/accountmgr/include",
     "${services_path}/accountmgr/include/appaccount",
+    "${os_account_interfaces_native_path}/include",
+    "${domain_account_interfaces_native_path}/include",
   ]
 }
 

@@ -266,6 +266,7 @@ uint64_t AccountIAMClient::AuthUser(
     }
     ErrCode result = proxy->AuthUser(authParam, wrapper, contextId);
     if (result != ERR_OK) {
+        ACCOUNT_LOGE("Failed to auth user, result = %{public}d", result);
         callback->OnResult(result, emptyResult);
     }
     return contextId;
@@ -363,6 +364,7 @@ void AccountIAMClient::GetEnrolledId(
     }
     sptr<IGetEnrolledIdCallback> wrapper = new (std::nothrow) GetEnrolledIdCallbackService(callback);
     if (wrapper == nullptr) {
+        ACCOUNT_LOGE("The wrapper is nullptr");
         callback->OnEnrolledId(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, emptyResult);
         return;
     }
@@ -395,6 +397,7 @@ ErrCode AccountIAMClient::RegisterPINInputer(const std::shared_ptr<IInputer> &in
     }
     if (UserIam::PinAuth::PinAuthRegister::GetInstance().RegisterInputer(inputer)) {
         pinInputer_ = inputer;
+        ACCOUNT_LOGI("Register inputer successful!");
         return ERR_OK;
     }
     return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
@@ -431,6 +434,7 @@ ErrCode AccountIAMClient::RegisterInputer(int32_t authType, const std::shared_pt
         case IAMAuthType::DOMAIN:
             return RegisterDomainInputer(inputer);
         default:
+            ACCOUNT_LOGE("Unsupport auth type = %{public}d", authType);
             return ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE;
     }
 }
@@ -451,6 +455,7 @@ ErrCode AccountIAMClient::UnregisterInputer(int32_t authType)
         case IAMAuthType::DOMAIN:
             return UnregisterDomainInputer();
         default:
+            ACCOUNT_LOGE("Unsupport auth type = %{public}d", authType);
             return ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE;
     }
     return ERR_OK;
@@ -470,6 +475,7 @@ ErrCode AccountIAMClient::UnregisterPINInputer()
     UserIam::PinAuth::PinAuthRegister::GetInstance().UnRegisterInputer();
     std::lock_guard<std::mutex> lock(pinMutex_);
     pinInputer_ = nullptr;
+    ACCOUNT_LOGI("Unregister PIN inputer successful!");
     return ERR_OK;
 }
 
