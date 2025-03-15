@@ -308,12 +308,7 @@ ErrCode OsAccountManagerService::RemoveOsAccount(const int id)
 
 ErrCode OsAccountManagerService::IsOsAccountExists(const int id, bool &isOsAccountExists)
 {
-    ErrCode result = innerManager_.IsOsAccountExists(id, isOsAccountExists);
-    if (result == ERR_OK) {
-        REPORT_OS_ACCOUNT_FAIL(IPCSkeleton::GetCallingUid(), Constants::OPERATION_LOG_ERROR,
-            result, "Failed to query os account exists, id=" + std::to_string(id));
-    }
-    return result;
+    return innerManager_.IsOsAccountExists(id, isOsAccountExists);
 }
 
 ErrCode OsAccountManagerService::IsOsAccountActived(const int id, bool &isOsAccountActived)
@@ -381,12 +376,7 @@ ErrCode OsAccountManagerService::IsOsAccountVerified(const int id, bool &isVerif
     // check current account state
     int callerUserId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     if (callerUserId == id) {
-        ErrCode result = innerManager_.IsOsAccountVerified(id, isVerified);
-        if (result != ERR_OK) {
-            REPORT_OS_ACCOUNT_FAIL(IPCSkeleton::GetCallingUid(), Constants::OPERATION_LOG_ERROR,
-                result, "Is os account verified failed.");
-        }
-        return result;
+        return innerManager_.IsOsAccountVerified(id, isVerified);
     }
 
     // check other account state, check permission first
@@ -395,12 +385,7 @@ ErrCode OsAccountManagerService::IsOsAccountVerified(const int id, bool &isVerif
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 
-    ErrCode result = innerManager_.IsOsAccountVerified(id, isVerified);
-    if (result != ERR_OK) {
-        REPORT_OS_ACCOUNT_FAIL(IPCSkeleton::GetCallingUid(), Constants::OPERATION_LOG_ERROR,
-            result, "Is os account verified failed.");
-    }
-    return result;
+    return innerManager_.IsOsAccountVerified(id, isVerified);
 }
 
 ErrCode OsAccountManagerService::IsOsAccountDeactivating(const int id, bool &isDeactivating)
@@ -1248,12 +1233,8 @@ ErrCode OsAccountManagerService::GetForegroundOsAccountLocalId(const uint64_t di
         ACCOUNT_LOGE("DisplayId %{public}llu not exist.", static_cast<unsigned long long>(displayId));
         return ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR;
     }
-    ErrCode result = innerManager_.GetForegroundOsAccountLocalId(displayId, localId);
-    if (result != ERR_OK) {
-        REPORT_OS_ACCOUNT_FAIL(IPCSkeleton::GetCallingUid(), Constants::OPERATION_LOG_ERROR,
-            result, "Get foreground os account local id failed, displayid=" + std::to_string(displayId));
-    }
-    return result;
+
+    return innerManager_.GetForegroundOsAccountLocalId(displayId, localId);
 }
 
 ErrCode OsAccountManagerService::GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts)
