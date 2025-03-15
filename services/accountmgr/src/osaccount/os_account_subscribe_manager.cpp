@@ -19,6 +19,7 @@
 #include "account_hisysevent_adapter.h"
 #include "account_log_wrapper.h"
 #include "ipc_skeleton.h"
+#include "os_account_constants.h"
 #include "os_account_state_parcel.h"
 #include "os_account_state_reply_callback_stub.h"
 #include "os_account_subscribe_death_recipient.h"
@@ -260,6 +261,10 @@ bool OsAccountSubscribeManager::OnStateChanged(
             callback->OnComplete();
             ACCOUNT_LOGE("Failed to publish state: %{public}d to %{public}d, id: %{public}d",
                 stateParcel.state, targetUid, stateParcel.fromId);
+            REPORT_OS_ACCOUNT_FAIL(stateParcel.toId, Constants::OPERATION_EVENT_PUBLISH, errCode,
+                "Send OnStateChanged failed, state=" +std::to_string(stateParcel.state) +
+                ", targetUid=" + std::to_string(targetUid) + ", fromId=" + std::to_string(stateParcel.fromId) +
+                ", toId=" + std::to_string(stateParcel.toId));
         }
     };
     std::thread taskThread(task);

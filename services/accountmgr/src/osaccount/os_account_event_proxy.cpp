@@ -15,6 +15,8 @@
 
 #include "account_log_wrapper.h"
 
+#include "account_hisysevent_adapter.h"
+#include "os_account_constants.h"
 #include "os_account_event_proxy.h"
 
 namespace OHOS {
@@ -44,6 +46,8 @@ void OsAccountEventProxy::OnAccountsChanged(const int &localId)
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest for account changed failed! result %{public}d, localId %{public}d.",
             result, localId);
+        REPORT_OS_ACCOUNT_FAIL(localId, Constants::OPERATION_EVENT_PUBLISH,
+            result, "Send OnAccountsChanged subscribe failed");
         return;
     }
 }
@@ -69,6 +73,9 @@ void OsAccountEventProxy::OnAccountsSwitch(const int &newId, const int &oldId)
     ErrCode result = SendRequest(OsAccountEventInterfaceCode::ACCOUNT_SWITCHED, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest failed, result=%{public}d.", result);
+        REPORT_OS_ACCOUNT_FAIL(newId, Constants::OPERATION_EVENT_PUBLISH,
+            result, "Send OnAccountsSwitch subscribe failed, from=" +
+            std::to_string(oldId) + ", to=" + std::to_string(newId));
         return;
     }
 }

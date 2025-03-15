@@ -56,7 +56,8 @@ const char OPERATION_UNLOCK[] = "unlock";
 const char OPERATION_UPDATE_CRED[] = "updateCredential";
 const char OPERATION_ADD_CRED[] = "addCredential";
 const char OPERATION_DELETE_CRED[] = "deleteCredential";
-const char OPERATION_LOG_ERROR[] = "ErrLog";
+const char OPERATION_LOG_ERROR[] = "errLog";
+const char OPERATION_EVENT_PUBLISH[] = "eventPublish";
 
 // distributed database
 const bool SYNC_OS_ACCOUNT_DATABASE = false;
