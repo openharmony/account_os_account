@@ -223,6 +223,11 @@ public:
         return 0;
     }
 
+    int32_t QueryUsbIsInUse(const std::string &diskPath, bool &isInUse)
+    {
+        return 0;
+    }
+
     int32_t Format(std::string volumeId, std::string fsType)
     {
         return 0;
