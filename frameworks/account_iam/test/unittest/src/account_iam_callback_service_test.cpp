@@ -20,6 +20,8 @@
 #include "account_iam_client.h"
 #include "account_iam_client_test_callback.h"
 #include "account_log_wrapper.h"
+#include "account_test_common.h"
+#include "ipc_skeleton.h"
 #include "test_common.h"
 #include "token_setproc.h"
 
@@ -28,6 +30,7 @@ namespace AccountTest {
 namespace {
     const int32_t TEST_USER_ID = 200;
     const int32_t WAIT_TIME = 20;
+    static uint64_t g_selfTokenID;
 }
 
 using namespace testing;
@@ -57,12 +60,14 @@ public:
 
 void AccountIAMCallbackServiceTest::SetUpTestCase(void)
 {
-    AccessTokenID tokenId = AccessTokenKit::GetHapTokenID(100, "com.ohos.settings", 0);
-    SetSelfTokenID(tokenId);
+    g_selfTokenID = IPCSkeleton::GetSelfTokenID();
+    ASSERT_EQ(0, SetSelfTokenID(GetTokenIdFromBundleName("com.ohos.settings")));
 }
 
 void AccountIAMCallbackServiceTest::TearDownTestCase(void)
-{}
+{
+    ASSERT_EQ(0, SetSelfTokenID(g_selfTokenID));
+}
 
 void AccountIAMCallbackServiceTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 {

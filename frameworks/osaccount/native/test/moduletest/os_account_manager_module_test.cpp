@@ -24,6 +24,7 @@
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "account_proxy.h"
+#include "account_test_common.h"
 #ifdef HAS_CES_PART
 #include "common_event_manager.h"
 #include "common_event_subscriber.h"
@@ -31,6 +32,7 @@
 #include "common_event_subscribe_info.h"
 #include "matching_skills.h"
 #endif // HAS_CES_PART
+#include "nlohmann/json.hpp"
 #include "if_system_ability_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
@@ -67,7 +69,6 @@ static uint64_t g_selfTokenID;
 const std::string STRING_EMPTY = "";
 const std::string STRING_NAME = "name";
 const std::string STRING_TEST_NAME_TWO = "test_account_name_2";
-const std::uint32_t INVALID_TOKEN_ID = 0;
 #ifdef DOMAIN_ACCOUNT_TEST_CASE
 const std::uint32_t INVALID_BUNDLE_ID = -1;
 #endif
@@ -204,44 +205,15 @@ HapInfoParams infoManagerTestSystemInfoParms = {
 }  // namespace
 
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-static bool AllocPermission(std::vector<std::string> permissions, AccessTokenID &tokenID, bool isSystemApp = true)
+static bool RecoveryPermission(uint64_t tokenID)
 {
-    std::vector<PermissionStateFull> permissionStates;
-    for (const auto& permission : permissions) {
-        PermissionStateFull permissionState = {
-            .permissionName = permission,
-            .isGeneral = true,
-            .resDeviceID = {"local"},
-            .grantStatus = {PermissionState::PERMISSION_GRANTED},
-            .grantFlags = {PERMISSION_SYSTEM_FIXED}
-        };
-        permissionStates.emplace_back(permissionState);
+    if (!MockTokenId("foundation")) {
+        return false;
     }
-    HapPolicyParams hapPolicyParams = {
-        .apl = APL_NORMAL,
-        .domain = "test.domain",
-        .permList = {},
-        .permStateList = permissionStates
-    };
-
-    HapInfoParams hapInfoParams = {
-        .userID = 100,
-        .bundleName = "account_test",
-        .instIndex = 0,
-        .appIDDesc = "account_test",
-        .apiVersion = DEFAULT_API_VERSION,
-        .isSystemApp = isSystemApp
-    };
-
-    AccessTokenIDEx tokenIdEx = {0};
-    tokenIdEx = AccessTokenKit::AllocHapToken(hapInfoParams, hapPolicyParams);
-    tokenID = tokenIdEx.tokenIdExStruct.tokenID;
-    return (INVALID_TOKENID != tokenIdEx.tokenIDEx) && (0 == SetSelfTokenID(tokenIdEx.tokenIDEx));
-}
-
-static bool RecoveryPermission(AccessTokenID tokenID)
-{
-    return (ERR_OK == AccessTokenKit::DeleteToken(tokenID)) && (ERR_OK == SetSelfTokenID(g_selfTokenID));
+    if (!((ERR_OK == AccessTokenKit::DeleteToken(tokenID)) && (ERR_OK == SetSelfTokenID(g_selfTokenID)))) {
+        return false;
+    }
+    return g_selfTokenID == IPCSkeleton::GetSelfTokenID();
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
@@ -256,6 +228,8 @@ public:
 void OsAccountManagerModuleTest::SetUpTestCase(void)
 {
     GTEST_LOG_(INFO) << "SetUpTestCase enter";
+    ASSERT_NE(GetAllAccountPermission(), 0);
+    g_selfTokenID = IPCSkeleton::GetSelfTokenID();
 #ifdef ACCOUNT_TEST
     AccountFileOperator osAccountFileOperator;
     osAccountFileOperator.DeleteDirOrFile(USER_INFO_BASE);
@@ -276,7 +250,6 @@ void OsAccountManagerModuleTest::SetUpTestCase(void)
         }
     }
     GTEST_LOG_(INFO) << "SetUpTestCase finished, waitCnt " << waitCnt;
-    g_selfTokenID = IPCSkeleton::GetSelfTokenID();
 #ifdef BUNDLE_ADAPTER_MOCK
     auto osAccountService = new (std::nothrow) OsAccountManagerService();
     ASSERT_NE(osAccountService, nullptr);
@@ -422,9 +395,16 @@ public:
  */
 HWTEST_F(OsAccountManagerModuleTest, CreateOsAccountWithFullInfo001, TestSize.Level1)
 {
+    std::string fileContext;
+    EXPECT_EQ(ERR_OK, g_accountFileOperator->GetFileContentByPath(Constants::ACCOUNT_LIST_FILE_JSON_PATH, fileContext));
+    auto accountListJson = Json::parse(fileContext, nullptr, false);
+    ASSERT_TRUE(!accountListJson.is_discarded() && accountListJson.is_structured());
+    ASSERT_TRUE(accountListJson.at("NextLocalId").is_number());
+    int32_t nextLocalId = static_cast<int32_t>(accountListJson.at("NextLocalId").get<int32_t>());
+    ASSERT_TRUE(nextLocalId > 100);
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetLocalName("testNextID_001");
-    int expectUid = 1000; // test random uid, next account should start from 1000
+    int32_t expectUid = nextLocalId + 2; // test random uid, next account should start from nextLocalId + 2
     osAccountInfo.SetLocalId(expectUid);
     osAccountInfo.SetSerialNumber(2023023100000033); // test random input
     osAccountInfo.SetCreateTime(1695883215000); // test random input
@@ -433,10 +413,13 @@ HWTEST_F(OsAccountManagerModuleTest, CreateOsAccountWithFullInfo001, TestSize.Le
     EXPECT_EQ(osAccountInfo.GetLocalId(), expectUid);
     OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId());
     
-    OsAccountInfo osAccountInfoOne;
-    ASSERT_EQ(OsAccountManager::CreateOsAccount("testNextID_002", OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
-    EXPECT_EQ(osAccountInfoOne.GetLocalId(), expectUid + 1);
-    OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(ERR_OK, g_accountFileOperator->GetFileContentByPath(Constants::ACCOUNT_LIST_FILE_JSON_PATH, fileContext));
+    accountListJson = Json::parse(fileContext, nullptr, false);
+    ASSERT_TRUE(!accountListJson.is_discarded() && accountListJson.is_structured());
+    ASSERT_TRUE(accountListJson.at("NextLocalId").is_number());
+    nextLocalId = static_cast<int32_t>(accountListJson.at("NextLocalId").get<int32_t>());
+    ASSERT_TRUE(nextLocalId > 100);
+    EXPECT_EQ(nextLocalId, (expectUid + 1));
 }
 
 /**
@@ -2353,10 +2336,8 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest108, TestSize.Lev
 #ifdef DOMAIN_ACCOUNT_TEST_CASE
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest109, TestSize.Level0)
 {
-    Security::AccessToken::AccessTokenIDEx tokenIdEx = {0};
-    tokenIdEx = AccessTokenKit::AllocHapToken(infoManagerTestNormalInfoParms, INFO_MANAGER_TEST_POLICY_PRAMS);
-    ASSERT_NE(INVALID_TOKEN_ID, tokenIdEx.tokenIDEx);
-    SetSelfTokenID(tokenIdEx.tokenIDEx);
+    uint64_t tokenID;
+    ASSERT_TRUE(AllocPermission(ALL_ACCOUNT_PERMISSION_LIST, tokenID, false));
 
     int bundleId = INVALID_BUNDLE_ID;
     ASSERT_EQ(OsAccountManager::GetBundleIdFromUid(ACCOUNT_UID, bundleId), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
@@ -2384,10 +2365,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest109, TestSize.Lev
     ASSERT_EQ(OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo),
         ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
 
-    AccessTokenID tokenID = AccessTokenKit::GetHapTokenID(infoManagerTestNormalInfoParms.userID,
-        infoManagerTestNormalInfoParms.bundleName, infoManagerTestNormalInfoParms.instIndex);
-    AccessTokenKit::DeleteToken(tokenID);
-    SetSelfTokenID(g_selfTokenID);
+    ASSERT_TRUE(RecoveryPermission(tokenID));
 }
 #endif // DOMAIN_ACCOUNT_TEST_CASE
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
@@ -2400,10 +2378,8 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest109, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest110, TestSize.Level0)
 {
-    Security::AccessToken::AccessTokenIDEx tokenIdEx = {0};
-    tokenIdEx = AccessTokenKit::AllocHapToken(infoManagerTestNormalInfoParms, INFO_MANAGER_TEST_POLICY_PRAMS);
-    ASSERT_NE(INVALID_TOKEN_ID, tokenIdEx.tokenIDEx);
-    SetSelfTokenID(tokenIdEx.tokenIDEx);
+    uint64_t tokenID;
+    ASSERT_TRUE(AllocPermission(ALL_ACCOUNT_PERMISSION_LIST, tokenID, false));
 
     OsAccountInfo osAccountInfoTwo;
     ASSERT_EQ(
@@ -2425,10 +2401,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest110, TestSize.Lev
     ASSERT_EQ(OsAccountManager::QueryOsAccountConstraintSourceTypes(
         MAIN_ACCOUNT_ID, CONSTANT_PRINT, constraintSourceTypeInfos), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
 
-    AccessTokenID tokenID = AccessTokenKit::GetHapTokenID(infoManagerTestNormalInfoParms.userID,
-        infoManagerTestNormalInfoParms.bundleName, infoManagerTestNormalInfoParms.instIndex);
-    AccessTokenKit::DeleteToken(tokenID);
-    SetSelfTokenID(g_selfTokenID);
+    ASSERT_TRUE(RecoveryPermission(tokenID));
 }
 
 /**
@@ -2441,10 +2414,9 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest110, TestSize.Lev
 #ifdef DOMAIN_ACCOUNT_TEST_CASE
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest111, TestSize.Level0)
 {
-    Security::AccessToken::AccessTokenIDEx tokenIdEx = {0};
-    tokenIdEx = AccessTokenKit::AllocHapToken(infoManagerTestSystemInfoParms, INFO_MANAGER_TEST_POLICY_PRAMS);
-    ASSERT_NE(INVALID_TOKEN_ID, tokenIdEx.tokenIDEx);
-    SetSelfTokenID(tokenIdEx.tokenIDEx);
+    uint64_t tokenID;
+    ASSERT_TRUE(AllocPermission(ALL_ACCOUNT_PERMISSION_LIST, tokenID));
+
     int bundleId = INVALID_BUNDLE_ID;
     ASSERT_EQ(OsAccountManager::GetBundleIdFromUid(ACCOUNT_UID, bundleId), ERR_OK);
     ASSERT_NE(bundleId, INVALID_BUNDLE_ID);
@@ -2471,12 +2443,9 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest111, TestSize.Lev
     OsAccountInfo osAccountInfo;
     ASSERT_EQ(OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
     ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
-
-    AccessTokenID tokenID = AccessTokenKit::GetHapTokenID(infoManagerTestSystemInfoParms.userID,
-        infoManagerTestSystemInfoParms.bundleName, infoManagerTestSystemInfoParms.instIndex);
-    AccessTokenKit::DeleteToken(tokenID);
-    SetSelfTokenID(g_selfTokenID);
     ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+
+    ASSERT_TRUE(RecoveryPermission(tokenID));
 }
 #endif // DOMAIN_ACCOUNT_TEST_CASE
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
@@ -2489,10 +2458,8 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest111, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest112, TestSize.Level0)
 {
-    Security::AccessToken::AccessTokenIDEx tokenIdEx = {0};
-    tokenIdEx = AccessTokenKit::AllocHapToken(infoManagerTestSystemInfoParms, INFO_MANAGER_TEST_POLICY_PRAMS);
-    ASSERT_NE(INVALID_TOKEN_ID, tokenIdEx.tokenIDEx);
-    SetSelfTokenID(tokenIdEx.tokenIDEx);
+    uint64_t tokenID;
+    ASSERT_TRUE(AllocPermission(ALL_ACCOUNT_PERMISSION_LIST, tokenID));
 
     OsAccountInfo osAccountInfoTwo;
     ASSERT_NE(
@@ -2519,10 +2486,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest112, TestSize.Lev
     ASSERT_NE(OsAccountManager::QueryOsAccountConstraintSourceTypes(
         MAIN_ACCOUNT_ID, CONSTANT_PRINT, constraintSourceTypeInfos), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
 
-    AccessTokenID tokenID = AccessTokenKit::GetHapTokenID(infoManagerTestSystemInfoParms.userID,
-        infoManagerTestSystemInfoParms.bundleName, infoManagerTestSystemInfoParms.instIndex);
-    AccessTokenKit::DeleteToken(tokenID);
-    SetSelfTokenID(g_selfTokenID);
+    ASSERT_TRUE(RecoveryPermission(tokenID));
 }
 
 /**
@@ -2563,9 +2527,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest113, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest114, TestSize.Level1)
 {
-    AccessTokenID tokenID;
-    ASSERT_TRUE(AllocPermission(PERMISSION_LIST, tokenID));
-
     OsAccountInfo osAccountInfo;
     EXPECT_EQ(OsAccountManager::CreateOsAccount("ModuleTest114", OsAccountType::NORMAL, osAccountInfo), ERR_OK);
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
@@ -2613,8 +2574,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest114, TestSize.Lev
 #ifndef BUNDLE_ADAPTER_MOCK
     testing::Mock::AllowLeak(listener.get());
 #endif
-
-    ASSERT_TRUE(RecoveryPermission(tokenID));
 }
 
 /**
@@ -2645,8 +2604,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest115, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest116, TestSize.Level1)
 {
-    AccessTokenID tokenID;
-    ASSERT_TRUE(AllocPermission({"ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS"}, tokenID));
     OsAccountManager::ActivateOsAccount(MAIN_ACCOUNT_ID);
     OsAccountInfo account;
     EXPECT_EQ(OsAccountManager::CreateOsAccount("AccountForegroundTest001", OsAccountType::NORMAL, account), ERR_OK);
@@ -2704,7 +2661,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest116, TestSize.Lev
 #ifndef BUNDLE_ADAPTER_MOCK
     testing::Mock::AllowLeak(listener.get());
 #endif
-    ASSERT_TRUE(RecoveryPermission(tokenID));
 }
 
 #ifdef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS

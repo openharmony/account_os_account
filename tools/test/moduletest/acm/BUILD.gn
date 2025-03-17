@@ -16,54 +16,7 @@ import("../../../../services/accountmgr/os_account_service.gni")
 
 module_output_path = "os_account/tools"
 
-ohos_moduletest("account_command_create_module_test") {
-  branch_protector_ret = "pac_ret"
-
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-
-  module_out_path = module_output_path
-
-  include_dirs = [ "${ability_runtime_path}/tools/test/systemtest/aa" ]
-
-  sources = [
-    "${ability_runtime_path}/tools/test/systemtest/aa/tool_system_test.cpp",
-    "${tools_path}/acm/src/account_command.cpp",
-    "account_command_create_module_test.cpp",
-    "account_command_util.cpp",
-  ]
-
-  configs = [
-    "${ability_runtime_path}/interfaces/inner_api/ability_manager:ability_manager_public_config",
-    "${tools_path}/acm:tools_acm_config",
-  ]
-
-  cflags = []
-  if (target_cpu == "arm") {
-    cflags += [ "-DBINDER_IPC_32BIT" ]
-  }
-
-  deps = [
-    "${common_path}:libaccount_common",
-    "${os_account_innerkits_native_path}:os_account_innerkits",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  external_deps = [
-    "ability_base:base",
-    "ability_runtime:tools_aa_source_set",
-    "c_utils:utils",
-    "hilog:libhilog",
-    "ipc:ipc_single",
-    "os_account:os_account_innerkits",
-  ]
-  cflags_cc = [ "-DACCOUNT_TEST" ]
-}
-
-ohos_moduletest("account_command_create_module_mock_test") {
+ohos_moduletest("account_command_module_mock_test") {
   branch_protector_ret = "pac_ret"
 
   sanitize = {
@@ -108,6 +61,7 @@ ohos_moduletest("account_command_create_module_mock_test") {
     "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
     "${tools_path}/acm/src/account_command.cpp",
     "account_command_create_module_test.cpp",
+    "account_command_delete_module_test.cpp",
     "account_command_util.cpp",
   ]
   sources += account_service_sources
@@ -123,6 +77,7 @@ ohos_moduletest("account_command_create_module_mock_test") {
 
   deps = [
     "${account_iam_framework_path}:account_iam_innerkits",
+    "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
     "${innerkits_native_path}:libaccountkits",
@@ -171,115 +126,7 @@ ohos_moduletest("account_command_create_module_mock_test") {
   cflags_cc += [ "-DBUNDLE_ADAPTER_MOCK" ]
 }
 
-ohos_moduletest("account_command_delete_module_mock_test") {
-  branch_protector_ret = "pac_ret"
-
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-
-  module_out_path = module_output_path
-
-  include_dirs = [
-    "${ability_runtime_path}/tools/test/systemtest/aa",
-    "${app_account_innerkits_native_path}/include",
-    "${os_account_dfx_path}/hidumper_adapter",
-    "${services_path}/accountmgr/include/bundle_manager_adapter",
-    "${services_path}/accountmgr/include/ability_manager_adapter",
-    "${services_path}/accountmgr/include",
-    "${os_account_dfx_path}/hitrace_adapter",
-    "${services_path}/accountmgr/include/account_iam",
-    "${services_path}/accountmgr/include/appaccount",
-    "${services_path}/accountmgr/include/domain_account",
-    "${services_path}/accountmgr/include/osaccount",
-    "${bundle_framework_path}/interfaces/inner_api/appexecfwk_core/include",
-    "${os_account_path}/interfaces/innerkits/ohosaccount/native/include/",
-  ]
-
-  sources = [
-    "${ability_runtime_path}/tools/test/systemtest/aa/tool_system_test.cpp",
-    "${app_account_services_path}/test/mock/common/ability_manager_adapter_mock.cpp",
-    "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
-    "${common_path}/log/src/account_log_wrapper.cpp",
-    "${innerkits_native_path}/src/account_info_parcel.cpp",
-    "${innerkits_native_path}/src/account_proxy.cpp",
-    "${innerkits_native_path}/src/ohos_account_kits.cpp",
-    "${innerkits_native_path}/src/ohos_account_kits_impl.cpp",
-    "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
-    "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_callback.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_mgr_stub.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
-    "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
-    "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
-    "${tools_path}/acm/src/account_command.cpp",
-    "account_command_delete_module_test.cpp",
-    "account_command_util.cpp",
-  ]
-  sources += account_service_sources
-  configs = [
-    "${ability_runtime_path}/interfaces/inner_api/ability_manager:ability_manager_public_config",
-    "${tools_path}/acm:tools_acm_config",
-  ]
-
-  cflags = []
-  if (target_cpu == "arm") {
-    cflags += [ "-DBINDER_IPC_32BIT" ]
-  }
-
-  deps = [
-    "${account_iam_framework_path}:account_iam_innerkits",
-    "${common_path}:libaccount_common",
-    "${domain_account_framework_path}:domain_account_innerkits",
-    "${innerkits_native_path}:libaccountkits",
-    "${os_account_innerkits_native_path}:os_account_innerkits",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  use_exceptions = true
-
-  external_deps = [
-    "ability_base:want",
-    "ability_runtime:ability_manager",
-    "ability_runtime:app_manager",
-    "ability_runtime:tools_aa_source_set",
-    "ability_runtime:wantagent_innerkits",
-    "access_token:libaccesstoken_sdk",
-    "access_token:libtokenid_sdk",
-    "access_token:libtokensetproc_shared",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
-    "c_utils:utils",
-    "config_policy:configpolicy_util",
-    "hilog:libhilog",
-    "ipc:ipc_single",
-    "mbedtls:mbedtls_shared",
-    "safwk:system_ability_fwk",
-    "samgr:samgr_proxy",
-  ]
-  if (has_huks_part) {
-    external_deps += [ "huks:libhukssdk" ]
-  }
-  cflags_cc = []
-  if (has_user_auth_part) {
-    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
-    external_deps += [ "user_auth_framework:userauth_client" ]
-  }
-  if (has_ces_part) {
-    cflags_cc += [ "-DHAS_CES_PART" ]
-    external_deps += [ "common_event_service:cesfwk_innerkits" ]
-  }
-  if (has_kv_store_part) {
-    external_deps += [ "kv_store:distributeddata_inner" ]
-  }
-  cflags_cc += [ "-DACCOUNT_TEST" ]
-  cflags_cc += [ "-DBUNDLE_ADAPTER_MOCK" ]
-}
-
-ohos_moduletest("account_command_delete_module_test") {
+ohos_moduletest("account_command_module_test") {
   branch_protector_ret = "pac_ret"
 
   sanitize = {
@@ -295,147 +142,10 @@ ohos_moduletest("account_command_delete_module_test") {
   sources = [
     "${ability_runtime_path}/tools/test/systemtest/aa/tool_system_test.cpp",
     "${tools_path}/acm/src/account_command.cpp",
+    "account_command_create_module_test.cpp",
     "account_command_delete_module_test.cpp",
-    "account_command_util.cpp",
-  ]
-
-  configs = [
-    "${ability_runtime_path}/interfaces/inner_api/ability_manager:ability_manager_public_config",
-    "${tools_path}/acm:tools_acm_config",
-  ]
-
-  cflags = []
-  if (target_cpu == "arm") {
-    cflags += [ "-DBINDER_IPC_32BIT" ]
-  }
-
-  deps = [
-    "${common_path}:libaccount_common",
-    "${os_account_innerkits_native_path}:os_account_innerkits",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  external_deps = [
-    "ability_base:base",
-    "ability_runtime:tools_aa_source_set",
-    "c_utils:utils",
-    "hilog:libhilog",
-    "ipc:ipc_single",
-    "os_account:os_account_innerkits",
-  ]
-  cflags_cc = [ "-DACCOUNT_TEST" ]
-}
-
-ohos_moduletest("account_command_dump_module_test") {
-  branch_protector_ret = "pac_ret"
-
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-
-  module_out_path = module_output_path
-
-  include_dirs = [ "${ability_runtime_path}/tools/test/systemtest/aa" ]
-
-  sources = [
-    "${ability_runtime_path}/tools/test/systemtest/aa/tool_system_test.cpp",
-    "${tools_path}/acm/src/account_command.cpp",
     "account_command_dump_module_test.cpp",
-    "account_command_util.cpp",
-  ]
-
-  configs = [
-    "${ability_runtime_path}/interfaces/inner_api/ability_manager:ability_manager_public_config",
-    "${tools_path}/acm:tools_acm_config",
-  ]
-
-  cflags = []
-  if (target_cpu == "arm") {
-    cflags += [ "-DBINDER_IPC_32BIT" ]
-  }
-
-  deps = [
-    "${common_path}:libaccount_common",
-    "${os_account_innerkits_native_path}:os_account_innerkits",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  external_deps = [
-    "ability_base:base",
-    "ability_runtime:tools_aa_source_set",
-    "c_utils:utils",
-    "hilog:libhilog",
-    "ipc:ipc_single",
-    "os_account:os_account_innerkits",
-  ]
-  cflags_cc = [ "-DACCOUNT_TEST" ]
-}
-
-ohos_moduletest("account_command_set_module_test") {
-  branch_protector_ret = "pac_ret"
-
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-
-  module_out_path = module_output_path
-
-  include_dirs = [ "${ability_runtime_path}/tools/test/systemtest/aa" ]
-
-  sources = [
-    "${ability_runtime_path}/tools/test/systemtest/aa/tool_system_test.cpp",
-    "${tools_path}/acm/src/account_command.cpp",
     "account_command_set_module_test.cpp",
-    "account_command_util.cpp",
-  ]
-
-  configs = [
-    "${ability_runtime_path}/interfaces/inner_api/ability_manager:ability_manager_public_config",
-    "${tools_path}/acm:tools_acm_config",
-  ]
-
-  cflags = []
-  if (target_cpu == "arm") {
-    cflags += [ "-DBINDER_IPC_32BIT" ]
-  }
-
-  deps = [
-    "${common_path}:libaccount_common",
-    "${os_account_innerkits_native_path}:os_account_innerkits",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  external_deps = [
-    "ability_base:base",
-    "ability_runtime:tools_aa_source_set",
-    "c_utils:utils",
-    "hilog:libhilog",
-    "ipc:ipc_single",
-    "os_account:os_account_innerkits",
-  ]
-  cflags_cc = [ "-DACCOUNT_TEST" ]
-}
-
-ohos_moduletest("account_command_switch_module_test") {
-  branch_protector_ret = "pac_ret"
-
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-
-  module_out_path = module_output_path
-
-  include_dirs = [ "${ability_runtime_path}/tools/test/systemtest/aa" ]
-
-  sources = [
-    "${ability_runtime_path}/tools/test/systemtest/aa/tool_system_test.cpp",
-    "${tools_path}/acm/src/account_command.cpp",
     "account_command_switch_module_test.cpp",
     "account_command_util.cpp",
   ]
@@ -451,6 +161,7 @@ ohos_moduletest("account_command_switch_module_test") {
   }
 
   deps = [
+    "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gtest_main",
@@ -472,13 +183,8 @@ group("moduletest") {
   deps = []
   if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
     deps += [
-      ":account_command_create_module_mock_test",
-      ":account_command_create_module_test",
-      ":account_command_delete_module_mock_test",
-      ":account_command_delete_module_test",
-      ":account_command_dump_module_test",
-      ":account_command_set_module_test",
-      ":account_command_switch_module_test",
+      ":account_command_module_mock_test",
+      ":account_command_module_test",
     ]
   }
 }
