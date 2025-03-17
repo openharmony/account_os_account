@@ -16,216 +16,6 @@ import("../../../../os_account.gni")
 
 module_output_path = "os_account/tools"
 
-ohos_unittest("account_command_create_test") {
-  branch_protector_ret = "pac_ret"
-
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-
-  module_out_path = module_output_path
-
-  include_dirs = []
-
-  sources = [
-    "${tools_path}/acm/src/account_command.cpp",
-    "account_command_create_test.cpp",
-  ]
-
-  configs = [
-    "${ability_runtime_path}/tools/aa:ability_command_config",
-    "${tools_path}/acm:tools_acm_config",
-  ]
-
-  cflags = []
-  if (target_cpu == "arm") {
-    cflags += [ "-DBINDER_IPC_32BIT" ]
-  }
-
-  deps = [
-    "${common_path}:libaccount_common",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  external_deps = [
-    "ability_runtime:tools_aa_source_set",
-    "c_utils:utils",
-    "hilog:libhilog",
-    "ipc:ipc_single",
-    "os_account:os_account_innerkits",
-  ]
-}
-
-ohos_unittest("account_command_delete_test") {
-  branch_protector_ret = "pac_ret"
-
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-
-  module_out_path = module_output_path
-
-  include_dirs = []
-
-  sources = [
-    "${tools_path}/acm/src/account_command.cpp",
-    "account_command_delete_test.cpp",
-  ]
-
-  configs = [
-    "${ability_runtime_path}/tools/aa:ability_command_config",
-    "${tools_path}/acm:tools_acm_config",
-  ]
-
-  cflags = []
-  if (target_cpu == "arm") {
-    cflags += [ "-DBINDER_IPC_32BIT" ]
-  }
-
-  deps = [
-    "${common_path}:libaccount_common",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  external_deps = [
-    "ability_runtime:tools_aa_source_set",
-    "c_utils:utils",
-    "hilog:libhilog",
-    "ipc:ipc_single",
-    "os_account:os_account_innerkits",
-  ]
-}
-
-ohos_unittest("account_command_dump_test") {
-  branch_protector_ret = "pac_ret"
-
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-
-  module_out_path = module_output_path
-
-  include_dirs = []
-
-  sources = [
-    "${tools_path}/acm/src/account_command.cpp",
-    "account_command_dump_test.cpp",
-  ]
-
-  configs = [
-    "${ability_runtime_path}/tools/aa:ability_command_config",
-    "${tools_path}/acm:tools_acm_config",
-  ]
-
-  cflags = []
-  if (target_cpu == "arm") {
-    cflags += [ "-DBINDER_IPC_32BIT" ]
-  }
-
-  deps = [
-    "${common_path}:libaccount_common",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  external_deps = [
-    "ability_runtime:tools_aa_source_set",
-    "c_utils:utils",
-    "hilog:libhilog",
-    "ipc:ipc_single",
-    "os_account:os_account_innerkits",
-  ]
-}
-
-ohos_unittest("account_command_set_test") {
-  branch_protector_ret = "pac_ret"
-
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-
-  module_out_path = module_output_path
-
-  include_dirs = []
-
-  sources = [
-    "${tools_path}/acm/src/account_command.cpp",
-    "account_command_set_test.cpp",
-  ]
-
-  configs = [
-    "${ability_runtime_path}/tools/aa:ability_command_config",
-    "${tools_path}/acm:tools_acm_config",
-  ]
-
-  cflags = []
-  if (target_cpu == "arm") {
-    cflags += [ "-DBINDER_IPC_32BIT" ]
-  }
-
-  deps = [
-    "${common_path}:libaccount_common",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  external_deps = [
-    "ability_runtime:tools_aa_source_set",
-    "c_utils:utils",
-    "hilog:libhilog",
-    "ipc:ipc_single",
-    "os_account:os_account_innerkits",
-  ]
-}
-
-ohos_unittest("account_command_switch_test") {
-  branch_protector_ret = "pac_ret"
-
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-
-  module_out_path = module_output_path
-
-  include_dirs = []
-
-  sources = [
-    "${tools_path}/acm/src/account_command.cpp",
-    "account_command_switch_test.cpp",
-  ]
-
-  configs = [
-    "${ability_runtime_path}/tools/aa:ability_command_config",
-    "${tools_path}/acm:tools_acm_config",
-  ]
-
-  cflags = []
-  if (target_cpu == "arm") {
-    cflags += [ "-DBINDER_IPC_32BIT" ]
-  }
-
-  deps = [
-    "${common_path}:libaccount_common",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  external_deps = [
-    "ability_runtime:tools_aa_source_set",
-    "c_utils:utils",
-    "hilog:libhilog",
-    "ipc:ipc_single",
-    "os_account:os_account_innerkits",
-  ]
-}
-
 ohos_unittest("account_command_test") {
   branch_protector_ret = "pac_ret"
 
@@ -241,6 +31,11 @@ ohos_unittest("account_command_test") {
 
   sources = [
     "${tools_path}/acm/src/account_command.cpp",
+    "account_command_create_test.cpp",
+    "account_command_delete_test.cpp",
+    "account_command_dump_test.cpp",
+    "account_command_set_test.cpp",
+    "account_command_switch_test.cpp",
     "account_command_test.cpp",
   ]
 
@@ -249,13 +44,13 @@ ohos_unittest("account_command_test") {
     "${tools_path}/acm:tools_acm_config",
   ]
 
-  cflags = [ "-DENABLE_MULTIPLE_ACTIVE_ACCOUNTS" ]
-
+  cflags = []
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
 
   deps = [
+    "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
     "//third_party/googletest:gtest_main",
   ]
@@ -273,13 +68,6 @@ group("unittest") {
   testonly = true
   deps = []
   if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
-    deps += [
-      ":account_command_create_test",
-      ":account_command_delete_test",
-      ":account_command_dump_test",
-      ":account_command_set_test",
-      ":account_command_switch_test",
-      ":account_command_test",
-    ]
+    deps += [ ":account_command_test" ]
   }
 }

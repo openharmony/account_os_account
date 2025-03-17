@@ -22,6 +22,7 @@
 
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
+#include "account_test_common.h"
 #ifdef BUNDLE_ADAPTER_MOCK
 #define private public
 #include "account_mgr_service.h"
