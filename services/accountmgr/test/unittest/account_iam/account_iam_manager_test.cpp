@@ -21,6 +21,7 @@
 #include "account_error_no.h"
 #include "account_iam_callback_stub.h"
 #include "account_log_wrapper.h"
+#include "account_test_common.h"
 #include "iam_common_defines.h"
 #define private public
 #include "inner_account_iam_manager.h"
@@ -477,8 +478,7 @@ static bool FscryptEnable()
 
 void AccountIamManagerTest::SetUpTestCase()
 {
-    AccessTokenID tokenId = AccessTokenKit::GetNativeTokenId("accountmgr");
-    SetSelfTokenID(tokenId);
+    ASSERT_TRUE(MockTokenId("accountmgr"));
     setuid(ACCOUNT_UID);
     g_fscryptEnable = FscryptEnable();
 }

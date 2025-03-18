@@ -27,6 +27,7 @@
 #include "account_iam_service.h"
 #undef private
 #endif
+#include "account_test_common.h"
 #include "account_iam_mgr_proxy.h"
 #include "token_setproc.h"
 #include "iam_common_defines.h"
@@ -216,9 +217,8 @@ public:
 
 void AccountIAMClientTest::SetUpTestCase(void)
 {
-    AccessTokenID tokenId = AccessTokenKit::GetNativeTokenId("accountmgr");
-    SetSelfTokenID(tokenId);
-    g_selfTokenID = tokenId;
+    ASSERT_TRUE(MockTokenId("accountmgr"));
+    g_selfTokenID = IPCSkeleton::GetSelfTokenID();
 #ifdef PROXY_MOCK
     sptr<IAccountIAM> service = new (std::nothrow) AccountIAMService();
     ASSERT_NE(service, nullptr);
@@ -423,35 +423,6 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_DelCred_0100, TestSize.Level0)
     }
     testCallback->isReady = false;
     AccountIAMClient::GetInstance().DelCred(TEST_USER_ID, testCredentialId, testAuthToken, testCallback);
-    {
-        std::unique_lock<std::mutex> lock(testCallback->mutex);
-        testCallback->cv.wait_for(
-            lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
-    }
-}
-
-/**
- * @tc.name: AccountIAMClient_DelUser_0100
- * @tc.desc: Delete user.
- * @tc.type: FUNC
- * @tc.require: issueI5N90O
- */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient_DelUser_0100, TestSize.Level0)
-{
-    std::vector<uint8_t> testAuthToken = {1, 2, 3, 4};
-    auto callback = std::make_shared<MockIDMCallback>();
-    EXPECT_NE(callback, nullptr);
-    EXPECT_CALL(*callback, OnResult(_, _)).Times(Exactly(2));
-    auto testCallback = std::make_shared<TestIDMCallback>(callback);
-    AccountIAMClient::GetInstance().DelUser(TEST_USER_ID, testAuthToken, nullptr);
-    AccountIAMClient::GetInstance().DelUser(0, testAuthToken, testCallback);
-    {
-        std::unique_lock<std::mutex> lock(testCallback->mutex);
-        testCallback->cv.wait_for(
-            lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
-    }
-    testCallback->isReady = false;
-    AccountIAMClient::GetInstance().DelUser(TEST_USER_ID, testAuthToken, testCallback);
     {
         std::unique_lock<std::mutex> lock(testCallback->mutex);
         testCallback->cv.wait_for(
@@ -693,6 +664,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_RegisterPINInputer_0100, TestSiz
 {
     std::shared_ptr<IInputer> inputer = std::make_shared<TestIInputer>();
     EXPECT_NE(nullptr, inputer);
+    AccountIAMClient::GetInstance().UnregisterPINInputer();
     EXPECT_EQ(ERR_OK, AccountIAMClient::GetInstance().RegisterPINInputer(inputer));
     EXPECT_EQ(ERR_ACCOUNT_IAM_KIT_INPUTER_ALREADY_REGISTERED,
         AccountIAMClient::GetInstance().RegisterPINInputer(inputer));
@@ -858,6 +830,7 @@ HWTEST_F(AccountIAMClientTest, GetSetPropCallbackStub_OnRemoteRequest_0100, Test
  */
 HWTEST_F(AccountIAMClientTest, AccountIAMClient001, TestSize.Level0)
 {
+    ASSERT_TRUE(MockTokenId("foundation"));
     Security::AccessToken::AccessTokenIDEx tokenIdEx = {0};
     tokenIdEx = AccessTokenKit::AllocHapToken(infoManagerTestNormalInfoParms, INFO_MANAGER_TEST_POLICY_PRAMS);
     ASSERT_NE(INVALID_TOKEN_ID, tokenIdEx.tokenIDEx);
@@ -924,6 +897,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient001, TestSize.Level0)
  */
 HWTEST_F(AccountIAMClientTest, AccountIAMClient002, TestSize.Level0)
 {
+    ASSERT_TRUE(MockTokenId("foundation"));
     Security::AccessToken::AccessTokenIDEx tokenIdEx = {0};
     tokenIdEx = AccessTokenKit::AllocHapToken(infoManagerTestNormalInfoParms, INFO_MANAGER_TEST_POLICY_PRAMS);
     ASSERT_NE(INVALID_TOKEN_ID, tokenIdEx.tokenIDEx);
@@ -982,6 +956,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient002, TestSize.Level0)
  */
 HWTEST_F(AccountIAMClientTest, AccountIAMClient003, TestSize.Level0)
 {
+    ASSERT_TRUE(MockTokenId("foundation"));
     Security::AccessToken::AccessTokenIDEx tokenIdEx = {0};
     tokenIdEx = AccessTokenKit::AllocHapToken(infoManagerTestSystemInfoParms, INFO_MANAGER_TEST_POLICY_PRAMS);
     ASSERT_NE(INVALID_TOKEN_ID, tokenIdEx.tokenIDEx);
@@ -1044,6 +1019,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient003, TestSize.Level0)
  */
 HWTEST_F(AccountIAMClientTest, AccountIAMClient004, TestSize.Level0)
 {
+    ASSERT_TRUE(MockTokenId("foundation"));
     Security::AccessToken::AccessTokenIDEx tokenIdEx = {0};
     tokenIdEx = AccessTokenKit::AllocHapToken(infoManagerTestSystemInfoParms, INFO_MANAGER_TEST_POLICY_PRAMS);
     ASSERT_NE(INVALID_TOKEN_ID, tokenIdEx.tokenIDEx);
@@ -1214,6 +1190,37 @@ HWTEST_F(AccountIAMClientTest, ResetAccountIAMProxy001, TestSize.Level0)
     EXPECT_NE(AccountIAMClient::GetInstance().proxy_, nullptr);
     AccountIAMClient::GetInstance().ResetAccountIAMProxy(remote);
     AccountIAMClient::GetInstance().proxy_ = proxy;
+}
+
+/**
+ * @tc.name: AccountIAMClient_DelUser_0100
+ * @tc.desc: Delete user.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90O
+ */
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_DelUser_0100, TestSize.Level0)
+{
+    AccountIAMClient::GetInstance().UnregisterPINInputer();
+    std::vector<uint8_t> testAuthToken = {1, 2, 3, 4};
+    auto callback = std::make_shared<MockIDMCallback>();
+    EXPECT_NE(callback, nullptr);
+    EXPECT_CALL(*callback, OnResult(_, _)).Times(Exactly(2));
+    auto testCallback = std::make_shared<TestIDMCallback>(callback);
+    AccountIAMClient::GetInstance().DelUser(TEST_USER_ID, testAuthToken, nullptr);
+    AccountIAMClient::GetInstance().DelUser(0, testAuthToken, testCallback);
+    {
+        std::unique_lock<std::mutex> lock(testCallback->mutex);
+        testCallback->cv.wait_for(
+            lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    }
+    testCallback->isReady = false;
+    AccountIAMClient::GetInstance().DelUser(TEST_USER_ID, testAuthToken, testCallback);
+    {
+        std::unique_lock<std::mutex> lock(testCallback->mutex);
+        testCallback->cv.wait_for(
+            lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    }
+    AccountIAMClient::GetInstance().UnregisterPINInputer();
 }
 }  // namespace AccountTest
 }  // namespace OHOS

@@ -54,6 +54,7 @@ ohos_unittest("account_iam_client_test") {
 
   deps = [
     "${account_iam_framework_path}:account_iam_innerkits",
+    "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
     "//third_party/googletest:gmock_main",
@@ -102,6 +103,7 @@ ohos_unittest("account_iam_client_proxy_mock_test") {
 
   deps = [
     "${account_iam_framework_path}:account_iam_innerkits",
+    "${account_test_common}:account_test_common_source_set",
     "${app_account_services_path}:accountmgr",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",

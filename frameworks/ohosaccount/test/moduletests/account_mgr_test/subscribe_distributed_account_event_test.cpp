@@ -24,8 +24,10 @@
 
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
+#include "account_test_common.h"
 #include "account_proxy.h"
 #include "account_info.h"
+#include "account_test_common.h"
 #include "distributed_account_subscribe_callback.h"
 #include "iaccount.h"
 #include "if_system_ability_manager.h"
@@ -51,7 +53,9 @@ public:
 };
 
 void SubscribeDistributedAccountModuleTest::SetUpTestCase(void)
-{}
+{
+    ASSERT_NE(GetAllAccountPermission(), 0);
+}
 
 void SubscribeDistributedAccountModuleTest::TearDownTestCase(void)
 {}
