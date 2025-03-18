@@ -23,6 +23,7 @@
 #include "account_file_operator.h"
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
+#include "account_test_common.h"
 #include "domain_account_callback_service.h"
 #include "os_account_info.h"
 #ifdef BUNDLE_ADAPTER_MOCK
@@ -211,9 +212,8 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Plugin_004
  */
 HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Plugin_005, TestSize.Level0)
 {
-    AccessTokenID selfTokenId = IPCSkeleton::GetSelfTokenID();
-    AccessTokenID tokenId = AccessTokenKit::GetNativeTokenId("accountmgr");
-    SetSelfTokenID(tokenId);
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    ASSERT_TRUE(MockTokenId("accountmgr"));
     ASSERT_EQ(DomainAccountClient::GetInstance().UnregisterPlugin(), ERR_OK);
     ASSERT_EQ(DomainAccountClient::GetInstance().RegisterPlugin(g_plugin), ERR_OK);
     SetSelfTokenID(selfTokenId);

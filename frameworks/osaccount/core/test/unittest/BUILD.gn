@@ -44,6 +44,7 @@ ohos_unittest("os_account_test") {
   configs = [ ":os_account_core_config_unittest" ]
 
   deps = [
+    "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
     "//third_party/googletest:gmock_main",

@@ -27,6 +27,7 @@
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "account_event_provider.h"
+#include "account_test_common.h"
 #include "iinner_os_account_manager.h"
 #include "ohos_account_kits.h"
 #include "ohos_account_manager.h"
@@ -65,6 +66,7 @@ AccountDumpHelperTest::AccountDumpHelperTest() {}
 
 void AccountDumpHelperTest::SetUpTestCase()
 {
+    ASSERT_NE(GetAllAccountPermission(), 0);
     OhosAccountManager::GetInstance().OnInitialize();
 }
 

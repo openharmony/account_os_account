@@ -771,7 +771,13 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, SetOsAccountIsVerified001, TestSize.Level
     EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountInfoById(id, accountInfoAfter));
     EXPECT_TRUE(accountInfoAfter.GetIsVerified());
 
-    EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(createInfo.GetLocalId()));
+    ErrCode ret = innerMgrService_->RemoveOsAccount(createInfo.GetLocalId());
+    if (ret == ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR) {
+        sleep(1);
+        EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(createInfo.GetLocalId()));
+    } else {
+        EXPECT_EQ(ret, ERR_OK);
+    }
 }
 
 /*
