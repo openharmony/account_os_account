@@ -41,11 +41,11 @@ public:
     ErrCode GetAccountListFromStoreID(const std::string &storeID, Json &accountListJson);
 
 private:
-    ErrCode SaveAccountListToDatabase(const Json &accountListJson);
     bool InnerInit();
 
 private:
     std::shared_ptr<AccountDataStorage> accountDataStorage_ = nullptr;
+    std::mutex initMutex_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
