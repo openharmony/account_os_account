@@ -2590,6 +2590,49 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest116, TestSize.Lev
 }
 
 #ifdef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
+void TestStateAfterActivateOsAccount()
+{
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(ERR_OK, OsAccountManager::QueryOsAccountById(commonOsAccountInfo.GetLocalId(), osAccountInfo));
+    EXPECT_EQ(osAccountInfo.GetIsVerified(), true);
+    EXPECT_EQ(osAccountInfo.GetIsLoggedIn(), true);
+    EXPECT_EQ(osAccountInfo.GetIsActived(), true);
+    EXPECT_EQ(osAccountInfo.GetIsForeground(), true);
+    EXPECT_EQ(osAccountInfo.GetDisplayId(), 0);
+    EXPECT_TRUE(osAccountInfo.GetLastLoginTime() > commonOsAccountInfo.GetLastLoginTime());
+
+    EXPECT_EQ(ERR_OK, OsAccountManager::QueryOsAccountById(MAIN_ACCOUNT_ID, osAccountInfo));
+    EXPECT_EQ(osAccountInfo.GetIsVerified(), true);
+    EXPECT_EQ(osAccountInfo.GetIsLoggedIn(), true);
+    EXPECT_EQ(osAccountInfo.GetIsActived(), true);
+    EXPECT_EQ(osAccountInfo.GetIsForeground(), false);
+    EXPECT_NE(osAccountInfo.GetDisplayId(), 0);
+}
+
+void TestStateAfterDeactivateOsAccount()
+{
+    EXPECT_EQ(ERR_OK, OsAccountManager::QueryOsAccountById(commonOsAccountInfo.GetLocalId(), osAccountInfo));
+    DomainAccountInfo domainAccountInfo;
+    osAccountInfo.GetDomainInfo(domainAccountInfo);
+    EXPECT_EQ(domainAccountInfo.status_, DomainAccountStatus::LOGOUT);
+    EXPECT_EQ(osAccountInfo.GetIsVerified(), false);
+    EXPECT_EQ(osAccountInfo.GetIsLoggedIn(), false);
+#ifndef SUPPORT_STOP_MAIN_OS_ACCOUNT
+    EXPECT_EQ(osAccountInfo.GetIsActived(), false);
+    EXPECT_EQ(osAccountInfo.GetIsForeground(), false);
+    EXPECT_NE(osAccountInfo.GetDisplayId(), 0);
+
+    EXPECT_EQ(ERR_OK, OsAccountManager::QueryOsAccountById(MAIN_ACCOUNT_ID, osAccountInfo));
+    EXPECT_EQ(osAccountInfo.GetIsActived(), true);
+    EXPECT_EQ(osAccountInfo.GetIsForeground(), true);
+    EXPECT_EQ(osAccountInfo.GetDisplayId(), 0);
+#else
+    EXPECT_EQ(osAccountInfo.GetIsActived(), true);
+    EXPECT_EQ(osAccountInfo.GetIsForeground(), true);
+    EXPECT_EQ(osAccountInfo.GetDisplayId(), 0);
+#endif
+}
+
 /**
  * @tc.name: OsAccountManagerModuleTest117
  * @tc.desc: Test ActivateOsAccount
@@ -2610,32 +2653,18 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest117, TestSize.Lev
     OsAccountManager::QueryActiveOsAccountIds(ids);
     EXPECT_EQ(ids.size() > 0, true);
     EXPECT_EQ(ids[0], commonOsAccountInfo.GetLocalId());
-    OsAccountInfo osAccountInfo;
-    EXPECT_EQ(ERR_OK, OsAccountManager::QueryOsAccountById(commonOsAccountInfo.GetLocalId(), osAccountInfo));
-    EXPECT_EQ(osAccountInfo.GetIsActived(), true);
-    EXPECT_EQ(osAccountInfo.GetIsForeground(), true);
-    EXPECT_EQ(osAccountInfo.GetDisplayId(), 0);
-
-    EXPECT_EQ(ERR_OK, OsAccountManager::QueryOsAccountById(100, osAccountInfo));
-    EXPECT_EQ(osAccountInfo.GetIsActived(), true);
-    EXPECT_EQ(osAccountInfo.GetIsForeground(), false);
-    EXPECT_NE(osAccountInfo.GetDisplayId(), 0);
+    TestStateAfterActivateOsAccount();
 
     EXPECT_EQ(OsAccountManager::DeactivateOsAccount(commonOsAccountInfo.GetLocalId()), ERR_OK);
     ids.clear();
     OsAccountManager::QueryActiveOsAccountIds(ids);
     EXPECT_EQ(ids.size() > 0, true);
+#ifndef SUPPORT_STOP_MAIN_OS_ACCOUNT
     EXPECT_EQ(ids[0], 100);
-
-    EXPECT_EQ(ERR_OK, OsAccountManager::QueryOsAccountById(100, osAccountInfo));
-    EXPECT_EQ(osAccountInfo.GetIsActived(), true);
-    EXPECT_EQ(osAccountInfo.GetIsForeground(), true);
-    EXPECT_EQ(osAccountInfo.GetDisplayId(), 0);
-
-    EXPECT_EQ(ERR_OK, OsAccountManager::QueryOsAccountById(commonOsAccountInfo.GetLocalId(), osAccountInfo));
-    EXPECT_EQ(osAccountInfo.GetIsActived(), false);
-    EXPECT_EQ(osAccountInfo.GetIsForeground(), false);
-    EXPECT_NE(osAccountInfo.GetDisplayId(), 0);
+#else
+    EXPECT_EQ(ids[0], commonOsAccountInfo.GetLocalId());
+#endif
+    TestStateAfterDeactivateOsAccount();
 }
 #endif
 
