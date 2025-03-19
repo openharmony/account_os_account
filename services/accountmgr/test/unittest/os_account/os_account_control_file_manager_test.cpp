@@ -350,11 +350,20 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest018, Te
     int id = 0;
     g_controlManager->GetAllowCreateId(id);
     OsAccountInfo osAccountInfo(id, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
+    osAccountInfo.SetPhoto(Constants::USER_PHOTO_FILE_TXT_NAME);
     g_controlManager->InsertOsAccount(osAccountInfo);
     EXPECT_EQ(g_controlManager->SetPhotoById(id, STRING_PHOTO), ERR_OK);
     std::string photo = Constants::USER_PHOTO_FILE_TXT_NAME;
     EXPECT_EQ(g_controlManager->GetPhotoById(id, photo), ERR_OK);
     EXPECT_EQ(photo, STRING_PHOTO);
+
+    std::vector<OsAccountInfo> osAccountInfos;
+    EXPECT_EQ(g_controlManager->GetOsAccountList(osAccountInfos), ERR_OK);
+    for (auto info: osAccountInfos) {
+        if (info.GetLocalId() == id) {
+            EXPECT_EQ(info.GetPhoto(), STRING_PHOTO);
+        }
+    }
     g_controlManager->DelOsAccount(id);
 }
 
