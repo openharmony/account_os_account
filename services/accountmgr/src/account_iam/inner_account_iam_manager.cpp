@@ -88,7 +88,7 @@ std::shared_ptr<std::mutex> InnerAccountIAMManager::GetOperatingUserLock(int32_t
 
 void InnerAccountIAMManager::OpenSession(int32_t userId, std::vector<uint8_t> &challenge)
 {
-    ACCOUNT_LOGI("Start open session, userId:%{public}d", userId);
+    ACCOUNT_LOGI("Start to open session, userId:%{public}d", userId);
     challenge = UserIDMClient::GetInstance().OpenSession(userId);
     if (challenge.empty()) {
         ACCOUNT_LOGE("Failed to open session, userId:%{public}d", userId);
@@ -100,6 +100,7 @@ void InnerAccountIAMManager::OpenSession(int32_t userId, std::vector<uint8_t> &c
 
 void InnerAccountIAMManager::CloseSession(int32_t userId)
 {
+    ACCOUNT_LOGI("Start to close session, userId:%{public}d", userId);
     UserIDMClient::GetInstance().CloseSession(userId);
     std::lock_guard<std::mutex> lock(mutex_);
     if (userId == 0) {
@@ -136,6 +137,7 @@ void InnerAccountIAMManager::AddCredential(
     }
     auto idmCallbackWrapper = std::make_shared<AddCredCallback>(userId, credInfo, callback);
     idmCallbackWrapper->SetDeathRecipient(deathRecipient);
+    ACCOUNT_LOGI("Start to add credential, userId:%{public}d, authType:%{public}d", userId, credInfo.authType);
     UserIDMClient::GetInstance().AddCredential(userId, credInfo, idmCallbackWrapper);
     std::unique_lock<std::mutex> lock(idmCallbackWrapper->mutex_);
     idmCallbackWrapper->onResultCondition_.wait(lock, [idmCallbackWrapper] {
@@ -168,6 +170,7 @@ void InnerAccountIAMManager::UpdateCredential(
 
     auto idmCallbackWrapper = std::make_shared<UpdateCredCallback>(userId, credInfo, callback);
     idmCallbackWrapper->SetDeathRecipient(deathRecipient);
+    ACCOUNT_LOGI("Start to update credential, userId:%{public}d, authType:%{public}d", userId, credInfo.authType);
     UserIDMClient::GetInstance().UpdateCredential(userId, credInfo, idmCallbackWrapper);
     std::unique_lock<std::mutex> lock(idmCallbackWrapper->mutex_);
     idmCallbackWrapper->onResultCondition_.wait(lock, [idmCallbackWrapper] {
@@ -193,6 +196,7 @@ void InnerAccountIAMManager::DelCred(
     bool isPIN = (pinCredentialId != 0) && (credentialId == pinCredentialId);
 
     auto idmCallback = std::make_shared<DelCredCallback>(userId, isPIN, authToken, callback);
+    ACCOUNT_LOGI("Start to delete credential, userId:%{public}d", userId);
     UserIDMClient::GetInstance().DeleteCredential(userId, credentialId, authToken, idmCallback);
 }
 
@@ -212,6 +216,7 @@ void InnerAccountIAMManager::DelUser(
     std::lock_guard<std::mutex> userLock(*GetOperatingUserLock(userId));
     Security::AccessToken::AccessTokenID callerTokenId = IPCSkeleton::GetCallingTokenID();
     auto verifyTokenCallback = std::make_shared<VerifyTokenCallbackWrapper>(userId, authToken, callerTokenId, callback);
+    ACCOUNT_LOGI("Start to verify token before delete user's credential, userId:%{public}d", userId);
     UserAccessCtrlClient::GetInstance().VerifyAuthToken(authToken, TOKEN_ALLOWABLE_DURATION, verifyTokenCallback);
     std::unique_lock<std::mutex> lock(verifyTokenCallback->mutex_);
     verifyTokenCallback->onResultCondition_.wait(lock, [verifyTokenCallback] {
@@ -234,6 +239,7 @@ void InnerAccountIAMManager::GetCredentialInfo(
         return callback->OnCredentialInfo(ERR_OK, infoList);
     }
     auto getCallback = std::make_shared<GetCredInfoCallbackWrapper>(userId, static_cast<int32_t>(authType), callback);
+    ACCOUNT_LOGI("Start to get credential info, userId=%{public}d, authType=%{public}d", userId, authType);
     UserIDMClient::GetInstance().GetCredentialInfo(userId, authType, getCallback);
 }
 
@@ -245,6 +251,7 @@ int32_t InnerAccountIAMManager::Cancel(int32_t userId)
         ACCOUNT_LOGE("Failed to cancel after 'addCredential' success");
         return ResultCode::GENERAL_ERROR;
     }
+    ACCOUNT_LOGI("Start to cancel, userId=%{public}d", userId);
     return UserIDMClient::GetInstance().Cancel(userId);
 }
 
@@ -255,7 +262,7 @@ int32_t InnerAccountIAMManager::PrepareRemoteAuth(
         ACCOUNT_LOGE("callback is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
-    ACCOUNT_LOGI("Start IAM PrepareRemoteAuth.");
+    ACCOUNT_LOGI("Start to prepare remote auth.");
     auto prepareCallback = std::make_shared<PrepareRemoteAuthCallbackWrapper>(callback);
     return UserAuthClient::GetInstance().PrepareRemoteAuth(remoteNetworkId, prepareCallback);
 }
@@ -310,7 +317,7 @@ int32_t InnerAccountIAMManager::AuthUser(
 
     UserIam::UserAuth::AuthParam iamAuthParam;
     CopyAuthParam(authParam, iamAuthParam);
-    ACCOUNT_LOGI("Start IAM AuthUser.");
+    ACCOUNT_LOGI("Start to auth user.");
     contextId = UserAuthClient::GetInstance().BeginAuthentication(iamAuthParam, callbackWrapper);
     deathRecipient->SetContextId(contextId);
     return ERR_OK;
@@ -318,6 +325,7 @@ int32_t InnerAccountIAMManager::AuthUser(
 
 int32_t InnerAccountIAMManager::CancelAuth(uint64_t contextId)
 {
+    ACCOUNT_LOGI("Start to cancel auth");
     return UserAuthClient::GetInstance().CancelAuthentication(contextId);
 }
 
@@ -397,6 +405,7 @@ void InnerAccountIAMManager::GetProperty(
     }
     if (static_cast<int32_t>(request.authType) != static_cast<int32_t>(IAMAuthType::DOMAIN)) {
         auto getCallback = std::make_shared<GetPropCallbackWrapper>(userId, callback);
+        ACCOUNT_LOGI("Start to get property by authType:%{public}d.", request.authType);
         UserAuthClient::GetInstance().GetProperty(userId, request, getCallback);
         return;
     }
@@ -420,6 +429,7 @@ void InnerAccountIAMManager::GetPropertyByCredentialId(uint64_t credentialId,
         return;
     }
     auto getPropCallback = std::make_shared<GetPropCallbackWrapper>(-1, callback);
+    ACCOUNT_LOGI("Start to get property by credentialId.");
     UserAuthClient::GetInstance().GetPropertyById(credentialId, keys, getPropCallback);
     return;
 }
@@ -433,6 +443,7 @@ void InnerAccountIAMManager::SetProperty(
         return;
     }
     auto setCallback = std::make_shared<SetPropCallbackWrapper>(userId, callback);
+    ACCOUNT_LOGI("Start to set property, userId:%{public}d, authType:%{public}d.", userId, request.authType);
     UserAuthClient::GetInstance().SetProperty(userId, request, setCallback);
 }
 
@@ -446,6 +457,7 @@ void InnerAccountIAMManager::GetEnrolledId(
         return;
     }
     auto GetSecUserInfoCallback = std::make_shared<GetSecUserInfoCallbackWrapper>(accountId, authType, callback);
+    ACCOUNT_LOGI("Start to get sec user info, userId:%{public}d, authType:%{public}d", accountId, authType);
     UserIDMClient::GetInstance().GetSecUserInfo(accountId, GetSecUserInfoCallback);
 }
 
@@ -461,6 +473,7 @@ void InnerAccountIAMManager::HandleFileKeyException(int32_t userId, const std::v
         return;
     }
     auto callback = std::make_shared<GetSecureUidCallback>(userId);
+    ACCOUNT_LOGI("Start to get sec user info, userId=%{public}d", userId);
     ErrCode code = UserIDMClient::GetInstance().GetSecUserInfo(userId, callback);
     if (code != ERR_OK) {
         ACCOUNT_LOGE("Failed to get secure uid, userId: %{public}d", userId);
@@ -588,6 +601,7 @@ ErrCode InnerAccountIAMManager::InnerUpdateStorageUserAuth(int32_t userId, uint6
 ErrCode InnerAccountIAMManager::UpdateUserAuthWithRecoveryKey(const std::vector<uint8_t> &authToken,
     const std::vector<uint8_t> &newSecret, uint64_t secureUid, uint32_t userId)
 {
+    ACCOUNT_LOGI("Enter, userId=%{public}d", userId);
     void *handle = dlopen(RECOVERY_SO_PATH.c_str(), RTLD_LAZY);
     if (handle == nullptr) {
         ACCOUNT_LOGE("Call dlopen failed, error=%{public}s.", dlerror());
