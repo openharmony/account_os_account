@@ -309,7 +309,7 @@ ErrCode OsAccountManagerService::RemoveOsAccount(const int id)
 ErrCode OsAccountManagerService::IsOsAccountExists(const int id, bool &isOsAccountExists)
 {
     ErrCode result = innerManager_.IsOsAccountExists(id, isOsAccountExists);
-    if (result == ERR_OK) {
+    if (result != ERR_OK) {
         REPORT_OS_ACCOUNT_FAIL(IPCSkeleton::GetCallingUid(), Constants::OPERATION_LOG_ERROR,
             result, "Failed to query os account exists, id=" + std::to_string(id));
     }
