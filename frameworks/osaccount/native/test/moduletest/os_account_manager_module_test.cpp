@@ -2611,6 +2611,7 @@ void TestStateAfterActivateOsAccount()
 
 void TestStateAfterDeactivateOsAccount()
 {
+    OsAccountInfo osAccountInfo;
     EXPECT_EQ(ERR_OK, OsAccountManager::QueryOsAccountById(commonOsAccountInfo.GetLocalId(), osAccountInfo));
     DomainAccountInfo domainAccountInfo;
     osAccountInfo.GetDomainInfo(domainAccountInfo);
