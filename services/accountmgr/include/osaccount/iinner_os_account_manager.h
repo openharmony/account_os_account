@@ -127,6 +127,7 @@ public:
         const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options = {}) override;
     ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id) override;
     ErrCode GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo) override;
+    ErrCode UpdateServerConfig(const std::string &configId, const DomainServerConfig &config);
 
 private:
     IInnerOsAccountManager();

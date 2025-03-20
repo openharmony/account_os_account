@@ -64,6 +64,9 @@ public:
         const bool &isAuthed, const std::string &serverConfigId);
     void Clear();
     bool IsEmpty() const;
+    bool IsSameServerConfigId(const std::string& serverConfigId) const;
+    void SetServerConfigId(const std::string& serverConfigId);
+    void SetDomain(const std::string& domain);
 
 public:
     std::string domain_;

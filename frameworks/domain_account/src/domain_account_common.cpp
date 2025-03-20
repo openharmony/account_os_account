@@ -52,6 +52,21 @@ bool DomainAccountInfo::IsEmpty() const
     return domain_.empty() && accountName_.empty() && accountId_.empty() && serverConfigId_.empty();
 }
 
+bool DomainAccountInfo::IsSameServerConfigId(const std::string& serverConfigId) const
+{
+    return serverConfigId_ == serverConfigId;
+}
+
+void DomainAccountInfo::SetServerConfigId(const std::string& serverConfigId)
+{
+    serverConfigId_ = serverConfigId;
+}
+
+void DomainAccountInfo::SetDomain(const std::string& domain)
+{
+    domain_ = domain;
+}
+
 bool DomainAccountInfo::ReadFromParcel(Parcel &parcel)
 {
     if (!parcel.ReadString(accountName_)) {
