@@ -475,6 +475,14 @@ static void SetPluginDomainAccountInfo(const DomainAccountInfo &info, PluginDoma
     return;
 }
 
+static void CleanPluginDomainAccountInfo(PluginDomainAccountInfo &domainAccountInfo)
+{
+    CleanPluginString(&(domainAccountInfo.domain.data), domainAccountInfo.domain.length);
+    CleanPluginString(&(domainAccountInfo.serverConfigId.data), domainAccountInfo.serverConfigId.length);
+    CleanPluginString(&(domainAccountInfo.accountName.data), domainAccountInfo.accountName.length);
+    CleanPluginString(&(domainAccountInfo.accountId.data), domainAccountInfo.accountId.length);
+}
+
 static void GetAndCleanPluginDomainAccountInfo(DomainAccountInfo &info, PluginDomainAccountInfo **pDomainAccountInfo)
 {
     if (pDomainAccountInfo == nullptr || *pDomainAccountInfo == nullptr) {
@@ -1289,7 +1297,6 @@ ErrCode InnerDomainAccountManager::IsAuthenticationExpired(
         ACCOUNT_LOGI("Failed to get account info");
         return result;
     }
-
     DomainAccountInfo domainInfo;
     osAccountInfo.GetDomainInfo(domainInfo);
     if (domainInfo.serverConfigId_.empty()) {
@@ -1297,12 +1304,10 @@ ErrCode InnerDomainAccountManager::IsAuthenticationExpired(
         isExpired = false;
         return ERR_OK;
     }
-
     std::vector<uint8_t> accountToken;
     if (!GetTokenFromMap(userId, accountToken)) {
         ACCOUNT_LOGI("The target domain account has not authenticated");
     }
-
     PluginDomainAccountInfo domainAccountInfo;
     SetPluginDomainAccountInfo(info, domainAccountInfo);
     PluginUint8Vector pToken;
@@ -1310,7 +1315,7 @@ ErrCode InnerDomainAccountManager::IsAuthenticationExpired(
     int32_t isValid = 0;
     PluginBussnessError* error =
         (*reinterpret_cast<IsAuthenticationExpiredFunc>(iter->second))(&domainAccountInfo, &pToken, &isValid);
-    ACCOUNT_LOGI("Return isValid=%{public}d.", isValid);
+    CleanPluginDomainAccountInfo(domainAccountInfo);
     if (error == nullptr) {
         ACCOUNT_LOGE("Error is nullptr.");
         return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
