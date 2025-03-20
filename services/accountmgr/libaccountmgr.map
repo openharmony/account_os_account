@@ -145,6 +145,7 @@
         "OHOS::AccountSA::IInnerOsAccountManager::SendMsgForAccountRemove(OHOS::AccountSA::OsAccountInfo&)";
         "OHOS::AccountSA::IInnerOsAccountManager::SetOsAccountForDomain(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, OHOS::AccountSA::OsAccountType const&, OHOS::AccountSA::OsAccountInfo&, OHOS::AccountSA::DomainAccountInfo const&)";
         "OHOS::AccountSA::IInnerOsAccountManager::ActivateDefaultOsAccount()";
+        "OHOS::AccountSA::IInnerOsAccountManager::UpdateServerConfig(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::DomainServerConfig const&)";
         "OHOS::AccountSA::InnerAppAccountManager::AddAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int const&)";
         "OHOS::AccountSA::InnerAppAccountManager::AddAccountImplicitly(OHOS::AccountSA::AuthenticatorSessionRequest const&)";
         "OHOS::AccountSA::InnerAppAccountManager::Authenticate(OHOS::AccountSA::AuthenticatorSessionRequest const&)";
