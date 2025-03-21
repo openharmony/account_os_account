@@ -73,7 +73,6 @@
         "base_group": [
           "//base/account/os_account/interfaces/kits/capi:capi_packages",
           "//base/account/os_account/interfaces/kits/napi:napi_packages",
-          "//base/account/os_account/interfaces/kits/cj:cj_ffi_packages",
           "//base/account/os_account/sa_profile:account_sa_profile",
           "//base/account/os_account/tools:tools_acm"
         ],
@@ -82,9 +81,7 @@
           "//base/account/os_account/frameworks/common:common_target",
           "//base/account/os_account/frameworks/domain_account:domain_account_innerkits",
           "//base/account/os_account/frameworks/ohosaccount/native:libaccountkits",
-          "//base/account/os_account/frameworks/osaccount/native:os_account_innerkits",
-          "//base/account/os_account/frameworks/appaccount/cj:cj_appAccount_ffi",
-          "//base/account/os_account/frameworks/cj/distributed_account:cj_distributed_account_ffi"
+          "//base/account/os_account/frameworks/osaccount/native:os_account_innerkits"
         ],
         "service_group": [
           "//base/account/os_account/services:services_target",
@@ -149,6 +146,27 @@
             ]
           },
           "name": "//base/account/os_account/frameworks/account_iam:account_iam_innerkits"
+        },
+        {
+          "header": {
+            "header_base":"//base/account/os_account/frameworks/appaccount/cj/include",
+            "header_files": []
+          },
+          "name": "//base/account/os_account/frameworks/appaccount/cj:cj_appAccount_ffi"
+        },
+        {
+          "header": {
+            "header_base":"//base/account/os_account/frameworks/cj/distributed_account/include",
+            "header_files": []
+          },
+          "name": "//base/account/os_account/frameworks/cj/distributed_account:cj_distributed_account_ffi"
+        },
+        {
+          "header": {
+            "header_base":"//base/account/os_account/interfaces/kits/cj/osaccount/include",
+            "header_files": []
+          },
+          "name": "//base/account/os_account/interfaces/kits/cj/osaccount:cj_osaccount_ffi"
         }
      ],
      "test": [
