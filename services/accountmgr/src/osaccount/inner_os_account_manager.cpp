@@ -2089,13 +2089,11 @@ ErrCode  IInnerOsAccountManager::SendToStorageAccountStart(OsAccountInfo &osAcco
         subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::UNLOCKED);
         ReportOsAccountLifeCycle(localId, Constants::OPERATION_UNLOCK);
 
-        if (osAccountInfo.GetCredentialId() <= 0) {
-            err = osAccountControl_->UpdateOsAccount(osAccountInfo);
-            if (err != ERR_OK) {
-                ACCOUNT_LOGE("Update account info failed, errCode: %{public}d, id: %{public}d", err, localId);
-                ReportOsAccountOperationFail(
-                    localId, Constants::OPERATION_ACTIVATE, err, "Failed to update OS account");
-            }
+        err = osAccountControl_->UpdateOsAccount(osAccountInfo);
+        if (err != ERR_OK) {
+            ACCOUNT_LOGE("Update account info failed, errCode: %{public}d, id: %{public}d", err, localId);
+            REPORT_OS_ACCOUNT_FAIL(
+                localId, Constants::OPERATION_ACTIVATE, err, "Failed to update OS account");
         }
     }
     return ERR_OK;
