@@ -77,6 +77,14 @@ ErrCode CheckLocalId(int localId)
 bool IsTypeOutOfRange(const OsAccountType& type)
 {
     if (type == OsAccountType::MAINTENANCE) {
+#ifndef IS_RELEASE_VERSION
+        // root check in none release version for test
+        if (!AccountPermissionManager::CheckSaCall() && !AccountPermissionManager::CheckShellCall()) {
+#else
+        if (!AccountPermissionManager::CheckSaCall()) {
+#endif
+            return true;
+        }
         return false;
     }
     if ((type < OsAccountType::ADMIN) || (type >= OsAccountType::END)) {

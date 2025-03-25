@@ -49,7 +49,7 @@ HWTEST_F(OsAccountMaintenanceTypeTest, MaintenanceTypeTest001, TestSize.Level1)
 {
     std::string name = "MaintenanceTypeTest001";
     OsAccountInfo info;
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
         osAccountManagerService_->CreateOsAccount(name, OsAccountType::MAINTENANCE, info));
 }
 }  // namespace AccountSA
