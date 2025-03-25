@@ -2088,6 +2088,13 @@ ErrCode  IInnerOsAccountManager::SendToStorageAccountStart(OsAccountInfo &osAcco
             OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED, Constants::OPERATION_UNLOCK);
         subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::UNLOCKED);
         ReportOsAccountLifeCycle(localId, Constants::OPERATION_UNLOCK);
+
+        err = osAccountControl_->UpdateOsAccount(osAccountInfo);
+        if (err != ERR_OK) {
+            ACCOUNT_LOGE("Update account info failed, errCode: %{public}d, id: %{public}d", err, localId);
+            REPORT_OS_ACCOUNT_FAIL(
+                localId, Constants::OPERATION_ACTIVATE, err, "Failed to update OS account");
+        }
     }
     return ERR_OK;
 }

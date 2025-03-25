@@ -280,8 +280,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, SetOsAccountCredentialId002, TestSize
     ASSERT_EQ(errCode, ERR_OK);
 
     int32_t localID = osAccountInfo.GetLocalId();
+    EXPECT_NE(osAccountInfo.GetCredentialId(), 1);
 
-    ASSERT_EQ(innerMgrService_->SetOsAccountCredentialId(localID, 0), ERR_OK);
+    ASSERT_EQ(innerMgrService_->SetOsAccountCredentialId(localID, 1), ERR_OK);
+
+    EXPECT_EQ(innerMgrService_->QueryOsAccountById(localID, osAccountInfo), ERR_OK);
+    EXPECT_EQ(osAccountInfo.GetCredentialId(), 1);
 
     ASSERT_EQ(innerMgrService_->RemoveOsAccount(localID), ERR_OK);
 }
