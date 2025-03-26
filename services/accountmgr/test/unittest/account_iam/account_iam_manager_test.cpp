@@ -377,6 +377,12 @@ public:
         return 0;
     }
 
+    int32_t IsFileOccupied(const std::string &path, const std::vector<std::string> &inputList,
+        std::vector<std::string> &outputList, bool &isOccupy)
+    {
+        return 0;
+    }
+
     sptr<IRemoteObject> AsObject()
     {
         return nullptr;
