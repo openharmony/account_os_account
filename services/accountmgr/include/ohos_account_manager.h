@@ -54,6 +54,13 @@ public:
 
     /**
      * Get ohos account information by local userId.
+     * @param userId target local account id
+     * @return ohos account info which is bound to the local userId.
+     */
+    ErrCode GetOhosAccountDistributedInfo(const int32_t userId, OhosAccountInfo &ohosAccountInfo);
+
+    /**
+     * Get ohos account information by local userId.
      *
      * @param userId target local account id
      * @return ohos account info which is bound to the local userId.
