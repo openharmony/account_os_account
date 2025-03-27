@@ -298,6 +298,12 @@ int32_t InnerAccountIAMManager::AuthUser(
         ACCOUNT_LOGE("Account does not exist");
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
+    bool isDeactivating = false;
+    IInnerOsAccountManager::GetInstance().IsOsAccountDeactivating(authParam.userId, isDeactivating);
+    if (isDeactivating) {
+        ACCOUNT_LOGE("The target account is deactivating, accountId:%{public}d", authParam.userId);
+        return ERR_IAM_BUSY;
+    }
     sptr<AuthCallbackDeathRecipient> deathRecipient = new (std::nothrow) AuthCallbackDeathRecipient();
     if ((deathRecipient == nullptr) || (!callback->AsObject()->AddDeathRecipient(deathRecipient))) {
         ACCOUNT_LOGE("failed to add death recipient for auth callback");
