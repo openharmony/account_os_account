@@ -25,6 +25,7 @@
 #include "iam_common_defines.h"
 #define private public
 #include "inner_account_iam_manager.h"
+#include "iinner_os_account_manager.h"
 #undef private
 #include "istorage_manager.h"
 #include "parameter.h"
@@ -737,7 +738,6 @@ HWTEST_F(AccountIamManagerTest, DelUser001, TestSize.Level0)
  */
 HWTEST_F(AccountIamManagerTest, AuthUser001, TestSize.Level0)
 {
-    SetPropertyRequest testRequest = {};
     std::shared_ptr<MockIIDMCallback> callback = std::make_shared<MockIIDMCallback>();
     EXPECT_NE(callback, nullptr);
     sptr<TestIIDMCallback> testCallback = new(std::nothrow) TestIIDMCallback(callback);
@@ -860,6 +860,32 @@ HWTEST_F(AccountIamManagerTest, PrepareRemoteAuth001, TestSize.Level0)
     EXPECT_NE(testCallback, nullptr);
 
     InnerAccountIAMManager::GetInstance().PrepareRemoteAuth("testString", testCallback);
+}
+
+/**
+ * @tc.name: testAuthUser001
+ * @tc.desc: test auth when the user is deactivating.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamManagerTest, testAuthUser001, TestSize.Level0)
+{
+    IInnerOsAccountManager::GetInstance().deactivatingAccounts_.EnsureInsert(TEST_EXIST_ID, true);
+    std::shared_ptr<MockIIDMCallback> callback = std::make_shared<MockIIDMCallback>();
+    EXPECT_NE(callback, nullptr);
+    sptr<TestIIDMCallback> testCallback = new(std::nothrow) TestIIDMCallback(callback);
+    EXPECT_NE(testCallback, nullptr);
+    EXPECT_CALL(*callback, OnResult(_, _)).Times(0);
+    AccountSA::AuthParam authParam = {
+        .userId = TEST_EXIST_ID,
+        .challenge = TEST_CHALLENGE,
+        .authType = AuthType::PIN,
+        .authTrustLevel = AuthTrustLevel::ATL1
+    };
+    uint64_t contextId = 0;
+    ErrCode errCode = InnerAccountIAMManager::GetInstance().AuthUser(authParam, testCallback, contextId);
+    EXPECT_EQ(ERR_IAM_BUSY, errCode);
+    IInnerOsAccountManager::GetInstance().deactivatingAccounts_.Erase(TEST_EXIST_ID);
 }
 }  // namespace AccountTest
 }  // namespace OHOS
