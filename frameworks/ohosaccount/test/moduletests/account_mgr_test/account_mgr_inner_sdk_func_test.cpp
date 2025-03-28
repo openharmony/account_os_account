@@ -20,6 +20,8 @@
 #include <iostream>
 #include <vector>
 
+#include "access_token.h"
+#include "accesstoken_kit.h"
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "account_test_common.h"
@@ -47,11 +49,13 @@
 #undef private
 #endif
 #include "system_ability_definition.h"
+#include "token_setproc.h"
 
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
 using namespace OHOS::AccountSA::Constants;
+using namespace OHOS::Security::AccessToken;
 using json = nlohmann::json;
 namespace {
 static std::pair<bool, OhosAccountInfo> g_oldInfo;
@@ -77,6 +81,17 @@ const std::string TEST_DIFF_ACCOUNT_UID = "9876432";
 const std::string TEST_DIFF_EXPECTED_UID = "FB293C538C2CD118B0441AB3B2EC429A5EA629286A04F31E0CC2EFB96525ADCC";
 const std::string TEST_EMPTY_STRING = "";
 const std::string STRING_TEST_NAME = "test_account_name";
+const int32_t ACCOUNT_SA_UID = 3058; // this is accountmgr uid
+
+static void RemoveOsAccountWithPermission(const int32_t id)
+{
+    AccessTokenID originaltoken = GetSelfTokenID();
+    ASSERT_TRUE(MockTokenId("accountmgr"));
+    ASSERT_EQ(0, setuid(ACCOUNT_SA_UID));
+    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(id));
+    ASSERT_EQ(0, setuid(0));
+    ASSERT_EQ(0, SetSelfTokenID(originaltoken));
+};
 }
 
 class AccountMgrInnerSdkFuncTest : public testing::Test {
@@ -231,7 +246,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo002, TestSize.Level0)
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(accountInfoget.uid_, DEFAULT_OHOS_ACCOUNT_UID);
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_UNBOUND);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    RemoveOsAccountWithPermission(osAccountInfoOne.GetLocalId());
 }
 
 /**
@@ -286,7 +301,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo004, TestSize.Level0)
     EXPECT_EQ(accountInfoget.name_, DEFAULT_OHOS_ACCOUNT_NAME);
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_UNBOUND);
     EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA), TEST_EMPTY_STRING);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    RemoveOsAccountWithPermission(osAccountInfoOne.GetLocalId());
 }
 
 /**
@@ -318,7 +333,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo005, TestSize.Level0)
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(accountInfoget.uid_, DEFAULT_OHOS_ACCOUNT_UID);
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_UNBOUND);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    RemoveOsAccountWithPermission(osAccountInfoOne.GetLocalId());
 }
 
 /**
@@ -351,7 +366,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo006, TestSize.Level0)
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(accountInfoget.uid_, DEFAULT_OHOS_ACCOUNT_UID);
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_UNBOUND);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    RemoveOsAccountWithPermission(osAccountInfoOne.GetLocalId());
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
@@ -423,7 +438,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo008, TestSize.Level0)
     EXPECT_EQ(accountInfoget.nickname_, TEST_EMPTY_STRING);
     EXPECT_EQ(accountInfoget.avatar_, TEST_EMPTY_STRING);
     EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA), TEST_EMPTY_STRING);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    RemoveOsAccountWithPermission(osAccountInfoOne.GetLocalId());
 }
 
 /**
@@ -480,7 +495,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo009, TestSize.Level0)
     EXPECT_EQ(accountInfoget.nickname_, TEST_EMPTY_STRING);
     EXPECT_EQ(accountInfoget.avatar_, TEST_EMPTY_STRING);
     EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA), TEST_EMPTY_STRING);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    RemoveOsAccountWithPermission(osAccountInfoOne.GetLocalId());
 }
 
 /**
@@ -526,7 +541,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo010, TestSize.Level0)
     EXPECT_EQ(accountInfoget.nickname_, TEST_EMPTY_STRING);
     EXPECT_EQ(accountInfoget.avatar_, TEST_EMPTY_STRING);
     EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA), TEST_EMPTY_STRING);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    RemoveOsAccountWithPermission(osAccountInfoOne.GetLocalId());
 }
 
 /**
@@ -583,7 +598,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo011, TestSize.Level0)
     EXPECT_EQ(accountInfoget.name_, DEFAULT_OHOS_ACCOUNT_NAME);
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_UNBOUND);
     EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA), TEST_EMPTY_STRING);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(localId), ERR_OK);
+    RemoveOsAccountWithPermission(localId);
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
@@ -646,7 +661,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserId002, TestSize.Lev
     EXPECT_EQ(accountInfo.nickname_, TEST_EMPTY_STRING);
     EXPECT_EQ(accountInfo.avatar_, TEST_EMPTY_STRING);
     EXPECT_EQ(accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA), TEST_EMPTY_STRING);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    RemoveOsAccountWithPermission(osAccountInfoOne.GetLocalId());
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 

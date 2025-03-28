@@ -196,12 +196,13 @@ ErrCode OsAccountInterface::SendToIDMAccountDelete(OsAccountInfo &osAccountInfo)
     }
     StartTraceAdapter("UserIDMClient EnforceDelUser");
     int32_t ret = UserIam::UserAuth::UserIdmClient::GetInstance().EraseUser(osAccountInfo.GetLocalId(), callback);
-    if (ret != 0) {
-        ACCOUNT_LOGE("idm enforce delete user failed! error %{public}d", ret);
+    if ((ret != UserIam::UserAuth::ResultCode::SUCCESS) &&
+        (ret != UserIam::UserAuth::ResultCode::NOT_ENROLLED)) {
+        ACCOUNT_LOGE("Idm enforce delete user failed! error %{public}d", ret);
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_REMOVE, ret,
-            "UserIDM failed to erase user");
+            "Failed to call EraseUser");
         FinishTraceAdapter();
-        return ERR_OK;    // do not return fail
+        return ERR_OSACCOUNT_SERVICE_IAM_ERASE_USER_FAILED;
     }
 
     // wait callback
@@ -215,13 +216,21 @@ ErrCode OsAccountInterface::SendToIDMAccountDelete(OsAccountInfo &osAccountInfo)
         OHOS::GetSystemCurrentTime(&nowTime);
     }
     if (!callback->isIdmOnResultCallBack_) {
-        ACCOUNT_LOGE("idm did not call back! timeout!");
+        ACCOUNT_LOGE("Idm did not call back! timeout!");
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_REMOVE, -1,
             "UserIDM erase user timeout");
         FinishTraceAdapter();
-        return ERR_OK;    // do not return fail
+        return ERR_OSACCOUNT_SERVICE_IAM_ERASE_USER_FAILED;
     }
-    ACCOUNT_LOGI("send to idm account delete and get callback succeed!");
+    if ((callback->resultCode_ != UserIam::UserAuth::ResultCode::SUCCESS) &&
+        (callback->resultCode_ != UserIam::UserAuth::ResultCode::NOT_ENROLLED)) {
+        ACCOUNT_LOGE("Idm enforce delete user failed! Callback error %{public}d", callback->resultCode_);
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_REMOVE,
+            callback->resultCode_, "Failed to erase user credential");
+        FinishTraceAdapter();
+        return ERR_OSACCOUNT_SERVICE_IAM_ERASE_USER_FAILED;
+    }
+    ACCOUNT_LOGI("Send to idm account delete and get callback succeed!");
     FinishTraceAdapter();
     return ERR_OK;
 }
