@@ -287,7 +287,7 @@ ErrCode IInnerOsAccountManager::ActivateDefaultOsAccount()
         SetDefaultActivatedOsAccount(osAccountInfo.GetLocalId());
     }
     // activate
-    errCode = SendMsgForAccountActivate(osAccountInfo);
+    errCode = SendMsgForAccountActivate(osAccountInfo, true, Constants::DEFAULT_DISPALY_ID, true);
     if (errCode == ERR_OK) {
         SetParameter(ACCOUNT_READY_EVENT, "true");
         ReportOsAccountLifeCycle(osAccountInfo.GetLocalId(), Constants::OPERATION_BOOT_ACTIVATED);
@@ -1778,11 +1778,18 @@ ErrCode IInnerOsAccountManager::DeactivateOsAccountById(const int id)
     return DeactivateOsAccountByInfo(osAccountInfo);
 }
 
+/**
+ * This function sets the isAppRecovery flag to true in two scenarios:
+ * 1. During boot stage (including fast boot) when activating the main user
+ *    - When active account list is empty and system is starting up
+ * 2. When re-activating a user after it has been logged out
+ *    - When active after user logout and the same user is activated again
+ */
 static void SetAppRecovery(bool &isAppRecovery,
     const std::vector<int32_t> &activeAccountId, std::int32_t id, std::int32_t defaultActivatedId)
 {
 #ifdef SUPPORT_STOP_MAIN_OS_ACCOUNT
-    if (!isAppRecovery && activeAccountId.empty() && id == defaultActivatedId) {
+    if (!isAppRecovery && activeAccountId.empty()) {
         isAppRecovery = true;
     }
 #endif
@@ -2019,7 +2026,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
     }
     if (startStorage) {
         ErrCode errCode = SendToStorageAccountStart(osAccountInfo);
-        if (errCode != ERR_OK) {
+        if (errCode != ERR_OK && !isAppRecovery) {
             RollBackToEarlierAccount(localId, oldId);
             return errCode;
         }
