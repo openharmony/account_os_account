@@ -631,7 +631,11 @@ ErrCode InnerDomainAccountManager::UpdateServerConfig(const std::string &configI
     GetAndCleanPluginServerConfigInfo(&configInfo, config.id_, config.domain_, config.parameters_);
     CleanPluginString(&(param.data), param.length);
     CleanPluginString(&(serverConfigId.data), serverConfigId.length);
-    return GetAndCleanPluginBussnessError(&error, iter->first);
+    ErrCode errCode = GetAndCleanPluginBussnessError(&error, iter->first);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+    return IInnerOsAccountManager::GetInstance().UpdateServerConfig(configId, config);
 }
 
 ErrCode InnerDomainAccountManager::GetServerConfig(const std::string &configId,

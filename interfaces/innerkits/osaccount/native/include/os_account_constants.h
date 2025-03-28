@@ -58,7 +58,7 @@ const char OPERATION_ADD_CRED[] = "addCredential";
 const char OPERATION_DELETE_CRED[] = "deleteCredential";
 const char OPERATION_LOG_ERROR[] = "errLog";
 const char OPERATION_EVENT_PUBLISH[] = "eventPublish";
-
+const char OPERATION_UPDATE_SERVER_CONFIG[] = "updateServerConfig";
 // distributed database
 const bool SYNC_OS_ACCOUNT_DATABASE = false;
 const std::uint32_t DEVICE_UUID_LENGTH = 65;

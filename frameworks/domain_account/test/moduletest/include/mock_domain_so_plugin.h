@@ -35,6 +35,8 @@ PluginBussnessError *GetAccountPolicy(const PluginDomainAccountInfo *domainAccou
     const int32_t callerLocalId, PluginDomainAccountPolicy **domainAccountPolicy);
 PluginBussnessError *UpdateAccountInfo(const PluginDomainAccountInfo *domainAccountInfo,
                                        const PluginDomainAccountInfo *newDomainAccountInfo);
+PluginBussnessError* UpdateServerConfig(const PluginString *serverConfigId, const PluginString *parameters,
+    const int32_t localId, PluginServerConfigInfo **serverConfigInfo);
 #ifdef __cplusplus
 }
 #endif

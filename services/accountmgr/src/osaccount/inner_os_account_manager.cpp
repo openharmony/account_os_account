@@ -2637,5 +2637,42 @@ ErrCode IInnerOsAccountManager::GetOsAccountDomainInfo(const int32_t localId, Do
     return ERR_OK;
 #endif // SUPPORT_DOMAIN_ACCOUNTS
 }
+
+ErrCode IInnerOsAccountManager::UpdateServerConfig(const std::string &configId,
+    const DomainServerConfig &config)
+{
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+    std::vector<OsAccountInfo> osAccountInfos;
+    ErrCode errCode = osAccountControl_->GetOsAccountList(osAccountInfos);
+    if (errCode != ERR_OK) {
+        REPORT_OS_ACCOUNT_FAIL(-1, Constants::OPERATION_UPDATE_SERVER_CONFIG,
+                    errCode, "Get osAcount list error.");
+        ACCOUNT_LOGE("GetOsAccountList error:%{public}d", errCode);
+        return errCode;
+    }
+    errCode = ERR_OK;
+    for (auto osAccountInfosPtr = osAccountInfos.begin(); osAccountInfosPtr != osAccountInfos.end();
+         ++osAccountInfosPtr) {
+        DomainAccountInfo curDomainInfo;
+        osAccountInfosPtr->GetDomainInfo(curDomainInfo);
+        if (curDomainInfo.IsSameServerConfigId(configId)) {
+            curDomainInfo.SetServerConfigId(config.id_);
+            curDomainInfo.SetDomain(config.domain_);
+            osAccountInfosPtr->SetDomainInfo(curDomainInfo);
+            ErrCode err = osAccountControl_->UpdateOsAccount(*osAccountInfosPtr);
+            if (err != ERR_OK) {
+                REPORT_OS_ACCOUNT_FAIL(osAccountInfosPtr->GetLocalId(), Constants::OPERATION_UPDATE_SERVER_CONFIG,
+                    errCode, "Update serverConfig error.");
+                ACCOUNT_LOGE("UpdateOsAccount localId:%{public}d error:%{public}d",
+                    osAccountInfosPtr->GetLocalId(), errCode);
+                errCode = err;
+            }
+        }
+    }
+    return errCode;
+#else
+    return ERR_OK;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
+}
 }  // namespace AccountSA
 }  // namespace OHOS

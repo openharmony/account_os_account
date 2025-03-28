@@ -78,6 +78,7 @@ const std::map<PluginMethodEnum, void *> PLUGIN_METHOD_MAP = {
     {PluginMethodEnum::SET_ACCOUNT_POLICY, reinterpret_cast<void *>(SetAccountPolicy)},
     {PluginMethodEnum::GET_ACCOUNT_POLICY, reinterpret_cast<void *>(GetAccountPolicy)},
     {PluginMethodEnum::UPDATE_ACCOUNT_INFO, reinterpret_cast<void *>(UpdateAccountInfo)},
+    {PluginMethodEnum::UPDATE_SERVER_CONFIG, reinterpret_cast<void *>(UpdateServerConfig)},
 };
 }
 
@@ -991,4 +992,53 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
         ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     setuid(ROOT_UID);
     RecoveryPermission(tokenID);
+}
+
+/**
+ * @tc.name: SetAccountPolicy001
+ * @tc.desc: Test UpdateServerConfig success update local info.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, UpdateServerConfig001, TestSize.Level1)
+{
+    std::string configId = "changeConfigId";
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = "testaccount";
+    domainInfo.domain_ = "test.example.com";
+    domainInfo.accountId_ = "testid";
+    domainInfo.serverConfigId_ = configId;
+    CreateOsAccountForDomainOptions options;
+    LoadPluginMethods();
+    auto callback = std::make_shared<MockPluginSoDomainCreateDomainAccountCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestPluginSoCreateDomainAccountCallback>(callback);
+    ASSERT_NE(testCallback, nullptr);
+    ErrCode code = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo,
+        testCallback, options);
+    ASSERT_EQ(code, ERR_OK);
+    int32_t userId1 = -1;
+    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId1), ERR_OK);
+    ASSERT_NE(userId1, -1);
+    domainInfo.accountName_ = "testaccount2";
+    domainInfo.accountId_ = "testid2";
+    domainInfo.serverConfigId_ = "serverConfigId2";
+    code = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo,
+        testCallback, options);
+    EXPECT_EQ(code, ERR_OK);
+    int32_t userId2 = -1;
+    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId2), ERR_OK);
+    ASSERT_NE(userId2, -1);
+    DomainServerConfig config("test", "updateConfigId", "testDomain");
+    EXPECT_EQ(DomainAccountClient::GetInstance().UpdateServerConfig(configId, "testParameter", config), ERR_OK);
+    OsAccountInfo accountInfo;
+    EXPECT_EQ(OsAccountManager::QueryOsAccountById(userId1, accountInfo), ERR_OK);
+    accountInfo.GetDomainInfo(domainInfo);
+    EXPECT_EQ(domainInfo.serverConfigId_, config.id_);
+    EXPECT_EQ(OsAccountManager::QueryOsAccountById(userId2, accountInfo), ERR_OK);
+    accountInfo.GetDomainInfo(domainInfo);
+    EXPECT_NE(domainInfo.serverConfigId_, config.id_);
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId1), ERR_OK);
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId2), ERR_OK);
+    UnloadPluginMethods();
 }

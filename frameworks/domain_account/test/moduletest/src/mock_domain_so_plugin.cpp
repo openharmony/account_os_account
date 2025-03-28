@@ -25,6 +25,9 @@ extern "C" {
 #endif
 static int32_t g_authenicationValidityPeriod = -1;
 static int32_t g_authTime = 0;
+static const std::string UPDATE_CONFIG_ID = "updateAccountId";
+static const std::string DOMAIN = "testDomain";
+static const int32_t ERROR_CODE = 12300001;
 
 static void SetPluginString(const std::string &str, PluginString &pStr)
 {
@@ -209,6 +212,27 @@ PluginBussnessError* UpdateAccountInfo(const PluginDomainAccountInfo *domainAcco
     }
     error->code = 0;
     error->msg.data = nullptr;
+    return error;
+}
+
+PluginBussnessError* UpdateServerConfig(const PluginString *serverConfigId, const PluginString *parameters,
+    const int32_t localId, PluginServerConfigInfo **serverConfigInfo)
+{
+    PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    if (error == nullptr) {
+        return nullptr;
+    }
+    error->code = 0;
+    error->msg.data = nullptr;
+     *serverConfigInfo = (PluginServerConfigInfo *)malloc(sizeof(PluginServerConfigInfo));
+    if (*serverConfigInfo == NULL) {
+        error->code = ERROR_CODE;
+        return nullptr;
+    }
+
+    (*serverConfigInfo)->parameters.data = nullptr;
+    SetPluginString(UPDATE_CONFIG_ID, (*serverConfigInfo)->id);
+    SetPluginString(DOMAIN, (*serverConfigInfo)->domain);
     return error;
 }
 #ifdef __cplusplus
