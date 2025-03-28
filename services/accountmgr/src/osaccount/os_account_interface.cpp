@@ -68,6 +68,23 @@ constexpr int32_t GET_MSG_FREQ = 100 * 1000;
 constexpr int32_t DEAL_TIMES = MAX_GETBUNDLE_WAIT_TIMES / GET_MSG_FREQ;
 }
 
+ErrCode InnerSendToAMSAccountStart(int32_t localId, sptr<OsAccountUserCallback> callback, bool isAppRecovery)
+{
+    ErrCode code = ERR_OK;
+    int32_t retryTimes = 0;
+    while (retryTimes < MAX_RETRY_TIMES) {
+        code = AbilityManagerAdapter::GetInstance()->StartUser(localId, callback, isAppRecovery);
+        if (code == ERR_OK || (code != Constants::E_IPC_ERROR && code != Constants::E_IPC_SA_DIED)) {
+            break;
+        }
+        ACCOUNT_LOGE("AbilityManagerAdapter StartUser failed! errcode is %{public}d, retry %{public}d",
+            code, retryTimes + 1);
+        retryTimes++;
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
+    }
+    return code;
+}
+
 ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo,
     const OsAccountStartCallbackFunc &callbackFunc, bool isAppRecovery)
 {
@@ -82,10 +99,9 @@ ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo,
     }
     StartTraceAdapter("AbilityManagerAdapter StartUser");
 
-    ErrCode code = AbilityManagerAdapter::GetInstance()->StartUser(localId,
-        osAccountStartUserCallback, isAppRecovery);
+    ErrCode code = InnerSendToAMSAccountStart(localId, osAccountStartUserCallback, isAppRecovery);
     if (code != ERR_OK) {
-        ACCOUNT_LOGE("AbilityManagerAdapter StartUser failed! errcode is %{public}d", code);
+        ACCOUNT_LOGE("AbilityManagerAdapter StartUser failed after retries! errcode is %{public}d", code);
         ReportOsAccountOperationFail(localId, Constants::OPERATION_ACTIVATE, code,
             "AbilityManager failed to start user");
         FinishTraceAdapter();
@@ -105,6 +121,23 @@ ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo,
     return code;
 }
 
+ErrCode InnerSendToAMSAccountStop(int32_t localId, sptr<OsAccountUserCallback> callback)
+{
+    ErrCode code = ERR_OK;
+    int32_t retryTimes = 0;
+    while (retryTimes < MAX_RETRY_TIMES) {
+        code = AbilityManagerAdapter::GetInstance()->StopUser(localId, callback);
+        if (code == ERR_OK || (code != Constants::E_IPC_ERROR && code != Constants::E_IPC_SA_DIED)) {
+            break;
+        }
+        ACCOUNT_LOGE("AbilityManagerAdapter StopUser failed! errcode is %{public}d, retry %{public}d",
+            code, retryTimes + 1);
+        retryTimes++;
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
+    }
+    return code;
+}
+
 ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
 {
     int32_t localId = osAccountInfo.GetLocalId();
@@ -118,9 +151,9 @@ ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
     }
     StartTraceAdapter("AbilityManagerAdapter StopUser");
 
-    ErrCode code = AbilityManagerAdapter::GetInstance()->StopUser(localId, osAccountStopUserCallback);
+    ErrCode code = InnerSendToAMSAccountStop(localId, osAccountStopUserCallback);
     if (code != ERR_OK) {
-        ACCOUNT_LOGE("Failed to AbilityManagerAdapter stop errcode is %{public}d", code);
+        ACCOUNT_LOGE("Failed to AbilityManagerAdapter stop after retries! errcode is %{public}d", code);
         ReportOsAccountOperationFail(localId, Constants::OPERATION_STOP, code,
             "AbilityManager failed to stop user");
         FinishTraceAdapter();
@@ -141,6 +174,23 @@ ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
     return code;
 }
 
+ErrCode InnerSendToAMSAccountDeactivate(int32_t localId, sptr<OsAccountUserCallback> callback)
+{
+    ErrCode code = ERR_OK;
+    int32_t retryTimes = 0;
+    while (retryTimes < MAX_RETRY_TIMES) {
+        code = AbilityManagerAdapter::GetInstance()->LogoutUser(localId, callback);
+        if (code == ERR_OK || (code != Constants::E_IPC_ERROR && code != Constants::E_IPC_SA_DIED)) {
+            break;
+        }
+        ACCOUNT_LOGE("AbilityManagerAdapter LogoutUser failed! errcode is %{public}d, retry %{public}d",
+            code, retryTimes + 1);
+        retryTimes++;
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
+    }
+    return code;
+}
+
 ErrCode OsAccountInterface::SendToAMSAccountDeactivate(OsAccountInfo &osAccountInfo)
 {
     int32_t localId = osAccountInfo.GetLocalId();
@@ -154,9 +204,9 @@ ErrCode OsAccountInterface::SendToAMSAccountDeactivate(OsAccountInfo &osAccountI
     }
 
     StartTraceAdapter("AbilityManagerAdapter LogoutUser");
-    ErrCode code = AbilityManagerAdapter::GetInstance()->LogoutUser(localId, deactivateUserCallback);
+    ErrCode code = InnerSendToAMSAccountDeactivate(localId, deactivateUserCallback);
     if (code != ERR_OK) {
-        ACCOUNT_LOGE("Failed to AbilityManagerAdapter logout errcode is %{public}d", code);
+        ACCOUNT_LOGE("Failed to AbilityManagerAdapter logout after retries! errcode is %{public}d", code);
         ReportOsAccountOperationFail(localId, Constants::OPERATION_STOP, code,
             "AbilityManager failed to logout user");
         FinishTraceAdapter();
