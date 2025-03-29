@@ -157,19 +157,18 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
     innerCallback_->AsObject()->RemoveDeathRecipient(deathRecipient_);
     if (result != 0) {
         innerCallback_->OnResult(result, extraInfo);
-        ReportOsAccountOperationFail(authedAccountId, "auth", result, "Failed to auth");
+        ReportOsAccountOperationFail(authedAccountId, "auth", result,
+            "Failed to auth, type:" + std::to_string(authType_));
         return AccountInfoReport::ReportSecurityInfo("", authedAccountId, ReportEvent::EVENT_LOGIN, result);
     }
     // private pin auth
     if ((authType_ == AuthType::PRIVATE_PIN) || (authIntent_ == AuthIntent::QUESTION_AUTH)) {
         ACCOUNT_LOGI("Private pin auth");
-        innerCallback_->OnResult(result, extraInfo);
-        return;
+        return innerCallback_->OnResult(result, extraInfo);
     }
     if (isRemoteAuth_) {
         ACCOUNT_LOGI("Remote auth");
-        innerCallback_->OnResult(result, extraInfo);
-        return;
+        return innerCallback_->OnResult(result, extraInfo);
     }
     bool isUpdateVerifiedStatus = false;
     if (HandleAuthResult(extraInfo, authedAccountId, isUpdateVerifiedStatus) != ERR_OK) {
@@ -237,9 +236,16 @@ static ErrCode AddUserKey(int32_t userId, uint64_t secureUid, const std::vector<
     return errCode;
 }
 
+static inline std::string GetSecretFlagFilePath(const uint32_t userId)
+{
+    return Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(userId) +
+        Constants::PATH_SEPARATOR + Constants::USER_ADD_SECRET_FLAG_FILE_NAME;
+}
+
 void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
-    ACCOUNT_LOGI("AddCredCallback, result=%{public}d.", result);
+    ACCOUNT_LOGI("Add cred result, userId:%{public}d, authType:%{public}d, result:%{public}d.",
+        userId_, credInfo_.authType, result);
     if (innerCallback_ == nullptr || innerCallback_->AsObject() == nullptr) {
         ACCOUNT_LOGE("innerCallback_ is nullptr");
         return;
@@ -251,7 +257,6 @@ void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
         uint64_t credentialId = 0;
         extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId);
         (void)IInnerOsAccountManager::GetInstance().SetOsAccountCredentialId(userId_, credentialId);
-
         uint64_t secureUid = 0;
         extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, secureUid);
         std::vector<uint8_t> newSecret;
@@ -261,13 +266,11 @@ void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
         std::vector<uint8_t> oldSecret;
         ErrCode code = AddUserKey(userId_, secureUid, token, oldSecret, newSecret);
         if (code == ERR_OK) {
-            std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(userId_) +
-                Constants::PATH_SEPARATOR + Constants::USER_ADD_SECRET_FLAG_FILE_NAME;
+            std::string path = GetSecretFlagFilePath(userId_);
             auto accountFileOperator = std::make_shared<AccountFileOperator>();
             code = accountFileOperator->DeleteDirOrFile(path);
             if (code != ERR_OK) {
                 ReportOsAccountOperationFail(userId_, "addCredential", code, "Failed to delete add_secret_flag file");
-                ACCOUNT_LOGE("Delete file fail, path=%{public}s", path.c_str());
             }
         }
     }
@@ -275,11 +278,13 @@ void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
         ReportOsAccountOperationFail(userId_, "addCredential", result,
             "Failed to add credential, type: " + std::to_string(credInfo_.authType));
         if (credInfo_.authType == AuthType::PIN) {
-            std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(userId_) +
-                Constants::PATH_SEPARATOR + Constants::USER_ADD_SECRET_FLAG_FILE_NAME;
+            std::string path = GetSecretFlagFilePath(userId_);
             auto accountFileOperator = std::make_shared<AccountFileOperator>();
             accountFileOperator->DeleteDirOrFile(path);
         }
+    } else {
+        ReportOsAccountLifeCycle(userId_,
+            std::string(Constants::OPERATION_ADD_CRED) + "_" + std::to_string(credInfo_.authType));
     }
     innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
     innerCallback_->OnResult(result, extraInfo);
@@ -322,6 +327,9 @@ void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
     if (result != 0) {
         ReportOsAccountOperationFail(userId_, "updateCredential", result,
             "Failed to update credential, type: " + std::to_string(credInfo_.authType));
+    } else {
+        ReportOsAccountLifeCycle(userId_,
+            std::string(Constants::OPERATION_UPDATE_CRED) + "_" + std::to_string(credInfo_.authType));
     }
     if ((result != 0) || (credInfo_.authType != AuthType::PIN)) {
         ACCOUNT_LOGE("UpdateCredCallback fail code=%{public}d, authType=%{public}d", result, credInfo_.authType);
@@ -454,6 +462,7 @@ void DelUserCallback::OnResult(int32_t result, const Attributes &extraInfo)
             "Failed to erase user");
         return innerCallback_->OnResult(deleteUserCallback->resultCode_, extraInfo);
     }
+    ReportOsAccountLifeCycle(userId_, std::string(Constants::OPERATION_DELETE_CRED) + "_0" + "_commit");
     (void)IInnerOsAccountManager::GetInstance().SetOsAccountCredentialId(userId_, 0);
     errCode = innerIamMgr_.UpdateStorageKeyContext(userId_);
     if (errCode != ERR_OK) {
@@ -479,23 +488,29 @@ void CommitCredUpdateCallback::OnResult(int32_t result, const Attributes &extraI
     auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
     if (result != 0) {
         ACCOUNT_LOGE("CommitCredUpdateCallback fail code=%{public}d", result);
-        ReportOsAccountOperationFail(userId_, "commitCredUpdate", result, "Failed to commit credential update");
+        ReportOsAccountOperationFail(userId_, std::string(Constants::OPERATION_UPDATE_CRED) + "_commit",
+            result, "Failed to commit credential update");
         innerCallback_->OnResult(result, extraInfo);
         innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
         return;
+    } else {
+        ReportOsAccountLifeCycle(userId_,
+            std::string(Constants::OPERATION_UPDATE_CRED) + "_" + std::to_string(AuthType::PIN) + "_commit");
     }
     ErrCode code = innerIamMgr_.UpdateStorageUserAuth(
         userId_, extraUpdateInfo_.secureUid, extraUpdateInfo_.token, {}, extraUpdateInfo_.newSecret);
     if (code != ERR_OK) {
         ACCOUNT_LOGE("Fail to update user auth, userId=%{public}d, code=%{public}d", userId_, code);
         innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
-        ReportOsAccountOperationFail(userId_, "commitCredUpdate", code, "Failed to update user auth");
+        ReportOsAccountOperationFail(userId_, std::string(Constants::OPERATION_UPDATE_CRED) + "_commit",
+            code, "Failed to update user auth");
         innerCallback_->OnResult(code, extraInfo);
         return;
     }
     ErrCode updateRet = innerIamMgr_.UpdateStorageKeyContext(userId_);
     if (updateRet != ERR_OK) {
-        ReportOsAccountOperationFail(userId_, "commitCredUpdate", updateRet, "Failed to update key context");
+        ReportOsAccountOperationFail(userId_, std::string(Constants::OPERATION_UPDATE_CRED) + "_commit",
+            updateRet, "Failed to update key context");
     }
     innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
     (void)IInnerOsAccountManager::GetInstance().SetOsAccountCredentialId(userId_, extraUpdateInfo_.credentialId);
@@ -541,6 +556,8 @@ void DelCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
     if (result != 0) {
         ACCOUNT_LOGE("DelCredCallback fail code=%{public}d, userId=%{public}d", result, userId_);
         ReportOsAccountOperationFail(userId_, "deleteCredential", result, "Failed to delete credential");
+    } else {
+        ReportOsAccountLifeCycle(userId_, std::string(Constants::OPERATION_DELETE_CRED));
     }
 
     innerIamMgr_.SetState(userId_, AFTER_OPEN_SESSION);
@@ -549,6 +566,7 @@ void DelCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
 
 void DelCredCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
 {
+    ACCOUNT_LOGI("DelCredCallback, userId=%{public}d", userId_);
     if (innerCallback_ == nullptr) {
         ACCOUNT_LOGE("innerCallback_ is nullptr");
         return;
@@ -563,7 +581,10 @@ GetCredInfoCallbackWrapper::GetCredInfoCallbackWrapper(
 
 void GetCredInfoCallbackWrapper::OnCredentialInfo(const std::vector<CredentialInfo> &infoList)
 {
+    ACCOUNT_LOGI("Get credential info userId:%{public}d, authType:%{public}d",
+        userId_, authType_);
     if (innerCallback_ == nullptr) {
+        ACCOUNT_LOGE("InnerCallback_ is nullptr");
         return;
     }
     if (authType_ == 0) {
@@ -586,6 +607,7 @@ GetPropCallbackWrapper::GetPropCallbackWrapper(int32_t userId, const sptr<IGetSe
 
 void GetPropCallbackWrapper::OnResult(int32_t result, const Attributes &extraInfo)
 {
+    ACCOUNT_LOGI("Get property, result:%{public}d, userId:%{public}d", result, userId_);
     if (innerCallback_ == nullptr) {
         ACCOUNT_LOGE("inner callback is nullptr");
         return;
@@ -602,6 +624,7 @@ SetPropCallbackWrapper::SetPropCallbackWrapper(int32_t userId, const sptr<IGetSe
 
 void SetPropCallbackWrapper::OnResult(int32_t result, const Attributes &extraInfo)
 {
+    ACCOUNT_LOGI("Set property, result:%{public}d, userId:%{public}d", result, userId_);
     if (innerCallback_ == nullptr) {
         ACCOUNT_LOGE("inner callback is nullptr");
         return;
@@ -613,13 +636,15 @@ void SetPropCallbackWrapper::OnResult(int32_t result, const Attributes &extraInf
 }
 
 GetSecUserInfoCallbackWrapper::GetSecUserInfoCallbackWrapper(
-    AuthType authType, const sptr<IGetEnrolledIdCallback> &callback)
-    : authType_(authType), innerCallback_(callback)
+    int32_t userId, AuthType authType, const sptr<IGetEnrolledIdCallback> &callback)
+    : userId_(userId), authType_(authType), innerCallback_(callback)
 {}
 
 void GetSecUserInfoCallbackWrapper::OnSecUserInfo(const SecUserInfo &info)
 {
+    ACCOUNT_LOGI("Get sec user info, userId:%{public}d, authType_:%{public}d", userId_, authType_);
     if (innerCallback_ == nullptr) {
+        ACCOUNT_LOGE("Inner callback is nullptr");
         return;
     }
 
@@ -650,12 +675,14 @@ PrepareRemoteAuthCallbackWrapper::PrepareRemoteAuthCallbackWrapper(const sptr<IP
 
 void PrepareRemoteAuthCallbackWrapper::OnResult(int32_t result)
 {
+    ACCOUNT_LOGI("Prepare remote auth, result:%{public}d.", result);
     if (innerCallback_ == nullptr) {
         ACCOUNT_LOGE("Inner callback is nullptr.");
         return;
     }
     if (result != 0) {
         ACCOUNT_LOGE("PrepareRemoteAuth, result=%{public}d fail to prepare remote auth.", result);
+        REPORT_OS_ACCOUNT_FAIL(0, "prepareRemoteAuth", result, "Failed to prepare remote auth");
     }
     innerCallback_->OnResult(result);
 }
@@ -667,6 +694,7 @@ GetDomainAuthStatusInfoCallback::GetDomainAuthStatusInfoCallback(
 
 void GetDomainAuthStatusInfoCallback::OnResult(int32_t result, Parcel &parcel)
 {
+    ACCOUNT_LOGI("Get domain auth status info, result=%{public}d.", result);
     if (innerCallback_ == nullptr) {
         ACCOUNT_LOGE("inner callback is nullptr");
         return;

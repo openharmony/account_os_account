@@ -214,7 +214,6 @@ ohos_shared_library("accountmgr") {
     "${innerkits_native_path}/src/account_info_parcel.cpp",
     "${os_account_core_path}/src/os_account_event_proxy.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
-    "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
   ]
   sources += account_service_sources
@@ -328,11 +327,6 @@ ohos_shared_library("accountmgr") {
   if (has_ces_part) {
     cflags_cc += [ "-DHAS_CES_PART" ]
     external_deps += [ "common_event_service:cesfwk_innerkits" ]
-  }
-
-  if (has_hiviewdfx_hisysevent_part) {
-    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
-    external_deps += [ "hisysevent:libhisysevent" ]
   }
 
   if (use_musl) {

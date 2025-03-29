@@ -56,11 +56,13 @@ void CreateDeviceDir()
     if (!OHOS::FileExists(DEVICE_OWNER_DIR)) {
         ACCOUNT_LOGI("Device owner dir not exist, create!");
         if (!OHOS::ForceCreateDirectory(DEVICE_OWNER_DIR)) {
-            ACCOUNT_LOGW("Create device owner dir failure! errno %{public}d.", errno);
-            ReportOsAccountOperationFail(0, OPERATION_FORCE_CREATE_DIRECTORY, errno, DEVICE_OWNER_DIR);
+            int32_t err = errno;
+            ACCOUNT_LOGW("Create device owner dir failure! errno %{public}d.", err);
+            ReportOsAccountOperationFail(0, OPERATION_FORCE_CREATE_DIRECTORY, err, DEVICE_OWNER_DIR);
         } else {
             if (!OHOS::ChangeModeDirectory(DEVICE_OWNER_DIR, S_IRWXU)) {
-                ReportOsAccountOperationFail(0, OPERATION_CHANGE_MODE_DIRECTORY, errno, DEVICE_OWNER_DIR);
+                int32_t err = errno;
+                ReportOsAccountOperationFail(0, OPERATION_CHANGE_MODE_DIRECTORY, err, DEVICE_OWNER_DIR);
                 ACCOUNT_LOGW("failed to create dir, path = %{public}s errno %{public}d.",
                     DEVICE_OWNER_DIR.c_str(), errno);
             }
@@ -223,13 +225,13 @@ void AccountMgrService::OnStart()
         ACCOUNT_LOGI("AccountMgrService has already started.");
         return;
     }
-
     UpdateTraceLabelAdapter();
     StartTraceAdapter("accountmgr service onstart");
     CountTraceAdapter("activeid", -1);
 
     PerfStat::GetInstance().SetInstanceStartTime(GetTickCount());
     ACCOUNT_LOGI("start is triggered");
+    ReportOsAccountLifeCycle(Constants::INVALID_OS_ACCOUNT_ID, "AccountMgr service onstart finished.");
     if (!Init()) {
         ACCOUNT_LOGE("failed to init AccountMgrService");
         FinishTraceAdapter();
