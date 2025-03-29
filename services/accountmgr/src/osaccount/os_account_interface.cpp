@@ -152,6 +152,7 @@ void OsAccountInterface::InitThemeResource(int32_t localId)
     bool ret = ThemeManager::ThemeManagerClient::GetInstance().InitResource(localId);
     if (!ret) {
         ACCOUNT_LOGE("Init theme failed, localId=%{public}d.", localId);
+        REPORT_OS_ACCOUNT_FAIL(localId, Constants::OPERATION_CREATE, -1, "Failed to init theme resource");
         FinishTraceAdapter();
         return;
     }

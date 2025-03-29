@@ -14,7 +14,9 @@
  */
 
 #include "account_log_wrapper.h"
+#include "account_hisysevent_adapter.h"
 #include "distributed_account_event_proxy.h"
+#include "os_account_constants.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -44,6 +46,8 @@ void DistributedAccountEventProxy::OnAccountsChanged(const DistributedAccountEve
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest for account changed failed, result=%{public}d eventData.id=%{public}d.",
             result, eventData.id_);
+        REPORT_OHOS_ACCOUNT_FAIL(eventData.id_, Constants::OPERATION_EVENT_PUBLISH,
+            result, "Send OnAccountsChanged failed.");
         return;
     }
 }
