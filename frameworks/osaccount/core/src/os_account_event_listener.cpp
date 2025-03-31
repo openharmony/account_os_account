@@ -44,7 +44,12 @@ ErrCode OsAccountEventListener::OnStateChanged(const OsAccountStateParcel &parce
     if (parcel.callback != nullptr) {
         data.callback = iface_cast<OsAccountStateReplyCallback>(parcel.callback);
     }
-    auto task = [this, data] { this->osAccountSubscriber_->OnStateChanged(data); };
+
+    auto subscriberCopy = osAccountSubscriber_;
+    auto task = [subscriberCopy, data] {
+        subscriberCopy->OnStateChanged(data);
+    };
+
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_OS_ACCOUNT_EVENT);
     taskThread.detach();
