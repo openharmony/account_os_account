@@ -142,13 +142,7 @@ ErrCode AccountMgrService::QueryOhosAccountInfo(OhosAccountInfo &accountInfo)
 
 ErrCode AccountMgrService::GetOhosAccountInfo(OhosAccountInfo &info)
 {
-    int32_t localId = GetCallingUserID();
-    ErrCode result = GetOsAccountDistributedInfo(localId, info);
-    if (result != ERR_OK) {
-        REPORT_OHOS_ACCOUNT_FAIL(localId, Constants::OPERATION_LOG_ERROR,
-            result, "Get os account distributed info failed");
-    }
-    return result;
+    return GetOsAccountDistributedInfo(GetCallingUserID(), info);
 }
 
 ErrCode AccountMgrService::GetOsAccountDistributedInfo(int32_t localId, OhosAccountInfo &info)
