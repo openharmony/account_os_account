@@ -50,6 +50,7 @@ std::string g_eventLogout = OHOS_ACCOUNT_EVENT_LOGOUT;
 std::string g_eventTokenInvalid = OHOS_ACCOUNT_EVENT_TOKEN_INVALID;
 const std::string STRING_TEST_NAME = "test_account_name";
 const int ACCOUNT_UID = 100;
+const int ACCOUNT_MGR_UID = 3058;
 }
 
 class OhosAccountManagerTest : public testing::Test {
@@ -95,6 +96,8 @@ private:
 void OhosAccountManagerTest::SetUpTestCase()
 {
     OhosAccountManager::GetInstance().OnInitialize();
+    setuid(ACCOUNT_MGR_UID);
+    setgid(ACCOUNT_MGR_UID);
 }
 
 void OhosAccountManagerTest::TearDownTestCase() {}

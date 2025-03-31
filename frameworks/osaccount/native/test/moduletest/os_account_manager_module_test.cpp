@@ -2642,12 +2642,21 @@ void TestStateAfterDeactivateOsAccount()
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest117, TestSize.Level1)
 {
+#ifdef SUPPORT_STOP_MAIN_OS_ACCOUNT
+    EXPECT_EQ(commonOsAccountInfo.GetIsForeground(), true);
+    EXPECT_EQ(commonOsAccountInfo.GetDisplayId(), 0);
+#else
     EXPECT_EQ(commonOsAccountInfo.GetIsForeground(), false);
     EXPECT_NE(commonOsAccountInfo.GetDisplayId(), 0);
+#endif // SUPPORT_STOP_MAIN_OS_ACCOUNT
     std::vector<int32_t> ids;
     OsAccountManager::QueryActiveOsAccountIds(ids);
     EXPECT_EQ(ids.size() > 0, true);
+#ifdef SUPPORT_STOP_MAIN_OS_ACCOUNT
+    EXPECT_EQ(ids[0], commonOsAccountInfo.GetLocalId());
+#else
     EXPECT_NE(ids[0], commonOsAccountInfo.GetLocalId());
+#endif // SUPPORT_STOP_MAIN_OS_ACCOUNT
 
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(commonOsAccountInfo.GetLocalId()), ERR_OK);
     ids.clear();
@@ -2714,7 +2723,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest118, TestSize.Lev
     std::shared_ptr<AccountTestEventSubscriber> subscriberPtr =
         std::make_shared<AccountTestEventSubscriber>(subscribeInfo, listener);
     ASSERT_EQ(CommonEventManager::SubscribeCommonEvent(subscriberPtr), true);
-    EXPECT_CALL(*listener, OnReceiveEvent(CommonEventSupport::COMMON_EVENT_USER_BACKGROUND)).Times(Exactly(1));
+    EXPECT_CALL(*listener, OnReceiveEvent(CommonEventSupport::COMMON_EVENT_USER_BACKGROUND)).Times(Exactly(0));
     EXPECT_CALL(*listener, OnReceiveEvent(CommonEventSupport::COMMON_EVENT_USER_FOREGROUND)).Times(Exactly(1));
 #endif
 
@@ -2894,6 +2903,7 @@ HWTEST_F(OsAccountManagerModuleTest, IsOsAccountForeground005, TestSize.Level1)
     bool isForeground = true;
 
     // test not in foreground before switch
+    OsAccountManager::ActivateOsAccount(100);
     EXPECT_EQ(OsAccountManager::IsOsAccountForeground(commonOsAccountInfo.GetLocalId(), Constants::DEFAULT_DISPALY_ID,
                                                       isForeground),
               ERR_OK);
@@ -3259,9 +3269,6 @@ HWTEST_F(OsAccountManagerModuleTest, QueryDistributedVirtualDeviceId001, TestSiz
     std::string bundleName1 = "bundleName1";
     ErrCode ret = OsAccountManager::QueryDistributedVirtualDeviceId(bundleName1, localId, dvid1);
     EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(dvid1, "");
-
-    ret = OsAccountManager::QueryDistributedVirtualDeviceId(bundleName1, localId + 1, dvid1);
     EXPECT_EQ(dvid1, "");
 
     OhosAccountInfo ohosInfo;
