@@ -37,7 +37,6 @@ void AccountEventSubscriberCallback::OnReceiveEvent(const EventFwk::CommonEventD
 {
     auto want = data.GetWant();
     std::string action = want.GetAction();
-    ACCOUNT_LOGI("Receive event: %{public}s", action.c_str());
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED) {
         auto uid = want.GetIntParam(AppExecFwk::Constants::UID, -1);
         callback_.OnPackageRemoved(uid);

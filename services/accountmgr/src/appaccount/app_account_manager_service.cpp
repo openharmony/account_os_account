@@ -515,7 +515,7 @@ ErrCode AppAccountManagerService::GetAllAccounts(const std::string &owner, std::
     if ((owner != bundleName) &&
         (AccountPermissionManager::VerifyPermission(GET_ALL_APP_ACCOUNTS) != ERR_OK)) {
         ACCOUNT_LOGE("failed to verify permission for %{public}s", GET_ALL_APP_ACCOUNTS);
-        ReportPermissionFail(callingUid, IPCSkeleton::GetCallingRealPid(), GET_ALL_APP_ACCOUNTS);
+        REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 

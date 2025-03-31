@@ -42,6 +42,8 @@ void ReportOsAccountDataTampered(int32_t id, const std::string& dataPath, const 
     ReportOhosAccountOperationFail(userId, operationStr, errCode, ASSEMBLE_ERRMSG(errMsg))
 #define REPORT_APP_ACCOUNT_FAIL(name, owner, operationStr, errCode, errMsg) \
     ReportAppAccountOperationFail(name, owner, operationStr, errCode, ASSEMBLE_ERRMSG(errMsg))
+#define REPORT_PERMISSION_FAIL() \
+    ReportPermissionFail(IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingRealPid(), __FUNCTION__)
 } // AccountSA
 } // OHOS
 #endif // OS_ACCOUNT_DFX_HISYSEVENT_ADAPTER_H

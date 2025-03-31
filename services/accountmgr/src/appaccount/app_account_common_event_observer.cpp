@@ -140,8 +140,6 @@ void AppAccountCommonEventObserver::DealWithRemoveEvent(const AAFwk::Want &want,
         ACCOUNT_LOGW("appIndex = %{public}d is invalid.", appIndex);
         return;
     }
-    ACCOUNT_LOGD("uid = %{public}d, bundleName = %{public}s. appIndex = %{public}d",
-        uid, bundleName.c_str(), appIndex);
     AppAccountControlManager::GetInstance().OnPackageRemoved(uid, bundleName, appIndex);
 }
 #endif // HAS_CES_PART
