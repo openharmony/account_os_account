@@ -36,7 +36,7 @@ const std::string STRING_BUNDLE_NAME = "com.example.third_party";
 const std::string STRING_ACCOUNT_ID = "100";
 const std::string STRING_STORE_ID = STRING_ACCOUNT_ID;
 const std::string EL2_DATA_STORE_PREFIX = "account_";
-const std::string DATA_STORAGE_PATH = "/data/service/el2/100/account/app_account/database/";
+const std::string DATA_STORAGE_PATH = "/data/service/el2/100/account/test/app_account/database/";
 constexpr std::size_t SIZE_ZERO = 0;
 constexpr std::size_t SIZE_ONE = 1;
 AccountDataStorageOptions gOptions;
