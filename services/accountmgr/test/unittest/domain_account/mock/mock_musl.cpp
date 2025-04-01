@@ -209,7 +209,7 @@ PluginBussnessError* BindAccount(const PluginDomainAccountInfo *domainAccountInf
     return error;
 }
 
-PluginBussnessError* UnbindAccount(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId)
+PluginBussnessError* UnbindAccount(const PluginDomainAccountInfo *domainAccountInfo)
 {
     PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
     if (error == nullptr) {

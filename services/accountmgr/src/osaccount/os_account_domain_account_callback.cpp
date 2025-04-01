@@ -104,8 +104,7 @@ void BindDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
         if (errCode != ERR_OK) {
             DomainAccountInfo curDomainInfo;
             osAccountInfo_.GetDomainInfo(curDomainInfo);
-            (void)InnerDomainAccountManager::GetInstance().OnAccountUnBound(curDomainInfo, nullptr,
-                osAccountInfo_.GetLocalId());
+            (void)InnerDomainAccountManager::GetInstance().OnAccountUnBound(curDomainInfo, nullptr);
             (void)osAccountControl_->DelOsAccount(osAccountInfo_.GetLocalId());
         }
         osAccountInfo_.Marshalling(resultParcel);
