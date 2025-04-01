@@ -557,7 +557,7 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     DomainAuthResult resultParcel;
     EXPECT_EQ(instance->PluginAuth(info, password, resultParcel), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->PluginBindAccount(info, 100, resultParcel), ERR_JS_CAPABILITY_NOT_SUPPORTED);
-    EXPECT_EQ(instance->PluginUnBindAccount(info, resultParcel, 0), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(instance->PluginUnBindAccount(info, resultParcel), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     int32_t isVaild;
     EXPECT_EQ(instance->PluginIsAccountTokenValid(info, password, isVaild), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     GetAccessTokenOptions option;
@@ -609,7 +609,7 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     EXPECT_EQ(instance->GetAllServerConfigs(configs), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
     EXPECT_EQ(instance->PluginAuth(info, password, resultParcel), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
     EXPECT_EQ(instance->PluginBindAccount(info, 100, resultParcel), ERR_OK);
-    EXPECT_EQ(instance->PluginUnBindAccount(info, resultParcel, 0), ERR_OK);
+    EXPECT_EQ(instance->PluginUnBindAccount(info, resultParcel), ERR_OK);
     password.push_back(0);
     EXPECT_EQ(instance->PluginIsAccountTokenValid(info, password, isVaild), ERR_OK);
     EXPECT_EQ(instance->PluginGetAccessToken(option, password, info, resultParcel), ERR_OK);
@@ -661,7 +661,7 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     EXPECT_EQ(instance->GetAllServerConfigs(configs), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->PluginAuth(info, password, resultParcel), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->PluginBindAccount(info, 100, resultParcel), ERR_JS_CAPABILITY_NOT_SUPPORTED);
-    EXPECT_EQ(instance->PluginUnBindAccount(info, resultParcel, 0), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(instance->PluginUnBindAccount(info, resultParcel), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->PluginIsAccountTokenValid(info, password, isVaild),
         ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->PluginGetAccessToken(option, password, info, resultParcel),

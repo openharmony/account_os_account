@@ -844,7 +844,7 @@ ErrCode IInnerOsAccountManager::PrepareRemoveOsAccount(OsAccountInfo &osAccountI
     DomainAccountInfo curDomainInfo;
     osAccountInfo.GetDomainInfo(curDomainInfo);
     if (!curDomainInfo.accountName_.empty()) {
-        InnerDomainAccountManager::GetInstance().OnAccountUnBound(curDomainInfo, nullptr, id);
+        InnerDomainAccountManager::GetInstance().OnAccountUnBound(curDomainInfo, nullptr);
         InnerDomainAccountManager::GetInstance().RemoveTokenFromMap(id);
     }
 #endif // SUPPORT_DOMAIN_ACCOUNTS
