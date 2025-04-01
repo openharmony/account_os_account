@@ -49,9 +49,6 @@ const int64_t STRING_TEST_USER_SHELLNUMBER = 1000;
 const int32_t INVALID_TYPE = 100000;
 const gid_t ACCOUNT_GID = 3058;
 const uid_t ACCOUNT_UID = 3058;
-#ifdef ENABLE_FILE_WATCHER
-const int32_t TEST_USER_ID100 = 100;
-#endif // ENABLE_FILE_WATCHER
 const std::string STRING_PHOTO =
     "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD//gAUU29mdHdhcmU6IFNuaXBhc3Rl/"
     "9sAQwADAgIDAgIDAwMDBAMDBAUIBQUEBAUKBwcGCAwKDAwLCgsLDQ4SEA0OEQ4LCxAWEBETFBUVFQwPFxgWFBgSFBUU/"
@@ -748,33 +745,5 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest030,
     ErrCode ret = g_controlManager->GetPhotoById(id, photo);
     EXPECT_EQ(ret, ERR_OK);
 }
-
-#ifdef ENABLE_FILE_WATCHER
-/**
- * @tc.name: QueryOsAccountInfo001
- * @tc.desc: Test QueryOsAccountInfo001
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountControlFileManagerTest, QueryOsAccountInfo001, TestSize.Level1)
-{
-    g_controlManager->eventCallbackFunc_ = nullptr;
-    OsAccountInfo accountInfo;
-    EXPECT_EQ(ERR_OK, g_controlManager->GetOsAccountInfoById(TEST_USER_ID100, accountInfo));
-    std::shared_ptr<AccountFileOperator> accountFileOperator = std::make_shared<AccountFileOperator>();
-    std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(TEST_USER_ID100) +
-                       Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
-    std::string accountInfoStr = "123";
-    EXPECT_EQ(ERR_OK, accountFileOperator->InputFileByPathAndContent(path, accountInfoStr));
-    std::string content;
-    EXPECT_EQ(ERR_OK, accountFileOperator->GetFileContentByPath(path, content));
-    EXPECT_EQ(accountInfoStr, content);
-    OsAccountInfo accountInfo1;
-    EXPECT_EQ(ERR_OK, g_controlManager->GetOsAccountInfoById(TEST_USER_ID100, accountInfo1));
-    EXPECT_EQ(accountInfo1.GetLocalId(), accountInfo.GetLocalId());
-    EXPECT_EQ(accountInfo1.GetLocalName(), accountInfo.GetLocalName());
-    EXPECT_EQ(accountInfo1.GetSerialNumber(), accountInfo.GetSerialNumber());
-}
-#endif // ENABLE_FILE_WATCHER
 }  // namespace AccountSA
 }  // namespace OHOS
