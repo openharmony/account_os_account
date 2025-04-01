@@ -43,6 +43,12 @@ OsAccountPluginManager::~OsAccountPluginManager()
     CloseLib();
 }
 
+OsAccountPluginManager &OsAccountPluginManager::GetInstance()
+{
+    static OsAccountPluginManager *instance = new (std::nothrow) OsAccountPluginManager();
+    return *instance;
+}
+
 std::string GetMethodNameByEnum(OsPluginMethodEnum methondEnum)
 {
     switch (methondEnum) {
