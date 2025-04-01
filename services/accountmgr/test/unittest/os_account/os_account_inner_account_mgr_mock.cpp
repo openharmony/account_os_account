@@ -68,6 +68,7 @@ const int TEST_USER_ID10 = 10;
 const int TEST_USER_ID55 = 55;
 const int TEST_USER_ID100 = 100;
 const int TEST_USER_ID108 = 108;
+const int TEST_ACCOUNT_ID = 999;
 
 const std::string STRING_TEST_NAME = "test_account_name";
 const std::string STRING_DOMAIN_NAME_OUT_OF_RANGE(200, '1');  // length 200
@@ -161,6 +162,35 @@ void OsAccountInnerAccmgrMockTest::SetUp(void) __attribute__((no_sanitize("cfi")
 
 void OsAccountInnerAccmgrMockTest::TearDown(void)
 {}
+
+#ifdef ENABLE_FILE_WATCHER
+/**
+ * @tc.name: QueryOsAccountInfo001
+ * @tc.desc: Test QueryOsAccountInfo001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, QueryOsAccountInfo001, TestSize.Level1)
+{
+    OsAccountInfo accountInfo(TEST_ACCOUNT_ID, "QueryOsAccountInfo001", OsAccountType::NORMAL, 0);
+    EXPECT_EQ(ERR_OK, g_controlManager->InsertOsAccount(accountInfo));
+    EXPECT_EQ(ERR_OK, g_controlManager->GetOsAccountInfoById(TEST_ACCOUNT_ID, accountInfo));
+    std::shared_ptr<AccountFileOperator> accountFileOperator = std::make_shared<AccountFileOperator>();
+    std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(TEST_ACCOUNT_ID) +
+                       Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
+    std::string accountInfoStr = "123";
+    EXPECT_EQ(ERR_OK, accountFileOperator->InputFileByPathAndContent(path, accountInfoStr));
+    std::string content;
+    EXPECT_EQ(ERR_OK, accountFileOperator->GetFileContentByPath(path, content));
+    EXPECT_EQ(accountInfoStr, content);
+    OsAccountInfo accountInfo1;
+    EXPECT_EQ(ERR_OK, g_controlManager->GetOsAccountInfoById(TEST_ACCOUNT_ID, accountInfo1));
+    EXPECT_EQ(accountInfo1.GetLocalId(), accountInfo.GetLocalId());
+    EXPECT_EQ(accountInfo1.GetLocalName(), accountInfo.GetLocalName());
+    EXPECT_EQ(accountInfo1.GetSerialNumber(), accountInfo.GetSerialNumber());
+    EXPECT_EQ(ERR_OK, g_controlManager->DelOsAccount(TEST_ACCOUNT_ID));
+}
+#endif // ENABLE_FILE_WATCHER
 
 /*
  * @tc.name: CreateOsAccount001

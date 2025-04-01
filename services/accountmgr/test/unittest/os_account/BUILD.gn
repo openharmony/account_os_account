@@ -479,6 +479,7 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
   cflags_cc = []
   if (os_account_distributed_feature) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
+    cflags_cc += [ "-DDISTRIBUTED_FEATURE_ENABLED" ]
     sources +=
         [ "${services_path}/accountmgr/src/account_file_watcher_manager.cpp" ]
     if (has_huks_part) {
@@ -496,6 +497,8 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
   }
   if (has_kv_store_part) {
     external_deps += [ "kv_store:distributeddata_inner" ]
+    sources += account_data_storage_source
+    cflags_cc += [ "-DHAS_KV_STORE_PART" ]
   }
   if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
     cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
