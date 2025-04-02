@@ -34,9 +34,7 @@
 #define private public
 #include "os_account.h"
 #include "os_account_manager_service.h"
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 #include "os_account_plugin_manager.h"
-#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 #include "os_account_proxy.h"
 #undef private
 #endif
@@ -2022,7 +2020,6 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest044, TestSize
     testing::Mock::AllowLeak(ptr.get());
 }
 
-#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 /*
  * @tc.name: OsAccountPluginMockTest001
  * @tc.desc: os account LoaderLib test
@@ -2030,29 +2027,27 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest044, TestSize
  */
 HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountPluginMockTest001, TestSize.Level1)
 {
-    OsAccountPluginManager pluginManager;
-    pluginManager.CloseLib();
+    innerMgrService_->pluginManager_.CloseLib();
     // load plugin success
-    pluginManager.LoaderLib("/rightPath/", "right.z.so");
-    EXPECT_NE(pluginManager.libHandle_, nullptr);
+    innerMgrService_->pluginManager_.LoaderLib("/rightPath/", "right.z.so");
+    EXPECT_NE(innerMgrService_->pluginManager_.libHandle_, nullptr);
     // load plugin not nullptr
-    pluginManager.LoaderLib("/rightPath/", "right.z.so");
-    EXPECT_NE(pluginManager.libHandle_, nullptr);
+    innerMgrService_->pluginManager_.LoaderLib("/rightPath/", "right.z.so");
+    EXPECT_NE(innerMgrService_->pluginManager_.libHandle_, nullptr);
     // close plugin
-    pluginManager.CloseLib();
-    EXPECT_EQ(pluginManager.libHandle_, nullptr);
+    innerMgrService_->pluginManager_.CloseLib();
+    EXPECT_EQ(innerMgrService_->pluginManager_.libHandle_, nullptr);
     // close plugin failed
-    pluginManager.CloseLib();
-    EXPECT_EQ(pluginManager.libHandle_, nullptr);
+    innerMgrService_->pluginManager_.CloseLib();
+    EXPECT_EQ(innerMgrService_->pluginManager_.libHandle_, nullptr);
     // wrong lib path
-    pluginManager.LoaderLib("/abc/", "right.z.so");
-    EXPECT_EQ(pluginManager.libHandle_, nullptr);
+    innerMgrService_->pluginManager_.LoaderLib("/abc/", "right.z.so");
+    EXPECT_EQ(innerMgrService_->pluginManager_.libHandle_, nullptr);
     // wrong lib name
-    pluginManager.LoaderLib("/rightPath/", "abc.z.so");
-    EXPECT_EQ(pluginManager.libHandle_, nullptr);
+    innerMgrService_->pluginManager_.LoaderLib("/rightPath/", "abc.z.so");
+    EXPECT_EQ(innerMgrService_->pluginManager_.libHandle_, nullptr);
 
-    pluginManager.CloseLib();
+    innerMgrService_->pluginManager_.CloseLib();
 }
-#endif //ENABLE_MULTIPLE_OS_ACCOUNTS
 }  // namespace AccountSA
 }  // namespace OHOS
