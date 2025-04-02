@@ -274,7 +274,7 @@ public:
         return 0;
     }
 
-    int32_t GenerateAppkey(uint32_t hashId, uint32_t userId, std::string &keyId)
+    int32_t GenerateAppkey(uint32_t hashId, uint32_t userId, std::string &keyId, bool needReset = false)
     {
         return 0;
     }
@@ -293,6 +293,11 @@ public:
     }
 
     int32_t SetRecoverKey(const std::vector<uint8_t> &key)
+    {
+        return 0;
+    }
+
+    int32_t ResetSecretWithRecoveryKey(uint32_t userId, uint32_t rkType, const std::vector<uint8_t> &key) override
     {
         return 0;
     }
