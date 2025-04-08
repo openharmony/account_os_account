@@ -1,0 +1,136 @@
+/*
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@!namespace("@ohos.account.osAccount", "osAccount")
+
+use ohos.account.distributedAccount as distributedAccount;
+
+function getAccountManager(): AccountManager;
+
+interface AccountManager {
+    @gen_async("activateOsAccount")
+    @gen_promise("activateOsAccount")
+    activateOsAccountSync(localId: i32);
+    
+    @gen_async("createOsAccount")
+    createOsAccountSync(localName: String, type: OsAccountType): OsAccountInfo;
+
+    @gen_promise("createOsAccount")
+    createOsAccountSync_(localName: String, type: OsAccountType, options: Optional<CreateOsAccountOptions>): OsAccountInfo;
+
+    @gen_promise("deactivateOsAccount")
+    deactivateOsAccountSync(localId: i32);
+
+    @gen_async("getActivatedOsAccountLocalIds")
+    @gen_promise("getActivatedOsAccountLocalIds")
+    getActivatedOsAccountLocalIdsSync(): Array<i32>;
+
+    @gen_async("getCurrentOsAccount")
+    @gen_promise("getCurrentOsAccount")
+    getCurrentOsAccountSync(): OsAccountInfo;
+
+    @gen_promise("getForegroundOsAccountLocalId")
+    getForegroundOsAccountLocalIdSync(): i32;
+
+    @gen_async("getOsAccountLocalId")
+    @gen_promise("getOsAccountLocalId")
+    getOsAccountLocalIdSync(): i32;
+
+    @gen_async("getOsAccountLocalIdForUid")
+    @gen_promise("getOsAccountLocalIdForUid")
+    getOsAccountLocalIdForUidSync(uid: i32): i32;
+}
+
+@class
+interface UserIdentityManager {
+    addCredential(info: CredentialInfo, callback: IIdmCallback): void;
+    delUser(token: Array<u8>, callback: IIdmCallback);
+}
+
+enum AuthType: i32 {
+    PIN = 1,
+    FACE = 2,
+    FINGERPRINT = 4,
+    RECOVERY_KEY = 8,
+    DOMAIN = 1024
+}
+
+enum AuthSubType: i32 {
+    PIN_SIX = 10000,
+    PIN_NUMBER = 10001,
+    PIN_MIXED = 10002,
+    PIN_FOUR = 10003,
+    PIN_PATTERN = 10004,
+    FACE_2D = 20000,
+    FACE_3D = 20001,
+    FINGERPRINT_CAPACITIVE = 30000,
+    FINGERPRINT_OPTICAL = 30001,
+    FINGERPRINT_ULTRASONIC = 30002,
+    DOMAIN_MIXED = 10240001
+}
+
+struct CredentialInfo {
+    credType: AuthType;
+    credSubType: AuthSubType;
+    token: Array<u8>;
+    accountId: Optional<i32>;
+}
+
+struct RequestResult {
+    credentialId: Optional<Array<u8>>;
+}
+
+struct IIdmCallback {
+    onResult: (result: f64, extraInfo: RequestResult)=>void;
+    onAcquireInfo: Optional<(module: f64, acquire: f64, extraInfo: Array<u8>)=>void>;
+}
+
+enum OsAccountType: i32 {
+   ADMIN = 0,
+   NORMAL = 1,
+   GUEST = 2,
+   PRIVATE = 1024
+}
+
+struct DomainAccountInfo {
+    domain: String;
+    accountName: String;
+    accountId: Optional<String>;
+    isAuthenticated: Optional<bool>;
+    serverConfigId: Optional<String>;
+}
+
+struct OsAccountInfo {
+    localId: i32;
+    localName: String;
+    shortName: Optional<String>;
+    type: OsAccountType;
+    constraints: Array<String>;
+    isVerified: bool;
+    isUnlocked: bool;
+    photo: String;
+    createTime: i64;
+    lastLoginTime: i64;
+    serialNumber: i32;
+    isActivated: bool;
+    isLoggedIn: Optional<bool>;
+    isCreateCompleted: bool;
+    distributedInfo: distributedAccount.DistributedInfo;
+    domainInfo: DomainAccountInfo;
+}
+
+struct CreateOsAccountOptions {
+    shortName: String;
+}
