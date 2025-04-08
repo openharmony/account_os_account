@@ -19,8 +19,10 @@ config("public_account_config") {
     "include",
     "${common_path}/include",
     "${common_path}/utils/include",
+    "${domain_account_interfaces_native_path}/include",
     "${innerkits_common}/include",
     "${innerkits_path}/include",
+    "${os_account_interfaces_native_path}/include",
   ]
 }
 

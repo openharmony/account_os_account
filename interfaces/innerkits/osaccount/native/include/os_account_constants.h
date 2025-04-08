@@ -47,6 +47,10 @@ const char USER_PHOTO_BASE_JPG_HEAD[] = "data:image/jpeg;base64,";
 const char USER_PHOTO_BASE_PNG_HEAD[] = "data:image/png;base64,";
 const char USER_INFO_FILE_NAME[] = "account_info.json";
 const char USER_ADD_SECRET_FLAG_FILE_NAME[] = "add_secret_flag";
+const char OPERATION_BOOT_ACTIVATED[] = "boot_activated";
+const char OPERATION_BOOT_CREATE[] = "boot_create";
+const char OPERATION_BOOT_ACTIVATING[] = "boot_activating";
+const char OPERATION_CLEAN[] = "cleanGarbage";
 const char OPERATION_ACTIVATE[] = "activate";
 const char OPERATION_CREATE[] = "create";
 const char OPERATION_REMOVE[] = "remove";
@@ -55,6 +59,11 @@ const char OPERATION_STOP[] = "stop";
 const char OPERATION_START[] = "start";
 const char OPERATION_UPDATE[] = "update";
 const char OPERATION_UNLOCK[] = "unlock";
+const char OPERATION_UPDATE_CRED[] = "updateCredential";
+const char OPERATION_ADD_CRED[] = "addCredential";
+const char OPERATION_DELETE_CRED[] = "deleteCredential";
+const char OPERATION_LOG_ERROR[] = "errLog";
+const char OPERATION_EVENT_PUBLISH[] = "eventPublish";
 
 // distributed database
 const char APP_ID[] = "os_account_mgr_service";
