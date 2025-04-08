@@ -249,12 +249,6 @@ ohos_shared_library("accountmgr") {
     "samgr:samgr_proxy",
   ]
 
-  if (os_account_multiple_active_accounts ||
-      os_account_support_deactivate_main_os_account) {
-    external_deps += [ "ability_runtime:app_manager" ]
-    cflags_cc += [ "-DENABLE_DEACTIVATE_OS_ACCOUNTS" ]
-  }
-
   if (os_account_distributed_feature) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
     sources +=
@@ -272,6 +266,12 @@ ohos_shared_library("accountmgr") {
       "${domain_account_framework_path}/src/domain_account_callback_service.cpp",
       "${domain_account_framework_path}/src/domain_account_callback_stub.cpp",
     ]
+  }
+
+  if (os_account_multiple_active_accounts ||
+      os_account_support_deactivate_main_os_account) {
+    external_deps += [ "ability_runtime:app_manager" ]
+    cflags_cc += [ "-DENABLE_DEACTIVATE_OS_ACCOUNTS" ]
   }
 
   if (has_theme_mar_part) {
