@@ -227,7 +227,7 @@ const std::shared_ptr<OsAccountSubscribeInfo> OsAccountSubscribeManager::GetSubs
 }
 
 bool OsAccountSubscribeManager::OnStateChanged(
-    const sptr<IOsAccountEvent> &eventProxy, OsAccountStateParcel &stateParcel, int32_t targetUid)
+    const sptr<IOsAccountEvent> &eventProxy, OsAccountStateParcel &stateParcel, uid_t targetUid)
 {
     auto task = [eventProxy, stateParcel, targetUid]() mutable {
         if (stateParcel.toId == -1 && (stateParcel.state != OsAccountState::SWITCHED)
@@ -260,7 +260,7 @@ bool OsAccountSubscribeManager::OnStateChanged(
 }
 
 bool OsAccountSubscribeManager::OnStateChangedV0(const sptr<IOsAccountEvent> &eventProxy,
-    OsAccountState state, int32_t fromId, int32_t toId, int32_t targetUid)
+    OsAccountState state, int32_t fromId, int32_t toId, uid_t targetUid)
 {
     if (state == SWITCHING || state == SWITCHED) {
         if (switchRecordMap_.count(targetUid) == 0) {
@@ -272,7 +272,7 @@ bool OsAccountSubscribeManager::OnStateChangedV0(const sptr<IOsAccountEvent> &ev
 }
 
 bool OsAccountSubscribeManager::OnAccountsChanged(
-    const sptr<IOsAccountEvent> &eventProxy, OsAccountState state, int32_t id, int32_t targetUid)
+    const sptr<IOsAccountEvent> &eventProxy, OsAccountState state, int32_t id, uid_t targetUid)
 {
     auto task = [eventProxy, state, id, targetUid] {
         ACCOUNT_LOGI("Publish start, state=%{public}d to uid=%{public}d asynch, accountId=%{public}d",
@@ -302,7 +302,7 @@ ErrCode OsAccountSubscribeManager::Publish(int32_t fromId, OsAccountState state,
             ACCOUNT_LOGE("Event proxy is nullptr");
             continue;
         }
-        int32_t subscriberUid = subscribeRecord->callingUid_;
+        uid_t subscriberUid = subscribeRecord->callingUid_;
         OS_ACCOUNT_SUBSCRIBE_TYPE subscribeType;
         subscribeRecord->subscribeInfoPtr_->GetOsAccountSubscribeType(subscribeType);
         if (subscribeType == state) { // For old version
