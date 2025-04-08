@@ -69,12 +69,11 @@ public:
 private:
     OsAccountSubscribeManager();
     ~OsAccountSubscribeManager() = default;
-    bool OnStateChanged(const sptr<IOsAccountEvent> &eventProxy, OsAccountStateParcel &stateParcel, int32_t targetUid);
+    bool OnStateChanged(const sptr<IOsAccountEvent> &eventProxy, OsAccountStateParcel &stateParcel, uid_t targetUid);
     // Compatible with historical versions
     bool OnStateChangedV0(const sptr<IOsAccountEvent> &eventProxy, OsAccountState state, int32_t fromId, int32_t toId,
-        int32_t targetUid);
-    bool OnAccountsChanged(const sptr<IOsAccountEvent> &eventProxy,
-        OsAccountState state, int32_t id, int32_t targetUid);
+        uid_t targetUid);
+    bool OnAccountsChanged(const sptr<IOsAccountEvent> &eventProxy, OsAccountState state, int32_t id, uid_t targetUid);
     DISALLOW_COPY_AND_MOVE(OsAccountSubscribeManager);
     ErrCode RemoveSubscribeRecord(const sptr<IRemoteObject> &eventListener);
 
