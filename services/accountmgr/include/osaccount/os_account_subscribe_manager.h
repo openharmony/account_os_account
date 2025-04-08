@@ -41,7 +41,7 @@ class SwitchSubscribeInfo {
 public:
     SwitchSubscribeInfo() = default;
     SwitchSubscribeInfo(OS_ACCOUNT_SUBSCRIBE_TYPE);
-    ~SwitchSubscribeInfo();
+    ~SwitchSubscribeInfo() = default;
     void AddSubscribeInfo(OS_ACCOUNT_SUBSCRIBE_TYPE);
     bool SubSubscribeInfo(OS_ACCOUNT_SUBSCRIBE_TYPE);
     bool IsEmpty();
@@ -52,7 +52,7 @@ public:
 private:
     uint8_t count_ = 0;
     std::mutex mutex_;
-    std::deque<std::shared_ptr<SwitchSubcribeWork>> workDeque_;
+    std::deque<SwitchSubcribeWork> workDeque_;
     std::unique_ptr<std::thread> workThread_;
 };
 
@@ -69,12 +69,11 @@ public:
 private:
     OsAccountSubscribeManager();
     ~OsAccountSubscribeManager() = default;
-    bool OnStateChanged(const sptr<IOsAccountEvent> &eventProxy, OsAccountStateParcel &stateParcel, int32_t targetUid);
+    bool OnStateChanged(const sptr<IOsAccountEvent> &eventProxy, OsAccountStateParcel &stateParcel, uid_t targetUid);
     // Compatible with historical versions
     bool OnStateChangedV0(const sptr<IOsAccountEvent> &eventProxy, OsAccountState state, int32_t fromId, int32_t toId,
-        int32_t targetUid);
-    bool OnAccountsChanged(const sptr<IOsAccountEvent> &eventProxy,
-        OsAccountState state, int32_t id, int32_t targetUid);
+        uid_t targetUid);
+    bool OnAccountsChanged(const sptr<IOsAccountEvent> &eventProxy, OsAccountState state, int32_t id, uid_t targetUid);
     DISALLOW_COPY_AND_MOVE(OsAccountSubscribeManager);
     ErrCode RemoveSubscribeRecord(const sptr<IRemoteObject> &eventListener);
 

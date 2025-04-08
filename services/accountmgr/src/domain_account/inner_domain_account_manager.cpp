@@ -711,6 +711,9 @@ ErrCode InnerDomainAccountManager::GetAccountServerConfig(
     ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, localId);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("get os account localId from domain failed, result: %{public}d", result);
+        if (result != ERR_ACCOUNT_COMMON_INVALID_PARAMETER) {
+            return result;
+        }
         return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
     }
     PluginDomainAccountInfo domainAccountInfo;
@@ -825,8 +828,7 @@ ErrCode InnerDomainAccountManager::PluginBindAccount(const DomainAccountInfo &in
 }
 
 ErrCode InnerDomainAccountManager::PluginUnBindAccount(
-    const DomainAccountInfo &info, DomainAuthResult &resultParcel,
-    const int32_t localId) __attribute__((no_sanitize("cfi")))
+    const DomainAccountInfo &info, DomainAuthResult &resultParcel) __attribute__((no_sanitize("cfi")))
 {
     auto iter = methodMap_.find(PluginMethodEnum::UNBIND_ACCOUNT);
     if (iter == methodMap_.end() || iter->second == nullptr) {
@@ -835,7 +837,7 @@ ErrCode InnerDomainAccountManager::PluginUnBindAccount(
     }
     PluginDomainAccountInfo domainAccountInfo;
     SetPluginDomainAccountInfo(info, domainAccountInfo);
-    PluginBussnessError* error = (*reinterpret_cast<UnbindAccountFunc>(iter->second))(&domainAccountInfo, localId);
+    PluginBussnessError* error = (*reinterpret_cast<UnbindAccountFunc>(iter->second))(&domainAccountInfo);
     CleanPluginString(&(domainAccountInfo.domain.data), domainAccountInfo.domain.length);
     CleanPluginString(&(domainAccountInfo.serverConfigId.data), domainAccountInfo.serverConfigId.length);
     CleanPluginString(&(domainAccountInfo.accountName.data), domainAccountInfo.accountName.length);
@@ -1657,7 +1659,7 @@ void InnerDomainAccountManager::StartOnAccountUnBound(const sptr<IDomainAccountP
 }
 
 ErrCode InnerDomainAccountManager::OnAccountUnBound(const DomainAccountInfo &info,
-    const std::shared_ptr<DomainAccountCallback> &callback, const int32_t localId)
+    const std::shared_ptr<DomainAccountCallback> &callback)
 {
     if (!IsSupportNetRequest()) {
         ACCOUNT_LOGE("Not support background account request");
@@ -1671,7 +1673,7 @@ ErrCode InnerDomainAccountManager::OnAccountUnBound(const DomainAccountInfo &inf
     if (plugin_ == nullptr) {
         Parcel emptyParcel;
         AccountSA::DomainAuthResult result;
-        ErrCode err = PluginUnBindAccount(info, result, localId);
+        ErrCode err = PluginUnBindAccount(info, result);
         if (!result.Marshalling(emptyParcel)) {
             ACCOUNT_LOGE("DomainAuthResult marshalling failed.");
             err = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
@@ -1942,6 +1944,9 @@ ErrCode InnerDomainAccountManager::UpdateAccountInfo(
     ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(oldAccountInfo, userId);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("GetOsAccountLocalIdFromDomain failed, result = %{public}d", result);
+        if (result != ERR_ACCOUNT_COMMON_INVALID_PARAMETER) {
+            return result;
+        }
         return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
     }
     // check new account info

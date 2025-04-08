@@ -104,20 +104,20 @@ void BindDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
         if (errCode != ERR_OK) {
             DomainAccountInfo curDomainInfo;
             osAccountInfo_.GetDomainInfo(curDomainInfo);
-            (void)InnerDomainAccountManager::GetInstance().OnAccountUnBound(curDomainInfo, nullptr,
-                osAccountInfo_.GetLocalId());
+            (void)InnerDomainAccountManager::GetInstance().OnAccountUnBound(curDomainInfo, nullptr);
             (void)osAccountControl_->DelOsAccount(osAccountInfo_.GetLocalId());
         }
         osAccountInfo_.Marshalling(resultParcel);
         return innerCallback_->OnResult(errCode, resultParcel);
     }
-
+    if ((osAccountInfo_.GetLocalId() == Constants::START_USER_ID) && (errCode == ERR_OK)) {
 #ifdef HAS_CES_PART
-    AccountEventProvider::EventPublish(
-        EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::START_USER_ID, nullptr);
+        AccountEventProvider::EventPublish(
+            EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::START_USER_ID, nullptr);
 #else  // HAS_CES_PART
-    ACCOUNT_LOGI("No common event part! Publish nothing!");
+        ACCOUNT_LOGI("No common event part! Publish nothing!");
 #endif // HAS_CES_PART
+    }
     osAccountInfo_.Marshalling(resultParcel);
     innerCallback_->OnResult(errCode, resultParcel);
 }
