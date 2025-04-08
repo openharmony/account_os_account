@@ -17,6 +17,7 @@
 #define OS_ACCOUNT_DFX_HISYSEVENT_ADAPTER_H
 
 #include <string>
+#include "account_log_wrapper.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -32,6 +33,15 @@ void ReportOsAccountLifeCycle(int32_t id, const std::string& operationStr);
 void ReportOsAccountSwitch(int32_t currentId, int32_t oldId);
 void ReportOhosAccountStateChange(int32_t userId, int32_t operateType, int32_t oldStat, int32_t newStat);
 void ReportOsAccountDataTampered(int32_t id, const std::string& dataPath, const std::string& dataLabel);
+
+#define ASSEMBLE_ERRMSG(str) \
+    ("[" + std::string(__FUNCTION__) + "@" + std::string(LOG_FILE_NAME) + ":" + std::to_string(__LINE__) + "] " + (str))
+#define REPORT_OS_ACCOUNT_FAIL(id, operationStr, errCode, errMsg) \
+    ReportOsAccountOperationFail(id, operationStr, errCode, ASSEMBLE_ERRMSG(errMsg))
+#define REPORT_OHOS_ACCOUNT_FAIL(userId, operationStr, errCode, errMsg) \
+    ReportOhosAccountOperationFail(userId, operationStr, errCode, ASSEMBLE_ERRMSG(errMsg))
+#define REPORT_APP_ACCOUNT_FAIL(name, owner, operationStr, errCode, errMsg) \
+    ReportAppAccountOperationFail(name, owner, operationStr, errCode, ASSEMBLE_ERRMSG(errMsg))
 } // AccountSA
 } // OHOS
 #endif // OS_ACCOUNT_DFX_HISYSEVENT_ADAPTER_H

@@ -18,6 +18,7 @@
 #include "ability_manager_ipc_interface_code.h"
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
+#include "account_hisysevent_adapter.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
 
@@ -25,6 +26,7 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 const std::u16string ABILITY_MGR_DESCRIPTOR = u"ohos.aafwk.AbilityManager";
+constexpr int32_t INVALID_ID = -1;
 }
 using namespace AAFwk;
 AbilityManagerAdapter *AbilityManagerAdapter::GetInstance()
@@ -299,6 +301,7 @@ void AbilityManagerAdapter::ResetProxy(const wptr<IRemoteObject>& remote)
 void AbilityManagerAdapter::AbilityMgrDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remote)
 {
     ACCOUNT_LOGI("AbilityMgrDeathRecipient handle remote died.");
+    ReportOsAccountOperationFail(INVALID_ID, "resetService", ERR_OK, "AbilityMgr remote died");
     AbilityManagerAdapter::GetInstance()->ResetProxy(remote);
 }
 }  // namespace AAFwk
