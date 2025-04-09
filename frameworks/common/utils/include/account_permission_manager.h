@@ -26,7 +26,6 @@ public:
     static ErrCode VerifyPermission(const std::string &permissionName);
     static ErrCode CheckSystemApp(bool isCallStub = true);
     static bool CheckSaCall();
-    static bool CheckShellCall();
 };
 }  // namespace AccountSA
 }  // namespace OHOS

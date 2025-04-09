@@ -39,7 +39,7 @@ const std::string HELP_MSG_CREATE =
     "  -n <local-account-name> [-s] <shortName>\n"
     "  -t <type> [-d] <disallowed-pre-install-hap-bundles> [-p] <allowed-pre-install-hap-bundles>\n"
     "                             create a local account with a name and a type\n"
-    "                             <type>: admin, normal, guest, private, maintenance\n"
+    "                             <type>: admin, normal, guest, private\n"
     "                             <disallowed-pre-install-hap-bundles>: can set disallowed pre-installed hap bundles\n"
     "                             <allowed-pre-install-hap-bundles>: can set allowed pre-installed hap bundles\n";
 
