@@ -27,7 +27,7 @@ class OsAccountStateReplyCallbackStub : public IRemoteStub<IOsAccountStateReplyC
 public:
     OsAccountStateReplyCallbackStub(int32_t accountId, OsAccountState state,
         const std::shared_ptr<std::condition_variable> &cvPtr, const std::shared_ptr<SafeQueue<uint8_t>> &safeQueue,
-        int32_t subscriberUid);
+        uid_t subscriberUid);
     ~OsAccountStateReplyCallbackStub() override = default;
 
     void OnComplete() override;
