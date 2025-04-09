@@ -1712,13 +1712,13 @@ ErrCode InnerDomainAccountManager::PluginGetDomainAccountInfo(const GetDomainAcc
         ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::GET_ACCOUNT_INFO);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
+    PluginGetDomainAccountInfoOptions pluginOptions;
+    SetPluginDomainAccountInfo(options.accountInfo, pluginOptions.domainAccountInfo);
+    pluginOptions.callerUid = options.callingUid;
     int32_t localId = GetCallingUserID();
     if (localId == -1) {
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
-    PluginGetDomainAccountInfoOptions pluginOptions;
-    SetPluginDomainAccountInfo(options.accountInfo, pluginOptions.domainAccountInfo);
-    pluginOptions.callerUid = options.callingUid;
     PluginDomainAccountInfo *accountInfoResult = nullptr;
     PluginBussnessError* error =
         (*reinterpret_cast<GetAccountInfoFunc>(iter->second))(&pluginOptions, localId, &accountInfoResult);

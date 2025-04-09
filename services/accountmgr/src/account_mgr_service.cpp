@@ -17,15 +17,7 @@
 #include <cerrno>
 #include <thread>
 #include "account_dump_helper.h"
-#include "account_hisysevent_adapter.h"
-#ifdef HAS_USER_AUTH_PART
-#include "account_iam_service.h"
-#endif
-#include "account_info.h"
 #include "account_log_wrapper.h"
-#ifdef HICOLLIE_ENABLE
-#include "account_timer.h"
-#endif // HICOLLIE_ENABLE
 #ifdef HAS_APP_ACCOUNT_PART
 #ifdef HAS_CES_PART
 #include "app_account_common_event_observer.h"
@@ -33,9 +25,11 @@
 #include "app_account_manager_service.h"
 #endif
 #include "datetime_ex.h"
+#include "device_account_info.h"
 #include "directory_ex.h"
 #include "domain_account_manager_service.h"
 #include "file_ex.h"
+#include "account_hisysevent_adapter.h"
 #include "hitrace_adapter.h"
 #include "if_system_ability_manager.h"
 #include "iinner_os_account_manager.h"
@@ -44,6 +38,13 @@
 #include "perf_stat.h"
 #include "string_ex.h"
 #include "system_ability_definition.h"
+#include "account_info.h"
+#ifdef HAS_USER_AUTH_PART
+#include "account_iam_service.h"
+#endif
+#ifdef HICOLLIE_ENABLE
+#include "account_timer.h"
+#endif // HICOLLIE_ENABLE
 
 namespace OHOS {
 namespace AccountSA {

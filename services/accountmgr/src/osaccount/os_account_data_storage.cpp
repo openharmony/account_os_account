@@ -28,8 +28,8 @@ OsAccountDataStorage::OsAccountDataStorage(const std::string &appId, const std::
 {}
 
 #ifndef SQLITE_DLCLOSE_ENABLE
-void OsAccountDataStorage::SaveEntries(const std::vector<OHOS::DistributedKv::Entry> &allEntries,
-    std::map<std::string, std::shared_ptr<IAccountInfo>> &infos)
+void OsAccountDataStorage::SaveEntries(
+    std::vector<OHOS::DistributedKv::Entry> allEntries, std::map<std::string, std::shared_ptr<IAccountInfo>> &infos)
 {
     ACCOUNT_LOGD("Start, allEntries size is: %{public}zu", allEntries.size());
     for (auto const &item : allEntries) {
@@ -50,7 +50,7 @@ void OsAccountDataStorage::SaveEntries(const std::vector<OHOS::DistributedKv::En
     ACCOUNT_LOGD("End");
 }
 #else
-void OsAccountDataStorage::SaveEntries(const std::vector<DbAdapterEntry> &allEntries,
+void OsAccountDataStorage::SaveEntries(std::vector<DbAdapterEntry> allEntries,
     std::map<std::string, std::shared_ptr<IAccountInfo>> &infos)
 {
     ACCOUNT_LOGD("Start, allEntries size is: %{public}zu", allEntries.size());
