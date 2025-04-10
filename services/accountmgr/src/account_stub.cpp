@@ -124,6 +124,7 @@ ErrCode AccountStub::CmdUpdateOhosAccountInfo(MessageParcel &data, MessageParcel
 {
     if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS)) {
         ACCOUNT_LOGE("Check permission failed");
+        REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 
@@ -134,6 +135,7 @@ ErrCode AccountStub::CmdSetOhosAccountInfo(MessageParcel &data, MessageParcel &r
 {
     if (!HasAccountRequestPermission(PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS)) {
         ACCOUNT_LOGE("Check permission failed");
+        REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 
@@ -164,6 +166,7 @@ ErrCode AccountStub::CmdSetOhosAccountInfoByUserId(MessageParcel &data, MessageP
     }
     if (!HasAccountRequestPermission(PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS)) {
         ACCOUNT_LOGE("Check permission failed");
+        REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     int32_t userId = data.ReadInt32();
@@ -199,10 +202,11 @@ ErrCode AccountStub::InnerQueryOhosAccountInfo(MessageParcel &data, MessageParce
     OhosAccountInfo info;
 #ifdef HICOLLIE_ENABLE
     unsigned int flag = HiviewDFX::XCOLLIE_FLAG_LOG | HiviewDFX::XCOLLIE_FLAG_RECOVERY;
-    XCollieCallback callbackFunc = [](void *) {
-        ACCOUNT_LOGE("InnerQueryOhosAccountInfo failed due to timeout.");
-        ReportOhosAccountOperationFail(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR,
-            "watchDog", -1, "Query ohos account info time out");
+    XCollieCallback callbackFunc = [callingPid = IPCSkeleton::GetCallingPid(),
+        callingUid = IPCSkeleton::GetCallingUid()](void *) {
+        ACCOUNT_LOGE("InnerQueryOhosAccountInfo failed, callingPid: %{public}d, callingUid: %{public}d.",
+            callingPid, callingUid);
+        ReportOhosAccountOperationFail(callingUid, "watchDog", -1, "Query ohos account info time out");
     };
     int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(
         TIMER_NAME, RECOVERY_TIMEOUT, callbackFunc, nullptr, flag);
@@ -272,6 +276,7 @@ ErrCode AccountStub::CmdQueryDVIDByBundleName(MessageParcel &data, MessageParcel
         !HasAccountRequestPermission(PERMISSION_MANAGE_USERS) &&
         !HasAccountRequestPermission(PERMISSION_GET_DISTRIBUTED_ACCOUNTS)) {
         ACCOUNT_LOGE("Failed to check permission");
+        REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     std::string bundleName = "";
@@ -306,6 +311,7 @@ ErrCode AccountStub::CmdQueryDistributedVirtualDeviceId(MessageParcel &data, Mes
     if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS) &&
         !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC)) {
         ACCOUNT_LOGE("Check permission failed");
+        REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     return InnerQueryDistributedVirtualDeviceId(data, reply);
@@ -317,6 +323,7 @@ ErrCode AccountStub::CmdQueryOhosAccountInfo(MessageParcel &data, MessageParcel 
         !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC) &&
         !HasAccountRequestPermission(PERMISSION_GET_LOCAL_ACCOUNTS)) {
         ACCOUNT_LOGE("Check permission failed");
+        REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 
@@ -329,6 +336,7 @@ ErrCode AccountStub::CmdGetOhosAccountInfo(MessageParcel &data, MessageParcel &r
         !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC) &&
         !HasAccountRequestPermission(PERMISSION_GET_DISTRIBUTED_ACCOUNTS)) {
         ACCOUNT_LOGE("Check permission failed");
+        REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 
@@ -347,6 +355,7 @@ ErrCode AccountStub::CmdGetOhosAccountInfoByUserId(MessageParcel &data, MessageP
         !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC) &&
         !HasAccountRequestPermission(PERMISSION_GET_DISTRIBUTED_ACCOUNTS)) {
         ACCOUNT_LOGE("Check permission failed");
+        REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     int32_t userId = data.ReadInt32();
@@ -383,6 +392,7 @@ ErrCode AccountStub::CmdQueryOhosAccountInfoByUserId(MessageParcel &data, Messag
         (!HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC)) &&
         (IPCSkeleton::GetCallingUid() != DSOFTBUS_UID)) {
         ACCOUNT_LOGE("Check permission failed");
+        REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 
@@ -596,8 +606,8 @@ std::int32_t AccountStub::OnRemoteRequest(
 
 bool AccountStub::HasAccountRequestPermission(const std::string &permissionName)
 {
-    std::int32_t uid = IPCSkeleton::GetCallingUid();
 #ifndef IS_RELEASE_VERSION
+    std::int32_t uid = IPCSkeleton::GetCallingUid();
     // root check in none release version for test
     if (uid == ROOT_UID) {
         return true;
@@ -611,7 +621,6 @@ bool AccountStub::HasAccountRequestPermission(const std::string &permissionName)
         return true;
     }
 
-    ReportPermissionFail(uid, IPCSkeleton::GetCallingRealPid(), permissionName);
     return false;
 }
 }  // namespace AccountSA
