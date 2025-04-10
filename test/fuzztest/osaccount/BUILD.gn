@@ -33,7 +33,6 @@ group("fuzztest") {
     "getosaccountlocalidbyserialnumber_fuzzer:GetOsAccountLocalIdBySerialNumberFuzzTest",
     "getosaccountlocalidfromdomain_fuzzer:GetOsAccountLocalIdFromDomainFuzzTest",
     "getosaccountlocalidfromuid_fuzzer:GetOsAccountLocalIdFromUidFuzzTest",
-    "getosaccountnamebyid_fuzzer:GetOsAccountNameByIdFuzzTest",
     "getosaccountprofilephoto_fuzzer:GetOsAccountProfilePhotoFuzzTest",
     "getosaccountshortname_fuzzer:GetOsAccountShortNameFuzzTest",
     "getosaccounttype_fuzzer:GetOsAccountTypeFuzzTest",

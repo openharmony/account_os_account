@@ -496,29 +496,6 @@ HWTEST_F(OsAccountInfoTest, GetOsAccountName01, TestSize.Level1)
     EXPECT_EQ(name, osAccountInfo.GetLocalName());
 }
 
-/**
- * @tc.name: GetOsAccountNameById01
- * @tc.desc: Test GetOsAccountNameById
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInfoTest, GetOsAccountNameById01, TestSize.Level1)
-{
-    std::string name100;
-    EXPECT_EQ(ERR_OK, OsAccountManager::GetOsAccountNameById(TEST_UID, name100));
-    OsAccountInfo osAccountInfo100;
-    setuid(ROOT_UID);
-    EXPECT_EQ(ERR_OK, OsAccountManager::QueryOsAccountById(TEST_UID, osAccountInfo100));
-    EXPECT_EQ(name100, osAccountInfo100.GetLocalName());
-
-    std::string name0;
-    EXPECT_EQ(ERR_OK, OsAccountManager::GetOsAccountNameById(ROOT_UID, name0));
-    OsAccountInfo osAccountInfo0;
-    setuid(ROOT_UID);
-    EXPECT_EQ(ERR_OK, OsAccountManager::QueryOsAccountById(ROOT_UID, osAccountInfo0));
-    EXPECT_EQ(name0, osAccountInfo0.GetLocalName());
-}
-
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 /**
  * @tc.name: GetOsAccountName02
@@ -545,49 +522,6 @@ HWTEST_F(OsAccountInfoTest, GetOsAccountName02, TestSize.Level1)
     setuid(localId * UID_TRANSFORM_DIVISOR);
     EXPECT_NE(ERR_OK, OsAccountManager::GetOsAccountName(name));
     setuid(ROOT_UID);
-}
-
-/**
- * @tc.name: GetOsAccountNameById02
- * @tc.desc: Test GetOsAccountNameById
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInfoTest, GetOsAccountNameById02, TestSize.Level1)
-{
-    OsAccountInfo osAccountInfo;
-    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("testName", OsAccountType::NORMAL, osAccountInfo));
-    uint32_t localId = osAccountInfo.GetLocalId();
-    std::string name;
-    EXPECT_EQ(ERR_OK, OsAccountManager::GetOsAccountNameById(localId, name));
-    EXPECT_EQ("testName", name);
-    EXPECT_EQ(ERR_OK, OsAccountManager::SetOsAccountName(localId, "updateName"));
-    EXPECT_EQ(ERR_OK, OsAccountManager::GetOsAccountNameById(localId, name));
-    EXPECT_EQ(name, "updateName");
-    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(localId));
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, OsAccountManager::GetOsAccountNameById(localId, name));
-}
-
-/**
- * @tc.name: GetOsAccountNameById03
- * @tc.desc: Test GetOsAccountNameById with id not exist
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInfoTest, GetOsAccountNameById03, TestSize.Level1)
-{
-    uint32_t localId = 9999; // id not exit
-    bool isExist = true;
-    EXPECT_EQ(ERR_OK, OsAccountManager::IsOsAccountExists(localId, isExist));
-    ASSERT_EQ(isExist, false);
-    std::string name;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, OsAccountManager::GetOsAccountNameById(localId, name));
-
-    localId = 99; // 99 id not exit
-    isExist = true;
-    EXPECT_EQ(ERR_OK, OsAccountManager::IsOsAccountExists(localId, isExist));
-    ASSERT_EQ(isExist, false);
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, OsAccountManager::GetOsAccountNameById(localId, name));
 }
 
 /**
