@@ -16,6 +16,7 @@
 #include "inner_account_iam_manager.h"
 
 #include <thread>
+#include "account_constants.h"
 #include "account_iam_callback.h"
 #include "account_log_wrapper.h"
 #include "domain_account_callback_service.h"

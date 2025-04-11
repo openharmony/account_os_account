@@ -25,7 +25,13 @@ constexpr int32_t WAIT_TIME = 60;
 const uint32_t TIMEOUT = 30; // 30s
 constexpr const char TIMER_NAME[] = "AccountMgrTimer";
 #endif // HICOLLIE_ENABLE
-
+namespace Constants {
+constexpr int32_t DELAY_FOR_EXCEPTION = 100;
+constexpr int32_t MAX_RETRY_TIMES = 10;
+const char OPERATION_EVENT_PUBLISH[] = "eventPublish";
+const int32_t E_IPC_ERROR = 29189;
+const int32_t E_IPC_SA_DIED = 32;
+}
 } // namespace AccountSA
 } // namespace OHOS
 #endif // OS_ACCOUNT_FRAMEWORKS_ACCOUNT_CONSTANTS_H
