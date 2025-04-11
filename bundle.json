@@ -53,6 +53,7 @@
         "ipc",
         "napi",
         "pin_auth",
+        "runtime_core",
         "safwk",
         "samgr",
         "security_guard",
