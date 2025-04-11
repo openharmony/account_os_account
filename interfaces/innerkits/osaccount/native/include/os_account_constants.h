@@ -57,7 +57,6 @@ const char OPERATION_UPDATE_CRED[] = "updateCredential";
 const char OPERATION_ADD_CRED[] = "addCredential";
 const char OPERATION_DELETE_CRED[] = "deleteCredential";
 const char OPERATION_LOG_ERROR[] = "errLog";
-const char OPERATION_EVENT_PUBLISH[] = "eventPublish";
 const char OPERATION_UPDATE_SERVER_CONFIG[] = "updateServerConfig";
 // distributed database
 const bool SYNC_OS_ACCOUNT_DATABASE = false;
@@ -97,10 +96,6 @@ const std::int32_t WAIT_ONE_TIME = 1000;
 const uint64_t DEFAULT_DISPALY_ID = 0;
 const uint64_t INVALID_DISPALY_ID = -1ull;
 const uint64_t REENROLL_WAIT_TIME = 3;
-
-// an error code of ipc which means peer end is dead
-const int32_t E_IPC_ERROR = 29189;
-const int32_t E_IPC_SA_DIED = 32;
 
 // max size of subscribed states
 constexpr uint8_t MAX_SUBSCRIBED_STATES_SIZE = 32;
