@@ -121,7 +121,6 @@ public:
     ErrCode GetDefaultActivatedOsAccount(int32_t &id) override;
     ErrCode GetOsAccountShortName(std::string &shortName) override;
     ErrCode GetOsAccountName(std::string &name) override;
-    ErrCode GetOsAccountNameById(int32_t id, std::string &name) override;
     ErrCode GetOsAccountShortNameById(const int32_t id, std::string &shortName) override;
 
     ErrCode IsOsAccountForeground(const int32_t localId, const uint64_t displayId, bool &isForeground) override;
