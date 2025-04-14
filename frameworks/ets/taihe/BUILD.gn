@@ -11,15 +11,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import ("//build/config/components/ets_frontend/ets2abc_config.gni")
+import("//base/account/os_account/os_account.gni")
+import("//build/config/components/ets_frontend/ets2abc_config.gni")
 import("//build/ohos.gni")
 import("//build/ohos/taihe_idl/taihe.gni")
 
 copy_taihe_idl("copy_account") {
-    sources = [
-        "os_account/idl/ohos.account.distributedAccount.taihe"，
-        "os_account/idl/ohos.account.osAccount.taihe"，
-        ]
+  sources = [
+    "distributed_account/idl/ohos.account.distributedAccount.taihe",
+    "os_account/idl/ohos.account.osAccount.taihe",
+  ]
 }
 
 subsystem_name = "account"
@@ -27,53 +28,103 @@ part_name = "os_account"
 taihe_generated_file_path = "$taihe_file_path/out/$subsystem_name/$part_name"
 
 ohos_taihe("osaccount_taihe") {
-    taihe_generated_file_path = "$taihe_generated_file_path"
-    deps = [":copy_account"]
-    outputs = [
-        "$taihe_generated_file_path/src/ohos.account.osAccount.ani.cpp",
-        "$taihe_generated_file_path/src/ohos.account.osAccount.abi.c"
-    ]
+  taihe_generated_file_path = "$taihe_generated_file_path"
+  deps = [ ":copy_account" ]
+  outputs = [
+    "$taihe_generated_file_path/src/ohos.account.osAccount.ani.cpp",
+    "$taihe_generated_file_path/src/ohos.account.osAccount.abi.c",
+  ]
 }
 
 taihe_shared_library("os_account_taihe_native") {
-    taihe_generated_file_path = "$taihe_generated_file_path"
-    part_name = "$part_name"
-    subsystem_name = "$subsystem_name"
-    sources = get_target_outputs(":osaccount_taihe")
-    cflags_cc = [
-        "-Wno-logical-op-parentheses",
-        "-Wno-reorder",
-    ]
-    include_dirs = [
-        "include"
-    ]
-    sources += [
-        "os_account/src/ohos.account.osAccount.impl.cpp",
-    ]
-    deps = [
-        ":osaccount_taihe",
-    ]
+  taihe_generated_file_path = "$taihe_generated_file_path"
+  part_name = "$part_name"
+  subsystem_name = "$subsystem_name"
+  sources = get_target_outputs(":osaccount_taihe")
+  cflags_cc = [
+    "-Wno-logical-op-parentheses",
+    "-Wno-reorder",
+  ]
+  include_dirs = [ "include" ]
+  sources += [ "os_account/src/ohos.account.osAccount.impl.cpp" ]
+  deps = [ ":osaccount_taihe" ]
 }
 
 generate_static_abc("os_account_abc") {
-    base_url = "$taihe_generated_file_path"
-    files = ["$taihe_generated_file_path/@ohos.account.osAccount.ets"]
-    is_boot_abc = "True"
-    device_dst_file = "/system/framework/os_account_abc.abc"
-    dependencies = [ ":osaccount_taihe" ]
+  base_url = "$taihe_generated_file_path"
+  files = [ "$taihe_generated_file_path/@ohos.account.osAccount.ets" ]
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/os_account_abc.abc"
+  dependencies = [ ":osaccount_taihe" ]
 }
 
 ohos_prebuilt_etc("os_account_etc") {
-    source = "$target_out_dir/os_account_abc.abc"
-    module_install_dir = "framework"
-    part_name = "$part_name"
-    subsystem_name = "$subsystem_name"
-    deps = [":os_account_abc"]
+  source = "$target_out_dir/os_account_abc.abc"
+  module_install_dir = "framework"
+  part_name = "$part_name"
+  subsystem_name = "$subsystem_name"
+  deps = [ ":os_account_abc" ]
 }
 
 group("account_taihe") {
-    deps = [
-        ":os_account_etc",
-        ":os_account_taihe_native",
-    ]
+  deps = [
+    ":os_account_etc",
+    ":os_account_taihe_native",
+  ]
+}
+
+ohos_taihe("distributed_account_taihe") {
+  taihe_generated_file_path = "${taihe_generated_file_path}"
+  deps = [ ":copy_account" ]
+  outputs = [
+    "${taihe_generated_file_path}/src/ohos.account.distributedAccount.ani.cpp",
+    "${taihe_generated_file_path}/src/ohos.account.distributedAccount.abi.c",
+  ]
+}
+
+taihe_shared_library("distributed_account_taihe_native") {
+  taihe_generated_file_path = "${taihe_generated_file_path}"
+  part_name = "${part_name}"
+  subsystem_name = "${subsystem_name}"
+
+  sources = get_target_outputs(":distributed_account_taihe")
+  include_dirs = [ "./distributed_account/inlcude" ]
+  sources +=
+      [ "./distributed_account/src/ohos.account.distributedAccount.impl.cpp" ]
+  deps = [
+    ":distributed_account_taihe",
+    "${account_napi_common_path}:account_napi_common",
+    "${innerkits_native_path}:libaccountkits",
+  ]
+  external_deps = [
+    "ability_base:want",
+    "ability_runtime:ani_common",
+    "ability_runtime:app_context",
+    "ability_runtime:runtime",
+    "napi:ace_napi",
+  ]
+}
+
+generate_static_abc("distributed_account_abc") {
+  base_url = "${taihe_generated_file_path}"
+  files =
+      [ "${taihe_generated_file_path}/@ohos.account.distributedAccount.ets" ]
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/distributed_account_abc.abc"
+  dependencies = [ ":distributed_account_taihe" ]
+}
+
+ohos_prebuilt_etc("distributed_account_etc") {
+  source = "${target_out_dir}/distributed_account_abc.abc"
+  module_install_dir = "framework"
+  part_name = "${part_name}"
+  subsystem_name = "${subsystem_name}"
+  deps = [ ":distributed_account_abc" ]
+}
+
+group("distributed_account_taihe_group") {
+  deps = [
+    ":distributed_account_etc",
+    ":distributed_account_taihe_native",
+  ]
 }
