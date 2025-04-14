@@ -105,7 +105,6 @@ enum class OsAccountInterfaceCode : uint32_t {
     QUERY_MAX_LOGGED_IN_OS_ACCOUNT_NUMBER,
     IS_OS_ACCOUNT_DEACTIVATING,
     GET_OS_ACCOUNT_DOMAIN_INFO,
-    GET_OS_ACCOUNT_NAME_BY_ID,
 };
 
 enum class AppAccountInterfaceCode : uint32_t {

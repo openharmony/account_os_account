@@ -456,14 +456,6 @@ static const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProc
         }
     },
     {
-        static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_NAME_BY_ID),
-        {
-            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
-                return ptr->ProcGetOsAccountNameById(data, reply); },
-            .isSystemApi = true,
-        }
-    },
-    {
         static_cast<uint32_t>(OsAccountInterfaceCode::IS_OS_ACCOUNT_FOREGROUND),
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
@@ -1699,29 +1691,6 @@ ErrCode OsAccountStub::ProcGetOsAccountName(MessageParcel &data, MessageParcel &
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("Failed to write result, result=%{public}d.", result);
         return IPC_STUB_WRITE_PARCEL_ERR;
-    }
-    if (!reply.WriteString(name)) {
-        ACCOUNT_LOGE("Failed to write name");
-        return IPC_STUB_WRITE_PARCEL_ERR;
-    }
-    return ERR_NONE;
-}
-
-ErrCode OsAccountStub::ProcGetOsAccountNameById(MessageParcel &data, MessageParcel &reply)
-{
-    int32_t id;
-    if (!data.ReadInt32(id)) {
-        ACCOUNT_LOGE("Read id failed.");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-    }
-    std::string name;
-    ErrCode result = GetOsAccountNameById(id, name);
-    if (!reply.WriteInt32(result)) {
-        ACCOUNT_LOGE("Failed to write result, result=%{public}d.", result);
-        return IPC_STUB_WRITE_PARCEL_ERR;
-    }
-    if (result != ERR_OK) {
-        return ERR_NONE;
     }
     if (!reply.WriteString(name)) {
         ACCOUNT_LOGE("Failed to write name");
