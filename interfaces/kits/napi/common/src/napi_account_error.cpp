@@ -153,6 +153,16 @@ napi_value GenerateBusinessError(napi_env env, int32_t nativeErrCode)
     return GenerateBusinessError(env, jsErrCode, jsErrMsg);
 }
 
+void GenerateBusinessError(const int32_t nativeErrCode, int32_t &jsErrCode, std::string &errMsg)
+{
+    jsErrCode = nativeErrCode;
+    auto iter = g_errorStringMap.find(jsErrCode);
+    if (iter == g_errorStringMap.end()) {
+        jsErrCode = ConvertToJSErrCode(nativeErrCode);
+    }
+    errMsg = ConvertToJsErrMsg(jsErrCode);
+}
+
 bool CheckJsErrorCode(int32_t errCode)
 {
     auto iter = g_errorStringMap.find(errCode);
