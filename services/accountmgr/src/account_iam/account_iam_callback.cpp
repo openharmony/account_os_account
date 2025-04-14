@@ -614,6 +614,7 @@ void CommitCredUpdateCallback::InnerOnResult(int32_t result, const Attributes &e
             return;
         }
     }
+    (void)IInnerOsAccountManager::GetInstance().SetOsAccountCredentialId(userId_, extraUpdateInfo_.credentialId);
     Attributes extraInfoResult;
     extraInfoResult.SetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, extraUpdateInfo_.credentialId);
     innerIamMgr.SetState(userId_, AFTER_UPDATE_CRED);

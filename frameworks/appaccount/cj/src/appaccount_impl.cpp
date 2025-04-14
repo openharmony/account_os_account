@@ -537,7 +537,7 @@ int32_t CJAppAccountImpl::verifyCredential(
     ParseContextForVerifyCredential(callbackId, cOptions, callback, options);
     sptr<AppAccountManagerCallback> appAccountMgrCb = new (std::nothrow) AppAccountManagerCallback(callback);
     if (appAccountMgrCb == nullptr) {
-        ACCOUNT_LOGE("Failed to create AppAccountManagerCallback for insufficient memory");
+        ACCOUNT_LOGE("failed to create AppAccountManagerCallback for insufficient memory");
         AAFwk::Want result;
         std::string value = std::string();
         callback.onResult(ERR_CJ_SYSTEM_SERVICE_EXCEPTION, Convert2CAuthResult(value, value, value, value));
@@ -650,7 +650,7 @@ CArrAppAccountInfo CJAppAccountImpl::Convert2CArrAppAccountInfo(const std::vecto
         res.head[i].name = MallocCString(name);
         i++;
     }
-    res.size = static_cast<int64_t>(i);
+    res.size = i;
     return res;
 }
 
@@ -672,7 +672,7 @@ CArrAppAccountInfo CJAppAccountImpl::Convert2CArrAppAccountInfo(
         tmp.name = MallocCString(names[i]);
         res.head[i] = tmp;
     }
-    res.size = static_cast<int64_t>(i);
+    res.size = i;
     return res;
 }
 
@@ -693,7 +693,7 @@ CArrAuthTokenInfo CJAppAccountImpl::Convert2CArrAuthTokenInfo(const std::vector<
         res.head[i].account.owner = MallocCString(std::string());
         res.head[i].account.name = MallocCString(std::string());
     }
-    res.size = static_cast<int64_t>(i);
+    res.size = i;
     return res;
 }
 
@@ -765,8 +765,8 @@ CAuthenticatorInfo CJAppAccountImpl::Convert2CAuthenticatorInfo(AuthenticatorInf
 {
     CAuthenticatorInfo cInfo{};
     cInfo.owner = MallocCString(in.owner);
-    cInfo.iconId = static_cast<int32_t>(in.iconId);
-    cInfo.labelId = static_cast<int32_t>(in.labelId);
+    cInfo.iconId = in.iconId;
+    cInfo.labelId = in.labelId;
     return cInfo;
 }
 
