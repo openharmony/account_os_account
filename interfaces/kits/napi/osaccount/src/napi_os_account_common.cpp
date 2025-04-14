@@ -518,23 +518,8 @@ bool ParseParaCreateOA(napi_env env, napi_callback_info cbInfo, CreateOAAsyncCon
                 AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
                 return false;
             }
-            bool hasDisallowedBundleNames = false;
-            napi_has_named_property(env, argv[PARAMTWO], "disallowedBundleNames", &hasDisallowedBundleNames);
-            if (hasDisallowedBundleNames) {
-                GetStringArrayPropertyByKey(env, argv[PARAMTWO], "disallowedBundleNames",
-                    asyncContext->disallowedHapList, true);
-            } else {
-                GetStringArrayPropertyByKey(env, argv[PARAMTWO], "disallowedPreinstalledBundles",
-                    asyncContext->disallowedHapList, true);
-            }
-            bool hasAllowedPreinstalledBundles = false;
-            napi_has_named_property(
-                env, argv[PARAMTWO], "allowedPreinstalledBundles", &hasAllowedPreinstalledBundles);
-            if (hasAllowedPreinstalledBundles) {
-                std::vector<std::string> list;
-                GetStringArrayPropertyByKey(env, argv[PARAMTWO], "allowedPreinstalledBundles", list, true);
-                asyncContext->allowedHapList = std::make_optional<std::vector<std::string>>(list);
-            }
+            GetStringArrayPropertyByKey(env, argv[PARAMTWO], "disallowedBundleNames",
+                asyncContext->disallowedHapList, true);
         }
     }
 
@@ -646,7 +631,6 @@ void CreateOAExecuteCB(napi_env env, void *data)
     CreateOsAccountOptions options;
     options.shortName = asyncContext->shortName;
     options.disallowedHapList = asyncContext->disallowedHapList;
-    options.allowedHapList = asyncContext->allowedHapList;
     options.hasShortName = asyncContext->hasShortName;
     asyncContext->errCode = OsAccountManager::CreateOsAccount(asyncContext->name, asyncContext->shortName,
         asyncContext->type, options, asyncContext->osAccountInfos);
