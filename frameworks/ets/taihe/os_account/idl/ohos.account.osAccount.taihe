@@ -20,10 +20,44 @@ use ohos.account.distributedAccount as distributedAccount;
 function getAccountManager(): AccountManager;
 
 interface AccountManager {
+    @gen_async("isMainOsAccount")
+    @gen_promise("isMainOsAccount")
+    taiheIsMainOsAccount():bool;
+
+    @gen_async("getOsAccountProfilePhoto")
+    @gen_promise("getOsAccountProfilePhoto")
+    taiheGetOsAccountProfilePhoto(localId: i32): String;
+
+    @gen_async("getOsAccountType")
+    getOsAccountType(): OsAccountType;
+
+    @gen_promise("getOsAccountType")
+    getOsAccountTypePromise(localId: Optional<i32>): OsAccountType;
+
+    @on_off("activate")
+    onActivate(name: String, callback: (id:i32) => void): void;
+    @on_off("activating")
+    onActivating(name: String, callback: (id:i32) => void): void;
+
+    @on_off("activate")
+    offActivate(name: String, callback: Optional<(id:i32) => void>): void;
+    @on_off("activating")
+    offActivating(name: String, callback: Optional<(id:i32) => void>): void;
+
+    @on_off("switching")
+    onSwitching(callback: (data:OsAccountSwitchEventData) => void): void;
+    @on_off("switched")
+    onSwitched(callback: (data:OsAccountSwitchEventData) => void): void;
+
+    @on_off("switching")
+    offSwitching(callback: Optional<(data:OsAccountSwitchEventData) => void>): void;
+    @on_off("switched")
+    offSwitched(callback: Optional<(data:OsAccountSwitchEventData) => void>): void;
+
     @gen_async("activateOsAccount")
     @gen_promise("activateOsAccount")
     activateOsAccountSync(localId: i32);
-    
+
     @gen_async("createOsAccount")
     createOsAccountSync(localName: String, type: OsAccountType): OsAccountInfo;
 
@@ -53,34 +87,6 @@ interface AccountManager {
     getOsAccountLocalIdForUidSync(uid: i32): i32;
 }
 
-@class
-interface UserIdentityManager {
-    addCredential(info: CredentialInfo, callback: IIdmCallback): void;
-    delUser(token: Array<u8>, callback: IIdmCallback);
-}
-
-enum AuthType: i32 {
-    PIN = 1,
-    FACE = 2,
-    FINGERPRINT = 4,
-    RECOVERY_KEY = 8,
-    DOMAIN = 1024
-}
-
-enum AuthSubType: i32 {
-    PIN_SIX = 10000,
-    PIN_NUMBER = 10001,
-    PIN_MIXED = 10002,
-    PIN_FOUR = 10003,
-    PIN_PATTERN = 10004,
-    FACE_2D = 20000,
-    FACE_3D = 20001,
-    FINGERPRINT_CAPACITIVE = 30000,
-    FINGERPRINT_OPTICAL = 30001,
-    FINGERPRINT_ULTRASONIC = 30002,
-    DOMAIN_MIXED = 10240001
-}
-
 struct CredentialInfo {
     credType: AuthType;
     credSubType: AuthSubType;
@@ -90,18 +96,6 @@ struct CredentialInfo {
 
 struct RequestResult {
     credentialId: Optional<Array<u8>>;
-}
-
-struct IIdmCallback {
-    onResult: (result: f64, extraInfo: RequestResult)=>void;
-    onAcquireInfo: Optional<(module: f64, acquire: f64, extraInfo: Array<u8>)=>void>;
-}
-
-enum OsAccountType: i32 {
-   ADMIN = 0,
-   NORMAL = 1,
-   GUEST = 2,
-   PRIVATE = 1024
 }
 
 struct DomainAccountInfo {
@@ -131,6 +125,159 @@ struct OsAccountInfo {
     domainInfo: DomainAccountInfo;
 }
 
+enum AuthSubType : i32 {
+    PIN_SIX = 10000,
+    PIN_NUMBER = 10001,
+    PIN_MIXED = 10002,
+    PIN_FOUR = 10003,
+    PIN_PATTERN = 10004,
+    PIN_QUESTION = 10005,
+    FACE_2D = 20000,
+    FACE_3D = 20001,
+    FINGERPRINT_CAPACITIVE = 30000,
+    FINGERPRINT_OPTICAL = 30001,
+    FINGERPRINT_ULTRASONIC = 30002,
+    DOMAIN_MIXED = 10240001
+}
+
+enum AuthType : u32 {
+    PIN = 1,
+    FACE = 2,
+    FINGERPRINT = 4,
+    RECOVERY_KEY = 8,
+    PRIVATE_PIN = 16,
+    DOMAIN = 1024
+}
+
+enum FingerprintTips : u8 {
+    FINGERPRINT_TIP_GOOD = 0,
+    FINGERPRINT_TIP_IMAGER_DIRTY = 1,
+    FINGERPRINT_TIP_INSUFFICIENT = 2,
+    FINGERPRINT_TIP_PARTIAL = 3,
+    FINGERPRINT_TIP_TOO_FAST = 4,
+    FINGERPRINT_TIP_TOO_SLOW = 5,
+    FINGERPRINT_TIP_FINGER_DOWN = 6,
+    FINGERPRINT_TIP_FINGER_UP = 7
+}
+
+enum ResultCode : u8 {
+    SUCCESS = 0,
+    FAIL = 1,
+    GENERAL_ERROR = 2,
+    CANCELED = 3,
+    TIMEOUT = 4,
+    TYPE_NOT_SUPPORT = 5,
+    TRUST_LEVEL_NOT_SUPPORT = 6,
+    BUSY = 7,
+    INVALID_PARAMETERS = 8,
+    LOCKED = 9,
+    NOT_ENROLLED = 10
+}
+
+enum GetPropertyType : u32 {
+    AUTH_SUB_TYPE = 1,
+    REMAIN_TIMES = 2,
+    FREEZING_TIME = 3,
+    ENROLLMENT_PROGRESS = 4,
+    SENSOR_INFO = 5,
+    NEXT_PHASE_FREEZING_TIME = 6
+}
+
+struct OsAccountSwitchEventData {
+    fromAccountId: i32;
+    toAccountId: i32;
+}
+
+enum OsAccountType : u32 {
+    ADMIN = 0,
+    NORMAL = 1,
+    GUEST = 2,
+    PRIVATE = 1024
+}
+
+struct GetInputDataOptions {
+    challenge: Optional<Array<u8>>;
+}
+
 struct CreateOsAccountOptions {
     shortName: String;
+    disallowedPreinstalledBundles: Optional<Array<String>>;
+    allowedPreinstalledBundles: Optional<Array<String>>;
 }
+
+struct GetAuthInfoOptions {
+    authType: Optional<AuthType>;
+    accountId: Optional<i32>;
+}
+
+struct AuthResult {
+    token: Optional<Array<u8>>;
+    remainTimes: Optional<i32>;
+    freezingTime: Optional<i32>;
+    nextPhaseFreezingTime: Optional<i32>;
+    credentialId: Optional<Array<u8>>;
+    accountId: Optional<i32>;
+    pinValidityPeriod: Optional<i64>;
+}
+
+struct IUserAuthCallback {
+    onResult: (result: i32, extraInfo: AuthResult) => void;
+    onAcquireInfo: Optional<(module: i32, acquire: u32, extraInfo: Array<u8>)=>void>;
+}
+
+struct IIdmCallback {
+    onResult: (result: i32, extraInfo: RequestResult) => void;
+    onAcquireInfo: Optional<(module: i32, acquire: u32, extraInfo: Array<u8>)=>void>;
+}
+
+struct IInputer {
+    onGetData: (authSubType: AuthSubType, callback: IInputData, options: GetInputDataOptions) => void;
+}
+
+interface IInputData {
+    GetSpecificImplPtr (): i64;
+    onSetDataInner(authSubType: AuthSubType, data: Array<u8>):void;
+    @!sts_inject("""
+     get onSetData: (authSubType: AuthSubType, data: Array<u8>)：voide =>{
+        return (authSubType: AuthSubType, data: Array<u8>)=>{
+            this.onSetDataInner(authSubType, data);
+        }
+     } ;
+    """)
+}
+
+
+@class
+interface UserIdentityManager {
+    @gen_async("openSession")
+    openSession(): Array<u8>;
+    @gen_promise("openSession")
+    openSessionPromise(accountId:Optional<i32>): Array<u8>;
+    addCredential(info: CredentialInfo, callback: IIdmCallback): void;
+    delUser(token: Array<u8>, callback: IIdmCallback);
+}
+
+@class
+interface UserAuth {
+}
+
+@class
+interface PINAuth {
+    registerInputer(inputer: IInputer): void;
+}
+
+@class
+interface InputerManager {
+}
+
+@static("InputerManager")
+function registerInputer(authType: AuthType, inputer: IInputer): void;
+
+@ctor("UserIdentityManager")
+function createUserIdentityManager(): UserIdentityManager;
+
+@ctor("UserAuth")
+function createUserAuth(): UserAuth;
+
+@ctor("PINAuth")
+function createPINAuth(): PINAuth;
