@@ -44,10 +44,38 @@ taihe_shared_library("os_account_taihe_native") {
   cflags_cc = [
     "-Wno-logical-op-parentheses",
     "-Wno-reorder",
+    "-w"
   ]
   include_dirs = [ "include" ]
   sources += [ "os_account/src/ohos.account.osAccount.impl.cpp" ]
   deps = [ ":osaccount_taihe" ]
+  deps += [
+    "${account_iam_kits_path}:account_iam_napi",
+    "${account_napi_common_path}:account_napi_common",
+    "${domain_account_napi_path}:domain_account_napi",
+    "${innerkits_native_path}:libaccountkits",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${account_iam_framework_path}:account_iam_innerkits",
+  ]
+
+  defines = [
+    "ACCOUNT_LOG_TAG = \"OsAccountJsKit\"",
+    "LOG_DOMAIN = 0xD001B00",
+  ]
+  external_deps = [
+    "access_token:libtokenid_sdk",
+    "c_utils:utils",
+    "ipc:ipc_single",
+    "hilog:libhilog",
+  ]
+  if (has_user_auth_part) {
+    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
+    external_deps += [ "user_auth_framework:userauth_client" ]
+  }
+  if (has_pin_auth_part) {
+    cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
+    external_deps += [ "pin_auth:pinauth_framework" ]
+  }
 }
 
 generate_static_abc("os_account_abc") {
@@ -56,6 +84,17 @@ generate_static_abc("os_account_abc") {
   is_boot_abc = "True"
   device_dst_file = "/system/framework/os_account_abc.abc"
   dependencies = [ ":osaccount_taihe" ]
+}
+
+generate_static_abc("os_account_abc_test") {
+    base_url = "${os_account_path}/frameworks/ets/taihe/test"
+    files = [
+        "${os_account_path}/frameworks/ets/taihe/test/test_main.ets",
+        "${os_account_path}/frameworks/ets/taihe/test/test_activate_os_account.ets",
+    ]
+    is_boot_abc = "True"
+    device_dst_file = "/system/framework/os_account_abc_test.abc"
+    dependencies = [ ":osaccount_taihe" ]
 }
 
 ohos_prebuilt_etc("os_account_etc") {
