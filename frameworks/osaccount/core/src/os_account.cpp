@@ -910,15 +910,6 @@ ErrCode OsAccount::GetOsAccountName(std::string &name)
     return proxy->GetOsAccountName(name);
 }
 
-ErrCode OsAccount::GetOsAccountNameById(int32_t id, std::string &name)
-{
-    auto proxy = GetOsAccountProxy();
-    if (proxy == nullptr) {
-        return ERR_ACCOUNT_COMMON_GET_PROXY;
-    }
-    return proxy->GetOsAccountNameById(id, name);
-}
-
 ErrCode OsAccount::GetOsAccountShortNameById(const int32_t id, std::string &shortName)
 {
     auto proxy = GetOsAccountProxy();

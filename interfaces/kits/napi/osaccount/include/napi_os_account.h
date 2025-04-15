@@ -78,7 +78,6 @@ struct CreateOAAsyncContext : public CommonAsyncContext {
     std::string name;
     std::string shortName;
     std::vector<std::string> disallowedHapList;
-    std::optional<std::vector<std::string>> allowedHapList = std::nullopt;
     OsAccountInfo osAccountInfos;
     bool hasShortName = false;
 };
