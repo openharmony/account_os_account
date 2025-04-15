@@ -145,9 +145,24 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0100, TestSize.Level0)
 {
     auto userAuthCallback = std::make_shared<AuthCallback>(
         TEST_USER_ID, AuthType::PIN, AccountSA::AuthIntent::DEFAULT, nullptr);
+    EXPECT_NE(userAuthCallback->callerTokenId_, 0);
+    auto userAuthCallback2 = std::make_shared<AuthCallback>(
+        TEST_USER_ID, AuthType::FINGERPRINT, AccountSA::AuthIntent::DEFAULT, nullptr);
+    EXPECT_EQ(userAuthCallback2->callerTokenId_, 0);
     EXPECT_TRUE(userAuthCallback->innerCallback_ == nullptr);
     Attributes extraInfo;
     userAuthCallback->OnResult(0, extraInfo);
+    sptr<AuthCallbackDeathRecipient> deathRecipient = new (std::nothrow) AuthCallbackDeathRecipient();
+    deathRecipient->OnRemoteDied(nullptr);
+    deathRecipient->contextId_ = 1;
+    deathRecipient->OnRemoteDied(nullptr);
+
+    auto userAuthCallback3 = std::make_shared<AuthCallback>(
+        TEST_USER_ID, AuthType::PIN, AccountSA::AuthIntent::DEFAULT, false, nullptr);
+    EXPECT_NE(userAuthCallback3->callerTokenId_, 0);
+    auto userAuthCallback4 = std::make_shared<AuthCallback>(
+        TEST_USER_ID, AuthType::FINGERPRINT, AccountSA::AuthIntent::DEFAULT, false, nullptr);
+    EXPECT_EQ(userAuthCallback4->callerTokenId_, 0);
 }
 
 /**

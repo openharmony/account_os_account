@@ -44,381 +44,10 @@ namespace {
     const int32_t TEST_USER_ID = 101;
     const int32_t UPDATE_USER_ID = 102;
     const int32_t UPDATE_FAIL_USER_ID = 103;
-    const int32_t TEST_OTHER_ID = 112;
-    const int32_t TEST_ID = 2222;
-    const int32_t ERROR_STORAGE_KEY_NOT_EXIST = -2;
     const std::vector<uint8_t> TEST_CHALLENGE = {1, 2, 3, 4};
     static bool g_fscryptEnable = false;
     const uid_t ACCOUNT_UID = 3058;
     const int32_t WAIT_TIME = 20;
-}
-
-class MockStorageMgrProxy : public StorageManager::IStorageManager {
-public:
-    MockStorageMgrProxy()
-    {}
-    ~MockStorageMgrProxy()
-    {}
-    int32_t UpdateUserAuth(uint32_t userId, uint64_t secureUid,
-                            const std::vector<uint8_t> &token,
-                            const std::vector<uint8_t> &oldSecret,
-                            const std::vector<uint8_t> &newSecret);
-
-    int32_t UpdateUseAuthWithRecoveryKey(const std::vector<uint8_t> &authToken,
-        const std::vector<uint8_t> &newSecret, uint64_t secureUid,
-        uint32_t userId, std::vector<std::vector<uint8_t>> &plainText)
-    {
-        return 0;
-    }
-
-    int32_t PrepareAddUser(int32_t userId, uint32_t flags)
-    {
-        return 0;
-    }
-
-    int32_t RemoveUser(int32_t userId, uint32_t flags)
-    {
-        return 0;
-    }
-
-    int32_t PrepareStartUser(int32_t userId)
-    {
-        return 0;
-    }
-
-    int32_t StopUser(int32_t userId)
-    {
-        return 0;
-    }
-
-    int32_t CompleteAddUser(int32_t userId)
-    {
-        return 0;
-    }
-
-    int32_t NotifyMtpMounted(const std::string &id, const std::string &path, const std::string &desc,
-                         const std::string &uuid)
-    {
-        return 0;
-    }
-
-    int32_t NotifyMtpUnmounted(const std::string &id, const std::string &path, const bool isBadRemove)
-    {
-        return 0;
-    }
-
-    int32_t GetFreeSizeOfVolume(std::string volumeUuid, int64_t &freeSize)
-    {
-        return 0;
-    }
-
-    int32_t GetTotalSizeOfVolume(std::string volumeUuid, int64_t &totalSize)
-    {
-        return 0;
-    }
-
-    int32_t GetBundleStats(std::string pkgName, BundleStats &bundleStats, int32_t appIndex, uint32_t statFlag)
-    {
-        return 0;
-    }
-
-    int32_t GetSystemSize(int64_t &systemSize)
-    {
-        return 0;
-    }
-
-    int32_t GetTotalSize(int64_t &totalSize)
-    {
-        return 0;
-    }
-
-    int32_t GetFreeSize(int64_t &freeSize)
-    {
-        return 0;
-    }
-
-    int32_t GetUserStorageStats(StorageStats &storageStats)
-    {
-        return 0;
-    }
-
-    int32_t GetUserStorageStats(int32_t userId, StorageStats &storageStats)
-    {
-        return 0;
-    }
-
-    int32_t GetUserStorageStatsByType(int32_t userId, StorageStats &storageStats, std::string type)
-    {
-        return 0;
-    }
-
-    int32_t GetCurrentBundleStats(BundleStats &bundleStats, uint32_t statFlag)
-    {
-        return 0;
-    }
-
-    int32_t NotifyVolumeCreated(VolumeCore vc)
-    {
-        return 0;
-    }
-
-    int32_t NotifyVolumeMounted(std::string volumeId, int fsType, std::string fsUuid,
-                            std::string path, std::string description)
-    {
-        return 0;
-    }
-
-    int32_t NotifyVolumeStateChanged(std::string volumeId, VolumeState state)
-    {
-        return 0;
-    }
-
-    int32_t Mount(std::string volumeId)
-    {
-        return 0;
-    }
-
-    int32_t Unmount(std::string volumeId)
-    {
-        return 0;
-    }
-
-    int32_t GetAllVolumes(std::vector<VolumeExternal> &vecOfVol)
-    {
-        return 0;
-    }
-
-    int32_t NotifyDiskCreated(Disk disk)
-    {
-        return 0;
-    }
-
-    int32_t NotifyDiskDestroyed(std::string diskId)
-    {
-        return 0;
-    }
-
-    int32_t Partition(std::string diskId, int32_t type)
-    {
-        return 0;
-    }
-
-    int32_t GetAllDisks(std::vector<Disk> &vecOfDisk)
-    {
-        return 0;
-    }
-
-    int32_t GetVolumeByUuid(std::string fsUuid, VolumeExternal &vc)
-    {
-        return 0;
-    }
-
-    int32_t GetVolumeById(std::string volumeId, VolumeExternal &vc)
-    {
-        return 0;
-    }
-
-    int32_t SetVolumeDescription(std::string fsUuid, std::string description)
-    {
-        return 0;
-    }
-
-    int32_t QueryUsbIsInUse(const std::string &diskPath, bool &isInUse)
-    {
-        return 0;
-    }
-
-    int32_t Format(std::string volumeId, std::string fsType)
-    {
-        return 0;
-    }
-
-    int32_t GetDiskById(std::string diskId, Disk &disk)
-    {
-        return 0;
-    }
-
-    int32_t GenerateUserKeys(uint32_t userId, uint32_t flags)
-    {
-        return 0;
-    }
-
-    int32_t DeleteUserKeys(uint32_t userId)
-    {
-        return 0;
-    }
-
-    int32_t ActiveUserKey(uint32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret)
-    {
-        if (userId == TEST_USER_ID) {
-            return 0;
-        }
-        if (userId == TEST_OTHER_ID) {
-            return ERROR_STORAGE_KEY_NOT_EXIST;
-        }
-        return -1;
-    }
-
-    int32_t InactiveUserKey(uint32_t userId)
-    {
-        return 0;
-    }
-
-    int32_t LockUserScreen(uint32_t userId)
-    {
-        return 0;
-    }
-
-    int32_t GetLockScreenStatus(uint32_t userId, bool &lockScreenStatus)
-    {
-        return 0;
-    }
-
-    int32_t GenerateAppkey(uint32_t hashId, uint32_t userId, std::string &keyId, bool needReset = false)
-    {
-        return 0;
-    }
-
-    int32_t DeleteAppkey(const std::string keyId)
-    {
-        return 0;
-    }
-
-    int32_t CreateRecoverKey(uint32_t userId,
-                             uint32_t userType,
-                             const std::vector<uint8_t> &token,
-                             const std::vector<uint8_t> &secret)
-    {
-        return 0;
-    }
-
-    int32_t SetRecoverKey(const std::vector<uint8_t> &key)
-    {
-        return 0;
-    }
-
-    int32_t ResetSecretWithRecoveryKey(uint32_t userId, uint32_t rkType, const std::vector<uint8_t> &key) override
-    {
-        return 0;
-    }
-
-    int32_t UnlockUserScreen(uint32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret)
-    {
-        return 0;
-    }
-
-    int32_t MountDfsDocs(int32_t userId, const std::string &relativePath,
-        const std::string &networkId, const std::string &deviceId)
-    {
-        return 0;
-    }
-
-    int32_t GetFileEncryptStatus(uint32_t userId, bool &isEncrypted, bool needCheckDirMount)
-    {
-        return 0;
-    }
-
-    int32_t UMountDfsDocs(int32_t userId, const std::string &relativePath,
-        const std::string &networkId, const std::string &deviceId)
-    {
-        return 0;
-    }
-
-    int32_t UpdateKeyContext(uint32_t userId, bool needRemoveTmpKey = false)
-    {
-        return g_fscryptEnable ? ERROR_STORAGE_KEY_NOT_EXIST : 0;
-    }
-
-    int32_t GetUserNeedActiveStatus(uint32_t userId, bool &needActive)
-    {
-        return 0;
-    }
-
-    std::vector<int32_t> CreateShareFile(const std::vector<std::string> &uriList, uint32_t tokenId, uint32_t flag)
-    {
-        return std::vector<int32_t>{0};
-    }
-
-    int32_t DeleteShareFile(uint32_t tokenId, const std::vector<std::string> &uriList)
-    {
-        return 0;
-    }
-
-    int32_t SetBundleQuota(const std::string &bundleName, int32_t uid, const std::string &bundleDataDirPath,
-        int32_t limitSizeMb)
-    {
-        return 0;
-    }
-
-    virtual int32_t UpdateMemoryPara(int32_t size, int32_t &oldSize)
-    {
-        return 0;
-    }
-
-    int32_t GetBundleStatsForIncrease(uint32_t userId, const std::vector<std::string> &bundleNames,
-        const std::vector<int64_t> &incrementalBackTimes, std::vector<int64_t> &pkgFileSizes,
-        std::vector<int64_t> &incPkgFileSizes)
-    {
-        return 0;
-    }
-
-    int32_t MountMediaFuse(int32_t userId, int32_t &devFd)
-    {
-        return 0;
-    }
-
-    int32_t UMountMediaFuse(int32_t userId)
-    {
-        return 0;
-    }
-
-    int32_t MountFileMgrFuse(int32_t userId, const std::string &path, int32_t &fuseFd)
-    {
-        return 0;
-    }
-
-    int32_t UMountFileMgrFuse(int32_t userId, const std::string &path)
-    {
-        return 0;
-    }
-
-    int32_t IsFileOccupied(const std::string &path, const std::vector<std::string> &inputList,
-        std::vector<std::string> &outputList, bool &isOccupy)
-    {
-        return 0;
-    }
-
-    sptr<IRemoteObject> AsObject()
-    {
-        return nullptr;
-    }
-};
-
-int32_t MockStorageMgrProxy::UpdateUserAuth(uint32_t userId, uint64_t secureUid,
-                                            const std::vector<uint8_t> &token,
-                                            const std::vector<uint8_t> &oldSecret,
-                                            const std::vector<uint8_t> &newSecret)
-{
-    const uint32_t dataSize = 4;
-    if (userId == UPDATE_USER_ID) {
-        return 0;
-    }
-    if (userId == UPDATE_FAIL_USER_ID) {
-        return -1;
-    }
-    if (!g_fscryptEnable) {
-        return 0;
-    }
-    if (newSecret.size() == dataSize || userId == TEST_OTHER_ID) {
-        return g_fscryptEnable ? ERROR_STORAGE_KEY_NOT_EXIST : 0;
-    }
-    if (userId == TEST_ID) {
-        if (token.size() != dataSize) {
-            return ERROR_STORAGE_KEY_NOT_EXIST;
-        }
-    }
-    std::cout << "mock UpdateUserAuth enter" << std::endl;
-    return 0;
 }
 
 class MockDeathRecipient : public IRemoteObject {
@@ -804,6 +433,63 @@ HWTEST_F(AccountIamManagerTest, ActivateUserKey001, TestSize.Level2)
     // userid is out of range
     userId = 11112;
     EXPECT_NE(ERR_OK, innerIamMgr_.ActivateUserKey(userId, testAuthToken, testSecret));
+}
+
+/**
+ * @tc.name: GetLockScreenStatus001
+ * @tc.desc: GetLockScreenStatus coverage test.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamManagerTest, GetLockScreenStatus001, TestSize.Level3)
+{
+    auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
+
+    bool getLockStatus = false;
+    EXPECT_EQ(ERR_OK, innerIamMgr_.GetLockScreenStatus(100, getLockStatus));
+}
+
+/**
+ * @tc.name: UnlockUserScreen001
+ * @tc.desc: UnlockUserScreen coverage test.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamManagerTest, UnlockUserScreen001, TestSize.Level3)
+{
+    std::vector<uint8_t> testAuthToken = {1, 2, 3, 4};
+    std::vector<uint8_t> testSecret = {1, 2, 3, 4};
+
+    auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
+
+    EXPECT_EQ(ERR_OK, innerIamMgr_.UnlockUserScreen(100, testAuthToken, testSecret));
+}
+
+/**
+ * @tc.name: PrepareStartUser001
+ * @tc.desc: PrepareStartUser coverage test.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamManagerTest, PrepareStartUser001, TestSize.Level3)
+{
+    auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
+
+    EXPECT_EQ(ERR_OK, innerIamMgr_.PrepareStartUser(100));
+}
+
+/**
+ * @tc.name: CheckNeedReactivateUserKey001
+ * @tc.desc: CheckNeedReactivateUserKey coverage test.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamManagerTest, CheckNeedReactivateUserKey001, TestSize.Level3)
+{
+    auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
+
+    bool isNeedReactivateUserKey = false;
+    EXPECT_EQ(ERR_OK, innerIamMgr_.CheckNeedReactivateUserKey(100, isNeedReactivateUserKey));
 }
 
 /**

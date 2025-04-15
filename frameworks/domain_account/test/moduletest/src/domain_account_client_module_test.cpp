@@ -233,6 +233,9 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Plugin_005
     ASSERT_TRUE(MockTokenId("accountmgr"));
     ASSERT_EQ(DomainAccountClient::GetInstance().UnregisterPlugin(), ERR_OK);
     ASSERT_EQ(DomainAccountClient::GetInstance().RegisterPlugin(g_plugin), ERR_OK);
+    setuid(TEST_UID);
+    ASSERT_EQ(DomainAccountClient::GetInstance().UnregisterPlugin(), ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    setuid(ROOT_UID);
     SetSelfTokenID(selfTokenId);
 }
 
