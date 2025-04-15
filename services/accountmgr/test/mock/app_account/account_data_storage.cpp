@@ -189,7 +189,7 @@ public:
 
 ErrCode AccountDataStorage::GetAccountInfoById(const std::string id, IAccountInfo &iAccountInfo)
 {
-    ACCOUNT_LOGI("mock enter");
+    ACCOUNT_LOGI("mock enter,id = %{public}s", id.c_str());
     if (id != "com.example.ownermax#0#name#") {
         AccountInfoMOCK appAccountInfo("name", "key");
         appAccountInfo.SetOAuthToken("test_authType1", "test_authToken1");
@@ -226,7 +226,7 @@ ErrCode AccountDataStorage::PutValueToKvStore(const std::string &keyStr, const s
 ErrCode AccountDataStorage::GetValueFromKvStore(const std::string &keyStr, std::string &valueStr)
 {
     ACCOUNT_LOGI("mock enter");
-    valueStr = "aaaaa";
+    valueStr = "{\"name\":[\"com.example.ownermax#0#name#\", \"bbbbb\"]}";
     return ERR_OK;
 }
 

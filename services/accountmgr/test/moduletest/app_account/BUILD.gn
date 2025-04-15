@@ -521,6 +521,11 @@ ohos_moduletest("app_account_control_manager_module_test") {
   if (os_account_distributed_feature) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
   }
+
+  if (has_asset_part) {
+    external_deps += [ "asset:asset_sdk" ]
+    cflags_cc += [ "-DHAS_ASSET_PART" ]
+  }
 }
 
 ohos_moduletest("app_account_authenticator_session_module_test") {
@@ -728,6 +733,11 @@ ohos_moduletest("app_account_manager_service_module_test") {
 
   if (os_account_distributed_feature) {
     cflags += [ "-DDISTRIBUTED_FEATURE_ENABLED" ]
+  }
+
+  if (has_asset_part) {
+    external_deps += [ "asset:asset_sdk" ]
+    cflags_cc += [ "-DHAS_ASSET_PART" ]
   }
 }
 

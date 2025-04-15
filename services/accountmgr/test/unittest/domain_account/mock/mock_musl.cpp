@@ -26,6 +26,10 @@ static const char* RIGHT_SO = "right.z.so";
 static const char* RIGHT_ALL = "/rightPath/right.z.so";
 static int g_a = 1;
 static void* g_ptr = &g_a;
+static int g_addServerConfig = 0;
+const char PARAM_CONTENT_ONE = '1';
+const int32_t SERVER_CONFIG_CASE_ONE = 1;
+const int32_t SERVER_CONFIG_CASE_TWO = 2;
 
 int dlclose(void *handler)
 {
@@ -68,6 +72,11 @@ PluginBussnessError* AddServerConfig(const PluginString *parameters, const int32
     }
     error->code = 0;
     error->msg.data = nullptr;
+    *serverConfigInfo = nullptr;
+    if (parameters == nullptr || parameters->data == nullptr) {
+        return error;
+    }
+    g_addServerConfig = *(parameters->data) == PARAM_CONTENT_ONE ? SERVER_CONFIG_CASE_ONE : SERVER_CONFIG_CASE_TWO;
     return error;
 }
 
@@ -79,6 +88,9 @@ PluginBussnessError* RemoveServerConfig(const PluginString *serverConfigId, cons
     }
     error->code = 0;
     error->msg.data = nullptr;
+    if (serverConfigId != nullptr && serverConfigId->data != nullptr && *(serverConfigId->data) == PARAM_CONTENT_ONE) {
+        g_addServerConfig = 0;
+    }
     return error;
 }
 
@@ -106,22 +118,42 @@ PluginBussnessError* GetServerConfig(const PluginString *serverConfigId, const i
     return error;
 }
 
+static void AddServerConfigToList(PluginServerConfigInfoList **serverConfigInfoList)
+{
+    PluginServerConfigInfo *item = (PluginServerConfigInfo *)malloc(sizeof(PluginServerConfigInfo));
+    if (item == nullptr) {
+        return;
+    }
+    item->id.data = nullptr;
+    item->domain.data = nullptr;
+    item->parameters.data = nullptr;
+    (*serverConfigInfoList)->items = item; //GetServerConfigList return serverConfigInfoList size is 1
+    (*serverConfigInfoList)->size = 1;
+}
+
 PluginBussnessError* GetServerConfigList(PluginServerConfigInfoList **serverConfigInfoList)
 {
-    PluginServerConfigInfoList *list = (PluginServerConfigInfoList *)malloc(sizeof(PluginServerConfigInfoList));
-    if (list == nullptr) {
-        return nullptr;
-    }
-    list->items = nullptr;
-    list->size = 0;
-    *serverConfigInfoList = list;
     PluginBussnessError* error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
     if (error == nullptr) {
-        free(list);
         return nullptr;
     }
     error->code = 0;
     error->msg.data = nullptr;
+    if (g_addServerConfig == 0) {
+        return error;
+    }
+    PluginServerConfigInfoList *list = (PluginServerConfigInfoList *)malloc(sizeof(PluginServerConfigInfoList));
+    if (list == nullptr) {  //GetServerConfigList return serverConfigInfoList is nullptr
+        return error;
+    }
+    if (g_addServerConfig == SERVER_CONFIG_CASE_ONE) {
+        list->items = nullptr; // GetServerConfigList return serverConfigInfoList ,items is nullptr
+        list->size = 0;
+    }
+    if (g_addServerConfig == SERVER_CONFIG_CASE_TWO) {
+        AddServerConfigToList(&list);
+    }
+    *serverConfigInfoList = list;
     return error;
 }
 
@@ -240,7 +272,8 @@ PluginBussnessError* IsAccountTokenValid(const PluginDomainAccountInfo *domainAc
         return nullptr;
     }
     error->code = 0;
-    error->msg.data = nullptr;
+    error->msg.data = strdup(RIGHT_SO);
+    error->msg.length = strlen(RIGHT_SO);
     return error;
 }
 
