@@ -47,7 +47,6 @@ const char IS_DATA_REMOVABLE[] = "isDataRemovable";
 const char CREATOR_TYPE[] = "creatorType";
 const char DOMAIN_ACCOUNT_STATUS[] = "domainAccountStatus";
 const char DOMAIN_ACCOUNT_CONFIG[] = "domainServerConfigId";
-constexpr int32_t ALLOWED_HAP_LIST_MAX_SIZE = 1000;
 }  // namespace
 
 OsAccountInfo::OsAccountInfo()
@@ -456,26 +455,6 @@ ErrCode OsAccountInfo::ParamCheck()
 
 bool CreateOsAccountOptions::Marshalling(Parcel &parcel) const
 {
-    if (allowedHapList.has_value()) {
-        if (!parcel.WriteBool(true)) {
-            ACCOUNT_LOGE("Write has value failed.");
-            return false;
-        }
-        std::vector<std::string> list = allowedHapList.value();
-        if (list.size() > ALLOWED_HAP_LIST_MAX_SIZE) {
-            ACCOUNT_LOGE("Abnormal allowedHapList data size, size %{public}zu", list.size());
-            return false;
-        }
-        if (!parcel.WriteStringVector(list)) {
-            ACCOUNT_LOGE("Write allowedHapList failed.");
-            return false;
-        }
-    } else {
-        if (!parcel.WriteBool(false)) {
-            ACCOUNT_LOGE("Write has not value failed.");
-            return false;
-        }
-    }
     return parcel.WriteStringVector(disallowedHapList) && parcel.WriteBool(hasShortName);
 }
 
@@ -492,23 +471,6 @@ CreateOsAccountOptions *CreateOsAccountOptions::Unmarshalling(Parcel &parcel)
 
 bool CreateOsAccountOptions::ReadFromParcel(Parcel &parcel)
 {
-    bool hasValue = false;
-    if (!parcel.ReadBool(hasValue)) {
-        ACCOUNT_LOGE("Read has value failed.");
-        return false;
-    }
-    if (hasValue) {
-        std::vector<std::string> list = {};
-        if (!parcel.ReadStringVector(&list)) {
-            ACCOUNT_LOGE("Read allowedHapList failed.");
-            return false;
-        }
-        if (list.size() > ALLOWED_HAP_LIST_MAX_SIZE) {
-            ACCOUNT_LOGE("Abnormal allowedHapList data size reading form parcel, size %{public}zu", list.size());
-            return false;
-        }
-        allowedHapList = std::make_optional<std::vector<std::string>>(list);
-    }
     return parcel.ReadStringVector(&disallowedHapList) && parcel.ReadBool(hasShortName);
 }
 }  // namespace AccountSA

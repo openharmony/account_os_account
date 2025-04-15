@@ -34,8 +34,7 @@ public:
     static BundleManagerAdapter* GetInstance();
 
     ErrCode GetNameForUid(const int uid, std::string &bundleName);
-    ErrCode CreateNewUser(int32_t userId, const std::vector<std::string> &disallowedHapList = {},
-        const std::optional<std::vector<std::string>> &allowedHapList = std::nullopt);
+    ErrCode CreateNewUser(int32_t userId, const std::vector<std::string> &disallowedHapList = {});
     ErrCode RemoveUser(int32_t userId);
     bool GetBundleInfo(const std::string &bundleName, const AppExecFwk::BundleFlag flag,
         AppExecFwk::BundleInfo &bundleInfo, int32_t userId);

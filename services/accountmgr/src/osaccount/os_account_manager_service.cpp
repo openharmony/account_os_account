@@ -1134,20 +1134,6 @@ ErrCode OsAccountManagerService::GetOsAccountName(std::string &name)
     return ERR_OK;
 }
 
-ErrCode OsAccountManagerService::GetOsAccountNameById(int32_t id, std::string &name)
-{
-    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "") && !PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
-        ACCOUNT_LOGE("Check permission failed.");
-        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
-    }
-    ErrCode errCode = innerManager_.GetOsAccountName(id, name);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Failed get account name, errCode=%{public}d, id=%{public}d", errCode, id);
-        return errCode;
-    }
-    return ERR_OK;
-}
-
 ErrCode OsAccountManagerService::GetOsAccountShortNameById(const int32_t id, std::string &shortName)
 {
     if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
