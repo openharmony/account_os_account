@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -953,6 +953,10 @@ ErrCode OsAccountControlFileManager::UpdateAccountIndex(const OsAccountInfo &osA
     }
     std::string localIdStr = std::to_string(osAccountInfo.GetLocalId());
     if (isDelete) {
+        if (!accountIndexJson.is_object()) {
+            ACCOUNT_LOGE("Get os account index json data failed");
+            return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
+        }
         accountIndexJson.erase(localIdStr);
     } else {
         Json accountBaseInfo;
@@ -1005,6 +1009,10 @@ ErrCode OsAccountControlFileManager::RemoveAccountIndex(const int32_t id)
         return result;
     }
     std::string localIdStr = std::to_string(id);
+    if (!accountIndexJson.is_object()) {
+        ACCOUNT_LOGE("Get os account index data failed");
+        return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
+    }
     accountIndexJson.erase(localIdStr);
     std::string lastAccountIndexStr = accountIndexJson.dump();
     result = accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_INDEX_JSON_PATH, lastAccountIndexStr);

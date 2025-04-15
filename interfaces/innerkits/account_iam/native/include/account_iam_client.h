@@ -192,7 +192,7 @@ public:
      * @param userId - Indicates the user identification.
      * @param request - Indicates the request information, including authentication type, and property type list.
      * @param callback - Indicates the callback for getting an executor property.
-     * @return error code, see account_error_no.h
+     * @return void. callback result error code, see account_error_no.h
      */
     void GetProperty(
         int32_t userId, const GetPropertyRequest &request, const std::shared_ptr<GetSetPropCallback> &callback);
@@ -214,7 +214,7 @@ public:
      * @param userId - Indicates the user identification.
      * @param request - Indicates the request information, including authentication type and the key-value to be set.
      * @param callback - Indicates the callback for getting result.
-     * @return error code, see account_error_no.h
+     * @return void. callback result error code, see account_error_no.h
      */
     void SetProperty(
         int32_t userId, const SetPropertyRequest &request, const std::shared_ptr<GetSetPropCallback> &callback);
@@ -225,7 +225,7 @@ public:
      * @param accountId - Indicates the user identification.
      * @param authType - Indicates the credential type.
      * @param callback - Indicates the callback for getting result.
-     * @return error code, see account_error_no.h
+     * @return void. callback result error code, see account_error_no.h
      */
     void GetEnrolledId(int32_t accountId, AuthType authType, const std::shared_ptr<GetEnrolledIdCallback> &callback);
 
