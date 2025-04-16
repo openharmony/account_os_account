@@ -204,3 +204,133 @@ HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_GetAllOAut
     ASSERT_EQ(result, ERR_OK);
     EXPECT_EQ(tokenInfos.size(), 1);
 }
+
+#ifndef SQLITE_DLCLOSE_ENABLE
+/**
+ * @tc.name: AppAccountControlManager_MoveData_0100
+ * @tc.desc: MoveData abnormal branch.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_MoveData_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountControlManager_MoveData_0100");
+    AppAccountControlManager::GetInstance().migratedAccounts_.insert(111);
+    EXPECT_EQ(AppAccountControlManager::GetInstance().migratedAccounts_.empty(), false);
+    AppAccountControlManager::GetInstance().MoveData();
+    EXPECT_EQ(AppAccountControlManager::GetInstance().migratedAccounts_.empty(), true);
+    AppAccountControlManager::GetInstance().MoveData();
+}
+#endif // SQLITE_DLCLOSE_ENABLE
+
+/**
+ * @tc.name: AppAccountControlManager_DeleteOAuthToken_0100
+ * @tc.desc: DeleteOAuthToken abnormal branch.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_DeleteOAuthToken_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountControlManager_DeleteOAuthToken_0100");
+    AuthenticatorSessionRequest request = {
+        .name = "name",
+        .owner = "com.example.ownermax"
+    };
+    
+    ErrCode result = AppAccountControlManager::GetInstance().DeleteOAuthToken(request, 8);
+    EXPECT_EQ(ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST, result);
+}
+
+/**
+ * @tc.name: AppAccountControlManager_DeleteOAuthToken_0200
+ * @tc.desc: DeleteOAuthToken abnormal branch.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_DeleteOAuthToken_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountControlManager_DeleteOAuthToken_0200");
+    AuthenticatorSessionRequest request = {
+        .name = "invalidAppName",
+    };
+    ErrCode result = AppAccountControlManager::GetInstance().DeleteOAuthToken(request, 8);
+    EXPECT_EQ(ERR_OK, result);
+}
+
+/**
+ * @tc.name: AppAccountControlManager_DeleteOAuthToken_0300
+ * @tc.desc: DeleteOAuthToken abnormal branch.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_DeleteOAuthToken_0300, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountControlManager_DeleteOAuthToken_0300");
+    AuthenticatorSessionRequest request = {
+        .name = "invalidAppName",
+    };
+    ErrCode result = AppAccountControlManager::GetInstance().DeleteOAuthToken(request, 11);
+    EXPECT_EQ(ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST, result);
+}
+
+/**
+ * @tc.name: AppAccountControlManager_DeleteOAuthToken_0400
+ * @tc.desc: DeleteOAuthToken abnormal branch.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_DeleteOAuthToken_0400, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountControlManager_DeleteOAuthToken_0400");
+    AuthenticatorSessionRequest request = {
+        .name = "invalidAppName",
+        .callerBundleName = "invalidcallerBundleName",
+        .authType = "invalidauthType"
+    };
+    ErrCode result = AppAccountControlManager::GetInstance().DeleteOAuthToken(request, 10);
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED, result);
+}
+
+/**
+ * @tc.name: AppAccountControlManager_GetAllAccounts_0100
+ * @tc.desc: GetAllAccounts GetAccountInfoById failed.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_GetAllAccounts_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountControlManager_GetAllAccounts_0100");
+    uid_t tddUid = getuid();
+    setuid(20000000);
+    std::string owner = "com.example.ownermax";
+    std::vector<AppAccountInfo> appAccounts;
+    uid_t uid = 12345;
+    std::string bundleName = "name";
+    uint32_t appIndex = 0;
+    ErrCode result = AppAccountControlManager::GetInstance().GetAllAccounts(
+        owner, appAccounts, uid, bundleName, appIndex);
+    EXPECT_EQ(ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID, result);
+    setuid(tddUid);
+}
+
+/**
+ * @tc.name: AppAccountControlManager_GetAllAccounts_0200
+ * @tc.desc: GetAllAccounts GetAccountInfoById ok, appAccountInfo.GetOwner() == owner failed.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_GetAllAccounts_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountControlManager_GetAllAccounts_0200");
+    uid_t tddUid = getuid();
+    setuid(20000000);
+    std::string owner = "owner";
+    std::vector<AppAccountInfo> appAccounts;
+    uid_t uid = 12345;
+    std::string bundleName = "bundleName";
+    uint32_t appIndex = 0;
+    ErrCode result = AppAccountControlManager::GetInstance().GetAllAccounts(
+        owner, appAccounts, uid, bundleName, appIndex);
+    EXPECT_EQ(ERR_OK, result);
+    setuid(tddUid);
+}

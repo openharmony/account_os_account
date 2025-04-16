@@ -48,6 +48,7 @@ const int32_t WAIT_TIME = 20;
 const std::vector<uint8_t> TEST_TOKEN = {0};
 const std::vector<uint8_t> TEST_PASSWORD = {0};
 std::shared_ptr<MockDomainPlugin> g_plugin = std::make_shared<MockDomainPlugin>();
+const int32_t TEST_UID = 20029999;
 }  // namespace
 
 class DomainAccountManagerInnerServiceTest : public testing::Test {
@@ -670,6 +671,30 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     EXPECT_EQ(instance->PluginAuthToken(info, password, resultParcel), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->PluginGetAuthStatusInfo(info, authInfo), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->PluginGetDomainAccountInfo(options, info), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+}
+
+/**
+ * @tc.name: GetAllServerConfigs001
+ * @tc.desc: test GetAllServerConfigs branches which after the dlsym interface call returns.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountManagerInnerServiceTest, GetAllServerConfigs001, TestSize.Level3)
+{
+    InnerDomainAccountManager *instance = new (std::nothrow) InnerDomainAccountManager();
+    std::vector<DomainServerConfig> configs;
+    std::string rightPath = "/rightPath/";
+    std::string rightSoName = "right.z.so";
+    instance->LoaderLib(rightPath, rightSoName);
+    setuid(TEST_UID);
+    EXPECT_EQ(instance->GetAllServerConfigs(configs), ERR_OK);
+    DomainServerConfig config;
+    EXPECT_EQ(instance->AddServerConfig("1", config), ERR_OK);
+    EXPECT_EQ(instance->GetAllServerConfigs(configs), ERR_OK);
+    EXPECT_EQ(instance->AddServerConfig("2", config), ERR_OK);
+    EXPECT_EQ(instance->GetAllServerConfigs(configs), ERR_OK);
+    EXPECT_EQ(instance->RemoveServerConfig("1"), ERR_OK);
+    setuid(0);
 }
 }  // namespace AccountSA
 }  // namespace OHOS
