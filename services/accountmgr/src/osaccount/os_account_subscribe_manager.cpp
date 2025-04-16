@@ -16,6 +16,7 @@
 #include "os_account_subscribe_manager.h"
 #include <pthread.h>
 #include <thread>
+#include "account_constants.h"
 #include "account_hisysevent_adapter.h"
 #include "account_log_wrapper.h"
 #include "ipc_skeleton.h"
@@ -247,9 +248,15 @@ bool OsAccountSubscribeManager::OnStateChanged(
             "fromId=%{public}d, toId=%{public}d, withHandshake=%{public}d",
             stateParcel.state, targetUid, stateParcel.fromId, stateParcel.toId, stateParcel.callback != nullptr);
         ErrCode errCode =  eventProxy->OnStateChanged(stateParcel);
-        ACCOUNT_LOGI("Publish end, state=%{public}d to uid=%{public}d asynch, "
+        ACCOUNT_LOGI("Publish end, state=%{public}d to uid=%{public}d async, "
             "fromId=%{public}d, toId=%{public}d, withHandshake=%{public}d, result=%{public}d", stateParcel.state,
             targetUid, stateParcel.fromId, stateParcel.toId, stateParcel.callback != nullptr, errCode);
+        if (errCode != ERR_OK) {
+            REPORT_OS_ACCOUNT_FAIL(stateParcel.toId, Constants::OPERATION_EVENT_PUBLISH, errCode,
+                "Send OnStateChanged failed, state=" +std::to_string(stateParcel.state) +
+                ", targetUid=" + std::to_string(targetUid) + ", fromId=" + std::to_string(stateParcel.fromId) +
+                ", toId=" + std::to_string(stateParcel.toId));
+        }
         auto callback = iface_cast<OsAccountStateReplyCallbackStub>(stateParcel.callback);
         if (callback == nullptr) {
             return;
@@ -258,12 +265,6 @@ bool OsAccountSubscribeManager::OnStateChanged(
         callback->SetStartTime(startTime);
         if (errCode != ERR_OK) {
             callback->OnComplete();
-            ACCOUNT_LOGE("Failed to publish state: %{public}d to %{public}d, id: %{public}d",
-                stateParcel.state, targetUid, stateParcel.fromId);
-            REPORT_OS_ACCOUNT_FAIL(stateParcel.toId, Constants::OPERATION_EVENT_PUBLISH, errCode,
-                "Send OnStateChanged failed, state=" +std::to_string(stateParcel.state) +
-                ", targetUid=" + std::to_string(targetUid) + ", fromId=" + std::to_string(stateParcel.fromId) +
-                ", toId=" + std::to_string(stateParcel.toId));
         }
     };
     std::thread taskThread(task);

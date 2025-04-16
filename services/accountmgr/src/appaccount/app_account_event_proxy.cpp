@@ -15,7 +15,10 @@
 
 #include "app_account_event_proxy.h"
 
+#include <thread>
+#include "account_constants.h"
 #include "account_error_no.h"
+#include "account_hisysevent_adapter.h"
 #include "account_log_wrapper.h"
 
 namespace OHOS {
@@ -44,6 +47,8 @@ void AppAccountEventProxy::OnAccountsChanged(const std::vector<AppAccountInfo> &
     ErrCode result = SendRequest(AppAccountEventInterfaceCode::ACCOUNT_CHANGED, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest failed! error code %{public}d.", result);
+        REPORT_APP_ACCOUNT_FAIL("", "", Constants::OPERATION_EVENT_PUBLISH,
+            result, "Send OnAccountsChanged failed.");
         return;
     }
 }
@@ -55,14 +60,23 @@ ErrCode AppAccountEventProxy::SendRequest(AppAccountEventInterfaceCode code, Mes
         ACCOUNT_LOGE("remote is nullptr, code = %{public}d", code);
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
-
+    int32_t retryTimes = 0;
+    int32_t result;
     MessageOption option(MessageOption::TF_SYNC);
-    int32_t result = remoteEvent->SendRequest(static_cast<uint32_t>(code), data, reply, option);
+    while (retryTimes < Constants::MAX_RETRY_TIMES) {
+        result = remoteEvent->SendRequest(static_cast<uint32_t>(code), data, reply, option);
+        if (result == ERR_OK || (result != Constants::E_IPC_ERROR &&
+            result != Constants::E_IPC_SA_DIED)) {
+            break;
+        }
+        retryTimes++;
+        ACCOUNT_LOGE("Failed to SendRequest, code = %{public}d, retryTimes = %{public}d",
+            result, retryTimes);
+        std::this_thread::sleep_for(std::chrono::milliseconds(Constants::DELAY_FOR_EXCEPTION));
+    }
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to SendRequest, code = %{public}d, result = %{public}d", code, result);
         return ERR_APPACCOUNT_KIT_SEND_REQUEST;
     }
-
     return ERR_OK;
 }
 

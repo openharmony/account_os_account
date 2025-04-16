@@ -13,11 +13,12 @@
  * limitations under the License.
  */
 
+#include "os_account_event_proxy.h"
+#include <thread>
+#include "account_constants.h"
 #include "account_log_wrapper.h"
-
 #include "account_hisysevent_adapter.h"
 #include "os_account_constants.h"
-#include "os_account_event_proxy.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -107,11 +108,19 @@ ErrCode OsAccountEventProxy::SendRequest(OsAccountEventInterfaceCode code, Messa
         ACCOUNT_LOGE("remote is nullptr, code = %{public}d", code);
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
-
+    int32_t retryTimes = 0;
+    int32_t result;
     MessageOption option(MessageOption::TF_SYNC);
-    int32_t result = remote->SendRequest(static_cast<uint32_t>(code), data, reply, option);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to send os account event request, code = %{public}d, result = %{public}d", code, result);
+    while (retryTimes < Constants::MAX_RETRY_TIMES) {
+        result = remote->SendRequest(static_cast<uint32_t>(code), data, reply, option);
+        if (result == ERR_OK || (result != Constants::E_IPC_ERROR &&
+            result != Constants::E_IPC_SA_DIED)) {
+            break;
+        }
+        retryTimes++;
+        ACCOUNT_LOGE("Failed to send the OS account event, reqCode: %{public}d, retryTimes: %{public}d",
+            result, retryTimes);
+        std::this_thread::sleep_for(std::chrono::milliseconds(Constants::DELAY_FOR_EXCEPTION));
     }
     return result;
 }

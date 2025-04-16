@@ -19,6 +19,7 @@
 #include <thread>
 
 #include "ability_manager_adapter.h"
+#include "account_constants.h"
 #include "account_log_wrapper.h"
 #include "bundle_manager_adapter.h"
 #ifdef HAS_CES_PART
