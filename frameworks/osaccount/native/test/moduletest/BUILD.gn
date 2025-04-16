@@ -78,6 +78,7 @@ ohos_moduletest("os_account_frameworks_module_test") {
     "samgr:samgr_proxy",
   ]
   cflags_cc = []
+  cflags_cc += [ "-DSCENE_USE_CASE" ]
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
   }
