@@ -246,6 +246,14 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo, int32_t acco
     }
     ErrCode ret = UnlockAccount(accountId, token, secret, isUpdateVerifiedStatus);
     if (ret != ERR_OK) {
+        int32_t remainTimes = 0;
+        int32_t freezingTime = 0;
+        extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, remainTimes);
+        extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, freezingTime);
+        Attributes errInfo;
+        errInfo.SetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, remainTimes);
+        errInfo.SetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, freezingTime);
+        innerCallback_->OnResult(ResultCode::FAIL, errInfo);
         return ret;
     }
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
@@ -292,16 +300,14 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         ACCOUNT_LOGI("Remote auth");
         return innerCallback_->OnResult(result, extraInfo);
     }
+    bool isDeactivating = false;
+    IInnerOsAccountManager::GetInstance().IsOsAccountDeactivating(authedAccountId, isDeactivating);
+    if (isDeactivating) {
+        ACCOUNT_LOGW("The target account is deactivating, accountId:%{public}d", authedAccountId);
+        return innerCallback_->OnResult(result, extraInfo);
+    }
     bool isUpdateVerifiedStatus = false;
     if (HandleAuthResult(extraInfo, authedAccountId, isUpdateVerifiedStatus) != ERR_OK) {
-        int32_t remainTimes = 0;
-        int32_t freezingTime = 0;
-        extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, remainTimes);
-        extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, freezingTime);
-        Attributes errInfo;
-        errInfo.SetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, remainTimes);
-        errInfo.SetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, freezingTime);
-        innerCallback_->OnResult(ResultCode::FAIL, errInfo);
         return AccountInfoReport::ReportSecurityInfo("", authedAccountId, ReportEvent::EVENT_LOGIN, ResultCode::FAIL);
     }
     innerCallback_->OnResult(result, extraInfo);
