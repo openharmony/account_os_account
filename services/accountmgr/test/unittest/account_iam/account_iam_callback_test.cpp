@@ -17,6 +17,8 @@
 #include "accesstoken_kit.h"
 #define private public
 #include "account_iam_callback.h"
+#include "iinner_os_account_manager.h"
+#include "os_account_info.h"
 #undef private
 #include "account_iam_callback_stub.h"
 #include "account_iam_client.h"
@@ -187,6 +189,44 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0200, TestSize.Level0)
     userAuthCallback->OnResult(errCode, extraInfo);
     EXPECT_EQ(errCode, callback->result_);
     SetSelfTokenID(g_accountMgrTokenID);
+}
+
+/**
+ * @tc.name: AuthCallback_OnResult_0201
+ * @tc.desc: OnResult test with the user is deactivating.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0201, TestSize.Level0)
+{
+    OsAccountInfo osAccountInfo(TEST_USER_ID, "testAuthUser", OsAccountType::NORMAL, 0);
+    EXPECT_EQ(IInnerOsAccountManager::GetInstance().osAccountControl_->InsertOsAccount(osAccountInfo), ERR_OK);
+    int32_t testUserId = osAccountInfo.GetLocalId();
+    // test no set deactivated status
+    bool isLoggedIn = false;
+    IInnerOsAccountManager::GetInstance().loggedInAccounts_.Find(testUserId, isLoggedIn);
+    if (isLoggedIn) {
+    IInnerOsAccountManager::GetInstance().loggedInAccounts_.Erase(testUserId);
+    }
+    sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
+    auto userAuthCallback = std::make_shared<AuthCallback>(
+    testUserId, AuthType::PIN, AccountSA::AuthIntent::DEFAULT, callback);
+    EXPECT_TRUE(userAuthCallback->innerCallback_ != nullptr);
+    Attributes extraInfo;
+    int32_t errCode = 0;
+    userAuthCallback->OnResult(errCode, extraInfo);
+    EXPECT_EQ(errCode, callback->result_);
+    IInnerOsAccountManager::GetInstance().loggedInAccounts_.Find(testUserId, isLoggedIn);
+    EXPECT_EQ(isLoggedIn, true);
+
+    // test set deactivated status
+    IInnerOsAccountManager::GetInstance().loggedInAccounts_.Erase(testUserId);
+    IInnerOsAccountManager::GetInstance().deactivatingAccounts_.EnsureInsert(testUserId, true);
+    userAuthCallback->OnResult(errCode, extraInfo);
+    EXPECT_EQ(errCode, callback->result_);
+    EXPECT_EQ(IInnerOsAccountManager::GetInstance().loggedInAccounts_.Find(testUserId, isLoggedIn), false);
+    IInnerOsAccountManager::GetInstance().deactivatingAccounts_.Erase(testUserId);
+    IInnerOsAccountManager::GetInstance().osAccountControl_->DelOsAccount(testUserId);
 }
 
 /**
