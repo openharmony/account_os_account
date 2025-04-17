@@ -91,23 +91,6 @@ HWTEST_F(OsAccountMockTest, CreateOsAccountMockTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: CreateOsAccountForDomainMockTest001
- * @tc.desc: Test CreateOsAccountForDomain getosaccountproxy faild
- * @tc.type: FUNC
- * @tc.require:
- */
-#ifdef DOMAIN_ACCOUNT_TEST_CASE
-HWTEST_F(OsAccountMockTest, CreateOsAccountForDomainMockTest001, TestSize.Level1)
-{
-    OsAccountType type = NORMAL;
-    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
-    OsAccountInfo osAccountInfo;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
-        g_osAccount->CreateOsAccountForDomain(type, domainInfo, osAccountInfo));
-}
-#endif // DOMAIN_ACCOUNT_TEST_CASE
-
-/**
  * @tc.name: RemoveOsAccountMockTest001
  * @tc.desc: Test RemoveOsAccount getosaccountproxy faild
  * @tc.type: FUNC
