@@ -65,7 +65,7 @@ void AbilityManagerAdapterTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AbilityManagerAdapterTest, AbilityManagerAdapterTest001, TestSize.Level0)
+HWTEST_F(AbilityManagerAdapterTest, AbilityManagerAdapterTest001, TestSize.Level3)
 {
     EXPECT_EQ(ERR_INVALID_VALUE, AbilityManagerAdapter::GetInstance()->DisconnectAbility(nullptr));
 }
@@ -76,7 +76,7 @@ HWTEST_F(AbilityManagerAdapterTest, AbilityManagerAdapterTest001, TestSize.Level
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AbilityManagerAdapterTest, AbilityManagerAdapterTest002, TestSize.Level0)
+HWTEST_F(AbilityManagerAdapterTest, AbilityManagerAdapterTest002, TestSize.Level3)
 {
     EXPECT_EQ(ERR_OK, AbilityManagerAdapter::GetInstance()->StopUser(MAIN_ACCOUNT_ID, nullptr));
 }
@@ -96,7 +96,7 @@ public:
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AbilityManagerAdapterTest, AbilityManagerAdapterTest003, TestSize.Level0)
+HWTEST_F(AbilityManagerAdapterTest, AbilityManagerAdapterTest003, TestSize.Level3)
 {
     sptr<ISystemAbilityManager> systemMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     ASSERT_NE(systemMgr, nullptr);

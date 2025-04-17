@@ -61,7 +61,7 @@ void DeviceAccountInfoTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require:
 */
-HWTEST_F(DeviceAccountInfoTest, DeviceAccountInfoTest_001, TestSize.Level0)
+HWTEST_F(DeviceAccountInfoTest, DeviceAccountInfoTest_001, TestSize.Level3)
 {
     DeviceAccountInfo deviceAccountInfoSrc;
     deviceAccountInfoSrc.id_ = TEST_ACCOUNT_ID;

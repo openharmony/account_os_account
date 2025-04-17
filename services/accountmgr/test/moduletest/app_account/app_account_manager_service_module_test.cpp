@@ -160,7 +160,7 @@ void AppAccountManagerServiceModuleTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require: issueI5N90B
  */
-HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount_0100, TestSize.Level0)
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerService_AddAccount_0100");
 
@@ -267,7 +267,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CreateAcco
  * @tc.type: FUNC
  * @tc.require: issueI5N90B
  */
-HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteAccount_0100, TestSize.Level0)
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteAccount_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerService_DeleteAccount_0100");
 
@@ -907,7 +907,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccount
  * @tc.type: FUNC
  * @tc.require: issueI5N90B
  */
-HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthToken_0100, TestSize.Level0)
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthToken_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetOAuthToken_0100");
 
@@ -923,7 +923,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthTo
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAuthToken_0100, TestSize.Level0)
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAuthToken_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAuthToken_0100");
 
@@ -939,7 +939,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAuthTok
  * @tc.type: FUNC
  * @tc.require: issueI5N90B
  */
-HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthToken_0200, TestSize.Level0)
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthToken_0200, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetOAuthToken_0200");
 
@@ -968,7 +968,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthTo
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAuthToken_0200, TestSize.Level0)
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAuthToken_0200, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAuthToken_0200");
 
@@ -1876,7 +1876,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_Authentica
  * @tc.type: FUNC
  * @tc.require: issueI5N90B
  */
-HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAccounts_0100, TestSize.Level0)
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAccounts_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAllAccounts_0100");
 
@@ -2044,7 +2044,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcco
  * @tc.type: FUNC
  * @tc.require: issueI5N90B
  */
-HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAccessibleAccounts_0100, TestSize.Level0)
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAccessibleAccounts_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAllAccessibleAccounts_0100");
 
@@ -2060,7 +2060,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcce
  * @tc.type: FUNC
  * @tc.require: issueI5N90B
  */
-HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_QueryAllAccessibleAccounts_0100, TestSize.Level0)
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_QueryAllAccessibleAccounts_0100, TestSize.Level1)
 {
     std::vector<AppAccountInfo> appAccounts;
     std::string owner = "";

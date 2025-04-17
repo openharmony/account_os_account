@@ -497,7 +497,7 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest025, TestSize.Level0)
+HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest025, TestSize.Level3)
 {
     InnerDomainAccountManager *instance = new (std::nothrow) InnerDomainAccountManager();
     instance->libHandle_ = nullptr;
@@ -539,7 +539,7 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest026, TestSize.Level0)
+HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest026, TestSize.Level3)
 {
     InnerDomainAccountManager *instance = new (std::nothrow) InnerDomainAccountManager();
     DomainServerConfig config;
@@ -578,7 +578,7 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest027, TestSize.Level0)
+HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest027, TestSize.Level3)
 {
     InnerDomainAccountManager *instance = new (std::nothrow) InnerDomainAccountManager();
     DomainServerConfig config;
@@ -628,7 +628,7 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest028, TestSize.Level0)
+HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest028, TestSize.Level3)
 {
     InnerDomainAccountManager *instance = new (std::nothrow) InnerDomainAccountManager();
     DomainServerConfig config;

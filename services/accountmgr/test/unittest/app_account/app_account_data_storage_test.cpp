@@ -99,7 +99,7 @@ void AppAccountDataStorageTest::ClearDataStorage(void)
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_AddAccountInfo_0100, TestSize.Level0)
+HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_AddAccountInfo_0100, TestSize.Level3)
 {
     ACCOUNT_LOGI("AppAccountDataStorage_AddAccountInfo_0100");
 

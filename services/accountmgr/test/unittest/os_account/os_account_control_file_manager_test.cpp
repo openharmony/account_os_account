@@ -151,7 +151,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest001, Te
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest002, TestSize.Level0)
+HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest002, TestSize.Level3)
 {
     OsAccountInfo osAccountInfo;
     EXPECT_EQ(g_controlManager->GetOsAccountInfoById(Constants::START_USER_ID, osAccountInfo), ERR_OK);
@@ -293,7 +293,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest013, Te
  * @tc.type: FUNC
  * @tc.require: SR000GGV0U
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest014, TestSize.Level0)
+HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest014, TestSize.Level3)
 {
     int id = 0;
     g_controlManager->GetAllowCreateId(id);
@@ -335,7 +335,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest016, Te
  * @tc.type: FUNC
  * @tc.require: SR000GGVFI
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest017, TestSize.Level0)
+HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest017, TestSize.Level3)
 {
     int id = 0;
     g_controlManager->GetAllowCreateId(id);
