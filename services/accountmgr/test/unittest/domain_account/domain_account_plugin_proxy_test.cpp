@@ -71,7 +71,7 @@ void DomainAccountPluginProxyTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_AuthCommonInterface_001, TestSize.Level0)
+HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_AuthCommonInterface_001, TestSize.Level3)
 {
     DomainAccountInfo info;
     std::vector<uint8_t> authData;
@@ -85,7 +85,7 @@ HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_AuthCommonIn
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_IsAccountTokenValid_001, TestSize.Level0)
+HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_IsAccountTokenValid_001, TestSize.Level3)
 {
     DomainAccountInfo info;
     std::vector<uint8_t> authData;
@@ -98,7 +98,7 @@ HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_IsAccountTok
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_GetAccessToken_001, TestSize.Level0)
+HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_GetAccessToken_001, TestSize.Level3)
 {
     DomainAccountInfo info;
     std::vector<uint8_t> authData;
@@ -112,7 +112,7 @@ HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_GetAccessTok
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_GetAuthStatusInfo_001, TestSize.Level0)
+HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_GetAuthStatusInfo_001, TestSize.Level3)
 {
     DomainAccountInfo info;
     EXPECT_EQ(pluginProxy_->GetAuthStatusInfo(info, nullptr), ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
@@ -124,7 +124,7 @@ HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_GetAuthStatu
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_GetAuthStatusInfo_002, TestSize.Level0)
+HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_GetAuthStatusInfo_002, TestSize.Level3)
 {
     DomainAccountInfo info;
     std::shared_ptr<DomainAccountCallback> callback = nullptr;
@@ -139,7 +139,7 @@ HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_GetAuthStatu
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_AuthWithToken_001, TestSize.Level0)
+HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_AuthWithToken_001, TestSize.Level3)
 {
     DomainAccountInfo info;
     std::vector<uint8_t> token;
@@ -152,7 +152,7 @@ HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_AuthWithToke
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_AuthWithToken_002, TestSize.Level0)
+HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_AuthWithToken_002, TestSize.Level3)
 {
     DomainAccountInfo info;
     std::shared_ptr<DomainAccountCallback> callback = nullptr;
@@ -168,7 +168,7 @@ HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_AuthWithToke
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_GetDomainAccountInfo_001, TestSize.Level0)
+HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_GetDomainAccountInfo_001, TestSize.Level3)
 {
     GetDomainAccountInfoOptions options;
     EXPECT_EQ(pluginProxy_->GetDomainAccountInfo(options, nullptr), ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
@@ -180,7 +180,7 @@ HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_GetDomainAcc
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_OnAccountBound_001, TestSize.Level0)
+HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_OnAccountBound_001, TestSize.Level3)
 {
     DomainAccountInfo info;
     EXPECT_EQ(pluginProxy_->OnAccountBound(info, 0, nullptr), ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
@@ -192,7 +192,7 @@ HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_OnAccountBou
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_OnAccountUnBound_001, TestSize.Level0)
+HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_OnAccountUnBound_001, TestSize.Level3)
 {
     DomainAccountInfo info;
     EXPECT_EQ(pluginProxy_->OnAccountUnBound(info, nullptr), ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
@@ -204,7 +204,7 @@ HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_OnAccountUnB
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_DomainHasDomainInfoCallback_001, TestSize.Level0)
+HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_DomainHasDomainInfoCallback_001, TestSize.Level3)
 {
     auto callbackWrapper = std::make_shared<DomainHasDomainInfoCallback>(nullptr, "test", "name");
     Parcel parcel;
@@ -218,7 +218,7 @@ HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_DomainHasDom
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_DomainHasDomainInfoCallback_002, TestSize.Level0)
+HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_DomainHasDomainInfoCallback_002, TestSize.Level3)
 {
     std::shared_ptr<DomainAccountCallback> callback = nullptr;
     sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
@@ -237,7 +237,7 @@ HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_DomainHasDom
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_DomainHasDomainInfoCallback_003, TestSize.Level0)
+HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_DomainHasDomainInfoCallback_003, TestSize.Level3)
 {
     std::shared_ptr<DomainAccountCallback> callback = nullptr;
     sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);

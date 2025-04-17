@@ -114,7 +114,7 @@ public:
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountTest, AppAccountAuthenticatorCallbackStub_OnRemoteRequest_0100, TestSize.Level0)
+HWTEST_F(AppAccountTest, AppAccountAuthenticatorCallbackStub_OnRemoteRequest_0100, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -134,7 +134,7 @@ HWTEST_F(AppAccountTest, AppAccountAuthenticatorCallbackStub_OnRemoteRequest_010
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(AppAccountTest, AppAccount_AddAccount_0100, TestSize.Level0)
+HWTEST_F(AppAccountTest, AppAccount_AddAccount_0100, TestSize.Level3)
 {
     ACCOUNT_LOGI("AppAccount_AddAccount_0100");
 
@@ -299,7 +299,7 @@ HWTEST_F(AppAccountTest, AppAccount_DeleteAccount_0300, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: SR000GGVFT
  */
-HWTEST_F(AppAccountTest, AppAccount_SubscribeAppAccount_0100, TestSize.Level0)
+HWTEST_F(AppAccountTest, AppAccount_SubscribeAppAccount_0100, TestSize.Level3)
 {
     ACCOUNT_LOGI("AppAccount_SubscribeAppAccount_0100");
 

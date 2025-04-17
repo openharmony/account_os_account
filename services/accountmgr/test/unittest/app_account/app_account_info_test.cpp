@@ -84,7 +84,7 @@ void AppAccountInfoTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require: issueI4M8FW
  */
-HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetOwner_0100, TestSize.Level0)
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetOwner_0100, TestSize.Level3)
 {
     ACCOUNT_LOGI("AppAccountInfo_GetOwner_0100");
 
@@ -877,7 +877,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_OAuthToken_0500, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require
  */
-HWTEST_F(AppAccountInfoTest, SetOAuthToken002, TestSize.Level0)
+HWTEST_F(AppAccountInfoTest, SetOAuthToken002, TestSize.Level3)
 {
     AppAccountInfo appAccountInfo;
     OAuthTokenInfo oauthTokenInfo;
@@ -895,7 +895,7 @@ HWTEST_F(AppAccountInfoTest, SetOAuthToken002, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require
  */
-HWTEST_F(AppAccountInfoTest, SetOAuthToken003, TestSize.Level0)
+HWTEST_F(AppAccountInfoTest, SetOAuthToken003, TestSize.Level3)
 {
     AppAccountInfo appAccountInfo;
     OAuthTokenInfo oauthTokenInfo;
@@ -914,7 +914,7 @@ HWTEST_F(AppAccountInfoTest, SetOAuthToken003, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI4M8FW
  */
-HWTEST_F(AppAccountInfoTest, AppAccountInfo_Marshalling_0100, TestSize.Level0)
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_Marshalling_0100, TestSize.Level3)
 {
     ACCOUNT_LOGI("AppAccountInfo_Marshalling_0100");
 
@@ -964,7 +964,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_Marshalling_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require
  */
-HWTEST_F(AppAccountInfoTest, GetName001, TestSize.Level0)
+HWTEST_F(AppAccountInfoTest, GetName001, TestSize.Level3)
 {
     AppAccountInfo testInfo;
     testInfo.SetName("test");
@@ -979,7 +979,7 @@ HWTEST_F(AppAccountInfoTest, GetName001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require
  */
-HWTEST_F(AppAccountInfoTest, WriteStringMap001, TestSize.Level0)
+HWTEST_F(AppAccountInfoTest, WriteStringMap001, TestSize.Level3)
 {
     AppAccountInfo testInfo;
     Parcel data;

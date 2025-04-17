@@ -59,7 +59,7 @@ void AccountFileOperatorTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require: issueI5RWXN
  */
-HWTEST_F(AccountFileOperatorTest, AccountFileOperator001, TestSize.Level0)
+HWTEST_F(AccountFileOperatorTest, AccountFileOperator001, TestSize.Level3)
 {
     auto accountFileOperator_ = std::make_shared<AccountFileOperator>();
     EXPECT_EQ(accountFileOperator_->DeleteDirOrFile("../../xx"), ERR_OK);

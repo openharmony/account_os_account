@@ -68,7 +68,7 @@ void DomainPluginServiceModuleTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainPluginServiceModuleTest, DomainPluginServiceModuleTest_AuthCommonInterface_001, TestSize.Level0)
+HWTEST_F(DomainPluginServiceModuleTest, DomainPluginServiceModuleTest_AuthCommonInterface_001, TestSize.Level3)
 {
     DomainAccountInfo info;
     std::vector<uint8_t> authData;
@@ -82,7 +82,7 @@ HWTEST_F(DomainPluginServiceModuleTest, DomainPluginServiceModuleTest_AuthCommon
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainPluginServiceModuleTest, DomainPluginServiceModuleTest_AuthCommonInterface_002, TestSize.Level0)
+HWTEST_F(DomainPluginServiceModuleTest, DomainPluginServiceModuleTest_AuthCommonInterface_002, TestSize.Level3)
 {
     DomainAccountInfo info;
     std::vector<uint8_t> authData;
@@ -97,7 +97,7 @@ HWTEST_F(DomainPluginServiceModuleTest, DomainPluginServiceModuleTest_AuthCommon
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainPluginServiceModuleTest, DomainPluginServiceModuleTest_AuthCommonInterface_003, TestSize.Level0)
+HWTEST_F(DomainPluginServiceModuleTest, DomainPluginServiceModuleTest_AuthCommonInterface_003, TestSize.Level3)
 {
     DomainAccountInfo info;
     std::vector<uint8_t> authData;
@@ -113,7 +113,7 @@ HWTEST_F(DomainPluginServiceModuleTest, DomainPluginServiceModuleTest_AuthCommon
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainPluginServiceModuleTest, DomainPluginStubModuleTest_IsAccountTokenValid_001, TestSize.Level0)
+HWTEST_F(DomainPluginServiceModuleTest, DomainPluginStubModuleTest_IsAccountTokenValid_001, TestSize.Level3)
 {
     DomainAccountInfo info;
     std::vector<uint8_t> authData;
@@ -126,7 +126,7 @@ HWTEST_F(DomainPluginServiceModuleTest, DomainPluginStubModuleTest_IsAccountToke
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainPluginServiceModuleTest, DomainPluginStubModuleTest_GetAccessToken_001, TestSize.Level0)
+HWTEST_F(DomainPluginServiceModuleTest, DomainPluginStubModuleTest_GetAccessToken_001, TestSize.Level3)
 {
     DomainAccountInfo info;
     std::vector<uint8_t> authData;
@@ -140,7 +140,7 @@ HWTEST_F(DomainPluginServiceModuleTest, DomainPluginStubModuleTest_GetAccessToke
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainPluginServiceModuleTest, DomainPluginStubModuleTest_GetAuthStatusInfo_001, TestSize.Level0)
+HWTEST_F(DomainPluginServiceModuleTest, DomainPluginStubModuleTest_GetAuthStatusInfo_001, TestSize.Level3)
 {
     DomainAccountInfo info;
     EXPECT_EQ(pluginServie_->GetAuthStatusInfo(info, nullptr), ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
@@ -152,7 +152,7 @@ HWTEST_F(DomainPluginServiceModuleTest, DomainPluginStubModuleTest_GetAuthStatus
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainPluginServiceModuleTest, DomainPluginStubModuleTest_GetAuthStatusInfo_002, TestSize.Level0)
+HWTEST_F(DomainPluginServiceModuleTest, DomainPluginStubModuleTest_GetAuthStatusInfo_002, TestSize.Level3)
 {
     DomainAccountInfo info;
     sptr<DomainAccountPluginService> pluginServie = new (std::nothrow) DomainAccountPluginService(g_plugin);
@@ -166,7 +166,7 @@ HWTEST_F(DomainPluginServiceModuleTest, DomainPluginStubModuleTest_GetAuthStatus
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainPluginServiceModuleTest, DomainPluginStubModuleTest_GetDomainAccountInfo_001, TestSize.Level0)
+HWTEST_F(DomainPluginServiceModuleTest, DomainPluginStubModuleTest_GetDomainAccountInfo_001, TestSize.Level3)
 {
     GetDomainAccountInfoOptions options;
     EXPECT_EQ(pluginServie_->GetDomainAccountInfo(options, nullptr), ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
@@ -178,7 +178,7 @@ HWTEST_F(DomainPluginServiceModuleTest, DomainPluginStubModuleTest_GetDomainAcco
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainPluginServiceModuleTest, DomainPluginStubModuleTest_OnAccountBound_001, TestSize.Level0)
+HWTEST_F(DomainPluginServiceModuleTest, DomainPluginStubModuleTest_OnAccountBound_001, TestSize.Level3)
 {
     DomainAccountInfo info;
     EXPECT_EQ(pluginServie_->OnAccountBound(info, 0, nullptr), ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
@@ -190,7 +190,7 @@ HWTEST_F(DomainPluginServiceModuleTest, DomainPluginStubModuleTest_OnAccountBoun
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainPluginServiceModuleTest, DomainPluginStubModuleTest_OnAccountUnBound_001, TestSize.Level0)
+HWTEST_F(DomainPluginServiceModuleTest, DomainPluginStubModuleTest_OnAccountUnBound_001, TestSize.Level3)
 {
     DomainAccountInfo info;
     EXPECT_EQ(pluginServie_->OnAccountUnBound(info, nullptr), ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);

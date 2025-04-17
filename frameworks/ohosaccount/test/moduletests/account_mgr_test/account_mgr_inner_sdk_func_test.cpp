@@ -157,7 +157,7 @@ void AccountMgrInnerSdkFuncTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require:
 */
-HWTEST_F(AccountMgrInnerSdkFuncTest, GetDeviceAccountIdTest, TestSize.Level0)
+HWTEST_F(AccountMgrInnerSdkFuncTest, GetDeviceAccountIdTest, TestSize.Level3)
 {
     std::int32_t id;
     auto ret = OhosAccountKits::GetInstance().QueryDeviceAccountId(id);
@@ -170,7 +170,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, GetDeviceAccountIdTest, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoTest, TestSize.Level0)
+HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoTest, TestSize.Level3)
 {
     auto ret = OhosAccountKits::GetInstance().QueryOhosAccountInfo();
     EXPECT_EQ(true, ret.first);
@@ -194,7 +194,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, GetDefaultOhosAccountInfoTest, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, UidTranslateTest, TestSize.Level0)
+HWTEST_F(AccountMgrInnerSdkFuncTest, UidTranslateTest, TestSize.Level3)
 {
     std::int32_t testUid = 1000000;   // uid for test
     std::int32_t expectedUserID = 5;  // the expected result user ID
@@ -209,7 +209,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, UidTranslateTest, TestSize.Level0)
  * @tc.require: issueI5RWXT
  */
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo002, TestSize.Level0)
+HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo002, TestSize.Level3)
 {
     OsAccountInfo osAccountInfoOne;
     EXPECT_EQ(OsAccountManager::CreateOsAccount("OhosAccountInfo002", OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
@@ -259,7 +259,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo002, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI5RWXT
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo004, TestSize.Level0)
+HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo004, TestSize.Level3)
 {
     OsAccountInfo osAccountInfoOne;
     EXPECT_EQ(OsAccountManager::CreateOsAccount("OhosAccountInfo004", OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
@@ -314,7 +314,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo004, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI5RWXT
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo005, TestSize.Level0)
+HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo005, TestSize.Level3)
 {
     OsAccountInfo osAccountInfoOne;
     EXPECT_EQ(OsAccountManager::CreateOsAccount("OhosAccountInfo005", OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
@@ -346,7 +346,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo005, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI5RWXT
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo006, TestSize.Level0)
+HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo006, TestSize.Level3)
 {
     OsAccountInfo osAccountInfoOne;
     EXPECT_EQ(OsAccountManager::CreateOsAccount("OhosAccountInfo006", OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
@@ -380,7 +380,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo006, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI5RWXT
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo007, TestSize.Level0)
+HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo007, TestSize.Level3)
 {
     OhosAccountInfo accountInfo;
     OhosAccountInfo accountInfoget;
@@ -404,7 +404,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo007, TestSize.Level0)
  * @tc.require: issueI6ZFWR issueI6ZFYI
  */
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo008, TestSize.Level0)
+HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo008, TestSize.Level3)
 {
     OsAccountInfo osAccountInfoOne;
     EXPECT_EQ(OsAccountManager::CreateOsAccount("OhosAccountInfo008", OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
@@ -451,7 +451,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo008, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI6ZFWR issueI6ZFYI
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo009, TestSize.Level0)
+HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo009, TestSize.Level3)
 {
     OsAccountInfo osAccountInfoOne;
     EXPECT_EQ(OsAccountManager::CreateOsAccount("OhosAccountInfo009", OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
@@ -508,7 +508,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo009, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI6ZFWR issueI6ZFYI
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo010, TestSize.Level0)
+HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo010, TestSize.Level3)
 {
     OsAccountInfo osAccountInfoOne;
     EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
@@ -554,7 +554,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo010, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI6ZFWR issueI6ZFYI
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo011, TestSize.Level0)
+HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo011, TestSize.Level3)
 {
     OsAccountInfo osAccountInfoOne;
     EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
@@ -611,7 +611,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo011, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo012, TestSize.Level0)
+HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo012, TestSize.Level3)
 {
     OsAccountInfo osAccountInfoOne;
     EXPECT_EQ(OsAccountManager::CreateOsAccount("OhosAccountInfo012", OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
@@ -642,7 +642,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo012, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI6ZFWR issueI6ZFYI
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo013, TestSize.Level0)
+HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo013, TestSize.Level3)
 {
     OhosAccountInfo accountInfo;
     auto ret = OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(LOCAL_ID, accountInfo, g_eventLogin);
@@ -655,7 +655,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo013, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI6ZFWR issueI6ZFYI
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo014, TestSize.Level0)
+HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo014, TestSize.Level3)
 {
     OhosAccountInfo accountInfo;
     auto ret = OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(INVALID_LOCAL_ID, accountInfo, g_eventLogin);
@@ -669,7 +669,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo014, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo015, TestSize.Level0)
+HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo015, TestSize.Level3)
 {
     OsAccountInfo osAccountInfoOne;
     EXPECT_EQ(OsAccountManager::CreateOsAccount(
@@ -712,7 +712,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo015, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI6ZFWR issueI6ZFYI
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserId001, TestSize.Level0)
+HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserId001, TestSize.Level3)
 {
     OhosAccountInfo accountInfo;
     auto ret = OhosAccountKits::GetInstance().GetOsAccountDistributedInfo(LOCAL_ID, accountInfo);
@@ -725,7 +725,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserId001, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: issueI6ZFWR issueI6ZFYI
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserId002, TestSize.Level0)
+HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserId002, TestSize.Level3)
 {
     OsAccountInfo osAccountInfoOne;
     EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
@@ -748,7 +748,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserId002, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: issueI5X50F
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserId003, TestSize.Level0)
+HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserId003, TestSize.Level3)
 {
     OhosAccountInfo accountInfo;
     std::int32_t testUserId = 200; // 200 is test user id.
@@ -762,7 +762,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserId003, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: issueI5X50F
  */
-HWTEST_F(AccountMgrInnerSdkFuncTest, QueryOhosAccountInfoByUserId, TestSize.Level0)
+HWTEST_F(AccountMgrInnerSdkFuncTest, QueryOhosAccountInfoByUserId, TestSize.Level3)
 {
     std::int32_t testUserId = -1; // -1 is test user id.
     auto ret = OhosAccountKits::GetInstance().QueryOsAccountDistributedInfo(testUserId);

@@ -66,7 +66,7 @@ void AccountIAMMgrProxyTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIAMMgrProxyTest, OpenSession001, TestSize.Level0)
+HWTEST_F(AccountIAMMgrProxyTest, OpenSession001, TestSize.Level3)
 {
     std::shared_ptr<AccountIAMMgrProxy> accountIAMMgrProxy = std::make_shared<AccountIAMMgrProxy>(nullptr);
     std::vector<uint8_t> challenge;
@@ -80,7 +80,7 @@ HWTEST_F(AccountIAMMgrProxyTest, OpenSession001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIAMMgrProxyTest, AccountIAMMgrProxy001, TestSize.Level0)
+HWTEST_F(AccountIAMMgrProxyTest, AccountIAMMgrProxy001, TestSize.Level3)
 {
     std::shared_ptr<AccountIAMMgrProxy> accountIAMMgrProxy = std::make_shared<AccountIAMMgrProxy>(nullptr);
     std::vector<uint8_t> challenge;

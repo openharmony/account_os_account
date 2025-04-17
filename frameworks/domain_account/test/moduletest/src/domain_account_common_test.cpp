@@ -74,7 +74,7 @@ void DomainAccountCommonModuleTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountCommonModuleTest, DomainAccountCommonModuleTest_GetAccessTokenOptions_001, TestSize.Level0)
+HWTEST_F(DomainAccountCommonModuleTest, DomainAccountCommonModuleTest_GetAccessTokenOptions_001, TestSize.Level3)
 {
     AAFwk::WantParams parameters;
     GetAccessTokenOptions option(CALLING_UID, parameters);
@@ -91,7 +91,7 @@ HWTEST_F(DomainAccountCommonModuleTest, DomainAccountCommonModuleTest_GetAccessT
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountCommonModuleTest, DomainAccountCommonModuleTest_DomainAuthResult_001, TestSize.Level0)
+HWTEST_F(DomainAccountCommonModuleTest, DomainAccountCommonModuleTest_DomainAuthResult_001, TestSize.Level3)
 {
     DomainAuthResult domainAuthResult;
     domainAuthResult.token = TOKEN;
@@ -110,7 +110,7 @@ HWTEST_F(DomainAccountCommonModuleTest, DomainAccountCommonModuleTest_DomainAuth
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountCommonModuleTest, DomainAccountCommonModuleTest_AuthStatusInfo_001, TestSize.Level0)
+HWTEST_F(DomainAccountCommonModuleTest, DomainAccountCommonModuleTest_AuthStatusInfo_001, TestSize.Level3)
 {
     AuthStatusInfo authStatusInfo;
     authStatusInfo.remainingTimes = REMAINING_TIMES;
@@ -127,7 +127,7 @@ HWTEST_F(DomainAccountCommonModuleTest, DomainAccountCommonModuleTest_AuthStatus
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountCommonModuleTest, DomainAccountCommonModuleTest_DomainServerConfig_001, TestSize.Level0)
+HWTEST_F(DomainAccountCommonModuleTest, DomainAccountCommonModuleTest_DomainServerConfig_001, TestSize.Level3)
 {
     std::string parameters;
     string id = STRING_DOMAIN_NEW;

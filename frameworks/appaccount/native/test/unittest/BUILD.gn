@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("../../../../../os_account.gni")
 
-module_output_path = "os_account/os_account"
+module_output_path = "os_account/app_account"
 
 config("app_account_interfaces_native_config_mock") {
   include_dirs = [ "${app_account_innerkits_native_path}/test/mock" ]
