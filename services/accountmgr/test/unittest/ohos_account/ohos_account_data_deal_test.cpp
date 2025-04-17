@@ -72,7 +72,7 @@ void OhosAccountDataDealTest::TearDown()
  * @tc.type: FUNC
  * @tc.require: AR000CUF55
  */
-HWTEST_F(OhosAccountDataDealTest, OhosAccountJsonNotInitTest001, TestSize.Level0)
+HWTEST_F(OhosAccountDataDealTest, OhosAccountJsonNotInitTest001, TestSize.Level3)
 {
     AccountInfo accountInfo;
     OhosAccountDataDeal dataDeal(RESOURCE_ROOT_PATH);
@@ -89,7 +89,7 @@ HWTEST_F(OhosAccountDataDealTest, OhosAccountJsonNotInitTest001, TestSize.Level0
  * @tc.type: FUNC
  * @tc.require: AR000CUF6P
  */
-HWTEST_F(OhosAccountDataDealTest, ValidOhosAccountJsonTest001, TestSize.Level0)
+HWTEST_F(OhosAccountDataDealTest, ValidOhosAccountJsonTest001, TestSize.Level3)
 {
     AccountInfo accountInfo;
     OhosAccountDataDeal dataDeal(RESOURCE_ROOT_PATH);
@@ -113,7 +113,7 @@ HWTEST_F(OhosAccountDataDealTest, ValidOhosAccountJsonTest001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: AR000CUF6Q
  */
-HWTEST_F(OhosAccountDataDealTest, ValidOhosAccountJsonTest002, TestSize.Level0)
+HWTEST_F(OhosAccountDataDealTest, ValidOhosAccountJsonTest002, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. init json object
@@ -147,7 +147,7 @@ HWTEST_F(OhosAccountDataDealTest, ValidOhosAccountJsonTest002, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OhosAccountDataDealTest, ValidOhosAccountJsonTest003, TestSize.Level0)
+HWTEST_F(OhosAccountDataDealTest, ValidOhosAccountJsonTest003, TestSize.Level3)
 {
     OhosAccountDataDeal dataDeal(RESOURCE_ROOT_PATH);
 #ifdef ENABLE_FILE_WATCHER
@@ -165,7 +165,7 @@ HWTEST_F(OhosAccountDataDealTest, ValidOhosAccountJsonTest003, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: AR000CUF55
  */
-HWTEST_F(OhosAccountDataDealTest, InvalidOhosAccountJsonTest001, TestSize.Level0)
+HWTEST_F(OhosAccountDataDealTest, InvalidOhosAccountJsonTest001, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. first init, should fail

@@ -75,7 +75,7 @@ void AccountIAMStubModuleTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIAMStubModuleTest, AccountIAMStubModuleTest_OnRemoteRequest_001, TestSize.Level0)
+HWTEST_F(AccountIAMStubModuleTest, AccountIAMStubModuleTest_OnRemoteRequest_001, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -90,7 +90,7 @@ HWTEST_F(AccountIAMStubModuleTest, AccountIAMStubModuleTest_OnRemoteRequest_001,
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIAMStubModuleTest, AccountIAMStubModuleTest_OnRemoteRequest_002, TestSize.Level0)
+HWTEST_F(AccountIAMStubModuleTest, AccountIAMStubModuleTest_OnRemoteRequest_002, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -104,7 +104,7 @@ HWTEST_F(AccountIAMStubModuleTest, AccountIAMStubModuleTest_OnRemoteRequest_002,
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIAMStubModuleTest, AccountIAMStubModuleTest_OnRemoteRequest_003, TestSize.Level0)
+HWTEST_F(AccountIAMStubModuleTest, AccountIAMStubModuleTest_OnRemoteRequest_003, TestSize.Level3)
 {
     for (int code = 0; code <= LIMIT_CODE; code++) {
         MessageParcel data;

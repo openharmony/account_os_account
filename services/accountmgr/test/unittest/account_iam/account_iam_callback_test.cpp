@@ -165,7 +165,7 @@ void AccountIamCallbackTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0100, TestSize.Level0)
+HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0100, TestSize.Level3)
 {
     auto userAuthCallback = std::make_shared<AuthCallback>(
         TEST_USER_ID, AuthType::PIN, AccountSA::AuthIntent::DEFAULT, nullptr);
@@ -199,7 +199,7 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0200, TestSize.Level0)
+HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0200, TestSize.Level3)
 {
     AccessTokenID tokenId = AccessTokenKit::GetHapTokenID(DEFAULT_USER_ID, "com.ohos.settings", 0);
     SetSelfTokenID(tokenId);
@@ -261,7 +261,7 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0201, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0300, TestSize.Level0)
+HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0300, TestSize.Level3)
 {
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
     auto userAuthCallback = std::make_shared<AuthCallback>(
@@ -282,7 +282,7 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0300, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0400, TestSize.Level0)
+HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0400, TestSize.Level3)
 {
     AccessTokenID tokenId = AccessTokenKit::GetHapTokenID(DEFAULT_USER_ID, "com.ohos.settings", 0);
     SetSelfTokenID(tokenId);
@@ -589,7 +589,7 @@ HWTEST_F(AccountIamCallbackTest, GetSecUserInfoCallbackWrapper_OnSecUserInfo_010
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamCallbackTest, AuthCallback_OnAcquireInfo_0100, TestSize.Level0)
+HWTEST_F(AccountIamCallbackTest, AuthCallback_OnAcquireInfo_0100, TestSize.Level3)
 {
     auto userAuthCallback = std::make_shared<AuthCallback>(
         TEST_USER_ID, AuthType::PIN, AccountSA::AuthIntent::DEFAULT, nullptr);
@@ -605,7 +605,7 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_OnAcquireInfo_0100, TestSize.Level
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamCallbackTest, AuthCallback_OnAcquireInfo_0200, TestSize.Level0)
+HWTEST_F(AccountIamCallbackTest, AuthCallback_OnAcquireInfo_0200, TestSize.Level3)
 {
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
     auto userAuthCallback = std::make_shared<AuthCallback>(
@@ -624,7 +624,7 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_OnAcquireInfo_0200, TestSize.Level
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamCallbackTest, AddCredCallback_OnResult_0100, TestSize.Level0)
+HWTEST_F(AccountIamCallbackTest, AddCredCallback_OnResult_0100, TestSize.Level3)
 {
     CredentialParameters credInfo = {};
     Attributes extraInfo;
@@ -639,7 +639,7 @@ HWTEST_F(AccountIamCallbackTest, AddCredCallback_OnResult_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamCallbackTest, AddCredCallback_OnResult_0200, TestSize.Level0)
+HWTEST_F(AccountIamCallbackTest, AddCredCallback_OnResult_0200, TestSize.Level3)
 {
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
     CredentialParameters credInfo = {};
@@ -661,7 +661,7 @@ HWTEST_F(AccountIamCallbackTest, AddCredCallback_OnResult_0200, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamCallbackTest, AddCredCallback_OnResult_0300, TestSize.Level0)
+HWTEST_F(AccountIamCallbackTest, AddCredCallback_OnResult_0300, TestSize.Level3)
 {
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
     CredentialParameters credInfo = {};
@@ -683,7 +683,7 @@ HWTEST_F(AccountIamCallbackTest, AddCredCallback_OnResult_0300, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamCallbackTest, AddCredCallback_OnAcquireInfo_0100, TestSize.Level0)
+HWTEST_F(AccountIamCallbackTest, AddCredCallback_OnAcquireInfo_0100, TestSize.Level3)
 {
     CredentialParameters credInfo = {};
     Attributes extraInfo;
@@ -698,7 +698,7 @@ HWTEST_F(AccountIamCallbackTest, AddCredCallback_OnAcquireInfo_0100, TestSize.Le
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamCallbackTest, AddCredCallback_OnAcquireInfo_0200, TestSize.Level0)
+HWTEST_F(AccountIamCallbackTest, AddCredCallback_OnAcquireInfo_0200, TestSize.Level3)
 {
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
     CredentialParameters credInfo = {};
@@ -716,7 +716,7 @@ HWTEST_F(AccountIamCallbackTest, AddCredCallback_OnAcquireInfo_0200, TestSize.Le
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamCallbackTest, DelCredCallback_OnResult_0100, TestSize.Level0)
+HWTEST_F(AccountIamCallbackTest, DelCredCallback_OnResult_0100, TestSize.Level3)
 {
     Attributes extraInfo;
     std::vector<uint8_t> token;
@@ -752,7 +752,7 @@ HWTEST_F(AccountIamCallbackTest, DelCredCallback_OnResult_0200, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamCallbackTest, DelCredCallback_OnResult_0300, TestSize.Level0)
+HWTEST_F(AccountIamCallbackTest, DelCredCallback_OnResult_0300, TestSize.Level3)
 {
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
     Attributes extraInfo;
@@ -776,7 +776,7 @@ HWTEST_F(AccountIamCallbackTest, DelCredCallback_OnResult_0300, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamCallbackTest, DelCredCallback_OnAcquireInfo_0100, TestSize.Level0)
+HWTEST_F(AccountIamCallbackTest, DelCredCallback_OnAcquireInfo_0100, TestSize.Level3)
 {
     Attributes extraInfo;
     std::vector<uint8_t> token;
@@ -791,7 +791,7 @@ HWTEST_F(AccountIamCallbackTest, DelCredCallback_OnAcquireInfo_0100, TestSize.Le
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamCallbackTest, DelCredCallback_OnAcquireInfo_0200, TestSize.Level0)
+HWTEST_F(AccountIamCallbackTest, DelCredCallback_OnAcquireInfo_0200, TestSize.Level3)
 {
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
     Attributes extraInfo;
@@ -809,7 +809,7 @@ HWTEST_F(AccountIamCallbackTest, DelCredCallback_OnAcquireInfo_0200, TestSize.Le
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamCallbackTest, GetCredInfoCallbackWrapper_OnCredentialInfo_0100, TestSize.Level0)
+HWTEST_F(AccountIamCallbackTest, GetCredInfoCallbackWrapper_OnCredentialInfo_0100, TestSize.Level3)
 {
     auto getCredInfoCallback = std::make_shared<GetCredInfoCallbackWrapper>(0, 0, nullptr);
     EXPECT_TRUE(getCredInfoCallback->innerCallback_ == nullptr);
@@ -851,7 +851,7 @@ HWTEST_F(AccountIamCallbackTest, GetCredInfoCallbackWrapper_OnCredentialInfo_020
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamCallbackTest, GetPropCallbackWrapper_OnResult_0100, TestSize.Level0)
+HWTEST_F(AccountIamCallbackTest, GetPropCallbackWrapper_OnResult_0100, TestSize.Level3)
 {
     Attributes extraInfo;
     auto getPropCallback = std::make_shared<GetPropCallbackWrapper>(DEFAULT_USER_ID, nullptr);
@@ -884,7 +884,7 @@ HWTEST_F(AccountIamCallbackTest, GetPropCallbackWrapper_OnResult_0200, TestSize.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamCallbackTest, SetPropCallbackWrapper_OnResult_0100, TestSize.Level0)
+HWTEST_F(AccountIamCallbackTest, SetPropCallbackWrapper_OnResult_0100, TestSize.Level3)
 {
     Attributes extraInfo;
     auto setPropCallback = std::make_shared<SetPropCallbackWrapper>(DEFAULT_USER_ID, nullptr);

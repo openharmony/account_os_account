@@ -89,7 +89,7 @@ void AppAccountStubModuleTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_OnRemoteRequest_001, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_OnRemoteRequest_001, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -104,7 +104,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_OnRemoteRequest_001,
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_OnRemoteRequest_002, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_OnRemoteRequest_002, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -118,7 +118,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_OnRemoteRequest_002,
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_OnRemoteRequest_003, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_OnRemoteRequest_003, TestSize.Level3)
 {
     for (int code = 0; code <= LIMIT_CODE; code++) {
         MessageParcel data;
@@ -141,7 +141,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_OnRemoteRequest_003,
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_001, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_001, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -157,7 +157,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_001, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_002, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_002, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -178,7 +178,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_002, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_003, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_003, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -195,7 +195,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_003, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_004, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_004, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -215,7 +215,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_004, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_005, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_005, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -230,7 +230,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_005, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_006, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_006, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -245,7 +245,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_006, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_007, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_007, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -261,7 +261,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_007, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_008, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_008, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -277,7 +277,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_008, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_009, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_009, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -292,7 +292,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_009, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_010, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_010, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -309,7 +309,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_010, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_011, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_011, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -325,7 +325,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_011, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_012, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_012, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -342,7 +342,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_012, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_013, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_013, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -358,7 +358,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_013, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_014, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_014, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -375,7 +375,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_014, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_015, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_015, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -397,7 +397,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_015, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_016, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_016, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -414,7 +414,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_016, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_017, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_017, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -431,7 +431,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_017, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_018, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_018, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -449,7 +449,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_018, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_019, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_019, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -466,7 +466,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_019, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_020, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_020, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -483,7 +483,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_020, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_021, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_021, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -498,7 +498,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_021, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_022, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_022, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -514,7 +514,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_022, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_023, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_023, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -530,7 +530,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_023, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_024, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_024, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -545,7 +545,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_024, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_025, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_025, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -560,7 +560,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_025, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_026, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_026, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -579,7 +579,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_026, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_027, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_027, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -595,7 +595,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_027, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_028, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_028, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -611,7 +611,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_028, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_029, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_029, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -630,7 +630,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_029, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_030, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_030, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -651,7 +651,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_030, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_031, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_031, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -673,7 +673,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_031, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_032, TestSize.Level0)
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_032, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;

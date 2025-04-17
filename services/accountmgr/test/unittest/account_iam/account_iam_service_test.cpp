@@ -125,7 +125,7 @@ void AccountIamServiceTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamServiceTest, AccountIAMService_OpenSession_0100, TestSize.Level0)
+HWTEST_F(AccountIamServiceTest, AccountIAMService_OpenSession_0100, TestSize.Level3)
 {
     std::vector<uint8_t> challenge;
     int32_t res = accountIAMService_->OpenSession(-1, challenge);
@@ -141,7 +141,7 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_OpenSession_0100, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamServiceTest, AccountIAMService_OpenSession_0200, TestSize.Level0)
+HWTEST_F(AccountIamServiceTest, AccountIAMService_OpenSession_0200, TestSize.Level3)
 {
     std::vector<uint8_t> challenge;
     int32_t res = accountIAMService_->OpenSession(TEST_NOT_EXIST_ID, challenge);
@@ -154,7 +154,7 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_OpenSession_0200, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamServiceTest, AccountIAMService_CloseSession_0100, TestSize.Level0)
+HWTEST_F(AccountIamServiceTest, AccountIAMService_CloseSession_0100, TestSize.Level3)
 {
     int32_t res = accountIAMService_->CloseSession(-1);
     EXPECT_EQ(res, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
@@ -169,7 +169,7 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_CloseSession_0100, TestSize.Le
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamServiceTest, AccountIAMService_CloseSession_0200, TestSize.Level0)
+HWTEST_F(AccountIamServiceTest, AccountIAMService_CloseSession_0200, TestSize.Level3)
 {
     int32_t res = accountIAMService_->CloseSession(TEST_NOT_EXIST_ID);
     EXPECT_EQ(res, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
@@ -181,7 +181,7 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_CloseSession_0200, TestSize.Le
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamServiceTest, AccountIAMService_AddCredential_0100, TestSize.Level0)
+HWTEST_F(AccountIamServiceTest, AccountIAMService_AddCredential_0100, TestSize.Level3)
 {
     CredentialParameters creInfo = {};
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
@@ -196,7 +196,7 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_AddCredential_0100, TestSize.L
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamServiceTest, AccountIAMService_AddCredential_01001, TestSize.Level0)
+HWTEST_F(AccountIamServiceTest, AccountIAMService_AddCredential_01001, TestSize.Level3)
 {
     CredentialParameters creInfo = {};
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
@@ -211,7 +211,7 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_AddCredential_01001, TestSize.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamServiceTest, AccountIAMService_AddCredential_0200, TestSize.Level0)
+HWTEST_F(AccountIamServiceTest, AccountIAMService_AddCredential_0200, TestSize.Level3)
 {
     CredentialParameters creInfo = {};
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
@@ -226,7 +226,7 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_AddCredential_0200, TestSize.L
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamServiceTest, AccountIAMService_UpdateCredential_0100, TestSize.Level0)
+HWTEST_F(AccountIamServiceTest, AccountIAMService_UpdateCredential_0100, TestSize.Level3)
 {
     CredentialParameters creInfo = {};
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
@@ -241,7 +241,7 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_UpdateCredential_0100, TestSiz
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamServiceTest, AccountIAMService_UpdateCredential_0200, TestSize.Level0)
+HWTEST_F(AccountIamServiceTest, AccountIAMService_UpdateCredential_0200, TestSize.Level3)
 {
     CredentialParameters creInfo = {};
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
@@ -256,7 +256,7 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_UpdateCredential_0200, TestSiz
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamServiceTest, AccountIAMService_Cancel_0100, TestSize.Level0)
+HWTEST_F(AccountIamServiceTest, AccountIAMService_Cancel_0100, TestSize.Level3)
 {
     int32_t res = accountIAMService_->Cancel(-1);
     EXPECT_EQ(res, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
@@ -268,7 +268,7 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_Cancel_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamServiceTest, AccountIAMService_DelCred_0100, TestSize.Level0)
+HWTEST_F(AccountIamServiceTest, AccountIAMService_DelCred_0100, TestSize.Level3)
 {
     std::vector<uint8_t> token;
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
@@ -283,7 +283,7 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_DelCred_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamServiceTest, AccountIAMService_DelUser_0100, TestSize.Level0)
+HWTEST_F(AccountIamServiceTest, AccountIAMService_DelUser_0100, TestSize.Level3)
 {
     std::vector<uint8_t> token;
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
@@ -298,7 +298,7 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_DelUser_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamServiceTest, AccountIAMService_GetCredentialInfo_0100, TestSize.Level0)
+HWTEST_F(AccountIamServiceTest, AccountIAMService_GetCredentialInfo_0100, TestSize.Level3)
 {
     sptr<MockGetCredInfoCallback> callback = new (std::nothrow) MockGetCredInfoCallback();
     ASSERT_NE(callback, nullptr);
@@ -312,7 +312,7 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_GetCredentialInfo_0100, TestSi
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamServiceTest, AccountIAMService_GetCredentialInfo_0200, TestSize.Level0)
+HWTEST_F(AccountIamServiceTest, AccountIAMService_GetCredentialInfo_0200, TestSize.Level3)
 {
     sptr<MockGetCredInfoCallback> callback = new (std::nothrow) MockGetCredInfoCallback();
     ASSERT_NE(callback, nullptr);
@@ -326,7 +326,7 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_GetCredentialInfo_0200, TestSi
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamServiceTest, AccountIAMService_GetCredentialInfo_0300, TestSize.Level0)
+HWTEST_F(AccountIamServiceTest, AccountIAMService_GetCredentialInfo_0300, TestSize.Level3)
 {
     sptr<MockGetCredInfoCallback> callback = new (std::nothrow) MockGetCredInfoCallback();
     ASSERT_NE(callback, nullptr);
@@ -341,7 +341,7 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_GetCredentialInfo_0300, TestSi
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamServiceTest, AccountIAMService_GetEnrolledId_0100, TestSize.Level0)
+HWTEST_F(AccountIamServiceTest, AccountIAMService_GetEnrolledId_0100, TestSize.Level3)
 {
     sptr<MockGetEnrolledIdCallback> callback = new (std::nothrow) MockGetEnrolledIdCallback();
     ASSERT_NE(callback, nullptr);
@@ -356,7 +356,7 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_GetEnrolledId_0100, TestSize.L
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamServiceTest, AccountIAMService_GetEnrolledId_0200, TestSize.Level0)
+HWTEST_F(AccountIamServiceTest, AccountIAMService_GetEnrolledId_0200, TestSize.Level3)
 {
     sptr<MockGetEnrolledIdCallback> callback = new (std::nothrow) MockGetEnrolledIdCallback();
     ASSERT_NE(callback, nullptr);
@@ -370,7 +370,7 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_GetEnrolledId_0200, TestSize.L
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamServiceTest, AccountIAMService_GetEnrolledId_0300, TestSize.Level0)
+HWTEST_F(AccountIamServiceTest, AccountIAMService_GetEnrolledId_0300, TestSize.Level3)
 {
     sptr<MockGetEnrolledIdCallback> callback = new (std::nothrow) MockGetEnrolledIdCallback();
     ASSERT_NE(callback, nullptr);
@@ -385,7 +385,7 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_GetEnrolledId_0300, TestSize.L
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamServiceTest, AccountIAMService_GetEnrolledId_0400, TestSize.Level0)
+HWTEST_F(AccountIamServiceTest, AccountIAMService_GetEnrolledId_0400, TestSize.Level3)
 {
     sptr<MockGetEnrolledIdCallback> callback = new (std::nothrow) MockGetEnrolledIdCallback();
     ASSERT_NE(callback, nullptr);
@@ -399,7 +399,7 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_GetEnrolledId_0400, TestSize.L
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamServiceTest, AccountIAMService_AuthUser_0100, TestSize.Level0)
+HWTEST_F(AccountIamServiceTest, AccountIAMService_AuthUser_0100, TestSize.Level3)
 {
     std::vector<uint8_t> challenge;
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
@@ -421,7 +421,7 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_AuthUser_0100, TestSize.Level0
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamServiceTest, AccountIAMService_AuthUser_0200, TestSize.Level0)
+HWTEST_F(AccountIamServiceTest, AccountIAMService_AuthUser_0200, TestSize.Level3)
 {
     std::vector<uint8_t> challenge;
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
@@ -443,7 +443,7 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_AuthUser_0200, TestSize.Level0
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamServiceTest, AccountIAMService_GetAvailableStatus_0100, TestSize.Level0)
+HWTEST_F(AccountIamServiceTest, AccountIAMService_GetAvailableStatus_0100, TestSize.Level3)
 {
     int32_t status;
     int32_t res = accountIAMService_->GetAvailableStatus(static_cast<AuthType>(-1), AuthTrustLevel::ATL1, status);
@@ -458,7 +458,7 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_GetAvailableStatus_0100, TestS
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamServiceTest, AccountIAMService_GetProperty_0100, TestSize.Level0)
+HWTEST_F(AccountIamServiceTest, AccountIAMService_GetProperty_0100, TestSize.Level3)
 {
     GetPropertyRequest request;
     sptr<MockGetSetPropCallback> callback = new (std::nothrow) MockGetSetPropCallback();
@@ -473,7 +473,7 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_GetProperty_0100, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamServiceTest, AccountIAMService_GetProperty_0200, TestSize.Level0)
+HWTEST_F(AccountIamServiceTest, AccountIAMService_GetProperty_0200, TestSize.Level3)
 {
     GetPropertyRequest request;
     sptr<MockGetSetPropCallback> callback = new (std::nothrow) MockGetSetPropCallback();
@@ -488,7 +488,7 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_GetProperty_0200, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamServiceTest, AccountIAMService_SetProperty_0100, TestSize.Level0)
+HWTEST_F(AccountIamServiceTest, AccountIAMService_SetProperty_0100, TestSize.Level3)
 {
     SetPropertyRequest request;
     sptr<MockGetSetPropCallback> callback = new (std::nothrow) MockGetSetPropCallback();

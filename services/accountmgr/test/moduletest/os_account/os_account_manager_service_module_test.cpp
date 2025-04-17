@@ -187,7 +187,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, InnerOsAccountManagerTest001, TestSi
  * @tc.require:
  */
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest001, TestSize.Level0)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest001, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     ErrCode errCode = osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
@@ -508,7 +508,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest018
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest019, TestSize.Level0)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest019, TestSize.Level1)
 {
     bool isMultiOsAccountEnable = false;
     EXPECT_EQ(osAccountManagerService_->IsMultiOsAccountEnable(isMultiOsAccountEnable), ERR_OK);
@@ -656,7 +656,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest029
  * @tc.require:
  */
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest030, TestSize.Level0)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest030, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     ASSERT_EQ(osAccountManagerService_->CreateOsAccount("Test030", INT_TEST_TYPE, osAccountInfoOne),

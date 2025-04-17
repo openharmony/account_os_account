@@ -133,7 +133,7 @@ void AppAccountManagerTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require: issueI4MBQW
  */
-HWTEST_F(AppAccountManagerTest, AppAccountManager_AddAccount_0100, TestSize.Level0)
+HWTEST_F(AppAccountManagerTest, AppAccountManager_AddAccount_0100, TestSize.Level3)
 {
     ACCOUNT_LOGI("AppAccountManager_AddAccount_0100");
 
@@ -592,7 +592,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_CheckAuthTokenVisibility_0200,
  * @tc.type: FUNC
  * @tc.require: issueI4MBQW
  */
-HWTEST_F(AppAccountManagerTest, AppAccountManager_DeleteAccount_0100, TestSize.Level0)
+HWTEST_F(AppAccountManagerTest, AppAccountManager_DeleteAccount_0100, TestSize.Level3)
 {
     ACCOUNT_LOGI("AppAccountManager_DeleteAccount_0100");
 
@@ -1957,7 +1957,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAuthenticatorProperties_010
  * @tc.type: FUNC
  * @tc.require: issueI4MBQS
  */
-HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAllAccounts_0100, TestSize.Level0)
+HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAllAccounts_0100, TestSize.Level3)
 {
     ACCOUNT_LOGI("AppAccountManager_GetAllAccounts_0100");
 

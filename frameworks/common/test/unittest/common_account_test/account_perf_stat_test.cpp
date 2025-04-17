@@ -77,7 +77,7 @@ void AccountPerfStatTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require: issueI5RWXN
  */
-HWTEST_F(AccountPerfStatTest, AccountPerfEndGreaterBegin001, TestSize.Level0)
+HWTEST_F(AccountPerfStatTest, AccountPerfEndGreaterBegin001, TestSize.Level3)
 {
     std::string result;
     /**
@@ -147,7 +147,7 @@ HWTEST_F(AccountPerfStatTest, AccountPerfEndGreaterBegin001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI5RWXN
  */
-HWTEST_F(AccountPerfStatTest, AccountPerfInvalidEndTimeTest002, TestSize.Level0)
+HWTEST_F(AccountPerfStatTest, AccountPerfInvalidEndTimeTest002, TestSize.Level3)
 {
     /**
     * @tc.steps: step1. set invalid end time

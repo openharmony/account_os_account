@@ -61,7 +61,7 @@ void AccountOhosProxyMockTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountOhosProxyMockTest, GetOhosAccountInfoTest, TestSize.Level0)
+HWTEST_F(AccountOhosProxyMockTest, GetOhosAccountInfoTest, TestSize.Level3)
 {
     auto ret = OhosAccountKits::GetInstance().QueryOhosAccountInfo();
     ASSERT_EQ(false, ret.first);
@@ -73,7 +73,7 @@ HWTEST_F(AccountOhosProxyMockTest, GetOhosAccountInfoTest, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountOhosProxyMockTest, GetOhosAccountInfoByUserIdTest, TestSize.Level0)
+HWTEST_F(AccountOhosProxyMockTest, GetOhosAccountInfoByUserIdTest, TestSize.Level3)
 {
     OhosAccountInfo accountInfo;
     std::int32_t testUserId = 200; // 200 is test user id.
@@ -87,7 +87,7 @@ HWTEST_F(AccountOhosProxyMockTest, GetOhosAccountInfoByUserIdTest, TestSize.Leve
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountOhosProxyMockTest, QueryOhosAccountInfoByUserIdTest, TestSize.Level0)
+HWTEST_F(AccountOhosProxyMockTest, QueryOhosAccountInfoByUserIdTest, TestSize.Level3)
 {
     std::int32_t testUserId = 200; // 200 is test user id.
     auto ret = OhosAccountKits::GetInstance().QueryOsAccountDistributedInfo(testUserId);
@@ -100,7 +100,7 @@ HWTEST_F(AccountOhosProxyMockTest, QueryOhosAccountInfoByUserIdTest, TestSize.Le
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountOhosProxyMockTest, UpdateOhosAccountInfoTest, TestSize.Level0)
+HWTEST_F(AccountOhosProxyMockTest, UpdateOhosAccountInfoTest, TestSize.Level3)
 {
     ErrCode ret = OhosAccountKits::GetInstance().UpdateOhosAccountInfo(
         TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, OHOS_ACCOUNT_EVENT_LOGIN);
@@ -113,7 +113,7 @@ HWTEST_F(AccountOhosProxyMockTest, UpdateOhosAccountInfoTest, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountOhosProxyMockTest, SetOhosAccountInfoTest, TestSize.Level0)
+HWTEST_F(AccountOhosProxyMockTest, SetOhosAccountInfoTest, TestSize.Level3)
 {
     OhosAccountInfo accountInfo;
     accountInfo.name_ = "TestAccountName";
@@ -127,7 +127,7 @@ HWTEST_F(AccountOhosProxyMockTest, SetOhosAccountInfoTest, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountOhosProxyMockTest, QueryDeviceAccountIdTest, TestSize.Level0)
+HWTEST_F(AccountOhosProxyMockTest, QueryDeviceAccountIdTest, TestSize.Level3)
 {
     std::int32_t id;
     ErrCode ret = OhosAccountKits::GetInstance().QueryDeviceAccountId(id);

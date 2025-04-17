@@ -78,7 +78,7 @@ void AppAccountProxyMockTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require: issueI4MBQW
  */
-HWTEST_F(AppAccountProxyMockTest, AppAccountManager_AddAccount_0100, TestSize.Level0)
+HWTEST_F(AppAccountProxyMockTest, AppAccountManager_AddAccount_0100, TestSize.Level3)
 {
     ErrCode result = AppAccountManager::AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
