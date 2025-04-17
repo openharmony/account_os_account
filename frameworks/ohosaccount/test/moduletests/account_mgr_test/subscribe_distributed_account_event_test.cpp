@@ -230,7 +230,7 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
  * @tc.type: FUNC
  * @tc.require:
 */
-HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest004, TestSize.Level0)
+HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest004, TestSize.Level3)
 {
     std::shared_ptr<DistributedAccountSubscribeCallback> loginSubscribeCallback = nullptr;
 
@@ -249,7 +249,7 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
  * @tc.require:
 */
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest005, TestSize.Level0)
+HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest005, TestSize.Level1)
 {
     OsAccountInfo SubDistributedAccount;
     ASSERT_EQ(OsAccountManager::CreateOsAccount("SubDistributed005", OsAccountType::NORMAL, SubDistributedAccount),
@@ -292,7 +292,7 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
  * @tc.type: FUNC
  * @tc.require:
 */
-HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest006, TestSize.Level0)
+HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest006, TestSize.Level1)
 {
     OsAccountInfo SubDistributedAccount;
     ASSERT_EQ(OsAccountManager::CreateOsAccount("SubDistributed006", OsAccountType::NORMAL, SubDistributedAccount),

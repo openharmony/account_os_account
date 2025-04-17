@@ -75,7 +75,7 @@ void AccountStubModuleTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_CmdUpdateOhosAccountInfo_001, TestSize.Level0)
+HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_CmdUpdateOhosAccountInfo_001, TestSize.Level3)
 {
     setuid(TEST_UID);
     MessageParcel data;
@@ -133,7 +133,7 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_CmdUpdateOhosAccountInfo_0
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_CmdSetOhosAccountInfo_001, TestSize.Level0)
+HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_CmdSetOhosAccountInfo_001, TestSize.Level3)
 {
     setuid(TEST_UID);
     MessageParcel data;
@@ -177,7 +177,7 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_CmdSetOhosAccountInfo_003,
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_CmdSetOhosAccountInfoByUserId_001, TestSize.Level0)
+HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_CmdSetOhosAccountInfoByUserId_001, TestSize.Level3)
 {
     setuid(TEST_UID);
     MessageParcel data;
@@ -192,7 +192,7 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_CmdSetOhosAccountInfoByUse
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_CmdQueryOhosAccountInfo_001, TestSize.Level0)
+HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_CmdQueryOhosAccountInfo_001, TestSize.Level3)
 {
     setuid(TEST_UID);
     MessageParcel data;
@@ -207,7 +207,7 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_CmdQueryOhosAccountInfo_00
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_CmdGetOhosAccountInfo_001, TestSize.Level0)
+HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_CmdGetOhosAccountInfo_001, TestSize.Level3)
 {
     setuid(TEST_UID);
     MessageParcel data;
@@ -222,7 +222,7 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_CmdGetOhosAccountInfo_001,
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_CmdGetOhosAccountInfoByUserId_001, TestSize.Level0)
+HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_CmdGetOhosAccountInfoByUserId_001, TestSize.Level3)
 {
     setuid(TEST_UID);
     MessageParcel data;
@@ -237,7 +237,7 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_CmdGetOhosAccountInfoByUse
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_CmdQueryOhosAccountInfoByUserId_001, TestSize.Level0)
+HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_CmdQueryOhosAccountInfoByUserId_001, TestSize.Level3)
 {
     setuid(TEST_UID);
     MessageParcel data;

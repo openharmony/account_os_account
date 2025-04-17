@@ -117,7 +117,7 @@ void OsAccountInfoTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_OsAccountInfo_0100, TestSize.Level0)
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_OsAccountInfo_0100, TestSize.Level3)
 {
     OsAccountInfo *osAccountInfo = new (std::nothrow) OsAccountInfo();
     EXPECT_NE(osAccountInfo, nullptr);

@@ -263,7 +263,7 @@ void Wait(const std::shared_ptr<TestIDMCallback> &ptr)
  * @tc.type: FUNC
  * @tc.require: issueI5N90O
  */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient_OpenSession_0100, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_OpenSession_0100, TestSize.Level3)
 {
     std::vector<uint8_t> challenge;
     AccountIAMClient::GetInstance().OpenSession(-1, challenge);
@@ -281,7 +281,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_OpenSession_0100, TestSize.Level
  * @tc.type: FUNC
  * @tc.require: issueI5N90O
  */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient_AddCredential_0100, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_AddCredential_0100, TestSize.Level3)
 {
     CredentialParameters testPara = {};
     auto callback = std::make_shared<MockIDMCallback>();
@@ -307,7 +307,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_AddCredential_0100, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: issueI5N90O
  */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient_AddCredential_0200, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_AddCredential_0200, TestSize.Level3)
 {
     CredentialParameters testPara = {};
     testPara.authType = AuthType::PIN;
@@ -345,7 +345,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_AddCredential_0200, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: issueI5N90O
  */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient_UpdateCredential_0100, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_UpdateCredential_0100, TestSize.Level3)
 {
     CredentialParameters testPara = {};
     auto callback = std::make_shared<MockIDMCallback>();
@@ -364,7 +364,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_UpdateCredential_0100, TestSize.
  * @tc.type: FUNC
  * @tc.require: issueI5N90O
  */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient_UpdateCredential_200, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_UpdateCredential_200, TestSize.Level3)
 {
     CredentialParameters testPara = {};
     testPara.authType = AuthType::PIN;
@@ -394,7 +394,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_UpdateCredential_200, TestSize.L
  * @tc.type: FUNC
  * @tc.require: issueI5N90O
  */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient_Cancel_0100, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_Cancel_0100, TestSize.Level3)
 {
     int32_t ret = AccountIAMClient::GetInstance().Cancel(TEST_USER_ID);
     EXPECT_NE(ret, 0);
@@ -406,7 +406,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_Cancel_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI5N90O
  */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient_DelCred_0100, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_DelCred_0100, TestSize.Level3)
 {
     uint64_t testCredentialId = 111;
     std::vector<uint8_t> testAuthToken = {1, 2, 3, 4};
@@ -436,7 +436,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_DelCred_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI5N90O
  */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetCredentialInfo_0100, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetCredentialInfo_0100, TestSize.Level3)
 {
     auto callback = std::make_shared<MockGetCredInfoCallback>();
     EXPECT_NE(callback, nullptr);
@@ -454,7 +454,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetCredentialInfo_0100, TestSize
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetEnrolledId_0100, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetEnrolledId_0100, TestSize.Level3)
 {
     auto callback = std::make_shared<MockGetEnrolledIdCallback>();
     ASSERT_NE(callback, nullptr);
@@ -472,7 +472,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetEnrolledId_0100, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: issueI5N90O
  */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetAvailableStatus_0100, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetAvailableStatus_0100, TestSize.Level3)
 {
     int32_t status;
     AccountIAMClient::GetInstance().GetAvailableStatus(AuthType::FACE, AuthTrustLevel::ATL1, status);
@@ -487,7 +487,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetAvailableStatus_0100, TestSiz
  * @tc.type: FUNC
  * @tc.require: issueI5N90O
  */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetAvailableStatus_0200, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetAvailableStatus_0200, TestSize.Level3)
 {
     int32_t status;
     AuthTrustLevel level = static_cast<AuthTrustLevel>(0);
@@ -501,7 +501,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetAvailableStatus_0200, TestSiz
  * @tc.type: FUNC
  * @tc.require: issueI5N90O
  */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetAvailableStatus_0300, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetAvailableStatus_0300, TestSize.Level3)
 {
     int32_t status;
     AuthTrustLevel level = static_cast<AuthTrustLevel>(20000);
@@ -516,7 +516,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetAvailableStatus_0300, TestSiz
  * @tc.type: FUNC
  * @tc.require: issueI5N90O
  */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetProperty_0100, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetProperty_0100, TestSize.Level3)
 {
     GetPropertyRequest testRequest = {
         .keys = { Attributes::AttributeKey::ATTR_PIN_SUB_TYPE }
@@ -538,7 +538,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetProperty_0100, TestSize.Level
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetPropertyById_0100, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetPropertyById_0100, TestSize.Level3)
 {
     auto callback = std::make_shared<MockGetSetPropCallback>();
     EXPECT_NE(callback, nullptr);
@@ -560,7 +560,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetPropertyById_0100, TestSize.L
  * @tc.type: FUNC
  * @tc.require: issueI5N90O
  */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient_SetProperty_0100, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_SetProperty_0100, TestSize.Level3)
 {
     SetPropertyRequest testRequest = {};
     auto callback = std::make_shared<MockGetSetPropCallback>();
@@ -580,7 +580,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_SetProperty_0100, TestSize.Level
  * @tc.type: FUNC
  * @tc.require: issueI5N90O
  */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient_AuthUser_0100, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_AuthUser_0100, TestSize.Level3)
 {
     SetPropertyRequest testRequest = {};
     auto callback = std::make_shared<MockIDMCallback>();
@@ -613,7 +613,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_AuthUser_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI5N90O
  */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient_AuthUser_0200, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_AuthUser_0200, TestSize.Level3)
 {
     AuthOptions authOptions;
     uint64_t ret = AccountIAMClient::GetInstance().AuthUser(
@@ -627,7 +627,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_AuthUser_0200, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI5N90O
  */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient_Auth_0100, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_Auth_0100, TestSize.Level3)
 {
     SetPropertyRequest testRequest = {};
     auto callback = std::make_shared<MockIDMCallback>();
@@ -648,7 +648,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_Auth_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI5N90O
  */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient_CancelAuth_0100, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_CancelAuth_0100, TestSize.Level3)
 {
     EXPECT_NE(ERR_OK, AccountIAMClient::GetInstance().CancelAuth(TEST_CONTEXT_ID));
 }
@@ -660,7 +660,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_CancelAuth_0100, TestSize.Level0
  * @tc.type: FUNC
  * @tc.require: issueI5N90O
  */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient_RegisterPINInputer_0100, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_RegisterPINInputer_0100, TestSize.Level3)
 {
     std::shared_ptr<IInputer> inputer = std::make_shared<TestIInputer>();
     EXPECT_NE(nullptr, inputer);
@@ -678,7 +678,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_RegisterPINInputer_0100, TestSiz
  * @tc.type: FUNC
  * @tc.require: issueI5N90O
  */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient_RegisterInputer_0100, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_RegisterInputer_0100, TestSize.Level3)
 {
     std::shared_ptr<IInputer> inputer = std::make_shared<TestIInputer>();
     EXPECT_NE(nullptr, inputer);
@@ -694,7 +694,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_RegisterInputer_0100, TestSize.L
  * @tc.type: FUNC
  * @tc.require: issueI5N90O
  */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient_SetAuthSubType_0100, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_SetAuthSubType_0100, TestSize.Level3)
 {
     int32_t userId = 1111; // 1111: userId
     int32_t type = 11;
@@ -712,7 +712,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_SetAuthSubType_0100, TestSize.Le
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIAMClientTest, IDMCallbackStub_OnRemoteRequest_0100, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, IDMCallbackStub_OnRemoteRequest_0100, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -731,7 +731,7 @@ HWTEST_F(AccountIAMClientTest, IDMCallbackStub_OnRemoteRequest_0100, TestSize.Le
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIAMClientTest, IDMCallbackStub_ProcOnAcquireInfo_0100, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, IDMCallbackStub_ProcOnAcquireInfo_0100, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -758,7 +758,7 @@ HWTEST_F(AccountIAMClientTest, IDMCallbackStub_ProcOnAcquireInfo_0100, TestSize.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIAMClientTest, GetCredInfoCallbackStub_OnRemoteRequest_0100, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, GetCredInfoCallbackStub_OnRemoteRequest_0100, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -777,7 +777,7 @@ HWTEST_F(AccountIAMClientTest, GetCredInfoCallbackStub_OnRemoteRequest_0100, Tes
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIAMClientTest, GetCredInfoCallbackStub_ProcOnCredentialInfo_0100, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, GetCredInfoCallbackStub_ProcOnCredentialInfo_0100, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -809,7 +809,7 @@ HWTEST_F(AccountIAMClientTest, GetCredInfoCallbackStub_ProcOnCredentialInfo_0100
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIAMClientTest, GetSetPropCallbackStub_OnRemoteRequest_0100, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, GetSetPropCallbackStub_OnRemoteRequest_0100, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -828,7 +828,7 @@ HWTEST_F(AccountIAMClientTest, GetSetPropCallbackStub_OnRemoteRequest_0100, Test
  * @tc.type: FUNC
  * @tc.require: issueI66BG5
  */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient001, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, AccountIAMClient001, TestSize.Level3)
 {
     ASSERT_TRUE(MockTokenId("foundation"));
     Security::AccessToken::AccessTokenIDEx tokenIdEx = {0};
@@ -895,7 +895,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI66BG5
  */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient002, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, AccountIAMClient002, TestSize.Level3)
 {
     ASSERT_TRUE(MockTokenId("foundation"));
     Security::AccessToken::AccessTokenIDEx tokenIdEx = {0};
@@ -954,7 +954,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient002, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI66BG5
  */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient003, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, AccountIAMClient003, TestSize.Level3)
 {
     ASSERT_TRUE(MockTokenId("foundation"));
     Security::AccessToken::AccessTokenIDEx tokenIdEx = {0};
@@ -1017,7 +1017,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient003, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI66BG5
  */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient004, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, AccountIAMClient004, TestSize.Level3)
 {
     ASSERT_TRUE(MockTokenId("foundation"));
     Security::AccessToken::AccessTokenIDEx tokenIdEx = {0};
@@ -1071,7 +1071,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient004, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIAMClientTest, StartDomainAuth001, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, StartDomainAuth001, TestSize.Level3)
 {
     auto callback = std::make_shared<MockIDMCallback>();
     EXPECT_CALL(*callback, OnResult(ERR_ACCOUNT_IAM_KIT_INPUTER_NOT_REGISTERED, _)).Times(Exactly(1));
@@ -1090,7 +1090,7 @@ HWTEST_F(AccountIAMClientTest, StartDomainAuth001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIAMClientTest, StartDomainAuth002, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, StartDomainAuth002, TestSize.Level3)
 {
     auto callback = std::make_shared<MockIDMCallback>();
     EXPECT_CALL(*callback, OnResult(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, _)).Times(Exactly(1));
@@ -1113,7 +1113,7 @@ HWTEST_F(AccountIAMClientTest, StartDomainAuth002, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIAMClientTest, PrepareRemoteAuthTest001, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, PrepareRemoteAuthTest001, TestSize.Level3)
 {
     int32_t ret = AccountIAMClient::GetInstance().PrepareRemoteAuth("testString", nullptr);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
@@ -1125,7 +1125,7 @@ HWTEST_F(AccountIAMClientTest, PrepareRemoteAuthTest001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient_AuthUser_0300, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_AuthUser_0300, TestSize.Level3)
 {
     auto callback = std::make_shared<MockIDMCallback>();
     EXPECT_NE(callback, nullptr);
@@ -1150,7 +1150,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_AuthUser_0300, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient_AuthUser_0400, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_AuthUser_0400, TestSize.Level3)
 {
     auto callback = std::make_shared<MockIDMCallback>();
     EXPECT_NE(callback, nullptr);
@@ -1181,7 +1181,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_AuthUser_0400, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIAMClientTest, ResetAccountIAMProxy001, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, ResetAccountIAMProxy001, TestSize.Level3)
 {
     wptr<IRemoteObject> remote;
     sptr<IAccountIAM> proxy = AccountIAMClient::GetInstance().proxy_;
@@ -1200,7 +1200,7 @@ HWTEST_F(AccountIAMClientTest, ResetAccountIAMProxy001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI5N90O
  */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient_DelUser_0100, TestSize.Level0)
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_DelUser_0100, TestSize.Level3)
 {
     AccountIAMClient::GetInstance().UnregisterPINInputer();
     std::vector<uint8_t> testAuthToken = {1, 2, 3, 4};

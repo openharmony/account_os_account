@@ -251,7 +251,7 @@ static void Wait()
  * @tc.require: SR000GGVFT
  */
 HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSubscribe_SubscribeAppAccount_0100,
-    TestSize.Level0)
+    TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSubscribe_SubscribeAppAccount_0100");
 

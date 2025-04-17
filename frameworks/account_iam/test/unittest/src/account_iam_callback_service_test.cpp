@@ -88,7 +88,7 @@ void AccountIAMCallbackServiceTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIAMCallbackServiceTest, IDMCallbackService_OnAcquireInfo_0100, TestSize.Level0)
+HWTEST_F(AccountIAMCallbackServiceTest, IDMCallbackService_OnAcquireInfo_0100, TestSize.Level3)
 {
     sptr<IDMCallbackService> wrapper = new (std::nothrow) IDMCallbackService(TEST_USER_ID, nullptr);
     EXPECT_TRUE(wrapper->callback_ == nullptr);
@@ -102,7 +102,7 @@ HWTEST_F(AccountIAMCallbackServiceTest, IDMCallbackService_OnAcquireInfo_0100, T
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIAMCallbackServiceTest, IDMCallbackService_OnAcquireInfo_0200, TestSize.Level0)
+HWTEST_F(AccountIAMCallbackServiceTest, IDMCallbackService_OnAcquireInfo_0200, TestSize.Level3)
 {
     auto callback = std::make_shared<MockIDMCallback>();
     EXPECT_NE(callback, nullptr);
@@ -123,7 +123,7 @@ HWTEST_F(AccountIAMCallbackServiceTest, IDMCallbackService_OnAcquireInfo_0200, T
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIAMCallbackServiceTest, IDMCallbackService_OnResult_0100, TestSize.Level0)
+HWTEST_F(AccountIAMCallbackServiceTest, IDMCallbackService_OnResult_0100, TestSize.Level3)
 {
     auto callback = std::make_shared<MockIDMCallback>();
     EXPECT_NE(callback, nullptr);
@@ -156,7 +156,7 @@ HWTEST_F(AccountIAMCallbackServiceTest, IDMCallbackService_OnResult_0100, TestSi
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIAMCallbackServiceTest, GetCredInfoCallbackService_OnCredentialInfo_0100, TestSize.Level0)
+HWTEST_F(AccountIAMCallbackServiceTest, GetCredInfoCallbackService_OnCredentialInfo_0100, TestSize.Level3)
 {
     sptr<GetCredInfoCallbackService> wrapper = new (std::nothrow) GetCredInfoCallbackService(nullptr);
     EXPECT_TRUE(wrapper->callback_ == nullptr);
@@ -170,7 +170,7 @@ HWTEST_F(AccountIAMCallbackServiceTest, GetCredInfoCallbackService_OnCredentialI
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIAMCallbackServiceTest, GetSetPropCallbackService_OnResult_0100, TestSize.Level0)
+HWTEST_F(AccountIAMCallbackServiceTest, GetSetPropCallbackService_OnResult_0100, TestSize.Level3)
 {
     sptr<GetSetPropCallbackService> wrapper = new (std::nothrow) GetSetPropCallbackService(nullptr);
     EXPECT_TRUE(wrapper->callback_ == nullptr);
@@ -184,7 +184,7 @@ HWTEST_F(AccountIAMCallbackServiceTest, GetSetPropCallbackService_OnResult_0100,
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIAMCallbackServiceTest, DomainAuthCallbackAdapter_OnResult_0100, TestSize.Level0)
+HWTEST_F(AccountIAMCallbackServiceTest, DomainAuthCallbackAdapter_OnResult_0100, TestSize.Level3)
 {
     std::shared_ptr<DomainAuthCallbackAdapter> domainAuthCallbackAdapter =
         std::make_shared<DomainAuthCallbackAdapter>(nullptr);
@@ -202,7 +202,7 @@ HWTEST_F(AccountIAMCallbackServiceTest, DomainAuthCallbackAdapter_OnResult_0100,
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIAMCallbackServiceTest, DomainCredentialRecipient_OnSetData_0100, TestSize.Level0)
+HWTEST_F(AccountIAMCallbackServiceTest, DomainCredentialRecipient_OnSetData_0100, TestSize.Level3)
 {
     auto domainCredentialRecipient = new (std::nothrow) DomainCredentialRecipient(100, nullptr);
     std::vector<uint8_t> data = {1, 2, 3, 4};

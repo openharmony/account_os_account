@@ -89,7 +89,7 @@ public:
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_AddAccount_0100, TestSize.Level0)
+HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_AddAccount_0100, TestSize.Level3)
 {
     ACCOUNT_LOGI("AppAccountManager_AddAccount_0100");
 
@@ -117,7 +117,7 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_AddAccount_0200, TestSiz
  * @tc.type: FUNC
  * @tc.require: issueI5RWXN
  */
-HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_CreateAccount_0100, TestSize.Level0)
+HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_CreateAccount_0100, TestSize.Level3)
 {
     ACCOUNT_LOGI("AppAccountManager_CreateAccount_0100");
     CreateAccountOptions option;
@@ -146,7 +146,7 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_CreateAccount_0200, Test
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_DeleteAccount_0100, TestSize.Level0)
+HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_DeleteAccount_0100, TestSize.Level3)
 {
     ACCOUNT_LOGI("AppAccountManager_DeleteAccount_0100");
 

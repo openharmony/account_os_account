@@ -52,7 +52,7 @@ void AccountErrorCodeConvertTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require: issueI5RWXN
  */
-HWTEST_F(AccountErrorCodeConvertTest, AccountErrorCodeConvertTest001, TestSize.Level0)
+HWTEST_F(AccountErrorCodeConvertTest, AccountErrorCodeConvertTest001, TestSize.Level3)
 {
     // app account
     ACCOUNT_LOGI("AccountErrorCodeConvertTest001 AppAccount errorCode convert test");
@@ -100,7 +100,7 @@ HWTEST_F(AccountErrorCodeConvertTest, AccountErrorCodeConvertTest001, TestSize.L
  * @tc.type: FUNC
  * @tc.require: issueI5RWXN
  */
-HWTEST_F(AccountErrorCodeConvertTest, AccountErrorCodeConvertTest002, TestSize.Level0)
+HWTEST_F(AccountErrorCodeConvertTest, AccountErrorCodeConvertTest002, TestSize.Level3)
 {
     // os account
     ACCOUNT_LOGI("AccountErrorCodeConvertTest002 OsAccount errorCode convert test");
@@ -136,7 +136,7 @@ HWTEST_F(AccountErrorCodeConvertTest, AccountErrorCodeConvertTest002, TestSize.L
  * @tc.type: FUNC
  * @tc.require: issueI5RWXN
  */
-HWTEST_F(AccountErrorCodeConvertTest, AccountErrorCodeConvertTest003, TestSize.Level0)
+HWTEST_F(AccountErrorCodeConvertTest, AccountErrorCodeConvertTest003, TestSize.Level3)
 {
     // other case
     ACCOUNT_LOGI("AccountErrorCodeConvertTest003 other case errorCode convert test");
@@ -149,7 +149,7 @@ HWTEST_F(AccountErrorCodeConvertTest, AccountErrorCodeConvertTest003, TestSize.L
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountErrorCodeConvertTest, AccountErrorCodeConvertTest004, TestSize.Level0)
+HWTEST_F(AccountErrorCodeConvertTest, AccountErrorCodeConvertTest004, TestSize.Level3)
 {
     EXPECT_EQ(ConvertToJSErrCode(ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR),
         ERR_JS_ACCOUNT_ALREADY_EXIST);
@@ -161,7 +161,7 @@ HWTEST_F(AccountErrorCodeConvertTest, AccountErrorCodeConvertTest004, TestSize.L
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountErrorCodeConvertTest, AccountErrorCodeConvertTest005, TestSize.Level0)
+HWTEST_F(AccountErrorCodeConvertTest, AccountErrorCodeConvertTest005, TestSize.Level3)
 {
     EXPECT_EQ(ConvertToJSErrCode(-1),
         ERR_JS_SYSTEM_SERVICE_EXCEPTION);
@@ -175,7 +175,7 @@ HWTEST_F(AccountErrorCodeConvertTest, AccountErrorCodeConvertTest005, TestSize.L
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountErrorCodeConvertTest, AccountErrorCodeConvertTest006, TestSize.Level0)
+HWTEST_F(AccountErrorCodeConvertTest, AccountErrorCodeConvertTest006, TestSize.Level3)
 {
     EXPECT_EQ(ConvertToJSErrCode(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR),
         ERR_JS_IS_NOT_SYSTEM_APP);

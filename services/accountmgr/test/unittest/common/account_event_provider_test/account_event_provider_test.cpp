@@ -58,7 +58,7 @@ void AccountEventProviderTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require: #I40129
  */
-HWTEST_F(AccountEventProviderTest, AccountEventProviderTest001, TestSize.Level0)
+HWTEST_F(AccountEventProviderTest, AccountEventProviderTest001, TestSize.Level3)
 {
 #ifdef HAS_CES_PART
     bool ret = AccountEventProvider::EventPublish(
