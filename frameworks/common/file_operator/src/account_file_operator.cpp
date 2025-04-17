@@ -44,6 +44,7 @@ const uint32_t RETRY_SLEEP_MS = 5;
 #define HMFS_MONITOR_FL 0x00000002
 #define HMFS_IOCTL_HW_GET_FLAGS _IOR(0XF5, 70, unsigned int)
 #define HMFS_IOCTL_HW_SET_FLAGS _IOR(0XF5, 71, unsigned int)
+const uint64_t FDSAN_DIR_TAG = fdsan_create_owner_tag(FDSAN_OWNER_TYPE_DIRECTORY, 0xC01B00);
 }
 AccountFileOperator::AccountFileOperator()
 {}
@@ -192,26 +193,27 @@ bool AccountFileOperator::SetDirDelFlags(const std::string &dirpath)
         ACCOUNT_LOGE("Failed to open dir, errno: %{public}d", errno);
         return false;
     }
+    fdsan_exchange_owner_tag(fd, 0, FDSAN_DIR_TAG);
     unsigned int flags = 0;
     int32_t ret = ioctl(fd, HMFS_IOCTL_HW_GET_FLAGS, &flags);
     if (ret < 0) {
-        close(fd);
+        fdsan_close_with_tag(fd, FDSAN_DIR_TAG);
         ACCOUNT_LOGE("Failed to get flags, errno: %{public}d", errno);
         return false;
     }
     if (flags & HMFS_MONITOR_FL) {
-        close(fd);
+        fdsan_close_with_tag(fd, FDSAN_DIR_TAG);
         ACCOUNT_LOGE("Delete control flag is already set");
         return false;
     }
     flags |= HMFS_MONITOR_FL;
     ret  = ioctl(fd, HMFS_IOCTL_HW_SET_FLAGS, &flags);
     if (ret < 0) {
-        close(fd);
+        fdsan_close_with_tag(fd, FDSAN_DIR_TAG);
         ACCOUNT_LOGE("Failed to set flags, errno: %{public}d", errno);
         return false;
     }
-    close(fd);
+    fdsan_close_with_tag(fd, FDSAN_DIR_TAG);
     return true;
 }
 
