@@ -43,6 +43,7 @@ ohos_unittest("account_iam_service_test") {
     cfi = true
     cfi_cross_dso = true
     debug = false
+    blocklist = "${os_account_path}/cfi_blocklist.txt"
   }
 
   module_out_path = module_output_path
@@ -87,6 +88,7 @@ ohos_unittest("account_iam_stub_test") {
     cfi = true
     cfi_cross_dso = true
     debug = false
+    blocklist = "${os_account_path}/cfi_blocklist.txt"
   }
 
   module_out_path = module_output_path
@@ -135,6 +137,7 @@ ohos_unittest("account_iam_callback_test") {
     cfi = true
     cfi_cross_dso = true
     debug = false
+    blocklist = "${os_account_path}/cfi_blocklist.txt"
   }
 
   module_out_path = module_output_path
@@ -183,6 +186,11 @@ ohos_unittest("account_iam_callback_test") {
 
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
+
+  if (has_storage_service_part) {
+    cflags_cc += [ "-DHAS_STORAGE_PART" ]
+    external_deps += [ "storage_service:storage_manager_sa_proxy" ]
   }
 }
 

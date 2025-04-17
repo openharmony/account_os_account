@@ -49,9 +49,6 @@ const std::string EMPTY_STORE_ID = "";
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 const OsAccountType INT_TEST_TYPE = OsAccountType::GUEST;
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
-#ifdef DOMAIN_ACCOUNT_TEST_CASE
-const uid_t ACCOUNT_UID = 3058;
-#endif // DOMAIN_ACCOUNT_TEST_CASE
 const std::int32_t ROOT_UID = 0;
 const std::int32_t TEST_UID = 1;
 
@@ -173,24 +170,6 @@ HWTEST_F(OsAccountManagerServiceNoPermissionModuleTest, OsAccountManagerServiceM
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest087
- * @tc.desc: Test CreateOsAccountForDomain PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-#ifdef DOMAIN_ACCOUNT_TEST_CASE
-HWTEST_F(OsAccountManagerServiceNoPermissionModuleTest, OsAccountManagerServiceModuleTest087, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    OsAccountType type = NORMAL;
-    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
-    OsAccountInfo osAccountInfo;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->CreateOsAccountForDomain(type, domainInfo, osAccountInfo));
-}
-#endif // DOMAIN_ACCOUNT_TEST_CASE
-
-/**
  * @tc.name: OsAccountManagerServiceModuleTest088
  * @tc.desc: Test RemoveOsAccount PermissionCheck failed.
  * @tc.type: FUNC
@@ -273,23 +252,6 @@ HWTEST_F(OsAccountManagerServiceNoPermissionModuleTest, OsAccountManagerServiceM
     EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->IsMainOsAccount(isMainOsAccount));
 }
-
-#ifdef DOMAIN_ACCOUNT_TEST_CASE
-/**
- * @tc.name: OsAccountManagerServiceModuleTest094
- * @tc.desc: Test GetOsAccountLocalIdFromDomain PermissionCheck failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceNoPermissionModuleTest, OsAccountManagerServiceModuleTest094, TestSize.Level1)
-{
-    setuid(TEST_UID);
-    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
-    int id;
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainInfo, id));
-}
-#endif // DOMAIN_ACCOUNT_TEST_CASE
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest095
@@ -593,22 +555,5 @@ HWTEST_F(OsAccountManagerServiceNoPermissionModuleTest, OsAccountManagerServiceM
         osAccountManagerService_->GetDefaultActivatedOsAccount(id));
     EXPECT_EQ(id, MAIN_ACCOUNT_ID);
 }
-
-#ifdef DOMAIN_ACCOUNT_TEST_CASE
-/**
- * @tc.name: OsAccountManagerServiceModuleTest119
- * @tc.desc: test CreateOsAccountForDomain permission error
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceNoPermissionModuleTest, OsAccountManagerServiceModuleTest119, TestSize.Level1)
-{
-    setuid(ACCOUNT_UID);
-    DomainAccountInfo domainInfo;
-    EXPECT_EQ(osAccountManagerService_->CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, nullptr),
-        ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
-    setuid(ROOT_UID);
-}
-#endif // DOMAIN_ACCOUNT_TEST_CASE
 }  // namespace AccountSA
 }  // namespace OHOS

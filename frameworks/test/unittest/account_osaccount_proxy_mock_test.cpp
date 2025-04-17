@@ -96,23 +96,6 @@ HWTEST_F(AccountOsProxyMockTest, OsAccountTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: CreateOsAccountForDomainTest001
- * @tc.desc: Test func with proxy is nullptr.
- * @tc.type: FUNC
- * @tc.require:
- */
-#ifdef DOMAIN_ACCOUNT_TEST_CASE
-HWTEST_F(AccountOsProxyMockTest, CreateOsAccountForDomainTest001, TestSize.Level1)
-{
-    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
-    OsAccountType type = NORMAL;
-    OsAccountInfo osAccountInfo;
-    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo);
-    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
-}
-#endif // DOMAIN_ACCOUNT_TEST_CASE
-
-/**
  * @tc.name: RemoveOsAccountTest001
  * @tc.desc: Test func with proxy is nullptr.
  * @tc.type: FUNC

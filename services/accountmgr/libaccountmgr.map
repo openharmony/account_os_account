@@ -349,6 +349,17 @@
         "OHOS::AccountSA::AccountFileWatcherMgr::AddAccountInfoDigest(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::OhosAccountManager::SubscribeDistributedAccountEvent(OHOS::AccountSA::DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE, OHOS::sptr<OHOS::IRemoteObject> const&)";
         "OHOS::AccountSA::OhosAccountManager::UnsubscribeDistributedAccountEvent(OHOS::AccountSA::DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE, OHOS::sptr<OHOS::IRemoteObject> const&)";
+        "OHOS::AccountSA::GetSecUserInfoCallbackWrapper::GetSecUserInfoCallbackWrapper(int, OHOS::UserIam::UserAuth::AuthType, OHOS::sptr<OHOS::AccountSA::IGetEnrolledIdCallback> const&)";
+        "OHOS::AccountSA::UpdateCredInfo::UpdateCredInfo(OHOS::UserIam::UserAuth::Attributes const&)";
+        "OHOS::AccountSA::CommitCredUpdateCallback::InnerOnResult(int, OHOS::UserIam::UserAuth::Attributes const&)";
+        "OHOS::AccountSA::CommitDelCredCallback::CommitDelCredCallback(unsigned int, OHOS::sptr<OHOS::AccountSA::IIDMCallback>)";
+        "OHOS::AccountSA::VerifyTokenCallbackWrapper::InnerOnResult(int, OHOS::UserIam::UserAuth::Attributes const&)";
+        "OHOS::AccountSA::VerifyTokenCallbackWrapper::VerifyTokenCallbackWrapper(unsigned int, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>> const&, unsigned int, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
+        "OHOS::AccountSA::UpdateCredCallback::InnerOnResult(int, OHOS::UserIam::UserAuth::Attributes const&)";
+        "OHOS::AccountSA::IDMCallbackDeathRecipient::IDMCallbackDeathRecipient(unsigned int)";
+        "OHOS::AccountSA::GetDomainAuthStatusInfoCallback::OnResult(int, OHOS::Parcel&)";
+        "OHOS::AccountSA::GetDomainAuthStatusInfoCallback::GetDomainAuthStatusInfoCallback(OHOS::UserIam::UserAuth::GetPropertyRequest const&, OHOS::sptr<OHOS::AccountSA::IGetSetPropCallback> const&)";
+        "OHOS::AccountSA::PrepareRemoteAuthCallbackWrapper::PrepareRemoteAuthCallbackWrapper(OHOS::sptr<OHOS::AccountSA::IPreRemoteAuthCallback> const&)";
         OHOS::AccountSA::OhosAccountManager::QueryDistributedVirtualDeviceId*;
     };
   local:

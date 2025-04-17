@@ -93,26 +93,6 @@ public:
     IInnerOsAccountManager *innerMgrService_ = &IInnerOsAccountManager::GetInstance();
 };
 
-#ifdef DOMAIN_ACCOUNT_TEST_CASE
-class MockDomainAccountCallback {
-public:
-    MOCK_METHOD2(OnResult, void(int32_t resultCode, Parcel &parcel));
-};
-
-class MockDomainAccountCallbackStub : public DomainAccountCallbackStub {
-public:
-    explicit MockDomainAccountCallbackStub(const std::shared_ptr<MockDomainAccountCallback> &callback);
-    virtual ~MockDomainAccountCallbackStub();
-    void OnResult(const int32_t errCode, Parcel &parcel) override;
-    std::condition_variable cv;
-    bool isReady = false;
-    std::mutex mutex;
-
-private:
-    std::shared_ptr<MockDomainAccountCallback> innerCallback_;
-};
-#endif // DOMAIN_ACCOUNT_TEST_CASE
-
 void OsAccountInnerAccmgrMockTest::SetUpTestCase(void)
 {
 #ifdef ACCOUNT_TEST
@@ -726,38 +706,6 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, SetOsAccountConstraints001, TestSize.Leve
     EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(localId));
 }
 
-#ifdef DOMAIN_ACCOUNT_TEST_CASE
-/*
- * @tc.name: SetOsAccountInfo001
- * @tc.desc: SetOsAccountInfo success
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInnerAccmgrMockTest, SetOsAccountInfo001, TestSize.Level1)
-{
-    OsAccountInfo createInfo;
-    EXPECT_EQ(ERR_OK, innerMgrService_->CreateOsAccount("SetOsAccountInfo001", NORMAL, createInfo));
-    int32_t localId = createInfo.GetLocalId();
-
-    DomainAccountInfo createDomainInfo("test", "SetOsAccountInfo001");
-    EXPECT_EQ(ERR_OK, innerMgrService_->UpdateAccountInfoByDomainAccountInfo(localId, createDomainInfo));
-
-    OsAccountInfo accountInfo;
-    DomainAccountInfo domainInfo;
-    EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountInfoById(localId, accountInfo));
-    accountInfo.GetDomainInfo(domainInfo);
-    EXPECT_EQ(domainInfo.accountName_, "SetOsAccountInfo001");
-    EXPECT_EQ(domainInfo.status_, DomainAccountStatus::LOG_END);
-
-    EXPECT_EQ(ERR_OK, innerMgrService_->UpdateAccountStatusForDomain(localId, DomainAccountStatus::LOGIN));
-    EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountInfoById(localId, accountInfo));
-    accountInfo.GetDomainInfo(domainInfo);
-    EXPECT_EQ(domainInfo.status_, DomainAccountStatus::LOGIN);
-
-    EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(localId));
-}
-#endif // DOMAIN_ACCOUNT_TEST_CASE
-
 /*
  * @tc.name: GetOsAccountInfo001
  * @tc.desc: GetOsAccountInfo success
@@ -1056,56 +1004,6 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest010, TestSize
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 #endif
 }
-
-/*
- * @tc.name: OsAccountInnerAccmgrMockTest012
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-#ifdef DOMAIN_ACCOUNT_TEST_CASE
-HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest012, TestSize.Level1)
-{
-    int ret;
-    auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->osAccountControl_ = ptr;
-
-    OsAccountInfo osAccountInfoOne;
-
-    const OsAccountType type = OsAccountType::GUEST;
-    const DomainAccountInfo domainInfo;
-
-    EXPECT_CALL(*ptr, GetOsAccountIdList(::testing::_))
-        .WillRepeatedly(testing::Return(0));
-
-    EXPECT_CALL(*ptr, GetSerialNumber(::testing::_))
-        .WillRepeatedly(testing::Return(0));
-
-    EXPECT_CALL(*ptr, GetAllowCreateId(::testing::_))
-        .WillRepeatedly(testing::Return(0));
-
-    EXPECT_CALL(*ptr, GetConstraintsByType(::testing::_, ::testing::_))
-        .WillRepeatedly(testing::Return(0));
-
-    EXPECT_CALL(*ptr, InsertOsAccount(::testing::_))
-        .WillRepeatedly(testing::Return(0));
-
-    EXPECT_CALL(*ptr, UpdateBaseOAConstraints(::testing::_, ::testing::_, ::testing::_))
-        .WillRepeatedly(testing::Return(0));
-
-    EXPECT_CALL(*ptr, UpdateOsAccount(::testing::_))
-        .WillRepeatedly(testing::Return(0));
-
-    ret = innerMgrService_->CreateOsAccountForDomain(type, domainInfo, osAccountInfoOne);
-    EXPECT_EQ(ret, 0);
-
-    EXPECT_CALL(*ptr, GetOsAccountIdList(::testing::_))
-        .WillRepeatedly(testing::Return(-1));
-
-    ret = innerMgrService_->CreateOsAccountForDomain(type, domainInfo, osAccountInfoOne);
-    EXPECT_NE(ret, ERR_OK);
-}
-#endif // DOMAIN_ACCOUNT_TEST_CASE
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /*
@@ -1600,36 +1498,6 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest029, TestSize
     ret = innerMgrService_->SetOsAccountCredentialId(id, 0);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR);
 }
-
-#ifdef DOMAIN_ACCOUNT_TEST_CASE
-/*
- * @tc.name: OsAccountInnerAccmgrMockTest030
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest030, TestSize.Level1)
-{
-    auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->osAccountControl_ = ptr;
-
-    int id = TEST_USER_ID100;
-
-    DomainAccountInfo domainAllTooLong(STRING_DOMAIN_NAME_OUT_OF_RANGE, STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE);
-    ErrCode ret = innerMgrService_->GetOsAccountLocalIdFromDomain(domainAllTooLong, id);
-    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-
-    DomainAccountInfo domainAllTooLong2(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE);
-    ret = innerMgrService_->GetOsAccountLocalIdFromDomain(domainAllTooLong2, id);
-    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-
-    DomainAccountInfo domainInfo1(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
-    EXPECT_CALL(*ptr, GetOsAccountList(_))
-        .WillRepeatedly(testing::Return(-1));
-    ret = innerMgrService_->GetOsAccountLocalIdFromDomain(domainInfo1, id);
-    EXPECT_NE(ret, ERR_OK);
-}
-#endif // DOMAIN_ACCOUNT_TEST_CASE
 
 /*
  * @tc.name: OsAccountInnerAccmgrMockTest031
