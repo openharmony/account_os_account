@@ -45,7 +45,6 @@
 
 namespace OHOS {
 namespace AccountSA {
-using namespace testing;
 using namespace testing::ext;
 using namespace OHOS::AccountSA;
 using namespace OHOS;
@@ -773,7 +772,6 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, SetOsAccountIsVerified001, TestSize.Level
     EXPECT_FALSE(accountInfo.GetIsVerified());
 
     EXPECT_EQ(ERR_OK, innerMgrService_->SetOsAccountIsVerified(id, true));
-
     OsAccountInfo accountInfoAfter;
     EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountInfoById(id, accountInfoAfter));
     EXPECT_TRUE(accountInfoAfter.GetIsVerified());
@@ -781,7 +779,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, SetOsAccountIsVerified001, TestSize.Level
     ErrCode ret = innerMgrService_->RemoveOsAccount(createInfo.GetLocalId());
     if (ret == ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR) {
         sleep(1);
-        EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(createInfo.GetLocalId()));
+        EXPECT_EQ(innerMgrService_->RemoveOsAccount(createInfo.GetLocalId()), ERR_OK);
     } else {
         EXPECT_EQ(ret, ERR_OK);
     }
