@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2025-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,8 +14,10 @@
  * limitations under the License.
  */
 
-import {testActivateOsAccount} from './test_activate_os_account';
+import { testActivateOsAccount,testIAMInputerManager ,testIAMPINAuth ,testIsMainOsAccoun, testGetOsAccountProfilePhoto,
+  testGetOsAccountType, testOnOff} from './test_activate_os_account';
 
 function main() {
-  testActivateOsAccount();
+  testIAMInputerManager();
+  testIAMPINAuth();
 }

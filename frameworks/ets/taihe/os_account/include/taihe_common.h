@@ -16,9 +16,33 @@
 #ifndef ACCOUNT_TAIHE_COMMON_H
 #define ACCOUNT_TAIHE_COMMON_H
 
+#include "ohos.account.osAccount.proj.hpp"
+#include "ohos.account.osAccount.impl.hpp"
+#include "taihe/runtime.hpp"
+#include "taihe/string.hpp"
+#include "os_account_info.h"
+#include "ipc_skeleton.h"
+#include "tokenid_kit.h"
+#include "account_error_no.h"
+
+
 namespace OHOS {
 namespace AccountSA {
+using namespace taihe;
+using namespace ohos::account::osAccount;
+using TaiheOsAccountType = ohos::account::osAccount::OsAccountType;
+using TaiheOsAccountInfo = ohos::account::osAccount::OsAccountInfo;
+using TaiheCreateOsAccountOptions = ohos::account::osAccount::CreateOsAccountOptions;
+using TaiheCredentialInfo = ohos::account::osAccount::CredentialInfo;
+using TaiheAuthType = ohos::account::osAccount::AuthType;
+using TaiheIInputer = ohos::account::osAccount::IInputer;
+using TaiheOsAccountSwitchEventData = ohos::account::osAccount::OsAccountSwitchEventData;
+using TaiheIInputData = ohos::account::osAccount::IInputData;
 
+TaiheOsAccountType::key_t ConvertToOsAccountTypeKey(OsAccountType type);
+OsAccountType ConvertFromOsAccountTypeKey(int32_t type);
+bool IsAccountIdValid(int32_t accountId);
+int32_t IsSystemApp();
 }
 }
 #endif // ACCOUNT_TAIHE_COMMON_H

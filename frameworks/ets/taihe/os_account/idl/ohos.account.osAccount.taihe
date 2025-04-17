@@ -16,86 +16,135 @@
 @!namespace("@ohos.account.osAccount", "osAccount")
 
 use ohos.account.distributedAccount as distributedAccount;
+@!sts_inject("""
+static { loadLibrary("os_account_taihe_native.z") }
+""")
 
 function getAccountManager(): AccountManager;
 
 interface AccountManager {
     @gen_async("isMainOsAccount")
     @gen_promise("isMainOsAccount")
-    taiheIsMainOsAccount():bool;
+    TaiheIsMainOsAccount():bool;
 
     @gen_async("getOsAccountProfilePhoto")
     @gen_promise("getOsAccountProfilePhoto")
-    taiheGetOsAccountProfilePhoto(localId: i32): String;
-
-    @gen_async("getOsAccountType")
-    getOsAccountType(): OsAccountType;
+    TaiheGetOsAccountProfilePhoto(localId: f64): String;
 
     @gen_promise("getOsAccountType")
-    getOsAccountTypePromise(localId: Optional<i32>): OsAccountType;
+    @gen_async("getOsAccountType")
+    TaiheGetOsAccountType(): OsAccountType;
+    @gen_promise("getOsAccountType")
+    TaiheGetOsAccountTypeWithId(localId:f64): OsAccountType;
 
     @on_off("activate")
-    onActivate(name: String, callback: (id:i32) => void): void;
+    OnActivate(name: String, callback: (id:f64) => void): void;
     @on_off("activating")
-    onActivating(name: String, callback: (id:i32) => void): void;
+    OnActivating(name: String, callback: (id:f64) => void): void;
 
     @on_off("activate")
-    offActivate(name: String, callback: Optional<(id:i32) => void>): void;
+    OffActivate(name: String, callback: Optional<(id:f64) => void>): void;
     @on_off("activating")
-    offActivating(name: String, callback: Optional<(id:i32) => void>): void;
+    OffActivating(name: String, callback: Optional<(id:f64) => void>): void;
 
     @on_off("switching")
-    onSwitching(callback: (data:OsAccountSwitchEventData) => void): void;
+    OnSwitching(callback: (data:OsAccountSwitchEventData) => void): void;
     @on_off("switched")
-    onSwitched(callback: (data:OsAccountSwitchEventData) => void): void;
+    OnSwitched(callback: (data:OsAccountSwitchEventData) => void): void;
 
     @on_off("switching")
-    offSwitching(callback: Optional<(data:OsAccountSwitchEventData) => void>): void;
+    OffSwitching(callback: Optional<(data:OsAccountSwitchEventData) => void>): void;
     @on_off("switched")
-    offSwitched(callback: Optional<(data:OsAccountSwitchEventData) => void>): void;
+    OffSwitched(callback: Optional<(data:OsAccountSwitchEventData) => void>): void;
 
     @gen_async("activateOsAccount")
     @gen_promise("activateOsAccount")
-    activateOsAccountSync(localId: i32);
+    ActivateOsAccountSync(localId: i32);
 
     @gen_async("createOsAccount")
-    createOsAccountSync(localName: String, type: OsAccountType): OsAccountInfo;
+    CreateOsAccountSync(localName: String, type: OsAccountType): OsAccountInfo;
 
     @gen_promise("createOsAccount")
-    createOsAccountSync_(localName: String, type: OsAccountType, options: Optional<CreateOsAccountOptions>): OsAccountInfo;
+    CreateOsAccountSync_(localName: String, type: OsAccountType, options: Optional<CreateOsAccountOptions>): OsAccountInfo;
 
     @gen_promise("deactivateOsAccount")
-    deactivateOsAccountSync(localId: i32);
+    DeactivateOsAccountSync(localId: i32);
 
     @gen_async("getActivatedOsAccountLocalIds")
     @gen_promise("getActivatedOsAccountLocalIds")
-    getActivatedOsAccountLocalIdsSync(): Array<i32>;
+    GetActivatedOsAccountLocalIdsSync(): Array<i32>;
 
     @gen_async("getCurrentOsAccount")
     @gen_promise("getCurrentOsAccount")
-    getCurrentOsAccountSync(): OsAccountInfo;
+    GetCurrentOsAccountSync(): OsAccountInfo;
 
     @gen_promise("getForegroundOsAccountLocalId")
-    getForegroundOsAccountLocalIdSync(): i32;
+    GetForegroundOsAccountLocalIdSync(): i32;
 
     @gen_async("getOsAccountLocalId")
     @gen_promise("getOsAccountLocalId")
-    getOsAccountLocalIdSync(): i32;
+    GetOsAccountLocalIdSync(): i32;
 
     @gen_async("getOsAccountLocalIdForUid")
     @gen_promise("getOsAccountLocalIdForUid")
-    getOsAccountLocalIdForUidSync(uid: i32): i32;
+    GetOsAccountLocalIdForUidSync(uid: i32): i32;
+}
+
+@class
+interface UserIdentityManager {
+    @gen_async("openSession")
+    OpenSession(): @arraybuffer Array<u8>;
+    @gen_promise("openSession")
+    OpenSessionPromise(accountId:Optional<i32>): @arraybuffer Array<u8>;
+    addCredential(info: CredentialInfo, callback: IIdmCallback): void;
+    delUser(token: @arraybuffer Array<u8>, callback: IIdmCallback);
+}
+
+enum AuthType : u32 {
+    PIN = 1,
+    FACE = 2,
+    FINGERPRINT = 4,
+    RECOVERY_KEY = 8,
+    PRIVATE_PIN = 16,
+    DOMAIN = 1024
+}
+
+enum AuthSubType : i32 {
+    PIN_SIX = 10000,
+    PIN_NUMBER = 10001,
+    PIN_MIXED = 10002,
+    PIN_FOUR = 10003,
+    PIN_PATTERN = 10004,
+    PIN_QUESTION = 10005,
+    FACE_2D = 20000,
+    FACE_3D = 20001,
+    FINGERPRINT_CAPACITIVE = 30000,
+    FINGERPRINT_OPTICAL = 30001,
+    FINGERPRINT_ULTRASONIC = 30002,
+    DOMAIN_MIXED = 10240001
 }
 
 struct CredentialInfo {
     credType: AuthType;
     credSubType: AuthSubType;
-    token: Array<u8>;
+    token: @arraybuffer Array<u8>;
     accountId: Optional<i32>;
 }
 
 struct RequestResult {
-    credentialId: Optional<Array<u8>>;
+    credentialId: Optional<@arraybuffer Array<u8>>;
+}
+
+struct IIdmCallback {
+    onResult: (result: i32, extraInfo: RequestResult) => void;
+    onAcquireInfo: Optional<(module: i32, acquire: u32, extraInfo: @arraybuffer Array<u8>)=>void>;
+}
+
+enum OsAccountType : u32 {
+    ADMIN = 0,
+    NORMAL = 1,
+    GUEST = 2,
+    PRIVATE = 1024
 }
 
 struct DomainAccountInfo {
@@ -123,30 +172,6 @@ struct OsAccountInfo {
     isCreateCompleted: bool;
     distributedInfo: distributedAccount.DistributedInfo;
     domainInfo: DomainAccountInfo;
-}
-
-enum AuthSubType : i32 {
-    PIN_SIX = 10000,
-    PIN_NUMBER = 10001,
-    PIN_MIXED = 10002,
-    PIN_FOUR = 10003,
-    PIN_PATTERN = 10004,
-    PIN_QUESTION = 10005,
-    FACE_2D = 20000,
-    FACE_3D = 20001,
-    FINGERPRINT_CAPACITIVE = 30000,
-    FINGERPRINT_OPTICAL = 30001,
-    FINGERPRINT_ULTRASONIC = 30002,
-    DOMAIN_MIXED = 10240001
-}
-
-enum AuthType : u32 {
-    PIN = 1,
-    FACE = 2,
-    FINGERPRINT = 4,
-    RECOVERY_KEY = 8,
-    PRIVATE_PIN = 16,
-    DOMAIN = 1024
 }
 
 enum FingerprintTips : u8 {
@@ -188,15 +213,8 @@ struct OsAccountSwitchEventData {
     toAccountId: i32;
 }
 
-enum OsAccountType : u32 {
-    ADMIN = 0,
-    NORMAL = 1,
-    GUEST = 2,
-    PRIVATE = 1024
-}
-
 struct GetInputDataOptions {
-    challenge: Optional<Array<u8>>;
+    challenge: Optional<@arraybuffer Array<u8>>;
 }
 
 struct CreateOsAccountOptions {
@@ -211,23 +229,18 @@ struct GetAuthInfoOptions {
 }
 
 struct AuthResult {
-    token: Optional<Array<u8>>;
+    token: Optional<@arraybuffer Array<u8>>;
     remainTimes: Optional<i32>;
     freezingTime: Optional<i32>;
     nextPhaseFreezingTime: Optional<i32>;
-    credentialId: Optional<Array<u8>>;
+    credentialId: Optional<@arraybuffer Array<u8>>;
     accountId: Optional<i32>;
     pinValidityPeriod: Optional<i64>;
 }
 
 struct IUserAuthCallback {
     onResult: (result: i32, extraInfo: AuthResult) => void;
-    onAcquireInfo: Optional<(module: i32, acquire: u32, extraInfo: Array<u8>)=>void>;
-}
-
-struct IIdmCallback {
-    onResult: (result: i32, extraInfo: RequestResult) => void;
-    onAcquireInfo: Optional<(module: i32, acquire: u32, extraInfo: Array<u8>)=>void>;
+    onAcquireInfo: Optional<(module: i32, acquire: u32, extraInfo: @arraybuffer Array<u8>)=>void>;
 }
 
 struct IInputer {
@@ -236,25 +249,14 @@ struct IInputer {
 
 interface IInputData {
     GetSpecificImplPtr (): i64;
-    onSetDataInner(authSubType: AuthSubType, data: Array<u8>):void;
+    onSetDataInner(authSubType: AuthSubType, data: @arraybuffer Array<u8>):void;
     @!sts_inject("""
-     get onSetData: (authSubType: AuthSubType, data: Array<u8>)：voide =>{
-        return (authSubType: AuthSubType, data: Array<u8>)=>{
+     get onSetData: (authSubType: AuthSubType, data: @arraybuffer Array<u8>)：voide =>{
+        return (authSubType: AuthSubType, data: @arraybuffer Array<u8>)=>{
             this.onSetDataInner(authSubType, data);
         }
      } ;
     """)
-}
-
-
-@class
-interface UserIdentityManager {
-    @gen_async("openSession")
-    openSession(): Array<u8>;
-    @gen_promise("openSession")
-    openSessionPromise(accountId:Optional<i32>): Array<u8>;
-    addCredential(info: CredentialInfo, callback: IIdmCallback): void;
-    delUser(token: Array<u8>, callback: IIdmCallback);
 }
 
 @class
