@@ -135,7 +135,7 @@ void DomainCredentialRecipient::OnSetData(int32_t authSubType, std::vector<uint8
     auto callback = std::make_shared<DomainAuthCallbackAdapter>(idmCallback_);
     ErrCode errCode = DomainAccountClient::GetInstance().AuthUser(userId_, data, callback);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Failed to auth user, errCode=%{public}d", errCode);
+        ACCOUNT_LOGE("Failed to set data, errCode=%{public}d", errCode);
         Parcel emptyParcel;
         AccountSA::DomainAuthResult emptyResult;
         if (!emptyResult.Marshalling(emptyParcel)) {
@@ -145,6 +145,24 @@ void DomainCredentialRecipient::OnSetData(int32_t authSubType, std::vector<uint8
         }
         callback->OnResult(errCode, emptyParcel);
     }
+}
+
+IAMInputer::IAMInputer(int32_t userId, const std::shared_ptr<IInputer> &inputer)
+    : userId_(userId), innerInputer_(inputer)
+{}
+
+void IAMInputer::OnGetData(int32_t authSubType, std::vector<uint8_t> challenge,
+    std::shared_ptr<IInputerData> inputerData)
+{
+    ACCOUNT_LOGI("AuthSubType: %{public}d", authSubType);
+    if (authSubType == 0) {
+        authSubType = AccountIAMClient::GetInstance().GetAuthSubType(userId_);
+    }
+    if (innerInputer_ == nullptr) {
+        ACCOUNT_LOGE("innerInputer_ is nullptr");
+        return;
+    }
+    innerInputer_->OnGetData(authSubType, challenge, inputerData);
 }
 #endif
 }  // namespace AccountSA

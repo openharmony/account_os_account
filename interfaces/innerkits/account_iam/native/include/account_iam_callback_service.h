@@ -96,6 +96,17 @@ private:
     int32_t userId_;
     std::shared_ptr<IDMCallback> idmCallback_;
 };
+
+class IAMInputer final: public IInputer {
+public:
+    IAMInputer(int32_t userId, const std::shared_ptr<IInputer> &input);
+
+    void OnGetData(int32_t authSubType, std::vector<uint8_t> challenge,
+        std::shared_ptr<IInputerData> inputerData) override;
+private:
+    int32_t userId_;
+    std::shared_ptr<IInputer> innerInputer_ = nullptr;
+};
 #endif
 }  // namespace AccountSA
 }  // namespace OHOS

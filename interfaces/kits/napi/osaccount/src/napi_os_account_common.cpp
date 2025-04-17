@@ -200,10 +200,6 @@ void CreateJsDomainInfo(napi_env env, const DomainAccountInfo &info, napi_value 
         napi_get_boolean(env, true, &value);
     }
     napi_set_named_property(env, result, "isAuthenticated", value);
-
-    //serverConfigId
-    napi_create_string_utf8(env, info.serverConfigId_.c_str(), info.serverConfigId_.size(), &value);
-    napi_set_named_property(env, result, "serverConfigId", value);
 }
 
 void CreateJsDistributedInfo(napi_env env, const OhosAccountInfo &info, napi_value &result)
