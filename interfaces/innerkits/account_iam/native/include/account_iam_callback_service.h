@@ -27,52 +27,62 @@ namespace AccountSA {
 class IDMCallbackService : public IDMCallbackStub {
 public:
     IDMCallbackService(int32_t userId, const std::shared_ptr<IDMCallback> &callback);
+    ~IDMCallbackService();
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override;
     void OnResult(int32_t result, const Attributes &extraInfo) override;
 
 private:
     int32_t userId_;
     std::shared_ptr<IDMCallback> callback_;
+    bool isCalled_ = false;
     DISALLOW_COPY_AND_MOVE(IDMCallbackService);
 };
 
 class GetCredInfoCallbackService : public GetCredInfoCallbackStub {
 public:
     explicit GetCredInfoCallbackService(const std::shared_ptr<GetCredInfoCallback> &callback);
+    ~GetCredInfoCallbackService();
     void OnCredentialInfo(int32_t result, const std::vector<CredentialInfo> &infoList) override;
 
 private:
     std::shared_ptr<GetCredInfoCallback> callback_;
+    bool isCalled_ = false;
     DISALLOW_COPY_AND_MOVE(GetCredInfoCallbackService);
 };
 
 class GetSetPropCallbackService : public GetSetPropCallbackStub {
 public:
     explicit GetSetPropCallbackService(const std::shared_ptr<GetSetPropCallback> &callback);
+    ~GetSetPropCallbackService();
     void OnResult(int32_t result, const Attributes &extraInfo) override;
 
 private:
     std::shared_ptr<GetSetPropCallback> callback_;
+    bool isCalled_ = false;
     DISALLOW_COPY_AND_MOVE(GetSetPropCallbackService);
 };
 
 class GetEnrolledIdCallbackService : public GetEnrolledIdCallbackStub {
 public:
     explicit GetEnrolledIdCallbackService(const std::shared_ptr<GetEnrolledIdCallback> &callback);
+    ~GetEnrolledIdCallbackService();
     void OnEnrolledId(int32_t result, uint64_t enrolledId) override;
 
 private:
     std::shared_ptr<GetEnrolledIdCallback> callback_;
+    bool isCalled_ = false;
     DISALLOW_COPY_AND_MOVE(GetEnrolledIdCallbackService);
 };
 
 class PreRemoteAuthCallbackService : public PreRemoteAuthCallbackStub {
 public:
     explicit PreRemoteAuthCallbackService(const std::shared_ptr<PreRemoteAuthCallback> &callback);
+    ~PreRemoteAuthCallbackService();
     void OnResult(int32_t result) override;
 
 private:
     std::shared_ptr<PreRemoteAuthCallback> callback_;
+    bool isCalled_ = false;
     DISALLOW_COPY_AND_MOVE(PreRemoteAuthCallbackService);
 };
 
