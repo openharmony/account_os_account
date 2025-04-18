@@ -112,7 +112,7 @@ HWTEST_F(AppAccountSubscribeInfoTest, AppAccountSubscribeInfo_SetOwners_0100, Te
  * @tc.type: FUNC
  * @tc.require: SR000GGVFT
  */
-HWTEST_F(AppAccountSubscribeInfoTest, AppAccountSubscribeInfo_Marshalling_0100, TestSize.Level0)
+HWTEST_F(AppAccountSubscribeInfoTest, AppAccountSubscribeInfo_Marshalling_0100, TestSize.Level3)
 {
     // make owners
     std::vector<std::string> owners;

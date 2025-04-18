@@ -118,7 +118,7 @@ void OhosAccountManagerTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest001, TestSize.Level0)
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest001, TestSize.Level3)
 {
     OhosAccountInfo accountInfo;
     accountInfo.name_ = TEST_NAME;
@@ -137,7 +137,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest002, TestSize.Level0)
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest002, TestSize.Level3)
 {
     std::int32_t testUserId = 200; // 200 is test user id.
     AccountInfo info;
@@ -151,7 +151,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest002, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest003, TestSize.Level0)
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest003, TestSize.Level3)
 {
     AccountInfo curOhosAccount;
     ErrCode ret = OhosAccountManager::GetInstance().HandleEvent(curOhosAccount, TEST_EVENT_STR);
@@ -164,7 +164,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest003, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest004, TestSize.Level0)
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest004, TestSize.Level3)
 {
     OhosAccountInfo curOhosAccount;
     ErrCode ret = OhosAccountManager::GetInstance().LogoutOhosAccount(ACCOUNT_UID, curOhosAccount, TEST_EVENT_STR);
@@ -177,7 +177,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest004, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest005, TestSize.Level0)
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest005, TestSize.Level3)
 {
     OhosAccountInfo curOhosAccount;
     ErrCode ret = OhosAccountManager::GetInstance().LogoffOhosAccount(ACCOUNT_UID, curOhosAccount, TEST_EVENT_STR);
@@ -191,7 +191,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest005, TestSize.Level0)
  * @tc.require:
  */
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest006, TestSize.Level0)
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest006, TestSize.Level3)
 {
     OsAccountInfo osAccountInfoOne;
     EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
@@ -233,7 +233,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest006, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest007, TestSize.Level0)
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest007, TestSize.Level3)
 {
     OsAccountInfo osAccountInfoOne;
     EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
@@ -275,7 +275,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest007, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest07, TestSize.Level0)
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest07, TestSize.Level3)
 {
     EXPECT_EQ(OhosAccountManager::GetInstance().OhosAccountStateChange("test", "testuid", "testevent"),
               ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
@@ -287,7 +287,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest07, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest008, TestSize.Level0)
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest008, TestSize.Level3)
 {
     OhosAccountInfo curOhosAccountInfo;
     EXPECT_EQ(OhosAccountManager::GetInstance().LoginOhosAccount(0, curOhosAccountInfo, "test"),
@@ -300,7 +300,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest008, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest009, TestSize.Level0)
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest009, TestSize.Level3)
 {
     OhosAccountInfo curOhosAccountInfo;
     EXPECT_EQ(OhosAccountManager::GetInstance().LogoutOhosAccount(0, curOhosAccountInfo, "test"),
@@ -313,7 +313,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest009, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest010, TestSize.Level0)
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest010, TestSize.Level3)
 {
     OhosAccountInfo curOhosAccountInfo;
     EXPECT_EQ(OhosAccountManager::GetInstance().LogoffOhosAccount(0, curOhosAccountInfo, "test"),
@@ -326,7 +326,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest010, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest011, TestSize.Level0)
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest011, TestSize.Level3)
 {
     OhosAccountInfo curOhosAccountInfo;
     EXPECT_EQ(OhosAccountManager::GetInstance().HandleOhosAccountTokenInvalidEvent(0, curOhosAccountInfo, "test"),
@@ -339,7 +339,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest011, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest012, TestSize.Level0)
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest012, TestSize.Level3)
 {
     AccountInfo curOhosAccountInfo;
     OhosAccountInfo newOhosAccountInfo;
@@ -353,7 +353,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest012, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
 */
-HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest_013, TestSize.Level0)
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest_013, TestSize.Level3)
 {
     AccountInfo accountInfoSrc;
     OhosAccountInfo ohosAccountInfo;

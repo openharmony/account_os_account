@@ -70,7 +70,7 @@ void DomainPluginStubModuleTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainPluginStubModuleTest, DomainPluginStubModuleTest_OnRemoteRequest_001, TestSize.Level0)
+HWTEST_F(DomainPluginStubModuleTest, DomainPluginStubModuleTest_OnRemoteRequest_001, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -85,7 +85,7 @@ HWTEST_F(DomainPluginStubModuleTest, DomainPluginStubModuleTest_OnRemoteRequest_
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainPluginStubModuleTest, DomainPluginStubModuleTest_ProcAuthCommonInterface_001, TestSize.Level0)
+HWTEST_F(DomainPluginStubModuleTest, DomainPluginStubModuleTest_ProcAuthCommonInterface_001, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -99,7 +99,7 @@ HWTEST_F(DomainPluginStubModuleTest, DomainPluginStubModuleTest_ProcAuthCommonIn
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainPluginStubModuleTest, DomainPluginStubModuleTest_ProcAuthCommonInterface_002, TestSize.Level0)
+HWTEST_F(DomainPluginStubModuleTest, DomainPluginStubModuleTest_ProcAuthCommonInterface_002, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -123,7 +123,7 @@ HWTEST_F(DomainPluginStubModuleTest, DomainPluginStubModuleTest_ProcAuthCommonIn
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainPluginStubModuleTest, DomainPluginStubModuleTest_ProcGetAuthStatusInfo_001, TestSize.Level0)
+HWTEST_F(DomainPluginStubModuleTest, DomainPluginStubModuleTest_ProcGetAuthStatusInfo_001, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -146,7 +146,7 @@ HWTEST_F(DomainPluginStubModuleTest, DomainPluginStubModuleTest_ProcGetAuthStatu
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainPluginStubModuleTest, DomainPluginStubModuleTest_ProcGetAuthStatusInfo_002, TestSize.Level0)
+HWTEST_F(DomainPluginStubModuleTest, DomainPluginStubModuleTest_ProcGetAuthStatusInfo_002, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -162,7 +162,7 @@ HWTEST_F(DomainPluginStubModuleTest, DomainPluginStubModuleTest_ProcGetAuthStatu
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainPluginStubModuleTest, DomainPluginStubModuleTest_ProcIsAccountTokenValid_001, TestSize.Level0)
+HWTEST_F(DomainPluginStubModuleTest, DomainPluginStubModuleTest_ProcIsAccountTokenValid_001, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -177,7 +177,7 @@ HWTEST_F(DomainPluginStubModuleTest, DomainPluginStubModuleTest_ProcIsAccountTok
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainPluginStubModuleTest, DomainPluginStubModuleTest_ProcGetAccessToken_001, TestSize.Level0)
+HWTEST_F(DomainPluginStubModuleTest, DomainPluginStubModuleTest_ProcGetAccessToken_001, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -192,7 +192,7 @@ HWTEST_F(DomainPluginStubModuleTest, DomainPluginStubModuleTest_ProcGetAccessTok
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainPluginStubModuleTest, DomainPluginStubModuleTest_ProcGetAccessToken_002, TestSize.Level0)
+HWTEST_F(DomainPluginStubModuleTest, DomainPluginStubModuleTest_ProcGetAccessToken_002, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -213,7 +213,7 @@ HWTEST_F(DomainPluginStubModuleTest, DomainPluginStubModuleTest_ProcGetAccessTok
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainPluginStubModuleTest, DomainPluginStubModuleTest_ProcOnAccountBound_001, TestSize.Level0)
+HWTEST_F(DomainPluginStubModuleTest, DomainPluginStubModuleTest_ProcOnAccountBound_001, TestSize.Level3)
 {
     MessageParcel data;
     MessageParcel reply;

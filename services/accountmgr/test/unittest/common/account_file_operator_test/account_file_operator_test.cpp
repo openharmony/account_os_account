@@ -69,7 +69,7 @@ void AccountFileOperatorTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require: SR000GGVFI
  */
-HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest001, TestSize.Level0)
+HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest001, TestSize.Level3)
 {
     EXPECT_EQ(osAccountFileOperator_.IsExistDir("/system/etc/account"), true);
     EXPECT_EQ(osAccountFileOperator_.IsExistDir("/file"), false);
@@ -81,7 +81,7 @@ HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: SR000GGVFI
  */
-HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest002, TestSize.Level0)
+HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest002, TestSize.Level3)
 {
     EXPECT_EQ(osAccountFileOperator_.IsExistFile("/system/etc/account/osaccount_constraints.json"), true);
     EXPECT_EQ(osAccountFileOperator_.IsExistFile("/osaccount_constraints.json"), false);
@@ -93,7 +93,7 @@ HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest002, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: SR000GGVFI
  */
-HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest003, TestSize.Level0)
+HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest003, TestSize.Level3)
 {
     EXPECT_EQ(osAccountFileOperator_.CreateDir(TEST_DIR_1), ERR_OK);
     EXPECT_EQ(osAccountFileOperator_.DeleteDirOrFile(TEST_DIR_1), ERR_OK);
@@ -105,7 +105,7 @@ HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest003, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: SR000GGVFI
  */
-HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest004, TestSize.Level0)
+HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest004, TestSize.Level3)
 {
     EXPECT_EQ(osAccountFileOperator_.CreateDir(TEST_DIR_1), ERR_OK);
     EXPECT_EQ(osAccountFileOperator_.InputFileByPathAndContent(TEST_DIR_1 + "/" + TEST_FILE_1, "file"), ERR_OK);
@@ -121,7 +121,7 @@ HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest004, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: SR000GGVFI
  */
-HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest005, TestSize.Level0)
+HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest005, TestSize.Level3)
 {
     EXPECT_EQ(osAccountFileOperator_.CreateDir(TEST_DIR_2), ERR_OK);
     EXPECT_EQ(osAccountFileOperator_.InputFileByPathAndContent(TEST_DIR_2 + "/" + TEST_FILE_1, "file"), ERR_OK);
@@ -134,7 +134,7 @@ HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest005, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: SR000GGVFI
  */
-HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest006, TestSize.Level0)
+HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest006, TestSize.Level3)
 {
     std::string str;
     EXPECT_EQ(

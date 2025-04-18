@@ -50,7 +50,7 @@ void AccountLogTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require: AR000CUF6K
  */
-HWTEST_F(AccountLogTest, AccountLogLevel001, TestSize.Level0)
+HWTEST_F(AccountLogTest, AccountLogLevel001, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. Get default log level
@@ -72,7 +72,7 @@ HWTEST_F(AccountLogTest, AccountLogLevel001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: AR000CUF6L
  */
-HWTEST_F(AccountLogTest, AccountLogFileName002, TestSize.Level0)
+HWTEST_F(AccountLogTest, AccountLogFileName002, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. Constructor fileName and execeptStr strings
@@ -94,7 +94,7 @@ HWTEST_F(AccountLogTest, AccountLogFileName002, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: AR000CUF6M
  */
-HWTEST_F(AccountLogTest, AccountLogFileName003, TestSize.Level0)
+HWTEST_F(AccountLogTest, AccountLogFileName003, TestSize.Level3)
 {
     std::string fileName = "test.cpp";
     std::string result = AccountLogWrapper::GetBriefFileName(fileName);
@@ -110,7 +110,7 @@ HWTEST_F(AccountLogTest, AccountLogFileName003, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: issueI5RWXN
  */
-HWTEST_F(AccountLogTest, AccountLogFileName004, TestSize.Level0)
+HWTEST_F(AccountLogTest, AccountLogFileName004, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. Constructor fileName and execeptStr strings

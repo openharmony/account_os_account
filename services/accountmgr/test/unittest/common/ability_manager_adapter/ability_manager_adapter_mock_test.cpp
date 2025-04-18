@@ -73,7 +73,7 @@ public:
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AbilityManagerAdapterMockTest, AbilityManagerAdapterMockTest001, TestSize.Level0)
+HWTEST_F(AbilityManagerAdapterMockTest, AbilityManagerAdapterMockTest001, TestSize.Level3)
 {
     AAFwk::Want want;
     sptr<AbilityConnectCallbackTest> conn = new (std::nothrow) AbilityConnectCallbackTest(TEST_SESSIONID);
@@ -87,7 +87,7 @@ HWTEST_F(AbilityManagerAdapterMockTest, AbilityManagerAdapterMockTest001, TestSi
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AbilityManagerAdapterMockTest, AbilityManagerAdapterMockTest002, TestSize.Level0)
+HWTEST_F(AbilityManagerAdapterMockTest, AbilityManagerAdapterMockTest002, TestSize.Level3)
 {
     sptr<AbilityConnectCallbackTest> conn = new (std::nothrow) AbilityConnectCallbackTest(TEST_SESSIONID);
     EXPECT_EQ(ERR_ACCOUNT_COMMON_CONNECT_ABILITY_MANAGER_SERVICE_ERROR,
@@ -100,7 +100,7 @@ HWTEST_F(AbilityManagerAdapterMockTest, AbilityManagerAdapterMockTest002, TestSi
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AbilityManagerAdapterMockTest, AbilityManagerAdapterMockTest003, TestSize.Level0)
+HWTEST_F(AbilityManagerAdapterMockTest, AbilityManagerAdapterMockTest003, TestSize.Level3)
 {
     EXPECT_EQ(ERR_ACCOUNT_COMMON_CONNECT_ABILITY_MANAGER_SERVICE_ERROR,
         AbilityManagerAdapter::GetInstance()->StartUser(MAIN_ACCOUNT_ID, nullptr));
@@ -112,7 +112,7 @@ HWTEST_F(AbilityManagerAdapterMockTest, AbilityManagerAdapterMockTest003, TestSi
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AbilityManagerAdapterMockTest, AbilityManagerAdapterMockTest004, TestSize.Level0)
+HWTEST_F(AbilityManagerAdapterMockTest, AbilityManagerAdapterMockTest004, TestSize.Level3)
 {
     EXPECT_EQ(ERR_ACCOUNT_COMMON_CONNECT_ABILITY_MANAGER_SERVICE_ERROR,
         AbilityManagerAdapter::GetInstance()->StopUser(MAIN_ACCOUNT_ID, nullptr));

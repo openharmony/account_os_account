@@ -278,7 +278,7 @@ void DomainAccountClientMockPluginSoModuleTest::TearDown(void)
  * @tc.require:
  */
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_SetAccountPolicy_001,
-         TestSize.Level0)
+         TestSize.Level3)
 {
     uint64_t tokenID;
     ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
@@ -301,7 +301,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
  * @tc.require:
  */
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_SetAccountPolicy_002,
-         TestSize.Level0)
+         TestSize.Level3)
 {
     DomainAccountInfo info;
     LoadPluginMethods();
@@ -323,7 +323,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
  * @tc.require:
  */
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_SetAccountPolicy_003,
-         TestSize.Level0)
+         TestSize.Level3)
 {
     LoadPluginMethods();
     DomainAccountInfo info;
@@ -344,7 +344,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
  * @tc.require:
  */
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_SetAccountPolicy_004,
-         TestSize.Level0)
+         TestSize.Level3)
 {
     uint64_t tokenID;
     ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
@@ -373,7 +373,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
  * @tc.require:
  */
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_SetAccountPolicy_005,
-         TestSize.Level0)
+         TestSize.Level3)
 {
     DomainAccountInfo info;
     info.accountName_ = "testAccount";
@@ -410,7 +410,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
  */
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_UpdateAccountInfo_001,
-         TestSize.Level0)
+         TestSize.Level3)
 {
     DomainAccountInfo oldDomainInfo;
     oldDomainInfo.accountName_ = "testAccount";
@@ -460,7 +460,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
  * @tc.require:
  */
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_UpdateAccountInfo_002,
-         TestSize.Level0)
+         TestSize.Level3)
 {
     DomainAccountInfo oldDomainInfo;
     oldDomainInfo.accountName_ = "testAccount";
@@ -503,7 +503,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
  * @tc.require:
  */
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_UpdateAccountInfo_003,
-         TestSize.Level0)
+         TestSize.Level3)
 {
     DomainAccountInfo oldDomainInfo;
     oldDomainInfo.accountName_ = "testAccount";
@@ -553,7 +553,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
  * @tc.require:
  */
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest,
-         DomainAccountClientModuleTest_UpdateAccountInfo_004, TestSize.Level0)
+         DomainAccountClientModuleTest_UpdateAccountInfo_004, TestSize.Level3)
 {
     DomainAccountInfo oldDomainInfo;
     oldDomainInfo.accountName_ = "testAccount";
@@ -596,7 +596,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest,
  * @tc.require:
  */
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_IsAuthenticationExpired_001,
-         TestSize.Level0)
+         TestSize.Level3)
 {
     uint64_t tokenID;
     ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
@@ -622,7 +622,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
  * @tc.require:
  */
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_IsAuthenticationExpired_002,
-         TestSize.Level0)
+         TestSize.Level3)
 {
     DomainAccountInfo domainInfo;
     domainInfo.accountName_ = "testaccount";
@@ -645,7 +645,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
  */
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_IsAuthenticationExpired_003,
-         TestSize.Level0)
+         TestSize.Level3)
 {
     DomainAccountInfo domainInfo;
     domainInfo.accountName_ = "testaccount";
@@ -682,7 +682,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
  * @tc.require:
  */
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_IsAuthenticationExpired_004,
-         TestSize.Level0)
+         TestSize.Level3)
 {
     DomainAccountInfo domainInfo;
     domainInfo.accountName_ = "testaccount";
@@ -738,7 +738,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
  * @tc.require:
  */
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_IsAuthenticationExpired_005,
-         TestSize.Level0)
+         TestSize.Level3)
 {
     LoadPluginMethods();
     DomainAccountInfo domainInfo;
@@ -795,7 +795,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
  * @tc.require:
  */
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_IsAuthenticationExpired_007,
-         TestSize.Level0)
+         TestSize.Level3)
 {
     DomainAccountInfo domainInfo;
     domainInfo.accountName_ = "testaccount";
@@ -858,7 +858,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
  * @tc.require:
  */
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_IsAuthenticationExpired_006,
-         TestSize.Level0)
+         TestSize.Level3)
 {
     uint64_t tokenID;
     ASSERT_TRUE(AllocPermission({}, tokenID));
@@ -893,7 +893,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
  */
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_GetOsAccountDomainInfo_001,
-         TestSize.Level0)
+         TestSize.Level3)
 {
     uint64_t tokenID;
     std::vector<std::string> needPermissions = {
@@ -945,7 +945,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
  * @tc.require:
  */
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_GetOsAccountDomainInfo_002,
-         TestSize.Level0)
+         TestSize.Level3)
 {
     uint64_t tokenID;
 
@@ -967,7 +967,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
  * @tc.require:
  */
 HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTest_GetOsAccountDomainInfo_003,
-         TestSize.Level0)
+         TestSize.Level3)
 {
     uint64_t tokenID;
     ASSERT_TRUE(AllocPermission({}, tokenID));

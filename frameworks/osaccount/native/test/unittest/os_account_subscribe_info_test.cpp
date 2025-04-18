@@ -60,7 +60,7 @@ void OsAccountSubscribeInfoTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountSubscribeInfoTest, OsAccountSubscribeInfoTestTest01, TestSize.Level0)
+HWTEST_F(OsAccountSubscribeInfoTest, OsAccountSubscribeInfoTestTest01, TestSize.Level3)
 {
     OsAccountSubscribeInfo osAccountSubscribeInfo(ACTIVATED, STRING_NAME);
 

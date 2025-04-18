@@ -427,7 +427,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest003, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: issueI4IU51
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest004, TestSize.Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest004, TestSize.Level0)
 {
     OsAccountInfo osAccountInfoOne;
     ASSERT_EQ(OsAccountManager::CreateOsAccount("ModuleTest004", OsAccountType::ADMIN, osAccountInfoOne), ERR_OK);
@@ -448,7 +448,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest004, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: issueI4IU51
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest005, TestSize.Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest005, TestSize.Level0)
 {
     OsAccountInfo osAccountInfoOne;
     ASSERT_EQ(OsAccountManager::CreateOsAccount("ModuleTest005", OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
@@ -502,7 +502,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest006, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: issueI4IU74
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest007, TestSize.Level0)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest007, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     EXPECT_NE(OsAccountManager::CreateOsAccount(STRING_EMPTY, OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
@@ -566,7 +566,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest011, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: issueI4JBFF
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest012, TestSize.Level0)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest012, TestSize.Level1)
 {
     bool isOsAccountActived = false;
     EXPECT_EQ(OsAccountManager::IsOsAccountActived(Constants::ADMIN_LOCAL_ID, isOsAccountActived), ERR_OK);
@@ -867,7 +867,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest029, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: issueI4IU6N
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest030, TestSize.Level0)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest030, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
     EXPECT_EQ(OsAccountManager::QueryOsAccountById(Constants::START_USER_ID, osAccountInfo), ERR_OK);
@@ -1982,7 +1982,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest108, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: issueI66BG5
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest110, TestSize.Level0)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest110, TestSize.Level3)
 {
     uint64_t tokenID;
     ASSERT_TRUE(AllocPermission(ALL_ACCOUNT_PERMISSION_LIST, tokenID, false));
@@ -2016,7 +2016,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest110, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: issueI66BG5
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest112, TestSize.Level0)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest112, TestSize.Level3)
 {
     uint64_t tokenID;
     ASSERT_TRUE(AllocPermission(ALL_ACCOUNT_PERMISSION_LIST, tokenID));
