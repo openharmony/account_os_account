@@ -56,7 +56,7 @@ void AccountPermissionManagerModuleTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require: SR000GGVFR
  */
-HWTEST_F(AccountPermissionManagerModuleTest, AccountPermissionManager_VerifyPermission_0100, TestSize.Level0)
+HWTEST_F(AccountPermissionManagerModuleTest, AccountPermissionManager_VerifyPermission_0100, TestSize.Level2)
 {
     const std::string DISTRIBUTED_DATASYNC = "ohos.permission.DISTRIBUTED_DATASYNC";
     ErrCode result = AccountPermissionManager::VerifyPermission(DISTRIBUTED_DATASYNC);

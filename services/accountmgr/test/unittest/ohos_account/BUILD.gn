@@ -15,7 +15,7 @@ import("//build/ohos.gni")
 import("//build/test.gni")
 import("../../../../../os_account.gni")
 
-module_output_path = "os_account/os_account"
+module_output_path = "os_account/distributed_account"
 
 config("accountmgr_data_deal_test_config") {
   include_dirs = [

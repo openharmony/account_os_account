@@ -58,7 +58,7 @@ void AppAccountCommonTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require issueI5RWXN
  */
-HWTEST_F(AppAccountCommonTest, Marshalling001, TestSize.Level0)
+HWTEST_F(AppAccountCommonTest, Marshalling001, TestSize.Level3)
 {
     ACCOUNT_LOGI("Marshalling001");
     Parcel Parcel;
@@ -86,7 +86,7 @@ HWTEST_F(AppAccountCommonTest, Marshalling001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require issueI5RWXN
  */
-HWTEST_F(AppAccountCommonTest, Marshalling002, TestSize.Level0)
+HWTEST_F(AppAccountCommonTest, Marshalling002, TestSize.Level3)
 {
     ACCOUNT_LOGI("Marshalling002");
     Parcel Parcel;
@@ -108,7 +108,7 @@ HWTEST_F(AppAccountCommonTest, Marshalling002, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require issueI5RWXN
  */
-HWTEST_F(AppAccountCommonTest, Marshalling003, TestSize.Level0)
+HWTEST_F(AppAccountCommonTest, Marshalling003, TestSize.Level3)
 {
     ACCOUNT_LOGI("Marshalling003");
     Parcel Parcel;
@@ -128,7 +128,7 @@ HWTEST_F(AppAccountCommonTest, Marshalling003, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require issueI5RWXN
  */
-HWTEST_F(AppAccountCommonTest, Marshalling004, TestSize.Level0)
+HWTEST_F(AppAccountCommonTest, Marshalling004, TestSize.Level3)
 {
     ACCOUNT_LOGI("Marshalling004");
     Parcel Parcel;
@@ -154,7 +154,7 @@ HWTEST_F(AppAccountCommonTest, Marshalling004, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require issueI5RWXN
  */
-HWTEST_F(AppAccountCommonTest, Marshalling005, TestSize.Level0)
+HWTEST_F(AppAccountCommonTest, Marshalling005, TestSize.Level3)
 {
     ACCOUNT_LOGI("Marshalling005");
     Parcel Parcel;
@@ -177,7 +177,7 @@ HWTEST_F(AppAccountCommonTest, Marshalling005, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require issueI5RWXN
  */
-HWTEST_F(AppAccountCommonTest, Marshalling006, TestSize.Level0)
+HWTEST_F(AppAccountCommonTest, Marshalling006, TestSize.Level3)
 {
     ACCOUNT_LOGI("Marshalling006");
     Parcel testParcel;
@@ -194,7 +194,7 @@ HWTEST_F(AppAccountCommonTest, Marshalling006, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require issueI5RWXN
  */
-HWTEST_F(AppAccountCommonTest, Marshalling007, TestSize.Level0)
+HWTEST_F(AppAccountCommonTest, Marshalling007, TestSize.Level3)
 {
     Parcel Parcel;
     SelectAccountsOptions option1;
@@ -219,7 +219,7 @@ HWTEST_F(AppAccountCommonTest, Marshalling007, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require issueI5RWXN
  */
-HWTEST_F(AppAccountCommonTest, ConvertOtherJSErrCodeV8001, TestSize.Level0)
+HWTEST_F(AppAccountCommonTest, ConvertOtherJSErrCodeV8001, TestSize.Level3)
 {
     ACCOUNT_LOGI("ConvertOtherJSErrCodeV8001");
     EXPECT_EQ(ConvertToJSErrCodeV8(ERR_OK), ERR_JS_SUCCESS_V8);
@@ -240,7 +240,7 @@ HWTEST_F(AppAccountCommonTest, ConvertOtherJSErrCodeV8001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require issueI5RWXN
  */
-HWTEST_F(AppAccountCommonTest, ConvertToJSErrCodeV8001, TestSize.Level0)
+HWTEST_F(AppAccountCommonTest, ConvertToJSErrCodeV8001, TestSize.Level3)
 {
     ACCOUNT_LOGI("ConvertToJSErrCodeV8001");
     EXPECT_EQ(ConvertToJSErrCodeV8(ERR_APPACCOUNT_SERVICE_ADD_EXISTING_ACCOUNT), ERR_JS_INVALID_REQUEST);
@@ -257,7 +257,7 @@ HWTEST_F(AppAccountCommonTest, ConvertToJSErrCodeV8001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require issueI7AVZ5
  */
-HWTEST_F(AppAccountCommonTest, AccountCapabilityRequest001, TestSize.Level0)
+HWTEST_F(AppAccountCommonTest, AccountCapabilityRequest001, TestSize.Level3)
 {
     AccountCapabilityRequest testRequest;
     testRequest.bundleName = "testBundleName";

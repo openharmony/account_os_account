@@ -120,7 +120,7 @@ static int RenameFile(const std::string &src, const std::string &des)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountDumpHelperTest, AccountDumpNoParameterTest001, TestSize.Level0)
+HWTEST_F(AccountDumpHelperTest, AccountDumpNoParameterTest001, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. Input no parameter
@@ -141,7 +141,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpNoParameterTest001, TestSize.Level0)
  * @tc.require: SR000CUF6J
  */
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest001, TestSize.Level0)
+HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest001, TestSize.Level3)
 {
     OsAccountInfo osAccountInfo;
     // create an os account
@@ -180,7 +180,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest002, TestSize.Level0)
+HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest002, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. Input one parameter
@@ -200,7 +200,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest002, TestSize.Level0)
  * @tc.require:
  */
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest003, TestSize.Level0)
+HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest003, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. Input one parameter
@@ -218,7 +218,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest003, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest004, TestSize.Level0)
+HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest004, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. Input one parameter
@@ -237,7 +237,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest004, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest005, TestSize.Level0)
+HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest005, TestSize.Level3)
 {
     accountDumpHelper_ = nullptr;
     accountDumpHelper_ = std::make_unique<AccountDumpHelper>(osAccount_);
@@ -255,7 +255,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest005, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest007, TestSize.Level0)
+HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest007, TestSize.Level3)
 {
     accountDumpHelper_ = nullptr;
     accountDumpHelper_ = std::make_unique<AccountDumpHelper>(nullptr);
@@ -273,7 +273,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest007, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountDumpHelperTest, AccountDumpTwoParameterTest001, TestSize.Level0)
+HWTEST_F(AccountDumpHelperTest, AccountDumpTwoParameterTest001, TestSize.Level3)
 {
     ASSERT_NE(accountDumpHelper_, nullptr);
     /**
@@ -304,7 +304,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpTwoParameterTest001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: AR000CUF6N
  */
-HWTEST_F(AccountDumpHelperTest, AccountDumpTwoParameterTest002, TestSize.Level0)
+HWTEST_F(AccountDumpHelperTest, AccountDumpTwoParameterTest002, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. Input two parameters
@@ -332,7 +332,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpTwoParameterTest002, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: AR000CUF6N
  */
-HWTEST_F(AccountDumpHelperTest, AccountDumpTwoParameterTest003, TestSize.Level0)
+HWTEST_F(AccountDumpHelperTest, AccountDumpTwoParameterTest003, TestSize.Level3)
 {
     ASSERT_NE(accountDumpHelper_, nullptr);
     /**
@@ -351,7 +351,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpTwoParameterTest003, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: AR000CUF6N
  */
-HWTEST_F(AccountDumpHelperTest, AccountDumpInvalidParameterTest003, TestSize.Level0)
+HWTEST_F(AccountDumpHelperTest, AccountDumpInvalidParameterTest003, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. Input invalid parameter
@@ -370,7 +370,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpInvalidParameterTest003, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountDumpHelperTest, AnonymizeNameStrTest001, TestSize.Level0)
+HWTEST_F(AccountDumpHelperTest, AnonymizeNameStrTest001, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. Input invalid parameter
@@ -386,7 +386,7 @@ HWTEST_F(AccountDumpHelperTest, AnonymizeNameStrTest001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountDumpHelperTest, AnonymizeUidStrTest001, TestSize.Level0)
+HWTEST_F(AccountDumpHelperTest, AnonymizeUidStrTest001, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. Input invalid parameter
@@ -402,7 +402,7 @@ HWTEST_F(AccountDumpHelperTest, AnonymizeUidStrTest001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountDumpHelperTest, AnonymizeUidStrTest002, TestSize.Level0)
+HWTEST_F(AccountDumpHelperTest, AnonymizeUidStrTest002, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. Input invalid parameter
@@ -417,7 +417,7 @@ HWTEST_F(AccountDumpHelperTest, AnonymizeUidStrTest002, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountDumpHelperTest, AnonymizeUidStrTest003, TestSize.Level0)
+HWTEST_F(AccountDumpHelperTest, AnonymizeUidStrTest003, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. Input invalid parameter
@@ -434,7 +434,7 @@ HWTEST_F(AccountDumpHelperTest, AnonymizeUidStrTest003, TestSize.Level0)
  * @tc.require:
  */
 #ifndef HAS_KV_STORE_PART
-HWTEST_F(AccountDumpHelperTest, ShowOhosAccountInfoTest001, TestSize.Level0)
+HWTEST_F(AccountDumpHelperTest, ShowOhosAccountInfoTest001, TestSize.Level3)
 {
     RenameFile(Constants::ACCOUNT_LIST_FILE_JSON_PATH,
         Constants::ACCOUNT_LIST_FILE_JSON_PATH + "_blk");
@@ -454,7 +454,7 @@ HWTEST_F(AccountDumpHelperTest, ShowOhosAccountInfoTest001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountDumpHelperTest, ShowOhosAccountInfoTest002, TestSize.Level0)
+HWTEST_F(AccountDumpHelperTest, ShowOhosAccountInfoTest002, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. Input invalid parameter

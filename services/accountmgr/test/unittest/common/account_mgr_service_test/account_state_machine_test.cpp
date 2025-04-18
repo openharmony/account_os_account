@@ -51,7 +51,7 @@ void AccountStateMachineTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require: SR000GGV12
  */
-HWTEST_F(AccountStateMachineTest, AccountStateMachineTestInitState001, TestSize.Level0)
+HWTEST_F(AccountStateMachineTest, AccountStateMachineTestInitState001, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
@@ -67,7 +67,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestInitState001, TestSize.
  * @tc.type: FUNC
  * @tc.require: SR000GGV12
  */
-HWTEST_F(AccountStateMachineTest, AccountStateMachineTestUnbound2LoginState002, TestSize.Level0)
+HWTEST_F(AccountStateMachineTest, AccountStateMachineTestUnbound2LoginState002, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
@@ -90,7 +90,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestUnbound2LoginState002, 
  * @tc.type: FUNC
  * @tc.require: SR000GGV12
  */
-HWTEST_F(AccountStateMachineTest, AccountStateMachineTestUnboundBindAccountFailed003, TestSize.Level0)
+HWTEST_F(AccountStateMachineTest, AccountStateMachineTestUnboundBindAccountFailed003, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
@@ -113,7 +113,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestUnboundBindAccountFaile
  * @tc.type: FUNC
  * @tc.require: SR000GGV12
  */
-HWTEST_F(AccountStateMachineTest, AccountStateMachineUnboundInputUntreatedEvent004, TestSize.Level0)
+HWTEST_F(AccountStateMachineTest, AccountStateMachineUnboundInputUntreatedEvent004, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
@@ -136,7 +136,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineUnboundInputUntreatedEvent0
  * @tc.type: FUNC
  * @tc.require: SR000GGV12
  */
-HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginTokenExpired005, TestSize.Level0)
+HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginTokenExpired005, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
@@ -166,7 +166,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginTokenExpired005, T
  * @tc.type: FUNC
  * @tc.require: SR000GGV12
  */
-HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginPasswordChanged006, TestSize.Level0)
+HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginPasswordChanged006, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
@@ -196,7 +196,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginPasswordChanged006
  * @tc.type: FUNC
  * @tc.require: SR000GGV12
  */
-HWTEST_F(AccountStateMachineTest, AccountStateMachineTestManualLogout007, TestSize.Level0)
+HWTEST_F(AccountStateMachineTest, AccountStateMachineTestManualLogout007, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
@@ -226,7 +226,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestManualLogout007, TestSi
  * @tc.type: FUNC
  * @tc.require: SR000GGV12
  */
-HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginManualUnbound008, TestSize.Level0)
+HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginManualUnbound008, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
@@ -256,7 +256,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginManualUnbound008, 
  * @tc.type: FUNC
  * @tc.require: SR000GGV12
  */
-HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginInputUntreatedEvent009, TestSize.Level0)
+HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginInputUntreatedEvent009, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
@@ -286,7 +286,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginInputUntreatedEven
  * @tc.type: FUNC
  * @tc.require: SR000GGV12
  */
-HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutAuthenticateSuccess010, TestSize.Level0)
+HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutAuthenticateSuccess010, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
@@ -323,7 +323,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutAuthenticateSucce
  * @tc.type: FUNC
  * @tc.require: SR000GGV12
  */
-HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutAuthenticateFailed011, TestSize.Level0)
+HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutAuthenticateFailed011, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
@@ -360,7 +360,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutAuthenticateFaile
  * @tc.type: FUNC
  * @tc.require: SR000GGV12
  */
-HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutInputUntreatedEvent012, TestSize.Level0)
+HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutInputUntreatedEvent012, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
@@ -404,7 +404,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutInputUntreatedEve
  * @tc.type: FUNC
  * @tc.require: SR000GGV12
  */
-HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutManualUnbound013, TestSize.Level0)
+HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutManualUnbound013, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
@@ -441,7 +441,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutManualUnbound013,
  * @tc.type: FUNC
  * @tc.require: SR000GGV12
  */
-HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginManualLogoff014, TestSize.Level0)
+HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginManualLogoff014, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
@@ -471,7 +471,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginManualLogoff014, T
  * @tc.type: FUNC
  * @tc.require: SR000GGV12
  */
-HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutManualLogoff015, TestSize.Level0)
+HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutManualLogoff015, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
@@ -508,7 +508,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutManualLogoff015, 
  * @tc.type: FUNC
  * @tc.require: SR000GGV12
  */
-HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutBindSuccess016, TestSize.Level0)
+HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutBindSuccess016, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
@@ -545,7 +545,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutBindSuccess016, T
  * @tc.type: FUNC
  * @tc.require: SR000GGV12
  */
-HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoffBindSuccess017, TestSize.Level0)
+HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoffBindSuccess017, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
@@ -582,7 +582,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoffBindSuccess017, T
  * @tc.type: FUNC
  * @tc.require: SR000GGV12
  */
-HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoffInputUntreatedEvent018, TestSize.Level0)
+HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoffInputUntreatedEvent018, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. AccountStateMachine init

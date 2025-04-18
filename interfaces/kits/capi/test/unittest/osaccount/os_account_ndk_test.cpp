@@ -62,7 +62,7 @@ void OsAccountNDKTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountNDKTest, GetOsAccountNameTest001, TestSize.Level0)
+HWTEST_F(OsAccountNDKTest, GetOsAccountNameTest001, TestSize.Level1)
 {
     char str[MAX_NAME_LENGTH] = { 0 };
     EXPECT_EQ(OH_OsAccount_GetName(nullptr, MAX_NAME_LENGTH), OsAccount_ErrCode::OS_ACCOUNT_ERR_INVALID_PARAMETER);

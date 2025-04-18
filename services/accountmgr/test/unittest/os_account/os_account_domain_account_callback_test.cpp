@@ -63,7 +63,7 @@ void DomainAccountCallbackTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountCallbackTest, DomainAccountCallbackTest_OnResult_001, TestSize.Level0)
+HWTEST_F(DomainAccountCallbackTest, DomainAccountCallbackTest_OnResult_001, TestSize.Level3)
 {
     CreateOsAccountForDomainOptions accountOptions;
     std::shared_ptr<IOsAccountControl> testOsAccountControl = nullptr;
@@ -80,7 +80,7 @@ HWTEST_F(DomainAccountCallbackTest, DomainAccountCallbackTest_OnResult_001, Test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountCallbackTest, DomainAccountCallbackTest_OnResult_002, TestSize.Level0)
+HWTEST_F(DomainAccountCallbackTest, DomainAccountCallbackTest_OnResult_002, TestSize.Level3)
 {
     OsAccountInfo osAccountInfo;
     std::shared_ptr<IOsAccountControl> testOsAccountControl = nullptr;
