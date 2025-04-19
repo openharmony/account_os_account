@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -210,5 +210,164 @@ HWTEST_F(AccountIAMCallbackServiceTest, DomainCredentialRecipient_OnSetData_0100
     EXPECT_EQ(domainCredentialRecipient->idmCallback_, nullptr);
 }
 #endif
+
+/**
+ * @tc.name: IDMCallbackService_DestructTest_0100
+ * @tc.desc: Test the 'IDMCallbackService' object has not been called before destructing.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMCallbackServiceTest, IDMCallbackService_DestructTest_0100, TestSize.Level3)
+{
+    auto callback = std::make_shared<MockIDMCallback>();
+    EXPECT_CALL(*callback, OnResult(ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR, _)).Times(Exactly(1));
+    auto testCallback = std::make_shared<TestIDMCallback>(callback);
+    IDMCallbackService *callbackWrapper = new (std::nothrow) IDMCallbackService(TEST_USER_ID, testCallback);
+    delete callbackWrapper;
+}
+
+/**
+ * @tc.name: IDMCallbackService_DestructTest_0200
+ * @tc.desc: Test the 'IDMCallbackService' object has been called before destructing.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMCallbackServiceTest, IDMCallbackService_DestructTest_0200, TestSize.Level3)
+{
+    auto callback = std::make_shared<MockIDMCallback>();
+    EXPECT_CALL(*callback, OnResult(0, _)).Times(Exactly(1));
+    auto testCallback = std::make_shared<TestIDMCallback>(callback);
+    IDMCallbackService  *callbackWrapper = new (std::nothrow) IDMCallbackService(TEST_USER_ID, testCallback);
+    Attributes emptyAttributes;
+    callbackWrapper->OnResult(0, emptyAttributes);
+    delete callbackWrapper;
+}
+
+/**
+ * @tc.name: GetCredInfoCallbackService_DestructTest_0100
+ * @tc.desc: Test the 'GetCredInfoCallbackService' object has not been called before destructing.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMCallbackServiceTest, GetCredInfoCallbackService_DestructTest_0100, TestSize.Level3)
+{
+    auto callback = std::make_shared<MockGetCredInfoCallback>();
+    EXPECT_CALL(*callback, OnCredentialInfo(ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR, _)).Times(Exactly(1));
+    auto testCallback = std::make_shared<TestGetCredInfoCallback>(callback);
+    GetCredInfoCallbackService  *callbackWrapper = new (std::nothrow) GetCredInfoCallbackService(testCallback);
+    delete callbackWrapper;
+}
+
+/**
+* @tc.name: GetCredInfoCallbackService_DestructTest_0200
+* @tc.desc: Test the 'GetCredInfoCallbackService' object has been called before destructing.
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(AccountIAMCallbackServiceTest, GetCredInfoCallbackService_DestructTest_0200, TestSize.Level3)
+{
+    auto callback = std::make_shared<MockGetCredInfoCallback>();
+    EXPECT_CALL(*callback, OnCredentialInfo(0, _)).Times(Exactly(1));
+    auto testCallback = std::make_shared<TestGetCredInfoCallback>(callback);
+    GetCredInfoCallbackService  *callbackWrapper = new (std::nothrow) GetCredInfoCallbackService(testCallback);
+    std::vector<CredentialInfo> emptyInfoList;
+    callbackWrapper->OnCredentialInfo(0, emptyInfoList);
+    delete callbackWrapper;
+}
+
+/**
+ * @tc.name: GetSetPropCallbackService_DestructTest_0100
+ * @tc.desc: Test the 'GetSetPropCallbackService' object has not been called before destructing.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMCallbackServiceTest, GetSetPropCallbackService_DestructTest_0100, TestSize.Level3)
+{
+    auto callback = std::make_shared<MockGetSetPropCallback>();
+    EXPECT_CALL(*callback, OnResult(ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR, _)).Times(Exactly(1));
+    auto testCallback = std::make_shared<TestGetSetPropCallback>(callback);
+    GetSetPropCallbackService  *callbackWrapper = new (std::nothrow) GetSetPropCallbackService(testCallback);
+    delete callbackWrapper;
+}
+
+/**
+ * @tc.name: GetSetPropCallbackService_DestructTest_0200
+ * @tc.desc: Test the 'GetSetPropCallbackService' object has been called before destructing.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMCallbackServiceTest, GetSetPropCallbackService_DestructTest_0200, TestSize.Level3)
+{
+    auto callback = std::make_shared<MockGetSetPropCallback>();
+    EXPECT_CALL(*callback, OnResult(0, _)).Times(Exactly(1));
+    auto testCallback = std::make_shared<TestGetSetPropCallback>(callback);
+    GetSetPropCallbackService  *callbackWrapper = new (std::nothrow) GetSetPropCallbackService(testCallback);
+    Attributes emptyAttributes;
+    callbackWrapper->OnResult(0, emptyAttributes);
+    delete callbackWrapper;
+}
+
+/**
+ * @tc.name: GetEnrolledIdCallbackService_DestructTest_0100
+ * @tc.desc: Test the 'GetEnrolledIdCallbackService' object has not been called before destructing.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMCallbackServiceTest, GetEnrolledIdCallbackService_DestructTest_0100, TestSize.Level3)
+{
+    auto callback = std::make_shared<MockGetEnrolledIdCallback>();
+    EXPECT_CALL(*callback, OnEnrolledId(ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR, _)).Times(Exactly(1));
+    auto testCallback = std::make_shared<TestGetEnrolledIdCallback>(callback);
+    GetEnrolledIdCallbackService  *callbackWrapper = new (std::nothrow) GetEnrolledIdCallbackService(testCallback);
+    delete callbackWrapper;
+}
+
+/**
+ * @tc.name: GetEnrolledIdCallbackService_DestructTest_0200
+ * @tc.desc: Test the 'GetEnrolledIdCallbackService' object has been called before destructing.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMCallbackServiceTest, GetEnrolledIdCallbackService_DestructTest_0200, TestSize.Level3)
+{
+    auto callback = std::make_shared<MockGetEnrolledIdCallback>();
+    EXPECT_CALL(*callback, OnEnrolledId(0, _)).Times(Exactly(1));
+    auto testCallback = std::make_shared<TestGetEnrolledIdCallback>(callback);
+    GetEnrolledIdCallbackService  *callbackWrapper = new (std::nothrow) GetEnrolledIdCallbackService(testCallback);
+    uint64_t enrolledId = 0;
+    callbackWrapper->OnEnrolledId(0, enrolledId);
+    delete callbackWrapper;
+}
+
+/**
+ * @tc.name: PreRemoteAuthCallbackService_DestructTest_0100
+ * @tc.desc: Test the 'PreRemoteAuthCallbackService' object has not been called before destructing.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMCallbackServiceTest, PreRemoteAuthCallbackService_DestructTest_0100, TestSize.Level3)
+{
+    auto callback = std::make_shared<MockPreRemoteAuthCallback>();
+    EXPECT_CALL(*callback, OnResult(ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR)).Times(Exactly(1));
+    auto testCallback = std::make_shared<TestPreRemoteAuthCallback>(callback);
+    PreRemoteAuthCallbackService  *callbackWrapper = new (std::nothrow) PreRemoteAuthCallbackService(testCallback);
+    delete callbackWrapper;
+}
+
+/**
+ * @tc.name: PreRemoteAuthCallbackService_DestructTest_0200
+ * @tc.desc: Test the 'PreRemoteAuthCallbackService' object has been called before destructing.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMCallbackServiceTest, PreRemoteAuthCallbackService_DestructTest_0200, TestSize.Level3)
+{
+    auto callback = std::make_shared<MockPreRemoteAuthCallback>();
+    EXPECT_CALL(*callback, OnResult(0)).Times(Exactly(1));
+    auto testCallback = std::make_shared<TestPreRemoteAuthCallback>(callback);
+    PreRemoteAuthCallbackService  *callbackWrapper = new (std::nothrow) PreRemoteAuthCallbackService(testCallback);
+    callbackWrapper->OnResult(0);
+    delete callbackWrapper;
+}
 }  // namespace AccountTest
 }  // namespace OHOS
