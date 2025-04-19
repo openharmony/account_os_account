@@ -15,6 +15,7 @@
 
 #include "ani_common_want.h"
 #include "napi_account_error.h"
+#include "account_error_no.h"
 #include "ohos.account.distributedAccount.impl.hpp"
 #include "ohos.account.distributedAccount.proj.hpp"
 #include "ohos_account_kits.h"
@@ -137,10 +138,8 @@ public:
         AccountSA::OhosAccountInfo info;
         ErrCode err = AccountSA::OhosAccountKits::GetInstance().GetOhosAccountInfo(info);
         if (err != ERR_OK) {
-            int32_t jsErrCode = -1;
-            std::string errMsg;
-            AccountJsKit::GenerateBusinessError(err, jsErrCode, errMsg);
-            taihe::set_business_error(jsErrCode, errMsg);
+            int32_t jsErrCode = GenerateBusinessErrorCode(err);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
             return make_holder<DistributedInfoImpl, DistributedInfo>();
         }
         return make_holder<DistributedInfoImpl, DistributedInfo>(info);
