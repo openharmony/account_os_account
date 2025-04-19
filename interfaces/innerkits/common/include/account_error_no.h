@@ -18,6 +18,8 @@
 
 #include <cstdint>
 #include "errors.h"
+#include <unordered_map>
+#include <string>
 
 namespace OHOS {
 enum {
@@ -369,6 +371,10 @@ enum JSErrorCode {
 };
 
 int32_t ConvertToJSErrCode(int32_t nativeErrCode);
+int32_t GenerateBusinessErrorCode(int32_t nativeErrCode);
+bool CheckJsErrorCode(int32_t errCode);
+std::string ConvertToJsErrMsg(int32_t jsErrCode);
+int32_t AccountIAMConvertToJSErrCode(int32_t errCode);
 }  // namespace OHOS
 
 #endif  // OS_ACCOUNT_FRAMEWORKS_COMMON_ACCOUNT_ERROR_INCLUDE_ACCOUNT_ERROR_NO_H

@@ -44,8 +44,6 @@ constexpr size_t PARAM_THREE = 3;
 constexpr size_t PARAM_FOUR = 4;
 constexpr size_t PARAM_FIVE = 5;
 
-int32_t AccountIAMConvertToJSErrCode(int32_t errCode);
-
 struct JsIAMCallback {
     JsIAMCallback(napi_env env) : env(env) {}
     ~JsIAMCallback()
