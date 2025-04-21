@@ -59,16 +59,16 @@ interface AccountManager {
 
     @gen_async("activateOsAccount")
     @gen_promise("activateOsAccount")
-    ActivateOsAccountSync(localId: i32);
+    ActivateOsAccountSync(localId: i32): void;
 
     @gen_async("createOsAccount")
     CreateOsAccountSync(localName: String, type: OsAccountType): OsAccountInfo;
 
     @gen_promise("createOsAccount")
-    CreateOsAccountSync_(localName: String, type: OsAccountType, options: Optional<CreateOsAccountOptions>): OsAccountInfo;
+    CreateOsAccountWithOptionSync(localName: String, type: OsAccountType, options: Optional<CreateOsAccountOptions>): OsAccountInfo;
 
     @gen_promise("deactivateOsAccount")
-    DeactivateOsAccountSync(localId: i32);
+    DeactivateOsAccountSync(localId: i32): void;
 
     @gen_async("getActivatedOsAccountLocalIds")
     @gen_promise("getActivatedOsAccountLocalIds")
@@ -94,9 +94,26 @@ interface AccountManager {
 interface UserIdentityManager {
     @gen_async("openSession")
     OpenSession(): @arraybuffer Array<u8>;
+
     @gen_promise("openSession")
     OpenSessionPromise(accountId:Optional<i32>): @arraybuffer Array<u8>;
+
+    closeSession(accountId: Optional<i32>): void;
+
+    @gen_async("getAuthInfo")
+    getAuthInfoSync(): Array<EnrolledCredInfo>;
+
+    @gen_async("getAuthInfo")
+    getAuthInfoWithTypeCallbackSync(authType: AuthType): Array<EnrolledCredInfo>;
+
+    @gen_promise("getAuthInfo")
+    getAuthInfoWithTypePromiseSync(authType: Optional<AuthType>): Array<EnrolledCredInfo>;
+
+    @gen_promise("getAuthInfo")
+    getAuthInfoWithOptionsSync(options: Optional<GetAuthInfoOptions>): Array<EnrolledCredInfo>;
+
     addCredential(info: CredentialInfo, callback: IIdmCallback): void;
+
     delUser(token: @arraybuffer Array<u8>, callback: IIdmCallback);
 }
 
@@ -208,6 +225,12 @@ enum GetPropertyType : u32 {
     NEXT_PHASE_FREEZING_TIME = 6
 }
 
+struct GetPropertyRequest {
+    authType: AuthType;
+    keys: Array<GetPropertyType>;
+    accountId: Optional<i32>;
+}
+
 struct OsAccountSwitchEventData {
     fromAccountId: i32;
     toAccountId: i32;
@@ -219,13 +242,28 @@ struct GetInputDataOptions {
 
 struct CreateOsAccountOptions {
     shortName: String;
-    disallowedPreinstalledBundles: Optional<Array<String>>;
-    allowedPreinstalledBundles: Optional<Array<String>>;
 }
 
 struct GetAuthInfoOptions {
     authType: Optional<AuthType>;
     accountId: Optional<i32>;
+}
+
+struct EnrolledCredInfo {
+    credentialId: @arraybuffer Array<u8>;
+    authType: AuthType;
+    authSubType: AuthSubType;
+    templateId: @arraybuffer Array<u8>;
+}
+
+interface DomainPlugin {
+    auth(domainAccountInfo: DomainAccountInfo, credential: @arraybuffer Array<u8>, callback: IUserAuthCallback): void;
+}
+
+interface DomainAccountManager {
+    @static
+    @gen_promise("isAuthenticationExpired")
+    isAuthenticationExpiredSync(domainAccountInfo: DomainAccountInfo): bool;
 }
 
 struct AuthResult {
@@ -235,7 +273,43 @@ struct AuthResult {
     nextPhaseFreezingTime: Optional<i32>;
     credentialId: Optional<@arraybuffer Array<u8>>;
     accountId: Optional<i32>;
-    pinValidityPeriod: Optional<i64>;
+    pinValidityPeriod: Optional<i32>;
+}
+
+enum AuthTrustLevel: i32 {
+    ATL1 = 10000,
+    ATL2 = 20000,
+    ATL3 = 30000,
+    ATL4 = 40000
+}
+
+enum AuthIntent: i32 {
+    DEFAULT = 0,
+    UNLOCK = 1,
+    SILENT_AUTH = 2,
+    QUESTION_AUTH = 3,
+}
+
+struct RemoteAuthOptions {
+    verifierNetworkId: Optional<String>;
+    collectorNetworkId: Optional<String>;
+    collectorTokenId: Optional<i32>;
+}
+
+struct AuthOptions {
+    accountId: Optional<i32>;
+    authIntent: Optional<AuthIntent>;
+    remoteAuthOptions: Optional<RemoteAuthOptions>;
+}
+
+struct ExecutorProperty {
+    result: i32;
+    authSubType: AuthSubType;
+    remainTimes: Optional<i32>;
+    freezingTime: Optional<i32>;
+    nextPhaseFreezingTime: Optional<i32>;
+    enrollmentProgress: Optional<String>;
+    sensorInfo: Optional<String>;
 }
 
 struct IUserAuthCallback {
@@ -261,6 +335,22 @@ interface IInputData {
 
 @class
 interface UserAuth {
+    @overload("auth")
+    authSync(challenge: @arraybuffer Array<u8>, authType: AuthType,
+        authTrustLevel: AuthTrustLevel, callback: IUserAuthCallback): @arraybuffer Array<u8>;
+
+    @overload("auth")
+    authWithOptSync(challenge: @arraybuffer Array<u8>, authType: AuthType,
+        authTrustLevel: AuthTrustLevel, options: AuthOptions, callback: IUserAuthCallback): @arraybuffer Array<u8>;
+
+    authUser(userId: i32, challenge: @arraybuffer Array<u8>, authType: AuthType,
+        authTrustLevel: AuthTrustLevel, callback: IUserAuthCallback): @arraybuffer Array<u8>;
+    
+    cancelAuth(contextID: @arraybuffer Array<u8>): void;
+
+    @gen_async("getProperty")
+    @gen_promise("getProperty")
+    getPropertySync(request: GetPropertyRequest): ExecutorProperty;
 }
 
 @class

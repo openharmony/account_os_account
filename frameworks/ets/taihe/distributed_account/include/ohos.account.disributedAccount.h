@@ -1,4 +1,4 @@
-	/*
+/*
  * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,20 @@
  * limitations under the License.
  */
 
-import osAccount from '@ohos.account.osAccount';
-import {BusinessError} from '@ohos.base';
+#ifndef OHOS_ACCOUNT_DISTRIBUTED_ACCOUNT_H
+#define OHOS_ACCOUNT_DISTRIBUTED_ACCOUNT_H
 
-export function testFunc() {
-    return;
-}
+#include "ohos.account.distributedAccount.impl.hpp"
+#include "ohos.account.distributedAccount.proj.hpp"
+#include "account_info.h"
+
+namespace OHOS {
+namespace AccountSA {
+
+ohos::account::distributedAccount::DistributedInfo CreateDistributedInfo();
+ohos::account::distributedAccount::DistributedInfo CreateDistributedInfoFromAccountInfo(const OhosAccountInfo& info);
+    
+} // namespace AccountSA
+} // namespace OHOS
+
+#endif // OHOS_ACCOUNT_DISTRIBUTED_ACCOUNT_H
