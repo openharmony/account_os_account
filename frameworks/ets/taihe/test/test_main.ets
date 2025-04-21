@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-import { testActivateOsAccount,testIAMInputerManager ,testIAMPINAuth ,testIsMainOsAccoun, testGetOsAccountProfilePhoto,
-  testGetOsAccountType, testOnOff} from './test_activate_os_account';
+import { testFunc } from './test_activate_os_account';
 
 function main() {
-  testIAMInputerManager();
-  testIAMPINAuth();
+  testFunc();
 }

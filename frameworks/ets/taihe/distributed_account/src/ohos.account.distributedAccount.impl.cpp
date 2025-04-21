@@ -152,4 +152,20 @@ DistributedAccountAbility getDistributedAccountAbility()
 }
 } // namespace
 
+namespace OHOS {
+namespace AccountSA {
+
+DistributedInfo CreateDistributedInfo()
+{
+    return make_holder<DistributedInfoImpl, DistributedInfo>();
+}
+
+DistributedInfo CreateDistributedInfoFromAccountInfo(const OhosAccountInfo& info)
+{
+    return make_holder<DistributedInfoImpl, DistributedInfo>(info);
+}
+
+} // namespace AccountSA
+} // namespace OHOS
+
 TH_EXPORT_CPP_API_getDistributedAccountAbility(getDistributedAccountAbility);
