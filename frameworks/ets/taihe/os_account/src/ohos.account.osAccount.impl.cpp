@@ -13,369 +13,359 @@
  * limitations under the License.
  */
 
-#include <map>
-#include <mutex>
-#include <vector>
-#include "ohos.account.osAccount.proj.hpp"
-#include "ohos.account.osAccount.impl.hpp"
-#include "taihe/runtime.hpp"
-#include "taihe/string.hpp"
-#include "stdexcept"
 #include "account_log_wrapper.h"
+#include "account_error_no.h"
+#include "account_iam_client.h"
+#include "account_iam_info.h"
+#include "account_info.h"
+#include "ani_common_want.h"
+#include "iam_common_defines.h"
+#include "napi_account_error.h"
+#include "ohos.account.disributedAccount.h"
+#include "ohos.account.distributedAccount.impl.hpp"
+#include "ohos.account.distributedAccount.proj.hpp"
+#include "ohos.account.osAccount.impl.hpp"
+#include "ohos.account.osAccount.proj.hpp"
+#include "ohos_account_kits.h"
 #include "os_account_info.h"
-#include "taihe_common.h"
-#include "taihe_account_info.h"
+#include "os_account_manager.h"
+#include "user_idm_client.h"
+#include "user_idm_client_defines.h"
+
+#include "taihe/runtime.hpp"
+
+#include <cstdint>
+#include <memory>
+#include <optional>
+#include <stdexcept>
+#include <vector>
 
 using namespace taihe;
-using namespace ohos::account::osAccount;
-using namespace ohos::account;
 using namespace OHOS;
-using namespace OHOS::AccountSA;
+using namespace ohos::account::osAccount;
+using namespace ohos::account::distributedAccount;
+
 
 namespace {
-const std::string DAFAULT_STR = "";
-const bool DEFAULT_BOOL = false;
-const array<uint8_t> DEFAULT_ARRAY = array<uint8_t>::make(0);
-const AccountSA::OsAccountType DEFAULT_ACCOUNT_TYPE = AccountSA::OsAccountType::END;
-constexpr std::int32_t MAX_SUBSCRIBER_NAME_LEN = 1024;
-
-template<typename T>
-T taiheReturn(ErrCode errCode, T result, const T defult)
+OsAccountType::key_t ConvertToOsAccountTypeKey(AccountSA::OsAccountType type)
 {
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Return error!");
-        int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
-        taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-        return defult;
+    switch (type) {
+        case AccountSA::OsAccountType::ADMIN:
+            return OsAccountType::key_t::ADMIN;
+        case AccountSA::OsAccountType::GUEST:
+            return OsAccountType::key_t::GUEST;
+        case AccountSA::OsAccountType::PRIVATE:
+            return OsAccountType::key_t::PRIVATE;
+        case AccountSA::OsAccountType::NORMAL:
+        default:
+            return OsAccountType::key_t::NORMAL;
+    }
+}
+
+AccountSA::OsAccountType ConvertFromOsAccountTypeKey(int32_t type)
+{
+    switch (static_cast<OsAccountType::key_t>(type)) {
+        case OsAccountType::key_t::ADMIN:
+            return AccountSA::OsAccountType::ADMIN;
+        case OsAccountType::key_t::GUEST:
+            return AccountSA::OsAccountType::GUEST;
+        case OsAccountType::key_t::PRIVATE:
+            return AccountSA::OsAccountType::PRIVATE;
+        case OsAccountType::key_t::NORMAL:
+        default:
+            return AccountSA::OsAccountType::NORMAL;
+    }
+}
+
+taihe::array<taihe::string> ConvertConstraints(const std::vector<std::string>& constraints)
+{
+    std::vector<taihe::string> tempStrings;
+    tempStrings.reserve(constraints.size());
+    for (const auto& constraint : constraints) {
+        tempStrings.emplace_back(taihe::string(constraint.c_str()));
+    }
+    return taihe::array<taihe::string>(tempStrings.data(), tempStrings.size());
+}
+
+DistributedInfo ConvertDistributedInfo()
+{
+    std::pair<bool, AccountSA::OhosAccountInfo> dbAccountInfo =
+        AccountSA::OhosAccountKits::GetInstance().QueryOhosAccountInfo();
+    if (dbAccountInfo.first) {
+        return AccountSA::CreateDistributedInfoFromAccountInfo(dbAccountInfo.second);
+    }
+    return AccountSA::CreateDistributedInfo();
+}
+
+DomainAccountInfo ConvertDomainInfo(const OHOS::AccountSA::OsAccountInfo& innerInfo)
+{
+    AccountSA::DomainAccountInfo sourceInfo;
+    innerInfo.GetDomainInfo(sourceInfo);
+    
+    return DomainAccountInfo{
+        .domain = taihe::string(sourceInfo.domain_.c_str()),
+        .accountName = taihe::string(sourceInfo.accountName_.c_str()),
+        .accountId = !sourceInfo.accountId_.empty() ?
+            taihe::optional<taihe::string>(new taihe::string(sourceInfo.accountId_.c_str())) :
+            taihe::optional<taihe::string>(),
+        .isAuthenticated = taihe::optional<bool>(new bool(
+            sourceInfo.status_ != AccountSA::DomainAccountStatus::LOGOUT &&
+            sourceInfo.status_ < AccountSA::DomainAccountStatus::LOG_END)),
+        .serverConfigId = !sourceInfo.serverConfigId_.empty() ?
+            taihe::optional<taihe::string>(new taihe::string(sourceInfo.serverConfigId_.c_str())) :
+            taihe::optional<taihe::string>()
+    };
+}
+
+OsAccountInfo ConvertOsAccountInfo(const AccountSA::OsAccountInfo& innerInfo)
+{
+    return OsAccountInfo{
+        .localId = innerInfo.GetLocalId(),
+        .localName = taihe::string(innerInfo.GetLocalName().c_str()),
+        .shortName = !innerInfo.GetShortName().empty() ?
+            taihe::optional<taihe::string>(new taihe::string(innerInfo.GetShortName().c_str())) :
+            taihe::optional<taihe::string>(),
+        .type = OsAccountType(ConvertToOsAccountTypeKey(innerInfo.GetType())),
+        .constraints = ConvertConstraints(innerInfo.GetConstraints()),
+        .isVerified = innerInfo.GetIsVerified(),
+        .isUnlocked = innerInfo.GetIsVerified(),
+        .photo = taihe::string(innerInfo.GetPhoto().c_str()),
+        .createTime = innerInfo.GetCreateTime(),
+        .lastLoginTime = innerInfo.GetLastLoginTime(),
+        .serialNumber = innerInfo.GetSerialNumber(),
+        .isActivated = innerInfo.GetIsActived(),
+        .isLoggedIn = taihe::optional<bool>(new bool(innerInfo.GetIsLoggedIn())),
+        .isCreateCompleted = innerInfo.GetIsCreateCompleted(),
+        .distributedInfo = ConvertDistributedInfo(),
+        .domainInfo = ConvertDomainInfo(innerInfo)
+    };
+}
+
+AccountSA::CreateOsAccountOptions ConvertToInnerOptions(optional_view<CreateOsAccountOptions> options)
+{
+    AccountSA::CreateOsAccountOptions innerOptions;
+    
+    if (!options.has_value()) {
+        return innerOptions;
+    }
+
+    const auto& opts = options.value();
+    
+    innerOptions.shortName = std::string(opts.shortName.data(), opts.shortName.size());
+    innerOptions.hasShortName = true;
+
+    return innerOptions;
+}
+
+inline UserIam::UserAuth::CredentialParameters ConvertToCredentialParameters(
+    const ohos::account::osAccount::CredentialInfo& info)
+{
+    UserIam::UserAuth::CredentialParameters params;
+    params.authType = static_cast<UserIam::UserAuth::AuthType>(info.credType.get_value());
+    params.pinType = static_cast<UserIam::UserAuth::PinSubType>(info.credSubType.get_value());
+    params.token.assign(info.token.data(), info.token.data() + info.token.size());
+    return params;
+}
+
+inline ohos::account::osAccount::RequestResult ConvertToRequestResult(
+    const UserIam::UserAuth::Attributes& extraInfo)
+{
+    ohos::account::osAccount::RequestResult result;
+    uint64_t credId = 0;
+    if (extraInfo.GetUint64Value(UserIam::UserAuth::Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credId)) {
+        result.credentialId = taihe::optional<taihe::array<uint8_t>>(
+            new taihe::array<uint8_t>(reinterpret_cast<uint8_t*>(&credId), sizeof(credId))
+        );
+    } else {
+        result.credentialId = taihe::optional<taihe::array<uint8_t>>();
     }
     return result;
 }
 
-template<typename T>
-T taiheIAMReturn(ErrCode errCode, T result, const T defult)
-{
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Return error!");
-        int32_t jsErrCode = AccountIAMConvertToJSErrCode(errCode);
-        taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-        return defult;
-    }
-    return result;
-}
-
-
-std::mutex g_lockForOsAccountSubscribers;
-std::map<OsAccountManager *, std::vector<SubscribeCBInfo *>> g_osAccountSubscribers;
+class TaiheIDMCallbackAdapter : public AccountSA::IDMCallback {
+    public:
+        explicit TaiheIDMCallbackAdapter(const ohos::account::osAccount::IIdmCallback& taiheCallback)
+            : taiheCallback_(taiheCallback) {}
+    
+        ~TaiheIDMCallbackAdapter() = default;
+    
+        void OnResult(int32_t result, const UserIam::UserAuth::Attributes& extraInfo) override
+        {
+            if (taiheCallback_.onResult.data_ptr != nullptr) {
+                ohos::account::osAccount::RequestResult reqResult = ConvertToRequestResult(extraInfo);
+                taiheCallback_.onResult(result, reqResult);
+            }
+        }
+    
+        void OnAcquireInfo(int32_t module, uint32_t acquireInfo,
+            const UserIam::UserAuth::Attributes& extraInfo) override
+        {
+            if (taiheCallback_.onAcquireInfo.has_value()) {
+                std::vector<uint8_t> extraDataVec;
+                extraInfo.GetUint8ArrayValue(AccountSA::Attributes::AttributeKey::ATTR_EXTRA_INFO, extraDataVec);
+                taihe::array_view<uint8_t> extraDataView(extraDataVec.data(), extraDataVec.size());
+                taiheCallback_.onAcquireInfo.value()(module, acquireInfo, extraDataView);
+            }
+        }
+    
+    private:
+        ohos::account::osAccount::IIdmCallback taiheCallback_;
+};
 
 class AccountManagerImpl {
-private:
-    OsAccountManager *osAccountManger_;
 public:
-    AccountManagerImpl()
-    {
-        osAccountManger_ = new (std::nothrow) OsAccountManager();
+    AccountManagerImpl() {
+        // Don't forget to implement the constructor.
     }
 
     bool TaiheIsMainOsAccount()
     {
-        bool isMainOsAcount = false;
-        OHOS::ErrCode errCode = OsAccountManager::IsMainOsAccount(isMainOsAcount);
-        return taiheReturn(errCode, isMainOsAcount, DEFAULT_BOOL);
+        TH_THROW(std::runtime_error, "TaiheIsMainOsAccount not implemented");
     }
 
     string TaiheGetOsAccountProfilePhoto(double localId)
     {
-        int32_t temp = static_cast<int32_t>(localId);
-        std::string photo = "";
-        OHOS::ErrCode errCode = OsAccountManager::GetOsAccountProfilePhoto(temp, photo);
-        return taiheReturn(errCode, photo, DAFAULT_STR);
+        TH_THROW(std::runtime_error, "TaiheGetOsAccountProfilePhoto not implemented");
     }
 
-    TaiheOsAccountType TaiheGetOsAccountType()
+    OsAccountType TaiheGetOsAccountType()
     {
-        AccountSA::OsAccountType type = DEFAULT_ACCOUNT_TYPE;
-        OHOS::ErrCode errCode = OsAccountManager::GetOsAccountTypeFromProcess(type);
-        return ConvertToOsAccountTypeKey(taiheReturn(errCode, type, DEFAULT_ACCOUNT_TYPE));
+        TH_THROW(std::runtime_error, "TaiheGetOsAccountType not implemented");
     }
 
-    TaiheOsAccountType TaiheGetOsAccountTypeWithId(double localId)
+    OsAccountType TaiheGetOsAccountTypeWithId(double localId)
     {
-        AccountSA::OsAccountType type = DEFAULT_ACCOUNT_TYPE;
-        int32_t temp = static_cast<int32_t>(localId);
-        OHOS::ErrCode errCode = OsAccountManager::GetOsAccountType(temp, type);
-        return ConvertToOsAccountTypeKey(taiheReturn(errCode, type, DEFAULT_ACCOUNT_TYPE));
-    }
-
-    static bool IsSubscribeInMap(SubscribeCBInfo *subscribeCBInfo)
-    {
-        std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
-        auto subscribe = g_osAccountSubscribers.find(subscribeCBInfo->osManager);
-        if (subscribe == g_osAccountSubscribers.end()) {
-            ACCOUNT_LOGE("Not find osManager!");
-            return false;
-        }
-        auto it = subscribe->second.begin();
-        while (it != subscribe->second.end()) {
-            if ((*it)->IsSameCallBack(subscribeCBInfo->osSubscribeType, subscribeCBInfo->activeCallbackRef,
-                subscribeCBInfo->switchCallbackRef)) {
-                ACCOUNT_LOGE("Is same callback!");
-                return true;
-            }
-            it++;
-        }
-        return false;
-    }
-
-    void Subsribe(std::string name, OS_ACCOUNT_SUBSCRIBE_TYPE type,
-        std::shared_ptr<active_callback> activeCallback, std::shared_ptr<switch_callback> switchCallback)
-    {
-        SubscribeCBInfo *subscribeCBInfo = new (std::nothrow) SubscribeCBInfo();
-        if (subscribeCBInfo == nullptr) {
-            ACCOUNT_LOGE("insufficient memory for subscribeCBInfo!");
-            return;
-        }
-        subscribeCBInfo->activeCallbackRef = activeCallback;
-        subscribeCBInfo->switchCallbackRef = switchCallback;
-        OsAccountSubscribeInfo subscribeInfo(type, name);
-        subscribeCBInfo->subscriber = std::make_shared<TaiheSubscriberPtr>(subscribeInfo);
-        subscribeCBInfo->osManager = osAccountManger_;
-        subscribeCBInfo->osSubscribeType = type;
-        if (IsSubscribeInMap(subscribeCBInfo)) {
-            ACCOUNT_LOGE("Has in map.");
-            delete subscribeCBInfo;
-            return;
-        }
-        ErrCode errCode = OsAccountManager::SubscribeOsAccount(subscribeCBInfo->subscriber);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("SubscribeOsAccount return error.");
-            delete subscribeCBInfo;
-            int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
-            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-            return;
-        } else {
-            std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
-            g_osAccountSubscribers[osAccountManger_].emplace_back(subscribeCBInfo);
-        }
+        TH_THROW(std::runtime_error, "TaiheGetOsAccountTypeWithId not implemented");
     }
 
     void OnActivate(string_view name, callback_view<void(double)> callback)
     {
-        if (name.size() == 0 || name.size() > MAX_SUBSCRIBER_NAME_LEN) {
-            ACCOUNT_LOGE("Subscriber name size %{public}zu is invalid.", name.size());
-            std::string errMsg = "Parameter error. The length of \"name\" is invalid";
-            taihe::set_business_error(ERR_JS_INVALID_PARAMETER, errMsg);
-            return;
-        }
-        active_callback call = callback;
-        Subsribe(name.data(), OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATED,
-            std::make_shared<active_callback>(call), nullptr);
+        TH_THROW(std::runtime_error, "OnActivate not implemented");
     }
 
     void OnActivating(string_view name, callback_view<void(double)> callback)
     {
-        if (name.size() == 0 || name.size() > MAX_SUBSCRIBER_NAME_LEN) {
-            ACCOUNT_LOGE("Subscriber name size %{public}zu is invalid.", name.size());
-            std::string errMsg = "Parameter error. The length of \"name\" is invalid";
-            taihe::set_business_error(ERR_JS_INVALID_PARAMETER, errMsg);
-            return;
-        }
-        active_callback call = callback;
-        Subsribe(name.data(), OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING,
-            std::make_shared<active_callback>(call), nullptr);
-    }
-
-    void OnSwitching(callback_view<void(OsAccountSwitchEventData const&)> callback)
-    {
-        switch_callback call = callback;
-        Subsribe("", OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING, nullptr,
-            std::make_shared<switch_callback>(call));
-    }
-
-    void OnSwitched(callback_view<void(OsAccountSwitchEventData const&)> callback)
-    {
-        switch_callback call = callback;
-        Subsribe("", OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, nullptr,
-            std::make_shared<switch_callback>(call));
-    }
-
-    void Unsubscribe(std::string unsubscribeName, OS_ACCOUNT_SUBSCRIBE_TYPE type,
-        std::shared_ptr<active_callback> activeCallback, std::shared_ptr<switch_callback> switchCallback)
-    {
-        std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
-        auto subscribe = g_osAccountSubscribers.find(osAccountManger_);
-        if (subscribe == g_osAccountSubscribers.end()) {
-            return;
-        }
-        auto item = subscribe->second.begin();
-        while (item != subscribe->second.end()) {
-            OsAccountSubscribeInfo subscribeInfo;
-            OS_ACCOUNT_SUBSCRIBE_TYPE osSubscribeType;
-            std::string name;
-            (*item)->subscriber->GetSubscribeInfo(subscribeInfo);
-            subscribeInfo.GetOsAccountSubscribeType(osSubscribeType);
-            subscribeInfo.GetName(name);
-            if (((type != osSubscribeType) || (unsubscribeName != name))) {
-                item++;
-                continue;
-            }
-            if ((activeCallback != nullptr || switchCallback != nullptr) &&
-                !((*item)->IsSameCallBack(type, activeCallback, switchCallback))) {
-                item++;
-                continue;
-            }
-            int errCode = OsAccountManager::UnsubscribeOsAccount((*item)->subscriber);
-            if (errCode != ERR_OK) {
-                int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
-                taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-                return;
-            }
-            delete (*item);
-            item = subscribe->second.erase(item);
-            if (activeCallback != nullptr || switchCallback != nullptr) {
-                break;
-            }
-        }
-        if (subscribe->second.empty()) {
-            g_osAccountSubscribers.erase(subscribe->first);
-        }
+        TH_THROW(std::runtime_error, "OnActivating not implemented");
     }
 
     void OffActivate(string_view name, optional_view<callback<void(double)>> callback)
     {
-        if (name.size() == 0 || name.size() > MAX_SUBSCRIBER_NAME_LEN) {
-            ACCOUNT_LOGE("Subscriber name size %{public}zu is invalid.", name.size());
-            std::string errMsg = "Parameter error. The length of \"name\" is invalid";
-            taihe::set_business_error(ERR_JS_INVALID_PARAMETER, errMsg);
-            return;
-        }
-        std::shared_ptr<active_callback> activeCallback = nullptr;
-        if (callback) {
-            active_callback call = *callback;
-            activeCallback = std::make_shared<active_callback>(call);
-        }
-        Unsubscribe(name.data(), OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATED, activeCallback, nullptr);
-        return;
+        TH_THROW(std::runtime_error, "OffActivate not implemented");
     }
 
     void OffActivating(string_view name, optional_view<callback<void(double)>> callback)
     {
-        if (name.size() == 0 || name.size() > MAX_SUBSCRIBER_NAME_LEN) {
-            ACCOUNT_LOGE("Subscriber name size %{public}zu is invalid.", name.size());
-            std::string errMsg = "Parameter error. The length of \"name\" is invalid";
-            taihe::set_business_error(ERR_JS_INVALID_PARAMETER, errMsg);
-            return;
-        }
-        std::shared_ptr<active_callback> activeCallback = nullptr;
-        if (callback) {
-            active_callback call = *callback;
-            activeCallback = std::make_shared<active_callback>(call);
-        }
-        Unsubscribe(name.data(), OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING, activeCallback, nullptr);
-        return;
+        TH_THROW(std::runtime_error, "OffActivating not implemented");
+    }
+
+    void OnSwitching(callback_view<void(OsAccountSwitchEventData const&)> callback)
+    {
+        TH_THROW(std::runtime_error, "OnSwitching not implemented");
+    }
+
+    void OnSwitched(callback_view<void(OsAccountSwitchEventData const&)> callback)
+    {
+        TH_THROW(std::runtime_error, "OnSwitched not implemented");
     }
 
     void OffSwitching(optional_view<callback<void(OsAccountSwitchEventData const&)>> callback)
     {
-        std::shared_ptr<switch_callback> switchCallback = nullptr;
-        if (callback) {
-            switch_callback call = *callback;
-            switchCallback = std::make_shared<switch_callback>(call);
-        }
-        Unsubscribe("", OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING, nullptr, switchCallback);
-        return;
+        TH_THROW(std::runtime_error, "OffSwitching not implemented");
     }
 
     void OffSwitched(optional_view<callback<void(OsAccountSwitchEventData const&)>> callback)
     {
-        std::shared_ptr<switch_callback> switchCallback = nullptr;
-        if (callback) {
-            switch_callback call = *callback;
-            switchCallback = std::make_shared<switch_callback>(call);
-        }
-        Unsubscribe("", OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, nullptr, switchCallback);
-        return;
+        TH_THROW(std::runtime_error, "OffSwitched not implemented");
     }
 
-    void ActivateOsAccountSync(int32_t localId)
-    {
-        TH_THROW(std::runtime_error, "activateOsAccountSync not implemented");
+    void ActivateOsAccountSync(int32_t localId) {
+        TH_THROW(std::runtime_error, "ActivateOsAccountSync not implemented");
     }
 
-    TaiheOsAccountInfo CreateOsAccountSync(string_view localName, TaiheOsAccountType type)
+    OsAccountInfo CreateOsAccountSync(string_view localName, OsAccountType type)
     {
-        TH_THROW(std::runtime_error, "createOsAccountSync not implemented");
+        TH_THROW(std::runtime_error, "CreateOsAccountSync not implemented");
     }
 
-    TaiheOsAccountInfo CreateOsAccountSync_(string_view localName, TaiheOsAccountType type,
-        optional_view<TaiheCreateOsAccountOptions> options)
+    OsAccountInfo CreateOsAccountWithOptionSync(string_view localName, OsAccountType type,
+        optional_view<CreateOsAccountOptions> options)
     {
-        TH_THROW(std::runtime_error, "createOsAccountSync_ not implemented");
+        TH_THROW(std::runtime_error, "CreateOsAccountWithOptionSync not implemented");
     }
 
     void DeactivateOsAccountSync(int32_t localId)
     {
-        TH_THROW(std::runtime_error, "deactivateOsAccountSync not implemented");
+        TH_THROW(std::runtime_error, "DeactivateOsAccountSync not implemented");
     }
 
     array<int32_t> GetActivatedOsAccountLocalIdsSync()
     {
-        TH_THROW(std::runtime_error, "getActivatedOsAccountLocalIdsSync not implemented");
+        TH_THROW(std::runtime_error, "GetActivatedOsAccountLocalIdsSync not implemented");
     }
 
-    TaiheOsAccountInfo GetCurrentOsAccountSync()
+    OsAccountInfo GetCurrentOsAccountSync()
     {
-        TH_THROW(std::runtime_error, "getCurrentOsAccountSync not implemented");
+        TH_THROW(std::runtime_error, "GetCurrentOsAccountSync not implemented");
     }
 
     int32_t GetForegroundOsAccountLocalIdSync()
     {
-        TH_THROW(std::runtime_error, "getForegroundOsAccountLocalIdSync not implemented");
+        TH_THROW(std::runtime_error, "GetForegroundOsAccountLocalIdSync not implemented");
     }
 
     int32_t GetOsAccountLocalIdSync()
     {
-        TH_THROW(std::runtime_error, "getOsAccountLocalIdSync not implemented");
+        TH_THROW(std::runtime_error, "GetOsAccountLocalIdSync not implemented");
     }
 
     int32_t GetOsAccountLocalIdForUidSync(int32_t uid)
     {
-        TH_THROW(std::runtime_error, "getOsAccountLocalIdForUidSync not implemented");
+        TH_THROW(std::runtime_error, "GetOsAccountLocalIdForUidSync not implemented");
     }
 };
 
 class UserIdentityManagerImpl {
 public:
-    UserIdentityManagerImpl()
-    {
+    UserIdentityManagerImpl() {
         // Don't forget to implement the constructor.
     }
 
     array<uint8_t> OpenSession()
     {
-        return OpenSessionPromise(nullptr);
+        TH_THROW(std::runtime_error, "OpenSession not implemented");
     }
 
     array<uint8_t> OpenSessionPromise(optional_view<int32_t> accountId)
     {
-        OHOS::ErrCode errCode = ERR_OK;
-        int32_t userId = -1;
-        if (accountId) {
-            userId = *accountId;
-        }
-        if (!IsAccountIdValid(*accountId)) {
-            taihe::set_business_error(ERR_JS_ACCOUNT_NOT_FOUND, ConvertToJsErrMsg(ERR_JS_ACCOUNT_NOT_FOUND));
-            return DEFAULT_ARRAY;
-        }
-        std::vector<uint8_t> challenge;
-        array<uint8_t> result = DEFAULT_ARRAY;
-        errCode = AccountIAMClient::GetInstance().OpenSession(userId, challenge);
-        if (errCode == ERR_OK) {
-            result = taihe::array<uint8_t>(challenge.data(), challenge.size());
-        }
-        return taiheIAMReturn(errCode, result, DEFAULT_ARRAY);
+        TH_THROW(std::runtime_error, "OpenSessionPromise not implemented");
     }
 
-    void addCredential(TaiheCredentialInfo const& info, IIdmCallback const& callback)
+    void closeSession(optional_view<int32_t> accountId)
+    {
+        TH_THROW(std::runtime_error, "closeSession not implemented");
+    }
+
+    array<EnrolledCredInfo> getAuthInfoSync()
+    {
+        TH_THROW(std::runtime_error, "getAuthInfoSync not implemented");
+    }
+
+    array<EnrolledCredInfo> getAuthInfoWithTypeCallbackSync(AuthType authType)
+    {
+        TH_THROW(std::runtime_error, "getAuthInfoWithTypeCallbackSync not implemented");
+    }
+
+    array<EnrolledCredInfo> getAuthInfoWithTypePromiseSync(optional_view<AuthType> authType)
+    {
+        TH_THROW(std::runtime_error, "getAuthInfoWithTypePromiseSync not implemented");
+    }
+
+    array<EnrolledCredInfo> getAuthInfoWithOptionsSync(optional_view<GetAuthInfoOptions> options)
+    {
+        TH_THROW(std::runtime_error, "getAuthInfoWithOptionsSync not implemented");
+    }
+
+    void addCredential(CredentialInfo const& info, IIdmCallback const& callback)
     {
         TH_THROW(std::runtime_error, "addCredential not implemented");
     }
@@ -386,141 +376,123 @@ public:
     }
 };
 
-class UserAuthImpl {
+class DomainPluginImpl {
 public:
-    UserAuthImpl()
-    {
+    DomainPluginImpl() {
         // Don't forget to implement the constructor.
+    }
+
+    void auth(DomainAccountInfo const& domainAccountInfo, array_view<uint8_t> credential,
+        IUserAuthCallback const& callback)
+    {
+        TH_THROW(std::runtime_error, "auth not implemented");
+    }
+};
+
+class DomainAccountManagerImpl {
+public:
+    DomainAccountManagerImpl() {
+        // Don't forget to implement the constructor.
+    }
+
+    bool isAuthenticationExpiredSync(DomainAccountInfo const& domainAccountInfo)
+    {
+        TH_THROW(std::runtime_error, "isAuthenticationExpiredSync not implemented");
     }
 };
 
 class IInputDataImpl {
 public:
-    std::shared_ptr<IInputerData> inputerData_;
-public:
-    IInputDataImpl()
-    {
+    IInputDataImpl() {
         // Don't forget to implement the constructor.
     }
 
     int64_t GetSpecificImplPtr()
     {
-        return reinterpret_cast<int64_t>(this);
+        TH_THROW(std::runtime_error, "GetSpecificImplPtr not implemented");
     }
 
     void onSetDataInner(AuthSubType authSubType, array_view<uint8_t> data)
     {
-        ACCOUNT_LOGE("start!");
-        int32_t jsErrCode = IsSystemApp();
-        if (jsErrCode != ERR_OK) {
-            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-            return;
-        }
-        std::vector<uint8_t> authTokenVec(data.data(), data.data() + data.size());
-        inputerData_->OnSetData(static_cast<int32_t>(authSubType), authTokenVec);
-        inputerData_ = nullptr;
+        TH_THROW(std::runtime_error, "onSetDataInner not implemented");
     }
 };
 
-class TaiheGetDataCallback : public AccountSA::IInputer {
+class UserAuthImpl {
 public:
-    TaiheGetDataCallback();
-    ~TaiheGetDataCallback();
-
-    void OnGetData(int32_t authSubType, std::vector<uint8_t> challenge,
-        const std::shared_ptr<AccountSA::IInputerData> inputerData) override;
-
-    std::shared_ptr<TaiheIInputer> inputer_ = nullptr;
-    std::shared_ptr<TaiheIInputData> inputerData_ = nullptr;
-};
-
-TaiheGetDataCallback::TaiheGetDataCallback() {}
-
-TaiheGetDataCallback::~TaiheGetDataCallback() {}
-
-void TaiheGetDataCallback::OnGetData(int32_t authSubType, std::vector<uint8_t> challenge,
-    const std::shared_ptr<AccountSA::IInputerData> inputerData)
-{
-    ACCOUNT_LOGE("start!");
-    if (inputer_ == nullptr) {
-        ACCOUNT_LOGE("The onGetData function is undefined");
-        return;
-    }
-    GetInputDataOptions option = {optional<array<uint8_t>>(std::in_place_t{}, challenge.data(), challenge.size())};
-    reinterpret_cast<IInputDataImpl*>((*inputerData_)->GetSpecificImplPtr())->inputerData_ = inputerData;
-    inputer_->onGetData(static_cast<AuthSubType::key_t>(authSubType), *inputerData_, option);
-}
-
-class PINAuthImpl {
-public:
-    PINAuthImpl()
-    {
+    UserAuthImpl() {
         // Don't forget to implement the constructor.
     }
 
-    void registerInputer(TaiheIInputer const& inputer)
+    array<uint8_t> authSync(array_view<uint8_t> challenge, AuthType authType,
+        AuthTrustLevel authTrustLevel, IUserAuthCallback const& callback)
     {
-        ACCOUNT_LOGE("start!");
-        auto taiheInputer = std::make_shared<TaiheIInputer>(inputer);
-        auto taiheCallbackRef = std::make_shared<TaiheGetDataCallback>();
-        taiheCallbackRef->inputer_ = taiheInputer;
-        taiheCallbackRef->inputerData_ = std::make_shared<IInputData>(make_holder<IInputDataImpl, IInputData>());
-        ErrCode errCode = AccountIAMClient::GetInstance().RegisterPINInputer(taiheCallbackRef);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("Failed to register inputer, errCode=%{public}d", errCode);
-            int32_t jsErrCode = AccountIAMConvertToJSErrCode(errCode);
-            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-        }
+        TH_THROW(std::runtime_error, "authSync not implemented");
+    }
+
+    array<uint8_t> authWithOptSync(array_view<uint8_t> challenge, AuthType authType,
+        AuthTrustLevel authTrustLevel, AuthOptions const& options, IUserAuthCallback const& callback)
+    {
+        TH_THROW(std::runtime_error, "authWithOptSync not implemented");
+    }
+
+    array<uint8_t> authUser(int32_t userId, array_view<uint8_t> challenge, AuthType authType,
+        AuthTrustLevel authTrustLevel, IUserAuthCallback const& callback)
+    {
+        TH_THROW(std::runtime_error, "authUser not implemented");
+    }
+
+    void cancelAuth(array_view<uint8_t> contextID) {
+        TH_THROW(std::runtime_error, "cancelAuth not implemented");
+    }
+
+    ExecutorProperty getPropertySync(GetPropertyRequest const& request) {
+        TH_THROW(std::runtime_error, "getPropertySync not implemented");
+    }
+};
+
+class PINAuthImpl {
+public:
+    PINAuthImpl() {
+        // Don't forget to implement the constructor.
+    }
+
+    void registerInputer(IInputer const& inputer)
+    {
+        TH_THROW(std::runtime_error, "registerInputer not implemented");
     }
 };
 
 class InputerManagerImpl {
 public:
-    InputerManagerImpl()
-    {
+    InputerManagerImpl() {
         // Don't forget to implement the constructor.
     }
 };
 
-void registerInputer(TaiheAuthType authType, TaiheIInputer const& inputer)
-{
-    ACCOUNT_LOGE("start!");
-    auto taiheInputer = std::make_shared<TaiheIInputer>(inputer);
-    auto taiheCallbackRef = std::make_shared<TaiheGetDataCallback>();
-    taiheCallbackRef->inputer_ = taiheInputer;
-    taiheCallbackRef->inputerData_ = std::make_shared<IInputData>(make_holder<IInputDataImpl, IInputData>());
-    ErrCode errCode = AccountIAMClient::GetInstance().RegisterInputer(authType, taiheCallbackRef);
-    ACCOUNT_LOGE("end!");
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Failed to register inputer, errCode=%{public}d", errCode);
-        int32_t jsErrCode = AccountIAMConvertToJSErrCode(errCode);
-        taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-    }
-}
-
-AccountManager getAccountManager()
-{
+AccountManager getAccountManager() {
     // The parameters in the make_holder function should be of the same type
     // as the parameters in the constructor of the actual implementation class.
     return make_holder<AccountManagerImpl, AccountManager>();
 }
 
-UserIdentityManager createUserIdentityManager()
-{
+void registerInputer(AuthType authType, IInputer const& inputer) {
+    TH_THROW(std::runtime_error, "registerInputer not implemented");
+}
+
+UserIdentityManager createUserIdentityManager() {
     // The parameters in the make_holder function should be of the same type
     // as the parameters in the constructor of the actual implementation class.
     return make_holder<UserIdentityManagerImpl, UserIdentityManager>();
 }
 
-UserAuth createUserAuth()
-{
+UserAuth createUserAuth() {
     // The parameters in the make_holder function should be of the same type
     // as the parameters in the constructor of the actual implementation class.
     return make_holder<UserAuthImpl, UserAuth>();
 }
 
-PINAuth createPINAuth()
-{
+PINAuth createPINAuth() {
     // The parameters in the make_holder function should be of the same type
     // as the parameters in the constructor of the actual implementation class.
     return make_holder<PINAuthImpl, PINAuth>();
