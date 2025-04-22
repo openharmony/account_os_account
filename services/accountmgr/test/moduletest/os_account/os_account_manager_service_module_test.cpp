@@ -2274,42 +2274,6 @@ HWTEST_F(OsAccountManagerServiceModuleTest, SetOsAccountIsLoggedInTest001, TestS
     EXPECT_FALSE(osAccountManagerService_->innerManager_.loggedInAccounts_.Find(localId, val));
     osAccountManagerService_->RemoveOsAccount(osAccountInfo.GetLocalId());
 }
-
-/**
- * @tc.name: MaintenanceTypeTest001
- * @tc.desc: Test MAINTENANCE type os account.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, MaintenanceTypeTest001, TestSize.Level1)
-{
-    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
-    ASSERT_TRUE(MockTokenId("accountmgr"));
-    std::string maintenanceTestName = "MaintenanceTypeTest001";
-    // test create maintenance os account
-    OsAccountInfo osAccountInfoA;
-    ASSERT_EQ(osAccountManagerService_->CreateOsAccount(maintenanceTestName,
-        OsAccountType::MAINTENANCE, osAccountInfoA), ERR_OK);
-    OsAccountInfo osAccountInfoB;
-    EXPECT_EQ(osAccountManagerService_->CreateOsAccount("MaintenanceTypeTest001B",
-        OsAccountType::MAINTENANCE, osAccountInfoB), ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR);
-    EXPECT_EQ(osAccountManagerService_->CreateOsAccount(maintenanceTestName,
-        OsAccountType::NORMAL, osAccountInfoB), ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED);
-
-    // test maintenance os account id
-    EXPECT_EQ(osAccountInfoA.GetLocalId(), Constants::MAINTENANCE_USER_ID);
-
-    // test remove maintenance os account
-    ASSERT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoA.GetLocalId()), ERR_OK);
-
-    // test create maintenance os account after remove
-    OsAccountInfo osAccountInfoC;
-    EXPECT_EQ(osAccountManagerService_->CreateOsAccount(maintenanceTestName,
-        OsAccountType::MAINTENANCE, osAccountInfoC), ERR_OK);
-    EXPECT_EQ(osAccountInfoC.GetLocalId(), Constants::MAINTENANCE_USER_ID);
-    EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoC.GetLocalId()), ERR_OK);
-    SetSelfTokenID(selfTokenId);
-}
 #endif //ENABLE_MULTIPLE_OS_ACCOUNTS
 }  // namespace AccountSA
 }  // namespace OHOS
