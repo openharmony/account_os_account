@@ -43,6 +43,7 @@ namespace {
 bool g_flag = false;
 constexpr int32_t TEST_COUNT = 100;
 constexpr int32_t TEST_ID = 100;
+const int32_t SLEEP_TIME = 2;
 }  // namespace
 class OsAccountEventManagerTest : public testing::Test {
 public:
@@ -91,6 +92,11 @@ public:
     TestOsAccountSubscriber() {}
     explicit TestOsAccountSubscriber(const OsAccountSubscribeInfo &subscribeInfo): OsAccountSubscriber(subscribeInfo) {}
     void OnAccountsChanged(const int& id) {}
+    void OnAccountsSwitch(const int &newId, const int &oldId) override
+    {
+        // mock operation
+        std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
+    }
 };
 
 void TestWriteReadFileInfo()
@@ -117,6 +123,20 @@ void TestWriteReadFileInfo()
     }
 }
 
+void TestPublishSwitch()
+{
+    g_flag = !g_flag;
+    int32_t i = TEST_COUNT;
+    if (g_flag) {
+        while (i--) {
+            IInnerOsAccountManager::
+                GetInstance().subscribeManager_.Publish(TEST_ID, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING, START_USER_ID);
+            IInnerOsAccountManager::
+                GetInstance().subscribeManager_.Publish(TEST_ID, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, START_USER_ID);
+        }
+    }
+}
+
 /**
  * @tc.name: OsAccountEventManagerTestTest001
  * @tc.desc: Test multiple thread event manager
@@ -126,6 +146,29 @@ void TestWriteReadFileInfo()
 HWTEST_F(OsAccountEventManagerTest, OsAccountEventManagerTestTest001, TestSize.Level1)
 {
     GTEST_RUN_TASK(TestWriteReadFileInfo);
+}
+
+/**
+ * @tc.name: OsAccountSwitchTestTest001
+ * @tc.desc: Test multiple thread switch
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountEventManagerTest, OsAccountSwitchTestTest001, TestSize.Level1)
+{
+    g_flag = false;
+    OsAccountSubscribeInfo subscribeInfoSwitched(OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, "event_test");
+    auto subscriberSwitched = std::make_shared<TestOsAccountSubscriber>(subscribeInfoSwitched);
+    EXPECT_NE(nullptr, subscriberSwitched);
+    EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(subscriberSwitched));
+    OsAccountSubscribeInfo subscribeInfoSwitching(OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING, "event_test");
+    auto subscriberSwitching = std::make_shared<TestOsAccountSubscriber>(subscribeInfoSwitching);
+    EXPECT_NE(nullptr, subscriberSwitching);
+    EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(subscriberSwitching));
+    GTEST_RUN_TASK(TestPublishSwitch);
+    EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(subscriberSwitched));
+    EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(subscriberSwitching));
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
 }
 }  // namespace AccountSA
 }  // namespace OHOS
