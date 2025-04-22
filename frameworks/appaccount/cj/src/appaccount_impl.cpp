@@ -537,7 +537,7 @@ int32_t CJAppAccountImpl::verifyCredential(
     ParseContextForVerifyCredential(callbackId, cOptions, callback, options);
     sptr<AppAccountManagerCallback> appAccountMgrCb = new (std::nothrow) AppAccountManagerCallback(callback);
     if (appAccountMgrCb == nullptr) {
-        ACCOUNT_LOGE("failed to create AppAccountManagerCallback for insufficient memory");
+        ACCOUNT_LOGD("failed to create AppAccountManagerCallback for insufficient memory");
         AAFwk::Want result;
         std::string value = std::string();
         callback.onResult(ERR_CJ_SYSTEM_SERVICE_EXCEPTION, Convert2CAuthResult(value, value, value, value));
