@@ -51,6 +51,7 @@ const char INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION[] =
     "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION";
 const char INTERACT_ACROSS_LOCAL_ACCOUNTS[] = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
 const std::string GET_DOMAIN_ACCOUNTS = "ohos.permission.GET_DOMAIN_ACCOUNTS";
+const std::string MANAGE_EDM_POLICY = "ohos.permission.MANAGE_EDM_POLICY";
 const std::set<uint32_t> uidWhiteListForCreation { 3057 };
 const std::int32_t EDM_UID = 3057;
 const std::string SPECIAL_CHARACTER_ARRAY = "<>|\":*?/\\";
@@ -1085,7 +1086,7 @@ ErrCode OsAccountManagerService::SetGlobalOsAccountConstraints(const std::vector
     const bool enable, const int32_t enforcerId, const bool isDeviceOwner)
 {
     // permission check
-    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "") || !PermissionCheck(MANAGE_EDM_POLICY, "")) {
         ACCOUNT_LOGE("Account manager service, permission denied!");
         REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
@@ -1117,7 +1118,7 @@ ErrCode OsAccountManagerService::SetSpecificOsAccountConstraints(const std::vect
     }
 
     // permission check
-    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "") || !PermissionCheck(MANAGE_EDM_POLICY, "")) {
         ACCOUNT_LOGE("Account manager service, permission denied!");
         REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
