@@ -280,6 +280,8 @@
         "OHOS::AccountSA::InnerDomainAccountManager::GetAccountPolicy(OHOS::AccountSA::DomainAccountInfo const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&)";
         "OHOS::AccountSA::DomainAccountStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
         "OHOS::AccountSA::DomainAccountInfo::DomainAccountInfo()";
+        "OHOS::AccountSA::SwitchSubscribeInfo::~SwitchSubscribeInfo()";
+        "OHOS::AccountSA::SwitchSubscribeInfo::ProductTask(OHOS::sptr<OHOS::AccountSA::IOsAccountEvent> const&, OHOS::AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE, int, int)";
         "VTT for OHOS::AccountSA::DomainAccountInfo";
         "OHOS::AccountSA::DomainAccountInfo::Unmarshalling(OHOS::Parcel&)";
         "VTT for OHOS::AccountSA::DomainServerConfig";
