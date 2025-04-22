@@ -69,16 +69,6 @@ std::string AccountCommandUtil::CreateOsAccount(const std::string &name)
     return commandResult;
 }
 
-std::string AccountCommandUtil::CreateOsAccount(const std::string &name, const std::string &type)
-{
-    std::string command = TOOL_NAME + " create -n " + name + " -t " + type;
-    GTEST_LOG_(INFO) << "command = " << command;
-
-    std::string commandResult = ExecuteCommand(command);
-    GTEST_LOG_(INFO) << "AccountCommandUtil::CreateOsAccount commandResult = " << commandResult;
-    return commandResult;
-}
-
 std::string AccountCommandUtil::DeleteLastOsAccount()
 {
     std::vector<OsAccountInfo> osAccounts;
