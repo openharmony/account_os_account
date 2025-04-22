@@ -66,6 +66,7 @@ const int32_t EDM_UID = 3057;
 const int32_t NOT_EDM_UID = 3058;
 const std::vector<uint8_t> DEFAULT_TOKEN = {49, 50, 51, 52, 53};
 static uint64_t g_selfTokenID;
+
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 const int32_t WAIT_TIME = 2;
 const std::string STRING_SHORT_NAME_OUT_OF_RANGE(256, '1');
@@ -867,6 +868,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     domainInfo.accountName_ = "testaccount";
     domainInfo.domain_ = "test.example.com";
     domainInfo.accountId_ = "testid";
+    domainInfo.serverConfigId_ = "100";
 
     bool isExpired = false;
     EXPECT_EQ(DomainAccountClient::GetInstance().IsAuthenticationExpired(domainInfo, isExpired),
