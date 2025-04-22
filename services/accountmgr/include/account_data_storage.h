@@ -50,7 +50,7 @@ public:
     ErrCode SaveAccountInfo(const IAccountInfo &iAccountInfo);
     ErrCode LoadDataByLocalFuzzyQuery(std::string subId, std::map<std::string, std::shared_ptr<IAccountInfo>> &infos);
     void TryTwice(const std::function<DistributedKv::Status()> &func) const;
-    virtual void SaveEntries(const std::vector<OHOS::DistributedKv::Entry> &allEntries,
+    virtual void SaveEntries(std::vector<OHOS::DistributedKv::Entry> allEntries,
         std::map<std::string, std::shared_ptr<IAccountInfo>> &infos) = 0;
     ErrCode Close();
     int DeleteKvStore();
@@ -85,7 +85,7 @@ public:
     ErrCode SaveAccountInfo(const IAccountInfo &iAccountInfo);
     ErrCode LoadDataByLocalFuzzyQuery(std::string subId, std::map<std::string, std::shared_ptr<IAccountInfo>> &infos);
     void TryTwice(const std::function<DbAdapterStatus()> &func) const;
-    virtual void SaveEntries(const std::vector<DbAdapterEntry> &allEntries,
+    virtual void SaveEntries(std::vector<DbAdapterEntry> allEntries,
         std::map<std::string, std::shared_ptr<IAccountInfo>> &infos) = 0;
     ErrCode Close();
     int DeleteKvStore();

@@ -592,19 +592,19 @@ Json AppAccountInfo::ToJson() const
 void AppAccountInfo::ParseTokenInfosFromJson(const Json &jsonObject)
 {
     oauthTokens_.clear();
-    for (const auto& item : jsonObject) {
+    for (auto it = jsonObject.begin(); it != jsonObject.end(); ++it) {
         OAuthTokenInfo tokenInfo;
-        if (item.find(OAUTH_TOKEN) != item.end() && item.at(OAUTH_TOKEN).is_string()) {
-            item.at(OAUTH_TOKEN).get_to(tokenInfo.token);
+        if (it->find(OAUTH_TOKEN) != it->end() && it->at(OAUTH_TOKEN).is_string()) {
+            it->at(OAUTH_TOKEN).get_to(tokenInfo.token);
         }
-        if (item.find(OAUTH_TOKEN_STATUS) != item.end() && item.at(OAUTH_TOKEN_STATUS).is_boolean()) {
-            item.at(OAUTH_TOKEN_STATUS).get_to(tokenInfo.status);
+        if (it->find(OAUTH_TOKEN_STATUS) != it->end() && it->at(OAUTH_TOKEN_STATUS).is_boolean()) {
+            it->at(OAUTH_TOKEN_STATUS).get_to(tokenInfo.status);
         }
-        if (item.find(OAUTH_TYPE) != item.end() && item.at(OAUTH_TYPE).is_string()) {
-            item.at(OAUTH_TYPE).get_to(tokenInfo.authType);
+        if (it->find(OAUTH_TYPE) != it->end() && it->at(OAUTH_TYPE).is_string()) {
+            it->at(OAUTH_TYPE).get_to(tokenInfo.authType);
         }
-        if (item.find(OAUTH_AUTH_LIST) != item.end() && item.at(OAUTH_AUTH_LIST).is_array()) {
-            item.at(OAUTH_AUTH_LIST).get_to(tokenInfo.authList);
+        if (it->find(OAUTH_AUTH_LIST) != it->end() && it->at(OAUTH_AUTH_LIST).is_array()) {
+            it->at(OAUTH_AUTH_LIST).get_to(tokenInfo.authList);
         }
         oauthTokens_.emplace(tokenInfo.authType, tokenInfo);
     }
