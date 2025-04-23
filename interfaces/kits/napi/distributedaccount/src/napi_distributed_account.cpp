@@ -389,6 +389,7 @@ napi_value NapiDistributedAccount::SetCurrentOsAccountDistributedInfo(napi_env e
 static void UpdateOhosAccountInfoExecuteCB(napi_env env, void *data)
 {
     DistributedAccountAsyncContext *context = reinterpret_cast<DistributedAccountAsyncContext *>(data);
+    NativeErrMsg() = "";
     if (!context->throwErr) {
         context->errCode = OhosAccountKits::GetInstance().UpdateOhosAccountInfo(context->ohosAccountInfo.name_,
             context->ohosAccountInfo.uid_, context->event);
@@ -398,6 +399,7 @@ static void UpdateOhosAccountInfoExecuteCB(napi_env env, void *data)
     } else {
         context->errCode = OhosAccountKits::GetInstance().SetOhosAccountInfo(context->ohosAccountInfo, context->event);
     }
+    context->nativeErrMsg = NativeErrMsg();
 }
 
 static void UpdateOhosAccountInfoCompletedCB(napi_env env, napi_status status, void *data)
@@ -413,6 +415,11 @@ static void UpdateOhosAccountInfoCompletedCB(napi_env env, napi_status status, v
         }
     } else if (asyncContext->throwErr) {
         result[0] = GenerateBusinessError(env, asyncContext->errCode);
+        if (!asyncContext->nativeErrMsg.empty()) {
+            napi_value errMsgJs = nullptr;
+            napi_create_string_utf8(env, asyncContext->nativeErrMsg.c_str(), NAPI_AUTO_LENGTH, &errMsgJs);
+            napi_set_named_property(env, result[0], "message", errMsgJs);
+        }
     } else {
         napi_value message = nullptr;
         napi_create_string_utf8(env, "Update distributed account info failed", NAPI_AUTO_LENGTH, &message);

@@ -61,6 +61,11 @@ void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncConte
         args[1] = data;
     } else {
         napi_get_null(env, &args[1]);
+        if (!asyncContext->nativeErrMsg.empty()) {
+            napi_value errMsgJs = nullptr;
+            napi_create_string_utf8(env, asyncContext->nativeErrMsg.c_str(), NAPI_AUTO_LENGTH, &errMsgJs);
+            napi_set_named_property(env, err, "message", errMsgJs);
+        }
         args[0] = err;
     }
     if (asyncContext->deferred) {
