@@ -184,4 +184,10 @@ int32_t ConvertToJSErrCode(int32_t nativeErrCode)
         return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
     }
 }
+
+std::string &NativeErrMsg()
+{
+    thread_local static std::string nativeErrMsg;
+    return nativeErrMsg;
+}
 }  // namespace OHOS

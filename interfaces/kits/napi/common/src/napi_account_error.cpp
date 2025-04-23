@@ -37,7 +37,12 @@ static const std::unordered_map<uint32_t, std::string> g_errorStringMap = {
      "Listener is already registered, please register new listener or delete old listener and try again"},
     {ERR_JS_LISTENER_NOT_REGISTERED, "Listener is not registered, please use the registered listener"},
     {ERR_JS_CREDENTIAL_INPUTER_ALREADY_EXIST, "PIN inputer is already registered, please do not repeat register"},
-    {ERR_JS_SYSTEM_SERVICE_EXCEPTION, "System service exception, please try again or reboot your device"},
+    {ERR_JS_SYSTEM_SERVICE_EXCEPTION, "System service exception. Possible causes:"
+        "(1)IPC communication failure;"
+        "(2)Insufficient memory;"
+        "(3)Insufficient disk space;"
+        "(4)Inability to start necessary system services."
+        "Please try again or restart your device"},
     {ERR_JS_INVALID_PARAMETER, "Parameter invalid, please input the correct parameter"},
     {ERR_JS_TRUST_LEVEL_NOT_SUPPORTED, "Trust level not supported, please input the correct trust level"},
     {ERR_JS_AUTH_TYPE_NOT_SUPPORTED, "Auth type not supported, please input the correct auth type"},
