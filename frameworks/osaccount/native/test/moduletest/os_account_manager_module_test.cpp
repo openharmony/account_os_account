@@ -2575,6 +2575,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest116, TestSize.Lev
 #ifndef BUNDLE_ADAPTER_MOCK
     Wait(subscriberPtr);
 #endif
+    sleep(3);
     EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(activingSubscriber));
     EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(activedSubscriber));
     EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(switchedSubscriber));

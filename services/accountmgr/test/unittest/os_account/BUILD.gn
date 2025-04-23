@@ -13,6 +13,7 @@
 
 import("//build/ohos.gni")
 import("//build/test.gni")
+import("../../../../../os_account.gni")
 import("../../../../../services/accountmgr/os_account_service.gni")
 
 module_output_path = "os_account/os_account"
@@ -193,12 +194,18 @@ ohos_unittest("os_account_domain_account_callback_test") {
     "kv_store:distributeddata_inner",
   ]
 
+  cflags_cc = []
   if (has_user_auth_part) {
-    cflags_cc = [ "-DHAS_USER_AUTH_PART" ]
+    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
     external_deps += [ "user_auth_framework:userauth_client" ]
   }
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
+
+  if (has_user_auth_part) {
+    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
+    external_deps += [ "user_auth_framework:userauth_client" ]
   }
   part_name = "os_account"
 }
@@ -873,7 +880,13 @@ ohos_unittest("os_account_maintenance_type_mock_test") {
 group("unittest") {
   testonly = true
 
-  deps = [
+  deps = []
+
+  if (os_account_support_domain_accounts) {
+    deps += [ ":os_account_domain_account_callback_test" ]
+  }
+
+  deps += [
     ":OsAccountControlFileManagerTest",
     ":OsAccountEventManagerMultipleThreadTest",
     ":OsAccountFileManagerMultipleThreadTest",
@@ -883,10 +896,6 @@ group("unittest") {
     ":OsAccountSubscribeDeathRecipientTest",
     ":os_account_maintenance_type_mock_test",
   ]
-
-  if (os_account_support_domain_accounts) {
-    deps += [ ":os_account_domain_account_callback_test" ]
-  }
 
   if (has_kv_store_part && os_account_distributed_feature) {
     deps += [ ":OsAccountDataStorageTest" ]
