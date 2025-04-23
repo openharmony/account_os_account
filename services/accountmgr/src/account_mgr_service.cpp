@@ -355,6 +355,7 @@ void AccountMgrService::OnAddSystemAbility(int32_t systemAbilityId, const std::s
     bool isAccountCompleted = false;
     ErrCode errCode =
         IInnerOsAccountManager::GetInstance().IsOsAccountCompleted(Constants::START_USER_ID, isAccountCompleted);
+    ACCOUNT_LOGI("IsOsAccountCompleted errCode=%{public}d.", errCode);
     if (errCode == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR || (errCode == ERR_OK && !isAccountCompleted)) {
         if (!isBmsReady_) {
             return;
