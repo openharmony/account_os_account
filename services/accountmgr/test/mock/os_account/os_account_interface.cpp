@@ -60,6 +60,11 @@ ErrCode OsAccountInterface::SendToAMSAccountDeactivate(OsAccountInfo &osAccountI
 
 ErrCode OsAccountInterface::SendToBMSAccountDelete(OsAccountInfo &osAccountInfo)
 {
+    DomainAccountInfo info;
+    osAccountInfo.GetDomainInfo(info);
+    if (!info.domain_.empty() && info.domain_ == "fail") {
+        return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_DELETE_ERROR;
+    }
     ACCOUNT_LOGI("mock OsAccountInterface SendToBMSAccountDelete start");
     return ERR_OK;
 }
