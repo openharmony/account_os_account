@@ -1280,6 +1280,12 @@ void AppAccountControlManager::CloseDataStorage()
         ACCOUNT_LOGI("Close storage, storeId: %{public}s, result: %{public}d", item.first.c_str(), result);
     }
 #ifdef SQLITE_DLCLOSE_ENABLE
+    for (auto &item : storePtrMap_) {
+        if (item.second != nullptr) {
+            storePtrMutex_.unlock();
+            return;
+        }
+    }
     bool dlCloseRet = DatabaseAdapterLoader::GetInstance().CheckAndUnload();
     ACCOUNT_LOGI("Close so end, ret: %{public}d", dlCloseRet);
 #endif // SQLITE_DLCLOSE_ENABLE
