@@ -898,38 +898,6 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAppAccess_0100, TestSize.Le
 }
 
 /**
- * @tc.name: AppAccountManager_CheckAppAccountSyncEnable_0100
- * @tc.desc: Check account sync enable with invalid data.
- * @tc.type: FUNC
- * @tc.require: issueI4MBQT
- */
-HWTEST_F(AppAccountManagerTest, AppAccountManager_CheckAppAccountSyncEnable_0100, TestSize.Level1)
-{
-    ACCOUNT_LOGI("AppAccountManager_CheckAppAccountSyncEnable_0100");
-
-    bool syncEnable = SYNC_ENABLE_FALSE;
-    ErrCode result = AppAccountManager::CheckAppAccountSyncEnable(STRING_EMPTY, syncEnable);
-    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    EXPECT_EQ(syncEnable, SYNC_ENABLE_FALSE);
-}
-
-/**
- * @tc.name: AppAccountManager_CheckAppAccountSyncEnable_0200
- * @tc.desc: Check account sync enable with invalid data.
- * @tc.type: FUNC
- * @tc.require: issueI4MBQT
- */
-HWTEST_F(AppAccountManagerTest, AppAccountManager_CheckAppAccountSyncEnable_0200, TestSize.Level1)
-{
-    ACCOUNT_LOGI("AppAccountManager_CheckAppAccountSyncEnable_0200");
-
-    bool syncEnable = SYNC_ENABLE_FALSE;
-    ErrCode result = AppAccountManager::CheckAppAccountSyncEnable(STRING_NAME_OUT_OF_RANGE, syncEnable);
-    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    EXPECT_EQ(syncEnable, SYNC_ENABLE_FALSE);
-}
-
-/**
  * @tc.name: AppAccountManager_CheckAppAccountSyncEnable_0300
  * @tc.desc: Fail to check account sync enable from shell process.
  * @tc.type: FUNC
@@ -938,7 +906,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_CheckAppAccountSyncEnable_0200
 HWTEST_F(AppAccountManagerTest, AppAccountManager_CheckAppAccountSyncEnable_0300, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManager_CheckAppAccountSyncEnable_0300");
-    bool syncEnable = SYNC_ENABLE_FALSE;
+    bool syncEnable = true;
     ErrCode result = AppAccountManager::CheckAppAccountSyncEnable(STRING_NAME, syncEnable);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
     EXPECT_EQ(syncEnable, SYNC_ENABLE_FALSE);

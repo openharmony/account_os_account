@@ -63,14 +63,14 @@ void TestSubscribeOhosAccountEvent()
     sptr<IRemoteObject> callbacks[TEST_COUNT];
     for (int32_t i = 0; i < TEST_COUNT; i++) {
         callbacks[i] = new (std::nothrow) DistributedAccountEventService(TEST_TYPE, nullptr);
-        mgr.SubscribeDistributedAccountEvent(TEST_TYPE, callbacks[i]);
+        EXPECT_EQ(ERR_OK, mgr.SubscribeDistributedAccountEvent(TEST_TYPE, callbacks[i]));
     }
     auto task = [] { TestPulishOhosAccountEvent(); };
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_OHOS_ACCOUNT_EVENT_TEST);
     taskThread.detach();
     for (int32_t i = 0; i < TEST_COUNT; i++) {
-        mgr.UnsubscribeDistributedAccountEvent(callbacks[i]);
+        EXPECT_EQ(ERR_OK, mgr.UnsubscribeDistributedAccountEvent(callbacks[i]));
     }
 }
 

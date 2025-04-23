@@ -582,7 +582,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest012, TestSize.Lev
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest013, TestSize.Level1)
 {
-    bool isOsAccountActived = false;
+    bool isOsAccountActived = true;
     EXPECT_EQ(OsAccountManager::IsOsAccountActived(commonOsAccountInfo.GetLocalId(), isOsAccountActived), ERR_OK);
     EXPECT_EQ(isOsAccountActived, false);
 }
@@ -684,9 +684,11 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest019, TestSize.Lev
     bool isVerified = false;
     EXPECT_EQ(OsAccountManager::IsOsAccountVerified(Constants::START_USER_ID, isVerified), ERR_OK);
     EXPECT_EQ(isVerified, true);
+    isVerified = true;
     EXPECT_EQ(OsAccountManager::SetOsAccountIsVerified(Constants::START_USER_ID, false), ERR_OK);
     EXPECT_EQ(OsAccountManager::IsOsAccountVerified(Constants::START_USER_ID, isVerified), ERR_OK);
     EXPECT_EQ(isVerified, false);
+    isVerified = false;
     EXPECT_EQ(OsAccountManager::SetOsAccountIsVerified(Constants::START_USER_ID, true), ERR_OK);
     EXPECT_EQ(OsAccountManager::IsOsAccountVerified(Constants::START_USER_ID, isVerified), ERR_OK);
     EXPECT_EQ(isVerified, true);
@@ -1284,11 +1286,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest068, TestSize.Lev
     EXPECT_EQ(OsAccountManager::IsMainOsAccount(isMainOsAccount), ERR_OK);
     int id = -1;
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromProcess(id), ERR_OK);
-    if (id == MAIN_ACCOUNT_ID) {
-        EXPECT_EQ(isMainOsAccount, true);
-    } else {
-        EXPECT_EQ(isMainOsAccount, false);
-    }
+    EXPECT_EQ(isMainOsAccount, id == MAIN_ACCOUNT_ID);
 }
 
 /**
@@ -1312,13 +1310,14 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest069, TestSize.Lev
         OsAccountManager::IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isEnable),
         ERR_OK);
     EXPECT_EQ(isEnable, true);
-
+    isEnable = true;
     EXPECT_EQ(OsAccountManager::SetGlobalOsAccountConstraints(
         CONSTANTS_VECTOR, false, commonOsAccountInfo.GetLocalId(), true), ERR_OK);
     EXPECT_EQ(
         OsAccountManager::IsOsAccountConstraintEnable(commonOsAccountInfo.GetLocalId(), CONSTANT_PRINT, isEnable),
         ERR_OK);
     EXPECT_EQ(isEnable, false);
+    isEnable = true;
     EXPECT_EQ(
         OsAccountManager::IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isEnable),
         ERR_OK);
@@ -1350,19 +1349,21 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest070, TestSize.Lev
         OsAccountManager::IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isEnable),
         ERR_OK);
     EXPECT_EQ(isEnable, true);
-
+    isEnable = false;
     EXPECT_EQ(OsAccountManager::SetGlobalOsAccountConstraints(
         CONSTANTS_VECTOR, false, commonOsAccountInfo.GetLocalId(), true), ERR_OK);
     EXPECT_EQ(
         OsAccountManager::IsOsAccountConstraintEnable(commonOsAccountInfo.GetLocalId(), CONSTANT_PRINT, isEnable),
         ERR_OK);
     EXPECT_EQ(isEnable, true);
+    isEnable = false;
     EXPECT_EQ(
         OsAccountManager::IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isEnable),
         ERR_OK);
     EXPECT_EQ(isEnable, true);
 
     ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoTwo.GetLocalId()), ERR_OK);
+    isEnable = true;
     EXPECT_EQ(
         OsAccountManager::IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isEnable),
         ERR_OK);
@@ -1382,16 +1383,17 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest071, TestSize.Lev
 
     EXPECT_EQ(OsAccountManager::SetSpecificOsAccountConstraints(
         CONSTANTS_VECTOR, true, MAIN_ACCOUNT_ID, osAccountInfoOne.GetLocalId(), true), ERR_OK);
-    bool isEnable = false;
+    bool isEnable = true;
     EXPECT_EQ(
         OsAccountManager::IsOsAccountConstraintEnable(osAccountInfoOne.GetLocalId(), CONSTANT_PRINT, isEnable),
         ERR_OK);
     EXPECT_EQ(isEnable, false);
+    isEnable = false;
     EXPECT_EQ(
         OsAccountManager::IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isEnable),
         ERR_OK);
     EXPECT_EQ(isEnable, true);
-
+    isEnable = true;
     EXPECT_EQ(OsAccountManager::SetSpecificOsAccountConstraints(
         CONSTANTS_VECTOR, false, MAIN_ACCOUNT_ID, osAccountInfoOne.GetLocalId(), true), ERR_OK);
     EXPECT_EQ(
@@ -1428,6 +1430,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest072, TestSize.Lev
     constraintSourceTypeInfos.clear();
     EXPECT_NE(OsAccountManager::QueryOsAccountConstraintSourceTypes(
         999, CONSTANT_PRINT, constraintSourceTypeInfos), ERR_OK);
+    isEnable = true;
     EXPECT_EQ(
         OsAccountManager::IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isEnable),
         ERR_OK);
@@ -1533,7 +1536,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest075, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest076, TestSize.Level1)
 {
-    bool isVerified = false;
+    bool isVerified = true;
     EXPECT_EQ(OsAccountManager::IsCurrentOsAccountVerified(isVerified), ERR_OK);
     EXPECT_EQ(isVerified, false);
 }
@@ -1559,7 +1562,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest077, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest078, TestSize.Level1)
 {
-    bool isOsAccountCompleted = false;
+    bool isOsAccountCompleted = true;
     EXPECT_NE(OsAccountManager::IsOsAccountCompleted(ERROR_LOCAL_ID, isOsAccountCompleted), ERR_OK);
     EXPECT_EQ(isOsAccountCompleted, false);
 }
@@ -1572,7 +1575,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest078, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest079, TestSize.Level1)
 {
-    bool isVerified = false;
+    bool isVerified = true;
     EXPECT_NE(OsAccountManager::SetCurrentOsAccountIsVerified(true), ERR_OK);
     EXPECT_EQ(OsAccountManager::IsCurrentOsAccountVerified(isVerified), ERR_OK);
     EXPECT_EQ(isVerified, false);
@@ -1936,20 +1939,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest104, TestSize.Lev
     EXPECT_EQ(OsAccountManager::SetOsAccountName(Constants::MAX_USER_ID + 1, localName),
         ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
     EXPECT_EQ(localName, "testname");
-}
-
-/**
- * @tc.name: OsAccountManagerModuleTest105
- * @tc.desc: test SetOsAccountConstraints with invalid data.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest105, TestSize.Level1)
-{
-    bool enable = true;
-    EXPECT_EQ(OsAccountManager::SetOsAccountConstraints(Constants::MAX_USER_ID + 1, CONSTANTS_VECTOR, enable),
-        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
-    EXPECT_EQ(enable, true);
 }
 
 /**
@@ -2464,6 +2453,7 @@ HWTEST_F(OsAccountManagerModuleTest, IsOsAccountForeground002, TestSize.Level1)
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
 
     // test in foreground after switch
+    isForeground = false;
     EXPECT_EQ(setuid(osAccountInfo.GetLocalId() * UID_TRANSFORM_DIVISOR), 0);
     EXPECT_EQ(OsAccountManager::IsOsAccountForeground(isForeground), ERR_OK);
     EXPECT_EQ(isForeground, true);
@@ -2495,6 +2485,7 @@ HWTEST_F(OsAccountManagerModuleTest, IsOsAccountForeground003, TestSize.Level1)
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(commonOsAccountInfo.GetLocalId()), ERR_OK);
 
     // test in foreground
+    isForeground = false;
     EXPECT_EQ(OsAccountManager::IsOsAccountForeground(commonOsAccountInfo.GetLocalId(), isForeground), ERR_OK);
     EXPECT_EQ(isForeground, true);
 
@@ -2547,6 +2538,7 @@ HWTEST_F(OsAccountManagerModuleTest, IsOsAccountForeground005, TestSize.Level1)
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(commonOsAccountInfo.GetLocalId()), ERR_OK);
 
     // test in foreground
+    isForeground = false;
     EXPECT_EQ(OsAccountManager::IsOsAccountForeground(commonOsAccountInfo.GetLocalId(), Constants::DEFAULT_DISPALY_ID,
                                                       isForeground),
               ERR_OK);

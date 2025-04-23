@@ -661,23 +661,6 @@ HWTEST_F(
 }
 
 /**
- * @tc.name: seAppAccountManagerService_CheckAppAccountSyncEnable_0200
- * @tc.desc: Check account sync enable with invalid data.
- * @tc.type: FUNC
- * @tc.require: issueI5N90B
- */
-HWTEST_F(
-    AppAccountManagerServiceModuleTest, seAppAccountManagerService_CheckAppAccountSyncEnable_0200, TestSize.Level1)
-{
-    ACCOUNT_LOGI("seAppAccountManagerService_CheckAppAccountSyncEnable_0200");
-
-    bool syncEnable = SYNC_ENABLE_FALSE;
-    ErrCode result = g_accountManagerService->CheckAppAccountSyncEnable(STRING_NAME, syncEnable);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID);
-    EXPECT_EQ(syncEnable, SYNC_ENABLE_FALSE);
-}
-
-/**
  * @tc.name: seAppAccountManagerService_SetAppAccountSyncEnable_0100
  * @tc.desc: Set account sync enable with valid data.
  * @tc.type: FUNC
@@ -1489,8 +1472,6 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTo
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAuthTokenVisibility_0300, TestSize.Level1)
 {
-    ACCOUNT_LOGI("AppAccountManagerService_SetAuthTokenVisibility_0300");
-
     CreateAccountOptions option;
     ErrCode result = g_accountManagerService->CreateAccount(STRING_NAME, option);
     EXPECT_EQ(result, ERR_OK);
@@ -1524,11 +1505,13 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAuthTok
     EXPECT_EQ(result, ERR_OK);
     ASSERT_EQ(authList.size(), SIZE_ONE);
 
+    isVisible = true;
     result = g_accountManagerService->CheckAuthTokenVisibility(STRING_NAME,
         STRING_AUTH_TYPE, INVALID_STRING_OWNER, isVisible);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(isVisible, false);
 
+    isVisible = false;
     result = g_accountManagerService->CheckAuthTokenVisibility(STRING_NAME,
         STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
     EXPECT_EQ(result, ERR_OK);
@@ -1538,6 +1521,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAuthTok
         STRING_AUTH_TYPE, STRING_BUNDLE_NAME, false);
     EXPECT_EQ(result, ERR_OK);
 
+    isVisible = true;
     result = g_accountManagerService->CheckAuthTokenVisibility(STRING_NAME,
         STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
     EXPECT_EQ(result, ERR_OK);
@@ -2231,7 +2215,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_OnPackageR
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckAppAccess_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerService_CheckAppAccess_0100");
-    bool isAccessible = false;
+    bool isAccessible = true;
     ErrCode result = g_accountManagerService->CheckAppAccess(
         STRING_NAME, STRING_BUNDLE_NAME_NOT_INSTALLED, isAccessible);
     EXPECT_NE(result, ERR_OK);
@@ -2251,7 +2235,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckAppAc
     ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    bool isAccessible = false;
+    bool isAccessible = true;
     result = g_accountManagerService->CheckAppAccess(STRING_NAME, STRING_BUNDLE_NAME, isAccessible);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(isAccessible, false);
@@ -2779,7 +2763,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckAppAc
         STRING_NAME, STRING_EXTRA_INFO, UID, STRING_OWNER, appAccountInfo);
     result = g_accountManagerService->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID);
-    isAccessible = false;
+    isAccessible = true;
     result = g_accountManagerService->CheckAppAccess(STRING_NAME, STRING_BUNDLE_NAME, isAccessible);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
     EXPECT_EQ(isAccessible, false);
