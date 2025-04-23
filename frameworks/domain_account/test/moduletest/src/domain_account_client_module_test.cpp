@@ -2117,7 +2117,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAcco
     ASSERT_EQ(errCode, ERR_OK);
     ASSERT_EQ(InnerDomainAccountManager::GetInstance().UpdateAccountInfo(oldInfo, newInfo), ERR_OK);
 
-    int32_t newUserId = -1;
+    int32_t newUserId = -2;
     errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(newInfo, newUserId);
     EXPECT_EQ(errCode, ERR_OK);
     EXPECT_EQ(oldUserId, newUserId);

@@ -457,7 +457,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest021, Te
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_NE(serialNumber, -1);
 
-    int64_t serialNumberByDefault = -1;
+    int64_t serialNumberByDefault = -2;
     ret = g_controlManager->GetSerialNumberFromDatabase(std::string(""), serialNumberByDefault);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(serialNumber, serialNumberByDefault);
@@ -467,7 +467,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest021, Te
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(id, Constants::MAX_USER_ID);
 
-    int idByDefault = -1;
+    int idByDefault = -2;
     ret = g_controlManager->GetMaxAllowCreateIdFromDatabase(std::string(""), idByDefault);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(id, idByDefault);
@@ -563,14 +563,11 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest024, Te
  */
 HWTEST_F(OsAccountControlFileManagerTest, IsFromBaseOAConstraintsList_001, TestSize.Level1)
 {
-    bool isExist;
-    RenameFile(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH,
-        Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk");
+    bool isExist = true;
     ErrCode ret = g_controlManager->IsFromBaseOAConstraintsList(
         INT_TEST_ERR_USER_ID, "invalid_constraint", isExist);
-    EXPECT_NE(ret, ERR_OK);
-    RenameFile(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk",
-        Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(isExist, false);
 }
 
 /**
@@ -581,7 +578,7 @@ HWTEST_F(OsAccountControlFileManagerTest, IsFromBaseOAConstraintsList_001, TestS
  */
 HWTEST_F(OsAccountControlFileManagerTest, IsFromBaseOAConstraintsList_002, TestSize.Level1)
 {
-    bool isExist;
+    bool isExist = false;
     ErrCode ret = g_controlManager->IsFromBaseOAConstraintsList(
         100, "constraint.wifi", isExist);
     EXPECT_EQ(ret, ERR_OK);
@@ -596,7 +593,7 @@ HWTEST_F(OsAccountControlFileManagerTest, IsFromBaseOAConstraintsList_002, TestS
  */
 HWTEST_F(OsAccountControlFileManagerTest, IsFromBaseOAConstraintsList_003, TestSize.Level1)
 {
-    bool isExist;
+    bool isExist = false;
     RenameFile(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH,
         Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk");
     g_controlManager->BuildAndSaveBaseOAConstraintsJsonFile();
@@ -616,12 +613,14 @@ HWTEST_F(OsAccountControlFileManagerTest, IsFromBaseOAConstraintsList_003, TestS
  */
 HWTEST_F(OsAccountControlFileManagerTest, RemoveOAConstraintsInfo_001, TestSize.Level1)
 {
-    RenameFile(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH,
-        Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk");
-    ErrCode ret = g_controlManager->RemoveOAConstraintsInfo(INT_TEST_ERR_USER_ID);
-    EXPECT_NE(ret, ERR_OK);
-    RenameFile(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk",
-        Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH);
+    std::string res1;
+    EXPECT_EQ(ERR_OK, g_controlManager->accountFileOperator_
+        ->GetFileContentByPath(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH, res1));
+    EXPECT_EQ(ERR_OK, g_controlManager->RemoveOAConstraintsInfo(INT_TEST_ERR_USER_ID));
+    std::string res2;
+    EXPECT_EQ(ERR_OK, g_controlManager->accountFileOperator_
+        ->GetFileContentByPath(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH, res2));
+    EXPECT_EQ(res1, res2);
 }
 
 /**
@@ -633,13 +632,10 @@ HWTEST_F(OsAccountControlFileManagerTest, RemoveOAConstraintsInfo_001, TestSize.
 HWTEST_F(OsAccountControlFileManagerTest, IsFromGlobalOAConstraintsList_001, TestSize.Level1)
 {
     std::vector<ConstraintSourceTypeInfo> globalSourceList;
-    RenameFile(Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH,
-        Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk");
     ErrCode ret = g_controlManager->IsFromGlobalOAConstraintsList(
         INT_TEST_ERR_USER_ID, 0, "invalid_constraint", globalSourceList);
-    EXPECT_NE(ret, ERR_OK);
-    RenameFile(Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk",
-        Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_TRUE(globalSourceList.empty());
 }
 
 /**
@@ -651,13 +647,10 @@ HWTEST_F(OsAccountControlFileManagerTest, IsFromGlobalOAConstraintsList_001, Tes
 HWTEST_F(OsAccountControlFileManagerTest, IsFromSpecificOAConstraintsList_001, TestSize.Level1)
 {
     std::vector<ConstraintSourceTypeInfo> specificSourceList;
-    RenameFile(Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH,
-        Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk");
     ErrCode ret = g_controlManager->IsFromSpecificOAConstraintsList(
         INT_TEST_ERR_USER_ID, 0, "invalid_constraint", specificSourceList);
-    EXPECT_NE(ret, ERR_OK);
-    RenameFile(Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk",
-        Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_TRUE(specificSourceList.empty());
 }
 
 /**
@@ -669,10 +662,13 @@ HWTEST_F(OsAccountControlFileManagerTest, IsFromSpecificOAConstraintsList_001, T
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest024, TestSize.Level1)
 {
     g_controlManager->BuildAndSaveBaseOAConstraintsJsonFile();
-    bool ret = false;
-    ret = g_controlManager->accountFileOperator_
-        ->IsJsonFileReady(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH);
-    EXPECT_EQ(ret, true);
+    EXPECT_TRUE(g_controlManager->accountFileOperator_
+        ->IsJsonFileReady(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH));
+
+    std::string res;
+    EXPECT_EQ(ERR_OK, g_controlManager->accountFileOperator_
+        ->GetFileContentByPath(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH, res));
+    EXPECT_TRUE(res.find("100") != std::string::npos);
 }
 
 /**
@@ -684,10 +680,12 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest024,
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest025, TestSize.Level1)
 {
     g_controlManager->BuildAndSaveGlobalOAConstraintsJsonFile();
-    bool ret = false;
-    ret = g_controlManager->accountFileOperator_
-        ->IsJsonFileReady(Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH);
-    EXPECT_EQ(ret, true);
+    EXPECT_TRUE(g_controlManager->accountFileOperator_
+        ->IsJsonFileReady(Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH));
+    std::string res;
+    EXPECT_EQ(ERR_OK, g_controlManager->accountFileOperator_
+        ->GetFileContentByPath(Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH, res));
+    EXPECT_TRUE(res.find("deviceOwnerId") != std::string::npos);
 }
 
 /**
@@ -699,10 +697,12 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest025,
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest026, TestSize.Level1)
 {
     g_controlManager->BuildAndSaveSpecificOAConstraintsJsonFile();
-    bool ret = false;
-    ret = g_controlManager->accountFileOperator_
-        ->IsJsonFileReady(Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH);
-    EXPECT_EQ(ret, true);
+    EXPECT_TRUE(g_controlManager->accountFileOperator_
+        ->IsJsonFileReady(Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH));
+    std::string res;
+    EXPECT_EQ(ERR_OK, g_controlManager->accountFileOperator_
+        ->GetFileContentByPath(Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH, res));
+    EXPECT_TRUE(res.find("allSpecificConstraints") != std::string::npos);
 }
 
 /**
@@ -716,6 +716,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest028,
     std::vector<std::string> constants;
     ErrCode ret = g_controlManager->GetConstraintsByType(static_cast<OsAccountType>(INVALID_TYPE), constants);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_CONTROL_GET_TYPE_ERROR);
+    EXPECT_TRUE(constants.empty());
 }
 
 /**
@@ -730,6 +731,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest029,
     std::vector<std::string> ConstraintStr = {};
     ErrCode ret = g_controlManager->UpdateBaseOAConstraints(idStr, ConstraintStr, false);
     EXPECT_EQ(ret, ERR_OK);
+    EXPECT_TRUE(ConstraintStr.empty());
 }
 
 /**
@@ -744,6 +746,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest030,
     std::string photo;
     ErrCode ret = g_controlManager->GetPhotoById(id, photo);
     EXPECT_EQ(ret, ERR_OK);
+    EXPECT_TRUE(photo.empty());
 }
 }  // namespace AccountSA
 }  // namespace OHOS
