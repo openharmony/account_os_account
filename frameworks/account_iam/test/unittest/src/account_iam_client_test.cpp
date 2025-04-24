@@ -287,7 +287,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_AddCredential_0100, TestSize.Lev
     auto callback = std::make_shared<MockIDMCallback>();
     EXPECT_NE(callback, nullptr);
 #ifdef PROXY_MOCK
-    EXPECT_CALL(*callback, OnResult(_, _)).Times(Exactly(0));
+    EXPECT_CALL(*callback, OnResult(ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR, _)).Times(Exactly(1));
 #else
     EXPECT_CALL(*callback, OnResult(_, _)).Times(Exactly(1));
 #endif
@@ -314,7 +314,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_AddCredential_0200, TestSize.Lev
     auto callback = std::make_shared<MockIDMCallback>();
     EXPECT_NE(callback, nullptr);
 #ifdef PROXY_MOCK
-    EXPECT_CALL(*callback, OnResult(_, _)).Times(Exactly(0));
+    EXPECT_CALL(*callback, OnResult(ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR, _)).Times(Exactly(2));
 #else
     EXPECT_CALL(*callback, OnResult(_, _)).Times(Exactly(2));
 #endif
