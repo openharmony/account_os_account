@@ -164,6 +164,7 @@ HWTEST_F(OsAccountSubscribeTest, OsAccountSubscribeTest01, TestSize.Level1)
     bool withHandshake = true;
     bool isBlock = false;
     TestStateMachine(withHandshake, isBlock);
+    SUCCEED();
 }
 
 /**
@@ -177,6 +178,7 @@ HWTEST_F(OsAccountSubscribeTest, OsAccountSubscribeTest02, TestSize.Level1)
     bool withHandshake = true;
     bool isBlock = true;
     TestStateMachine(withHandshake, isBlock);
+    SUCCEED();
 }
 
 /**
@@ -190,6 +192,7 @@ HWTEST_F(OsAccountSubscribeTest, OsAccountSubscribeTest03, TestSize.Level1)
     bool withHandshake = false;
     bool isBlock = false;
     TestStateMachine(withHandshake, isBlock);
+    SUCCEED();
 }
 
 /**

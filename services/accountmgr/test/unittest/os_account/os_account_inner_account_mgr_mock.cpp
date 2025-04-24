@@ -1230,7 +1230,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest022, TestSize
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
     innerMgrService_->osAccountControl_ = ptr;
 
-    bool isMultiOsAccountEnabled = false;
+    bool isMultiOsAccountEnabled = true;
 
     EXPECT_CALL(*ptr, GetIsMultiOsAccountEnable(_))
         .WillRepeatedly(testing::Return(-1));
