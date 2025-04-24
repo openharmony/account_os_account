@@ -395,7 +395,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest014
     OsAccountInfo osAccountInfoOne;
     ASSERT_EQ(osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne),
         ERR_OK);
-    bool isOsAccountActived = false;
+    bool isOsAccountActived = true;
     EXPECT_EQ(osAccountManagerService_->IsOsAccountActived(osAccountInfoOne.GetLocalId(), isOsAccountActived),
         ERR_OK);
     EXPECT_EQ(isOsAccountActived, false);
@@ -510,7 +510,11 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest018
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest019, TestSize.Level1)
 {
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
     bool isMultiOsAccountEnable = false;
+#else
+    bool isMultiOsAccountEnable = true;
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
     EXPECT_EQ(osAccountManagerService_->IsMultiOsAccountEnable(isMultiOsAccountEnable), ERR_OK);
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
     EXPECT_EQ(isMultiOsAccountEnable, true);
@@ -1061,11 +1065,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest066
     EXPECT_EQ(osAccountManagerService_->IsMainOsAccount(isMainOsAccount), ERR_OK);
     int id = -1;
     EXPECT_EQ(osAccountManagerService_->GetOsAccountLocalIdFromProcess(id), ERR_OK);
-    if (id == MAIN_ACCOUNT_ID) {
-        EXPECT_EQ(isMainOsAccount, true);
-    } else {
-        EXPECT_EQ(isMainOsAccount, false);
-    }
+    EXPECT_EQ(isMainOsAccount, id == MAIN_ACCOUNT_ID);
 }
 
 #if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
@@ -1306,11 +1306,13 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest082
     EXPECT_EQ(isConstraintEnable, false);
     EXPECT_EQ(osAccountManagerService_->SetGlobalOsAccountConstraints(
         CONSTANTS_VECTOR, true, MAIN_ACCOUNT_ID, true), ERR_OK);
+    isConstraintEnable = false;
     EXPECT_EQ(osAccountManagerService_->IsOsAccountConstraintEnable(
         MAIN_ACCOUNT_ID, CONSTANT_PRINT, isConstraintEnable), ERR_OK);
     EXPECT_EQ(isConstraintEnable, true);
     EXPECT_EQ(osAccountManagerService_->SetGlobalOsAccountConstraints(
         CONSTANTS_VECTOR, false, MAIN_ACCOUNT_ID, true), ERR_OK);
+    isConstraintEnable = true;
     EXPECT_EQ(osAccountManagerService_->IsOsAccountConstraintEnable(
         MAIN_ACCOUNT_ID, CONSTANT_PRINT, isConstraintEnable), ERR_OK);
     EXPECT_EQ(isConstraintEnable, false);
@@ -1358,17 +1360,17 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest084
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountManagerService_->CreateOsAccount("Test084", INT_TEST_TYPE, osAccountInfo);
     EXPECT_EQ(errCode, ERR_OK);
-    bool isConstraintEnable = false;
+    bool isConstraintEnable = true;
     EXPECT_EQ(osAccountManagerService_->IsOsAccountConstraintEnable(
         MAIN_ACCOUNT_ID, CONSTANT_PRINT, isConstraintEnable), ERR_OK);
     EXPECT_EQ(isConstraintEnable, false);
     EXPECT_EQ(osAccountManagerService_->SetSpecificOsAccountConstraints(
         CONSTANTS_VECTOR, true, osAccountInfo.GetLocalId(), MAIN_ACCOUNT_ID, false), ERR_OK);
-
+    isConstraintEnable = false;
     EXPECT_EQ(osAccountManagerService_->IsOsAccountConstraintEnable(
         osAccountInfo.GetLocalId(), CONSTANT_PRINT, isConstraintEnable), ERR_OK);
     EXPECT_EQ(isConstraintEnable, true);
-
+    isConstraintEnable = true;
     EXPECT_EQ(osAccountManagerService_->SetSpecificOsAccountConstraints(
         CONSTANTS_VECTOR, false, osAccountInfo.GetLocalId(), MAIN_ACCOUNT_ID, false), ERR_OK);
     EXPECT_EQ(osAccountManagerService_->IsOsAccountConstraintEnable(
