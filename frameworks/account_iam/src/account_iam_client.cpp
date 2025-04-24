@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -166,9 +166,14 @@ int32_t AccountIAMClient::GetCredentialInfo(
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     sptr<IGetCredInfoCallback> wrapper = new (std::nothrow) GetCredInfoCallbackService(callback);
+    if (wrapper == nullptr) {
+        ACCOUNT_LOGE("The wrapper is nullptr");
+        callback->OnCredentialInfo(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, infoList);
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
     ErrCode result = proxy->GetCredentialInfo(userId, authType, wrapper);
     if (result != ERR_OK) {
-        callback->OnCredentialInfo(result, infoList);
+        wrapper->OnCredentialInfo(result, infoList);
     }
     return result;
 }
@@ -220,6 +225,24 @@ uint64_t AccountIAMClient::Auth(AuthOptions& authOptions, const std::vector<uint
     return AuthUser(authOptions, challenge, authType, authTrustLevel, callback);
 }
 
+static void CopyAuthOptionsToAuthParam(const AuthOptions &authOptions, AuthParam &authParam)
+{
+    authParam.userId = authOptions.accountId;
+    authParam.authIntent = authOptions.authIntent;
+    if (authOptions.hasRemoteAuthOptions) {
+        authParam.remoteAuthParam = RemoteAuthParam();
+        if (authOptions.remoteAuthOptions.hasVerifierNetworkId) {
+            authParam.remoteAuthParam.value().verifierNetworkId = authOptions.remoteAuthOptions.verifierNetworkId;
+        }
+        if (authOptions.remoteAuthOptions.hasCollectorNetworkId) {
+            authParam.remoteAuthParam.value().collectorNetworkId = authOptions.remoteAuthOptions.collectorNetworkId;
+        }
+        if (authOptions.remoteAuthOptions.hasCollectorTokenId) {
+            authParam.remoteAuthParam.value().collectorTokenId = authOptions.remoteAuthOptions.collectorTokenId;
+        }
+    }
+}
+
 uint64_t AccountIAMClient::AuthUser(
     AuthOptions &authOptions, const std::vector<uint8_t> &challenge, AuthType authType,
     AuthTrustLevel authTrustLevel, const std::shared_ptr<IDMCallback> &callback)
@@ -246,28 +269,20 @@ uint64_t AccountIAMClient::AuthUser(
     }
 #endif
     sptr<IIDMCallback> wrapper = new (std::nothrow) IDMCallbackService(authOptions.accountId, callback);
+    if (wrapper == nullptr) {
+        ACCOUNT_LOGE("The wrapper is nullptr");
+        callback->OnResult(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, emptyResult);
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
     AuthParam authParam;
     authParam.challenge = challenge;
     authParam.authType = authType;
     authParam.authTrustLevel = authTrustLevel;
-    authParam.userId = authOptions.accountId;
-    authParam.authIntent = authOptions.authIntent;
-    if (authOptions.hasRemoteAuthOptions) {
-        authParam.remoteAuthParam = RemoteAuthParam();
-        if (authOptions.remoteAuthOptions.hasVerifierNetworkId) {
-            authParam.remoteAuthParam.value().verifierNetworkId = authOptions.remoteAuthOptions.verifierNetworkId;
-        }
-        if (authOptions.remoteAuthOptions.hasCollectorNetworkId) {
-            authParam.remoteAuthParam.value().collectorNetworkId = authOptions.remoteAuthOptions.collectorNetworkId;
-        }
-        if (authOptions.remoteAuthOptions.hasCollectorTokenId) {
-            authParam.remoteAuthParam.value().collectorTokenId = authOptions.remoteAuthOptions.collectorTokenId;
-        }
-    }
+    CopyAuthOptionsToAuthParam(authOptions, authParam);
     ErrCode result = proxy->AuthUser(authParam, wrapper, contextId);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Failed to auth user, result = %{public}d", result);
-        callback->OnResult(result, emptyResult);
+        wrapper->OnResult(result, emptyResult);
     }
     return contextId;
 }
