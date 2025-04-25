@@ -200,6 +200,10 @@ ohos_shared_library("accountmgr") {
     cflags += [ "-DACTIVATE_LAST_LOGGED_IN_ACCOUNT" ]
   }
 
+  if (os_account_enable_account_1) {
+    cflags += [ "-DENABLE_U1_ACCOUNT" ]
+  }
+
   sources = [
     "${domain_account_framework_path}/src/domain_account_common.cpp",
     "${innerkits_native_path}/src/account_info_parcel.cpp",
