@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -138,6 +138,14 @@ ErrCode GetCredInfoCallbackStub::ProcOnCredentialInfo(MessageParcel &data, Messa
             return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
         }
         if (!data.ReadUint64(info.templateId)) {
+            ACCOUNT_LOGE("Failed to read templateId");
+            return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+        }
+        if (!data.ReadBool(info.isAbandoned)) {
+            ACCOUNT_LOGE("Failed to read isAbandoned");
+            return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+        }
+        if (!data.ReadInt64(info.validityPeriod)) {
             ACCOUNT_LOGE("Failed to read templateId");
             return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
         }

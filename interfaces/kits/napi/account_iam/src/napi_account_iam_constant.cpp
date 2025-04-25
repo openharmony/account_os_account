@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -297,13 +297,16 @@ napi_value AuthIntentConstructorForInnerkits(napi_env env)
     napi_value unlock = nullptr;
     napi_value silent_auth = nullptr;
     napi_value question_auth = nullptr;
+    napi_value abandoned_pin_auth = nullptr;
     NAPI_CALL(env, napi_create_object(env, &authIntent));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(AuthIntent::UNLOCK), &unlock));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(AuthIntent::SILENT_AUTH), &silent_auth));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(AuthIntent::QUESTION_AUTH), &question_auth));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(AuthIntent::ABANDONED_PIN_AUTH), &abandoned_pin_auth));
     NAPI_CALL(env, napi_set_named_property(env, authIntent, "UNLOCK", unlock));
     NAPI_CALL(env, napi_set_named_property(env, authIntent, "SILENT_AUTH", silent_auth));
     NAPI_CALL(env, napi_set_named_property(env, authIntent, "QUESTION_AUTH", question_auth));
+    NAPI_CALL(env, napi_set_named_property(env, authIntent, "ABANDONED_PIN_AUTH", abandoned_pin_auth));
     return authIntent;
 }
 
