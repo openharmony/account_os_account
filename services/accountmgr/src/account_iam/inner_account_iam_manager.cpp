@@ -559,7 +559,7 @@ ErrCode InnerAccountIAMManager::InnerUpdateStorageKeyContext(const int32_t userI
         ACCOUNT_LOGE("Fail to get storage proxy");
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY;
     }
-    ErrCode code = storageMgrProxy->UpdateKeyContext(userId);
+    ErrCode code = storageMgrProxy->UpdateKeyContext(userId, false);
     if (code != ERR_OK) {
         ACCOUNT_LOGE("Fail to update key context, userId=%{public}d, code=%{public}d", userId, code);
         return code;
