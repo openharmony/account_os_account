@@ -53,6 +53,13 @@ const char OS_ACCOUNT_CONFIG_FILE[] = "etc/os_account/os_account_config.json";
 #endif // HAS_CONFIG_POLICY_PART
 const char MAX_OS_ACCOUNT_NUM[] = "maxOsAccountNum";
 const char MAX_LOGGED_IN_OS_ACCOUNT_NUM[] = "maxLoggedInOsAccountNum";
+#ifdef ENABLE_U1_ACCOUNT
+const char SYSTEM_ACCOUNTS_CONFIG[] = "systemAccounts";
+const char U1_CONFIG[] = "1";
+const char SYSTEM_ACCOUNT_TYPE[] = "type";
+const char SYSTEM_ACCOUNT_NAME[] = "name";
+const char SYSTEM_ACCOUNT_BLOCK_BOOT[] = "canBlockBoot";
+#endif // ENABLE_U1_ACCOUNT
 const char DEVELOPER_MODE_STATE[] = "const.security.developermode.state";
 const char DEVELOPER_MODE[] = "developerMode";
 const char USER_PHOTO_FILE_PNG_NAME[] = "fase.png";
@@ -86,6 +93,31 @@ bool GetValidAccountID(const std::string& dirName, std::int32_t& accountID)
     sstream >> accountID;
     return (accountID >= Constants::ADMIN_LOCAL_ID && accountID <= Constants::MAX_USER_ID);
 }
+
+#ifdef ENABLE_U1_ACCOUNT
+void OsAccountControlFileManager::GetU1Config(const Json &configJson, OsAccountConfig &config)
+{
+    Json systemAccountsJson;
+    bool result = OHOS::AccountSA::GetDataByType<Json>(configJson, configJson.end(), SYSTEM_ACCOUNTS_CONFIG,
+        systemAccountsJson, OHOS::AccountSA::JsonType::OBJECT);
+    if (!result) {
+        return;
+    }
+    Json u1Json;
+    result = OHOS::AccountSA::GetDataByType<Json>(systemAccountsJson, systemAccountsJson.end(), U1_CONFIG,
+        u1Json, OHOS::AccountSA::JsonType::OBJECT);
+    if (!result) {
+        return;
+    }
+    config.isU1Enable = true;
+    OHOS::AccountSA::GetDataByType<OsAccountType>(u1Json, u1Json.end(), SYSTEM_ACCOUNT_TYPE,
+        config.u1AccountType, OHOS::AccountSA::JsonType::NUMBER);
+    OHOS::AccountSA::GetDataByType<std::string>(u1Json, u1Json.end(), SYSTEM_ACCOUNT_NAME,
+        config.u1AccountName, OHOS::AccountSA::JsonType::STRING);
+    OHOS::AccountSA::GetDataByType<bool>(u1Json, u1Json.end(), SYSTEM_ACCOUNT_BLOCK_BOOT,
+        config.isBlockBoot, OHOS::AccountSA::JsonType::BOOLEAN);
+}
+#endif // ENABLE_U1_ACCOUNT
 
 ErrCode OsAccountControlFileManager::GetOsAccountConfig(OsAccountConfig &config)
 {
@@ -1065,7 +1097,7 @@ ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInf
 #endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 
 #ifdef ENABLE_FILE_WATCHER
-    if (osAccountInfo.GetLocalId() >= Constants::START_USER_ID) {
+    if (osAccountInfo.GetLocalId() >= Constants::START_USER_ID || osAccountInfo.GetLocalId() == Constants::U1_ID) {
         accountFileWatcherMgr_.AddAccountInfoDigest(accountInfoStr, path);
         accountFileWatcherMgr_.AddFileWatcher(osAccountInfo.GetLocalId(), eventCallbackFunc_);
     }
@@ -1126,7 +1158,7 @@ ErrCode OsAccountControlFileManager::UpdateOsAccount(OsAccountInfo &osAccountInf
 
 #if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
     // update in database
-    if (osAccountInfo.GetLocalId() >= Constants::START_USER_ID) {
+    if (osAccountInfo.GetLocalId() >= Constants::START_USER_ID || osAccountInfo.GetLocalId() == Constants::U1_ID) {
         osAccountDataBaseOperator_->UpdateOsAccountInDatabase(osAccountInfo);
     }
 #else  // DISTRIBUTED_FEATURE_ENABLED

@@ -84,6 +84,7 @@ private:
     bool CreateIAMService();
     bool CreateDomainService();
     bool IsDefaultOsAccountVerified();
+    void GetUncreatedInitAccounts(std::set<int32_t> &initAccounts);
 #ifdef HAS_APP_ACCOUNT_PART
     void MoveAppAccountData();
 #endif
