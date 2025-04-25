@@ -90,6 +90,7 @@ enum AuthIntent : int32_t {
     UNLOCK = 1,
     SILENT_AUTH = 2,
     QUESTION_AUTH = 3,
+    ABANDONED_PIN_AUTH = 4,
 };
 
 struct RemoteAuthParam {
