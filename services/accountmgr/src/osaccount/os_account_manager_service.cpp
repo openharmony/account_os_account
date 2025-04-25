@@ -301,7 +301,7 @@ ErrCode OsAccountManagerService::RemoveOsAccount(const int id)
     if (res != ERR_OK) {
         return res;
     }
-    if ((id == Constants::START_USER_ID) || (id == Constants::ADMIN_LOCAL_ID)) {
+    if ((id == Constants::START_USER_ID) || (id == Constants::ADMIN_LOCAL_ID) || (id == Constants::U1_ID)) {
         ACCOUNT_LOGE("Cannot remove system preinstalled user");
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
@@ -601,7 +601,7 @@ ErrCode OsAccountManagerService::SetOsAccountName(const int id, const std::strin
     if (res != ERR_OK) {
         return res;
     }
-    if (id == Constants::ADMIN_LOCAL_ID) {
+    if (id == Constants::ADMIN_LOCAL_ID || id == Constants::U1_ID) {
         ACCOUNT_LOGE("Cannot set name for system preinstalled user");
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
@@ -630,7 +630,7 @@ ErrCode OsAccountManagerService::SetOsAccountConstraints(
     if (res != ERR_OK) {
         return res;
     }
-    if (id == Constants::ADMIN_LOCAL_ID) {
+    if (id == Constants::ADMIN_LOCAL_ID || id == Constants::U1_ID) {
         ACCOUNT_LOGE("Cannot set constraints for system preinstalled user");
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
@@ -650,7 +650,7 @@ ErrCode OsAccountManagerService::SetOsAccountProfilePhoto(const int id, const st
     if (res != ERR_OK) {
         return res;
     }
-    if (id == Constants::ADMIN_LOCAL_ID) {
+    if (id == Constants::ADMIN_LOCAL_ID || id == Constants::U1_ID) {
         ACCOUNT_LOGE("Cannot set photo for system preinstalled user");
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
@@ -678,7 +678,7 @@ ErrCode OsAccountManagerService::ActivateOsAccount(const int id)
     if (res != ERR_OK) {
         return res;
     }
-    if (id == Constants::ADMIN_LOCAL_ID) {
+    if (id == Constants::ADMIN_LOCAL_ID || id == Constants::U1_ID) {
         ACCOUNT_LOGE("Cannot activate name for system preinstalled user");
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
@@ -698,7 +698,7 @@ ErrCode OsAccountManagerService::DeactivateOsAccount(const int id)
     if (res != ERR_OK) {
         return res;
     }
-    if (id == Constants::ADMIN_LOCAL_ID) {
+    if (id == Constants::ADMIN_LOCAL_ID || id == Constants::U1_ID) {
         ACCOUNT_LOGE("Cannot deactivate name for system preinstalled user");
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
@@ -750,6 +750,11 @@ ErrCode OsAccountManagerService::DeactivateAllOsAccounts()
     ErrCode result = ERR_OK;
     for (auto osAccountId : userIds) {
         ACCOUNT_LOGI("DeactivateAllOsAccounts, id=%{public}d", osAccountId);
+#ifdef ENABLE_U1_ACCOUNT
+        if (osAccountId == Constants::U1_ID) {
+            continue;
+        }
+#endif // ENABLE_U1_ACCOUNT
         res = innerManager_.DeactivateOsAccount(osAccountId);
         if (res != ERR_OK) {
             ACCOUNT_LOGE("Deactivate os account id failed, id=%{public}d", osAccountId);
@@ -865,7 +870,7 @@ ErrCode OsAccountManagerService::SetCurrentOsAccountIsVerified(const bool isVeri
     if (res != ERR_OK) {
         return res;
     }
-    if (id == Constants::ADMIN_LOCAL_ID) {
+    if (id == Constants::ADMIN_LOCAL_ID || id == Constants::U1_ID) {
         ACCOUNT_LOGE("Cannot set verified status for system preinstalled user");
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
@@ -879,7 +884,7 @@ ErrCode OsAccountManagerService::SetOsAccountIsVerified(const int id, const bool
     if (res != ERR_OK) {
         return res;
     }
-    if (id == Constants::ADMIN_LOCAL_ID) {
+    if (id == Constants::ADMIN_LOCAL_ID || id == Constants::U1_ID) {
         ACCOUNT_LOGE("Cannot set verified status for system preinstalled user");
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
@@ -910,6 +915,13 @@ ErrCode OsAccountManagerService::DumpState(const int &id, std::vector<std::strin
         if (result != ERR_OK) {
             return result;
         }
+#ifdef ENABLE_U1_ACCOUNT
+        OsAccountInfo osAccountInfo;
+        result = innerManager_.GetRealOsAccountInfoById(Constants::U1_ID, osAccountInfo);
+        if (result == ERR_OK) {
+            osAccountInfos.insert(osAccountInfos.begin(), osAccountInfo);
+        }
+#endif // ENABLE_U1_ACCOUNT
     } else {
         OsAccountInfo osAccountInfo;
         result = innerManager_.GetRealOsAccountInfoById(id, osAccountInfo);
@@ -1124,7 +1136,10 @@ ErrCode OsAccountManagerService::SetDefaultActivatedOsAccount(const int32_t id)
         ACCOUNT_LOGE("Account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
-
+    if (id < Constants::START_USER_ID) {
+        ACCOUNT_LOGE("Not allow set id:%{public}d default activated account!", id);
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
     return innerManager_.SetDefaultActivatedOsAccount(id);
 }
 
@@ -1285,7 +1300,8 @@ ErrCode OsAccountManagerService::SetOsAccountToBeRemoved(int32_t localId, bool t
     if (res != ERR_OK) {
         return res;
     }
-    if ((localId == Constants::START_USER_ID) || (localId == Constants::ADMIN_LOCAL_ID)) {
+    if ((localId == Constants::START_USER_ID) || (localId == Constants::ADMIN_LOCAL_ID) ||
+        (localId == Constants::U1_ID)) {
         ACCOUNT_LOGE("Cannot remove system preinstalled user.");
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }

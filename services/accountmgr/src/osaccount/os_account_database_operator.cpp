@@ -100,7 +100,7 @@ void OsAccountDatabaseOperator::InsertOsAccountIntoDataBase(const OsAccountInfo 
         return;
     }
 
-    if (osAccountInfo.GetLocalId() < Constants::START_USER_ID) {
+    if (osAccountInfo.GetLocalId() < Constants::START_USER_ID && osAccountInfo.GetLocalId() != Constants::U1_ID) {
         ACCOUNT_LOGI("Target os account id %{public}d will not be saved in database!", osAccountInfo.GetLocalId());
         return;
     }
