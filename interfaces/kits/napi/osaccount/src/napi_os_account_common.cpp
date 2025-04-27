@@ -1206,7 +1206,9 @@ bool ParseParaGetIdByDomain(napi_env env, napi_callback_info cbInfo, GetIdByDoma
 void GetIdByUidExecuteCB(napi_env env, void *data)
 {
     GetIdByUidAsyncContext *asyncContext = reinterpret_cast<GetIdByUidAsyncContext *>(data);
+    NativeErrMsg() = "";
     asyncContext->errCode = OsAccountManager::GetOsAccountLocalIdFromUid(asyncContext->uid, asyncContext->id);
+    asyncContext->nativeErrMsg = NativeErrMsg();
     ACCOUNT_LOGD("error code is %{public}d", asyncContext->errCode);
     asyncContext->status = (asyncContext->errCode == 0) ? napi_ok : napi_generic_failure;
 }
@@ -1222,9 +1224,11 @@ void GetBundleIdByUidExecuteCB(napi_env env, void *data)
 void GetIdByDomainExecuteCB(napi_env env, void *data)
 {
     GetIdByDomainAsyncContext *asyncContext = reinterpret_cast<GetIdByDomainAsyncContext *>(data);
+    NativeErrMsg() = "";
     asyncContext->errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(
         asyncContext->domainInfo, asyncContext->id);
     ACCOUNT_LOGD("error code is %{public}d", asyncContext->errCode);
+    asyncContext->nativeErrMsg = NativeErrMsg();
     asyncContext->status = (asyncContext->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
@@ -1424,7 +1428,8 @@ bool ParseParaIsEnable(napi_env env, napi_callback_info cbInfo, IsConEnableAsync
         }
         if (ids.empty()) {
             ACCOUNT_LOGE("No Active OsAccount Ids");
-            AccountNapiThrow(env, ERR_ACCOUNT_COMMON_INVALID_PARAMETER, asyncContext->throwErr);
+            std::string errMsg = "No active osAccount ids, please wait for the user's startup to complete.";
+            AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, errMsg, asyncContext->throwErr);
             return false;
         }
         asyncContext->id = ids[0];

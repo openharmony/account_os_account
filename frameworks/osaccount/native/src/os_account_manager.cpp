@@ -112,6 +112,7 @@ ErrCode OsAccountManager::GetOsAccountLocalIdFromUid(const int uid, int &id)
 {
     if (uid < 0) {
         ACCOUNT_LOGE("invalid uid %{public}d.", uid);
+        NativeErrMsg() = "Invalid uid. The uid must be greater than or equal to 0";
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     id = uid / UID_TRANSFORM_DIVISOR;
@@ -127,6 +128,7 @@ ErrCode OsAccountManager::GetBundleIdFromUid(const int uid, int &bundleId)
     }
     if (uid < 0) {
         ACCOUNT_LOGE("invalid uid %{public}d.", uid);
+        NativeErrMsg() = "Invalid uid. The uid must be greater than or equal to 0";
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     bundleId = uid % UID_TRANSFORM_DIVISOR;

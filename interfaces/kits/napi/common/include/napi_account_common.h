@@ -43,6 +43,7 @@ struct CommonAsyncContext {
     napi_status status = napi_ok;
     ErrCode errCode = ERR_OK;
     std::string errMsg;
+    std::string nativeErrMsg;
     bool throwErr = false;
 };
 
