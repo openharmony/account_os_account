@@ -35,6 +35,7 @@ struct DistributedAccountAsyncContext {
 
     std::string event;
     AccountSA::OhosAccountInfo ohosAccountInfo;
+    std::string nativeErrMsg;
 
     napi_deferred deferred = nullptr;
     napi_ref callbackRef = nullptr;

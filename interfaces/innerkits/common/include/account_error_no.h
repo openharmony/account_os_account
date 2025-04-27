@@ -17,6 +17,7 @@
 #define OS_ACCOUNT_FRAMEWORKS_COMMON_ACCOUNT_ERROR_INCLUDE_ACCOUNT_ERROR_NO_H
 
 #include <cstdint>
+#include <string>
 #include "errors.h"
 
 namespace OHOS {
@@ -369,6 +370,8 @@ enum JSErrorCode {
 };
 
 int32_t ConvertToJSErrCode(int32_t nativeErrCode);
+
+std::string& NativeErrMsg();
 }  // namespace OHOS
 
 #endif  // OS_ACCOUNT_FRAMEWORKS_COMMON_ACCOUNT_ERROR_INCLUDE_ACCOUNT_ERROR_NO_H

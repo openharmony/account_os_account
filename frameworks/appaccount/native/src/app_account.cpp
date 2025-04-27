@@ -22,24 +22,28 @@
 #include "app_account_constants.h"
 #include "app_account_death_recipient.h"
 #include "ohos_account_kits_impl.h"
+#include <string>
 
 namespace OHOS {
 namespace AccountSA {
 #define RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(str)         \
     if (CheckSpecialCharacters(str) != ERR_OK) {            \
         ACCOUNT_LOGE("failed to check special characters"); \
+        NativeErrMsg() = "Invalid name. The name cannot contain space characters";                          \
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;        \
     }                                                       \
 
 #define RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(str, maxSize, msg)                                                \
-    if ((str).empty() || ((str).size() > (maxSize))) {                                                            \
+    if ((str).empty() || ((str).size() > (maxSize))) {                                                          \
         ACCOUNT_LOGE("%{public}s, input size: %{public}zu, max size: %{public}zu", msg, (str).size(), maxSize); \
+        NativeErrMsg() = msg;                                                                                   \
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;                                                            \
     }
 
 #define RETURN_IF_STRING_IS_OVERSIZE(str, maxSize, msg)                                                         \
     if ((str).size() > (maxSize)) {                                                                             \
         ACCOUNT_LOGE("%{public}s, input size: %{public}zu, max size: %{public}zu", msg, (str).size(), maxSize); \
+        NativeErrMsg() = msg;                                                                                   \
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;                                                            \
     }                                                                                                           \
 
@@ -51,9 +55,11 @@ AppAccount &AppAccount::GetInstance()
 
 ErrCode AppAccount::AddAccount(const std::string &name, const std::string &extraInfo)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE,
+        "Invalid name. The length of the name must be greater than 0 and less than 513");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
-    RETURN_IF_STRING_IS_OVERSIZE(extraInfo, Constants::EXTRA_INFO_MAX_SIZE, "extraInfo is empty or oversize");
+    RETURN_IF_STRING_IS_OVERSIZE(extraInfo, Constants::EXTRA_INFO_MAX_SIZE,
+        "Invalid extraInfo. The length of the extraInfo must be less than 1025");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -64,8 +70,10 @@ ErrCode AppAccount::AddAccount(const std::string &name, const std::string &extra
 ErrCode AppAccount::AddAccountImplicitly(const std::string &owner, const std::string &authType,
     const AAFwk::Want &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
-    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE,
+        "Invalid owner. The length of the owner must be greater than 0 and less than 1025");
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE,
+        "Invalid authType. The length of the authType must be less than 1025");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -75,17 +83,24 @@ ErrCode AppAccount::AddAccountImplicitly(const std::string &owner, const std::st
 
 ErrCode AppAccount::CreateAccount(const std::string &name, const CreateAccountOptions &options)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE,
+        "Invalid name. The length of the name must be greater than 0 and less than 513");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     if (options.customData.size() > Constants::MAX_CUSTOM_DATA_SIZE) {
+        NativeErrMsg() = "Invalid options.customData."
+            "The length of the options.customData must be greater than 0 and less than 513";
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     for (auto it : options.customData) {
-        RETURN_IF_STRING_IS_OVERSIZE(it.first, Constants::ASSOCIATED_KEY_MAX_SIZE, "customData key is oversize");
-        RETURN_IF_STRING_IS_OVERSIZE(it.second, Constants::ASSOCIATED_VALUE_MAX_SIZE, "customData value is oversize");
+        RETURN_IF_STRING_IS_OVERSIZE(it.first, Constants::ASSOCIATED_KEY_MAX_SIZE,
+            "Invalid options.customData key."
+            "The length of the options.customData key must be less than 1025");
+        RETURN_IF_STRING_IS_OVERSIZE(it.second, Constants::ASSOCIATED_VALUE_MAX_SIZE,
+            "Invalid options.customData value."
+            "The length of the options.customData value must be less than 1025");
     }
     return proxy->CreateAccount(name, options);
 }
@@ -93,10 +108,12 @@ ErrCode AppAccount::CreateAccount(const std::string &name, const CreateAccountOp
 ErrCode AppAccount::CreateAccountImplicitly(const std::string &owner, const CreateAccountImplicitlyOptions &options,
     const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
-    RETURN_IF_STRING_IS_OVERSIZE(options.authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is empty or oversize");
-    RETURN_IF_STRING_IS_OVERSIZE(
-        options.requiredLabels, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "requiredLabels array is oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE,
+        "Invalid owner. The length of the owner must be greater than 0 and less than 1025");
+    RETURN_IF_STRING_IS_OVERSIZE(options.authType, Constants::AUTH_TYPE_MAX_SIZE,
+        "Invalid options.authType. The length of the options.authType must be less than 1025");
+    RETURN_IF_STRING_IS_OVERSIZE(options.requiredLabels, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT,
+        "Invalid options.requiredLabels. The length of the options.requiredLabels must be less than 1025");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -106,7 +123,8 @@ ErrCode AppAccount::CreateAccountImplicitly(const std::string &owner, const Crea
 
 ErrCode AppAccount::DeleteAccount(const std::string &name)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE,
+        "Invalid name. The length of the name must be greater than 0 and less than 513");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -116,9 +134,11 @@ ErrCode AppAccount::DeleteAccount(const std::string &name)
 
 ErrCode AppAccount::GetAccountExtraInfo(const std::string &name, std::string &extraInfo)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE,
+        "Invalid name. The length of the name must be greater than 0 and less than 513");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
-    RETURN_IF_STRING_IS_OVERSIZE(extraInfo, Constants::EXTRA_INFO_MAX_SIZE, "extraInfo is empty or oversize");
+    RETURN_IF_STRING_IS_OVERSIZE(extraInfo, Constants::EXTRA_INFO_MAX_SIZE,
+        "Invalid extraInfo. The length of the extraInfo must be less than 1025");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -128,9 +148,11 @@ ErrCode AppAccount::GetAccountExtraInfo(const std::string &name, std::string &ex
 
 ErrCode AppAccount::SetAccountExtraInfo(const std::string &name, const std::string &extraInfo)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE,
+        "Invalid name. The length of the name must be greater than 0 and less than 513");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
-    RETURN_IF_STRING_IS_OVERSIZE(extraInfo, Constants::EXTRA_INFO_MAX_SIZE, "extraInfo is empty or oversize");
+    RETURN_IF_STRING_IS_OVERSIZE(extraInfo, Constants::EXTRA_INFO_MAX_SIZE,
+        "Invalid extraInfo. The length of the extraInfo must be less than 1025");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -140,10 +162,11 @@ ErrCode AppAccount::SetAccountExtraInfo(const std::string &name, const std::stri
 
 ErrCode AppAccount::EnableAppAccess(const std::string &name, const std::string &bundleName)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE,
+        "Invalid name. The length of the name must be greater than 0 and less than 513");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(bundleName, Constants::BUNDLE_NAME_MAX_SIZE,
-        "bundleName is empty or oversize");
+        "Invalid bundleName. The length of the bundleName must be greater than 0 and less than 513");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -153,10 +176,11 @@ ErrCode AppAccount::EnableAppAccess(const std::string &name, const std::string &
 
 ErrCode AppAccount::DisableAppAccess(const std::string &name, const std::string &bundleName)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE,
+        "Invalid name. The length of the name must be greater than 0 and less than 513");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(bundleName, Constants::BUNDLE_NAME_MAX_SIZE,
-        "bundleName is empty or oversize");
+        "Invalid bundleName. The length of the bundleName must be greater than 0 and less than 513");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -166,9 +190,10 @@ ErrCode AppAccount::DisableAppAccess(const std::string &name, const std::string 
 
 ErrCode AppAccount::SetAppAccess(const std::string &name, const std::string &authorizedApp, bool isAccessible)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE,
+        "Invalid name. The length of the name must be greater than 0 and less than 513");
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(authorizedApp, Constants::BUNDLE_NAME_MAX_SIZE,
-        "authorizedApp name is empty or oversize");
+        "Invalid bundleName. The length of the bundleName must be greater than 0 and less than 513");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -178,7 +203,8 @@ ErrCode AppAccount::SetAppAccess(const std::string &name, const std::string &aut
 
 ErrCode AppAccount::CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE,
+        "Invalid name. The length of the name must be greater than 0 and less than 513");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -188,7 +214,8 @@ ErrCode AppAccount::CheckAppAccountSyncEnable(const std::string &name, bool &syn
 
 ErrCode AppAccount::SetAppAccountSyncEnable(const std::string &name, const bool &syncEnable)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE,
+        "Invalid name. The length of the name must be greater than 0 and less than 513");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -198,8 +225,10 @@ ErrCode AppAccount::SetAppAccountSyncEnable(const std::string &name, const bool 
 
 ErrCode AppAccount::GetAssociatedData(const std::string &name, const std::string &key, std::string &value)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(key, Constants::ASSOCIATED_KEY_MAX_SIZE, "key is empty or oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE,
+        "Invalid name. The length of the name must be greater than 0 and less than 513");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(key, Constants::ASSOCIATED_KEY_MAX_SIZE,
+        "Invalid key. The length of the key must be greater than 0 and less than 1025");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -209,9 +238,12 @@ ErrCode AppAccount::GetAssociatedData(const std::string &name, const std::string
 
 ErrCode AppAccount::SetAssociatedData(const std::string &name, const std::string &key, const std::string &value)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(key, Constants::ASSOCIATED_KEY_MAX_SIZE, "key is empty or oversize");
-    RETURN_IF_STRING_IS_OVERSIZE(value, Constants::ASSOCIATED_VALUE_MAX_SIZE, "value is oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE,
+        "Invalid name. The length of the name must be greater than 0 and less than 513");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(key, Constants::ASSOCIATED_KEY_MAX_SIZE,
+        "Invalid key. The length of the key must be greater than 0 and less than 1025");
+    RETURN_IF_STRING_IS_OVERSIZE(value, Constants::ASSOCIATED_VALUE_MAX_SIZE,
+        "Invalid value. The length of the value must be less than 1025");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -222,9 +254,10 @@ ErrCode AppAccount::SetAssociatedData(const std::string &name, const std::string
 ErrCode AppAccount::GetAccountCredential(
     const std::string &name, const std::string &credentialType, std::string &credential)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE,
+        "Invalid name. The length of the name must be greater than 0 and less than 513");
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(credentialType, Constants::CREDENTIAL_TYPE_MAX_SIZE,
-        "credentialType is empty or oversize");
+        "Invalid credentialType. The length of the credentialType must be greater than 0 and less than 1025");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -235,10 +268,12 @@ ErrCode AppAccount::GetAccountCredential(
 ErrCode AppAccount::SetAccountCredential(
     const std::string &name, const std::string &credentialType, const std::string &credential)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE,
+        "Invalid name. The length of the name must be greater than 0 and less than 513");
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(credentialType, Constants::CREDENTIAL_TYPE_MAX_SIZE,
-        "credentialType is empty or oversize");
-    RETURN_IF_STRING_IS_OVERSIZE(credential, Constants::CREDENTIAL_MAX_SIZE, "credential is empty or oversize");
+        "Invalid credentialType. The length of the credentialType must be greater than 0 and less than 1025");
+    RETURN_IF_STRING_IS_OVERSIZE(credential, Constants::CREDENTIAL_MAX_SIZE,
+        "Invalid credential. The length of the credential must be less than 1025");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -249,9 +284,12 @@ ErrCode AppAccount::SetAccountCredential(
 ErrCode AppAccount::Authenticate(const std::string &name, const std::string &owner, const std::string &authType,
     const AAFwk::Want &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
-    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE,
+        "Invalid name. The length of the name must be greater than 0 and less than 513");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE,
+        "Invalid owner. The length of the owner must be greater than 0 and less than 1025");
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE,
+        "Invalid authType. The length of the authType must be less than 1025");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -262,10 +300,13 @@ ErrCode AppAccount::Authenticate(const std::string &name, const std::string &own
 ErrCode AppAccount::GetOAuthToken(
     const std::string &name, const std::string &owner, const std::string &authType, std::string &token)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE,
+        "Invalid name. The length of the name must be greater than 0 and less than 513");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
-    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE,
+        "Invalid owner. The length of the owner must be greater than 0 and less than 1025");
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE,
+        "Invalid authType. The length of the authType must be less than 1025");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -276,9 +317,12 @@ ErrCode AppAccount::GetOAuthToken(
 ErrCode AppAccount::GetAuthToken(
     const std::string &name, const std::string &owner, const std::string &authType, std::string &token)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
-    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE,
+        "Invalid name. The length of the name must be greater than 0 and less than 513");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE,
+        "Invalid owner. The length of the owner must be greater than 0 and less than 1025");
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE,
+        "Invalid authType. The length of the authType must be less than 1025");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -288,9 +332,12 @@ ErrCode AppAccount::GetAuthToken(
 
 ErrCode AppAccount::SetOAuthToken(const std::string &name, const std::string &authType, const std::string &token)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
-    RETURN_IF_STRING_IS_OVERSIZE(token, Constants::TOKEN_MAX_SIZE, "token is oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE,
+        "Invalid name. The length of the name must be greater than 0 and less than 513");
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE,
+        "Invalid authType. The length of the authType must be less than 1025");
+    RETURN_IF_STRING_IS_OVERSIZE(token, Constants::TOKEN_MAX_SIZE,
+        "Invalid token. The length of the token must be less than 1025");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -301,11 +348,15 @@ ErrCode AppAccount::SetOAuthToken(const std::string &name, const std::string &au
 ErrCode AppAccount::DeleteOAuthToken(
     const std::string &name, const std::string &owner, const std::string &authType, const std::string &token)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE,
+        "Invalid name. The length of the name must be greater than 0 and less than 513");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
-    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
-    RETURN_IF_STRING_IS_OVERSIZE(token, Constants::TOKEN_MAX_SIZE, "token is oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE,
+        "Invalid owner. The length of the owner must be greater than 0 and less than 1025");
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE,
+        "Invalid authType. The length of the authType must be less than 1025");
+    RETURN_IF_STRING_IS_OVERSIZE(token, Constants::TOKEN_MAX_SIZE,
+        "Invalid token. The length of the token must be less than 1025");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -316,10 +367,14 @@ ErrCode AppAccount::DeleteOAuthToken(
 ErrCode AppAccount::DeleteAuthToken(
     const std::string &name, const std::string &owner, const std::string &authType, const std::string &token)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
-    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
-    RETURN_IF_STRING_IS_OVERSIZE(token, Constants::TOKEN_MAX_SIZE, "token is oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE,
+        "Invalid name. The length of the name must be greater than 0 and less than 513");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE,
+        "Invalid owner. The length of the owner must be greater than 0 and less than 1025");
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE,
+        "Invalid authType. The length of the authType must be less than 1025");
+    RETURN_IF_STRING_IS_OVERSIZE(token, Constants::TOKEN_MAX_SIZE,
+        "Invalid token. The length of the token must be less than 1025");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -330,10 +385,12 @@ ErrCode AppAccount::DeleteAuthToken(
 ErrCode AppAccount::CheckTokenVisibilityParam(
     const std::string &name, const std::string &authType, const std::string &bundleName)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE,
+        "Invalid name. The length of the name must be greater than 0 and less than 513");
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE,
+        "Invalid authType. The length of the authType must be less than 1025");
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(bundleName, Constants::BUNDLE_NAME_MAX_SIZE,
-        "bundleName is empty or oversize");
+        "Invalid bundleName. The length of the bundleName must be greater than 0 and less than 513");
     return ERR_OK;
 }
 
@@ -397,7 +454,8 @@ ErrCode AppAccount::CheckOAuthTokenVisibility(
 
 ErrCode AppAccount::GetAuthenticatorInfo(const std::string &owner, AuthenticatorInfo &info)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE,
+        "Invalid owner. The length of the owner must be greater than 0 and less than 1025");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -408,8 +466,10 @@ ErrCode AppAccount::GetAuthenticatorInfo(const std::string &owner, Authenticator
 ErrCode AppAccount::GetAllOAuthTokens(
     const std::string &name, const std::string &owner, std::vector<OAuthTokenInfo> &tokenInfos)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE,
+        "Invalid name. The length of the name must be greater than 0 and less than 513");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE,
+        "Invalid owner. The length of the owner must be greater than 0 and less than 1025");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -420,9 +480,11 @@ ErrCode AppAccount::GetAllOAuthTokens(
 ErrCode AppAccount::GetOAuthList(
     const std::string &name, const std::string &authType, std::set<std::string> &oauthList)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE,
+        "Invalid name. The length of the name must be greater than 0 and less than 513");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
-    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE,
+        "Invalid authType. The length of the authType must be less than 1025");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -433,8 +495,10 @@ ErrCode AppAccount::GetOAuthList(
 ErrCode AppAccount::GetAuthList(
     const std::string &name, const std::string &authType, std::set<std::string> &oauthList)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE,
+        "Invalid name. The length of the name must be greater than 0 and less than 513");
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE,
+        "Invalid authType. The length of the authType must be less than 1025");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -445,7 +509,7 @@ ErrCode AppAccount::GetAuthList(
 ErrCode AppAccount::GetAuthenticatorCallback(const std::string &sessionId, sptr<IRemoteObject> &callback)
 {
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(sessionId, Constants::SESSION_ID_MAX_SIZE,
-        "session id is empty or oversize");
+        "Invalid sessionId. The length of the sessionId must be greater than 0 and less than 1025");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -455,7 +519,8 @@ ErrCode AppAccount::GetAuthenticatorCallback(const std::string &sessionId, sptr<
 
 ErrCode AppAccount::GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE,
+        "Invalid owner. The length of the owner must be greater than 0 and less than 1025");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -465,9 +530,10 @@ ErrCode AppAccount::GetAllAccounts(const std::string &owner, std::vector<AppAcco
 
 ErrCode AppAccount::CheckAppAccess(const std::string &name, const std::string &authorizedApp, bool &isAccessible)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE,
+        "Invalid name. The length of the name must be greater than 0 and less than 513");
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(authorizedApp, Constants::BUNDLE_NAME_MAX_SIZE,
-        "authorizedApp is empty or oversize");
+        "Invalid bundleName. The length of the bundleName must be greater than 0 and less than 513");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -477,9 +543,10 @@ ErrCode AppAccount::CheckAppAccess(const std::string &name, const std::string &a
 
 ErrCode AppAccount::DeleteAccountCredential(const std::string &name, const std::string &credentialType)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE,
+        "Invalid name. The length of the name must be greater than 0 and less than 513");
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(credentialType, Constants::CREDENTIAL_TYPE_MAX_SIZE,
-        "credential type is empty or oversize");
+        "Invalid credentialType. The length of the credentialType must be greater than 0 and less than 1025");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -490,12 +557,15 @@ ErrCode AppAccount::DeleteAccountCredential(const std::string &name, const std::
 ErrCode AppAccount::SelectAccountsByOptions(
     const SelectAccountsOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
-    RETURN_IF_STRING_IS_OVERSIZE(
-        options.allowedAccounts, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "allowedAccounts array is oversize");
-    RETURN_IF_STRING_IS_OVERSIZE(
-        options.allowedOwners, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "allowedOwners array is oversize");
-    RETURN_IF_STRING_IS_OVERSIZE(
-        options.requiredLabels, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "requiredLabels array is oversize");
+    RETURN_IF_STRING_IS_OVERSIZE(options.allowedAccounts, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT,
+        "Invalid options.allowedAccounts."
+        "The length of the options.allowedAccounts must be less than 1025");
+    RETURN_IF_STRING_IS_OVERSIZE(options.allowedOwners, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT,
+        "Invalid options.allowedOwners."
+        "The length of the options.allowedOwners must be less than 1025");
+    RETURN_IF_STRING_IS_OVERSIZE(options.requiredLabels, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT,
+        "Invalid options.requiredLabels."
+        "The length of the options.requiredLabels must be less than 1025");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -506,11 +576,14 @@ ErrCode AppAccount::SelectAccountsByOptions(
 ErrCode AppAccount::VerifyCredential(const std::string &name, const std::string &owner,
     const VerifyCredentialOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
-    RETURN_IF_STRING_IS_OVERSIZE(
-        options.credentialType, Constants::CREDENTIAL_TYPE_MAX_SIZE, "the credential type is oversize");
-    RETURN_IF_STRING_IS_OVERSIZE(options.credential, Constants::CREDENTIAL_MAX_SIZE, "the credential is oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE,
+        "Invalid name. The length of the name must be greater than 0 and less than 513");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE,
+        "Invalid owner. The length of the owner must be greater than 0 and less than 1025");
+    RETURN_IF_STRING_IS_OVERSIZE(options.credentialType, Constants::CREDENTIAL_TYPE_MAX_SIZE,
+        "Invalid options.credentialType. The length of the options.credentialType must be less than 1025");
+    RETURN_IF_STRING_IS_OVERSIZE(options.credential, Constants::CREDENTIAL_MAX_SIZE,
+        "Invalid options.credential. The length of the options.credential must be less than 1025");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -521,10 +594,12 @@ ErrCode AppAccount::VerifyCredential(const std::string &name, const std::string 
 ErrCode AppAccount::CheckAccountLabels(const std::string &name, const std::string &owner,
     const std::vector<std::string> &labels, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(
-        labels, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "labels array is empty or oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE,
+        "Invalid name. The length of the name must be greater than 0 and less than 513");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE,
+        "Invalid owner. The length of the owner must be greater than 0 and less than 1025");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(labels, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT,
+        "Invalid labels. The length of the labels must be greater than 0 and less than 1025");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -535,7 +610,8 @@ ErrCode AppAccount::CheckAccountLabels(const std::string &name, const std::strin
 ErrCode AppAccount::SetAuthenticatorProperties(const std::string &owner,
     const SetPropertiesOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE,
+        "Invalid owner. The length of the owner must be greater than 0 and less than 1025");
     auto proxy = GetAppAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
@@ -559,7 +635,8 @@ ErrCode AppAccount::QueryAllAccessibleAccounts(
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    RETURN_IF_STRING_IS_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is oversize");
+    RETURN_IF_STRING_IS_OVERSIZE(owner, Constants::OWNER_MAX_SIZE,
+        "Invalid owner. The length of the owner must be less than 1025");
     return proxy->QueryAllAccessibleAccounts(owner, appAccounts);
 }
 

@@ -100,6 +100,7 @@ static bool CheckSpecialCharacters(const std::string &name)
         std::size_t index = name.find(specialCharacter);
         if (index != std::string::npos) {
             ACCOUNT_LOGE("found a special character, specialCharacter = %{public}c", specialCharacter);
+            NativeErrMsg() = "Invalid name. The name cannot contain space characters";
             return false;
         }
     }
@@ -210,7 +211,9 @@ napi_value NapiAppAccount::CreateAccount(napi_env env, napi_callback_info cbInfo
     napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void *data) {
             CreateAccountContext *context = reinterpret_cast<CreateAccountContext *>(data);
+            NativeErrMsg() = "";
             context->errCode = AppAccountManager::CreateAccount(context->name, context->options);
+            context->nativeErrMsg = NativeErrMsg();
         },
         [](napi_env env, napi_status status, void *data) {
             CreateAccountContext *context = reinterpret_cast<CreateAccountContext *>(data);
@@ -240,9 +243,11 @@ napi_value NapiAppAccount::CreateAccountImplicitly(napi_env env, napi_callback_i
     napi_create_async_work(env, nullptr, resourceName,
         [](napi_env env, void *data) {
             auto context = reinterpret_cast<CreateAccountImplicitlyContext *>(data);
+            NativeErrMsg() = "";
             ErrCode errCode = AppAccountManager::CreateAccountImplicitly(context->owner,
                 context->options, context->appAccountMgrCb);
             context->errCode = ConvertToJSErrCode(errCode);
+            context->nativeErrMsg = NativeErrMsg();
         },
         [](napi_env env, napi_status status, void *data) {
             auto context = reinterpret_cast<CreateAccountImplicitlyContext *>(data);
@@ -318,7 +323,9 @@ napi_value NapiAppAccount::RemoveAccountInternal(napi_env env, napi_callback_inf
         resource,
         [](napi_env env, void *data) {
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
+            NativeErrMsg() = "";
             asyncContext->errCode = AppAccountManager::DeleteAccount(asyncContext->name);
+            asyncContext->nativeErrMsg = NativeErrMsg();
         },
         [](napi_env env, napi_status status, void *data) {
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
@@ -409,8 +416,10 @@ napi_value NapiAppAccount::SetAppAccess(napi_env env, napi_callback_info cbInfo)
     napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void *data) {
             AppAccountAsyncContext *context = reinterpret_cast<AppAccountAsyncContext *>(data);
+            NativeErrMsg() = "";
             context->errCode =
                 AppAccountManager::SetAppAccess(context->name, context->bundleName, context->isAccessible);
+            context->nativeErrMsg = NativeErrMsg();
         },
         [](napi_env env, napi_status status, void *data) {
             AppAccountAsyncContext *context = reinterpret_cast<AppAccountAsyncContext *>(data);
@@ -451,8 +460,10 @@ napi_value NapiAppAccount::CheckDataSyncEnabledInternal(napi_env env, napi_callb
         resource,
         [](napi_env env, void *data) {
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
+            NativeErrMsg() = "";
             asyncContext->errCode =
                 AppAccountManager::CheckAppAccountSyncEnable(asyncContext->name, asyncContext->result);
+            asyncContext->nativeErrMsg = NativeErrMsg();
         },
         [](napi_env env, napi_status status, void *data) {
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
@@ -496,12 +507,15 @@ napi_value NapiAppAccount::SetCredentialInternal(napi_env env, napi_callback_inf
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void *data) {
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
+            NativeErrMsg() = "";
             if ((!asyncContext->throwErr) && (!CheckSpecialCharacters(asyncContext->name))) {
                 asyncContext->errCode = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+                asyncContext->nativeErrMsg = NativeErrMsg();
                 return;
             }
             asyncContext->errCode = AppAccountManager::SetAccountCredential(
                 asyncContext->name, asyncContext->credentialType, asyncContext->credential);
+            asyncContext->nativeErrMsg = NativeErrMsg();
         },
         [](napi_env env, napi_status status, void *data) {
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
@@ -568,12 +582,15 @@ napi_value NapiAppAccount::SetDataSyncEnabledInternal(napi_env env, napi_callbac
     napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void *data) {
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
+            NativeErrMsg() = "";
             if ((!asyncContext->throwErr) && (!CheckSpecialCharacters(asyncContext->name))) {
                 asyncContext->errCode = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+                asyncContext->nativeErrMsg = NativeErrMsg();
                 return;
             }
             asyncContext->errCode =
                 AppAccountManager::SetAppAccountSyncEnable(asyncContext->name, asyncContext->isEnable);
+            asyncContext->nativeErrMsg = NativeErrMsg();
         },
         [](napi_env env, napi_status status, void *data) {
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
@@ -614,12 +631,15 @@ napi_value NapiAppAccount::SetCustomDataInternal(napi_env env, napi_callback_inf
     napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void *data) {
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
+            NativeErrMsg() = "";
             if ((!asyncContext->throwErr) && (!CheckSpecialCharacters(asyncContext->name))) {
                 asyncContext->errCode = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+                asyncContext->nativeErrMsg = NativeErrMsg();
                 return;
             }
             asyncContext->errCode =
                 AppAccountManager::SetAssociatedData(asyncContext->name, asyncContext->key, asyncContext->value);
+            asyncContext->nativeErrMsg = NativeErrMsg();
         },
         [](napi_env env, napi_status status, void *data) {
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
@@ -659,6 +679,7 @@ napi_value NapiAppAccount::GetAllAccessibleAccountsInternal(napi_env env, napi_c
     napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void *data) {
             GetAccountsAsyncContext *asyncContext = reinterpret_cast<GetAccountsAsyncContext *>(data);
+            NativeErrMsg() = "";
             if (asyncContext->throwErr) {
                 asyncContext->errCode =
                     AppAccountManager::QueryAllAccessibleAccounts(asyncContext->owner, asyncContext->appAccounts);
@@ -666,6 +687,7 @@ napi_value NapiAppAccount::GetAllAccessibleAccountsInternal(napi_env env, napi_c
                 asyncContext->errCode =
                     AppAccountManager::GetAllAccessibleAccounts(asyncContext->appAccounts);
             }
+            asyncContext->nativeErrMsg = NativeErrMsg();
         },
         [](napi_env env, napi_status status, void *data) {
             GetAccountsAsyncContext *asyncContext = reinterpret_cast<GetAccountsAsyncContext *>(data);
@@ -725,6 +747,7 @@ napi_value NapiAppAccount::GetAccountsByOwnerInternal(napi_env env, napi_callbac
     napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void *data) {
             GetAccountsAsyncContext *asyncContext = reinterpret_cast<GetAccountsAsyncContext *>(data);
+            NativeErrMsg() = "";
             if (!asyncContext->throwErr) {
                 asyncContext->errCode =
                     AppAccountManager::GetAllAccounts(asyncContext->owner, asyncContext->appAccounts);
@@ -734,6 +757,7 @@ napi_value NapiAppAccount::GetAccountsByOwnerInternal(napi_env env, napi_callbac
                 asyncContext->errCode =
                     AppAccountManager::QueryAllAccessibleAccounts(asyncContext->owner, asyncContext->appAccounts);
             }
+            asyncContext->nativeErrMsg = NativeErrMsg();
         },
         [](napi_env env, napi_status status, void *data) {
             GetAccountsAsyncContext *asyncContext = reinterpret_cast<GetAccountsAsyncContext *>(data);
@@ -775,8 +799,10 @@ napi_value NapiAppAccount::GetCredentialInternal(napi_env env, napi_callback_inf
     napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void *data) {
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
+            NativeErrMsg() = "";
             asyncContext->errCode = AppAccountManager::GetAccountCredential(
                 asyncContext->name, asyncContext->credentialType, asyncContext->credential);
+            asyncContext->nativeErrMsg = NativeErrMsg();
         },
         [](napi_env env, napi_status status, void *data) {
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
@@ -853,8 +879,10 @@ napi_value NapiAppAccount::GetCustomDataInternal(napi_env env, napi_callback_inf
         resource,
         [](napi_env env, void *data) {
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
+            NativeErrMsg() = "";
             asyncContext->errCode =
                 AppAccountManager::GetAssociatedData(asyncContext->name, asyncContext->key, asyncContext->value);
+            asyncContext->nativeErrMsg = NativeErrMsg();
         },
         [](napi_env env, napi_status status, void *data) {
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
@@ -885,10 +913,13 @@ napi_value NapiAppAccount::GetAssociatedDataSync(napi_env env, napi_callback_inf
         return nullptr;
     }
     std::string value;
+    NativeErrMsg() = "";
     ErrCode errCode = AppAccountManager::GetAssociatedData(name, key, value);
     napi_value result = nullptr;
     if (errCode == ERR_OK) {
         NAPI_CALL(env, napi_create_string_utf8(env, value.c_str(), NAPI_AUTO_LENGTH, &result));
+    } else if (errCode == ERR_ACCOUNT_COMMON_INVALID_PARAMETER) {
+        napi_throw(env, GenerateBusinessError(env, ConvertToJSErrCode(errCode), NativeErrMsg()));
     } else {
         napi_throw(env, GenerateBusinessError(env, errCode));
     }
@@ -910,12 +941,15 @@ void AuthInternalExecuteCB(napi_env env, void *data)
     auto asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
     if ((!asyncContext->throwErr) && (!CheckSpecialCharacters(asyncContext->name))) {
         asyncContext->errCode = ConvertToJSErrCodeV8(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+        asyncContext->nativeErrMsg = NativeErrMsg();
         return;
     }
+    NativeErrMsg() = "";
     ErrCode errCode = AppAccountManager::Authenticate(asyncContext->name, asyncContext->owner,
         asyncContext->authType, asyncContext->options, asyncContext->appAccountMgrCb);
     asyncContext->errCode =
         asyncContext->throwErr ? ConvertToJSErrCode(errCode) : ConvertToJSErrCodeV8(errCode);
+    asyncContext->nativeErrMsg = NativeErrMsg();
 }
 
 void AuthInternalCompletedCB(napi_env env, napi_status status, void *data)
@@ -983,6 +1017,7 @@ napi_value NapiAppAccount::GetAuthTokenInternal(napi_env env, napi_callback_info
     napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void *data) {
             auto asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
+            NativeErrMsg() = "";
             if (asyncContext->throwErr) {
                 asyncContext->errCode = AppAccountManager::GetAuthToken(
                     asyncContext->name, asyncContext->owner, asyncContext->authType, asyncContext->token);
@@ -990,6 +1025,7 @@ napi_value NapiAppAccount::GetAuthTokenInternal(napi_env env, napi_callback_info
                 asyncContext->errCode = AppAccountManager::GetOAuthToken(
                     asyncContext->name, asyncContext->owner, asyncContext->authType, asyncContext->token);
             }
+            asyncContext->nativeErrMsg = NativeErrMsg();
         },
         [](napi_env env, napi_status status, void *data) {
             OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
@@ -1031,12 +1067,15 @@ napi_value NapiAppAccount::SetAuthTokenInternal(napi_env env, napi_callback_info
     napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void *data) {
             OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
+            NativeErrMsg() = "";
             if ((!asyncContext->throwErr) && (!CheckSpecialCharacters(asyncContext->name))) {
                 asyncContext->errCode = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+                asyncContext->nativeErrMsg = NativeErrMsg();
                 return;
             }
             asyncContext->errCode = AppAccountManager::SetOAuthToken(
                 asyncContext->name, asyncContext->authType, asyncContext->token);
+            asyncContext->nativeErrMsg = NativeErrMsg();
         },
         [](napi_env env, napi_status status, void *data) {
             OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
@@ -1078,6 +1117,7 @@ napi_value NapiAppAccount::DeleteAuthTokenInternal(napi_env env, napi_callback_i
         napi_create_async_work(env, nullptr, resource,
             [](napi_env env, void *data) {
                 OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
+                NativeErrMsg() = "";
                 if (asyncContext->throwErr) {
                     asyncContext->errCode = AppAccountManager::DeleteAuthToken(
                         asyncContext->name, asyncContext->owner, asyncContext->authType, asyncContext->token);
@@ -1085,6 +1125,7 @@ napi_value NapiAppAccount::DeleteAuthTokenInternal(napi_env env, napi_callback_i
                     asyncContext->errCode = AppAccountManager::DeleteOAuthToken(
                         asyncContext->name, asyncContext->owner, asyncContext->authType, asyncContext->token);
                 }
+                asyncContext->nativeErrMsg = NativeErrMsg();
             },
             [](napi_env env, napi_status status, void *data) {
                 OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
@@ -1127,6 +1168,7 @@ napi_value NapiAppAccount::SetAuthTokenVisibilityInternal(napi_env env, napi_cal
             resource,
             [](napi_env env, void *data) {
                 OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
+                NativeErrMsg() = "";
                 if (asyncContext->throwErr) {
                     asyncContext->errCode = AppAccountManager::SetAuthTokenVisibility(
                         asyncContext->name, asyncContext->authType, asyncContext->bundleName, asyncContext->isVisible);
@@ -1134,6 +1176,7 @@ napi_value NapiAppAccount::SetAuthTokenVisibilityInternal(napi_env env, napi_cal
                     asyncContext->errCode = AppAccountManager::SetOAuthTokenVisibility(
                         asyncContext->name, asyncContext->authType, asyncContext->bundleName, asyncContext->isVisible);
                 }
+                asyncContext->nativeErrMsg = NativeErrMsg();
             },
             [](napi_env env, napi_status status, void *data) {
                 OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
@@ -1162,6 +1205,7 @@ napi_value NapiAppAccount::CheckAuthTokenVisibility(napi_env env, napi_callback_
 static void CheckAuthTokenVisibilityExecuteCB(napi_env env, void *data)
 {
     OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
+    NativeErrMsg() = "";
     if (asyncContext->throwErr) {
         asyncContext->errCode = AppAccountManager::CheckAuthTokenVisibility(
             asyncContext->name, asyncContext->authType, asyncContext->bundleName, asyncContext->isVisible);
@@ -1169,6 +1213,7 @@ static void CheckAuthTokenVisibilityExecuteCB(napi_env env, void *data)
         asyncContext->errCode = AppAccountManager::CheckOAuthTokenVisibility(
             asyncContext->name, asyncContext->authType, asyncContext->bundleName, asyncContext->isVisible);
     }
+    asyncContext->nativeErrMsg = NativeErrMsg();
 }
 
 static void CheckAuthTokenVisibilityCompleteCB(napi_env env, napi_status status, void *data)
@@ -1230,8 +1275,10 @@ napi_value NapiAppAccount::QueryAuthenticatorInfoInternal(napi_env env, napi_cal
             resource,
             [](napi_env env, void *data) {
                 OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
+                NativeErrMsg() = "";
                 asyncContext->errCode = AppAccountManager::GetAuthenticatorInfo(
                     asyncContext->owner, asyncContext->authenticatorInfo);
+                asyncContext->nativeErrMsg = NativeErrMsg();
             },
             [](napi_env env, napi_status status, void *data) {
                 OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
@@ -1278,8 +1325,10 @@ napi_value NapiAppAccount::GetAllAuthTokensInternal(napi_env env, napi_callback_
             resource,
             [](napi_env env, void *data) {
                 OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
+                NativeErrMsg() = "";
                 asyncContext->errCode = AppAccountManager::GetAllOAuthTokens(
                     asyncContext->name, asyncContext->owner, asyncContext->oauthTokenInfos);
+                asyncContext->nativeErrMsg = NativeErrMsg();
             },
             [](napi_env env, napi_status status, void *data) {
                 OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
@@ -1324,6 +1373,7 @@ napi_value NapiAppAccount::GetAuthListInternal(napi_env env, napi_callback_info 
         napi_create_async_work(env, nullptr, resource,
             [](napi_env env, void *data) {
                 OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
+                NativeErrMsg() = "";
                 if (asyncContext->throwErr) {
                     asyncContext->errCode = AppAccountManager::GetAuthList(
                         asyncContext->name, asyncContext->authType, asyncContext->authList);
@@ -1331,6 +1381,7 @@ napi_value NapiAppAccount::GetAuthListInternal(napi_env env, napi_callback_info 
                     asyncContext->errCode = AppAccountManager::GetOAuthList(
                         asyncContext->name, asyncContext->authType, asyncContext->authList);
                 }
+                asyncContext->nativeErrMsg = NativeErrMsg();
             },
             [](napi_env env, napi_status status, void *data) {
                 OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
@@ -1377,8 +1428,10 @@ napi_value NapiAppAccount::GetAuthCallbackInternal(napi_env env, napi_callback_i
             resource,
             [](napi_env env, void *data) {
                 OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
+                NativeErrMsg() = "";
                 asyncContext->errCode = AppAccountManager::GetAuthenticatorCallback(
                     asyncContext->sessionId, asyncContext->authenticatorCb);
+                asyncContext->nativeErrMsg = NativeErrMsg();
             },
             [](napi_env env, napi_status status, void *data) {
                 OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
@@ -1413,8 +1466,10 @@ napi_value NapiAppAccount::CheckAppAccess(napi_env env, napi_callback_info cbInf
         resource,
         [](napi_env env, void *data) {
             auto context = reinterpret_cast<AppAccountAsyncContext *>(data);
+            NativeErrMsg() = "";
             context->errCode = AppAccountManager::CheckAppAccess(
                 context->name, context->bundleName, context->isAccessible);
+            context->nativeErrMsg = NativeErrMsg();
         },
         [](napi_env env, napi_status status, void *data) {
             auto context = reinterpret_cast<AppAccountAsyncContext *>(data);
@@ -1455,8 +1510,10 @@ napi_value NapiAppAccount::DeleteCredentialInternal(napi_env env, napi_callback_
     napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void *data) {
             auto context = reinterpret_cast<AppAccountAsyncContext *>(data);
+            NativeErrMsg() = "";
             context->errCode = AppAccountManager::DeleteAccountCredential(
                 context->name, context->credentialType);
+            context->nativeErrMsg = NativeErrMsg();
         },
         [](napi_env env, napi_status status, void *data) {
             auto context = reinterpret_cast<AppAccountAsyncContext *>(data);
@@ -1501,8 +1558,10 @@ napi_value NapiAppAccount::CheckAccountLabels(napi_env env, napi_callback_info c
                 context->errCode = ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
                 return;
             }
+            NativeErrMsg() = "";
             context->errCode = AppAccountManager::CheckAccountLabels(
                 context->name, context->owner, context->labels, callback);
+            context->nativeErrMsg = NativeErrMsg();
         },
         [](napi_env env, napi_status status, void *data) {
             auto context = reinterpret_cast<CheckAccountLabelsContext *>(data);
@@ -1546,8 +1605,10 @@ napi_value NapiAppAccount::SelectAccountsByOptions(napi_env env, napi_callback_i
                 context->errCode = ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
                 return;
             }
+            NativeErrMsg() = "";
             context->errCode =
                 AppAccountManager::SelectAccountsByOptions(context->options, callback);
+            context->nativeErrMsg = NativeErrMsg();
         },
         [](napi_env env, napi_status status, void *data) {
             auto context = reinterpret_cast<SelectAccountsContext *>(data);
@@ -1585,9 +1646,11 @@ napi_value NapiAppAccount::VerifyCredential(napi_env env, napi_callback_info cbI
         resource,
         [](napi_env env, void *data) {
             auto context = reinterpret_cast<VerifyCredentialContext *>(data);
+            NativeErrMsg() = "";
             ErrCode errCode = AppAccountManager::VerifyCredential(
                 context->name, context->owner, context->options, context->appAccountMgrCb);
             context->errCode = ConvertToJSErrCode(errCode);
+            context->nativeErrMsg = NativeErrMsg();
         },
         VerifyCredCompleteCB, reinterpret_cast<void *>(context.get()), &context->work));
     NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_default));
@@ -1616,9 +1679,11 @@ napi_value NapiAppAccount::SetAuthenticatorProperties(napi_env env, napi_callbac
         resource,
         [](napi_env env, void *data) {
             auto context = reinterpret_cast<SetPropertiesContext *>(data);
+            NativeErrMsg() = "";
             ErrCode errCode = AppAccountManager::SetAuthenticatorProperties(
                 context->owner, context->options, context->appAccountMgrCb);
             context->errCode = ConvertToJSErrCode(errCode);
+            context->nativeErrMsg = NativeErrMsg();
         },
         [](napi_env env, napi_status status, void *data) {
             auto context = reinterpret_cast<SetPropertiesContext *>(data);
@@ -1677,7 +1742,11 @@ napi_value NapiAppAccount::Subscribe(napi_env env, napi_callback_info cbInfo)
     if (IsExitSubscribe(env, context.get())) {
         return NapiGetNull(env);
     }
+    NativeErrMsg() = "";
     ErrCode errCode = AppAccountManager::SubscribeAppAccount(context->subscriber);
+    if (errCode == ERR_ACCOUNT_COMMON_INVALID_PARAMETER) {
+        NativeErrMsg() = "Invalid owner. The length of the owner must be greater than 0 and less than 1025";
+    }
     if ((errCode != ERR_OK) && (context->type != TYPE_CHANGE)) {
         napi_throw(env, GenerateBusinessError(env, errCode));
         return NapiGetNull(env);
