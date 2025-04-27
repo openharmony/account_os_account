@@ -18,6 +18,7 @@
 
 #include <deque>
 #include <map>
+#include <memory>
 #include <set>
 
 #include "ios_account_event.h"
@@ -37,23 +38,23 @@ struct SwitchSubcribeWork {
     int32_t toId_ = -1;
 };
 
-class SwitchSubscribeInfo {
+class SwitchSubscribeInfo : public std::enable_shared_from_this<SwitchSubscribeInfo> {
 public:
     SwitchSubscribeInfo() = default;
     SwitchSubscribeInfo(OS_ACCOUNT_SUBSCRIBE_TYPE);
-    ~SwitchSubscribeInfo() = default;
+    ~SwitchSubscribeInfo();
     void AddSubscribeInfo(OS_ACCOUNT_SUBSCRIBE_TYPE);
     bool SubSubscribeInfo(OS_ACCOUNT_SUBSCRIBE_TYPE);
     bool IsEmpty();
-    void ConsumerTask();
     bool ProductTask(const sptr<IOsAccountEvent> &eventProxy, OsAccountState state, const int newId,
         const int oldId);
 
+public:
+    std::mutex mutex_;
+    std::deque<std::shared_ptr<SwitchSubcribeWork>> workDeque_;
+    std::unique_ptr<std::thread> workThread_;
 private:
     uint8_t count_ = 0;
-    std::mutex mutex_;
-    std::deque<SwitchSubcribeWork> workDeque_;
-    std::unique_ptr<std::thread> workThread_;
 };
 
 class OsAccountSubscribeManager : public IOsAccountSubscribe {

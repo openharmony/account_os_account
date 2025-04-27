@@ -15,12 +15,13 @@
 
 #include <gtest/gtest.h>
 #include <map>
-
+#include <thread>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "os_account_constants.h"
 
 #include "os_account_delete_user_idm_callback.h"
+#include "os_account_event_proxy.h"
 #include "os_account_subscribe_death_recipient.h"
 #define private public
 #include "os_account_subscribe_manager.h"
@@ -36,6 +37,7 @@ using namespace testing::ext;
 using namespace OHOS::AccountSA;
 using namespace OHOS;
 using namespace AccountSA;
+const int32_t SLEEP_TIME = 100;
 class OsAccountCoverageTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -64,6 +66,69 @@ void OsAccountCoverageTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 void OsAccountCoverageTest::TearDown(void)
 {}
 
+class DelayEventProxy : public OsAccountEventProxy {
+    public:
+        DelayEventProxy() :OsAccountEventProxy(nullptr) {}
+        void OnAccountsSwitch(const int &newId, const int &oldId) override
+        {
+            // mock operation
+            std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
+        }
+    };
+
+/*
+    * @tc.name: DestructorCrashWhenThreadRunning_001
+    * @tc.desc: test if SwitchSubscribeInfo crash when destructor.
+    * @tc.type: FUNC
+    * @tc.require:
+    */
+HWTEST_F(OsAccountCoverageTest, DestructorCrashWhenThreadRunning_001, TestSize.Level1)
+{
+    auto obj = std::make_shared<SwitchSubscribeInfo>();
+    auto proxy = sptr<IOsAccountEvent>(new DelayEventProxy());
+
+    for (int i = 0; i < 10; ++i) {
+        obj->ProductTask(proxy, OsAccountState::ACTIVATED, i, i-1);
+    }
+    obj.reset();
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+}
+
+/*
+    * @tc.name: UseAfterFreeScenario_001
+    * @tc.desc: test if SwitchSubscribeInfo use after free.
+    * @tc.type: FUNC
+    * @tc.require:
+    */
+HWTEST_F(OsAccountCoverageTest, UseAfterFreeScenario_001, TestSize.Level1)
+{
+    auto obj = std::make_shared<SwitchSubscribeInfo>();
+    auto proxy = sptr<IOsAccountEvent>(new DelayEventProxy());
+
+    obj->ProductTask(proxy, OsAccountState::ACTIVATED, 1, 0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    obj.reset();
+
+    // customer is working
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+}
+
+/*
+    * @tc.name: HighFrequencyLifecycle_001
+    * @tc.desc: test if SwitchSubscribeInfo high frequency lifecycle.
+    * @tc.type: FUNC
+    * @tc.require:
+    */
+HWTEST_F(OsAccountCoverageTest, HighFrequencyLifecycle_001, TestSize.Level1)
+{
+    for (int i = 0; i < 1000; ++i) {
+        auto obj = std::make_shared<SwitchSubscribeInfo>();
+        obj->ProductTask(sptr<IOsAccountEvent>(new DelayEventProxy()),
+                        OsAccountState::ACTIVATED, 1, 0);
+        obj.reset();
+        std::this_thread::sleep_for(std::chrono::microseconds(100));
+    }
+}
 
 /*
  * @tc.name: OnRemoteDiedTest_0100
@@ -82,7 +147,7 @@ HWTEST_F(OsAccountCoverageTest, OnRemoteDiedTest_0100, TestSize.Level1)
     auto subscribeInfoPtr = std::make_shared<OsAccountSubscribeInfo>(subscribeInfo);
 
     OsAccountSubscribeManager::GetInstance().SubscribeOsAccount(subscribeInfoPtr, listener);
-    
+
     int size = OsAccountSubscribeManager::GetInstance().subscribeRecords_.size();
     EXPECT_EQ(size, 1);
 
