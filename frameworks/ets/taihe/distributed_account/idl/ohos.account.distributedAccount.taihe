@@ -15,27 +15,14 @@
 
 @!namespace("@ohos.account.distributedAccount", "distributedAccount")
 
-@class
-interface DistributedInfo {
-    @get("name") GetName(): String;
-    @set("name") SetName(name: String): void;
-
-    @get("id") GetId(): String;
-    @set("id") SetId(id: String): void;
-
-    @get("event") GetEvent(): String;
-    @set("event") SetEvent(event: String): void;
-
-    @get("nickname") GetNickname(): Optional<String>;
-    @set("nickname") SetNickname(nickName: String): void;
-
-    @get("avatar") GetAvatar(): Optional<String>;
-    @set("avatar") SetAvatar(avatar: String): void;
-
-    @get("status") GetStatus(): Optional<DistributedAccountStatus>;
-
-    @get("scalableData") GetScalableData(): Optional<Opaque>;
-    @set("scalableData") SetScalableData(scalableData: Opaque): void;
+struct DistributedInfo {
+    name: String;
+    id: String;
+    event: String;
+    nickname: Optional<String>;
+    avatar: Optional<String>;
+    @readonly status: Optional<DistributedAccountStatus>;
+    scalableData: Optional<Opaque>;
 }
 
 enum DistributedAccountStatus: i32 {
@@ -46,7 +33,7 @@ enum DistributedAccountStatus: i32 {
 interface DistributedAccountAbility {
     @gen_async("getOsAccountDistributedInfo")
     @gen_promise("getOsAccountDistributedInfo")
-    getOsAccountDistributedInfoSync(): DistributedInfo;
+    GetOsAccountDistributedInfoSync(): DistributedInfo;
 }
 
 function getDistributedAccountAbility(): DistributedAccountAbility;

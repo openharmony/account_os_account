@@ -24,6 +24,7 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
         std::cerr << "ohos::account::distributedAccount" << std::endl;
         return ANI_ERROR;
     }
+    // taihe::set_vm(vm);
     *result = ANI_VERSION_1;
     return ANI_OK;
 }
