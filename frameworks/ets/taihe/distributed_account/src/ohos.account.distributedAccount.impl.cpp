@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
+#include "account_log_wrapper.h"
 #include "ani_common_want.h"
 #include "napi_account_error.h"
-#include "account_error_no.h"
 #include "ohos.account.distributedAccount.impl.hpp"
 #include "ohos.account.distributedAccount.proj.hpp"
 #include "ohos_account_kits.h"
@@ -27,6 +27,8 @@ using namespace ohos::account::distributedAccount;
 using namespace OHOS;
 
 namespace {
+using OHOS::AccountSA::ACCOUNT_LABEL;
+
 static DistributedAccountStatus GetDistributedAccountStatus(int32_t status)
 {
     DistributedAccountStatus loginStatus(DistributedAccountStatus::key_t::LOGGED_IN);
@@ -37,112 +39,45 @@ static DistributedAccountStatus GetDistributedAccountStatus(int32_t status)
     return DistributedAccountStatus(DistributedAccountStatus::key_t::NOT_LOGGED_IN);
 }
 
-class DistributedInfoImpl {
-public:
-    DistributedInfoImpl() {}
-
-    explicit DistributedInfoImpl(const AccountSA::OhosAccountInfo &info)
-    {
-        this->name_ = info.name_;
-        this->id_ = info.uid_;
-        this->nickName_ = optional<string>(std::in_place_t{}, info.nickname_);
-        this->avatar_ = optional<string>(std::in_place_t{}, info.avatar_);
-        this->status_ =
-            optional<DistributedAccountStatus>(std::in_place_t{}, GetDistributedAccountStatus(info.status_));
-        ani_env *env = get_env();
-        ani_ref wantParams = AppExecFwk::WrapWantParams(env, info.scalableData_.GetParams());
-        this->scalableData_ = optional<uintptr_t>(std::in_place_t{}, reinterpret_cast<uintptr_t>(wantParams));
-    }
-
-    string GetName()
-    {
-        return this->name_;
-    }
-
-    void SetName(string_view name)
-    {
-        this->name_ = name;
-    }
-
-    string GetId()
-    {
-        return this->id_;
-    }
-
-    void SetId(string_view id)
-    {
-        this->id_ = id;
-    }
-
-    string GetEvent()
-    {
-        return this->event_;
-    }
-
-    void SetEvent(string_view event)
-    {
-        this->event_ = event;
-    }
-
-    optional<string> GetNickname()
-    {
-        return this->nickName_;
-    }
-
-    void SetNickname(string_view nickName)
-    {
-        this->nickName_ = optional<string>(std::in_place_t{}, nickName);
-    }
-
-    optional<string> GetAvatar()
-    {
-        return this->avatar_;
-    }
-
-    void SetAvatar(string_view avatar)
-    {
-        this->avatar_ = optional<string>(std::in_place_t{}, avatar);
-    }
-
-    optional<DistributedAccountStatus> GetStatus()
-    {
-        return this->status_;
-    }
-
-    optional<uintptr_t> GetScalableData()
-    {
-        return this->scalableData_;
-    }
-
-    void SetScalableData(uintptr_t scalableData)
-    {
-        this->scalableData_ = optional<uintptr_t>(std::in_place_t{}, scalableData);
-    }
-
-private:
-    string name_ = "";
-    string id_ = "";
-    string event_ = "";
-    optional<string> nickName_ = optional<string>(std::nullopt);
-    optional<string> avatar_ = optional<string>(std::nullopt);
-    optional<DistributedAccountStatus> status_ = optional<DistributedAccountStatus>(std::nullopt);
-    optional<uintptr_t> scalableData_ = optional<uintptr_t>(std::nullopt);
+DistributedInfo ConvertToDistributedInfoTH(const AccountSA::OhosAccountInfo &info)
+{
+ACCOUNT_LOGI("ohosAccountInfo.name_: %{public}s, uid_: %{public}s, nickname_: %{public}s, avatar_: %{public}s",
+    info.name_.c_str(), info.uid_.c_str(), info.nickname_.c_str(), info.avatar_.c_str());
+ACCOUNT_LOGI("ohosAccountInfo.scalableData_ is empty: %{public}d, status_: %{public}d",
+    info.scalableData_.GetParams().IsEmpty(), info.status_);
+DistributedInfo ret = DistributedInfo{
+    .name = taihe::string(info.name_.c_str()),
+    .id = taihe::string(info.uid_.c_str()),
+    .nickname = optional<string>(std::in_place_t{}, info.nickname_.c_str()),
+    .avatar = optional<string>(std::in_place_t{}, info.avatar_.c_str()),
+    .status = optional<DistributedAccountStatus>(std::in_place_t{}, GetDistributedAccountStatus(info.status_)),
+    .scalableData = optional<uintptr_t>(std::nullopt),
 };
+if (info.scalableData_.GetParams().IsEmpty()) {
+    return ret;
+}
+ani_env *env = get_env();
+auto scalableData = AppExecFwk::WrapWantParams(env, info.scalableData_.GetParams());
+if (scalableData == nullptr) {
+    ACCOUNT_LOGE("WrapWantParams get nullptr");
+}
+return ret;
+}
 
 class DistributedAccountAbilityImpl {
 public:
     DistributedAccountAbilityImpl() {}
 
-    DistributedInfo getOsAccountDistributedInfoSync()
+    DistributedInfo GetOsAccountDistributedInfoSync()
     {
         AccountSA::OhosAccountInfo info;
         ErrCode err = AccountSA::OhosAccountKits::GetInstance().GetOhosAccountInfo(info);
         if (err != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(err);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-            return make_holder<DistributedInfoImpl, DistributedInfo>();
+            return ConvertToDistributedInfoTH(info);
         }
-        return make_holder<DistributedInfoImpl, DistributedInfo>(info);
+        return ConvertToDistributedInfoTH(info);
     }
 };
 
@@ -155,17 +90,13 @@ DistributedAccountAbility getDistributedAccountAbility()
 namespace OHOS {
 namespace AccountSA {
 
-DistributedInfo CreateDistributedInfo()
-{
-    return make_holder<DistributedInfoImpl, DistributedInfo>();
-}
-
 DistributedInfo CreateDistributedInfoFromAccountInfo(const OhosAccountInfo& info)
 {
-    return make_holder<DistributedInfoImpl, DistributedInfo>(info);
+    return ConvertToDistributedInfoTH(info);
 }
 
 } // namespace AccountSA
 } // namespace OHOS
 
 TH_EXPORT_CPP_API_getDistributedAccountAbility(getDistributedAccountAbility);
+ 
