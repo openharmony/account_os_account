@@ -32,25 +32,26 @@ OsAccountDatabaseOperator::~OsAccountDatabaseOperator()
 
 bool OsAccountDatabaseOperator::InnerInit()
 {
+    std::lock_guard<std::mutex> lock(initMutex_);
     if (accountDataStorage_ == nullptr) {
-        ACCOUNT_LOGI("Database operator inner init, enter!");
+        ACCOUNT_LOGI("Database operator inner init, create accountDataStorage_!");
         accountDataStorage_ = std::make_shared<OsAccountDataStorage>(
             APP_ID, OS_ACCOUNT_STORE_ID, Constants::SYNC_OS_ACCOUNT_DATABASE);
-        if (accountDataStorage_ == nullptr) {
-            ACCOUNT_LOGE("AccountDataStorage_ is still nullptr.");
+    }
+    if (!accountDataStorage_->IsKeyExists(Constants::ACCOUNT_LIST)) {
+        ACCOUNT_LOGI("Database operator inner init, create account list.");
+        std::vector<std::string> accountListVec;
+        Json accountList = Json {
+            {Constants::ACCOUNT_LIST, accountListVec},
+            {Constants::COUNT_ACCOUNT_NUM, 0},
+            {Constants::MAX_ALLOW_CREATE_ACCOUNT_ID, Constants::MAX_USER_ID},
+            {Constants::SERIAL_NUMBER_NUM, Constants::SERIAL_NUMBER_NUM_START},
+        };
+        ErrCode errCode = accountDataStorage_->PutValueToKvStore(
+            Constants::ACCOUNT_LIST, accountList.dump());
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("Initialize account list failed! errCode %{public}d.", errCode);
             return false;
-        }
-
-        if (!accountDataStorage_->IsKeyExists(Constants::ACCOUNT_LIST)) {
-            ACCOUNT_LOGI("Database operator inner init, create account list.");
-            std::vector<std::string> accountListVec;
-            Json accountList = Json {
-                {Constants::ACCOUNT_LIST, accountListVec},
-                {Constants::COUNT_ACCOUNT_NUM, 0},
-                {Constants::MAX_ALLOW_CREATE_ACCOUNT_ID, Constants::MAX_USER_ID},
-                {Constants::SERIAL_NUMBER_NUM, Constants::SERIAL_NUMBER_NUM_START},
-            };
-            SaveAccountListToDatabase(accountList);
         }
     }
     return true;
@@ -183,8 +184,13 @@ ErrCode OsAccountDatabaseOperator::GetCreatedOsAccountNumFromDatabase(
 
 void OsAccountDatabaseOperator::UpdateOsAccountIDListInDatabase(const Json &accountListJson)
 {
-    if (SaveAccountListToDatabase(accountListJson) != ERR_OK) {
-        ACCOUNT_LOGE("Update os account id list to database failed.");
+    if (!InnerInit()) {
+        ACCOUNT_LOGE("InnerInit failed!");
+        return;
+    }
+    ErrCode errCode = accountDataStorage_->PutValueToKvStore(Constants::ACCOUNT_LIST, accountListJson.dump());
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Update os account id list to database failed! errCode %{public}d.", errCode);
         return;
     }
     ACCOUNT_LOGD("Update os account id list to database succeed.");
@@ -251,21 +257,6 @@ ErrCode OsAccountDatabaseOperator::GetAccountListFromStoreID(
         ACCOUNT_LOGE("AccountListFile does not comply with the json format.");
         return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
     }
-    return ERR_OK;
-}
-
-ErrCode OsAccountDatabaseOperator::SaveAccountListToDatabase(const Json &accountListJson)
-{
-    if (!InnerInit()) {
-        ACCOUNT_LOGE("InnerInit failed!");
-        return ERR_ACCOUNT_COMMON_NOT_INIT_ERROR;
-    }
-    ErrCode errCode = accountDataStorage_->PutValueToKvStore(Constants::ACCOUNT_LIST, accountListJson.dump());
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Save or Add config info to database failed! errCode %{public}d.", errCode);
-        return errCode;
-    }
-    ACCOUNT_LOGD("Save or add account list info to database succeed!");
     return ERR_OK;
 }
 }  // namespace AccountSA
