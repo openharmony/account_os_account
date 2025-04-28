@@ -16,9 +16,6 @@
 @!namespace("@ohos.account.osAccount", "osAccount")
 
 use ohos.account.distributedAccount as distributedAccount;
-@!sts_inject("""
-static { loadLibrary("os_account_taihe_native.z") }
-""")
 
 function getAccountManager(): AccountManager;
 
@@ -74,9 +71,8 @@ interface AccountManager {
     @gen_promise("getActivatedOsAccountLocalIds")
     GetActivatedOsAccountLocalIdsSync(): Array<i32>;
 
-    @gen_async("getCurrentOsAccount")
-    @gen_promise("getCurrentOsAccount")
-    GetCurrentOsAccountSync(): OsAccountInfo;
+    @gen_promise("queryOsAccount")
+    QueryOsAccountSync(): OsAccountInfo;
 
     @gen_promise("getForegroundOsAccountLocalId")
     GetForegroundOsAccountLocalIdSync(): i32;
@@ -88,33 +84,52 @@ interface AccountManager {
     @gen_async("getOsAccountLocalIdForUid")
     @gen_promise("getOsAccountLocalIdForUid")
     GetOsAccountLocalIdForUidSync(uid: i32): i32;
+
+    @gen_promise("isOsAccountUnlocked")
+    IsOsAccountUnlockedSync(): bool;
+
+    @gen_promise("isOsAccountUnlocked")
+    IsOsAccountUnlockedById(localId: i32): bool;
+
+    @gen_async("queryAllCreatedOsAccounts")
+    @gen_promise("queryAllCreatedOsAccounts")
+    QueryAllCreatedOsAccountsSync(): Array<OsAccountInfo>;
+
+    @gen_promise("queryMaxLoggedInOsAccountNumber")
+    QueryMaxLoggedInOsAccountNumberSync(): i32;
+
+    @gen_async("queryOsAccountById")
+    @gen_promise("queryOsAccountById")
+    QueryOsAccountByIdSync(localId: i32): OsAccountInfo;
 }
 
 @class
 interface UserIdentityManager {
     @gen_async("openSession")
-    OpenSession(): @arraybuffer Array<u8>;
+    OpenSession(): @typedarray Array<u8>;
 
     @gen_promise("openSession")
-    OpenSessionPromise(accountId:Optional<i32>): @arraybuffer Array<u8>;
+    OpenSessionPromise(accountId:Optional<i32>): @typedarray Array<u8>;
 
-    closeSession(accountId: Optional<i32>): void;
-
-    @gen_async("getAuthInfo")
-    getAuthInfoSync(): Array<EnrolledCredInfo>;
+    CloseSession(accountId: Optional<i32>): void;
 
     @gen_async("getAuthInfo")
-    getAuthInfoWithTypeCallbackSync(authType: AuthType): Array<EnrolledCredInfo>;
+    GetAuthInfoSync(): Array<EnrolledCredInfo>;
+
+    @gen_async("getAuthInfo")
+    GetAuthInfoWithTypeCallbackSync(authType: AuthType): Array<EnrolledCredInfo>;
 
     @gen_promise("getAuthInfo")
-    getAuthInfoWithTypePromiseSync(authType: Optional<AuthType>): Array<EnrolledCredInfo>;
+    GetAuthInfoWithTypePromiseSync(authType: Optional<AuthType>): Array<EnrolledCredInfo>;
 
     @gen_promise("getAuthInfo")
-    getAuthInfoWithOptionsSync(options: Optional<GetAuthInfoOptions>): Array<EnrolledCredInfo>;
+    GetAuthInfoWithOptionsSync(options: Optional<GetAuthInfoOptions>): Array<EnrolledCredInfo>;
 
-    addCredential(info: CredentialInfo, callback: IIdmCallback): void;
+    AddCredential(info: CredentialInfo, callback: IIdmCallback): void;
 
-    delUser(token: @arraybuffer Array<u8>, callback: IIdmCallback);
+    UpdateCredential(credentialInfo: CredentialInfo, callback: IIdmCallback): void;
+
+    DelUser(token: @typedarray Array<u8>, callback: IIdmCallback);
 }
 
 enum AuthType : u32 {
@@ -144,17 +159,17 @@ enum AuthSubType : i32 {
 struct CredentialInfo {
     credType: AuthType;
     credSubType: AuthSubType;
-    token: @arraybuffer Array<u8>;
+    token: @typedarray Array<u8>;
     accountId: Optional<i32>;
 }
 
 struct RequestResult {
-    credentialId: Optional<@arraybuffer Array<u8>>;
+    credentialId: Optional<@typedarray Array<u8>>;
 }
 
 struct IIdmCallback {
     onResult: (result: i32, extraInfo: RequestResult) => void;
-    onAcquireInfo: Optional<(module: i32, acquire: u32, extraInfo: @arraybuffer Array<u8>)=>void>;
+    onAcquireInfo: Optional<(module: i32, acquire: u32, extraInfo: @typedarray Array<u8>)=>void>;
 }
 
 enum OsAccountType : u32 {
@@ -178,12 +193,11 @@ struct OsAccountInfo {
     shortName: Optional<String>;
     type: OsAccountType;
     constraints: Array<String>;
-    isVerified: bool;
     isUnlocked: bool;
     photo: String;
     createTime: i64;
     lastLoginTime: i64;
-    serialNumber: i32;
+    serialNumber: i64;
     isActivated: bool;
     isLoggedIn: Optional<bool>;
     isCreateCompleted: bool;
@@ -237,7 +251,7 @@ struct OsAccountSwitchEventData {
 }
 
 struct GetInputDataOptions {
-    challenge: Optional<@arraybuffer Array<u8>>;
+    challenge: Optional<@typedarray Array<u8>>;
 }
 
 struct CreateOsAccountOptions {
@@ -250,30 +264,30 @@ struct GetAuthInfoOptions {
 }
 
 struct EnrolledCredInfo {
-    credentialId: @arraybuffer Array<u8>;
+    credentialId: @typedarray Array<u8>;
     authType: AuthType;
     authSubType: AuthSubType;
-    templateId: @arraybuffer Array<u8>;
+    templateId: @typedarray Array<u8>;
 }
 
 interface DomainPlugin {
-    auth(domainAccountInfo: DomainAccountInfo, credential: @arraybuffer Array<u8>, callback: IUserAuthCallback): void;
+    Auth(domainAccountInfo: DomainAccountInfo, credential: @typedarray Array<u8>, callback: IUserAuthCallback): void;
 }
 
 interface DomainAccountManager {
     @static
     @gen_promise("isAuthenticationExpired")
-    isAuthenticationExpiredSync(domainAccountInfo: DomainAccountInfo): bool;
+    IsAuthenticationExpiredSync(domainAccountInfo: DomainAccountInfo): bool;
 }
 
 struct AuthResult {
-    token: Optional<@arraybuffer Array<u8>>;
+    token: Optional<@typedarray Array<u8>>;
     remainTimes: Optional<i32>;
     freezingTime: Optional<i32>;
     nextPhaseFreezingTime: Optional<i32>;
-    credentialId: Optional<@arraybuffer Array<u8>>;
+    credentialId: Optional<@typedarray Array<u8>>;
     accountId: Optional<i32>;
-    pinValidityPeriod: Optional<i32>;
+    pinValidityPeriod: Optional<i64>;
 }
 
 enum AuthTrustLevel: i32 {
@@ -288,6 +302,16 @@ enum AuthIntent: i32 {
     UNLOCK = 1,
     SILENT_AUTH = 2,
     QUESTION_AUTH = 3,
+}
+
+enum SetPropertyType: i32 {
+    INIT_ALGORITHM = 1
+}
+
+struct SetPropertyRequest {
+    authType: AuthType;
+    key: SetPropertyType;
+    setInfo: @typedarray Array<u8>;
 }
 
 struct RemoteAuthOptions {
@@ -314,7 +338,7 @@ struct ExecutorProperty {
 
 struct IUserAuthCallback {
     onResult: (result: i32, extraInfo: AuthResult) => void;
-    onAcquireInfo: Optional<(module: i32, acquire: u32, extraInfo: @arraybuffer Array<u8>)=>void>;
+    onAcquireInfo: Optional<(module: i32, acquire: u32, extraInfo: @typedarray Array<u8>)=>void>;
 }
 
 struct IInputer {
@@ -323,10 +347,10 @@ struct IInputer {
 
 interface IInputData {
     GetSpecificImplPtr (): i64;
-    onSetDataInner(authSubType: AuthSubType, data: @arraybuffer Array<u8>):void;
+    OnSetDataInner(authSubType: AuthSubType, data: @typedarray Array<u8>):void;
     @!sts_inject("""
-     get onSetData: (authSubType: AuthSubType, data: @arraybuffer Array<u8>)：voide =>{
-        return (authSubType: AuthSubType, data: @arraybuffer Array<u8>)=>{
+     get onSetData: (authSubType: AuthSubType, data: @typedarray Array<u8>)：voide =>{
+        return (authSubType: AuthSubType, data: @typedarray Array<u8>)=>{
             this.onSetDataInner(authSubType, data);
         }
      } ;
@@ -336,26 +360,27 @@ interface IInputData {
 @class
 interface UserAuth {
     @overload("auth")
-    authSync(challenge: @arraybuffer Array<u8>, authType: AuthType,
-        authTrustLevel: AuthTrustLevel, callback: IUserAuthCallback): @arraybuffer Array<u8>;
+    AuthSync(challenge: @typedarray Array<u8>, authType: AuthType,
+        authTrustLevel: AuthTrustLevel, callback: IUserAuthCallback): @typedarray Array<u8>;
 
     @overload("auth")
-    authWithOptSync(challenge: @arraybuffer Array<u8>, authType: AuthType,
-        authTrustLevel: AuthTrustLevel, options: AuthOptions, callback: IUserAuthCallback): @arraybuffer Array<u8>;
+    AuthWithOptSync(challenge: @typedarray Array<u8>, authType: AuthType,
+        authTrustLevel: AuthTrustLevel, options: AuthOptions, callback: IUserAuthCallback): @typedarray Array<u8>;
 
-    authUser(userId: i32, challenge: @arraybuffer Array<u8>, authType: AuthType,
-        authTrustLevel: AuthTrustLevel, callback: IUserAuthCallback): @arraybuffer Array<u8>;
+    AuthUser(userId: i32, challenge: @typedarray Array<u8>, authType: AuthType,
+        authTrustLevel: AuthTrustLevel, callback: IUserAuthCallback): @typedarray Array<u8>;
     
-    cancelAuth(contextID: @arraybuffer Array<u8>): void;
+    CancelAuth(contextID: @typedarray Array<u8>): void;
 
     @gen_async("getProperty")
     @gen_promise("getProperty")
-    getPropertySync(request: GetPropertyRequest): ExecutorProperty;
+    GetPropertySync(request: GetPropertyRequest): ExecutorProperty;
 }
 
 @class
 interface PINAuth {
-    registerInputer(inputer: IInputer): void;
+    RegisterInputer(inputer: IInputer): void;
+    UnregisterInputer(): void;
 }
 
 @class
@@ -363,13 +388,15 @@ interface InputerManager {
 }
 
 @static("InputerManager")
-function registerInputer(authType: AuthType, inputer: IInputer): void;
+function RegisterInputer(authType: AuthType, inputer: IInputer): void;
+@static("InputerManager")
+function UnregisterInputer(authType: AuthType): void;
 
 @ctor("UserIdentityManager")
-function createUserIdentityManager(): UserIdentityManager;
+function CreateUserIdentityManager(): UserIdentityManager;
 
 @ctor("UserAuth")
-function createUserAuth(): UserAuth;
+function CreateUserAuth(): UserAuth;
 
 @ctor("PINAuth")
-function createPINAuth(): PINAuth;
+function CreatePINAuth(): PINAuth;
