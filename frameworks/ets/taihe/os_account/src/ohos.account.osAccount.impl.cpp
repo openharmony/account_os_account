@@ -20,7 +20,7 @@
 #include "account_info.h"
 #include "ani_common_want.h"
 #include "iam_common_defines.h"
-#include "napi_account_error.h"
+#include "account_error_no.h"
 #include "ohos.account.disributedAccount.h"
 #include "ohos.account.distributedAccount.impl.hpp"
 #include "ohos.account.distributedAccount.proj.hpp"
@@ -47,6 +47,21 @@ using namespace ohos::account::distributedAccount;
 
 
 namespace {
+using OHOS::AccountSA::ACCOUNT_LABEL;
+
+void SetTaiheBusinessErrorFromNativeCode(int32_t nativeErrCode)
+{
+    if (nativeErrCode == ERR_OK) {
+        return;
+    }
+    int32_t jsErrCode;
+    std::string errMsg;
+    jsErrCode = GenerateBusinessErrorCode(nativeErrCode);
+    errMsg = ConvertToJsErrMsg(jsErrCode);
+    ACCOUNT_LOGE("SetTaiheBusinessErrorFromNativeCode: %{public}d, %{public}s", jsErrCode, errMsg.c_str());
+    taihe::set_business_error(jsErrCode, errMsg.c_str());
+}
+
 OsAccountType::key_t ConvertToOsAccountTypeKey(AccountSA::OsAccountType type)
 {
     switch (type) {
@@ -84,17 +99,15 @@ taihe::array<taihe::string> ConvertConstraints(const std::vector<std::string>& c
     for (const auto& constraint : constraints) {
         tempStrings.emplace_back(taihe::string(constraint.c_str()));
     }
-    return taihe::array<taihe::string>(tempStrings.data(), tempStrings.size());
+    return taihe::array<taihe::string>(taihe::copy_data_t{}, tempStrings.data(), tempStrings.size());
 }
 
 DistributedInfo ConvertDistributedInfo()
 {
     std::pair<bool, AccountSA::OhosAccountInfo> dbAccountInfo =
         AccountSA::OhosAccountKits::GetInstance().QueryOhosAccountInfo();
-    if (dbAccountInfo.first) {
-        return AccountSA::CreateDistributedInfoFromAccountInfo(dbAccountInfo.second);
-    }
-    return AccountSA::CreateDistributedInfo();
+    // todo: check error
+    return AccountSA::CreateDistributedInfoFromAccountInfo(dbAccountInfo.second);
 }
 
 DomainAccountInfo ConvertDomainInfo(const OHOS::AccountSA::OsAccountInfo& innerInfo)
@@ -105,15 +118,11 @@ DomainAccountInfo ConvertDomainInfo(const OHOS::AccountSA::OsAccountInfo& innerI
     return DomainAccountInfo{
         .domain = taihe::string(sourceInfo.domain_.c_str()),
         .accountName = taihe::string(sourceInfo.accountName_.c_str()),
-        .accountId = !sourceInfo.accountId_.empty() ?
-            taihe::optional<taihe::string>(new taihe::string(sourceInfo.accountId_.c_str())) :
-            taihe::optional<taihe::string>(),
-        .isAuthenticated = taihe::optional<bool>(new bool(
-            sourceInfo.status_ != AccountSA::DomainAccountStatus::LOGOUT &&
-            sourceInfo.status_ < AccountSA::DomainAccountStatus::LOG_END)),
-        .serverConfigId = !sourceInfo.serverConfigId_.empty() ?
-            taihe::optional<taihe::string>(new taihe::string(sourceInfo.serverConfigId_.c_str())) :
-            taihe::optional<taihe::string>()
+        .accountId = taihe::optional<taihe::string>(std::in_place_t{}, sourceInfo.accountId_.c_str()),
+        .isAuthenticated = taihe::optional<bool>(std::in_place_t{},
+            (sourceInfo.status_ != AccountSA::DomainAccountStatus::LOGOUT) &&
+            (sourceInfo.status_ < AccountSA::DomainAccountStatus::LOG_END)),
+        .serverConfigId = taihe::optional<taihe::string>(std::in_place_t{}, sourceInfo.serverConfigId_.c_str())
     };
 }
 
@@ -122,19 +131,16 @@ OsAccountInfo ConvertOsAccountInfo(const AccountSA::OsAccountInfo& innerInfo)
     return OsAccountInfo{
         .localId = innerInfo.GetLocalId(),
         .localName = taihe::string(innerInfo.GetLocalName().c_str()),
-        .shortName = !innerInfo.GetShortName().empty() ?
-            taihe::optional<taihe::string>(new taihe::string(innerInfo.GetShortName().c_str())) :
-            taihe::optional<taihe::string>(),
+        .shortName = taihe::optional<taihe::string>(std::in_place_t{}, innerInfo.GetShortName().c_str()),
         .type = OsAccountType(ConvertToOsAccountTypeKey(innerInfo.GetType())),
         .constraints = ConvertConstraints(innerInfo.GetConstraints()),
-        .isVerified = innerInfo.GetIsVerified(),
         .isUnlocked = innerInfo.GetIsVerified(),
         .photo = taihe::string(innerInfo.GetPhoto().c_str()),
         .createTime = innerInfo.GetCreateTime(),
         .lastLoginTime = innerInfo.GetLastLoginTime(),
         .serialNumber = innerInfo.GetSerialNumber(),
         .isActivated = innerInfo.GetIsActived(),
-        .isLoggedIn = taihe::optional<bool>(new bool(innerInfo.GetIsLoggedIn())),
+        .isLoggedIn = taihe::optional<bool>(std::in_place_t{}, innerInfo.GetIsLoggedIn()),
         .isCreateCompleted = innerInfo.GetIsCreateCompleted(),
         .distributedInfo = ConvertDistributedInfo(),
         .domainInfo = ConvertDomainInfo(innerInfo)
@@ -279,48 +285,201 @@ public:
     }
 
     void ActivateOsAccountSync(int32_t localId) {
-        TH_THROW(std::runtime_error, "ActivateOsAccountSync not implemented");
+        ACCOUNT_LOGI("Entering activateOsAccountSync for localId: %{public}d", localId);
+        ErrCode errCode = AccountSA::OsAccountManager::ActivateOsAccount(localId);
+        ACCOUNT_LOGI("ActivateOsAccount returned errCode: %{public}d", errCode);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("ActivateOsAccount failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        } else {
+            ACCOUNT_LOGI("ActivateOsAccount succeeded for localId: %{public}d", localId);
+        }
     }
 
     OsAccountInfo CreateOsAccountSync(string_view localName, OsAccountType type)
     {
-        TH_THROW(std::runtime_error, "CreateOsAccountSync not implemented");
+        AccountSA::OsAccountInfo innerInfo;
+        std::string name(localName.data(), localName.size());
+        AccountSA::OsAccountType innerType = ConvertFromOsAccountTypeKey(type.get_value());
+        
+        ErrCode errCode = AccountSA::OsAccountManager::CreateOsAccount(name, innerType, innerInfo);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("CreateOsAccount failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+        OsAccountInfo info = ConvertOsAccountInfo(innerInfo);
+        return info;
     }
 
     OsAccountInfo CreateOsAccountWithOptionSync(string_view localName, OsAccountType type,
         optional_view<CreateOsAccountOptions> options)
     {
-        TH_THROW(std::runtime_error, "CreateOsAccountWithOptionSync not implemented");
+        AccountSA::OsAccountInfo innerInfo;
+        std::string name(localName.data(), localName.size());
+        AccountSA::OsAccountType innerType = ConvertFromOsAccountTypeKey(type.get_value());
+        
+        if (options.has_value()) {
+            const auto& opts = options.value();
+            std::string shortName(opts.shortName.data(), opts.shortName.size());
+        
+            AccountSA::CreateOsAccountOptions innerOptions = ConvertToInnerOptions(options);
+            ErrCode errCode = AccountSA::OsAccountManager::CreateOsAccount(
+                name, shortName, innerType, innerOptions, innerInfo);
+            if (errCode != ERR_OK) {
+                SetTaiheBusinessErrorFromNativeCode(errCode);
+            }
+        } else {
+            ErrCode errCode = AccountSA::OsAccountManager::CreateOsAccount(name, innerType, innerInfo);
+            if (errCode != ERR_OK) {
+                SetTaiheBusinessErrorFromNativeCode(errCode);
+            }
+        }
+        OsAccountInfo info = ConvertOsAccountInfo(innerInfo);
+        return info;
     }
 
     void DeactivateOsAccountSync(int32_t localId)
     {
-        TH_THROW(std::runtime_error, "DeactivateOsAccountSync not implemented");
+        ACCOUNT_LOGI("Entering deactivateOsAccountSync for localId: %{public}d", localId);
+        ErrCode errCode = AccountSA::OsAccountManager::DeactivateOsAccount(localId);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("DeactivateOsAccount failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        } else {
+            ACCOUNT_LOGI("DeactivateOsAccount succeeded for localId: %{public}d", localId);
+        }
     }
 
     array<int32_t> GetActivatedOsAccountLocalIdsSync()
     {
-        TH_THROW(std::runtime_error, "GetActivatedOsAccountLocalIdsSync not implemented");
+        ACCOUNT_LOGI("Entering getActivatedOsAccountLocalIdsSync");
+        std::vector<int32_t> ids;
+        ErrCode errCode = AccountSA::OsAccountManager::QueryActiveOsAccountIds(ids);
+        if (errCode != ERR_OK || ids.empty()) {
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+            return taihe::array<int32_t>(nullptr, 0);
+        }
+        ACCOUNT_LOGI("getActivatedOsAccountLocalIdsSync succeeded, count: %{public}zu", ids.size());
+        return taihe::array<int32_t>(taihe::copy_data_t{}, ids.data(), ids.size());
     }
 
-    OsAccountInfo GetCurrentOsAccountSync()
+    OsAccountInfo QueryOsAccountSync()
     {
-        TH_THROW(std::runtime_error, "GetCurrentOsAccountSync not implemented");
+        ACCOUNT_LOGI("Entering getCurrentOsAccountSync");
+        AccountSA::OsAccountInfo innerInfo;
+        if (AccountSA::AccountPermissionManager::CheckSystemApp(false) != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+            return ConvertOsAccountInfo(innerInfo);
+        }
+        ErrCode errCode = AccountSA::OsAccountManager::QueryCurrentOsAccount(innerInfo);
+        if (errCode != ERR_OK) {
+            int32_t jsErrCode = (errCode == ERR_ACCOUNT_COMMON_PERMISSION_DENIED) ?
+                ERR_OSACCOUNT_KIT_QUERY_CURRENT_OS_ACCOUNT_ERROR : errCode;
+            ACCOUNT_LOGE("QueryCurrentOsAccount failed with errCode: %{public}d", jsErrCode);
+            SetTaiheBusinessErrorFromNativeCode(jsErrCode);
+            return ConvertOsAccountInfo(innerInfo);
+        }
+        ACCOUNT_LOGI("getCurrentOsAccountSync succeeded");
+        return ConvertOsAccountInfo(innerInfo);
     }
 
     int32_t GetForegroundOsAccountLocalIdSync()
     {
-        TH_THROW(std::runtime_error, "GetForegroundOsAccountLocalIdSync not implemented");
+        ACCOUNT_LOGI("Entering getForegroundOsAccountLocalIdSync");
+        int32_t id = -1;
+        ErrCode errCode = AccountSA::OsAccountManager::GetForegroundOsAccountLocalId(id);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("GetForegroundOsAccountLocalId failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+        ACCOUNT_LOGI("getForegroundOsAccountLocalIdSync returning id: %{public}d", id);
+        return id;
     }
 
     int32_t GetOsAccountLocalIdSync()
     {
-        TH_THROW(std::runtime_error, "GetOsAccountLocalIdSync not implemented");
+        ACCOUNT_LOGI("Entering getOsAccountLocalIdSync");
+        int32_t id = -1;
+        ErrCode errCode = AccountSA::OsAccountManager::GetOsAccountLocalIdFromProcess(id);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("GetOsAccountLocalIdFromProcess failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+        ACCOUNT_LOGI("getOsAccountLocalIdSync returning id: %{public}d", id);
+        return id;
     }
 
     int32_t GetOsAccountLocalIdForUidSync(int32_t uid)
     {
-        TH_THROW(std::runtime_error, "GetOsAccountLocalIdForUidSync not implemented");
+        ACCOUNT_LOGI("Entering getOsAccountLocalIdForUidSync for uid: %{public}d", uid);
+        int32_t id = -1;
+        ErrCode errCode = AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, id);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("GetOsAccountLocalIdFromUid failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+        ACCOUNT_LOGI("getOsAccountLocalIdForUidSync returning id: %{public}d", id);
+        return id;
+    }
+
+    bool IsOsAccountUnlockedSync() {
+        bool isUnlocked = false;
+        ErrCode errCode = AccountSA::OsAccountManager::IsCurrentOsAccountVerified(isUnlocked);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("IsOsAccountUnlocked failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+        return isUnlocked;
+    }
+
+    bool IsOsAccountUnlockedById(int32_t localId) {
+        if (AccountSA::AccountPermissionManager::CheckSystemApp(false) != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+            return false;
+        }
+        bool isUnlocked = false;
+        ErrCode errCode = AccountSA::OsAccountManager::IsOsAccountVerified(localId, isUnlocked);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("IsOsAccountUnlocked failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+        return isUnlocked;
+    }
+
+    array<OsAccountInfo> QueryAllCreatedOsAccountsSync() {
+        std::vector<AccountSA::OsAccountInfo> osAccountInfos;
+        ErrCode errCode = AccountSA::OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("QueryAllCreatedOsAccounts failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+        std::vector<OsAccountInfo> convertedInfos;
+        convertedInfos.reserve(osAccountInfos.size());
+        for (const auto& info : osAccountInfos) {
+            convertedInfos.push_back(ConvertOsAccountInfo(info));
+        }
+        
+        return taihe::array<OsAccountInfo>(taihe::copy_data_t{}, convertedInfos.data(), convertedInfos.size());
+    }
+
+    int32_t QueryMaxLoggedInOsAccountNumberSync() {
+        uint32_t maxLoggedInNumber = 0;
+        ErrCode errCode = AccountSA::OsAccountManager::QueryMaxLoggedInOsAccountNumber(maxLoggedInNumber);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("QueryMaxLoggedInOsAccountNumber failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+        return static_cast<int32_t>(maxLoggedInNumber);
+    }
+
+    OsAccountInfo QueryOsAccountByIdSync(int32_t localId) {
+        AccountSA::OsAccountInfo osAccountInfo;
+        ErrCode errCode = AccountSA::OsAccountManager::QueryOsAccountById(localId, osAccountInfo);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("QueryOsAccountById failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+        return ConvertOsAccountInfo(osAccountInfo);
     }
 };
 
@@ -340,39 +499,68 @@ public:
         TH_THROW(std::runtime_error, "OpenSessionPromise not implemented");
     }
 
-    void closeSession(optional_view<int32_t> accountId)
+    void CloseSession(optional_view<int32_t> accountId)
     {
         TH_THROW(std::runtime_error, "closeSession not implemented");
     }
 
-    array<EnrolledCredInfo> getAuthInfoSync()
+    array<EnrolledCredInfo> GetAuthInfoSync()
     {
         TH_THROW(std::runtime_error, "getAuthInfoSync not implemented");
     }
 
-    array<EnrolledCredInfo> getAuthInfoWithTypeCallbackSync(AuthType authType)
+    array<EnrolledCredInfo> GetAuthInfoWithTypeCallbackSync(AuthType authType)
     {
         TH_THROW(std::runtime_error, "getAuthInfoWithTypeCallbackSync not implemented");
     }
 
-    array<EnrolledCredInfo> getAuthInfoWithTypePromiseSync(optional_view<AuthType> authType)
+    array<EnrolledCredInfo> GetAuthInfoWithTypePromiseSync(optional_view<AuthType> authType)
     {
         TH_THROW(std::runtime_error, "getAuthInfoWithTypePromiseSync not implemented");
     }
 
-    array<EnrolledCredInfo> getAuthInfoWithOptionsSync(optional_view<GetAuthInfoOptions> options)
+    array<EnrolledCredInfo> GetAuthInfoWithOptionsSync(optional_view<GetAuthInfoOptions> options)
     {
         TH_THROW(std::runtime_error, "getAuthInfoWithOptionsSync not implemented");
     }
 
-    void addCredential(CredentialInfo const& info, IIdmCallback const& callback)
+    void AddCredential(CredentialInfo const& info, IIdmCallback const& callback)
     {
-        TH_THROW(std::runtime_error, "addCredential not implemented");
+        ACCOUNT_LOGI("Entering addCredential");
+        AccountSA::CredentialParameters innerCredInfo = ConvertToCredentialParameters(info);
+        ErrCode nativeErrCode = ERR_OK;
+        std::shared_ptr<AccountSA::IDMCallback> idmCallbackPtr =
+            std::make_shared<TaiheIDMCallbackAdapter>(callback);
+        UserIam::UserAuth::Attributes emptyResult;
+
+        if (!info.accountId.has_value() && (info.accountId.value() < 0)) {
+            idmCallbackPtr->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, emptyResult);
+            return;
+        }
+        AccountSA::AccountIAMClient::GetInstance().AddCredential(info.accountId.value(), innerCredInfo, idmCallbackPtr);
+        ACCOUNT_LOGI("AddCredential call dispatched for userId: %{public}d", info.accountId.value());
     }
 
-    void delUser(array_view<uint8_t> token, IIdmCallback const& callback)
+    void UpdateCredential(CredentialInfo const& credentialInfo, IIdmCallback const& callback) {
+        TH_THROW(std::runtime_error, "updateCredential not implemented");
+    }
+
+    void DelUser(array_view<uint8_t> token, IIdmCallback const& callback)
     {
-        TH_THROW(std::runtime_error, "delUser not implemented");
+        const int32_t defaultUserId = -1;
+        std::vector<uint8_t> authTokenVec(token.data(), token.data() + token.size());
+        std::shared_ptr<AccountSA::IDMCallback> idmCallbackPtr =
+            std::make_shared<TaiheIDMCallbackAdapter>(callback);
+
+        AccountSA::AccountIAMClient::GetInstance().DelUser(defaultUserId, authTokenVec, idmCallbackPtr);
+    }
+
+    void SetPropertySync(SetPropertyRequest const& request) {
+        TH_THROW(std::runtime_error, "setPropertySync not implemented");
+    }
+
+    void UnregisterInputer() {
+        TH_THROW(std::runtime_error, "unregisterInputer not implemented");
     }
 };
 
@@ -382,7 +570,7 @@ public:
         // Don't forget to implement the constructor.
     }
 
-    void auth(DomainAccountInfo const& domainAccountInfo, array_view<uint8_t> credential,
+    void Auth(DomainAccountInfo const& domainAccountInfo, array_view<uint8_t> credential,
         IUserAuthCallback const& callback)
     {
         TH_THROW(std::runtime_error, "auth not implemented");
@@ -395,7 +583,7 @@ public:
         // Don't forget to implement the constructor.
     }
 
-    bool isAuthenticationExpiredSync(DomainAccountInfo const& domainAccountInfo)
+    bool IsAuthenticationExpiredSync(DomainAccountInfo const& domainAccountInfo)
     {
         TH_THROW(std::runtime_error, "isAuthenticationExpiredSync not implemented");
     }
@@ -412,7 +600,7 @@ public:
         TH_THROW(std::runtime_error, "GetSpecificImplPtr not implemented");
     }
 
-    void onSetDataInner(AuthSubType authSubType, array_view<uint8_t> data)
+    void OnSetDataInner(AuthSubType authSubType, array_view<uint8_t> data)
     {
         TH_THROW(std::runtime_error, "onSetDataInner not implemented");
     }
@@ -424,29 +612,29 @@ public:
         // Don't forget to implement the constructor.
     }
 
-    array<uint8_t> authSync(array_view<uint8_t> challenge, AuthType authType,
+    array<uint8_t> AuthSync(array_view<uint8_t> challenge, AuthType authType,
         AuthTrustLevel authTrustLevel, IUserAuthCallback const& callback)
     {
         TH_THROW(std::runtime_error, "authSync not implemented");
     }
 
-    array<uint8_t> authWithOptSync(array_view<uint8_t> challenge, AuthType authType,
+    array<uint8_t> AuthWithOptSync(array_view<uint8_t> challenge, AuthType authType,
         AuthTrustLevel authTrustLevel, AuthOptions const& options, IUserAuthCallback const& callback)
     {
         TH_THROW(std::runtime_error, "authWithOptSync not implemented");
     }
 
-    array<uint8_t> authUser(int32_t userId, array_view<uint8_t> challenge, AuthType authType,
+    array<uint8_t> AuthUser(int32_t userId, array_view<uint8_t> challenge, AuthType authType,
         AuthTrustLevel authTrustLevel, IUserAuthCallback const& callback)
     {
         TH_THROW(std::runtime_error, "authUser not implemented");
     }
 
-    void cancelAuth(array_view<uint8_t> contextID) {
+    void CancelAuth(array_view<uint8_t> contextID) {
         TH_THROW(std::runtime_error, "cancelAuth not implemented");
     }
 
-    ExecutorProperty getPropertySync(GetPropertyRequest const& request) {
+    ExecutorProperty GetPropertySync(GetPropertyRequest const& request) {
         TH_THROW(std::runtime_error, "getPropertySync not implemented");
     }
 };
@@ -457,9 +645,13 @@ public:
         // Don't forget to implement the constructor.
     }
 
-    void registerInputer(IInputer const& inputer)
+    void RegisterInputer(IInputer const& inputer)
     {
         TH_THROW(std::runtime_error, "registerInputer not implemented");
+    }
+    
+    void UnregisterInputer() {
+        TH_THROW(std::runtime_error, "unregisterInputer not implemented");
     }
 };
 
@@ -476,23 +668,28 @@ AccountManager getAccountManager() {
     return make_holder<AccountManagerImpl, AccountManager>();
 }
 
-void registerInputer(AuthType authType, IInputer const& inputer) {
+void RegisterInputer(AuthType authType, IInputer const& inputer) {
     TH_THROW(std::runtime_error, "registerInputer not implemented");
 }
 
-UserIdentityManager createUserIdentityManager() {
+void UnregisterInputer(AuthType authType)
+{
+    TH_THROW(std::runtime_error, "unregisterInputer not implemented");
+}
+
+UserIdentityManager CreateUserIdentityManager() {
     // The parameters in the make_holder function should be of the same type
     // as the parameters in the constructor of the actual implementation class.
     return make_holder<UserIdentityManagerImpl, UserIdentityManager>();
 }
 
-UserAuth createUserAuth() {
+UserAuth CreateUserAuth() {
     // The parameters in the make_holder function should be of the same type
     // as the parameters in the constructor of the actual implementation class.
     return make_holder<UserAuthImpl, UserAuth>();
 }
 
-PINAuth createPINAuth() {
+PINAuth CreatePINAuth() {
     // The parameters in the make_holder function should be of the same type
     // as the parameters in the constructor of the actual implementation class.
     return make_holder<PINAuthImpl, PINAuth>();
@@ -500,7 +697,8 @@ PINAuth createPINAuth() {
 }  // namespace
 
 TH_EXPORT_CPP_API_getAccountManager(getAccountManager);
-TH_EXPORT_CPP_API_registerInputer(registerInputer);
-TH_EXPORT_CPP_API_createUserIdentityManager(createUserIdentityManager);
-TH_EXPORT_CPP_API_createUserAuth(createUserAuth);
-TH_EXPORT_CPP_API_createPINAuth(createPINAuth);
+TH_EXPORT_CPP_API_RegisterInputer(RegisterInputer);
+TH_EXPORT_CPP_API_UnregisterInputer(UnregisterInputer);
+TH_EXPORT_CPP_API_CreateUserIdentityManager(CreateUserIdentityManager);
+TH_EXPORT_CPP_API_CreateUserAuth(CreateUserAuth);
+TH_EXPORT_CPP_API_CreatePINAuth(CreatePINAuth);

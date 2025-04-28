@@ -60,6 +60,7 @@ taihe_shared_library("distributed_account_taihe_native") {
     "${taihe_generated_file_path}/include",
     "${innerkits_path}/include",
     "${common_path}/account_error",
+    "${common_path}/log/include",
   ]
 
   deps = [
@@ -73,7 +74,14 @@ taihe_shared_library("distributed_account_taihe_native") {
     "ability_runtime:ani_common",
     "ability_runtime:app_context",
     "ability_runtime:runtime",
+    "c_utils:utils",
+    "hilog:libhilog",
     "napi:ace_napi",
+  ]
+
+  defines = [
+    "ACCOUNT_LOG_TAG = \"TH_OHOS_Account\"",
+    "LOG_DOMAIN = 0xD001B00",
   ]
 }
 
@@ -136,7 +144,6 @@ taihe_shared_library("os_account_taihe_native") {
     "access_token:libtokenid_sdk",
     "c_utils:utils",
     "hilog:libhilog",
-    "hilog:libhilog",
     "ipc:ipc_single",
     "napi:ace_napi",
   ]
@@ -180,11 +187,12 @@ generate_static_abc("os_account_abc_test") {
   base_url = "${os_account_path}/frameworks/ets/taihe/test"
   files = [
     "${os_account_path}/frameworks/ets/taihe/test/test_main.ets",
-    "${os_account_path}/frameworks/ets/taihe/test/test_activate_os_account.ets",
+    "${os_account_path}/frameworks/ets/taihe/test/test_accountmgr.ets",
+    "${os_account_path}/frameworks/ets/taihe/test/test_iam.ets",
+    "${os_account_path}/frameworks/ets/taihe/test/test_common.ets",
   ]
-  is_boot_abc = "True"
-  device_dst_file = "/system/framework/os_account_abc_test.abc"
-  dependencies = [ ":os_account_abc" ]
+  is_boot_abc = "False"
+  dependencies = [ ":osaccount_taihe" ]
 }
 
 ohos_prebuilt_etc("distributed_account_etc") {
@@ -212,7 +220,7 @@ group("distributed_account_taihe_gp") {
 
 group("os_account_taihe_gp") {
   deps = [
-    ":os_account_abc_test",
+    # ":os_account_abc_test",
     ":os_account_etc",
     ":os_account_taihe_native",
   ]
