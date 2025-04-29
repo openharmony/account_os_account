@@ -75,6 +75,7 @@
           "//base/account/os_account/interfaces/kits/capi:capi_packages",
           "//base/account/os_account/interfaces/kits/napi:napi_packages",
           "//base/account/os_account/interfaces/kits/cj:cj_ffi_packages",
+          "//base/account/os_account/frameworks/ets/taihe:account_taihe",
           "//base/account/os_account/sa_profile:account_sa_profile",
           "//base/account/os_account/tools:tools_acm"
         ],
