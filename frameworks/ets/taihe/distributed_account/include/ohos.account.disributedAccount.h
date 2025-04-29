@@ -23,7 +23,6 @@
 namespace OHOS {
 namespace AccountSA {
 
-ohos::account::distributedAccount::DistributedInfo CreateDistributedInfo();
 ohos::account::distributedAccount::DistributedInfo CreateDistributedInfoFromAccountInfo(const OhosAccountInfo& info);
     
 } // namespace AccountSA

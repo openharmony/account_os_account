@@ -611,6 +611,7 @@ ErrCode OsAccountStub::ProcCreateOsAccount(MessageParcel &data, MessageParcel &r
     OsAccountType type = static_cast<OsAccountType>(data.ReadInt32());
     OsAccountInfo osAccountInfo;
     ErrCode result = CreateOsAccount(name, type, osAccountInfo);
+    ACCOUNT_LOGI("ProcCreateOsAccount CreateOsAccount end");
     return WriteResultWithOsAccountInfo(reply, result, osAccountInfo);
 }
 

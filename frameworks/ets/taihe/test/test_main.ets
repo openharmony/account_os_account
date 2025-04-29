@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,8 +13,80 @@
  * limitations under the License.
  */
 
-import { testFunc } from './test_activate_os_account';
+import { 
+  testCreateOsAccountSync,
+  testCreateOsAccountWithOptionSync,
+  testActivateOsAccountSync,
+  testGetActivatedOsAccountLocalIds,
+  testGetForegroundOsAccountLocalId,
+  testGetOsAccountLocalId,
+  testGetOsAccountLocalIdForUid,
+  testQueryCurrentOsAccountSync,
+  testIsOsAccountUnlocked,
+  testIsOsAccountUnlockedWithId,
+  testQueryAllCreatedOsAccounts,
+  testQueryMaxLoggedInOsAccountNumber,
+  testQueryOsAccountById
+} from "./test_accountmgr.ets";
+import {
+  testAddCredential,
+  testDelUser
+} from "./test_iam.ets";
 
-function main() {
-  testFunc();
+export function createOsAccount() {
+  testCreateOsAccountSync();
+  testCreateOsAccountWithOptionSync();
+}
+
+export function activateOsAccount() {
+  testActivateOsAccountSync();
+}
+
+export function deactivateOsAccount() {
+  testActivateOsAccountSync();
+}
+
+export function getActivatedOsAccountLocalIds() {
+  testGetActivatedOsAccountLocalIds();
+}
+
+export function getForegroundOsAccountLocalId() {
+  testGetForegroundOsAccountLocalId();
+}
+
+export function getOsAccountLocalId() {
+  testGetOsAccountLocalId();
+}
+
+export function getOsAccountLocalIdForUid() {
+  testGetOsAccountLocalIdForUid();
+}
+
+export function queryCurrentOsAccount() {
+  testQueryCurrentOsAccountSync();
+}
+
+export function isOsAccountUnlocked() {
+  testIsOsAccountUnlocked();
+  testIsOsAccountUnlockedWithId();
+}
+
+export function queryAllCreatedOsAccounts() {
+  testQueryAllCreatedOsAccounts();
+}
+
+export function queryMaxLoggedInOsAccountNumber() {
+  testQueryMaxLoggedInOsAccountNumber();
+}
+
+export function queryOsAccountById() {
+  testQueryOsAccountById();
+}
+
+export function addCredential() {
+  testAddCredential();
+}
+
+export function delUser() {
+  testDelUser();
 }
