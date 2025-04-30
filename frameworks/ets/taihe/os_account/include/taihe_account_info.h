@@ -23,7 +23,7 @@
 #include "os_account_subscribe_info.h"
 #include "taihe_common.h"
 
-using active_callback = taihe::callback<void(double)>;
+using active_callback = taihe::callback<void(int32_t)>;
 using switch_callback = taihe::callback<void(ohos::account::osAccount::OsAccountSwitchEventData const&)>;
 
 namespace OHOS {
@@ -35,7 +35,8 @@ public:
 
     void OnAccountsChanged(const int &id) override;
     void OnAccountsSwitch(const int &newId, const int &oldId) override;
-    std::shared_ptr<active_callback> ref_;
+    std::shared_ptr<active_callback> activeRef_;
+    std::shared_ptr<switch_callback> switchRef_;
 };
 
 struct TaiheUnsubscribeCBInfo   {

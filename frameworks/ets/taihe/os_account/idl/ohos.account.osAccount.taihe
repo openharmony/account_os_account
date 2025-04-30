@@ -22,27 +22,21 @@ function getAccountManager(): AccountManager;
 interface AccountManager {
     @gen_async("isMainOsAccount")
     @gen_promise("isMainOsAccount")
-    TaiheIsMainOsAccount():bool;
+    IsMainOsAccountSync():bool;
 
     @gen_async("getOsAccountProfilePhoto")
     @gen_promise("getOsAccountProfilePhoto")
-    TaiheGetOsAccountProfilePhoto(localId: f64): String;
+    GetOsAccountProfilePhotoSync(localId: i32): String;
 
     @gen_promise("getOsAccountType")
     @gen_async("getOsAccountType")
-    TaiheGetOsAccountType(): OsAccountType;
+    GetOsAccountTypeSync(): OsAccountType;
     @gen_promise("getOsAccountType")
-    TaiheGetOsAccountTypeWithId(localId:f64): OsAccountType;
+    GetOsAccountTypeWithIdSync(localId: i32): OsAccountType;
 
-    @on_off("activate")
-    OnActivate(name: String, callback: (id:f64) => void): void;
-    @on_off("activating")
-    OnActivating(name: String, callback: (id:f64) => void): void;
+    on(type: String,name: String, callback: (id:i32) => void): void;
 
-    @on_off("activate")
-    OffActivate(name: String, callback: Optional<(id:f64) => void>): void;
-    @on_off("activating")
-    OffActivating(name: String, callback: Optional<(id:f64) => void>): void;
+    off(type: String,name: String, callback: Optional<(id:i32) => void>): void;
 
     @on_off("switching")
     OnSwitching(callback: (data:OsAccountSwitchEventData) => void): void;
@@ -113,26 +107,29 @@ interface UserIdentityManager {
 
     CloseSession(accountId: Optional<i32>): void;
 
+    @gen_promise("getAuthInfo")
     @gen_async("getAuthInfo")
-    GetAuthInfoSync(): Array<EnrolledCredInfo>;
+    GetAuthInfoEmpty(): Array<EnrolledCredInfo>;
 
     @gen_async("getAuthInfo")
-    GetAuthInfoWithTypeCallbackSync(authType: AuthType): Array<EnrolledCredInfo>;
+    @gen_promise("getAuthInfo")
+    GetAuthInfoType(authType: AuthType): Array<EnrolledCredInfo>;
 
     @gen_promise("getAuthInfo")
-    GetAuthInfoWithTypePromiseSync(authType: Optional<AuthType>): Array<EnrolledCredInfo>;
+    GetAuthInfoWithOptionsSync(options: GetAuthInfoOptions): Array<EnrolledCredInfo>;
 
-    @gen_promise("getAuthInfo")
-    GetAuthInfoWithOptionsSync(options: Optional<GetAuthInfoOptions>): Array<EnrolledCredInfo>;
-
+    @overload("addCredential")
     AddCredential(info: CredentialInfo, callback: IIdmCallback): void;
 
+    @overload("updateCredential")
     UpdateCredential(credentialInfo: CredentialInfo, callback: IIdmCallback): void;
 
-    DelUser(token: @typedarray Array<u8>, callback: IIdmCallback);
+    @overload("delUser")
+    DelUser(token: @arraybuffer Array<u8>, callback: IIdmCallback);
 }
 
-enum AuthType : u32 {
+enum AuthType : i32 {
+    INVALID = 0,
     PIN = 1,
     FACE = 2,
     FINGERPRINT = 4,
@@ -142,6 +139,7 @@ enum AuthType : u32 {
 }
 
 enum AuthSubType : i32 {
+    INVALID = 0,
     PIN_SIX = 10000,
     PIN_NUMBER = 10001,
     PIN_MIXED = 10002,
@@ -274,11 +272,12 @@ interface DomainPlugin {
     Auth(domainAccountInfo: DomainAccountInfo, credential: @typedarray Array<u8>, callback: IUserAuthCallback): void;
 }
 
-interface DomainAccountManager {
-    @static
-    @gen_promise("isAuthenticationExpired")
-    IsAuthenticationExpiredSync(domainAccountInfo: DomainAccountInfo): bool;
-}
+@class
+interface DomainAccountManager {}
+
+@static("DomainAccountManager")
+@gen_promise("isAuthenticationExpired")
+function IsAuthenticationExpiredSync(domainAccountInfo: DomainAccountInfo): bool;
 
 struct AuthResult {
     token: Optional<@typedarray Array<u8>>;
@@ -338,7 +337,7 @@ struct ExecutorProperty {
 
 struct IUserAuthCallback {
     onResult: (result: i32, extraInfo: AuthResult) => void;
-    onAcquireInfo: Optional<(module: i32, acquire: u32, extraInfo: @typedarray Array<u8>)=>void>;
+    onAcquireInfo: Optional<(module: i32, acquire: i32, extraInfo: @typedarray Array<u8>)=>void>;
 }
 
 struct IInputer {
@@ -375,11 +374,18 @@ interface UserAuth {
     @gen_async("getProperty")
     @gen_promise("getProperty")
     GetPropertySync(request: GetPropertyRequest): ExecutorProperty;
+
+    @gen_async("setProperty")
+    @gen_promise("setProperty")
+    SetPropertySync(request: SetPropertyRequest): void;
 }
 
 @class
 interface PINAuth {
+    @overload("registerInputer")
     RegisterInputer(inputer: IInputer): void;
+
+    @overload("unregisterInputer")
     UnregisterInputer(): void;
 }
 
@@ -388,9 +394,9 @@ interface InputerManager {
 }
 
 @static("InputerManager")
-function RegisterInputer(authType: AuthType, inputer: IInputer): void;
+function registerInputer(authType: AuthType, inputer: IInputer): void;
 @static("InputerManager")
-function UnregisterInputer(authType: AuthType): void;
+function unregisterInputer(authType: AuthType): void;
 
 @ctor("UserIdentityManager")
 function CreateUserIdentityManager(): UserIdentityManager;
