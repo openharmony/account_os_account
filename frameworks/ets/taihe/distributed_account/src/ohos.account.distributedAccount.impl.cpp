@@ -41,27 +41,24 @@ static DistributedAccountStatus GetDistributedAccountStatus(int32_t status)
 
 DistributedInfo ConvertToDistributedInfoTH(const AccountSA::OhosAccountInfo &info)
 {
-ACCOUNT_LOGI("ohosAccountInfo.name_: %{public}s, uid_: %{public}s, nickname_: %{public}s, avatar_: %{public}s",
-    info.name_.c_str(), info.uid_.c_str(), info.nickname_.c_str(), info.avatar_.c_str());
-ACCOUNT_LOGI("ohosAccountInfo.scalableData_ is empty: %{public}d, status_: %{public}d",
-    info.scalableData_.GetParams().IsEmpty(), info.status_);
-DistributedInfo ret = DistributedInfo{
-    .name = taihe::string(info.name_.c_str()),
-    .id = taihe::string(info.uid_.c_str()),
-    .nickname = optional<string>(std::in_place_t{}, info.nickname_.c_str()),
-    .avatar = optional<string>(std::in_place_t{}, info.avatar_.c_str()),
-    .status = optional<DistributedAccountStatus>(std::in_place_t{}, GetDistributedAccountStatus(info.status_)),
-    .scalableData = optional<uintptr_t>(std::nullopt),
-};
-if (info.scalableData_.GetParams().IsEmpty()) {
+    ani_env *env = get_env();
+
+    DistributedInfo ret = DistributedInfo{
+        .name = info.name_,
+        .id = info.uid_,
+        .nickname = optional<string>(std::in_place_t{}, info.nickname_),
+        .avatar = optional<string>(std::in_place_t{}, info.avatar_),
+        .status = optional<DistributedAccountStatus>(std::in_place_t{}, GetDistributedAccountStatus(info.status_)),
+        .scalableData = optional<uintptr_t>(std::nullopt),
+    };
+
+    auto scalableData = AppExecFwk::WrapWantParams(env, info.scalableData_.GetParams());
+    if (scalableData == nullptr) {
+        ACCOUNT_LOGE("WrapWantParams get nullptr");
+        return ret;
+    }
+    ret.scalableData = optional<uintptr_t>(std::in_place_t{}, reinterpret_cast<uintptr_t>(scalableData));
     return ret;
-}
-ani_env *env = get_env();
-auto scalableData = AppExecFwk::WrapWantParams(env, info.scalableData_.GetParams());
-if (scalableData == nullptr) {
-    ACCOUNT_LOGE("WrapWantParams get nullptr");
-}
-return ret;
 }
 
 class DistributedAccountAbilityImpl {
@@ -90,7 +87,7 @@ DistributedAccountAbility getDistributedAccountAbility()
 namespace OHOS {
 namespace AccountSA {
 
-DistributedInfo CreateDistributedInfoFromAccountInfo(const OhosAccountInfo& info)
+DistributedInfo CreateDistributedInfoFromAccountInfo(const OhosAccountInfo &info)
 {
     return ConvertToDistributedInfoTH(info);
 }
@@ -99,4 +96,3 @@ DistributedInfo CreateDistributedInfoFromAccountInfo(const OhosAccountInfo& info
 } // namespace OHOS
 
 TH_EXPORT_CPP_API_getDistributedAccountAbility(getDistributedAccountAbility);
- 

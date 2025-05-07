@@ -26,8 +26,6 @@
 #include "account_error_no.h"
 
 
-namespace OHOS {
-namespace AccountSA {
 using namespace taihe;
 using namespace ohos::account::osAccount;
 using TaiheOsAccountType = ohos::account::osAccount::OsAccountType;
@@ -39,8 +37,8 @@ using TaiheIInputer = ohos::account::osAccount::IInputer;
 using TaiheOsAccountSwitchEventData = ohos::account::osAccount::OsAccountSwitchEventData;
 using TaiheIInputData = ohos::account::osAccount::IInputData;
 
-TaiheOsAccountType::key_t ConvertToOsAccountTypeKey(OsAccountType type);
-OsAccountType ConvertFromOsAccountTypeKey(int32_t type);
+namespace OHOS {
+namespace AccountSA {
 bool IsAccountIdValid(int32_t accountId);
 int32_t IsSystemApp();
 }
