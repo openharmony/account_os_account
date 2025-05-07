@@ -26,15 +26,23 @@ TaiheSubscriberPtr::~TaiheSubscriberPtr()
 
 void TaiheSubscriberPtr::OnAccountsChanged(const int &id)
 {
-    ACCOUNT_LOGE("OnAccountsChanged enter");
-    active_callback call = *ref_;
-    call(static_cast<double>(id));
+    if (activeRef_) {
+        active_callback call = *activeRef_;
+        call(id);
+    } else {
+        ACCOUNT_LOGE("activeRef_ is nullptr!");
+    }
 }
 
 void TaiheSubscriberPtr::OnAccountsSwitch(const int &newId, const int &oldId)
 {
-    ACCOUNT_LOGE("OnAccountsSwitchenter");
-    TaiheOsAccountSwitchEventData data = {static_cast<double>(oldId), static_cast<double>(newId)};
+    if (switchRef_) {
+        TaiheOsAccountSwitchEventData data = {oldId, newId};
+        switch_callback call = *switchRef_;
+        call(data);
+    } else {
+        ACCOUNT_LOGE("switchRef_ is nullptr!");
+    }
 }
 
 bool SubscribeCBInfo::IsSameCallBack(AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE type,

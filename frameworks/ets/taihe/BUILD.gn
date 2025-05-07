@@ -123,15 +123,16 @@ taihe_shared_library("os_account_taihe_native") {
     "${common_path}/account_error",
     "${os_account_interfaces_native_path}/include",
     "${account_iam_interfaces_native_path}/include",
+    "${account_iam_kits_path}/include",
   ]
 
   deps = [
     ":distributed_account_taihe_native",
     ":osaccount_taihe",
     "${account_iam_framework_path}:account_iam_innerkits",
-    "${account_iam_kits_path}:account_iam_napi",
     "${account_napi_common_path}:account_napi_common",
-    "${domain_account_napi_path}:domain_account_napi",
+    "${common_path}:libaccount_common",
+    "${domain_account_framework_path}:domain_account_innerkits",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
@@ -188,11 +189,14 @@ generate_static_abc("os_account_abc_test") {
   files = [
     "${os_account_path}/frameworks/ets/taihe/test/test_main.ets",
     "${os_account_path}/frameworks/ets/taihe/test/test_accountmgr.ets",
+    "${os_account_path}/frameworks/ets/taihe/test/test_distributed_account.ets",
     "${os_account_path}/frameworks/ets/taihe/test/test_iam.ets",
     "${os_account_path}/frameworks/ets/taihe/test/test_common.ets",
   ]
-  is_boot_abc = "False"
-  dependencies = [ ":osaccount_taihe" ]
+  dependencies = [
+    ":os_account_abc",
+    ":distributed_account_abc",
+  ]
 }
 
 ohos_prebuilt_etc("distributed_account_etc") {
