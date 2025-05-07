@@ -164,6 +164,7 @@ private:
     ErrCode DealWithDeviceOwnerId(const bool isDeviceOwner, const int32_t localId);
     void CheckAndRefreshLocalIdRecord(const int id);
     void RollBackToEarlierAccount(int32_t fromId, int32_t toId);
+    void RollbackOsAccount(OsAccountInfo &osAccountInfo, bool needDelStorage, bool needDelBms);
     bool IsToBeRemoved(const int32_t localId);
 
     // operations for active list
