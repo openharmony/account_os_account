@@ -2039,6 +2039,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, MaintenanceTypeTest001, TestSize.Lev
         OsAccountType::MAINTENANCE, osAccountInfoC), ERR_OK);
     EXPECT_EQ(osAccountInfoC.GetLocalId(), Constants::MAINTENANCE_USER_ID);
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoC.GetLocalId()), ERR_OK);
+
+    osAccountInfoA.SetType(OsAccountType::NORMAL);
+    EXPECT_EQ(osAccountManagerService_->CreateOsAccountWithFullInfo(osAccountInfoA), ERR_OK);
+    EXPECT_EQ(osAccountManagerService_->CreateOsAccount("MaintenanceTypeTest001B",
+        OsAccountType::MAINTENANCE, osAccountInfoC), ERR_OSACCOUNT_SERVICE_CONTROL_INSERT_FILE_EXISTS_ERROR);
+    EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoA.GetLocalId()), ERR_OK);
     SetSelfTokenID(selfTokenId);
 }
 #endif //ENABLE_MULTIPLE_OS_ACCOUNTS
