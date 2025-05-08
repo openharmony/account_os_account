@@ -18,6 +18,7 @@
 #include <dirent.h>
 #include <fstream>
 #include <gtest/gtest.h>
+#include <gtest/hwext/gtest-multithread.h>
 #include <iostream>
 #include <new>
 #include <sys/stat.h>
@@ -33,6 +34,8 @@
 
 namespace OHOS {
 namespace AccountSA {
+using namespace testing;
+using namespace testing::mt;
 using namespace testing::ext;
 using namespace OHOS::AccountSA;
 using namespace OHOS;
@@ -116,6 +119,16 @@ void OsAccountControlFileManagerTest::TearDown(void)
 static int RenameFile(const std::string &src, const std::string &des)
 {
     return rename(src.c_str(), des.c_str());
+}
+
+void GetOsAccountFromDatabaseTest()
+{
+    int32_t i = 100;
+    while (i--) {
+        OsAccountInfo osAccountInfo;
+        EXPECT_NE(g_controlManager->GetOsAccountFromDatabase(
+            "155000", Constants::START_USER_ID, osAccountInfo), ERR_OK);
+    }
 }
 
 /**
@@ -519,6 +532,17 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest023,
     if (chown(Constants::ACCOUNT_LIST_FILE_JSON_PATH.c_str(), ACCOUNT_UID, ACCOUNT_GID) != 0) {
         ACCOUNT_LOGE("OsAccountControlFileManagerCovTest023, chown failed! errno %{public}d.", errno);
     }
+}
+
+/**
+ * @tc.name: OsAccountControlFileManagerTest024
+ * @tc.desc: Test multiple thread get osaccount from database
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest024, TestSize.Level1)
+{
+    GTEST_RUN_TASK(GetOsAccountFromDatabaseTest);
 }
 
 /**
