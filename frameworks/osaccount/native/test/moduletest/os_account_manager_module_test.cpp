@@ -1298,6 +1298,8 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest068, TestSize.Lev
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest069, TestSize.Level1)
 {
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    ASSERT_TRUE(MockTokenId("edm"));
     EXPECT_EQ(OsAccountManager::SetGlobalOsAccountConstraints(
         CONSTANTS_VECTOR, true, commonOsAccountInfo.GetLocalId(), true), ERR_OK);
     bool isEnable = false;
@@ -1322,6 +1324,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest069, TestSize.Lev
         OsAccountManager::IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isEnable),
         ERR_OK);
     EXPECT_EQ(isEnable, false);
+    ASSERT_TRUE(SetSelfTokenID(selfTokenId) == 0);
 }
 
 /**
@@ -1332,6 +1335,8 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest069, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest070, TestSize.Level1)
 {
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    ASSERT_TRUE(MockTokenId("edm"));
     OsAccountInfo osAccountInfoTwo;
     ASSERT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME_TWO, OsAccountType::NORMAL, osAccountInfoTwo), ERR_OK);
 
@@ -1368,6 +1373,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest070, TestSize.Lev
         OsAccountManager::IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isEnable),
         ERR_OK);
     EXPECT_EQ(isEnable, false);
+    ASSERT_TRUE(SetSelfTokenID(selfTokenId) == 0);
 }
 
 /**
@@ -1378,6 +1384,8 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest070, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest071, TestSize.Level1)
 {
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    ASSERT_TRUE(MockTokenId("edm"));
     OsAccountInfo osAccountInfoOne;
     ASSERT_EQ(OsAccountManager::CreateOsAccount("ModuleTest071", OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
 
@@ -1401,6 +1409,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest071, TestSize.Lev
         ERR_OK);
     EXPECT_EQ(isEnable, false);
     ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    ASSERT_TRUE(SetSelfTokenID(selfTokenId) == 0);
 }
 
 /**
@@ -1411,6 +1420,8 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest071, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest072, TestSize.Level1)
 {
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    ASSERT_TRUE(MockTokenId("edm"));
     OsAccountInfo osAccountInfoOne;
     ASSERT_EQ(OsAccountManager::CreateOsAccount("ModuleTest072", OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
     EXPECT_EQ(OsAccountManager::SetSpecificOsAccountConstraints(
@@ -1435,6 +1446,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest072, TestSize.Lev
         OsAccountManager::IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isEnable),
         ERR_OK);
     EXPECT_EQ(isEnable, false);
+    ASSERT_TRUE(SetSelfTokenID(selfTokenId) == 0);
 }
 
 /**
@@ -1445,6 +1457,8 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest072, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest073, TestSize.Level1)
 {
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    ASSERT_TRUE(MockTokenId("edm"));
     OsAccountInfo osAccountInfoOne;
     ASSERT_EQ(OsAccountManager::CreateOsAccount("ModuleTest073", OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
     OsAccountInfo osAccountInfoTwo;
@@ -1481,6 +1495,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest073, TestSize.Lev
         MAIN_ACCOUNT_ID, CONSTRAINT_PRIVATE_DNS_SET, constraintSourceTypeInfos), ERR_OK);
     EXPECT_EQ(constraintSourceTypeInfos.size(), 1);
     EXPECT_EQ(constraintSourceTypeInfos[0].typeInfo, 0);
+    ASSERT_TRUE(SetSelfTokenID(selfTokenId) == 0);
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
@@ -1512,6 +1527,8 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest074, TestSize.Lev
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest075, TestSize.Level1)
 {
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    ASSERT_TRUE(MockTokenId("edm"));
     std::vector<std::string> constraints;
     EXPECT_EQ(OsAccountManager::GetOsAccountAllConstraints(commonOsAccountInfo.GetLocalId(), constraints), ERR_OK);
     int counts = constraints.size();
@@ -1525,6 +1542,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest075, TestSize.Lev
     constraints.clear();
     EXPECT_EQ(OsAccountManager::GetOsAccountAllConstraints(commonOsAccountInfo.GetLocalId(), constraints), ERR_OK);
     EXPECT_NE(constraints.size(), counts + 2); // test number
+    ASSERT_TRUE(SetSelfTokenID(selfTokenId) == 0);
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
