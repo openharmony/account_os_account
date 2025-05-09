@@ -1664,6 +1664,40 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest085
 
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
 }
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest086
+ * @tc.desc: Test SetGlobalOsAccountConstraints and SetSpecificOsAccountConstraints with MANAGE_EDM_POLICY.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest086, TestSize.Level1)
+{
+    OsAccountInfo info;
+    EXPECT_EQ(osAccountManagerService_->CreateOsAccount("Test085", INT_TEST_TYPE, info), ERR_OK);
+
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    uint64_t tokenID;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
+    setuid(TEST_UID);
+    EXPECT_EQ(osAccountManagerService_->SetGlobalOsAccountConstraints(
+        CONSTANTS_VECTOR, true, MAIN_ACCOUNT_ID, true), ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    EXPECT_EQ(osAccountManagerService_->SetSpecificOsAccountConstraints(
+        CONSTANTS_VECTOR, true, info.GetLocalId(), MAIN_ACCOUNT_ID, false), ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    setuid(ROOT_UID);
+    ASSERT_TRUE(RecoveryPermission(tokenID, selfTokenId));
+
+    ASSERT_TRUE(MockTokenId("edm"));
+    setuid(TEST_UID);
+    EXPECT_EQ(osAccountManagerService_->SetGlobalOsAccountConstraints(
+        CONSTANTS_VECTOR, true, MAIN_ACCOUNT_ID, true), ERR_OK);
+    EXPECT_EQ(osAccountManagerService_->SetSpecificOsAccountConstraints(
+        CONSTANTS_VECTOR, true, info.GetLocalId(), MAIN_ACCOUNT_ID, false), ERR_OK);
+    setuid(ROOT_UID);
+    ASSERT_TRUE(SetSelfTokenID(selfTokenId) == 0);
+
+    EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(info.GetLocalId()), ERR_OK);
+}
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
