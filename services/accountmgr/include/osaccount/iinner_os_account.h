@@ -21,13 +21,14 @@
 #include "idomain_account_callback.h"
 #include "os_account_info.h"
 #include "iremote_object.h"
+#include "os_account_constants.h"
 #include "os_account_subscribe_info.h"
 
 namespace OHOS {
 namespace AccountSA {
 class IInnerOsAccount {
 public:
-    virtual void Init() = 0;
+    virtual bool Init(const std::set<int32_t> &initAccounts = {Constants::START_USER_ID}) = 0;
     virtual ErrCode CreateOsAccount(
         const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode CreateOsAccount(const std::string &localName, const std::string &shortName,

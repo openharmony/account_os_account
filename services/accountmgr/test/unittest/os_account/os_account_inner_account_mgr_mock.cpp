@@ -2024,5 +2024,61 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountPluginMockTest001, TestSize.Leve
     pluginManager.CloseLib();
 }
 #endif //ENABLE_MULTIPLE_OS_ACCOUNTS
+
+#ifdef ENABLE_U1_ACCOUNT
+/*
+ * @tc.name: Init001
+ * @tc.desc: os account LoaderLib test
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, Init001, TestSize.Level2)
+{
+    innerMgrService_->config_.isU1Enable = false;
+    std::set<int32_t> idSet = {};
+    EXPECT_EQ(true, innerMgrService_->Init(idSet));
+    idSet = {Constants::U1_ID};
+    EXPECT_EQ(true, innerMgrService_->Init(idSet));
+    idSet = {Constants::U1_ID, Constants::START_USER_ID};
+    EXPECT_EQ(true, innerMgrService_->Init(idSet));
+}
+
+/*
+ * @tc.name: ActivateU1Account001
+ * @tc.desc: test Activate u1 when u1 not exsit
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, ActivateU1Account001, TestSize.Level2)
+{
+    innerMgrService_->config_.isU1Enable = false;
+    EXPECT_EQ(ERR_OK, innerMgrService_->ActivateDefaultOsAccount());
+    innerMgrService_->config_.isU1Enable = true;
+    innerMgrService_->config_.isBlockBoot = true;
+    OsAccountInfo osAccountInfo;
+    ErrCode errCode = innerMgrService_->osAccountControl_->GetOsAccountInfoById(1, osAccountInfo);
+    if (errCode == ERR_OK) {
+        osAccountInfo.SetIsCreateCompleted(false);
+        EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->UpdateOsAccount(osAccountInfo));
+        EXPECT_EQ(ERR_OK, innerMgrService_->ActivateDefaultOsAccount());
+    } else {
+        EXPECT_EQ(ERR_OK, innerMgrService_->ActivateDefaultOsAccount());
+    }
+}
+
+/*
+ * @tc.name: CreateU1Account001
+ * @tc.desc: test create u1 account
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, CreateU1Account001, TestSize.Level2)
+{
+    innerMgrService_->config_.isU1Enable = true;
+    innerMgrService_->config_.u1AccountName.assign(2000, '1');
+    EXPECT_EQ(true, innerMgrService_->CreateU1Account());
+    innerMgrService_->config_.u1AccountName = "";
+    EXPECT_EQ(true, innerMgrService_->CreateU1Account());
+    innerMgrService_->config_.isU1Enable = true;
+    EXPECT_EQ(ERR_OK, innerMgrService_->ActivateDefaultOsAccount());
+}
+#endif // ENABLE_U1_ACCOUNT
 }  // namespace AccountSA
 }  // namespace OHOS

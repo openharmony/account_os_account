@@ -62,6 +62,10 @@ ohos_unittest("OsAccountControlFileManagerTest") {
   if (os_account_distributed_feature) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
   }
+  if (os_account_enable_account_1) {
+    cflags_cc += [ "-DENABLE_U1_ACCOUNT" ]
+  }
+
   part_name = "os_account"
 }
 
@@ -372,6 +376,10 @@ ohos_unittest("OsAccountInnerAccmgrMockTest") {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
   }
 
+  if (os_account_enable_account_1) {
+    cflags_cc += [ "-DENABLE_U1_ACCOUNT" ]
+  }
+
   external_deps = [
     "ability_base:want",
     "ability_runtime:wantagent_innerkits",
@@ -504,6 +512,9 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     "-DBUNDLE_ADAPTER_MOCK",
     "-DACCOUNT_TEST",
   ]
+  if (os_account_enable_account_1) {
+    cflags_cc += [ "-DENABLE_U1_ACCOUNT" ]
+  }
 
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
