@@ -120,6 +120,10 @@ ohos_unittest("account_mgr_test") {
     cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
   }
 
+  if (os_account_enable_account_1) {
+    cflags_cc += [ "-DENABLE_U1_ACCOUNT" ]
+  }
+
   part_name = "os_account"
 }
 

@@ -46,6 +46,11 @@ const int64_t STRING_TEST_USER_SHELLNUMBER = 1000;
 const int32_t INVALID_TYPE = 100000;
 const gid_t ACCOUNT_GID = 3058;
 const uid_t ACCOUNT_UID = 3058;
+#ifdef ENABLE_U1_ACCOUNT
+const char SYSTEM_ACCOUNTS_CONFIG[] = "systemAccounts";
+const char U1_CONFIG[] = "1";
+const char SYSTEM_ACCOUNT_NAME[] = "name";
+#endif // ENABLE_U1_ACCOUNT
 #ifdef ENABLE_FILE_WATCHER
 const int32_t TEST_USER_ID100 = 100;
 #endif // ENABLE_FILE_WATCHER
@@ -752,5 +757,29 @@ HWTEST_F(OsAccountControlFileManagerTest, QueryOsAccountInfo001, TestSize.Level1
     EXPECT_EQ(accountInfo1.GetSerialNumber(), accountInfo.GetSerialNumber());
 }
 #endif // ENABLE_FILE_WATCHER
+
+#ifdef ENABLE_U1_ACCOUNT
+/**
+ * @tc.name: GetU1Config001
+ * @tc.desc: coverage GetU1Config
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerTest, GetU1Config001, TestSize.Level2)
+{
+    Json json;
+    Json u1Json;
+    u1Json[U1_CONFIG] = Json {
+        {SYSTEM_ACCOUNT_NAME, "test"}
+    };
+    OsAccountConfig config;
+    g_controlManager->GetU1Config(json, config);
+    EXPECT_EQ(config.isU1Enable, false);
+    json[SYSTEM_ACCOUNTS_CONFIG] = u1Json;
+    g_controlManager->GetU1Config(json, config);
+    EXPECT_EQ(config.isU1Enable, true);
+
+}
+#endif // ENABLE_U1_ACCOUNT
 }  // namespace AccountSA
 }  // namespace OHOS

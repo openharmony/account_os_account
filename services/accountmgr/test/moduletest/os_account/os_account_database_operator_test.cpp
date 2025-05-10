@@ -74,7 +74,11 @@ HWTEST_F(OsAccountDatabaseOperatorTest, InsertOsAccountIntoDataBase_0001, TestSi
     ACCOUNT_LOGI("OsAccountDatabaseOperatorTest_InsertOsAccountIntoDataBase_0001");
 
     OsAccountInfo info;
-    int localId = 1;  // 1 is invalid test local id
+    int localId = 2;  // 2 is invalid test local id
+    info.SetLocalId(localId);
+    g_osAccountDatabaseOperator->InsertOsAccountIntoDataBase(info);
+    EXPECT_EQ(info.GetLocalId(), localId);
+    localId = 1;
     info.SetLocalId(localId);
     g_osAccountDatabaseOperator->InsertOsAccountIntoDataBase(info);
     EXPECT_EQ(info.GetLocalId(), localId);

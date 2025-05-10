@@ -51,6 +51,12 @@ namespace {
 #ifdef HICOLLIE_ENABLE
 constexpr int32_t MAX_INIT_TIME = 120;
 #endif // HICOLLIE_ENABLE
+const std::set<int32_t> INIT_ACCOUNT_ID_SET = {
+#ifdef ENABLE_U1_ACCOUNT
+    Constants::U1_ID,
+#endif // ENABLE_U1_ACCOUNT
+    Constants::START_USER_ID,
+};
 const bool REGISTER_RESULT =
     SystemAbility::MakeAndRegisterAbility(&DelayedRefSingleton<AccountMgrService>::GetInstance());
 const char DEVICE_OWNER_DIR[] = "/data/service/el1/public/account/0/";
@@ -328,6 +334,18 @@ bool AccountMgrService::IsDefaultOsAccountVerified()
     return isVerified;
 }
 
+void AccountMgrService::GetUncreatedInitAccounts(std::set<int32_t> &initAccounts)
+{
+    ErrCode errCode = ERR_OK;
+    for (int32_t id : INIT_ACCOUNT_ID_SET) {
+        bool isAccountCompleted = false;
+        errCode = IInnerOsAccountManager::GetInstance().IsOsAccountCompleted(id, isAccountCompleted);
+        if (errCode == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR || (errCode == ERR_OK && !isAccountCompleted)) {
+            initAccounts.emplace(id);
+        }
+    }
+}
+
 void AccountMgrService::OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
 {
     std::lock_guard<std::mutex> lock(statusMutex_);
@@ -354,21 +372,24 @@ void AccountMgrService::OnAddSystemAbility(int32_t systemAbilityId, const std::s
         default:
             return;
     }
-
     if (!isStorageReady_) {
         return;
     }
-    bool isAccountCompleted = false;
-    ErrCode errCode =
-        IInnerOsAccountManager::GetInstance().IsOsAccountCompleted(Constants::START_USER_ID, isAccountCompleted);
-    if (errCode == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR || (errCode == ERR_OK && !isAccountCompleted)) {
+
+    std::set<int32_t> initAccounts;
+    GetUncreatedInitAccounts(initAccounts);
+    if (!initAccounts.empty()) {
         if (!isBmsReady_) {
             return;
         }
-        IInnerOsAccountManager::GetInstance().Init();
+        bool result = IInnerOsAccountManager::GetInstance().Init(initAccounts);
+        if (!result) {
+            return;
+        }
     }
+
     if (!isDefaultOsAccountActivated_ && isAmsReady_) {
-        errCode = IInnerOsAccountManager::GetInstance().ActivateDefaultOsAccount();
+        ErrCode errCode = IInnerOsAccountManager::GetInstance().ActivateDefaultOsAccount();
         if (errCode == ERR_OK) {
             isDefaultOsAccountActivated_ = true;
         }

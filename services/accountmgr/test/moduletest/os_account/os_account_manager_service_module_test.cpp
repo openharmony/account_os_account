@@ -2345,5 +2345,28 @@ HWTEST_F(OsAccountManagerServiceModuleTest, MaintenanceTypeTest001, TestSize.Lev
     SetSelfTokenID(selfTokenId);
 }
 #endif //ENABLE_MULTIPLE_OS_ACCOUNTS
+
+/**
+ * @tc.name: U1Checkout001
+ * @tc.desc: Test the operation is allow u1 or not
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, U1Checkout001, TestSize.Level1)
+{
+    ASSERT_EQ(osAccountManagerService_->RemoveOsAccount(1), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+    ASSERT_EQ(osAccountManagerService_->SetOsAccountName(1, STRING_NAME), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+    std::vector<std::string> constraints;
+    ASSERT_EQ(osAccountManagerService_->SetOsAccountConstraints(1, constraints, true),
+        ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+    ASSERT_EQ(osAccountManagerService_->SetOsAccountProfilePhoto(1, STRING_NAME),
+        ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+    ASSERT_EQ(osAccountManagerService_->ActivateOsAccount(1), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+    ASSERT_EQ(osAccountManagerService_->DeactivateOsAccount(1), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+    ASSERT_EQ(osAccountManagerService_->SetCurrentOsAccountIsVerified(1), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+    ASSERT_EQ(osAccountManagerService_->SetOsAccountIsVerified(1, true), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+    ASSERT_EQ(osAccountManagerService_->SetDefaultActivatedOsAccount(1), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    ASSERT_EQ(osAccountManagerService_->SetOsAccountToBeRemoved(1, true), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+}
 }  // namespace AccountSA
 }  // namespace OHOS
