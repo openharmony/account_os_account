@@ -103,7 +103,7 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
     "init:libbegetutil",
     "ipc:ipc_single",
     "json:nlohmann_json_static",
-    "mbedtls:mbedtls_shared",
+    "openssl:libcrypto_shared",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]

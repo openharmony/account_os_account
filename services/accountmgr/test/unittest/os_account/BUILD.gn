@@ -469,7 +469,7 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     "init:libbegetutil",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
-    "mbedtls:mbedtls_shared",
+    "openssl:libcrypto_shared",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
@@ -596,7 +596,7 @@ ohos_unittest("OsAccountInnerAccmgrPluginMockTest") {
     "init:libbegetutil",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
-    "mbedtls:mbedtls_shared",
+    "openssl:libcrypto_shared",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
@@ -712,7 +712,7 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
     "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_single",
-    "mbedtls:mbedtls_shared",
+    "openssl:libcrypto_shared",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
@@ -827,7 +827,7 @@ ohos_unittest("os_account_maintenance_type_mock_test") {
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
-    "mbedtls:mbedtls_shared",
+    "openssl:libcrypto_shared",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
