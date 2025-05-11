@@ -154,7 +154,7 @@ ohos_moduletest("os_account_manager_service_module_test") {
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
-    "mbedtls:mbedtls_shared",
+    "openssl:libcrypto_shared",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
@@ -351,7 +351,7 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
-    "mbedtls:mbedtls_shared",
+    "openssl:libcrypto_shared",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]

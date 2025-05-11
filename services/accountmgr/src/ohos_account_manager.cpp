@@ -20,9 +20,11 @@
 #include <dlfcn.h>
 #include <iomanip>
 #include <locale>
-#include <mbedtls/aes.h>
-#include <mbedtls/cipher.h>
-#include <mbedtls/pkcs5.h>
+#include <openssl/evp.h>
+#include <openssl/hmac.h>
+#include <openssl/rand.h>
+#include <openssl/sha.h>
+#include <openssl/types.h>
 #include <sys/types.h>
 #include <sstream>
 #include <string_ex.h>
@@ -40,7 +42,6 @@
 #include "account_hisysevent_adapter.h"
 #include "distributed_account_subscribe_manager.h"
 #include "ipc_skeleton.h"
-#include "mbedtls/sha256.h"
 #include "system_ability_definition.h"
 #include "tokenid_kit.h"
 
@@ -95,14 +96,10 @@ bool GetCallerBundleName(std::string &bundleName, bool &isSystemApp)
 std::string ReturnOhosUdidWithSha256(const std::string &uid)
 {
     unsigned char hash[HASH_LENGTH] = {0};
-    mbedtls_sha256_context context;
-    mbedtls_sha256_init(&context);
-    mbedtls_sha256_starts(&context, 0);
-
-    std::string plainStr = uid;
-    mbedtls_sha256_update(&context, reinterpret_cast<const unsigned char *>(plainStr.c_str()), plainStr.length());
-    mbedtls_sha256_finish(&context, hash);
-    mbedtls_sha256_free(&context);
+    SHA256_CTX sha256Ctx;
+    SHA256_Init(&sha256Ctx);
+    SHA256_Update(&sha256Ctx, uid.c_str(), uid.length());
+    SHA256_Final(hash, &sha256Ctx);
 
     std::stringstream ss;
     for (std::uint32_t i = 0; i < HASH_LENGTH; ++i) {
@@ -116,24 +113,24 @@ std::string ReturnOhosUdidWithSha256(const std::string &uid)
 std::string GenerateDVID(const std::string &bundleName, const std::string &uid)
 {
     unsigned char newId[OUTPUT_LENGTH_IN_BYTES + 1] = {};
-    mbedtls_md_context_t md_context;
-    mbedtls_md_init(&md_context);
-    const mbedtls_md_info_t *mbedtls_sha256_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA256);
-    int ret = mbedtls_md_setup(&md_context, mbedtls_sha256_info, 1);
-    if (ret != 0) {
-        ACCOUNT_LOGE("mbedtls_md_setup failed");
-        mbedtls_md_free(&md_context);
+    EVP_MD *sha256Md = EVP_MD_fetch(nullptr, "SHA2-256", nullptr);
+    if (sha256Md == nullptr) {
+        ACCOUNT_LOGE("EVP_MD_fetch failed");
         return std::string("");
     }
-    ret = mbedtls_pkcs5_pbkdf2_hmac(&md_context, reinterpret_cast<const unsigned char *>(uid.c_str()), uid.size(),
-        reinterpret_cast<const unsigned char *>(bundleName.c_str()), bundleName.size(), ITERATE_CNT,
-        OUTPUT_LENGTH_IN_BYTES, newId);
-    if (ret != 0) {
-        ACCOUNT_LOGE("mbedtls_pkcs5_pbkdf2_hmac failed");
-        mbedtls_md_free(&md_context);
+    int ret = PKCS5_PBKDF2_HMAC(
+        reinterpret_cast<const char *>(uid.c_str()), uid.size(),
+        reinterpret_cast<const unsigned char *>(bundleName.c_str()), bundleName.size(),
+        ITERATE_CNT,
+        sha256Md,
+        OUTPUT_LENGTH_IN_BYTES,
+        newId);
+    // When calling PKCS5_PBKDF2_HMAC, returning 1 indicates success, and returning 0 indicates failure
+    if (ret != 1) {
+        ACCOUNT_LOGE("EVP_PBKDF2 failed ret: %{public}d", ret);
+        EVP_MD_free(sha256Md);
         return std::string("");
     }
-    mbedtls_md_free(&md_context);
     std::string ohosUidStr;
     for (int i = 0; i < OUTPUT_LENGTH_IN_BYTES; i++) {
         if ((newId[i] & TWO_BYTE_MASK) == 0) {
@@ -141,6 +138,7 @@ std::string GenerateDVID(const std::string &bundleName, const std::string &uid)
         }
         ohosUidStr.append(DexToHexString(newId[i], true));
     }
+    EVP_MD_free(sha256Md);
     return ohosUidStr;
 }
 
