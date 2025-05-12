@@ -349,6 +349,35 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, CreateOsAccountWithFullInfo001, TestSize.
     EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId()));
 }
 
+/**
+ * @tc.name: CreateOsAccountWithFullInfo002
+ * @tc.desc: CreateOsAccountWithFullInfo will return success if account exists but not completed.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, CreateOsAccountWithFullInfo002, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    CreateOsAccountOptions options;
+    options.allowedHapList = {};
+    EXPECT_EQ(ERR_OK, innerMgrService_->CreateOsAccount("CreateOsAccountWithFullInfo002", 
+        "CreateOsAccountWithFullInfo002", OsAccountType::NORMAL, osAccountInfo, options));
+
+    EXPECT_EQ(innerMgrService_->QueryOsAccountById(osAccountInfo.GetLocalId(), osAccountInfo), ERR_OK);
+    osAccountInfo.SetIsCreateCompleted(false);
+    EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->UpdateOsAccount(osAccountInfo));
+
+    OsAccountInfo fullOsAccountInfo;
+    fullOsAccountInfo.SetLocalName("CreateOsAccountWithFullInfo002");
+    fullOsAccountInfo.SetLocalId(osAccountInfo.GetLocalId());
+    fullOsAccountInfo.SetSerialNumber(2023023100000033); // test random input
+    fullOsAccountInfo.SetCreateTime(1695883215000);      // test random input
+    fullOsAccountInfo.SetLastLoginTime(1695863215000);   // test random input
+    EXPECT_EQ(ERR_OK, innerMgrService_->CreateOsAccountWithFullInfo(fullOsAccountInfo));
+
+    EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(osAccountInfo.GetLocalId()));
+}
+
 /*
  * @tc.name: UpdateOsAccountWithFullInfo001
  * @tc.desc: Update os account with full info successfully and save status to account_info.json
