@@ -304,8 +304,10 @@ HWTEST_F(SubscribeDistributedAccountModuleTest, SubscribeDistributedAccountTest0
     EXPECT_EQ(ERR_OK, OhosAccountKits::GetInstance().SubscribeDistributedAccountEvent(
         DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN, loginSubscribeCallbackOne));
     DistributedAccountEventData loginEventData;
+    Parcel parcel;
     loginEventData.id_ = SubDistributedAccount.GetLocalId();
     loginEventData.type_ = DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN;
+    loginEventData.Marshalling(parcel);
     EXPECT_CALL(*loginSubscribeCallbackOne, OnAccountsChanged(loginEventData)).Times(Exactly(1));
 
     // login callback 2

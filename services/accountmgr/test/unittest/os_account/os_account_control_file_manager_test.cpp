@@ -447,7 +447,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest021, Te
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_NE(createdOsAccountNum, -1);
 
-    int createdOsAccountNumByDefault = -1;
+    int createdOsAccountNumByDefault = -2;
     ret = g_controlManager->GetCreatedOsAccountNumFromDatabase(std::string(""), createdOsAccountNumByDefault);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(createdOsAccountNum, createdOsAccountNumByDefault);
