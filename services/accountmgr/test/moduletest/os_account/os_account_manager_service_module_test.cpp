@@ -1300,22 +1300,22 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest081
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest082, TestSize.Level1)
 {
-    bool isConstraintEnable = false;
+    bool isConstraintEnable = true;
     EXPECT_EQ(osAccountManagerService_->IsOsAccountConstraintEnable(
         MAIN_ACCOUNT_ID, CONSTANT_PRINT, isConstraintEnable), ERR_OK);
     EXPECT_EQ(isConstraintEnable, false);
     EXPECT_EQ(osAccountManagerService_->SetGlobalOsAccountConstraints(
         CONSTANTS_VECTOR, true, MAIN_ACCOUNT_ID, true), ERR_OK);
-    isConstraintEnable = false;
+    bool isConstraintEnable1 = false;
     EXPECT_EQ(osAccountManagerService_->IsOsAccountConstraintEnable(
-        MAIN_ACCOUNT_ID, CONSTANT_PRINT, isConstraintEnable), ERR_OK);
-    EXPECT_EQ(isConstraintEnable, true);
+        MAIN_ACCOUNT_ID, CONSTANT_PRINT, isConstraintEnable1), ERR_OK);
+    EXPECT_EQ(isConstraintEnable1, true);
     EXPECT_EQ(osAccountManagerService_->SetGlobalOsAccountConstraints(
         CONSTANTS_VECTOR, false, MAIN_ACCOUNT_ID, true), ERR_OK);
-    isConstraintEnable = true;
+    bool isConstraintEnable2 = true;
     EXPECT_EQ(osAccountManagerService_->IsOsAccountConstraintEnable(
-        MAIN_ACCOUNT_ID, CONSTANT_PRINT, isConstraintEnable), ERR_OK);
-    EXPECT_EQ(isConstraintEnable, false);
+        MAIN_ACCOUNT_ID, CONSTANT_PRINT, isConstraintEnable2), ERR_OK);
+    EXPECT_EQ(isConstraintEnable2, false);
 
     int localId = Constants::START_USER_ID - 1;
     EXPECT_EQ(osAccountManagerService_->SetGlobalOsAccountConstraints(
