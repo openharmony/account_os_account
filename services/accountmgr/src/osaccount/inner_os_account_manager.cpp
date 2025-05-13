@@ -477,12 +477,38 @@ static void InitTheme(int32_t localId)
 }
 #endif // HAS_THEME_SERVICE_PART
 
+void IInnerOsAccountManager::RollbackOsAccount(OsAccountInfo &osAccountInfo, bool needDelStorage, bool needDelBms)
+{
+    if (!osAccountInfo.GetIsDataRemovable()) {
+        (void)osAccountControl_->DelOsAccount(osAccountInfo.GetLocalId());
+        return;
+    }
+
+    if (needDelBms) {
+        ErrCode errCode = OsAccountInterface::SendToBMSAccountDelete(osAccountInfo);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("Send to bms account delete failed, errCode:%{public}d", errCode);
+            return;
+        }
+    }
+    if (needDelStorage) {
+        ErrCode errCode = OsAccountInterface::SendToStorageAccountRemove(osAccountInfo);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("Send to storage account remove failed, errCode:%{public}d", errCode);
+            return;
+        }
+    }
+
+    (void)osAccountControl_->DelOsAccount(osAccountInfo.GetLocalId());
+}
+
 ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
     OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options)
 {
     ErrCode errCode = OsAccountInterface::SendToStorageAccountCreate(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Create os account SendToStorageAccountCreate failed, errCode %{public}d.", errCode);
+        RollbackOsAccount(osAccountInfo, false, false);
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
     int32_t localId = osAccountInfo.GetLocalId();
@@ -493,9 +519,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
         osAccountInfo, options.disallowedHapList, options.allowedHapList);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Create os account SendToBMSAccountCreate failed, errCode %{public}d.", errCode);
-        if (osAccountInfo.GetIsDataRemovable()) {
-            (void)OsAccountInterface::SendToStorageAccountRemove(osAccountInfo);
-        }
+        RollbackOsAccount(osAccountInfo, true, false);
         return errCode;
     }
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
@@ -506,10 +530,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Create os account when update isCreateCompleted");
         ReportOsAccountOperationFail(localId, Constants::OPERATION_CREATE, errCode, "Failed to update OS account");
-        if (osAccountInfo.GetIsDataRemovable()) {
-            (void)OsAccountInterface::SendToBMSAccountDelete(osAccountInfo);
-            (void)OsAccountInterface::SendToStorageAccountRemove(osAccountInfo);
-        }
+        RollbackOsAccount(osAccountInfo, true, true);
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
     errCode = OsAccountInterface::SendToStorageAccountCreateComplete(localId);
@@ -546,9 +567,6 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(
     }
     errCode = SendMsgForAccountCreate(osAccountInfo);
     RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
-    if (errCode != ERR_OK) {
-        (void)osAccountControl_->DelOsAccount(osAccountInfo.GetLocalId());
-    }
     return errCode;
 }
 
@@ -597,9 +615,6 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, co
     }
     errCode = SendMsgForAccountCreate(osAccountInfo, options);
     RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
-    if (errCode != ERR_OK) {
-        (void)osAccountControl_->DelOsAccount(osAccountInfo.GetLocalId());
-    }
     return errCode;
 }
 
@@ -624,9 +639,6 @@ ErrCode IInnerOsAccountManager::CreateOsAccountWithFullInfo(OsAccountInfo &osAcc
     }
     errCode = SendMsgForAccountCreate(osAccountInfo, options);
     RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
-    if (errCode != ERR_OK) {
-        (void)osAccountControl_->DelOsAccount(osAccountInfo.GetLocalId());
-    }
     return errCode;
 }
 
@@ -709,7 +721,10 @@ ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type,
     }
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
     bool isEnabled = false;
-    (void)IsOsAccountConstraintEnable(Constants::START_USER_ID, CONSTRAINT_CREATE_ACCOUNT_DIRECTLY, isEnabled);
+    if (IsOsAccountConstraintEnable(Constants::START_USER_ID,
+        CONSTRAINT_CREATE_ACCOUNT_DIRECTLY, isEnabled) != ERR_OK) {
+        return ERR_OSACCOUNT_KIT_IS_OS_ACCOUNT_CONSTRAINT_ENABLE_ERROR;
+    }
 #else
     bool isEnabled = true;
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
@@ -727,11 +742,10 @@ ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type,
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
         ErrCode errCode = PrepareOsAccountInfo(domainAccountInfo.accountName_, options.shortName,
             type, domainAccountInfo, osAccountInfo);
+        RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
         if (errCode != ERR_OK) {
-            RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
             return errCode;
         }
-        RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
 #else
         ACCOUNT_LOGW("Multiple os accounts feature not enabled");
         return ERR_OSACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR;
@@ -763,7 +777,11 @@ ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
     AccountTimer timer;
 #endif // HICOLLIE_ENABLE
     std::vector<OsAccountInfo> osAccountInfos;
-    (void)QueryAllCreatedOsAccounts(osAccountInfos);
+    ErrCode errCode = QueryAllCreatedOsAccounts(osAccountInfos);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Query all created osAccount failed, errCode:%{public}d", errCode);
+        return errCode;
+    }
     if (CheckDomainAccountBound(osAccountInfos, domainInfo)) {
         ACCOUNT_LOGE("The domain account is already bound");
         return ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR;
