@@ -408,6 +408,7 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfoWithFullInfo(OsAccountInfo &
         return errCode;
     }
     osAccountInfo.SetSerialNumber(serialNumber);
+    osAccountInfo.SetIsCreateCompleted(false);
     osAccountInfo.SetIsDataRemovable(false);
     errCode = osAccountControl_->SetNextLocalId(osAccountInfo.GetLocalId() + 1);
     if (errCode != ERR_OK) {
@@ -632,7 +633,35 @@ ErrCode IInnerOsAccountManager::CreateOsAccountWithFullInfo(OsAccountInfo &osAcc
         ACCOUNT_LOGW("Account id = %{public}d already in operating", osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
     }
-    ErrCode errCode = PrepareOsAccountInfoWithFullInfo(osAccountInfo);
+
+    OsAccountInfo oldInfo;
+    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(osAccountInfo.GetLocalId(), oldInfo);
+    if (errCode != ERR_OK && errCode != ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR) {
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE, errCode,
+            "Get account info failed when create osaccount with full info");
+        RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
+        return errCode;
+    }
+    if (errCode == ERR_OK && oldInfo.GetIsCreateCompleted()) {
+        if (oldInfo.GetToBeRemoved()) {
+            ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE, errCode,
+                "Remove garbage account before create osaccount with full info");
+            ACCOUNT_LOGW("Account %{public}d is to be removed, remove it first.", osAccountInfo.GetLocalId());
+            errCode = RemoveOsAccountOperate(osAccountInfo.GetLocalId(), osAccountInfo);
+            if (errCode != ERR_OK) {
+                RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
+                return errCode;
+            }
+        } else {
+            ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE, errCode,
+                "Account already exists when create osaccount with full info");
+            ACCOUNT_LOGW("Account %{public}d already exists.", osAccountInfo.GetLocalId());
+            RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
+            return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREADY_EXIST_ERROR;
+        }
+    }
+
+    errCode = PrepareOsAccountInfoWithFullInfo(osAccountInfo);
     if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
         return errCode;

@@ -376,6 +376,50 @@ HWTEST_F(OsAccountManagerModuleTest, CreateOsAccountWithFullInfo001, TestSize.Le
 }
 
 /**
+ * @tc.name: CreateOsAccountWithFullInfo002
+ * @tc.desc: CreateOsAccountWithFullInfo will return fail if account exists.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, CreateOsAccountWithFullInfo002, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetLocalName("CreateOsAccountWithFullInfo002");
+    osAccountInfo.SetLocalId(commonOsAccountInfo.GetLocalId());
+    osAccountInfo.SetSerialNumber(2023023100000033); // test random input
+    osAccountInfo.SetCreateTime(1695883215000);      // test random input
+    osAccountInfo.SetLastLoginTime(1695863215000);   // test random input
+    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREADY_EXIST_ERROR,
+              OsAccountManager::CreateOsAccountWithFullInfo(osAccountInfo));
+}
+
+/**
+ * @tc.name: CreateOsAccountWithFullInfo003
+ * @tc.desc: CreateOsAccountWithFullInfo will return success if account exists but toberemoved.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, CreateOsAccountWithFullInfo003, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    CreateOsAccountOptions options;
+    options.allowedHapList = {};
+    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("CreateOsAccountWithFullInfo003",
+        "CreateOsAccountWithFullInfo003", OsAccountType::NORMAL, options, osAccountInfo));
+    EXPECT_EQ(ERR_OK, OsAccountManager::SetOsAccountToBeRemoved(osAccountInfo.GetLocalId(), true));
+
+    OsAccountInfo fullOsAccountInfo;
+    fullOsAccountInfo.SetLocalName("CreateOsAccountWithFullInfo003");
+    fullOsAccountInfo.SetLocalId(osAccountInfo.GetLocalId());
+    fullOsAccountInfo.SetSerialNumber(2023023100000033); // test random input
+    fullOsAccountInfo.SetCreateTime(1695883215000);      // test random input
+    fullOsAccountInfo.SetLastLoginTime(1695863215000);   // test random input
+    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccountWithFullInfo(fullOsAccountInfo));
+
+    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId()));
+}
+
+/**
  * @tc.name: OsAccountManagerModuleTest001
  * @tc.desc: Test create guest account.
  * @tc.type: FUNC
