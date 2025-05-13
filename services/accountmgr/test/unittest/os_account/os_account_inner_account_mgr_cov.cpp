@@ -148,7 +148,8 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest001, 
  */
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest002, TestSize.Level1)
 {
-    innerMgrService_->CreateBaseStandardAccount();
+    OsAccountInfo osAccountInfo(Constants::START_USER_ID, "", OsAccountType::ADMIN);
+    innerMgrService_->CreateBaseStandardAccount(osAccountInfo);
 
     std::shared_ptr<IOsAccountControl> osAccountControl = innerMgrService_->osAccountControl_;
     bool isExistsAccount = false;

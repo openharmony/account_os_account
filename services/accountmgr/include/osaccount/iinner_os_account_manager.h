@@ -137,13 +137,10 @@ private:
     DISALLOW_COPY_AND_MOVE(IInnerOsAccountManager);
     void RestartActiveAccount();
     void CreateBaseAdminAccount();
-    void CreateBaseStandardAccount();
-#ifdef ENABLE_U1_ACCOUNT
-    ErrCode SendMsgForBackgroundAccountActivate(OsAccountInfo &osAccountInfo);
-    ErrCode ActivateU1OsAccount();
-    bool CreateU1Account();
-#endif // ENABLE_U1_ACCOUNT
-    bool CreateInitOsAccount(OsAccountInfo &osAccountInfo);
+    bool CreateBaseStandardAccount(OsAccountInfo &osAccountInfo);
+    ErrCode SendMsgForAccountActivateInBackground(OsAccountInfo &osAccountInfo);
+    ErrCode ActivateOsAccountInBackground(const int32_t id);
+    bool IsLoggedInAccountsOversize();
     void ExecuteDeactivationAnimation(int32_t pipeFd, const OsAccountInfo &osAccountInfo);
     ErrCode WaitForAnimationReady(int32_t pipeFd);
     void LaunchDeactivationAnimation(const OsAccountInfo &osAccountInfo);

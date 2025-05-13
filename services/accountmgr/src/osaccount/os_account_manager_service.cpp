@@ -1141,7 +1141,7 @@ ErrCode OsAccountManagerService::SetDefaultActivatedOsAccount(const int32_t id)
     }
     if (id < Constants::START_USER_ID) {
         ACCOUNT_LOGE("Not allow set id:%{public}d default activated account!", id);
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
     return innerManager_.SetDefaultActivatedOsAccount(id);
 }

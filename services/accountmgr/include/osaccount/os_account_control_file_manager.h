@@ -134,7 +134,7 @@ private:
     void InitFileWatcherInfo(std::vector<std::string> &accountIdList);
     bool RecoverAccountData(const std::string &fileName, const int32_t id);
 #ifdef ENABLE_U1_ACCOUNT
-    void GetU1Config(const Json &configJson, OsAccountConfig &config);
+    void GetU1Config(const CJsonUnique &configJson, OsAccountConfig &config);
 #endif // ENABLE_U1_ACCOUNT
 private:
     std::shared_ptr<AccountFileOperator> accountFileOperator_;

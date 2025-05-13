@@ -33,7 +33,7 @@ using namespace OHOS::Security::AccessToken;
 namespace {
 constexpr int32_t TEST_DEFAULT_ID = -1;
 constexpr int32_t TEST_EXIST_ID = 100;
-constexpr int32_t TEST_NOT_EXIST_ID = 1;
+constexpr int32_t TEST_NOT_EXIST_ID = 2;
 }
 
 class MockIIDMCallback : public IDMCallbackStub {

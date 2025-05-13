@@ -74,6 +74,7 @@ ohos_unittest("OsAccountControlFileManagerTest") {
   if (os_account_distributed_feature) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
   }
+
   if (os_account_enable_account_1) {
     cflags_cc += [ "-DENABLE_U1_ACCOUNT" ]
   }

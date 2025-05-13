@@ -95,27 +95,38 @@ bool GetValidAccountID(const std::string& dirName, std::int32_t& accountID)
 }
 
 #ifdef ENABLE_U1_ACCOUNT
-void OsAccountControlFileManager::GetU1Config(const Json &configJson, OsAccountConfig &config)
+void OsAccountControlFileManager::GetU1Config(const CJsonUnique &configJson, OsAccountConfig &config)
 {
-    Json systemAccountsJson;
-    bool result = OHOS::AccountSA::GetDataByType<Json>(configJson, configJson.end(), SYSTEM_ACCOUNTS_CONFIG,
-        systemAccountsJson, OHOS::AccountSA::JsonType::OBJECT);
-    if (!result) {
+    CJson *systemAccountsJson = nullptr;
+    bool ret = GetDataByType<CJson *>(configJson, SYSTEM_ACCOUNTS_CONFIG, systemAccountsJson);
+    if (!ret) {
+        ACCOUNT_LOGE("Failed to parse %{public}s", SYSTEM_ACCOUNTS_CONFIG);
         return;
     }
-    Json u1Json;
-    result = OHOS::AccountSA::GetDataByType<Json>(systemAccountsJson, systemAccountsJson.end(), U1_CONFIG,
-        u1Json, OHOS::AccountSA::JsonType::OBJECT);
-    if (!result) {
+    CJson *u1Json = nullptr;
+    ret = GetDataByType<CJson *>(systemAccountsJson, U1_CONFIG, u1Json);
+    if (!ret) {
+        ACCOUNT_LOGE("Failed to parse %{public}s", U1_CONFIG);
         return;
     }
     config.isU1Enable = true;
-    OHOS::AccountSA::GetDataByType<OsAccountType>(u1Json, u1Json.end(), SYSTEM_ACCOUNT_TYPE,
-        config.u1AccountType, OHOS::AccountSA::JsonType::NUMBER);
-    OHOS::AccountSA::GetDataByType<std::string>(u1Json, u1Json.end(), SYSTEM_ACCOUNT_NAME,
-        config.u1AccountName, OHOS::AccountSA::JsonType::STRING);
-    OHOS::AccountSA::GetDataByType<bool>(u1Json, u1Json.end(), SYSTEM_ACCOUNT_BLOCK_BOOT,
-        config.isBlockBoot, OHOS::AccountSA::JsonType::BOOLEAN);
+    int32_t type = -1;
+    GetDataByType<std::int32_t>(u1Json, SYSTEM_ACCOUNT_TYPE, type);
+    if (type != static_cast<int32_t>(OsAccountType::ADMIN) &&
+        type != static_cast<int32_t>(OsAccountType::NORMAL) &&
+        type != static_cast<int32_t>(OsAccountType::GUEST) &&
+        type != static_cast<int32_t>(OsAccountType::PRIVATE)) {
+        ACCOUNT_LOGE("Fail to get type:%{public}d from config.", type);
+        config.u1AccountType = OsAccountType::ADMIN;
+    } else {
+        config.u1AccountType = static_cast<OsAccountType>(type);
+    }
+    GetDataByType<std::string>(u1Json, SYSTEM_ACCOUNT_NAME, config.u1AccountName);
+    if (config.u1AccountName.length() > Constants::LOCAL_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("Fail to get name:%{public}s from config.", config.u1AccountName.c_str());
+        config.u1AccountName = "";
+    }
+    GetDataByType<bool>(u1Json, SYSTEM_ACCOUNT_BLOCK_BOOT, config.isBlockBoot);
 }
 #endif // ENABLE_U1_ACCOUNT
 
@@ -149,7 +160,9 @@ ErrCode OsAccountControlFileManager::GetOsAccountConfig(OsAccountConfig &config)
         config.maxOsAccountNum = static_cast<uint32_t>(maxOsAccountNum);
     }
     GetDataByType<uint32_t>(configJson, MAX_LOGGED_IN_OS_ACCOUNT_NUM, config.maxLoggedInOsAccountNum);
-
+#ifdef ENABLE_U1_ACCOUNT
+    GetU1Config(configJson, config);
+#endif // ENABLE_U1_ACCOUNT
     bool isDeveloperMode = OHOS::system::GetBoolParameter(DEVELOPER_MODE_STATE, false);
     if (isDeveloperMode && IsKeyExist(configJson, DEVELOPER_MODE)) {
         auto modeJson = GetItemFromJson(configJson, DEVELOPER_MODE);
