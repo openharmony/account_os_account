@@ -61,6 +61,8 @@ class OsAccountInfo : public IAccountInfo, public Parcelable {
 public:
     OsAccountInfo();
 
+    OsAccountInfo(int localId, const std::string localName, OsAccountType type);
+
     OsAccountInfo(int localId, const std::string localName, OsAccountType type, int64_t serialNumber);
 
     OsAccountInfo(int localId, const std::string localName, const std::string shortName, OsAccountType type,

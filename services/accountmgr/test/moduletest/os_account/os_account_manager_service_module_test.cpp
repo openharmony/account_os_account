@@ -2059,7 +2059,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, U1Checkout001, TestSize.Level1)
     ASSERT_EQ(osAccountManagerService_->DeactivateOsAccount(1), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
     ASSERT_EQ(osAccountManagerService_->SetCurrentOsAccountIsVerified(1), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
     ASSERT_EQ(osAccountManagerService_->SetOsAccountIsVerified(1, true), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
-    ASSERT_EQ(osAccountManagerService_->SetDefaultActivatedOsAccount(1), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    ASSERT_EQ(osAccountManagerService_->SetDefaultActivatedOsAccount(1), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
     ASSERT_EQ(osAccountManagerService_->SetOsAccountToBeRemoved(1, true), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
 }
 }  // namespace AccountSA

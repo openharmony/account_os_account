@@ -385,18 +385,3 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceDump001, TestSize.Level2)
     result = g_accountMgrService->Dump(fd, args);
     ASSERT_EQ(result, ERR_ACCOUNT_MGR_DUMP_ERROR);
 }
-
-/**
- * @tc.name: AccountMgrServiceCreateAccount001
- * @tc.desc: Test create account.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AccountMgrServiceTest, CreateAccount001, TestSize.Level2)
-{
-    ASSERT_NE(g_accountMgrService, nullptr);
-    std::set<int32_t> idSet;
-    g_accountMgrService->GetUncreatedInitAccounts(idSet);
-    bool result = idSet.find(Constants::START_USER_ID) == idSet.end();
-    ASSERT_EQ(result, true);
-}
