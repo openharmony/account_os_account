@@ -286,7 +286,6 @@ OsAccountControlFileManager::~OsAccountControlFileManager()
 
 void OsAccountControlFileManager::Init()
 {
-    osAccountFileOperator_->Init();
     FileInit();
     Json accountListJson;
     ErrCode result = GetAccountListFromFile(accountListJson);
@@ -1709,10 +1708,10 @@ ErrCode OsAccountControlFileManager::GetIsMultiOsAccountEnable(bool &isMultiOsAc
 {
     return osAccountFileOperator_->GetIsMultiOsAccountEnable(isMultiOsAccountEnable);
 }
-ErrCode OsAccountControlFileManager::CheckConstraintsList(
-    const std::vector<std::string> &constraints, bool &isExists, bool &isOverSize)
+
+bool OsAccountControlFileManager::CheckConstraints(const std::vector<std::string> &constraints)
 {
-    return osAccountFileOperator_->CheckConstraintsList(constraints, isExists, isOverSize);
+    return osAccountFileOperator_->CheckConstraints(constraints);
 }
 
 ErrCode OsAccountControlFileManager::IsAllowedCreateAdmin(bool &isAllowedCreateAdmin)

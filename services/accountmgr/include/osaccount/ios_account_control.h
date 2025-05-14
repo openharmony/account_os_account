@@ -42,8 +42,7 @@ public:
     virtual ErrCode GetPhotoById(const int id, std::string &photo) = 0;
     virtual ErrCode SetPhotoById(const int id, const std::string &photo) = 0;
     virtual ErrCode GetIsMultiOsAccountEnable(bool &isMultiOsAccountEnable) = 0;
-    virtual ErrCode CheckConstraintsList(const std::vector<std::string> &constraints,
-        bool &isExists, bool &isOverSize) = 0;
+    virtual bool CheckConstraints(const std::vector<std::string> &constraints) = 0;
     virtual ErrCode IsAllowedCreateAdmin(bool &isAllowedCreateAdmin) = 0;
 
     virtual ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID,

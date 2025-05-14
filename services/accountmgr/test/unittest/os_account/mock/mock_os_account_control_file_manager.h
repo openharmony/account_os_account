@@ -51,8 +51,7 @@ public:
         const std::string constraint, std::vector<ConstraintSourceTypeInfo> &globalSourceList));
     MOCK_METHOD4(IsFromSpecificOAConstraintsList, ErrCode(const int32_t id, const int32_t deviceOwnerId,
         const std::string constraint, std::vector<ConstraintSourceTypeInfo> &specificSourceList));
-    MOCK_METHOD3(CheckConstraintsList, ErrCode(const std::vector<std::string> &constraints,
-        bool &isExists, bool &isOverSize));
+    MOCK_METHOD1(CheckConstraints, bool(const std::vector<std::string> &constraints));
     MOCK_METHOD2(GetPhotoById, ErrCode(const int id, std::string &photo));
     MOCK_METHOD1(GetIsMultiOsAccountEnable, ErrCode(bool &isMultiOsAccountEnable));
     MOCK_METHOD2(SetPhotoById, ErrCode(const int id, const std::string &photo));

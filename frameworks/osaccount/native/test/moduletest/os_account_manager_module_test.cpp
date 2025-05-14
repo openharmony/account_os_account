@@ -835,8 +835,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest026, TestSize.Lev
 {
     std::vector<std::string> constraints;
     EXPECT_EQ(OsAccountManager::GetOsAccountAllConstraints(Constants::START_USER_ID, constraints), ERR_OK);
-    const unsigned int size = 0;
-    EXPECT_NE(size, constraints.size());
+    EXPECT_NE(0, constraints.size());
     constraints.clear();
     EXPECT_NE(OsAccountManager::GetOsAccountAllConstraints(199, constraints), ERR_OK);
 }
@@ -1552,10 +1551,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest073, TestSize.Lev
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest074, TestSize.Level1)
 {
     std::vector<ConstraintSourceTypeInfo> constraintSourceTypeInfos;
-    EXPECT_EQ(OsAccountManager::QueryOsAccountConstraintSourceTypes(
-        MAIN_ACCOUNT_ID, CONSTANT_WIFI, constraintSourceTypeInfos), ERR_OK);
-    EXPECT_EQ(constraintSourceTypeInfos[0].typeInfo, 1);
-
     EXPECT_EQ(OsAccountManager::QueryOsAccountConstraintSourceTypes(
         MAIN_ACCOUNT_ID, CONSTRAINT_PRIVATE_DNS_SET, constraintSourceTypeInfos), ERR_OK);
     EXPECT_EQ(constraintSourceTypeInfos.size(), 1);

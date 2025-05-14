@@ -1343,8 +1343,8 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest024, TestSize
     ret = innerMgrService_->SetOsAccountConstraints(id, constraints, enable);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR);
 
-    EXPECT_CALL(*ptr, CheckConstraintsList(_, _, _))
-        .WillRepeatedly(DoAll(::testing::Return(-1)));
+    EXPECT_CALL(*ptr, CheckConstraints(_))
+        .WillRepeatedly(DoAll(::testing::Return(false)));
 
     EXPECT_CALL(*ptr, GetOsAccountInfoById(_, _))
         .WillRepeatedly(testing::Return(0));
@@ -1355,9 +1355,8 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest024, TestSize
     EXPECT_CALL(*ptr, GetOsAccountInfoById(_, _))
         .WillRepeatedly(DoAll(::testing::Return(0)));
 
-    EXPECT_CALL(*ptr, CheckConstraintsList(_, _, _))
-        .WillRepeatedly(DoAll(::testing::SetArgReferee<1>(1), ::testing::Return(0)));
-
+    EXPECT_CALL(*ptr, CheckConstraints(_))
+    .WillRepeatedly(DoAll(::testing::Return(true)));
     EXPECT_CALL(*ptr, UpdateOsAccount(_))
         .WillRepeatedly(testing::Return(-1));
 
@@ -1585,9 +1584,8 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest032, TestSize
     EXPECT_CALL(*ptr, GetOsAccountInfoById(_, _))
         .WillRepeatedly(DoAll(testing::SetArgReferee<1>(osAccountInfo), testing::Return(0)));
 
-    bool isExists = true;
-    EXPECT_CALL(*ptr, CheckConstraintsList(_, _, _))
-        .WillRepeatedly(DoAll(testing::SetArgReferee<1>(isExists), testing::Return(0)));
+    EXPECT_CALL(*ptr, CheckConstraints(_))
+    .WillRepeatedly(DoAll(::testing::Return(true)));
 
     EXPECT_CALL(*ptr, UpdateGlobalOAConstraints(_, _, _))
         .WillRepeatedly(DoAll(testing::Return(0)));
