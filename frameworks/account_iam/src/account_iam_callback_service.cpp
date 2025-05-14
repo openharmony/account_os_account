@@ -29,7 +29,7 @@ IDMCallbackService::IDMCallbackService(int32_t userId, const std::shared_ptr<IDM
 IDMCallbackService::~IDMCallbackService()
 {
     if (!isCalled_ && (callback_ != nullptr)) {
-        ACCOUNT_LOGW("No valid result returned beacuse system exception");
+        ACCOUNT_LOGW("No valid result returned because system exception");
         Attributes emptyAttributes;
         callback_->OnResult(ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR, emptyAttributes);
     }
@@ -64,7 +64,7 @@ GetCredInfoCallbackService::GetCredInfoCallbackService(const std::shared_ptr<Get
 GetCredInfoCallbackService::~GetCredInfoCallbackService()
 {
     if (!isCalled_ && (callback_ != nullptr)) {
-        ACCOUNT_LOGW("No valid result returned beacuse system exception");
+        ACCOUNT_LOGW("No valid result returned because system exception");
         std::vector<CredentialInfo> emptyInfoList;
         callback_->OnCredentialInfo(ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR, emptyInfoList);
     }
@@ -87,7 +87,7 @@ GetSetPropCallbackService::GetSetPropCallbackService(const std::shared_ptr<GetSe
 GetSetPropCallbackService::~GetSetPropCallbackService()
 {
     if (!isCalled_ && (callback_ != nullptr)) {
-        ACCOUNT_LOGW("No valid result returned beacuse system exception");
+        ACCOUNT_LOGW("No valid result returned because system exception");
         Attributes emptyAttributes;
         callback_->OnResult(ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR, emptyAttributes);
     }
@@ -110,7 +110,7 @@ GetEnrolledIdCallbackService::GetEnrolledIdCallbackService(const std::shared_ptr
 GetEnrolledIdCallbackService::~GetEnrolledIdCallbackService()
 {
     if (!isCalled_ && (callback_ != nullptr)) {
-        ACCOUNT_LOGW("No valid result returned beacuse system exception");
+        ACCOUNT_LOGW("No valid result returned because system exception");
         uint64_t enrolledId = 0;
         callback_->OnEnrolledId(ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR, enrolledId);
     }
@@ -133,7 +133,7 @@ PreRemoteAuthCallbackService::PreRemoteAuthCallbackService(
 PreRemoteAuthCallbackService::~PreRemoteAuthCallbackService()
 {
     if (!isCalled_ && (callback_ != nullptr)) {
-        ACCOUNT_LOGW("No valid result returned beacuse system exception");
+        ACCOUNT_LOGW("No valid result returned because system exception");
         callback_->OnResult(ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
     }
 }
