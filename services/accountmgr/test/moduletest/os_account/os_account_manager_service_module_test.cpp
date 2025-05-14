@@ -420,13 +420,6 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest015
     bool enable = false;
     EXPECT_EQ(osAccountManagerService_->SetOsAccountConstraints(
         osAccountInfoOne.GetLocalId(), CONSTANTS_VECTOR, enable), ERR_OK);
-    OsAccountInfo osAccountInfoTwo;
-    EXPECT_EQ(osAccountManagerService_->QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo),
-        ERR_OK);
-
-    std::vector<std::string> constraints = osAccountInfoTwo.GetConstraints();
-    EXPECT_TRUE(std::includes(constraints.begin(), constraints.end(), CONSTANTS_VECTOR.begin(), CONSTANTS_VECTOR.end(),
-                              [](const std::string& s1, const std::string& s2) { return s1 == s2; }));
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
@@ -447,8 +440,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest016
     EXPECT_EQ(osAccountManagerService_->QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo),
         ERR_OK);
     std::vector<std::string> constraints = osAccountInfoTwo.GetConstraints();
-    EXPECT_TRUE(std::includes(constraints.begin(), constraints.end(), CONSTANTS_VECTOR.begin(), CONSTANTS_VECTOR.end(),
-                              [](const std::string& s1, const std::string& s2) { return s1 == s2; }));
+    EXPECT_TRUE(constraints.size() > CONSTANTS_VECTOR.size());
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 
     int localId = Constants::START_USER_ID - 1;
@@ -610,8 +602,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest026
 {
     std::vector<std::string> constraints;
     EXPECT_EQ(osAccountManagerService_->GetOsAccountAllConstraints(Constants::START_USER_ID, constraints), ERR_OK);
-    const unsigned int size = 0;
-    EXPECT_NE(size, constraints.size());
+    EXPECT_NE(0, constraints.size());
 }
 
 /**

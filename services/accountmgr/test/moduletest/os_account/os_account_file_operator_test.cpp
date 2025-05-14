@@ -64,21 +64,31 @@ void OsAccountFileOperatorTest::TearDown(void)
 {}
 
 /**
- * @tc.name: OsAccountFileOperator_CheckConstraintsList_0001
- * @tc.desc: Test CreateOsAccount when create max accounts.
+ * @tc.name: OsAccountFileOperator_CheckConstraints_0001
+ * @tc.desc: Return true when constraints is empty.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountFileOperatorTest, CheckConstraintsList_0001, TestSize.Level1)
+HWTEST_F(OsAccountFileOperatorTest, CheckConstraints_0001, TestSize.Level1)
 {
     ACCOUNT_LOGI("OsAccountFileOperator_CheckConstraintsList_0001");
 
     std::vector<std::string> constraints;
-    bool isExists = true;
-    bool isOverSize = true;
-    ErrCode ret = g_osAccountFileOperator->CheckConstraintsList(constraints, isExists, isOverSize);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_OS_FILE_GET_CONSTRAINTS_LITS_ERROR);
+    EXPECT_TRUE(g_osAccountFileOperator->CheckConstraints(constraints));
 }
 
+/**
+ * @tc.name: OsAccountFileOperator_CheckConstraints_0002
+ * @tc.desc: Return true for the valid constraints.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountFileOperatorTest, CheckConstraints_0002, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountFileOperator_CheckConstraintsList_0002");
+
+    std::vector<std::string> constraints = { "constraint.os.account.create" };
+    EXPECT_TRUE(g_osAccountFileOperator->CheckConstraints(constraints));
+}
 }  // namespace AccountSA
 }  // namespace OHOS

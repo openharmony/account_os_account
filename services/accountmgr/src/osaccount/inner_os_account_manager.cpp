@@ -1395,11 +1395,8 @@ ErrCode IInnerOsAccountManager::SetGlobalOsAccountConstraints(const std::vector<
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR;
     }
 
-    bool isExists = false;
-    bool isOverSize = false;
-    errCode = osAccountControl_->CheckConstraintsList(constraints, isExists, isOverSize);
-    if (errCode != ERR_OK || !isExists || isOverSize) {
-        ACCOUNT_LOGE("Input constraints not in constraints list or is oversize!");
+    if (!osAccountControl_->CheckConstraints(constraints)) {
+        ACCOUNT_LOGE("Invalid constraints");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
@@ -1433,11 +1430,8 @@ ErrCode IInnerOsAccountManager::SetSpecificOsAccountConstraints(const std::vecto
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR;
     }
 
-    bool isExists = false;
-    bool isOverSize = false;
-    errCode = osAccountControl_->CheckConstraintsList(constraints, isExists, isOverSize);
-    if (errCode != ERR_OK || !isExists || isOverSize) {
-        ACCOUNT_LOGE("Input constraints not in constraints list or is oversize!");
+    if (!osAccountControl_->CheckConstraints(constraints)) {
+        ACCOUNT_LOGE("Invalid constraints");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
@@ -1715,11 +1709,8 @@ ErrCode IInnerOsAccountManager::SetOsAccountConstraints(
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR;
     }
 
-    bool isExists = false;
-    bool isOverSize = false;
-    errCode = osAccountControl_->CheckConstraintsList(constraints, isExists, isOverSize);
-    if (errCode != ERR_OK || !isExists || isOverSize) {
-        ACCOUNT_LOGE("Input constraints not in constraints list or is oversize!");
+    if (!osAccountControl_->CheckConstraints(constraints)) {
+        ACCOUNT_LOGE("Invalid constraints");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     std::vector<std::string> oldConstraints = osAccountInfo.GetConstraints();
