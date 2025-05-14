@@ -229,17 +229,18 @@ static void CopyAuthOptionsToAuthParam(const AuthOptions &authOptions, AuthParam
 {
     authParam.userId = authOptions.accountId;
     authParam.authIntent = authOptions.authIntent;
-    if (authOptions.hasRemoteAuthOptions) {
-        authParam.remoteAuthParam = RemoteAuthParam();
-        if (authOptions.remoteAuthOptions.hasVerifierNetworkId) {
-            authParam.remoteAuthParam.value().verifierNetworkId = authOptions.remoteAuthOptions.verifierNetworkId;
-        }
-        if (authOptions.remoteAuthOptions.hasCollectorNetworkId) {
-            authParam.remoteAuthParam.value().collectorNetworkId = authOptions.remoteAuthOptions.collectorNetworkId;
-        }
-        if (authOptions.remoteAuthOptions.hasCollectorTokenId) {
-            authParam.remoteAuthParam.value().collectorTokenId = authOptions.remoteAuthOptions.collectorTokenId;
-        }
+    if (!authOptions.hasRemoteAuthOptions) {
+        return;
+    }
+    authParam.remoteAuthParam = RemoteAuthParam();
+    if (authOptions.remoteAuthOptions.hasVerifierNetworkId) {
+        authParam.remoteAuthParam.value().verifierNetworkId = authOptions.remoteAuthOptions.verifierNetworkId;
+    }
+    if (authOptions.remoteAuthOptions.hasCollectorNetworkId) {
+        authParam.remoteAuthParam.value().collectorNetworkId = authOptions.remoteAuthOptions.collectorNetworkId;
+    }
+    if (authOptions.remoteAuthOptions.hasCollectorTokenId) {
+        authParam.remoteAuthParam.value().collectorTokenId = authOptions.remoteAuthOptions.collectorTokenId;
     }
 }
 
