@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -127,6 +127,30 @@ public:
     std::mutex mutex;
 private:
     std::shared_ptr<MockGetSetPropCallback> callback_;
+};
+
+class MockPreRemoteAuthCallback final {
+public:
+    MOCK_METHOD1(OnResult, void(int32_t result));
+};
+
+class TestPreRemoteAuthCallback final : public AccountSA::PreRemoteAuthCallback {
+public:
+    TestPreRemoteAuthCallback(const std::shared_ptr<MockPreRemoteAuthCallback> &callback) :callback_(callback) {}
+    virtual ~TestPreRemoteAuthCallback() {}
+    void OnResult(int32_t result)
+    {
+        callback_->OnResult(result);
+        std::unique_lock<std::mutex> lock(mutex);
+        isReady = true;
+        cv.notify_one();
+        return;
+    }
+    std::condition_variable cv;
+    bool isReady = false;
+    std::mutex mutex;
+private:
+    std::shared_ptr<MockPreRemoteAuthCallback> callback_;
 };
 }  // namespace AccountTest
 }  // namespace OHOS

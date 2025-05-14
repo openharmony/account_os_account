@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,6 +26,15 @@ IDMCallbackService::IDMCallbackService(int32_t userId, const std::shared_ptr<IDM
     : userId_(userId), callback_(callback)
 {}
 
+IDMCallbackService::~IDMCallbackService()
+{
+    if (!isCalled_ && (callback_ != nullptr)) {
+        ACCOUNT_LOGW("No valid result returned because system exception");
+        Attributes emptyAttributes;
+        callback_->OnResult(ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR, emptyAttributes);
+    }
+}
+
 void IDMCallbackService::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
 {
     if (callback_ == nullptr) {
@@ -37,6 +46,7 @@ void IDMCallbackService::OnAcquireInfo(int32_t module, uint32_t acquireInfo, con
 
 void IDMCallbackService::OnResult(int32_t result, const Attributes &extraInfo)
 {
+    isCalled_ = true;
     if (callback_ == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
         return;
@@ -51,21 +61,46 @@ GetCredInfoCallbackService::GetCredInfoCallbackService(const std::shared_ptr<Get
     : callback_(callback)
 {}
 
+GetCredInfoCallbackService::~GetCredInfoCallbackService()
+{
+    if (!isCalled_ && (callback_ != nullptr)) {
+        ACCOUNT_LOGW("No valid result returned because system exception");
+        std::vector<CredentialInfo> emptyInfoList;
+        callback_->OnCredentialInfo(ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR, emptyInfoList);
+    }
+}
+
 void GetCredInfoCallbackService::OnCredentialInfo(const std::vector<CredentialInfo> &infoList)
 {
+    isCalled_ = true;
     if (callback_ == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
         return;
     }
-    callback_->OnCredentialInfo(ERR_OK, infoList);
+    callback_->OnCredentialInfo(result_, infoList);
+}
+
+void GetCredInfoCallbackService::SetResult(int32_t errCode)
+{
+    result_ = errCode;
 }
 
 GetSetPropCallbackService::GetSetPropCallbackService(const std::shared_ptr<GetSetPropCallback> &callback)
     : callback_(callback)
 {}
 
+GetSetPropCallbackService::~GetSetPropCallbackService()
+{
+    if (!isCalled_ && (callback_ != nullptr)) {
+        ACCOUNT_LOGW("No valid result returned because system exception");
+        Attributes emptyAttributes;
+        callback_->OnResult(ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR, emptyAttributes);
+    }
+}
+
 void GetSetPropCallbackService::OnResult(int32_t result, const Attributes &extraInfo)
 {
+    isCalled_ = true;
     if (callback_ == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
         return;
@@ -77,8 +112,18 @@ GetEnrolledIdCallbackService::GetEnrolledIdCallbackService(const std::shared_ptr
     : callback_(callback)
 {}
 
+GetEnrolledIdCallbackService::~GetEnrolledIdCallbackService()
+{
+    if (!isCalled_ && (callback_ != nullptr)) {
+        ACCOUNT_LOGW("No valid result returned because system exception");
+        uint64_t enrolledId = 0;
+        callback_->OnEnrolledId(ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR, enrolledId);
+    }
+}
+
 void GetEnrolledIdCallbackService::OnEnrolledId(int32_t result, uint64_t enrolledId)
 {
+    isCalled_ = true;
     if (callback_ == nullptr) {
         ACCOUNT_LOGE("Callback is nullptr");
         return;
@@ -90,8 +135,17 @@ PreRemoteAuthCallbackService::PreRemoteAuthCallbackService(
     const std::shared_ptr<PreRemoteAuthCallback> &callback) : callback_(callback)
 {}
 
+PreRemoteAuthCallbackService::~PreRemoteAuthCallbackService()
+{
+    if (!isCalled_ && (callback_ != nullptr)) {
+        ACCOUNT_LOGW("No valid result returned because system exception");
+        callback_->OnResult(ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
+    }
+}
+
 void PreRemoteAuthCallbackService::OnResult(int32_t result)
 {
+    isCalled_ = true;
     if (callback_ == nullptr) {
         ACCOUNT_LOGE("Callback is nullptr.");
         return;

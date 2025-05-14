@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -155,15 +155,26 @@ void AccountIAMClient::DelUser(
 int32_t AccountIAMClient::GetCredentialInfo(
     int32_t userId, AuthType authType, const std::shared_ptr<GetCredInfoCallback> &callback)
 {
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("The callback for get credential info is nullptr");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
+    std::vector<CredentialInfo> infoList;
     auto proxy = GetAccountIAMProxy();
     if (proxy == nullptr) {
+        callback->OnCredentialInfo(ERR_ACCOUNT_COMMON_GET_PROXY, infoList);
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    sptr<IGetCredInfoCallback> wrapper = new (std::nothrow) GetCredInfoCallbackService(callback);
+    sptr<GetCredInfoCallbackService> wrapper = new (std::nothrow) GetCredInfoCallbackService(callback);
+    if (wrapper == nullptr) {
+        ACCOUNT_LOGE("The wrapper is nullptr");
+        callback->OnCredentialInfo(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, infoList);
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
     ErrCode result = proxy->GetCredentialInfo(userId, authType, wrapper);
-    if ((result != ERR_OK) && (callback != nullptr)) {
-        std::vector<CredentialInfo> infoList;
-        callback->OnCredentialInfo(result, infoList);
+    if (result != ERR_OK) {
+        wrapper->SetResult(result);
+        wrapper->OnCredentialInfo(infoList);
     }
     return result;
 }
@@ -215,33 +226,8 @@ uint64_t AccountIAMClient::Auth(AuthOptions& authOptions, const std::vector<uint
     return AuthUser(authOptions, challenge, authType, authTrustLevel, callback);
 }
 
-uint64_t AccountIAMClient::AuthUser(
-    AuthOptions &authOptions, const std::vector<uint8_t> &challenge, AuthType authType,
-    AuthTrustLevel authTrustLevel, const std::shared_ptr<IDMCallback> &callback)
+static void CopyAuthOptionsToAuthParam(const AuthOptions &authOptions, AuthParam &authParam)
 {
-    uint64_t contextId = 0;
-    if (callback == nullptr) {
-        ACCOUNT_LOGE("callback is nullptr");
-        return contextId;
-    }
-    auto proxy = GetAccountIAMProxy();
-    if (proxy == nullptr) {
-        return contextId;
-    }
-    if ((!authOptions.hasRemoteAuthOptions) && (authOptions.accountId == -1) &&
-        (!GetCurrentUserId(authOptions.accountId))) {
-        return contextId;
-    }
-#ifdef HAS_PIN_AUTH_PART
-    if (static_cast<int32_t>(authType) == static_cast<int32_t>(IAMAuthType::DOMAIN)) {
-        return StartDomainAuth(authOptions.accountId, callback);
-    }
-#endif
-    sptr<IIDMCallback> wrapper = new (std::nothrow) IDMCallbackService(authOptions.accountId, callback);
-    AuthParam authParam;
-    authParam.challenge = challenge;
-    authParam.authType = authType;
-    authParam.authTrustLevel = authTrustLevel;
     authParam.userId = authOptions.accountId;
     authParam.authIntent = authOptions.authIntent;
     if (authOptions.hasRemoteAuthOptions) {
@@ -256,11 +242,48 @@ uint64_t AccountIAMClient::AuthUser(
             authParam.remoteAuthParam.value().collectorTokenId = authOptions.remoteAuthOptions.collectorTokenId;
         }
     }
+}
+
+uint64_t AccountIAMClient::AuthUser(
+    AuthOptions &authOptions, const std::vector<uint8_t> &challenge, AuthType authType,
+    AuthTrustLevel authTrustLevel, const std::shared_ptr<IDMCallback> &callback)
+{
+    uint64_t contextId = 0;
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("callback is nullptr");
+        return contextId;
+    }
+    Attributes emptyResult;
+    auto proxy = GetAccountIAMProxy();
+    if (proxy == nullptr) {
+        callback->OnResult(ERR_ACCOUNT_COMMON_GET_PROXY, emptyResult);
+        return contextId;
+    }
+    if ((!authOptions.hasRemoteAuthOptions) && (authOptions.accountId == -1) &&
+        (!GetCurrentUserId(authOptions.accountId))) {
+        callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
+        return contextId;
+    }
+#ifdef HAS_PIN_AUTH_PART
+    if (static_cast<int32_t>(authType) == static_cast<int32_t>(IAMAuthType::DOMAIN)) {
+        return StartDomainAuth(authOptions.accountId, callback);
+    }
+#endif
+    sptr<IIDMCallback> wrapper = new (std::nothrow) IDMCallbackService(authOptions.accountId, callback);
+    if (wrapper == nullptr) {
+        ACCOUNT_LOGE("The wrapper is nullptr");
+        callback->OnResult(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, emptyResult);
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
+    AuthParam authParam;
+    authParam.challenge = challenge;
+    authParam.authType = authType;
+    authParam.authTrustLevel = authTrustLevel;
+    CopyAuthOptionsToAuthParam(authOptions, authParam);
     ErrCode result = proxy->AuthUser(authParam, wrapper, contextId);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Failed to auth user, result = %{public}d", result);
-        Attributes emptyResult;
-        callback->OnResult(result, emptyResult);
+        wrapper->OnResult(result, emptyResult);
     }
     return contextId;
 }
