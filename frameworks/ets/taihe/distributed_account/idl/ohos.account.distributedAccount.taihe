@@ -34,6 +34,18 @@ interface DistributedAccountAbility {
     @gen_async("getOsAccountDistributedInfo")
     @gen_promise("getOsAccountDistributedInfo")
     GetOsAccountDistributedInfoSync(): DistributedInfo;
+    
+    @gen_async("getOsAccountDistributedInfoByLocalId")
+    @gen_promise("getOsAccountDistributedInfoByLocalId")
+    GetOsAccountDistributedInfoByLocalIdSync(localId: i32): DistributedInfo;
+
+    @gen_async("setOsAccountDistributedInfo")
+    @gen_promise("setOsAccountDistributedInfo")
+    SetOsAccountDistributedInfo(accountInfo: DistributedInfo);
+
+    @gen_async("setOsAccountDistributedInfoByLocalId")
+    @gen_promise("setOsAccountDistributedInfoByLocalId")
+    SetOsAccountDistributedInfoByLocalId(localId: i32, distributedInfo: DistributedInfo);
 }
 
 function getDistributedAccountAbility(): DistributedAccountAbility;

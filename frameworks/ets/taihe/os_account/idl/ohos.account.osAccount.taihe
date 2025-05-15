@@ -105,7 +105,6 @@ interface UserIdentityManager {
     @gen_promise("openSession")
     OpenSessionPromise(accountId:Optional<i32>): @typedarray Array<u8>;
 
-    @overload("closeSession")
     CloseSession(accountId: Optional<i32>): void;
 
     @gen_promise("getAuthInfo")
@@ -270,7 +269,6 @@ struct EnrolledCredInfo {
 }
 
 interface DomainPlugin {
-    @overload("auth")
     Auth(domainAccountInfo: DomainAccountInfo, credential: @typedarray Array<u8>, callback: IUserAuthCallback): void;
 }
 
@@ -368,11 +366,9 @@ interface UserAuth {
     AuthWithOptSync(challenge: @typedarray Array<u8>, authType: AuthType,
         authTrustLevel: AuthTrustLevel, options: AuthOptions, callback: IUserAuthCallback): @typedarray Array<u8>;
 
-    @overload("authUser")
     AuthUser(userId: i32, challenge: @typedarray Array<u8>, authType: AuthType,
         authTrustLevel: AuthTrustLevel, callback: IUserAuthCallback): @typedarray Array<u8>;
     
-    @overload("cancelAuth")
     CancelAuth(contextID: @typedarray Array<u8>): void;
 
     @gen_async("getProperty")
@@ -410,3 +406,61 @@ function CreateUserAuth(): UserAuth;
 
 @ctor("PINAuth")
 function CreatePINAuth(): PINAuth;
+
+struct AuthStatusInfo {
+    remainTimes: i32;
+    freezingTime: i32;
+}
+
+struct GetDomainAccessTokenOptions {
+    domainAccountInfo: DomainAccountInfo;
+    domainAccountToken: @typedarray Array<u8>;
+    businessParams: @record Map<String, Opaque>;
+    callerUid: i32;
+}
+
+struct GetDomainAccountInfoOptions {
+    accountName: String;
+    domain: Optional<String>;
+    serverConfigId: Optional<String>;
+}
+
+struct GetDomainAccountInfoPluginOptions {
+    callerUid: i32;
+}
+
+struct DomainServerConfig {
+    parameters: @record Map<String, Opaque>;
+    id: String;
+    domain: String;
+}
+
+enum FaceTipsCode : i32 {
+    FACE_AUTH_TIP_TOO_BRIGHT = 1,
+    FACE_AUTH_TIP_TOO_DARK = 2,
+    FACE_AUTH_TIP_TOO_CLOSE = 3,
+    FACE_AUTH_TIP_TOO_FAR = 4,
+    FACE_AUTH_TIP_TOO_HIGH = 5,
+    FACE_AUTH_TIP_TOO_LOW = 6,
+    FACE_AUTH_TIP_TOO_RIGHT = 7,
+    FACE_AUTH_TIP_TOO_LEFT = 8,
+    FACE_AUTH_TIP_TOO_MUCH_MOTION = 9,
+    FACE_AUTH_TIP_POOR_GAZE = 10,
+    FACE_AUTH_TIP_NOT_DETECTED = 11
+}
+
+enum ConstraintSourceType : i32 {
+    CONSTRAINT_NOT_EXIST = 0,
+    CONSTRAINT_TYPE_BASE = 1,
+    CONSTRAINT_TYPE_DEVICE_OWNER = 2,
+    CONSTRAINT_TYPE_PROFILE_OWNER = 3
+}
+
+enum Module : i32 {
+    FACE_AUTH = 1
+}
+
+struct ConstraintSourceTypeInfo {
+    localId: i32;
+    type: ConstraintSourceType;
+}

@@ -72,9 +72,47 @@ public:
         if (err != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(err);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-            return ConvertToDistributedInfoTH(info);
         }
         return ConvertToDistributedInfoTH(info);
+    }
+
+    DistributedInfo GetOsAccountDistributedInfoByLocalIdSync(int32_t localId) 
+    {
+        AccountSA::OhosAccountInfo info;
+        ErrCode err = AccountSA::OhosAccountKits::GetInstance().GetOsAccountDistributedInfo(localId, info);
+        if (err != ERR_OK) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(err);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+        }
+        return ConvertToDistributedInfoTH(info);
+    }
+
+    void SetOsAccountDistributedInfo(DistributedInfo const& accountInfo) 
+    {
+        std::string name(accountInfo.name.data(), accountInfo.name.size());
+        std::string id(accountInfo.id.data(), accountInfo.id.size());
+        std::int32_t status = accountInfo.status->get_value();
+        std::string event(accountInfo.event.data(), accountInfo.event.size());
+        AccountSA::OhosAccountInfo info(name, id, status);
+        ErrCode err = AccountSA::OhosAccountKits::GetInstance().SetOhosAccountInfo(info, event);
+        if (err != ERR_OK) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(err);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+        }
+    }
+
+    void SetOsAccountDistributedInfoByLocalId(int32_t localId, DistributedInfo const& distributedInfo) 
+    {
+        std::string name(distributedInfo.name.data(), distributedInfo.name.size());
+        std::string id(distributedInfo.id.data(), distributedInfo.id.size());
+        std::int32_t status = distributedInfo.status->get_value();
+        std::string event(distributedInfo.event.data(), distributedInfo.event.size());
+        AccountSA::OhosAccountInfo info(name, id, status);
+        ErrCode err = AccountSA::OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(localId, info, event);
+        if (err != ERR_OK) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(err);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+        }
     }
 };
 
