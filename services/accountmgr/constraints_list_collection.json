@@ -63,6 +63,7 @@
         "constraint.screen.timeout.set",
         "constraint.print",
         "constraint.private.dns.set",
-        "constraint.os.account.create.directly"
+        "constraint.os.account.create.directly",
+        "constraint.mtp.client.write"
     ]
 }
