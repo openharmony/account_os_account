@@ -29,21 +29,21 @@ namespace AccountSA {
 #define RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(str)         \
     if (CheckSpecialCharacters(str) != ERR_OK) {            \
         ACCOUNT_LOGE("failed to check special characters"); \
-        NativeErrMsg() = "Invalid name. The name cannot contain space characters";                          \
+        SetNativeErrMsg("Invalid name. The name cannot contain space characters");                          \
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;        \
     }                                                       \
 
 #define RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(str, maxSize, msg)                                                \
     if ((str).empty() || ((str).size() > (maxSize))) {                                                          \
         ACCOUNT_LOGE("%{public}s, input size: %{public}zu, max size: %{public}zu", msg, (str).size(), maxSize); \
-        NativeErrMsg() = msg;                                                                                   \
+        SetNativeErrMsg(msg);                                                                                   \
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;                                                            \
     }
 
 #define RETURN_IF_STRING_IS_OVERSIZE(str, maxSize, msg)                                                         \
     if ((str).size() > (maxSize)) {                                                                             \
         ACCOUNT_LOGE("%{public}s, input size: %{public}zu, max size: %{public}zu", msg, (str).size(), maxSize); \
-        NativeErrMsg() = msg;                                                                                   \
+        SetNativeErrMsg(msg);                                                                                   \
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;                                                            \
     }                                                                                                           \
 
@@ -90,8 +90,8 @@ ErrCode AppAccount::CreateAccount(const std::string &name, const CreateAccountOp
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     if (options.customData.size() > Constants::MAX_CUSTOM_DATA_SIZE) {
-        NativeErrMsg() = "Invalid options.customData."
-            "The length of the options.customData must be greater than 0 and less than 513";
+        SetNativeErrMsg("Invalid options.customData."
+            "The length of the options.customData must be greater than 0 and less than 513");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     for (auto it : options.customData) {
