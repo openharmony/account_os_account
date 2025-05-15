@@ -105,6 +105,7 @@ interface UserIdentityManager {
     @gen_promise("openSession")
     OpenSessionPromise(accountId:Optional<i32>): @typedarray Array<u8>;
 
+	@overload("closeSession")
     CloseSession(accountId: Optional<i32>): void;
 
     @gen_promise("getAuthInfo")
@@ -269,6 +270,7 @@ struct EnrolledCredInfo {
 }
 
 interface DomainPlugin {
+	@overload("auth")
     Auth(domainAccountInfo: DomainAccountInfo, credential: @typedarray Array<u8>, callback: IUserAuthCallback): void;
 }
 
@@ -366,9 +368,11 @@ interface UserAuth {
     AuthWithOptSync(challenge: @typedarray Array<u8>, authType: AuthType,
         authTrustLevel: AuthTrustLevel, options: AuthOptions, callback: IUserAuthCallback): @typedarray Array<u8>;
 
+	@overload("authUser")
     AuthUser(userId: i32, challenge: @typedarray Array<u8>, authType: AuthType,
         authTrustLevel: AuthTrustLevel, callback: IUserAuthCallback): @typedarray Array<u8>;
-    
+
+	@overload("cancelAuth")
     CancelAuth(contextID: @typedarray Array<u8>): void;
 
     @gen_async("getProperty")
