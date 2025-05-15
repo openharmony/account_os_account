@@ -41,11 +41,11 @@ interface DistributedAccountAbility {
 
     @gen_async("setOsAccountDistributedInfo")
     @gen_promise("setOsAccountDistributedInfo")
-    SetOsAccountDistributedInfo(accountInfo: DistributedInfo);
+    SetOsAccountDistributedInfoSync(accountInfo: DistributedInfo);
 
     @gen_async("setOsAccountDistributedInfoByLocalId")
     @gen_promise("setOsAccountDistributedInfoByLocalId")
-    SetOsAccountDistributedInfoByLocalId(localId: i32, distributedInfo: DistributedInfo);
+    SetOsAccountDistributedInfoByLocalIdSync(localId: i32, distributedInfo: DistributedInfo);
 }
 
 function getDistributedAccountAbility(): DistributedAccountAbility;
