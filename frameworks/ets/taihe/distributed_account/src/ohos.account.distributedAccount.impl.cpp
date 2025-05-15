@@ -87,7 +87,7 @@ public:
         return ConvertToDistributedInfoTH(info);
     }
 
-    void SetOsAccountDistributedInfo(DistributedInfo const& accountInfo) 
+    void SetOsAccountDistributedInfoSync(DistributedInfo const& accountInfo) 
     {
         std::string name(accountInfo.name.data(), accountInfo.name.size());
         std::string id(accountInfo.id.data(), accountInfo.id.size());
@@ -101,7 +101,7 @@ public:
         }
     }
 
-    void SetOsAccountDistributedInfoByLocalId(int32_t localId, DistributedInfo const& distributedInfo) 
+    void SetOsAccountDistributedInfoByLocalIdSync(int32_t localId, DistributedInfo const& distributedInfo) 
     {
         std::string name(distributedInfo.name.data(), distributedInfo.name.size());
         std::string id(distributedInfo.id.data(), distributedInfo.id.size());
