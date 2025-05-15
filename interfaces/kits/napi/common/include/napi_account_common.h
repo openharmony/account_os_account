@@ -57,7 +57,33 @@ struct NapiRefArrayContext {
     std::vector<napi_ref> napiRefVec;
 };
 
+struct NapiCallbackRef {
+    NapiCallbackRef(napi_env env, napi_ref callbackRef) : env(env), callbackRef(callbackRef) {}
+    ~NapiCallbackRef();
+    napi_env env;
+    napi_ref callbackRef = nullptr;
+};
+
+class NapiAsyncContext {
+public:
+    NapiAsyncContext() {};
+    NapiAsyncContext(napi_env env, napi_ref ref) : callbackRef(std::make_shared<NapiCallbackRef>(env, ref)) {};
+    NapiAsyncContext(std::shared_ptr<NapiCallbackRef> &callbackRef) : callbackRef(callbackRef) {};
+    NapiAsyncContext(napi_env env, bool throwAble = false)
+        : env(env), throwErr(throwAble) {};
+    napi_env env = nullptr;
+    napi_async_work work = nullptr;
+    napi_deferred deferred = nullptr;
+    std::shared_ptr<NapiCallbackRef> callbackRef = nullptr;
+    napi_status status = napi_ok;
+    ErrCode errCode = ERR_OK;
+    std::string errMsg;
+    std::string nativeErrMsg;
+    bool throwErr = false;
+};
+
 void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data);
+void ProcessCallbackOrPromise(napi_env env, const NapiAsyncContext *asyncContext, napi_value err, napi_value data);
 void ReturnCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data);
 bool GetCallbackProperty(napi_env env, napi_value obj, napi_ref &property, int argNum);
 bool GetIntProperty(napi_env env, napi_value obj, int32_t &property);
@@ -95,13 +121,6 @@ void ReleaseNapiRefArray(napi_env env, const std::vector<napi_ref> &napiRefVec);
 bool JsObjectToNativeString(napi_env env, napi_value jsData, std::string &nativeData);
 napi_value NativeStringToJsObject(napi_env env, const std::string &nativeData);
 bool GetSelfTargetVersion(uint32_t &targetVersion);
-
-struct NapiCallbackRef {
-    NapiCallbackRef(napi_env env, napi_ref callbackRef) : env(env), callbackRef(callbackRef) {}
-    ~NapiCallbackRef();
-    napi_env env;
-    napi_ref callbackRef = nullptr;
-};
 } // namespace AccountJsKit
 } // namespace OHOS
 
