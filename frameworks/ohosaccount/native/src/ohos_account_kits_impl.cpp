@@ -118,10 +118,10 @@ ErrCode OhosAccountKitsImpl::SetOhosAccountInfo(
     }
     if (!ohosAccountInfo.IsValid()) {
         ACCOUNT_LOGE("OhosAccountInfo check failed");
-        NativeErrMsg() = "Invalid accountInfo. Please check the value of accountInfo."
+        SetNativeErrMsg("Invalid accountInfo. Please check the value of accountInfo."
             "(1) The length of the accountInfo.nickname must be less than 1025."
             "(2) The avatar must be less than 10MB."
-            "(3) The length of the accountInfo.scalableData must be less than 1025.";
+            "(3) The length of the accountInfo.scalableData must be less than 1025.");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     return accountProxy->SetOhosAccountInfo(ohosAccountInfo, eventStr);
@@ -137,10 +137,10 @@ ErrCode OhosAccountKitsImpl::SetOsAccountDistributedInfo(
     }
     if (!ohosAccountInfo.IsValid()) {
         ACCOUNT_LOGE("OhosAccountInfo check failed");
-        NativeErrMsg() = "Invalid accountInfo. Please check the value of accountInfo."
+        SetNativeErrMsg("Invalid accountInfo. Please check the value of accountInfo."
             "(1) The length of the accountInfo.nickname must be less than 1025."
             "(2) The avatar must be less than 10MB."
-            "(3) The length of the accountInfo.scalableData must be less than 1025.";
+            "(3) The length of the accountInfo.scalableData must be less than 1025.");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     return accountProxy->SetOsAccountDistributedInfo(localId, ohosAccountInfo, eventStr);
