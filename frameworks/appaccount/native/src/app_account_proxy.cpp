@@ -841,7 +841,7 @@ ErrCode AppAccountProxy::GetAuthenticatorCallback(const std::string &sessionId, 
 
     if (!data.WriteString(sessionId)) {
         ACCOUNT_LOGE("failed to write string for sessionId");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(AppAccountInterfaceCode::GET_AUTHENTICATOR_CALLBACK, data, reply);
     if (result != ERR_OK) {
