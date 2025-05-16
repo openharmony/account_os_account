@@ -22,6 +22,7 @@
 #include "app_account_constants.h"
 #include "app_account_death_recipient.h"
 #include "ohos_account_kits_impl.h"
+#include "system_ability_definition.h"
 #include <string>
 
 namespace OHOS {
@@ -51,6 +52,47 @@ AppAccount &AppAccount::GetInstance()
 {
     static AppAccount *instance = new (std::nothrow) AppAccount();
     return *instance;
+}
+
+AppAccount::AppAccount()
+{
+    auto callbackFunc = [] (int32_t systemAbilityId, const std::string &deviceId) {
+        if (systemAbilityId == SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN) {
+            AppAccount::GetInstance().RestoreListenerRecords();
+        }
+    };
+    OhosAccountKitsImpl::GetInstance().SubscribeSystemAbility(callbackFunc);
+}
+
+void AppAccount::RestoreListenerRecords()
+{
+    auto proxy = GetAppAccountProxy();
+    if (proxy == nullptr) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(eventListenersMutex_);
+    if (eventListeners_.empty()) {
+        return;
+    }
+    size_t successCount = 0;
+    for (const auto &item : eventListeners_) {
+        if (item.first == nullptr) {
+            ACCOUNT_LOGE("AppAccountSubscriber is nullptr");
+            continue;
+        }
+        AppAccountSubscribeInfo subscribeInfo;
+        item.first->GetSubscribeInfo(subscribeInfo);
+        ErrCode result = proxy->SubscribeAppAccount(subscribeInfo, item.second);
+        if (result != ERR_OK) {
+            std::vector<std::string> owners;
+            subscribeInfo.GetOwners(owners);
+            ACCOUNT_LOGE("SubscribeAppAccount owners size=%{public}d failed, errCode=%{public}d",
+                static_cast<uint32_t>(owners.size()), result);
+        } else {
+            successCount++;
+        }
+    }
+    ACCOUNT_LOGI("Restore records %{public}zu/%{public}zu", successCount, eventListeners_.size());
 }
 
 ErrCode AppAccount::AddAccount(const std::string &name, const std::string &extraInfo)

@@ -106,7 +106,7 @@ public:
     ErrCode ResetAppAccountProxy();
 
 private:
-    AppAccount() = default;
+    AppAccount();
     ~AppAccount() = default;
     DISALLOW_COPY_AND_MOVE(AppAccount);
     ErrCode CheckParameters(const std::string &name, const std::string &extraInfo = "");
@@ -117,6 +117,7 @@ private:
     sptr<IAppAccount> GetAppAccountProxy();
     ErrCode CreateAppAccountEventListener(
         const std::shared_ptr<AppAccountSubscriber> &subscriber, sptr<IRemoteObject> &appAccountEventListener);
+    void RestoreListenerRecords();
 
 private:
     std::mutex mutex_;
