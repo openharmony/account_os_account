@@ -181,8 +181,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest004, Te
 {
     std::vector<std::string> constraints;
     EXPECT_EQ(g_controlManager->GetConstraintsByType(OsAccountType::ADMIN, constraints), ERR_OK);
-    const unsigned int size = 0;
-    EXPECT_NE(size, constraints.size());
+    EXPECT_NE(0, constraints.size());
 }
 
 /**
@@ -195,6 +194,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest005, Te
 {
     std::vector<std::string> constraints;
     EXPECT_EQ(g_controlManager->GetConstraintsByType(OsAccountType::GUEST, constraints), ERR_OK);
+    EXPECT_NE(0, constraints.size());
 }
 
 /**
@@ -582,7 +582,7 @@ HWTEST_F(OsAccountControlFileManagerTest, IsFromBaseOAConstraintsList_002, TestS
     ErrCode ret = g_controlManager->IsFromBaseOAConstraintsList(
         100, "constraint.wifi", isExist);
     EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(isExist, true);
+    EXPECT_EQ(isExist, false);
 }
 
 /**
@@ -600,7 +600,7 @@ HWTEST_F(OsAccountControlFileManagerTest, IsFromBaseOAConstraintsList_003, TestS
     ErrCode ret = g_controlManager->IsFromBaseOAConstraintsList(
         100, "constraint.wifi", isExist);
     EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(isExist, true);
+    EXPECT_EQ(isExist, false);
     RenameFile(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk",
         Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH);
 }
@@ -713,10 +713,10 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest026,
  */
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest028, TestSize.Level1)
 {
-    std::vector<std::string> constants;
-    ErrCode ret = g_controlManager->GetConstraintsByType(static_cast<OsAccountType>(INVALID_TYPE), constants);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_CONTROL_GET_TYPE_ERROR);
-    EXPECT_TRUE(constants.empty());
+    std::vector<std::string> constraints;
+    ErrCode ret = g_controlManager->GetConstraintsByType(static_cast<OsAccountType>(INVALID_TYPE), constraints);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_TRUE(constraints.empty());
 }
 
 /**

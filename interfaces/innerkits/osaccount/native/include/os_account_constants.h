@@ -29,8 +29,10 @@ const std::string USER_INFO_BASE = "/data/service/el1/public/account";
 const std::string USER_INFO_BASE = "/data/service/el1/public/account/test";
 #endif // ACCOUNT_TEST
 const std::string SYSTEM_ETC_BASE = "/system/etc/account";
-const std::string OSACCOUNT_CONSTRAINTS_JSON_PATH = SYSTEM_ETC_BASE + PATH_SEPARATOR + "osaccount_constraints.json";
-const std::string CONSTRAINTS_LIST_JSON_PATH = SYSTEM_ETC_BASE + PATH_SEPARATOR + "constraints_list_collection.json";
+const std::string OS_ACCOUNT_CONSTRAINT_CONFIG_PATH =
+    SYSTEM_ETC_BASE + PATH_SEPARATOR + "os_account_constraint_config.json";
+const std::string OS_ACCOUNT_CONSTRAINT_DEFINITION_PATH =
+    SYSTEM_ETC_BASE + PATH_SEPARATOR + "os_account_constraint_definition.json";
 const std::string ACCOUNT_LIST_FILE_JSON_PATH = USER_INFO_BASE + PATH_SEPARATOR + "account_list.json";
 const std::string ACCOUNT_INDEX_JSON_PATH = USER_INFO_BASE + PATH_SEPARATOR + "account_index_info.json";
 const std::string ACCOUNT_INFO_DIGEST_FILE_PATH = USER_INFO_BASE + PATH_SEPARATOR + "account_info_digest.json";

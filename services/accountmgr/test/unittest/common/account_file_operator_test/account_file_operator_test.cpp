@@ -83,8 +83,8 @@ HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest001, TestSize.Level3)
  */
 HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest002, TestSize.Level3)
 {
-    EXPECT_EQ(osAccountFileOperator_.IsExistFile("/system/etc/account/osaccount_constraints.json"), true);
-    EXPECT_EQ(osAccountFileOperator_.IsExistFile("/osaccount_constraints.json"), false);
+    EXPECT_EQ(osAccountFileOperator_.IsExistFile("/system/etc/account/os_account_constraint_config.json"), true);
+    EXPECT_EQ(osAccountFileOperator_.IsExistFile("/os_account_constraints.json"), false);
 }
 
 /**
@@ -138,7 +138,8 @@ HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest006, TestSize.Level3)
 {
     std::string str;
     EXPECT_EQ(
-        osAccountFileOperator_.GetFileContentByPath("/system/etc/account/osaccount_constraints.json", str), ERR_OK);
+        osAccountFileOperator_.GetFileContentByPath(
+            "/system/etc/account/os_account_constraint_definition.json", str), ERR_OK);
     GTEST_LOG_(INFO) << str;
 }
 }  // namespace AccountSA

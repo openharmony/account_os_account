@@ -1,0 +1,29 @@
+{
+    "Type2Constraints": {
+        "0": [
+            "constraint.bluetooth"
+        ],
+        "1": [
+            "constraint.os.account.create",
+            "constraint.os.account.create.directly",
+            "constraint.os.account.remove"
+        ],
+        "2": [
+            "constraint.os.account.create",
+            "constraint.os.account.create.directly",
+            "constraint.os.account.remove"
+        ],
+        "512": [
+            "constraint.os.account.create",
+            "constraint.os.account.create.directly",
+            "constraint.os.account.remove"
+        ],
+        "1024": [
+            "constraint.os.account.create",
+            "constraint.os.account.create.directly",
+            "constraint.os.account.remove"
+        ]
+    },
+    "IsMultiOsAccountEnable": true,
+    "IsAllowedCreateAdmin": true
+}
