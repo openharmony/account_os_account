@@ -142,6 +142,7 @@
         "OHOS::AccountSA::AppAccount::SubscribeAppAccount(std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscriber> const&)";
         "OHOS::AccountSA::AppAccount::GetAppAccountProxy()";
         "OHOS::AccountSA::AppAccount::ResetAppAccountProxy()";
+        "OHOS::AccountSA::AppAccount::RestoreListenerRecords()";
         "OHOS::AccountSA::AppAccount::CreateAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::CreateAccountOptions const&)";
         "OHOS::AccountSA::AppAccountInfo::SetOwner(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::AppAccountInfo::SetName(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
