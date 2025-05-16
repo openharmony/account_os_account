@@ -26,11 +26,9 @@ class OsAccountFileOperator {
 public:
     OsAccountFileOperator();
     ~OsAccountFileOperator();
-    void Init();
     ErrCode GetConstraintsByType(const int type, std::vector<std::string> &constraints);
     ErrCode GetIsMultiOsAccountEnable(bool &isMultiOsAccountEnable);
-    ErrCode CheckConstraintsList(const std::vector<std::string> &constraints,
-        bool &isExists, bool &isOverSize);
+    bool CheckConstraints(const std::vector<std::string> &constraints);
     ErrCode IsAllowedCreateAdmin(bool &isAllowedCreateAdmin);
     ErrCode GetBaseOAConstraintsList(const int32_t id, std::vector<std::string> &constraints);
     ErrCode GetGlobalOAConstraintsList(std::vector<std::string> &constraints);
@@ -38,9 +36,6 @@ public:
 
 private:
     std::shared_ptr<AccountFileOperator> accountFileOperator_;
-    Json constraintsConfig_;
-    std::vector<std::string> constraintList_;
-    bool isAlreadyInit_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

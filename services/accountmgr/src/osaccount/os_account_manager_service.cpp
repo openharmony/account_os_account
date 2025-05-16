@@ -53,7 +53,6 @@ const char INTERACT_ACROSS_LOCAL_ACCOUNTS[] = "ohos.permission.INTERACT_ACROSS_L
 const std::string GET_DOMAIN_ACCOUNTS = "ohos.permission.GET_DOMAIN_ACCOUNTS";
 const std::string MANAGE_EDM_POLICY = "ohos.permission.MANAGE_EDM_POLICY";
 const std::set<uint32_t> uidWhiteListForCreation { 3057 };
-const std::int32_t EDM_UID = 3057;
 const std::string SPECIAL_CHARACTER_ARRAY = "<>|\":*?/\\";
 const std::vector<std::string> SHORT_NAME_CANNOT_BE_NAME_ARRAY = {".", ".."};
 
@@ -1095,28 +1094,9 @@ ErrCode OsAccountManagerService::SetGlobalOsAccountConstraints(const std::vector
     return innerManager_.SetGlobalOsAccountConstraints(constraints, enable, enforcerId, isDeviceOwner);
 }
 
-static bool ContainsAnyConstraint(const std::vector<std::string> &constraints,
-    const std::vector<std::string> &constraintList)
-{
-    for (const auto &constraint : constraintList) {
-        if (std::find(constraints.begin(), constraints.end(), constraint) != constraints.end()) {
-            return true;
-        }
-    }
-    return false;
-}
-
 ErrCode OsAccountManagerService::SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
     const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner)
 {
-    // check EDM uid
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
-    std::vector<std::string> createConstraintList = {CONSTANT_CREATE, CONSTANT_CREATE_DIRECTLY};
-    if (ContainsAnyConstraint(constraints, createConstraintList) && callingUid != EDM_UID) {
-        ACCOUNT_LOGE("Permission denied, callingUid=%{public}d.", callingUid);
-        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
-    }
-
     // permission check
     if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "") || !PermissionCheck(MANAGE_EDM_POLICY, "")) {
         ACCOUNT_LOGE("Account manager service, permission denied!");
