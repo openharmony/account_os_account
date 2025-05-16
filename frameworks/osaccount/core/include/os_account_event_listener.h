@@ -23,17 +23,21 @@ namespace OHOS {
 namespace AccountSA {
 class OsAccountEventListener : public OsAccountEventStub {
 public:
-    explicit OsAccountEventListener(const std::shared_ptr<OsAccountSubscriber> &subscriber);
-    ~OsAccountEventListener() override;
+    OsAccountEventListener();
+    ~OsAccountEventListener();
 
     ErrCode OnStateChanged(const OsAccountStateParcel &parcel) override;
     void OnAccountsChanged(const int &id) override;
     void OnAccountsSwitch(const int &newId, const int &oldId) override;
 
-    void Stop();
+    ErrCode InsertRecord(const std::shared_ptr<OsAccountSubscriber> &subscriber);
+    ErrCode RemoveRecord(const std::shared_ptr<OsAccountSubscriber> &subscriber);
+    uint32_t Size();
+    OsAccountSubscribeInfo GetTotalSubscribeInfo();
 
 private:
-    std::shared_ptr<OsAccountSubscriber> osAccountSubscriber_;
+    std::mutex mutex_;
+    std::map<std::shared_ptr<OsAccountSubscriber>, std::set<OsAccountState>> subscriberAll_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

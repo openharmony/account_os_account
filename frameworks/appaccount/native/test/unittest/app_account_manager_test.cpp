@@ -25,6 +25,7 @@
 #include "app_account_subscribe_info.h"
 #define private public
 #include "app_account.h"
+#include "app_account_event_listener.h"
 #ifdef PROXY_MOCK
 #include "app_account_manager_service.h"
 #include "app_account_proxy.h"
@@ -2008,9 +2009,8 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_UnsubscribeAppAccount_0100, Te
     std::shared_ptr<AppAccountSubscriberTest> appAccountSubscriberPtr =
         std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
     ASSERT_NE(appAccountSubscriberPtr, nullptr);
-    auto appAccountEventListenerSptr = new (std::nothrow) AppAccountEventListener(appAccountSubscriberPtr);
-    ASSERT_NE(appAccountEventListenerSptr, nullptr);
-    AppAccount::GetInstance().eventListeners_[appAccountSubscriberPtr] = appAccountEventListenerSptr;
+    AppAccountEventListener::GetInstance()->appAccountSubscriberList_.emplace_back(appAccountSubscriberPtr);
+    AppAccountEventListener::GetInstance()->owner2Subscribers_["100001"] = {appAccountSubscriberPtr};
     ErrCode result = AppAccount::GetInstance().UnsubscribeAppAccount(appAccountSubscriberPtr);
     ASSERT_EQ(result, ERR_OK);
 }

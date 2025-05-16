@@ -62,8 +62,7 @@ bool SubscribeAppAccountStubFuzzTest(const uint8_t* data, size_t size)
     }
     std::shared_ptr<AppAccountSubscriberTest> appAccountSubscriberPtr =
         std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
-    auto appAccountEventListenerSptr = new (std::nothrow) AppAccountEventListener(appAccountSubscriberPtr);
-    if (!dataTemp.WriteRemoteObject(appAccountEventListenerSptr->AsObject())) {
+    if (!dataTemp.WriteRemoteObject(AppAccountEventListener::GetInstance()->AsObject())) {
         return false;
     }
     MessageParcel reply;

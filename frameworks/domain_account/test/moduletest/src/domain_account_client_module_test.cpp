@@ -1500,6 +1500,21 @@ public:
     bool visitedTwice = false;
 };
 
+class MockDomainAccountStatusListenerManager : public DomainAccountStatusListenerManager {
+    public:
+        void OnResult(const int32_t errCode, Parcel &parcel)
+        {
+            DomainAccountStatusListenerManager::OnResult(errCode, parcel);
+            if (visited) {
+                visitedTwice = true;
+            }
+            visited = true;
+        }
+    
+        bool visited = false;
+        bool visitedTwice = false;
+    };
+    
 /**
  * @tc.name: RegisterAccountStatusListener_001
  * @tc.desc: GetAccountStatus.
@@ -1797,6 +1812,48 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_009, TestS
     EXPECT_EQ(listener3->visited, true);
     EXPECT_EQ(listener3->visitedTwice, true);
     EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener3), ERR_OK);
+}
+
+/**
+ * @tc.name: RegisterAccountStatusListener_011
+ * @tc.desc: RegisterAccountStatusListener load balancing test
+ * @tc.type: FUNC
+ * @tc.require: issueI64KAM
+ */
+HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_011, TestSize.Level0)
+{
+    DomainAccountInfo domainInfo(STRING_DOMAIN_NEW, STRING_NAME_TWO, INVALID_STRING_ACCOUNTID);
+    CreateDomainAccount(domainInfo);
+    auto listenerManager = DomainAccountClient::GetInstance().listenerManager_;
+    auto testManager = std::make_shared<MockDomainAccountStatusListenerManager>();
+    DomainAccountClient::GetInstance().listenerManager_ = testManager;
+    auto listener3 = std::make_shared<ListenerLogInBackGround>();
+    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(listener3), ERR_OK);
+    auto listener4 = std::make_shared<ListenerLogInBackGround>();
+    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(listener4), ERR_OK);
+
+    auto authCallback = std::make_shared<MockDomainAuthCallbackForListener>();
+    ASSERT_NE(authCallback, nullptr);
+    EXPECT_CALL(*authCallback, OnResult(ERR_OK, _)).Times(Exactly(1));
+    auto testAuthCallback = std::make_shared<TestDomainAuthCallbackForListener>(authCallback);
+    ASSERT_NE(testAuthCallback, nullptr);
+    int32_t userId = -1;
+    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId), ERR_OK);
+    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(userId, DEFAULT_TOKEN, testAuthCallback), ERR_OK);
+    {
+        std::unique_lock<std::mutex> lock1(testAuthCallback->mutex);
+        testAuthCallback->cv.wait_for(lock1, std::chrono::seconds(WAIT_TIME),
+                                      [lockCallback = testAuthCallback]() { return lockCallback->isReady; });
+    }
+    EXPECT_EQ(listener3->visited, true);
+    EXPECT_EQ(listener4->visited, true);
+    EXPECT_EQ(testManager->visited, true);
+    EXPECT_EQ(testManager->visitedTwice, false);
+    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener3), ERR_OK);
+    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener4), ERR_OK);
+
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
+    DomainAccountClient::GetInstance().listenerManager_ = listenerManager;
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 

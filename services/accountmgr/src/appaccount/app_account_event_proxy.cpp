@@ -29,7 +29,7 @@ AppAccountEventProxy::AppAccountEventProxy(const sptr<IRemoteObject> &object) : 
 AppAccountEventProxy::~AppAccountEventProxy()
 {}
 
-void AppAccountEventProxy::OnAccountsChanged(const std::vector<AppAccountInfo> &accounts)
+void AppAccountEventProxy::OnAccountsChanged(const std::vector<AppAccountInfo> &accounts, const std::string &ownerName)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -41,6 +41,11 @@ void AppAccountEventProxy::OnAccountsChanged(const std::vector<AppAccountInfo> &
 
     if (!WriteParcelableVector(accounts, data)) {
         ACCOUNT_LOGE("failed to write WriteVector accounts");
+        return;
+    }
+
+    if (!data.WriteString(ownerName)) {
+        ACCOUNT_LOGE("failed to write string for str1 %{public}s", ownerName.c_str());
         return;
     }
 

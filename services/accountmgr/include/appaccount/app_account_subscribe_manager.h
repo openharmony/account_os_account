@@ -30,7 +30,7 @@ public:
     ErrCode SubscribeAppAccount(const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr,
         const sptr<IRemoteObject> &eventListener, const uid_t &uid,
         const std::string &bundleName, const uint32_t &appIndex);
-    ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener);
+    ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener, std::vector<std::string> &owners);
     static bool CheckAppIsMaster(const std::string &account);
 
     bool PublishAccount(AppAccountInfo &appAccountInfo, const uid_t &uid, const std::string &bundleName);
@@ -50,9 +50,15 @@ private:
     ErrCode CheckAppAccess(const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr, const uid_t &uid,
         const std::string &bundleName, const uint32_t &appIndex);
 
+    void ClearOldData(const sptr<IRemoteObject> &eventListener, const std::string &owner,
+        std::map<std::string, std::multiset<AppAccountSubscribeRecordPtr>>::iterator &item);
+
     ErrCode InsertSubscribeRecord(
         const std::vector<std::string> &owners, const AppAccountSubscribeRecordPtr &subscribeRecordPtr);
-    ErrCode RemoveSubscribeRecord(const sptr<IRemoteObject> &eventListener);
+    void RefreshOldData(const sptr<IRemoteObject> &eventListener, const std::string &owner,
+            const std::vector<std::string> &ownerList, const std::vector<std::string> &newOwners);
+    
+    ErrCode RemoveSubscribeRecord(const sptr<IRemoteObject> &eventListener, std::vector<std::string> &ownerList);
 
 private:
     std::mutex mutex_;

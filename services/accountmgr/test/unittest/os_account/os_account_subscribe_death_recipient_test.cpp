@@ -88,8 +88,12 @@ HWTEST_F(OsAccountCoverageTest, DestructorCrashWhenThreadRunning_001, TestSize.L
     auto proxy = sptr<IOsAccountEvent>(new DelayEventProxy());
     ASSERT_NE(proxy, nullptr);
 
+    OsAccountStateParcel stateParcel;
+    stateParcel.state = OsAccountState::ACTIVATED;
     for (int i = 0; i < 10; ++i) {
-        EXPECT_TRUE(obj->ProductTask(proxy, OsAccountState::ACTIVATED, i, i-1));
+        stateParcel.fromId = i - 1;
+        stateParcel.toId = i;
+        EXPECT_TRUE(obj->ProductTask(proxy, stateParcel));
     }
     obj.reset();
     std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -107,7 +111,11 @@ HWTEST_F(OsAccountCoverageTest, UseAfterFreeScenario_001, TestSize.Level1)
     auto proxy = sptr<IOsAccountEvent>(new DelayEventProxy());
     ASSERT_NE(proxy, nullptr);
 
-    EXPECT_TRUE(obj->ProductTask(proxy, OsAccountState::ACTIVATED, 1, 0));
+    OsAccountStateParcel stateParcel;
+    stateParcel.state = OsAccountState::ACTIVATED;
+    stateParcel.fromId = 0;
+    stateParcel.toId = 1;
+    EXPECT_TRUE(obj->ProductTask(proxy, stateParcel));
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
     obj.reset();
 
@@ -123,10 +131,13 @@ HWTEST_F(OsAccountCoverageTest, UseAfterFreeScenario_001, TestSize.Level1)
  */
 HWTEST_F(OsAccountCoverageTest, HighFrequencyLifecycle_001, TestSize.Level1)
 {
+    OsAccountStateParcel stateParcel;
+    stateParcel.state = OsAccountState::ACTIVATED;
+    stateParcel.fromId = 0;
+    stateParcel.toId = 1;
     for (int i = 0; i < 1000; ++i) {
         auto obj = std::make_shared<SwitchSubscribeInfo>();
-        EXPECT_TRUE(obj->ProductTask(sptr<IOsAccountEvent>(new DelayEventProxy()),
-                        OsAccountState::ACTIVATED, 1, 0));
+        EXPECT_TRUE(obj->ProductTask(sptr<IOsAccountEvent>(new DelayEventProxy()), stateParcel));
         obj.reset();
         std::this_thread::sleep_for(std::chrono::microseconds(100));
     }

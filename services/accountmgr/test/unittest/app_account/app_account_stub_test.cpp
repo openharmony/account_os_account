@@ -941,9 +941,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_046, Test
     info.SetOwners(std::vector<std::string>({STRING_NAME, STRING_NAME}));
     ASSERT_TRUE(data.WriteParcelable(&info));
     std::shared_ptr<MockAppAccountSubsriber> subscriber = std::make_shared<MockAppAccountSubsriber>();
-    sptr<IAppAccountEvent> listener = new (std::nothrow) AppAccountEventListener(subscriber);
-    ASSERT_NE(listener, nullptr);
-    ASSERT_TRUE(data.WriteRemoteObject(listener->AsObject()));
+    ASSERT_TRUE(data.WriteRemoteObject(AppAccountEventListener::GetInstance()->AsObject()));
     EXPECT_EQ(g_servicePtr->ProcSubscribeAccount(0, data, reply), ERR_NONE);
     EXPECT_EQ(reply.ReadInt32(), ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
 }
@@ -959,9 +957,7 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_047, Test
     MessageParcel data;
     MessageParcel reply;
     std::shared_ptr<MockAppAccountSubsriber> subscriber = std::make_shared<MockAppAccountSubsriber>();
-    sptr<IAppAccountEvent> listener = new (std::nothrow) AppAccountEventListener(subscriber);
-    ASSERT_NE(listener, nullptr);
-    ASSERT_TRUE(data.WriteRemoteObject(listener->AsObject()));
+    ASSERT_TRUE(data.WriteRemoteObject(AppAccountEventListener::GetInstance()->AsObject()));
     EXPECT_EQ(g_servicePtr->ProcUnsubscribeAccount(0, data, reply), ERR_NONE);
     EXPECT_EQ(reply.ReadInt32(), ERR_OK);
 }

@@ -276,6 +276,10 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
         AppAccount::GetInstance().CreateAppAccountEventListener(nullptr, appAccountEventListener);
     EXPECT_EQ(subscribeState, AppAccount::SUBSCRIBE_FAILED);
 
+    bool isIPC = false;
+    AppAccountEventListener::GetInstance()->SubscribeAppAccount(subscriberTestPtr, isIPC, owners);
+    EXPECT_TRUE(isIPC);
+
     // subscribe app account
     ErrCode result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
@@ -293,8 +297,11 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 
     Wait();
 
+    AppAccountEventListener::GetInstance()->UnsubscribeAppAccount(subscriberTestPtr, isIPC, owners);
+    EXPECT_TRUE(isIPC);
+
     // unsubscribe app account
-    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener);
+    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener, owners);
     EXPECT_EQ(result, ERR_OK);
 
     // delete account
@@ -379,6 +386,10 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
         subscriberTestPtr, appAccountEventListener);
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
+    bool isIPC = false;
+    AppAccountEventListener::GetInstance()->SubscribeAppAccount(subscriberTestPtr, isIPC, owners);
+    EXPECT_TRUE(isIPC);
+
     // subscribe app account
     result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
@@ -400,8 +411,11 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 
     Wait();
 
+    AppAccountEventListener::GetInstance()->UnsubscribeAppAccount(subscriberTestPtr, isIPC, owners);
+    EXPECT_TRUE(isIPC);
+
     // unsubscribe app account
-    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener);
+    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener, owners);
     EXPECT_EQ(result, ERR_OK);
 
     // delete account
@@ -452,6 +466,10 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
         subscriberTestPtr, appAccountEventListener);
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
+    bool isIPC = false;
+    AppAccountEventListener::GetInstance()->SubscribeAppAccount(subscriberTestPtr, isIPC, owners);
+    EXPECT_TRUE(isIPC);
+
     // subscribe app account
     result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
@@ -473,8 +491,11 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 
     Wait();
 
+    AppAccountEventListener::GetInstance()->UnsubscribeAppAccount(subscriberTestPtr, isIPC, owners);
+    EXPECT_TRUE(isIPC);
+
     // unsubscribe app account
-    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener);
+    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener, owners);
     EXPECT_EQ(result, ERR_OK);
 
     // delete account
@@ -529,6 +550,10 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
         subscriberTestPtr, appAccountEventListener);
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
+    bool isIPC = false;
+    AppAccountEventListener::GetInstance()->SubscribeAppAccount(subscriberTestPtr, isIPC, owners);
+    EXPECT_TRUE(isIPC);
+
     // subscribe app account
     result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
@@ -543,8 +568,11 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 
     Wait();
 
+    AppAccountEventListener::GetInstance()->UnsubscribeAppAccount(subscriberTestPtr, isIPC, owners);
+    EXPECT_TRUE(isIPC);
+
     // unsubscribe app account
-    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener);
+    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener, owners);
     EXPECT_EQ(result, ERR_OK);
 
     // delete account
@@ -589,6 +617,10 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
         subscriberTestPtr, appAccountEventListener);
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
+    bool isIPC = false;
+    AppAccountEventListener::GetInstance()->SubscribeAppAccount(subscriberTestPtr, isIPC, owners);
+    EXPECT_TRUE(isIPC);
+
     // subscribe app account
     result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
@@ -603,6 +635,9 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
         subscriberTestPtrTwo, appAccountEventListenerTwo);
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
+    isIPC = false;
+    AppAccountEventListener::GetInstance()->SubscribeAppAccount(subscriberTestPtrTwo, isIPC, owners);
+    EXPECT_FALSE(isIPC);
     // subscribe app account
     result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListenerTwo);
     EXPECT_EQ(result, ERR_OK);
@@ -616,12 +651,17 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 
     Wait();
 
-    // unsubscribe app account
-    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener);
-    EXPECT_EQ(result, ERR_OK);
+    AppAccountEventListener::GetInstance()->UnsubscribeAppAccount(subscriberTestPtr, isIPC, owners);
+    EXPECT_FALSE(isIPC);
 
     // unsubscribe app account
-    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListenerTwo);
+    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener, owners);
+    EXPECT_EQ(result, ERR_OK);
+
+    AppAccountEventListener::GetInstance()->UnsubscribeAppAccount(subscriberTestPtrTwo, isIPC, owners);
+    EXPECT_TRUE(isIPC);
+    // unsubscribe app account
+    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListenerTwo, owners);
     EXPECT_EQ(result, ERR_OK);
 
     // delete app account

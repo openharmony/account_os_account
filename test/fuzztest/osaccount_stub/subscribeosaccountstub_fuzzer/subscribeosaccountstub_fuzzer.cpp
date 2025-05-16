@@ -52,9 +52,7 @@ bool SubscribeOsAccountStubFuzzTest(const uint8_t *data, size_t size)
         return false;
     }
 
-    std::shared_ptr<OsAccountSubscriber> subscriber = make_shared<TestOsAccountSubscriber>();
-
-    sptr<OsAccountEventListener> listener = new (std::nothrow) OsAccountEventListener(subscriber);
+    sptr<OsAccountEventListener> listener = new (std::nothrow) OsAccountEventListener();
     if (listener == nullptr) {
         return false;
     }

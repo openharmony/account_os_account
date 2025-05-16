@@ -51,6 +51,7 @@ ohos_shared_library("os_account_innerkits") {
     "${os_account_core_path}/src/os_account_proxy.cpp",
     "${os_account_core_path}/src/os_account_state_parcel.cpp",
     "${os_account_core_path}/src/os_account_state_reply_callback.cpp",
+    "${os_account_core_path}/src/os_account_state_reply_callback_proxy.cpp",
     "src/os_account_info.cpp",
     "src/os_account_manager.cpp",
     "src/os_account_subscribe_info.cpp",
