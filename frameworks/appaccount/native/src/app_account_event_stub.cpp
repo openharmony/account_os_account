@@ -65,7 +65,8 @@ ErrCode AppAccountEventStub::ProcOnAccountsChanged(MessageParcel &data)
         }
         accounts.emplace_back(*account);
     }
-    OnAccountsChanged(accounts);
+    std::string ownerName = data.ReadString();
+    OnAccountsChanged(accounts, ownerName);
     return ERR_NONE;
 }
 }  // namespace AccountSA

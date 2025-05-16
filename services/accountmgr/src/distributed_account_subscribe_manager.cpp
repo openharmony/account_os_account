@@ -50,6 +50,7 @@ ErrCode DistributedAccountSubscribeManager::SubscribeDistributedAccountEvent(
     });
     if (it != subscribeRecords_.end()) {
         (*it)->types_.insert(type);
+        ACCOUNT_LOGI("Subscribe already exsits, update type only, type size=%{public}zu.", (*it)->types_.size());
         return ERR_OK;
     }
 
@@ -59,6 +60,7 @@ ErrCode DistributedAccountSubscribeManager::SubscribeDistributedAccountEvent(
     }
     subscribeRecordPtr->eventListener_ = eventListener;
     subscribeRecordPtr->types_.insert(type);
+    ACCOUNT_LOGI("Subscribe add, type size=%{public}zu.", subscribeRecordPtr->types_.size());
     subscribeRecords_.emplace_back(subscribeRecordPtr);
     return ERR_OK;
 }

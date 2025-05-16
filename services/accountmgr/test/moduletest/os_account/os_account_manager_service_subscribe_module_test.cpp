@@ -197,7 +197,8 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     auto subscriberTestPtr = std::make_shared<OsAccountSubscriberTest>(osAccountSubscribeInfo);
 
     // make an event listener
-    auto osAccountEventListener = std::make_shared<OsAccountEventListener>(subscriberTestPtr);
+    auto osAccountEventListener = std::make_shared<OsAccountEventListener>();
+    osAccountEventListener->InsertRecord(subscriberTestPtr);
     OsAccountStateParcel *stateParcel = new (std::nothrow) OsAccountStateParcel();
     osAccountEventListener->OnStateChanged(*stateParcel);
     osAccountEventListener->OnAccountsChanged(0);

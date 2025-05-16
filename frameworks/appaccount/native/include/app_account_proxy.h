@@ -97,7 +97,7 @@ public:
         const sptr<IAppAccountAuthenticatorCallback> &callback) override;
     ErrCode SubscribeAppAccount(
         AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener) override;
-    ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener) override;
+    ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener, std::vector<std::string> &owners) override;
 
 private:
     ErrCode SendRequest(AppAccountInterfaceCode code, MessageParcel &data, MessageParcel &reply);

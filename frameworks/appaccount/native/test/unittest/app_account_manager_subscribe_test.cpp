@@ -103,15 +103,13 @@ HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_RestoreListe
     AppAccountSubscribeInfo subscribeInfo(owners);
     // make a subscriber
     std::shared_ptr<AppAccountSubscriber> subscriberTestPtr = std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
-    sptr<AppAccountEventListener> listener = new (std::nothrow) AppAccountEventListener(subscriberTestPtr);
-    AppAccount::GetInstance().eventListeners_[subscriberTestPtr] = listener;
+    AppAccountEventListener::GetInstance()->appAccountSubscriberList_.emplace_back(subscriberTestPtr);
+    AppAccountEventListener::GetInstance()->owner2Subscribers_["100001"] = {subscriberTestPtr};
     AppAccount::GetInstance().RestoreListenerRecords();
 
     // unsubscribe app account
     ErrCode result = AppAccountManager::UnsubscribeAppAccount(subscriberTestPtr);
     ASSERT_NE(result, ERR_APPACCOUNT_KIT_NO_SPECIFIED_SUBSCRIBER_HAS_BEEN_REGISTERED);
-
-    AppAccount::GetInstance().eventListeners_.erase(subscriberTestPtr);
 }
 
 /**
@@ -275,7 +273,8 @@ HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_InsertSubscr
 HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_RemoveSubscribeRecord_0100, TestSize.Level1)
 {
     ASSERT_NE(appAccountSubscribeManagerPtr, nullptr);
-    ErrCode result = appAccountSubscribeManagerPtr->RemoveSubscribeRecord(nullptr);
+    std::vector<std::string> owners;
+    ErrCode result = appAccountSubscribeManagerPtr->RemoveSubscribeRecord(nullptr, owners);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }
 

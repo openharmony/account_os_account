@@ -147,7 +147,8 @@ HWTEST_F(
     AppAccountManagerServiceTest, AppAccountManagerService_UnsubscribeAppAccount_0100, TestSize.Level1)
 {
     // unsubscribe app account
-    ErrCode result = g_appAccountProxy->UnsubscribeAppAccount(nullptr);
+    std::vector<std::string> owners;
+    ErrCode result = g_appAccountProxy->UnsubscribeAppAccount(nullptr, owners);
 
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }

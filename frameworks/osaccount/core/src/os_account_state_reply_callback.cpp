@@ -20,38 +20,21 @@
 namespace OHOS {
 namespace AccountSA {
 OsAccountStateReplyCallback::OsAccountStateReplyCallback(
-    const sptr<IRemoteObject> &object) : IRemoteProxy<IOsAccountStateReplyCallback>(object)
+    const sptr<IRemoteObject> &object)
 {}
 
-ErrCode OsAccountStateReplyCallback::SendRequest(
-    StateReplyCallbackInterfaceCode code, MessageParcel &data, MessageParcel &reply)
-{
-    sptr<IRemoteObject> remote = Remote();
-    if (remote == nullptr) {
-        ACCOUNT_LOGE("Remote is nullptr, code = %{public}d", code);
-        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
-    }
-
-    MessageOption option(MessageOption::TF_SYNC);
-    int32_t result = remote->SendRequest(static_cast<uint32_t>(code), data, reply, option);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("Failed to send request, code = %{public}d, result = %{public}d", code, result);
-    } else {
-        ACCOUNT_LOGI("Send OnComplete successfully, code = %{public}d", code);
-    }
-    return result;
-}
+OsAccountStateReplyCallback::OsAccountStateReplyCallback(
+    const std::shared_ptr<std::condition_variable> &cv, const std::shared_ptr<bool> &callbackCounter)
+    : cv_(cv), callbackCounter(callbackCounter)
+{}
 
 void OsAccountStateReplyCallback::OnComplete()
 {
-    MessageParcel data;
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGE("Failed to write descriptor!");
+    if (cv_ == nullptr || callbackCounter == nullptr) {
         return;
     }
-
-    MessageParcel reply;
-    SendRequest(StateReplyCallbackInterfaceCode::ON_COMPLETE, data, reply);
+    callbackCounter.reset();
+    cv_->notify_one();
 }
 }  // namespace AccountSA
 }  // namespace OHOS

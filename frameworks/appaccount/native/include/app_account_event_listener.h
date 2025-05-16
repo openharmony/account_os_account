@@ -23,15 +23,23 @@ namespace OHOS {
 namespace AccountSA {
 class AppAccountEventListener : public AppAccountEventStub {
 public:
-    explicit AppAccountEventListener(const std::shared_ptr<AppAccountSubscriber> &subscriber);
-    ~AppAccountEventListener() override;
+    void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts, const std::string &owner) override;
 
-    void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts) override;
-
-    void Stop();
+    static AppAccountEventListener *GetInstance();
+    ErrCode SubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber, bool &isIPC,
+        std::vector<std::string> &owners);
+    ErrCode UnsubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber, bool &isIPC,
+        std::vector<std::string> &owners);
+    bool GetRestoreData(AppAccountSubscribeInfo &subscribeInfo);
 
 private:
-    std::shared_ptr<AppAccountSubscriber> appAccountSubscriber_ = nullptr;
+    AppAccountEventListener();
+    ~AppAccountEventListener() override;
+
+private:
+    std::mutex appAccountsMutex_;
+    std::vector<std::shared_ptr<AppAccountSubscriber>> appAccountSubscriberList_;
+    std::map<std::string, std::vector<std::shared_ptr<AppAccountSubscriber>>> owner2Subscribers_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

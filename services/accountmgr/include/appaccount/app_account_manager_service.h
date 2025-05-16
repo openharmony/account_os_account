@@ -102,7 +102,7 @@ public:
 
     ErrCode SubscribeAppAccount(
         AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener) override;
-    ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener) override;
+    ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener, std::vector<std::string> &owners) override;
 
     virtual ErrCode OnPackageRemoved(const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
     virtual ErrCode OnUserRemoved(int32_t userId);
