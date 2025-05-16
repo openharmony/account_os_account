@@ -344,7 +344,7 @@ void NapiAppAccountAuthenticator::CallJsFunction(
 std::function<void()> NapiAppAccountAuthenticator::AddAccountImplicitlyWork(
     const std::shared_ptr<JsAuthenticatorParam> &param)
 {
-    return [param = std::move(param)] {
+    return [param = param] {
         ACCOUNT_LOGI("Enter AddAccountImplicitlyWork");
         napi_handle_scope scope = nullptr;
         napi_open_handle_scope(param->env, &scope);
@@ -366,7 +366,7 @@ std::function<void()> NapiAppAccountAuthenticator::AddAccountImplicitlyWork(
 
 std::function<void()> NapiAppAccountAuthenticator::AuthenticateWork(const std::shared_ptr<JsAuthenticatorParam> &param)
 {
-    return [param = std::move(param)] {
+    return [param = param] {
         ACCOUNT_LOGI("Enter AuthenticateWork");
         napi_handle_scope scope = nullptr;
         napi_open_handle_scope(param->env, &scope);
@@ -391,7 +391,7 @@ std::function<void()> NapiAppAccountAuthenticator::AuthenticateWork(const std::s
 std::function<void()> NapiAppAccountAuthenticator::CreateAccountImplicitlyWork(
     const std::shared_ptr<JsAuthenticatorParam> &param)
 {
-    return [param = std::move(param)] {
+    return [param = param] {
         ACCOUNT_LOGI("Enter CreateAccountImplicitlyWork");
         napi_handle_scope scope = nullptr;
         napi_open_handle_scope(param->env, &scope);
@@ -421,7 +421,7 @@ std::function<void()> NapiAppAccountAuthenticator::CreateAccountImplicitlyWork(
 
 std::function<void()> NapiAppAccountAuthenticator::AuthWork(const std::shared_ptr<JsAuthenticatorParam> &param)
 {
-    return [param = std::move(param)] {
+    return [param = param] {
         ACCOUNT_LOGI("Enter AuthWork");
         napi_handle_scope scope = nullptr;
         napi_open_handle_scope(param->env, &scope);
@@ -444,7 +444,7 @@ std::function<void()> NapiAppAccountAuthenticator::AuthWork(const std::shared_pt
 std::function<void()> NapiAppAccountAuthenticator::VerifyCredentialWork(
     const std::shared_ptr<JsAuthenticatorParam> &param)
 {
-    return [param = std::move(param)] {
+    return [param = param] {
         ACCOUNT_LOGI("Enter VerifyCredentialWork");
         napi_handle_scope scope = nullptr;
         napi_open_handle_scope(param->env, &scope);
@@ -466,7 +466,7 @@ std::function<void()> NapiAppAccountAuthenticator::VerifyCredentialWork(
 std::function<void()> NapiAppAccountAuthenticator::SetPropertiesWork(
     const std::shared_ptr<JsAuthenticatorParam> &param)
 {
-    return [param = std::move(param)] {
+    return [param = param] {
         ACCOUNT_LOGI("Enter SetPropertiesWork");
         napi_handle_scope scope = nullptr;
         napi_open_handle_scope(param->env, &scope);
@@ -486,7 +486,7 @@ std::function<void()> NapiAppAccountAuthenticator::SetPropertiesWork(
 std::function<void()> NapiAppAccountAuthenticator::CheckAccountLabelsWork(
     const std::shared_ptr<JsAuthenticatorParam> &param)
 {
-    return [param = std::move(param)] {
+    return [param = param] {
         ACCOUNT_LOGI("Enter CheckAccountLabelsWork");
         napi_handle_scope scope = nullptr;
         napi_open_handle_scope(param->env, &scope);
@@ -513,7 +513,7 @@ std::function<void()> NapiAppAccountAuthenticator::CheckAccountLabelsWork(
 std::function<void()> NapiAppAccountAuthenticator::IsAccountRemovableWork(
     const std::shared_ptr<JsAuthenticatorParam> &param)
 {
-    return [param = std::move(param)] {
+    return [param = param] {
         ACCOUNT_LOGI("Enter IsAccountRemovableWork");
         napi_handle_scope scope = nullptr;
         napi_open_handle_scope(param->env, &scope);

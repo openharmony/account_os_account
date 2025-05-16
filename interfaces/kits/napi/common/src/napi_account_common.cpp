@@ -79,6 +79,21 @@ void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncConte
     }
 }
 
+void ProcessCallbackOrPromise(napi_env env, const NapiAsyncContext *asyncContext, napi_value err, napi_value data)
+{
+    CommonAsyncContext tempAsyncContext;
+    tempAsyncContext.errCode = asyncContext->errCode;
+    tempAsyncContext.nativeErrMsg = asyncContext->nativeErrMsg;
+    tempAsyncContext.deferred = asyncContext->deferred;
+
+    if (asyncContext->callbackRef != nullptr) {
+        tempAsyncContext.callbackRef = asyncContext->callbackRef->callbackRef;
+    }
+    ProcessCallbackOrPromise(env, &tempAsyncContext, err, data);
+    // callbackRef should not released, which is controlled by asyncContext.
+    tempAsyncContext.callbackRef = nullptr;
+}
+
 void ReturnCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data)
 {
     napi_value args[BUSINESS_ERROR_ARG_SIZE] = {err, data};

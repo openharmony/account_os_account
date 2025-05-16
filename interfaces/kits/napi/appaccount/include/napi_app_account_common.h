@@ -81,9 +81,9 @@ struct AppAccountAsyncContext : public CommonAsyncContext {
 };
 
 struct JSAuthCallback {
-    napi_ref onResult = nullptr;
-    napi_ref onRequestRedirected = nullptr;
-    napi_ref onRequestContinued = nullptr;
+    std::shared_ptr<NapiCallbackRef> onResult = nullptr;
+    std::shared_ptr<NapiCallbackRef> onRequestRedirected = nullptr;
+    std::shared_ptr<NapiCallbackRef> onRequestContinued = nullptr;
 };
 
 struct OAuthAsyncContext : public CommonAsyncContext {
@@ -99,7 +99,6 @@ struct OAuthAsyncContext : public CommonAsyncContext {
     AAFwk::Want options;
     AuthenticatorInfo authenticatorInfo;
     std::vector<OAuthTokenInfo> oauthTokenInfos;
-    JSAuthCallback callback;
     sptr<IAppAccountAuthenticatorCallback> appAccountMgrCb = nullptr;
     sptr<IRemoteObject> authenticatorCb = nullptr;
 };
@@ -139,15 +138,15 @@ typedef enum PropertyType {
     IS_ENABLE,
 } PropertyType;
 
-struct SelectAccountsContext : public CommonAsyncContext {
-    SelectAccountsContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
+struct SelectAccountsContext : public NapiAsyncContext {
+    SelectAccountsContext(napi_env napiEnv) : NapiAsyncContext(napiEnv) {};
     SelectAccountsOptions options;
     std::vector<AppAccountInfo> appAccountInfos;
     sptr<IAppAccountAuthenticatorCallback> appAccountMgrCb = nullptr;
 };
 
-struct CheckAccountLabelsContext : public CommonAsyncContext {
-    CheckAccountLabelsContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
+struct CheckAccountLabelsContext : public NapiAsyncContext {
+    CheckAccountLabelsContext(napi_env napiEnv) : NapiAsyncContext(napiEnv) {};
     std::string name;
     std::string owner;
     std::vector<std::string> labels;
@@ -199,18 +198,20 @@ struct AsyncContextForUnsubscribe : public CommonAsyncContext {
     size_t argc = 0;
 };
 
-struct AuthenticatorCallbackParam : public CommonAsyncContext {
-    explicit AuthenticatorCallbackParam(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
+struct AuthenticatorCallbackParam : public NapiAsyncContext {
+    explicit AuthenticatorCallbackParam(JSAuthCallback &authCallback)
+        : NapiAsyncContext(), authCallback(authCallback) {};
+    explicit AuthenticatorCallbackParam(std::shared_ptr<NapiCallbackRef> callbackRef)
+        : NapiAsyncContext(callbackRef) {};
     int32_t resultCode = -1;
     AAFwk::Want result;
     AAFwk::Want request;
-    JSAuthCallback callback;
-    CommonAsyncContext context;
+    JSAuthCallback authCallback;
 };
 
 class AuthenticatorAsyncCallback : public AppAccountAuthenticatorCallbackStub {
 public:
-    explicit AuthenticatorAsyncCallback(napi_env env, napi_ref ref, napi_deferred deferred,
+    AuthenticatorAsyncCallback(napi_env env, std::shared_ptr<NapiCallbackRef> callbackRef, napi_deferred deferred,
         std::function<std::function<void()>(const std::shared_ptr<AuthenticatorCallbackParam> &)> workCb);
     ~AuthenticatorAsyncCallback();
 
@@ -222,9 +223,9 @@ private:
     std::mutex mutex_;
     bool isDone = false;
     napi_env env_ = nullptr;
-    napi_ref callbackRef_ = nullptr;
+    std::shared_ptr<NapiCallbackRef> callbackRef_ = nullptr;
     napi_deferred deferred_ = nullptr;
-    std::function<std::function<void()>(const std::shared_ptr<AuthenticatorCallbackParam>&)> workCb_;
+    std::function<std::function<void()>(const std::shared_ptr<AuthenticatorCallbackParam> &)> workCb_;
 };
 
 class AppAccountManagerCallback : public AppAccountAuthenticatorCallbackStub {
@@ -242,9 +243,6 @@ private:
     napi_env env_ = nullptr;
     JSAuthCallback callback_;
 };
-
-bool InitAuthenticatorWorkEnv(
-    napi_env env, uv_loop_s **loop, uv_work_t **work, AuthenticatorCallbackParam **param);
 
 napi_value NapiGetNull(napi_env env);
 
