@@ -1567,8 +1567,6 @@ napi_value NapiAppAccount::CheckAccountLabels(napi_env env, napi_callback_info c
             auto context = reinterpret_cast<CheckAccountLabelsContext *>(data);
             if (context->errCode != ERR_OK) {
                 ProcessCallbackOrPromise(env, context, GenerateBusinessError(env, context->errCode), NapiGetNull(env));
-            } else {
-                context->callbackRef = nullptr;
             }
             delete context;
         },
@@ -1614,8 +1612,6 @@ napi_value NapiAppAccount::SelectAccountsByOptions(napi_env env, napi_callback_i
             auto context = reinterpret_cast<SelectAccountsContext *>(data);
             if (context->errCode != ERR_OK) {
                 ProcessCallbackOrPromise(env, context, GenerateBusinessError(env, context->errCode), NapiGetNull(env));
-            } else {
-                context->callbackRef = nullptr;
             }
             delete context;
         },

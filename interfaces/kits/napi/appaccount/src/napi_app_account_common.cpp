@@ -52,7 +52,7 @@ SubscriberPtr::SubscriberPtr(const AppAccountSubscribeInfo &subscribeInfo) : App
 
 static std::function<void()> OnAppAccountsChangedWork(const std::shared_ptr<SubscriberAccountsWorker> &data)
 {
-    return [data = std::move(data)] {
+    return [data = data] {
         ACCOUNT_LOGI("Enter OnAppAccountsChangedWork");
         napi_handle_scope scope = nullptr;
         napi_open_handle_scope(data->env, &scope);
@@ -115,7 +115,7 @@ void SubscriberPtr::SetCallbackRef(const napi_ref &ref)
 
 std::function<void()> CheckAccountLabelsOnResultWork(const std::shared_ptr<AuthenticatorCallbackParam> &param)
 {
-    return [data = std::move(param)] {
+    return [data = param] {
         ACCOUNT_LOGI("Enter CheckAccountLabelsOnResultWork");
         napi_handle_scope scope = nullptr;
         napi_open_handle_scope(data->env, &scope);
@@ -123,15 +123,16 @@ std::function<void()> CheckAccountLabelsOnResultWork(const std::shared_ptr<Authe
             ACCOUNT_LOGE("Fail to open scope");
             return;
         }
-        napi_value checkResult[RESULT_COUNT] = { NapiGetNull(data->context.env) };
-        if (data->context.errCode == ERR_JS_SUCCESS) {
+        napi_env env = data->env;
+        napi_value checkResult[RESULT_COUNT] = { NapiGetNull(env) };
+        if (data->errCode == ERR_JS_SUCCESS) {
             bool hasLabels = data->result.GetBoolParam(Constants::KEY_BOOLEAN_RESULT, false);
-            napi_get_boolean(data->context.env, hasLabels, &checkResult[PARAMONE]);
+            napi_get_boolean(env, hasLabels, &checkResult[PARAMONE]);
         } else {
-            checkResult[PARAMZERO] = GetErrorCodeValue(data->context.env, data->context.errCode);
+            checkResult[PARAMZERO] = GetErrorCodeValue(env, data->errCode);
         }
-        ProcessCallbackOrPromise(data->context.env, &(data->context), checkResult[PARAMZERO], checkResult[PARAMONE]);
-        napi_close_handle_scope(data->context.env, scope);
+        ProcessCallbackOrPromise(env, data.get(), checkResult[PARAMZERO], checkResult[PARAMONE]);
+        napi_close_handle_scope(env, scope);
     };
 }
 
@@ -149,7 +150,7 @@ static napi_value CreateJSAppAccountInfo(napi_env env, const std::string &name, 
 
 std::function<void()> SelectAccountsOnResultWork(const std::shared_ptr<AuthenticatorCallbackParam> &param)
 {
-    return [param = std::move(param)] {
+    return [param = param] {
         ACCOUNT_LOGI("Enter SelectAccountsOnResultWork");
         napi_handle_scope scope = nullptr;
         napi_open_handle_scope(param->env, &scope);
@@ -160,27 +161,28 @@ std::function<void()> SelectAccountsOnResultWork(const std::shared_ptr<Authentic
         std::vector<std::string> names = param->result.GetStringArrayParam(Constants::KEY_ACCOUNT_NAMES);
         std::vector<std::string> owners = param->result.GetStringArrayParam(Constants::KEY_ACCOUNT_OWNERS);
         if (names.size() != owners.size()) {
-            param->context.errCode = ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
+            param->errCode = ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
         }
-        napi_env env = param->context.env;
+        napi_env env = param->env;
         napi_value selectResult[RESULT_COUNT] = { 0 };
-        if (param->context.errCode == ERR_JS_SUCCESS) {
+        if (param->errCode == ERR_JS_SUCCESS) {
             napi_create_array(env, &selectResult[PARAMONE]);
             for (size_t i = 0; i < names.size(); ++i) {
                 napi_value object = CreateJSAppAccountInfo(env, names[i], owners[i]);
                 napi_set_element(env, selectResult[PARAMONE], i, object);
             }
         } else {
-            selectResult[PARAMZERO] = GetErrorCodeValue(env, param->context.errCode);
+            selectResult[PARAMZERO] = GetErrorCodeValue(env, param->errCode);
         }
-        ProcessCallbackOrPromise(env, &(param->context), selectResult[PARAMZERO], selectResult[PARAMONE]);
+        ProcessCallbackOrPromise(env, param.get(), selectResult[PARAMZERO], selectResult[PARAMONE]);
         napi_close_handle_scope(env, scope);
     };
 }
 
-AuthenticatorAsyncCallback::AuthenticatorAsyncCallback(napi_env env, napi_ref ref, napi_deferred deferred,
+AuthenticatorAsyncCallback::AuthenticatorAsyncCallback(
+    napi_env env, std::shared_ptr<NapiCallbackRef> callback, napi_deferred deferred,
     std::function<std::function<void()>(const std::shared_ptr<AuthenticatorCallbackParam> &)> workCb)
-    : env_(env), callbackRef_(ref), deferred_(deferred), workCb_(workCb)
+    : env_(env), callbackRef_(callback), deferred_(deferred), workCb_(workCb)
 {}
 
 AuthenticatorAsyncCallback::~AuthenticatorAsyncCallback()
@@ -195,19 +197,16 @@ void AuthenticatorAsyncCallback::OnResult(int32_t resultCode, const AAFwk::Want 
         }
         isDone = true;
     }
-    std::shared_ptr<AuthenticatorCallbackParam> param = std::make_shared<AuthenticatorCallbackParam>(env_);
-    param->context.env = env_;
-    param->context.callbackRef = callbackRef_;
-    param->context.deferred = deferred_;
-    param->context.errCode = resultCode;
+    std::shared_ptr<AuthenticatorCallbackParam> param = std::make_shared<AuthenticatorCallbackParam>(callbackRef_);
+    param->env = env_;
+    param->deferred = deferred_;
+    param->errCode = resultCode;
     param->result = result;
     if (napi_ok == napi_send_event(env_, workCb_(param), napi_eprio_vip)) {
         ACCOUNT_LOGI("Post task finish");
         return;
     }
     ACCOUNT_LOGE("Post task failed");
-    param->context.callbackRef = nullptr;
-    ReleaseNapiRefAsync(env_, callbackRef_);
 }
 
 void AuthenticatorAsyncCallback::OnRequestRedirected(AAFwk::Want &request)
@@ -225,47 +224,50 @@ AppAccountManagerCallback::~AppAccountManagerCallback()
 
 static std::function<void()> OnResultWork(const std::shared_ptr<AuthenticatorCallbackParam> &param)
 {
-    return [data = std::move(param)] {
+    return [data = param] {
         ACCOUNT_LOGI("Enter OnResultWork");
         napi_handle_scope scope = nullptr;
-        napi_open_handle_scope(data->env, &scope);
+        napi_env env = data->authCallback.onResult->env;
+        napi_open_handle_scope(env, &scope);
         if (scope == nullptr) {
             ACCOUNT_LOGE("Fail to open scope");
             return;
         }
-        ProcessOnResultCallback(data->env, data->callback, data->resultCode, data->result.GetParams());
-        napi_close_handle_scope(data->env, scope);
+        ProcessOnResultCallback(env, data->authCallback, data->resultCode, data->result.GetParams());
+        napi_close_handle_scope(env, scope);
     };
 }
 
 static std::function<void()> OnRequestRedirectedWork(const std::shared_ptr<AuthenticatorCallbackParam> &param)
 {
-    return [data = std::move(param)] {
+    return [data = param] {
         ACCOUNT_LOGI("Enter OnRequestRedirectedWork");
         napi_handle_scope scope = nullptr;
-        napi_open_handle_scope(data->env, &scope);
+        napi_env env = data->authCallback.onRequestRedirected->env;
+        napi_open_handle_scope(env, &scope);
         if (scope == nullptr) {
             ACCOUNT_LOGE("Fail to open scope");
             return;
         }
-        napi_value results[ARGS_SIZE_ONE] = { AppExecFwk::WrapWant(data->env, data->request) };
-        NapiCallVoidFunction(data->env, results, ARGS_SIZE_ONE, data->callback.onRequestRedirected);
-        napi_close_handle_scope(data->env, scope);
+        napi_value results[ARGS_SIZE_ONE] = { AppExecFwk::WrapWant(env, data->request) };
+        NapiCallVoidFunction(env, results, ARGS_SIZE_ONE, data->authCallback.onRequestRedirected->callbackRef);
+        napi_close_handle_scope(env, scope);
     };
 }
 
 static std::function<void()> OnRequestContinuedWork(const std::shared_ptr<AuthenticatorCallbackParam> &param)
 {
-    return [data = std::move(param)] {
+    return [data = param] {
         ACCOUNT_LOGI("Enter OnRequestContinuedWork");
         napi_handle_scope scope = nullptr;
-        napi_open_handle_scope(data->env, &scope);
+        napi_env env = data->authCallback.onRequestContinued->env;
+        napi_open_handle_scope(env, &scope);
         if (scope == nullptr) {
             ACCOUNT_LOGE("Fail to open scope");
             return;
         }
-        NapiCallVoidFunction(data->env, nullptr, 0, data->callback.onRequestContinued);
-        napi_close_handle_scope(data->env, scope);
+        NapiCallVoidFunction(env, nullptr, 0, data->authCallback.onRequestContinued->callbackRef);
+        napi_close_handle_scope(env, scope);
     };
 }
 
@@ -278,20 +280,15 @@ void AppAccountManagerCallback::OnResult(int32_t resultCode, const AAFwk::Want &
         }
         isDone = true;
     }
-    std::shared_ptr<AuthenticatorCallbackParam> param = std::make_shared<AuthenticatorCallbackParam>(env_);
+    if (callback_.onResult == nullptr) {
+        ACCOUNT_LOGE("onResult is null");
+        return;
+    }
+    std::shared_ptr<AuthenticatorCallbackParam> param = std::make_shared<AuthenticatorCallbackParam>(callback_);
     param->resultCode = resultCode;
     param->result = result;
-    param->callback = callback_;
     if (napi_ok != napi_send_event(env_, OnResultWork(param), napi_eprio_vip)) {
         ACCOUNT_LOGE("Post task failed");
-        ReleaseNapiRefArray(env_, {
-            callback_.onResult,
-            callback_.onRequestRedirected,
-            callback_.onRequestContinued,
-        });
-        callback_.onResult = nullptr;
-        callback_.onRequestRedirected = nullptr;
-        callback_.onRequestContinued = nullptr;
         return;
     }
     ACCOUNT_LOGI("Post task finish");
@@ -299,9 +296,12 @@ void AppAccountManagerCallback::OnResult(int32_t resultCode, const AAFwk::Want &
 
 void AppAccountManagerCallback::OnRequestRedirected(AAFwk::Want &request)
 {
-    std::shared_ptr<AuthenticatorCallbackParam> param = std::make_shared<AuthenticatorCallbackParam>(env_);
+    if (callback_.onRequestRedirected == nullptr) {
+        ACCOUNT_LOGE("onRequestRedirected is null");
+        return;
+    }
+    std::shared_ptr<AuthenticatorCallbackParam> param = std::make_shared<AuthenticatorCallbackParam>(callback_);
     param->request = request;
-    param->callback = callback_;
     if (napi_ok != napi_send_event(env_, OnRequestRedirectedWork(param), napi_eprio_vip)) {
         ACCOUNT_LOGE("Post task failed");
         return;
@@ -311,37 +311,16 @@ void AppAccountManagerCallback::OnRequestRedirected(AAFwk::Want &request)
 
 void AppAccountManagerCallback::OnRequestContinued()
 {
-    std::shared_ptr<AuthenticatorCallbackParam> param = std::make_shared<AuthenticatorCallbackParam>(env_);
-    param->callback = callback_;
+    if (callback_.onRequestContinued == nullptr) {
+        ACCOUNT_LOGE("OnRequestContinued is null");
+        return;
+    }
+    std::shared_ptr<AuthenticatorCallbackParam> param = std::make_shared<AuthenticatorCallbackParam>(callback_);
     if (napi_ok != napi_send_event(env_, OnRequestContinuedWork(param), napi_eprio_vip)) {
         ACCOUNT_LOGE("Post task failed");
         return;
     }
     ACCOUNT_LOGI("Post task finish");
-}
-
-bool InitAuthenticatorWorkEnv(napi_env env, uv_loop_s **loop, uv_work_t **work,
-    AuthenticatorCallbackParam **param)
-{
-    napi_get_uv_event_loop(env, loop);
-    if (*loop == nullptr) {
-        ACCOUNT_LOGE("loop instance is nullptr");
-        return false;
-    }
-    *work = new (std::nothrow) uv_work_t;
-    if (*work == nullptr) {
-        ACCOUNT_LOGE("work is null");
-        return false;
-    }
-    *param = new (std::nothrow) AuthenticatorCallbackParam(env);
-    if (*param == nullptr) {
-        ACCOUNT_LOGE("failed to create AuthenticatorCallbackParam");
-        delete *work;
-        *work = nullptr;
-        *loop = nullptr;
-        return false;
-    }
-    return true;
 }
 
 napi_value NapiGetNull(napi_env env)
@@ -1081,14 +1060,25 @@ bool ParseJSAuthCallback(napi_env env, napi_value object, JSAuthCallback &callba
         if ((valueType == napi_undefined) || (valueType == napi_null)) {
             ACCOUNT_LOGI("the parameters is undefined or null");
         } else {
-            if (!GetNamedFunction(env, object, "onRequestContinued", callback.onRequestContinued)) {
+            napi_ref ref = nullptr;
+            if (!GetNamedFunction(env, object, "onRequestContinued", ref)) {
                 ACCOUNT_LOGE("the onRequestContinued is invalid");
                 return false;
             }
+            callback.onRequestContinued = std::make_shared<NapiCallbackRef>(env, ref);
         }
     }
-    return GetNamedFunction(env, object, "onResult", callback.onResult) ||
-        GetNamedFunction(env, object, "onRequestRedirected", callback.onRequestRedirected);
+    napi_ref onResultRef = nullptr;
+    bool onResultParse = GetNamedFunction(env, object, "onResult", onResultRef);
+    if (onResultParse && onResultRef != nullptr) {
+        callback.onResult = std::make_shared<NapiCallbackRef>(env, onResultRef);
+    }
+    napi_ref onRequestRedirectedRef = nullptr;
+    bool onRequestRedirectedParse = GetNamedFunction(env, object, "onRequestRedirected", onRequestRedirectedRef);
+    if (onRequestRedirectedParse && onRequestRedirectedRef != nullptr) {
+        callback.onRequestRedirected = std::make_shared<NapiCallbackRef>(env, onRequestRedirectedRef);
+    }
+    return onResultParse && onRequestRedirectedParse;
 }
 
 bool ParseContextForVerifyCredential(napi_env env, napi_callback_info info, VerifyCredentialContext *context)
@@ -1156,9 +1146,13 @@ bool ParseContextForSelectAccount(napi_env env, napi_callback_info info, SelectA
         context->errMsg = "Parameter error. The number of parameters should be 1";
         return false;
     }
-    if ((argc == ARGS_SIZE_TWO) && (!GetCallbackProperty(env, argv[PARAMONE], context->callbackRef, PARAMTWO))) {
+    napi_ref callbackRef = nullptr;
+    if ((argc == ARGS_SIZE_TWO) && (!GetCallbackProperty(env, argv[PARAMONE], callbackRef, 1))) {
         context->errMsg = "Parameter error. The type of \"callback\" must be AuthCallback";
         return false;
+    }
+    if (callbackRef != nullptr) {
+        context->callbackRef = std::make_shared<NapiCallbackRef>(env, callbackRef);
     }
     if (!ParseSelectAccountsOptions(env, argv[0], context->options)) {
         context->errMsg = "Parameter error. The type of \"options\" must be SelectAccountsOptions";
@@ -1234,9 +1228,13 @@ bool ParseContextForCheckAccountLabels(napi_env env, napi_callback_info info, Ch
         context->errMsg = "Parameter error. The number of parameters should be 3";
         return false;
     }
-    if ((argc == ARGS_SIZE_FOUR) && (!GetCallbackProperty(env, argv[PARAMTHREE], context->callbackRef, PARAMTWO))) {
+    napi_ref callbackRef = nullptr;
+    if ((argc == ARGS_SIZE_FOUR) && (!GetCallbackProperty(env, argv[PARAMTHREE], callbackRef, 1))) {
         context->errMsg = "Parameter error. The type of \"callback\" must be AuthCallback";
         return false;
+    }
+    if (callbackRef != nullptr) {
+        context->callbackRef = std::make_shared<NapiCallbackRef>(env, callbackRef);
     }
     if (!GetStringProperty(env, argv[0], context->name)) {
         context->errMsg = "Parameter error. The type of \"name\" must be string";
@@ -1270,19 +1268,7 @@ void ProcessOnResultCallback(
     napi_value results[ARGS_SIZE_TWO] = {nullptr};
     napi_create_int32(env, resultCode, &results[0]);
     results[ARGS_SIZE_ONE] = AppExecFwk::WrapWantParams(env, result);
-    NapiCallVoidFunction(env, results, ARGS_SIZE_TWO, callback.onResult);
-    if (callback.onResult != nullptr) {
-        napi_delete_reference(env, callback.onResult);
-        callback.onResult = nullptr;
-    }
-    if (callback.onRequestRedirected != nullptr) {
-        napi_delete_reference(env, callback.onRequestRedirected);
-        callback.onRequestRedirected = nullptr;
-    }
-    if (callback.onRequestContinued != nullptr) {
-        napi_delete_reference(env, callback.onRequestContinued);
-        callback.onRequestContinued = nullptr;
-    }
+    NapiCallVoidFunction(env, results, ARGS_SIZE_TWO, callback.onResult->callbackRef);
 }
 
 bool ParseCreateAccountOptions(napi_env env, napi_value object, CreateAccountOptions &options)
