@@ -193,7 +193,7 @@ ohos_moduletest("app_account_manager_service_associated_data_test") {
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
-    "mbedtls:mbedtls_shared",
+    "openssl:libcrypto_shared",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
@@ -455,7 +455,7 @@ ohos_moduletest("app_account_control_manager_module_test") {
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
-    "mbedtls:mbedtls_shared",
+    "openssl:libcrypto_shared",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
@@ -860,8 +860,8 @@ ohos_moduletest("at_not_mock_app_account_manager_service_module_test") {
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
-    "mbedtls:mbedtls_shared",
     "napi:ace_napi",
+    "openssl:libcrypto_shared",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]

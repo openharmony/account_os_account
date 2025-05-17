@@ -334,7 +334,7 @@ ohos_unittest("account_inner_iam_manager_mock_source_file_test") {
     "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_single",
-    "mbedtls:mbedtls_shared",
+    "openssl:libcrypto_shared",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "user_auth_framework:userauth_client",
