@@ -19,7 +19,7 @@
 #ifdef HAS_ASSET_PART
 #include <iomanip>
 #include <sstream>
-#include "mbedtls/sha256.h"
+#include <openssl/sha.h>
 #endif
 #include "nlohmann/json.hpp"
 
@@ -57,12 +57,10 @@ constexpr int32_t MAX_MAP_SZIE = 1024;
 static void ComputeHash(const std::string &input, std::string &output)
 {
     unsigned char hash[HASH_LENGTH] = {0};
-    mbedtls_sha256_context context;
-    mbedtls_sha256_init(&context);
-    mbedtls_sha256_starts(&context, 0);
-    mbedtls_sha256_update(&context, reinterpret_cast<const unsigned char *>(input.c_str()), input.length());
-    mbedtls_sha256_finish(&context, hash);
-    mbedtls_sha256_free(&context);
+    SHA256_CTX sha256;
+    SHA256_Init(&sha256);
+    SHA256_Update(&sha256, input.c_str(), input.size());
+    SHA256_Final(hash, &sha256);
 
     std::stringstream ss;
     for (std::uint32_t i = 0; i < HASH_LENGTH; ++i) {

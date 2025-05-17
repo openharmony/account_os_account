@@ -2962,7 +2962,7 @@ HWTEST_F(OsAccountManagerModuleTest, QueryDistributedVirtualDeviceId001, TestSiz
     EXPECT_EQ(ret, ERR_OK);
 
     EXPECT_EQ(OsAccountManager::QueryDistributedVirtualDeviceId(bundleName1, localId, dvid1), ERR_OK);
-    EXPECT_NE(dvid1, "");
+    EXPECT_EQ(dvid1, "6275B655D729154E72F39914C257EB3CD6024D930F88E698DB4414DCCF1847FD");
 
     std::string dvid2 = "";
     std::string bundleName2 = "bundleName2";
