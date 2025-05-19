@@ -27,15 +27,10 @@ bool IsAccountIdValid(int32_t accountId)
     return true;
 }
 
-int32_t IsSystemApp()
+bool IsSystemApp()
 {
     uint64_t tokenId = OHOS::IPCSkeleton::GetSelfTokenID();
-    bool isSystemApp = OHOS::Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(tokenId);
-    if (!isSystemApp) {
-        ACCOUNT_LOGI("Not system app.");
-        return ERR_JS_IS_NOT_SYSTEM_APP;
-    }
-    return ERR_OK;
+    return OHOS::Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(tokenId);
 }
 }
 }
