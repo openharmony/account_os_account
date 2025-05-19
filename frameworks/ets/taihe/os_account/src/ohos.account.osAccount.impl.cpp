@@ -845,7 +845,7 @@ public:
         return taihe::array<EnrolledCredInfo>(taihe::copy_data_t{}, infos.data(), infos.size());
     }
 
-    array<EnrolledCredInfo> GetAuthInfoWithOptionsSync(GetAuthInfoOptions const &options)
+    array<EnrolledCredInfo> GetAuthInfoWithOptionsSync(const GetAuthInfoOptions &options)
     {
         int32_t userId = -1;
         std::vector<EnrolledCredInfo> infos;
@@ -873,7 +873,7 @@ public:
         return taihe::array<EnrolledCredInfo>(taihe::copy_data_t{}, infos.data(), infos.size());
     }
 
-    void AddCredential(CredentialInfo const &info, IIdmCallback const &callback)
+    void AddCredential(const CredentialInfo &info, const IIdmCallback &callback)
     {
         AccountSA::CredentialParameters innerCredInfo = ConvertToCredentialParameters(info);
         ErrCode nativeErrCode = ERR_OK;
@@ -895,7 +895,7 @@ public:
         AccountSA::AccountIAMClient::GetInstance().AddCredential(info.accountId.value(), innerCredInfo, idmCallbackPtr);
     }
 
-    void UpdateCredential(CredentialInfo const &credentialInfo, IIdmCallback const &callback)
+    void UpdateCredential(const CredentialInfo &credentialInfo, const IIdmCallback &callback)
     {
         AccountSA::CredentialParameters innerCredInfo = ConvertToCredentialParameters(credentialInfo);
         std::shared_ptr<AccountSA::IDMCallback> idmCallbackPtr = std::make_shared<TaiheIDMCallbackAdapter>(callback);
@@ -916,7 +916,7 @@ public:
         AccountSA::AccountIAMClient::GetInstance().UpdateCredential(userId, innerCredInfo, idmCallbackPtr);
     }
 
-    void DelUser(array_view<uint8_t> token, IIdmCallback const &callback)
+    void DelUser(array_view<uint8_t> token, const IIdmCallback &callback)
     {
         const int32_t defaultUserId = -1;
         std::vector<uint8_t> authTokenVec(token.data(), token.data() + token.size());
@@ -979,8 +979,8 @@ class DomainPluginImpl {
 public:
     DomainPluginImpl() {}
 
-    void Auth(DomainAccountInfo const &domainAccountInfo, array_view<uint8_t> credential,
-        IUserAuthCallback const &callback)
+    void Auth(const DomainAccountInfo &domainAccountInfo, array_view<uint8_t> credential,
+        const IUserAuthCallback &callback)
     {
         AccountSA::DomainAccountInfo domainAccountInfoInner = ConvertToDomainAccountInfoInner(domainAccountInfo);
         std::vector<uint8_t> authData(credential.data(), credential.data() + credential.size());
@@ -1015,9 +1015,9 @@ public:
 
     void OnSetDataInner(AuthSubType authSubType, array_view<uint8_t> data)
     {
-        int32_t jsErrCode = OHOS::AccountSA::IsSystemApp();
-        if (jsErrCode != ERR_OK) {
-            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+        bool isSystemApp = OHOS::AccountSA::IsSystemApp();
+        if (!isSystemApp) {
+            taihe::set_business_error(ERR_JS_IS_NOT_SYSTEM_APP, ConvertToJsErrMsg(ERR_JS_IS_NOT_SYSTEM_APP));
             return;
         }
         std::vector<uint8_t> authTokenVec(data.data(), data.data() + data.size());
@@ -1361,7 +1361,7 @@ public:
     UserAuthImpl() {}
 
     array<uint8_t> AuthSync(array_view<uint8_t> challenge, AuthType authType, AuthTrustLevel authTrustLevel,
-                            IUserAuthCallback const &callback)
+                            const IUserAuthCallback &callback)
     {
         int32_t authTypeInner = authType.get_value();
         int32_t trustLevelInner = authTrustLevel.get_value();
@@ -1375,7 +1375,7 @@ public:
     }
 
     array<uint8_t> AuthWithOptSync(array_view<uint8_t> challenge, AuthType authType, AuthTrustLevel authTrustLevel,
-                                   AuthOptions const &options, IUserAuthCallback const &callback)
+                                   const AuthOptions &options, const IUserAuthCallback &callback)
     {
         int32_t authTypeInner = authType.get_value();
         int32_t trustLevelInner = authTrustLevel.get_value();
@@ -1395,7 +1395,7 @@ public:
     }
 
     array<uint8_t> AuthUser(int32_t userId, array_view<uint8_t> challenge, AuthType authType,
-                            AuthTrustLevel authTrustLevel, IUserAuthCallback const &callback)
+                            AuthTrustLevel authTrustLevel, const IUserAuthCallback &callback)
     {
         int32_t authTypeInner = authType.get_value();
         int32_t trustLevelInner = authTrustLevel.get_value();
@@ -1437,7 +1437,7 @@ public:
         return;
     }
 
-    ExecutorProperty GetPropertySync(GetPropertyRequest const &request)
+    ExecutorProperty GetPropertySync(const GetPropertyRequest &request)
     {
         AccountSA::GetPropertyRequest getPropertyRequestInner;
         if (!ConvertToGetPropertyRequestInner(request, getPropertyRequestInner)) {
@@ -1459,7 +1459,7 @@ public:
         return ConvertToExecutorPropertyTH(idmCallback->propertyInfoInner, idmCallback->keys);
     }
 
-    void SetPropertySync(SetPropertyRequest const &request)
+    void SetPropertySync(const SetPropertyRequest &request)
     {
         AccountSA::SetPropertyRequest setPropertyRequestInner;
         if (!ConvertToSetPropertyRequestInner(request, setPropertyRequestInner)) {
@@ -1501,7 +1501,7 @@ TaiheGetDataCallback::~TaiheGetDataCallback() {}
 void TaiheGetDataCallback::OnGetData(int32_t authSubType, std::vector<uint8_t> challenge,
                                      const std::shared_ptr<AccountSA::IInputerData> inputerData)
 {
-    ACCOUNT_LOGI("start!");
+    ACCOUNT_LOGI("Start!");
     if (inputer_ == nullptr) {
         ACCOUNT_LOGE("The onGetData function is undefined");
         return;
@@ -1516,7 +1516,7 @@ class PINAuthImpl {
 public:
     PINAuthImpl() {}
 
-    void RegisterInputer(IInputer const &inputer)
+    void RegisterInputer(const IInputer &inputer)
     {
         auto taiheInputer = std::make_shared<TaiheIInputer>(inputer);
         auto taiheCallbackRef = std::make_shared<TaiheGetDataCallback>();
@@ -1551,7 +1551,7 @@ AccountManager getAccountManager()
     return make_holder<AccountManagerImpl, AccountManager>();
 }
 
-bool IsAuthenticationExpiredSync(DomainAccountInfo const &domainAccountInfo)
+bool IsAuthenticationExpiredSync(const DomainAccountInfo &domainAccountInfo)
 {
     AccountSA::DomainAccountInfo domainAccountInfoInner = ConvertToDomainAccountInfoInner(domainAccountInfo);
     bool isExpired = false;
@@ -1564,7 +1564,7 @@ bool IsAuthenticationExpiredSync(DomainAccountInfo const &domainAccountInfo)
     return isExpired;
 }
 
-void registerInputer(AuthType authType, IInputer const &inputer)
+void RegisterInputer(AuthType authType, const IInputer &inputer)
 {
     int32_t type = authType.get_value();
     auto taiheInputer = std::make_shared<TaiheIInputer>(inputer);
@@ -1579,7 +1579,7 @@ void registerInputer(AuthType authType, IInputer const &inputer)
     }
 }
 
-void unregisterInputer(AuthType authType)
+void UnregisterInputer(AuthType authType)
 {
     int32_t type = authType.get_value();
     ErrCode errCode = AccountSA::AccountIAMClient::GetInstance().UnregisterInputer(type);
@@ -1608,8 +1608,8 @@ PINAuth CreatePINAuth()
 
 TH_EXPORT_CPP_API_getAccountManager(getAccountManager);
 TH_EXPORT_CPP_API_IsAuthenticationExpiredSync(IsAuthenticationExpiredSync);
-TH_EXPORT_CPP_API_registerInputer(registerInputer);
-TH_EXPORT_CPP_API_unregisterInputer(unregisterInputer);
+TH_EXPORT_CPP_API_registerInputer(RegisterInputer);
+TH_EXPORT_CPP_API_unregisterInputer(UnregisterInputer);
 TH_EXPORT_CPP_API_CreateUserIdentityManager(CreateUserIdentityManager);
 TH_EXPORT_CPP_API_CreateUserAuth(CreateUserAuth);
 TH_EXPORT_CPP_API_CreatePINAuth(CreatePINAuth);
