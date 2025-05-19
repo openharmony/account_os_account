@@ -5,23 +5,19 @@
         ],
         "1": [
             "constraint.os.account.create",
-            "constraint.os.account.create.directly",
-            "constraint.os.account.remove"
+            "constraint.os.account.create.directly"
         ],
         "2": [
             "constraint.os.account.create",
-            "constraint.os.account.create.directly",
-            "constraint.os.account.remove"
+            "constraint.os.account.create.directly"
         ],
         "512": [
             "constraint.os.account.create",
-            "constraint.os.account.create.directly",
-            "constraint.os.account.remove"
+            "constraint.os.account.create.directly"
         ],
         "1024": [
             "constraint.os.account.create",
-            "constraint.os.account.create.directly",
-            "constraint.os.account.remove"
+            "constraint.os.account.create.directly"
         ]
     },
     "IsMultiOsAccountEnable": true,
