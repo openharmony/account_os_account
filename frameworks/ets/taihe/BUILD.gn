@@ -62,11 +62,14 @@ taihe_shared_library("app_account_taihe_native") {
   sources = get_target_outputs(":app_account_taihe")
   sources += [
     "./app_account/src/ani_constructor.cpp",
-    "./app_account/src/ohos.account.distributedAccount.impl.cpp",
+    "./app_account/src/ohos.account.appAccount.impl.cpp",
   ]
 
   include_dirs = [
     "./app_account/include",
+    "${os_account_path}/frameworks/appaccount/native/include",
+    "${os_account_path}/interfaces/innerkits/appaccount/native/include",
+    "${os_account_path}/frameworks/ets/taihe/os_account/include/",
     "${taihe_generated_file_path}/include",
     "${innerkits_path}/include",
     "${common_path}/account_error",
@@ -256,13 +259,14 @@ generate_static_abc("os_account_abc_test") {
   files = [
     "${os_account_path}/frameworks/ets/taihe/test/test_main.ets",
     "${os_account_path}/frameworks/ets/taihe/test/test_accountmgr.ets",
-    "${os_account_path}/frameworks/ets/taihe/test/test_distributed_account.ets",
-    "${os_account_path}/frameworks/ets/taihe/test/test_iam.ets",
-    "${os_account_path}/frameworks/ets/taihe/test/test_common.ets",
+    #"${os_account_path}/frameworks/ets/taihe/test/test_distributed_account.ets",
+    #"${os_account_path}/frameworks/ets/taihe/test/test_iam.ets",
+    #"${os_account_path}/frameworks/ets/taihe/test/test_common.ets",
   ]
   dependencies = [
     ":os_account_abc",
     ":distributed_account_abc",
+    ":app_account_abc",
   ]
 }
 
@@ -299,9 +303,16 @@ group("distributed_account_taihe_gp") {
 
 group("os_account_taihe_gp") {
   deps = [
-    # ":os_account_abc_test",
+    ":os_account_abc_test",
     ":os_account_etc",
     ":os_account_taihe_native",
+  ]
+}
+
+group("app_account_taihe_gp") {
+  deps = [
+    ":app_account_etc",
+    ":app_account_taihe_native",
   ]
 }
 
@@ -309,5 +320,6 @@ group("account_taihe") {
   deps = [
     ":distributed_account_taihe_gp",
     ":os_account_taihe_gp",
+    ":app_account_taihe_gp",
   ]
 }

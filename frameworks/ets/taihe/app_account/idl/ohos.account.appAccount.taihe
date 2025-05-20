@@ -14,8 +14,9 @@
  */
 
 @!namespace("@ohos.account.appAccount", "appAccount")
-
-function createAppAccountManager(): AppAccountManager;
+@!sts_inject("""
+static { loadLibrary("app_account_taihe_native.z") }
+""")
 
 struct CreateAccountOptions {
     customData: Optional<@record Map<String, String>>;
@@ -88,14 +89,4 @@ struct AuthCallback {
     onResult: (code: i32, result: Optional<AuthResult>) => void;
     onRequestRedirected: (request: Opaque) => void;
     onRequestContinued: Optional<() => void>;
-}
-
-interface AppAccountManager {
-    @gen_async("createAccount")
-    @gen_promise("createAccount")
-    CreateAccountSync(name: String);
-
-    @gen_async("createAccount")
-    @gen_promise("createAccount")
-    CreateAccountWithOpt(name: String, options: CreateAccountOptions);
 }
