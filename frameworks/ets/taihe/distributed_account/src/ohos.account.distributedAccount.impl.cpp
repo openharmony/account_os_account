@@ -61,6 +61,33 @@ DistributedInfo ConvertToDistributedInfoTH(const AccountSA::OhosAccountInfo &inf
     return ret;
 }
 
+AccountSA::OhosAccountInfo ConvertToOhosAccountInfoTH(const DistributedInfo &info)
+{
+    std::string name(info.name.data(), info.name.size());
+    std::string id(info.id.data(), info.id.size());
+    std::int32_t status = info.status->get_value();
+    std::string event(info.event.data(), info.event.size());
+
+    AccountSA::OhosAccountInfo ret;
+    ret.name_ = name;
+    ret.uid_ = id;
+    ret.status_ = status;
+    ret.name_ = name;
+
+    if (info.nickname.has_value()) {
+        ret.nickname_ = std::string(info.nickname.value().data(), info.nickname.value().size());
+    }
+    if (info.avatar.has_value()) {
+        ret.avatar_ = std::string(info.avatar.value().data(), info.avatar.value().size());
+    }
+    if (info.scalableData.has_value()) {
+        AAFwk::Want* wantPtr = reinterpret_cast<AAFwk::Want*>(info.scalableData.value());
+        auto params = wantPtr->GetParams();
+        ret.scalableData_.SetParams(params);
+    }
+    return ret;
+}
+
 class DistributedAccountAbilityImpl {
 public:
     DistributedAccountAbilityImpl() {}
@@ -89,22 +116,8 @@ public:
 
     void SetOsAccountDistributedInfoSync(DistributedInfo const& accountInfo) 
     {
-        std::string name(accountInfo.name.data(), accountInfo.name.size());
-        std::string id(accountInfo.id.data(), accountInfo.id.size());
-        std::int32_t status = accountInfo.status->get_value();
         std::string event(accountInfo.event.data(), accountInfo.event.size());
-        AccountSA::OhosAccountInfo info(name, id, status);
-        if (accountInfo.nickname.has_value()) {
-            info.nickname_ = std::string(accountInfo.nickname.value().data(), accountInfo.nickname.value().size());
-        }
-        if (accountInfo.avatar.has_value()) {
-            info.avatar_ = std::string(accountInfo.avatar.value().data(), accountInfo.avatar.value().size());
-        }
-        if (accountInfo.scalableData.has_value()) {
-            AAFwk::Want* wantPtr = reinterpret_cast<AAFwk::Want*>(accountInfo.scalableData.value());
-            auto params = wantPtr->GetParams();
-            info.scalableData_.SetParams(params);
-        }
+        AccountSA::OhosAccountInfo info = ConvertToOhosAccountInfoTH(accountInfo);
         ErrCode err = AccountSA::OhosAccountKits::GetInstance().SetOhosAccountInfo(info, event);
         if (err != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(err);
@@ -114,28 +127,15 @@ public:
 
     void SetOsAccountDistributedInfoByLocalIdSync(int32_t localId, DistributedInfo const& distributedInfo) 
     {
-        std::string name(distributedInfo.name.data(), distributedInfo.name.size());
-        std::string id(distributedInfo.id.data(), distributedInfo.id.size());
-        std::int32_t status = distributedInfo.status->get_value();
         std::string event(distributedInfo.event.data(), distributedInfo.event.size());
-        AccountSA::OhosAccountInfo info(name, id, status);
-        if (distributedInfo.nickname.has_value()) {
-            info.nickname_ = std::string(distributedInfo.nickname.value().data(), distributedInfo.nickname.value().size());
-        }
-        if (distributedInfo.avatar.has_value()) {
-            info.avatar_ = std::string(distributedInfo.avatar.value().data(), distributedInfo.avatar.value().size());
-        }
-        if (distributedInfo.scalableData.has_value()) {
-            AAFwk::Want* wantPtr = reinterpret_cast<AAFwk::Want*>(distributedInfo.scalableData.value());
-            auto params = wantPtr->GetParams();
-            info.scalableData_.SetParams(params);
-        }
+        AccountSA::OhosAccountInfo info = ConvertToOhosAccountInfoTH(distributedInfo);
         ErrCode err = AccountSA::OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(localId, info, event);
         if (err != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(err);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
         }
     }
+
 };
 DistributedAccountAbility getDistributedAccountAbility()
 {
