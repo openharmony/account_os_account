@@ -40,7 +40,7 @@ using TaiheIInputData = ohos::account::osAccount::IInputData;
 namespace OHOS {
 namespace AccountSA {
 bool IsAccountIdValid(int32_t accountId);
-int32_t IsSystemApp();
+bool IsSystemApp();
 }
 }
 #endif // ACCOUNT_TAIHE_COMMON_H
