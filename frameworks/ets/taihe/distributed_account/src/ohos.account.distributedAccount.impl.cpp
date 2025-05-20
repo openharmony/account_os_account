@@ -94,6 +94,17 @@ public:
         std::int32_t status = accountInfo.status->get_value();
         std::string event(accountInfo.event.data(), accountInfo.event.size());
         AccountSA::OhosAccountInfo info(name, id, status);
+        if (accountInfo.nickname.has_value()) {
+            info.nickname_ = std::string(accountInfo.nickname.value().data(), accountInfo.nickname.value().size());
+        }
+        if (accountInfo.avatar.has_value()) {
+            info.avatar_ = std::string(accountInfo.avatar.value().data(), accountInfo.avatar.value().size());
+        }
+        if (accountInfo.scalableData.has_value()) {
+            AAFwk::Want* wantPtr = reinterpret_cast<AAFwk::Want*>(accountInfo.scalableData.value());
+            auto params = wantPtr->GetParams();
+            info.scalableData_.SetParams(params);
+        }
         ErrCode err = AccountSA::OhosAccountKits::GetInstance().SetOhosAccountInfo(info, event);
         if (err != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(err);
@@ -108,6 +119,17 @@ public:
         std::int32_t status = distributedInfo.status->get_value();
         std::string event(distributedInfo.event.data(), distributedInfo.event.size());
         AccountSA::OhosAccountInfo info(name, id, status);
+        if (distributedInfo.nickname.has_value()) {
+            info.nickname_ = std::string(distributedInfo.nickname.value().data(), distributedInfo.nickname.value().size());
+        }
+        if (distributedInfo.avatar.has_value()) {
+            info.avatar_ = std::string(distributedInfo.avatar.value().data(), distributedInfo.avatar.value().size());
+        }
+        if (distributedInfo.scalableData.has_value()) {
+            AAFwk::Want* wantPtr = reinterpret_cast<AAFwk::Want*>(distributedInfo.scalableData.value());
+            auto params = wantPtr->GetParams();
+            info.scalableData_.SetParams(params);
+        }
         ErrCode err = AccountSA::OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(localId, info, event);
         if (err != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(err);
@@ -115,7 +137,6 @@ public:
         }
     }
 };
-
 DistributedAccountAbility getDistributedAccountAbility()
 {
     return make_holder<DistributedAccountAbilityImpl, DistributedAccountAbility>();
