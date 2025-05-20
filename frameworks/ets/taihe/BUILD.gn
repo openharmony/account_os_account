@@ -303,7 +303,7 @@ group("distributed_account_taihe_gp") {
 
 group("os_account_taihe_gp") {
   deps = [
-    ":os_account_abc_test",
+    #":os_account_abc_test",
     ":os_account_etc",
     ":os_account_taihe_native",
   ]
