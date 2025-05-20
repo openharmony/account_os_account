@@ -389,7 +389,7 @@ napi_value NapiDistributedAccount::SetCurrentOsAccountDistributedInfo(napi_env e
 static void UpdateOhosAccountInfoExecuteCB(napi_env env, void *data)
 {
     DistributedAccountAsyncContext *context = reinterpret_cast<DistributedAccountAsyncContext *>(data);
-    NativeErrMsg() = "";
+    SetNativeErrMsg("");
     if (!context->throwErr) {
         context->errCode = OhosAccountKits::GetInstance().UpdateOhosAccountInfo(context->ohosAccountInfo.name_,
             context->ohosAccountInfo.uid_, context->event);
@@ -399,7 +399,7 @@ static void UpdateOhosAccountInfoExecuteCB(napi_env env, void *data)
     } else {
         context->errCode = OhosAccountKits::GetInstance().SetOhosAccountInfo(context->ohosAccountInfo, context->event);
     }
-    context->nativeErrMsg = NativeErrMsg();
+    context->nativeErrMsg = GetNativeErrMsg();
 }
 
 static void UpdateOhosAccountInfoCompletedCB(napi_env env, napi_status status, void *data)
