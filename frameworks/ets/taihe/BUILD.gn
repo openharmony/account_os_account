@@ -259,9 +259,6 @@ generate_static_abc("os_account_abc_test") {
   files = [
     "${os_account_path}/frameworks/ets/taihe/test/test_main.ets",
     "${os_account_path}/frameworks/ets/taihe/test/test_accountmgr.ets",
-    #"${os_account_path}/frameworks/ets/taihe/test/test_distributed_account.ets",
-    #"${os_account_path}/frameworks/ets/taihe/test/test_iam.ets",
-    #"${os_account_path}/frameworks/ets/taihe/test/test_common.ets",
   ]
   dependencies = [
     ":os_account_abc",
@@ -303,7 +300,6 @@ group("distributed_account_taihe_gp") {
 
 group("os_account_taihe_gp") {
   deps = [
-    #":os_account_abc_test",
     ":os_account_etc",
     ":os_account_taihe_native",
   ]
