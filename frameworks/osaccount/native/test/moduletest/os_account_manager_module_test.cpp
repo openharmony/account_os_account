@@ -1343,9 +1343,22 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest069, TestSize.Lev
 {
     uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
     ASSERT_TRUE(MockTokenId("edm"));
+    bool tempStatus = false;
+    EXPECT_EQ(OsAccountManager::IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTANT_PRINT, tempStatus), ERR_OK);
     EXPECT_EQ(OsAccountManager::SetGlobalOsAccountConstraints(
         CONSTANTS_VECTOR, true, commonOsAccountInfo.GetLocalId(), true), ERR_OK);
+    OsAccountInfo newOsAccountInfo;
+    ASSERT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME_TWO, OsAccountType::NORMAL, newOsAccountInfo), ERR_OK);
+
+    EXPECT_EQ(OsAccountManager::SetSpecificOsAccountConstraints(
+        CONSTANTS_VECTOR, false, newOsAccountInfo.GetLocalId(), commonOsAccountInfo.GetLocalId(), true), ERR_OK);
+
     bool isEnable = false;
+    EXPECT_EQ(OsAccountManager::IsOsAccountConstraintEnable(
+        newOsAccountInfo.GetLocalId(), CONSTANT_PRINT, isEnable), ERR_OK);
+    EXPECT_EQ(isEnable, true);
+
+    isEnable = false;
     EXPECT_EQ(
         OsAccountManager::IsOsAccountConstraintEnable(commonOsAccountInfo.GetLocalId(), CONSTANT_PRINT, isEnable),
         ERR_OK);
@@ -1355,9 +1368,18 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest069, TestSize.Lev
         OsAccountManager::IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isEnable),
         ERR_OK);
     EXPECT_EQ(isEnable, true);
+
+    EXPECT_EQ(OsAccountManager::SetSpecificOsAccountConstraints(
+        CONSTANTS_VECTOR, true, newOsAccountInfo.GetLocalId(), commonOsAccountInfo.GetLocalId(), true), ERR_OK);
+
     isEnable = true;
     EXPECT_EQ(OsAccountManager::SetGlobalOsAccountConstraints(
         CONSTANTS_VECTOR, false, commonOsAccountInfo.GetLocalId(), true), ERR_OK);
+
+    EXPECT_EQ(OsAccountManager::IsOsAccountConstraintEnable(
+        newOsAccountInfo.GetLocalId(), CONSTANT_PRINT, isEnable), ERR_OK);
+    EXPECT_EQ(isEnable, true);
+
     EXPECT_EQ(
         OsAccountManager::IsOsAccountConstraintEnable(commonOsAccountInfo.GetLocalId(), CONSTANT_PRINT, isEnable),
         ERR_OK);
@@ -1367,6 +1389,10 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest069, TestSize.Lev
         OsAccountManager::IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isEnable),
         ERR_OK);
     EXPECT_EQ(isEnable, false);
+    EXPECT_EQ(isEnable, tempStatus);
+    EXPECT_EQ(OsAccountManager::SetGlobalOsAccountConstraints(
+        INVALID_CONSTRAINTS, false, commonOsAccountInfo.GetLocalId(), true), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    ASSERT_EQ(OsAccountManager::RemoveOsAccount(newOsAccountInfo.GetLocalId()), ERR_OK);
     ASSERT_TRUE(SetSelfTokenID(selfTokenId) == 0);
 }
 
@@ -1451,6 +1477,8 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest071, TestSize.Lev
         OsAccountManager::IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isEnable),
         ERR_OK);
     EXPECT_EQ(isEnable, false);
+    EXPECT_EQ(OsAccountManager::SetSpecificOsAccountConstraints(INVALID_CONSTRAINTS, false, MAIN_ACCOUNT_ID,
+        osAccountInfoOne.GetLocalId(), true), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
     ASSERT_TRUE(SetSelfTokenID(selfTokenId) == 0);
 }
