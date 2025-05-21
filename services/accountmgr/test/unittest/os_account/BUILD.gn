@@ -765,6 +765,7 @@ ohos_unittest("os_account_maintenance_type_mock_test") {
     "${services_path}/accountmgr/test/unittest/os_account/mock/access_token",
     "${app_account_innerkits_native_path}/include",
     "${os_account_path}/frameworks/osaccount/core/include",
+    "${os_account_dfx_path}/data_dfx",
   ]
   sources = [ "os_account_maintenance_type_mock_test.cpp" ]
   sources += [
@@ -785,6 +786,7 @@ ohos_unittest("os_account_maintenance_type_mock_test") {
     "${domain_account_framework_path}/src/domain_account_common.cpp",
     "${innerkits_native_path}/src/account_info_parcel.cpp",
     "${os_account_core_path}/src/os_account_event_stub.cpp",
+    "${os_account_dfx_path}/data_dfx/data_size_report_adapter.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",

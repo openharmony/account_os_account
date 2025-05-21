@@ -182,6 +182,7 @@ private:
     ErrCode UpdateAccountToBackground(int32_t oldId);
     ErrCode IsValidOsAccount(const OsAccountInfo &osAccountInfo);
     ErrCode GetNonSACreatedOACount(unsigned int &nonSACreatedOACount) const;
+    std::vector<int32_t> GetVerifiedAccountIds(const SafeMap<int32_t, bool> &verifiedAccounts);
 
 private:
     std::shared_ptr<IOsAccountControl> osAccountControl_;

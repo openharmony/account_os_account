@@ -25,6 +25,7 @@
 #include "file_ex.h"
 #include "account_hisysevent_adapter.h"
 #include "iinner_os_account_manager.h"
+#include "data_size_report_adapter.h"
 #include "ohos_account_data_deal.h"
 
 namespace OHOS {
@@ -239,6 +240,10 @@ ErrCode OhosAccountDataDeal::SaveAccountInfo(const AccountInfo &accountInfo)
     if (ret != ERR_OK && ret != ERR_OHOSACCOUNT_SERVICE_FILE_CHANGE_DIR_MODE_ERROR) {
         ReportOhosAccountOperationFail(accountInfo.userId_, OPERATION_OPEN_FILE_TO_WRITE, ret, configFile);
     }
+
+    // report data_size when distributed account profile photo updated
+    std::vector<int32_t> currentId{accountInfo.userId_};
+    ReportUserDataSize(currentId);
 #ifdef ENABLE_FILE_WATCHER
     accountFileWatcherMgr_.AddAccountInfoDigest(accountInfoValue, configFile);
 #endif // ENABLE_FILE_WATCHER
