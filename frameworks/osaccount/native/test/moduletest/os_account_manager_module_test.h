@@ -57,6 +57,10 @@ const std::vector<std::string> CONSTANTS_VECTOR {
     "constraint.share.into.profile"
 };
 
+const std::vector<std::string> INVALID_CONSTRAINTS {
+    "invalid_constraint"
+};
+
 const std::vector<std::string> CONSTANTS_VECTOR_TEST {
     "constraint.private.dns.set",
 };

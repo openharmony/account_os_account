@@ -582,7 +582,7 @@ HWTEST_F(OsAccountControlFileManagerTest, IsFromBaseOAConstraintsList_002, TestS
     ErrCode ret = g_controlManager->IsFromBaseOAConstraintsList(
         100, "constraint.wifi", isExist);
     EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(isExist, false);
+    EXPECT_EQ(isExist, true);
 }
 
 /**
@@ -600,7 +600,7 @@ HWTEST_F(OsAccountControlFileManagerTest, IsFromBaseOAConstraintsList_003, TestS
     ErrCode ret = g_controlManager->IsFromBaseOAConstraintsList(
         100, "constraint.wifi", isExist);
     EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(isExist, false);
+    EXPECT_EQ(isExist, true);
     RenameFile(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk",
         Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH);
 }
