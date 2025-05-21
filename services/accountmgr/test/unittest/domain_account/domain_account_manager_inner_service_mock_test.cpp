@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <cstdlib>
 #include <gtest/gtest.h>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
@@ -69,7 +70,10 @@ void DomainAccountManagerInnerServiceMockTest::SetUpTestCase(void)
 {}
 
 void DomainAccountManagerInnerServiceMockTest::TearDownTestCase(void)
-{}
+{
+    std::string cmd = "chown -R 3058:3058 /data/service/el1/public/account";
+    std::system(cmd.c_str());
+}
 
 void DomainAccountManagerInnerServiceMockTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 {
