@@ -31,6 +31,7 @@
 #include "domain_account_callback_service.h"
 #include "hitrace_adapter.h"
 #include "account_hisysevent_adapter.h"
+#include "data_size_report_adapter.h"
 #include "account_permission_manager.h"
 #include "app_account_control_manager.h"
 #include "ohos_account_kits.h"
@@ -544,6 +545,8 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
     OsAccountInterface::SendToCESAccountCreate(osAccountInfo);
     subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::CREATED);
     ACCOUNT_LOGI("OsAccountAccountMgr send to storage and bm for start success");
+    // report data size when account created
+    ReportUserDataSize(GetVerifiedAccountIds(verifiedAccounts_));
     return ERR_OK;
 }
 
@@ -1146,6 +1149,8 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountRemove(OsAccountInfo &osAccount
     }
     OsAccountInterface::SendToCESAccountDelete(osAccountInfo);
     ReportOsAccountLifeCycle(localId, Constants::OPERATION_REMOVE);
+    // report data size when account removed
+    ReportUserDataSize(GetVerifiedAccountIds(verifiedAccounts_));
     return errCode;
 }
 
@@ -1761,6 +1766,8 @@ ErrCode IInnerOsAccountManager::SetOsAccountProfilePhoto(const int id, const std
         ACCOUNT_LOGE("Update osaccount info faile code=%{public}d, id=%{public}d", errCode, osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
+    // report data size when profile photo updated
+    ReportUserDataSize(GetVerifiedAccountIds(verifiedAccounts_));
     OsAccountInterface::PublishCommonEvent(
         osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, OPERATION_UPDATE);
     return ERR_OK;
@@ -2103,6 +2110,8 @@ ErrCode  IInnerOsAccountManager::SendToStorageAccountStart(OsAccountInfo &osAcco
     }
     if (osAccountInfo.GetIsVerified()) {
         verifiedAccounts_.EnsureInsert(osAccountInfo.GetLocalId(), true);
+        // report data size when account without verification login
+        ReportUserDataSize(GetVerifiedAccountIds(verifiedAccounts_));
     }
     if (osAccountInfo.GetIsLoggedIn()) {
         loggedInAccounts_.EnsureInsert(osAccountInfo.GetLocalId(), true);
@@ -2258,6 +2267,8 @@ ErrCode IInnerOsAccountManager::SetOsAccountIsVerified(const int id, const bool 
 
     if (isVerified) {
         verifiedAccounts_.EnsureInsert(id, true);
+        // report data size when account with verification verified
+        ReportUserDataSize(GetVerifiedAccountIds(verifiedAccounts_));
     } else {
         verifiedAccounts_.Erase(id);
     }
@@ -2706,6 +2717,21 @@ ErrCode IInnerOsAccountManager::UpdateServerConfig(const std::string &configId,
 #else
     return ERR_OK;
 #endif // SUPPORT_DOMAIN_ACCOUNTS
+}
+
+std::vector<int32_t> IInnerOsAccountManager::GetVerifiedAccountIds(const SafeMap<int32_t, bool> &verifiedAccounts)
+{
+    std::vector<int32_t> verifiedAccountIds;
+
+    //find verified account id vector
+    SafeMap<int32_t, bool>::SafeMapCallBack callback = [&](const int32_t key, bool& value) {
+        if (value) {
+            verifiedAccountIds.push_back(static_cast<int32_t>(key));
+        }
+    };
+
+    (static_cast<SafeMap<int32_t, bool>>(verifiedAccounts)).Iterate(callback);
+    return verifiedAccountIds;
 }
 }  // namespace AccountSA
 }  // namespace OHOS

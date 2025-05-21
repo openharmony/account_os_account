@@ -259,6 +259,7 @@
         "OHOS::AccountSA::DomainAccountCallbackStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
         "non-virtual thunk to OHOS::AccountSA::DomainAccountCallbackStub::~DomainAccountCallbackStub()";
         "virtual thunk to OHOS::AccountSA::DomainAccountCallbackStub::~DomainAccountCallbackStub()";
+        "OHOS::AccountSA::ReportUserDataSize(std::__h::vector<int, std::__h::allocator<int>> const&)";
     };
   local:
     *;
