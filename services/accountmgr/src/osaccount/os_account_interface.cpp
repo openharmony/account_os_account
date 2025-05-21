@@ -549,6 +549,28 @@ static ErrCode GetStorageProxy(sptr<StorageManager::IStorageManager> &proxy)
     return ERR_OK;
 }
 
+#ifdef HAS_USER_IDM_PART
+void ReportDecryptionFaultAsync(const int localId)
+{
+    std::thread([localId]() {
+        std::vector<UserIam::UserAuth::CredentialInfo> credentialInfoList;
+        int32_t ret = UserIam::UserAuth::UserIdmClient::GetInstance().GetCredentialInfoSync(
+            localId, UserIam::UserAuth::AuthType::PIN, credentialInfoList);
+        if (ret != ERR_OK) {
+            ACCOUNT_LOGE("Get credential info sync failed, ret=%{public}d, localId=%{public}d", ret, localId);
+            ReportOsAccountOperationFail(localId, Constants::OPERATION_ACTIVATE,
+                ret, "Get credential info sync failed");
+            return;
+        }
+        if (credentialInfoList.empty()) {
+            ACCOUNT_LOGE("EL2 decryption failed and no credential, localId=%{public}d", localId);
+            ReportOsAccountOperationFail(localId, Constants::OPERATION_ACTIVATE,
+                ErrNo::E_ACTIVE_EL2_FAILED, "EL2 decryption failed and no credential");
+        }
+    }).detach();
+}
+#endif
+
 int32_t OsAccountInterface::UnlockUser(const int localId)
 {
     int32_t retryTimes = 0;
@@ -574,22 +596,7 @@ int32_t OsAccountInterface::UnlockUser(const int localId)
             }
 #ifdef HAS_USER_IDM_PART
         } else {
-            std::thread([localId]() {
-                std::vector<UserIam::UserAuth::CredentialInfo> credentialInfoList;
-                int32_t ret = UserIam::UserAuth::UserIdmClient::GetInstance().GetCredentialInfoSync(
-                    localId, UserIam::UserAuth::AuthType::PIN, credentialInfoList);
-                if (ret != ERR_OK) {
-                    ACCOUNT_LOGE("Get credential info sync failed, ret=%{public}d, localId=%{public}d", ret, localId);
-                    ReportOsAccountOperationFail(localId, Constants::OPERATION_ACTIVATE,
-                        ret, "Get credential info sync failed");
-                    return;
-                }
-                if (credentialInfoList.empty()) {
-                    ACCOUNT_LOGE("EL2 decryption failed and no credential, localId=%{public}d", localId);
-                    ReportOsAccountOperationFail(localId, Constants::OPERATION_ACTIVATE,
-                        ErrNo::E_ACTIVE_EL2_FAILED, "EL2 decryption failed and no credential");
-                }
-            }).detach();
+            ReportDecryptionFaultAsync(localId);
 #endif
         }
         if ((errCode == Constants::E_IPC_ERROR) || (errCode == Constants::E_IPC_SA_DIED)) {
