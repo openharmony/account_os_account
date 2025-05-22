@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -254,7 +254,7 @@ void AccountFileWatcherMgr::DealWithFileEvent()
 {
     std::vector<std::pair<std::shared_ptr<FileWatcher>, uint32_t>> eventMap;
     {
-        std::lock_guard<std::recursive_mutex> lock(fileWatcherMgrLock_);
+        std::lock_guard<std::mutex> lock(fileWatcherMgrLock_);
         char buf[BUF_COMMON_SIZE] = {0};
         struct inotify_event *event = nullptr;
         int len = 0;
@@ -310,7 +310,7 @@ void AccountFileWatcherMgr::AddFileWatcher(
         ACCOUNT_LOGE("Notify event callback is nullptr");
         return;
     }
-    std::lock_guard<std::recursive_mutex> lock(fileWatcherMgrLock_);
+    std::lock_guard<std::mutex> lock(fileWatcherMgrLock_);
     if (inotifyFd_ < 0) {
         inotifyFd_ = inotify_init();
         if (inotifyFd_ < 0) {
@@ -328,10 +328,7 @@ void AccountFileWatcherMgr::AddFileWatcher(
     } else {
         fileWatcher = std::make_shared<FileWatcher>(id, checkCallbackFunc);
     }
-    if (GetFileWatcher(fileWatcher->GetFilePath()) != nullptr) {
-        return;
-    }
-    if (!fileWatcher->StartNotify(inotifyFd_, IN_MODIFY | IN_DELETE_SELF | IN_MOVE_SELF)) {
+    if (!fileWatcher->StartNotify(inotifyFd_, IN_MODIFY | IN_DELETE_SELF| IN_MOVE_SELF)) {
         ACCOUNT_LOGI("fileWatcher StartNotify failed, fileName = %{public}s", filePath.c_str());
         return;
     }
@@ -346,7 +343,7 @@ void AccountFileWatcherMgr::AddFileWatcher(
 
 void AccountFileWatcherMgr::RemoveFileWatcher(int32_t id, const std::string &filePath)
 {
-    std::lock_guard<std::recursive_mutex> lock(fileWatcherMgrLock_);
+    std::lock_guard<std::mutex> lock(fileWatcherMgrLock_);
     int targetWd = -1;
     for (auto it : fileNameMgrMap_) {
         if ((it.second->GetLocalId() == id) && (it.second->GetFilePath() == filePath)) {
@@ -455,18 +452,6 @@ ErrCode AccountFileWatcherMgr::DeleteAccountInfoDigest(const std::string &userIn
     return ERR_OK;
 }
 
-std::shared_ptr<FileWatcher> AccountFileWatcherMgr::GetFileWatcher(const std::string &filePath)
-{
-    std::lock_guard<std::recursive_mutex> lock(fileWatcherMgrLock_);
-    for (auto it : fileNameMgrMap_) {
-        std::string fileName = it.second->GetFilePath();
-        if (fileName == filePath) {
-            return it.second;
-        }
-    }
-    return nullptr;
-}
-
 FileWatcher::FileWatcher(int32_t id, const CheckNotifyEventCallbackFunc &checkCallbackFunc)
     : id_(id), eventCallbackFunc_(checkCallbackFunc)
 {
@@ -485,11 +470,6 @@ FileWatcher::~FileWatcher()
 std::string FileWatcher::GetFilePath() const
 {
     return filePath_;
-}
-
-CheckNotifyEventCallbackFunc FileWatcher::GetEventCallbackFunc() const
-{
-    return eventCallbackFunc_;
 }
 
 bool FileWatcher::StartNotify(int32_t fd, const uint32_t &watchEvents)
