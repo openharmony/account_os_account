@@ -25,6 +25,7 @@ config("account_common_config") {
     "log/include",
     "perf_stat/include",
     "${os_account_dfx_path}/hisysevent_adapter",
+    "${os_account_dfx_path}/data_dfx",
     "utils/include",
     "${innerkits_common}/include",
     "${innerkits_path}/include",
@@ -42,6 +43,7 @@ ohos_shared_library("libaccount_common") {
 
   sources = [
     "${innerkits_native_path}/src/distributed_account_subscribe_callback.cpp",
+    "${os_account_dfx_path}/data_dfx/data_size_report_adapter.cpp",
     "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
     "account_error/src/account_error_no.cpp",
     "file_operator/src/account_file_operator.cpp",
