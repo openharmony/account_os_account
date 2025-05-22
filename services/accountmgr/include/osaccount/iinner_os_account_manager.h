@@ -177,7 +177,7 @@ private:
 #endif // SUPPORT_DOMAIN_ACCOUNTS
     void RetryToGetAccount(OsAccountInfo &osAccountInfo);
     ErrCode RetryToInsertOsAccount(OsAccountInfo &osAccountInfo);
-    bool JudgeOsAccountUpdate(Json &accountIndexJson);
+    bool JudgeOsAccountUpdate(cJSON *accountIndexJson);
     std::shared_ptr<std::mutex> GetOrInsertUpdateLock(int32_t id);
     ErrCode UpdateAccountToBackground(int32_t oldId);
     ErrCode IsValidOsAccount(const OsAccountInfo &osAccountInfo);

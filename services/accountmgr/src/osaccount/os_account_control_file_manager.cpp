@@ -29,6 +29,7 @@
 #endif
 #include "string_ex.h"
 #include "os_account_constants.h"
+#include "os_account_info_json_parser.h"
 #include "parameters.h"
 
 namespace OHOS {
@@ -104,26 +105,23 @@ ErrCode OsAccountControlFileManager::GetOsAccountConfig(OsAccountConfig &config)
         ACCOUNT_LOGE("Get content from file %{public}s failed!", cfgPath.c_str());
         return errCode;
     }
-    Json configJson = Json::parse(configStr, nullptr, false);
-    if (configJson.is_discarded()) {
+    auto configJson = CreateJsonFromString(configStr);
+    if (configJson == nullptr) {
         ACCOUNT_LOGE("Parse os account info json data failed");
         return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
     }
-    auto jsonEnd = configJson.end();
+
     int32_t maxOsAccountNum = -1;
-    OHOS::AccountSA::GetDataByType<int32_t>(configJson, jsonEnd, MAX_OS_ACCOUNT_NUM,
-        maxOsAccountNum, OHOS::AccountSA::JsonType::NUMBER);
+    GetDataByType<int32_t>(configJson, MAX_OS_ACCOUNT_NUM, maxOsAccountNum);
     if (maxOsAccountNum > 0) {
         config.maxOsAccountNum = static_cast<uint32_t>(maxOsAccountNum);
     }
-    OHOS::AccountSA::GetDataByType<int32_t>(configJson, jsonEnd, MAX_LOGGED_IN_OS_ACCOUNT_NUM,
-        config.maxLoggedInOsAccountNum, OHOS::AccountSA::JsonType::NUMBER);
+    GetDataByType<uint32_t>(configJson, MAX_LOGGED_IN_OS_ACCOUNT_NUM, config.maxLoggedInOsAccountNum);
 
     bool isDeveloperMode = OHOS::system::GetBoolParameter(DEVELOPER_MODE_STATE, false);
-    if (isDeveloperMode && configJson.find(DEVELOPER_MODE) != jsonEnd) {
-        Json modeJson = configJson.at(DEVELOPER_MODE);
-        OHOS::AccountSA::GetDataByType<int32_t>(modeJson, modeJson.end(), MAX_LOGGED_IN_OS_ACCOUNT_NUM,
-            config.maxLoggedInOsAccountNum, OHOS::AccountSA::JsonType::NUMBER);
+    if (isDeveloperMode && IsKeyExist(configJson, DEVELOPER_MODE)) {
+        auto modeJson = GetItemFromJson(configJson, DEVELOPER_MODE);
+        GetDataByType<uint32_t>(modeJson, MAX_LOGGED_IN_OS_ACCOUNT_NUM, config.maxLoggedInOsAccountNum);
     }
     if ((config.maxLoggedInOsAccountNum > config.maxOsAccountNum) ||
         (config.maxLoggedInOsAccountNum <= 0)) {
@@ -138,9 +136,13 @@ bool OsAccountControlFileManager::RecoverAccountData(const std::string &fileName
 #if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
     std::string recoverDataStr;
     if (fileName == Constants::ACCOUNT_LIST_FILE_JSON_PATH) {
-        Json accountListJson;
+        CJsonUnique accountListJson = nullptr;
         osAccountDataBaseOperator_->GetAccountListFromStoreID(OS_ACCOUNT_STORE_ID, accountListJson);
-        recoverDataStr = accountListJson.dump();
+        recoverDataStr = PackJsonToString(accountListJson);
+        if (recoverDataStr.empty()) {
+            ACCOUNT_LOGE("failed to dump json object");
+            return false;
+        }
     } else if (id >= Constants::START_USER_ID) {
         OsAccountInfo osAccountInfo;
         if (GetOsAccountFromDatabase(OS_ACCOUNT_STORE_ID, id, osAccountInfo) != ERR_OK) {
@@ -286,15 +288,14 @@ OsAccountControlFileManager::~OsAccountControlFileManager()
 void OsAccountControlFileManager::Init()
 {
     FileInit();
-    Json accountListJson;
+    CJsonUnique accountListJson = nullptr;
     ErrCode result = GetAccountListFromFile(accountListJson);
     if (result != ERR_OK) {
         return;
     }
-    auto jsonEnd = accountListJson.end();
     std::vector<std::string> accountIdList;
-    OHOS::AccountSA::GetDataByType<std::vector<std::string>>(
-        accountListJson, jsonEnd, Constants::ACCOUNT_LIST, accountIdList, OHOS::AccountSA::JsonType::ARRAY);
+    GetDataByType<std::vector<std::string>>(accountListJson, Constants::ACCOUNT_LIST, accountIdList);
+
 #ifdef ENABLE_FILE_WATCHER
     if (!accountIdList.empty()) {
         InitFileWatcherInfo(accountIdList);
@@ -367,15 +368,15 @@ void OsAccountControlFileManager::BuildAndSaveAccountListJsonFile(const std::vec
 {
     ACCOUNT_LOGD("Enter.");
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
-    Json accountList = Json {
-        {Constants::ACCOUNT_LIST, accounts},
-        {Constants::COUNT_ACCOUNT_NUM, accounts.size()},
-        {DEFAULT_ACTIVATED_ACCOUNT_ID, Constants::START_USER_ID},
-        {Constants::MAX_ALLOW_CREATE_ACCOUNT_ID, Constants::MAX_USER_ID},
-        {Constants::SERIAL_NUMBER_NUM, Constants::SERIAL_NUMBER_NUM_START},
-        {IS_SERIAL_NUMBER_FULL, Constants::IS_SERIAL_NUMBER_FULL_INIT_VALUE},
-        {NEXT_LOCAL_ID, Constants::START_USER_ID + 1},
-    };
+    auto accountList = CreateJson();
+    AddVectorStringToJson(accountList, Constants::ACCOUNT_LIST, accounts);
+    AddIntToJson(accountList, Constants::COUNT_ACCOUNT_NUM, accounts.size());
+    AddIntToJson(accountList, DEFAULT_ACTIVATED_ACCOUNT_ID, Constants::START_USER_ID);
+    AddIntToJson(accountList, Constants::MAX_ALLOW_CREATE_ACCOUNT_ID, Constants::MAX_USER_ID);
+    AddInt64ToJson(accountList, Constants::SERIAL_NUMBER_NUM, Constants::SERIAL_NUMBER_NUM_START);
+    AddBoolToJson(accountList, IS_SERIAL_NUMBER_FULL, Constants::IS_SERIAL_NUMBER_FULL_INIT_VALUE);
+    AddIntToJson(accountList, NEXT_LOCAL_ID, Constants::START_USER_ID + 1);
+
     SaveAccountListToFile(accountList);
 }
 
@@ -388,9 +389,8 @@ void OsAccountControlFileManager::BuildAndSaveBaseOAConstraintsJsonFile()
         ACCOUNT_LOGE("Get %{public}d base os account constraints failed.", Constants::START_USER_ID);
         return;
     }
-    Json baseOsAccountConstraints = Json {
-        {START_USER_STRING_ID, baseOAConstraints}
-    };
+    auto baseOsAccountConstraints = CreateJson();
+    AddVectorStringToJson(baseOsAccountConstraints, START_USER_STRING_ID, baseOAConstraints);
     SaveBaseOAConstraintsToFile(baseOsAccountConstraints);
 }
 
@@ -398,22 +398,21 @@ void OsAccountControlFileManager::BuildAndSaveGlobalOAConstraintsJsonFile()
 {
     ACCOUNT_LOGI("Enter.");
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
-    Json globalOsAccountConstraints = Json {
-        {DEVICE_OWNER_ID, -1},
-        {Constants::ALL_GLOBAL_CONSTRAINTS, {}}
-    };
+    auto globalOsAccountConstraints = CreateJson();
+    AddIntToJson(globalOsAccountConstraints, DEVICE_OWNER_ID, -1);
+    auto allGlobalConstraints = CreateJsonNull();
+    AddObjToJson(globalOsAccountConstraints, Constants::ALL_GLOBAL_CONSTRAINTS, allGlobalConstraints);
     SaveGlobalOAConstraintsToFile(globalOsAccountConstraints);
 }
 
 void OsAccountControlFileManager::BuildAndSaveSpecificOAConstraintsJsonFile()
 {
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
-    Json OsAccountConstraintsList = Json {
-        {Constants::ALL_SPECIFIC_CONSTRAINTS, {}},
-    };
-    Json specificOsAccountConstraints = Json {
-        {START_USER_STRING_ID, OsAccountConstraintsList},
-    };
+    auto allGlobalConstraints = CreateJsonNull();
+    auto osAccountConstraintsList = CreateJson();
+    AddObjToJson(osAccountConstraintsList, Constants::ALL_SPECIFIC_CONSTRAINTS, allGlobalConstraints);
+    auto specificOsAccountConstraints = CreateJson();
+    AddObjToJson(specificOsAccountConstraints, START_USER_STRING_ID, osAccountConstraintsList);
     SaveSpecificOAConstraintsToFile(specificOsAccountConstraints);
 }
 
@@ -440,10 +439,11 @@ void OsAccountControlFileManager::RecoverAccountInfoDigestJsonFile()
 #ifdef HAS_HUKS_PART
     uint8_t digestOutData[ALG_COMMON_SIZE] = {0};
     GenerateAccountInfoDigest(listInfoStr, digestOutData, ALG_COMMON_SIZE);
-    Json digestJsonData = Json {
-        {Constants::ACCOUNT_LIST_FILE_JSON_PATH, digestOutData},
-    };
-    accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_INFO_DIGEST_FILE_PATH, digestJsonData.dump());
+    auto digestJsonData = CreateJson();
+    AddVectorUint8ToJson(digestJsonData, Constants::ACCOUNT_LIST_FILE_JSON_PATH,
+                         std::vector<uint8_t>(digestOutData, digestOutData + ALG_COMMON_SIZE));
+    std::string strValue = PackJsonToString(digestJsonData);
+    accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_INFO_DIGEST_FILE_PATH, strValue);
 #endif // HAS_HUKS_PART
     return;
 }
@@ -501,14 +501,13 @@ void OsAccountControlFileManager::RecoverAccountListJsonFile()
 ErrCode OsAccountControlFileManager::GetOsAccountIdList(std::vector<int32_t> &idList)
 {
     idList.clear();
-    Json accountListJson;
+    CJsonUnique accountListJson = nullptr;
     ErrCode errCode = GetAccountListFromFile(accountListJson);
     if (errCode != ERR_OK) {
         return errCode;
     }
     std::vector<std::string> idStrList;
-    OHOS::AccountSA::GetDataByType<std::vector<std::string>>(accountListJson, accountListJson.end(),
-        Constants::ACCOUNT_LIST, idStrList, OHOS::AccountSA::JsonType::ARRAY);
+    GetDataByType<std::vector<std::string>>(accountListJson, Constants::ACCOUNT_LIST, idStrList);
     for (const auto &idStr : idStrList) {
         int32_t id = 0;
         if (!StrToInt(idStr, id)) {
@@ -523,7 +522,7 @@ ErrCode OsAccountControlFileManager::GetOsAccountIdList(std::vector<int32_t> &id
 ErrCode OsAccountControlFileManager::GetOsAccountList(std::vector<OsAccountInfo> &osAccountList)
 {
     osAccountList.clear();
-    Json accountListJson;
+    CJsonUnique accountListJson = nullptr;
     ErrCode result = GetAccountListFromFile(accountListJson);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("GetAccountListFromFile failed!");
@@ -537,10 +536,8 @@ ErrCode OsAccountControlFileManager::GetOsAccountList(std::vector<OsAccountInfo>
         return result;
 #endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
     }
-    const auto &jsonObjectEnd = accountListJson.end();
     std::vector<std::string> idList;
-    OHOS::AccountSA::GetDataByType<std::vector<std::string>>(
-        accountListJson, jsonObjectEnd, Constants::ACCOUNT_LIST, idList, OHOS::AccountSA::JsonType::ARRAY);
+    GetDataByType<std::vector<std::string>>(accountListJson, Constants::ACCOUNT_LIST, idList);
 
     for (const auto& it : idList) {
         OsAccountInfo osAccountInfo;
@@ -583,8 +580,8 @@ ErrCode OsAccountControlFileManager::GetOsAccountInfoById(const int id, OsAccoun
         }
         return ERR_ACCOUNT_COMMON_FILE_READ_FAILED;
     }
-    Json osAccountInfoJson = Json::parse(accountInfoStr, nullptr, false);
-    if (osAccountInfoJson.is_discarded() || !osAccountInfo.FromJson(osAccountInfoJson)) {
+    auto osAccountInfoJson = CreateJsonFromString(accountInfoStr);
+    if (osAccountInfoJson == nullptr || !FromJson(osAccountInfoJson.get(), osAccountInfo)) {
         ACCOUNT_LOGE("Parse os account info json for %{public}d failed", id);
         if (GetOsAccountFromDatabase("", id, osAccountInfo) != ERR_OK) {
             ACCOUNT_LOGE("GetOsAccountFromDatabase failed id=%{public}d", id);
@@ -605,23 +602,20 @@ ErrCode OsAccountControlFileManager::UpdateBaseOAConstraints(const std::string& 
     const std::vector<std::string>& ConstraintStr, bool isAdd)
 {
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
-    Json baseOAConstraintsJson;
+    CJsonUnique baseOAConstraintsJson = nullptr;
     ErrCode result = GetBaseOAConstraintsFromFile(baseOAConstraintsJson);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Get baseOAConstraints from json file failed!");
         return result;
     }
-
-    if (baseOAConstraintsJson.find(idStr) == baseOAConstraintsJson.end()) {
+    if (!IsKeyExist(baseOAConstraintsJson, idStr)) {
         if (!isAdd) {
             return ERR_OK;
         }
-        baseOAConstraintsJson.emplace(idStr, ConstraintStr);
+        AddVectorStringToJson(baseOAConstraintsJson, idStr, ConstraintStr);
     } else {
         std::vector<std::string> baseOAConstraints;
-        auto jsonEnd = baseOAConstraintsJson.end();
-        OHOS::AccountSA::GetDataByType<std::vector<std::string>>(
-            baseOAConstraintsJson, jsonEnd, idStr, baseOAConstraints, OHOS::AccountSA::JsonType::ARRAY);
+        GetDataByType<std::vector<std::string>>(baseOAConstraintsJson, idStr, baseOAConstraints);
         for (auto it = ConstraintStr.begin(); it != ConstraintStr.end(); it++) {
             if (!isAdd) {
                 baseOAConstraints.erase(std::remove(baseOAConstraints.begin(), baseOAConstraints.end(), *it),
@@ -632,7 +626,7 @@ ErrCode OsAccountControlFileManager::UpdateBaseOAConstraints(const std::string& 
                 baseOAConstraints.emplace_back(*it);
             }
         }
-        baseOAConstraintsJson[idStr] = baseOAConstraints;
+        AddVectorStringToJson(baseOAConstraintsJson, idStr, baseOAConstraints);
     }
     return SaveBaseOAConstraintsToFile(baseOAConstraintsJson);
 }
@@ -641,7 +635,7 @@ ErrCode OsAccountControlFileManager::UpdateGlobalOAConstraints(
     const std::string& idStr, const std::vector<std::string>& ConstraintStr, bool isAdd)
 {
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
-    Json globalOAConstraintsJson;
+    CJsonUnique globalOAConstraintsJson = nullptr;
     ErrCode result = GetGlobalOAConstraintsFromFile(globalOAConstraintsJson);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Get globalOAConstraints from file failed!");
@@ -652,11 +646,11 @@ ErrCode OsAccountControlFileManager::UpdateGlobalOAConstraints(
 }
 
 void OsAccountControlFileManager::GlobalConstraintsDataOperate(const std::string& idStr,
-    const std::vector<std::string>& ConstraintStr, bool isAdd, Json &globalOAConstraintsJson)
+    const std::vector<std::string>& ConstraintStr, bool isAdd, CJsonUnique &globalOAConstraintsJson)
 {
     std::vector<std::string> globalOAConstraintsList;
-    OHOS::AccountSA::GetDataByType<std::vector<std::string>>(globalOAConstraintsJson, globalOAConstraintsJson.end(),
-        Constants::ALL_GLOBAL_CONSTRAINTS, globalOAConstraintsList, OHOS::AccountSA::JsonType::ARRAY);
+    GetDataByType<std::vector<std::string>>(globalOAConstraintsJson, Constants::ALL_GLOBAL_CONSTRAINTS,
+                                            globalOAConstraintsList);
     std::vector<std::string> waitForErase;
     for (auto it = ConstraintStr.begin(); it != ConstraintStr.end(); it++) {
         if (!isAdd) {
@@ -665,40 +659,39 @@ void OsAccountControlFileManager::GlobalConstraintsDataOperate(const std::string
                 continue;
             }
             std::vector<std::string> constraintSourceList;
-            OHOS::AccountSA::GetDataByType<std::vector<std::string>>(globalOAConstraintsJson,
-                globalOAConstraintsJson.end(), *it, constraintSourceList, OHOS::AccountSA::JsonType::ARRAY);
+            GetDataByType<std::vector<std::string>>(globalOAConstraintsJson, *it, constraintSourceList);
             constraintSourceList.erase(std::remove(constraintSourceList.begin(), constraintSourceList.end(), idStr),
                 constraintSourceList.end());
             if (constraintSourceList.size() == 0) {
                 globalOAConstraintsList.erase(std::remove(globalOAConstraintsList.begin(),
                     globalOAConstraintsList.end(), *it), globalOAConstraintsList.end());
-                globalOAConstraintsJson[Constants::ALL_GLOBAL_CONSTRAINTS] = globalOAConstraintsList;
+                AddVectorStringToJson(globalOAConstraintsJson, Constants::ALL_GLOBAL_CONSTRAINTS,
+                                      globalOAConstraintsList);
                 waitForErase.push_back(*it);
             } else {
-                globalOAConstraintsJson[*it] = constraintSourceList;
+                AddVectorStringToJson(globalOAConstraintsJson, *it, constraintSourceList);
             }
             continue;
         }
         if (std::find(globalOAConstraintsList.begin(),
             globalOAConstraintsList.end(), *it) != globalOAConstraintsList.end()) {
             std::vector<std::string> constraintSourceList;
-            OHOS::AccountSA::GetDataByType<std::vector<std::string>>(globalOAConstraintsJson,
-                globalOAConstraintsJson.end(), *it, constraintSourceList, OHOS::AccountSA::JsonType::ARRAY);
+            GetDataByType<std::vector<std::string>>(globalOAConstraintsJson, *it, constraintSourceList);
             if (std::find(constraintSourceList.begin(),
                 constraintSourceList.end(), idStr) == constraintSourceList.end()) {
                 constraintSourceList.emplace_back(idStr);
-                globalOAConstraintsJson[*it] = constraintSourceList;
+                AddVectorStringToJson(globalOAConstraintsJson, *it, constraintSourceList);
             }
             continue;
         }
         std::vector<std::string> constraintSourceList;
         constraintSourceList.emplace_back(idStr);
         globalOAConstraintsList.emplace_back(*it);
-        globalOAConstraintsJson.emplace(*it, constraintSourceList);
-        globalOAConstraintsJson[Constants::ALL_GLOBAL_CONSTRAINTS] = globalOAConstraintsList;
+        AddVectorStringToJson(globalOAConstraintsJson, *it, constraintSourceList);
+        AddVectorStringToJson(globalOAConstraintsJson, Constants::ALL_GLOBAL_CONSTRAINTS, globalOAConstraintsList);
     }
     for (auto keyStr : waitForErase) {
-        globalOAConstraintsJson.erase(keyStr);
+        DeleteItemFromJson(globalOAConstraintsJson, keyStr);
     }
 }
 
@@ -706,76 +699,74 @@ ErrCode OsAccountControlFileManager::UpdateSpecificOAConstraints(
     const std::string& idStr, const std::string& targetIdStr, const std::vector<std::string>& ConstraintStr, bool isAdd)
 {
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
-    Json specificOAConstraintsJson;
+    CJsonUnique specificOAConstraintsJson = nullptr;
     ErrCode result = GetSpecificOAConstraintsFromFile(specificOAConstraintsJson);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Get specificOAConstraints from file failed!");
         return result;
     }
-    if (specificOAConstraintsJson.find(targetIdStr) == specificOAConstraintsJson.end()) {
+    if (!IsKeyExist(specificOAConstraintsJson, targetIdStr)) {
         if (!isAdd) {
             return ERR_OK;
         }
-        Json osAccountConstraintsList = Json {
-            {Constants::ALL_SPECIFIC_CONSTRAINTS, {}},
-        };
-        specificOAConstraintsJson.emplace(targetIdStr, osAccountConstraintsList);
+        auto accountList = CreateJsonNull();
+        auto osAccountConstraintsList = CreateJson();
+        AddObjToJson(osAccountConstraintsList, Constants::ALL_SPECIFIC_CONSTRAINTS, accountList);
+        AddObjToJson(specificOAConstraintsJson, targetIdStr, osAccountConstraintsList);
     }
-    Json userPrivateConstraintsDataJson = specificOAConstraintsJson[targetIdStr];
+    cJSON *userPrivateConstraintsDataJson = GetItemFromJson(specificOAConstraintsJson, targetIdStr);
     SpecificConstraintsDataOperate(idStr, targetIdStr, ConstraintStr, isAdd, userPrivateConstraintsDataJson);
-    specificOAConstraintsJson[targetIdStr] = userPrivateConstraintsDataJson;
+    AddObjToJson(specificOAConstraintsJson.get(), targetIdStr, userPrivateConstraintsDataJson);
     return SaveSpecificOAConstraintsToFile(specificOAConstraintsJson);
 }
 
 void OsAccountControlFileManager::SpecificConstraintsDataOperate(
     const std::string& idStr, const std::string& targetIdStr, const std::vector<std::string>& ConstraintStr,
-    bool isAdd, Json& userPrivateConstraintsDataJson)
+    bool isAdd, cJSON *userPrivateConstraintsDataJson)
 {
     std::vector<std::string> specificOAConstraintsList;
-    OHOS::AccountSA::GetDataByType<std::vector<std::string>>(userPrivateConstraintsDataJson,
-        userPrivateConstraintsDataJson.end(), Constants::ALL_SPECIFIC_CONSTRAINTS,
-        specificOAConstraintsList, OHOS::AccountSA::JsonType::ARRAY);
+    GetDataByType<std::vector<std::string>>(userPrivateConstraintsDataJson, Constants::ALL_SPECIFIC_CONSTRAINTS,
+                                            specificOAConstraintsList);
+
     std::vector<std::string> waitForErase;
     for (auto it = ConstraintStr.begin(); it != ConstraintStr.end(); it++) {
         if (!isAdd) {
-            if (userPrivateConstraintsDataJson.find(*it) == userPrivateConstraintsDataJson.end()) {
+            if (!IsKeyExist(userPrivateConstraintsDataJson, *it)) {
                 continue;
             }
             std::vector<std::string> constraintSourceList;
-            OHOS::AccountSA::GetDataByType<std::vector<std::string>>(userPrivateConstraintsDataJson,
-                userPrivateConstraintsDataJson.end(), *it, constraintSourceList, OHOS::AccountSA::JsonType::ARRAY);
+            GetDataByType<std::vector<std::string>>(userPrivateConstraintsDataJson, *it, constraintSourceList);
             constraintSourceList.erase(std::remove(constraintSourceList.begin(), constraintSourceList.end(), idStr),
                 constraintSourceList.end());
             if (constraintSourceList.size() == 0) {
                 specificOAConstraintsList.erase(std::remove(specificOAConstraintsList.begin(),
                     specificOAConstraintsList.end(), *it), specificOAConstraintsList.end());
-                userPrivateConstraintsDataJson[Constants::ALL_SPECIFIC_CONSTRAINTS] = specificOAConstraintsList;
+                AddVectorStringToJson(userPrivateConstraintsDataJson, Constants::ALL_SPECIFIC_CONSTRAINTS, specificOAConstraintsList);
                 waitForErase.push_back(*it);
             } else {
-                userPrivateConstraintsDataJson[*it] = constraintSourceList;
+                AddVectorStringToJson(userPrivateConstraintsDataJson, *it, constraintSourceList);
             }
             continue;
         }
         if (std::find(specificOAConstraintsList.begin(),
             specificOAConstraintsList.end(), *it) != specificOAConstraintsList.end()) {
             std::vector<std::string> constraintSourceList;
-            OHOS::AccountSA::GetDataByType<std::vector<std::string>>(userPrivateConstraintsDataJson,
-            userPrivateConstraintsDataJson.end(), *it, constraintSourceList, OHOS::AccountSA::JsonType::ARRAY);
+            GetDataByType<std::vector<std::string>>(userPrivateConstraintsDataJson, *it, constraintSourceList);
             if (std::find(constraintSourceList.begin(),
                 constraintSourceList.end(), idStr) == constraintSourceList.end()) {
                 constraintSourceList.emplace_back(idStr);
-                userPrivateConstraintsDataJson[*it] = constraintSourceList;
+                AddVectorStringToJson(userPrivateConstraintsDataJson, *it, constraintSourceList);
             }
             continue;
         }
         std::vector<std::string> constraintSourceList;
         constraintSourceList.emplace_back(idStr);
         specificOAConstraintsList.emplace_back(*it);
-        userPrivateConstraintsDataJson.emplace(*it, constraintSourceList);
-        userPrivateConstraintsDataJson[Constants::ALL_SPECIFIC_CONSTRAINTS] = specificOAConstraintsList;
+        AddVectorStringToJson(userPrivateConstraintsDataJson, *it, constraintSourceList);
+        AddVectorStringToJson(userPrivateConstraintsDataJson, Constants::ALL_SPECIFIC_CONSTRAINTS, specificOAConstraintsList);
     }
     for (auto keyStr : waitForErase) {
-        userPrivateConstraintsDataJson.erase(keyStr);
+        DeleteItemFromJson(userPrivateConstraintsDataJson, keyStr);
     }
 }
 
@@ -802,13 +793,13 @@ ErrCode OsAccountControlFileManager::RemoveOAConstraintsInfo(const int32_t id)
 ErrCode OsAccountControlFileManager::RemoveOABaseConstraintsInfo(const int32_t id)
 {
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
-    Json baseOAConstraintsJson;
+    CJsonUnique baseOAConstraintsJson = nullptr;
     ErrCode result = GetBaseOAConstraintsFromFile(baseOAConstraintsJson);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Get baseOAConstraints from file failed!");
         return result;
     }
-    baseOAConstraintsJson.erase(std::to_string(id));
+    DeleteItemFromJson(baseOAConstraintsJson, std::to_string(id));
     result = SaveBaseOAConstraintsToFile(baseOAConstraintsJson);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SaveBaseOAConstraintsToFile failed!");
@@ -820,40 +811,35 @@ ErrCode OsAccountControlFileManager::RemoveOABaseConstraintsInfo(const int32_t i
 ErrCode OsAccountControlFileManager::RemoveOAGlobalConstraintsInfo(const int32_t id)
 {
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
-    Json globalOAConstraintsJson;
+    CJsonUnique globalOAConstraintsJson = nullptr;
     ErrCode result = GetGlobalOAConstraintsFromFile(globalOAConstraintsJson);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Get globalOAConstraints from file failed!");
         return result;
     }
     std::vector<std::string> waitForErase;
-    for (auto it = globalOAConstraintsJson.begin(); it != globalOAConstraintsJson.end(); it++) {
-        if (it.key() != Constants::ALL_GLOBAL_CONSTRAINTS && it.key() != DEVICE_OWNER_ID) {
+    cJSON* it = nullptr;
+    cJSON_ArrayForEach(it, globalOAConstraintsJson.get()) {
+        std::string key(it->string);
+        if (key != Constants::ALL_GLOBAL_CONSTRAINTS && key != DEVICE_OWNER_ID) {
             std::vector<std::string> sourceList;
-            OHOS::AccountSA::GetDataByType<std::vector<std::string>>(globalOAConstraintsJson,
-                globalOAConstraintsJson.end(),
-                it.key(),
-                sourceList,
-                OHOS::AccountSA::JsonType::ARRAY);
+            GetDataByType<std::vector<std::string>>(globalOAConstraintsJson, key, sourceList);
             sourceList.erase(std::remove(sourceList.begin(), sourceList.end(), std::to_string(id)), sourceList.end());
             if (sourceList.size() == 0) {
                 std::vector<std::string> allGlobalConstraints;
-                OHOS::AccountSA::GetDataByType<std::vector<std::string>>(globalOAConstraintsJson,
-                    globalOAConstraintsJson.end(),
-                    Constants::ALL_GLOBAL_CONSTRAINTS,
-                    allGlobalConstraints,
-                    OHOS::AccountSA::JsonType::ARRAY);
+                GetDataByType<std::vector<std::string>>(globalOAConstraintsJson, Constants::ALL_GLOBAL_CONSTRAINTS,
+                                                        allGlobalConstraints);
                 allGlobalConstraints.erase(std::remove(allGlobalConstraints.begin(),
-                    allGlobalConstraints.end(), it.key()), allGlobalConstraints.end());
-                globalOAConstraintsJson[Constants::ALL_GLOBAL_CONSTRAINTS] = allGlobalConstraints;
-                waitForErase.push_back(it.key());
+                    allGlobalConstraints.end(), key), allGlobalConstraints.end());
+                AddVectorStringToJson(globalOAConstraintsJson, Constants::ALL_GLOBAL_CONSTRAINTS, allGlobalConstraints);
+                waitForErase.push_back(key);
             } else {
-                globalOAConstraintsJson[it.key()] = sourceList;
+                AddVectorStringToJson(globalOAConstraintsJson, key, sourceList);
             }
         }
     }
     for (auto keyStr : waitForErase) {
-        globalOAConstraintsJson.erase(keyStr);
+        DeleteItemFromJson(globalOAConstraintsJson, keyStr);
     }
     return SaveGlobalOAConstraintsToFile(globalOAConstraintsJson);
 }
@@ -861,56 +847,55 @@ ErrCode OsAccountControlFileManager::RemoveOAGlobalConstraintsInfo(const int32_t
 ErrCode OsAccountControlFileManager::RemoveOASpecificConstraintsInfo(const int32_t id)
 {
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
-    Json specificOAConstraintsJson;
+    CJsonUnique specificOAConstraintsJson = nullptr;
     ErrCode result = GetSpecificOAConstraintsFromFile(specificOAConstraintsJson);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Get specificOAConstraints from file failed!");
         return result;
     }
-    if (specificOAConstraintsJson.find(std::to_string(id)) != specificOAConstraintsJson.end()) {
-        specificOAConstraintsJson.erase(std::to_string(id));
+    if (IsKeyExist(specificOAConstraintsJson, std::to_string(id))) {
+        DeleteItemFromJson(specificOAConstraintsJson, std::to_string(id));
     }
-    for (auto it = specificOAConstraintsJson.begin(); it != specificOAConstraintsJson.end(); it++) {
+    cJSON* it = nullptr;
+    cJSON_ArrayForEach(it, specificOAConstraintsJson.get()) {
         std::vector<std::string> waitForErase;
-        Json userPrivateConstraintsJson;
-        OHOS::AccountSA::GetDataByType<Json>(specificOAConstraintsJson, specificOAConstraintsJson.end(),
-            it.key(), userPrivateConstraintsJson, OHOS::AccountSA::JsonType::OBJECT);
+        cJSON *userPrivateConstraintsJson = nullptr;
+        GetDataByType<CJson *>(specificOAConstraintsJson, it->string, userPrivateConstraintsJson);
         std::vector<std::string> allSpecificConstraints;
-        OHOS::AccountSA::GetDataByType<std::vector<std::string>>(userPrivateConstraintsJson,
-            userPrivateConstraintsJson.end(), Constants::ALL_SPECIFIC_CONSTRAINTS,
-            allSpecificConstraints, OHOS::AccountSA::JsonType::ARRAY);
+        GetDataByType<std::vector<std::string>>(userPrivateConstraintsJson, Constants::ALL_SPECIFIC_CONSTRAINTS,
+                                                allSpecificConstraints);
         if (allSpecificConstraints.size() == 0) {
             continue;
         }
-        for (auto item = userPrivateConstraintsJson.begin(); item != userPrivateConstraintsJson.end(); item++) {
-            if (item.key() == Constants::ALL_SPECIFIC_CONSTRAINTS) {
+        cJSON* item = nullptr;
+        cJSON_ArrayForEach(item, userPrivateConstraintsJson) {
+            if (std::string(item->string) == Constants::ALL_SPECIFIC_CONSTRAINTS) {
                 continue;
             }
             std::vector<std::string> sourceList;
-            OHOS::AccountSA::GetDataByType<std::vector<std::string>>(userPrivateConstraintsJson,
-                userPrivateConstraintsJson.end(), item.key(), sourceList, OHOS::AccountSA::JsonType::ARRAY);
+            GetDataByType<std::vector<std::string>>(userPrivateConstraintsJson, item->string, sourceList);
             sourceList.erase(std::remove(sourceList.begin(),
                 sourceList.end(), std::to_string(id)), sourceList.end());
             if (sourceList.size() == 0) {
                 allSpecificConstraints.erase(std::remove(allSpecificConstraints.begin(),
-                    allSpecificConstraints.end(), item.key()), allSpecificConstraints.end());
-                userPrivateConstraintsJson[Constants::ALL_SPECIFIC_CONSTRAINTS] = allSpecificConstraints;
-                waitForErase.push_back(item.key());
+                    allSpecificConstraints.end(), item->string), allSpecificConstraints.end());
+                AddVectorStringToJson(userPrivateConstraintsJson, Constants::ALL_SPECIFIC_CONSTRAINTS, allSpecificConstraints);
+                waitForErase.push_back(item->string);
             } else {
-                userPrivateConstraintsJson[item.key()] = sourceList;
+                AddVectorStringToJson(userPrivateConstraintsJson, item->string, sourceList);
             }
         }
         for (auto keyStr : waitForErase) {
-            userPrivateConstraintsJson.erase(keyStr);
+            DeleteItemFromJson(userPrivateConstraintsJson, keyStr);
         }
-        specificOAConstraintsJson[it.key()] = userPrivateConstraintsJson;
+        AddObjToJson(specificOAConstraintsJson.get(), it->string, userPrivateConstraintsJson);
     }
     return SaveSpecificOAConstraintsToFile(specificOAConstraintsJson);
 }
 
 ErrCode OsAccountControlFileManager::UpdateAccountList(const std::string& idStr, bool isAdd)
 {
-    Json accountListJson;
+    CJsonUnique accountListJson = nullptr;
     ErrCode result = GetAccountListFromFile(accountListJson);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Get account list failed!");
@@ -918,10 +903,7 @@ ErrCode OsAccountControlFileManager::UpdateAccountList(const std::string& idStr,
     }
 
     std::vector<std::string> accountIdList;
-    auto jsonEnd = accountListJson.end();
-    OHOS::AccountSA::GetDataByType<std::vector<std::string>>(
-        accountListJson, jsonEnd, Constants::ACCOUNT_LIST, accountIdList, OHOS::AccountSA::JsonType::ARRAY);
-
+    GetDataByType<std::vector<std::string>>(accountListJson, Constants::ACCOUNT_LIST, accountIdList);
     if (isAdd) {
         // check repeat
         if (std::find(accountIdList.begin(), accountIdList.end(), idStr) != accountIdList.end()) {
@@ -931,8 +913,8 @@ ErrCode OsAccountControlFileManager::UpdateAccountList(const std::string& idStr,
     } else {
         accountIdList.erase(std::remove(accountIdList.begin(), accountIdList.end(), idStr), accountIdList.end());
     }
-    accountListJson[Constants::ACCOUNT_LIST] = accountIdList;
-    accountListJson[Constants::COUNT_ACCOUNT_NUM] = accountIdList.size();
+    AddVectorStringToJson(accountListJson, Constants::ACCOUNT_LIST, accountIdList);
+    AddIntToJson(accountListJson, Constants::COUNT_ACCOUNT_NUM, accountIdList.size());
     return SaveAccountListToFileAndDataBase(accountListJson);
 }
 
@@ -943,7 +925,7 @@ ErrCode OsAccountControlFileManager::UpdateAccountIndex(const OsAccountInfo &osA
         return ERR_OK;
     }
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
-    Json accountIndexJson;
+    CJsonUnique accountIndexJson = nullptr;
     ErrCode result = GetAccountIndexFromFile(accountIndexJson);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Get account index failed!");
@@ -951,18 +933,18 @@ ErrCode OsAccountControlFileManager::UpdateAccountIndex(const OsAccountInfo &osA
     }
     std::string localIdStr = std::to_string(osAccountInfo.GetLocalId());
     if (isDelete) {
-        if (!accountIndexJson.is_object()) {
+        if (!IsObject(accountIndexJson)) {
             ACCOUNT_LOGE("Get os account index json data failed");
             return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
         }
-        accountIndexJson.erase(localIdStr);
+        DeleteItemFromJson(accountIndexJson, localIdStr);
     } else {
-        Json accountBaseInfo;
-        accountBaseInfo[Constants::LOCAL_NAME] = osAccountInfo.GetLocalName();
-        accountBaseInfo[Constants::SHORT_NAME] = osAccountInfo.GetShortName();
-        accountIndexJson[localIdStr] = accountBaseInfo;
+        auto accountBaseInfo = CreateJson();
+        AddStringToJson(accountBaseInfo, Constants::LOCAL_NAME, osAccountInfo.GetLocalName());
+        AddStringToJson(accountBaseInfo, Constants::SHORT_NAME, osAccountInfo.GetShortName());
+        AddObjToJson(accountIndexJson, localIdStr, accountBaseInfo);
     }
-    std::string lastAccountIndexStr = accountIndexJson.dump();
+    std::string lastAccountIndexStr = PackJsonToString(accountIndexJson);
     result = accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_INDEX_JSON_PATH, lastAccountIndexStr);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Failed to input account index info to file!");
@@ -977,20 +959,18 @@ ErrCode OsAccountControlFileManager::UpdateAccountIndex(const OsAccountInfo &osA
 ErrCode OsAccountControlFileManager::SetNextLocalId(const int32_t &nextLocalId)
 {
     std::lock_guard<std::mutex> lock(operatingIdMutex_);
-    Json accountListJson;
+    CJsonUnique accountListJson = nullptr;
     ErrCode result = GetAccountListFromFile(accountListJson);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SetNextLocalId get accountList error.");
         return result;
     }
     int32_t nextLocalIdJson = -1;
-    auto jsonEnd = accountListJson.end();
-    if (!GetDataByType<std::int32_t>(accountListJson, jsonEnd,
-        NEXT_LOCAL_ID, nextLocalIdJson, JsonType::NUMBER)) {
+    if (!GetDataByType<std::int32_t>(accountListJson, NEXT_LOCAL_ID, nextLocalIdJson)) {
         ACCOUNT_LOGW("SetNextLocalId get next localId failed");
         nextLocalIdJson = Constants::START_USER_ID + 1;
     }
-    accountListJson[NEXT_LOCAL_ID] = std::max(nextLocalId, nextLocalIdJson);
+    AddIntToJson(accountListJson, NEXT_LOCAL_ID, std::max(nextLocalId, nextLocalIdJson));
     result = SaveAccountListToFileAndDataBase(accountListJson);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SetNextLocalId save accountListJson error.");
@@ -1000,19 +980,19 @@ ErrCode OsAccountControlFileManager::SetNextLocalId(const int32_t &nextLocalId)
 
 ErrCode OsAccountControlFileManager::RemoveAccountIndex(const int32_t id)
 {
-    Json accountIndexJson;
+    CJsonUnique accountIndexJson = nullptr;
     ErrCode result = GetAccountIndexFromFile(accountIndexJson);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Get account index failed!");
         return result;
     }
     std::string localIdStr = std::to_string(id);
-    if (!accountIndexJson.is_object()) {
+    if (!IsObject(accountIndexJson)) {
         ACCOUNT_LOGE("Get os account index data failed");
         return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
     }
-    accountIndexJson.erase(localIdStr);
-    std::string lastAccountIndexStr = accountIndexJson.dump();
+    DeleteItemFromJson(accountIndexJson, localIdStr);
+    std::string lastAccountIndexStr = PackJsonToString(accountIndexJson);
     result = accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_INDEX_JSON_PATH, lastAccountIndexStr);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Failed to input account index info to file!");
@@ -1148,21 +1128,19 @@ bool AccountExistsWithSerialNumber(const std::vector<OsAccountInfo>& osAccountIn
 ErrCode OsAccountControlFileManager::GetSerialNumber(int64_t &serialNumber)
 {
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
-    Json accountListJson;
+    CJsonUnique accountListJson = nullptr;
     ErrCode result = GetAccountListFromFile(accountListJson);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("GetSerialNumber get accountList error");
         return result;
     }
-    OHOS::AccountSA::GetDataByType<int64_t>(accountListJson, accountListJson.end(), Constants::SERIAL_NUMBER_NUM,
-        serialNumber, OHOS::AccountSA::JsonType::NUMBER);
+    GetDataByType<int64_t>(accountListJson, Constants::SERIAL_NUMBER_NUM, serialNumber);
     if (serialNumber == Constants::CARRY_NUM) {
-        accountListJson[IS_SERIAL_NUMBER_FULL] = true;
+        AddBoolToJson(accountListJson, IS_SERIAL_NUMBER_FULL, true);
         serialNumber = Constants::SERIAL_NUMBER_NUM_START;
     }
     bool isSerialNumberFull = false;
-    OHOS::AccountSA::GetDataByType<bool>(accountListJson, accountListJson.end(), IS_SERIAL_NUMBER_FULL,
-        isSerialNumberFull, OHOS::AccountSA::JsonType::BOOLEAN);
+    GetDataByType<bool>(accountListJson, IS_SERIAL_NUMBER_FULL, isSerialNumberFull);
     if (isSerialNumberFull) {
         std::vector<OsAccountInfo> osAccountInfos;
         result = GetOsAccountList(osAccountInfos);
@@ -1180,7 +1158,7 @@ ErrCode OsAccountControlFileManager::GetSerialNumber(int64_t &serialNumber)
             serialNumber = (serialNumber == Constants::CARRY_NUM) ? Constants::SERIAL_NUMBER_NUM_START : serialNumber;
         }
     }
-    accountListJson[Constants::SERIAL_NUMBER_NUM] = serialNumber + 1;
+    AddInt64ToJson(accountListJson, Constants::SERIAL_NUMBER_NUM, serialNumber + 1);
     result = SaveAccountListToFileAndDataBase(accountListJson);
     if (result != ERR_OK) {
         return result;
@@ -1207,22 +1185,19 @@ int32_t OsAccountControlFileManager::GetNextLocalId(const std::vector<std::strin
 ErrCode OsAccountControlFileManager::GetAllowCreateId(int &id)
 {
     std::lock_guard<std::mutex> lock(operatingIdMutex_);
-    Json accountListJson;
+    CJsonUnique accountListJson = nullptr;
     ErrCode result = GetAccountListFromFile(accountListJson);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("GetAllowCreateId get accountList error.");
         return result;
     }
-    auto jsonEnd = accountListJson.end();
     std::vector<std::string> accountIdList;
     int32_t nextLocalId = -1;
-    if (!GetDataByType<std::vector<std::string>>(accountListJson, jsonEnd,
-        Constants::ACCOUNT_LIST, accountIdList, JsonType::ARRAY)) {
+    if (!GetDataByType<std::vector<std::string>>(accountListJson, Constants::ACCOUNT_LIST, accountIdList)) {
         ACCOUNT_LOGE("GetAllowCreateId get accountIdList error");
         return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
     }
-    if (!GetDataByType<std::int32_t>(accountListJson, jsonEnd,
-        NEXT_LOCAL_ID, nextLocalId, JsonType::NUMBER)) {
+    if (!GetDataByType<int32_t>(accountListJson, NEXT_LOCAL_ID, nextLocalId)) {
         ACCOUNT_LOGW("Get next localId failed");
         int32_t lastLocalId = -1;
         if (!accountIdList.empty() && StrToInt(accountIdList[accountIdList.size() - 1], lastLocalId)) {
@@ -1234,7 +1209,7 @@ ErrCode OsAccountControlFileManager::GetAllowCreateId(int &id)
     }
 
     id = GetNextLocalId(accountIdList, nextLocalId);
-    accountListJson[NEXT_LOCAL_ID] = id + 1;
+    AddIntToJson(accountListJson, NEXT_LOCAL_ID, id + 1);
     result = SaveAccountListToFileAndDataBase(accountListJson);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("GetAllowCreateId save accountListJson error, errCode %{public}d.", result);
@@ -1242,10 +1217,9 @@ ErrCode OsAccountControlFileManager::GetAllowCreateId(int &id)
     return result;
 }
 
-ErrCode OsAccountControlFileManager::GetAccountListFromFile(Json &accountListJson)
+ErrCode OsAccountControlFileManager::GetAccountListFromFile(CJsonUnique &accountListJson)
 {
     ACCOUNT_LOGD("Enter");
-    accountListJson.clear();
     std::string accountList;
     std::lock_guard<std::mutex> lock(accountListFileLock_);
     ErrCode errCode = accountFileOperator_->GetFileContentByPath(Constants::ACCOUNT_LIST_FILE_JSON_PATH,
@@ -1254,8 +1228,8 @@ ErrCode OsAccountControlFileManager::GetAccountListFromFile(Json &accountListJso
         ACCOUNT_LOGE("GetFileContentByPath failed! error code %{public}d.", errCode);
         return errCode;
     }
-    accountListJson = Json::parse(accountList, nullptr, false);
-    if (accountListJson.is_discarded()) {
+    accountListJson = CreateJsonFromString(accountList);
+    if (accountListJson == nullptr) {
         ACCOUNT_LOGE("AccountListFile does not comply with the json format.");
 #if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
         return osAccountDataBaseOperator_->GetAccountListFromStoreID(OS_ACCOUNT_STORE_ID, accountListJson);
@@ -1267,9 +1241,8 @@ ErrCode OsAccountControlFileManager::GetAccountListFromFile(Json &accountListJso
     return ERR_OK;
 }
 
-ErrCode OsAccountControlFileManager::GetAccountIndexFromFile(Json &accountIndexJson)
+ErrCode OsAccountControlFileManager::GetAccountIndexFromFile(CJsonUnique &accountIndexJson)
 {
-    accountIndexJson.clear();
     std::string accountIndex;
     if (!accountFileOperator_->IsJsonFileReady(Constants::ACCOUNT_INDEX_JSON_PATH)) {
         ErrCode result = GetAccountIndexInfo(accountIndex);
@@ -1284,8 +1257,8 @@ ErrCode OsAccountControlFileManager::GetAccountIndexFromFile(Json &accountIndexJ
             return errCode;
         }
     }
-    accountIndexJson = Json::parse(accountIndex, nullptr, false);
-    if (accountIndexJson.is_discarded()) {
+    accountIndexJson = CreateJsonFromString(accountIndex);
+    if (accountIndexJson == nullptr) {
         ACCOUNT_LOGE("parse os account info json data failed");
         return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
     }
@@ -1299,25 +1272,24 @@ ErrCode OsAccountControlFileManager::GetAccountIndexInfo(std::string &accountInd
     if (result != ERR_OK) {
         return result;
     }
-    Json accountIndexJson;
+    auto accountIndexJson = CreateJson();
     for (auto account = osAccountInfos.begin(); account != osAccountInfos.end(); account++) {
         // private account don't check name
         if (account->GetType() == OsAccountType::PRIVATE) {
             continue;
         }
         std::string localIdStr = std::to_string(account->GetLocalId());
-        Json accountIndexElement;
-        accountIndexElement[Constants::LOCAL_NAME] = account->GetLocalName();
-        accountIndexElement[Constants::SHORT_NAME] = account->GetShortName();
-        accountIndexJson[localIdStr] = accountIndexElement;
+        auto accountIndexElement = CreateJson();
+        AddStringToJson(accountIndexElement, Constants::LOCAL_NAME, account->GetLocalName());
+        AddStringToJson(accountIndexElement, Constants::SHORT_NAME, account->GetShortName());
+        AddObjToJson(accountIndexJson, localIdStr, accountIndexElement);
     }
-    accountIndexInfo = accountIndexJson.dump();
+    accountIndexInfo = PackJsonToString(accountIndexJson);
     return ERR_OK;
 }
 
-ErrCode OsAccountControlFileManager::GetBaseOAConstraintsFromFile(Json &baseOAConstraintsJson)
+ErrCode OsAccountControlFileManager::GetBaseOAConstraintsFromFile(CJsonUnique &baseOAConstraintsJson)
 {
-    baseOAConstraintsJson.clear();
     std::string baseOAConstraints;
     std::lock_guard<std::mutex> lock(baseOAConstraintsFileLock_);
     ErrCode errCode = accountFileOperator_->GetFileContentByPath(
@@ -1326,8 +1298,8 @@ ErrCode OsAccountControlFileManager::GetBaseOAConstraintsFromFile(Json &baseOACo
         ACCOUNT_LOGE("GetFileContentByPath failed! error code %{public}d.", errCode);
         return errCode;
     }
-    baseOAConstraintsJson = Json::parse(baseOAConstraints, nullptr, false);
-    if (baseOAConstraintsJson.is_discarded() || !baseOAConstraintsJson.is_object()) {
+    baseOAConstraintsJson = CreateJsonFromString(baseOAConstraints);
+    if (baseOAConstraintsJson == nullptr || !IsObject(baseOAConstraintsJson)) {
         ACCOUNT_LOGE("Base constraints json data parse failed code.");
         return errCode;
     }
@@ -1335,9 +1307,8 @@ ErrCode OsAccountControlFileManager::GetBaseOAConstraintsFromFile(Json &baseOACo
     return ERR_OK;
 }
 
-ErrCode OsAccountControlFileManager::GetGlobalOAConstraintsFromFile(Json &globalOAConstraintsJson)
+ErrCode OsAccountControlFileManager::GetGlobalOAConstraintsFromFile(CJsonUnique &globalOAConstraintsJson)
 {
-    globalOAConstraintsJson.clear();
     std::string globalOAConstraints;
     std::lock_guard<std::mutex> lock(globalOAConstraintsFileLock_);
     ErrCode errCode = accountFileOperator_->GetFileContentByPath(
@@ -1346,8 +1317,8 @@ ErrCode OsAccountControlFileManager::GetGlobalOAConstraintsFromFile(Json &global
         ACCOUNT_LOGE("GetFileContentByPath failed! error code %{public}d.", errCode);
         return errCode;
     }
-    globalOAConstraintsJson = Json::parse(globalOAConstraints, nullptr, false);
-    if (globalOAConstraintsJson.is_discarded() || !globalOAConstraintsJson.is_object()) {
+    globalOAConstraintsJson = CreateJsonFromString(globalOAConstraints);
+    if (globalOAConstraintsJson == nullptr || !IsObject(globalOAConstraintsJson)) {
         ACCOUNT_LOGE("Global constraints json data parse failed code.");
         return errCode;
     }
@@ -1355,9 +1326,8 @@ ErrCode OsAccountControlFileManager::GetGlobalOAConstraintsFromFile(Json &global
     return ERR_OK;
 }
 
-ErrCode OsAccountControlFileManager::GetSpecificOAConstraintsFromFile(Json &specificOAConstraintsJson)
+ErrCode OsAccountControlFileManager::GetSpecificOAConstraintsFromFile(CJsonUnique &specificOAConstraintsJson)
 {
-    specificOAConstraintsJson.clear();
     std::string specificOAConstraints;
     std::lock_guard<std::mutex> lock(specificOAConstraintsFileLock_);
     ErrCode errCode = accountFileOperator_->GetFileContentByPath(
@@ -1366,8 +1336,8 @@ ErrCode OsAccountControlFileManager::GetSpecificOAConstraintsFromFile(Json &spec
         ACCOUNT_LOGE("GetFileContentByPath failed! error code %{public}d.", errCode);
         return errCode;
     }
-    specificOAConstraintsJson = Json::parse(specificOAConstraints, nullptr, false);
-    if (specificOAConstraintsJson.is_discarded() || !specificOAConstraintsJson.is_object()) {
+    specificOAConstraintsJson = CreateJsonFromString(specificOAConstraints);
+    if (specificOAConstraintsJson == nullptr || !IsObject(specificOAConstraintsJson)) {
         ACCOUNT_LOGE("Specific constraints json data parse failed code.");
         return errCode;
     }
@@ -1412,19 +1382,15 @@ ErrCode OsAccountControlFileManager::IsFromGlobalOAConstraintsList(const int32_t
         return ERR_OK;
     }
     if (std::find(constraintsList.begin(), constraintsList.end(), constraint) != constraintsList.end()) {
-        Json globalOAConstraintsJson;
+        CJsonUnique globalOAConstraintsJson = nullptr;
         errCode = GetGlobalOAConstraintsFromFile(globalOAConstraintsJson);
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("Get globalOAConstraints from file failed!");
             return errCode;
         }
         std::vector<std::string> globalOAConstraintsList;
-        OHOS::AccountSA::GetDataByType<std::vector<std::string>>(
-            globalOAConstraintsJson,
-            globalOAConstraintsJson.end(),
-            constraint,
-            globalOAConstraintsList,
-            OHOS::AccountSA::JsonType::ARRAY);
+        GetDataByType<std::vector<std::string>>(globalOAConstraintsJson, constraint, globalOAConstraintsList);
+
         ConstraintSourceTypeInfo constraintSourceTypeInfo;
         for (auto it = globalOAConstraintsList.begin(); it != globalOAConstraintsList.end(); it++) {
             int32_t localId = 0;
@@ -1462,19 +1428,16 @@ ErrCode OsAccountControlFileManager::IsFromSpecificOAConstraintsList(const int32
     }
 
     if (std::find(constraintsList.begin(), constraintsList.end(), constraint) != constraintsList.end()) {
-        Json specificOAConstraintsJson;
+        CJsonUnique specificOAConstraintsJson = nullptr;
         errCode = GetSpecificOAConstraintsFromFile(specificOAConstraintsJson);
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("Get specificOAConstraints from file failed!");
             return errCode;
         }
-        Json specificOAConstraintsInfo;
-        OHOS::AccountSA::GetDataByType<Json>(specificOAConstraintsJson, specificOAConstraintsJson.end(),
-            std::to_string(id), specificOAConstraintsInfo, OHOS::AccountSA::JsonType::OBJECT);
+        cJSON *specificOAConstraintsInfo = nullptr;
+        GetDataByType<CJson *>(specificOAConstraintsJson, std::to_string(id), specificOAConstraintsInfo);
         std::vector<std::string> specificConstraintSource;
-        OHOS::AccountSA::GetDataByType<std::vector<std::string>>(specificOAConstraintsInfo,
-            specificOAConstraintsInfo.end(), constraint,
-            specificConstraintSource, OHOS::AccountSA::JsonType::ARRAY);
+        GetDataByType<std::vector<std::string>>(specificOAConstraintsInfo, constraint, specificConstraintSource);
         ConstraintSourceTypeInfo constraintSourceTypeInfo;
         for (auto it = specificConstraintSource.begin(); it != specificConstraintSource.end(); it++) {
             int32_t localId = 0;
@@ -1496,130 +1459,124 @@ ErrCode OsAccountControlFileManager::IsFromSpecificOAConstraintsList(const int32
     return ERR_OK;
 }
 
-ErrCode OsAccountControlFileManager::SaveAccountListToFile(const Json &accountListJson)
+ErrCode OsAccountControlFileManager::SaveAccountListToFile(CJsonUnique &accountListJson)
 {
     std::lock_guard<std::mutex> lock(accountListFileLock_);
+    std::string strValue = PackJsonToString(accountListJson);
     ErrCode result =
-        accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_LIST_FILE_JSON_PATH, accountListJson.dump());
+        accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_LIST_FILE_JSON_PATH, strValue);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Cannot save save account list file content!");
         return result;
     }
 #ifdef ENABLE_FILE_WATCHER
-    accountFileWatcherMgr_.AddAccountInfoDigest(accountListJson.dump(), Constants::ACCOUNT_LIST_FILE_JSON_PATH);
+    accountFileWatcherMgr_.AddAccountInfoDigest(strValue, Constants::ACCOUNT_LIST_FILE_JSON_PATH);
 #endif // ENABLE_FILE_WATCHER
     ACCOUNT_LOGD("Save account list file succeed!");
     return ERR_OK;
 }
 
-ErrCode OsAccountControlFileManager::SaveBaseOAConstraintsToFile(const Json &baseOAConstraints)
+ErrCode OsAccountControlFileManager::SaveBaseOAConstraintsToFile(CJsonUnique &baseOAConstraints)
 {
     std::lock_guard<std::mutex> lock(baseOAConstraintsFileLock_);
+    std::string strValue = PackJsonToString(baseOAConstraints);
     ErrCode result = accountFileOperator_->InputFileByPathAndContent(
-        Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH, baseOAConstraints.dump());
+        Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH, strValue);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Cannot save base osaccount constraints file content!");
         return result;
     }
 #ifdef ENABLE_FILE_WATCHER
     accountFileWatcherMgr_.AddAccountInfoDigest(
-        baseOAConstraints.dump(), Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH);
+        strValue, Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH);
 #endif // ENABLE_FILE_WATCHER
     return ERR_OK;
 }
 
-ErrCode OsAccountControlFileManager::SaveGlobalOAConstraintsToFile(const Json &globalOAConstraints)
+ErrCode OsAccountControlFileManager::SaveGlobalOAConstraintsToFile(CJsonUnique &globalOAConstraints)
 {
     std::lock_guard<std::mutex> lock(globalOAConstraintsFileLock_);
+    std::string strValue = PackJsonToString(globalOAConstraints);
     ErrCode result = accountFileOperator_->InputFileByPathAndContent(
-        Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH, globalOAConstraints.dump());
+        Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH, strValue);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Cannot save global osAccount constraints file content!");
         return result;
     }
 #ifdef ENABLE_FILE_WATCHER
     accountFileWatcherMgr_.AddAccountInfoDigest(
-        globalOAConstraints.dump(), Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH);
+        strValue, Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH);
 #endif // ENABLE_FILE_WATCHER
     return ERR_OK;
 }
 
-ErrCode OsAccountControlFileManager::SaveSpecificOAConstraintsToFile(const Json &specificOAConstraints)
+ErrCode OsAccountControlFileManager::SaveSpecificOAConstraintsToFile(CJsonUnique &specificOAConstraints)
 {
     std::lock_guard<std::mutex> lock(specificOAConstraintsFileLock_);
+    std::string strValue = PackJsonToString(specificOAConstraints);
     ErrCode result = accountFileOperator_->InputFileByPathAndContent(
-        Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH, specificOAConstraints.dump());
+        Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH, strValue);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Cannot save specific osAccount constraints file content!");
         return result;
     }
 #ifdef ENABLE_FILE_WATCHER
     accountFileWatcherMgr_.AddAccountInfoDigest(
-        specificOAConstraints.dump(), Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH);
+        strValue, Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH);
 #endif // ENABLE_FILE_WATCHER
     return ERR_OK;
 }
 
 ErrCode OsAccountControlFileManager::GetDeviceOwnerId(int &deviceOwnerId)
 {
-    Json globalOAConstraintsJson;
+    CJsonUnique globalOAConstraintsJson = nullptr;
     ErrCode result = GetGlobalOAConstraintsFromFile(globalOAConstraintsJson);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Get global json data from file failed!");
         return result;
     }
-    OHOS::AccountSA::GetDataByType<int>(
-        globalOAConstraintsJson,
-        globalOAConstraintsJson.end(),
-        DEVICE_OWNER_ID,
-        deviceOwnerId,
-        OHOS::AccountSA::JsonType::NUMBER);
+    GetDataByType<int>(globalOAConstraintsJson, DEVICE_OWNER_ID, deviceOwnerId);
     return ERR_OK;
 }
 
 ErrCode OsAccountControlFileManager::UpdateDeviceOwnerId(const int deviceOwnerId)
 {
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
-    Json globalOAConstraintsJson;
+    CJsonUnique globalOAConstraintsJson = nullptr;
     ErrCode result = GetGlobalOAConstraintsFromFile(globalOAConstraintsJson);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Get global json data from file failed!");
         return result;
     }
-    globalOAConstraintsJson[DEVICE_OWNER_ID] = deviceOwnerId;
+    AddIntToJson(globalOAConstraintsJson, DEVICE_OWNER_ID, deviceOwnerId);
     return SaveGlobalOAConstraintsToFile(globalOAConstraintsJson);
 }
 
 ErrCode OsAccountControlFileManager::SetDefaultActivatedOsAccount(const int32_t id)
 {
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
-    Json accountListJson;
+    CJsonUnique accountListJson = nullptr;
     ErrCode result = GetAccountListFromFile(accountListJson);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Get account list failed!");
         return result;
     }
-
-    accountListJson[DEFAULT_ACTIVATED_ACCOUNT_ID] = id;
+    AddIntToJson(accountListJson, DEFAULT_ACTIVATED_ACCOUNT_ID, id);
     return SaveAccountListToFileAndDataBase(accountListJson);
 }
 
 ErrCode OsAccountControlFileManager::GetDefaultActivatedOsAccount(int32_t &id)
 {
-    Json accountListJsonData;
+    CJsonUnique accountListJsonData = nullptr;
     ErrCode result = GetAccountListFromFile(accountListJsonData);
     if (result != ERR_OK) {
         return result;
     }
-    OHOS::AccountSA::GetDataByType<int>(accountListJsonData,
-        accountListJsonData.end(),
-        DEFAULT_ACTIVATED_ACCOUNT_ID,
-        id,
-        OHOS::AccountSA::JsonType::NUMBER);
+    GetDataByType<int>(accountListJsonData, DEFAULT_ACTIVATED_ACCOUNT_ID, id);
     return ERR_OK;
 }
 
-ErrCode OsAccountControlFileManager::SaveAccountListToFileAndDataBase(const Json &accountListJson)
+ErrCode OsAccountControlFileManager::SaveAccountListToFileAndDataBase(CJsonUnique &accountListJson)
 {
 #if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
     osAccountDataBaseOperator_->UpdateOsAccountIDListInDatabase(accountListJson);

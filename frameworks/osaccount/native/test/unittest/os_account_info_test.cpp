@@ -22,6 +22,8 @@
 #include "os_account_constants.h"
 #undef private
 
+#include "os_account_info_json_parser.h"
+
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
@@ -81,6 +83,25 @@ const std::string STRING_JSON =
     "i+fEtnHfv4O8R6dpcoby75ltLxHcNtMeyzuJ5FYEMDuQBSpUkNgH5l+Ndx4XtPix4ik0/"
     "xFpssN5bwwXwPilDIZ0klLxSq2vWLAIWACMjBeilQNo6j9ni50R9U8U6lF400m18Q30sTMLnxC1758CxqrO8EesXXzBgiiV5SQPlCgHnNSfI5f1+"
     "av33Q5L3rdP68nb7mfWlFFFaCP//Z\",\"serialNumber\":121012012,\"toBeRemoved\":false,\"type\":0}";
+const std::string OS_ACCOUNT_INFO_JSON_STRING =
+    "{\"constraints\":[\"one\",\"two\",\"three\",\"four\",\"five\"],\"createTime\":1551925510,\"domainInfo\":{"
+   "\"accountName\":\"acc_name\",\"domain\":\"account_iam\",\"domainAccountStatus\":2,\"accountId\":\"102393938\",\"domainServerConfigId\":\"202393938\"},"
+   "\"isActived\":false,\"isCreateCompleted\":true,\"isVerified\":true,\"lastLoginTime\":1551925510,\"localId\":12,\"localName\":"
+   "\"account\",\"shortName\":\"ac\",\"credentialId\":1234567890,\"displayId\":14567890,\"isForeground\":false,"
+   "\"isLoggedIn\":true,\"isDataRemovable\":false,\"creatorType\":1222,"
+   "\"photo\":\"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD//gAUU29mdHdhcmU6IFNuaXBhc3Rl/"
+   "9sAQwADAgIDAgIDAwMDBAMDBAUIBQUEBAUKBwcGCAwKDAwLCgsLDQ4SEA0OEQ4LCxAWEBETFBUVFQwPFxgWFBgSFBUU/"
+   "9sAQwEDBAQFBAUJBQUJFA0LDRQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU/"
+   "8AAEQgAEgAOAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//"
+   "EALUQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU"
+   "1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6On"
+   "q8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//"
+   "EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJS"
+   "lNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+"
+   "jp6vLz9PX29/j5+v/aAAwDAQACEQMRAD8A++fid8e7j4ZiYXHgDxBfN5jJayQ3OnBLsKQGdF+1GbYAwJJi4yN2M1seF/"
+   "i+fEtnHfv4O8R6dpcoby75ltLxHcNtMeyzuJ5FYEMDuQBSpUkNgH5l+Ndx4XtPix4ik0/"
+   "xFpssN5bwwXwPilDIZ0klLxSq2vWLAIWACMjBeilQNo6j9ni50R9U8U6lF400m18Q30sTMLnxC1758CxqrO8EesXXzBgiiV5SQPlCgHnNSfI5f1+"
+   "av33Q5L3rdP68nb7mfWlFFFaCP//Z\",\"serialNumber\":121012012,\"toBeRemoved\":false,\"type\":0}";
 }  // namespace
 class OsAccountInfoTest : public testing::Test {
 public:
@@ -432,9 +453,9 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_FromJson_0100, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
 
-    nlohmann::json jsonObject = Json::parse(STRING_JSON, nullptr, false);
-    ASSERT_EQ(jsonObject.is_discarded(), false);
-    osAccountInfo.FromJson(jsonObject);
+    auto objJson = CreateJsonFromString(STRING_JSON);
+    EXPECT_NE(objJson, nullptr);
+    FromJson(objJson.get(), osAccountInfo);
     EXPECT_EQ(osAccountInfo.GetLocalId(), INT_ID);
 }
 
@@ -450,10 +471,10 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_ToString_0100, TestSize.Level1)
     OsAccountInfo osAccountInfoSrc;
     osAccountInfoSrc.localId_ = id;
     std::string jsonString = osAccountInfoSrc.ToString();
-    nlohmann::json jsonObject = nlohmann::json::parse(jsonString, nullptr, false);
-    ASSERT_EQ(jsonObject.is_discarded(), false);
+    auto jsonObject = CreateJsonFromString(jsonString);
+    EXPECT_NE(jsonObject, nullptr);
     OsAccountInfo osAccountInfoTar;
-    osAccountInfoTar.FromJson(jsonObject);
+    FromJson(jsonObject.get(), osAccountInfoTar);
     EXPECT_EQ(osAccountInfoTar.GetLocalId(), INT_ID);
 }
 
@@ -517,6 +538,56 @@ HWTEST_F(OsAccountInfoTest, GetOsAccountNameById01, TestSize.Level1)
     setuid(ROOT_UID);
     EXPECT_EQ(ERR_OK, OsAccountManager::QueryOsAccountById(ROOT_UID, osAccountInfo0));
     EXPECT_EQ(name0, osAccountInfo0.GetLocalName());
+}
+
+/**
+ * @tc.name: OsAccountInfoExtension_ToJson_FromJson_001
+ * @tc.desc: Test ToJson、FromJson.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, OsAccountInfoExtension_ToJson_FromJson_001, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountInfoExtension_ToJson_FromJson_001");
+
+    // make some data
+    auto objJson = CreateJsonFromString(OS_ACCOUNT_INFO_JSON_STRING);
+    ASSERT_NE(objJson, nullptr);
+
+    // make info with an owner
+    OsAccountInfo testOsAccountInfo;
+    FromJson(objJson.get(), testOsAccountInfo);
+    auto jsonObject = ToJson(testOsAccountInfo);
+    EXPECT_NE(jsonObject, nullptr);
+
+    // check the data
+    EXPECT_EQ(12, GetIntFromJson(jsonObject, LOCAL_ID));
+    EXPECT_EQ("account", GetStringFromJson(jsonObject, LOCAL_NAME));
+    EXPECT_EQ("ac", GetStringFromJson(jsonObject, SHORT_NAME));
+    EXPECT_EQ(0, static_cast<OsAccountType>(GetIntFromJson(jsonObject, TYPE)));
+    std::vector<std::string> constraints = GetVectorStringFromJson(jsonObject, CONSTRAINTS);
+    EXPECT_EQ(5, constraints.size());
+    EXPECT_EQ("one", constraints[0]);
+
+    EXPECT_TRUE(GetBoolFromJson(jsonObject, IS_OS_ACCOUNT_VERIFIED));
+    EXPECT_EQ(1551925510, GetInt64FromJson(jsonObject, CREATE_TIME));
+    EXPECT_EQ(1551925510, GetInt64FromJson(jsonObject, LAST_LOGGED_IN_TIME));
+    EXPECT_EQ(121012012, GetInt64FromJson(jsonObject, SERIAL_NUMBER));
+    EXPECT_FALSE(GetBoolFromJson(jsonObject, IS_ACTIVATED));
+    EXPECT_TRUE(GetBoolFromJson(jsonObject, IS_ACCOUNT_COMPLETED));
+    EXPECT_FALSE(GetBoolFromJson(jsonObject, TO_BE_REMOVED));
+    EXPECT_EQ(1234567890, GetUint64FromJson(jsonObject, CREDENTIAL_ID));
+    EXPECT_EQ(14567890, GetUint64FromJson(jsonObject, DISPLAY_ID));
+    EXPECT_FALSE(GetBoolFromJson(jsonObject, IS_FOREGROUND));
+    EXPECT_TRUE(GetBoolFromJson(jsonObject, IS_LOGGED_IN));
+    EXPECT_FALSE(GetBoolFromJson(jsonObject, IS_DATA_REMOVABLE));
+    EXPECT_EQ(1222, GetIntFromJson(jsonObject, CREATOR_TYPE));
+    cJSON *typeJson = GetObjFromJson(jsonObject, DOMAIN_INFO);
+    EXPECT_EQ("account_iam", GetStringFromJson(typeJson, DOMAIN_NAME));
+    EXPECT_EQ("acc_name", GetStringFromJson(typeJson, DOMAIN_ACCOUNT_NAME));
+    EXPECT_EQ("102393938", GetStringFromJson(typeJson, DOMAIN_ACCOUNT_ID));
+    EXPECT_EQ(LOGIN, static_cast<DomainAccountStatus>(GetIntFromJson(typeJson, DOMAIN_ACCOUNT_STATUS)));
+    EXPECT_EQ("202393938", GetStringFromJson(typeJson, DOMAIN_ACCOUNT_CONFIG));
 }
 
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS

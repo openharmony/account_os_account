@@ -39,6 +39,7 @@ ohos_unittest("AccountCommonTest") {
   sources += [ "account_file_operator_test.cpp" ]
   sources += [ "account_log_test.cpp" ]
   sources += [ "account_perf_stat_test.cpp" ]
+  sources += [ "json_utils_test.cpp" ]
 
   configs = [
     "${common_path}:account_common_config",
@@ -48,6 +49,39 @@ ohos_unittest("AccountCommonTest") {
   deps = [ "${common_path}:libaccount_common" ]
 
   external_deps = [
+    "cJSON:cjson",
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+  ]
+  part_name = "os_account"
+}
+
+ohos_unittest("AccountJsonTest") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  module_out_path = module_output_path
+
+  sources = [
+    "${common_path}/json_utils/src/json_utils.cpp",
+    "${common_path}/log/src/account_log_wrapper.cpp",
+  ]
+
+  sources += [ "json_utils_test.cpp" ]
+
+  configs = [
+    "${common_path}:account_common_config",
+    "${common_path}/test:common_test_config",
+  ]
+
+  external_deps = [
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -58,5 +92,8 @@ ohos_unittest("AccountCommonTest") {
 group("unittest") {
   testonly = true
 
-  deps = [ ":AccountCommonTest" ]
+  deps = [
+    ":AccountCommonTest",
+    ":AccountJsonTest",
+  ]
 }

@@ -18,17 +18,16 @@
 
 #include <string>
 #include <mutex>
-#include <nlohmann/json.hpp>
 #include "account_error_no.h"
 #include "account_file_operator.h"
 #ifdef ENABLE_FILE_WATCHER
 #include "account_file_watcher_manager.h"
 #endif // ENABLE_FILE_WATCHER
 #include "account_info.h"
+#include "json_utils.h"
 
 namespace OHOS {
 namespace AccountSA {
-using json = nlohmann::json;
 
 class OhosAccountDataDeal {
 public:
@@ -46,8 +45,8 @@ private:
     void BuildJsonFileFromScratch(int32_t userId);
     ErrCode SaveAccountInfo(const AccountInfo &accountInfo);
     ErrCode GetAccountInfo(AccountInfo &accountInfo, const int32_t userId);
-    ErrCode ParseJsonFromFile(const std::string &filePath, nlohmann::json &jsonData, int32_t userId);
-    ErrCode GetAccountInfoFromJson(const nlohmann::json &jsonData, AccountInfo &accountInfo, const int32_t userId);
+    ErrCode ParseJsonFromFile(const std::string &filePath, CJsonUnique &jsonData, int32_t userId);
+    ErrCode GetAccountInfoFromJson(CJsonUnique &jsonData, AccountInfo &accountInfo, const int32_t userId);
 #ifdef ENABLE_FILE_WATCHER
     bool DealWithFileModifyEvent(const std::string &fileName, const int32_t id);
     void DealWithFileDeleteEvent(const std::string &fileName, const int32_t id);

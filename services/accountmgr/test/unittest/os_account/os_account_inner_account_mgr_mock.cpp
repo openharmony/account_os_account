@@ -209,21 +209,22 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, CreateOsAccount001, TestSize.Level1)
     std::vector<std::string> constraintsByType;
     EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetConstraintsByType(NORMAL, constraintsByType));
     EXPECT_THAT(accountInfo.GetConstraints(), testing::ElementsAreArray(constraintsByType));
-    Json constraintsFromFileJson;
+    auto constraintsFromFileJson = CreateJson();
     EXPECT_EQ(ERR_OK, g_controlManager->GetBaseOAConstraintsFromFile(constraintsFromFileJson));
-    std::vector<std::string> constraintsFromFile;
-    GetDataByType<std::vector<std::string>>(constraintsFromFileJson, constraintsFromFileJson.end(),
-        std::to_string(accountInfo.GetLocalId()), constraintsFromFile, JsonType::ARRAY);
+    std::vector<std::string> constraintsFromFile = GetVectorStringFromJson(constraintsFromFileJson, std::to_string(accountInfo.GetLocalId()));
     EXPECT_THAT(accountInfo.GetConstraints(), testing::ElementsAreArray(constraintsFromFile));
 
     // account index has been saved to account_index_info.json
-    Json accountIndexJson;
+    auto accountIndexJson = CreateJson();
     EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetAccountIndexFromFile(accountIndexJson));
-    auto iter = accountIndexJson.find(std::to_string(accountInfo.GetLocalId()));
-    bool isExist = (iter != accountIndexJson.end());
+    cJSON *item = GetObjFromJson(accountIndexJson, std::to_string(accountInfo.GetLocalId()));
+    bool isExist = (item != nullptr);
     EXPECT_TRUE(isExist);
     if (isExist) {
-        EXPECT_EQ(iter.value()[Constants::LOCAL_NAME].get<std::string>(), accountInfo.GetLocalName());
+        cJSON *localNameItem = GetObjFromJson(item, Constants::LOCAL_NAME);
+        if (localNameItem != nullptr && IsString(localNameItem)) {
+            EXPECT_EQ(std::string(localNameItem->valuestring), accountInfo.GetLocalName());
+        }
     }
     EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId()));
 }
@@ -266,21 +267,22 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, CreateOsAccount002, TestSize.Level1)
     std::vector<std::string> constraintsByType;
     EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetConstraintsByType(NORMAL, constraintsByType));
     EXPECT_THAT(accountInfo.GetConstraints(), testing::ElementsAreArray(constraintsByType));
-    Json constraintsFromFileJson;
+    auto constraintsFromFileJson = CreateJson();
     EXPECT_EQ(ERR_OK, g_controlManager->GetBaseOAConstraintsFromFile(constraintsFromFileJson));
-    std::vector<std::string> constraintsFromFile;
-    GetDataByType<std::vector<std::string>>(constraintsFromFileJson, constraintsFromFileJson.end(),
-        std::to_string(accountInfo.GetLocalId()), constraintsFromFile, JsonType::ARRAY);
+    std::vector<std::string> constraintsFromFile = GetVectorStringFromJson(constraintsFromFileJson, std::to_string(accountInfo.GetLocalId()));
     EXPECT_THAT(accountInfo.GetConstraints(), testing::ElementsAreArray(constraintsFromFile));
 
     // account index has been saved to account_index_info.json
-    Json accountIndexJson;
+    auto accountIndexJson = CreateJson();
     EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetAccountIndexFromFile(accountIndexJson));
-    auto iter = accountIndexJson.find(std::to_string(accountInfo.GetLocalId()));
-    bool isExist = (iter != accountIndexJson.end());
+    cJSON *item = GetObjFromJson(accountIndexJson, std::to_string(accountInfo.GetLocalId()));
+    bool isExist = (item != nullptr);
     EXPECT_TRUE(isExist);
     if (isExist) {
-        EXPECT_EQ(iter.value()[Constants::LOCAL_NAME].get<std::string>(), accountInfo.GetLocalName());
+        cJSON *localNameItem = GetObjFromJson(item, Constants::LOCAL_NAME);
+        if (localNameItem != nullptr && IsString(localNameItem)) {
+            EXPECT_EQ(std::string(localNameItem->valuestring), accountInfo.GetLocalName());
+        }
     }
     EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId()));
 }
@@ -330,21 +332,22 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, CreateOsAccountWithFullInfo001, TestSize.
     EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetConstraintsByType(NORMAL, constraintsByType));
     constraintsByType.emplace_back("test constraints");
     EXPECT_THAT(accountInfo.GetConstraints(), testing::ElementsAreArray(constraintsByType));
-    Json constraintsFromFileJson;
+    auto constraintsFromFileJson = CreateJson();
     EXPECT_EQ(ERR_OK, g_controlManager->GetBaseOAConstraintsFromFile(constraintsFromFileJson));
-    std::vector<std::string> constraintsFromFile;
-    GetDataByType<std::vector<std::string>>(constraintsFromFileJson, constraintsFromFileJson.end(),
-        std::to_string(accountInfo.GetLocalId()), constraintsFromFile, JsonType::ARRAY);
+    std::vector<std::string> constraintsFromFile = GetVectorStringFromJson(constraintsFromFileJson, std::to_string(accountInfo.GetLocalId()));
     EXPECT_THAT(accountInfo.GetConstraints(), testing::ElementsAreArray(constraintsFromFile));
 
     // account index has been saved to account_index_info.json
-    Json accountIndexJson;
+    auto accountIndexJson = CreateJson();
     EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetAccountIndexFromFile(accountIndexJson));
-    auto iter = accountIndexJson.find(std::to_string(accountInfo.GetLocalId()));
-    bool isExist = (iter != accountIndexJson.end());
+    cJSON *item = GetObjFromJson(accountIndexJson, std::to_string(accountInfo.GetLocalId()));
+    bool isExist = (item != nullptr);
     EXPECT_TRUE(isExist);
     if (isExist) {
-        EXPECT_EQ(iter.value()[Constants::LOCAL_NAME].get<std::string>(), accountInfo.GetLocalName());
+        cJSON *localNameItem = GetObjFromJson(item, Constants::LOCAL_NAME);
+        if (localNameItem != nullptr && IsString(localNameItem)) {
+            EXPECT_EQ(std::string(localNameItem->valuestring), accountInfo.GetLocalName());
+        };
     }
     EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId()));
 }
@@ -425,20 +428,21 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, UpdateOsAccountWithFullInfo001, TestSize.
 
     // constraints has been saved to base_os_account_constraints.json
     EXPECT_THAT(accountInfo.GetConstraints(), testing::ElementsAreArray({"test constraints"}));
-    Json constraintsFromFileJson;
+    auto constraintsFromFileJson = CreateJson();
     EXPECT_EQ(ERR_OK, g_controlManager->GetBaseOAConstraintsFromFile(constraintsFromFileJson));
-    std::vector<std::string> constraintsFromFile;
-    GetDataByType<std::vector<std::string>>(constraintsFromFileJson, constraintsFromFileJson.end(),
-        std::to_string(accountInfo.GetLocalId()), constraintsFromFile, JsonType::ARRAY);
+    std::vector<std::string> constraintsFromFile = GetVectorStringFromJson(constraintsFromFileJson, std::to_string(accountInfo.GetLocalId()));
 
     // account index has been saved to account_index_info.json
-    Json accountIndexJson;
+    auto accountIndexJson = CreateJson();
     EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetAccountIndexFromFile(accountIndexJson));
-    auto iter = accountIndexJson.find(std::to_string(accountInfo.GetLocalId()));
-    bool isExist = (iter != accountIndexJson.end());
+    cJSON *item = GetObjFromJson(accountIndexJson, std::to_string(accountInfo.GetLocalId()));
+    bool isExist = (item != nullptr);
     EXPECT_TRUE(isExist);
     if (isExist) {
-        EXPECT_EQ(iter.value()[Constants::LOCAL_NAME].get<std::string>(), accountInfo.GetLocalName());
+        cJSON *localNameItem = GetObjFromJson(item, Constants::LOCAL_NAME);
+        if (localNameItem != nullptr && IsString(localNameItem)) {
+            EXPECT_EQ(std::string(localNameItem->valuestring), accountInfo.GetLocalName());
+        }
     }
     EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId()));
 }
@@ -464,23 +468,23 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, RemoveOsAccount001, TestSize.Level1)
     std::vector<std::string> constraintsByType;
     EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetConstraintsByType(NORMAL, constraintsByType));
     EXPECT_THAT(accountInfo.GetConstraints(), testing::ElementsAreArray(constraintsByType));
-    Json constraintsFromFileJson;
+    auto constraintsFromFileJson = CreateJson();
     EXPECT_EQ(ERR_OK, g_controlManager->GetBaseOAConstraintsFromFile(constraintsFromFileJson));
-    std::vector<std::string> constraintsFromFile;
-    GetDataByType<std::vector<std::string>>(constraintsFromFileJson, constraintsFromFileJson.end(),
-        std::to_string(accountInfo.GetLocalId()), constraintsFromFile, JsonType::ARRAY);
+    std::vector<std::string> constraintsFromFile = GetVectorStringFromJson(constraintsFromFileJson, std::to_string(accountInfo.GetLocalId()));
     EXPECT_THAT(accountInfo.GetConstraints(), testing::ElementsAreArray(constraintsFromFile));
 
     // account index has been saved to account_index_info.json
-    Json accountIndexJson;
+    auto accountIndexJson = CreateJson();
     EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetAccountIndexFromFile(accountIndexJson));
-    auto iter = accountIndexJson.find(std::to_string(accountInfo.GetLocalId()));
-    bool isExist = (iter != accountIndexJson.end());
+    cJSON *item = GetObjFromJson(accountIndexJson, std::to_string(accountInfo.GetLocalId()));
+    bool isExist = (item != nullptr);
     EXPECT_TRUE(isExist);
     if (isExist) {
-        EXPECT_EQ(iter.value()[Constants::LOCAL_NAME].get<std::string>(), accountInfo.GetLocalName());
+        cJSON *localNameItem = GetObjFromJson(item, Constants::LOCAL_NAME);
+        if (localNameItem != nullptr && IsString(localNameItem)) {
+            EXPECT_EQ(std::string(localNameItem->valuestring), accountInfo.GetLocalName());
+        }
     }
-
     EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(accountInfo.GetLocalId()));
 
     // account info in account_info.json has been erased
@@ -490,14 +494,13 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, RemoveOsAccount001, TestSize.Level1)
     // constraints in base_os_account_constraints.json has been erased
     EXPECT_EQ(ERR_OK, g_controlManager->GetBaseOAConstraintsFromFile(constraintsFromFileJson));
     constraintsFromFile.clear();
-    GetDataByType<std::vector<std::string>>(constraintsFromFileJson, constraintsFromFileJson.end(),
-        std::to_string(accountInfo.GetLocalId()), constraintsFromFile, JsonType::ARRAY);
+    constraintsFromFile = GetVectorStringFromJson(constraintsFromFileJson, std::to_string(accountInfo.GetLocalId()));
     EXPECT_TRUE(constraintsFromFile.empty());
 
     // account index in account_index_info.json has been erased
     EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetAccountIndexFromFile(accountIndexJson));
-    iter = accountIndexJson.find(std::to_string(accountInfo.GetLocalId()));
-    EXPECT_EQ(iter, accountIndexJson.end());
+    item = GetObjFromJson(accountIndexJson, std::to_string(accountInfo.GetLocalId()));
+    EXPECT_EQ(item, nullptr);
 }
 
 /*
@@ -521,21 +524,22 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, RemoveOsAccount002, TestSize.Level1)
     std::vector<std::string> constraintsByType;
     EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetConstraintsByType(NORMAL, constraintsByType));
     EXPECT_THAT(accountInfo.GetConstraints(), testing::ElementsAreArray(constraintsByType));
-    Json constraintsFromFileJson;
+    auto constraintsFromFileJson = CreateJson();
     EXPECT_EQ(ERR_OK, g_controlManager->GetBaseOAConstraintsFromFile(constraintsFromFileJson));
-    std::vector<std::string> constraintsFromFile;
-    GetDataByType<std::vector<std::string>>(constraintsFromFileJson, constraintsFromFileJson.end(),
-        std::to_string(accountInfo.GetLocalId()), constraintsFromFile, JsonType::ARRAY);
+    std::vector<std::string> constraintsFromFile = GetVectorStringFromJson(constraintsFromFileJson, std::to_string(accountInfo.GetLocalId()));
     EXPECT_THAT(accountInfo.GetConstraints(), testing::ElementsAreArray(constraintsFromFile));
 
     // account index has been saved to account_index_info.json
-    Json accountIndexJson;
+    auto accountIndexJson = CreateJson();
     EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetAccountIndexFromFile(accountIndexJson));
-    auto iter = accountIndexJson.find(std::to_string(accountInfo.GetLocalId()));
-    bool isExist = (iter != accountIndexJson.end());
+    cJSON *item = GetObjFromJson(accountIndexJson, std::to_string(accountInfo.GetLocalId()));
+    bool isExist = (item != nullptr);
     EXPECT_TRUE(isExist);
     if (isExist) {
-        EXPECT_EQ(iter.value()[Constants::LOCAL_NAME].get<std::string>(), accountInfo.GetLocalName());
+        cJSON *localNameItem = GetObjFromJson(item, Constants::LOCAL_NAME);
+        if (localNameItem != nullptr && IsString(localNameItem)) {
+            EXPECT_EQ(std::string(localNameItem->valuestring), accountInfo.GetLocalName());
+        }
     }
 
     EXPECT_EQ(ERR_OK, innerMgrService_->ActivateOsAccount(accountInfo.GetLocalId()));
@@ -553,14 +557,13 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, RemoveOsAccount002, TestSize.Level1)
     // constraints in base_os_account_constraints.json has been erased
     EXPECT_EQ(ERR_OK, g_controlManager->GetBaseOAConstraintsFromFile(constraintsFromFileJson));
     constraintsFromFile.clear();
-    GetDataByType<std::vector<std::string>>(constraintsFromFileJson, constraintsFromFileJson.end(),
-        std::to_string(accountInfo.GetLocalId()), constraintsFromFile, JsonType::ARRAY);
+    constraintsFromFile = GetVectorStringFromJson(constraintsFromFileJson, std::to_string(accountInfo.GetLocalId()));
     EXPECT_TRUE(constraintsFromFile.empty());
 
     // account index in account_index_info.json has been erased
     EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetAccountIndexFromFile(accountIndexJson));
-    iter = accountIndexJson.find(std::to_string(accountInfo.GetLocalId()));
-    EXPECT_EQ(iter, accountIndexJson.end());
+    item = GetObjFromJson(accountIndexJson, std::to_string(accountInfo.GetLocalId()));
+    EXPECT_EQ(item, nullptr);
 }
 
 /*
@@ -683,15 +686,17 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, SetOsAccountName001, TestSize.Level1)
     EXPECT_EQ(accountInfo.ToString(), createInfo.ToString());
 
     // account index has been saved to account_index_info.json
-    Json accountIndexJson;
+    auto accountIndexJson = CreateJson();
     EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->GetAccountIndexFromFile(accountIndexJson));
-    auto iter = accountIndexJson.find(std::to_string(accountInfo.GetLocalId()));
-    bool isExist = (iter != accountIndexJson.end());
+    cJSON *item = GetObjFromJson(accountIndexJson, std::to_string(accountInfo.GetLocalId()));
+    bool isExist = (item != nullptr);
     EXPECT_TRUE(isExist);
     if (isExist) {
-        EXPECT_EQ(iter.value()[Constants::LOCAL_NAME].get<std::string>(), accountInfo.GetLocalName());
+        cJSON *localNameItem = GetObjFromJson(item, Constants::LOCAL_NAME);
+        if (localNameItem != nullptr && IsString(localNameItem)) {
+            EXPECT_EQ(std::string(localNameItem->valuestring), accountInfo.GetLocalName());
+        }
     }
-
     EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(createInfo.GetLocalId()));
 }
 

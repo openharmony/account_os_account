@@ -27,8 +27,9 @@
 #include "hks_param.h"
 #include "hks_type.h"
 #endif // HAS_HUKS_PART
-#include "os_account_constants.h"
 #include "hitrace_adapter.h"
+#include "json_utils.h"
+#include "os_account_constants.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -368,13 +369,12 @@ ErrCode AccountFileWatcherMgr::GetAccountInfoDigestFromFile(const std::string &p
         ACCOUNT_LOGE("GetFileContentByPath failed! error code %{public}d.", errCode);
         return errCode;
     }
-    Json accountInfoDigestJson = Json::parse(accountInfoDigest, nullptr, false);
-    if (accountInfoDigestJson.is_discarded()) {
+    auto accountInfoDigestJson = CreateJsonFromString(accountInfoDigest);
+    if (accountInfoDigestJson == nullptr) {
         return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
     }
     std::vector<uint8_t> digestTmp;
-    OHOS::AccountSA::GetDataByType<std::vector<uint8_t>>(accountInfoDigestJson,
-        accountInfoDigestJson.end(), path, digestTmp, OHOS::AccountSA::JsonType::ARRAY);
+    digestTmp = GetVectorUint8FromJson(accountInfoDigestJson, path);
     if (memcpy_s(digest, size, digestTmp.data(), ALG_COMMON_SIZE) != EOK) {
         ACCOUNT_LOGE("Get digest failed duo to memcpy_s failed");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
@@ -400,15 +400,15 @@ ErrCode AccountFileWatcherMgr::GenerateAccountInfoDigestStr(
         ACCOUNT_LOGE("get file content failed! error code %{public}d.", errCode);
         return errCode;
     }
-    Json accountInfoDigestJson = Json::parse(accountInfoDigest, nullptr, false);
-    if (accountInfoDigestJson.is_discarded()) {
+    auto accountInfoDigestJson = CreateJsonFromString(accountInfoDigest);
+    if (accountInfoDigestJson == nullptr) {
         return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
     }
-    accountInfoDigestJson[userInfoPath] = digestOutData;
-    try {
-        digestStr = accountInfoDigestJson.dump();
-    } catch (Json::type_error& err) {
-        ACCOUNT_LOGE("failed to dump json object, reason: %{public}s", err.what());
+    AddVectorUint8ToJson(accountInfoDigestJson, userInfoPath,
+                         std::vector<uint8_t>(digestOutData, digestOutData + ALG_COMMON_SIZE));
+    digestStr = PackJsonToString(accountInfoDigestJson);
+    if (digestStr.empty()) {
+        ACCOUNT_LOGE("failed to dump json object.");
         return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
     }
     return ERR_OK;
@@ -434,17 +434,17 @@ ErrCode AccountFileWatcherMgr::DeleteAccountInfoDigest(const std::string &userIn
         ACCOUNT_LOGE("get file content failed! error code %{public}d.", errCode);
         return errCode;
     }
-    Json accountInfoDigestJson = Json::parse(accountInfoDigest, nullptr, false);
-    if (accountInfoDigestJson.is_discarded()) {
+    auto accountInfoDigestJson = CreateJsonFromString(accountInfoDigest);
+    if (accountInfoDigestJson == nullptr) {
         return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
     }
-    if (accountInfoDigestJson.find(userInfoPath) == accountInfoDigestJson.end()) {
+    if (!IsKeyExist(accountInfoDigestJson, userInfoPath)) {
         return ERR_OK;
     }
-    accountInfoDigestJson.erase(userInfoPath);
-
+    DeleteItemFromJson(accountInfoDigestJson, userInfoPath);
+    std::string jsonString = PackJsonToString(accountInfoDigestJson);
     ErrCode result = accountFileOperator_->InputFileByPathAndContent(
-        Constants::ACCOUNT_INFO_DIGEST_FILE_PATH, accountInfoDigestJson.dump());
+        Constants::ACCOUNT_INFO_DIGEST_FILE_PATH, jsonString);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("cannot save digest info to file, code %{public}d.", result);
         return result;

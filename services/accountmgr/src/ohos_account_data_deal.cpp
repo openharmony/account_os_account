@@ -164,9 +164,10 @@ ErrCode OhosAccountDataDeal::Init(int32_t userId)
 
     // NOT-allow exceptions when parse json file
     std::lock_guard<std::mutex> lock(mutex_);
-    nlohmann::json jsonData = json::parse(fin, nullptr, false);
+    std::string fileContent((std::istreambuf_iterator<char>(fin)), std::istreambuf_iterator<char>());
     fin.close();
-    if (jsonData.is_discarded() || !jsonData.is_structured()) {
+    auto jsonData = CreateJsonFromString(fileContent);
+    if (jsonData == nullptr || !IsObject(jsonData)) {
         ACCOUNT_LOGE("Invalid json file, remove");
         if (RemoveFile(configFile)) {
             int32_t err = errno;
@@ -209,19 +210,19 @@ ErrCode OhosAccountDataDeal::AccountInfoToJson(const AccountInfo &accountInfo)
 ErrCode OhosAccountDataDeal::SaveAccountInfo(const AccountInfo &accountInfo)
 {
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
+
     std::string scalableDataStr = (accountInfo.ohosAccountInfo_.scalableData_).ToString();
-    nlohmann::json jsonData = json {
-        {DATADEAL_JSON_KEY_OHOSACCOUNT_VERSION, accountInfo.version_},
-        {DATADEAL_JSON_KEY_BIND_TIME, accountInfo.bindTime_},
-        {DATADEAL_JSON_KEY_USERID, accountInfo.userId_},
-        {DATADEAL_JSON_KEY_OHOSACCOUNT_NAME, accountInfo.ohosAccountInfo_.name_},
-        {DATADEAL_JSON_KEY_OHOSACCOUNT_RAW_UID, accountInfo.ohosAccountInfo_.GetRawUid()},
-        {DATADEAL_JSON_KEY_OHOSACCOUNT_UID, accountInfo.ohosAccountInfo_.uid_},
-        {DATADEAL_JSON_KEY_OHOSACCOUNT_STATUS, accountInfo.ohosAccountInfo_.status_},
-        {DATADEAL_JSON_KEY_OHOSACCOUNT_CALLINGUID, accountInfo.ohosAccountInfo_.callingUid_},
-        {DATADEAL_JSON_KEY_OHOSACCOUNT_NICKNAME, accountInfo.ohosAccountInfo_.nickname_},
-        {DATADEAL_JSON_KEY_OHOSACCOUNT_SCALABLEDATA, scalableDataStr}
-    };
+    auto jsonData = CreateJson();
+    AddIntToJson(jsonData, DATADEAL_JSON_KEY_OHOSACCOUNT_VERSION, accountInfo.version_);
+    AddIntToJson(jsonData, DATADEAL_JSON_KEY_BIND_TIME, accountInfo.bindTime_);
+    AddIntToJson(jsonData, DATADEAL_JSON_KEY_USERID, accountInfo.userId_);
+    AddStringToJson(jsonData, DATADEAL_JSON_KEY_OHOSACCOUNT_NAME, accountInfo.ohosAccountInfo_.name_);
+    AddStringToJson(jsonData, DATADEAL_JSON_KEY_OHOSACCOUNT_RAW_UID, accountInfo.ohosAccountInfo_.GetRawUid());
+    AddStringToJson(jsonData, DATADEAL_JSON_KEY_OHOSACCOUNT_UID, accountInfo.ohosAccountInfo_.uid_);
+    AddIntToJson(jsonData, DATADEAL_JSON_KEY_OHOSACCOUNT_STATUS, accountInfo.ohosAccountInfo_.status_);
+    AddIntToJson(jsonData, DATADEAL_JSON_KEY_OHOSACCOUNT_CALLINGUID, accountInfo.ohosAccountInfo_.callingUid_);
+    AddStringToJson(jsonData, DATADEAL_JSON_KEY_OHOSACCOUNT_NICKNAME, accountInfo.ohosAccountInfo_.nickname_);
+    AddStringToJson(jsonData, DATADEAL_JSON_KEY_OHOSACCOUNT_SCALABLEDATA, scalableDataStr);
 
     std::string avatarFile = configFileDir_ + std::to_string(accountInfo.userId_) + ACCOUNT_AVATAR_NAME;
     ErrCode ret = accountFileOperator_->InputFileByPathAndContentWithTransaction(
@@ -230,8 +231,7 @@ ErrCode OhosAccountDataDeal::SaveAccountInfo(const AccountInfo &accountInfo)
         ACCOUNT_LOGE("Failed to save avatar! ret = %{public}d", ret);
         return ret;
     }
-
-    std::string accountInfoValue = jsonData.dump(-1, ' ', false, json::error_handler_t::ignore);
+    std::string accountInfoValue = PackJsonToString(jsonData);
     std::string configFile = configFileDir_ + std::to_string(accountInfo.userId_) + ACCOUNT_CFG_FILE_NAME;
 
     ret = accountFileOperator_->InputFileByPathAndContent(configFile, accountInfoValue);
@@ -251,7 +251,7 @@ ErrCode OhosAccountDataDeal::SaveAccountInfo(const AccountInfo &accountInfo)
     return ret;
 }
 
-ErrCode OhosAccountDataDeal::ParseJsonFromFile(const std::string &filePath, nlohmann::json &jsonData, int32_t userId)
+ErrCode OhosAccountDataDeal::ParseJsonFromFile(const std::string &filePath, CJsonUnique &jsonData, int32_t userId)
 {
     std::ifstream fin(filePath);
     if (!fin) {
@@ -260,49 +260,48 @@ ErrCode OhosAccountDataDeal::ParseJsonFromFile(const std::string &filePath, nloh
         ReportOhosAccountOperationFail(userId, OPERATION_OPEN_FILE_TO_READ, err, filePath);
         return ERR_ACCOUNT_DATADEAL_INPUT_FILE_ERROR;
     }
-    // NOT-allow exceptions when parse json file
-    jsonData = json::parse(fin, nullptr, false);
+    std::string fileContent((std::istreambuf_iterator<char>(fin)), std::istreambuf_iterator<char>());
     fin.close();
-    if (jsonData.is_discarded() || !jsonData.is_structured()) {
+    jsonData = CreateJsonFromString(fileContent);
+    if (jsonData == nullptr || !IsObject(jsonData)) {
         ACCOUNT_LOGE("Invalid json file,  %{public}s, remove", filePath.c_str());
         return ERR_ACCOUNT_DATADEAL_JSON_FILE_CORRUPTION;
     }
     std::string avatarData;
-    auto it = jsonData.find(DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR);
-    if (it != jsonData.end()) {
-        if (it->is_string()) {
-            avatarData = it->get<std::string>();
-            jsonData[DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR] = avatarData;
+    if (IsKeyExist(jsonData, DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR)) {
+        cJSON *it = GetItemFromJson(jsonData, DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR);
+        if (IsString(it)) {
+            AddStringToJson(jsonData, DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR,  it->valuestring);
         }
     } else {
         std::string avatarFile = configFileDir_ + std::to_string(userId) + ACCOUNT_AVATAR_NAME;
         if (accountFileOperator_->GetFileContentByPath(avatarFile, avatarData) == ERR_OK) {
-            jsonData[DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR] = avatarData;
+            AddStringToJson(jsonData, DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR,  avatarData);
         }
     }
     return ERR_OK;
 }
 
 template <typename T, typename Callback>
-bool GetJsonField(const nlohmann::json &jsonData, const std::string &key, Callback callback)
+bool GetJsonField(CJsonUnique &jsonData, const std::string &key, Callback callback)
 {
-    auto it = jsonData.find(key);
-    if (it == jsonData.end()) {
+    if (!IsKeyExist(jsonData, key)) {
         return false;
     }
+    auto it = GetItemFromJson(jsonData, key);
     if constexpr (std::is_same_v<T, int> || std::is_same_v<T, std::time_t>) {
-        if (!it->is_number()) {
+        if (!IsNumber(it)) {
             return false;
         }
-        T value = it->get<T>();
+        T value = static_cast<T>(GetJsonNumberValue(it));
         callback(value);
         return true;
     }
     if constexpr (std::is_same_v<T, std::string>) {
-        if (!it->is_string()) {
+        if (!IsString(it)) {
             return false;
         }
-        T value = it->get<T>();
+        T value = it->valuestring;
         callback(value);
         return true;
     }
@@ -310,7 +309,7 @@ bool GetJsonField(const nlohmann::json &jsonData, const std::string &key, Callba
 }
 
 ErrCode OhosAccountDataDeal::GetAccountInfoFromJson(
-    const nlohmann::json &jsonData, AccountInfo &accountInfo, const int32_t userId)
+    CJsonUnique &jsonData, AccountInfo &accountInfo, const int32_t userId)
 {
     GetJsonField<int>(jsonData, DATADEAL_JSON_KEY_OHOSACCOUNT_VERSION, [&](int value) {
         accountInfo.version_ = value;
@@ -378,7 +377,7 @@ ErrCode OhosAccountDataDeal::GetAccountInfo(AccountInfo &accountInfo, const int3
         }
     }
     std::lock_guard<std::mutex> lock(mutex_);
-    nlohmann::json jsonData;
+    auto jsonData = CreateJson();
     ret = ParseJsonFromFile(configFile, jsonData, userId);
     if (ret != ERR_OK) {
         return ret;
