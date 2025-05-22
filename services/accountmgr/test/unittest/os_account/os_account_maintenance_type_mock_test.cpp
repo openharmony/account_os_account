@@ -23,11 +23,17 @@ using namespace testing::ext;
 class OsAccountMaintenanceTypeTest : public testing::Test {
 public:
     static void SetUpTestCase(void) {}
-    static void TearDownTestCase(void) {}
+    static void TearDownTestCase(void);
     void SetUp();
     void TearDown() {}
     std::shared_ptr<OsAccountManagerService> osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
 };
+
+void OsAccountMaintenanceTypeTest::TearDownTestCase()
+{
+    std::string cmd = "chown -R 3058:3058 /data/service/el1/public/account";
+    system(cmd.c_str());
+}
 
 void OsAccountMaintenanceTypeTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 {

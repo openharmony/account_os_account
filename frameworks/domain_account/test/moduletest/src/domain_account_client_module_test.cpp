@@ -136,6 +136,8 @@ void DomainAccountClientModuleTest::SetUpTestCase(void)
 void DomainAccountClientModuleTest::TearDownTestCase(void)
 {
     GTEST_LOG_(INFO) << "TearDownTestCase";
+    std::string cmd = "chown -R 3058:3058 /data/service/el1/public/account";
+    system(cmd.c_str());
 #ifdef ACCOUNT_TEST
     AccountFileOperator osAccountFileOperator;
     osAccountFileOperator.DeleteDirOrFile(USER_INFO_BASE);
