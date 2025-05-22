@@ -6,6 +6,7 @@
         "constraint.app.accounts",
         "constraint.apps.install",
         "constraint.apps.uninstall",
+        "constraint.bundles.install",
         "constraint.location.shared",
         "constraint.unknown.sources.install",
         "constraint.global.unknown.app.install",
