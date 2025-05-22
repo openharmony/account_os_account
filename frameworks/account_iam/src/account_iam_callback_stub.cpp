@@ -104,6 +104,39 @@ int GetCredInfoCallbackStub::OnRemoteRequest(
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
+static ErrCode ReadCredentialInfoFromParcel(MessageParcel &data, CredentialInfo &info)
+{
+    int32_t authType = 0;
+    int32_t pinType = 0;
+    if (!data.ReadUint64(info.credentialId)) {
+        ACCOUNT_LOGE("Failed to read credentialId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (!data.ReadInt32(authType)) {
+        ACCOUNT_LOGE("Failed to read authType");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (!data.ReadInt32(pinType)) {
+        ACCOUNT_LOGE("Failed to read pinSubType");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (!data.ReadUint64(info.templateId)) {
+        ACCOUNT_LOGE("Failed to read templateId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (!data.ReadBool(info.isAbandoned)) {
+        ACCOUNT_LOGE("Failed to read isAbandoned");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (!data.ReadInt64(info.validityPeriod)) {
+        ACCOUNT_LOGE("Failed to read templateId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    info.authType = static_cast<AuthType>(authType);
+    info.pinType = static_cast<PinSubType>(pinType);
+    return ERR_OK;
+}
+
 ErrCode GetCredInfoCallbackStub::ProcOnCredentialInfo(MessageParcel &data, MessageParcel &reply)
 {
     int32_t result;
@@ -123,34 +156,9 @@ ErrCode GetCredInfoCallbackStub::ProcOnCredentialInfo(MessageParcel &data, Messa
     }
     for (uint32_t i = 0; i < vectorSize; ++i) {
         CredentialInfo info;
-        int32_t authType = 0;
-        int32_t pinType = 0;
-        if (!data.ReadUint64(info.credentialId)) {
-            ACCOUNT_LOGE("Failed to read credentialId");
+        if (ReadCredentialInfoFromParcel(data, info) != ERR_OK) {
             return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
         }
-        if (!data.ReadInt32(authType)) {
-            ACCOUNT_LOGE("Failed to read authType");
-            return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-        }
-        if (!data.ReadInt32(pinType)) {
-            ACCOUNT_LOGE("Failed to read pinSubType");
-            return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-        }
-        if (!data.ReadUint64(info.templateId)) {
-            ACCOUNT_LOGE("Failed to read templateId");
-            return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-        }
-        if (!data.ReadBool(info.isAbandoned)) {
-            ACCOUNT_LOGE("Failed to read isAbandoned");
-            return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-        }
-        if (!data.ReadInt64(info.validityPeriod)) {
-            ACCOUNT_LOGE("Failed to read templateId");
-            return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-        }
-        info.authType = static_cast<AuthType>(authType);
-        info.pinType = static_cast<PinSubType>(pinType);
         infoList.push_back(info);
     }
     OnCredentialInfo(result, infoList);
