@@ -18,6 +18,7 @@
 #include "napi_account_error.h"
 #include "napi_os_account_common.h"
 #include "napi/native_common.h"
+#include <mutex>
 
 using namespace OHOS::AccountSA;
 
@@ -34,7 +35,7 @@ const int OS_ACCOUNT_TYPE_PRIVATE = 1024;
 const int DOMAIN_ACCOUNT_STATUS_NOT_LOGGED_IN = 0;
 const int DOMAIN_ACCOUNT_STATUS_LOGGED_IN = 1;
 std::mutex g_lockForOsAccountSubscribers;
-std::map<OsAccountManager *, std::vector<SubscribeCBInfo *>> g_osAccountSubscribers;
+std::vector<SubscribeCBInfo *> g_osAccountSubscribers;
 static napi_property_descriptor g_osAccountProperties[] = {
     DECLARE_NAPI_FUNCTION("queryOsAccountById", QueryOsAccountById),
     DECLARE_NAPI_FUNCTION("removeOsAccount", RemoveOsAccount),
@@ -1454,20 +1455,14 @@ napi_value IsMainOsAccount(napi_env env, napi_callback_info cbInfo)
     return result;
 }
 
-static bool IsSubscribeInMap(napi_env env, SubscribeCBInfo *subscribeCBInfo)
+static bool IsSubscribeInVec(napi_env env, SubscribeCBInfo *subscribeCBInfo)
 {
     std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
-    auto subscribe = g_osAccountSubscribers.find(subscribeCBInfo->osManager);
-    if (subscribe == g_osAccountSubscribers.end()) {
-        return false;
-    }
-    auto it = subscribe->second.begin();
-    while (it != subscribe->second.end()) {
-        if (((*it)->osSubscribeType == subscribeCBInfo->osSubscribeType) &&
-            (CompareOnAndOffRef(env, (*it)->callbackRef, subscribeCBInfo->callbackRef))) {
+    for (const auto& existingSubInfo : g_osAccountSubscribers) {
+        if (existingSubInfo->osSubscribeType == subscribeCBInfo->osSubscribeType &&
+            CompareOnAndOffRef(env, existingSubInfo->callbackRef, subscribeCBInfo->callbackRef)) {
             return true;
         }
-        it++;
     }
     return false;
 }
@@ -1499,7 +1494,7 @@ napi_value Subscribe(napi_env env, napi_callback_info cbInfo)
     subscribeCBInfo->osManager = objectInfo;
     subscribeCBInfo->subscriber->SetEnv(env);
     subscribeCBInfo->subscriber->SetCallbackRef(subscribeCBInfo->callbackRef);
-    if (IsSubscribeInMap(env, subscribeCBInfo)) {
+    if (IsSubscribeInVec(env, subscribeCBInfo)) {
         delete subscribeCBInfo;
         return WrapVoidToJS(env);
     }
@@ -1510,7 +1505,7 @@ napi_value Subscribe(napi_env env, napi_callback_info cbInfo)
         return WrapVoidToJS(env);
     } else {
         std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
-        g_osAccountSubscribers[objectInfo].emplace_back(subscribeCBInfo);
+        g_osAccountSubscribers.emplace_back(subscribeCBInfo);
     }
     return WrapVoidToJS(env);
 }
@@ -1580,12 +1575,9 @@ std::function<void()> OnAccountsSubNotifyTask(const std::shared_ptr<SubscriberOA
         {
             std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
             SubscriberPtr *subscriber = subscriberOAWorkerData->subscriber;
-            for (auto subscriberInstance : g_osAccountSubscribers) {
-                isFound = std::any_of(subscriberInstance.second.begin(), subscriberInstance.second.end(),
-                    [subscriber] (const SubscribeCBInfo *item) {
-                        return item->subscriber.get() == subscriber;
-                });
-                if (isFound) {
+            for (const auto& item : g_osAccountSubscribers) {
+                if (item->subscriber.get() == subscriber) {
+                    isFound = true;
                     ACCOUNT_LOGD("OsAccount subscriber has been found.");
                     break;
                 }
@@ -1652,40 +1644,35 @@ napi_value Unsubscribe(napi_env env, napi_callback_info cbInfo)
 void UnsubscribeSync(napi_env env, UnsubscribeCBInfo *unsubscribeCBInfo)
 {
     std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
-    auto subscribe = g_osAccountSubscribers.find(unsubscribeCBInfo->osManager);
-    if (subscribe == g_osAccountSubscribers.end()) {
-        return;
-    }
-    auto item = subscribe->second.begin();
-    while (item != subscribe->second.end()) {
+    auto it = g_osAccountSubscribers.begin();
+    while (it != g_osAccountSubscribers.end()) {
+        SubscribeCBInfo* currentSubInfo = *it;
         OsAccountSubscribeInfo subscribeInfo;
         OS_ACCOUNT_SUBSCRIBE_TYPE osSubscribeType;
         std::string name;
-        (*item)->subscriber->GetSubscribeInfo(subscribeInfo);
+        currentSubInfo->subscriber->GetSubscribeInfo(subscribeInfo);
         subscribeInfo.GetOsAccountSubscribeType(osSubscribeType);
         subscribeInfo.GetName(name);
+
         if (((unsubscribeCBInfo->osSubscribeType != osSubscribeType) || (unsubscribeCBInfo->name != name)) ||
             ((unsubscribeCBInfo->callbackRef != nullptr) &&
-            (!CompareOnAndOffRef(env, (*item)->callbackRef, unsubscribeCBInfo->callbackRef)))) {
-            item++;
+            (!CompareOnAndOffRef(env, currentSubInfo->callbackRef, unsubscribeCBInfo->callbackRef)))) {
+            it++;
             continue;
         }
-        int errCode = OsAccountManager::UnsubscribeOsAccount((*item)->subscriber);
+
+        int errCode = OsAccountManager::UnsubscribeOsAccount(currentSubInfo->subscriber);
         if (errCode != ERR_OK) {
             AccountNapiThrow(env, errCode, true);
             return;
         }
-        delete (*item);
-        item = subscribe->second.erase(item);
+        delete currentSubInfo;
+        it = g_osAccountSubscribers.erase(it);
         if (unsubscribeCBInfo->callbackRef != nullptr) {
             break;
         }
     }
-    if (subscribe->second.empty()) {
-        g_osAccountSubscribers.erase(subscribe->first);
-    }
 }
-
 napi_value IsOsAccountActivated(napi_env env, napi_callback_info cbInfo)
 {
     if (AccountPermissionManager::CheckSystemApp(false) != ERR_OK) {
