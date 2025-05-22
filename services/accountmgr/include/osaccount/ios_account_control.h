@@ -17,6 +17,7 @@
 #include "os_account_info.h"
 #include "account_error_no.h"
 #include <stdint.h>
+#include "json_utils.h"
 namespace OHOS {
 namespace AccountSA {
 struct OsAccountConfig {
@@ -35,7 +36,7 @@ public:
     virtual ErrCode InsertOsAccount(OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode DelOsAccount(const int id) = 0;
     virtual ErrCode UpdateOsAccount(OsAccountInfo &osAccountInfo) = 0;
-    virtual ErrCode GetAccountIndexFromFile(Json &accountIndexJson) = 0;
+    virtual ErrCode GetAccountIndexFromFile(CJsonUnique &accountIndexJson) = 0;
     virtual ErrCode GetSerialNumber(int64_t &serialNumber) = 0;
     virtual ErrCode GetAllowCreateId(int &id) = 0;
     virtual ErrCode IsOsAccountExists(const int id, bool &isExists) = 0;

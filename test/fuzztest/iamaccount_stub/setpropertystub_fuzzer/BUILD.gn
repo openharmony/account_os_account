@@ -73,6 +73,7 @@ ohos_fuzztest("SetPropertyStubFuzzTest") {
     "access_token:libtokenid_sdk",
     "access_token:libtokensetproc_shared",
     "bundle_framework:appexecfwk_base",
+    "cJSON:cjson",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",

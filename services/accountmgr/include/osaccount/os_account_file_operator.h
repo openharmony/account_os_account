@@ -19,6 +19,7 @@
 #include <memory>
 #include "account_file_operator.h"
 #include "iaccount_info.h"
+#include "json_utils.h"
 
 namespace OHOS {
 namespace AccountSA {

@@ -18,6 +18,8 @@
 #include "account_log_wrapper.h"
 #define private public
 #include "app_account_info.h"
+#include "json_utils.h"
+#include "app_account_info_json_parser.h"
 #undef private
 
 using namespace testing;
@@ -46,9 +48,7 @@ const bool SYNC_ENABLE_FALSE = false;
 
 constexpr std::size_t SIZE_ZERO = 0;
 constexpr std::size_t SIZE_ONE = 1;
-constexpr int32_t MAX_TOKEN_NUMBER = 128;
 constexpr int32_t OVERLOAD_MAX_TOKEN_NUMBER = 135;
-constexpr int32_t MAX_OAUTH_LIST_SIZE = 512;
 }  // namespace
 
 class AppAccountInfoTest : public testing::Test {
@@ -402,6 +402,10 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_InitCustomData_0100, TestSize.Level1
     appAccountInfo.GetAssociatedData(STRING_ASSOCIATED_KEY, test_value);
 
     EXPECT_EQ(STRING_ASSOCIATED_VALUE, test_value);
+
+    std::map<std::string, std::string> res;
+    appAccountInfo.GetAllAssociatedData(res);
+    EXPECT_EQ(res, customData);
 }
 
 /**
@@ -452,12 +456,12 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetAssociatedData_0100, TestSize.Lev
     EXPECT_EQ(result, ERR_OK);
 
     // check the associated data
-    auto jsonObject = Json::parse(appAccountInfo.associatedData_);
-    if (jsonObject.is_discarded()) {
-        jsonObject = Json::object();
+    auto jsonObject = CreateJsonFromString(appAccountInfo.associatedData_);
+    if (jsonObject == nullptr) {
+        jsonObject = CreateJson();
     }
-    EXPECT_NE(jsonObject.find(key), jsonObject.end());
-    EXPECT_EQ(value, jsonObject[key]);
+    EXPECT_NE(IsKeyExist(jsonObject, key), false);
+    EXPECT_EQ(value, GetStringFromJson(jsonObject, key));
 }
 
 /**
@@ -508,12 +512,12 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetAccountCredential_0100, TestSize.
     EXPECT_EQ(result, ERR_OK);
 
     // check the account credential
-    auto jsonObject = Json::parse(appAccountInfo.accountCredential_);
-    if (jsonObject.is_discarded()) {
-        jsonObject = Json::object();
+    auto jsonObject = CreateJsonFromString(appAccountInfo.accountCredential_);
+    if (jsonObject == nullptr) {
+        jsonObject = CreateJson();
     }
-    EXPECT_NE(jsonObject.find(type), jsonObject.end());
-    EXPECT_EQ(credential, jsonObject[type]);
+    EXPECT_NE(IsKeyExist(jsonObject, type), false);
+    EXPECT_EQ(credential, GetStringFromJson(jsonObject, type));
 }
 
 /**
@@ -989,4 +993,72 @@ HWTEST_F(AppAccountInfoTest, WriteStringMap001, TestSize.Level3)
     EXPECT_EQ(testInfo.WriteStringMap(stringSet, data), true);
     EXPECT_EQ(testInfo.ReadStringMap(stringMap, data), true);
     EXPECT_EQ(stringMap["testkey"], "testvalue");
+}
+
+/**
+ * @tc.name: AppAccountInfoExtensio ToJso 、FromJson test
+ * @tc.desc: Func ToJson、FromJson.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountInfoTest, AppAccountInfoExtension_ToJson_FromJson_001, TestSize.Level1)
+{
+    // make some data
+    std::string owner = STRING_OWNER;
+    std::string name = STRING_NAME;
+    std::string extraInfo = STRING_EXTRA_INFO;
+    std::set<std::string> authorizedApps;
+    authorizedApps.emplace(STRING_OWNER);
+    bool syncEnable = SYNC_ENABLE_TRUE;
+    std::string associatedData = STRING_ASSOCIATED_DATA;
+    std::string accountCredential = STRING_ACCOUNT_CREDENTIAL;
+
+    std::map<std::string, OAuthTokenInfo> oauthTokens;
+    OAuthTokenInfo tokenInfo1;
+    tokenInfo1.token = "token1";
+    tokenInfo1.status = true;
+    tokenInfo1.authType = "authType1";
+    tokenInfo1.authList = {"app1", "app2"};
+    OAuthTokenInfo tokenInfo2;
+    tokenInfo2.token = "token2";
+    tokenInfo2.status = false;
+    tokenInfo2.authType = "authType2";
+    tokenInfo2.authList = {"app3", "app4"};
+    oauthTokens.emplace("authType1", tokenInfo1);
+    oauthTokens.emplace("authType2", tokenInfo2);
+
+    // make info with an owner
+    AppAccountInfo testAppAccountInfo;
+    testAppAccountInfo.owner_ = owner;
+    testAppAccountInfo.name_ = name;
+    testAppAccountInfo.extraInfo_ = extraInfo;
+    testAppAccountInfo.authorizedApps_ = authorizedApps;
+    testAppAccountInfo.syncEnable_ = syncEnable;
+    testAppAccountInfo.associatedData_ = associatedData;
+    testAppAccountInfo.accountCredential_ = accountCredential;
+    testAppAccountInfo.alias_ = STRING_TOKEN;
+    testAppAccountInfo.oauthTokens_ = oauthTokens;
+    auto jsonObject = ToJson(testAppAccountInfo);
+
+    // check the data
+    AppAccountInfo retAppAccountInfo;
+    FromJson(jsonObject.get(), retAppAccountInfo);
+    EXPECT_EQ(testAppAccountInfo.alias_, retAppAccountInfo.alias_);
+    EXPECT_EQ(testAppAccountInfo.name_, retAppAccountInfo.name_);
+    EXPECT_EQ(testAppAccountInfo.extraInfo_, retAppAccountInfo.extraInfo_);
+    EXPECT_EQ(testAppAccountInfo.accountCredential_, retAppAccountInfo.accountCredential_);
+
+    // check the credential
+    auto jsonOAcc = CreateJsonFromString(retAppAccountInfo.accountCredential_);
+    std::string credential = GetStringFromJson(jsonOAcc, STRING_CREDENTIAL_TYPE);
+    EXPECT_EQ(credential, "1024");
+
+    EXPECT_EQ(retAppAccountInfo.authorizedApps_.size(), SIZE_ONE);
+    EXPECT_EQ(owner, *(retAppAccountInfo.authorizedApps_.begin()));
+    EXPECT_EQ(testAppAccountInfo.syncEnable_, retAppAccountInfo.syncEnable_);
+    EXPECT_EQ(testAppAccountInfo.associatedData_, retAppAccountInfo.associatedData_);
+    bool isVisible = true;
+    isVisible = retAppAccountInfo.oauthTokens_["authType1"].status;
+    EXPECT_TRUE(isVisible);
+    ASSERT_EQ(retAppAccountInfo.oauthTokens_["authType1"].token, tokenInfo1.token);
 }

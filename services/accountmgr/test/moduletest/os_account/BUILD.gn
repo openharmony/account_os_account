@@ -62,6 +62,7 @@ ohos_moduletest("inner_os_account_manager_test") {
   ]
   external_deps = [
     "ability_runtime:ability_manager",
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gmock_main",
     "googletest:gtest_main",
@@ -148,6 +149,7 @@ ohos_moduletest("os_account_manager_service_module_test") {
     "access_token:libtokensetproc_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "config_policy:configpolicy_util",
@@ -265,6 +267,7 @@ config("os_account_manager_service_subscribe_test_config") {
     "${innerkits_path}/include",
     "${account_iam_interfaces_native_path}/include",
     "${account_iam_framework_path}/test/unittest/include",
+    "${os_account_path}/frameworks/appaccount/native/include",
   ]
 }
 
@@ -345,6 +348,7 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
     "access_token:libtokensetproc_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "config_policy:configpolicy_util",
@@ -437,6 +441,7 @@ ohos_moduletest("os_account_control_file_manager_test") {
   external_deps = [
     "ability_runtime:ability_manager",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gmock_main",
     "googletest:gtest_main",
@@ -476,6 +481,7 @@ ohos_moduletest("os_account_database_operator_test") {
   external_deps = [
     "ability_runtime:ability_manager",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gmock_main",
     "googletest:gtest_main",
@@ -515,6 +521,7 @@ ohos_moduletest("os_account_file_operator_test") {
   external_deps = [
     "ability_runtime:ability_manager",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gmock_main",
     "googletest:gtest_main",

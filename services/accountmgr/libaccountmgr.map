@@ -27,7 +27,6 @@
         "OHOS::AccountSA::AccountDumpHelper::AnonymizeNameStr(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&) const";
         "OHOS::AccountSA::AccountDumpHelper::AnonymizeUidStr(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&) const";
         "OHOS::AccountSA::AccountDumpHelper::ShowOhosAccountInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&) const";
-        "OHOS::AccountSA::AccountHelperData::GetAccountEventMap()";
         "OHOS::AccountSA::AccountIAMService::AccountIAMService()";
         "OHOS::AccountSA::AccountMgrService::AccountMgrService()";
         "OHOS::AccountSA::AccountMgrService::Init()";

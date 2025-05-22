@@ -17,6 +17,8 @@
 #include <unistd.h>
 #include "account_log_wrapper.h"
 #include "account_hisysevent_adapter.h"
+#include "app_account_info_json_parser.h"
+#include "os_account_info_json_parser.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -348,7 +350,7 @@ ErrCode AccountDataStorage::DeleteKvStore()
     return ERR_OK;
 }
 
-ErrCode AccountDataStorage::GetAccountInfoById(const std::string id, IAccountInfo &iAccountInfo)
+ErrCode AccountDataStorage::GetAccountInfoById(const std::string id, OHOS::AccountSA::AppAccountInfo &accountInfo)
 {
     std::string valueStr;
     ErrCode ret = GetValueFromKvStore(id, valueStr);
@@ -357,12 +359,30 @@ ErrCode AccountDataStorage::GetAccountInfoById(const std::string id, IAccountInf
         return ret;
     }
 
-    nlohmann::json jsonObject = nlohmann::json::parse(valueStr, nullptr, false);
-    if (jsonObject.is_discarded() || !jsonObject.is_structured()) {  // check format
+    auto jsonObject = CreateJsonFromString(valueStr);
+    if (jsonObject == nullptr || !IsStructured(jsonObject)) {  // check format
         ACCOUNT_LOGE("bad format of value from kvstore! id %{public}s.", id.c_str());
         return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
     }
-    iAccountInfo.FromJson(jsonObject);
+    FromJson(jsonObject.get(), accountInfo);
+    return ERR_OK;
+}
+
+ErrCode AccountDataStorage::GetAccountInfoById(const std::string id, OHOS::AccountSA::OsAccountInfo &accountInfo)
+{
+    std::string valueStr;
+    ErrCode ret = GetValueFromKvStore(id, valueStr);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("get value from kvstore failed! id %{public}s.", id.c_str());
+        return ret;
+    }
+
+    auto jsonObject = CreateJsonFromString(valueStr);
+    if (jsonObject == nullptr || !IsStructured(jsonObject)) {  // check format
+        ACCOUNT_LOGE("bad format of value from kvstore! id %{public}s.", id.c_str());
+        return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
+    }
+    FromJson(jsonObject.get(), accountInfo);
     return ERR_OK;
 }
 

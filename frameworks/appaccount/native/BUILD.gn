@@ -50,6 +50,7 @@ config("app_account_innerkits_public_config") {
     "include",
     "${common_path}/utils/include",
     "${innerkits_common}/include",
+    "${common_path}/json_utils/include",
   ]
 }
 
@@ -107,6 +108,7 @@ ohos_shared_library("app_account_innerkits") {
     "ability_runtime:runtime",
     "ability_runtime:service_extension",
     "ability_runtime:ui_extension",
+    "cJSON:cjson",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_napi",

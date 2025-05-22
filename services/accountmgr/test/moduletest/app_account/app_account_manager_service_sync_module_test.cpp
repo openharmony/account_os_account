@@ -287,12 +287,12 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
     result = dataStoragePtr->GetValueFromKvStore(AUTHORIZED_ACCOUNTS, authorizedAccounts);
     ASSERT_EQ(result, ERR_OK);
 
-    auto jsonObject = Json::parse(authorizedAccounts, nullptr, false);
-    EXPECT_EQ(jsonObject.is_discarded(), false);
-    EXPECT_NE(jsonObject.find(STRING_BUNDLE_NAME), jsonObject.end());
-    EXPECT_TRUE(jsonObject.at(STRING_BUNDLE_NAME).is_array());
+    auto jsonObject = CreateJsonFromString(authorizedAccounts);
+    EXPECT_NE(jsonObject, nullptr);
+    EXPECT_TRUE(IsKeyExist(jsonObject, STRING_BUNDLE_NAME));
+    EXPECT_TRUE(IsArray(GetObjFromJson(jsonObject, STRING_BUNDLE_NAME)));
 
-    auto accessibleAccounts = jsonObject[STRING_BUNDLE_NAME].get<std::vector<std::string>>();
+    auto accessibleAccounts = GetVectorStringFromJson(jsonObject, STRING_BUNDLE_NAME);
     EXPECT_EQ(accessibleAccounts.size(), SIZE_ONE);
 
     auto accountPtr = accessibleAccounts.begin();
@@ -339,12 +339,12 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         authorizedAccounts);
     ASSERT_EQ(result, ERR_OK);
 
-    auto jsonObject = Json::parse(authorizedAccounts, nullptr, false);
-    EXPECT_EQ(jsonObject.is_discarded(), false);
-    EXPECT_NE(jsonObject.find(STRING_BUNDLE_NAME), jsonObject.end());
-    EXPECT_TRUE(jsonObject.at(STRING_BUNDLE_NAME).is_array());
+    auto jsonObject = CreateJsonFromString(authorizedAccounts);
+    EXPECT_NE(jsonObject, nullptr);
+    EXPECT_NE(IsKeyExist(jsonObject, STRING_BUNDLE_NAME), false);
+    EXPECT_TRUE(IsArray(GetObjFromJson(jsonObject, STRING_BUNDLE_NAME)));
 
-    auto accessibleAccounts = jsonObject[STRING_BUNDLE_NAME].get<std::vector<std::string>>();
+    auto accessibleAccounts = GetVectorStringFromJson(jsonObject, STRING_BUNDLE_NAME);
     EXPECT_EQ(accessibleAccounts.size(), SIZE_ONE);
 
     auto accountPtr = accessibleAccounts.begin();
@@ -390,12 +390,12 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Di
         authorizedAccounts);
     ASSERT_EQ(result, ERR_OK);
 
-    auto jsonObject = Json::parse(authorizedAccounts, nullptr, false);
-    EXPECT_EQ(jsonObject.is_discarded(), false);
-    EXPECT_NE(jsonObject.find(STRING_BUNDLE_NAME), jsonObject.end());
-    EXPECT_TRUE(jsonObject.at(STRING_BUNDLE_NAME).is_array());
+    auto jsonObject = CreateJsonFromString(authorizedAccounts);
+    EXPECT_NE(jsonObject, nullptr);
+    EXPECT_NE(IsKeyExist(jsonObject, STRING_BUNDLE_NAME), false);
+    EXPECT_TRUE(IsArray(GetObjFromJson(jsonObject, STRING_BUNDLE_NAME)));
 
-    auto accessibleAccounts = jsonObject[STRING_BUNDLE_NAME].get<std::vector<std::string>>();
+    auto accessibleAccounts = GetVectorStringFromJson(jsonObject, STRING_BUNDLE_NAME);
     EXPECT_EQ(accessibleAccounts.size(), SIZE_ZERO);
 
     result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);

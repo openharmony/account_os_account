@@ -49,7 +49,7 @@ public:
     ErrCode InsertOsAccount(OsAccountInfo &osAccountInfo) override;
     ErrCode DelOsAccount(const int id) override;
     ErrCode UpdateOsAccount(OsAccountInfo &osAccountInfo) override;
-    ErrCode GetAccountIndexFromFile(Json &accountIndexJson) override;
+    ErrCode GetAccountIndexFromFile(CJsonUnique &accountIndexJson) override;
     ErrCode GetSerialNumber(int64_t &serialNumber) override;
     ErrCode GetAllowCreateId(int &id) override;
     ErrCode IsOsAccountExists(const int id, bool &isExists) override;
@@ -99,10 +99,10 @@ private:
     ErrCode RemoveAccountIndex(const int32_t id);
     int32_t GetNextLocalId(const std::vector<std::string> &accountIdList, int32_t startId);
     ErrCode UpdateAccountList(const std::string &idStr, bool isAdd);
-    ErrCode GetAccountListFromFile(Json& accountListJson);
+    ErrCode GetAccountListFromFile(CJsonUnique &accountListJson);
     ErrCode GetAccountIndexInfo(std::string &accountIndexInfo);
-    ErrCode SaveAccountListToFile(const Json& accountListJson);
-    ErrCode SaveAccountListToFileAndDataBase(const Json& accountListJson);
+    ErrCode SaveAccountListToFile(CJsonUnique &accountListJson);
+    ErrCode SaveAccountListToFileAndDataBase(CJsonUnique &accountListJson);
     void BuildAndSaveAccountListJsonFile(const std::vector<std::string>& accounts);
     void RecoverAccountListJsonFile();
     void RecoverAccountInfoDigestJsonFile();
@@ -111,16 +111,16 @@ private:
     void BuildAndSaveGlobalOAConstraintsJsonFile();
     void BuildAndSaveSpecificOAConstraintsJsonFile();
     void GlobalConstraintsDataOperate(const std::string& idStr,
-        const std::vector<std::string>& ConstraintStr, bool isAdd, Json &globalOAConstraintsJson);
+        const std::vector<std::string>& ConstraintStr, bool isAdd, CJsonUnique &globalOAConstraintsJson);
     void SpecificConstraintsDataOperate(const std::string& idStr, const std::string& targetIdStr,
-        const std::vector<std::string>& ConstraintStr, bool isAdd, Json& userPrivateConstraintsDataJson);
+        const std::vector<std::string>& ConstraintStr, bool isAdd, cJSON *userPrivateConstraintsDataJson);
 
-    ErrCode GetBaseOAConstraintsFromFile(Json &baseOAConstraintsJson);
-    ErrCode GetGlobalOAConstraintsFromFile(Json &globalOAConstraintsJson);
-    ErrCode GetSpecificOAConstraintsFromFile(Json &specificOAConstraintsJson);
-    ErrCode SaveBaseOAConstraintsToFile(const Json &baseOAConstraints);
-    ErrCode SaveGlobalOAConstraintsToFile(const Json &globalOAConstraints);
-    ErrCode SaveSpecificOAConstraintsToFile(const Json &specificOAConstraints);
+    ErrCode GetBaseOAConstraintsFromFile(CJsonUnique &baseOAConstraintsJson);
+    ErrCode GetGlobalOAConstraintsFromFile(CJsonUnique &globalOAConstraintsJson);
+    ErrCode GetSpecificOAConstraintsFromFile(CJsonUnique &specificOAConstraintsJson);
+    ErrCode SaveBaseOAConstraintsToFile(CJsonUnique &baseOAConstraints);
+    ErrCode SaveGlobalOAConstraintsToFile(CJsonUnique &globalOAConstraints);
+    ErrCode SaveSpecificOAConstraintsToFile(CJsonUnique &specificOAConstraints);
 
     ErrCode RemoveOABaseConstraintsInfo(const int32_t id);
     ErrCode RemoveOAGlobalConstraintsInfo(const int32_t id);

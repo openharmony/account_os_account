@@ -32,6 +32,7 @@
 #include "distributed_bundle_info.h"
 #include "extension_ability_info.h"
 #include "iremote_proxy.h"
+#include "json_utils.h"
 #include "permission_define.h"
 #include "shortcut_info.h"
 
@@ -101,7 +102,7 @@ private:
     bool ParseStr(const char *buf, const int itemLen, int index, std::string &result);
     bool ParseExtensionInfo(std::string infoStr, ExtensionAbilityInfo &extensionInfo);
     bool ParseExtensionAbilityInfos(
-        nlohmann::json jsonObject, std::vector<ExtensionAbilityInfo> &extensionInfos);
+        CJsonUnique &jsonObject, std::vector<ExtensionAbilityInfo> &extensionInfos);
     template<typename T>
     bool ParseInfo(std::string &infoStr, T &info);
 

@@ -75,6 +75,7 @@ ohos_shared_library("account_iam_innerkits") {
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "cJSON:cjson",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",

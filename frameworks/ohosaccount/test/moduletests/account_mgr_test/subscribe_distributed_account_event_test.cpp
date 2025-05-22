@@ -42,7 +42,6 @@ using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
 using namespace OHOS::AccountSA::Constants;
-using json = nlohmann::json;
 
 class SubscribeDistributedAccountModuleTest : public testing::Test {
 public:

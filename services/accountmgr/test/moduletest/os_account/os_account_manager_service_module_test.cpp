@@ -1357,6 +1357,11 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest084
     EXPECT_EQ(isConstraintEnable, false);
     EXPECT_EQ(osAccountManagerService_->SetSpecificOsAccountConstraints(
         CONSTANTS_VECTOR, true, osAccountInfo.GetLocalId(), MAIN_ACCOUNT_ID, false), ERR_OK);
+    int deviceId;
+    auto &innerMgr = osAccountManagerService_->innerManager_;
+    ASSERT_NE(innerMgr.osAccountControl_, nullptr);
+    innerMgr.osAccountControl_->GetDeviceOwnerId(deviceId);
+    EXPECT_EQ(deviceId, MAIN_ACCOUNT_ID);
     isConstraintEnable = false;
     EXPECT_EQ(osAccountManagerService_->IsOsAccountConstraintEnable(
         osAccountInfo.GetLocalId(), CONSTANT_PRINT, isConstraintEnable), ERR_OK);
