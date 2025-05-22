@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,11 +28,10 @@ public:
     virtual ~OsAccountDatabaseOperator();
 
     // update infos to database
-    ErrCode UpdateOsAccountIDListInDatabase(const Json &accountListJson);
-    ErrCode UpdateOsAccountInDatabase(const OsAccountInfo &osAccountInfo);
-    ErrCode InsertOsAccountIntoDataBase(const OsAccountInfo &osAccountInfo);
-    ErrCode InsertOrUpdateOsAccountIntoDataBase(const OsAccountInfo &osAccountInfo);
-    ErrCode DelOsAccountFromDatabase(const int id);
+    void UpdateOsAccountIDListInDatabase(const Json &accountListJson);
+    void UpdateOsAccountInDatabase(const OsAccountInfo &osAccountInfo);
+    void InsertOsAccountIntoDataBase(const OsAccountInfo &osAccountInfo);
+    void DelOsAccountFromDatabase(const int id);
 
     ErrCode GetCreatedOsAccountNumFromDatabase(const std::string &storeID, int &createdOsAccountNum);
     ErrCode GetSerialNumberFromDatabase(const std::string &storeID, int64_t &serialNumber);
