@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -94,56 +94,65 @@ ErrCode OsAccountDatabaseOperator::GetOsAccountListFromDatabase(const std::strin
     return ERR_OK;
 }
 
-void OsAccountDatabaseOperator::InsertOsAccountIntoDataBase(const OsAccountInfo &osAccountInfo)
+ErrCode OsAccountDatabaseOperator::InsertOsAccountIntoDataBase(const OsAccountInfo &osAccountInfo)
 {
     if (!InnerInit()) {
         ACCOUNT_LOGE("InnerInit failed! target localID %{public}d!", osAccountInfo.GetLocalId());
-        return;
-    }
-
-    if (osAccountInfo.GetLocalId() < Constants::START_USER_ID) {
-        ACCOUNT_LOGI("Target os account id %{public}d will not be saved in database!", osAccountInfo.GetLocalId());
-        return;
+        return ERR_ACCOUNT_COMMON_NOT_INIT_ERROR;
     }
 
     ErrCode errCode = accountDataStorage_->AddAccountInfo(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("AddAccountInfo failed, error code %{public}d, target id %{public}d.",
             errCode, osAccountInfo.GetLocalId());
-        return;
+        return errCode;
     }
     ACCOUNT_LOGI("Insert account %{public}d to database succeed.", osAccountInfo.GetLocalId());
+    return ERR_OK;
 }
 
-void OsAccountDatabaseOperator::DelOsAccountFromDatabase(const int id)
+ErrCode OsAccountDatabaseOperator::InsertOrUpdateOsAccountIntoDataBase(const OsAccountInfo &osAccountInfo)
+{
+    if (!InnerInit()) {
+        ACCOUNT_LOGE("InnerInit failed! target localID %{public}d!", osAccountInfo.GetLocalId());
+        return ERR_ACCOUNT_COMMON_NOT_INIT_ERROR;
+    }
+    if (accountDataStorage_->IsKeyExists(osAccountInfo.GetPrimeKey())) {
+        return UpdateOsAccountInDatabase(osAccountInfo);
+    }
+    return InsertOsAccountIntoDataBase(osAccountInfo);
+}
+
+ErrCode OsAccountDatabaseOperator::DelOsAccountFromDatabase(const int id)
 {
     if (!InnerInit()) {
         ACCOUNT_LOGE("InnerInit failed! id %{public}d!", id);
-        return;
+        return ERR_ACCOUNT_COMMON_NOT_INIT_ERROR;
     }
-
     ErrCode errCode = accountDataStorage_->RemoveValueFromKvStore(std::to_string(id));
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Delete os account %{public}d from database failed! error code %{public}d.", id, errCode);
-    } else {
-        ACCOUNT_LOGI("Delete os account %{public}d from database succeed!", id);
+        return errCode;
     }
+    ACCOUNT_LOGI("Delete os account %{public}d from database succeed!", id);
+    return ERR_OK;
 }
 
-void OsAccountDatabaseOperator::UpdateOsAccountInDatabase(const OsAccountInfo &osAccountInfo)
+ErrCode OsAccountDatabaseOperator::UpdateOsAccountInDatabase(const OsAccountInfo &osAccountInfo)
 {
     if (!InnerInit()) {
         ACCOUNT_LOGE("InnerInit failed! local id %{public}d!", osAccountInfo.GetLocalId());
-        return;
+        return ERR_ACCOUNT_COMMON_NOT_INIT_ERROR;
     }
 
     ErrCode errCode = accountDataStorage_->SaveAccountInfo(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Update os account info in database for account %{public}d failed! errCode = %{public}d.",
             osAccountInfo.GetLocalId(), errCode);
-    } else {
-        ACCOUNT_LOGI("Update os account info in database for account %{public}d succeed!", osAccountInfo.GetLocalId());
+        return errCode;
     }
+    ACCOUNT_LOGI("Update os account info in database for account %{public}d succeed!", osAccountInfo.GetLocalId());
+    return ERR_OK;
 }
 
 ErrCode OsAccountDatabaseOperator::GetOsAccountFromDatabase(const std::string& storeID,
@@ -182,18 +191,19 @@ ErrCode OsAccountDatabaseOperator::GetCreatedOsAccountNumFromDatabase(
     return ERR_OK;
 }
 
-void OsAccountDatabaseOperator::UpdateOsAccountIDListInDatabase(const Json &accountListJson)
+ErrCode OsAccountDatabaseOperator::UpdateOsAccountIDListInDatabase(const Json &accountListJson)
 {
     if (!InnerInit()) {
         ACCOUNT_LOGE("InnerInit failed!");
-        return;
+        return ERR_ACCOUNT_COMMON_NOT_INIT_ERROR;
     }
     ErrCode errCode = accountDataStorage_->PutValueToKvStore(Constants::ACCOUNT_LIST, accountListJson.dump());
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Update os account id list to database failed! errCode %{public}d.", errCode);
-        return;
+        return errCode;
     }
     ACCOUNT_LOGD("Update os account id list to database succeed.");
+    return ERR_OK;
 }
 
 ErrCode OsAccountDatabaseOperator::GetSerialNumberFromDatabase(

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -40,6 +40,7 @@ public:
     std::string GetFilePath() const;
     int32_t GetLocalId() const;
     int32_t GetWd() const;
+    CheckNotifyEventCallbackFunc GetEventCallbackFunc() const;
 
     bool StartNotify(int32_t fd, const uint32_t &watchEvents);
     void CloseNotify(int32_t fd);
@@ -64,6 +65,7 @@ public:
         const std::string &userInfoPath, const std::string &accountInfoStr, std::string &digestStr);
     ErrCode AddAccountInfoDigest(const std::string accountInfo, const std::string &userInfoPath);
     ErrCode DeleteAccountInfoDigest(const std::string &userInfoPath);
+    std::shared_ptr<FileWatcher> GetFileWatcher(const std::string &fileName);
 
 private:
     void DealWithFileEvent();
@@ -76,7 +78,7 @@ public:
     int32_t inotifyFd_ = -1;
 
     std::mutex accountInfoDigestFileLock_;
-    std::mutex fileWatcherMgrLock_;
+    std::recursive_mutex fileWatcherMgrLock_;
     std::shared_ptr<AccountFileOperator> accountFileOperator_;
     std::unordered_map<int32_t, std::shared_ptr<FileWatcher>> fileNameMgrMap_;
     fd_set fds_;
