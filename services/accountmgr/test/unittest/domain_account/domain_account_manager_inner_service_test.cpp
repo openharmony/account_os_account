@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-#include <cstdlib>
 #include <gtest/gtest.h>
 #include <thread>
 #include "account_error_no.h"
@@ -64,10 +63,7 @@ void DomainAccountManagerInnerServiceTest::SetUpTestCase(void)
 {}
 
 void DomainAccountManagerInnerServiceTest::TearDownTestCase(void)
-{
-    std::string cmd = "chown -R 3058:3058 /data/service/el1/public/account";
-    system(cmd.c_str());
-}
+{}
 
 void DomainAccountManagerInnerServiceTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 {
