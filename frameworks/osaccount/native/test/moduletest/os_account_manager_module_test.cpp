@@ -151,8 +151,6 @@ public:
 void OsAccountManagerModuleTest::SetUpTestCase(void)
 {
     GTEST_LOG_(INFO) << "SetUpTestCase enter";
-    std::string cmd = "rm -rf /data/service/el1/public/account/test*";
-    system(cmd.c_str());
     ASSERT_NE(GetAllAccountPermission(), 0);
     g_selfTokenID = IPCSkeleton::GetSelfTokenID();
 #ifdef ACCOUNT_TEST
@@ -193,8 +191,6 @@ void OsAccountManagerModuleTest::SetUpTestCase(void)
 void OsAccountManagerModuleTest::TearDownTestCase(void)
 {
     GTEST_LOG_(INFO) << "TearDownTestCase";
-    std::string cmd = "chown -R 3058:3058 /data/service/el1/public/account";
-    system(cmd.c_str());
 #ifdef ACCOUNT_TEST
     AccountFileOperator osAccountFileOperator;
     osAccountFileOperator.DeleteDirOrFile(USER_INFO_BASE);

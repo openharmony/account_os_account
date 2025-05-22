@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -142,8 +142,6 @@ void OsAccountManagerServiceModuleTest::TearDownTestCase(void)
     osAccountFileOperator.DeleteDirOrFile(USER_INFO_BASE);
     GTEST_LOG_(INFO) << "delete account test path " << USER_INFO_BASE;
 #endif  // ACCOUNT_TEST
-    std::string cmd = "chown -R 3058:3058 /data/service/el1/public/account";
-    system(cmd.c_str());
 }
 
 void OsAccountManagerServiceModuleTest::SetUp(void) __attribute__((no_sanitize("cfi")))

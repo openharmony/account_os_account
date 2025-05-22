@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -48,10 +48,7 @@ void OsAccountDatabaseOperatorTest::SetUpTestCase(void)
 }
 
 void OsAccountDatabaseOperatorTest::TearDownTestCase(void)
-{
-    std::string cmd = "chown -R 3058:3058 /data/service/el1/public/account";
-    system(cmd.c_str());
-}
+{}
 
 void OsAccountDatabaseOperatorTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 {
@@ -65,6 +62,23 @@ void OsAccountDatabaseOperatorTest::SetUp(void) __attribute__((no_sanitize("cfi"
 
 void OsAccountDatabaseOperatorTest::TearDown(void)
 {}
+
+/**
+ * @tc.name: OsAccountDatabaseOperatorTest_InsertOsAccountIntoDataBase_0001
+ * @tc.desc: Test CreateOsAccount when create max accounts.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountDatabaseOperatorTest, InsertOsAccountIntoDataBase_0001, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountDatabaseOperatorTest_InsertOsAccountIntoDataBase_0001");
+
+    OsAccountInfo info;
+    int localId = 1;  // 1 is invalid test local id
+    info.SetLocalId(localId);
+    g_osAccountDatabaseOperator->InsertOsAccountIntoDataBase(info);
+    EXPECT_EQ(info.GetLocalId(), localId);
+}
 
 /**
  * @tc.name: OsAccountDatabaseOperatorTest_InsertOsAccountIntoDataBase_0002
