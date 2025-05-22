@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -126,6 +126,14 @@ void GetCredInfoCallbackProxy::OnCredentialInfo(int32_t result, const std::vecto
         }
         if (!data.WriteUint64(info.templateId)) {
             ACCOUNT_LOGE("Write templateId fail");
+            return;
+        }
+        if (!data.WriteBool(info.isAbandoned)) {
+            ACCOUNT_LOGE("Write isAbandoned fail");
+            return;
+        }
+        if (!data.WriteInt64(info.validityPeriod)) {
+            ACCOUNT_LOGE("Write validityPeriod fail");
             return;
         }
     }
