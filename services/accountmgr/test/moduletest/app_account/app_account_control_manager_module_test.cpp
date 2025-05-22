@@ -334,3 +334,20 @@ HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_GetAllAcco
     EXPECT_EQ(ERR_OK, result);
     setuid(tddUid);
 }
+
+/**
+ * @tc.name: ComputeHash001
+ * @tc.desc: Func ComputeHash.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountControlManagerModuleTest, ComputeHash001, TestSize.Level1)
+{
+    AppAccountInfo appAccountInfo;
+    appAccountInfo.owner_ = "owner";
+    appAccountInfo.name_ = "name";
+    appAccountInfo.appIndex_ = 123;
+    appAccountInfo.alias_ = "";
+    std::string res = appAccountInfo.GetAlias();
+    EXPECT_EQ("973997FA53478B64D3FD06E71F683ACA92750EE2DC4DDD087D0E371E25AF4588", res);
+}
