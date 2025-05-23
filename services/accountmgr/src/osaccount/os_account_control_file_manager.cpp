@@ -820,8 +820,12 @@ ErrCode OsAccountControlFileManager::RemoveOAGlobalConstraintsInfo(const int32_t
         return result;
     }
     std::vector<std::string> waitForErase;
-    cJSON* it = nullptr;
-    cJSON_ArrayForEach(it, globalOAConstraintsJson.get()) {
+    std::vector<cJSON *> globalOAConstraintsJsonLists;
+    cJSON* item = nullptr;
+    cJSON_ArrayForEach(item, globalOAConstraintsJson.get()) {
+        globalOAConstraintsJsonLists.emplace_back(item);
+    }
+    for (const auto &it : globalOAConstraintsJsonLists) {
         std::string key(it->string);
         if (key != Constants::ALL_GLOBAL_CONSTRAINTS && key != DEVICE_OWNER_ID) {
             std::vector<std::string> sourceList;
@@ -858,8 +862,21 @@ ErrCode OsAccountControlFileManager::RemoveOASpecificConstraintsInfo(const int32
     if (IsKeyExist(specificOAConstraintsJson, std::to_string(id))) {
         DeleteItemFromJson(specificOAConstraintsJson, std::to_string(id));
     }
-    cJSON* it = nullptr;
-    cJSON_ArrayForEach(it, specificOAConstraintsJson.get()) {
+
+    RemoveAllUsersConstraintsInfo(specificOAConstraintsJson, id);
+
+    return SaveSpecificOAConstraintsToFile(specificOAConstraintsJson);
+}
+
+void OsAccountControlFileManager::RemoveAllUsersConstraintsInfo(CJsonUnique &specificOAConstraintsJson,
+                                                                const int32_t id)
+{
+    std::vector<cJSON *> specificJsonObjLists;
+    cJSON* specificJsonObj = nullptr;
+    cJSON_ArrayForEach(specificJsonObj, specificOAConstraintsJson.get()) {
+        specificJsonObjLists.emplace_back(specificJsonObj);
+    }
+    for (const auto &it : specificJsonObjLists) {
         std::vector<std::string> waitForErase;
         cJSON *userPrivateConstraintsJson = nullptr;
         GetDataByType<CJson *>(specificOAConstraintsJson, it->string, userPrivateConstraintsJson);
@@ -869,8 +886,12 @@ ErrCode OsAccountControlFileManager::RemoveOASpecificConstraintsInfo(const int32
         if (allSpecificConstraints.size() == 0) {
             continue;
         }
-        cJSON* item = nullptr;
-        cJSON_ArrayForEach(item, userPrivateConstraintsJson) {
+        std::vector<cJSON *> userJsonObjLists;
+        cJSON* userJsonObj = nullptr;
+        cJSON_ArrayForEach(userJsonObj, userPrivateConstraintsJson) {
+            userJsonObjLists.emplace_back(userJsonObj);
+        }
+        for (const auto &item : userJsonObjLists) {
             if (std::string(item->string) == Constants::ALL_SPECIFIC_CONSTRAINTS) {
                 continue;
             }
@@ -893,7 +914,6 @@ ErrCode OsAccountControlFileManager::RemoveOASpecificConstraintsInfo(const int32
         }
         AddObjToJson(specificOAConstraintsJson.get(), it->string, userPrivateConstraintsJson);
     }
-    return SaveSpecificOAConstraintsToFile(specificOAConstraintsJson);
 }
 
 ErrCode OsAccountControlFileManager::UpdateAccountList(const std::string& idStr, bool isAdd)
@@ -1275,7 +1295,7 @@ ErrCode OsAccountControlFileManager::GetAccountIndexInfo(std::string &accountInd
     if (result != ERR_OK) {
         return result;
     }
-    auto accountIndexJson = CreateJson();
+    auto accountIndexJson = osAccountInfos.empty() ? CreateJsonNull() : CreateJson();
     for (auto account = osAccountInfos.begin(); account != osAccountInfos.end(); account++) {
         // private account don't check name
         if (account->GetType() == OsAccountType::PRIVATE) {
