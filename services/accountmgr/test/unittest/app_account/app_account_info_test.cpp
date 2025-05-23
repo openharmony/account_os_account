@@ -996,12 +996,12 @@ HWTEST_F(AppAccountInfoTest, WriteStringMap001, TestSize.Level3)
 }
 
 /**
- * @tc.name: AppAccountInfoExtensio ToJso 、FromJson test
+ * @tc.name: AppAccountInfo_ToJson_FromJson_001
  * @tc.desc: Func ToJson、FromJson.
  * @tc.type: FUNC
  * @tc.require
  */
-HWTEST_F(AppAccountInfoTest, AppAccountInfoExtension_ToJson_FromJson_001, TestSize.Level1)
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_ToJson_FromJson_001, TestSize.Level1)
 {
     // make some data
     std::string owner = STRING_OWNER;

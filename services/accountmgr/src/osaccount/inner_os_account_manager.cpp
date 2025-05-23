@@ -1072,17 +1072,15 @@ ErrCode IInnerOsAccountManager::ValidateOsAccount(const OsAccountInfo &osAccount
         }
         cJSON *nameObj = GetObjFromJson(accountIndexJson, key);
         std::string localName;
-        if (GetStringFromJson(nameObj, Constants::LOCAL_NAME, localName)) {
-            if ((osAccountInfo.GetLocalName() == localName) && (localId != id) && !IsToBeRemoved(localId)) {
+        if (GetStringFromJson(nameObj, Constants::LOCAL_NAME, localName) &&
+            (osAccountInfo.GetLocalName() == localName) && (localId != id) && !IsToBeRemoved(localId)) {
                 return ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED;
-            }
         }
         if (!osAccountInfo.GetShortName().empty()) {
             std::string shortName;
-            if (GetStringFromJson(nameObj, Constants::SHORT_NAME, shortName)) {
-                if ((osAccountInfo.GetShortName() == shortName) && (localId != id) && !IsToBeRemoved(localId)) {
+            if (GetStringFromJson(nameObj, Constants::SHORT_NAME, shortName) &&
+                (osAccountInfo.GetShortName() == shortName) && (localId != id) && !IsToBeRemoved(localId)) {
                     return ERR_ACCOUNT_COMMON_SHORT_NAME_HAD_EXISTED;
-                }
             }
         }
     }
