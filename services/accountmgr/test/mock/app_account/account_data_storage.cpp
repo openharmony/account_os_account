@@ -92,6 +92,24 @@ ErrCode AccountDataStorage::DeleteKvStore()
     return ERR_OK;
 }
 
+ErrCode AccountDataStorage::StartTransaction()
+{
+    ACCOUNT_LOGI("mock enter");
+    return ERR_OK;
+}
+
+ErrCode AccountDataStorage::Commit()
+{
+    ACCOUNT_LOGI("mock enter");
+    return ERR_OK;
+}
+
+ErrCode AccountDataStorage::Rollback()
+{
+    ACCOUNT_LOGI("mock enter");
+    return ERR_OK;
+}
+
 struct OAuthTokenInfo {
     std::string authType;
     std::string token;
@@ -239,6 +257,18 @@ bool AccountDataStorage::IsKeyExists(const std::string keyStr)
 ErrCode AccountDataStorage::MoveData(const std::shared_ptr<AccountDataStorage> &ptr)
 {
     ACCOUNT_LOGI("mock enter");
+    return ERR_OK;
+}
+
+ErrCode StartDbTransaction(
+    const std::shared_ptr<AccountDataStorage> &dataStoragePtr, DatabaseTransaction &dbtransaction)
+{
+    return ERR_OK;
+}
+
+ErrCode CommitDbTransaction(
+    const std::shared_ptr<AccountDataStorage> &dataStoragePtr, DatabaseTransaction &dbtransaction)
+{
     return ERR_OK;
 }
 }  // namespace AccountSA

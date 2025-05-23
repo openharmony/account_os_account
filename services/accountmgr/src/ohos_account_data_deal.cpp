@@ -224,7 +224,8 @@ ErrCode OhosAccountDataDeal::SaveAccountInfo(const AccountInfo &accountInfo)
     };
 
     std::string avatarFile = configFileDir_ + std::to_string(accountInfo.userId_) + ACCOUNT_AVATAR_NAME;
-    ErrCode ret = accountFileOperator_->InputFileByPathAndContent(avatarFile, accountInfo.ohosAccountInfo_.avatar_);
+    ErrCode ret = accountFileOperator_->InputFileByPathAndContentWithTransaction(
+        avatarFile, accountInfo.ohosAccountInfo_.avatar_);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("Failed to save avatar! ret = %{public}d", ret);
         return ret;
