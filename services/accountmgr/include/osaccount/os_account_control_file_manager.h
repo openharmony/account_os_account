@@ -121,6 +121,7 @@ private:
     ErrCode SaveBaseOAConstraintsToFile(CJsonUnique &baseOAConstraints);
     ErrCode SaveGlobalOAConstraintsToFile(CJsonUnique &globalOAConstraints);
     ErrCode SaveSpecificOAConstraintsToFile(CJsonUnique &specificOAConstraints);
+    void RemoveAllUsersConstraintsInfo(CJsonUnique &specificOAConstraintsJson, const int32_t id);
 
     ErrCode RemoveOABaseConstraintsInfo(const int32_t id);
     ErrCode RemoveOAGlobalConstraintsInfo(const int32_t id);
