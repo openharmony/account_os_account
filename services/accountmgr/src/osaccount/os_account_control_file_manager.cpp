@@ -741,7 +741,8 @@ void OsAccountControlFileManager::SpecificConstraintsDataOperate(
             if (constraintSourceList.size() == 0) {
                 specificOAConstraintsList.erase(std::remove(specificOAConstraintsList.begin(),
                     specificOAConstraintsList.end(), *it), specificOAConstraintsList.end());
-                AddVectorStringToJson(userPrivateConstraintsDataJson, Constants::ALL_SPECIFIC_CONSTRAINTS, specificOAConstraintsList);
+                AddVectorStringToJson(userPrivateConstraintsDataJson, Constants::ALL_SPECIFIC_CONSTRAINTS,
+                    specificOAConstraintsList);
                 waitForErase.push_back(*it);
             } else {
                 AddVectorStringToJson(userPrivateConstraintsDataJson, *it, constraintSourceList);
@@ -763,7 +764,8 @@ void OsAccountControlFileManager::SpecificConstraintsDataOperate(
         constraintSourceList.emplace_back(idStr);
         specificOAConstraintsList.emplace_back(*it);
         AddVectorStringToJson(userPrivateConstraintsDataJson, *it, constraintSourceList);
-        AddVectorStringToJson(userPrivateConstraintsDataJson, Constants::ALL_SPECIFIC_CONSTRAINTS, specificOAConstraintsList);
+        AddVectorStringToJson(userPrivateConstraintsDataJson, Constants::ALL_SPECIFIC_CONSTRAINTS,
+            specificOAConstraintsList);
     }
     for (auto keyStr : waitForErase) {
         DeleteItemFromJson(userPrivateConstraintsDataJson, keyStr);
@@ -879,7 +881,8 @@ ErrCode OsAccountControlFileManager::RemoveOASpecificConstraintsInfo(const int32
             if (sourceList.size() == 0) {
                 allSpecificConstraints.erase(std::remove(allSpecificConstraints.begin(),
                     allSpecificConstraints.end(), item->string), allSpecificConstraints.end());
-                AddVectorStringToJson(userPrivateConstraintsJson, Constants::ALL_SPECIFIC_CONSTRAINTS, allSpecificConstraints);
+                AddVectorStringToJson(userPrivateConstraintsJson, Constants::ALL_SPECIFIC_CONSTRAINTS,
+                    allSpecificConstraints);
                 waitForErase.push_back(item->string);
             } else {
                 AddVectorStringToJson(userPrivateConstraintsJson, item->string, sourceList);

@@ -823,7 +823,7 @@ double GetJsonNumberValue(const CJsonUnique &item)
 double GetJsonNumberValue(cJSON *item)
 {
     if (item == nullptr) {
-        return (double)0;
+        return static_cast<double>(0);
     }
     return cJSON_GetNumberValue(item);
 }

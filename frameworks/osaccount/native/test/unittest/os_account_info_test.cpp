@@ -541,14 +541,14 @@ HWTEST_F(OsAccountInfoTest, GetOsAccountNameById01, TestSize.Level1)
 }
 
 /**
- * @tc.name: OsAccountInfoExtension_ToJson_FromJson_001
+ * @tc.name: OsAccountInfo_ToJson_FromJson_001
  * @tc.desc: Test ToJson、FromJson.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountInfoTest, OsAccountInfoExtension_ToJson_FromJson_001, TestSize.Level1)
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_ToJson_FromJson_001, TestSize.Level1)
 {
-    ACCOUNT_LOGI("OsAccountInfoExtension_ToJson_FromJson_001");
+    ACCOUNT_LOGI("OsAccountInfo_ToJson_FromJson_001");
 
     // make some data
     auto objJson = CreateJsonFromString(OS_ACCOUNT_INFO_JSON_STRING);

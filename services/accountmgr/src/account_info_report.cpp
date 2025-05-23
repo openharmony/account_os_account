@@ -34,8 +34,10 @@ std::string TransformIntoJson(const std::string &user, int32_t id, ReportEvent e
     AddIntToJson(userJson, "userId", id);
 
     AddObjToJson(jsonResult, "caller", userJson);
-    AddStringToJson(jsonResult, "bootTime", std::to_string(MiscServices::TimeServiceClient::GetInstance()->GetBootTimeNs()));
-    AddStringToJson(jsonResult, "wallTime", std::to_string(MiscServices::TimeServiceClient::GetInstance()->GetWallTimeNs()));
+    AddStringToJson(jsonResult, "bootTime",
+        std::to_string(MiscServices::TimeServiceClient::GetInstance()->GetBootTimeNs()));
+    AddStringToJson(jsonResult, "wallTime",
+        std::to_string(MiscServices::TimeServiceClient::GetInstance()->GetWallTimeNs()));
     AddStringToJson(jsonResult, "outcome", (result == 0) ? "Success" : "Fail");
     AddStringToJson(jsonResult, "sourceInfo", "");
     AddStringToJson(jsonResult, "targetInfo", "");
