@@ -87,7 +87,6 @@ AccountSA::OhosAccountInfo ConvertToOhosAccountInfoTH(const DistributedInfo &inf
     }
     return ret;
 }
-
 class DistributedAccountAbilityImpl {
 public:
     DistributedAccountAbilityImpl() {}
@@ -103,7 +102,7 @@ public:
         return ConvertToDistributedInfoTH(info);
     }
 
-    DistributedInfo GetOsAccountDistributedInfoByLocalIdSync(int32_t localId) 
+    DistributedInfo GetOsAccountDistributedInfoByLocalIdSync(int32_t localId)
     {
         AccountSA::OhosAccountInfo info;
         ErrCode err = AccountSA::OhosAccountKits::GetInstance().GetOsAccountDistributedInfo(localId, info);
@@ -114,7 +113,7 @@ public:
         return ConvertToDistributedInfoTH(info);
     }
 
-    void SetOsAccountDistributedInfoSync(DistributedInfo const& accountInfo) 
+    void SetOsAccountDistributedInfoSync(DistributedInfo const& accountInfo)
     {
         std::string event(accountInfo.event.data(), accountInfo.event.size());
         AccountSA::OhosAccountInfo info = ConvertToOhosAccountInfoTH(accountInfo);
@@ -125,7 +124,7 @@ public:
         }
     }
 
-    void SetOsAccountDistributedInfoByLocalIdSync(int32_t localId, DistributedInfo const& distributedInfo) 
+    void SetOsAccountDistributedInfoByLocalIdSync(int32_t localId, DistributedInfo const& distributedInfo)
     {
         std::string event(distributedInfo.event.data(), distributedInfo.event.size());
         AccountSA::OhosAccountInfo info = ConvertToOhosAccountInfoTH(distributedInfo);
@@ -135,7 +134,6 @@ public:
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
         }
     }
-
 };
 DistributedAccountAbility getDistributedAccountAbility()
 {
