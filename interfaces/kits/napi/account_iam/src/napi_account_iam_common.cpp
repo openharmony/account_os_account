@@ -280,8 +280,8 @@ napi_value CreateCredInfoArray(napi_env env, const std::vector<CredentialInfo> &
         NAPI_CALL(env, napi_get_boolean(env, item.isAbandoned, &napiIsAbandoned));
         NAPI_CALL(env, napi_set_named_property(env, obj, "isAbandoned", napiIsAbandoned));
 
-        napi_value napiValidityPeriod = nullptr;
         if (item.validityPeriod >= 0) {
+            napi_value napiValidityPeriod = nullptr;
             NAPI_CALL(env, napi_create_int64(env, item.validityPeriod, &napiValidityPeriod));
             NAPI_CALL(env, napi_set_named_property(env, obj, "validityPeriod", napiValidityPeriod));
         }
