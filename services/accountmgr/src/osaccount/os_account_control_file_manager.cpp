@@ -29,7 +29,6 @@
 #endif
 #include "string_ex.h"
 #include "os_account_constants.h"
-#include "os_account_interface.h"
 #include "parameters.h"
 
 namespace OHOS {
@@ -1684,7 +1683,7 @@ ErrCode OsAccountControlFileManager::SetPhotoById(const int id, const std::strin
 {
     std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(id)
         + Constants::PATH_SEPARATOR + Constants::USER_PHOTO_FILE_TXT_NAME;
-    ErrCode errCode = accountFileOperator_->InputFileByPathAndContent(path, photo);
+    ErrCode errCode = accountFileOperator_->InputFileByPathAndContentWithTransaction(path, photo);
     if (errCode != ERR_OK) {
         return errCode;
     }

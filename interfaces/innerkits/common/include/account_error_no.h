@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -66,6 +66,8 @@ enum {
     ERR_ACCOUNT_COMMON_FILE_WRITE_FAILED,
     ERR_ACCOUNT_COMMON_FILE_READ_FAILED,
     ERR_ACCOUNT_COMMON_FILE_NOT_EXIST,
+    ERR_ACCOUNT_COMMON_FILE_SWAP_FAILED,
+    ERR_ACCOUNT_COMMON_FILE_TRANSACTION_FAILED,
     ERR_ACCOUNT_COMMON_FILE_OTHER_ERROR,
     ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR,
     ERR_ACCOUNT_COMMON_OPERATION_TIMEOUT,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -60,6 +60,9 @@ public:
     ErrCode GetValueFromKvStore(const std::string &keyStr, std::string &valueStr);
     ErrCode RemoveValueFromKvStore(const std::string &keyStr);
     ErrCode MoveData(const std::shared_ptr<AccountDataStorage> &ptr);
+    ErrCode StartTransaction();
+    ErrCode Commit();
+    ErrCode Rollback();
 
 protected:
     OHOS::DistributedKv::Status GetEntries(
@@ -73,6 +76,7 @@ protected:
     OHOS::DistributedKv::StoreId storeId_;
     AccountDataStorageOptions options_;
     std::string baseDir_;
+    std::recursive_mutex transactionMutex_;
 };
 #else
 class AccountDataStorage {
@@ -95,6 +99,9 @@ public:
     ErrCode GetValueFromKvStore(const std::string &keyStr, std::string &valueStr);
     ErrCode RemoveValueFromKvStore(const std::string &keyStr);
     ErrCode MoveData(const std::shared_ptr<AccountDataStorage> &ptr);
+    ErrCode StartTransaction();
+    ErrCode Commit();
+    ErrCode Rollback();
 
 protected:
     DbAdapterStatus GetEntries(
@@ -110,6 +117,13 @@ protected:
     std::string baseDir_;
 };
 #endif // SQLITE_DLCLOSE_ENABLE
+
+typedef std::unique_ptr<bool, std::function<void(bool *)>> DatabaseTransaction;
+
+ErrCode StartDbTransaction(
+    const std::shared_ptr<AccountDataStorage> &dataStoragePtr, DatabaseTransaction &dbTransaction);
+ErrCode CommitDbTransaction(
+    const std::shared_ptr<AccountDataStorage> &dataStoragePtr, DatabaseTransaction &dbTransaction);
 }  // namespace AccountSA
 }  // namespace OHOS
 

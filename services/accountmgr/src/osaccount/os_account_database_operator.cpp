@@ -139,7 +139,7 @@ void OsAccountDatabaseOperator::UpdateOsAccountInDatabase(const OsAccountInfo &o
 
     ErrCode errCode = accountDataStorage_->SaveAccountInfo(osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Update os account info in database for account %{public}d failed! errCode = %{public}d.",
+        ACCOUNT_LOGE("Update os account info in database failed, localId =  %{public}d, errCode = %{public}d.",
             osAccountInfo.GetLocalId(), errCode);
     } else {
         ACCOUNT_LOGI("Update os account info in database for account %{public}d succeed!", osAccountInfo.GetLocalId());
