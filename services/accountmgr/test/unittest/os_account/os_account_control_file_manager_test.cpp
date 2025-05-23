@@ -141,7 +141,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest001, Te
     std::vector<OsAccountInfo> osAccountInfos;
     EXPECT_EQ(g_controlManager->GetOsAccountList(osAccountInfos), ERR_OK);
     const unsigned int size = 0;
-    EXPECT_NE(osAccountInfos.size(), size);
+    EXPECT_EQ(osAccountInfos.size(), size);
 }
 
 #ifdef ENABLE_DEFAULT_ADMIN_NAME
@@ -221,8 +221,13 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest006, Te
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest007, TestSize.Level1)
 {
     bool isOsAccountExists = false;
-    EXPECT_EQ(g_controlManager->IsOsAccountExists(Constants::START_USER_ID, isOsAccountExists), ERR_OK);
+    int32_t id = 0;
+    g_controlManager->GetAllowCreateId(id);
+    OsAccountInfo osAccountInfo(id, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
+    EXPECT_EQ(g_controlManager->InsertOsAccount(osAccountInfo), ERR_OK);
+    EXPECT_EQ(g_controlManager->IsOsAccountExists(id, isOsAccountExists), ERR_OK);
     EXPECT_EQ(isOsAccountExists, true);
+    g_controlManager->DelOsAccount(id);
 }
 
 /**
@@ -283,8 +288,9 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest013, Te
 {
     OsAccountInfo osAccountInfo(
         Constants::START_USER_ID, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
-    EXPECT_EQ(g_controlManager->InsertOsAccount(osAccountInfo),
-        ERR_OSACCOUNT_SERVICE_CONTROL_INSERT_FILE_EXISTS_ERROR);
+    EXPECT_EQ(g_controlManager->InsertOsAccount(osAccountInfo), ERR_OK);
+    EXPECT_EQ(g_controlManager->InsertOsAccount(osAccountInfo), ERR_OSACCOUNT_SERVICE_CONTROL_INSERT_FILE_EXISTS_ERROR);
+    g_controlManager->DelOsAccount(Constants::START_USER_ID);
 }
 
 /**
