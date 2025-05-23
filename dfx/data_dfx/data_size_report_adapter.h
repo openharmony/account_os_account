@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace AccountSA {
 
-void ReportUserDataSize(const std::vector<int32_t> &verifiedAccountIds);
+void ReportUserDataSize(const std::vector<int32_t> &accountIds);
 
 } // AccountSA
 } // OHOS
