@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -228,22 +228,20 @@ ErrCode AccountDataStorage::RemoveValueFromKvStore(const std::string &keyStr)
     {
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
         // check exist
-        status = kvStorePtr_->Get(key, value);
-        if (status == OHOS::DistributedKv::Status::IPC_ERROR) {
-            ACCOUNT_LOGE("kvstore ipc error and try again, status = %{public}d", status);
+        TryTwice([this, &status, &key, &value] {
             status = kvStorePtr_->Get(key, value);
-        }
+            return status;
+        });
         if (status != OHOS::DistributedKv::Status::SUCCESS) {
             ACCOUNT_LOGI("key does not exist in kvStore.");
             return ERR_OK;
         }
 
         // delete
-        status = kvStorePtr_->Delete(key);
-        if (status == OHOS::DistributedKv::Status::IPC_ERROR) {
+        TryTwice([this, &status, &key] {
             status = kvStorePtr_->Delete(key);
-            ACCOUNT_LOGE("kvstore ipc error and try to call again, status = %{public}d", status);
-        }
+            return status;
+        });
     }
 
     if (status != OHOS::DistributedKv::Status::SUCCESS) {
@@ -267,22 +265,20 @@ ErrCode AccountDataStorage::RemoveValueFromKvStore(const std::string &keyStr)
     {
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
         // check exist
-        status = kvStorePtr_->Get(keyStr, value);
-        if (status == DbAdapterStatus::IPC_ERROR) {
-            ACCOUNT_LOGE("kvstore ipc error and try again, status = %{public}d", status);
+        TryTwice([this, &status, &keyStr, &value] {
             status = kvStorePtr_->Get(keyStr, value);
-        }
+            return status;
+        });
         if (status != DbAdapterStatus::SUCCESS) {
             ACCOUNT_LOGI("key does not exist in kvStore.");
             return ERR_OK;
         }
 
         // delete
-        status = kvStorePtr_->Delete(keyStr);
-        if (status == DbAdapterStatus::IPC_ERROR) {
+        TryTwice([this, &status, &keyStr] {
             status = kvStorePtr_->Delete(keyStr);
-            ACCOUNT_LOGE("kvstore ipc error and try to call again, status = %{public}d", status);
-        }
+            return status;
+        });
     }
 
     if (status != DbAdapterStatus::SUCCESS) {
@@ -507,14 +503,132 @@ ErrCode AccountDataStorage::MoveData(const std::shared_ptr<AccountDataStorage> &
         return ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
     }
     std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+    ErrCode errCode = StartTransaction();
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("StartTransaction failed, errCode=%{public}d", errCode);
+        return errCode;
+    }
     status = kvStorePtr_->PutBatch(entries);
     if (status != OHOS::DistributedKv::Status::SUCCESS) {
         ACCOUNT_LOGE("PutBatch failed, result=%{public}u", status);
+        Rollback();
         return ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
+    }
+    errCode = Commit();
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Commit failed, errCode=%{public}d", errCode);
+        Rollback();
+        return errCode;
     }
 #else
     ACCOUNT_LOGI("MoveData not enabled.");
 #endif
+    return ERR_OK;
+}
+
+ErrCode AccountDataStorage::StartTransaction()
+{
+#ifndef SQLITE_DLCLOSE_ENABLE
+    if (!CheckKvStore()) {
+        ACCOUNT_LOGE("KvStore is nullptr");
+        return ERR_ACCOUNT_COMMON_CHECK_KVSTORE_ERROR;
+    }
+    transactionMutex_.lock();
+    OHOS::DistributedKv::Status status;
+    {
+        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        TryTwice([this, &status] {
+            status = kvStorePtr_->StartTransaction();
+            return status;
+        });
+    }
+    if (status != OHOS::DistributedKv::Status::SUCCESS) {
+        ACCOUNT_LOGE("Distributed data start transaction failed, status = %{public}d", status);
+        transactionMutex_.unlock();
+        return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
+    }
+#endif // SQLITE_DLCLOSE_ENABLE
+    return ERR_OK;
+}
+
+ErrCode AccountDataStorage::Commit()
+{
+#ifndef SQLITE_DLCLOSE_ENABLE
+    if (!CheckKvStore()) {
+        ACCOUNT_LOGE("KvStore is nullptr");
+        return ERR_ACCOUNT_COMMON_CHECK_KVSTORE_ERROR;
+    }
+    OHOS::DistributedKv::Status status;
+    {
+        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        TryTwice([this, &status] {
+            status = kvStorePtr_->Commit();
+            return status;
+        });
+    }
+    if (status != OHOS::DistributedKv::Status::SUCCESS) {
+        ACCOUNT_LOGE("Distributed data commit failed, status = %{public}d", status);
+        return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
+    }
+    transactionMutex_.unlock();
+#endif // SQLITE_DLCLOSE_ENABLE
+    return ERR_OK;
+}
+
+ErrCode AccountDataStorage::Rollback()
+{
+#ifndef SQLITE_DLCLOSE_ENABLE
+    if (!CheckKvStore()) {
+        ACCOUNT_LOGE("KvStore is nullptr");
+        transactionMutex_.unlock();
+        return ERR_ACCOUNT_COMMON_CHECK_KVSTORE_ERROR;
+    }
+    OHOS::DistributedKv::Status status;
+    {
+        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        TryTwice([this, &status] {
+            status = kvStorePtr_->Rollback();
+            return status;
+        });
+    }
+    transactionMutex_.unlock();
+    if (status != OHOS::DistributedKv::Status::SUCCESS) {
+        ACCOUNT_LOGE("Distributed data rollback failed, status = %{public}d", status);
+        return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
+    }
+#endif // SQLITE_DLCLOSE_ENABLE
+    return ERR_OK;
+}
+
+ErrCode StartDbTransaction(
+    const std::shared_ptr<AccountDataStorage> &dataStoragePtr, DatabaseTransaction &dbTransaction)
+{
+    ErrCode transactionRet = dataStoragePtr->StartTransaction();
+    if (transactionRet != ERR_OK) {
+        ACCOUNT_LOGE("StartTransaction failed, ret = %{public}d", transactionRet);
+        return transactionRet;
+    }
+    std::function<void(bool *)> callback = [dataStoragePtr](bool *pointer) {
+        if (pointer == nullptr) {
+            return;
+        }
+        dataStoragePtr->Rollback();
+        delete pointer;
+    };
+    dbTransaction = DatabaseTransaction(new bool(true), callback);
+    return ERR_OK;
+}
+
+ErrCode CommitDbTransaction(
+    const std::shared_ptr<AccountDataStorage> &dataStoragePtr, DatabaseTransaction &dbTransaction)
+{
+    ErrCode transactionRet = dataStoragePtr->Commit();
+    if (transactionRet != ERR_OK) {
+        ACCOUNT_LOGE("Failed to commit database, result: %{public}d", transactionRet);
+        return transactionRet;
+    }
+    delete dbTransaction.release();
+    dbTransaction = nullptr;
     return ERR_OK;
 }
 }  // namespace AccountSA

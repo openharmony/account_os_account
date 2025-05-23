@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -286,7 +286,13 @@ ErrCode AppAccountControlManager::DeleteAccount(
     const std::string &name, const uid_t &uid, const std::string &bundleName, AppAccountInfo &appAccountInfo)
 {
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(uid);
-    ErrCode result = DeleteAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, uid);
+    DatabaseTransaction dbTransaction = nullptr;
+    ErrCode result = StartDbTransaction(dataStoragePtr, dbTransaction);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("StartDbTransaction failed, result = %{public}d", result);
+        return result;
+    }
+    result = DeleteAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, uid);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to delete account info from data storage, result %{public}d.", result);
         return result;
@@ -307,7 +313,11 @@ ErrCode AppAccountControlManager::DeleteAccount(
             return result;
         }
     }
-
+    result = CommitDbTransaction(dataStoragePtr, dbTransaction);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Failed to commit db transaction, result %{public}d.", result);
+        return result;
+    }
     return ERR_OK;
 }
 
@@ -366,6 +376,12 @@ ErrCode AppAccountControlManager::EnableAppAccess(const std::string &name, const
         ACCOUNT_LOGE("Failed to enable app access, result=%{public}d.", result);
         return result;
     }
+    DatabaseTransaction dbTransaction = nullptr;
+    result = StartDbTransaction(dataStoragePtr, dbTransaction);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("StartDbTransaction failed, result = %{public}d", result);
+        return result;
+    }
     result = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, appAccountCallingInfo.callingUid);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to save account info into data storage, result %{public}d.", result);
@@ -378,7 +394,11 @@ ErrCode AppAccountControlManager::EnableAppAccess(const std::string &name, const
         ACCOUNT_LOGE("Failed to save authorized account into data storage, result=%{public}d.", result);
         return result;
     }
-
+    result = CommitDbTransaction(dataStoragePtr, dbTransaction);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Failed to commit db transaction, result %{public}d.", result);
+        return result;
+    }
     return ERR_OK;
 }
 
@@ -397,7 +417,12 @@ ErrCode AppAccountControlManager::DisableAppAccess(const std::string &name, cons
         ACCOUNT_LOGE("failed to disable app access, result %{public}d.", result);
         return ERR_APPACCOUNT_SERVICE_DISABLE_APP_ACCESS_NOT_EXISTED;
     }
-
+    DatabaseTransaction dbTransaction = nullptr;
+    result = StartDbTransaction(dataStoragePtr, dbTransaction);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("StartDbTransaction failed, result = %{public}d", result);
+        return result;
+    }
     result = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, appAccountCallingInfo.callingUid);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to save account info into data storage, result %{public}d.", result);
@@ -410,7 +435,11 @@ ErrCode AppAccountControlManager::DisableAppAccess(const std::string &name, cons
         ACCOUNT_LOGE("failed to save authorized account into data storage, result %{public}d.", result);
         return result;
     }
-
+    result = CommitDbTransaction(dataStoragePtr, dbTransaction);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Failed to commit db transaction, result %{public}d.", result);
+        return result;
+    }
     return ERR_OK;
 }
 
@@ -1075,29 +1104,23 @@ ErrCode AppAccountControlManager::OnPackageRemoved(
     return errCode;
 }
 
-ErrCode AppAccountControlManager::RemoveAppAccountData(
-    const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
+ErrCode AppAccountControlManager::RemoveAppAccountDataFromDataStorage(
+    const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr, const std::string &key,
+    const uint32_t &appIndex, const std::shared_ptr<AppAccountDataStorage> &dataStorageSyncPtr = nullptr)
 {
-    auto dataStoragePtr = GetDataStorage(uid);
-    if (dataStoragePtr == nullptr) {
-        ACCOUNT_LOGE("dataStoragePtr is nullptr");
-        return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
-    }
-#ifdef DISTRIBUTED_FEATURE_ENABLED
-    auto dataStorageSyncPtr = GetDataStorage(uid, true);
-    if (dataStorageSyncPtr == nullptr) {
-        ACCOUNT_LOGE("dataStorageSyncPtr is nullptr");
-        return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
-    }
-#endif // DISTRIBUTED_FEATURE_ENABLED
-    std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
-    std::string key = bundleName + Constants::HYPHEN + std::to_string(appIndex);
-    ErrCode result = dataStoragePtr->LoadDataByLocalFuzzyQuery(key, accounts);
+    DatabaseTransaction dbTransaction = nullptr;
+    ErrCode result = StartDbTransaction(dataStoragePtr, dbTransaction);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get accounts by owner, result %{public}d, bundleName = %{public}s",
-            result, bundleName.c_str());
+        ACCOUNT_LOGE("StartDbTransaction failed, result = %{public}d", result);
         return result;
     }
+    std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
+    result = dataStoragePtr->LoadDataByLocalFuzzyQuery(key, accounts);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get accounts by owner, result = %{public}d, key = %{public}s", result, key.c_str());
+        return result;
+    }
+
     AppAccountInfo appAccountInfo;
     for (auto account : accounts) {
         appAccountInfo = *(std::static_pointer_cast<AppAccountInfo>(account.second));
@@ -1120,6 +1143,38 @@ ErrCode AppAccountControlManager::RemoveAppAccountData(
 #else  // DISTRIBUTED_FEATURE_ENABLED
         ACCOUNT_LOGI("No distributed feature!");
 #endif // DISTRIBUTED_FEATURE_ENABLED
+    }
+    result = CommitDbTransaction(dataStoragePtr, dbTransaction);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Failed to commit db transaction, result %{public}d.", result);
+        return result;
+    }
+    return ERR_OK;
+}
+
+ErrCode AppAccountControlManager::RemoveAppAccountData(
+    const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
+{
+    auto dataStoragePtr = GetDataStorage(uid);
+    if (dataStoragePtr == nullptr) {
+        ACCOUNT_LOGE("dataStoragePtr is nullptr");
+        return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
+    }
+    std::string key = bundleName + Constants::HYPHEN + std::to_string(appIndex);
+#ifdef DISTRIBUTED_FEATURE_ENABLED
+    auto dataStorageSyncPtr = GetDataStorage(uid, true);
+    if (dataStorageSyncPtr == nullptr) {
+        ACCOUNT_LOGE("dataStorageSyncPtr is nullptr");
+        return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
+    }
+    ErrCode result = RemoveAppAccountDataFromDataStorage(dataStoragePtr, key, appIndex, dataStorageSyncPtr);
+#else
+    ErrCode result = RemoveAppAccountDataFromDataStorage(dataStoragePtr, key, appIndex);
+#endif // DISTRIBUTED_FEATURE_ENABLED
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Failed to remove accounts from database, result = %{public}d, bundleName = %{public}s",
+            result, bundleName.c_str());
+        return result;
     }
 #ifdef HAS_ASSET_PART
     RemoveDataFromAssetByLabel(uid / UID_TRANSFORM_DIVISOR, SEC_ASSET_TAG_DATA_LABEL_NORMAL_1, key);
@@ -1353,7 +1408,7 @@ ErrCode AppAccountControlManager::AddAccountInfoIntoDataStorage(
             ACCOUNT_LOGE("dataStorageSyncPtr is nullptr");
             return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
         }
-
+        // Here do not open transaction, as it should be opened before this func is called
         result = dataStorageSyncPtr->AddAccountInfoIntoDataStorage(appAccountInfo);
         if (result != ERR_OK) {
             ACCOUNT_LOGE("failed to add account info into data storage, result %{public}d.", result);
@@ -1389,7 +1444,7 @@ ErrCode AppAccountControlManager::SaveAccountInfoIntoDataStorage(
             ACCOUNT_LOGE("dataStorageSyncPtr is nullptr");
             return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
         }
-
+        // Here do not open transaction, as it should be opened before this func is called
         std::string appAccountInfoFromDataStorage;
         result = dataStorageSyncPtr->GetValueFromKvStore(appAccountInfo.GetPrimeKey(), appAccountInfoFromDataStorage);
         if (result != ERR_OK) {
@@ -1443,7 +1498,7 @@ ErrCode AppAccountControlManager::DeleteAccountInfoFromDataStorage(
             ACCOUNT_LOGE("dataStorageSyncPtr is nullptr");
             return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
         }
-
+        // Here do not open transaction, as it should be opened before this func is called
         result = dataStorageSyncPtr->DeleteAccountInfoFromDataStorage(appAccountInfo);
         if (result != ERR_OK) {
             ACCOUNT_LOGE("failed to delete account info from data storage, result %{public}d.", result);
@@ -1477,7 +1532,7 @@ ErrCode AppAccountControlManager::SaveAuthorizedAccount(const std::string &bundl
             ACCOUNT_LOGE("dataStorageSyncPtr is nullptr");
             return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
         }
-
+        // Here do not open transaction, as it should be opened before this func is called
         result = SaveAuthorizedAccountIntoDataStorage(bundleName, appAccountInfo, dataStorageSyncPtr);
         if (result != ERR_OK) {
             ACCOUNT_LOGE("failed to save authorized account, result %{public}d.", result);
@@ -1513,7 +1568,7 @@ ErrCode AppAccountControlManager::RemoveAuthorizedAccount(const std::string &bun
             ACCOUNT_LOGE("dataStorageSyncPtr is nullptr");
             return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
         }
-
+        // Here do not open transaction, as it should be opened before this func is called
         result = RemoveAuthorizedAccountFromDataStorage(bundleName, appAccountInfo, dataStorageSyncPtr);
         if (result != ERR_OK) {
             ACCOUNT_LOGE("failed to save authorized account, result %{public}d.", result);

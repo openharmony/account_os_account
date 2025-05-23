@@ -37,6 +37,7 @@
 #define private public
 #include "perf_stat.h"
 #undef private
+#include "token_setproc.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -66,21 +67,22 @@ AccountDumpHelperTest::AccountDumpHelperTest() {}
 
 void AccountDumpHelperTest::SetUpTestCase()
 {
-    ASSERT_NE(GetAllAccountPermission(), 0);
     OhosAccountManager::GetInstance().OnInitialize();
 }
 
 void AccountDumpHelperTest::TearDownTestCase()
 {
     std::vector<OsAccountInfo> osAccountInfos;
-    OsAccount::GetInstance().QueryAllCreatedOsAccounts(osAccountInfos);
+    IInnerOsAccountManager::GetInstance().QueryAllCreatedOsAccounts(osAccountInfos);
     for (const auto &info : osAccountInfos) {
         if (info.GetLocalId() == START_USER_ID) {
             continue;
         }
         ACCOUNT_LOGI("[TearDownTestCase] remove account %{public}d", info.GetLocalId());
-        OsAccount::GetInstance().RemoveOsAccount(info.GetLocalId());
+        IInnerOsAccountManager::GetInstance().RemoveOsAccount(info.GetLocalId());
     }
+    std::string cmd = "rm -rf /data/service/el1/public/account/test*";
+    system(cmd.c_str());
 }
 
 void AccountDumpHelperTest::SetUp(void) __attribute__((no_sanitize("cfi")))
@@ -143,15 +145,18 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpNoParameterTest001, TestSize.Level3)
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest001, TestSize.Level3)
 {
+    ASSERT_TRUE(MockTokenId("accountmgr"));
     OsAccountInfo osAccountInfo;
     // create an os account
-    EXPECT_EQ(ERR_OK, OsAccount::GetInstance().CreateOsAccount("test", OsAccountType::NORMAL, osAccountInfo));
+    EXPECT_EQ(
+        ERR_OK, IInnerOsAccountManager::GetInstance().CreateOsAccount("test", OsAccountType::NORMAL, osAccountInfo));
 
     OhosAccountInfo accountInfo;
     accountInfo.name_ = TEST_ACCOUNT_NAME;
     accountInfo.status_ = ACCOUNT_STATE_LOGIN;
     accountInfo.uid_ = TEST_ACCOUNT_UID;
-    EXPECT_EQ(ERR_OK, OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, "Ohos.account.event.LOGIN"));
+    EXPECT_EQ(ERR_OK, OhosAccountManager::GetInstance().OhosAccountStateChange(
+        osAccountInfo.GetLocalId(), accountInfo, "Ohos.account.event.LOGIN"));
 
     /**
      * @tc.steps: step1. Input one parameter
@@ -171,6 +176,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest001, TestSize.Level3)
     EXPECT_NE(std::string::npos, pos);
     pos = out.find("Bind local user id", 0);
     EXPECT_NE(std::string::npos, pos);
+    SetSelfTokenID(0);
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 

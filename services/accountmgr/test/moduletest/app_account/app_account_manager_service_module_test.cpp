@@ -2808,3 +2808,99 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckAuthT
         STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
 }
+
+#ifndef SQLITE_DLCLOSE_ENABLE
+/**
+ * @tc.name: AppAccountControlManager_Transaction_001
+ * @tc.desc: test basic kvstore transaction operation
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountControlManager_Transaction_001, TestSize.Level2)
+{
+    auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(0, false);
+    ASSERT_NE(nullptr, dataStoragePtr);
+    std::unique_ptr<bool, std::function<void(bool *)>> rollbackCtrl = nullptr;
+    EXPECT_EQ(ERR_OK, StartDbTransaction(dataStoragePtr, rollbackCtrl));
+    ASSERT_NE(nullptr, rollbackCtrl);
+    std::string testKey = "test";
+    std::string testValue = "test1";
+    EXPECT_EQ(ERR_OK, dataStoragePtr->PutValueToKvStore(testKey, testValue));
+    std::string searchValue = "";
+
+    // commit
+    EXPECT_EQ(ERR_OK, CommitDbTransaction(dataStoragePtr, rollbackCtrl));
+    EXPECT_EQ(ERR_OK, dataStoragePtr->GetValueFromKvStore(testKey, searchValue));
+    ASSERT_EQ(searchValue, testValue);
+
+    EXPECT_EQ(ERR_OK, dataStoragePtr->RemoveValueFromKvStore(testKey));
+}
+
+/**
+ * @tc.name: AppAccountControlManager_Transaction_002
+ * @tc.desc: test basic kvstore transaction operation
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountControlManager_Transaction_002, TestSize.Level2)
+{
+    auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(0, false);
+    ASSERT_NE(nullptr, dataStoragePtr);
+    std::unique_ptr<bool, std::function<void(bool *)>> rollbackCtrl = nullptr;
+    EXPECT_EQ(ERR_OK, StartDbTransaction(dataStoragePtr, rollbackCtrl));
+    ASSERT_NE(nullptr, rollbackCtrl);
+    std::string testKey = "test";
+    std::string testValue = "test1";
+    EXPECT_EQ(ERR_OK, dataStoragePtr->PutValueToKvStore(testKey, testValue));
+    std::string searchValue = "";
+    EXPECT_EQ(ERR_OK, dataStoragePtr->GetValueFromKvStore(testKey, searchValue));
+    ASSERT_EQ(searchValue, testValue);
+
+    // auto rollback, record cannot be found
+    rollbackCtrl = nullptr;
+    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR,
+        dataStoragePtr->GetValueFromKvStore(testKey, searchValue));
+}
+
+/**
+ * @tc.name: AppAccountControlManager_Transaction_003
+ * @tc.desc: test basic kvstore transaction operation, multi thread
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountControlManager_Transaction_003, TestSize.Level2)
+{
+    auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(0, false);
+    ASSERT_NE(nullptr, dataStoragePtr);
+    std::unique_ptr<bool, std::function<void(bool *)>> rollbackCtrl = nullptr;
+    EXPECT_EQ(ERR_OK, StartDbTransaction(dataStoragePtr, rollbackCtrl));
+    ASSERT_NE(nullptr, rollbackCtrl);
+    std::string testKey = "test";
+    std::string testValue = "test1";
+    EXPECT_EQ(ERR_OK, dataStoragePtr->PutValueToKvStore(testKey, testValue));
+
+    std::mutex mtx;
+    std::condition_variable cv;
+    auto threadWork = [&mtx, &cv, &testKey, &testValue]() {
+        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(0, false);
+        std::string searchValue = "";
+        std::unique_ptr<bool, std::function<void(bool *)>> rollbackCtrl = nullptr;
+        EXPECT_EQ(ERR_OK, StartDbTransaction(dataStoragePtr, rollbackCtrl));
+        ASSERT_NE(nullptr, rollbackCtrl);
+        EXPECT_EQ(ERR_OK, dataStoragePtr->GetValueFromKvStore(testKey, searchValue));
+        EXPECT_EQ(ERR_OK, CommitDbTransaction(dataStoragePtr, rollbackCtrl));
+        ASSERT_EQ(searchValue, testValue);
+        cv.notify_one();
+    };
+    std::thread thread(threadWork);
+    std::string threadName = "testThread";
+    pthread_setname_np(thread.native_handle(), threadName.c_str());
+    thread.detach();
+
+    // commit
+    EXPECT_EQ(ERR_OK, CommitDbTransaction(dataStoragePtr, rollbackCtrl));
+
+    std::unique_lock<std::mutex> lock(mtx);
+    cv.wait(lock);
+}
+#endif // SQLITE_DLCLOSE_ENABLE
