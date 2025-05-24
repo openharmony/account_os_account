@@ -34,7 +34,7 @@ CJsonUnique CreateJsonFromString(const std::string &jsonStr);
 CJsonUnique CreateJsonNull(void);
 CJsonUnique CreateJson(void);
 CJsonUnique CreateJsonArray(void);
-CJsonUnique CreateCJsonString(const char *string);
+CJsonUnique CreateJsonString(const char *string);
 
 int DeleteItemFromJson(CJson *jsonObj, const std::string &key);
 int DeleteItemFromJson(CJsonUnique &jsonObj, const std::string &key);
@@ -87,22 +87,16 @@ bool AddBoolToJson(CJsonUnique &jsonObj, const std::string &key, const bool valu
 
 // int32
 bool GetIntFromJson(const CJson *jsonObj, const std::string &key, int32_t &value);
-int32_t GetIntFromJson(const CJson *jsonObj, const std::string &key);
-int32_t GetIntFromJson(const CJsonUnique &jsonObj, const std::string &key);
 bool AddIntToJson(CJson *jsonObj, const std::string &key, const int value);
 bool AddIntToJson(CJsonUnique &jsonObj, const std::string &key, const int value);
 
 // int64
 bool GetInt64FromJson(const CJson *jsonObj, const std::string &key, int64_t &value);
-int64_t GetInt64FromJson(const CJson *jsonObj, const std::string &key);
-int64_t GetInt64FromJson(const CJsonUnique &jsonObj, const std::string &key);
 bool AddInt64ToJson(CJson *jsonObj, const std::string &key, int64_t value);
 bool AddInt64ToJson(CJsonUnique &jsonObj, const std::string &key, int64_t value);
 
 // uint64
 bool GetUint64FromJson(const CJson *jsonObj, const std::string &key, uint64_t &value);
-uint64_t GetUint64FromJson(const CJson *jsonObj, const std::string &key);
-uint64_t GetUint64FromJson(const CJsonUnique &jsonObj, const std::string &key);
 bool AddUint64ToJson(CJson *jsonObj, const std::string &key, uint64_t value);
 bool AddUint64ToJson(CJsonUnique &jsonObj, const std::string &key, uint64_t value);
 

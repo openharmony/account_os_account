@@ -561,32 +561,50 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_ToJson_FromJson_001, TestSize.Level1)
     EXPECT_NE(jsonObject, nullptr);
 
     // check the data
-    EXPECT_EQ(12, GetIntFromJson(jsonObject, LOCAL_ID));
+    int32_t localid = 0;
+    GetIntFromJson(jsonObject.get(), LOCAL_ID, localid);
+    EXPECT_EQ(12, localid);
     EXPECT_EQ("account", GetStringFromJson(jsonObject, LOCAL_NAME));
     EXPECT_EQ("ac", GetStringFromJson(jsonObject, SHORT_NAME));
-    EXPECT_EQ(0, static_cast<OsAccountType>(GetIntFromJson(jsonObject, TYPE)));
+    int32_t retType = 0;
+    GetIntFromJson(jsonObject.get(), TYPE, retType);
+    EXPECT_EQ(0, static_cast<OsAccountType>(retType));
     std::vector<std::string> constraints = GetVectorStringFromJson(jsonObject, CONSTRAINTS);
     EXPECT_EQ(5, constraints.size());
     EXPECT_EQ("one", constraints[0]);
 
     EXPECT_TRUE(GetBoolFromJson(jsonObject, IS_OS_ACCOUNT_VERIFIED));
-    EXPECT_EQ(1551925510, GetInt64FromJson(jsonObject, CREATE_TIME));
-    EXPECT_EQ(1551925510, GetInt64FromJson(jsonObject, LAST_LOGGED_IN_TIME));
-    EXPECT_EQ(121012012, GetInt64FromJson(jsonObject, SERIAL_NUMBER));
+    int64_t createtime = 0;
+    int64_t lastloggedintime = 0;
+    int64_t serialnumber = 0;
+    GetInt64FromJson(jsonObject.get(), CREATE_TIME, createtime);
+    GetInt64FromJson(jsonObject.get(), LAST_LOGGED_IN_TIME, lastloggedintime);
+    GetInt64FromJson(jsonObject.get(), SERIAL_NUMBER, serialnumber);
+    EXPECT_EQ(1551925510, createtime);
+    EXPECT_EQ(1551925510, lastloggedintime);
+    EXPECT_EQ(121012012, serialnumber);
     EXPECT_FALSE(GetBoolFromJson(jsonObject, IS_ACTIVATED));
     EXPECT_TRUE(GetBoolFromJson(jsonObject, IS_ACCOUNT_COMPLETED));
     EXPECT_FALSE(GetBoolFromJson(jsonObject, TO_BE_REMOVED));
-    EXPECT_EQ(1234567890, GetUint64FromJson(jsonObject, CREDENTIAL_ID));
-    EXPECT_EQ(14567890, GetUint64FromJson(jsonObject, DISPLAY_ID));
+    uint64_t credentialid = 0;
+    GetUint64FromJson(jsonObject.get(), CREDENTIAL_ID, credentialid);
+    EXPECT_EQ(1234567890, credentialid);
+    uint64_t display = 0;
+    GetUint64FromJson(jsonObject.get(), DISPLAY_ID, display);
+    EXPECT_EQ(14567890, credentialid);
     EXPECT_FALSE(GetBoolFromJson(jsonObject, IS_FOREGROUND));
     EXPECT_TRUE(GetBoolFromJson(jsonObject, IS_LOGGED_IN));
     EXPECT_FALSE(GetBoolFromJson(jsonObject, IS_DATA_REMOVABLE));
-    EXPECT_EQ(1222, GetIntFromJson(jsonObject, CREATOR_TYPE));
+    int32_t creatorType = 0;
+    GetIntFromJson(jsonObject.get(), CREATOR_TYPE, creatorType);
+    EXPECT_EQ(1222, creatorType);
     cJSON *typeJson = GetObjFromJson(jsonObject, DOMAIN_INFO);
     EXPECT_EQ("account_iam", GetStringFromJson(typeJson, DOMAIN_NAME));
     EXPECT_EQ("acc_name", GetStringFromJson(typeJson, DOMAIN_ACCOUNT_NAME));
     EXPECT_EQ("102393938", GetStringFromJson(typeJson, DOMAIN_ACCOUNT_ID));
-    EXPECT_EQ(LOGIN, static_cast<DomainAccountStatus>(GetIntFromJson(typeJson, DOMAIN_ACCOUNT_STATUS)));
+    int32_t retStatus = 0;
+    GetIntFromJson(typeJson, DOMAIN_ACCOUNT_STATUS, retStatus);
+    EXPECT_EQ(LOGIN, static_cast<DomainAccountStatus>(retStatus));
     EXPECT_EQ("202393938", GetStringFromJson(typeJson, DOMAIN_ACCOUNT_CONFIG));
 }
 

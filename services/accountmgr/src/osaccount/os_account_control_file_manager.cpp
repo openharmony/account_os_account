@@ -1482,7 +1482,7 @@ ErrCode OsAccountControlFileManager::IsFromSpecificOAConstraintsList(const int32
     return ERR_OK;
 }
 
-ErrCode OsAccountControlFileManager::SaveAccountListToFile(CJsonUnique &accountListJson)
+ErrCode OsAccountControlFileManager::SaveAccountListToFile(const CJsonUnique &accountListJson)
 {
     std::lock_guard<std::mutex> lock(accountListFileLock_);
     std::string strValue = PackJsonToString(accountListJson);
@@ -1499,7 +1499,7 @@ ErrCode OsAccountControlFileManager::SaveAccountListToFile(CJsonUnique &accountL
     return ERR_OK;
 }
 
-ErrCode OsAccountControlFileManager::SaveBaseOAConstraintsToFile(CJsonUnique &baseOAConstraints)
+ErrCode OsAccountControlFileManager::SaveBaseOAConstraintsToFile(const CJsonUnique &baseOAConstraints)
 {
     std::lock_guard<std::mutex> lock(baseOAConstraintsFileLock_);
     std::string strValue = PackJsonToString(baseOAConstraints);
@@ -1516,7 +1516,7 @@ ErrCode OsAccountControlFileManager::SaveBaseOAConstraintsToFile(CJsonUnique &ba
     return ERR_OK;
 }
 
-ErrCode OsAccountControlFileManager::SaveGlobalOAConstraintsToFile(CJsonUnique &globalOAConstraints)
+ErrCode OsAccountControlFileManager::SaveGlobalOAConstraintsToFile(const CJsonUnique &globalOAConstraints)
 {
     std::lock_guard<std::mutex> lock(globalOAConstraintsFileLock_);
     std::string strValue = PackJsonToString(globalOAConstraints);
@@ -1533,7 +1533,7 @@ ErrCode OsAccountControlFileManager::SaveGlobalOAConstraintsToFile(CJsonUnique &
     return ERR_OK;
 }
 
-ErrCode OsAccountControlFileManager::SaveSpecificOAConstraintsToFile(CJsonUnique &specificOAConstraints)
+ErrCode OsAccountControlFileManager::SaveSpecificOAConstraintsToFile(const CJsonUnique &specificOAConstraints)
 {
     std::lock_guard<std::mutex> lock(specificOAConstraintsFileLock_);
     std::string strValue = PackJsonToString(specificOAConstraints);
@@ -1599,7 +1599,7 @@ ErrCode OsAccountControlFileManager::GetDefaultActivatedOsAccount(int32_t &id)
     return ERR_OK;
 }
 
-ErrCode OsAccountControlFileManager::SaveAccountListToFileAndDataBase(CJsonUnique &accountListJson)
+ErrCode OsAccountControlFileManager::SaveAccountListToFileAndDataBase(const CJsonUnique &accountListJson)
 {
 #if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
     osAccountDataBaseOperator_->UpdateOsAccountIDListInDatabase(accountListJson);
