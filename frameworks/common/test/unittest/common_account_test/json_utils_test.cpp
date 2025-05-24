@@ -385,18 +385,18 @@ HWTEST_F(JsonUtilsTest, AddInt64ToJsonTest001, TestSize.Level4)
 
     auto jsonObj = CreateJson();
     EXPECT_TRUE(AddInt64ToJson(jsonObj, key, value));
-    int64_t retrievedValue = GetInt64FromJson(jsonObj, key);
-    EXPECT_TRUE(GetInt64FromJson(jsonObj, key));
+    int64_t retrievedValue;
+    EXPECT_TRUE(GetInt64FromJson(jsonObj.get(), key, retrievedValue));
     EXPECT_EQ(retrievedValue, value);
 
     int64_t maxValue = INT64_MAX;
     EXPECT_TRUE(AddInt64ToJson(jsonObj, "max_key", maxValue));
-    retrievedValue = GetInt64FromJson(jsonObj, "max_key");
+    GetInt64FromJson(jsonObj.get(), "max_key", retrievedValue);
     EXPECT_EQ(retrievedValue, maxValue);
 
     int64_t minValue = INT64_MIN;
     EXPECT_TRUE(AddInt64ToJson(jsonObj, "min_key", minValue));
-    retrievedValue = GetInt64FromJson(jsonObj, "min_key");
+    GetInt64FromJson(jsonObj.get(), "min_key", retrievedValue);
     EXPECT_TRUE(retrievedValue);
     EXPECT_EQ(retrievedValue, minValue);
 
@@ -623,8 +623,9 @@ HWTEST_F(JsonUtilsTest, Uint64StringToJsonTest001, TestSize.Level3)
     bool result = AddUint64ToJson(jsonObj, key, value);
     EXPECT_TRUE(result);
 
-    uint64_t value46 = GetUint64FromJson(jsonObj, key);
-    EXPECT_EQ(value, value46);
+    uint64_t value64 = 0;
+    GetUint64FromJson(jsonObj.get(), key, value64);
+    EXPECT_EQ(value, value64);
 }
 
 /*
@@ -639,11 +640,14 @@ HWTEST_F(JsonUtilsTest, Uint64StringToJsonTest002, TestSize.Level3)
     std::string key = "test_key";
     int value = 1234567;
     std::string strValue = "1234567";
-
+    
     EXPECT_TRUE(AddStringToJson(jsonObj, key, strValue));
-
-    EXPECT_EQ(value, GetUint64FromJson(jsonObj, key));
-    EXPECT_EQ(value, GetInt64FromJson(jsonObj, key));
+    uint64_t value64 = 0;
+    GetUint64FromJson(jsonObj.get(), key, value64);
+    EXPECT_EQ(value, value64);
+    int64_t retInt = 0;
+    GetInt64FromJson(jsonObj.get(), key, retInt);
+    EXPECT_EQ(value, retInt);
 }
 
 /*
@@ -660,8 +664,8 @@ HWTEST_F(JsonUtilsTest, Uint64StringToJsonTest003, TestSize.Level4)
 
     bool result = AddUint64ToJson(jsonObj, key, value);
     EXPECT_TRUE(result);
-
-    uint64_t value64 = GetUint64FromJson(jsonObj, key);
+    uint64_t value64 = 0;
+    GetUint64FromJson(jsonObj.get(), key, value64);
     EXPECT_EQ(value, value64);
 }
 
@@ -680,7 +684,8 @@ HWTEST_F(JsonUtilsTest, Uint64StringToJsonTest004, TestSize.Level4)
     bool result = AddUint64ToJson(jsonObj, key, value);
     EXPECT_TRUE(result);
 
-    uint64_t value64 = GetUint64FromJson(jsonObj, key);
+    uint64_t value64 = 0;
+    GetUint64FromJson(jsonObj.get(), key, value64);
     EXPECT_EQ(value, value64);
 }
 
@@ -700,7 +705,8 @@ HWTEST_F(JsonUtilsTest, Uint64StringToJsonTest005, TestSize.Level4)
     bool result = AddUint64ToJson(jsonObj, key, value);
     EXPECT_TRUE(result);
 
-    uint64_t value64 = GetUint64FromJson(jsonObj, key);
+    uint64_t value64 = 0;
+    GetUint64FromJson(jsonObj.get(), key, value64);
     EXPECT_EQ(value, value64);
 }
 
@@ -718,7 +724,8 @@ HWTEST_F(JsonUtilsTest, Uint64StringToJsonTest006, TestSize.Level4)
 
     bool result = AddUint64ToJson(jsonObj, key, value);
     EXPECT_TRUE(result);
-    uint64_t value64 = GetUint64FromJson(jsonObj, key);
+    uint64_t value64 = 0;
+    GetUint64FromJson(jsonObj.get(), key, value64);
     EXPECT_EQ(value, value64);
 }
 
@@ -732,7 +739,8 @@ HWTEST_F(JsonUtilsTest, GetIntFromJsonTest001, TestSize.Level4)
 {
     auto jsonObj = CreateJson();
     EXPECT_TRUE(AddIntToJson(jsonObj, "test0", 1));
-    int32_t res = GetIntFromJson(jsonObj, "test0");
+    int32_t res = 0;
+    GetIntFromJson(jsonObj.get(), "test0", res);
     EXPECT_EQ(1, res);
 }
 
@@ -747,7 +755,8 @@ HWTEST_F(JsonUtilsTest, AddIntToJsonTest001, TestSize.Level4)
     auto jsonObj = CreateJson();
     EXPECT_FALSE(AddIntToJson(jsonObj, "", 11));
     EXPECT_TRUE(AddIntToJson(jsonObj, "test0", 123));
-    int32_t retValue = GetIntFromJson(jsonObj, "test0");
+    int32_t retValue = 0;
+    GetIntFromJson(jsonObj.get(), "test0", retValue);
     EXPECT_EQ(123, retValue);
 }
 
@@ -902,15 +911,15 @@ HWTEST_F(JsonUtilsTest, GetDataByTypeTest001, TestSize.Level4)
 }
 
 /*
- * @tc.name: CreateCJsonStringTest001
- * @tc.desc: CreateCJsonString
+ * @tc.name: CreateJsonStringTest001
+ * @tc.desc: CreateJsonString
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(JsonUtilsTest, CreateCJsonStringTest001, TestSize.Level4)
+HWTEST_F(JsonUtilsTest, CreateJsonStringTest001, TestSize.Level4)
 {
     const char *testString = "test";
-    auto jsonObj = CreateCJsonString(testString);
+    auto jsonObj = CreateJsonString(testString);
     EXPECT_EQ(*testString, *cJSON_GetStringValue(jsonObj.get()));
 }
 

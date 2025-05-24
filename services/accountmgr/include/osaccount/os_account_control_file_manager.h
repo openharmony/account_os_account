@@ -101,8 +101,8 @@ private:
     ErrCode UpdateAccountList(const std::string &idStr, bool isAdd);
     ErrCode GetAccountListFromFile(CJsonUnique &accountListJson);
     ErrCode GetAccountIndexInfo(std::string &accountIndexInfo);
-    ErrCode SaveAccountListToFile(CJsonUnique &accountListJson);
-    ErrCode SaveAccountListToFileAndDataBase(CJsonUnique &accountListJson);
+    ErrCode SaveAccountListToFile(const CJsonUnique &accountListJson);
+    ErrCode SaveAccountListToFileAndDataBase(const CJsonUnique &accountListJson);
     void BuildAndSaveAccountListJsonFile(const std::vector<std::string>& accounts);
     void RecoverAccountListJsonFile();
     void RecoverAccountInfoDigestJsonFile();
@@ -118,9 +118,9 @@ private:
     ErrCode GetBaseOAConstraintsFromFile(CJsonUnique &baseOAConstraintsJson);
     ErrCode GetGlobalOAConstraintsFromFile(CJsonUnique &globalOAConstraintsJson);
     ErrCode GetSpecificOAConstraintsFromFile(CJsonUnique &specificOAConstraintsJson);
-    ErrCode SaveBaseOAConstraintsToFile(CJsonUnique &baseOAConstraints);
-    ErrCode SaveGlobalOAConstraintsToFile(CJsonUnique &globalOAConstraints);
-    ErrCode SaveSpecificOAConstraintsToFile(CJsonUnique &specificOAConstraints);
+    ErrCode SaveBaseOAConstraintsToFile(const CJsonUnique &baseOAConstraints);
+    ErrCode SaveGlobalOAConstraintsToFile(const CJsonUnique &globalOAConstraints);
+    ErrCode SaveSpecificOAConstraintsToFile(const CJsonUnique &specificOAConstraints);
     void RemoveAllUsersConstraintsInfo(CJsonUnique &specificOAConstraintsJson, const int32_t id);
 
     ErrCode RemoveOABaseConstraintsInfo(const int32_t id);

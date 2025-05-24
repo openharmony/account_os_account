@@ -354,7 +354,7 @@ HWTEST_F(OsAccountManagerModuleTest, CreateOsAccountWithFullInfo001, TestSize.Le
     auto accountListJson = CreateJsonFromString(fileContext);
     ASSERT_TRUE(accountListJson != nullptr && IsStructured(accountListJson));
     ASSERT_TRUE(IsNumber(GetItemFromJson(accountListJson, "NextLocalId")));
-    nextLocalId = GetIntFromJson(accountListJson, "NextLocalId");
+    GetIntFromJson(accountListJson.get(), "NextLocalId", nextLocalId);
     ASSERT_TRUE(nextLocalId > 100);
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetLocalName("testNextID_001");
@@ -371,7 +371,7 @@ HWTEST_F(OsAccountManagerModuleTest, CreateOsAccountWithFullInfo001, TestSize.Le
     accountListJson = CreateJsonFromString(fileContext);
     ASSERT_TRUE(accountListJson != nullptr && IsStructured(accountListJson));
     ASSERT_TRUE(IsNumber(GetItemFromJson(accountListJson, "NextLocalId")));
-    nextLocalId = GetIntFromJson(accountListJson, "NextLocalId");
+    GetIntFromJson(accountListJson.get(), "NextLocalId", nextLocalId);
     ASSERT_TRUE(nextLocalId > 100);
     EXPECT_EQ(nextLocalId, (expectUid + 1));
 }

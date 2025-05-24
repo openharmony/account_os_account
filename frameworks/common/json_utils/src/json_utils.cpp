@@ -88,14 +88,14 @@ bool IsObject(const CJsonUnique &item)
     return IsObject(item.get());
 }
 
-bool IsInvalid(const CJson *const item)
+bool IsInvalid(const CJson *item)
 {
     return cJSON_IsInvalid(item) != 0;
 }
 
 bool IsInvalid(const CJsonUnique &item)
 {
-    return IsInvalid(item.get()) != 0;
+    return IsInvalid(item.get());
 }
 
 bool IsStructured(CJson *jsonObj)
@@ -111,7 +111,6 @@ bool IsStructured(const CJsonUnique &jsonObj)
 void FreeJson(CJson *jsonObj)
 {
     cJSON_Delete(jsonObj);
-    jsonObj = nullptr;
 }
 
 CJsonUnique CreateJsonFromString(const std::string &jsonStr)
@@ -355,6 +354,9 @@ bool AddSetStringToJson(CJson *jsonObj, const std::string &key, const std::set<s
     }
 
     CJson *array = cJSON_CreateArray();
+    if (array == nullptr) {
+        return false;
+    }
     for (const std::string &item : setData) {
         cJSON_AddItemToArray(array, cJSON_CreateString(item.c_str()));
     }
@@ -383,7 +385,7 @@ bool GetSetStringFromJson(const CJson *jsonObj, const std::string &key, std::set
     if (jsonObj == nullptr || key.empty()) {
         return false;
     }
-    CJson *arrayItem = cJSON_GetObjectItem(jsonObj, key.c_str());
+    CJson *arrayItem = cJSON_GetObjectItemCaseSensitive(jsonObj, key.c_str());
     if (!IsArray(arrayItem)) {
         return false;
     }
@@ -409,6 +411,9 @@ bool AddVectorStringToJson(CJson *jsonObj, const std::string &key, const std::ve
     }
 
     CJson *array = cJSON_CreateArray();
+    if (array == nullptr) {
+        return false;
+    }
     for (const auto &str : vec) {
         AddStringToArray(array, str.c_str());
     }
@@ -442,12 +447,13 @@ bool GetIntFromJson(const CJson *jsonObj, const std::string &key, int32_t &value
     if (IsNumber(item)) {
         value = static_cast<int32_t>(cJSON_GetNumberValue(item));
         return true;
-    } else if (IsString(item)) {
+    }
+    if (IsString(item)) {
         std::string str = cJSON_GetStringValue(item);
         if (str.empty()) {
             return false;
         }
-        value = static_cast<int32_t>(strtoull(str.c_str(), nullptr, DECIMALISM));
+        value = static_cast<int32_t>(strtol(str.c_str(), nullptr, DECIMALISM));
         return true;
     }
     return false;
@@ -456,21 +462,6 @@ bool GetIntFromJson(const CJson *jsonObj, const std::string &key, int32_t &value
 bool GetIntFromJson(const CJsonUnique &jsonObj, const std::string &key, int32_t &value)
 {
     return GetIntFromJson(jsonObj.get(), key, value);
-}
-
-int32_t GetIntFromJson(const CJson *jsonObj, const std::string &key)
-{
-    int32_t value = 0;
-    if (!IsKeyExist(jsonObj, key)) {
-        return 0;
-    }
-    GetIntFromJson(jsonObj, key, value);
-    return value;
-}
-
-int32_t GetIntFromJson(const CJsonUnique &jsonObj, const std::string &key)
-{
-    return GetIntFromJson(jsonObj.get(), key);
 }
 
 bool GetUint64FromJson(const CJson *jsonObj, const std::string &key, uint64_t &value)
@@ -489,24 +480,13 @@ bool GetUint64FromJson(const CJson *jsonObj, const std::string &key, uint64_t &v
         }
         value = strtoull(str.c_str(), nullptr, DECIMALISM);
         return true;
-    } else if (IsNumber(item)) {
+    }
+    if (IsNumber(item)) {
         value = static_cast<uint64_t>(cJSON_GetNumberValue(item));
         return true;
     }
 
     return false;
-}
-
-uint64_t GetUint64FromJson(const CJson *jsonObj, const std::string &key)
-{
-    uint64_t value;
-    GetUint64FromJson(jsonObj, key, value);
-    return value;
-}
-
-uint64_t GetUint64FromJson(const CJsonUnique &jsonObj, const std::string &key)
-{
-    return GetUint64FromJson(jsonObj.get(), key);
 }
 
 bool GetInt64FromJson(const CJson *jsonObj, const std::string &key, int64_t &value)
@@ -520,30 +500,18 @@ bool GetInt64FromJson(const CJson *jsonObj, const std::string &key, int64_t &val
     }
     if (IsString(item)) {
         std::string str = cJSON_GetStringValue(item);
-        ;
         if (str.empty()) {
             return false;
         }
         value = static_cast<int64_t>(strtoull(str.c_str(), nullptr, DECIMALISM));
         return true;
-    } else if (IsNumber(item)) {
+    }
+    if (IsNumber(item)) {
         value = static_cast<int64_t>(cJSON_GetNumberValue(item));
         return true;
     }
 
     return false;
-}
-
-int64_t GetInt64FromJson(const CJson *jsonObj, const std::string &key)
-{
-    int64_t value;
-    GetInt64FromJson(jsonObj, key, value);
-    return value;
-}
-
-int64_t GetInt64FromJson(const CJsonUnique &jsonObj, const std::string &key)
-{
-    return GetInt64FromJson(jsonObj.get(), key);
 }
 
 bool GetBoolFromJson(const CJson *jsonObj, const std::string &key, bool &value)
@@ -614,6 +582,9 @@ bool AddVectorUint8ToJson(CJson *jsonObj, const std::string &key, std::vector<ui
         return false;
     }
     CJson *array = cJSON_CreateArray();
+    if (array == nullptr) {
+        return false;
+    }
     for (size_t i = 0; i < arr.size(); i++) {
         cJSON_AddItemToArray(array, cJSON_CreateNumber(arr[i]));
     }
@@ -796,7 +767,7 @@ bool AddInt64ToJson(CJson *jsonObj, const std::string &key, int64_t value)
         return false;
     }
     char buffer[65] = {0};
-    if (sprintf_s(buffer, sizeof(buffer), "%" PRIu64, value) <= 0) {
+    if (sprintf_s(buffer, sizeof(buffer), "%" PRId64, value) <= 0) {
         return false;
     }
 
@@ -808,7 +779,7 @@ bool AddInt64ToJson(CJsonUnique &jsonObj, const std::string &key, int64_t value)
     return AddInt64ToJson(jsonObj.get(), key, value);
 }
 
-CJsonUnique CreateCJsonString(const char *string)
+CJsonUnique CreateJsonString(const char *string)
 {
     cJSON *rawPtr = cJSON_CreateString(string);
     CJsonUnique uniquePtr(rawPtr, FreeJson);
