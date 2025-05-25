@@ -14,44 +14,16 @@
  */
 
 #include "app_account_info.h"
-
+#include "app_account_info_json_parser.h"
 #include "account_log_wrapper.h"
 #ifdef HAS_ASSET_PART
 #include <iomanip>
 #include <sstream>
 #include <openssl/sha.h>
 #endif
-#include "nlohmann/json.hpp"
 
 namespace OHOS {
 namespace AccountSA {
-namespace {
-const char OWNER[] = "owner";
-const char NAME[] = "name";
-const char ALIAS[] = "alias";
-const char EXTRA_INFO[] = "extraInfo";
-const char SYNC_ENABLE[] = "syncEnable";
-const char AUTHORIZED_APPS[] = "authorizedApps";
-const char ASSOCIATED_DATA[] = "associatedData";
-const char ACCOUNT_CREDENTIAL[] = "accountCredential";
-const char OAUTH_TOKEN[] = "oauthToken";
-const char OAUTH_TOKEN_INFOS[] = "tokenInfos";
-const char OAUTH_TYPE[] = "authType";
-const char OAUTH_TOKEN_STATUS[] = "status";
-const char OAUTH_AUTH_LIST[] = "authList";
-const std::string OAUTH_TOKEN_TO_TYPE = "tokenToType";
-const char HYPHEN[] = "#";
-constexpr uint32_t APP_INDEX = 0;
-constexpr uint32_t MAX_TOKEN_NUMBER = 128;
-constexpr uint32_t MAX_OAUTH_LIST_SIZE = 512;
-constexpr uint32_t MAX_ASSOCIATED_DATA_NUMBER = 1024;
-constexpr uint32_t MAX_APP_AUTH_LIST_SIZE = 1024;
-#ifdef HAS_ASSET_PART
-constexpr uint32_t HASH_LENGTH = 32;
-constexpr uint32_t WIDTH_FOR_HEX = 2;
-#endif
-constexpr int32_t MAX_MAP_SZIE = 1024;
-}  // namespace
 
 #ifdef HAS_ASSET_PART
 static void ComputeHash(const std::string &input, std::string &output)
@@ -207,11 +179,10 @@ void AppAccountInfo::SetSyncEnable(const bool &syncEnable)
 
 ErrCode AppAccountInfo::InitCustomData(const std::map<std::string, std::string> &data)
 {
-    Json jsonObject = data;
-    try {
-        associatedData_ = jsonObject.dump();
-    } catch (Json::type_error& err) {
-        ACCOUNT_LOGE("failed to dump json object, reason: %{public}s", err.what());
+    CJsonUnique jsonObject = CreateJsonFromMap(data);
+    associatedData_ = PackJsonToString(jsonObject);
+    if (associatedData_.empty()) {
+        ACCOUNT_LOGE("failed to dump json object");
         return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
     }
     return ERR_OK;
@@ -219,59 +190,52 @@ ErrCode AppAccountInfo::InitCustomData(const std::map<std::string, std::string> 
 
 ErrCode AppAccountInfo::GetAllAssociatedData(std::map<std::string, std::string> &data) const
 {
-    auto jsonObject = Json::parse(associatedData_, nullptr, false);
-    if (jsonObject.is_discarded() || !jsonObject.is_object()) {
+    auto jsonObject = CreateJsonFromString(associatedData_);
+    if (jsonObject == nullptr || !IsObject(jsonObject)) {
         ACCOUNT_LOGE("jsonObject is_discarded");
-        return ERR_APPACCOUNT_SERVICE_GET_ASSOCIATED_DATA;
+        return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
     }
-    try {
-        data = jsonObject.get<std::map<std::string, std::string>>();
-    }  catch (Json::type_error& err) {
-        ACCOUNT_LOGE("failed to convert json object to map, reason: %{public}s", err.what());
-        return ERR_APPACCOUNT_SERVICE_GET_ASSOCIATED_DATA;
-    }
+
+    data = PackJsonToMap(jsonObject);
+
     return ERR_OK;
 }
 
 ErrCode AppAccountInfo::GetAssociatedData(const std::string &key, std::string &value) const
 {
-    auto jsonObject = Json::parse(associatedData_, nullptr, false);
-    if (jsonObject.is_discarded()) {
-        ACCOUNT_LOGI("jsonObject is_discarded");
-        jsonObject = Json::object();
+    auto jsonObject = CreateJsonFromString(associatedData_);
+    if (jsonObject == nullptr) {
+        ACCOUNT_LOGE("jsonObject is_discarded");
+        jsonObject = CreateJson();
     }
-
-    if (jsonObject.find(key) == jsonObject.end()) {
+    if (!IsKeyExist(jsonObject, key)) {
         ACCOUNT_LOGE("failed to find value, key = %{public}s", key.c_str());
         return ERR_APPACCOUNT_SERVICE_ASSOCIATED_DATA_KEY_NOT_EXIST;
     }
+    value = GetStringFromJson(jsonObject, key);
 
-    value = jsonObject.at(key);
     return ERR_OK;
 }
 
 ErrCode AppAccountInfo::SetAssociatedData(const std::string &key, const std::string &value)
 {
-    auto jsonObject = Json::parse(associatedData_, nullptr, false);
-    if (jsonObject.is_discarded() || (!jsonObject.is_object())) {
-        ACCOUNT_LOGI("jsonObject is discarded");
-        jsonObject = Json::object();
+    auto jsonObject = CreateJsonFromString(associatedData_);
+    if (jsonObject == nullptr) {
+        ACCOUNT_LOGE("jsonObject is_discarded");
+        jsonObject = CreateJson();
     }
-    auto it = jsonObject.find(key);
-    if (it == jsonObject.end()) {
-        if (jsonObject.size() >= MAX_ASSOCIATED_DATA_NUMBER) {
+
+    if (!IsKeyExist(jsonObject, key)) {
+        if (static_cast<uint32_t>(GetItemNum(jsonObject)) >= MAX_ASSOCIATED_DATA_NUMBER) {
             ACCOUNT_LOGW("associated data is over size, the max number is: %{public}d", MAX_ASSOCIATED_DATA_NUMBER);
             return ERR_APPACCOUNT_SERVICE_ASSOCIATED_DATA_OVER_SIZE;
         }
-        jsonObject.emplace(key, value);
-    } else {
-        jsonObject[key] = value;
     }
+    AddStringToJson(jsonObject, key, value);
 
-    try {
-        associatedData_ = jsonObject.dump();
-    } catch (Json::type_error& err) {
-        ACCOUNT_LOGE("failed to dump json object, reason: %{public}s", err.what());
+    associatedData_ = PackJsonToString(jsonObject);
+    if (associatedData_.empty()) {
+        ACCOUNT_LOGE("failed to dump json object");
         return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
     }
     return ERR_OK;
@@ -279,50 +243,50 @@ ErrCode AppAccountInfo::SetAssociatedData(const std::string &key, const std::str
 
 ErrCode AppAccountInfo::GetAccountCredential(const std::string &credentialType, std::string &credential) const
 {
-    auto jsonObject = Json::parse(accountCredential_, nullptr, false);
-    if (jsonObject.is_discarded()) {
-        jsonObject = Json::object();
+    auto jsonObject = CreateJsonFromString(accountCredential_);
+    if (jsonObject == nullptr) {
+        ACCOUNT_LOGE("jsonObject is_discarded");
+        jsonObject = CreateJson();
     }
 
-    if (jsonObject.find(credentialType) == jsonObject.end()) {
+    if (!IsKeyExist(jsonObject, credentialType)) {
         ACCOUNT_LOGE("failed to find value, credentialType = %{public}s", credentialType.c_str());
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_CREDENTIAL_NOT_EXIST;
     }
 
-    credential = jsonObject.at(credentialType);
+    credential = GetStringFromJson(jsonObject, credentialType);
+
     return ERR_OK;
 }
 
 ErrCode AppAccountInfo::SetAccountCredential(
     const std::string &credentialType, const std::string &credential)
 {
-    Json jsonObject;
+    CJsonUnique jsonObject = nullptr;
     if (accountCredential_.empty()) {
-        jsonObject = Json::object();
+        jsonObject = CreateJson();
     } else {
-        jsonObject = Json::parse(accountCredential_, nullptr, false);
-        if (jsonObject.is_discarded() || !jsonObject.is_object()) {
+        jsonObject = CreateJsonFromString(accountCredential_);
+        if (jsonObject == nullptr || !IsObject(jsonObject)) {
             ACCOUNT_LOGE("jsonObject is not an object");
             return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
         }
     }
 #ifndef HAS_ASSET_PART
-    jsonObject[credentialType] = credential;
+    AddStringToJson(jsonObject, credentialType, credential);
 #else
-    auto it = jsonObject.find(credentialType);
-    if (it == jsonObject.end()) {
+    if (!IsKeyExist(jsonObject, credentialType)) {
         std::string credentialTypeAlias;
         ComputeHash(credentialType, credentialTypeAlias);
-        jsonObject[credentialType] = GetAlias() + credentialTypeAlias;
+        AddStringToJson(jsonObject, credentialType, (GetAlias() + credentialTypeAlias));
     } else {
         return ERR_OK;
     }
 #endif
 
-    try {
-        accountCredential_ = jsonObject.dump();
-    } catch (Json::type_error& err) {
-        ACCOUNT_LOGE("failed to dump json object, reason: %{public}s", err.what());
+    accountCredential_ = PackJsonToString(jsonObject);
+    if (accountCredential_.empty()) {
+        ACCOUNT_LOGE("failed to dump json object");
         return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
     }
     return ERR_OK;
@@ -330,12 +294,13 @@ ErrCode AppAccountInfo::SetAccountCredential(
 
 ErrCode AppAccountInfo::DeleteAccountCredential(const std::string &credentialType)
 {
-    auto jsonObject = Json::parse(accountCredential_, nullptr, false);
-    if (jsonObject.is_discarded() || !jsonObject.is_object() || (jsonObject.erase(credentialType) == 0)) {
+    auto jsonObject = CreateJsonFromString(accountCredential_);
+    if (jsonObject == nullptr || !IsObject(jsonObject) || (DeleteItemFromJson(jsonObject, credentialType) == 0)) {
         ACCOUNT_LOGE("credential not found");
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_CREDENTIAL_NOT_EXIST;
     }
-    accountCredential_ = jsonObject.dump();
+    accountCredential_ = PackJsonToString(jsonObject);
+
     return ERR_OK;
 }
 
@@ -557,92 +522,15 @@ AppAccountInfo *AppAccountInfo::Unmarshalling(Parcel &parcel)
     return appAccountInfo;
 }
 
-Json AppAccountInfo::ToJson() const
-{
-    auto tokenArray = Json::array();
-    for (auto it = oauthTokens_.begin(); it != oauthTokens_.end(); ++it) {
-        if (!it->second.status && it->second.authList.empty()) {
-            continue;
-        }
-        auto tokenObject = Json {
-            {OAUTH_TYPE, it->first},
-            {OAUTH_TOKEN, it->second.token},
-            {OAUTH_TOKEN_STATUS, it->second.status},
-            {OAUTH_AUTH_LIST, it->second.authList}
-        };
-        tokenArray.push_back(tokenObject);
-    }
-    auto jsonObject = Json {
-        {OWNER, owner_},
-        {NAME, name_},
-        {ALIAS, alias_},
-        {EXTRA_INFO, extraInfo_},
-        {AUTHORIZED_APPS, authorizedApps_},
-        {SYNC_ENABLE, syncEnable_},
-        {ASSOCIATED_DATA, associatedData_},
-        {ACCOUNT_CREDENTIAL, accountCredential_},
-        {OAUTH_TOKEN_INFOS, tokenArray},
-    };
-
-    return jsonObject;
-}
-
-void AppAccountInfo::ParseTokenInfosFromJson(const Json &jsonObject)
-{
-    oauthTokens_.clear();
-    for (const auto& item : jsonObject) {
-        OAuthTokenInfo tokenInfo;
-        if (item.find(OAUTH_TOKEN) != item.end() && item.at(OAUTH_TOKEN).is_string()) {
-            item.at(OAUTH_TOKEN).get_to(tokenInfo.token);
-        }
-        if (item.find(OAUTH_TOKEN_STATUS) != item.end() && item.at(OAUTH_TOKEN_STATUS).is_boolean()) {
-            item.at(OAUTH_TOKEN_STATUS).get_to(tokenInfo.status);
-        }
-        if (item.find(OAUTH_TYPE) != item.end() && item.at(OAUTH_TYPE).is_string()) {
-            item.at(OAUTH_TYPE).get_to(tokenInfo.authType);
-        }
-        if (item.find(OAUTH_AUTH_LIST) != item.end() && item.at(OAUTH_AUTH_LIST).is_array()) {
-            item.at(OAUTH_AUTH_LIST).get_to(tokenInfo.authList);
-        }
-        oauthTokens_.emplace(tokenInfo.authType, tokenInfo);
-    }
-}
-
-bool AppAccountInfo::FromJson(const Json &jsonObject)
-{
-    const auto &jsonObjectEnd = jsonObject.end();
-
-    OHOS::AccountSA::GetDataByType<std::string>(
-        jsonObject, jsonObjectEnd, OWNER, owner_, OHOS::AccountSA::JsonType::STRING);
-    OHOS::AccountSA::GetDataByType<std::string>(
-        jsonObject, jsonObjectEnd, NAME, name_, OHOS::AccountSA::JsonType::STRING);
-    OHOS::AccountSA::GetDataByType<std::string>(
-        jsonObject, jsonObjectEnd, ALIAS, alias_, OHOS::AccountSA::JsonType::STRING);
-    OHOS::AccountSA::GetDataByType<std::string>(
-        jsonObject, jsonObjectEnd, EXTRA_INFO, extraInfo_, OHOS::AccountSA::JsonType::STRING);
-    OHOS::AccountSA::GetDataByType<bool>(
-        jsonObject, jsonObjectEnd, SYNC_ENABLE, syncEnable_, OHOS::AccountSA::JsonType::BOOLEAN);
-    OHOS::AccountSA::GetDataByType<std::set<std::string>>(
-        jsonObject, jsonObjectEnd, AUTHORIZED_APPS, authorizedApps_, OHOS::AccountSA::JsonType::ARRAY);
-    OHOS::AccountSA::GetDataByType<std::string>(
-        jsonObject, jsonObjectEnd, ASSOCIATED_DATA, associatedData_, OHOS::AccountSA::JsonType::STRING);
-    OHOS::AccountSA::GetDataByType<std::string>(
-        jsonObject, jsonObjectEnd, ACCOUNT_CREDENTIAL, accountCredential_, OHOS::AccountSA::JsonType::STRING);
-    if (jsonObject.find(OAUTH_TOKEN_INFOS) != jsonObjectEnd) {
-        ParseTokenInfosFromJson(jsonObject.at(OAUTH_TOKEN_INFOS));
-    }
-    return true;
-}
-
 std::string AppAccountInfo::ToString() const
 {
-    auto jsonObject = ToJson();
-    try {
-        return jsonObject.dump();
-    } catch (Json::type_error& err) {
-        ACCOUNT_LOGE("failed to dump json object, reason: %{public}s", err.what());
+    auto jsonObject = ToJson(*this);
+    std::string strValue = PackJsonToString(jsonObject);
+    if (strValue.empty()) {
+        ACCOUNT_LOGE("failed to dump json object");
         return "";
     }
+    return strValue;
 }
 
 std::string AppAccountInfo::GetPrimeKey() const

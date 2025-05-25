@@ -23,7 +23,7 @@
 #include "common_event_subscribe_info.h"
 #include "matching_skills.h"
 #endif // HAS_CES_PART
-#include "nlohmann/json.hpp"
+#include "json_utils.h"
 #define private public
 #include "account_file_operator.h"
 #include "os_account.h"
@@ -349,11 +349,12 @@ public:
 HWTEST_F(OsAccountManagerModuleTest, CreateOsAccountWithFullInfo001, TestSize.Level1)
 {
     std::string fileContext;
+    int32_t nextLocalId = 0;
     EXPECT_EQ(ERR_OK, g_accountFileOperator->GetFileContentByPath(Constants::ACCOUNT_LIST_FILE_JSON_PATH, fileContext));
-    auto accountListJson = Json::parse(fileContext, nullptr, false);
-    ASSERT_TRUE(!accountListJson.is_discarded() && accountListJson.is_structured());
-    ASSERT_TRUE(accountListJson.at("NextLocalId").is_number());
-    int32_t nextLocalId = static_cast<int32_t>(accountListJson.at("NextLocalId").get<int32_t>());
+    auto accountListJson = CreateJsonFromString(fileContext);
+    ASSERT_TRUE(accountListJson != nullptr && IsStructured(accountListJson));
+    ASSERT_TRUE(IsNumber(GetItemFromJson(accountListJson, "NextLocalId")));
+    GetIntFromJson(accountListJson.get(), "NextLocalId", nextLocalId);
     ASSERT_TRUE(nextLocalId > 100);
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetLocalName("testNextID_001");
@@ -367,10 +368,10 @@ HWTEST_F(OsAccountManagerModuleTest, CreateOsAccountWithFullInfo001, TestSize.Le
     OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId());
 
     EXPECT_EQ(ERR_OK, g_accountFileOperator->GetFileContentByPath(Constants::ACCOUNT_LIST_FILE_JSON_PATH, fileContext));
-    accountListJson = Json::parse(fileContext, nullptr, false);
-    ASSERT_TRUE(!accountListJson.is_discarded() && accountListJson.is_structured());
-    ASSERT_TRUE(accountListJson.at("NextLocalId").is_number());
-    nextLocalId = static_cast<int32_t>(accountListJson.at("NextLocalId").get<int32_t>());
+    accountListJson = CreateJsonFromString(fileContext);
+    ASSERT_TRUE(accountListJson != nullptr && IsStructured(accountListJson));
+    ASSERT_TRUE(IsNumber(GetItemFromJson(accountListJson, "NextLocalId")));
+    GetIntFromJson(accountListJson.get(), "NextLocalId", nextLocalId);
     ASSERT_TRUE(nextLocalId > 100);
     EXPECT_EQ(nextLocalId, (expectUid + 1));
 }

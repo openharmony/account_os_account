@@ -29,6 +29,10 @@ config("account_common_config") {
     "utils/include",
     "${innerkits_common}/include",
     "${innerkits_path}/include",
+    "json_utils/include",
+    "${os_account_path}/interfaces/innerkits/osaccount/native/include",
+    "${domain_account_interfaces_native_path}/include",
+    "${app_account_innerkits_native_path}/include",
   ]
 }
 
@@ -47,6 +51,9 @@ ohos_shared_library("libaccount_common") {
     "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
     "account_error/src/account_error_no.cpp",
     "file_operator/src/account_file_operator.cpp",
+    "json_utils/src/app_account_info_json_parser.cpp",
+    "json_utils/src/json_utils.cpp",
+    "json_utils/src/os_account_info_json_parser.cpp",
     "log/src/account_log_wrapper.cpp",
     "perf_stat/src/perf_stat.cpp",
     "utils/src/account_permission_manager.cpp",
@@ -76,14 +83,14 @@ ohos_shared_library("libaccount_common") {
   public_configs = [ ":account_common_config" ]
 
   external_deps = [
+    "ability_base:want",
     "access_token:libaccesstoken_sdk",
     "access_token:libtokenid_sdk",
+    "cJSON:cjson",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
   ]
-
-  public_external_deps = [ "json:nlohmann_json_static" ]
 
   if (hicollie_enable == true) {
     sources += [ "utils/src/account_timer.cpp" ]

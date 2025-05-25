@@ -102,12 +102,6 @@ public:
 
     void SetLastLoginTime(const int64_t lastLoginTime);
 
-    Json ToJson() const override;
-
-    bool FromJson(const Json &jsonObject) override;
-
-    void GetDomainInfoFromJson(const Json &jsonObject);
-
     bool Marshalling(Parcel &parcel) const override;
 
     bool ReadFromParcel(Parcel &parcel);
@@ -166,7 +160,7 @@ public:
 
     bool IsTypeOutOfRange() const;
 
-private:
+public:
     int localId_ = -1;
     std::string localName_;
     std::string shortName_;

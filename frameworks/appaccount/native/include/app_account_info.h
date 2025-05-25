@@ -17,7 +17,7 @@
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_INFO_H
 
 #include <set>
-
+#include <map>
 #include "account_error_no.h"
 #include "iaccount_info.h"
 #include "app_account_constants.h"
@@ -89,13 +89,10 @@ public:
     bool Marshalling(Parcel &parcel) const override;
     static AppAccountInfo *Unmarshalling(Parcel &parcel);
 
-    Json ToJson() const override;
-    bool FromJson(const Json &jsonObject) override;
     std::string ToString() const override;
     std::string GetPrimeKey() const override;
 
 private:
-    void ParseTokenInfosFromJson(const Json &jsonObject);
     bool ReadFromParcel(Parcel &parcel);
 
     bool WriteStringSet(const std::set<std::string> &stringSet, Parcel &data) const;
@@ -105,7 +102,7 @@ private:
     bool WriteTokenInfos(const std::map<std::string, OAuthTokenInfo> &tokenInfos, Parcel &data) const;
     bool ReadTokenInfos(std::map<std::string, OAuthTokenInfo> &tokenInfos, Parcel &data);
 
-private:
+public:
     std::string owner_;
     std::string name_;
     std::string alias_;

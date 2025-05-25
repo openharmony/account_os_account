@@ -42,97 +42,81 @@ ErrCode OsAccountFileOperator::GetConstraintsByType(const int type, std::vector<
     if (errCode != ERR_OK) {
         return errCode;
     }
-    Json configJson = Json::parse(str, nullptr, false);
-    Json typeJson;
-    bool ret = OHOS::AccountSA::GetDataByType<Json>(configJson, configJson.end(), KEY_TYPE_TO_CONSTRAINTS, typeJson,
-        OHOS::AccountSA::JsonType::OBJECT);
+    auto configJson = CreateJsonFromString(str);
+    CJson *typeJson = nullptr;
+    bool ret = GetDataByType<CJson *>(configJson, KEY_TYPE_TO_CONSTRAINTS, typeJson);
     if (!ret) {
         ACCOUNT_LOGE("Failed to parse %{public}s", KEY_TYPE_TO_CONSTRAINTS);
         return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
     }
-    OHOS::AccountSA::GetDataByType<std::vector<std::string>>(
-        typeJson, typeJson.end(), std::to_string(type), constraints, OHOS::AccountSA::JsonType::ARRAY);
+    GetDataByType<std::vector<std::string>>(typeJson, std::to_string(type), constraints);
     ACCOUNT_LOGD("End");
     return ERR_OK;
 }
 
 ErrCode OsAccountFileOperator::GetBaseOAConstraintsList(const int id, std::vector<std::string> &constraints)
 {
-    Json baseOsAccountConstraintsConfig;
+    auto baseOsAccountConstraintsConfig = CreateJson();
     if (accountFileOperator_->IsExistFile(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH)) {
         std::string baseUserConstraintsConfigStr;
         accountFileOperator_->GetFileContentByPath(
             Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH, baseUserConstraintsConfigStr);
-        baseOsAccountConstraintsConfig = Json::parse(baseUserConstraintsConfigStr, nullptr, false);
-        if (baseOsAccountConstraintsConfig.is_discarded()) {
+        baseOsAccountConstraintsConfig = CreateJsonFromString(baseUserConstraintsConfigStr);
+        if (baseOsAccountConstraintsConfig == nullptr) {
             return ERR_OSACCOUNT_SERVICE_GET_DATA_FROM_BASE_CONSTRAINTS_FILE_EMPTY;
         }
     }
-    if (baseOsAccountConstraintsConfig.size() == 0) {
+    if (GetItemNum(baseOsAccountConstraintsConfig) == 0) {
         ACCOUNT_LOGE("BaseOsAccountConstraints data is empty");
         return ERR_OSACCOUNT_SERVICE_GET_DATA_FROM_BASE_CONSTRAINTS_FILE_EMPTY;
     }
-    OHOS::AccountSA::GetDataByType<std::vector<std::string>>(baseOsAccountConstraintsConfig,
-        baseOsAccountConstraintsConfig.end(),
-        std::to_string(id),
-        constraints,
-        OHOS::AccountSA::JsonType::ARRAY);
+    GetDataByType<std::vector<std::string>>(baseOsAccountConstraintsConfig, std::to_string(id), constraints);
     return ERR_OK;
 }
 
 ErrCode OsAccountFileOperator::GetGlobalOAConstraintsList(std::vector<std::string> &constraints)
 {
-    Json globalOsAccountConstraintsConfig;
+    auto globalOsAccountConstraintsConfig = CreateJson();
     if (accountFileOperator_->IsExistFile(Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH)) {
         std::string globalOsAccountConstraintsConfigStr;
         accountFileOperator_->GetFileContentByPath(
             Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH, globalOsAccountConstraintsConfigStr);
-        globalOsAccountConstraintsConfig = Json::parse(globalOsAccountConstraintsConfigStr, nullptr, false);
-        if (globalOsAccountConstraintsConfig.is_discarded()) {
+        globalOsAccountConstraintsConfig = CreateJsonFromString(globalOsAccountConstraintsConfigStr);
+        if (globalOsAccountConstraintsConfig == nullptr) {
             return ERR_OSACCOUNT_SERVICE_GET_DATA_FROM_GLOBAL_CONSTRAINTS_FILE_EMPTY;
         }
     }
 
-    if (globalOsAccountConstraintsConfig.size() == 0) {
+    if (GetItemNum(globalOsAccountConstraintsConfig) == 0) {
         ACCOUNT_LOGE("GlobalOsAccountConstraints data is empty");
         return ERR_OSACCOUNT_SERVICE_GET_DATA_FROM_GLOBAL_CONSTRAINTS_FILE_EMPTY;
     }
-    OHOS::AccountSA::GetDataByType<std::vector<std::string>>(globalOsAccountConstraintsConfig,
-        globalOsAccountConstraintsConfig.end(),
-        Constants::ALL_GLOBAL_CONSTRAINTS,
-        constraints,
-        OHOS::AccountSA::JsonType::ARRAY);
+    GetDataByType<std::vector<std::string>>(globalOsAccountConstraintsConfig, Constants::ALL_GLOBAL_CONSTRAINTS,
+                                            constraints);
     return ERR_OK;
 }
 
 ErrCode OsAccountFileOperator::GetSpecificOAConstraintsList(const int id, std::vector<std::string> &constraints)
 {
-    Json specificOsAccountConstraintsConfig;
+    auto specificOsAccountConstraintsConfig = CreateJson();
     if (accountFileOperator_->IsExistFile(Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH)) {
         std::string specificOsAccountConstraintsConfigStr;
         accountFileOperator_->GetFileContentByPath(
             Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH, specificOsAccountConstraintsConfigStr);
-        specificOsAccountConstraintsConfig = Json::parse(specificOsAccountConstraintsConfigStr, nullptr, false);
-        if (specificOsAccountConstraintsConfig.is_discarded()) {
+        specificOsAccountConstraintsConfig = CreateJsonFromString(specificOsAccountConstraintsConfigStr);
+        if (specificOsAccountConstraintsConfig == nullptr) {
             return ERR_OSACCOUNT_SERVICE_GET_DATA_FROM_SPECIFIC_CONSTRAINTS_FILE_EMPTY;
         }
     }
 
-    if (specificOsAccountConstraintsConfig.size() == 0) {
+    if (GetItemNum(specificOsAccountConstraintsConfig) == 0) {
         ACCOUNT_LOGE("GlobalOsAccountConstraints data is empty");
         return ERR_OSACCOUNT_SERVICE_GET_DATA_FROM_SPECIFIC_CONSTRAINTS_FILE_EMPTY;
     }
-    Json SpecificOAConstraintsData;
-    OHOS::AccountSA::GetDataByType<Json>(specificOsAccountConstraintsConfig,
-        specificOsAccountConstraintsConfig.end(),
-        std::to_string(id),
-        SpecificOAConstraintsData,
-        OHOS::AccountSA::JsonType::OBJECT);
-    OHOS::AccountSA::GetDataByType<std::vector<std::string>>(SpecificOAConstraintsData,
-        SpecificOAConstraintsData.end(),
-        Constants::ALL_SPECIFIC_CONSTRAINTS,
-        constraints,
-        OHOS::AccountSA::JsonType::ARRAY);
+    CJson *SpecificOAConstraintsData = nullptr;
+    GetDataByType<CJson *>(specificOsAccountConstraintsConfig, std::to_string(id), SpecificOAConstraintsData);
+    GetDataByType<std::vector<std::string>>(SpecificOAConstraintsData, Constants::ALL_SPECIFIC_CONSTRAINTS,
+                                            constraints);
     return ERR_OK;
 }
 
@@ -145,9 +129,8 @@ ErrCode OsAccountFileOperator::GetIsMultiOsAccountEnable(bool &isMultiOsAccountE
         ACCOUNT_LOGE("Failed to get file content, errCode: %{public}d", errCode);
         return errCode;
     }
-    Json configJson = Json::parse(str, nullptr, false);
-    bool ret = OHOS::AccountSA::GetDataByType<Json>(configJson, configJson.end(),
-        Constants::IS_MULTI_OS_ACCOUNT_ENABLE, isMultiOsAccountEnable, OHOS::AccountSA::JsonType::BOOLEAN);
+    auto configJson = CreateJsonFromString(str);
+    bool ret = GetDataByType<bool>(configJson, Constants::IS_MULTI_OS_ACCOUNT_ENABLE, isMultiOsAccountEnable);
     if (!ret) {
         ACCOUNT_LOGE("Failed to parse IsMultiOsAccountEnabled");
     }
@@ -163,11 +146,10 @@ ErrCode OsAccountFileOperator::IsAllowedCreateAdmin(bool &isAllowedCreateAdmin)
         ACCOUNT_LOGE("Failed to get file content, errCode: %{public}d", errCode);
         return errCode;
     }
-    Json configJson = Json::parse(str, nullptr, false);
-    bool ret = OHOS::AccountSA::GetDataByType<Json>(configJson, configJson.end(), IS_ALLOWED_CREATE_ADMIN,
-        isAllowedCreateAdmin, OHOS::AccountSA::JsonType::BOOLEAN);
+    auto configJson = CreateJsonFromString(str);
+    bool ret = GetDataByType<bool>(configJson, IS_ALLOWED_CREATE_ADMIN, isAllowedCreateAdmin);
     if (!ret) {
-        ACCOUNT_LOGE("Failed to parse IsMultiOsAccountEnabled");
+        ACCOUNT_LOGE("Failed to parse IsAllowedCreateAdmin");
     }
     return ERR_OK;
 }
@@ -181,10 +163,9 @@ bool OsAccountFileOperator::CheckConstraints(const std::vector<std::string> &con
         ACCOUNT_LOGE("Failed to get the list of constraints, errCode: %{public}d", errCode);
         return false;
     }
-    Json constraintSetJson = Json::parse(str, nullptr, false);
+    auto constraintSetJson = CreateJsonFromString(str);
     std::set<std::string> constraintSet;
-    bool ret = OHOS::AccountSA::GetDataByType<std::set<std::string>>(constraintSetJson,
-        constraintSetJson.end(), KEY_CONSTRAINTS_LIST, constraintSet, OHOS::AccountSA::JsonType::ARRAY);
+    bool ret = GetDataByType<std::set<std::string>>(constraintSetJson, KEY_CONSTRAINTS_LIST, constraintSet);
     if (!ret) {
         ACCOUNT_LOGE("Failed to parse constraint definition");
         return false;

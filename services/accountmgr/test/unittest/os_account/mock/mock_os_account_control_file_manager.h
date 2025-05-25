@@ -61,7 +61,7 @@ public:
         const std::vector<std::string>& ConstraintStr, bool isAdd));
     MOCK_METHOD1(SetNextLocalId, ErrCode(const int32_t &nextLocalId));
     void Init() {}
-    ErrCode GetAccountIndexFromFile(Json &accountIndexJson) { return ERR_OK; }
+    ErrCode GetAccountIndexFromFile(CJsonUnique &accountIndexJson) { return ERR_OK; }
     ErrCode IsOsAccountExists(const int id, bool &isExists) { return ERR_OK; }
     ErrCode IsAllowedCreateAdmin(bool &isAllowedCreateAdmin) { return ERR_OK; }
     ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID,

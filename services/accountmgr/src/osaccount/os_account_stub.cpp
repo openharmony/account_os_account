@@ -23,6 +23,7 @@
 #include "ipc_skeleton.h"
 #include "memory_guard.h"
 #include "os_account_constants.h"
+#include "os_account_info_json_parser.h"
 #ifdef HICOLLIE_ENABLE
 #include "account_timer.h"
 #include "xcollie/xcollie.h"
@@ -560,11 +561,14 @@ int OsAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
 
 bool OsAccountStub::WriteOsAccountInfoList(const std::vector<OsAccountInfo> &accounts, MessageParcel &data)
 {
-    nlohmann::json accountJsonArray;
+    auto accountJsonArray = CreateJsonArray();
     for (const auto &accountItem : accounts) {
-        accountJsonArray.emplace_back(accountItem.ToJson());
+        auto accountJson = ToJson(accountItem);
+        if (accountJson != nullptr) {
+            AddObjToArray(accountJsonArray, accountJson);
+        }
     }
-    std::string accountJsonArrayStr = accountJsonArray.dump();
+    std::string accountJsonArrayStr = PackJsonToString(accountJsonArray);
     if (accountJsonArrayStr.size() >= Constants::IPC_WRITE_RAW_DATA_MAX_SIZE) {
         ACCOUNT_LOGE("AccountJsonArrayStr is too long");
         return false;

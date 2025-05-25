@@ -56,7 +56,6 @@ using namespace OHOS;
 using namespace OHOS::AccountSA;
 using namespace OHOS::AccountSA::Constants;
 using namespace OHOS::Security::AccessToken;
-using json = nlohmann::json;
 namespace {
 static std::pair<bool, OhosAccountInfo> g_oldInfo;
 

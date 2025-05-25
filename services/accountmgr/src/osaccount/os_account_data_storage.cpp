@@ -14,7 +14,7 @@
  */
 
 #include "os_account_data_storage.h"
-
+#include "os_account_info_json_parser.h"
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 
@@ -34,8 +34,8 @@ void OsAccountDataStorage::SaveEntries(const std::vector<OHOS::DistributedKv::En
     ACCOUNT_LOGD("Start, allEntries size is: %{public}zu", allEntries.size());
     for (auto const &item : allEntries) {
         OsAccountInfo osAccountInfo;
-        nlohmann::json jsonObject = nlohmann::json::parse(item.value.ToString(), nullptr, false);
-        if (jsonObject.is_discarded()) {
+        auto jsonObject = CreateJsonFromString(item.value.ToString());
+        if (jsonObject == nullptr) {
             ACCOUNT_LOGE("Error key: %{private}s", item.key.ToString().c_str());
             // it's a bad json, delete it
             {
@@ -44,7 +44,7 @@ void OsAccountDataStorage::SaveEntries(const std::vector<OHOS::DistributedKv::En
             }
             continue;
         }
-        osAccountInfo.FromJson(jsonObject);
+        FromJson(jsonObject.get(), osAccountInfo);
         infos.emplace(item.key.ToString(), std::make_shared<OsAccountInfo>(osAccountInfo));
     }
     ACCOUNT_LOGD("End");
@@ -56,8 +56,8 @@ void OsAccountDataStorage::SaveEntries(const std::vector<DbAdapterEntry> &allEnt
     ACCOUNT_LOGD("Start, allEntries size is: %{public}zu", allEntries.size());
     for (auto const &item : allEntries) {
         OsAccountInfo osAccountInfo;
-        nlohmann::json jsonObject = nlohmann::json::parse(item.value, nullptr, false);
-        if (jsonObject.is_discarded()) {
+        auto jsonObject = CreateJsonFromString(item.value);
+        if (jsonObject == nullptr) {
             ACCOUNT_LOGE("Error key: %{private}s", item.key.c_str());
             // it's a bad json, delete it
             {
@@ -66,7 +66,7 @@ void OsAccountDataStorage::SaveEntries(const std::vector<DbAdapterEntry> &allEnt
             }
             continue;
         }
-        osAccountInfo.FromJson(jsonObject);
+        FromJson(jsonObject.get(), osAccountInfo);
         infos.emplace(item.key, std::make_shared<OsAccountInfo>(osAccountInfo));
     }
     ACCOUNT_LOGD("End");

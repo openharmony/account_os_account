@@ -20,12 +20,13 @@
 #include <map>
 
 #include "account_error_no.h"
+#include "app_account_info.h"
+#include "os_account_info.h"
 #ifndef SQLITE_DLCLOSE_ENABLE
 #include "distributed_kv_data_manager.h"
 #else
 #include "database_adapter_loader.h"
 #endif // SQLITE_DLCLOSE_ENABLE
-#include "iaccount_info.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -54,7 +55,8 @@ public:
         std::map<std::string, std::shared_ptr<IAccountInfo>> &infos) = 0;
     ErrCode Close();
     int DeleteKvStore();
-    ErrCode GetAccountInfoById(const std::string id, IAccountInfo &iAccountInfo);
+    ErrCode GetAccountInfoById(const std::string id, OHOS::AccountSA::AppAccountInfo &accountInfo);
+    ErrCode GetAccountInfoById(const std::string id, OHOS::AccountSA::OsAccountInfo &accountInfo);
     bool IsKeyExists(const std::string keyStr);
     ErrCode PutValueToKvStore(const std::string &keyStr, const std::string &valueStr);
     ErrCode GetValueFromKvStore(const std::string &keyStr, std::string &valueStr);
@@ -93,7 +95,8 @@ public:
         std::map<std::string, std::shared_ptr<IAccountInfo>> &infos) = 0;
     ErrCode Close();
     int DeleteKvStore();
-    ErrCode GetAccountInfoById(const std::string id, IAccountInfo &iAccountInfo);
+    ErrCode GetAccountInfoById(const std::string id, OHOS::AccountSA::AppAccountInfo &accountInfo);
+    ErrCode GetAccountInfoById(const std::string id, OHOS::AccountSA::OsAccountInfo &accountInfo);
     bool IsKeyExists(const std::string keyStr);
     ErrCode PutValueToKvStore(const std::string &keyStr, const std::string &valueStr);
     ErrCode GetValueFromKvStore(const std::string &keyStr, std::string &valueStr);

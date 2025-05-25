@@ -84,6 +84,7 @@ ohos_shared_library("os_account_innerkits") {
   }
 
   external_deps = [
+    "cJSON:cjson",
     "hilog:libhilog",
     "samgr:samgr_proxy",
   ]

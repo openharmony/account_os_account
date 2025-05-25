@@ -41,14 +41,14 @@ bool OsAccountDatabaseOperator::InnerInit()
     if (!accountDataStorage_->IsKeyExists(Constants::ACCOUNT_LIST)) {
         ACCOUNT_LOGI("Database operator inner init, create account list.");
         std::vector<std::string> accountListVec;
-        Json accountList = Json {
-            {Constants::ACCOUNT_LIST, accountListVec},
-            {Constants::COUNT_ACCOUNT_NUM, 0},
-            {Constants::MAX_ALLOW_CREATE_ACCOUNT_ID, Constants::MAX_USER_ID},
-            {Constants::SERIAL_NUMBER_NUM, Constants::SERIAL_NUMBER_NUM_START},
-        };
+        auto accountList = CreateJson();
+        AddVectorStringToJson(accountList, Constants::ACCOUNT_LIST, accountListVec);
+        AddIntToJson(accountList, Constants::COUNT_ACCOUNT_NUM, 0);
+        AddIntToJson(accountList, Constants::MAX_ALLOW_CREATE_ACCOUNT_ID, Constants::MAX_USER_ID);
+        AddInt64ToJson(accountList, Constants::SERIAL_NUMBER_NUM, Constants::SERIAL_NUMBER_NUM_START);
+        std::string strValue = PackJsonToString(accountList);
         ErrCode errCode = accountDataStorage_->PutValueToKvStore(
-            Constants::ACCOUNT_LIST, accountList.dump());
+            Constants::ACCOUNT_LIST, strValue);
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("Initialize account list failed! errCode %{public}d.", errCode);
             return false;
@@ -171,24 +171,24 @@ ErrCode OsAccountDatabaseOperator::GetOsAccountFromDatabase(const std::string& s
 ErrCode OsAccountDatabaseOperator::GetCreatedOsAccountNumFromDatabase(
     const std::string& storeID, int &createdOsAccountNum)
 {
-    Json accountListJson;
+    CJsonUnique accountListJson = nullptr;
     ErrCode ret = GetAccountListFromStoreID(storeID, accountListJson);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("Get account list from database failed, storeID %{public}s.", storeID.c_str());
         return ret;
-    }
-    OHOS::AccountSA::GetDataByType<int>(accountListJson, accountListJson.end(),
-        Constants::COUNT_ACCOUNT_NUM, createdOsAccountNum, OHOS::AccountSA::JsonType::NUMBER);
+    };
+    GetDataByType<int>(accountListJson, Constants::COUNT_ACCOUNT_NUM, createdOsAccountNum);
     return ERR_OK;
 }
 
-void OsAccountDatabaseOperator::UpdateOsAccountIDListInDatabase(const Json &accountListJson)
+void OsAccountDatabaseOperator::UpdateOsAccountIDListInDatabase(const CJsonUnique &accountListJson)
 {
     if (!InnerInit()) {
         ACCOUNT_LOGE("InnerInit failed!");
         return;
     }
-    ErrCode errCode = accountDataStorage_->PutValueToKvStore(Constants::ACCOUNT_LIST, accountListJson.dump());
+    std::string strValue = PackJsonToString(accountListJson);
+    ErrCode errCode = accountDataStorage_->PutValueToKvStore(Constants::ACCOUNT_LIST, strValue);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Update os account id list to database failed! errCode %{public}d.", errCode);
         return;
@@ -199,36 +199,34 @@ void OsAccountDatabaseOperator::UpdateOsAccountIDListInDatabase(const Json &acco
 ErrCode OsAccountDatabaseOperator::GetSerialNumberFromDatabase(
     const std::string& storeID, int64_t &serialNumber)
 {
-    Json accountListJson;
+    CJsonUnique accountListJson = nullptr;
     ErrCode ret = GetAccountListFromStoreID(storeID, accountListJson);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("Get serial number from database failed! err %{public}d, storeID %{public}s.",
             ret, storeID.c_str());
         return ret;
     }
-    OHOS::AccountSA::GetDataByType<int>(accountListJson, accountListJson.end(),
-        Constants::SERIAL_NUMBER_NUM, serialNumber, OHOS::AccountSA::JsonType::NUMBER);
+    GetDataByType<int64_t>(accountListJson, Constants::SERIAL_NUMBER_NUM, serialNumber);
     return ERR_OK;
 }
 
 ErrCode OsAccountDatabaseOperator::GetMaxAllowCreateIdFromDatabase(const std::string& storeID, int &id)
 {
-    Json accountListJson;
+    CJsonUnique accountListJson = nullptr;
     ErrCode ret = GetAccountListFromStoreID(storeID, accountListJson);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("Get max allow created id from database failed. err %{public}d, storeID %{public}s.",
             ret, storeID.c_str());
         return ret;
     }
-    OHOS::AccountSA::GetDataByType<int>(accountListJson, accountListJson.end(),
-        Constants::MAX_ALLOW_CREATE_ACCOUNT_ID, id, OHOS::AccountSA::JsonType::NUMBER);
+    GetDataByType<int>(accountListJson, Constants::MAX_ALLOW_CREATE_ACCOUNT_ID, id);
+
     return ERR_OK;
 }
 
 ErrCode OsAccountDatabaseOperator::GetAccountListFromStoreID(
-    const std::string& storeID, Json &accountListJson)
+    const std::string& storeID, CJsonUnique &accountListJson)
 {
-    accountListJson.clear();
     if (!InnerInit()) {
         ACCOUNT_LOGE("InnerInit failed! storeID %{public}s!", storeID.c_str());
         return ERR_ACCOUNT_COMMON_NOT_INIT_ERROR;
@@ -252,8 +250,8 @@ ErrCode OsAccountDatabaseOperator::GetAccountListFromStoreID(
         ACCOUNT_LOGE("Get account list info from database failed! storeID %{public}s.", storeID.c_str());
         return errCode;
     }
-    accountListJson = Json::parse(accountList, nullptr, false);
-    if (accountListJson.is_discarded()) {
+    accountListJson = CreateJsonFromString(accountList);
+    if (accountListJson == nullptr) {
         ACCOUNT_LOGE("AccountListFile does not comply with the json format.");
         return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
     }

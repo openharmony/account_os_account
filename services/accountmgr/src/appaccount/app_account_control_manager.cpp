@@ -1096,7 +1096,6 @@ ErrCode AppAccountControlManager::OnPackageRemoved(
     RemoveAssociatedDataCacheByUid(uid);
     int32_t localId = uid / UID_TRANSFORM_DIVISOR;
     if (IsOsAccountRemoved(localId)) {
-        ACCOUNT_LOGI("Account %{public}d is removed", localId);
         return ERR_OK;
     }
     ErrCode errCode = RemoveAppAccountData(uid, bundleName, appIndex);
@@ -1608,15 +1607,10 @@ ErrCode AppAccountControlManager::SaveAuthorizedAccountIntoDataStorage(const std
         accessibleAccounts.emplace_back(accountId);
     }
 
-    auto accessibleAccountArray = Json::array();
-    std::transform(accessibleAccounts.begin(), accessibleAccounts.end(), std::back_inserter(accessibleAccountArray),
-        [](auto account) { return account; });
-
-    jsonObject[authorizedApp] = accessibleAccountArray;
-    try {
-        authorizedAccounts = jsonObject.dump();
-    } catch (Json::type_error& err) {
-        ACCOUNT_LOGE("failed to dump json object, reason: %{public}s", err.what());
+    AddVectorStringToJson(jsonObject, authorizedApp, accessibleAccounts);
+    authorizedAccounts = PackJsonToString(jsonObject);
+    if (authorizedAccounts.empty()) {
+        ACCOUNT_LOGE("Failed to dump json object.");
         return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
     }
 
@@ -1653,15 +1647,10 @@ ErrCode AppAccountControlManager::RemoveAuthorizedAccountFromDataStorage(const s
         accessibleAccounts.erase(it);
     }
 
-    auto accessibleAccountArray = Json::array();
-    std::transform(accessibleAccounts.begin(), accessibleAccounts.end(), std::back_inserter(accessibleAccountArray),
-        [](auto account) { return account; });
-
-    jsonObject[authorizedApp] = accessibleAccountArray;
-    try {
-        authorizedAccounts = jsonObject.dump();
-    } catch (Json::type_error& err) {
-        ACCOUNT_LOGE("failed to dump json object, reason: %{public}s", err.what());
+    AddVectorStringToJson(jsonObject, authorizedApp, accessibleAccounts);
+    authorizedAccounts = PackJsonToString(jsonObject);
+    if (authorizedAccounts.empty()) {
+        ACCOUNT_LOGE("Failed to dump json object.");
         return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
     }
 
