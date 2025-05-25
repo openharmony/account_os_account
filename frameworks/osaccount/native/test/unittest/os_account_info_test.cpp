@@ -591,7 +591,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_ToJson_FromJson_001, TestSize.Level1)
     EXPECT_EQ(1234567890, credentialid);
     uint64_t display = 0;
     GetUint64FromJson(jsonObject.get(), DISPLAY_ID, display);
-    EXPECT_EQ(14567890, credentialid);
+    EXPECT_EQ(14567890, display);
     EXPECT_FALSE(GetBoolFromJson(jsonObject, IS_FOREGROUND));
     EXPECT_TRUE(GetBoolFromJson(jsonObject, IS_LOGGED_IN));
     EXPECT_FALSE(GetBoolFromJson(jsonObject, IS_DATA_REMOVABLE));
