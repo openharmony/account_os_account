@@ -17,7 +17,7 @@
 #include "ability_info.h"
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
-#include "nlohmann/json.hpp"
+#include "json_utils.h"
 #include "securec.h"
 #include "string_ex.h"
 
@@ -52,33 +52,17 @@ inline void ClearAshmem(sptr<Ashmem> &optMem)
 
 bool BundleManagerAdapterProxy::ParseExtensionInfo(std::string infoStr, ExtensionAbilityInfo &extensionInfo)
 {
-    nlohmann::json jsonObject = nlohmann::json::parse(infoStr.c_str(), nullptr, false);
-    if (jsonObject.is_discarded()) {
+    auto jsonObject = CreateJsonFromString(infoStr);
+    if (jsonObject == nullptr) {
         ACCOUNT_LOGE("failed due to data is discarded");
         return false;
     }
-    if ((jsonObject.find(EXTENSION_NAME) != jsonObject.end()) && jsonObject.at(EXTENSION_NAME).is_string()) {
-        extensionInfo.name = jsonObject.at(EXTENSION_NAME).get<std::string>();
-    }
-    if ((jsonObject.find(EXTENSION_LABEL) != jsonObject.end()) && jsonObject.at(EXTENSION_LABEL).is_string()) {
-        extensionInfo.label = jsonObject.at(EXTENSION_LABEL).get<std::string>();
-    }
-    if ((jsonObject.find(EXTENSION_DESCRIPTION) != jsonObject.end()) &&
-        jsonObject.at(EXTENSION_DESCRIPTION).is_string()) {
-        extensionInfo.description = jsonObject.at(EXTENSION_DESCRIPTION).get<std::string>();
-    }
-    if ((jsonObject.find(EXTENSION_TYPE) != jsonObject.end()) &&
-        jsonObject.at(EXTENSION_TYPE).is_number()) {
-        extensionInfo.type = static_cast<ExtensionAbilityType>(jsonObject.at(EXTENSION_TYPE).get<int32_t>());
-    }
-    if ((jsonObject.find(EXTENSION_VISIBLE) != jsonObject.end()) &&
-        jsonObject.at(EXTENSION_VISIBLE).is_boolean()) {
-        extensionInfo.visible = jsonObject.at(EXTENSION_VISIBLE).get<bool>();
-    }
-    if ((jsonObject.find(EXTENSION_UID) != jsonObject.end()) &&
-        jsonObject.at(EXTENSION_UID).is_number()) {
-        extensionInfo.uid = jsonObject.at(EXTENSION_UID).get<int32_t>();
-    }
+    GetDataByType<std::string>(jsonObject, EXTENSION_NAME, extensionInfo.name);
+    GetDataByType<std::string>(jsonObject, EXTENSION_LABEL, extensionInfo.label);
+    GetDataByType<std::string>(jsonObject, EXTENSION_DESCRIPTION, extensionInfo.description);
+    GetDataByType<ExtensionAbilityType>(jsonObject, EXTENSION_TYPE, extensionInfo.type);
+    GetDataByType<bool>(jsonObject, EXTENSION_VISIBLE, extensionInfo.visible);
+    GetDataByType<int32_t>(jsonObject, EXTENSION_UID, extensionInfo.uid);
     return true;
 }
 
@@ -108,27 +92,27 @@ bool BundleManagerAdapterProxy::ParseStr(const char *buf, const int itemLen, int
 }
 
 bool BundleManagerAdapterProxy::ParseExtensionAbilityInfos(
-    nlohmann::json jsonObject, std::vector<ExtensionAbilityInfo> &extensionInfos)
+    CJsonUnique &jsonObject, std::vector<ExtensionAbilityInfo> &extensionInfos)
 {
-    if ((jsonObject.find(BUNDLE_INFO_EXTENSION_ABILITY_INFOS) == jsonObject.end()) ||
-        (!jsonObject.at(BUNDLE_INFO_EXTENSION_ABILITY_INFOS).is_array())) {
+    cJSON* arrayObj = GetObjFromJson(jsonObject, BUNDLE_INFO_EXTENSION_ABILITY_INFOS);
+    if (!IsArray(arrayObj) || GetItemNum(arrayObj) == 0) {
         return true;
     }
-    auto arrays = jsonObject.at(BUNDLE_INFO_EXTENSION_ABILITY_INFOS);
-    if (arrays.empty()) {
-        return true;
-    }
-    if (arrays.size() > Constants::MAX_JSON_ARRAY_LENGTH) {
+    if (GetItemNum(arrayObj) > Constants::MAX_JSON_ARRAY_LENGTH) {
         ACCOUNT_LOGE("array is oversize");
         return false;
     }
-    for (const auto &iter : arrays) {
-        if (!iter.is_object()) {
+
+    cJSON* item = nullptr;
+    cJSON_ArrayForEach(item, arrayObj) {
+        if (!IsObject(item)) {
             ACCOUNT_LOGE("array %{public}s exist error type info", BUNDLE_INFO_EXTENSION_ABILITY_INFOS);
             continue;
         }
+
         ExtensionAbilityInfo abilityInfo;
-        if (!ParseExtensionInfo(iter.dump(), abilityInfo)) {
+        std::string str = PackJsonToString(item);
+        if (!ParseExtensionInfo(str, abilityInfo)) {
             continue;
         }
         extensionInfos.emplace_back(abilityInfo);
@@ -139,37 +123,19 @@ bool BundleManagerAdapterProxy::ParseExtensionAbilityInfos(
 template<typename T>
 bool BundleManagerAdapterProxy::ParseInfo(std::string &infoStr, T &info)
 {
-    nlohmann::json jsonObject = nlohmann::json::parse(infoStr.c_str(), nullptr, false);
-    if (jsonObject.is_discarded()) {
+    auto jsonObject = CreateJsonFromString(infoStr);
+    if (jsonObject == nullptr) {
         ACCOUNT_LOGE("failed due to data is discarded");
         return false;
     }
 
-    if ((jsonObject.find(BUNDLE_INFO_NAME) != jsonObject.end()) && jsonObject.at(BUNDLE_INFO_NAME).is_string()) {
-        info.name = jsonObject.at(BUNDLE_INFO_NAME).get<std::string>();
-    }
-    if ((jsonObject.find(BUNDLE_INFO_LABEL) != jsonObject.end()) && jsonObject.at(BUNDLE_INFO_LABEL).is_string()) {
-        info.label = jsonObject.at(BUNDLE_INFO_LABEL).get<std::string>();
-    }
-    if ((jsonObject.find(BUNDLE_INFO_DESCRIPTION) != jsonObject.end()) &&
-        jsonObject.at(BUNDLE_INFO_DESCRIPTION).is_string()) {
-        info.description = jsonObject.at(BUNDLE_INFO_DESCRIPTION).get<std::string>();
-    }
-    if ((jsonObject.find(BUNDLE_INFO_SINGLETON) != jsonObject.end()) &&
-        jsonObject.at(BUNDLE_INFO_SINGLETON).is_boolean()) {
-        info.singleton = jsonObject.at(BUNDLE_INFO_SINGLETON).get<bool>();
-    }
-    if ((jsonObject.find(BUNDLE_INFO_IS_NATIVE_APP) != jsonObject.end()) &&
-        jsonObject.at(BUNDLE_INFO_IS_NATIVE_APP).is_boolean()) {
-        info.isNativeApp = jsonObject.at(BUNDLE_INFO_IS_NATIVE_APP).get<bool>();
-    }
-    if ((jsonObject.find(BUNDLE_INFO_APPID) != jsonObject.end()) && jsonObject.at(BUNDLE_INFO_APPID).is_string()) {
-        info.appId = jsonObject.at(BUNDLE_INFO_APPID).get<std::string>();
-    }
-    if ((jsonObject.find(BUNDLE_INFO_APP_INDEX) != jsonObject.end()) &&
-        jsonObject.at(BUNDLE_INFO_APP_INDEX).is_number()) {
-        info.appIndex = jsonObject.at(BUNDLE_INFO_APP_INDEX).get<int32_t>();
-    }
+    GetDataByType<std::string>(jsonObject, BUNDLE_INFO_NAME, info.name);
+    GetDataByType<std::string>(jsonObject, BUNDLE_INFO_LABEL, info.label);
+    GetDataByType<std::string>(jsonObject, BUNDLE_INFO_DESCRIPTION, info.description);
+    GetDataByType<bool>(jsonObject, BUNDLE_INFO_SINGLETON, info.singleton);
+    GetDataByType<bool>(jsonObject, BUNDLE_INFO_IS_NATIVE_APP, info.isNativeApp);
+    GetDataByType<std::string>(jsonObject, BUNDLE_INFO_APPID, info.appId);
+    GetDataByType<int32_t>(jsonObject, BUNDLE_INFO_APP_INDEX, info.appIndex);
     if (!ParseExtensionAbilityInfos(jsonObject, info.extensionInfos)) {
         return false;
     }

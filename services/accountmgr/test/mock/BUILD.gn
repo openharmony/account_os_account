@@ -27,6 +27,7 @@ config("accountmgr_config") {
     "${os_account_dfx_path}/hisysevent_adapter",
     "${os_account_dfx_path}/hitrace_adapter",
     "${app_account_innerkits_native_path}/include",
+    "${common_path}/json_utils/include",
   ]
 }
 

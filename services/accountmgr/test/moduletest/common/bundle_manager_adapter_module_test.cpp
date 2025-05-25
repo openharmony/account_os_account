@@ -15,7 +15,7 @@
 
 #include "ashmem.h"
 #include <gtest/gtest.h>
-#include "nlohmann/json.hpp"
+#include "json_utils.h"
 #include <sys/mman.h>
 
 #include "account_log_wrapper.h"
@@ -30,7 +30,6 @@
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
-using Json = nlohmann::json;
 
 class BundleManagerModuleTest : public testing::Test {
 public:
@@ -372,21 +371,21 @@ HWTEST_F(BundleManagerModuleTest, BundleManagerAdapter_ParseExtensionAbilityInfo
 
     std::vector<ExtensionAbilityInfo> extensionInfos;
     // test info with normal data.
-    Json testBundleInfo = Json {
-        {"name", "test_name"},
-        {"label", "test_label"},
-        {"description", "test_description"},
-        {"type", 0},
-        {"visible", true},
-        {"uid", 123},
-    };
-    Json arrays[] = {
-        testBundleInfo,
-    };
-    Json testBundleInfo1 = Json {
-        {"extensionAbilityInfo", arrays},
-    };
-    EXPECT_EQ(g_bundleManagerAdapterProxyRemoteNull->ParseExtensionAbilityInfos(testBundleInfo1, extensionInfos), true);
+    auto testBundleInfo = CreateJson();
+    AddStringToJson(testBundleInfo, "name", "test_name");
+    AddStringToJson(testBundleInfo, "label", "test_label");
+    AddStringToJson(testBundleInfo, "description", "test_description");
+    AddIntToJson(testBundleInfo, "type", 0);
+    AddBoolToJson(testBundleInfo, "visible", true);
+    AddIntToJson(testBundleInfo, "uid", 123);
+
+    auto arrays = CreateJsonArray();
+    AddObjToArray(arrays, testBundleInfo);
+    auto testBundleInfo1 = CreateJson();
+    AddObjToJson(testBundleInfo1, "extensionAbilityInfo", arrays);
+
+    EXPECT_EQ(g_bundleManagerAdapterProxyRemoteNull->ParseExtensionAbilityInfos(
+        testBundleInfo1, extensionInfos), true);
 }
 
 /**
@@ -401,29 +400,28 @@ HWTEST_F(BundleManagerModuleTest, BundleManagerAdapter_ParseExtensionAbilityInfo
 
     std::vector<ExtensionAbilityInfo> extensionInfos;
     // invalid value
-    Json testBundleInfo = Json {
-        {"name", 1},
-        {"label", 1},
-        {"description", 1},
-        {"type", "testtest"},
-        {"visible", "test"},
-        {"uid", "123"},
-    };
-    Json arrays1[] = {
-        testBundleInfo,
-    };
-    // invalid JSON
-    Json arrays2[] = {
-        "invalidjsonobject",
-    };
-    Json testBundleInfo1 = Json {
-        {"extensionAbilityInfo", arrays1},
-    };
-    Json testBundleInfo2 = Json {
-        {"extensionAbilityInfo", arrays2},
-    };
-    EXPECT_EQ(g_bundleManagerAdapterProxyRemoteNull->ParseExtensionAbilityInfos(testBundleInfo1, extensionInfos), true);
-    EXPECT_EQ(g_bundleManagerAdapterProxyRemoteNull->ParseExtensionAbilityInfos(testBundleInfo2, extensionInfos), true);
+    auto testBundleInfo = CreateJson();
+    AddIntToJson(testBundleInfo, "name", 1);
+    AddIntToJson(testBundleInfo, "label", 1);
+    AddIntToJson(testBundleInfo, "description", 1);
+    AddStringToJson(testBundleInfo, "type", "testtest");
+    AddStringToJson(testBundleInfo, "visible", "test");
+    AddStringToJson(testBundleInfo, "uid", "123");
+
+    auto arrays1 = CreateJsonArray();
+    AddObjToArray(arrays1, testBundleInfo);
+    auto arrays2 = CreateJsonArray();
+    AddStringToArray(arrays1, "invalidjsonobject");
+    auto testBundleInfo1 = CreateJson();
+    AddObjToJson(testBundleInfo1, "extensionAbilityInfo", arrays1);
+
+    auto testBundleInfo2 = CreateJson();
+    AddObjToJson(testBundleInfo2, "extensionAbilityInfo", arrays2);
+
+    EXPECT_EQ(g_bundleManagerAdapterProxyRemoteNull->ParseExtensionAbilityInfos(
+        testBundleInfo1, extensionInfos), true);
+    EXPECT_EQ(g_bundleManagerAdapterProxyRemoteNull->ParseExtensionAbilityInfos(
+        testBundleInfo2, extensionInfos), true);
 }
 
 /**
@@ -451,15 +449,15 @@ HWTEST_F(BundleManagerModuleTest, BundleManagerAdapter_ParseExtensionInfo_0200, 
     ASSERT_NE(g_bundleManagerAdapterProxyRemoteNull, nullptr);
     ExtensionAbilityInfo extensionInfo;
 
-    Json testBundleInfo = Json {
-        {"invalid_name", 1},
-        {"invalid_label", 1},
-        {"invalid_description", 1},
-        {"invalid_type", "testtest"},
-        {"invalid_visible", "test"},
-        {"invalid_uid", "123"},
-    };
-    std::string testStr = testBundleInfo.dump();
+    auto testBundleInfo = CreateJson();
+    AddIntToJson(testBundleInfo, "invalid_name", 1);
+    AddIntToJson(testBundleInfo, "invalid_label", 1);
+    AddIntToJson(testBundleInfo, "invalid_description", 1);
+    AddStringToJson(testBundleInfo, "invalid_type", "testtest");
+    AddStringToJson(testBundleInfo, "invalid_visible", "test");
+    AddStringToJson(testBundleInfo, "invalid_uid", "123");
+    std::string testStr = PackJsonToString(testBundleInfo);
+
     EXPECT_EQ(g_bundleManagerAdapterProxyRemoteNull->ParseExtensionInfo(testStr, extensionInfo), true);
 }
 

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include "os_account_info.h"
-
+#include "os_account_info_json_parser.h"
 #include <ctime>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
@@ -21,34 +21,6 @@
 
 namespace OHOS {
 namespace AccountSA {
-namespace {
-const char LOCAL_ID[] = "localId";
-const char LOCAL_NAME[] = "localName";
-const char SHORT_NAME[] = "shortName";
-const char TYPE[] = "type";
-const char CONSTRAINTS[] = "constraints";
-const char IS_OS_ACCOUNT_VERIFIED[] = "isVerified";
-const char PHOTO[] = "photo";
-const char CREATE_TIME[] = "createTime";
-const char LAST_LOGGED_IN_TIME[] = "lastLoginTime";
-const char SERIAL_NUMBER[] = "serialNumber";
-const char IS_ACTIVATED[] = "isActived";
-const char IS_ACCOUNT_COMPLETED[] = "isCreateCompleted";
-const char DOMAIN_INFO[] = "domainInfo";
-const char DOMAIN_NAME[] = "domain";
-const char DOMAIN_ACCOUNT_NAME[] = "accountName";
-const char DOMAIN_ACCOUNT_ID[] = "accountId";
-const char TO_BE_REMOVED[] = "toBeRemoved";
-const char CREDENTIAL_ID[] = "credentialId";
-const char DISPLAY_ID[] = "displayId";
-const char IS_FOREGROUND[] = "isForeground";
-const char IS_LOGGED_IN[] = "isLoggedIn";
-const char IS_DATA_REMOVABLE[] = "isDataRemovable";
-const char CREATOR_TYPE[] = "creatorType";
-const char DOMAIN_ACCOUNT_STATUS[] = "domainAccountStatus";
-const char DOMAIN_ACCOUNT_CONFIG[] = "domainServerConfigId";
-constexpr int32_t ALLOWED_HAP_LIST_MAX_SIZE = 1000;
-}  // namespace
 
 OsAccountInfo::OsAccountInfo()
 {}
@@ -251,40 +223,6 @@ void OsAccountInfo::SetLastLoginTime(const int64_t lastLoginTime)
     lastLoginTime_ = lastLoginTime;
 }
 
-Json OsAccountInfo::ToJson() const
-{
-    Json jsonObject = Json {
-        {LOCAL_ID, localId_},
-        {LOCAL_NAME, localName_},
-        {SHORT_NAME, shortName_},
-        {TYPE, type_},
-        {CONSTRAINTS, constraints_},
-        {IS_OS_ACCOUNT_VERIFIED, isVerified_},
-        {PHOTO, photo_},
-        {CREATE_TIME, createTime_},
-        {LAST_LOGGED_IN_TIME, lastLoginTime_},
-        {SERIAL_NUMBER, serialNumber_},
-        {IS_ACTIVATED, isActivated_},
-        {IS_ACCOUNT_COMPLETED, isCreateCompleted_},
-        {TO_BE_REMOVED, toBeRemoved_},
-        {CREDENTIAL_ID, credentialId_},
-        {DISPLAY_ID, displayId_},
-        {IS_FOREGROUND, isForeground_},
-        {IS_LOGGED_IN, isLoggedIn_},
-        {IS_DATA_REMOVABLE, isDataRemovable_},
-        {CREATOR_TYPE, creatorType_},
-        {DOMAIN_INFO, {
-            {DOMAIN_NAME, domainInfo_.domain_},
-            {DOMAIN_ACCOUNT_NAME, domainInfo_.accountName_},
-            {DOMAIN_ACCOUNT_ID, domainInfo_.accountId_},
-            {DOMAIN_ACCOUNT_STATUS, domainInfo_.status_},
-            {DOMAIN_ACCOUNT_CONFIG, domainInfo_.serverConfigId_},
-        },
-        }
-    };
-    return jsonObject;
-}
-
 OsAccountInfo *OsAccountInfo::Unmarshalling(Parcel &parcel)
 {
     OsAccountInfo *osAccountInfo = new (std::nothrow) OsAccountInfo();
@@ -298,74 +236,6 @@ OsAccountInfo *OsAccountInfo::Unmarshalling(Parcel &parcel)
     return osAccountInfo;
 }
 
-void OsAccountInfo::GetDomainInfoFromJson(const Json &jsonObject)
-{
-    const auto &jsonObjectEnd = jsonObject.end();
-    Json typeJson;
-    OHOS::AccountSA::GetDataByType<Json>(
-        jsonObject, jsonObjectEnd, DOMAIN_INFO, typeJson, OHOS::AccountSA::JsonType::OBJECT);
-    OHOS::AccountSA::GetDataByType<std::string>(
-        typeJson, typeJson.end(), DOMAIN_NAME, domainInfo_.domain_, OHOS::AccountSA::JsonType::STRING);
-    OHOS::AccountSA::GetDataByType<std::string>(
-        typeJson, typeJson.end(), DOMAIN_ACCOUNT_NAME, domainInfo_.accountName_, OHOS::AccountSA::JsonType::STRING);
-    OHOS::AccountSA::GetDataByType<std::string>(
-        typeJson, typeJson.end(), DOMAIN_ACCOUNT_ID, domainInfo_.accountId_, OHOS::AccountSA::JsonType::STRING);
-    OHOS::AccountSA::GetDataByType<DomainAccountStatus>(
-        typeJson, typeJson.end(), DOMAIN_ACCOUNT_STATUS, domainInfo_.status_, OHOS::AccountSA::JsonType::NUMBER);
-    OHOS::AccountSA::GetDataByType<std::string>(
-        typeJson, typeJson.end(), DOMAIN_ACCOUNT_CONFIG, domainInfo_.serverConfigId_,
-        OHOS::AccountSA::JsonType::STRING);
-}
-
-bool OsAccountInfo::FromJson(const Json &jsonObject)
-{
-    const auto &jsonObjectEnd = jsonObject.end();
-    bool parseSuccess = OHOS::AccountSA::GetDataByType<int>(
-        jsonObject, jsonObjectEnd, LOCAL_ID, localId_, OHOS::AccountSA::JsonType::NUMBER);
-    OHOS::AccountSA::GetDataByType<std::string>(
-        jsonObject, jsonObjectEnd, LOCAL_NAME, localName_, OHOS::AccountSA::JsonType::STRING);
-    OHOS::AccountSA::GetDataByType<std::string>(
-        jsonObject, jsonObjectEnd, SHORT_NAME, shortName_, OHOS::AccountSA::JsonType::STRING);
-    OHOS::AccountSA::GetDataByType<OsAccountType>(
-        jsonObject, jsonObjectEnd, TYPE, type_, OHOS::AccountSA::JsonType::NUMBER);
-    OHOS::AccountSA::GetDataByType<std::vector<std::string>>(
-        jsonObject, jsonObjectEnd, CONSTRAINTS, constraints_, OHOS::AccountSA::JsonType::ARRAY);
-    OHOS::AccountSA::GetDataByType<bool>(
-        jsonObject, jsonObjectEnd, IS_OS_ACCOUNT_VERIFIED, isVerified_, OHOS::AccountSA::JsonType::BOOLEAN);
-    OHOS::AccountSA::GetDataByType<std::string>(
-        jsonObject, jsonObjectEnd, PHOTO, photo_, OHOS::AccountSA::JsonType::STRING);
-    OHOS::AccountSA::GetDataByType<int64_t>(
-        jsonObject, jsonObjectEnd, CREATE_TIME, createTime_, OHOS::AccountSA::JsonType::NUMBER);
-    OHOS::AccountSA::GetDataByType<int64_t>(
-        jsonObject, jsonObjectEnd, LAST_LOGGED_IN_TIME, lastLoginTime_, OHOS::AccountSA::JsonType::NUMBER);
-    OHOS::AccountSA::GetDataByType<int64_t>(
-        jsonObject, jsonObjectEnd, SERIAL_NUMBER, serialNumber_, OHOS::AccountSA::JsonType::NUMBER);
-    OHOS::AccountSA::GetDataByType<bool>(
-        jsonObject, jsonObjectEnd, IS_ACTIVATED, isActivated_, OHOS::AccountSA::JsonType::BOOLEAN);
-    parseSuccess = parseSuccess && OHOS::AccountSA::GetDataByType<bool>(
-        jsonObject, jsonObjectEnd, IS_ACCOUNT_COMPLETED, isCreateCompleted_, OHOS::AccountSA::JsonType::BOOLEAN);
-    OHOS::AccountSA::GetDataByType<bool>(
-        jsonObject, jsonObjectEnd, TO_BE_REMOVED, toBeRemoved_, OHOS::AccountSA::JsonType::BOOLEAN);
-    OHOS::AccountSA::GetDataByType<uint64_t>(
-        jsonObject, jsonObjectEnd, CREDENTIAL_ID, credentialId_, OHOS::AccountSA::JsonType::NUMBER);
-    OHOS::AccountSA::GetDataByType<uint64_t>(
-        jsonObject, jsonObjectEnd, DISPLAY_ID, displayId_, OHOS::AccountSA::JsonType::NUMBER);
-    OHOS::AccountSA::GetDataByType<bool>(
-        jsonObject, jsonObjectEnd, IS_FOREGROUND, isForeground_, OHOS::AccountSA::JsonType::BOOLEAN);
-    OHOS::AccountSA::GetDataByType<bool>(
-        jsonObject, jsonObjectEnd, IS_LOGGED_IN, isLoggedIn_, OHOS::AccountSA::JsonType::BOOLEAN);
-    OHOS::AccountSA::GetDataByType<bool>(
-        jsonObject, jsonObjectEnd, IS_DATA_REMOVABLE, isDataRemovable_, OHOS::AccountSA::JsonType::BOOLEAN);
-    OHOS::AccountSA::GetDataByType<int32_t>(
-        jsonObject, jsonObjectEnd, CREATOR_TYPE, creatorType_, OHOS::AccountSA::JsonType::NUMBER);
-
-    GetDomainInfoFromJson(jsonObject);
-    if (!parseSuccess) {
-        ACCOUNT_LOGE("parse from json failed");
-    }
-    return parseSuccess;
-}
-
 bool OsAccountInfo::Marshalling(Parcel &parcel) const
 {
     return parcel.WriteString(ToString());
@@ -374,22 +244,20 @@ bool OsAccountInfo::Marshalling(Parcel &parcel) const
 bool OsAccountInfo::ReadFromParcel(Parcel &parcel)
 {
     std::string jsonString = parcel.ReadString();
-    nlohmann::json jsonObject = nlohmann::json::parse(jsonString, nullptr, false);
-    if (jsonObject.is_discarded()) {
-        ACCOUNT_LOGE("jsonObject is discarded");
+    auto jsonObject = CreateJsonFromString(jsonString);
+    if (jsonObject == nullptr) {
+        ACCOUNT_LOGE("jsonObject is_discarded");
     }
-    FromJson(jsonObject);
+    FromJson(jsonObject.get(), *this);
     return true;
 }
 
 std::string OsAccountInfo::ToString() const
 {
-    auto jsonObject = ToJson();
-    std::string jsonString;
-    try {
-        jsonString = jsonObject.dump();
-    } catch (Json::type_error& err) {
-        ACCOUNT_LOGE("failed to dump json object, reason: %{public}s", err.what());
+    auto jsonObject = ToJson(*this);
+    std::string jsonString = PackJsonToString(jsonObject);
+    if (jsonString.empty()) {
+        ACCOUNT_LOGE("failed to dump json object");
     }
     return jsonString;
 }

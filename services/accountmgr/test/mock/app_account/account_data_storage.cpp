@@ -17,6 +17,8 @@
 #include <unistd.h>
 #include "account_log_wrapper.h"
 #include "account_hisysevent_adapter.h"
+#include "app_account_info_json_parser.h"
+#include "json_utils.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -110,12 +112,6 @@ ErrCode AccountDataStorage::Rollback()
     return ERR_OK;
 }
 
-struct OAuthTokenInfo {
-    std::string authType;
-    std::string token;
-    std::set<std::string> authList;
-    bool status = true;
-};
 class AccountInfoMOCK : public IAccountInfo {
 private:
     std::string name;
@@ -125,54 +121,56 @@ public:
     AccountInfoMOCK(const std::string &name, const std::string &key) : name(name), primeKey(key)
     {}
 
-    Json ToJson() const override
+    CJsonUnique ToJson() const
     {
         ACCOUNT_LOGI("mock enter");
-        auto tokenArray = Json::array();
+        auto tokenArray = CreateJsonArray();
         for (auto it = oauthTokens_.begin(); it != oauthTokens_.end(); ++it) {
             if (!it->second.status && it->second.authList.empty()) {
                 continue;
             }
-            auto tokenObject = Json {
-                {"authType", it->first},
-                {"oauthToken", it->second.token},
-                {"status", it->second.status},
-                {"authList", it->second.authList}
-            };
-            tokenArray.push_back(tokenObject);
+            auto tokenObject = CreateJson();
+            AddStringToJson(tokenObject, "authType", it->first);
+            AddStringToJson(tokenObject, "oauthToken", it->second.token);
+            AddBoolToJson(tokenObject, "status", it->second.status);
+            AddSetStringToJson(tokenObject, "authList", it->second.authList);
+            AddObjToArray(tokenArray, tokenObject);
         }
-        auto jsonObject = Json {
-            {"owner", owner_},
-            {"name", name_},
-            {"alias", alias_},
-            {"extraInfo", extraInfo_},
-            {"authorizedApps", authorizedApps_},
-            {"syncEnable", syncEnable_},
-            {"associatedData", associatedData_},
-            {"accountCredential", accountCredential_},
-            {"tokenInfos", tokenArray},
-        };
+        auto jsonObject = CreateJson();
+        AddStringToJson(jsonObject, "owner", owner_);
+        AddStringToJson(jsonObject, "name", name_);
+        AddStringToJson(jsonObject, "alias", alias_);
+        AddStringToJson(jsonObject, "extraInfo", extraInfo_);
+        AddSetStringToJson(jsonObject, "authorizedApps", authorizedApps_);
+        AddBoolToJson(jsonObject, "syncEnable", syncEnable_);
+        AddStringToJson(jsonObject, "associatedData", associatedData_);
+        AddStringToJson(jsonObject, "accountCredential", accountCredential_);
+        AddObjToJson(jsonObject, "tokenInfos", tokenArray);
         return jsonObject;
     }
 
-    bool FromJson(const Json &jsonObject) override
+    bool FromJson(CJsonUnique &jsonObject) 
     {
         ACCOUNT_LOGI("mock enter");
-        name = jsonObject["name"];
-        primeKey = jsonObject["primeKey"];
+        name = GetStringFromJson(jsonObject, "name");
+        primeKey = GetStringFromJson(jsonObject, "primeKey");
         return true;
     }
-  
+
     std::string ToString() const override
     {
         ACCOUNT_LOGI("mock enter");
         auto jsonObject = ToJson();
-        try {
-            return jsonObject.dump();
-        } catch (Json::type_error& err) {
-            ACCOUNT_LOGE("failed to dump json object, reason: %{public}s", err.what());
+        if (jsonObject == nullptr) {
+            ACCOUNT_LOGE("failed to create json object");
             return "";
         }
+        std::string jsonString = PackJsonToString(jsonObject);
+        if (jsonString.empty()) {
+            ACCOUNT_LOGE("failed to dump json object");
+            return "";
+        }
+        return jsonString;
     }
 
     std::string GetPrimeKey() const override
@@ -205,15 +203,15 @@ public:
     std::map<std::string, OAuthTokenInfo> oauthTokens_;
 };
 
-ErrCode AccountDataStorage::GetAccountInfoById(const std::string id, IAccountInfo &iAccountInfo)
+ErrCode AccountDataStorage::GetAccountInfoById(const std::string id, AppAccountInfo &accountInfo)
 {
     ACCOUNT_LOGI("mock enter,id = %{public}s", id.c_str());
     if (id != "com.example.ownermax#0#name#") {
         AccountInfoMOCK appAccountInfo("name", "key");
         appAccountInfo.SetOAuthToken("test_authType1", "test_authToken1");
 
-        Json mkckJson = appAccountInfo.ToJson();
-        iAccountInfo.FromJson(mkckJson);
+        auto mkckJson = appAccountInfo.ToJson();
+        FromJson(mkckJson.get(), accountInfo);
         return ERR_OK;
     } else {
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;

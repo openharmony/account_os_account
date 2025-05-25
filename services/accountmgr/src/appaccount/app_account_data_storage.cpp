@@ -14,11 +14,11 @@
  */
 
 #include "app_account_data_storage.h"
-
 #include <sys/stat.h>
 #include "app_account_constants.h"
 #include "account_file_operator.h"
 #include "account_log_wrapper.h"
+#include "app_account_info_json_parser.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -40,20 +40,20 @@ AppAccountDataStorage::AppAccountDataStorage(const std::string &storeId, const D
     }
 }
 
-Json AppAccountDataStorage::GetAccessibleAccountsFromAuthorizedAccounts(const std::string &authorizedAccounts,
+CJsonUnique AppAccountDataStorage::GetAccessibleAccountsFromAuthorizedAccounts(const std::string &authorizedAccounts,
     const std::string &authorizedApp, std::vector<std::string> &accessibleAccounts)
 {
     accessibleAccounts.clear();
 
-    auto jsonObject = Json::parse(authorizedAccounts, nullptr, false);
-    if (jsonObject.is_discarded()) {
-        jsonObject = Json::object();
+    auto jsonObject = CreateJsonFromString(authorizedAccounts);
+    if (jsonObject == nullptr) {
+        jsonObject = CreateJson();
     } else {
-        auto value = jsonObject.find(authorizedApp);
-        if (value == jsonObject.end()) {
-            jsonObject.emplace(authorizedApp, Json::array());
-        } else if (value->is_array()) {
-            accessibleAccounts = jsonObject[authorizedApp].get<std::vector<std::string>>();
+        if (!IsKeyExist(jsonObject, authorizedApp)) {
+            auto array = CreateJsonArray();
+            AddObjToJson(jsonObject, authorizedApp, array);
+        } else {
+            accessibleAccounts = GetVectorStringFromJson(jsonObject, authorizedApp);
         }
     }
 
@@ -121,8 +121,8 @@ void AppAccountDataStorage::SaveEntries(const std::vector<OHOS::DistributedKv::E
     std::map<std::string, std::shared_ptr<IAccountInfo>> &infos)
 {
     for (auto const &item : allEntries) {
-        Json jsonObject = Json::parse(item.value.ToString(), nullptr, false);
-        if (jsonObject.is_discarded()) {
+        auto jsonObject = CreateJsonFromString(item.value.ToString());
+        if (jsonObject == nullptr) {
             ACCOUNT_LOGE("error key: %{private}s", item.key.ToString().c_str());
             // it's a bad json, delete it
             {
@@ -133,7 +133,7 @@ void AppAccountDataStorage::SaveEntries(const std::vector<OHOS::DistributedKv::E
         }
 
         AppAccountInfo appAccountInfo;
-        appAccountInfo.FromJson(jsonObject);
+        FromJson(jsonObject.get(), appAccountInfo);
         infos.emplace(item.key.ToString(), std::make_shared<AppAccountInfo>(appAccountInfo));
     }
 }
@@ -142,8 +142,8 @@ void AppAccountDataStorage::SaveEntries(const std::vector<DbAdapterEntry> &allEn
     std::map<std::string, std::shared_ptr<IAccountInfo>> &infos)
 {
     for (auto const &item : allEntries) {
-        Json jsonObject = Json::parse(item.value, nullptr, false);
-        if (jsonObject.is_discarded()) {
+        auto jsonObject = CreateJsonFromString(item.value);
+        if (jsonObject == nullptr) {
             ACCOUNT_LOGE("error key: %{private}s", item.key.c_str());
             // it's a bad json, delete it
             {
@@ -154,7 +154,7 @@ void AppAccountDataStorage::SaveEntries(const std::vector<DbAdapterEntry> &allEn
         }
 
         AppAccountInfo appAccountInfo;
-        appAccountInfo.FromJson(jsonObject);
+        FromJson(jsonObject.get(), appAccountInfo);
         infos.emplace(item.key, std::make_shared<AppAccountInfo>(appAccountInfo));
     }
 }

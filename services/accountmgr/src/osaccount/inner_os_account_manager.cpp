@@ -1056,36 +1056,34 @@ ErrCode IInnerOsAccountManager::ValidateOsAccount(const OsAccountInfo &osAccount
     if (osAccountInfo.GetType() == OsAccountType::PRIVATE) {
         return ERR_OK;
     }
-    Json accountIndexJson;
+    auto accountIndexJson = CreateJson();
     ErrCode result = osAccountControl_->GetAccountIndexFromFile(accountIndexJson);
     if (result != ERR_OK) {
         return result;
     }
     int32_t id = osAccountInfo.GetLocalId();
-    for (const auto& element : accountIndexJson.items()) {
+    cJSON *element = nullptr;
+    cJSON_ArrayForEach(element, accountIndexJson) {
         int32_t localId = 0;
-        if (!StrToInt(element.key(), localId)) {
+        std::string key(element->string);
+        if (!StrToInt(key, localId)) {
             ACCOUNT_LOGE("Convert localId failed");
             continue;
         }
-        auto value = element.value();
-        auto localNameIter = value.find(Constants::LOCAL_NAME);
-        if (localNameIter != value.end()) {
-            std::string localName = localNameIter->get<std::string>();
-            if ((osAccountInfo.GetLocalName() == localName) && (localId != id)
-                && !IsToBeRemoved(localId)) {
+        cJSON *nameObj = GetObjFromJson(accountIndexJson, key);
+        std::string localName;
+        if (GetStringFromJson(nameObj, Constants::LOCAL_NAME, localName) &&
+            (osAccountInfo.GetLocalName() == localName) && (localId != id) && !IsToBeRemoved(localId)) {
                 return ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED;
-            }
         }
-        if (!osAccountInfo.GetShortName().empty() && value.contains(Constants::SHORT_NAME)) {
-            std::string shortName = value[Constants::SHORT_NAME].get<std::string>();
-            if ((osAccountInfo.GetShortName() == shortName) && (localId != id)
-                && !IsToBeRemoved(localId)) {
-                return ERR_ACCOUNT_COMMON_SHORT_NAME_HAD_EXISTED;
+        if (!osAccountInfo.GetShortName().empty()) {
+            std::string shortName;
+            if (GetStringFromJson(nameObj, Constants::SHORT_NAME, shortName) &&
+                (osAccountInfo.GetShortName() == shortName) && (localId != id) && !IsToBeRemoved(localId)) {
+                    return ERR_ACCOUNT_COMMON_SHORT_NAME_HAD_EXISTED;
             }
         }
     }
-
     return ERR_OK;
 }
 

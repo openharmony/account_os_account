@@ -65,6 +65,7 @@ ohos_shared_library("app_account_service_core") {
 
   external_deps = [
     "ability_base:want",
+    "cJSON:cjson",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",

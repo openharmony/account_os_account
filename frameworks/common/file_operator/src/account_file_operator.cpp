@@ -17,7 +17,6 @@
 #include <cstdio>
 #include <fcntl.h>
 #include <fstream>
-#include <nlohmann/json.hpp>
 #include <shared_mutex>
 #include <sstream>
 #include <string>
@@ -31,6 +30,7 @@
 #include "account_log_wrapper.h"
 #include "directory_ex.h"
 #include "account_hisysevent_adapter.h"
+#include "json_utils.h"
 namespace OHOS {
 namespace AccountSA {
 namespace {
@@ -641,8 +641,8 @@ bool AccountFileOperator::IsJsonFormat(const std::string &path)
         return false;
     }
 
-    nlohmann::json jsonData = nlohmann::json::parse(content, nullptr, false);
-    if (jsonData.is_discarded() || !jsonData.is_structured()) {
+    auto jsonData = CreateJsonFromString(content);
+    if (jsonData == nullptr || !IsStructured(jsonData)) {
         ACCOUNT_LOGE("File %{public}s is invalid json format, size: %{public}zu", path.c_str(), content.size());
         return false;
     }

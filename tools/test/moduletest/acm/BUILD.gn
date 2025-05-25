@@ -91,6 +91,7 @@ ohos_moduletest("account_command_module_mock_test") {
     "access_token:libtokensetproc_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "config_policy:configpolicy_util",
     "googletest:gmock_main",

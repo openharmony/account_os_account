@@ -15,7 +15,7 @@
 #include "account_info_report.h"
 #include "account_log_wrapper.h"
 #include "iinner_os_account_manager.h"
-#include "nlohmann/json.hpp"
+#include "json_utils.h"
 #ifdef SECURITY_GUARDE_ENABLE
 #include "sg_collect_client.h"
 #include "time_service_client.h"
@@ -25,23 +25,25 @@ namespace OHOS {
 namespace AccountSA {
 std::string TransformIntoJson(const std::string &user, int32_t id, ReportEvent event, int32_t result)
 {
-    nlohmann::json jsonResult;
+    auto jsonResult = CreateJson();
 #ifdef SECURITY_GUARDE_ENABLE
-    jsonResult["type"] = 0; // default
-    jsonResult["subType"] = static_cast<int32_t>(event);
-    nlohmann::json userJson = nlohmann::json {
-        {"userName", user},
-        {"userId", id},
-    };
-    jsonResult["caller"] = userJson;
-    jsonResult["bootTime"] = std::to_string(MiscServices::TimeServiceClient::GetInstance()->GetBootTimeNs());
-    jsonResult["wallTime"] = std::to_string(MiscServices::TimeServiceClient::GetInstance()->GetWallTimeNs());
-    jsonResult["outcome"] = (result == 0) ? "Success" : "Fail";
-    jsonResult["sourceInfo"] = "";
-    jsonResult["targetInfo"] = "";
-    jsonResult["extra"] = "";
+    AddIntToJson(jsonResult, "type", 0);
+    AddIntToJson(jsonResult, "subType", static_cast<int32_t>(event));
+    auto userJson = CreateJson();
+    AddStringToJson(userJson, "userName", user);
+    AddIntToJson(userJson, "userId", id);
+
+    AddObjToJson(jsonResult, "caller", userJson);
+    AddStringToJson(jsonResult, "bootTime",
+        std::to_string(MiscServices::TimeServiceClient::GetInstance()->GetBootTimeNs()));
+    AddStringToJson(jsonResult, "wallTime",
+        std::to_string(MiscServices::TimeServiceClient::GetInstance()->GetWallTimeNs()));
+    AddStringToJson(jsonResult, "outcome", (result == 0) ? "Success" : "Fail");
+    AddStringToJson(jsonResult, "sourceInfo", "");
+    AddStringToJson(jsonResult, "targetInfo", "");
+    AddStringToJson(jsonResult, "extra", "");
 #endif
-    return jsonResult.dump();
+    return PackJsonToString(jsonResult);
 }
 
 void AccountInfoReport::ReportSecurityInfo(const std::string &user, int32_t id, ReportEvent event, int32_t result)

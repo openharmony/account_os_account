@@ -56,6 +56,7 @@ ohos_shared_library("cj_osaccount_ffi") {
 
   external_deps = [
     "ability_base:want",
+    "cJSON:cjson",
     "c_utils:utils",
     "hilog:libhilog",
     "napi:cj_bind_ffi",

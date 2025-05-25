@@ -19,6 +19,8 @@
 #include <memory>
 #include "account_data_storage.h"
 #include "ios_account_control.h"
+#include "json_utils.h"
+#include "os_account_info.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -28,7 +30,7 @@ public:
     virtual ~OsAccountDatabaseOperator();
 
     // update infos to database
-    void UpdateOsAccountIDListInDatabase(const Json &accountListJson);
+    void UpdateOsAccountIDListInDatabase(const CJsonUnique &accountListJson);
     void UpdateOsAccountInDatabase(const OsAccountInfo &osAccountInfo);
     void InsertOsAccountIntoDataBase(const OsAccountInfo &osAccountInfo);
     void DelOsAccountFromDatabase(const int id);
@@ -38,7 +40,7 @@ public:
     ErrCode GetMaxAllowCreateIdFromDatabase(const std::string &storeID, int &id);
     ErrCode GetOsAccountFromDatabase(const std::string &storeID, const int id, OsAccountInfo &osAccountInfo);
     ErrCode GetOsAccountListFromDatabase(const std::string &storeID, std::vector<OsAccountInfo> &osAccountList);
-    ErrCode GetAccountListFromStoreID(const std::string &storeID, Json &accountListJson);
+    ErrCode GetAccountListFromStoreID(const std::string &storeID, CJsonUnique &accountListJson);
 
 private:
     bool InnerInit();

@@ -18,7 +18,7 @@
 
 #include "account_data_storage.h"
 #include "app_account_info.h"
-
+#include "json_utils.h"
 namespace OHOS {
 namespace AccountSA {
 class AppAccountDataStorage : public AccountDataStorage {
@@ -31,7 +31,7 @@ public:
 #endif // SQLITE_DLCLOSE_ENABLE
     ~AppAccountDataStorage() override = default;
 
-    Json GetAccessibleAccountsFromAuthorizedAccounts(const std::string &authorizedAccounts,
+    CJsonUnique GetAccessibleAccountsFromAuthorizedAccounts(const std::string &authorizedAccounts,
         const std::string &authorizedApp, std::vector<std::string> &accessibleAccounts);
     ErrCode GetAccessibleAccountsFromDataStorage(
         const std::string &authorizedApp, std::vector<std::string> &accessibleAccounts);

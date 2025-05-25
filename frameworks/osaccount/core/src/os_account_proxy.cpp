@@ -14,6 +14,7 @@
  */
 #include "os_account_proxy.h"
 #include "account_log_wrapper.h"
+#include "os_account_info_json_parser.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -1473,12 +1474,12 @@ bool OsAccountProxy::ReadOsAccountInfo(MessageParcel &data, OsAccountInfo &accou
     }
     const char *accountData = reinterpret_cast<const char *>(readRawData);
     std::string accountJson = std::string(accountData, accountSize - 1);
-    nlohmann::json jsonObject = nlohmann::json::parse(accountJson, nullptr, false);
-    if (jsonObject.is_discarded()) {
+    auto jsonObject = CreateJsonFromString(accountJson);
+    if (jsonObject == nullptr) {
         ACCOUNT_LOGE("AccountJson is discarded");
         return false;
     }
-    accountInfo.FromJson(jsonObject);
+    FromJson(jsonObject.get(), accountInfo);
 
     return true;
 }
@@ -1502,16 +1503,24 @@ bool OsAccountProxy::ReadOsAccountInfoList(MessageParcel &data, std::vector<OsAc
     }
     const char *accountsStrData = reinterpret_cast<const char *>(readRawData);
     std::string accountsStr = std::string(accountsStrData, accountsStrLength - 1);
-    nlohmann::json accounts = nlohmann::json::parse(accountsStr, nullptr, false);
-    if (accounts.is_discarded()) {
+    auto accounts = CreateJsonFromString(accountsStr);
+    if (accounts == nullptr) {
         ACCOUNT_LOGE("JsonArray is discarded");
         return false;
     }
 
-    for (const auto &json : accounts) {
-        OsAccountInfo accountInfo;
-        accountInfo.FromJson(json);
-        infoList.emplace_back(accountInfo);
+    if (!IsArray(accounts)) {
+        ACCOUNT_LOGE("accounts is not a JSON array");
+        return false;
+    }
+    int arraySize = GetItemNum(accounts);
+    for (int i = 0; i < arraySize; ++i) {
+        cJSON *item = GetItemFromArray(accounts, i);
+        if (item != nullptr) {
+            OsAccountInfo accountInfo;
+            FromJson(item, accountInfo);
+            infoList.emplace_back(accountInfo);
+        }
     }
 
     return true;

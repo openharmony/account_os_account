@@ -102,6 +102,7 @@ ohos_moduletest("bundle_manager_adapter_module_test") {
     "ability_runtime:wantagent_innerkits",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gmock_main",
     "googletest:gtest_main",

@@ -40,6 +40,7 @@
         "ability_runtime",
         "access_token",
         "asset",
+        "cJSON",
         "bundle_framework",
         "common_event_service",
         "c_utils",
@@ -63,7 +64,6 @@
         "user_auth_framework",
         "theme_mgr",
         "openssl",
-        "json",
         "config_policy"
       ],
       "third_party": []

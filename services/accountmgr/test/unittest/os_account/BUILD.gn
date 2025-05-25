@@ -60,12 +60,12 @@ ohos_unittest("OsAccountControlFileManagerTest") {
   ]
 
   external_deps = [
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
     "init:libbegetutil",
-    "json:nlohmann_json_static",
     "kv_store:distributeddata_inner",
   ]
 
@@ -108,11 +108,11 @@ ohos_unittest("OsAccountFileManagerMultipleThreadTest") {
   ]
 
   external_deps = [
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
-    "json:nlohmann_json_static",
     "kv_store:distributeddata_inner",
   ]
   part_name = "os_account"
@@ -129,6 +129,7 @@ config("os_account_data_storage_test_config") {
     "${innerkits_common}/include",
     "${innerkits_path}/include",
     "${services_path}/accountmgr/test/unittest/os_account/mock",
+    "${os_account_path}/frameworks/appaccount/native/include",
   ]
 }
 
@@ -156,11 +157,11 @@ ohos_unittest("OsAccountDataStorageTest") {
   ]
 
   external_deps = [
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
-    "json:nlohmann_json_static",
     "kv_store:distributeddata_inner",
   ]
   part_name = "os_account"
@@ -203,13 +204,13 @@ ohos_unittest("os_account_domain_account_callback_test") {
     "ability_base:want",
     "ability_runtime:runtime",
     "access_token:libaccesstoken_sdk",
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_single",
-    "json:nlohmann_json_static",
     "kv_store:distributeddata_inner",
   ]
 
@@ -266,12 +267,12 @@ ohos_unittest("OsAccountSubscribeDeathRecipientTest") {
   external_deps = [
     "ability_base:want",
     "ability_runtime:wantagent_innerkits",
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
-    "json:nlohmann_json_static",
     "samgr:samgr_proxy",
     "user_auth_framework:userauth_client",
   ]
@@ -325,12 +326,12 @@ ohos_unittest("OsAccountInnerAccmgrCovTest") {
     "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
     "access_token:libtokensetproc_shared",
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
-    "json:nlohmann_json_static",
     "kv_store:distributeddata_inner",
     "samgr:samgr_proxy",
     "user_auth_framework:userauth_client",
@@ -396,12 +397,12 @@ ohos_unittest("OsAccountInnerAccmgrMockTest") {
     "ability_base:want",
     "ability_runtime:wantagent_innerkits",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
-    "json:nlohmann_json_static",
     "kv_store:distributeddata_inner",
     "samgr:samgr_proxy",
     "user_auth_framework:userauth_client",
@@ -481,6 +482,7 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     "access_token:libtokensetproc_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "config_policy:configpolicy_util",
     "googletest:gmock_main",
@@ -608,6 +610,7 @@ ohos_unittest("OsAccountInnerAccmgrPluginMockTest") {
     "access_token:libtokensetproc_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "config_policy:configpolicy_util",
     "googletest:gmock_main",
@@ -725,6 +728,7 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
     "access_token:libtokensetproc_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "config_policy:configpolicy_util",
     "googletest:gmock_main",
@@ -841,6 +845,7 @@ ohos_unittest("os_account_maintenance_type_mock_test") {
     "access_token:libtokensetproc_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "config_policy:configpolicy_util",
