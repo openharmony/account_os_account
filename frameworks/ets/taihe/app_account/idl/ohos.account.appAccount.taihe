@@ -64,7 +64,7 @@ struct SetPropertiesOptions {
     parameters: Optional<@record Map<String, Opaque>>;
 }
 
-enum AuthTrustLevel: String {
+enum Constants: String {
     ACTION_CREATE_ACCOUNT_IMPLICITLY = "createAccountImplicitly",
     ACTION_AUTH = "auth",
     ACTION_VERIFY_CREDENTIAL = "verifyCredential",
