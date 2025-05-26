@@ -363,7 +363,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, CreateOsAccountWithFullInfo002, TestSize.
     OsAccountInfo osAccountInfo;
     CreateOsAccountOptions options;
     options.allowedHapList = {};
-    EXPECT_EQ(ERR_OK, innerMgrService_->CreateOsAccount("CreateOsAccountWithFullInfo002", 
+    EXPECT_EQ(ERR_OK, innerMgrService_->CreateOsAccount("CreateOsAccountWithFullInfo002",
         "CreateOsAccountWithFullInfo002", OsAccountType::NORMAL, osAccountInfo, options));
 
     EXPECT_EQ(innerMgrService_->QueryOsAccountById(osAccountInfo.GetLocalId(), osAccountInfo), ERR_OK);
@@ -856,7 +856,8 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest001, TestSize
  */
 HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest002, TestSize.Level1)
 {
-    innerMgrService_->CreateBaseStandardAccount();
+    OsAccountInfo osAccountInfo(Constants::START_USER_ID, "", OsAccountType::ADMIN);
+    innerMgrService_->CreateBaseStandardAccount(osAccountInfo);
 
     std::shared_ptr<IOsAccountControl> osAccountControl = innerMgrService_->osAccountControl_;
     bool isExistsAccount = false;
@@ -1948,6 +1949,77 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountPluginMockTest001, TestSize.Leve
     EXPECT_EQ(innerMgrService_->pluginManager_.libHandle_, nullptr);
 
     innerMgrService_->pluginManager_.CloseLib();
+}
+
+#ifdef ENABLE_U1_ACCOUNT
+/*
+ * @tc.name: Init001
+ * @tc.desc: os account LoaderLib test
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, Init001, TestSize.Level2)
+{
+    innerMgrService_->config_.isU1Enable = false;
+    std::set<int32_t> idSet = {};
+    EXPECT_EQ(true, innerMgrService_->Init(idSet));
+    idSet = {Constants::U1_ID};
+    EXPECT_EQ(true, innerMgrService_->Init(idSet));
+    idSet = {Constants::U1_ID, Constants::START_USER_ID};
+    EXPECT_EQ(true, innerMgrService_->Init(idSet));
+}
+
+/*
+ * @tc.name: ActivateU1Account001
+ * @tc.desc: test Activate u1 when u1 not exsit
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, ActivateU1Account001, TestSize.Level2)
+{
+    innerMgrService_->config_.isU1Enable = false;
+    EXPECT_EQ(ERR_OK, innerMgrService_->ActivateDefaultOsAccount());
+    innerMgrService_->config_.isU1Enable = true;
+    innerMgrService_->config_.isBlockBoot = true;
+    OsAccountInfo osAccountInfo;
+    ErrCode errCode = innerMgrService_->osAccountControl_->GetOsAccountInfoById(1, osAccountInfo);
+    if (errCode == ERR_OK) {
+        osAccountInfo.SetIsCreateCompleted(false);
+        EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->UpdateOsAccount(osAccountInfo));
+        EXPECT_EQ(ERR_OK, innerMgrService_->ActivateDefaultOsAccount());
+    } else {
+        EXPECT_EQ(ERR_OK, innerMgrService_->ActivateDefaultOsAccount());
+    }
+}
+#endif // ENABLE_U1_ACCOUNT
+
+/*
+ * @tc.name: IsAccountLoginOverLimit002
+ * @tc.desc: test account wether can login
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, IsAccountLoginOverLimit001, TestSize.Level2)
+{
+    uint32_t logginAccountSize = innerMgrService_->loggedInAccounts_.Size();
+    uint32_t maxLoggedInOsAccountNum = innerMgrService_->config_.maxLoggedInOsAccountNum;
+    innerMgrService_->config_.maxLoggedInOsAccountNum = logginAccountSize;
+    EXPECT_EQ(true, innerMgrService_->IsLoggedInAccountsOversize());
+    innerMgrService_->config_.maxLoggedInOsAccountNum = logginAccountSize + 1;
+    EXPECT_EQ(false, innerMgrService_->IsLoggedInAccountsOversize());
+#ifdef ENABLE_U1_ACCOUNT
+    bool isLoggedIn = false;
+    innerMgrService_->loggedInAccounts_.Find(Constants::U1_ID, isLoggedIn);
+    if (!isLoggedIn) {
+        innerMgrService_->loggedInAccounts_.EnsureInsert(Constants::U1_ID, true);;
+        logginAccountSize = logginAccountSize + 1;
+    }
+    innerMgrService_->config_.maxLoggedInOsAccountNum = logginAccountSize -1;
+    EXPECT_EQ(true, innerMgrService_->IsLoggedInAccountsOversize());
+    innerMgrService_->config_.maxLoggedInOsAccountNum = logginAccountSize;
+    EXPECT_EQ(false, innerMgrService_->IsLoggedInAccountsOversize());
+    if (!isLoggedIn) {
+        innerMgrService_->loggedInAccounts_.Erase(Constants::U1_ID);;
+    }
+#endif // ENABLE_U1_ACCOUNT
+    innerMgrService_->config_.maxLoggedInOsAccountNum = maxLoggedInOsAccountNum;
 }
 }  // namespace AccountSA
 }  // namespace OHOS

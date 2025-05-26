@@ -2595,8 +2595,8 @@ HWTEST_F(OsAccountManagerModuleTest, IsOsAccountForeground004, TestSize.Level1)
     EXPECT_EQ(OsAccountManager::IsOsAccountForeground(0, isForeground), ERR_OK);
     EXPECT_EQ(isForeground, false);
 
-    // test localId = 1
-    EXPECT_EQ(OsAccountManager::IsOsAccountForeground(1, isForeground), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    // test localId = 2
+    EXPECT_EQ(OsAccountManager::IsOsAccountForeground(2, isForeground), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 
     // test localId not exist
     EXPECT_EQ(OsAccountManager::IsOsAccountForeground(1099, isForeground), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
@@ -2652,8 +2652,8 @@ HWTEST_F(OsAccountManagerModuleTest, IsOsAccountForeground006, TestSize.Level1)
     EXPECT_EQ(OsAccountManager::IsOsAccountForeground(0, Constants::DEFAULT_DISPALY_ID, isForeground), ERR_OK);
     EXPECT_EQ(isForeground, false);
 
-    // test localId = 1
-    EXPECT_EQ(OsAccountManager::IsOsAccountForeground(1, Constants::DEFAULT_DISPALY_ID, isForeground),
+    // test localId = 2
+    EXPECT_EQ(OsAccountManager::IsOsAccountForeground(2, Constants::DEFAULT_DISPALY_ID, isForeground),
               ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 
     // test localId not exist
