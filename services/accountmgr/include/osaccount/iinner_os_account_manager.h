@@ -34,7 +34,7 @@ namespace AccountSA {
 class IInnerOsAccountManager : public IInnerOsAccount {
 public:
     static IInnerOsAccountManager &GetInstance();
-    void Init() override;
+    bool Init(const std::set<int32_t> &initAccounts = {Constants::START_USER_ID}) override;
     ErrCode CreateOsAccount(
         const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo) override;
     ErrCode CreateOsAccount(const std::string &localName, const std::string &shortName,
@@ -112,6 +112,7 @@ public:
     ErrCode GetTypeNumber(const OsAccountType& type, int32_t& typeNumber) override;
     ErrCode CheckTypeNumber(const OsAccountType& type) override;
     ErrCode ActivateDefaultOsAccount() override;
+
     int32_t CleanGarbageOsAccounts(int32_t excludeId = -1) override;
     void ResetAccountStatus() override;
     bool CheckAndCleanOsAccounts();
@@ -136,7 +137,10 @@ private:
     DISALLOW_COPY_AND_MOVE(IInnerOsAccountManager);
     void RestartActiveAccount();
     void CreateBaseAdminAccount();
-    void CreateBaseStandardAccount();
+    bool CreateBaseStandardAccount(OsAccountInfo &osAccountInfo);
+    ErrCode SendMsgForAccountActivateInBackground(OsAccountInfo &osAccountInfo);
+    ErrCode ActivateOsAccountInBackground(const int32_t id);
+    bool IsLoggedInAccountsOversize();
     void ExecuteDeactivationAnimation(int32_t pipeFd, const OsAccountInfo &osAccountInfo);
     ErrCode WaitForAnimationReady(int32_t pipeFd);
     void LaunchDeactivationAnimation(const OsAccountInfo &osAccountInfo);

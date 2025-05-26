@@ -165,23 +165,61 @@ void IInnerOsAccountManager::CreateBaseAdminAccount()
     }
 }
 
-void IInnerOsAccountManager::CreateBaseStandardAccount()
+ErrCode IInnerOsAccountManager::SendMsgForAccountActivateInBackground(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("Start to create base account");
+    // activate
+    subscribeManager_.Publish(osAccountInfo.GetLocalId(), OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
+    (void)SendToStorageAccountStart(osAccountInfo);
+    // StorageManager failture does not block boot, continue!
+    ErrCode errCode = SendToAMSAccountStart(osAccountInfo, Constants::INVALID_DISPALY_ID, true);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+    subscribeManager_.Publish(osAccountInfo.GetLocalId(), OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATED);
+    ReportOsAccountLifeCycle(osAccountInfo.GetLocalId(), Constants::OPERATION_ACTIVATE);
+    OsAccountInterface::PublishCommonEvent(osAccountInfo,
+        OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_BACKGROUND, Constants::OPERATION_ACTIVATE);
+    ACCOUNT_LOGI("SendMsgForAccountActivateInBackground %{public}d ok", osAccountInfo.GetLocalId());
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::ActivateOsAccountInBackground(const int32_t id)
+{
+    ACCOUNT_LOGI("Start to activate %{public}d account", id);
+
+    OsAccountInfo osAccountInfo;
+    // check account is exist or not
+    ErrCode errCode = GetRealOsAccountInfoById(id, osAccountInfo);
+    if (errCode != ERR_OK) {
+        REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_ACTIVATE, errCode, "Account not found.");
+        ACCOUNT_LOGE("Account not found, localId: %{public}d, error: %{public}d", id, errCode);
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    errCode = IsValidOsAccount(osAccountInfo);
+    if (errCode != ERR_OK) {
+        REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_ACTIVATE, errCode, "Account is invalid.");
+        ACCOUNT_LOGE("Account is invalid, localId: %{public}d, error: %{public}d", id, errCode);
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    // activate
+    errCode = SendMsgForAccountActivateInBackground(osAccountInfo);
+    return errCode;
+}
+
+bool IInnerOsAccountManager::CreateBaseStandardAccount(OsAccountInfo &osAccountInfo)
+{
+    ACCOUNT_LOGI("Start to create base account %{public}d", osAccountInfo.GetLocalId());
     int64_t serialNumber = 0;
     osAccountControl_->GetSerialNumber(serialNumber);
-#ifdef ENABLE_DEFAULT_ADMIN_NAME
-    OsAccountInfo osAccountInfo(Constants::START_USER_ID, STANDARD_LOCAL_NAME,
-        OsAccountType::ADMIN, serialNumber);
-#else
-    OsAccountInfo osAccountInfo(Constants::START_USER_ID, "", OsAccountType::ADMIN, serialNumber);
-#endif //ENABLE_DEFAULT_ADMIN_NAME
-    ReportOsAccountLifeCycle(osAccountInfo.GetLocalId(), Constants::OPERATION_BOOT_CREATE);
+    osAccountInfo.SetSerialNumber(serialNumber);
     std::vector<std::string> constraints;
-    ErrCode errCode = osAccountControl_->GetConstraintsByType(OsAccountType::ADMIN, constraints);
+    ErrCode errCode = osAccountControl_->GetConstraintsByType(osAccountInfo.GetType(), constraints);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Fail to get constraints by type for the system OS account, errCode %{public}d.", errCode);
-        return;
+        ACCOUNT_LOGE("Fail to get constraints by type for account %{public}d, errCode %{public}d.",
+            osAccountInfo.GetLocalId(), errCode);
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_BOOT_CREATE, errCode,
+            "Fail to get constraints by type for account");
+        return false;
     }
     osAccountInfo.SetConstraints(constraints);
     int64_t time =
@@ -192,16 +230,22 @@ void IInnerOsAccountManager::CreateBaseStandardAccount()
     osAccountInfo.SetIsDataRemovable(false);
     errCode = RetryToInsertOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
-        ReportOsAccountOperationFail(Constants::START_USER_ID, Constants::OPERATION_CREATE, errCode,
+        ACCOUNT_LOGE("Fail to insert account %{public}d, errCode %{public}d.", osAccountInfo.GetLocalId(), errCode);
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_BOOT_CREATE, errCode,
             "Failed to insert start user OS account");
     }
-    if (SendMsgForAccountCreate(osAccountInfo) != ERR_OK) {
-        ACCOUNT_LOGE("First OS account not created completely");
-        return;
+    errCode = SendMsgForAccountCreate(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("OS account %{public}d not created completely, errCode %{public}d.",
+            osAccountInfo.GetLocalId(), errCode);
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_BOOT_CREATE, errCode,
+            "SendMsgForAccountCreate failed");
+        return false;
     }
-    SetDefaultActivatedOsAccount(Constants::START_USER_ID);
     ReportOsAccountLifeCycle(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE);
+    ReportOsAccountLifeCycle(osAccountInfo.GetLocalId(), Constants::OPERATION_BOOT_CREATE);
     ACCOUNT_LOGI("OsAccountAccountMgr created base account end");
+    return true;
 }
 
 void IInnerOsAccountManager::RetryToGetAccount(OsAccountInfo &osAccountInfo)
@@ -268,8 +312,24 @@ ErrCode IInnerOsAccountManager::ActivateDefaultOsAccount()
             HiviewDFX::XCOLLIE_FLAG_LOG);
 #endif // HICOLLIE_ENABLE
     ACCOUNT_LOGI("Start to activate default account");
+    ErrCode errCode;
+#ifdef ENABLE_U1_ACCOUNT
+    if (config_.isU1Enable) {
+        errCode = ActivateOsAccountInBackground(Constants::U1_ID);
+        // if account not exist, do not block boot
+        if (errCode == ERR_OK) {
+            ReportOsAccountLifeCycle(Constants::U1_ID, Constants::OPERATION_BOOT_ACTIVATED);
+        } else {
+            REPORT_OS_ACCOUNT_FAIL(Constants::U1_ID, Constants::OPERATION_BOOT_ACTIVATING, errCode,
+                "ActivateOsAccountInBackground fail isBlockBoot:" + std::to_string(config_.isBlockBoot));
+            if (config_.isBlockBoot && (errCode != ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR)) {
+                return errCode;
+            }
+        }
+    }
+#endif // ENABLE_U1_ACCOUNT
     OsAccountInfo osAccountInfo;
-    ErrCode errCode = GetRealOsAccountInfoById(defaultActivatedId_, osAccountInfo);
+    errCode = GetRealOsAccountInfoById(defaultActivatedId_, osAccountInfo);
     if ((errCode != ERR_OK) || (IsValidOsAccount(osAccountInfo) != ERR_OK)) {
         ACCOUNT_LOGE("Account not found, localId: %{public}d, error: %{public}d", defaultActivatedId_, errCode);
         RetryToGetAccount(osAccountInfo);
@@ -467,6 +527,9 @@ bool IInnerOsAccountManager::CheckAndCleanOsAccounts()
 #ifdef HAS_THEME_SERVICE_PART
 static void InitTheme(int32_t localId)
 {
+    if (localId == Constants::U1_ID) {
+        return;
+    }
     auto task = [localId] {
 #ifdef HICOLLIE_ENABLE
         AccountTimer timer;
@@ -508,12 +571,12 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
     OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options)
 {
     ErrCode errCode = OsAccountInterface::SendToStorageAccountCreate(osAccountInfo);
+    int32_t localId = osAccountInfo.GetLocalId();
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Create os account SendToStorageAccountCreate failed, errCode %{public}d.", errCode);
         RollbackOsAccount(osAccountInfo, false, false);
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
-    int32_t localId = osAccountInfo.GetLocalId();
 #ifdef HAS_THEME_SERVICE_PART
     InitTheme(localId);
 #endif // HAS_THEME_SERVICE_PART
@@ -1152,12 +1215,41 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountRemove(OsAccountInfo &osAccount
     return errCode;
 }
 
-void IInnerOsAccountManager::Init()
+bool IInnerOsAccountManager::Init(const std::set<int32_t> &initAccounts)
 {
     ACCOUNT_LOGI("Start to create base os accounts");
     CreateBaseAdminAccount();
-    CreateBaseStandardAccount();
+    // 100 need created
+    bool isFirstBoot = initAccounts.find(Constants::START_USER_ID) != initAccounts.end();
+#ifdef ENABLE_U1_ACCOUNT
+    if (initAccounts.find(Constants::U1_ID) != initAccounts.end() && config_.isU1Enable) {
+        OsAccountInfo osAccountInfo(Constants::U1_ID, config_.u1AccountName, config_.u1AccountType);
+        bool result = CreateBaseStandardAccount(osAccountInfo);
+        // create u1 fail and block boot and 100 has not created
+        if (!result) {
+            ACCOUNT_LOGE("Create u1 error, result:%{public}d, isBlockBoot:%{public}d, isFirstBoot:%{public}d.",
+                result, config_.isBlockBoot, isFirstBoot);
+            ReportOsAccountOperationFail(Constants::U1_ID, Constants::OPERATION_BOOT_CREATE,
+                result, "Create u1 error, isBlockBoot:" +
+                std::to_string(config_.isBlockBoot) + ", isFirstBoot:%{public}d." + std::to_string(isFirstBoot));
+            if (config_.isBlockBoot && isFirstBoot) {
+                return false;
+            }
+        }
+    }
+#endif // ENABLE_U1_ACCOUNT
+    if (isFirstBoot) {
+#ifdef ENABLE_DEFAULT_ADMIN_NAME
+        OsAccountInfo osAccountInfo(Constants::START_USER_ID, STANDARD_LOCAL_NAME,
+            OsAccountType::ADMIN);
+#else
+        OsAccountInfo osAccountInfo(Constants::START_USER_ID, "", OsAccountType::ADMIN);
+#endif //ENABLE_DEFAULT_ADMIN_NAME
+        CreateBaseStandardAccount(osAccountInfo);
+        SetDefaultActivatedOsAccount(osAccountInfo.GetLocalId());
+    }
     ACCOUNT_LOGI("End to create base os accounts");
+    return true;
 }
 
 ErrCode IInnerOsAccountManager::IsOsAccountExists(const int id, bool &isOsAccountExits)
@@ -1497,7 +1589,8 @@ int32_t IInnerOsAccountManager::CleanGarbageOsAccounts(int32_t excludeId)
     int32_t removeNum = 0;
 
     for (auto id : idList) {
-        if (id == Constants::START_USER_ID || id == Constants::ADMIN_LOCAL_ID || id == excludeId) {
+        if (id == Constants::START_USER_ID || id == Constants::ADMIN_LOCAL_ID || id == Constants::U1_ID ||
+            id == excludeId) {
             continue;
         }
         if (!CheckAndAddLocalIdOperating(id)) {
@@ -1826,6 +1919,22 @@ static void SetAppRecovery(bool &isAppRecovery,
 #endif
 }
 
+bool IInnerOsAccountManager::IsLoggedInAccountsOversize()
+{
+    uint32_t logginAccountSize = loggedInAccounts_.Size();
+#ifdef ENABLE_U1_ACCOUNT
+    bool isLoggedIn = false;
+    loggedInAccounts_.Find(Constants::U1_ID, isLoggedIn);
+    if (isLoggedIn) {
+        logginAccountSize = logginAccountSize - 1;
+    }
+#endif // ENABLE_U1_ACCOUNT
+    if (logginAccountSize >= config_.maxLoggedInOsAccountNum) {
+        return true;
+    }
+    return false;
+}
+
 ErrCode IInnerOsAccountManager::ActivateOsAccount
     (const int id, const bool startStorage, const uint64_t displayId, bool isAppRecovery)
 {
@@ -1842,39 +1951,32 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount
         ACCOUNT_LOGE("Cannot find os account info by id:%{public}d, errCode %{public}d.", id, errCode);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
-
     int32_t foregroundId = -1;
     if (foregroundAccountMap_.Find(displayId, foregroundId) && (foregroundId == id) && osAccountInfo.GetIsVerified()) {
         ACCOUNT_LOGI("Account %{public}d already is foreground", id);
         RemoveLocalIdToOperating(id);
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREADY_ACTIVE_ERROR;
     }
-
     errCode = IsValidOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(id);
         return errCode;
     }
-
-    if (!osAccountInfo.GetIsActived() &&
-        (static_cast<uint32_t>(loggedInAccounts_.Size()) >= config_.maxLoggedInOsAccountNum)) {
+    if (!osAccountInfo.GetIsActived() && IsLoggedInAccountsOversize()) {
         RemoveLocalIdToOperating(id);
         ACCOUNT_LOGE("The number of logged in account reaches the upper limit, maxLoggedInNum: %{public}d",
             config_.maxLoggedInOsAccountNum);
         return ERR_OSACCOUNT_SERVICE_LOGGED_IN_ACCOUNTS_OVERSIZE;
     }
-
     if (foregroundId != id) {
         subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
     }
-
     SetAppRecovery(isAppRecovery, activeAccountId_, id, defaultActivatedId_);
     errCode = SendMsgForAccountActivate(osAccountInfo, startStorage, displayId, isAppRecovery);
     RemoveLocalIdToOperating(id);
     if (errCode != ERR_OK) {
         return errCode;
     }
-
     DomainAccountInfo domainInfo;
     osAccountInfo.GetDomainInfo(domainInfo);
     if (domainInfo.accountId_.empty() && (osAccountInfo.GetCredentialId() == 0)) {
@@ -2136,7 +2238,9 @@ ErrCode  IInnerOsAccountManager::SendToAMSAccountStart(OsAccountInfo &osAccountI
 {
     OsAccountStartCallbackFunc callbackFunc = [this, displayId](int32_t localId) {
         this->PushIdIntoActiveList(localId);
-        this->foregroundAccountMap_.EnsureInsert(displayId, localId);
+        if (displayId != Constants::INVALID_DISPALY_ID) {
+            this->foregroundAccountMap_.EnsureInsert(displayId, localId);
+        }
     };
     ErrCode errCode = OsAccountInterface::SendToAMSAccountStart(osAccountInfo, callbackFunc, isAppRecovery);
     if (errCode != ERR_OK) {
@@ -2495,6 +2599,11 @@ bool IInnerOsAccountManager::CheckAndAddLocalIdOperating(int32_t localId)
 ErrCode IInnerOsAccountManager::QueryActiveOsAccountIds(std::vector<int32_t>& ids)
 {
     CopyFromActiveList(ids);
+#ifdef ENABLE_U1_ACCOUNT
+    if (ids.size() == 1 && ids[0] == Constants::U1_ID) {
+        ids.clear();
+    }
+#endif // ENABLE_U1_ACCOUNT
     return ERR_OK;
 }
 

@@ -83,6 +83,7 @@ const unsigned int DOMAIN_NAME_MAX_SIZE = 128;
 const unsigned int CONSTRAINT_MAX_SIZE = 128;
 
 const std::int32_t ADMIN_LOCAL_ID = 0;
+const std::int32_t U1_ID = 1;
 const int ADMIN_TYPE = -1;
 const std::int32_t START_USER_ID = 100;
 const std::int32_t MAINTENANCE_USER_ID = 10377;

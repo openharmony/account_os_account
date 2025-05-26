@@ -53,6 +53,13 @@ const char OS_ACCOUNT_CONFIG_FILE[] = "etc/os_account/os_account_config.json";
 #endif // HAS_CONFIG_POLICY_PART
 const char MAX_OS_ACCOUNT_NUM[] = "maxOsAccountNum";
 const char MAX_LOGGED_IN_OS_ACCOUNT_NUM[] = "maxLoggedInOsAccountNum";
+#ifdef ENABLE_U1_ACCOUNT
+const char SYSTEM_ACCOUNTS_CONFIG[] = "systemAccounts";
+const char U1_CONFIG[] = "1";
+const char SYSTEM_ACCOUNT_TYPE[] = "type";
+const char SYSTEM_ACCOUNT_NAME[] = "name";
+const char SYSTEM_ACCOUNT_BLOCK_BOOT[] = "canBlockBoot";
+#endif // ENABLE_U1_ACCOUNT
 const char DEVELOPER_MODE_STATE[] = "const.security.developermode.state";
 const char DEVELOPER_MODE[] = "developerMode";
 const char USER_PHOTO_FILE_PNG_NAME[] = "fase.png";
@@ -87,6 +94,42 @@ bool GetValidAccountID(const std::string& dirName, std::int32_t& accountID)
     return (accountID >= Constants::ADMIN_LOCAL_ID && accountID <= Constants::MAX_USER_ID);
 }
 
+#ifdef ENABLE_U1_ACCOUNT
+void OsAccountControlFileManager::GetU1Config(const CJsonUnique &configJson, OsAccountConfig &config)
+{
+    CJson *systemAccountsJson = nullptr;
+    bool ret = GetDataByType<CJson *>(configJson, SYSTEM_ACCOUNTS_CONFIG, systemAccountsJson);
+    if (!ret) {
+        ACCOUNT_LOGE("Failed to parse %{public}s", SYSTEM_ACCOUNTS_CONFIG);
+        return;
+    }
+    CJson *u1Json = nullptr;
+    ret = GetDataByType<CJson *>(systemAccountsJson, U1_CONFIG, u1Json);
+    if (!ret) {
+        ACCOUNT_LOGE("Failed to parse %{public}s", U1_CONFIG);
+        return;
+    }
+    config.isU1Enable = true;
+    int32_t type = -1;
+    GetDataByType<std::int32_t>(u1Json, SYSTEM_ACCOUNT_TYPE, type);
+    if (type != static_cast<int32_t>(OsAccountType::ADMIN) &&
+        type != static_cast<int32_t>(OsAccountType::NORMAL) &&
+        type != static_cast<int32_t>(OsAccountType::GUEST) &&
+        type != static_cast<int32_t>(OsAccountType::PRIVATE)) {
+        ACCOUNT_LOGE("Fail to get type:%{public}d from config.", type);
+        config.u1AccountType = OsAccountType::ADMIN;
+    } else {
+        config.u1AccountType = static_cast<OsAccountType>(type);
+    }
+    GetDataByType<std::string>(u1Json, SYSTEM_ACCOUNT_NAME, config.u1AccountName);
+    if (config.u1AccountName.length() > Constants::LOCAL_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("Fail to get name:%{public}s from config.", config.u1AccountName.c_str());
+        config.u1AccountName = "";
+    }
+    GetDataByType<bool>(u1Json, SYSTEM_ACCOUNT_BLOCK_BOOT, config.isBlockBoot);
+}
+#endif // ENABLE_U1_ACCOUNT
+
 ErrCode OsAccountControlFileManager::GetOsAccountConfig(OsAccountConfig &config)
 {
     std::string cfgPath = DEFAULT_OS_ACCOUNT_CONFIG_FILE;
@@ -117,7 +160,9 @@ ErrCode OsAccountControlFileManager::GetOsAccountConfig(OsAccountConfig &config)
         config.maxOsAccountNum = static_cast<uint32_t>(maxOsAccountNum);
     }
     GetDataByType<uint32_t>(configJson, MAX_LOGGED_IN_OS_ACCOUNT_NUM, config.maxLoggedInOsAccountNum);
-
+#ifdef ENABLE_U1_ACCOUNT
+    GetU1Config(configJson, config);
+#endif // ENABLE_U1_ACCOUNT
     bool isDeveloperMode = OHOS::system::GetBoolParameter(DEVELOPER_MODE_STATE, false);
     if (isDeveloperMode && IsKeyExist(configJson, DEVELOPER_MODE)) {
         auto modeJson = GetItemFromJson(configJson, DEVELOPER_MODE);
@@ -1065,7 +1110,7 @@ ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInf
 #endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 
 #ifdef ENABLE_FILE_WATCHER
-    if (osAccountInfo.GetLocalId() >= Constants::START_USER_ID) {
+    if (osAccountInfo.GetLocalId() >= Constants::START_USER_ID || osAccountInfo.GetLocalId() == Constants::U1_ID) {
         accountFileWatcherMgr_.AddAccountInfoDigest(accountInfoStr, path);
         accountFileWatcherMgr_.AddFileWatcher(osAccountInfo.GetLocalId(), eventCallbackFunc_);
     }
@@ -1126,7 +1171,7 @@ ErrCode OsAccountControlFileManager::UpdateOsAccount(OsAccountInfo &osAccountInf
 
 #if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
     // update in database
-    if (osAccountInfo.GetLocalId() >= Constants::START_USER_ID) {
+    if (osAccountInfo.GetLocalId() >= Constants::START_USER_ID || osAccountInfo.GetLocalId() == Constants::U1_ID) {
         osAccountDataBaseOperator_->UpdateOsAccountInDatabase(osAccountInfo);
     }
 #else  // DISTRIBUTED_FEATURE_ENABLED

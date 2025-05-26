@@ -23,6 +23,12 @@ namespace AccountSA {
 struct OsAccountConfig {
     uint32_t maxOsAccountNum = 999;
     uint32_t maxLoggedInOsAccountNum = 999;
+#ifdef ENABLE_U1_ACCOUNT
+    bool isU1Enable = false;
+    OsAccountType u1AccountType = OsAccountType::ADMIN;
+    std::string u1AccountName;
+    bool isBlockBoot = false;
+#endif // ENABLE_U1_ACCOUNT
 };
 
 class IOsAccountControl {

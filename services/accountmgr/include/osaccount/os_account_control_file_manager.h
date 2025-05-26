@@ -133,7 +133,9 @@ private:
     bool DealWithFileMoveEvent(const std::string &fileName, const int32_t id);
     void InitFileWatcherInfo(std::vector<std::string> &accountIdList);
     bool RecoverAccountData(const std::string &fileName, const int32_t id);
-
+#ifdef ENABLE_U1_ACCOUNT
+    void GetU1Config(const CJsonUnique &configJson, OsAccountConfig &config);
+#endif // ENABLE_U1_ACCOUNT
 private:
     std::shared_ptr<AccountFileOperator> accountFileOperator_;
 #if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)

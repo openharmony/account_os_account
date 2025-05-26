@@ -29,6 +29,10 @@ OsAccountInfo::OsAccountInfo(int localId, const std::string localName, OsAccount
     : localId_(localId), localName_(localName), type_(type), serialNumber_(serialNumber)
 {}
 
+OsAccountInfo::OsAccountInfo(int localId, const std::string localName, OsAccountType type)
+    : localId_(localId), localName_(localName), type_(type)
+{}
+
 OsAccountInfo::OsAccountInfo(int localId, const std::string localName, const std::string shortName, OsAccountType type,
     int64_t serialNumber)
     : localId_(localId), localName_(localName), shortName_(shortName), type_(type), serialNumber_(serialNumber)
