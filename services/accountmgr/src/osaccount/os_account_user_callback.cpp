@@ -73,12 +73,12 @@ int OsAccountUserCallback::OnRemoteRequest(
         return ERR_INVALID_STATE;
     }
 
-    switch (code) {
-        case UserCallbackCmd::ON_STOP_USER_DONE:
+    switch (static_cast<AAFwk::IUserCallbackIpcCode>(code)) {
+        case AAFwk::IUserCallbackIpcCode::COMMAND_ON_STOP_USER_DONE:
             return OnStopUserDoneInner(data, reply);
-        case UserCallbackCmd::ON_START_USER_DONE:
+        case AAFwk::IUserCallbackIpcCode::COMMAND_ON_START_USER_DONE:
             return OnStartUserDoneInner(data, reply);
-        case UserCallbackCmd::ON_LOGOUT_USER_DONE:
+        case AAFwk::IUserCallbackIpcCode::COMMAND_ON_LOGOUT_USER_DONE:
             return OnLogoutUserDoneInner(data, reply);
         default:
             break;
@@ -87,7 +87,7 @@ int OsAccountUserCallback::OnRemoteRequest(
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
-void OsAccountUserCallback::OnStopUserDone(int userId, int errcode)
+ErrCode OsAccountUserCallback::OnStopUserDone(int userId, int errcode)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     ACCOUNT_LOGI("In call back account, OnStopUserDone id is %{public}d, errcode is %{public}d.",
@@ -95,9 +95,10 @@ void OsAccountUserCallback::OnStopUserDone(int userId, int errcode)
     isCalled_ = true;
     resultCode_ = errcode;
     onStopCondition_.notify_one();
+    return ERR_OK;
 }
 
-void OsAccountUserCallback::OnStartUserDone(int userId, int errcode)
+ErrCode OsAccountUserCallback::OnStartUserDone(int userId, int errcode)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     ACCOUNT_LOGI("In call back account, OnStartUserDone id is %{public}d, errcode is %{public}d.",
@@ -108,9 +109,10 @@ void OsAccountUserCallback::OnStartUserDone(int userId, int errcode)
     isCalled_ = true;
     resultCode_ = errcode;
     onStartCondition_.notify_one();
+    return ERR_OK;
 }
 
-void OsAccountUserCallback::OnLogoutUserDone(int userId, int errcode)
+ErrCode OsAccountUserCallback::OnLogoutUserDone(int userId, int errcode)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     ACCOUNT_LOGI("In call back account, OnLogoutUserDone id is %{public}d, errcode is %{public}d.",
@@ -118,6 +120,7 @@ void OsAccountUserCallback::OnLogoutUserDone(int userId, int errcode)
     isCalled_ = true;
     resultCode_ = errcode;
     onLogoutCondition_.notify_one();
+    return ERR_OK;
 }
 }  // namespace AccountSA
 }  // namespace OHOS
