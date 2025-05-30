@@ -224,7 +224,9 @@ ErrCode MockDomainPlugin::GetAuthStatusInfo(const DomainAccountInfo &info, const
     authInfo.remainingTimes = 5; // test remainingTimes return 5.
     authInfo.freezingTime = 10; // test freezingTime return 10.
     authInfo.Marshalling(testParcel);
-    callback->OnResult(ERR_OK, testParcel);
+    DomainAccountParcel domainAccountParcel;
+    domainAccountParcel.SetParcelData(testParcel);
+    callback->OnResult(ERR_OK, domainAccountParcel);
     return ERR_OK;
 }
 

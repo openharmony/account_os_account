@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -70,7 +70,9 @@ HWTEST_F(DomainAccountCallbackTest, DomainAccountCallbackTest_OnResult_001, Test
     auto callbackPtr = std::make_shared<CheckAndCreateDomainAccountCallback>(testOsAccountControl,
         OsAccountType::NORMAL, nullptr, accountOptions);
     Parcel parcel;
-    callbackPtr->OnResult(0, parcel);
+    DomainAccountParcel domainAccountParcel;
+    domainAccountParcel.SetParcelData(parcel);
+    callbackPtr->OnResult(0, domainAccountParcel);
     EXPECT_EQ(callbackPtr->innerCallback_, nullptr);
 }
 

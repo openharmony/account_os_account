@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -34,23 +34,29 @@ CheckAndCreateDomainAccountCallback::CheckAndCreateDomainAccountCallback(
     : type_(type), osAccountControl_(osAccountControl), accountOptions_(accountOptions), innerCallback_(callback)
 {}
 
-void CheckAndCreateDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
+ErrCode CheckAndCreateDomainAccountCallback::OnResult(int32_t errCode, const DomainAccountParcel &domainAccountParcel)
 {
+    Parcel parcel;
+    domainAccountParcel.GetParcelData(parcel);
     if (innerCallback_ == nullptr) {
         ACCOUNT_LOGE("InnerPlugin_ is nullptr");
-        return;
+        return ERR_OK;
     }
     OsAccountInfo osAccountInfo;
     Parcel resultParcel;
     osAccountInfo.Marshalling(resultParcel);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Check domain account failed");
-        return innerCallback_->OnResult(errCode, resultParcel);
+        DomainAccountParcel domainAccountResultParcel;
+        domainAccountResultParcel.SetParcelData(resultParcel);
+        return innerCallback_->OnResult(errCode, domainAccountResultParcel);
     }
     std::shared_ptr<AAFwk::WantParams> parameters(AAFwk::WantParams::Unmarshalling(parcel));
     if (parameters == nullptr) {
         ACCOUNT_LOGE("Parameters unmarshalling error");
-        return innerCallback_->OnResult(ERR_JS_SYSTEM_SERVICE_EXCEPTION, resultParcel);
+        DomainAccountParcel domainAccountResultParcel;
+        domainAccountResultParcel.SetParcelData(resultParcel);
+        return innerCallback_->OnResult(ERR_JS_SYSTEM_SERVICE_EXCEPTION, domainAccountResultParcel);
     }
     DomainAccountInfo domainAccountInfo;
     domainAccountInfo.accountName_ = parameters->GetStringParam("accountName");
@@ -59,24 +65,33 @@ void CheckAndCreateDomainAccountCallback::OnResult(int32_t errCode, Parcel &parc
     domainAccountInfo.serverConfigId_ = parameters->GetStringParam("serverConfigId");
     if ((domainAccountInfo.accountName_.empty()) || (domainAccountInfo.domain_.empty())) {
         ACCOUNT_LOGE("Domain account not found");
-        return innerCallback_->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, resultParcel);
+        DomainAccountParcel domainAccountResultParcel;
+        domainAccountResultParcel.SetParcelData(resultParcel);
+        return innerCallback_->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, domainAccountResultParcel);
     }
     errCode = IInnerOsAccountManager::GetInstance().BindDomainAccount(type_, domainAccountInfo,
         osAccountInfo, accountOptions_);
     if (errCode != ERR_OK) {
-        return innerCallback_->OnResult(errCode, resultParcel);
+        DomainAccountParcel domainAccountResultParcel;
+        domainAccountResultParcel.SetParcelData(resultParcel);
+        return innerCallback_->OnResult(errCode, domainAccountResultParcel);
     }
     auto callbackWrapper =
         std::make_shared<BindDomainAccountCallback>(osAccountControl_, osAccountInfo, innerCallback_);
     if (callbackWrapper == nullptr) {
         ACCOUNT_LOGE("Create BindDomainAccountCallback failed");
-        return innerCallback_->OnResult(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, resultParcel);
+        DomainAccountParcel domainAccountResultParcel;
+        domainAccountResultParcel.SetParcelData(resultParcel);
+        return innerCallback_->OnResult(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, domainAccountResultParcel);
     }
     errCode = InnerDomainAccountManager::GetInstance().OnAccountBound(domainAccountInfo,
         osAccountInfo.GetLocalId(), callbackWrapper);
     if (errCode != ERR_OK) {
-        return innerCallback_->OnResult(errCode, resultParcel);
+        DomainAccountParcel domainAccountResultParcel;
+        domainAccountResultParcel.SetParcelData(resultParcel);
+        return innerCallback_->OnResult(errCode, domainAccountResultParcel);
     }
+    return ERR_OK;
 }
 
 BindDomainAccountCallback::BindDomainAccountCallback(
@@ -96,7 +111,10 @@ void BindDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
         if (osAccountInfo_.GetLocalId() != Constants::START_USER_ID) {
             (void)osAccountControl_->DelOsAccount(osAccountInfo_.GetLocalId());
         }
-        return innerCallback_->OnResult(errCode, parcel);
+        DomainAccountParcel domainAccountResultParcel;
+        domainAccountResultParcel.SetParcelData(parcel);
+        innerCallback_->OnResult(errCode, domainAccountResultParcel);
+        return;
     }
     Parcel resultParcel;
     if (osAccountInfo_.GetLocalId() != Constants::START_USER_ID) {
@@ -112,7 +130,10 @@ void BindDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
             (void)osAccountControl_->DelOsAccount(osAccountInfo_.GetLocalId());
         }
         osAccountInfo_.Marshalling(resultParcel);
-        return innerCallback_->OnResult(errCode, resultParcel);
+        DomainAccountParcel domainAccountResultParcel;
+        domainAccountResultParcel.SetParcelData(resultParcel);
+        innerCallback_->OnResult(errCode, domainAccountResultParcel);
+        return;
     }
 
 #ifdef HAS_CES_PART
@@ -122,7 +143,9 @@ void BindDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
     ACCOUNT_LOGI("No common event part! Publish nothing!");
 #endif // HAS_CES_PART
     osAccountInfo_.Marshalling(resultParcel);
-    innerCallback_->OnResult(errCode, resultParcel);
+    DomainAccountParcel domainAccountResultParcel;
+    domainAccountResultParcel.SetParcelData(resultParcel);
+    innerCallback_->OnResult(errCode, domainAccountResultParcel);
 }
 } // namespace AccountSA
 } // namespace OHOS

@@ -209,10 +209,6 @@ enum class DomainAccountPluginInterfaceCode : int32_t {
     DOMAIN_PLUGIN_GET_ACCESS_TOKEN = 6,
 };
 
-enum class DomainAccountCallbackInterfaceCode : uint32_t {
-    DOMAIN_ACCOUNT_CALLBACK_ON_RESULT = 0,
-};
-
 enum class OsAccountEventInterfaceCode : uint32_t {
     ACCOUNT_CHANGED = 0,
     ACCOUNT_SWITCHED = 1,
