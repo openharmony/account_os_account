@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,7 +32,7 @@ public:
     int32_t GetTypeSize();
     void GetAllType(std::vector<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE> &typeList);
 
-    void OnAccountsChanged(const DistributedAccountEventData &eventData) override;
+    ErrCode OnAccountsChanged(const DistributedAccountEventData &eventData) override;
 
 private:
     std::shared_ptr<DistributedAccountSubscribeCallback> distributedAccountSubscribeCallback_;
