@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,6 +20,10 @@
 #undef private
 
 #include "account_log_wrapper.h"
+#define private public
+#include "app_account.h"
+#undef private
+#include "app_account_event_listener.h"
 #include "app_account_manager.h"
 #include "app_account_subscriber.h"
 
@@ -80,6 +84,35 @@ public:
         ACCOUNT_LOGI("enter");
     }
 };
+
+/**
+ * @tc.name: AppAccountManagerSubscribe_RestoreListenerRecords_0100
+ * @tc.desc: RestoreListenerRecords test.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_RestoreListenerRecords_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerSubscribe_RestoreListenerRecords_0100");
+
+    // make owners
+    std::vector<std::string> owners;
+    owners.emplace_back(STRING_OWNER);
+
+    // make subscribe info
+    AppAccountSubscribeInfo subscribeInfo(owners);
+    // make a subscriber
+    std::shared_ptr<AppAccountSubscriber> subscriberTestPtr = std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
+    sptr<AppAccountEventListener> listener = new (std::nothrow) AppAccountEventListener(subscriberTestPtr);
+    AppAccount::GetInstance().eventListeners_[subscriberTestPtr] = listener;
+    AppAccount::GetInstance().RestoreListenerRecords();
+
+    // unsubscribe app account
+    ErrCode result = AppAccountManager::UnsubscribeAppAccount(subscriberTestPtr);
+    ASSERT_NE(result, ERR_APPACCOUNT_KIT_NO_SPECIFIED_SUBSCRIBER_HAS_BEEN_REGISTERED);
+
+    AppAccount::GetInstance().eventListeners_.erase(subscriberTestPtr);
+}
 
 /**
  * @tc.name: AppAccountManagerSubscribe_SubscribeAppAccount_0100

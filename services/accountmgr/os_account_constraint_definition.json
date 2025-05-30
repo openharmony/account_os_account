@@ -66,6 +66,8 @@
         "constraint.private.dns.set",
         "constraint.os.account.create.directly",
         "constraint.mtp.client.write",
+        "constraint.usb.storageDevice.write"
+        "constraint.mtp.client.write",
         "constraint.distributed.transmission.outgoing"
     ]
 }
