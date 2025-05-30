@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -60,13 +60,14 @@ void DistributedAccountEventService::GetAllType(std::vector<DISTRIBUTED_ACCOUNT_
     }
 }
 
-void DistributedAccountEventService::OnAccountsChanged(const DistributedAccountEventData &eventData)
+ErrCode DistributedAccountEventService::OnAccountsChanged(const DistributedAccountEventData &eventData)
 {
     if (distributedAccountSubscribeCallback_ == nullptr) {
         ACCOUNT_LOGE("Callback_ is nullptr");
-        return;
+        return ERR_OK;
     }
     distributedAccountSubscribeCallback_->OnAccountsChanged(eventData);
+    return ERR_OK;
 }
 }  // namespace AccountSA
 }  // namespace OHOS
