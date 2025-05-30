@@ -358,9 +358,7 @@ void CJAppAccountImpl::GetSubscriberByUnsubscribe(std::vector<std::shared_ptr<Su
 
 int32_t CJAppAccountImpl::off(std::string type, void (*callback)(CArrAppAccountInfo cArrAppAccountInfo))
 {
-    int32_t ret;
-    bool hasFailed = false;
-    int32_t E_ERROR = 0;
+    int32_t errCode = ERR_OK;
     AsyncContextForUnSubscribe *context = new (std::nothrow) AsyncContextForUnSubscribe();
     if (context == nullptr) {
         ACCOUNT_LOGE("asyncContextForOff is null");
@@ -374,10 +372,9 @@ int32_t CJAppAccountImpl::off(std::string type, void (*callback)(CArrAppAccountI
     if (callback == nullptr) {
         std::lock_guard<std::mutex> lock(mutex_);
         for (auto offSubscriber : context->subscribers) {
-            ret = ConvertToJSErrCode(AppAccountManager::UnsubscribeAppAccount(offSubscriber));
+            int32_t ret = ConvertToJSErrCode(AppAccountManager::UnsubscribeAppAccount(offSubscriber));
             if (ret != ERR_OK) {
-                hasFailed = true;
-                E_ERROR = ret;
+                errCode = ret;
             }
         }
         g_appAccountSubscribes.clear();
@@ -387,17 +384,17 @@ int32_t CJAppAccountImpl::off(std::string type, void (*callback)(CArrAppAccountI
             if (!IsSameFunction(&context->callbackRef, &context->subscribers[idx]->ref_)) {
                 continue;
             }
-            ret = ConvertToJSErrCode(
+            int32_t ret = ConvertToJSErrCode(
                 AppAccountManager::UnsubscribeAppAccount(context->subscribers[idx]));
             if (ret != ERR_OK) {
-                hasFailed = true;
-                E_ERROR = ret;
+                errCode = ret;
             }
             g_appAccountSubscribes.erase(g_appAccountSubscribes.begin() + idx);
             break;
         }
     }
-    return hasFailed ? E_ERROR : ERR_OK;
+    delete context;
+    return errCode;
 }
 
 bool CJAppAccountImpl::ParseContextForCheckAccountLabels(std::string name, std::string owner, CArrString labels,
