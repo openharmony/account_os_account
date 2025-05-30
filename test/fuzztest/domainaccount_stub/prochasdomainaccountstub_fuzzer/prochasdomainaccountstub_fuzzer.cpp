@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,15 +32,15 @@ class TestHasDomainInfoCallback : public DomainAccountCallbackStub {
 public:
     TestHasDomainInfoCallback() {};
     virtual ~TestHasDomainInfoCallback();
-    void OnResult(const int32_t errCode, Parcel &parcel) override;
+    ErrCode OnResult(int32_t errCode, const DomainAccountParcel &parcel) override;
 };
 
 TestHasDomainInfoCallback::~TestHasDomainInfoCallback()
 {}
 
-void TestHasDomainInfoCallback::OnResult(const int32_t errCode, Parcel &parcel)
+ErrCode TestHasDomainInfoCallback::OnResult(int32_t errCode, const DomainAccountParcel &parcel)
 {
-    return;
+    return ERR_OK;
 }
 
 namespace OHOS {

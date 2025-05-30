@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -34,13 +34,19 @@ void DomainHasDomainInfoCallback::OnResult(const int32_t errCode, Parcel &parcel
     Parcel parcelResult;
     if (errCode != ERR_OK) {
         parcelResult.WriteBool(false);
-        return innerCallback_->OnResult(errCode, parcelResult);
+        DomainAccountParcel domainAccountParcel;
+        domainAccountParcel.SetParcelData(parcelResult);
+        innerCallback_->OnResult(errCode, domainAccountParcel);
+        return;
     }
     std::shared_ptr<AAFwk::WantParams> parameters(AAFwk::WantParams::Unmarshalling(parcel));
     if (parameters == nullptr) {
         ACCOUNT_LOGE("parameters unmarshalling error");
         parcelResult.WriteBool(false);
-        return innerCallback_->OnResult(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, parcelResult);
+        DomainAccountParcel domainAccountParcel;
+        domainAccountParcel.SetParcelData(parcelResult);
+        innerCallback_->OnResult(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, domainAccountParcel);
+        return;
     }
     DomainAccountInfo info;
     info.accountName_ = parameters->GetStringParam("accountName");
@@ -48,10 +54,16 @@ void DomainHasDomainInfoCallback::OnResult(const int32_t errCode, Parcel &parcel
     info.accountId_ = parameters->GetStringParam("accountId");
     if ((info.domain_ != domain_) || (info.accountName_ != accountName_)) {
         parcelResult.WriteBool(false);
-        return innerCallback_->OnResult(errCode, parcelResult);
+        DomainAccountParcel domainAccountParcel;
+        domainAccountParcel.SetParcelData(parcelResult);
+        innerCallback_->OnResult(errCode, domainAccountParcel);
+        return;
     }
     parcelResult.WriteBool(true);
-    return innerCallback_->OnResult(errCode, parcelResult);
+    DomainAccountParcel domainAccountParcel;
+    domainAccountParcel.SetParcelData(parcelResult);
+    innerCallback_->OnResult(errCode, domainAccountParcel);
+    return;
 }
 }  // namespace AccountSA
 }  // namespace OHOS

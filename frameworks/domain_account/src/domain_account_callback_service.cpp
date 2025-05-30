@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,15 +30,18 @@ DomainAccountCallbackService::DomainAccountCallbackService(const DomainAccountCa
 DomainAccountCallbackService::~DomainAccountCallbackService()
 {}
 
-void DomainAccountCallbackService::OnResult(const int32_t errCode, Parcel &parcel)
+ErrCode DomainAccountCallbackService::OnResult(int32_t errCode, const DomainAccountParcel &domainAccountParcel)
 {
     ACCOUNT_LOGI("enter");
+    Parcel parcel;
+    domainAccountParcel.GetParcelData(parcel);
     if (innerCallback_ != nullptr) {
         innerCallback_->OnResult(errCode, parcel);
     }
     if (callback_ != nullptr) {
         callback_(errCode, parcel);
     }
+    return ERR_OK;
 }
 }  // namespace AccountSA
 }  // namespace OHOS
