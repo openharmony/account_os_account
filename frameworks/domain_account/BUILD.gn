@@ -16,7 +16,10 @@ import("//build/ohos.gni")
 import("../../os_account.gni")
 
 idl_gen_interface("frameworks_domain_account_interface") {
-  sources = [ "IDomainAccountCallback.idl" ]
+  sources = [
+    "IDomainAccountCallback.idl",
+    "IDomainAccountPlugin.idl",
+  ]
   log_domainid = "0xD001B00"
   log_tag = "DomainAccountFwk"
   subsystem_name = "account"
@@ -93,10 +96,13 @@ ohos_shared_library("domain_account_innerkits") {
       "src/domain_account_callback_adapters.cpp",
       "src/domain_account_callback_client.cpp",
       "src/domain_account_plugin_service.cpp",
-      "src/domain_account_plugin_stub.cpp",
       "src/domain_account_proxy.cpp",
       "src/domain_account_status_listener_manager.cpp",
     ]
+      sources += filter_include(output_values,
+                          [
+                            "*domain_account_plugin_stub.cpp",
+                          ])
   }
 
   configs = [ ":domain_account_innnerkits_config" ]
@@ -156,6 +162,50 @@ ohos_source_set("domain_account_callback_stub") {
       filter_include(output_values, [ "*domain_account_callback_stub.cpp" ])
   deps = [ ":frameworks_domain_account_interface" ]
   external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("domain_account_plugin_proxy") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [ ":domain_account_innnerkits_config" ]
+  public_configs = [ ":domain_account_innerkits_public_config" ]
+  output_values = get_target_outputs(":frameworks_domain_account_interface")
+  sources =
+      filter_include(output_values, [ "*domain_account_plugin_proxy.cpp" ])
+  deps = [ ":frameworks_domain_account_interface" ]
+  external_deps = [
+    "ability_base:want",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("domain_account_plugin_stub") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [ ":domain_account_innnerkits_config" ]
+  public_configs = [ ":domain_account_innerkits_public_config" ]
+  output_values = get_target_outputs(":frameworks_domain_account_interface")
+  sources =
+      filter_include(output_values, [ "*domain_account_plugin_stub.cpp" ])
+  deps = [ ":frameworks_domain_account_interface" ]
+  external_deps = [
+    "ability_base:want",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",

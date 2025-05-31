@@ -365,6 +365,9 @@ ohos_unittest("account_inner_iam_manager_mock_source_file_test") {
       "-DSUPPORT_DOMAIN_ACCOUNTS",
       "-DDOMAIN_ACCOUNT_TEST_CASE",
     ]
+    deps += [
+      "${domain_account_framework_path}:domain_account_plugin_proxy",
+    ]
   }
   if (has_ces_part) {
     cflags_cc += [ "-DHAS_CES_PART" ]

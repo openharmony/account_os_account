@@ -544,6 +544,9 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
 
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+    deps += [
+      "${domain_account_framework_path}:domain_account_plugin_proxy",
+    ]
   }
   part_name = "os_account"
 }
@@ -668,6 +671,9 @@ ohos_unittest("OsAccountInnerAccmgrPluginMockTest") {
   ]
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+    deps += [
+      "${domain_account_framework_path}:domain_account_plugin_proxy",
+    ]
   }
   part_name = "os_account"
 }
@@ -781,6 +787,9 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
   cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+    deps += [
+      "${domain_account_framework_path}:domain_account_plugin_proxy",
+    ]
   }
   part_name = "os_account"
 }
@@ -905,6 +914,9 @@ ohos_unittest("os_account_maintenance_type_mock_test") {
 
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+    deps += [
+      "${domain_account_framework_path}:domain_account_plugin_proxy",
+    ]
   }
 
   if (security_guard_enabled) {
