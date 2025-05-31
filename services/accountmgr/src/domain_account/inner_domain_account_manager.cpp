@@ -63,6 +63,14 @@ static const char LIB_PATH[] = "/system/lib/platformsdk/";
 #endif
 static const char LIB_NAME[] = "libdomain_account_plugin.z.so";
 static const char EDM_FREEZE_BACKGROUND_PARAM[] = "persist.edm.inactive_user_freeze";
+
+ErrCode ConvertToAccountErrCode(ErrCode idlErrCode)
+{
+    if (idlErrCode == ERR_INVALID_VALUE || idlErrCode == ERR_INVALID_DATA) {
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    return idlErrCode;
+}
 }
 static const std::map<PluginMethodEnum, std::string> METHOD_NAME_MAP = {
     {PluginMethodEnum::ADD_SERVER_CONFIG, "AddServerConfig"},
@@ -252,12 +260,15 @@ ErrCode InnerDomainAccountManager::StartAuth(const sptr<IDomainAccountPlugin> &p
     switch (authMode) {
         case AUTH_WITH_CREDENTIAL_MODE:
             errCode = plugin->Auth(info, authData, callback);
+            errCode = ConvertToAccountErrCode(errCode);
             break;
         case AUTH_WITH_POPUP_MODE:
             errCode = plugin->AuthWithPopup(info, callback);
+            errCode = ConvertToAccountErrCode(errCode);
             break;
         case AUTH_WITH_TOKEN_MODE:
             errCode = plugin->AuthWithToken(info, authData, callback);
+            errCode = ConvertToAccountErrCode(errCode);
             break;
         default:
             break;
@@ -1228,6 +1239,7 @@ ErrCode InnerDomainAccountManager::StartGetAccessToken(const sptr<IDomainAccount
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
     ErrCode result = plugin->GetAccessToken(info, accountToken, option, callbackService);
+    result = ConvertToAccountErrCode(result);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get access token, errCode: %{public}d", result);
         OnResultForGetAccessToken(result, callback);
@@ -1496,6 +1508,7 @@ ErrCode InnerDomainAccountManager::CheckUserToken(
             return err;
         }
         errCode = plugin_->IsAccountTokenValid(info, token, callbackService);
+        errCode = ConvertToAccountErrCode(errCode);
     }
     callback->WaitForCallbackResult();
     isValid = callback->GetValidity();
@@ -1572,7 +1585,9 @@ ErrCode InnerDomainAccountManager::GetAuthStatusInfo(
         return ERR_OK;
     }
     std::lock_guard<std::mutex> lock(mutex_);
-    return plugin_->GetAuthStatusInfo(info, callbackService);
+    auto errCode = plugin_->GetAuthStatusInfo(info, callbackService);
+    errCode = ConvertToAccountErrCode(errCode);
+    return errCode;
 }
 
 sptr<IRemoteObject::DeathRecipient> InnerDomainAccountManager::GetDeathRecipient()
@@ -1619,6 +1634,7 @@ ErrCode InnerDomainAccountManager::StartHasDomainAccount(const sptr<IDomainAccou
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
     ErrCode result = plugin->GetDomainAccountInfo(options, callbackService);
+    result = ConvertToAccountErrCode(result);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get domain account, errCode: %{public}d", result);
         ErrorOnResult(result, callback);
@@ -1741,6 +1757,7 @@ void InnerDomainAccountManager::StartGetDomainAccountInfo(const sptr<IDomainAcco
         return ErrorOnResult(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, callback);
     }
     ErrCode errCode = plugin->GetDomainAccountInfo(options, callback);
+    errCode = ConvertToAccountErrCode(errCode);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("failed to get domain account, errCode: %{public}d", errCode);
         ErrorOnResult(errCode, callback);
@@ -1851,6 +1868,7 @@ void InnerDomainAccountManager::StartIsAccountTokenValid(const sptr<IDomainAccou
         return ErrorOnResult(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, callback);
     }
     ErrCode errCode = plugin->IsAccountTokenValid(info, token, callback);
+    errCode = ConvertToAccountErrCode(errCode);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("failed to get domain account, errCode: %{public}d", errCode);
         ErrorOnResult(errCode, callback);

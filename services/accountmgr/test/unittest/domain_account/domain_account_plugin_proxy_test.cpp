@@ -67,7 +67,7 @@ void DomainAccountPluginProxyTest::TearDown(void)
 
 /**
  * @tc.name: DomainAccountPluginProxyTest_AuthCommonInterface_001
- * @tc.desc: AuthCommonInterface callback is nullptr.
+ * @tc.desc: AuthWithToken callback is nullptr.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -75,8 +75,8 @@ HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_AuthCommonIn
 {
     DomainAccountInfo info;
     std::vector<uint8_t> authData;
-    EXPECT_EQ(pluginProxy_->AuthCommonInterface(info, authData, nullptr, AUTH_WITH_TOKEN_MODE),
-        ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
+    EXPECT_EQ(pluginProxy_->AuthWithToken(info, authData, nullptr), ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
+    
 }
 
 /**

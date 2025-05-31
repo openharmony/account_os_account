@@ -138,6 +138,9 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
   }
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+    deps += [
+      "${domain_account_framework_path}:domain_account_plugin_proxy",
+    ]
   }
   part_name = "os_account"
 }

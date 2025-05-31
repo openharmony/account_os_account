@@ -278,6 +278,7 @@ ohos_shared_library("accountmgr") {
     deps += [
       "${domain_account_framework_path}:domain_account_callback_proxy",
       "${domain_account_framework_path}:domain_account_callback_stub",
+      "${domain_account_framework_path}:domain_account_plugin_proxy",
     ]
   }
 

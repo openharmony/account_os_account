@@ -130,6 +130,9 @@ ohos_moduletest("account_command_module_mock_test") {
   cflags_cc += [ "-DBUNDLE_ADAPTER_MOCK" ]
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+    deps += [
+      "${domain_account_framework_path}:domain_account_plugin_proxy",
+    ]
   }
 }
 

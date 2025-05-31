@@ -215,7 +215,6 @@ ohos_unittest("domain_account_plugin_proxy_test") {
 
   include_dirs = [ "${domain_account_interfaces_native_path}/include" ]
   sources = [
-    "${services_path}/accountmgr/src/domain_account/domain_account_plugin_proxy.cpp",
     "${services_path}/accountmgr/src/domain_account/domain_has_domain_info_callback.cpp",
     "domain_account_plugin_proxy_test.cpp",
   ]
@@ -236,6 +235,12 @@ ohos_unittest("domain_account_plugin_proxy_test") {
     "hilog:libhilog",
     "ipc:ipc_single",
   ]
+
+  if (os_account_support_domain_accounts) {
+    deps += [
+      "${domain_account_framework_path}:domain_account_plugin_proxy",
+    ]
+  }
 }
 
 group("unittest") {

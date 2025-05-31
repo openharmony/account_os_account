@@ -222,6 +222,7 @@ ohos_unittest("account_mgr_test") {
     deps += [
       "${domain_account_framework_path}:domain_account_callback_proxy",
       "${domain_account_framework_path}:domain_account_callback_stub",
+      "${domain_account_framework_path}:domain_account_plugin_proxy",
     ]
   }
 

@@ -199,16 +199,6 @@ enum class DomainAccountInterfaceCode : uint32_t {
     DOMAIN_GET_ACCOUNT_POLICY,
 };
 
-enum class DomainAccountPluginInterfaceCode : int32_t {
-    DOMAIN_PLUGIN_AUTH = 0,
-    DOMAIN_PLUGIN_GET_AUTH_STATUS_INFO = 1,
-    DOMAIN_PLUGIN_GET_DOMAIN_ACCOUNT_INFO = 2,
-    DOMAIN_PLUGIN_ON_ACCOUNT_BOUND = 3,
-    DOMAIN_PLUGIN_ON_ACCOUNT_UNBOUND = 4,
-    DOMAIN_PLUGIN_IS_ACCOUNT_TOKEN_VALID = 5,
-    DOMAIN_PLUGIN_GET_ACCESS_TOKEN = 6,
-};
-
 enum class OsAccountEventInterfaceCode : uint32_t {
     ACCOUNT_CHANGED = 0,
     ACCOUNT_SWITCHED = 1,
