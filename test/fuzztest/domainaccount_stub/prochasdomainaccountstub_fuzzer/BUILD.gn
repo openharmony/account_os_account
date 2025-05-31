@@ -44,13 +44,13 @@ ohos_fuzztest("ProcHasDomainAccountStubFuzzTest") {
   }
   sources = [
     "${app_account_services_path}/src/domain_account/domain_account_manager_service.cpp",
-    "${app_account_services_path}/src/domain_account/domain_account_stub.cpp",
     "${domain_account_framework_path}/src/domain_account_parcel.cpp",
     "prochasdomainaccountstub_fuzzer.cpp",
   ]
 
   deps = [
     "${domain_account_framework_path}:domain_account_innerkits",
+    "${domain_account_framework_path}:domain_account_stub",
     "${os_account_path}/frameworks/appaccount/native:app_account_innerkits",
     "${os_account_path}/frameworks/common:libaccount_common",
     "${os_account_path}/services/accountmgr:accountmgr",

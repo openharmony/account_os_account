@@ -78,6 +78,7 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
     "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
+    "${domain_account_framework_path}:domain_account_stub",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
@@ -138,9 +139,7 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
   }
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
-    deps += [
-      "${domain_account_framework_path}:domain_account_plugin_proxy",
-    ]
+    deps += [ "${domain_account_framework_path}:domain_account_plugin_proxy" ]
   }
   part_name = "os_account"
 }

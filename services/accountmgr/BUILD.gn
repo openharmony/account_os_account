@@ -235,6 +235,7 @@ ohos_shared_library("accountmgr") {
   use_exceptions = true
 
   deps = [ "${common_path}:libaccount_common" ]
+  deps += [ "${domain_account_framework_path}:domain_account_stub" ]
 
   external_deps = [
     "ability_base:base",

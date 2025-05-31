@@ -142,6 +142,7 @@ ohos_moduletest("os_account_manager_service_module_test") {
   deps += [
     "${domain_account_framework_path}:domain_account_callback_proxy",
     "${domain_account_framework_path}:domain_account_callback_stub",
+    "${domain_account_framework_path}:domain_account_stub",
   ]
 
   external_deps = [
@@ -197,9 +198,7 @@ ohos_moduletest("os_account_manager_service_module_test") {
 
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
-    deps += [
-      "${domain_account_framework_path}:domain_account_plugin_proxy",
-    ]
+    deps += [ "${domain_account_framework_path}:domain_account_plugin_proxy" ]
   }
 
   if (security_guard_enabled) {
@@ -347,6 +346,7 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
   deps += [
     "${domain_account_framework_path}:domain_account_callback_proxy",
     "${domain_account_framework_path}:domain_account_callback_stub",
+    "${domain_account_framework_path}:domain_account_stub",
   ]
   external_deps = [
     "ability_base:base",
@@ -418,9 +418,7 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
   cflags_cc += [ "-DACCOUNT_TEST" ]
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
-    deps += [
-      "${domain_account_framework_path}:domain_account_plugin_proxy",
-    ]
+    deps += [ "${domain_account_framework_path}:domain_account_plugin_proxy" ]
   }
 }
 
