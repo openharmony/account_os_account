@@ -207,6 +207,7 @@ ohos_unittest("os_account_domain_account_callback_test") {
 
   external_deps = [
     "ability_base:want",
+    "ability_runtime:ability_manager_innerkits",
     "ability_runtime:runtime",
     "access_token:libaccesstoken_sdk",
     "cJSON:cjson",
@@ -484,6 +485,7 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     "ability_base:base",
     "ability_base:want",
     "ability_runtime:ability_manager",
+    "ability_runtime:ability_manager_innerkits",
     "ability_runtime:app_manager",
     "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
@@ -733,6 +735,7 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
     "ability_base:base",
     "ability_base:want",
     "ability_runtime:ability_manager",
+    "ability_runtime:ability_manager_innerkits",
     "ability_runtime:app_manager",
     "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",

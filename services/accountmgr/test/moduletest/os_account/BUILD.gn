@@ -343,6 +343,7 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
     "ability_base:base",
     "ability_base:want",
     "ability_runtime:ability_manager",
+    "ability_runtime:ability_manager_innerkits",
     "ability_runtime:app_manager",
     "access_token:libaccesstoken_sdk",
     "access_token:libtokensetproc_shared",
