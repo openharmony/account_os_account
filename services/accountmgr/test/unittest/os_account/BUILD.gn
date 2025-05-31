@@ -474,6 +474,7 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     "${account_iam_framework_path}:account_iam_innerkits",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
+    "${domain_account_framework_path}:domain_account_stub",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
@@ -544,9 +545,7 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
 
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
-    deps += [
-      "${domain_account_framework_path}:domain_account_plugin_proxy",
-    ]
+    deps += [ "${domain_account_framework_path}:domain_account_plugin_proxy" ]
   }
   part_name = "os_account"
 }
@@ -608,6 +607,7 @@ ohos_unittest("OsAccountInnerAccmgrPluginMockTest") {
     "${account_iam_framework_path}:account_iam_innerkits",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
+    "${domain_account_framework_path}:domain_account_stub",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
@@ -671,9 +671,7 @@ ohos_unittest("OsAccountInnerAccmgrPluginMockTest") {
   ]
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
-    deps += [
-      "${domain_account_framework_path}:domain_account_plugin_proxy",
-    ]
+    deps += [ "${domain_account_framework_path}:domain_account_plugin_proxy" ]
   }
   part_name = "os_account"
 }
@@ -729,6 +727,7 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
     "${account_iam_framework_path}:account_iam_innerkits",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
+    "${domain_account_framework_path}:domain_account_stub",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
@@ -787,9 +786,7 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
   cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
-    deps += [
-      "${domain_account_framework_path}:domain_account_plugin_proxy",
-    ]
+    deps += [ "${domain_account_framework_path}:domain_account_plugin_proxy" ]
   }
   part_name = "os_account"
 }
@@ -859,6 +856,7 @@ ohos_unittest("os_account_maintenance_type_mock_test") {
   deps += [
     "${domain_account_framework_path}:domain_account_callback_proxy",
     "${domain_account_framework_path}:domain_account_callback_stub",
+    "${domain_account_framework_path}:domain_account_stub",
   ]
 
   external_deps = [
@@ -914,9 +912,7 @@ ohos_unittest("os_account_maintenance_type_mock_test") {
 
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
-    deps += [
-      "${domain_account_framework_path}:domain_account_plugin_proxy",
-    ]
+    deps += [ "${domain_account_framework_path}:domain_account_plugin_proxy" ]
   }
 
   if (security_guard_enabled) {

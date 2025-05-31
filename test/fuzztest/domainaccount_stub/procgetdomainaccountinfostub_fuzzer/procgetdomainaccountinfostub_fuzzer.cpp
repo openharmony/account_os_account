@@ -45,7 +45,7 @@ ErrCode TestGetDomainAccountInfoCallback::OnResult(int32_t errCode, const Domain
 
 namespace OHOS {
 namespace {
-const std::u16string ACCOUNT_TOKEN = u"ohos.accountfwk.IDomainAccount";
+// const std::u16string ACCOUNT_TOKEN = u"ohos.accountfwk.IDomainAccount";
 }
 bool ProcGetDomainAccountInfoStubFuzzTest(const uint8_t* data, size_t size)
 {
@@ -53,7 +53,7 @@ bool ProcGetDomainAccountInfoStubFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
     MessageParcel dataTemp;
-    if (!dataTemp.WriteInterfaceToken(ACCOUNT_TOKEN)) {
+    if (!dataTemp.WriteInterfaceToken(DomainAccountStub::GetDescriptor())) {
         return false;
     }
 
@@ -79,7 +79,7 @@ bool ProcGetDomainAccountInfoStubFuzzTest(const uint8_t* data, size_t size)
     }
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(DomainAccountInterfaceCode::DOMAIN_GET_ACCOUNT_INFO);
+    uint32_t code = static_cast<uint32_t>(IDomainAccountIpcCode::COMMAND_GET_DOMAIN_ACCOUNT_INFO);
     auto domainAccountService = std::make_shared<DomainAccountManagerService>();
     domainAccountService->OnRemoteRequest(code, dataTemp, reply, option);
 

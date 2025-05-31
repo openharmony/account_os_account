@@ -29,7 +29,7 @@ using namespace OHOS::AccountSA;
 
 namespace OHOS {
 namespace {
-const std::u16string ACCOUNT_TOKEN = u"ohos.accountfwk.IDomainAccount";
+// const std::u16string ACCOUNT_TOKEN = u"ohos.accountfwk.IDomainAccount";
 const int32_t PASSWORD_LEN = 8;
 
 class TestDomainAuthCallback : public OHOS::AccountSA::DomainAccountCallback {
@@ -60,7 +60,7 @@ public:
 
         MessageParcel dataTemp;
 
-        if (!dataTemp.WriteInterfaceToken(ACCOUNT_TOKEN)) {
+        if (!dataTemp.WriteInterfaceToken(DomainAccountStub::GetDescriptor())) {
             return false;
         }
         if (!dataTemp.WriteString(fuzzData.GenerateString())) {
@@ -79,7 +79,7 @@ public:
         MessageParcel reply;
         MessageOption option;
 
-        uint32_t code = static_cast<uint32_t>(DomainAccountInterfaceCode::DOMAIN_AUTH);
+        uint32_t code = static_cast<uint32_t>(IDomainAccountIpcCode::COMMAND_AUTH);
         auto domainAccountService = std::make_shared<DomainAccountManagerService>();
         domainAccountService->OnRemoteRequest(code, dataTemp, reply, option);
 

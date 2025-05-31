@@ -15,6 +15,7 @@
 
 #include "domain_account_manager_service.h"
 
+#include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "inner_domain_account_manager.h"
 #include "ipc_skeleton.h"
@@ -115,9 +116,12 @@ ErrCode DomainAccountManagerService::AuthWithPopup(int32_t userId, const sptr<ID
     return InnerDomainAccountManager::GetInstance().AuthWithPopup(userId, callback);
 }
 
-ErrCode DomainAccountManagerService::GetAccountStatus(const DomainAccountInfo &info, DomainAccountStatus &status)
+ErrCode DomainAccountManagerService::GetAccountStatus(const DomainAccountInfo &info, int32_t &status)
 {
-    return InnerDomainAccountManager::GetInstance().GetAccountStatus(info, status);
+    DomainAccountStatus domainAccountStatus;
+    auto errcode = InnerDomainAccountManager::GetInstance().GetAccountStatus(info, domainAccountStatus);
+    status = static_cast<int32_t>(domainAccountStatus);
+    return errcode;
 }
 
 ErrCode DomainAccountManagerService::GetDomainAccountInfo(

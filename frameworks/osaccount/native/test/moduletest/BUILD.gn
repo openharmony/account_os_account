@@ -154,6 +154,7 @@ ohos_moduletest("os_account_frameworks_module_mock_test") {
     "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
+    "${domain_account_framework_path}:domain_account_stub",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
@@ -218,9 +219,7 @@ ohos_moduletest("os_account_frameworks_module_mock_test") {
   }
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
-    deps += [
-      "${domain_account_framework_path}:domain_account_plugin_proxy",
-    ]
+    deps += [ "${domain_account_framework_path}:domain_account_plugin_proxy" ]
   }
   part_name = "os_account"
 }
@@ -272,6 +271,7 @@ ohos_moduletest("os_account_manager_no_bms_mock_test") {
     "${account_iam_framework_path}:account_iam_innerkits",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
+    "${domain_account_framework_path}:domain_account_stub",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
@@ -325,9 +325,7 @@ ohos_moduletest("os_account_manager_no_bms_mock_test") {
   }
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
-    deps += [
-      "${domain_account_framework_path}:domain_account_plugin_proxy",
-    ]
+    deps += [ "${domain_account_framework_path}:domain_account_plugin_proxy" ]
   }
   part_name = "os_account"
 }

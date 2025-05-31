@@ -31,7 +31,7 @@ namespace OHOS {
 namespace {
 const int ENUM_MAX = 4;
 const uint32_t TOKEN_LEN = 10;
-const std::u16string ACCOUNT_TOKEN = u"ohos.accountfwk.IDomainAccount";
+// const std::u16string ACCOUNT_TOKEN = u"ohos.accountfwk.IDomainAccount";
 
 class TestGetDomainAccountInfoCallback : public DomainAccountCallbackStub {
 public:
@@ -55,7 +55,7 @@ bool ProcAddServerConfigStubFuzzTest(const uint8_t* data, size_t size)
     }
     FuzzData fuzzData(data, size);
     MessageParcel dataTemp;
-    if (!dataTemp.WriteInterfaceToken(ACCOUNT_TOKEN)) {
+    if (!dataTemp.WriteInterfaceToken(DomainAccountStub::GetDescriptor())) {
         return false;
     }
     if (!dataTemp.WriteString(fuzzData.GenerateString())) {
@@ -63,7 +63,7 @@ bool ProcAddServerConfigStubFuzzTest(const uint8_t* data, size_t size)
     }
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(DomainAccountInterfaceCode::ADD_SERVER_CONFIG);
+    uint32_t code = static_cast<uint32_t>(IDomainAccountIpcCode::COMMAND_ADD_SERVER_CONFIG);
     auto domainAccountService = std::make_shared<DomainAccountManagerService>();
     domainAccountService->OnRemoteRequest(code, dataTemp, reply, option);
 
@@ -77,7 +77,7 @@ bool ProcGetAccountStatusStubFuzzTest(const uint8_t *data, size_t size)
     }
 
     MessageParcel dataTemp;
-    if (!dataTemp.WriteInterfaceToken(ACCOUNT_TOKEN)) {
+    if (!dataTemp.WriteInterfaceToken(DomainAccountStub::GetDescriptor())) {
         return false;
     }
 
@@ -97,7 +97,7 @@ bool ProcGetAccountStatusStubFuzzTest(const uint8_t *data, size_t size)
 
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_ENQUIRY);
+    uint32_t code = static_cast<uint32_t>(IDomainAccountIpcCode::COMMAND_GET_ACCOUNT_STATUS);
     auto domainAccountService = std::make_shared<DomainAccountManagerService>();
     domainAccountService->OnRemoteRequest(code, dataTemp, reply, option);
 
@@ -111,7 +111,7 @@ bool ProcGetDomainAccessTokenStubFuzzTest(const uint8_t *data, size_t size)
     }
 
     MessageParcel dataTemp;
-    if (!dataTemp.WriteInterfaceToken(ACCOUNT_TOKEN)) {
+    if (!dataTemp.WriteInterfaceToken(DomainAccountStub::GetDescriptor())) {
         return false;
     }
 
@@ -146,7 +146,7 @@ bool ProcGetDomainAccessTokenStubFuzzTest(const uint8_t *data, size_t size)
 
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(DomainAccountInterfaceCode::DOMAIN_GET_ACCESS_TOKEN);
+    uint32_t code = static_cast<uint32_t>(IDomainAccountIpcCode::COMMAND_GET_ACCESS_TOKEN);
     auto domainAccountService = std::make_shared<DomainAccountManagerService>();
     domainAccountService->OnRemoteRequest(code, dataTemp, reply, option);
 
@@ -160,7 +160,7 @@ bool ProcUpdateAccountTokenStubFuzzTest(const uint8_t *data, size_t size)
     }
 
     MessageParcel dataTemp;
-    if (!dataTemp.WriteInterfaceToken(ACCOUNT_TOKEN)) {
+    if (!dataTemp.WriteInterfaceToken(DomainAccountStub::GetDescriptor())) {
         return false;
     }
 
@@ -189,7 +189,7 @@ bool ProcUpdateAccountTokenStubFuzzTest(const uint8_t *data, size_t size)
 
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_TOKEN);
+    uint32_t code = static_cast<uint32_t>(IDomainAccountIpcCode::COMMAND_UPDATE_ACCOUNT_TOKEN);
     auto domainAccountService = std::make_shared<DomainAccountManagerService>();
     domainAccountService->OnRemoteRequest(code, dataTemp, reply, option);
 

@@ -269,7 +269,10 @@ ErrCode DomainAccountClient::GetAccountStatus(const DomainAccountInfo &info, Dom
         ACCOUNT_LOGE("failed to get domain account proxy");
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->GetAccountStatus(info, status);
+    int32_t statusResult;
+    auto errCode = proxy->GetAccountStatus(info, statusResult);
+    status = static_cast<DomainAccountStatus>(statusResult);
+    return errCode;
 #else
     return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
 #endif // SUPPORT_DOMAIN_ACCOUNTS
