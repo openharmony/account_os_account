@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -97,7 +97,8 @@ bool IsTypeOutOfRange(const OsAccountType& type)
 }
 }  // namespace
 
-OsAccountManagerService::OsAccountManagerService() : innerManager_(IInnerOsAccountManager::GetInstance())
+OsAccountManagerService::OsAccountManagerService() : innerManager_(IInnerOsAccountManager::GetInstance()),
+    constraintManger_(OsAccountConstraintManager::GetInstance())
 {}
 
 OsAccountManagerService::~OsAccountManagerService()
@@ -628,6 +629,19 @@ ErrCode OsAccountManagerService::SetOsAccountName(const int id, const std::strin
     return innerManager_.SetOsAccountName(id, name);
 }
 
+void OsAccountManagerService::ConstraintPublish(const std::vector<std::string> &oldConstraints,
+    int32_t localId, bool enable)
+{
+    std::vector<std::string> newConstraints;
+    innerManager_.GetOsAccountAllConstraints(localId, newConstraints);
+    std::set<std::string> oldConstraintSet(oldConstraints.begin(), oldConstraints.end());
+    std::set<std::string> newConstraintSet(newConstraints.begin(), newConstraints.end());
+    if (oldConstraintSet != newConstraintSet) {
+        return constraintManger_.Publish(localId, oldConstraintSet, newConstraintSet, enable);
+    }
+    ACCOUNT_LOGE("No constraint change.");
+}
+
 ErrCode OsAccountManagerService::SetOsAccountConstraints(
     const int id, const std::vector<std::string> &constraints, const bool enable)
 {
@@ -645,8 +659,11 @@ ErrCode OsAccountManagerService::SetOsAccountConstraints(
         REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
-
-    return innerManager_.SetBaseOsAccountConstraints(id, constraints, enable);
+    std::vector<std::string> oldConstraints;
+    innerManager_.GetOsAccountAllConstraints(id, oldConstraints);
+    ErrCode errCode = innerManager_.SetBaseOsAccountConstraints(id, constraints, enable);
+    ConstraintPublish(oldConstraints, id, enable);
+    return errCode;
 }
 
 ErrCode OsAccountManagerService::SetOsAccountProfilePhoto(const int id, const std::string &photo)
@@ -1102,8 +1119,11 @@ ErrCode OsAccountManagerService::SetGlobalOsAccountConstraints(const std::vector
         REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
-
-    return innerManager_.SetGlobalOsAccountConstraints(constraints, enable, enforcerId, isDeviceOwner);
+    std::vector<std::string> oldConstraints;
+    innerManager_.GetOsAccountAllConstraints(enforcerId, oldConstraints);
+    ErrCode errCode = innerManager_.SetGlobalOsAccountConstraints(constraints, enable, enforcerId, isDeviceOwner);
+    ConstraintPublish(oldConstraints, enforcerId, enable);
+    return errCode;
 }
 
 ErrCode OsAccountManagerService::SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
@@ -1121,8 +1141,47 @@ ErrCode OsAccountManagerService::SetSpecificOsAccountConstraints(const std::vect
         ACCOUNT_LOGE("Invalid input account id %{public}d or %{public}d.", targetId, enforcerId);
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
+    std::vector<std::string> oldConstraints;
+    innerManager_.GetOsAccountAllConstraints(targetId, oldConstraints);
+    ErrCode errCode = innerManager_.SetSpecificOsAccountConstraints(
+        constraints, enable, targetId, enforcerId, isDeviceOwner);
+    ConstraintPublish(oldConstraints, targetId, enable);
+    return errCode;
+}
 
-    return innerManager_.SetSpecificOsAccountConstraints(constraints, enable, targetId, enforcerId, isDeviceOwner);
+ErrCode OsAccountManagerService::SubscribeConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
+    const sptr<IRemoteObject> &eventListener)
+{
+    // permission check
+    if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("Account manager service, permission denied!");
+        REPORT_PERMISSION_FAIL();
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+
+    ErrCode result = constraintManger_.SubscribeConstraints(subscribeInfo, eventListener);
+    if (result != ERR_OK) {
+        REPORT_OS_ACCOUNT_FAIL(IPCSkeleton::GetCallingUid(), Constants::OPERATION_LOG_ERROR,
+            result, "Subscribe constraint failed.");
+    }
+    return result;
+}
+
+ErrCode OsAccountManagerService::UnsubscribeConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
+    const sptr<IRemoteObject> &eventListener)
+{
+    // permission check
+    if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("Account manager service, permission denied!");
+        REPORT_PERMISSION_FAIL();
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    ErrCode result = constraintManger_.UnsubscribeConstraints(subscribeInfo, eventListener);
+    if (result != ERR_OK) {
+        REPORT_OS_ACCOUNT_FAIL(IPCSkeleton::GetCallingUid(), Constants::OPERATION_LOG_ERROR,
+            result, "Unsubscribe constraint failed.");
+    }
+    return result;
 }
 
 ErrCode OsAccountManagerService::SetDefaultActivatedOsAccount(const int32_t id)

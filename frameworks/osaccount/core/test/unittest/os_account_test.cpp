@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,6 +25,7 @@
 #include "os_account_proxy.h"
 #define private public
 #include "os_account.h"
+#include "os_account_constraint_event_listener.h"
 #undef private
 #include "singleton.h"
 #include "system_ability_definition.h"
@@ -49,6 +50,9 @@ const std::vector<std::string> CONSTANTS_VECTOR {
     "constraint.screen.timeout.set",
     "constraint.share.into.profile"
 };
+const std::string CONSTRAINT_WIFI = "constraint.wifi";
+const std::string CONSTRAINT_TIME_OUT =  "constraint.screen.timeout.set";
+const std::string CONSTRAINT_SHARE =  "constraint.share.into.profile";
 const std::string STRING_DOMAIN_VALID = "TestDomainUT";
 const std::string STRING_DOMAIN_ACCOUNT_NAME_VALID = "TestDomainAccountNameUT";
 std::shared_ptr<OsAccount> g_osAccount = nullptr;
@@ -110,6 +114,53 @@ void OsAccountTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 
 void OsAccountTest::TearDown(void)
 {}
+
+class MockOsAccountConstraintSubscriber : public OsAccountConstraintSubscriber {
+public:
+    MockOsAccountConstraintSubscriber(const std::set<std::string> &constraintSet)
+        : OsAccountConstraintSubscriber(constraintSet)
+    {}
+
+    ~MockOsAccountConstraintSubscriber()
+    {}
+
+    void OnConstraintChanged(int localId, const std::string &constraint, bool enable) override
+    {
+        ACCOUNT_LOGI("Enter OnConstraintChanged, localId=%{public}d, constraints=%{public}s enable=%{public}d",
+            localId, constraint.c_str(), enable);
+        count_++;
+        return;
+    }
+
+    int32_t count_ = 0;
+};
+
+class MockOsAccountConstraintEventListener : public OsAccountConstraintEventListener {
+public:
+    ErrCode OnConstraintChanged(int localId, const std::set<std::string> &constraints, bool enable)
+    {
+        ErrCode result = OsAccountConstraintEventListener::OnConstraintChanged(localId, constraints, enable);
+        std::unique_lock<std::mutex> lock(mutex_);
+        isReady_ = true;
+        count_++;
+        cv_.notify_one();
+        return result;
+    }
+
+    void WaitForCallBack()
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        cv_.wait_for(
+            lock, std::chrono::seconds(1), [this]() { return this->isReady_; });
+        isReady_ = false;
+        ACCOUNT_LOGI("End");
+    }
+
+    std::condition_variable cv_;
+    bool isReady_ = false;
+    std::mutex mutex_;
+    int32_t count_ = 0;
+};
 
 /**
  * @tc.name: OsAccountTest001
@@ -319,4 +370,126 @@ HWTEST_F(OsAccountTest, OsAccountTest018, TestSize.Level1)
 HWTEST_F(OsAccountTest, OsAccountTest019, TestSize.Level1)
 {
     EXPECT_EQ(g_osAccount->ResetOsAccountProxy(), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountTest019
+ * @tc.desc: test SubscribeConstraints normal branch.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountTest020, TestSize.Level1)
+{
+    std::set<std::string> constraints;
+    auto failSubsriber = std::make_shared<MockOsAccountConstraintSubscriber>(constraints);
+    EXPECT_EQ(g_osAccount->SubscribeConstraints(nullptr), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(g_osAccount->UnsubscribeConstraints(nullptr), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(g_osAccount->SubscribeConstraints(failSubsriber), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(g_osAccount->UnsubscribeConstraints(failSubsriber), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    constraints = {STRING_NAME};
+    failSubsriber = std::make_shared<MockOsAccountConstraintSubscriber>(constraints);
+    EXPECT_EQ(g_osAccount->UnsubscribeConstraints(failSubsriber), ERR_ACCOUNT_COMMON_ACCOUNT_SUBSCRIBE_NOT_FOUND_ERROR);
+    EXPECT_NE(g_osAccount->SubscribeConstraints(failSubsriber), ERR_OK);
+    constraints = {CONSTRAINT_WIFI};
+    auto wifiSubscriber = std::make_shared<MockOsAccountConstraintSubscriber>(constraints);
+    EXPECT_EQ(g_osAccount->constraintListenerPtr_->IsNeedDataSync(wifiSubscriber), true);
+    EXPECT_EQ(g_osAccount->SubscribeConstraints(wifiSubscriber), ERR_OK);
+    constraints = {CONSTRAINT_TIME_OUT};
+    auto timeountSubscriber = std::make_shared<MockOsAccountConstraintSubscriber>(constraints);
+    EXPECT_EQ(g_osAccount->SubscribeConstraints(timeountSubscriber), ERR_OK);
+    EXPECT_EQ(g_osAccount->SubscribeConstraints(wifiSubscriber), ERR_ACCOUNT_COMMON_ACCOUNT_SUBSCRIBE_AREADY_ERROR);
+    std::set<std::shared_ptr<OsAccountConstraintSubscriber>> subscriberSet =
+        g_osAccount->constraintListenerPtr_->subscriberSet_;
+    std::set<std::string> constraintSet = g_osAccount->constraintListenerPtr_->constraintSet_;
+    std::map<std::string, std::set<std::shared_ptr<OsAccountConstraintSubscriber>>> constraint2SubscriberMap =
+        g_osAccount->constraintListenerPtr_->constraint2SubscriberMap_;
+    g_osAccount->RestoreConstraintsRecords();
+    EXPECT_EQ(g_osAccount->UnsubscribeConstraints(wifiSubscriber), ERR_OK);
+    EXPECT_EQ(g_osAccount->UnsubscribeConstraints(timeountSubscriber), ERR_OK);
+    g_osAccount->RestoreConstraintsRecords();
+    g_osAccount->constraintListenerPtr_->constraint2SubscriberMap_ = constraint2SubscriberMap;
+    g_osAccount->constraintListenerPtr_->subscriberSet_ = subscriberSet;
+    g_osAccount->constraintListenerPtr_->constraintSet_ = constraintSet;
+    g_osAccount->RestoreConstraintsRecords();
+    EXPECT_EQ(g_osAccount->UnsubscribeConstraints(wifiSubscriber), ERR_OK);
+    EXPECT_EQ(g_osAccount->UnsubscribeConstraints(timeountSubscriber), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountTest019
+ * @tc.desc: test SubscribeConstraints normal branch.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountTest021, TestSize.Level1)
+{
+    std::set<std::string> constraints;
+    constraints = {CONSTRAINT_WIFI};
+    auto wifiSubscriber = std::make_shared<MockOsAccountConstraintSubscriber>(constraints);
+    auto wifiSubscriber2 = std::make_shared<MockOsAccountConstraintSubscriber>(constraints);
+    std::set<std::string> constraints2;
+    constraints2 = {CONSTRAINT_TIME_OUT};
+    auto timeountSubscriber = std::make_shared<MockOsAccountConstraintSubscriber>(constraints2);
+    auto listener = new (std::nothrow) MockOsAccountConstraintEventListener();
+    g_osAccount->constraintListenerPtr_ = listener;
+    EXPECT_EQ(g_osAccount->SubscribeConstraints(wifiSubscriber), ERR_OK);
+    EXPECT_EQ(g_osAccount->constraintListenerPtr_->IsNeedDataSync(wifiSubscriber2), false);
+    EXPECT_EQ(g_osAccount->SubscribeConstraints(wifiSubscriber2), ERR_OK);
+    EXPECT_EQ(g_osAccount->SubscribeConstraints(timeountSubscriber), ERR_OK);
+    bool isEnabled = false;
+    EXPECT_EQ(g_osAccount->IsOsAccountConstraintEnable(Constants::START_USER_ID, CONSTRAINT_WIFI, isEnabled), ERR_OK);
+    std::vector<std::string> vec = {CONSTRAINT_WIFI};
+    EXPECT_EQ(g_osAccount->SetOsAccountConstraints(Constants::START_USER_ID, vec, !isEnabled), ERR_OK);
+    listener->WaitForCallBack();
+    EXPECT_EQ(wifiSubscriber->count_, 1);
+    EXPECT_EQ(wifiSubscriber2->count_, 1);
+    EXPECT_EQ(timeountSubscriber->count_, 0);
+    EXPECT_EQ(listener->count_, 1);
+    vec = {CONSTRAINT_TIME_OUT};
+    isEnabled = !isEnabled;
+    EXPECT_EQ(g_osAccount->IsOsAccountConstraintEnable(
+        Constants::START_USER_ID, CONSTRAINT_TIME_OUT, isEnabled), ERR_OK);
+    EXPECT_EQ(g_osAccount->SetSpecificOsAccountConstraints(
+        vec, !isEnabled, MAIN_ACCOUNT_ID, MAIN_ACCOUNT_ID, false), ERR_OK);
+    listener->WaitForCallBack();
+    EXPECT_EQ(wifiSubscriber->count_, 1);
+    EXPECT_EQ(timeountSubscriber->count_, 1);
+    EXPECT_EQ(listener->count_, 2);
+    vec = {CONSTRAINT_SHARE};
+    EXPECT_EQ(g_osAccount->IsOsAccountConstraintEnable(Constants::START_USER_ID, CONSTRAINT_SHARE, isEnabled), ERR_OK);
+    EXPECT_EQ(g_osAccount->SetGlobalOsAccountConstraints(vec, !isEnabled, MAIN_ACCOUNT_ID, false), ERR_OK);
+    listener->WaitForCallBack();
+    EXPECT_EQ(listener->count_, 2);
+}
+
+/**
+ * @tc.name: InsertSubscriberRecord001
+ * @tc.desc: Test OsAccountConstraintEventListener InsertSubscriberRecord
+ * @tc.type: FUNC
+ * @tc.require: issueI6AQUQ
+ */
+HWTEST_F(OsAccountTest, InsertSubscriberRecord001, TestSize.Level1)
+{
+    auto listener = new (std::nothrow) OsAccountConstraintEventListener();
+    std::set<std::string> constraints = {STRING_NAME};
+    auto subscriber = std::make_shared<OsAccountConstraintSubscriber>(constraints);
+    EXPECT_EQ(listener->HasSubscribed(subscriber), false);
+    listener->InsertSubscriberRecord(subscriber);
+    EXPECT_EQ(listener->subscriberSet_.size(), 1);
+    EXPECT_EQ(listener->HasSubscribed(subscriber), true);
+    EXPECT_EQ(listener->HasSubscribed(subscriber), true);
+    listener->InsertSubscriberRecord(subscriber);
+    EXPECT_EQ(listener->subscriberSet_.size(), 1);
+    auto subscriber2 = std::make_shared<OsAccountConstraintSubscriber>(constraints);
+    EXPECT_EQ(listener->HasSubscribed(subscriber2), false);
+    listener->InsertSubscriberRecord(subscriber2);
+    EXPECT_EQ(listener->subscriberSet_.size(), 2);
+    EXPECT_EQ(listener->constraint2SubscriberMap_.size(), 1);
+    EXPECT_EQ(listener->OnConstraintChanged(1, constraints, true), ERR_OK);
+    listener->RemoveSubscriberRecord(subscriber2);
+    EXPECT_EQ(listener->constraint2SubscriberMap_.size(), 1);
+    EXPECT_EQ(listener->subscriberSet_.size(), 1);
+    listener->RemoveSubscriberRecord(subscriber);
+    EXPECT_EQ(listener->constraint2SubscriberMap_.size(), 0);
+    EXPECT_EQ(listener->subscriberSet_.size(), 0);
 }

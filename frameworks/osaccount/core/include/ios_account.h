@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,14 +17,15 @@
 #define OS_ACCOUNT_FRAMEWORKS_OSACCOUNT_CORE_INCLUDE_IOS_ACCOUNT_H
 
 #include <string>
+#include "account_error_no.h"
+#include "accountmgr_service_ipc_interface_code.h"
+#include "os_account_constraint_subscribe_info.h"
+#include "idomain_account_callback.h"
 #include "iremote_broker.h"
 #include "iremote_object.h"
-#include "os_account_info.h"
-#include "accountmgr_service_ipc_interface_code.h"
-#include "account_error_no.h"
-#include "idomain_account_callback.h"
 #include "os_account_constants.h"
 #include "os_account_event_listener.h"
+#include "os_account_info.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -100,7 +101,10 @@ public:
         const bool enable, const int32_t enforcerId, const bool isDeviceOwner) = 0;
     virtual ErrCode SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
         const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner) = 0;
-
+    virtual ErrCode SubscribeConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
+        const sptr<IRemoteObject> &eventListener) = 0;
+    virtual ErrCode UnsubscribeConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
+        const sptr<IRemoteObject> &eventListener) = 0;
     virtual ErrCode SetDefaultActivatedOsAccount(const int32_t id) = 0;
     virtual ErrCode GetDefaultActivatedOsAccount(int32_t &id) = 0;
     virtual ErrCode GetOsAccountShortName(std::string &shortName) = 0;

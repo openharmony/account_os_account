@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -92,6 +92,8 @@ enum class OsAccountInterfaceCode : uint32_t {
     QUERY_OS_ACCOUNT_CONSTRAINT_SOURCE_TYPES,
     SET_GLOBAL_OS_ACCOUNT_CONSTRAINTS,
     SET_SPECIFIC_OS_ACCOUNT_CONSTRAINTS,
+    SUBSCRIBE_OS_ACCOUNT_CONSTRAINTS,
+    UNSUBSCRIBE_OS_ACCOUNT_CONSTRAINTS,
     SET_DEFAULT_ACTIVATED_OS_ACCOUNT,
     GET_DEFAULT_ACTIVATED_OS_ACCOUNT,
     GET_OS_ACCOUNT_SHORT_NAME,
@@ -134,6 +136,10 @@ enum class OsAccountEventInterfaceCode : uint32_t {
     ACCOUNT_CHANGED = 0,
     ACCOUNT_SWITCHED = 1,
     ON_STATE_CHANGED = 2,
+};
+
+enum class ConstraintEventInterfaceCode : uint32_t {
+    CONSTRAINT_CHANGED = 0,
 };
 
 enum class StateReplyCallbackInterfaceCode : uint32_t {

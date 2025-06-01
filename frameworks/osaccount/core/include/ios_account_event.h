@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,6 +23,13 @@
 
 namespace OHOS {
 namespace AccountSA {
+class IConstraintEvent : public IRemoteBroker {
+public:
+    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IConstraintEvent");
+
+    virtual ErrCode OnConstraintChanged(int localId, const std::set<std::string> &constraints, bool enable) = 0;
+};
+
 class IOsAccountEvent : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IOsAccountEvent");

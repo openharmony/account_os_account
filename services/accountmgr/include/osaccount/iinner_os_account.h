@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,7 @@
 
 #include <string>
 #include "account_error_no.h"
+#include "os_account_constraint_subscribe_info.h"
 #include "idomain_account_callback.h"
 #include "os_account_info.h"
 #include "iremote_object.h"
@@ -26,6 +27,16 @@
 
 namespace OHOS {
 namespace AccountSA {
+class IInnerConstraint {
+public:
+    virtual ErrCode SubscribeConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
+        const sptr<IRemoteObject> &eventListener) = 0;
+    virtual ErrCode UnsubscribeConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
+        const sptr<IRemoteObject> &eventListener) = 0;
+    virtual void Publish(int32_t localId, const std::set<std::string> &oldConstraints,
+        const std::set<std::string> &newConstraints, const bool enable) = 0;
+};
+
 class IInnerOsAccount {
 public:
     virtual bool Init(const std::set<int32_t> &initAccounts = {Constants::START_USER_ID}) = 0;
