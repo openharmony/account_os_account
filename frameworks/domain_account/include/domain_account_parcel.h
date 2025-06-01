@@ -23,15 +23,31 @@ namespace AccountSA {
 class DomainAccountParcel : public Parcelable {
 public:
     DomainAccountParcel() = default;
+    DomainAccountParcel(const DomainAccountParcel&) = delete;
+    DomainAccountParcel& operator=(const DomainAccountParcel&) = delete;
 
-    void GetParcelData(Parcel &parcel) const
+    bool GetParcelData(Parcel &parcel) const
     {
-        parcel.ParseFrom(parcelData_.GetData(), parcelData_.GetDataSize());
+        uintptr_t data = parcelData_.GetData();
+        size_t size = parcelData_.GetDataSize();
+        if (data != 0 && size > 0) {
+            if (!parcel.WriteBuffer(reinterpret_cast<const void*>(data), size)) {
+                return false;
+            }
+        }
+        return true;
     }
 
-    void SetParcelData(const Parcel &parcel)
+    bool SetParcelData(const Parcel &parcel)
     {
-        parcelData_.ParseFrom(parcel.GetData(), parcel.GetDataSize());
+        uintptr_t data = parcel.GetData();
+        size_t size = parcel.GetDataSize();
+        if (data != 0 && size > 0) {
+            if (!parcelData_.WriteBuffer(reinterpret_cast<const void*>(data), size)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     bool ReadFromParcel(Parcel &parcel);
