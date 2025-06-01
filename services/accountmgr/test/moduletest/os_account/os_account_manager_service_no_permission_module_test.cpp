@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -583,5 +583,22 @@ HWTEST_F(OsAccountManagerServiceNoPermissionModuleTest, OsAccountManagerServiceM
         osAccountManagerService_->LockOsAccount(MAIN_ACCOUNT_ID));
 }
 #endif
+
+/**
+ * @tc.name: SubscribeConstraints_No_Permission001
+ * @tc.desc: Test SubscribeConstraints PermissionCheck failed.
+ * @tc.type: FUNC
+ * @tc.require: issueI6AQUQ
+ */
+HWTEST_F(OsAccountManagerServiceNoPermissionModuleTest, SubscribeConstraints_No_Permission001, TestSize.Level1)
+{
+    setuid(TEST_UID);
+    std::set<std::string> constraints;
+    OsAccountConstraintSubscribeInfo info(constraints);
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
+        osAccountManagerService_->SubscribeConstraints(info, nullptr));
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
+        osAccountManagerService_->UnsubscribeConstraints(info, nullptr));
+}
 }  // namespace AccountSA
 }  // namespace OHOS

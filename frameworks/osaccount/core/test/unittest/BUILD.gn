@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -39,7 +39,11 @@ ohos_unittest("os_account_test") {
 
   module_out_path = module_output_path
 
-  sources = [ "os_account_test.cpp" ]
+  sources = [
+    "${os_account_core_path}/src/os_account_constraint_event_listener.cpp",
+    "${os_account_core_path}/src/os_account_event_stub.cpp",
+    "os_account_test.cpp"
+  ]
 
   configs = [ ":os_account_core_config_unittest" ]
 

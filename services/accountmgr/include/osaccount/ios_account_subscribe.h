@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -36,6 +36,32 @@ struct OsSubscribeRecord {
 };
 
 using OsSubscribeRecordPtr = std::shared_ptr<OsSubscribeRecord>;
+
+struct ConstraintRecord {
+    std::set<std::string> constraintSet_;
+    sptr<IRemoteObject> eventListener_;
+    int32_t callingUid_;
+
+    ConstraintRecord() : eventListener_(nullptr), callingUid_(-1)
+    {}
+    ConstraintRecord(const std::set<std::string> &constraints, const sptr<IRemoteObject> eventListener,
+        int32_t callingUid)
+        : constraintSet_(constraints), eventListener_(eventListener), callingUid_(callingUid)
+    {}
+};
+
+using ConstraintRecordPtr = std::shared_ptr<ConstraintRecord>;
+
+class IConstraintSubscribe  {
+public:
+    virtual ErrCode SubscribeConstraints(const std::set<std::string> &constraints,
+        const sptr<IRemoteObject> &eventListener) = 0;
+    virtual ErrCode UnsubscribeConstraints(const std::set<std::string> &constraints,
+        const sptr<IRemoteObject> &eventListener) = 0;
+    virtual ErrCode UnsubscribeConstraints(const sptr<IRemoteObject> &eventListener);
+    virtual void Publish(int32_t localId, const std::set<std::string> &oldConstraints,
+        const std::set<std::string> &newConstraints, const bool enable) = 0;
+};
 
 class IOsAccountSubscribe {
 public:

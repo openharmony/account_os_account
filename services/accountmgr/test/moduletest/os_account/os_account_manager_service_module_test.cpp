@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -2091,6 +2091,20 @@ HWTEST_F(OsAccountManagerServiceModuleTest, U1Checkout001, TestSize.Level1)
     ASSERT_EQ(osAccountManagerService_->SetOsAccountIsVerified(1, true), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
     ASSERT_EQ(osAccountManagerService_->SetDefaultActivatedOsAccount(1), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
     ASSERT_EQ(osAccountManagerService_->SetOsAccountToBeRemoved(1, true), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+}
+
+/**
+ * @tc.name: SubscribeConstraints_Invalid_Param001
+ * @tc.desc: Test SubscribeConstraints eventListener is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, SubscribeConstraints_Invalid_Param001, TestSize.Level1)
+{
+    std::set<std::string> constraints;
+    OsAccountConstraintSubscribeInfo info(constraints);
+    ASSERT_EQ(osAccountManagerService_->SubscribeConstraints(info, nullptr), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    ASSERT_EQ(osAccountManagerService_->UnsubscribeConstraints(info, nullptr), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

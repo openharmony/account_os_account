@@ -17,6 +17,8 @@
 #include <gtest/hwext/gtest-multithread.h>
 #include <new>
 #include <string>
+#include "account_test_common.h"
+#include "ipc_skeleton.h"
 #define private public
 #include "iinner_os_account_manager.h"
 #include "os_account.h"
@@ -24,11 +26,12 @@
 #include "os_account_manager.h"
 #define private public
 #include "os_account_control_file_manager.h"
+#include "os_account_constraint_subscribe_manager.h"
 #include "os_account_manager_service.h"
 #include "os_account_proxy.h"
 #include "os_account_subscribe_manager.h"
 #undef private
-
+#include "token_setproc.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -44,6 +47,7 @@ bool g_flag = false;
 constexpr int32_t TEST_COUNT = 100;
 constexpr int32_t TEST_ID = 100;
 const int32_t SLEEP_TIME = 2;
+const std::string CONSTRAINT_WIFI = "constraint.wifi";
 }  // namespace
 class OsAccountEventManagerTest : public testing::Test {
 public:
@@ -170,6 +174,52 @@ HWTEST_F(OsAccountEventManagerTest, OsAccountSwitchTestTest001, TestSize.Level1)
     EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(subscriberSwitched));
     EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(subscriberSwitching));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
+}
+
+class MockOsAccountConstraintSubscriber : public OsAccountConstraintSubscriber {
+public:
+    explicit MockOsAccountConstraintSubscriber(const std::set<std::string> &constraintSet)
+        : OsAccountConstraintSubscriber(constraintSet) {}
+    void OnConstraintChanged(int localId, const std::string &constraint, bool enable) {};
+};
+
+void TestConstraintSubscibeInfo()
+{
+    g_flag = !g_flag;
+    int32_t i = 1000;
+    std::set<std::string> constraintSet = {CONSTRAINT_WIFI};
+    if (g_flag) {
+        while (i--) {
+            auto subscriber = std::make_shared<MockOsAccountConstraintSubscriber>(constraintSet);
+            EXPECT_NE(nullptr, subscriber);
+            sptr<OsAccountConstraintEventListener> listener = new (std::nothrow) OsAccountConstraintEventListener();
+            listener->InsertSubscriberRecord(subscriber);
+            OsAccountConstraintSubscribeInfo info;
+            listener->GetAllConstraintSubscribeInfos(info);
+            setuid(i);
+            EXPECT_EQ(ERR_OK, OsAccount::GetInstance().proxy_->SubscribeConstraints(info, listener));
+        }
+    } else {
+        while (i--) {
+            OsAccountConstraintSubscribeManager::GetInstance().Publish(TEST_ID, constraintSet, true);
+        }
+    }
+}
+
+/**
+ * @tc.name: OsAccountConstraintSubscribeManager001
+ * @tc.desc: Test multiple thread constraint event manager
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountEventManagerTest, OsAccountConstraintSubscribeManager001, TestSize.Level1)
+{
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    uint64_t tokenID;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS"}, tokenID));
+    GTEST_RUN_TASK(TestConstraintSubscibeInfo);
+    setuid(0);
+    ASSERT_TRUE(RecoveryPermission(tokenID, selfTokenId));
 }
 }  // namespace AccountSA
 }  // namespace OHOS

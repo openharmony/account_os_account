@@ -21,6 +21,18 @@
 
 namespace OHOS {
 namespace AccountSA {
+class OsAccountConstraintEventStub : public IRemoteStub<IConstraintEvent> {
+public:
+    OsAccountConstraintEventStub();
+    ~OsAccountConstraintEventStub() override;
+
+    ErrCode OnRemoteRequest(
+        uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
+
+private:
+    DISALLOW_COPY_AND_MOVE(OsAccountConstraintEventStub);
+};
+
 class OsAccountEventStub : public IRemoteStub<IOsAccountEvent> {
 public:
     OsAccountEventStub();

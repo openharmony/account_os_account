@@ -649,6 +649,7 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
 
   module_out_path = module_output_path
   include_dirs = [
+    "${account_test_common}/include",
     "${app_account_innerkits_native_path}/include",
     "${os_account_dfx_path}/hidumper_adapter",
     "${services_path}/accountmgr/include/bundle_manager_adapter",
@@ -662,6 +663,7 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
     "${os_account_path}/interfaces/innerkits/ohosaccount/native/include/",
   ]
   sources = [
+    "${account_test_common}/src/account_test_common.cpp",
     "${app_account_services_path}/test/mock/common/ability_manager_adapter_mock.cpp",
     "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
     "${common_path}/log/src/account_log_wrapper.cpp",

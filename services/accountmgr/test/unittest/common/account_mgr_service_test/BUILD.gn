@@ -149,6 +149,7 @@ ohos_unittest("account_mgr_test") {
   sources += account_service_sources
   sources += ability_manager_sources
   sources += [
+    "${os_account_core_path}/src/os_account_constraint_event_listener.cpp",
     "${os_account_core_path}/src/os_account.cpp",
     "${os_account_core_path}/src/os_account_death_recipient.cpp",
     "${os_account_core_path}/src/os_account_event_listener.cpp",

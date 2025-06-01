@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -424,6 +424,20 @@ static const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProc
         {
             .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
                 return ptr->ProcSetSpecificOsAccountConstraints(data, reply); },
+        }
+    },
+    {
+        static_cast<uint32_t>(OsAccountInterfaceCode::SUBSCRIBE_OS_ACCOUNT_CONSTRAINTS),
+        {
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcSubscribeConstraints(data, reply); },
+        }
+    },
+    {
+        static_cast<uint32_t>(OsAccountInterfaceCode::UNSUBSCRIBE_OS_ACCOUNT_CONSTRAINTS),
+        {
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcUnsubscribeConstraints(data, reply); },
         }
     },
     {
@@ -1800,6 +1814,75 @@ ErrCode OsAccountStub::ProcSetSpecificOsAccountConstraints(MessageParcel &data, 
     ErrCode result = SetSpecificOsAccountConstraints(constraints, enable, targetId, enforcerId, isDeviceOwner);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("Failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcSubscribeConstraints(MessageParcel &data, MessageParcel &reply)
+{
+#ifdef HICOLLIE_ENABLE
+    unsigned int flag = HiviewDFX::XCOLLIE_FLAG_LOG | HiviewDFX::XCOLLIE_FLAG_RECOVERY;
+    XCollieCallback callbackFunc = [callingPid = IPCSkeleton::GetCallingPid(),
+        callingUid = IPCSkeleton::GetCallingUid()](void *) {
+        ACCOUNT_LOGE("ProcSubscribeOsAccount failed, callingPid: %{public}d, callingUid: %{public}d.",
+            callingPid, callingUid);
+        ReportOsAccountOperationFail(callingUid, "watchDog", -1, "Subscribe osaccount time out");
+    };
+    int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(
+        TIMER_NAME, RECOVERY_TIMEOUT, callbackFunc, nullptr, flag);
+#endif // HICOLLIE_ENABLE
+    std::unique_ptr<OsAccountConstraintSubscribeInfo> subscribeInfo(
+        data.ReadParcelable<OsAccountConstraintSubscribeInfo>());
+    if (!subscribeInfo) {
+        ACCOUNT_LOGE("Failed to read parcelable for subscribeInfo");
+#ifdef HICOLLIE_ENABLE
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+
+    sptr<IRemoteObject> eventListener = data.ReadRemoteObject();
+    if (eventListener == nullptr) {
+        ACCOUNT_LOGE("Failed to read remote object for eventListener");
+#ifdef HICOLLIE_ENABLE
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+
+    ErrCode result = SubscribeConstraints(*subscribeInfo, eventListener);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Failed to write reply, result %{public}d.", result);
+#ifdef HICOLLIE_ENABLE
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+#ifdef HICOLLIE_ENABLE
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcUnsubscribeConstraints(MessageParcel &data, MessageParcel &reply)
+{
+    std::unique_ptr<OsAccountConstraintSubscribeInfo> subscribeInfo(
+            data.ReadParcelable<OsAccountConstraintSubscribeInfo>());
+    if (!subscribeInfo) {
+        ACCOUNT_LOGE("Failed to read parcelable for subscribeInfo");
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+
+    sptr<IRemoteObject> eventListener = data.ReadRemoteObject();
+    if (eventListener == nullptr) {
+        ACCOUNT_LOGE("Failed to read remote object for eventListener");
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+
+    ErrCode result = UnsubscribeConstraints(*subscribeInfo, eventListener);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Failed to write reply, result %{public}d.", result);
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     return ERR_NONE;
