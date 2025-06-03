@@ -27,7 +27,7 @@ bool DomainAccountParcel::ReadFromParcel(Parcel &parcel)
 {
     uint32_t size;
     if (!parcel.ReadUint32(size)) {
-        ACCOUNT_LOGE("Failed to read size");
+        ACCOUNT_LOGE("Read size failed, please check size value in parcel");
         return false;
     }
     if (size > DOMAIN_DATA_MAX_SIZE) {
@@ -35,7 +35,7 @@ bool DomainAccountParcel::ReadFromParcel(Parcel &parcel)
     }
     const uint8_t *buffer = parcel.ReadBuffer(size);
     if (buffer == nullptr) {
-        ACCOUNT_LOGE("Failed to read buffer");
+        ACCOUNT_LOGE("Read buffer failed, please check buffer value in parcel");
         return false;
     }
     void *buffer_new = nullptr;
@@ -49,7 +49,7 @@ bool DomainAccountParcel::ReadFromParcel(Parcel &parcel)
         return false;
     }
     if (!parcelData_.ParseFrom(reinterpret_cast<uintptr_t>(buffer_new), size)) {
-        ACCOUNT_LOGE("Failed to parse from");
+        ACCOUNT_LOGE("Parse from failed, please check data");
         free(buffer_new);
         buffer_new = nullptr;
         return false;
@@ -61,11 +61,11 @@ bool DomainAccountParcel::Marshalling(Parcel &parcel) const
 {
     uint32_t size = parcelData_.GetDataSize();
     if (!parcel.WriteUint32(size)) {
-        ACCOUNT_LOGE("Failed to write size");
+        ACCOUNT_LOGE("Write size failed, please check size value in parcelData_");
         return false;
     }
     if (!parcel.WriteBuffer(reinterpret_cast<const uint8_t *>(parcelData_.GetData()), size)) {
-        ACCOUNT_LOGE("Failed to write buffer");
+        ACCOUNT_LOGE("Write buffer failed, please check buffer value in parcelData_");
         return false;
     }
     return true;
@@ -75,7 +75,7 @@ DomainAccountParcel *DomainAccountParcel::Unmarshalling(Parcel &parcel)
 {
     DomainAccountParcel *info = new (std::nothrow) DomainAccountParcel();
     if ((info != nullptr) && (!info->ReadFromParcel(parcel))) {
-        ACCOUNT_LOGW("Read from parcel failed");
+        ACCOUNT_LOGW("Read from parcel failed, please check info value");
         delete info;
         info = nullptr;
     }

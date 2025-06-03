@@ -34,27 +34,20 @@ CheckAndCreateDomainAccountCallback::CheckAndCreateDomainAccountCallback(
     : type_(type), osAccountControl_(osAccountControl), accountOptions_(accountOptions), innerCallback_(callback)
 {}
 
-ErrCode CheckAndCreateDomainAccountCallback::OnResult(int32_t errCode, const DomainAccountParcel &domainAccountParcel)
+ErrCode CheckAndCreateDomainAccountCallback::InnerCallbackOnResult(int32_t errCode, const Parcel &parcel)
 {
-    Parcel parcel;
-    domainAccountParcel.GetParcelData(parcel);
-    if (innerCallback_ == nullptr) {
-        ACCOUNT_LOGE("InnerPlugin_ is nullptr");
-        return ERR_OK;
-    }
     OsAccountInfo osAccountInfo;
     Parcel resultParcel;
     osAccountInfo.Marshalling(resultParcel);
+    DomainAccountParcel domainAccountResultParcel;
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Check domain account failed");
-        DomainAccountParcel domainAccountResultParcel;
         domainAccountResultParcel.SetParcelData(resultParcel);
         return innerCallback_->OnResult(errCode, domainAccountResultParcel);
     }
     std::shared_ptr<AAFwk::WantParams> parameters(AAFwk::WantParams::Unmarshalling(parcel));
     if (parameters == nullptr) {
         ACCOUNT_LOGE("Parameters unmarshalling error");
-        DomainAccountParcel domainAccountResultParcel;
         domainAccountResultParcel.SetParcelData(resultParcel);
         return innerCallback_->OnResult(ERR_JS_SYSTEM_SERVICE_EXCEPTION, domainAccountResultParcel);
     }
@@ -65,14 +58,12 @@ ErrCode CheckAndCreateDomainAccountCallback::OnResult(int32_t errCode, const Dom
     domainAccountInfo.serverConfigId_ = parameters->GetStringParam("serverConfigId");
     if ((domainAccountInfo.accountName_.empty()) || (domainAccountInfo.domain_.empty())) {
         ACCOUNT_LOGE("Domain account not found");
-        DomainAccountParcel domainAccountResultParcel;
         domainAccountResultParcel.SetParcelData(resultParcel);
         return innerCallback_->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, domainAccountResultParcel);
     }
     errCode = IInnerOsAccountManager::GetInstance().BindDomainAccount(type_, domainAccountInfo,
         osAccountInfo, accountOptions_);
     if (errCode != ERR_OK) {
-        DomainAccountParcel domainAccountResultParcel;
         domainAccountResultParcel.SetParcelData(resultParcel);
         return innerCallback_->OnResult(errCode, domainAccountResultParcel);
     }
@@ -80,18 +71,27 @@ ErrCode CheckAndCreateDomainAccountCallback::OnResult(int32_t errCode, const Dom
         std::make_shared<BindDomainAccountCallback>(osAccountControl_, osAccountInfo, innerCallback_);
     if (callbackWrapper == nullptr) {
         ACCOUNT_LOGE("Create BindDomainAccountCallback failed");
-        DomainAccountParcel domainAccountResultParcel;
         domainAccountResultParcel.SetParcelData(resultParcel);
         return innerCallback_->OnResult(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, domainAccountResultParcel);
     }
     errCode = InnerDomainAccountManager::GetInstance().OnAccountBound(domainAccountInfo,
         osAccountInfo.GetLocalId(), callbackWrapper);
     if (errCode != ERR_OK) {
-        DomainAccountParcel domainAccountResultParcel;
         domainAccountResultParcel.SetParcelData(resultParcel);
         return innerCallback_->OnResult(errCode, domainAccountResultParcel);
     }
     return ERR_OK;
+}
+
+ErrCode CheckAndCreateDomainAccountCallback::OnResult(int32_t errCode, const DomainAccountParcel &domainAccountParcel)
+{
+    Parcel parcel;
+    domainAccountParcel.GetParcelData(parcel);
+    if (innerCallback_ == nullptr) {
+        ACCOUNT_LOGE("InnerPlugin_ is nullptr");
+        return ERR_OK;
+    }
+    return InnerCallbackOnResult(errCode, parcel);
 }
 
 BindDomainAccountCallback::BindDomainAccountCallback(
