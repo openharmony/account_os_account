@@ -58,6 +58,8 @@ public:
 private:
     std::mutex mutex_;
     sptr<IDomainAccount> plugin_;
+
+    ErrCode CheckPermission(IDomainAccountIpcCode code);
 };
 }  // namespace AccountSA
 }  // namespace OHOS
