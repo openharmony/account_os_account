@@ -29,13 +29,15 @@ class CheckAndCreateDomainAccountCallback final : public DomainAccountCallbackSt
 public:
     CheckAndCreateDomainAccountCallback(std::shared_ptr<IOsAccountControl> &osAccountControl, const OsAccountType &type,
         const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &accountOptions);
-        ErrCode OnResult(int32_t errCode, const DomainAccountParcel &domainAccountParcel) override;
+    ErrCode OnResult(int32_t errCode, const DomainAccountParcel &domainAccountParcel) override;
 
 private:
     OsAccountType type_;
     std::shared_ptr<IOsAccountControl> osAccountControl_;
     CreateOsAccountForDomainOptions accountOptions_;
     sptr<IDomainAccountCallback> innerCallback_ = nullptr;
+
+    ErrCode InnerCallbackOnResult(int32_t errCode, OsAccountInfo osAccountInfo, Parcel resultParcel);
 };
 
 class BindDomainAccountCallback final : public DomainAccountCallback {
