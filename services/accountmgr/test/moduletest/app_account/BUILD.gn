@@ -154,7 +154,7 @@ ohos_moduletest("app_account_manager_service_associated_data_test") {
     "${os_account_core_path}/src/os_account_event_stub.cpp",
     "${os_account_core_path}/src/os_account_state_parcel.cpp",
     "${services_path}/accountmgr/src/appaccount/os_account_state_subscriber.cpp",
-    "${services_path}/accountmgr/src/osaccount/os_account_state_reply_callback_stub.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_state_reply_callback_service.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_subscribe_death_recipient.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_subscribe_manager.cpp",
     "app_account_associated_data_test.cpp",
@@ -177,6 +177,7 @@ ohos_moduletest("app_account_manager_service_associated_data_test") {
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
   ]
 
   deps += [
@@ -423,7 +424,6 @@ ohos_moduletest("app_account_control_manager_module_test") {
     "${os_account_core_path}/src/os_account_event_stub.cpp",
     "${os_account_core_path}/src/os_account_state_parcel.cpp",
     "${services_path}/accountmgr/src/appaccount/os_account_state_subscriber.cpp",
-    "${services_path}/accountmgr/src/osaccount/os_account_state_reply_callback_stub.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_subscribe_death_recipient.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_subscribe_manager.cpp",
     "app_account_control_manager_module_test.cpp",
@@ -446,6 +446,7 @@ ohos_moduletest("app_account_control_manager_module_test") {
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
   ]
 
   deps += [ "${app_account_innerkits_native_path}:app_account_stub" ]
@@ -589,7 +590,7 @@ ohos_moduletest("app_account_authenticator_session_module_test") {
     "${os_account_core_path}/src/os_account_event_stub.cpp",
     "${os_account_core_path}/src/os_account_state_parcel.cpp",
     "${services_path}/accountmgr/src/appaccount/os_account_state_subscriber.cpp",
-    "${services_path}/accountmgr/src/osaccount/os_account_state_reply_callback_stub.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_state_reply_callback_service.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_subscribe_death_recipient.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_subscribe_manager.cpp",
     "${services_path}/accountmgr/test/mock/common/bundle_manager_adapter.cpp",
@@ -611,6 +612,7 @@ ohos_moduletest("app_account_authenticator_session_module_test") {
     "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
   ]
 
   deps += [
@@ -697,7 +699,6 @@ ohos_moduletest("app_account_manager_service_module_test") {
     "${os_account_core_path}/src/os_account_state_parcel.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
     "${services_path}/accountmgr/src/appaccount/os_account_state_subscriber.cpp",
-    "${services_path}/accountmgr/src/osaccount/os_account_state_reply_callback_stub.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_subscribe_death_recipient.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_subscribe_manager.cpp",
     "app_account_manager_service_module_test.cpp",
@@ -717,6 +718,7 @@ ohos_moduletest("app_account_manager_service_module_test") {
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
   ]
 
   deps += [ "${app_account_innerkits_native_path}:app_account_event_proxy" ]
@@ -833,7 +835,7 @@ ohos_moduletest("at_not_mock_app_account_manager_service_module_test") {
     "${os_account_core_path}/src/os_account_event_stub.cpp",
     "${os_account_core_path}/src/os_account_state_parcel.cpp",
     "${services_path}/accountmgr/src/appaccount/os_account_state_subscriber.cpp",
-    "${services_path}/accountmgr/src/osaccount/os_account_state_reply_callback_stub.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_state_reply_callback_service.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_subscribe_death_recipient.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_subscribe_manager.cpp",
     "at_not_mock_app_account_manager_service_module_test.cpp",
@@ -855,6 +857,7 @@ ohos_moduletest("at_not_mock_app_account_manager_service_module_test") {
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
   ]
 
   deps += [ "${app_account_innerkits_native_path}:app_account_stub" ]
@@ -1092,7 +1095,7 @@ ohos_moduletest("app_account_authenticator_session_manager_module_test") {
     "${os_account_core_path}/src/os_account_event_stub.cpp",
     "${os_account_core_path}/src/os_account_state_parcel.cpp",
     "${services_path}/accountmgr/src/appaccount/os_account_state_subscriber.cpp",
-    "${services_path}/accountmgr/src/osaccount/os_account_state_reply_callback_stub.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_state_reply_callback_service.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_subscribe_death_recipient.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_subscribe_manager.cpp",
     "${services_path}/accountmgr/test/mock/common/bundle_manager_adapter.cpp",
@@ -1113,6 +1116,7 @@ ohos_moduletest("app_account_authenticator_session_manager_module_test") {
     "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
   ]
 
   deps += [

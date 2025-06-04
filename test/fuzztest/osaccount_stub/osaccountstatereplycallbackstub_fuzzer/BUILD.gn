@@ -36,13 +36,13 @@ ohos_fuzztest("OsAccountStateReplyCallbackStubFuzzTest") {
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
-  sources = [
-    "${os_account_path}/services/accountmgr/src/osaccount/os_account_state_reply_callback_stub.cpp",
-    "osaccountstatereplycallbackstub_fuzzer.cpp",
-  ]
+  sources = [ "osaccountstatereplycallbackstub_fuzzer.cpp" ]
+  sources += [ "${services_path}/accountmgr/src/osaccount/os_account_state_reply_callback_service.cpp" ]
   deps = [
+    "${os_account_innerkits_native_path}:os_account_innerkits",
     "${os_account_path}/frameworks/common:libaccount_common",
     "${os_account_path}/frameworks/osaccount/native:os_account_innerkits",
+    "${os_account_path}/frameworks/osaccount/native:os_account_state_reply_callback_stub",
   ]
   external_deps = [
     "c_utils:utils",
