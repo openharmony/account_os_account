@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#include "os_account_state_reply_callback_stub.h"
-#include "accountmgr_service_ipc_interface_code.h"
+#include "os_account_state_reply_callback_service.h"
+
 #include "account_hisysevent_adapter.h"
 #include "account_log_wrapper.h"
 #include "ipc_skeleton.h"
@@ -24,14 +24,6 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 constexpr int64_t TIMEOUT_THRESHOLD = 5000000; // 5s
-}
-
-OsAccountStateReplyCallbackStub::OsAccountStateReplyCallbackStub(int32_t accountId, OsAccountState state,
-    const std::shared_ptr<std::condition_variable> &cvPtr, const std::shared_ptr<SafeQueue<uint8_t>> &safeQueue,
-    int32_t subscriberUid)
-    : accountId_(accountId), state_(state), cvPtr_(cvPtr), safeQueue_(safeQueue), subscriberUid_(subscriberUid)
-{}
-
 static const char *ConvertStateToSceneFlag(OsAccountState state)
 {
     switch (state) {
@@ -54,8 +46,18 @@ static const char *ConvertStateToSceneFlag(OsAccountState state)
             return "";
     }
 }
+}
 
-void OsAccountStateReplyCallbackStub::OnComplete()
+OsAccountStateReplyCallbackService::~OsAccountStateReplyCallbackService()
+{}
+
+OsAccountStateReplyCallbackService::OsAccountStateReplyCallbackService(int32_t accountId, OsAccountState state,
+    const std::shared_ptr<std::condition_variable> &cvPtr, const std::shared_ptr<SafeQueue<uint8_t>> &safeQueue,
+    int32_t subscriberUid)
+    : accountId_(accountId), state_(state), cvPtr_(cvPtr), safeQueue_(safeQueue), subscriberUid_(subscriberUid)
+{}
+
+ErrCode OsAccountStateReplyCallbackService::OnComplete()
 {
     std::lock_guard lock(mutex_);
     int64_t duration = 0;
@@ -65,7 +67,7 @@ void OsAccountStateReplyCallbackStub::OnComplete()
     }
     if (isCompleted_) {
         ACCOUNT_LOGE("Already completed, callingUid: %{public}d", subscriberUid_);
-        return;
+        return ERR_OK;
     }
     int32_t callerUid = IPCSkeleton::GetCallingUid();
     if (callerUid != subscriberUid_) {
@@ -73,7 +75,7 @@ void OsAccountStateReplyCallbackStub::OnComplete()
         ReportOsAccountOperationFail(accountId_, ConvertStateToSceneFlag(state_), ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
             "Failed to check permission, callerUid=" + std::to_string(callerUid) + ", subscriberUid="
             + std::to_string(subscriberUid_) + ", state=" + std::to_string(state_));
-        return;
+        return ERR_OK;
     }
     isCompleted_ = true;
     if (duration > TIMEOUT_THRESHOLD) {
@@ -86,41 +88,23 @@ void OsAccountStateReplyCallbackStub::OnComplete()
     ACCOUNT_LOGI("Done, subscriberUid: %{public}d, state: %{public}d", subscriberUid_, state_);
     if (cvPtr_ == nullptr || safeQueue_ == nullptr) {
         ACCOUNT_LOGE("CvPtr or SafeQueue is nullptr");
-        return;
+        return ERR_OK;
     }
     uint8_t tmp;
     safeQueue_->Pop(tmp);
     cvPtr_->notify_one();
+    return ERR_OK;
 }
 
-void OsAccountStateReplyCallbackStub::SetStartTime(const std::chrono::system_clock::time_point &startTime)
+void OsAccountStateReplyCallbackService::SetStartTime(const std::chrono::system_clock::time_point &startTime)
 {
     std::lock_guard lock(mutex_);
     startTime_ = startTime;
 }
 
-int32_t OsAccountStateReplyCallbackStub::GetSubscriberUid() const
+int32_t OsAccountStateReplyCallbackService::GetSubscriberUid() const
 {
     return subscriberUid_;
-}
-
-int OsAccountStateReplyCallbackStub::OnRemoteRequest(
-    uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
-{
-    if (data.ReadInterfaceToken() != GetDescriptor()) {
-        ACCOUNT_LOGE("Failed to check descriptor, code %{public}u.", code);
-        return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
-    }
-    switch (code) {
-        case static_cast<uint32_t>(StateReplyCallbackInterfaceCode::ON_COMPLETE): {
-            OnComplete();
-            break;
-        }
-        default:
-            ACCOUNT_LOGI("Default, code = %{public}u, flags = %{public}u", code, option.GetFlags());
-            return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
-    }
-    return ERR_OK;
 }
 }  // namespace AccountSA
 }  // namespace OHOS

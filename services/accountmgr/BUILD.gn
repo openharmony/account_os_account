@@ -236,6 +236,8 @@ ohos_shared_library("accountmgr") {
     "${domain_account_framework_path}:domain_account_stub",
     "${os_account_innerkits_native_path}:os_account_constraint_event_proxy",
     "${os_account_innerkits_native_path}:os_account_constraint_event_stub",
+    "${os_account_innerkits_native_path}:os_account_state_reply_callback_proxy",
+    "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
   ]
   external_deps = [
     "ability_base:base",

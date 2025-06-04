@@ -22,7 +22,7 @@
 #include "ipc_skeleton.h"
 #include "os_account_constants.h"
 #include "os_account_state_parcel.h"
-#include "os_account_state_reply_callback_stub.h"
+#include "os_account_state_reply_callback_service.h"
 #include "os_account_subscribe_death_recipient.h"
 #ifdef HICOLLIE_ENABLE
 #include "account_timer.h"
@@ -263,7 +263,7 @@ bool OsAccountSubscribeManager::OnStateChanged(
                 ", targetUid=" + std::to_string(targetUid) + ", fromId=" + std::to_string(stateParcel.fromId) +
                 ", toId=" + std::to_string(stateParcel.toId));
         }
-        auto callback = iface_cast<OsAccountStateReplyCallbackStub>(stateParcel.callback);
+        auto callback = iface_cast<OsAccountStateReplyCallbackService>(stateParcel.callback);
         if (callback == nullptr) {
             return;
         }
@@ -353,7 +353,7 @@ ErrCode OsAccountSubscribeManager::Publish(int32_t fromId, OsAccountState state,
         stateParcel.state = state;
         if (IsStateNeedHandShake(state) && (subscribeRecord->subscribeInfoPtr_->IsWithHandshake())) {
             safeQueue->Push(1);
-            stateParcel.callback = new (std::nothrow) OsAccountStateReplyCallbackStub(
+            stateParcel.callback = new (std::nothrow) OsAccountStateReplyCallbackService(
                 fromId, state, cvPtr, safeQueue, subscriberUid);
         }
         OnStateChanged(eventProxy, stateParcel, subscriberUid);

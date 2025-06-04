@@ -65,7 +65,7 @@ static void NotifySubscriber(std::shared_ptr<OsAccountSubscriber> &subscriber, O
     if (!states.empty()) {
         if (info.IsWithHandshake() &&
             (data.state == OsAccountState::STOPPING || data.state == OsAccountState::LOCKING)) {
-            data.callback = std::make_shared<OsAccountStateReplyCallback>(cvPtr, callbackCounter);
+            data.callback = std::make_shared<OsAccountStateReplyCallbackProxy>(cvPtr, callbackCounter);
         }
         callbackCounter.reset();
         subscriber->OnStateChanged(data);
