@@ -62,11 +62,12 @@ struct JsIAMCallback {
 struct ExecutorProperty {
     int32_t result = 0;
     int32_t authSubType = 0;
-    int32_t remainTimes = 0;
-    int32_t freezingTime = 0;
-    int32_t nextPhaseFreezingTime = -1;
-    std::string enrollmentProgress;
-    std::string sensorInfo;
+    std::optional<int32_t> remainTimes;
+    std::optional<int32_t> freezingTime;
+    std::optional<int32_t> nextPhaseFreezingTime;
+    std::optional<std::string> enrollmentProgress;
+    std::optional<std::string> sensorInfo;
+    std::optional<int32_t> credentialLength;
 };
 
 struct CommonCallbackInfo {
