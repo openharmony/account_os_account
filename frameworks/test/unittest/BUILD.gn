@@ -64,6 +64,11 @@ ohos_unittest("account_proxy_mock_test") {
     "mock/iservice_registry.cpp",
   ]
 
+  cflags_cc = []
+  if (os_account_support_lock_os_account) {
+    cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
+  }
+
   configs = [ ":account_proxy_mock_config_unittest" ]
 
   deps = [

@@ -34,7 +34,9 @@ typedef enum {
     STOPPED,
     SWITCHING,
     SWITCHED,
-    CREATING
+    CREATING,
+    LOCKING,
+    LOCKED,
 } OS_ACCOUNT_SUBSCRIBE_TYPE, OsAccountState;
 
 #ifdef __cplusplus

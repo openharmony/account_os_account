@@ -15,7 +15,9 @@
 
 #include <filesystem>
 #include <gtest/gtest.h>
+#include "account_file_operator.h"
 #include "account_log_wrapper.h"
+#include "os_account_constants.h"
 #include "bundle_mgr_interface.h"
 #include "if_system_ability_manager.h"
 #include "ipc_skeleton.h"

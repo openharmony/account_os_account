@@ -555,5 +555,33 @@ HWTEST_F(OsAccountManagerServiceNoPermissionModuleTest, OsAccountManagerServiceM
         osAccountManagerService_->GetDefaultActivatedOsAccount(id));
     EXPECT_EQ(id, MAIN_ACCOUNT_ID);
 }
+
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest117
+ * @tc.desc: Test PublishOsAccountLockEvent PermissionCheck failed.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceNoPermissionModuleTest, OsAccountManagerServiceModuleTest117, TestSize.Level1)
+{
+    setuid(TEST_UID);
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
+        osAccountManagerService_->PublishOsAccountLockEvent(MAIN_ACCOUNT_ID, true));
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest118
+ * @tc.desc: Test LockOsAccount PermissionCheck failed.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceNoPermissionModuleTest, OsAccountManagerServiceModuleTest118, TestSize.Level1)
+{
+    setuid(TEST_UID);
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
+        osAccountManagerService_->LockOsAccount(MAIN_ACCOUNT_ID));
+}
+#endif
 }  // namespace AccountSA
 }  // namespace OHOS

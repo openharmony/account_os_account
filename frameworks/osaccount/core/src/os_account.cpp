@@ -1030,5 +1030,45 @@ ErrCode OsAccount::GetOsAccountDomainInfo(const int32_t localId, DomainAccountIn
     }
     return proxy->GetOsAccountDomainInfo(localId, domainInfo);
 }
+
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+ErrCode OsAccount::PublishOsAccountLockEvent(const int32_t localId, bool isLocking)
+{
+    ErrCode result = CheckLocalId(localId);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    if (localId < Constants::START_USER_ID) {
+        ACCOUNT_LOGE("Not allow to lock account id:%{public}d!", localId);
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->PublishOsAccountLockEvent(localId, isLocking);
+}
+
+ErrCode OsAccount::LockOsAccount(const int32_t localId)
+{
+    ErrCode result = CheckLocalId(localId);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    if (localId < Constants::START_USER_ID) {
+        ACCOUNT_LOGE("Not allow to lock account id:%{public}d!", localId);
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->LockOsAccount(localId);
+}
+#endif
 }  // namespace AccountSA
 }  // namespace OHOS

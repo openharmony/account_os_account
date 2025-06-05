@@ -1521,6 +1521,36 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest126
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
 }
 
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest127
+ * @tc.desc: Test PublishOsAccountLockEvent failed.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest127, TestSize.Level1)
+{
+    EXPECT_EQ(osAccountManagerService_->PublishOsAccountLockEvent(-1, true),
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    EXPECT_EQ(osAccountManagerService_->PublishOsAccountLockEvent(50, true),
+        ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest128
+ * @tc.desc: Test LockOsAccount failed.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest128, TestSize.Level1)
+{
+    EXPECT_EQ(osAccountManagerService_->LockOsAccount(-1),
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    EXPECT_EQ(osAccountManagerService_->LockOsAccount(50),
+        ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+}
+#endif
+
 /**
  * @tc.name: DeactivateAllOsAccountsModuleTest001
  * @tc.desc: Test DeactivateAllOsAccounts success.
