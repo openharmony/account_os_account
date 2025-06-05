@@ -35,7 +35,7 @@ ohos_shared_library("account_iam_napi") {
   configs = [ ":account_iam_kit_config" ]
   public_configs = [ ":account_iam_kit_config" ]
 
-  include_dirs = [ "${account_iam_framework_path}/include", ]
+  include_dirs = [ "${account_iam_framework_path}/include" ]
   sources = [
     "${account_iam_kits_path}/src/napi_account_iam_common.cpp",
     "${account_iam_kits_path}/src/napi_account_iam_constant.cpp",

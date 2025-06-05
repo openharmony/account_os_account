@@ -1852,5 +1852,66 @@ ErrCode OsAccountProxy::GetOsAccountDomainInfo(const int32_t localId, DomainAcco
     domainInfo = *info;
     return result;
 }
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+ErrCode OsAccountProxy::PublishOsAccountLockEvent(const int32_t localId, bool isLocking)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Write descriptor failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteInt32(localId)) {
+        ACCOUNT_LOGE("Write localId failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteBool(isLocking)) {
+        ACCOUNT_LOGE("Write isLocking failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    MessageParcel reply;
+    ErrCode result = SendRequest(OsAccountInterfaceCode::PUBLISH_OS_ACCOUNT_LOCK_EVENT, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest failed, result=%{public}d.", result);
+        return result;
+    }
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("Read result failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("PublishOsAccountLockEvent failed, result=%{public}d.", result);
+        return result;
+    }
+    return result;
+}
+
+ErrCode OsAccountProxy::LockOsAccount(const int32_t localId)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Write descriptor failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteInt32(localId)) {
+        ACCOUNT_LOGE("Write localId failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    MessageParcel reply;
+    ErrCode result = SendRequest(OsAccountInterfaceCode::LOCK_OS_ACCOUNT, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest failed, result=%{public}d.", result);
+        return result;
+    }
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("Read result failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("LockOsAccount failed, result=%{public}d.", result);
+        return result;
+    }
+    return result;
+}
+#endif
 }  // namespace AccountSA
 }  // namespace OHOS

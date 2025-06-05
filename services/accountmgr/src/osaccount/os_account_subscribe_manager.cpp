@@ -301,6 +301,15 @@ bool OsAccountSubscribeManager::OnAccountsChanged(
     return true;
 }
 
+static bool IsStateNeedHandShake(const OsAccountState& state)
+{
+    if (state == OsAccountState::STOPPING || state == OsAccountState::LOCKING) {
+        return true;
+    }
+
+    return false;
+}
+
 ErrCode OsAccountSubscribeManager::Publish(int32_t fromId, OsAccountState state, int32_t toId)
 {
     std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
@@ -332,7 +341,7 @@ ErrCode OsAccountSubscribeManager::Publish(int32_t fromId, OsAccountState state,
         stateParcel.fromId = fromId;
         stateParcel.toId = toId;
         stateParcel.state = state;
-        if ((state == OsAccountState::STOPPING) && (subscribeRecord->subscribeInfoPtr_->IsWithHandshake())) {
+        if (IsStateNeedHandShake(state) && (subscribeRecord->subscribeInfoPtr_->IsWithHandshake())) {
             safeQueue->Push(1);
             stateParcel.callback = new (std::nothrow) OsAccountStateReplyCallbackStub(
                 fromId, state, cvPtr, safeQueue, subscriberUid);

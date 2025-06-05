@@ -687,6 +687,25 @@ public:
      * @return error code, see account_error_no.h
      */
     static ErrCode GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo);
+
+    /**
+     * @brief Publish the locking state of OS account.
+     *
+     * @permission ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION
+     * @param localId - Indicates the target OS account.
+     * @param isLocking - true means locking, false means locked.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode PublishOsAccountLockEvent(const int32_t localId, bool isLocking);
+
+    /**
+     * @brief Lock a specified OS account.
+     *
+     * @permission ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION
+     * @param localId - Indicates the target OS account.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode LockOsAccount(const int32_t localId);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

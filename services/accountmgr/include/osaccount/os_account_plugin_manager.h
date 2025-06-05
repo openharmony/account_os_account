@@ -18,26 +18,24 @@
 
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
-#include "os_account_plugin.h"
 #include "safe_map.h"
 
 namespace OHOS {
 namespace AccountSA {
 class OsAccountPluginManager {
 public:
-    OsAccountPluginManager();
+    OsAccountPluginManager() = default;
     ~OsAccountPluginManager();
-    static OsAccountPluginManager &GetInstance();
 
     void LoaderLib(const std::string &path, const std::string &libName);
     void CloseLib();
     bool IsPluginAvailable();
-    bool IsCreationAllowed();
-    ErrCode PluginVerifyActivationLockFunc(bool& isAllowed);
+    virtual void InitFuncSymbolList() {};
 
-private:
+protected:
     std::mutex libMutex_;
-    std::map<OsPluginMethodEnum, void*> methodMap_;
+    std::map<std::string, void*> methodMap_;
+    std::vector<const char *> funcSymbolList_;
     void* libHandle_ = nullptr;
 };
 }  // namespace AccountSA

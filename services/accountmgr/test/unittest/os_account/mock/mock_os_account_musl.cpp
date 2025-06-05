@@ -25,6 +25,9 @@ extern "C" {
 static const char* RIGHT_SO = "right.z.so";
 static const char* RIGHT_ALL = "/rightPath/right.z.so";
 static int g_int = 1;
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+static const int TEST_USER_ID_999 = 999;
+#endif
 static void* g_ptr = &g_int;
 
 int dlclose(void *handler)
@@ -64,12 +67,28 @@ int32_t VerifyActivationLock(std::function<int32_t(bool)> callback)
     return 0;
 }
 
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+int32_t LockUserAccount(int32_t localId)
+{
+    if (localId == TEST_USER_ID_999) {
+        return -1;
+    }
+    return 0;
+}
+#endif
+
 void *dlsym(void *__restrict, const char * methodName)
 {
     if (strcmp(methodName, "VerifyActivationLock") == 0) {
         ACCOUNT_LOGI("Mock dlsym VerifyActivationLock success.");
         return reinterpret_cast<void *>(VerifyActivationLock);
     }
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+    if (strcmp(methodName, "LockUserAccount") == 0) {
+        ACCOUNT_LOGI("Mock dlsym LockOsAccount success.");
+        return reinterpret_cast<void *>(LockUserAccount);
+    }
+#endif
     ACCOUNT_LOGI("Mock dlsym %{public}s failed.", methodName);
     return nullptr;
 }

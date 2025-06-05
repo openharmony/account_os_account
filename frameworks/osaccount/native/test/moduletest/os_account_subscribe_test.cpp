@@ -95,7 +95,7 @@ void TestSubscriber::OnStateChanged(const OsAccountStateData &data)
     if (mockSubscriber_ != nullptr) {
         mockSubscriber_->OnStateChanged(data.state, data.fromId, data.toId);
     }
-    if (isBlock_ && data.state == OsAccountState::STOPPING) {
+    if (isBlock_ && (data.state == OsAccountState::STOPPING || data.state == OsAccountState::LOCKING)) {
         ACCOUNT_LOGI("Sleep start, %{public}d seconds", SLEEP_SECONDS);
         isBlock_ = false;
         sleep(SLEEP_SECONDS);
@@ -107,11 +107,30 @@ void TestSubscriber::OnStateChanged(const OsAccountStateData &data)
     }
     data.callback->OnComplete();
 }
+void TestStateLockingMachine(int32_t localId, bool isBlock, std::shared_ptr<MockSubscriber> mockSubscriber)
+{
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+    EXPECT_CALL(*mockSubscriber,
+        OnStateChanged(OsAccountState::LOCKING, localId, localId)).Times(Exactly(1));
+    EXPECT_CALL(*mockSubscriber,
+        OnStateChanged(OsAccountState::LOCKED, localId, localId)).Times(Exactly(1));
+    sleep(1);
+    if (isBlock) {
+        EXPECT_EQ(OsAccountManager::PublishOsAccountLockEvent(localId, true),
+            ERR_ACCOUNT_COMMON_OPERATION_TIMEOUT);
+    } else {
+        EXPECT_EQ(OsAccountManager::PublishOsAccountLockEvent(localId, true), ERR_OK);
+    }
+
+    EXPECT_EQ(OsAccountManager::PublishOsAccountLockEvent(localId, false), ERR_OK);
+#endif
+}
 
 void TestStateMachine(bool withHandshake, bool isBlock)
 {
     std::set<OsAccountState> states = { OsAccountState::STOPPING, OsAccountState::CREATED, OsAccountState::SWITCHING,
-        OsAccountState::SWITCHED, OsAccountState::UNLOCKED, OsAccountState::STOPPED, OsAccountState::REMOVED };
+        OsAccountState::SWITCHED, OsAccountState::UNLOCKED, OsAccountState::STOPPED, OsAccountState::REMOVED,
+        OsAccountState::LOCKING, OsAccountState::LOCKED };
     OsAccountSubscribeInfo subscribeInfo(states, withHandshake);
     auto mockSubscriber = std::make_shared<MockSubscriber>();
     auto subscriber = std::make_shared<TestSubscriber>(subscribeInfo, mockSubscriber, isBlock);
@@ -137,6 +156,9 @@ void TestStateMachine(bool withHandshake, bool isBlock)
     EXPECT_CALL(*mockSubscriber,
         OnStateChanged(OsAccountState::SWITCHED, -1, Constants::START_USER_ID)).Times(Exactly(1));
 #endif // SUPPORT_STOP_MAIN_OS_ACCOUNT
+
+    TestStateLockingMachine(localId, isBlock, mockSubscriber);
+
     EXPECT_EQ(OsAccountManager::DeactivateOsAccount(localId), ERR_OK);
 #ifdef SUPPORT_STOP_MAIN_OS_ACCOUNT
     EXPECT_CALL(*mockSubscriber,

@@ -36,6 +36,11 @@
 #include "iinner_os_account_manager.h"
 #undef private
 #endif
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+#ifdef BUNDLE_ADAPTER_MOCK
+#include "mock_os_account_control_file_manager.h"
+#endif
+#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -2450,6 +2455,93 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest118, TestSize.Lev
 #endif
 }
 #endif // SUPPORT_STOP_MAIN_OS_ACCOUNT
+
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+/**
+ * @tc.name: OsAccountManagerModuleTest119
+ * @tc.desc: test PublishOsAccountLockEvent with invalid data.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest119, TestSize.Level1)
+{
+    EXPECT_EQ(OsAccountManager::PublishOsAccountLockEvent(-1, true), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    EXPECT_EQ(OsAccountManager::PublishOsAccountLockEvent(50, true), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest120
+ * @tc.desc: test LockOsAccount with invalid data.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest120, TestSize.Level1)
+{
+    EXPECT_EQ(OsAccountManager::LockOsAccount(-1), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    EXPECT_EQ(OsAccountManager::LockOsAccount(50), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest121
+ * @tc.desc: test PublishOsAccountLockEvent with valid data.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest121, TestSize.Level1)
+{
+    EXPECT_EQ(OsAccountManager::PublishOsAccountLockEvent(100, false), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest122
+ * @tc.desc: test LockOsAccount with valid data.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest122, TestSize.Level1)
+{
+    EXPECT_NE(OsAccountManager::LockOsAccount(100), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+}
+#ifdef BUNDLE_ADAPTER_MOCK
+/**
+ * @tc.name: OsAccountManagerModuleTest123
+ * @tc.desc: test subscribe common event of user locking and locked.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest123, TestSize.Level1)
+{
+    EventFwk::MatchingSkills matchingSkills;
+    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_LOCKING);
+    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_LOCKED);
+    EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
+    auto listener = std::make_shared<MockSubscriberListener>();
+    EXPECT_CALL(*listener,
+        OnReceiveEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_LOCKING)).Times(Exactly(1));
+    EXPECT_CALL(*listener,
+        OnReceiveEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_LOCKED)).Times(Exactly(1));
+    std::shared_ptr<AccountTestEventSubscriber> subscriberPtr =
+        std::make_shared<AccountTestEventSubscriber>(subscribeInfo, listener);
+    ASSERT_EQ(EventFwk::CommonEventManager::SubscribeCommonEvent(subscriberPtr), true);
+    EXPECT_EQ(OsAccountManager::PublishOsAccountLockEvent(100, true), ERR_OK);
+    EXPECT_EQ(OsAccountManager::PublishOsAccountLockEvent(100, false), ERR_OK);
+    testing::Mock::AllowLeak(listener.get());
+}
+#endif
+#else
+/**
+ * @tc.name: OsAccountManagerModuleTest124
+ * @tc.desc: test not support PublishOsAccountLockEvent and LockOsAccount.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest124, TestSize.Level1)
+{
+    EXPECT_EQ(OsAccountManager::LockOsAccount(100), ERR_ACCOUNT_COMMON_INTERFACE_NOT_SUPPORT_ERROR);
+    EXPECT_EQ(OsAccountManager::PublishOsAccountLockEvent(100, true),
+        ERR_ACCOUNT_COMMON_INTERFACE_NOT_SUPPORT_ERROR);
+}
+#endif
 
 /**
  * @tc.name: GetOsAccountType001

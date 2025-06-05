@@ -103,6 +103,10 @@ ohos_moduletest("os_account_frameworks_module_test") {
   if (os_account_distributed_feature) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
   }
+
+  if (os_account_support_lock_os_account) {
+    cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
+  }
 }
 
 ohos_moduletest("os_account_frameworks_module_mock_test") {
@@ -128,6 +132,7 @@ ohos_moduletest("os_account_frameworks_module_mock_test") {
     "${services_path}/accountmgr/include/domain_account",
     "${services_path}/accountmgr/include/osaccount",
     "${os_account_path}/interfaces/innerkits/ohosaccount/native/include/",
+    "${services_path}/accountmgr/test/unittest/os_account/mock",
   ]
   sources = [
     "${app_account_services_path}/test/mock/common/ability_manager_adapter_mock.cpp",
@@ -219,6 +224,9 @@ ohos_moduletest("os_account_frameworks_module_mock_test") {
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
   }
+  if (os_account_support_lock_os_account) {
+    cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
+  }
   part_name = "os_account"
 }
 
@@ -285,6 +293,7 @@ ohos_moduletest("os_account_manager_no_bms_mock_test") {
     "access_token:libtokensetproc_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "config_policy:configpolicy_util",
     "googletest:gmock_main",
@@ -307,12 +316,18 @@ ohos_moduletest("os_account_manager_no_bms_mock_test") {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
     external_deps += [ "user_auth_framework:userauth_client" ]
   }
+  if (os_account_support_lock_os_account) {
+    cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
+  }
   if (has_ces_part) {
     cflags_cc += [ "-DHAS_CES_PART" ]
     external_deps += [ "common_event_service:cesfwk_innerkits" ]
   }
   if (has_kv_store_part) {
     external_deps += [ "kv_store:distributeddata_inner" ]
+  }
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
   }
   cflags_cc += [ "-DACCOUNT_TEST" ]
   cflags_cc += [ "-DBUNDLE_ADAPTER_MOCK" ]
@@ -347,6 +362,9 @@ ohos_moduletest("os_account_subscribe_test") {
   cflags_cc = [ "-DACCOUNT_TEST" ]
   if (os_account_support_deactivate_main_os_account) {
     cflags_cc += [ "-DSUPPORT_STOP_MAIN_OS_ACCOUNT" ]
+  }
+  if (os_account_support_lock_os_account) {
+    cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
   }
 }
 

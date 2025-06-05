@@ -83,6 +83,10 @@ ohos_shared_library("os_account_innerkits") {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
   }
 
+  if (os_account_support_lock_os_account) {
+    cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
+  }
+
   external_deps = [
     "cJSON:cjson",
     "hilog:libhilog",

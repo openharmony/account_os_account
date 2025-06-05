@@ -27,6 +27,7 @@ account_service_sources = [
   "${services_path}/accountmgr/src/ohos_account_data_deal.cpp",
   "${services_path}/accountmgr/src/ohos_account_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/inner_os_account_manager.cpp",
+  "${services_path}/accountmgr/src/osaccount/os_account_activate_lock_plugin_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_control_file_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_delete_user_idm_callback.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_event_proxy.cpp",
@@ -41,6 +42,9 @@ account_service_sources = [
   "${services_path}/accountmgr/src/osaccount/os_account_subscribe_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_user_callback.cpp",
 ]
+if (os_account_support_lock_os_account) {
+  account_service_sources += [ "${services_path}/accountmgr/src/osaccount/os_account_lock_os_account_plugin_manager.cpp" ]
+}
 
 if (os_account_support_domain_accounts) {
   account_service_sources += [
@@ -93,6 +97,7 @@ account_service_sources_mock = [
   "${services_path}/accountmgr/src/ohos_account_data_deal.cpp",
   "${services_path}/accountmgr/src/ohos_account_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/inner_os_account_manager.cpp",
+  "${services_path}/accountmgr/src/osaccount/os_account_activate_lock_plugin_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_control_file_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_delete_user_idm_callback.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_file_operator.cpp",
@@ -105,6 +110,9 @@ account_service_sources_mock = [
   "${services_path}/accountmgr/src/osaccount/os_account_subscribe_death_recipient.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_subscribe_manager.cpp",
 ]
+if (os_account_support_lock_os_account) {
+  account_service_sources_mock += [ "${services_path}/accountmgr/src/osaccount/os_account_lock_os_account_plugin_manager.cpp" ]
+}
 
 if (os_account_support_domain_accounts) {
   account_service_sources_mock += [

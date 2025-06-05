@@ -110,6 +110,11 @@ public:
         const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options = {}) = 0;
     virtual ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id) = 0;
     virtual ErrCode GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo) = 0;
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+    virtual ErrCode IsOsAccountLocking(const int id, bool &isLocking) = 0;
+    virtual ErrCode PublishOsAccountLockEvent(const int32_t localId, bool isLocking) = 0;
+    virtual ErrCode LockOsAccount(const int32_t localId) = 0;
+#endif
 };
 }  // namespace AccountSA
 }  // namespace OHOS

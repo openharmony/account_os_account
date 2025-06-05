@@ -103,6 +103,10 @@ public:
     ErrCode ProcCreateOsAccountForDomain(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountLocalIdFromDomain(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountDomainInfo(MessageParcel &data, MessageParcel &reply);
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+    ErrCode ProcPublishOsAccountLockEvent(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcLockOsAccount(MessageParcel &data, MessageParcel &reply);
+#endif
 
 private:
     bool WriteOsAccountInfoList(const std::vector<OsAccountInfo> &accounts, MessageParcel &data);
