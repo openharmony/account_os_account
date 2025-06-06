@@ -912,6 +912,44 @@ ohos_unittest("os_account_maintenance_type_mock_test") {
   }
 }
 
+ohos_unittest("os_account_static_subscriber_manager_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  defines = [
+    "ACCOUNT_LOG_TAG = \"AccountCommonFwk\"",
+    "LOG_DOMAIN = 0xD001B00",
+  ]
+  module_out_path = module_output_path
+  include_dirs = [
+    "${services_path}/accountmgr/include/osaccount",
+    "${services_path}/accountmgr/test/unittest/domain_account/mock",
+  ]
+  sources = [
+    "os_account_static_subscriber_manager_test.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_static_subscriber_manager.cpp",
+  ]
+
+  deps = [
+    "${common_path}:libaccount_common",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
+  ]
+
+  external_deps = [
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+  ]
+
+  part_name = "os_account"
+  cflags_cc = [ "-DACCOUNT_TEST" ]
+}
+
 group("unittest") {
   testonly = true
 
@@ -924,6 +962,7 @@ group("unittest") {
     ":OsAccountInnerAccmgrPluginMockTest",
     ":OsAccountSubscribeDeathRecipientTest",
     ":os_account_maintenance_type_mock_test",
+    ":os_account_static_subscriber_manager_test",
   ]
 
   if (os_account_support_domain_accounts) {
