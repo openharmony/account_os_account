@@ -402,6 +402,10 @@ ohos_unittest("OsAccountInnerAccmgrMockTest") {
     cflags_cc += [ "-DENABLE_U1_ACCOUNT" ]
   }
 
+  if (os_account_support_lock_os_account) {
+    cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
+  }
+
   external_deps = [
     "ability_base:want",
     "ability_runtime:wantagent_innerkits",
@@ -442,6 +446,7 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     "${services_path}/accountmgr/include/domain_account",
     "${services_path}/accountmgr/include/osaccount",
     "${os_account_path}/interfaces/innerkits/ohosaccount/native/include/",
+    "${services_path}/accountmgr/test/unittest/domain_account/mock",
   ]
   sources = [
     "${app_account_services_path}/test/mock/common/ability_manager_adapter_mock.cpp",
@@ -522,6 +527,9 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
     external_deps += [ "user_auth_framework:userauth_client" ]
   }
+  if (os_account_support_lock_os_account) {
+    cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
+  }
   if (has_ces_part) {
     cflags_cc += [ "-DHAS_CES_PART" ]
     external_deps += [ "common_event_service:cesfwk_innerkits" ]
@@ -587,15 +595,24 @@ ohos_unittest("OsAccountInnerAccmgrPluginMockTest") {
     "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
     "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
+    "${services_path}/accountmgr/test/mock/os_account/os_account_activate_lock_plugin_manager.cpp",
     "${services_path}/accountmgr/test/mock/os_account/os_account_interface.cpp",
     "${services_path}/accountmgr/test/mock/os_account/os_account_plugin_manager.cpp",
     "os_account_inner_account_mgr_plugin_mock.cpp",
   ]
+  if (os_account_support_lock_os_account) {
+    sources += [ "${services_path}/accountmgr/test/mock/os_account/os_account_lock_os_account_plugin_manager.cpp" ]
+  }
+
   sources += account_service_sources
   sources -= [
+    "${services_path}/accountmgr/src/osaccount/os_account_activate_lock_plugin_manager.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_interface.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_plugin_manager.cpp",
   ]
+  if (os_account_support_lock_os_account) {
+    sources -= [ "${services_path}/accountmgr/src/osaccount/os_account_lock_os_account_plugin_manager.cpp" ]
+  }
   configs = [
     ":os_account_amgr_test_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
@@ -651,6 +668,9 @@ ohos_unittest("OsAccountInnerAccmgrPluginMockTest") {
   if (has_user_auth_part) {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
     external_deps += [ "user_auth_framework:userauth_client" ]
+  }
+  if (os_account_support_lock_os_account) {
+    cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
   }
   if (has_ces_part) {
     cflags_cc += [ "-DHAS_CES_PART" ]
@@ -772,6 +792,9 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
   if (has_ces_part) {
     cflags_cc += [ "-DHAS_CES_PART" ]
     external_deps += [ "common_event_service:cesfwk_innerkits" ]
+  }
+  if (os_account_support_lock_os_account) {
+    cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
   }
   if (has_kv_store_part) {
     external_deps += [ "kv_store:distributeddata_inner" ]
@@ -902,6 +925,10 @@ ohos_unittest("os_account_maintenance_type_mock_test") {
 
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
+
+  if (os_account_support_lock_os_account) {
+    cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
   }
 
   if (security_guard_enabled) {

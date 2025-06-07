@@ -23,41 +23,10 @@
 
 namespace OHOS {
 namespace AccountSA {
-namespace {
-#ifdef _ARM64_
-static const char OS_ACCOUNT_PLUGIN_LIB_PATH[] = "/system/lib64/platformsdk/";
-#else
-static const char OS_ACCOUNT_PLUGIN_LIB_PATH[] = "/system/lib/platformsdk/";
-#endif
-static const char OS_ACCOUNT_PLUGIN_LIB_NAME[] = "libactivation_lock_sdk.z.so";
-}
-
-OsAccountPluginManager::OsAccountPluginManager()
-{
-    LoaderLib(OS_ACCOUNT_PLUGIN_LIB_PATH, OS_ACCOUNT_PLUGIN_LIB_NAME);
-    ACCOUNT_LOGI("OsAccountPluginManager init end.");
-}
 
 OsAccountPluginManager::~OsAccountPluginManager()
 {
     CloseLib();
-}
-
-OsAccountPluginManager &OsAccountPluginManager::GetInstance()
-{
-    static OsAccountPluginManager *instance = new (std::nothrow) OsAccountPluginManager();
-    return *instance;
-}
-
-std::string GetMethodNameByEnum(OsPluginMethodEnum methondEnum)
-{
-    switch (methondEnum) {
-        case OsPluginMethodEnum::VERIFY_ACTIVATION_LOCK:
-            return "VerifyActivationLock";
-        default:
-            ACCOUNT_LOGE("Find method name failed, enum=%{public}d.", methondEnum);
-            return "";
-    }
 }
 
 void OsAccountPluginManager::LoaderLib(const std::string &path, const std::string &libName)
@@ -73,8 +42,8 @@ void OsAccountPluginManager::LoaderLib(const std::string &path, const std::strin
         ACCOUNT_LOGE("Call dlopen failed, error=%{public}s.", dlerror());
         return;
     }
-    for (auto i = 0; i < static_cast<int>(OsPluginMethodEnum::OS_ACCOUNT_PLUGIN_COUNT); ++i) {
-        std::string methodName = GetMethodNameByEnum(static_cast<OsPluginMethodEnum>(i));
+    for (size_t i = 0; i < funcSymbolList_.size(); i++) {
+        std::string methodName = funcSymbolList_[i];
         if (methodName.empty()) {
             ACCOUNT_LOGE("Call check methodName empty.");
             dlclose(libHandle_);
@@ -84,15 +53,14 @@ void OsAccountPluginManager::LoaderLib(const std::string &path, const std::strin
         }
         dlerror();
         void *func = dlsym(libHandle_, methodName.c_str());
-        const char *dlsym_error = dlerror();
-        if (dlsym_error) {
-            ACCOUNT_LOGE("Call check failed, method=%{public}s error=%{public}s.", methodName.c_str(), dlsym_error);
+        if (func == nullptr) {
+            ACCOUNT_LOGE("Call check failed, method=%{public}s error=%{public}s.", methodName.c_str(), dlerror());
             dlclose(libHandle_);
             libHandle_ = nullptr;
             methodMap_.clear();
             return;
         }
-        methodMap_.emplace(static_cast<OsPluginMethodEnum>(i), func);
+        methodMap_.emplace(methodName, func);
     }
     ACCOUNT_LOGI("Load library success.");
 }
@@ -112,52 +80,6 @@ bool OsAccountPluginManager::IsPluginAvailable()
 {
     std::lock_guard<std::mutex> lock(libMutex_, std::adopt_lock);
     return libHandle_ != nullptr;
-}
-
-ErrCode OsAccountPluginManager::PluginVerifyActivationLockFunc(bool& isAllowed)
-{
-    std::lock_guard<std::mutex> lock(libMutex_);
-    auto iter = methodMap_.find(OsPluginMethodEnum::VERIFY_ACTIVATION_LOCK);
-    if (iter == methodMap_.end() || iter->second == nullptr) {
-        ACCOUNT_LOGE("Caller method=%{public}d not exsit.", OsPluginMethodEnum::VERIFY_ACTIVATION_LOCK);
-        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_PLUGIN_NOT_EXIST_ERROR;
-    }
-
-    auto promise = std::make_shared<std::promise<bool>>();
-    auto future = promise->get_future();
-    auto callback = [promise] (bool isActivated) mutable -> int32_t {
-        promise->set_value(isActivated);
-        return ERR_OK;
-    };
-
-    int32_t res = (*reinterpret_cast<VerifyActivationLockFunc>(iter->second))(callback);
-    if (res != ERR_OK) {
-        ACCOUNT_LOGE("Call plugin method failed.");
-        return res;
-    }
-    isAllowed = future.get();
-    return ERR_OK;
-}
-
-bool OsAccountPluginManager::IsCreationAllowed()
-{
-#if defined(ACCOUNT_TEST) || defined(ACCOUNT_COVERAGE_TEST)
-    return true;
-#else
-    if (!IsPluginAvailable()) {
-        ACCOUNT_LOGI("Plugin not availabel.");
-        return true;
-    }
-    bool isAllowed = false;
-    ACCOUNT_LOGI("Call plugin method start.");
-    ErrCode res = PluginVerifyActivationLockFunc(isAllowed);
-    ACCOUNT_LOGI("Call plugin method end.");
-    if (res != ERR_OK) {
-        ACCOUNT_LOGE("Call IsOsAccountCreationAllowed failed, ErrCode=%{public}d", res);
-        return false;
-    }
-    return isAllowed;
-#endif
 }
 }  // namespace AccountSA
 }  // namespace OHOS

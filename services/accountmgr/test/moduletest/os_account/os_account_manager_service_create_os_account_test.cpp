@@ -32,7 +32,9 @@ using namespace AccountSA;
 
 namespace {
 const std::string STRING_TEST_NAME = "name";
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
 const std::int32_t DELAY_FOR_OPERATION = 250;
+#endif
 std::shared_ptr<OsAccountManagerService> g_osAccountManagerService = nullptr;
 const std::int32_t MAIN_ACCOUNT_ID = 100;
 const std::int32_t WAIT_A_MOMENT = 3000;

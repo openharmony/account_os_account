@@ -61,4 +61,11 @@ group("fuzztest") {
       "getosaccountlocalidfromdomainstub_fuzzer:GetOsAccountLocalIdFromDomainStubFuzzTest",
     ]
   }
+
+  if (os_account_support_lock_os_account) {
+    deps += [
+      "lockosaccountstub_fuzzer:LockOsAccountStubFuzzTest",
+      "publishosaccountlockeventstub_fuzzer:PublishOsAccountLockEventStubFuzzTest",
+    ]
+  }
 }

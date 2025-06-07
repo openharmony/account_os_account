@@ -25,7 +25,10 @@
 #include "ios_account_subscribe.h"
 #include "ohos_account_manager.h"
 #include "os_account_interface.h"
-#include "os_account_plugin_manager.h"
+#include "os_account_activate_lock_plugin_manager.h"
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+#include "os_account_lock_os_account_plugin_manager.h"
+#endif // SUPPORT_LOCK_OS_ACCOUNT
 #include "safe_map.h"
 #include "singleton.h"
 
@@ -130,6 +133,11 @@ public:
     ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id) override;
     ErrCode GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo) override;
     ErrCode UpdateServerConfig(const std::string &configId, const DomainServerConfig &config);
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+    ErrCode IsOsAccountLocking(const int id, bool &isLocking) override;
+    ErrCode PublishOsAccountLockEvent(const int32_t localId, bool isLocking) override;
+    ErrCode LockOsAccount(const int32_t localId) override;
+#endif
 
 private:
     IInnerOsAccountManager();
@@ -200,10 +208,16 @@ private:
     mutable std::mutex operatingMutex_;
     mutable std::mutex updateLockMutex_;
     SafeMap<uint64_t, int32_t> foregroundAccountMap_;
-    OsAccountPluginManager &pluginManager_;
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+    OsAccountLockOsAccountPluginManager &lockOsAccountPluginManager_;
+#endif
+    OsAccountActivateLockPluginManager &activateLockPluginManager_;
     SafeMap<int32_t, bool> loggedInAccounts_;
     SafeMap<int32_t, bool> verifiedAccounts_;
     SafeMap<int32_t, bool> deactivatingAccounts_;
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+    SafeMap<int32_t, bool> lockingAccounts_;
+#endif
     std::map<int32_t, std::shared_ptr<std::mutex>> updateLocks_;
 };
 }  // namespace AccountSA

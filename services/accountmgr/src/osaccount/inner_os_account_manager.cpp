@@ -57,6 +57,9 @@ namespace AccountSA {
 namespace {
 const char OPERATION_UPDATE[] = "update";
 const char ADMIN_LOCAL_NAME[] = "admin";
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+const char OPERATION_LOCK[] = "lock";
+#endif
 #ifdef ENABLE_DEFAULT_ADMIN_NAME
 const char STANDARD_LOCAL_NAME[] = "user";
 #endif
@@ -104,7 +107,10 @@ static ErrCode GetDomainAccountStatus(OsAccountInfo &osAccountInfo)
 #endif // SUPPORT_DOMAIN_ACCOUNTS
 
 IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManager_(OsAccountSubscribeManager::GetInstance()),
-    pluginManager_(OsAccountPluginManager::GetInstance())
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+    lockOsAccountPluginManager_(OsAccountLockOsAccountPluginManager::GetInstance()),
+#endif
+    activateLockPluginManager_(OsAccountActivateLockPluginManager::GetInstance())
 {
     activeAccountId_.clear();
     operatingId_.clear();
@@ -616,7 +622,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
 ErrCode IInnerOsAccountManager::CreateOsAccount(
     const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
 {
-    if (!pluginManager_.IsCreationAllowed()) {
+    if (!activateLockPluginManager_.IsCreationAllowed()) {
         ACCOUNT_LOGI("Not allow creation account.");
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_PLUGIN_NOT_ALLOWED_CREATION_ERROR;
     }
@@ -640,7 +646,7 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(
 ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, const std::string &shortName,
     const OsAccountType &type, OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options)
 {
-    if (!pluginManager_.IsCreationAllowed()) {
+    if (!activateLockPluginManager_.IsCreationAllowed()) {
         ACCOUNT_LOGI("Not allow creation account.");
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_PLUGIN_NOT_ALLOWED_CREATION_ERROR;
     }
@@ -688,7 +694,7 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, co
 ErrCode IInnerOsAccountManager::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo,
     const CreateOsAccountOptions &options)
 {
-    if (!pluginManager_.IsCreationAllowed()) {
+    if (!activateLockPluginManager_.IsCreationAllowed()) {
         ACCOUNT_LOGI("Not allow creation account.");
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_PLUGIN_NOT_ALLOWED_CREATION_ERROR;
     }
@@ -864,7 +870,7 @@ ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
     const CreateOsAccountForDomainOptions &options)
 {
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
-    if (!pluginManager_.IsCreationAllowed()) {
+    if (!activateLockPluginManager_.IsCreationAllowed()) {
         ACCOUNT_LOGI("Not allow creation account.");
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_PLUGIN_NOT_ALLOWED_CREATION_ERROR;
     }
@@ -2840,5 +2846,86 @@ std::vector<int32_t> IInnerOsAccountManager::GetVerifiedAccountIds(const SafeMap
     (static_cast<SafeMap<int32_t, bool>>(verifiedAccounts)).Iterate(callback);
     return verifiedAccountIds;
 }
+
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+ErrCode IInnerOsAccountManager::IsOsAccountLocking(const int id, bool &isLocking)
+{
+    isLocking = false;
+    lockingAccounts_.Find(id, isLocking);
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::PublishOsAccountLockEvent(const int32_t localId, bool isLocking)
+{
+    if (isLocking) {
+#ifdef HAS_CES_PART
+        AccountEventProvider::EventPublishAsUser(
+            EventFwk::CommonEventSupport::COMMON_EVENT_USER_LOCKING, localId);
+#else  // HAS_CES_PART
+        ACCOUNT_LOGI("No common event part! Publish nothing!");
+#endif // HAS_CES_PART
+        return subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::LOCKING);
+    } else {
+#ifdef HAS_CES_PART
+        AccountEventProvider::EventPublishAsUser(
+            EventFwk::CommonEventSupport::COMMON_EVENT_USER_LOCKED, localId);
+#else  // HAS_CES_PART
+        ACCOUNT_LOGI("No common event part! Publish nothing!");
+#endif // HAS_CES_PART
+        return subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::LOCKED);
+    }
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::LockOsAccount(const int32_t localId)
+{
+    if (!lockOsAccountPluginManager_.IsPluginAvailable()) {
+        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_PLUGIN_NOT_EXIST_ERROR;
+    }
+
+    if (!CheckAndAddLocalIdOperating(localId)) {
+        ACCOUNT_LOGW("Account id = %{public}d already in operating", localId);
+        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
+    }
+    OsAccountInfo osAccountInfo;
+    ErrCode errCode = GetRealOsAccountInfoById(localId, osAccountInfo);
+    if (errCode != ERR_OK) {
+        RemoveLocalIdToOperating(localId);
+        ACCOUNT_LOGW("Cannot find os account info by id:%{public}d, errCode %{public}d.", localId, errCode);
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+
+    errCode = IsValidOsAccount(osAccountInfo);
+    if (errCode != ERR_OK) {
+        RemoveLocalIdToOperating(localId);
+        return errCode;
+    }
+
+    if (!osAccountInfo.GetIsVerified()) {
+        RemoveLocalIdToOperating(localId);
+        ACCOUNT_LOGW("Account %{public}d is neither active nor verified, don't need to lock!", localId);
+        return ERR_OK;
+    }
+
+    lockingAccounts_.EnsureInsert(localId, true);
+
+    int32_t ret = lockOsAccountPluginManager_.LockOsAccount(localId);
+    if (ret != ERR_OK) {
+        lockingAccounts_.Erase(localId);
+        RemoveLocalIdToOperating(localId);
+        ACCOUNT_LOGE("Failed to lock os account, ret is %{public}d", ret);
+        ReportOsAccountOperationFail(localId, OPERATION_LOCK, ret, "Lock OsAccount failed!");
+        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_LOCK_ERROR;
+    }
+    lockingAccounts_.Erase(localId);
+    verifiedAccounts_.Erase(localId);
+
+    RemoveLocalIdToOperating(localId);
+
+    ReportOsAccountLifeCycle(localId, Constants::OPERATION_LOCKED);
+
+    return ERR_OK;
+}
+#endif
 }  // namespace AccountSA
 }  // namespace OHOS
