@@ -112,6 +112,10 @@ public:
     virtual ErrCode GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts) = 0;
     virtual ErrCode GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds) = 0;
     virtual ErrCode SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved) = 0;
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+    virtual ErrCode PublishOsAccountLockEvent(const int32_t localId, bool isLocking) = 0;
+    virtual ErrCode LockOsAccount(const int32_t localId) = 0;
+#endif
 };
 }  // namespace AccountSA
 }  // namespace OHOS

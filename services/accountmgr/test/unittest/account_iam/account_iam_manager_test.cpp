@@ -584,5 +584,33 @@ HWTEST_F(AccountIamManagerTest, testAuthUser001, TestSize.Level0)
     EXPECT_EQ(ERR_IAM_BUSY, errCode);
     IInnerOsAccountManager::GetInstance().deactivatingAccounts_.Erase(TEST_EXIST_ID);
 }
+
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+/**
+ * @tc.name: testAuthUser002
+ * @tc.desc: test auth when the user is locking.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamManagerTest, testAuthUser002, TestSize.Level0)
+{
+    IInnerOsAccountManager::GetInstance().lockingAccounts_.EnsureInsert(TEST_EXIST_ID, true);
+    std::shared_ptr<MockIIDMCallback> callback = std::make_shared<MockIIDMCallback>();
+    EXPECT_NE(callback, nullptr);
+    sptr<TestIIDMCallback> testCallback = new(std::nothrow) TestIIDMCallback(callback);
+    EXPECT_NE(testCallback, nullptr);
+    EXPECT_CALL(*callback, OnResult(_, _)).Times(0);
+    AccountSA::AuthParam authParam = {
+        .userId = TEST_EXIST_ID,
+        .challenge = TEST_CHALLENGE,
+        .authType = AuthType::PIN,
+        .authTrustLevel = AuthTrustLevel::ATL1
+    };
+    uint64_t contextId = 0;
+    ErrCode errCode = InnerAccountIAMManager::GetInstance().AuthUser(authParam, testCallback, contextId);
+    EXPECT_EQ(ERR_IAM_BUSY, errCode);
+    IInnerOsAccountManager::GetInstance().lockingAccounts_.Erase(TEST_EXIST_ID);
+}
+#endif
 }  // namespace AccountTest
 }  // namespace OHOS

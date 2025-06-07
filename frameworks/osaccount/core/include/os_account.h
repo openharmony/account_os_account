@@ -105,6 +105,10 @@ public:
     ErrCode GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds);
     ErrCode SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved);
     ErrCode GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo);
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+    ErrCode PublishOsAccountLockEvent(const int32_t localId, bool isLocking);
+    ErrCode LockOsAccount(const int32_t localId);
+#endif
 
 private:
     OsAccount();

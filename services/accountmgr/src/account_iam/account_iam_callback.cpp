@@ -269,6 +269,25 @@ void AuthCallback::SetDeathRecipient(const sptr<AuthCallbackDeathRecipient> &dea
     deathRecipient_ = deathRecipient;
 }
 
+static bool IsOsAccountDeactivatingOrLocking(int32_t authedAccountId)
+{
+    bool isDeactivating = false;
+    IInnerOsAccountManager::GetInstance().IsOsAccountDeactivating(authedAccountId, isDeactivating);
+    if (isDeactivating) {
+        ACCOUNT_LOGW("The target account is deactivating, accountId:%{public}d", authedAccountId);
+        return true;
+    }
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+    bool isLocking = false;
+    IInnerOsAccountManager::GetInstance().IsOsAccountLocking(authedAccountId, isLocking);
+    if (isLocking) {
+        ACCOUNT_LOGW("The target account is isLocking, accountId:%{public}d", authedAccountId);
+        return true;
+    }
+#endif
+    return false;
+}
+
 void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
     int32_t authedAccountId = 0;
@@ -300,10 +319,7 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         ACCOUNT_LOGI("Remote auth");
         return innerCallback_->OnResult(result, extraInfo);
     }
-    bool isDeactivating = false;
-    IInnerOsAccountManager::GetInstance().IsOsAccountDeactivating(authedAccountId, isDeactivating);
-    if (isDeactivating) {
-        ACCOUNT_LOGW("The target account is deactivating, accountId:%{public}d", authedAccountId);
+    if (IsOsAccountDeactivatingOrLocking(authedAccountId)) {
         return innerCallback_->OnResult(result, extraInfo);
     }
     bool isUpdateVerifiedStatus = false;

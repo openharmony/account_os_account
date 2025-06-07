@@ -160,6 +160,8 @@
         "OHOS::AccountSA::OsAccountManager::GetBackgroundOsAccountLocalIds(std::__h::vector<int, std::__h::allocator<int>>&)";
         "OHOS::AccountSA::OsAccountManager::SetOsAccountToBeRemoved(int, bool)";
         "OHOS::AccountSA::OsAccountManager::GetOsAccountDomainInfo(int, OHOS::AccountSA::DomainAccountInfo&)";
+        "OHOS::AccountSA::OsAccountManager::PublishOsAccountLockEvent(int, bool)";
+        "OHOS::AccountSA::OsAccountManager::LockOsAccount(int)";
         "OHOS::AccountSA::OsAccountInfo::GetLocalId() const";
         "OHOS::AccountSA::OsAccountInfo::ParamCheck()";
         "OHOS::AccountSA::OsAccountInfo::GetDomainInfo(OHOS::AccountSA::DomainAccountInfo&) const";

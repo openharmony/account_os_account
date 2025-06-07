@@ -106,6 +106,8 @@ enum class OsAccountInterfaceCode : uint32_t {
     IS_OS_ACCOUNT_DEACTIVATING,
     GET_OS_ACCOUNT_DOMAIN_INFO,
     GET_OS_ACCOUNT_NAME_BY_ID,
+    PUBLISH_OS_ACCOUNT_LOCK_EVENT,
+    LOCK_OS_ACCOUNT,
 };
 
 enum class AppAccountInterfaceCode : uint32_t {

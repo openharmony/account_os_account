@@ -203,6 +203,10 @@ ohos_unittest("account_mgr_test") {
     cflags_cc += [ "-DENABLE_DEACTIVATE_OS_ACCOUNTS" ]
   }
 
+  if (os_account_support_lock_os_account) {
+    cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
+  }
+
   if (os_account_distributed_feature) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
     sources +=
@@ -281,6 +285,10 @@ ohos_unittest("account_mgr_test") {
       "time_service:time_client",
     ]
     cflags_cc += [ "-DSECURITY_GUARDE_ENABLE" ]
+  }
+
+  if (os_account_support_lock_os_account) {
+    cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
   }
 
   if (has_hiviewdfx_hitrace_part) {

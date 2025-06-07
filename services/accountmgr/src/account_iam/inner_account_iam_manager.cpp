@@ -312,6 +312,14 @@ int32_t InnerAccountIAMManager::AuthUser(
         ACCOUNT_LOGE("The target account is deactivating, accountId:%{public}d", authParam.userId);
         return ERR_IAM_BUSY;
     }
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+    bool isLocking = false;
+    IInnerOsAccountManager::GetInstance().IsOsAccountLocking(authParam.userId, isLocking);
+    if (isLocking) {
+        ACCOUNT_LOGE("The target account is isLocking, accountId:%{public}d", authParam.userId);
+        return ERR_IAM_BUSY;
+    }
+#endif
     sptr<AuthCallbackDeathRecipient> deathRecipient = new (std::nothrow) AuthCallbackDeathRecipient();
     if ((deathRecipient == nullptr) || (!callback->AsObject()->AddDeathRecipient(deathRecipient))) {
         ACCOUNT_LOGE("failed to add death recipient for auth callback");

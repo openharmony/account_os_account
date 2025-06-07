@@ -410,5 +410,25 @@ ErrCode OsAccountManager::GetOsAccountDomainInfo(const int32_t localId, DomainAc
 {
     return OsAccount::GetInstance().GetOsAccountDomainInfo(localId, domainInfo);
 }
+
+
+ErrCode OsAccountManager::PublishOsAccountLockEvent(const int32_t localId, bool isLocking)
+{
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+    return OsAccount::GetInstance().PublishOsAccountLockEvent(localId, isLocking);
+#else
+    return ERR_ACCOUNT_COMMON_INTERFACE_NOT_SUPPORT_ERROR;
+#endif
+}
+
+ErrCode OsAccountManager::LockOsAccount(int32_t localId)
+{
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+    return OsAccount::GetInstance().LockOsAccount(localId);
+#else
+    return ERR_ACCOUNT_COMMON_INTERFACE_NOT_SUPPORT_ERROR;
+#endif
+}
+
 }  // namespace AccountSA
 }  // namespace OHOS
