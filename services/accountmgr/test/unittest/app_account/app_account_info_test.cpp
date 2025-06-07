@@ -41,6 +41,7 @@ const std::string STRING_CREDENTIAL = "1024";
 const std::string STRING_ACCOUNT_CREDENTIAL = "{\"password\": \"1024\"}";
 const std::string STRING_TOKEN = "token123";
 const std::string STRING_AUTH_TYPE = "getSocialData";
+const std::string STRING_AUTH_TYPE_TWO = "getSocialDataTwo";
 const std::string STRING_EMPTY = "";
 
 const bool SYNC_ENABLE_TRUE = true;
@@ -1061,4 +1062,76 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_ToJson_FromJson_001, TestSize.Level1
     isVisible = retAppAccountInfo.oauthTokens_["authType1"].status;
     EXPECT_TRUE(isVisible);
     ASSERT_EQ(retAppAccountInfo.oauthTokens_["authType1"].token, tokenInfo1.token);
+}
+
+/**
+ * @tc.name: OAuthTokenInfo_Marshalling001
+ * @tc.desc: Func Marshalling and Unmarshalling.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppAccountInfoTest, OAuthTokenInfo_Marshalling001, TestSize.Level3)
+{
+    ACCOUNT_LOGI("AuthenticatorInfo_Marshalling001");
+    Parcel Parcel;
+    OAuthTokenInfo option1;
+    option1.authType = STRING_AUTH_TYPE;
+    option1.token = STRING_TOKEN;
+    option1.authList = {STRING_AUTH_TYPE, STRING_AUTH_TYPE_TWO};
+    option1.status = true;
+
+    EXPECT_EQ(option1.Marshalling(Parcel), true);
+    OAuthTokenInfo *option2 = option1.Unmarshalling(Parcel);
+    EXPECT_NE(option2, nullptr);
+
+    EXPECT_EQ(option2->authType, STRING_AUTH_TYPE);
+    EXPECT_EQ(option2->token, STRING_TOKEN);
+    EXPECT_TRUE(option2->authList.find(STRING_AUTH_TYPE) != option2->authList.end());
+    EXPECT_TRUE(option2->authList.find(STRING_AUTH_TYPE_TWO) != option2->authList.end());
+    EXPECT_EQ(option2->status, true);
+}
+
+/**
+ * @tc.name: AppAccountStringInfo_Marshalling001
+ * @tc.desc: Func Marshalling and Unmarshalling.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppAccountInfoTest, AppAccountStringInfo_Marshalling001, TestSize.Level3)
+{
+    ACCOUNT_LOGI("AppAccountStringInfo_Marshalling001");
+    Parcel Parcel;
+    AppAccountStringInfo option1;
+    option1.name = STRING_NAME;
+    option1.owner = STRING_OWNER;
+    option1.authType = STRING_AUTH_TYPE;
+
+    EXPECT_EQ(option1.Marshalling(Parcel), true);
+    AppAccountStringInfo *option2 = option1.Unmarshalling(Parcel);
+    EXPECT_NE(option2, nullptr);
+
+    EXPECT_EQ(option2->name, STRING_NAME);
+    EXPECT_EQ(option2->owner, STRING_OWNER);
+    EXPECT_EQ(option2->authType, STRING_AUTH_TYPE);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticatorStringInfo_Marshalling001
+ * @tc.desc: Func Marshalling and Unmarshalling.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppAccountInfoTest, AppAccountAuthenticatorStringInfo_Marshalling001, TestSize.Level3)
+{
+    ACCOUNT_LOGI("AppAccountAuthenticatorStringInfo_Marshalling001");
+    Parcel Parcel;
+    AppAccountAuthenticatorStringInfo option1;
+    option1.name = STRING_NAME;
+    option1.authType = STRING_AUTH_TYPE;
+    option1.callerBundleName = STRING_BUNDLE_NAME;
+
+    EXPECT_EQ(option1.Marshalling(Parcel), true);
+    AppAccountAuthenticatorStringInfo *option2 = option1.Unmarshalling(Parcel);
+    EXPECT_NE(option2, nullptr);
+
+    EXPECT_EQ(option2->name, STRING_NAME);
+    EXPECT_EQ(option2->authType, STRING_AUTH_TYPE);
+    EXPECT_EQ(option2->callerBundleName, STRING_BUNDLE_NAME);
 }

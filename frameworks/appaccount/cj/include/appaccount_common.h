@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -64,9 +64,9 @@ public:
         std::function<void(RetDataBool)> cRef, std::function<void(ErrCArrAppAccountInfo)> sRef);
     ~AuthenticatorAsyncCallback();
 
-    void OnResult(int32_t resultCode, const AAFwk::Want &result) override;
-    void OnRequestRedirected(AAFwk::Want &request) override;
-    void OnRequestContinued() override;
+    ErrCode OnResult(int32_t resultCode, const AAFwk::Want &result) override;
+    ErrCode OnRequestRedirected(const AAFwk::Want &request) override;
+    ErrCode OnRequestContinued() override;
 
     bool onResultRetBool = false;
     std::vector<std::string> onResultRetNames;
@@ -101,9 +101,9 @@ public:
     explicit AppAccountManagerCallback(JSAuthCallback callback);
     ~AppAccountManagerCallback();
 
-    void OnResult(int32_t resultCode, const AAFwk::Want &result) override;
-    void OnRequestRedirected(AAFwk::Want &request) override;
-    void OnRequestContinued() override;
+    ErrCode OnResult(int32_t resultCode, const AAFwk::Want &result) override;
+    ErrCode OnRequestRedirected(const AAFwk::Want &request) override;
+    ErrCode OnRequestContinued() override;
 
     AAFwk::Want result_;
     JSAuthCallback callback_;

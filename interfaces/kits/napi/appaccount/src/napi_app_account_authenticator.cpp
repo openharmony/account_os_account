@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -111,10 +111,11 @@ ErrCode NapiAppAccountAuthenticator::InitWorkEnv(uv_loop_s **loop, uv_work_t **w
 
 ErrCode NapiAppAccountAuthenticator::AddAccountImplicitly(
     const std::string &authType, const std::string &callerBundleName,
-    const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback)
+    const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback, int32_t &funcResult)
 {
     if (jsAuthenticator_.addAccountImplicitly == nullptr) {
-        return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
+        funcResult = ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
+        return ERR_OK;
     }
     std::shared_ptr<JsAuthenticatorParam> param = std::make_shared<JsAuthenticatorParam>();
     param->env = env_;
@@ -125,39 +126,45 @@ ErrCode NapiAppAccountAuthenticator::AddAccountImplicitly(
     param->callback = callback;
     if (napi_ok != napi_send_event(env_, AddAccountImplicitlyWork(param), napi_eprio_vip)) {
         ACCOUNT_LOGE("Post task failed");
-        return ERR_APPACCOUNT_SERVICE_OTHER;
+        funcResult = ERR_APPACCOUNT_SERVICE_OTHER;
+        return ERR_OK;
     }
     ACCOUNT_LOGI("Post task finish");
+    funcResult = ERR_OK;
     return ERR_OK;
 }
 
-ErrCode NapiAppAccountAuthenticator::Authenticate(const std::string &name, const std::string &authType,
-    const std::string &callerBundleName, const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback)
+ErrCode NapiAppAccountAuthenticator::Authenticate(const AppAccountAuthenticatorStringInfo &stringInfo,
+    const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback, int32_t &funcResult)
 {
     if (jsAuthenticator_.authenticate == nullptr) {
-        return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
+        funcResult = ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
+        return ERR_OK;
     }
     std::shared_ptr<JsAuthenticatorParam> param = std::make_shared<JsAuthenticatorParam>();
     param->env = env_;
     param->jsAuthenticator = jsAuthenticator_;
-    param->authType = authType;
-    param->name = name;
-    param->callerBundleName = callerBundleName;
+    param->authType = stringInfo.authType;
+    param->name = stringInfo.name;
+    param->callerBundleName = stringInfo.callerBundleName;
     param->options = options;
     param->callback = callback;
     if (napi_ok != napi_send_event(env_, AuthenticateWork(param), napi_eprio_vip)) {
         ACCOUNT_LOGE("Post task failed");
-        return ERR_APPACCOUNT_SERVICE_OTHER;
+        funcResult = ERR_APPACCOUNT_SERVICE_OTHER;
+        return ERR_OK;
     }
     ACCOUNT_LOGI("Post task finish");
+    funcResult = ERR_OK;
     return ERR_OK;
 }
 
 ErrCode NapiAppAccountAuthenticator::CreateAccountImplicitly(
-    const CreateAccountImplicitlyOptions &options, const sptr<IRemoteObject> &callback)
+    const CreateAccountImplicitlyOptions &options, const sptr<IRemoteObject> &callback, int32_t &funcResult)
 {
     if (jsAuthenticator_.createAccountImplicitly == nullptr) {
-        return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
+        funcResult = ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
+        return ERR_OK;
     }
     std::shared_ptr<JsAuthenticatorParam> param = std::make_shared<JsAuthenticatorParam>();
     param->env = env_;
@@ -166,17 +173,20 @@ ErrCode NapiAppAccountAuthenticator::CreateAccountImplicitly(
     param->callback = callback;
     if (napi_ok != napi_send_event(env_, CreateAccountImplicitlyWork(param), napi_eprio_vip)) {
         ACCOUNT_LOGE("Post task failed");
-        return ERR_APPACCOUNT_SERVICE_OTHER;
+        funcResult = ERR_APPACCOUNT_SERVICE_OTHER;
+        return ERR_OK;
     }
     ACCOUNT_LOGI("Post task finish");
+    funcResult = ERR_OK;
     return ERR_OK;
 }
 
 ErrCode NapiAppAccountAuthenticator::Auth(const std::string &name, const std::string &authType,
-    const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback)
+    const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback, int32_t &funcResult)
 {
     if (jsAuthenticator_.auth == nullptr) {
-        return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
+        funcResult = ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
+        return ERR_OK;
     }
     std::shared_ptr<JsAuthenticatorParam> param = std::make_shared<JsAuthenticatorParam>();
     param->env = env_;
@@ -187,17 +197,21 @@ ErrCode NapiAppAccountAuthenticator::Auth(const std::string &name, const std::st
     param->callback = callback;
     if (napi_ok != napi_send_event(env_, AuthWork(param), napi_eprio_vip)) {
         ACCOUNT_LOGE("Post task failed");
-        return ERR_APPACCOUNT_SERVICE_OTHER;
+        funcResult = ERR_APPACCOUNT_SERVICE_OTHER;
+        return ERR_OK;
     }
     ACCOUNT_LOGI("Post task finish");
+    funcResult = ERR_OK;
     return ERR_OK;
 }
 
 ErrCode NapiAppAccountAuthenticator::VerifyCredential(
-    const std::string &name, const VerifyCredentialOptions &options, const sptr<IRemoteObject> &callback)
+    const std::string &name, const VerifyCredentialOptions &options, const sptr<IRemoteObject> &callback,
+    int32_t &funcResult)
 {
     if (jsAuthenticator_.verifyCredential == nullptr) {
-        return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
+        funcResult = ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
+        return ERR_OK;
     }
     std::shared_ptr<JsAuthenticatorParam> param = std::make_shared<JsAuthenticatorParam>();
     param->env = env_;
@@ -207,17 +221,20 @@ ErrCode NapiAppAccountAuthenticator::VerifyCredential(
     param->callback = callback;
     if (napi_ok != napi_send_event(env_, VerifyCredentialWork(param), napi_eprio_vip)) {
         ACCOUNT_LOGE("Post task failed");
-        return ERR_APPACCOUNT_SERVICE_OTHER;
+        funcResult = ERR_APPACCOUNT_SERVICE_OTHER;
+        return ERR_OK;
     }
     ACCOUNT_LOGI("Post task finish");
+    funcResult = ERR_OK;
     return ERR_OK;
 }
 
 ErrCode NapiAppAccountAuthenticator::SetProperties(
-    const SetPropertiesOptions &options, const sptr<IRemoteObject> &callback)
+    const SetPropertiesOptions &options, const sptr<IRemoteObject> &callback, int32_t &funcResult)
 {
     if (jsAuthenticator_.setProperties == nullptr) {
-        return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
+        funcResult = ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
+        return ERR_OK;
     }
     std::shared_ptr<JsAuthenticatorParam> param = std::make_shared<JsAuthenticatorParam>();
     param->env = env_;
@@ -226,17 +243,21 @@ ErrCode NapiAppAccountAuthenticator::SetProperties(
     param->callback = callback;
     if (napi_ok != napi_send_event(env_, SetPropertiesWork(param), napi_eprio_vip)) {
         ACCOUNT_LOGE("Post task failed");
-        return ERR_APPACCOUNT_SERVICE_OTHER;
+        funcResult = ERR_APPACCOUNT_SERVICE_OTHER;
+        return ERR_OK;
     }
     ACCOUNT_LOGI("Post task finish");
+    funcResult = ERR_OK;
     return ERR_OK;
 }
 
 ErrCode NapiAppAccountAuthenticator::CheckAccountLabels(
-    const std::string &name, const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback)
+    const std::string &name, const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback,
+    int32_t &funcResult)
 {
     if (jsAuthenticator_.checkAccountLabels == nullptr) {
-        return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
+        funcResult = ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
+        return ERR_OK;
     }
     std::shared_ptr<JsAuthenticatorParam> param = std::make_shared<JsAuthenticatorParam>();
     param->env = env_;
@@ -246,16 +267,20 @@ ErrCode NapiAppAccountAuthenticator::CheckAccountLabels(
     param->callback = callback;
     if (napi_ok != napi_send_event(env_, CheckAccountLabelsWork(param), napi_eprio_vip)) {
         ACCOUNT_LOGE("Post task failed");
-        return ERR_APPACCOUNT_SERVICE_OTHER;
+        funcResult = ERR_APPACCOUNT_SERVICE_OTHER;
+        return ERR_OK;
     }
     ACCOUNT_LOGI("Post task finish");
+    funcResult = ERR_OK;
     return ERR_OK;
 }
 
-ErrCode NapiAppAccountAuthenticator::IsAccountRemovable(const std::string &name, const sptr<IRemoteObject> &callback)
+ErrCode NapiAppAccountAuthenticator::IsAccountRemovable(const std::string &name, const sptr<IRemoteObject> &callback,
+    int32_t &funcResult)
 {
     if (jsAuthenticator_.isAccountRemovable == nullptr) {
-        return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
+        funcResult = ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
+        return ERR_OK;
     }
     std::shared_ptr<JsAuthenticatorParam> param = std::make_shared<JsAuthenticatorParam>();
     param->env = env_;
@@ -264,9 +289,11 @@ ErrCode NapiAppAccountAuthenticator::IsAccountRemovable(const std::string &name,
     param->callback = callback;
     if (napi_ok != napi_send_event(env_, IsAccountRemovableWork(param), napi_eprio_vip)) {
         ACCOUNT_LOGE("Post task failed");
-        return ERR_APPACCOUNT_SERVICE_OTHER;
+        funcResult = ERR_APPACCOUNT_SERVICE_OTHER;
+        return ERR_OK;
     }
     ACCOUNT_LOGI("Post task finish");
+    funcResult = ERR_OK;
     return ERR_OK;
 }
 

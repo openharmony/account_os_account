@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,7 +23,7 @@ namespace OHOS {
 namespace AccountSA {
 class AppAccountEventListener : public AppAccountEventStub {
 public:
-    void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts, const std::string &owner) override;
+    ErrCode OnAccountsChanged(const std::vector<AppAccountInfo> &accounts, const std::string &owner) override;
 
     static AppAccountEventListener *GetInstance();
     ErrCode SubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber, bool &needNotifyService);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -322,17 +322,17 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_CreateAccountImplicitly_0100, 
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     options.authType = "";
     result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, nullptr);
-    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
     // check callback nullptr
     result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, nullptr);
-    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
     // check options.requiredLabels
     for (int i = 0; i < ALLOWED_ARRAY_MAX_SIZE; i++) {
         std::string testLabel = "test_label_" + std::to_string(i);
         options.requiredLabels.emplace_back(testLabel);
     }
     result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, nullptr);
-    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
     options.requiredLabels.emplace_back("test_label_oversize");
     result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, nullptr);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
@@ -366,7 +366,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_Authenticate_0100, TestSize.Le
     AAFwk::Want options;
     ErrCode result = AppAccountManager::Authenticate(
         STRING_NAME, STRING_OWNER, STRING_AUTH_TYPE, options, nullptr);
-    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
 
     result = AppAccountManager::Authenticate(
         STRING_NAME_OUT_OF_RANGE, STRING_OWNER, STRING_AUTH_TYPE, options, nullptr);
@@ -1758,7 +1758,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SelectAccountsByOptions_0100, 
     ACCOUNT_LOGI("AppAccountManager_SelectAccountsByOptions_0100");
     SelectAccountsOptions options;
     ErrCode result = AppAccountManager::SelectAccountsByOptions(options, nullptr);
-    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
 
     sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
     EXPECT_NE(callback, nullptr);
@@ -1825,7 +1825,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_VerifyCredential_0100, TestSiz
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     // check callback
     result = AppAccountManager::VerifyCredential(STRING_NAME, STRING_OWNER, options, nullptr);
-    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
 
     sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
     EXPECT_NE(callback, nullptr);
@@ -1912,7 +1912,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAuthenticatorProperties_010
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     // check callback
     result = AppAccountManager::SetAuthenticatorProperties(STRING_OWNER, options, nullptr);
-    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
 
     sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
     EXPECT_NE(callback, nullptr);

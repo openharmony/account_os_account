@@ -1,4 +1,4 @@
-# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Copyright (c) 2024-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -59,24 +59,18 @@ if (os_account_support_domain_accounts) {
 }
 
 app_account_sources_mock = [
-  "${app_account_innerkits_native_path}/src/app_account_authenticator_callback_stub.cpp",
-  "${app_account_innerkits_native_path}/src/app_account_authorization_extension_callback_proxy.cpp",
-  "${app_account_innerkits_native_path}/src/app_account_authorization_extension_callback_stub.cpp",
   "${app_account_innerkits_native_path}/src/app_account_common.cpp",
   "${app_account_innerkits_native_path}/src/app_account_info.cpp",
   "${app_account_innerkits_native_path}/src/app_account_subscribe_info.cpp",
   "${app_account_services_path}/src/appaccount/app_account_authenticator_callback.cpp",
   "${app_account_services_path}/src/appaccount/app_account_authenticator_manager.cpp",
-  "${app_account_services_path}/src/appaccount/app_account_authenticator_proxy.cpp",
   "${app_account_services_path}/src/appaccount/app_account_authenticator_session.cpp",
   "${app_account_services_path}/src/appaccount/app_account_authenticator_session_manager.cpp",
-  "${app_account_services_path}/src/appaccount/app_account_authorization_extension_proxy.cpp",
   "${app_account_services_path}/src/appaccount/app_account_check_labels_callback.cpp",
   "${app_account_services_path}/src/appaccount/app_account_check_labels_session.cpp",
   "${app_account_services_path}/src/appaccount/app_account_common_event_observer.cpp",
   "${app_account_services_path}/src/appaccount/app_account_common_event_subscriber.cpp",
   "${app_account_services_path}/src/appaccount/app_account_data_storage.cpp",
-  "${app_account_services_path}/src/appaccount/app_account_event_proxy.cpp",
   "${app_account_services_path}/src/appaccount/app_account_subscribe_death_recipient.cpp",
   "${app_account_services_path}/src/appaccount/app_account_subscribe_manager.cpp",
 ]

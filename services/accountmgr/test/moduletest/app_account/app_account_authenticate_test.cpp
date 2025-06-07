@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,95 +31,107 @@
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
-DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IAppAccountAuthenticator");
 namespace {
 const std::string STRING_NAME = "name";
 const std::string STRING_AUTH_TYPE = "test.authType";
 const std::string STRING_ABILITY_NAME = "test.mainAbility";
 const std::string CALLER_BUNDLE_NAME = "test.callerbundlename";
-const uint32_t SET_PROPERTIES = 4;
 }  // namespace
 
 class MockAuthenticatorCallback final : public AppAccountAuthenticatorCallbackStub {
 public:
-    MOCK_METHOD2(OnResult, void(int32_t resultCode, const AAFwk::Want &result));
-    MOCK_METHOD1(OnRequestRedirected, void(AAFwk::Want &request));
-    MOCK_METHOD0(OnRequestContinued, void());
+    MOCK_METHOD2(OnResult, ErrCode(int32_t resultCode, const AAFwk::Want &result));
+    MOCK_METHOD1(OnRequestRedirected, ErrCode(const AAFwk::Want &request));
+    MOCK_METHOD0(OnRequestContinued, ErrCode());
 };
 
 class MockAppAccountAuthenticator : public AppAccountAuthenticatorStub {
 public:
     ErrCode AddAccountImplicitly(const std::string &authType, const std::string &callerBundleName,
-        const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback);
+        const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback, int32_t &funcResult);
     ErrCode Authenticate(
-        const std::string &name, const std::string &authType, const std::string &callerBundleName,
-        const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback);
+        const AppAccountAuthenticatorStringInfo &stringInfo, const AAFwk::WantParams &options,
+        const sptr<IRemoteObject> &callback, int32_t &funcResult);
     ErrCode VerifyCredential(
-        const std::string &name, const VerifyCredentialOptions &options, const sptr<IRemoteObject> &callback);
+        const std::string &name, const VerifyCredentialOptions &options, const sptr<IRemoteObject> &callback,
+        int32_t &funcResult);
     ErrCode CheckAccountLabels(
-        const std::string &name, const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback);
-    ErrCode SetProperties(const SetPropertiesOptions &options, const sptr<IRemoteObject> &callback);
-    ErrCode IsAccountRemovable(const std::string &name, const sptr<IRemoteObject> &callback);
+        const std::string &name, const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback,
+        int32_t &funcResult);
+    ErrCode SetProperties(const SetPropertiesOptions &options, const sptr<IRemoteObject> &callback,
+        int32_t &funcResult);
+    ErrCode IsAccountRemovable(const std::string &name, const sptr<IRemoteObject> &callback, int32_t &funcResult);
     ErrCode CreateAccountImplicitly(
-        const CreateAccountImplicitlyOptions &options, const sptr<IRemoteObject> &callback);
+        const CreateAccountImplicitlyOptions &options, const sptr<IRemoteObject> &callback, int32_t &funcResult);
     ErrCode Auth(const std::string &name, const std::string &authType,
-        const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback);
+        const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback, int32_t &funcResult);
 };
 
 ErrCode MockAppAccountAuthenticator::AddAccountImplicitly(
     const std::string &authType, const std::string &callerBundleName,
-    const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback)
+    const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback, int32_t &funcResult)
 {
     ACCOUNT_LOGI("mock enter");
+    funcResult = ERR_OK;
     return ERR_OK;
 }
 
 ErrCode MockAppAccountAuthenticator::Authenticate(
-    const std::string &name, const std::string &authType, const std::string &callerBundleName,
-    const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback)
+    const AppAccountAuthenticatorStringInfo &stringInfo, const AAFwk::WantParams &options,
+    const sptr<IRemoteObject> &callback, int32_t &funcResult)
 {
     ACCOUNT_LOGI("mock enter");
+    funcResult = ERR_OK;
     return ERR_OK;
 }
 
 ErrCode MockAppAccountAuthenticator::VerifyCredential(
-    const std::string &name, const VerifyCredentialOptions &options, const sptr<IRemoteObject> &callback)
+    const std::string &name, const VerifyCredentialOptions &options, const sptr<IRemoteObject> &callback,
+    int32_t &funcResult)
 {
     ACCOUNT_LOGI("mock enter");
+    funcResult = ERR_OK;
     return ERR_OK;
 }
 
 ErrCode MockAppAccountAuthenticator::CheckAccountLabels(
-    const std::string &name, const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback)
+    const std::string &name, const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback,
+    int32_t &funcResult)
 {
     ACCOUNT_LOGI("mock enter");
+    funcResult = ERR_OK;
     return ERR_OK;
 }
 
 ErrCode MockAppAccountAuthenticator::SetProperties(
-    const SetPropertiesOptions &options, const sptr<IRemoteObject> &callback)
+    const SetPropertiesOptions &options, const sptr<IRemoteObject> &callback, int32_t &funcResult)
 {
     ACCOUNT_LOGI("mock enter");
+    funcResult = ERR_OK;
     return ERR_OK;
 }
 
-ErrCode MockAppAccountAuthenticator::IsAccountRemovable(const std::string &name, const sptr<IRemoteObject> &callback)
+ErrCode MockAppAccountAuthenticator::IsAccountRemovable(const std::string &name, const sptr<IRemoteObject> &callback,
+    int32_t &funcResult)
 {
     ACCOUNT_LOGI("mock enter");
+    funcResult = ERR_OK;
     return ERR_OK;
 }
 
 ErrCode MockAppAccountAuthenticator::CreateAccountImplicitly(
-    const CreateAccountImplicitlyOptions &options, const sptr<IRemoteObject> &callback)
+    const CreateAccountImplicitlyOptions &options, const sptr<IRemoteObject> &callback, int32_t &funcResult)
 {
     ACCOUNT_LOGI("mock enter");
+    funcResult = ERR_OK;
     return ERR_OK;
 }
 
 ErrCode MockAppAccountAuthenticator::Auth(const std::string &name, const std::string &authType,
-    const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback)
+    const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback, int32_t &funcResult)
 {
     ACCOUNT_LOGI("mock enter");
+    funcResult = ERR_OK;
     return ERR_OK;
 }
 
@@ -173,7 +185,8 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticateTest_CreateAcco
 
     CreateAccountImplicitlyOptions options;
     sptr<IRemoteObject> callback = nullptr;
-    ErrCode result = authenticateProxyPtr_->CreateAccountImplicitly(options, callback);
+    int32_t funcResult = -1;
+    ErrCode result = authenticateProxyPtr_->CreateAccountImplicitly(options, callback, funcResult);
     EXPECT_NE(result, ERR_OK);
 }
 
@@ -189,7 +202,8 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticateTest_Auth_0100,
 
     AAFwk::Want want;
     sptr<IRemoteObject> callback = nullptr;
-    ErrCode result = authenticateProxyPtr_->Auth(STRING_NAME, STRING_AUTH_TYPE, want.GetParams(), callback);
+    int32_t funcResult = -1;
+    ErrCode result = authenticateProxyPtr_->Auth(STRING_NAME, STRING_AUTH_TYPE, want.GetParams(), callback, funcResult);
     EXPECT_NE(result, ERR_OK);
 }
 
@@ -207,7 +221,8 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticateTest_CreateAcco
     sptr<IAppAccountAuthenticatorCallback> oauthCallbackPtr = new (std::nothrow) MockAuthenticatorCallback();
     sptr<IRemoteObject> callback = oauthCallbackPtr->AsObject();
     EXPECT_NE(callback, nullptr);
-    ErrCode result = authenticateProxyPtr_->CreateAccountImplicitly(options, callback);
+    int32_t funcResult = -1;
+    ErrCode result = authenticateProxyPtr_->CreateAccountImplicitly(options, callback, funcResult);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -225,7 +240,8 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticateTest_Auth_0200,
     sptr<IAppAccountAuthenticatorCallback> oauthCallbackPtr = new (std::nothrow) MockAuthenticatorCallback();
     sptr<IRemoteObject> callback = oauthCallbackPtr->AsObject();
     EXPECT_NE(callback, nullptr);
-    ErrCode result = authenticateProxyPtr_->Auth(STRING_NAME, STRING_AUTH_TYPE, want.GetParams(), callback);
+    int32_t funcResult = -1;
+    ErrCode result = authenticateProxyPtr_->Auth(STRING_NAME, STRING_AUTH_TYPE, want.GetParams(), callback, funcResult);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -241,12 +257,15 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticateTest_AddAccount
     ACCOUNT_LOGI("AppAccountAuthenticateTest_AddAccountImplicitly_0100");
     AAFwk::Want want;
     sptr<IRemoteObject> callback = nullptr;
+    int32_t funcResult = -1;
     ErrCode result =
-        authenticateProxyPtr_->AddAccountImplicitly(STRING_AUTH_TYPE, CALLER_BUNDLE_NAME, want.GetParams(), callback);
+        authenticateProxyPtr_->AddAccountImplicitly(STRING_AUTH_TYPE, CALLER_BUNDLE_NAME, want.GetParams(), callback,
+        funcResult);
     EXPECT_NE(result, ERR_OK);
 
     result =
-        authenticateProxyPtr_->AddAccountImplicitly(STRING_AUTH_TYPE, CALLER_BUNDLE_NAME, want.GetParams(), callback);
+        authenticateProxyPtr_->AddAccountImplicitly(STRING_AUTH_TYPE, CALLER_BUNDLE_NAME, want.GetParams(), callback,
+        funcResult);
     EXPECT_NE(result, ERR_OK);
 
     sptr<IAppAccountAuthenticatorCallback> oauthCallbackPtr = new (std::nothrow) MockAuthenticatorCallback();
@@ -254,7 +273,8 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticateTest_AddAccount
     callback = oauthCallbackPtr->AsObject();
     ASSERT_NE(callback, nullptr);
     result =
-        authenticateProxyPtr_->AddAccountImplicitly(STRING_AUTH_TYPE, CALLER_BUNDLE_NAME, want.GetParams(), callback);
+        authenticateProxyPtr_->AddAccountImplicitly(STRING_AUTH_TYPE, CALLER_BUNDLE_NAME, want.GetParams(), callback,
+        funcResult);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -269,20 +289,22 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticateTest_Authentica
     ACCOUNT_LOGI("AppAccountAuthenticateTest_Authenticate_0100");
     AAFwk::Want want;
     sptr<IRemoteObject> callback = nullptr;
-    ErrCode result = authenticateProxyPtr_->Authenticate(
-        STRING_NAME, STRING_AUTH_TYPE, CALLER_BUNDLE_NAME, want.GetParams(), callback);
+    AppAccountAuthenticatorStringInfo stringInfo;
+    stringInfo.name = STRING_NAME;
+    stringInfo.authType = STRING_AUTH_TYPE;
+    stringInfo.callerBundleName = CALLER_BUNDLE_NAME;
+    int32_t funcResult = -1;
+    ErrCode result = authenticateProxyPtr_->Authenticate(stringInfo, want.GetParams(), callback, funcResult);
     EXPECT_NE(result, ERR_OK);
 
-    result = authenticateProxyPtr_->Authenticate(
-        STRING_NAME, STRING_AUTH_TYPE, CALLER_BUNDLE_NAME, want.GetParams(), callback);
+    result = authenticateProxyPtr_->Authenticate(stringInfo, want.GetParams(), callback, funcResult);
     EXPECT_NE(result, ERR_OK);
 
     sptr<IAppAccountAuthenticatorCallback> oauthCallbackPtr = new (std::nothrow) MockAuthenticatorCallback();
     ASSERT_NE(oauthCallbackPtr, nullptr);
     callback = oauthCallbackPtr->AsObject();
     ASSERT_NE(callback, nullptr);
-    result = authenticateProxyPtr_->Authenticate(
-        STRING_NAME, STRING_AUTH_TYPE, CALLER_BUNDLE_NAME, want.GetParams(), callback);
+    result = authenticateProxyPtr_->Authenticate(stringInfo, want.GetParams(), callback, funcResult);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -297,14 +319,15 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticateTest_VerifyCred
     ACCOUNT_LOGI("AppAccountAuthenticateTest_VerifyCredential_0100");
     VerifyCredentialOptions options;
     sptr<IRemoteObject> callback = nullptr;
-    ErrCode result = authenticateProxyPtr_->VerifyCredential(STRING_NAME, options, callback);
+    int32_t funcResult = -1;
+    ErrCode result = authenticateProxyPtr_->VerifyCredential(STRING_NAME, options, callback, funcResult);
     EXPECT_NE(result, ERR_OK);
 
     sptr<IAppAccountAuthenticatorCallback> oauthCallbackPtr = new (std::nothrow) MockAuthenticatorCallback();
     ASSERT_NE(oauthCallbackPtr, nullptr);
     callback = oauthCallbackPtr->AsObject();
     ASSERT_NE(callback, nullptr);
-    result = authenticateProxyPtr_->VerifyCredential(STRING_NAME, options, callback);
+    result = authenticateProxyPtr_->VerifyCredential(STRING_NAME, options, callback, funcResult);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -319,14 +342,15 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticateTest_CheckAccou
     ACCOUNT_LOGI("AppAccountAuthenticateTest_CheckAccountLabels_0100");
     std::vector<std::string> labels;
     sptr<IRemoteObject> callback = nullptr;
-    ErrCode result = authenticateProxyPtr_->CheckAccountLabels(STRING_NAME, labels, callback);
+    int32_t funcResult = -1;
+    ErrCode result = authenticateProxyPtr_->CheckAccountLabels(STRING_NAME, labels, callback, funcResult);
     EXPECT_NE(result, ERR_OK);
 
     sptr<IAppAccountAuthenticatorCallback> oauthCallbackPtr = new (std::nothrow) MockAuthenticatorCallback();
     ASSERT_NE(oauthCallbackPtr, nullptr);
     callback = oauthCallbackPtr->AsObject();
     ASSERT_NE(callback, nullptr);
-    result = authenticateProxyPtr_->CheckAccountLabels(STRING_NAME, labels, callback);
+    result = authenticateProxyPtr_->CheckAccountLabels(STRING_NAME, labels, callback, funcResult);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -341,14 +365,15 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticateTest_SetPropert
     ACCOUNT_LOGI("AppAccountAuthenticateTest_SetProperties_0100");
     SetPropertiesOptions options;
     sptr<IRemoteObject> callback = nullptr;
-    ErrCode result = authenticateProxyPtr_->SetProperties(options, callback);
+    int32_t funcResult = -1;
+    ErrCode result = authenticateProxyPtr_->SetProperties(options, callback, funcResult);
     EXPECT_NE(result, ERR_OK);
 
     sptr<IAppAccountAuthenticatorCallback> oauthCallbackPtr = new (std::nothrow) MockAuthenticatorCallback();
     ASSERT_NE(oauthCallbackPtr, nullptr);
     callback = oauthCallbackPtr->AsObject();
     ASSERT_NE(callback, nullptr);
-    result = authenticateProxyPtr_->SetProperties(options, callback);
+    result = authenticateProxyPtr_->SetProperties(options, callback, funcResult);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -362,14 +387,15 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticateTest_IsAccountR
 {
     ACCOUNT_LOGI("AppAccountAuthenticateTest_IsAccountRemovable_0100");
     sptr<IRemoteObject> callback = nullptr;
-    ErrCode result = authenticateProxyPtr_->IsAccountRemovable(STRING_NAME, callback);
+    int32_t funcResult = -1;
+    ErrCode result = authenticateProxyPtr_->IsAccountRemovable(STRING_NAME, callback, funcResult);
     EXPECT_NE(result, ERR_OK);
 
     sptr<IAppAccountAuthenticatorCallback> oauthCallbackPtr = new (std::nothrow) MockAuthenticatorCallback();
     ASSERT_NE(oauthCallbackPtr, nullptr);
     callback = oauthCallbackPtr->AsObject();
     ASSERT_NE(callback, nullptr);
-    result = authenticateProxyPtr_->IsAccountRemovable(STRING_NAME, callback);
+    result = authenticateProxyPtr_->IsAccountRemovable(STRING_NAME, callback, funcResult);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -402,7 +428,7 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Ap
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(-1, data, reply, option), ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(-1, data, reply, option), ERR_TRANSACTION_FAILED);
 }
 
 /**
@@ -418,8 +444,8 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Ap
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
-    EXPECT_NE(mockServicePtr_->OnRemoteRequest(-1, data, reply, option), ERR_NONE);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountAuthenticatorStub::GetDescriptor()), true);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(-1, data, reply, option), IPC_STUB_UNKNOW_TRANS_ERR);
 }
 
 /**
@@ -435,11 +461,9 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Ap
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
-    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(ADD_ACCOUNT_IMPLICITLY, data, reply, option), ERR_NONE);
-    int result = 0;
-    reply.ReadInt32(result);
-    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountAuthenticatorStub::GetDescriptor()), true);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountAuthenticatorIpcCode::COMMAND_ADD_ACCOUNT_IMPLICITLY), data, reply, option), ERR_INVALID_DATA);
 }
 
 /**
@@ -455,11 +479,9 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Ap
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
-    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(AUTHENTICATE, data, reply, option), ERR_NONE);
-    int result = 0;
-    reply.ReadInt32(result);
-    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountAuthenticatorStub::GetDescriptor()), true);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountAuthenticatorIpcCode::COMMAND_AUTHENTICATE), data, reply, option), ERR_INVALID_DATA);
 }
 
 /**
@@ -475,11 +497,9 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Ap
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    int result = 0;
-    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
-    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(VERIFY_CREDENTIAL, data, reply, option), ERR_NONE);
-    reply.ReadInt32(result);
-    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountAuthenticatorStub::GetDescriptor()), true);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountAuthenticatorIpcCode::COMMAND_VERIFY_CREDENTIAL), data, reply, option), ERR_INVALID_DATA);
 }
 
 /**
@@ -495,11 +515,9 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Ap
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    int result = 0;
-    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
-    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(CHECK_ACCOUNT_LABELS, data, reply, option), ERR_NONE);
-    reply.ReadInt32(result);
-    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountAuthenticatorStub::GetDescriptor()), true);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountAuthenticatorIpcCode::COMMAND_CHECK_ACCOUNT_LABELS), data, reply, option), ERR_INVALID_DATA);
 }
 
 /**
@@ -515,12 +533,9 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Ap
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    int result = 0;
-    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
-    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(SET_PROPERTIES, data, reply, option),
-        ERR_NONE);
-    reply.ReadInt32(result);
-    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountAuthenticatorStub::GetDescriptor()), true);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountAuthenticatorIpcCode::COMMAND_SET_PROPERTIES), data, reply, option), ERR_INVALID_DATA);
 }
 
 /**
@@ -536,11 +551,9 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Ap
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    int result = 0;
-    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
-    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(IS_ACCOUNT_REMOVABLE, data, reply, option), ERR_NONE);
-    reply.ReadInt32(result);
-    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountAuthenticatorStub::GetDescriptor()), true);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountAuthenticatorIpcCode::COMMAND_IS_ACCOUNT_REMOVABLE), data, reply, option), ERR_INVALID_DATA);
 }
 
 /**
@@ -556,11 +569,9 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Ap
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    int result = 0;
-    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
-    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(CREATE_ACCOUNT_IMPLICITLY, data, reply, option), ERR_NONE);
-    reply.ReadInt32(result);
-    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountAuthenticatorStub::GetDescriptor()), true);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountAuthenticatorIpcCode::COMMAND_CREATE_ACCOUNT_IMPLICITLY), data, reply, option), ERR_INVALID_DATA);
 }
 
 /**
@@ -576,11 +587,9 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Ap
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    int result = 0;
-    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
-    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(AUTH, data, reply, option), ERR_NONE);
-    reply.ReadInt32(result);
-    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountAuthenticatorStub::GetDescriptor()), true);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountAuthenticatorIpcCode::COMMAND_AUTH), data, reply, option), ERR_INVALID_DATA);
 }
 
 /**
@@ -599,12 +608,13 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Ap
     AAFwk::WantParams options;
     std::string authType;
     std::string callerBundleName;
-    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountAuthenticatorStub::GetDescriptor()), true);
     EXPECT_EQ(data.WriteString(authType), true);
     EXPECT_EQ(data.WriteString(callerBundleName), true);
     EXPECT_EQ(data.WriteParcelable(&options), true);
     EXPECT_EQ(data.WriteRemoteObject(authenticorService_), true);
-    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(ADD_ACCOUNT_IMPLICITLY, data, reply, option), ERR_NONE);
+    ASSERT_EQ(mockServicePtr_->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountAuthenticatorIpcCode::COMMAND_ADD_ACCOUNT_IMPLICITLY), data, reply, option), ERR_NONE);
     int result = 0;
     reply.ReadInt32(result);
     EXPECT_EQ(result, ERR_OK);
@@ -627,13 +637,16 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Ap
     std::string name;
     std::string authType;
     std::string callerBundleName;
-    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
-    EXPECT_EQ(data.WriteString(name), true);
-    EXPECT_EQ(data.WriteString(authType), true);
-    EXPECT_EQ(data.WriteString(callerBundleName), true);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountAuthenticatorStub::GetDescriptor()), true);
+    AppAccountAuthenticatorStringInfo stringInfo;
+    stringInfo.name = name;
+    stringInfo.authType = authType;
+    stringInfo.callerBundleName = callerBundleName;
+    EXPECT_EQ(data.WriteParcelable(&stringInfo), true);
     EXPECT_EQ(data.WriteParcelable(&options), true);
     EXPECT_EQ(data.WriteRemoteObject(authenticorService_), true);
-    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(AUTHENTICATE, data, reply, option), ERR_NONE);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountAuthenticatorIpcCode::COMMAND_AUTHENTICATE), data, reply, option), ERR_NONE);
     int result = 0;
     reply.ReadInt32(result);
     EXPECT_EQ(result, ERR_OK);
@@ -655,11 +668,12 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Ap
     int result = 0;
     VerifyCredentialOptions options;
     std::string name;
-    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountAuthenticatorStub::GetDescriptor()), true);
     EXPECT_EQ(data.WriteString(name), true);
     EXPECT_EQ(data.WriteParcelable(&options), true);
     EXPECT_EQ(data.WriteRemoteObject(authenticorService_), true);
-    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(VERIFY_CREDENTIAL, data, reply, option), ERR_NONE);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountAuthenticatorIpcCode::COMMAND_VERIFY_CREDENTIAL), data, reply, option), ERR_NONE);
     reply.ReadInt32(result);
     EXPECT_EQ(result, ERR_OK);
 }
@@ -680,11 +694,12 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Ap
     std::vector<std::string> labels;
     std::string name;
     int result = 0;
-    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountAuthenticatorStub::GetDescriptor()), true);
     EXPECT_EQ(data.WriteString(name), true);
     EXPECT_EQ(data.WriteStringVector(labels), true);
     EXPECT_EQ(data.WriteRemoteObject(authenticorService_), true);
-    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(CHECK_ACCOUNT_LABELS, data, reply, option), ERR_NONE);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountAuthenticatorIpcCode::COMMAND_CHECK_ACCOUNT_LABELS), data, reply, option), ERR_NONE);
     reply.ReadInt32(result);
     EXPECT_EQ(result, ERR_OK);
 }
@@ -704,11 +719,11 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Ap
     MessageOption option;
     SetPropertiesOptions options;
     int result = 0;
-    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountAuthenticatorStub::GetDescriptor()), true);
     EXPECT_EQ(data.WriteParcelable(&options), true);
     EXPECT_EQ(data.WriteRemoteObject(authenticorService_), true);
-    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(SET_PROPERTIES, data, reply, option),
-        ERR_NONE);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountAuthenticatorIpcCode::COMMAND_SET_PROPERTIES), data, reply, option), ERR_NONE);
     reply.ReadInt32(result);
     EXPECT_EQ(result, ERR_OK);
 }
@@ -728,10 +743,11 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Ap
     MessageOption option;
     std::string name;
     int result = 0;
-    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountAuthenticatorStub::GetDescriptor()), true);
     EXPECT_EQ(data.WriteString(name), true);
     EXPECT_EQ(data.WriteRemoteObject(authenticorService_), true);
-    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(IS_ACCOUNT_REMOVABLE, data, reply, option), ERR_NONE);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountAuthenticatorIpcCode::COMMAND_IS_ACCOUNT_REMOVABLE), data, reply, option), ERR_NONE);
     reply.ReadInt32(result);
     EXPECT_EQ(result, ERR_OK);
 }
@@ -751,10 +767,11 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Ap
     MessageOption option;
     CreateAccountImplicitlyOptions options;
     int result = 0;
-    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountAuthenticatorStub::GetDescriptor()), true);
     EXPECT_EQ(data.WriteParcelable(&options), true);
     EXPECT_EQ(data.WriteRemoteObject(authenticorService_), true);
-    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(CREATE_ACCOUNT_IMPLICITLY, data, reply, option), ERR_NONE);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountAuthenticatorIpcCode::COMMAND_CREATE_ACCOUNT_IMPLICITLY), data, reply, option), ERR_NONE);
     reply.ReadInt32(result);
     EXPECT_EQ(result, ERR_OK);
 }
@@ -776,12 +793,13 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Ap
     std::string authType;
     AAFwk::WantParams options;
     int result = 0;
-    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountAuthenticatorStub::GetDescriptor()), true);
     EXPECT_EQ(data.WriteString(name), true);
     EXPECT_EQ(data.WriteString(authType), true);
     EXPECT_EQ(data.WriteParcelable(&options), true);
     EXPECT_EQ(data.WriteRemoteObject(authenticorService_), true);
-    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(AUTH, data, reply, option), ERR_NONE);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountAuthenticatorIpcCode::COMMAND_AUTH), data, reply, option), ERR_NONE);
     reply.ReadInt32(result);
     EXPECT_EQ(result, ERR_OK);
 }

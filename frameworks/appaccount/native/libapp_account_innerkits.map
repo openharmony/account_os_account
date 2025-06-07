@@ -1,4 +1,4 @@
-# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Copyright (c) 2023-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -21,6 +21,8 @@
         "virtual thunk to OHOS::AccountSA::AppAccountAuthorizationExtensionCallbackStub::~AppAccountAuthorizationExtensionCallbackStub()";
         "OHOS::AccountSA::AppAccount::GetInstance()";
         "OHOS::AccountSA::AppAccount::UnsubscribeAppAccount(std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscriber> const&)";
+        "vtable for OHOS::AccountSA::AppAccountAuthenticatorCallbackProxy";
+        "VTT for OHOS::AccountSA::AppAccountAuthenticatorCallbackProxy";
         "OHOS::AccountSA::AppAccountAuthenticatorCallbackProxy::AppAccountAuthenticatorCallbackProxy(OHOS::sptr<OHOS::IRemoteObject> const&)";
         "OHOS::AccountSA::AppAccountAuthenticatorCallbackProxy::OnRequestContinued()";
         "OHOS::AccountSA::AppAccountAuthenticatorCallbackProxy::OnRequestRedirected(OHOS::AAFwk::Want&)";
@@ -99,6 +101,8 @@
         "OHOS::AccountSA::CreateAccountImplicitlyOptions::Unmarshalling(OHOS::Parcel&)";
         "OHOS::AccountSA::CreateAccountOptions::Marshalling(OHOS::Parcel&) const";
         "OHOS::AccountSA::CreateAccountOptions::Unmarshalling(OHOS::Parcel&)";
+        "OHOS::AccountSA::AuthenticatorInfo::Marshalling(OHOS::Parcel&) const";
+        "OHOS::AccountSA::AuthenticatorInfo::Unmarshalling(OHOS::Parcel&)";
         "OHOS::AccountSA::SelectAccountsOptions::Marshalling(OHOS::Parcel&) const";
         "OHOS::AccountSA::SelectAccountsOptions::Unmarshalling(OHOS::Parcel&)";
         "OHOS::AccountSA::SetPropertiesOptions::Marshalling(OHOS::Parcel&) const";
@@ -126,19 +130,23 @@
         "vtable for OHOS::AccountSA::AppAccountInfo";
         "vtable for OHOS::AccountSA::CreateAccountImplicitlyOptions";
         "vtable for OHOS::AccountSA::CreateAccountOptions";
+        "vtable for OHOS::AccountSA::AuthenticatorInfo";
         "vtable for OHOS::AccountSA::SelectAccountsOptions";
         "vtable for OHOS::AccountSA::SetPropertiesOptions";
         "vtable for OHOS::AccountSA::VerifyCredentialOptions";
         "vtable for OHOS::AccountSA::AccountCapabilityRequest";
+        "vtable for OHOS::AccountSA::AsyncCallbackError";
         "VTT for OHOS::AccountSA::AppAccountInfo";
         "VTT for OHOS::AccountSA::AppAccountSubscribeInfo";
         "VTT for OHOS::AccountSA::CreateAccountImplicitlyOptions";
         "VTT for OHOS::AccountSA::CreateAccountOptions";
+        "VTT for OHOS::AccountSA::AuthenticatorInfo";
         "VTT for OHOS::AccountSA::SelectAccountsOptions";
         "VTT for OHOS::AccountSA::SetPropertiesOptions";
         "VTT for OHOS::AccountSA::VerifyCredentialOptions";
         "vtable for OHOS::AccountSA::AppAccountSubscribeInfo";
         "VTT for OHOS::AccountSA::AccountCapabilityRequest";
+        "VTT for OHOS::AccountSA::AsyncCallbackError";
         "OHOS::AccountSA::AppAccount::AddAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::AppAccount::DeleteAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::AppAccount::SubscribeAppAccount(std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscriber> const&)";

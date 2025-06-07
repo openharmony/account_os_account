@@ -100,15 +100,12 @@ ability_manager_sources =
 
 if (has_kv_store_part) {
   app_account_sources = [
-    "${app_account_innerkits_native_path}/src/app_account_authenticator_callback_proxy.cpp",
-    "${app_account_innerkits_native_path}/src/app_account_authenticator_callback_stub.cpp",
     "${app_account_innerkits_native_path}/src/app_account_common.cpp",
     "${app_account_innerkits_native_path}/src/app_account_info.cpp",
     "${app_account_innerkits_native_path}/src/app_account_subscribe_info.cpp",
     "${os_account_core_path}/src/os_account_event_stub.cpp",
     "src/appaccount/app_account_authenticator_callback.cpp",
     "src/appaccount/app_account_authenticator_manager.cpp",
-    "src/appaccount/app_account_authenticator_proxy.cpp",
     "src/appaccount/app_account_authenticator_session.cpp",
     "src/appaccount/app_account_authenticator_session_manager.cpp",
     "src/appaccount/app_account_check_labels_callback.cpp",
@@ -117,9 +114,7 @@ if (has_kv_store_part) {
     "src/appaccount/app_account_common_event_subscriber.cpp",
     "src/appaccount/app_account_control_manager.cpp",
     "src/appaccount/app_account_data_storage.cpp",
-    "src/appaccount/app_account_event_proxy.cpp",
     "src/appaccount/app_account_manager_service.cpp",
-    "src/appaccount/app_account_stub.cpp",
     "src/appaccount/app_account_subscribe_death_recipient.cpp",
     "src/appaccount/app_account_subscribe_manager.cpp",
     "src/appaccount/inner_app_account_manager.cpp",
@@ -308,6 +303,16 @@ ohos_shared_library("accountmgr") {
   cflags_cc += [ "-DHAS_APP_ACCOUNT_PART" ]
   sources += app_account_sources
   sources += [ "src/account_data_storage.cpp" ]
+
+  if (has_kv_store_part) {
+    deps += [
+      "${app_account_innerkits_native_path}:app_account_authenticator_callback_proxy",
+      "${app_account_innerkits_native_path}:app_account_authenticator_callback_stub",
+      "${app_account_innerkits_native_path}:app_account_authenticator_proxy",
+      "${app_account_innerkits_native_path}:app_account_event_proxy",
+      "${app_account_innerkits_native_path}:app_account_stub",
+    ]
+  }
 
   if (has_kv_store_part && os_account_distributed_feature) {
     external_deps += [ "kv_store:distributeddata_inner" ]

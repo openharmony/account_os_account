@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -77,8 +77,10 @@ void AppAccountManagerServiceNotMockModuleTest::TearDown(void)
 HWTEST_F(AppAccountManagerServiceNotMockModuleTest, AppAccountManagerService_CreateAccount_001, TestSize.Level1)
 {
     CreateAccountOptions option;
-    ErrCode result = g_accountManagerService->CreateAccount(STRING_NAME, option);
-    EXPECT_NE(result, ERR_OK);
+    int32_t funcResult = -1;
+    ErrCode result = g_accountManagerService->CreateAccount(STRING_NAME, option, funcResult);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_NE(funcResult, ERR_OK);
 }
 
 /**
@@ -92,32 +94,33 @@ HWTEST_F(
     AppAccountManagerServiceNotMockModuleTest, AppAccountManagerService_AppAccountManagerService_001, TestSize.Level1)
 {
     bool syncEnable = false;
-    ErrCode result = g_accountManagerService->CheckAppAccountSyncEnable(STRING_NAME, syncEnable);
-    EXPECT_NE(result, ERR_OK);
+    int32_t funcResult = -1;
+    ErrCode result = g_accountManagerService->CheckAppAccountSyncEnable(STRING_NAME, syncEnable, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 
-    result = g_accountManagerService->SetAppAccess(STRING_NAME, STRING_BUNDLE_NAME, false);
-    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->SetAppAccess(STRING_NAME, STRING_BUNDLE_NAME, false, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 
-    result = g_accountManagerService->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
-    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 
-    result = g_accountManagerService->DisableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
-    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->DisableAppAccess(STRING_NAME, STRING_BUNDLE_NAME, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 
     std::string extraInfo;
-    result = g_accountManagerService->GetAccountExtraInfo(STRING_NAME, extraInfo);
-    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->GetAccountExtraInfo(STRING_NAME, extraInfo, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 
-    result = g_accountManagerService->DeleteAccount(STRING_NAME);
-    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 
     CreateAccountOptions option;
-    result = g_accountManagerService->CreateAccount(STRING_NAME, option);
-    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->CreateAccount(STRING_NAME, option, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 
     AppAccountSubscribeInfo subscribeInfo;
-    result = g_accountManagerService->SubscribeAppAccount(subscribeInfo, nullptr);
-    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->SubscribeAppAccount(subscribeInfo, nullptr, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 }
 
 /**
@@ -130,47 +133,52 @@ HWTEST_F(
 HWTEST_F(
     AppAccountManagerServiceNotMockModuleTest, AppAccountManagerService_AppAccountManagerService_002, TestSize.Level1)
 {
-    ErrCode result = g_accountManagerService->SetAppAccountSyncEnable(STRING_NAME, false);
-    EXPECT_NE(result, ERR_OK);
+    int32_t funcResult = -1;
+    ErrCode result = g_accountManagerService->SetAppAccountSyncEnable(STRING_NAME, false, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 
     std::string value;
-    result = g_accountManagerService->GetAssociatedData(STRING_NAME, KEY, value);
-    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->GetAssociatedData(STRING_NAME, KEY, value, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 
-    result = g_accountManagerService->SetAssociatedData(STRING_NAME, KEY, value);
-    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->SetAssociatedData(STRING_NAME, KEY, value, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 
     std::string credential;
-    result = g_accountManagerService->GetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credential);
-    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->GetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credential, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 
-    result = g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credential);
-    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credential, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 
     AuthenticatorSessionRequest request;
     result = g_accountManagerService->GetTokenVisibilityParam(STRING_NAME, AUTH_TYPE, STRING_BUNDLE_NAME, request);
-    EXPECT_NE(result, ERR_OK);
+    EXPECT_NE(funcResult, ERR_OK);
 
-    result = g_accountManagerService->SetOAuthTokenVisibility(STRING_NAME, AUTH_TYPE, STRING_BUNDLE_NAME, false);
-    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->SetOAuthTokenVisibility(
+        STRING_NAME, AUTH_TYPE, STRING_BUNDLE_NAME, false, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 
     bool isVisible = false;
-    result = g_accountManagerService->SetAuthTokenVisibility(STRING_NAME, AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
-    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->SetAuthTokenVisibility(
+        STRING_NAME, AUTH_TYPE, STRING_BUNDLE_NAME, isVisible, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 
-    result = g_accountManagerService->CheckOAuthTokenVisibility(STRING_NAME, AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
-    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->CheckOAuthTokenVisibility(
+        STRING_NAME, AUTH_TYPE, STRING_BUNDLE_NAME, isVisible, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 
-    result = g_accountManagerService->CheckAuthTokenVisibility(STRING_NAME, AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
-    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->CheckAuthTokenVisibility(
+        STRING_NAME, AUTH_TYPE, STRING_BUNDLE_NAME, isVisible, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 
     AuthenticatorInfo info;
-    result = g_accountManagerService->GetAuthenticatorInfo(OWNER, info);
-    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->GetAuthenticatorInfo(OWNER, info, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 
     std::vector<OAuthTokenInfo> tokenInfos;
-    result = g_accountManagerService->GetAllOAuthTokens(STRING_NAME, OWNER, tokenInfos);
-    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->GetAllOAuthTokens(STRING_NAME, OWNER, tokenInfos, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 }
 
 /**
@@ -184,45 +192,46 @@ HWTEST_F(
     AppAccountManagerServiceNotMockModuleTest, AppAccountManagerService_AppAccountManagerService_003, TestSize.Level1)
 {
     std::set<std::string> oauthList;
-    ErrCode result = g_accountManagerService->GetOAuthList(STRING_NAME, AUTH_TYPE, oauthList);
-    EXPECT_NE(result, ERR_OK);
+    int32_t funcResult = -1;
+    ErrCode result = g_accountManagerService->GetOAuthList(STRING_NAME, AUTH_TYPE, oauthList, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 
-    result = g_accountManagerService->GetAuthList(STRING_NAME, AUTH_TYPE, oauthList);
-    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->GetAuthList(STRING_NAME, AUTH_TYPE, oauthList, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 
-    result = g_accountManagerService->GetAuthList(STRING_NAME, AUTH_TYPE, oauthList);
-    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->GetAuthList(STRING_NAME, AUTH_TYPE, oauthList, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 
     std::vector<AppAccountInfo> appAccounts;
-    result = g_accountManagerService->GetAllAccounts(OWNER, appAccounts);
-    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->GetAllAccounts(OWNER, appAccounts, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 
-    result = g_accountManagerService->GetAllAccessibleAccounts(appAccounts);
-    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->GetAllAccessibleAccounts(appAccounts, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 
-    result = g_accountManagerService->QueryAllAccessibleAccounts(OWNER, appAccounts);
-    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->QueryAllAccessibleAccounts(OWNER, appAccounts, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 
     bool isAccessible = false;
-    result = g_accountManagerService->CheckAppAccess(STRING_NAME, STRING_BUNDLE_NAME, isAccessible);
-    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->CheckAppAccess(STRING_NAME, STRING_BUNDLE_NAME, isAccessible, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 
-    result = g_accountManagerService->DeleteAccountCredential(STRING_NAME, AUTH_TYPE);
-    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->DeleteAccountCredential(STRING_NAME, AUTH_TYPE, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 
     SelectAccountsOptions option;
-    result = g_accountManagerService->SelectAccountsByOptions(option, nullptr);
-    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->SelectAccountsByOptions(option, nullptr, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 
     VerifyCredentialOptions options;
-    result = g_accountManagerService->VerifyCredential(STRING_NAME, OWNER, options, nullptr);
-    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->VerifyCredential(STRING_NAME, OWNER, options, nullptr, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 
     std::vector<std::string> labels;
-    result = g_accountManagerService->CheckAccountLabels(STRING_NAME, OWNER, labels, nullptr);
-    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->CheckAccountLabels(STRING_NAME, OWNER, labels, nullptr, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 
     SetPropertiesOptions setOptions;
-    result = g_accountManagerService->SetAuthenticatorProperties(OWNER, setOptions, nullptr);
-    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->SetAuthenticatorProperties(OWNER, setOptions, nullptr, funcResult);
+    EXPECT_NE(funcResult, ERR_OK);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,9 +29,9 @@ public:
     explicit AppAccountAuthenticatorCallback(const std::string &sessionId);
     ~AppAccountAuthenticatorCallback() override;
 
-    void OnResult(int32_t resultCode, const AAFwk::Want &result) override;
-    void OnRequestRedirected(AAFwk::Want &request) override;
-    void OnRequestContinued() override;
+    ErrCode OnResult(int32_t resultCode, const AAFwk::Want &result) override;
+    ErrCode OnRequestRedirected(const AAFwk::Want &request) override;
+    ErrCode OnRequestContinued() override;
 
 private:
     std::string sessionId_;
