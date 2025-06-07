@@ -17,7 +17,7 @@
 #define OS_ACCOUNT_INTERFACES_INNERKITS_OSACCOUNT_NATIVE_INCLUDE_OS_ACCOUNT_SUBSCRIBER_H
 
 #include "os_account_info.h"
-#include "os_account_state_reply_callback_proxy.h"
+#include "os_account_state_reply_callback.h"
 #include "os_account_subscribe_info.h"
 
 namespace OHOS {

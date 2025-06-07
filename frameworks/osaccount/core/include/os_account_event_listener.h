@@ -27,8 +27,8 @@ public:
     ~OsAccountEventListener();
 
     ErrCode OnStateChanged(const OsAccountStateParcel &parcel) override;
-    void OnAccountsChanged(const int &id) override;
-    void OnAccountsSwitch(const int &newId, const int &oldId) override;
+    ErrCode OnAccountsChanged(int32_t id) override;
+    ErrCode OnAccountsSwitch(int32_t newId, int32_t oldId) override;
 
     ErrCode InsertRecord(const std::shared_ptr<OsAccountSubscriber> &subscriber);
     ErrCode RemoveRecord(const std::shared_ptr<OsAccountSubscriber> &subscriber);

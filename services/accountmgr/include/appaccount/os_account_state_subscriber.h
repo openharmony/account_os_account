@@ -26,8 +26,8 @@ public:
     ~OsAccountStateSubscriber() = default;
 
     ErrCode OnStateChanged(const OsAccountStateParcel &parcel) override;
-    void OnAccountsChanged(const int &localId) override;
-    void OnAccountsSwitch(const int &newId, const int &oldId) override;
+    ErrCode OnAccountsChanged(int32_t localId) override;
+    ErrCode OnAccountsSwitch(int32_t newId, int32_t oldId) override;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
