@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,7 +26,7 @@ using namespace std;
 using namespace OHOS::AccountSA;
 
 namespace OHOS {
-const std::u16string APPACCOUNT_TOKEN = u"ohos.accountfwk.IAppAccount";
+const std::u16string APPACCOUNT_TOKEN = u"OHOS.AccountSA.IAppAccount";
 bool SetAccountCredentialStubFuzzTest(const uint8_t* data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
@@ -51,7 +51,7 @@ bool SetAccountCredentialStubFuzzTest(const uint8_t* data, size_t size)
     }
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(AppAccountInterfaceCode::SET_ACCOUNT_CREDENTIAL);
+    uint32_t code = static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_SET_ACCOUNT_CREDENTIAL);
     auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
     appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
     return true;

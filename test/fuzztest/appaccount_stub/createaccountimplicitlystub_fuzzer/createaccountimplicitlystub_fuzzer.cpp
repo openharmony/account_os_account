@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,13 +28,24 @@ using namespace OHOS::AccountSA;
 
 class MockAuthenticatorCallback final : public AppAccountAuthenticatorCallbackStub {
 public:
-    void OnResult(int32_t resultCode, const OHOS::AAFwk::Want &result) {}
-    void OnRequestRedirected(OHOS::AAFwk::Want &request) {}
-    void OnRequestContinued() {}
+    OHOS::ErrCode OnResult(int32_t resultCode, const OHOS::AAFwk::Want &result)
+    {
+        return OHOS::ERR_OK;
+    }
+
+    OHOS::ErrCode OnRequestRedirected(const OHOS::AAFwk::Want &request)
+    {
+        return OHOS::ERR_OK;
+    }
+
+    OHOS::ErrCode OnRequestContinued()
+    {
+        return OHOS::ERR_OK;
+    }
 };
 
 namespace OHOS {
-const std::u16string APPACCOUNT_TOKEN = u"ohos.accountfwk.IAppAccount";
+const std::u16string APPACCOUNT_TOKEN = u"OHOS.AccountSA.IAppAccount";
 bool CreateAccountImplicitlyStubFuzzTest(const uint8_t* data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
@@ -63,7 +74,7 @@ bool CreateAccountImplicitlyStubFuzzTest(const uint8_t* data, size_t size)
     }
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(AppAccountInterfaceCode::CREATE_ACCOUNT_IMPLICITLY);
+    uint32_t code = static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_CREATE_ACCOUNT_IMPLICITLY);
     auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
     appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
     return true;

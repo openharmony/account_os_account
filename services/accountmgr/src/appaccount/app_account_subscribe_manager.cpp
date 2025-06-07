@@ -16,6 +16,7 @@
 #include "app_account_subscribe_manager.h"
 #include <pthread.h>
 #include <thread>
+#include "account_constants.h"
 #include "account_log_wrapper.h"
 #include "app_account_control_manager.h"
 #include "app_account_data_storage.h"
@@ -388,7 +389,19 @@ ErrCode AppAccountSubscribeManager::OnAccountsChanged(const std::shared_ptr<AppA
             continue;
         }
 
-        appAccountEventProxy->OnAccountsChanged(appAccounts, record->info->GetOwner());
+        int32_t retryTimes = 0;
+        ErrCode errCode;
+        while (retryTimes < Constants::MAX_RETRY_TIMES) {
+            errCode = appAccountEventProxy->OnAccountsChanged(appAccounts, record->info->GetOwner());
+            if (errCode == ERR_OK || (errCode != Constants::E_IPC_ERROR &&
+                errCode != Constants::E_IPC_SA_DIED)) {
+                break;
+            }
+            retryTimes++;
+            ACCOUNT_LOGE("Failed to SendRequest, code = %{public}d, retryTimes = %{public}d",
+                errCode, retryTimes);
+            std::this_thread::sleep_for(std::chrono::milliseconds(Constants::DELAY_FOR_EXCEPTION));
+        }
     }
 
     return ERR_OK;

@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -11,8 +11,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("//build/config/components/idl_tool/idl.gni")
 import("//build/ohos.gni")
 import("../../../os_account.gni")
+
+idl_gen_interface("app_account_interface") {
+  sources = [
+    "IAppAccount.idl",
+    "IAppAccountAuthenticator.idl",
+    "IAppAccountAuthenticatorCallback.idl",
+    "IAppAccountAuthorizationExtension.idl",
+    "IAppAccountAuthorizationExtensionCallback.idl",
+    "IAppAccountEvent.idl",
+  ]
+  log_domainid = "0xD001B00"
+  log_tag = "AppAccountFwk"
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+config("app_account_interface_public_config") {
+  include_dirs = [ "${target_gen_dir}" ]
+}
 
 config("app_account_innnerkits_config") {
   visibility = [ ":*" ]
@@ -51,6 +71,7 @@ config("app_account_innerkits_public_config") {
     "${common_path}/utils/include",
     "${innerkits_common}/include",
     "${common_path}/json_utils/include",
+    "${target_gen_dir}",
   ]
 }
 
@@ -65,25 +86,30 @@ ohos_shared_library("app_account_innerkits") {
 
   sources = [
     "src/app_account.cpp",
-    "src/app_account_authenticator_callback_proxy.cpp",
-    "src/app_account_authenticator_callback_stub.cpp",
-    "src/app_account_authenticator_stub.cpp",
     "src/app_account_authorization_extension_callback_client.cpp",
-    "src/app_account_authorization_extension_callback_proxy.cpp",
     "src/app_account_authorization_extension_callback_service.cpp",
-    "src/app_account_authorization_extension_callback_stub.cpp",
     "src/app_account_authorization_extension_service.cpp",
-    "src/app_account_authorization_extension_stub.cpp",
     "src/app_account_common.cpp",
     "src/app_account_death_recipient.cpp",
     "src/app_account_event_listener.cpp",
-    "src/app_account_event_stub.cpp",
     "src/app_account_info.cpp",
     "src/app_account_manager.cpp",
-    "src/app_account_proxy.cpp",
     "src/app_account_subscribe_info.cpp",
     "src/app_account_subscriber.cpp",
+    "src/async_callback_error.cpp",
   ]
+  output_values = get_target_outputs(":app_account_interface")
+  sources += filter_include(output_values,
+                            [
+                              "*app_account_authenticator_callback_proxy.cpp",
+                              "*app_account_authenticator_callback_stub.cpp",
+                              "*app_account_authenticator_stub.cpp",
+                              "*app_account_authorization_extension_stub.cpp",
+                              "*app_account_authorization_extension_callback_proxy.cpp",
+                              "*app_account_authorization_extension_callback_stub.cpp",
+                              "*app_account_proxy.cpp",
+                              "*app_account_event_stub.cpp",
+                            ])
 
   configs = [ ":app_account_innnerkits_config" ]
 
@@ -96,6 +122,7 @@ ohos_shared_library("app_account_innerkits") {
   }
 
   deps = [
+    ":app_account_interface",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
   ]
@@ -120,6 +147,264 @@ ohos_shared_library("app_account_innerkits") {
   public_external_deps = [ "ability_base:want" ]
 
   innerapi_tags = [ "platformsdk" ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("app_account_authenticator_proxy") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [ ":app_account_innnerkits_config" ]
+  public_configs = [ ":app_account_innerkits_public_config" ]
+  output_values = get_target_outputs(":app_account_interface")
+  sources = filter_include(output_values, [ "*app_account_authenticator_proxy.cpp" ])
+  deps = [ ":app_account_interface" ]
+  external_deps = [
+    "ability_base:want",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("app_account_authenticator_stub") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [ ":app_account_innnerkits_config" ]
+  public_configs = [ ":app_account_innerkits_public_config" ]
+  output_values = get_target_outputs(":app_account_interface")
+  sources = filter_include(output_values, [ "*app_account_authenticator_stub.cpp" ])
+  deps = [ ":app_account_interface" ]
+  external_deps = [
+    "ability_base:want",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("app_account_event_proxy") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [ ":app_account_innnerkits_config" ]
+  public_configs = [ ":app_account_innerkits_public_config" ]
+  output_values = get_target_outputs(":app_account_interface")
+  sources = filter_include(output_values, [ "*app_account_event_proxy.cpp" ])
+  deps = [ ":app_account_interface" ]
+  external_deps = [
+    "ability_base:want",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("app_account_event_stub") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [ ":app_account_innnerkits_config" ]
+  public_configs = [ ":app_account_innerkits_public_config" ]
+  output_values = get_target_outputs(":app_account_interface")
+  sources = filter_include(output_values, [ "*app_account_event_stub.cpp" ])
+  deps = [ ":app_account_interface" ]
+  external_deps = [
+    "ability_base:want",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("app_account_authorization_extension_proxy") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [ ":app_account_innnerkits_config" ]
+  public_configs = [ ":app_account_innerkits_public_config" ]
+  output_values = get_target_outputs(":app_account_interface")
+  sources =
+      filter_include(output_values, [ "*app_account_authorization_extension_proxy.cpp" ])
+  deps = [ ":app_account_interface" ]
+  external_deps = [
+    "ability_base:want",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("app_account_authorization_extension_stub") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [ ":app_account_innnerkits_config" ]
+  public_configs = [ ":app_account_innerkits_public_config" ]
+  output_values = get_target_outputs(":app_account_interface")
+  sources =
+      filter_include(output_values, [ "*app_account_authorization_extension_stub.cpp" ])
+  deps = [ ":app_account_interface" ]
+  external_deps = [
+    "ability_base:want",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("app_account_authorization_extension_callback_proxy") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [ ":app_account_innnerkits_config" ]
+  public_configs = [ ":app_account_innerkits_public_config" ]
+  output_values = get_target_outputs(":app_account_interface")
+  sources = filter_include(output_values,
+                           [ "*app_account_authorization_extension_callback_proxy.cpp" ])
+  deps = [ ":app_account_interface" ]
+  external_deps = [
+    "ability_base:want",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("app_account_authorization_extension_callback_stub") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [ ":app_account_innnerkits_config" ]
+  public_configs = [ ":app_account_innerkits_public_config" ]
+  output_values = get_target_outputs(":app_account_interface")
+  sources = filter_include(output_values,
+                           [ "*app_account_authorization_extension_callback_stub.cpp" ])
+  deps = [ ":app_account_interface" ]
+  external_deps = [
+    "ability_base:want",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("app_account_authenticator_callback_proxy") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [ ":app_account_innnerkits_config" ]
+  public_configs = [ ":app_account_innerkits_public_config" ]
+  output_values = get_target_outputs(":app_account_interface")
+  sources =
+      filter_include(output_values, [ "*app_account_authenticator_callback_proxy.cpp" ])
+  deps = [ ":app_account_interface" ]
+  external_deps = [
+    "ability_base:want",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("app_account_authenticator_callback_stub") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [ ":app_account_innnerkits_config" ]
+  public_configs = [ ":app_account_innerkits_public_config" ]
+  output_values = get_target_outputs(":app_account_interface")
+  sources =
+      filter_include(output_values, [ "*app_account_authenticator_callback_stub.cpp" ])
+  deps = [ ":app_account_interface" ]
+  external_deps = [
+    "ability_base:want",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("app_account_proxy") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [ ":app_account_innnerkits_config" ]
+  public_configs = [ ":app_account_innerkits_public_config" ]
+  output_values = get_target_outputs(":app_account_interface")
+  sources = filter_include(output_values, [ "*app_account_proxy.cpp" ])
+  deps = [ ":app_account_interface" ]
+  external_deps = [
+    "ability_base:want",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("app_account_stub") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [ ":app_account_innnerkits_config" ]
+  public_configs = [ ":app_account_innerkits_public_config" ]
+  output_values = get_target_outputs(":app_account_interface")
+  sources = filter_include(output_values, [ "*app_account_stub.cpp" ])
+  deps = [ ":app_account_interface" ]
+  external_deps = [
+    "ability_base:want",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
   subsystem_name = "account"
   part_name = "os_account"
 }

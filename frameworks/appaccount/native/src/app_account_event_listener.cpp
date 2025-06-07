@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,7 +26,7 @@ AppAccountEventListener::AppAccountEventListener()
 AppAccountEventListener::~AppAccountEventListener()
 {}
 
-void AppAccountEventListener::OnAccountsChanged(const std::vector<AppAccountInfo> &accounts,
+ErrCode AppAccountEventListener::OnAccountsChanged(const std::vector<AppAccountInfo> &accounts,
     const std::string &owner)
 {
     std::string ownerKey;
@@ -42,12 +42,13 @@ void AppAccountEventListener::OnAccountsChanged(const std::vector<AppAccountInfo
     auto it = owner2Subscribers_.find(ownerKey);
     if (it == owner2Subscribers_.end()) {
         ACCOUNT_LOGI("appAccountSubscriber is nullptr");
-        return;
+        return ERR_OK;
     }
 
     for (const auto &appAccountSubscriber : it->second) {
         appAccountSubscriber->OnAccountsChanged(accounts);
     }
+    return ERR_OK;
 }
 
 ErrCode AppAccountEventListener::SubscribeAppAccount(

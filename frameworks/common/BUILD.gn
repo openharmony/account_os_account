@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -46,6 +46,7 @@ ohos_shared_library("libaccount_common") {
   }
 
   sources = [
+    "${app_account_innerkits_native_path}/src/app_account_info.cpp",
     "${innerkits_native_path}/src/distributed_account_subscribe_callback.cpp",
     "${os_account_dfx_path}/data_dfx/data_size_report_adapter.cpp",
     "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",

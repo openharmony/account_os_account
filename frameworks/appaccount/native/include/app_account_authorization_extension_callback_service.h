@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,8 +29,8 @@ public:
     AppAccountAuthorizationExtensionCallbackService(const AuthorizationExtensionOnResultCallbackFunc &onResultCallback,
         const AuthorizationExtensionOnRequestRedirectedCallbackFunc &onRequestRedirectedCallback);
     ~AppAccountAuthorizationExtensionCallbackService() override;
-    void OnResult(const AsyncCallbackError &businessError, const AAFwk::WantParams &parameters) override;
-    void OnRequestRedirected(const AAFwk::Want &request) override;
+    ErrCode OnResult(const AsyncCallbackError &businessError, const AAFwk::WantParams &parameters) override;
+    ErrCode OnRequestRedirected(const AAFwk::Want &request) override;
 
 private:
     AuthorizationExtensionOnResultCallbackFunc onResultCallback_;

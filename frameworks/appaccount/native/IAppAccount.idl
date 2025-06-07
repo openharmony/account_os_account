@@ -1,0 +1,104 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import IAppAccountAuthenticatorCallback;
+sequenceable OHOS.AAFwk.Want;
+sequenceable OHOS.AAFwk.WantParams;
+sequenceable OHOS.AccountSA.AppAccountInfo;
+sequenceable OHOS.AccountSA.AppAccountSubscribeInfo;
+sequenceable AppAccountCommon..OHOS.AccountSA.AuthenticatorInfo;
+sequenceable AppAccountCommon..OHOS.AccountSA.CreateAccountImplicitlyOptions;
+sequenceable AppAccountCommon..OHOS.AccountSA.CreateAccountOptions;
+sequenceable AppAccountInfo..OHOS.AccountSA.OAuthTokenInfo;
+sequenceable AppAccountInfo..OHOS.AccountSA.AppAccountStringInfo;
+sequenceable AppAccountCommon..OHOS.AccountSA.SelectAccountsOptions;
+sequenceable AppAccountCommon..OHOS.AccountSA.SetPropertiesOptions;
+sequenceable AppAccountCommon..OHOS.AccountSA.VerifyCredentialOptions;
+sequenceable OHOS.IRemoteObject;
+
+
+interface OHOS.AccountSA.IAppAccount {
+    void AddAccount([in] String name, [in] String extraInfo, [out] int funcResult);
+    void AddAccountImplicitly([in] String owner, [in] String authType,
+        [in] Want options, [in] IAppAccountAuthenticatorCallback authenticatorCallback, [out] int funcResult);
+    void CreateAccount([in] String name, [in] CreateAccountOptions options, [out] int funcResult);
+    void CreateAccountImplicitly([in] String owner, [in] CreateAccountImplicitlyOptions options,
+        [in] IAppAccountAuthenticatorCallback authenticatorCallback, [out] int funcResult);
+    void DeleteAccount([in] String name, [out] int funcResult);
+
+    void GetAccountExtraInfo([in] String name, [out] String extraInfo, [out] int funcResult);
+    void SetAccountExtraInfo([in] String name, [in] String extraInfo, [out] int funcResult);
+
+    void EnableAppAccess([in] String name, [in] String authorizedApp, [out] int funcResult);
+    void DisableAppAccess([in] String name, [in] String authorizedApp, [out] int funcResult);
+    void SetAppAccess([in] String name, [in] String authorizedApp, [in] boolean isAccessible, [out] int funcResult);
+    void CheckAppAccess([in] String name, [in] String authorizedApp, [out] boolean isAccessible, [out] int funcResult);
+
+    void CheckAppAccountSyncEnable([in] String name, [out] boolean syncEnable, [out] int funcResult);
+    void SetAppAccountSyncEnable([in] String name, [in] boolean syncEnable, [out] int funcResult);
+
+    void GetAssociatedData([in] String name, [in] String key, [out] String value, [out] int funcResult);
+    void SetAssociatedData([in] String name, [in] String key, [in] String value, [out] int funcResult);
+
+    void GetAccountCredential([in] String name, [in] String credentialType, [out] String credential,
+        [out] int funcResult);
+    void SetAccountCredential([in] String name, [in] String credentialType, [in] String credential,
+        [out] int funcResult);
+    void DeleteAccountCredential([in] String name, [in] String credentialType, [out] int funcResult);
+
+    void Authenticate([in] AppAccountStringInfo appAccountStringInfo, [in] Want options,
+        [in] IAppAccountAuthenticatorCallback authenticatorCallback, [out] int funcResult);
+    void GetOAuthToken([in] String name, [in] String owner, [in] String authType, [out] String token,
+        [out] int funcResult);
+    void GetAuthToken([in] String name, [in] String owner, [in] String authType, [out] String token,
+        [out] int funcResult);
+    void SetOAuthToken([in] String name, [in] String authType, [in] String token, [out] int funcResult);
+    void DeleteOAuthToken([in] String name, [in] String owner, [in] String authType, [in] String token,
+        [out] int funcResult);
+    void DeleteAuthToken([in] String name, [in] String owner, [in] String authType, [in] String token,
+        [out] int funcResult);
+    void SetOAuthTokenVisibility([in] String name, [in] String authType,
+        [in] String bundleName, [in] boolean isVisible, [out] int funcResult);
+    void SetAuthTokenVisibility([in] String name, [in] String authType,
+        [in] String bundleName, [in] boolean isVisible, [out] int funcResult);
+    void CheckOAuthTokenVisibility([in] String name, [in] String authType,
+        [in] String bundleName, [out] boolean isVisible, [out] int funcResult);
+    void CheckAuthTokenVisibility([in] String name, [in] String authType,
+        [in] String bundleName, [out] boolean isVisible, [out] int funcResult);
+    void GetAuthenticatorInfo([in] String owner, [out] AuthenticatorInfo info, [out] int funcResult);
+    void GetAllOAuthTokens([in] String name, [in] String owner, [out] OAuthTokenInfo[] tokenInfos,
+        [out] int funcResult);
+    void GetOAuthList([in] String name, [in] String authType, [out] Set<String> oauthList, [out] int funcResult);
+    void GetAuthList([in] String name, [in] String authType, [out] Set<String> oauthList, [out] int funcResult);
+    void GetAuthenticatorCallback([in] String sessionId, [out] int funcResult, [out] IRemoteObject remoteObjCallback);
+
+    void GetAllAccounts([in] String owner, [out] AppAccountInfo[] appAccounts, [out] int funcResult);
+    void GetAllAccessibleAccounts([out] AppAccountInfo[] appAccounts, [out] int funcResult);
+    void QueryAllAccessibleAccounts([in] String owner, [out] AppAccountInfo[] appAccounts, [out] int funcResult);
+    void SelectAccountsByOptions(
+        [in] SelectAccountsOptions options, [in] IAppAccountAuthenticatorCallback authenticatorCallback,
+        [out] int funcResult);
+    void VerifyCredential([in] String name, [in] String owner,
+        [in] VerifyCredentialOptions options, [in] IAppAccountAuthenticatorCallback authenticatorCallback,
+        [out] int funcResult);
+    void CheckAccountLabels([in] String name, [in] String owner,
+        [in] String[] labels, [in] IAppAccountAuthenticatorCallback authenticatorCallback, [out] int funcResult);
+    void SetAuthenticatorProperties([in] String owner, [in] SetPropertiesOptions options,
+        [in] IAppAccountAuthenticatorCallback authenticatorCallback, [out] int funcResult);
+
+    void SubscribeAppAccount([in] AppAccountSubscribeInfo subscribeInfo, [in] IRemoteObject eventListener,
+        [out] int funcResult);
+    void UnsubscribeAppAccount([in] IRemoteObject eventListener, [in] String[] owners, [out] int funcResult);
+}

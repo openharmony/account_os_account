@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -70,12 +70,12 @@ ErrCode AppAccountCheckLabelsCallback::CheckLabels()
     return ERR_OK;
 }
 
-void AppAccountCheckLabelsCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
+ErrCode AppAccountCheckLabelsCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (!isRequesting_) {
         ACCOUNT_LOGE("Invalid request");
-        return;
+        return ERR_OK;
     }
     isRequesting_ = false;
     if (result.GetBoolParam(Constants::KEY_BOOLEAN_RESULT, false) && (index_ < accounts_.size())) {
@@ -83,30 +83,33 @@ void AppAccountCheckLabelsCallback::OnResult(int32_t resultCode, const AAFwk::Wa
     }
     index_++;
     CheckLabels();
+    return ERR_OK;
 }
 
-void AppAccountCheckLabelsCallback::OnRequestRedirected(AAFwk::Want &request)
+ErrCode AppAccountCheckLabelsCallback::OnRequestRedirected(const AAFwk::Want &request)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (!isRequesting_) {
         ACCOUNT_LOGE("Invalid request");
-        return;
+        return ERR_OK;
     }
     isRequesting_ = false;
     index_++;
     CheckLabels();
+    return ERR_OK;
 }
 
-void AppAccountCheckLabelsCallback::OnRequestContinued()
+ErrCode AppAccountCheckLabelsCallback::OnRequestContinued()
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (!isRequesting_) {
         ACCOUNT_LOGE("Invalid request");
-        return;
+        return ERR_OK;
     }
     isRequesting_ = false;
     index_++;
     CheckLabels();
+    return ERR_OK;
 }
 }  // namespace AccountSA
 }  // namespace OHOS
