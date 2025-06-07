@@ -421,6 +421,7 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     "${domain_account_framework_path}:domain_account_innerkits",
     "${domain_account_framework_path}:domain_account_stub",
     "${innerkits_native_path}:libaccountkits",
+    "${os_account_innerkits_native_path}:os_account_event_proxy",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${os_account_innerkits_native_path}:os_account_state_reply_callback_proxy",
     "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
@@ -569,6 +570,7 @@ ohos_unittest("OsAccountInnerAccmgrPluginMockTest") {
     "${domain_account_framework_path}:domain_account_innerkits",
     "${domain_account_framework_path}:domain_account_stub",
     "${innerkits_native_path}:libaccountkits",
+    "${os_account_innerkits_native_path}:os_account_event_proxy",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${os_account_innerkits_native_path}:os_account_state_reply_callback_proxy",
     "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
@@ -699,6 +701,7 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
     "${domain_account_framework_path}:domain_account_innerkits",
     "${domain_account_framework_path}:domain_account_stub",
     "${innerkits_native_path}:libaccountkits",
+    "${os_account_innerkits_native_path}:os_account_event_proxy",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${os_account_innerkits_native_path}:os_account_constraint_event_stub",
     "${os_account_innerkits_native_path}:os_account_state_reply_callback_proxy",
@@ -801,13 +804,11 @@ ohos_unittest("os_account_maintenance_type_mock_test") {
     "${domain_account_framework_path}/src/domain_account_common.cpp",
     "${domain_account_framework_path}/src/domain_account_parcel.cpp",
     "${innerkits_native_path}/src/account_info_parcel.cpp",
-    "${os_account_core_path}/src/os_account_event_stub.cpp",
     "${os_account_dfx_path}/data_dfx/data_size_report_adapter.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
     "${services_path}/accountmgr/src/appaccount/os_account_state_subscriber.cpp",
-    "${services_path}/accountmgr/src/osaccount/os_account_event_proxy.cpp",
   ]
   sources += account_service_sources_mock
   sources += account_data_storage_source
@@ -826,6 +827,8 @@ ohos_unittest("os_account_maintenance_type_mock_test") {
   deps = [
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
+    "${os_account_innerkits_native_path}:os_account_event_proxy",
+    "${os_account_innerkits_native_path}:os_account_event_stub",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
   ]

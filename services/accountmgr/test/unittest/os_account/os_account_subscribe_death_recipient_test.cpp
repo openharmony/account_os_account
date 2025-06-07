@@ -75,10 +75,11 @@ void OsAccountCoverageTest::TearDown(void)
 class DelayEventProxy : public OsAccountEventProxy {
 public:
     DelayEventProxy() :OsAccountEventProxy(nullptr) {}
-    void OnAccountsSwitch(const int &newId, const int &oldId) override
+    ErrCode OnAccountsSwitch(int newId, int oldId) override
     {
         // mock operation
         std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
+        return ERR_OK;
     }
 };
 

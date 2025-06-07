@@ -65,7 +65,7 @@ static void NotifySubscriber(std::shared_ptr<OsAccountSubscriber> &subscriber, O
     if (!states.empty()) {
         if (info.IsWithHandshake() &&
             (data.state == OsAccountState::STOPPING || data.state == OsAccountState::LOCKING)) {
-            data.callback = std::make_shared<OsAccountStateReplyCallbackProxy>(cvPtr, callbackCounter);
+            data.callback = std::make_shared<OsAccountStateReplyCallback>(cvPtr, callbackCounter);
         }
         callbackCounter.reset();
         subscriber->OnStateChanged(data);
@@ -110,11 +110,15 @@ ErrCode OsAccountEventListener::OnStateChanged(const OsAccountStateParcel &parce
     return ERR_OK;
 }
 
-void OsAccountEventListener::OnAccountsChanged(const int &id)
-{}
+ErrCode OsAccountEventListener::OnAccountsChanged(int32_t id)
+{
+    return ERR_OK;
+}
 
-void OsAccountEventListener::OnAccountsSwitch(const int &newId, const int &oldId)
-{}
+ErrCode OsAccountEventListener::OnAccountsSwitch(int32_t newId, int32_t oldId)
+{
+    return ERR_OK;
+}
 
 ErrCode OsAccountEventListener::InsertRecord(const std::shared_ptr<OsAccountSubscriber> &subscriber)
 {
