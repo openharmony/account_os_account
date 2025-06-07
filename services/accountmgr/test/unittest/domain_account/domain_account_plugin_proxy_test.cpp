@@ -76,7 +76,6 @@ HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_AuthCommonIn
     DomainAccountInfo info;
     std::vector<uint8_t> authData;
     EXPECT_EQ(pluginProxy_->AuthWithToken(info, authData, nullptr), ERR_INVALID_DATA);
-    
 }
 
 /**

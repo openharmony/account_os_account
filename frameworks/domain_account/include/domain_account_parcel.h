@@ -30,10 +30,8 @@ public:
     {
         uintptr_t data = parcelData_.GetData();
         size_t size = parcelData_.GetDataSize();
-        if (data != 0 && size > 0) {
-            if (!parcel.WriteBuffer(reinterpret_cast<const void*>(data), size)) {
-                return false;
-            }
+        if (!parcel.WriteBuffer(reinterpret_cast<const void*>(data), size)) {
+            return false;
         }
         return true;
     }
@@ -42,10 +40,8 @@ public:
     {
         uintptr_t data = parcel.GetData();
         size_t size = parcel.GetDataSize();
-        if (data != 0 && size > 0) {
-            if (!parcelData_.WriteBuffer(reinterpret_cast<const void*>(data), size)) {
-                return false;
-            }
+        if (!parcelData_.WriteBuffer(reinterpret_cast<const void*>(data), size)) {
+            return false;
         }
         return true;
     }
