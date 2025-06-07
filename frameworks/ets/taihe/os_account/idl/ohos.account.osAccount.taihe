@@ -17,6 +17,10 @@
 
 use ohos.account.distributedAccount as distributedAccount;
 
+@!sts_inject("""
+static { loadLibrary("os_account_taihe_native.z") }
+""")
+
 function getAccountManager(): AccountManager;
 
 interface AccountManager {
