@@ -37,7 +37,7 @@ private:
     CreateOsAccountForDomainOptions accountOptions_;
     sptr<IDomainAccountCallback> innerCallback_ = nullptr;
 
-    ErrCode InnerCallbackOnResult(int32_t errCode, OsAccountInfo osAccountInfo, Parcel resultParcel);
+    ErrCode HandleErrorWithEmptyResult(ErrCode errorCode, const Parcel& resultParcel);
 };
 
 class BindDomainAccountCallback final : public DomainAccountCallback {
