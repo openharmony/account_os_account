@@ -118,7 +118,6 @@ private:
     ErrCode CreateAppAccountEventListener(
         const std::shared_ptr<AppAccountSubscriber> &subscriber, sptr<IRemoteObject> &appAccountEventListener);
     void RestoreListenerRecords();
-    ErrCode CheckOwners(AppAccountSubscribeInfo &subscribeInfo, std::vector<std::string> &owners);
 
 private:
     std::mutex mutex_;

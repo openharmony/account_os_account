@@ -675,34 +675,6 @@ ErrCode AppAccount::QueryAllAccessibleAccounts(
     return proxy->QueryAllAccessibleAccounts(owner, appAccounts);
 }
 
-ErrCode AppAccount::CheckOwners(AppAccountSubscribeInfo &subscribeInfo, std::vector<std::string> &owners)
-{
-    if (subscribeInfo.GetOwners(owners) != ERR_OK) {
-        ACCOUNT_LOGE("failed to get owners");
-        return ERR_APPACCOUNT_KIT_GET_OWNERS;
-    }
-
-    if (owners.size() == 0) {
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-
-    // remove duplicate ones
-    std::sort(owners.begin(), owners.end());
-    owners.erase(std::unique(owners.begin(), owners.end()), owners.end());
-    if (subscribeInfo.SetOwners(owners) != ERR_OK) {
-        ACCOUNT_LOGE("failed to set owners");
-        return ERR_APPACCOUNT_KIT_SET_OWNERS;
-    }
-
-    for (auto owner : owners) {
-        if (owner.size() > Constants::OWNER_MAX_SIZE) {
-            ACCOUNT_LOGE("owner is out of range, owner.size() = %{public}zu", owner.size());
-            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-        }
-    }
-    return ERR_OK;
-}
-
 ErrCode AppAccount::SubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber)
 {
     auto proxy = GetAppAccountProxy();
@@ -715,43 +687,27 @@ ErrCode AppAccount::SubscribeAppAccount(const std::shared_ptr<AppAccountSubscrib
         return ERR_APPACCOUNT_KIT_SUBSCRIBER_IS_NULLPTR;
     }
 
-    AppAccountSubscribeInfo subscribeInfo;
-    if (subscriber->GetSubscribeInfo(subscribeInfo) != ERR_OK) {
-        ACCOUNT_LOGE("get subscribeInfo failed");
-        return ERR_APPACCOUNT_KIT_GET_SUBSCRIBE_INFO;
-    }
-
-    std::vector<std::string> owners;
-    ErrCode subscribeState = CheckOwners(subscribeInfo, owners);
-    if (subscribeState != ERR_OK) {
-        return subscribeState;
-    }
-
     sptr<IRemoteObject> appAccountEventListener = nullptr;
     std::lock_guard<std::mutex> lock(eventListenersMutex_);
-    subscribeState = CreateAppAccountEventListener(subscriber, appAccountEventListener);
+    CreateAppAccountEventListener(subscriber, appAccountEventListener);
 
-    bool isIPC = false;
-    if (subscribeState == INITIAL_SUBSCRIPTION) {
-        subscribeState = AppAccountEventListener::GetInstance()->SubscribeAppAccount(subscriber, isIPC, owners);
+    bool needNotifyService = false;
+    ErrCode result = AppAccountEventListener::GetInstance()->SubscribeAppAccount(subscriber, needNotifyService);
+    if (result != ERR_OK) {
+        return result;
     }
-
-    if (subscribeState == INITIAL_SUBSCRIPTION) {
-        if (!isIPC) {
-            return ERR_OK;
-        }
-        // Refresh to full owners
-        subscribeInfo.SetOwners(owners);
-        subscribeState = proxy->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
-        if (subscribeState != ERR_OK) {
-            AppAccountEventListener::GetInstance()->UnsubscribeAppAccount(subscriber, isIPC, owners);
-        }
-        return subscribeState;
-    } else if (subscribeState == ALREADY_SUBSCRIBED) {
-        return ERR_APPACCOUNT_SUBSCRIBER_ALREADY_REGISTERED;
-    } else {
-        return ERR_APPACCOUNT_KIT_SUBSCRIBE;
+    if (!needNotifyService) {
+        return ERR_OK;
     }
+    // Refresh to full owners
+    AppAccountSubscribeInfo subscribeInfo;
+    AppAccountEventListener::GetInstance()->GetRestoreData(subscribeInfo);
+    result = proxy->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
+    if (result != ERR_OK) {
+        std::vector<std::string> deleteOwners;
+        AppAccountEventListener::GetInstance()->UnsubscribeAppAccount(subscriber, needNotifyService, deleteOwners);
+    }
+    return result;
 }
 
 ErrCode AppAccount::UnsubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber)
@@ -766,18 +722,19 @@ ErrCode AppAccount::UnsubscribeAppAccount(const std::shared_ptr<AppAccountSubscr
     }
 
     std::lock_guard<std::mutex> lock(eventListenersMutex_);
-    bool isIPC = false;
-    std::vector<std::string> owners;
-    ErrCode subscribeState = AppAccountEventListener::GetInstance()->UnsubscribeAppAccount(subscriber, isIPC, owners);
-    if (subscribeState != INITIAL_SUBSCRIPTION) {
-        return subscribeState;
+    bool needNotifyService = false;
+    std::vector<std::string> deleteOwners;
+    ErrCode result = AppAccountEventListener::GetInstance()->UnsubscribeAppAccount(
+        subscriber, needNotifyService, deleteOwners);
+    if (result != ERR_OK) {
+        return result;
     }
-    if (!isIPC) {
+    if (!needNotifyService) {
         return ERR_OK;
     }
-    ErrCode result = proxy->UnsubscribeAppAccount(AppAccountEventListener::GetInstance()->AsObject(), owners);
+    result = proxy->UnsubscribeAppAccount(AppAccountEventListener::GetInstance()->AsObject(), deleteOwners);
     if (result != ERR_OK) {
-        AppAccountEventListener::GetInstance()->SubscribeAppAccount(subscriber, isIPC, owners);
+        AppAccountEventListener::GetInstance()->SubscribeAppAccount(subscriber, needNotifyService);
     }
 
     return result;

@@ -56,14 +56,14 @@ void DistributedAccountEventService::AddType(const DISTRIBUTED_ACCOUNT_SUBSCRIBE
         it->second.insert(type);
     }
 
-    auto itemType = TypeMap_.find(type);
-    if (itemType == TypeMap_.end()) {
-        TypeMap_[type] = {callback};
+    auto itemType = typeMap_.find(type);
+    if (itemType == typeMap_.end()) {
+        typeMap_[type] = {callback};
     } else {
         itemType->second.insert(callback);
     }
     ACCOUNT_LOGI("Distributed client subscribe, type size=%{public}zu, callback size=%{public}zu.",
-        TypeMap_.size(), callbackMap_.size());
+        typeMap_.size(), callbackMap_.size());
 }
 
 void DistributedAccountEventService::DeleteType(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
@@ -83,22 +83,22 @@ void DistributedAccountEventService::DeleteType(const DISTRIBUTED_ACCOUNT_SUBSCR
         callbackMap_.erase(it);
     }
 
-    auto itemType = TypeMap_.find(type);
-    if (itemType == TypeMap_.end()) {
+    auto itemType = typeMap_.find(type);
+    if (itemType == typeMap_.end()) {
         return;
     }
     itemType->second.erase(callback);
     if (itemType->second.size() == 0) {
-        TypeMap_.erase(itemType);
+        typeMap_.erase(itemType);
     }
     ACCOUNT_LOGI("Distributed client unsubscribe, type size=%{public}zu, callback size=%{public}zu.",
-        TypeMap_.size(), callbackMap_.size());
+        typeMap_.size(), callbackMap_.size());
 }
 
 void DistributedAccountEventService::GetAllType(std::set<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE> &typeList)
 {
     std::lock_guard<std::mutex> lock(mapLock_);
-    for (auto &item : TypeMap_) {
+    for (auto &item : typeMap_) {
         typeList.insert(item.first);
     }
 }
@@ -106,8 +106,8 @@ void DistributedAccountEventService::GetAllType(std::set<DISTRIBUTED_ACCOUNT_SUB
 void DistributedAccountEventService::OnAccountsChanged(const DistributedAccountEventData &eventData)
 {
     std::lock_guard<std::mutex> lock(mapLock_);
-    auto it = TypeMap_.find(eventData.type_);
-    if (it == TypeMap_.end()) {
+    auto it = typeMap_.find(eventData.type_);
+    if (it == typeMap_.end()) {
         ACCOUNT_LOGE("callback is empty");
         return;
     }

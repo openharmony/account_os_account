@@ -203,7 +203,7 @@ ErrCode OsAccountSubscribeManager::RemoveSubscribeRecord(const sptr<IRemoteObjec
             std::set<OsAccountState> states;
             (*it)->subscribeInfoPtr_->GetStates(states);
             subscribeRecords_.erase(it);
-            if (states.find(SWITCHING) == states.end() || states.find(SWITCHED) == states.end()) {
+            if (states.find(SWITCHING) == states.end() && states.find(SWITCHED) == states.end()) {
                 break;
             }
             if (switchRecordMap_.count(callingUid) == 0) {

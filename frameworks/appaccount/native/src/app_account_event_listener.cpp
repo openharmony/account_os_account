@@ -50,48 +50,55 @@ void AppAccountEventListener::OnAccountsChanged(const std::vector<AppAccountInfo
     }
 }
 
-ErrCode AppAccountEventListener::SubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber,
-    bool &isIPC, std::vector<std::string> &owners)
+ErrCode AppAccountEventListener::SubscribeAppAccount(
+    const std::shared_ptr<AppAccountSubscriber> &subscriber, bool &needNotifyService)
 {
-    if (subscriber == nullptr) {
-        ACCOUNT_LOGE("subscriber is nullptr");
-        return AppAccount::SUBSCRIBE_FAILED;
+    AppAccountSubscribeInfo subscribeInfo;
+    subscriber->GetSubscribeInfo(subscribeInfo);
+    std::vector<std::string> owners;
+    subscribeInfo.GetOwners(owners);
+    if (owners.size() == 0) {
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    std::sort(owners.begin(), owners.end());
+    owners.erase(std::unique(owners.begin(), owners.end()), owners.end());
+    subscribeInfo.SetOwners(owners);
+    for (auto owner : owners) {
+        if (owner.size() > Constants::OWNER_MAX_SIZE) {
+            ACCOUNT_LOGE("owner is out of range, owner.size() = %{public}zu", owner.size());
+            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+        }
     }
 
     std::lock_guard<std::mutex> lock(appAccountsMutex_);
     auto subIt = std::find(appAccountSubscriberList_.begin(), appAccountSubscriberList_.end(), subscriber);
     if (subIt != appAccountSubscriberList_.end()) {
         ACCOUNT_LOGI("subscriber already has app account event listener");
-        return AppAccount::ALREADY_SUBSCRIBED;
+        return ERR_APPACCOUNT_SUBSCRIBER_ALREADY_REGISTERED;
     }
 
     if (appAccountSubscriberList_.size() == Constants::APP_ACCOUNT_SUBSCRIBER_MAX_SIZE) {
         ACCOUNT_LOGE("the maximum number of subscribers has been reached");
-        return AppAccount::SUBSCRIBE_FAILED;
+        return ERR_APPACCOUNT_KIT_SUBSCRIBE;
     }
     appAccountSubscriberList_.emplace_back(subscriber);
 
     for (auto &owner : owners) {
         auto it = owner2Subscribers_.find(owner);
         if (it == owner2Subscribers_.end()) {
-            isIPC = true;
+            needNotifyService = true;
             owner2Subscribers_[owner] = {subscriber};
         } else {
             owner2Subscribers_[owner].emplace_back(subscriber);
         }
     }
-    if (isIPC) {
-        owners.clear();
-        std::transform(owner2Subscribers_.begin(), owner2Subscribers_.end(), std::back_inserter(owners),
-            [](const auto &pair) { return pair.first; });
-    }
     ACCOUNT_LOGI("APP client subscribe, owner size=%{public}zu, subscriber size=%{public}zu.",
         owner2Subscribers_.size(), appAccountSubscriberList_.size());
-    return AppAccount::INITIAL_SUBSCRIPTION;
+    return ERR_OK;
 }
 
 ErrCode AppAccountEventListener::UnsubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber,
-    bool &isIPC, std::vector<std::string> &owners)
+    bool &needNotifyService, std::vector<std::string> &deleteOwners)
 {
     std::lock_guard<std::mutex> lock(appAccountsMutex_);
     auto subIt = std::find(appAccountSubscriberList_.begin(), appAccountSubscriberList_.end(), subscriber);
@@ -101,7 +108,7 @@ ErrCode AppAccountEventListener::UnsubscribeAppAccount(const std::shared_ptr<App
     }
     appAccountSubscriberList_.erase(subIt);
 
-    owners.clear();
+    deleteOwners.clear();
     for (auto &owner : owner2Subscribers_) {
         auto it = std::find(owner.second.begin(), owner.second.end(), subscriber);
         if (it == owner.second.end()) {
@@ -110,17 +117,17 @@ ErrCode AppAccountEventListener::UnsubscribeAppAccount(const std::shared_ptr<App
 
         owner.second.erase(it);
         if (owner.second.empty()) {
-            isIPC = true;
-            owners.emplace_back(owner.first);
+            needNotifyService = true;
+            deleteOwners.emplace_back(owner.first);
         }
     }
 
-    for (std::string &owner : owners) {
+    for (std::string &owner : deleteOwners) {
         owner2Subscribers_.erase(owner);
     }
     ACCOUNT_LOGI("APP client unsubscribe, owner size=%{public}zu, subscriber size=%{public}zu.",
         owner2Subscribers_.size(), appAccountSubscriberList_.size());
-    return AppAccount::INITIAL_SUBSCRIPTION;
+    return ERR_OK;
 }
 
 bool AppAccountEventListener::GetRestoreData(AppAccountSubscribeInfo &subscribeInfo)
@@ -129,19 +136,11 @@ bool AppAccountEventListener::GetRestoreData(AppAccountSubscribeInfo &subscribeI
     if (appAccountSubscriberList_.empty()) {
         return false;
     }
-    std::shared_ptr<AppAccountSubscriber> subscriber = appAccountSubscriberList_[0];
-    if (subscriber->GetSubscribeInfo(subscribeInfo) != ERR_OK) {
-        ACCOUNT_LOGE("get subscribeInfo failed");
-        return false;
-    }
     std::vector<std::string> owners;
     std::transform(owner2Subscribers_.begin(), owner2Subscribers_.end(), std::back_inserter(owners),
         [](const auto &pair) { return pair.first; });
 
-    if (subscribeInfo.SetOwners(owners) != ERR_OK) {
-        ACCOUNT_LOGE("failed to set owners");
-        return false;
-    }
+    subscribeInfo.SetOwners(owners);
     return true;
 }
 

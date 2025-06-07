@@ -54,7 +54,6 @@ void OsAccount::RestoreListenerRecords()
 {
     std::lock_guard<std::mutex> lock(eventListenersMutex_);
     if (listenerManager_ == nullptr || listenerManager_->Size() == 0) {
-        ACCOUNT_LOGI("ListenerManager have no records");
         return;
     }
     auto proxy = GetOsAccountProxy();
@@ -586,26 +585,19 @@ ErrCode OsAccount::SubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber>
     if (listenerManager_ == nullptr) {
         ACCOUNT_LOGI("Listenermager is nullptr");
         listenerManager_ = new (std::nothrow) OsAccountEventListener();
-        (void)listenerManager_->InsertRecord(subscriber);
-        ErrCode result = proxy->SubscribeOsAccount(listenerManager_->GetTotalSubscribeInfo(), listenerManager_);
-        if (result != ERR_OK) {
-            listenerManager_ = nullptr;
-            ACCOUNT_LOGE("SubscribeOsAccount failed, errCode=%{public}d", result);
+        if (listenerManager_ == nullptr) {
+            ACCOUNT_LOGE("Memory allocation for listener failed!");
+            return ERR_OSACCOUNT_KIT_SUBSCRIBE_ERROR;
         }
-        return result;
     }
 
-    if (listenerManager_->Size() >= Constants::SUBSCRIBER_MAX_SIZE) {
-        ACCOUNT_LOGE("The maximum number of subscribers has been reached");
-        return ERR_OSACCOUNT_KIT_SUBSCRIBE_ERROR;
-    }
     ErrCode result = listenerManager_->InsertRecord(subscriber);
     if (result != ERR_OK) {
-        return ERR_OK;
+        return result;
     }
     result = proxy->SubscribeOsAccount(listenerManager_->GetTotalSubscribeInfo(), listenerManager_);
     if (result != ERR_OK) {
-        result = listenerManager_->RemoveRecord(subscriber);
+        listenerManager_->RemoveRecord(subscriber);
         ACCOUNT_LOGE("SubscribeOsAccount failed, errCode=%{public}d", result);
     }
     return result;
@@ -627,7 +619,7 @@ ErrCode OsAccount::UnsubscribeOsAccount(const std::shared_ptr<OsAccountSubscribe
     if (listenerManager_ == nullptr) {
         return ERR_OSACCOUNT_KIT_NO_SPECIFIED_SUBSCRIBER_HAS_BEEN_REGISTERED;
     }
-    result = listenerManager_->RemoveRecord(subscriber);
+    listenerManager_->RemoveRecord(subscriber);
     auto proxy = GetOsAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;

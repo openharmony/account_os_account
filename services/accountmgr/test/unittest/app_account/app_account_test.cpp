@@ -437,19 +437,19 @@ HWTEST_F(AppAccountTest, AppAccount_CreateAppAccountEventListener_0100, TestSize
     EXPECT_EQ(AppAccountEventListener::GetInstance()->appAccountSubscriberList_.size(),
         SUBSCRIBER_ZERO);
 
-    bool isIPC = false;
+    bool needNotifyService = false;
     result = AppAccountEventListener::GetInstance()->SubscribeAppAccount(
-        subscriberTestPtr, isIPC, owners);
-    EXPECT_TRUE(isIPC);
+        subscriberTestPtr, needNotifyService);
+    EXPECT_TRUE(needNotifyService);
     EXPECT_EQ(AppAccountEventListener::GetInstance()->appAccountSubscriberList_.size(),
         SUBSCRIBER_ONE);
 
     // already subscribed
-    isIPC = false;
+    needNotifyService = false;
     result = AppAccountEventListener::GetInstance()->SubscribeAppAccount(
-        subscriberTestPtr, isIPC, owners);
-    EXPECT_FALSE(isIPC);
-    EXPECT_EQ(result, AppAccount::SubscribeState::ALREADY_SUBSCRIBED);
+        subscriberTestPtr, needNotifyService);
+    EXPECT_FALSE(needNotifyService);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SUBSCRIBER_ALREADY_REGISTERED);
     EXPECT_EQ(AppAccountEventListener::GetInstance()->appAccountSubscriberList_.size(),
         SUBSCRIBER_ONE);
 }
@@ -484,18 +484,18 @@ HWTEST_F(AppAccountTest, AppAccount_CreateAppAccountEventListener_0200, TestSize
     EXPECT_EQ(AppAccountEventListener::GetInstance()->appAccountSubscriberList_.size(),
         SUBSCRIBER_ZERO);
 
-        bool isIPC = false;
+        bool needNotifyService = false;
     // make max subscribers
     for (std::size_t counter = 1; counter <= Constants::APP_ACCOUNT_SUBSCRIBER_MAX_SIZE + 1; counter += 1) {
         subscriberTestPtr = std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
 
         result = AppAccountEventListener::GetInstance()->SubscribeAppAccount(
-            subscriberTestPtr, isIPC, owners);
+            subscriberTestPtr, needNotifyService);
         if (counter <= Constants::APP_ACCOUNT_SUBSCRIBER_MAX_SIZE) {
-            EXPECT_EQ(result, AppAccount::SubscribeState::INITIAL_SUBSCRIPTION);
+            EXPECT_EQ(result, ERR_OK);
             EXPECT_EQ(AppAccountEventListener::GetInstance()->appAccountSubscriberList_.size(), counter);
         } else {
-            EXPECT_EQ(result, AppAccount::SubscribeState::SUBSCRIBE_FAILED);
+            EXPECT_EQ(result, ERR_APPACCOUNT_KIT_SUBSCRIBE);
             EXPECT_EQ(
                 AppAccountEventListener::GetInstance()->appAccountSubscriberList_.size(), counter - 1);
         }
