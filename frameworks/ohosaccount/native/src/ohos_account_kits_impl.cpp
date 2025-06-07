@@ -255,11 +255,11 @@ ErrCode OhosAccountKitsImpl::SubscribeDistributedAccountEvent(const DISTRIBUTED_
 
     sptr<IRemoteObject> listener = nullptr;
     std::lock_guard<std::mutex> lock(eventListenersMutex_);
-    bool isIPC = true;
+    bool needNotifyService = true;
     std::set<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE> typeList;
     DistributedAccountEventService::GetInstance()->GetAllType(typeList);
     if (typeList.find(type) != typeList.end()) {
-        isIPC = false;
+        needNotifyService = false;
     }
     ErrCode result = CreateDistributedAccountEventService(type, callback, listener);
     if (result == ERR_OHOSACCOUNT_KIT_CALLBACK_ALREADY_REGISTERED_ERROR) {
@@ -271,7 +271,7 @@ ErrCode OhosAccountKitsImpl::SubscribeDistributedAccountEvent(const DISTRIBUTED_
         return ERR_OHOSACCOUNT_KIT_SUBSCRIBE_ERROR;
     }
 
-    if (!isIPC) {
+    if (!needNotifyService) {
         return ERR_OK;
     }
     result = accountProxy->SubscribeDistributedAccountEvent(type, listener);
@@ -303,13 +303,14 @@ ErrCode OhosAccountKitsImpl::UnsubscribeDistributedAccountEvent(const DISTRIBUTE
     }
     DistributedAccountEventService::GetInstance()->DeleteType(type, callback);
 
-    ErrCode result = ERR_OK;
     std::set<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE> typeList;
     DistributedAccountEventService::GetInstance()->GetAllType(typeList);
-    if (typeList.find(type) == typeList.end()) {
-        result = accountProxy->UnsubscribeDistributedAccountEvent(type,
-            DistributedAccountEventService::GetInstance()->AsObject());
+    if (typeList.find(type) != typeList.end()) {
+        return ERR_OK;
     }
+
+    ErrCode result = accountProxy->UnsubscribeDistributedAccountEvent(type,
+        DistributedAccountEventService::GetInstance()->AsObject());
     if (result != ERR_OK) {
         DistributedAccountEventService::GetInstance()->AddType(type, callback);
     }

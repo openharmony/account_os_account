@@ -14,6 +14,7 @@
  */
 
 #include "account_log_wrapper.h"
+#include "os_account_constants.h"
 #include "os_account_event_listener.h"
 #include "os_account_state_reply_callback_proxy.h"
 #include <pthread.h>
@@ -24,6 +25,7 @@ namespace AccountSA {
 namespace {
 constexpr int32_t WAIT_SECONDS = 5;
 const char THREAD_OS_ACCOUNT_EVENT[] = "OsAccountEvent";
+const char THREAD_WAIT_COMPLETE[] = "WaitComplete";
 }
 OsAccountEventListener::OsAccountEventListener()
 {}
@@ -38,16 +40,42 @@ static ErrCode WaitForComplete(const sptr<IRemoteObject> &callback, std::shared_
         return ERR_OK;
     }
     sptr<OsAccountStateReplyCallbackProxy> remoteCallback = iface_cast<OsAccountStateReplyCallbackProxy>(callback);
+    if (remoteCallback == nullptr) {
+        return ERR_OK;
+    }
     std::mutex mutex;
     std::unique_lock<std::mutex> waitLock(mutex);
     auto result = cvPtr->wait_for(waitLock, std::chrono::seconds(WAIT_SECONDS),
-        [callbackCounter]() { return callbackCounter.use_count() == 1; });
+        [callbackCounter]() { return callbackCounter.use_count() == 2; });
     remoteCallback->OnComplete();
     if (!result) {
         ACCOUNT_LOGE("Wait reply timed out");
         return ERR_ACCOUNT_COMMON_OPERATION_TIMEOUT;
     }
     return ERR_OK;
+}
+
+static void NotifySubscriber(std::shared_ptr<OsAccountSubscriber> &subscriber, OsAccountStateData &data,
+    std::shared_ptr<std::condition_variable> &cvPtr, std::shared_ptr<bool> &callbackCounter)
+{
+    OsAccountSubscribeInfo info;
+    subscriber->GetSubscribeInfo(info);
+    std::set<OsAccountState> states;
+    info.GetStates(states);
+    if (!states.empty()) {
+        if (info.IsWithHandshake() &&
+            (data.state == OsAccountState::STOPPING || data.state == OsAccountState::LOCKING)) {
+            data.callback = std::make_shared<OsAccountStateReplyCallback>(cvPtr, callbackCounter);
+        }
+        callbackCounter.reset();
+        subscriber->OnStateChanged(data);
+    } else if (data.state == OsAccountState::SWITCHING || data.state == OsAccountState::SWITCHED) {
+        callbackCounter.reset();
+        subscriber->OnAccountsSwitch(data.toId, data.fromId);
+    } else {
+        callbackCounter.reset();
+        subscriber->OnAccountsChanged(data.fromId);
+    }
 }
 
 ErrCode OsAccountEventListener::OnStateChanged(const OsAccountStateParcel &parcel)
@@ -66,27 +94,20 @@ ErrCode OsAccountEventListener::OnStateChanged(const OsAccountStateParcel &parce
                 continue;
             }
             auto task = [subscriber = it.first, data, cvPtr, callbackCounter]() mutable {
-                OsAccountSubscribeInfo info;
-                subscriber->GetSubscribeInfo(info);
-                std::set<OsAccountState> states;
-                info.GetStates(states);
-                if (!states.empty()) {
-                    if (info.IsWithHandshake() || data.state == OsAccountState::STOPPING) {
-                        data.callback = std::make_shared<OsAccountStateReplyCallback>(cvPtr, callbackCounter);
-                    }
-                    subscriber->OnStateChanged(data);
-                } else if (data.state == OsAccountState::SWITCHING || data.state == OsAccountState::SWITCHED) {
-                    subscriber->OnAccountsSwitch(data.toId, data.fromId);
-                } else {
-                    subscriber->OnAccountsChanged(data.fromId);
-                }
+                NotifySubscriber(subscriber, data, cvPtr, callbackCounter);
             };
             std::thread taskThread(task);
             pthread_setname_np(taskThread.native_handle(), THREAD_OS_ACCOUNT_EVENT);
             taskThread.detach();
         }
     }
-    return WaitForComplete(parcel.callback, cvPtr, callbackCounter);
+    std::thread waitThread([callback = parcel.callback, cvPtr, callbackCounter]() mutable {
+        WaitForComplete(callback, cvPtr, callbackCounter);
+    });
+    callbackCounter.reset();
+    pthread_setname_np(waitThread.native_handle(), THREAD_WAIT_COMPLETE);
+    waitThread.detach();
+    return ERR_OK;
 }
 
 void OsAccountEventListener::OnAccountsChanged(const int &id)
@@ -110,8 +131,12 @@ ErrCode OsAccountEventListener::InsertRecord(const std::shared_ptr<OsAccountSubs
     if (subscriberAll_.find(subscriber) != subscriberAll_.end()) {
         if (states == subscriberAll_[subscriber]) {
             ACCOUNT_LOGI("Subscribe repeatedly");
-            return ERR_OSACCOUNT_KIT_SUBSCRIBE_ERROR;
+            return ERR_OK;
         }
+    }
+    if (subscriberAll_.size() >= Constants::SUBSCRIBER_MAX_SIZE) {
+        ACCOUNT_LOGE("The maximum number of subscribers has been reached");
+        return ERR_OSACCOUNT_KIT_SUBSCRIBE_ERROR;
     }
     subscriberAll_[subscriber] = states;
     ACCOUNT_LOGI("subscribeOsAccount subscriber size=%{public}zu.", subscriberAll_.size());

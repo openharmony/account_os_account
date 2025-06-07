@@ -26,10 +26,9 @@ public:
     void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts, const std::string &owner) override;
 
     static AppAccountEventListener *GetInstance();
-    ErrCode SubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber, bool &isIPC,
-        std::vector<std::string> &owners);
-    ErrCode UnsubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber, bool &isIPC,
-        std::vector<std::string> &owners);
+    ErrCode SubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber, bool &needNotifyService);
+    ErrCode UnsubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber, bool &needNotifyService,
+        std::vector<std::string> &deleteOwners);
     bool GetRestoreData(AppAccountSubscribeInfo &subscribeInfo);
 
 private:

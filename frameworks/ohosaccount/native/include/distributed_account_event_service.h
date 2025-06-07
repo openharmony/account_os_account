@@ -44,7 +44,7 @@ private:
         std::set<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE>> callbackMap_;
 
     std::map<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE,
-        std::set<std::shared_ptr<DistributedAccountSubscribeCallback>>> TypeMap_;
+        std::set<std::shared_ptr<DistributedAccountSubscribeCallback>>> typeMap_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

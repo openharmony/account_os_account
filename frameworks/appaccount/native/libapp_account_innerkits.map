@@ -33,7 +33,7 @@
         "OHOS::AccountSA::AppAccountAuthenticatorStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
         "OHOS::AccountSA::AppAccountAuthenticatorStub::~AppAccountAuthenticatorStub()";
         "OHOS::AccountSA::AppAccountEventListener::GetInstance()";
-        "OHOS::AccountSA::AppAccountEventListener::SubscribeAppAccount(std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscriber> const&, bool&, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>&)";
+        "OHOS::AccountSA::AppAccountEventListener::SubscribeAppAccount(std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscriber> const&, bool&)";
         "OHOS::AccountSA::AppAccountEventListener::UnsubscribeAppAccount(std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscriber> const&, bool&, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>&)";
         "OHOS::AccountSA::AppAccountEventStub::AppAccountEventStub()";
         "OHOS::AccountSA::AppAccountEventStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
