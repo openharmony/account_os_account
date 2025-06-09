@@ -97,7 +97,7 @@ public:
 
     ErrCode SubscribeAppAccount(
         AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener) override;
-    ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener) override;
+    ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener, std::vector<std::string> &owners) override;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

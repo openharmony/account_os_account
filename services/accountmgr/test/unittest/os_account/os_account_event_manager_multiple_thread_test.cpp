@@ -109,9 +109,10 @@ void TestWriteReadFileInfo()
             OsAccountSubscribeInfo subscribeInfo(OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING, "event_test");
             auto subscriber = std::make_shared<TestOsAccountSubscriber>(subscribeInfo);
             EXPECT_NE(nullptr, subscriber);
-            EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(subscriber));
-            std::lock_guard<std::mutex> lock(OsAccount::GetInstance().eventListenersMutex_);
-            OsAccount::GetInstance().eventListeners_.erase(subscriber);
+            sptr<OsAccountEventListener> listener = new (std::nothrow) OsAccountEventListener();
+            listener->InsertRecord(subscriber);
+            EXPECT_EQ(ERR_OK, OsAccount::GetInstance().proxy_->SubscribeOsAccount(
+                listener->GetTotalSubscribeInfo(), listener));
         }
     } else {
         while (i--) {

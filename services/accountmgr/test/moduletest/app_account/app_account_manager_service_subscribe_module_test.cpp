@@ -276,6 +276,10 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
         AppAccount::GetInstance().CreateAppAccountEventListener(nullptr, appAccountEventListener);
     EXPECT_EQ(subscribeState, AppAccount::SUBSCRIBE_FAILED);
 
+    bool needNotifyService = false;
+    AppAccountEventListener::GetInstance()->SubscribeAppAccount(subscriberTestPtr, needNotifyService);
+    EXPECT_TRUE(needNotifyService);
+
     // subscribe app account
     ErrCode result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
@@ -293,8 +297,11 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 
     Wait();
 
+    AppAccountEventListener::GetInstance()->UnsubscribeAppAccount(subscriberTestPtr, needNotifyService, owners);
+    EXPECT_TRUE(needNotifyService);
+
     // unsubscribe app account
-    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener);
+    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener, owners);
     EXPECT_EQ(result, ERR_OK);
 
     // delete account
@@ -379,6 +386,10 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
         subscriberTestPtr, appAccountEventListener);
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
+    bool needNotifyService = false;
+    AppAccountEventListener::GetInstance()->SubscribeAppAccount(subscriberTestPtr, needNotifyService);
+    EXPECT_TRUE(needNotifyService);
+
     // subscribe app account
     result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
@@ -400,8 +411,11 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 
     Wait();
 
+    AppAccountEventListener::GetInstance()->UnsubscribeAppAccount(subscriberTestPtr, needNotifyService, owners);
+    EXPECT_TRUE(needNotifyService);
+
     // unsubscribe app account
-    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener);
+    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener, owners);
     EXPECT_EQ(result, ERR_OK);
 
     // delete account
@@ -452,6 +466,10 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
         subscriberTestPtr, appAccountEventListener);
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
+    bool needNotifyService = false;
+    AppAccountEventListener::GetInstance()->SubscribeAppAccount(subscriberTestPtr, needNotifyService);
+    EXPECT_TRUE(needNotifyService);
+
     // subscribe app account
     result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
@@ -473,8 +491,11 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 
     Wait();
 
+    AppAccountEventListener::GetInstance()->UnsubscribeAppAccount(subscriberTestPtr, needNotifyService, owners);
+    EXPECT_TRUE(needNotifyService);
+
     // unsubscribe app account
-    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener);
+    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener, owners);
     EXPECT_EQ(result, ERR_OK);
 
     // delete account
@@ -529,6 +550,10 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
         subscriberTestPtr, appAccountEventListener);
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
+    bool needNotifyService = false;
+    AppAccountEventListener::GetInstance()->SubscribeAppAccount(subscriberTestPtr, needNotifyService);
+    EXPECT_TRUE(needNotifyService);
+
     // subscribe app account
     result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
@@ -543,8 +568,11 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 
     Wait();
 
+    AppAccountEventListener::GetInstance()->UnsubscribeAppAccount(subscriberTestPtr, needNotifyService, owners);
+    EXPECT_TRUE(needNotifyService);
+
     // unsubscribe app account
-    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener);
+    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener, owners);
     EXPECT_EQ(result, ERR_OK);
 
     // delete account
@@ -589,6 +617,11 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
         subscriberTestPtr, appAccountEventListener);
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
+    bool needNotifyService = false;
+    result = AppAccountEventListener::GetInstance()->SubscribeAppAccount(subscriberTestPtr, needNotifyService);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_TRUE(needNotifyService);
+
     // subscribe app account
     result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
@@ -603,6 +636,10 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
         subscriberTestPtrTwo, appAccountEventListenerTwo);
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
+    needNotifyService = false;
+    result = AppAccountEventListener::GetInstance()->SubscribeAppAccount(subscriberTestPtrTwo, needNotifyService);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_FALSE(needNotifyService);
     // subscribe app account
     result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListenerTwo);
     EXPECT_EQ(result, ERR_OK);
@@ -616,12 +653,21 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 
     Wait();
 
-    // unsubscribe app account
-    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener);
+    result =
+        AppAccountEventListener::GetInstance()->UnsubscribeAppAccount(subscriberTestPtr, needNotifyService, owners);
     EXPECT_EQ(result, ERR_OK);
+    EXPECT_FALSE(needNotifyService);
 
     // unsubscribe app account
-    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListenerTwo);
+    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener, owners);
+    EXPECT_EQ(result, ERR_OK);
+
+    result =
+        AppAccountEventListener::GetInstance()->UnsubscribeAppAccount(subscriberTestPtrTwo, needNotifyService, owners);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_TRUE(needNotifyService);
+    // unsubscribe app account
+    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListenerTwo, owners);
     EXPECT_EQ(result, ERR_OK);
 
     // delete app account

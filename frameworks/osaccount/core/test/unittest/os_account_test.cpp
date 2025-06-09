@@ -249,20 +249,6 @@ HWTEST_F(OsAccountTest, OsAccountTest009, TestSize.Level1)
 }
 
 /**
- * @tc.name: OsAccountTest010
- * @tc.desc: Test CreateOsAccountEventListener subscriber is nullptr.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountTest, OsAccountTest010, TestSize.Level1)
-{
-    const std::shared_ptr<OsAccountSubscriber> subscriber = nullptr;
-    sptr<IRemoteObject> osAccountEventListener;
-    EXPECT_EQ(OsAccount::SUBSCRIBE_FAILED,
-        g_osAccount->CreateOsAccountEventListener(subscriber, osAccountEventListener));
-}
-
-/**
  * @tc.name: OsAccountTest011
  * @tc.desc: Test CreateOsAccount name is empty.
  * @tc.type: FUNC

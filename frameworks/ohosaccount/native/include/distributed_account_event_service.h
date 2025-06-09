@@ -18,26 +18,33 @@
 
 #include "distributed_account_event_stub.h"
 #include <set>
+#include <map>
 
 namespace OHOS {
 namespace AccountSA {
 class DistributedAccountEventService : public DistributedAccountEventStub {
 public:
-    explicit DistributedAccountEventService(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
-        const std::shared_ptr<DistributedAccountSubscribeCallback> &callback);
+    explicit DistributedAccountEventService();
     ~DistributedAccountEventService() override;
-    bool IsTypeExist(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type);
-    void AddType(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type);
-    void DeleteType(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type);
-    int32_t GetTypeSize();
-    void GetAllType(std::vector<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE> &typeList);
+    bool IsTypeExist(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
+        const std::shared_ptr<DistributedAccountSubscribeCallback> &callback);
+    void AddType(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
+        const std::shared_ptr<DistributedAccountSubscribeCallback> &callback);
+    void DeleteType(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
+        const std::shared_ptr<DistributedAccountSubscribeCallback> &callback);
+    void GetAllType(std::set<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE> &typeList);
+    int32_t GetCallbackSize();
 
     void OnAccountsChanged(const DistributedAccountEventData &eventData) override;
+    static DistributedAccountEventService *GetInstance();
 
 private:
-    std::shared_ptr<DistributedAccountSubscribeCallback> distributedAccountSubscribeCallback_;
-    std::mutex typesLock_;
-    std::set<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE> types_;
+    std::mutex mapLock_;
+    std::map<std::shared_ptr<DistributedAccountSubscribeCallback>,
+        std::set<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE>> callbackMap_;
+
+    std::map<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE,
+        std::set<std::shared_ptr<DistributedAccountSubscribeCallback>>> typeMap_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

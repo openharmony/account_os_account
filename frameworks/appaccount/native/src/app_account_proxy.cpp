@@ -1101,7 +1101,8 @@ ErrCode AppAccountProxy::SubscribeAppAccount(
     return result;
 }
 
-ErrCode AppAccountProxy::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener)
+ErrCode AppAccountProxy::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener,
+    std::vector<std::string> &owners)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -1113,6 +1114,10 @@ ErrCode AppAccountProxy::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventL
 
     if (!data.WriteRemoteObject(eventListener)) {
         ACCOUNT_LOGE("failed to write remote object for eventListener");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteStringVector(owners)) {
+        ACCOUNT_LOGE("failed to write string vector for owners");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 

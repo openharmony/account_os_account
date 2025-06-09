@@ -109,7 +109,7 @@
         "OHOS::AccountSA::AppAccountSubscribeManager::GetAccessibleAccountsBySubscribeInfo(std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscribeInfo> const&, std::__h::vector<OHOS::AccountSA::AppAccountInfo, std::__h::allocator<OHOS::AccountSA::AppAccountInfo>> const&, std::__h::vector<OHOS::AccountSA::AppAccountInfo, std::__h::allocator<OHOS::AccountSA::AppAccountInfo>>&)";
         "OHOS::AccountSA::AppAccountSubscribeManager::GetInstance()";
         "OHOS::AccountSA::AppAccountSubscribeManager::InsertSubscribeRecord(std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&, std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscribeRecord> const&)";
-        "OHOS::AccountSA::AppAccountSubscribeManager::RemoveSubscribeRecord(OHOS::sptr<OHOS::IRemoteObject> const&)";
+        "OHOS::AccountSA::AppAccountSubscribeManager::RemoveSubscribeRecord(OHOS::sptr<OHOS::IRemoteObject> const&, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>&)";
         "OHOS::AccountSA::AppAccountSubscribeManager::SubscribeAppAccount(std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscribeInfo> const&, OHOS::sptr<OHOS::IRemoteObject> const&, unsigned int const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int const&)";
         "OHOS::AccountSA::AppAccountSubscribeManager::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener)";
         *OHOS::AccountSA::AuthCallback*;
@@ -185,7 +185,7 @@
         "OHOS::AccountSA::InnerAppAccountManager::SetOAuthToken(OHOS::AccountSA::AuthenticatorSessionRequest const&)";
         "OHOS::AccountSA::InnerAppAccountManager::SetOAuthTokenVisibility(OHOS::AccountSA::AuthenticatorSessionRequest const&, unsigned int)";
         "OHOS::AccountSA::InnerAppAccountManager::SubscribeAppAccount(OHOS::AccountSA::AppAccountSubscribeInfo const&, OHOS::sptr<OHOS::IRemoteObject> const&, unsigned int const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int const&)";
-        "OHOS::AccountSA::InnerAppAccountManager::UnsubscribeAppAccount(OHOS::sptr<OHOS::IRemoteObject> const&)";
+        "OHOS::AccountSA::InnerAppAccountManager::UnsubscribeAppAccount(OHOS::sptr<OHOS::IRemoteObject> const&, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>&)";
         "OHOS::AccountSA::InnerAppAccountManager::VerifyCredential(OHOS::AccountSA::AuthenticatorSessionRequest const&)";
         "OHOS::AccountSA::InnerAppAccountManager::~InnerAppAccountManager()";
         "OHOS::AccountSA::IInnerOsAccountManager::IsSameAccount(OHOS::AccountSA::DomainAccountInfo const&, OHOS::AccountSA::DomainAccountInfo const&)";
