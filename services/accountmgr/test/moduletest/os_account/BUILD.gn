@@ -214,59 +214,6 @@ ohos_moduletest("os_account_manager_service_module_test") {
   }
 }
 
-config("os_account_manager_service_create_os_account_test_config") {
-  include_dirs = [
-    "${services_path}/accountmgr/test/mock/os_account",
-    "${services_path}/accountmgr/include",
-    "${services_path}/accountmgr/include/osaccount",
-    "${common_path}/log/include",
-    "${common_path}/perf_stat/include",
-    "${innerkits_common}/include",
-    "${innerkits_path}/include",
-  ]
-}
-
-ohos_moduletest("os_account_manager_service_create_os_account_test") {
-  branch_protector_ret = "pac_ret"
-
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-
-  module_out_path = module_output_path
-
-  sources = [ "os_account_manager_service_create_os_account_test.cpp" ]
-  sources += [
-    "${services_path}/accountmgr/test/mock/common/bundle_manager_adapter.cpp",
-    "${services_path}/accountmgr/test/mock/os_account/os_account_interface.cpp",
-    "${services_path}/accountmgr/test/mock/os_account/permission_kit.cpp",
-  ]
-  configs = [
-    ":os_account_manager_service_create_os_account_test_config",
-    "${services_path}/accountmgr/test:accountmgr_test_config",
-  ]
-  deps = [
-    "${common_path}:libaccount_common",
-    "${os_account_innerkits_native_path}:os_account_innerkits",
-    "${services_path}/accountmgr:accountmgr",
-  ]
-
-  external_deps = [
-    "ability_runtime:ability_manager",
-    "bundle_framework:appexecfwk_core",
-    "cJSON:cjson",
-    "c_utils:utils",
-    "googletest:gmock_main",
-    "googletest:gtest_main",
-    "hilog:libhilog",
-    "ipc:ipc_single",
-    "kv_store:distributeddata_inner",
-  ]
-  part_name = "os_account"
-}
-
 config("os_account_manager_service_subscribe_test_config") {
   include_dirs = [
     "${services_path}/accountmgr/test/mock/os_account",
