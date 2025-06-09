@@ -36,13 +36,11 @@ const char THREAD_OS_ACCOUNT_EVENT[] = "osAccountEvent";
 constexpr int32_t DEACTIVATION_WAIT_SECONDS = 5;
 }
 
-SwitchSubcribeWork::SwitchSubcribeWork(const sptr<IOsAccountEvent> &eventProxy, OsAccountState state,
-    int32_t fromId, int32_t toId)
+SwitchSubcribeWork::SwitchSubcribeWork(const sptr<IOsAccountEvent> &eventProxy,
+    const OsAccountStateParcel &stateParcel)
 {
     eventProxy_ = eventProxy;
-    type_ = state;
-    fromId_ = fromId;
-    toId_ = toId;
+    stateParcel_ = stateParcel;
 }
 
 SwitchSubscribeInfo::SwitchSubscribeInfo(OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType)
@@ -57,25 +55,18 @@ SwitchSubscribeInfo::~SwitchSubscribeInfo()
 {
 }
 
-void SwitchSubscribeInfo::AddSubscribeInfo(OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType)
+void SwitchSubscribeInfo::AddSubscribeInfo()
 {
-    if (osAccountSubscribeType == OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING ||
-        osAccountSubscribeType == OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED) {
-        count_++;
-    }
+    count_++;
 }
 
-bool SwitchSubscribeInfo::SubSubscribeInfo(OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType)
+bool SwitchSubscribeInfo::SubSubscribeInfo()
 {
-    if (osAccountSubscribeType == OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING ||
-        osAccountSubscribeType == OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED) {
-        if (count_ == 0) {
-            return false;
-        }
-        count_--;
-        return true;
+    if (count_ == 0) {
+        return false;
     }
-    return false;
+    count_--;
+    return true;
 }
 
 bool SwitchSubscribeInfo::IsEmpty()
@@ -105,7 +96,7 @@ static void ConsumerTask(std::weak_ptr<SwitchSubscribeInfo> weakInfo)
             TIMEOUT, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
 #endif // HICOLLIE_ENABLE
         if (work != nullptr && work->eventProxy_ != nullptr) {
-            work->eventProxy_->OnAccountsSwitch(work->fromId_, work->toId_);
+            work->eventProxy_->OnStateChanged(work->stateParcel_);
         }
 #ifdef HICOLLIE_ENABLE
         HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
@@ -113,11 +104,10 @@ static void ConsumerTask(std::weak_ptr<SwitchSubscribeInfo> weakInfo)
     }
 }
 
-bool SwitchSubscribeInfo::ProductTask(const sptr<IOsAccountEvent> &eventProxy, OsAccountState state, const int newId,
-    const int oldId)
+bool SwitchSubscribeInfo::ProductTask(const sptr<IOsAccountEvent> &eventProxy, OsAccountStateParcel &stateParcel)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    auto work = std::make_shared<SwitchSubcribeWork>(eventProxy, state, newId, oldId);
+    auto work = std::make_shared<SwitchSubcribeWork>(eventProxy, stateParcel);
     workDeque_.push_back(work);
     if (workThread_ == nullptr) {
         workThread_ = std::make_unique<std::thread>(&ConsumerTask, weak_from_this());
@@ -151,31 +141,40 @@ ErrCode OsAccountSubscribeManager::SubscribeOsAccount(
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
     std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
-    auto osSubscribeInfo = GetSubscribeRecordInfo(eventListener);
-    if (osSubscribeInfo != nullptr) {
-        std::string name;
-        osSubscribeInfo->GetName(name);
-        ACCOUNT_LOGI("Event listener %{public}s already exists.", name.c_str());
-        return ERR_OK;
-    }
+    auto it = std::find_if(subscribeRecords_.begin(), subscribeRecords_.end(),
+        [eventListener] (const OsSubscribeRecordPtr &record) {
+            return eventListener == record->eventListener_;
+        });
     int32_t callingUid = IPCSkeleton::GetCallingUid();
-    auto subscribeRecordPtr = std::make_shared<OsSubscribeRecord>(subscribeInfoPtr, eventListener, callingUid);
-    if (subscribeRecordPtr == nullptr) {
-        ACCOUNT_LOGE("SubscribeRecordPtr is nullptr");
-        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    std::set<OsAccountState> states;
+    subscribeInfoPtr->GetStates(states);
+    if (it != subscribeRecords_.end()) {
+        std::set<OsAccountState> tmpStates;
+        (*it)->subscribeInfoPtr_->GetStates(tmpStates);
+        if (states == tmpStates) {
+            int32_t callingPid = IPCSkeleton::GetCallingRealPid();
+            ACCOUNT_LOGI("EventListener(%{public}d) already exists.", callingPid);
+        } else {
+            (*it)->subscribeInfoPtr_ = subscribeInfoPtr;
+        }
+    } else {
+        auto subscribeRecordPtr = std::make_shared<OsSubscribeRecord>(subscribeInfoPtr, eventListener, callingUid);
+        if (subscribeRecordPtr == nullptr) {
+            ACCOUNT_LOGE("SubscribeRecordPtr is nullptr");
+            return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+        }
+        if (subscribeDeathRecipient_ != nullptr) {
+            eventListener->AddDeathRecipient(subscribeDeathRecipient_);
+        }
+        subscribeRecords_.insert(subscribeRecordPtr);
     }
-    if (subscribeDeathRecipient_ != nullptr) {
-        eventListener->AddDeathRecipient(subscribeDeathRecipient_);
-    }
-    subscribeRecords_.emplace_back(subscribeRecordPtr);
-    OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType;
-    subscribeInfoPtr->GetOsAccountSubscribeType(osAccountSubscribeType);
-    if (osAccountSubscribeType == SWITCHING || osAccountSubscribeType == SWITCHED) {
+    ACCOUNT_LOGI("SubscribeOsAccount status size=%{public}zu.", states.size());
+    if (states.find(SWITCHING) != states.end() || states.find(SWITCHED) != states.end()) {
         if (switchRecordMap_.count(callingUid) != 0) {
-            switchRecordMap_[callingUid]->AddSubscribeInfo(osAccountSubscribeType);
+            switchRecordMap_[callingUid]->AddSubscribeInfo();
             return ERR_OK;
         }
-        switchRecordMap_.emplace(callingUid, std::make_shared<SwitchSubscribeInfo>(osAccountSubscribeType));
+        switchRecordMap_.emplace(callingUid, std::make_shared<SwitchSubscribeInfo>());
     }
     return ERR_OK;
 }
@@ -198,18 +197,19 @@ ErrCode OsAccountSubscribeManager::RemoveSubscribeRecord(const sptr<IRemoteObjec
 {
     for (auto it = subscribeRecords_.begin(); it != subscribeRecords_.end(); ++it) {
         if (eventListener == (*it)->eventListener_) {
+            ACCOUNT_LOGI("UnsubscribeOsAccount eventListener.");
             (*it)->eventListener_ = nullptr;
             int32_t callingUid = (*it)->callingUid_;
-            OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType;
-            (*it)->subscribeInfoPtr_->GetOsAccountSubscribeType(osAccountSubscribeType);
+            std::set<OsAccountState> states;
+            (*it)->subscribeInfoPtr_->GetStates(states);
             subscribeRecords_.erase(it);
-            if (osAccountSubscribeType != SWITCHING && osAccountSubscribeType != SWITCHED) {
+            if (states.find(SWITCHING) == states.end() && states.find(SWITCHED) == states.end()) {
                 break;
             }
             if (switchRecordMap_.count(callingUid) == 0) {
                 break;
             }
-            switchRecordMap_[callingUid]->SubSubscribeInfo(osAccountSubscribeType);
+            switchRecordMap_[callingUid]->SubSubscribeInfo();
             if (switchRecordMap_[callingUid]->IsEmpty()) {
                 switchRecordMap_.erase(callingUid);
             }
@@ -239,6 +239,12 @@ const std::shared_ptr<OsAccountSubscribeInfo> OsAccountSubscribeManager::GetSubs
 bool OsAccountSubscribeManager::OnStateChanged(
     const sptr<IOsAccountEvent> &eventProxy, OsAccountStateParcel &stateParcel, int32_t targetUid)
 {
+    if (stateParcel.state == SWITCHING || stateParcel.state == SWITCHED) {
+        if (switchRecordMap_.count(targetUid) == 0) {
+            return false;
+        }
+        return switchRecordMap_[targetUid]->ProductTask(eventProxy, stateParcel);
+    }
     auto task = [eventProxy, stateParcel, targetUid]() mutable {
         if (stateParcel.toId == -1 && (stateParcel.state != OsAccountState::SWITCHED)
             && (stateParcel.state != OsAccountState::SWITCHING)) {
@@ -280,7 +286,11 @@ bool OsAccountSubscribeManager::OnStateChangedV0(const sptr<IOsAccountEvent> &ev
         if (switchRecordMap_.count(targetUid) == 0) {
             return false;
         }
-        return switchRecordMap_[targetUid]->ProductTask(eventProxy, state, toId, fromId);
+        OsAccountStateParcel stateParcel;
+        stateParcel.fromId = fromId;
+        stateParcel.toId = toId;
+        stateParcel.state = state;
+        return switchRecordMap_[targetUid]->ProductTask(eventProxy, stateParcel);
     }
     return OnAccountsChanged(eventProxy, state, fromId, targetUid);
 }

@@ -77,8 +77,6 @@ private:
 
     bool isSubscribeSA_ = false;
     std::mutex eventListenersMutex_;
-    std::map<std::shared_ptr<DistributedAccountSubscribeCallback>,
-        sptr<DistributedAccountEventService>> eventListeners_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_{};
     std::mutex accountProxyLock_;
     sptr<IAccount> accountProxy_{};

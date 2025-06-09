@@ -26,7 +26,7 @@ public:
     explicit AppAccountEventProxy(const sptr<IRemoteObject> &object);
     ~AppAccountEventProxy() override;
 
-    void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts) override;
+    void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts, const std::string &ownerName) override;
 
 private:
     ErrCode SendRequest(AppAccountEventInterfaceCode code, MessageParcel &data, MessageParcel &reply);

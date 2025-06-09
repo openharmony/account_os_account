@@ -92,7 +92,8 @@ ErrCode MockInnerAppAccountManager::SubscribeAppAccount(const AppAccountSubscrib
     return ERR_OK;
 }
 
-ErrCode MockInnerAppAccountManager::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener)
+ErrCode MockInnerAppAccountManager::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener,
+    std::vector<std::string> &owners)
 {
     ACCOUNT_LOGI("mock enter");
 

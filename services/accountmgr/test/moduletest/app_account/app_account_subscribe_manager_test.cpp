@@ -117,7 +117,8 @@ HWTEST_F(AppAccountSubscribeManagerTest, UnsubscribeAppAccount_0100, TestSize.Le
 {
     ACCOUNT_LOGI("AppAccountSubscribeManager_UnsubscribeAppAccount_0100");
 
-    ErrCode ret = AppAccountSubscribeManager::GetInstance().UnsubscribeAppAccount(nullptr);
+    std::vector<std::string> owners;
+    ErrCode ret = AppAccountSubscribeManager::GetInstance().UnsubscribeAppAccount(nullptr, owners);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }
 
@@ -209,7 +210,8 @@ HWTEST_F(AppAccountSubscribeManagerTest, RemoveSubscribeRecord_0100, TestSize.Le
 {
     ACCOUNT_LOGI("AppAccountSubscribeManager_RemoveSubscribeRecord_0100");
     // check eventListener is nullptr.
-    ErrCode ret = AppAccountSubscribeManager::GetInstance().RemoveSubscribeRecord(nullptr);
+    std::vector<std::string> owners;
+    ErrCode ret = AppAccountSubscribeManager::GetInstance().RemoveSubscribeRecord(nullptr, owners);
     EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }
 

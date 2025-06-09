@@ -89,7 +89,8 @@ ErrCode AppAccountSubscribeManager::SubscribeAppAccount(
     return InsertSubscribeRecord(owners, subscribeRecordPtr);
 }
 
-ErrCode AppAccountSubscribeManager::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener)
+ErrCode AppAccountSubscribeManager::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener,
+    std::vector<std::string> &owners)
 {
     if (eventListener == nullptr) {
         ACCOUNT_LOGE("eventListener is nullptr");
@@ -100,7 +101,7 @@ ErrCode AppAccountSubscribeManager::UnsubscribeAppAccount(const sptr<IRemoteObje
         eventListener->RemoveDeathRecipient(subscribeDeathRecipient_);
     }
 
-    return RemoveSubscribeRecord(eventListener);
+    return RemoveSubscribeRecord(eventListener, owners);
 }
 
 std::vector<AppAccountSubscribeRecordPtr> AppAccountSubscribeManager::GetSubscribeRecords(const std::string &owner,
@@ -214,6 +215,19 @@ ErrCode AppAccountSubscribeManager::CheckAppAccess(const std::shared_ptr<AppAcco
     return ERR_OK;
 }
 
+void AppAccountSubscribeManager::ClearOldData(const sptr<IRemoteObject> &eventListener, const std::string &owner,
+    std::map<std::string, std::multiset<AppAccountSubscribeRecordPtr>>::iterator &item)
+{
+    for (auto it = item->second.begin(); it != item->second.end(); ++it) {
+        if ((eventListener == (*it)->eventListener) || ((*it)->eventListener == nullptr)) {
+            ACCOUNT_LOGI("The subscription record already exists. Update the owner operation");
+            (*it)->eventListener = nullptr;
+            ownerSubscribeRecords_[owner].erase(it);
+            break;
+        }
+    }
+}
+
 ErrCode AppAccountSubscribeManager::InsertSubscribeRecord(
     const std::vector<std::string> &owners, const AppAccountSubscribeRecordPtr &subscribeRecordPtr)
 {
@@ -229,9 +243,11 @@ ErrCode AppAccountSubscribeManager::InsertSubscribeRecord(
 
     std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
 
+    auto eventListener = subscribeRecordPtr->eventListener;
     for (auto owner : owners) {
         auto item = ownerSubscribeRecords_.find(owner);
         if (item != ownerSubscribeRecords_.end()) {
+            ClearOldData(eventListener, owner, item);
             item->second.insert(subscribeRecordPtr);
         } else {
             std::multiset<AppAccountSubscribeRecordPtr> subscribeRecords;
@@ -239,13 +255,39 @@ ErrCode AppAccountSubscribeManager::InsertSubscribeRecord(
             ownerSubscribeRecords_[owner] = subscribeRecords;
         }
     }
+    ACCOUNT_LOGI("Update owner only, owner size=%{public}zu.", owners.size());
 
+    for (auto it = subscribeRecords_.begin(); it != subscribeRecords_.end(); ++it) {
+        if ((eventListener == (*it)->eventListener) || ((*it)->eventListener == nullptr)) {
+            (*it)->eventListener = nullptr;
+            subscribeRecords_.erase(it);
+            break;
+        }
+    }
     subscribeRecords_.emplace_back(subscribeRecordPtr);
 
     return ERR_OK;
 }
 
-ErrCode AppAccountSubscribeManager::RemoveSubscribeRecord(const sptr<IRemoteObject> &eventListener)
+void AppAccountSubscribeManager::RefreshOldData(const sptr<IRemoteObject> &eventListener, const std::string &owner,
+    const std::vector<std::string> &ownerList, const std::vector<std::string> &newOwners)
+{
+    for (auto it = ownerSubscribeRecords_[owner].begin(); it != ownerSubscribeRecords_[owner].end(); ++it) {
+        if ((eventListener == (*it)->eventListener) || ((*it)->eventListener == nullptr)) {
+            ACCOUNT_LOGI("Clear owner only, owner size=%{public}zu.", newOwners.size());
+            if ((!ownerList.empty()) && (std::find(ownerList.begin(), ownerList.end(), owner) == ownerList.end())) {
+                (*it)->subscribeInfoPtr->SetOwners(newOwners);
+                break;
+            }
+            (*it)->eventListener = nullptr;
+            ownerSubscribeRecords_[owner].erase(it);
+            break;
+        }
+    }
+}
+
+ErrCode AppAccountSubscribeManager::RemoveSubscribeRecord(const sptr<IRemoteObject> &eventListener,
+    std::vector<std::string> &ownerList)
 {
     if (eventListener == nullptr) {
         ACCOUNT_LOGE("eventListener is nullptr");
@@ -255,22 +297,25 @@ ErrCode AppAccountSubscribeManager::RemoveSubscribeRecord(const sptr<IRemoteObje
     std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
 
     std::vector<std::string> owners;
+    std::vector<std::string> newOwners;
     for (auto it = subscribeRecords_.begin(); it != subscribeRecords_.end(); ++it) {
         if (eventListener == (*it)->eventListener) {
             (*it)->subscribeInfoPtr->GetOwners(owners);
+            if (!ownerList.empty()) {
+                std::sort(owners.begin(), owners.end());
+                std::sort(ownerList.begin(), ownerList.end());
+                std::set_difference(owners.begin(), owners.end(), ownerList.begin(), ownerList.end(),
+                    std::back_inserter(newOwners));
+                (*it)->subscribeInfoPtr->SetOwners(newOwners);
+                break;
+            }
             subscribeRecords_.erase(it);
             break;
         }
     }
 
     for (auto owner : owners) {
-        for (auto it = ownerSubscribeRecords_[owner].begin(); it != ownerSubscribeRecords_[owner].end(); ++it) {
-            if ((eventListener == (*it)->eventListener) || ((*it)->eventListener == nullptr)) {
-                (*it)->eventListener = nullptr;
-                ownerSubscribeRecords_[owner].erase(it);
-                break;
-            }
-        }
+        RefreshOldData(eventListener, owner, ownerList, newOwners);
 
         if (ownerSubscribeRecords_[owner].size() == 0) {
             ownerSubscribeRecords_.erase(owner);
@@ -343,7 +388,7 @@ ErrCode AppAccountSubscribeManager::OnAccountsChanged(const std::shared_ptr<AppA
             continue;
         }
 
-        appAccountEventProxy->OnAccountsChanged(appAccounts);
+        appAccountEventProxy->OnAccountsChanged(appAccounts, record->info->GetOwner());
     }
 
     return ERR_OK;

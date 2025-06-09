@@ -16,25 +16,22 @@
 #ifndef OS_ACCOUNT_FRAMEWORKS_OSACCOUNT_CORE_INCLUDE_OS_ACCOUNT_STATE_REPLY_CALLBACK_H
 #define OS_ACCOUNT_FRAMEWORKS_OSACCOUNT_CORE_INCLUDE_OS_ACCOUNT_STATE_REPLY_CALLBACK_H
 
-#include "ios_account_state_reply_callback.h"
-#include "accountmgr_service_ipc_interface_code.h"
 #include "iremote_proxy.h"
 
 namespace OHOS {
 namespace AccountSA {
-class OsAccountStateReplyCallback : public IRemoteProxy<IOsAccountStateReplyCallback> {
+class OsAccountStateReplyCallback {
 public:
     explicit OsAccountStateReplyCallback(const sptr<IRemoteObject> &object);
-    ~OsAccountStateReplyCallback() override = default;
+    OsAccountStateReplyCallback(
+        const std::shared_ptr<std::condition_variable> &cv, const std::shared_ptr<bool> &callbackCounter);
+    ~OsAccountStateReplyCallback() = default;
 
-    void OnComplete() override;
-
-private:
-    ErrCode SendRequest(
-        StateReplyCallbackInterfaceCode code, MessageParcel &data, MessageParcel &reply);
+    void OnComplete();
 
 private:
-    static inline BrokerDelegator<OsAccountStateReplyCallback> delegator_;
+    std::shared_ptr<std::condition_variable> cv_;
+    std::shared_ptr<bool> callbackCounter;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

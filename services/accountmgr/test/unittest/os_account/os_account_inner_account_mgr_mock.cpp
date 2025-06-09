@@ -28,8 +28,8 @@
 #define private public
 #include "account_file_watcher_manager.h"
 #include "os_account_control_file_manager.h"
-#undef private
 #include "os_account_subscribe_manager.h"
+#undef private
 #ifdef BUNDLE_ADAPTER_MOCK
 #define private public
 #define protected public
@@ -2114,6 +2114,24 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest044, TestSize
     int ret = innerMgrService_->SetDefaultActivatedOsAccount(TEST_USER_ID108);
     EXPECT_EQ(ret, -1);
     testing::Mock::AllowLeak(ptr.get());
+}
+
+/*
+ * @tc.name: OsAccountInnerAccmgrMockTest045
+ * @tc.desc: test subscribe
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest045, TestSize.Level1)
+{
+    auto subscriber1 = std::make_shared<OsAccountSubscriber>(OsAccountSubscribeInfo({ACTIVATED}));
+    EXPECT_EQ(ERR_OK, OsAccount::GetInstance().SubscribeOsAccount(subscriber1));
+    auto subscriber2 = std::make_shared<OsAccountSubscriber>(OsAccountSubscribeInfo({ACTIVATING}));
+    EXPECT_EQ(ERR_OK, OsAccount::GetInstance().SubscribeOsAccount(subscriber2));
+
+    EXPECT_EQ(OsAccountSubscribeManager::GetInstance().subscribeRecords_.size(), 1);
+
+    OsAccount::GetInstance().listenerManager_ = nullptr;
 }
 
 /*

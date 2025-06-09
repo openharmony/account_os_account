@@ -1039,7 +1039,14 @@ ErrCode AppAccountStub::ProcUnsubscribeAccount(uint32_t code, MessageParcel &dat
         ACCOUNT_LOGE("failed to read remote object for eventListener");
         return IPC_STUB_INVALID_DATA_ERR;
     }
-    ErrCode result = UnsubscribeAppAccount(eventListener);
+    std::vector<std::string> owners;
+    if (!data.ReadStringVector(&owners)) {
+        ACCOUNT_LOGE("failed to read owners");
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+    RETURN_IF_STRING_IS_OVERSIZE(
+        owners, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "owners array is empty or oversize", reply);
+    ErrCode result = UnsubscribeAppAccount(eventListener, owners);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;

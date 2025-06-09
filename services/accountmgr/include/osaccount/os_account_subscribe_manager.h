@@ -30,12 +30,10 @@ namespace OHOS {
 namespace AccountSA {
 struct SwitchSubcribeWork {
     SwitchSubcribeWork() = default;
-    SwitchSubcribeWork(const sptr<IOsAccountEvent> &eventProxy, OsAccountState state,  int32_t fromId, int32_t toId);
+    SwitchSubcribeWork(const sptr<IOsAccountEvent> &eventProxy, const OsAccountStateParcel &stateParcel);
     ~SwitchSubcribeWork() = default;
     sptr<IOsAccountEvent> eventProxy_ = nullptr;
-    OS_ACCOUNT_SUBSCRIBE_TYPE type_ = INVALID_TYPE;
-    int32_t fromId_ = -1;
-    int32_t toId_ = -1;
+    OsAccountStateParcel stateParcel_;
 };
 
 class SwitchSubscribeInfo : public std::enable_shared_from_this<SwitchSubscribeInfo> {
@@ -43,11 +41,10 @@ public:
     SwitchSubscribeInfo() = default;
     SwitchSubscribeInfo(OS_ACCOUNT_SUBSCRIBE_TYPE);
     ~SwitchSubscribeInfo();
-    void AddSubscribeInfo(OS_ACCOUNT_SUBSCRIBE_TYPE);
-    bool SubSubscribeInfo(OS_ACCOUNT_SUBSCRIBE_TYPE);
+    void AddSubscribeInfo();
+    bool SubSubscribeInfo();
     bool IsEmpty();
-    bool ProductTask(const sptr<IOsAccountEvent> &eventProxy, OsAccountState state, const int newId,
-        const int oldId);
+    bool ProductTask(const sptr<IOsAccountEvent> &eventProxy, OsAccountStateParcel &stateParcel);
 
 public:
     std::mutex mutex_;
@@ -83,7 +80,7 @@ private:
     std::mutex mutex_;
     sptr<IRemoteObject::DeathRecipient> subscribeDeathRecipient_;
     std::mutex subscribeRecordMutex_;
-    std::vector<OsSubscribeRecordPtr> subscribeRecords_;
+    std::set<OsSubscribeRecordPtr> subscribeRecords_;
     std::map<int32_t, std::shared_ptr<SwitchSubscribeInfo>> switchRecordMap_;
 };
 }  // namespace AccountSA

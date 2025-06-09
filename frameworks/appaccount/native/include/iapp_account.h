@@ -101,7 +101,8 @@ public:
 
     virtual ErrCode SubscribeAppAccount(
         AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener) = 0;
-    virtual ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener) = 0;
+    virtual ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener,
+        std::vector<std::string> &owners) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
