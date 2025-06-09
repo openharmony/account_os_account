@@ -27,7 +27,7 @@ class IAppAccountEvent : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IAppAccountEvent");
 
-    virtual void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts) = 0;
+    virtual void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts, const std::string &owner) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

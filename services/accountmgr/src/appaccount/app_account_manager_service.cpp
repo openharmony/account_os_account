@@ -694,9 +694,10 @@ ErrCode AppAccountManagerService::SubscribeAppAccount(
     return innerManager_->SubscribeAppAccount(subscribeInfo, eventListener, callingUid, bundleName, appIndex);
 }
 
-ErrCode AppAccountManagerService::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener)
+ErrCode AppAccountManagerService::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener,
+    std::vector<std::string> &owners)
 {
-    return innerManager_->UnsubscribeAppAccount(eventListener);
+    return innerManager_->UnsubscribeAppAccount(eventListener, owners);
 }
 
 ErrCode AppAccountManagerService::OnPackageRemoved(

@@ -133,6 +133,10 @@ napi_value GetPropertyTypeConstructor(napi_env env)
     NAPI_CALL(env, napi_set_named_property(env, getPropertyType, "ENROLLMENT_PROGRESS", enrollmentProgress));
     NAPI_CALL(env, napi_set_named_property(env, getPropertyType, "SENSOR_INFO", sensorInfo));
     NAPI_CALL(env, napi_set_named_property(env, getPropertyType, "NEXT_PHASE_FREEZING_TIME", nextPhaseFreezingTime));
+    napi_value credentialLength = nullptr;
+    NAPI_CALL(env, napi_create_int32(
+        env, static_cast<int32_t>(GetPropertyType::CREDENTIAL_LENGTH), &credentialLength));
+    NAPI_CALL(env, napi_set_named_property(env, getPropertyType, "CREDENTIAL_LENGTH", credentialLength));
     return getPropertyType;
 }
 

@@ -52,32 +52,20 @@ OsAccount::OsAccount()
 
 void OsAccount::RestoreListenerRecords()
 {
+    std::lock_guard<std::mutex> lock(eventListenersMutex_);
+    if (listenerManager_ == nullptr || listenerManager_->Size() == 0) {
+        return;
+    }
     auto proxy = GetOsAccountProxy();
     if (proxy == nullptr) {
+        ACCOUNT_LOGE("GetProxy failed");
         return;
     }
-    std::lock_guard<std::mutex> lock(eventListenersMutex_);
-    if (eventListeners_.empty()) {
-        return;
+    ErrCode result = proxy->SubscribeOsAccount(listenerManager_->GetTotalSubscribeInfo(), listenerManager_);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SubscribeOsAccount failed, errCode=%{public}d", result);
     }
-    size_t successCount = 0;
-    for (const auto &item : eventListeners_) {
-        OsAccountSubscribeInfo subscribeInfo;
-        if (item.first == nullptr) {
-            ACCOUNT_LOGE("OsAccountSubscriber is nullptr");
-            continue;
-        }
-        item.first->GetSubscribeInfo(subscribeInfo);
-        ErrCode result = proxy->SubscribeOsAccount(subscribeInfo, item.second);
-        if (result != ERR_OK) {
-            std::string name;
-            subscribeInfo.GetName(name);
-            ACCOUNT_LOGE("SubscribeOsAccount %{public}s failed, errCode=%{public}d", name.c_str(), result);
-        } else {
-            successCount++;
-        }
-    }
-    ACCOUNT_LOGI("Restore records %{public}zu/%{public}zu", successCount, eventListeners_.size());
+    ACCOUNT_LOGI("Restore ListenerManager success, record=%{public}d", listenerManager_->Size());
 }
 
 ErrCode OsAccount::CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
@@ -579,10 +567,13 @@ ErrCode OsAccount::SubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber>
 
     OsAccountSubscribeInfo subscribeInfo;
     subscriber->GetSubscribeInfo(subscribeInfo);
+    OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType;
+    subscribeInfo.GetOsAccountSubscribeType(osAccountSubscribeType);
     std::set<OsAccountState> states;
     subscribeInfo.GetStates(states);
-    if (states.size() > Constants::MAX_SUBSCRIBED_STATES_SIZE) {
-        ACCOUNT_LOGE("The states is oversize");
+    if (states.size() > Constants::MAX_SUBSCRIBED_STATES_SIZE ||
+        (osAccountSubscribeType == OsAccountState::INVALID_TYPE && states.empty())) {
+        ACCOUNT_LOGE("The states is oversize or empty");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
@@ -590,25 +581,26 @@ ErrCode OsAccount::SubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber>
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-
-    sptr<IRemoteObject> osAccountEventListener = nullptr;
-    ErrCode subscribeState = CreateOsAccountEventListener(subscriber, osAccountEventListener);
-    if (subscribeState == INITIAL_SUBSCRIPTION) {
-        subscribeState = proxy->SubscribeOsAccount(subscribeInfo, osAccountEventListener);
-        {
-            std::lock_guard<std::mutex> lock(eventListenersMutex_);
-            if (subscribeState != ERR_OK) {
-                eventListeners_.erase(subscriber);
-            } else {
-                ACCOUNT_LOGI("Subscribe success, %{public}zu.", eventListeners_.size());
-            }
+    std::lock_guard<std::mutex> lock(eventListenersMutex_);
+    if (listenerManager_ == nullptr) {
+        ACCOUNT_LOGI("Listenermager is nullptr");
+        listenerManager_ = new (std::nothrow) OsAccountEventListener();
+        if (listenerManager_ == nullptr) {
+            ACCOUNT_LOGE("Memory allocation for listener failed!");
+            return ERR_OSACCOUNT_KIT_SUBSCRIBE_ERROR;
         }
-        return subscribeState;
-    } else if (subscribeState == ALREADY_SUBSCRIBED) {
-        return ERR_OK;
-    } else {
-        return ERR_OSACCOUNT_KIT_SUBSCRIBE_ERROR;
     }
+
+    ErrCode result = listenerManager_->InsertRecord(subscriber);
+    if (result != ERR_OK) {
+        return result;
+    }
+    result = proxy->SubscribeOsAccount(listenerManager_->GetTotalSubscribeInfo(), listenerManager_);
+    if (result != ERR_OK) {
+        listenerManager_->RemoveRecord(subscriber);
+        ACCOUNT_LOGE("SubscribeOsAccount failed, errCode=%{public}d", result);
+    }
+    return result;
 }
 
 ErrCode OsAccount::UnsubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber> &subscriber)
@@ -623,26 +615,27 @@ ErrCode OsAccount::UnsubscribeOsAccount(const std::shared_ptr<OsAccountSubscribe
         return ERR_APPACCOUNT_KIT_SUBSCRIBER_IS_NULLPTR;
     }
 
+    std::lock_guard<std::mutex> lock(eventListenersMutex_);
+    if (listenerManager_ == nullptr) {
+        return ERR_OSACCOUNT_KIT_NO_SPECIFIED_SUBSCRIBER_HAS_BEEN_REGISTERED;
+    }
+    listenerManager_->RemoveRecord(subscriber);
     auto proxy = GetOsAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-
-    std::lock_guard<std::mutex> lock(eventListenersMutex_);
-
-    auto eventListener = eventListeners_.find(subscriber);
-    if (eventListener != eventListeners_.end()) {
-        result = proxy->UnsubscribeOsAccount(eventListener->second->AsObject());
-        if (result == ERR_OK) {
-            eventListener->second->Stop();
-            eventListeners_.erase(eventListener);
-            ACCOUNT_LOGI("Unsubscribe success, %{public}zu.", eventListeners_.size());
-        }
+    if (listenerManager_->Size() != 0) {
+        result = proxy->SubscribeOsAccount(listenerManager_->GetTotalSubscribeInfo(), listenerManager_);
         return result;
-    } else {
-        ACCOUNT_LOGE("no specified subscriber has been registered");
-        return ERR_OSACCOUNT_KIT_NO_SPECIFIED_SUBSCRIBER_HAS_BEEN_REGISTERED;
     }
+
+    result = proxy->UnsubscribeOsAccount(listenerManager_);
+    if (result != ERR_OK) {
+        listenerManager_->InsertRecord(subscriber);
+        return result;
+    }
+    listenerManager_ = nullptr;
+    return ERR_OK;
 }
 
 OS_ACCOUNT_SWITCH_MOD OsAccount::GetOsAccountSwitchMod()
@@ -748,39 +741,6 @@ sptr<IOsAccount> OsAccount::GetOsAccountProxy()
         deathRecipient_ = nullptr;
     }
     return proxy_;
-}
-
-ErrCode OsAccount::CreateOsAccountEventListener(
-    const std::shared_ptr<OsAccountSubscriber> &subscriber, sptr<IRemoteObject> &osAccountEventListener)
-{
-    if (subscriber == nullptr) {
-        ACCOUNT_LOGE("subscriber is nullptr");
-        return SUBSCRIBE_FAILED;
-    }
-
-    std::lock_guard<std::mutex> lock(eventListenersMutex_);
-
-    auto eventListener = eventListeners_.find(subscriber);
-    if (eventListener != eventListeners_.end()) {
-        osAccountEventListener = eventListener->second->AsObject();
-        ACCOUNT_LOGI("subscriber already has os account event listener");
-        return ALREADY_SUBSCRIBED;
-    } else {
-        if (eventListeners_.size() == Constants::SUBSCRIBER_MAX_SIZE) {
-            ACCOUNT_LOGE("the maximum number of subscribers has been reached");
-            return SUBSCRIBE_FAILED;
-        }
-
-        sptr<OsAccountEventListener> listener = new (std::nothrow) OsAccountEventListener(subscriber);
-        if (!listener) {
-            ACCOUNT_LOGE("memory allocation for listener failed!");
-            return SUBSCRIBE_FAILED;
-        }
-        osAccountEventListener = listener->AsObject();
-        eventListeners_[subscriber] = listener;
-    }
-
-    return INITIAL_SUBSCRIPTION;
 }
 
 ErrCode OsAccount::GetCreatedOsAccountNumFromDatabase(const std::string& storeID, int &createdOsAccountNum)
@@ -1030,5 +990,45 @@ ErrCode OsAccount::GetOsAccountDomainInfo(const int32_t localId, DomainAccountIn
     }
     return proxy->GetOsAccountDomainInfo(localId, domainInfo);
 }
+
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+ErrCode OsAccount::PublishOsAccountLockEvent(const int32_t localId, bool isLocking)
+{
+    ErrCode result = CheckLocalId(localId);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    if (localId < Constants::START_USER_ID) {
+        ACCOUNT_LOGE("Not allow to lock account id:%{public}d!", localId);
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->PublishOsAccountLockEvent(localId, isLocking);
+}
+
+ErrCode OsAccount::LockOsAccount(const int32_t localId)
+{
+    ErrCode result = CheckLocalId(localId);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    if (localId < Constants::START_USER_ID) {
+        ACCOUNT_LOGE("Not allow to lock account id:%{public}d!", localId);
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->LockOsAccount(localId);
+}
+#endif
 }  // namespace AccountSA
 }  // namespace OHOS

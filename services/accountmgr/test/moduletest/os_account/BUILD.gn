@@ -70,6 +70,12 @@ ohos_moduletest("inner_os_account_manager_test") {
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
   ]
+
+  cflags_cc = []
+  if (os_account_support_lock_os_account) {
+    cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
+  }
+
   part_name = "os_account"
 }
 
@@ -192,6 +198,10 @@ ohos_moduletest("os_account_manager_service_module_test") {
     }
   }
 
+  if (os_account_support_lock_os_account) {
+    cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
+  }
+
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
   }
@@ -246,6 +256,7 @@ ohos_moduletest("os_account_manager_service_create_os_account_test") {
   external_deps = [
     "ability_runtime:ability_manager",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gmock_main",
     "googletest:gtest_main",
@@ -386,6 +397,10 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
       external_deps += [ "huks:libhukssdk" ]
       cflags_cc += [ "-DHAS_HUKS_PART" ]
     }
+  }
+
+  if (os_account_support_lock_os_account) {
+    cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
   }
 
   use_exceptions = true

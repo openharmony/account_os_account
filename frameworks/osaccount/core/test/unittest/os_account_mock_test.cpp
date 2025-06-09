@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "account_log_wrapper.h"
 #define private public
 #include "os_account.h"
 #undef private
@@ -220,7 +221,7 @@ HWTEST_F(OsAccountMockTest, GetOsAccountLocalIdFromDomainMockTest001, TestSize.L
  */
 HWTEST_F(OsAccountMockTest, QueryMaxOsAccountNumberMockTest001, TestSize.Level1)
 {
-    int maxOsAccountNumber;
+    uint32_t maxOsAccountNumber;
     EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->QueryMaxOsAccountNumber(maxOsAccountNumber));
 }
@@ -656,7 +657,7 @@ HWTEST_F(OsAccountMockTest, GetDefaultActivatedOsAccountMockTest001, TestSize.Le
  */
 HWTEST_F(OsAccountMockTest, GetOsAccountDomainInfoMockTest001, TestSize.Level1)
 {
-    int id;
+    int id = MAIN_ACCOUNT_ID;
     DomainAccountInfo domainAccountInfo;
     EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->GetOsAccountDomainInfo(id, domainAccountInfo));

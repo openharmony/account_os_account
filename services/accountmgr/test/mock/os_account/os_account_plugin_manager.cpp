@@ -23,37 +23,8 @@
 
 namespace OHOS {
 namespace AccountSA {
-namespace {
-#ifdef _ARM64_
-static const std::string OS_ACCOUNT_PLUGIN_LIB_PATH = "/system/lib64/platformsdk/";
-#else
-static const std::string OS_ACCOUNT_PLUGIN_LIB_PATH = "/system/lib/platformsdk/";
-#endif
-static const std::string OS_ACCOUNT_PLUGIN_LIB_NAME = "libactivation_lock_sdk.z.so";
-}
-
-OsAccountPluginManager::OsAccountPluginManager()
-{}
-
 OsAccountPluginManager::~OsAccountPluginManager()
 {}
-
-OsAccountPluginManager &OsAccountPluginManager::GetInstance()
-{
-    static OsAccountPluginManager *instance = new (std::nothrow) OsAccountPluginManager();
-    return *instance;
-}
-
-std::string GetMethodNameByEnum(OsPluginMethodEnum methondEnum)
-{
-    switch (methondEnum) {
-        case OsPluginMethodEnum::VERIFY_ACTIVATION_LOCK:
-            return "VerifyActivationLock";
-        default:
-            ACCOUNT_LOGE("Find method name failed, enum=%{public}d.", methondEnum);
-            return "";
-    }
-}
 
 void OsAccountPluginManager::LoaderLib(const std::string &path, const std::string &libName)
 {}
@@ -64,19 +35,6 @@ void OsAccountPluginManager::CloseLib()
 bool OsAccountPluginManager::IsPluginAvailable()
 {
     return true;
-}
-
-ErrCode OsAccountPluginManager::PluginVerifyActivationLockFunc(bool& isAllowed)
-{
-    if (libHandle_ == nullptr) {
-        ACCOUNT_LOGE("LibHandle_ is nullptr.");
-    }
-    return ERR_OK;
-}
-
-bool OsAccountPluginManager::IsCreationAllowed()
-{
-    return false;
 }
 }  // namespace AccountSA
 }  // namespace OHOS

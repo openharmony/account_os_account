@@ -380,7 +380,8 @@ ErrCode MockAppAccountStub::SubscribeAppAccount(
     return ERR_OK;
 }
 
-ErrCode MockAppAccountStub::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener)
+ErrCode MockAppAccountStub::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener,
+    std::vector<std::string> &owners)
 {
     ACCOUNT_LOGI("mock enter");
 

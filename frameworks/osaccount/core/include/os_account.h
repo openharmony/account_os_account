@@ -105,14 +105,16 @@ public:
     ErrCode GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds);
     ErrCode SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved);
     ErrCode GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo);
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+    ErrCode PublishOsAccountLockEvent(const int32_t localId, bool isLocking);
+    ErrCode LockOsAccount(const int32_t localId);
+#endif
 
 private:
     OsAccount();
     ~OsAccount() = default;
     DISALLOW_COPY_AND_MOVE(OsAccount);
     sptr<IOsAccount> GetOsAccountProxy();
-    ErrCode CreateOsAccountEventListener(
-        const std::shared_ptr<OsAccountSubscriber> &subscriber, sptr<IRemoteObject> &osAccountEventListener);
     ErrCode IsOsAccountForegroundCommon(int32_t localId, uint64_t displayId, bool &isForeground);
     ErrCode GetForegroundLocalIdCommon(uint64_t displayId, int32_t &localId);
     void RestoreListenerRecords();
@@ -121,7 +123,7 @@ private:
     std::mutex mutex_;
     sptr<IOsAccount> proxy_;
     std::mutex eventListenersMutex_;
-    std::map<std::shared_ptr<OsAccountSubscriber>, sptr<OsAccountEventListener>> eventListeners_;
+    sptr<OsAccountEventListener> listenerManager_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
 };
 }  // namespace AccountSA

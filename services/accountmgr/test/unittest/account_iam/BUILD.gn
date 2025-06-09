@@ -193,6 +193,10 @@ ohos_unittest("account_iam_callback_test") {
     cflags_cc += [ "-DHAS_STORAGE_PART" ]
     external_deps += [ "storage_service:storage_manager_sa_proxy" ]
   }
+
+  if (os_account_support_lock_os_account) {
+    cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
+  }
 }
 
 ohos_unittest("account_iam_manager_test") {
@@ -250,6 +254,10 @@ ohos_unittest("account_iam_manager_test") {
   if (has_pin_auth_part) {
     cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
     external_deps += [ "pin_auth:pinauth_framework" ]
+  }
+
+  if (os_account_support_lock_os_account) {
+    cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
   }
 }
 
@@ -367,6 +375,11 @@ ohos_unittest("account_inner_iam_manager_mock_source_file_test") {
       "-DDOMAIN_ACCOUNT_TEST_CASE",
     ]
   }
+
+  if (os_account_support_lock_os_account) {
+    cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
+  }
+
   if (has_ces_part) {
     cflags_cc += [ "-DHAS_CES_PART" ]
     external_deps += [ "common_event_service:cesfwk_innerkits" ]

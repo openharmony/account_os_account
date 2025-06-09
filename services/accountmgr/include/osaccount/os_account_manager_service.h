@@ -130,6 +130,10 @@ public:
     ErrCode GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds) override;
     ErrCode SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved) override;
     ErrCode GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo) override;
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+    ErrCode PublishOsAccountLockEvent(const int32_t localId, bool isLocking) override;
+    ErrCode LockOsAccount(const int32_t localId) override;
+#endif
 
 private:
     virtual ErrCode DumpStateByAccounts(

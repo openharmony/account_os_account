@@ -18,56 +18,109 @@
 
 namespace OHOS {
 namespace AccountSA {
-DistributedAccountEventService::DistributedAccountEventService(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
-    const std::shared_ptr<DistributedAccountSubscribeCallback> &callback)
-    : distributedAccountSubscribeCallback_(callback)
-{
-    types_.insert(type);
-}
+DistributedAccountEventService::DistributedAccountEventService()
+{}
 
 DistributedAccountEventService::~DistributedAccountEventService()
 {}
 
-bool DistributedAccountEventService::IsTypeExist(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type)
+int32_t DistributedAccountEventService::GetCallbackSize()
 {
-    std::lock_guard<std::mutex> lock(typesLock_);
-    return types_.find(type) != types_.end();
+    std::lock_guard<std::mutex> lock(mapLock_);
+    return callbackMap_.size();
 }
 
-void DistributedAccountEventService::AddType(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type)
+bool DistributedAccountEventService::IsTypeExist(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
+    const std::shared_ptr<DistributedAccountSubscribeCallback> &callback)
 {
-    std::lock_guard<std::mutex> lock(typesLock_);
-    types_.insert(type);
+    std::lock_guard<std::mutex> lock(mapLock_);
+    auto it = callbackMap_.find(callback);
+    if (it == callbackMap_.end()) {
+        return false;
+    }
+    auto types = it->second;
+    return types.find(type) != types.end();
 }
 
-void DistributedAccountEventService::DeleteType(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type)
+void DistributedAccountEventService::AddType(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
+    const std::shared_ptr<DistributedAccountSubscribeCallback> &callback)
 {
-    std::lock_guard<std::mutex> lock(typesLock_);
-    types_.erase(type);
+    if (callback == nullptr) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(mapLock_);
+    auto it = callbackMap_.find(callback);
+    if (it == callbackMap_.end()) {
+        callbackMap_[callback] = {type};
+    } else {
+        it->second.insert(type);
+    }
+
+    auto itemType = typeMap_.find(type);
+    if (itemType == typeMap_.end()) {
+        typeMap_[type] = {callback};
+    } else {
+        itemType->second.insert(callback);
+    }
+    ACCOUNT_LOGI("Distributed client subscribe, type size=%{public}zu, callback size=%{public}zu.",
+        typeMap_.size(), callbackMap_.size());
 }
 
-int32_t DistributedAccountEventService::GetTypeSize()
+void DistributedAccountEventService::DeleteType(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
+    const std::shared_ptr<DistributedAccountSubscribeCallback> &callback)
 {
-    std::lock_guard<std::mutex> lock(typesLock_);
-    return types_.size();
+    if (callback == nullptr) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(mapLock_);
+    auto it = callbackMap_.find(callback);
+    if (it == callbackMap_.end()) {
+        return;
+    }
+    it->second.erase(type);
+
+    if (it->second.size() == 0) {
+        callbackMap_.erase(it);
+    }
+
+    auto itemType = typeMap_.find(type);
+    if (itemType == typeMap_.end()) {
+        return;
+    }
+    itemType->second.erase(callback);
+    if (itemType->second.size() == 0) {
+        typeMap_.erase(itemType);
+    }
+    ACCOUNT_LOGI("Distributed client unsubscribe, type size=%{public}zu, callback size=%{public}zu.",
+        typeMap_.size(), callbackMap_.size());
 }
 
-void DistributedAccountEventService::GetAllType(std::vector<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE> &typeList)
+void DistributedAccountEventService::GetAllType(std::set<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE> &typeList)
 {
-    std::lock_guard<std::mutex> lock(typesLock_);
-    for (auto it : types_) {
-        typeList.push_back(it);
+    std::lock_guard<std::mutex> lock(mapLock_);
+    for (auto &item : typeMap_) {
+        typeList.insert(item.first);
     }
 }
 
 ErrCode DistributedAccountEventService::OnAccountsChanged(const DistributedAccountEventData &eventData)
 {
-    if (distributedAccountSubscribeCallback_ == nullptr) {
-        ACCOUNT_LOGE("Callback_ is nullptr");
+    std::lock_guard<std::mutex> lock(mapLock_);
+    auto it = typeMap_.find(eventData.type_);
+    if (it == typeMap_.end()) {
+        ACCOUNT_LOGE("callback is empty");
         return ERR_OK;
     }
-    distributedAccountSubscribeCallback_->OnAccountsChanged(eventData);
+    for (const auto &item : it->second) {
+        item->OnAccountsChanged(eventData);
+    }
     return ERR_OK;
+}
+
+DistributedAccountEventService *DistributedAccountEventService::GetInstance()
+{
+    static sptr<DistributedAccountEventService> instance = new (std::nothrow) DistributedAccountEventService();
+    return instance.GetRefPtr();
 }
 }  // namespace AccountSA
 }  // namespace OHOS
