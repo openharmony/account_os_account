@@ -70,29 +70,22 @@ void AppAccount::RestoreListenerRecords()
     if (proxy == nullptr) {
         return;
     }
+
     std::lock_guard<std::mutex> lock(eventListenersMutex_);
-    if (eventListeners_.empty()) {
+    AppAccountSubscribeInfo subscribeInfo;
+    bool flag = AppAccountEventListener::GetInstance()->GetRestoreData(subscribeInfo);
+    if (!flag) {
         return;
     }
-    size_t successCount = 0;
-    for (const auto &item : eventListeners_) {
-        if (item.first == nullptr) {
-            ACCOUNT_LOGE("AppAccountSubscriber is nullptr");
-            continue;
-        }
-        AppAccountSubscribeInfo subscribeInfo;
-        item.first->GetSubscribeInfo(subscribeInfo);
-        ErrCode result = proxy->SubscribeAppAccount(subscribeInfo, item.second);
-        if (result != ERR_OK) {
-            std::vector<std::string> owners;
-            subscribeInfo.GetOwners(owners);
-            ACCOUNT_LOGE("SubscribeAppAccount owners size=%{public}d failed, errCode=%{public}d",
-                static_cast<uint32_t>(owners.size()), result);
-        } else {
-            successCount++;
-        }
+    ErrCode result = proxy->SubscribeAppAccount(subscribeInfo, AppAccountEventListener::GetInstance()->AsObject());
+    if (result != ERR_OK) {
+        std::vector<std::string> owners;
+        subscribeInfo.GetOwners(owners);
+        ACCOUNT_LOGE("SubscribeAppAccount owners size=%{public}d failed, errCode=%{public}d",
+            static_cast<uint32_t>(owners.size()), result);
     }
-    ACCOUNT_LOGI("Restore records %{public}zu/%{public}zu", successCount, eventListeners_.size());
+
+    ACCOUNT_LOGI("The data recovery was successful.");
 }
 
 ErrCode AppAccount::AddAccount(const std::string &name, const std::string &extraInfo)
@@ -694,51 +687,27 @@ ErrCode AppAccount::SubscribeAppAccount(const std::shared_ptr<AppAccountSubscrib
         return ERR_APPACCOUNT_KIT_SUBSCRIBER_IS_NULLPTR;
     }
 
-    AppAccountSubscribeInfo subscribeInfo;
-    if (subscriber->GetSubscribeInfo(subscribeInfo) != ERR_OK) {
-        ACCOUNT_LOGE("get subscribeInfo failed");
-        return ERR_APPACCOUNT_KIT_GET_SUBSCRIBE_INFO;
-    }
-
-    std::vector<std::string> owners;
-    if (subscribeInfo.GetOwners(owners) != ERR_OK) {
-        ACCOUNT_LOGE("failed to get owners");
-        return ERR_APPACCOUNT_KIT_GET_OWNERS;
-    }
-
-    if (owners.size() == 0) {
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-
-    // remove duplicate ones
-    std::sort(owners.begin(), owners.end());
-    owners.erase(std::unique(owners.begin(), owners.end()), owners.end());
-    if (subscribeInfo.SetOwners(owners) != ERR_OK) {
-        ACCOUNT_LOGE("failed to set owners");
-        return ERR_APPACCOUNT_KIT_SET_OWNERS;
-    }
-
-    for (auto owner : owners) {
-        if (owner.size() > Constants::OWNER_MAX_SIZE) {
-            ACCOUNT_LOGE("owner is out of range, owner.size() = %{public}zu", owner.size());
-            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-        }
-    }
-
     sptr<IRemoteObject> appAccountEventListener = nullptr;
-    ErrCode subscribeState = CreateAppAccountEventListener(subscriber, appAccountEventListener);
-    if (subscribeState == INITIAL_SUBSCRIPTION) {
-        subscribeState = proxy->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
-        if (subscribeState != ERR_OK) {
-            std::lock_guard<std::mutex> lock(eventListenersMutex_);
-            eventListeners_.erase(subscriber);
-        }
-        return subscribeState;
-    } else if (subscribeState == ALREADY_SUBSCRIBED) {
-        return ERR_APPACCOUNT_SUBSCRIBER_ALREADY_REGISTERED;
-    } else {
-        return ERR_APPACCOUNT_KIT_SUBSCRIBE;
+    std::lock_guard<std::mutex> lock(eventListenersMutex_);
+    CreateAppAccountEventListener(subscriber, appAccountEventListener);
+
+    bool needNotifyService = false;
+    ErrCode result = AppAccountEventListener::GetInstance()->SubscribeAppAccount(subscriber, needNotifyService);
+    if (result != ERR_OK) {
+        return result;
     }
+    if (!needNotifyService) {
+        return ERR_OK;
+    }
+    // Refresh to full owners
+    AppAccountSubscribeInfo subscribeInfo;
+    AppAccountEventListener::GetInstance()->GetRestoreData(subscribeInfo);
+    result = proxy->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
+    if (result != ERR_OK) {
+        std::vector<std::string> deleteOwners;
+        AppAccountEventListener::GetInstance()->UnsubscribeAppAccount(subscriber, needNotifyService, deleteOwners);
+    }
+    return result;
 }
 
 ErrCode AppAccount::UnsubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber)
@@ -753,20 +722,22 @@ ErrCode AppAccount::UnsubscribeAppAccount(const std::shared_ptr<AppAccountSubscr
     }
 
     std::lock_guard<std::mutex> lock(eventListenersMutex_);
-
-    auto eventListener = eventListeners_.find(subscriber);
-    if (eventListener != eventListeners_.end()) {
-        ErrCode result = proxy->UnsubscribeAppAccount(eventListener->second->AsObject());
-        if (result == ERR_OK) {
-            eventListener->second->Stop();
-            eventListeners_.erase(eventListener);
-        }
-
+    bool needNotifyService = false;
+    std::vector<std::string> deleteOwners;
+    ErrCode result = AppAccountEventListener::GetInstance()->UnsubscribeAppAccount(
+        subscriber, needNotifyService, deleteOwners);
+    if (result != ERR_OK) {
         return result;
-    } else {
-        ACCOUNT_LOGE("no specified subscriber has been registered");
-        return ERR_APPACCOUNT_KIT_NO_SPECIFIED_SUBSCRIBER_HAS_BEEN_REGISTERED;
     }
+    if (!needNotifyService) {
+        return ERR_OK;
+    }
+    result = proxy->UnsubscribeAppAccount(AppAccountEventListener::GetInstance()->AsObject(), deleteOwners);
+    if (result != ERR_OK) {
+        AppAccountEventListener::GetInstance()->SubscribeAppAccount(subscriber, needNotifyService);
+    }
+
+    return result;
 }
 
 ErrCode AppAccount::ResetAppAccountProxy()
@@ -825,28 +796,7 @@ ErrCode AppAccount::CreateAppAccountEventListener(
         return SUBSCRIBE_FAILED;
     }
 
-    std::lock_guard<std::mutex> lock(eventListenersMutex_);
-
-    auto eventListener = eventListeners_.find(subscriber);
-    if (eventListener != eventListeners_.end()) {
-        appAccountEventListener = eventListener->second->AsObject();
-        ACCOUNT_LOGI("subscriber already has app account event listener");
-        return ALREADY_SUBSCRIBED;
-    } else {
-        if (eventListeners_.size() == Constants::APP_ACCOUNT_SUBSCRIBER_MAX_SIZE) {
-            ACCOUNT_LOGE("the maximum number of subscribers has been reached");
-            return SUBSCRIBE_FAILED;
-        }
-
-        sptr<AppAccountEventListener> listener = new (std::nothrow) AppAccountEventListener(subscriber);
-        if (!listener) {
-            ACCOUNT_LOGE("the app account event listener is null");
-            return SUBSCRIBE_FAILED;
-        }
-        appAccountEventListener = listener->AsObject();
-        eventListeners_[subscriber] = listener;
-    }
-
+    appAccountEventListener = AppAccountEventListener::GetInstance()->AsObject();
     return INITIAL_SUBSCRIPTION;
 }
 }  // namespace AccountSA

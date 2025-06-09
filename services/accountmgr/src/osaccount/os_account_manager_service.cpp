@@ -1326,5 +1326,49 @@ ErrCode OsAccountManagerService::GetOsAccountDomainInfo(const int32_t localId, D
     }
     return innerManager_.GetOsAccountDomainInfo(localId, domainInfo);
 }
+
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+ErrCode OsAccountManagerService::PublishOsAccountLockEvent(const int32_t localId, bool isLocking)
+{
+    ErrCode res = CheckLocalId(localId);
+    if (res != ERR_OK) {
+        return res;
+    }
+
+    if (localId < Constants::START_USER_ID) {
+        ACCOUNT_LOGE("Not allow to lock account id:%{public}d!", localId);
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+
+    if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "")) {
+        ACCOUNT_LOGE("Permission denied.");
+        REPORT_PERMISSION_FAIL();
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+
+    return innerManager_.PublishOsAccountLockEvent(localId, isLocking);
+}
+
+ErrCode OsAccountManagerService::LockOsAccount(const int32_t localId)
+{
+    ErrCode res = CheckLocalId(localId);
+    if (res != ERR_OK) {
+        return res;
+    }
+
+    if (localId < Constants::START_USER_ID) {
+        ACCOUNT_LOGE("Not allow to lock account id:%{public}d!", localId);
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+
+    if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "")) {
+        ACCOUNT_LOGE("Permission denied.");
+        REPORT_PERMISSION_FAIL();
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+
+    return innerManager_.LockOsAccount(localId);
+}
+#endif
 }  // namespace AccountSA
 }  // namespace OHOS

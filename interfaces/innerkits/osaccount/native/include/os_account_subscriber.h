@@ -26,7 +26,7 @@ struct OsAccountStateData {
     OsAccountState state = OsAccountState::INVALID_TYPE;
     int32_t fromId = -1;
     int32_t toId = -1;
-    sptr<OsAccountStateReplyCallback> callback = nullptr;
+    std::shared_ptr<OsAccountStateReplyCallback> callback = nullptr;
 };
 
 class OsAccountSubscriber {

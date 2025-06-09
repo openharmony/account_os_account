@@ -71,6 +71,7 @@ enum GetPropertyType : uint32_t {
     ENROLLMENT_PROGRESS = 4,
     SENSOR_INFO = 5,
     NEXT_PHASE_FREEZING_TIME = 6,
+    CREDENTIAL_LENGTH = 7,
 };
 
 enum SetPropertyType : uint32_t {

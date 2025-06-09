@@ -224,4 +224,19 @@ sptr<IRemoteObject> SystemAbilityManagerProxy::Recompute(int32_t systemAbilityId
 {
     return nullptr;
 }
+
+int32_t SystemAbilityManagerProxy::UnloadProcess(const std::vector<std::u16string>& processList)
+{
+    return ERR_INVALID_VALUE;
+}
+
+int32_t SystemAbilityManagerProxy::GetLruIdleSystemAbilityProc(std::vector<IdleProcessInfo>& procInfos)
+{
+    return ERR_INVALID_VALUE;
+}
+
+sptr<IRemoteObject> SystemAbilityManagerProxy::GetLocalAbilityManagerProxy(int32_t systemAbilityId)
+{
+    return nullptr;
+}
 }

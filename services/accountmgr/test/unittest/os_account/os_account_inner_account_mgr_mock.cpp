@@ -28,14 +28,16 @@
 #define private public
 #include "account_file_watcher_manager.h"
 #include "os_account_control_file_manager.h"
-#undef private
 #include "os_account_subscribe_manager.h"
+#undef private
 #ifdef BUNDLE_ADAPTER_MOCK
 #define private public
+#define protected public
 #include "os_account.h"
 #include "os_account_manager_service.h"
 #include "os_account_plugin_manager.h"
 #include "os_account_proxy.h"
+#undef protected
 #undef private
 #endif
 #include "mock_os_account_control_file_manager.h"
@@ -66,8 +68,9 @@ const int TEST_USER_ID10 = 10;
 const int TEST_USER_ID55 = 55;
 const int TEST_USER_ID100 = 100;
 const int TEST_USER_ID108 = 108;
+#if defined(SUPPORT_LOCK_OS_ACCOUNT) ||  defined(ENABLE_FILE_WATCHER)
 const int TEST_ACCOUNT_ID = 999;
-
+#endif
 const std::string STRING_TEST_NAME = "test_account_name";
 const std::string STRING_DOMAIN_NAME_OUT_OF_RANGE(200, '1');  // length 200
 const std::string STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE(600, '1');  // length 600
@@ -140,6 +143,198 @@ void OsAccountInnerAccmgrMockTest::SetUp(void) __attribute__((no_sanitize("cfi")
 
 void OsAccountInnerAccmgrMockTest::TearDown(void)
 {}
+
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+/*
+ * @tc.name: LockOsAccountMockTest001
+ * @tc.desc: LockOsAccount coverage test
+ * @tc.type: FUNC
+ * @tc.require: issueI6AQUQ
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, LockOsAccountMockTest001, TestSize.Level1)
+{
+    innerMgrService_->lockOsAccountPluginManager_.CloseLib();
+    // load plugin success
+    innerMgrService_->lockOsAccountPluginManager_.LoaderLib("/rightPath/", "right.z.so");
+    EXPECT_TRUE(innerMgrService_->CheckAndAddLocalIdOperating(TEST_USER_ID100));
+    int ret = innerMgrService_->LockOsAccount(TEST_USER_ID100);
+    innerMgrService_->RemoveLocalIdToOperating(TEST_USER_ID100);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR);
+
+    innerMgrService_->lockOsAccountPluginManager_.CloseLib();
+}
+
+/*
+ * @tc.name: LockOsAccountMockTest002
+ * @tc.desc: coverage test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, LockOsAccountMockTest002, TestSize.Level1)
+{
+    innerMgrService_->lockOsAccountPluginManager_.CloseLib();
+    // load plugin success
+    innerMgrService_->lockOsAccountPluginManager_.LoaderLib("/rightPath/", "right.z.so");
+    auto ptr = std::make_shared<MockOsAccountControlFileManager>();
+    auto ptrOld = innerMgrService_->osAccountControl_;
+    innerMgrService_->osAccountControl_ = ptr;
+
+    OsAccountInfo account1;
+    account1.SetLocalId(TEST_USER_ID108);
+    account1.SetToBeRemoved(false);
+    account1.SetIsCreateCompleted(true);
+
+    EXPECT_CALL(*ptr, GetOsAccountInfoById(::testing::_, ::testing::_))
+        .WillRepeatedly(DoAll(SetArgReferee<1>(account1), testing::Return(-1)));
+
+    int ret = innerMgrService_->LockOsAccount(TEST_USER_ID108);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    innerMgrService_->lockOsAccountPluginManager_.CloseLib();
+    innerMgrService_->osAccountControl_ = ptrOld;
+    testing::Mock::AllowLeak(ptr.get());
+}
+
+/*
+ * @tc.name: LockOsAccountMockTest003
+ * @tc.desc: coverage test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, LockOsAccountMockTest003, TestSize.Level1)
+{
+    innerMgrService_->lockOsAccountPluginManager_.CloseLib();
+    // load plugin success
+    innerMgrService_->lockOsAccountPluginManager_.LoaderLib("/rightPath/", "right.z.so");
+    auto ptrOld = innerMgrService_->osAccountControl_;
+    auto ptr = std::make_shared<MockOsAccountControlFileManager>();
+    innerMgrService_->osAccountControl_ = ptr;
+    OsAccountInfo createInfo;
+    createInfo.SetLocalName("SetOsAccountIsVerified001");
+    createInfo.SetType(NORMAL);
+    createInfo.SetLocalId(TEST_ACCOUNT_ID);
+    createInfo.SetSerialNumber(1100); // this will not take effect
+    createInfo.SetPhoto("test photo");
+    createInfo.SetCreateTime(1695883215000);
+    createInfo.SetConstraints({"test constraints"});
+    EXPECT_EQ(ERR_OK, innerMgrService_->CreateOsAccountWithFullInfo(createInfo));
+
+    int id = createInfo.GetLocalId();
+    OsAccountInfo accountInfo;
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountInfoById(id, accountInfo));
+    OsAccountInfo account1;
+    account1.SetLocalId(id);
+    account1.SetToBeRemoved(false);
+    account1.SetIsCreateCompleted(false);
+
+    EXPECT_CALL(*ptr, GetOsAccountInfoById(::testing::_, ::testing::_))
+        .WillRepeatedly(DoAll(SetArgReferee<1>(account1), testing::Return(0)));
+    EXPECT_EQ(innerMgrService_->LockOsAccount(id),
+        ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_IS_UNCOMPLETED_ERROR);
+    account1.SetIsCreateCompleted(true);
+
+    EXPECT_CALL(*ptr, GetOsAccountInfoById(::testing::_, ::testing::_))
+        .WillRepeatedly(DoAll(SetArgReferee<1>(account1), testing::Return(0)));
+    if (accountInfo.GetIsVerified()) {
+        EXPECT_EQ(ERR_OK, innerMgrService_->SetOsAccountIsVerified(id, false));
+    }
+    EXPECT_EQ(innerMgrService_->LockOsAccount(id), ERR_OK);
+    EXPECT_EQ(OsAccountManager::LockOsAccount(id), ERR_OK);
+
+    ErrCode ret = innerMgrService_->RemoveOsAccount(id);
+    if (ret == ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR) {
+        sleep(1);
+        EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(id));
+    } else {
+        EXPECT_EQ(ret, ERR_OK);
+    }
+    innerMgrService_->lockOsAccountPluginManager_.CloseLib();
+    innerMgrService_->osAccountControl_ = ptrOld;
+    testing::Mock::AllowLeak(ptr.get());
+}
+
+/*
+ * @tc.name: LockOsAccountMockTest004
+ * @tc.desc: coverage test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, LockOsAccountMockTest004, TestSize.Level1)
+{
+    innerMgrService_->lockOsAccountPluginManager_.CloseLib();
+    // load plugin success
+    innerMgrService_->lockOsAccountPluginManager_.LoaderLib("/rightPath/", "right.z.so");
+    OsAccountInfo createInfo;
+    createInfo.SetLocalName("SetOsAccountIsVerified001");
+    createInfo.SetType(NORMAL);
+    createInfo.SetLocalId(TEST_ACCOUNT_ID);
+    createInfo.SetSerialNumber(1100); // this will not take effect
+    createInfo.SetPhoto("test photo");
+    createInfo.SetCreateTime(1695883215000);
+    createInfo.SetConstraints({"test constraints"});
+    EXPECT_EQ(ERR_OK, innerMgrService_->CreateOsAccountWithFullInfo(createInfo));
+
+    int id = createInfo.GetLocalId();
+    OsAccountInfo accountInfo;
+    EXPECT_EQ(ERR_OK, innerMgrService_->SetOsAccountIsVerified(id, true));
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountInfoById(id, accountInfo));
+    EXPECT_TRUE(accountInfo.GetIsVerified());
+
+    sleep(1);
+    EXPECT_EQ(innerMgrService_->LockOsAccount(id),
+        ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_LOCK_ERROR);
+
+    ErrCode ret = innerMgrService_->RemoveOsAccount(createInfo.GetLocalId());
+    if (ret == ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR) {
+        sleep(1);
+        EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(createInfo.GetLocalId()));
+    } else {
+        EXPECT_EQ(ret, ERR_OK);
+    }
+    innerMgrService_->lockOsAccountPluginManager_.CloseLib();
+}
+
+/*
+ * @tc.name: LockOsAccountMockTest005
+ * @tc.desc: coverage test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, LockOsAccountMockTest005, TestSize.Level1)
+{
+    innerMgrService_->lockOsAccountPluginManager_.CloseLib();
+    // load plugin success
+    innerMgrService_->lockOsAccountPluginManager_.LoaderLib("/rightPath/", "right.z.so");
+    OsAccountInfo createInfo;
+    createInfo.SetLocalName("SetOsAccountIsVerified001");
+    createInfo.SetType(NORMAL);
+    createInfo.SetLocalId(TEST_USER_ID108);
+    createInfo.SetSerialNumber(1100); // this will not take effect
+    createInfo.SetPhoto("test photo");
+    createInfo.SetCreateTime(1695883215000);
+    createInfo.SetConstraints({"test constraints"});
+    EXPECT_EQ(ERR_OK, innerMgrService_->CreateOsAccountWithFullInfo(createInfo));
+
+    int id = createInfo.GetLocalId();
+    EXPECT_EQ(ERR_OK, innerMgrService_->SetOsAccountIsVerified(id, true));
+    OsAccountInfo accountInfo;
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountInfoById(id, accountInfo));
+    EXPECT_TRUE(accountInfo.GetIsVerified());
+
+    sleep(1);
+    EXPECT_EQ(innerMgrService_->LockOsAccount(id), ERR_OK);
+    EXPECT_EQ(ERR_OK, innerMgrService_->GetOsAccountInfoById(id, accountInfo));
+    EXPECT_FALSE(accountInfo.GetIsVerified());
+
+    ErrCode ret = innerMgrService_->RemoveOsAccount(createInfo.GetLocalId());
+    if (ret == ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR) {
+        sleep(1);
+        EXPECT_EQ(ERR_OK, innerMgrService_->RemoveOsAccount(createInfo.GetLocalId()));
+    } else {
+        EXPECT_EQ(ret, ERR_OK);
+    }
+    innerMgrService_->lockOsAccountPluginManager_.CloseLib();
+}
+#endif
 
 #ifdef ENABLE_FILE_WATCHER
 /**
@@ -1922,34 +2117,71 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest044, TestSize
 }
 
 /*
+ * @tc.name: OsAccountInnerAccmgrMockTest045
+ * @tc.desc: test subscribe
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest045, TestSize.Level1)
+{
+    auto subscriber1 = std::make_shared<OsAccountSubscriber>(OsAccountSubscribeInfo({ACTIVATED}));
+    EXPECT_EQ(ERR_OK, OsAccount::GetInstance().SubscribeOsAccount(subscriber1));
+    auto subscriber2 = std::make_shared<OsAccountSubscriber>(OsAccountSubscribeInfo({ACTIVATING}));
+    EXPECT_EQ(ERR_OK, OsAccount::GetInstance().SubscribeOsAccount(subscriber2));
+
+    EXPECT_EQ(OsAccountSubscribeManager::GetInstance().subscribeRecords_.size(), 1);
+
+    OsAccount::GetInstance().listenerManager_ = nullptr;
+}
+
+/*
  * @tc.name: OsAccountPluginMockTest001
  * @tc.desc: os account LoaderLib test
  * @tc.type: FUNC
  */
 HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountPluginMockTest001, TestSize.Level1)
 {
-    innerMgrService_->pluginManager_.CloseLib();
+    innerMgrService_->activateLockPluginManager_.CloseLib();
     // load plugin success
-    innerMgrService_->pluginManager_.LoaderLib("/rightPath/", "right.z.so");
-    EXPECT_NE(innerMgrService_->pluginManager_.libHandle_, nullptr);
+    innerMgrService_->activateLockPluginManager_.LoaderLib("/rightPath/", "right.z.so");
+    EXPECT_NE(innerMgrService_->activateLockPluginManager_.libHandle_, nullptr);
     // load plugin not nullptr
-    innerMgrService_->pluginManager_.LoaderLib("/rightPath/", "right.z.so");
-    EXPECT_NE(innerMgrService_->pluginManager_.libHandle_, nullptr);
+    innerMgrService_->activateLockPluginManager_.LoaderLib("/rightPath/", "right.z.so");
+    EXPECT_NE(innerMgrService_->activateLockPluginManager_.libHandle_, nullptr);
     // close plugin
-    innerMgrService_->pluginManager_.CloseLib();
-    EXPECT_EQ(innerMgrService_->pluginManager_.libHandle_, nullptr);
+    innerMgrService_->activateLockPluginManager_.CloseLib();
+    EXPECT_EQ(innerMgrService_->activateLockPluginManager_.libHandle_, nullptr);
     // close plugin failed
-    innerMgrService_->pluginManager_.CloseLib();
-    EXPECT_EQ(innerMgrService_->pluginManager_.libHandle_, nullptr);
+    innerMgrService_->activateLockPluginManager_.CloseLib();
+    EXPECT_EQ(innerMgrService_->activateLockPluginManager_.libHandle_, nullptr);
     // wrong lib path
-    innerMgrService_->pluginManager_.LoaderLib("/abc/", "right.z.so");
-    EXPECT_EQ(innerMgrService_->pluginManager_.libHandle_, nullptr);
+    innerMgrService_->activateLockPluginManager_.LoaderLib("/abc/", "right.z.so");
+    EXPECT_EQ(innerMgrService_->activateLockPluginManager_.libHandle_, nullptr);
     // wrong lib name
-    innerMgrService_->pluginManager_.LoaderLib("/rightPath/", "abc.z.so");
-    EXPECT_EQ(innerMgrService_->pluginManager_.libHandle_, nullptr);
+    innerMgrService_->activateLockPluginManager_.LoaderLib("/rightPath/", "abc.z.so");
+    EXPECT_EQ(innerMgrService_->activateLockPluginManager_.libHandle_, nullptr);
 
-    innerMgrService_->pluginManager_.CloseLib();
+    innerMgrService_->activateLockPluginManager_.CloseLib();
 }
+
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+/*
+ * @tc.name: OsAccountPluginMockTest001
+ * @tc.desc: os account LoaderLib test
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountPluginMockTest002, TestSize.Level1)
+{
+    innerMgrService_->lockOsAccountPluginManager_.CloseLib();
+    // wrong lib name
+    innerMgrService_->lockOsAccountPluginManager_.LoaderLib("/rightPath/", "abc.z.so");
+    EXPECT_EQ(innerMgrService_->activateLockPluginManager_.libHandle_, nullptr);
+    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_PLUGIN_NOT_EXIST_ERROR,
+        innerMgrService_->LockOsAccount(TEST_USER_ID100));
+
+    innerMgrService_->lockOsAccountPluginManager_.CloseLib();
+}
+#endif
 
 #ifdef ENABLE_U1_ACCOUNT
 /*

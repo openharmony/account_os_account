@@ -519,6 +519,24 @@ static const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProc
             .isSystemApi = false,
         }
     },
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+    {
+        static_cast<uint32_t>(OsAccountInterfaceCode::PUBLISH_OS_ACCOUNT_LOCK_EVENT),
+        {
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcPublishOsAccountLockEvent(data, reply); },
+            .isSystemApi = true,
+        }
+    },
+    {
+        static_cast<uint32_t>(OsAccountInterfaceCode::LOCK_OS_ACCOUNT),
+        {
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcLockOsAccount(data, reply); },
+            .isSystemApi = true,
+        }
+    },
+#endif
 };
 
 OsAccountStub::OsAccountStub()
@@ -1922,5 +1940,42 @@ ErrCode OsAccountStub::ProcGetOsAccountDomainInfo(MessageParcel &data, MessagePa
     }
     return ERR_NONE;
 }
+
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+ErrCode OsAccountStub::ProcPublishOsAccountLockEvent(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("Read localId failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    bool isLocking;
+    if (!data.ReadBool(isLocking)) {
+        ACCOUNT_LOGE("Failed to read bool for isLocking");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = PublishOsAccountLockEvent(localId, isLocking);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Write result failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcLockOsAccount(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("Read localId failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = LockOsAccount(localId);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Write result failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    return ERR_NONE;
+}
+#endif
 }  // namespace AccountSA
 }  // namespace OHOS

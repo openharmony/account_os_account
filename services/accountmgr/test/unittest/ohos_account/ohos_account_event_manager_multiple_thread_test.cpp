@@ -62,7 +62,7 @@ void TestSubscribeOhosAccountEvent()
 {
     sptr<IRemoteObject> callbacks[TEST_COUNT];
     for (int32_t i = 0; i < TEST_COUNT; i++) {
-        callbacks[i] = new (std::nothrow) DistributedAccountEventService(TEST_TYPE, nullptr);
+        callbacks[i] = new (std::nothrow) DistributedAccountEventService();
         EXPECT_EQ(ERR_OK, mgr.SubscribeDistributedAccountEvent(TEST_TYPE, callbacks[i]));
     }
     auto task = [] { TestPulishOhosAccountEvent(); };

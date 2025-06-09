@@ -123,7 +123,6 @@ private:
     std::mutex mutex_;
     std::mutex eventListenersMutex_;
     sptr<IAppAccount> proxy_;
-    std::map<std::shared_ptr<AppAccountSubscriber>, sptr<AppAccountEventListener>> eventListeners_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
 };
 }  // namespace AccountSA

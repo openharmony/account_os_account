@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,6 +20,7 @@
 #include <uv.h>
 #include "account_error_no.h"
 #include "account_iam_info.h"
+#include "account_iam_info_parse.h"
 #include "account_log_wrapper.h"
 #include "napi_account_error.h"
 #include "napi_account_common.h"
@@ -29,6 +30,7 @@
 namespace OHOS {
 namespace AccountJsKit {
 using namespace OHOS::AccountSA;
+typedef UserIam::UserAuth::Attributes Attributes;
 
 static int32_t AccountIAMConvertOtherToJSErrCode(int32_t errCode)
 {
@@ -301,6 +303,7 @@ napi_status ConvertGetPropertyTypeToAttributeKey(GetPropertyType in,
         { ENROLLMENT_PROGRESS, Attributes::AttributeKey::ATTR_ENROLL_PROGRESS },
         { SENSOR_INFO, Attributes::AttributeKey::ATTR_SENSOR_INFO },
         { NEXT_PHASE_FREEZING_TIME, Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION },
+        { CREDENTIAL_LENGTH, Attributes::AttributeKey::ATTR_CREDENTIAL_LENGTH },
     };
 
     auto iter = type2Key.find(in);
@@ -384,6 +387,28 @@ napi_status ParseSetPropRequest(napi_env env, napi_value object, SetPropertyRequ
     return napi_ok;
 }
 
+static void SetOptionalInt32ToJsProperty(
+    napi_env env, std::optional<int32_t> number, const std::string &propertyName, napi_value &dataJs)
+{
+    if (!number.has_value()) {
+        ACCOUNT_LOGW("No optional '%{public}s' of the propertyInfo returned.", propertyName.c_str());
+        return;
+    }
+    SetInt32ToJsProperty(env, number.value(), propertyName, dataJs);
+}
+
+static void SetOptionalStringToJsProperty(napi_env env, std::optional<std::string> nativeStringData,
+    const std::string &propertyName, napi_value &jsProperty)
+{
+    if (!nativeStringData.has_value()) {
+        ACCOUNT_LOGW("No optional '%{public}s' of the propertyInfo returned.", propertyName.c_str());
+        return;
+    }
+    napi_value jsStringData = nullptr;
+    napi_create_string_utf8(env, nativeStringData.value().c_str(), NAPI_AUTO_LENGTH, &jsStringData);
+    napi_set_named_property(env, jsProperty, propertyName.c_str(), jsStringData);
+}
+
 static void GeneratePropertyJs(napi_env env, const GetPropertyCommonContext &context, napi_value &dataJs)
 {
     NAPI_CALL_RETURN_VOID(env, napi_create_object(env, &dataJs));
@@ -397,29 +422,29 @@ static void GeneratePropertyJs(napi_env env, const GetPropertyCommonContext &con
                 break;
             }
             case Attributes::AttributeKey::ATTR_REMAIN_TIMES: {
-                SetInt32ToJsProperty(env, context.propertyInfo.remainTimes, "remainTimes", dataJs);
+                SetOptionalInt32ToJsProperty(env, context.propertyInfo.remainTimes, "remainTimes", dataJs);
                 break;
             }
             case Attributes::AttributeKey::ATTR_FREEZING_TIME: {
-                SetInt32ToJsProperty(env, context.propertyInfo.freezingTime, "freezingTime", dataJs);
+                SetOptionalInt32ToJsProperty(env, context.propertyInfo.freezingTime, "freezingTime", dataJs);
                 break;
             }
             case Attributes::AttributeKey::ATTR_ENROLL_PROGRESS: {
-                napi_value napiEnrollmentProgress = nullptr;
-                napi_create_string_utf8(
-                    env, context.propertyInfo.enrollmentProgress.c_str(), NAPI_AUTO_LENGTH, &napiEnrollmentProgress);
-                napi_set_named_property(env, dataJs, "enrollmentProgress", napiEnrollmentProgress);
+                SetOptionalStringToJsProperty(env,
+                    context.propertyInfo.enrollmentProgress, "enrollmentProgress", dataJs);
                 break;
             }
             case Attributes::AttributeKey::ATTR_SENSOR_INFO: {
-                napi_value napiSensorInfo = nullptr;
-                napi_create_string_utf8(env,
-                    context.propertyInfo.sensorInfo.c_str(), NAPI_AUTO_LENGTH, &napiSensorInfo);
-                napi_set_named_property(env, dataJs, "sensorInfo", napiSensorInfo);
+                SetOptionalStringToJsProperty(env, context.propertyInfo.sensorInfo, "sensorInfo", dataJs);
                 break;
             }
             case Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION: {
-                SetInt32ToJsProperty(env, context.propertyInfo.nextPhaseFreezingTime, "nextPhaseFreezingTime", dataJs);
+                SetOptionalInt32ToJsProperty(env, context.propertyInfo.nextPhaseFreezingTime,
+                    "nextPhaseFreezingTime", dataJs);
+                break;
+            }
+            case Attributes::AttributeKey::ATTR_CREDENTIAL_LENGTH: {
+                SetOptionalInt32ToJsProperty(env, context.propertyInfo.credentialLength, "credentialLength", dataJs);
                 break;
             }
             default:
@@ -697,55 +722,35 @@ NapiGetPropCallback::NapiGetPropCallback(
 NapiGetPropCallback::~NapiGetPropCallback()
 {}
 
+static void PraseAttributesToExecutorProperty(const std::vector<Attributes::AttributeKey> &keys,
+    const Attributes &extraInfo, ExecutorProperty &propertyInfo)
+{
+    // parse subtype
+    GetValueFromAttributes(keys, Attributes::AttributeKey::ATTR_PIN_SUB_TYPE, extraInfo, propertyInfo.authSubType);
+    // parse remainTimes
+    GetOptionalValueFromAttributes(keys,
+        Attributes::AttributeKey::ATTR_REMAIN_TIMES, extraInfo, propertyInfo.remainTimes);
+    // parse freezingTime;
+    GetOptionalValueFromAttributes(keys,
+        Attributes::AttributeKey::ATTR_FREEZING_TIME, extraInfo, propertyInfo.freezingTime);
+    // parse enrollmentProgress
+    GetOptionalValueFromAttributes(keys,
+        Attributes::AttributeKey::ATTR_ENROLL_PROGRESS, extraInfo, propertyInfo.enrollmentProgress);
+    // parse sensorInfo
+    GetOptionalValueFromAttributes(keys,
+        Attributes::AttributeKey::ATTR_SENSOR_INFO, extraInfo, propertyInfo.sensorInfo);
+    // parse nextPhaseFreezingTime
+    GetOptionalValueFromAttributes(keys,
+        Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION, extraInfo, propertyInfo.nextPhaseFreezingTime);
+    // parse credentialLength
+    GetOptionalValueFromAttributes(keys,
+        Attributes::AttributeKey::ATTR_CREDENTIAL_LENGTH, extraInfo, propertyInfo.credentialLength);
+}
+
 void NapiGetPropCallback::GetExecutorPropertys(
     const UserIam::UserAuth::Attributes &extraInfo, ExecutorProperty &propertyInfo)
 {
-    for (const auto &key : keys_) {
-        switch (key) {
-            case Attributes::AttributeKey::ATTR_PIN_SUB_TYPE: {
-                if (!extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_PIN_SUB_TYPE, propertyInfo.authSubType)) {
-                    ACCOUNT_LOGE("get authSubType failed");
-                }
-                break;
-            }
-            case Attributes::AttributeKey::ATTR_REMAIN_TIMES: {
-                if (!extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, propertyInfo.remainTimes)) {
-                    ACCOUNT_LOGE("get remainTimes failed");
-                }
-                break;
-            }
-            case Attributes::AttributeKey::ATTR_FREEZING_TIME: {
-                if (!extraInfo.GetInt32Value(
-                    Attributes::AttributeKey::ATTR_FREEZING_TIME, propertyInfo.freezingTime)) {
-                    ACCOUNT_LOGE("get freezingTime failed");
-                }
-                break;
-            }
-            case Attributes::AttributeKey::ATTR_ENROLL_PROGRESS: {
-                if (!extraInfo.GetStringValue(
-                    Attributes::AttributeKey::ATTR_ENROLL_PROGRESS, propertyInfo.enrollmentProgress)) {
-                    ACCOUNT_LOGE("get enrollmentProgress failed");
-                }
-                break;
-            }
-            case Attributes::AttributeKey::ATTR_SENSOR_INFO: {
-                if (!extraInfo.GetStringValue(Attributes::AttributeKey::ATTR_SENSOR_INFO, propertyInfo.sensorInfo)) {
-                    ACCOUNT_LOGE("get sensorInfo failed");
-                }
-                break;
-            }
-            case Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION: {
-                if (!extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION,
-                    propertyInfo.nextPhaseFreezingTime)) {
-                    ACCOUNT_LOGE("get nextPhaseFreezingTime failed");
-                }
-                break;
-            }
-            default:
-                ACCOUNT_LOGE("get invalid key");
-                break;
-        }
-    }
+    PraseAttributesToExecutorProperty(keys_, extraInfo, propertyInfo);
     return;
 }
 

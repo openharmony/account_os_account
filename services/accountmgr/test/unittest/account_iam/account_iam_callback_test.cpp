@@ -255,6 +255,46 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0201, TestSize.Level0)
     IInnerOsAccountManager::GetInstance().osAccountControl_->DelOsAccount(testUserId);
 }
 
+#ifdef SUPPORT_LOCK_OS_ACCOUNT
+/**
+ * @tc.name: AuthCallback_OnResult_0202
+ * @tc.desc: OnResult test with the user is deactivating.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0202, TestSize.Level0)
+{
+    OsAccountInfo osAccountInfo(TEST_USER_ID, "testAuthUser", OsAccountType::NORMAL, 0);
+    EXPECT_EQ(IInnerOsAccountManager::GetInstance().osAccountControl_->InsertOsAccount(osAccountInfo), ERR_OK);
+    int32_t testUserId = osAccountInfo.GetLocalId();
+    // test no set deactivated status
+    bool isLoggedIn = false;
+    IInnerOsAccountManager::GetInstance().loggedInAccounts_.Find(testUserId, isLoggedIn);
+    if (isLoggedIn) {
+    IInnerOsAccountManager::GetInstance().loggedInAccounts_.Erase(testUserId);
+    }
+    sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
+    auto userAuthCallback = std::make_shared<AuthCallback>(
+    testUserId, AuthType::PIN, AccountSA::AuthIntent::DEFAULT, callback);
+    EXPECT_TRUE(userAuthCallback->innerCallback_ != nullptr);
+    Attributes extraInfo;
+    int32_t errCode = 0;
+    userAuthCallback->OnResult(errCode, extraInfo);
+    EXPECT_EQ(errCode, callback->result_);
+    IInnerOsAccountManager::GetInstance().loggedInAccounts_.Find(testUserId, isLoggedIn);
+    EXPECT_EQ(isLoggedIn, true);
+
+    // test set deactivated status
+    IInnerOsAccountManager::GetInstance().loggedInAccounts_.Erase(testUserId);
+    IInnerOsAccountManager::GetInstance().lockingAccounts_.EnsureInsert(testUserId, true);
+    userAuthCallback->OnResult(errCode, extraInfo);
+    EXPECT_EQ(errCode, callback->result_);
+    EXPECT_EQ(IInnerOsAccountManager::GetInstance().loggedInAccounts_.Find(testUserId, isLoggedIn), false);
+    IInnerOsAccountManager::GetInstance().lockingAccounts_.Erase(testUserId);
+    IInnerOsAccountManager::GetInstance().osAccountControl_->DelOsAccount(testUserId);
+}
+#endif
+
 /**
  * @tc.name: AuthCallback_OnResult_0300
  * @tc.desc: OnResult test with not PIN.

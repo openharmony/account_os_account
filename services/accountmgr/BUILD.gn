@@ -260,6 +260,10 @@ ohos_shared_library("accountmgr") {
     cflags_cc += [ "-DENABLE_DEACTIVATE_OS_ACCOUNTS" ]
   }
 
+  if (os_account_support_lock_os_account) {
+    cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
+  }
+
   if (os_account_distributed_feature) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
     sources +=
@@ -428,9 +432,9 @@ group("accountmgr_target") {
   deps = [
     ":accountmgr",
     ":accountmgr.init",
-    ":os_account_constraint_definition",
     ":os_account_config",
     ":os_account_constraint_config",
+    ":os_account_constraint_definition",
   ]
   if (!(has_kv_store_part && os_account_distributed_feature)) {
     deps += [ ":account_database_adapter" ]

@@ -33,7 +33,8 @@ void AppAccountSubscribeDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &
         return;
     }
 
-    AppAccountSubscribeManager::GetInstance().UnsubscribeAppAccount(object);
+    std::vector<std::string> owners;
+    AppAccountSubscribeManager::GetInstance().UnsubscribeAppAccount(object, owners);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

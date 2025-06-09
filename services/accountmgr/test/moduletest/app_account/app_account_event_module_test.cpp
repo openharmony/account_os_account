@@ -38,7 +38,7 @@ uint32_t INVALID_CODE = -1;
 
 class MockAppAccountEventStub : public AppAccountEventStub {
 public:
-    void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts)
+    void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts, const std::string &ownerName)
     {
         g_status = true;
         return;
@@ -87,7 +87,7 @@ HWTEST_F(AppAccountEventModuleTest, AppAccountEventTest_OnAccountsChanged_0100, 
     sptr<IRemoteObject> callback = eventCallbackPtr->AsObject();
     AppAccountEventProxy testCallbackProxy(callback);
     std::vector<AppAccountInfo> accounts;
-    testCallbackProxy.OnAccountsChanged(accounts);
+    testCallbackProxy.OnAccountsChanged(accounts, "");
     EXPECT_EQ(g_status, true);
     g_status = false;
 }

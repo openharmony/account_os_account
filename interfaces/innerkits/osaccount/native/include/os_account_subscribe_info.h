@@ -34,7 +34,24 @@ typedef enum {
     STOPPED,
     SWITCHING,
     SWITCHED,
+    CREATING,
+    LOCKING,
+    LOCKED,
 } OS_ACCOUNT_SUBSCRIBE_TYPE, OsAccountState;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+struct COsAccountStateData {
+    OsAccountState state = OsAccountState::INVALID_TYPE;
+    int32_t fromId = -1;
+    int32_t toId = -1;
+};
+
+typedef int32_t (*OnOsAccountStateChangedFunc)(const COsAccountStateData *stateData);
+#ifdef __cplusplus
+}
+#endif
 
 class OsAccountSubscribeInfo : public Parcelable {
 public:
