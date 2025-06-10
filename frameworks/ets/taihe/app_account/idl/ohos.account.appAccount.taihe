@@ -186,12 +186,6 @@ interface AppAccountManager {
     @gen_promise("getAuthList")
     GetAuthListSync(name: String, authType: String):Array<String>;
 
-    @overload("verifyCredential")
-    VerifyCredentialSync(name: String, owner: String, callback: AuthCallback);
-
-    @overload("verifyCredential")
-    VerifyCredentialWithOpt(name: String, owner: String, options: VerifyCredentialOptions, callback: AuthCallback);
-
     @gen_async("queryAuthenticatorInfo")
     @gen_promise("queryAuthenticatorInfo")
     QueryAuthenticatorInfoSync(owner: String): AuthenticatorInfo;
@@ -199,7 +193,4 @@ interface AppAccountManager {
     @gen_async("deleteCredential")
     @gen_promise("deleteCredential")
     DeleteCredentialSync(name: String, credentialType: String);
-
-
-    
 }
