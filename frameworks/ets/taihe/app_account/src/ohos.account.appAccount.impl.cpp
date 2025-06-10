@@ -52,8 +52,8 @@ AppAccountInfo ConvertAccountInfo(const std::string name, const std::string owne
 AccountSA::SelectAccountsOptions ConvertAccountsOptionsInfo(SelectAccountsOptions const& options)
 {
     AccountSA::SelectAccountsOptions tempOptions;
-    if(options.allowedAccounts){
-        for (const auto& accountsOptionsInfo : options.allowedAccounts.value()){
+    if(options.allowedAccounts) {
+        for (const auto& accountsOptionsInfo : options.allowedAccounts.value()) {
             std::pair<std::string, std::string> tmepPair;
             tmepPair.first = accountsOptionsInfo.owner.c_str();
             tmepPair.second = accountsOptionsInfo.name.c_str();
@@ -61,49 +61,22 @@ AccountSA::SelectAccountsOptions ConvertAccountsOptionsInfo(SelectAccountsOption
         }
     }
     
-    if(options.allowedOwners){
-        std::vector<std::string> tempAllowedOwners(options.allowedOwners.value().data(), options.allowedOwners.value().data() 
+    if(options.allowedOwners) {
+        std::vector<std::string> tempAllowedOwners(options.allowedOwners.value().data(),
+			options.allowedOwners.value().data()
             + options.allowedOwners.value().size());
         tempOptions.allowedOwners = tempAllowedOwners;
     }
 
-    if(options.requiredLabels){
-        std::vector<std::string> tempRequiredLabels(options.requiredLabels.value().data(), options.requiredLabels.value().data() 
+    if(options.requiredLabels) {
+        std::vector<std::string> tempRequiredLabels(options.requiredLabels.value().data(), options.requiredLabels.value().data()
             + options.requiredLabels.value().size());
         tempOptions.requiredLabels = tempRequiredLabels;
     }
     return tempOptions;
 }
 
-// class AppAccountManagerCallback : public AccountSA::AppAccountAuthenticatorCallbackStub {
-//     public:
-//         explicit AppAccountManagerCallback(ohos::account::appAccount::AuthCallback callback): callback_(callback){}
-//         void OnResult(int32_t resultCode, const AAFwk::Want &result) override
-//         {
-//             {
-//                 std::lock_guard<std::mutex> lock(mutex_);
-//                 if (isDone) {
-//                     return;
-//                 }
-//                 isDone = true;
-//             }
-//             cv.notify_one();
-    
-//             ACCOUNT_LOGI("Post task finish");
-//         }
-//         void OnRequestRedirected(AAFwk::Want &request) override
-//         {}
-//         void OnRequestContinued() override
-//         {}
-    
-//         std::mutex mutex_;
-//         bool isDone = false;
-//         AuthCallback callback_;
-//         std::condition_variable cv;
-//     };
-
-struct AuthenticatorCallbackParam 
-{
+struct AuthenticatorCallbackParam {
     int32_t resultCode = -1;
     AAFwk::Want result;
 };
@@ -124,7 +97,6 @@ public:
         param = std::make_shared<AuthenticatorCallbackParam>();
         param->resultCode = resultCode;
         param->result = result;
-
     }
     void OnRequestRedirected(AAFwk::Want &request) override{};
     void OnRequestContinued() override{};
@@ -133,45 +105,6 @@ public:
     bool isDone = false;
     std::condition_variable cv;
 };
-
-// class THAppAccountManagerCallback : public AccountSA::AppAccountAuthenticatorCallbackStub {
-//     public:
-//         explicit THAppAccountManagerCallback(const ohos::account::appAccount::AuthCallback &taiheCallback)
-//             : taiheCallback_(taiheCallback) {}
-//         // explicit AppAccountManagerCallback(ohos::account::appAccount::AuthCallback callback): callback_(callback){}
-
-//         // ~THAppAccountManagerCallback() override = default;
-
-//         // void OnResult(int32_t resultCode, const AAFwk::Want &result) override
-//         void OnResult(int32_t resultCode, const AAFwk::Want &result) override
-//         {
-//             if (taiheCallback_.onResult.data_ptr != nullptr) {
-//                 ani_env *env = get_env();
-//                 auto resultParams =  AppExecFwk::WrapWantParams(env, result.GetParams());
-//                 AuthResult* authResult = reinterpret_cast<AuthResult*>(resultParams);
-//                 taiheCallback_.onResult(resultCode, optional<AuthResult>(std::in_place_t{}, *authResult));
-//             }
-//         }
-
-//         // void OnRequestRedirected(AAFwk::Want &request) override
-//         void OnRequestRedirected(AAFwk::Want &request) override
-//         {
-//             if (taiheCallback_.onRequestRedirected.data_ptr != nullptr) {
-//                 ani_env *env = get_env();
-//                 taiheCallback_.onRequestRedirected(reinterpret_cast<uintptr_t>(AppExecFwk::WrapWant(env, request)));
-//             }
-//         }
-
-//         // void OnRequestContinued() override
-//         void OnRequestContinued() override
-//         {
-//             if (taiheCallback_.onRequestContinued.has_value()) {
-//                 taiheCallback_.onRequestContinued.value()();
-//             }
-//         }
-//     private:
-//         ohos::account::appAccount::AuthCallback taiheCallback_;
-//     };
 
 class AppAccountManagerImpl {
 public:
@@ -262,8 +195,8 @@ public:
         int errorCode = AccountSA::AppAccountManager::SetAccountCredential(innerName,
             innerCredentialType, innerCredential);
         if (errorCode != ERR_OK) {
-             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
-             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
         }
     }
 
@@ -416,8 +349,10 @@ public:
         std::unique_lock<std::mutex> lock(callback->mutex);
         callback->cv.wait(lock, [callback] { return callback->isDone; });
         std::vector<AppAccountInfo> accountInfos;
-        std::vector<std::string> names = callback->param->result.GetStringArrayParam(AccountSA::Constants::KEY_ACCOUNT_NAMES);
-        std::vector<std::string> owners = callback->param->result.GetStringArrayParam(AccountSA::Constants::KEY_ACCOUNT_OWNERS);
+        std::vector<std::string> names = 
+			callback->param->result.GetStringArrayParam(AccountSA::Constants::KEY_ACCOUNT_NAMES);
+        std::vector<std::string> owners = 
+			callback->param->result.GetStringArrayParam(AccountSA::Constants::KEY_ACCOUNT_OWNERS);
         for (size_t i = 0; i < names.size(); ++i) {
             accountInfos.push_back(ConvertAccountInfo(names[i], owners[i]));
         }
@@ -443,7 +378,7 @@ public:
         std::string innerAuthType(authType.data(), authType.size());
         std::string innerBundleName(bundleName.data(), bundleName.size());
         int errorCode = AccountSA::AppAccountManager::SetAuthTokenVisibility(innerName, innerAuthType,
-             innerBundleName, isVisible);
+		innerBundleName, isVisible);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
@@ -508,37 +443,6 @@ public:
             innerAuthList.end()
         );
         return array<string>(taihe::copy_data_t{}, innerAuthListVector.data(), innerAuthListVector.size());
-    }
-
-    // AuthCallback GetAuthCallbackSync(string_view sessionId) {
-    //     AuthCallback authCallback = {};
-    //     std::string innerSessionId(sessionId.data(), sessionId.size());
-    //     sptr<IRemoteObject> authenticatorCb = nullptr;
-    //     int errorCode = AccountSA::AppAccountManager::GetAuthenticatorCallback(
-    //         innerSessionId, authenticatorCb);
-    //         reinterpret_cast<int64_t>(authenticatorCb.GetRefPtr());
-    //     if (errorCode != ERR_OK) {
-    //         int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
-    //         taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-    //     }
-    //     return authCallback;
-    // }
-    void VerifyCredentialSync(string_view name, string_view owner, AuthCallback const& callback)
-    {
-        std::string innerName(name.data(), name.size());
-        std::string innerOwner(owner.data(), owner.size());
-        AccountSA::VerifyCredentialOptions options;
-        // std::shared_ptr<AccountSA::AppAccountAuthenticatorCallbackStub> authCallback = std::make_shared<THAppAccountManagerCallback>(callback);
-        // auto appAccountMgrCb = new THAppAccountManagerCallback(callback);
-        // ErrCode errorCode = AccountSA::AppAccountManager::VerifyCredential(
-        //     innerName, innerOwner, options, appAccountMgrCb);
-        // if (errorCode != ERR_OK) {
-        //     int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
-        //     taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-        // }
-    }
-    void VerifyCredentialWithOpt(string_view name, string_view owner, VerifyCredentialOptions const& options, ::ohos::account::appAccount::AuthCallback const& callback) {
-        TH_THROW(std::runtime_error, "VerifyCredentialWithOpt not implemented");
     }
 
     AuthenticatorInfo QueryAuthenticatorInfoSync(string_view owner)
