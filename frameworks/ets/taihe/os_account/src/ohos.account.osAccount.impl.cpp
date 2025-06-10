@@ -1394,10 +1394,10 @@ public:
 };
 
 class DomainAccountManagerImpl {
-    private:
+private:
     AccountSA::OsAccountManager *osAccountManger_ = nullptr;
 
-    public:
+public:
     DomainAccountManagerImpl()
     {
         osAccountManger_ = new (std::nothrow) AccountSA::OsAccountManager();
@@ -1441,10 +1441,10 @@ std::string ConvertMapViewToStringInner(map_view<string, uintptr_t> parameters)
 }
 
 class DomainServerConfigManagerImpl {
-    private:
+private:
     AccountSA::OsAccountManager *osAccountManger_ = nullptr;
 
-    public:
+public:
     DomainServerConfigManagerImpl()
     {
         osAccountManger_ = new (std::nothrow) AccountSA::OsAccountManager();
