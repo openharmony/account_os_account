@@ -174,6 +174,7 @@ taihe_shared_library("os_account_taihe_native") {
   sources += [
     "os_account/src/ani_constructor.cpp",
     "os_account/src/ohos.account.osAccount.impl.cpp",
+    "os_account/src/ohos.account.osAccount_accountManager.impl.cpp",
     "os_account/src/taihe_account_info.cpp",
     "os_account/src/taihe_common.cpp",
   ]
