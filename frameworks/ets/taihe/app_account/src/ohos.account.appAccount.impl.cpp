@@ -52,7 +52,7 @@ AppAccountInfo ConvertAccountInfo(const std::string name, const std::string owne
 AccountSA::SelectAccountsOptions ConvertAccountsOptionsInfo(SelectAccountsOptions const& options)
 {
     AccountSA::SelectAccountsOptions tempOptions;
-    if(options.allowedAccounts) {
+    if (options.allowedAccounts) {
         for (const auto& accountsOptionsInfo : options.allowedAccounts.value()) {
             std::pair<std::string, std::string> tmepPair;
             tmepPair.first = accountsOptionsInfo.owner.c_str();
@@ -61,16 +61,15 @@ AccountSA::SelectAccountsOptions ConvertAccountsOptionsInfo(SelectAccountsOption
         }
     }
     
-    if(options.allowedOwners) {
+    if (options.allowedOwners) {
         std::vector<std::string> tempAllowedOwners(options.allowedOwners.value().data(),
-			options.allowedOwners.value().data()
-            + options.allowedOwners.value().size());
+            options.allowedOwners.value().data() + options.allowedOwners.value().size());
         tempOptions.allowedOwners = tempAllowedOwners;
     }
 
-    if(options.requiredLabels) {
-        std::vector<std::string> tempRequiredLabels(options.requiredLabels.value().data(), options.requiredLabels.value().data()
-            + options.requiredLabels.value().size());
+    if (options.requiredLabels) {
+        std::vector<std::string> tempRequiredLabels(options.requiredLabels.value().data(),
+            options.requiredLabels.value().data() + options.requiredLabels.value().size());
         tempOptions.requiredLabels = tempRequiredLabels;
     }
     return tempOptions;
@@ -349,9 +348,9 @@ public:
         std::unique_lock<std::mutex> lock(callback->mutex);
         callback->cv.wait(lock, [callback] { return callback->isDone; });
         std::vector<AppAccountInfo> accountInfos;
-        std::vector<std::string> names = 
+        std::vector<std::string> names =
 			callback->param->result.GetStringArrayParam(AccountSA::Constants::KEY_ACCOUNT_NAMES);
-        std::vector<std::string> owners = 
+        std::vector<std::string> owners =
 			callback->param->result.GetStringArrayParam(AccountSA::Constants::KEY_ACCOUNT_OWNERS);
         for (size_t i = 0; i < names.size(); ++i) {
             accountInfos.push_back(ConvertAccountInfo(names[i], owners[i]));
@@ -378,7 +377,7 @@ public:
         std::string innerAuthType(authType.data(), authType.size());
         std::string innerBundleName(bundleName.data(), bundleName.size());
         int errorCode = AccountSA::AppAccountManager::SetAuthTokenVisibility(innerName, innerAuthType,
-		innerBundleName, isVisible);
+            innerBundleName, isVisible);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
