@@ -20,6 +20,7 @@
 #include <securec.h>
 #include <cstring>
 #include <vector>
+#include "account_constants.h"
 #include "account_hisysevent_adapter.h"
 #include "account_info_report.h"
 #include "account_log_wrapper.h"
@@ -55,6 +56,7 @@ constexpr char THREAD_IS_ACCOUNT_VALID[] = "isAccountTokenValid";
 constexpr char DLOPEN_ERR[] = "dlopen failed";
 constexpr int32_t INVALID_USERID = -1;
 constexpr int32_t ADMIN_USERID = 0;
+constexpr uint32_t RETRY_SLEEP_MS = 5;
 static const char OPERATOR_LOAD_LIB[] = "LoaderLib";
 #ifdef _ARM64_
 static const char LIB_PATH[] = "/system/lib64/platformsdk/";
@@ -117,7 +119,18 @@ static int32_t GetCallingUserID()
 
 InnerDomainAccountManager::InnerDomainAccountManager()
 {
-    LoaderLib(LIB_PATH, LIB_NAME);
+    int times = 0;
+    while (times < Constants::MAX_RETRY_TIMES) {
+        LoaderLib(LIB_PATH, LIB_NAME);
+        if (libHandle_ != nullptr) {
+            return;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(RETRY_SLEEP_MS));
+        times++;
+    }
+    if (libHandle_ == nullptr) {
+        ACCOUNT_LOGE("LoaderLib failed, tryTime: %{public}d", times);
+    }
 }
 
 InnerDomainAccountManager::~InnerDomainAccountManager()

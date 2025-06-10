@@ -79,6 +79,7 @@ const int ACCOUNT_UID = 3058;
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 const std::string STRING_DOMAIN_VALID = "TestDomainMT";
 const std::string STRING_DOMAIN_ACCOUNT_NAME_VALID = "TestDomainAccountNameMT";
+const std::string FAIL_STR = "fail";
 OsAccountControlFileManager *g_controlManager = new (std::nothrow) OsAccountControlFileManager();
 
 bool operator==(const ConstraintSourceTypeInfo &left, const ConstraintSourceTypeInfo &right)
@@ -364,6 +365,46 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, QueryOsAccountInfo001, TestSize.Level1)
     EXPECT_EQ(ERR_OK, g_controlManager->DelOsAccount(TEST_ACCOUNT_ID));
 }
 #endif // ENABLE_FILE_WATCHER
+
+/*
+ * @tc.name: CreateOsAccountForDomain001
+ * @tc.desc: garbage clean fail
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountInnerAccmgrMockTest, CreateOsAccountForDomain001, TestSize.Level1)
+{
+    OsAccountInfo createInfo;
+    EXPECT_EQ(ERR_OK, innerMgrService_->CreateOsAccount("CreateOsAccount001", NORMAL, createInfo));
+    DomainAccountInfo domainInfo(FAIL_STR, STRING_TEST_NAME, STRING_TEST_NAME);
+    createInfo.SetDomainInfo(domainInfo);
+    createInfo.SetIsCreateCompleted(false);
+    EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->UpdateOsAccount(createInfo));
+    OsAccountType type = OsAccountType::ADMIN;
+    CreateOsAccountForDomainOptions options;
+    // bind account which iscomplete = false clean fail
+    EXPECT_EQ(innerMgrService_->CreateOsAccountForDomain(type, domainInfo, nullptr, options),
+        ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR);
+    // bind account which toberemove = true clean fail
+    createInfo.SetIsCreateCompleted(true);
+    createInfo.SetToBeRemoved(true);
+    EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->UpdateOsAccount(createInfo));
+    EXPECT_EQ(innerMgrService_->CreateOsAccountForDomain(type, domainInfo, nullptr, options),
+        ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR);
+    // bind account
+    createInfo.SetIsCreateCompleted(true);
+    createInfo.SetToBeRemoved(false);
+    domainInfo.SetDomain(STRING_TEST_NAME);
+    createInfo.SetDomainInfo(domainInfo);
+    EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->UpdateOsAccount(createInfo));
+    EXPECT_EQ(innerMgrService_->CreateOsAccountForDomain(type, domainInfo, nullptr, options),
+        ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR);
+    // bind account which toberemove = true clean success
+    createInfo.SetToBeRemoved(true);
+    EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->UpdateOsAccount(createInfo));
+    EXPECT_NE(innerMgrService_->CreateOsAccountForDomain(type, domainInfo, nullptr, options),
+        ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR);
+    EXPECT_EQ(ERR_OK, innerMgrService_->osAccountControl_->DelOsAccount(createInfo.GetLocalId()));
+}
 
 /*
  * @tc.name: CreateOsAccount001

@@ -796,27 +796,71 @@ ErrCode IInnerOsAccountManager::UpdateOsAccountWithFullInfo(OsAccountInfo &newIn
 }
 
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
-bool IInnerOsAccountManager::CheckDomainAccountBound(
-    const std::vector<OsAccountInfo> &osAccountInfos, const DomainAccountInfo &info)
+ErrCode IInnerOsAccountManager::GetOsAccountsByDomainInfo(const DomainAccountInfo &info,
+    std::vector<OsAccountInfo> &osAccountInfos)
 {
-    for (size_t i = 0; i < osAccountInfos.size(); ++i) {
+    std::vector<int32_t> allOsAccountIds;
+    ErrCode errCode = osAccountControl_->GetOsAccountIdList(allOsAccountIds);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Get osaccount info list error, errCode %{public}d.", errCode);
+        return errCode;
+    }
+    for (auto id : allOsAccountIds) {
+        OsAccountInfo osAccountInfo;
+        GetRealOsAccountInfoById(id, osAccountInfo);
         DomainAccountInfo curInfo;
-        osAccountInfos[i].GetDomainInfo(curInfo);
+        osAccountInfo.GetDomainInfo(curInfo);
         if ((!info.accountId_.empty() && curInfo.accountId_ == info.accountId_) ||
             ((curInfo.accountName_ == info.accountName_) && (curInfo.domain_ == info.domain_))) {
-            return true;
+            osAccountInfos.emplace_back(osAccountInfo);
         }
     }
-    return false;
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::CheckDomainAccountBound(const DomainAccountInfo &info, bool &isBound)
+{
+    std::vector<OsAccountInfo> osAccountInfos;
+    ErrCode result = GetOsAccountsByDomainInfo(info, osAccountInfos);
+    if (result != ERR_OK) {
+        return result;
+    }
+    osAccountInfos.erase(std::remove_if(osAccountInfos.begin(), osAccountInfos.end(),
+        [this](OsAccountInfo osAccountInfo) {
+            if (osAccountInfo.GetIsCreateCompleted() && !osAccountInfo.GetToBeRemoved()) {
+                ACCOUNT_LOGI("The domain account is already bound.");
+                return false;
+            }
+            int32_t id = osAccountInfo.GetLocalId();
+            if (!this->CheckAndAddLocalIdOperating(id)) {
+                ACCOUNT_LOGE("Account id = %{public}d already in operating", id);
+                return false;
+            }
+            ErrCode errCode = this->RemoveOsAccountOperate(id, osAccountInfo, true);
+            this->RemoveLocalIdToOperating(id);
+            if (errCode != ERR_OK) {
+                REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_CLEAN,
+                    errCode, "Clean garbage os accounts failed");
+                ACCOUNT_LOGE("Remove account %{public}d failed! errCode %{public}d.", id, errCode);
+                return false;
+            }
+            ACCOUNT_LOGI("Remove account %{public}d succeed!", id);
+            return true;
+        }), osAccountInfos.end());
+    isBound = osAccountInfos.size() != 0;
+    return ERR_OK;
 }
 
 ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type,
     const DomainAccountInfo &domainAccountInfo, OsAccountInfo &osAccountInfo,
     const CreateOsAccountForDomainOptions &options)
 {
-    std::vector<OsAccountInfo> osAccountInfos;
-    (void)QueryAllCreatedOsAccounts(osAccountInfos);
-    if (CheckDomainAccountBound(osAccountInfos, domainAccountInfo)) {
+    bool isBound = false;
+    ErrCode errCode = CheckDomainAccountBound(domainAccountInfo, isBound);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+    if (isBound) {
         ACCOUNT_LOGE("The domain account is already bound");
         return ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR;
     }
@@ -829,6 +873,12 @@ ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type,
 #else
     bool isEnabled = true;
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
+    std::vector<OsAccountInfo> osAccountInfos;
+    errCode = QueryAllCreatedOsAccounts(osAccountInfos);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Query all created osAccount failed, errCode:%{public}d", errCode);
+        return errCode;
+    }
     if (isEnabled && (osAccountInfos.size() == 1) && (osAccountInfos[0].GetLocalId() == Constants::START_USER_ID)) {
         DomainAccountInfo curDomainInfo;
         osAccountInfos[0].GetDomainInfo(curDomainInfo);
@@ -841,7 +891,7 @@ ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type,
     }
     if (osAccountInfo.GetLocalId() != Constants::START_USER_ID) {
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-        ErrCode errCode = PrepareOsAccountInfo(domainAccountInfo.accountName_, options.shortName,
+        errCode = PrepareOsAccountInfo(domainAccountInfo.accountName_, options.shortName,
             type, domainAccountInfo, osAccountInfo);
         RemoveLocalIdToOperating(osAccountInfo.GetLocalId());
         if (errCode != ERR_OK) {
@@ -852,7 +902,7 @@ ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type,
         return ERR_OSACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR;
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
     }
-    ErrCode errCode = osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
+    errCode = osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Failed to update account index.");
         return errCode;
@@ -877,15 +927,20 @@ ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
 #ifdef HICOLLIE_ENABLE
     AccountTimer timer;
 #endif // HICOLLIE_ENABLE
+    bool isBound = false;
+    ErrCode errCode = CheckDomainAccountBound(domainInfo, isBound);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("The domain account is already bound");
+        return errCode;
+    }
+    if (isBound) {
+        return ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR;
+    }
     std::vector<OsAccountInfo> osAccountInfos;
-    ErrCode errCode = QueryAllCreatedOsAccounts(osAccountInfos);
+    errCode = QueryAllCreatedOsAccounts(osAccountInfos);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Query all created osAccount failed, errCode:%{public}d", errCode);
         return errCode;
-    }
-    if (CheckDomainAccountBound(osAccountInfos, domainInfo)) {
-        ACCOUNT_LOGE("The domain account is already bound");
-        return ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR;
     }
     unsigned int saCreatedNum = 0;
     for (const auto& it : osAccountInfos) {

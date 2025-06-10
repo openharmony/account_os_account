@@ -178,14 +178,14 @@ private:
     void RollBackToEarlierAccount(int32_t fromId, int32_t toId);
     void RollbackOsAccount(OsAccountInfo &osAccountInfo, bool needDelStorage, bool needDelBms);
     bool IsToBeRemoved(const int32_t localId);
-
     // operations for active list
     void PushIdIntoActiveList(int32_t id);
     void EraseIdFromActiveList(int32_t id);
     bool IsOsAccountIDInActiveList(int32_t id);
     void CopyFromActiveList(std::vector<int32_t>& idList);
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
-    bool CheckDomainAccountBound(const std::vector<OsAccountInfo> &osAccountInfos, const DomainAccountInfo &info);
+    ErrCode GetOsAccountsByDomainInfo(const DomainAccountInfo &info, std::vector<OsAccountInfo> &osAccountInfos);
+    ErrCode CheckDomainAccountBound(const DomainAccountInfo &info, bool &isBound);
 #endif // SUPPORT_DOMAIN_ACCOUNTS
     void RetryToGetAccount(OsAccountInfo &osAccountInfo);
     ErrCode RetryToInsertOsAccount(OsAccountInfo &osAccountInfo);
