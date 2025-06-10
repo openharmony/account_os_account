@@ -24,6 +24,7 @@
 #include "account_error_no.h"
 #include "napi_account_iam_common.h"
 #include "napi_account_iam_constant.h"
+#include "nlohmann/json.hpp"
 #include "ohos.account.disributedAccount.h"
 #include "ohos.account.distributedAccount.impl.hpp"
 #include "ohos.account.distributedAccount.proj.hpp"
@@ -251,6 +252,45 @@ public:
 private:
     ohos::account::osAccount::IIdmCallback taiheCallback_;
 };
+
+class THCreateDomainCallback : public AccountSA::DomainAccountCallback {
+    public:
+        int32_t errCode = -1;
+        std::mutex mutex;
+        std::condition_variable cv;
+        AccountSA::OsAccountInfo osAccountInfos;
+        bool OnResultCalled = false;
+
+        void OnResult(const int32_t errCode, Parcel &parcel)
+        {   
+            std::unique_lock<std::mutex> lock(mutex);
+            if (this->OnResultCalled) {
+                return;
+            }
+            this->OnResultCalled = true;
+            std::shared_ptr<AccountSA::OsAccountInfo> osAccountInfo(AccountSA::OsAccountInfo::Unmarshalling(parcel));
+            if (osAccountInfo == nullptr) {
+                ACCOUNT_LOGE("failed to unmarshalling OsAccountInfo");
+                return;
+            }
+            this->osAccountInfos = *osAccountInfo;
+            this->errCode = errCode;
+            cv.notify_one();
+        }
+    };
+
+AccountSA::DomainAccountInfo ConvertToDomainAccountInfoInner(const DomainAccountInfo &domainAccountInfo)
+{
+    AccountSA::DomainAccountInfo domainAccountInfoInner(std::string(domainAccountInfo.domain.c_str()),
+                                                        std::string(domainAccountInfo.accountName.c_str()));
+    if (domainAccountInfo.accountId.has_value()) {
+        domainAccountInfoInner.accountId_ = domainAccountInfo.accountId.value();
+    }
+    if (domainAccountInfo.serverConfigId.has_value()) {
+        domainAccountInfoInner.serverConfigId_ = domainAccountInfo.serverConfigId.value();
+    }
+    return domainAccountInfoInner;
+}
 
 class AccountManagerImpl {
 private:
@@ -589,7 +629,7 @@ public:
         return id;
     }
 
-    int32_t GetOsAccountLocalIdForUidSync(int32_t uid)
+    int32_t GetOsAccountLocalIdForUidSyncTaihe(int32_t uid)
     {
         int32_t id = -1;
         ErrCode errCode = AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, id);
@@ -663,6 +703,316 @@ public:
             SetTaiheBusinessErrorFromNativeCode(errCode);
         }
         return ConvertOsAccountInfo(osAccountInfo);
+    }
+
+    void SetOsAccountProfilePhotoSync(int32_t localId, string_view photo)
+    {
+        std::string innerPhoto(photo.data(), photo.size());
+        ErrCode errorCode = AccountSA::OsAccountManager::SetOsAccountProfilePhoto(localId, innerPhoto);
+        if (errorCode != ERR_OK) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+        }
+    }
+
+    int32_t GetOsAccountLocalIdForSerialNumberSync(int64_t serialNumber)
+    {
+        int id = -1;
+        ErrCode errorCode = AccountSA::OsAccountManager::GetOsAccountLocalIdBySerialNumber(serialNumber, id);
+        if (errorCode != ERR_OK) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+        }
+        return id;
+    }
+
+    int32_t GetSerialNumberForOsAccountLocalIdSync(int32_t localId)
+    {
+        int64_t serialNum = -1;
+        ErrCode errorCode = AccountSA::OsAccountManager::GetSerialNumberByOsAccountLocalId(localId, serialNum);
+        if (errorCode != ERR_OK) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+        }
+
+        return (int32_t)serialNum;
+    }
+
+    int32_t GetBundleIdForUidWithIdSync(int32_t uid)
+    {
+        int id = -1;
+        ErrCode errorCode = AccountSA::OsAccountManager::GetBundleIdFromUid(uid, id);
+        if (errorCode != ERR_OK) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+        }
+        return id;
+    }
+
+    int32_t GetBundleIdForUidSyncSync(int32_t uid)
+    {
+        int32_t bundleId = 0;
+        ErrCode errorCode = AccountSA::OsAccountManager::GetBundleIdFromUid(uid, bundleId);
+        if (errorCode != ERR_OK) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+        }
+        return bundleId;
+    }
+
+    std::vector<ConstraintSourceTypeInfo> ConvertConstraintSourceTypeInfo(std::vector<AccountSA::ConstraintSourceTypeInfo> const& constraintSourceTypeInfos)
+    {
+        std::vector<ConstraintSourceTypeInfo> tempInfos;
+        for (const auto& constraintSourceTypeInfo : constraintSourceTypeInfos){
+            ConstraintSourceType tempType = ConstraintSourceType::key_t::CONSTRAINT_NOT_EXIST;
+            switch (constraintSourceTypeInfo.typeInfo)
+            {
+            case AccountSA::CONSTRAINT_NOT_EXIST:
+                tempType = ConstraintSourceType::key_t::CONSTRAINT_NOT_EXIST;
+                break;
+
+            case AccountSA::CONSTRAINT_TYPE_BASE:
+                tempType = ConstraintSourceType::key_t::CONSTRAINT_TYPE_BASE;
+                break;
+
+            case AccountSA::CONSTRAINT_TYPE_DEVICE_OWNER:
+                tempType = ConstraintSourceType::key_t::CONSTRAINT_TYPE_DEVICE_OWNER;
+                break;
+
+            case AccountSA::CONSTRAINT_TYPE_PROFILE_OWNER:
+                tempType = ConstraintSourceType::key_t::CONSTRAINT_TYPE_PROFILE_OWNER;
+                break;
+
+            default:
+                break;
+            }
+
+            ConstraintSourceTypeInfo tempInfo{
+                .localId = constraintSourceTypeInfo.localId,
+                .type = tempType,
+            };
+            tempInfos.push_back(tempInfo);
+        }
+        return tempInfos;
+    }
+
+    array<ConstraintSourceTypeInfo> GetOsAccountConstraintSourceTypesSync(int32_t localId, string_view constraint)
+    {
+        std::string innerConstraint(constraint.data(), constraint.size());
+        std::vector<AccountSA::ConstraintSourceTypeInfo> constraintSourceTypeInfos;
+        ErrCode errorCode = AccountSA::OsAccountManager::QueryOsAccountConstraintSourceTypes(localId, innerConstraint, constraintSourceTypeInfos);
+        if (errorCode != ERR_OK) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+        }
+        std::vector<ConstraintSourceTypeInfo> tempConstraintSourceTypeInfos = ConvertConstraintSourceTypeInfo(constraintSourceTypeInfos);
+        return taihe::array<ConstraintSourceTypeInfo>(taihe::copy_data_t{}, tempConstraintSourceTypeInfos.data(), tempConstraintSourceTypeInfos.size());
+    }
+
+    bool CheckMultiOsAccountEnabledSync()
+    {
+        bool isMultiOAEnable;
+        ErrCode errCode = AccountSA::OsAccountManager::IsMultiOsAccountEnable(isMultiOAEnable);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("CheckMultiOsAccountEnabledSync failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+        return isMultiOAEnable;
+    }
+
+    void RemoveOsAccountSync(int32_t localId)
+    {
+        ErrCode errCode = AccountSA::OsAccountManager::RemoveOsAccount(localId);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("RemoveOsAccountSync failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+    }
+
+    void SetOsAccountNameSync(int32_t localId, string_view localName)
+    {
+        std::string innerLocalName(localName.data(), localName.size());
+        ErrCode errCode = AccountSA::OsAccountManager::SetOsAccountName(localId, innerLocalName);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("RemoveOsAccountSync failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+    }
+
+    bool IsOsAccountActivatedSync(int32_t localId)
+    {
+        bool isOsAccountActived;
+        ErrCode errCode = AccountSA::OsAccountManager::IsOsAccountActived(localId, isOsAccountActived);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("IsOsAccountActivatedSync failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+        return isOsAccountActived;
+    }
+
+    bool IsOsAccountConstraintEnabledSync(string_view constraint)
+    {
+        bool isConsEnable;
+        std::string innerConstraint(constraint.data(), constraint.size());
+        std::vector<int> ids;
+        ErrCode idErrCode = AccountSA::OsAccountManager::QueryActiveOsAccountIds(ids);
+        if (idErrCode != ERR_OK) {
+            ACCOUNT_LOGE("IsOsAccountActivatedSync Get id failed", idErrCode);
+            SetTaiheBusinessErrorFromNativeCode(idErrCode);
+        }
+        if (ids.empty()) {
+            ACCOUNT_LOGE("No Active OsAccount Ids");
+            SetTaiheBusinessErrorFromNativeCode(idErrCode);
+        }
+        ACCOUNT_LOGI("taihe-impl IsOsAccountConstraintEnabledSync impl [id] : %{public}d", ids[0]);
+        ErrCode errCode = AccountSA::OsAccountManager::CheckOsAccountConstraintEnabled(ids[0],
+            innerConstraint, isConsEnable);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("IsOsAccountActivatedSync failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+        return isConsEnable;
+    }
+
+    bool IsOsAccountConstraintEnabledWithId(int32_t localId, string_view constraint)
+    {
+        bool isConsEnable;
+        std::string innerConstraint(constraint.data(), constraint.size());
+        ErrCode errCode = AccountSA::OsAccountManager::CheckOsAccountConstraintEnabled(localId,
+            innerConstraint, isConsEnable);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("IsOsAccountConstraintEnabledWithId failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+        return isConsEnable;
+    }
+
+    void SetOsAccountConstraintsSync(int32_t localId, array_view<taihe::string> constraints, bool enable)
+    {
+        std::vector<std::string> innerConstraints;
+        for (const auto &constraint : constraints) {
+            std::string innerConstraint(constraint.data(), constraint.size());
+            innerConstraints.push_back(innerConstraint);
+        }
+        ErrCode errCode =
+        AccountSA::OsAccountManager::SetOsAccountConstraints(localId, innerConstraints, enable);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("SetOsAccountConstraintsSync failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+    }
+
+    taihe::string GetOsAccountNameSync()
+    {
+        std::string name;
+        ErrCode errCode = AccountSA::OsAccountManager::GetOsAccountName(name);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("GetOsAccountNameSync failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+        return taihe::string(name);
+    }
+
+    uint32_t GetOsAccountCountSync()
+    {
+        unsigned int osAccountsCount;
+        ErrCode errCode = AccountSA::OsAccountManager::GetCreatedOsAccountsCount(osAccountsCount);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("GetOsAccountCountSync failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+        return osAccountsCount;
+    }
+
+    int32_t GetOsAccountLocalIdForUidSyncOverload(int32_t uid)
+    {
+        int32_t localId = 0;
+        ErrCode errCode = AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, localId);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("GetOsAccountLocalIdForUidSyncOverload failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+        return localId;
+    }
+
+    int32_t GetOsAccountLocalIdForDomainSync(DomainAccountInfo const& domainInfo)
+    {
+        int32_t id;
+        std::string innerDomain (domainInfo.domain.data(), domainInfo.domain.size());
+        std::string innerAccountName (domainInfo.accountName.data(), domainInfo.accountName.size());
+        AccountSA::DomainAccountInfo innerDomainInfo;
+        innerDomainInfo.domain_ = innerDomain;
+        innerDomainInfo.accountName_ = innerAccountName;
+        if (domainInfo.accountId.has_value()) {
+            std::string innerAccountId (domainInfo.accountId.value().data(), domainInfo.accountId.value().size());
+            innerDomainInfo.accountId_ = innerAccountId;
+        }
+
+        if (domainInfo.isAuthenticated.has_value()) {
+            innerDomainInfo.isAuthenticated = domainInfo.isAuthenticated.value();
+        }
+
+        if (domainInfo.serverConfigId.has_value()) {
+            innerDomainInfo.serverConfigId_ = domainInfo.serverConfigId.value();
+        }
+
+        ErrCode errCode = AccountSA::OsAccountManager::GetOsAccountLocalIdFromDomain(innerDomainInfo, id);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("GetOsAccountLocalIdForDomainSync failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+        return id;
+    }
+
+    uint32_t QueryMaxOsAccountNumberSync()
+    {
+        uint32_t maxOsAccountNumber;
+        ErrCode errCode = AccountSA::OsAccountManager::QueryMaxOsAccountNumber(maxOsAccountNumber);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("QueryMaxOsAccountNumberSync failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+        return maxOsAccountNumber;
+    }
+
+    array<string> GetEnabledOsAccountConstraintsSync(int32_t localId)
+    {
+        std::vector<std::string> innerConstraints;
+        ErrCode errCode = AccountSA::OsAccountManager::GetOsAccountAllConstraints(localId, innerConstraints);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("GetEnabledOsAccountConstraintsSync failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+        return taihe::array<string>(taihe::copy_data_t{}, innerConstraints.data(), innerConstraints.size());
+    }
+
+    DomainAccountInfo GetOsAccountDomainInfoSync(int32_t localId)
+    {
+        AccountSA::DomainAccountInfo innerDomainInfo;
+        ErrCode errCode = AccountSA::OsAccountManager::GetOsAccountDomainInfo(localId, innerDomainInfo);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("GetOsAccountDomainInfoSync failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+        DomainAccountInfo domainAccountInfo = DomainAccountInfo {
+            .domain = innerDomainInfo.domain_,
+            .accountName = innerDomainInfo.accountName_,
+            .accountId = optional<string>(std::in_place, innerDomainInfo.accountId_),
+            .isAuthenticated = optional<bool>(std::in_place, innerDomainInfo.isAuthenticated),
+            .serverConfigId = optional<string>(std::in_place, innerDomainInfo.serverConfigId_),
+        };
+        return domainAccountInfo;
+    }
+
+    string queryDistributedVirtualDeviceIdSync()
+    {
+        std::string deviceId;
+        ErrCode errCode = AccountSA::OsAccountManager::GetDistributedVirtualDeviceId(deviceId);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("queryDistributedVirtualDeviceIdSync failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+        return string(deviceId);
     }
 };
 
@@ -756,6 +1106,29 @@ public:
     std::condition_variable cv;
     bool onResultCalled = false;
 };
+
+class THGetEnrolledIdCallback : public AccountSA::GetEnrolledIdCallback {
+    public:
+        int32_t errorCode = -1;
+        array<uint8_t> enrolledID = {};
+        std::mutex mutex;
+        std::condition_variable cv;
+        bool OnEnrolledIdCalled = false;
+        void OnEnrolledId(int32_t result, uint64_t enrolledIdUint64) override
+        {
+            std::lock_guard<std::mutex> lock(mutex);
+            if (this->OnEnrolledIdCalled) {
+                return;
+            }
+            this->OnEnrolledIdCalled = true;
+            this->errorCode = result;
+            if (this->errorCode != ERR_OK) {
+                this->enrolledID = array<uint8_t>(taihe::copy_data_t{},
+                    reinterpret_cast<uint8_t *>(&enrolledIdUint64), sizeof(uint64_t));
+            }
+            cv.notify_one();
+        }
+    };
 
 class UserIdentityManagerImpl {
 public:
@@ -924,21 +1297,45 @@ public:
 
         AccountSA::AccountIAMClient::GetInstance().DelUser(defaultUserId, authTokenVec, idmCallbackPtr);
     }
+
+    void CancelWithChallenge(array_view<uint8_t> challenge)
+    {
+        AccountSA::AccountIAMClient::GetInstance().Cancel(-1); // -1 indicates the current user
+    }
+
+    void DelCred(array_view<uint8_t> credentialId, array_view<uint8_t> token, IIdmCallback const &callback)
+    {
+        int32_t accountId = -1;
+        uint64_t credentialIdUint64 = 0;
+        std::vector<uint8_t> innerToken(token.data(), token.data() + token.size());
+        if (credentialId.size() != sizeof(uint64_t))
+        {
+            ACCOUNT_LOGE("credentialId size is invalid.");
+            std::string errMsg = "Parameter error. The type of \"credentialId\" must be Uint8Array";
+            taihe::set_business_error(ERR_JS_PARAMETER_ERROR, errMsg);
+            return;
+        }
+        for (auto each : credentialId) {
+            credentialIdUint64 = (credentialIdUint64 << CONTEXTID_OFFSET);
+            credentialIdUint64 += each;
+        }
+        ACCOUNT_LOGI("taihe-test DelCred impl credentialIdUint64 : %{public}d", static_cast<int32_t>(credentialIdUint64));
+        std::shared_ptr<AccountSA::IDMCallback> idmCallbackPtr = std::make_shared<TaiheIDMCallbackAdapter>(callback);
+        AccountSA::AccountIAMClient::GetInstance().DelCred(accountId, credentialIdUint64, innerToken, idmCallbackPtr);
+    }
+
+    array<uint8_t> GetEnrolledIdSync(AuthType authType, optional_view<int32_t> accountId)
+    {
+        int32_t authTypeInner = authType.get_value();
+        int32_t innerAccountId = accountId.value_or(-1);
+        AccountSA::AuthType innerAuthType = static_cast<AccountSA::AuthType>(authTypeInner);
+        std::shared_ptr<THGetEnrolledIdCallback> getEnrolledIdCallback = std::make_shared<THGetEnrolledIdCallback>();
+        AccountSA::AccountIAMClient::GetInstance().GetEnrolledId(innerAccountId, innerAuthType, getEnrolledIdCallback);
+        std::unique_lock<std::mutex> lock(getEnrolledIdCallback->mutex);
+        getEnrolledIdCallback->cv.wait(lock, [getEnrolledIdCallback] { return getEnrolledIdCallback->OnEnrolledIdCalled;});
+        return getEnrolledIdCallback->enrolledID;
+    }
 };
-
-AccountSA::DomainAccountInfo ConvertToDomainAccountInfoInner(const DomainAccountInfo &domainAccountInfo)
-{
-    AccountSA::DomainAccountInfo domainAccountInfoInner(std::string(domainAccountInfo.domain.c_str()),
-                                                        std::string(domainAccountInfo.accountName.c_str()));
-    if (domainAccountInfo.accountId.has_value()) {
-        domainAccountInfoInner.accountId_ = domainAccountInfo.accountId.value();
-    }
-    if (domainAccountInfo.serverConfigId.has_value()) {
-        domainAccountInfoInner.serverConfigId_ = domainAccountInfo.serverConfigId.value();
-    }
-    return domainAccountInfoInner;
-}
-
 class THDomainAccountCallback : public AccountSA::DomainAccountCallback {
 public:
     std::mutex mutex;
@@ -997,8 +1394,69 @@ public:
 };
 
 class DomainAccountManagerImpl {
-public:
-    DomainAccountManagerImpl() {}
+    private:
+    AccountSA::OsAccountManager *osAccountManger_ = nullptr;
+
+    public:
+    DomainAccountManagerImpl()
+    {
+        osAccountManger_ = new (std::nothrow) AccountSA::OsAccountManager();
+    }
+
+    ~DomainAccountManagerImpl()
+    {
+        if (osAccountManger_ != nullptr) {
+            delete osAccountManger_;
+            osAccountManger_ = nullptr;
+        }
+    }
+};
+
+DomainServerConfig ConvertToDomainServerConfigTH(std::string id, std::string domain, std::string parameters)
+{
+    ACCOUNT_LOGI("taihe-test ConvertToDomainServerConfigTH parameters : %{public}s", parameters.c_str());
+    auto jsonObject = AccountSA::Json::parse(parameters, nullptr, false);
+    ACCOUNT_LOGI("taihe-test ConvertToDomainServerConfigTH 1");
+    taihe::map<taihe::string, uintptr_t> parametersMap;
+    for (auto& [key, value] : jsonObject.items()) {
+        parametersMap.emplace(key, value);
+    }
+
+    DomainServerConfig domainServerConfig = DomainServerConfig{
+        .id = id,
+        .domain = domain,
+        .parameters = parametersMap,
+    };
+    return domainServerConfig;
+}
+
+std::string ConvertMapViewToStringInner(map_view<string, uintptr_t> parameters)
+{
+    AccountSA::Json innerParametersMap_json_obj;
+    for (auto [key, val] : parameters) {
+        std::string innerKey(key.data(), key.size());
+        innerParametersMap_json_obj[innerKey] = std::to_string(val);
+    }
+    return innerParametersMap_json_obj.dump();
+}
+
+class DomainServerConfigManagerImpl {
+    private:
+    AccountSA::OsAccountManager *osAccountManger_ = nullptr;
+
+    public:
+    DomainServerConfigManagerImpl()
+    {
+        osAccountManger_ = new (std::nothrow) AccountSA::OsAccountManager();
+    }
+
+    ~DomainServerConfigManagerImpl()
+    {
+        if (osAccountManger_ != nullptr) {
+            delete osAccountManger_;
+            osAccountManger_ = nullptr;
+        }
+    }
 };
 
 class IInputDataImpl {
@@ -1480,6 +1938,70 @@ public:
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
         }
     }
+
+    int32_t GetAvailableStatusSync(AuthType authType, AuthTrustLevel authTrustLevel) 
+    {
+        AccountSA::AuthType authTypeInner = static_cast<AccountSA::AuthType>(authType.get_value());
+        AccountSA::AuthTrustLevel authSubType = static_cast<AccountSA::AuthTrustLevel>(authTrustLevel.get_value());
+        int status;
+        ErrCode errorCode = AccountSA::AccountIAMClient::GetInstance().GetAvailableStatus(authTypeInner, authSubType, status);
+        if (errorCode != ERR_OK) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+        }
+        return status;
+    }
+
+    ExecutorProperty GetPropertyByCredentialIdSync(array_view<uint8_t> credentialId, array_view<GetPropertyType> keys) 
+    {
+        uint64_t id = 0;
+        for (auto each : credentialId) {
+            id = (id << CONTEXTID_OFFSET);
+            id += each;
+        }
+
+        std::vector<OHOS::UserIam::UserAuth::Attributes::AttributeKey> getPropertyRequestInner;
+        for (GetPropertyType each : keys) {
+            AccountSA::Attributes::AttributeKey key;
+            if (!ConvertGetPropertyTypeToAttributeKeyTh(static_cast<AccountJsKit::GetPropertyType>(each.get_value()),
+                                                        key)) {
+                break;
+            }
+            getPropertyRequestInner.emplace_back(key);
+        }
+
+        std::shared_ptr<THGetPropCallback> getPropCallback = std::make_shared<THGetPropCallback>(getPropertyRequestInner);
+        AccountSA::AccountIAMClient::GetInstance().GetPropertyByCredentialId(id, getPropertyRequestInner, getPropCallback);
+        std::unique_lock<std::mutex> lock(getPropCallback->mutex);
+        getPropCallback->cv.wait(lock, [getPropCallback] { return getPropCallback->onResultCalled; });
+
+        return ConvertToExecutorPropertyTH(getPropCallback->propertyInfoInner, getPropCallback->keys);
+    }
+
+    class NapiPrepareRemoteAuthCallback : public AccountSA::PreRemoteAuthCallback {
+    public:
+
+        void OnResult(int32_t result) override
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            ACCOUNT_LOGI("Post OnResult task finish");
+        }
+
+    private:
+        std::mutex mutex_;
+    };
+
+    void PrepareRemoteAuthSync(string_view remoteNetworkId) 
+    {
+        std::string innerRemoteNetworkId(remoteNetworkId.data(), remoteNetworkId.size());
+
+        auto prepareRemoteAuthCallback = std::make_shared<NapiPrepareRemoteAuthCallback>();
+        ErrCode errorCode = AccountSA::AccountIAMClient::GetInstance().PrepareRemoteAuth(innerRemoteNetworkId, prepareRemoteAuthCallback);
+        if (errorCode != ERR_OK) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+        }
+    }
 };
 
 class TaiheGetDataCallback : public AccountSA::IInputer {
@@ -1564,6 +2086,265 @@ bool IsAuthenticationExpiredSync(const DomainAccountInfo &domainAccountInfo)
     return isExpired;
 }
 
+void UnregisterPlugin() 
+{
+    int errorCode = AccountSA::DomainAccountClient::GetInstance().UnregisterPlugin();
+        if (errorCode != ERR_OK) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            ACCOUNT_LOGE("failed to unregister plugin, errCode=%{public}d", errorCode);
+        }
+}
+
+class NapiDomainAccountCallback final: public AccountSA::DomainAccountCallback {
+public:
+    NapiDomainAccountCallback(std::shared_ptr<THUserAuthCallback> &callback):callback_(callback){}
+
+    void OnResult(const int32_t errCode, Parcel &parcel) override{
+        std::unique_lock<std::mutex> lock(mutex_);
+        if (errCode == ERR_OK) {
+            parcel.ReadBool(isHasDomainAccount);
+        }
+    }
+private:
+    napi_env env_;
+    std::shared_ptr<THUserAuthCallback> callback_;
+    std::mutex mutex_;
+public:
+    bool isHasDomainAccount;
+};
+
+void Auth(DomainAccountInfo const& domainAccountInfo, array_view<uint8_t> credential, IUserAuthCallback const& callback)
+{
+    AccountSA::DomainAccountInfo domainAccountInfoInner = ConvertToDomainAccountInfoInner(domainAccountInfo);
+    std::vector<uint8_t> credentialInner(credential.begin(), credential.begin() + credential.size());
+    std::shared_ptr<THDomainAccountCallback> callbackInner =
+            std::make_shared<THDomainAccountCallback>(callback);
+    int errorCode = AccountSA::DomainAccountClient::GetInstance().Auth(domainAccountInfoInner, credentialInner, callbackInner);
+    if (errorCode != ERR_OK) {
+        Parcel emptyParcel;
+        AccountSA::DomainAuthResult emptyResult;
+        if (!emptyResult.Marshalling(emptyParcel)) {
+            ACCOUNT_LOGE("authResult Marshalling failed");
+            return;
+        }
+        callbackInner->OnResult(ConvertToJSErrCode(errorCode), emptyParcel);
+    }
+}
+
+void AuthWithPopup(IUserAuthCallback const& callback)
+{
+    std::shared_ptr<THDomainAccountCallback> callbackInner =
+            std::make_shared<THDomainAccountCallback>(callback);
+    int32_t userId;
+    int errorCode = AccountSA::DomainAccountClient::GetInstance().AuthWithPopup(userId, callbackInner);
+    if (errorCode != ERR_OK) {
+        Parcel emptyParcel;
+        AccountSA::DomainAuthResult emptyResult;
+        if (!emptyResult.Marshalling(emptyParcel)) {
+            ACCOUNT_LOGE("authResult Marshalling failed");
+            return;
+        }
+        callbackInner->OnResult(ConvertToJSErrCode(errorCode), emptyParcel);
+    }
+}
+
+void AuthWithPopupWithId(int32_t localId, IUserAuthCallback const& callback)
+{
+    std::shared_ptr<THDomainAccountCallback> callbackInner =
+            std::make_shared<THDomainAccountCallback>(callback);
+    int errorCode = AccountSA::DomainAccountClient::GetInstance().AuthWithPopup(localId, callbackInner);
+    if (errorCode != ERR_OK) {
+        Parcel emptyParcel;
+        AccountSA::DomainAuthResult emptyResult;
+        if (!emptyResult.Marshalling(emptyParcel)) {
+            ACCOUNT_LOGE("authResult Marshalling failed");
+            return;
+        }
+        callbackInner->OnResult(ConvertToJSErrCode(errorCode), emptyParcel);
+    }
+}
+
+bool HasAccountSync(DomainAccountInfo const& domainAccountInfo)
+{
+    AccountSA::DomainAccountInfo domainAccountInfoInner = ConvertToDomainAccountInfoInner(domainAccountInfo);
+    std::shared_ptr<THUserAuthCallback> jsCallback;
+    auto callbackInner = std::make_shared<NapiDomainAccountCallback>(jsCallback);
+    int errorCode = AccountSA::DomainAccountClient::GetInstance().HasAccount(domainAccountInfoInner, callbackInner);
+    if (errorCode != ERR_OK) {
+        Parcel emptyParcel;
+        callbackInner->OnResult(errorCode, emptyParcel);
+    }
+    return callbackInner->isHasDomainAccount;
+}
+
+void UpdateAccountTokenSync(DomainAccountInfo const &domainAccountInfo, array_view<uint8_t> token)
+{
+    AccountSA::DomainAccountInfo innerDomainAccountInfo = ConvertToDomainAccountInfoInner(domainAccountInfo);
+    std::vector<uint8_t> innerToken(token.begin(), token.begin() + token.size());
+    ErrCode errCode =
+        AccountSA::DomainAccountClient::GetInstance().UpdateAccountToken(innerDomainAccountInfo, innerToken);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("UpdateAccountTokenSync failed with errCode: %{public}d", errCode);
+        SetTaiheBusinessErrorFromNativeCode(errCode);
+    }
+}
+
+class THGetAccessTokenCallback : public AccountSA::GetAccessTokenCallback {
+public:
+    int32_t errorCode = -1;
+    std::mutex mutex;
+    std::condition_variable cv;
+    std::vector<uint8_t> accessToken;
+    bool OnResultCalled = false;
+    void OnResult(const int32_t errCode, const std::vector<uint8_t> &accessToken)
+    {
+        std::unique_lock<std::mutex> lock(mutex);
+        if (this->OnResultCalled) {
+            return;
+        }
+        this->OnResultCalled = true;
+        this->accessToken = accessToken;
+        cv.notify_one();
+    }
+};
+
+array<uint8_t> GetAccessTokenSync(map_view<string, uintptr_t> businessParams) {
+    AccountSA::DomainAccountInfo innerDomainInfo;
+    AAFwk::WantParams innerGetTokenParams;
+    array<uint8_t> accessToken = {};
+    if (auto* domain = businessParams.find("domain")) {
+        innerDomainInfo.domain_ = std::to_string(*domain);
+    } else {
+        ACCOUNT_LOGE("get domainInfo's domain failed");
+        return accessToken;
+    }
+    if (auto* accountName = businessParams.find("accountName")) {
+        innerDomainInfo.accountName_ = std::to_string(*accountName);
+    } else {
+        ACCOUNT_LOGE("get domainInfo's accountName failed");
+        return accessToken;
+    }
+    if (auto* accountId = businessParams.find("accountId")) {
+        innerDomainInfo.accountId_ = std::to_string(*accountId);
+    } else {
+        ACCOUNT_LOGE("get domainInfo's accountId failed");
+    }
+    if (auto* serverConfigId = businessParams.find("serverConfigId")) {
+        innerDomainInfo.serverConfigId_ = std::to_string(*serverConfigId);
+    } else {
+        ACCOUNT_LOGE("get domainInfo's serverConfigId failed");
+    }
+    std::shared_ptr<THGetAccessTokenCallback> getAccessTokenCallback = std::make_shared<THGetAccessTokenCallback>();
+    ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().GetAccessToken(
+        innerDomainInfo, innerGetTokenParams, getAccessTokenCallback);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("UpdateAccountTokenSync failed with errCode: %{public}d", errCode);
+        SetTaiheBusinessErrorFromNativeCode(errCode);
+        std::vector<uint8_t> accessToken;
+        getAccessTokenCallback->OnResult(errCode, accessToken);
+    }
+    std::unique_lock<std::mutex> lock(getAccessTokenCallback->mutex);
+    getAccessTokenCallback->cv.wait(lock, [getAccessTokenCallback] { return getAccessTokenCallback->OnResultCalled;});
+    return array<uint8_t>(taihe::copy_data_t{}, getAccessTokenCallback->accessToken.data() , getAccessTokenCallback->accessToken.size());
+}
+
+void UpdateAccountInfoSync(DomainAccountInfo const &oldAccountInfo, DomainAccountInfo const &newAccountInfo)
+{
+    AccountSA::DomainAccountInfo innerOldAccountInfo = ConvertToDomainAccountInfoInner(oldAccountInfo);
+    AccountSA::DomainAccountInfo innerNewAccountInfo = ConvertToDomainAccountInfoInner(newAccountInfo);
+    ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().UpdateAccountInfo(innerOldAccountInfo,
+        innerNewAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("UpdateAccountInfoSync failed with errCode: %{public}d", errCode);
+        SetTaiheBusinessErrorFromNativeCode(errCode);
+    }
+}
+DomainServerConfig AddServerConfigSync(map_view<string, uintptr_t> parameters)
+{
+    AccountSA::DomainServerConfig innerDomainServerConfig;
+    std::string innerParameters = ConvertMapViewToStringInner(parameters);
+    ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().AddServerConfig(
+        innerParameters, innerDomainServerConfig);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("queryDistributedVirtualDeviceIdSync failed with errCode: %{public}d", errCode);
+        SetTaiheBusinessErrorFromNativeCode(errCode);
+    }
+    return ConvertToDomainServerConfigTH(innerDomainServerConfig.id_,
+                                         innerDomainServerConfig.domain_, innerDomainServerConfig.parameters_);
+}
+
+void RemoveServerConfigSync(string_view configId)
+{
+    std::string innerConfigId(configId.data(), configId.size());
+    ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().RemoveServerConfig(innerConfigId);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("queryDistributedVirtualDeviceIdSync failed with errCode: %{public}d", errCode);
+        SetTaiheBusinessErrorFromNativeCode(errCode);
+    }
+}
+
+DomainServerConfig UpdateServerConfigSync(string_view configId, map_view<string, uintptr_t> parameters)
+{
+    std::string innerConfigId(configId.data(), configId.size());
+    AccountSA::DomainServerConfig innerDomainServerConfig;
+    std::string innerParameters = ConvertMapViewToStringInner(parameters);
+    ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().UpdateServerConfig(innerConfigId,
+        innerParameters, innerDomainServerConfig);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("updateServerConfigSync failed with errCode: %{public}d", errCode);
+        SetTaiheBusinessErrorFromNativeCode(errCode);
+    }
+    return ConvertToDomainServerConfigTH(innerDomainServerConfig.id_,
+                                         innerDomainServerConfig.domain_, innerDomainServerConfig.parameters_);
+}
+
+DomainServerConfig GetServerConfigSync(string_view configId)
+{
+    std::string innerConfigId(configId.data(), configId.size());
+    AccountSA::DomainServerConfig innerDomainServerConfig;
+    ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().GetServerConfig(innerConfigId,
+        innerDomainServerConfig);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("getServerConfigSync failed with errCode: %{public}d", errCode);
+        SetTaiheBusinessErrorFromNativeCode(errCode);
+    }
+    return ConvertToDomainServerConfigTH(innerDomainServerConfig.id_,
+                                         innerDomainServerConfig.domain_, innerDomainServerConfig.parameters_);
+}
+
+array<DomainServerConfig> GetAllServerConfigsSync()
+{
+    std::vector<AccountSA::DomainServerConfig> innerDomainServerConfigs;
+    std::vector<DomainServerConfig> domainServerConfigsVector;
+    ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().GetAllServerConfigs(innerDomainServerConfigs);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("GetAllServerConfigsSync failed with errCode: %{public}d", errCode);
+        SetTaiheBusinessErrorFromNativeCode(errCode);
+    }
+    for (const auto &innerDomainServerConfig : innerDomainServerConfigs) {
+        auto domainServerConfig = ConvertToDomainServerConfigTH(innerDomainServerConfig.id_,
+            innerDomainServerConfig.domain_, innerDomainServerConfig.parameters_);
+        domainServerConfigsVector.push_back(domainServerConfig);
+    }
+    return array<DomainServerConfig>(taihe::copy_data_t{}, domainServerConfigsVector.data(),
+    domainServerConfigsVector.size());
+}
+
+DomainServerConfig GetAccountServerConfigSync(DomainAccountInfo const &domainAccountInfo)
+{
+    AccountSA::DomainAccountInfo innerDomainAccountInfo = ConvertToDomainAccountInfoInner(domainAccountInfo);
+    AccountSA::DomainServerConfig innerDomainServerConfig;
+    ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().GetAccountServerConfig(innerDomainAccountInfo,
+                                                                                           innerDomainServerConfig);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("getAccountServerConfigSync failed with errCode: %{public}d", errCode);
+        SetTaiheBusinessErrorFromNativeCode(errCode);
+    }
+    return ConvertToDomainServerConfigTH(innerDomainServerConfig.id_,
+                                         innerDomainServerConfig.domain_, innerDomainServerConfig.parameters_);
+}
+
 void RegisterInputer(AuthType authType, const IInputer &inputer)
 {
     int32_t type = authType.get_value();
@@ -1608,6 +2389,20 @@ PINAuth CreatePINAuth()
 
 TH_EXPORT_CPP_API_getAccountManager(getAccountManager);
 TH_EXPORT_CPP_API_IsAuthenticationExpiredSync(IsAuthenticationExpiredSync);
+TH_EXPORT_CPP_API_UnregisterPlugin(UnregisterPlugin);
+TH_EXPORT_CPP_API_Auth(Auth);
+TH_EXPORT_CPP_API_AuthWithPopup(AuthWithPopup);
+TH_EXPORT_CPP_API_AuthWithPopupWithId(AuthWithPopupWithId);
+TH_EXPORT_CPP_API_HasAccountSync(HasAccountSync);
+TH_EXPORT_CPP_API_UpdateAccountTokenSync(UpdateAccountTokenSync);
+TH_EXPORT_CPP_API_GetAccessTokenSync(GetAccessTokenSync);
+TH_EXPORT_CPP_API_UpdateAccountInfoSync(UpdateAccountInfoSync);
+TH_EXPORT_CPP_API_AddServerConfigSync(AddServerConfigSync);
+TH_EXPORT_CPP_API_RemoveServerConfigSync(RemoveServerConfigSync);
+TH_EXPORT_CPP_API_UpdateServerConfigSync(UpdateServerConfigSync);
+TH_EXPORT_CPP_API_GetServerConfigSync(GetServerConfigSync);
+TH_EXPORT_CPP_API_GetAllServerConfigsSync(GetAllServerConfigsSync);
+TH_EXPORT_CPP_API_GetAccountServerConfigSync(GetAccountServerConfigSync);
 TH_EXPORT_CPP_API_registerInputer(RegisterInputer);
 TH_EXPORT_CPP_API_unregisterInputer(UnregisterInputer);
 TH_EXPORT_CPP_API_CreateUserIdentityManager(CreateUserIdentityManager);
