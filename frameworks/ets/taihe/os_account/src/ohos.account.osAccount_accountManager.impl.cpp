@@ -698,7 +698,7 @@ public:
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
         }
-        std::vector<ConstraintSourceTypeInfo> tempConstraintSourceTypeInfos = 
+        std::vector<ConstraintSourceTypeInfo> tempConstraintSourceTypeInfos =
             ConvertConstraintSourceTypeInfo(constraintSourceTypeInfos);
         return taihe::array<ConstraintSourceTypeInfo>(taihe::copy_data_t{}, tempConstraintSourceTypeInfos.data(),
             tempConstraintSourceTypeInfos.size());

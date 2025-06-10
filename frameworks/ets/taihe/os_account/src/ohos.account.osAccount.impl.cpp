@@ -242,14 +242,14 @@ class THGetEnrolledIdCallback : public AccountSA::GetEnrolledIdCallback {
         array<uint8_t> enrolledID = {};
         std::mutex mutex;
         std::condition_variable cv;
-        bool OnEnrolledIdCalled = false;
+        bool onEnrolledIdCalled = false;
         void OnEnrolledId(int32_t result, uint64_t enrolledIdUint64) override
         {
             std::lock_guard<std::mutex> lock(mutex);
-            if (this->OnEnrolledIdCalled) {
+            if (this->onEnrolledIdCalled) {
                 return;
             }
-            this->OnEnrolledIdCalled = true;
+            this->onEnrolledIdCalled = true;
             this->errorCode = result;
             if (this->errorCode != ERR_OK) {
                 this->enrolledID = array<uint8_t>(taihe::copy_data_t{},
@@ -462,7 +462,7 @@ public:
         AccountSA::AccountIAMClient::GetInstance().GetEnrolledId(innerAccountId, innerAuthType, getEnrolledIdCallback);
         std::unique_lock<std::mutex> lock(getEnrolledIdCallback->mutex);
         getEnrolledIdCallback->cv.wait(lock,
-            [getEnrolledIdCallback] { return getEnrolledIdCallback->OnEnrolledIdCalled;});
+            [getEnrolledIdCallback] { return getEnrolledIdCallback->onEnrolledIdCalled;});
         return getEnrolledIdCallback->enrolledID;
     }
 };
@@ -1101,7 +1101,7 @@ public:
             getPropertyRequestInner.emplace_back(key);
         }
 
-        std::shared_ptr<THGetPropCallback> getPropCallback = 
+        std::shared_ptr<THGetPropCallback> getPropCallback =
             std::make_shared<THGetPropCallback>(getPropertyRequestInner);
         AccountSA::AccountIAMClient::GetInstance().GetPropertyByCredentialId(id,
             getPropertyRequestInner, getPropCallback);
