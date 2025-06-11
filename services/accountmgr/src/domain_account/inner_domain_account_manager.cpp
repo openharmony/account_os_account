@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -65,6 +65,14 @@ static const char LIB_PATH[] = "/system/lib/platformsdk/";
 #endif
 static const char LIB_NAME[] = "libdomain_account_plugin.z.so";
 static const char EDM_FREEZE_BACKGROUND_PARAM[] = "persist.edm.inactive_user_freeze";
+
+ErrCode ConvertToAccountErrCode(ErrCode idlErrCode)
+{
+    if (idlErrCode == ERR_INVALID_VALUE || idlErrCode == ERR_INVALID_DATA) {
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    return idlErrCode;
+}
 }
 static const std::map<PluginMethodEnum, std::string> METHOD_NAME_MAP = {
     {PluginMethodEnum::ADD_SERVER_CONFIG, "AddServerConfig"},
@@ -157,16 +165,22 @@ static void CallbackOnResult(sptr<IDomainAccountCallback> &callback, const int32
         ACCOUNT_LOGI("callback_ is nullptr");
         return;
     }
-    return callback->OnResult(errCode, resultParcel);
+    DomainAccountParcel domainAccountParcel;
+    domainAccountParcel.SetParcelData(resultParcel);
+    callback->OnResult(errCode, domainAccountParcel);
+    return;
 }
 
-void InnerDomainAuthCallback::OnResult(const int32_t errCode, Parcel &parcel)
+ErrCode InnerDomainAuthCallback::OnResult(int32_t errCode, const DomainAccountParcel &domainAccountParcel)
 {
+    Parcel parcel;
+    domainAccountParcel.GetParcelData(parcel);
     Parcel resultParcel;
     std::shared_ptr<DomainAuthResult> authResult(DomainAuthResult::Unmarshalling(parcel));
     if (authResult == nullptr) {
         ACCOUNT_LOGE("authResult is nullptr");
-        return CallbackOnResult(callback_, ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR, resultParcel);
+        CallbackOnResult(callback_, ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR, resultParcel);
+        return ERR_OK;
     }
     if ((errCode == ERR_OK) && (userId_ != 0)) {
         InnerDomainAccountManager::GetInstance().InsertTokenToMap(userId_, (*authResult).token);
@@ -184,10 +198,12 @@ void InnerDomainAuthCallback::OnResult(const int32_t errCode, Parcel &parcel)
 
     if (!(*authResult).Marshalling(resultParcel)) {
         ACCOUNT_LOGE("authResult Marshalling failed");
-        return CallbackOnResult(callback_, ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR, resultParcel);
+        CallbackOnResult(callback_, ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR, resultParcel);
+        return ERR_OK;
     }
     AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, errCode);
-    return CallbackOnResult(callback_, errCode, resultParcel);
+    CallbackOnResult(callback_, errCode, resultParcel);
+    return ERR_OK;
 }
 
 ErrCode InnerDomainAccountManager::RegisterPlugin(const sptr<IDomainAccountPlugin> &plugin)
@@ -248,26 +264,30 @@ ErrCode InnerDomainAccountManager::StartAuth(const sptr<IDomainAccountPlugin> &p
     }
     if (plugin == nullptr) {
         ACCOUNT_LOGE("plugin not exists");
-        callback->OnResult(ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST), emptyParcel);
+        DomainAccountParcel domainAccountParcel;
+        domainAccountParcel.SetParcelData(emptyParcel);
+        callback->OnResult(ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST), domainAccountParcel);
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     ErrCode errCode = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     switch (authMode) {
         case AUTH_WITH_CREDENTIAL_MODE:
-            errCode = plugin->Auth(info, authData, callback);
+            errCode = ConvertToAccountErrCode(plugin->Auth(info, authData, callback));
             break;
         case AUTH_WITH_POPUP_MODE:
-            errCode = plugin->AuthWithPopup(info, callback);
+            errCode = ConvertToAccountErrCode(plugin->AuthWithPopup(info, callback));
             break;
         case AUTH_WITH_TOKEN_MODE:
-            errCode = plugin->AuthWithToken(info, authData, callback);
+            errCode = ConvertToAccountErrCode(plugin->AuthWithToken(info, authData, callback));
             break;
         default:
             break;
     }
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("failed to auth domain account, errCode: %{public}d", errCode);
-        callback->OnResult(ConvertToJSErrCode(errCode), emptyParcel);
+        DomainAccountParcel domainAccountParcel;
+        domainAccountParcel.SetParcelData(emptyParcel);
+        callback->OnResult(ConvertToJSErrCode(errCode), domainAccountParcel);
         return errCode;
     }
     return ERR_OK;
@@ -814,7 +834,9 @@ ErrCode InnerDomainAccountManager::Auth(const DomainAccountInfo &info, const std
             err = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
         }
         if (innerCallback != nullptr) {
-            innerCallback->OnResult(err, emptyParcel);
+            DomainAccountParcel domainAccountParcel;
+            domainAccountParcel.SetParcelData(emptyParcel);
+            innerCallback->OnResult(err, domainAccountParcel);
         }
         return ERR_OK;
     }
@@ -1050,7 +1072,9 @@ ErrCode InnerDomainAccountManager::InnerAuth(int32_t userId, const std::vector<u
             ACCOUNT_LOGE("DomainAuthResult marshalling failed.");
             errCode = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
         }
-        innerCallback->OnResult(errCode, emptyParcel);
+        DomainAccountParcel domainAccountParcel;
+        domainAccountParcel.SetParcelData(emptyParcel);
+        innerCallback->OnResult(errCode, domainAccountParcel);
         return ERR_OK;
     }
     auto task = [this, domainInfo, authData, innerCallback, authMode] {
@@ -1192,7 +1216,9 @@ static void OnResultForGetAccessToken(const ErrCode errCode, const sptr<IDomainA
     std::vector<uint8_t> token;
     Parcel emptyParcel;
     emptyParcel.WriteUInt8Vector(token);
-    callback->OnResult(errCode, emptyParcel);
+    DomainAccountParcel domainAccountParcel;
+    domainAccountParcel.SetParcelData(emptyParcel);
+    callback->OnResult(errCode, domainAccountParcel);
 }
 
 ErrCode InnerDomainAccountManager::StartGetAccessToken(const sptr<IDomainAccountPlugin> &plugin,
@@ -1210,7 +1236,9 @@ ErrCode InnerDomainAccountManager::StartGetAccessToken(const sptr<IDomainAccount
     }
     DomainAccountCallbackFunc callbackFunc = [callback](const int32_t errCode, Parcel &parcel) {
         if (callback != nullptr) {
-            callback->OnResult(errCode, parcel);
+            DomainAccountParcel domainAccountParcel;
+            domainAccountParcel.SetParcelData(parcel);
+            callback->OnResult(errCode, domainAccountParcel);
         }
     };
     sptr<DomainAccountCallbackService> callbackService =
@@ -1221,6 +1249,7 @@ ErrCode InnerDomainAccountManager::StartGetAccessToken(const sptr<IDomainAccount
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
     ErrCode result = plugin->GetAccessToken(info, accountToken, option, callbackService);
+    result = ConvertToAccountErrCode(result);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get access token, errCode: %{public}d", result);
         OnResultForGetAccessToken(result, callback);
@@ -1283,7 +1312,9 @@ ErrCode InnerDomainAccountManager::GetAccessToken(
             ACCOUNT_LOGE("DomainAuthResult marshalling failed.");
             err = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
         }
-        callback->OnResult(err, emptyParcel);
+        DomainAccountParcel domainAccountParcel;
+        domainAccountParcel.SetParcelData(emptyParcel);
+        callback->OnResult(err, domainAccountParcel);
         return ERR_OK;
     }
     auto task = [this, accountToken, targetInfo, option, callback] {
@@ -1422,7 +1453,9 @@ static void ErrorOnResult(const ErrCode errCode, const sptr<IDomainAccountCallba
 {
     Parcel emptyParcel;
     emptyParcel.WriteBool(false);
-    callback->OnResult(errCode, emptyParcel);
+    DomainAccountParcel domainAccountParcel;
+    domainAccountParcel.SetParcelData(emptyParcel);
+    callback->OnResult(errCode, domainAccountParcel);
 }
 
 void CheckUserTokenCallback::OnResult(int32_t result, Parcel &parcel)
@@ -1485,6 +1518,7 @@ ErrCode InnerDomainAccountManager::CheckUserToken(
             return err;
         }
         errCode = plugin_->IsAccountTokenValid(info, token, callbackService);
+        errCode = ConvertToAccountErrCode(errCode);
     }
     callback->WaitForCallbackResult();
     isValid = callback->GetValidity();
@@ -1555,11 +1589,15 @@ ErrCode InnerDomainAccountManager::GetAuthStatusInfo(
             ACCOUNT_LOGE("AuthStatusInfo marshalling failed.");
             err = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
         }
-        callbackService->OnResult(err, emptyParcel);
+        DomainAccountParcel domainAccountParcel;
+        domainAccountParcel.SetParcelData(emptyParcel);
+        callbackService->OnResult(err, domainAccountParcel);
         return ERR_OK;
     }
     std::lock_guard<std::mutex> lock(mutex_);
-    return plugin_->GetAuthStatusInfo(info, callbackService);
+    auto errCode = plugin_->GetAuthStatusInfo(info, callbackService);
+    errCode = ConvertToAccountErrCode(errCode);
+    return errCode;
 }
 
 sptr<IRemoteObject::DeathRecipient> InnerDomainAccountManager::GetDeathRecipient()
@@ -1606,6 +1644,7 @@ ErrCode InnerDomainAccountManager::StartHasDomainAccount(const sptr<IDomainAccou
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
     ErrCode result = plugin->GetDomainAccountInfo(options, callbackService);
+    result = ConvertToAccountErrCode(result);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get domain account, errCode: %{public}d", result);
         ErrorOnResult(result, callback);
@@ -1662,7 +1701,9 @@ ErrCode InnerDomainAccountManager::OnAccountBound(const DomainAccountInfo &info,
             ACCOUNT_LOGE("DomainAuthResult marshalling failed.");
             err = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
         }
-        callbackService->OnResult(err, emptyParcel);
+        DomainAccountParcel domainAccountParcel;
+        domainAccountParcel.SetParcelData(emptyParcel);
+        callbackService->OnResult(err, domainAccountParcel);
         return ERR_OK;
     }
     auto task = [this, info, localId, callbackService] {
@@ -1704,7 +1745,9 @@ ErrCode InnerDomainAccountManager::OnAccountUnBound(const DomainAccountInfo &inf
             ACCOUNT_LOGE("DomainAuthResult marshalling failed.");
             err = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
         }
-        callbackService->OnResult(err, emptyParcel);
+        DomainAccountParcel domainAccountParcel;
+        domainAccountParcel.SetParcelData(emptyParcel);
+        callbackService->OnResult(err, domainAccountParcel);
         return ERR_OK;
     }
     auto task = [this, info, callbackService] {
@@ -1724,6 +1767,7 @@ void InnerDomainAccountManager::StartGetDomainAccountInfo(const sptr<IDomainAcco
         return ErrorOnResult(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, callback);
     }
     ErrCode errCode = plugin->GetDomainAccountInfo(options, callback);
+    errCode = ConvertToAccountErrCode(errCode);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("failed to get domain account, errCode: %{public}d", errCode);
         ErrorOnResult(errCode, callback);
@@ -1783,7 +1827,9 @@ ErrCode InnerDomainAccountManager::GetDomainAccountInfo(
     }
     DomainAccountCallbackFunc callbackFunc = [callback](const int32_t errCode, Parcel &parcel) {
         if (callback != nullptr) {
-            callback->OnResult(errCode, parcel);
+            DomainAccountParcel domainAccountParcel;
+            domainAccountParcel.SetParcelData(parcel);
+            callback->OnResult(errCode, domainAccountParcel);
         }
     };
     sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callbackFunc);
@@ -1810,7 +1856,9 @@ ErrCode InnerDomainAccountManager::GetDomainAccountInfo(
             ACCOUNT_LOGE("DomainAccountInfo marshalling failed.");
             err = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
         }
-        callbackService->OnResult(err, emptyParcel);
+        DomainAccountParcel domainAccountParcel;
+        domainAccountParcel.SetParcelData(emptyParcel);
+        callbackService->OnResult(err, domainAccountParcel);
         return ERR_OK;
     }
     auto task = [this, options, callbackService] {
@@ -1830,6 +1878,7 @@ void InnerDomainAccountManager::StartIsAccountTokenValid(const sptr<IDomainAccou
         return ErrorOnResult(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, callback);
     }
     ErrCode errCode = plugin->IsAccountTokenValid(info, token, callback);
+    errCode = ConvertToAccountErrCode(errCode);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("failed to get domain account, errCode: %{public}d", errCode);
         ErrorOnResult(errCode, callback);
@@ -1856,7 +1905,9 @@ ErrCode InnerDomainAccountManager::IsAccountTokenValid(const DomainAccountInfo &
             ACCOUNT_LOGE("IsValid marshalling failed.");
             err = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
         }
-        callbackService->OnResult(err, emptyParcel);
+        DomainAccountParcel domainAccountParcel;
+        domainAccountParcel.SetParcelData(emptyParcel);
+        callbackService->OnResult(err, domainAccountParcel);
         return ERR_OK;
     }
     auto task = [this, info, token, callbackService] {

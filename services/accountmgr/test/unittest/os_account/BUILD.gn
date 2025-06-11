@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -479,6 +479,7 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     "${account_iam_framework_path}:account_iam_innerkits",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
+    "${domain_account_framework_path}:domain_account_stub",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
@@ -552,6 +553,7 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
 
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+    deps += [ "${domain_account_framework_path}:domain_account_plugin_proxy" ]
   }
   part_name = "os_account"
 }
@@ -622,6 +624,7 @@ ohos_unittest("OsAccountInnerAccmgrPluginMockTest") {
     "${account_iam_framework_path}:account_iam_innerkits",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
+    "${domain_account_framework_path}:domain_account_stub",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
@@ -688,6 +691,7 @@ ohos_unittest("OsAccountInnerAccmgrPluginMockTest") {
   ]
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+    deps += [ "${domain_account_framework_path}:domain_account_plugin_proxy" ]
   }
   part_name = "os_account"
 }
@@ -743,6 +747,7 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
     "${account_iam_framework_path}:account_iam_innerkits",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
+    "${domain_account_framework_path}:domain_account_stub",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
@@ -804,6 +809,7 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
   cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+    deps += [ "${domain_account_framework_path}:domain_account_plugin_proxy" ]
   }
   part_name = "os_account"
 }
@@ -839,10 +845,9 @@ ohos_unittest("os_account_maintenance_type_mock_test") {
   ]
   sources += [
     "${common_path}/utils/src/account_permission_manager.cpp",
-    "${domain_account_framework_path}/src/domain_account_callback_proxy.cpp",
     "${domain_account_framework_path}/src/domain_account_callback_service.cpp",
-    "${domain_account_framework_path}/src/domain_account_callback_stub.cpp",
     "${domain_account_framework_path}/src/domain_account_common.cpp",
+    "${domain_account_framework_path}/src/domain_account_parcel.cpp",
     "${innerkits_native_path}/src/account_info_parcel.cpp",
     "${os_account_core_path}/src/os_account_event_stub.cpp",
     "${os_account_dfx_path}/data_dfx/data_size_report_adapter.cpp",
@@ -870,6 +875,11 @@ ohos_unittest("os_account_maintenance_type_mock_test") {
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
+  ]
+  deps += [
+    "${domain_account_framework_path}:domain_account_callback_proxy",
+    "${domain_account_framework_path}:domain_account_callback_stub",
+    "${domain_account_framework_path}:domain_account_stub",
   ]
 
   external_deps = [
@@ -925,6 +935,7 @@ ohos_unittest("os_account_maintenance_type_mock_test") {
 
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+    deps += [ "${domain_account_framework_path}:domain_account_plugin_proxy" ]
   }
 
   if (os_account_support_lock_os_account) {

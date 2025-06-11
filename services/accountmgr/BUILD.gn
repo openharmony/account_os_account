@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -235,6 +235,7 @@ ohos_shared_library("accountmgr") {
   use_exceptions = true
 
   deps = [ "${common_path}:libaccount_common" ]
+  deps += [ "${domain_account_framework_path}:domain_account_stub" ]
 
   external_deps = [
     "ability_base:base",
@@ -276,9 +277,13 @@ ohos_shared_library("accountmgr") {
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
     sources += [
-      "${domain_account_framework_path}/src/domain_account_callback_proxy.cpp",
       "${domain_account_framework_path}/src/domain_account_callback_service.cpp",
-      "${domain_account_framework_path}/src/domain_account_callback_stub.cpp",
+      "${domain_account_framework_path}/src/domain_account_parcel.cpp",
+    ]
+    deps += [
+      "${domain_account_framework_path}:domain_account_callback_proxy",
+      "${domain_account_framework_path}:domain_account_callback_stub",
+      "${domain_account_framework_path}:domain_account_plugin_proxy",
     ]
   }
 
