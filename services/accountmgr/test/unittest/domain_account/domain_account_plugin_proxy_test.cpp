@@ -67,7 +67,7 @@ void DomainAccountPluginProxyTest::TearDown(void)
 
 /**
  * @tc.name: DomainAccountPluginProxyTest_AuthCommonInterface_001
- * @tc.desc: AuthCommonInterface callback is nullptr.
+ * @tc.desc: AuthWithToken callback is nullptr.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -75,8 +75,7 @@ HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_AuthCommonIn
 {
     DomainAccountInfo info;
     std::vector<uint8_t> authData;
-    EXPECT_EQ(pluginProxy_->AuthCommonInterface(info, authData, nullptr, AUTH_WITH_TOKEN_MODE),
-        ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
+    EXPECT_EQ(pluginProxy_->AuthWithToken(info, authData, nullptr), ERR_INVALID_DATA);
 }
 
 /**
@@ -89,7 +88,7 @@ HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_IsAccountTok
 {
     DomainAccountInfo info;
     std::vector<uint8_t> authData;
-    EXPECT_EQ(pluginProxy_->IsAccountTokenValid(info, authData, nullptr), ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
+    EXPECT_EQ(pluginProxy_->IsAccountTokenValid(info, authData, nullptr), ERR_INVALID_DATA);
 }
 
 /**
@@ -103,7 +102,7 @@ HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_GetAccessTok
     DomainAccountInfo info;
     std::vector<uint8_t> authData;
     GetAccessTokenOptions option;
-    EXPECT_EQ(pluginProxy_->GetAccessToken(info, authData, option, nullptr), ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
+    EXPECT_EQ(pluginProxy_->GetAccessToken(info, authData, option, nullptr), ERR_INVALID_DATA);
 }
 
 /**
@@ -115,7 +114,7 @@ HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_GetAccessTok
 HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_GetAuthStatusInfo_001, TestSize.Level3)
 {
     DomainAccountInfo info;
-    EXPECT_EQ(pluginProxy_->GetAuthStatusInfo(info, nullptr), ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
+    EXPECT_EQ(pluginProxy_->GetAuthStatusInfo(info, nullptr), ERR_INVALID_DATA);
 }
 
 /**
@@ -143,7 +142,7 @@ HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_AuthWithToke
 {
     DomainAccountInfo info;
     std::vector<uint8_t> token;
-    EXPECT_EQ(pluginProxy_->AuthWithToken(info, token, nullptr), ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
+    EXPECT_EQ(pluginProxy_->AuthWithToken(info, token, nullptr), ERR_INVALID_DATA);
 }
 
 /**
@@ -171,7 +170,7 @@ HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_AuthWithToke
 HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_GetDomainAccountInfo_001, TestSize.Level3)
 {
     GetDomainAccountInfoOptions options;
-    EXPECT_EQ(pluginProxy_->GetDomainAccountInfo(options, nullptr), ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
+    EXPECT_EQ(pluginProxy_->GetDomainAccountInfo(options, nullptr), ERR_INVALID_DATA);
 }
 
 /**
@@ -183,7 +182,7 @@ HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_GetDomainAcc
 HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_OnAccountBound_001, TestSize.Level3)
 {
     DomainAccountInfo info;
-    EXPECT_EQ(pluginProxy_->OnAccountBound(info, 0, nullptr), ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
+    EXPECT_EQ(pluginProxy_->OnAccountBound(info, 0, nullptr), ERR_INVALID_DATA);
 }
 
 /**
@@ -195,7 +194,7 @@ HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_OnAccountBou
 HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_OnAccountUnBound_001, TestSize.Level3)
 {
     DomainAccountInfo info;
-    EXPECT_EQ(pluginProxy_->OnAccountUnBound(info, nullptr), ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
+    EXPECT_EQ(pluginProxy_->OnAccountUnBound(info, nullptr), ERR_INVALID_DATA);
 }
 
 /**

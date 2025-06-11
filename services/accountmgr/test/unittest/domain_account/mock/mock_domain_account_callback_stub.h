@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,7 +31,7 @@ class MockDomainAccountCallbackStub : public DomainAccountCallbackStub {
 public:
     explicit MockDomainAccountCallbackStub(const std::shared_ptr<MockDomainAccountCallback> &callback);
     virtual ~MockDomainAccountCallbackStub();
-    void OnResult(const int32_t errCode, Parcel &parcel) override;
+    ErrCode OnResult(int32_t errCode, const DomainAccountParcel &parcel) override;
     std::condition_variable cv;
     bool isReady = false;
     std::mutex mutex;

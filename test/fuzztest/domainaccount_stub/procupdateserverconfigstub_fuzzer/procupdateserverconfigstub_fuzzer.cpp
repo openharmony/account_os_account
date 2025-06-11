@@ -27,10 +27,6 @@ using namespace std;
 using namespace OHOS::AccountSA;
 
 namespace OHOS {
-namespace {
-const std::u16string ACCOUNT_TOKEN = u"ohos.accountfwk.IDomainAccount";
-}
-
 bool ProcUpdateServerConfigStubFuzzTest(const uint8_t* data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
@@ -38,7 +34,7 @@ bool ProcUpdateServerConfigStubFuzzTest(const uint8_t* data, size_t size)
     }
     MessageParcel dataTemp;
     FuzzData fuzzData(data, size);
-    if (!dataTemp.WriteInterfaceToken(ACCOUNT_TOKEN)) {
+    if (!dataTemp.WriteInterfaceToken(DomainAccountStub::GetDescriptor())) {
         return false;
     }
     if (!dataTemp.WriteString(fuzzData.GenerateString())) { // configId
@@ -49,7 +45,7 @@ bool ProcUpdateServerConfigStubFuzzTest(const uint8_t* data, size_t size)
     }
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(DomainAccountInterfaceCode::UPDATE_SERVER_CONFIG);
+    uint32_t code = static_cast<uint32_t>(IDomainAccountIpcCode::COMMAND_UPDATE_SERVER_CONFIG);
     auto domainAccountService = std::make_shared<DomainAccountManagerService>();
     domainAccountService->OnRemoteRequest(code, dataTemp, reply, option);
     return true;

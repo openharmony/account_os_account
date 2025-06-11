@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+# Copyright (c) 2022-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -11,8 +11,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("//build/config/components/idl_tool/idl.gni")
 import("//build/ohos.gni")
 import("../../os_account.gni")
+
+idl_gen_interface("frameworks_domain_account_interface") {
+  sources = [
+    "IDomainAccount.idl",
+    "IDomainAccountCallback.idl",
+    "IDomainAccountPlugin.idl",
+  ]
+  log_domainid = "0xD001B00"
+  log_tag = "DomainAccountFwk"
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+config("frameworks_domain_account_interface_public_config") {
+  include_dirs = [ "${target_gen_dir}" ]
+}
 
 config("domain_account_innnerkits_config") {
   visibility = [ ":*" ]
@@ -49,6 +66,7 @@ config("domain_account_innerkits_public_config") {
     "${domain_account_interfaces_native_path}/include",
     "${common_path}/utils/include",
     "${innerkits_common}/include",
+    "${target_gen_dir}",
   ]
 }
 
@@ -62,22 +80,30 @@ ohos_shared_library("domain_account_innerkits") {
   }
 
   sources = [
-    "src/domain_account_callback_proxy.cpp",
     "src/domain_account_callback_service.cpp",
-    "src/domain_account_callback_stub.cpp",
     "src/domain_account_client.cpp",
     "src/domain_account_common.cpp",
+    "src/domain_account_parcel.cpp",
   ]
+  output_values = get_target_outputs(":frameworks_domain_account_interface")
+  sources += filter_include(output_values,
+                            [
+                              "*domain_account_callback_proxy.cpp",
+                              "*domain_account_callback_stub.cpp",
+                            ])
 
   if (os_account_support_domain_accounts) {
     sources += [
       "src/domain_account_callback_adapters.cpp",
       "src/domain_account_callback_client.cpp",
       "src/domain_account_plugin_service.cpp",
-      "src/domain_account_plugin_stub.cpp",
-      "src/domain_account_proxy.cpp",
       "src/domain_account_status_listener_manager.cpp",
     ]
+    sources += filter_include(output_values,
+                              [
+                                "*domain_account_plugin_stub.cpp",
+                                "*domain_account_proxy.cpp",
+                              ])
   }
 
   configs = [ ":domain_account_innnerkits_config" ]
@@ -85,6 +111,7 @@ ohos_shared_library("domain_account_innerkits") {
   public_configs = [ ":domain_account_innerkits_public_config" ]
 
   deps = [
+    ":frameworks_domain_account_interface",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
   ]
@@ -98,6 +125,132 @@ ohos_shared_library("domain_account_innerkits") {
   ]
 
   innerapi_tags = [ "platformsdk" ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("domain_account_callback_proxy") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [ ":domain_account_innnerkits_config" ]
+  public_configs = [ ":domain_account_innerkits_public_config" ]
+  output_values = get_target_outputs(":frameworks_domain_account_interface")
+  sources = filter_include(output_values, [ "*domain_account_callback_proxy.cpp" ])
+  deps = [ ":frameworks_domain_account_interface" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("domain_account_callback_stub") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [ ":domain_account_innnerkits_config" ]
+  public_configs = [ ":domain_account_innerkits_public_config" ]
+  output_values = get_target_outputs(":frameworks_domain_account_interface")
+  sources =
+      filter_include(output_values, [ "*domain_account_callback_stub.cpp" ])
+  deps = [ ":frameworks_domain_account_interface" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("domain_account_plugin_proxy") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [ ":domain_account_innnerkits_config" ]
+  public_configs = [ ":domain_account_innerkits_public_config" ]
+  output_values = get_target_outputs(":frameworks_domain_account_interface")
+  sources =
+      filter_include(output_values, [ "*domain_account_plugin_proxy.cpp" ])
+  deps = [ ":frameworks_domain_account_interface" ]
+  external_deps = [
+    "ability_base:want",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("domain_account_plugin_stub") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [ ":domain_account_innnerkits_config" ]
+  public_configs = [ ":domain_account_innerkits_public_config" ]
+  output_values = get_target_outputs(":frameworks_domain_account_interface")
+  sources = filter_include(output_values, [ "*domain_account_plugin_stub.cpp" ])
+  deps = [ ":frameworks_domain_account_interface" ]
+  external_deps = [
+    "ability_base:want",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("domain_account_proxy") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [ ":domain_account_innnerkits_config" ]
+  public_configs = [ ":domain_account_innerkits_public_config" ]
+  output_values = get_target_outputs(":frameworks_domain_account_interface")
+  sources = filter_include(output_values, [ "*domain_account_proxy.cpp" ])
+  deps = [ ":frameworks_domain_account_interface" ]
+  external_deps = [
+    "ability_base:want",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("domain_account_stub") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [ ":domain_account_innnerkits_config" ]
+  public_configs = [ ":domain_account_innerkits_public_config" ]
+  output_values = get_target_outputs(":frameworks_domain_account_interface")
+  sources = filter_include(output_values, [ "*domain_account_stub.cpp" ])
+  deps = [ ":frameworks_domain_account_interface" ]
+  external_deps = [
+    "ability_base:want",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
   subsystem_name = "account"
   part_name = "os_account"
 }

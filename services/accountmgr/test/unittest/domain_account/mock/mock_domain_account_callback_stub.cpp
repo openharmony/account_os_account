@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,14 +29,16 @@ MockDomainAccountCallbackStub::MockDomainAccountCallbackStub(const std::shared_p
 MockDomainAccountCallbackStub::~MockDomainAccountCallbackStub()
 {}
 
-void MockDomainAccountCallbackStub::OnResult(const int32_t errCode, Parcel &parcel)
+ErrCode MockDomainAccountCallbackStub::OnResult(int32_t errCode, const DomainAccountParcel &domainAccountParcel)
 {
+    Parcel parcel;
+    domainAccountParcel.GetParcelData(parcel);
     ACCOUNT_LOGI("MockDomainAccountCallbackStub OnResult enter");
     innerCallback_->OnResult(errCode, parcel);
     std::unique_lock<std::mutex> lock(mutex);
     isReady = true;
     cv.notify_one();
-    return;
+    return ERR_OK;
 }
 } // namespace AccountSA
 } // namespace OHOS
