@@ -259,16 +259,13 @@ ErrCode InnerDomainAccountManager::StartAuth(const sptr<IDomainAccountPlugin> &p
     ErrCode errCode = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     switch (authMode) {
         case AUTH_WITH_CREDENTIAL_MODE:
-            errCode = plugin->Auth(info, authData, callback);
-            errCode = ConvertToAccountErrCode(errCode);
+            errCode = ConvertToAccountErrCode(plugin->Auth(info, authData, callback));
             break;
         case AUTH_WITH_POPUP_MODE:
-            errCode = plugin->AuthWithPopup(info, callback);
-            errCode = ConvertToAccountErrCode(errCode);
+            errCode = ConvertToAccountErrCode(plugin->AuthWithPopup(info, callback));
             break;
         case AUTH_WITH_TOKEN_MODE:
-            errCode = plugin->AuthWithToken(info, authData, callback);
-            errCode = ConvertToAccountErrCode(errCode);
+            errCode = ConvertToAccountErrCode(plugin->AuthWithToken(info, authData, callback));
             break;
         default:
             break;

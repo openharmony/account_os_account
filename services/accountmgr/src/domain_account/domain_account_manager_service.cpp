@@ -42,7 +42,7 @@ static const std::set<IDomainAccountIpcCode> NON_SYSTEM_API_SET = {
     IDomainAccountIpcCode::COMMAND_REMOVE_SERVER_CONFIG,
     IDomainAccountIpcCode::COMMAND_GET_ACCOUNT_SERVER_CONFIG,
 };
-static const std::map<IDomainAccountIpcCode, std::vector<std::string>> permissionMap = {
+static const std::map<IDomainAccountIpcCode, std::vector<std::string>> PERMISSIONMAP = {
     {IDomainAccountIpcCode::COMMAND_REGISTER_PLUGIN, {MANAGE_LOCAL_ACCOUNTS}},
     {IDomainAccountIpcCode::COMMAND_UNREGISTER_PLUGIN, {MANAGE_LOCAL_ACCOUNTS}},
     {IDomainAccountIpcCode::COMMAND_SET_ACCOUNT_POLICY, {MANAGE_LOCAL_ACCOUNTS}},
@@ -313,7 +313,8 @@ ErrCode DomainAccountManagerService::CheckPermission(IDomainAccountIpcCode code)
     if (NON_SYSTEM_API_SET.find(code) == NON_SYSTEM_API_SET.end()) {
         ErrCode errCode = AccountPermissionManager::CheckSystemApp();
         if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("the caller is not system application, errCode = %{public}d.", errCode);
+            ACCOUNT_LOGE("The caller is not system application, errCode = %{public}d, code = %{public}d.",
+                errCode, static_cast<int>(code));
             return errCode;
         }
     }
@@ -321,9 +322,9 @@ ErrCode DomainAccountManagerService::CheckPermission(IDomainAccountIpcCode code)
     if (uid == 0) {
         return ERR_OK;
     }
-    const auto& it = permissionMap.find(code);
-    if (it == permissionMap.end()) {
-        ACCOUNT_LOGW("No specific permission defined for code %{public}d, returning OK", static_cast<int>(code));
+    const auto& it = PERMISSIONMAP.find(code);
+    if (it == PERMISSIONMAP.end()) {
+        ACCOUNT_LOGE("No specific permission defined for code %{public}d, returning OK", static_cast<int>(code));
         return ERR_OK;
     }
     const auto& requiredPermissions = it->second;

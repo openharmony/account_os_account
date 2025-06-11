@@ -38,20 +38,20 @@ bool DomainAccountParcel::ReadFromParcel(Parcel &parcel)
         ACCOUNT_LOGE("Read buffer failed, please check buffer value in parcel");
         return false;
     }
-    void *buffer_new = nullptr;
-    buffer_new = malloc(size);
-    if (buffer_new == nullptr) {
+    void *bufferNew = nullptr;
+    bufferNew = malloc(size);
+    if (bufferNew == nullptr) {
         return false;
     }
-    if (memcpy_s(buffer_new, size, buffer, size) != EOK) {
-        free(buffer_new);
-        buffer_new = nullptr;
+    if (memcpy_s(bufferNew, size, buffer, size) != EOK) {
+        free(bufferNew);
+        bufferNew = nullptr;
         return false;
     }
-    if (!parcelData_.ParseFrom(reinterpret_cast<uintptr_t>(buffer_new), size)) {
+    if (!parcelData_.ParseFrom(reinterpret_cast<uintptr_t>(bufferNew), size)) {
         ACCOUNT_LOGE("Parse from failed, please check data");
-        free(buffer_new);
-        buffer_new = nullptr;
+        free(bufferNew);
+        bufferNew = nullptr;
         return false;
     }
     return true;

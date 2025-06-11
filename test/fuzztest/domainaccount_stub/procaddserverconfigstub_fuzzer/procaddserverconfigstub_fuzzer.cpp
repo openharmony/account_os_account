@@ -31,7 +31,6 @@ namespace OHOS {
 namespace {
 const int ENUM_MAX = 4;
 const uint32_t TOKEN_LEN = 10;
-// const std::u16string ACCOUNT_TOKEN = u"ohos.accountfwk.IDomainAccount";
 
 class TestGetDomainAccountInfoCallback : public DomainAccountCallbackStub {
 public:
