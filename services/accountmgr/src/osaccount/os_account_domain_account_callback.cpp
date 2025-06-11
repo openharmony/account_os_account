@@ -37,10 +37,6 @@ CheckAndCreateDomainAccountCallback::CheckAndCreateDomainAccountCallback(
 ErrCode CheckAndCreateDomainAccountCallback::HandleErrorWithEmptyResult(
     ErrCode errorCode, const Parcel& resultParcel)
 {
-    if (innerCallback_ == nullptr) {
-        ACCOUNT_LOGE("InnerPlugin_ is nullptr");
-        return ERR_OK;
-    }
     DomainAccountParcel domainAccountResultParcel;
     domainAccountResultParcel.SetParcelData(const_cast<Parcel&>(resultParcel));
     return innerCallback_->OnResult(errorCode, domainAccountResultParcel);
@@ -48,12 +44,12 @@ ErrCode CheckAndCreateDomainAccountCallback::HandleErrorWithEmptyResult(
 
 ErrCode CheckAndCreateDomainAccountCallback::OnResult(int32_t errCode, const DomainAccountParcel &domainAccountParcel)
 {
-    Parcel parcel;
-    domainAccountParcel.GetParcelData(parcel);
     if (innerCallback_ == nullptr) {
-        ACCOUNT_LOGE("InnerPlugin_ is nullptr");
+        ACCOUNT_LOGI("InnerPlugin_ is nullptr");
         return ERR_OK;
     }
+    Parcel parcel;
+    domainAccountParcel.GetParcelData(parcel);
     OsAccountInfo osAccountInfo;
     Parcel resultParcel;
     osAccountInfo.Marshalling(resultParcel);

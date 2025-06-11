@@ -19,34 +19,33 @@ sequenceable OHOS.AAFwk.WantParams;
 sequenceable DomainAccountCommon..OHOS.AccountSA.DomainAccountInfo;
 sequenceable DomainAccountCommon..OHOS.AccountSA.DomainServerConfig;
 
-
 interface OHOS.AccountSA.IDomainAccount {
-     void RegisterPlugin([in] IDomainAccountPlugin plugin);
-     void UnregisterPlugin();
-     void GetAccountStatus([in] DomainAccountInfo info, [out] int status);
-     void RegisterAccountStatusListener([in] IDomainAccountCallback listener);
-     void UnregisterAccountStatusListener([in] IDomainAccountCallback listener);
-     void Auth([in] DomainAccountInfo info, [in] unsigned char[] password,
+    void RegisterPlugin([in] IDomainAccountPlugin plugin);
+    void UnregisterPlugin();
+    void GetAccountStatus([in] DomainAccountInfo info, [out] int status);
+    void RegisterAccountStatusListener([in] IDomainAccountCallback listener);
+    void UnregisterAccountStatusListener([in] IDomainAccountCallback listener);
+    void Auth([in] DomainAccountInfo info, [in] unsigned char[] password,
         [in] IDomainAccountCallback domainAccountCallback);
-     void AuthUser([in] int userId, [in] unsigned char[] password,
+    void AuthUser([in] int userId, [in] unsigned char[] password,
         [in] IDomainAccountCallback domainAccountCallback);
-     void AuthWithPopup([in] int userId, [in] IDomainAccountCallback domainAccountCallback);
-     void HasDomainAccount([in] DomainAccountInfo info, [in] IDomainAccountCallback domainAccountCallback);
-     void UpdateAccountToken([in] DomainAccountInfo info, [in] unsigned char[] token);
-     void IsAuthenticationExpired([in] DomainAccountInfo info, [out] boolean isExpired);
-     void GetAccessToken([in] DomainAccountInfo info, [in] WantParams parameters,
+    void AuthWithPopup([in] int userId, [in] IDomainAccountCallback domainAccountCallback);
+    void HasDomainAccount([in] DomainAccountInfo info, [in] IDomainAccountCallback domainAccountCallback);
+    void UpdateAccountToken([in] DomainAccountInfo info, [in] unsigned char[] token);
+    void IsAuthenticationExpired([in] DomainAccountInfo info, [out] boolean isExpired);
+    void GetAccessToken([in] DomainAccountInfo info, [in] WantParams parameters,
         [in] IDomainAccountCallback domainAccountCallback);
-     void GetDomainAccountInfo(
+    void GetDomainAccountInfo(
         [in] DomainAccountInfo Info, [in] IDomainAccountCallback domainAccountCallback);
-     void AddServerConfig([in] String parameter, [out] DomainServerConfig config);
-     void RemoveServerConfig([in] String configId);
-     void GetAccountServerConfig([in] DomainAccountInfo info, [out] DomainServerConfig config);
-     void UpdateServerConfig([in] String configId, [in] String parameter,
+    void AddServerConfig([in] String parameter, [out] DomainServerConfig config);
+    void RemoveServerConfig([in] String configId);
+    void GetAccountServerConfig([in] DomainAccountInfo info, [out] DomainServerConfig config);
+    void UpdateServerConfig([in] String configId, [in] String parameter,
         [out] DomainServerConfig config);
-     void GetServerConfig([in] String configId, [out] DomainServerConfig config);
-     void GetAllServerConfigs([out] DomainServerConfig[] configs);
-     void UpdateAccountInfo(
+    void GetServerConfig([in] String configId, [out] DomainServerConfig config);
+    void GetAllServerConfigs([out] DomainServerConfig[] configs);
+    void UpdateAccountInfo(
         [in] DomainAccountInfo oldAccountInfo, [in] DomainAccountInfo newAccountInfo);
-     void SetAccountPolicy([in] DomainAccountInfo info, [in] String policy);
-     void GetAccountPolicy([in] DomainAccountInfo info, [out] String policy);
+    void SetAccountPolicy([in] DomainAccountInfo info, [in] String policy);
+    void GetAccountPolicy([in] DomainAccountInfo info, [out] String policy);
 }

@@ -44,9 +44,6 @@ ErrCode TestGetDomainAccountInfoCallback::OnResult(int32_t errCode, const Domain
 }
 
 namespace OHOS {
-namespace {
-// const std::u16string ACCOUNT_TOKEN = u"ohos.accountfwk.IDomainAccount";
-}
 bool ProcGetDomainAccountInfoStubFuzzTest(const uint8_t* data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {

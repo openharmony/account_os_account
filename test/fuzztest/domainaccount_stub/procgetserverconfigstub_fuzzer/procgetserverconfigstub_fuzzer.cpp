@@ -28,10 +28,6 @@ using namespace std;
 using namespace OHOS::AccountSA;
 
 namespace OHOS {
-namespace {
-// const std::u16string ACCOUNT_TOKEN = u"ohos.accountfwk.IDomainAccount";
-}
-
 bool ProcGetServerConfigStubFuzzTest(const uint8_t* data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {

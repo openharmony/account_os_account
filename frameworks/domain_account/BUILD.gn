@@ -138,8 +138,7 @@ ohos_source_set("domain_account_callback_proxy") {
   configs = [ ":domain_account_innnerkits_config" ]
   public_configs = [ ":domain_account_innerkits_public_config" ]
   output_values = get_target_outputs(":frameworks_domain_account_interface")
-  sources =
-      filter_include(output_values, [ "*domain_account_callback_proxy.cpp" ])
+  sources = filter_include(output_values, [ "*domain_account_callback_proxy.cpp" ])
   deps = [ ":frameworks_domain_account_interface" ]
   external_deps = [
     "c_utils:utils",

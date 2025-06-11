@@ -29,8 +29,6 @@ using namespace OHOS::AccountSA;
 
 namespace OHOS {
 namespace {
-// const std::u16string ACCOUNT_TOKEN = u"ohos.accountfwk.IDomainAccount";
-
 class TestDomainAuthCallback : public OHOS::AccountSA::DomainAccountCallback {
 public:
     TestDomainAuthCallback() = default;
