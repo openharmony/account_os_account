@@ -87,6 +87,7 @@ ohos_unittest("account_proxy_mock_test") {
   external_deps = [
     "ability_base:want",
     "access_token:libaccesstoken_sdk",
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gmock_main",
     "googletest:gtest_main",

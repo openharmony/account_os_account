@@ -41,6 +41,7 @@ ohos_shared_library("libos_account_ndk") {
   deps = [
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_proxy",
   ]
 
   external_deps = [

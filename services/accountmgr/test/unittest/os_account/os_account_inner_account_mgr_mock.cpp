@@ -954,9 +954,11 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, SetOsAccountConstraints001, TestSize.Leve
     EXPECT_EQ(ERR_OK,
         innerMgrService_->SetSpecificOsAccountConstraints(testConstraints, true, localId, TEST_USER_ID100, false));
 
-    std::vector<ConstraintSourceTypeInfo> infos, emptyConstraintInfos{
+    std::vector<ConstraintSourceTypeInfo> infos;
+    std::vector<ConstraintSourceTypeInfo> emptyConstraintInfos{
         {-1, ConstraintSourceType::CONSTRAINT_NOT_EXIST},
-    }, constraintInfos{
+    };
+    std::vector<ConstraintSourceTypeInfo> constraintInfos{
         {-1, ConstraintSourceType::CONSTRAINT_TYPE_BASE},
         {localId, ConstraintSourceType::CONSTRAINT_TYPE_DEVICE_OWNER},
         {TEST_USER_ID100, ConstraintSourceType::CONSTRAINT_TYPE_PROFILE_OWNER},

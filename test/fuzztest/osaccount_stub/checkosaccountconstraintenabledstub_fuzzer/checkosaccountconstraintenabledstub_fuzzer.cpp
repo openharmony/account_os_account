@@ -48,7 +48,7 @@ bool CheckOsAccountConstraintEnabledStubFuzzTest(const uint8_t *data, size_t siz
     MessageOption option;
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
     osAccountManagerService_ ->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::CHECK_OS_ACCOUNT_CONSTRAINT_ENABLED), datas, reply, option);
+        static_cast<int32_t>(IOsAccountIpcCode::COMMAND_CHECK_OS_ACCOUNT_CONSTRAINT_ENABLED), datas, reply, option);
 
     return true;
 }
@@ -89,7 +89,7 @@ bool ProcUpdateOsAccountWithFullInfoStubFuzzTest(const uint8_t *data, size_t siz
     MessageOption option;
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
     osAccountManagerService_->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::UPDATE_OS_ACCOUNT_WITH_FULL_INFO), datas, reply, option);
+        static_cast<int32_t>(IOsAccountIpcCode::COMMAND_UPDATE_OS_ACCOUNT_WITH_FULL_INFO), datas, reply, option);
 
     return true;
 }

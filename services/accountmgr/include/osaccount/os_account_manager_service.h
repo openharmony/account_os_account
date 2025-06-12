@@ -33,26 +33,39 @@ public:
     ~OsAccountManagerService() override;
 
     ErrCode CreateOsAccount(
-        const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo) override;
+        const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo);
     ErrCode CreateOsAccount(const std::string &localName, const std::string &shortName,
-        const OsAccountType &type, OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options = {}) override;
+        const OsAccountType &type, OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options = {});
+
+    ErrCode CreateOsAccount(
+        const std::string &name, int32_t typeValue, StringRawData& stringRawData) override;
+    ErrCode CreateOsAccount(const std::string &localName, const std::string &shortName, int32_t typeValue,
+        StringRawData& stringRawData) override;
+    ErrCode CreateOsAccount(const std::string &localName, const std::string &shortName,
+        int32_t typeValue, StringRawData& stringRawData, const CreateOsAccountOptions &options) override;
     ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
-        const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options = {}) override;
-    ErrCode CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo,
-        const CreateOsAccountOptions &options = {}) override;
-    ErrCode UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo) override;
+        const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options = {});
+    ErrCode CreateOsAccountForDomain(int32_t typeValue, const DomainAccountInfo &domainInfo,
+        const sptr<IDomainAccountCallback> &callback) override;
+    ErrCode CreateOsAccountForDomain(int32_t typeValue, const DomainAccountInfo &domainInfo,
+        const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options) override;
 
-    ErrCode RemoveOsAccount(const int id) override;
+    ErrCode CreateOsAccountWithFullInfo(const OsAccountInfo& osAccountInfo) override;
+    ErrCode CreateOsAccountWithFullInfo(const OsAccountInfo& osAccountInfo,
+        const CreateOsAccountOptions &options) override;
+    ErrCode UpdateOsAccountWithFullInfo(const OsAccountInfo& osAccountInfo) override;
 
-    ErrCode IsOsAccountExists(const int id, bool &isOsAccountExists) override;
-    ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived) override;
+    ErrCode RemoveOsAccount(int32_t id) override;
+
+    ErrCode IsOsAccountExists(int32_t id, bool &isOsAccountExists) override;
+    ErrCode IsOsAccountActived(int32_t id, bool &isOsAccountActived) override;
 
     ErrCode IsOsAccountConstraintEnable(
-        const int id, const std::string &constraint, bool &isConstraintEnable) override;
+        int32_t id, const std::string &constraint, bool &isConstraintEnable) override;
     ErrCode CheckOsAccountConstraintEnabled(
-        const int id, const std::string &constraint, bool &isEnabled) override;
-    ErrCode IsOsAccountVerified(const int id, bool &isVerified) override;
-    ErrCode IsOsAccountDeactivating(const int id, bool &isDeactivating) override;
+        int32_t id, const std::string &constraint, bool &isEnabled) override;
+    ErrCode IsOsAccountVerified(int32_t id, bool &isVerified) override;
+    ErrCode IsOsAccountDeactivating(int32_t id, bool &isDeactivating) override;
 
     ErrCode GetCreatedOsAccountsCount(unsigned int &osAccountsCount) override;
     ErrCode GetOsAccountLocalIdFromProcess(int &id) override;
@@ -61,43 +74,47 @@ public:
     ErrCode QueryMaxOsAccountNumber(uint32_t &maxOsAccountNumber) override;
     ErrCode QueryMaxLoggedInOsAccountNumber(uint32_t &maxNum) override;
 
-    ErrCode GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints) override;
-    ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos) override;
+    ErrCode GetOsAccountAllConstraints(int32_t id, std::vector<std::string> &constraints) override;
+    ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos);
+    ErrCode QueryAllCreatedOsAccounts(StringRawData& osAccountInfos) override;
 
-    ErrCode QueryCurrentOsAccount(OsAccountInfo &osAccountInfo) override;
-    ErrCode QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo) override;
+    ErrCode QueryCurrentOsAccount(OsAccountInfo &osAccountInfo);
+    ErrCode QueryCurrentOsAccount(StringRawData& stringRawData) override;
+    ErrCode QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo);
+    ErrCode QueryOsAccountById(int32_t id, StringRawData& stringRawData) override;
 
-    ErrCode GetOsAccountTypeFromProcess(OsAccountType& type) override;
-    ErrCode GetOsAccountType(const int id, OsAccountType& type) override;
-    ErrCode GetOsAccountProfilePhoto(const int id, std::string &photo) override;
+    ErrCode GetOsAccountTypeFromProcess(int32_t& typeValue) override;
+    ErrCode GetOsAccountType(int32_t id, int32_t& typeValue) override;
+    ErrCode GetOsAccountProfilePhoto(const int id, std::string &photo);
+    ErrCode GetOsAccountProfilePhoto(int32_t id, StringRawData& stringRawData) override;
 
     ErrCode IsMultiOsAccountEnable(bool &isMultiOsAccountEnable) override;
-    ErrCode SetOsAccountName(const int id, const std::string &name) override;
+    ErrCode SetOsAccountName(int32_t id, const std::string &name) override;
 
     ErrCode SetOsAccountConstraints(
-        const int id, const std::vector<std::string> &constraints, const bool enable) override;
-    ErrCode SetOsAccountProfilePhoto(const int id, const std::string &photo) override;
+        int32_t id, const std::vector<std::string> &constraints, bool enable) override;
+    ErrCode SetOsAccountProfilePhoto(const int id, const std::string &photo);
+    ErrCode SetOsAccountProfilePhoto(int32_t id, const StringRawData& stringRawData) override;
 
-    ErrCode ActivateOsAccount(const int id) override;
-    ErrCode DeactivateOsAccount(const int id) override;
+    ErrCode ActivateOsAccount(int32_t id) override;
+    ErrCode DeactivateOsAccount(int32_t id) override;
     ErrCode DeactivateAllOsAccounts() override;
 
-    ErrCode StartOsAccount(const int id) override;
+    ErrCode StartOsAccount(int32_t id) override;
 
     ErrCode GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id) override;
-    ErrCode GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber) override;
+    ErrCode GetSerialNumberByOsAccountLocalId(int32_t id, int64_t &serialNumber) override;
 
     ErrCode SubscribeOsAccount(
         const OsAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener) override;
     ErrCode UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener) override;
-
-    OS_ACCOUNT_SWITCH_MOD GetOsAccountSwitchMod() override;
+    ErrCode GetOsAccountSwitchMod(int32_t &switchMod) override;
     ErrCode IsCurrentOsAccountVerified(bool &isVerified) override;
 
-    ErrCode IsOsAccountCompleted(const int id, bool &isOsAccountCompleted) override;
-    ErrCode SetCurrentOsAccountIsVerified(const bool isVerified) override;
-    ErrCode SetOsAccountIsVerified(const int id, const bool isVerified) override;
-    ErrCode DumpState(const int &id, std::vector<std::string> &state) override;
+    ErrCode IsOsAccountCompleted(int32_t id, bool &isOsAccountCompleted) override;
+    ErrCode SetCurrentOsAccountIsVerified(bool isVerified) override;
+    ErrCode SetOsAccountIsVerified(int32_t id, bool isVerified) override;
+    ErrCode DumpState(int32_t id, std::vector<std::string> &state) override;
     ErrCode DumpOsAccountInfo(std::vector<std::string> &state);
 
     ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
@@ -106,35 +123,39 @@ public:
         int64_t &serialNumber) override;
     ErrCode GetMaxAllowCreateIdFromDatabase(const std::string& storeID, int &id) override;
     ErrCode GetOsAccountFromDatabase(const std::string& storeID,
-        const int id, OsAccountInfo &osAccountInfo) override;
+        const int id, OsAccountInfo &osAccountInfo);
+    ErrCode GetOsAccountFromDatabase(const std::string& storeID,
+        int32_t id, StringRawData& stringRawData) override;
     ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
-        std::vector<OsAccountInfo> &osAccountList) override;
+        std::vector<OsAccountInfo> &osAccountList);
+    ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
+        StringRawData& osAccountInfos) override;
     ErrCode QueryActiveOsAccountIds(std::vector<int32_t>& ids) override;
 
-    ErrCode QueryOsAccountConstraintSourceTypes(const int32_t id,
+    ErrCode QueryOsAccountConstraintSourceTypes(int32_t id,
         const std::string &constraint, std::vector<ConstraintSourceTypeInfo> &constraintSourceTypeInfos) override;
     ErrCode SetGlobalOsAccountConstraints(const std::vector<std::string> &constraints,
-        const bool enable, const int32_t enforcerId, const bool isDeviceOwner) override;
+        bool enable, int32_t enforcerId, bool isDeviceOwner) override;
     ErrCode SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
-        const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner) override;
+        bool enable, int32_t targetId, int32_t enforcerId, bool isDeviceOwner) override;
     ErrCode SubscribeOsAccountConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
         const sptr<IRemoteObject> &eventListener) override;
     ErrCode UnsubscribeOsAccountConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
         const sptr<IRemoteObject> &eventListener) override;
 
-    ErrCode SetDefaultActivatedOsAccount(const int32_t id) override;
+    ErrCode SetDefaultActivatedOsAccount(int32_t id) override;
     ErrCode GetDefaultActivatedOsAccount(int32_t &id) override;
     ErrCode GetOsAccountShortName(std::string &shortName) override;
     ErrCode GetOsAccountName(std::string &name) override;
     ErrCode GetOsAccountNameById(int32_t id, std::string &name) override;
-    ErrCode GetOsAccountShortNameById(const int32_t id, std::string &shortName) override;
+    ErrCode GetOsAccountShortNameById(int32_t id, std::string &shortName) override;
 
-    ErrCode IsOsAccountForeground(const int32_t localId, const uint64_t displayId, bool &isForeground) override;
+    ErrCode IsOsAccountForeground(int32_t localId, const uint64_t displayId, bool &isForeground) override;
     ErrCode GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId) override;
     ErrCode GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts) override;
     ErrCode GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds) override;
     ErrCode SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved) override;
-    ErrCode GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo) override;
+    ErrCode GetOsAccountDomainInfo(int32_t localId, DomainAccountInfo &domainInfo) override;
 #ifdef SUPPORT_LOCK_OS_ACCOUNT
     ErrCode PublishOsAccountLockEvent(const int32_t localId, bool isLocking) override;
     ErrCode LockOsAccount(const int32_t localId) override;

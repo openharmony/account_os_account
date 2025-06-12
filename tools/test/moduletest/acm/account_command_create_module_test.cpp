@@ -25,8 +25,13 @@ using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AAFwk;
 using namespace OHOS::AccountSA;
-using namespace OHOS::AccountSA::Constants;
-
+namespace {
+#ifndef ACCOUNT_TEST
+const std::string USER_INFO_BASE = "/data/service/el1/public/account";
+#else
+const std::string USER_INFO_BASE = "/data/service/el1/public/account/test";
+#endif // ACCOUNT_TEST
+}  // namespace
 class AccountCommandCreateModuleTest : public testing::Test {
 public:
     static void SetUpTestCase();

@@ -20,7 +20,9 @@
 
 #include "fuzz_data.h"
 #include "ios_account.h"
+#include "os_account_event_listener.h"
 #include "os_account_manager_service.h"
+#include "os_account_subscriber.h"
 
 using namespace std;
 using namespace OHOS::AccountSA;
@@ -68,7 +70,7 @@ bool SubscribeOsAccountStubFuzzTest(const uint8_t *data, size_t size)
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
 
     osAccountManagerService_ ->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::SUBSCRIBE_OS_ACCOUNT), datas, reply, option);
+        static_cast<int32_t>(IOsAccountIpcCode::COMMAND_SUBSCRIBE_OS_ACCOUNT), datas, reply, option);
 
     return true;
 }

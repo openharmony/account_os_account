@@ -18,6 +18,7 @@
 #include "account_command.h"
 #include "account_log_wrapper.h"
 #include "account_test_common.h"
+#include "os_account_constants.h"
 #include "singleton.h"
 
 using namespace testing::ext;

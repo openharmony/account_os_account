@@ -42,7 +42,7 @@ bool QueryOsAccountByIdStubFuzzTest(const uint8_t *data, size_t size)
 
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
 
-    osAccountManagerService_->OnRemoteRequest(static_cast<int32_t>(OsAccountInterfaceCode::QUERY_OS_ACCOUNT_BY_ID),
+    osAccountManagerService_->OnRemoteRequest(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_QUERY_OS_ACCOUNT_BY_ID),
         datas, reply, option);
 
     return true;

@@ -43,8 +43,8 @@ bool GetSerialNumberByOsAccountLocalIdStubFuzzTest(const uint8_t *data, size_t s
 
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
 
-    osAccountManagerService_->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::GET_SERIAL_NUMBER_FOR_OS_ACCOUNT), datas, reply, option);
+    osAccountManagerService_->OnRemoteRequest(static_cast<int32_t>(
+        IOsAccountIpcCode::COMMAND_GET_SERIAL_NUMBER_BY_OS_ACCOUNT_LOCAL_ID), datas, reply, option);
 
     return true;
 }

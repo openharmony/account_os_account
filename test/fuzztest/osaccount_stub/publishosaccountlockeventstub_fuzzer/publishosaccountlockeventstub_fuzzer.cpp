@@ -46,7 +46,7 @@ bool PublishOsAccountLockEventStubFuzzTest(const uint8_t *data, size_t size)
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
 
     osAccountManagerService_ ->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::PUBLISH_OS_ACCOUNT_LOCK_EVENT), datas, reply, option);
+        static_cast<int32_t>(IOsAccountIpcCode::COMMAND_PUBLISH_OS_ACCOUNT_LOCK_EVENT), datas, reply, option);
 
     return true;
 }
