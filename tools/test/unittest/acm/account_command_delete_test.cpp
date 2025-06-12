@@ -24,10 +24,11 @@ using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AAFwk;
 using namespace OHOS::AccountSA;
-using namespace OHOS::AccountSA::Constants;
+// using namespace OHOS::AccountSA::Constants;
 
 namespace {
 const std::string HELP_MSG_UNKNOWN_OPTION = "fail: unknown option.";
+const int32_t START_USER_ID = 100;
 }  // namespace
 
 class AccountCommandDeleteTest : public testing::Test {

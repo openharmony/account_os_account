@@ -25,11 +25,15 @@ using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AAFwk;
 using namespace OHOS::AccountSA;
-using namespace OHOS::AccountSA::Constants;
 
 namespace {
 const std::string STRING_LOCAL_ACCOUNT_ID_INVALID = "local_account_id_invalid";
 const std::string STRING_LOCAL_ACCOUNT_ID_INVALID_TWO = "1024";
+#ifndef ACCOUNT_TEST
+const std::string USER_INFO_BASE = "/data/service/el1/public/account";
+#else
+const std::string USER_INFO_BASE = "/data/service/el1/public/account/test";
+#endif // ACCOUNT_TEST
 }  // namespace
 
 class AccountCommandDumpModuleTest : public testing::Test {

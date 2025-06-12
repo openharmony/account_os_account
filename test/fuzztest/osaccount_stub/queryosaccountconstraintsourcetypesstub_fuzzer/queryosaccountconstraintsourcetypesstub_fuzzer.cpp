@@ -48,7 +48,8 @@ bool QueryOsAccountConstraintSourceTypesStubFuzzTest(const uint8_t *data, size_t
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
 
     osAccountManagerService_ ->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::QUERY_OS_ACCOUNT_CONSTRAINT_SOURCE_TYPES), datas, reply, option);
+        static_cast<int32_t>(IOsAccountIpcCode::COMMAND_QUERY_OS_ACCOUNT_CONSTRAINT_SOURCE_TYPES),
+        datas, reply, option);
 
     return true;
 }

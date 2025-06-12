@@ -37,14 +37,24 @@ typedef enum {
     CONSTRAINT_TYPE_PROFILE_OWNER,
 } ConstraintSourceType;
 
-struct ConstraintSourceTypeInfo {
+struct ConstraintSourceTypeInfo : public Parcelable {
     int32_t localId;
     ConstraintSourceType typeInfo;
+    ConstraintSourceTypeInfo() = default;
+    ConstraintSourceTypeInfo(int32_t id, ConstraintSourceType type) : localId(id), typeInfo(type) {}
+    bool ReadFromParcel(Parcel &parcel);
+    bool Marshalling(Parcel &parcel) const override;
+    static ConstraintSourceTypeInfo *Unmarshalling(Parcel &parcel);
 };
 
-struct ForegroundOsAccount {
+struct ForegroundOsAccount : public Parcelable {
     int32_t localId;
     uint64_t displayId;
+    ForegroundOsAccount() = default;
+    ForegroundOsAccount(int32_t id, uint64_t display) : localId(id), displayId(display) {}
+    bool ReadFromParcel(Parcel &parcel);
+    bool Marshalling(Parcel &parcel) const override;
+    static ForegroundOsAccount *Unmarshalling(Parcel &parcel);
 };
 
 struct CreateOsAccountOptions: public Parcelable {

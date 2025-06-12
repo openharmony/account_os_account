@@ -43,7 +43,7 @@ bool SetOsAccountToBeRemovedStubFuzzTest(const uint8_t* data, size_t size)
     MessageOption option;
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
     osAccountManagerService_ ->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::SET_OS_ACCOUNT_TO_BE_REMOVED), dataParcel, reply, option);
+        static_cast<int32_t>(IOsAccountIpcCode::COMMAND_SET_OS_ACCOUNT_TO_BE_REMOVED), dataParcel, reply, option);
     return true;
 }
 }

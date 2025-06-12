@@ -683,7 +683,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest031
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest032, TestSize.Level1)
 {
-    OsAccountType type;
+    int32_t type;
     EXPECT_EQ(osAccountManagerService_->GetOsAccountTypeFromProcess(type), ERR_OK);
 }
 
@@ -1585,9 +1585,9 @@ HWTEST_F(OsAccountManagerServiceModuleTest, GetOsAccountType001, TestSize.Level1
     OsAccountInfo osAccountInfoA;
     ASSERT_EQ(osAccountManagerService_->CreateOsAccount("GetTypeName001", OsAccountType::NORMAL, osAccountInfoA),
         ERR_OK);
-    OsAccountType type = OsAccountType::ADMIN;
+    int32_t type = 0;
     EXPECT_EQ(osAccountManagerService_->GetOsAccountType(osAccountInfoA.GetLocalId(), type), ERR_OK);
-    EXPECT_EQ(type, OsAccountType::NORMAL);
+    EXPECT_EQ(type, static_cast<int32_t>(OsAccountType::NORMAL));
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoA.GetLocalId()), ERR_OK);
 }
 
@@ -1621,11 +1621,11 @@ HWTEST_F(OsAccountManagerServiceModuleTest, PrivateTypeTest001, TestSize.Level1)
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoC.GetLocalId()), ERR_OK);
 
     // test get os account type by id
-    OsAccountType type;
+    int32_t type;
     EXPECT_EQ(osAccountManagerService_->GetOsAccountType(osAccountInfoB.GetLocalId(), type), ERR_OK);
-    EXPECT_EQ(type, OsAccountType::PRIVATE);
+    EXPECT_EQ(type, static_cast<int32_t>(OsAccountType::PRIVATE));
     EXPECT_EQ(osAccountManagerService_->GetOsAccountType(osAccountInfoA.GetLocalId(), type), ERR_OK);
-    EXPECT_EQ(type, OsAccountType::NORMAL);
+    EXPECT_EQ(type, static_cast<int32_t>(OsAccountType::NORMAL));
 
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoB.GetLocalId()), ERR_OK);
 

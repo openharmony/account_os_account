@@ -47,7 +47,7 @@ bool IsOsAccountConstraintEnableStubFuzzTest(const uint8_t *data, size_t size)
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
 
     osAccountManagerService_ ->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::IS_OS_ACCOUNT_CONSTRAINT_ENABLE), datas, reply, option);
+        static_cast<int32_t>(IOsAccountIpcCode::COMMAND_IS_OS_ACCOUNT_CONSTRAINT_ENABLE), datas, reply, option);
 
     return true;
 }

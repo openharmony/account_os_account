@@ -44,7 +44,7 @@ bool LockOsAccountStubFuzzTest(const uint8_t *data, size_t size)
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
 
     osAccountManagerService_ ->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::LOCK_OS_ACCOUNT), datas, reply, option);
+        static_cast<int32_t>(IOsAccountIpcCode::COMMAND_LOCK_OS_ACCOUNT), datas, reply, option);
 
     return true;
 }

@@ -238,6 +238,7 @@ ohos_shared_library("accountmgr") {
     "${os_account_innerkits_native_path}:os_account_event_proxy",
     "${os_account_innerkits_native_path}:os_account_state_reply_callback_proxy",
     "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
+    "${os_account_innerkits_native_path}:os_account_stub",
   ]
   external_deps = [
     "ability_base:base",
