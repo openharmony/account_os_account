@@ -32,19 +32,16 @@ namespace {
 const char THREAD_AUTH_SESSION[] = "authSession";
 ErrCode ConvertToAccountErrCode(ErrCode idlErrCode, int32_t funcResult)
 {
-    if (funcResult != ERR_OK) {
+    if (idlErrCode == ERR_OK) {
         return funcResult;
     }
-    if (idlErrCode != ERR_OK) {
-        if (idlErrCode == ERR_INVALID_VALUE) {
-            return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
-        } else if (idlErrCode == ERR_INVALID_DATA) {
-            return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-        } else {
-            return ERR_APPACCOUNT_KIT_SEND_REQUEST;
-        }
+    if (idlErrCode == ERR_INVALID_VALUE) {
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    } else if (idlErrCode == ERR_INVALID_DATA) {
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    } else {
+        return ERR_APPACCOUNT_KIT_SEND_REQUEST;
     }
-    return ERR_OK;
 }
 }
 
@@ -200,10 +197,7 @@ void AppAccountAuthenticatorSession::OnAbilityConnectDone(
         return;
     }
     authenticatorProxy_->AsObject()->AddDeathRecipient(serverDeathRecipient_);
-    AppAccountAuthenticatorStringInfo stringInfo;
-    stringInfo.name = request_.name;
-    stringInfo.authType = request_.authType;
-    stringInfo.callerBundleName = request_.callerBundleName;
+    AppAccountAuthenticatorStringInfo stringInfo(request_.name, request_.authType, request_.callerBundleName);
     OnAbilityConnectInner(stringInfo, resultCode, errResult);
     if (resultCode != ERR_OK) {
         OnResult(ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION, errResult);

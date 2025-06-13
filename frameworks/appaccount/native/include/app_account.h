@@ -118,8 +118,6 @@ private:
     ErrCode CreateAppAccountEventListener(
         const std::shared_ptr<AppAccountSubscriber> &subscriber, sptr<IRemoteObject> &appAccountEventListener);
     void RestoreListenerRecords();
-    ErrCode SubscribeAppAccountInner(const std::shared_ptr<AppAccountSubscriber> &subscriber,
-        const sptr<IAppAccount> proxy, const AppAccountSubscribeInfo &subscribeInfo);
 
 private:
     std::mutex mutex_;

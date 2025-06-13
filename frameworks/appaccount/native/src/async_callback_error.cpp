@@ -21,7 +21,19 @@ namespace OHOS {
 namespace AccountSA {
 bool AsyncCallbackError::Marshalling(Parcel &parcel) const
 {
-    return parcel.WriteInt32(code) && parcel.WriteString(message) && parcel.WriteParcelable(&data);
+    if (!parcel.WriteInt32(code)) {
+        ACCOUNT_LOGE("Write code failed, please check code value or parcel status");
+        return false;
+    }
+    if (!parcel.WriteString(message)) {
+        ACCOUNT_LOGE("Write message failed, please check message value or parcel status");
+        return false;
+    }
+    if (!parcel.WriteParcelable(&data)) {
+        ACCOUNT_LOGE("Write data object failed, please check object state or parcel capacity");
+        return false;
+    }
+    return true;
 }
 
 AsyncCallbackError *AsyncCallbackError::Unmarshalling(Parcel &parcel)
@@ -38,10 +50,12 @@ AsyncCallbackError *AsyncCallbackError::Unmarshalling(Parcel &parcel)
 bool AsyncCallbackError::ReadFromParcel(Parcel &parcel)
 {
     if ((!parcel.ReadInt32(code)) || (!parcel.ReadString(message))) {
+        ACCOUNT_LOGE("Read code or message failed, please check parcel integrity or data format");
         return false;
     }
     sptr<AAFwk::WantParams> wantParams = parcel.ReadParcelable<AAFwk::WantParams>();
     if (wantParams == nullptr) {
+        ACCOUNT_LOGE("Read WantParams from parcel failed, please check parcel integrity or data corruption");
         return false;
     }
     data = *wantParams;

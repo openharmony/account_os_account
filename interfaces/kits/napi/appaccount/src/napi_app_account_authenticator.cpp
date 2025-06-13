@@ -134,7 +134,8 @@ ErrCode NapiAppAccountAuthenticator::AddAccountImplicitly(
     return ERR_OK;
 }
 
-ErrCode NapiAppAccountAuthenticator::Authenticate(const AppAccountAuthenticatorStringInfo &stringInfo,
+ErrCode NapiAppAccountAuthenticator::Authenticate(
+    const AppAccountAuthenticatorStringInfo &appAccountAuthenticatorStringInfo,
     const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback, int32_t &funcResult)
 {
     if (jsAuthenticator_.authenticate == nullptr) {
@@ -144,9 +145,9 @@ ErrCode NapiAppAccountAuthenticator::Authenticate(const AppAccountAuthenticatorS
     std::shared_ptr<JsAuthenticatorParam> param = std::make_shared<JsAuthenticatorParam>();
     param->env = env_;
     param->jsAuthenticator = jsAuthenticator_;
-    param->authType = stringInfo.authType;
-    param->name = stringInfo.name;
-    param->callerBundleName = stringInfo.callerBundleName;
+    param->authType = appAccountAuthenticatorStringInfo.authType;
+    param->name = appAccountAuthenticatorStringInfo.name;
+    param->callerBundleName = appAccountAuthenticatorStringInfo.callerBundleName;
     param->options = options;
     param->callback = callback;
     if (napi_ok != napi_send_event(env_, AuthenticateWork(param), napi_eprio_vip)) {

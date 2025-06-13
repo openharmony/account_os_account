@@ -39,7 +39,7 @@ bool OAuthTokenInfo::Marshalling(Parcel &parcel) const
         ACCOUNT_LOGE("Write authList size failed, please check authList size or parcel status");
         return false;
     }
-    for (auto item : authList) {
+    for (const auto &item : authList) {
         if ((!parcel.WriteString(item))) {
             ACCOUNT_LOGE("Write authList failed, please check authList value or parcel status");
             return false;
@@ -138,6 +138,11 @@ AppAccountStringInfo* AppAccountStringInfo::Unmarshalling(Parcel &parcel)
     }
     return info;
 }
+
+AppAccountAuthenticatorStringInfo::AppAccountAuthenticatorStringInfo(
+    std::string name, std::string authType, std::string callerBundleName)
+    : name(name), authType(authType), callerBundleName(callerBundleName)
+{}
 
 bool AppAccountAuthenticatorStringInfo::ReadFromParcel(Parcel &parcel)
 {
