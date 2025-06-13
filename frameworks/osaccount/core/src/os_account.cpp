@@ -301,16 +301,16 @@ ErrCode OsAccount::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domain
     if (domainInfo.domain_.empty() ||
         domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("invalid domain name length %{public}zu.", domainInfo.domain_.size());
-        SetNativeErrMsg("Invalid domainInfo.domain."
-            "The length of the domainInfo.domain must be greater than 0 and less than 1025");
+        NativeErrMsg() = "Invalid domainInfo.domain."
+            "The length of the domainInfo.domain must be greater than 0 and less than 1025";
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
     if (domainInfo.accountName_.empty() ||
         domainInfo.accountName_.size() > Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("invalid domain account name length %{public}zu.", domainInfo.accountName_.size());
-        SetNativeErrMsg("Invalid domainInfo.accountName."
-            "The length of domainInfo.accountName must be greater than 0, and less than or equal to LOGIN_NAME_MAX");
+        NativeErrMsg() = "Invalid domainInfo.accountName."
+            "The length of domainInfo.accountName must be greater than 0, and less than or equal to LOGIN_NAME_MAX";
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 

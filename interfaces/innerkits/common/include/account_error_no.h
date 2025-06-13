@@ -374,17 +374,7 @@ enum JSErrorCode {
 
 int32_t ConvertToJSErrCode(int32_t nativeErrCode);
 
-extern thread_local std::string nativeErrMsg;
-
-inline const std::string& GetNativeErrMsg()
-{
-    return nativeErrMsg;
-}
-
-inline void SetNativeErrMsg(const std::string& msg)
-{
-    nativeErrMsg = msg;
-}
+std::string& NativeErrMsg();
 }  // namespace OHOS
 
 #endif  // OS_ACCOUNT_FRAMEWORKS_COMMON_ACCOUNT_ERROR_INCLUDE_ACCOUNT_ERROR_NO_H
