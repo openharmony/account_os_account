@@ -17,8 +17,6 @@
 #include <unordered_map>
 
 namespace OHOS {
-thread_local std::string nativeErrMsg = "";
-
 const std::unordered_map<int32_t, int32_t> errorMap = {
     { ERR_OK, ERR_JS_SUCCESS },
     { ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR, ERR_JS_IS_NOT_SYSTEM_APP },
@@ -185,5 +183,11 @@ int32_t ConvertToJSErrCode(int32_t nativeErrCode)
     } else {
         return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
     }
+}
+
+std::string &NativeErrMsg()
+{
+    thread_local static std::string nativeErrMsg;
+    return nativeErrMsg;
 }
 }  // namespace OHOS
