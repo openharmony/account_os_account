@@ -108,7 +108,7 @@ ErrCode DistributedAccountEventService::OnAccountsChanged(const DistributedAccou
     std::lock_guard<std::mutex> lock(mapLock_);
     auto it = typeMap_.find(eventData.type_);
     if (it == typeMap_.end()) {
-        ACCOUNT_LOGE("callback is empty");
+        ACCOUNT_LOGI("callback is empty");
         return ERR_OK;
     }
     for (const auto &item : it->second) {
