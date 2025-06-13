@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,9 @@
 
 #include <pthread.h>
 #include <thread>
+#include "account_constants.h"
 #include "account_log_wrapper.h"
+#include "account_hisysevent_adapter.h"
 #include "distributed_account_subscribe_death_recipient.h"
 #include "distributed_account_subscribe_manager.h"
 
@@ -126,7 +128,26 @@ bool DistributedAccountSubscribeManager::OnAccountsChanged(
     eventData.id_ = id;
     eventData.type_ = subscribeType;
 
-    eventProxy->OnAccountsChanged(eventData);
+    int32_t retryTimes = 0;
+    ErrCode result = ERR_OK;
+    while (retryTimes < Constants::MAX_RETRY_TIMES) {
+        result = eventProxy->OnAccountsChanged(eventData);
+        if (result == ERR_OK || (result != Constants::E_IPC_ERROR &&
+            result != Constants::E_IPC_SA_DIED)) {
+            break;
+        }
+        retryTimes++;
+        ACCOUNT_LOGE("Send distributed account event request failed, code=%{public}d, retryTimes=%{public}d",
+            result, retryTimes);
+        std::this_thread::sleep_for(std::chrono::milliseconds(Constants::DELAY_FOR_EXCEPTION));
+    }
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest for account changed failed, result=%{public}d eventData.id=%{public}d.",
+            result, eventData.id_);
+        REPORT_OHOS_ACCOUNT_FAIL(eventData.id_, Constants::OPERATION_EVENT_PUBLISH,
+            result, "Send OnAccountsChanged failed.");
+        return false;
+    }
     return true;
 }
 

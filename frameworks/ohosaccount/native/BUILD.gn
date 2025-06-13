@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -11,8 +11,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("//build/config/components/idl_tool/idl.gni")
 import("//build/ohos.gni")
 import("../../../os_account.gni")
+
+idl_gen_interface("distributed_account_event_interface") {
+  sources = [ "IDistributedAccountEvent.idl" ]
+  log_domainid = "0xD001B00"
+  log_tag = "DistributedAccountFwk"
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+config("distributed_account_event_interface_public_config") {
+  include_dirs = [ "${target_gen_dir}" ]
+}
 
 config("public_account_config") {
   include_dirs = [
@@ -23,6 +36,7 @@ config("public_account_config") {
     "${innerkits_common}/include",
     "${innerkits_path}/include",
     "${os_account_interfaces_native_path}/include",
+    "${target_gen_dir}",
   ]
 }
 
@@ -46,13 +60,17 @@ ohos_shared_library("libaccountkits") {
   sources = [
     "src/account_info_parcel.cpp",
     "src/account_proxy.cpp",
-    "src/distributed_account_event_proxy.cpp",
     "src/distributed_account_event_service.cpp",
-    "src/distributed_account_event_stub.cpp",
     "src/ohos_account_kits.cpp",
     "src/ohos_account_kits_impl.cpp",
     "src/system_ability_status_change_listener.cpp",
   ]
+  output_values = get_target_outputs(":distributed_account_event_interface")
+  sources += filter_include(output_values,
+                            [
+                              "*distributed_account_event_proxy.cpp",
+                              "*distributed_account_event_stub.cpp",
+                            ])
 
   cflags = [ "-pipe" ]
   cflags_cc = [
@@ -71,6 +89,7 @@ ohos_shared_library("libaccountkits") {
   }
 
   deps = [ "${common_path}:libaccount_common" ]
+  deps += [ ":distributed_account_event_interface" ]
 
   external_deps = [
     "ability_base:want",

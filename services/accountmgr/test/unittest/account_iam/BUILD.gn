@@ -320,6 +320,7 @@ ohos_unittest("account_inner_iam_manager_mock_source_file_test") {
   configs = [
     ":account_iam_native_config_unittest",
     "${common_path}:account_common_config",
+    "${innerkits_native_path}:distributed_account_event_interface_public_config",
     "${services_path}/accountmgr:account_iam_config",
   ]
 
