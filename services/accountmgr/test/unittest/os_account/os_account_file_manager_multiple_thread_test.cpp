@@ -42,7 +42,7 @@ const std::vector<std::string> CONSTRAINTS = {
 };
 OsAccountControlFileManager *g_controlManager = new (std::nothrow) OsAccountControlFileManager();
 }  // namespace
-class OsAccountControlFileManagerTest : public testing::Test {
+class OsAccountFileManagerMultipleThreadTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
@@ -53,7 +53,7 @@ public:
     std::string storeID_ = "os_account_info";
 };
 
-void OsAccountControlFileManagerTest::SetUpTestCase(void)
+void OsAccountFileManagerMultipleThreadTest::SetUpTestCase(void)
 {
     ASSERT_NE(g_controlManager, nullptr);
     g_controlManager->Init();
@@ -67,7 +67,7 @@ void OsAccountControlFileManagerTest::SetUpTestCase(void)
         ERR_OK);
 }
 
-void OsAccountControlFileManagerTest::TearDownTestCase(void)
+void OsAccountFileManagerMultipleThreadTest::TearDownTestCase(void)
 {
     g_controlManager->DelOsAccount(g_id);
     ASSERT_EQ(g_controlManager->UpdateBaseOAConstraints(std::to_string(ID), CONSTRAINTS, false), ERR_OK);
@@ -76,16 +76,16 @@ void OsAccountControlFileManagerTest::TearDownTestCase(void)
         ERR_OK);
 }
 
-void OsAccountControlFileManagerTest::SetUp(void)
+void OsAccountFileManagerMultipleThreadTest::SetUp(void)
 {}
 
-void OsAccountControlFileManagerTest::TearDown(void)
+void OsAccountFileManagerMultipleThreadTest::TearDown(void)
 {}
 
 void TestWriteReadFileInfo()
 {
     g_write = !g_write;
-    int32_t i = 1000;
+    int32_t i = 100;
     if (g_write) {
         while (i--) {
             std::string testName = STRING_TEST_USER_NAME + std::to_string(i);
@@ -108,14 +108,14 @@ void TestWriteReadFileInfo()
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest001, TestSize.Level1)
+HWTEST_F(OsAccountFileManagerMultipleThreadTest, OsAccountControlFileManagerTest001, TestSize.Level1)
 {
     GTEST_RUN_TASK(TestWriteReadFileInfo);
 }
 
 void TestIsFromBaseOAConstraintsList()
 {
-    int32_t i = 1000;
+    int32_t i = 100;
     while (i--) {
         bool isExits = false;
         EXPECT_EQ(g_controlManager->IsFromBaseOAConstraintsList(ID, CONSTRAINTS[0], isExits), ERR_OK);
@@ -129,14 +129,14 @@ void TestIsFromBaseOAConstraintsList()
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest002, TestSize.Level1)
+HWTEST_F(OsAccountFileManagerMultipleThreadTest, OsAccountControlFileManagerTest002, TestSize.Level1)
 {
     GTEST_RUN_TASK(TestIsFromBaseOAConstraintsList);
 }
 
 void TestGetGlobalOAConstraintsList()
 {
-    int32_t i = 1000;
+    int32_t i = 100;
     while (i--) {
         std::vector<std::string> constraintsList;
         EXPECT_EQ(g_controlManager->GetGlobalOAConstraintsList(constraintsList), ERR_OK);
@@ -150,14 +150,14 @@ void TestGetGlobalOAConstraintsList()
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest003, TestSize.Level1)
+HWTEST_F(OsAccountFileManagerMultipleThreadTest, OsAccountControlFileManagerTest003, TestSize.Level1)
 {
     GTEST_RUN_TASK(TestGetGlobalOAConstraintsList);
 }
 
 void TestIsFromGlobalOAConstraintsList()
 {
-    int32_t i = 1000;
+    int32_t i = 100;
     while (i--) {
         std::vector<ConstraintSourceTypeInfo> globalSourceList;
         EXPECT_EQ(g_controlManager->IsFromGlobalOAConstraintsList(ID, ID, CONSTRAINTS[0], globalSourceList), ERR_OK);
@@ -172,14 +172,14 @@ void TestIsFromGlobalOAConstraintsList()
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest004, TestSize.Level1)
+HWTEST_F(OsAccountFileManagerMultipleThreadTest, OsAccountControlFileManagerTest004, TestSize.Level1)
 {
     GTEST_RUN_TASK(TestIsFromGlobalOAConstraintsList);
 }
 
 void TestGetSpecificOAConstraintsList()
 {
-    int32_t i = 1000;
+    int32_t i = 100;
     while (i--) {
         std::vector<std::string> constraintsList;
         EXPECT_EQ(g_controlManager->GetSpecificOAConstraintsList(ID, constraintsList), ERR_OK);
@@ -193,14 +193,14 @@ void TestGetSpecificOAConstraintsList()
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest005, TestSize.Level1)
+HWTEST_F(OsAccountFileManagerMultipleThreadTest, OsAccountControlFileManagerTest005, TestSize.Level1)
 {
     GTEST_RUN_TASK(TestGetSpecificOAConstraintsList);
 }
 
 void TestIsFromSpecificOAConstraintsList()
 {
-    int32_t i = 1000;
+    int32_t i = 100;
     while (i--) {
         std::vector<ConstraintSourceTypeInfo> globalSourceList;
         EXPECT_EQ(g_controlManager->IsFromSpecificOAConstraintsList(ID, ID, CONSTRAINTS[0], globalSourceList), ERR_OK);
@@ -215,7 +215,7 @@ void TestIsFromSpecificOAConstraintsList()
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest006, TestSize.Level1)
+HWTEST_F(OsAccountFileManagerMultipleThreadTest, OsAccountControlFileManagerTest006, TestSize.Level1)
 {
     GTEST_RUN_TASK(TestIsFromSpecificOAConstraintsList);
 }

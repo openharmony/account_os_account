@@ -189,7 +189,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Plugin_001
  * @tc.type: FUNC
  * @tc.require: issueI64KAG
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Plugin_002, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Plugin_002, TestSize.Level0)
 {
     ASSERT_EQ(DomainAccountClient::GetInstance().UnregisterPlugin(), ERR_OK);
     ASSERT_EQ(DomainAccountClient::GetInstance().RegisterPlugin(nullptr), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
@@ -201,7 +201,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Plugin_002
  * @tc.type: FUNC
  * @tc.require: issueI64KAG
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Plugin_003, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Plugin_003, TestSize.Level0)
 {
     ASSERT_EQ(
         DomainAccountClient::GetInstance().RegisterPlugin(g_plugin), ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_ALREADY_EXIST);
@@ -213,7 +213,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Plugin_003
  * @tc.type: FUNC
  * @tc.require: issueI64KAG
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Plugin_004, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Plugin_004, TestSize.Level0)
 {
     setuid(TEST_UID);
     ASSERT_EQ(DomainAccountClient::GetInstance().UnregisterPlugin(), ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
@@ -227,7 +227,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Plugin_004
  * @tc.type: FUNC
  * @tc.require: issueI64KAG
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Plugin_005, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Plugin_005, TestSize.Level0)
 {
     uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
     ASSERT_TRUE(MockTokenId("accountmgr"));
@@ -268,7 +268,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Auth_001, 
  * @tc.type: FUNC
  * @tc.require: issueI64KAM
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Auth_002, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Auth_002, TestSize.Level0)
 {
     DomainAccountInfo info;
     info.accountName_ = INVALID_STRING_NAME;
@@ -308,7 +308,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Auth_002, 
  * @tc.type: FUNC
  * @tc.require: issueI64KAM
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Auth_003, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Auth_003, TestSize.Level0)
 {
     DomainAccountInfo info;
     info.accountName_ = STRING_NAME;
@@ -331,7 +331,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Auth_003, 
  * @tc.type: FUNC
  * @tc.require: issueI64KAM
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Auth_004, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Auth_004, TestSize.Level0)
 {
     DomainAccountInfo info;
     info.accountName_ = STRING_NAME;
@@ -346,7 +346,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Auth_004, 
  * @tc.type: FUNC
  * @tc.require: issueI64KAM
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_001, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_001, TestSize.Level0)
 {
     auto testCallback = std::make_shared<TestDomainAuthCallback>(nullptr);
     ASSERT_NE(testCallback, nullptr);
@@ -361,7 +361,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
  * @tc.type: FUNC
  * @tc.require: issueI64KAM
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_002, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_002, TestSize.Level0)
 {
     ASSERT_EQ(DomainAccountClient::GetInstance().UnregisterPlugin(), ERR_OK);
     DomainAccountInfo info;
@@ -386,7 +386,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
  * @tc.type: FUNC
  * @tc.require: issueI64KAM
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_003, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_003, TestSize.Level0)
 {
     auto testCallback = std::make_shared<TestDomainAuthCallback>(nullptr);
     ASSERT_NE(testCallback, nullptr);
@@ -401,7 +401,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
  * @tc.require: issueI64KAM
  */
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_004, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_004, TestSize.Level0)
 {
     OsAccountInfo accountInfo;
     ErrCode errCode = OsAccountManager::CreateOsAccount(STRING_NAME, OsAccountType::NORMAL, accountInfo);
@@ -468,7 +468,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
  * @tc.type: FUNC
  * @tc.require: issueI64KAM
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_006, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_006, TestSize.Level0)
 {
     EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(DEFAULT_USER_ID, VALID_PASSWORD, nullptr),
         ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
@@ -480,7 +480,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
  * @tc.type: FUNC
  * @tc.require: issueI64KAM
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPopup_001, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPopup_001, TestSize.Level0)
 {
     EXPECT_EQ(DomainAccountClient::GetInstance().AuthWithPopup(DEFAULT_USER_ID, nullptr),
         ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
@@ -492,7 +492,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPo
  * @tc.type: FUNC
  * @tc.require: issueI64KAM
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPopup_002, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPopup_002, TestSize.Level0)
 {
     auto testCallback = std::make_shared<TestDomainAuthCallback>(nullptr);
     ASSERT_NE(testCallback, nullptr);
@@ -506,7 +506,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPo
  * @tc.type: FUNC
  * @tc.require: issueI64KAM
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPopup_003, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPopup_003, TestSize.Level0)
 {
     int32_t invalidId = -1;
     auto callback = std::make_shared<MockDomainAuthCallback>();
@@ -525,7 +525,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPo
  * @tc.require: issueI64KAM
  */
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPopup_004, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPopup_004, TestSize.Level0)
 {
     auto callback = std::make_shared<MockDomainAuthCallback>();
     ASSERT_NE(callback, nullptr);
@@ -548,7 +548,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPo
  * @tc.type: FUNC
  * @tc.require: issueI64KAM
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPopup_005, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPopup_005, TestSize.Level0)
 {
     OsAccountInfo osAccountInfo;
     ErrCode errCode = OsAccountManager::CreateOsAccount(STRING_NAME_TWO, OsAccountType::NORMAL, osAccountInfo);
@@ -617,7 +617,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPo
  * @tc.type: FUNC
  * @tc.require: I6KNUZ
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAccountForDomain_001, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAccountForDomain_001, TestSize.Level0)
 {
     DomainAccountInfo domainInfo;
     domainInfo.accountName_ = STRING_NAME_INVALID;
@@ -641,7 +641,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAc
  * @tc.type: FUNC
  * @tc.require: I6KNUZ
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAccountForDomain_003, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAccountForDomain_003, TestSize.Level0)
 {
     DomainAccountInfo domainInfo;
     domainInfo.accountName_ = STRING_NAME_BIND_INVALID;
@@ -665,7 +665,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAc
  * @tc.type: FUNC
  * @tc.require: I6KNUZ
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAccountForDomain_004, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAccountForDomain_004, TestSize.Level0)
 {
     DomainAccountClient::GetInstance().UnregisterPlugin();
     DomainAccountInfo domainInfo;
@@ -748,7 +748,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAc
  * @tc.type: FUNC
  * @tc.require: I6KNUZ
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAccountForDomain_006, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAccountForDomain_006, TestSize.Level0)
 {
     DomainAccountInfo domainInfo;
     domainInfo.accountName_ = STRING_NAME;
@@ -786,7 +786,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAc
  * @tc.type: FUNC
  * @tc.require: I6AQVM
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_HasDomainAccount_001, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_HasDomainAccount_001, TestSize.Level0)
 {
     DomainAccountInfo info;
     info.accountName_ = STRING_NAME_INVALID;
@@ -832,7 +832,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_HasDomainA
  * @tc.type: FUNC
  * @tc.require: I6AQVM
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_HasDomainAccount_003, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_HasDomainAccount_003, TestSize.Level0)
 {
     DomainAccountClient::GetInstance().UnregisterPlugin();
     DomainAccountInfo info;
@@ -856,7 +856,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_HasDomainA
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_HasDomainAccount_004, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_HasDomainAccount_004, TestSize.Level0)
 {
     DomainAccountClient::GetInstance().UnregisterPlugin();
     DomainAccountInfo info;
@@ -922,7 +922,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessT
  * @tc.type: FUNC
  * @tc.require: I6JV52
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessToken_002, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessToken_002, TestSize.Level0)
 {
     DomainAccountInfo info;
     AAFwk::WantParams parameters;
@@ -937,7 +937,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessT
  * @tc.require: I6JV52
  */
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessToken_003, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessToken_003, TestSize.Level0)
 {
     DomainAccountInfo domainInfo;
     domainInfo.accountName_ = STRING_NAME_NEW;
@@ -973,7 +973,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessT
  * @tc.type: FUNC
  * @tc.require: I6JV52
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessToken_004, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessToken_004, TestSize.Level0)
 {
     DomainAccountInfo info;
     info.accountName_ = "test1111";
@@ -995,7 +995,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessT
  * @tc.require: I6JV52
  */
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessToken_005, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessToken_005, TestSize.Level0)
 {
     DomainAccountInfo domainInfo;
     domainInfo.accountName_ = STRING_NAME_NEW;
@@ -1031,7 +1031,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessT
  * @tc.type: FUNC
  * @tc.require: I6JV52
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessToken_006, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessToken_006, TestSize.Level0)
 {
     DomainAccountInfo info;
     info.accountName_ = STRING_NAME_TWO;
@@ -1122,7 +1122,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAcco
  * @tc.type: FUNC
  * @tc.require: I6JV52
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAccountToken_003, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAccountToken_003, TestSize.Level0)
 {
     DomainAccountInfo domainInfo;
     domainInfo.accountName_ = "11";
@@ -1140,7 +1140,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAcco
  * @tc.type: FUNC
  * @tc.require: I6JV52
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAccountToken_004, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAccountToken_004, TestSize.Level0)
 {
     uint64_t tokenID;
     ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
@@ -1162,7 +1162,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAcco
  * @tc.type: FUNC
  * @tc.require: issueI64KAM
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccountStatus_001, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccountStatus_001, TestSize.Level0)
 {
     DomainAccountStatus status;
     DomainAccountInfo domainInfo;
@@ -1176,7 +1176,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccount
  * @tc.type: FUNC
  * @tc.require: issueI64KAM
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccountStatus_002, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccountStatus_002, TestSize.Level0)
 {
     setuid(TEST_UID);
     DomainAccountStatus status;
@@ -1193,7 +1193,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccount
  * @tc.require: issueI64KAM
  */
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccountStatus_003, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccountStatus_003, TestSize.Level0)
 {
     DomainAccountInfo domainInfo;
     domainInfo.accountName_ = STRING_NAME_TWO;
@@ -1246,7 +1246,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccount
  * @tc.type: FUNC
  * @tc.require: issueI64KAM
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccountStatus_004, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccountStatus_004, TestSize.Level0)
 {
     DomainAccountInfo domainInfo;
     domainInfo.accountName_ = STRING_NAME_TWO;
@@ -1521,7 +1521,7 @@ class MockDomainAccountStatusListenerManager : public DomainAccountStatusListene
  * @tc.type: FUNC
  * @tc.require: issueI64KAM
  */
-HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_001, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_001, TestSize.Level0)
 {
     setuid(TEST_UID);
     DomainAccountInfo domainInfo;
@@ -1863,7 +1863,7 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_011, TestS
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_010, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_010, TestSize.Level0)
 {
     std::shared_ptr<DomainAccountStatusListener> listener = nullptr;
     EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(listener),
@@ -1876,7 +1876,7 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_010, TestS
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountClientModuleTest, UnregisterAccountStatusListener_002, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, UnregisterAccountStatusListener_002, TestSize.Level0)
 {
     DomainAccountInfo domainInfo;
     std::shared_ptr<DomainAccountStatusListener> listener = nullptr;
@@ -1890,7 +1890,7 @@ HWTEST_F(DomainAccountClientModuleTest, UnregisterAccountStatusListener_002, Tes
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountClientModuleTest, AuthProxyInit_001, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, AuthProxyInit_001, TestSize.Level0)
 {
     std::shared_ptr<DomainAccountCallback> callback = nullptr;
     sptr<DomainAccountCallbackService> callbackService;
@@ -1906,7 +1906,7 @@ HWTEST_F(DomainAccountClientModuleTest, AuthProxyInit_001, TestSize.Level3)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountClientModuleTest, AuthProxyInit_002, TestSize.Level3)
+HWTEST_F(DomainAccountClientModuleTest, AuthProxyInit_002, TestSize.Level0)
 {
     auto callback = std::make_shared<MockDomainAuthCallback>();
     ASSERT_NE(callback, nullptr);
@@ -1927,7 +1927,7 @@ HWTEST_F(DomainAccountClientModuleTest, AuthProxyInit_002, TestSize.Level3)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountClientModuleTest, ResetDomainAccountProxy_001, TestSize.Level2)
+HWTEST_F(DomainAccountClientModuleTest, ResetDomainAccountProxy_001, TestSize.Level0)
 {
     wptr<IRemoteObject> remote;
     ASSERT_NE(DomainAccountClient::GetInstance().GetDomainAccountProxy(), nullptr);
@@ -1991,7 +1991,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetDomainA
  * @tc.type: FUNC
  * @tc.require: issueI7TJZR
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetDomainAccountInfo_003, TestSize.Level2)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetDomainAccountInfo_003, TestSize.Level0)
 {
     DomainAccountClient::GetInstance().UnregisterPlugin();
     DomainAccountInfo info;
@@ -2015,7 +2015,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetDomainA
  * @tc.type: FUNC
  * @tc.require: issueI7TJZR
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetDomainAccountInfo_004, TestSize.Level2)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetDomainAccountInfo_004, TestSize.Level0)
 {
     DomainAccountClient::GetInstance().UnregisterPlugin();
     DomainAccountInfo info;
@@ -2062,7 +2062,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AddServerC
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAccountInfo_001, TestSize.Level2)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAccountInfo_001, TestSize.Level0)
 {
     setuid(TEST_UID);
     DomainAccountInfo oldInfo, newInfo;
@@ -2077,7 +2077,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAcco
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAccountInfo_002, TestSize.Level2)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAccountInfo_002, TestSize.Level0)
 {
     DomainAccountInfo oldInfo, newInfo;
     setuid(ROOT_UID);
@@ -2092,7 +2092,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAcco
  * @tc.require:
  */
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAccountInfo_003, TestSize.Level2)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAccountInfo_003, TestSize.Level0)
 {
     DomainAccountInfo oldInfo(STRING_DOMAIN, STRING_NAME), newInfo(STRING_DOMAIN, STRING_NAME_INVALID);
     auto callback = std::make_shared<MockDomainCreateDomainAccountCallback>();
@@ -2128,7 +2128,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAcco
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAccountInfo_004, TestSize.Level2)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAccountInfo_004, TestSize.Level0)
 {
     DomainAccountInfo oldInfo(STRING_DOMAIN, STRING_NAME);
     auto callback = std::make_shared<MockDomainCreateDomainAccountCallback>();
@@ -2188,7 +2188,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAcco
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAccountInfo_006, TestSize.Level2)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAccountInfo_006, TestSize.Level0)
 {
     DomainAccountClient::GetInstance().UnregisterPlugin();
     DomainAccountInfo oldInfo(STRING_DOMAIN, STRING_NAME), newInfo(STRING_DOMAIN, STRING_NAME_NEW);
@@ -2202,7 +2202,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAcco
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAccountInfo_007, TestSize.Level2)
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAccountInfo_007, TestSize.Level0)
 {
     DomainAccountClient::GetInstance().UnregisterPlugin();
     DomainAccountInfo oldInfo(STRING_DOMAIN, STRING_NAME), newInfo(STRING_DOMAIN, STRING_NAME_NEW);

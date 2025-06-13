@@ -91,7 +91,7 @@ public:
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_RestoreListenerRecords_0100, TestSize.Level1)
+HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_RestoreListenerRecords_0100, TestSize.Level0)
 {
     ACCOUNT_LOGI("AppAccountManagerSubscribe_RestoreListenerRecords_0100");
 
@@ -118,7 +118,7 @@ HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_RestoreListe
  * @tc.type: FUNC
  * @tc.require: SR000GGVFT
  */
-HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0100, TestSize.Level1)
+HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0100, TestSize.Level0)
 {
     ACCOUNT_LOGI("AppAccountManagerSubscribe_SubscribeAppAccount_0100");
 
@@ -143,7 +143,7 @@ HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeApp
  * @tc.type: FUNC
  * @tc.require: SR000GGVFT
  */
-HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0200, TestSize.Level1)
+HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0200, TestSize.Level0)
 {
     ACCOUNT_LOGI("AppAccountManagerSubscribe_SubscribeAppAccount_0200");
 
@@ -167,7 +167,7 @@ HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeApp
  * @tc.type: FUNC
  * @tc.require: SR000GGVFT
  */
-HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0300, TestSize.Level1)
+HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0300, TestSize.Level0)
 {
     ACCOUNT_LOGI("AppAccountManagerSubscribe_SubscribeAppAccount_0300");
 
@@ -193,7 +193,7 @@ HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeApp
  * @tc.type: FUNC
  * @tc.require: SR000GGVFT
  */
-HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0400, TestSize.Level1)
+HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0400, TestSize.Level0)
 {
     ACCOUNT_LOGI("AppAccountManagerSubscribe_SubscribeAppAccount_0400");
 
@@ -218,7 +218,7 @@ HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeApp
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0500, TestSize.Level1)
+HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0500, TestSize.Level0)
 {
     ASSERT_NE(appAccountSubscribeManagerPtr, nullptr);
 
@@ -233,7 +233,7 @@ HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeApp
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_CheckAppAccess_0100, TestSize.Level1)
+HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_CheckAppAccess_0100, TestSize.Level0)
 {
     ASSERT_NE(appAccountSubscribeManagerPtr, nullptr);
 
@@ -247,7 +247,7 @@ HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_CheckAppAcce
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_InsertSubscribeRecord_0100, TestSize.Level1)
+HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_InsertSubscribeRecord_0100, TestSize.Level0)
 {
     ASSERT_NE(appAccountSubscribeManagerPtr, nullptr);
     std::vector<std::string> owners;
@@ -270,7 +270,7 @@ HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_InsertSubscr
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_RemoveSubscribeRecord_0100, TestSize.Level1)
+HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_RemoveSubscribeRecord_0100, TestSize.Level0)
 {
     ASSERT_NE(appAccountSubscribeManagerPtr, nullptr);
     std::vector<std::string> owners;
@@ -285,7 +285,7 @@ HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_RemoveSubscr
  * @tc.require:
  */
 HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_GetAccessibleAccountsBySubscribeInfo_0100,
-    TestSize.Level1)
+    TestSize.Level0)
 {
     std::vector<AppAccountInfo> accessibleAccounts;
     std::vector<AppAccountInfo> appAccounts;

@@ -33,7 +33,7 @@ namespace {
 const std::string STRING_TEST_NAME = "name";
 }  // namespace
 
-class OsAccountControlFileManagerTest : public testing::Test {
+class OsAccountControlFileManagerModuleTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
@@ -41,13 +41,13 @@ public:
     void TearDown(void);
 };
 
-void OsAccountControlFileManagerTest::SetUpTestCase(void)
+void OsAccountControlFileManagerModuleTest::SetUpTestCase(void)
 {}
 
-void OsAccountControlFileManagerTest::TearDownTestCase(void)
+void OsAccountControlFileManagerModuleTest::TearDownTestCase(void)
 {}
 
-void OsAccountControlFileManagerTest::SetUp(void) __attribute__((no_sanitize("cfi")))
+void OsAccountControlFileManagerModuleTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 {
     testing::UnitTest *test = testing::UnitTest::GetInstance();
     ASSERT_NE(test, nullptr);
@@ -57,7 +57,7 @@ void OsAccountControlFileManagerTest::SetUp(void) __attribute__((no_sanitize("cf
     ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
 }
 
-void OsAccountControlFileManagerTest::TearDown(void)
+void OsAccountControlFileManagerModuleTest::TearDown(void)
 {}
 
 /**
@@ -66,7 +66,7 @@ void OsAccountControlFileManagerTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountControlFileManagerTest, GetValidAccountID_0001, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerModuleTest, GetValidAccountID_0001, TestSize.Level1)
 {
     ACCOUNT_LOGI("OsAccountControlFileManager_GetValidAccountID_0001");
 
@@ -82,7 +82,7 @@ HWTEST_F(OsAccountControlFileManagerTest, GetValidAccountID_0001, TestSize.Level
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountControlFileManagerTest, GetValidAccountID_0002, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerModuleTest, GetValidAccountID_0002, TestSize.Level1)
 {
     ACCOUNT_LOGI("OsAccountControlFileManager_GetValidAccountID_0002");
 
@@ -99,7 +99,7 @@ HWTEST_F(OsAccountControlFileManagerTest, GetValidAccountID_0002, TestSize.Level
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountControlFileManagerTest, GetValidAccountID_0003, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerModuleTest, GetValidAccountID_0003, TestSize.Level1)
 {
     ACCOUNT_LOGI("OsAccountControlFileManager_GetValidAccountID_0003");
 
@@ -116,7 +116,7 @@ HWTEST_F(OsAccountControlFileManagerTest, GetValidAccountID_0003, TestSize.Level
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountControlFileManagerTest, GetValidAccountID_0004, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerModuleTest, GetValidAccountID_0004, TestSize.Level1)
 {
     ACCOUNT_LOGI("OsAccountControlFileManager_GetValidAccountID_0004");
 
