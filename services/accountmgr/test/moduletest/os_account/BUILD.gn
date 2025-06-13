@@ -384,7 +384,7 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
   }
 }
 
-ohos_moduletest("os_account_control_file_manager_test") {
+ohos_moduletest("OsAccountControlFileManagerModuleTest") {
   branch_protector_ret = "pac_ret"
 
   sanitize = {
@@ -562,7 +562,7 @@ group("moduletest") {
 
   deps = [
     ":inner_os_account_manager_test",
-    ":os_account_control_file_manager_test",
+    ":OsAccountControlFileManagerModuleTest",
     ":os_account_file_operator_test",
     ":os_account_manager_service_module_test",
     ":os_account_photo_operator_test",
