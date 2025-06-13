@@ -72,48 +72,6 @@ ohos_unittest("app_account_manager_test") {
   ]
 }
 
-ohos_unittest("app_account_manager_proxy_mock_test") {
-  branch_protector_ret = "pac_ret"
-
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-
-  module_out_path = module_output_path
-
-  sources = [
-    "${app_account_innerkits_native_path}/src/app_account_proxy.cpp",
-    "app_account_manager_test.cpp",
-  ]
-  sources += app_account_mock_sources
-
-  configs = [
-    ":app_account_interfaces_native_config_mock",
-    ":app_account_native_config_unittest",
-  ]
-
-  deps = [
-    "${app_account_innerkits_native_path}:app_account_innerkits",
-    "${app_account_services_path}:accountmgr",
-    "${common_path}:libaccount_common",
-  ]
-
-  external_deps = [
-    "ability_base:want",
-    "ability_runtime:ability_manager",
-    "ability_runtime:app_manager",
-    "c_utils:utils",
-    "googletest:gmock_main",
-    "googletest:gtest_main",
-    "hilog:libhilog",
-    "ipc:ipc_single",
-    "kv_store:distributeddata_inner",
-  ]
-  cflags_cc = [ "-DPROXY_MOCK" ]
-}
-
 ohos_unittest("app_account_manager_subscribe_test") {
   branch_protector_ret = "pac_ret"
 

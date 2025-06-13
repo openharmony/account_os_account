@@ -88,7 +88,7 @@ const std::string STRING_ERR_PHOTO =
     "av33Q5L3rdP68nb7mfWlFFFaCP//Z";
     OsAccountControlFileManager *g_controlManager = new (std::nothrow) OsAccountControlFileManager();
 }  // namespace
-class OsAccountControlFileManagerTest : public testing::Test {
+class OsAccountControlFileManagerUnitTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
@@ -99,16 +99,16 @@ public:
     std::string storeID_ = "os_account_info";
 };
 
-void OsAccountControlFileManagerTest::SetUpTestCase(void)
+void OsAccountControlFileManagerUnitTest::SetUpTestCase(void)
 {
     ASSERT_NE(g_controlManager, nullptr);
     g_controlManager->Init();
 }
 
-void OsAccountControlFileManagerTest::TearDownTestCase(void)
+void OsAccountControlFileManagerUnitTest::TearDownTestCase(void)
 {}
 
-void OsAccountControlFileManagerTest::SetUp(void) __attribute__((no_sanitize("cfi")))
+void OsAccountControlFileManagerUnitTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 {
     testing::UnitTest *test = testing::UnitTest::GetInstance();
     ASSERT_NE(test, nullptr);
@@ -118,7 +118,7 @@ void OsAccountControlFileManagerTest::SetUp(void) __attribute__((no_sanitize("cf
     ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
 }
 
-void OsAccountControlFileManagerTest::TearDown(void)
+void OsAccountControlFileManagerUnitTest::TearDown(void)
 {}
 
 static int RenameFile(const std::string &src, const std::string &des)
@@ -142,7 +142,7 @@ void GetOsAccountFromDatabaseTest()
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest001, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerTest001, TestSize.Level1)
 {
     std::vector<OsAccountInfo> osAccountInfos;
     EXPECT_EQ(g_controlManager->GetOsAccountList(osAccountInfos), ERR_OK);
@@ -157,7 +157,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest001, Te
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest002, TestSize.Level3)
+HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerTest002, TestSize.Level3)
 {
     OsAccountInfo osAccountInfo;
     EXPECT_EQ(g_controlManager->GetOsAccountInfoById(Constants::START_USER_ID, osAccountInfo), ERR_OK);
@@ -170,7 +170,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest002, Te
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest003, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerTest003, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
     int id = Constants::MAX_USER_ID + 1;
@@ -183,7 +183,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest003, Te
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest004, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerTest004, TestSize.Level1)
 {
     std::vector<std::string> constraints;
     EXPECT_EQ(g_controlManager->GetConstraintsByType(OsAccountType::ADMIN, constraints), ERR_OK);
@@ -196,7 +196,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest004, Te
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest005, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerTest005, TestSize.Level1)
 {
     std::vector<std::string> constraints;
     EXPECT_EQ(g_controlManager->GetConstraintsByType(OsAccountType::GUEST, constraints), ERR_OK);
@@ -209,7 +209,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest005, Te
  * @tc.type: FUNC
  * @tc.require: SR000GGV0U
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest006, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerTest006, TestSize.Level1)
 {
     int64_t serialNumber1;
     int64_t serialNumber2;
@@ -224,7 +224,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest006, Te
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest007, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerTest007, TestSize.Level1)
 {
     bool isOsAccountExists = false;
     int32_t id = 0;
@@ -242,7 +242,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest007, Te
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest008, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerTest008, TestSize.Level1)
 {
     bool isOsAccountExists = true;
     int id = Constants::MAX_USER_ID + 1;
@@ -256,7 +256,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest008, Te
  * @tc.type: FUNC
  * @tc.require: SR000GGV0U
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest010, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerTest010, TestSize.Level1)
 {
     int id = 0;
     EXPECT_EQ(g_controlManager->GetAllowCreateId(id), ERR_OK);
@@ -272,7 +272,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest010, Te
  * @tc.type: FUNC
  * @tc.require: SR000GGV0U
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest011, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerTest011, TestSize.Level1)
 {
     int id = 0;
     g_controlManager->GetAllowCreateId(id);
@@ -290,7 +290,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest011, Te
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest013, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerTest013, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo(
         Constants::START_USER_ID, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
@@ -305,7 +305,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest013, Te
  * @tc.type: FUNC
  * @tc.require: SR000GGV0U
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest014, TestSize.Level3)
+HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerTest014, TestSize.Level3)
 {
     int id = 0;
     g_controlManager->GetAllowCreateId(id);
@@ -323,7 +323,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest014, Te
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest015, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerTest015, TestSize.Level1)
 {
     int id = Constants::ADMIN_LOCAL_ID;
     EXPECT_NE(g_controlManager->DelOsAccount(id), ERR_OK);
@@ -335,7 +335,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest015, Te
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest016, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerTest016, TestSize.Level1)
 {
     int id = Constants::START_USER_ID;
     EXPECT_NE(g_controlManager->DelOsAccount(id), ERR_OK);
@@ -347,7 +347,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest016, Te
  * @tc.type: FUNC
  * @tc.require: SR000GGVFI
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest017, TestSize.Level3)
+HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerTest017, TestSize.Level3)
 {
     int id = 0;
     g_controlManager->GetAllowCreateId(id);
@@ -367,7 +367,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest017, Te
  * @tc.type: FUNC
  * @tc.require: SR000GGVFI
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest018, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerTest018, TestSize.Level1)
 {
     int id = 0;
     g_controlManager->GetAllowCreateId(id);
@@ -395,7 +395,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest018, Te
  * @tc.type: FUNC
  * @tc.require: SR000GGVFI
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest019, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerTest019, TestSize.Level1)
 {
     int id = 0;
     g_controlManager->GetAllowCreateId(id);
@@ -412,7 +412,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest019, Te
  * @tc.type: FUNC
  * @tc.require: SR000GGVFK
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest020, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerTest020, TestSize.Level1)
 {
     int createdOsAccountNum = -1;
     ErrCode ret = g_controlManager->GetCreatedOsAccountNumFromDatabase(storeID_, createdOsAccountNum);
@@ -452,7 +452,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest020, Te
  * @tc.type: FUNC
  * @tc.require: SR000GGVFK
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest021, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerTest021, TestSize.Level1)
 {
     int createdOsAccountNum = -1;
     ErrCode ret = g_controlManager->GetCreatedOsAccountNumFromDatabase(storeID_, createdOsAccountNum);
@@ -512,7 +512,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest021, Te
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest022, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerCovTest022, TestSize.Level1)
 {
     std::string dirName1;
     std::int32_t accountID;
@@ -540,7 +540,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest022,
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest023, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerCovTest023, TestSize.Level1)
 {
     g_controlManager->accountFileOperator_->DeleteDirOrFile(Constants::ACCOUNT_LIST_FILE_JSON_PATH);
     g_controlManager->RecoverAccountListJsonFile();
@@ -562,7 +562,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest023,
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest024, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerTest024, TestSize.Level1)
 {
     GTEST_RUN_TASK(GetOsAccountFromDatabaseTest);
 }
@@ -573,7 +573,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest024, Te
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountControlFileManagerTest, IsFromBaseOAConstraintsList_001, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, IsFromBaseOAConstraintsList_001, TestSize.Level1)
 {
     bool isExist = true;
     ErrCode ret = g_controlManager->IsFromBaseOAConstraintsList(
@@ -588,7 +588,7 @@ HWTEST_F(OsAccountControlFileManagerTest, IsFromBaseOAConstraintsList_001, TestS
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountControlFileManagerTest, IsFromBaseOAConstraintsList_002, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, IsFromBaseOAConstraintsList_002, TestSize.Level1)
 {
     bool isExist = false;
     ErrCode ret = g_controlManager->IsFromBaseOAConstraintsList(
@@ -603,7 +603,7 @@ HWTEST_F(OsAccountControlFileManagerTest, IsFromBaseOAConstraintsList_002, TestS
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountControlFileManagerTest, IsFromBaseOAConstraintsList_003, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, IsFromBaseOAConstraintsList_003, TestSize.Level1)
 {
     bool isExist = false;
     RenameFile(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH,
@@ -623,7 +623,7 @@ HWTEST_F(OsAccountControlFileManagerTest, IsFromBaseOAConstraintsList_003, TestS
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountControlFileManagerTest, RemoveOAConstraintsInfo_001, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, RemoveOAConstraintsInfo_001, TestSize.Level1)
 {
     std::string res1;
     EXPECT_EQ(ERR_OK, g_controlManager->accountFileOperator_
@@ -641,7 +641,7 @@ HWTEST_F(OsAccountControlFileManagerTest, RemoveOAConstraintsInfo_001, TestSize.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountControlFileManagerTest, IsFromGlobalOAConstraintsList_001, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, IsFromGlobalOAConstraintsList_001, TestSize.Level1)
 {
     std::vector<ConstraintSourceTypeInfo> globalSourceList;
     ErrCode ret = g_controlManager->IsFromGlobalOAConstraintsList(
@@ -656,7 +656,7 @@ HWTEST_F(OsAccountControlFileManagerTest, IsFromGlobalOAConstraintsList_001, Tes
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountControlFileManagerTest, IsFromSpecificOAConstraintsList_001, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, IsFromSpecificOAConstraintsList_001, TestSize.Level1)
 {
     std::vector<ConstraintSourceTypeInfo> specificSourceList;
     ErrCode ret = g_controlManager->IsFromSpecificOAConstraintsList(
@@ -671,7 +671,7 @@ HWTEST_F(OsAccountControlFileManagerTest, IsFromSpecificOAConstraintsList_001, T
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest024, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerCovTest024, TestSize.Level1)
 {
     g_controlManager->BuildAndSaveBaseOAConstraintsJsonFile();
     EXPECT_TRUE(g_controlManager->accountFileOperator_
@@ -689,7 +689,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest024,
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest025, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerCovTest025, TestSize.Level1)
 {
     g_controlManager->BuildAndSaveGlobalOAConstraintsJsonFile();
     EXPECT_TRUE(g_controlManager->accountFileOperator_
@@ -706,7 +706,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest025,
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest026, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerCovTest026, TestSize.Level1)
 {
     g_controlManager->BuildAndSaveSpecificOAConstraintsJsonFile();
     EXPECT_TRUE(g_controlManager->accountFileOperator_
@@ -723,7 +723,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest026,
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest028, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerCovTest028, TestSize.Level1)
 {
     std::vector<std::string> constraints;
     ErrCode ret = g_controlManager->GetConstraintsByType(static_cast<OsAccountType>(INVALID_TYPE), constraints);
@@ -737,7 +737,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest028,
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest029, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerCovTest029, TestSize.Level1)
 {
     std::string idStr = "";
     std::vector<std::string> ConstraintStr = {};
@@ -752,7 +752,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest029,
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest030, TestSize.Level1)
+HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerCovTest030, TestSize.Level1)
 {
     int id = 0;
     std::string photo;
@@ -768,7 +768,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest030,
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountControlFileManagerTest, GetU1Config001, TestSize.Level2)
+HWTEST_F(OsAccountControlFileManagerUnitTest, GetU1Config001, TestSize.Level2)
 {
     auto json = CreateJson();
     auto u1Json = CreateJson();

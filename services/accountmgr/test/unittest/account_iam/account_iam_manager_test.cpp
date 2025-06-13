@@ -205,7 +205,7 @@ void AccountIamManagerTest::TearDown()
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamManagerTest, OpenSession001, TestSize.Level2)
+HWTEST_F(AccountIamManagerTest, OpenSession001, TestSize.Level0)
 {
     std::vector<uint8_t> challenge;
     InnerAccountIAMManager::GetInstance().OpenSession(TEST_USER_ID, challenge); // 1111: invalid userid
@@ -221,7 +221,7 @@ HWTEST_F(AccountIamManagerTest, OpenSession001, TestSize.Level2)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamManagerTest, AddCredential001, TestSize.Level3)
+HWTEST_F(AccountIamManagerTest, AddCredential001, TestSize.Level0)
 {
     CredentialParameters testPara = {};
     std::shared_ptr<MockIIDMCallback> callback = std::make_shared<MockIIDMCallback>();
@@ -242,7 +242,7 @@ HWTEST_F(AccountIamManagerTest, AddCredential001, TestSize.Level3)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamManagerTest, UpdateCredential001, TestSize.Level3)
+HWTEST_F(AccountIamManagerTest, UpdateCredential001, TestSize.Level0)
 {
     CredentialParameters testPara = {};
     std::shared_ptr<MockIIDMCallback> callback = std::make_shared<MockIIDMCallback>();
@@ -273,7 +273,7 @@ HWTEST_F(AccountIamManagerTest, UpdateCredential001, TestSize.Level3)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamManagerTest, Cancel001, TestSize.Level3)
+HWTEST_F(AccountIamManagerTest, Cancel001, TestSize.Level0)
 {
     InnerAccountIAMManager::GetInstance().SetState(TEST_USER_ID, AFTER_OPEN_SESSION);
     int32_t ret = InnerAccountIAMManager::GetInstance().Cancel(TEST_USER_ID);
@@ -286,7 +286,7 @@ HWTEST_F(AccountIamManagerTest, Cancel001, TestSize.Level3)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamManagerTest, Cancel002, TestSize.Level3)
+HWTEST_F(AccountIamManagerTest, Cancel002, TestSize.Level0)
 {
     InnerAccountIAMManager::GetInstance().SetState(TEST_USER_ID, AFTER_ADD_CRED);
     int32_t ret = InnerAccountIAMManager::GetInstance().Cancel(TEST_USER_ID);
@@ -299,7 +299,7 @@ HWTEST_F(AccountIamManagerTest, Cancel002, TestSize.Level3)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamManagerTest, Cancel003, TestSize.Level3)
+HWTEST_F(AccountIamManagerTest, Cancel003, TestSize.Level0)
 {
     InnerAccountIAMManager::GetInstance().SetState(TEST_USER_ID, AFTER_ADD_CRED);
     int32_t ret = InnerAccountIAMManager::GetInstance().Cancel(TEST_USER_ID);
@@ -312,7 +312,7 @@ HWTEST_F(AccountIamManagerTest, Cancel003, TestSize.Level3)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamManagerTest, DelCred001, TestSize.Level3)
+HWTEST_F(AccountIamManagerTest, DelCred001, TestSize.Level0)
 {
     uint64_t testCredentialId = 111;
     std::vector<uint8_t> testAuthToken;
@@ -345,7 +345,7 @@ HWTEST_F(AccountIamManagerTest, DelCred001, TestSize.Level3)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamManagerTest, DelUser001, TestSize.Level3)
+HWTEST_F(AccountIamManagerTest, DelUser001, TestSize.Level0)
 {
     std::vector<uint8_t> testAuthToken = {1, 2, 3, 4};
     std::shared_ptr<MockIIDMCallback> callback = std::make_shared<MockIIDMCallback>();
@@ -376,7 +376,7 @@ HWTEST_F(AccountIamManagerTest, DelUser001, TestSize.Level3)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamManagerTest, AuthUser001, TestSize.Level3)
+HWTEST_F(AccountIamManagerTest, AuthUser001, TestSize.Level0)
 {
     std::shared_ptr<MockIIDMCallback> callback = std::make_shared<MockIIDMCallback>();
     EXPECT_NE(callback, nullptr);
@@ -404,7 +404,7 @@ HWTEST_F(AccountIamManagerTest, AuthUser001, TestSize.Level3)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamManagerTest, GetState001, TestSize.Level3)
+HWTEST_F(AccountIamManagerTest, GetState001, TestSize.Level0)
 {
     int32_t userId = 4444; // 1111: invalid userId
     EXPECT_EQ(IDLE, InnerAccountIAMManager::GetInstance().GetState(userId));
@@ -418,7 +418,7 @@ HWTEST_F(AccountIamManagerTest, GetState001, TestSize.Level3)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamManagerTest, ActivateUserKey001, TestSize.Level2)
+HWTEST_F(AccountIamManagerTest, ActivateUserKey001, TestSize.Level0)
 {
     std::vector<uint8_t> testAuthToken = {1, 2, 3, 4};
     std::vector<uint8_t> testSecret = {1, 2, 3, 4};
@@ -441,7 +441,7 @@ HWTEST_F(AccountIamManagerTest, ActivateUserKey001, TestSize.Level2)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamManagerTest, GetLockScreenStatus001, TestSize.Level3)
+HWTEST_F(AccountIamManagerTest, GetLockScreenStatus001, TestSize.Level0)
 {
     auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
 
@@ -455,7 +455,7 @@ HWTEST_F(AccountIamManagerTest, GetLockScreenStatus001, TestSize.Level3)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamManagerTest, UnlockUserScreen001, TestSize.Level3)
+HWTEST_F(AccountIamManagerTest, UnlockUserScreen001, TestSize.Level0)
 {
     std::vector<uint8_t> testAuthToken = {1, 2, 3, 4};
     std::vector<uint8_t> testSecret = {1, 2, 3, 4};
@@ -471,7 +471,7 @@ HWTEST_F(AccountIamManagerTest, UnlockUserScreen001, TestSize.Level3)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamManagerTest, PrepareStartUser001, TestSize.Level3)
+HWTEST_F(AccountIamManagerTest, PrepareStartUser001, TestSize.Level0)
 {
     auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
 
@@ -484,7 +484,7 @@ HWTEST_F(AccountIamManagerTest, PrepareStartUser001, TestSize.Level3)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamManagerTest, CheckNeedReactivateUserKey001, TestSize.Level3)
+HWTEST_F(AccountIamManagerTest, CheckNeedReactivateUserKey001, TestSize.Level0)
 {
     auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
 
@@ -498,7 +498,7 @@ HWTEST_F(AccountIamManagerTest, CheckNeedReactivateUserKey001, TestSize.Level3)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamManagerTest, UpdateCredCallback_OnResult_0001, TestSize.Level3)
+HWTEST_F(AccountIamManagerTest, UpdateCredCallback_OnResult_0001, TestSize.Level0)
 {
     sptr<MockIIDMCallback2> callback = new (std::nothrow) MockIIDMCallback2();
     CredentialParameters credInfo = {};
@@ -521,7 +521,7 @@ HWTEST_F(AccountIamManagerTest, UpdateCredCallback_OnResult_0001, TestSize.Level
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamManagerTest, UpdateCredCallback_OnResult_0002, TestSize.Level3)
+HWTEST_F(AccountIamManagerTest, UpdateCredCallback_OnResult_0002, TestSize.Level0)
 {
     sptr<MockIIDMCallback2> callback = new (std::nothrow) MockIIDMCallback2();
     CredentialParameters credInfo = {};
@@ -546,7 +546,7 @@ HWTEST_F(AccountIamManagerTest, UpdateCredCallback_OnResult_0002, TestSize.Level
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountIamManagerTest, PrepareRemoteAuth001, TestSize.Level3)
+HWTEST_F(AccountIamManagerTest, PrepareRemoteAuth001, TestSize.Level0)
 {
     ErrCode errCode = InnerAccountIAMManager::GetInstance().PrepareRemoteAuth("testString", nullptr);
     EXPECT_EQ(ERR_ACCOUNT_COMMON_NULL_PTR_ERROR, errCode);
