@@ -45,8 +45,8 @@ const uint32_t RETRY_SLEEP_MS = 5;
 #define HMFS_IOCTL_HW_GET_FLAGS _IOR(0XF5, 70, unsigned int)
 #define HMFS_IOCTL_HW_SET_FLAGS _IOR(0XF5, 71, unsigned int)
 const uint64_t FDSAN_DIR_TAG = fdsan_create_owner_tag(FDSAN_OWNER_TYPE_DIRECTORY, 0xC01B00);
-static std::map<std::string, std::shared_ptr<Utils::RWLock>> RWLOCK_MAP;
-static std::mutex RWLOCK_MAP_MUTEX;
+static std::map<std::string, std::shared_ptr<Utils::RWLock>> g_rwLockMap;
+static std::mutex g_rwLockMapMutex;
 const char OPERATION_LOG_ERROR[] = "errLog";
 const int32_t RELEASE_COUNT = 2;
 } // namespace
@@ -79,14 +79,14 @@ FileTransaction::~FileTransaction()
 
 static void TryEraseTransaction(const std::string &path)
 {
-    std::lock_guard<std::mutex> lock(RWLOCK_MAP_MUTEX);
-    auto iter = RWLOCK_MAP.find(path);
-    if (iter == RWLOCK_MAP.end()) {
+    std::lock_guard<std::mutex> lock(g_rwLockMapMutex);
+    auto iter = g_rwLockMap.find(path);
+    if (iter == g_rwLockMap.end()) {
         return;
     }
     // if count == 2, it is only handled by map and one transaction. need release.
     if (iter->second.use_count() == RELEASE_COUNT) {
-        RWLOCK_MAP.erase(iter);
+        g_rwLockMap.erase(iter);
     }
 }
 
@@ -678,13 +678,13 @@ TransactionShared AccountFileOperator::GetFileTransaction(const std::string &pat
 
 std::shared_ptr<Utils::RWLock> AccountFileOperator::GetRWLock(const std::string &path)
 {
-    std::lock_guard<std::mutex> lock(RWLOCK_MAP_MUTEX);
-    auto iter = RWLOCK_MAP.find(path);
-    if (iter != RWLOCK_MAP.end()) {
+    std::lock_guard<std::mutex> lock(g_rwLockMapMutex);
+    auto iter = g_rwLockMap.find(path);
+    if (iter != g_rwLockMap.end()) {
         return iter->second;
     }
     std::shared_ptr<Utils::RWLock> rwlock = std::make_shared<Utils::RWLock>();
-    RWLOCK_MAP.emplace(path, rwlock);
+    g_rwLockMap.emplace(path, rwlock);
     return rwlock;
 }
 } // namespace AccountSA
