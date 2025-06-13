@@ -129,7 +129,7 @@ bool DistributedAccountSubscribeManager::OnAccountsChanged(
     eventData.type_ = subscribeType;
 
     int32_t retryTimes = 0;
-    ErrCode result;
+    ErrCode result = ERR_OK;
     while (retryTimes < Constants::MAX_RETRY_TIMES) {
         result = eventProxy->OnAccountsChanged(eventData);
         if (result == ERR_OK || (result != Constants::E_IPC_ERROR &&
@@ -142,17 +142,11 @@ bool DistributedAccountSubscribeManager::OnAccountsChanged(
         std::this_thread::sleep_for(std::chrono::milliseconds(Constants::DELAY_FOR_EXCEPTION));
     }
     if (result != ERR_OK) {
-        if (result == ERR_TRANSACTION_FAILED) {
-            result = ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
-        } else if (result == ERR_INVALID_DATA) {
-            result = ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-        } else if (result == IPC_STUB_UNKNOW_TRANS_ERR) {
-            result = IPC_PROXY_INVALID_CODE_ERR;
-        }
         ACCOUNT_LOGE("SendRequest for account changed failed, result=%{public}d eventData.id=%{public}d.",
             result, eventData.id_);
         REPORT_OHOS_ACCOUNT_FAIL(eventData.id_, Constants::OPERATION_EVENT_PUBLISH,
             result, "Send OnAccountsChanged failed.");
+        return false;
     }
     return true;
 }
