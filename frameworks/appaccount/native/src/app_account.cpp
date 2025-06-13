@@ -30,19 +30,16 @@ namespace AccountSA {
 namespace {
 ErrCode ConvertToAccountErrCode(ErrCode idlErrCode, int32_t funcResult)
 {
-    if (funcResult != ERR_OK) {
+    if (idlErrCode == ERR_OK) {
         return funcResult;
     }
-    if (idlErrCode != ERR_OK) {
-        if (idlErrCode == ERR_INVALID_VALUE) {
-            return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
-        } else if (idlErrCode == ERR_INVALID_DATA) {
-            return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-        } else {
-            return ERR_APPACCOUNT_KIT_SEND_REQUEST;
-        }
+    if (idlErrCode == ERR_INVALID_VALUE) {
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    } else if (idlErrCode == ERR_INVALID_DATA) {
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    } else {
+        return ERR_APPACCOUNT_KIT_SEND_REQUEST;
     }
-    return ERR_OK;
 }
 } // namespace
 #define RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(str)         \

@@ -17,9 +17,8 @@
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_ASYNC_CALLBACK_ERROR_H
 
 #include <string>
-
-#include "want.h"
 #include "parcel.h"
+#include "want.h"
 
 namespace OHOS {
 namespace AccountSA {

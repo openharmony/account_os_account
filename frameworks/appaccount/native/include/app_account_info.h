@@ -48,6 +48,9 @@ struct AppAccountAuthenticatorStringInfo : public Parcelable {
     std::string name;
     std::string authType;
     std::string callerBundleName;
+    explicit AppAccountAuthenticatorStringInfo(
+        std::string name, std::string authType, std::string callerBundleName);
+    AppAccountAuthenticatorStringInfo() = default;
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
     static AppAccountAuthenticatorStringInfo *Unmarshalling(Parcel &parcel);
