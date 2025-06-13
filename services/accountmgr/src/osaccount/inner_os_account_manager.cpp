@@ -40,6 +40,7 @@
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
 #include "os_account_domain_account_callback.h"
 #endif // SUPPORT_DOMAIN_ACCOUNTS
+#include "os_account_static_subscriber_manager.h"
 #include "os_account_subscribe_manager.h"
 #include "parameter.h"
 #include "parcel.h"
@@ -530,24 +531,6 @@ bool IInnerOsAccountManager::CheckAndCleanOsAccounts()
     return true;
 }
 
-#ifdef HAS_THEME_SERVICE_PART
-static void InitTheme(int32_t localId)
-{
-    if (localId == Constants::U1_ID) {
-        return;
-    }
-    auto task = [localId] {
-#ifdef HICOLLIE_ENABLE
-        AccountTimer timer;
-#endif // HICOLLIE_ENABLE
-        OsAccountInterface::InitThemeResource(localId);
-    };
-    std::thread theme_thread(task);
-    pthread_setname_np(theme_thread.native_handle(), "InitTheme");
-    theme_thread.detach();
-}
-#endif // HAS_THEME_SERVICE_PART
-
 void IInnerOsAccountManager::RollbackOsAccount(OsAccountInfo &osAccountInfo, bool needDelStorage, bool needDelBms)
 {
     if (!osAccountInfo.GetIsDataRemovable()) {
@@ -583,9 +566,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(
         RollbackOsAccount(osAccountInfo, false, false);
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
-#ifdef HAS_THEME_SERVICE_PART
-    InitTheme(localId);
-#endif // HAS_THEME_SERVICE_PART
+    OsAccountStaticSubscriberManager::GetInstance().Publish(localId, OsAccountState::CREATING, localId);
     errCode = OsAccountInterface::SendToBMSAccountCreate(
         osAccountInfo, options.disallowedHapList, options.allowedHapList);
     if (errCode != ERR_OK) {
