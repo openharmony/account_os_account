@@ -28,7 +28,7 @@ config("os_account_control_file_manager_test_config") {
   ]
 }
 
-ohos_unittest("OsAccountControlFileManagerTest") {
+ohos_unittest("OsAccountControlFileManagerUnitTest") {
   branch_protector_ret = "pac_ret"
 
   sanitize = {
@@ -359,68 +359,6 @@ config("os_account_amgr_mock_config") {
     "${innerkits_common}/include",
     "${innerkits_path}/include",
   ]
-}
-
-ohos_unittest("OsAccountInnerAccmgrMockTest") {
-  branch_protector_ret = "pac_ret"
-
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-    blocklist = "${os_account_path}/cfi_blocklist.txt"
-  }
-
-  module_out_path = module_output_path
-
-  sources = [
-    "${services_path}/accountmgr/test/mock/os_account/os_account_interface.cpp",
-    "os_account_inner_account_mgr_mock.cpp",
-  ]
-  configs = [
-    ":os_account_amgr_mock_config",
-    "${services_path}/accountmgr/test:accountmgr_test_config",
-  ]
-
-  deps = [
-    "${common_path}:libaccount_common",
-    "${os_account_innerkits_native_path}:os_account_innerkits",
-    "${services_path}/accountmgr:accountmgr",
-  ]
-
-  cflags_cc = [ "-DBUNDLE_ADAPTER_MOCK" ]
-
-  if (os_account_enable_multiple_os_accounts || use_clang_coverage) {
-    cflags_cc += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
-  }
-
-  if (os_account_support_domain_accounts) {
-    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
-  }
-
-  if (os_account_enable_account_1) {
-    cflags_cc += [ "-DENABLE_U1_ACCOUNT" ]
-  }
-
-  if (os_account_support_lock_os_account) {
-    cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
-  }
-
-  external_deps = [
-    "ability_base:want",
-    "ability_runtime:wantagent_innerkits",
-    "bundle_framework:appexecfwk_core",
-    "cJSON:cjson",
-    "c_utils:utils",
-    "googletest:gmock_main",
-    "googletest:gtest_main",
-    "hilog:libhilog",
-    "ipc:ipc_single",
-    "kv_store:distributeddata_inner",
-    "samgr:samgr_proxy",
-    "user_auth_framework:userauth_client",
-  ]
-  part_name = "os_account"
 }
 
 ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
@@ -954,7 +892,7 @@ group("unittest") {
   testonly = true
 
   deps = [
-    ":OsAccountControlFileManagerTest",
+    ":OsAccountControlFileManagerUnitTest",
     ":OsAccountEventManagerMultipleThreadTest",
     ":OsAccountFileManagerMultipleThreadTest",
     ":OsAccountInnerAccmgrBundleAdapterMockTest",
