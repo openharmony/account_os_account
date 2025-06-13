@@ -225,6 +225,7 @@ ohos_shared_library("accountmgr") {
     ":accountmgr_config",
     ":bundle_manager_config",
     ":domain_account_config",
+    "${innerkits_native_path}:distributed_account_event_interface_public_config",
   ]
 
   public_configs = [

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -103,17 +103,18 @@ void DistributedAccountEventService::GetAllType(std::set<DISTRIBUTED_ACCOUNT_SUB
     }
 }
 
-void DistributedAccountEventService::OnAccountsChanged(const DistributedAccountEventData &eventData)
+ErrCode DistributedAccountEventService::OnAccountsChanged(const DistributedAccountEventData &eventData)
 {
     std::lock_guard<std::mutex> lock(mapLock_);
     auto it = typeMap_.find(eventData.type_);
     if (it == typeMap_.end()) {
-        ACCOUNT_LOGE("callback is empty");
-        return;
+        ACCOUNT_LOGI("callback is empty");
+        return ERR_OK;
     }
     for (const auto &item : it->second) {
         item->OnAccountsChanged(eventData);
     }
+    return ERR_OK;
 }
 
 DistributedAccountEventService *DistributedAccountEventService::GetInstance()
