@@ -44,7 +44,7 @@ const std::string SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH =
     USER_INFO_BASE + PATH_SEPARATOR + "specific_os_account_constraints.json";
 const char USER_PHOTO_FILE_TXT_NAME[] = "photo.txt";
 const char USER_INFO_FILE_NAME[] = "account_info.json";
-const char USER_ADD_SECRET_FLAG_FILE_NAME[] = "add_secret_flag";
+const char USER_SECRET_FLAG_FILE_NAME[] = "iam_fault";
 const char OPERATION_BOOT_ACTIVATED[] = "boot_activated";
 const char OPERATION_BOOT_CREATE[] = "boot_create";
 const char OPERATION_BOOT_ACTIVATING[] = "boot_activating";

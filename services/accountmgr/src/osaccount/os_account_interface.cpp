@@ -45,6 +45,7 @@
 #include "iinner_os_account_manager.h"
 #include "system_ability_definition.h"
 #ifdef HAS_USER_IDM_PART
+#include "account_iam_callback.h"
 #include "user_idm_client.h"
 #endif // HAS_USER_IDM_PART
 #ifdef HAS_CES_PART
@@ -571,6 +572,123 @@ void ReportDecryptionFaultAsync(const int localId)
 }
 #endif
 
+#ifdef HAS_USER_IDM_PART
+static ErrCode GetPINCredentialInfo(int32_t userId, bool &isPINExist)
+{
+    int32_t retryTimes = 0;
+    while (retryTimes < MAX_RETRY_TIMES) {
+        auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+        if ((systemAbilityManager == nullptr) ||
+            (systemAbilityManager->GetSystemAbility(SUBSYS_USERIAM_SYS_ABILITY_USERIDM) == nullptr)) {
+            ACCOUNT_LOGE("Failed to get iam service, id:%{public}d, retry!", userId);
+            retryTimes++;
+            std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
+        } else {
+            break;
+        }
+    }
+    auto callback = std::make_shared<GetCredentialInfoSyncCallback>(userId);
+    ACCOUNT_LOGI("Start get credential info, userId:%{public}d", userId);
+    int32_t ret = UserIam::UserAuth::UserIdmClient::GetInstance().GetCredentialInfo(
+        userId, UserIam::UserAuth::AuthType::PIN, callback);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("GetCredentialInfo failed, ret:%{public}d", ret);
+        return ret;
+    }
+    std::unique_lock<std::mutex> lck(callback->secureMtx_);
+    auto status = callback->secureCv_.wait_for(lck, std::chrono::seconds(Constants::TIME_WAIT_TIME_OUT), [callback] {
+        return callback->isCalled_;
+    });
+    if (!status) {
+        ACCOUNT_LOGE("Get credential info timed out");
+        isPINExist = false; // Timeout defaults to false
+        ReportOsAccountOperationFail(userId, "checkIAMFault", ERR_ACCOUNT_COMMON_OPERATION_TIMEOUT,
+            "Get credential info timed out in the secret exception flag check process");
+        return ERR_ACCOUNT_COMMON_OPERATION_TIMEOUT;
+    }
+    if ((callback->result_ == ERR_OK) || (callback->result_ == ERR_IAM_NOT_ENROLLED)) {
+        isPINExist = callback->hasPIN_;
+    }
+    return callback->result_;
+}
+
+static bool IsSecretFlagExist(int32_t userId)
+{
+    std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(userId) +
+        Constants::PATH_SEPARATOR + Constants::USER_SECRET_FLAG_FILE_NAME;
+    auto accountFileOperator = std::make_shared<AccountFileOperator>();
+    bool isExist = accountFileOperator->IsExistFile(path);
+    ACCOUNT_LOGI("The iam_fault file existence status:%{public}d, userId:%{public}d", isExist, userId);
+    return isExist;
+}
+
+static void DeleteSecretFlag(int32_t userId)
+{
+    auto accountFileOperator = std::make_shared<AccountFileOperator>();
+    std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(userId) +
+        Constants::PATH_SEPARATOR + Constants::USER_SECRET_FLAG_FILE_NAME;
+    ErrCode code = accountFileOperator->DeleteDirOrFile(path);
+    if (code != ERR_OK) {
+        ReportOsAccountOperationFail(userId, "startUser", code,
+            "Failed to delete iam_fault file when PIN is not exist");
+    }
+}
+
+bool IsExistPIN(int32_t userId)
+{
+    bool isExistPIN = false;
+    ErrCode ret = GetPINCredentialInfo(userId, isExistPIN);
+    if (ret == ERR_IAM_NOT_ENROLLED) {
+        DeleteSecretFlag(userId);
+        return false;
+    }
+    if (ret == ERR_OK) {
+        if (isExistPIN) {
+            return true;
+        } else {
+            DeleteSecretFlag(userId);
+            return false;
+        }
+    }
+    return false;
+}
+
+int32_t NeedSkipActiveUserKey(const int localId, bool &isNeedSkip)
+{
+    isNeedSkip = false;
+    if (!IsSecretFlagExist(localId)) {
+        return ERR_OK;
+    }
+    // Check if the storage is already unlocked
+    sptr<StorageManager::IStorageManager> proxy = nullptr;
+    if (GetStorageProxy(proxy) != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get storage manager proxy!");
+        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
+    }
+    bool isFileEncrypt = true;
+    ErrCode errCode = proxy->GetFileEncryptStatus(localId, isFileEncrypt, true);
+    ACCOUNT_LOGI("Get file encrypt ret = %{public}d, status = %{public}d, id = %{public}d",
+        errCode, isFileEncrypt, localId);
+    if (errCode != 0) {
+        ReportOsAccountOperationFail(localId, Constants::OPERATION_ACTIVATE,
+            errCode, "StorageManager failed to get file encrypt status.");
+        return errCode;
+    }
+    if (!isFileEncrypt) {
+        ACCOUNT_LOGW("The storage has been decrypted and does not need to be processed again.");
+        isNeedSkip = true;
+        return ERR_OK; // return ok to send unlock events
+    }
+    // Check if the IAM has PIN credential
+    if (IsExistPIN(localId)) {
+        ACCOUNT_LOGW("Secret operation flag and PIN exists, skip empty secret 'ActiveUserKey'!");
+        isNeedSkip = true;
+        return ERR_ACCOUNT_COMMON_SECRET_CHECK; // return err to not send unlock events
+    }
+    return ERR_OK;
+}
+#endif // HAS_USER_IDM_PART
+
 int32_t OsAccountInterface::UnlockUser(const int localId)
 {
     int32_t retryTimes = 0;
@@ -584,6 +702,13 @@ int32_t OsAccountInterface::UnlockUser(const int localId)
             std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
             continue;
         }
+#ifdef HAS_USER_IDM_PART
+        bool isNeedSkip = false;
+        errCode = NeedSkipActiveUserKey(localId, isNeedSkip);
+        if (isNeedSkip) {
+            return errCode;
+        }
+#endif // HAS_USER_IDM_PART
         std::vector<uint8_t> emptyData;
         errCode = proxy->ActiveUserKey(localId, emptyData, emptyData);
         ACCOUNT_LOGI("ActiveUserKey end, ret %{public}d.", errCode);

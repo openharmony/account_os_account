@@ -261,6 +261,21 @@ private:
     sptr<IGetCredInfoCallback> innerCallback_ = nullptr;
 };
 
+class GetCredentialInfoSyncCallback : public UserIam::UserAuth::GetCredentialInfoCallback {
+public:
+    GetCredentialInfoSyncCallback(int32_t userId);
+    virtual ~GetCredentialInfoSyncCallback() = default;
+
+    void OnCredentialInfo(int32_t result, const std::vector<UserIam::UserAuth::CredentialInfo> &infoList);
+
+    int32_t userId_;
+    bool hasPIN_ = false;
+    bool isCalled_ = false;
+    int32_t result_ = -1;
+    std::mutex secureMtx_;
+    std::condition_variable secureCv_;
+};
+
 class GetPropCallbackWrapper : public GetPropCallback {
 public:
     GetPropCallbackWrapper(int32_t userId, const sptr<IGetSetPropCallback> &callback);

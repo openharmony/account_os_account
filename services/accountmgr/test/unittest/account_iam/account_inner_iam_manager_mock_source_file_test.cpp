@@ -784,5 +784,21 @@ HWTEST_F(AccountIamManagerTest, GetEnrolledId_0100, TestSize.Level3)
         lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady_; });
     EXPECT_EQ(testCallback->result_, ERR_IAM_NOT_ENROLLED);
 }
+
+/**
+ * @tc.name: HandleFileKeyException_0100
+ * @tc.desc: test HandleFileKeyException err case for coverage.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamManagerTest, HandleFileKeyException_0100, TestSize.Level4)
+{
+    std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR +
+        std::to_string(TEST_EXIST_ID) + Constants::PATH_SEPARATOR + Constants::USER_SECRET_FLAG_FILE_NAME;
+    auto accountFileOperator = std::make_shared<AccountFileOperator>();
+    EXPECT_EQ(accountFileOperator->InputFileByPathAndContent(path, ""), ERR_OK);
+    InnerAccountIAMManager::GetInstance().HandleFileKeyException(TEST_EXIST_ID, {}, {});
+    EXPECT_EQ(accountFileOperator->DeleteDirOrFile(path), ERR_OK);
+}
 }  // namespace AccountTest
 }  // namespace OHOS

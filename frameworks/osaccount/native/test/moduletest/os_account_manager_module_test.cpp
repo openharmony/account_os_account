@@ -1833,6 +1833,44 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest090, TestSize.Lev
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
+
+/**
+ * @tc.name: UnlockUserTest001
+ * @tc.desc: Test 'unlockUser' without PIN when secret_flag exist and user is locked.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, UnlockUserTest001, TestSize.Level4)
+{
+    OsAccountInfo osAccountInfo;
+    ASSERT_EQ(OsAccountManager::CreateOsAccount("UnlockUserTest001", OsAccountType::NORMAL, osAccountInfo), ERR_OK);
+    std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR +
+        std::to_string(osAccountInfo.GetLocalId()) + Constants::PATH_SEPARATOR + Constants::USER_SECRET_FLAG_FILE_NAME;
+    auto accountFileOperator = std::make_shared<AccountFileOperator>();
+    EXPECT_EQ(accountFileOperator->InputFileByPathAndContent(path, ""), ERR_OK);
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+}
+
+  /**
+   * @tc.name: UnlockUserTest002
+   * @tc.desc: Test 'unlockUser' without PIN when secret_flag exist and user is already unlocked.
+   * @tc.type: FUNC
+   * @tc.require:
+   */
+HWTEST_F(OsAccountManagerModuleTest, UnlockUserTest002, TestSize.Level4)
+{
+    OsAccountInfo osAccountInfo;
+    ASSERT_EQ(OsAccountManager::CreateOsAccount("UnlockUserTest002", OsAccountType::NORMAL, osAccountInfo), ERR_OK);
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+    std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR +
+        std::to_string(osAccountInfo.GetLocalId()) + Constants::PATH_SEPARATOR + Constants::USER_SECRET_FLAG_FILE_NAME;
+    auto accountFileOperator = std::make_shared<AccountFileOperator>();
+    EXPECT_EQ(accountFileOperator->InputFileByPathAndContent(path, ""), ERR_OK);
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(MAIN_ACCOUNT_ID), ERR_OK);
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+}
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
