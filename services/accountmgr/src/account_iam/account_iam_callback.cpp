@@ -380,10 +380,15 @@ static ErrCode AddUserKey(int32_t userId, uint64_t secureUid, const std::vector<
     return errCode;
 }
 
-static inline std::string GetSecretFlagFilePath(const uint32_t userId)
+static inline void DeleteSecretFlag(const uint32_t userId, const std::string &operation)
 {
-    return Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(userId) +
-        Constants::PATH_SEPARATOR + Constants::USER_ADD_SECRET_FLAG_FILE_NAME;
+    std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(userId) +
+    Constants::PATH_SEPARATOR + Constants::USER_SECRET_FLAG_FILE_NAME;
+    auto accountFileOperator = std::make_shared<AccountFileOperator>();
+    ErrCode code = accountFileOperator->DeleteDirOrFile(path);
+    if (code != ERR_OK) {
+        ReportOsAccountOperationFail(userId, operation, code, "Failed to delete iam_fault file");
+    }
 }
 
 void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
@@ -412,21 +417,14 @@ void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
         std::vector<uint8_t> oldSecret;
         ErrCode code = AddUserKey(userId_, secureUid, token, oldSecret, newSecret);
         if (code == ERR_OK) {
-            std::string path = GetSecretFlagFilePath(userId_);
-            auto accountFileOperator = std::make_shared<AccountFileOperator>();
-            code = accountFileOperator->DeleteDirOrFile(path);
-            if (code != ERR_OK) {
-                ReportOsAccountOperationFail(userId_, "addCredential", code, "Failed to delete add_secret_flag file");
-            }
+            DeleteSecretFlag(userId_, "addCredential");
         }
     }
     if (result != 0) {
         ReportOsAccountOperationFail(userId_, "addCredential", result,
             "Failed to add credential, type: " + std::to_string(credInfo_.authType));
         if (credInfo_.authType == AuthType::PIN) {
-            std::string path = GetSecretFlagFilePath(userId_);
-            auto accountFileOperator = std::make_shared<AccountFileOperator>();
-            accountFileOperator->DeleteDirOrFile(path);
+            DeleteSecretFlag(userId_, "addCredential");
         }
     } else {
         ReportOsAccountLifeCycle(userId_,
@@ -555,10 +553,20 @@ void VerifyTokenCallbackWrapper::InnerOnResult(int32_t result, const Attributes 
     extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, secureUid);
     std::vector<uint8_t> rootSecret;
     extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, rootSecret);
+    // add secret delete operation flag
+    std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(userId_) +
+        Constants::PATH_SEPARATOR + Constants::USER_SECRET_FLAG_FILE_NAME;
+    auto accountFileOperator = std::make_shared<AccountFileOperator>();
+    ErrCode code = accountFileOperator->InputFileByPathAndContent(path, "");
+    if (code != ERR_OK) {
+        ReportOsAccountOperationFail(userId_, "deleteCredential", code, "Failed to write iam_fault file");
+        ACCOUNT_LOGE("Input file fail, path=%{public}s", path.c_str());
+    }
     auto &innerIamMgr = InnerAccountIAMManager::GetInstance();
     ErrCode errCode = innerIamMgr.UpdateStorageUserAuth(userId_, secureUid, token_, rootSecret, {});
     if (errCode != ERR_OK) {
         ReportOsAccountOperationFail(userId_, "deleteCredential", errCode, "Failed to update user auth");
+        DeleteSecretFlag(userId_, "deleteCredential");
         Attributes emptyExtraInfo;
         return innerCallback_->OnResult(ResultCode::FAIL, emptyExtraInfo);
     }
@@ -582,6 +590,7 @@ void CommitDelCredCallback::OnResult(int32_t result, const UserIam::UserAuth::At
     if (result != ERR_OK) {
         ReportOsAccountOperationFail(userId_, "deleteCredential", result, "Failed to delete user's credential");
     } else {
+        DeleteSecretFlag(userId_, "deleteCredential");
         ReportOsAccountLifeCycle(userId_, std::string(Constants::OPERATION_DELETE_CRED) + "_0" + "_commit");
         ErrCode errCode = InnerAccountIAMManager::GetInstance().UpdateStorageKeyContext(userId_);
         if (errCode != ERR_OK) {
@@ -644,6 +653,8 @@ void CommitCredUpdateCallback::InnerOnResult(int32_t result, const Attributes &e
     if (updateRet != ERR_OK) {
         ReportOsAccountOperationFail(userId_, std::string(Constants::OPERATION_UPDATE_CRED) + "_commit",
             updateRet, "Failed to update key context");
+    } else {
+        DeleteSecretFlag(userId_, std::string(Constants::OPERATION_UPDATE_CRED) + "_commit");
     }
 }
 
@@ -743,6 +754,29 @@ void GetCredInfoCallbackWrapper::OnCredentialInfo(int32_t result, const std::vec
         }
     }
     return innerCallback_->OnCredentialInfo(result, infoList);
+}
+
+GetCredentialInfoSyncCallback::GetCredentialInfoSyncCallback(int32_t userId)
+    : userId_(userId)
+{}
+
+void GetCredentialInfoSyncCallback::OnCredentialInfo(int32_t result,
+    const std::vector<UserIam::UserAuth::CredentialInfo> &infoList)
+{
+    ACCOUNT_LOGI("Get credential result:%{public}d, userId:%{public}d, infoListSize:%{public}zu",
+        result, userId_, infoList.size());
+    std::unique_lock<std::mutex> lock(secureMtx_);
+    result_ = result;
+    if (result == ERR_OK) {
+        for (auto &info : infoList) {
+            if ((info.authType == AuthType::PIN) && (!info.isAbandoned)) {
+                hasPIN_ = true;
+                break;
+            }
+        }
+    }
+    isCalled_ = true;
+    secureCv_.notify_all();
 }
 
 GetPropCallbackWrapper::GetPropCallbackWrapper(int32_t userId, const sptr<IGetSetPropCallback> &callback)
