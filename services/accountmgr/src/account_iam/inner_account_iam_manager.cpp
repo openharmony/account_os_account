@@ -128,11 +128,11 @@ void InnerAccountIAMManager::AddCredential(
     }
     if (credInfo.authType == AuthType::PIN) {
         std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(userId) +
-            Constants::PATH_SEPARATOR + Constants::USER_ADD_SECRET_FLAG_FILE_NAME;
+            Constants::PATH_SEPARATOR + Constants::USER_SECRET_FLAG_FILE_NAME;
         auto accountFileOperator = std::make_shared<AccountFileOperator>();
         ErrCode code = accountFileOperator->InputFileByPathAndContent(path, "");
         if (code != ERR_OK) {
-            ReportOsAccountOperationFail(userId, "addCredential", code, "Failed to write add_secret_flag file");
+            ReportOsAccountOperationFail(userId, "addCredential", code, "Failed to write iam_fault file");
             ACCOUNT_LOGE("Input file fail, path=%{public}s", path.c_str());
         }
     }
@@ -480,10 +480,10 @@ void InnerAccountIAMManager::HandleFileKeyException(int32_t userId, const std::v
     const std::vector<uint8_t> &token)
 {
     std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(userId) +
-        Constants::PATH_SEPARATOR + Constants::USER_ADD_SECRET_FLAG_FILE_NAME;
+        Constants::PATH_SEPARATOR + Constants::USER_SECRET_FLAG_FILE_NAME;
     auto accountFileOperator = std::make_shared<AccountFileOperator>();
     bool isExistFile = accountFileOperator->IsExistFile(path);
-    ACCOUNT_LOGI("The add_secret_flag file existence status:%{public}d, localId:%{public}d", isExistFile, userId);
+    ACCOUNT_LOGI("The iam_fault file existence status:%{public}d, userId:%{public}d", isExistFile, userId);
     if (!isExistFile) {
         return;
     }
@@ -492,7 +492,7 @@ void InnerAccountIAMManager::HandleFileKeyException(int32_t userId, const std::v
     ErrCode code = UserIDMClient::GetInstance().GetSecUserInfo(userId, callback);
     if (code != ERR_OK) {
         ACCOUNT_LOGE("Failed to get secure uid, userId: %{public}d", userId);
-        ReportOsAccountOperationFail(userId, "addCredential", code,
+        ReportOsAccountOperationFail(userId, "readdCredential", code,
             "Failed to get secure uid when restoring key context");
         return;
     }
@@ -502,27 +502,27 @@ void InnerAccountIAMManager::HandleFileKeyException(int32_t userId, const std::v
     });
     if (!status) {
         ACCOUNT_LOGE("GetSecureUidCallback time out");
-        ReportOsAccountOperationFail(userId, "addCredential", -1, "Get secure uid timeout when restoring key context");
+        ReportOsAccountOperationFail(
+            userId, "readdCredential", -1, "Get secure uid timeout when restoring key context");
         return;
     }
     code = UpdateStorageUserAuth(userId, callback->secureUid_, token, {}, secret);
     if (code != ERR_OK) {
         ACCOUNT_LOGE("Restore user auth fail, userId: %{public}d", userId);
-        ReportOsAccountOperationFail(userId, "addCredential", code, "Failed to restore user auth");
+        ReportOsAccountOperationFail(userId, "readdCredential", code, "Failed to restore user auth");
         return;
     }
     code = UpdateStorageKeyContext(userId);
     if (code != ERR_OK) {
         ACCOUNT_LOGE("Restore key context fail, userId:%{public}d", userId);
-        ReportOsAccountOperationFail(userId, "addCredential", code, "Failed to restore key context");
+        ReportOsAccountOperationFail(userId, "readdCredential", code, "Failed to restore key context");
         return;
     }
     ACCOUNT_LOGI("Restore key context successfully, userId:%{public}d", userId);
     code = accountFileOperator->DeleteDirOrFile(path);
     if (code != ERR_OK) {
-        ReportOsAccountOperationFail(userId, "addCredential", code,
-            "Failed to delete add_secret_flag file after restoring key context");
-        ACCOUNT_LOGE("Delete file fail, path=%{public}s", path.c_str());
+        ReportOsAccountOperationFail(userId, "readdCredential", code,
+            "Failed to delete iam_fault file after restoring key context");
     }
 }
 
