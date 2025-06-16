@@ -131,8 +131,6 @@ account_data_storage_source = [
 
 account_iam_source = [
   "${services_path}/accountmgr/src/account_iam/account_iam_callback.cpp",
-  "${services_path}/accountmgr/src/account_iam/account_iam_client_callback_proxy.cpp",
-  "${services_path}/accountmgr/src/account_iam/account_iam_mgr_stub.cpp",
   "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
   "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
 ]

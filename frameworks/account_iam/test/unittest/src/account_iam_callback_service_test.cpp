@@ -93,7 +93,7 @@ HWTEST_F(AccountIAMCallbackServiceTest, IDMCallbackService_OnAcquireInfo_0100, T
     sptr<IDMCallbackService> wrapper = new (std::nothrow) IDMCallbackService(TEST_USER_ID, nullptr);
     EXPECT_TRUE(wrapper->callback_ == nullptr);
     Attributes extraInfo;
-    wrapper->OnAcquireInfo(0, 0, extraInfo);
+    wrapper->OnAcquireInfo(0, 0, extraInfo.Serialize());
 }
 
 /**
@@ -111,7 +111,7 @@ HWTEST_F(AccountIAMCallbackServiceTest, IDMCallbackService_OnAcquireInfo_0200, T
     sptr<IDMCallbackService> wrapper = new (std::nothrow) IDMCallbackService(TEST_USER_ID, testCallback);
     EXPECT_TRUE(wrapper->callback_ != nullptr);
     Attributes extraInfo;
-    wrapper->OnAcquireInfo(0, 0, extraInfo);
+    wrapper->OnAcquireInfo(0, 0, extraInfo.Serialize());
     std::unique_lock<std::mutex> lock(testCallback->mutex);
     testCallback->cv.wait_for(
         lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
@@ -132,7 +132,7 @@ HWTEST_F(AccountIAMCallbackServiceTest, IDMCallbackService_OnResult_0100, TestSi
     sptr<IDMCallbackService> wrapper = new (std::nothrow) IDMCallbackService(TEST_USER_ID, testCallback);
     ASSERT_NE(wrapper, nullptr);
     Attributes extraInfo;
-    wrapper->OnResult(0, extraInfo);
+    wrapper->OnResult(0, extraInfo.Serialize());
     {
         std::unique_lock<std::mutex> lock(testCallback->mutex);
         testCallback->cv.wait_for(
@@ -140,14 +140,14 @@ HWTEST_F(AccountIAMCallbackServiceTest, IDMCallbackService_OnResult_0100, TestSi
     }
     EXPECT_CALL(*callback, OnResult(1, _)).Times(Exactly(1));
     testCallback->isReady = false;
-    wrapper->OnResult(1, extraInfo);
+    wrapper->OnResult(1, extraInfo.Serialize());
     {
         std::unique_lock<std::mutex> lock(testCallback->mutex);
         testCallback->cv.wait_for(
             lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
     }
     wrapper->callback_ = nullptr;
-    wrapper->OnResult(0, extraInfo);
+    wrapper->OnResult(0, extraInfo.Serialize());
 }
 
 /**
@@ -160,7 +160,7 @@ HWTEST_F(AccountIAMCallbackServiceTest, GetCredInfoCallbackService_OnCredentialI
 {
     sptr<GetCredInfoCallbackService> wrapper = new (std::nothrow) GetCredInfoCallbackService(nullptr);
     EXPECT_TRUE(wrapper->callback_ == nullptr);
-    std::vector<CredentialInfo> infoList;
+    std::vector<CredentialInfoIam> infoList;
     wrapper->OnCredentialInfo(0, infoList);
 }
 
@@ -175,7 +175,7 @@ HWTEST_F(AccountIAMCallbackServiceTest, GetSetPropCallbackService_OnResult_0100,
     sptr<GetSetPropCallbackService> wrapper = new (std::nothrow) GetSetPropCallbackService(nullptr);
     EXPECT_TRUE(wrapper->callback_ == nullptr);
     Attributes extraInfo;
-    wrapper->OnResult(0, extraInfo);
+    wrapper->OnResult(0, extraInfo.Serialize());
 }
 
 /**
@@ -239,7 +239,7 @@ HWTEST_F(AccountIAMCallbackServiceTest, IDMCallbackService_DestructTest_0200, Te
     auto testCallback = std::make_shared<TestIDMCallback>(callback);
     IDMCallbackService  *callbackWrapper = new (std::nothrow) IDMCallbackService(TEST_USER_ID, testCallback);
     Attributes emptyAttributes;
-    callbackWrapper->OnResult(0, emptyAttributes);
+    callbackWrapper->OnResult(0, emptyAttributes.Serialize());
     delete callbackWrapper;
 }
 
@@ -270,7 +270,7 @@ HWTEST_F(AccountIAMCallbackServiceTest, GetCredInfoCallbackService_DestructTest_
     EXPECT_CALL(*callback, OnCredentialInfo(0, _)).Times(Exactly(1));
     auto testCallback = std::make_shared<TestGetCredInfoCallback>(callback);
     GetCredInfoCallbackService  *callbackWrapper = new (std::nothrow) GetCredInfoCallbackService(testCallback);
-    std::vector<CredentialInfo> emptyInfoList;
+    std::vector<CredentialInfoIam> emptyInfoList;
     callbackWrapper->OnCredentialInfo(0, emptyInfoList);
     delete callbackWrapper;
 }
@@ -303,7 +303,7 @@ HWTEST_F(AccountIAMCallbackServiceTest, GetSetPropCallbackService_DestructTest_0
     auto testCallback = std::make_shared<TestGetSetPropCallback>(callback);
     GetSetPropCallbackService  *callbackWrapper = new (std::nothrow) GetSetPropCallbackService(testCallback);
     Attributes emptyAttributes;
-    callbackWrapper->OnResult(0, emptyAttributes);
+    callbackWrapper->OnResult(0, emptyAttributes.Serialize());
     delete callbackWrapper;
 }
 

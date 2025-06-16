@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,7 +23,6 @@
 #include "account_iam_service.h"
 #include "account_log_wrapper.h"
 #include "fuzz_data.h"
-#include "iaccount_iam.h"
 #include "nativetoken_kit.h"
 #include "token_setproc.h"
 
@@ -69,7 +68,7 @@ bool OpenSessionStubFuzzTest(const uint8_t *data, size_t size)
     NativeTokenGet();
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(AccountIAMInterfaceCode::OPEN_SESSION);
+    uint32_t code = static_cast<uint32_t>(IAccountIAMIpcCode::COMMAND_OPEN_SESSION);
     auto iamAccountManagerService = std::make_shared<AccountIAMService>();
     iamAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
 
