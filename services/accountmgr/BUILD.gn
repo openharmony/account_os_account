@@ -288,11 +288,6 @@ ohos_shared_library("accountmgr") {
     ]
   }
 
-  if (has_theme_mar_part) {
-    external_deps += [ "theme_mgr:theme_manager_client" ]
-    cflags_cc += [ "-DHAS_THEME_SERVICE_PART" ]
-  }
-
   configs += [ ":account_iam_config" ]
   if (has_user_auth_part) {
     cflags_cc += [

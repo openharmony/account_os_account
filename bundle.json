@@ -64,7 +64,6 @@
         "storage_service",
         "time_service",
         "user_auth_framework",
-        "theme_mgr",
         "openssl",
         "config_policy"
       ],

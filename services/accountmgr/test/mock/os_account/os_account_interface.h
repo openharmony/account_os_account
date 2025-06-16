@@ -26,9 +26,6 @@ public:
         const OsAccountStartCallbackFunc &callbackFunc, bool isAppRecovery = false);
     static ErrCode SendToAMSAccountStop(OsAccountInfo &osAccountInfo);
     static ErrCode SendToAMSAccountDeactivate(OsAccountInfo &osAccountInfo);
-#ifdef HAS_THEME_SERVICE_PART
-    static void InitThemeResource(int32_t localId);
-#endif
     static ErrCode SendToBMSAccountCreate(
         OsAccountInfo &osAccountInfo, const std::vector<std::string> &disallowedHapList = {},
         const std::optional<std::vector<std::string>> &allowedHapList = std::nullopt);
