@@ -229,23 +229,6 @@ ErrCode OsAccountInterface::SendToAMSAccountDeactivate(OsAccountInfo &osAccountI
     return code;
 }
 
-#ifdef HAS_THEME_SERVICE_PART
-void OsAccountInterface::InitThemeResource(int32_t localId)
-{
-    StartTraceAdapter("ThemeManager InitResource");
-    bool ret = ThemeManager::ThemeManagerClient::GetInstance().InitResource(localId);
-    if (!ret) {
-        ACCOUNT_LOGE("Init theme failed, localId=%{public}d.", localId);
-        REPORT_OS_ACCOUNT_FAIL(localId, Constants::OPERATION_CREATE, -1, "Failed to init theme resource");
-        FinishTraceAdapter();
-        return;
-    }
-    ACCOUNT_LOGI("Init theme successful.");
-    FinishTraceAdapter();
-    return;
-}
-#endif
-
 ErrCode OsAccountInterface::SendToBMSAccountCreate(
     OsAccountInfo &osAccountInfo, const std::vector<std::string> &disallowedHapList,
     const std::optional<std::vector<std::string>> &allowedHapList)
