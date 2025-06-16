@@ -316,6 +316,7 @@ ohos_unittest("OsAccountInnerAccmgrCovTest") {
   configs = [
     ":os_account_amgr_test_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
+    "${app_account_innerkits_native_path}:app_account_interface_public_config",
   ]
 
   deps = [
@@ -411,6 +412,7 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
   configs = [
     ":os_account_amgr_mock_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
+    "${app_account_innerkits_native_path}:app_account_interface_public_config",
   ]
 
   deps = [
@@ -556,6 +558,7 @@ ohos_unittest("OsAccountInnerAccmgrPluginMockTest") {
   configs = [
     ":os_account_amgr_test_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
+    "${app_account_innerkits_native_path}:app_account_interface_public_config",
   ]
 
   deps = [
@@ -679,6 +682,7 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
   configs = [
     ":os_account_amgr_mock_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
+    "${app_account_innerkits_native_path}:app_account_interface_public_config",
   ]
 
   deps = [
@@ -775,7 +779,6 @@ ohos_unittest("os_account_maintenance_type_mock_test") {
     "${app_account_services_path}/src/ability_manager_adapter/ability_manager_adapter.cpp",
     "${app_account_services_path}/src/appaccount/app_account_control_manager.cpp",
     "${app_account_services_path}/src/appaccount/app_account_manager_service.cpp",
-    "${app_account_services_path}/src/appaccount/app_account_stub.cpp",
     "${app_account_services_path}/src/appaccount/inner_app_account_manager.cpp",
     "${services_path}/accountmgr/test/mock/common/bundle_manager_adapter.cpp",
     "${services_path}/accountmgr/test/mock/os_account/os_account_interface.cpp",
@@ -815,6 +818,9 @@ ohos_unittest("os_account_maintenance_type_mock_test") {
     "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
   deps += [
+    "${app_account_innerkits_native_path}:app_account_authenticator_callback_stub",
+    "${app_account_innerkits_native_path}:app_account_authenticator_proxy",
+    "${app_account_innerkits_native_path}:app_account_stub",
     "${domain_account_framework_path}:domain_account_callback_proxy",
     "${domain_account_framework_path}:domain_account_callback_stub",
     "${domain_account_framework_path}:domain_account_stub",

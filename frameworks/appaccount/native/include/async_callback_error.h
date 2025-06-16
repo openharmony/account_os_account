@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,23 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_IAPP_ACCOUNT_EVENT_H
-#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_IAPP_ACCOUNT_EVENT_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_ASYNC_CALLBACK_ERROR_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_ASYNC_CALLBACK_ERROR_H
 
-#include "accountmgr_service_ipc_interface_code.h"
-#include "app_account_info.h"
-#include "iremote_broker.h"
+#include <string>
+#include "parcel.h"
 #include "want.h"
 
 namespace OHOS {
 namespace AccountSA {
-class IAppAccountEvent : public IRemoteBroker {
-public:
-    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IAppAccountEvent");
-
-    virtual void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts, const std::string &owner) = 0;
+struct AsyncCallbackError : public Parcelable {
+    int32_t code = 0;
+    std::string message = "";
+    AAFwk::WantParams data;
+    bool ReadFromParcel(Parcel &parcel);
+    bool Marshalling(Parcel &parcel) const override;
+    static AsyncCallbackError *Unmarshalling(Parcel &parcel);
 };
 }  // namespace AccountSA
 }  // namespace OHOS
-
-#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_IAPP_ACCOUNT_EVENT_H
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_ASYNC_CALLBACK_ERROR_H

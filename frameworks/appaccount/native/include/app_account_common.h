@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,11 +29,14 @@ struct AppAccountCallingInfo {
     uint32_t appIndex;
 };
 
-struct AuthenticatorInfo {
+struct AuthenticatorInfo : public Parcelable {
     std::string owner;
     std::string abilityName;
     uint32_t iconId = 0;
     uint32_t labelId = 0;
+    bool ReadFromParcel(Parcel &parcel);
+    bool Marshalling(Parcel &parcel) const override;
+    static AuthenticatorInfo *Unmarshalling(Parcel &parcel);
 };
 
 struct SelectAccountsOptions : public Parcelable {
@@ -115,7 +118,7 @@ enum AuthenticatorAction {
     AUTH,
 };
 
-struct AuthorizationRequest {
+struct AuthorizationRequest : public Parcelable {
     AuthorizationRequest();
     AuthorizationRequest(const int32_t &callingUid, const AAFwk::WantParams &parameters,
         const sptr<IAppAccountAuthorizationExtensionCallback> &callback);
@@ -123,6 +126,9 @@ struct AuthorizationRequest {
     bool isEnableContext = false;
     AAFwk::WantParams parameters;
     sptr<IAppAccountAuthorizationExtensionCallback> callback = nullptr;
+    bool ReadFromParcel(Parcel &parcel);
+    bool Marshalling(Parcel &parcel) const override;
+    static AuthorizationRequest *Unmarshalling(Parcel &parcel);
 };
 
 struct AccountCapabilityRequest : public Parcelable {

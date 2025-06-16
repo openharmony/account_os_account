@@ -188,12 +188,12 @@ AuthenticatorAsyncCallback::AuthenticatorAsyncCallback(
 AuthenticatorAsyncCallback::~AuthenticatorAsyncCallback()
 {}
 
-void AuthenticatorAsyncCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
+ErrCode AuthenticatorAsyncCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
 {
     {
         std::lock_guard<std::mutex> lock(mutex_);
         if (isDone) {
-            return;
+            return ERR_OK;
         }
         isDone = true;
     }
@@ -204,16 +204,21 @@ void AuthenticatorAsyncCallback::OnResult(int32_t resultCode, const AAFwk::Want 
     param->result = result;
     if (napi_ok == napi_send_event(env_, workCb_(param), napi_eprio_vip)) {
         ACCOUNT_LOGI("Post task finish");
-        return;
+        return ERR_OK;
     }
     ACCOUNT_LOGE("Post task failed");
+    return ERR_OK;
 }
 
-void AuthenticatorAsyncCallback::OnRequestRedirected(AAFwk::Want &request)
-{}
+ErrCode AuthenticatorAsyncCallback::OnRequestRedirected(const AAFwk::Want &request)
+{
+    return ERR_OK;
+}
 
-void AuthenticatorAsyncCallback::OnRequestContinued()
-{}
+ErrCode AuthenticatorAsyncCallback::OnRequestContinued()
+{
+    return ERR_OK;
+}
 
 AppAccountManagerCallback::AppAccountManagerCallback(napi_env env, JSAuthCallback callback)
     : env_(env), callback_(callback)
@@ -271,56 +276,59 @@ static std::function<void()> OnRequestContinuedWork(const std::shared_ptr<Authen
     };
 }
 
-void AppAccountManagerCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
+ErrCode AppAccountManagerCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
 {
     {
         std::lock_guard<std::mutex> lock(mutex_);
         if (isDone) {
-            return;
+            return ERR_OK;
         }
         isDone = true;
     }
     if (callback_.onResult == nullptr) {
         ACCOUNT_LOGE("onResult is null");
-        return;
+        return ERR_OK;
     }
     std::shared_ptr<AuthenticatorCallbackParam> param = std::make_shared<AuthenticatorCallbackParam>(callback_);
     param->resultCode = resultCode;
     param->result = result;
     if (napi_ok != napi_send_event(env_, OnResultWork(param), napi_eprio_vip)) {
         ACCOUNT_LOGE("Post task failed");
-        return;
+        return ERR_OK;
     }
     ACCOUNT_LOGI("Post task finish");
+    return ERR_OK;
 }
 
-void AppAccountManagerCallback::OnRequestRedirected(AAFwk::Want &request)
+ErrCode AppAccountManagerCallback::OnRequestRedirected(const AAFwk::Want &request)
 {
     if (callback_.onRequestRedirected == nullptr) {
         ACCOUNT_LOGE("onRequestRedirected is null");
-        return;
+        return ERR_OK;
     }
     std::shared_ptr<AuthenticatorCallbackParam> param = std::make_shared<AuthenticatorCallbackParam>(callback_);
     param->request = request;
     if (napi_ok != napi_send_event(env_, OnRequestRedirectedWork(param), napi_eprio_vip)) {
         ACCOUNT_LOGE("Post task failed");
-        return;
+        return ERR_OK;
     }
     ACCOUNT_LOGI("Post task finish");
+    return ERR_OK;
 }
 
-void AppAccountManagerCallback::OnRequestContinued()
+ErrCode AppAccountManagerCallback::OnRequestContinued()
 {
     if (callback_.onRequestContinued == nullptr) {
         ACCOUNT_LOGE("OnRequestContinued is null");
-        return;
+        return ERR_OK;
     }
     std::shared_ptr<AuthenticatorCallbackParam> param = std::make_shared<AuthenticatorCallbackParam>(callback_);
     if (napi_ok != napi_send_event(env_, OnRequestContinuedWork(param), napi_eprio_vip)) {
         ACCOUNT_LOGE("Post task failed");
-        return;
+        return ERR_OK;
     }
     ACCOUNT_LOGI("Post task finish");
+    return ERR_OK;
 }
 
 napi_value NapiGetNull(napi_env env)

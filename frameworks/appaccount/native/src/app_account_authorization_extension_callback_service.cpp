@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,23 +27,25 @@ AppAccountAuthorizationExtensionCallbackService::AppAccountAuthorizationExtensio
 AppAccountAuthorizationExtensionCallbackService::~AppAccountAuthorizationExtensionCallbackService()
 {}
 
-void AppAccountAuthorizationExtensionCallbackService::OnResult(
+ErrCode AppAccountAuthorizationExtensionCallbackService::OnResult(
     const AsyncCallbackError &businessError, const AAFwk::WantParams &parameters)
 {
     if (onResultCallback_ == nullptr) {
         ACCOUNT_LOGE("onResultCallback_ is nullptr");
-        return;
+        return ERR_OK;
     }
-    return onResultCallback_(businessError, parameters);
+    onResultCallback_(businessError, parameters);
+    return ERR_OK;
 }
 
-void AppAccountAuthorizationExtensionCallbackService::OnRequestRedirected(const AAFwk::Want &request)
+ErrCode AppAccountAuthorizationExtensionCallbackService::OnRequestRedirected(const AAFwk::Want &request)
 {
     if (onRequestRedirectedCallback_ == nullptr) {
         ACCOUNT_LOGE("onRequestRedirectedCallback_ is nullptr");
-        return;
+        return ERR_OK;
     }
-    return onRequestRedirectedCallback_(request);
+    onRequestRedirectedCallback_(request);
+    return ERR_OK;
 }
 } // namespace AccountSA
 } // namespace OHOS

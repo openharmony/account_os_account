@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,6 +24,170 @@
 
 namespace OHOS {
 namespace AccountSA {
+
+bool OAuthTokenInfo::Marshalling(Parcel &parcel) const
+{
+    if (!parcel.WriteString(authType)) {
+        ACCOUNT_LOGE("Write authType failed, please check authType value or parcel status");
+        return false;
+    }
+    if (!parcel.WriteString(token)) {
+        ACCOUNT_LOGE("Write token failed, please check token value or parcel status");
+        return false;
+    }
+    if (!parcel.WriteUint32(authList.size())) {
+        ACCOUNT_LOGE("Write authList size failed, please check authList size or parcel status");
+        return false;
+    }
+    for (const auto &item : authList) {
+        if ((!parcel.WriteString(item))) {
+            ACCOUNT_LOGE("Write authList failed, please check authList value or parcel status");
+            return false;
+        }
+    }
+    if (!parcel.WriteBool(status)) {
+        ACCOUNT_LOGE("Write status failed, please check parcel status");
+        return false;
+    }
+    return true;
+}
+
+OAuthTokenInfo *OAuthTokenInfo::Unmarshalling(Parcel &parcel)
+{
+    OAuthTokenInfo *info = new (std::nothrow) OAuthTokenInfo();
+    if ((info != nullptr) && (!info->ReadFromParcel(parcel))) {
+        ACCOUNT_LOGW("ReadFromParcel failed, please check paecel data");
+        delete info;
+        info = nullptr;
+    }
+    return info;
+}
+
+bool OAuthTokenInfo::ReadFromParcel(Parcel &parcel)
+{
+    if (!parcel.ReadString(authType)) {
+        ACCOUNT_LOGE("Read authType failed, please check authType in parcel");
+        return false;
+    }
+    if (!parcel.ReadString(token)) {
+        ACCOUNT_LOGE("Read token failed, please check token in parcel");
+        return false;
+    }
+    uint32_t size = 0;
+    if (!parcel.ReadUint32(size)) {
+        ACCOUNT_LOGE("Read size failed, please check authList size in parcel");
+        return false;
+    }
+    authList.clear();
+    std::string item;
+    for (uint32_t i = 0; i < size; ++i) {
+        if ((!parcel.ReadString(item))) {
+            ACCOUNT_LOGE("Read item failed, please check authList item in parcel");
+            return false;
+        }
+        authList.insert(item);
+    }
+    if (!parcel.ReadBool(status)) {
+        ACCOUNT_LOGE("Read status failed, please check status in parcel");
+        return false;
+    }
+    return true;
+}
+
+bool AppAccountStringInfo::ReadFromParcel(Parcel &parcel)
+{
+    if (!parcel.ReadString(name)) {
+        ACCOUNT_LOGE("Read name failed, please check name in parcel");
+        return false;
+    }
+    if (!parcel.ReadString(owner)) {
+        ACCOUNT_LOGE("Read owner failed, please check owner in parcel");
+        return false;
+    }
+    if (!parcel.ReadString(authType)) {
+        ACCOUNT_LOGE("Read authType failed, please check authType in parcel");
+        return false;
+    }
+    return true;
+}
+
+bool AppAccountStringInfo::Marshalling(Parcel &parcel) const
+{
+    if (!parcel.WriteString(name)) {
+        ACCOUNT_LOGE("Write name failed, please check name value or parcel status");
+        return false;
+    }
+    if (!parcel.WriteString(owner)) {
+        ACCOUNT_LOGE("Write owner failed, please check owner value or parcel status");
+        return false;
+    }
+    if (!parcel.WriteString(authType)) {
+        ACCOUNT_LOGE("Write authType failed, please check authType value or parcel status");
+        return false;
+    }
+    return true;
+}
+
+AppAccountStringInfo* AppAccountStringInfo::Unmarshalling(Parcel &parcel)
+{
+    AppAccountStringInfo *info = new (std::nothrow) AppAccountStringInfo();
+    if ((info != nullptr) && (!info->ReadFromParcel(parcel))) {
+        ACCOUNT_LOGW("ReadFromParcel failed, please check paecel data");
+        delete info;
+        info = nullptr;
+    }
+    return info;
+}
+
+AppAccountAuthenticatorStringInfo::AppAccountAuthenticatorStringInfo(
+    std::string name, std::string authType, std::string callerBundleName)
+    : name(name), authType(authType), callerBundleName(callerBundleName)
+{}
+
+bool AppAccountAuthenticatorStringInfo::ReadFromParcel(Parcel &parcel)
+{
+    if (!parcel.ReadString(name)) {
+        ACCOUNT_LOGE("Read name failed, please check name in parcel");
+        return false;
+    }
+    if (!parcel.ReadString(authType)) {
+        ACCOUNT_LOGE("Read authType failed, please check authType in parcel");
+        return false;
+    }
+    if (!parcel.ReadString(callerBundleName)) {
+        ACCOUNT_LOGE("Read callerBundleName failed, please check callerBundleName in parcel");
+        return false;
+    }
+    return true;
+}
+
+bool AppAccountAuthenticatorStringInfo::Marshalling(Parcel &parcel) const
+{
+    if (!parcel.WriteString(name)) {
+        ACCOUNT_LOGE("Write name failed, please check name value or parcel status");
+        return false;
+    }
+    if (!parcel.WriteString(authType)) {
+        ACCOUNT_LOGE("Write authType failed, please check authType value or parcel status");
+        return false;
+    }
+    if (!parcel.WriteString(callerBundleName)) {
+        ACCOUNT_LOGE("Write callerBundleName failed, please check callerBundleName value or parcel status");
+        return false;
+    }
+    return true;
+}
+
+AppAccountAuthenticatorStringInfo* AppAccountAuthenticatorStringInfo::Unmarshalling(Parcel &parcel)
+{
+    AppAccountAuthenticatorStringInfo *info = new (std::nothrow) AppAccountAuthenticatorStringInfo();
+    if ((info != nullptr) && (!info->ReadFromParcel(parcel))) {
+        ACCOUNT_LOGW("ReadFromParcel failed, please check paecel data");
+        delete info;
+        info = nullptr;
+    }
+    return info;
+}
 
 #ifdef HAS_ASSET_PART
 static void ComputeHash(const std::string &input, std::string &output)

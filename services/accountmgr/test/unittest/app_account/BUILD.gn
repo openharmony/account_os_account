@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -184,10 +184,7 @@ ohos_unittest("app_account_stub_test") {
 
   module_out_path = module_output_path
   cflags_cc = []
-  sources = [
-    "${app_account_services_path}/src/appaccount/app_account_stub.cpp",
-    "app_account_stub_test.cpp",
-  ]
+  sources = [ "app_account_stub_test.cpp" ]
 
   configs = [
     ":app_account_service_config_mock",
@@ -200,6 +197,8 @@ ohos_unittest("app_account_stub_test") {
     "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
   ]
+
+  deps += [ "${app_account_innerkits_native_path}:app_account_stub" ]
 
   external_deps = [
     "ability_base:base",

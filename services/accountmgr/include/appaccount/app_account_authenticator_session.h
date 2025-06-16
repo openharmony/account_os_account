@@ -93,6 +93,8 @@ private:
     void CloseSelf() const;
     int32_t OnAuthenticateDone(const AAFwk::Want &result) const;
     int32_t OnAddAccountImplicitlyDone(const AAFwk::Want &result) const;
+    void OnAbilityConnectInner(const AppAccountAuthenticatorStringInfo &stringInfo, int32_t &resultCode,
+        AAFwk::Want &errResult);
 
 private:
     std::mutex mutex_;

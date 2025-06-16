@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -215,9 +215,9 @@ public:
         std::function<std::function<void()>(const std::shared_ptr<AuthenticatorCallbackParam> &)> workCb);
     ~AuthenticatorAsyncCallback();
 
-    void OnResult(int32_t resultCode, const AAFwk::Want &result) override;
-    void OnRequestRedirected(AAFwk::Want &request) override;
-    void OnRequestContinued() override;
+    ErrCode OnResult(int32_t resultCode, const AAFwk::Want &result) override;
+    ErrCode OnRequestRedirected(const AAFwk::Want &request) override;
+    ErrCode OnRequestContinued() override;
 
 private:
     std::mutex mutex_;
@@ -233,9 +233,9 @@ public:
     explicit AppAccountManagerCallback(napi_env env, JSAuthCallback callback);
     ~AppAccountManagerCallback();
 
-    void OnResult(int32_t resultCode, const AAFwk::Want &result) override;
-    void OnRequestRedirected(AAFwk::Want &request) override;
-    void OnRequestContinued() override;
+    ErrCode OnResult(int32_t resultCode, const AAFwk::Want &result) override;
+    ErrCode OnRequestRedirected(const AAFwk::Want &request) override;
+    ErrCode OnRequestContinued() override;
 
 private:
     std::mutex mutex_;

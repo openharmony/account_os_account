@@ -35,15 +35,12 @@ bundle_manager_sources = [
 
 if (has_kv_store_part) {
   app_account_sources = [
-    "${app_account_innerkits_native_path}/src/app_account_authenticator_callback_proxy.cpp",
-    "${app_account_innerkits_native_path}/src/app_account_authenticator_callback_stub.cpp",
     "${app_account_innerkits_native_path}/src/app_account_common.cpp",
     "${app_account_innerkits_native_path}/src/app_account_info.cpp",
     "${app_account_innerkits_native_path}/src/app_account_subscribe_info.cpp",
     "${os_account_core_path}/src/os_account_event_stub.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_authenticator_callback.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_authenticator_manager.cpp",
-    "${services_path}/accountmgr/src/appaccount/app_account_authenticator_proxy.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_authenticator_session.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_authenticator_session_manager.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_check_labels_callback.cpp",
@@ -52,9 +49,7 @@ if (has_kv_store_part) {
     "${services_path}/accountmgr/src/appaccount/app_account_common_event_subscriber.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_data_storage.cpp",
-    "${services_path}/accountmgr/src/appaccount/app_account_event_proxy.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_manager_service.cpp",
-    "${services_path}/accountmgr/src/appaccount/app_account_stub.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_subscribe_death_recipient.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_subscribe_manager.cpp",
     "${services_path}/accountmgr/src/appaccount/inner_app_account_manager.cpp",
@@ -176,6 +171,15 @@ ohos_unittest("account_mgr_test") {
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
   ]
+
+  if (has_kv_store_part) {
+    deps += [
+      "${app_account_innerkits_native_path}:app_account_authenticator_callback_proxy",
+      "${app_account_innerkits_native_path}:app_account_authenticator_callback_stub",
+      "${app_account_innerkits_native_path}:app_account_authenticator_proxy",
+      "${app_account_innerkits_native_path}:app_account_stub",
+    ]
+  }
 
   external_deps = [
     "ability_base:base",
@@ -353,6 +357,10 @@ ohos_unittest("account_stub_test") {
     "${innerkits_native_path}:libaccountkits",
     "${services_path}/accountmgr:accountmgr",
   ]
+
+  if (has_kv_store_part) {
+    deps += [ "${app_account_innerkits_native_path}:app_account_event_proxy" ]
+  }
 
   external_deps = [
     "ability_base:base",

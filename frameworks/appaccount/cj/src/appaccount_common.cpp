@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,12 +27,12 @@ AuthenticatorAsyncCallback::AuthenticatorAsyncCallback(
 
 AuthenticatorAsyncCallback::~AuthenticatorAsyncCallback() {}
 
-void AuthenticatorAsyncCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
+ErrCode AuthenticatorAsyncCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
 {
     {
         std::lock_guard<std::mutex> lock(mutex_);
         if (isDone) {
-            return;
+            return ERR_OK;
         }
         isDone = true;
     }
@@ -41,22 +41,29 @@ void AuthenticatorAsyncCallback::OnResult(int32_t resultCode, const AAFwk::Want 
     this->onResultRetBool = result.GetBoolParam(Constants::KEY_BOOLEAN_RESULT, false);
     this->onResultRetNames = result.GetStringArrayParam(Constants::KEY_ACCOUNT_NAMES);
     this->onResultRetOwners = result.GetStringArrayParam(Constants::KEY_ACCOUNT_OWNERS);
+    return ERR_OK;
 }
 
-void AuthenticatorAsyncCallback::OnRequestRedirected(AAFwk::Want &request) {}
+ErrCode AuthenticatorAsyncCallback::OnRequestRedirected(const AAFwk::Want &request)
+{
+    return ERR_OK;
+}
 
-void AuthenticatorAsyncCallback::OnRequestContinued() {}
+ErrCode AuthenticatorAsyncCallback::OnRequestContinued()
+{
+    return ERR_OK;
+}
 
 AppAccountManagerCallback::AppAccountManagerCallback(JSAuthCallback callback): callback_(callback) {}
 
 AppAccountManagerCallback::~AppAccountManagerCallback() {}
 
-void AppAccountManagerCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
+ErrCode AppAccountManagerCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
 {
     {
         std::lock_guard<std::mutex> lock(mutex_);
         if (isDone) {
-            return;
+            return ERR_OK;
         }
         isDone = true;
     }
@@ -68,11 +75,18 @@ void AppAccountManagerCallback::OnResult(int32_t resultCode, const AAFwk::Want &
     //tokenInfo: AuthTokenInfo
     this->authTypeResult = result.GetStringParam(Constants::KEY_AUTH_TYPE);
     this->tokenResult = result.GetStringParam(Constants::KEY_TOKEN);
+    return ERR_OK;
 }
 
-void AppAccountManagerCallback::OnRequestRedirected(AAFwk::Want &request) {}
+ErrCode AppAccountManagerCallback::OnRequestRedirected(const AAFwk::Want &request)
+{
+    return ERR_OK;
+}
 
-void AppAccountManagerCallback::OnRequestContinued() {}
+ErrCode AppAccountManagerCallback::OnRequestContinued()
+{
+    return ERR_OK;
+}
 
 SubscribePtr::SubscribePtr(const AppAccountSubscribeInfo &subscribeInfo) : AppAccountSubscriber(subscribeInfo) {}
 

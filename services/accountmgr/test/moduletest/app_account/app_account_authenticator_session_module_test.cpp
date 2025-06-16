@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -47,9 +47,9 @@ const std::int32_t INVALID_ACTION = -1;
 
 class MockAuthenticatorCallback final : public AppAccountAuthenticatorCallbackStub {
 public:
-    MOCK_METHOD2(OnResult, void(int32_t resultCode, const AAFwk::Want &result));
-    MOCK_METHOD1(OnRequestRedirected, void(AAFwk::Want &request));
-    MOCK_METHOD0(OnRequestContinued, void());
+    MOCK_METHOD2(OnResult, ErrCode(int32_t resultCode, const AAFwk::Want &result));
+    MOCK_METHOD1(OnRequestRedirected, ErrCode(const AAFwk::Want &request));
+    MOCK_METHOD0(OnRequestContinued, ErrCode());
 };
 
 class AppAccountSessionModuleTest : public testing::Test {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,18 +24,20 @@ namespace OHOS {
 namespace AccountTest {
 class MockAuthenticatorCallback final : public AccountSA::AppAccountAuthenticatorCallbackStub {
 public:
-    MOCK_METHOD2(OnResult, void(int32_t resultCode, const AAFwk::Want &result));
-    MOCK_METHOD1(OnRequestRedirected, void(AAFwk::Want &request));
-    MOCK_METHOD0(OnRequestContinued, void());
+    MOCK_METHOD2(OnResult, ErrCode(int32_t resultCode, const AAFwk::Want &result));
+    MOCK_METHOD1(OnRequestRedirected, ErrCode(const AAFwk::Want &request));
+    MOCK_METHOD0(OnRequestContinued, ErrCode());
 };
 
 class MockAppAccountAuthorizationExtensionCallbackStub final
     : public AccountSA::AppAccountAuthorizationExtensionCallbackStub {
 public:
     MOCK_METHOD2(
-        OnResult, void(const AccountSA::AsyncCallbackError &businessError, const AAFwk::WantParams &parameters));
-    void OnRequestRedirected(const AAFwk::Want &request)
-    {}
+        OnResult, ErrCode(const AccountSA::AsyncCallbackError &businessError, const AAFwk::WantParams &parameters));
+    ErrCode OnRequestRedirected(const AAFwk::Want &request)
+    {
+        return ERR_OK;
+    }
 };
 }  // namespace AccountTest
 }  // OHOS

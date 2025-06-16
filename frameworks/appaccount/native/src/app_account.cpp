@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +27,21 @@
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
+ErrCode ConvertToAccountErrCode(ErrCode idlErrCode, int32_t funcResult)
+{
+    if (idlErrCode == ERR_OK) {
+        return funcResult;
+    }
+    if (idlErrCode == ERR_INVALID_VALUE) {
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    } else if (idlErrCode == ERR_INVALID_DATA) {
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    } else {
+        return ERR_APPACCOUNT_KIT_SEND_REQUEST;
+    }
+}
+} // namespace
 #define RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(str)         \
     if (CheckSpecialCharacters(str) != ERR_OK) {            \
         ACCOUNT_LOGE("failed to check special characters"); \
@@ -77,7 +92,10 @@ void AppAccount::RestoreListenerRecords()
     if (!flag) {
         return;
     }
-    ErrCode result = proxy->SubscribeAppAccount(subscribeInfo, AppAccountEventListener::GetInstance()->AsObject());
+    int32_t funcResult = 0;
+    ErrCode result = proxy->SubscribeAppAccount(
+        subscribeInfo, AppAccountEventListener::GetInstance()->AsObject(), funcResult);
+    result = ConvertToAccountErrCode(result, funcResult);
     if (result != ERR_OK) {
         std::vector<std::string> owners;
         subscribeInfo.GetOwners(owners);
@@ -99,7 +117,9 @@ ErrCode AppAccount::AddAccount(const std::string &name, const std::string &extra
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->AddAccount(name, extraInfo);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->AddAccount(name, extraInfo, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::AddAccountImplicitly(const std::string &owner, const std::string &authType,
@@ -113,7 +133,9 @@ ErrCode AppAccount::AddAccountImplicitly(const std::string &owner, const std::st
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->AddAccountImplicitly(owner, authType, options, callback);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->AddAccountImplicitly(owner, authType, options, callback, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::CreateAccount(const std::string &name, const CreateAccountOptions &options)
@@ -137,7 +159,9 @@ ErrCode AppAccount::CreateAccount(const std::string &name, const CreateAccountOp
             "Invalid options.customData value."
             "The length of the options.customData value must be less than 1025");
     }
-    return proxy->CreateAccount(name, options);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->CreateAccount(name, options, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::CreateAccountImplicitly(const std::string &owner, const CreateAccountImplicitlyOptions &options,
@@ -153,7 +177,9 @@ ErrCode AppAccount::CreateAccountImplicitly(const std::string &owner, const Crea
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->CreateAccountImplicitly(owner, options, callback);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->CreateAccountImplicitly(owner, options, callback, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::DeleteAccount(const std::string &name)
@@ -164,7 +190,9 @@ ErrCode AppAccount::DeleteAccount(const std::string &name)
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->DeleteAccount(name);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->DeleteAccount(name, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::GetAccountExtraInfo(const std::string &name, std::string &extraInfo)
@@ -178,7 +206,9 @@ ErrCode AppAccount::GetAccountExtraInfo(const std::string &name, std::string &ex
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->GetAccountExtraInfo(name, extraInfo);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->GetAccountExtraInfo(name, extraInfo, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::SetAccountExtraInfo(const std::string &name, const std::string &extraInfo)
@@ -192,7 +222,9 @@ ErrCode AppAccount::SetAccountExtraInfo(const std::string &name, const std::stri
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->SetAccountExtraInfo(name, extraInfo);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->SetAccountExtraInfo(name, extraInfo, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::EnableAppAccess(const std::string &name, const std::string &bundleName)
@@ -206,7 +238,9 @@ ErrCode AppAccount::EnableAppAccess(const std::string &name, const std::string &
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->EnableAppAccess(name, bundleName);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->EnableAppAccess(name, bundleName, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::DisableAppAccess(const std::string &name, const std::string &bundleName)
@@ -220,7 +254,9 @@ ErrCode AppAccount::DisableAppAccess(const std::string &name, const std::string 
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->DisableAppAccess(name, bundleName);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->DisableAppAccess(name, bundleName, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::SetAppAccess(const std::string &name, const std::string &authorizedApp, bool isAccessible)
@@ -233,7 +269,9 @@ ErrCode AppAccount::SetAppAccess(const std::string &name, const std::string &aut
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->SetAppAccess(name, authorizedApp, isAccessible);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->SetAppAccess(name, authorizedApp, isAccessible, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable)
@@ -244,7 +282,9 @@ ErrCode AppAccount::CheckAppAccountSyncEnable(const std::string &name, bool &syn
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->CheckAppAccountSyncEnable(name, syncEnable);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->CheckAppAccountSyncEnable(name, syncEnable, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::SetAppAccountSyncEnable(const std::string &name, const bool &syncEnable)
@@ -255,7 +295,9 @@ ErrCode AppAccount::SetAppAccountSyncEnable(const std::string &name, const bool 
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->SetAppAccountSyncEnable(name, syncEnable);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->SetAppAccountSyncEnable(name, syncEnable, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::GetAssociatedData(const std::string &name, const std::string &key, std::string &value)
@@ -268,7 +310,9 @@ ErrCode AppAccount::GetAssociatedData(const std::string &name, const std::string
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->GetAssociatedData(name, key, value);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->GetAssociatedData(name, key, value, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::SetAssociatedData(const std::string &name, const std::string &key, const std::string &value)
@@ -283,7 +327,9 @@ ErrCode AppAccount::SetAssociatedData(const std::string &name, const std::string
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->SetAssociatedData(name, key, value);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->SetAssociatedData(name, key, value, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::GetAccountCredential(
@@ -297,7 +343,9 @@ ErrCode AppAccount::GetAccountCredential(
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->GetAccountCredential(name, credentialType, credential);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->GetAccountCredential(name, credentialType, credential, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::SetAccountCredential(
@@ -313,7 +361,9 @@ ErrCode AppAccount::SetAccountCredential(
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->SetAccountCredential(name, credentialType, credential);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->SetAccountCredential(name, credentialType, credential, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::Authenticate(const std::string &name, const std::string &owner, const std::string &authType,
@@ -329,7 +379,14 @@ ErrCode AppAccount::Authenticate(const std::string &name, const std::string &own
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->Authenticate(name, owner, authType, options, callback);
+    int32_t funcResult = 0;
+    AppAccountStringInfo appAccountStringInfo;
+    appAccountStringInfo.name = name;
+    appAccountStringInfo.owner = owner;
+    appAccountStringInfo.authType = authType;
+
+    auto idlErrCode = proxy->Authenticate(appAccountStringInfo, options, callback, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::GetOAuthToken(
@@ -346,7 +403,9 @@ ErrCode AppAccount::GetOAuthToken(
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->GetOAuthToken(name, owner, authType, token);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->GetOAuthToken(name, owner, authType, token, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::GetAuthToken(
@@ -362,7 +421,9 @@ ErrCode AppAccount::GetAuthToken(
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->GetAuthToken(name, owner, authType, token);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->GetAuthToken(name, owner, authType, token, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::SetOAuthToken(const std::string &name, const std::string &authType, const std::string &token)
@@ -377,7 +438,9 @@ ErrCode AppAccount::SetOAuthToken(const std::string &name, const std::string &au
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->SetOAuthToken(name, authType, token);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->SetOAuthToken(name, authType, token, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::DeleteOAuthToken(
@@ -396,7 +459,9 @@ ErrCode AppAccount::DeleteOAuthToken(
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->DeleteOAuthToken(name, owner, authType, token);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->DeleteOAuthToken(name, owner, authType, token, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::DeleteAuthToken(
@@ -414,7 +479,9 @@ ErrCode AppAccount::DeleteAuthToken(
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->DeleteAuthToken(name, owner, authType, token);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->DeleteAuthToken(name, owner, authType, token, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::CheckTokenVisibilityParam(
@@ -440,7 +507,9 @@ ErrCode AppAccount::SetAuthTokenVisibility(
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->SetAuthTokenVisibility(name, authType, bundleName, isVisible);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->SetAuthTokenVisibility(name, authType, bundleName, isVisible, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::SetOAuthTokenVisibility(
@@ -455,7 +524,9 @@ ErrCode AppAccount::SetOAuthTokenVisibility(
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->SetOAuthTokenVisibility(name, authType, bundleName, isVisible);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->SetOAuthTokenVisibility(name, authType, bundleName, isVisible, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::CheckAuthTokenVisibility(
@@ -469,7 +540,9 @@ ErrCode AppAccount::CheckAuthTokenVisibility(
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->CheckAuthTokenVisibility(name, authType, bundleName, isVisible);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->CheckAuthTokenVisibility(name, authType, bundleName, isVisible, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::CheckOAuthTokenVisibility(
@@ -484,7 +557,9 @@ ErrCode AppAccount::CheckOAuthTokenVisibility(
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->CheckOAuthTokenVisibility(name, authType, bundleName, isVisible);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->CheckOAuthTokenVisibility(name, authType, bundleName, isVisible, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::GetAuthenticatorInfo(const std::string &owner, AuthenticatorInfo &info)
@@ -495,7 +570,9 @@ ErrCode AppAccount::GetAuthenticatorInfo(const std::string &owner, Authenticator
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->GetAuthenticatorInfo(owner, info);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->GetAuthenticatorInfo(owner, info, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::GetAllOAuthTokens(
@@ -509,7 +586,9 @@ ErrCode AppAccount::GetAllOAuthTokens(
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->GetAllOAuthTokens(name, owner, tokenInfos);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->GetAllOAuthTokens(name, owner, tokenInfos, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::GetOAuthList(
@@ -524,7 +603,9 @@ ErrCode AppAccount::GetOAuthList(
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->GetOAuthList(name, authType, oauthList);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->GetOAuthList(name, authType, oauthList, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::GetAuthList(
@@ -538,7 +619,9 @@ ErrCode AppAccount::GetAuthList(
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->GetAuthList(name, authType, oauthList);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->GetAuthList(name, authType, oauthList, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::GetAuthenticatorCallback(const std::string &sessionId, sptr<IRemoteObject> &callback)
@@ -549,7 +632,9 @@ ErrCode AppAccount::GetAuthenticatorCallback(const std::string &sessionId, sptr<
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->GetAuthenticatorCallback(sessionId, callback);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->GetAuthenticatorCallback(sessionId, funcResult, callback);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts)
@@ -560,7 +645,9 @@ ErrCode AppAccount::GetAllAccounts(const std::string &owner, std::vector<AppAcco
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->GetAllAccounts(owner, appAccounts);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->GetAllAccounts(owner, appAccounts, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::CheckAppAccess(const std::string &name, const std::string &authorizedApp, bool &isAccessible)
@@ -573,7 +660,9 @@ ErrCode AppAccount::CheckAppAccess(const std::string &name, const std::string &a
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->CheckAppAccess(name, authorizedApp, isAccessible);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->CheckAppAccess(name, authorizedApp, isAccessible, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::DeleteAccountCredential(const std::string &name, const std::string &credentialType)
@@ -586,7 +675,9 @@ ErrCode AppAccount::DeleteAccountCredential(const std::string &name, const std::
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->DeleteAccountCredential(name, credentialType);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->DeleteAccountCredential(name, credentialType, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::SelectAccountsByOptions(
@@ -605,7 +696,9 @@ ErrCode AppAccount::SelectAccountsByOptions(
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->SelectAccountsByOptions(options, callback);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->SelectAccountsByOptions(options, callback, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::VerifyCredential(const std::string &name, const std::string &owner,
@@ -623,7 +716,9 @@ ErrCode AppAccount::VerifyCredential(const std::string &name, const std::string 
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->VerifyCredential(name, owner, options, callback);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->VerifyCredential(name, owner, options, callback, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::CheckAccountLabels(const std::string &name, const std::string &owner,
@@ -639,7 +734,9 @@ ErrCode AppAccount::CheckAccountLabels(const std::string &name, const std::strin
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->CheckAccountLabels(name, owner, labels, callback);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->CheckAccountLabels(name, owner, labels, callback, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::SetAuthenticatorProperties(const std::string &owner,
@@ -651,7 +748,9 @@ ErrCode AppAccount::SetAuthenticatorProperties(const std::string &owner,
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->SetAuthenticatorProperties(owner, options, callback);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->SetAuthenticatorProperties(owner, options, callback, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts)
@@ -660,7 +759,9 @@ ErrCode AppAccount::GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAcc
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->GetAllAccessibleAccounts(appAccounts);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->GetAllAccessibleAccounts(appAccounts, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::QueryAllAccessibleAccounts(
@@ -672,7 +773,9 @@ ErrCode AppAccount::QueryAllAccessibleAccounts(
     }
     RETURN_IF_STRING_IS_OVERSIZE(owner, Constants::OWNER_MAX_SIZE,
         "Invalid owner. The length of the owner must be less than 1025");
-    return proxy->QueryAllAccessibleAccounts(owner, appAccounts);
+    int32_t funcResult = 0;
+    auto idlErrCode = proxy->QueryAllAccessibleAccounts(owner, appAccounts, funcResult);
+    return ConvertToAccountErrCode(idlErrCode, funcResult);
 }
 
 ErrCode AppAccount::SubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber)
@@ -702,7 +805,9 @@ ErrCode AppAccount::SubscribeAppAccount(const std::shared_ptr<AppAccountSubscrib
     // Refresh to full owners
     AppAccountSubscribeInfo subscribeInfo;
     AppAccountEventListener::GetInstance()->GetRestoreData(subscribeInfo);
-    result = proxy->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
+    int32_t funcResult = 0;
+    result = proxy->SubscribeAppAccount(subscribeInfo, appAccountEventListener, funcResult);
+    result =  ConvertToAccountErrCode(result, funcResult);
     if (result != ERR_OK) {
         std::vector<std::string> deleteOwners;
         AppAccountEventListener::GetInstance()->UnsubscribeAppAccount(subscriber, needNotifyService, deleteOwners);
@@ -732,7 +837,9 @@ ErrCode AppAccount::UnsubscribeAppAccount(const std::shared_ptr<AppAccountSubscr
     if (!needNotifyService) {
         return ERR_OK;
     }
-    result = proxy->UnsubscribeAppAccount(AppAccountEventListener::GetInstance()->AsObject(), deleteOwners);
+    int32_t funcResult = 0;
+    result = proxy->UnsubscribeAppAccount(AppAccountEventListener::GetInstance()->AsObject(), deleteOwners, funcResult);
+    result = ConvertToAccountErrCode(result, funcResult);
     if (result != ERR_OK) {
         AppAccountEventListener::GetInstance()->SubscribeAppAccount(subscriber, needNotifyService);
     }

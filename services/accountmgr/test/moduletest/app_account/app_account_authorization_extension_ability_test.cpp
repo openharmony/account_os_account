@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -133,7 +133,7 @@ HWTEST_F(AppAccountExtensionModuleTest, AppAccountAuthorizationExtensionCallback
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    EXPECT_EQ(callbackServicePtr_->OnRemoteRequest(0, data, reply, option), ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR);
+    EXPECT_EQ(callbackServicePtr_->OnRemoteRequest(0, data, reply, option), ERR_TRANSACTION_FAILED);
 }
 
 /**
@@ -162,7 +162,8 @@ HWTEST_F(AppAccountExtensionModuleTest, OnRequestRedirected_002, TestSize.Level1
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    EXPECT_EQ(callbackServicePtr_->OnRemoteRequest(1, data, reply, option), ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountAuthorizationExtensionCallbackStub::GetDescriptor()), true);
+    EXPECT_EQ(callbackServicePtr_->OnRemoteRequest(1, data, reply, option), ERR_INVALID_DATA);
 }
 
 /**
@@ -175,9 +176,13 @@ HWTEST_F(AppAccountExtensionModuleTest, OnRequestRedirected_003, TestSize.Level1
 {
     MessageParcel data;
     MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountAuthorizationExtensionCallbackStub::GetDescriptor()), true);
     AAFwk::Want request;
     EXPECT_EQ(data.WriteParcelable(&request), true);
-    EXPECT_EQ(callbackServicePtr_->ProcOnRequestRedirected(data, reply), ERR_NONE);
+    EXPECT_EQ(callbackServicePtr_->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountAuthorizationExtensionCallbackIpcCode::COMMAND_ON_REQUEST_REDIRECTED), data, reply, option),
+        ERR_NONE);
 }
 
 /**

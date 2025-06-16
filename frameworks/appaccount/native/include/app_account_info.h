@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,11 +25,35 @@
 
 namespace OHOS {
 namespace AccountSA {
-struct OAuthTokenInfo {
+struct OAuthTokenInfo : public Parcelable {
     std::string authType;
     std::string token;
     std::set<std::string> authList;
     bool status = true;
+    bool ReadFromParcel(Parcel &parcel);
+    bool Marshalling(Parcel &parcel) const override;
+    static OAuthTokenInfo *Unmarshalling(Parcel &parcel);
+};
+
+struct AppAccountStringInfo : public Parcelable {
+    std::string name;
+    std::string owner;
+    std::string authType;
+    bool ReadFromParcel(Parcel &parcel);
+    bool Marshalling(Parcel &parcel) const override;
+    static AppAccountStringInfo *Unmarshalling(Parcel &parcel);
+};
+
+struct AppAccountAuthenticatorStringInfo : public Parcelable {
+    std::string name;
+    std::string authType;
+    std::string callerBundleName;
+    explicit AppAccountAuthenticatorStringInfo(
+        std::string name, std::string authType, std::string callerBundleName);
+    AppAccountAuthenticatorStringInfo() = default;
+    bool ReadFromParcel(Parcel &parcel);
+    bool Marshalling(Parcel &parcel) const override;
+    static AppAccountAuthenticatorStringInfo *Unmarshalling(Parcel &parcel);
 };
 
 class AppAccountInfo : public IAccountInfo, public Parcelable {

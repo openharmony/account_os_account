@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -46,24 +46,27 @@ const int32_t SESSION_MAX_NUM = 256;
 bool g_status = false;
 class MockAuthenticatorCallback final : public AppAccountAuthenticatorCallbackStub {
 public:
-    MOCK_METHOD2(OnResult, void(int32_t resultCode, const AAFwk::Want &result));
-    MOCK_METHOD1(OnRequestRedirected, void(AAFwk::Want &request));
-    MOCK_METHOD0(OnRequestContinued, void());
+    MOCK_METHOD2(OnResult, ErrCode(int32_t resultCode, const AAFwk::Want &result));
+    MOCK_METHOD1(OnRequestRedirected, ErrCode(const AAFwk::Want &request));
+    MOCK_METHOD0(OnRequestContinued, ErrCode());
 };
 
 class MockSpecicalAuthenticatorCallback final : public AppAccountAuthenticatorCallbackStub {
 public:
-    void OnResult(int32_t resultCode, const AAFwk::Want &result)
+    ErrCode OnResult(int32_t resultCode, const AAFwk::Want &result)
     {
         g_status = true;
+        return ERR_OK;
     }
-    void OnRequestRedirected(AAFwk::Want &request)
+    ErrCode OnRequestRedirected(const AAFwk::Want &request)
     {
         g_status = true;
+        return ERR_OK;
     }
-    void OnRequestContinued()
+    ErrCode OnRequestContinued()
     {
         g_status = true;
+        return ERR_OK;
     }
 };
 

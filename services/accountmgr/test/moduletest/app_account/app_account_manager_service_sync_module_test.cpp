@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -107,11 +107,12 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSync_AddAccount_0200");
 
-    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
-    EXPECT_EQ(result, ERR_OK);
+    int32_t funcResult = -1;
+    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
-    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
 #ifdef DISTRIBUTED_FEATURE_ENABLED
     auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
@@ -133,8 +134,8 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
     appAccountInfoPtr->GetName(name);
     EXPECT_EQ(name, STRING_NAME);
 
-    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 }
 
 /**
@@ -147,14 +148,15 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_De
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSync_DeleteAccount_0100");
 
-    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
-    EXPECT_EQ(result, ERR_OK);
+    int32_t funcResult = -1;
+    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
-    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
-    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
 #ifdef DISTRIBUTED_FEATURE_ENABLED
     auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
@@ -179,17 +181,18 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_De
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSync_DeleteAccount_0200");
 
-    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
-    EXPECT_EQ(result, ERR_OK);
+    int32_t funcResult = -1;
+    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
-    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
-    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_FALSE);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_FALSE, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
-    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
     {
         auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
         ASSERT_NE(dataStoragePtr, nullptr);
@@ -212,23 +215,24 @@ HWTEST_F(
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSync_SetAccountExtraInfo_0300");
 
-    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
-    ASSERT_EQ(result, ERR_OK);
+    int32_t funcResult = -1;
+    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO, funcResult);
+    ASSERT_EQ(funcResult, ERR_OK);
 
-    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
-    result = appAccountManagerServicePtr_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
-    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_FALSE);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_FALSE, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
-    result = appAccountManagerServicePtr_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO_TWO);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO_TWO, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
-    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
 #ifdef DISTRIBUTED_FEATURE_ENABLED
     auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
@@ -253,8 +257,8 @@ HWTEST_F(
     appAccountInfoPtr->GetExtraInfo(extraInfo);
     EXPECT_EQ(extraInfo, STRING_EXTRA_INFO_TWO);
 
-    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 }
 
 /**
@@ -267,14 +271,15 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSync_EnableAppAccess_0100");
 
-    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
-    EXPECT_EQ(result, ERR_OK);
+    int32_t funcResult = -1;
+    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
-    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
-    result = appAccountManagerServicePtr_->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
 
 #ifdef DISTRIBUTED_FEATURE_ENABLED
@@ -301,8 +306,8 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
     EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + APP_INDEX + HYPHEN + STRING_NAME + HYPHEN);
 #endif // DISTRIBUTED_FEATURE_ENABLED
 
-    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 }
 
 /**
@@ -315,17 +320,18 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSync_EnableAppAccess_0200");
 
-    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
-    EXPECT_EQ(result, ERR_OK);
+    int32_t funcResult = -1;
+    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
-    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
-    result = appAccountManagerServicePtr_->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
-    result = appAccountManagerServicePtr_->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ENABLE_APP_ACCESS_ALREADY_EXISTS);
+    result = appAccountManagerServicePtr_->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME, funcResult);
+    EXPECT_EQ(funcResult, ERR_APPACCOUNT_SERVICE_ENABLE_APP_ACCESS_ALREADY_EXISTS);
 
 #ifdef DISTRIBUTED_FEATURE_ENABLED
     auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
@@ -352,8 +358,8 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
 
     EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + APP_INDEX + HYPHEN + STRING_NAME + HYPHEN);
 
-    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 }
 
 /**
@@ -366,17 +372,18 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Di
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSync_DisableAppAccess_0100");
 
-    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
-    EXPECT_EQ(result, ERR_OK);
+    int32_t funcResult = -1;
+    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
-    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
-    result = appAccountManagerServicePtr_->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
-    result = appAccountManagerServicePtr_->DisableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->DisableAppAccess(STRING_NAME, STRING_BUNDLE_NAME, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
 #ifdef DISTRIBUTED_FEATURE_ENABLED
     auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
@@ -398,7 +405,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Di
     auto accessibleAccounts = GetVectorStringFromJson(jsonObject, STRING_BUNDLE_NAME);
     EXPECT_EQ(accessibleAccounts.size(), SIZE_ZERO);
 
-    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 }
 }  // namespace
