@@ -25,15 +25,14 @@
 
 namespace OHOS {
 namespace AccountSA {
-class OsAccountConstraintManager : public IInnerConstraint {
+class OsAccountConstraintManager {
 public:
     static OsAccountConstraintManager &GetInstance();
-    ErrCode SubscribeConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
-        const sptr<IRemoteObject> &eventListener) override;
-    ErrCode UnsubscribeConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
-        const sptr<IRemoteObject> &eventListener) override;
-    void Publish(int32_t localId, const std::set<std::string> &oldConstraints,
-        const std::set<std::string> &newConstraints, const bool enable) override;
+    ErrCode SubscribeOsAccountConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
+        const sptr<IRemoteObject> &eventListener);
+    ErrCode UnsubscribeOsAccountConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
+        const sptr<IRemoteObject> &eventListener);
+    void Publish(int32_t localId, const std::set<std::string> &constraints, const bool isEnabled);
 
 private:
     OsAccountConstraintManager();
@@ -42,7 +41,7 @@ private:
 
 private:
     std::shared_ptr<IOsAccountControl> osAccountControl_;
-    IConstraintSubscribe  &subscribeManager_;
+    OsAccountConstraintSubscribeManager &subscribeManager_;
 };
 } // AccountSA
 } // OHOS

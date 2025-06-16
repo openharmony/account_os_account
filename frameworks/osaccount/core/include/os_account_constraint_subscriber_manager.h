@@ -18,26 +18,33 @@
 
 #include <map>
 #include <set>
-#include "os_account_event_stub.h"
-#include "os_account_contraint_subscriber.h"
+#include "ios_account.h"
+#include "os_account_constraint_event_stub.h"
+#include "os_account_constraint_subscriber.h"
 
 namespace OHOS {
 namespace AccountSA {
-class OsAccountConstraintEventListener : public OsAccountConstraintEventStub {
+class OsAccountConstraintSubscriberManager : public OsAccountConstraintEventStub {
 public:
-    static OsAccountConstraintEventListener* GetInstance();
-    ErrCode OnConstraintChanged(int localId, const std::set<std::string> &constraints, bool enable) override;
+    static OsAccountConstraintSubscriberManager& GetInstance();
+    ErrCode OnConstraintChanged(int32_t localId, const std::set<std::string> &constraints, bool enable) override;
+    ErrCode SubscribeOsAccountConstraints(const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber,
+        sptr<IOsAccount> &proxy);
+    ErrCode UnsubscribeOsAccountConstraints(const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber,
+        sptr<IOsAccount> &proxy);
+    void RestoreConstraintSubscriberRecords(sptr<IOsAccount> &proxy);
+
+private:
+    OsAccountConstraintSubscriberManager();
+    ~OsAccountConstraintSubscriberManager() = default;
+    DISALLOW_COPY_AND_MOVE(OsAccountConstraintSubscriberManager);
     bool HasSubscribed(const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber);
-    bool IsNeedDataSync(const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber);
     void InsertSubscriberRecord(const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber);
     void RemoveSubscriberRecord(const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber);
-    void GetAllConstraintSubscribeInfos(OsAccountConstraintSubscribeInfo &osAccountConstraintSubscribeInfo);
-private:
-    OsAccountConstraintEventListener();
-    ~OsAccountConstraintEventListener() = default;
-    DISALLOW_COPY_AND_MOVE(OsAccountConstraintEventListener);
+
 private:
     std::mutex mutex_;
+    sptr<IOsAccount> proxy_;
     std::set<std::shared_ptr<OsAccountConstraintSubscriber>> subscriberSet_;
     std::set<std::string> constraintSet_;
     std::map<std::string, std::set<std::shared_ptr<OsAccountConstraintSubscriber>>> constraint2SubscriberMap_;

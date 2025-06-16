@@ -26,12 +26,9 @@ class OsAccountConstraintSubscribeInfo : public Parcelable {
 public:
     OsAccountConstraintSubscribeInfo();
     OsAccountConstraintSubscribeInfo(const std::set<std::string> &constraints);
-    OsAccountConstraintSubscribeInfo& operator=(const OsAccountConstraintSubscribeInfo&) = default;
     ~OsAccountConstraintSubscribeInfo() = default;
     void SetConstraints(const std::set<std::string> &constraints);
-    void AddConstraints(const std::set<std::string> &constraints);
     void GetConstraints(std::set<std::string> &constraints) const;
-    bool IsConstraintSetEmpty();
     bool Marshalling(Parcel &parcel) const override;
     static OsAccountConstraintSubscribeInfo *Unmarshalling(Parcel &parcel);
 

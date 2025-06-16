@@ -3240,6 +3240,6 @@ HWTEST_F(OsAccountManagerModuleTest, QueryDistributedVirtualDeviceId002, TestSiz
  */
 HWTEST_F(OsAccountManagerModuleTest, SubscribeConstraints001, TestSize.Level1)
 {
-    EXPECT_EQ(OsAccountManager::SubscribeConstraints(nullptr), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    EXPECT_EQ(OsAccountManager::UnsubscribeConstraints(nullptr), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(OsAccountManager::SubscribeOsAccountConstraints(nullptr), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(OsAccountManager::UnsubscribeOsAccountConstraints(nullptr), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }

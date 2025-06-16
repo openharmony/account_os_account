@@ -32,7 +32,7 @@ OsAccountConstraintManager &OsAccountConstraintManager::GetInstance()
     return instance;
 }
 
-ErrCode OsAccountConstraintManager::SubscribeConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
+ErrCode OsAccountConstraintManager::SubscribeOsAccountConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
     const sptr<IRemoteObject> &eventListener)
 {
     std::set<std::string> constraints;
@@ -46,11 +46,11 @@ ErrCode OsAccountConstraintManager::SubscribeConstraints(const OsAccountConstrai
         ACCOUNT_LOGE("Invalid constraints");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    return subscribeManager_.SubscribeConstraints(constraints, eventListener);
+    return subscribeManager_.SubscribeOsAccountConstraints(constraints, eventListener);
 }
 
-ErrCode OsAccountConstraintManager::UnsubscribeConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
-    const sptr<IRemoteObject> &eventListener)
+ErrCode OsAccountConstraintManager::UnsubscribeOsAccountConstraints(
+    const OsAccountConstraintSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener)
 {
     std::set<std::string> constraints;
     subscribeInfo.GetConstraints(constraints);
@@ -63,13 +63,12 @@ ErrCode OsAccountConstraintManager::UnsubscribeConstraints(const OsAccountConstr
         ACCOUNT_LOGE("Invalid constraints");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    return subscribeManager_.UnsubscribeConstraints(constraints, eventListener);
+    return subscribeManager_.UnsubscribeOsAccountConstraints(constraints, eventListener);
 }
 
-void OsAccountConstraintManager::Publish(int32_t localId, const std::set<std::string> &oldConstraints,
-    const std::set<std::string> &newConstraints, const bool enable)
+void OsAccountConstraintManager::Publish(int32_t localId, const std::set<std::string> &constraints, const bool enable)
 {
-    return subscribeManager_.Publish(localId, oldConstraints, newConstraints, enable);
+    return subscribeManager_.Publish(localId, constraints, enable);
 }
 } // AccountSA
 } // OHOS

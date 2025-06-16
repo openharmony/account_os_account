@@ -101,9 +101,9 @@ public:
         const bool enable, const int32_t enforcerId, const bool isDeviceOwner) = 0;
     virtual ErrCode SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
         const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner) = 0;
-    virtual ErrCode SubscribeConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
+    virtual ErrCode SubscribeOsAccountConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
         const sptr<IRemoteObject> &eventListener) = 0;
-    virtual ErrCode UnsubscribeConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
+    virtual ErrCode UnsubscribeOsAccountConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
         const sptr<IRemoteObject> &eventListener) = 0;
     virtual ErrCode SetDefaultActivatedOsAccount(const int32_t id) = 0;
     virtual ErrCode GetDefaultActivatedOsAccount(int32_t &id) = 0;

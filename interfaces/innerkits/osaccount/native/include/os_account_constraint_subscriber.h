@@ -20,19 +20,23 @@
 
 namespace OHOS {
 namespace AccountSA {
+struct OsAccountConstraintStateData {
+    int32_t localId = -1;
+    std::string constraint = "";
+    bool isEnabled = false;
+};
+
 class OsAccountConstraintSubscriber {
 public:
     explicit OsAccountConstraintSubscriber(const std::set<std::string> &constraintSet);
     virtual ~OsAccountConstraintSubscriber();
     /**
-     * Notify the std::string> &constraint change.
+     * Notify the constraint change.
      *
-     * @param localId - the os acount id's constraint has changed
-     * @param constraint - this constraint has changed
-     * @param value - this constraint's new value, true means enable
+     * @param constraintData - this constraint info has changed
      * @since 20
      */
-    virtual void OnConstraintChanged(int localId, const std::string &constraint, bool enable) {};
+    virtual void OnConstraintChanged(const OsAccountConstraintStateData &constraintData) = 0;
     void GetConstraintSet(std::set<std::string> &constraintSet) const;
 private:
     std::set<std::string> constraintSet_;

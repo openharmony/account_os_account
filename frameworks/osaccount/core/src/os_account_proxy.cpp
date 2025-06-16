@@ -1408,7 +1408,7 @@ ErrCode OsAccountProxy::SetSpecificOsAccountConstraints(const std::vector<std::s
     return ERR_OK;
 }
 
-ErrCode OsAccountProxy::SubscribeConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
+ErrCode OsAccountProxy::SubscribeOsAccountConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
     const sptr<IRemoteObject> &eventListener)
 {
     MessageParcel data;
@@ -1420,7 +1420,7 @@ ErrCode OsAccountProxy::SubscribeConstraints(const OsAccountConstraintSubscribeI
     }
     if (!data.WriteParcelable(&subscribeInfo)) {
         ACCOUNT_LOGE("Failed to write subscribeInfo!");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteRemoteObject(eventListener)) {
@@ -1443,7 +1443,7 @@ ErrCode OsAccountProxy::SubscribeConstraints(const OsAccountConstraintSubscribeI
     return ERR_OK;
 }
 
-ErrCode OsAccountProxy::UnsubscribeConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
+ErrCode OsAccountProxy::UnsubscribeOsAccountConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
     const sptr<IRemoteObject> &eventListener)
 {
     MessageParcel data;
@@ -1455,7 +1455,7 @@ ErrCode OsAccountProxy::UnsubscribeConstraints(const OsAccountConstraintSubscrib
     }
     if (!data.WriteParcelable(&subscribeInfo)) {
         ACCOUNT_LOGE("Failed to write subscribeInfo!");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteRemoteObject(eventListener)) {

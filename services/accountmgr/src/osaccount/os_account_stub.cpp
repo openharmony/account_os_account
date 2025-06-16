@@ -1821,55 +1821,32 @@ ErrCode OsAccountStub::ProcSetSpecificOsAccountConstraints(MessageParcel &data, 
 
 ErrCode OsAccountStub::ProcSubscribeConstraints(MessageParcel &data, MessageParcel &reply)
 {
-#ifdef HICOLLIE_ENABLE
-    unsigned int flag = HiviewDFX::XCOLLIE_FLAG_LOG | HiviewDFX::XCOLLIE_FLAG_RECOVERY;
-    XCollieCallback callbackFunc = [callingPid = IPCSkeleton::GetCallingPid(),
-        callingUid = IPCSkeleton::GetCallingUid()](void *) {
-        ACCOUNT_LOGE("ProcSubscribeOsAccount failed, callingPid: %{public}d, callingUid: %{public}d.",
-            callingPid, callingUid);
-        ReportOsAccountOperationFail(callingUid, "watchDog", -1, "Subscribe osaccount time out");
-    };
-    int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(
-        TIMER_NAME, RECOVERY_TIMEOUT, callbackFunc, nullptr, flag);
-#endif // HICOLLIE_ENABLE
     std::unique_ptr<OsAccountConstraintSubscribeInfo> subscribeInfo(
         data.ReadParcelable<OsAccountConstraintSubscribeInfo>());
-    if (!subscribeInfo) {
+    if (subscribeInfo == nullptr) {
         ACCOUNT_LOGE("Failed to read parcelable for subscribeInfo");
-#ifdef HICOLLIE_ENABLE
-        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
-#endif // HICOLLIE_ENABLE
         return IPC_STUB_INVALID_DATA_ERR;
     }
 
     sptr<IRemoteObject> eventListener = data.ReadRemoteObject();
     if (eventListener == nullptr) {
         ACCOUNT_LOGE("Failed to read remote object for eventListener");
-#ifdef HICOLLIE_ENABLE
-        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
-#endif // HICOLLIE_ENABLE
         return IPC_STUB_INVALID_DATA_ERR;
     }
 
-    ErrCode result = SubscribeConstraints(*subscribeInfo, eventListener);
+    ErrCode result = SubscribeOsAccountConstraints(*subscribeInfo, eventListener);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("Failed to write reply, result %{public}d.", result);
-#ifdef HICOLLIE_ENABLE
-        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
-#endif // HICOLLIE_ENABLE
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-#ifdef HICOLLIE_ENABLE
-        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
-#endif // HICOLLIE_ENABLE
     return ERR_NONE;
 }
 
 ErrCode OsAccountStub::ProcUnsubscribeConstraints(MessageParcel &data, MessageParcel &reply)
 {
     std::unique_ptr<OsAccountConstraintSubscribeInfo> subscribeInfo(
-            data.ReadParcelable<OsAccountConstraintSubscribeInfo>());
-    if (!subscribeInfo) {
+        data.ReadParcelable<OsAccountConstraintSubscribeInfo>());
+    if (subscribeInfo == nullptr) {
         ACCOUNT_LOGE("Failed to read parcelable for subscribeInfo");
         return IPC_STUB_INVALID_DATA_ERR;
     }
@@ -1880,7 +1857,7 @@ ErrCode OsAccountStub::ProcUnsubscribeConstraints(MessageParcel &data, MessagePa
         return IPC_STUB_INVALID_DATA_ERR;
     }
 
-    ErrCode result = UnsubscribeConstraints(*subscribeInfo, eventListener);
+    ErrCode result = UnsubscribeOsAccountConstraints(*subscribeInfo, eventListener);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("Failed to write reply, result %{public}d.", result);
         return IPC_STUB_WRITE_PARCEL_ERR;
