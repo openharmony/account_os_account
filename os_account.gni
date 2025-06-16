@@ -178,12 +178,6 @@ if (!defined(global_parts_info) || defined(global_parts_info.security_huks)) {
   has_huks_part = false
 }
 
-if (!defined(global_parts_info) || defined(global_parts_info.theme_theme_mgr)) {
-  has_theme_mar_part = true
-} else {
-  has_theme_mar_part = false
-}
-
 if (!defined(global_parts_info) ||
     defined(global_parts_info.customization_config_policy)) {
   has_config_policy_part = true
