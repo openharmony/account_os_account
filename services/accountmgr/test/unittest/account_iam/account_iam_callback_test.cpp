@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,7 +20,6 @@
 #include "iinner_os_account_manager.h"
 #include "os_account_info.h"
 #undef private
-#include "account_iam_callback_stub.h"
 #include "account_iam_client.h"
 #include "account_log_wrapper.h"
 #include "domain_account_client.h"
@@ -31,7 +30,6 @@
 #include "os_account_info.h"
 #include "os_account_manager.h"
 #include "token_setproc.h"
-#include "account_iam_callback_stub.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -62,17 +60,17 @@ public:
 
 class MockIIDMCallback : public IDMCallbackStub {
 public:
-    void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override
+ErrCode OnAcquireInfo(int32_t module, uint32_t acquireInfo, const std::vector<uint8_t>& extraInfoBuffer) override
     {
         module_ = module;
         acquireInfo_ = acquireInfo;
-        return;
+        return ERR_OK;
     }
-    void OnResult(int32_t result, const Attributes &extraInfo) override
+    ErrCode OnResult(int32_t resultCode, const std::vector<uint8_t>& extraInfoBuffer) override
     {
-        ACCOUNT_LOGI("OnResult result:%{public}d", result);
-        result_ = result;
-        return;
+        ACCOUNT_LOGI("OnResult result:%{public}d", resultCode);
+        result_ = resultCode;
+        return ERR_OK;
     }
 
 public:
@@ -109,25 +107,25 @@ private:
 class MockGetEnrolledIdCallback
     : public GetEnrolledIdCallbackStub {
 public:
-    MOCK_METHOD2(OnEnrolledId, void(int32_t result, uint64_t enrolledId));
+    MOCK_METHOD2(OnEnrolledId, ErrCode(int32_t resultCode, uint64_t enrolledId));
 };
 
 class MockGetSetPropCallback
     : public GetSetPropCallbackStub {
 public:
-    MOCK_METHOD2(OnResult, void(int32_t result, const Attributes &extraInfo));
+    MOCK_METHOD2(OnResult, ErrCode(int32_t resultCode, const std::vector<uint8_t>& extraInfoBuffer));
 };
 
 class MockGetCredInfoCallback1
     : public GetCredInfoCallbackStub {
 public:
-    MOCK_METHOD2(OnCredentialInfo, void(int32_t result, const std::vector<CredentialInfo> &infoList));
+    MOCK_METHOD2(OnCredentialInfo, ErrCode(int32_t resultCode, const std::vector<CredentialInfoIam>& infoList));
 };
 
 class MockPrepareRemoteAuthCallbackWrapper
     : public PreRemoteAuthCallbackStub {
 public:
-    MOCK_METHOD1(OnResult, void(int32_t result));
+    MOCK_METHOD1(OnResult, ErrCode(int32_t resultCode));
 };
 
 class AccountIamCallbackTest : public testing::Test {

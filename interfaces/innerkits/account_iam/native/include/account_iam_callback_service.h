@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,11 +16,15 @@
 #ifndef OS_ACCOUNT_INTERFACES_INNERKITS_ACCOUNT_IAM_NATIVE_INCLUDE_ACCOUNT_IAM_CALLBACK_SERVICE_H
 #define OS_ACCOUNT_INTERFACES_INNERKITS_ACCOUNT_IAM_NATIVE_INCLUDE_ACCOUNT_IAM_CALLBACK_SERVICE_H
 
-#include "account_iam_callback_stub.h"
 #include "account_iam_client_callback.h"
 #include "account_iam_info.h"
-#include "domain_account_common.h"
 #include "domain_account_callback.h"
+#include "domain_account_common.h"
+#include "get_cred_info_callback_stub.h"
+#include "get_enrolled_id_callback_stub.h"
+#include "get_set_prop_callback_stub.h"
+#include "id_m_callback_stub.h"
+#include "pre_remote_auth_callback_stub.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -28,8 +32,8 @@ class IDMCallbackService : public IDMCallbackStub {
 public:
     IDMCallbackService(int32_t userId, const std::shared_ptr<IDMCallback> &callback);
     ~IDMCallbackService();
-    void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override;
-    void OnResult(int32_t result, const Attributes &extraInfo) override;
+    ErrCode OnAcquireInfo(int32_t module, uint32_t acquireInfo, const std::vector<uint8_t>& extraInfoBuffer) override;
+    ErrCode OnResult(int32_t resultCode, const std::vector<uint8_t>& extraInfoBuffer) override;
 
 private:
     int32_t userId_;
@@ -42,7 +46,7 @@ class GetCredInfoCallbackService : public GetCredInfoCallbackStub {
 public:
     explicit GetCredInfoCallbackService(const std::shared_ptr<GetCredInfoCallback> &callback);
     ~GetCredInfoCallbackService();
-    void OnCredentialInfo(int32_t result, const std::vector<CredentialInfo> &infoList) override;
+    ErrCode OnCredentialInfo(int32_t resultCode, const std::vector<CredentialInfoIam>& infoList) override;
 
 private:
     std::shared_ptr<GetCredInfoCallback> callback_;
@@ -54,7 +58,7 @@ class GetSetPropCallbackService : public GetSetPropCallbackStub {
 public:
     explicit GetSetPropCallbackService(const std::shared_ptr<GetSetPropCallback> &callback);
     ~GetSetPropCallbackService();
-    void OnResult(int32_t result, const Attributes &extraInfo) override;
+    ErrCode OnResult(int32_t resultCode, const std::vector<uint8_t>& extraInfoBuffer) override;
 
 private:
     std::shared_ptr<GetSetPropCallback> callback_;
@@ -66,7 +70,7 @@ class GetEnrolledIdCallbackService : public GetEnrolledIdCallbackStub {
 public:
     explicit GetEnrolledIdCallbackService(const std::shared_ptr<GetEnrolledIdCallback> &callback);
     ~GetEnrolledIdCallbackService();
-    void OnEnrolledId(int32_t result, uint64_t enrolledId) override;
+    ErrCode OnEnrolledId(int32_t resultCode, uint64_t enrolledId) override;
 
 private:
     std::shared_ptr<GetEnrolledIdCallback> callback_;
@@ -78,7 +82,7 @@ class PreRemoteAuthCallbackService : public PreRemoteAuthCallbackStub {
 public:
     explicit PreRemoteAuthCallbackService(const std::shared_ptr<PreRemoteAuthCallback> &callback);
     ~PreRemoteAuthCallbackService();
-    void OnResult(int32_t result) override;
+    ErrCode OnResult(int32_t resultCode) override;
 
 private:
     std::shared_ptr<PreRemoteAuthCallback> callback_;

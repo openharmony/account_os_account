@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,16 +19,17 @@
 
 #include "accesstoken_kit.h"
 #include "account_error_no.h"
-#include "account_iam_callback_stub.h"
 #include "account_log_wrapper.h"
 #include "account_test_common.h"
 #include "iam_common_defines.h"
 #define private public
-#include "inner_account_iam_manager.h"
 #include "iinner_os_account_manager.h"
+#include "inner_account_iam_manager.h"
 #undef private
+#include "id_m_callback_stub.h"
 #include "istorage_manager.h"
 #include "parameter.h"
+#include "pre_remote_auth_callback_stub.h"
 #include "token_setproc.h"
 
 using namespace testing;
@@ -87,25 +88,27 @@ int MockDeathRecipient::Dump(int fd, const std::vector<std::u16string> &args)
 
 class MockIIDMCallback : public IDMCallbackStub {
 public:
-    MOCK_METHOD2(OnResult, void(int32_t result, const AccountSA::Attributes &extraInfo));
-    MOCK_METHOD3(OnAcquireInfo, void(int32_t module, uint32_t acquireInfo, const AccountSA::Attributes &extraInfo));
+    MOCK_METHOD2(OnResult, ErrCode(int32_t resultCode, const std::vector<uint8_t>& extraInfoBuffer));
+    MOCK_METHOD3(
+        OnAcquireInfo, ErrCode(int32_t module, uint32_t acquireInfo, const std::vector<uint8_t>& extraInfoBuffer));
 };
 
 class TestIIDMCallback : public IDMCallbackStub {
 public:
     explicit TestIIDMCallback(const std::shared_ptr<MockIIDMCallback> &callback) : callback_(callback)
     {}
-    void OnResult(int32_t result, const AccountSA::Attributes &extraInfo)
+    ErrCode OnResult(int32_t resultCode, const std::vector<uint8_t>& extraInfoBuffer)
     {
-        callback_->OnResult(result, extraInfo);
+        callback_->OnResult(resultCode, extraInfoBuffer);
         std::unique_lock<std::mutex> lock(mutex);
         isReady = true;
         cv.notify_one();
-        return;
+        return ERR_OK;
     }
-    void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const AccountSA::Attributes &extraInfo)
+    ErrCode OnAcquireInfo(int32_t module, uint32_t acquireInfo, const std::vector<uint8_t>& extraInfoBuffer)
     {
-        callback_->OnAcquireInfo(module, acquireInfo, extraInfo);
+        callback_->OnAcquireInfo(module, acquireInfo, extraInfoBuffer);
+        return ERR_OK;
     }
     std::condition_variable cv;
     bool isReady = false;
@@ -117,16 +120,16 @@ private:
 
 class MockIIDMCallback2 : public IDMCallbackStub {
 public:
-    void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override
+    ErrCode OnAcquireInfo(int32_t module, uint32_t acquireInfo, const std::vector<uint8_t>& extraInfoBuffer) override
     {
         module_ = module;
         acquireInfo_ = acquireInfo;
-        return;
+        return ERR_OK;
     }
-    void OnResult(int32_t result, const Attributes &extraInfo) override
+    ErrCode OnResult(int32_t resultCode, const std::vector<uint8_t>& extraInfoBuffer) override
     {
-        result_ = result;
-        return;
+        result_ = resultCode;
+        return ERR_OK;
     }
 
 public:
@@ -137,17 +140,17 @@ public:
 
 class MockPreRemoteAuthCallback : public PreRemoteAuthCallbackStub {
 public:
-    MOCK_METHOD1(OnResult, void(int32_t result));
+    MOCK_METHOD1(OnResult, ErrCode(int32_t resultCode));
 };
 
 class TestPreRemoteAuthCallback : public PreRemoteAuthCallbackStub {
 public:
     explicit TestPreRemoteAuthCallback(const std::shared_ptr<MockPreRemoteAuthCallback> &callback) : callback_(callback)
     {}
-    void OnResult(int32_t result)
+    ErrCode OnResult(int32_t resultCode)
     {
-        callback_->OnResult(result);
-        return;
+        callback_->OnResult(resultCode);
+        return ERR_OK;
     }
 
 private:
@@ -383,12 +386,11 @@ HWTEST_F(AccountIamManagerTest, AuthUser001, TestSize.Level0)
     sptr<TestIIDMCallback> testCallback = new(std::nothrow) TestIIDMCallback(callback);
     EXPECT_NE(testCallback, nullptr);
     EXPECT_CALL(*callback, OnResult(_, _)).Times(0);
-    AccountSA::AuthParam authParam = {
-        .userId = TEST_EXIST_ID,
-        .challenge = TEST_CHALLENGE,
-        .authType = AuthType::PIN,
-        .authTrustLevel = AuthTrustLevel::ATL1
-    };
+    AccountSA::AuthParam authParam;
+    authParam.userId = TEST_EXIST_ID;
+    authParam.challenge = TEST_CHALLENGE;
+    authParam.authType = AuthType::PIN;
+    authParam.authTrustLevel = AuthTrustLevel::ATL1;
     uint64_t contextId = 0;
     ErrCode errCode = InnerAccountIAMManager::GetInstance().AuthUser(authParam, nullptr, contextId);
     EXPECT_EQ(ERR_ACCOUNT_COMMON_NULL_PTR_ERROR, errCode);
@@ -573,12 +575,11 @@ HWTEST_F(AccountIamManagerTest, testAuthUser001, TestSize.Level0)
     sptr<TestIIDMCallback> testCallback = new(std::nothrow) TestIIDMCallback(callback);
     EXPECT_NE(testCallback, nullptr);
     EXPECT_CALL(*callback, OnResult(_, _)).Times(0);
-    AccountSA::AuthParam authParam = {
-        .userId = TEST_EXIST_ID,
-        .challenge = TEST_CHALLENGE,
-        .authType = AuthType::PIN,
-        .authTrustLevel = AuthTrustLevel::ATL1
-    };
+    AccountSA::AuthParam authParam;
+    authParam.userId = TEST_EXIST_ID;
+    authParam.challenge = TEST_CHALLENGE;
+    authParam.authType = AuthType::PIN;
+    authParam.authTrustLevel = AuthTrustLevel::ATL1;
     uint64_t contextId = 0;
     ErrCode errCode = InnerAccountIAMManager::GetInstance().AuthUser(authParam, testCallback, contextId);
     EXPECT_EQ(ERR_IAM_BUSY, errCode);

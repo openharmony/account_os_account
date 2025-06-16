@@ -1,4 +1,4 @@
-# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Copyright (c) 2024-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -58,6 +58,7 @@ ohos_fuzztest("GetPropertyByCredentialIdStubFuzzTest") {
   ]
 
   deps = [
+    "${account_iam_framework_path}:account_iam_stub",
     "${account_iam_framework_path}:account_iam_innerkits",
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
@@ -70,6 +71,7 @@ ohos_fuzztest("GetPropertyByCredentialIdStubFuzzTest") {
     "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
     "access_token:libtokenid_sdk",
+    "access_token:libtokensetproc_shared",
     "bundle_framework:appexecfwk_base",
     "cJSON:cjson",
     "c_utils:utils",

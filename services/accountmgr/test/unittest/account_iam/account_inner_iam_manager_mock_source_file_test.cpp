@@ -21,7 +21,6 @@
 
 #include "accesstoken_kit.h"
 #include "account_error_no.h"
-#include "account_iam_callback_stub.h"
 #include "account_log_wrapper.h"
 #include "account_test_common.h"
 #define private public
@@ -93,26 +92,28 @@ void AccountIamManagerTest::TearDown()
 
 class MockIIDMCallback : public IDMCallbackStub {
 public:
-    MOCK_METHOD2(OnResult, void(int32_t result, const AccountSA::Attributes &extraInfo));
-    MOCK_METHOD3(OnAcquireInfo, void(int32_t module, uint32_t acquireInfo, const AccountSA::Attributes &extraInfo));
+    MOCK_METHOD2(OnResult, ErrCode(int32_t result, const std::vector<uint8_t>& extraInfoBuffer));
+    MOCK_METHOD3(
+        OnAcquireInfo, ErrCode(int32_t module, uint32_t acquireInfo, const std::vector<uint8_t>& extraInfoBuffer));
 };
 
 class TestIIDMCallback : public IDMCallbackStub {
 public:
     explicit TestIIDMCallback(const std::shared_ptr<MockIIDMCallback> &callback) : callback_(callback)
     {}
-    void OnResult(int32_t result, const AccountSA::Attributes &extraInfo)
+    ErrCode OnResult(int32_t result, const std::vector<uint8_t>& extraInfoBuffer)
     {
-        callback_->OnResult(result, extraInfo);
+        callback_->OnResult(result, extraInfoBuffer);
         std::unique_lock<std::mutex> lock(mutex_);
         result_ = result;
         isReady_ = true;
         cv_.notify_one();
-        return;
+        return ERR_OK;
     }
-    void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const AccountSA::Attributes &extraInfo)
+    ErrCode OnAcquireInfo(int32_t module, uint32_t acquireInfo, const std::vector<uint8_t>& extraInfoBuffer)
     {
-        callback_->OnAcquireInfo(module, acquireInfo, extraInfo);
+        callback_->OnAcquireInfo(module, acquireInfo, extraInfoBuffer);
+        return ERR_OK;
     }
     std::condition_variable cv_;
     bool isReady_ = false;
@@ -274,21 +275,21 @@ class TestGetCredInfoCallback : public GetCredInfoCallbackStub {
 public:
     explicit TestGetCredInfoCallback(const std::shared_ptr<MockGetCredInfoCallback> &callback) : callback_(callback)
     {}
-    void OnCredentialInfo(int32_t result, const std::vector<CredentialInfo> &infoList)
+    ErrCode OnCredentialInfo(int32_t resultCode, const std::vector<CredentialInfoIam>& infoList)
     {
         int infoListSize = infoList.size();
         callback_->OnResult(infoListSize);
         std::unique_lock<std::mutex> lock(mutex_);
         isReady_ = true;
-        result_ = result;
+        result_ = resultCode;
         infoList_ = infoList;
         cv_.notify_one();
-        return;
+        return ERR_OK;
     }
     std::condition_variable cv_;
     bool isReady_ = false;
     std::mutex mutex_;
-    std::vector<CredentialInfo> infoList_;
+    std::vector<CredentialInfoIam> infoList_;
     int32_t result_ = -1;
 
 private:
@@ -377,8 +378,8 @@ HWTEST_F(AccountIamManagerTest, GetCredInfoCallbackWrapper_GetCredentialInfo_030
     testCallback->cv_.wait_for(
         lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady_; });
     ASSERT_NE(testCallback->infoList_.size(), 0);
-    EXPECT_EQ(testCallback->infoList_[0].authType, static_cast<AuthType>(IAMAuthType::DOMAIN));
-    EXPECT_EQ(testCallback->infoList_[0].pinType, static_cast<PinSubType>(IAMAuthSubType::DOMAIN_MIXED));
+    EXPECT_EQ(testCallback->infoList_[0].credentialInfo.authType, static_cast<AuthType>(IAMAuthType::DOMAIN));
+    EXPECT_EQ(testCallback->infoList_[0].credentialInfo.pinType, static_cast<PinSubType>(IAMAuthSubType::DOMAIN_MIXED));
     IInnerOsAccountManager::GetInstance().osAccountControl_->DelOsAccount(TEST_USER_ID);
     ASSERT_EQ(InnerDomainAccountManager::GetInstance().UnregisterPlugin(), ERR_OK);
 }
@@ -411,8 +412,8 @@ HWTEST_F(AccountIamManagerTest, GetCredInfoCallbackWrapper_GetCredentialInfo_040
     testCallback->cv_.wait_for(
         lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady_; });
     ASSERT_NE(testCallback->infoList_.size(), 0);
-    EXPECT_EQ(testCallback->infoList_[0].authType, static_cast<AuthType>(IAMAuthType::DOMAIN));
-    EXPECT_EQ(testCallback->infoList_[0].pinType, static_cast<PinSubType>(IAMAuthSubType::DOMAIN_MIXED));
+    EXPECT_EQ(testCallback->infoList_[0].credentialInfo.authType, static_cast<AuthType>(IAMAuthType::DOMAIN));
+    EXPECT_EQ(testCallback->infoList_[0].credentialInfo.pinType, static_cast<PinSubType>(IAMAuthSubType::DOMAIN_MIXED));
     IInnerOsAccountManager::GetInstance().osAccountControl_->DelOsAccount(TEST_USER_ID);
     ASSERT_EQ(InnerDomainAccountManager::GetInstance().UnregisterPlugin(), ERR_OK);
 }
@@ -460,12 +461,11 @@ HWTEST_F(AccountIamManagerTest, GetAvailableStatus_0200, TestSize.Level3)
  */
 HWTEST_F(AccountIamManagerTest, CopyAuthParam001, TestSize.Level3)
 {
-    AccountSA::AuthParam srcAuthParam = {
-        .userId = TEST_USER_ID,
-        .challenge = TEST_CHALLENGE,
-        .authType = AuthType::PIN,
-        .authTrustLevel = AuthTrustLevel::ATL1
-    };
+    AccountSA::AuthParam srcAuthParam;
+    srcAuthParam.userId = TEST_USER_ID;
+    srcAuthParam.challenge = TEST_CHALLENGE;
+    srcAuthParam.authType = AuthType::PIN;
+    srcAuthParam.authTrustLevel = AuthTrustLevel::ATL1;
     UserIam::UserAuth::AuthParam testAuthParam;
     InnerAccountIAMManager::GetInstance().CopyAuthParam(srcAuthParam, testAuthParam);
     EXPECT_EQ(srcAuthParam.userId, TEST_USER_ID);
@@ -483,12 +483,11 @@ HWTEST_F(AccountIamManagerTest, CopyAuthParam001, TestSize.Level3)
 HWTEST_F(AccountIamManagerTest, CopyAuthParam002, TestSize.Level3)
 {
     // test remote param value is not empty
-    AccountSA::AuthParam srcAuthParam = {
-        .userId = TEST_USER_ID,
-        .challenge = TEST_CHALLENGE,
-        .authType = AuthType::PIN,
-        .authTrustLevel = AuthTrustLevel::ATL1
-    };
+    AccountSA::AuthParam srcAuthParam;
+    srcAuthParam.userId = TEST_USER_ID;
+    srcAuthParam.challenge = TEST_CHALLENGE;
+    srcAuthParam.authType = AuthType::PIN;
+    srcAuthParam.authTrustLevel = AuthTrustLevel::ATL1;
     std::optional<RemoteAuthParam> testRemoteAuthParam = RemoteAuthParam();
     testRemoteAuthParam.value().verifierNetworkId = "testVerifierNetworkId";
     testRemoteAuthParam.value().collectorNetworkId = "testCollectorNetworkId";
@@ -521,16 +520,17 @@ class TestGetPropertyCallback : public GetSetPropCallbackStub {
 public:
     explicit TestGetPropertyCallback(const std::shared_ptr<MockGetPropertyCallback> &callback) : callback_(callback)
     {}
-    void OnResult(int32_t result, const Attributes &extraInfo)
+    ErrCode OnResult(int32_t resultCode, const std::vector<uint8_t>& extraInfoBuffer)
     {
-        callback_->OnResult(result);
+        callback_->OnResult(resultCode);
         std::unique_lock<std::mutex> lock(mutex_);
-        result_ = result;
+        result_ = resultCode;
+        Attributes extraInfo(extraInfoBuffer);
         extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, remainTimes_);
         extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, freezingTime_);
         isReady_ = true;
         cv_.notify_one();
-        return;
+        return ERR_OK;
     }
     std::condition_variable cv_;
     bool isReady_ = false;
@@ -748,14 +748,14 @@ class TestGetEnrolledIdCallback : public GetEnrolledIdCallbackStub {
 public:
     explicit TestGetEnrolledIdCallback(const std::shared_ptr<MockGetEnrolledIdCallback> &callback) : callback_(callback)
     {}
-    void OnEnrolledId(int32_t result, uint64_t enrolledId)
+    ErrCode OnEnrolledId(int32_t resultCode, uint64_t enrolledId)
     {
         callback_->OnResult(enrolledId);
         std::unique_lock<std::mutex> lock(mutex_);
         isReady_ = true;
-        result_ = result;
+        result_ = resultCode;
         cv_.notify_one();
-        return;
+        return ERR_OK;
     }
     std::condition_variable cv_;
     bool isReady_ = false;

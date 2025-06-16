@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -156,7 +156,7 @@ void InnerAccountIAMManager::UpdateCredential(
     Attributes emptyResult;
     if (credInfo.token.empty()) {
         ACCOUNT_LOGE("token is empty");
-        callback->OnResult(ResultCode::INVALID_PARAMETERS, emptyResult);
+        callback->OnResult(ResultCode::INVALID_PARAMETERS, emptyResult.Serialize());
         return;
     }
 
@@ -189,7 +189,7 @@ void InnerAccountIAMManager::DelCred(
     Attributes emptyResult;
     if (authToken.empty()) {
         ACCOUNT_LOGD("token is empty");
-        callback->OnResult(ResultCode::INVALID_PARAMETERS, emptyResult);
+        callback->OnResult(ResultCode::INVALID_PARAMETERS, emptyResult.Serialize());
         return;
     }
     uint64_t pinCredentialId = 0;
@@ -211,7 +211,7 @@ void InnerAccountIAMManager::DelUser(
     Attributes errResult;
     if (authToken.empty()) {
         ACCOUNT_LOGE("token is empty");
-        callback->OnResult(ResultCode::FAIL, errResult);
+        callback->OnResult(ResultCode::FAIL, errResult.Serialize());
         return;
     }
     std::lock_guard<std::mutex> userLock(*GetOperatingUserLock(userId));
@@ -237,7 +237,9 @@ void InnerAccountIAMManager::GetCredentialInfo(
             info.pinType = static_cast<PinSubType>(IAMAuthSubType::DOMAIN_MIXED);
             infoList.emplace_back(info);
         }
-        return callback->OnCredentialInfo(ERR_OK, infoList);
+        auto credentialInfoIamList = ConvertToCredentialInfoIamList(infoList);
+        callback->OnCredentialInfo(ERR_OK, credentialInfoIamList);
+        return;
     }
     auto getCallback = std::make_shared<GetCredInfoCallbackWrapper>(userId, static_cast<int32_t>(authType), callback);
     ACCOUNT_LOGI("Start to get credential info, userId=%{public}d, authType=%{public}d", userId, authType);
@@ -428,7 +430,7 @@ void InnerAccountIAMManager::GetProperty(
     ErrCode result = GetDomainAuthStatusInfo(userId, request, callback);
     if (result != ERR_OK) {
         Attributes attributes;
-        callback->OnResult(result, attributes);
+        callback->OnResult(result, attributes.Serialize());
     }
 #else
     Attributes attributes;
@@ -454,7 +456,7 @@ void InnerAccountIAMManager::SetProperty(
 {
     if (static_cast<int32_t>(request.authType) == static_cast<int32_t>(IAMAuthType::DOMAIN)) {
         Attributes result;
-        callback->OnResult(ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE, result);
+        callback->OnResult(ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE, result.Serialize());
         return;
     }
     auto setCallback = std::make_shared<SetPropCallbackWrapper>(userId, callback);

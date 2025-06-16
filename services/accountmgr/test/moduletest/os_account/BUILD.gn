@@ -105,6 +105,7 @@ ohos_moduletest("os_account_manager_service_module_test") {
     "os_account_manager_service_no_permission_module_test.cpp",
   ]
   sources += [
+    "${account_iam_framework_path}/src/account_iam_info.cpp",
     "${app_account_services_path}/src/ability_manager_adapter/ability_manager_adapter.cpp",
     "${app_account_services_path}/src/appaccount/app_account_control_manager.cpp",
     "${app_account_services_path}/src/appaccount/app_account_manager_service.cpp",
@@ -140,6 +141,7 @@ ohos_moduletest("os_account_manager_service_module_test") {
   version_script = "${services_path}/accountmgr/libaccountmgr.map"
 
   deps = [
+    "${account_iam_framework_path}:account_iam_stub",
     "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:account_stub",
@@ -298,6 +300,7 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
   version_script = "${services_path}/accountmgr/libaccountmgr.map"
 
   deps = [
+    "${account_iam_framework_path}:account_iam_stub",
     "${account_iam_framework_path}:account_iam_innerkits",
     "${account_iam_framework_path}/test/unittest:account_iam_client_test",
     "${account_test_common}:account_test_common_source_set",
