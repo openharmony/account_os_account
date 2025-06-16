@@ -22,9 +22,6 @@
 #include <mutex>
 #include "os_account_info.h"
 #include "os_account_user_callback.h"
-#ifdef HAS_THEME_SERVICE_PART
-#include "theme_manager_client.h"
-#endif
 
 namespace OHOS {
 namespace AccountSA {
@@ -37,9 +34,6 @@ public:
     static ErrCode SendToBMSAccountCreate(
         OsAccountInfo &osAccountInfo, const std::vector<std::string> &disallowedHapList = {},
         const std::optional<std::vector<std::string>> &allowedHapList = std::nullopt);
-#ifdef HAS_THEME_SERVICE_PART
-    static void InitThemeResource(int32_t localId);
-#endif
     static ErrCode SendToBMSAccountDelete(OsAccountInfo &osAccountInfo);
 #ifdef HAS_USER_IDM_PART
     static ErrCode SendToIDMAccountDelete(OsAccountInfo &osAccountInfo);
