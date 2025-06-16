@@ -28,7 +28,9 @@
         "vtable for OHOS::AccountSA::ForegroundOsAccount";
         "vtable for OHOS::AccountSA::ConstraintSourceTypeInfo";
         "OHOS::AccountSA::DomainAccountInfo::Unmarshalling(OHOS::Parcel&)";
+        "OHOS::AccountSA::ForegroundOsAccount::Marshalling(OHOS::Parcel&) const";
         "OHOS::AccountSA::ForegroundOsAccount::Unmarshalling(OHOS::Parcel&)";
+        "OHOS::AccountSA::ConstraintSourceTypeInfo::Marshalling(OHOS::Parcel&) const";
         "OHOS::AccountSA::ConstraintSourceTypeInfo::Unmarshalling(OHOS::Parcel&)";
         "OHOS::AccountSA::OsAccount::GetInstance()";
         "OHOS::AccountSA::OsAccount::OsAccount()";

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,6 +37,7 @@ const int64_t STRING_SERIAL_NUMBER = 121012012;
 constexpr std::int32_t UID_TRANSFORM_DIVISOR = 200000;
 const int32_t ROOT_UID = 0;
 const int32_t TEST_UID = 100;
+const uint64_t TEST_DISPLAY_ID = 1;
 const std::vector<std::string> VECTOR_CONSTRAINTS {"one", "two", "three", "four", "five"};
 const bool BOOL_IS_OS_ACCOUNT_VERIFIED = true;
 const bool BOOL_IS_OS_ACCOUNT_COMPLETED = true;
@@ -131,6 +132,48 @@ void OsAccountInfoTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 
 void OsAccountInfoTest::TearDown(void)
 {}
+
+/**
+ * @tc.name: OsAccountInfoParcel_ConstraintSourceTypeInfo_0100
+ * @tc.desc: ConstraintSourceTypeInfo Marshalling and Unmarshalling
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, OsAccountInfoParcel_ConstraintSourceTypeInfo_0100, TestSize.Level3)
+{
+    Parcel Parcel;
+    ConstraintSourceTypeInfo option1;
+
+    option1.localId = ROOT_UID;
+    option1.typeInfo = CONSTRAINT_NOT_EXIST;
+    EXPECT_EQ(option1.Marshalling(Parcel), true);
+    ConstraintSourceTypeInfo *option2 = option1.Unmarshalling(Parcel);
+    EXPECT_NE(option2, nullptr);
+
+    EXPECT_EQ(option2->localId, ROOT_UID);
+    EXPECT_EQ(option2->typeInfo, CONSTRAINT_NOT_EXIST);
+}
+
+/**
+ * @tc.name: OsAccountInfoParcel_ForegroundOsAccount_0100
+ * @tc.desc: ForegroundOsAccount Marshalling and Unmarshalling
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, OsAccountInfoParcel_ForegroundOsAccount_0100, TestSize.Level3)
+{
+    Parcel Parcel;
+    ForegroundOsAccount option1;
+
+    option1.localId = ROOT_UID;
+    option1.displayId = TEST_DISPLAY_ID;
+    EXPECT_EQ(option1.Marshalling(Parcel), true);
+    ForegroundOsAccount *option2 = option1.Unmarshalling(Parcel);
+    EXPECT_NE(option2, nullptr);
+
+    EXPECT_EQ(option2->localId, ROOT_UID);
+    EXPECT_EQ(option2->displayId, TEST_DISPLAY_ID);
+}
 
 /**
  * @tc.name: OsAccountInfo_OsAccountInfo_0100

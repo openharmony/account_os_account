@@ -1948,6 +1948,9 @@ HWTEST_F(OsAccountManagerServiceModuleTest, MaxNumTest007, TestSize.Level1)
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, MaxNumTest008, TestSize.Level1)
 {
+    uint64_t tokenID;
+    ASSERT_TRUE(AllocPermission({}, tokenID));
+
     AccountFileOperator osAccountFileOperator;
     osAccountFileOperator.InputFileByPathAndContent(CONFIG_PATH, CONFIG_JSON_NORMAL);
     auto &innerMgr = osAccountManagerService_->innerManager_;
@@ -1998,6 +2001,8 @@ HWTEST_F(OsAccountManagerServiceModuleTest, MaxNumTest008, TestSize.Level1)
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, SetOsAccountIsLoggedInTest001, TestSize.Level1)
 {
+    uint64_t tokenID;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
     OsAccountInfo osAccountInfo;
     ErrCode ret = osAccountManagerService_->CreateOsAccount(
         "SetOsAccountIsLoggedInTest001", OsAccountType::NORMAL, osAccountInfo);
@@ -2078,6 +2083,8 @@ HWTEST_F(OsAccountManagerServiceModuleTest, MaintenanceTypeTest001, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, U1Checkout001, TestSize.Level1)
 {
+    uint64_t tokenID;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
     ASSERT_EQ(osAccountManagerService_->RemoveOsAccount(1), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
     ASSERT_EQ(osAccountManagerService_->SetOsAccountName(1, STRING_NAME), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
     std::vector<std::string> constraints;
