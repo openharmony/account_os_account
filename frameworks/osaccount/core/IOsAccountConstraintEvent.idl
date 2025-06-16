@@ -13,20 +13,8 @@
  * limitations under the License.
  */
 
-#include "os_account_contraint_subscriber.h"
+interface_token ohos.accountfwk.IOsAccountConstraintEvent;
 
-namespace OHOS {
-namespace AccountSA {
-OsAccountConstraintSubscriber::OsAccountConstraintSubscriber(const std::set<std::string> &constraintSet)
-    : constraintSet_(constraintSet)
-{}
-
-OsAccountConstraintSubscriber::~OsAccountConstraintSubscriber()
-{}
-
-void OsAccountConstraintSubscriber::GetConstraintSet(std::set<std::string> &constraintSet) const
-{
-    constraintSet = constraintSet_;
+interface OHOS.AccountSA.IOsAccountConstraintEvent {
+    void OnConstraintChanged([in] int localId, [in] Set<String> constraints, [in] boolean enable);
 }
-}  // namespace AccountSA
-}  // namespace OHOS

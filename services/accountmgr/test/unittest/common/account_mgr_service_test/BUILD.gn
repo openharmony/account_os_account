@@ -143,13 +143,14 @@ ohos_unittest("account_mgr_test") {
   sources += [
     "${domain_account_framework_path}/src/domain_account_common.cpp",
     "${innerkits_native_path}/src/account_info_parcel.cpp",
+    "${os_account_innerkits_native_path}/src/os_account_constraint_subscriber.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
   ]
   sources += account_service_sources
   sources += ability_manager_sources
   sources += [
-    "${os_account_core_path}/src/os_account_constraint_event_listener.cpp",
+    "${os_account_core_path}/src/os_account_constraint_subscriber_manager.cpp",
     "${os_account_core_path}/src/os_account.cpp",
     "${os_account_core_path}/src/os_account_death_recipient.cpp",
     "${os_account_core_path}/src/os_account_event_listener.cpp",
@@ -350,6 +351,7 @@ ohos_unittest("account_stub_test") {
   configs = [
     "${services_path}/accountmgr:bundle_manager_config",
     "${services_path}/accountmgr:accountmgr_config",
+    "${os_account_innerkits_native_path}:frameworks_osaccount_interface_public_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
     "${domain_account_framework_path}:frameworks_domain_account_interface_public_config",
   ]

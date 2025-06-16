@@ -32,19 +32,9 @@ void OsAccountConstraintSubscribeInfo::SetConstraints(const std::set<std::string
     constraintSet_ = constraints;
 }
 
-void OsAccountConstraintSubscribeInfo::AddConstraints(const std::set<std::string> &constraints)
-{
-    constraintSet_.insert(constraints.begin(), constraints.end());
-}
-
 void OsAccountConstraintSubscribeInfo::GetConstraints(std::set<std::string> &constraints) const
 {
     constraints = constraintSet_;
-}
-
-bool OsAccountConstraintSubscribeInfo::IsConstraintSetEmpty()
-{
-    return constraintSet_.empty();
 }
 
 bool OsAccountConstraintSubscribeInfo::Marshalling(Parcel &parcel) const
@@ -53,7 +43,7 @@ bool OsAccountConstraintSubscribeInfo::Marshalling(Parcel &parcel) const
         ACCOUNT_LOGE("Write constraintSet size failed.");
         return false;
     }
-    for (auto item : constraintSet_) {
+    for (const auto &item : constraintSet_) {
         if ((!parcel.WriteString(item))) {
             ACCOUNT_LOGE("Write constraintSet item failed.");
             return false;
@@ -77,6 +67,7 @@ bool OsAccountConstraintSubscribeInfo::ReadFromParcel(Parcel &parcel)
 {
     uint32_t size = 0;
     if (!parcel.ReadUint32(size)) {
+        ACCOUNT_LOGE("Read size failed.");
         return false;
     }
     if (size > Constants::CONSTRAINT_MAX_SIZE) {
@@ -86,6 +77,7 @@ bool OsAccountConstraintSubscribeInfo::ReadFromParcel(Parcel &parcel)
     std::string constraint;
     for (uint32_t i = 0; i < size; i++) {
         if ((!parcel.ReadString(constraint))) {
+            ACCOUNT_LOGE("Read constraint item failed.");
             return false;
         }
         constraintSet_.emplace(constraint);

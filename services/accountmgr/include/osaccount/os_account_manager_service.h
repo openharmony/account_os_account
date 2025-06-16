@@ -117,9 +117,9 @@ public:
         const bool enable, const int32_t enforcerId, const bool isDeviceOwner) override;
     ErrCode SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
         const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner) override;
-    ErrCode SubscribeConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
+    ErrCode SubscribeOsAccountConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
         const sptr<IRemoteObject> &eventListener) override;
-    ErrCode UnsubscribeConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
+    ErrCode UnsubscribeOsAccountConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
         const sptr<IRemoteObject> &eventListener) override;
 
     ErrCode SetDefaultActivatedOsAccount(const int32_t id) override;
@@ -153,7 +153,7 @@ private:
 
 private:
     IInnerOsAccountManager &innerManager_;
-    IInnerConstraint &constraintManger_;
+    OsAccountConstraintManager &constraintManger_;
     DISALLOW_COPY_AND_MOVE(OsAccountManagerService);
 };
 }  // namespace AccountSA

@@ -18,38 +18,35 @@
 
 #include <map>
 #include <set>
-#include "ios_account_event.h"
 #include "ios_account_subscribe.h"
 
 namespace OHOS {
 namespace AccountSA {
-class OsAccountConstraintSubscribeManager : public IConstraintSubscribe  {
+class OsAccountConstraintSubscribeManager {
 public:
     static OsAccountConstraintSubscribeManager &GetInstance();
-    ErrCode SubscribeConstraints(const std::set<std::string> &constraints,
-        const sptr<IRemoteObject> &eventListener) override;
-    ErrCode UnsubscribeConstraints(const std::set<std::string> &constraints,
-        const sptr<IRemoteObject> &eventListener) override;
-    ErrCode UnsubscribeConstraints(const sptr<IRemoteObject> &eventListener) override;
-    void Publish(int32_t localId, const std::set<std::string> &oldConstraints,
-        const std::set<std::string> &newConstraints, const bool enable) override;
+    ErrCode SubscribeOsAccountConstraints(const std::set<std::string> &constraints,
+        const sptr<IRemoteObject> &eventListener);
+    ErrCode UnsubscribeOsAccountConstraints(const std::set<std::string> &constraints,
+        const sptr<IRemoteObject> &eventListener);
+    ErrCode UnsubscribeOsAccountConstraints(const sptr<IRemoteObject> &eventListener);
+    void Publish(int32_t localId, const std::set<std::string> &constraints, const bool isEnabled);
 
 private:
     OsAccountConstraintSubscribeManager();
     ~OsAccountConstraintSubscribeManager() = default;
     DISALLOW_COPY_AND_MOVE(OsAccountConstraintSubscribeManager);
-    void Publish(int32_t localId, const std::set<std::string> &constraints, const bool enable);
-    void RemoveSubscribeRecord(const ConstraintRecordPtr &recordPtr,
+    void RemoveConstraintFromSubscribeRecord(const OsAccountConstraintSubscribeRecordPtr &recordPtr,
         const std::set<std::string> &constraints);
-    void InsertSubscribeRecord(const ConstraintRecordPtr &recordPtr);
-    void PublishToSubsriber(const ConstraintRecordPtr &recordPtr, int32_t localId,
-        const std::set<std::string> &constraints, bool enable);
+    void InsertSubscribeRecord(const OsAccountConstraintSubscribeRecordPtr &recordPtr);
+    void PublishToSubscriber(const OsAccountConstraintSubscribeRecordPtr &recordPtr, int32_t localId,
+        const std::set<std::string> &constraints, bool isEnabled);
 
 private:
     std::mutex mutex_;
     sptr<IRemoteObject::DeathRecipient> subscribeDeathRecipient_;
-    std::set<ConstraintRecordPtr> constraintRecords_;
-    std::map<std::string, std::set<ConstraintRecordPtr>> constraint2RecordMap_;
+    std::set<OsAccountConstraintSubscribeRecordPtr> constraintRecords_;
+    std::map<std::string, std::set<OsAccountConstraintSubscribeRecordPtr>> constraint2RecordMap_;
 };
 } // AccountSA
 } // OHOS

@@ -336,14 +336,16 @@ ErrCode OsAccountManager::SetSpecificOsAccountConstraints(const std::vector<std:
         SetSpecificOsAccountConstraints(constraints, enable, targetId, enforcerId, isDeviceOwner);
 }
 
-ErrCode OsAccountManager::SubscribeConstraints(const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber)
+ErrCode OsAccountManager::SubscribeOsAccountConstraints(
+    const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber)
 {
-    return OsAccount::GetInstance().SubscribeConstraints(subscriber);
+    return OsAccount::GetInstance().SubscribeOsAccountConstraints(subscriber);
 }
 
-ErrCode OsAccountManager::UnsubscribeConstraints(const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber)
+ErrCode OsAccountManager::UnsubscribeOsAccountConstraints(
+    const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber)
 {
-    return OsAccount::GetInstance().UnsubscribeConstraints(subscriber);
+    return OsAccount::GetInstance().UnsubscribeOsAccountConstraints(subscriber);
 }
 
 ErrCode OsAccountManager::SetDefaultActivatedOsAccount(const int32_t id)

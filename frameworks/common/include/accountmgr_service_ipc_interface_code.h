@@ -138,10 +138,6 @@ enum class OsAccountEventInterfaceCode : uint32_t {
     ON_STATE_CHANGED = 2,
 };
 
-enum class ConstraintEventInterfaceCode : uint32_t {
-    CONSTRAINT_CHANGED = 0,
-};
-
 enum class StateReplyCallbackInterfaceCode : uint32_t {
     ON_COMPLETE = 0,
 };

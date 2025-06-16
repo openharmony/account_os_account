@@ -180,24 +180,24 @@ class MockOsAccountConstraintSubscriber : public OsAccountConstraintSubscriber {
 public:
     explicit MockOsAccountConstraintSubscriber(const std::set<std::string> &constraintSet)
         : OsAccountConstraintSubscriber(constraintSet) {}
-    void OnConstraintChanged(int localId, const std::string &constraint, bool enable) {};
+    void OnConstraintChanged(const OsAccountConstraintStateData &constraintData) {};
 };
 
 void TestConstraintSubscibeInfo()
 {
     g_flag = !g_flag;
-    int32_t i = 1000;
+    int32_t i = TEST_COUNT;
     std::set<std::string> constraintSet = {CONSTRAINT_WIFI};
     if (g_flag) {
         while (i--) {
             auto subscriber = std::make_shared<MockOsAccountConstraintSubscriber>(constraintSet);
             EXPECT_NE(nullptr, subscriber);
-            sptr<OsAccountConstraintEventListener> listener = new (std::nothrow) OsAccountConstraintEventListener();
+            sptr<OsAccountConstraintSubscriberManager> listener =
+                new (std::nothrow) OsAccountConstraintSubscriberManager();
             listener->InsertSubscriberRecord(subscriber);
-            OsAccountConstraintSubscribeInfo info;
-            listener->GetAllConstraintSubscribeInfos(info);
+            OsAccountConstraintSubscribeInfo info(listener->constraintSet_);
             setuid(i);
-            EXPECT_EQ(ERR_OK, OsAccount::GetInstance().proxy_->SubscribeConstraints(info, listener));
+            EXPECT_EQ(ERR_OK, OsAccount::GetInstance().proxy_->SubscribeOsAccountConstraints(info, listener));
         }
     } else {
         while (i--) {

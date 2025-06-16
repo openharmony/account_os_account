@@ -40,7 +40,7 @@
 #include <string>
 #include <vector>
 #include "domain_account_callback.h"
-#include "os_account_contraint_subscriber.h"
+#include "os_account_constraint_subscriber.h"
 #include "os_account_info.h"
 #include "os_account_subscriber.h"
 #include "account_error_no.h"
@@ -572,17 +572,19 @@ public:
 
     /**
      * @brief Subscribes the event of constraints changed by the subscriber.
+     * @permission ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS
      * @param subscriber subscriber information
      * @return error code, see account_error_no.h
      */
-    static ErrCode SubscribeConstraints(const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber);
+    static ErrCode SubscribeOsAccountConstraints(const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber);
 
     /**
      * @brief unsubscribes the event of constraints changed by the subscriber.
+     * @permission ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS
      * @param subscriber unsubscriber information which must be subscribed before
      * @return error code, see account_error_no.h
      */
-    static ErrCode UnsubscribeConstraints(const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber);
+    static ErrCode UnsubscribeOsAccountConstraints(const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber);
 
     /**
      * @brief Sets the default activated OS account.

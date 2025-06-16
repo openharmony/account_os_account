@@ -13,24 +13,20 @@
  * limitations under the License.
  */
 
-#include "os_account_constraint_subscribe_death_recipient.h"
-
-#include "account_log_wrapper.h"
-#include "os_account_constraint_subscribe_manager.h"
+#include "os_account_constraint_subscriber.h"
 
 namespace OHOS {
 namespace AccountSA {
-void OsAccountConstraintSubscribeDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
+OsAccountConstraintSubscriber::OsAccountConstraintSubscriber(const std::set<std::string> &constraintSet)
+    : constraintSet_(constraintSet)
+{}
+
+OsAccountConstraintSubscriber::~OsAccountConstraintSubscriber()
+{}
+
+void OsAccountConstraintSubscriber::GetConstraintSet(std::set<std::string> &constraintSet) const
 {
-    sptr<IRemoteObject> object = remote.promote();
-    if (object == nullptr) {
-        ACCOUNT_LOGE("Object is nullptr");
-        return;
-    }
-
-    OsAccountConstraintSubscribeManager::GetInstance().UnsubscribeOsAccountConstraints(object);
-
-    ACCOUNT_LOGI("End");
+    constraintSet = constraintSet_;
 }
 }  // namespace AccountSA
 }  // namespace OHOS

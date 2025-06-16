@@ -26,7 +26,7 @@
         "OHOS::AccountSA::OsAccount::GetInstance()";
         "OHOS::AccountSA::OsAccount::OsAccount()";
         "OHOS::AccountSA::OsAccount::RestoreListenerRecords()";
-        "OHOS::AccountSA::OsAccount::RestoreConstraintsRecords()";
+        "OHOS::AccountSA::OsAccount::RestoreConstraintSubscriberRecords()";
         "OHOS::AccountSA::OsAccount::CreateOsAccountEventListener(std::__h::shared_ptr<OHOS::AccountSA::OsAccountSubscriber> const&, OHOS::sptr<OHOS::IRemoteObject>&)";
         "OHOS::AccountSA::OsAccount::CreateOsAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::OsAccountType const&, OHOS::AccountSA::OsAccountInfo&)";
         "OHOS::AccountSA::OsAccount::CreateOsAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::OsAccountType const&, OHOS::AccountSA::OsAccountInfo&)";
@@ -64,13 +64,14 @@
         "OHOS::AccountSA::OsAccount::IsOsAccountCompleted(int, bool&)";
         "OHOS::AccountSA::OsAccount::SubscribeOsAccount(std::__h::shared_ptr<OHOS::AccountSA::OsAccountSubscriber> const&)";
         "OHOS::AccountSA::OsAccount::UnsubscribeOsAccount(std::__h::shared_ptr<OHOS::AccountSA::OsAccountSubscriber> const&)";
-        "OHOS::AccountSA::OsAccount::SubscribeConstraints(std::__h::shared_ptr<OHOS::AccountSA::OsAccountConstraintSubscriber> const&)";
-        "OHOS::AccountSA::OsAccount::UnsubscribeConstraints(std::__h::shared_ptr<OHOS::AccountSA::OsAccountConstraintSubscriber> const&)";
+        "OHOS::AccountSA::OsAccount::SubscribeOsAccountConstraints(std::__h::shared_ptr<OHOS::AccountSA::OsAccountConstraintSubscriber> const&)";
+        "OHOS::AccountSA::OsAccount::UnsubscribeOsAccountConstraints(std::__h::shared_ptr<OHOS::AccountSA::OsAccountConstraintSubscriber> const&)";
         "OHOS::AccountSA::OsAccount::GetOsAccountSwitchMod()";
         "OHOS::AccountSA::OsAccount::DumpState(int const&, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>&)";
         "OHOS::AccountSA::OsAccount::IsCurrentOsAccountVerified(bool&)";
         "OHOS::AccountSA::OsAccount::SetCurrentOsAccountIsVerified(bool)";
         "OHOS::AccountSA::OsAccount::SetOsAccountIsVerified(int, bool)";
+        "OHOS::AccountSA::OsAccountConstraintSubscriber::OnConstraintChanged(OHOS::AccountSA::OsAccountConstraintStateData const&)";
         "OHOS::AccountSA::OsAccountEventListener::OsAccountEventListener()";
         "OHOS::AccountSA::OsAccountEventListener::InsertRecord(std::__h::shared_ptr<OHOS::AccountSA::OsAccountSubscriber> const&)";
         "OHOS::AccountSA::OsAccountEventListener::GetTotalSubscribeInfo()";
@@ -91,10 +92,6 @@
         "OHOS::AccountSA::OsAccount::GetDefaultActivatedOsAccount(int&)";
         "OHOS::AccountSA::OsAccountSubscribeInfo::Marshalling(OHOS::Parcel&) const";
         "OHOS::AccountSA::OsAccountProxy::OsAccountProxy(OHOS::sptr<OHOS::IRemoteObject> const&)";
-        "OHOS::AccountSA::OsAccountConstraintEventListener::OsAccountConstraintEventListener()";
-        "OHOS::AccountSA::OsAccountConstraintEventListener::InsertSubscriberRecord(std::__h::shared_ptr<OHOS::AccountSA::OsAccountConstraintSubscriber> const&)";
-        "OHOS::AccountSA::OsAccountConstraintEventListener::GetAllConstraintSubscribeInfos(OHOS::AccountSA::OsAccountConstraintSubscribeInfo&)";
-        "OHOS::AccountSA::OsAccountConstraintSubscribeInfo::SetConstraints(std::__h::set<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::less<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&)";
         "OHOS::AccountSA::OsAccountManager::GetOsAccountSwitchMod()";
         "OHOS::AccountSA::OsAccountManager::CreateOsAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::OsAccountType const&, OHOS::AccountSA::OsAccountInfo&)";
         "OHOS::AccountSA::OsAccountManager::CreateOsAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::OsAccountType const&, OHOS::AccountSA::OsAccountInfo&)";
@@ -172,8 +169,8 @@
         "OHOS::AccountSA::OsAccountManager::GetOsAccountDomainInfo(int, OHOS::AccountSA::DomainAccountInfo&)";
         "OHOS::AccountSA::OsAccountManager::PublishOsAccountLockEvent(int, bool)";
         "OHOS::AccountSA::OsAccountManager::LockOsAccount(int)";
-        "OHOS::AccountSA::OsAccountManager::SubscribeConstraints(std::__h::shared_ptr<OHOS::AccountSA::OsAccountConstraintSubscriber> const&)";
-        "OHOS::AccountSA::OsAccountManager::UnsubscribeConstraints(std::__h::shared_ptr<OHOS::AccountSA::OsAccountConstraintSubscriber> const&)";
+        "OHOS::AccountSA::OsAccountManager::SubscribeOsAccountConstraints(std::__h::shared_ptr<OHOS::AccountSA::OsAccountConstraintSubscriber> const&)";
+        "OHOS::AccountSA::OsAccountManager::UnsubscribeOsAccountConstraints(std::__h::shared_ptr<OHOS::AccountSA::OsAccountConstraintSubscriber> const&)";
         "OHOS::AccountSA::OsAccountInfo::GetLocalId() const";
         "OHOS::AccountSA::OsAccountInfo::ParamCheck()";
         "OHOS::AccountSA::OsAccountInfo::GetDomainInfo(OHOS::AccountSA::DomainAccountInfo&) const";
@@ -235,9 +232,6 @@
         "OHOS::AccountSA::OsAccountInfo::SetConstraints(std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>)";
         "OHOS::AccountSA::OsAccountInfo::SetLocalName(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>)";
         "OHOS::AccountSA::OsAccountInfo::SetPhoto(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>)";
-        "OHOS::AccountSA::OsAccountConstraintSubscriber::OsAccountConstraintSubscriber(std::__h::set<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::less<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&)";
-        "OHOS::AccountSA::OsAccountConstraintSubscriber::~OsAccountConstraintSubscriber()";
-        "OHOS::AccountSA::OsAccountConstraintSubscriber::GetConstraintSet(std::__h::set<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::less<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>&) const";
         "OHOS::AccountSA::OsAccountSubscriber::OsAccountSubscriber()";
         "OHOS::AccountSA::OsAccountSubscriber::~OsAccountSubscriber()";
         "OHOS::AccountSA::OsAccountSubscriber::OsAccountSubscriber(OHOS::AccountSA::OsAccountSubscribeInfo const&)";
@@ -245,8 +239,6 @@
         "OHOS::AccountSA::OsAccountStateReplyCallback::OsAccountStateReplyCallback(OHOS::sptr<OHOS::IRemoteObject> const&)";
         "OHOS::AccountSA::OsAccountStateReplyCallback::OsAccountStateReplyCallback(std::__h::shared_ptr<std::__h::condition_variable> const&, std::__h::shared_ptr<bool> const&)";
         "OHOS::AccountSA::OsAccountStateReplyCallback::OnComplete()";
-        "OHOS::AccountSA::OsAccountConstraintSubscribeInfo::OsAccountConstraintSubscribeInfo()";
-        "OHOS::AccountSA::OsAccountConstraintSubscribeInfo::~OsAccountConstraintSubscribeInfo()";
         "OHOS::AccountSA::OsAccountSubscribeInfo::Unmarshalling(OHOS::Parcel&)";
         "OHOS::AccountSA::OsAccountSubscribeInfo::OsAccountSubscribeInfo(std::__h::set<OHOS::AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE, std::__h::less<OHOS::AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE>, std::__h::allocator<OHOS::AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE>> const&, bool)";
         "OHOS::AccountSA::OsAccountSubscribeInfo::OsAccountSubscribeInfo(OHOS::AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";

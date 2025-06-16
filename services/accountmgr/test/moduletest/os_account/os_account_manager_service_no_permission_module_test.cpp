@@ -586,7 +586,7 @@ HWTEST_F(OsAccountManagerServiceNoPermissionModuleTest, OsAccountManagerServiceM
 
 /**
  * @tc.name: SubscribeConstraints_No_Permission001
- * @tc.desc: Test SubscribeConstraints PermissionCheck failed.
+ * @tc.desc: Test SubscribeOsAccountConstraints PermissionCheck failed.
  * @tc.type: FUNC
  * @tc.require: issueI6AQUQ
  */
@@ -596,9 +596,9 @@ HWTEST_F(OsAccountManagerServiceNoPermissionModuleTest, SubscribeConstraints_No_
     std::set<std::string> constraints;
     OsAccountConstraintSubscribeInfo info(constraints);
     EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->SubscribeConstraints(info, nullptr));
+        osAccountManagerService_->SubscribeOsAccountConstraints(info, nullptr));
     EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
-        osAccountManagerService_->UnsubscribeConstraints(info, nullptr));
+        osAccountManagerService_->UnsubscribeOsAccountConstraints(info, nullptr));
 }
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -21,6 +21,7 @@
 #include "account_log_wrapper.h"
 #include "os_account_constraint_subscribe_death_recipient.h"
 #include "ipc_skeleton.h"
+#include "ios_account_constraint_event.h"
 #ifdef HICOLLIE_ENABLE
 #include "account_timer.h"
 #include "xcollie/xcollie.h"
@@ -42,8 +43,8 @@ OsAccountConstraintSubscribeManager &OsAccountConstraintSubscribeManager::GetIns
     return instance;
 }
 
-void OsAccountConstraintSubscribeManager::RemoveSubscribeRecord(
-    const ConstraintRecordPtr &recordPtr, const std::set<std::string> &constraints)
+void OsAccountConstraintSubscribeManager::RemoveConstraintFromSubscribeRecord(
+    const OsAccountConstraintSubscribeRecordPtr &recordPtr, const std::set<std::string> &constraints)
 {
     for (auto const &constraint : constraints) {
         constraint2RecordMap_[constraint].erase(recordPtr);
@@ -58,7 +59,7 @@ void OsAccountConstraintSubscribeManager::RemoveSubscribeRecord(
 }
 
 void OsAccountConstraintSubscribeManager::InsertSubscribeRecord(
-    const ConstraintRecordPtr &recordPtr)
+    const OsAccountConstraintSubscribeRecordPtr &recordPtr)
 {
     constraintRecords_.emplace(recordPtr);
     for (auto const &constraint : recordPtr->constraintSet_) {
@@ -66,7 +67,7 @@ void OsAccountConstraintSubscribeManager::InsertSubscribeRecord(
     }
 }
 
-ErrCode OsAccountConstraintSubscribeManager::SubscribeConstraints(const std::set<std::string> &constraints,
+ErrCode OsAccountConstraintSubscribeManager::SubscribeOsAccountConstraints(const std::set<std::string> &constraints,
     const sptr<IRemoteObject> &eventListener)
 {
     if (eventListener == nullptr) {
@@ -76,11 +77,8 @@ ErrCode OsAccountConstraintSubscribeManager::SubscribeConstraints(const std::set
     std::lock_guard<std::mutex> lock(mutex_);
     int32_t callingUid = IPCSkeleton::GetCallingUid();
     for (auto const &recordPtr : constraintRecords_) {
-        if (recordPtr->callingUid_ != callingUid) {
+        if (recordPtr->eventListener_ != eventListener) {
             continue;
-        }
-        if (recordPtr->constraintSet_ == constraints) {
-            return ERR_ACCOUNT_COMMON_ACCOUNT_SUBSCRIBE_AREADY_ERROR;
         }
         recordPtr->constraintSet_ = constraints;
         InsertSubscribeRecord(recordPtr);
@@ -89,33 +87,33 @@ ErrCode OsAccountConstraintSubscribeManager::SubscribeConstraints(const std::set
     if (subscribeDeathRecipient_ != nullptr) {
         eventListener->AddDeathRecipient(subscribeDeathRecipient_);
     }
-    auto recordPtr = std::make_shared<ConstraintRecord>(constraints, eventListener, callingUid);
+    auto recordPtr = std::make_shared<OsAccountConstraintSubscribeRecord>(constraints, eventListener, callingUid);
     InsertSubscribeRecord(recordPtr);
     return ERR_OK;
 }
 
-ErrCode OsAccountConstraintSubscribeManager::UnsubscribeConstraints(const sptr<IRemoteObject> &eventListener)
+ErrCode OsAccountConstraintSubscribeManager::UnsubscribeOsAccountConstraints(const sptr<IRemoteObject> &eventListener)
 {
     if (eventListener == nullptr) {
         ACCOUNT_LOGE("EventListener is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
     std::lock_guard<std::mutex> lock(mutex_);
-    if (subscribeDeathRecipient_ != nullptr) {
-        eventListener->RemoveDeathRecipient(subscribeDeathRecipient_);
-    }
     for (auto const &recordPtr : constraintRecords_) {
         if (recordPtr->eventListener_ != eventListener) {
             continue;
         }
+        if (subscribeDeathRecipient_ != nullptr) {
+            eventListener->RemoveDeathRecipient(subscribeDeathRecipient_);
+        }
         std::set<std::string> constraints = recordPtr->constraintSet_;
-        RemoveSubscribeRecord(recordPtr, constraints);
+        RemoveConstraintFromSubscribeRecord(recordPtr, constraints);
         return ERR_OK;
     }
     return ERR_ACCOUNT_COMMON_ACCOUNT_SUBSCRIBE_NOT_FOUND_ERROR;
 }
 
-ErrCode OsAccountConstraintSubscribeManager::UnsubscribeConstraints(const std::set<std::string> &constraints,
+ErrCode OsAccountConstraintSubscribeManager::UnsubscribeOsAccountConstraints(const std::set<std::string> &constraints,
     const sptr<IRemoteObject> &eventListener)
 {
     if (eventListener == nullptr) {
@@ -123,31 +121,32 @@ ErrCode OsAccountConstraintSubscribeManager::UnsubscribeConstraints(const std::s
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
     std::lock_guard<std::mutex> lock(mutex_);
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
     for (auto const &recordPtr : constraintRecords_) {
-        if (recordPtr->callingUid_ != callingUid) {
+        if (recordPtr->eventListener_ != eventListener) {
             continue;
         }
         bool isInclude = std::includes(recordPtr->constraintSet_.begin(), recordPtr->constraintSet_.end(),
-                                        constraints.begin(), constraints.end());
+            constraints.begin(), constraints.end());
         if (!isInclude) {
+            ACCOUNT_LOGE("Constraint set not include.");
             return ERR_ACCOUNT_COMMON_ACCOUNT_SUBSCRIBE_NOT_FOUND_ERROR;
         }
-        RemoveSubscribeRecord(recordPtr, constraints);
+        RemoveConstraintFromSubscribeRecord(recordPtr, constraints);
         return ERR_OK;
     }
+    ACCOUNT_LOGE("Constraint record not found.");
     return ERR_ACCOUNT_COMMON_ACCOUNT_SUBSCRIBE_NOT_FOUND_ERROR;
 }
 
-void OsAccountConstraintSubscribeManager::PublishToSubsriber(const ConstraintRecordPtr &recordPtr, int32_t localId,
-    const std::set<std::string> &constraints, bool enable)
+void OsAccountConstraintSubscribeManager::PublishToSubscriber(const OsAccountConstraintSubscribeRecordPtr &recordPtr,
+    int32_t localId, const std::set<std::string> &constraints, bool isEnabled)
 {
     if (recordPtr->eventListener_ == nullptr) {
         ACCOUNT_LOGE("Subscribe constraint is null, localId=%{public}d, uid=%{public}d.", localId,
             recordPtr->callingUid_);
         return;
     }
-    auto eventProxy = iface_cast<IConstraintEvent>(recordPtr->eventListener_);
+    auto eventProxy = iface_cast<IOsAccountConstraintEvent>(recordPtr->eventListener_);
     if (eventProxy == nullptr) {
         ACCOUNT_LOGE("Event proxy is nullptr");
         return;
@@ -155,7 +154,7 @@ void OsAccountConstraintSubscribeManager::PublishToSubsriber(const ConstraintRec
     int32_t retryTimes = 0;
     ErrCode result;
     while (retryTimes < Constants::MAX_RETRY_TIMES) {
-        result = eventProxy->OnConstraintChanged(localId, constraints, enable);
+        result = eventProxy->OnConstraintChanged(localId, constraints, isEnabled);
         if (result == ERR_OK || (result != Constants::E_IPC_ERROR &&
             result != Constants::E_IPC_SA_DIED)) {
             break;
@@ -174,9 +173,10 @@ void OsAccountConstraintSubscribeManager::PublishToSubsriber(const ConstraintRec
 }
 
 void OsAccountConstraintSubscribeManager::Publish(int32_t localId, const std::set<std::string> &constraints,
-    const bool enable)
+    const bool isEnabled)
 {
-    std::set<ConstraintRecordPtr> recordPtrSet;
+    std::lock_guard<std::mutex> lock(mutex_);
+    std::set<OsAccountConstraintSubscribeRecordPtr> recordPtrSet;
     for (auto const &item : constraints) {
         auto iter = constraint2RecordMap_.find(item);
         if (iter != constraint2RecordMap_.end()) {
@@ -184,36 +184,16 @@ void OsAccountConstraintSubscribeManager::Publish(int32_t localId, const std::se
         }
     }
     for (auto const &item : recordPtrSet) {
-        auto task = [item, localId, constraints, enable, this] {
+        auto task = [item, localId, constraints, isEnabled, this] {
             ACCOUNT_LOGI("Publish start, to uid=%{public}d asynch, accountId=%{public}d, enable=%{public}d",
-                item->callingUid_, localId, enable);
-            this->PublishToSubsriber(item, localId, constraints, enable);
+                item->callingUid_, localId, isEnabled);
+            this->PublishToSubscriber(item, localId, constraints, isEnabled);
             ACCOUNT_LOGI("Publish end.");
         };
         std::thread taskThread(task);
         pthread_setname_np(taskThread.native_handle(), THREAD_CONSTRAINT_EVENT);
         taskThread.detach();
     }
-}
-
-void OsAccountConstraintSubscribeManager::Publish(int32_t localId, const std::set<std::string> &oldConstraints,
-    const std::set<std::string> &newConstraints, const bool enable)
-{
-    std::set<std::string> modifyEffectiveConstraints;
-    if (enable) {
-        for (auto const &constraint : newConstraints) {
-            if (oldConstraints.find(constraint) == oldConstraints.end()) {
-                modifyEffectiveConstraints.emplace(constraint);
-            }
-        }
-        return Publish(localId, modifyEffectiveConstraints, enable);
-    }
-    for (auto const &constraint : oldConstraints) {
-        if (newConstraints.find(constraint) == newConstraints.end()) {
-            modifyEffectiveConstraints.emplace(constraint);
-        }
-    }
-    return Publish(localId, modifyEffectiveConstraints, enable);
 }
 } // AccountSA
 } // OHOS

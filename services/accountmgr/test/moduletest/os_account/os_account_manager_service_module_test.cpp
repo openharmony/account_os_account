@@ -2095,7 +2095,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, U1Checkout001, TestSize.Level1)
 
 /**
  * @tc.name: SubscribeConstraints_Invalid_Param001
- * @tc.desc: Test SubscribeConstraints eventListener is nullptr
+ * @tc.desc: Test SubscribeOsAccountConstraints eventListener is nullptr
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2103,8 +2103,10 @@ HWTEST_F(OsAccountManagerServiceModuleTest, SubscribeConstraints_Invalid_Param00
 {
     std::set<std::string> constraints;
     OsAccountConstraintSubscribeInfo info(constraints);
-    ASSERT_EQ(osAccountManagerService_->SubscribeConstraints(info, nullptr), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    ASSERT_EQ(osAccountManagerService_->UnsubscribeConstraints(info, nullptr), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    ASSERT_EQ(osAccountManagerService_->SubscribeOsAccountConstraints(info, nullptr),
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    ASSERT_EQ(osAccountManagerService_->UnsubscribeOsAccountConstraints(info, nullptr),
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

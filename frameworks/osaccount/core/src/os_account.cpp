@@ -45,32 +45,16 @@ OsAccount::OsAccount()
     auto callbackFunc = [] (int32_t systemAbilityId, const std::string &deviceId) {
         if (systemAbilityId == SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN) {
             OsAccount::GetInstance().RestoreListenerRecords();
-            OsAccount::GetInstance().RestoreConstraintsRecords();
+            OsAccount::GetInstance().RestoreConstraintSubscriberRecords();
         }
     };
     OhosAccountKitsImpl::GetInstance().SubscribeSystemAbility(callbackFunc);
 }
 
-void OsAccount::RestoreConstraintsRecords()
+void OsAccount::RestoreConstraintSubscriberRecords()
 {
     auto proxy = GetOsAccountProxy();
-    if (proxy == nullptr) {
-        ACCOUNT_LOGE("GetProxy failed");
-        return;
-    }
-    std::lock_guard<std::mutex> lock(constraintEventListenerMutex_);
-    OsAccountConstraintSubscribeInfo subscribeInfo;
-    constraintListenerPtr_->GetAllConstraintSubscribeInfos(subscribeInfo);
-    if (subscribeInfo.IsConstraintSetEmpty()) {
-        ACCOUNT_LOGW("RestoreConstraintsRecords empty.");
-        return;
-    }
-    ErrCode errCode = proxy->SubscribeConstraints(subscribeInfo, constraintListenerPtr_);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("RestoreConstraintsRecords failed, errCode=%{public}d.", errCode);
-        return;
-    }
-    ACCOUNT_LOGI("RestoreConstraintsRecords success.");
+    OsAccountConstraintSubscriberManager::GetInstance().RestoreConstraintSubscriberRecords(proxy);
 }
 
 void OsAccount::RestoreListenerRecords()
@@ -857,81 +841,16 @@ ErrCode OsAccount::SetSpecificOsAccountConstraints(const std::vector<std::string
     return proxy->SetSpecificOsAccountConstraints(constraints, enable, targetId, enforcerId, isDeviceOwner);
 }
 
-ErrCode OsAccount::SubscribeConstraints(const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber)
+ErrCode OsAccount::SubscribeOsAccountConstraints(const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber)
 {
     auto proxy = GetOsAccountProxy();
-    if (proxy == nullptr) {
-        return ERR_ACCOUNT_COMMON_GET_PROXY;
-    }
-    if (subscriber == nullptr) {
-        ACCOUNT_LOGE("Subscriber is nullptr.");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-    std::set<std::string> constraintSet;
-    subscriber->GetConstraintSet(constraintSet);
-    if (constraintSet.empty()) {
-        ACCOUNT_LOGE("Empty constraints.");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-    if (constraintSet.size() > Constants::CONSTRAINT_MAX_SIZE) {
-        ACCOUNT_LOGE("Constraints size=%{public}zu is too large.", constraintSet.size());
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-    std::lock_guard<std::mutex> lock(constraintEventListenerMutex_);
-    if (constraintListenerPtr_->HasSubscribed(subscriber)) {
-        ACCOUNT_LOGE("Already subscribed.");
-        return ERR_ACCOUNT_COMMON_ACCOUNT_SUBSCRIBE_AREADY_ERROR;
-    }
-    if (!constraintListenerPtr_->IsNeedDataSync(subscriber)) {
-        ACCOUNT_LOGI("No need to sync data service.");
-        constraintListenerPtr_->InsertSubscriberRecord(subscriber);
-        return ERR_OK;
-    }
-    OsAccountConstraintSubscribeInfo subscribeInfo;
-    constraintListenerPtr_->GetAllConstraintSubscribeInfos(subscribeInfo);
-    subscribeInfo.AddConstraints(constraintSet);
-    ErrCode errCode = proxy->SubscribeConstraints(subscribeInfo, constraintListenerPtr_);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("SubscribeConstraints fail, errcode:%{public}d", errCode);
-        return errCode;
-    }
-    constraintListenerPtr_->InsertSubscriberRecord(subscriber);
-    return ERR_OK;
+    return constraintSubscriberMgr_->SubscribeOsAccountConstraints(subscriber, proxy);
 }
 
-ErrCode OsAccount::UnsubscribeConstraints(const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber)
+ErrCode OsAccount::UnsubscribeOsAccountConstraints(const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber)
 {
     auto proxy = GetOsAccountProxy();
-    if (proxy == nullptr) {
-        return ERR_ACCOUNT_COMMON_GET_PROXY;
-    }
-    if (subscriber == nullptr) {
-        ACCOUNT_LOGE("Subscriber is nullptr.");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-    std::set<std::string> constraintSet;
-    subscriber->GetConstraintSet(constraintSet);
-    if (constraintSet.empty()) {
-        ACCOUNT_LOGE("Empty constraints.");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-    if (constraintSet.size() > Constants::CONSTRAINT_MAX_SIZE) {
-        ACCOUNT_LOGE("Constraints size=%{public}zu is too large.", constraintSet.size());
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-    std::lock_guard<std::mutex> lock(constraintEventListenerMutex_);
-    if (!constraintListenerPtr_->HasSubscribed(subscriber)) {
-        ACCOUNT_LOGE("Not subscribed.");
-        return ERR_ACCOUNT_COMMON_ACCOUNT_SUBSCRIBE_NOT_FOUND_ERROR;
-    }
-    OsAccountConstraintSubscribeInfo info(constraintSet);
-    ErrCode errCode =  proxy->UnsubscribeConstraints(info, constraintListenerPtr_);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("UnsubscribeConstraints fail, errcode:%{public}d", errCode);
-        return errCode;
-    }
-    constraintListenerPtr_->RemoveSubscriberRecord(subscriber);
-    return ERR_OK;
+    return constraintSubscriberMgr_->UnsubscribeOsAccountConstraints(subscriber, proxy);
 }
 
 ErrCode OsAccount::SetDefaultActivatedOsAccount(const int32_t id)
