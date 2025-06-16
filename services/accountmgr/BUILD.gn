@@ -203,6 +203,7 @@ ohos_shared_library("accountmgr") {
     "${innerkits_native_path}/src/account_info_parcel.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
+    "${os_account_innerkits_native_path}/src/os_account_info_parcel.cpp",
   ]
   sources += account_service_sources
   sources += ability_manager_sources

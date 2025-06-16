@@ -17,7 +17,6 @@ interface_token ohos.accountfwk.IOsAccount;
 import ../../domain_account/IDomainAccountCallback;
 
 rawdata OHOS.AccountSA.StringRawData;
-rawdata OHOS.AccountSA.VectorStringRawData;
 
 sequenceable OHOS.AccountSA.OsAccountStateParcel;
 sequenceable OHOS.AccountSA.OsAccountInfo;

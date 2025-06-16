@@ -959,7 +959,7 @@ ErrCode OsAccount::QueryOsAccountConstraintSourceTypes(const int32_t id, const s
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-
+    constraintSourceTypeInfos.clear();
     auto errCode = proxy->QueryOsAccountConstraintSourceTypes(id, constraint, constraintSourceTypeInfos);
     return ConvertToAccountErrCode(errCode);
 }
@@ -1131,6 +1131,7 @@ ErrCode OsAccount::GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &acc
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
+    accounts.clear();
     auto errCode = proxy->GetForegroundOsAccounts(accounts);
     return ConvertToAccountErrCode(errCode);
 }
@@ -1141,6 +1142,7 @@ ErrCode OsAccount::GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
+    localIds.clear();
     auto errCode = proxy->GetBackgroundOsAccountLocalIds(localIds);
     return ConvertToAccountErrCode(errCode);
 }
@@ -1165,6 +1167,7 @@ ErrCode OsAccount::GetOsAccountDomainInfo(const int32_t localId, DomainAccountIn
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
+    domainInfo.Clear();
     auto errCode = proxy->GetOsAccountDomainInfo(localId, domainInfo);
     return ConvertToAccountErrCode(errCode);
 }

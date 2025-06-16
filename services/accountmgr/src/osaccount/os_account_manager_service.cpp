@@ -125,6 +125,16 @@ bool WriteOsAccountInfoVector(StringRawData& stringRawData, const std::vector<Os
     stringRawData.Marshalling(accountArrayJson);
     return true;
 }
+
+ErrCode CheckOsAccountConstraint(const std::string &constraint)
+{
+    if (constraint.empty() || constraint.size() > Constants::CONSTRAINT_MAX_SIZE) {
+        ACCOUNT_LOGE("Failed to read string for constraint, please check constraint length %{public}zu.",
+            constraint.size());
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    return ERR_OK;
+}
 }  // namespace
 
 OsAccountManagerService::OsAccountManagerService() : innerManager_(IInnerOsAccountManager::GetInstance()),
@@ -470,7 +480,11 @@ ErrCode OsAccountManagerService::IsOsAccountActived(int32_t id, bool &isOsAccoun
 ErrCode OsAccountManagerService::IsOsAccountConstraintEnable(
     int32_t id, const std::string &constraint, bool &isConstraintEnable)
 {
-    ErrCode res = CheckLocalId(id);
+    ErrCode res = CheckOsAccountConstraint(constraint);
+    if (res != ERR_OK) {
+        return res;
+    }
+    res = CheckLocalId(id);
     if (res != ERR_OK) {
         return res;
     }
@@ -487,7 +501,11 @@ ErrCode OsAccountManagerService::IsOsAccountConstraintEnable(
 ErrCode OsAccountManagerService::CheckOsAccountConstraintEnabled(
     int32_t id, const std::string &constraint, bool &isEnabled)
 {
-    ErrCode res = CheckLocalId(id);
+    ErrCode res = CheckOsAccountConstraint(constraint);
+    if (res != ERR_OK) {
+        return res;
+    }
+    res = CheckLocalId(id);
     if (res != ERR_OK) {
         return res;
     }
@@ -755,7 +773,9 @@ ErrCode OsAccountManagerService::GetOsAccountType(int32_t id, int32_t& typeValue
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     auto type = static_cast<OsAccountType>(typeValue);
-    return innerManager_.GetOsAccountType(id, type);
+    auto res = innerManager_.GetOsAccountType(id, type);
+    typeValue = static_cast<int32_t>(type);
+    return res;
 }
 
 ErrCode OsAccountManagerService::GetOsAccountProfilePhoto(const int id, std::string &photo)
@@ -1385,6 +1405,10 @@ ErrCode OsAccountManagerService::QueryOsAccountConstraintSourceTypes(int32_t id,
 ErrCode OsAccountManagerService::SetGlobalOsAccountConstraints(const std::vector<std::string> &constraints,
     bool enable, int32_t enforcerId, bool isDeviceOwner)
 {
+    if (enforcerId < 0) {
+        ACCOUNT_LOGE("Failed to read localId, please check enforcerId");
+        return ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR;
+    }
     // permission check
     if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "") || !PermissionCheck(MANAGE_EDM_POLICY, "")) {
         ACCOUNT_LOGE("Account manager service, permission denied!");
@@ -1401,6 +1425,14 @@ ErrCode OsAccountManagerService::SetGlobalOsAccountConstraints(const std::vector
 ErrCode OsAccountManagerService::SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
     bool enable, int32_t targetId, int32_t enforcerId, bool isDeviceOwner)
 {
+    if (targetId < 0) {
+        ACCOUNT_LOGE("Failed to read targetId, please check targetId");
+        return ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR;
+    }
+    if (enforcerId < 0) {
+        ACCOUNT_LOGE("Failed to read enforcerId, please check enforcerId");
+        return ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR;
+    }
     // permission check
     if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "") || !PermissionCheck(MANAGE_EDM_POLICY, "")) {
         ACCOUNT_LOGE("Account manager service, permission denied!");
