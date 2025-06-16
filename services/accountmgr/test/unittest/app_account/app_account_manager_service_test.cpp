@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -81,7 +81,8 @@ void AppAccountManagerServiceTest::TearDown(void)
  */
 HWTEST_F(AppAccountManagerServiceTest, AppAccountManagerService_AddAccount_0100, TestSize.Level1)
 {
-    ErrCode result = g_appAccountProxy->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    int32_t funcResult = -1;
+    ErrCode result = g_appAccountProxy->AddAccount(STRING_NAME, STRING_EXTRA_INFO, funcResult);
 
     EXPECT_EQ(result, ERR_OK);
 }
@@ -94,7 +95,8 @@ HWTEST_F(AppAccountManagerServiceTest, AppAccountManagerService_AddAccount_0100,
  */
 HWTEST_F(AppAccountManagerServiceTest, AppAccountManagerService_DeleteAccount_0100, TestSize.Level1)
 {
-    ErrCode result = g_appAccountProxy->DeleteAccount(STRING_NAME);
+    int32_t funcResult = -1;
+    ErrCode result = g_appAccountProxy->DeleteAccount(STRING_NAME, funcResult);
 
     EXPECT_EQ(result, ERR_OK);
 }
@@ -108,9 +110,10 @@ HWTEST_F(AppAccountManagerServiceTest, AppAccountManagerService_DeleteAccount_01
 HWTEST_F(AppAccountManagerServiceTest, AppAccountManagerService_CreateAccount_0100, TestSize.Level1)
 {
     CreateAccountOptions option;
-    ErrCode result = g_appAccountProxy->CreateAccount(STRING_NAME, option);
+    int32_t funcResult = -1;
+    ErrCode result = g_appAccountProxy->CreateAccount(STRING_NAME, option, funcResult);
     EXPECT_EQ(result, ERR_OK);
-    result = g_appAccountProxy->DeleteAccount(STRING_NAME);
+    result = g_appAccountProxy->DeleteAccount(STRING_NAME, funcResult);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -132,9 +135,11 @@ HWTEST_F(
     subscribeInfo.SetOwners(owners);
 
     // subscribe app account
-    ErrCode result = g_appAccountProxy->SubscribeAppAccount(subscribeInfo, nullptr);
+    int32_t funcResult = -1;
+    ErrCode result = g_appAccountProxy->SubscribeAppAccount(subscribeInfo, nullptr, funcResult);
 
-    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(funcResult, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }
 
 /**
@@ -148,7 +153,9 @@ HWTEST_F(
 {
     // unsubscribe app account
     std::vector<std::string> owners;
-    ErrCode result = g_appAccountProxy->UnsubscribeAppAccount(nullptr, owners);
+    int32_t funcResult = -1;
+    ErrCode result = g_appAccountProxy->UnsubscribeAppAccount(nullptr, owners, funcResult);
 
-    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(funcResult, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }

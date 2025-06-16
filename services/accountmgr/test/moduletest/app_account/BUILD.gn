@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -98,15 +98,14 @@ ohos_moduletest("app_account_authorization_extension_ability_test") {
     "${app_account_innerkits_native_path}/include",
     "${app_account_services_path}/include",
   ]
-  sources = [
-    "${app_account_services_path}/src/appaccount/app_account_authorization_extension_proxy.cpp",
-    "app_account_authorization_extension_ability_test.cpp",
-  ]
+  sources = [ "app_account_authorization_extension_ability_test.cpp" ]
 
   configs = [ ":app_account_service_config_unittest" ]
 
   deps = [
     "${account_napi_common_path}:account_napi_common",
+    "${app_account_innerkits_native_path}:app_account_authorization_extension_callback_proxy",
+    "${app_account_innerkits_native_path}:app_account_authorization_extension_proxy",
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_services_path}:accountmgr",
     "${common_path}:libaccount_common",
@@ -146,7 +145,6 @@ ohos_moduletest("app_account_manager_service_associated_data_test") {
     "${app_account_services_path}/src/account_data_storage.cpp",
     "${app_account_services_path}/src/appaccount/app_account_control_manager.cpp",
     "${app_account_services_path}/src/appaccount/app_account_manager_service.cpp",
-    "${app_account_services_path}/src/appaccount/app_account_stub.cpp",
     "${app_account_services_path}/src/appaccount/inner_app_account_manager.cpp",
     "${app_account_services_path}/src/bundle_manager_adapter/bundle_manager_adapter_proxy.cpp",
     "${app_account_services_path}/src/bundle_manager_adapter/bundle_user_manager_adapter_proxy.cpp",
@@ -179,6 +177,11 @@ ohos_moduletest("app_account_manager_service_associated_data_test") {
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
+  ]
+
+  deps += [
+    "${app_account_innerkits_native_path}:app_account_event_proxy",
+    "${app_account_innerkits_native_path}:app_account_stub",
   ]
 
   external_deps = [
@@ -279,6 +282,7 @@ ohos_moduletest("app_account_authenticator_callback_test") {
   configs = [ ":app_account_service_config_unittest" ]
 
   deps = [
+    "${app_account_innerkits_native_path}:app_account_authenticator_callback_proxy",
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_services_path}:accountmgr",
     "${app_account_services_path}/src/appaccount:app_account_service_core",
@@ -365,6 +369,7 @@ ohos_moduletest("app_account_authenticate_test") {
   ]
 
   deps = [
+    "${app_account_innerkits_native_path}:app_account_authenticator_proxy",
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_services_path}:accountmgr",
     "${app_account_services_path}/src/appaccount:app_account_service_core",
@@ -408,7 +413,6 @@ ohos_moduletest("app_account_control_manager_module_test") {
     "${app_account_services_path}/src/ability_manager_adapter/ability_manager_adapter.cpp",
     "${app_account_services_path}/src/appaccount/app_account_control_manager.cpp",
     "${app_account_services_path}/src/appaccount/app_account_manager_service.cpp",
-    "${app_account_services_path}/src/appaccount/app_account_stub.cpp",
     "${app_account_services_path}/src/appaccount/inner_app_account_manager.cpp",
     "${app_account_services_path}/src/bundle_manager_adapter/bundle_manager_adapter_proxy.cpp",
     "${app_account_services_path}/src/bundle_manager_adapter/bundle_user_manager_adapter_proxy.cpp",
@@ -443,6 +447,8 @@ ohos_moduletest("app_account_control_manager_module_test") {
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
+
+  deps += [ "${app_account_innerkits_native_path}:app_account_stub" ]
 
   external_deps = [
     "ability_base:base",
@@ -551,7 +557,6 @@ ohos_moduletest("app_account_authenticator_session_module_test") {
   sources = [
     "${app_account_services_path}/src/appaccount/app_account_control_manager.cpp",
     "${app_account_services_path}/src/appaccount/app_account_manager_service.cpp",
-    "${app_account_services_path}/src/appaccount/app_account_stub.cpp",
     "${app_account_services_path}/src/appaccount/inner_app_account_manager.cpp",
     "${app_account_services_path}/test/mock/app_account/app_account_authenticator_manager.cpp",
     "${app_account_services_path}/test/mock/app_account/mock_app_account_authenticator_stub.cpp",
@@ -560,25 +565,18 @@ ohos_moduletest("app_account_authenticator_session_module_test") {
   ]
 
   sources += [
-    "${app_account_innerkits_native_path}/src/app_account_authenticator_callback_proxy.cpp",
-    "${app_account_innerkits_native_path}/src/app_account_authenticator_callback_stub.cpp",
-    "${app_account_innerkits_native_path}/src/app_account_authorization_extension_callback_proxy.cpp",
     "${app_account_innerkits_native_path}/src/app_account_authorization_extension_callback_service.cpp",
-    "${app_account_innerkits_native_path}/src/app_account_authorization_extension_callback_stub.cpp",
     "${app_account_innerkits_native_path}/src/app_account_common.cpp",
     "${app_account_innerkits_native_path}/src/app_account_info.cpp",
     "${app_account_innerkits_native_path}/src/app_account_subscribe_info.cpp",
     "${app_account_services_path}/src/appaccount/app_account_authenticator_callback.cpp",
-    "${app_account_services_path}/src/appaccount/app_account_authenticator_proxy.cpp",
     "${app_account_services_path}/src/appaccount/app_account_authenticator_session.cpp",
     "${app_account_services_path}/src/appaccount/app_account_authenticator_session_manager.cpp",
-    "${app_account_services_path}/src/appaccount/app_account_authorization_extension_proxy.cpp",
     "${app_account_services_path}/src/appaccount/app_account_check_labels_callback.cpp",
     "${app_account_services_path}/src/appaccount/app_account_check_labels_session.cpp",
     "${app_account_services_path}/src/appaccount/app_account_common_event_observer.cpp",
     "${app_account_services_path}/src/appaccount/app_account_common_event_subscriber.cpp",
     "${app_account_services_path}/src/appaccount/app_account_data_storage.cpp",
-    "${app_account_services_path}/src/appaccount/app_account_event_proxy.cpp",
     "${app_account_services_path}/src/appaccount/app_account_subscribe_death_recipient.cpp",
     "${app_account_services_path}/src/appaccount/app_account_subscribe_manager.cpp",
   ]
@@ -613,6 +611,15 @@ ohos_moduletest("app_account_authenticator_session_module_test") {
     "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
+  ]
+
+  deps += [
+    "${app_account_innerkits_native_path}:app_account_authenticator_callback_proxy",
+    "${app_account_innerkits_native_path}:app_account_authenticator_callback_stub",
+    "${app_account_innerkits_native_path}:app_account_authenticator_proxy",
+    "${app_account_innerkits_native_path}:app_account_authorization_extension_callback_proxy",
+    "${app_account_innerkits_native_path}:app_account_authorization_extension_callback_stub",
+    "${app_account_innerkits_native_path}:app_account_authorization_extension_proxy",
   ]
 
   external_deps = [
@@ -711,6 +718,8 @@ ohos_moduletest("app_account_manager_service_module_test") {
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
+
+  deps += [ "${app_account_innerkits_native_path}:app_account_event_proxy" ]
 
   external_deps = [
     "ability_base:base",
@@ -816,7 +825,6 @@ ohos_moduletest("at_not_mock_app_account_manager_service_module_test") {
     "${app_account_services_path}/src/account_data_storage.cpp",
     "${app_account_services_path}/src/appaccount/app_account_control_manager.cpp",
     "${app_account_services_path}/src/appaccount/app_account_manager_service.cpp",
-    "${app_account_services_path}/src/appaccount/app_account_stub.cpp",
     "${app_account_services_path}/src/appaccount/inner_app_account_manager.cpp",
     "${app_account_services_path}/src/bundle_manager_adapter/bundle_manager_adapter_proxy.cpp",
     "${app_account_services_path}/src/bundle_manager_adapter/bundle_user_manager_adapter_proxy.cpp",
@@ -848,6 +856,8 @@ ohos_moduletest("at_not_mock_app_account_manager_service_module_test") {
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
+
+  deps += [ "${app_account_innerkits_native_path}:app_account_stub" ]
 
   external_deps = [
     "ability_base:base",
@@ -1050,7 +1060,6 @@ ohos_moduletest("app_account_authenticator_session_manager_module_test") {
   sources = [
     "${app_account_services_path}/src/appaccount/app_account_control_manager.cpp",
     "${app_account_services_path}/src/appaccount/app_account_manager_service.cpp",
-    "${app_account_services_path}/src/appaccount/app_account_stub.cpp",
     "${app_account_services_path}/src/appaccount/inner_app_account_manager.cpp",
     "${app_account_services_path}/test/mock/app_account/app_account_authenticator_manager.cpp",
     "${app_account_services_path}/test/mock/app_account/mock_app_account_authenticator_stub.cpp",
@@ -1059,25 +1068,18 @@ ohos_moduletest("app_account_authenticator_session_manager_module_test") {
   ]
 
   sources += [
-    "${app_account_innerkits_native_path}/src/app_account_authenticator_callback_proxy.cpp",
-    "${app_account_innerkits_native_path}/src/app_account_authenticator_callback_stub.cpp",
-    "${app_account_innerkits_native_path}/src/app_account_authorization_extension_callback_proxy.cpp",
     "${app_account_innerkits_native_path}/src/app_account_authorization_extension_callback_service.cpp",
-    "${app_account_innerkits_native_path}/src/app_account_authorization_extension_callback_stub.cpp",
     "${app_account_innerkits_native_path}/src/app_account_common.cpp",
     "${app_account_innerkits_native_path}/src/app_account_info.cpp",
     "${app_account_innerkits_native_path}/src/app_account_subscribe_info.cpp",
     "${app_account_services_path}/src/appaccount/app_account_authenticator_callback.cpp",
-    "${app_account_services_path}/src/appaccount/app_account_authenticator_proxy.cpp",
     "${app_account_services_path}/src/appaccount/app_account_authenticator_session.cpp",
     "${app_account_services_path}/src/appaccount/app_account_authenticator_session_manager.cpp",
-    "${app_account_services_path}/src/appaccount/app_account_authorization_extension_proxy.cpp",
     "${app_account_services_path}/src/appaccount/app_account_check_labels_callback.cpp",
     "${app_account_services_path}/src/appaccount/app_account_check_labels_session.cpp",
     "${app_account_services_path}/src/appaccount/app_account_common_event_observer.cpp",
     "${app_account_services_path}/src/appaccount/app_account_common_event_subscriber.cpp",
     "${app_account_services_path}/src/appaccount/app_account_data_storage.cpp",
-    "${app_account_services_path}/src/appaccount/app_account_event_proxy.cpp",
     "${app_account_services_path}/src/appaccount/app_account_subscribe_death_recipient.cpp",
     "${app_account_services_path}/src/appaccount/app_account_subscribe_manager.cpp",
   ]
@@ -1111,6 +1113,16 @@ ohos_moduletest("app_account_authenticator_session_manager_module_test") {
     "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
+  ]
+
+  deps += [
+    "${app_account_innerkits_native_path}:app_account_authenticator_callback_proxy",
+    "${app_account_innerkits_native_path}:app_account_authenticator_callback_stub",
+    "${app_account_innerkits_native_path}:app_account_authenticator_proxy",
+    "${app_account_innerkits_native_path}:app_account_authorization_extension_callback_proxy",
+    "${app_account_innerkits_native_path}:app_account_authorization_extension_callback_stub",
+    "${app_account_innerkits_native_path}:app_account_authorization_extension_proxy",
+    "${app_account_innerkits_native_path}:app_account_event_proxy",
   ]
 
   external_deps = [

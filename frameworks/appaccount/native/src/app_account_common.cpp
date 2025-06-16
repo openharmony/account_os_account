@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,6 +23,59 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 constexpr uint32_t MAX_VEC_SIZE = 1024;
+}
+
+bool AuthenticatorInfo::Marshalling(Parcel &parcel) const
+{
+    if (!parcel.WriteString(owner)) {
+        ACCOUNT_LOGE("Write owner failed, please check owner value or parcel status");
+        return false;
+    }
+    if (!parcel.WriteString(abilityName)) {
+        ACCOUNT_LOGE("Write abilityName failed, please check abilityName value or parcel status");
+        return false;
+    }
+    if (!parcel.WriteUint32(iconId)) {
+        ACCOUNT_LOGE("Write iconId failed, please check iconId value or parcel status");
+        return false;
+    }
+    if (!parcel.WriteUint32(labelId)) {
+        ACCOUNT_LOGE("Write labelId failed, please check labelId value or parcel status");
+        return false;
+    }
+    return true;
+}
+
+AuthenticatorInfo *AuthenticatorInfo::Unmarshalling(Parcel &parcel)
+{
+    AuthenticatorInfo *info = new (std::nothrow) AuthenticatorInfo();
+    if ((info != nullptr) && (!info->ReadFromParcel(parcel))) {
+        ACCOUNT_LOGW("Read from parcel failed, please check parcel data");
+        delete info;
+        info = nullptr;
+    }
+    return info;
+}
+
+bool AuthenticatorInfo::ReadFromParcel(Parcel &parcel)
+{
+    if (!parcel.ReadString(owner)) {
+        ACCOUNT_LOGE("Read owner failed, please check owner data in parcel");
+        return false;
+    }
+    if (!parcel.ReadString(abilityName)) {
+        ACCOUNT_LOGE("Read abilityName failed, please check abilityName data in parcel");
+        return false;
+    }
+    if (!parcel.ReadUint32(iconId)) {
+        ACCOUNT_LOGE("Read iconId failed, please check iconId data in parcel");
+        return false;
+    }
+    if (!parcel.ReadUint32(labelId)) {
+        ACCOUNT_LOGE("Read labelId failed, please check labelId data in parcel");
+        return false;
+    }
+    return true;
 }
 
 bool SelectAccountsOptions::Marshalling(Parcel &parcel) const
@@ -249,6 +302,67 @@ AccountCapabilityRequest *AccountCapabilityRequest::Unmarshalling(Parcel &parcel
         info = nullptr;
     }
     return info;
+}
+
+bool AuthorizationRequest::Marshalling(Parcel &parcel) const
+{
+    if (!parcel.WriteInt32(callerUid)) {
+        ACCOUNT_LOGE("Write callerUid failed, please check callerUid value or parcel status");
+        return false;
+    }
+    if (!parcel.WriteBool(isEnableContext)) {
+        ACCOUNT_LOGE("Write isEnableContext failed, please check isEnableContext value or parcel status");
+        return false;
+    }
+    if (!parcel.WriteParcelable(&parameters)) {
+        ACCOUNT_LOGE("Write parameters failed, please check parameters value or parcel status");
+        return false;
+    }
+    if ((callback == nullptr) || (!parcel.WriteRemoteObject(callback->AsObject()))) {
+        ACCOUNT_LOGE("WriteRemoteObject failed, please check callback value or parcel status");
+        return false;
+    }
+    return true;
+}
+
+AuthorizationRequest *AuthorizationRequest::Unmarshalling(Parcel &parcel)
+{
+    AuthorizationRequest *info = new (std::nothrow) AuthorizationRequest();
+    if ((info != nullptr) && (!info->ReadFromParcel(parcel))) {
+        ACCOUNT_LOGW("ReadFromParcel failed, please check parcel data");
+        delete info;
+        info = nullptr;
+    }
+    return info;
+}
+
+bool AuthorizationRequest::ReadFromParcel(Parcel &parcel)
+{
+    if (!parcel.ReadInt32(callerUid)) {
+        ACCOUNT_LOGE("Read callerUid failed, please check callerUid in parcel");
+        return false;
+    }
+    if (!parcel.ReadBool(isEnableContext)) {
+        ACCOUNT_LOGE("Read isEnableContext failed, please check isEnableContext in parcel");
+        return false;
+    }
+    sptr<AAFwk::WantParams> paramsPtr = parcel.ReadParcelable<AAFwk::WantParams>();
+    if (paramsPtr == nullptr) {
+        ACCOUNT_LOGE("Read parameters failed, please check parameters in parcel");
+        return false;
+    }
+    parameters = *paramsPtr;
+    auto readCallback = (static_cast<MessageParcel*>(&parcel))->ReadRemoteObject();
+    if (readCallback == nullptr) {
+        ACCOUNT_LOGE("Read callback failed, please check callback object in parcel");
+        return false;
+    }
+    callback = iface_cast<IAppAccountAuthorizationExtensionCallback>(readCallback);
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("Convert callback failed, please check callback object in parcel");
+        return false;
+    }
+    return true;
 }
 
 bool AccountCapabilityRequest::ReadFromParcel(Parcel &parcel)

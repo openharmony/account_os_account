@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -38,10 +38,10 @@ uint32_t INVALID_CODE = -1;
 
 class MockAppAccountEventStub : public AppAccountEventStub {
 public:
-    void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts, const std::string &ownerName)
+    ErrCode OnAccountsChanged(const std::vector<AppAccountInfo> &accounts, const std::string &ownerName)
     {
         g_status = true;
-        return;
+        return ERR_OK;
     }
 };
 
@@ -106,49 +106,41 @@ HWTEST_F(AppAccountEventModuleTest, AppAccountEventTest_OnRemoteRequest_0100, Te
     MessageParcel reply;
     MessageOption option;
     int result = appAccountEventStubPtr->OnRemoteRequest(INVALID_CODE, data, reply, option);
-    ASSERT_EQ(result, ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR);
+    EXPECT_EQ(result, ERR_TRANSACTION_FAILED);
 }
 
 /**
- * @tc.name: AppAccountEventTest_ProcOnAccountsChanged_0100
- * @tc.desc: test event stub func ProcOnAccountsChanged with invalid data.
+ * @tc.name: AppAccountEventTest_OnAccountsChanged_0200
+ * @tc.desc: test event stub func OnAccountsChanged with invalid data.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountEventModuleTest, AppAccountEventTest_ProcOnAccountsChanged_0100, TestSize.Level1)
+HWTEST_F(AppAccountEventModuleTest, AppAccountEventTest_OnAccountsChanged_0200, TestSize.Level1)
 {
     auto appAccountEventStubPtr = std::make_shared<MockAppAccountEventStub>();
     ASSERT_NE(appAccountEventStubPtr, nullptr);
     MessageParcel data;
-    ASSERT_EQ(appAccountEventStubPtr->ProcOnAccountsChanged(data), ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR);
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountEventStub::GetDescriptor()), true);
+    EXPECT_EQ(appAccountEventStubPtr->OnRemoteRequest(INVALID_CODE, data, reply, option),
+        IPC_STUB_UNKNOW_TRANS_ERR);
 }
 
 /**
- * @tc.name: AppAccountEventTest_ProcOnAccountsChanged_0200
- * @tc.desc: test event stub func ProcOnAccountsChanged with invalid data.
+ * @tc.name: AppAccountEventTest_OnAccountsChanged_0300
+ * @tc.desc: test event stub func OnAccountsChanged success.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountEventModuleTest, AppAccountEventTest_ProcOnAccountsChanged_0200, TestSize.Level1)
+HWTEST_F(AppAccountEventModuleTest, AppAccountEventTest_OnAccountsChanged_0300, TestSize.Level1)
 {
     auto appAccountEventStubPtr = std::make_shared<MockAppAccountEventStub>();
     ASSERT_NE(appAccountEventStubPtr, nullptr);
     MessageParcel data;
-    data.WriteUint32(INVALID_CODE);
-    ASSERT_EQ(appAccountEventStubPtr->ProcOnAccountsChanged(data), ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR);
-}
-
-/**
- * @tc.name: AppAccountEventTest_ProcOnAccountsChanged_0300
- * @tc.desc: test event stub func ProcOnAccountsChanged success.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AppAccountEventModuleTest, AppAccountEventTest_ProcOnAccountsChanged_0300, TestSize.Level1)
-{
-    auto appAccountEventStubPtr = std::make_shared<MockAppAccountEventStub>();
-    ASSERT_NE(appAccountEventStubPtr, nullptr);
-    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountEventStub::GetDescriptor()), true);
     std::vector<AppAccountInfo> accounts;
     AppAccountInfo testAppAccountInfo;
     accounts.emplace_back(testAppAccountInfo);
@@ -157,5 +149,6 @@ HWTEST_F(AppAccountEventModuleTest, AppAccountEventTest_ProcOnAccountsChanged_03
         bool result = data.WriteParcelable(&parcelable);
         ASSERT_EQ(result, true);
     }
-    ASSERT_EQ(appAccountEventStubPtr->ProcOnAccountsChanged(data), ERR_NONE);
+    EXPECT_EQ(appAccountEventStubPtr->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountEventIpcCode::COMMAND_ON_ACCOUNTS_CHANGED), data, reply, option), ERR_NONE);
 }

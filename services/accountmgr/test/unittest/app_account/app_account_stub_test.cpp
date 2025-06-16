@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,25 +32,25 @@ using namespace OHOS;
 using namespace OHOS::AccountSA;
 
 namespace {
-DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IAppAccount");
+DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.AccountSA.IAppAccount");
 const std::string STRING_NAME = "name";
-const int32_t LIMIT_CODE = 42;
-const int32_t CLEAR_OAUTH_TOKEN = 29;
-const int32_t SUBSCRIBE_ACCOUNT = 33;
-const int32_t GET_ALL_ACCESSIBLE_ACCOUNTS = 31;
-const int32_t QUERY_ALL_ACCESSIBLE_ACCOUNTS = 32;
-const int32_t UNSUBSCRIBE_ACCOUNT = 34;
 sptr<AppAccountManagerService> g_servicePtr;
 } // namespace
 
 class MockAuthenticatorCallback final : public AccountSA::AppAccountAuthenticatorCallbackStub {
 public:
-    void OnResult(int32_t resultCode, const AAFwk::Want &result)
-    {}
-    void OnRequestRedirected(AAFwk::Want &request)
-    {}
-    void OnRequestContinued()
-    {}
+    ErrCode OnResult(int32_t resultCode, const AAFwk::Want &result)
+    {
+        return ERR_OK;
+    }
+    ErrCode OnRequestRedirected(const AAFwk::Want &request)
+    {
+        return ERR_OK;
+    }
+    ErrCode OnRequestContinued()
+    {
+        return ERR_OK;
+    }
 };
 
 class AppAccountStubModuleTest : public testing::Test {
@@ -113,31 +113,8 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_OnRemoteRequest_002,
 }
 
 /**
- * @tc.name: AppAccountStubModuleTest_OnRemoteRequest_003
- * @tc.desc: OnRemoteRequest success.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_OnRemoteRequest_003, TestSize.Level3)
-{
-    for (int code = 0; code <= LIMIT_CODE; code++) {
-        MessageParcel data;
-        MessageParcel reply;
-        MessageOption option;
-        EXPECT_NE(data.WriteInterfaceToken(GetDescriptor()), false);
-        if ((code == CLEAR_OAUTH_TOKEN) || (code == SUBSCRIBE_ACCOUNT) || (code == UNSUBSCRIBE_ACCOUNT)) {
-            EXPECT_NE(g_servicePtr->OnRemoteRequest(
-                static_cast<uint32_t>(static_cast<uint32_t>(code)), data, reply, option), ERR_NONE);
-        } else {
-            EXPECT_EQ(g_servicePtr->OnRemoteRequest(
-                static_cast<uint32_t>(static_cast<uint32_t>(code)), data, reply, option), ERR_NONE);
-        }
-    }
-}
-
-/**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_001
- * @tc.desc: ProcAddAccount success.
+ * @tc.desc: AddAccount success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -145,15 +122,17 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_001, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(g_servicePtr->ProcAddAccount(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), ERR_NONE);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_ADD_ACCOUNT),
+        data, reply, option), ERR_NONE);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_002
- * @tc.desc: ProcAddAccountImplicitly success.
+ * @tc.desc: AddAccountImplicitly success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -161,15 +140,17 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_002, Test
 {
     MessageParcel data;
     MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
     AAFwk::Want options;
     sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
     EXPECT_NE(callback, nullptr);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
     EXPECT_NE(data.WriteParcelable(&options), false);
     EXPECT_NE(data.WriteRemoteObject(callback->AsObject()), false);
-    EXPECT_EQ(g_servicePtr->ProcAddAccountImplicitly(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), ERR_NONE);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_ADD_ACCOUNT_IMPLICITLY),
+        data, reply, option), ERR_NONE);
 }
 
 /**
@@ -182,16 +163,18 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_003, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    AAFwk::Want options;
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    CreateAccountOptions options;
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
     EXPECT_NE(data.WriteParcelable(&options), false);
-    EXPECT_EQ(g_servicePtr->ProcCreateAccount(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), ERR_NONE);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_CREATE_ACCOUNT),
+        data, reply, option), ERR_NONE);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_004
- * @tc.desc: ProcCreateAccountImplicitly success.
+ * @tc.desc: CreateAccountImplicitly success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -199,19 +182,21 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_004, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    AAFwk::Want options;
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    CreateAccountImplicitlyOptions options;
     sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
     EXPECT_NE(callback, nullptr);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
     EXPECT_NE(data.WriteParcelable(&options), false);
     EXPECT_NE(data.WriteRemoteObject(callback->AsObject()), false);
-    EXPECT_EQ(g_servicePtr->ProcCreateAccountImplicitly(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), ERR_NONE);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountIpcCode::COMMAND_CREATE_ACCOUNT_IMPLICITLY), data, reply, option), ERR_NONE);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_005
- * @tc.desc: ProcDeleteAccount success.
+ * @tc.desc: DeleteAccount success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -219,14 +204,16 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_005, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(g_servicePtr->ProcDeleteAccount(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), ERR_NONE);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_DELETE_ACCOUNT),
+        data, reply, option), ERR_NONE);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_006
- * @tc.desc: ProcGetAccountExtraInfo success.
+ * @tc.desc: GetAccountExtraInfo success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -234,14 +221,16 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_006, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(g_servicePtr->ProcGetAccountExtraInfo(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), ERR_NONE);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_GET_ACCOUNT_EXTRA_INFO),
+        data, reply, option), ERR_NONE);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_007
- * @tc.desc: ProcSetAccountExtraInfo success.
+ * @tc.desc: SetAccountExtraInfo success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -249,15 +238,17 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_007, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(g_servicePtr->ProcSetAccountExtraInfo(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), ERR_NONE);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_SET_ACCOUNT_EXTRA_INFO),
+        data, reply, option), ERR_NONE);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_008
- * @tc.desc: ProcSetAppAccess with invalid code.
+ * @tc.desc: SetAppAccess with invalid code.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -265,15 +256,18 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_008, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(g_servicePtr->ProcSetAppAccess(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), IPC_INVOKER_ERR);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_NE(data.WriteInt32(1), false);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_SET_APP_ACCESS),
+        data, reply, option), ERR_NONE);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_009
- * @tc.desc: ProcCheckAppAccountSyncEnable success.
+ * @tc.desc: CheckAppAccountSyncEnable success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -281,14 +275,16 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_009, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(g_servicePtr->ProcCheckAppAccountSyncEnable(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), ERR_NONE);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountIpcCode::COMMAND_CHECK_APP_ACCOUNT_SYNC_ENABLE), data, reply, option), ERR_NONE);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_010
- * @tc.desc: ProcSetAppAccountSyncEnable success.
+ * @tc.desc: SetAppAccountSyncEnable success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -296,16 +292,18 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_010, Test
 {
     MessageParcel data;
     MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
     bool syncEnable = false;
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
     EXPECT_NE(data.WriteBool(syncEnable), false);
-    EXPECT_EQ(g_servicePtr->ProcSetAppAccountSyncEnable(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), ERR_NONE);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountIpcCode::COMMAND_SET_APP_ACCOUNT_SYNC_ENABLE), data, reply, option), ERR_NONE);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_011
- * @tc.desc: ProcGetAssociatedData success.
+ * @tc.desc: GetAssociatedData success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -313,15 +311,17 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_011, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(g_servicePtr->ProcGetAssociatedData(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), ERR_NONE);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_GET_ASSOCIATED_DATA),
+        data, reply, option), ERR_NONE);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_012
- * @tc.desc: ProcSetAssociatedData success.
+ * @tc.desc: SetAssociatedData success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -329,16 +329,18 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_012, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(g_servicePtr->ProcSetAssociatedData(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), ERR_NONE);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_SET_ASSOCIATED_DATA),
+        data, reply, option), ERR_NONE);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_013
- * @tc.desc: ProcGetAccountCredential success.
+ * @tc.desc: GetAccountCredential success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -346,15 +348,17 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_013, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(g_servicePtr->ProcGetAccountCredential(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), ERR_NONE);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_GET_ACCOUNT_CREDENTIAL),
+        data, reply, option), ERR_NONE);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_014
- * @tc.desc: ProcGetAccountCredential success.
+ * @tc.desc: GetAccountCredential success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -362,16 +366,18 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_014, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(g_servicePtr->ProcSetAccountCredential(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), ERR_NONE);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_SET_ACCOUNT_CREDENTIAL),
+        data, reply, option), ERR_NONE);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_015
- * @tc.desc: ProcAuthenticate success.
+ * @tc.desc: Authenticate success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -379,21 +385,25 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_015, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    AppAccountStringInfo stringInfo;
+    stringInfo.name = STRING_NAME;
+    stringInfo.owner = STRING_NAME;
+    stringInfo.authType = STRING_NAME;
+    EXPECT_NE(data.WriteParcelable(&stringInfo), false);
     AAFwk::Want options;
     sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
     EXPECT_NE(callback, nullptr);
     EXPECT_NE(data.WriteParcelable(&options), false);
     EXPECT_NE(data.WriteRemoteObject(callback->AsObject()), false);
-    EXPECT_EQ(g_servicePtr->ProcAuthenticate(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), ERR_NONE);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_AUTHENTICATE),
+        data, reply, option), ERR_NONE);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_016
- * @tc.desc: ProcGetAuthToken success.
+ * @tc.desc: GetAuthToken success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -401,16 +411,18 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_016, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(g_servicePtr->ProcGetAuthToken(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), IPC_INVOKER_ERR);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_GET_AUTH_TOKEN),
+        data, reply, option), ERR_NONE);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_017
- * @tc.desc: ProcSetOAuthToken success.
+ * @tc.desc: SetOAuthToken success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -418,16 +430,18 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_017, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(g_servicePtr->ProcSetOAuthToken(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), ERR_NONE);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_SET_O_AUTH_TOKEN),
+        data, reply, option), ERR_NONE);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_018
- * @tc.desc: ProcDeleteAuthToken success.
+ * @tc.desc: DeleteAuthToken success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -435,17 +449,19 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_018, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(g_servicePtr->ProcDeleteAuthToken(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), IPC_INVOKER_ERR);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_DELETE_AUTH_TOKEN),
+        data, reply, option), ERR_NONE);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_019
- * @tc.desc: ProcSetAuthTokenVisibility success.
+ * @tc.desc: SetAuthTokenVisibility success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -453,16 +469,18 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_019, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(g_servicePtr->ProcSetAuthTokenVisibility(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), IPC_INVOKER_ERR);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountIpcCode::COMMAND_SET_AUTH_TOKEN_VISIBILITY), data, reply, option), ERR_NONE);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_020
- * @tc.desc: ProcCheckAuthTokenVisibility success.
+ * @tc.desc: CheckAuthTokenVisibility success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -470,16 +488,18 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_020, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(g_servicePtr->ProcCheckAuthTokenVisibility(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), IPC_INVOKER_ERR);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountIpcCode::COMMAND_CHECK_AUTH_TOKEN_VISIBILITY), data, reply, option), ERR_NONE);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_021
- * @tc.desc: ProcGetAuthenticatorInfo success.
+ * @tc.desc: GetAuthenticatorInfo success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -487,14 +507,16 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_021, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(g_servicePtr->ProcGetAuthenticatorInfo(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), ERR_NONE);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_GET_AUTHENTICATOR_INFO),
+        data, reply, option), ERR_NONE);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_022
- * @tc.desc: ProcGetAllOAuthTokens success.
+ * @tc.desc: GetAllOAuthTokens success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -502,15 +524,17 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_022, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(g_servicePtr->ProcGetAllOAuthTokens(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), ERR_NONE);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_GET_ALL_O_AUTH_TOKENS),
+        data, reply, option), ERR_NONE);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_023
- * @tc.desc: ProcGetAuthList success.
+ * @tc.desc: GetAuthList success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -518,15 +542,17 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_023, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(g_servicePtr->ProcGetAuthList(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), IPC_INVOKER_ERR);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_GET_AUTH_LIST),
+        data, reply, option), ERR_NONE);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_024
- * @tc.desc: ProcGetAuthenticatorCallback success.
+ * @tc.desc: GetAuthenticatorCallback success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -534,14 +560,16 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_024, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(g_servicePtr->ProcGetAuthenticatorCallback(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), IPC_STUB_WRITE_PARCEL_ERR);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountIpcCode::COMMAND_GET_AUTHENTICATOR_CALLBACK), data, reply, option), ERR_INVALID_DATA);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_025
- * @tc.desc: ProcGetAllAccounts success.
+ * @tc.desc: GetAllAccounts success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -549,14 +577,16 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_025, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(g_servicePtr->ProcGetAllAccounts(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), ERR_NONE);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_GET_ALL_ACCOUNTS),
+        data, reply, option), ERR_NONE);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_026
- * @tc.desc: ProcGetAllAccessibleAccounts success.
+ * @tc.desc: GetAllAccessibleAccounts success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -564,18 +594,16 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_026, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(g_servicePtr->ProcGetAllAccessibleAccounts(
-        static_cast<uint32_t>(static_cast<uint32_t>(GET_ALL_ACCESSIBLE_ACCOUNTS)), data, reply), ERR_NONE);
-    EXPECT_EQ(g_servicePtr->ProcGetAllAccessibleAccounts(
-        static_cast<uint32_t>(static_cast<uint32_t>(QUERY_ALL_ACCESSIBLE_ACCOUNTS)), data, reply), ERR_NONE);
-    EXPECT_EQ(g_servicePtr->ProcGetAllAccessibleAccounts(
-        static_cast<uint32_t>(static_cast<uint32_t>(0)), data, reply), IPC_INVOKER_ERR);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountIpcCode::COMMAND_GET_ALL_ACCESSIBLE_ACCOUNTS), data, reply, option), ERR_NONE);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_027
- * @tc.desc: ProcCheckAppAccess success.
+ * @tc.desc: CheckAppAccess success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -583,15 +611,17 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_027, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(g_servicePtr->ProcCheckAppAccess(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), ERR_NONE);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_CHECK_APP_ACCESS),
+        data, reply, option), ERR_NONE);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_028
- * @tc.desc: ProcDeleteAccountCredential success.
+ * @tc.desc: DeleteAccountCredential success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -599,15 +629,17 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_028, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_EQ(g_servicePtr->ProcDeleteAccountCredential(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), ERR_NONE);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountIpcCode::COMMAND_DELETE_ACCOUNT_CREDENTIAL), data, reply, option), ERR_NONE);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_029
- * @tc.desc: ProcSelectAccountsByOptions success.
+ * @tc.desc: SelectAccountsByOptions success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -615,18 +647,20 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_029, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    AAFwk::Want options;
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    SelectAccountsOptions options;
     sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
     EXPECT_NE(callback, nullptr);
     EXPECT_NE(data.WriteParcelable(&options), false);
     EXPECT_NE(data.WriteRemoteObject(callback->AsObject()), false);
-    EXPECT_EQ(g_servicePtr->ProcSelectAccountsByOptions(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), ERR_NONE);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountIpcCode::COMMAND_SELECT_ACCOUNTS_BY_OPTIONS), data, reply, option), ERR_NONE);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_030
- * @tc.desc: ProcVerifyCredential success.
+ * @tc.desc: VerifyCredential success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -634,20 +668,22 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_030, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    AAFwk::Want options;
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    VerifyCredentialOptions options;
     sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
     EXPECT_NE(callback, nullptr);
     EXPECT_NE(data.WriteParcelable(&options), false);
     EXPECT_NE(data.WriteRemoteObject(callback->AsObject()), false);
-    EXPECT_EQ(g_servicePtr->ProcVerifyCredential(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), ERR_NONE);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_VERIFY_CREDENTIAL),
+        data, reply, option), ERR_NONE);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_031
- * @tc.desc: ProcCheckAccountLabels success.
+ * @tc.desc: CheckAccountLabels success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -655,21 +691,27 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_031, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
     std::vector<std::string> labels = { STRING_NAME };
-    EXPECT_NE(data.WriteStringVector(labels), false);
+    data.WriteInt32(labels.size());
+    for (auto it = labels.begin(); it != labels.end(); ++it) {
+        EXPECT_NE(data.WriteString16(Str8ToStr16((*it))), false);
+    }
     sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
     EXPECT_NE(callback, nullptr);
     EXPECT_NE(data.WriteRemoteObject(callback->AsObject()), false);
-    EXPECT_EQ(g_servicePtr->ProcCheckAccountLabels(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), ERR_NONE);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_CHECK_ACCOUNT_LABELS),
+        data, reply, option), ERR_NONE);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
     EXPECT_EQ(reply.ReadInt32(), ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_032
- * @tc.desc: ProcSetAuthenticatorProperties success.
+ * @tc.desc: SetAuthenticatorProperties success.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -677,19 +719,21 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_032, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_NE(data.WriteString(STRING_NAME), false);
-    AAFwk::Want options;
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    EXPECT_NE(data.WriteString16(Str8ToStr16(STRING_NAME)), false);
+    SetPropertiesOptions options;
     EXPECT_NE(data.WriteParcelable(&options), false);
     sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
     EXPECT_NE(callback, nullptr);
     EXPECT_NE(data.WriteRemoteObject(callback->AsObject()), false);
-    EXPECT_EQ(g_servicePtr->ProcSetAuthenticatorProperties(static_cast<uint32_t>(static_cast<uint32_t>(0)),
-        data, reply), ERR_NONE);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountIpcCode::COMMAND_SET_AUTHENTICATOR_PROPERTIES), data, reply, option), ERR_NONE);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_033
- * @tc.desc: ProcSetAppAccess with right code, would not pass caller check.
+ * @tc.desc: SetAppAccess with right code, would not pass caller check.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -697,16 +741,19 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_033, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    EXPECT_EQ(g_servicePtr->ProcSetAppAccess(static_cast<uint32_t>(AppAccountInterfaceCode::ENABLE_APP_ACCESS),
-        data, reply), ERR_NONE);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_SET_APP_ACCESS),
+        data, reply, option), ERR_NONE);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
     EXPECT_EQ(reply.ReadInt32(), ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_034
- * @tc.desc: ProcSetAppAccess with right code, would not pass caller check.
+ * @tc.desc: SetAppAccess with right code, would not pass caller check.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -714,16 +761,19 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_034, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    EXPECT_EQ(g_servicePtr->ProcSetAppAccess(static_cast<uint32_t>(AppAccountInterfaceCode::DISABLE_APP_ACCESS),
-        data, reply), ERR_NONE);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_SET_APP_ACCESS),
+        data, reply, option), ERR_NONE);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
     EXPECT_EQ(reply.ReadInt32(), ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_035
- * @tc.desc: ProcSetAppAccess with right code, would not pass caller check.
+ * @tc.desc: SetAppAccess with right code, would not pass caller check.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -731,16 +781,19 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_035, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    EXPECT_EQ(g_servicePtr->ProcSetAppAccess(static_cast<uint32_t>(AppAccountInterfaceCode::SET_APP_ACCESS),
-        data, reply), ERR_NONE);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_SET_APP_ACCESS),
+        data, reply, option), ERR_NONE);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
     EXPECT_EQ(reply.ReadInt32(), ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_036
- * @tc.desc: ProcGetAuthToken with right code, would not pass caller check.
+ * @tc.desc: GetAuthToken with right code, would not pass caller check.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -748,17 +801,21 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_036, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    EXPECT_EQ(g_servicePtr->ProcGetAuthToken(static_cast<uint32_t>(AppAccountInterfaceCode::GET_OAUTH_TOKEN),
-        data, reply), ERR_NONE);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_GET_O_AUTH_TOKEN),
+        data, reply, option), ERR_NONE);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
+    EXPECT_EQ(reply.ReadString16(), u"");
     EXPECT_EQ(reply.ReadInt32(), ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_037
- * @tc.desc: ProcGetAuthToken with right code, would not pass caller check.
+ * @tc.desc: GetAuthToken with right code, would not pass caller check.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -766,17 +823,21 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_037, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    EXPECT_EQ(g_servicePtr->ProcGetAuthToken(static_cast<uint32_t>(AppAccountInterfaceCode::GET_AUTH_TOKEN),
-        data, reply), ERR_NONE);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_GET_AUTH_TOKEN),
+        data, reply, option), ERR_NONE);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
+    EXPECT_EQ(reply.ReadString16(), u"");
     EXPECT_EQ(reply.ReadInt32(), ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
 }
 
 /**
 * @tc.name: AppAccountStubModuleTest_AppStubCov_038
-* @tc.desc: ProcDeleteAuthToken with right code, would not pass caller check.
+* @tc.desc: DeleteAuthToken with right code, would not pass caller check.
 * @tc.type: FUNC
 * @tc.require:
 */
@@ -784,18 +845,21 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_038, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    EXPECT_EQ(g_servicePtr->ProcDeleteAuthToken(static_cast<uint32_t>(AppAccountInterfaceCode::DELETE_OAUTH_TOKEN),
-        data, reply), ERR_NONE);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_DELETE_AUTH_TOKEN),
+        data, reply, option), ERR_NONE);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
     EXPECT_EQ(reply.ReadInt32(), ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
 }
 
 /**
 * @tc.name: AppAccountStubModuleTest_AppStubCov_039
-* @tc.desc: ProcDeleteAuthToken with right code, would not pass caller check.
+* @tc.desc: DeleteAuthToken with right code, would not pass caller check.
 * @tc.type: FUNC
 * @tc.require:
 */
@@ -803,18 +867,21 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_039, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    EXPECT_EQ(g_servicePtr->ProcDeleteAuthToken(static_cast<uint32_t>(AppAccountInterfaceCode::DELETE_AUTH_TOKEN),
-        data, reply), ERR_NONE);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_DELETE_AUTH_TOKEN),
+        data, reply, option), ERR_NONE);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
     EXPECT_EQ(reply.ReadInt32(), ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
 }
 
 /**
 * @tc.name: AppAccountStubModuleTest_AppStubCov_040
-* @tc.desc: ProcDeleteAuthToken with right code, would not pass caller check.
+* @tc.desc: DeleteAuthToken with right code, would not pass caller check.
 * @tc.type: FUNC
 * @tc.require:
 */
@@ -822,17 +889,20 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_040, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    EXPECT_EQ(g_servicePtr->ProcSetAuthTokenVisibility(
-        static_cast<uint32_t>(AppAccountInterfaceCode::SET_OAUTH_TOKEN_VISIBILITY), data, reply), ERR_NONE);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountIpcCode::COMMAND_SET_AUTH_TOKEN_VISIBILITY), data, reply, option), ERR_NONE);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
     EXPECT_EQ(reply.ReadInt32(), ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
 }
 
 /**
 * @tc.name: AppAccountStubModuleTest_AppStubCov_041
-* @tc.desc: ProcDeleteAuthToken with right code, would not pass caller check.
+* @tc.desc: DeleteAuthToken with right code, would not pass caller check.
 * @tc.type: FUNC
 * @tc.require:
 */
@@ -840,17 +910,20 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_041, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    EXPECT_EQ(g_servicePtr->ProcSetAuthTokenVisibility(
-        static_cast<uint32_t>(AppAccountInterfaceCode::SET_AUTH_TOKEN_VISIBILITY), data, reply), ERR_NONE);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountIpcCode::COMMAND_SET_AUTH_TOKEN_VISIBILITY), data, reply, option), ERR_NONE);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
     EXPECT_EQ(reply.ReadInt32(), ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_042
- * @tc.desc: ProcCheckAuthTokenVisibility with right code.
+ * @tc.desc: CheckAuthTokenVisibility with right code.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -858,17 +931,21 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_042, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    EXPECT_EQ(g_servicePtr->ProcCheckAuthTokenVisibility(
-        static_cast<uint32_t>(AppAccountInterfaceCode::CHECK_OAUTH_TOKEN_VISIBILITY), data, reply), ERR_NONE);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountIpcCode::COMMAND_CHECK_AUTH_TOKEN_VISIBILITY), data, reply, option), ERR_NONE);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
+    EXPECT_EQ(reply.ReadInt32(), 0);
     EXPECT_EQ(reply.ReadInt32(), ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_043
- * @tc.desc: ProcCheckAuthTokenVisibility with right code.
+ * @tc.desc: CheckAuthTokenVisibility with right code.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -876,17 +953,21 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_043, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    EXPECT_EQ(g_servicePtr->ProcCheckAuthTokenVisibility(
-        static_cast<uint32_t>(AppAccountInterfaceCode::CHECK_AUTH_TOKEN_VISIBILITY), data, reply), ERR_NONE);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(
+        static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_CHECK_AUTH_TOKEN_VISIBILITY), data, reply, option), ERR_NONE);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
+    EXPECT_EQ(reply.ReadInt32(), 0);
     EXPECT_EQ(reply.ReadInt32(), ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_044
- * @tc.desc: ProcGetAuthList with right code.
+ * @tc.desc: GetAuthList with right code.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -894,16 +975,20 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_044, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    EXPECT_EQ(g_servicePtr->ProcGetAuthList(static_cast<uint32_t>(AppAccountInterfaceCode::GET_OAUTH_LIST),
-        data, reply), ERR_NONE);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_GET_AUTH_LIST),
+        data, reply, option), ERR_NONE);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
+    EXPECT_EQ(reply.ReadInt32(), 0);
     EXPECT_EQ(reply.ReadInt32(), ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_045
- * @tc.desc: ProcGetAuthList with right code.
+ * @tc.desc: GetAuthList with right code.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -911,10 +996,14 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_045, Test
 {
     MessageParcel data;
     MessageParcel reply;
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    ASSERT_TRUE(data.WriteString(STRING_NAME));
-    EXPECT_EQ(g_servicePtr->ProcGetAuthList(static_cast<uint32_t>(AppAccountInterfaceCode::GET_AUTH_LIST),
-        data, reply), ERR_NONE);
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    ASSERT_TRUE(data.WriteString16(Str8ToStr16(STRING_NAME)));
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_GET_AUTH_LIST),
+        data, reply, option), ERR_NONE);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
+    EXPECT_EQ(reply.ReadInt32(), 0);
     EXPECT_EQ(reply.ReadInt32(), ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
 }
 
@@ -929,7 +1018,7 @@ public:
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_046
- * @tc.desc: ProcSubscribeAccount with get bundle name error.
+ * @tc.desc: SubscribeAccount with get bundle name error.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -937,18 +1026,22 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_046, Test
 {
     MessageParcel data;
     MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
     AppAccountSubscribeInfo info;
     info.SetOwners(std::vector<std::string>({STRING_NAME, STRING_NAME}));
     ASSERT_TRUE(data.WriteParcelable(&info));
     std::shared_ptr<MockAppAccountSubsriber> subscriber = std::make_shared<MockAppAccountSubsriber>();
     ASSERT_TRUE(data.WriteRemoteObject(AppAccountEventListener::GetInstance()->AsObject()));
-    EXPECT_EQ(g_servicePtr->ProcSubscribeAccount(0, data, reply), ERR_NONE);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_SUBSCRIBE_APP_ACCOUNT),
+        data, reply, option), ERR_NONE);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
     EXPECT_EQ(reply.ReadInt32(), ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
 }
 
 /**
  * @tc.name: AppAccountStubModuleTest_AppStubCov_047
- * @tc.desc: ProcGetAuthList with right code.
+ * @tc.desc: GetAuthList with right code.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -956,8 +1049,34 @@ HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_047, Test
 {
     MessageParcel data;
     MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
     std::shared_ptr<MockAppAccountSubsriber> subscriber = std::make_shared<MockAppAccountSubsriber>();
     ASSERT_TRUE(data.WriteRemoteObject(AppAccountEventListener::GetInstance()->AsObject()));
-    EXPECT_EQ(g_servicePtr->ProcUnsubscribeAccount(0, data, reply), ERR_NONE);
+    std::vector<std::string> owners(5, STRING_NAME);
+    ASSERT_TRUE(data.WriteInt32(owners.size()));
+    for (auto it8 = owners.begin(); it8 != owners.end(); ++it8) {
+        ASSERT_TRUE(data.WriteString16(Str8ToStr16((*it8))));
+    }
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_UNSUBSCRIBE_APP_ACCOUNT),
+        data, reply, option), ERR_NONE);
     EXPECT_EQ(reply.ReadInt32(), ERR_OK);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountStubModuleTest_AppStubCov_048
+ * @tc.desc: QueryAllAccessibleAccounts success.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountStubModuleTest, AppAccountStubModuleTest_AppStubCov_048, TestSize.Level3)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    ASSERT_EQ(data.WriteInterfaceToken(AppAccountStub::GetDescriptor()), true);
+    ASSERT_EQ(data.WriteString16(Str8ToStr16(STRING_NAME)), true);
+    EXPECT_EQ(g_servicePtr->OnRemoteRequest(static_cast<uint32_t>(
+        IAppAccountIpcCode::COMMAND_QUERY_ALL_ACCESSIBLE_ACCOUNTS), data, reply, option), ERR_NONE);
 }

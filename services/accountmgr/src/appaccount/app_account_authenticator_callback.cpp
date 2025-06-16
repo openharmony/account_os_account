@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,19 +27,23 @@ AppAccountAuthenticatorCallback::AppAccountAuthenticatorCallback(const std::stri
 AppAccountAuthenticatorCallback::~AppAccountAuthenticatorCallback()
 {}
 
-void AppAccountAuthenticatorCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
+ErrCode AppAccountAuthenticatorCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
 {
     AppAccountAuthenticatorSessionManager::GetInstance().OnSessionResult(sessionId_, resultCode, result);
+    return ERR_OK;
 }
 
-void AppAccountAuthenticatorCallback::OnRequestRedirected(AAFwk::Want &request)
+ErrCode AppAccountAuthenticatorCallback::OnRequestRedirected(const AAFwk::Want &request)
 {
-    AppAccountAuthenticatorSessionManager::GetInstance().OnSessionRequestRedirected(sessionId_, request);
+    auto newRequest = request;
+    AppAccountAuthenticatorSessionManager::GetInstance().OnSessionRequestRedirected(sessionId_, newRequest);
+    return ERR_OK;
 }
 
-void AppAccountAuthenticatorCallback::OnRequestContinued()
+ErrCode AppAccountAuthenticatorCallback::OnRequestContinued()
 {
     AppAccountAuthenticatorSessionManager::GetInstance().OnSessionRequestContinued(sessionId_);
+    return ERR_OK;
 }
 }  // namespace AccountSA
 }  // namespace OHOS

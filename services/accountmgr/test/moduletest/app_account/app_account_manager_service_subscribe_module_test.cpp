@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -281,19 +281,21 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_TRUE(needNotifyService);
 
     // subscribe app account
-    ErrCode result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
-    EXPECT_EQ(result, ERR_OK);
+    int32_t funcResult = -1;
+    ErrCode result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListener,
+        funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
     // lock the mutex
     g_mtx.lock();
 
     // add app account
-    result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
     // set app account extra info
-    result = appAccountManagerServicePtr_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
     Wait();
 
@@ -301,12 +303,12 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_TRUE(needNotifyService);
 
     // unsubscribe app account
-    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener, owners);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener, owners, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
     // delete account
-    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
     // unlock the mutex
     g_mtx.unlock();
@@ -341,8 +343,11 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
     // subscribe app account
-    ErrCode result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
-    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    int32_t funcResult = -1;
+    ErrCode result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListener,
+        funcResult);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(funcResult, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
 }
 
 /**
@@ -391,8 +396,9 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_TRUE(needNotifyService);
 
     // subscribe app account
-    result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
-    EXPECT_EQ(result, ERR_OK);
+    int32_t funcResult = -1;
+    result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListener, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
     // lock the mutex
     g_mtx.lock();
@@ -415,8 +421,8 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_TRUE(needNotifyService);
 
     // unsubscribe app account
-    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener, owners);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener, owners, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
     // delete account
     result = appAccountManagerServicePtr_->innerManager_->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME, 0);
@@ -471,8 +477,9 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_TRUE(needNotifyService);
 
     // subscribe app account
-    result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
-    EXPECT_EQ(result, ERR_OK);
+    int32_t funcResult = -1;
+    result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListener, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
     // lock the mutex
     g_mtx.lock();
@@ -495,8 +502,8 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_TRUE(needNotifyService);
 
     // unsubscribe app account
-    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener, owners);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener, owners, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
     // delete account
     EXPECT_EQ(accountInnerManager->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME, 0), ERR_OK);
@@ -555,8 +562,9 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_TRUE(needNotifyService);
 
     // subscribe app account
-    result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
-    EXPECT_EQ(result, ERR_OK);
+    int32_t funcResult = -1;
+    result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListener, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
     // lock the mutex
     g_mtx.lock();
@@ -572,8 +580,8 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_TRUE(needNotifyService);
 
     // unsubscribe app account
-    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener, owners);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener, owners, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
     // delete account
     result = appAccountManagerServicePtr_->innerManager_->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME, 0);
@@ -597,12 +605,12 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     ACCOUNT_LOGI("AppAccountManagerServiceSubscribe_SubscribeAppAccount_0800");
 
     // add app account
-    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
-    EXPECT_EQ(result, ERR_OK);
+    int32_t funcResult = -1;
+    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
     // make owners
-    std::vector<std::string> owners;
-    owners.emplace_back(STRING_OWNER);
+    std::vector<std::string> owners{STRING_OWNER};
 
     // make subscribe info
     AppAccountSubscribeInfo subscribeInfo(owners);
@@ -623,8 +631,8 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_TRUE(needNotifyService);
 
     // subscribe app account
-    result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListener, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
     // make a subscriber
     auto subscriberTestPtrTwo = std::make_shared<AppAccountSubscriberTestFour>(subscribeInfo);
@@ -641,15 +649,15 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_EQ(result, ERR_OK);
     EXPECT_FALSE(needNotifyService);
     // subscribe app account
-    result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListenerTwo);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListenerTwo, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
     // lock the mutex
     g_mtx.lock();
 
     // set extra info
-    result = appAccountManagerServicePtr_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
     Wait();
 
@@ -659,20 +667,20 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_FALSE(needNotifyService);
 
     // unsubscribe app account
-    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener, owners);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener, owners, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
     result =
         AppAccountEventListener::GetInstance()->UnsubscribeAppAccount(subscriberTestPtrTwo, needNotifyService, owners);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_TRUE(needNotifyService);
     // unsubscribe app account
-    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListenerTwo, owners);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListenerTwo, owners, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
     // delete app account
-    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
-    EXPECT_EQ(result, ERR_OK);
+    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
     // unlock the mutex
     g_mtx.unlock();

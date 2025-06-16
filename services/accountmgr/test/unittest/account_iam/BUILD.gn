@@ -322,6 +322,7 @@ ohos_unittest("account_inner_iam_manager_mock_source_file_test") {
     "${common_path}:account_common_config",
     "${innerkits_native_path}:distributed_account_event_interface_public_config",
     "${services_path}/accountmgr:account_iam_config",
+    "${app_account_innerkits_native_path}:app_account_interface_public_config",
   ]
 
   deps = [

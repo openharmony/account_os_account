@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,17 +32,20 @@ bool g_status = false;
 
 class MockAppAccountAuthenticatorCallbackStub : public AppAccountAuthenticatorCallbackStub {
 public:
-    void OnResult(int32_t resultCode, const AAFwk::Want &result)
+    ErrCode OnResult(int32_t resultCode, const AAFwk::Want &result)
     {
         g_status = true;
+        return ERR_OK;
     }
-    virtual void OnRequestRedirected(AAFwk::Want &request)
+    virtual ErrCode OnRequestRedirected(const AAFwk::Want &request)
     {
         g_status = true;
+        return ERR_OK;
     }
-    virtual void OnRequestContinued()
+    virtual ErrCode OnRequestContinued()
     {
         g_status = true;
+        return ERR_OK;
     }
 };
 

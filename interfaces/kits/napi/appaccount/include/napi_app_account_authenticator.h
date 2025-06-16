@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -63,21 +63,26 @@ public:
     void SetEnv(napi_env env);
     static napi_value Init(napi_env env, napi_value exports);
     ErrCode AddAccountImplicitly(const std::string &authType, const std::string &callerBundleName,
-        const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback) override;
+        const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback, int32_t &funcResult) override;
     ErrCode Authenticate(
-        const std::string &name, const std::string &authType, const std::string &callerBundleName,
-        const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback) override;
+        const AppAccountAuthenticatorStringInfo &appAccountAuthenticatorStringInfo, const AAFwk::WantParams &options,
+        const sptr<IRemoteObject> &callback, int32_t &funcResult) override;
     ErrCode CreateAccountImplicitly(
-        const CreateAccountImplicitlyOptions &options, const sptr<IRemoteObject> &callback) override;
+        const CreateAccountImplicitlyOptions &options, const sptr<IRemoteObject> &callback,
+        int32_t &funcResult) override;
     ErrCode Auth(
         const std::string &name, const std::string &authType, const AAFwk::WantParams &options,
-        const sptr<IRemoteObject> &callback) override;
+        const sptr<IRemoteObject> &callback, int32_t &funcResult) override;
     ErrCode VerifyCredential(
-        const std::string &name, const VerifyCredentialOptions &options, const sptr<IRemoteObject> &callback) override;
+        const std::string &name, const VerifyCredentialOptions &options, const sptr<IRemoteObject> &callback,
+        int32_t &funcResult) override;
     ErrCode CheckAccountLabels(
-        const std::string &name, const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback) override;
-    ErrCode SetProperties(const SetPropertiesOptions &options, const sptr<IRemoteObject> &callback) override;
-    ErrCode IsAccountRemovable(const std::string &name, const sptr<IRemoteObject> &callback) override;
+        const std::string &name, const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback,
+        int32_t &funcResult) override;
+    ErrCode SetProperties(const SetPropertiesOptions &options, const sptr<IRemoteObject> &callback,
+        int32_t &funcResult) override;
+    ErrCode IsAccountRemovable(const std::string &name, const sptr<IRemoteObject> &callback,
+        int32_t &funcResult) override;
     ErrCode InitWorkEnv(uv_loop_s **loop, uv_work_t **work, JsAuthenticatorParam **param);
     napi_value GetJsRemoteObject();
     void SetJsRemoteObject(napi_value remoteObject);

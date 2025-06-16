@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,17 +30,17 @@ using namespace OHOS::AccountSA;
 
 class MockAuthenticatorCallback : public OHOS::AccountSA::IAppAccountAuthenticatorCallback {
 public:
-    void OnResult(int32_t resultCode, const OHOS::AAFwk::Want& result) override
+    OHOS::ErrCode OnResult(int32_t resultCode, const OHOS::AAFwk::Want& result) override
     {
-        return;
+        return OHOS::ERR_OK;
     }
-    void OnRequestRedirected(OHOS::AAFwk::Want& request) override
+    OHOS::ErrCode OnRequestRedirected(const OHOS::AAFwk::Want& request) override
     {
-        return;
+        return OHOS::ERR_OK;
     }
-    void OnRequestContinued() override
+    OHOS::ErrCode OnRequestContinued() override
     {
-        return;
+        return OHOS::ERR_OK;
     }
     OHOS::sptr<OHOS::IRemoteObject> AsObject() override
     {

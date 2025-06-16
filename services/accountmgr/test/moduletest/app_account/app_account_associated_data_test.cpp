@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -143,19 +143,20 @@ HWTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_Ge
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAssociatedData_0100");
 
-    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
-    EXPECT_EQ(result, ERR_OK);
+    int32_t funcResult = -1;
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
-    result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE);
-    EXPECT_EQ(result, ERR_OK);
+    result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
     std::string value;
-    result = g_accountManagerService->GetAssociatedData(STRING_NAME, STRING_KEY, value);
-    EXPECT_EQ(result, ERR_OK);
+    result = g_accountManagerService->GetAssociatedData(STRING_NAME, STRING_KEY, value, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
     EXPECT_EQ(value, STRING_VALUE);
 
-    result = g_accountManagerService->DeleteAccount(STRING_NAME);
-    EXPECT_EQ(result, ERR_OK);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 }
 
 /**
@@ -168,16 +169,17 @@ HWTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_Ge
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAssociatedData_0200");
 
-    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
-    EXPECT_EQ(result, ERR_OK);
+    int32_t funcResult = -1;
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
     std::string value;
-    result = g_accountManagerService->GetAssociatedData(STRING_NAME, STRING_KEY, value);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ASSOCIATED_DATA_KEY_NOT_EXIST);
+    result = g_accountManagerService->GetAssociatedData(STRING_NAME, STRING_KEY, value, funcResult);
+    EXPECT_EQ(funcResult, ERR_APPACCOUNT_SERVICE_ASSOCIATED_DATA_KEY_NOT_EXIST);
     EXPECT_EQ(value, STRING_EMPTY);
 
-    result = g_accountManagerService->DeleteAccount(STRING_NAME);
-    EXPECT_EQ(result, ERR_OK);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 }
 
 /**
@@ -191,8 +193,10 @@ HWTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_Ge
     ACCOUNT_LOGI("AppAccountManagerService_GetAssociatedData_0300");
 
     std::string value;
-    ErrCode result = g_accountManagerService->GetAssociatedData(STRING_NAME, STRING_KEY, value);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID);
+    int32_t funcResult = -1;
+    ErrCode result = g_accountManagerService->GetAssociatedData(STRING_NAME, STRING_KEY, value, funcResult);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(funcResult, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID);
     EXPECT_EQ(value, STRING_EMPTY);
 }
 
@@ -206,26 +210,27 @@ HWTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_Ge
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAssociatedData_0400");
 
-    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
-    EXPECT_EQ(result, ERR_OK);
+    int32_t funcResult = -1;
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
-    result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE);
-    EXPECT_EQ(result, ERR_OK);
+    result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
-    result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY_TWO, STRING_VALUE_TWO);
-    EXPECT_EQ(result, ERR_OK);
+    result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY_TWO, STRING_VALUE_TWO, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
     std::string value;
-    result = g_accountManagerService->GetAssociatedData(STRING_NAME, STRING_KEY, value);
-    EXPECT_EQ(result, ERR_OK);
+    result = g_accountManagerService->GetAssociatedData(STRING_NAME, STRING_KEY, value, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
     EXPECT_EQ(value, STRING_VALUE);
 
-    result = g_accountManagerService->GetAssociatedData(STRING_NAME, STRING_KEY_TWO, value);
-    EXPECT_EQ(result, ERR_OK);
+    result = g_accountManagerService->GetAssociatedData(STRING_NAME, STRING_KEY_TWO, value, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
     EXPECT_EQ(value, STRING_VALUE_TWO);
 
-    result = g_accountManagerService->DeleteAccount(STRING_NAME);
-    EXPECT_EQ(result, ERR_OK);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 }
 
 /**
@@ -238,14 +243,15 @@ HWTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_Se
 {
     ACCOUNT_LOGI("AppAccountManagerService_SetAssociatedData_0100");
 
-    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
-    EXPECT_EQ(result, ERR_OK);
+    int32_t funcResult = -1;
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
-    result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE);
-    EXPECT_EQ(result, ERR_OK);
+    result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
-    result = g_accountManagerService->DeleteAccount(STRING_NAME);
-    EXPECT_EQ(result, ERR_OK);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 }
 
 /**
@@ -258,22 +264,23 @@ HWTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_Se
 {
     ACCOUNT_LOGI("AppAccountManagerService_SetAssociatedData_0200");
 
-    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
-    EXPECT_EQ(result, ERR_OK);
+    int32_t funcResult = -1;
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
-    result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE);
-    EXPECT_EQ(result, ERR_OK);
+    result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
-    result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE_TWO);
-    EXPECT_EQ(result, ERR_OK);
+    result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE_TWO, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 
     std::string value;
-    result = g_accountManagerService->GetAssociatedData(STRING_NAME, STRING_KEY, value);
-    EXPECT_EQ(result, ERR_OK);
+    result = g_accountManagerService->GetAssociatedData(STRING_NAME, STRING_KEY, value, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
     EXPECT_EQ(value, STRING_VALUE_TWO);
 
-    result = g_accountManagerService->DeleteAccount(STRING_NAME);
-    EXPECT_EQ(result, ERR_OK);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME, funcResult);
+    EXPECT_EQ(funcResult, ERR_OK);
 }
 
 /**
@@ -286,6 +293,8 @@ HWTEST_F(AppAccountManagerServiceAssocaitedDataTest, AppAccountManagerService_Se
 {
     ACCOUNT_LOGI("AppAccountManagerService_SetAssociatedData_0300");
 
-    ErrCode result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID);
+    int32_t funcResult = -1;
+    ErrCode result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE, funcResult);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(funcResult, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID);
 }
