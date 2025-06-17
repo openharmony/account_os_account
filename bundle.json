@@ -20,6 +20,7 @@
       "os_account_multiple_active_accounts",
       "os_account_support_deactivate_main_os_account",
       "os_account_distributed_feature",
+      "os_account_enable_multiple_foreground_os_accounts",
       "os_account_enable_multiple_os_accounts",
       "os_account_enable_default_admin_name",
       "os_account_enable_account_short_name",
@@ -64,6 +65,7 @@
         "storage_service",
         "time_service",
         "user_auth_framework",
+        "window_manager",
         "openssl",
         "config_policy"
       ],
