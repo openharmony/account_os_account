@@ -19,7 +19,7 @@
 #include <mutex>
 
 #include "ability_connect_callback_interface.h"
-#include "iuser_callback.h"
+#include "user_callback.h"
 #include "want.h"
 
 namespace OHOS {
