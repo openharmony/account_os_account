@@ -54,10 +54,10 @@ AccountSA::SelectAccountsOptions ConvertAccountsOptionsInfo(SelectAccountsOption
     AccountSA::SelectAccountsOptions tempOptions;
     if (options.allowedAccounts) {
         for (const auto& accountsOptionsInfo : options.allowedAccounts.value()) {
-            std::pair<std::string, std::string> tmepPair;
-            tmepPair.first = accountsOptionsInfo.owner.c_str();
-            tmepPair.second = accountsOptionsInfo.name.c_str();
-            tempOptions.allowedAccounts.push_back(tmepPair);
+            std::pair<std::string, std::string> tempPair;
+            tempPair.first = accountsOptionsInfo.owner.c_str();
+            tempPair.second = accountsOptionsInfo.name.c_str();
+            tempOptions.allowedAccounts.push_back(tempPair);
         }
     }
     
@@ -113,7 +113,7 @@ public:
     {
         AccountSA::CreateAccountOptions options{};
         std::string innerName(name.data(), name.size());
-        int errorCode = AccountSA::AppAccountManager::CreateAccount(innerName, options);
+        int32_t errorCode = AccountSA::AppAccountManager::CreateAccount(innerName, options);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
@@ -131,7 +131,7 @@ public:
                 optionsInner.customData.emplace(tempKey, tempValue);
             }
         }
-        int errorCode = AccountSA::AppAccountManager::CreateAccount(innerName, optionsInner);
+        int32_t errorCode = AccountSA::AppAccountManager::CreateAccount(innerName, optionsInner);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
@@ -140,7 +140,7 @@ public:
     void RemoveAccountSync(string_view name)
     {
         std::string innerName(name.data(), name.size());
-        int errorCode = AccountSA::AppAccountManager::DeleteAccount(innerName);
+        int32_t errorCode = AccountSA::AppAccountManager::DeleteAccount(innerName);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
@@ -163,7 +163,7 @@ public:
         std::string innerName(name.data(), name.size());
         std::string innerBundleName(bundleName.data(), bundleName.size());
         bool isAccessible = false;
-        int errorCode = AccountSA::AppAccountManager::CheckAppAccess(innerName, innerBundleName, isAccessible);
+        int32_t errorCode = AccountSA::AppAccountManager::CheckAppAccess(innerName, innerBundleName, isAccessible);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
@@ -175,12 +175,12 @@ public:
     {
         std::string innerName(name.data(), name.size());
         bool result = false;
-        int errorCode = AccountSA::AppAccountManager::CheckAppAccountSyncEnable(innerName, result);
+        int32_t errorCode = AccountSA::AppAccountManager::CheckAppAccountSyncEnable(innerName, result);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
         }
-        if (result != ERR_OK) {
+        if (result != true) {
             ACCOUNT_LOGE("CheckDataSyncEnabled failed with errCode: %{public}d", result);
         }
         return result;
@@ -191,7 +191,7 @@ public:
         std::string innerName(name.data(), name.size());
         std::string innerCredentialType(credentialType.data(), credentialType.size());
         std::string innerCredential(credential.data(), credential.size());
-        int errorCode = AccountSA::AppAccountManager::SetAccountCredential(innerName,
+        int32_t errorCode = AccountSA::AppAccountManager::SetAccountCredential(innerName,
             innerCredentialType, innerCredential);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
@@ -202,7 +202,7 @@ public:
     void SetDataSyncEnabledSync(string_view name, bool isEnabled)
     {
         std::string innerName(name.data(), name.size());
-        int errorCode = AccountSA::AppAccountManager::SetAppAccountSyncEnable(innerName, isEnabled);
+        int32_t errorCode = AccountSA::AppAccountManager::SetAppAccountSyncEnable(innerName, isEnabled);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
@@ -214,7 +214,7 @@ public:
         std::string innerName(name.data(), name.size());
         std::string innerkey(key.data(), key.size());
         std::string innerValue(value.data(), value.size());
-        int errorCode = AccountSA::AppAccountManager::SetAssociatedData(innerName, innerkey, innerValue);
+        int32_t errorCode = AccountSA::AppAccountManager::SetAssociatedData(innerName, innerkey, innerValue);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
@@ -225,7 +225,7 @@ public:
     {
         std::string innerOwner = "";
         std::vector<AccountSA::AppAccountInfo> appAccounts;
-        int errorCode = AccountSA::AppAccountManager::QueryAllAccessibleAccounts(innerOwner, appAccounts);
+        int32_t errorCode = AccountSA::AppAccountManager::QueryAllAccessibleAccounts(innerOwner, appAccounts);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
@@ -242,7 +242,7 @@ public:
     {
         std::string innerOwner(owner.data(), owner.size());
         std::vector<AccountSA::AppAccountInfo> appAccounts;
-        int errorCode = AccountSA::AppAccountManager::QueryAllAccessibleAccounts(innerOwner, appAccounts);
+        int32_t errorCode = AccountSA::AppAccountManager::QueryAllAccessibleAccounts(innerOwner, appAccounts);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
@@ -260,7 +260,7 @@ public:
         std::string innerName(name.data(), name.size());
         std::string innerCredentialType(credentialType.data(), credentialType.size());
         std::string credential = "";
-        int errorCode = AccountSA::AppAccountManager::GetAccountCredential(innerName, innerCredentialType, credential);
+        int32_t errorCode = AccountSA::AppAccountManager::GetAccountCredential(innerName, innerCredentialType, credential);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
@@ -273,7 +273,7 @@ public:
         std::string innerName(name.data(), name.size());
         std::string innerKey(credentialType.data(), credentialType.size());
         std::string value = "";
-        int errorCode = AccountSA::AppAccountManager::GetAssociatedData(innerName, innerKey, value);
+        int32_t errorCode = AccountSA::AppAccountManager::GetAssociatedData(innerName, innerKey, value);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
@@ -281,12 +281,12 @@ public:
         return taihe::string(value.c_str());
     }
 
-    string GetCustomDataSyncSync(string_view name, string_view key)
+    string GetCustomDataSyncTaihe(string_view name, string_view key)
     {
         std::string innerName(name.data(), name.size());
         std::string innerKey(key.data(), key.size());
         std::string value = "";
-        int errorCode = AccountSA::AppAccountManager::GetAssociatedData(innerName, innerKey, value);
+        int32_t errorCode = AccountSA::AppAccountManager::GetAssociatedData(innerName, innerKey, value);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
@@ -300,7 +300,7 @@ public:
         std::string innerOwner(owner.data(), owner.size());
         std::string innerAuthType(authType.data(), authType.size());
         std::string token = "";
-        int errorCode = AccountSA::AppAccountManager::GetOAuthToken(innerName, innerOwner, innerAuthType, token);
+        int32_t errorCode = AccountSA::AppAccountManager::GetOAuthToken(innerName, innerOwner, innerAuthType, token);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
@@ -313,7 +313,7 @@ public:
         std::string innerName(name.data(), name.size());
         std::string innerAuthType(authType.data(), authType.size());
         std::string innerToken(token.data(), token.size());
-        int errorCode = AccountSA::AppAccountManager::SetOAuthToken(innerName, innerAuthType, innerToken);
+        int32_t errorCode = AccountSA::AppAccountManager::SetOAuthToken(innerName, innerAuthType, innerToken);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
@@ -326,28 +326,36 @@ public:
         std::string innerOwner(owner.data(), owner.size());
         std::vector<std::string> innerLabels(labels.data(), labels.data() + labels.size());
         sptr<AuthenticatorAsyncCallback> callback = new (std::nothrow) AuthenticatorAsyncCallback();
-        int errorCode = AccountSA::AppAccountManager::CheckAccountLabels(innerName, innerOwner, innerLabels, callback);
+        if (callback == nullptr) {
+            ACCOUNT_LOGE("insufficient memory for callback!");
+            return false;
+        }
+        int32_t errorCode = AccountSA::AppAccountManager::CheckAccountLabels(innerName, innerOwner, innerLabels, callback);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
         }
         std::unique_lock<std::mutex> lock(callback->mutex);
         callback->cv.wait(lock, [callback] { return callback->isDone; });
-        return callback->isDone;
+        return callback->param->result.GetBoolParam(AccountSA::Constants::KEY_BOOLEAN_RESULT, false);
     }
 
     array<AppAccountInfo> SelectAccountsByOptionsSync(SelectAccountsOptions const& options)
     {
         AccountSA::SelectAccountsOptions innerOptions = ConvertAccountsOptionsInfo(options);
+        std::vector<AppAccountInfo> accountInfos;
         sptr<AuthenticatorAsyncCallback> callback = new (std::nothrow) AuthenticatorAsyncCallback();
-        int errorCode = AccountSA::AppAccountManager::SelectAccountsByOptions(innerOptions, callback);
+        if (callback == nullptr) {
+            ACCOUNT_LOGE("insufficient memory for callback!");
+            return taihe::array<AppAccountInfo>(taihe::copy_data_t{}, accountInfos.data(), accountInfos.size());
+        }
+        int32_t errorCode = AccountSA::AppAccountManager::SelectAccountsByOptions(innerOptions, callback);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
         }
         std::unique_lock<std::mutex> lock(callback->mutex);
         callback->cv.wait(lock, [callback] { return callback->isDone; });
-        std::vector<AppAccountInfo> accountInfos;
         std::vector<std::string> names =
 			callback->param->result.GetStringArrayParam(AccountSA::Constants::KEY_ACCOUNT_NAMES);
         std::vector<std::string> owners =
@@ -364,7 +372,7 @@ public:
         std::string innerOwner(owner.data(), owner.size());
         std::string innerAuthType(authType.data(), authType.size());
         std::string innerToken(token.data(), token.size());
-        int errorCode = AccountSA::AppAccountManager::DeleteAuthToken(innerName, innerOwner, innerAuthType, innerToken);
+        int32_t errorCode = AccountSA::AppAccountManager::DeleteAuthToken(innerName, innerOwner, innerAuthType, innerToken);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
@@ -376,7 +384,7 @@ public:
         std::string innerName(name.data(), name.size());
         std::string innerAuthType(authType.data(), authType.size());
         std::string innerBundleName(bundleName.data(), bundleName.size());
-        int errorCode = AccountSA::AppAccountManager::SetAuthTokenVisibility(innerName, innerAuthType,
+        int32_t errorCode = AccountSA::AppAccountManager::SetAuthTokenVisibility(innerName, innerAuthType,
             innerBundleName, isVisible);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
@@ -390,7 +398,7 @@ public:
         std::string innerAuthType(authType.data(), authType.size());
         std::string innerBundleName(bundleName.data(), bundleName.size());
         bool isVisible;
-        int errorCode = AccountSA::AppAccountManager::CheckAuthTokenVisibility(innerName, innerAuthType,
+        int32_t errorCode = AccountSA::AppAccountManager::CheckAuthTokenVisibility(innerName, innerAuthType,
             innerBundleName, isVisible);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
@@ -405,15 +413,15 @@ public:
         std::string innerOwner(owner.data(), owner.size());
         std::vector<AccountSA::OAuthTokenInfo> innerAuthTokenInfos;
 
-        int errorCode = AccountSA::AppAccountManager::GetAllOAuthTokens(innerName,
+        int32_t errorCode = AccountSA::AppAccountManager::GetAllOAuthTokens(innerName,
             innerOwner, innerAuthTokenInfos);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
         }
         AppAccountInfo appAccountInfo = {owner, name};
-        std::vector<AuthTokenInfo> authTokenInfosArray;
-        authTokenInfosArray.reserve(innerAuthTokenInfos.size());
+        std::vector<AuthTokenInfo> authTokenInfoArray;
+        authTokenInfoArray.reserve(innerAuthTokenInfos.size());
         AuthTokenInfo authTokenInfo = {};
         for (const auto& info : innerAuthTokenInfos) {
             authTokenInfo = AuthTokenInfo{
@@ -421,9 +429,9 @@ public:
                 .token = info.token,
                 .account = optional<AppAccountInfo>(std::in_place_t{}, appAccountInfo),
             };
-            authTokenInfosArray.push_back(authTokenInfo);
+            authTokenInfoArray.push_back(authTokenInfo);
         }
-        return array<AuthTokenInfo>(taihe::copy_data_t{}, authTokenInfosArray.data(), authTokenInfosArray.size());
+        return array<AuthTokenInfo>(taihe::copy_data_t{}, authTokenInfoArray.data(), authTokenInfoArray.size());
     }
     
     array<string> GetAuthListSync(string_view name, string_view authType)
@@ -431,7 +439,7 @@ public:
         std::string innerName(name.data(), name.size());
         std::string innerAuthType(authType.data(), authType.size());
         std::set<std::string> innerAuthList;
-        int errorCode = AccountSA::AppAccountManager::GetAuthList(innerName,
+        int32_t errorCode = AccountSA::AppAccountManager::GetAuthList(innerName,
             innerAuthType, innerAuthList);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
@@ -449,7 +457,7 @@ public:
         std::string innerOwner(owner.data(), owner.size());
         AccountSA::AuthenticatorInfo innerAuthenticatorInfo;
 
-        int errorCode = AccountSA::AppAccountManager::GetAuthenticatorInfo(innerOwner,
+        int32_t errorCode = AccountSA::AppAccountManager::GetAuthenticatorInfo(innerOwner,
             innerAuthenticatorInfo);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
@@ -468,7 +476,7 @@ public:
     {
         std::string innerName(name.data(), name.size());
         std::string innerCredentialType(credentialType.data(), credentialType.size());
-        int errorCode = AccountSA::AppAccountManager::DeleteAccountCredential(innerName,
+        int32_t errorCode = AccountSA::AppAccountManager::DeleteAccountCredential(innerName,
             innerCredentialType);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);

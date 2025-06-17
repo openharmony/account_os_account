@@ -1217,7 +1217,7 @@ bool IsAuthenticationExpiredSync(const DomainAccountInfo &domainAccountInfo)
 
 void UnregisterPlugin()
 {
-    int errorCode = AccountSA::DomainAccountClient::GetInstance().UnregisterPlugin();
+    int32_t errorCode = AccountSA::DomainAccountClient::GetInstance().UnregisterPlugin();
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
@@ -1249,7 +1249,7 @@ void Auth(DomainAccountInfo const& domainAccountInfo, array_view<uint8_t> creden
     std::vector<uint8_t> credentialInner(credential.begin(), credential.begin() + credential.size());
     std::shared_ptr<THDomainAccountCallback> callbackInner =
             std::make_shared<THDomainAccountCallback>(callback);
-    int errorCode = AccountSA::DomainAccountClient::GetInstance().Auth(domainAccountInfoInner,
+    int32_t errorCode = AccountSA::DomainAccountClient::GetInstance().Auth(domainAccountInfoInner,
         credentialInner, callbackInner);
     if (errorCode != ERR_OK) {
         Parcel emptyParcel;
@@ -1267,7 +1267,7 @@ void AuthWithPopup(IUserAuthCallback const& callback)
     std::shared_ptr<THDomainAccountCallback> callbackInner =
             std::make_shared<THDomainAccountCallback>(callback);
     int32_t userId;
-    int errorCode = AccountSA::DomainAccountClient::GetInstance().AuthWithPopup(userId, callbackInner);
+    int32_t errorCode = AccountSA::DomainAccountClient::GetInstance().AuthWithPopup(userId, callbackInner);
     if (errorCode != ERR_OK) {
         Parcel emptyParcel;
         AccountSA::DomainAuthResult emptyResult;
@@ -1283,7 +1283,7 @@ void AuthWithPopupWithId(int32_t localId, IUserAuthCallback const& callback)
 {
     std::shared_ptr<THDomainAccountCallback> callbackInner =
             std::make_shared<THDomainAccountCallback>(callback);
-    int errorCode = AccountSA::DomainAccountClient::GetInstance().AuthWithPopup(localId, callbackInner);
+    int32_t errorCode = AccountSA::DomainAccountClient::GetInstance().AuthWithPopup(localId, callbackInner);
     if (errorCode != ERR_OK) {
         Parcel emptyParcel;
         AccountSA::DomainAuthResult emptyResult;
@@ -1300,7 +1300,7 @@ bool HasAccountSync(DomainAccountInfo const& domainAccountInfo)
     AccountSA::DomainAccountInfo domainAccountInfoInner = ConvertToDomainAccountInfoInner(domainAccountInfo);
     std::shared_ptr<THUserAuthCallback> jsCallback;
     auto callbackInner = std::make_shared<DomainAccountCallbackTH>(jsCallback);
-    int errorCode = AccountSA::DomainAccountClient::GetInstance().HasAccount(domainAccountInfoInner, callbackInner);
+    int32_t errorCode = AccountSA::DomainAccountClient::GetInstance().HasAccount(domainAccountInfoInner, callbackInner);
     if (errorCode != ERR_OK) {
         Parcel emptyParcel;
         callbackInner->OnResult(errorCode, emptyParcel);

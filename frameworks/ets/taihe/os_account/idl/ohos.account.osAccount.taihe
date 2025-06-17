@@ -17,6 +17,10 @@
 
 use ohos.account.distributedAccount as distributedAccount;
 
+@!sts_inject("""
+static { loadLibrary("os_account_taihe_native.z") }
+""")
+
 function getAccountManager(): AccountManager;
 
 interface AccountManager {
@@ -113,7 +117,7 @@ interface AccountManager {
     GetBundleIdForUidWithIdSync(uid: i32): i32;
 
     @overload("getBundleIdForUidSync")
-    GetBundleIdForUidSyncSync(uid: i32): i32;
+    GetBundleIdForUidSyncTaihe(uid: i32): i32;
 
     @gen_promise("getOsAccountConstraintSourceTypes")
     @gen_async("getOsAccountConstraintSourceTypes")

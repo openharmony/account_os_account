@@ -148,7 +148,7 @@ interface AppAccountManager {
     GetCustomDataWithTypeSync(name: String, credentialType: String): String;
 
 	@overload("getCustomDataSync")
-    GetCustomDataSyncSync(name: String, key: String): String;
+    GetCustomDataSyncTaihe(name: String, key: String): String;
 	
 	@gen_async("getAuthToken")
     @gen_promise("getAuthToken")
