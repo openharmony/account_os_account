@@ -260,7 +260,8 @@ public:
         std::string innerName(name.data(), name.size());
         std::string innerCredentialType(credentialType.data(), credentialType.size());
         std::string credential = "";
-        int32_t errorCode = AccountSA::AppAccountManager::GetAccountCredential(innerName, innerCredentialType, credential);
+        int32_t errorCode = AccountSA::AppAccountManager::GetAccountCredential(innerName,
+            innerCredentialType, credential);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
@@ -330,7 +331,8 @@ public:
             ACCOUNT_LOGE("insufficient memory for callback!");
             return false;
         }
-        int32_t errorCode = AccountSA::AppAccountManager::CheckAccountLabels(innerName, innerOwner, innerLabels, callback);
+        int32_t errorCode = AccountSA::AppAccountManager::CheckAccountLabels(innerName,
+            innerOwner, innerLabels, callback);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
@@ -372,7 +374,8 @@ public:
         std::string innerOwner(owner.data(), owner.size());
         std::string innerAuthType(authType.data(), authType.size());
         std::string innerToken(token.data(), token.size());
-        int32_t errorCode = AccountSA::AppAccountManager::DeleteAuthToken(innerName, innerOwner, innerAuthType, innerToken);
+        int32_t errorCode = AccountSA::AppAccountManager::DeleteAuthToken(innerName,
+            innerOwner, innerAuthType, innerToken);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
