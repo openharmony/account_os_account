@@ -19,12 +19,6 @@
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "ani_common_want.h"
-#include "domain_account_client.h"
-#include "iam_common_defines.h"
-#include "account_error_no.h"
-#include "napi_account_iam_common.h"
-#include "napi_account_iam_constant.h"
-#include "nlohmann/json.hpp"
 #include "ohos.account.disributedAccount.h"
 #include "ohos.account.distributedAccount.impl.hpp"
 #include "ohos.account.distributedAccount.proj.hpp"
@@ -32,7 +26,6 @@
 #include "ohos.account.osAccount.proj.hpp"
 #include "ohos_account_kits.h"
 #include "os_account_info.h"
-#include "os_account_manager.h"
 #include "taihe/runtime.hpp"
 #include "taihe_common.h"
 #include "taihe_account_info.h"
@@ -51,7 +44,7 @@ using namespace ohos::account::osAccount;
 using namespace ohos::account::distributedAccount;
 namespace {
 using OHOS::AccountSA::ACCOUNT_LABEL;
-const std::string DAFAULT_STR = "";
+const std::string DEFAULT_STR = "";
 const bool DEFAULT_BOOL = false;
 const AccountSA::OsAccountType DEFAULT_ACCOUNT_TYPE = AccountSA::OsAccountType::END;
 constexpr std::int32_t MAX_SUBSCRIBER_NAME_LEN = 1024;
@@ -214,7 +207,7 @@ public:
         int32_t temp = localId;
         std::string photo = "";
         ErrCode errCode = AccountSA::OsAccountManager::GetOsAccountProfilePhoto(temp, photo);
-        return TaiheReturn(errCode, photo, DAFAULT_STR);
+        return TaiheReturn(errCode, photo, DEFAULT_STR);
     }
 
     OsAccountType GetOsAccountTypeSync()
@@ -311,7 +304,7 @@ public:
                 item++;
                 continue;
             }
-            int errCode = AccountSA::OsAccountManager::UnsubscribeOsAccount((*item)->subscriber);
+            int32_t errCode = AccountSA::OsAccountManager::UnsubscribeOsAccount((*item)->subscriber);
             if (errCode != ERR_OK) {
                 int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
                 taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
@@ -641,7 +634,7 @@ public:
         return id;
     }
 
-    int32_t GetBundleIdForUidSyncSync(int32_t uid)
+    int32_t GetBundleIdForUidSyncTaihe(int32_t uid)
     {
         int32_t bundleId = 0;
         ErrCode errorCode = AccountSA::OsAccountManager::GetBundleIdFromUid(uid, bundleId);
