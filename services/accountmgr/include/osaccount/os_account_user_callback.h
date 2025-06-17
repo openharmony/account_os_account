@@ -18,7 +18,7 @@
 
 #include "iremote_stub.h"
 #include "nocopyable.h"
-#include "iuser_callback.h"
+#include "user_callback.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -31,9 +31,9 @@ public:
 
     virtual int OnRemoteRequest(
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
-    ErrCode OnStopUserDone(int userId, int errcode) override;
-    ErrCode OnStartUserDone(int userId, int errcode) override;
-    ErrCode OnLogoutUserDone(int userId, int errcode) override;
+    void OnStopUserDone(int userId, int errcode) override;
+    void OnStartUserDone(int userId, int errcode) override;
+    void OnLogoutUserDone(int userId, int errcode) override;
 
 public:
     bool isCalled_ = false;
