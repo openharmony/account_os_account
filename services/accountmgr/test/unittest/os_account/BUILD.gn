@@ -207,6 +207,7 @@ ohos_unittest("os_account_domain_account_callback_test") {
 
   external_deps = [
     "ability_base:want",
+    "ability_runtime:ability_manager",
     "ability_runtime:runtime",
     "access_token:libaccesstoken_sdk",
     "cJSON:cjson",
