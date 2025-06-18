@@ -67,6 +67,7 @@
         "constraint.os.account.create.directly",
         "constraint.mtp.client.write",
         "constraint.usb.storageDevice.write",
-        "constraint.distributed.transmission.outgoing"
+        "constraint.distributed.transmission.outgoing",
+        "constraint.recovery.key.export"
     ]
 }
