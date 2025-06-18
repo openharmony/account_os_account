@@ -74,6 +74,7 @@ ohos_shared_library("os_account_innerkits") {
     "src/os_account_manager.cpp",
     "src/os_account_subscribe_info.cpp",
     "src/os_account_subscriber.cpp",
+    "${innerkits_native_path}/src/account_info.cpp",
   ]
   output_values = get_target_outputs(":frameworks_osaccount_interface")
   sources += filter_include(output_values,

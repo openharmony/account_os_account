@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #include "account_mgr_service.h"
 #include <cerrno>
 #include <thread>
+#include "accesstoken_kit.h"
 #include "account_dump_helper.h"
 #include "account_hisysevent_adapter.h"
 #ifdef HAS_USER_AUTH_PART
@@ -44,12 +45,36 @@
 #include "perf_stat.h"
 #include "string_ex.h"
 #include "system_ability_definition.h"
+#ifdef HICOLLIE_ENABLE
+#include "xcollie/xcollie.h"
+#endif // HICOLLIE_ENABLE
 
 namespace OHOS {
 namespace AccountSA {
 namespace {
+const char PERMISSION_MANAGE_USERS[] = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
+const char PERMISSION_GET_LOCAL_ACCOUNTS[] = "ohos.permission.GET_LOCAL_ACCOUNTS";
+const char PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS[] = "ohos.permission.MANAGE_DISTRIBUTED_ACCOUNTS";
+const char PERMISSION_GET_DISTRIBUTED_ACCOUNTS[] = "ohos.permission.GET_DISTRIBUTED_ACCOUNTS";
+const char PERMISSION_DISTRIBUTED_DATASYNC[] = "ohos.permission.DISTRIBUTED_DATASYNC";
+const char INTERACT_ACROSS_LOCAL_ACCOUNTS[] = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
+const std::set<std::int32_t> WHITE_LIST = {
+    3012, // DISTRIBUTED_KV_DATA_SA_UID
+    3019, // DLP_UID
+    3553, // DLP_CREDENTIAL_SA_UID
+};
+#ifdef USE_MUSL
+constexpr std::int32_t DSOFTBUS_UID = 1024;
+#else
+constexpr std::int32_t DSOFTBUS_UID = 5533;
+#endif
+#ifndef IS_RELEASE_VERSION
+constexpr std::int32_t ROOT_UID = 0;
+#endif
 #ifdef HICOLLIE_ENABLE
+constexpr std::int32_t RECOVERY_TIMEOUT = 6; // timeout 6s
 constexpr int32_t MAX_INIT_TIME = 120;
+thread_local int32_t g_timerId = 0;
 #endif // HICOLLIE_ENABLE
 const std::set<int32_t> INIT_ACCOUNT_ID_SET = {
 #ifdef ENABLE_U1_ACCOUNT
@@ -106,6 +131,22 @@ std::int32_t AccountMgrService::GetCallingUserID()
 ErrCode AccountMgrService::UpdateOhosAccountInfo(
     const std::string &accountName, const std::string &uid, const std::string &eventStr)
 {
+    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS)) {
+        ACCOUNT_LOGE("Check permission failed");
+        REPORT_PERMISSION_FAIL();
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+
+    if (accountName.empty()) {
+        ACCOUNT_LOGE("empty account name!");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    if (uid.empty()) {
+        ACCOUNT_LOGE("empty uid!");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
     ErrCode res = OhosAccountManager::GetInstance().OhosAccountStateChange(accountName, uid, eventStr);
     if (res != ERR_OK) {
         ACCOUNT_LOGE("Ohos account state change failed, res = %{public}d.", res);
@@ -116,13 +157,17 @@ ErrCode AccountMgrService::UpdateOhosAccountInfo(
 
 ErrCode AccountMgrService::SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
 {
-    return ERR_OK;
-}
-
-ErrCode AccountMgrService::SetOsAccountDistributedInfo(
-    const int32_t localId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
-{
-    ErrCode res = OhosAccountManager::GetInstance().OhosAccountStateChange(localId, ohosAccountInfo, eventStr);
+    if (!HasAccountRequestPermission(PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS)) {
+        ACCOUNT_LOGE("Check permission failed");
+        REPORT_PERMISSION_FAIL();
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    if (!ohosAccountInfo.IsValid()) {
+        ACCOUNT_LOGE("Check OhosAccountInfo failed");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    auto userId = AccountMgrService::GetInstance().GetCallingUserID();
+    ErrCode res = OhosAccountManager::GetInstance().OhosAccountStateChange(userId, ohosAccountInfo, eventStr);
     if (res != ERR_OK) {
         ACCOUNT_LOGE("Ohos account state change failed");
     }
@@ -130,28 +175,147 @@ ErrCode AccountMgrService::SetOsAccountDistributedInfo(
     return res;
 }
 
+ErrCode AccountMgrService::SetOsAccountDistributedInfo(
+    const int32_t localId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
+{
+    std::int32_t ret = AccountPermissionManager::CheckSystemApp();
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("the caller is not system application, ret = %{public}d.", ret);
+        return ret;
+    }
+    if (!HasAccountRequestPermission(PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS)) {
+        ACCOUNT_LOGE("Check permission failed");
+        REPORT_PERMISSION_FAIL();
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    if (!ohosAccountInfo.IsValid()) {
+        ACCOUNT_LOGE("Check OhosAccountInfo failed");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    ret = CheckUserIdValid(localId);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("CheckUserIdValid failed, ret = %{public}d", ret);
+        return ret;
+    }
+    ret = OhosAccountManager::GetInstance().OhosAccountStateChange(localId, ohosAccountInfo, eventStr);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Ohos account state change failed");
+    }
+
+    return ret;
+}
+
 ErrCode AccountMgrService::QueryDistributedVirtualDeviceId(std::string &dvid)
 {
+    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS) &&
+        !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC)) {
+        ACCOUNT_LOGE("Check permission failed");
+        REPORT_PERMISSION_FAIL();
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
     return OhosAccountManager::GetInstance().QueryDistributedVirtualDeviceId(dvid);
 }
 
 ErrCode AccountMgrService::QueryDistributedVirtualDeviceId(const std::string &bundleName, int32_t localId,
     std::string &dvid)
 {
+    ErrCode errCode = AccountPermissionManager::CheckSystemApp();
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("The caller is not system application, errCode = %{public}d.", errCode);
+        return errCode;
+    }
+    if (!HasAccountRequestPermission(PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS) &&
+        !HasAccountRequestPermission(PERMISSION_MANAGE_USERS) &&
+        !HasAccountRequestPermission(PERMISSION_GET_DISTRIBUTED_ACCOUNTS)) {
+        ACCOUNT_LOGE("Failed to check permission");
+        REPORT_PERMISSION_FAIL();
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
     return OhosAccountManager::GetInstance().QueryDistributedVirtualDeviceId(bundleName, localId, dvid);
 }
 
-ErrCode AccountMgrService::QueryOhosAccountInfo(OhosAccountInfo &accountInfo)
+ErrCode AccountMgrService::QueryOhosAccountInfo(std::string& accountName, std::string& uid, int32_t& status)
 {
-    return QueryOsAccountDistributedInfo(GetCallingUserID(), accountInfo);
+#ifdef HICOLLIE_ENABLE
+    unsigned int flag = HiviewDFX::XCOLLIE_FLAG_LOG | HiviewDFX::XCOLLIE_FLAG_RECOVERY;
+    XCollieCallback callbackFunc = [callingPid = IPCSkeleton::GetCallingPid(),
+                                    callingUid = IPCSkeleton::GetCallingUid()](void*) {
+        ACCOUNT_LOGE("InnerQueryOhosAccountInfo failed, callingPid: %{public}d, callingUid: %{public}d.", callingPid,
+            callingUid);
+        ReportOhosAccountOperationFail(callingUid, "watchDog", -1, "Query ohos account info time out");
+    };
+    int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, RECOVERY_TIMEOUT, callbackFunc, nullptr, flag);
+#endif // HICOLLIE_ENABLE
+    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS) &&
+        !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC) &&
+        !HasAccountRequestPermission(PERMISSION_GET_LOCAL_ACCOUNTS)) {
+        ACCOUNT_LOGE("Check permission failed");
+        REPORT_PERMISSION_FAIL();
+#ifdef HICOLLIE_ENABLE
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    auto ret = QueryOsAccountDistributedInfo(GetCallingUserID(), accountName, uid, status);
+#ifdef HICOLLIE_ENABLE
+    HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
+    return ret;
 }
 
 ErrCode AccountMgrService::GetOhosAccountInfo(OhosAccountInfo &info)
 {
-    return GetOsAccountDistributedInfo(GetCallingUserID(), info);
+    if (!HasAccountRequestPermission(PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS) &&
+        !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC) &&
+        !HasAccountRequestPermission(PERMISSION_GET_DISTRIBUTED_ACCOUNTS)) {
+        ACCOUNT_LOGE("Check permission failed");
+        REPORT_PERMISSION_FAIL();
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    auto ret = GetOsAccountDistributedInfoInner(GetCallingUserID(), info);
+    info.SetRawUid("");
+    return ret;
 }
 
 ErrCode AccountMgrService::GetOsAccountDistributedInfo(int32_t localId, OhosAccountInfo &info)
+{
+    ErrCode errCode = AccountPermissionManager::CheckSystemApp();
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("the caller is not system application, errCode = %{public}d.", errCode);
+        return errCode;
+    }
+    if (!HasAccountRequestPermission(PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS) &&
+        !HasAccountRequestPermission(INTERACT_ACROSS_LOCAL_ACCOUNTS) &&
+        !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC) &&
+        !HasAccountRequestPermission(PERMISSION_GET_DISTRIBUTED_ACCOUNTS)) {
+        ACCOUNT_LOGE("Check permission failed");
+        REPORT_PERMISSION_FAIL();
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+
+    bool isOsAccountExits = false;
+    errCode = IInnerOsAccountManager::GetInstance().IsOsAccountExists(localId, isOsAccountExits);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("IsOsAccountExists failed errCode is %{public}d", errCode);
+        return errCode;
+    }
+    if (!isOsAccountExits) {
+        ACCOUNT_LOGE("os account is not exit");
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    errCode = GetOsAccountDistributedInfoInner(localId, info);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Get ohos account info failed");
+        return errCode;
+    }
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    if (WHITE_LIST.find(uid) == WHITE_LIST.end()) {
+        info.SetRawUid("");
+    }
+    return ERR_OK;
+}
+
+ErrCode AccountMgrService::GetOsAccountDistributedInfoInner(int32_t localId, OhosAccountInfo &info)
 {
     ErrCode ret = OhosAccountManager::GetInstance().GetOhosAccountDistributedInfo(localId, info);
     if (ret != ERR_OK) {
@@ -160,16 +324,28 @@ ErrCode AccountMgrService::GetOsAccountDistributedInfo(int32_t localId, OhosAcco
     return ERR_OK;
 }
 
-ErrCode AccountMgrService::QueryOsAccountDistributedInfo(std::int32_t localId, OhosAccountInfo &accountInfo)
+ErrCode AccountMgrService::QueryOsAccountDistributedInfo(
+    std::int32_t localId, std::string& accountName, std::string& uid, int32_t& status)
 {
+    if ((!HasAccountRequestPermission(PERMISSION_MANAGE_USERS)) &&
+        (!HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC)) &&
+        (IPCSkeleton::GetCallingUid() != DSOFTBUS_UID)) {
+        ACCOUNT_LOGE("Check permission failed");
+        REPORT_PERMISSION_FAIL();
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    if (localId < 0) {
+        ACCOUNT_LOGE("negative userID %{public}d detected!", localId);
+        return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_USERID_ERROR;
+    }
     OhosAccountInfo ohosAccountInfo;
     ErrCode ret = OhosAccountManager::GetInstance().GetOhosAccountDistributedInfo(localId, ohosAccountInfo);
     if (ret != ERR_OK) {
         return ret;
     }
-    accountInfo.name_ = ohosAccountInfo.name_;
-    accountInfo.uid_ = ohosAccountInfo.uid_;
-    accountInfo.status_ = ohosAccountInfo.status_;
+    accountName = ohosAccountInfo.name_;
+    uid = ohosAccountInfo.uid_;
+    status = ohosAccountInfo.status_;
     return ERR_OK;
 }
 
@@ -180,81 +356,92 @@ ErrCode AccountMgrService::QueryDeviceAccountId(std::int32_t &accountId)
     return ERR_OK;
 }
 
-ErrCode AccountMgrService::SubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
-    const sptr<IRemoteObject> &eventListener)
+ErrCode AccountMgrService::SubscribeDistributedAccountEvent(int32_t typeInt, const sptr<IRemoteObject>& eventListener)
 {
+    if (eventListener == nullptr) {
+        ACCOUNT_LOGE("eventListener is nullptr.");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
     ErrCode res = AccountPermissionManager::CheckSystemApp(false);
     if (res != ERR_OK) {
         ACCOUNT_LOGE("Check systemApp failed.");
         return res;
     }
+    auto type = static_cast<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE>(typeInt);
     return OhosAccountManager::GetInstance().SubscribeDistributedAccountEvent(type, eventListener);
 }
 
-ErrCode AccountMgrService::UnsubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
-    const sptr<IRemoteObject> &eventListener)
+ErrCode AccountMgrService::UnsubscribeDistributedAccountEvent(int32_t typeInt, const sptr<IRemoteObject>& eventListener)
 {
+    if (eventListener == nullptr) {
+        ACCOUNT_LOGE("eventListener is nullptr.");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
     ErrCode res = AccountPermissionManager::CheckSystemApp(false);
     if (res != ERR_OK) {
         ACCOUNT_LOGE("Check systemApp failed.");
         return res;
     }
+    auto type = static_cast<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE>(typeInt);
     return OhosAccountManager::GetInstance().UnsubscribeDistributedAccountEvent(type, eventListener);
 }
 
-sptr<IRemoteObject> AccountMgrService::GetAppAccountService()
+ErrCode AccountMgrService::GetAppAccountService(sptr<IRemoteObject>& funcResult)
 {
 #ifdef HAS_APP_ACCOUNT_PART
     std::lock_guard<std::mutex> lock(serviceMutex_);
-    auto service = appAccountManagerService_.promote();
-    if (service == nullptr) {
-        service = new (std::nothrow) AppAccountManagerService();
-        appAccountManagerService_ = service;
+    funcResult = appAccountManagerService_.promote();
+    if (funcResult == nullptr) {
+        funcResult = new (std::nothrow) AppAccountManagerService();
+        appAccountManagerService_ = funcResult;
     }
-    return service;
+    return ERR_OK;
 #else
-    return nullptr;
+    funcResult = nullptr;
+    return ERR_OK;
 #endif
 }
 
-sptr<IRemoteObject> AccountMgrService::GetOsAccountService()
+ErrCode AccountMgrService::GetOsAccountService(sptr<IRemoteObject>& funcResult)
 {
     std::lock_guard<std::mutex> lock(serviceMutex_);
-    auto service = osAccountManagerService_.promote();
-    if (service == nullptr) {
-        service = new (std::nothrow) OsAccountManagerService();
-        osAccountManagerService_ = service;
+    funcResult = osAccountManagerService_.promote();
+    if (funcResult == nullptr) {
+        funcResult = new (std::nothrow) OsAccountManagerService();
+        osAccountManagerService_ = funcResult;
     }
-    return service;
+    return ERR_OK;
 }
 
-sptr<IRemoteObject> AccountMgrService::GetAccountIAMService()
+ErrCode AccountMgrService::GetAccountIAMService(sptr<IRemoteObject>& funcResult)
 {
 #ifdef HAS_USER_AUTH_PART
     std::lock_guard<std::mutex> lock(serviceMutex_);
-    auto service = accountIAMService_.promote();
-    if (service == nullptr) {
-        service = new (std::nothrow) AccountIAMService();
-        accountIAMService_ = service;
+    funcResult = accountIAMService_.promote();
+    if (funcResult == nullptr) {
+        funcResult = new (std::nothrow) AccountIAMService();
+        accountIAMService_ = funcResult;
     }
-    return service;
+    return ERR_OK;
 #else
-    return nullptr;
+    funcResult = nullptr;
+    return ERR_OK;
 #endif // HAS_USER_AUTH_PART
 }
 
-sptr<IRemoteObject> AccountMgrService::GetDomainAccountService()
+ErrCode AccountMgrService::GetDomainAccountService(sptr<IRemoteObject>& funcResult)
 {
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
     std::lock_guard<std::mutex> lock(serviceMutex_);
-    auto service = domainAccountMgrService_.promote();
-    if (service == nullptr) {
-        service = new (std::nothrow) DomainAccountManagerService();
-        domainAccountMgrService_ = service;
+    funcResult = domainAccountMgrService_.promote();
+    if (funcResult == nullptr) {
+        funcResult = new (std::nothrow) DomainAccountManagerService();
+        domainAccountMgrService_ = funcResult;
     }
-    return service;
+    return ERR_OK;
 #else
-    return nullptr;
+    funcResult = nullptr;
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
 #endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
@@ -522,6 +709,63 @@ void AccountMgrService::HandleNotificationEvents(const std::string &eventStr)
         ACCOUNT_LOGW("service not running for handling event: %{public}s", eventStr.c_str());
         return;
     }
+}
+
+bool AccountMgrService::HasAccountRequestPermission(const std::string &permissionName)
+{
+#ifndef IS_RELEASE_VERSION
+    std::int32_t uid = IPCSkeleton::GetCallingUid();
+    // root check in none release version for test
+    if (uid == ROOT_UID) {
+        return true;
+    }
+#endif
+
+    // check permission
+    Security::AccessToken::AccessTokenID callingTokenID = IPCSkeleton::GetCallingTokenID();
+    if (Security::AccessToken::AccessTokenKit::VerifyAccessToken(callingTokenID, permissionName) ==
+        Security::AccessToken::TypePermissionState::PERMISSION_GRANTED) {
+        return true;
+    }
+
+    return false;
+}
+
+int32_t AccountMgrService::CallbackEnter([[maybe_unused]] uint32_t code)
+{
+    ACCOUNT_LOGD("Received stub message: %{public}d, callingUid: %{public}d", code, IPCSkeleton::GetCallingUid());
+    if (!IsServiceStarted()) {
+        ACCOUNT_LOGE("account mgr not ready");
+        return ERR_ACCOUNT_ZIDL_MGR_NOT_READY_ERROR;
+    }
+#ifdef HICOLLIE_ENABLE
+    g_timerId =
+        HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, TIMEOUT, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
+#endif // HICOLLIE_ENABLE
+    return ERR_OK;
+}
+
+int32_t AccountMgrService::CallbackExit([[maybe_unused]] uint32_t code, [[maybe_unused]] int32_t result)
+{
+#ifdef HICOLLIE_ENABLE
+    HiviewDFX::XCollie::GetInstance().CancelTimer(g_timerId);
+#endif // HICOLLIE_ENABLE
+    return ERR_OK;
+}
+
+int32_t AccountMgrService::CheckUserIdValid(int32_t userId)
+{
+    if ((userId >= 0) && (userId < Constants::START_USER_ID)) {
+        ACCOUNT_LOGE("userId %{public}d is system reserved", userId);
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+    bool isOsAccountExist = false;
+    IInnerOsAccountManager::GetInstance().IsOsAccountExists(userId, isOsAccountExist);
+    if (!isOsAccountExist) {
+        ACCOUNT_LOGE("os account is not exist");
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    return ERR_OK;
 }
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -97,7 +97,8 @@ void OsAccountTest::SetUpTestCase(void)
         systemAbilityManager->GetSystemAbility(SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN);
     sptr<IAccount> accountProxy = iface_cast<AccountProxy>(remoteObject);
     EXPECT_NE(accountProxy, nullptr);
-    auto osAccountRemoteObject = accountProxy->GetOsAccountService();
+    sptr<IRemoteObject> osAccountRemoteObject = nullptr;
+    accountProxy->GetOsAccountService(osAccountRemoteObject);
     osAccountProxy_ = iface_cast<IOsAccount>(osAccountRemoteObject);
     EXPECT_NE(osAccountProxy_, nullptr);
     GTEST_LOG_(INFO) << "SetUpTestCase finished, waitCnt " << waitCnt;

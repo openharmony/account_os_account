@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -50,53 +50,54 @@ ErrCode MockAccountMgrService::UpdateOhosAccountInfo(
     return ERR_OK;
 }
 
-ErrCode MockAccountMgrService::QueryOhosAccountInfo(OhosAccountInfo &accountInfo)
+ErrCode MockAccountMgrService::QueryOhosAccountInfo(std::string& accountName, std::string& uid, int32_t& status)
 {
-    accountInfo.name_ = DEFAULT_OHOS_ACCOUNT_NAME;
-    accountInfo.uid_ = DEFAULT_OHOS_ACCOUNT_UID;
-    accountInfo.status_ = ACCOUNT_STATE_UNBOUND;
+    accountName = DEFAULT_OHOS_ACCOUNT_NAME;
+    uid = DEFAULT_OHOS_ACCOUNT_UID;
+    status = ACCOUNT_STATE_UNBOUND;
     return ERR_OK;
 }
 
-ErrCode MockAccountMgrService::QueryOsAccountDistributedInfo(std::int32_t localId, OhosAccountInfo &accountInfo)
+ErrCode MockAccountMgrService::QueryOsAccountDistributedInfo(
+    std::int32_t localId, std::string& accountName, std::string& uid, int32_t& status)
 {
-    accountInfo.name_ = DEFAULT_OHOS_ACCOUNT_NAME;
-    accountInfo.uid_ = DEFAULT_OHOS_ACCOUNT_UID;
-    accountInfo.status_ = ACCOUNT_STATE_UNBOUND;
+    accountName = DEFAULT_OHOS_ACCOUNT_NAME;
+    uid = DEFAULT_OHOS_ACCOUNT_UID;
+    status = ACCOUNT_STATE_UNBOUND;
     return ERR_OK;
 }
 
-ErrCode MockAccountMgrService::SubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
-    const sptr<IRemoteObject> &eventListener)
-{
-    return ERR_OK;
-}
-
-ErrCode MockAccountMgrService::UnsubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
-    const sptr<IRemoteObject> &eventListener)
+ErrCode MockAccountMgrService::SubscribeDistributedAccountEvent(
+    const int32_t typeInt, const sptr<IRemoteObject>& eventListener)
 {
     return ERR_OK;
 }
 
-sptr<IRemoteObject> MockAccountMgrService::GetAppAccountService()
+ErrCode MockAccountMgrService::UnsubscribeDistributedAccountEvent(
+    const int32_t typeInt, const sptr<IRemoteObject>& eventListener)
+{
+    return ERR_OK;
+}
+
+ErrCode MockAccountMgrService::GetAppAccountService(sptr<IRemoteObject>& funcResult)
 {
     ACCOUNT_LOGI("enter");
-
-    return nullptr;
+    funcResult = nullptr;
+    return 0;
 }
 
-sptr<IRemoteObject> MockAccountMgrService::GetOsAccountService()
+ErrCode MockAccountMgrService::GetOsAccountService(sptr<IRemoteObject>& funcResult)
 {
     ACCOUNT_LOGI("enter");
-
-    return nullptr;
+    funcResult = nullptr;
+    return 0;
 }
 
-sptr<IRemoteObject> MockAccountMgrService::GetDomainAccountService()
+ErrCode MockAccountMgrService::GetDomainAccountService(sptr<IRemoteObject>& funcResult)
 {
     ACCOUNT_LOGI("enter");
-
-    return nullptr;
+    funcResult = nullptr;
+    return 0;
 }
 }  // namespace AccountSA
 }  // namespace OHOS
