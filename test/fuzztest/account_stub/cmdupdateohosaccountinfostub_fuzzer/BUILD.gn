@@ -51,6 +51,7 @@ ohos_fuzztest("CmdUpdateOhosAccountInfoStubFuzzTest") {
   ]
 
   deps = [
+    "${innerkits_native_path}:account_stub",
     "${os_account_path}/frameworks/appaccount/native:app_account_innerkits",
     "${os_account_path}/frameworks/common:libaccount_common",
     "${os_account_path}/services/accountmgr:accountmgr",

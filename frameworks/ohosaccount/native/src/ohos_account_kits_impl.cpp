@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,6 +22,9 @@
 
 namespace OHOS {
 namespace AccountSA {
+const size_t INTERCEPT_HEAD_PART_LEN_FOR_NAME = 1;
+const char DEFAULT_ANON_STR[] = "**********";
+
 std::function<void(int32_t, const std::string &)> ohosCallbackFunc()
 {
     return [](int32_t systemAbilityId, const std::string &dvid) {
@@ -29,6 +32,14 @@ std::function<void(int32_t, const std::string &)> ohosCallbackFunc()
             OhosAccountKitsImpl::GetInstance().RestoreSubscribe();
         }
     };
+}
+
+static std::string AnonymizeNameStr(const std::string& nameStr)
+{
+    if (nameStr.empty()) {
+        return nameStr;
+    }
+    return nameStr.substr(0, INTERCEPT_HEAD_PART_LEN_FOR_NAME) + DEFAULT_ANON_STR;
 }
 
 OhosAccountKitsImpl &OhosAccountKitsImpl::GetInstance()
@@ -183,8 +194,7 @@ ErrCode OhosAccountKitsImpl::QueryOhosAccountInfo(OhosAccountInfo &accountInfo)
         ACCOUNT_LOGE("Get proxy failed");
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-
-    return accountProxy->QueryOhosAccountInfo(accountInfo);
+    return accountProxy->QueryOhosAccountInfo(accountInfo.name_, accountInfo.uid_, accountInfo.status_);
 }
 
 ErrCode OhosAccountKitsImpl::GetOhosAccountInfo(OhosAccountInfo &accountInfo)
@@ -195,7 +205,11 @@ ErrCode OhosAccountKitsImpl::GetOhosAccountInfo(OhosAccountInfo &accountInfo)
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
 
-    return accountProxy->GetOhosAccountInfo(accountInfo);
+    auto ret = accountProxy->GetOhosAccountInfo(accountInfo);
+    if (ret == ERR_OK) {
+        ACCOUNT_LOGI("Get ohos account %{public}s.", AnonymizeNameStr(accountInfo.nickname_).c_str());
+    }
+    return ret;
 }
 
 ErrCode OhosAccountKitsImpl::GetOsAccountDistributedInfo(int32_t localId, OhosAccountInfo &accountInfo)
@@ -206,7 +220,11 @@ ErrCode OhosAccountKitsImpl::GetOsAccountDistributedInfo(int32_t localId, OhosAc
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
 
-    return accountProxy->GetOsAccountDistributedInfo(localId, accountInfo);
+    auto ret = accountProxy->GetOsAccountDistributedInfo(localId, accountInfo);
+    if (ret == ERR_OK) {
+        ACCOUNT_LOGI("Get distributed ohos account %{public}s.", AnonymizeNameStr(accountInfo.nickname_).c_str());
+    }
+    return ret;
 }
 
 std::pair<bool, OhosAccountInfo> OhosAccountKitsImpl::QueryOsAccountDistributedInfo(std::int32_t localId)
@@ -224,7 +242,8 @@ ErrCode OhosAccountKitsImpl::QueryOsAccountDistributedInfo(std::int32_t localId,
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
 
-    return accountProxy->QueryOsAccountDistributedInfo(localId, accountInfo);
+    return accountProxy->QueryOsAccountDistributedInfo(
+        localId, accountInfo.name_, accountInfo.uid_, accountInfo.status_);
 }
 
 ErrCode OhosAccountKitsImpl::QueryDeviceAccountId(std::int32_t& accountId)
@@ -274,7 +293,7 @@ ErrCode OhosAccountKitsImpl::SubscribeDistributedAccountEvent(const DISTRIBUTED_
     if (!needNotifyService) {
         return ERR_OK;
     }
-    result = accountProxy->SubscribeDistributedAccountEvent(type, listener);
+    result = accountProxy->SubscribeDistributedAccountEvent(static_cast<int32_t>(type), listener);
     if (result != ERR_OK) {
         DistributedAccountEventService::GetInstance()->DeleteType(type, callback);
     }
@@ -309,7 +328,7 @@ ErrCode OhosAccountKitsImpl::UnsubscribeDistributedAccountEvent(const DISTRIBUTE
         return ERR_OK;
     }
 
-    ErrCode result = accountProxy->UnsubscribeDistributedAccountEvent(type,
+    ErrCode result = accountProxy->UnsubscribeDistributedAccountEvent(static_cast<int32_t>(type),
         DistributedAccountEventService::GetInstance()->AsObject());
     if (result != ERR_OK) {
         DistributedAccountEventService::GetInstance()->AddType(type, callback);
@@ -356,7 +375,7 @@ void OhosAccountKitsImpl::RestoreSubscribe()
     std::set<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE> typeList;
     DistributedAccountEventService::GetInstance()->GetAllType(typeList);
     for (auto type : typeList) {
-        ErrCode subscribeState = accountProxy->SubscribeDistributedAccountEvent(type,
+        ErrCode subscribeState = accountProxy->SubscribeDistributedAccountEvent(static_cast<int32_t>(type),
             DistributedAccountEventService::GetInstance()->AsObject());
         if (subscribeState != ERR_OK) {
             ACCOUNT_LOGE("Restore subscribe failed, res=%{public}d.", subscribeState);
@@ -398,7 +417,9 @@ sptr<IRemoteObject> OhosAccountKitsImpl::GetDomainAccountService()
         ACCOUNT_LOGE("Get proxy failed");
         return nullptr;
     }
-    return accountProxy->GetDomainAccountService();
+    sptr<IRemoteObject> result = nullptr;
+    accountProxy->GetDomainAccountService(result);
+    return result;
 }
 
 sptr<IRemoteObject> OhosAccountKitsImpl::GetOsAccountService()
@@ -408,7 +429,9 @@ sptr<IRemoteObject> OhosAccountKitsImpl::GetOsAccountService()
         ACCOUNT_LOGE("Get proxy failed");
         return nullptr;
     }
-    return accountProxy->GetOsAccountService();
+    sptr<IRemoteObject> result = nullptr;
+    accountProxy->GetOsAccountService(result);
+    return result;
 }
 
 sptr<IRemoteObject> OhosAccountKitsImpl::GetAppAccountService()
@@ -418,7 +441,9 @@ sptr<IRemoteObject> OhosAccountKitsImpl::GetAppAccountService()
         ACCOUNT_LOGE("Get proxy failed");
         return nullptr;
     }
-    return accountProxy->GetAppAccountService();
+    sptr<IRemoteObject> result = nullptr;
+    accountProxy->GetAppAccountService(result);
+    return result;
 }
 
 sptr<IRemoteObject> OhosAccountKitsImpl::GetAccountIAMService()
@@ -428,7 +453,9 @@ sptr<IRemoteObject> OhosAccountKitsImpl::GetAccountIAMService()
         ACCOUNT_LOGE("Get proxy failed");
         return nullptr;
     }
-    return accountProxy->GetAccountIAMService();
+    sptr<IRemoteObject> result = nullptr;
+    accountProxy->GetAccountIAMService(result);
+    return result;
 }
 } // namespace AccountSA
 } // namespace OHOS

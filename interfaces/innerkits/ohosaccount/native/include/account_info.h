@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,8 +18,10 @@
 
 #include <ctime>
 #include <string>
+
 #include "account_error_no.h"
 #include "ohos_account_constants.h"
+#include "parcel.h"
 #include "string_ex.h"
 #include "want.h"
 
@@ -78,7 +80,7 @@ constexpr std::int32_t MAIN_OS_ACCOUNT_LOCAL_ID = 100; // main os account local 
 constexpr std::int32_t DEFAULT_CALLING_UID = -1; // main os account local id = 100
 constexpr std::int32_t ACCOUNT_VERSION_DEFAULT = 0;
 constexpr std::int32_t ACCOUNT_VERSION_ANON = 1;
-class OhosAccountInfo {
+class OhosAccountInfo : public Parcelable {
 public:
     std::string name_;
     std::string uid_;
@@ -139,6 +141,13 @@ public:
     {
         rawUid_ = rawUid;
     }
+
+    bool Marshalling(Parcel& parcel) const override;
+    static OhosAccountInfo* Unmarshalling(Parcel& parcel);
+
+private:
+    bool ReadFromParcel(Parcel& parcel);
+    bool ReadAvatarData(Parcel& parcel);
 
 private:
     std::string rawUid_;

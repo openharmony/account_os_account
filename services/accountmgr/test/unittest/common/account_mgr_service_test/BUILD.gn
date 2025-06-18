@@ -141,7 +141,6 @@ ohos_unittest("account_mgr_test") {
 
   sources += [
     "${domain_account_framework_path}/src/domain_account_common.cpp",
-    "${innerkits_native_path}/src/account_info_parcel.cpp",
     "${os_account_innerkits_native_path}/src/os_account_constraint_subscriber.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
@@ -167,6 +166,7 @@ ohos_unittest("account_mgr_test") {
     "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_stub",
+    "${innerkits_native_path}:account_stub",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_event_proxy",
     "${os_account_innerkits_native_path}:os_account_innerkits",
@@ -329,74 +329,10 @@ ohos_unittest("account_mgr_test") {
   part_name = "os_account"
 }
 
-ohos_unittest("account_stub_test") {
-  branch_protector_ret = "pac_ret"
-
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-
-  module_out_path = module_output_path
-  cflags_cc = []
-  include_dirs = [
-    "${os_account_interfaces_native_path}/include",
-    "${os_account_core_path}/include",
-    "${innerkits_native_path}/include",
-    "${services_path}/accountmgr/include/bundle_manager_adapter",
-    "${services_path}/accountmgr/include/bundle_manager_adapter",
-  ]
-
-  sources = [
-    "${domain_account_framework_path}/src/domain_account_parcel.cpp",
-    "${services_path}/accountmgr/src/account_stub.cpp",
-    "account_stub_test.cpp",
-  ]
-
-  configs = [
-    "${services_path}/accountmgr:bundle_manager_config",
-    "${services_path}/accountmgr:accountmgr_config",
-    "${os_account_innerkits_native_path}:frameworks_osaccount_interface_public_config",
-    "${services_path}/accountmgr/test:accountmgr_test_config",
-    "${domain_account_framework_path}:frameworks_domain_account_interface_public_config",
-  ]
-  deps = [
-    "${common_path}:libaccount_common",
-    "${innerkits_native_path}:libaccountkits",
-    "${services_path}/accountmgr:accountmgr",
-    "${os_account_innerkits_native_path}:os_account_innerkits",
-    "${os_account_innerkits_native_path}:os_account_stub",
-  ]
-
-  if (has_kv_store_part) {
-    deps += [ "${app_account_innerkits_native_path}:app_account_event_proxy" ]
-  }
-
-  external_deps = [
-    "ability_base:base",
-    "ability_base:want",
-    "ability_runtime:app_manager",
-    "access_token:libaccesstoken_sdk",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
-    "cJSON:cjson",
-    "c_utils:utils",
-    "googletest:gmock_main",
-    "googletest:gtest_main",
-    "hilog:libhilog",
-    "ipc:ipc_single",
-    "kv_store:distributeddata_inner",
-    "safwk:system_ability_fwk",
-    "samgr:samgr_proxy",
-  ]
-}
-
 group("unittest") {
   testonly = true
 
   deps = [
     ":account_mgr_test",
-    ":account_stub_test",
   ]
 }

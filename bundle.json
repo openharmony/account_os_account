@@ -99,7 +99,6 @@
             "header_files": [
               "account_info.h",
               "device_account_info.h",
-              "iaccount.h",
               "ohos_account_kits.h",
               "distributed_account_subscribe_callback.h"
             ]
