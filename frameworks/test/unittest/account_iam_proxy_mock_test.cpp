@@ -189,7 +189,7 @@ HWTEST_F(AccountIAMProxyMockTest, AccountIAMClient_DelUser_0100, TestSize.Level0
  */
 HWTEST_F(AccountIAMProxyMockTest, AccountIAMClient_GetCredentialInfo_0100, TestSize.Level0)
 {
-    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_PROXY,
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_NULL_PTR_ERROR,
         AccountIAMClient::GetInstance().GetCredentialInfo(TEST_USER_ID, AuthType::PIN, nullptr));
 }
 
