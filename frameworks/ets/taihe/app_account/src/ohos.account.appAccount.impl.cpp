@@ -33,11 +33,11 @@ using namespace ohos::account::appAccount;
 namespace {
 using OHOS::AccountSA::ACCOUNT_LABEL;
 
-AppAccountInfo ConvertAppAccountInfo(const AccountSA::AppAccountInfo innerInfo)
+AppAccountInfo ConvertAppAccountInfo(AccountSA::AppAccountInfo& innerInfo)
 {
     return AppAccountInfo{
-        .owner = taihe::string(const_cast<AccountSA::AppAccountInfo&>(innerInfo).GetOwner().c_str()),
-        .name = taihe::string(const_cast<AccountSA::AppAccountInfo&>(innerInfo).GetName().c_str()),
+        .owner = taihe::string(innerInfo.GetOwner().c_str()),
+        .name = taihe::string(innerInfo.GetName().c_str()),
     };
 }
 
@@ -232,7 +232,7 @@ public:
         }
         std::vector<AppAccountInfo> appAccountsInfos;
         appAccountsInfos.reserve(appAccounts.size());
-        for (const auto &info : appAccounts) {
+        for (auto &info : appAccounts) {
             appAccountsInfos.push_back(ConvertAppAccountInfo(info));
         }
         return taihe::array<AppAccountInfo>(taihe::copy_data_t{}, appAccountsInfos.data(), appAccountsInfos.size());
@@ -249,7 +249,7 @@ public:
         }
         std::vector<AppAccountInfo> appAccountsInfos;
         appAccountsInfos.reserve(appAccounts.size());
-        for (const auto &info : appAccounts) {
+        for (auto &info : appAccounts) {
             appAccountsInfos.push_back(ConvertAppAccountInfo(info));
         }
         return taihe::array<AppAccountInfo>(taihe::copy_data_t{}, appAccountsInfos.data(), appAccountsInfos.size());
