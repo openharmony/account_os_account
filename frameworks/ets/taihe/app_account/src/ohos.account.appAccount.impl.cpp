@@ -19,7 +19,6 @@
 #include "app_account_manager.h"
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
-#include "napi_account_error.h"
 #include "ohos.account.appAccount.proj.hpp"
 #include "ohos.account.appAccount.impl.hpp"
 #include "ohos_account_kits.h"

@@ -112,10 +112,8 @@ public:
 
     void OnResult(int32_t result, const UserIam::UserAuth::Attributes &extraInfo) override
     {
-        if (taiheCallback_.onResult.data_ptr != nullptr) {
-            ohos::account::osAccount::RequestResult reqResult = ConvertToRequestResult(extraInfo);
-            taiheCallback_.onResult(result, reqResult);
-        }
+        ohos::account::osAccount::RequestResult reqResult = ConvertToRequestResult(extraInfo);
+        taiheCallback_.onResult(result, reqResult);
     }
 
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const UserIam::UserAuth::Attributes &extraInfo) override
