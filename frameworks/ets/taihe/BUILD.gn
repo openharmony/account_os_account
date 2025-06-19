@@ -18,6 +18,7 @@ import("//build/ohos/taihe_idl/taihe.gni")
 
 copy_taihe_idl("copy_account") {
   sources = [
+    "app_account/idl/ohos.account.appAccount.taihe",
     "distributed_account/idl/ohos.account.distributedAccount.taihe",
     "os_account/idl/ohos.account.osAccount.taihe",
     "app_account/idl/ohos.account.appAccount.taihe",
@@ -70,8 +71,8 @@ taihe_shared_library("app_account_taihe_native") {
   deps = [
     ":app_account_taihe",
     "${account_napi_common_path}:account_napi_common",
-    "${innerkits_native_path}:libaccountkits",
     "${app_account_innerkits_native_path}:app_account_innerkits",
+    "${innerkits_native_path}:libaccountkits",
   ]
 
   external_deps = [
@@ -81,7 +82,6 @@ taihe_shared_library("app_account_taihe_native") {
     "ability_runtime:runtime",
     "c_utils:utils",
     "hilog:libhilog",
-    "napi:ace_napi",
     "ipc:ipc_single",
   ]
 
@@ -318,6 +318,7 @@ group("app_account_taihe_gp") {
 
 group("account_taihe") {
   deps = [
+    ":app_account_taihe_gp",
     ":distributed_account_taihe_gp",
     ":os_account_taihe_gp",
     ":app_account_taihe_gp",
