@@ -21,7 +21,6 @@ copy_taihe_idl("copy_account") {
     "app_account/idl/ohos.account.appAccount.taihe",
     "distributed_account/idl/ohos.account.distributedAccount.taihe",
     "os_account/idl/ohos.account.osAccount.taihe",
-    "app_account/idl/ohos.account.appAccount.taihe",
   ]
 }
 
@@ -321,6 +320,5 @@ group("account_taihe") {
     ":app_account_taihe_gp",
     ":distributed_account_taihe_gp",
     ":os_account_taihe_gp",
-    ":app_account_taihe_gp",
   ]
 }
