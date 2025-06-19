@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,6 +25,8 @@
 using namespace std;
 using namespace OHOS::AccountSA;
 
+const int32_t MAX_TEST_ID = 10738; // Maximum test ID for fuzzing
+
 namespace OHOS {
 void GetOsAccountDomainInfoFuzzTest(const uint8_t *data, size_t size)
 {
@@ -32,7 +34,10 @@ void GetOsAccountDomainInfoFuzzTest(const uint8_t *data, size_t size)
         return;
     }
     DomainAccountInfo domainInfo;
-    OsAccountManager::GetOsAccountDomainInfo(FuzzData(data, size).GetData<int32_t>(), domainInfo);
+    FuzzData fuzzData(data, size);
+    int32_t testId = fuzzData.GetData<bool>() ?
+        (fuzzData.GetData<int32_t>() % MAX_TEST_ID) : fuzzData.GetData<int32_t>();
+    OsAccountManager::GetOsAccountDomainInfo(testId, domainInfo);
 }
 }
 

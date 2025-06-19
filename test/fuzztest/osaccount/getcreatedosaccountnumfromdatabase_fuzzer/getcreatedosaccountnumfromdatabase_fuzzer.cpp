@@ -27,16 +27,29 @@ using namespace std;
 using namespace OHOS::AccountSA;
 
 namespace OHOS {
+    const std::vector<std::string> VALID_ACCOUNT_TYPES = {
+        "normal",
+        "admin",
+        "guest",
+        "",
+        "nonexistent_type"
+    };
+
     bool GetCreatedOsAccountNumFromDatabaseFuzzTest(const uint8_t* data, size_t size)
     {
-        bool result = false;
-        if ((data != nullptr) && (size != 0)) {
-            FuzzData fuzzData(data, size);
-            std::string testName(fuzzData.GenerateString());
-            int createdOsAccountNum = -1;
-            result = OsAccountManager::GetCreatedOsAccountNumFromDatabase(testName, createdOsAccountNum);
+        if ((data == nullptr) || (size == 0)) {
+            return false;
         }
-        return result;
+
+        FuzzData fuzzData(data, size);
+        int createdOsAccountNum = -1;
+        
+        std::string testName = fuzzData.GetData<bool>() ?
+                              VALID_ACCOUNT_TYPES[fuzzData.GetData<uint8_t>() % VALID_ACCOUNT_TYPES.size()] :
+                              fuzzData.GenerateString();
+        
+        OsAccountManager::GetCreatedOsAccountNumFromDatabase(testName, createdOsAccountNum);
+        return true;
     }
 }
 
