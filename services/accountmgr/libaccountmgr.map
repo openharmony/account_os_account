@@ -346,6 +346,7 @@
         "OHOS::AccountSA::AccountDataStorage::IsKeyExists(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>)";
         "OHOS::AccountSA::AccountDataStorage::PutValueToKvStore(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::AccountDataStorage::LoadAllData(std::__h::map<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::shared_ptr<OHOS::AccountSA::IAccountInfo>, std::__h::less<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::pair<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const, std::__h::shared_ptr<OHOS::AccountSA::IAccountInfo>>>>&)";
+        "OHOS::AccountSA::AccountDataStorage::MoveData(std::__h::shared_ptr<OHOS::AccountSA::AccountDataStorage> const&)";
         "OHOS::AccountSA::AccountFileWatcherMgr::GetInstance()";
         "OHOS::AccountSA::AccountFileWatcherMgr::GetAccountInfoDigestFromFile(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned char*, unsigned int)";
         "OHOS::AccountSA::GenerateAccountInfoDigest(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned char*, unsigned int)";

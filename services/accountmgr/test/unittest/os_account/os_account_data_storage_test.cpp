@@ -85,5 +85,24 @@ HWTEST_F(OsAccountDataStorageTest, OsAccountDataStorageTest001, TestSize.Level1)
 {
     EXPECT_EQ(osAccountDataStorage_->CheckKvStore(), false);
 }
+
+/**
+ * @tc.name: OsAccountDataStorageTest002
+ * @tc.desc: The test parameters are empty and the store acquisition fails.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFF
+ */
+HWTEST_F(OsAccountDataStorageTest, OsAccountDataStorageTest002, TestSize.Level3)
+{
+    EXPECT_EQ(osAccountDataStorage_->MoveData(nullptr), ERR_ACCOUNT_COMMON_CHECK_KVSTORE_ERROR);
+    AccountDataStorageOptions options;
+    std::shared_ptr<OsAccountDataStorage> testOsAccountDataStorageNull =
+        std::make_shared<OsAccountDataStorage>("", "", false);
+    EXPECT_EQ(osAccountDataStorage_->MoveData(testOsAccountDataStorageNull), ERR_ACCOUNT_COMMON_CHECK_KVSTORE_ERROR);
+
+    std::shared_ptr<OsAccountDataStorage> testOsAccountDataStorage = std::make_shared<OsAccountDataStorage>(
+        "os_account_mgr_service_test", "os_account_info_test", false);
+    EXPECT_EQ(osAccountDataStorage_->MoveData(testOsAccountDataStorage), ERR_ACCOUNT_COMMON_CHECK_KVSTORE_ERROR);
+}
 }  // namespace AccountSA
 }  // namespace OHOS
