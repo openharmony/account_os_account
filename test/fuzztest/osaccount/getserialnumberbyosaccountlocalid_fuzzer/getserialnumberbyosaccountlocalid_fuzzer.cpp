@@ -24,14 +24,14 @@
 
 using namespace std;
 using namespace OHOS::AccountSA;
-
+const int NORMAL_ID = 100;
 namespace OHOS {
     bool GetSerialNumberByOsAccountLocalIdFuzzTest(const uint8_t* data, size_t size)
     {
         int32_t result = ERR_OK;
         if ((data != nullptr) && (size != 0)) {
             FuzzData fuzzData(data, size);
-            int32_t testId = fuzzData.GetData<int32_t>();
+            int32_t testId = fuzzData.GetData<bool>() ? fuzzData.GetData<int32_t>() : NORMAL_ID;
             int64_t testSerialNumber;
             result = OsAccountManager::GetSerialNumberByOsAccountLocalId(testId, testSerialNumber);
         }

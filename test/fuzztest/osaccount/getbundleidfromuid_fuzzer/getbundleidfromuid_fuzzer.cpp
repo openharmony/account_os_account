@@ -31,7 +31,7 @@ namespace OHOS {
         int32_t result = ERR_OK;
         if ((data != nullptr) && (size != 0)) {
             FuzzData fuzzData(data, size);
-            int32_t testUid = fuzzData.GetData<int32_t>();
+            int32_t testUid = fuzzData.GetData<int32_t>() % 20000;
             int testBundleId;
             result = OsAccountManager::GetBundleIdFromUid(testUid, testBundleId);
         }

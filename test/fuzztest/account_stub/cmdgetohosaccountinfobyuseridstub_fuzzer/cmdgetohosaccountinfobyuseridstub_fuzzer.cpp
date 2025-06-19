@@ -18,11 +18,15 @@
 #include <string>
 #include <vector>
 
-#define private public
-#include "account_mgr_service.h"
-#undef private
 #include "fuzz_data.h"
 #include "iaccount.h"
+
+#define private public
+#define PROTECTED public
+#include "account_mgr_service.h"
+#undef private
+#undef PROTECTED
+
 
 using namespace std;
 using namespace OHOS::AccountSA;
