@@ -54,6 +54,7 @@ taihe_shared_library("app_account_taihe_native") {
   sources += [
     "./app_account/src/ani_constructor.cpp",
     "./app_account/src/ohos.account.appAccount.impl.cpp",
+    "./app_account/src/taihe_appAccount_info.cpp",
   ]
 
   include_dirs = [

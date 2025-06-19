@@ -21,6 +21,7 @@
 #include "account_log_wrapper.h"
 #include "ohos.account.appAccount.proj.hpp"
 #include "ohos.account.appAccount.impl.hpp"
+#include "taihe_appAccount_info.h"
 #include "ohos_account_kits.h"
 #include "stdexcept"
 #include "taihe/runtime.hpp"
@@ -40,15 +41,8 @@ AppAccountInfo ConvertAppAccountInfo(AccountSA::AppAccountInfo& innerInfo)
     };
 }
 
-AppAccountInfo ConvertAccountInfo(const std::string name, const std::string owner)
-{
-    return AppAccountInfo{
-        .owner = owner,
-        .name = name,
-    };
-}
-
-AccountSA::SelectAccountsOptions ConvertAccountsOptionsInfo(SelectAccountsOptions const& options)
+AccountSA::SelectAccountsOptions ConvertAccountsOptionsInfo(
+    ::ohos::account::appAccount::SelectAccountsOptions const& options)
 {
     AccountSA::SelectAccountsOptions tempOptions;
     if (options.allowedAccounts) {
@@ -73,36 +67,6 @@ AccountSA::SelectAccountsOptions ConvertAccountsOptionsInfo(SelectAccountsOption
     }
     return tempOptions;
 }
-
-struct AuthenticatorCallbackParam {
-    int32_t resultCode = -1;
-    AAFwk::Want result;
-};
-
-class AuthenticatorAsyncCallback : public AccountSA::AppAccountAuthenticatorCallbackStub {
-public:
-    void OnResult(int32_t resultCode, const AAFwk::Want &result) override
-    {
-        {
-            std::lock_guard<std::mutex> lock(mutex);
-            if (isDone) {
-                return;
-            }
-            isDone = true;
-        }
-        cv.notify_one();
-
-        param = std::make_shared<AuthenticatorCallbackParam>();
-        param->resultCode = resultCode;
-        param->result = result;
-    }
-    void OnRequestRedirected(AAFwk::Want &request) override{};
-    void OnRequestContinued() override{};
-    std::shared_ptr<AuthenticatorCallbackParam> param;
-    std::mutex mutex;
-    bool isDone = false;
-    std::condition_variable cv;
-};
 
 class AppAccountManagerImpl {
 public:
@@ -325,7 +289,8 @@ public:
         std::string innerName(name.data(), name.size());
         std::string innerOwner(owner.data(), owner.size());
         std::vector<std::string> innerLabels(labels.data(), labels.data() + labels.size());
-        sptr<AuthenticatorAsyncCallback> callback = new (std::nothrow) AuthenticatorAsyncCallback();
+        sptr<AccountSA::THauthenticatorAsyncCallback> callback =
+            new (std::nothrow) AccountSA::THauthenticatorAsyncCallback();
         if (callback == nullptr) {
             ACCOUNT_LOGE("insufficient memory for callback!");
             return false;
@@ -345,7 +310,8 @@ public:
     {
         AccountSA::SelectAccountsOptions innerOptions = ConvertAccountsOptionsInfo(options);
         std::vector<AppAccountInfo> accountInfos;
-        sptr<AuthenticatorAsyncCallback> callback = new (std::nothrow) AuthenticatorAsyncCallback();
+        sptr<AccountSA::THauthenticatorAsyncCallback> callback =
+            new (std::nothrow) AccountSA::THauthenticatorAsyncCallback();
         if (callback == nullptr) {
             ACCOUNT_LOGE("insufficient memory for callback!");
             return taihe::array<AppAccountInfo>(taihe::copy_data_t{}, accountInfos.data(), accountInfos.size());
@@ -362,7 +328,11 @@ public:
         std::vector<std::string> owners =
 			callback->param->result.GetStringArrayParam(AccountSA::Constants::KEY_ACCOUNT_OWNERS);
         for (size_t i = 0; i < names.size(); ++i) {
-            accountInfos.push_back(ConvertAccountInfo(names[i], owners[i]));
+            AppAccountInfo tempInfo{
+                .owner = owners[i],
+                .name = names[i],
+            };
+            accountInfos.push_back(tempInfo);
         }
         return taihe::array<AppAccountInfo>(taihe::copy_data_t{}, accountInfos.data(), accountInfos.size());
     }
