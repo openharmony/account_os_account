@@ -15,6 +15,8 @@
 
 @!namespace("@ohos.account.appAccount", "appAccount")
 
+function createAppAccountManager(): AppAccountManager;
+
 struct CreateAccountOptions {
     customData: Optional<@record Map<String, String>>;
 }
