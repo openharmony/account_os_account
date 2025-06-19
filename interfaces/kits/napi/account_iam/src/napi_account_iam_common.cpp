@@ -96,8 +96,13 @@ int32_t AccountIAMConvertToJSErrCode(int32_t errCode)
         return ERR_JS_ACCOUNT_NOT_FOUND;
     } else if (errCode == ERR_ACCOUNT_COMMON_ACCOUNT_IS_RESTRICTED) {
         return ERR_JS_ACCOUNT_RESTRICTED;
+    } else if (errCode == ERR_IAM_CROSS_DEVICE_COMMUNICATION_FAILED) {
+        return ERR_JS_ACCOUNT_CROSS_DEVICE_COMMUNICATION_FAILED;
+    } else if (errCode == ERR_IAM_CROSS_DEVICE_CAPABILITY_NOT_SUPPORT) {
+        return ERR_JS_ACCOUNT_CROSS_DEVICE_CAPABILITY_NOT_SUPPORT;
+    } else {
+        return AccountIAMConvertOtherToJSErrCode(errCode);
     }
-    return AccountIAMConvertOtherToJSErrCode(errCode);
 }
 
 #ifdef HAS_USER_AUTH_PART
