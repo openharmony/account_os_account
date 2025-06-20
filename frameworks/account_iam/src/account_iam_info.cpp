@@ -22,42 +22,42 @@ namespace AccountSA {
 
 bool AuthParam::WriteRemoteAuthParam(Parcel& parcel) const
 {
-    bool res = (remoteAuthParam != std::nullopt);
-    if (!parcel.WriteBool(res)) {
+    bool hasValue = (remoteAuthParam != std::nullopt);
+    if (!parcel.WriteBool(hasValue)) {
         ACCOUNT_LOGE("Write RemoteAuthParam exist failed.");
         return false;
     }
-    if (!res) {
+    if (!hasValue) {
         return true;
     }
-    res = (remoteAuthParam.value().verifierNetworkId != std::nullopt);
-    if (!parcel.WriteBool(res)) {
+    hasValue = (remoteAuthParam.value().verifierNetworkId != std::nullopt);
+    if (!parcel.WriteBool(hasValue)) {
         ACCOUNT_LOGE("Write verifierNetworkId exist failed.");
         return false;
     }
-    if (res) {
+    if (hasValue) {
         if (!parcel.WriteString(remoteAuthParam.value().verifierNetworkId.value())) {
             ACCOUNT_LOGE("Write verifierNetworkId failed.");
             return false;
         }
     }
-    res = (remoteAuthParam.value().collectorNetworkId != std::nullopt);
-    if (!parcel.WriteBool(res)) {
+    hasValue = (remoteAuthParam.value().collectorNetworkId != std::nullopt);
+    if (!parcel.WriteBool(hasValue)) {
         ACCOUNT_LOGE("Write collectorNetworkId exist failed.");
         return false;
     }
-    if (res) {
+    if (hasValue) {
         if (!parcel.WriteString(remoteAuthParam.value().collectorNetworkId.value())) {
             ACCOUNT_LOGE("Write collectorNetworkId failed.");
             return false;
         }
     }
-    res = (remoteAuthParam.value().collectorTokenId != std::nullopt);
-    if (!parcel.WriteBool(res)) {
+    hasValue = (remoteAuthParam.value().collectorTokenId != std::nullopt);
+    if (!parcel.WriteBool(hasValue)) {
         ACCOUNT_LOGE("Write collectorTokenId exist failed.");
         return false;
     }
-    if (res) {
+    if (hasValue) {
         if (!parcel.WriteUint32(remoteAuthParam.value().collectorTokenId.value())) {
             ACCOUNT_LOGE("Write collectorTokenId failed.");
             return false;
@@ -69,27 +69,27 @@ bool AuthParam::WriteRemoteAuthParam(Parcel& parcel) const
 bool AuthParam::Marshalling(Parcel& parcel) const
 {
     if (!parcel.WriteInt32(userId)) {
-        ACCOUNT_LOGE("failed to write userId!");
+        ACCOUNT_LOGE("Failed to write userId!");
         return false;
     }
     if (!parcel.WriteUInt8Vector(challenge)) {
-        ACCOUNT_LOGE("failed to write challenge");
+        ACCOUNT_LOGE("Failed to write challenge");
         return false;
     }
     if (!parcel.WriteInt32(authType)) {
-        ACCOUNT_LOGE("failed to write authType");
+        ACCOUNT_LOGE("Failed to write authType");
         return false;
     }
     if (!parcel.WriteUint32(authTrustLevel)) {
-        ACCOUNT_LOGE("failed to write authTrustLevel");
+        ACCOUNT_LOGE("Failed to write authTrustLevel");
         return false;
     }
     if (!parcel.WriteInt32(static_cast<int32_t>(authIntent))) {
-        ACCOUNT_LOGE("failed to write authTrustLevel");
+        ACCOUNT_LOGE("Failed to write authTrustLevel");
         return false;
     }
     if (!WriteRemoteAuthParam(parcel)) {
-        ACCOUNT_LOGE("failed to write remoteAuthParam");
+        ACCOUNT_LOGE("Failed to write remoteAuthParam");
         return false;
     }
     return true;
@@ -99,7 +99,7 @@ AuthParam* AuthParam::Unmarshalling(Parcel& parcel)
 {
     AuthParam* info = new (std::nothrow) AuthParam();
     if ((info != nullptr) && (!info->ReadFromParcel(parcel))) {
-        ACCOUNT_LOGW("read from parcel failed");
+        ACCOUNT_LOGW("Read from parcel failed");
         delete info;
         info = nullptr;
     }
@@ -109,33 +109,33 @@ AuthParam* AuthParam::Unmarshalling(Parcel& parcel)
 bool AuthParam::ReadFromParcel(Parcel& parcel)
 {
     if (!parcel.ReadInt32(userId)) {
-        ACCOUNT_LOGE("failed to read userId");
+        ACCOUNT_LOGE("Failed to read userId");
         return false;
     }
     if (!parcel.ReadUInt8Vector(&challenge)) {
-        ACCOUNT_LOGE("failed to read challenge");
+        ACCOUNT_LOGE("Failed to read challenge");
         return false;
     }
     int32_t authTypeNum;
     if (!parcel.ReadInt32(authTypeNum)) {
-        ACCOUNT_LOGE("failed to read authType for AuthUser");
+        ACCOUNT_LOGE("Failed to read authType for AuthUser");
         return false;
     }
     authType = static_cast<AuthType>(authTypeNum);
     uint32_t authTrustLevelNum;
     if (!parcel.ReadUint32(authTrustLevelNum)) {
-        ACCOUNT_LOGE("failed to read authTrustLevel for AuthUser");
+        ACCOUNT_LOGE("Failed to read authTrustLevel for AuthUser");
         return false;
     }
     authTrustLevel = static_cast<AuthTrustLevel>(authTrustLevelNum);
     int32_t authIntentNum = 0;
     if (!parcel.ReadInt32(authIntentNum)) {
-        ACCOUNT_LOGE("failed to read authIntent for AuthUser");
+        ACCOUNT_LOGE("Failed to read authIntent for AuthUser");
         return false;
     }
     authIntent = static_cast<AuthIntent>(authIntentNum);
     if (!ReadRemoteAuthParam(parcel)) {
-        ACCOUNT_LOGE("failed to read remoteAuthParam for AuthUser");
+        ACCOUNT_LOGE("Failed to read remoteAuthParam for AuthUser");
         return false;
     }
     return true;
@@ -143,20 +143,20 @@ bool AuthParam::ReadFromParcel(Parcel& parcel)
 
 bool AuthParam::ReadRemoteAuthParam(Parcel& parcel)
 {
-    bool res = false;
-    if (!parcel.ReadBool(res)) {
+    bool hasValue = false;
+    if (!parcel.ReadBool(hasValue)) {
         ACCOUNT_LOGE("Read RemoteAuthParam exist failed.");
         return false;
     }
-    if (!res) {
+    if (!hasValue) {
         return true;
     }
     remoteAuthParam = RemoteAuthParam();
-    if (!parcel.ReadBool(res)) {
+    if (!parcel.ReadBool(hasValue)) {
         ACCOUNT_LOGE("Read verifierNetworkId exist failed.");
         return false;
     }
-    if (res) {
+    if (hasValue) {
         std::string networkId;
         if (!parcel.ReadString(networkId)) {
             ACCOUNT_LOGE("Read verifierNetworkId failed.");
@@ -164,11 +164,11 @@ bool AuthParam::ReadRemoteAuthParam(Parcel& parcel)
         }
         remoteAuthParam.value().verifierNetworkId = networkId;
     }
-    if (!parcel.ReadBool(res)) {
+    if (!parcel.ReadBool(hasValue)) {
         ACCOUNT_LOGE("Read collectorNetworkId exist failed.");
         return false;
     }
-    if (res) {
+    if (hasValue) {
         std::string collectorNetworkId;
         if (!parcel.ReadString(collectorNetworkId)) {
             ACCOUNT_LOGE("Read collectorNetworkId failed.");
@@ -176,11 +176,11 @@ bool AuthParam::ReadRemoteAuthParam(Parcel& parcel)
         }
         remoteAuthParam.value().collectorNetworkId = collectorNetworkId;
     }
-    if (!parcel.ReadBool(res)) {
+    if (!parcel.ReadBool(hasValue)) {
         ACCOUNT_LOGE("Read collectorTokenId exist failed.");
         return false;
     }
-    if (res) {
+    if (hasValue) {
         uint32_t tokenId;
         if (!parcel.ReadUint32(tokenId)) {
             ACCOUNT_LOGE("Read collectorTokenId failed.");
@@ -225,7 +225,7 @@ CredentialInfoIam* CredentialInfoIam::Unmarshalling(Parcel& parcel)
 {
     CredentialInfoIam* info = new (std::nothrow) CredentialInfoIam();
     if ((info != nullptr) && (!info->ReadFromParcel(parcel))) {
-        ACCOUNT_LOGW("read from parcel failed");
+        ACCOUNT_LOGW("Read from parcel failed");
         delete info;
         info = nullptr;
     }
@@ -288,16 +288,16 @@ std::vector<CredentialInfo> ConvertToCredentialInfoList(const std::vector<Creden
 bool CredentialParametersIam::Marshalling(Parcel& parcel) const
 {
     if (!parcel.WriteInt32(credentialParameters.authType)) {
-        ACCOUNT_LOGE("failed to write authType");
+        ACCOUNT_LOGE("Failed to write authType");
         return false;
     }
     PinSubType pinType = credentialParameters.pinType.value_or(PinSubType::PIN_MAX);
     if (!parcel.WriteInt32(pinType)) {
-        ACCOUNT_LOGE("failed to write pinType");
+        ACCOUNT_LOGE("Failed to write pinType");
         return false;
     }
     if (!parcel.WriteUInt8Vector(credentialParameters.token)) {
-        ACCOUNT_LOGE("failed to write token");
+        ACCOUNT_LOGE("Failed to write token");
         return false;
     }
     return true;
@@ -307,7 +307,7 @@ CredentialParametersIam* CredentialParametersIam::Unmarshalling(Parcel& parcel)
 {
     CredentialParametersIam* info = new (std::nothrow) CredentialParametersIam();
     if ((info != nullptr) && (!info->ReadFromParcel(parcel))) {
-        ACCOUNT_LOGW("read from parcel failed");
+        ACCOUNT_LOGW("Read from parcel failed");
         delete info;
         info = nullptr;
     }
@@ -318,16 +318,16 @@ bool CredentialParametersIam::ReadFromParcel(Parcel& parcel)
 {
     int32_t authType;
     if (!parcel.ReadInt32(authType)) {
-        ACCOUNT_LOGE("failed to read authType");
+        ACCOUNT_LOGE("Failed to read authType");
         return false;
     }
     int32_t authSubType;
     if (!parcel.ReadInt32(authSubType)) {
-        ACCOUNT_LOGE("failed to read authSubType");
+        ACCOUNT_LOGE("Failed to read authSubType");
         return false;
     }
     if (!parcel.ReadUInt8Vector(&credentialParameters.token)) {
-        ACCOUNT_LOGE("failed to read token");
+        ACCOUNT_LOGE("Failed to read token");
         return false;
     }
     credentialParameters.authType = static_cast<AuthType>(authType);
@@ -338,7 +338,7 @@ bool CredentialParametersIam::ReadFromParcel(Parcel& parcel)
 bool GetPropertyRequestIam::Marshalling(Parcel& parcel) const
 {
     if (!parcel.WriteInt32(getPropertyRequest.authType)) {
-        ACCOUNT_LOGE("failed to write authType for GetProperty");
+        ACCOUNT_LOGE("Failed to write authType for GetProperty");
         return false;
     }
     std::vector<uint32_t> attrKeys;
@@ -346,7 +346,7 @@ bool GetPropertyRequestIam::Marshalling(Parcel& parcel) const
         [](const auto& key) { return static_cast<uint32_t>(key); });
 
     if (!parcel.WriteUInt32Vector(attrKeys)) {
-        ACCOUNT_LOGE("failed to write keys");
+        ACCOUNT_LOGE("Failed to write keys");
         return false;
     }
     return true;
@@ -356,7 +356,7 @@ GetPropertyRequestIam* GetPropertyRequestIam::Unmarshalling(Parcel& parcel)
 {
     GetPropertyRequestIam* info = new (std::nothrow) GetPropertyRequestIam();
     if ((info != nullptr) && (!info->ReadFromParcel(parcel))) {
-        ACCOUNT_LOGW("read from parcel failed");
+        ACCOUNT_LOGW("Read from parcel failed");
         delete info;
         info = nullptr;
     }
@@ -367,12 +367,12 @@ bool GetPropertyRequestIam::ReadFromParcel(Parcel& parcel)
 {
     int32_t authType;
     if (!parcel.ReadInt32(authType)) {
-        ACCOUNT_LOGE("failed to read authType");
+        ACCOUNT_LOGE("Failed to read authType");
         return false;
     }
     std::vector<uint32_t> keys;
     if (!parcel.ReadUInt32Vector(&keys)) {
-        ACCOUNT_LOGE("failed to read attribute keys");
+        ACCOUNT_LOGE("Failed to read attribute keys");
         return false;
     }
 
@@ -387,12 +387,12 @@ bool GetPropertyRequestIam::ReadFromParcel(Parcel& parcel)
 bool SetPropertyRequestIam::Marshalling(Parcel& parcel) const
 {
     if (!parcel.WriteInt32(setPropertyRequest.authType)) {
-        ACCOUNT_LOGE("failed to write authType for SetProperty");
+        ACCOUNT_LOGE("Failed to write authType for SetProperty");
         return false;
     }
     auto buffer = setPropertyRequest.attrs.Serialize();
     if (!parcel.WriteUInt8Vector(buffer)) {
-        ACCOUNT_LOGE("failed to write attributes");
+        ACCOUNT_LOGE("Failed to write attributes");
         return false;
     }
     return true;
@@ -402,7 +402,7 @@ SetPropertyRequestIam* SetPropertyRequestIam::Unmarshalling(Parcel& parcel)
 {
     SetPropertyRequestIam* info = new (std::nothrow) SetPropertyRequestIam();
     if ((info != nullptr) && (!info->ReadFromParcel(parcel))) {
-        ACCOUNT_LOGW("read from parcel failed");
+        ACCOUNT_LOGW("Read from parcel failed");
         delete info;
         info = nullptr;
     }
@@ -413,13 +413,13 @@ bool SetPropertyRequestIam::ReadFromParcel(Parcel& parcel)
 {
     int32_t authType;
     if (!parcel.ReadInt32(authType)) {
-        ACCOUNT_LOGE("failed to read authType");
+        ACCOUNT_LOGE("Failed to read authType");
         return false;
     }
 
     std::vector<uint8_t> attr;
     if (!parcel.ReadUInt8Vector(&attr)) {
-        ACCOUNT_LOGE("failed to read attributes");
+        ACCOUNT_LOGE("Failed to read attributes");
         return false;
     }
 

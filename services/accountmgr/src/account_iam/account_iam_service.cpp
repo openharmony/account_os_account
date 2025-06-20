@@ -80,15 +80,14 @@ int32_t AccountIAMService::CallbackEnter([[maybe_unused]] uint32_t code)
     int32_t result = SetFirstCallerTokenID(tokenCaller);
     ACCOUNT_LOGD("SetFirstCallerTokenID code: %{public}d, result: %{public}d", code, result);
 
-    if (static_cast<IAccountIAMIpcCode>(code) != IAccountIAMIpcCode::COMMAND_GET_ACCOUNT_STATE) {
-        result = AccountPermissionManager::CheckSystemApp();
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("is not system application, code = %{public}d result = %{public}d.", code, result);
-            return result;
-        }
+    if (static_cast<IAccountIAMIpcCode>(code) == IAccountIAMIpcCode::COMMAND_GET_ACCOUNT_STATE) {
+        return ERR_OK;
     }
-
-    return ERR_OK;
+    result = AccountPermissionManager::CheckSystemApp();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, code = %{public}d result = %{public}d.", code, result);
+    }
+    return result;
 }
 
 int32_t AccountIAMService::OpenSession(int32_t userId, std::vector<uint8_t> &challenge)
