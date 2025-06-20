@@ -38,9 +38,13 @@
 #include "inner_account_iam_manager.h"
 #include "int_wrapper.h"
 #include "ipc_skeleton.h"
+#include "os_account_constants.h"
 #include "parameters.h"
 #include "status_listener_manager.h"
 #include "string_wrapper.h"
+#ifdef HICOLLIE_ENABLE
+#include "xcollie/xcollie.h"
+#endif // HICOLLIE_ENABLE
 
 namespace OHOS {
 namespace AccountSA {
@@ -65,6 +69,9 @@ static const char LIB_PATH[] = "/system/lib/platformsdk/";
 #endif
 static const char LIB_NAME[] = "libdomain_account_plugin.z.so";
 static const char EDM_FREEZE_BACKGROUND_PARAM[] = "persist.edm.inactive_user_freeze";
+#ifdef HICOLLIE_ENABLE
+constexpr int32_t DOMAIN_ACCOUNT_RECOVERY_TIMEOUT = 30; // 30s
+#endif // HICOLLIE_ENABLE
 
 ErrCode ConvertToAccountErrCode(ErrCode idlErrCode)
 {
@@ -1458,6 +1465,12 @@ static void ErrorOnResult(const ErrCode errCode, const sptr<IDomainAccountCallba
     callback->OnResult(errCode, domainAccountParcel);
 }
 
+static ErrCode ErrorOnResultWithRet(const ErrCode errCode, const sptr<IDomainAccountCallback> &callback)
+{
+    ErrorOnResult(errCode, callback);
+    return errCode;
+}
+
 void CheckUserTokenCallback::OnResult(int32_t result, Parcel &parcel)
 {
     ACCOUNT_LOGI("enter");
@@ -2062,6 +2075,358 @@ ErrCode InnerDomainAccountManager::UpdateAccountInfo(
     // update local info
     return IInnerOsAccountManager::GetInstance().UpdateAccountInfoByDomainAccountInfo(
         userId, newDomainAccountInfo);
+}
+
+void DomainAccountCallbackSync::OnResult(int32_t result, Parcel &parcel)
+{
+    std::unique_lock<std::mutex> lock(lock_);
+    if (isCalled_) {
+        ACCOUNT_LOGE("Called twice.");
+        return;
+    }
+    result_ = result;
+    ACCOUNT_LOGI("ThreadInSleep_ set false.");
+    isCalled_ = true;
+    condition_.notify_one();
+}
+
+int32_t DomainAccountCallbackSync::GetResult()
+{
+    std::unique_lock<std::mutex> lock(lock_);
+    return result_;
+}
+
+void DomainAccountCallbackSync::WaitForCallbackResult()
+{
+    std::unique_lock<std::mutex> lock(lock_);
+    ACCOUNT_LOGI("WaitForCallbackResult.");
+    condition_.wait(lock, [this] { return isCalled_; });
+}
+
+ErrCode InnerDomainAccountManager::UnbindDomainAccountSync(const DomainAccountInfo &info, const int32_t localId)
+{
+#ifdef HICOLLIE_ENABLE
+    XCollieCallback callbackFunc = [localId = localId](void *) {
+        ACCOUNT_LOGE("UnbindDomainAccountSync timeout, bind localId = %{public}d.", localId);
+        REPORT_OS_ACCOUNT_FAIL(localId, "watchDog", -1, "Unbind domain account sync time out");
+    };
+    int32_t timerId = HiviewDFX::XCollie::GetInstance().SetTimer(
+        TIMER_NAME, DOMAIN_ACCOUNT_RECOVERY_TIMEOUT, callbackFunc, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
+#endif // HICOLLIE_ENABLE
+    std::shared_ptr<DomainAccountCallbackSync> callback = std::make_shared<DomainAccountCallbackSync>();
+    ErrCode err = OnAccountUnBound(info, callback, localId);
+    if (err != ERR_OK) {
+        ACCOUNT_LOGE("OnAccountUnBound failed, errCode = %{public}d", err);
+#ifdef HICOLLIE_ENABLE
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
+        return err;
+    }
+    callback->WaitForCallbackResult();
+#ifdef HICOLLIE_ENABLE
+    HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
+    err = callback->GetResult();
+    if (err != ERR_OK) {
+        ACCOUNT_LOGE("Callback get failed, errCode = %{public}d", err);
+    }
+    return err;
+}
+
+ErrCode InnerDomainAccountManager::BindDomainAccountSync(const DomainAccountInfo &info, const int32_t localId)
+{
+#ifdef HICOLLIE_ENABLE
+    XCollieCallback callbackFunc = [localId = localId](void *) {
+        ACCOUNT_LOGE("BindDomainAccountSync timeout, bind localId = %{public}d.", localId);
+        REPORT_OS_ACCOUNT_FAIL(localId, "watchDog", -1, "Bind domain account sync time out");
+    };
+    int32_t timerId = HiviewDFX::XCollie::GetInstance().SetTimer(
+        TIMER_NAME, DOMAIN_ACCOUNT_RECOVERY_TIMEOUT, callbackFunc, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
+#endif // HICOLLIE_ENABLE
+    std::shared_ptr<DomainAccountCallbackSync> callback = std::make_shared<DomainAccountCallbackSync>();
+    ErrCode err = OnAccountBound(info, localId, callback);
+    if (err != ERR_OK) {
+        ACCOUNT_LOGE("OnAccountUnBound failed, errCode = %{public}d", err);
+#ifdef HICOLLIE_ENABLE
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
+        return err;
+    }
+    callback->WaitForCallbackResult();
+#ifdef HICOLLIE_ENABLE
+    HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
+    err = callback->GetResult();
+    if (err != ERR_OK) {
+        ACCOUNT_LOGE("Callback get failed, errCode = %{public}d", err);
+    }
+    return err;
+}
+
+ErrCode InnerDomainAccountManager::GetDomainAccountInfoSync(const int32_t localId,
+    const DomainAccountInfo &info, DomainAccountInfo &fullInfo)
+{
+    fullInfo.Clear();
+    std::shared_ptr<UpdateAccountInfoCallback> callback = std::make_shared<UpdateAccountInfoCallback>();
+    sptr<DomainAccountCallbackService> callbackService = sptr<DomainAccountCallbackService>::MakeSptr(callback);
+    if (callbackService == nullptr) {
+        ACCOUNT_LOGE("Make shared DomainAccountCallbackService failed");
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
+#ifdef HICOLLIE_ENABLE
+    XCollieCallback callbackFunc = [localId = localId](void *) {
+        ACCOUNT_LOGE("GetDomainAccountInfoSync timeout, bind localId = %{public}d.", localId);
+        REPORT_OS_ACCOUNT_FAIL(localId, "watchDog", -1, "Get domain account info sync time out");
+    };
+    int32_t timerId = HiviewDFX::XCollie::GetInstance().SetTimer(
+        TIMER_NAME, DOMAIN_ACCOUNT_RECOVERY_TIMEOUT, callbackFunc, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
+#endif // HICOLLIE_ENABLE
+    ErrCode err = GetDomainAccountInfo(info, callbackService);
+    if (err != ERR_OK) {
+        ACCOUNT_LOGE("GetDomainAccountInfo failed, result = %{public}d", err);
+#ifdef HICOLLIE_ENABLE
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
+        return err;
+    }
+    callback->WaitForCallbackResult();
+#ifdef HICOLLIE_ENABLE
+    HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
+    err = callback->GetResult();
+    if (err != ERR_OK) {
+        ACCOUNT_LOGE("Callback get failed, errCode = %{public}d", err);
+    } else {
+        fullInfo = callback->GetAccountInfo();
+    }
+    return err;
+}
+
+ErrCode InnerDomainAccountManager::RecoverBindDomainForUncomplete(
+    const OsAccountInfo &osAccountInfo, const DomainAccountInfo &domainInfo)
+{
+    int32_t localId = osAccountInfo.GetLocalId();
+    OsAccountControlFileManager &fileController = IInnerOsAccountManager::GetInstance().GetFileController();
+    ErrCode err = 0;
+    if (!osAccountInfo.domainInfo_.IsEmpty()) {
+        ACCOUNT_LOGE("The account %{public}d already bound domain account", localId);
+        err = fileController.SetDomainBoundFlag(localId, true);
+        REPORT_OS_ACCOUNT_FAIL(localId, Constants::OPERATION_RECOVER_BIND_DOMAIN_ACCOUNT,
+            err, "Last domain bind operation successed, delete flag.");
+        return err;
+    }
+    err = UnbindDomainAccountSync(domainInfo, localId);
+    if ((err != ERR_OK) && (err != ERR_JS_ACCOUNT_NOT_FOUND)) {
+        ACCOUNT_LOGE("UnbindDomainAccountSync failed, ret = %{public}d", err);
+        REPORT_OS_ACCOUNT_FAIL(localId, Constants::OPERATION_RECOVER_BIND_DOMAIN_ACCOUNT, err,
+            "Unbound domain account failed.");
+        return err;
+    }
+    // delete flag file
+    err = fileController.SetDomainBoundFlag(localId, true);
+    if (err != ERR_OK) {
+        ACCOUNT_LOGW("Delete bound flag failed, ret = %{public}d", err);
+        REPORT_OS_ACCOUNT_FAIL(localId, Constants::OPERATION_RECOVER_BIND_DOMAIN_ACCOUNT,
+            err, "Delete bind flag failed.");
+    }
+    REPORT_OS_ACCOUNT_FAIL(localId, Constants::OPERATION_RECOVER_BIND_DOMAIN_ACCOUNT,
+        err, "Recover bind domain account success.");
+    return ERR_OK;
+}
+
+ErrCode InnerDomainAccountManager::BindDomainAccountWork(
+    const int32_t localId, const DomainAccountInfo &domainInfo, const OsAccountInfo &info)
+{
+    DomainAccountInfo fullInfo;
+    ErrCode err = GetDomainAccountInfoSync(localId, domainInfo, fullInfo);
+    if (err != ERR_OK) {
+        ACCOUNT_LOGW("Get domain account info failed, ret = %{public}d.", err);
+        return err;
+    }
+    OsAccountControlFileManager &fileController = IInnerOsAccountManager::GetInstance().GetFileController();
+    err = fileController.SetDomainBoundFlag(localId, false, fullInfo);
+    if (err != ERR_OK) {
+        ACCOUNT_LOGW("Set domain bound flag failed, ret = %{public}d.", err);
+        REPORT_OS_ACCOUNT_FAIL(localId, Constants::OPERATION_BIND_DOMAIN_ACCOUNT,
+            err, "Create bind flag failed.");
+        return err;
+    }
+    err = BindDomainAccountSync(fullInfo, localId);
+    if (err != ERR_OK) {
+        ACCOUNT_LOGW("Bound domain account failed, ret = %{public}d.", err);
+        REPORT_OS_ACCOUNT_FAIL(localId, Constants::OPERATION_BIND_DOMAIN_ACCOUNT,
+            err, "Bound domain account failed.");
+        fileController.SetDomainBoundFlag(localId, true);
+        return err;
+    }
+    OsAccountInfo selectAccountInfo = info;
+    selectAccountInfo.SetDomainInfo(fullInfo);
+    err = fileController.UpdateOsAccount(selectAccountInfo);
+    if (err != ERR_OK) {
+        ACCOUNT_LOGW("Update os account failed, ret = %{public}d.", err);
+        REPORT_OS_ACCOUNT_FAIL(
+            localId, Constants::OPERATION_BIND_DOMAIN_ACCOUNT, err, "Update OS account info failed.");
+        RecoverBindDomainForUncomplete(info, fullInfo);
+        return err;
+    }
+    fileController.SetDomainBoundFlag(localId, true);
+    REPORT_OS_ACCOUNT_FAIL(localId, Constants::OPERATION_BIND_DOMAIN_ACCOUNT,
+        err, "Bind domain account success.");
+    return err;
+}
+
+ErrCode InnerDomainAccountManager::CleanUnbindDomainAccount()
+{
+    std::vector<int32_t> allOsAccountIds;
+    OsAccountControlFileManager &fileController = IInnerOsAccountManager::GetInstance().GetFileController();
+    ErrCode errCode = fileController.GetOsAccountIdList(allOsAccountIds);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Get osaccount info list error, errCode %{public}d.", errCode);
+        return errCode;
+    }
+    std::vector<OsAccountInfo> infos;
+    for (auto id : allOsAccountIds) {
+        OsAccountInfo osAccountInfo;
+        if (!IInnerOsAccountManager::GetInstance().CheckAndAddLocalIdOperating(id)) {
+            ACCOUNT_LOGE("Check and add local id operating error, id %{public}d.", id);
+            REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_BOOT_RECOVER_BIND_DOMAIN_ACCOUNT,
+                ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR, "Target account is in operating on boot.");
+            continue;
+        }
+        ErrCode err = IInnerOsAccountManager::GetInstance().GetRealOsAccountInfoById(id, osAccountInfo);
+        if (err != ERR_OK) {
+            ACCOUNT_LOGE("Get osaccount info error, errCode %{public}d.", err);
+            REPORT_OS_ACCOUNT_FAIL(
+                id, Constants::OPERATION_BOOT_RECOVER_BIND_DOMAIN_ACCOUNT, err, "Get OS account info error on boot.");
+            IInnerOsAccountManager::GetInstance().RemoveLocalIdToOperating(id);
+            continue;
+        }
+        err = CheckAndRecoverBindDomainForUncomplete(osAccountInfo);
+        if (err != ERR_OK) {
+            ACCOUNT_LOGE("CheckAndRecoverBindDomainForUncomplete failed, ret = %{public}d", err);
+            REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_BOOT_RECOVER_BIND_DOMAIN_ACCOUNT, err,
+                "Recover bind domain account on boot failed.");
+        } else {
+            REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_BOOT_RECOVER_BIND_DOMAIN_ACCOUNT, err,
+                "Recover bind domain account on boot success.");
+        }
+        IInnerOsAccountManager::GetInstance().RemoveLocalIdToOperating(id);
+    }
+    return ERR_OK;
+}
+
+ErrCode InnerDomainAccountManager::BindDomainAccount(
+    const int32_t localId, const DomainAccountInfo &domainInfo, const sptr<IDomainAccountCallback> &callback)
+{
+    std::lock_guard<std::mutex> lock(IInnerOsAccountManager::GetInstance().createOrBindDomainAccountMutex_);
+    OsAccountInfo selectInfo;
+    ErrCode errCode = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(localId, selectInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Get osaccount info error, errCode = %{public}d, localId = %{public}d.", errCode, localId);
+        REPORT_OS_ACCOUNT_FAIL(localId, Constants::OPERATION_BIND_DOMAIN_ACCOUNT,
+            errCode, "Get OS account Info failed.");
+        return ErrorOnResultWithRet(errCode, callback);
+    }
+    if (!IInnerOsAccountManager::GetInstance().CheckAndAddLocalIdOperating(localId)) {
+        ACCOUNT_LOGE("The account %{public}d already in operating", localId);
+        REPORT_OS_ACCOUNT_FAIL(localId, Constants::OPERATION_BIND_DOMAIN_ACCOUNT,
+            ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR, "Input OS account is already in operating.");
+        return ErrorOnResultWithRet(ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR, callback);
+    }
+    errCode = CheckOsAccountCanBindDomainAccount(selectInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Check os account bind domain failed, " \
+            "errCode = %{public}d, localId = %{public}d.", errCode, localId);
+        REPORT_OS_ACCOUNT_FAIL(localId, Constants::OPERATION_BIND_DOMAIN_ACCOUNT,
+            errCode, "Input OS account cannnot bind domain account.");
+        IInnerOsAccountManager::GetInstance().RemoveLocalIdToOperating(localId);
+        return ErrorOnResultWithRet(errCode, callback);
+    }
+
+    errCode = CheckDomainAccountCanBindOsAccount(domainInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Check domain account bound failed, ret = %{public}d", errCode);
+        REPORT_OS_ACCOUNT_FAIL(localId, Constants::OPERATION_BIND_DOMAIN_ACCOUNT, errCode,
+            "Input domain cannnot bind to OS account.");
+        IInnerOsAccountManager::GetInstance().RemoveLocalIdToOperating(localId);
+        return ErrorOnResultWithRet(errCode, callback);
+    }
+    errCode = BindDomainAccountWork(localId, domainInfo, selectInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGW("Bound domain account failed, ret = %{public}d.", errCode);
+    }
+    IInnerOsAccountManager::GetInstance().RemoveLocalIdToOperating(localId);
+    return ErrorOnResultWithRet(errCode, callback);
+}
+
+ErrCode InnerDomainAccountManager::CheckOsAccountCanBindDomainAccount(const OsAccountInfo &osAccountInfo)
+{
+    int32_t localId = osAccountInfo.GetLocalId();
+    if (!osAccountInfo.GetIsCreateCompleted() || osAccountInfo.GetToBeRemoved()) {
+        ACCOUNT_LOGE("Not create completed account or to be removed account are not allowed to bind domain.");
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    ErrCode errCode = CheckAndRecoverBindDomainForUncomplete(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Check and recover bind domain for uncomplete error, " \
+            "errCode = %{public}d, localId = %{public}d.", errCode, localId);
+        return errCode;
+    }
+    if (!osAccountInfo.domainInfo_.IsEmpty()) {
+        ACCOUNT_LOGW("Os account is bound to a domain account, localId = %{public}d", localId);
+        return ERR_OSACCOUNT_SERVICE_INNER_OS_ACCOUNT_ALREADY_BOUND;
+    }
+    return ERR_OK;
+}
+
+ErrCode InnerDomainAccountManager::CheckDomainAccountCanBindOsAccount(const DomainAccountInfo &domainInfo)
+{
+    bool isBound = true;
+    ErrCode errCode = IInnerOsAccountManager::GetInstance().CheckDomainAccountBound(domainInfo, isBound);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Check domain account bound failed, ret = %{public}d", errCode);
+        return errCode;
+    }
+    if (isBound) {
+        ACCOUNT_LOGW("Domain account is already bound.");
+        return ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ACCOUNT_ALREADY_BOUND;
+    }
+    return ERR_OK;
+}
+
+ErrCode InnerDomainAccountManager::CheckAndRecoverBindDomainForUncomplete(const OsAccountInfo &accountInfo)
+{
+    bool isBoundCompleted = false;
+    int32_t localId = accountInfo.GetLocalId();
+    DomainAccountInfo storedDomainInfo;
+    OsAccountControlFileManager &fileController = IInnerOsAccountManager::GetInstance().GetFileController();
+    ErrCode errCode = fileController.GetDomainBoundFlag(localId, isBoundCompleted, storedDomainInfo);
+    // if file data format error, ignore this
+    if (errCode == ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR) {
+        ACCOUNT_LOGW("GetDomainBoundFlag failed, bad json format.");
+        REPORT_OS_ACCOUNT_FAIL(localId, Constants::OPERATION_RECOVER_BIND_DOMAIN_ACCOUNT,
+            ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR, "Bad json format, delete file and set flag to true.");
+        errCode = fileController.SetDomainBoundFlag(localId, true);
+        isBoundCompleted = true;
+    }
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Get domain bound flag failed, errCode = %{public}d, isBoundCompleted = %{public}d",
+            errCode, isBoundCompleted);
+        REPORT_OS_ACCOUNT_FAIL(
+            localId, Constants::OPERATION_RECOVER_BIND_DOMAIN_ACCOUNT, errCode, "Get bind domain account flag failed.");
+        return errCode;
+    }
+    if (!isBoundCompleted) {
+        ACCOUNT_LOGW("Domain bound flag is not empty, need unbind");
+        REPORT_OS_ACCOUNT_FAIL(localId, Constants::OPERATION_RECOVER_BIND_DOMAIN_ACCOUNT, -1,
+            "Domain bound flag is not empty, need unbind");
+        errCode = RecoverBindDomainForUncomplete(accountInfo, storedDomainInfo);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("Recover bind domain account failed.");
+            return errCode;
+        }
+    }
+    return ERR_OK;
 }
 }  // namespace AccountSA
 }  // namespace OHOS

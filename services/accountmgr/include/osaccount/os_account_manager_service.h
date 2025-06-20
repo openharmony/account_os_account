@@ -139,6 +139,8 @@ public:
     ErrCode PublishOsAccountLockEvent(const int32_t localId, bool isLocking) override;
     ErrCode LockOsAccount(const int32_t localId) override;
 #endif
+    ErrCode BindDomainAccount(const int32_t localId, const DomainAccountInfo &domainInfo,
+        const sptr<IDomainAccountCallback> &callback) override;
 
 private:
     virtual ErrCode DumpStateByAccounts(

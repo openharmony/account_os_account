@@ -551,6 +551,14 @@ static const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProc
         }
     },
 #endif
+    {
+        static_cast<uint32_t>(OsAccountInterfaceCode::BIND_DOMAIN_ACCOUNT),
+        {
+            .messageProcFunction = [] (OsAccountStub *ptr, MessageParcel &data, MessageParcel &reply) {
+                return ptr->ProcBindDomainAccount(data, reply); },
+            .isSystemApi = true,
+        }
+    }
 };
 
 OsAccountStub::OsAccountStub()
@@ -2037,5 +2045,30 @@ ErrCode OsAccountStub::ProcLockOsAccount(MessageParcel &data, MessageParcel &rep
     return ERR_NONE;
 }
 #endif
+
+ErrCode OsAccountStub::ProcBindDomainAccount(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("Read localId failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    std::shared_ptr<DomainAccountInfo> info(data.ReadParcelable<DomainAccountInfo>());
+    if (info == nullptr) {
+        ACCOUNT_LOGE("Failed to read domain account info");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    auto callback = iface_cast<IDomainAccountCallback>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("Failed to read parcel");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = BindDomainAccount(localId, *info, callback);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("Write result failed.");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    return ERR_NONE;
+}
 }  // namespace AccountSA
 }  // namespace OHOS

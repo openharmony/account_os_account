@@ -112,6 +112,8 @@ public:
     ErrCode PublishOsAccountLockEvent(const int32_t localId, bool isLocking);
     ErrCode LockOsAccount(const int32_t localId);
 #endif
+    ErrCode BindDomainAccount(const int32_t localId, const DomainAccountInfo &domainInfo,
+        const std::shared_ptr<DomainAccountCallback> &callback);
 
 private:
     OsAccount();

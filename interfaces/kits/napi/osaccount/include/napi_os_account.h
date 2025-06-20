@@ -232,6 +232,11 @@ struct GetOsAccountDomainInfoAsyncContext : public CommonAsyncContext {
     DomainAccountInfo domainInfo;
 };
 
+struct BindDomainAccountAsyncContext : public CommonAsyncContext {
+    int32_t localID = -1;
+    DomainAccountInfo domainInfo;
+};
+
 napi_value OsAccountInit(napi_env env, napi_value exports);
 
 napi_value GetAccountManager(napi_env env, napi_callback_info cbInfo);
@@ -391,6 +396,8 @@ napi_value GetEnabledOsAccountConstraints(napi_env env, napi_callback_info cbInf
 napi_value QueryOsAccount(napi_env env, napi_callback_info cbInfo);
 
 napi_value GetOsAccountDomainInfo(napi_env env, napi_callback_info cbInfo);
+
+napi_value BindDomainAccount(napi_env env, napi_callback_info cbInfo);
 }  // namespace AccountJsKit
 }  // namespace OHOS
 

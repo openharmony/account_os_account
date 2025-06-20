@@ -50,6 +50,8 @@ constexpr int32_t ALLOWED_HAP_LIST_MAX_SIZE = 1000;
 } // namespace
 CJsonUnique ToJson(const OsAccountInfo &accountInfo);
 bool FromJson(cJSON *jsonObject, OsAccountInfo &accountInfo);
+CJsonUnique ToJson(const DomainAccountInfo &domainInfo);
+bool FromJson(cJSON *jsonObject, DomainAccountInfo &domainInfo);
 } // namespace AccountSA
 } // namespace OHOS
 

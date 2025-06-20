@@ -77,7 +77,18 @@ public:
     void CloseLib();
     ErrCode UpdateAccountInfo(const DomainAccountInfo &oldAccountInfo, const DomainAccountInfo &newAccountInfo);
     ErrCode GetAccountPolicy(const DomainAccountInfo &info, std::string &policy);
+    ErrCode UnbindDomainAccountSync(const DomainAccountInfo &info, const int32_t localId);
+    ErrCode BindDomainAccountSync(const DomainAccountInfo &info, const int32_t localId);
+    ErrCode GetDomainAccountInfoSync(const int32_t localId, const DomainAccountInfo &info, DomainAccountInfo &fullInfo);
+    
+    ErrCode CheckAndRecoverBindDomainForUncomplete(const OsAccountInfo &accountInfo);
+    
+    ErrCode BindDomainAccount(const int32_t localId,
+        const DomainAccountInfo &domainInfo, const sptr<IDomainAccountCallback> &callback);
+    ErrCode CleanUnbindDomainAccount();
 
+    ErrCode CheckOsAccountCanBindDomainAccount(const OsAccountInfo &osAccountInfo);
+    ErrCode CheckDomainAccountCanBindOsAccount(const DomainAccountInfo &domainInfo);
 private:
     InnerDomainAccountManager();
     ~InnerDomainAccountManager();
@@ -117,6 +128,9 @@ private:
         const std::vector<uint8_t> &token, const DomainAccountInfo &info, DomainAuthResult &resultParcel);
     ErrCode PluginUpdateAccountInfo(const DomainAccountInfo &oldAccountInfo,
         const DomainAccountInfo &newAccountInfo);
+    ErrCode RecoverBindDomainForUncomplete(const OsAccountInfo &osAccountInfo, const DomainAccountInfo &domainInfo);
+    ErrCode BindDomainAccountWork(
+        const int32_t localId, const DomainAccountInfo &domainInfo, const OsAccountInfo &info);
 
 private:
     int32_t callingUid_ = -1;
@@ -167,6 +181,22 @@ private:
     std::condition_variable condition_;
     bool threadInSleep_ = true;
     DomainAccountInfo accountInfo_;
+};
+
+/**
+ * @brief call back for sync call to domain account interface, this class would ignore parcel input.
+*/
+class DomainAccountCallbackSync final : public DomainAccountCallback {
+public:
+    void OnResult(int32_t result, Parcel &parcel) override;
+    int32_t GetResult();
+    void WaitForCallbackResult();
+
+private:
+    int32_t result_ = -1;
+    mutable std::mutex lock_;
+    std::condition_variable condition_;
+    bool isCalled_ = false;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

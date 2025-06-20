@@ -1445,5 +1445,55 @@ ErrCode OsAccountManagerService::LockOsAccount(const int32_t localId)
     return innerManager_.LockOsAccount(localId);
 }
 #endif
+
+ErrCode OsAccountManagerService::BindDomainAccount(
+    const int32_t localId, const DomainAccountInfo &domainInfo, const sptr<IDomainAccountCallback> &callback)
+{
+    ErrCode res = AccountPermissionManager::CheckSystemApp();
+    if (res != ERR_OK) {
+        ACCOUNT_LOGE("Caller is not system application, result = %{public}d.", res);
+        return res;
+    }
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("Permission denied.");
+        REPORT_PERMISSION_FAIL();
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    res = CheckLocalId(localId);
+    if (res != ERR_OK) {
+        return res;
+    }
+    if (localId == Constants::ADMIN_LOCAL_ID || localId == Constants::U1_ID) {
+        ACCOUNT_LOGE("Cannot bind domain account to restricted user.");
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+    if (domainInfo.accountName_.empty() || domainInfo.domain_.empty()) {
+        ACCOUNT_LOGE("Domain account name is empty or domain is empty");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    if (domainInfo.accountName_.size() > Constants::LOCAL_NAME_MAX_SIZE ||
+        domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("Domain account name is overlength or domain is overlength");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("Callback is null");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+    auto work = [localId = localId, domainInfo = domainInfo, callback] {
+        ErrCode res = InnerDomainAccountManager::GetInstance().BindDomainAccount(localId, domainInfo, callback);
+        if (res != ERR_OK) {
+            ACCOUNT_LOGE("Bind domain account failed, res = %{public}d.", res);
+        }
+    };
+    std::thread taskThread(work);
+    pthread_setname_np(taskThread.native_handle(), "BindDomainAccount");
+    taskThread.detach();
+    return ERR_OK;
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
+}
 }  // namespace AccountSA
 }  // namespace OHOS
