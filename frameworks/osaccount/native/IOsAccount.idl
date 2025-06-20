@@ -124,4 +124,6 @@ interface OHOS.AccountSA.IOsAccount {
         [in] IRemoteObject eventListener);
     void UnsubscribeOsAccountConstraints([in] OsAccountConstraintSubscribeInfo subscribeInfo,
         [in] IRemoteObject eventListener);
+    void BindDomainAccount([in] int localId, [in] DomainAccountInfo domainInfo,
+        [in] IDomainAccountCallback domainAccountCallback);
 }

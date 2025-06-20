@@ -30,35 +30,34 @@ namespace AccountSA {
 namespace {
 bool ReadOsAccountInfo(const StringRawData& stringRawData, OsAccountInfo& osAccountInfo)
 {
-    std::string accountJson;
-    stringRawData.Unmarshalling(accountJson);
-    auto jsonObject = CreateJsonFromString(accountJson);
+    std::string accountStr;
+    stringRawData.Unmarshalling(accountStr);
+    auto jsonObject = CreateJsonFromString(accountStr);
     if (jsonObject == nullptr) {
-        ACCOUNT_LOGE("AccountJson is discarded");
+        ACCOUNT_LOGE("AccountStr is discarded");
         return false;
     }
-    FromJson(jsonObject.get(), osAccountInfo);
-    return true;
+    return FromJson(jsonObject.get(), osAccountInfo);
 }
 
 bool ReadOsAccountInfoVector(const StringRawData& stringRawData, std::vector<OsAccountInfo>& osAccountInfos)
 {
-    std::string accountJsons;
-    stringRawData.Unmarshalling(accountJsons);
-    auto accounts = CreateJsonFromString(accountJsons);
-    if (accounts == nullptr) {
-        ACCOUNT_LOGE("AccountJsons is discarded");
+    std::string accountStrs;
+    stringRawData.Unmarshalling(accountStrs);
+    auto accountsJson = CreateJsonFromString(accountStrs);
+    if (accountsJson == nullptr) {
+        ACCOUNT_LOGE("AccountStrs is discarded");
         return false;
     }
 
-    if (!IsArray(accounts)) {
-        ACCOUNT_LOGE("accounts is not a JSON array");
+    if (!IsArray(accountsJson)) {
+        ACCOUNT_LOGE("IsArray failed, please check accountsJson");
         return false;
     }
 
-    auto arraySize = GetItemNum(accounts);
+    auto arraySize = GetItemNum(accountsJson);
     for (int i = 0; i < arraySize; ++i) {
-        cJSON *item = GetItemFromArray(accounts, i);
+        cJSON *item = GetItemFromArray(accountsJson, i);
         if (item != nullptr) {
             OsAccountInfo accountInfo;
             FromJson(item, accountInfo);
@@ -72,7 +71,8 @@ ErrCode ConvertToAccountErrCode(ErrCode idlErrCode)
 {
     if (idlErrCode == ERR_INVALID_VALUE) {
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
-    } else if (idlErrCode == ERR_INVALID_DATA) {
+    }
+    if (idlErrCode == ERR_INVALID_DATA) {
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return idlErrCode;
@@ -144,8 +144,9 @@ ErrCode OsAccount::CreateOsAccount(const std::string &name, const OsAccountType 
     auto typeValue = static_cast<int32_t>(type);
     StringRawData stringRawData;
     auto errCode = proxy->CreateOsAccount(name, typeValue, stringRawData);
-    if (errCode == ERR_OK) {
-        ReadOsAccountInfo(stringRawData, osAccountInfo);
+    if (errCode == ERR_OK && !ReadOsAccountInfo(stringRawData, osAccountInfo)) {
+        ACCOUNT_LOGE("Read osAccountInfo failed, please check osAccountInfo");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     return ConvertToAccountErrCode(errCode);
 }
@@ -172,8 +173,9 @@ ErrCode OsAccount::CreateOsAccount(const std::string& localName, const std::stri
     auto typeValue = static_cast<int32_t>(type);
     StringRawData stringRawData;
     auto errCode = proxy->CreateOsAccount(localName, shortName, typeValue, stringRawData, options);
-    if (errCode == ERR_OK) {
-        ReadOsAccountInfo(stringRawData, osAccountInfo);
+    if (errCode == ERR_OK && !ReadOsAccountInfo(stringRawData, osAccountInfo)) {
+        ACCOUNT_LOGE("Read osAccountInfo failed, please check osAccountInfo");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     return ConvertToAccountErrCode(errCode);
 }
@@ -454,8 +456,9 @@ ErrCode OsAccount::QueryCurrentOsAccount(OsAccountInfo &osAccountInfo)
 
     StringRawData stringRawData;
     auto errCode = proxy->QueryCurrentOsAccount(stringRawData);
-    if (errCode == ERR_OK) {
-        ReadOsAccountInfo(stringRawData, osAccountInfo);
+    if (errCode == ERR_OK && !ReadOsAccountInfo(stringRawData, osAccountInfo)) {
+        ACCOUNT_LOGE("Read osAccountInfo failed, please check osAccountInfo");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     return ConvertToAccountErrCode(errCode);
 }
@@ -473,8 +476,9 @@ ErrCode OsAccount::QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo
 
     StringRawData stringRawData;
     auto errCode = proxy->QueryOsAccountById(id, stringRawData);
-    if (errCode == ERR_OK) {
-        ReadOsAccountInfo(stringRawData, osAccountInfo);
+    if (errCode == ERR_OK && !ReadOsAccountInfo(stringRawData, osAccountInfo)) {
+        ACCOUNT_LOGE("Read osAccountInfo failed, please check osAccountInfo");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     return ConvertToAccountErrCode(errCode);
 }
@@ -922,8 +926,9 @@ ErrCode OsAccount::GetOsAccountFromDatabase(const std::string& storeID, const in
     }
     StringRawData stringRawData;
     auto errCode = proxy->GetOsAccountFromDatabase(storeID, id, stringRawData);
-    if (errCode == ERR_OK) {
-        ReadOsAccountInfo(stringRawData, osAccountInfo);
+    if (errCode == ERR_OK && !ReadOsAccountInfo(stringRawData, osAccountInfo)) {
+        ACCOUNT_LOGE("Read osAccountInfo failed, please check osAccountInfo");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     return ConvertToAccountErrCode(errCode);
 }
@@ -1244,7 +1249,8 @@ ErrCode OsAccount::BindDomainAccount(
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->BindDomainAccount(localId, domainInfo, callbackService);
+    auto errCode = proxy->BindDomainAccount(localId, domainInfo, callbackService);
+    return ConvertToAccountErrCode(errCode);
 }
 }  // namespace AccountSA
 }  // namespace OHOS
