@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #ifndef OS_ACCOUNT_FRAMEWORKS_OSACCOUNT_CORE_INCLUDE_OS_ACCOUNT_H
 #define OS_ACCOUNT_FRAMEWORKS_OSACCOUNT_CORE_INCLUDE_OS_ACCOUNT_H
 
+#include "os_account_constraint_subscriber_manager.h"
 #include "domain_account_callback.h"
 #include "ios_account.h"
 #include "os_account_event_listener.h"
@@ -89,6 +90,8 @@ public:
         const bool enable, const int32_t enforcerId, const bool isDeviceOwner);
     ErrCode SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
         const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner);
+    ErrCode SubscribeOsAccountConstraints(const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber);
+    ErrCode UnsubscribeOsAccountConstraints(const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber);
     ErrCode SetDefaultActivatedOsAccount(const int32_t id);
     ErrCode GetDefaultActivatedOsAccount(int32_t &id);
     ErrCode GetOsAccountShortName(std::string &shortName);
@@ -118,6 +121,7 @@ private:
     ErrCode IsOsAccountForegroundCommon(int32_t localId, uint64_t displayId, bool &isForeground);
     ErrCode GetForegroundLocalIdCommon(uint64_t displayId, int32_t &localId);
     void RestoreListenerRecords();
+    void RestoreConstraintSubscriberRecords();
 
 private:
     std::mutex mutex_;
@@ -125,6 +129,8 @@ private:
     std::mutex eventListenersMutex_;
     sptr<OsAccountEventListener> listenerManager_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
+    sptr<OsAccountConstraintSubscriberManager> constraintSubscriberMgr_ =
+        &OsAccountConstraintSubscriberManager::GetInstance();
 };
 }  // namespace AccountSA
 }  // namespace OHOS

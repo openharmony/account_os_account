@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,6 +20,7 @@
 #include <sys/types.h>
 #include <memory>
 #include "account_permission_manager.h"
+#include "os_account_constraint_manager.h"
 #include "os_account_stub.h"
 #include "idomain_account_callback.h"
 #include "iinner_os_account_manager.h"
@@ -116,6 +117,10 @@ public:
         const bool enable, const int32_t enforcerId, const bool isDeviceOwner) override;
     ErrCode SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
         const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner) override;
+    ErrCode SubscribeOsAccountConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
+        const sptr<IRemoteObject> &eventListener) override;
+    ErrCode UnsubscribeOsAccountConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
+        const sptr<IRemoteObject> &eventListener) override;
 
     ErrCode SetDefaultActivatedOsAccount(const int32_t id) override;
     ErrCode GetDefaultActivatedOsAccount(int32_t &id) override;
@@ -144,9 +149,11 @@ private:
     void GetCurrentLocalId(int32_t &localId);
     ErrCode GetOsAccountShortNameCommon(const int32_t id, std::string &shortName);
     ErrCode ValidateAccountCreateParamAndPermission(const std::string &localName, const OsAccountType &type);
+    void ConstraintPublish(const std::vector<std::string> &oldConstraints, int32_t localId, bool enable);
 
 private:
     IInnerOsAccountManager &innerManager_;
+    OsAccountConstraintManager &constraintManger_;
     DISALLOW_COPY_AND_MOVE(OsAccountManagerService);
 };
 }  // namespace AccountSA

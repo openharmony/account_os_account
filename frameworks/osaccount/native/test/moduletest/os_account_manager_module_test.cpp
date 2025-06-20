@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -3230,4 +3230,16 @@ HWTEST_F(OsAccountManagerModuleTest, QueryDistributedVirtualDeviceId002, TestSiz
 {
     std::string dvid = "";
     EXPECT_EQ(OsAccountManager::QueryDistributedVirtualDeviceId("", 100, dvid), ERR_OK);
+}
+
+/**
+ * @tc.name: SubscribeConstraints001
+ * @tc.desc: Test SubscribeConstraints001.
+ * @tc.type: FUNC
+ * @tc.require: issueI4JBFF
+ */
+HWTEST_F(OsAccountManagerModuleTest, SubscribeConstraints001, TestSize.Level1)
+{
+    EXPECT_EQ(OsAccountManager::SubscribeOsAccountConstraints(nullptr), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(OsAccountManager::UnsubscribeOsAccountConstraints(nullptr), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }

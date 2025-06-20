@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -93,6 +93,10 @@ public:
         const bool enable, const int32_t enforcerId, const bool isDeviceOwner) override;
     ErrCode SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
         const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner) override;
+    ErrCode SubscribeOsAccountConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
+        const sptr<IRemoteObject> &eventListener) override;
+    ErrCode UnsubscribeOsAccountConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
+        const sptr<IRemoteObject> &eventListener) override;
     ErrCode SetDefaultActivatedOsAccount(const int32_t id) override;
     ErrCode GetDefaultActivatedOsAccount(int32_t &id) override;
     ErrCode GetOsAccountShortName(std::string &shortName) override;

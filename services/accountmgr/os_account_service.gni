@@ -14,6 +14,7 @@ import("../../os_account.gni")
 account_service_sources = [
   "${os_account_core_path}/src/os_account_state_parcel.cpp",
   "${os_account_core_path}/src/os_account_state_reply_callback.cpp",
+  "${os_account_innerkits_native_path}/src/os_account_constraint_subscribe_info.cpp",
   "${os_account_innerkits_native_path}/src/os_account_info.cpp",
   "${os_account_innerkits_native_path}/src/os_account_subscribe_info.cpp",
   "${services_path}/accountmgr/src/account_event_provider.cpp",
@@ -28,6 +29,7 @@ account_service_sources = [
   "${services_path}/accountmgr/src/ohos_account_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/inner_os_account_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_activate_lock_plugin_manager.cpp",
+  "${services_path}/accountmgr/src/osaccount/os_account_constraint_subscribe_death_recipient.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_control_file_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_delete_user_idm_callback.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_event_proxy.cpp",
@@ -42,6 +44,8 @@ account_service_sources = [
   "${services_path}/accountmgr/src/osaccount/os_account_subscribe_death_recipient.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_subscribe_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_user_callback.cpp",
+  "${services_path}/accountmgr/src/osaccount/os_account_constraint_manager.cpp",
+  "${services_path}/accountmgr/src/osaccount/os_account_constraint_subscribe_manager.cpp",
 ]
 if (os_account_support_lock_os_account) {
   account_service_sources += [ "${services_path}/accountmgr/src/osaccount/os_account_lock_os_account_plugin_manager.cpp" ]
@@ -78,6 +82,7 @@ app_account_sources_mock = [
 
 account_service_sources_mock = [
   "${os_account_core_path}/src/os_account_state_parcel.cpp",
+  "${os_account_innerkits_native_path}/src/os_account_constraint_subscribe_info.cpp",
   "${os_account_innerkits_native_path}/src/os_account_subscribe_info.cpp",
   "${services_path}/accountmgr/src/account_event_provider.cpp",
   "${services_path}/accountmgr/src/account_event_subscribe.cpp",
@@ -91,6 +96,9 @@ account_service_sources_mock = [
   "${services_path}/accountmgr/src/ohos_account_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/inner_os_account_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_activate_lock_plugin_manager.cpp",
+  "${services_path}/accountmgr/src/osaccount/os_account_constraint_subscribe_death_recipient.cpp",
+  "${services_path}/accountmgr/src/osaccount/os_account_constraint_manager.cpp",
+  "${services_path}/accountmgr/src/osaccount/os_account_constraint_subscribe_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_control_file_manager.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_delete_user_idm_callback.cpp",
   "${services_path}/accountmgr/src/osaccount/os_account_file_operator.cpp",
