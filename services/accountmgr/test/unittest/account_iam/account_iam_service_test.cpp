@@ -19,6 +19,7 @@
 #include "account_iam_service.h"
 #undef private
 #include "account_log_wrapper.h"
+#include "account_test_common.h"
 #include "get_cred_info_callback_stub.h"
 #include "get_enrolled_id_callback_stub.h"
 #include "get_set_prop_callback_stub.h"
@@ -98,8 +99,7 @@ public:
 
 void AccountIamServiceTest::SetUpTestCase(void)
 {
-    AccessTokenID tokenId = AccessTokenKit::GetHapTokenID(100, "com.ohos.settings", 0);
-    SetSelfTokenID(tokenId);
+    ASSERT_TRUE(MockTokenId("accountmgr"));
 }
 
 void AccountIamServiceTest::TearDownTestCase(void)

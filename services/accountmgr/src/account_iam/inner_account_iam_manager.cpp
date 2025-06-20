@@ -434,7 +434,7 @@ void InnerAccountIAMManager::GetProperty(
     }
 #else
     Attributes attributes;
-    callback->OnResult(ResultCode::NOT_ENROLLED, attributes);
+    callback->OnResult(ResultCode::NOT_ENROLLED, attributes.Serialize());
 #endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
