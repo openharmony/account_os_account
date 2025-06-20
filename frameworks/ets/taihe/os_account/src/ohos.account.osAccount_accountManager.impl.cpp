@@ -228,7 +228,12 @@ public:
     static bool IsSubscribedInMap(AccountSA::SubscribeCBInfo *subscribeCBInfo)
     {
         std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
+        if (subscribeCBInfo == nullptr) {
+            ACCOUNT_LOGE("Insufficient memory for subscribeCBInfo!");
+            return;
+        }
         auto subscribe = g_osAccountSubscribers.find(subscribeCBInfo->osManager);
+
         if (subscribe == g_osAccountSubscribers.end()) {
             ACCOUNT_LOGE("Not find osManager!");
             return false;
@@ -250,7 +255,7 @@ public:
     {
         AccountSA::SubscribeCBInfo *subscribeCBInfo = new (std::nothrow) AccountSA::SubscribeCBInfo();
         if (subscribeCBInfo == nullptr) {
-            ACCOUNT_LOGE("insufficient memory for subscribeCBInfo!");
+            ACCOUNT_LOGE("Insufficient memory for subscribeCBInfo!");
             return;
         }
         subscribeCBInfo->activeCallbackRef = activeCallback;
@@ -699,13 +704,13 @@ public:
 
     bool CheckMultiOsAccountEnabledSync()
     {
-        bool isMultiOAEnable;
-        ErrCode errCode = AccountSA::OsAccountManager::IsMultiOsAccountEnable(isMultiOAEnable);
+        bool isMultiOAEnabled;
+        ErrCode errCode = AccountSA::OsAccountManager::IsMultiOsAccountEnable(isMultiOAEnabled);
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("CheckMultiOsAccountEnabledSync failed with errCode: %{public}d", errCode);
             SetTaiheBusinessErrorFromNativeCode(errCode);
         }
-        return isMultiOAEnable;
+        return isMultiOAEnabled;
     }
 
     void RemoveOsAccountSync(int32_t localId)
@@ -740,7 +745,7 @@ public:
 
     bool IsOsAccountConstraintEnabledSync(string_view constraint)
     {
-        bool isConsEnable;
+        bool isConsEnabled;
         std::string innerConstraint(constraint.data(), constraint.size());
         std::vector<int> ids;
         ErrCode idErrCode = AccountSA::OsAccountManager::QueryActiveOsAccountIds(ids);
@@ -752,27 +757,26 @@ public:
             ACCOUNT_LOGE("No Active OsAccount Ids");
             SetTaiheBusinessErrorFromNativeCode(idErrCode);
         }
-        ACCOUNT_LOGI("taihe-impl IsOsAccountConstraintEnabledSync impl [id] : %{public}d", ids[0]);
         ErrCode errCode = AccountSA::OsAccountManager::CheckOsAccountConstraintEnabled(ids[0],
-            innerConstraint, isConsEnable);
+            innerConstraint, isConsEnabled);
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("IsOsAccountActivatedSync failed with errCode: %{public}d", errCode);
             SetTaiheBusinessErrorFromNativeCode(errCode);
         }
-        return isConsEnable;
+        return isConsEnabled;
     }
 
     bool IsOsAccountConstraintEnabledWithId(int32_t localId, string_view constraint)
     {
-        bool isConsEnable;
+        bool isConsEnabled;
         std::string innerConstraint(constraint.data(), constraint.size());
         ErrCode errCode = AccountSA::OsAccountManager::CheckOsAccountConstraintEnabled(localId,
-            innerConstraint, isConsEnable);
+            innerConstraint, isConsEnabled);
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("IsOsAccountConstraintEnabledWithId failed with errCode: %{public}d", errCode);
             SetTaiheBusinessErrorFromNativeCode(errCode);
         }
-        return isConsEnable;
+        return isConsEnabled;
     }
 
     void SetOsAccountConstraintsSync(int32_t localId, array_view<taihe::string> constraints, bool enable)
@@ -825,7 +829,7 @@ public:
 
     int32_t GetOsAccountLocalIdForDomainSync(DomainAccountInfo const& domainInfo)
     {
-        int32_t id;
+        int32_t id = 0;
         std::string innerDomain (domainInfo.domain.data(), domainInfo.domain.size());
         std::string innerAccountName (domainInfo.accountName.data(), domainInfo.accountName.size());
         AccountSA::DomainAccountInfo innerDomainInfo;
@@ -892,12 +896,12 @@ public:
         return domainAccountInfo;
     }
 
-    string queryDistributedVirtualDeviceIdSync()
+    string QueryDistributedVirtualDeviceIdSync()
     {
         std::string deviceId;
         ErrCode errCode = AccountSA::OsAccountManager::GetDistributedVirtualDeviceId(deviceId);
         if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("queryDistributedVirtualDeviceIdSync failed with errCode: %{public}d", errCode);
+            ACCOUNT_LOGE("QueryDistributedVirtualDeviceIdSync failed with errCode: %{public}d", errCode);
             SetTaiheBusinessErrorFromNativeCode(errCode);
         }
         return string(deviceId);

@@ -174,7 +174,7 @@ interface AccountManager {
 
     @gen_async("queryDistributedVirtualDeviceId")
     @gen_promise("queryDistributedVirtualDeviceId")
-    queryDistributedVirtualDeviceIdSync(): String;
+    QueryDistributedVirtualDeviceIdSync(): String;
 }
 
 @class
