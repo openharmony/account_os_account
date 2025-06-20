@@ -26,6 +26,7 @@
 #include "os_account_proxy.h"
 #define private public
 #include "os_account.h"
+#include "os_account_constants.h"
 #include "os_account_constraint_subscriber_manager.h"
 #undef private
 #include "singleton.h"

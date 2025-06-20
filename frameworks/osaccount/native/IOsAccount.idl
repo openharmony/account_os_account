@@ -26,6 +26,7 @@ sequenceable OsAccountInfo..OHOS.AccountSA.OsAccountSubscribeInfo;
 sequenceable OsAccountInfo..OHOS.AccountSA.ForegroundOsAccount;
 sequenceable DomainAccountCommon..OHOS.AccountSA.DomainAccountInfo;
 sequenceable DomainAccountCommon..OHOS.AccountSA.CreateOsAccountForDomainOptions;
+sequenceable OHOS.AccountSA.OsAccountConstraintSubscribeInfo;
 sequenceable OHOS.IRemoteObject;
 
 
@@ -119,4 +120,8 @@ interface OHOS.AccountSA.IOsAccount {
     void SetOsAccountToBeRemoved([in] int localId, [in] boolean toBeRemoved);
     [macrodef SUPPORT_LOCK_OS_ACCOUNT] void PublishOsAccountLockEvent([in] int localId, [in] boolean isLocking);
     [macrodef SUPPORT_LOCK_OS_ACCOUNT] void LockOsAccount([in] int localId);
+    void SubscribeOsAccountConstraints([in] OsAccountConstraintSubscribeInfo subscribeInfo,
+        [in] IRemoteObject eventListener);
+    void UnsubscribeOsAccountConstraints([in] OsAccountConstraintSubscribeInfo subscribeInfo,
+        [in] IRemoteObject eventListener);
 }
