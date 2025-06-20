@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,6 +22,10 @@
 #include "iinner_os_account_manager.h"
 #include "ipc_skeleton.h"
 #include "os_account_constants.h"
+#ifdef HICOLLIE_ENABLE
+#include "account_timer.h"
+#include "xcollie/xcollie.h"
+#endif // HICOLLIE_ENABLE
 
 namespace OHOS {
 namespace AccountSA {
@@ -97,7 +101,8 @@ bool IsTypeOutOfRange(const OsAccountType& type)
 }
 }  // namespace
 
-OsAccountManagerService::OsAccountManagerService() : innerManager_(IInnerOsAccountManager::GetInstance())
+OsAccountManagerService::OsAccountManagerService() : innerManager_(IInnerOsAccountManager::GetInstance()),
+    constraintManger_(OsAccountConstraintManager::GetInstance())
 {}
 
 OsAccountManagerService::~OsAccountManagerService()
@@ -628,6 +633,13 @@ ErrCode OsAccountManagerService::SetOsAccountName(const int id, const std::strin
     return innerManager_.SetOsAccountName(id, name);
 }
 
+void OsAccountManagerService::ConstraintPublish(const std::vector<std::string> &constraints,
+    int32_t localId, bool enable)
+{
+    std::set<std::string> constraintsSet(constraints.begin(), constraints.end());
+    return constraintManger_.Publish(localId, constraintsSet, enable);
+}
+
 ErrCode OsAccountManagerService::SetOsAccountConstraints(
     const int id, const std::vector<std::string> &constraints, const bool enable)
 {
@@ -645,8 +657,11 @@ ErrCode OsAccountManagerService::SetOsAccountConstraints(
         REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
-
-    return innerManager_.SetBaseOsAccountConstraints(id, constraints, enable);
+    ErrCode errCode = innerManager_.SetBaseOsAccountConstraints(id, constraints, enable);
+    if (errCode == ERR_OK) {
+        ConstraintPublish(constraints, id, enable);
+    }
+    return errCode;
 }
 
 ErrCode OsAccountManagerService::SetOsAccountProfilePhoto(const int id, const std::string &photo)
@@ -1102,8 +1117,11 @@ ErrCode OsAccountManagerService::SetGlobalOsAccountConstraints(const std::vector
         REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
-
-    return innerManager_.SetGlobalOsAccountConstraints(constraints, enable, enforcerId, isDeviceOwner);
+    ErrCode errCode = innerManager_.SetGlobalOsAccountConstraints(constraints, enable, enforcerId, isDeviceOwner);
+    if (errCode == ERR_OK) {
+        ConstraintPublish(constraints, enforcerId, enable);
+    }
+    return errCode;
 }
 
 ErrCode OsAccountManagerService::SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
@@ -1122,7 +1140,64 @@ ErrCode OsAccountManagerService::SetSpecificOsAccountConstraints(const std::vect
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
 
-    return innerManager_.SetSpecificOsAccountConstraints(constraints, enable, targetId, enforcerId, isDeviceOwner);
+    ErrCode errCode = innerManager_.SetSpecificOsAccountConstraints(
+        constraints, enable, targetId, enforcerId, isDeviceOwner);
+    if (errCode == ERR_OK) {
+        ConstraintPublish(constraints, targetId, enable);
+    }
+    return errCode;
+}
+
+ErrCode OsAccountManagerService::SubscribeOsAccountConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
+    const sptr<IRemoteObject> &eventListener)
+{
+    // permission check
+    if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("Account manager service, permission denied!");
+        REPORT_PERMISSION_FAIL();
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+#ifdef HICOLLIE_ENABLE
+    unsigned int flag = HiviewDFX::XCOLLIE_FLAG_LOG;
+    XCollieCallback callbackFunc = [callingPid = IPCSkeleton::GetCallingPid(),
+        callingUid = IPCSkeleton::GetCallingUid()](void *) {
+        ACCOUNT_LOGE("SubscribeOsAccountConstraints failed, callingPid: %{public}d, callingUid: %{public}d.",
+            callingPid, callingUid);
+        ReportOsAccountOperationFail(callingUid, "watchDog", -1, "Subscribe constraint time out");
+    };
+    int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(
+        TIMER_NAME, TIMEOUT, callbackFunc, nullptr, flag);
+#endif // HICOLLIE_ENABLE
+    ErrCode result = constraintManger_.SubscribeOsAccountConstraints(subscribeInfo, eventListener);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Subscribe constraint failed, callingUid: %{public}d, code: %{public}d.",
+            IPCSkeleton::GetCallingUid(), result);
+        REPORT_OS_ACCOUNT_FAIL(IPCSkeleton::GetCallingUid(), Constants::OPERATION_LOG_ERROR,
+            result, "Subscribe constraint failed.");
+    }
+#ifdef HICOLLIE_ENABLE
+    HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
+    return result;
+}
+
+ErrCode OsAccountManagerService::UnsubscribeOsAccountConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
+    const sptr<IRemoteObject> &eventListener)
+{
+    // permission check
+    if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("Account manager service, permission denied!");
+        REPORT_PERMISSION_FAIL();
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    ErrCode result = constraintManger_.UnsubscribeOsAccountConstraints(subscribeInfo, eventListener);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Unsubscribe constraint failed, callingUid: %{public}d, code: %{public}d.",
+            IPCSkeleton::GetCallingUid(), result);
+        REPORT_OS_ACCOUNT_FAIL(IPCSkeleton::GetCallingUid(), Constants::OPERATION_LOG_ERROR,
+            result, "Unsubscribe constraint failed.");
+    }
+    return result;
 }
 
 ErrCode OsAccountManagerService::SetDefaultActivatedOsAccount(const int32_t id)

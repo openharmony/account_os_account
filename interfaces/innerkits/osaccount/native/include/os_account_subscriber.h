@@ -41,7 +41,7 @@ public:
      * @since 16
      */
     virtual void OnStateChanged(const OsAccountStateData &data) {};
-    
+
     /**
      * Notify the account changed.
      *

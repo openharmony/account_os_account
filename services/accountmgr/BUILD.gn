@@ -221,6 +221,7 @@ ohos_shared_library("accountmgr") {
     ":bundle_manager_config",
     ":domain_account_config",
     "${innerkits_native_path}:distributed_account_event_interface_public_config",
+    "${os_account_innerkits_native_path}:frameworks_osaccount_interface_public_config",
   ]
 
   public_configs = [
@@ -231,8 +232,11 @@ ohos_shared_library("accountmgr") {
   use_exceptions = true
 
   deps = [ "${common_path}:libaccount_common" ]
-  deps += [ "${domain_account_framework_path}:domain_account_stub" ]
-
+  deps += [
+    "${domain_account_framework_path}:domain_account_stub",
+    "${os_account_innerkits_native_path}:os_account_constraint_event_proxy",
+    "${os_account_innerkits_native_path}:os_account_constraint_event_stub",
+  ]
   external_deps = [
     "ability_base:base",
     "ability_base:want",

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -45,9 +45,16 @@ OsAccount::OsAccount()
     auto callbackFunc = [] (int32_t systemAbilityId, const std::string &deviceId) {
         if (systemAbilityId == SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN) {
             OsAccount::GetInstance().RestoreListenerRecords();
+            OsAccount::GetInstance().RestoreConstraintSubscriberRecords();
         }
     };
     OhosAccountKitsImpl::GetInstance().SubscribeSystemAbility(callbackFunc);
+}
+
+void OsAccount::RestoreConstraintSubscriberRecords()
+{
+    auto proxy = GetOsAccountProxy();
+    OsAccountConstraintSubscriberManager::GetInstance().RestoreConstraintSubscriberRecords(proxy);
 }
 
 void OsAccount::RestoreListenerRecords()
@@ -832,6 +839,18 @@ ErrCode OsAccount::SetSpecificOsAccountConstraints(const std::vector<std::string
     }
 
     return proxy->SetSpecificOsAccountConstraints(constraints, enable, targetId, enforcerId, isDeviceOwner);
+}
+
+ErrCode OsAccount::SubscribeOsAccountConstraints(const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber)
+{
+    auto proxy = GetOsAccountProxy();
+    return constraintSubscriberMgr_->SubscribeOsAccountConstraints(subscriber, proxy);
+}
+
+ErrCode OsAccount::UnsubscribeOsAccountConstraints(const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber)
+{
+    auto proxy = GetOsAccountProxy();
+    return constraintSubscriberMgr_->UnsubscribeOsAccountConstraints(subscriber, proxy);
 }
 
 ErrCode OsAccount::SetDefaultActivatedOsAccount(const int32_t id)

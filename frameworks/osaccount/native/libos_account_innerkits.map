@@ -1,4 +1,4 @@
-# Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+# Copyright (c) 2023-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -26,6 +26,7 @@
         "OHOS::AccountSA::OsAccount::GetInstance()";
         "OHOS::AccountSA::OsAccount::OsAccount()";
         "OHOS::AccountSA::OsAccount::RestoreListenerRecords()";
+        "OHOS::AccountSA::OsAccount::RestoreConstraintSubscriberRecords()";
         "OHOS::AccountSA::OsAccount::CreateOsAccountEventListener(std::__h::shared_ptr<OHOS::AccountSA::OsAccountSubscriber> const&, OHOS::sptr<OHOS::IRemoteObject>&)";
         "OHOS::AccountSA::OsAccount::CreateOsAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::OsAccountType const&, OHOS::AccountSA::OsAccountInfo&)";
         "OHOS::AccountSA::OsAccount::CreateOsAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::OsAccountType const&, OHOS::AccountSA::OsAccountInfo&)";
@@ -63,11 +64,14 @@
         "OHOS::AccountSA::OsAccount::IsOsAccountCompleted(int, bool&)";
         "OHOS::AccountSA::OsAccount::SubscribeOsAccount(std::__h::shared_ptr<OHOS::AccountSA::OsAccountSubscriber> const&)";
         "OHOS::AccountSA::OsAccount::UnsubscribeOsAccount(std::__h::shared_ptr<OHOS::AccountSA::OsAccountSubscriber> const&)";
+        "OHOS::AccountSA::OsAccount::SubscribeOsAccountConstraints(std::__h::shared_ptr<OHOS::AccountSA::OsAccountConstraintSubscriber> const&)";
+        "OHOS::AccountSA::OsAccount::UnsubscribeOsAccountConstraints(std::__h::shared_ptr<OHOS::AccountSA::OsAccountConstraintSubscriber> const&)";
         "OHOS::AccountSA::OsAccount::GetOsAccountSwitchMod()";
         "OHOS::AccountSA::OsAccount::DumpState(int const&, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>&)";
         "OHOS::AccountSA::OsAccount::IsCurrentOsAccountVerified(bool&)";
         "OHOS::AccountSA::OsAccount::SetCurrentOsAccountIsVerified(bool)";
         "OHOS::AccountSA::OsAccount::SetOsAccountIsVerified(int, bool)";
+        "OHOS::AccountSA::OsAccountConstraintSubscriber::OnConstraintChanged(OHOS::AccountSA::OsAccountConstraintStateData const&)";
         "OHOS::AccountSA::OsAccountEventListener::OsAccountEventListener()";
         "OHOS::AccountSA::OsAccountEventListener::InsertRecord(std::__h::shared_ptr<OHOS::AccountSA::OsAccountSubscriber> const&)";
         "OHOS::AccountSA::OsAccountEventListener::GetTotalSubscribeInfo()";
@@ -165,6 +169,8 @@
         "OHOS::AccountSA::OsAccountManager::GetOsAccountDomainInfo(int, OHOS::AccountSA::DomainAccountInfo&)";
         "OHOS::AccountSA::OsAccountManager::PublishOsAccountLockEvent(int, bool)";
         "OHOS::AccountSA::OsAccountManager::LockOsAccount(int)";
+        "OHOS::AccountSA::OsAccountManager::SubscribeOsAccountConstraints(std::__h::shared_ptr<OHOS::AccountSA::OsAccountConstraintSubscriber> const&)";
+        "OHOS::AccountSA::OsAccountManager::UnsubscribeOsAccountConstraints(std::__h::shared_ptr<OHOS::AccountSA::OsAccountConstraintSubscriber> const&)";
         "OHOS::AccountSA::OsAccountInfo::GetLocalId() const";
         "OHOS::AccountSA::OsAccountInfo::ParamCheck()";
         "OHOS::AccountSA::OsAccountInfo::GetDomainInfo(OHOS::AccountSA::DomainAccountInfo&) const";

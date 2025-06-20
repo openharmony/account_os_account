@@ -649,6 +649,7 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
 
   module_out_path = module_output_path
   include_dirs = [
+    "${account_test_common}/include",
     "${app_account_innerkits_native_path}/include",
     "${os_account_dfx_path}/hidumper_adapter",
     "${services_path}/accountmgr/include/bundle_manager_adapter",
@@ -662,6 +663,7 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
     "${os_account_path}/interfaces/innerkits/ohosaccount/native/include/",
   ]
   sources = [
+    "${account_test_common}/src/account_test_common.cpp",
     "${app_account_services_path}/test/mock/common/ability_manager_adapter_mock.cpp",
     "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
     "${common_path}/log/src/account_log_wrapper.cpp",
@@ -669,6 +671,8 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
     "${innerkits_native_path}/src/account_proxy.cpp",
     "${innerkits_native_path}/src/ohos_account_kits.cpp",
     "${innerkits_native_path}/src/ohos_account_kits_impl.cpp",
+    "${os_account_core_path}/src/os_account_constraint_subscriber_manager.cpp",
+    "${os_account_innerkits_native_path}/src/os_account_constraint_subscriber.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
     "${services_path}/accountmgr/src/account_iam/account_iam_callback.cpp",
@@ -692,6 +696,7 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
     "${domain_account_framework_path}:domain_account_stub",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_constraint_event_stub",
   ]
 
   use_exceptions = true
