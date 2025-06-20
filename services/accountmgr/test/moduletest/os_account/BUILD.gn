@@ -76,6 +76,10 @@ ohos_moduletest("inner_os_account_manager_test") {
     cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
   }
 
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
+
   part_name = "os_account"
 }
 

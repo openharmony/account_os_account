@@ -67,7 +67,6 @@ public:
     bool IsSameServerConfigId(const std::string& serverConfigId) const;
     void SetServerConfigId(const std::string& serverConfigId);
     void SetDomain(const std::string& domain);
-
 public:
     std::string domain_;
     std::string accountName_;

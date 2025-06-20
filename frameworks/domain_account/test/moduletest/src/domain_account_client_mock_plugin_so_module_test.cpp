@@ -35,6 +35,7 @@
 #include "inner_domain_account_manager.h"
 #include "iinner_os_account_manager.h"
 #include "os_account.h"
+#include "os_account_control_file_manager.h"
 #undef private
 #include "ipc_skeleton.h"
 #include "mock_domain_auth_callback.h"
@@ -70,7 +71,7 @@ static uint64_t g_selfTokenID;
 const int32_t WAIT_TIME = 2;
 const std::string STRING_SHORT_NAME_OUT_OF_RANGE(256, '1');
 #endif
-const std::map<PluginMethodEnum, void *> PLUGIN_METHOD_MAP = {
+std::map<PluginMethodEnum, void *> PLUGIN_METHOD_MAP = {
     {PluginMethodEnum::AUTH, reinterpret_cast<void *>(Auth)},
     {PluginMethodEnum::GET_ACCOUNT_INFO, reinterpret_cast<void *>(GetAccountInfo)},
     {PluginMethodEnum::BIND_ACCOUNT, reinterpret_cast<void *>(BindAccount)},
@@ -79,6 +80,7 @@ const std::map<PluginMethodEnum, void *> PLUGIN_METHOD_MAP = {
     {PluginMethodEnum::GET_ACCOUNT_POLICY, reinterpret_cast<void *>(GetAccountPolicy)},
     {PluginMethodEnum::UPDATE_ACCOUNT_INFO, reinterpret_cast<void *>(UpdateAccountInfo)},
     {PluginMethodEnum::UPDATE_SERVER_CONFIG, reinterpret_cast<void *>(UpdateServerConfig)},
+    {PluginMethodEnum::UNBIND_ACCOUNT, reinterpret_cast<void*>(UnBindAccount)}
 };
 }
 
@@ -1040,5 +1042,516 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, UpdateServerConfig001, TestS
     EXPECT_NE(domainInfo.serverConfigId_, config.id_);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId1), ERR_OK);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId2), ERR_OK);
+    UnloadPluginMethods();
+}
+
+class TestBindDomainCallback : public DomainAccountCallback {
+public:
+    TestBindDomainCallback() = default;
+    virtual ~TestBindDomainCallback() = default;
+    
+    void OnResult(const int32_t errCode, Parcel &parcel) override
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        if (isCalled_) {
+            ACCOUNT_LOGE("Callback is called.");
+            return;
+        }
+        errCode_ = errCode;
+        isCalled_ = true;
+        cv_.notify_one();
+    }
+
+    void WaitForCallbackResult()
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        ACCOUNT_LOGI("WaitForCallbackResult.");
+        cv_.wait(lock, [this] { return isCalled_; });
+    }
+
+    int32_t GetResult()
+    {
+        return errCode_;
+    }
+
+    void Clear()
+    {
+        errCode_ = -1;
+        isCalled_ = false;
+    }
+
+private:
+    std::mutex mutex_;
+    int32_t errCode_ = -1;
+    bool isCalled_ = false;
+    std::condition_variable cv_;
+};
+
+/**
+ * @tc.name: BindDomainAccount001
+ * @tc.desc: Test BindDomainAccount success & scene
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, BindDomainAccount001, TestSize.Level1)
+{
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = "testaccount";
+    domainInfo.domain_ = "test.example.com";
+    domainInfo.accountId_ = "testid";
+    LoadPluginMethods();
+    OsAccountInfo info;
+    ASSERT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("BindDomainAccount001", OsAccountType::ADMIN, info));
+    auto callback = std::make_shared<TestBindDomainCallback>();
+    // bind first time
+    ErrCode ret = OsAccountManager::BindDomainAccount(info.GetLocalId(), domainInfo, callback);
+    EXPECT_EQ(ERR_OK, ret);
+    callback->WaitForCallbackResult();
+    ret = callback->GetResult();
+    ASSERT_EQ(ERR_OK, ret);
+    OsAccountControlFileManager fileController;
+    bool isBoundCompleted = false;
+    DomainAccountInfo readInfo;
+    EXPECT_EQ(ERR_OK, fileController.GetDomainBoundFlag(info.GetLocalId(), isBoundCompleted, readInfo));
+    ASSERT_TRUE(isBoundCompleted);
+
+    // bind second time, should return ERR_OSACCOUNT_SERVICE_INNER_OS_ACCOUNT_ALREADY_BOUND
+    // localId is already bound
+    callback->Clear();
+    ret = OsAccountManager::BindDomainAccount(info.GetLocalId(), domainInfo, callback);
+    EXPECT_EQ(ERR_OK, ret);
+    callback->WaitForCallbackResult();
+    ret = callback->GetResult();
+    ASSERT_EQ(ERR_OSACCOUNT_SERVICE_INNER_OS_ACCOUNT_ALREADY_BOUND, ret);
+
+    // bind another localId, should return ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ACCOUNT_ALREADY_BOUND
+    callback->Clear();
+    ret = OsAccountManager::BindDomainAccount(100, domainInfo, callback);
+    EXPECT_EQ(ERR_OK, ret);
+    callback->WaitForCallbackResult();
+    ret = callback->GetResult();
+    ASSERT_EQ(ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ACCOUNT_ALREADY_BOUND, ret);
+
+    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(info.GetLocalId()));
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: BindDomainAccount002
+ * @tc.desc: Test BindDomainAccount input fail
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, BindDomainAccount002, TestSize.Level1)
+{
+    auto callback = std::make_shared<TestBindDomainCallback>();
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = "testaccount";
+    domainInfo.domain_ = "test.example.com";
+    domainInfo.accountId_ = "testid";
+    auto service = std::make_shared<OsAccountManagerService>();
+    ErrCode ret = OsAccountManager::BindDomainAccount(-1, domainInfo, callback);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    ret = service->BindDomainAccount(-1, domainInfo, nullptr);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+
+    ret = OsAccountManager::BindDomainAccount(0, domainInfo, callback);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+    ret = service->BindDomainAccount(0, domainInfo, nullptr);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+
+    ret = OsAccountManager::BindDomainAccount(1, domainInfo, callback);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+    ret = service->BindDomainAccount(1, domainInfo, nullptr);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+
+    domainInfo.accountName_ = "testaccount";
+    domainInfo.domain_ = "test.example.com";
+    domainInfo.accountId_ = "testid";
+    ret = OsAccountManager::BindDomainAccount(100, domainInfo, nullptr);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    ret = service->BindDomainAccount(100, domainInfo, nullptr);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: BindDomainAccount003
+ * @tc.desc: Test BindDomainAccount recover
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, BindDomainAccount003, TestSize.Level1)
+{
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = "testaccount";
+    domainInfo.domain_ = "test.example.com";
+    domainInfo.accountId_ = "testid";
+
+    OsAccountInfo info;
+    ASSERT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("BindDomainAccount003", OsAccountType::ADMIN, info));
+    auto callback = std::make_shared<TestBindDomainCallback>();
+
+    OsAccountControlFileManager fileController;
+    fileController.SetDomainBoundFlag(info.GetLocalId(), false, domainInfo);
+
+    LoadPluginMethods();
+    domainInfo.accountName_ = "testaccount-2";
+    ErrCode ret =
+        OsAccountManager::BindDomainAccount(info.GetLocalId(), domainInfo, callback);
+    EXPECT_EQ(ERR_OK, ret);
+    callback->WaitForCallbackResult();
+    ret = callback->GetResult();
+
+    ASSERT_EQ(info.GetLocalId(), GetCallingLocalId());
+    ResetCallingLocalId();
+
+    OsAccountInfo readInfo;
+    EXPECT_EQ(ERR_OK, fileController.GetOsAccountInfoById(info.GetLocalId(), readInfo));
+    ASSERT_EQ("testaccount-2", readInfo.domainInfo_.accountName_);
+    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(info.GetLocalId()));
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: BindDomainAccount004
+ * @tc.desc: Test BindDomainAccount recover failed, return errcode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, BindDomainAccount004, TestSize.Level1)
+{
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = "testaccount";
+    domainInfo.domain_ = "test.example.com";
+    domainInfo.accountId_ = "testid";
+
+    OsAccountInfo info;
+    ASSERT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("BindDomainAccount004", OsAccountType::ADMIN, info));
+    auto callback = std::make_shared<TestBindDomainCallback>();
+
+    OsAccountControlFileManager fileController;
+    fileController.SetDomainBoundFlag(info.GetLocalId(), false, domainInfo);
+
+    PLUGIN_METHOD_MAP[PluginMethodEnum::UNBIND_ACCOUNT] = reinterpret_cast<void *>(UnBindAccountError);
+    LoadPluginMethods();
+    PLUGIN_METHOD_MAP[PluginMethodEnum::UNBIND_ACCOUNT] = reinterpret_cast<void *>(UnBindAccount);
+
+    domainInfo.accountName_ = "testaccount-2";
+    ErrCode ret = OsAccountManager::BindDomainAccount(info.GetLocalId(), domainInfo, callback);
+    EXPECT_EQ(ERR_OK, ret);
+    callback->WaitForCallbackResult();
+    ret = callback->GetResult();
+
+    ASSERT_EQ(g_testErrCode, ret);
+
+    ASSERT_EQ(info.GetLocalId(), GetCallingLocalId());
+    ResetCallingLocalId();
+
+    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(info.GetLocalId()));
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: BindDomainAccount005
+ * @tc.desc: Test BindDomainAccount file delete failed, return errcode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, BindDomainAccount005, TestSize.Level1)
+{
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = "testaccount";
+    domainInfo.domain_ = "test.example.com";
+    domainInfo.accountId_ = "testid";
+
+    OsAccountInfo info;
+    ASSERT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("BindDomainAccount005", OsAccountType::ADMIN, info));
+    auto callback = std::make_shared<TestBindDomainCallback>();
+    LoadPluginMethods();
+
+    ErrCode ret = OsAccountManager::BindDomainAccount(info.GetLocalId(), domainInfo, callback);
+    EXPECT_EQ(ERR_OK, ret);
+    callback->WaitForCallbackResult();
+    ret = callback->GetResult();
+    EXPECT_EQ(ERR_OK, ret);
+    callback->Clear();
+    OsAccountControlFileManager fileController;
+    fileController.SetDomainBoundFlag(info.GetLocalId(), false, domainInfo);
+
+    domainInfo.accountName_ = "testaccount-2";
+    ret = OsAccountManager::BindDomainAccount(info.GetLocalId(), domainInfo, callback);
+    EXPECT_EQ(ERR_OK, ret);
+    callback->WaitForCallbackResult();
+    ret = callback->GetResult();
+
+    ASSERT_EQ(ERR_OSACCOUNT_SERVICE_INNER_OS_ACCOUNT_ALREADY_BOUND, ret);
+
+    bool boundComplete = false;
+    DomainAccountInfo readInfo;
+    EXPECT_EQ(ERR_OK, fileController.GetDomainBoundFlag(info.GetLocalId(), boundComplete, domainInfo));
+    EXPECT_TRUE(boundComplete);
+
+    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(info.GetLocalId()));
+    UnloadPluginMethods();
+    ResetCallingLocalId();
+}
+
+/**
+ * @tc.name: BindDomainAccount006
+ * @tc.desc: Test BindDomainAccount for garbage account
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, BindDomainAccount006, TestSize.Level1)
+{
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = "testaccount";
+    domainInfo.domain_ = "test.example.com";
+    domainInfo.accountId_ = "testid";
+
+    OsAccountInfo info;
+    ASSERT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("BindDomainAccount006", OsAccountType::ADMIN, info));
+    auto callback = std::make_shared<TestBindDomainCallback>();
+    ASSERT_EQ(ERR_OK, OsAccountManager::SetOsAccountToBeRemoved(info.GetLocalId(), true));
+    LoadPluginMethods();
+    // bind first time
+    ErrCode ret = OsAccountManager::BindDomainAccount(info.GetLocalId(), domainInfo, callback);
+    EXPECT_EQ(ERR_OK, ret);
+    callback->WaitForCallbackResult();
+    ret = callback->GetResult();
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, ret);
+
+    ResetCallingLocalId();
+    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(info.GetLocalId()));
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: BindDomainAccount007
+ * @tc.desc: Test BindDomainAccount for domain plugin error
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, BindDomainAccount007, TestSize.Level1)
+{
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = "testaccount";
+    domainInfo.domain_ = "test.example.com";
+    domainInfo.accountId_ = "testid";
+
+    OsAccountInfo info;
+    ASSERT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("BindDomainAccount007", OsAccountType::ADMIN, info));
+    auto callback = std::make_shared<TestBindDomainCallback>();
+
+    // get domain info error
+    PLUGIN_METHOD_MAP[PluginMethodEnum::GET_ACCOUNT_INFO] = reinterpret_cast<void *>(GetAccountInfoError);
+    LoadPluginMethods();
+    PLUGIN_METHOD_MAP[PluginMethodEnum::GET_ACCOUNT_INFO] = reinterpret_cast<void *>(GetAccountInfo);
+
+    ErrCode ret = OsAccountManager::BindDomainAccount(info.GetLocalId(), domainInfo, callback);
+    EXPECT_EQ(ERR_OK, ret);
+    callback->WaitForCallbackResult();
+    ret = callback->GetResult();
+    ASSERT_EQ(g_testErrCode, ret);
+
+    ResetCallingLocalId();
+    callback->Clear();
+    UnloadPluginMethods();
+
+    // bind account error
+    PLUGIN_METHOD_MAP[PluginMethodEnum::BIND_ACCOUNT] = reinterpret_cast<void *>(BindAccountError);
+    LoadPluginMethods();
+    PLUGIN_METHOD_MAP[PluginMethodEnum::BIND_ACCOUNT] = reinterpret_cast<void *>(BindAccount);
+
+    // bind first time
+    ret = OsAccountManager::BindDomainAccount(info.GetLocalId(), domainInfo, callback);
+    EXPECT_EQ(ERR_OK, ret);
+    callback->WaitForCallbackResult();
+    ret = callback->GetResult();
+    ASSERT_EQ(g_testErrCode, ret);
+    ResetCallingLocalId();
+    callback->Clear();
+    UnloadPluginMethods();
+
+    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(info.GetLocalId()));
+}
+
+/**
+ * @tc.name: BindDomainAccount008
+ * @tc.desc: Test BindDomainAccount for account busy & account not found
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, BindDomainAccount008, TestSize.Level1)
+{
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = "testaccount";
+    domainInfo.domain_ = "test.example.com";
+    domainInfo.accountId_ = "testid";
+
+    OsAccountInfo info;
+    ASSERT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("BindDomainAccount008", OsAccountType::ADMIN, info));
+    auto callback = std::make_shared<TestBindDomainCallback>();
+    LoadPluginMethods();
+
+    IInnerOsAccountManager::GetInstance().CheckAndAddLocalIdOperating(info.GetLocalId());
+
+    ErrCode ret = OsAccountManager::BindDomainAccount(info.GetLocalId(), domainInfo, callback);
+    EXPECT_EQ(ERR_OK, ret);
+    callback->WaitForCallbackResult();
+    ret = callback->GetResult();
+    ASSERT_EQ(ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR, ret);
+
+    IInnerOsAccountManager::GetInstance().RemoveLocalIdToOperating(info.GetLocalId());
+    callback->Clear();
+
+    // account not found
+    ret = OsAccountManager::BindDomainAccount(info.GetLocalId() + 1, domainInfo, callback);
+    EXPECT_EQ(ERR_OK, ret);
+    callback->WaitForCallbackResult();
+    ret = callback->GetResult();
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, ret);
+
+    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(info.GetLocalId()));
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: BindDomainAccount009
+ * @tc.desc: Test BindDomainAccount recover when file data not json format
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, BindDomainAccount009, TestSize.Level1)
+{
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = "testaccount";
+    domainInfo.domain_ = "test.example.com";
+    domainInfo.accountId_ = "testid";
+
+    OsAccountInfo info;
+    ASSERT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("BindDomainAccount009", OsAccountType::ADMIN, info));
+    auto callback = std::make_shared<TestBindDomainCallback>();
+
+    OsAccountControlFileManager fileController;
+    
+    std::string filePath = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(info.GetLocalId()) +
+                           Constants::PATH_SEPARATOR + Constants::IS_DOMAIN_BOUND_COMPLETED_FILE_NAME;
+    fileController.accountFileOperator_->InputFileByPathAndContent(filePath, "{ \"domain\": 123");
+    LoadPluginMethods();
+
+    ErrCode ret = OsAccountManager::BindDomainAccount(info.GetLocalId(), domainInfo, callback);
+    EXPECT_EQ(ERR_OK, ret);
+    callback->WaitForCallbackResult();
+    ret = callback->GetResult();
+    EXPECT_EQ(ERR_OK, ret);
+
+    OsAccountInfo readInfo;
+    EXPECT_EQ(ERR_OK, fileController.GetOsAccountInfoById(info.GetLocalId(), readInfo));
+    ASSERT_EQ("testaccount", readInfo.domainInfo_.accountName_);
+    ASSERT_EQ(false, fileController.accountFileOperator_->IsExistFile(filePath));
+    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(info.GetLocalId()));
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: BindDomainAccount010
+ * @tc.desc: Test BindDomainAccount domain invalid input
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, BindDomainAccount010, TestSize.Level1)
+{
+    auto callback = std::make_shared<TestBindDomainCallback>();
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = "testaccount";
+    domainInfo.domain_ = "test.example.com";
+    domainInfo.accountId_ = "testid";
+    auto service = std::make_shared<OsAccountManagerService>();
+    std::string overlengthStr(Constants::LOCAL_NAME_MAX_SIZE + 1, '0');
+
+    domainInfo.accountName_ = overlengthStr;
+    ErrCode ret = OsAccountManager::BindDomainAccount(100, domainInfo, callback);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    ret = service->BindDomainAccount(100, domainInfo, nullptr);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+
+    domainInfo.accountName_ = "testaccount";
+    domainInfo.domain_ = overlengthStr;
+    ret = OsAccountManager::BindDomainAccount(100, domainInfo, callback);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    ret = service->BindDomainAccount(100, domainInfo, nullptr);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+
+    domainInfo.accountName_ = "";
+    domainInfo.domain_ = "test.example.com";
+    ret = OsAccountManager::BindDomainAccount(100, domainInfo, callback);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    ret = service->BindDomainAccount(100, domainInfo, nullptr);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+
+    domainInfo.accountName_ = "testaccount";
+    domainInfo.domain_ = "";
+    ret = OsAccountManager::BindDomainAccount(100, domainInfo, callback);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    ret = service->BindDomainAccount(100, domainInfo, nullptr);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: BindDomainAccount011
+ * @tc.desc: Test BindDomainAccount domain no permission
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, BindDomainAccount011, TestSize.Level1)
+{
+    auto callback = std::make_shared<TestBindDomainCallback>();
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = "testaccount";
+    domainInfo.domain_ = "test.example.com";
+    domainInfo.accountId_ = "testid";
+    uint64_t tokenID;
+    ASSERT_TRUE(AllocPermission({}, tokenID));
+    setuid(EDM_UID);
+    ErrCode ret = OsAccountManager::BindDomainAccount(100, domainInfo, callback);
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED, ret);
+    setuid(ROOT_UID);
+    RecoveryPermission(tokenID);
+}
+
+/**
+ * @tc.name: CleanUnbindDomainAccount001
+ * @tc.desc: Test CleanUnbindDomainAccount for uncomplete
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, CleanUnbindDomainAccount001, TestSize.Level1)
+{
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = "testaccount";
+    domainInfo.domain_ = "test.example.com";
+    domainInfo.accountId_ = "testid";
+
+    OsAccountInfo info;
+    ASSERT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("BindDomainAccount004", OsAccountType::ADMIN, info));
+    auto callback = std::make_shared<TestBindDomainCallback>();
+
+    OsAccountControlFileManager fileController;
+    fileController.SetDomainBoundFlag(info.GetLocalId(), false, domainInfo);
+
+    LoadPluginMethods();
+    ErrCode ret = InnerDomainAccountManager::GetInstance().CleanUnbindDomainAccount();
+    EXPECT_EQ(ERR_OK, ret);
+
+    ASSERT_EQ(info.GetLocalId(), GetCallingLocalId());
+    ResetCallingLocalId();
+
+    bool isBoundCompleted = false;
+    DomainAccountInfo readInfo;
+    EXPECT_EQ(ERR_OK, fileController.GetDomainBoundFlag(info.GetLocalId(), isBoundCompleted, readInfo));
+    ASSERT_TRUE(isBoundCompleted);
+
+    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(info.GetLocalId()));
     UnloadPluginMethods();
 }

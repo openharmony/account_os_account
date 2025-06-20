@@ -42,6 +42,7 @@ const std::string GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH =
     USER_INFO_BASE + PATH_SEPARATOR + "global_os_account_constraints.json";
 const std::string SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH =
     USER_INFO_BASE + PATH_SEPARATOR + "specific_os_account_constraints.json";
+const std::string IS_DOMAIN_BOUND_COMPLETED_FILE_NAME = "isDomainAccountBoundCompleted";
 const char USER_PHOTO_FILE_TXT_NAME[] = "photo.txt";
 const char USER_INFO_FILE_NAME[] = "account_info.json";
 const char USER_SECRET_FLAG_FILE_NAME[] = "iam_fault";
@@ -62,6 +63,11 @@ const char OPERATION_ADD_CRED[] = "addCredential";
 const char OPERATION_DELETE_CRED[] = "deleteCredential";
 const char OPERATION_LOG_ERROR[] = "errLog";
 const char OPERATION_UPDATE_SERVER_CONFIG[] = "updateServerConfig";
+
+// Domain account DFX flag
+const char OPERATION_BIND_DOMAIN_ACCOUNT[] = "bindDomainAccount";
+const char OPERATION_RECOVER_BIND_DOMAIN_ACCOUNT[] = "recoverBindDomainAccount";
+const char OPERATION_BOOT_RECOVER_BIND_DOMAIN_ACCOUNT[] = "boot_recoverBindDomainAccount";
 // distributed database
 const bool SYNC_OS_ACCOUNT_DATABASE = false;
 const std::uint32_t DEVICE_UUID_LENGTH = 65;
