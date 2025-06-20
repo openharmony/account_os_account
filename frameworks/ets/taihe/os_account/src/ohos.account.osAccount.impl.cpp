@@ -33,6 +33,7 @@
 #include "ohos_account_kits.h"
 #include "os_account_info.h"
 #include "os_account_manager.h"
+#include "securec.h"
 #include "taihe/runtime.hpp"
 #include "taihe_common.h"
 #include "taihe_account_info.h"
@@ -445,8 +446,6 @@ public:
             credentialIdUint64 = (credentialIdUint64 << CONTEXTID_OFFSET);
             credentialIdUint64 += each;
         }
-        ACCOUNT_LOGI("taihe-test DelCred impl credentialIdUint64 : %{public}d",
-            static_cast<int32_t>(credentialIdUint64));
         std::shared_ptr<AccountSA::IDMCallback> idmCallbackPtr = std::make_shared<TaiheIDMCallbackAdapter>(callback);
         AccountSA::AccountIAMClient::GetInstance().DelCred(accountId, credentialIdUint64, innerToken, idmCallbackPtr);
     }
@@ -542,9 +541,7 @@ public:
 
 DomainServerConfig ConvertToDomainServerConfigTH(std::string id, std::string domain, std::string parameters)
 {
-    ACCOUNT_LOGI("taihe-test ConvertToDomainServerConfigTH parameters : %{public}s", parameters.c_str());
     auto jsonObject = AccountSA::Json::parse(parameters, nullptr, false);
-    ACCOUNT_LOGI("taihe-test ConvertToDomainServerConfigTH 1");
     taihe::map<taihe::string, uintptr_t> parametersMap;
     for (auto& [key, value] : jsonObject.items()) {
         parametersMap.emplace(key, value);
@@ -1071,7 +1068,7 @@ public:
     {
         AccountSA::AuthType authTypeInner = static_cast<AccountSA::AuthType>(authType.get_value());
         AccountSA::AuthTrustLevel authSubType = static_cast<AccountSA::AuthTrustLevel>(authTrustLevel.get_value());
-        int status;
+        int32_t status = 0;
         ErrCode errorCode = AccountSA::AccountIAMClient::GetInstance().GetAvailableStatus(authTypeInner,
             authSubType, status);
         if (errorCode != ERR_OK) {
@@ -1227,18 +1224,25 @@ class DomainAccountCallbackTH final: public AccountSA::DomainAccountCallback {
 public:
     explicit DomainAccountCallbackTH(std::shared_ptr<THUserAuthCallback> &callback):callback_(callback) {}
 
+    std::mutex mutex;
+    std::condition_variable cv;
+    bool onResultCalled = false;
+    bool isHasDomainAccount = false;
+
     void OnResult(const int32_t errCode, Parcel &parcel) override
     {
-        std::unique_lock<std::mutex> lock(mutex_);
+        std::unique_lock<std::mutex> lock(mutex);
+        if (this->onResultCalled) {
+            return;
+        }
+        this->onResultCalled = true;
         if (errCode == ERR_OK) {
             parcel.ReadBool(isHasDomainAccount);
         }
+        cv.notify_one();
     }
 private:
     std::shared_ptr<THUserAuthCallback> callback_;
-    std::mutex mutex_;
-public:
-    bool isHasDomainAccount;
 };
 
 void Auth(DomainAccountInfo const& domainAccountInfo, array_view<uint8_t> credential, IUserAuthCallback const& callback)
@@ -1249,6 +1253,9 @@ void Auth(DomainAccountInfo const& domainAccountInfo, array_view<uint8_t> creden
             std::make_shared<THDomainAccountCallback>(callback);
     int32_t errorCode = AccountSA::DomainAccountClient::GetInstance().Auth(domainAccountInfoInner,
         credentialInner, callbackInner);
+    if (!credentialInner.empty()) {
+        (void)memset_s(const_cast<uint8_t*>(credentialInner.data()), credentialInner.size(), 0, credentialInner.size());
+    }
     if (errorCode != ERR_OK) {
         Parcel emptyParcel;
         AccountSA::DomainAuthResult emptyResult;
@@ -1264,7 +1271,7 @@ void AuthWithPopup(IUserAuthCallback const& callback)
 {
     std::shared_ptr<THDomainAccountCallback> callbackInner =
             std::make_shared<THDomainAccountCallback>(callback);
-    int32_t userId;
+    int32_t userId = 0;
     int32_t errorCode = AccountSA::DomainAccountClient::GetInstance().AuthWithPopup(userId, callbackInner);
     if (errorCode != ERR_OK) {
         Parcel emptyParcel;
@@ -1298,11 +1305,13 @@ bool HasAccountSync(DomainAccountInfo const& domainAccountInfo)
     AccountSA::DomainAccountInfo domainAccountInfoInner = ConvertToDomainAccountInfoInner(domainAccountInfo);
     std::shared_ptr<THUserAuthCallback> jsCallback;
     auto callbackInner = std::make_shared<DomainAccountCallbackTH>(jsCallback);
-    int32_t errorCode = AccountSA::DomainAccountClient::GetInstance().HasAccount(domainAccountInfoInner, callbackInner);
+    int errorCode = AccountSA::DomainAccountClient::GetInstance().HasAccount(domainAccountInfoInner, callbackInner);
     if (errorCode != ERR_OK) {
         Parcel emptyParcel;
         callbackInner->OnResult(errorCode, emptyParcel);
     }
+    std::unique_lock<std::mutex> lock(callbackInner->mutex);
+    callbackInner->cv.wait(lock, [callbackInner] { return callbackInner->onResultCalled;});
     return callbackInner->isHasDomainAccount;
 }
 
@@ -1312,6 +1321,10 @@ void UpdateAccountTokenSync(DomainAccountInfo const &domainAccountInfo, array_vi
     std::vector<uint8_t> innerToken(token.begin(), token.begin() + token.size());
     ErrCode errCode =
         AccountSA::DomainAccountClient::GetInstance().UpdateAccountToken(innerDomainAccountInfo, innerToken);
+    if (!innerToken.empty()) {
+        (void)memset_s(const_cast<uint8_t*>(innerToken.data()), innerToken.size(), 0,
+        innerToken.size());
+    }
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("UpdateAccountTokenSync failed with errCode: %{public}d", errCode);
         SetTaiheBusinessErrorFromNativeCode(errCode);
@@ -1333,6 +1346,10 @@ public:
         }
         this->onResultCalled = true;
         this->accessToken = accessToken;
+        if (!accessToken.empty()) {
+            (void)memset_s(const_cast<uint8_t*>(accessToken.data()), accessToken.size(),
+                0, accessToken.size());
+        }
         cv.notify_one();
     }
 };
@@ -1397,7 +1414,7 @@ DomainServerConfig AddServerConfigSync(map_view<string, uintptr_t> parameters)
     ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().AddServerConfig(
         innerParameters, innerDomainServerConfig);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("queryDistributedVirtualDeviceIdSync failed with errCode: %{public}d", errCode);
+        ACCOUNT_LOGE("AddServerConfigSync failed with errCode: %{public}d", errCode);
         SetTaiheBusinessErrorFromNativeCode(errCode);
     }
     return ConvertToDomainServerConfigTH(innerDomainServerConfig.id_,
@@ -1409,7 +1426,7 @@ void RemoveServerConfigSync(string_view configId)
     std::string innerConfigId(configId.data(), configId.size());
     ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().RemoveServerConfig(innerConfigId);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("queryDistributedVirtualDeviceIdSync failed with errCode: %{public}d", errCode);
+        ACCOUNT_LOGE("RemoveServerConfigSync failed with errCode: %{public}d", errCode);
         SetTaiheBusinessErrorFromNativeCode(errCode);
     }
 }

@@ -100,6 +100,7 @@ public:
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
         }
     }
+
     void RemoveAccountSync(string_view name)
     {
         std::string innerName(name.data(), name.size());
@@ -142,9 +143,6 @@ public:
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-        }
-        if (result != true) {
-            ACCOUNT_LOGE("CheckDataSyncEnabled failed with errCode: %{public}d", result);
         }
         return result;
     }
@@ -292,7 +290,7 @@ public:
         sptr<AccountSA::THauthenticatorAsyncCallback> callback =
             new (std::nothrow) AccountSA::THauthenticatorAsyncCallback();
         if (callback == nullptr) {
-            ACCOUNT_LOGE("insufficient memory for callback!");
+            ACCOUNT_LOGE("Insufficient memory for callback!");
             return false;
         }
         int32_t errorCode = AccountSA::AppAccountManager::CheckAccountLabels(innerName,
@@ -313,7 +311,7 @@ public:
         sptr<AccountSA::THauthenticatorAsyncCallback> callback =
             new (std::nothrow) AccountSA::THauthenticatorAsyncCallback();
         if (callback == nullptr) {
-            ACCOUNT_LOGE("insufficient memory for callback!");
+            ACCOUNT_LOGE("Insufficient memory for callback!");
             return taihe::array<AppAccountInfo>(taihe::copy_data_t{}, accountInfos.data(), accountInfos.size());
         }
         int32_t errorCode = AccountSA::AppAccountManager::SelectAccountsByOptions(innerOptions, callback);
@@ -369,7 +367,7 @@ public:
         std::string innerName(name.data(), name.size());
         std::string innerAuthType(authType.data(), authType.size());
         std::string innerBundleName(bundleName.data(), bundleName.size());
-        bool isVisible;
+        bool isVisible = false;
         int32_t errorCode = AccountSA::AppAccountManager::CheckAuthTokenVisibility(innerName, innerAuthType,
             innerBundleName, isVisible);
         if (errorCode != ERR_OK) {
