@@ -28,6 +28,9 @@ static int32_t g_authTime = 0;
 static const std::string UPDATE_CONFIG_ID = "updateAccountId";
 static const std::string DOMAIN = "testDomain";
 static const int32_t ERROR_CODE = 12300001;
+namespace {
+static int32_t g_callingLocalId = -1;
+};
 
 static void SetPluginString(const std::string &str, PluginString &pStr)
 {
@@ -96,6 +99,18 @@ PluginBussnessError *BindAccount(const PluginDomainAccountInfo *domainAccountInf
     return error;
 }
 
+PluginBussnessError *BindAccountError(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId)
+{
+    ACCOUNT_LOGI("Mock BindAccountError enter.");
+    PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    if (error == nullptr) {
+        return nullptr;
+    }
+    error->code = g_testErrCode;
+    error->msg.data = nullptr;
+    return error;
+}
+
 PluginBussnessError *GetAccountInfo(const PluginGetDomainAccountInfoOptions *options, const int32_t callerLocalId,
                                     PluginDomainAccountInfo **domainAccountInfo)
 {
@@ -128,6 +143,19 @@ PluginBussnessError *GetAccountInfo(const PluginGetDomainAccountInfoOptions *opt
     } else {
         (*domainAccountInfo)->serverConfigId.data = nullptr;
     }
+    return error;
+}
+
+PluginBussnessError *GetAccountInfoError(const PluginGetDomainAccountInfoOptions *options, const int32_t callerLocalId,
+    PluginDomainAccountInfo **domainAccountInfo)
+{
+    ACCOUNT_LOGI("Mock GetAccountInfoError enter.");
+    PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    if (error == nullptr) {
+        return nullptr;
+    }
+    error->code = g_testErrCode;
+    error->msg.data = nullptr;
     return error;
 }
 
@@ -213,6 +241,42 @@ PluginBussnessError* UpdateAccountInfo(const PluginDomainAccountInfo *domainAcco
     error->code = 0;
     error->msg.data = nullptr;
     return error;
+}
+
+PluginBussnessError *UnBindAccount(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId)
+{
+    ACCOUNT_LOGI("Mock UnBindAccount enter.");
+    g_callingLocalId = localId;
+    PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    if (error == nullptr) {
+        return nullptr;
+    }
+    error->code = 0;
+    error->msg.data = nullptr;
+    return error;
+}
+
+PluginBussnessError *UnBindAccountError(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId)
+{
+    ACCOUNT_LOGI("Mock UnBindAccountError enter.");
+    g_callingLocalId = localId;
+    PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    if (error == nullptr) {
+        return nullptr;
+    }
+    error->code = g_testErrCode;
+    error->msg.data = nullptr;
+    return error;
+}
+
+int32_t GetCallingLocalId()
+{
+    return g_callingLocalId;
+}
+
+void ResetCallingLocalId()
+{
+    g_callingLocalId = -1;
 }
 
 PluginBussnessError* UpdateServerConfig(const PluginString *serverConfigId, const PluginString *parameters,

@@ -1913,5 +1913,43 @@ ErrCode OsAccountProxy::LockOsAccount(const int32_t localId)
     return result;
 }
 #endif
+
+ErrCode OsAccountProxy::BindDomainAccount(
+    const int32_t localId, const DomainAccountInfo &domainInfo, const sptr<IDomainAccountCallback> &callback)
+{
+    MessageParcel data;
+    MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
+    if (!data.WriteInt32(localId)) {
+        ACCOUNT_LOGE("Failed to write localId");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    if (!data.WriteParcelable(&domainInfo)) {
+        ACCOUNT_LOGE("Fail to write domainInfo");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    if ((callback == nullptr) || (!data.WriteRemoteObject(callback->AsObject()))) {
+        ACCOUNT_LOGE("Fail to write callback");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    ErrCode result = SendRequest(OsAccountInterfaceCode::BIND_DOMAIN_ACCOUNT, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Failed to send request, result %{public}d.", result);
+        return result;
+    }
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("Read result failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return result;
+}
 }  // namespace AccountSA
 }  // namespace OHOS

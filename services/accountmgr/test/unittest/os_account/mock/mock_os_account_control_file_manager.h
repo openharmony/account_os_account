@@ -82,6 +82,10 @@ public:
     ErrCode GetDeviceOwnerId(int32_t &deviceOwnerId) { return ERR_OK; }
     ErrCode GetDefaultActivatedOsAccount(int32_t &id) { return ERR_OK; }
     ErrCode UpdateAccountIndex(const OsAccountInfo &osAccountInfo, const bool isDelete) { return ERR_OK; }
+    ErrCode SetDomainBoundFlag(
+        const int32_t localId, const bool isBoundCompleted, const DomainAccountInfo domainInfo = {}) { return ERR_OK; }
+    ErrCode GetDomainBoundFlag(const int32_t localId,
+        bool &isBoundCompleted, DomainAccountInfo &domainInfo) { return ERR_OK; }
 };
 
 }  // namespace AccountSA

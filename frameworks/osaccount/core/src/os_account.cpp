@@ -1030,5 +1030,38 @@ ErrCode OsAccount::LockOsAccount(const int32_t localId)
     return proxy->LockOsAccount(localId);
 }
 #endif
+
+ErrCode OsAccount::BindDomainAccount(
+    const int32_t localId, const DomainAccountInfo &domainInfo, const std::shared_ptr<DomainAccountCallback> &callback)
+{
+    ErrCode result = CheckLocalId(localId);
+    if (result != ERR_OK) {
+        return result;
+    }
+    if (domainInfo.domain_.empty() || domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("Domain is empty or too long, len=%{public}zu.", domainInfo.domain_.size());
+        NativeErrMsg() = "Invalid domainInfo.domain. "
+                          "The length of the domainInfo.domain must be greater than 0 and less than or equal to 128";
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    if (domainInfo.accountName_.empty() || domainInfo.accountName_.size() > Constants::LOCAL_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("Account name is empty or too long, len=%{public}zu.", domainInfo.accountName_.size());
+        NativeErrMsg() = "Invalid domainInfo.accountName. "
+                          "The length of the domainInfo.accountName must be greater than 0 and less than or equal to "
+                          "LOGIN_NAME_MAX";
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("Callback is null.");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    sptr<DomainAccountCallbackService> callbackService = sptr<DomainAccountCallbackService>::MakeSptr(callback);
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->BindDomainAccount(localId, domainInfo, callbackService);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

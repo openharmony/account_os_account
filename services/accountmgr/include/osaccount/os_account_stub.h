@@ -107,7 +107,7 @@ public:
     ErrCode ProcPublishOsAccountLockEvent(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcLockOsAccount(MessageParcel &data, MessageParcel &reply);
 #endif
-
+    ErrCode ProcBindDomainAccount(MessageParcel &data, MessageParcel &reply);
 private:
     bool WriteOsAccountInfoList(const std::vector<OsAccountInfo> &accounts, MessageParcel &data);
     DISALLOW_COPY_AND_MOVE(OsAccountStub);
