@@ -116,6 +116,8 @@ public:
     virtual ErrCode PublishOsAccountLockEvent(const int32_t localId, bool isLocking) = 0;
     virtual ErrCode LockOsAccount(const int32_t localId) = 0;
 #endif
+    virtual ErrCode BindDomainAccount(
+        const int32_t localId, const DomainAccountInfo &domainInfo, const sptr<IDomainAccountCallback> &callback) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

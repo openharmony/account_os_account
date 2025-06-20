@@ -197,6 +197,10 @@ ohos_unittest("account_iam_callback_test") {
   if (os_account_support_lock_os_account) {
     cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
   }
+
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
 }
 
 ohos_unittest("account_iam_manager_test") {

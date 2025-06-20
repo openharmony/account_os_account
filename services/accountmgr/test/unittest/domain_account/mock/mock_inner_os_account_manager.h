@@ -18,7 +18,7 @@
 #include <vector>
 #include "account_error_no.h"
 #include "os_account_info.h"
-
+#include "os_account_control_file_manager.h"
 namespace OHOS {
 namespace AccountSA {
 class IInnerOsAccountManager {
@@ -28,6 +28,9 @@ public:
     ErrCode QueryActiveOsAccountIds(std::vector<int32_t>& ids);
     ErrCode IsOsAccountForeground(const int32_t localId, const uint64_t displayId,
                                                       bool &isForeground);
+    OsAccountControlFileManager &GetFileController();
+private:
+    std::shared_ptr<IOsAccountControl> osAccountControl_ = std::make_shared<OsAccountControlFileManager>();
 };
 }  // namespace AccountSA
 }  // namespace OHOS

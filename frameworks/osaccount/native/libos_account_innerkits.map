@@ -94,6 +94,7 @@
         "OHOS::AccountSA::OsAccountManager::CreateOsAccountWithFullInfo(OHOS::AccountSA::OsAccountInfo&)";
         "OHOS::AccountSA::OsAccountManager::UpdateOsAccountWithFullInfo(OHOS::AccountSA::OsAccountInfo&)";
         "OHOS::AccountSA::OsAccountManager::RemoveOsAccount(int)";
+        "OHOS::AccountSA::OsAccountManager::BindDomainAccount(int, OHOS::AccountSA::DomainAccountInfo const&, std::__h::shared_ptr<OHOS::AccountSA::DomainAccountCallback> const&)";
         "OHOS::AccountSA::OsAccountManager::IsOsAccountExists(int, bool&)";
         "OHOS::AccountSA::OsAccountManager::IsOsAccountActived(int, bool&)";
         "OHOS::AccountSA::OsAccountManager::IsOsAccountConstraintEnable(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&,, bool&)";

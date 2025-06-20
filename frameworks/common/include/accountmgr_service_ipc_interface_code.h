@@ -108,6 +108,7 @@ enum class OsAccountInterfaceCode : uint32_t {
     GET_OS_ACCOUNT_NAME_BY_ID,
     PUBLISH_OS_ACCOUNT_LOCK_EVENT,
     LOCK_OS_ACCOUNT,
+    BIND_DOMAIN_ACCOUNT,
 };
 
 enum class AccountIAMInterfaceCode : uint32_t {

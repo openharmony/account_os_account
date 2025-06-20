@@ -411,7 +411,6 @@ ErrCode OsAccountManager::GetOsAccountDomainInfo(const int32_t localId, DomainAc
     return OsAccount::GetInstance().GetOsAccountDomainInfo(localId, domainInfo);
 }
 
-
 ErrCode OsAccountManager::PublishOsAccountLockEvent(const int32_t localId, bool isLocking)
 {
 #ifdef SUPPORT_LOCK_OS_ACCOUNT
@@ -430,5 +429,10 @@ ErrCode OsAccountManager::LockOsAccount(int32_t localId)
 #endif
 }
 
+ErrCode OsAccountManager::BindDomainAccount(
+    const int32_t localId, const DomainAccountInfo &domainInfo, const std::shared_ptr<DomainAccountCallback> &callback)
+{
+    return OsAccount::GetInstance().BindDomainAccount(localId, domainInfo, callback);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

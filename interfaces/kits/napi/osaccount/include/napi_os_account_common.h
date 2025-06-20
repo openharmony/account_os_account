@@ -266,6 +266,28 @@ void QueryOAContSrcTypeForResult(napi_env env, const std::vector<ConstraintSourc
 void GetOsAccountDomainInfoExecuteCB(napi_env env, void *data);
 
 void GetOsAccountDomainInfoCompletedCB(napi_env env, napi_status status, void *data);
+
+class NapiBindDomainCallback final : public DomainAccountCallback {
+public:
+    NapiBindDomainCallback(napi_env env, napi_deferred deferred) : env_(env), deferred_(deferred) {};
+    ~NapiBindDomainCallback() = default;
+    void OnResult(const int32_t errCode, Parcel &parcel) override;
+
+private:
+    napi_env env_ = nullptr;
+    napi_deferred deferred_ = nullptr;
+    AccountJsKit::ThreadLockInfo lockInfo_;
+};
+
+bool ParseParaBindDomainAccount(napi_env env, napi_callback_info cbInfo,
+    std::unique_ptr<BindDomainAccountAsyncContext> &asyncContext);
+
+void BindDomainAccountExecuteCB(napi_env env, void *data);
+
+void BindDomainAccountCompletedCB(napi_env env, napi_status status, void *data);
+
+std::function<void()> BindDomainAccountCompleteWork(const std::shared_ptr<BindDomainAccountAsyncContext> &param);
+
 }  // namespace AccountJsKit
 }  // namespace OHOS
 

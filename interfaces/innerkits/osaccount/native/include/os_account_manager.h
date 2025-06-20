@@ -706,6 +706,18 @@ public:
      * @return error code, see account_error_no.h
      */
     static ErrCode LockOsAccount(const int32_t localId);
+
+    /**
+     * @brief Bind domain account to a given os account id
+     *
+     * @permission ohos.permission.MANAGE_LOCAL_ACCOUNTS
+     * @param localId - Indicates the target OS account.
+     * @param domainInfo - Indicates the domain account information.
+     * @param callback - Indicates the callback for getting the result of binding domain account process.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode BindDomainAccount(const int32_t localId, const DomainAccountInfo &domainInfo,
+        const std::shared_ptr<DomainAccountCallback> &callback);
 };
 }  // namespace AccountSA
 }  // namespace OHOS
