@@ -20,6 +20,7 @@
 #include "account_log_wrapper.h"
 #include "account_test_common.h"
 #include "account_proxy.h"
+#include "ipc_skeleton.h"
 #include "iremote_object.h"
 #include "iservice_registry.h"
 #include "os_account_proxy.h"
@@ -29,6 +30,7 @@
 #undef private
 #include "singleton.h"
 #include "system_ability_definition.h"
+#include "token_setproc.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -393,7 +395,6 @@ HWTEST_F(OsAccountTest, OsAccountTest019, TestSize.Level1)
  */
 HWTEST_F(OsAccountTest, OsAccountTest020, TestSize.Level1)
 {
-    setuid(0);
     std::set<std::string> constraints;
     auto failSubsriber = std::make_shared<MockOsAccountConstraintSubscriber>(constraints);
     EXPECT_EQ(g_osAccount->SubscribeOsAccountConstraints(nullptr), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
@@ -446,7 +447,6 @@ HWTEST_F(OsAccountTest, OsAccountTest020, TestSize.Level1)
  */
 HWTEST_F(OsAccountTest, OsAccountTest021, TestSize.Level1)
 {
-    setuid(0);
     std::set<std::string> constraints;
     constraints = {CONSTRAINT_WIFI};
     auto wifiSubscriber = std::make_shared<MockOsAccountConstraintSubscriber>(constraints);
@@ -480,7 +480,8 @@ HWTEST_F(OsAccountTest, OsAccountTest021, TestSize.Level1)
  */
 HWTEST_F(OsAccountTest, OsAccountTest022, TestSize.Level1)
 {
-    setuid(0);
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    ASSERT_TRUE(MockTokenId("edm"));
     std::set<std::string> constraints;
     constraints = {CONSTRAINT_WIFI};
     OsAccountConstraintSubscribeInfo subscribeInfo(constraints);
@@ -518,6 +519,7 @@ HWTEST_F(OsAccountTest, OsAccountTest022, TestSize.Level1)
         ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
     listener->WaitForCallBack();
     EXPECT_EQ(listener->count_, 2);
+    ASSERT_TRUE(SetSelfTokenID(selfTokenId) == 0);
 }
 
 /**
