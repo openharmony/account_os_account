@@ -26,9 +26,9 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const char ACCESS_USER_AUTH_INTERNAL[] = "ohos.permission.ACCESS_USER_AUTH_INTERNAL";
-const char MANAGE_USER_IDM[] = "ohos.permission.MANAGE_USER_IDM";
-const char USE_USER_IDM[] = "ohos.permission.USE_USER_IDM";
+const char PERMISSION_ACCESS_USER_AUTH_INTERNAL[] = "ohos.permission.ACCESS_USER_AUTH_INTERNAL";
+const char PERMISSION_MANAGE_USER_IDM[] = "ohos.permission.MANAGE_USER_IDM";
+const char PERMISSION_USE_USER_IDM[] = "ohos.permission.USE_USER_IDM";
 } // namespace
 
 AccountIAMService::AccountIAMService()
@@ -93,7 +93,7 @@ int32_t AccountIAMService::CallbackEnter([[maybe_unused]] uint32_t code)
 
 int32_t AccountIAMService::OpenSession(int32_t userId, std::vector<uint8_t> &challenge)
 {
-    if (!CheckPermission(MANAGE_USER_IDM)) {
+    if (!CheckPermission(PERMISSION_MANAGE_USER_IDM)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     int32_t ret = NormalizeAccountId(userId);
@@ -110,7 +110,7 @@ int32_t AccountIAMService::OpenSession(int32_t userId, std::vector<uint8_t> &cha
 
 int32_t AccountIAMService::CloseSession(int32_t userId)
 {
-    if (!CheckPermission(MANAGE_USER_IDM)) {
+    if (!CheckPermission(PERMISSION_MANAGE_USER_IDM)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     int32_t ret = NormalizeAccountId(userId);
@@ -128,18 +128,16 @@ int32_t AccountIAMService::CloseSession(int32_t userId)
 int32_t AccountIAMService::AddCredential(
     int32_t userId, const CredentialParametersIam& credInfoIam, const sptr<IIDMCallback> &idmCallback)
 {
-    if (!CheckPermission(MANAGE_USER_IDM)) {
+    if (!CheckPermission(PERMISSION_MANAGE_USER_IDM)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     Attributes emptyResult;
     int32_t ret = NormalizeAccountId(userId);
     if (ret != ERR_OK) {
-        idmCallback->OnResult(ret, emptyResult.Serialize());
         return ret;
     }
     if (IsRestrictedAccountId(userId)) {
         ACCOUNT_LOGE("The id = %{public}d is restricted", userId);
-        idmCallback->OnResult(ERR_ACCOUNT_COMMON_ACCOUNT_IS_RESTRICTED, emptyResult.Serialize());
         return ERR_ACCOUNT_COMMON_ACCOUNT_IS_RESTRICTED;
     }
     InnerAccountIAMManager::GetInstance().AddCredential(userId, credInfoIam.credentialParameters, idmCallback);
@@ -149,13 +147,11 @@ int32_t AccountIAMService::AddCredential(
 int32_t AccountIAMService::UpdateCredential(int32_t userId, const CredentialParametersIam& credInfoIam,
     const sptr<IIDMCallback> &idmCallback)
 {
-    if (!CheckPermission(MANAGE_USER_IDM)) {
+    if (!CheckPermission(PERMISSION_MANAGE_USER_IDM)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     int32_t ret = NormalizeAccountId(userId);
     if (ret != ERR_OK) {
-        Attributes emptyResult;
-        idmCallback->OnResult(ret, emptyResult.Serialize());
         return ret;
     }
     InnerAccountIAMManager::GetInstance().UpdateCredential(userId, credInfoIam.credentialParameters, idmCallback);
@@ -164,7 +160,7 @@ int32_t AccountIAMService::UpdateCredential(int32_t userId, const CredentialPara
 
 int32_t AccountIAMService::Cancel(int32_t userId)
 {
-    if (!CheckPermission(MANAGE_USER_IDM)) {
+    if (!CheckPermission(PERMISSION_MANAGE_USER_IDM)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     int32_t ret = NormalizeAccountId(userId);
@@ -177,13 +173,11 @@ int32_t AccountIAMService::Cancel(int32_t userId)
 int32_t AccountIAMService::DelCred(
     int32_t userId, uint64_t credentialId, const std::vector<uint8_t> &authToken, const sptr<IIDMCallback> &idmCallback)
 {
-    if (!CheckPermission(MANAGE_USER_IDM)) {
+    if (!CheckPermission(PERMISSION_MANAGE_USER_IDM)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     int32_t ret = NormalizeAccountId(userId);
     if (ret != ERR_OK) {
-        Attributes emptyResult;
-        idmCallback->OnResult(ret, emptyResult.Serialize());
         return ret;
     }
     InnerAccountIAMManager::GetInstance().DelCred(userId, credentialId, authToken, idmCallback);
@@ -193,13 +187,11 @@ int32_t AccountIAMService::DelCred(
 int32_t AccountIAMService::DelUser(
     int32_t userId, const std::vector<uint8_t> &authToken, const sptr<IIDMCallback> &idmCallback)
 {
-    if (!CheckPermission(MANAGE_USER_IDM)) {
+    if (!CheckPermission(PERMISSION_MANAGE_USER_IDM)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     int32_t ret = NormalizeAccountId(userId);
     if (ret != ERR_OK) {
-        Attributes emptyResult;
-        idmCallback->OnResult(ret, emptyResult.Serialize());
         return ret;
     }
     InnerAccountIAMManager::GetInstance().DelUser(userId, authToken, idmCallback);
@@ -209,7 +201,7 @@ int32_t AccountIAMService::DelUser(
 int32_t AccountIAMService::GetCredentialInfo(
     int32_t userId, int32_t authTypeInt, const sptr<IGetCredInfoCallback> &getCredInfoCallback)
 {
-    if (!CheckPermission(USE_USER_IDM)) {
+    if (!CheckPermission(PERMISSION_USE_USER_IDM)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     AuthType authType = static_cast<AuthType>(authTypeInt);
@@ -229,7 +221,7 @@ int32_t AccountIAMService::GetCredentialInfo(
 int32_t AccountIAMService::PrepareRemoteAuth(
     const std::string &remoteNetworkId, const sptr<IPreRemoteAuthCallback> &preRemoteAuthCallback)
 {
-    if (!CheckPermission(ACCESS_USER_AUTH_INTERNAL)) {
+    if (!CheckPermission(PERMISSION_ACCESS_USER_AUTH_INTERNAL)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     return InnerAccountIAMManager::GetInstance().PrepareRemoteAuth(remoteNetworkId, preRemoteAuthCallback);
@@ -238,7 +230,7 @@ int32_t AccountIAMService::PrepareRemoteAuth(
 int32_t AccountIAMService::AuthUser(
     const AuthParam& authParam, const sptr<IIDMCallback> &idmCallback, uint64_t &contextId)
 {
-    if (!CheckPermission(ACCESS_USER_AUTH_INTERNAL)) {
+    if (!CheckPermission(PERMISSION_ACCESS_USER_AUTH_INTERNAL)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     auto authParamTemp = authParam;
@@ -251,7 +243,7 @@ int32_t AccountIAMService::AuthUser(
 
 int32_t AccountIAMService::CancelAuth(uint64_t contextId)
 {
-    if (!CheckPermission(ACCESS_USER_AUTH_INTERNAL)) {
+    if (!CheckPermission(PERMISSION_ACCESS_USER_AUTH_INTERNAL)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     return InnerAccountIAMManager::GetInstance().CancelAuth(contextId);
@@ -259,7 +251,7 @@ int32_t AccountIAMService::CancelAuth(uint64_t contextId)
 
 int32_t AccountIAMService::GetAvailableStatus(int32_t authTypeInt, uint32_t authTrustLevelInt, int32_t &status)
 {
-    if (!CheckPermission(ACCESS_USER_AUTH_INTERNAL)) {
+    if (!CheckPermission(PERMISSION_ACCESS_USER_AUTH_INTERNAL)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     AuthType authType = static_cast<AuthType>(authTypeInt);
@@ -278,13 +270,11 @@ int32_t AccountIAMService::GetAvailableStatus(int32_t authTypeInt, uint32_t auth
 int32_t AccountIAMService::GetProperty(
     int32_t userId, const GetPropertyRequestIam &request, const sptr<IGetSetPropCallback> &getSetPropCallback)
 {
-    if (!CheckPermission(ACCESS_USER_AUTH_INTERNAL)) {
+    if (!CheckPermission(PERMISSION_ACCESS_USER_AUTH_INTERNAL)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     int32_t ret = NormalizeAccountId(userId);
     if (ret != ERR_OK) {
-        Attributes emptyResult;
-        getSetPropCallback->OnResult(ret, emptyResult.Serialize());
         return ret;
     }
     InnerAccountIAMManager::GetInstance().GetProperty(userId, request.getPropertyRequest, getSetPropCallback);
@@ -294,7 +284,7 @@ int32_t AccountIAMService::GetProperty(
 int32_t AccountIAMService::GetPropertyByCredentialId(uint64_t credentialId,
     const std::vector<int32_t>& keysInt, const sptr<IGetSetPropCallback> &getSetPropCallback)
 {
-    if (!CheckPermission(ACCESS_USER_AUTH_INTERNAL)) {
+    if (!CheckPermission(PERMISSION_ACCESS_USER_AUTH_INTERNAL)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     std::vector<Attributes::AttributeKey> keys;
@@ -308,13 +298,11 @@ int32_t AccountIAMService::GetPropertyByCredentialId(uint64_t credentialId,
 int32_t AccountIAMService::SetProperty(
     int32_t userId, const SetPropertyRequestIam &request, const sptr<IGetSetPropCallback> &getSetPropCallback)
 {
-    if (!CheckPermission(ACCESS_USER_AUTH_INTERNAL)) {
+    if (!CheckPermission(PERMISSION_ACCESS_USER_AUTH_INTERNAL)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     int32_t ret = NormalizeAccountId(userId);
     if (ret != ERR_OK) {
-        Attributes emptyResult;
-        getSetPropCallback->OnResult(ret, emptyResult.Serialize());
         return ret;
     }
     InnerAccountIAMManager::GetInstance().SetProperty(userId, request.setPropertyRequest, getSetPropCallback);
@@ -331,20 +319,17 @@ int32_t AccountIAMService::GetAccountState(int32_t userId, int32_t& funcResult)
 int32_t AccountIAMService::GetEnrolledId(
     int32_t accountId, int32_t authTypeInt, const sptr<IGetEnrolledIdCallback> &getEnrolledIdCallback)
 {
-    if (!CheckPermission(USE_USER_IDM)) {
+    if (!CheckPermission(PERMISSION_USE_USER_IDM)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     AuthType authType = static_cast<AuthType>(authTypeInt);
-    uint64_t emptyId = 0;
     int32_t ret = NormalizeAccountId(accountId);
     if (ret != ERR_OK) {
-        getEnrolledIdCallback->OnEnrolledId(ret, emptyId);
         return ret;
     }
     if ((authType < UserIam::UserAuth::ALL) ||
         (static_cast<int32_t>(authType) >= static_cast<int32_t>(IAMAuthType::TYPE_END))) {
         ACCOUNT_LOGE("AuthType is not in correct range");
-        getEnrolledIdCallback->OnEnrolledId(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyId);
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     InnerAccountIAMManager::GetInstance().GetEnrolledId(accountId, authType, getEnrolledIdCallback);

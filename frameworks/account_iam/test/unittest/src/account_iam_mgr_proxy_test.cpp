@@ -72,7 +72,7 @@ HWTEST_F(AccountIAMMgrProxyTest, OpenSession001, TestSize.Level3)
     std::shared_ptr<AccountIAMProxy> accountIAMMgrProxy = std::make_shared<AccountIAMProxy>(nullptr);
     std::vector<uint8_t> challenge;
     int32_t ret = accountIAMMgrProxy->OpenSession(TEST_USER_ID, challenge);
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_NULL_PTR_ERROR, ret);
+    EXPECT_EQ(ERR_INVALID_DATA, ret);
 }
 
 /**
@@ -103,18 +103,16 @@ HWTEST_F(AccountIAMMgrProxyTest, AccountIAMMgrProxy001, TestSize.Level3)
 
     std::string cmd = "hilog -x | grep 'AccountIAMFwk'";
     std::string cmdRes = RunCommand(cmd);
-    ASSERT_TRUE(cmdRes.find("callback is nullptr") != std::string::npos);
-    ASSERT_TRUE(cmdRes.find("get property callback is nullptr") != std::string::npos);
-    ASSERT_TRUE(cmdRes.find("Get property by id callback is nullptr") != std::string::npos);
-    ASSERT_TRUE(cmdRes.find("set property callback is nullptr") != std::string::npos);
+    ASSERT_TRUE(cmdRes.find("idmCallback is nullptr") != std::string::npos);
+    ASSERT_TRUE(cmdRes.find("getSetPropCallback is nullptr") != std::string::npos);
 
     int32_t ret = accountIAMMgrProxy->GetCredentialInfo(TEST_USER_ID, static_cast<int32_t>(AuthType::ALL), nullptr);
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, ret);
+    EXPECT_EQ(ERR_INVALID_DATA, ret);
     ret = accountIAMMgrProxy->AuthUser(authParam, nullptr, contextId);
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, ret);
+    EXPECT_EQ(ERR_INVALID_DATA, ret);
 
     ret = accountIAMMgrProxy->PrepareRemoteAuth("testString", nullptr);
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, ret);
+    EXPECT_EQ(ERR_INVALID_DATA, ret);
 }
 }  // namespace AccountTest
 }  // namespace OHOS
