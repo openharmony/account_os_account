@@ -101,11 +101,10 @@ bool IsTypeOutOfRange(const OsAccountType& type)
     return false;
 }
 
-bool WriteOsAccountInfo(StringRawData& stringRawData, const OsAccountInfo& osAccountInfo)
+void WriteOsAccountInfo(StringRawData& stringRawData, const OsAccountInfo& osAccountInfo)
 {
     std::string accountJson = osAccountInfo.ToString();
     stringRawData.Marshalling(accountJson);
-    return true;
 }
 
 bool WriteOsAccountInfoVector(StringRawData& stringRawData, const std::vector<OsAccountInfo>& osAccountInfos)
@@ -117,12 +116,12 @@ bool WriteOsAccountInfoVector(StringRawData& stringRawData, const std::vector<Os
             AddObjToArray(accountJsons, accountJson);
         }
     }
-    std::string accountArrayJson = PackJsonToString(accountJsons);
-    if (accountArrayJson.size() >= Constants::IPC_WRITE_RAW_DATA_MAX_SIZE) {
+    std::string accountStr = PackJsonToString(accountJsons);
+    if (accountStr.size() >= Constants::IPC_WRITE_RAW_DATA_MAX_SIZE) {
         ACCOUNT_LOGE("AccountArrayJson is too long");
-        return IPC_STUB_WRITE_PARCEL_ERR;
+        return false;
     }
-    stringRawData.Marshalling(accountArrayJson);
+    stringRawData.Marshalling(accountStr);
     return true;
 }
 
@@ -686,8 +685,9 @@ ErrCode OsAccountManagerService::QueryAllCreatedOsAccounts(StringRawData& osAcco
     }
     std::vector<OsAccountInfo> osAccountVec;
     ErrCode errCode = QueryAllCreatedOsAccounts(osAccountVec);
-    if (errCode == ERR_OK) {
-        WriteOsAccountInfoVector(osAccountInfos, osAccountVec);
+    if (errCode == ERR_OK && !WriteOsAccountInfoVector(osAccountInfos, osAccountVec)) {
+        ACCOUNT_LOGE("WriteOsAccountInfoVector failed, please check osAccountInfos");
+        return IPC_STUB_WRITE_PARCEL_ERR;
     }
     return errCode;
 }

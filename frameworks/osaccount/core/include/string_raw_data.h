@@ -44,8 +44,10 @@ struct StringRawData {
         ss.write(reinterpret_cast<const char*>(data), size);
         uint32_t length = 0;
         ss.read(reinterpret_cast<char*>(&length), sizeof(length));
-        out.resize(length);
-        ss.read(&out[0], length);
+        if (length > 0) {
+            out.resize(length);
+            ss.read(&out[0], length);
+        }
         return ERR_OK;
     }
 
