@@ -1323,7 +1323,7 @@ void UpdateAccountTokenSync(DomainAccountInfo const &domainAccountInfo, array_vi
         AccountSA::DomainAccountClient::GetInstance().UpdateAccountToken(innerDomainAccountInfo, innerToken);
     if (!innerToken.empty()) {
         (void)memset_s(const_cast<uint8_t*>(innerToken.data()), innerToken.size(), 0,
-        innerToken.size());
+            innerToken.size());
     }
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("UpdateAccountTokenSync failed with errCode: %{public}d", errCode);

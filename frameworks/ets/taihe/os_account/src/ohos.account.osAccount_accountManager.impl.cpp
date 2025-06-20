@@ -233,7 +233,6 @@ public:
             return false;
         }
         auto subscribe = g_osAccountSubscribers.find(subscribeCBInfo->osManager);
-
         if (subscribe == g_osAccountSubscribers.end()) {
             ACCOUNT_LOGE("Not find osManager!");
             return false;
