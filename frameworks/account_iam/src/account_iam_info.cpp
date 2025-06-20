@@ -151,7 +151,7 @@ bool AuthParam::ReadRemoteAuthParam(Parcel& parcel)
     if (!res) {
         return true;
     }
-
+    remoteAuthParam = RemoteAuthParam();
     if (!parcel.ReadBool(res)) {
         ACCOUNT_LOGE("Read verifierNetworkId exist failed.");
         return false;
