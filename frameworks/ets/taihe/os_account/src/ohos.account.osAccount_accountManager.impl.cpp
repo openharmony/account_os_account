@@ -230,7 +230,7 @@ public:
         std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
         if (subscribeCBInfo == nullptr) {
             ACCOUNT_LOGE("Insufficient memory for subscribeCBInfo!");
-            return;
+            return false;
         }
         auto subscribe = g_osAccountSubscribers.find(subscribeCBInfo->osManager);
 
