@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,13 +19,18 @@
 #include <condition_variable>
 #include <map>
 #include <vector>
+
 #include "access_token.h"
 #include "account_file_operator.h"
 #include "account_iam_info.h"
 #include "domain_account_callback.h"
-#include "iaccount_iam_callback.h"
+#include "get_cred_info_callback_stub.h"
+#include "get_enrolled_id_callback_stub.h"
+#include "get_set_prop_callback_stub.h"
+#include "id_m_callback_stub.h"
 #include "iremote_object.h"
 #include "iremote_stub.h"
+#include "pre_remote_auth_callback_stub.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -359,8 +364,8 @@ public:
     std::condition_variable onResultCondition_;
 
     ReEnrollCallback(const sptr<IIDMCallback> &innerCallback);
-    void OnResult(int32_t result, const Attributes &extraInfo) override;
-    void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override;
+    ErrCode OnResult(int32_t resultCode, const std::vector<uint8_t>& extraInfoBuffer) override;
+    ErrCode OnAcquireInfo(int32_t module, uint32_t acquireInfo, const std::vector<uint8_t>& extraInfoBuffer) override;
 private:
     sptr<IIDMCallback> innerCallback_;
 };

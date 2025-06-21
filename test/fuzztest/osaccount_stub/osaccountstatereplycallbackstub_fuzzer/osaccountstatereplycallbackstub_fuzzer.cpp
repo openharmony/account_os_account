@@ -14,7 +14,6 @@
  */
 
 #include "osaccountstatereplycallbackstub_fuzzer.h"
-#include "accountmgr_service_ipc_interface_code.h"
 #include "fuzz_data.h"
 #include "os_account_state_reply_callback_service.h"
 

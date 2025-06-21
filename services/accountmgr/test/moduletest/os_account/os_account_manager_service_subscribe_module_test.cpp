@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,8 +29,6 @@
 #include "accesstoken_kit.h"
 #include "account_iam_client.h"
 #include "account_iam_callback.h"
-#include "account_iam_mgr_proxy.h"
-#include "account_iam_callback_stub.h"
 #include "account_iam_callback_service.h"
 #include "account_iam_client_test_callback.h"
 #include "ipc_skeleton.h"

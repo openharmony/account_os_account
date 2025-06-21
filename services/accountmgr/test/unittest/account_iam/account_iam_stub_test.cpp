@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,7 +20,6 @@
 #include "account_log_wrapper.h"
 #include "account_test_common.h"
 #define private public
-#include "account_iam_mgr_stub.h"
 #include "account_iam_service.h"
 #undef private
 #include "token_setproc.h"
@@ -33,7 +32,6 @@ using namespace OHOS::AccountSA;
 
 namespace {
 DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IAccountIAM");
-const int32_t LIMIT_CODE = 13;
 } // namespace
 
 class AccountIAMStubModuleTest : public testing::Test {
@@ -106,12 +104,23 @@ HWTEST_F(AccountIAMStubModuleTest, AccountIAMStubModuleTest_OnRemoteRequest_002,
  */
 HWTEST_F(AccountIAMStubModuleTest, AccountIAMStubModuleTest_OnRemoteRequest_003, TestSize.Level3)
 {
-    for (int code = 0; code <= LIMIT_CODE; code++) {
+    for (uint32_t code = static_cast<uint32_t>(IAccountIAMIpcCode::COMMAND_OPEN_SESSION);
+        code <= static_cast<uint32_t>(IAccountIAMIpcCode::COMMAND_GET_ACCOUNT_STATE); code++) {
         MessageParcel data;
         MessageParcel reply;
         MessageOption option;
         data.WriteInterfaceToken(GetDescriptor());
-        EXPECT_NE(service_->OnRemoteRequest(static_cast<uint32_t>(static_cast<uint32_t>(code)), data, reply, option),
-            ERR_NONE);
+
+        auto ret = service_->OnRemoteRequest(static_cast<uint32_t>(static_cast<uint32_t>(code)), data, reply, option);
+        if (code == static_cast<uint32_t>(IAccountIAMIpcCode::COMMAND_OPEN_SESSION) ||
+            code == static_cast<uint32_t>(IAccountIAMIpcCode::COMMAND_CLOSE_SESSION) ||
+            code == static_cast<uint32_t>(IAccountIAMIpcCode::COMMAND_CANCEL) ||
+            code == static_cast<uint32_t>(IAccountIAMIpcCode::COMMAND_CANCEL_AUTH) ||
+            code == static_cast<uint32_t>(IAccountIAMIpcCode::COMMAND_GET_AVAILABLE_STATUS) ||
+            code == static_cast<uint32_t>(IAccountIAMIpcCode::COMMAND_GET_ACCOUNT_STATE)) {
+            EXPECT_EQ(ret, ERR_NONE);
+        } else {
+            EXPECT_NE(ret, ERR_NONE);
+        }
     }
 }

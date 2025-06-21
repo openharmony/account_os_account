@@ -21,6 +21,7 @@
 #ifdef HAS_PIN_AUTH_PART
 #include "i_inputer.h"
 #endif
+#include "parcel.h"
 #include "user_access_ctrl_client_callback.h"
 #include "user_auth_client_callback.h"
 #include "user_auth_client_defines.h"
@@ -99,13 +100,20 @@ struct RemoteAuthParam {
     std::optional<uint32_t> collectorTokenId;
 };
 
-struct AuthParam {
+struct AuthParam : public Parcelable {
     int32_t userId = 0;
     std::vector<uint8_t> challenge;
     AuthType authType;
     AuthTrustLevel authTrustLevel;
     AuthIntent authIntent = AuthIntent::DEFAULT;
     std::optional<RemoteAuthParam> remoteAuthParam;
+    bool Marshalling(Parcel& parcel) const override;
+    static AuthParam* Unmarshalling(Parcel& parcel);
+
+private:
+    bool WriteRemoteAuthParam(Parcel& parcel) const;
+    bool ReadRemoteAuthParam(Parcel& parcel);
+    bool ReadFromParcel(Parcel& parcel);
 };
 
 struct RemoteAuthOptions {
@@ -123,6 +131,37 @@ struct AuthOptions {
     RemoteAuthOptions remoteAuthOptions;
     bool hasRemoteAuthOptions = false;
     bool hasAccountId = false;
+};
+
+struct CredentialInfoIam : public Parcelable {
+    CredentialInfo credentialInfo;
+    bool ReadFromParcel(Parcel &parcel);
+    bool Marshalling(Parcel &parcel) const override;
+    static CredentialInfoIam *Unmarshalling(Parcel &parcel);
+};
+
+std::vector<CredentialInfoIam> ConvertToCredentialInfoIamList(const std::vector<CredentialInfo> &infoList);
+std::vector<CredentialInfo> ConvertToCredentialInfoList(const std::vector<CredentialInfoIam> &infoList);
+
+struct CredentialParametersIam : public Parcelable {
+    CredentialParameters credentialParameters;
+    bool ReadFromParcel(Parcel &parcel);
+    bool Marshalling(Parcel &parcel) const override;
+    static CredentialParametersIam *Unmarshalling(Parcel &parcel);
+};
+
+struct GetPropertyRequestIam : public Parcelable {
+    GetPropertyRequest getPropertyRequest;
+    bool ReadFromParcel(Parcel &parcel);
+    bool Marshalling(Parcel &parcel) const override;
+    static GetPropertyRequestIam *Unmarshalling(Parcel &parcel);
+};
+
+struct SetPropertyRequestIam : public Parcelable {
+    SetPropertyRequest setPropertyRequest;
+    bool ReadFromParcel(Parcel &parcel);
+    bool Marshalling(Parcel &parcel) const override;
+    static SetPropertyRequestIam *Unmarshalling(Parcel &parcel);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

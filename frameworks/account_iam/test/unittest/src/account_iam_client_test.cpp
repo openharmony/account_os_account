@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,7 +20,6 @@
 #undef private
 #include "account_iam_client_test_callback.h"
 #include "account_log_wrapper.h"
-#include "account_iam_callback_stub.h"
 #include "account_iam_callback_service.h"
 #ifdef PROXY_MOCK
 #define private public
@@ -28,7 +27,7 @@
 #undef private
 #endif
 #include "account_test_common.h"
-#include "account_iam_mgr_proxy.h"
+#include "account_i_a_m_proxy.h"
 #include "token_setproc.h"
 #include "iam_common_defines.h"
 #include "ipc_skeleton.h"
@@ -222,7 +221,7 @@ void AccountIAMClientTest::SetUpTestCase(void)
 #ifdef PROXY_MOCK
     sptr<IAccountIAM> service = new (std::nothrow) AccountIAMService();
     ASSERT_NE(service, nullptr);
-    AccountIAMClient::GetInstance().proxy_ = new (std::nothrow) AccountIAMMgrProxy(service->AsObject());
+    AccountIAMClient::GetInstance().proxy_ = new (std::nothrow) AccountIAMProxy(service->AsObject());
     ASSERT_NE(AccountIAMClient::GetInstance().proxy_, nullptr);
 #endif
 }
@@ -747,8 +746,8 @@ HWTEST_F(AccountIAMClientTest, IDMCallbackStub_ProcOnAcquireInfo_0100, TestSize.
 
     sptr<IDMCallbackStub> stub = new (std::nothrow) IDMCallbackService(TEST_USER_ID, nullptr);
     ASSERT_NE(nullptr, stub);
-    int32_t ret = stub->OnRemoteRequest(static_cast<uint32_t>(IDMCallbackInterfaceCode::ON_ACQUIRE_INFO), data, reply,
-        option);
+    int32_t ret =
+        stub->OnRemoteRequest(static_cast<uint32_t>(IIDMCallbackIpcCode::COMMAND_ON_ACQUIRE_INFO), data, reply, option);
     EXPECT_EQ(ERR_OK, ret);
 }
 
@@ -798,7 +797,7 @@ HWTEST_F(AccountIAMClientTest, GetCredInfoCallbackStub_ProcOnCredentialInfo_0100
 
     sptr<GetCredInfoCallbackStub> stub = new (std::nothrow) GetCredInfoCallbackService(nullptr);
     ASSERT_NE(nullptr, stub);
-    int32_t ret = stub->OnRemoteRequest(static_cast<uint32_t>(GetCredInfoCallbackInterfaceCode::ON_CREDENTIAL_INFO),
+    int32_t ret = stub->OnRemoteRequest(static_cast<uint32_t>(IGetCredInfoCallbackIpcCode::COMMAND_ON_CREDENTIAL_INFO),
         data, reply, option);
     EXPECT_EQ(ERR_OK, ret);
 }
@@ -1187,7 +1186,7 @@ HWTEST_F(AccountIAMClientTest, ResetAccountIAMProxy001, TestSize.Level3)
     sptr<IAccountIAM> proxy = AccountIAMClient::GetInstance().proxy_;
     AccountIAMClient::GetInstance().proxy_ = nullptr;
     AccountIAMClient::GetInstance().ResetAccountIAMProxy(remote);
-    sptr<IAccountIAM> testIAccountIAM = new (std::nothrow) AccountIAMMgrProxy(nullptr);
+    sptr<IAccountIAM> testIAccountIAM = new (std::nothrow) AccountIAMProxy(nullptr);
     AccountIAMClient::GetInstance().proxy_ = testIAccountIAM;
     EXPECT_NE(AccountIAMClient::GetInstance().proxy_, nullptr);
     AccountIAMClient::GetInstance().ResetAccountIAMProxy(remote);

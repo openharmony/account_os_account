@@ -14,7 +14,6 @@
  */
 
 #include "os_account_state_reply_callback.h"
-#include "accountmgr_service_ipc_interface_code.h"
 #include "account_log_wrapper.h"
 
 namespace OHOS {

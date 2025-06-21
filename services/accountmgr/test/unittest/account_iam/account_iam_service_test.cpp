@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,8 +18,12 @@
 #define private public
 #include "account_iam_service.h"
 #undef private
-#include "account_iam_callback_stub.h"
 #include "account_log_wrapper.h"
+#include "account_test_common.h"
+#include "get_cred_info_callback_stub.h"
+#include "get_enrolled_id_callback_stub.h"
+#include "get_set_prop_callback_stub.h"
+#include "id_m_callback_stub.h"
 #include "iremote_stub.h"
 #include "token_setproc.h"
 
@@ -38,14 +42,14 @@ constexpr int32_t TEST_NOT_EXIST_ID = 2;
 
 class MockIIDMCallback : public IDMCallbackStub {
 public:
-    void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override
+    ErrCode OnAcquireInfo(int32_t module, uint32_t acquireInfo, const std::vector<uint8_t>& extraInfoBuffer) override
     {
-        return;
+        return ERR_OK;
     }
-    void OnResult(int32_t result, const Attributes &extraInfo) override
+    ErrCode OnResult(int32_t resultCode, const std::vector<uint8_t>& extraInfoBuffer) override
     {
-        result_ = result;
-        return;
+        result_ = resultCode;
+        return ERR_OK;
     }
 
 public:
@@ -54,18 +58,18 @@ public:
 
 class MockGetCredInfoCallback : public GetCredInfoCallbackStub {
 public:
-    void OnCredentialInfo(int32_t result, const std::vector<CredentialInfo> &infoList)override
+    ErrCode OnCredentialInfo(int32_t resultCode, const std::vector<CredentialInfoIam>& infoList)override
     {
-        return;
+        return ERR_OK;
     }
 };
 
 class MockGetEnrolledIdCallback : public GetEnrolledIdCallbackStub {
 public:
-    void OnEnrolledId(int32_t result, uint64_t enrolledId) override
+    ErrCode OnEnrolledId(int32_t resultCode, uint64_t enrolledId) override
     {
-        result_ = result;
-        return;
+        result_ = resultCode;
+        return ERR_OK;
     }
 public:
     int32_t result_ = -1;
@@ -73,10 +77,10 @@ public:
 
 class MockGetSetPropCallback : public GetSetPropCallbackStub {
 public:
-    void OnResult(int32_t result, const Attributes &extraInfo) override
+    ErrCode OnResult(int32_t resultCode, const std::vector<uint8_t>& extraInfoBuffer) override
     {
-        result_ = result;
-        return;
+        result_ = resultCode;
+        return ERR_OK;
     }
 
 public:
@@ -95,8 +99,7 @@ public:
 
 void AccountIamServiceTest::SetUpTestCase(void)
 {
-    AccessTokenID tokenId = AccessTokenKit::GetHapTokenID(100, "com.ohos.settings", 0);
-    SetSelfTokenID(tokenId);
+    ASSERT_TRUE(MockTokenId("accountmgr"));
 }
 
 void AccountIamServiceTest::TearDownTestCase(void)
@@ -183,11 +186,11 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_CloseSession_0200, TestSize.Le
  */
 HWTEST_F(AccountIamServiceTest, AccountIAMService_AddCredential_0100, TestSize.Level3)
 {
-    CredentialParameters creInfo = {};
+    CredentialParametersIam creInfo = {};
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
     ASSERT_NE(callback, nullptr);
-    accountIAMService_->AddCredential(-1, creInfo, callback);
-    EXPECT_EQ(callback->result_, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
+    auto ret = accountIAMService_->AddCredential(-1, creInfo, callback);
+    EXPECT_EQ(ret, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
 }
 
 /**
@@ -198,11 +201,11 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_AddCredential_0100, TestSize.L
  */
 HWTEST_F(AccountIamServiceTest, AccountIAMService_AddCredential_01001, TestSize.Level3)
 {
-    CredentialParameters creInfo = {};
+    CredentialParametersIam creInfo = {};
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
     ASSERT_NE(callback, nullptr);
-    accountIAMService_->AddCredential(0, creInfo, callback);
-    EXPECT_EQ(callback->result_, ERR_ACCOUNT_COMMON_ACCOUNT_IS_RESTRICTED);
+    auto ret = accountIAMService_->AddCredential(0, creInfo, callback);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_IS_RESTRICTED);
 }
 
 /**
@@ -213,11 +216,11 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_AddCredential_01001, TestSize.
  */
 HWTEST_F(AccountIamServiceTest, AccountIAMService_AddCredential_0200, TestSize.Level3)
 {
-    CredentialParameters creInfo = {};
+    CredentialParametersIam creInfo = {};
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
     ASSERT_NE(callback, nullptr);
-    accountIAMService_->AddCredential(TEST_NOT_EXIST_ID, creInfo, callback);
-    EXPECT_EQ(callback->result_, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    auto ret = accountIAMService_->AddCredential(TEST_NOT_EXIST_ID, creInfo, callback);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -228,11 +231,11 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_AddCredential_0200, TestSize.L
  */
 HWTEST_F(AccountIamServiceTest, AccountIAMService_UpdateCredential_0100, TestSize.Level3)
 {
-    CredentialParameters creInfo = {};
+    CredentialParametersIam creInfo = {};
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
     ASSERT_NE(callback, nullptr);
-    accountIAMService_->UpdateCredential(-1, creInfo, callback);
-    EXPECT_EQ(callback->result_, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
+    auto ret = accountIAMService_->UpdateCredential(-1, creInfo, callback);
+    EXPECT_EQ(ret, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
 }
 
 /**
@@ -243,11 +246,11 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_UpdateCredential_0100, TestSiz
  */
 HWTEST_F(AccountIamServiceTest, AccountIAMService_UpdateCredential_0200, TestSize.Level3)
 {
-    CredentialParameters creInfo = {};
+    CredentialParametersIam creInfo = {};
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
     ASSERT_NE(callback, nullptr);
-    accountIAMService_->UpdateCredential(TEST_NOT_EXIST_ID, creInfo, callback);
-    EXPECT_EQ(callback->result_, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    auto ret = accountIAMService_->UpdateCredential(TEST_NOT_EXIST_ID, creInfo, callback);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -273,8 +276,8 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_DelCred_0100, TestSize.Level3)
     std::vector<uint8_t> token;
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
     ASSERT_NE(callback, nullptr);
-    accountIAMService_->DelCred(-1, 0, token, callback);
-    EXPECT_EQ(callback->result_, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
+    auto ret = accountIAMService_->DelCred(-1, 0, token, callback);
+    EXPECT_EQ(ret, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
 }
 
 /**
@@ -288,8 +291,8 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_DelUser_0100, TestSize.Level3)
     std::vector<uint8_t> token;
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
     ASSERT_NE(callback, nullptr);
-    accountIAMService_->DelUser(-1, token, callback);
-    EXPECT_EQ(callback->result_, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
+    auto ret = accountIAMService_->DelUser(-1, token, callback);
+    EXPECT_EQ(ret, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
 }
 
 /**
@@ -360,8 +363,8 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_GetEnrolledId_0200, TestSize.L
 {
     sptr<MockGetEnrolledIdCallback> callback = new (std::nothrow) MockGetEnrolledIdCallback();
     ASSERT_NE(callback, nullptr);
-    accountIAMService_->GetEnrolledId(TEST_NOT_EXIST_ID, AuthType::PIN, callback);
-    EXPECT_EQ(callback->result_, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    auto ret = accountIAMService_->GetEnrolledId(TEST_NOT_EXIST_ID, AuthType::PIN, callback);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -374,8 +377,8 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_GetEnrolledId_0300, TestSize.L
 {
     sptr<MockGetEnrolledIdCallback> callback = new (std::nothrow) MockGetEnrolledIdCallback();
     ASSERT_NE(callback, nullptr);
-    accountIAMService_->GetEnrolledId(TEST_EXIST_ID, static_cast<AuthType>(IAMAuthType::TYPE_END), callback);
-    EXPECT_EQ(callback->result_, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    auto ret = accountIAMService_->GetEnrolledId(TEST_EXIST_ID, static_cast<AuthType>(IAMAuthType::TYPE_END), callback);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -404,12 +407,11 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_AuthUser_0100, TestSize.Level3
     std::vector<uint8_t> challenge;
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
     ASSERT_NE(callback, nullptr);
-    AccountSA::AuthParam authParam = {
-        .userId = -1,
-        .challenge = challenge,
-        .authType = AuthType::PIN,
-        .authTrustLevel = AuthTrustLevel::ATL1
-    };
+    AccountSA::AuthParam authParam;
+    authParam.userId = -1;
+    authParam.challenge = challenge;
+    authParam.authType = AuthType::PIN;
+    authParam.authTrustLevel = AuthTrustLevel::ATL1;
     uint64_t contextId = 0;
     ErrCode res = accountIAMService_->AuthUser(authParam, callback, contextId);
     EXPECT_EQ(res, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
@@ -426,12 +428,11 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_AuthUser_0200, TestSize.Level3
     std::vector<uint8_t> challenge;
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
     ASSERT_NE(callback, nullptr);
-    AccountSA::AuthParam authParam = {
-        .userId = TEST_NOT_EXIST_ID,
-        .challenge = challenge,
-        .authType = AuthType::PIN,
-        .authTrustLevel = AuthTrustLevel::ATL1
-    };
+    AccountSA::AuthParam authParam;
+    authParam.userId = TEST_NOT_EXIST_ID;
+    authParam.challenge = challenge;
+    authParam.authType = AuthType::PIN;
+    authParam.authTrustLevel = AuthTrustLevel::ATL1;
     uint64_t contextId = 0;
     ErrCode res = accountIAMService_->AuthUser(authParam, callback, contextId);
     EXPECT_EQ(res, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
@@ -460,11 +461,11 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_GetAvailableStatus_0100, TestS
  */
 HWTEST_F(AccountIamServiceTest, AccountIAMService_GetProperty_0100, TestSize.Level3)
 {
-    GetPropertyRequest request;
+    GetPropertyRequestIam request;
     sptr<MockGetSetPropCallback> callback = new (std::nothrow) MockGetSetPropCallback();
     ASSERT_NE(callback, nullptr);
-    accountIAMService_->GetProperty(-1, request, callback);
-    EXPECT_EQ(callback->result_, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
+    auto ret = accountIAMService_->GetProperty(-1, request, callback);
+    EXPECT_EQ(ret, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
 }
 
 /**
@@ -475,11 +476,11 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_GetProperty_0100, TestSize.Lev
  */
 HWTEST_F(AccountIamServiceTest, AccountIAMService_GetProperty_0200, TestSize.Level3)
 {
-    GetPropertyRequest request;
+    GetPropertyRequestIam request;
     sptr<MockGetSetPropCallback> callback = new (std::nothrow) MockGetSetPropCallback();
     ASSERT_NE(callback, nullptr);
-    accountIAMService_->GetProperty(TEST_NOT_EXIST_ID, request, callback);
-    EXPECT_EQ(callback->result_, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    auto ret = accountIAMService_->GetProperty(TEST_NOT_EXIST_ID, request, callback);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -490,11 +491,11 @@ HWTEST_F(AccountIamServiceTest, AccountIAMService_GetProperty_0200, TestSize.Lev
  */
 HWTEST_F(AccountIamServiceTest, AccountIAMService_SetProperty_0100, TestSize.Level3)
 {
-    SetPropertyRequest request;
+    SetPropertyRequestIam request;
     sptr<MockGetSetPropCallback> callback = new (std::nothrow) MockGetSetPropCallback();
     ASSERT_NE(callback, nullptr);
-    accountIAMService_->SetProperty(-1, request, callback);
-    EXPECT_EQ(callback->result_, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
+    auto ret = accountIAMService_->SetProperty(-1, request, callback);
+    EXPECT_EQ(ret, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR);
 }
 }  // namespace AccountTest
 }  // namespace OHOS

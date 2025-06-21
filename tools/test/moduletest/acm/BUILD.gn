@@ -50,7 +50,6 @@ ohos_moduletest("account_command_module_mock_test") {
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
     "${services_path}/accountmgr/src/account_iam/account_iam_callback.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_mgr_stub.cpp",
     "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
     "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
@@ -71,6 +70,7 @@ ohos_moduletest("account_command_module_mock_test") {
   }
 
   deps = [
+    "${account_iam_framework_path}:account_iam_stub",
     "${account_iam_framework_path}:account_iam_innerkits",
     "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",

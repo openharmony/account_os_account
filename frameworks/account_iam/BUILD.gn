@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Copyright (c) 2022-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("//build/config/components/idl_tool/idl.gni")
 import("//build/ohos.gni")
 import("../../os_account.gni")
 
@@ -43,7 +44,23 @@ config("account_iam_innerkits_public_config") {
     "${account_iam_interfaces_native_path}/include",
     "${common_path}/utils/include",
     "${innerkits_common}/include",
+    "${target_gen_dir}",
   ]
+}
+
+idl_gen_interface("account_iam_interface") {
+  sources = [
+    "IAccountIAM.idl",
+    "IGetCredInfoCallback.idl",
+    "IGetEnrolledIdCallback.idl",
+    "IGetSetPropCallback.idl",
+    "IIDMCallback.idl",
+    "IPreRemoteAuthCallback.idl",
+  ]
+  log_domainid = "0xD001B00"
+  log_tag = "AccountIAMFwk"
+  subsystem_name = "account"
+  part_name = "os_account"
 }
 
 ohos_shared_library("account_iam_innerkits") {
@@ -57,16 +74,24 @@ ohos_shared_library("account_iam_innerkits") {
 
   sources = [
     "${account_iam_framework_path}/src/account_iam_callback_service.cpp",
-    "${account_iam_framework_path}/src/account_iam_callback_stub.cpp",
+    "${account_iam_framework_path}/src/account_iam_info.cpp",
     "${account_iam_framework_path}/src/account_iam_client.cpp",
-    "${account_iam_framework_path}/src/account_iam_mgr_proxy.cpp",
   ]
 
   configs = [ ":account_iam_innnerkits_config" ]
 
   public_configs = [ ":account_iam_innerkits_public_config" ]
 
+  # IDL
+  output_values = get_target_outputs(":account_iam_interface")
+  sources += filter_include(output_values,
+                            [
+                              "*_i_a_m_proxy.cpp",
+                              "*_callback_stub.cpp",
+                            ])
+
   deps = [
+    ":account_iam_interface",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
     "${innerkits_native_path}:libaccountkits",
@@ -94,6 +119,63 @@ ohos_shared_library("account_iam_innerkits") {
   }
 
   innerapi_tags = [ "platformsdk_indirect" ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("account_iam_stub") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  configs = [ ":account_iam_innnerkits_config" ]
+  public_configs = [ ":account_iam_innerkits_public_config" ]
+
+  output_values = get_target_outputs(":account_iam_interface")
+  sources = filter_include(output_values, [ "*_i_a_m_stub.cpp" ])
+  deps = [ ":account_iam_interface" ]
+  external_deps = [
+    "cJSON:cjson",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
+  ]
+  if (has_user_auth_part) {
+    cflags_cc = [ "-DHAS_USER_AUTH_PART" ]
+    external_deps += [ "user_auth_framework:userauth_client" ]
+  }
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("account_iam_callback_proxy") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  configs = [ ":account_iam_innnerkits_config" ]
+  public_configs = [ ":account_iam_innerkits_public_config" ]
+
+  output_values = get_target_outputs(":account_iam_interface")
+  sources = filter_include(output_values, [ "*_callback_proxy.cpp" ])
+  deps = [ ":account_iam_interface" ]
+  external_deps = [
+    "cJSON:cjson",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
+  ]
+  if (has_user_auth_part) {
+    cflags_cc = [ "-DHAS_USER_AUTH_PART" ]
+    external_deps += [ "user_auth_framework:userauth_client" ]
+  }
   subsystem_name = "account"
   part_name = "os_account"
 }

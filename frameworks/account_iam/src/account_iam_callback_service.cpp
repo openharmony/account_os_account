@@ -35,26 +35,31 @@ IDMCallbackService::~IDMCallbackService()
     }
 }
 
-void IDMCallbackService::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
+ErrCode IDMCallbackService::OnAcquireInfo(
+    int32_t module, uint32_t acquireInfo, const std::vector<uint8_t>& extraInfoBuffer)
 {
     if (callback_ == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
-        return;
+        return ERR_INVALID_VALUE;
     }
+    Attributes extraInfo(extraInfoBuffer);
     callback_->OnAcquireInfo(module, acquireInfo, extraInfo);
+    return ERR_OK;
 }
 
-void IDMCallbackService::OnResult(int32_t result, const Attributes &extraInfo)
+ErrCode IDMCallbackService::OnResult(int32_t resultCode, const std::vector<uint8_t>& extraInfoBuffer)
 {
     isCalled_ = true;
     if (callback_ == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
-        return;
+        return ERR_INVALID_VALUE;
     }
-    if (result != 0) {
+    if (resultCode != 0) {
         ACCOUNT_LOGE("idm operation failure, localId: %{public}d", userId_);
     }
-    callback_->OnResult(result, extraInfo);
+    Attributes extraInfo(extraInfoBuffer);
+    callback_->OnResult(resultCode, extraInfo);
+    return ERR_OK;
 }
 
 GetCredInfoCallbackService::GetCredInfoCallbackService(const std::shared_ptr<GetCredInfoCallback> &callback)
@@ -70,14 +75,16 @@ GetCredInfoCallbackService::~GetCredInfoCallbackService()
     }
 }
 
-void GetCredInfoCallbackService::OnCredentialInfo(int32_t result, const std::vector<CredentialInfo> &infoList)
+ErrCode GetCredInfoCallbackService::OnCredentialInfo(int32_t resultCode, const std::vector<CredentialInfoIam>& infoList)
 {
     isCalled_ = true;
     if (callback_ == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
-        return;
+        return ERR_INVALID_VALUE;
     }
-    callback_->OnCredentialInfo(result, infoList);
+    auto convertedInfoList = ConvertToCredentialInfoList(infoList);
+    callback_->OnCredentialInfo(resultCode, convertedInfoList);
+    return ERR_OK;
 }
 
 GetSetPropCallbackService::GetSetPropCallbackService(const std::shared_ptr<GetSetPropCallback> &callback)
@@ -93,14 +100,16 @@ GetSetPropCallbackService::~GetSetPropCallbackService()
     }
 }
 
-void GetSetPropCallbackService::OnResult(int32_t result, const Attributes &extraInfo)
+ErrCode GetSetPropCallbackService::OnResult(int32_t resultCode, const std::vector<uint8_t>& extraInfoBuffer)
 {
     isCalled_ = true;
     if (callback_ == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
-        return;
+        return ERR_INVALID_VALUE;
     }
-    callback_->OnResult(result, extraInfo);
+    Attributes extraInfo(extraInfoBuffer);
+    callback_->OnResult(resultCode, extraInfo);
+    return ERR_OK;
 }
 
 GetEnrolledIdCallbackService::GetEnrolledIdCallbackService(const std::shared_ptr<GetEnrolledIdCallback> &callback)
@@ -116,14 +125,15 @@ GetEnrolledIdCallbackService::~GetEnrolledIdCallbackService()
     }
 }
 
-void GetEnrolledIdCallbackService::OnEnrolledId(int32_t result, uint64_t enrolledId)
+ErrCode GetEnrolledIdCallbackService::OnEnrolledId(int32_t resultCode, uint64_t enrolledId)
 {
     isCalled_ = true;
     if (callback_ == nullptr) {
         ACCOUNT_LOGE("Callback is nullptr");
-        return;
+        return ERR_INVALID_VALUE;
     }
-    callback_->OnEnrolledId(result, enrolledId);
+    callback_->OnEnrolledId(resultCode, enrolledId);
+    return ERR_OK;
 }
 
 PreRemoteAuthCallbackService::PreRemoteAuthCallbackService(
@@ -138,14 +148,15 @@ PreRemoteAuthCallbackService::~PreRemoteAuthCallbackService()
     }
 }
 
-void PreRemoteAuthCallbackService::OnResult(int32_t result)
+ErrCode PreRemoteAuthCallbackService::OnResult(int32_t resultCode)
 {
     isCalled_ = true;
     if (callback_ == nullptr) {
         ACCOUNT_LOGE("Callback is nullptr.");
-        return;
+        return ERR_INVALID_VALUE;
     }
-    callback_->OnResult(result);
+    callback_->OnResult(resultCode);
+    return ERR_OK;
 }
 
 DomainAuthCallbackAdapter::DomainAuthCallbackAdapter(
