@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,14 +18,16 @@
 
 #include <memory>
 #include <mutex>
+
 #include "account_dump_helper.h"
 #include "account_event_provider.h"
 #include "account_info.h"
 #include "account_stub.h"
-#include "os_account_manager_service.h"
 #include "iaccount.h"
+#include "iaccount_context.h"
 #include "iremote_object.h"
 #include "ohos_account_manager.h"
+#include "os_account_manager_service.h"
 #include "singleton.h"
 #include "system_ability.h"
 
@@ -35,6 +37,7 @@ enum ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
 
 class AccountMgrService : public SystemAbility,
                           public AccountStub,
+                          public IAccountContext,
                           public OHOS::DelayedRefSingleton<AccountMgrService> {
 public:
     AccountMgrService();
@@ -47,21 +50,20 @@ public:
         const std::string &eventStr) override;
     ErrCode SetOsAccountDistributedInfo(
         const int32_t localId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr) override;
-    ErrCode QueryOhosAccountInfo(OhosAccountInfo &accountInfo) override;
+    ErrCode QueryOhosAccountInfo(std::string& accountName, std::string& uid, int32_t& status) override;
     ErrCode QueryDistributedVirtualDeviceId(std::string &dvid) override;
     ErrCode QueryDistributedVirtualDeviceId(const std::string &bundleName, int32_t localId, std::string &dvid) override;
-    ErrCode QueryOsAccountDistributedInfo(std::int32_t localId, OhosAccountInfo &accountInfo) override;
+    ErrCode QueryOsAccountDistributedInfo(
+        std::int32_t localId, std::string& accountName, std::string& uid, int32_t& status) override;
     ErrCode GetOhosAccountInfo(OhosAccountInfo &info) override;
     ErrCode GetOsAccountDistributedInfo(int32_t localId, OhosAccountInfo &info) override;
     ErrCode QueryDeviceAccountId(std::int32_t &accountId) override;
-    ErrCode SubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
-        const sptr<IRemoteObject> &eventListener) override;
-    ErrCode UnsubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
-        const sptr<IRemoteObject> &eventListener) override;
-    sptr<IRemoteObject> GetAppAccountService() override;
-    sptr<IRemoteObject> GetOsAccountService() override;
-    sptr<IRemoteObject> GetAccountIAMService() override;
-    sptr<IRemoteObject> GetDomainAccountService() override;
+    ErrCode SubscribeDistributedAccountEvent(int32_t typeInt, const sptr<IRemoteObject>& eventListener) override;
+    ErrCode UnsubscribeDistributedAccountEvent(int32_t typeInt, const sptr<IRemoteObject>& eventListener) override;
+    ErrCode GetAppAccountService(sptr<IRemoteObject>& funcResult) override;
+    ErrCode GetOsAccountService(sptr<IRemoteObject>& funcResult) override;
+    ErrCode GetAccountIAMService(sptr<IRemoteObject>& funcResult) override;
+    ErrCode GetDomainAccountService(sptr<IRemoteObject>& funcResult) override;
 
     void OnStart() override;
     void OnStop() override;
@@ -75,6 +77,9 @@ public:
     void HandleNotificationEvents(const std::string &eventStr) override;
     std::int32_t GetCallingUserID();
 
+    int32_t CallbackEnter([[maybe_unused]] uint32_t code) override;
+    int32_t CallbackExit([[maybe_unused]] uint32_t code, [[maybe_unused]] int32_t result) override;
+
 private:
     bool Init();
     void SelfClean();
@@ -85,6 +90,9 @@ private:
     bool CreateDomainService();
     bool IsDefaultOsAccountVerified();
     void GetUncreatedInitAccounts(std::set<int32_t> &initAccounts);
+    ErrCode GetOsAccountDistributedInfoInner(int32_t localId, OhosAccountInfo &info);
+    bool HasAccountRequestPermission(const std::string &permissionName);
+    int32_t CheckUserIdValid(int32_t userId);
 #ifdef HAS_APP_ACCOUNT_PART
     void MoveAppAccountData();
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -107,7 +107,10 @@ bool GetOhosAccountInfoByUserIdProxyFuzzTest(const uint8_t* data, size_t size)
     }
     std::shared_ptr<AccountProxy> accountProxy = std::make_shared<AccountProxy>(nullptr);
     OhosAccountInfo testOhosAccountInfo;
-    int32_t result = accountProxy->QueryOhosAccountInfo(testOhosAccountInfo);
+    std::string accountName;
+    std::string uid;
+    int32_t status;
+    int32_t result = accountProxy->QueryOhosAccountInfo(accountName, uid, status);
     result = accountProxy->GetOhosAccountInfo(testOhosAccountInfo);
     FuzzData fuzzData(data, size);
     int32_t userId = fuzzData.GetData<int32_t>();
@@ -121,12 +124,14 @@ bool QueryOhosAccountInfoByUserIdProxyFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
     std::shared_ptr<AccountProxy> accountProxy = std::make_shared<AccountProxy>(nullptr);
-    OhosAccountInfo testOhosAccountInfo;
+    std::string accountName;
+    std::string uid;
+    int32_t status;
     FuzzData fuzzData(data, size);
     int32_t userId = fuzzData.GetData<int32_t>();
     int32_t accountId = 0;
     int32_t result = accountProxy->QueryDeviceAccountId(accountId);
-    result = accountProxy->QueryOsAccountDistributedInfo(userId, testOhosAccountInfo);
+    result = accountProxy->QueryOsAccountDistributedInfo(userId, accountName, uid, status);
     return result == ERR_OK;
 }
 }

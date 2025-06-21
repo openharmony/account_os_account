@@ -283,6 +283,9 @@
         "non-virtual thunk to OHOS::AccountSA::DomainAccountCallbackStub::~DomainAccountCallbackStub()";
         "virtual thunk to OHOS::AccountSA::DomainAccountCallbackStub::~DomainAccountCallbackStub()";
         "OHOS::AccountSA::ReportUserDataSize(std::__h::vector<int, std::__h::allocator<int>> const&)";
+        "VTT for OHOS::AccountSA::OhosAccountInfo";
+        "vtable for OHOS::AccountSA::OhosAccountInfo";
+        "OHOS::AccountSA::OhosAccountInfo::Unmarshalling(OHOS::Parcel&)";
     };
   local:
     *;

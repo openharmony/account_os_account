@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -83,10 +83,16 @@ void AccountMgrServiceTest::SetUpTestCase()
         std::cout << "AccountMgrServiceTest::SetUpTestCase  failed" << std::endl;
         return;
     }
-    ErrCode ret = accountMgr->QueryOhosAccountInfo(g_oldInfo);
+    std::string accountName;
+    std::string uid;
+    int32_t status;
+    ErrCode ret = accountMgr->QueryOhosAccountInfo(accountName, uid, status);
     if (ret != ERR_OK) {
         std::cout << "AccountMgrServiceTest::SetUpTestCase GET old info failed" << std::endl;
     }
+    g_oldInfo.name_ = accountName;
+    g_oldInfo.uid_ = uid;
+    g_oldInfo.status_ = status;
     g_accountMgrService = std::make_shared<AccountMgrService>();
 }
 
@@ -123,14 +129,16 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosLoginTest001, TestSize.Leve
     EXPECT_EQ(ERR_OK, ret);
 
     // status check
-    OhosAccountInfo testInfo;
-    ErrCode result = accountMgr->QueryOhosAccountInfo(testInfo);
+    std::string accountName;
+    std::string uid;
+    int32_t status;
+    ErrCode result = accountMgr->QueryOhosAccountInfo(accountName, uid, status);
     EXPECT_EQ(ERR_OK, result);
-    ret = (testInfo.uid_ == TEST_EXPECTED_UID);
+    ret = (uid == TEST_EXPECTED_UID);
     EXPECT_EQ(true, ret);
-    ret = (testInfo.name_ == TEST_ACCOUNT_NAME);
+    ret = (accountName == TEST_ACCOUNT_NAME);
     EXPECT_EQ(true, ret);
-    ret = (testInfo.status_ == ACCOUNT_STATE_LOGIN);
+    ret = (status == ACCOUNT_STATE_LOGIN);
     EXPECT_EQ(true, ret);
 
     // logout
@@ -138,11 +146,11 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosLoginTest001, TestSize.Leve
     EXPECT_EQ(ERR_OK, ret);
 
     // status check
-    result = accountMgr->QueryOhosAccountInfo(testInfo);
+    result = accountMgr->QueryOhosAccountInfo(accountName, uid, status);
     EXPECT_EQ(ERR_OK, result);
-    EXPECT_EQ(testInfo.uid_, DEFAULT_OHOS_ACCOUNT_UID);
-    EXPECT_EQ(testInfo.name_, DEFAULT_OHOS_ACCOUNT_NAME);
-    EXPECT_EQ(testInfo.status_, ACCOUNT_STATE_UNBOUND);
+    EXPECT_EQ(uid, DEFAULT_OHOS_ACCOUNT_UID);
+    EXPECT_EQ(accountName, DEFAULT_OHOS_ACCOUNT_NAME);
+    EXPECT_EQ(status, ACCOUNT_STATE_UNBOUND);
 }
 
 /**
@@ -161,14 +169,16 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosLoginTest002, TestSize.Leve
     EXPECT_EQ(ERR_OK, ret);
 
     // status check
-    OhosAccountInfo testInfo;
-    ErrCode result = accountMgr->QueryOhosAccountInfo(testInfo);
+    std::string accountName;
+    std::string uid;
+    int32_t status;
+    ErrCode result = accountMgr->QueryOhosAccountInfo(accountName, uid, status);
     EXPECT_EQ(ERR_OK, result);
-    ret = (testInfo.uid_ == TEST_EXPECTED_UID);
+    ret = (uid == TEST_EXPECTED_UID);
     EXPECT_EQ(true, ret);
-    ret = (testInfo.name_ == TEST_ACCOUNT_NAME);
+    ret = (accountName == TEST_ACCOUNT_NAME);
     EXPECT_EQ(true, ret);
-    ret = (testInfo.status_ == ACCOUNT_STATE_LOGIN);
+    ret = (status == ACCOUNT_STATE_LOGIN);
     EXPECT_EQ(true, ret);
 
     // repeat login
@@ -184,11 +194,11 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosLoginTest002, TestSize.Leve
     EXPECT_EQ(ERR_OK, ret);
 
     // status check
-    result = accountMgr->QueryOhosAccountInfo(testInfo);
+    result = accountMgr->QueryOhosAccountInfo(accountName, uid, status);
     EXPECT_EQ(ERR_OK, result);
-    EXPECT_EQ(testInfo.uid_, DEFAULT_OHOS_ACCOUNT_UID);
-    EXPECT_EQ(testInfo.name_, DEFAULT_OHOS_ACCOUNT_NAME);
-    EXPECT_EQ(testInfo.status_, ACCOUNT_STATE_UNBOUND);
+    EXPECT_EQ(uid, DEFAULT_OHOS_ACCOUNT_UID);
+    EXPECT_EQ(accountName, DEFAULT_OHOS_ACCOUNT_NAME);
+    EXPECT_EQ(status, ACCOUNT_STATE_UNBOUND);
 }
 
 /**
@@ -208,14 +218,16 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosLogoffTest001, TestSize.Lev
     EXPECT_EQ(ERR_OK, ret);
 
     // status check
-    OhosAccountInfo testInfo;
-    ErrCode result = accountMgr->QueryOhosAccountInfo(testInfo);
+    std::string accountName;
+    std::string uid;
+    int32_t status;
+    ErrCode result = accountMgr->QueryOhosAccountInfo(accountName, uid, status);
     EXPECT_EQ(ERR_OK, result);
-    ret = (testInfo.uid_ == TEST_DIFF_EXPECTED_UID);
+    ret = (uid == TEST_DIFF_EXPECTED_UID);
     EXPECT_EQ(true, ret);
-    ret = (testInfo.name_ == TEST_DIFF_ACCOUNT_NAME);
+    ret = (accountName == TEST_DIFF_ACCOUNT_NAME);
     EXPECT_EQ(true, ret);
-    ret = (testInfo.status_ == ACCOUNT_STATE_LOGIN);
+    ret = (status == ACCOUNT_STATE_LOGIN);
     EXPECT_EQ(true, ret);
 
     // logoff
@@ -223,11 +235,11 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosLogoffTest001, TestSize.Lev
     EXPECT_EQ(ERR_OK, ret);
 
     // status check
-    result = accountMgr->QueryOhosAccountInfo(testInfo);
+    result = accountMgr->QueryOhosAccountInfo(accountName, uid, status);
     EXPECT_EQ(ERR_OK, result);
-    EXPECT_EQ(testInfo.uid_, DEFAULT_OHOS_ACCOUNT_UID);
-    EXPECT_EQ(testInfo.name_, DEFAULT_OHOS_ACCOUNT_NAME);
-    EXPECT_EQ(testInfo.status_, ACCOUNT_STATE_UNBOUND);
+    EXPECT_EQ(uid, DEFAULT_OHOS_ACCOUNT_UID);
+    EXPECT_EQ(accountName, DEFAULT_OHOS_ACCOUNT_NAME);
+    EXPECT_EQ(status, ACCOUNT_STATE_UNBOUND);
 }
 
 /**
@@ -246,14 +258,16 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosTokenInvalidTest001, TestSi
     EXPECT_EQ(ERR_OK, ret);
 
     // status check
-    OhosAccountInfo testInfo;
-    ErrCode result = accountMgr->QueryOhosAccountInfo(testInfo);
+    std::string accountName;
+    std::string uid;
+    int32_t status;
+    ErrCode result = accountMgr->QueryOhosAccountInfo(accountName, uid, status);
     EXPECT_EQ(ERR_OK, result);
-    ret = (testInfo.uid_ == TEST_EXPECTED_UID);
+    ret = (uid == TEST_EXPECTED_UID);
     EXPECT_EQ(true, ret);
-    ret = (testInfo.name_ == TEST_ACCOUNT_NAME);
+    ret = (accountName == TEST_ACCOUNT_NAME);
     EXPECT_EQ(true, ret);
-    ret = (testInfo.status_ == ACCOUNT_STATE_LOGIN);
+    ret = (status == ACCOUNT_STATE_LOGIN);
     EXPECT_EQ(true, ret);
 
     // token invalid
@@ -261,13 +275,13 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosTokenInvalidTest001, TestSi
     EXPECT_EQ(ERR_OK, ret);
 
     // status check
-    result = accountMgr->QueryOhosAccountInfo(testInfo);
+    result = accountMgr->QueryOhosAccountInfo(accountName, uid, status);
     EXPECT_EQ(ERR_OK, result);
-    ret = (testInfo.uid_ == TEST_EXPECTED_UID);
+    ret = (uid == TEST_EXPECTED_UID);
     EXPECT_EQ(true, ret);
-    ret = (testInfo.name_ == TEST_ACCOUNT_NAME);
+    ret = (accountName == TEST_ACCOUNT_NAME);
     EXPECT_EQ(true, ret);
-    ret = (testInfo.status_ == ACCOUNT_STATE_UNBOUND);
+    ret = (status == ACCOUNT_STATE_UNBOUND);
     EXPECT_EQ(true, ret);
 
     // login again after token invalid
@@ -275,13 +289,13 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosTokenInvalidTest001, TestSi
     EXPECT_EQ(ERR_OK, ret);
 
     // status check
-    result = accountMgr->QueryOhosAccountInfo(testInfo);
+    result = accountMgr->QueryOhosAccountInfo(accountName, uid, status);
     EXPECT_EQ(ERR_OK, result);
-    ret = (testInfo.uid_ == TEST_EXPECTED_UID);
+    ret = (uid == TEST_EXPECTED_UID);
     EXPECT_EQ(true, ret);
-    ret = (testInfo.name_ == TEST_ACCOUNT_NAME);
+    ret = (accountName == TEST_ACCOUNT_NAME);
     EXPECT_EQ(true, ret);
-    ret = (testInfo.status_ == ACCOUNT_STATE_LOGIN);
+    ret = (status == ACCOUNT_STATE_LOGIN);
     EXPECT_EQ(true, ret);
 
     // logout
@@ -289,11 +303,11 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosTokenInvalidTest001, TestSi
     EXPECT_EQ(ERR_OK, ret);
 
     // status check
-    result = accountMgr->QueryOhosAccountInfo(testInfo);
+    result = accountMgr->QueryOhosAccountInfo(accountName, uid, status);
     EXPECT_EQ(ERR_OK, result);
-    EXPECT_EQ(testInfo.uid_, DEFAULT_OHOS_ACCOUNT_UID);
-    EXPECT_EQ(testInfo.name_, DEFAULT_OHOS_ACCOUNT_NAME);
-    EXPECT_EQ(testInfo.status_, ACCOUNT_STATE_UNBOUND);
+    EXPECT_EQ(uid, DEFAULT_OHOS_ACCOUNT_UID);
+    EXPECT_EQ(accountName, DEFAULT_OHOS_ACCOUNT_NAME);
+    EXPECT_EQ(status, ACCOUNT_STATE_UNBOUND);
 }
 
 /**
@@ -306,7 +320,8 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceGetAppAccountService001, TestSi
 {
     ASSERT_NE(g_accountMgrService, nullptr);
     g_accountMgrService->appAccountManagerService_ = nullptr;
-    auto servicePtr = g_accountMgrService->GetAppAccountService();
+    sptr<IRemoteObject> servicePtr = nullptr;
+    g_accountMgrService->GetAppAccountService(servicePtr);
 #ifdef HAS_APP_ACCOUNT_PART
     ASSERT_NE(servicePtr, nullptr);
 #else
@@ -324,7 +339,8 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceGetOsAccountServicee001, TestSi
 {
     ASSERT_NE(g_accountMgrService, nullptr);
     g_accountMgrService->osAccountManagerService_ = nullptr;
-    auto servicePtr = g_accountMgrService->GetOsAccountService();
+    sptr<IRemoteObject> servicePtr = nullptr;
+    g_accountMgrService->GetOsAccountService(servicePtr);
     ASSERT_NE(servicePtr, nullptr);
 }
 
@@ -340,7 +356,8 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceGetAccountIAMService001, TestSi
     g_accountMgrService->state_ = ServiceRunningState::STATE_RUNNING;
     g_accountMgrService->OnStart();
     g_accountMgrService->accountIAMService_ = nullptr;
-    auto servicePtr = g_accountMgrService->GetAccountIAMService();
+    sptr<IRemoteObject> servicePtr = nullptr;
+    g_accountMgrService->GetAccountIAMService(servicePtr);
 #ifdef HAS_USER_AUTH_PART
     ASSERT_NE(servicePtr, nullptr);
 #else
