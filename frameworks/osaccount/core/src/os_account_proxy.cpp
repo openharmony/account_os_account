@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1408,6 +1408,76 @@ ErrCode OsAccountProxy::SetSpecificOsAccountConstraints(const std::vector<std::s
     return ERR_OK;
 }
 
+ErrCode OsAccountProxy::SubscribeOsAccountConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
+    const sptr<IRemoteObject> &eventListener)
+{
+    MessageParcel data;
+    MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteParcelable(&subscribeInfo)) {
+        ACCOUNT_LOGE("Failed to write subscribeInfo!");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    if (!data.WriteRemoteObject(eventListener)) {
+        ACCOUNT_LOGE("Failed to write remote object for eventListener");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    ErrCode result = SendRequest(OsAccountInterfaceCode::SUBSCRIBE_OS_ACCOUNT_CONSTRAINTS, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
+        return result;
+    }
+
+    result = reply.ReadInt32();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Failed to read reply for subscriber constraint, result %{public}d.", result);
+        return result;
+    }
+
+    return ERR_OK;
+}
+
+ErrCode OsAccountProxy::UnsubscribeOsAccountConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
+    const sptr<IRemoteObject> &eventListener)
+{
+    MessageParcel data;
+    MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteParcelable(&subscribeInfo)) {
+        ACCOUNT_LOGE("Failed to write subscribeInfo!");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    if (!data.WriteRemoteObject(eventListener)) {
+        ACCOUNT_LOGE("Failed to write remote object for eventListener");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    ErrCode result = SendRequest(OsAccountInterfaceCode::UNSUBSCRIBE_OS_ACCOUNT_CONSTRAINTS, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
+        return result;
+    }
+
+    result = reply.ReadInt32();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Failed to read reply for unsubscribe constraint, result %{public}d.", result);
+        return result;
+    }
+
+    return result;
+}
+
 ErrCode OsAccountProxy::SetDefaultActivatedOsAccount(const int32_t id)
 {
     MessageParcel data;
@@ -1913,5 +1983,43 @@ ErrCode OsAccountProxy::LockOsAccount(const int32_t localId)
     return result;
 }
 #endif
+
+ErrCode OsAccountProxy::BindDomainAccount(
+    const int32_t localId, const DomainAccountInfo &domainInfo, const sptr<IDomainAccountCallback> &callback)
+{
+    MessageParcel data;
+    MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
+    if (!data.WriteInt32(localId)) {
+        ACCOUNT_LOGE("Failed to write localId");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    if (!data.WriteParcelable(&domainInfo)) {
+        ACCOUNT_LOGE("Fail to write domainInfo");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    if ((callback == nullptr) || (!data.WriteRemoteObject(callback->AsObject()))) {
+        ACCOUNT_LOGE("Fail to write callback");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    ErrCode result = SendRequest(OsAccountInterfaceCode::BIND_DOMAIN_ACCOUNT, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Failed to send request, result %{public}d.", result);
+        return result;
+    }
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("Read result failed.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return result;
+}
 }  // namespace AccountSA
 }  // namespace OHOS

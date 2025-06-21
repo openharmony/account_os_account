@@ -93,7 +93,9 @@ public:
     ErrCode DeleteAccountInfoDigest(const std::string &userInfoPath);
     ErrCode UpdateAccountIndex(const OsAccountInfo &osAccountInfo, const bool isDelete) override;
     ErrCode SetNextLocalId(const int32_t &nextLocalId) override;
-
+    ErrCode SetDomainBoundFlag(
+        const int32_t localId, const bool isBoundCompleted, const DomainAccountInfo domainInfo = {}) override;
+    ErrCode GetDomainBoundFlag(const int32_t localId, bool &isBoundCompleted, DomainAccountInfo &domainInfo) override;
 private:
     ErrCode GetDefaultOsAccountConfig(OsAccountConfig &config);
     ErrCode RemoveAccountIndex(const int32_t id);

@@ -36,7 +36,6 @@
 #include "app_account_control_manager.h"
 #include "ohos_account_kits.h"
 #include "os_account_constants.h"
-#include "os_account_control_file_manager.h"
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
 #include "os_account_domain_account_callback.h"
 #endif // SUPPORT_DOMAIN_ACCOUNTS
@@ -791,6 +790,13 @@ ErrCode IInnerOsAccountManager::GetOsAccountsByDomainInfo(const DomainAccountInf
         GetRealOsAccountInfoById(id, osAccountInfo);
         DomainAccountInfo curInfo;
         osAccountInfo.GetDomainInfo(curInfo);
+        errCode = InnerDomainAccountManager::GetInstance().CheckAndRecoverBindDomainForUncomplete(osAccountInfo);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("Recover bind domain error, errCode = %{public}d.", errCode);
+            REPORT_OS_ACCOUNT_FAIL(osAccountInfo.GetLocalId(), Constants::OPERATION_RECOVER_BIND_DOMAIN_ACCOUNT,
+                ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR, "Recover bind domain error.");
+            return errCode;
+        }
         if ((!info.accountId_.empty() && curInfo.accountId_ == info.accountId_) ||
             ((curInfo.accountName_ == info.accountName_) && (curInfo.domain_ == info.domain_))) {
             osAccountInfos.emplace_back(osAccountInfo);
@@ -901,6 +907,7 @@ ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
     const CreateOsAccountForDomainOptions &options)
 {
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
+    std::lock_guard<std::mutex> lock(createOrBindDomainAccountMutex_);
     if (!activateLockPluginManager_.IsCreationAllowed()) {
         ACCOUNT_LOGI("Not allow creation account.");
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_PLUGIN_NOT_ALLOWED_CREATION_ERROR;
@@ -2386,7 +2393,12 @@ ErrCode IInnerOsAccountManager::IsOsAccountCompleted(const int id, bool &isOsAcc
 
 void IInnerOsAccountManager::CleanGarbageOsAccountsAsync()
 {
-    auto task = [] { IInnerOsAccountManager::GetInstance().CleanGarbageOsAccounts(); };
+    auto task = [] {
+        IInnerOsAccountManager::GetInstance().CleanGarbageOsAccounts();
+    #ifdef SUPPORT_DOMAIN_ACCOUNTS
+        InnerDomainAccountManager::GetInstance().CleanUnbindDomainAccount();
+    #endif // SUPPORT_DOMAIN_ACCOUNTS
+    };
     std::thread cleanThread(task);
     pthread_setname_np(cleanThread.native_handle(), "CleanGarbage");
     cleanThread.detach();
@@ -2963,5 +2975,10 @@ ErrCode IInnerOsAccountManager::LockOsAccount(const int32_t localId)
     return ERR_OK;
 }
 #endif
+
+OsAccountControlFileManager &IInnerOsAccountManager::GetFileController()
+{
+    return *std::reinterpret_pointer_cast<OsAccountControlFileManager>(osAccountControl_);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

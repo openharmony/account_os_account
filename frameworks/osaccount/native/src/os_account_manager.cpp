@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -336,6 +336,18 @@ ErrCode OsAccountManager::SetSpecificOsAccountConstraints(const std::vector<std:
         SetSpecificOsAccountConstraints(constraints, enable, targetId, enforcerId, isDeviceOwner);
 }
 
+ErrCode OsAccountManager::SubscribeOsAccountConstraints(
+    const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber)
+{
+    return OsAccount::GetInstance().SubscribeOsAccountConstraints(subscriber);
+}
+
+ErrCode OsAccountManager::UnsubscribeOsAccountConstraints(
+    const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber)
+{
+    return OsAccount::GetInstance().UnsubscribeOsAccountConstraints(subscriber);
+}
+
 ErrCode OsAccountManager::SetDefaultActivatedOsAccount(const int32_t id)
 {
     return OsAccount::GetInstance().SetDefaultActivatedOsAccount(id);
@@ -411,7 +423,6 @@ ErrCode OsAccountManager::GetOsAccountDomainInfo(const int32_t localId, DomainAc
     return OsAccount::GetInstance().GetOsAccountDomainInfo(localId, domainInfo);
 }
 
-
 ErrCode OsAccountManager::PublishOsAccountLockEvent(const int32_t localId, bool isLocking)
 {
 #ifdef SUPPORT_LOCK_OS_ACCOUNT
@@ -430,5 +441,10 @@ ErrCode OsAccountManager::LockOsAccount(int32_t localId)
 #endif
 }
 
+ErrCode OsAccountManager::BindDomainAccount(
+    const int32_t localId, const DomainAccountInfo &domainInfo, const std::shared_ptr<DomainAccountCallback> &callback)
+{
+    return OsAccount::GetInstance().BindDomainAccount(localId, domainInfo, callback);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

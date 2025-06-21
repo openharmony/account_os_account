@@ -22,11 +22,16 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+static int32_t g_testErrCode = 123456;
+
 PluginBussnessError *Auth(const PluginDomainAccountInfo *domainAccountInfo, const PluginUint8Vector *credential,
                           const int32_t callerLocalId, PluginAuthResultInfo **authResultInfo);
 PluginBussnessError *BindAccount(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId);
+PluginBussnessError *BindAccountError(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId);
 PluginBussnessError *GetAccountInfo(const PluginGetDomainAccountInfoOptions *options, const int32_t callerLocalId,
                                     PluginDomainAccountInfo **domainAccountInfo);
+PluginBussnessError *GetAccountInfoError(const PluginGetDomainAccountInfoOptions *options, const int32_t callerLocalId,
+    PluginDomainAccountInfo **domainAccountInfo);
 PluginBussnessError *IsAuthenticationExpired(const PluginDomainAccountInfo *domainAccountInfo,
                                              const PluginUint8Vector *token, int32_t *isValid);
 PluginBussnessError *SetAccountPolicy(const PluginString *parameters,
@@ -37,6 +42,10 @@ PluginBussnessError *UpdateAccountInfo(const PluginDomainAccountInfo *domainAcco
                                        const PluginDomainAccountInfo *newDomainAccountInfo);
 PluginBussnessError* UpdateServerConfig(const PluginString *serverConfigId, const PluginString *parameters,
     const int32_t localId, PluginServerConfigInfo **serverConfigInfo);
+PluginBussnessError *UnBindAccount(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId);
+PluginBussnessError *UnBindAccountError(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId);
+int32_t GetCallingLocalId();
+void ResetCallingLocalId();
 #ifdef __cplusplus
 }
 #endif

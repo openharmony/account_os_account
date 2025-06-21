@@ -59,6 +59,7 @@ group("fuzztest") {
       "createosaccountfordomainstub_fuzzer:CreateOsAccountForDomainStubFuzzTest",
       "getosaccountdomaininfostub_fuzzer:GetOsAccountDomainInfoStubFuzzTest",
       "getosaccountlocalidfromdomainstub_fuzzer:GetOsAccountLocalIdFromDomainStubFuzzTest",
+      "binddomainaccountstub_fuzzer:BindDomainAccountStubFuzzTest",
     ]
   }
 

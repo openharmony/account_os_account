@@ -1792,5 +1792,56 @@ ErrCode OsAccountControlFileManager::GetOsAccountListFromDatabase(const std::str
     return ERR_ACCOUNT_COMMON_INTERFACE_NOT_SUPPORT_ERROR;
 #endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 }
+
+static std::string GetDomainBoundFlagPath(const int32_t localId)
+{
+    return Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(localId) + Constants::PATH_SEPARATOR +
+        Constants::IS_DOMAIN_BOUND_COMPLETED_FILE_NAME;
+}
+
+ErrCode OsAccountControlFileManager::SetDomainBoundFlag(
+    const int32_t localId, const bool isBoundCompleted, const DomainAccountInfo domainInfo)
+{
+    std::string flagFilePath = GetDomainBoundFlagPath(localId);
+    if (isBoundCompleted) {
+        return accountFileOperator_->DeleteFile(flagFilePath);
+    }
+    auto jsonObj = ToJson(domainInfo);
+    if (!jsonObj) {
+        ACCOUNT_LOGE("Domain account info to json failed.");
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
+    std::string jsonStr = PackJsonToString(jsonObj);
+    ErrCode ret = accountFileOperator_->InputFileByPathAndContent(flagFilePath, jsonStr);
+    if (ret != ERR_OK) {
+        accountFileOperator_->DeleteFile(flagFilePath);
+        ACCOUNT_LOGE("Set domain bound completed flag failed, ret = %{public}d.", ret);
+    }
+    return ret;
+}
+
+ErrCode OsAccountControlFileManager::GetDomainBoundFlag(
+    const int32_t localId, bool &isBoundCompleted, DomainAccountInfo &domainInfo)
+{
+    isBoundCompleted = false;
+    domainInfo.Clear();
+    std::string flagFilePath = GetDomainBoundFlagPath(localId);
+    std::string jsonStr;
+    ErrCode ret = accountFileOperator_->GetFileContentByPath(flagFilePath, jsonStr);
+    if (ret == ERR_OSACCOUNT_SERVICE_FILE_FIND_FILE_ERROR) {
+        isBoundCompleted = true;
+        return ERR_OK;
+    } else if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Get domain bound completed flag failed, ret = %{public}d.", ret);
+        return ret;
+    }
+    auto jsonObj = CreateJsonFromString(jsonStr);
+    if (!jsonObj) {
+        ACCOUNT_LOGE("Get domain account info from json failed.");
+        return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
+    }
+    FromJson(jsonObj.get(), domainInfo);
+    return ERR_OK;
+}
 }  // namespace AccountSA
 }  // namespace OHOS

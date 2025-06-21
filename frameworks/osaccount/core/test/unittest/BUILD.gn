@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -39,7 +39,12 @@ ohos_unittest("os_account_test") {
 
   module_out_path = module_output_path
 
-  sources = [ "os_account_test.cpp" ]
+  sources = [
+    "${os_account_core_path}/src/os_account_constraint_subscriber_manager.cpp",
+    "${os_account_innerkits_native_path}/src/os_account_constraint_subscribe_info.cpp",
+    "${os_account_innerkits_native_path}/src/os_account_constraint_subscriber.cpp",
+    "os_account_test.cpp"
+  ]
 
   configs = [ ":os_account_core_config_unittest" ]
 
@@ -47,10 +52,12 @@ ohos_unittest("os_account_test") {
     "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
+    "${os_account_innerkits_native_path}:os_account_constraint_event_stub",
     "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
 
   external_deps = [
+    "access_token:libtokensetproc_shared",
     "c_utils:utils",
     "googletest:gmock_main",
     "googletest:gtest_main",

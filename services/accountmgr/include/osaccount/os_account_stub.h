@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -88,6 +88,8 @@ public:
     ErrCode ProcQueryOsAccountConstraintSourceTypes(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetGlobalOsAccountConstraints(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetSpecificOsAccountConstraints(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcSubscribeConstraints(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcUnsubscribeConstraints(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetDefaultActivatedOsAccount(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetDefaultActivatedOsAccount(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountShortName(MessageParcel &data, MessageParcel &reply);
@@ -107,7 +109,7 @@ public:
     ErrCode ProcPublishOsAccountLockEvent(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcLockOsAccount(MessageParcel &data, MessageParcel &reply);
 #endif
-
+    ErrCode ProcBindDomainAccount(MessageParcel &data, MessageParcel &reply);
 private:
     bool WriteOsAccountInfoList(const std::vector<OsAccountInfo> &accounts, MessageParcel &data);
     DISALLOW_COPY_AND_MOVE(OsAccountStub);

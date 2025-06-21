@@ -82,6 +82,8 @@ static const std::unordered_map<uint32_t, std::string> g_errorStringMap = {
     {ERR_JS_SERVER_CONFIG_ALREADY_EXISTS, "Server config already exists"},
     {ERR_JS_SERVER_CONFIG_ASSOCIATED_ACCOUNT, "Server config has been associated with an account"},
     {ERR_JS_SERVER_CONFIG_UPPER_LIMIT, "The number of server config reaches the upper limit"},
+    {ERR_JS_OS_ACCOUNT_ALREADY_BOUND, "The OS account is already bound."},
+    {ERR_JS_DOMAIN_ACCOUNT_ALREADY_BOUND, "The domain account is already bound."},
 };
 
 napi_value GenerateBusinessError(napi_env env, int32_t jsErrCode, const std::string &jsErrMsg)
