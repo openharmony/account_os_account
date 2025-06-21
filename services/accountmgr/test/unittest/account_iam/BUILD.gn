@@ -334,7 +334,10 @@ ohos_unittest("account_inner_iam_manager_mock_source_file_test") {
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
     "${domain_account_framework_path}:domain_account_stub",
+    "${os_account_innerkits_native_path}:os_account_event_proxy",
     "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_state_reply_callback_proxy",
+    "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
   ]
 
   cflags_cc = [ "-DACCOUNT_TEST" ]

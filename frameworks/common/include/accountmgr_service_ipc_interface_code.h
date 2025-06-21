@@ -133,16 +133,6 @@ enum class AccountIAMInterfaceCode : uint32_t {
     GET_ACCOUNT_STATE,
 };
 
-enum class OsAccountEventInterfaceCode : uint32_t {
-    ACCOUNT_CHANGED = 0,
-    ACCOUNT_SWITCHED = 1,
-    ON_STATE_CHANGED = 2,
-};
-
-enum class StateReplyCallbackInterfaceCode : uint32_t {
-    ON_COMPLETE = 0,
-};
-
 enum class DistributedAccountEventInterfaceCode : uint32_t {
     ON_ACCOUNT_CHANGED = 0,
 };
