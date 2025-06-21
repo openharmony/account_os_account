@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -48,7 +48,7 @@ bool SetOsAccountProfilePhotoStubFuzzTest(const uint8_t *data, size_t size)
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
 
     osAccountManagerService_ ->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::SET_OS_ACCOUNT_PROFILE_PHOTO), datas, reply, option);
+        static_cast<int32_t>(IOsAccountIpcCode::COMMAND_SET_OS_ACCOUNT_PROFILE_PHOTO), datas, reply, option);
 
     return true;
 }

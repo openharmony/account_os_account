@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,7 @@
 #include "account_command.h"
 #include "account_log_wrapper.h"
 #include "account_test_common.h"
+#include "os_account_constants.h"
 #include "singleton.h"
 
 using namespace testing::ext;

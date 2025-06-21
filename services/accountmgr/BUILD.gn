@@ -203,6 +203,7 @@ ohos_shared_library("accountmgr") {
     "${innerkits_native_path}/src/account_info_parcel.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
+    "${os_account_innerkits_native_path}/src/os_account_info_parcel.cpp",
   ]
   sources += account_service_sources
   sources += ability_manager_sources
@@ -238,6 +239,7 @@ ohos_shared_library("accountmgr") {
     "${os_account_innerkits_native_path}:os_account_event_proxy",
     "${os_account_innerkits_native_path}:os_account_state_reply_callback_proxy",
     "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
+    "${os_account_innerkits_native_path}:os_account_stub",
   ]
   external_deps = [
     "ability_base:base",

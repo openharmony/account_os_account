@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,10 +24,11 @@ using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AAFwk;
 using namespace OHOS::AccountSA;
-using namespace OHOS::AccountSA::Constants;
+// using namespace OHOS::AccountSA::Constants;
 
 namespace {
 const std::string HELP_MSG_UNKNOWN_OPTION = "fail: unknown option.";
+const int32_t START_USER_ID = 100;
 }  // namespace
 
 class AccountCommandDeleteTest : public testing::Test {

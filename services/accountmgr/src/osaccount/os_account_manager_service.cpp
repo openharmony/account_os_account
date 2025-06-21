@@ -26,6 +26,7 @@
 #include "account_timer.h"
 #include "xcollie/xcollie.h"
 #endif // HICOLLIE_ENABLE
+#include "os_account_info_json_parser.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -99,6 +100,40 @@ bool IsTypeOutOfRange(const OsAccountType& type)
     }
     return false;
 }
+
+void WriteOsAccountInfo(StringRawData& stringRawData, const OsAccountInfo& osAccountInfo)
+{
+    std::string accountJson = osAccountInfo.ToString();
+    stringRawData.Marshalling(accountJson);
+}
+
+bool WriteOsAccountInfoVector(StringRawData& stringRawData, const std::vector<OsAccountInfo>& osAccountInfos)
+{
+    auto accountJsons = CreateJsonArray();
+    for (const auto& accountItem : osAccountInfos) {
+        auto accountJson = ToJson(accountItem);
+        if (accountJson != nullptr) {
+            AddObjToArray(accountJsons, accountJson);
+        }
+    }
+    std::string accountStr = PackJsonToString(accountJsons);
+    if (accountStr.size() >= Constants::IPC_WRITE_RAW_DATA_MAX_SIZE) {
+        ACCOUNT_LOGE("AccountArrayJson is too long");
+        return false;
+    }
+    stringRawData.Marshalling(accountStr);
+    return true;
+}
+
+ErrCode CheckOsAccountConstraint(const std::string &constraint)
+{
+    if (constraint.empty() || constraint.size() > Constants::CONSTRAINT_MAX_SIZE) {
+        ACCOUNT_LOGE("Failed to read string for constraint, please check constraint length %{public}zu.",
+            constraint.size());
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    return ERR_OK;
+}
 }  // namespace
 
 OsAccountManagerService::OsAccountManagerService() : innerManager_(IInnerOsAccountManager::GetInstance()),
@@ -116,6 +151,24 @@ ErrCode OsAccountManagerService::CreateOsAccount(
         return errCode;
     }
     return innerManager_.CreateOsAccount(name, type, osAccountInfo);
+}
+
+ErrCode OsAccountManagerService::CreateOsAccount(
+    const std::string &name, int32_t typeValue, StringRawData& stringRawData)
+{
+    ErrCode result = AccountPermissionManager::CheckSystemApp();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
+        return result;
+    }
+
+    auto type = static_cast<OsAccountType>(typeValue);
+    OsAccountInfo osAccountInfo;
+    auto errCode = CreateOsAccount(name, type, osAccountInfo);
+    if (errCode == ERR_OK) {
+        WriteOsAccountInfo(stringRawData, osAccountInfo);
+    }
+    return errCode;
 }
 
 ErrCode OsAccountManagerService::ValidateShortName(const std::string &shortName)
@@ -156,6 +209,31 @@ ErrCode OsAccountManagerService::CreateOsAccount(const std::string &localName, c
     }
 
     return innerManager_.CreateOsAccount(localName, shortName, type, osAccountInfo, options);
+}
+
+ErrCode OsAccountManagerService::CreateOsAccount(const std::string &localName, const std::string &shortName,
+    int32_t typeValue, StringRawData& stringRawData)
+{
+    CreateOsAccountOptions options = {};
+    return CreateOsAccount(localName, shortName, typeValue, stringRawData, options);
+}
+
+ErrCode OsAccountManagerService::CreateOsAccount(const std::string &localName, const std::string &shortName,
+    int32_t typeValue, StringRawData& stringRawData, const CreateOsAccountOptions &options)
+{
+    ErrCode result = AccountPermissionManager::CheckSystemApp();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
+        return result;
+    }
+
+    auto type = static_cast<OsAccountType>(typeValue);
+    OsAccountInfo osAccountInfo;
+    auto errCode = CreateOsAccount(localName, shortName, type, osAccountInfo, options);
+    if (errCode == ERR_OK) {
+        WriteOsAccountInfo(stringRawData, osAccountInfo);
+    }
+    return errCode;
 }
 
 ErrCode OsAccountManagerService::ValidateAccountCreateParamAndPermission(const std::string &localName,
@@ -201,9 +279,27 @@ ErrCode OsAccountManagerService::ValidateAccountCreateParamAndPermission(const s
     return ERR_OK;
 }
 
-ErrCode OsAccountManagerService::CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo,
+ErrCode OsAccountManagerService::CreateOsAccountWithFullInfo(const OsAccountInfo& osAccountInfo)
+{
+    ErrCode result = AccountPermissionManager::CheckSystemApp();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
+        return result;
+    }
+
+    CreateOsAccountOptions options = {};
+    return CreateOsAccountWithFullInfo(osAccountInfo, options);
+}
+
+ErrCode OsAccountManagerService::CreateOsAccountWithFullInfo(const OsAccountInfo& osAccountInfo,
     const CreateOsAccountOptions &options)
 {
+    ErrCode result = AccountPermissionManager::CheckSystemApp();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
+        return result;
+    }
+
     bool isMultiOsAccountEnable = false;
     innerManager_.IsMultiOsAccountEnable(isMultiOsAccountEnable);
     if (!isMultiOsAccountEnable) {
@@ -229,11 +325,18 @@ ErrCode OsAccountManagerService::CreateOsAccountWithFullInfo(OsAccountInfo &osAc
         return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
     }
 
-    return innerManager_.CreateOsAccountWithFullInfo(osAccountInfo, options);
+    auto convertOsAccountInfo = osAccountInfo;
+    return innerManager_.CreateOsAccountWithFullInfo(convertOsAccountInfo, options);
 }
 
-ErrCode OsAccountManagerService::UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo)
+ErrCode OsAccountManagerService::UpdateOsAccountWithFullInfo(const OsAccountInfo& osAccountInfo)
 {
+    ErrCode result = AccountPermissionManager::CheckSystemApp();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
+        return result;
+    }
+
     if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("Account manager service, permission denied!");
         REPORT_PERMISSION_FAIL();
@@ -251,7 +354,8 @@ ErrCode OsAccountManagerService::UpdateOsAccountWithFullInfo(OsAccountInfo &osAc
         return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
     }
 
-    return innerManager_.UpdateOsAccountWithFullInfo(osAccountInfo);
+    auto convertOsAccountInfo = osAccountInfo;
+    return innerManager_.UpdateOsAccountWithFullInfo(convertOsAccountInfo);
 }
 
 ErrCode OsAccountManagerService::CreateOsAccountForDomain(const OsAccountType &type,
@@ -303,8 +407,33 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(const OsAccountType &t
     return innerManager_.CreateOsAccountForDomain(type, domainInfo, callback, options);
 }
 
-ErrCode OsAccountManagerService::RemoveOsAccount(const int id)
+ErrCode OsAccountManagerService::CreateOsAccountForDomain(int32_t typeValue, const DomainAccountInfo &domainInfo,
+    const sptr<IDomainAccountCallback> &callback)
 {
+    CreateOsAccountForDomainOptions options = {};
+    return CreateOsAccountForDomain(typeValue, domainInfo, callback, options);
+}
+
+ErrCode OsAccountManagerService::CreateOsAccountForDomain(int32_t typeValue,
+    const DomainAccountInfo &domainInfo, const sptr<IDomainAccountCallback> &callback,
+    const CreateOsAccountForDomainOptions &options)
+{
+    ErrCode result = AccountPermissionManager::CheckSystemApp();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
+        return result;
+    }
+    auto type = static_cast<OsAccountType>(typeValue);
+    return CreateOsAccountForDomain(type, domainInfo, callback, options);
+}
+
+ErrCode OsAccountManagerService::RemoveOsAccount(int32_t id)
+{
+    ErrCode result = AccountPermissionManager::CheckSystemApp();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
+        return result;
+    }
     // parameters check
     ErrCode res = CheckLocalId(id);
     if (res != ERR_OK) {
@@ -324,12 +453,12 @@ ErrCode OsAccountManagerService::RemoveOsAccount(const int id)
     return innerManager_.RemoveOsAccount(id);
 }
 
-ErrCode OsAccountManagerService::IsOsAccountExists(const int id, bool &isOsAccountExists)
+ErrCode OsAccountManagerService::IsOsAccountExists(int32_t id, bool &isOsAccountExists)
 {
     return innerManager_.IsOsAccountExists(id, isOsAccountExists);
 }
 
-ErrCode OsAccountManagerService::IsOsAccountActived(const int id, bool &isOsAccountActived)
+ErrCode OsAccountManagerService::IsOsAccountActived(int32_t id, bool &isOsAccountActived)
 {
     // check current account state
     int callerUserId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
@@ -348,9 +477,13 @@ ErrCode OsAccountManagerService::IsOsAccountActived(const int id, bool &isOsAcco
 }
 
 ErrCode OsAccountManagerService::IsOsAccountConstraintEnable(
-    const int id, const std::string &constraint, bool &isConstraintEnable)
+    int32_t id, const std::string &constraint, bool &isConstraintEnable)
 {
-    ErrCode res = CheckLocalId(id);
+    ErrCode res = CheckOsAccountConstraint(constraint);
+    if (res != ERR_OK) {
+        return res;
+    }
+    res = CheckLocalId(id);
     if (res != ERR_OK) {
         return res;
     }
@@ -365,9 +498,13 @@ ErrCode OsAccountManagerService::IsOsAccountConstraintEnable(
 }
 
 ErrCode OsAccountManagerService::CheckOsAccountConstraintEnabled(
-    const int id, const std::string &constraint, bool &isEnabled)
+    int32_t id, const std::string &constraint, bool &isEnabled)
 {
-    ErrCode res = CheckLocalId(id);
+    ErrCode res = CheckOsAccountConstraint(constraint);
+    if (res != ERR_OK) {
+        return res;
+    }
+    res = CheckLocalId(id);
     if (res != ERR_OK) {
         return res;
     }
@@ -388,7 +525,7 @@ ErrCode OsAccountManagerService::CheckOsAccountConstraintEnabled(
     return innerManager_.IsOsAccountConstraintEnable(id, constraint, isEnabled);
 }
 
-ErrCode OsAccountManagerService::IsOsAccountVerified(const int id, bool &isVerified)
+ErrCode OsAccountManagerService::IsOsAccountVerified(int32_t id, bool &isVerified)
 {
     ErrCode res = CheckLocalId(id);
     if (res != ERR_OK) {
@@ -410,7 +547,7 @@ ErrCode OsAccountManagerService::IsOsAccountVerified(const int id, bool &isVerif
     return innerManager_.IsOsAccountVerified(id, isVerified);
 }
 
-ErrCode OsAccountManagerService::IsOsAccountDeactivating(const int id, bool &isDeactivating)
+ErrCode OsAccountManagerService::IsOsAccountDeactivating(int32_t id, bool &isDeactivating)
 {
     ErrCode res = CheckLocalId(id);
     if (res != ERR_OK) {
@@ -453,6 +590,11 @@ ErrCode OsAccountManagerService::GetOsAccountLocalIdFromProcess(int &id)
 
 ErrCode OsAccountManagerService::IsMainOsAccount(bool &isMainOsAccount)
 {
+    ErrCode result = AccountPermissionManager::CheckSystemApp();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
+        return result;
+    }
     // permission check
     if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGW("Account manager service, permission denied!");
@@ -488,15 +630,25 @@ ErrCode OsAccountManagerService::GetOsAccountLocalIdFromDomain(const DomainAccou
 
 ErrCode OsAccountManagerService::QueryMaxOsAccountNumber(uint32_t &maxOsAccountNumber)
 {
+    ErrCode result = AccountPermissionManager::CheckSystemApp();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
+        return result;
+    }
     return innerManager_.QueryMaxOsAccountNumber(maxOsAccountNumber);
 }
 
 ErrCode OsAccountManagerService::QueryMaxLoggedInOsAccountNumber(uint32_t &maxNum)
 {
+    ErrCode result = AccountPermissionManager::CheckSystemApp();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
+        return result;
+    }
     return innerManager_.QueryMaxLoggedInOsAccountNumber(maxNum);
 }
 
-ErrCode OsAccountManagerService::GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints)
+ErrCode OsAccountManagerService::GetOsAccountAllConstraints(int32_t id, std::vector<std::string> &constraints)
 {
     // permission check
     if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
@@ -524,6 +676,22 @@ ErrCode OsAccountManagerService::QueryAllCreatedOsAccounts(std::vector<OsAccount
     return result;
 }
 
+ErrCode OsAccountManagerService::QueryAllCreatedOsAccounts(StringRawData& osAccountInfos)
+{
+    ErrCode checkResult = AccountPermissionManager::CheckSystemApp();
+    if (checkResult != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", checkResult);
+        return checkResult;
+    }
+    std::vector<OsAccountInfo> osAccountVec;
+    ErrCode errCode = QueryAllCreatedOsAccounts(osAccountVec);
+    if (errCode == ERR_OK && !WriteOsAccountInfoVector(osAccountInfos, osAccountVec)) {
+        ACCOUNT_LOGE("WriteOsAccountInfoVector failed, please check osAccountInfos");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return errCode;
+}
+
 ErrCode OsAccountManagerService::QueryCurrentOsAccount(OsAccountInfo &osAccountInfo)
 {
     // permission check
@@ -535,6 +703,16 @@ ErrCode OsAccountManagerService::QueryCurrentOsAccount(OsAccountInfo &osAccountI
 
     int id = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     return innerManager_.QueryOsAccountById(id, osAccountInfo);
+}
+
+ErrCode OsAccountManagerService::QueryCurrentOsAccount(StringRawData& stringRawData)
+{
+    OsAccountInfo osAccountInfo;
+    auto errCode = QueryCurrentOsAccount(osAccountInfo);
+    if (errCode == ERR_OK) {
+        WriteOsAccountInfo(stringRawData, osAccountInfo);
+    }
+    return errCode;
 }
 
 ErrCode OsAccountManagerService::QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo)
@@ -555,9 +733,25 @@ ErrCode OsAccountManagerService::QueryOsAccountById(const int id, OsAccountInfo 
     return innerManager_.QueryOsAccountById(id, osAccountInfo);
 }
 
-ErrCode OsAccountManagerService::GetOsAccountTypeFromProcess(OsAccountType &type)
+ErrCode OsAccountManagerService::QueryOsAccountById(int32_t id, StringRawData& stringRawData)
+{
+    ErrCode result = AccountPermissionManager::CheckSystemApp();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
+        return result;
+    }
+    OsAccountInfo osAccountInfo;
+    auto errCode = QueryOsAccountById(id, osAccountInfo);
+    if (errCode == ERR_OK) {
+        WriteOsAccountInfo(stringRawData, osAccountInfo);
+    }
+    return errCode;
+}
+
+ErrCode OsAccountManagerService::GetOsAccountTypeFromProcess(int32_t& typeValue)
 {
     int id = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+    auto type = static_cast<OsAccountType>(typeValue);
     ErrCode result = innerManager_.GetOsAccountType(id, type);
     if (result != ERR_OK) {
         REPORT_OS_ACCOUNT_FAIL(IPCSkeleton::GetCallingUid(), Constants::OPERATION_LOG_ERROR,
@@ -566,14 +760,22 @@ ErrCode OsAccountManagerService::GetOsAccountTypeFromProcess(OsAccountType &type
     return result;
 }
 
-ErrCode OsAccountManagerService::GetOsAccountType(const int id, OsAccountType& type)
+ErrCode OsAccountManagerService::GetOsAccountType(int32_t id, int32_t& typeValue)
 {
+    ErrCode result = AccountPermissionManager::CheckSystemApp();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
+        return result;
+    }
     if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "") && !PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("Check permission failed.");
         REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
-    return innerManager_.GetOsAccountType(id, type);
+    auto type = static_cast<OsAccountType>(typeValue);
+    auto res = innerManager_.GetOsAccountType(id, type);
+    typeValue = static_cast<int32_t>(type);
+    return res;
 }
 
 ErrCode OsAccountManagerService::GetOsAccountProfilePhoto(const int id, std::string &photo)
@@ -598,13 +800,33 @@ ErrCode OsAccountManagerService::GetOsAccountProfilePhoto(const int id, std::str
     return innerManager_.GetOsAccountProfilePhoto(id, photo);
 }
 
+ErrCode OsAccountManagerService::GetOsAccountProfilePhoto(int32_t id, StringRawData& stringRawData)
+{
+    ErrCode checkResult = AccountPermissionManager::CheckSystemApp();
+    if (checkResult != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", checkResult);
+        return checkResult;
+    }
+    std::string photo;
+    auto errCode = GetOsAccountProfilePhoto(id, photo);
+    if (errCode == ERR_OK) {
+        stringRawData.Marshalling(photo);
+    }
+    return errCode;
+}
+
 ErrCode OsAccountManagerService::IsMultiOsAccountEnable(bool &isMultiOsAccountEnable)
 {
     return innerManager_.IsMultiOsAccountEnable(isMultiOsAccountEnable);
 }
 
-ErrCode OsAccountManagerService::SetOsAccountName(const int id, const std::string &name)
+ErrCode OsAccountManagerService::SetOsAccountName(int32_t id, const std::string &name)
 {
+    ErrCode result = AccountPermissionManager::CheckSystemApp();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
+        return result;
+    }
     // parameters check
     ErrCode res = CheckLocalId(id);
     if (res != ERR_OK) {
@@ -641,8 +863,13 @@ void OsAccountManagerService::ConstraintPublish(const std::vector<std::string> &
 }
 
 ErrCode OsAccountManagerService::SetOsAccountConstraints(
-    const int id, const std::vector<std::string> &constraints, const bool enable)
+    int32_t id, const std::vector<std::string> &constraints, bool enable)
 {
+    ErrCode result = AccountPermissionManager::CheckSystemApp();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
+        return result;
+    }
     ErrCode res = CheckLocalId(id);
     if (res != ERR_OK) {
         return res;
@@ -693,8 +920,25 @@ ErrCode OsAccountManagerService::SetOsAccountProfilePhoto(const int id, const st
     return innerManager_.SetOsAccountProfilePhoto(id, photo);
 }
 
-ErrCode OsAccountManagerService::ActivateOsAccount(const int id)
+ErrCode OsAccountManagerService::SetOsAccountProfilePhoto(int32_t id, const StringRawData& stringRawData)
 {
+    ErrCode result = AccountPermissionManager::CheckSystemApp();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
+        return result;
+    }
+    std::string photo;
+    stringRawData.Unmarshalling(photo);
+    return SetOsAccountProfilePhoto(id, photo);
+}
+
+ErrCode OsAccountManagerService::ActivateOsAccount(int32_t id)
+{
+    ErrCode result = AccountPermissionManager::CheckSystemApp();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
+        return result;
+    }
     // parameters check
     ErrCode res = CheckLocalId(id);
     if (res != ERR_OK) {
@@ -714,8 +958,13 @@ ErrCode OsAccountManagerService::ActivateOsAccount(const int id)
     return innerManager_.ActivateOsAccount(id);
 }
 
-ErrCode OsAccountManagerService::DeactivateOsAccount(const int id)
+ErrCode OsAccountManagerService::DeactivateOsAccount(int32_t id)
 {
+    ErrCode result = AccountPermissionManager::CheckSystemApp();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
+        return result;
+    }
     // parameters check
     ErrCode res = CheckLocalId(id);
     if (res != ERR_OK) {
@@ -755,6 +1004,11 @@ ErrCode OsAccountManagerService::DeactivateOsAccount(const int id)
 
 ErrCode OsAccountManagerService::DeactivateAllOsAccounts()
 {
+    ErrCode checkResult = AccountPermissionManager::CheckSystemApp();
+    if (checkResult != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", checkResult);
+        return checkResult;
+    }
     // permission check
     if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "")) {
         ACCOUNT_LOGE("Permission check failed.");
@@ -800,7 +1054,7 @@ void OsAccountManagerService::GetCurrentLocalId(int32_t &userId)
     return;
 }
 
-ErrCode OsAccountManagerService::StartOsAccount(const int id)
+ErrCode OsAccountManagerService::StartOsAccount(int32_t id)
 {
     return innerManager_.StartOsAccount(id);
 }
@@ -808,6 +1062,12 @@ ErrCode OsAccountManagerService::StartOsAccount(const int id)
 ErrCode OsAccountManagerService::SubscribeOsAccount(
     const OsAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener)
 {
+    ErrCode checkResult = AccountPermissionManager::CheckSystemApp();
+    if (checkResult != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", checkResult);
+        return checkResult;
+    }
+
     // permission check
     OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType;
     subscribeInfo.GetOsAccountSubscribeType(osAccountSubscribeType);
@@ -835,6 +1095,12 @@ ErrCode OsAccountManagerService::SubscribeOsAccount(
 
 ErrCode OsAccountManagerService::UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener)
 {
+    ErrCode checkResult = AccountPermissionManager::CheckSystemApp();
+    if (checkResult != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", checkResult);
+        return checkResult;
+    }
+
     // permission check
     if (!(PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "") ||
           PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "") ||
@@ -857,14 +1123,15 @@ ErrCode OsAccountManagerService::GetOsAccountLocalIdBySerialNumber(const int64_t
     return innerManager_.GetOsAccountLocalIdBySerialNumber(serialNumber, id);
 }
 
-ErrCode OsAccountManagerService::GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber)
+ErrCode OsAccountManagerService::GetSerialNumberByOsAccountLocalId(int32_t id, int64_t &serialNumber)
 {
     return innerManager_.GetSerialNumberByOsAccountLocalId(id, serialNumber);
 }
 
-OS_ACCOUNT_SWITCH_MOD OsAccountManagerService::GetOsAccountSwitchMod()
+ErrCode OsAccountManagerService::GetOsAccountSwitchMod(int32_t &switchMod)
 {
-    return innerManager_.GetOsAccountSwitchMod();
+    switchMod = static_cast<int32_t>(innerManager_.GetOsAccountSwitchMod());
+    return ERR_OK;
 }
 
 ErrCode OsAccountManagerService::IsCurrentOsAccountVerified(bool &isVerified)
@@ -873,7 +1140,7 @@ ErrCode OsAccountManagerService::IsCurrentOsAccountVerified(bool &isVerified)
     return innerManager_.IsOsAccountVerified(id, isVerified);
 }
 
-ErrCode OsAccountManagerService::IsOsAccountCompleted(const int id, bool &isOsAccountCompleted)
+ErrCode OsAccountManagerService::IsOsAccountCompleted(int32_t id, bool &isOsAccountCompleted)
 {
     ErrCode result = innerManager_.IsOsAccountCompleted(id, isOsAccountCompleted);
     if (result != ERR_OK) {
@@ -883,7 +1150,7 @@ ErrCode OsAccountManagerService::IsOsAccountCompleted(const int id, bool &isOsAc
     return result;
 }
 
-ErrCode OsAccountManagerService::SetCurrentOsAccountIsVerified(const bool isVerified)
+ErrCode OsAccountManagerService::SetCurrentOsAccountIsVerified(bool isVerified)
 {
     // permission check
     if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
@@ -905,7 +1172,7 @@ ErrCode OsAccountManagerService::SetCurrentOsAccountIsVerified(const bool isVeri
     return innerManager_.SetOsAccountIsVerified(id, isVerified);
 }
 
-ErrCode OsAccountManagerService::SetOsAccountIsVerified(const int id, const bool isVerified)
+ErrCode OsAccountManagerService::SetOsAccountIsVerified(int32_t id, bool isVerified)
 {
     // parameters check
     ErrCode res = CheckLocalId(id);
@@ -926,7 +1193,7 @@ ErrCode OsAccountManagerService::SetOsAccountIsVerified(const int id, const bool
     return innerManager_.SetOsAccountIsVerified(id, isVerified);
 }
 
-ErrCode OsAccountManagerService::DumpState(const int &id, std::vector<std::string> &state)
+ErrCode OsAccountManagerService::DumpState(int32_t id, std::vector<std::string> &state)
 {
     state.clear();
 
@@ -1016,6 +1283,17 @@ ErrCode OsAccountManagerService::GetOsAccountFromDatabase(const std::string& sto
     return innerManager_.GetOsAccountFromDatabase(storeID, id, osAccountInfo);
 }
 
+ErrCode OsAccountManagerService::GetOsAccountFromDatabase(const std::string& storeID,
+    int32_t id, StringRawData& stringRawData)
+{
+    OsAccountInfo osAccountInfo;
+    auto errCode = GetOsAccountFromDatabase(storeID, id, osAccountInfo);
+    if (errCode == ERR_OK) {
+        WriteOsAccountInfo(stringRawData, osAccountInfo);
+    }
+    return errCode;
+}
+
 ErrCode OsAccountManagerService::GetOsAccountListFromDatabase(const std::string& storeID,
     std::vector<OsAccountInfo> &osAccountList)
 {
@@ -1027,6 +1305,17 @@ ErrCode OsAccountManagerService::GetOsAccountListFromDatabase(const std::string&
     }
 
     return innerManager_.GetOsAccountListFromDatabase(storeID, osAccountList);
+}
+
+ErrCode OsAccountManagerService::GetOsAccountListFromDatabase(const std::string& storeID,
+    StringRawData& osAccountInfos)
+{
+    std::vector<OsAccountInfo> osAccountVec;
+    auto errCode = innerManager_.GetOsAccountListFromDatabase(storeID, osAccountVec);
+    if (errCode == ERR_OK) {
+        WriteOsAccountInfoVector(osAccountInfos, osAccountVec);
+    }
+    return errCode;
 }
 
 ErrCode OsAccountManagerService::DumpStateByAccounts(
@@ -1085,9 +1374,14 @@ ErrCode OsAccountManagerService::QueryActiveOsAccountIds(std::vector<int32_t>& i
     return result;
 }
 
-ErrCode OsAccountManagerService::QueryOsAccountConstraintSourceTypes(const int32_t id,
+ErrCode OsAccountManagerService::QueryOsAccountConstraintSourceTypes(int32_t id,
     const std::string &constraint, std::vector<ConstraintSourceTypeInfo> &constraintSourceTypeInfos)
 {
+    ErrCode result = AccountPermissionManager::CheckSystemApp();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
+        return result;
+    }
     // parameters check
     ErrCode res = CheckLocalId(id);
     if (res != ERR_OK) {
@@ -1109,8 +1403,12 @@ ErrCode OsAccountManagerService::QueryOsAccountConstraintSourceTypes(const int32
 }
 
 ErrCode OsAccountManagerService::SetGlobalOsAccountConstraints(const std::vector<std::string> &constraints,
-    const bool enable, const int32_t enforcerId, const bool isDeviceOwner)
+    bool enable, int32_t enforcerId, bool isDeviceOwner)
 {
+    if (enforcerId < 0) {
+        ACCOUNT_LOGE("Failed to read localId, please check enforcerId");
+        return ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR;
+    }
     // permission check
     if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "") || !PermissionCheck(MANAGE_EDM_POLICY, "")) {
         ACCOUNT_LOGE("Account manager service, permission denied!");
@@ -1125,8 +1423,16 @@ ErrCode OsAccountManagerService::SetGlobalOsAccountConstraints(const std::vector
 }
 
 ErrCode OsAccountManagerService::SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
-    const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner)
+    bool enable, int32_t targetId, int32_t enforcerId, bool isDeviceOwner)
 {
+    if (targetId < 0) {
+        ACCOUNT_LOGE("Failed to read targetId, please check targetId");
+        return ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR;
+    }
+    if (enforcerId < 0) {
+        ACCOUNT_LOGE("Failed to read enforcerId, please check enforcerId");
+        return ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR;
+    }
     // permission check
     if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "") || !PermissionCheck(MANAGE_EDM_POLICY, "")) {
         ACCOUNT_LOGE("Account manager service, permission denied!");
@@ -1200,7 +1506,7 @@ ErrCode OsAccountManagerService::UnsubscribeOsAccountConstraints(const OsAccount
     return result;
 }
 
-ErrCode OsAccountManagerService::SetDefaultActivatedOsAccount(const int32_t id)
+ErrCode OsAccountManagerService::SetDefaultActivatedOsAccount(int32_t id)
 {
     // parameters check
     ErrCode ret = CheckLocalId(id);
@@ -1238,6 +1544,11 @@ ErrCode OsAccountManagerService::GetOsAccountShortNameCommon(const int32_t id, s
 
 ErrCode OsAccountManagerService::GetOsAccountShortName(std::string &shortName)
 {
+    ErrCode result = AccountPermissionManager::CheckSystemApp();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
+        return result;
+    }
     int32_t id = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     return GetOsAccountShortNameCommon(id, shortName);
 }
@@ -1256,6 +1567,11 @@ ErrCode OsAccountManagerService::GetOsAccountName(std::string &name)
 
 ErrCode OsAccountManagerService::GetOsAccountNameById(int32_t id, std::string &name)
 {
+    ErrCode result = AccountPermissionManager::CheckSystemApp();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
+        return result;
+    }
     if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "") && !PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("Check permission failed.");
         REPORT_PERMISSION_FAIL();
@@ -1269,8 +1585,13 @@ ErrCode OsAccountManagerService::GetOsAccountNameById(int32_t id, std::string &n
     return ERR_OK;
 }
 
-ErrCode OsAccountManagerService::GetOsAccountShortNameById(const int32_t id, std::string &shortName)
+ErrCode OsAccountManagerService::GetOsAccountShortNameById(int32_t id, std::string &shortName)
 {
+    ErrCode result = AccountPermissionManager::CheckSystemApp();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
+        return result;
+    }
     if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("Check permission failed, please check your permission.");
         REPORT_PERMISSION_FAIL();
@@ -1314,9 +1635,14 @@ bool OsAccountManagerService::CheckCreateOsAccountWhiteList()
     return uidWhiteListForCreation.find(GetCallingUid()) != uidWhiteListForCreation.end();
 }
 
-ErrCode OsAccountManagerService::IsOsAccountForeground(const int32_t localId, const uint64_t displayId,
+ErrCode OsAccountManagerService::IsOsAccountForeground(int32_t localId, const uint64_t displayId,
                                                        bool &isForeground)
 {
+    ErrCode checkResult = AccountPermissionManager::CheckSystemApp();
+    if (checkResult != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", checkResult);
+        return checkResult;
+    }
     int32_t callerId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     int32_t id = (localId == -1) ? callerId : localId;
     if (id < Constants::ADMIN_LOCAL_ID) {
@@ -1355,6 +1681,11 @@ ErrCode OsAccountManagerService::GetForegroundOsAccountLocalId(const uint64_t di
 
 ErrCode OsAccountManagerService::GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts)
 {
+    ErrCode checkResult = AccountPermissionManager::CheckSystemApp();
+    if (checkResult != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", checkResult);
+        return checkResult;
+    }
     ErrCode result = innerManager_.GetForegroundOsAccounts(accounts);
     if (result != ERR_OK) {
         REPORT_OS_ACCOUNT_FAIL(IPCSkeleton::GetCallingUid(), Constants::OPERATION_LOG_ERROR,
@@ -1370,6 +1701,11 @@ ErrCode OsAccountManagerService::GetBackgroundOsAccountLocalIds(std::vector<int3
 
 ErrCode OsAccountManagerService::SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved)
 {
+    ErrCode result = AccountPermissionManager::CheckSystemApp();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
+        return result;
+    }
     ErrCode res = CheckLocalId(localId);
     if (res != ERR_OK) {
         return res;
@@ -1387,7 +1723,7 @@ ErrCode OsAccountManagerService::SetOsAccountToBeRemoved(int32_t localId, bool t
     return innerManager_.SetOsAccountToBeRemoved(localId, toBeRemoved);
 }
 
-ErrCode OsAccountManagerService::GetOsAccountDomainInfo(const int32_t localId, DomainAccountInfo &domainInfo)
+ErrCode OsAccountManagerService::GetOsAccountDomainInfo(int32_t localId, DomainAccountInfo &domainInfo)
 {
     if (!(PermissionCheck(GET_DOMAIN_ACCOUNTS, "") &&
         PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, ""))) {

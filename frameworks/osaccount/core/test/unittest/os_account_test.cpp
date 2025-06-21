@@ -26,6 +26,7 @@
 #include "os_account_proxy.h"
 #define private public
 #include "os_account.h"
+#include "os_account_constants.h"
 #include "os_account_constraint_subscriber_manager.h"
 #undef private
 #include "singleton.h"
@@ -324,9 +325,9 @@ HWTEST_F(OsAccountTest, OsAccountTest009, TestSize.Level1)
 HWTEST_F(OsAccountTest, OsAccountTest011, TestSize.Level1)
 {
     OsAccountType type = NORMAL;
-    OsAccountInfo osAccountInfo;
+    StringRawData stringRawData;
     EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
-        osAccountProxy_->CreateOsAccount(STRING_EMPTY, type, osAccountInfo));
+        osAccountProxy_->CreateOsAccount(STRING_EMPTY, static_cast<int32_t>(type), stringRawData));
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 

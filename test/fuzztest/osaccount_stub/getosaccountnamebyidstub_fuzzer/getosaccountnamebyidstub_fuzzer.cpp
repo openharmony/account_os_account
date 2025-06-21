@@ -46,7 +46,7 @@ bool GetOsAccountNameByIdStubFuzzTest(const uint8_t *data, size_t size)
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
 
     osAccountManagerService_->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_NAME_BY_ID), datas, reply, option);
+        static_cast<int32_t>(IOsAccountIpcCode::COMMAND_GET_OS_ACCOUNT_NAME_BY_ID), datas, reply, option);
 
     return true;
 }

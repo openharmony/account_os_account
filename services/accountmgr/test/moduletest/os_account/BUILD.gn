@@ -148,6 +148,7 @@ ohos_moduletest("os_account_manager_service_module_test") {
     "${os_account_innerkits_native_path}:os_account_event_stub",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
+    "${os_account_innerkits_native_path}:os_account_stub",
   ]
   deps += [
     "${app_account_innerkits_native_path}:app_account_authenticator_callback_stub",
@@ -307,6 +308,7 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
     "${os_account_innerkits_native_path}:os_account_event_stub",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
+    "${os_account_innerkits_native_path}:os_account_stub",
   ]
   deps += [
     "${app_account_innerkits_native_path}:app_account_authenticator_callback_stub",

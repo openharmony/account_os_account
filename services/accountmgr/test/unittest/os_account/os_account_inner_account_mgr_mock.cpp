@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -954,9 +954,11 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, SetOsAccountConstraints001, TestSize.Leve
     EXPECT_EQ(ERR_OK,
         innerMgrService_->SetSpecificOsAccountConstraints(testConstraints, true, localId, TEST_USER_ID100, false));
 
-    std::vector<ConstraintSourceTypeInfo> infos, emptyConstraintInfos{
+    std::vector<ConstraintSourceTypeInfo> infos;
+    std::vector<ConstraintSourceTypeInfo> emptyConstraintInfos{
         {-1, ConstraintSourceType::CONSTRAINT_NOT_EXIST},
-    }, constraintInfos{
+    };
+    std::vector<ConstraintSourceTypeInfo> constraintInfos{
         {-1, ConstraintSourceType::CONSTRAINT_TYPE_BASE},
         {localId, ConstraintSourceType::CONSTRAINT_TYPE_DEVICE_OWNER},
         {TEST_USER_ID100, ConstraintSourceType::CONSTRAINT_TYPE_PROFILE_OWNER},
