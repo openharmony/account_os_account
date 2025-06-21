@@ -17,6 +17,7 @@
 
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
+#include "os_account_constants.h"
 #include <pthread.h>
 #include <thread>
 

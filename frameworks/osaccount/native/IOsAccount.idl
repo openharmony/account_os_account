@@ -1,0 +1,129 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+interface_token ohos.accountfwk.IOsAccount;
+import ../../domain_account/IDomainAccountCallback;
+
+rawdata OHOS.AccountSA.StringRawData;
+
+sequenceable OHOS.AccountSA.OsAccountStateParcel;
+sequenceable OHOS.AccountSA.OsAccountInfo;
+sequenceable OsAccountInfo..OHOS.AccountSA.CreateOsAccountOptions;
+sequenceable OsAccountInfo..OHOS.AccountSA.ConstraintSourceTypeInfo;
+sequenceable OsAccountInfo..OHOS.AccountSA.OsAccountSubscribeInfo;
+sequenceable OsAccountInfo..OHOS.AccountSA.ForegroundOsAccount;
+sequenceable DomainAccountCommon..OHOS.AccountSA.DomainAccountInfo;
+sequenceable DomainAccountCommon..OHOS.AccountSA.CreateOsAccountForDomainOptions;
+sequenceable OHOS.AccountSA.OsAccountConstraintSubscribeInfo;
+sequenceable OHOS.IRemoteObject;
+
+
+interface OHOS.AccountSA.IOsAccount {
+    void CreateOsAccount(
+        [in] String name, [in] int typeValue, [out] StringRawData stringRawData);
+    void CreateOsAccount([in] String localName, [in] String shortName,
+        [in] int typeValue, [out] StringRawData stringRawData,
+        [in] CreateOsAccountOptions createOsAccountOptions);
+    void CreateOsAccount([in] String localName, [in] String shortName,
+        [in] int typeValue, [out] StringRawData stringRawData);
+    void CreateOsAccountWithFullInfo([in] OsAccountInfo osAccountInfo,
+        [in] CreateOsAccountOptions createOsAccountOptions);
+    void CreateOsAccountWithFullInfo([in] OsAccountInfo osAccountInfo);
+    void UpdateOsAccountWithFullInfo([in] OsAccountInfo osAccountInfo);
+    void CreateOsAccountForDomain([in] int typeValue, [in] DomainAccountInfo domainInfo,
+        [in] IDomainAccountCallback domainAccountCallback,
+        [in] CreateOsAccountForDomainOptions createOsAccountForDomainOptions);
+    void CreateOsAccountForDomain([in] int typeValue, [in] DomainAccountInfo domainInfo,
+        [in] IDomainAccountCallback domainAccountCallback);
+    void RemoveOsAccount([in] int id);
+    void IsOsAccountExists([in] int id, [out] boolean isOsAccountExists);
+    void IsOsAccountActived([in] int id, [out] boolean isOsAccountActived);
+    void IsOsAccountConstraintEnable(
+        [in] int id, [in] String constraint, [out] boolean isConstraintEnable);
+    void CheckOsAccountConstraintEnabled(
+        [in] int id, [in] String constraint, [out] boolean isEnabled);
+    void IsOsAccountVerified([in] int id, [out] boolean isVerified);
+    void IsOsAccountDeactivating([in] int id, [out] boolean isDeactivating);
+    void GetCreatedOsAccountsCount([out] unsigned int osAccountsCount);
+    void GetOsAccountLocalIdFromProcess([out] int id);
+    void IsMainOsAccount([out] boolean isMainOsAccount);
+    void GetOsAccountLocalIdFromDomain([in] DomainAccountInfo domainInfo, [out] int id);
+    void QueryMaxOsAccountNumber([out] unsigned int maxOsAccountNumber);
+    void QueryMaxLoggedInOsAccountNumber([out] unsigned int maxNum);
+    void GetOsAccountAllConstraints([in] int id, [out] String[] constraints);
+    void QueryAllCreatedOsAccounts([out] StringRawData osAccountInfos);
+    void QueryCurrentOsAccount([out] StringRawData stringRawData);
+    void QueryOsAccountById([in] int id, [out] StringRawData stringRawData);
+    void GetOsAccountTypeFromProcess([out] int typeValue);
+    void GetOsAccountType([in] int id, [out] int typeValue);
+    void GetOsAccountProfilePhoto([in] int id, [out] StringRawData stringRawData);
+    void IsMultiOsAccountEnable([out] boolean isMultiOsAccountEnable);
+    void SetOsAccountName([in] int id, [in] String localName);
+    void SetOsAccountConstraints(
+        [in] int id, [in] String[] constraints, [in] boolean enable);
+    void SetOsAccountProfilePhoto([in] int id, [in] StringRawData stringRawData);
+    void ActivateOsAccount([in] int id);
+    void DeactivateOsAccount([in] int id);
+    void DeactivateAllOsAccounts();
+    void StartOsAccount([in] int id);
+    void GetOsAccountLocalIdBySerialNumber([in] long serialNumber, [out] int id);
+    void GetSerialNumberByOsAccountLocalId([in] int id, [out] long serialNumber);
+    void SubscribeOsAccount(
+        [in] OsAccountSubscribeInfo subscribeInfo, [in] IRemoteObject eventListener);
+    void UnsubscribeOsAccount([in] IRemoteObject eventListener);
+    int GetOsAccountSwitchMod();
+    void IsCurrentOsAccountVerified([out] boolean isVerified);
+    void IsOsAccountCompleted([in] int id, [out] boolean isOsAccountCompleted);
+    void SetCurrentOsAccountIsVerified([in] boolean isVerified);
+    void SetOsAccountIsVerified([in] int id, [in] boolean isVerified);
+    void DumpState([in] int id, [out] String[] state);
+    void GetOsAccountDomainInfo([in] int localId, [out] DomainAccountInfo domainInfo);
+
+    void GetCreatedOsAccountNumFromDatabase([in] String storeID,
+        [out] int createdOsAccountNum);
+    void GetSerialNumberFromDatabase([in] String storeID, [out] long serialNumber);
+    void GetMaxAllowCreateIdFromDatabase([in] String storeID, [out] int id);
+    void GetOsAccountFromDatabase([in] String storeID, [in] int id,
+        [out] StringRawData stringRawData);
+    void GetOsAccountListFromDatabase([in] String storeID,
+        [out] StringRawData osAccountInfos);
+    void QueryActiveOsAccountIds([out] int[] ids);
+    void QueryOsAccountConstraintSourceTypes([in] int id,
+        [in] String constraint, [out] ConstraintSourceTypeInfo[] constraintSourceTypeInfos);
+    void SetGlobalOsAccountConstraints([in] String[] constraints,
+        [in] boolean enable, [in] int enforcerId, [in] boolean isDeviceOwner);
+    void SetSpecificOsAccountConstraints([in] String[] constraints,
+        [in] boolean enable, [in] int targetId, [in] int enforcerId, [in] boolean isDeviceOwner);
+
+    void SetDefaultActivatedOsAccount([in] int id);
+    void GetDefaultActivatedOsAccount([out] int id);
+    void GetOsAccountShortName([out] String shortName);
+    void GetOsAccountName([out] String name);
+    void GetOsAccountNameById([in] int id, [out] String name);
+    void GetOsAccountShortNameById([in] int id, [out] String shortName);
+    void IsOsAccountForeground([in] int localId, [in] unsigned long displayId, [out] boolean isForeground);
+    void GetForegroundOsAccountLocalId([in] unsigned long displayId, [out] int localId);
+    void GetForegroundOsAccounts([out] ForegroundOsAccount[] accounts);
+    void GetBackgroundOsAccountLocalIds([out] int[] localIds);
+    void SetOsAccountToBeRemoved([in] int localId, [in] boolean toBeRemoved);
+    [macrodef SUPPORT_LOCK_OS_ACCOUNT] void PublishOsAccountLockEvent([in] int localId, [in] boolean isLocking);
+    [macrodef SUPPORT_LOCK_OS_ACCOUNT] void LockOsAccount([in] int localId);
+    void SubscribeOsAccountConstraints([in] OsAccountConstraintSubscribeInfo subscribeInfo,
+        [in] IRemoteObject eventListener);
+    void UnsubscribeOsAccountConstraints([in] OsAccountConstraintSubscribeInfo subscribeInfo,
+        [in] IRemoteObject eventListener);
+    void BindDomainAccount([in] int localId, [in] DomainAccountInfo domainInfo,
+        [in] IDomainAccountCallback domainAccountCallback);
+}

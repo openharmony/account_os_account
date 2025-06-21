@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -48,7 +48,7 @@ bool ActivateOsAccountStubFuzzTest(const uint8_t *data, size_t size)
     MessageOption option;
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
     osAccountManagerService_ ->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::ACTIVATE_OS_ACCOUNT), datas, reply, option);
+        static_cast<int32_t>(IOsAccountIpcCode::COMMAND_ACTIVATE_OS_ACCOUNT), datas, reply, option);
 
     return true;
 }
@@ -89,7 +89,7 @@ bool ProcCreateOsAccountWithFullInfoStubFuzzTest(const uint8_t *data, size_t siz
     MessageOption option;
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
     osAccountManagerService_->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::CREATE_OS_ACCOUNT_WITH_FULL_INFO), datas, reply, option);
+        static_cast<int32_t>(IOsAccountIpcCode::COMMAND_CREATE_OS_ACCOUNT_WITH_FULL_INFO), datas, reply, option);
 
     return true;
 }
@@ -113,8 +113,8 @@ bool ProcGetCreatedOsAccountNumFromDatabaseStubFuzzTest(const uint8_t *data, siz
     MessageParcel reply;
     MessageOption option;
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
-    osAccountManagerService_->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::GET_CREATED_OS_ACCOUNT_NUM_FROM_DATABASE), datas, reply, option);
+    osAccountManagerService_->OnRemoteRequest(static_cast<int32_t>(
+        IOsAccountIpcCode::COMMAND_GET_CREATED_OS_ACCOUNT_NUM_FROM_DATABASE), datas, reply, option);
 
     return true;
 }
@@ -139,7 +139,7 @@ bool ProcGetMaxAllowCreateIdFromDatabaseStubFuzzTest(const uint8_t *data, size_t
     MessageOption option;
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
     osAccountManagerService_->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::GET_MAX_ALLOW_CREATE_ID_FROM_DATABASE), datas, reply, option);
+        static_cast<int32_t>(IOsAccountIpcCode::COMMAND_GET_MAX_ALLOW_CREATE_ID_FROM_DATABASE), datas, reply, option);
 
     return true;
 }
@@ -168,7 +168,7 @@ bool ProcGetOsAccountFromDatabaseStubFuzzTest(const uint8_t *data, size_t size)
     MessageOption option;
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
     osAccountManagerService_->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_FROM_DATABASE), datas, reply, option);
+        static_cast<int32_t>(IOsAccountIpcCode::COMMAND_GET_OS_ACCOUNT_FROM_DATABASE), datas, reply, option);
 
     return true;
 }
@@ -193,7 +193,7 @@ bool ProcGetOsAccountListFromDatabaseStubFuzzTest(const uint8_t *data, size_t si
     MessageOption option;
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
     osAccountManagerService_->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_LIST_FROM_DATABASE), datas, reply, option);
+        static_cast<int32_t>(IOsAccountIpcCode::COMMAND_GET_OS_ACCOUNT_LIST_FROM_DATABASE), datas, reply, option);
 
     return true;
 }
@@ -218,7 +218,7 @@ bool ProcGetSerialNumberFromDatabaseStubFuzzTest(const uint8_t *data, size_t siz
     MessageOption option;
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
     osAccountManagerService_->OnRemoteRequest(
-        static_cast<int32_t>(OsAccountInterfaceCode::GET_SERIAL_NUM_FROM_DATABASE), datas, reply, option);
+        static_cast<int32_t>(IOsAccountIpcCode::COMMAND_GET_SERIAL_NUMBER_FROM_DATABASE), datas, reply, option);
 
     return true;
 }
