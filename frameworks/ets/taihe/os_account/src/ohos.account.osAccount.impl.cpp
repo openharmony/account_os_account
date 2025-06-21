@@ -237,24 +237,24 @@ public:
 
 class THGetEnrolledIdCallback : public AccountSA::GetEnrolledIdCallback {
     public:
-        int32_t errorCode = -1;
-        array<uint8_t> enrolledID = {};
-        std::mutex mutex;
-        std::condition_variable cv;
-        bool onEnrolledIdCalled = false;
+        int32_t errorCode_ = -1;
+        array<uint8_t> enrolledID_ = {};
+        std::mutex mutex_;
+        std::condition_variable cv_;
+        bool onEnrolledIdCalled_ = false;
         void OnEnrolledId(int32_t result, uint64_t enrolledIdUint64) override
         {
-            std::lock_guard<std::mutex> lock(mutex);
-            if (this->onEnrolledIdCalled) {
+            std::lock_guard<std::mutex> lock(mutex_);
+            if (this->onEnrolledIdCalled_) {
                 return;
             }
-            this->onEnrolledIdCalled = true;
-            this->errorCode = result;
-            if (this->errorCode != ERR_OK) {
-                this->enrolledID = array<uint8_t>(taihe::copy_data_t{},
+            this->onEnrolledIdCalled_ = true;
+            this->errorCode_ = result;
+            if (this->errorCode_ != ERR_OK) {
+                this->enrolledID_ = array<uint8_t>(taihe::copy_data_t{},
                     reinterpret_cast<uint8_t *>(&enrolledIdUint64), sizeof(uint64_t));
             }
-            cv.notify_one();
+            cv_.notify_one();
         }
     };
 
@@ -457,10 +457,10 @@ public:
         AccountSA::AuthType innerAuthType = static_cast<AccountSA::AuthType>(authTypeInner);
         std::shared_ptr<THGetEnrolledIdCallback> getEnrolledIdCallback = std::make_shared<THGetEnrolledIdCallback>();
         AccountSA::AccountIAMClient::GetInstance().GetEnrolledId(innerAccountId, innerAuthType, getEnrolledIdCallback);
-        std::unique_lock<std::mutex> lock(getEnrolledIdCallback->mutex);
-        getEnrolledIdCallback->cv.wait(lock,
-            [getEnrolledIdCallback] { return getEnrolledIdCallback->onEnrolledIdCalled;});
-        return getEnrolledIdCallback->enrolledID;
+        std::unique_lock<std::mutex> lock(getEnrolledIdCallback->mutex_);
+        getEnrolledIdCallback->cv_.wait(lock,
+            [getEnrolledIdCallback] { return getEnrolledIdCallback->onEnrolledIdCalled_;});
+        return getEnrolledIdCallback->enrolledID_;
     }
 };
 class THDomainAccountCallback : public AccountSA::DomainAccountCallback {
@@ -1224,22 +1224,22 @@ class DomainAccountCallbackTH final: public AccountSA::DomainAccountCallback {
 public:
     explicit DomainAccountCallbackTH(std::shared_ptr<THUserAuthCallback> &callback):callback_(callback) {}
 
-    std::mutex mutex;
-    std::condition_variable cv;
-    bool onResultCalled = false;
-    bool isHasDomainAccount = false;
+    std::mutex mutex_;
+    std::condition_variable cv_;
+    bool onResultCalled_ = false;
+    bool isHasDomainAccount_ = false;
 
     void OnResult(const int32_t errCode, Parcel &parcel) override
     {
-        std::unique_lock<std::mutex> lock(mutex);
-        if (this->onResultCalled) {
+        std::unique_lock<std::mutex> lock(mutex_);
+        if (this->onResultCalled_) {
             return;
         }
-        this->onResultCalled = true;
+        this->onResultCalled_ = true;
         if (errCode == ERR_OK) {
-            parcel.ReadBool(isHasDomainAccount);
+            parcel.ReadBool(isHasDomainAccount_);
         }
-        cv.notify_one();
+        cv_.notify_one();
     }
 private:
     std::shared_ptr<THUserAuthCallback> callback_;
@@ -1310,9 +1310,9 @@ bool HasAccountSync(DomainAccountInfo const& domainAccountInfo)
         Parcel emptyParcel;
         callbackInner->OnResult(errorCode, emptyParcel);
     }
-    std::unique_lock<std::mutex> lock(callbackInner->mutex);
-    callbackInner->cv.wait(lock, [callbackInner] { return callbackInner->onResultCalled;});
-    return callbackInner->isHasDomainAccount;
+    std::unique_lock<std::mutex> lock(callbackInner->mutex_);
+    callbackInner->cv_.wait(lock, [callbackInner] { return callbackInner->onResultCalled_;});
+    return callbackInner->isHasDomainAccount_;
 }
 
 void UpdateAccountTokenSync(DomainAccountInfo const &domainAccountInfo, array_view<uint8_t> token)
