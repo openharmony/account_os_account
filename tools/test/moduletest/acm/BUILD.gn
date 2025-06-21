@@ -79,7 +79,10 @@ ohos_moduletest("account_command_module_mock_test") {
     "${domain_account_framework_path}:domain_account_innerkits",
     "${domain_account_framework_path}:domain_account_stub",
     "${innerkits_native_path}:libaccountkits",
+    "${os_account_innerkits_native_path}:os_account_event_proxy",
     "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_state_reply_callback_proxy",
+    "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
   ]
 
   use_exceptions = true

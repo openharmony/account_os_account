@@ -16,7 +16,11 @@ import("//build/ohos.gni")
 import("../../../os_account.gni")
 
 idl_gen_interface("frameworks_osaccount_interface") {
-  sources = [ "${os_account_core_path}/IOsAccountConstraintEvent.idl" ]
+  sources = [
+    "IOsAccountEvent.idl",
+    "IOsAccountStateReplyCallback.idl",
+    "${os_account_core_path}/IOsAccountConstraintEvent.idl",
+  ]
   subsystem_name = "account"
   part_name = "os_account"
 }
@@ -60,11 +64,9 @@ ohos_shared_library("os_account_innerkits") {
     "${os_account_core_path}/src/os_account.cpp",
     "${os_account_core_path}/src/os_account_death_recipient.cpp",
     "${os_account_core_path}/src/os_account_event_listener.cpp",
-    "${os_account_core_path}/src/os_account_event_stub.cpp",
     "${os_account_core_path}/src/os_account_proxy.cpp",
     "${os_account_core_path}/src/os_account_state_parcel.cpp",
     "${os_account_core_path}/src/os_account_state_reply_callback.cpp",
-    "${os_account_core_path}/src/os_account_state_reply_callback_proxy.cpp",
     "src/os_account_constraint_subscribe_info.cpp",
     "src/os_account_constraint_subscriber.cpp",
     "src/os_account_info.cpp",
@@ -76,6 +78,8 @@ ohos_shared_library("os_account_innerkits") {
   sources += filter_include(output_values,
                             [
                               "*os_account_constraint_event_stub.cpp",
+                              "*os_account_event_stub.cpp",
+                              "*os_account_state_reply_callback_proxy.cpp",
                             ])
 
   defines = [
@@ -161,6 +165,86 @@ ohos_source_set("os_account_constraint_event_stub") {
   public_configs = [ ":osaccountinterface_config" ]
   output_values = get_target_outputs(":frameworks_osaccount_interface")
   sources = filter_include(output_values, [ "*os_account_constraint_event_stub.cpp" ])
+  deps = [ ":frameworks_osaccount_interface" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("os_account_event_proxy") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [ ":osaccountinterface_config" ]
+  public_configs = [ ":osaccountinterface_config" ]
+  output_values = get_target_outputs(":frameworks_osaccount_interface")
+  sources = filter_include(output_values, [ "*os_account_event_proxy.cpp" ])
+  deps = [ ":frameworks_osaccount_interface" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("os_account_event_stub") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [ ":osaccountinterface_config" ]
+  public_configs = [ ":osaccountinterface_config" ]
+  output_values = get_target_outputs(":frameworks_osaccount_interface")
+  sources = filter_include(output_values, [ "*os_account_event_stub.cpp" ])
+  deps = [ ":frameworks_osaccount_interface" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("os_account_state_reply_callback_proxy") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [ ":osaccountinterface_config" ]
+  public_configs = [ ":osaccountinterface_config" ]
+  output_values = get_target_outputs(":frameworks_osaccount_interface")
+  sources = filter_include(output_values, [ "*os_account_state_reply_callback_proxy.cpp" ])
+  deps = [ ":frameworks_osaccount_interface" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("os_account_state_reply_callback_stub") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [ ":osaccountinterface_config" ]
+  public_configs = [ ":osaccountinterface_config" ]
+  output_values = get_target_outputs(":frameworks_osaccount_interface")
+  sources = filter_include(output_values, [ "*os_account_state_reply_callback_stub.cpp" ])
   deps = [ ":frameworks_osaccount_interface" ]
   external_deps = [
     "c_utils:utils",

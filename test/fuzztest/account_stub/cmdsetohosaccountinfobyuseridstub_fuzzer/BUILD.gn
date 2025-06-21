@@ -1,4 +1,4 @@
-# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Copyright (c) 2024-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -41,7 +41,11 @@ ohos_fuzztest("CmdSetOhosAccountInfoByUserIdStubFuzzTest") {
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
-  configs = [ "${domain_account_framework_path}:frameworks_domain_account_interface_public_config" ]
+  configs = [
+    "${domain_account_framework_path}:frameworks_domain_account_interface_public_config",
+    "${os_account_innerkits_native_path}:frameworks_osaccount_interface_public_config",
+  ]
+
   sources = [
     "${app_account_services_path}/src/account_mgr_service.cpp",
     "cmdsetohosaccountinfobyuseridstub_fuzzer.cpp",

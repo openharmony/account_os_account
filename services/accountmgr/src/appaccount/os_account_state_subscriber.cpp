@@ -39,10 +39,14 @@ ErrCode OsAccountStateSubscriber::OnStateChanged(const OsAccountStateParcel &par
     return ERR_OK;
 }
 
-void OsAccountStateSubscriber::OnAccountsChanged(const int &localId)
-{}
+ErrCode OsAccountStateSubscriber::OnAccountsChanged(int32_t localId)
+{
+    return ERR_OK;
+}
 
-void OsAccountStateSubscriber::OnAccountsSwitch(const int &newId, const int &oldId)
-{}
+ErrCode OsAccountStateSubscriber::OnAccountsSwitch(int32_t newId, int32_t oldId)
+{
+    return ERR_OK;
+}
 } // namespace AccountSA
 } // namespace OHOS

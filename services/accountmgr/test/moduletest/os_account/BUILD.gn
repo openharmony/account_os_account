@@ -119,13 +119,11 @@ ohos_moduletest("os_account_manager_service_module_test") {
     "${domain_account_framework_path}/src/domain_account_common.cpp",
     "${domain_account_framework_path}/src/domain_account_parcel.cpp",
     "${innerkits_native_path}/src/account_info_parcel.cpp",
-    "${os_account_core_path}/src/os_account_event_stub.cpp",
     "${os_account_dfx_path}/data_dfx/data_size_report_adapter.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
     "${services_path}/accountmgr/src/appaccount/os_account_state_subscriber.cpp",
-    "${services_path}/accountmgr/src/osaccount/os_account_event_proxy.cpp",
   ]
   sources += account_service_sources_mock
   sources += account_data_storage_source
@@ -146,7 +144,10 @@ ohos_moduletest("os_account_manager_service_module_test") {
     "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
+    "${os_account_innerkits_native_path}:os_account_event_proxy",
+    "${os_account_innerkits_native_path}:os_account_event_stub",
     "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
   ]
   deps += [
     "${app_account_innerkits_native_path}:app_account_authenticator_callback_stub",
@@ -276,12 +277,10 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
     "${domain_account_framework_path}/src/domain_account_common.cpp",
     "${domain_account_framework_path}/src/domain_account_parcel.cpp",
     "${innerkits_native_path}/src/account_info_parcel.cpp",
-    "${os_account_core_path}/src/os_account_event_stub.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
     "${services_path}/accountmgr/src/appaccount/os_account_state_subscriber.cpp",
-    "${services_path}/accountmgr/src/osaccount/os_account_event_proxy.cpp",
   ]
   sources += account_service_sources_mock
   sources += account_data_storage_source
@@ -304,7 +303,10 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
     "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
+    "${os_account_innerkits_native_path}:os_account_event_proxy",
+    "${os_account_innerkits_native_path}:os_account_event_stub",
     "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_state_reply_callback_stub",
   ]
   deps += [
     "${app_account_innerkits_native_path}:app_account_authenticator_callback_stub",

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,8 +27,8 @@ public:
     ~OsAccountEventListener();
 
     ErrCode OnStateChanged(const OsAccountStateParcel &parcel) override;
-    void OnAccountsChanged(const int &id) override;
-    void OnAccountsSwitch(const int &newId, const int &oldId) override;
+    ErrCode OnAccountsChanged(int32_t id) override;
+    ErrCode OnAccountsSwitch(int32_t newId, int32_t oldId) override;
 
     ErrCode InsertRecord(const std::shared_ptr<OsAccountSubscriber> &subscriber);
     ErrCode RemoveRecord(const std::shared_ptr<OsAccountSubscriber> &subscriber);

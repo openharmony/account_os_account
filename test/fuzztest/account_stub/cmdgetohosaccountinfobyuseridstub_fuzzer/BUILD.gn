@@ -1,4 +1,4 @@
-# Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+# Copyright (c) 2023-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -48,6 +48,7 @@ ohos_fuzztest("CmdGetOhosAccountInfoByUserIdStubFuzzTest") {
   ]
 
   deps = [
+    "${os_account_innerkits_native_path}:os_account_state_reply_callback_proxy",
     "${os_account_path}/frameworks/appaccount/native:app_account_innerkits",
     "${os_account_path}/frameworks/common:libaccount_common",
     "${os_account_path}/services/accountmgr:accountmgr",

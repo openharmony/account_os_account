@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,7 +16,7 @@
 #include "osaccountstatereplycallbackstub_fuzzer.h"
 #include "accountmgr_service_ipc_interface_code.h"
 #include "fuzz_data.h"
-#include "os_account_state_reply_callback_stub.h"
+#include "os_account_state_reply_callback_service.h"
 
 using namespace std;
 using namespace OHOS::AccountSA;
@@ -36,10 +36,10 @@ bool OsAccountStateReplyCallbackStubFuzzTest(const uint8_t *data, size_t size)
     MessageOption option;
     auto cvPtr = std::make_shared<std::condition_variable>();
     auto safeQueue = std::make_shared<SafeQueue<uint8_t>>();
-    auto replyCallbackStub = std::make_shared<OsAccountStateReplyCallbackStub>(fuzzData.GetData<int32_t>(),
+    auto replyCallbackService = std::make_shared<OsAccountStateReplyCallbackService>(fuzzData.GetData<int32_t>(),
         static_cast<OsAccountState>(fuzzData.GetData<int32_t>()), cvPtr, safeQueue, fuzzData.GetData<int32_t>());
-    replyCallbackStub->OnRemoteRequest(
-        static_cast<int32_t>(StateReplyCallbackInterfaceCode::ON_COMPLETE), message, reply, option);
+    replyCallbackService->OnRemoteRequest(
+        static_cast<int32_t>(IOsAccountStateReplyCallbackIpcCode::COMMAND_ON_COMPLETE), message, reply, option);
     return true;
 }
 } // namespace OHOS
