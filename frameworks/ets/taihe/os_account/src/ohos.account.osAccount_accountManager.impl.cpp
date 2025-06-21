@@ -907,7 +907,7 @@ public:
     }
 };
 
-AccountManager getAccountManager()
+AccountManager GetAccountManager()
 {
     return make_holder<AccountManagerImpl, AccountManager>();
 }
@@ -915,4 +915,4 @@ AccountManager getAccountManager()
 
 } // namespace
 
-TH_EXPORT_CPP_API_getAccountManager(getAccountManager);
+TH_EXPORT_CPP_API_GetAccountManager(GetAccountManager);
