@@ -21,7 +21,8 @@ use ohos.account.distributedAccount as distributedAccount;
 static { loadLibrary("os_account_taihe_native.z") }
 """)
 
-function getAccountManager(): AccountManager;
+@overload("getAccountManager")
+function GetAccountManager(): AccountManager;
 
 interface AccountManager {
     @gen_async("isMainOsAccount")
