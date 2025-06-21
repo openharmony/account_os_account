@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -38,13 +38,14 @@
 
 #include <map>
 #include <mutex>
-#include <vector>
 #include <set>
+#include <vector>
+
+#include "account_error_no.h"
 #include "account_iam_client_callback.h"
 #include "account_iam_info.h"
-#include "account_error_no.h"
 #include "account_permission_manager.h"
-#include "iaccount_iam.h"
+#include "iaccount_i_a_m.h"
 
 namespace OHOS {
 namespace AccountSA {

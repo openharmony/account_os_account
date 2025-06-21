@@ -82,7 +82,18 @@ void AccountIAMClient::AddCredential(
         SetAuthSubType(userId, static_cast<int32_t>(credInfo.pinType.value_or(PinSubType::PIN_MAX)));
     }
     sptr<IIDMCallback> wrapper = new (std::nothrow) IDMCallbackService(userId, callback);
-    proxy->AddCredential(userId, credInfo, wrapper);
+    if (wrapper == nullptr) {
+        ACCOUNT_LOGE("The wrapper for adding credential is nullptr");
+        callback->OnResult(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, emptyResult);
+        return;
+    }
+    CredentialParametersIam credentialParametersIam;
+    credentialParametersIam.credentialParameters = credInfo;
+    auto ret = proxy->AddCredential(userId, credentialParametersIam, wrapper);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Failed to add credential, error code: %{public}d", ret);
+        wrapper->OnResult(ret, emptyResult.Serialize());
+    }
 }
 
 void AccountIAMClient::UpdateCredential(
@@ -107,7 +118,18 @@ void AccountIAMClient::UpdateCredential(
         SetAuthSubType(userId, static_cast<int32_t>(credInfo.pinType.value_or(PinSubType::PIN_MAX)));
     }
     sptr<IIDMCallback> wrapper = new (std::nothrow) IDMCallbackService(userId, callback);
-    proxy->UpdateCredential(userId, credInfo, wrapper);
+    if (wrapper == nullptr) {
+        ACCOUNT_LOGE("The wrapper for updating credential is nullptr");
+        callback->OnResult(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, emptyResult);
+        return;
+    }
+    CredentialParametersIam credentialParametersIam;
+    credentialParametersIam.credentialParameters = credInfo;
+    auto ret = proxy->UpdateCredential(userId, credentialParametersIam, wrapper);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Failed to update credential, error code: %{public}d", ret);
+        wrapper->OnResult(ret, emptyResult.Serialize());
+    }
 }
 
 void AccountIAMClient::DelCred(int32_t userId, uint64_t credentialId, const std::vector<uint8_t> &authToken,
@@ -128,7 +150,16 @@ void AccountIAMClient::DelCred(int32_t userId, uint64_t credentialId, const std:
         return;
     }
     sptr<IIDMCallback> wrapper = new (std::nothrow) IDMCallbackService(userId, callback);
-    proxy->DelCred(userId, credentialId, authToken, wrapper);
+    if (wrapper == nullptr) {
+        ACCOUNT_LOGE("The wrapper for deleting credential is nullptr");
+        callback->OnResult(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, emptyResult);
+        return;
+    }
+    auto ret = proxy->DelCred(userId, credentialId, authToken, wrapper);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Failed to delete credential, error code: %{public}d", ret);
+        wrapper->OnResult(ret, emptyResult.Serialize());
+    }
 }
 
 void AccountIAMClient::DelUser(
@@ -149,7 +180,16 @@ void AccountIAMClient::DelUser(
         return;
     }
     sptr<IIDMCallback> wrapper = new (std::nothrow) IDMCallbackService(userId, callback);
-    proxy->DelUser(userId, authToken, wrapper);
+    if (wrapper == nullptr) {
+        ACCOUNT_LOGE("The wrapper for deleting user is nullptr");
+        callback->OnResult(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, emptyResult);
+        return;
+    }
+    auto ret = proxy->DelUser(userId, authToken, wrapper);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Failed to delete user, error code: %{public}d", ret);
+        wrapper->OnResult(ret, emptyResult.Serialize());
+    }
 }
 
 int32_t AccountIAMClient::GetCredentialInfo(
@@ -171,9 +211,10 @@ int32_t AccountIAMClient::GetCredentialInfo(
         callback->OnCredentialInfo(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, infoList);
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
-    ErrCode result = proxy->GetCredentialInfo(userId, authType, wrapper);
+    ErrCode result = proxy->GetCredentialInfo(userId, static_cast<int32_t>(authType), wrapper);
     if (result != ERR_OK) {
-        wrapper->OnCredentialInfo(result, infoList);
+        auto infoListIam = ConvertToCredentialInfoIamList(infoList);
+        wrapper->OnCredentialInfo(result, infoListIam);
     }
     return result;
 }
@@ -216,7 +257,17 @@ int32_t AccountIAMClient::PrepareRemoteAuth(
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     sptr<IPreRemoteAuthCallback> wrapper = new (std::nothrow) PreRemoteAuthCallbackService(callback);
-    return proxy->PrepareRemoteAuth(remoteNetworkId, wrapper);
+    if (wrapper == nullptr) {
+        ACCOUNT_LOGE("The wrapper for prepare remote auth is nullptr");
+        callback->OnResult(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR);
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
+    auto ret = proxy->PrepareRemoteAuth(remoteNetworkId, wrapper);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Failed to prepare remote auth, error code: %{public}d", ret);
+        wrapper->OnResult(ret);
+    }
+    return ret;
 }
 
 uint64_t AccountIAMClient::Auth(AuthOptions& authOptions, const std::vector<uint8_t> &challenge,
@@ -283,7 +334,7 @@ uint64_t AccountIAMClient::AuthUser(
     ErrCode result = proxy->AuthUser(authParam, wrapper, contextId);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Failed to auth user, result = %{public}d", result);
-        wrapper->OnResult(result, emptyResult);
+        wrapper->OnResult(result, emptyResult.Serialize());
     }
     return contextId;
 }
@@ -311,7 +362,7 @@ int32_t AccountIAMClient::GetAvailableStatus(AuthType authType, AuthTrustLevel a
         ACCOUNT_LOGE("authType is not in correct range");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    return proxy->GetAvailableStatus(authType, authTrustLevel, status);
+    return proxy->GetAvailableStatus(static_cast<int32_t>(authType), static_cast<uint32_t>(authTrustLevel), status);
 }
 
 void AccountIAMClient::GetProperty(
@@ -328,7 +379,18 @@ void AccountIAMClient::GetProperty(
         return;
     }
     sptr<IGetSetPropCallback> wrapper = new (std::nothrow) GetSetPropCallbackService(callback);
-    proxy->GetProperty(userId, request, wrapper);
+    if (wrapper == nullptr) {
+        ACCOUNT_LOGE("The wrapper for getting property is nullptr");
+        callback->OnResult(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, emptyResult);
+        return;
+    }
+    GetPropertyRequestIam getPropertyRequestIam;
+    getPropertyRequestIam.getPropertyRequest = request;
+    auto ret = proxy->GetProperty(userId, getPropertyRequestIam, wrapper);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get property, error code: %{public}d", ret);
+        wrapper->OnResult(ret, emptyResult.Serialize());
+    }
 }
 
 void AccountIAMClient::GetPropertyByCredentialId(uint64_t credentialId,
@@ -345,7 +407,20 @@ void AccountIAMClient::GetPropertyByCredentialId(uint64_t credentialId,
         return;
     }
     sptr<IGetSetPropCallback> wrapper = new (std::nothrow) GetSetPropCallbackService(callback);
-    proxy->GetPropertyByCredentialId(credentialId, keys, wrapper);
+    if (wrapper == nullptr) {
+        ACCOUNT_LOGE("The wrapper for getting property by credentialId is nullptr");
+        callback->OnResult(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, emptyResult);
+        return;
+    }
+    std::vector<int32_t> keysInt;
+    for (auto &key : keys) {
+        keysInt.push_back(static_cast<int32_t>(key));
+    }
+    auto ret = proxy->GetPropertyByCredentialId(credentialId, keysInt, wrapper);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get property by credentialId, error code: %{public}d", ret);
+        wrapper->OnResult(ret, emptyResult.Serialize());
+    }
 }
 
 void AccountIAMClient::SetProperty(
@@ -362,7 +437,21 @@ void AccountIAMClient::SetProperty(
         return;
     }
     sptr<IGetSetPropCallback> wrapper = new (std::nothrow) GetSetPropCallbackService(callback);
-    proxy->SetProperty(userId, request, wrapper);
+    if (wrapper == nullptr) {
+        ACCOUNT_LOGE("The wrapper for setting property is nullptr");
+        callback->OnResult(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, emptyResult);
+        return;
+    }
+    Attributes extraInfo(request.attrs.Serialize());
+    SetPropertyRequestIam setPropertyRequestIam;
+    setPropertyRequestIam.setPropertyRequest.authType = request.authType;
+    setPropertyRequestIam.setPropertyRequest.mode = request.mode;
+    setPropertyRequestIam.setPropertyRequest.attrs = std::move(extraInfo);
+    auto ret = proxy->SetProperty(userId, setPropertyRequestIam, wrapper);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Failed to set property, error code: %{public}d", ret);
+        wrapper->OnResult(ret, emptyResult.Serialize());
+    }
 }
 
 void AccountIAMClient::GetEnrolledId(
@@ -384,7 +473,11 @@ void AccountIAMClient::GetEnrolledId(
         callback->OnEnrolledId(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, emptyResult);
         return;
     }
-    proxy->GetEnrolledId(accountId, authType, wrapper);
+    auto ret = proxy->GetEnrolledId(accountId, static_cast<int32_t>(authType), wrapper);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get enrolled id, error code: %{public}d", ret);
+        wrapper->OnEnrolledId(ret, emptyResult);
+    }
 }
 
 bool AccountIAMClient::CheckSelfPermission(const std::string &permissionName)
@@ -509,7 +602,9 @@ IAMState AccountIAMClient::GetAccountState(int32_t userId)
     if (proxy == nullptr) {
         return IDLE;
     }
-    return proxy->GetAccountState(userId);
+    int32_t state;
+    proxy->GetAccountState(userId, state);
+    return static_cast<IAMState>(state);
 }
 
 void AccountIAMClient::SetAuthSubType(int32_t userId, int32_t authSubType)

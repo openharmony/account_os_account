@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,7 +22,7 @@
 #ifdef PROXY_MOCK
 #define private public
 #include "account_iam_service.h"
-#include "account_iam_mgr_proxy.h"
+#include "account_i_a_m_proxy.h"
 #undef private
 #endif
 #include "account_log_wrapper.h"
@@ -126,7 +126,7 @@ void AccountIAMClientNoPermissionTest::SetUpTestCase(void)
 #ifdef PROXY_MOCK
     sptr<IAccountIAM> service = new (std::nothrow) AccountIAMService();
     ASSERT_NE(service, nullptr);
-    AccountIAMClient::GetInstance().proxy_ = new (std::nothrow) AccountIAMMgrProxy(service->AsObject());
+    AccountIAMClient::GetInstance().proxy_ = new (std::nothrow) AccountIAMProxy(service->AsObject());
     ASSERT_NE(AccountIAMClient::GetInstance().proxy_, nullptr);
 #endif
 }

@@ -1,0 +1,65 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+interface OHOS.AccountSA.IGetCredInfoCallback;
+interface OHOS.AccountSA.IGetEnrolledIdCallback;
+interface OHOS.AccountSA.IGetSetPropCallback;
+interface OHOS.AccountSA.IIDMCallback;
+interface OHOS.AccountSA.IPreRemoteAuthCallback;
+
+sequenceable AccountIamInfo..OHOS.AccountSA.CredentialParametersIam;
+sequenceable AccountIamInfo..OHOS.AccountSA.AuthParam;
+sequenceable AccountIamInfo..OHOS.AccountSA.GetPropertyRequestIam;
+sequenceable AccountIamInfo..OHOS.AccountSA.SetPropertyRequestIam;
+
+interface_token ohos.accountfwk.IAccountIAM;
+
+option_stub_hooks on;
+
+interface OHOS.AccountSA.IAccountIAM {
+    void OpenSession([in] int userId, [out] unsigned char [] challenge);
+
+    void CloseSession([in] int userId);
+
+    void AddCredential([in] int userId, [in] CredentialParametersIam credInfoIam, [in] IIDMCallback idmCallback);
+
+    void UpdateCredential([in] int userId, [in] CredentialParametersIam credInfoIam, [in] IIDMCallback idmCallback);
+
+    void Cancel([in] int userId);
+
+    void DelCred([in] int userId, [in] unsigned long credentialId, [in] unsigned char [] authToken, [in] IIDMCallback idmCallback);
+
+    void DelUser([in] int userId, [in] unsigned char [] authToken, [in] IIDMCallback idmCallback);
+
+    void GetCredentialInfo([in] int userId, [in] int authTypeInt, [in] IGetCredInfoCallback getCredInfoCallback);
+
+    void PrepareRemoteAuth([in] String remoteNetworkId, [in] IPreRemoteAuthCallback preRemoteAuthCallback);
+
+    void AuthUser([in] AuthParam authParam, [in] IIDMCallback idmCallback, [out] unsigned long contextId);
+
+    void CancelAuth([in] unsigned long contextId);
+
+    void GetAvailableStatus([in] int authTypeInt, [in] unsigned int authTrustLevelInt, [out] int status);
+
+    void GetProperty([in] int userId, [in] GetPropertyRequestIam request, [in] IGetSetPropCallback getSetPropCallback);
+
+    void GetPropertyByCredentialId([in] unsigned long credentialId, [in] int [] keysInt, [in] IGetSetPropCallback getSetPropCallback);
+
+    void SetProperty([in] int userId, [in] SetPropertyRequestIam request, [in] IGetSetPropCallback getSetPropCallback);
+
+    void GetEnrolledId([in] int accountId, [in] int authTypeInt, [in] IGetEnrolledIdCallback getEnrolledIdCallback);
+
+    int GetAccountState([in] int userId);
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,7 +19,7 @@
 #include <vector>
 #define private public
 #include "account_iam_client.h"
-#include "account_iam_mgr_proxy.h"
+#include "account_i_a_m_proxy.h"
 #undef private
 #include "fuzz_data.h"
 
@@ -146,7 +146,7 @@ bool OpenSessionFuzzTest(const uint8_t* data, size_t size)
     }
     FuzzData fuzzData(data, size);
     int32_t userId = fuzzData.GetData<int32_t>();
-    std::shared_ptr<AccountIAMMgrProxy> accountIAMMgrProxy = std::make_shared<AccountIAMMgrProxy>(nullptr);
+    std::shared_ptr<AccountIAMProxy> accountIAMMgrProxy = std::make_shared<AccountIAMProxy>(nullptr);
     std::vector<uint8_t> challenge;
     int32_t result = accountIAMMgrProxy->OpenSession(userId, challenge);
     return result == ERR_OK;
@@ -159,7 +159,7 @@ bool CloseSessionFuzzTest(const uint8_t* data, size_t size)
     }
     FuzzData fuzzData(data, size);
     int32_t userId = fuzzData.GetData<int32_t>();
-    std::shared_ptr<AccountIAMMgrProxy> accountIAMMgrProxy = std::make_shared<AccountIAMMgrProxy>(nullptr);
+    std::shared_ptr<AccountIAMProxy> accountIAMMgrProxy = std::make_shared<AccountIAMProxy>(nullptr);
     int32_t result = accountIAMMgrProxy->CloseSession(userId);
     return result == ERR_OK;
 }
@@ -171,7 +171,7 @@ bool CancelFuzzTest(const uint8_t* data, size_t size)
     }
     FuzzData fuzzData(data, size);
     int32_t userId = fuzzData.GetData<int32_t>();
-    std::shared_ptr<AccountIAMMgrProxy> accountIAMMgrProxy = std::make_shared<AccountIAMMgrProxy>(nullptr);
+    std::shared_ptr<AccountIAMProxy> accountIAMMgrProxy = std::make_shared<AccountIAMProxy>(nullptr);
     int32_t result = accountIAMMgrProxy->Cancel(userId);
     return result == ERR_OK;
 }

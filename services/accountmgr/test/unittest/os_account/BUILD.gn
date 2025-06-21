@@ -404,7 +404,6 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
     "${services_path}/accountmgr/src/account_iam/account_iam_callback.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_mgr_stub.cpp",
     "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
     "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
@@ -422,6 +421,7 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
   ]
 
   deps = [
+    "${account_iam_framework_path}:account_iam_stub",
     "${account_iam_framework_path}:account_iam_innerkits",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
@@ -543,7 +543,6 @@ ohos_unittest("OsAccountInnerAccmgrPluginMockTest") {
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
     "${services_path}/accountmgr/src/account_iam/account_iam_callback.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_mgr_stub.cpp",
     "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
     "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
@@ -572,6 +571,7 @@ ohos_unittest("OsAccountInnerAccmgrPluginMockTest") {
   ]
 
   deps = [
+    "${account_iam_framework_path}:account_iam_stub",
     "${account_iam_framework_path}:account_iam_innerkits",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
@@ -689,7 +689,6 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
     "${services_path}/accountmgr/src/account_iam/account_iam_callback.cpp",
-    "${services_path}/accountmgr/src/account_iam/account_iam_mgr_stub.cpp",
     "${services_path}/accountmgr/src/account_iam/account_iam_service.cpp",
     "${services_path}/accountmgr/src/account_iam/inner_account_iam_manager.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
@@ -703,6 +702,7 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
   ]
 
   deps = [
+    "${account_iam_framework_path}:account_iam_stub",
     "${account_iam_framework_path}:account_iam_innerkits",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
@@ -800,6 +800,7 @@ ohos_unittest("os_account_maintenance_type_mock_test") {
   ]
   sources = [ "os_account_maintenance_type_mock_test.cpp" ]
   sources += [
+    "${account_iam_framework_path}/src/account_iam_info.cpp",
     "${app_account_services_path}/src/ability_manager_adapter/ability_manager_adapter.cpp",
     "${app_account_services_path}/src/appaccount/app_account_control_manager.cpp",
     "${app_account_services_path}/src/appaccount/app_account_manager_service.cpp",
@@ -834,6 +835,7 @@ ohos_unittest("os_account_maintenance_type_mock_test") {
   version_script = "${services_path}/accountmgr/libaccountmgr.map"
 
   deps = [
+    "${account_iam_framework_path}:account_iam_stub",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:account_stub",
     "${innerkits_native_path}:libaccountkits",

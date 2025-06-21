@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -94,22 +94,23 @@ UpdateCredInfo::UpdateCredInfo(const Attributes &extraInfo)
 ReEnrollCallback::ReEnrollCallback(const sptr<IIDMCallback> &innerCallback) : innerCallback_(innerCallback)
 {}
 
-void ReEnrollCallback::OnResult(int32_t result, const Attributes &extraInfo)
+ErrCode ReEnrollCallback::OnResult(int32_t result, const std::vector<uint8_t>& extraInfoBuffer)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     ACCOUNT_LOGE("ReEnroll: UpdateCredential call to ReEnroll OnResult, result is %{public}d", result);
     result_ = result;
     isCalled_ = true;
     onResultCondition_.notify_one();
-    return;
+    return ERR_OK;
 }
 
-void ReEnrollCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const AccountSA::Attributes &extraInfo)
+ErrCode ReEnrollCallback::OnAcquireInfo(
+    int32_t module, uint32_t acquireInfo, const std::vector<uint8_t>& extraInfoBuffer)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     ACCOUNT_LOGI("ReEnroll: UpdateCredential call to ReEnroll OnAcquireInfo");
-    innerCallback_->OnAcquireInfo(module, acquireInfo, extraInfo);
-    return;
+    innerCallback_->OnAcquireInfo(module, acquireInfo, extraInfoBuffer);
+    return ERR_OK;
 }
 
 ErrCode AuthCallback::InnerHandleReEnroll(const std::vector<uint8_t> &token)
@@ -253,7 +254,7 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo, int32_t acco
         Attributes errInfo;
         errInfo.SetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, remainTimes);
         errInfo.SetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, freezingTime);
-        innerCallback_->OnResult(ResultCode::FAIL, errInfo);
+        innerCallback_->OnResult(ResultCode::FAIL, errInfo.Serialize());
         return ret;
     }
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
@@ -305,7 +306,7 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         remoteObject->RemoveDeathRecipient(deathRecipient_);
     }
     if (result != 0) {
-        innerCallback_->OnResult(result, extraInfo);
+        innerCallback_->OnResult(result, extraInfo.Serialize());
         ReportOsAccountOperationFail(authedAccountId, "auth", result,
             "Failed to auth, type:" + std::to_string(authType_));
         return AccountInfoReport::ReportSecurityInfo("", authedAccountId, ReportEvent::EVENT_LOGIN, result);
@@ -313,20 +314,23 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
     // private pin auth
     if ((authType_ == AuthType::PRIVATE_PIN) || (authIntent_ == AuthIntent::QUESTION_AUTH)) {
         ACCOUNT_LOGI("Private pin auth");
-        return innerCallback_->OnResult(result, extraInfo);
+        innerCallback_->OnResult(result, extraInfo.Serialize());
+        return;
     }
     if (isRemoteAuth_) {
         ACCOUNT_LOGI("Remote auth");
-        return innerCallback_->OnResult(result, extraInfo);
+        innerCallback_->OnResult(result, extraInfo.Serialize());
+        return;
     }
     if (IsOsAccountDeactivatingOrLocking(authedAccountId)) {
-        return innerCallback_->OnResult(result, extraInfo);
+        innerCallback_->OnResult(result, extraInfo.Serialize());
+        return;
     }
     bool isUpdateVerifiedStatus = false;
     if (HandleAuthResult(extraInfo, authedAccountId, isUpdateVerifiedStatus) != ERR_OK) {
         return AccountInfoReport::ReportSecurityInfo("", authedAccountId, ReportEvent::EVENT_LOGIN, ResultCode::FAIL);
     }
-    innerCallback_->OnResult(result, extraInfo);
+    innerCallback_->OnResult(result, extraInfo.Serialize());
     if (isUpdateVerifiedStatus) {
         (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsVerified(authedAccountId, true);
     }
@@ -340,7 +344,7 @@ void AuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Att
         ACCOUNT_LOGE("innerCallback_ is nullptr");
         return;
     }
-    innerCallback_->OnAcquireInfo(module, acquireInfo, extraInfo);
+    innerCallback_->OnAcquireInfo(module, acquireInfo, extraInfo.Serialize());
 }
 
 void IDMCallbackDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
@@ -431,7 +435,7 @@ void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
             std::string(Constants::OPERATION_ADD_CRED) + "_" + std::to_string(credInfo_.authType));
     }
     innerIamMgr.SetState(userId_, AFTER_OPEN_SESSION);
-    innerCallback_->OnResult(result, extraInfo);
+    innerCallback_->OnResult(result, extraInfo.Serialize());
     isCalled_ = true;
     onResultCondition_.notify_one();
 }
@@ -442,7 +446,7 @@ void AddCredCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const 
         ACCOUNT_LOGE("innerCallback_ is nullptr");
         return;
     }
-    innerCallback_->OnAcquireInfo(module, acquireInfo, extraInfo);
+    innerCallback_->OnAcquireInfo(module, acquireInfo, extraInfo.Serialize());
 }
 
 UpdateCredCallback::UpdateCredCallback(
@@ -479,27 +483,26 @@ void UpdateCredCallback::InnerOnResult(int32_t result, const Attributes &extraIn
     }
     if ((result != 0) || (credInfo_.authType != AuthType::PIN)) {
         ACCOUNT_LOGE("UpdateCredCallback fail code=%{public}d, authType=%{public}d", result, credInfo_.authType);
-        return innerCallback_->OnResult(result, extraInfo);
+        innerCallback_->OnResult(result, extraInfo.Serialize());
+        return;
     }
     innerIamMgr.SetState(userId_, AFTER_OPEN_SESSION);
     UpdateCredInfo updateCredInfo(extraInfo);
+    ErrCode code = ERR_OK;
     if (updateCredInfo.oldSecret.empty()) {
-        ErrCode code = innerIamMgr.UpdateUserAuthWithRecoveryKey(credInfo_.token,
+        code = innerIamMgr.UpdateUserAuthWithRecoveryKey(credInfo_.token,
             updateCredInfo.newSecret, updateCredInfo.secureUid, userId_);
-        if (code != ERR_OK) {
-            DeleteCredential(userId_, updateCredInfo.credentialId, credInfo_.token);
-            ReportOsAccountOperationFail(userId_, "updateCredential", code,
-                "Failed to update user auth with recovery key");
-            return innerCallback_->OnResult(code, extraInfo);
-        }
     } else {
-        ErrCode code = innerIamMgr.UpdateStorageUserAuth(userId_, updateCredInfo.secureUid,
+        code = innerIamMgr.UpdateStorageUserAuth(userId_, updateCredInfo.secureUid,
             updateCredInfo.token, updateCredInfo.oldSecret, {});
-        if (code != ERR_OK) {
-            DeleteCredential(userId_, updateCredInfo.credentialId, credInfo_.token);
-            ReportOsAccountOperationFail(userId_, "updateCredential", code, "Failed to update user auth");
-            return innerCallback_->OnResult(code, extraInfo);
-        }
+    }
+    if (code != ERR_OK) {
+        DeleteCredential(userId_, updateCredInfo.credentialId, credInfo_.token);
+        ReportOsAccountOperationFail(userId_, "updateCredential", code,
+            updateCredInfo.oldSecret.empty() ? "Failed to update user auth with recovery key"
+                : "Failed to update user auth");
+        innerCallback_->OnResult(code, extraInfo.Serialize());
+        return;
     }
     uint64_t oldCredentialId = 0;
     extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_OLD_CREDENTIAL_ID, oldCredentialId);
@@ -526,7 +529,7 @@ void UpdateCredCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, con
         ACCOUNT_LOGE("innerCallback_ is nullptr");
         return;
     }
-    innerCallback_->OnAcquireInfo(module, acquireInfo, extraInfo);
+    innerCallback_->OnAcquireInfo(module, acquireInfo, extraInfo.Serialize());
 }
 
 VerifyTokenCallbackWrapper::VerifyTokenCallbackWrapper(uint32_t userId, const std::vector<uint8_t> &token,
@@ -547,7 +550,8 @@ void VerifyTokenCallbackWrapper::InnerOnResult(int32_t result, const Attributes 
     ACCOUNT_LOGI("Verify token result = %{public}d, userId = %{public}d", result, userId_);
     if (result != ERR_OK) {
         ReportOsAccountOperationFail(userId_, "deleteCredential", result, "Failed to verify token");
-        return innerCallback_->OnResult(result, extraInfo);
+        innerCallback_->OnResult(result, extraInfo.Serialize());
+        return;
     }
     uint64_t secureUid = 0;
     extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, secureUid);
@@ -568,7 +572,8 @@ void VerifyTokenCallbackWrapper::InnerOnResult(int32_t result, const Attributes 
         ReportOsAccountOperationFail(userId_, "deleteCredential", errCode, "Failed to update user auth");
         DeleteSecretFlag(userId_, "deleteCredential");
         Attributes emptyExtraInfo;
-        return innerCallback_->OnResult(ResultCode::FAIL, emptyExtraInfo);
+        innerCallback_->OnResult(ResultCode::FAIL, emptyExtraInfo.Serialize());
+        return;
     }
     result = SetFirstCallerTokenID(callerTokenId_);
     ACCOUNT_LOGI("Set first caller info result: %{public}d", result);
@@ -598,7 +603,7 @@ void CommitDelCredCallback::OnResult(int32_t result, const UserIam::UserAuth::At
         }
         (void)IInnerOsAccountManager::GetInstance().SetOsAccountCredentialId(userId_, 0);
     }
-    innerCallback_->OnResult(result, extraInfo);
+    innerCallback_->OnResult(result, extraInfo.Serialize());
     onResultCondition_.notify_one();
 }
 
@@ -626,7 +631,7 @@ void CommitCredUpdateCallback::InnerOnResult(int32_t result, const Attributes &e
         ACCOUNT_LOGE("CommitCredUpdateCallback fail code=%{public}d", result);
         ReportOsAccountOperationFail(userId_, std::string(Constants::OPERATION_UPDATE_CRED) + "_commit",
             result, "Failed to commit credential update");
-        innerCallback_->OnResult(result, extraInfo);
+        innerCallback_->OnResult(result, extraInfo.Serialize());
         innerIamMgr.SetState(userId_, AFTER_OPEN_SESSION);
         return;
     } else {
@@ -641,14 +646,14 @@ void CommitCredUpdateCallback::InnerOnResult(int32_t result, const Attributes &e
             innerIamMgr.SetState(userId_, AFTER_OPEN_SESSION);
             ReportOsAccountOperationFail(userId_, std::string(Constants::OPERATION_UPDATE_CRED) + "_commit",
                 code, "Failed to update user auth");
-            innerCallback_->OnResult(code, extraInfo);
+            innerCallback_->OnResult(code, extraInfo.Serialize());
             return;
         }
     }
     Attributes extraInfoResult;
     extraInfoResult.SetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, extraUpdateInfo_.credentialId);
     innerIamMgr.SetState(userId_, AFTER_UPDATE_CRED);
-    innerCallback_->OnResult(result, extraInfoResult);
+    innerCallback_->OnResult(result, extraInfoResult.Serialize());
     ErrCode updateRet = innerIamMgr.UpdateStorageKeyContext(userId_);
     if (updateRet != ERR_OK) {
         ReportOsAccountOperationFail(userId_, std::string(Constants::OPERATION_UPDATE_CRED) + "_commit",
@@ -708,7 +713,7 @@ void DelCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
     }
 
     innerIamMgr.SetState(userId_, AFTER_OPEN_SESSION);
-    innerCallback_->OnResult(result, extraInfo);
+    innerCallback_->OnResult(result, extraInfo.Serialize());
 }
 
 void DelCredCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
@@ -718,7 +723,7 @@ void DelCredCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const 
         ACCOUNT_LOGE("innerCallback_ is nullptr");
         return;
     }
-    innerCallback_->OnAcquireInfo(module, acquireInfo, extraInfo);
+    innerCallback_->OnAcquireInfo(module, acquireInfo, extraInfo.Serialize());
 }
 
 GetCredInfoCallbackWrapper::GetCredInfoCallbackWrapper(
@@ -750,10 +755,13 @@ void GetCredInfoCallbackWrapper::OnCredentialInfo(int32_t result, const std::vec
             info.authType = static_cast<AuthType>(IAMAuthType::DOMAIN);
             info.pinType = static_cast<PinSubType>(IAMAuthSubType::DOMAIN_MIXED);
             newInfoList.emplace_back(info);
-            return innerCallback_->OnCredentialInfo(result, newInfoList);
+            auto infoListIam = ConvertToCredentialInfoIamList(newInfoList);
+            innerCallback_->OnCredentialInfo(result, infoListIam);
+            return;
         }
     }
-    return innerCallback_->OnCredentialInfo(result, infoList);
+    auto infoListIam = ConvertToCredentialInfoIamList(infoList);
+    innerCallback_->OnCredentialInfo(result, infoListIam);
 }
 
 GetCredentialInfoSyncCallback::GetCredentialInfoSyncCallback(int32_t userId)
@@ -793,7 +801,7 @@ void GetPropCallbackWrapper::OnResult(int32_t result, const Attributes &extraInf
     if (result != 0) {
         ReportOsAccountOperationFail(userId_, "getProperty", result, "Failed to get property");
     }
-    innerCallback_->OnResult(result, extraInfo);
+    innerCallback_->OnResult(result, extraInfo.Serialize());
 }
 
 SetPropCallbackWrapper::SetPropCallbackWrapper(int32_t userId, const sptr<IGetSetPropCallback> &callback)
@@ -810,7 +818,7 @@ void SetPropCallbackWrapper::OnResult(int32_t result, const Attributes &extraInf
     if (result != 0) {
         ReportOsAccountOperationFail(userId_, "setProperty", result, "Failed to set property");
     }
-    innerCallback_->OnResult(result, extraInfo);
+    innerCallback_->OnResult(result, extraInfo.Serialize());
 }
 
 GetSecUserInfoCallbackWrapper::GetSecUserInfoCallbackWrapper(
@@ -834,9 +842,9 @@ void GetSecUserInfoCallbackWrapper::OnSecUserInfo(int32_t result, const SecUserI
         return item.authType == authType_;
     });
     if (it != info.enrolledInfo.end()) {
-        return innerCallback_->OnEnrolledId(ERR_OK, it->enrolledId);
+        innerCallback_->OnEnrolledId(ERR_OK, it->enrolledId);
     } else {
-        return innerCallback_->OnEnrolledId(ERR_IAM_NOT_ENROLLED, 0);
+        innerCallback_->OnEnrolledId(ERR_IAM_NOT_ENROLLED, 0);
     }
 }
 
@@ -888,13 +896,13 @@ void GetDomainAuthStatusInfoCallback::OnResult(int32_t result, Parcel &parcel)
     std::shared_ptr<AuthStatusInfo> infoPtr(AuthStatusInfo::Unmarshalling(parcel));
     if (infoPtr == nullptr) {
         ACCOUNT_LOGE("Unmarshalling parcel to auth status info failed.");
-        innerCallback_->OnResult(ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR, attributes);
+        innerCallback_->OnResult(ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR, attributes.Serialize());
         return;
     }
     attributes.SetInt32Value(Attributes::ATTR_PIN_SUB_TYPE, static_cast<int32_t>(IAMAuthSubType::DOMAIN_MIXED));
     attributes.SetInt32Value(Attributes::ATTR_REMAIN_TIMES, infoPtr->remainingTimes);
     attributes.SetInt32Value(Attributes::ATTR_FREEZING_TIME, infoPtr->freezingTime);
-    innerCallback_->OnResult(result, attributes);
+    innerCallback_->OnResult(result, attributes.Serialize());
 }
 #endif // SUPPORT_DOMAIN_ACCOUNTS
 }  // namespace AccountSA
