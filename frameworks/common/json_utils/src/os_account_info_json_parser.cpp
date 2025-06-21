@@ -93,5 +93,30 @@ bool FromJson(cJSON *jsonObject, OsAccountInfo &accountInfo)
     }
     return parseSuccess;
 }
+
+CJsonUnique ToJson(const DomainAccountInfo &domainInfo)
+{
+    auto domainInfoObject = CreateJson();
+    AddStringToJson(domainInfoObject, DOMAIN_NAME, domainInfo.domain_);
+    AddStringToJson(domainInfoObject, DOMAIN_ACCOUNT_NAME, domainInfo.accountName_);
+    AddStringToJson(domainInfoObject, DOMAIN_ACCOUNT_ID, domainInfo.accountId_);
+    AddIntToJson(domainInfoObject, DOMAIN_ACCOUNT_STATUS, static_cast<int>(domainInfo.status_));
+    AddStringToJson(domainInfoObject, DOMAIN_ACCOUNT_CONFIG, domainInfo.serverConfigId_);
+    return domainInfoObject;
+}
+
+bool FromJson(cJSON *jsonObject, DomainAccountInfo &domainInfo)
+{
+    if (jsonObject == nullptr) {
+        return false;
+    }
+    bool result = true;
+    result &= GetDataByType<std::string>(jsonObject, DOMAIN_NAME, domainInfo.domain_);
+    result &= GetDataByType<std::string>(jsonObject, DOMAIN_ACCOUNT_NAME, domainInfo.accountName_);
+    result &= GetDataByType<std::string>(jsonObject, DOMAIN_ACCOUNT_ID, domainInfo.accountId_);
+    result &= GetDataByType<DomainAccountStatus>(jsonObject, DOMAIN_ACCOUNT_STATUS, domainInfo.status_);
+    result &= GetDataByType<std::string>(jsonObject, DOMAIN_ACCOUNT_CONFIG, domainInfo.serverConfigId_);
+    return result;
+}
 } // namespace AccountSA
 } // namespace OHOS

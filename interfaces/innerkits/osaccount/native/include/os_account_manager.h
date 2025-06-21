@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -40,6 +40,7 @@
 #include <string>
 #include <vector>
 #include "domain_account_callback.h"
+#include "os_account_constraint_subscriber.h"
 #include "os_account_info.h"
 #include "os_account_subscriber.h"
 #include "account_error_no.h"
@@ -570,6 +571,22 @@ public:
         const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner);
 
     /**
+     * @brief Subscribes the event of constraints changed by the subscriber.
+     * @permission ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS
+     * @param subscriber subscriber information
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode SubscribeOsAccountConstraints(const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber);
+
+    /**
+     * @brief unsubscribes the event of constraints changed by the subscriber.
+     * @permission ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS
+     * @param subscriber unsubscriber information which must be subscribed before
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode UnsubscribeOsAccountConstraints(const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber);
+
+    /**
      * @brief Sets the default activated OS account.
      * @param id - Indicates the local IDs of the default activated OS accounts.
      * @return error code, see account_error_no.h
@@ -706,6 +723,18 @@ public:
      * @return error code, see account_error_no.h
      */
     static ErrCode LockOsAccount(const int32_t localId);
+
+    /**
+     * @brief Bind domain account to a given os account id
+     *
+     * @permission ohos.permission.MANAGE_LOCAL_ACCOUNTS
+     * @param localId - Indicates the target OS account.
+     * @param domainInfo - Indicates the domain account information.
+     * @param callback - Indicates the callback for getting the result of binding domain account process.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode BindDomainAccount(const int32_t localId, const DomainAccountInfo &domainInfo,
+        const std::shared_ptr<DomainAccountCallback> &callback);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

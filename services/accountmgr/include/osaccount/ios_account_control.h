@@ -82,6 +82,9 @@ public:
     virtual ErrCode GetDefaultActivatedOsAccount(int32_t &id) = 0;
     virtual ErrCode UpdateAccountIndex(const OsAccountInfo &osAccountInfo, const bool isDelete) = 0;
     virtual ErrCode SetNextLocalId(const int32_t &nextLocalId) = 0;
+    virtual ErrCode SetDomainBoundFlag(
+        const int32_t localId, const bool flag, const DomainAccountInfo domainInfo = {}) = 0;
+    virtual ErrCode GetDomainBoundFlag(const int32_t localId, bool &flag, DomainAccountInfo &domainInfo) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

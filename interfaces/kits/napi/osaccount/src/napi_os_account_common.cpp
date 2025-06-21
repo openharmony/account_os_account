@@ -2023,5 +2023,90 @@ void GetOsAccountDomainInfoCompletedCB(napi_env env, napi_status status, void *d
     }
     ProcessCallbackOrPromise(env, contextPtr, errJs, dataJs);
 }
+
+void NapiBindDomainCallback::OnResult(const int32_t errCode, Parcel &parcel)
+{
+    std::unique_lock<std::mutex> lock(lockInfo_.mutex);
+    if (env_ == nullptr || deferred_ == nullptr) {
+        ACCOUNT_LOGE("Js promise or env is nullptr");
+        return;
+    }
+    std::shared_ptr<BindDomainAccountAsyncContext> asyncContext = std::make_shared<BindDomainAccountAsyncContext>();
+    asyncContext->env = env_;
+    asyncContext->deferred = deferred_;
+    asyncContext->errCode = errCode;
+    if (napi_ok != napi_send_event(env_, BindDomainAccountCompleteWork(asyncContext), napi_eprio_vip)) {
+        ACCOUNT_LOGE("Post task failed");
+        return;
+    }
+    deferred_ = nullptr;
+    ACCOUNT_LOGI("Post task finish");
+}
+
+bool ParseParaBindDomainAccount(
+    napi_env env, napi_callback_info cbInfo, std::unique_ptr<BindDomainAccountAsyncContext> &asyncContext)
+{
+    size_t argc = ARGS_SIZE_TWO;
+    napi_value argv[ARGS_SIZE_TWO] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+
+    if (!GetIntProperty(env, argv[PARAMZERO], asyncContext->localID)) {
+        ACCOUNT_LOGE("Get localId failed");
+        std::string errMsg = "Parameter error. The type of \"localId\" must be integer.";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return false;
+    }
+
+    if (!ParseDomainAccountInfo(env, argv[PARAMONE], asyncContext->domainInfo)) {
+        ACCOUNT_LOGE("Get domainInfo failed");
+        std::string errMsg = "Parameter error. The type of \"domainInfo\" must be DomainAccountInfo.";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return false;
+    }
+    return true;
+}
+
+void BindDomainAccountExecuteCB(napi_env env, void *data)
+{
+    BindDomainAccountAsyncContext *asyncContext = reinterpret_cast<BindDomainAccountAsyncContext *>(data);
+    std::shared_ptr<NapiBindDomainCallback> callback = std::make_shared<NapiBindDomainCallback>(
+        asyncContext->env, asyncContext->deferred);
+    asyncContext->errCode = OsAccountManager::BindDomainAccount(
+        asyncContext->localID, asyncContext->domainInfo, callback);
+    if (asyncContext->errCode != ERR_OK) {
+        Parcel emptyParcel;
+        callback->OnResult(asyncContext->errCode, emptyParcel);
+    }
+    asyncContext->deferred = nullptr;
+}
+
+void BindDomainAccountCompletedCB(napi_env env, napi_status status, void *data)
+{
+    BindDomainAccountAsyncContext *asyncContext = reinterpret_cast<BindDomainAccountAsyncContext *>(data);
+    delete asyncContext;
+}
+
+std::function<void()> BindDomainAccountCompleteWork(const std::shared_ptr<BindDomainAccountAsyncContext> &param)
+{
+    return [asyncContext = param] {
+        ACCOUNT_LOGI("Enter BindDomainAccountCompleteWork");
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(asyncContext->env, &scope);
+        if (scope == nullptr) {
+            ACCOUNT_LOGE("Fail to open scope");
+            return;
+        }
+        napi_value errJs = nullptr;
+        napi_value dataJs = nullptr;
+        napi_get_undefined(asyncContext->env, &dataJs);
+        if (asyncContext->errCode != ERR_OK) {
+            errJs = GenerateBusinessError(asyncContext->env, asyncContext->errCode);
+        } else {
+            errJs = GenerateBusinessSuccess(asyncContext->env, true);
+        }
+        ReturnCallbackOrPromise(asyncContext->env, asyncContext.get(), errJs, dataJs);
+        napi_close_handle_scope(asyncContext->env, scope);
+    };
+}
 }  // namespace AccountJsKit
 }  // namespace OHOS

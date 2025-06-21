@@ -56,6 +56,11 @@ ErrCode IInnerOsAccountManager::IsOsAccountForeground(const int32_t localId, con
     isForeground = false;
     return ERR_OK;
 }
+
+OsAccountControlFileManager &IInnerOsAccountManager::GetFileController()
+{
+    return *std::reinterpret_pointer_cast<OsAccountControlFileManager>(osAccountControl_);
+}
 }  // namespace AccountSA
 }  // namespace OHOS
 

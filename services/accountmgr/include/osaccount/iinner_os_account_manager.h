@@ -24,6 +24,7 @@
 #include "ios_account_control.h"
 #include "ios_account_subscribe.h"
 #include "ohos_account_manager.h"
+#include "os_account_control_file_manager.h"
 #include "os_account_interface.h"
 #include "os_account_activate_lock_plugin_manager.h"
 #ifdef SUPPORT_LOCK_OS_ACCOUNT
@@ -127,6 +128,7 @@ public:
     ErrCode UpdateAccountStatusForDomain(const int id, DomainAccountStatus status);
     ErrCode UpdateAccountInfoByDomainAccountInfo(int32_t userId, const DomainAccountInfo &newDomainAccountInfo);
     bool IsSameAccount(const DomainAccountInfo &domainInfoSrc, const DomainAccountInfo &domainInfoTar);
+    ErrCode CheckDomainAccountBound(const DomainAccountInfo &info, bool &isBound);
 #endif // SUPPORT_DOMAIN_ACCOUNTS
     ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
         const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options = {}) override;
@@ -138,7 +140,9 @@ public:
     ErrCode PublishOsAccountLockEvent(const int32_t localId, bool isLocking) override;
     ErrCode LockOsAccount(const int32_t localId) override;
 #endif
-
+    void RemoveLocalIdToOperating(int32_t localId);
+    bool CheckAndAddLocalIdOperating(int32_t localId);
+    OsAccountControlFileManager &GetFileController();
 private:
     IInnerOsAccountManager();
     ~IInnerOsAccountManager() = default;
@@ -171,8 +175,6 @@ private:
     ErrCode SendMsgForAccountStop(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountRemove(OsAccountInfo &osAccountInfo);
     ErrCode ValidateOsAccount(const OsAccountInfo &osAccountInfo);
-    void RemoveLocalIdToOperating(int32_t localId);
-    bool CheckAndAddLocalIdOperating(int32_t localId);
     ErrCode DealWithDeviceOwnerId(const bool isDeviceOwner, const int32_t localId);
     void CheckAndRefreshLocalIdRecord(const int id);
     void RollBackToEarlierAccount(int32_t fromId, int32_t toId);
@@ -185,7 +187,6 @@ private:
     void CopyFromActiveList(std::vector<int32_t>& idList);
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
     ErrCode GetOsAccountsByDomainInfo(const DomainAccountInfo &info, std::vector<OsAccountInfo> &osAccountInfos);
-    ErrCode CheckDomainAccountBound(const DomainAccountInfo &info, bool &isBound);
 #endif // SUPPORT_DOMAIN_ACCOUNTS
     void RetryToGetAccount(OsAccountInfo &osAccountInfo);
     ErrCode RetryToInsertOsAccount(OsAccountInfo &osAccountInfo);
@@ -219,6 +220,11 @@ private:
     SafeMap<int32_t, bool> lockingAccounts_;
 #endif
     std::map<int32_t, std::shared_ptr<std::mutex>> updateLocks_;
+
+public:
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+    std::mutex createOrBindDomainAccountMutex_;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 };
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -36,6 +36,21 @@ struct OsSubscribeRecord {
 };
 
 using OsSubscribeRecordPtr = std::shared_ptr<OsSubscribeRecord>;
+
+struct OsAccountConstraintSubscribeRecord {
+    std::set<std::string> constraintSet_;
+    sptr<IRemoteObject> eventListener_;
+    int32_t callingUid_;
+
+    OsAccountConstraintSubscribeRecord() : eventListener_(nullptr), callingUid_(-1)
+    {}
+    OsAccountConstraintSubscribeRecord(const std::set<std::string> &constraints,
+        const sptr<IRemoteObject> eventListener, int32_t callingUid)
+        : constraintSet_(constraints), eventListener_(eventListener), callingUid_(callingUid)
+    {}
+};
+
+using OsAccountConstraintSubscribeRecordPtr = std::shared_ptr<OsAccountConstraintSubscribeRecord>;
 
 class IOsAccountSubscribe {
 public:

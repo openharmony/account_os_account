@@ -23,7 +23,6 @@ namespace AccountSA {
 namespace {
 const uid_t ACCOUNT_UID = 3058;
 }
-
 OsAccountEventStub::OsAccountEventStub()
 {}
 

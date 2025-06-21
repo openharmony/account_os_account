@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -45,9 +45,16 @@ OsAccount::OsAccount()
     auto callbackFunc = [] (int32_t systemAbilityId, const std::string &deviceId) {
         if (systemAbilityId == SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN) {
             OsAccount::GetInstance().RestoreListenerRecords();
+            OsAccount::GetInstance().RestoreConstraintSubscriberRecords();
         }
     };
     OhosAccountKitsImpl::GetInstance().SubscribeSystemAbility(callbackFunc);
+}
+
+void OsAccount::RestoreConstraintSubscriberRecords()
+{
+    auto proxy = GetOsAccountProxy();
+    OsAccountConstraintSubscriberManager::GetInstance().RestoreConstraintSubscriberRecords(proxy);
 }
 
 void OsAccount::RestoreListenerRecords()
@@ -834,6 +841,18 @@ ErrCode OsAccount::SetSpecificOsAccountConstraints(const std::vector<std::string
     return proxy->SetSpecificOsAccountConstraints(constraints, enable, targetId, enforcerId, isDeviceOwner);
 }
 
+ErrCode OsAccount::SubscribeOsAccountConstraints(const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber)
+{
+    auto proxy = GetOsAccountProxy();
+    return constraintSubscriberMgr_->SubscribeOsAccountConstraints(subscriber, proxy);
+}
+
+ErrCode OsAccount::UnsubscribeOsAccountConstraints(const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber)
+{
+    auto proxy = GetOsAccountProxy();
+    return constraintSubscriberMgr_->UnsubscribeOsAccountConstraints(subscriber, proxy);
+}
+
 ErrCode OsAccount::SetDefaultActivatedOsAccount(const int32_t id)
 {
     ErrCode result = CheckLocalId(id);
@@ -1030,5 +1049,38 @@ ErrCode OsAccount::LockOsAccount(const int32_t localId)
     return proxy->LockOsAccount(localId);
 }
 #endif
+
+ErrCode OsAccount::BindDomainAccount(
+    const int32_t localId, const DomainAccountInfo &domainInfo, const std::shared_ptr<DomainAccountCallback> &callback)
+{
+    ErrCode result = CheckLocalId(localId);
+    if (result != ERR_OK) {
+        return result;
+    }
+    if (domainInfo.domain_.empty() || domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("Domain is empty or too long, len=%{public}zu.", domainInfo.domain_.size());
+        NativeErrMsg() = "Invalid domainInfo.domain. "
+                          "The length of the domainInfo.domain must be greater than 0 and less than or equal to 128";
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    if (domainInfo.accountName_.empty() || domainInfo.accountName_.size() > Constants::LOCAL_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("Account name is empty or too long, len=%{public}zu.", domainInfo.accountName_.size());
+        NativeErrMsg() = "Invalid domainInfo.accountName. "
+                          "The length of the domainInfo.accountName must be greater than 0 and less than or equal to "
+                          "LOGIN_NAME_MAX";
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("Callback is null.");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    sptr<DomainAccountCallbackService> callbackService = sptr<DomainAccountCallbackService>::MakeSptr(callback);
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->BindDomainAccount(localId, domainInfo, callbackService);
+}
 }  // namespace AccountSA
 }  // namespace OHOS
