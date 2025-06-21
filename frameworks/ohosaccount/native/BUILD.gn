@@ -15,18 +15,6 @@ import("//build/config/components/idl_tool/idl.gni")
 import("//build/ohos.gni")
 import("../../../os_account.gni")
 
-idl_gen_interface("distributed_account_event_interface") {
-  sources = [ "IDistributedAccountEvent.idl" ]
-  log_domainid = "0xD001B00"
-  log_tag = "DistributedAccountFwk"
-  subsystem_name = "account"
-  part_name = "os_account"
-}
-
-config("distributed_account_event_interface_public_config") {
-  include_dirs = [ "${target_gen_dir}" ]
-}
-
 config("public_account_config") {
   include_dirs = [
     "include",
@@ -47,6 +35,17 @@ config("accountkits_config") {
   ]
 }
 
+idl_gen_interface("account_interface") {
+  sources = [
+    "IAccount.idl",
+    "IDistributedAccountEvent.idl",
+  ]
+  log_domainid = "0xD001B00"
+  log_tag = "DistributedAccountFwk"
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
 ohos_shared_library("libaccountkits") {
   branch_protector_ret = "pac_ret"
 
@@ -58,18 +57,20 @@ ohos_shared_library("libaccountkits") {
   }
 
   sources = [
-    "src/account_info_parcel.cpp",
-    "src/account_proxy.cpp",
+    "src/account_info.cpp",
     "src/distributed_account_event_service.cpp",
     "src/ohos_account_kits.cpp",
     "src/ohos_account_kits_impl.cpp",
     "src/system_ability_status_change_listener.cpp",
   ]
-  output_values = get_target_outputs(":distributed_account_event_interface")
+
+  # IDL
+  output_values = get_target_outputs(":account_interface")
   sources += filter_include(output_values,
                             [
-                              "*distributed_account_event_proxy.cpp",
-                              "*distributed_account_event_stub.cpp",
+                              "*account_proxy.cpp",
+                              "*_account_event_proxy.cpp",
+                              "*_account_event_stub.cpp",
                             ])
 
   cflags = [ "-pipe" ]
@@ -88,8 +89,10 @@ ohos_shared_library("libaccountkits") {
     version_script = "libohos_account_innerkits.map"
   }
 
-  deps = [ "${common_path}:libaccount_common" ]
-  deps += [ ":distributed_account_event_interface" ]
+  deps = [
+    ":account_interface",
+    "${common_path}:libaccount_common",
+  ]
 
   external_deps = [
     "ability_base:want",
@@ -101,6 +104,32 @@ ohos_shared_library("libaccountkits") {
   ]
 
   innerapi_tags = [ "platformsdk" ]
+  subsystem_name = "account"
+  part_name = "os_account"
+}
+
+ohos_source_set("account_stub") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  configs = [ ":accountkits_config" ]
+  public_configs = [ ":public_account_config" ]
+
+  output_values = get_target_outputs(":account_interface")
+  sources = filter_include(output_values, [ "*account_stub.cpp" ])
+  deps = [ ":account_interface" ]
+  external_deps = [
+    "ability_base:want",
+    "cJSON:cjson",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
+  ]
   subsystem_name = "account"
   part_name = "os_account"
 }

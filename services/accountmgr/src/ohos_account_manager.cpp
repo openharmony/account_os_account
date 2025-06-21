@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -40,6 +40,7 @@
 #include "common_event_support.h"
 #endif // HAS_CES_PART
 #include "account_hisysevent_adapter.h"
+#include "device_account_info.h"
 #include "distributed_account_subscribe_manager.h"
 #include "ipc_skeleton.h"
 #include "system_ability_definition.h"

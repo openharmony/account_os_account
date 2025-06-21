@@ -53,8 +53,6 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
     "${app_account_services_path}/test/mock/common/ability_manager_adapter_mock.cpp",
     "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
     "${common_path}/log/src/account_log_wrapper.cpp",
-    "${innerkits_native_path}/src/account_info_parcel.cpp",
-    "${innerkits_native_path}/src/account_proxy.cpp",
     "${innerkits_native_path}/src/ohos_account_kits.cpp",
     "${innerkits_native_path}/src/ohos_account_kits_impl.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
@@ -82,6 +80,7 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
     "${os_account_innerkits_native_path}:os_account_proxy",
     "${os_account_innerkits_native_path}:os_account_stub",
     "${domain_account_framework_path}:domain_account_stub",
+    "${innerkits_native_path}:account_stub",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_event_proxy",
     "${os_account_innerkits_native_path}:os_account_innerkits",
@@ -199,8 +198,7 @@ ohos_moduletest("SubscribeDistributedAccountModuleTest") {
 
   sources = [
     "${common_path}/log/src/account_log_wrapper.cpp",
-    "${innerkits_native_path}/src/account_info_parcel.cpp",
-    "${innerkits_native_path}/src/account_proxy.cpp",
+    "${innerkits_native_path}/src/account_info.cpp",
     "${innerkits_native_path}/src/ohos_account_kits.cpp",
     "${innerkits_native_path}/src/ohos_account_kits_impl.cpp",
   ]
