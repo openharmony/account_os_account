@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,13 +27,16 @@ using namespace OHOS::AccountSA;
 
 const int TEST_IS_VERIFIED_NUM = 2;
 
+const int32_t MAX_TEST_ID = 10738; // Maximum test ID for fuzzing
+
 namespace OHOS {
     bool SetOsAccountIsVerifiedFuzzTest(const uint8_t* data, size_t size)
     {
         int32_t result = ERR_OK;
         if ((data != nullptr) && (size != 0)) {
             FuzzData fuzzData(data, size);
-            int32_t testId = fuzzData.GetData<int32_t>();
+            int32_t testId = fuzzData.GetData<bool>() ?
+                (fuzzData.GetData<int32_t>() % MAX_TEST_ID) : fuzzData.GetData<int32_t>();
             bool testIsVerified = (fuzzData.GetData<int32_t>() % TEST_IS_VERIFIED_NUM) == 0;
             result = OsAccountManager::SetOsAccountIsVerified(testId, testIsVerified);
         }
