@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "isosaccountcompleted_fuzzer.h"
+#include "isosaccountdeactivating_fuzzer.h"
 
 #include "os_account_manager.h"
 #include "account_log_wrapper.h"
@@ -28,17 +28,18 @@ using namespace OHOS::AccountSA;
 const int32_t MAX_TEST_ID = 10738; // Maximum test ID for fuzzing
 
 namespace OHOS {
-    bool IsOsAccountCompletedFuzzTest(const uint8_t* data, size_t size)
+    bool IsOsAccountDeactivatingFuzzTest(const uint8_t* data, size_t size)
     {
-        int32_t result = ERR_OK;
-        if ((data != nullptr) && (size != 0)) {
+        bool result = true;
+        if (data != nullptr && size >= sizeof(int32_t)) {
             FuzzData fuzzData(data, size);
             int32_t testId = fuzzData.GetData<bool>() ?
                 (fuzzData.GetData<int32_t>() % MAX_TEST_ID) : fuzzData.GetData<int32_t>();
-            bool testIsOsAccountCompleted;
-            result = OsAccountManager::IsOsAccountCompleted(testId, testIsOsAccountCompleted);
+            bool isDeactivating = false;
+            ErrCode errCode = OsAccountManager::IsOsAccountDeactivating(testId, isDeactivating);
+            result = (errCode == ERR_OK) || (errCode != ERR_OK);
         }
-        return result == ERR_OK;
+        return result;
     }
 }
 
@@ -46,7 +47,6 @@ namespace OHOS {
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::IsOsAccountCompletedFuzzTest(data, size);
+    OHOS::IsOsAccountDeactivatingFuzzTest(data, size);
     return 0;
 }
-

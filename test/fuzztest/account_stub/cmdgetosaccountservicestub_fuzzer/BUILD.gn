@@ -19,16 +19,18 @@ import("//build/ohos.gni")
 import("//build/test.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("SubscribeOsAccountStubFuzzTest") {
+ohos_fuzztest("CmdGetOsAccountServiceStubFuzzTest") {
   module_out_path = fuzz_output_path
 
   fuzz_config_file = "."
   include_dirs = [
-    "${services_path}/accountmgr/include/bundle_manager_adapter",
+    "${innerkits_path}/include",
+    "${os_account_core_path}/include",
+    "${os_account_interfaces_native_path}/include",
+    "${os_account_path}/dfx/hidumper_adapter",
+    "${os_account_path}/dfx/hitrace_adapter",
     "${services_path}/accountmgr/include",
-    "${services_path}/accountmgr/include/osaccount",
-    "${os_account_innerkits_native_path}/include",
-    "${os_account_path}/test/fuzztest/osaccount_stub/common",
+    "${os_account_path}/test/fuzztest/appaccount_stub/fuzz_data",
   ]
   cflags = [
     "-g",
@@ -39,17 +41,18 @@ ohos_fuzztest("SubscribeOsAccountStubFuzzTest") {
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
+  configs = [ "${domain_account_framework_path}:frameworks_domain_account_interface_public_config" ]
   sources = [
-    "${os_account_core_path}/src/os_account_event_listener.cpp",
-    "${os_account_path}/services/accountmgr/src/osaccount/os_account_manager_service.cpp",
-    "subscribeosaccountstub_fuzzer.cpp",
+    "${os_account_path}/services/accountmgr/src/account_mgr_service.cpp",
+    "cmdgetosaccountservicestub_fuzzer.cpp",
   ]
 
   deps = [
-    "${os_account_innerkits_native_path}:os_account_event_stub",
+    "${innerkits_native_path}:account_stub",
+    "${os_account_path}/frameworks/appaccount/native:app_account_innerkits",
     "${os_account_path}/frameworks/common:libaccount_common",
-    "${os_account_path}/frameworks/osaccount/native:os_account_innerkits",
     "${os_account_path}/services/accountmgr:accountmgr",
+    "${os_account_path}/services/accountmgr/src/appaccount:app_account_service_core",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${os_account_innerkits_native_path}:os_account_stub",
   ]
@@ -68,10 +71,11 @@ ohos_fuzztest("SubscribeOsAccountStubFuzzTest") {
     "kv_store:distributeddata_inner",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "selinux:libselinux",
   ]
 
   defines = [
-    "ACCOUNT_LOG_TAG = \"OsAccountFuzzTest\"",
+    "ACCOUNT_LOG_TAG = \"AppAccountFuzzTest\"",
     "LOG_DOMAIN = 0xD001B00",
   ]
 }

@@ -25,6 +25,8 @@
 using namespace std;
 using namespace OHOS::AccountSA;
 
+const int32_t MAX_TEST_ID = 10738; // Maximum test ID for fuzzing
+
 namespace OHOS {
     bool GetOsAccountNameByIdFuzzTest(const uint8_t* data, size_t size)
     {
@@ -32,7 +34,8 @@ namespace OHOS {
         std::string userName;
         if ((data != nullptr) && (size != 0)) {
             FuzzData fuzzData(data, size);
-            int32_t testId = fuzzData.GetData<int32_t>();
+            int32_t testId = fuzzData.GetData<bool>() ?
+                (fuzzData.GetData<int32_t>() % MAX_TEST_ID) : fuzzData.GetData<int32_t>();
             result = OsAccountManager::GetOsAccountNameById(testId, userName);
         }
         return result == ERR_OK;
