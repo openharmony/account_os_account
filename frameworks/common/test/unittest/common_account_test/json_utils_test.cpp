@@ -724,7 +724,7 @@ HWTEST_F(JsonUtilsTest, Uint64StringToJsonTest006, TestSize.Level4)
 
     bool result = AddUint64ToJson(jsonObj, key, value);
     EXPECT_TRUE(result);
-    uint64_t value64 = 0;
+    uint64_t value64 = 1;
     GetUint64FromJson(jsonObj.get(), key, value64);
     EXPECT_EQ(value, value64);
 }
