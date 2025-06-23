@@ -47,7 +47,7 @@ void THauthenticatorAsyncCallback::OnRequestContinued()
 
 SubscriberPtr::SubscriberPtr(const AccountSA::AppAccountSubscribeInfo &subscribeInfo,
     taihe::callback_view<void(taihe::array_view<ohos::account::appAccount::AppAccountInfo>)> callback):
-    AccountSA::AppAccountSubscriber(subscribeInfo), callback_(callback)
+        AccountSA::AppAccountSubscriber(subscribeInfo), callback_(callback)
 {}
 
 SubscriberPtr::~SubscriberPtr()
@@ -57,7 +57,7 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AccountSA::AppAccountInf
 {
     std::vector<AccountSA::AppAccountInfo> tempAccountsInfos = accounts;
     std::vector<ohos::account::appAccount::AppAccountInfo> tempInfo;
-    for (auto& accountInfo : tempAccountsInfos){
+    for (auto& accountInfo : tempAccountsInfos) {
         ohos::account::appAccount::AppAccountInfo tempAccountInfo{
             .owner = taihe::string(accountInfo.GetOwner().c_str()),
             .name = taihe::string(accountInfo.GetName().c_str()),
@@ -67,52 +67,5 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AccountSA::AppAccountInf
     active_callback call = callback_;
     call(tempInfo);
 }
-
-AppAccountManagerCallback::AppAccountManagerCallback(ohos::account::appAccount::AuthCallback callback) :
-    callback_(callback)
-{}
-
-AppAccountManagerCallback::~AppAccountManagerCallback()
-{};
-
-void AppAccountManagerCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (isDone) {
-        return;
-    }
-    isDone = true;
-
-    ACCOUNT_LOGI("Post task finish");
-    do {
-        ani_env *env = taihe::get_env();
-        auto scalableData = AppExecFwk::WrapWantParams(env, result.GetParams());
-        if (scalableData == nullptr) {
-            ACCOUNT_LOGE("WrapWantParams get nullptr");
-            break;
-        }
-        ohos::account::appAccount::AuthResult* authResult =
-            reinterpret_cast<ohos::account::appAccount::AuthResult*>(scalableData);
-        taihe::optional_view<ohos::account::appAccount::AuthResult> authResults(authResult);
-        callback_.onResult(resultCode,authResults);
-    } while (0);
-    cv.notify_one();
-}
-
-void AppAccountManagerCallback::OnRequestRedirected(AAFwk::Want &request)
-{
-    do {
-        ani_env *env = taihe::get_env();
-        auto scalableData = AppExecFwk::WrapWantParams(env, request.GetParams());
-        if (scalableData == nullptr) {
-            ACCOUNT_LOGE("WrapWantParams get nullptr");
-            break;
-        }
-        callback_.onRequestRedirected(reinterpret_cast<uintptr_t>(scalableData));
-    } while (0);
-}
-
-void AppAccountManagerCallback::OnRequestContinued()
-{};
 }
 }

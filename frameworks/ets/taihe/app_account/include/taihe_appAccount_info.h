@@ -44,8 +44,7 @@ struct AsyncContextForUnsubscribe {
     size_t argc = 0;
 };
 
-struct AsyncContextForSubscribe
-{
+struct AsyncContextForSubscribe {
     std::string type;
     std::vector<std::string> owners;
     AccountSA::AppAccountManager *appAccountManager = nullptr;
@@ -63,20 +62,6 @@ public:
     std::mutex mutex_;
     bool isDone = false;
     active_callback callback_;
-};
-
-class AppAccountManagerCallback : public OHOS::AccountSA::AppAccountAuthenticatorCallbackStub {
-public:
-    explicit AppAccountManagerCallback(ohos::account::appAccount::AuthCallback callback);
-    ~AppAccountManagerCallback() override;
-    void OnResult(int32_t resultCode, const AAFwk::Want &result) override;
-    void OnRequestRedirected(AAFwk::Want &request) override;
-    void OnRequestContinued() override;
-
-    std::mutex mutex_;
-    bool isDone = false;
-    ohos::account::appAccount::AuthCallback callback_;
-    std::condition_variable cv;
 };
 
 struct AuthenticatorCallbackParam {

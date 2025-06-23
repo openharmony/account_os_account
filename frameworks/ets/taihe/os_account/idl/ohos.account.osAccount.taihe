@@ -414,11 +414,6 @@ function UpdateAccountTokenSync(domainAccountInfo: DomainAccountInfo, token: @ty
 function GetAccountInfoSync(options: GetDomainAccountInfoOptions): DomainAccountInfo;
 
 @static("DomainAccountManager")
-@gen_async("getAccessToken")
-@gen_promise("getAccessToken")
-function GetAccessTokenSync(businessParams: @record Map<String, Opaque>): @typedarray Array<u8>;
-
-@static("DomainAccountManager")
 @gen_promise("updateAccountInfo")
 function UpdateAccountInfoSync(oldAccountInfo: DomainAccountInfo, newAccountInfo: DomainAccountInfo);
 
