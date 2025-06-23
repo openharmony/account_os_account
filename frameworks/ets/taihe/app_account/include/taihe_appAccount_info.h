@@ -69,11 +69,6 @@ struct AuthenticatorCallbackParam {
     AAFwk::Want result;
 };
 
-struct AuthenticatorCallbackParam {
-    int32_t resultCode = -1;
-    AAFwk::Want result;
-};
-
 class THauthenticatorAsyncCallback : public AccountSA::AppAccountAuthenticatorCallbackStub {
 public:
     explicit THauthenticatorAsyncCallback();
