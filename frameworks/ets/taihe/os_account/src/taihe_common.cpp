@@ -33,7 +33,7 @@ bool IsSystemApp()
     return OHOS::Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(tokenId);
 }
 
-AccountSA::DomainAccountInfo ConvertToDomainAccountInfoInner(const DomainAccountInfo &domainAccountInfo)
+AccountSA::DomainAccountInfo ConvertToDomainAccountInfoInner(const ohos::account::osAccount::DomainAccountInfo &domainAccountInfo)
 {
     AccountSA::DomainAccountInfo domainAccountInfoInner(std::string(domainAccountInfo.domain.c_str()),
                                                         std::string(domainAccountInfo.accountName.c_str()));
