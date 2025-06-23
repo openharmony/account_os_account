@@ -32,5 +32,18 @@ bool IsSystemApp()
     uint64_t tokenId = OHOS::IPCSkeleton::GetSelfTokenID();
     return OHOS::Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(tokenId);
 }
+
+AccountSA::DomainAccountInfo ConvertToDomainAccountInfoInner(const DomainAccountInfo &domainAccountInfo)
+{
+    AccountSA::DomainAccountInfo domainAccountInfoInner(std::string(domainAccountInfo.domain.c_str()),
+                                                        std::string(domainAccountInfo.accountName.c_str()));
+    if (domainAccountInfo.accountId.has_value()) {
+        domainAccountInfoInner.accountId_ = domainAccountInfo.accountId.value();
+    }
+    if (domainAccountInfo.serverConfigId.has_value()) {
+        domainAccountInfoInner.serverConfigId_ = domainAccountInfo.serverConfigId.value();
+    }
+    return domainAccountInfoInner;
+}
 }
 }

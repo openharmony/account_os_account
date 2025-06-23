@@ -54,6 +54,7 @@ taihe_shared_library("app_account_taihe_native") {
   sources += [
     "./app_account/src/ani_constructor.cpp",
     "./app_account/src/ohos.account.appAccount.impl.cpp",
+    "./app_account/src/taihe_appAccount_info.cpp",
   ]
 
   include_dirs = [
@@ -81,6 +82,7 @@ taihe_shared_library("app_account_taihe_native") {
     "ability_runtime:runtime",
     "c_utils:utils",
     "hilog:libhilog",
+    "ipc:ipc_single",
   ]
 
   defines = [
@@ -172,6 +174,7 @@ taihe_shared_library("os_account_taihe_native") {
   sources += [
     "os_account/src/ani_constructor.cpp",
     "os_account/src/ohos.account.osAccount.impl.cpp",
+    "os_account/src/ohos.account.osAccount_accountManager.impl.cpp",
     "os_account/src/taihe_account_info.cpp",
     "os_account/src/taihe_common.cpp",
   ]
