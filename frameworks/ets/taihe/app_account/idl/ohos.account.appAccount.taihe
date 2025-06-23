@@ -190,10 +190,6 @@ interface AppAccountManager {
     @gen_promise("deleteCredential")
     DeleteCredentialSync(name: String, credentialType: String);
 
-    @gen_async("selectAccountsByOptions")
-    @gen_promise("selectAccountsByOptions")
-    SelectAccountsByOptionsSync(options: SelectAccountsOptions): Array<AppAccountInfo>;
-
     @overload("on")
     OnSync(type: String, owners: Array<String>, Callback: (data: Array<AppAccountInfo>) => void): void;
 
