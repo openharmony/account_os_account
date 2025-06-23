@@ -185,7 +185,7 @@ class THCreateDomainCallback : public AccountSA::DomainAccountCallback {
         AccountSA::OsAccountInfo osAccountInfos;
         bool onResultCalled = false;
 
-        void OnResult(const int32_t errCode, Parcel &parcel)
+        void OnResult(const int32_t errorCode, Parcel &parcel)
         {
             std::shared_ptr<AccountSA::OsAccountInfo> osAccountInfo(AccountSA::OsAccountInfo::Unmarshalling(parcel));
             if (osAccountInfo == nullptr) {
@@ -198,7 +198,7 @@ class THCreateDomainCallback : public AccountSA::DomainAccountCallback {
             }
             this->onResultCalled = true;
             this->osAccountInfos = *osAccountInfo;
-            this->errCode = errCode;
+            this->errCode = errorCode;
             cv.notify_one();
         }
 };
@@ -804,7 +804,8 @@ public:
         return isConsEnabled;
     }
 
-    bool CheckOsAccountTestableSync() {
+    bool CheckOsAccountTestableSync()
+    {
         bool isTest = false;
         return isTest;
     }

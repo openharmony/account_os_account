@@ -40,8 +40,8 @@ std::mutex g_lockForAppAccountSubscribers;
 AccountSA::SelectAccountsOptions ConvertAccountsOptionsInfo(SelectAccountsOptions const& options)
 {
     AccountSA::SelectAccountsOptions tempOptions;
-    if(options.allowedAccounts){
-        for (const auto& accountsOptionsInfo : options.allowedAccounts.value()){
+    if(options.allowedAccounts) {
+        for (const auto& accountsOptionsInfo : options.allowedAccounts.value()) {
             std::pair<std::string, std::string> tmepPair;
             tmepPair.first = accountsOptionsInfo.owner.c_str();
             tmepPair.second = accountsOptionsInfo.name.c_str();
@@ -49,13 +49,13 @@ AccountSA::SelectAccountsOptions ConvertAccountsOptionsInfo(SelectAccountsOption
         }
     }
 
-    if(options.allowedOwners){
+    if(options.allowedOwners) {
         std::vector<std::string> tempAllowedOwners(options.allowedOwners.value().data(),
             options.allowedOwners.value().data() + options.allowedOwners.value().size());
         tempOptions.allowedOwners = tempAllowedOwners;
     }
 
-    if(options.requiredLabels){
+    if(options.requiredLabels) {
         std::vector<std::string> tempRequiredLabels(options.requiredLabels.value().data(),
             options.requiredLabels.value().data() + options.requiredLabels.value().size());
         tempOptions.requiredLabels = tempRequiredLabels;
@@ -507,63 +507,6 @@ public:
         return taihe::array<AppAccountInfo>(taihe::copy_data_t{}, accountInfos.data(), accountInfos.size());
     }
 
-    void CreateAccountImplicitly(string_view owner, AuthCallback const& Callback)
-    {
-        std::string innerOwner(owner.data(), owner.size());
-        AccountSA::CreateAccountImplicitlyOptions options;
-        sptr<AccountSA::AppAccountManagerCallback> callback = new AccountSA::AppAccountManagerCallback(Callback);
-        ErrCode errCode = AccountSA::AppAccountManager::CreateAccountImplicitly(innerOwner, options, callback);
-        std::unique_lock<std::mutex> lock(callback->mutex_);
-        callback->cv.wait(lock, [callback] {return callback->isDone;});
-        AAFwk::Want errResult;
-        if ((errCode != 0) && (callback != nullptr)) {
-            callback->OnResult(errCode, errResult);
-        }
-        if (errCode != ERR_OK) {
-            int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
-            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-        }
-        if (callback != nullptr) {
-            delete callback;
-        }
-    }
-
-    void CreateAccountImplicitlyWithOpt(string_view owner,
-        CreateAccountImplicitlyOptions const& options, AuthCallback const& Callback)
-    {
-        std::string innerOwner(owner.data(), owner.size());
-        AccountSA::CreateAccountImplicitlyOptions inneroptions;
-        if (options.authType.has_value()) {
-            inneroptions.authType = std::string(options.authType.value().data(), options.authType.value().size());
-        }
-        if(options.requiredLabels.has_value()){
-            inneroptions.requiredLabels.assign(options.requiredLabels.value().data(),
-                options.requiredLabels.value().data() + options.requiredLabels.value().size());
-        }
-        if (options.parameters.has_value()) {
-            for (const auto& [key, value] : options.parameters.value()) {
-                int* ptr = reinterpret_cast<int*>(value);
-                std::string tempKey(key.data(), key.size());
-                inneroptions.parameters.SetParam(tempKey,*ptr);
-            }
-        }
-        sptr<AccountSA::AppAccountManagerCallback> callback = new AccountSA::AppAccountManagerCallback(Callback);
-        ErrCode errCode = AccountSA::AppAccountManager::CreateAccountImplicitly(innerOwner, inneroptions, callback);
-        std::unique_lock<std::mutex> lock(callback->mutex_);
-        callback->cv.wait(lock, [callback] {return callback->isDone;});
-        AAFwk::Want errResult;
-        if ((errCode != 0) && (callback != nullptr)) {
-            callback->OnResult(errCode, errResult);
-        }
-        if (errCode != ERR_OK) {
-            int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
-            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-        }
-        if (callback != nullptr) {
-            delete callback;
-        }
-    }
-
     void OnSync(string_view type, array_view<string> owners, callback_view<void(array_view<AppAccountInfo>)> Callback)
     {
         if (type.size() == 0 || type != "accountChange") {
@@ -687,60 +630,6 @@ public:
                 delete offCBInfo;
             }
             g_AppAccountSubscribers.erase(subscribe);
-        }
-    }
-
-    void AuthSync(string_view name, string_view owner, string_view authType, AuthCallback const& Callback)
-    {
-        std::string innerName(name.data(), name.size());
-        std::string innerOwner(owner.data(), owner.size());
-        std::string innerAuthType(authType.data(), authType.size());
-        AAFwk::Want options;
-        sptr<AccountSA::AppAccountManagerCallback> callback = new AccountSA::AppAccountManagerCallback(Callback);
-        ErrCode errCode = AccountSA::AppAccountManager::Authenticate(innerName, innerOwner,
-            innerAuthType, options, callback);
-        std::unique_lock<std::mutex> lock(callback->mutex_);
-        callback->cv.wait(lock, [callback] {return callback->isDone;});
-        AAFwk::Want errResult;
-        if ((errCode != 0) && (callback != nullptr)) {
-            callback->OnResult(errCode, errResult);
-        }
-        if (errCode != ERR_OK) {
-            int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
-            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-        }
-        if (callback != nullptr) {
-            delete callback;
-        }
-    }
-
-    void AuthWithMap(string_view name, string_view owner, string_view authType,
-        map_view<string, uintptr_t> options, AuthCallback const& Callback)
-    {
-        std::string innerName(name.data(), name.size());
-        std::string innerOwner(owner.data(), owner.size());
-        std::string innerAuthType(authType.data(), authType.size());
-        AAFwk::Want innerOptions;
-        for (const auto& [key, value] : options) {
-            int* ptr = reinterpret_cast<int*>(value);
-            std::string tempKey(key.data(), key.size());
-            innerOptions.SetParam(tempKey,*ptr);
-        }
-        sptr<AccountSA::AppAccountManagerCallback> callback = new AccountSA::AppAccountManagerCallback(Callback);
-        ErrCode errCode = AccountSA::AppAccountManager::Authenticate(innerName, innerOwner,
-            innerAuthType, innerOptions, callback);
-        std::unique_lock<std::mutex> lock(callback->mutex_);
-        callback->cv.wait(lock, [callback] {return callback->isDone;});
-        AAFwk::Want errResult;
-        if ((errCode != 0) && (callback != nullptr)) {
-            callback->OnResult(errCode, errResult);
-        }
-        if (errCode != ERR_OK) {
-            int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
-            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-        }
-        if (callback != nullptr) {
-            delete callback;
         }
     }
 };

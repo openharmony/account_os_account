@@ -194,12 +194,6 @@ interface AppAccountManager {
     @gen_promise("selectAccountsByOptions")
     SelectAccountsByOptionsSync(options: SelectAccountsOptions): Array<AppAccountInfo>;
 
-    @overload("createAccountImplicitly")
-    CreateAccountImplicitly(owner: String, Callback: AuthCallback);
-
-    @overload("createAccountImplicitly")
-    CreateAccountImplicitlyWithOpt(owner: String, options: CreateAccountImplicitlyOptions, Callback: AuthCallback);
-
     @overload("on")
     OnSync(type: String, owners: Array<String>, Callback: (data: Array<AppAccountInfo>) => void): void;
 
@@ -208,10 +202,4 @@ interface AppAccountManager {
 
     @overload("off")
     OffSyncTaihe(type: String, Callback: (data: Array<AppAccountInfo>) => void): void;
-
-	@overload("auth")
-    AuthSync(name: String, owner: String, authType: String, Callback: AuthCallback);
-
-    @overload("auth")
-    AuthWithMap(name: String, owner: String, authType: String, options: @record Map<String, Opaque>, Callback: AuthCallback);
 }
