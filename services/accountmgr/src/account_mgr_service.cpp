@@ -285,9 +285,8 @@ ErrCode AccountMgrService::GetOsAccountDistributedInfo(int32_t localId, OhosAcco
         return errCode;
     }
     if (!HasAccountRequestPermission(PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS) &&
-        !HasAccountRequestPermission(INTERACT_ACROSS_LOCAL_ACCOUNTS) &&
-        !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC) &&
-        !HasAccountRequestPermission(PERMISSION_GET_DISTRIBUTED_ACCOUNTS)) {
+        !(HasAccountRequestPermission(INTERACT_ACROSS_LOCAL_ACCOUNTS) &&
+        HasAccountRequestPermission(PERMISSION_GET_DISTRIBUTED_ACCOUNTS))) {
         ACCOUNT_LOGE("Check permission failed");
         REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
