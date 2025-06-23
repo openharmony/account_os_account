@@ -1331,71 +1331,6 @@ void UpdateAccountTokenSync(DomainAccountInfo const &domainAccountInfo, array_vi
     }
 }
 
-class THGetAccessTokenCallback : public AccountSA::GetAccessTokenCallback {
-public:
-    int32_t errorCode = -1;
-    std::mutex mutex;
-    std::condition_variable cv;
-    std::vector<uint8_t> accessToken;
-    bool onResultCalled = false;
-    void OnResult(const int32_t errCode, const std::vector<uint8_t> &accessToken)
-    {
-        std::unique_lock<std::mutex> lock(mutex);
-        if (this->onResultCalled) {
-            return;
-        }
-        this->onResultCalled = true;
-        this->accessToken = accessToken;
-        if (!accessToken.empty()) {
-            (void)memset_s(const_cast<uint8_t*>(accessToken.data()), accessToken.size(),
-                0, accessToken.size());
-        }
-        cv.notify_one();
-    }
-};
-
-array<uint8_t> GetAccessTokenSync(map_view<string, uintptr_t> businessParams)
-{
-    AccountSA::DomainAccountInfo innerDomainInfo;
-    AAFwk::WantParams innerGetTokenParams;
-    array<uint8_t> accessToken = {};
-    if (auto* domain = businessParams.find("domain")) {
-        innerDomainInfo.domain_ = std::to_string(*domain);
-    } else {
-        ACCOUNT_LOGE("get domainInfo's domain failed");
-        return accessToken;
-    }
-    if (auto* accountName = businessParams.find("accountName")) {
-        innerDomainInfo.accountName_ = std::to_string(*accountName);
-    } else {
-        ACCOUNT_LOGE("get domainInfo's accountName failed");
-        return accessToken;
-    }
-    if (auto* accountId = businessParams.find("accountId")) {
-        innerDomainInfo.accountId_ = std::to_string(*accountId);
-    } else {
-        ACCOUNT_LOGE("get domainInfo's accountId failed");
-    }
-    if (auto* serverConfigId = businessParams.find("serverConfigId")) {
-        innerDomainInfo.serverConfigId_ = std::to_string(*serverConfigId);
-    } else {
-        ACCOUNT_LOGE("get domainInfo's serverConfigId failed");
-    }
-    std::shared_ptr<THGetAccessTokenCallback> getAccessTokenCallback = std::make_shared<THGetAccessTokenCallback>();
-    ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().GetAccessToken(
-        innerDomainInfo, innerGetTokenParams, getAccessTokenCallback);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("UpdateAccountTokenSync failed with errCode: %{public}d", errCode);
-        SetTaiheBusinessErrorFromNativeCode(errCode);
-        std::vector<uint8_t> accessToken;
-        getAccessTokenCallback->OnResult(errCode, accessToken);
-    }
-    std::unique_lock<std::mutex> lock(getAccessTokenCallback->mutex);
-    getAccessTokenCallback->cv.wait(lock, [getAccessTokenCallback] { return getAccessTokenCallback->onResultCalled;});
-    return array<uint8_t>(taihe::copy_data_t{}, getAccessTokenCallback->accessToken.data(),
-        getAccessTokenCallback->accessToken.size());
-}
-
 void UpdateAccountInfoSync(DomainAccountInfo const &oldAccountInfo, DomainAccountInfo const &newAccountInfo)
 {
     AccountSA::DomainAccountInfo innerOldAccountInfo = ConvertToDomainAccountInfoInner(oldAccountInfo);
@@ -1541,7 +1476,6 @@ TH_EXPORT_CPP_API_AuthWithPopup(AuthWithPopup);
 TH_EXPORT_CPP_API_AuthWithPopupWithId(AuthWithPopupWithId);
 TH_EXPORT_CPP_API_HasAccountSync(HasAccountSync);
 TH_EXPORT_CPP_API_UpdateAccountTokenSync(UpdateAccountTokenSync);
-TH_EXPORT_CPP_API_GetAccessTokenSync(GetAccessTokenSync);
 TH_EXPORT_CPP_API_UpdateAccountInfoSync(UpdateAccountInfoSync);
 TH_EXPORT_CPP_API_AddServerConfigSync(AddServerConfigSync);
 TH_EXPORT_CPP_API_RemoveServerConfigSync(RemoveServerConfigSync);

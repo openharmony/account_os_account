@@ -400,12 +400,6 @@ function HasAccountSync(domainAccountInfo: DomainAccountInfo): bool;
 @gen_promise("updateAccountToken")
 function UpdateAccountTokenSync(domainAccountInfo: DomainAccountInfo, token: @typedarray Array<u8>);
 
-
-@static("DomainAccountManager")
-@gen_async("getAccessToken")
-@gen_promise("getAccessToken")
-function GetAccessTokenSync(businessParams: @record Map<String, Opaque>): @typedarray Array<u8>;
-
 @static("DomainAccountManager")
 @gen_promise("updateAccountInfo")
 function UpdateAccountInfoSync(oldAccountInfo: DomainAccountInfo, newAccountInfo: DomainAccountInfo);
