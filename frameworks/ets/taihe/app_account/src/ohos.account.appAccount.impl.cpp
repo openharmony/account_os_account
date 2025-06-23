@@ -484,29 +484,6 @@ public:
         }
     }
 
-    array<AppAccountInfo> SelectAccountsByOptionsSync(SelectAccountsOptions const& options)
-    {
-        AccountSA::SelectAccountsOptions innerOptions = ConvertAccountsOptionsInfo(options);
-        sptr<AccountSA::THauthenticatorAsyncCallback> callback = new
-            (std::nothrow) AccountSA::THauthenticatorAsyncCallback();
-        int errorCode = AccountSA::AppAccountManager::SelectAccountsByOptions(innerOptions, callback);
-        if (errorCode != ERR_OK) {
-            int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
-            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-        }
-        std::unique_lock<std::mutex> lock(callback->mutex);
-        callback->cv.wait(lock, [callback] { return callback->isDone; });
-        std::vector<AppAccountInfo> accountInfos;
-        std::vector<std::string> names = callback->param->result.GetStringArrayParam(
-            AccountSA::Constants::KEY_ACCOUNT_NAMES);
-        std::vector<std::string> owners = callback->param->result.GetStringArrayParam(
-            AccountSA::Constants::KEY_ACCOUNT_OWNERS);
-        for (size_t i = 0; i < names.size(); ++i) {
-            accountInfos.push_back(ConvertAccountInfo(names[i], owners[i]));
-        }
-        return taihe::array<AppAccountInfo>(taihe::copy_data_t{}, accountInfos.data(), accountInfos.size());
-    }
-
     void OnSync(string_view type, array_view<string> owners, callback_view<void(array_view<AppAccountInfo>)> Callback)
     {
         if (type.size() == 0 || type != "accountChange") {
