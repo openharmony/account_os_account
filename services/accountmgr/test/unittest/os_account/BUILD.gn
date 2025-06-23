@@ -960,6 +960,36 @@ ohos_unittest("os_account_static_subscriber_manager_test") {
   cflags_cc = [ "-DACCOUNT_TEST" ]
 }
 
+ohos_unittest("os_account_activate_lock_plugin_manager_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  module_out_path = module_output_path
+  sources = [
+    "os_account_activate_lock_plugin_manager_test.cpp",
+  ]
+  configs = [ "${services_path}/accountmgr/test:accountmgr_test_config" ]
+
+  deps = [
+    "${common_path}:libaccount_common",
+    "${services_path}/accountmgr:accountmgr",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  part_name = "os_account"
+}
+
 group("unittest") {
   testonly = true
 
@@ -971,6 +1001,7 @@ group("unittest") {
     ":OsAccountInnerAccmgrCovTest",
     ":OsAccountInnerAccmgrPluginMockTest",
     ":OsAccountSubscribeDeathRecipientTest",
+    ":os_account_activate_lock_plugin_manager_test",
     ":os_account_maintenance_type_mock_test",
     ":os_account_static_subscriber_manager_test",
   ]
