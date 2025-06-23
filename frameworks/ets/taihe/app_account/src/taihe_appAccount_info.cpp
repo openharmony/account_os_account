@@ -46,8 +46,8 @@ void THauthenticatorAsyncCallback::OnRequestContinued()
 {};
 
 SubscriberPtr::SubscriberPtr(const AccountSA::AppAccountSubscribeInfo &subscribeInfo,
-    taihe::callback_view<void(taihe::array_view<ohos::account::appAccount::AppAccountInfo>)> callback):
-        AccountSA::AppAccountSubscriber(subscribeInfo), callback_(callback)
+    taihe::callback_view<void(taihe::array_view<ohos::account::appAccount::AppAccountInfo>)>
+        callback):AccountSA::AppAccountSubscriber(subscribeInfo), callback_(callback)
 {}
 
 SubscriberPtr::~SubscriberPtr()
