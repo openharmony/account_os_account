@@ -1384,8 +1384,9 @@ DomainAccountInfo GetAccountInfoSync(GetDomainAccountInfoOptions const& options)
         getAccountInfoCallback->OnResult(errCode, emptyParcel);
     }
     std::unique_lock<std::mutex> lock(getAccountInfoCallback->mutex);
-    getAccountInfoCallback->cv.wait(lock, [getAccountInfoCallback]
-        { return getAccountInfoCallback->onGetAccountInfoCalled;});
+    getAccountInfoCallback->cv.wait(lock, [getAccountInfoCallback] {
+        return getAccountInfoCallback->onGetAccountInfoCalled;
+    });
     DomainAccountInfo domainAccountInfo = DomainAccountInfo {
         .domain = getAccountInfoCallback->domainAccountInfo.domain_,
         .accountName = getAccountInfoCallback->domainAccountInfo.accountName_,

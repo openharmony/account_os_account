@@ -40,7 +40,7 @@ std::mutex g_lockForAppAccountSubscribers;
 AccountSA::SelectAccountsOptions ConvertAccountsOptionsInfo(SelectAccountsOptions const& options)
 {
     AccountSA::SelectAccountsOptions tempOptions;
-    if(options.allowedAccounts) {
+    if (options.allowedAccounts) {
         for (const auto& accountsOptionsInfo : options.allowedAccounts.value()) {
             std::pair<std::string, std::string> tmepPair;
             tmepPair.first = accountsOptionsInfo.owner.c_str();
@@ -49,13 +49,13 @@ AccountSA::SelectAccountsOptions ConvertAccountsOptionsInfo(SelectAccountsOption
         }
     }
 
-    if(options.allowedOwners) {
+    if (options.allowedOwners) {
         std::vector<std::string> tempAllowedOwners(options.allowedOwners.value().data(),
             options.allowedOwners.value().data() + options.allowedOwners.value().size());
         tempOptions.allowedOwners = tempAllowedOwners;
     }
 
-    if(options.requiredLabels) {
+    if (options.requiredLabels) {
         std::vector<std::string> tempRequiredLabels(options.requiredLabels.value().data(),
             options.requiredLabels.value().data() + options.requiredLabels.value().size());
         tempOptions.requiredLabels = tempRequiredLabels;
