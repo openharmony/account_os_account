@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 #include <vector>
 #include "account_iam_client.h"
 #include "fuzz_data.h"
+#include "os_account_constants.h"
 
 using namespace std;
 using namespace OHOS::AccountSA;
@@ -37,7 +38,23 @@ public:
 };
 
 namespace OHOS {
-    bool AuthFuzzTest(const uint8_t* data, size_t size)
+    void GenRemoteAuthOptions(FuzzData &fuzzData, RemoteAuthOptions &remoteAuthOptions)
+    {
+        remoteAuthOptions.hasVerifierNetworkId = fuzzData.GetData<bool>();
+        if (remoteAuthOptions.hasVerifierNetworkId) {
+            remoteAuthOptions.verifierNetworkId = fuzzData.GenerateString();
+        }
+        remoteAuthOptions.hasCollectorNetworkId = fuzzData.GetData<bool>();
+        if (remoteAuthOptions.hasCollectorNetworkId) {
+            remoteAuthOptions.collectorNetworkId = fuzzData.GenerateString();
+        }
+        remoteAuthOptions.hasCollectorTokenId = fuzzData.GetData<bool>();
+        if (remoteAuthOptions.hasCollectorTokenId) {
+            remoteAuthOptions.collectorTokenId = fuzzData.GetData<uint32_t>();
+        }
+    }
+
+    bool AuthFuzzTest(const uint8_t *data, size_t size)
     {
         FuzzData fuzzData(data, size);
         std::vector<uint8_t> challenge = {fuzzData.GetData<uint8_t>()};
@@ -45,8 +62,18 @@ namespace OHOS {
         AuthTrustLevel authTrustLevel = fuzzData.GenerateEnmu(UserIam::UserAuth::ATL4);
         std::shared_ptr<IDMCallback> callback = make_shared<MockIDMCallback>();
         AuthOptions authOptions;
-        uint64_t result = AccountIAMClient::GetInstance().Auth(authOptions,
-            challenge, authType, authTrustLevel, callback);
+        authOptions.hasAccountId = fuzzData.GetData<bool>();
+        if (authOptions.hasAccountId) {
+            authOptions.accountId = fuzzData.GetData<bool>() ? fuzzData.GetData<int32_t>() % Constants::MAX_USER_ID
+                                                            : fuzzData.GetData<int32_t>();
+        }
+        authOptions.hasRemoteAuthOptions = fuzzData.GetData<bool>();
+        if (authOptions.hasRemoteAuthOptions) {
+            GenRemoteAuthOptions(fuzzData, authOptions.remoteAuthOptions);
+        }
+        authOptions.authIntent = fuzzData.GenerateEnmu(AuthIntent::ABANDONED_PIN_AUTH);
+        uint64_t result = AccountIAMClient::GetInstance().Auth(
+            authOptions, challenge, authType, authTrustLevel, callback);
         return result == ERR_OK;
     }
 }

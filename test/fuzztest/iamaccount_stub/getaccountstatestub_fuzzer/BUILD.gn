@@ -1,4 +1,4 @@
-# Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+# Copyright (c) 2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -19,7 +19,7 @@ import("//build/ohos.gni")
 import("//build/test.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("GetPropertyByCredentialIdStubFuzzTest") {
+ohos_fuzztest("GetAccountStateStubFuzzTest") {
   module_out_path = fuzz_output_path
 
   fuzz_config_file = "."
@@ -54,7 +54,7 @@ ohos_fuzztest("GetPropertyByCredentialIdStubFuzzTest") {
   }
   sources = [
     "${app_account_services_path}/src/account_iam/account_iam_service.cpp",
-    "getpropertybycredentialidstub_fuzzer.cpp",
+    "getaccountstatestub_fuzzer.cpp",
   ]
 
   deps = [

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "registerinputer_fuzzer.h"
+#include "registerpininputer_fuzzer.h"
 
 #include <string>
 #include <vector>
@@ -32,29 +32,28 @@ using namespace OHOS::Security::AccessToken;
 class MockIInputer : public OHOS::AccountSA::IInputer {
 public:
     virtual ~MockIInputer() {}
-    void OnGetData(int32_t authSubType, std::vector<uint8_t> challenge,
-        std::shared_ptr<IInputerData> inputerData) override
+    void OnGetData(
+        int32_t authSubType, std::vector<uint8_t> challenge, std::shared_ptr<IInputerData> inputerData) override
     {
         return;
     }
 };
 namespace OHOS {
-    bool RegisterInputerFuzzTest(const uint8_t* data, size_t size)
-    {
-        FuzzData fuzzData(data, size);
-        int32_t authType = fuzzData.GetData<bool>() ? IAMAuthType::DOMAIN : fuzzData.GetData<int32_t>();
-        std::shared_ptr<IInputer> inputer = fuzzData.GetData<bool>() ? make_shared<MockIInputer>() : nullptr;
-        int32_t result = AccountIAMClient::GetInstance().RegisterInputer(authType, inputer);
-        result = AccountIAMClient::GetInstance().UnregisterInputer(authType);
-        return result == ERR_OK;
-    }
+bool RegisterPinInputerFuzzTest(const uint8_t *data, size_t size)
+{
+    FuzzData fuzzData(data, size);
+    std::shared_ptr<IInputer> inputer = fuzzData.GetData<bool>() ? make_shared<MockIInputer>() : nullptr;
+    AccountIAMClient::GetInstance().RegisterPINInputer(inputer);
+    AccountIAMClient::GetInstance().UnregisterPINInputer();
+    return true;
 }
+} // namespace OHOS
 
 void NativeTokenGet()
 {
     uint64_t tokenId;
     const char **perms = new const char *[1];
-    perms[0] = "ohos.permission.ACCESS_USER_AUTH_INTERNAL";
+    perms[0] = "ohos.permission.ACCESS_PIN_AUTH";
     NativeTokenInfoParams infoInstance = {
         .dcapsNum = 0,
         .permsNum = 1,
@@ -63,7 +62,7 @@ void NativeTokenGet()
         .acls = nullptr,
         .aplStr = "system_core",
     };
-    infoInstance.processName = "RegisterInputer";
+    infoInstance.processName = "RegisterPinInputerFuzzTest";
     tokenId = GetAccessTokenId(&infoInstance);
     SetSelfTokenID(tokenId);
     AccessTokenKit::ReloadNativeTokenInfo();
@@ -78,10 +77,9 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 }
 
 /* Fuzzer entry point */
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
-    OHOS::RegisterInputerFuzzTest(data, size);
+    OHOS::RegisterPinInputerFuzzTest(data, size);
     return 0;
 }
-

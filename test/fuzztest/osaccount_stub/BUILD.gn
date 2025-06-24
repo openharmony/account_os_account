@@ -56,10 +56,10 @@ group("fuzztest") {
 
   if (os_account_support_domain_accounts) {
     deps += [
+      "binddomainaccountstub_fuzzer:BindDomainAccountStubFuzzTest",
       "createosaccountfordomainstub_fuzzer:CreateOsAccountForDomainStubFuzzTest",
       "getosaccountdomaininfostub_fuzzer:GetOsAccountDomainInfoStubFuzzTest",
       "getosaccountlocalidfromdomainstub_fuzzer:GetOsAccountLocalIdFromDomainStubFuzzTest",
-      "binddomainaccountstub_fuzzer:BindDomainAccountStubFuzzTest",
     ]
   }
 

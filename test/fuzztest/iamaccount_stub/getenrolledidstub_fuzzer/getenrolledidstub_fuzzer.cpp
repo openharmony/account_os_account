@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "getpropertybycredentialidstub_fuzzer.h"
+#include "getenrolledidstub_fuzzer.h"
 
 #include <string>
 #include <vector>
@@ -21,64 +21,56 @@
 #include "access_token_error.h"
 #include "accesstoken_kit.h"
 #include "account_iam_callback_service.h"
-#include "account_iam_client.h"
 #include "account_iam_service.h"
 #include "account_log_wrapper.h"
 #include "fuzz_data.h"
 #include "account_i_a_m_stub.h"
+#include "securec.h"
 #include "nativetoken_kit.h"
 #include "token_setproc.h"
 
 using namespace std;
 using namespace OHOS::AccountSA;
 using namespace OHOS::Security::AccessToken;
-
 namespace OHOS {
 const std::u16string IAMACCOUNT_TOKEN = u"ohos.accountfwk.IAccountIAM";
 
-class MockGetSetPropCallback : public OHOS::AccountSA::GetSetPropCallback {
+class GetEnrolledIdCallbackTest : public GetEnrolledIdCallback {
 public:
-    virtual ~MockGetSetPropCallback() {}
-    void OnResult(int32_t result, const Attributes &extraInfo) override
+    virtual ~GetEnrolledIdCallbackTest() = default;
+
+    void OnEnrolledId(int32_t result, uint64_t enrolledId) override
     {
         return;
     }
 };
 
-bool GetPropertyByCredentialIdStubFuzzTest(const uint8_t *data, size_t size)
+bool GetEnrolledIdStubFuzzTest(const uint8_t *data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
         return false;
     }
-    FuzzData fuzzData(data, size);
-    uint64_t credentialId = fuzzData.GetData<uint64_t>();
-    std::vector<Attributes::AttributeKey> keys = {
-        fuzzData.GenerateEnmu(Attributes::AttributeKey::ATTR_AUTH_INTENTION)
-    };
-    std::shared_ptr<GetSetPropCallback> ptr = make_shared<MockGetSetPropCallback>();
-    sptr<IGetSetPropCallback> callback = new (std::nothrow) GetSetPropCallbackService(ptr);
-
     MessageParcel dataTemp;
     if (!dataTemp.WriteInterfaceToken(IAMACCOUNT_TOKEN)) {
         return false;
     }
-    if (!dataTemp.WriteUint64(credentialId)) {
+    FuzzData fuzzData(data, size);
+    int32_t userId = fuzzData.GetData<int32_t>();
+    if (!dataTemp.WriteInt32(userId)) {
         return false;
     }
-    std::vector<uint32_t> attrKeys;
-    std::transform(keys.begin(), keys.end(), std::back_inserter(attrKeys),
-        [](const auto &key) { return static_cast<uint32_t>(key); });
-
-    if (!dataTemp.WriteUInt32Vector(attrKeys)) {
+    int32_t authType = fuzzData.GetData<int32_t>();
+    if (!dataTemp.WriteInt32(authType)) {
         return false;
     }
-    if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
+    auto callback = std::make_shared<GetEnrolledIdCallbackTest>();
+    sptr<IGetEnrolledIdCallback> wrapper = sptr<GetEnrolledIdCallbackService>::MakeSptr(callback);
+    if (!dataTemp.WriteRemoteObject(wrapper->AsObject())) {
         return false;
     }
-
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(IAccountIAMIpcCode::COMMAND_GET_PROPERTY_BY_CREDENTIAL_ID);
+    uint32_t code = static_cast<uint32_t>(IAccountIAMIpcCode::COMMAND_GET_ENROLLED_ID);
     auto iamAccountManagerService = std::make_shared<AccountIAMService>();
     iamAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
 
@@ -90,7 +82,7 @@ void NativeTokenGet()
 {
     uint64_t tokenId;
     const char **perms = new const char *[1];
-    perms[0] = "ohos.permission.ACCESS_USER_AUTH_INTERNAL";
+    perms[0] = "ohos.permission.USE_USER_IDM";
     NativeTokenInfoParams infoInstance = {
         .dcapsNum = 0,
         .permsNum = 1,
@@ -99,11 +91,11 @@ void NativeTokenGet()
         .acls = nullptr,
         .aplStr = "system_core",
     };
-    infoInstance.processName = "GET_PROPERTY";
+    infoInstance.processName = "GET_CREDENTIAL_INFO";
     tokenId = GetAccessTokenId(&infoInstance);
     SetSelfTokenID(tokenId);
     AccessTokenKit::ReloadNativeTokenInfo();
-    delete[] perms;
+    delete [] perms;
 }
 
 /* Fuzzer entry point */
@@ -117,6 +109,6 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
-    OHOS::GetPropertyByCredentialIdStubFuzzTest(data, size);
+    OHOS::GetEnrolledIdStubFuzzTest(data, size);
     return 0;
 }
