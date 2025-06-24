@@ -49,6 +49,44 @@ public:
     }
 };
 
+void SetRemoteAuthParam(MessageParcel &data, FuzzData &random)
+{
+    bool hasParam = random.GenerateBool();
+    if (!data.WriteBool(hasParam) || !hasParam) {
+        return;
+    }
+    hasParam = random.GenerateBool();
+    if (!data.WriteBool(hasParam)) {
+        return;
+    }
+    if (hasParam) {
+        std::string verifierNetworkId = random.GenerateString();
+        if (!data.WriteString(verifierNetworkId)) {
+            return;
+        }
+    }
+    hasParam = random.GenerateBool();
+    if (!data.WriteBool(hasParam)) {
+        return;
+    }
+    if (hasParam) {
+        std::string networkId = random.GenerateString();
+        if (!data.WriteString(networkId)) {
+            return;
+        }
+    }
+    hasParam = random.GenerateBool();
+    if (!data.WriteBool(hasParam)) {
+        return;
+    }
+    if (hasParam) {
+        uint32_t tokenId = random.GetData<uint32_t>();
+        if (!data.WriteUint32(tokenId)) {
+            return;
+        }
+    }
+}
+
 bool AuthUserStubFuzzTest(const uint8_t *data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
@@ -61,7 +99,7 @@ bool AuthUserStubFuzzTest(const uint8_t *data, size_t size)
     AuthTrustLevel authTrustLevel = fuzzData.GenerateEnmu(AuthTrustLevel::ATL4);
     std::shared_ptr<IDMCallback> ptr = make_shared<MockIDMCallback>();
     sptr<IIDMCallback> callback = new (std::nothrow) IDMCallbackService(userId, ptr);
-
+    AuthIntent authIntent = fuzzData.GenerateEnmu(AuthIntent::ABANDONED_PIN_AUTH);
     MessageParcel dataTemp;
     if (!dataTemp.WriteInterfaceToken(IAMACCOUNT_TOKEN)) {
         return false;
@@ -78,9 +116,13 @@ bool AuthUserStubFuzzTest(const uint8_t *data, size_t size)
     if (!dataTemp.WriteUint32(authTrustLevel)) {
         return false;
     }
+    if (!dataTemp.WriteInt32(authIntent)) {
+        return false;
+    }
     if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
         return false;
     }
+    SetRemoteAuthParam(dataTemp, fuzzData);
     MessageParcel reply;
     MessageOption option;
     uint32_t code = static_cast<uint32_t>(IAccountIAMIpcCode::COMMAND_AUTH_USER);

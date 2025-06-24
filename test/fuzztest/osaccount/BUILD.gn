@@ -19,6 +19,7 @@ group("fuzztest") {
     # deps file
     "activateosaccount_fuzzer:ActivateOsAccountFuzzTest",
     "addserverconfig_fuzzer:AddServerConfigFuzzTest",
+    "binddomainaccount_fuzzer:BindDomainAccountFuzzTest",
     "createosaccount_fuzzer:CreateOsAccountFuzzTest",
     "deactivateosaccount_fuzzer:DeactivateOsAccountFuzzTest",
     "getaccountserverconfig_fuzzer:GetAccountServerConfigFuzzTest",
@@ -59,6 +60,5 @@ group("fuzztest") {
     "setosaccounttoberemoved_fuzzer:SetOsAccountToBeRemovedFuzzTest",
     "setspecificosaccountconstraints_fuzzer:SetSpecificOsAccountConstraintsFuzzTest",
     "startosaccount_fuzzer:StartOsAccountFuzzTest",
-    "binddomainaccount_fuzzer:BindDomainAccountFuzzTest",
   ]
 }

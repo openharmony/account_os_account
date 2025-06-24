@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,10 +13,9 @@
  * limitations under the License.
  */
 
-#ifndef TEST_FUZZTEST_UNREGISTERINPUTER_FUZZER_H
-#define TEST_FUZZTEST_UNREGISTERINPUTER_FUZZER_H
+#ifndef TEST_FUZZTEST_GETENROLLEDIDSTUB_FUZZER_H
+#define TEST_FUZZTEST_GETENROLLEDIDSTUB_FUZZER_H
 
-#define FUZZ_PROJECT_NAME "unregisterinputer_fuzzer"
+#define FUZZ_PROJECT_NAME "getenrolledidstub_fuzzer"
 
-#endif // TEST_FUZZTEST_UNREGISTERINPUTER_FUZZER_H
-
+#endif // TEST_FUZZTEST_GETENROLLEDIDSTUB_FUZZER_H
