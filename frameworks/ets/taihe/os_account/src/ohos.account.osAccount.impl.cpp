@@ -486,6 +486,20 @@ private:
     IUserAuthCallback callback_;
 };
 
+AccountSA::DomainAccountInfo ConvertToDomainAccountInfoInner(const ohos::account::osAccount::DomainAccountInfo
+    &domainAccountInfo)
+{
+    AccountSA::DomainAccountInfo domainAccountInfoInner(std::string(domainAccountInfo.domain.c_str()),
+                                                        std::string(domainAccountInfo.accountName.c_str()));
+    if (domainAccountInfo.accountId.has_value()) {
+        domainAccountInfoInner.accountId_ = domainAccountInfo.accountId.value();
+    }
+    if (domainAccountInfo.serverConfigId.has_value()) {
+        domainAccountInfoInner.serverConfigId_ = domainAccountInfo.serverConfigId.value();
+    }
+    return domainAccountInfoInner;
+}
+
 class DomainPluginImpl {
 public:
     DomainPluginImpl() {}
