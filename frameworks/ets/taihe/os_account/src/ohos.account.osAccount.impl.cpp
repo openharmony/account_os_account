@@ -507,8 +507,7 @@ public:
     void Auth(const DomainAccountInfo &domainAccountInfo, array_view<uint8_t> credential,
         const IUserAuthCallback &callback)
     {
-        AccountSA::DomainAccountInfo domainAccountInfoInner =
-            OHOS::AccountSA::ConvertToDomainAccountInfoInner(domainAccountInfo);
+        AccountSA::DomainAccountInfo domainAccountInfoInner = ConvertToDomainAccountInfoInner(domainAccountInfo);
         std::vector<uint8_t> authData(credential.data(), credential.data() + credential.size());
         std::shared_ptr<THDomainAccountCallback> domainAuthCallback =
             std::make_shared<THDomainAccountCallback>(callback);
@@ -1211,8 +1210,7 @@ public:
 
 bool IsAuthenticationExpiredSync(const DomainAccountInfo &domainAccountInfo)
 {
-    AccountSA::DomainAccountInfo domainAccountInfoInner =
-        OHOS::AccountSA::ConvertToDomainAccountInfoInner(domainAccountInfo);
+    AccountSA::DomainAccountInfo domainAccountInfoInner = ConvertToDomainAccountInfoInner(domainAccountInfo);
     bool isExpired = false;
     ErrCode errCode =
         AccountSA::DomainAccountClient::GetInstance().IsAuthenticationExpired(domainAccountInfoInner, isExpired);
@@ -1260,8 +1258,7 @@ private:
 
 void Auth(DomainAccountInfo const& domainAccountInfo, array_view<uint8_t> credential, IUserAuthCallback const& callback)
 {
-    AccountSA::DomainAccountInfo domainAccountInfoInner =
-        OHOS::AccountSA::ConvertToDomainAccountInfoInner(domainAccountInfo);
+    AccountSA::DomainAccountInfo domainAccountInfoInner = ConvertToDomainAccountInfoInner(domainAccountInfo);
     std::vector<uint8_t> credentialInner(credential.begin(), credential.begin() + credential.size());
     std::shared_ptr<THDomainAccountCallback> callbackInner =
             std::make_shared<THDomainAccountCallback>(callback);
@@ -1317,8 +1314,7 @@ void AuthWithPopupWithId(int32_t localId, IUserAuthCallback const& callback)
 
 bool HasAccountSync(DomainAccountInfo const& domainAccountInfo)
 {
-    AccountSA::DomainAccountInfo domainAccountInfoInner =
-        OHOS::AccountSA::ConvertToDomainAccountInfoInner(domainAccountInfo);
+    AccountSA::DomainAccountInfo domainAccountInfoInner = ConvertToDomainAccountInfoInner(domainAccountInfo);
     std::shared_ptr<THUserAuthCallback> jsCallback;
     auto callbackInner = std::make_shared<DomainAccountCallbackTH>(jsCallback);
     int errorCode = AccountSA::DomainAccountClient::GetInstance().HasAccount(domainAccountInfoInner, callbackInner);
@@ -1333,8 +1329,7 @@ bool HasAccountSync(DomainAccountInfo const& domainAccountInfo)
 
 void UpdateAccountTokenSync(DomainAccountInfo const &domainAccountInfo, array_view<uint8_t> token)
 {
-    AccountSA::DomainAccountInfo innerDomainAccountInfo =
-        OHOS::AccountSA::ConvertToDomainAccountInfoInner(domainAccountInfo);
+    AccountSA::DomainAccountInfo innerDomainAccountInfo = ConvertToDomainAccountInfoInner(domainAccountInfo);
     std::vector<uint8_t> innerToken(token.begin(), token.begin() + token.size());
     ErrCode errCode =
         AccountSA::DomainAccountClient::GetInstance().UpdateAccountToken(innerDomainAccountInfo, innerToken);
@@ -1413,10 +1408,8 @@ DomainAccountInfo GetAccountInfoSync(GetDomainAccountInfoOptions const& options)
 
 void UpdateAccountInfoSync(DomainAccountInfo const &oldAccountInfo, DomainAccountInfo const &newAccountInfo)
 {
-    AccountSA::DomainAccountInfo innerOldAccountInfo =
-        OHOS::AccountSA::ConvertToDomainAccountInfoInner(oldAccountInfo);
-    AccountSA::DomainAccountInfo innerNewAccountInfo =
-        OHOS::AccountSA::ConvertToDomainAccountInfoInner(newAccountInfo);
+    AccountSA::DomainAccountInfo innerOldAccountInfo = ConvertToDomainAccountInfoInner(oldAccountInfo);
+    AccountSA::DomainAccountInfo innerNewAccountInfo = ConvertToDomainAccountInfoInner(newAccountInfo);
     ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().UpdateAccountInfo(innerOldAccountInfo,
         innerNewAccountInfo);
     if (errCode != ERR_OK) {
@@ -1497,8 +1490,7 @@ array<DomainServerConfig> GetAllServerConfigsSync()
 
 DomainServerConfig GetAccountServerConfigSync(DomainAccountInfo const &domainAccountInfo)
 {
-    AccountSA::DomainAccountInfo innerDomainAccountInfo =
-        OHOS::AccountSA::ConvertToDomainAccountInfoInner(domainAccountInfo);
+    AccountSA::DomainAccountInfo innerDomainAccountInfo = ConvertToDomainAccountInfoInner(domainAccountInfo);
     AccountSA::DomainServerConfig innerDomainServerConfig;
     ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().GetAccountServerConfig(innerDomainAccountInfo,
                                                                                            innerDomainServerConfig);

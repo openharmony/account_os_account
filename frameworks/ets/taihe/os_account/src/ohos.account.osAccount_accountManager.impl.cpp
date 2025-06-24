@@ -927,8 +927,7 @@ public:
         CreateOsAccountForDomainOptions const& options)
     {
         AccountSA::OsAccountType innerType = ConvertFromOsAccountTypeKey(type.get_value());
-        AccountSA::DomainAccountInfo innerDomainAccountInfo =
-            OHOS::AccountSA::ConvertToDomainAccountInfoInner(domainInfo);
+        AccountSA::DomainAccountInfo innerDomainAccountInfo = ConvertToDomainAccountInfoInner(domainInfo);
         AccountSA::CreateOsAccountForDomainOptions innerOptions;
         innerOptions.hasShortName = false;
         if (options.options.shortName != "") {
