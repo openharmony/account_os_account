@@ -29,6 +29,15 @@ namespace Constants {
 constexpr int32_t DELAY_FOR_EXCEPTION = 100;
 constexpr int32_t MAX_RETRY_TIMES = 10;
 const char OPERATION_EVENT_PUBLISH[] = "eventPublish";
+const char OPERATION_GET_INFO[] = "getInfo";
+const char OPERATION_SET_INFO[] = "setInfo";
+const char OPERATION_TOKEN_INVALID[] = "tokenInvalid";
+const char OPERATION_LOGOUT[] = "logout";
+const char OPERATION_LOGOFF[] = "logoff";
+const char OPERATION_LOGIN[] = "login";
+const char OPERATION_SUBSCRIBE[] = "subscribe";
+const char OPERATION_UNSUBSCRIBE[] = "unsubscribe";
+const char OPERATION_GET_SERVICE[] = "getService";
 const int32_t E_IPC_ERROR = 29189;
 const int32_t E_IPC_SA_DIED = 32;
 }
