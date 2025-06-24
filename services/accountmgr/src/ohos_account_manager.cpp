@@ -43,6 +43,7 @@
 #include "device_account_info.h"
 #include "distributed_account_subscribe_manager.h"
 #include "ipc_skeleton.h"
+#include "ohos_account_constants.h"
 #include "system_ability_definition.h"
 #include "tokenid_kit.h"
 
@@ -191,6 +192,8 @@ static ErrCode ProcDistributedAccountStateChange(
     auto itFunc = eventFuncMap.find(eventStr);
     if (itFunc == eventFuncMap.end()) {
         ACCOUNT_LOGE("invalid event: %{public}s", eventStr.c_str());
+        REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_SET_INFO, ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
+            eventStr.c_str());
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     return (itFunc->second)(userId, info, eventStr);
@@ -274,6 +277,7 @@ ErrCode OhosAccountManager::QueryDistributedVirtualDeviceId(std::string &dvid)
     AccountInfo accountInfo;
     ErrCode errCode = GetAccountInfoByUserId(localId, accountInfo);
     if (errCode != ERR_OK) {
+        REPORT_OHOS_ACCOUNT_FAIL(localId, Constants::OPERATION_GET_INFO, errCode, "Get ohos account info failed");
         ACCOUNT_LOGE("Get ohos account info failed, errcode=%{public}d, localId=%{public}d.", errCode, localId);
         return errCode;
     }
@@ -296,6 +300,7 @@ ErrCode OhosAccountManager::QueryDistributedVirtualDeviceId(const std::string &b
     AccountInfo accountInfo;
     ErrCode errCode = GetAccountInfoByUserId(localId, accountInfo);
     if (errCode != ERR_OK) {
+        REPORT_OHOS_ACCOUNT_FAIL(localId, Constants::OPERATION_GET_INFO, errCode, "Get ohos account info failed");
         ACCOUNT_LOGE("Get ohos account info failed, errcode=%{public}d, localId=%{public}d.", errCode, localId);
         return errCode;
     }
@@ -351,7 +356,7 @@ void AnonymizeOhosAccountInfo(OhosAccountInfo &ohosAccountInfo, const std::strin
     if (!ohosAccountInfo.avatar_.empty()) {
         ohosAccountInfo.avatar_ = DEFAULT_ANON_STR;
     }
-    
+
     ohosAccountInfo.scalableData_ = {};
 }
 
@@ -360,6 +365,7 @@ ErrCode OhosAccountManager::GetOhosAccountDistributedInfo(const int32_t userId, 
     AccountInfo osAccountInfo;
     ErrCode ret = GetAccountInfoByUserId(userId, osAccountInfo);
     if (ret != ERR_OK) {
+        REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_GET_INFO, ret, "Get ohos account info failed");
         ACCOUNT_LOGE("get ohos account info failed, userId %{public}d.", userId);
         return ret;
     }
@@ -398,13 +404,23 @@ ErrCode OhosAccountManager::GetAccountInfoByUserId(std::int32_t userId, AccountI
 ErrCode OhosAccountManager::SubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
     const sptr<IRemoteObject> &eventListener)
 {
-    return subscribeManager_.SubscribeDistributedAccountEvent(type, eventListener);
+    ErrCode errCode = subscribeManager_.SubscribeDistributedAccountEvent(type, eventListener);
+    if (errCode != ERR_OK) {
+        REPORT_OHOS_ACCOUNT_FAIL(-1, Constants::OPERATION_SUBSCRIBE, errCode,
+            "Subscribe error, type=" + std::to_string(static_cast<int32_t>(type)));
+    }
+    return errCode;
 }
 
 ErrCode OhosAccountManager::UnsubscribeDistributedAccountEvent(const DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type,
     const sptr<IRemoteObject> &eventListener)
 {
-    return subscribeManager_.UnsubscribeDistributedAccountEvent(type, eventListener);
+    ErrCode errCode = subscribeManager_.UnsubscribeDistributedAccountEvent(type, eventListener);
+    if (errCode != ERR_OK) {
+        REPORT_OHOS_ACCOUNT_FAIL(-1, Constants::OPERATION_UNSUBSCRIBE, errCode,
+            "Unsubscribe error, type=" + std::to_string(static_cast<int32_t>(type)));
+    }
+    return errCode;
 }
 
 /**
@@ -463,6 +479,18 @@ bool OhosAccountManager::HandleEvent(AccountInfo &curOhosAccount, const std::str
     return true;
 }
 
+static void UpdateOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo, const std::string &ohosAccountUid,
+    AccountInfo &currAccountInfo)
+{
+    currAccountInfo.ohosAccountInfo_ = ohosAccountInfo;
+    currAccountInfo.ohosAccountInfo_.SetRawUid(ohosAccountInfo.uid_);
+    currAccountInfo.ohosAccountInfo_.uid_ = ohosAccountUid;
+    currAccountInfo.ohosAccountInfo_.status_ = ACCOUNT_STATE_LOGIN;
+    currAccountInfo.bindTime_ = std::time(nullptr);
+    currAccountInfo.version_ = ACCOUNT_VERSION_ANON;
+    currAccountInfo.ohosAccountInfo_.callingUid_ = IPCSkeleton::GetCallingUid();
+}
+
 /**
  * login ohos (for distributed network) account.
  *
@@ -475,7 +503,6 @@ ErrCode OhosAccountManager::LoginOhosAccount(const int32_t userId, const OhosAcc
     const std::string &eventStr)
 {
     std::lock_guard<std::mutex> mutexLock(mgrMutex_);
-
     AccountInfo currAccountInfo;
     ErrCode res = dataDealer_->AccountInfoFromJson(currAccountInfo, userId);
     if (res != ERR_OK) {
@@ -485,35 +512,33 @@ ErrCode OhosAccountManager::LoginOhosAccount(const int32_t userId, const OhosAcc
     std::string ohosAccountUid = GenerateOhosUdidWithSha256(ohosAccountInfo.name_, ohosAccountInfo.uid_);
     // current local user cannot be bound again when it has already been bound to an ohos account
     if (!CheckOhosAccountCanBind(currAccountInfo, ohosAccountInfo, ohosAccountUid)) {
+        REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_LOGIN, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR,
+            "Call checkOhosAccountCanBind failed.");
         ACCOUNT_LOGE("check can be bound failed, userId %{public}d.", userId);
         return ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR;
     }
-
 #ifdef HAS_CES_PART
     // check whether need to publish event or not
     bool isPubLoginEvent = (currAccountInfo.ohosAccountInfo_.status_ != ACCOUNT_STATE_LOGIN);
 #endif // HAS_CES_PART
     // update account status
     if (!HandleEvent(currAccountInfo, eventStr)) {
+        REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_LOGIN, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR,
+            "Call handleEvent failed.");
         ACCOUNT_LOGE("HandleEvent %{public}s failed! userId %{public}d.", eventStr.c_str(), userId);
         return ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR;
     }
-
     // update account info
-    currAccountInfo.ohosAccountInfo_ = ohosAccountInfo;
-    currAccountInfo.ohosAccountInfo_.SetRawUid(ohosAccountInfo.uid_);
-    currAccountInfo.ohosAccountInfo_.uid_ = ohosAccountUid;
-    currAccountInfo.ohosAccountInfo_.status_ = ACCOUNT_STATE_LOGIN;
-    currAccountInfo.bindTime_ = std::time(nullptr);
-    currAccountInfo.version_ = ACCOUNT_VERSION_ANON;
-    currAccountInfo.ohosAccountInfo_.callingUid_ = IPCSkeleton::GetCallingUid();
-
+    UpdateOhosAccountInfo(ohosAccountInfo, ohosAccountUid, currAccountInfo);
     if (!SaveOhosAccountInfo(currAccountInfo)) {
         ACCOUNT_LOGE("SaveOhosAccountInfo failed! userId %{public}d.", userId);
         return ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR;
     }
     subscribeManager_.Publish(userId, DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE::LOGIN);
-
+    if (ohosAccountInfo.avatar_.empty()) {
+        ACCOUNT_LOGE("Avatar is empty.! userId %{public}d.", userId);
+        REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_LOGIN, ERR_OK, "Avatar is empty.");
+    }
 #ifdef HAS_CES_PART
     if (!isPubLoginEvent) {
         AccountEventProvider::EventPublish(CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, userId, nullptr);
@@ -547,12 +572,16 @@ ErrCode OhosAccountManager::LogoutOhosAccount(
     AccountInfo currentAccount;
     if (!GetCurOhosAccountAndCheckMatch(currentAccount, ohosAccountInfo.name_,
                                         ohosAccountInfo.uid_, userId)) {
+        REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_LOGOUT, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR,
+            "Call getCurOhosAccountAndCheckMatch failed.");
         ACCOUNT_LOGE("check match failed, userId %{public}d.", userId);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
 
     bool ret = HandleEvent(currentAccount, eventStr); // update account status
     if (!ret) {
+        REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_LOGOUT, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR,
+            "Call handleEvent failed.");
         ACCOUNT_LOGE("HandleEvent %{public}s failed, userId %{public}d.", eventStr.c_str(), userId);
         return ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR;
     }
@@ -591,12 +620,16 @@ ErrCode OhosAccountManager::LogoffOhosAccount(
 
     AccountInfo currentAccount;
     if (!GetCurOhosAccountAndCheckMatch(currentAccount, ohosAccountInfo.name_, ohosAccountInfo.uid_, userId)) {
+        REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_LOGOFF, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR,
+            "Call getCurOhosAccountAndCheckMatch failed.");
         ACCOUNT_LOGE("check match failed, userId %{public}d.", userId);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
 
     bool ret = HandleEvent(currentAccount, eventStr); // update account status
     if (!ret) {
+        REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_LOGOFF, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR,
+            "Call handleEvent failed.");
         ACCOUNT_LOGE("HandleEvent %{public}s failed, userId %{public}d.", eventStr.c_str(), userId);
         return ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR;
     }
@@ -636,12 +669,16 @@ ErrCode OhosAccountManager::HandleOhosAccountTokenInvalidEvent(
     AccountInfo currentOhosAccount;
     if (!GetCurOhosAccountAndCheckMatch(currentOhosAccount, ohosAccountInfo.name_,
                                         ohosAccountInfo.uid_, userId)) {
+        REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_TOKEN_INVALID, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR,
+            "Call getCurOhosAccountAndCheckMatch failed.");
         ACCOUNT_LOGE("check match failed, userId %{public}d.", userId);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
 
     bool ret = HandleEvent(currentOhosAccount, eventStr); // update account status
     if (!ret) {
+        REPORT_OHOS_ACCOUNT_FAIL(userId, Constants::OPERATION_TOKEN_INVALID, ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR,
+            "Call handleEvent failed.");
         ACCOUNT_LOGE("HandleEvent %{public}s failed, userId %{public}d.", eventStr.c_str(), userId);
         return ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR;
     }
