@@ -68,7 +68,7 @@
         "constraint.mtp.client.write",
         "constraint.usb.storageDevice.write",
         "constraint.distributed.transmission.outgoing",
-        "constraint.recovery.key.export",
+        "constraint.recoveryKey.export",
         "constraint.sudo"
     ]
 }
