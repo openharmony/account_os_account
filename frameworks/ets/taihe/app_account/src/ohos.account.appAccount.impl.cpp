@@ -37,32 +37,6 @@ std::map<OHOS::AccountSA::AppAccountManager *,
     std::vector<AccountSA::AsyncContextForSubscribe *>> g_AppAccountSubscribers;
 std::mutex g_lockForAppAccountSubscribers;
 
-AccountSA::SelectAccountsOptions ConvertAccountsOptionsInfo(SelectAccountsOptions const& options)
-{
-    AccountSA::SelectAccountsOptions tempOptions;
-    if (options.allowedAccounts) {
-        for (const auto& accountsOptionsInfo : options.allowedAccounts.value()) {
-            std::pair<std::string, std::string> tmepPair;
-            tmepPair.first = accountsOptionsInfo.owner.c_str();
-            tmepPair.second = accountsOptionsInfo.name.c_str();
-            tempOptions.allowedAccounts.push_back(tmepPair);
-        }
-    }
-
-    if (options.allowedOwners) {
-        std::vector<std::string> tempAllowedOwners(options.allowedOwners.value().data(),
-            options.allowedOwners.value().data() + options.allowedOwners.value().size());
-        tempOptions.allowedOwners = tempAllowedOwners;
-    }
-
-    if (options.requiredLabels) {
-        std::vector<std::string> tempRequiredLabels(options.requiredLabels.value().data(),
-            options.requiredLabels.value().data() + options.requiredLabels.value().size());
-        tempOptions.requiredLabels = tempRequiredLabels;
-    }
-    return tempOptions;
-}
-
 AppAccountInfo ConvertAppAccountInfo(AccountSA::AppAccountInfo& innerInfo)
 {
     return AppAccountInfo{
