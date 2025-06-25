@@ -150,6 +150,8 @@ HWTEST_F(AccountFileOperatorTest, AccountFileTransaction002, TestSize.Level1)
     ASSERT_EQ(ERR_OK, ret);
     EXPECT_FALSE(transaction->IsTempFileExist());
     EXPECT_TRUE(accountFileOperator_->IsExistFile(TEST_FILE_PATH));
+    transaction->isOpenTransaction_ = false;
+    EXPECT_EQ(transaction->EndTransaction(), ERR_OK);
 
     std::string readString = "";
     transaction->ReadFile(readString);
@@ -202,6 +204,9 @@ HWTEST_F(AccountFileOperatorTest, AccountFileTransaction003, TestSize.Level1)
     ASSERT_EQ(ERR_OK, ret);
     EXPECT_FALSE(transaction->IsTempFileExist());
     EXPECT_TRUE(accountFileOperator_->IsExistFile(TEST_FILE_PATH));
+
+    transaction->isOpenTransaction_ = false;
+    EXPECT_EQ(transaction->WriteFile(testString), ERR_ACCOUNT_COMMON_FILE_WRITE_FAILED);
 
     fin.close();
     tmpFin.close();
@@ -299,10 +304,12 @@ HWTEST_F(AccountFileOperatorTest, AccountFileTransaction006, TestSize.Level1)
     ASSERT_EQ(ERR_OK, ret);
     ret = transaction->EndTransaction();
     ASSERT_EQ(ERR_OK, ret);
-    
+
     std::string content;
     ASSERT_EQ(ERR_OK, transaction->ReadFile(content));
     ASSERT_EQ(secondTestString, content);
+    transaction->path_ = "invalidPath";
+    EXPECT_EQ(transaction->ReadFile(content), ERR_OSACCOUNT_SERVICE_FILE_FIND_FILE_ERROR);
 }
 
 /**
@@ -388,3 +395,20 @@ HWTEST_F(AccountFileOperatorTest, AccountFileTransaction008, TestSize.Level2)
     ASSERT_EQ(readString, test2Context);
 }
 
+/**
+ * @tc.name: AccountFileTransaction009
+ * @tc.desc: Test GetFileTransaction
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountFileOperatorTest, AccountFileTransaction009, TestSize.Level1)
+{
+    auto accountFileOperator_ = std::make_shared<AccountFileOperator>();
+    accountFileOperator_->DeleteDirOrFile(TEST_FILE_PATH);
+    TransactionShared transaction = nullptr;
+    auto lockShared = accountFileOperator_->GetRWLock(TEST_FILE_PATH);
+    ASSERT_NE(nullptr, lockShared);
+    transaction = std::make_shared<FileTransaction>(TEST_FILE_PATH, lockShared);
+    transaction->isOpenTransaction_ = false;
+    EXPECT_EQ(transaction->Rollback(), ERR_OK);
+}
