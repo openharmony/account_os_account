@@ -20,7 +20,8 @@ import("//build/test.gni")
 ##############################fuzztest##########################################
 ohos_fuzztest("BindDomainAccountFuzzTest") {
   module_out_path = fuzz_output_path
-  fuzz_config_file = "${os_account_path}/test/fuzztest/osaccount/binddomainaccount_fuzzer"
+  fuzz_config_file =
+      "${os_account_path}/test/fuzztest/osaccount/binddomainaccount_fuzzer"
   include_dirs = [ "${os_account_path}/test/fuzztest/osaccount/common" ]
   cflags = [
     "-g",
@@ -36,12 +37,12 @@ ohos_fuzztest("BindDomainAccountFuzzTest") {
   ]
 
   external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
     "access_token:libaccesstoken_sdk",
     "access_token:libnativetoken_shared",
     "access_token:libtokenid_sdk",
     "access_token:libtokensetproc_shared",
+    "c_utils:utils",
+    "hilog:libhilog",
   ]
 
   defines = [
