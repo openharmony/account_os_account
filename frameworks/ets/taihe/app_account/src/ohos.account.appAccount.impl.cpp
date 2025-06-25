@@ -32,7 +32,6 @@ using namespace ohos::account::appAccount;
 
 namespace {
 using OHOS::AccountSA::ACCOUNT_LABEL;
-static const int ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION = 12300114;
 
 AppAccountInfo ConvertAppAccountInfo(AccountSA::AppAccountInfo& innerInfo)
 {
