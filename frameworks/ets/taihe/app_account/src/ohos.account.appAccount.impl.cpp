@@ -32,10 +32,11 @@ using namespace ohos::account::appAccount;
 
 namespace {
 using OHOS::AccountSA::ACCOUNT_LABEL;
+static const int ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION = 12300114;
 
 AppAccountInfo ConvertAppAccountInfo(AccountSA::AppAccountInfo& innerInfo)
 {
-    return AppAccountInfo{
+    return AppAccountInfo {
         .owner = taihe::string(innerInfo.GetOwner().c_str()),
         .name = taihe::string(innerInfo.GetName().c_str()),
     };
@@ -325,6 +326,11 @@ public:
 			callback->param->result.GetStringArrayParam(AccountSA::Constants::KEY_ACCOUNT_NAMES);
         std::vector<std::string> owners =
 			callback->param->result.GetStringArrayParam(AccountSA::Constants::KEY_ACCOUNT_OWNERS);
+        if (names.size() != owners.size()) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(JSErrorCode::ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return taihe::array<AppAccountInfo>(taihe::copy_data_t{}, accountInfos.data(), accountInfos.size());
+        }
         for (size_t i = 0; i < names.size(); ++i) {
             AppAccountInfo tempInfo{
                 .owner = owners[i],
