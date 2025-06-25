@@ -20,6 +20,7 @@
 #include "access_token.h"
 #include "access_token_error.h"
 #include "accesstoken_kit.h"
+#include "account_iam_callback_service.h"
 #include "account_iam_service.h"
 #include "account_log_wrapper.h"
 #include "fuzz_data.h"
@@ -32,6 +33,16 @@ using namespace OHOS::AccountSA;
 using namespace OHOS::Security::AccessToken;
 namespace OHOS {
 const std::u16string IAMACCOUNT_TOKEN = u"ohos.accountfwk.IAccountIAM";
+
+class GetCredInfoCallbackImpl : public GetCredInfoCallback {
+public:
+    virtual ~GetCredInfoCallbackImpl() = default;
+    void OnCredentialInfo(int32_t result, const std::vector<CredentialInfo> &infoList) override
+    {
+        return;
+    }
+};
+
 bool GetCredentialInfoStubFuzzTest(const uint8_t *data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
@@ -44,6 +55,16 @@ bool GetCredentialInfoStubFuzzTest(const uint8_t *data, size_t size)
     FuzzData fuzzData(data, size);
     int32_t userId = fuzzData.GetData<int32_t>();
     if (!dataTemp.WriteInt32(userId)) {
+        return false;
+    }
+    int32_t authType = fuzzData.GetData<int32_t>();
+    if (!dataTemp.WriteInt32(authType)) {
+        return false;
+    }
+    std::shared_ptr<GetCredInfoCallbackImpl> callback =
+        make_shared<GetCredInfoCallbackImpl>();
+    sptr<IGetCredInfoCallback> wrapper = sptr<GetCredInfoCallbackService>::MakeSptr(callback);
+    if (!dataTemp.WriteRemoteObject(wrapper->AsObject())) {
         return false;
     }
     MessageParcel reply;
