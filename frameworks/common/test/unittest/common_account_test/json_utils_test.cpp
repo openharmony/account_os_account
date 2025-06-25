@@ -444,9 +444,14 @@ HWTEST_F(JsonUtilsTest, GetVectorStringFromJson002, TestSize.Level4)
 HWTEST_F(JsonUtilsTest, GetVectorUint8FromJson001, TestSize.Level4)
 {
     auto jsonObj = CreateJson();
+    auto result = GetVectorUint8FromJson(jsonObj, "KeyNoExist");
+    EXPECT_EQ(0, result.size());
     std::vector<uint8_t> uintString = {1, 2, 3, 4, 5};
+    CJsonUnique nullJson;
+    EXPECT_FALSE(AddVectorUint8ToJson(nullJson, "Key1", uintString));
+    EXPECT_FALSE(AddVectorUint8ToJson(jsonObj, "", uintString));
     AddVectorUint8ToJson(jsonObj, "basic_array", uintString);
-    auto result = GetVectorUint8FromJson(jsonObj, "basic_array");
+    result = GetVectorUint8FromJson(jsonObj, "basic_array");
     ASSERT_EQ(5, result.size());
     EXPECT_EQ(static_cast<uint8_t>(1), result[0]);
     EXPECT_EQ(static_cast<uint8_t>(2), result[1]);
@@ -462,6 +467,7 @@ HWTEST_F(JsonUtilsTest, GetVectorUint8FromJson001, TestSize.Level4)
 HWTEST_F(JsonUtilsTest, GetObjectItemTest001, TestSize.Level4)
 {
     auto jsonObj = CreateJson();
+    EXPECT_EQ(GetItemFromJson(jsonObj, "keyNoExist"), nullptr);
     const std::string stringJson = "{\"key1\":\"value1\",\"key2\":\"value2\"}";
     auto jsonString = CreateJsonFromString(stringJson);
     EXPECT_TRUE(AddObjToJson(jsonObj, "key", jsonString));
@@ -809,7 +815,9 @@ HWTEST_F(JsonUtilsTest, AddSetStringToJsonTest001, TestSize.Level4)
 
     std::set<std::string> list1 = {"A"};
     std::set<std::string> list2 = {"B"};
-
+    CJsonUnique nullJson;
+    EXPECT_FALSE(AddSetStringToJson(nullJson, "Key1", list1));
+    EXPECT_FALSE(AddSetStringToJson(json, "", list1));
     EXPECT_TRUE(AddSetStringToJson(json, "Key1", list1));
     EXPECT_TRUE(AddSetStringToJson(json, "key2", list2));
 
@@ -835,6 +843,9 @@ HWTEST_F(JsonUtilsTest, GetSetStringFromJson001, TestSize.Level4)
     std::set<std::string> value = {"apple", "banana", "cherry"};
     AddSetStringToJson(jsonObj, key, value);
     std::set<std::string> retValue;
+    CJsonUnique nullJson;
+    EXPECT_FALSE(GetSetStringFromJson(nullJson, "Key1", retValue));
+    GetSetStringFromJson(jsonObj, "", retValue);
     GetSetStringFromJson(jsonObj, key, retValue);
     EXPECT_EQ(value, retValue);
 }
@@ -936,6 +947,9 @@ HWTEST_F(JsonUtilsTest, GetJsonArrayFromJsonTest001, TestSize.Level4)
     EXPECT_TRUE(AddStringToArray(jsonAarray, "test1"));
     EXPECT_TRUE(AddStringToArray(jsonAarray, "test2"));
     AddObjToJson(jsonObj, "key", jsonAarray);
+
+    EXPECT_FALSE(GetJsonArrayFromJson(nullptr, "Key1"));
+    EXPECT_FALSE(GetJsonArrayFromJson(jsonObj.get(), ""));
     auto jsonRes = GetJsonArrayFromJson(jsonObj.get(), "key");
     EXPECT_TRUE(IsArray(jsonRes));
 }
