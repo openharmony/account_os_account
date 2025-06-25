@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -38,6 +38,8 @@ namespace OHOS {
             std::string bundleName(fuzzData.GenerateString());
             int32_t localId = 100;
             result = OsAccountManager::QueryDistributedVirtualDeviceId(bundleName, localId, dvid);
+            dvid = bundleName;
+            result = OsAccountManager::GetDistributedVirtualDeviceId(dvid);
         }
         return result == ERR_OK;
     }
