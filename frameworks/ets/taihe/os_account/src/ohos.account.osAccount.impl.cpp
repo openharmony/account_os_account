@@ -1351,6 +1351,12 @@ DomainServerConfig AddServerConfigSync(map_view<string, uintptr_t> parameters)
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("AddServerConfigSync failed with errCode: %{public}d", errCode);
         SetTaiheBusinessErrorFromNativeCode(errCode);
+        DomainServerConfig emptyDomainServerConfig = {
+            .parameters = map<::taihe::string, uintptr_t>(),
+            .id = string(""),
+            .domain = string("")
+        };
+        return emptyDomainServerConfig;
     }
     return ConvertToDomainServerConfigTH(innerDomainServerConfig.id_,
                                          innerDomainServerConfig.domain_, innerDomainServerConfig.parameters_);
@@ -1376,6 +1382,12 @@ DomainServerConfig UpdateServerConfigSync(string_view configId, map_view<string,
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("updateServerConfigSync failed with errCode: %{public}d", errCode);
         SetTaiheBusinessErrorFromNativeCode(errCode);
+        DomainServerConfig emptyDomainServerConfig = {
+            .parameters = map<::taihe::string, uintptr_t>(),
+            .id = string(""),
+            .domain = string("")
+        };
+        return emptyDomainServerConfig;
     }
     return ConvertToDomainServerConfigTH(innerDomainServerConfig.id_,
                                          innerDomainServerConfig.domain_, innerDomainServerConfig.parameters_);
@@ -1390,6 +1402,12 @@ DomainServerConfig GetServerConfigSync(string_view configId)
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("getServerConfigSync failed with errCode: %{public}d", errCode);
         SetTaiheBusinessErrorFromNativeCode(errCode);
+        DomainServerConfig emptyDomainServerConfig = {
+            .parameters = map<::taihe::string, uintptr_t>(),
+            .id = string(""),
+            .domain = string("")
+        };
+        return emptyDomainServerConfig;
     }
     return ConvertToDomainServerConfigTH(innerDomainServerConfig.id_,
                                          innerDomainServerConfig.domain_, innerDomainServerConfig.parameters_);
@@ -1422,6 +1440,12 @@ DomainServerConfig GetAccountServerConfigSync(DomainAccountInfo const &domainAcc
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("getAccountServerConfigSync failed with errCode: %{public}d", errCode);
         SetTaiheBusinessErrorFromNativeCode(errCode);
+        DomainServerConfig emptyDomainServerConfig = {
+            .parameters = map<::taihe::string, uintptr_t>(),
+            .id = string(""),
+            .domain = string("")
+        };
+        return emptyDomainServerConfig;
     }
     return ConvertToDomainServerConfigTH(innerDomainServerConfig.id_,
                                          innerDomainServerConfig.domain_, innerDomainServerConfig.parameters_);
