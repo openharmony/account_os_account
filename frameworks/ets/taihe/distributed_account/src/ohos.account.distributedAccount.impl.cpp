@@ -21,6 +21,7 @@
 #include "ohos_account_kits.h"
 #include "stdexcept"
 #include "taihe/runtime.hpp"
+#include "taihe_distributed_account_converter.h"
 
 using namespace taihe;
 using namespace ohos::account::distributedAccount;
@@ -29,38 +30,30 @@ using namespace OHOS;
 namespace {
 using OHOS::AccountSA::ACCOUNT_LABEL;
 
-static DistributedAccountStatus GetDistributedAccountStatus(int32_t status)
+AccountSA::OhosAccountInfo ConvertToOhosAccountInfoTH(const DistributedInfo &info)
 {
-    DistributedAccountStatus loginStatus(DistributedAccountStatus::key_t::LOGGED_IN);
-    int32_t loginStatusId = loginStatus.get_value();
-    if (status == loginStatusId) {
-        return DistributedAccountStatus(DistributedAccountStatus::key_t::LOGGED_IN);
+    std::string name(info.name.data(), info.name.size());
+    std::string id(info.id.data(), info.id.size());
+    std::int32_t status = info.status->get_value();
+    std::string event(info.event.data(), info.event.size());
+    AccountSA::OhosAccountInfo ret;
+    ret.name_ = name;
+    ret.uid_ = id;
+    ret.status_ = status;
+    ret.name_ = name;
+    if (info.nickname.has_value()) {
+        ret.nickname_ = std::string(info.nickname.value().data(), info.nickname.value().size());
     }
-    return DistributedAccountStatus(DistributedAccountStatus::key_t::NOT_LOGGED_IN);
-}
-
-DistributedInfo ConvertToDistributedInfoTH(const AccountSA::OhosAccountInfo &info)
-{
-    ani_env *env = get_env();
-
-    DistributedInfo ret = DistributedInfo{
-        .name = info.name_,
-        .id = info.uid_,
-        .nickname = optional<string>(std::in_place_t{}, info.nickname_),
-        .avatar = optional<string>(std::in_place_t{}, info.avatar_),
-        .status = optional<DistributedAccountStatus>(std::in_place_t{}, GetDistributedAccountStatus(info.status_)),
-        .scalableData = optional<uintptr_t>(std::nullopt),
-    };
-
-    auto scalableData = AppExecFwk::WrapWantParams(env, info.scalableData_.GetParams());
-    if (scalableData == nullptr) {
-        ACCOUNT_LOGE("WrapWantParams get nullptr");
-        return ret;
+    if (info.avatar.has_value()) {
+        ret.avatar_ = std::string(info.avatar.value().data(), info.avatar.value().size());
     }
-    ret.scalableData = optional<uintptr_t>(std::in_place_t{}, reinterpret_cast<uintptr_t>(scalableData));
+    if (info.scalableData.has_value()) {
+        AAFwk::Want* wantPtr = reinterpret_cast<AAFwk::Want*>(info.scalableData.value());
+        auto params = wantPtr->GetParams();
+        ret.scalableData_.SetParams(params);
+    }
     return ret;
 }
-
 class DistributedAccountAbilityImpl {
 public:
     DistributedAccountAbilityImpl() {}
@@ -72,12 +65,10 @@ public:
         if (err != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(err);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-            return ConvertToDistributedInfoTH(info);
         }
-        return ConvertToDistributedInfoTH(info);
+        return OHOS::AccountSA::ConvertToDistributedInfoTH(info);
     }
 };
-
 DistributedAccountAbility getDistributedAccountAbility()
 {
     return make_holder<DistributedAccountAbilityImpl, DistributedAccountAbility>();
