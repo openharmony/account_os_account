@@ -16,6 +16,8 @@
 interface_token ohos.accountfwk.IOsAccountEvent;
 sequenceable OHOS.AccountSA.OsAccountStateParcel;
 
+option_stub_hooks on;
+
 interface OHOS.AccountSA.IOsAccountEvent {
     void OnStateChanged([in] OsAccountStateParcel osAccountStateParcel);
     void OnAccountsChanged([in] int id);
