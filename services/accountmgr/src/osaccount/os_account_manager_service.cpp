@@ -196,6 +196,28 @@ ErrCode OsAccountManagerService::ValidateShortName(const std::string &shortName)
 ErrCode OsAccountManagerService::CreateOsAccount(const std::string &localName, const std::string &shortName,
     const OsAccountType &type, OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options)
 {
+#ifdef ENABLE_ACCOUNT_SHORT_NAME
+    OsAccountInfo accountInfoOld;
+    ErrCode code = GetRealOsAccountInfoById(Constants::START_USER_ID, accountInfoOld);
+    if (code != ERR_OK) {
+        ACCOUNT_LOGE("QueryOsAccountById error, errCode %{public}d.", code);
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    DomainAccountInfo domainAccountInfo;
+    accountInfoOld.GetDomainInfo(domainAccountInfo);
+    if (accountInfoOld.GetShortName().empty() && domainAccountInfo.accountName_.empty()) {
+        if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
+            ACCOUNT_LOGE("Account manager service, permission denied!");
+            return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+        }
+        accountInfoOld.SetType(type);
+        accountInfoOld.SetLocalName(localName);
+        accountInfoOld.SetShortName(shortName);
+        OsAccountInfo osAccountInfo;
+        code = UpdateFirstOsAccountInfo(accountInfoOld, osAccountInfo);
+        return code;
+    }
+#endif // ENABLE_ACCOUNT_SHORT_NAME
     ErrCode errCode = ValidateAccountCreateParamAndPermission(localName, type);
     if (errCode != ERR_OK) {
         return errCode;
