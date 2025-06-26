@@ -113,12 +113,14 @@ taihe_shared_library("distributed_account_taihe_native") {
 
   sources = get_target_outputs(":distributed_account_taihe")
   sources += [
+    "./common/src/taihe_distributed_account_converter.cpp",
     "./distributed_account/src/ani_constructor.cpp",
     "./distributed_account/src/ohos.account.distributedAccount.impl.cpp",
   ]
 
   include_dirs = [
     "./distributed_account/include",
+    "./common/include",
     "${taihe_generated_file_path}/include",
     "${innerkits_path}/include",
     "${common_path}/account_error",
@@ -170,6 +172,7 @@ taihe_shared_library("os_account_taihe_native") {
 
   sources = get_target_outputs(":osaccount_taihe")
   sources += [
+    "./common/src/taihe_distributed_account_converter.cpp",
     "os_account/src/ani_constructor.cpp",
     "os_account/src/ohos.account.osAccount.impl.cpp",
     "os_account/src/taihe_account_info.cpp",
@@ -179,6 +182,7 @@ taihe_shared_library("os_account_taihe_native") {
   include_dirs = [
     "os_account/include",
     "distributed_account/include",
+    "./common/include",
     "${common_path}/log/include",
     "${taihe_generated_file_path}/include",
     "${innerkits_path}/include",
@@ -189,7 +193,7 @@ taihe_shared_library("os_account_taihe_native") {
   ]
 
   deps = [
-    ":distributed_account_taihe_native",
+    ":distributed_account_taihe",
     ":osaccount_taihe",
     "${account_iam_framework_path}:account_iam_innerkits",
     "${account_napi_common_path}:account_napi_common",
