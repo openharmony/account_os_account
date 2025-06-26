@@ -60,5 +60,7 @@ group("fuzztest") {
     "setosaccounttoberemoved_fuzzer:SetOsAccountToBeRemovedFuzzTest",
     "setspecificosaccountconstraints_fuzzer:SetSpecificOsAccountConstraintsFuzzTest",
     "startosaccount_fuzzer:StartOsAccountFuzzTest",
+    "subscribeconstraints_fuzzer:SubscribeConstraintsFuzzTest",
+    "unsubscribeconstraints_fuzzer:UnsubscribeConstraintsFuzzTest",
   ]
 }

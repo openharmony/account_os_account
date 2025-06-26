@@ -1510,11 +1510,11 @@ class MockDomainAccountStatusListenerManager : public DomainAccountStatusListene
             }
             visited = true;
         }
-    
+
         bool visited = false;
         bool visitedTwice = false;
     };
-    
+
 /**
  * @tc.name: RegisterAccountStatusListener_001
  * @tc.desc: GetAccountStatus.
