@@ -29,6 +29,8 @@ public:
     ErrCode OnStateChanged(const OsAccountStateParcel &parcel) override;
     ErrCode OnAccountsChanged(int32_t id) override;
     ErrCode OnAccountsSwitch(int32_t newId, int32_t oldId) override;
+    ErrCode CallbackEnter([[maybe_unused]] uint32_t code) override;
+    ErrCode CallbackExit([[maybe_unused]] uint32_t code, [[maybe_unused]] int32_t result) override;
 
     ErrCode InsertRecord(const std::shared_ptr<OsAccountSubscriber> &subscriber);
     ErrCode RemoveRecord(const std::shared_ptr<OsAccountSubscriber> &subscriber);
