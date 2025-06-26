@@ -107,7 +107,11 @@ OsAccount::OsAccount()
 void OsAccount::RestoreConstraintSubscriberRecords()
 {
     auto proxy = GetOsAccountProxy();
-    OsAccountConstraintSubscriberManager::GetInstance().RestoreConstraintSubscriberRecords(proxy);
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("GetProxy failed");
+        return;
+    }
+    OsAccountConstraintSubscriberManager::GetInstance()->RestoreConstraintSubscriberRecords(proxy);
 }
 
 void OsAccount::RestoreListenerRecords()
@@ -1004,13 +1008,21 @@ ErrCode OsAccount::SetSpecificOsAccountConstraints(const std::vector<std::string
 ErrCode OsAccount::SubscribeOsAccountConstraints(const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber)
 {
     auto proxy = GetOsAccountProxy();
-    return constraintSubscriberMgr_->SubscribeOsAccountConstraints(subscriber, proxy);
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("GetProxy failed");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return OsAccountConstraintSubscriberManager::GetInstance()->SubscribeOsAccountConstraints(subscriber, proxy);
 }
 
 ErrCode OsAccount::UnsubscribeOsAccountConstraints(const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber)
 {
     auto proxy = GetOsAccountProxy();
-    return constraintSubscriberMgr_->UnsubscribeOsAccountConstraints(subscriber, proxy);
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("GetProxy failed");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return OsAccountConstraintSubscriberManager::GetInstance()->UnsubscribeOsAccountConstraints(subscriber, proxy);
 }
 
 ErrCode OsAccount::SetDefaultActivatedOsAccount(const int32_t id)
