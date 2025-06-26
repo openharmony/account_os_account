@@ -13,19 +13,18 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ACCOUNT_DISTRIBUTED_ACCOUNT_H
-#define OHOS_ACCOUNT_DISTRIBUTED_ACCOUNT_H
+#ifndef TAIHE_DISTRIBUTED_ACCOUNT_CONVERTER_H
+#define TAIHE_DISTRIBUTED_ACCOUNT_CONVERTER_H
 
-#include "ohos.account.distributedAccount.impl.hpp"
 #include "ohos.account.distributedAccount.proj.hpp"
 #include "account_info.h"
 
 namespace OHOS {
 namespace AccountSA {
 
-ohos::account::distributedAccount::DistributedInfo CreateDistributedInfoFromAccountInfo(const OhosAccountInfo& info);
-    
+ohos::account::distributedAccount::DistributedInfo ConvertToDistributedInfoTH(const OhosAccountInfo& info);
+
 } // namespace AccountSA
 } // namespace OHOS
 
-#endif // OHOS_ACCOUNT_DISTRIBUTED_ACCOUNT_H
+#endif // TAIHE_DISTRIBUTED_ACCOUNT_CONVERTER_H
