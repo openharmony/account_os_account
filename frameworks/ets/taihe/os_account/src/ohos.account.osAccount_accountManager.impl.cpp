@@ -118,9 +118,9 @@ DistributedInfo ConvertDistributedInfo()
         AccountSA::OhosAccountKits::GetInstance().QueryOhosAccountInfo();
     if (!dbAccountInfo.first) {
         ACCOUNT_LOGE("QueryOhosAccountInfo failed.");
-        return AccountSA::CreateDistributedInfoFromAccountInfo(AccountSA::OhosAccountInfo{});
+        return AccountSA::ConvertToDistributedInfoTH(AccountSA::OhosAccountInfo{});
     }
-    return AccountSA::CreateDistributedInfoFromAccountInfo(dbAccountInfo.second);
+    return AccountSA::ConvertToDistributedInfoTH(dbAccountInfo.second);
 }
 
 DomainAccountInfo ConvertDomainInfo(const OHOS::AccountSA::OsAccountInfo &innerInfo)
