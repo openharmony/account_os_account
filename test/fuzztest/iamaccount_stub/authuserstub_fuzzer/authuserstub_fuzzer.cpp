@@ -93,30 +93,20 @@ bool AuthUserStubFuzzTest(const uint8_t *data, size_t size)
         return false;
     }
     FuzzData fuzzData(data, size);
+    AuthParam authParam;
     int32_t userId = fuzzData.GetData<int32_t>();
-    std::vector<uint8_t> challenge = {fuzzData.GetData<uint8_t>()};
-    AuthType authType = static_cast<AuthType>(fuzzData.GenerateEnmu(IAMAuthType::TYPE_END));
-    AuthTrustLevel authTrustLevel = fuzzData.GenerateEnmu(AuthTrustLevel::ATL4);
+    authParam.userId = userId;
+    authParam.challenge = {fuzzData.GetData<uint8_t>()};
+    authParam.authType = static_cast<AuthType>(fuzzData.GenerateEnmu(IAMAuthType::TYPE_END));
+    authParam.authTrustLevel = fuzzData.GenerateEnmu(AuthTrustLevel::ATL4);
+    authParam.authIntent = fuzzData.GenerateEnmu(AuthIntent::ABANDONED_PIN_AUTH);
     std::shared_ptr<IDMCallback> ptr = make_shared<MockIDMCallback>();
     sptr<IIDMCallback> callback = new (std::nothrow) IDMCallbackService(userId, ptr);
-    AuthIntent authIntent = fuzzData.GenerateEnmu(AuthIntent::ABANDONED_PIN_AUTH);
     MessageParcel dataTemp;
     if (!dataTemp.WriteInterfaceToken(IAMACCOUNT_TOKEN)) {
         return false;
     }
-    if (!dataTemp.WriteInt32(userId)) {
-        return false;
-    }
-    if (!dataTemp.WriteUInt8Vector(challenge)) {
-        return false;
-    }
-    if (!dataTemp.WriteInt32(authType)) {
-        return false;
-    }
-    if (!dataTemp.WriteUint32(authTrustLevel)) {
-        return false;
-    }
-    if (!dataTemp.WriteInt32(authIntent)) {
+    if (!dataTemp.WriteParcelable(&authParam)) {
         return false;
     }
     if (!dataTemp.WriteRemoteObject(callback->AsObject())) {

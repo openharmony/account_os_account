@@ -300,12 +300,12 @@
         "VTT for OHOS::AccountSA::OhosAccountInfo";
         "vtable for OHOS::AccountSA::OhosAccountInfo";
         "OHOS::AccountSA::OhosAccountInfo::Unmarshalling(OHOS::Parcel&)";
-        "OHOS::AccountSA::AccountIAMMgrStub::AccountIAMMgrStub()";
-        "OHOS::AccountSA::AccountIAMMgrStub::~AccountIAMMgrStub()";
-        "OHOS::AccountSA::AccountIAMMgrStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
-        "OHOS::AccountSA::AccountIAMMgrStub::~AccountIAMMgrStub()";
-        "non-virtual thunk to OHOS::AccountSA::AccountIAMMgrStub::~AccountIAMMgrStub()";
-        "virtual thunk to OHOS::AccountSA::AccountIAMMgrStub::~AccountIAMMgrStub()";
+        "OHOS::AccountSA::AccountIAMStub::AccountIAMStub()";
+        "OHOS::AccountSA::AccountIAMStub::~AccountIAMStub()";
+        "OHOS::AccountSA::AccountIAMStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
+        "OHOS::AccountSA::AccountIAMStub::~AccountIAMStub()";
+        "non-virtual thunk to OHOS::AccountSA::AccountIAMStub::~AccountIAMStub()";
+        "virtual thunk to OHOS::AccountSA::AccountIAMStub::~AccountIAMStub()";
         "OHOS::AccountSA::InnerDomainAccountManager::AuthUser(int, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>> const&, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
         "OHOS::AccountSA::AppAccountDataStorage::GetAccountInfoFromDataStorage(OHOS::AccountSA::AppAccountInfo&)";
         "OHOS::AccountSA::AppAccountInfo::GetAppIndex()";

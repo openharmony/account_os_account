@@ -30,42 +30,6 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace {
 const std::u16string ACCOUNT_TOKEN = u"ohos.accountfwk.IAccount";
-bool WriteOhosAccountInfo(MessageParcel &data, const OhosAccountInfo &ohosAccountInfo)
-{
-    if (!data.WriteString16(Str8ToStr16(ohosAccountInfo.name_))) {
-        ACCOUNT_LOGE("write name failed!");
-        return false;
-    }
-    if (!data.WriteString16(Str8ToStr16(ohosAccountInfo.uid_))) {
-        ACCOUNT_LOGE("write uid failed!");
-        return false;
-    }
-    if (!data.WriteString16(Str8ToStr16(ohosAccountInfo.GetRawUid()))) {
-        ACCOUNT_LOGE("write rawUid failed!");
-        return false;
-    }
-    if (!data.WriteInt32(ohosAccountInfo.status_)) {
-        ACCOUNT_LOGE("write status failed!");
-        return false;
-    }
-    if (!data.WriteString16(Str8ToStr16(ohosAccountInfo.nickname_))) {
-        ACCOUNT_LOGE("write nickname failed!");
-        return false;
-    }
-    if (!data.WriteInt32(ohosAccountInfo.avatar_.size() + 1)) {
-        ACCOUNT_LOGE("write avatarSize failed!");
-        return false;
-    }
-    if (!data.WriteRawData(ohosAccountInfo.avatar_.c_str(), ohosAccountInfo.avatar_.size() + 1)) {
-        ACCOUNT_LOGE("write avatar failed!");
-        return false;
-    }
-    if (!data.WriteParcelable(&(ohosAccountInfo.scalableData_))) {
-        ACCOUNT_LOGE("write scalableData failed!");
-        return false;
-    }
-    return true;
-}
 }
 bool CmdSetOhosAccountInfoStubFuzzTest(const uint8_t* data, size_t size)
 {
@@ -84,7 +48,7 @@ bool CmdSetOhosAccountInfoStubFuzzTest(const uint8_t* data, size_t size)
     ohosAccountInfo.callingUid_ = fuzzData.GetData<int32_t>();
     ohosAccountInfo.nickname_ = fuzzData.GenerateString();
     ohosAccountInfo.avatar_ = fuzzData.GenerateString();
-    if (!WriteOhosAccountInfo(dataTemp, ohosAccountInfo)) {
+    if (!dataTemp.WriteParcelable(&ohosAccountInfo)) {
         ACCOUNT_LOGE("Write ohosAccountInfo failed!");
         return false;
     }
