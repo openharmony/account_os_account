@@ -767,3 +767,80 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, QueryOhosAccountInfoByUserId, TestSize.Leve
     auto ret = OhosAccountKits::GetInstance().QueryOsAccountDistributedInfo(testUserId);
     EXPECT_NE(true, ret.first);
 }
+
+/**
+ * @tc.name: GetOhosAccountInfoByUserIdPermissionTest001
+ * @tc.desc: Test GetOhosAccountInfoByUserId with invalid hap permission
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserIdPermissionTest001, TestSize.Level3)
+{
+    uint64_t tokenId;
+    ASSERT_TRUE(AllocPermission({"ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS"}, tokenId));
+    setuid(ACCOUNT_SA_UID);
+    OhosAccountInfo ohosAccountInfo;
+    int32_t localId = 100; // default localId.
+    ErrCode ret = OhosAccountKits::GetInstance().GetOsAccountDistributedInfo(localId, ohosAccountInfo);
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED, ret);
+    setuid(0);
+    ASSERT_TRUE(RecoveryPermission(tokenId, 0));
+}
+
+/**
+ * @tc.name: GetOhosAccountInfoByUserIdPermissionTest002
+ * @tc.desc: Test GetOhosAccountInfoByUserId with hap permission
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserIdPermissionTest002, TestSize.Level3)
+{
+    uint64_t tokenId;
+    ASSERT_TRUE(AllocPermission(
+        {"ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS", "ohos.permission.GET_DISTRIBUTED_ACCOUNTS"}, tokenId));
+    setuid(ACCOUNT_SA_UID);
+    OhosAccountInfo ohosAccountInfo;
+    int32_t localId = 100; // default localId.
+    ErrCode ret = OhosAccountKits::GetInstance().GetOsAccountDistributedInfo(localId, ohosAccountInfo);
+    EXPECT_EQ(ERR_OK, ret);
+    setuid(0);
+    ASSERT_TRUE(RecoveryPermission(tokenId, 0));
+}
+
+/**
+ * @tc.name: GetOhosAccountInfoByUserIdPermissionTest003
+ * @tc.desc: Test GetOhosAccountInfoByUserId with invalid sa permission
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserIdPermissionTest003, TestSize.Level3)
+{
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    ASSERT_TRUE(MockTokenId("security_component_service"));
+    setuid(ACCOUNT_SA_UID);
+    OhosAccountInfo ohosAccountInfo;
+    int32_t localId = 100; // default localId.
+    ErrCode ret = OhosAccountKits::GetInstance().GetOsAccountDistributedInfo(localId, ohosAccountInfo);
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED, ret);
+    setuid(0);
+    ASSERT_EQ(0, SetSelfTokenID(selfTokenId));
+}
+
+/**
+ * @tc.name: GetOhosAccountInfoByUserIdPermissionTest004
+ * @tc.desc: Test GetOhosAccountInfoByUserId with sa permission
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserIdPermissionTest004, TestSize.Level3)
+{
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    ASSERT_TRUE(MockTokenId("foundation"));
+    setuid(ACCOUNT_SA_UID);
+    OhosAccountInfo ohosAccountInfo;
+    int32_t localId = 100; // default localId.
+    ErrCode ret = OhosAccountKits::GetInstance().GetOsAccountDistributedInfo(localId, ohosAccountInfo);
+    EXPECT_EQ(ERR_OK, ret);
+    setuid(0);
+    ASSERT_EQ(0, SetSelfTokenID(selfTokenId));
+}
