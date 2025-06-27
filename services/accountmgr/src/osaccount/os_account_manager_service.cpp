@@ -198,7 +198,7 @@ ErrCode OsAccountManagerService::CreateOsAccount(const std::string &localName, c
 {
 #ifdef ENABLE_ACCOUNT_SHORT_NAME
     OsAccountInfo accountInfoOld;
-    ErrCode code = GetRealOsAccountInfoById(Constants::START_USER_ID, accountInfoOld);
+    ErrCode code = innerManager_.GetRealOsAccountInfoById(Constants::START_USER_ID, accountInfoOld);
     if (code != ERR_OK) {
         ACCOUNT_LOGE("QueryOsAccountById error, errCode %{public}d.", code);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
@@ -213,8 +213,7 @@ ErrCode OsAccountManagerService::CreateOsAccount(const std::string &localName, c
         accountInfoOld.SetType(type);
         accountInfoOld.SetLocalName(localName);
         accountInfoOld.SetShortName(shortName);
-        OsAccountInfo osAccountInfo;
-        code = UpdateFirstOsAccountInfo(accountInfoOld, osAccountInfo);
+        code = innerManager_.UpdateFirstOsAccountInfo(accountInfoOld, osAccountInfo);
         return code;
     }
 #endif // ENABLE_ACCOUNT_SHORT_NAME
