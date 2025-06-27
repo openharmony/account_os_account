@@ -46,6 +46,7 @@ public:
     ErrCode CreateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo,
         const CreateOsAccountOptions &options = {}) override;
     ErrCode UpdateOsAccountWithFullInfo(OsAccountInfo &osAccountInfo) override;
+    ErrCode UpdateFirstOsAccountInfo(OsAccountInfo& accountInfoOld, OsAccountInfo& osAccountInfo) override;
     ErrCode RemoveOsAccount(const int id) override;
     ErrCode IsOsAccountExists(const int id, bool &isOsAccountExits) override;
     ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived) override;
