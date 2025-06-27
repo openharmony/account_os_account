@@ -24,10 +24,10 @@
 #include "account_error_no.h"
 #include "napi_account_iam_common.h"
 #include "napi_account_iam_constant.h"
-#include "ohos.account.disributedAccount.h"
 #include "ohos.account.distributedAccount.impl.hpp"
 #include "ohos.account.distributedAccount.proj.hpp"
 #include "ohos.account.osAccount.impl.hpp"
+#include "taihe_distributed_account_converter.h"
 #include "ohos.account.osAccount.proj.hpp"
 #include "ohos_account_kits.h"
 #include "os_account_info.h"
@@ -140,9 +140,9 @@ DistributedInfo ConvertDistributedInfo()
         AccountSA::OhosAccountKits::GetInstance().QueryOhosAccountInfo();
     if (!dbAccountInfo.first) {
         ACCOUNT_LOGE("QueryOhosAccountInfo failed.");
-        return AccountSA::CreateDistributedInfoFromAccountInfo(AccountSA::OhosAccountInfo{});
+        return AccountSA::ConvertToDistributedInfoTH(AccountSA::OhosAccountInfo{});
     }
-    return AccountSA::CreateDistributedInfoFromAccountInfo(dbAccountInfo.second);
+    return AccountSA::ConvertToDistributedInfoTH(dbAccountInfo.second);
 }
 
 DomainAccountInfo ConvertDomainInfo(const OHOS::AccountSA::OsAccountInfo &innerInfo)
