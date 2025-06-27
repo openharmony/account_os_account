@@ -25,6 +25,7 @@
 #include "ohos.account.osAccount.proj.hpp"
 #include "ohos_account_kits.h"
 #include "os_account_info.h"
+#include "taihe_distributed_account_converter.h"
 #include "taihe/runtime.hpp"
 #include "taihe_common.h"
 #include "taihe_account_info.h"
