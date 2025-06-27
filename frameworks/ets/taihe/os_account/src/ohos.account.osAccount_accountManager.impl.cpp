@@ -19,7 +19,6 @@
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "ani_common_want.h"
-#include "ohos.account.disributedAccount.h"
 #include "ohos.account.distributedAccount.impl.hpp"
 #include "ohos.account.distributedAccount.proj.hpp"
 #include "ohos.account.osAccount.impl.hpp"
