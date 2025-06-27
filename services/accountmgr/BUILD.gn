@@ -219,7 +219,6 @@ ohos_shared_library("accountmgr") {
     ":accountmgr_config",
     ":bundle_manager_config",
     ":domain_account_config",
-    "${os_account_innerkits_native_path}:frameworks_osaccount_interface_public_config",
   ]
 
   public_configs = [
