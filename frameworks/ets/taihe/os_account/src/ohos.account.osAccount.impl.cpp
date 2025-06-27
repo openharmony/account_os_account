@@ -25,7 +25,6 @@
 #include "napi_account_iam_common.h"
 #include "napi_account_iam_constant.h"
 #include "nlohmann/json.hpp"
-#include "ohos.account.disributedAccount.h"
 #include "ohos.account.distributedAccount.impl.hpp"
 #include "ohos.account.distributedAccount.proj.hpp"
 #include "ohos.account.osAccount.impl.hpp"
