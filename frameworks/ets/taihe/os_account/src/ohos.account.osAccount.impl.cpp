@@ -29,6 +29,7 @@
 #include "ohos.account.distributedAccount.impl.hpp"
 #include "ohos.account.distributedAccount.proj.hpp"
 #include "ohos.account.osAccount.impl.hpp"
+#include "taihe_distributed_account_converter.h"
 #include "ohos.account.osAccount.proj.hpp"
 #include "ohos_account_kits.h"
 #include "os_account_info.h"
@@ -77,6 +78,110 @@ void SetTaiheBusinessErrorFromNativeCode(int32_t nativeErrCode)
     jsErrCode = GenerateBusinessErrorCode(nativeErrCode);
     errMsg = ConvertToJsErrMsg(jsErrCode);
     taihe::set_business_error(jsErrCode, errMsg.c_str());
+}
+
+OsAccountType::key_t ConvertToOsAccountTypeKey(AccountSA::OsAccountType type)
+{
+    switch (type) {
+        case AccountSA::OsAccountType::ADMIN:
+            return OsAccountType::key_t::ADMIN;
+        case AccountSA::OsAccountType::GUEST:
+            return OsAccountType::key_t::GUEST;
+        case AccountSA::OsAccountType::PRIVATE:
+            return OsAccountType::key_t::PRIVATE;
+        case AccountSA::OsAccountType::NORMAL:
+        default:
+            return OsAccountType::key_t::NORMAL;
+    }
+}
+
+AccountSA::OsAccountType ConvertFromOsAccountTypeKey(int32_t type)
+{
+    switch (static_cast<OsAccountType::key_t>(type)) {
+        case OsAccountType::key_t::ADMIN:
+            return AccountSA::OsAccountType::ADMIN;
+        case OsAccountType::key_t::GUEST:
+            return AccountSA::OsAccountType::GUEST;
+        case OsAccountType::key_t::PRIVATE:
+            return AccountSA::OsAccountType::PRIVATE;
+        case OsAccountType::key_t::NORMAL:
+        default:
+            return AccountSA::OsAccountType::NORMAL;
+    }
+}
+
+taihe::array<taihe::string> ConvertConstraints(const std::vector<std::string> &constraints)
+{
+    std::vector<taihe::string> tempStrings;
+    tempStrings.reserve(constraints.size());
+    for (const auto &constraint : constraints) {
+        tempStrings.emplace_back(taihe::string(constraint.c_str()));
+    }
+    return taihe::array<taihe::string>(taihe::copy_data_t{}, tempStrings.data(), tempStrings.size());
+}
+
+DistributedInfo ConvertDistributedInfo()
+{
+    std::pair<bool, AccountSA::OhosAccountInfo> dbAccountInfo =
+        AccountSA::OhosAccountKits::GetInstance().QueryOhosAccountInfo();
+    if (!dbAccountInfo.first) {
+        ACCOUNT_LOGE("QueryOhosAccountInfo failed.");
+        return AccountSA::ConvertToDistributedInfoTH(AccountSA::OhosAccountInfo{});
+    }
+    return AccountSA::ConvertToDistributedInfoTH(dbAccountInfo.second);
+}
+
+DomainAccountInfo ConvertDomainInfo(const OHOS::AccountSA::OsAccountInfo &innerInfo)
+{
+    AccountSA::DomainAccountInfo sourceInfo;
+    innerInfo.GetDomainInfo(sourceInfo);
+
+    return DomainAccountInfo{
+        .domain = taihe::string(sourceInfo.domain_.c_str()),
+        .accountName = taihe::string(sourceInfo.accountName_.c_str()),
+        .accountId = taihe::optional<taihe::string>(std::in_place_t{}, sourceInfo.accountId_.c_str()),
+        .isAuthenticated = taihe::optional<bool>(std::in_place_t{},
+            (sourceInfo.status_ != AccountSA::DomainAccountStatus::LOGOUT) &&
+            (sourceInfo.status_ < AccountSA::DomainAccountStatus::LOG_END)),
+        .serverConfigId = taihe::optional<taihe::string>(std::in_place_t{}, sourceInfo.serverConfigId_.c_str())};
+}
+
+OsAccountInfo ConvertOsAccountInfo(const AccountSA::OsAccountInfo &innerInfo)
+{
+    return OsAccountInfo{
+        .localId = innerInfo.GetLocalId(),
+        .localName = taihe::string(innerInfo.GetLocalName().c_str()),
+        .shortName =
+            taihe::optional<taihe::string>(std::in_place_t{}, innerInfo.GetShortName().c_str()),
+        .type = OsAccountType(ConvertToOsAccountTypeKey(innerInfo.GetType())),
+        .constraints = ConvertConstraints(innerInfo.GetConstraints()),
+        .isUnlocked = innerInfo.GetIsVerified(),
+        .photo = taihe::string(innerInfo.GetPhoto().c_str()),
+        .createTime = innerInfo.GetCreateTime(),
+        .lastLoginTime = innerInfo.GetLastLoginTime(),
+        .serialNumber = innerInfo.GetSerialNumber(),
+        .isActivated = innerInfo.GetIsActived(),
+        .isLoggedIn = taihe::optional<bool>(std::in_place_t{}, innerInfo.GetIsLoggedIn()),
+        .isCreateCompleted = innerInfo.GetIsCreateCompleted(),
+        .distributedInfo = ConvertDistributedInfo(),
+        .domainInfo = ConvertDomainInfo(innerInfo)
+    };
+}
+
+AccountSA::CreateOsAccountOptions ConvertToInnerOptions(optional_view<CreateOsAccountOptions> options)
+{
+    AccountSA::CreateOsAccountOptions innerOptions;
+
+    if (!options.has_value()) {
+        return innerOptions;
+    }
+
+    const auto &opts = options.value();
+
+    innerOptions.shortName = std::string(opts.shortName.data(), opts.shortName.size());
+    innerOptions.hasShortName = true;
+
+    return innerOptions;
 }
 
 inline UserIam::UserAuth::CredentialParameters ConvertToCredentialParameters(
