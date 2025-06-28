@@ -284,13 +284,26 @@ ErrCode AccountMgrService::GetOsAccountDistributedInfo(int32_t localId, OhosAcco
         ACCOUNT_LOGE("the caller is not system application, errCode = %{public}d.", errCode);
         return errCode;
     }
-    if (!HasAccountRequestPermission(PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS) &&
-        !HasAccountRequestPermission(INTERACT_ACROSS_LOCAL_ACCOUNTS) &&
-        !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC) &&
-        !HasAccountRequestPermission(PERMISSION_GET_DISTRIBUTED_ACCOUNTS)) {
-        ACCOUNT_LOGE("Check permission failed");
-        REPORT_PERMISSION_FAIL();
-        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    // to support sa calling without adjust sa permission, add bypass permission for sa calling
+    if (AccountPermissionManager::CheckSaCall()) {
+        if (!HasAccountRequestPermission(PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS) &&
+            !HasAccountRequestPermission(INTERACT_ACROSS_LOCAL_ACCOUNTS) &&
+            !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC) &&
+            !HasAccountRequestPermission(PERMISSION_GET_DISTRIBUTED_ACCOUNTS)) {
+            ACCOUNT_LOGE("Check permission for sa failed");
+            REPORT_PERMISSION_FAIL();
+            return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+        }
+        REPORT_OHOS_ACCOUNT_FAIL(IPCSkeleton::GetCallingUid(), "saCalledPermBypass",
+            ERR_OK, "Check for sa called permission passed.");
+    } else {
+        if (!HasAccountRequestPermission(PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS) &&
+            !(HasAccountRequestPermission(INTERACT_ACROSS_LOCAL_ACCOUNTS) &&
+            HasAccountRequestPermission(PERMISSION_GET_DISTRIBUTED_ACCOUNTS))) {
+            ACCOUNT_LOGE("Check permission failed");
+            REPORT_PERMISSION_FAIL();
+            return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+        }
     }
 
     bool isOsAccountExits = false;
