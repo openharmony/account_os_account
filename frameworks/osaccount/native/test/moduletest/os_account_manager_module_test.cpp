@@ -1378,7 +1378,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest069, TestSize.Lev
     EXPECT_EQ(OsAccountManager::SetSpecificOsAccountConstraints(
         CONSTANTS_VECTOR, true, newOsAccountInfo.GetLocalId(), commonOsAccountInfo.GetLocalId(), true), ERR_OK);
 
-    isEnable = true;
+    isEnable = false;
     EXPECT_EQ(OsAccountManager::SetGlobalOsAccountConstraints(
         CONSTANTS_VECTOR, false, commonOsAccountInfo.GetLocalId(), true), ERR_OK);
 
@@ -1386,6 +1386,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest069, TestSize.Lev
         newOsAccountInfo.GetLocalId(), CONSTANT_PRINT, isEnable), ERR_OK);
     EXPECT_EQ(isEnable, true);
 
+    isEnable = true;
     EXPECT_EQ(
         OsAccountManager::IsOsAccountConstraintEnable(commonOsAccountInfo.GetLocalId(), CONSTANT_PRINT, isEnable),
         ERR_OK);
