@@ -728,7 +728,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_SetAppAc
     g_accountManagerService->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_FALSE, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
-    bool syncEnable = true;
+    bool syncEnable = SYNC_ENABLE_TRUE;
     g_accountManagerService->CheckAppAccountSyncEnable(STRING_NAME, syncEnable, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
     EXPECT_EQ(syncEnable, SYNC_ENABLE_FALSE);
