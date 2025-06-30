@@ -15,6 +15,10 @@
 
 @!namespace("@ohos.account.appAccount", "appAccount")
 
+@!sts_inject("""
+static { loadLibrary("app_account_taihe_native.z") }
+""")
+
 function createAppAccountManager(): AppAccountManager;
 
 struct CreateAccountOptions {
