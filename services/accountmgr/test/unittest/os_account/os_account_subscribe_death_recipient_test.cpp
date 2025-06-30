@@ -81,6 +81,11 @@ public:
         std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
         return ERR_OK;
     }
+
+    ErrCode OnAccountsChanged(int32_t id)
+    {
+        return ERR_OK;
+    }
 };
 
 /*
@@ -352,6 +357,37 @@ HWTEST_F(OsAccountCoverageTest, OnRemoteDiedTest_0700, TestSize.Level1)
     recipient->OnRemoteDied(wptrDeath);
     int size = OsAccountSubscribeManager::GetInstance().subscribeRecords_.size();
     EXPECT_EQ(size, 0);
+}
+
+/*
+ * @tc.name: OsAccountSubscribeManager_001
+ * @tc.desc: Test OnStateChangedV0 state.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountCoverageTest, OsAccountSubscribeManager_001, TestSize.Level3)
+{
+    GTEST_LOG_(INFO)
+        << "OsAccountCoverageTest, OsAccountSubscribeManager_001, TestSize.Level1";
+    auto proxy = sptr<IOsAccountEvent>(new DelayEventProxy());
+    int32_t testUid = 1;
+    int32_t fromId = 100;
+    int32_t toId = 101;
+    ASSERT_NE(proxy, nullptr);
+    bool result = OsAccountSubscribeManager::GetInstance().OnStateChangedV0(
+        proxy, OsAccountState::SWITCHING, fromId, toId, testUid);
+    EXPECT_EQ(result, false);
+    result = OsAccountSubscribeManager::GetInstance().OnStateChangedV0(
+        proxy, OsAccountState::SWITCHED, fromId, toId, testUid);
+    EXPECT_EQ(result, false);
+    auto obj = std::make_shared<SwitchSubscribeInfo>();
+    OsAccountSubscribeManager::GetInstance().switchRecordMap_.emplace(testUid, obj);
+    result = OsAccountSubscribeManager::GetInstance().OnStateChangedV0(
+        proxy, OsAccountState::SWITCHED, fromId, toId, testUid);
+    EXPECT_EQ(result, true);
+    result = OsAccountSubscribeManager::GetInstance().OnStateChangedV0(
+        proxy, OsAccountState::ACTIVATED, fromId, toId, testUid);
+    EXPECT_EQ(result, true);
 }
 
 /**
