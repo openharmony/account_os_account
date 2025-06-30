@@ -61,6 +61,7 @@ taihe_shared_library("app_account_taihe_native") {
 
   include_dirs = [
     "./app_account/include",
+    "./common/include",
     "${os_account_path}/frameworks/appaccount/native/include",
     "${os_account_path}/interfaces/innerkits/appaccount/native/include",
     "${os_account_path}/frameworks/ets/taihe/os_account/include/",
@@ -68,11 +69,16 @@ taihe_shared_library("app_account_taihe_native") {
     "${innerkits_path}/include",
     "${common_path}/account_error",
     "${common_path}/log/include",
+    "${app_account_interfaces_native_path}/include",
+    "${account_iam_interfaces_native_path}/include",
+    "${account_iam_kits_path}/include",
   ]
 
   deps = [
     ":app_account_taihe",
+    "${account_iam_framework_path}:account_iam_innerkits",
     "${account_napi_common_path}:account_napi_common",
+    "${common_path}:libaccount_common",
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${innerkits_native_path}:libaccountkits",
   ]
