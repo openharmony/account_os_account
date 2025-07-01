@@ -586,6 +586,7 @@ ErrCode AppAccount::GetAllOAuthTokens(
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
+    tokenInfos.clear();
     int32_t funcResult = 0;
     auto idlErrCode = proxy->GetAllOAuthTokens(name, owner, tokenInfos, funcResult);
     return ConvertToAccountErrCode(idlErrCode, funcResult);
@@ -645,6 +646,7 @@ ErrCode AppAccount::GetAllAccounts(const std::string &owner, std::vector<AppAcco
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
+    appAccounts.clear();
     int32_t funcResult = 0;
     auto idlErrCode = proxy->GetAllAccounts(owner, appAccounts, funcResult);
     return ConvertToAccountErrCode(idlErrCode, funcResult);
@@ -759,6 +761,7 @@ ErrCode AppAccount::GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAcc
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
+    appAccounts.clear();
     int32_t funcResult = 0;
     auto idlErrCode = proxy->GetAllAccessibleAccounts(appAccounts, funcResult);
     return ConvertToAccountErrCode(idlErrCode, funcResult);
@@ -773,6 +776,7 @@ ErrCode AppAccount::QueryAllAccessibleAccounts(
     }
     RETURN_IF_STRING_IS_OVERSIZE(owner, Constants::OWNER_MAX_SIZE,
         "Invalid owner. The length of the owner must be less than 1025");
+    appAccounts.clear();
     int32_t funcResult = 0;
     auto idlErrCode = proxy->QueryAllAccessibleAccounts(owner, appAccounts, funcResult);
     return ConvertToAccountErrCode(idlErrCode, funcResult);

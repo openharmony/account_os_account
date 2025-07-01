@@ -48,6 +48,7 @@ int32_t AccountIAMClient::OpenSession(int32_t userId, std::vector<uint8_t> &chal
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
+    challenge.clear();
     return proxy->OpenSession(userId, challenge);
 }
 
