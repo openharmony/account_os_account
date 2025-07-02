@@ -41,6 +41,7 @@
         "VTT for OHOS::AccountSA::OhosAccountInfo";
         "vtable for OHOS::AccountSA::OhosAccountInfo";
         "OHOS::AccountSA::OhosAccountInfo::Unmarshalling(OHOS::Parcel&)";
+        "OHOS::AccountSA::OhosAccountInfo::Marshalling(OHOS::Parcel&) const";
     };
   local:
     *;
