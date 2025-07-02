@@ -353,13 +353,6 @@ struct IInputer {
 interface IInputData {
     GetSpecificImplPtr (): i64;
     OnSetDataInner(authSubType: AuthSubType, data: @typedarray Array<u8>):void;
-    @!sts_inject("""
-     get onSetData: (authSubType: AuthSubType, data: @typedarray Array<u8>)：voide =>{
-        return (authSubType: AuthSubType, data: @typedarray Array<u8>)=>{
-            this.onSetDataInner(authSubType, data);
-        }
-     } ;
-    """)
 }
 
 @class
