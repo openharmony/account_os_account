@@ -494,7 +494,7 @@ void UpdateCredCallback::InnerOnResult(int32_t result, const Attributes &extraIn
             updateCredInfo.newSecret, updateCredInfo.secureUid, userId_);
     } else {
         code = innerIamMgr.UpdateStorageUserAuth(userId_, updateCredInfo.secureUid,
-            updateCredInfo.token, updateCredInfo.oldSecret, {});
+            updateCredInfo.token, updateCredInfo.oldSecret, updateCredInfo.newSecret);
     }
     if (code != ERR_OK) {
         DeleteCredential(userId_, updateCredInfo.credentialId, credInfo_.token);
@@ -637,18 +637,6 @@ void CommitCredUpdateCallback::InnerOnResult(int32_t result, const Attributes &e
     } else {
         ReportOsAccountLifeCycle(userId_,
             std::string(Constants::OPERATION_UPDATE_CRED) + "_" + std::to_string(AuthType::PIN) + "_commit");
-    }
-    if (!extraUpdateInfo_.oldSecret.empty()) {
-        ErrCode code = innerIamMgr.UpdateStorageUserAuth(
-            userId_, extraUpdateInfo_.secureUid, extraUpdateInfo_.token, {}, extraUpdateInfo_.newSecret);
-        if (code != ERR_OK) {
-            ACCOUNT_LOGE("Fail to update user auth, userId=%{public}d, code=%{public}d", userId_, code);
-            innerIamMgr.SetState(userId_, AFTER_OPEN_SESSION);
-            ReportOsAccountOperationFail(userId_, std::string(Constants::OPERATION_UPDATE_CRED) + "_commit",
-                code, "Failed to update user auth");
-            innerCallback_->OnResult(code, extraInfo.Serialize());
-            return;
-        }
     }
     Attributes extraInfoResult;
     extraInfoResult.SetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, extraUpdateInfo_.credentialId);
