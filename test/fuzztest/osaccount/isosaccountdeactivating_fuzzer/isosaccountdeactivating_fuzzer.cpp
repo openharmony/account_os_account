@@ -37,7 +37,7 @@ namespace OHOS {
                 (fuzzData.GetData<int32_t>() % MAX_TEST_ID) : fuzzData.GetData<int32_t>();
             bool isDeactivating = false;
             ErrCode errCode = OsAccountManager::IsOsAccountDeactivating(testId, isDeactivating);
-            result = (errCode == ERR_OK) || (errCode != ERR_OK);
+            result = errCode == ERR_OK;
         }
         return result;
     }

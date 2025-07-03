@@ -26,7 +26,7 @@ using namespace std;
 using namespace OHOS::AccountSA;
 namespace OHOS {
 const std::u16string APPACCOUNT_TOKEN = u"OHOS.AccountSA.IAppAccount";
-bool CheckOAuthTokenVisibilityStubFuzzTest(const uint8_t* data, size_t size)
+bool CheckAuthTokenVisibilityStubFuzzTest(const uint8_t* data, size_t size, uint32_t code)
 {
     if ((data == nullptr) || (size == 0)) {
         return false;
@@ -50,7 +50,6 @@ bool CheckOAuthTokenVisibilityStubFuzzTest(const uint8_t* data, size_t size)
     }
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_CHECK_O_AUTH_TOKEN_VISIBILITY);
     auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
     appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
     return true;
@@ -61,7 +60,10 @@ bool CheckOAuthTokenVisibilityStubFuzzTest(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::CheckOAuthTokenVisibilityStubFuzzTest(data, size);
+    OHOS::CheckAuthTokenVisibilityStubFuzzTest(
+        data, size, static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_CHECK_AUTH_TOKEN_VISIBILITY));
+    OHOS::CheckAuthTokenVisibilityStubFuzzTest(
+        data, size, static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_CHECK_O_AUTH_TOKEN_VISIBILITY));
     return 0;
 }
 

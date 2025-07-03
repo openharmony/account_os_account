@@ -19,6 +19,8 @@ group("fuzztest") {
     # deps file
     "activateosaccountstub_fuzzer:ActivateOsAccountStubFuzzTest",
     "checkosaccountconstraintenabledstub_fuzzer:CheckOsAccountConstraintEnabledStubFuzzTest",
+    "createosaccountwithfullinfostub_fuzzer:CreateOsAccountWithFullInfoStubFuzzTest",
+    "createosaccountwithshortnamestub_fuzzer:CreateOsAccountWithShortNameStubFuzzTest",
     "deactivateosaccountstub_fuzzer:DeactivateOsAccountStubFuzzTest",
     "dumpstatestub_fuzzer:DumpStateStubFuzzTest",
     "getforegroundosaccountlocalidstub_fuzzer:GetForegroundOsAccountLocalIdStubFuzzTest",
@@ -32,6 +34,7 @@ group("fuzztest") {
     "isosaccountactivedstub_fuzzer:IsOsAccountActivedStubFuzzTest",
     "isosaccountcompletedstub_fuzzer:IsOsAccountCompletedStubFuzzTest",
     "isosaccountconstraintenablestub_fuzzer:IsOsAccountConstraintEnableStubFuzzTest",
+    "isosaccountdeactivatingstub_fuzzer:IsOsAccountDeactivatingStubFuzzTest",
     "isosaccountexistsstub_fuzzer:IsOsAccountExistsStubFuzzTest",
     "isosaccountforegroundstub_fuzzer:IsOsAccountForegroundStubFuzzTest",
     "isosaccountverifiedstub_fuzzer:IsOsAccountVerifiedStubFuzzTest",
@@ -52,6 +55,7 @@ group("fuzztest") {
     "setosaccounttoberemovedstub_fuzzer:SetOsAccountToBeRemovedStubFuzzTest",
     "setspecificosaccountconstraintsstub_fuzzer:SetSpecificOsAccountConstraintsStubFuzzTest",
     "subscribeosaccountstub_fuzzer:SubscribeOsAccountStubFuzzTest",
+    "updateosaccountwithfullinfostub_fuzzer:UpdateOsAccountWithFullInfoStubFuzzTest",
     "subscribeosaccountconstraintstub_fuzzer:SubscribeOsAccountConstraintStubFuzzTest",
     "unsubscribeosaccountconstraintstub_fuzzer:UnsubscribeOsAccountConstraintStubFuzzTest",
   ]

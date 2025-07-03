@@ -48,6 +48,11 @@ bool ProcCreateOsAccountWithShortNameStubFuzzTest(const uint8_t *data, size_t si
         return false;
     }
 
+    CreateOsAccountOptions options;
+    if (!datas.WriteParcelable(&options)) {
+        return false;
+    }
+
     MessageParcel reply;
     MessageOption option;
 

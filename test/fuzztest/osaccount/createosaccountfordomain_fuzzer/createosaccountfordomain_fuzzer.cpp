@@ -1,0 +1,71 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "createosaccountfordomain_fuzzer.h"
+
+#include <string>
+#include <vector>
+#include "os_account_manager.h"
+#include "account_log_wrapper.h"
+#include "fuzz_data.h"
+#include "os_account_constants.h"
+#include "securec.h"
+
+using namespace std;
+using namespace OHOS::AccountSA;
+
+namespace OHOS {
+constexpr uint32_t MAX_ACCOUNT_TYPE_COUNT = 5;
+
+OsAccountType GetAccountType(FuzzData& fuzzData, bool useValid)
+{
+    if (useValid) {
+        return OsAccountType::NORMAL;
+    }
+    return static_cast<OsAccountType>(fuzzData.GetData<uint32_t>() % MAX_ACCOUNT_TYPE_COUNT);
+}
+
+bool CreateOsAccountForDomainFuzzTest(const uint8_t* data, size_t size)
+{
+    if ((data == nullptr) || (size == 0)) {
+        return false;
+    }
+
+    FuzzData fuzzData(data, size);
+    bool useValidParams = fuzzData.GetData<bool>();
+    
+    std::string accountName = useValidParams ? "domain.user" : fuzzData.GenerateString();
+    std::string domain = useValidParams ? "example.com" : fuzzData.GenerateString();
+    DomainAccountInfo domainInfo(accountName, domain);
+    OsAccountType testType = GetAccountType(fuzzData, useValidParams);
+    OsAccountInfo osAccountInfo;
+    
+    int32_t result = OsAccountManager::CreateOsAccountForDomain(testType, domainInfo, nullptr);
+    if (result == ERR_OK) {
+        ACCOUNT_LOGI("CreateOsAccountForDomainFuzzTest RemoveOsAccount");
+        OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId());
+    }
+    
+    return result == ERR_OK;
+}
+
+} // namespace OHOS
+
+/* Fuzzer entry point */
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
+{
+    OHOS::CreateOsAccountForDomainFuzzTest(data, size);
+    return 0;
+}

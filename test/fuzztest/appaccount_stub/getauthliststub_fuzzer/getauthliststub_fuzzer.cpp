@@ -26,7 +26,7 @@ using namespace std;
 using namespace OHOS::AccountSA;
 namespace OHOS {
 const std::u16string APPACCOUNT_TOKEN = u"OHOS.AccountSA.IAppAccount";
-bool GetAuthListStubFuzzTest(const uint8_t* data, size_t size)
+bool GetAuthListStubFuzzTest(const uint8_t* data, size_t size, uint32_t code)
 {
     if ((data == nullptr) || (size == 0)) {
         return false;
@@ -46,7 +46,6 @@ bool GetAuthListStubFuzzTest(const uint8_t* data, size_t size)
     }
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_GET_AUTH_LIST);
     auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
     appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
     return true;
@@ -57,7 +56,8 @@ bool GetAuthListStubFuzzTest(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::GetAuthListStubFuzzTest(data, size);
+    OHOS::GetAuthListStubFuzzTest(data, size, static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_GET_AUTH_LIST));
+    OHOS::GetAuthListStubFuzzTest(data, size, static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_GET_O_AUTH_LIST));
     return 0;
 }
 

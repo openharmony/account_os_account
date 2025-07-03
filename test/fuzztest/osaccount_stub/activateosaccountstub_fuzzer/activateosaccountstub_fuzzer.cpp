@@ -24,6 +24,7 @@
 
 using namespace std;
 using namespace OHOS::AccountSA;
+const int32_t MAX_TEST_ID = 10738; // Maximum test
 
 namespace OHOS {
 const int ENUM_TYPE_MAX = 5;
@@ -39,8 +40,9 @@ bool ActivateOsAccountStubFuzzTest(const uint8_t *data, size_t size)
     MessageParcel datas;
     FuzzData fuzzData(data, size);
     datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
-
-    if (!datas.WriteInt32(fuzzData.GetData<int32_t>())) {
+    int32_t testId = fuzzData.GetData<bool>() ?
+                (fuzzData.GetData<int32_t>() % MAX_TEST_ID) : fuzzData.GetData<int32_t>();
+    if (!datas.WriteInt32(testId)) {
         return false;
     }
 

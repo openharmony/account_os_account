@@ -18,7 +18,7 @@ import("//build/config/features.gni")
 import("//build/test.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("QueryDistributedVirtualDeviceIdTest") {
+ohos_fuzztest("QueryDistributedVirtualDeviceIdFuzzTest") {
   module_out_path = fuzz_output_path
   fuzz_config_file = "${os_account_path}/test/fuzztest/osaccount/querydistributedvirtualdeviceid_fuzzer"
   include_dirs = [ "${os_account_path}/test/fuzztest/osaccount/common" ]
