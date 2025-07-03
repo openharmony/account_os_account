@@ -227,6 +227,10 @@ ohos_unittest("account_mgr_test") {
     }
   }
 
+  if (use_libfuzzer) {
+    cflags_cc += [ "-DFUZZ_TEST" ]
+  }
+
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
     sources += [
@@ -340,6 +344,9 @@ ohos_unittest("account_stub_test") {
 
   module_out_path = module_output_path
   cflags_cc = []
+  if (use_libfuzzer) {
+    cflags_cc += [ "-DFUZZ_TEST" ]
+  }
   include_dirs = [
     "${os_account_interfaces_native_path}/include",
     "${os_account_core_path}/include",

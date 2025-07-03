@@ -27,6 +27,7 @@ using namespace OHOS::AccountSA;
 
 namespace OHOS {
 const std::u16string IOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccount";
+const int START_USER_ID = 100;
 bool DeactivateOsAccountStubFuzzTest(const uint8_t *data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
@@ -50,7 +51,26 @@ bool DeactivateOsAccountStubFuzzTest(const uint8_t *data, size_t size)
 
     return true;
 }
+
+void IsOsAccountDeactivating()
+{
+    MessageParcel dataParcel;
+    dataParcel.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
+    dataParcel.WriteInt32(START_USER_ID);
+    MessageParcel reply;
+    MessageOption option;
+    auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
+    osAccountManagerService_->OnRemoteRequest(
+        static_cast<uint32_t>(IOsAccountIpcCode::COMMAND_IS_OS_ACCOUNT_DEACTIVATING),
+        dataParcel, reply, option);
+}
 } // namespace OHOS
+
+extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
+{
+    OHOS::IsOsAccountDeactivating();
+    return 0;
+}
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)

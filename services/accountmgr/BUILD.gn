@@ -160,6 +160,9 @@ ohos_shared_library("accountmgr") {
     "-fno-unwind-tables",
     "-Os",
   ]
+  if (use_libfuzzer) {
+    cflags_cc += [ "-DFUZZ_TEST" ]
+  }
 
   if (!os_account_distributed_feature) {
     cflags_cc += [ "-fvisibility=hidden" ]

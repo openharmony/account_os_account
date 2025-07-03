@@ -67,6 +67,11 @@ ohos_unittest("account_proxy_mock_test") {
   ]
 
   cflags_cc = []
+
+  if (use_libfuzzer) {
+    cflags_cc += [ "-DFUZZ_TEST" ]
+  }
+
   if (os_account_support_lock_os_account) {
     cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
   }

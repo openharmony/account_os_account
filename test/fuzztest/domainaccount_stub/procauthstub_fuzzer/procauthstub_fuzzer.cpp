@@ -71,6 +71,9 @@ public:
         if (!dataTemp.WriteUInt8Vector(password)) {
             return false;
         }
+        if (!dataTemp.WriteString(fuzzData.GenerateString())) {
+            return false;
+        }
         if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
             return false;
         }

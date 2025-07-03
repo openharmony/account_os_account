@@ -31,28 +31,6 @@ using namespace OHOS::Security::AccessToken;
 namespace OHOS {
 const std::u16string IOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccount";
 
-void NativeTokenGet()
-{
-    uint64_t tokenId;
-    const char **perms = new const char *[1];
-
-    perms[0] = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
-
-    NativeTokenInfoParams infoInstance = {
-        .dcapsNum = 0,
-        .permsNum = 1,
-        .aclsNum = 0,
-        .perms = perms,
-        .acls = nullptr,
-        .aplStr = "system_core",
-    };
-    infoInstance.processName = "SUBSCRIBE_OSACCOUNT_CONSTRAINT";
-    tokenId = GetAccessTokenId(&infoInstance);
-    SetSelfTokenID(tokenId);
-    AccessTokenKit::ReloadNativeTokenInfo();
-    delete [] perms;
-}
-
 bool SubscribeOsAccountConstraintStubFuzzTest(const uint8_t *data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
@@ -75,7 +53,6 @@ bool SubscribeOsAccountConstraintStubFuzzTest(const uint8_t *data, size_t size)
 
     MessageParcel reply;
     MessageOption option;
-    NativeTokenGet();
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
 
     osAccountManagerService_ ->OnRemoteRequest(
@@ -84,6 +61,35 @@ bool SubscribeOsAccountConstraintStubFuzzTest(const uint8_t *data, size_t size)
     return true;
 }
 } // namespace OHOS
+
+void NativeTokenGet()
+{
+    uint64_t tokenId;
+    const char **perms = new const char *[1];
+
+    perms[0] = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
+
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 1,
+        .aclsNum = 0,
+        .perms = perms,
+        .acls = nullptr,
+        .aplStr = "system_core",
+    };
+    infoInstance.processName = "SUBSCRIBE_OSACCOUNT_CONSTRAINT";
+    tokenId = GetAccessTokenId(&infoInstance);
+    SetSelfTokenID(tokenId);
+    AccessTokenKit::ReloadNativeTokenInfo();
+    delete [] perms;
+}
+
+/* Fuzzer entry point */
+extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
+{
+    NativeTokenGet();
+    return 0;
+}
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)

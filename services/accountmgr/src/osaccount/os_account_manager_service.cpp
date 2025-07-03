@@ -720,6 +720,9 @@ ErrCode OsAccountManagerService::GetOsAccountAllConstraints(int32_t id, std::vec
     return innerManager_.GetOsAccountAllConstraints(id, constraints);
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManagerService::QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos)
 {
     // permission check
@@ -735,7 +738,13 @@ ErrCode OsAccountManagerService::QueryAllCreatedOsAccounts(std::vector<OsAccount
     }
     return result;
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManagerService::QueryAllCreatedOsAccounts(StringRawData& osAccountInfos)
 {
     ErrCode checkResult = AccountPermissionManager::CheckSystemApp();
@@ -764,6 +773,9 @@ ErrCode OsAccountManagerService::QueryCurrentOsAccount(OsAccountInfo &osAccountI
     int id = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     return innerManager_.QueryOsAccountById(id, osAccountInfo);
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 ErrCode OsAccountManagerService::QueryCurrentOsAccount(StringRawData& stringRawData)
 {
@@ -793,6 +805,9 @@ ErrCode OsAccountManagerService::QueryOsAccountById(const int id, OsAccountInfo 
     return innerManager_.QueryOsAccountById(id, osAccountInfo);
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManagerService::QueryOsAccountById(int32_t id, StringRawData& stringRawData)
 {
     ErrCode result = AccountPermissionManager::CheckSystemApp();
@@ -821,6 +836,9 @@ ErrCode OsAccountManagerService::GetOsAccountTypeFromProcess(int32_t& typeValue)
     }
     return result;
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 ErrCode OsAccountManagerService::GetOsAccountType(int32_t id, int32_t& typeValue)
 {
@@ -862,6 +880,9 @@ ErrCode OsAccountManagerService::GetOsAccountProfilePhoto(const int id, std::str
     return innerManager_.GetOsAccountProfilePhoto(id, photo);
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManagerService::GetOsAccountProfilePhoto(int32_t id, StringRawData& stringRawData)
 {
     ErrCode checkResult = AccountPermissionManager::CheckSystemApp();
@@ -881,6 +902,9 @@ ErrCode OsAccountManagerService::IsMultiOsAccountEnable(bool &isMultiOsAccountEn
 {
     return innerManager_.IsMultiOsAccountEnable(isMultiOsAccountEnable);
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 ErrCode OsAccountManagerService::SetOsAccountName(int32_t id, const std::string &name)
 {
@@ -1079,6 +1103,9 @@ ErrCode OsAccountManagerService::DeactivateOsAccount(int32_t id)
     return res;
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManagerService::DeactivateAllOsAccounts()
 {
     ErrCode checkResult = AccountPermissionManager::CheckSystemApp();
@@ -1119,7 +1146,13 @@ ErrCode OsAccountManagerService::DeactivateAllOsAccounts()
     }
     return result;
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 void OsAccountManagerService::GetCurrentLocalId(int32_t &userId)
 {
     std::vector<int32_t> userIds;
@@ -1130,6 +1163,9 @@ void OsAccountManagerService::GetCurrentLocalId(int32_t &userId)
     userId = userIds[0];
     return;
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 ErrCode OsAccountManagerService::StartOsAccount(int32_t id)
 {
@@ -1233,11 +1269,17 @@ ErrCode OsAccountManagerService::GetOsAccountSwitchMod(int32_t &switchMod)
     return ERR_OK;
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManagerService::IsCurrentOsAccountVerified(bool &isVerified)
 {
     int id = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     return innerManager_.IsOsAccountVerified(id, isVerified);
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 ErrCode OsAccountManagerService::IsOsAccountCompleted(int32_t id, bool &isOsAccountCompleted)
 {
@@ -1466,6 +1508,9 @@ ErrCode OsAccountManagerService::DumpStateByAccounts(
     return ERR_OK;
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManagerService::QueryActiveOsAccountIds(std::vector<int32_t>& ids)
 {
 #ifdef HICOLLIE_ENABLE
@@ -1489,6 +1534,9 @@ ErrCode OsAccountManagerService::QueryActiveOsAccountIds(std::vector<int32_t>& i
 #endif // HICOLLIE_ENABLE
     return result;
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 ErrCode OsAccountManagerService::QueryOsAccountConstraintSourceTypes(int32_t id,
     const std::string &constraint, std::vector<ConstraintSourceTypeInfo> &constraintSourceTypeInfos)
@@ -1666,6 +1714,9 @@ ErrCode OsAccountManagerService::GetOsAccountShortNameCommon(const int32_t id, s
     return ERR_OK;
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManagerService::GetOsAccountShortName(std::string &shortName)
 {
     ErrCode result = AccountPermissionManager::CheckSystemApp();
@@ -1676,7 +1727,13 @@ ErrCode OsAccountManagerService::GetOsAccountShortName(std::string &shortName)
     int32_t id = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     return GetOsAccountShortNameCommon(id, shortName);
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManagerService::GetOsAccountName(std::string &name)
 {
     int32_t id = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
@@ -1688,6 +1745,9 @@ ErrCode OsAccountManagerService::GetOsAccountName(std::string &name)
     }
     return ERR_OK;
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 ErrCode OsAccountManagerService::GetOsAccountNameById(int32_t id, std::string &name)
 {
@@ -1803,6 +1863,9 @@ ErrCode OsAccountManagerService::GetForegroundOsAccountLocalId(const uint64_t di
     return innerManager_.GetForegroundOsAccountLocalId(displayId, localId);
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManagerService::GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts)
 {
     ErrCode checkResult = AccountPermissionManager::CheckSystemApp();
@@ -1817,11 +1880,20 @@ ErrCode OsAccountManagerService::GetForegroundOsAccounts(std::vector<ForegroundO
     }
     return result;
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManagerService::GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds)
 {
     return innerManager_.GetBackgroundOsAccountLocalIds(localIds);
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 ErrCode OsAccountManagerService::SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved)
 {
