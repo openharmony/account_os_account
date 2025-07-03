@@ -173,6 +173,7 @@ private:
     ErrCode GetOsAccountShortNameCommon(const int32_t id, std::string &shortName);
     ErrCode ValidateAccountCreateParamAndPermission(const std::string &localName, const OsAccountType &type);
     void ConstraintPublish(const std::vector<std::string> &oldConstraints, int32_t localId, bool enable);
+    ErrCode CheckLocalIdRestricted(int32_t localId);
 
 private:
     IInnerOsAccountManager &innerManager_;
