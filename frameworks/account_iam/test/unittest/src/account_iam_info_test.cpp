@@ -234,6 +234,8 @@ HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_ConvertToCredentialInfoIamList_0100,
     infoList.emplace_back(credentialInfo);
     std::vector<OHOS::AccountSA::CredentialInfoIam> infoIamList = ConvertToCredentialInfoIamList(infoList);
     EXPECT_EQ(infoList.size(), infoIamList.size());
+    EXPECT_EQ(infoList[0].authType, infoIamList[0].credentialInfo.authType);
+    EXPECT_EQ(infoList[0].pinType, infoIamList[0].credentialInfo.pinType);
 }
 
 /**
@@ -265,13 +267,11 @@ HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_Marshalling_0300, TestSize.Level3)
 {
     Parcel parcel;
     OHOS::AccountSA::CredentialInfoIam credentialInfoIam;
-    UserIam::UserAuth::CredentialInfo credentialInfo;
     credentialInfoIam.credentialInfo.authType = AuthType::PIN;
     credentialInfoIam.credentialInfo.credentialId = 1;
     credentialInfoIam.credentialInfo.templateId = 2;
     credentialInfoIam.credentialInfo.isAbandoned = true;
     credentialInfoIam.credentialInfo.validityPeriod = 3;
-    credentialInfoIam.credentialInfo = credentialInfo;
     EXPECT_TRUE(credentialInfoIam.Marshalling(parcel));
     OHOS::AccountSA::CredentialInfoIam *credentialInfoIam1 = credentialInfoIam.Unmarshalling(parcel);
     EXPECT_NE(credentialInfoIam1, nullptr);
@@ -281,32 +281,6 @@ HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_Marshalling_0300, TestSize.Level3)
     EXPECT_EQ(credentialInfoIam.credentialInfo.templateId, credentialInfoIam1->credentialInfo.templateId);
     EXPECT_EQ(credentialInfoIam.credentialInfo.isAbandoned, credentialInfoIam1->credentialInfo.isAbandoned);
     EXPECT_EQ(credentialInfoIam.credentialInfo.validityPeriod, credentialInfoIam1->credentialInfo.validityPeriod);
-}
-
-/**
- * @tc.name: AccountIAMInfo_ReadFromParcel_0200
- * @tc.desc: ReadFromParcel
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_ReadFromParcel_0200, TestSize.Level3)
-{
-    Parcel parcel;
-    OHOS::AccountSA::CredentialInfoIam credentialInfoIam;
-    UserIam::UserAuth::CredentialInfo credentialInfo;
-    credentialInfoIam.credentialInfo.authType = AuthType::ALL;
-    credentialInfoIam.credentialInfo.credentialId = 0;
-    credentialInfoIam.credentialInfo.templateId = 0;
-    credentialInfoIam.credentialInfo.isAbandoned = false;
-    credentialInfoIam.credentialInfo.validityPeriod = 0;
-    credentialInfoIam.credentialInfo = credentialInfo;
-    EXPECT_TRUE(credentialInfoIam.Marshalling(parcel));
-    EXPECT_TRUE(credentialInfoIam.ReadFromParcel(parcel));
-    EXPECT_EQ(credentialInfoIam.credentialInfo.authType, 0);
-    EXPECT_EQ(credentialInfoIam.credentialInfo.credentialId, 0);
-    EXPECT_EQ(credentialInfoIam.credentialInfo.templateId, 0);
-    EXPECT_EQ(credentialInfoIam.credentialInfo.isAbandoned, false);
-    EXPECT_EQ(credentialInfoIam.credentialInfo.validityPeriod, 0);
 }
 
 /**
@@ -360,13 +334,11 @@ HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_Marshalling_0400, TestSize.Level3)
 {
     Parcel parcel;
     OHOS::AccountSA::CredentialParametersIam credentialParametersIam;
-    UserIam::UserAuth::CredentialParameters credentialParameters;
     std::vector<uint8_t> TEST_TOKEN;
     TEST_TOKEN.push_back(TEST_TOKEN_SIZE);
     TEST_TOKEN.push_back(TEST_TOKEN_PID);
     credentialParametersIam.credentialParameters.authType = AuthType::PIN;
     credentialParametersIam.credentialParameters.token = TEST_TOKEN;
-    credentialParametersIam.credentialParameters = credentialParameters;
     EXPECT_TRUE(credentialParametersIam.Marshalling(parcel));
     OHOS::AccountSA::CredentialParametersIam *credential = credentialParametersIam.Unmarshalling(parcel);
     EXPECT_NE(credential, nullptr);
@@ -374,28 +346,6 @@ HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_Marshalling_0400, TestSize.Level3)
     EXPECT_EQ(credentialParametersIam.credentialParameters.authType, credential->credentialParameters.authType);
     EXPECT_EQ(credentialParametersIam.credentialParameters.token, credential->credentialParameters.token);
     EXPECT_EQ(credential->credentialParameters.token.size(), credentialParametersIam.credentialParameters.token.size());
-}
-
-/**
- * @tc.name: AccountIAMInfo_ReadFromParcel_0300
- * @tc.desc: ReadFromParcel
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_ReadFromParcel_0300, TestSize.Level3)
-{
-    Parcel parcel;
-    OHOS::AccountSA::CredentialParametersIam credentialParametersIam;
-    UserIam::UserAuth::CredentialParameters credentialParameters;
-    std::vector<uint8_t> TEST_TOKEN;
-    TEST_TOKEN.push_back(TEST_TOKEN_SIZE);
-    TEST_TOKEN.push_back(TEST_TOKEN_PID);
-    credentialParametersIam.credentialParameters.authType = AuthType::PIN;
-    credentialParametersIam.credentialParameters.token = TEST_TOKEN;
-    credentialParametersIam.credentialParameters = credentialParameters;
-    EXPECT_TRUE(credentialParametersIam.Marshalling(parcel));
-    EXPECT_TRUE(credentialParametersIam.ReadFromParcel(parcel));
-    EXPECT_EQ(credentialParametersIam.credentialParameters.authType, 0);
 }
 
 /**
@@ -452,13 +402,11 @@ HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_Marshalling_0500, TestSize.Level3)
 {
     Parcel parcel;
     OHOS::AccountSA::GetPropertyRequestIam getPropertyRequestIam;
-    UserIam::UserAuth::GetPropertyRequest getPropertyRequest;
     std::vector<Attributes::AttributeKey> TEST_KEYS;
     TEST_KEYS.push_back(Attributes::AttributeKey::ATTR_AUTH_TOKEN);
     TEST_KEYS.push_back(Attributes::AttributeKey::ATTR_AUTH_TYPE);
     getPropertyRequestIam.getPropertyRequest.authType = AuthType::PIN;
     getPropertyRequestIam.getPropertyRequest.keys = TEST_KEYS;
-    getPropertyRequestIam.getPropertyRequest = getPropertyRequest;
     EXPECT_TRUE(getPropertyRequestIam.Marshalling(parcel));
     OHOS::AccountSA::GetPropertyRequestIam *getPropertyRequestIam1 = getPropertyRequestIam.Unmarshalling(parcel);
     EXPECT_NE(getPropertyRequestIam1, nullptr);
@@ -467,28 +415,6 @@ HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_Marshalling_0500, TestSize.Level3)
     EXPECT_EQ(getPropertyRequestIam.getPropertyRequest.keys, getPropertyRequestIam1->getPropertyRequest.keys);
     EXPECT_EQ(getPropertyRequestIam1->getPropertyRequest.keys.size(),
         getPropertyRequestIam.getPropertyRequest.keys.size());
-}
-
-/**
- * @tc.name: AccountIAMInfo_ReadFromParcel_0400
- * @tc.desc: ReadFromParcel
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AccountIAMInfoTest, AccountIAMInfo_ReadFromParcel_0400, TestSize.Level3)
-{
-    Parcel parcel;
-    OHOS::AccountSA::GetPropertyRequestIam getPropertyRequestIam;
-    UserIam::UserAuth::GetPropertyRequest getPropertyRequest;
-    std::vector<Attributes::AttributeKey> TEST_KEYS;
-    TEST_KEYS.push_back(Attributes::AttributeKey::ATTR_AUTH_TOKEN);
-    TEST_KEYS.push_back(Attributes::AttributeKey::ATTR_AUTH_TYPE);
-    getPropertyRequestIam.getPropertyRequest.authType = AuthType::PIN;
-    getPropertyRequestIam.getPropertyRequest.keys = TEST_KEYS;
-    getPropertyRequestIam.getPropertyRequest = getPropertyRequest;
-    EXPECT_TRUE(getPropertyRequestIam.Marshalling(parcel));
-    EXPECT_TRUE(getPropertyRequestIam.ReadFromParcel(parcel));
-    EXPECT_EQ(getPropertyRequestIam.getPropertyRequest.authType, 0);
 }
 
 /**
