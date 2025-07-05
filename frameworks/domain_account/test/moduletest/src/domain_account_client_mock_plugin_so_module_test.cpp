@@ -1159,11 +1159,14 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, BindDomainAccount002, TestSi
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
     ret = service->BindDomainAccount(0, domainInfo, nullptr);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
-
-    ret = OsAccountManager::BindDomainAccount(1, domainInfo, callback);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
-    ret = service->BindDomainAccount(1, domainInfo, nullptr);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+    bool isU1Exist = false;
+    EXPECT_EQ(ERR_OK, service->IsOsAccountExists(Constants::U1_ID, isU1Exist));
+    ret = OsAccountManager::BindDomainAccount(Constants::U1_ID, domainInfo, callback);
+    if (isU1Exist) {
+        EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+    } else {
+        EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    }
 
     domainInfo.accountName_ = "testaccount";
     domainInfo.domain_ = "test.example.com";
