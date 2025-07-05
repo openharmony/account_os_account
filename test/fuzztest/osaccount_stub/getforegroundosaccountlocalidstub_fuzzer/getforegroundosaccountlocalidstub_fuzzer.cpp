@@ -36,7 +36,7 @@ void GetForegroundOsAccountLocalIdStubFuzzTest(const uint8_t *data, size_t size)
     FuzzData fuzzData(data, size);
     datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
 
-    if (!datas.WriteInt32(fuzzData.GetData<int32_t>())) {
+    if (!datas.WriteUint64(fuzzData.GetData<uint64_t>())) {
         return;
     }
 
