@@ -784,7 +784,7 @@ ErrCode IInnerOsAccountManager::GetOsAccountsByDomainInfo(const DomainAccountInf
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("Recover bind domain error, errCode = %{public}d.", errCode);
             REPORT_OS_ACCOUNT_FAIL(osAccountInfo.GetLocalId(), Constants::OPERATION_RECOVER_BIND_DOMAIN_ACCOUNT,
-                ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR, "Recover bind domain error.");
+                errCode, "Recover bind domain error.");
             return errCode;
         }
         if ((!info.accountId_.empty() && curInfo.accountId_ == info.accountId_) ||

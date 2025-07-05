@@ -460,9 +460,14 @@ ErrCode OsAccountManagerService::RemoveOsAccount(int32_t id)
     if (res != ERR_OK) {
         return res;
     }
-    if ((id == Constants::START_USER_ID) || (id == Constants::ADMIN_LOCAL_ID) || (id == Constants::U1_ID)) {
+    if (id == Constants::START_USER_ID) {
         ACCOUNT_LOGE("Cannot remove system preinstalled user");
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+    res = CheckLocalIdRestricted(id);
+    if (res != ERR_OK) {
+        ACCOUNT_LOGW("Check local id restricted, result = %{public}d, localId = %{public}d.", res, id);
+        return res;
     }
     // permission check
     if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, CONSTANT_REMOVE)) {
@@ -853,9 +858,10 @@ ErrCode OsAccountManagerService::SetOsAccountName(int32_t id, const std::string 
     if (res != ERR_OK) {
         return res;
     }
-    if (id == Constants::ADMIN_LOCAL_ID || id == Constants::U1_ID) {
-        ACCOUNT_LOGE("Cannot set name for system preinstalled user");
-        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    res = CheckLocalIdRestricted(id);
+    if (res != ERR_OK) {
+        ACCOUNT_LOGW("Check local id restricted, result = %{public}d, localId = %{public}d.", res, id);
+        return res;
     }
     if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("Set os account name is out of allowed size");
@@ -895,9 +901,10 @@ ErrCode OsAccountManagerService::SetOsAccountConstraints(
     if (res != ERR_OK) {
         return res;
     }
-    if (id == Constants::ADMIN_LOCAL_ID || id == Constants::U1_ID) {
-        ACCOUNT_LOGE("Cannot set constraints for system preinstalled user");
-        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    res = CheckLocalIdRestricted(id);
+    if (res != ERR_OK) {
+        ACCOUNT_LOGW("Check local id restricted, result = %{public}d, localId = %{public}d.", res, id);
+        return res;
     }
     // permission check
     if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
@@ -919,9 +926,10 @@ ErrCode OsAccountManagerService::SetOsAccountProfilePhoto(const int id, const st
     if (res != ERR_OK) {
         return res;
     }
-    if (id == Constants::ADMIN_LOCAL_ID || id == Constants::U1_ID) {
-        ACCOUNT_LOGE("Cannot set photo for system preinstalled user");
-        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    res = CheckLocalIdRestricted(id);
+    if (res != ERR_OK) {
+        ACCOUNT_LOGW("Check local id restricted, result = %{public}d, localId = %{public}d.", res, id);
+        return res;
     }
     if (photo.size() > Constants::LOCAL_PHOTO_MAX_SIZE) {
         ACCOUNT_LOGE("Photo out of allowed size");
@@ -965,9 +973,10 @@ ErrCode OsAccountManagerService::ActivateOsAccount(int32_t id)
     if (res != ERR_OK) {
         return res;
     }
-    if (id == Constants::ADMIN_LOCAL_ID || id == Constants::U1_ID) {
-        ACCOUNT_LOGE("Cannot activate name for system preinstalled user");
-        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    res = CheckLocalIdRestricted(id);
+    if (res != ERR_OK) {
+        ACCOUNT_LOGW("Check local id restricted, result = %{public}d, localId = %{public}d.", res, id);
+        return res;
     }
     // permission check
     if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, CONSTANT_ACTIVATE)) {
@@ -991,9 +1000,10 @@ ErrCode OsAccountManagerService::DeactivateOsAccount(int32_t id)
     if (res != ERR_OK) {
         return res;
     }
-    if (id == Constants::ADMIN_LOCAL_ID || id == Constants::U1_ID) {
-        ACCOUNT_LOGE("Cannot deactivate name for system preinstalled user");
-        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    res = CheckLocalIdRestricted(id);
+    if (res != ERR_OK) {
+        ACCOUNT_LOGW("Check local id restricted, result = %{public}d, localId = %{public}d.", res, id);
+        return res;
     }
     // permission check
     if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "")) {
@@ -1186,9 +1196,10 @@ ErrCode OsAccountManagerService::SetCurrentOsAccountIsVerified(bool isVerified)
     if (res != ERR_OK) {
         return res;
     }
-    if (id == Constants::ADMIN_LOCAL_ID || id == Constants::U1_ID) {
-        ACCOUNT_LOGE("Cannot set verified status for system preinstalled user");
-        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    res = CheckLocalIdRestricted(id);
+    if (res != ERR_OK) {
+        ACCOUNT_LOGW("Check local id restricted, result = %{public}d, localId = %{public}d.", res, id);
+        return res;
     }
     return innerManager_.SetOsAccountIsVerified(id, isVerified);
 }
@@ -1200,9 +1211,10 @@ ErrCode OsAccountManagerService::SetOsAccountIsVerified(int32_t id, bool isVerif
     if (res != ERR_OK) {
         return res;
     }
-    if (id == Constants::ADMIN_LOCAL_ID || id == Constants::U1_ID) {
-        ACCOUNT_LOGE("Cannot set verified status for system preinstalled user");
-        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    res = CheckLocalIdRestricted(id);
+    if (res != ERR_OK) {
+        ACCOUNT_LOGW("Check local id restricted, result = %{public}d, localId = %{public}d.", res, id);
+        return res;
     }
     // permission check
     if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
@@ -1731,10 +1743,14 @@ ErrCode OsAccountManagerService::SetOsAccountToBeRemoved(int32_t localId, bool t
     if (res != ERR_OK) {
         return res;
     }
-    if ((localId == Constants::START_USER_ID) || (localId == Constants::ADMIN_LOCAL_ID) ||
-        (localId == Constants::U1_ID)) {
+    if (localId == Constants::START_USER_ID) {
         ACCOUNT_LOGE("Cannot remove system preinstalled user.");
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+    res = CheckLocalIdRestricted(localId);
+    if (res != ERR_OK) {
+        ACCOUNT_LOGW("Check local id restricted, result = %{public}d, localId = %{public}d.", res, localId);
+        return res;
     }
     if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("Permission denied.");
@@ -1820,9 +1836,10 @@ ErrCode OsAccountManagerService::BindDomainAccount(
     if (res != ERR_OK) {
         return res;
     }
-    if (localId == Constants::ADMIN_LOCAL_ID || localId == Constants::U1_ID) {
-        ACCOUNT_LOGE("Cannot bind domain account to restricted user.");
-        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    res = CheckLocalIdRestricted(localId);
+    if (res != ERR_OK) {
+        ACCOUNT_LOGW("Check local id restricted, result = %{public}d, localId = %{public}d.", res, localId);
+        return res;
     }
     if (domainInfo.accountName_.empty() || domainInfo.domain_.empty()) {
         ACCOUNT_LOGE("Domain account name is empty or domain is empty");
@@ -1851,6 +1868,28 @@ ErrCode OsAccountManagerService::BindDomainAccount(
 #else
     return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
 #endif // SUPPORT_DOMAIN_ACCOUNTS
+}
+
+ErrCode OsAccountManagerService::CheckLocalIdRestricted(int32_t localId)
+{
+    if (localId == Constants::ADMIN_LOCAL_ID) {
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+    if (localId >= Constants::START_USER_ID) {
+        return ERR_OK;
+    }
+    bool hasAccount = false;
+    ErrCode ret = innerManager_.IsOsAccountExists(localId, hasAccount);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Is OsAccount Exists failed, ret = %{public}d, localId = %{public}d", ret, localId);
+        return ret;
+    }
+    if (hasAccount) {
+        ACCOUNT_LOGW("Os account exists, return restricted account, localId = %{public}d", localId);
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+    ACCOUNT_LOGW("Os account not exists, return account not found, localId = %{public}d", localId);
+    return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
 }
 }  // namespace AccountSA
 }  // namespace OHOS
