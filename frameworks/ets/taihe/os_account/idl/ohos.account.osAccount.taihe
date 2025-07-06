@@ -405,26 +405,6 @@ function UpdateAccountTokenSync(domainAccountInfo: DomainAccountInfo, token: @ty
 function UpdateAccountInfoSync(oldAccountInfo: DomainAccountInfo, newAccountInfo: DomainAccountInfo);
 
 @static("DomainServerConfigManager")
-@gen_promise("addServerConfig")
-function AddServerConfigSync(parameters: @record Map<String, Opaque>): DomainServerConfig;
-
-@static("DomainServerConfigManager")
-@gen_promise("removeServerConfig")
-function RemoveServerConfigSync(configId: String);
-
-@static("DomainServerConfigManager")
-@gen_promise("updateServerConfig")
-function UpdateServerConfigSync(configId: String, parameters: @record Map<String, Opaque>):DomainServerConfig;
-
-@static("DomainServerConfigManager")
-@gen_promise("getServerConfig")
-function GetServerConfigSync(configId: String): DomainServerConfig;
-
-@static("DomainServerConfigManager")
-@gen_promise("getAllServerConfigs")
-function GetAllServerConfigsSync(): Array<DomainServerConfig>;
-
-@static("DomainServerConfigManager")
 @gen_promise("getAccountServerConfig")
 function GetAccountServerConfigSync(domainAccountInfo: DomainAccountInfo): DomainServerConfig;
 
