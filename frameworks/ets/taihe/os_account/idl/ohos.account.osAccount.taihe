@@ -405,8 +405,8 @@ function UpdateAccountTokenSync(domainAccountInfo: DomainAccountInfo, token: @ty
 function UpdateAccountInfoSync(oldAccountInfo: DomainAccountInfo, newAccountInfo: DomainAccountInfo);
 
 @static("DomainServerConfigManager")
-@gen_promise("getAccountServerConfig")
-function GetAccountServerConfigSync(domainAccountInfo: DomainAccountInfo): DomainServerConfig;
+@gen_promise("removeServerConfig")
+function RemoveServerConfigSync(configId: String);
 
 struct AuthResult {
     token: Optional<@typedarray Array<u8>>;
