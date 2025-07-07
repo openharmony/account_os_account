@@ -47,6 +47,16 @@ public:
         g_status = true;
         return ERR_OK;
     }
+    virtual ErrCode CallbackEnter([[maybe_unused]] uint32_t code)
+    {
+        g_status = true;
+        return ERR_OK;
+    }
+    virtual ErrCode CallbackExit([[maybe_unused]] uint32_t code, [[maybe_unused]] int32_t result)
+    {
+        g_status = true;
+        return ERR_OK;
+    }
 };
 
 class AppAccountAuthenticatorCallbackModuleTest : public testing::Test {

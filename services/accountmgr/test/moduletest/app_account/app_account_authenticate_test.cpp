@@ -43,6 +43,8 @@ public:
     MOCK_METHOD2(OnResult, ErrCode(int32_t resultCode, const AAFwk::Want &result));
     MOCK_METHOD1(OnRequestRedirected, ErrCode(const AAFwk::Want &request));
     MOCK_METHOD0(OnRequestContinued, ErrCode());
+    MOCK_METHOD1(CallbackEnter, ErrCode(uint32_t code));
+    MOCK_METHOD2(CallbackExit, ErrCode(uint32_t code, int32_t result));
 };
 
 class MockAppAccountAuthenticator : public AppAccountAuthenticatorStub {

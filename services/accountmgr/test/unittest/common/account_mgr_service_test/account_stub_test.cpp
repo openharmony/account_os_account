@@ -21,8 +21,11 @@
 #include "account_mgr_service.h"
 #include "account_stub.h"
 #undef private
+#include "account_test_common.h"
 #include "iaccount.h"
+#include "ipc_skeleton.h"
 #include "parcel.h"
+#include "token_setproc.h"
 #include "want.h"
 using namespace testing;
 using namespace testing::ext;
@@ -92,11 +95,14 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_UpdateOhosAccountInfo_001,
  */
 HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_UpdateOhosAccountInfo_002, TestSize.Level3)
 {
+    uint64_t selfTokenid = IPCSkeleton::GetSelfTokenID();
+    ASSERT_TRUE(MockTokenId("accountmgr"));
     setuid(ROOT_UID);
     std::string accountName = "";
     std::string uid = TEST_ACCOUNT_UID;
     std::string eventStr = INVALID_ACCOUNT_EVENT;
     EXPECT_EQ(accountServie_->UpdateOhosAccountInfo(accountName, uid, eventStr), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    SetSelfTokenID(selfTokenid);
 }
 
 /**
@@ -107,11 +113,14 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_UpdateOhosAccountInfo_002,
  */
 HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_UpdateOhosAccountInfo_003, TestSize.Level3)
 {
+    uint64_t selfTokenid = IPCSkeleton::GetSelfTokenID();
+    ASSERT_TRUE(MockTokenId("accountmgr"));
     setuid(ROOT_UID);
     std::string accountName = TEST_ACCOUNT_NAME;
     std::string uid = "";
     std::string eventStr = INVALID_ACCOUNT_EVENT;
     EXPECT_EQ(accountServie_->UpdateOhosAccountInfo(accountName, uid, eventStr), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    SetSelfTokenID(selfTokenid);
 }
 
 /**
@@ -122,11 +131,14 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_UpdateOhosAccountInfo_003,
  */
 HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_UpdateOhosAccountInfo_004, TestSize.Level3)
 {
+    uint64_t selfTokenid = IPCSkeleton::GetSelfTokenID();
+    ASSERT_TRUE(MockTokenId("accountmgr"));
     setuid(ROOT_UID);
     std::string accountName = TEST_ACCOUNT_NAME;
     std::string uid = TEST_ACCOUNT_UID;
     std::string eventStr = INVALID_ACCOUNT_EVENT;
     EXPECT_EQ(accountServie_->UpdateOhosAccountInfo(accountName, uid, eventStr), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    SetSelfTokenID(selfTokenid);
 }
 
 /**
@@ -153,12 +165,16 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_SetOhosAccountInfo_001, Te
  */
 HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_SetOhosAccountInfo_003, TestSize.Level3)
 {
+    uint64_t selfTokenid = IPCSkeleton::GetSelfTokenID();
+    uint64_t tokenID;
+    ASSERT_TRUE(AllocPermission(ALL_ACCOUNT_PERMISSION_LIST, tokenID));
     setuid(ROOT_UID);
     OhosAccountInfo info;
     info.nickname_ = std::string(Constants::NICKNAME_MAX_SIZE + 1, '#');
     std::string eventStr = INVALID_ACCOUNT_EVENT;
     EXPECT_EQ(accountServie_->SetOhosAccountInfo(info, eventStr),
         ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    SetSelfTokenID(selfTokenid);
 }
 
 /**
@@ -267,10 +283,14 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_QueryDistributedVirtualDev
  */
 HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_QueryDistributedVirtualDeviceId_004, TestSize.Level3)
 {
+    uint64_t selfTokenid = IPCSkeleton::GetSelfTokenID();
+    uint64_t tokenID;
+    ASSERT_TRUE(AllocPermission(ALL_ACCOUNT_PERMISSION_LIST, tokenID));
     setuid(ROOT_UID);
     std::string bundleName = TEST_ACCOUNT_NAME;
     int32_t localId = INVALID_USERID;
     std::string dvid = "";
     EXPECT_EQ(accountServie_->QueryDistributedVirtualDeviceId(bundleName, localId, dvid),
         ERR_ACCOUNT_DATADEAL_NOT_READY);
+    SetSelfTokenID(selfTokenid);
 }

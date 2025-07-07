@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Copyright (c) 2022-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -276,6 +276,53 @@ ohos_unittest("account_iam_mgr_proxy_test") {
   }
 }
 
+ohos_unittest("account_iam_info_test") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  module_out_path = module_output_path
+
+  sources = [
+    "src/account_iam_info_test.cpp",
+    "src/test_common.cpp",
+  ]
+
+  configs = [ ":account_iam_native_config_unittest" ]
+
+  deps = [
+    "${account_iam_framework_path}:account_iam_innerkits",
+    "${app_account_services_path}:accountmgr",
+    "${common_path}:libaccount_common",
+    "${domain_account_framework_path}:domain_account_innerkits",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "access_token:libaccesstoken_sdk",
+    "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+
+  cflags_cc = []
+  if (has_pin_auth_part) {
+    cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
+    external_deps += [ "pin_auth:pinauth_framework" ]
+  }
+
+  if (has_user_auth_part) {
+    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
+    external_deps += [ "user_auth_framework:userauth_client" ]
+  }
+}
+
 group("unittest") {
   testonly = true
 
@@ -285,5 +332,6 @@ group("unittest") {
     ":account_iam_client_proxy_mock_test",
     ":account_iam_client_test",
     ":account_iam_mgr_proxy_test",
+    ":account_iam_info_test",
   ]
 }
