@@ -85,7 +85,7 @@ bool AuthParam::Marshalling(Parcel& parcel) const
         return false;
     }
     if (!parcel.WriteInt32(static_cast<int32_t>(authIntent))) {
-        ACCOUNT_LOGE("Failed to write authTrustLevel");
+        ACCOUNT_LOGE("Failed to write authIntent");
         return false;
     }
     if (!WriteRemoteAuthParam(parcel)) {
@@ -257,7 +257,7 @@ bool CredentialInfoIam::ReadFromParcel(Parcel& parcel)
         return false;
     }
     if (!parcel.ReadInt64(credentialInfo.validityPeriod)) {
-        ACCOUNT_LOGE("Failed to read templateId");
+        ACCOUNT_LOGE("Failed to read validityPeriod");
         return false;
     }
     credentialInfo.authType = static_cast<AuthType>(authType);

@@ -60,6 +60,28 @@ const std::string MANAGE_EDM_POLICY = "ohos.permission.MANAGE_EDM_POLICY";
 const std::set<uint32_t> uidWhiteListForCreation { 3057 };
 const std::string SPECIAL_CHARACTER_ARRAY = "<>|\":*?/\\";
 const std::vector<std::string> SHORT_NAME_CANNOT_BE_NAME_ARRAY = {".", ".."};
+#ifdef HICOLLIE_ENABLE
+constexpr std::int32_t RECOVERY_TIMEOUT = 6; // timeout 6s
+#endif
+const std::set<uint32_t> WATCH_DOG_WHITE_LIST = {
+    static_cast<uint32_t>(IOsAccountIpcCode::COMMAND_CREATE_OS_ACCOUNT),
+    static_cast<uint32_t>(
+        IOsAccountIpcCode::
+            COMMAND_CREATE_OS_ACCOUNT_IN_STRING_IN_STRING_IN_INT_OUT_STRINGRAWDATA_IN_CREATEOSACCOUNTOPTIONS),
+    static_cast<uint32_t>(
+        IOsAccountIpcCode::
+            COMMAND_CREATE_OS_ACCOUNT_IN_STRING_IN_STRING_IN_INT_OUT_STRINGRAWDATA),
+    static_cast<uint32_t>(
+        IOsAccountIpcCode::COMMAND_CREATE_OS_ACCOUNT_WITH_FULL_INFO),
+    static_cast<uint32_t>(
+        IOsAccountIpcCode::
+            COMMAND_CREATE_OS_ACCOUNT_WITH_FULL_INFO_IN_OSACCOUNTINFO),
+    static_cast<uint32_t>(
+        IOsAccountIpcCode::COMMAND_CREATE_OS_ACCOUNT_FOR_DOMAIN),
+    static_cast<uint32_t>(
+        IOsAccountIpcCode::
+            COMMAND_CREATE_OS_ACCOUNT_FOR_DOMAIN_IN_INT_IN_DOMAINACCOUNTINFO_IN_IDOMAINACCOUNTCALLBACK),
+};
 
 std::string AnonymizeNameStr(const std::string& nameStr)
 {
@@ -302,12 +324,6 @@ ErrCode OsAccountManagerService::ValidateAccountCreateParamAndPermission(const s
 
 ErrCode OsAccountManagerService::CreateOsAccountWithFullInfo(const OsAccountInfo& osAccountInfo)
 {
-    ErrCode result = AccountPermissionManager::CheckSystemApp();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
-        return result;
-    }
-
     CreateOsAccountOptions options = {};
     return CreateOsAccountWithFullInfo(osAccountInfo, options);
 }
@@ -609,8 +625,22 @@ ErrCode OsAccountManagerService::GetCreatedOsAccountsCount(unsigned int &osAccou
 
 ErrCode OsAccountManagerService::GetOsAccountLocalIdFromProcess(int &id)
 {
+#ifdef HICOLLIE_ENABLE
+    unsigned int flag = HiviewDFX::XCOLLIE_FLAG_LOG | HiviewDFX::XCOLLIE_FLAG_RECOVERY;
+    XCollieCallback callbackFunc = [callingPid = IPCSkeleton::GetCallingPid(),
+        callingUid = IPCSkeleton::GetCallingUid()](void *) {
+        ACCOUNT_LOGE("ProcGetOsAccountLocalIdFromProcess failed, callingPid: %{public}d, callingUid: %{public}d.",
+            callingPid, callingUid);
+        ReportOsAccountOperationFail(callingUid, "watchDog", -1, "Get osaccount local id time out");
+    };
+    int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(
+        TIMER_NAME, RECOVERY_TIMEOUT, callbackFunc, nullptr, flag);
+#endif // HICOLLIE_ENABLE
     const std::int32_t uid = IPCSkeleton::GetCallingUid();
     id = uid / UID_TRANSFORM_DIVISOR;
+#ifdef HICOLLIE_ENABLE
+    HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
     return ERR_OK;
 }
 
@@ -779,7 +809,9 @@ ErrCode OsAccountManagerService::GetOsAccountTypeFromProcess(int32_t& typeValue)
     int id = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     auto type = static_cast<OsAccountType>(typeValue);
     ErrCode result = innerManager_.GetOsAccountType(id, type);
-    if (result != ERR_OK) {
+    if (result == ERR_OK) {
+        typeValue = static_cast<int32_t>(type);
+    } else {
         REPORT_OS_ACCOUNT_FAIL(IPCSkeleton::GetCallingUid(), Constants::OPERATION_LOG_ERROR,
             result, "Query os account type failed.");
     }
@@ -1093,9 +1125,22 @@ ErrCode OsAccountManagerService::StartOsAccount(int32_t id)
 ErrCode OsAccountManagerService::SubscribeOsAccount(
     const OsAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener)
 {
+#ifdef HICOLLIE_ENABLE
+    unsigned int flag = HiviewDFX::XCOLLIE_FLAG_LOG | HiviewDFX::XCOLLIE_FLAG_RECOVERY;
+    XCollieCallback callbackFunc = [callingPid = IPCSkeleton::GetCallingPid(),
+        callingUid = IPCSkeleton::GetCallingUid()](void *) {
+        ACCOUNT_LOGE("ProcSubscribeOsAccount failed, callingPid: %{public}d, callingUid: %{public}d.",
+            callingPid, callingUid);
+        ReportOsAccountOperationFail(callingUid, "watchDog", -1, "Subscribe osaccount time out");
+    };
+    int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, RECOVERY_TIMEOUT, callbackFunc, nullptr, flag);
+#endif // HICOLLIE_ENABLE
     ErrCode checkResult = AccountPermissionManager::CheckSystemApp();
     if (checkResult != ERR_OK) {
         ACCOUNT_LOGE("Is not system application, result = %{public}u.", checkResult);
+#ifdef HICOLLIE_ENABLE
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
         return checkResult;
     }
 
@@ -1106,6 +1151,9 @@ ErrCode OsAccountManagerService::SubscribeOsAccount(
     subscribeInfo.GetStates(states);
     if (osAccountSubscribeType == OsAccountState::INVALID_TYPE && states.empty()) {
         ACCOUNT_LOGE("Invalid subscriber information");
+#ifdef HICOLLIE_ENABLE
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     // permission check
@@ -1114,6 +1162,9 @@ ErrCode OsAccountManagerService::SubscribeOsAccount(
           (AccountPermissionManager::CheckSaCall() && PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")))) {
         ACCOUNT_LOGE("Account manager service, permission denied!");
         REPORT_PERMISSION_FAIL();
+#ifdef HICOLLIE_ENABLE
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     ErrCode result = innerManager_.SubscribeOsAccount(subscribeInfo, eventListener);
@@ -1121,6 +1172,9 @@ ErrCode OsAccountManagerService::SubscribeOsAccount(
         REPORT_OS_ACCOUNT_FAIL(IPCSkeleton::GetCallingUid(), Constants::OPERATION_LOG_ERROR,
             result, "Subscribe os account failed.");
     }
+#ifdef HICOLLIE_ENABLE
+    HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
     return result;
 }
 
@@ -1399,11 +1453,25 @@ ErrCode OsAccountManagerService::DumpStateByAccounts(
 
 ErrCode OsAccountManagerService::QueryActiveOsAccountIds(std::vector<int32_t>& ids)
 {
+#ifdef HICOLLIE_ENABLE
+    unsigned int flag = HiviewDFX::XCOLLIE_FLAG_LOG | HiviewDFX::XCOLLIE_FLAG_RECOVERY;
+    XCollieCallback callbackFunc = [callingPid = IPCSkeleton::GetCallingPid(),
+        callingUid = IPCSkeleton::GetCallingUid()](void *) {
+        ACCOUNT_LOGE("ProcQueryActiveOsAccountIds failed, callingPid: %{public}d, callingUid: %{public}d.",
+            callingPid, callingUid);
+        ReportOsAccountOperationFail(callingUid, "watchDog", -1, "Query active account id time out");
+    };
+    int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(
+        TIMER_NAME, RECOVERY_TIMEOUT, callbackFunc, nullptr, flag);
+#endif // HICOLLIE_ENABLE
     ErrCode result = innerManager_.QueryActiveOsAccountIds(ids);
     if (result != ERR_OK) {
         REPORT_OS_ACCOUNT_FAIL(IPCSkeleton::GetCallingUid(), Constants::OPERATION_LOG_ERROR,
             result, "Query active os accountIds failed.");
     }
+#ifdef HICOLLIE_ENABLE
+    HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
     return result;
 }
 
@@ -1778,6 +1846,11 @@ ErrCode OsAccountManagerService::GetOsAccountDomainInfo(int32_t localId, DomainA
 #ifdef SUPPORT_LOCK_OS_ACCOUNT
 ErrCode OsAccountManagerService::PublishOsAccountLockEvent(const int32_t localId, bool isLocking)
 {
+    ErrCode result = AccountPermissionManager::CheckSystemApp();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("CheckSystemApp failed, please check permission, result = %{public}u.", result);
+        return result;
+    }
     ErrCode res = CheckLocalId(localId);
     if (res != ERR_OK) {
         return res;
@@ -1799,6 +1872,11 @@ ErrCode OsAccountManagerService::PublishOsAccountLockEvent(const int32_t localId
 
 ErrCode OsAccountManagerService::LockOsAccount(const int32_t localId)
 {
+    ErrCode result = AccountPermissionManager::CheckSystemApp();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("CheckSystemApp failed, please check permission, result = %{public}u.", result);
+        return result;
+    }
     ErrCode res = CheckLocalId(localId);
     if (res != ERR_OK) {
         return res;
@@ -1890,6 +1968,22 @@ ErrCode OsAccountManagerService::CheckLocalIdRestricted(int32_t localId)
     }
     ACCOUNT_LOGW("Os account not exists, return account not found, localId = %{public}d", localId);
     return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+}
+
+ErrCode OsAccountManagerService::CallbackEnter([[maybe_unused]] uint32_t code)
+{
+#ifdef HICOLLIE_ENABLE
+    AccountTimer timer(false);
+    if (WATCH_DOG_WHITE_LIST.find(code) == WATCH_DOG_WHITE_LIST.end()) {
+        timer.Init();
+    }
+#endif // HICOLLIE_ENABLE
+    return ERR_OK;
+}
+
+ErrCode OsAccountManagerService::CallbackExit([[maybe_unused]] uint32_t code, [[maybe_unused]] int32_t result)
+{
+    return ERR_OK;
 }
 }  // namespace AccountSA
 }  // namespace OHOS
