@@ -24,6 +24,7 @@
 #include "account_error_no.h"
 #include "napi_account_iam_common.h"
 #include "napi_account_iam_constant.h"
+#include "nlohmann/json.hpp"
 #include "ohos.account.distributedAccount.impl.hpp"
 #include "ohos.account.distributedAccount.proj.hpp"
 #include "ohos.account.osAccount.impl.hpp"
@@ -32,6 +33,7 @@
 #include "ohos_account_kits.h"
 #include "os_account_info.h"
 #include "os_account_manager.h"
+#include "securec.h"
 #include "taihe/runtime.hpp"
 #include "taihe_common.h"
 #include "taihe_account_info.h"
@@ -51,25 +53,8 @@ using namespace ohos::account::distributedAccount;
 
 namespace {
 using OHOS::AccountSA::ACCOUNT_LABEL;
-
-const std::string DAFAULT_STR = "";
-const bool DEFAULT_BOOL = false;
 const array<uint8_t> DEFAULT_ARRAY = array<uint8_t>::make(0);
-const AccountSA::OsAccountType DEFAULT_ACCOUNT_TYPE = AccountSA::OsAccountType::END;
-constexpr std::int32_t MAX_SUBSCRIBER_NAME_LEN = 1024;
-std::mutex g_lockForOsAccountSubscribers;
-std::map<AccountSA::OsAccountManager *, std::vector<AccountSA::SubscribeCBInfo *>> g_osAccountSubscribers;
 constexpr int CONTEXTID_OFFSET = 8;
-
-template <typename T> T TaiheReturn(ErrCode errCode, T result, const T defult)
-{
-    if (errCode != ERR_OK) {
-        int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
-        taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-        return defult;
-    }
-    return result;
-}
 
 template <typename T> T TaiheIAMReturn(ErrCode errCode, T result, const T defult)
 {
@@ -250,419 +235,18 @@ private:
     ohos::account::osAccount::IIdmCallback taiheCallback_;
 };
 
-class AccountManagerImpl {
-private:
-    AccountSA::OsAccountManager *osAccountManger_ = nullptr;
-
-public:
-    AccountManagerImpl()
-    {
-        osAccountManger_ = new (std::nothrow) AccountSA::OsAccountManager();
+AccountSA::DomainAccountInfo ConvertToDomainAccountInfoInner(const DomainAccountInfo &domainAccountInfo)
+{
+    AccountSA::DomainAccountInfo domainAccountInfoInner(std::string(domainAccountInfo.domain.c_str()),
+                                                        std::string(domainAccountInfo.accountName.c_str()));
+    if (domainAccountInfo.accountId.has_value()) {
+        domainAccountInfoInner.accountId_ = domainAccountInfo.accountId.value();
     }
-
-    ~AccountManagerImpl()
-    {
-        if (osAccountManger_ != nullptr) {
-            delete osAccountManger_;
-            osAccountManger_ = nullptr;
-        }
+    if (domainAccountInfo.serverConfigId.has_value()) {
+        domainAccountInfoInner.serverConfigId_ = domainAccountInfo.serverConfigId.value();
     }
-
-    bool IsMainOsAccountSync()
-    {
-        bool isMainOsAcount = false;
-        ErrCode errCode = AccountSA::OsAccountManager::IsMainOsAccount(isMainOsAcount);
-        return TaiheReturn(errCode, isMainOsAcount, DEFAULT_BOOL);
-    }
-
-    string GetOsAccountProfilePhotoSync(int32_t localId)
-    {
-        int32_t temp = localId;
-        std::string photo = "";
-        ErrCode errCode = AccountSA::OsAccountManager::GetOsAccountProfilePhoto(temp, photo);
-        return TaiheReturn(errCode, photo, DAFAULT_STR);
-    }
-
-    OsAccountType GetOsAccountTypeSync()
-    {
-        AccountSA::OsAccountType type = DEFAULT_ACCOUNT_TYPE;
-        ErrCode errCode = AccountSA::OsAccountManager::GetOsAccountTypeFromProcess(type);
-        return ConvertToOsAccountTypeKey(TaiheReturn(errCode, type, DEFAULT_ACCOUNT_TYPE));
-    }
-
-    OsAccountType GetOsAccountTypeWithIdSync(int32_t localId)
-    {
-        AccountSA::OsAccountType type = DEFAULT_ACCOUNT_TYPE;
-        int32_t temp = localId;
-        ErrCode errCode = AccountSA::OsAccountManager::GetOsAccountType(temp, type);
-        return ConvertToOsAccountTypeKey(TaiheReturn(errCode, type, DEFAULT_ACCOUNT_TYPE));
-    }
-
-    static bool IsSubscribedInMap(AccountSA::SubscribeCBInfo *subscribeCBInfo)
-    {
-        std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
-        auto subscribe = g_osAccountSubscribers.find(subscribeCBInfo->osManager);
-        if (subscribe == g_osAccountSubscribers.end()) {
-            ACCOUNT_LOGE("Not find osManager!");
-            return false;
-        }
-        auto it = subscribe->second.begin();
-        while (it != subscribe->second.end()) {
-            if ((*it)->IsSameCallBack(subscribeCBInfo->osSubscribeType, subscribeCBInfo->activeCallbackRef,
-                                      subscribeCBInfo->switchCallbackRef)) {
-                ACCOUNT_LOGE("Is same callback!");
-                return true;
-            }
-            it++;
-        }
-        return false;
-    }
-
-    void Subsribe(std::string name, AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE type,
-                  std::shared_ptr<active_callback> activeCallback, std::shared_ptr<switch_callback> switchCallback)
-    {
-        AccountSA::SubscribeCBInfo *subscribeCBInfo = new (std::nothrow) AccountSA::SubscribeCBInfo();
-        if (subscribeCBInfo == nullptr) {
-            ACCOUNT_LOGE("insufficient memory for subscribeCBInfo!");
-            return;
-        }
-        subscribeCBInfo->activeCallbackRef = activeCallback;
-        subscribeCBInfo->switchCallbackRef = switchCallback;
-        AccountSA::OsAccountSubscribeInfo subscribeInfo(type, name);
-        subscribeCBInfo->subscriber = std::make_shared<AccountSA::TaiheSubscriberPtr>(subscribeInfo);
-        subscribeCBInfo->subscriber->activeRef_ = activeCallback;
-        subscribeCBInfo->subscriber->switchRef_ = switchCallback;
-        subscribeCBInfo->osManager = osAccountManger_;
-        subscribeCBInfo->osSubscribeType = type;
-        if (IsSubscribedInMap(subscribeCBInfo)) {
-            ACCOUNT_LOGE("Has in map.");
-            delete subscribeCBInfo;
-            return;
-        }
-        ErrCode errCode = AccountSA::OsAccountManager::SubscribeOsAccount(subscribeCBInfo->subscriber);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("SubscribeOsAccount return error.");
-            delete subscribeCBInfo;
-            int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
-            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-            return;
-        } else {
-            std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
-            g_osAccountSubscribers[osAccountManger_].emplace_back(subscribeCBInfo);
-        }
-    }
-
-    void Unsubscribe(std::string unsubscribeName, AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE type,
-                     std::shared_ptr<active_callback> activeCallback, std::shared_ptr<switch_callback> switchCallback)
-    {
-        std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
-        auto subscribe = g_osAccountSubscribers.find(osAccountManger_);
-        if (subscribe == g_osAccountSubscribers.end()) {
-            return;
-        }
-        auto item = subscribe->second.begin();
-        while (item != subscribe->second.end()) {
-            AccountSA::OsAccountSubscribeInfo subscribeInfo;
-            AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE osSubscribeType;
-            std::string name;
-            (*item)->subscriber->GetSubscribeInfo(subscribeInfo);
-            subscribeInfo.GetOsAccountSubscribeType(osSubscribeType);
-            subscribeInfo.GetName(name);
-            if (((type != osSubscribeType) || (unsubscribeName != name))) {
-                item++;
-                continue;
-            }
-            if ((activeCallback != nullptr || switchCallback != nullptr) &&
-                !((*item)->IsSameCallBack(type, activeCallback, switchCallback))) {
-                item++;
-                continue;
-            }
-            int errCode = AccountSA::OsAccountManager::UnsubscribeOsAccount((*item)->subscriber);
-            if (errCode != ERR_OK) {
-                int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
-                taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-                return;
-            }
-            delete (*item);
-            item = subscribe->second.erase(item);
-            if (activeCallback != nullptr || switchCallback != nullptr) {
-                break;
-            }
-        }
-        if (subscribe->second.empty()) {
-            g_osAccountSubscribers.erase(subscribe->first);
-        }
-    }
-
-    void on(string_view type, string_view name, callback_view<void(int32_t)> callback)
-    {
-        if (type.size() == 0 || (type != "activate" && type != "activating")) {
-            ACCOUNT_LOGE("Subscriber name size %{public}zu is invalid.", name.size());
-            std::string errMsg =
-                "Parameter error. The content of \"type\" must be \"activate|activating|switched|switching\"";
-            taihe::set_business_error(ERR_JS_INVALID_PARAMETER, errMsg);
-            return;
-        }
-        if (name.size() == 0 || name.size() > MAX_SUBSCRIBER_NAME_LEN) {
-            ACCOUNT_LOGE("Subscriber name size %{public}zu is invalid.", name.size());
-            std::string errMsg = "Parameter error. The length of \"name\" is invalid";
-            taihe::set_business_error(ERR_JS_INVALID_PARAMETER, errMsg);
-            return;
-        }
-        active_callback call = callback;
-        Subsribe(name.data(),
-                 type == "activate" ? AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATED
-                                    : AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING,
-                 std::make_shared<active_callback>(call), nullptr);
-    }
-
-    void off(string_view type, string_view name, optional_view<callback<void(int32_t)>> callback)
-    {
-        if (type.size() == 0 || (type != "activate" && type != "activating")) {
-            ACCOUNT_LOGE("Subscriber name size %{public}zu is invalid.", name.size());
-            std::string errMsg =
-                "Parameter error. The content of \"type\" must be \"activate|activating|switched|switching\"";
-            taihe::set_business_error(ERR_JS_INVALID_PARAMETER, errMsg);
-            return;
-        }
-        if (name.size() == 0 || name.size() > MAX_SUBSCRIBER_NAME_LEN) {
-            ACCOUNT_LOGE("Subscriber name size %{public}zu is invalid.", name.size());
-            std::string errMsg = "Parameter error. The length of \"name\" is invalid";
-            taihe::set_business_error(ERR_JS_INVALID_PARAMETER, errMsg);
-            return;
-        }
-        std::shared_ptr<active_callback> activeCallback = nullptr;
-        if (callback) {
-            active_callback call = *callback;
-            activeCallback = std::make_shared<active_callback>(call);
-        }
-        Unsubscribe(name.data(),
-                    type == "activate" ? AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATED
-                                       : AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING,
-                    activeCallback, nullptr);
-    }
-
-    void OnSwitching(callback_view<void(OsAccountSwitchEventData const &)> callback)
-    {
-        switch_callback call = callback;
-        Subsribe("", AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING, nullptr, std::make_shared<switch_callback>(call));
-    }
-
-    void OnSwitched(callback_view<void(OsAccountSwitchEventData const &)> callback)
-    {
-        switch_callback call = callback;
-        Subsribe("", AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, nullptr, std::make_shared<switch_callback>(call));
-    }
-
-    void OffSwitching(optional_view<callback<void(OsAccountSwitchEventData const &)>> callback)
-    {
-        std::shared_ptr<switch_callback> switchCallback = nullptr;
-        if (callback) {
-            switch_callback call = *callback;
-            switchCallback = std::make_shared<switch_callback>(call);
-        }
-        Unsubscribe("", AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING, nullptr, switchCallback);
-    }
-
-    void OffSwitched(optional_view<callback<void(OsAccountSwitchEventData const &)>> callback)
-    {
-        std::shared_ptr<switch_callback> switchCallback = nullptr;
-        if (callback) {
-            switch_callback call = *callback;
-            switchCallback = std::make_shared<switch_callback>(call);
-        }
-        Unsubscribe("", AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, nullptr, switchCallback);
-    }
-
-    void ActivateOsAccountSync(int32_t localId)
-    {
-        ErrCode errCode = AccountSA::OsAccountManager::ActivateOsAccount(localId);
-        ACCOUNT_LOGI("ActivateOsAccount returned errCode: %{public}d", errCode);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("ActivateOsAccount failed with errCode: %{public}d", errCode);
-            SetTaiheBusinessErrorFromNativeCode(errCode);
-        }
-    }
-
-    OsAccountInfo CreateOsAccountSync(string_view localName, OsAccountType type)
-    {
-        AccountSA::OsAccountInfo innerInfo;
-        std::string name(localName.data(), localName.size());
-        AccountSA::OsAccountType innerType = ConvertFromOsAccountTypeKey(type.get_value());
-
-        ErrCode errCode = AccountSA::OsAccountManager::CreateOsAccount(name, innerType, innerInfo);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("CreateOsAccount failed with errCode: %{public}d", errCode);
-            SetTaiheBusinessErrorFromNativeCode(errCode);
-        }
-        OsAccountInfo info = ConvertOsAccountInfo(innerInfo);
-        return info;
-    }
-
-    OsAccountInfo CreateOsAccountWithOptionSync(string_view localName, OsAccountType type,
-                                                optional_view<CreateOsAccountOptions> options)
-    {
-        AccountSA::OsAccountInfo innerInfo;
-        std::string name(localName.data(), localName.size());
-        AccountSA::OsAccountType innerType = ConvertFromOsAccountTypeKey(type.get_value());
-
-        if (options.has_value()) {
-            const auto &opts = options.value();
-            std::string shortName(opts.shortName.data(), opts.shortName.size());
-
-            AccountSA::CreateOsAccountOptions innerOptions = ConvertToInnerOptions(options);
-            ErrCode errCode =
-                AccountSA::OsAccountManager::CreateOsAccount(name, shortName, innerType, innerOptions, innerInfo);
-            if (errCode != ERR_OK) {
-                SetTaiheBusinessErrorFromNativeCode(errCode);
-            }
-        } else {
-            ErrCode errCode = AccountSA::OsAccountManager::CreateOsAccount(name, innerType, innerInfo);
-            if (errCode != ERR_OK) {
-                SetTaiheBusinessErrorFromNativeCode(errCode);
-            }
-        }
-        OsAccountInfo info = ConvertOsAccountInfo(innerInfo);
-        return info;
-    }
-
-    void DeactivateOsAccountSync(int32_t localId)
-    {
-        ErrCode errCode = AccountSA::OsAccountManager::DeactivateOsAccount(localId);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("DeactivateOsAccount failed with errCode: %{public}d", errCode);
-            SetTaiheBusinessErrorFromNativeCode(errCode);
-        }
-    }
-
-    array<int32_t> GetActivatedOsAccountLocalIdsSync()
-    {
-        std::vector<int32_t> ids;
-        ErrCode errCode = AccountSA::OsAccountManager::QueryActiveOsAccountIds(ids);
-        if (errCode != ERR_OK || ids.empty()) {
-            SetTaiheBusinessErrorFromNativeCode(errCode);
-            return taihe::array<int32_t>(nullptr, 0);
-        }
-        return taihe::array<int32_t>(taihe::copy_data_t{}, ids.data(), ids.size());
-    }
-
-    OsAccountInfo QueryOsAccountSync()
-    {
-        AccountSA::OsAccountInfo innerInfo;
-        if (AccountSA::AccountPermissionManager::CheckSystemApp(false) != ERR_OK) {
-            SetTaiheBusinessErrorFromNativeCode(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
-            return ConvertOsAccountInfo(innerInfo);
-        }
-        ErrCode errCode = AccountSA::OsAccountManager::QueryCurrentOsAccount(innerInfo);
-        if (errCode != ERR_OK) {
-            int32_t jsErrCode = (errCode == ERR_ACCOUNT_COMMON_PERMISSION_DENIED)
-                                    ? ERR_OSACCOUNT_KIT_QUERY_CURRENT_OS_ACCOUNT_ERROR
-                                    : errCode;
-            ACCOUNT_LOGE("QueryCurrentOsAccount failed with errCode: %{public}d", jsErrCode);
-            SetTaiheBusinessErrorFromNativeCode(jsErrCode);
-            return ConvertOsAccountInfo(innerInfo);
-        }
-        return ConvertOsAccountInfo(innerInfo);
-    }
-
-    int32_t GetForegroundOsAccountLocalIdSync()
-    {
-        int32_t id = -1;
-        ErrCode errCode = AccountSA::OsAccountManager::GetForegroundOsAccountLocalId(id);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("GetForegroundOsAccountLocalId failed with errCode: %{public}d", errCode);
-            SetTaiheBusinessErrorFromNativeCode(errCode);
-        }
-        return id;
-    }
-
-    int32_t GetOsAccountLocalIdSync()
-    {
-        int32_t id = -1;
-        ErrCode errCode = AccountSA::OsAccountManager::GetOsAccountLocalIdFromProcess(id);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("GetOsAccountLocalIdFromProcess failed with errCode: %{public}d", errCode);
-            SetTaiheBusinessErrorFromNativeCode(errCode);
-        }
-        return id;
-    }
-
-    int32_t GetOsAccountLocalIdForUidSync(int32_t uid)
-    {
-        int32_t id = -1;
-        ErrCode errCode = AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, id);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("GetOsAccountLocalIdFromUid failed with errCode: %{public}d", errCode);
-            SetTaiheBusinessErrorFromNativeCode(errCode);
-        }
-        return id;
-    }
-
-    bool IsOsAccountUnlockedSync()
-    {
-        bool isUnlocked = false;
-        ErrCode errCode = AccountSA::OsAccountManager::IsCurrentOsAccountVerified(isUnlocked);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("IsOsAccountUnlocked failed with errCode: %{public}d", errCode);
-            SetTaiheBusinessErrorFromNativeCode(errCode);
-        }
-        return isUnlocked;
-    }
-
-    bool IsOsAccountUnlockedById(int32_t localId)
-    {
-        if (AccountSA::AccountPermissionManager::CheckSystemApp(false) != ERR_OK) {
-            SetTaiheBusinessErrorFromNativeCode(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
-            return false;
-        }
-        bool isUnlocked = false;
-        ErrCode errCode = AccountSA::OsAccountManager::IsOsAccountVerified(localId, isUnlocked);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("IsOsAccountUnlocked failed with errCode: %{public}d", errCode);
-            SetTaiheBusinessErrorFromNativeCode(errCode);
-        }
-        return isUnlocked;
-    }
-
-    array<OsAccountInfo> QueryAllCreatedOsAccountsSync()
-    {
-        std::vector<AccountSA::OsAccountInfo> osAccountInfos;
-        ErrCode errCode = AccountSA::OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("QueryAllCreatedOsAccounts failed with errCode: %{public}d", errCode);
-            SetTaiheBusinessErrorFromNativeCode(errCode);
-        }
-        std::vector<OsAccountInfo> convertedInfos;
-        convertedInfos.reserve(osAccountInfos.size());
-        for (const auto &info : osAccountInfos) {
-            convertedInfos.push_back(ConvertOsAccountInfo(info));
-        }
-
-        return taihe::array<OsAccountInfo>(taihe::copy_data_t{}, convertedInfos.data(), convertedInfos.size());
-    }
-
-    int32_t QueryMaxLoggedInOsAccountNumberSync()
-    {
-        uint32_t maxLoggedInNumber = 0;
-        ErrCode errCode = AccountSA::OsAccountManager::QueryMaxLoggedInOsAccountNumber(maxLoggedInNumber);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("QueryMaxLoggedInOsAccountNumber failed with errCode: %{public}d", errCode);
-            SetTaiheBusinessErrorFromNativeCode(errCode);
-        }
-        return static_cast<int32_t>(maxLoggedInNumber);
-    }
-
-    OsAccountInfo QueryOsAccountByIdSync(int32_t localId)
-    {
-        AccountSA::OsAccountInfo osAccountInfo;
-        ErrCode errCode = AccountSA::OsAccountManager::QueryOsAccountById(localId, osAccountInfo);
-        if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("QueryOsAccountById failed with errCode: %{public}d", errCode);
-            SetTaiheBusinessErrorFromNativeCode(errCode);
-        }
-        return ConvertOsAccountInfo(osAccountInfo);
-    }
-};
+    return domainAccountInfoInner;
+}
 
 AuthType ConvertToAuthTypeTH(const AccountSA::AuthType &type)
 {
@@ -754,6 +338,29 @@ public:
     std::condition_variable cv;
     bool onResultCalled = false;
 };
+
+class THGetEnrolledIdCallback : public AccountSA::GetEnrolledIdCallback {
+    public:
+        int32_t errorCode_ = -1;
+        array<uint8_t> enrolledID_ = {};
+        std::mutex mutex_;
+        std::condition_variable cv_;
+        bool onEnrolledIdCalled_ = false;
+        void OnEnrolledId(int32_t result, uint64_t enrolledIdUint64) override
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            if (this->onEnrolledIdCalled_) {
+                return;
+            }
+            this->onEnrolledIdCalled_ = true;
+            this->errorCode_ = result;
+            if (this->errorCode_ != ERR_OK) {
+                this->enrolledID_ = array<uint8_t>(taihe::copy_data_t{},
+                    reinterpret_cast<uint8_t *>(&enrolledIdUint64), sizeof(uint64_t));
+            }
+            cv_.notify_one();
+        }
+    };
 
 class UserIdentityManagerImpl {
 public:
@@ -922,21 +529,49 @@ public:
 
         AccountSA::AccountIAMClient::GetInstance().DelUser(defaultUserId, authTokenVec, idmCallbackPtr);
     }
+
+    void CancelWithChallenge(array_view<uint8_t> challenge)
+    {
+        int32_t ret = AccountSA::AccountIAMClient::GetInstance().Cancel(-1); // -1 indicates the current user
+        if (ret != ERR_OK) {
+            ACCOUNT_LOGE("Failed to cancel account, ret = %{public}d", ret);
+            ret = AccountIAMConvertToJSErrCode(ret);
+            taihe::set_business_error(ret, ConvertToJsErrMsg(ret));
+        }
+    }
+
+    void DelCred(array_view<uint8_t> credentialId, array_view<uint8_t> token, IIdmCallback const &callback)
+    {
+        int32_t accountId = -1;
+        uint64_t credentialIdUint64 = 0;
+        std::vector<uint8_t> innerToken(token.data(), token.data() + token.size());
+        if (credentialId.size() != sizeof(uint64_t)) {
+            ACCOUNT_LOGE("credentialId size is invalid.");
+            std::string errMsg = "Parameter error. The type of \"credentialId\" must be Uint8Array";
+            taihe::set_business_error(ERR_JS_PARAMETER_ERROR, errMsg);
+            return;
+        }
+        for (auto each : credentialId) {
+            credentialIdUint64 = (credentialIdUint64 << CONTEXTID_OFFSET);
+            credentialIdUint64 += each;
+        }
+        std::shared_ptr<AccountSA::IDMCallback> idmCallbackPtr = std::make_shared<TaiheIDMCallbackAdapter>(callback);
+        AccountSA::AccountIAMClient::GetInstance().DelCred(accountId, credentialIdUint64, innerToken, idmCallbackPtr);
+    }
+
+    array<uint8_t> GetEnrolledIdSync(AuthType authType, optional_view<int32_t> accountId)
+    {
+        int32_t authTypeInner = authType.get_value();
+        int32_t innerAccountId = accountId.value_or(-1);
+        AccountSA::AuthType innerAuthType = static_cast<AccountSA::AuthType>(authTypeInner);
+        std::shared_ptr<THGetEnrolledIdCallback> getEnrolledIdCallback = std::make_shared<THGetEnrolledIdCallback>();
+        AccountSA::AccountIAMClient::GetInstance().GetEnrolledId(innerAccountId, innerAuthType, getEnrolledIdCallback);
+        std::unique_lock<std::mutex> lock(getEnrolledIdCallback->mutex_);
+        getEnrolledIdCallback->cv_.wait(lock,
+            [getEnrolledIdCallback] { return getEnrolledIdCallback->onEnrolledIdCalled_;});
+        return getEnrolledIdCallback->enrolledID_;
+    }
 };
-
-AccountSA::DomainAccountInfo ConvertToDomainAccountInfoInner(const DomainAccountInfo &domainAccountInfo)
-{
-    AccountSA::DomainAccountInfo domainAccountInfoInner(std::string(domainAccountInfo.domain.c_str()),
-                                                        std::string(domainAccountInfo.accountName.c_str()));
-    if (domainAccountInfo.accountId.has_value()) {
-        domainAccountInfoInner.accountId_ = domainAccountInfo.accountId.value();
-    }
-    if (domainAccountInfo.serverConfigId.has_value()) {
-        domainAccountInfoInner.serverConfigId_ = domainAccountInfo.serverConfigId.value();
-    }
-    return domainAccountInfoInner;
-}
-
 class THDomainAccountCallback : public AccountSA::DomainAccountCallback {
 public:
     std::mutex mutex;
@@ -995,8 +630,41 @@ public:
 };
 
 class DomainAccountManagerImpl {
+private:
+    AccountSA::OsAccountManager *osAccountManger_ = nullptr;
+
 public:
-    DomainAccountManagerImpl() {}
+    DomainAccountManagerImpl()
+    {
+        osAccountManger_ = new (std::nothrow) AccountSA::OsAccountManager();
+    }
+
+    ~DomainAccountManagerImpl()
+    {
+        if (osAccountManger_ != nullptr) {
+            delete osAccountManger_;
+            osAccountManger_ = nullptr;
+        }
+    }
+};
+
+class DomainServerConfigManagerImpl {
+private:
+    AccountSA::OsAccountManager *osAccountManger_ = nullptr;
+
+public:
+    DomainServerConfigManagerImpl()
+    {
+        osAccountManger_ = new (std::nothrow) AccountSA::OsAccountManager();
+    }
+
+    ~DomainServerConfigManagerImpl()
+    {
+        if (osAccountManger_ != nullptr) {
+            delete osAccountManger_;
+            osAccountManger_ = nullptr;
+        }
+    }
 };
 
 class IInputDataImpl {
@@ -1478,6 +1146,74 @@ public:
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
         }
     }
+
+    int32_t GetAvailableStatusSync(AuthType authType, AuthTrustLevel authTrustLevel)
+    {
+        AccountSA::AuthType authTypeInner = static_cast<AccountSA::AuthType>(authType.get_value());
+        AccountSA::AuthTrustLevel authSubType = static_cast<AccountSA::AuthTrustLevel>(authTrustLevel.get_value());
+        int32_t status = 0;
+        ErrCode errorCode = AccountSA::AccountIAMClient::GetInstance().GetAvailableStatus(authTypeInner,
+            authSubType, status);
+        if (errorCode != ERR_OK) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+        }
+        return status;
+    }
+
+    ExecutorProperty GetPropertyByCredentialIdSync(array_view<uint8_t> credentialId, array_view<GetPropertyType> keys)
+    {
+        uint64_t id = 0;
+        for (auto each : credentialId) {
+            id = (id << CONTEXTID_OFFSET);
+            id += each;
+        }
+
+        std::vector<OHOS::UserIam::UserAuth::Attributes::AttributeKey> getPropertyRequestInner;
+        for (GetPropertyType each : keys) {
+            AccountSA::Attributes::AttributeKey key;
+            if (!ConvertGetPropertyTypeToAttributeKeyTh(static_cast<AccountJsKit::GetPropertyType>(each.get_value()),
+                                                        key)) {
+                break;
+            }
+            getPropertyRequestInner.emplace_back(key);
+        }
+
+        std::shared_ptr<THGetPropCallback> getPropCallback =
+            std::make_shared<THGetPropCallback>(getPropertyRequestInner);
+        AccountSA::AccountIAMClient::GetInstance().GetPropertyByCredentialId(id,
+            getPropertyRequestInner, getPropCallback);
+        std::unique_lock<std::mutex> lock(getPropCallback->mutex);
+        getPropCallback->cv.wait(lock, [getPropCallback] { return getPropCallback->onResultCalled; });
+
+        return ConvertToExecutorPropertyTH(getPropCallback->propertyInfoInner, getPropCallback->keys);
+    }
+
+    class THPrepareRemoteAuthCallback : public AccountSA::PreRemoteAuthCallback {
+    public:
+
+        void OnResult(int32_t result) override
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            ACCOUNT_LOGI("Post OnResult task finish");
+        }
+
+    private:
+        std::mutex mutex_;
+    };
+
+    void PrepareRemoteAuthSync(string_view remoteNetworkId)
+    {
+        std::string innerRemoteNetworkId(remoteNetworkId.data(), remoteNetworkId.size());
+
+        auto prepareRemoteAuthCallback = std::make_shared<THPrepareRemoteAuthCallback>();
+        ErrCode errorCode = AccountSA::AccountIAMClient::GetInstance().PrepareRemoteAuth(innerRemoteNetworkId,
+            prepareRemoteAuthCallback);
+        if (errorCode != ERR_OK) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+        }
+    }
 };
 
 class TaiheGetDataCallback : public AccountSA::IInputer {
@@ -1544,11 +1280,6 @@ public:
     InputerManagerImpl() {}
 };
 
-AccountManager getAccountManager()
-{
-    return make_holder<AccountManagerImpl, AccountManager>();
-}
-
 bool IsAuthenticationExpiredSync(const DomainAccountInfo &domainAccountInfo)
 {
     AccountSA::DomainAccountInfo domainAccountInfoInner = ConvertToDomainAccountInfoInner(domainAccountInfo);
@@ -1560,6 +1291,149 @@ bool IsAuthenticationExpiredSync(const DomainAccountInfo &domainAccountInfo)
         return false;
     }
     return isExpired;
+}
+
+void UnregisterPlugin()
+{
+    int32_t errorCode = AccountSA::DomainAccountClient::GetInstance().UnregisterPlugin();
+        if (errorCode != ERR_OK) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            ACCOUNT_LOGE("failed to unregister plugin, errCode=%{public}d", errorCode);
+        }
+}
+
+class DomainAccountCallbackTH final: public AccountSA::DomainAccountCallback {
+public:
+    explicit DomainAccountCallbackTH(std::shared_ptr<THUserAuthCallback> &callback):callback_(callback) {}
+
+    std::mutex mutex_;
+    std::condition_variable cv_;
+    bool onResultCalled_ = false;
+    bool isHasDomainAccount_ = false;
+
+    void OnResult(const int32_t errCode, Parcel &parcel) override
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        if (this->onResultCalled_) {
+            return;
+        }
+        this->onResultCalled_ = true;
+        if (errCode == ERR_OK) {
+            parcel.ReadBool(isHasDomainAccount_);
+        }
+        cv_.notify_one();
+    }
+private:
+    std::shared_ptr<THUserAuthCallback> callback_;
+};
+
+void Auth(DomainAccountInfo const& domainAccountInfo, array_view<uint8_t> credential, IUserAuthCallback const& callback)
+{
+    AccountSA::DomainAccountInfo domainAccountInfoInner = ConvertToDomainAccountInfoInner(domainAccountInfo);
+    std::vector<uint8_t> credentialInner(credential.begin(), credential.begin() + credential.size());
+    std::shared_ptr<THDomainAccountCallback> callbackInner =
+            std::make_shared<THDomainAccountCallback>(callback);
+    int32_t errorCode = AccountSA::DomainAccountClient::GetInstance().Auth(domainAccountInfoInner,
+        credentialInner, callbackInner);
+    if (!credentialInner.empty()) {
+        (void)memset_s(const_cast<uint8_t*>(credentialInner.data()), credentialInner.size(), 0, credentialInner.size());
+    }
+    if (errorCode != ERR_OK) {
+        Parcel emptyParcel;
+        AccountSA::DomainAuthResult emptyResult;
+        if (!emptyResult.Marshalling(emptyParcel)) {
+            ACCOUNT_LOGE("authResult Marshalling failed");
+            return;
+        }
+        callbackInner->OnResult(ConvertToJSErrCode(errorCode), emptyParcel);
+    }
+}
+
+void AuthWithPopup(IUserAuthCallback const& callback)
+{
+    std::shared_ptr<THDomainAccountCallback> callbackInner =
+            std::make_shared<THDomainAccountCallback>(callback);
+    int32_t userId = 0;
+    int32_t errorCode = AccountSA::DomainAccountClient::GetInstance().AuthWithPopup(userId, callbackInner);
+    if (errorCode != ERR_OK) {
+        Parcel emptyParcel;
+        AccountSA::DomainAuthResult emptyResult;
+        if (!emptyResult.Marshalling(emptyParcel)) {
+            ACCOUNT_LOGE("authResult Marshalling failed");
+            return;
+        }
+        callbackInner->OnResult(ConvertToJSErrCode(errorCode), emptyParcel);
+    }
+}
+
+void AuthWithPopupWithId(int32_t localId, IUserAuthCallback const& callback)
+{
+    std::shared_ptr<THDomainAccountCallback> callbackInner =
+            std::make_shared<THDomainAccountCallback>(callback);
+    int32_t errorCode = AccountSA::DomainAccountClient::GetInstance().AuthWithPopup(localId, callbackInner);
+    if (errorCode != ERR_OK) {
+        Parcel emptyParcel;
+        AccountSA::DomainAuthResult emptyResult;
+        if (!emptyResult.Marshalling(emptyParcel)) {
+            ACCOUNT_LOGE("authResult Marshalling failed");
+            return;
+        }
+        callbackInner->OnResult(ConvertToJSErrCode(errorCode), emptyParcel);
+    }
+}
+
+bool HasAccountSync(DomainAccountInfo const& domainAccountInfo)
+{
+    AccountSA::DomainAccountInfo domainAccountInfoInner = ConvertToDomainAccountInfoInner(domainAccountInfo);
+    std::shared_ptr<THUserAuthCallback> jsCallback;
+    auto callbackInner = std::make_shared<DomainAccountCallbackTH>(jsCallback);
+    int errorCode = AccountSA::DomainAccountClient::GetInstance().HasAccount(domainAccountInfoInner, callbackInner);
+    if (errorCode != ERR_OK) {
+        Parcel emptyParcel;
+        callbackInner->OnResult(errorCode, emptyParcel);
+    }
+    std::unique_lock<std::mutex> lock(callbackInner->mutex_);
+    callbackInner->cv_.wait(lock, [callbackInner] { return callbackInner->onResultCalled_;});
+    return callbackInner->isHasDomainAccount_;
+}
+
+void UpdateAccountTokenSync(DomainAccountInfo const &domainAccountInfo, array_view<uint8_t> token)
+{
+    AccountSA::DomainAccountInfo innerDomainAccountInfo = ConvertToDomainAccountInfoInner(domainAccountInfo);
+    std::vector<uint8_t> innerToken(token.begin(), token.begin() + token.size());
+    ErrCode errCode =
+        AccountSA::DomainAccountClient::GetInstance().UpdateAccountToken(innerDomainAccountInfo, innerToken);
+    if (!innerToken.empty()) {
+        (void)memset_s(const_cast<uint8_t*>(innerToken.data()), innerToken.size(), 0,
+            innerToken.size());
+    }
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("UpdateAccountTokenSync failed with errCode: %{public}d", errCode);
+        SetTaiheBusinessErrorFromNativeCode(errCode);
+    }
+}
+
+void UpdateAccountInfoSync(DomainAccountInfo const &oldAccountInfo, DomainAccountInfo const &newAccountInfo)
+{
+    AccountSA::DomainAccountInfo innerOldAccountInfo = ConvertToDomainAccountInfoInner(oldAccountInfo);
+    AccountSA::DomainAccountInfo innerNewAccountInfo = ConvertToDomainAccountInfoInner(newAccountInfo);
+    ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().UpdateAccountInfo(innerOldAccountInfo,
+        innerNewAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("UpdateAccountInfoSync failed with errCode: %{public}d", errCode);
+        SetTaiheBusinessErrorFromNativeCode(errCode);
+    }
+}
+
+void RemoveServerConfigSync(string_view configId)
+{
+    std::string innerConfigId(configId.data(), configId.size());
+    ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().RemoveServerConfig(innerConfigId);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("RemoveServerConfigSync failed with errCode: %{public}d", errCode);
+        SetTaiheBusinessErrorFromNativeCode(errCode);
+    }
 }
 
 void RegisterInputer(AuthType authType, const IInputer &inputer)
@@ -1604,8 +1478,15 @@ PINAuth CreatePINAuth()
 }
 } // namespace
 
-TH_EXPORT_CPP_API_getAccountManager(getAccountManager);
 TH_EXPORT_CPP_API_IsAuthenticationExpiredSync(IsAuthenticationExpiredSync);
+TH_EXPORT_CPP_API_UnregisterPlugin(UnregisterPlugin);
+TH_EXPORT_CPP_API_Auth(Auth);
+TH_EXPORT_CPP_API_AuthWithPopup(AuthWithPopup);
+TH_EXPORT_CPP_API_AuthWithPopupWithId(AuthWithPopupWithId);
+TH_EXPORT_CPP_API_HasAccountSync(HasAccountSync);
+TH_EXPORT_CPP_API_UpdateAccountTokenSync(UpdateAccountTokenSync);
+TH_EXPORT_CPP_API_UpdateAccountInfoSync(UpdateAccountInfoSync);
+TH_EXPORT_CPP_API_RemoveServerConfigSync(RemoveServerConfigSync);
 TH_EXPORT_CPP_API_registerInputer(RegisterInputer);
 TH_EXPORT_CPP_API_unregisterInputer(UnregisterInputer);
 TH_EXPORT_CPP_API_CreateUserIdentityManager(CreateUserIdentityManager);
