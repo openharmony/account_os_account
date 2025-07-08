@@ -236,27 +236,27 @@ ErrCode AccountMgrService::QueryDistributedVirtualDeviceId(const std::string &bu
 
 ErrCode AccountMgrService::QueryOhosAccountInfo(std::string& accountName, std::string& uid, int32_t& status)
 {
-#ifdef HICOLLIE_ENABLE
-    unsigned int flag = HiviewDFX::XCOLLIE_FLAG_LOG | HiviewDFX::XCOLLIE_FLAG_RECOVERY;
-    XCollieCallback callbackFunc = [callingPid = IPCSkeleton::GetCallingPid(),
-                                    callingUid = IPCSkeleton::GetCallingUid()](void*) {
-        ACCOUNT_LOGE("InnerQueryOhosAccountInfo failed, callingPid: %{public}d, callingUid: %{public}d.", callingPid,
-            callingUid);
-        ReportOhosAccountOperationFail(callingUid, "watchDog", -1, "Query ohos account info time out");
-    };
-    int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, RECOVERY_TIMEOUT, callbackFunc, nullptr, flag);
-#endif // HICOLLIE_ENABLE
     if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS) &&
         !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC) &&
         !HasAccountRequestPermission(PERMISSION_GET_LOCAL_ACCOUNTS)) {
         ACCOUNT_LOGE("Check permission failed");
         REPORT_PERMISSION_FAIL();
-#ifdef HICOLLIE_ENABLE
-        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
-#endif // HICOLLIE_ENABLE
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
-    auto ret = QueryOsAccountDistributedInfo(GetCallingUserID(), accountName, uid, status);
+#ifdef HICOLLIE_ENABLE
+    unsigned int flag = HiviewDFX::XCOLLIE_FLAG_LOG | HiviewDFX::XCOLLIE_FLAG_RECOVERY;
+    XCollieCallback callbackFunc = [callingPid = IPCSkeleton::GetCallingPid(),
+        callingUid = IPCSkeleton::GetCallingUid()](void *) {
+        ACCOUNT_LOGE("QueryOhosAccountInfo failed, callingPid: %{public}d, callingUid: %{public}d.",
+            callingPid, callingUid);
+        ReportOhosAccountOperationFail(callingUid, "watchDog", -1, "Query ohos account info time out");
+    };
+    int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, RECOVERY_TIMEOUT, callbackFunc, nullptr, flag);
+#endif // HICOLLIE_ENABLE
+    auto ret = InnerQueryOsAccountDistributedInfo(GetCallingUserID(), accountName, uid, status);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Query ohos account info failed");
+    }
 #ifdef HICOLLIE_ENABLE
     HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
 #endif // HICOLLIE_ENABLE
@@ -351,6 +351,12 @@ ErrCode AccountMgrService::QueryOsAccountDistributedInfo(
         ACCOUNT_LOGE("negative userID %{public}d detected!", localId);
         return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_USERID_ERROR;
     }
+    return InnerQueryOsAccountDistributedInfo(localId, accountName, uid, status);
+}
+
+ErrCode AccountMgrService::InnerQueryOsAccountDistributedInfo(
+    std::int32_t localId, std::string& accountName, std::string& uid, int32_t& status)
+{
     OhosAccountInfo ohosAccountInfo;
     ErrCode ret = OhosAccountManager::GetInstance().GetOhosAccountDistributedInfo(localId, ohosAccountInfo);
     if (ret != ERR_OK) {

@@ -60,7 +60,9 @@ bool ReadOsAccountInfoVector(const StringRawData& stringRawData, std::vector<OsA
         cJSON *item = GetItemFromArray(accountsJson, i);
         if (item != nullptr) {
             OsAccountInfo accountInfo;
-            FromJson(item, accountInfo);
+            if (!FromJson(item, accountInfo)) {
+                return false;
+            }
             osAccountInfos.emplace_back(accountInfo);
         }
     }

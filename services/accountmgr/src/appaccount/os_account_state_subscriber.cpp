@@ -16,10 +16,14 @@
 #include "account_log_wrapper.h"
 #include "os_account_state_subscriber.h"
 #include "ios_account_state_reply_callback.h"
+#include "ipc_skeleton.h"
 #include "app_account_control_manager.h"
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
+const uid_t ACCOUNT_UID = 3058;
+}
 OsAccountStateSubscriber::OsAccountStateSubscriber()
 {}
 
@@ -45,6 +49,21 @@ ErrCode OsAccountStateSubscriber::OnAccountsChanged(int32_t localId)
 }
 
 ErrCode OsAccountStateSubscriber::OnAccountsSwitch(int32_t newId, int32_t oldId)
+{
+    return ERR_OK;
+}
+
+ErrCode OsAccountStateSubscriber::CallbackEnter([[maybe_unused]] uint32_t code)
+{
+    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    if (callingUid != ACCOUNT_UID) {
+        ACCOUNT_LOGE("GetCallingUid failed, please check callingUid: %{public}d", callingUid);
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    return ERR_OK;
+}
+
+ErrCode OsAccountStateSubscriber::CallbackExit([[maybe_unused]] uint32_t code, [[maybe_unused]] int32_t result)
 {
     return ERR_OK;
 }
