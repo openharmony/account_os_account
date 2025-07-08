@@ -32,6 +32,8 @@ public:
     ErrCode OnResult(int32_t resultCode, const AAFwk::Want &result) override;
     ErrCode OnRequestRedirected(const AAFwk::Want &request) override;
     ErrCode OnRequestContinued() override;
+    ErrCode CallbackEnter([[maybe_unused]] uint32_t code) override;
+    ErrCode CallbackExit([[maybe_unused]] uint32_t code, [[maybe_unused]] int32_t result) override;
 
 private:
     std::string sessionId_;
