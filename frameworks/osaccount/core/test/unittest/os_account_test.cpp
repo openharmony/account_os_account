@@ -62,6 +62,7 @@ const std::string STRING_DOMAIN_ACCOUNT_NAME_VALID = "TestDomainAccountNameUT";
 std::shared_ptr<OsAccount> g_osAccount = nullptr;
 sptr<IOsAccount> osAccountProxy_ = nullptr;
 const std::uint32_t MAX_WAIT_FOR_READY_CNT = 10;
+const int32_t WAIT_TIME = 3;
 }  // namespace
 class OsAccountTest : public testing::Test {
 public:
@@ -101,6 +102,15 @@ void OsAccountTest::SetUpTestCase(void)
     accountProxy->GetOsAccountService(osAccountRemoteObject);
     osAccountProxy_ = iface_cast<IOsAccount>(osAccountRemoteObject);
     EXPECT_NE(osAccountProxy_, nullptr);
+    std::vector<OsAccountInfo> osAccountInfos;
+    g_osAccount->QueryAllCreatedOsAccounts(osAccountInfos);
+    for (const auto &info : osAccountInfos) {
+        if (info.GetLocalId() == Constants::START_USER_ID) {
+            continue;
+        }
+        ACCOUNT_LOGI("[SetUp] remove account %{public}d", info.GetLocalId());
+        g_osAccount->RemoveOsAccount(info.GetLocalId());
+    }
     GTEST_LOG_(INFO) << "SetUpTestCase finished, waitCnt " << waitCnt;
 }
 
@@ -159,7 +169,9 @@ public:
     {
         std::unique_lock<std::mutex> lock(mutex_);
         isReady_ = true;
-        count_++;
+        if (localId == Constants::START_USER_ID) {
+            count_++;
+        }
         cv_.notify_one();
         return ERR_OK;
     }
@@ -168,7 +180,7 @@ public:
     {
         std::unique_lock<std::mutex> lock(mutex_);
         cv_.wait_for(
-            lock, std::chrono::seconds(1), [this]() { return this->isReady_; });
+            lock, std::chrono::seconds(WAIT_TIME), [this]() { return this->isReady_; });
         isReady_ = false;
         ACCOUNT_LOGI("End");
     }
@@ -424,21 +436,19 @@ HWTEST_F(OsAccountTest, OsAccountTest020, TestSize.Level1)
     EXPECT_EQ(g_osAccount->SubscribeOsAccountConstraints(timeoutSubscriber), ERR_OK);
     EXPECT_EQ(g_osAccount->SubscribeOsAccountConstraints(wifiSubscriber),
         ERR_ACCOUNT_COMMON_ACCOUNT_AREADY_SUBSCRIBE_ERROR);
-    std::set<std::shared_ptr<OsAccountConstraintSubscriber>> subscriberSet =
-        g_osAccount->constraintSubscriberMgr_->subscriberSet_;
-    std::set<std::string> constraintSet = g_osAccount->constraintSubscriberMgr_->constraintSet_;
-    std::map<std::string, std::set<std::shared_ptr<OsAccountConstraintSubscriber>>> constraint2SubscriberMap =
-        g_osAccount->constraintSubscriberMgr_->constraint2SubscriberMap_;
     g_osAccount->RestoreConstraintSubscriberRecords();
     EXPECT_EQ(g_osAccount->UnsubscribeOsAccountConstraints(wifiSubscriber), ERR_OK);
     EXPECT_EQ(g_osAccount->UnsubscribeOsAccountConstraints(timeoutSubscriber), ERR_OK);
     g_osAccount->RestoreConstraintSubscriberRecords();
-    g_osAccount->constraintSubscriberMgr_->constraint2SubscriberMap_ = constraint2SubscriberMap;
-    g_osAccount->constraintSubscriberMgr_->subscriberSet_ = subscriberSet;
-    g_osAccount->constraintSubscriberMgr_->constraintSet_ = constraintSet;
-    g_osAccount->RestoreConstraintSubscriberRecords();
-    EXPECT_EQ(g_osAccount->UnsubscribeOsAccountConstraints(wifiSubscriber), ERR_OK);
-    EXPECT_EQ(g_osAccount->UnsubscribeOsAccountConstraints(timeoutSubscriber), ERR_OK);
+    OsAccountConstraintSubscriberManager::GetInstance()->constraint2SubscriberMap_ =
+        {{CONSTRAINT_WIFI, {wifiSubscriber}}, {CONSTRAINT_TIME_OUT, {timeoutSubscriber}}};
+    OsAccountConstraintSubscriberManager::GetInstance()->subscriberSet_ = {wifiSubscriber, timeoutSubscriber};
+    OsAccountConstraintSubscriberManager::GetInstance()->constraintSet_ = {CONSTRAINT_WIFI, CONSTRAINT_TIME_OUT};
+    OsAccountConstraintSubscriberManager::GetInstance()->RestoreConstraintSubscriberRecords(g_osAccount->proxy_);
+    EXPECT_EQ(OsAccountConstraintSubscriberManager::GetInstance()->UnsubscribeOsAccountConstraints(wifiSubscriber,
+        g_osAccount->proxy_), ERR_OK);
+    EXPECT_EQ(OsAccountConstraintSubscriberManager::GetInstance()->UnsubscribeOsAccountConstraints(timeoutSubscriber,
+        g_osAccount->proxy_), ERR_OK);
 }
 
 /**
@@ -456,21 +466,21 @@ HWTEST_F(OsAccountTest, OsAccountTest021, TestSize.Level1)
     std::set<std::string> constraints2;
     constraints2 = {CONSTRAINT_TIME_OUT};
     auto timeoutSubscriber = std::make_shared<MockOsAccountConstraintSubscriber>(constraints2);
-    EXPECT_EQ(OsAccountConstraintSubscriberManager::GetInstance().SubscribeOsAccountConstraints(
+    EXPECT_EQ(OsAccountConstraintSubscriberManager::GetInstance()->SubscribeOsAccountConstraints(
         wifiSubscriber, g_osAccount->proxy_), ERR_OK);
-    EXPECT_EQ(OsAccountConstraintSubscriberManager::GetInstance().SubscribeOsAccountConstraints(
+    EXPECT_EQ(OsAccountConstraintSubscriberManager::GetInstance()->SubscribeOsAccountConstraints(
         wifiSubscriber2, g_osAccount->proxy_), ERR_OK);
-    EXPECT_EQ(OsAccountConstraintSubscriberManager::GetInstance().SubscribeOsAccountConstraints(
+    EXPECT_EQ(OsAccountConstraintSubscriberManager::GetInstance()->SubscribeOsAccountConstraints(
         timeoutSubscriber, g_osAccount->proxy_), ERR_OK);
     bool isEnabled = false;
     EXPECT_EQ(g_osAccount->IsOsAccountConstraintEnable(Constants::START_USER_ID, CONSTRAINT_WIFI, isEnabled), ERR_OK);
     std::vector<std::string> vec = {CONSTRAINT_WIFI};
     EXPECT_EQ(g_osAccount->SetOsAccountConstraints(Constants::START_USER_ID, vec, !isEnabled), ERR_OK);
-    EXPECT_EQ(OsAccountConstraintSubscriberManager::GetInstance().UnsubscribeOsAccountConstraints(
+    EXPECT_EQ(OsAccountConstraintSubscriberManager::GetInstance()->UnsubscribeOsAccountConstraints(
         wifiSubscriber, g_osAccount->proxy_), ERR_OK);
-    EXPECT_EQ(OsAccountConstraintSubscriberManager::GetInstance().UnsubscribeOsAccountConstraints(
+    EXPECT_EQ(OsAccountConstraintSubscriberManager::GetInstance()->UnsubscribeOsAccountConstraints(
         wifiSubscriber2, g_osAccount->proxy_), ERR_OK);
-    EXPECT_EQ(OsAccountConstraintSubscriberManager::GetInstance().UnsubscribeOsAccountConstraints(
+    EXPECT_EQ(OsAccountConstraintSubscriberManager::GetInstance()->UnsubscribeOsAccountConstraints(
         timeoutSubscriber, g_osAccount->proxy_), ERR_OK);
 }
 
@@ -499,9 +509,9 @@ HWTEST_F(OsAccountTest, OsAccountTest022, TestSize.Level1)
     bool isEnabled = false;
     EXPECT_EQ(g_osAccount->IsOsAccountConstraintEnable(Constants::START_USER_ID, CONSTRAINT_WIFI, isEnabled), ERR_OK);
     std::vector<std::string> vec = {CONSTRAINT_WIFI};
-    EXPECT_EQ(g_osAccount->SetOsAccountConstraints(Constants::START_USER_ID, vec, !isEnabled), ERR_OK);
     EXPECT_EQ(g_osAccount->SetOsAccountConstraints(NOT_EXSIT_ID, vec, !isEnabled),
         ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    EXPECT_EQ(g_osAccount->SetOsAccountConstraints(Constants::START_USER_ID, vec, !isEnabled), ERR_OK);
     listener->WaitForCallBack();
     EXPECT_EQ(listener->count_, 1);
     vec = {CONSTRAINT_TIME_OUT};
@@ -509,18 +519,23 @@ HWTEST_F(OsAccountTest, OsAccountTest022, TestSize.Level1)
     EXPECT_EQ(g_osAccount->IsOsAccountConstraintEnable(
         Constants::START_USER_ID, CONSTRAINT_TIME_OUT, isEnabled), ERR_OK);
     EXPECT_EQ(g_osAccount->SetSpecificOsAccountConstraints(
-        vec, !isEnabled, MAIN_ACCOUNT_ID, MAIN_ACCOUNT_ID, false), ERR_OK);
-    EXPECT_EQ(g_osAccount->SetSpecificOsAccountConstraints(
         vec, !isEnabled, NOT_EXSIT_ID, NOT_EXSIT_ID, false), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    EXPECT_EQ(g_osAccount->SetSpecificOsAccountConstraints(
+        vec, !isEnabled, MAIN_ACCOUNT_ID, MAIN_ACCOUNT_ID, false), ERR_OK);
     listener->WaitForCallBack();
     EXPECT_EQ(listener->count_, 2);
     vec = {CONSTRAINT_SHARE};
     EXPECT_EQ(g_osAccount->IsOsAccountConstraintEnable(Constants::START_USER_ID, CONSTRAINT_SHARE, isEnabled), ERR_OK);
     EXPECT_EQ(g_osAccount->SetGlobalOsAccountConstraints(vec, !isEnabled, MAIN_ACCOUNT_ID, false), ERR_OK);
-    EXPECT_EQ(g_osAccount->SetGlobalOsAccountConstraints(vec, !isEnabled, NOT_EXSIT_ID, false),
-        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    vec = {CONSTRAINT_WIFI};
+    g_osAccount->SetOsAccountConstraints(Constants::START_USER_ID, vec, true);
     listener->WaitForCallBack();
-    EXPECT_EQ(listener->count_, 2);
+    int32_t count = listener->count_;
+    EXPECT_EQ(g_osAccount->IsOsAccountConstraintEnable(Constants::START_USER_ID, CONSTRAINT_WIFI, isEnabled), ERR_OK);
+    EXPECT_EQ(isEnabled, true);
+    EXPECT_EQ(g_osAccount->SetGlobalOsAccountConstraints(vec, false, MAIN_ACCOUNT_ID, false), ERR_OK);
+    listener->WaitForCallBack();
+    EXPECT_EQ(listener->count_, count);
     ASSERT_TRUE(SetSelfTokenID(selfTokenId) == 0);
 }
 

@@ -26,10 +26,11 @@ namespace AccountSA {
 namespace {
 const char THREAD_OS_ACCOUNT_CONSTRAINT_EVENT[] = "OsAccountConstraintEvent";
 }
-OsAccountConstraintSubscriberManager& OsAccountConstraintSubscriberManager::GetInstance()
+OsAccountConstraintSubscriberManager* OsAccountConstraintSubscriberManager::GetInstance()
 {
-    static OsAccountConstraintSubscriberManager instance;
-    return instance;
+    static sptr<OsAccountConstraintSubscriberManager> instance =
+        new (std::nothrow) OsAccountConstraintSubscriberManager();
+    return instance.GetRefPtr();
 }
 
 OsAccountConstraintSubscriberManager::OsAccountConstraintSubscriberManager() {}
@@ -118,7 +119,7 @@ ErrCode OsAccountConstraintSubscriberManager::SubscribeOsAccountConstraints(
         return ERR_OK;
     }
     OsAccountConstraintSubscribeInfo subscribeInfo(constraintSet);
-    ErrCode errCode = proxy->SubscribeOsAccountConstraints(subscribeInfo, GetInstance().AsObject());
+    ErrCode errCode = proxy->SubscribeOsAccountConstraints(subscribeInfo, GetInstance()->AsObject());
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("SubscribeOsAccountConstraints fail, errcode:%{public}d", errCode);
         return errCode;
@@ -157,7 +158,7 @@ ErrCode OsAccountConstraintSubscriberManager::UnsubscribeOsAccountConstraints(
         return ERR_OK;
     }
     OsAccountConstraintSubscribeInfo info(syncData);
-    ErrCode errCode =  proxy->UnsubscribeOsAccountConstraints(info, GetInstance().AsObject());
+    ErrCode errCode =  proxy->UnsubscribeOsAccountConstraints(info, GetInstance()->AsObject());
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("UnsubscribeOsAccountConstraints fail, errcode:%{public}d", errCode);
         return errCode;
@@ -178,7 +179,7 @@ void OsAccountConstraintSubscriberManager::RestoreConstraintSubscriberRecords(sp
         return;
     }
     OsAccountConstraintSubscribeInfo subscribeInfo(constraintSet_);
-    ErrCode errCode = proxy->SubscribeOsAccountConstraints(subscribeInfo, GetInstance().AsObject());
+    ErrCode errCode = proxy->SubscribeOsAccountConstraints(subscribeInfo, GetInstance()->AsObject());
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("RestoreConstraintSubscriberRecords failed, errCode=%{public}d.", errCode);
         return;
