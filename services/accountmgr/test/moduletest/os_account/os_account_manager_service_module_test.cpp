@@ -2144,5 +2144,21 @@ HWTEST_F(OsAccountManagerServiceModuleTest, CheckLocalIdRestricted_001, TestSize
     ret = osAccountManagerService_->CheckLocalIdRestricted(unusedLocalId);
     ASSERT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
+
+/**
+ * @tc.name: CreateOsAccount_001
+ * @tc.desc: Test CreateOsAccount with valid data.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
+HWTEST_F(OsAccountManagerServiceModuleTest, CreateOsAccount_001, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfoOne;
+    StringRawData rawdata;
+    ErrCode errCode = osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, STRING_TEST_NAME, TEST_UID, rawdata);
+    EXPECT_EQ(errCode, ERR_OK);
+}
+#endif
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -601,12 +601,11 @@ HWTEST_F(AccountIamManagerTest, testAuthUser002, TestSize.Level0)
     sptr<TestIIDMCallback> testCallback = new(std::nothrow) TestIIDMCallback(callback);
     EXPECT_NE(testCallback, nullptr);
     EXPECT_CALL(*callback, OnResult(_, _)).Times(0);
-    AccountSA::AuthParam authParam = {
-        .userId = TEST_EXIST_ID,
-        .challenge = TEST_CHALLENGE,
-        .authType = AuthType::PIN,
-        .authTrustLevel = AuthTrustLevel::ATL1
-    };
+    AccountSA::AuthParam authParam;
+    authParam.userId = TEST_EXIST_ID;
+    authParam.challenge = TEST_CHALLENGE;
+    authParam.authType = AuthType::PIN;
+    authParam.authTrustLevel = AuthTrustLevel::ATL1;
     uint64_t contextId = 0;
     ErrCode errCode = InnerAccountIAMManager::GetInstance().AuthUser(authParam, testCallback, contextId);
     EXPECT_EQ(ERR_IAM_BUSY, errCode);

@@ -29,6 +29,7 @@ sequenceable DomainAccountCommon..OHOS.AccountSA.CreateOsAccountForDomainOptions
 sequenceable OHOS.AccountSA.OsAccountConstraintSubscribeInfo;
 sequenceable OHOS.IRemoteObject;
 
+option_stub_hooks on;
 
 interface OHOS.AccountSA.IOsAccount {
     void CreateOsAccount(

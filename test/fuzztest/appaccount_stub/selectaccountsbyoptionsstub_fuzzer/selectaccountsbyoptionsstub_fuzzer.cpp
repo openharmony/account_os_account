@@ -42,6 +42,14 @@ public:
     {
         return OHOS::ERR_OK;
     }
+    OHOS::ErrCode CallbackEnter([[maybe_unused]] uint32_t code)
+    {
+        return OHOS::ERR_OK;
+    }
+    OHOS::ErrCode CallbackExit([[maybe_unused]] uint32_t code, [[maybe_unused]] int32_t result)
+    {
+        return OHOS::ERR_OK;
+    }
 };
 
 namespace OHOS {
