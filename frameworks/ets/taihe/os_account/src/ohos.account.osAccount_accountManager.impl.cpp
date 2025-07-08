@@ -901,6 +901,10 @@ public:
     array<string> GetEnabledOsAccountConstraintsSync(int32_t localId)
     {
         std::vector<std::string> innerConstraints;
+        if (AccountSA::AccountPermissionManager::CheckSystemApp(false) != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(ERR_JS_IS_NOT_SYSTEM_APP);
+            return taihe::array<string>(taihe::copy_data_t{}, innerConstraints.data(), innerConstraints.size());
+        }
         ErrCode errCode = AccountSA::OsAccountManager::GetOsAccountAllConstraints(localId, innerConstraints);
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("GetEnabledOsAccountConstraintsSync failed with errCode: %{public}d", errCode);

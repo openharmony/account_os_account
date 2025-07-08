@@ -519,7 +519,12 @@ public:
 
     void CancelWithChallenge(array_view<uint8_t> challenge)
     {
-        AccountSA::AccountIAMClient::GetInstance().Cancel(-1); // -1 indicates the current user
+        int32_t ret = AccountSA::AccountIAMClient::GetInstance().Cancel(-1); // -1 indicates the current user
+        if (ret != ERR_OK) {
+            ACCOUNT_LOGE("Failed to cancel account, ret = %{public}d", ret);
+            ret = AccountIAMConvertToJSErrCode(ret);
+            taihe::set_business_error(ret, ConvertToJsErrMsg(ret));
+        }
     }
 
     void DelCred(array_view<uint8_t> credentialId, array_view<uint8_t> token, IIdmCallback const &callback)
@@ -643,32 +648,6 @@ public:
         }
     }
 };
-
-DomainServerConfig ConvertToDomainServerConfigTH(std::string id, std::string domain, std::string parameters)
-{
-    auto jsonObject = AccountSA::Json::parse(parameters, nullptr, false);
-    taihe::map<taihe::string, uintptr_t> parametersMap;
-    for (auto& [key, value] : jsonObject.items()) {
-        parametersMap.emplace(key, value);
-    }
-
-    DomainServerConfig domainServerConfig = DomainServerConfig{
-        .id = id,
-        .domain = domain,
-        .parameters = parametersMap,
-    };
-    return domainServerConfig;
-}
-
-std::string ConvertMapViewToStringInner(map_view<string, uintptr_t> parameters)
-{
-    AccountSA::Json innerParametersMap_json_obj;
-    for (auto [key, val] : parameters) {
-        std::string innerKey(key.data(), key.size());
-        innerParametersMap_json_obj[innerKey] = std::to_string(val);
-    }
-    return innerParametersMap_json_obj.dump();
-}
 
 class DomainServerConfigManagerImpl {
 private:
@@ -1521,19 +1500,6 @@ void UpdateAccountInfoSync(DomainAccountInfo const &oldAccountInfo, DomainAccoun
         SetTaiheBusinessErrorFromNativeCode(errCode);
     }
 }
-DomainServerConfig AddServerConfigSync(map_view<string, uintptr_t> parameters)
-{
-    AccountSA::DomainServerConfig innerDomainServerConfig;
-    std::string innerParameters = ConvertMapViewToStringInner(parameters);
-    ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().AddServerConfig(
-        innerParameters, innerDomainServerConfig);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("AddServerConfigSync failed with errCode: %{public}d", errCode);
-        SetTaiheBusinessErrorFromNativeCode(errCode);
-    }
-    return ConvertToDomainServerConfigTH(innerDomainServerConfig.id_,
-                                         innerDomainServerConfig.domain_, innerDomainServerConfig.parameters_);
-}
 
 void RemoveServerConfigSync(string_view configId)
 {
@@ -1543,67 +1509,6 @@ void RemoveServerConfigSync(string_view configId)
         ACCOUNT_LOGE("RemoveServerConfigSync failed with errCode: %{public}d", errCode);
         SetTaiheBusinessErrorFromNativeCode(errCode);
     }
-}
-
-DomainServerConfig UpdateServerConfigSync(string_view configId, map_view<string, uintptr_t> parameters)
-{
-    std::string innerConfigId(configId.data(), configId.size());
-    AccountSA::DomainServerConfig innerDomainServerConfig;
-    std::string innerParameters = ConvertMapViewToStringInner(parameters);
-    ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().UpdateServerConfig(innerConfigId,
-        innerParameters, innerDomainServerConfig);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("updateServerConfigSync failed with errCode: %{public}d", errCode);
-        SetTaiheBusinessErrorFromNativeCode(errCode);
-    }
-    return ConvertToDomainServerConfigTH(innerDomainServerConfig.id_,
-                                         innerDomainServerConfig.domain_, innerDomainServerConfig.parameters_);
-}
-
-DomainServerConfig GetServerConfigSync(string_view configId)
-{
-    std::string innerConfigId(configId.data(), configId.size());
-    AccountSA::DomainServerConfig innerDomainServerConfig;
-    ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().GetServerConfig(innerConfigId,
-        innerDomainServerConfig);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("getServerConfigSync failed with errCode: %{public}d", errCode);
-        SetTaiheBusinessErrorFromNativeCode(errCode);
-    }
-    return ConvertToDomainServerConfigTH(innerDomainServerConfig.id_,
-                                         innerDomainServerConfig.domain_, innerDomainServerConfig.parameters_);
-}
-
-array<DomainServerConfig> GetAllServerConfigsSync()
-{
-    std::vector<AccountSA::DomainServerConfig> innerDomainServerConfigs;
-    std::vector<DomainServerConfig> domainServerConfigsVector;
-    ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().GetAllServerConfigs(innerDomainServerConfigs);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("GetAllServerConfigsSync failed with errCode: %{public}d", errCode);
-        SetTaiheBusinessErrorFromNativeCode(errCode);
-    }
-    for (const auto &innerDomainServerConfig : innerDomainServerConfigs) {
-        auto domainServerConfig = ConvertToDomainServerConfigTH(innerDomainServerConfig.id_,
-            innerDomainServerConfig.domain_, innerDomainServerConfig.parameters_);
-        domainServerConfigsVector.push_back(domainServerConfig);
-    }
-    return array<DomainServerConfig>(taihe::copy_data_t{}, domainServerConfigsVector.data(),
-    domainServerConfigsVector.size());
-}
-
-DomainServerConfig GetAccountServerConfigSync(DomainAccountInfo const &domainAccountInfo)
-{
-    AccountSA::DomainAccountInfo innerDomainAccountInfo = ConvertToDomainAccountInfoInner(domainAccountInfo);
-    AccountSA::DomainServerConfig innerDomainServerConfig;
-    ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().GetAccountServerConfig(innerDomainAccountInfo,
-                                                                                           innerDomainServerConfig);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("getAccountServerConfigSync failed with errCode: %{public}d", errCode);
-        SetTaiheBusinessErrorFromNativeCode(errCode);
-    }
-    return ConvertToDomainServerConfigTH(innerDomainServerConfig.id_,
-                                         innerDomainServerConfig.domain_, innerDomainServerConfig.parameters_);
 }
 
 void RegisterInputer(AuthType authType, const IInputer &inputer)
@@ -1657,12 +1562,7 @@ TH_EXPORT_CPP_API_HasAccountSync(HasAccountSync);
 TH_EXPORT_CPP_API_UpdateAccountTokenSync(UpdateAccountTokenSync);
 TH_EXPORT_CPP_API_GetAccountInfoSync(GetAccountInfoSync);
 TH_EXPORT_CPP_API_UpdateAccountInfoSync(UpdateAccountInfoSync);
-TH_EXPORT_CPP_API_AddServerConfigSync(AddServerConfigSync);
 TH_EXPORT_CPP_API_RemoveServerConfigSync(RemoveServerConfigSync);
-TH_EXPORT_CPP_API_UpdateServerConfigSync(UpdateServerConfigSync);
-TH_EXPORT_CPP_API_GetServerConfigSync(GetServerConfigSync);
-TH_EXPORT_CPP_API_GetAllServerConfigsSync(GetAllServerConfigsSync);
-TH_EXPORT_CPP_API_GetAccountServerConfigSync(GetAccountServerConfigSync);
 TH_EXPORT_CPP_API_registerInputer(RegisterInputer);
 TH_EXPORT_CPP_API_unregisterInputer(UnregisterInputer);
 TH_EXPORT_CPP_API_CreateUserIdentityManager(CreateUserIdentityManager);
