@@ -1431,34 +1431,34 @@ void UpdateAccountTokenSync(DomainAccountInfo const &domainAccountInfo, array_vi
 }
 
 class THGetAccountInfoCallback : public AccountSA::DomainAccountCallback {
-    public:
-        int32_t errorCode = -1;
-        std::mutex mutex;
-        std::condition_variable cv;
-        AccountSA::DomainAccountInfo domainAccountInfo;
-        bool onGetAccountInfoCalled = false;
+public:
+    int32_t errorCode_ = -1;
+    std::mutex mutex_;
+    std::condition_variable cv_;
+    AccountSA::DomainAccountInfo domainAccountInfo_;
+    bool onGetAccountInfoCalled_ = false;
 
-        void OnResult(int32_t errCode, Parcel &parcel)
-        {
-            std::unique_lock<std::mutex> lock(mutex);
-            if (this->onGetAccountInfoCalled) {
-                return;
-            }
-            this->onGetAccountInfoCalled = true;
-            this->errorCode = errCode;
-            if (errCode == ERR_OK) {
-                std::shared_ptr<AccountSA::DomainAccountInfo>
-                    domainAccountInfoParcel(AccountSA::DomainAccountInfo::Unmarshalling(parcel));
-                if (domainAccountInfoParcel == nullptr) {
-                    ACCOUNT_LOGE("failed to unmarshalling OsAccountInfo");
-                    errCode = ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-                    return;
-                }
-                this->domainAccountInfo = *domainAccountInfoParcel;
-            }
-            cv.notify_one();
+    void OnResult(int32_t errCode, Parcel &parcel)
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        if (this->onGetAccountInfoCalled_) {
+            return;
         }
-    };
+        this->onGetAccountInfoCalled_ = true;
+        this->errorCode_ = errCode;
+        if (errCode == ERR_OK) {
+            std::shared_ptr<AccountSA::DomainAccountInfo>
+                domainAccountInfoParcel(AccountSA::DomainAccountInfo::Unmarshalling(parcel));
+            if (domainAccountInfoParcel == nullptr) {
+                ACCOUNT_LOGE("failed to unmarshalling OsAccountInfo");
+                errCode = ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+            } else {
+                this->domainAccountInfo_ = *domainAccountInfoParcel;
+            }
+        }
+        cv_.notify_one();
+    }
+};    
 
 DomainAccountInfo GetAccountInfoSync(GetDomainAccountInfoOptions const& options)
 {
@@ -1470,25 +1470,36 @@ DomainAccountInfo GetAccountInfoSync(GetDomainAccountInfoOptions const& options)
     if (options.serverConfigId.has_value()) {
         innerDomainInfo.serverConfigId_ = options.serverConfigId.value();
     }
+    DomainAccountInfo emptyDomainAccountInfo = {
+        .domain = string(""),
+        .accountName = string(""),
+        .accountId = optional<string>(std::in_place, string("")),
+        .isAuthenticated = optional<bool>(std::in_place, false),
+        .serverConfigId = optional<string>(std::in_place, string("")),
+    };
     std::shared_ptr<THGetAccountInfoCallback> getAccountInfoCallback = std::make_shared<THGetAccountInfoCallback>();
     ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().GetDomainAccountInfo(innerDomainInfo,
         getAccountInfoCallback);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("GetAccountInfoSync failed with errCode: %{public}d", errCode);
         SetTaiheBusinessErrorFromNativeCode(errCode);
-        Parcel emptyParcel;
-        getAccountInfoCallback->OnResult(errCode, emptyParcel);
+        return emptyDomainAccountInfo;
     }
-    std::unique_lock<std::mutex> lock(getAccountInfoCallback->mutex);
-    getAccountInfoCallback->cv.wait(lock, [getAccountInfoCallback] {
-        return getAccountInfoCallback->onGetAccountInfoCalled;
+    std::unique_lock<std::mutex> lock(getAccountInfoCallback->mutex_);
+    getAccountInfoCallback->cv_.wait(lock, [getAccountInfoCallback] {
+        return getAccountInfoCallback->onGetAccountInfoCalled_;
     });
+    if (getAccountInfoCallback->errorCode_ != ERR_OK) {
+        ACCOUNT_LOGE("GetAccountInfoSync failed with errCode: %{public}d", getAccountInfoCallback->errorCode_);
+        SetTaiheBusinessErrorFromNativeCode(getAccountInfoCallback->errorCode_);
+        return emptyDomainAccountInfo;
+    }
     DomainAccountInfo domainAccountInfo = DomainAccountInfo {
-        .domain = getAccountInfoCallback->domainAccountInfo.domain_,
-        .accountName = getAccountInfoCallback->domainAccountInfo.accountName_,
-        .accountId = optional<string>(std::in_place, getAccountInfoCallback->domainAccountInfo.accountId_),
-        .isAuthenticated = optional<bool>(std::in_place, getAccountInfoCallback->domainAccountInfo.isAuthenticated),
-        .serverConfigId = optional<string>(std::in_place, getAccountInfoCallback->domainAccountInfo.serverConfigId_),
+        .domain = getAccountInfoCallback->domainAccountInfo_.domain_,
+        .accountName = getAccountInfoCallback->domainAccountInfo_.accountName_,
+        .accountId = optional<string>(std::in_place, getAccountInfoCallback->domainAccountInfo_.accountId_),
+        .isAuthenticated = optional<bool>(std::in_place, getAccountInfoCallback->domainAccountInfo_.isAuthenticated),
+        .serverConfigId = optional<string>(std::in_place, getAccountInfoCallback->domainAccountInfo_.serverConfigId_),
     };
     return domainAccountInfo;
 }

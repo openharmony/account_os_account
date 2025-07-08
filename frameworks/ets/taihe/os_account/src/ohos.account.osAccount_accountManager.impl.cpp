@@ -179,12 +179,12 @@ AccountSA::CreateOsAccountOptions ConvertToInnerOptions(optional_view<CreateOsAc
 
 class THCreateDomainCallback : public AccountSA::DomainAccountCallback {
     public:
-        int32_t errCode = -1;
-        std::mutex mutex;
-        std::condition_variable cv;
-        AccountSA::OsAccountInfo osAccountInfos;
-        bool onResultCalled = false;
-
+        int32_t errCode_ = -1;
+        std::mutex mutex_;
+        std::condition_variable cv_;
+        AccountSA::OsAccountInfo osAccountInfos_;
+        bool onResultCalled_ = false;
+    
         void OnResult(const int32_t errorCode, Parcel &parcel)
         {
             std::shared_ptr<AccountSA::OsAccountInfo> osAccountInfo(AccountSA::OsAccountInfo::Unmarshalling(parcel));
@@ -192,16 +192,16 @@ class THCreateDomainCallback : public AccountSA::DomainAccountCallback {
                 ACCOUNT_LOGE("failed to unmarshalling OsAccountInfo");
                 return;
             }
-            std::unique_lock<std::mutex> lock(mutex);
+            std::unique_lock<std::mutex> lock(mutex_);
             if (this->onResultCalled) {
                 return;
             }
-            this->onResultCalled = true;
-            this->osAccountInfos = *osAccountInfo;
-            this->errCode = errorCode;
+            this->onResultCalled_ = true;
+            this->osAccountInfos_ = *osAccountInfo;
+            this->errCode_ = errorCode;
             cv.notify_one();
         }
-};
+    };
 
 class AccountManagerImpl {
 private:
@@ -806,8 +806,7 @@ public:
 
     bool CheckOsAccountTestableSync()
     {
-        bool isTest = false;
-        return isTest;
+        return false;
     }
 
     void SetOsAccountConstraintsSync(int32_t localId, array_view<taihe::string> constraints, bool enable)
@@ -928,14 +927,14 @@ public:
     }
 
     OsAccountInfo CreateOsAccountForDomainWithOpts(OsAccountType type, DomainAccountInfo const& domainInfo,
-        CreateOsAccountForDomainOptions const& options)
+        optional_view<ohos::account::osAccount::CreateOsAccountForDomainOptions> const& options)
     {
         AccountSA::OsAccountType innerType = ConvertFromOsAccountTypeKey(type.get_value());
         AccountSA::DomainAccountInfo innerDomainAccountInfo = ConvertToDomainAccountInfoInner(domainInfo);
         AccountSA::CreateOsAccountForDomainOptions innerOptions;
         innerOptions.hasShortName = false;
-        if (options.options.shortName != "") {
-            std::string innerShortName(options.options.shortName.data(), options.options.shortName.size());
+        if (options.has_value()||options.value().options.shortName != "") {
+            std::string innerShortName(options.value().options.shortName.data(), options.value().options.shortName.size());
             innerOptions.shortName = innerShortName;
             innerOptions.hasShortName = true;
         }
@@ -943,14 +942,18 @@ public:
         ErrCode errCode = AccountSA::OsAccountManager::CreateOsAccountForDomain(innerType, innerDomainAccountInfo,
             createDomainCallback, innerOptions);
         if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("UpdateAccountTokenSync failed with errCode: %{public}d", errCode);
+            ACCOUNT_LOGE("CreateOsAccountForDomainWithOpts failed with errCode: %{public}d", errCode);
             SetTaiheBusinessErrorFromNativeCode(errCode);
             Parcel emptyParcel;
             createDomainCallback->OnResult(errCode, emptyParcel);
         }
-        std::unique_lock<std::mutex> lock(createDomainCallback->mutex);
-        createDomainCallback->cv.wait(lock, [createDomainCallback] { return createDomainCallback->onResultCalled;});
-        return ConvertOsAccountInfo(createDomainCallback->osAccountInfos);
+        std::unique_lock<std::mutex> lock(createDomainCallback->mutex_);
+        createDomainCallback->cv_.wait(lock, [createDomainCallback] { return createDomainCallback->onResultCalled_;});
+        if (createDomainCallback->errCode_ != ERR_OK) {
+            ACCOUNT_LOGE("CreateOsAccountForDomainWithOpts failed with errCode: %{public}d", createDomainCallback->errCode_);
+            SetTaiheBusinessErrorFromNativeCode(createDomainCallback->errCode_);
+        }
+        return ConvertOsAccountInfo(createDomainCallback->osAccountInfos_);
     }
 
     DomainAccountInfo GetOsAccountDomainInfoSync(int32_t localId)
