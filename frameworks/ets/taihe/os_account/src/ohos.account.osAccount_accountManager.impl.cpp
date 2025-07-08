@@ -184,7 +184,7 @@ class THCreateDomainCallback : public AccountSA::DomainAccountCallback {
         std::condition_variable cv_;
         AccountSA::OsAccountInfo osAccountInfos_;
         bool onResultCalled_ = false;
-    
+
         void OnResult(const int32_t errorCode, Parcel &parcel)
         {
             std::shared_ptr<AccountSA::OsAccountInfo> osAccountInfo(AccountSA::OsAccountInfo::Unmarshalling(parcel));
