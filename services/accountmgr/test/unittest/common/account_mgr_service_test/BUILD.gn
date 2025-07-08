@@ -374,6 +374,10 @@ ohos_unittest("account_stub_test") {
     deps += [ "${app_account_innerkits_native_path}:app_account_event_proxy" ]
   }
 
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
+
   external_deps = [
     "ability_base:base",
     "ability_base:want",

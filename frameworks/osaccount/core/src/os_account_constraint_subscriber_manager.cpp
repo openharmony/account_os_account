@@ -25,6 +25,17 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 const char THREAD_OS_ACCOUNT_CONSTRAINT_EVENT[] = "OsAccountConstraintEvent";
+
+ErrCode ConvertToAccountErrCode(ErrCode idlErrCode)
+{
+    if (idlErrCode == ERR_INVALID_VALUE) {
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (idlErrCode == ERR_INVALID_DATA) {
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    return idlErrCode;
+}
 }
 OsAccountConstraintSubscriberManager* OsAccountConstraintSubscriberManager::GetInstance()
 {
@@ -120,6 +131,7 @@ ErrCode OsAccountConstraintSubscriberManager::SubscribeOsAccountConstraints(
     }
     OsAccountConstraintSubscribeInfo subscribeInfo(constraintSet);
     ErrCode errCode = proxy->SubscribeOsAccountConstraints(subscribeInfo, GetInstance()->AsObject());
+    errCode = ConvertToAccountErrCode(errCode);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("SubscribeOsAccountConstraints fail, errcode:%{public}d", errCode);
         return errCode;
@@ -159,6 +171,7 @@ ErrCode OsAccountConstraintSubscriberManager::UnsubscribeOsAccountConstraints(
     }
     OsAccountConstraintSubscribeInfo info(syncData);
     ErrCode errCode =  proxy->UnsubscribeOsAccountConstraints(info, GetInstance()->AsObject());
+    errCode = ConvertToAccountErrCode(errCode);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("UnsubscribeOsAccountConstraints fail, errcode:%{public}d", errCode);
         return errCode;
@@ -180,6 +193,7 @@ void OsAccountConstraintSubscriberManager::RestoreConstraintSubscriberRecords(sp
     }
     OsAccountConstraintSubscribeInfo subscribeInfo(constraintSet_);
     ErrCode errCode = proxy->SubscribeOsAccountConstraints(subscribeInfo, GetInstance()->AsObject());
+    errCode = ConvertToAccountErrCode(errCode);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("RestoreConstraintSubscriberRecords failed, errCode=%{public}d.", errCode);
         return;

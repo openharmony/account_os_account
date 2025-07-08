@@ -23,6 +23,7 @@
 #include "common_event_support.h"
 #endif // HAS_CES_PART
 #include "app_account_common_event_observer.h"
+#include "app_account_event_listener.h"
 #include "app_account_event_stub.h"
 #include "app_account_event_proxy.h"
 #undef private
@@ -151,4 +152,17 @@ HWTEST_F(AppAccountEventModuleTest, AppAccountEventTest_OnAccountsChanged_0300, 
     }
     EXPECT_EQ(appAccountEventStubPtr->OnRemoteRequest(static_cast<uint32_t>(
         IAppAccountEventIpcCode::COMMAND_ON_ACCOUNTS_CHANGED), data, reply, option), ERR_NONE);
+}
+
+/**
+ * @tc.name: AppAccountEventTest_OnAccountsChanged_0300
+ * @tc.desc: test event stub func OnAccountsChanged success.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountEventModuleTest, AppAccountEventTest_OnAccountsChanged_0400, TestSize.Level1)
+{
+    AppAccountEventListener *appAccountEventListener = AppAccountEventListener::GetInstance();
+    std::vector<AppAccountInfo> accounts(static_cast<int32_t>(Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT) + 1);
+    EXPECT_EQ(appAccountEventListener->OnAccountsChanged(accounts, ""), ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR);
 }

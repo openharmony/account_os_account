@@ -49,12 +49,12 @@ public:
     ErrCode SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo,
         const std::string &eventStr) override;
     ErrCode SetOsAccountDistributedInfo(
-        const int32_t localId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr) override;
+        int32_t localId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr) override;
     ErrCode QueryOhosAccountInfo(std::string& accountName, std::string& uid, int32_t& status) override;
     ErrCode QueryDistributedVirtualDeviceId(std::string &dvid) override;
     ErrCode QueryDistributedVirtualDeviceId(const std::string &bundleName, int32_t localId, std::string &dvid) override;
     ErrCode QueryOsAccountDistributedInfo(
-        std::int32_t localId, std::string& accountName, std::string& uid, int32_t& status) override;
+        int32_t localId, std::string& accountName, std::string& uid, int32_t& status) override;
     ErrCode GetOhosAccountInfo(OhosAccountInfo &info) override;
     ErrCode GetOsAccountDistributedInfo(int32_t localId, OhosAccountInfo &info) override;
     ErrCode QueryDeviceAccountId(std::int32_t &accountId) override;
@@ -97,7 +97,7 @@ private:
     void MoveAppAccountData();
 #endif
     ErrCode InnerQueryOsAccountDistributedInfo(
-        std::int32_t localId, std::string& accountName, std::string& uid, int32_t& status);
+        int32_t localId, std::string& accountName, std::string& uid, int32_t& status);
 
     bool registerToService_ = false;
     ServiceRunningState state_ = ServiceRunningState::STATE_NOT_START;
