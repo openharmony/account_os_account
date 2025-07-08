@@ -60,7 +60,8 @@ bool AccountEventProvider::EventPublish(const std::string& event, int32_t userId
     /* publish */
     if (!CommonEventManager::PublishCommonEvent(data)) {
         ACCOUNT_LOGE("PublishCommonEvent failed! event %{public}s. userId is %{public}d", event.c_str(), userId);
-        ReportOhosAccountOperationFail(userId, EVENT_PUBLISH, false, "PublishCommonEvent failed");
+        REPORT_OHOS_ACCOUNT_FAIL(userId, EVENT_PUBLISH, false,
+            "PublishCommonEvent failed, event=" + event + ", userId=" + std::to_string(userId));
         FinishTraceAdapter();
         return false;
     } else {
@@ -94,7 +95,8 @@ bool AccountEventProvider::EventPublishAsUser(const std::string& event, int32_t 
     /* publish */
     if (!CommonEventManager::PublishCommonEventAsUser(data, userId)) {
         ACCOUNT_LOGE("PublishCommonEventAsUser failed! event %{public}s. userId is %{public}d", event.c_str(), userId);
-        ReportOhosAccountOperationFail(userId, EVENT_PUBLISH, false, "PublishCommonEventAsUser failed");
+        REPORT_OHOS_ACCOUNT_FAIL(userId, EVENT_PUBLISH, false,
+            "PublishCommonEventAsUser failed, event=" + event + ", userId=" + std::to_string(userId));
         FinishTraceAdapter();
         return false;
     } else {
