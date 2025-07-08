@@ -163,6 +163,9 @@ public:
     ErrCode BindDomainAccount(const int32_t localId, const DomainAccountInfo &domainInfo,
         const sptr<IDomainAccountCallback> &callback) override;
 
+    ErrCode CallbackEnter([[maybe_unused]] uint32_t code) override;
+    ErrCode CallbackExit([[maybe_unused]] uint32_t code, [[maybe_unused]] int32_t result) override;
+
 private:
     virtual ErrCode DumpStateByAccounts(
         const std::vector<OsAccountInfo> &osAccountInfos, std::vector<std::string> &state);
@@ -173,6 +176,7 @@ private:
     ErrCode GetOsAccountShortNameCommon(const int32_t id, std::string &shortName);
     ErrCode ValidateAccountCreateParamAndPermission(const std::string &localName, const OsAccountType &type);
     void ConstraintPublish(const std::vector<std::string> &oldConstraints, int32_t localId, bool enable);
+    ErrCode CheckLocalIdRestricted(int32_t localId);
 
 private:
     IInnerOsAccountManager &innerManager_;

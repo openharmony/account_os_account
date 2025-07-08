@@ -623,6 +623,19 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(
     return errCode;
 }
 
+ErrCode IInnerOsAccountManager::UpdateFirstOsAccountInfo(OsAccountInfo& accountInfoOld, OsAccountInfo& osAccountInfo)
+{
+    ErrCode code = osAccountControl_->UpdateOsAccount(accountInfoOld);
+    if (code != ERR_OK) {
+        ReportOsAccountOperationFail(Constants::START_USER_ID, Constants::OPERATION_CREATE, code,
+            "Failed to update OS account");
+        return code;
+    }
+    osAccountControl_->UpdateAccountIndex(accountInfoOld, false);
+    osAccountInfo = accountInfoOld;
+    return ERR_OK;
+}
+
 ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, const std::string &shortName,
     const OsAccountType &type, OsAccountInfo &osAccountInfo, const CreateOsAccountOptions &options)
 {
@@ -634,29 +647,6 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, co
     AccountTimer timer;
 #endif // HICOLLIE_ENABLE
     osAccountInfo.SetLocalName(localName);
-#ifdef ENABLE_ACCOUNT_SHORT_NAME
-    OsAccountInfo accountInfoOld;
-    ErrCode code = GetRealOsAccountInfoById(Constants::START_USER_ID, accountInfoOld);
-    if (code != ERR_OK) {
-        ACCOUNT_LOGE("QueryOsAccountById error, errCode %{public}d.", code);
-        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
-    }
-    DomainAccountInfo domainAccountInfo;
-    accountInfoOld.GetDomainInfo(domainAccountInfo);
-    if (accountInfoOld.GetShortName().empty() && domainAccountInfo.accountName_.empty()) {
-        accountInfoOld.SetType(type);
-        accountInfoOld.SetLocalName(localName);
-        accountInfoOld.SetShortName(shortName);
-        code = osAccountControl_->UpdateOsAccount(accountInfoOld);
-        if (code != ERR_OK) {
-            ReportOsAccountOperationFail(Constants::START_USER_ID, Constants::OPERATION_CREATE, code,
-                "Failed to update OS account");
-        }
-        osAccountControl_->UpdateAccountIndex(accountInfoOld, false);
-        osAccountInfo = accountInfoOld;
-        return code;
-    }
-#endif // ENABLE_ACCOUNT_SHORT_NAME
     if (!AccountPermissionManager::CheckSaCall() && !CheckAndCleanOsAccounts()) {
         return ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR;
     }
@@ -794,7 +784,7 @@ ErrCode IInnerOsAccountManager::GetOsAccountsByDomainInfo(const DomainAccountInf
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("Recover bind domain error, errCode = %{public}d.", errCode);
             REPORT_OS_ACCOUNT_FAIL(osAccountInfo.GetLocalId(), Constants::OPERATION_RECOVER_BIND_DOMAIN_ACCOUNT,
-                ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR, "Recover bind domain error.");
+                errCode, "Recover bind domain error.");
             return errCode;
         }
         if ((!info.accountId_.empty() && curInfo.accountId_ == info.accountId_) ||

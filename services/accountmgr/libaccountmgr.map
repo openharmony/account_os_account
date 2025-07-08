@@ -300,6 +300,9 @@
         "VTT for OHOS::AccountSA::OhosAccountInfo";
         "vtable for OHOS::AccountSA::OhosAccountInfo";
         "OHOS::AccountSA::OhosAccountInfo::Unmarshalling(OHOS::Parcel&)";
+        "OHOS::AccountSA::OhosAccountInfo::Marshalling(OHOS::Parcel&) const";
+        "OHOS::AccountSA::OhosAccountInfo::ReadFromParcel(OHOS::Parcel&)";
+        "OHOS::AccountSA::OhosAccountInfo::ReadAvatarData(OHOS::Parcel&)";
         "OHOS::AccountSA::AccountIAMStub::AccountIAMStub()";
         "OHOS::AccountSA::AccountIAMStub::~AccountIAMStub()";
         "OHOS::AccountSA::AccountIAMStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";

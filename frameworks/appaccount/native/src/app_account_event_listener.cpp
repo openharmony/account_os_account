@@ -29,6 +29,10 @@ AppAccountEventListener::~AppAccountEventListener()
 ErrCode AppAccountEventListener::OnAccountsChanged(const std::vector<AppAccountInfo> &accounts,
     const std::string &owner)
 {
+    if (accounts.size() > Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT) {
+        ACCOUNT_LOGE("ReadAppAccountList failed, please check accounts size");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
     std::string ownerKey;
     if (accounts.empty()) {
         ACCOUNT_LOGI("accounts is empty");

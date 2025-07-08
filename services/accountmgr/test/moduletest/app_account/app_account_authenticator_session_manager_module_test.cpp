@@ -49,6 +49,8 @@ public:
     MOCK_METHOD2(OnResult, ErrCode(int32_t resultCode, const AAFwk::Want &result));
     MOCK_METHOD1(OnRequestRedirected, ErrCode(const AAFwk::Want &request));
     MOCK_METHOD0(OnRequestContinued, ErrCode());
+    MOCK_METHOD1(CallbackEnter, ErrCode(uint32_t code));
+    MOCK_METHOD2(CallbackExit, ErrCode(uint32_t code, int32_t result));
 };
 
 class MockSpecicalAuthenticatorCallback final : public AppAccountAuthenticatorCallbackStub {
@@ -64,6 +66,16 @@ public:
         return ERR_OK;
     }
     ErrCode OnRequestContinued()
+    {
+        g_status = true;
+        return ERR_OK;
+    }
+    ErrCode CallbackEnter([[maybe_unused]] uint32_t code)
+    {
+        g_status = true;
+        return ERR_OK;
+    }
+    ErrCode CallbackExit([[maybe_unused]] uint32_t code, [[maybe_unused]] int32_t result)
     {
         g_status = true;
         return ERR_OK;

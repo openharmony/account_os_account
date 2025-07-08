@@ -51,6 +51,14 @@ public:
     {
         return ERR_OK;
     }
+    ErrCode CallbackEnter([[maybe_unused]] uint32_t code)
+    {
+        return ERR_OK;
+    }
+    ErrCode CallbackExit([[maybe_unused]] uint32_t code, [[maybe_unused]] int32_t result)
+    {
+        return ERR_OK;
+    }
 };
 
 class AppAccountStubModuleTest : public testing::Test {
