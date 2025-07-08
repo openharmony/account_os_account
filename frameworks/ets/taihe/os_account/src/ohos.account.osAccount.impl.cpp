@@ -341,9 +341,13 @@ class THGetEnrolledIdCallback : public AccountSA::GetEnrolledIdCallback {
             }
             this->onEnrolledIdCalled_ = true;
             this->errorCode_ = result;
-            if (this->errorCode_ != ERR_OK) {
+            if (this->errorCode_ == ERR_OK) {
                 this->enrolledID_ = array<uint8_t>(taihe::copy_data_t{},
                     reinterpret_cast<uint8_t *>(&enrolledIdUint64), sizeof(uint64_t));
+            } else {
+                int32_t jsErrCode = AccountIAMConvertToJSErrCode(this->errorCode_);
+                taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+                return;
             }
             cv_.notify_one();
         }
