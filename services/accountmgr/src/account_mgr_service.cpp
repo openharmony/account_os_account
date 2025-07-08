@@ -17,6 +17,7 @@
 #include <cerrno>
 #include <thread>
 #include "accesstoken_kit.h"
+#include "account_constants.h"
 #include "account_dump_helper.h"
 #include "account_hisysevent_adapter.h"
 #ifdef HAS_USER_AUTH_PART
@@ -74,7 +75,6 @@ constexpr std::int32_t ROOT_UID = 0;
 #ifdef HICOLLIE_ENABLE
 constexpr std::int32_t RECOVERY_TIMEOUT = 6; // timeout 6s
 constexpr int32_t MAX_INIT_TIME = 120;
-thread_local int32_t g_timerId = 0;
 #endif // HICOLLIE_ENABLE
 const std::set<int32_t> INIT_ACCOUNT_ID_SET = {
 #ifdef ENABLE_U1_ACCOUNT
@@ -85,6 +85,28 @@ const std::set<int32_t> INIT_ACCOUNT_ID_SET = {
 const bool REGISTER_RESULT =
     SystemAbility::MakeAndRegisterAbility(&DelayedRefSingleton<AccountMgrService>::GetInstance());
 const char DEVICE_OWNER_DIR[] = "/data/service/el1/public/account/0/";
+
+std::shared_ptr<void> RequestTimer(std::string eventStr)
+{
+#ifdef HICOLLIE_ENABLE
+    return [eventName = eventStr]() -> std::shared_ptr<void> {
+        XCollieCallback callbackFunc = [callingPid = IPCSkeleton::GetCallingPid(),
+            callingUid = IPCSkeleton::GetCallingUid(), eventName](void *) {
+            ACCOUNT_LOGE("%{public}s timeout, callingPid=%{public}d, callingUid=%{public}d.", eventName.c_str(),
+                callingPid, callingUid);
+            REPORT_OHOS_ACCOUNT_FAIL(callingUid, eventName, -1, "Request time out");
+        };
+        int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(
+            TIMER_NAME, TIMEOUT, callbackFunc, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
+        return std::shared_ptr<void>(nullptr, [timerId](void*) {
+            HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+        });
+    }();
+#else
+    return nullptr;
+#endif
+}
+
 void CreateDeviceDir()
 {
     if (!OHOS::FileExists(DEVICE_OWNER_DIR)) {
@@ -131,6 +153,7 @@ std::int32_t AccountMgrService::GetCallingUserID()
 ErrCode AccountMgrService::UpdateOhosAccountInfo(
     const std::string &accountName, const std::string &uid, const std::string &eventStr)
 {
+    [[maybe_unused]] auto timerPtr = RequestTimer(eventStr);
     if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS)) {
         ACCOUNT_LOGE("Check permission failed");
         REPORT_PERMISSION_FAIL();
@@ -157,6 +180,7 @@ ErrCode AccountMgrService::UpdateOhosAccountInfo(
 
 ErrCode AccountMgrService::SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
 {
+    [[maybe_unused]] auto timerPtr = RequestTimer(eventStr);
     if (!HasAccountRequestPermission(PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS)) {
         ACCOUNT_LOGE("Check permission failed");
         REPORT_PERMISSION_FAIL();
@@ -178,6 +202,7 @@ ErrCode AccountMgrService::SetOhosAccountInfo(const OhosAccountInfo &ohosAccount
 ErrCode AccountMgrService::SetOsAccountDistributedInfo(
     const int32_t localId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
 {
+    [[maybe_unused]] auto timerPtr = RequestTimer(eventStr);
     std::int32_t ret = AccountPermissionManager::CheckSystemApp();
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("the caller is not system application, ret = %{public}d.", ret);
@@ -207,6 +232,7 @@ ErrCode AccountMgrService::SetOsAccountDistributedInfo(
 
 ErrCode AccountMgrService::QueryDistributedVirtualDeviceId(std::string &dvid)
 {
+    [[maybe_unused]] auto timerPtr = RequestTimer(Constants::OPERATION_GET_INFO);
     if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS) &&
         !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC)) {
         ACCOUNT_LOGE("Check permission failed");
@@ -219,6 +245,7 @@ ErrCode AccountMgrService::QueryDistributedVirtualDeviceId(std::string &dvid)
 ErrCode AccountMgrService::QueryDistributedVirtualDeviceId(const std::string &bundleName, int32_t localId,
     std::string &dvid)
 {
+    [[maybe_unused]] auto timerPtr = RequestTimer(Constants::OPERATION_GET_INFO);
     ErrCode errCode = AccountPermissionManager::CheckSystemApp();
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("The caller is not system application, errCode = %{public}d.", errCode);
@@ -249,7 +276,7 @@ ErrCode AccountMgrService::QueryOhosAccountInfo(std::string& accountName, std::s
         callingUid = IPCSkeleton::GetCallingUid()](void *) {
         ACCOUNT_LOGE("QueryOhosAccountInfo failed, callingPid: %{public}d, callingUid: %{public}d.",
             callingPid, callingUid);
-        ReportOhosAccountOperationFail(callingUid, "watchDog", -1, "Query ohos account info time out");
+        REPORT_OHOS_ACCOUNT_FAIL(callingUid, Constants::OPERATION_GET_INFO, -1, "Query ohos account info time out");
     };
     int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, RECOVERY_TIMEOUT, callbackFunc, nullptr, flag);
 #endif // HICOLLIE_ENABLE
@@ -265,6 +292,7 @@ ErrCode AccountMgrService::QueryOhosAccountInfo(std::string& accountName, std::s
 
 ErrCode AccountMgrService::GetOhosAccountInfo(OhosAccountInfo &info)
 {
+    [[maybe_unused]] auto timerPtr = RequestTimer(Constants::OPERATION_GET_INFO);
     if (!HasAccountRequestPermission(PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS) &&
         !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC) &&
         !HasAccountRequestPermission(PERMISSION_GET_DISTRIBUTED_ACCOUNTS)) {
@@ -279,6 +307,7 @@ ErrCode AccountMgrService::GetOhosAccountInfo(OhosAccountInfo &info)
 
 ErrCode AccountMgrService::GetOsAccountDistributedInfo(int32_t localId, OhosAccountInfo &info)
 {
+    [[maybe_unused]] auto timerPtr = RequestTimer(Constants::OPERATION_GET_INFO);
     ErrCode errCode = AccountPermissionManager::CheckSystemApp();
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("the caller is not system application, errCode = %{public}d.", errCode);
@@ -340,6 +369,7 @@ ErrCode AccountMgrService::GetOsAccountDistributedInfoInner(int32_t localId, Oho
 ErrCode AccountMgrService::QueryOsAccountDistributedInfo(
     std::int32_t localId, std::string& accountName, std::string& uid, int32_t& status)
 {
+    [[maybe_unused]] auto timerPtr = RequestTimer(Constants::OPERATION_GET_INFO);
     if ((!HasAccountRequestPermission(PERMISSION_MANAGE_USERS)) &&
         (!HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC)) &&
         (IPCSkeleton::GetCallingUid() != DSOFTBUS_UID)) {
@@ -370,6 +400,7 @@ ErrCode AccountMgrService::InnerQueryOsAccountDistributedInfo(
 
 ErrCode AccountMgrService::QueryDeviceAccountId(std::int32_t &accountId)
 {
+    [[maybe_unused]] auto timerPtr = RequestTimer(Constants::OPERATION_GET_INFO);
     const std::int32_t uid = IPCSkeleton::GetCallingUid();
     accountId = uid / UID_TRANSFORM_DIVISOR;
     return ERR_OK;
@@ -377,6 +408,7 @@ ErrCode AccountMgrService::QueryDeviceAccountId(std::int32_t &accountId)
 
 ErrCode AccountMgrService::SubscribeDistributedAccountEvent(int32_t typeInt, const sptr<IRemoteObject>& eventListener)
 {
+    [[maybe_unused]] auto timerPtr = RequestTimer(Constants::OPERATION_SUBSCRIBE);
     if (eventListener == nullptr) {
         ACCOUNT_LOGE("eventListener is nullptr.");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
@@ -392,6 +424,7 @@ ErrCode AccountMgrService::SubscribeDistributedAccountEvent(int32_t typeInt, con
 
 ErrCode AccountMgrService::UnsubscribeDistributedAccountEvent(int32_t typeInt, const sptr<IRemoteObject>& eventListener)
 {
+    [[maybe_unused]] auto timerPtr = RequestTimer(Constants::OPERATION_UNSUBSCRIBE);
     if (eventListener == nullptr) {
         ACCOUNT_LOGE("eventListener is nullptr.");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
@@ -407,6 +440,7 @@ ErrCode AccountMgrService::UnsubscribeDistributedAccountEvent(int32_t typeInt, c
 
 ErrCode AccountMgrService::GetAppAccountService(sptr<IRemoteObject>& funcResult)
 {
+    [[maybe_unused]] auto timerPtr = RequestTimer(Constants::OPERATION_GET_SERVICE);
 #ifdef HAS_APP_ACCOUNT_PART
     std::lock_guard<std::mutex> lock(serviceMutex_);
     funcResult = appAccountManagerService_.promote();
@@ -423,6 +457,7 @@ ErrCode AccountMgrService::GetAppAccountService(sptr<IRemoteObject>& funcResult)
 
 ErrCode AccountMgrService::GetOsAccountService(sptr<IRemoteObject>& funcResult)
 {
+    [[maybe_unused]] auto timerPtr = RequestTimer(Constants::OPERATION_GET_SERVICE);
     std::lock_guard<std::mutex> lock(serviceMutex_);
     funcResult = osAccountManagerService_.promote();
     if (funcResult == nullptr) {
@@ -434,6 +469,7 @@ ErrCode AccountMgrService::GetOsAccountService(sptr<IRemoteObject>& funcResult)
 
 ErrCode AccountMgrService::GetAccountIAMService(sptr<IRemoteObject>& funcResult)
 {
+    [[maybe_unused]] auto timerPtr = RequestTimer(Constants::OPERATION_GET_SERVICE);
 #ifdef HAS_USER_AUTH_PART
     std::lock_guard<std::mutex> lock(serviceMutex_);
     funcResult = accountIAMService_.promote();
@@ -450,6 +486,7 @@ ErrCode AccountMgrService::GetAccountIAMService(sptr<IRemoteObject>& funcResult)
 
 ErrCode AccountMgrService::GetDomainAccountService(sptr<IRemoteObject>& funcResult)
 {
+    [[maybe_unused]] auto timerPtr = RequestTimer(Constants::OPERATION_GET_SERVICE);
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
     std::lock_guard<std::mutex> lock(serviceMutex_);
     funcResult = domainAccountMgrService_.promote();
@@ -757,18 +794,11 @@ int32_t AccountMgrService::CallbackEnter([[maybe_unused]] uint32_t code)
         ACCOUNT_LOGE("account mgr not ready");
         return ERR_ACCOUNT_ZIDL_MGR_NOT_READY_ERROR;
     }
-#ifdef HICOLLIE_ENABLE
-    g_timerId =
-        HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, TIMEOUT, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
-#endif // HICOLLIE_ENABLE
     return ERR_OK;
 }
 
 int32_t AccountMgrService::CallbackExit([[maybe_unused]] uint32_t code, [[maybe_unused]] int32_t result)
 {
-#ifdef HICOLLIE_ENABLE
-    HiviewDFX::XCollie::GetInstance().CancelTimer(g_timerId);
-#endif // HICOLLIE_ENABLE
     return ERR_OK;
 }
 
