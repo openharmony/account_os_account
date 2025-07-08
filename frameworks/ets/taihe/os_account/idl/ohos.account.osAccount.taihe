@@ -418,28 +418,8 @@ function GetAccountInfoSync(options: GetDomainAccountInfoOptions): DomainAccount
 function UpdateAccountInfoSync(oldAccountInfo: DomainAccountInfo, newAccountInfo: DomainAccountInfo);
 
 @static("DomainServerConfigManager")
-@gen_promise("addServerConfig")
-function AddServerConfigSync(parameters: @record Map<String, Opaque>): DomainServerConfig;
-
-@static("DomainServerConfigManager")
 @gen_promise("removeServerConfig")
 function RemoveServerConfigSync(configId: String);
-
-@static("DomainServerConfigManager")
-@gen_promise("updateServerConfig")
-function UpdateServerConfigSync(configId: String, parameters: @record Map<String, Opaque>):DomainServerConfig;
-
-@static("DomainServerConfigManager")
-@gen_promise("getServerConfig")
-function GetServerConfigSync(configId: String): DomainServerConfig;
-
-@static("DomainServerConfigManager")
-@gen_promise("getAllServerConfigs")
-function GetAllServerConfigsSync(): Array<DomainServerConfig>;
-
-@static("DomainServerConfigManager")
-@gen_promise("getAccountServerConfig")
-function GetAccountServerConfigSync(domainAccountInfo: DomainAccountInfo): DomainServerConfig;
 
 struct AuthResult {
     token: Optional<@typedarray Array<u8>>;
@@ -509,13 +489,6 @@ struct IInputer {
 interface IInputData {
     GetSpecificImplPtr (): i64;
     OnSetDataInner(authSubType: AuthSubType, data: @typedarray Array<u8>):void;
-    @!sts_inject("""
-     get onSetData: (authSubType: AuthSubType, data: @typedarray Array<u8>)：voide =>{
-        return (authSubType: AuthSubType, data: @typedarray Array<u8>)=>{
-            this.onSetDataInner(authSubType, data);
-        }
-     } ;
-    """)
 }
 
 @class
