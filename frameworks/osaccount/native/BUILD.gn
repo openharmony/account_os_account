@@ -155,6 +155,12 @@ ohos_source_set("os_account_proxy") {
     "hilog:libhilog",
     "ipc:ipc_single",
   ]
+
+  cflags_cc = []
+  if (os_account_support_lock_os_account) {
+    cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
+  }
+
   subsystem_name = "account"
   part_name = "os_account"
 }
@@ -176,6 +182,12 @@ ohos_source_set("os_account_stub") {
     "hilog:libhilog",
     "ipc:ipc_single",
   ]
+
+  cflags_cc = []
+  if (os_account_support_lock_os_account) {
+    cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
+  }
+
   subsystem_name = "account"
   part_name = "os_account"
 }

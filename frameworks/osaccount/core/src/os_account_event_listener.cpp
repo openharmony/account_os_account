@@ -14,6 +14,7 @@
  */
 
 #include "account_log_wrapper.h"
+#include "ipc_skeleton.h"
 #include "os_account_constants.h"
 #include "os_account_event_listener.h"
 #include "os_account_state_reply_callback_proxy.h"
@@ -26,6 +27,7 @@ namespace {
 constexpr int32_t WAIT_SECONDS = 5;
 const char THREAD_OS_ACCOUNT_EVENT[] = "OsAccountEvent";
 const char THREAD_WAIT_COMPLETE[] = "WaitComplete";
+const uid_t ACCOUNT_UID = 3058;
 }
 OsAccountEventListener::OsAccountEventListener()
 {}
@@ -179,6 +181,21 @@ OsAccountSubscribeInfo OsAccountEventListener::GetTotalSubscribeInfo()
     }
     OsAccountSubscribeInfo res(allStates, withHandshake);
     return res;
+}
+
+ErrCode OsAccountEventListener::CallbackEnter([[maybe_unused]] uint32_t code)
+{
+    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    if (callingUid != ACCOUNT_UID) {
+        ACCOUNT_LOGE("GetCallingUid failed, please check callingUid: %{public}d", callingUid);
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    return ERR_OK;
+}
+
+ErrCode OsAccountEventListener::CallbackExit([[maybe_unused]] uint32_t code, [[maybe_unused]] int32_t result)
+{
+    return ERR_OK;
 }
 }  // namespace AccountSA
 }  // namespace OHOS

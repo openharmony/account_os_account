@@ -96,6 +96,8 @@ private:
 #ifdef HAS_APP_ACCOUNT_PART
     void MoveAppAccountData();
 #endif
+    ErrCode InnerQueryOsAccountDistributedInfo(
+        std::int32_t localId, std::string& accountName, std::string& uid, int32_t& status);
 
     bool registerToService_ = false;
     ServiceRunningState state_ = ServiceRunningState::STATE_NOT_START;
