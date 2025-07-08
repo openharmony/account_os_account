@@ -183,3 +183,84 @@ HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountCheckLabelsModuleTest_OnRequ
     appAccountCheckLabelsCallbackPtr->OnRequestContinued();
     ASSERT_EQ(appAccountCheckLabelsCallbackPtr->index_, NUMBER_SIZE);
 }
+
+/**
+ * @tc.name: AppAccountAuthenticateTest_CallbackEnter_0100
+ * @tc.desc: test AppAccountCheckLabelsCallback func CallbackEnter success.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_CallbackEnter_0100, TestSize.Level1)
+{
+    ASSERT_NE(appAccountCheckLabelsCallbackPtr, nullptr);
+    EXPECT_EQ(appAccountCheckLabelsCallbackPtr->CallbackEnter(
+        static_cast<uint32_t>(IAppAccountAuthenticatorCallbackIpcCode::COMMAND_ON_RESULT)), ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticateTest_CallbackExit_0100
+ * @tc.desc: test AppAccountCheckLabelsCallback func CallbackExit success.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_CallbackExit_0100, TestSize.Level1)
+{
+    ASSERT_NE(appAccountCheckLabelsCallbackPtr, nullptr);
+    EXPECT_EQ(appAccountCheckLabelsCallbackPtr->CallbackExit(
+        static_cast<uint32_t>(IAppAccountAuthenticatorCallbackIpcCode::COMMAND_ON_RESULT), ERR_NONE), ERR_NONE);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticateTest_CallbackExit_0200
+ * @tc.desc: test AppAccountCheckLabelsCallback func CallbackExit success.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_CallbackExit_0200, TestSize.Level1)
+{
+    ASSERT_NE(appAccountCheckLabelsCallbackPtr, nullptr);
+    EXPECT_EQ(appAccountCheckLabelsCallbackPtr->CallbackExit(
+        static_cast<uint32_t>(IAppAccountAuthenticatorCallbackIpcCode::COMMAND_ON_REQUEST_REDIRECTED), ERR_NONE),
+        ERR_NONE);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticateTest_CallbackExit_0300
+ * @tc.desc: test AppAccountCheckLabelsCallback func CallbackExit.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_CallbackExit_0300, TestSize.Level1)
+{
+    ASSERT_NE(appAccountCheckLabelsCallbackPtr, nullptr);
+    EXPECT_EQ(appAccountCheckLabelsCallbackPtr->CallbackExit(
+        static_cast<uint32_t>(IAppAccountAuthenticatorCallbackIpcCode::COMMAND_ON_RESULT), ERR_INVALID_DATA),
+        ERR_APPACCOUNT_SERVICE_OAUTH_INVALID_RESPONSE);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticateTest_CallbackExit_0400
+ * @tc.desc: test AppAccountCheckLabelsCallback func CallbackExit.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_CallbackExit_0400, TestSize.Level1)
+{
+    ASSERT_NE(appAccountCheckLabelsCallbackPtr, nullptr);
+    EXPECT_EQ(appAccountCheckLabelsCallbackPtr->CallbackExit(static_cast<uint32_t>(
+        IAppAccountAuthenticatorCallbackIpcCode::COMMAND_ON_REQUEST_REDIRECTED), ERR_INVALID_DATA),
+        ERR_APPACCOUNT_SERVICE_OAUTH_INVALID_RESPONSE);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticateTest_CallbackExit_0500
+ * @tc.desc: test AppAccountCheckLabelsCallback func CallbackExit success.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_CallbackExit_0500, TestSize.Level1)
+{
+    ASSERT_NE(appAccountCheckLabelsCallbackPtr, nullptr);
+    EXPECT_EQ(appAccountCheckLabelsCallbackPtr->CallbackExit(static_cast<uint32_t>(
+        IAppAccountAuthenticatorCallbackIpcCode::COMMAND_ON_REQUEST_CONTINUED), ERR_NONE), ERR_NONE);
+}

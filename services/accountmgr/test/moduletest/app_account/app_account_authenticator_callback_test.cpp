@@ -29,6 +29,11 @@ using namespace OHOS;
 using namespace OHOS::AccountSA;
 
 bool g_status = false;
+namespace {
+const uint32_t TEST_CODE = 1;
+const int32_t TEST_INT32 = 1;
+const int32_t TEST_ERR_INVALID_DATA = 5;
+}
 
 class MockAppAccountAuthenticatorCallbackStub : public AppAccountAuthenticatorCallbackStub {
 public:
@@ -133,4 +138,77 @@ HWTEST_F(AppAccountAuthenticatorCallbackModuleTest, AppAccountAuthenticatorCallb
     ASSERT_EQ(AppAccountAuthenticatorCallbackPtr->sessionId_, sessionId);
     AppAccountAuthenticatorCallbackPtr->OnRequestContinued();
     ASSERT_EQ(AppAccountAuthenticatorCallbackPtr->sessionId_, sessionId);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticatorCallbackTest_func_0300
+ * @tc.desc: test CallbackEnter.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountAuthenticatorCallbackModuleTest, AppAccountAuthenticatorCallbackTest_func_0300, TestSize.Level1)
+{
+    const std::string sessionId = "testsessionid";
+    auto AppAccountAuthenticatorCallbackPtr = std::make_shared<AppAccountAuthenticatorCallback>(sessionId);
+    EXPECT_EQ(AppAccountAuthenticatorCallbackPtr->CallbackEnter(TEST_CODE), ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticatorCallbackTest_func_0400
+ * @tc.desc: test CallbackExit.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountAuthenticatorCallbackModuleTest, AppAccountAuthenticatorCallbackTest_func_0400, TestSize.Level1)
+{
+    const std::string sessionId = "testsessionid";
+    auto AppAccountAuthenticatorCallbackPtr = std::make_shared<AppAccountAuthenticatorCallback>(sessionId);
+    EXPECT_EQ(AppAccountAuthenticatorCallbackPtr->CallbackExit(
+        static_cast<uint32_t>(IAppAccountAuthenticatorCallbackIpcCode::COMMAND_ON_RESULT), TEST_ERR_INVALID_DATA),
+        ERR_APPACCOUNT_SERVICE_OAUTH_INVALID_RESPONSE);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticatorCallbackTest_func_0500
+ * @tc.desc: test CallbackExit.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountAuthenticatorCallbackModuleTest, AppAccountAuthenticatorCallbackTest_func_0500, TestSize.Level1)
+{
+    const std::string sessionId = "testsessionid";
+    auto AppAccountAuthenticatorCallbackPtr = std::make_shared<AppAccountAuthenticatorCallback>(sessionId);
+    EXPECT_EQ(AppAccountAuthenticatorCallbackPtr->CallbackExit(
+        static_cast<uint32_t>(IAppAccountAuthenticatorCallbackIpcCode::COMMAND_ON_REQUEST_REDIRECTED),
+        TEST_ERR_INVALID_DATA), ERR_APPACCOUNT_SERVICE_OAUTH_INVALID_RESPONSE);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticatorCallbackTest_func_0600
+ * @tc.desc: test CallbackExit.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountAuthenticatorCallbackModuleTest, AppAccountAuthenticatorCallbackTest_func_0600, TestSize.Level1)
+{
+    const std::string sessionId = "testsessionid";
+    auto AppAccountAuthenticatorCallbackPtr = std::make_shared<AppAccountAuthenticatorCallback>(sessionId);
+    EXPECT_EQ(AppAccountAuthenticatorCallbackPtr->CallbackExit(
+        static_cast<uint32_t>(IAppAccountAuthenticatorCallbackIpcCode::COMMAND_ON_REQUEST_REDIRECTED), TEST_INT32),
+        ERR_NONE);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticatorCallbackTest_func_0700
+ * @tc.desc: test CallbackExit.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountAuthenticatorCallbackModuleTest, AppAccountAuthenticatorCallbackTest_func_0700, TestSize.Level1)
+{
+    const std::string sessionId = "testsessionid";
+    auto AppAccountAuthenticatorCallbackPtr = std::make_shared<AppAccountAuthenticatorCallback>(sessionId);
+    EXPECT_EQ(AppAccountAuthenticatorCallbackPtr->CallbackExit(
+        static_cast<uint32_t>(IAppAccountAuthenticatorCallbackIpcCode::COMMAND_ON_REQUEST_REDIRECTED), TEST_INT32),
+        ERR_NONE);
 }

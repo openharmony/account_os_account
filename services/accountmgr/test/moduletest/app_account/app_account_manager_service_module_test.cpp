@@ -26,13 +26,16 @@
 #include "app_account_constants.h"
 #include "app_account_control_manager.h"
 #include "app_account_manager_service.h"
+#include "os_account_state_subscriber.h"
 #undef private
 #include "bundle_constants.h"
 #ifdef HAS_CES_PART
 #include "common_event_manager.h"
 #include "common_event_support.h"
 #endif // HAS_CES_PART
+#include "ipc_skeleton.h"
 #include "iremote_object.h"
+#include "token_setproc.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -81,6 +84,9 @@ constexpr std::int32_t TEST_USER_ID = 101;
 constexpr std::size_t SIZE_ZERO = 0;
 constexpr std::size_t SIZE_ONE = 1;
 constexpr std::size_t SIZE_TWO = 2;
+constexpr uint32_t TEST_CODE = 1;
+constexpr std::int32_t TEST_ID = 1;
+const uid_t ACCOUNT_UID = 3058;
 std::shared_ptr<AppAccountManagerService> g_accountManagerService =
     std::make_shared<AppAccountManagerService>();
 }  // namespace
@@ -3013,3 +3019,69 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountControlManager_Transactio
     cv.wait(lock);
 }
 #endif // SQLITE_DLCLOSE_ENABLE
+
+/**
+ * @tc.name: OnAccountsChanged01
+ * @tc.desc: Test OnAccountsChanged success.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, OnAccountsChanged01, TestSize.Level1)
+{
+    OsAccountStateSubscriber *subscriber = new OsAccountStateSubscriber();
+    EXPECT_EQ(subscriber->OnAccountsChanged(TEST_ID), ERR_OK);
+}
+
+/**
+ * @tc.name: OnAccountsSwitch01
+ * @tc.desc: Test OnAccountsSwitch function.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, OnAccountsSwitch01, TestSize.Level1)
+{
+    OsAccountStateSubscriber *subscriber = new OsAccountStateSubscriber();
+    EXPECT_EQ(subscriber->OnAccountsSwitch(TEST_ID, TEST_ID), ERR_OK);
+}
+
+/**
+ * @tc.name: CallbackEnter01
+ * @tc.desc: Test CallbackEnter success.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, CallbackEnter01, TestSize.Level1)
+{
+    uint64_t selfTokenid = IPCSkeleton::GetSelfTokenID();
+    setuid(ACCOUNT_UID);
+    OsAccountStateSubscriber *subscriber = new OsAccountStateSubscriber();
+    EXPECT_EQ(subscriber->CallbackEnter(TEST_CODE), ERR_OK);
+    SetSelfTokenID(selfTokenid);
+}
+
+/**
+ * @tc.name: CallbackEnter02
+ * @tc.desc: Test CallbackEnter fail.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, CallbackEnter02, TestSize.Level1)
+{
+    uint64_t selfTokenid = IPCSkeleton::GetSelfTokenID();
+    setuid(TEST_ID);
+    OsAccountStateSubscriber *subscriber = new OsAccountStateSubscriber();
+    EXPECT_EQ(subscriber->CallbackEnter(TEST_CODE), ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    SetSelfTokenID(selfTokenid);
+}
+
+/**
+ * @tc.name: CallbackExit01
+ * @tc.desc: Test CallbackExit success.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, CallbackExit01, TestSize.Level1)
+{
+    OsAccountStateSubscriber *subscriber = new OsAccountStateSubscriber();
+    EXPECT_EQ(subscriber->CallbackExit(TEST_CODE, TEST_ID), ERR_OK);
+}

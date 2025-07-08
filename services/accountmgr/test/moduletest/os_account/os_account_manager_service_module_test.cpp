@@ -2160,5 +2160,19 @@ HWTEST_F(OsAccountManagerServiceModuleTest, CreateOsAccount_001, TestSize.Level1
     EXPECT_EQ(errCode, ERR_OK);
 }
 #endif
+
+/**
+ * @tc.name: CheckOsAccountConstraint01
+ * @tc.desc: Test CheckOsAccountConstraint.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, CheckOsAccountConstraint01, TestSize.Level1)
+{
+    bool isConstraintEnable = false;
+    std::string constraint = "";
+    EXPECT_EQ(osAccountManagerService_->IsOsAccountConstraintEnable(
+        INVALID_ACCOUNT_ID, constraint, isConstraintEnable), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
 }  // namespace AccountSA
 }  // namespace OHOS
