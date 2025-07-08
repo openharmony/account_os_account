@@ -329,6 +329,11 @@ public:
 			callback->param->result.GetStringArrayParam(AccountSA::Constants::KEY_ACCOUNT_NAMES);
         std::vector<std::string> owners =
 			callback->param->result.GetStringArrayParam(AccountSA::Constants::KEY_ACCOUNT_OWNERS);
+        if (names.size() != owners.size()) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(JSErrorCode::ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return taihe::array<AppAccountInfo>(taihe::copy_data_t{}, accountInfos.data(), accountInfos.size());
+        }
         for (size_t i = 0; i < names.size(); ++i) {
             AppAccountInfo tempInfo{
                 .owner = owners[i],
