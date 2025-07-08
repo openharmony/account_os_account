@@ -49,7 +49,8 @@ bool OhosAccountInfo::Marshalling(Parcel& parcel) const
         ACCOUNT_LOGE("write avatarSize failed!");
         return false;
     }
-    if (!static_cast<MessageParcel&>(parcel).WriteRawData(avatar_.c_str(), avatar_.size() + 1)) {
+    if (!static_cast<MessageParcel&>(parcel).WriteRawData(static_cast<const void*>(avatar_.c_str()),
+        avatar_.size() + 1)) {
         ACCOUNT_LOGE("write avatar failed!");
         return false;
     }

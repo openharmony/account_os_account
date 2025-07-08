@@ -220,6 +220,36 @@ ErrCode AuthenticatorAsyncCallback::OnRequestContinued()
     return ERR_OK;
 }
 
+ErrCode AuthenticatorAsyncCallback::CallbackEnter([[maybe_unused]] uint32_t code)
+{
+    return ERR_OK;
+}
+
+ErrCode AuthenticatorAsyncCallback::CallbackExit([[maybe_unused]] uint32_t code, [[maybe_unused]] int32_t result)
+{
+    switch (code) {
+        case static_cast<uint32_t>(IAppAccountAuthenticatorCallbackIpcCode::COMMAND_ON_RESULT): {
+            if (result == ERR_INVALID_DATA) {
+                AAFwk::Want resultWant;
+                OnResult(ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION, resultWant);
+                return ERR_APPACCOUNT_SERVICE_OAUTH_INVALID_RESPONSE;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(IAppAccountAuthenticatorCallbackIpcCode::COMMAND_ON_REQUEST_REDIRECTED): {
+            if (result == ERR_INVALID_DATA) {
+                AAFwk::Want request;
+                OnRequestRedirected(request);
+                return ERR_APPACCOUNT_SERVICE_OAUTH_INVALID_RESPONSE;
+            }
+            break;
+        }
+        default:
+            return ERR_NONE;
+    }
+    return ERR_NONE;
+}
+
 AppAccountManagerCallback::AppAccountManagerCallback(napi_env env, JSAuthCallback callback)
     : env_(env), callback_(callback)
 {}
@@ -329,6 +359,36 @@ ErrCode AppAccountManagerCallback::OnRequestContinued()
     }
     ACCOUNT_LOGI("Post task finish");
     return ERR_OK;
+}
+
+ErrCode AppAccountManagerCallback::CallbackEnter([[maybe_unused]] uint32_t code)
+{
+    return ERR_OK;
+}
+
+ErrCode AppAccountManagerCallback::CallbackExit([[maybe_unused]] uint32_t code, [[maybe_unused]] int32_t result)
+{
+    switch (code) {
+        case static_cast<uint32_t>(IAppAccountAuthenticatorCallbackIpcCode::COMMAND_ON_RESULT): {
+            if (result == ERR_INVALID_DATA) {
+                AAFwk::Want resultWant;
+                OnResult(ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION, resultWant);
+                return ERR_APPACCOUNT_SERVICE_OAUTH_INVALID_RESPONSE;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(IAppAccountAuthenticatorCallbackIpcCode::COMMAND_ON_REQUEST_REDIRECTED): {
+            if (result == ERR_INVALID_DATA) {
+                AAFwk::Want request;
+                OnRequestRedirected(request);
+                return ERR_APPACCOUNT_SERVICE_OAUTH_INVALID_RESPONSE;
+            }
+            break;
+        }
+        default:
+            return ERR_NONE;
+    }
+    return ERR_NONE;
 }
 
 napi_value NapiGetNull(napi_env env)

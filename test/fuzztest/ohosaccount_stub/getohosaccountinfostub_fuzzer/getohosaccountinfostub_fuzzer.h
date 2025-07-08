@@ -13,12 +13,10 @@
  * limitations under the License.
  */
 
-sequenceable OHOS.AAFwk.Want;
+#ifndef TEST_FUZZTEST_GETOHOSACCOUNTINFOSTUB_FUZZER_H
+#define TEST_FUZZTEST_GETOHOSACCOUNTINFOSTUB_FUZZER_H
 
-option_stub_hooks on;
+#define FUZZ_PROJECT_NAME "getohosaccountinfostub_fuzzer"
 
-interface OHOS.AccountSA.IAppAccountAuthenticatorCallback {
-    void OnResult([in] int resultCode, [in] Want wantResult);
-    void OnRequestRedirected([in] Want request);
-    void OnRequestContinued();
-}
+#endif // TEST_FUZZTEST_GETOHOSACCOUNTINFOSTUB_FUZZER_H
+

@@ -720,8 +720,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest034
         ERR_OK);
     EXPECT_NE(osAccountManagerService_->SetOsAccountName(osAccountInfoOne.GetLocalId(), STRING_EMPTY), ERR_OK);
 
-    int localId = Constants::START_USER_ID - 1;
-    EXPECT_EQ(osAccountManagerService_->SetOsAccountName(localId, STRING_EMPTY),
+    EXPECT_EQ(osAccountManagerService_->SetOsAccountName(Constants::START_USER_ID, STRING_EMPTY),
         ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
@@ -824,9 +823,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest041
     EXPECT_NE(osAccountManagerService_->SetOsAccountProfilePhoto(
         osAccountInfoOne.GetLocalId(), STRING_PHOTO_OUT_OF_RANGE), ERR_OK);
 
-    int localId = Constants::START_USER_ID - 1;
-    EXPECT_EQ(
-        osAccountManagerService_->SetOsAccountProfilePhoto(localId, STRING_PHOTO_OUT_OF_RANGE),
+    EXPECT_EQ(osAccountManagerService_->SetOsAccountProfilePhoto(Constants::START_USER_ID, STRING_PHOTO_OUT_OF_RANGE),
         ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
@@ -2085,19 +2082,25 @@ HWTEST_F(OsAccountManagerServiceModuleTest, U1Checkout001, TestSize.Level1)
 {
     uint64_t tokenID;
     ASSERT_TRUE(AllocPermission({"ohos.permission.MANAGE_LOCAL_ACCOUNTS"}, tokenID));
-    ASSERT_EQ(osAccountManagerService_->RemoveOsAccount(1), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
-    ASSERT_EQ(osAccountManagerService_->SetOsAccountName(1, STRING_NAME), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+    bool isU1Exist = false;
+    EXPECT_EQ(ERR_OK, osAccountManagerService_->IsOsAccountExists(1, isU1Exist));
+    ErrCode targetCode = 0;
+    if (isU1Exist) {
+        targetCode = ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    } else {
+        targetCode = ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    ASSERT_EQ(osAccountManagerService_->RemoveOsAccount(1), targetCode);
+    ASSERT_EQ(osAccountManagerService_->SetOsAccountName(1, STRING_NAME), targetCode);
     std::vector<std::string> constraints;
-    ASSERT_EQ(osAccountManagerService_->SetOsAccountConstraints(1, constraints, true),
-        ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
-    ASSERT_EQ(osAccountManagerService_->SetOsAccountProfilePhoto(1, STRING_NAME),
-        ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
-    ASSERT_EQ(osAccountManagerService_->ActivateOsAccount(1), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
-    ASSERT_EQ(osAccountManagerService_->DeactivateOsAccount(1), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+    ASSERT_EQ(osAccountManagerService_->SetOsAccountConstraints(1, constraints, true), targetCode);
+    ASSERT_EQ(osAccountManagerService_->SetOsAccountProfilePhoto(1, STRING_NAME), targetCode);
+    ASSERT_EQ(osAccountManagerService_->ActivateOsAccount(1), targetCode);
+    ASSERT_EQ(osAccountManagerService_->DeactivateOsAccount(1), targetCode);
     ASSERT_EQ(osAccountManagerService_->SetCurrentOsAccountIsVerified(1), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
-    ASSERT_EQ(osAccountManagerService_->SetOsAccountIsVerified(1, true), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+    ASSERT_EQ(osAccountManagerService_->SetOsAccountIsVerified(1, true), targetCode);
     ASSERT_EQ(osAccountManagerService_->SetDefaultActivatedOsAccount(1), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
-    ASSERT_EQ(osAccountManagerService_->SetOsAccountToBeRemoved(1, true), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+    ASSERT_EQ(osAccountManagerService_->SetOsAccountToBeRemoved(1, true), targetCode);
 }
 
 /**
@@ -2115,5 +2118,47 @@ HWTEST_F(OsAccountManagerServiceModuleTest, SubscribeConstraints_Invalid_Param00
     ASSERT_EQ(osAccountManagerService_->UnsubscribeOsAccountConstraints(info, nullptr),
         ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
+
+/**
+ * @tc.name: CheckLocalIdRestricted_001
+ * @tc.desc: Test CheckLocalIdRestricted with diff input
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, CheckLocalIdRestricted_001, TestSize.Level1)
+{
+    ErrCode ret = osAccountManagerService_->CheckLocalIdRestricted(Constants::ADMIN_LOCAL_ID);
+    ASSERT_EQ(ret, ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+    ret = osAccountManagerService_->CheckLocalIdRestricted(Constants::START_USER_ID);
+    ASSERT_EQ(ret, ERR_OK);
+    bool isExists = false;
+    osAccountManagerService_->IsOsAccountExists(Constants::U1_ID, isExists);
+    ret = osAccountManagerService_->CheckLocalIdRestricted(Constants::U1_ID);
+    if (isExists) {
+        ASSERT_EQ(ret, ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+    } else {
+        ASSERT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    }
+
+    int32_t unusedLocalId = 99; // 99 is currently unused
+    ret = osAccountManagerService_->CheckLocalIdRestricted(unusedLocalId);
+    ASSERT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+}
+
+/**
+ * @tc.name: CreateOsAccount_001
+ * @tc.desc: Test CreateOsAccount with valid data.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
+HWTEST_F(OsAccountManagerServiceModuleTest, CreateOsAccount_001, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfoOne;
+    StringRawData rawdata;
+    ErrCode errCode = osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, STRING_TEST_NAME, TEST_UID, rawdata);
+    EXPECT_EQ(errCode, ERR_OK);
+}
+#endif
 }  // namespace AccountSA
 }  // namespace OHOS

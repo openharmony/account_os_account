@@ -39,7 +39,7 @@ void IsOsAccountForegroundStubFuzzTest(const uint8_t *data, size_t size)
     if (!datas.WriteInt32(fuzzData.GetData<int32_t>())) {
         return;
     }
-    if (!datas.WriteInt32(fuzzData.GetData<int32_t>())) {
+    if (!datas.WriteUint64(fuzzData.GetData<uint64_t>())) {
         return;
     }
 

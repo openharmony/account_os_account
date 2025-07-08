@@ -573,3 +573,18 @@ HWTEST_F(OsAccountTest, SubscribeConstraints001, TestSize.Level1)
     EXPECT_EQ(listener->SubscribeOsAccountConstraints(subscriber, g_osAccount->proxy_),
         ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
+
+/**
+ * @tc.name: StringRawData_001
+ * @tc.desc: Func Marshalling and Unmarshalling.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountTest, StringRawData_001, TestSize.Level3)
+{
+    StringRawData rawData;
+    string str1 = STRING_NAME;
+    EXPECT_EQ(rawData.Marshalling(str1), ERR_OK);
+    string str2 = "";
+    EXPECT_EQ(rawData.Unmarshalling(str2), ERR_OK);
+    EXPECT_EQ(str2, STRING_NAME);
+}
