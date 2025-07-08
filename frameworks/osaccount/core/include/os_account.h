@@ -131,8 +131,6 @@ private:
     std::mutex eventListenersMutex_;
     sptr<OsAccountEventListener> listenerManager_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
-    sptr<OsAccountConstraintSubscriberManager> constraintSubscriberMgr_ =
-        &OsAccountConstraintSubscriberManager::GetInstance();
 };
 }  // namespace AccountSA
 }  // namespace OHOS

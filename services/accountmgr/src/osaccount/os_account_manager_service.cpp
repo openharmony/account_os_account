@@ -917,7 +917,17 @@ ErrCode OsAccountManagerService::SetOsAccountName(int32_t id, const std::string 
 void OsAccountManagerService::ConstraintPublish(const std::vector<std::string> &constraints,
     int32_t localId, bool enable)
 {
-    std::set<std::string> constraintsSet(constraints.begin(), constraints.end());
+    std::set<std::string> constraintsSet;
+    for (auto const &constraint : constraints) {
+        bool isConstraintEnable = true;
+        ErrCode errCode = innerManager_.IsOsAccountConstraintEnable(localId, constraint, isConstraintEnable);
+        if (errCode == ERR_OK && isConstraintEnable == enable) {
+            constraintsSet.emplace(constraint);
+        } else {
+            ACCOUNT_LOGE("Not publish constraints=%{public}s, errCode=%{public}d, enable=%{public}d.",
+                constraint.c_str(), errCode, isConstraintEnable);
+        }
+    }
     return constraintManger_.Publish(localId, constraintsSet, enable);
 }
 
@@ -1518,7 +1528,15 @@ ErrCode OsAccountManagerService::SetGlobalOsAccountConstraints(const std::vector
     }
     ErrCode errCode = innerManager_.SetGlobalOsAccountConstraints(constraints, enable, enforcerId, isDeviceOwner);
     if (errCode == ERR_OK) {
-        ConstraintPublish(constraints, enforcerId, enable);
+        std::vector<OsAccountInfo> osAccountInfos;
+        ErrCode res = innerManager_.QueryAllCreatedOsAccounts(osAccountInfos);
+        if (res != ERR_OK) {
+            ACCOUNT_LOGE("QueryAllCreatedOsAccounts failed!");
+            return errCode;
+        }
+        for (auto const& info : osAccountInfos) {
+            ConstraintPublish(constraints, info.GetLocalId(), enable);
+        }
     }
     return errCode;
 }

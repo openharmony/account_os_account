@@ -52,6 +52,8 @@ group("fuzztest") {
     "setosaccounttoberemovedstub_fuzzer:SetOsAccountToBeRemovedStubFuzzTest",
     "setspecificosaccountconstraintsstub_fuzzer:SetSpecificOsAccountConstraintsStubFuzzTest",
     "subscribeosaccountstub_fuzzer:SubscribeOsAccountStubFuzzTest",
+    "subscribeosaccountconstraintstub_fuzzer:SubscribeOsAccountConstraintStubFuzzTest",
+    "unsubscribeosaccountconstraintstub_fuzzer:UnsubscribeOsAccountConstraintStubFuzzTest",
   ]
 
   if (os_account_support_domain_accounts) {
