@@ -58,6 +58,8 @@ bool GetPropertyStubFuzzTest(const uint8_t *data, size_t size)
         .authType = authType,
         .keys = keys,
     };
+    GetPropertyRequestIam requestIam;
+    requestIam.getPropertyRequest = request;
     std::shared_ptr<GetSetPropCallback> ptr = make_shared<MockGetSetPropCallback>();
     sptr<IGetSetPropCallback> callback = new (std::nothrow) GetSetPropCallbackService(ptr);
 
@@ -68,14 +70,7 @@ bool GetPropertyStubFuzzTest(const uint8_t *data, size_t size)
     if (!dataTemp.WriteInt32(userId)) {
         return false;
     }
-    if (!dataTemp.WriteInt32(request.authType)) {
-        return false;
-    }
-    std::vector<uint32_t> attrKeys;
-    std::transform(request.keys.begin(), request.keys.end(), std::back_inserter(attrKeys),
-        [](const auto &key) { return static_cast<uint32_t>(key); });
-
-    if (!dataTemp.WriteUInt32Vector(attrKeys)) {
+    if (!dataTemp.WriteParcelable(&requestIam)) {
         return false;
     }
     if (!dataTemp.WriteRemoteObject(callback->AsObject())) {

@@ -52,11 +52,10 @@ bool SetPropertyStubFuzzTest(const uint8_t *data, size_t size)
     FuzzData fuzzData(data, size);
     int32_t userId = fuzzData.GetData<int32_t>();
     std::vector<uint8_t> attr = {fuzzData.GetData<uint8_t>()};
-    SetPropertyRequest request = {
-        .authType = static_cast<AuthType>(fuzzData.GenerateEnmu(IAMAuthType::TYPE_END)),
-        .mode = fuzzData.GenerateEnmu(PropertyMode::PROPERTY_MODE_NOTIFY_COLLECTOR_READY),
-        .attrs = Attributes(attr),
-    };
+    SetPropertyRequestIam requestIam;
+    requestIam.setPropertyRequest.authType = static_cast<AuthType>(fuzzData.GenerateEnmu(IAMAuthType::TYPE_END));
+    requestIam.setPropertyRequest.mode = fuzzData.GenerateEnmu(PropertyMode::PROPERTY_MODE_NOTIFY_COLLECTOR_READY);
+    requestIam.setPropertyRequest.attrs = Attributes(attr);
     std::shared_ptr<GetSetPropCallback> ptr = make_shared<MockGetSetPropCallback>();
     sptr<IGetSetPropCallback> callback = new (std::nothrow) GetSetPropCallbackService(ptr);
 
@@ -67,11 +66,7 @@ bool SetPropertyStubFuzzTest(const uint8_t *data, size_t size)
     if (!dataTemp.WriteInt32(userId)) {
         return false;
     }
-    if (!dataTemp.WriteInt32(request.authType)) {
-        return false;
-    }
-    auto buffer = request.attrs.Serialize();
-    if (!dataTemp.WriteUInt8Vector(buffer)) {
+    if (!dataTemp.WriteParcelable(&requestIam)) {
         return false;
     }
     if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
