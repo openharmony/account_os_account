@@ -934,7 +934,8 @@ public:
         AccountSA::CreateOsAccountForDomainOptions innerOptions;
         innerOptions.hasShortName = false;
         if (options.has_value()||options.value().options.shortName != "") {
-            std::string innerShortName(options.value().options.shortName.data(), options.value().options.shortName.size());
+            std::string innerShortName(options.value().options.shortName.data(),
+                options.value().options.shortName.size());
             innerOptions.shortName = innerShortName;
             innerOptions.hasShortName = true;
         }
@@ -950,7 +951,8 @@ public:
         std::unique_lock<std::mutex> lock(createDomainCallback->mutex_);
         createDomainCallback->cv_.wait(lock, [createDomainCallback] { return createDomainCallback->onResultCalled_;});
         if (createDomainCallback->errCode_ != ERR_OK) {
-            ACCOUNT_LOGE("CreateOsAccountForDomainWithOpts failed with errCode: %{public}d", createDomainCallback->errCode_);
+            ACCOUNT_LOGE("CreateOsAccountForDomainWithOpts failed with errCode: %{public}d",
+                createDomainCallback->errCode_);
             SetTaiheBusinessErrorFromNativeCode(createDomainCallback->errCode_);
         }
         return ConvertOsAccountInfo(createDomainCallback->osAccountInfos_);

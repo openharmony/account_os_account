@@ -1459,7 +1459,7 @@ public:
         }
         cv_.notify_one();
     }
-};    
+};
 
 DomainAccountInfo GetAccountInfoSync(GetDomainAccountInfoOptions const& options)
 {
