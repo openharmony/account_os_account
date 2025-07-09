@@ -25,18 +25,15 @@ THauthenticatorAsyncCallback::~THauthenticatorAsyncCallback()
 
 void THauthenticatorAsyncCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
 {
-    {
-        std::lock_guard<std::mutex> lock(mutex);
-        if (isDone) {
-            return;
-        }
-        isDone = true;
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (isDone_) {
+        return;
     }
-    cv.notify_one();
-
-    param = std::make_shared<AuthenticatorCallbackParam>();
-    param->resultCode = resultCode;
-    param->result = result;
+    isDone_ = true;
+    param_ = std::make_shared<AuthenticatorCallbackParam>();
+    param_->resultCode = resultCode;
+    param_->result = result;
+    cv_.notify_one();
 }
 
 void THauthenticatorAsyncCallback::OnRequestRedirected(AAFwk::Want &request)

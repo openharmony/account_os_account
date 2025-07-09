@@ -1408,6 +1408,7 @@ bool HasAccountSync(DomainAccountInfo const& domainAccountInfo)
     if (errorCode != ERR_OK) {
         Parcel emptyParcel;
         callbackInner->OnResult(errorCode, emptyParcel);
+        return false;
     }
     std::unique_lock<std::mutex> lock(callbackInner->mutex_);
     callbackInner->cv_.wait(lock, [callbackInner] { return callbackInner->onResultCalled_;});
