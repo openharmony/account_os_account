@@ -149,11 +149,38 @@ public:
         return jsonObject;
     }
 
-    bool FromJson(CJsonUnique &jsonObject) 
+    void ParseTokenInfosFromJson(const cJSON *jsonObject, AppAccountInfo &accountInfo)
     {
-        ACCOUNT_LOGI("mock enter");
-        name = GetStringFromJson(jsonObject, "name");
-        primeKey = GetStringFromJson(jsonObject, "primeKey");
+        cJSON *item = nullptr;
+        cJSON_ArrayForEach(item, jsonObject) {
+            OAuthTokenInfo tokenInfo;
+            tokenInfo.token = GetStringFromJson(item, OAUTH_TOKEN);
+            tokenInfo.status = GetBoolFromJson(item, OAUTH_TOKEN_STATUS);
+            tokenInfo.authType = GetStringFromJson(item, OAUTH_TYPE);
+            GetSetStringFromJson(item, OAUTH_AUTH_LIST, tokenInfo.authList);
+            accountInfo.oauthTokens_.emplace(tokenInfo.authType, tokenInfo);
+        }
+    }
+
+    bool FromJson(cJSON *jsonObject, AppAccountInfo &accountInfo)
+    {
+        if (jsonObject == nullptr || !IsObject(jsonObject)) {
+            return false;
+        }
+
+        GetDataByType<std::string>(jsonObject, OWNER, accountInfo.owner_);
+        GetDataByType<std::string>(jsonObject, NAME, accountInfo.name_);
+        GetDataByType<std::string>(jsonObject, ALIAS, accountInfo.alias_);
+        GetDataByType<std::string>(jsonObject, EXTRA_INFO, accountInfo.extraInfo_);
+        GetDataByType<bool>(jsonObject, SYNC_ENABLE, accountInfo.syncEnable_);
+        GetDataByType<std::set<std::string>>(jsonObject, AUTHORIZED_APPS, accountInfo.authorizedApps_);
+        GetDataByType<std::string>(jsonObject, ASSOCIATED_DATA, accountInfo.associatedData_);
+        GetDataByType<std::string>(jsonObject, ACCOUNT_CREDENTIAL, accountInfo.accountCredential_);
+        if (IsKeyExist(jsonObject, OAUTH_TOKEN_INFOS)) {
+            cJSON *item = GetJsonArrayFromJson(jsonObject, OAUTH_TOKEN_INFOS);
+            ParseTokenInfosFromJson(item, accountInfo);
+        }
+
         return true;
     }
 
@@ -211,7 +238,7 @@ ErrCode AccountDataStorage::GetAccountInfoById(const std::string id, AppAccountI
         appAccountInfo.SetOAuthToken("test_authType1", "test_authToken1");
 
         auto mkckJson = appAccountInfo.ToJson();
-        FromJson(mkckJson.get(), accountInfo);
+        appAccountInfo.FromJson(mkckJson.get(), accountInfo);
         return ERR_OK;
     } else {
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
