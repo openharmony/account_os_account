@@ -59,6 +59,13 @@ bool AddCredentialStubFuzzTest(const uint8_t *data, size_t size)
     AuthType authType = static_cast<AuthType>(fuzzData.GenerateEnmu(IAMAuthType::TYPE_END));
     std::optional<PinSubType> pinType = {fuzzData.GenerateEnmu(PinSubType::PIN_MAX)};
     std::vector<uint8_t> token = {fuzzData.GetData<uint8_t>()};
+    CredentialParameters credentialParameters = {
+        .authType = authType,
+        .pinType = pinType,
+        .token = token,
+    };
+    CredentialParametersIam credInfoIam;
+    credInfoIam.credentialParameters = credentialParameters;
     std::shared_ptr<IDMCallback> ptr = make_shared<MockIDMCallback>();
     sptr<IIDMCallback> callback = new (std::nothrow) IDMCallbackService(userId, ptr);
 
@@ -69,14 +76,7 @@ bool AddCredentialStubFuzzTest(const uint8_t *data, size_t size)
     if (!dataTemp.WriteInt32(userId)) {
         return false;
     }
-    if (!dataTemp.WriteInt32(authType)) {
-        return false;
-    }
-    PinSubType pin = pinType.value_or(PinSubType::PIN_MAX);
-    if (!dataTemp.WriteInt32(pin)) {
-        return false;
-    }
-    if (!dataTemp.WriteUInt8Vector(token)) {
+    if (!dataTemp.WriteParcelable(&credInfoIam)) {
         return false;
     }
     if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
