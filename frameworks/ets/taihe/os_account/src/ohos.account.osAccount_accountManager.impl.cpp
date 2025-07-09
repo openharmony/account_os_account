@@ -178,30 +178,30 @@ AccountSA::CreateOsAccountOptions ConvertToInnerOptions(optional_view<CreateOsAc
 }
 
 class THCreateDomainCallback : public AccountSA::DomainAccountCallback {
-    public:
-        int32_t errCode_ = -1;
-        std::mutex mutex_;
-        std::condition_variable cv_;
-        AccountSA::OsAccountInfo osAccountInfos_;
-        bool onResultCalled_ = false;
+public:
+    int32_t errCode_ = -1;
+    std::mutex mutex_;
+    std::condition_variable cv_;
+    AccountSA::OsAccountInfo osAccountInfos_;
+    bool onResultCalled_ = false;
 
-        void OnResult(const int32_t errorCode, Parcel &parcel)
-        {
-            std::shared_ptr<AccountSA::OsAccountInfo> osAccountInfo(AccountSA::OsAccountInfo::Unmarshalling(parcel));
-            if (osAccountInfo == nullptr) {
-                ACCOUNT_LOGE("failed to unmarshalling OsAccountInfo");
-                return;
-            }
-            std::unique_lock<std::mutex> lock(mutex_);
-            if (this->onResultCalled_) {
-                return;
-            }
-            this->onResultCalled_ = true;
-            this->osAccountInfos_ = *osAccountInfo;
-            this->errCode_ = errorCode;
-            cv.notify_one();
+    void OnResult(const int32_t errorCode, Parcel &parcel)
+    {
+        std::shared_ptr<AccountSA::OsAccountInfo> osAccountInfo(AccountSA::OsAccountInfo::Unmarshalling(parcel));
+        if (osAccountInfo == nullptr) {
+            ACCOUNT_LOGE("failed to unmarshalling OsAccountInfo");
+            return;
         }
-    };
+        std::unique_lock<std::mutex> lock(mutex_);
+        if (this->onResultCalled_) {
+            return;
+        }
+        this->onResultCalled_ = true;
+        this->osAccountInfos_ = *osAccountInfo;
+        this->errCode_ = errorCode;
+        cv_.notify_one();
+    }
+};
 
 class AccountManagerImpl {
 private:
