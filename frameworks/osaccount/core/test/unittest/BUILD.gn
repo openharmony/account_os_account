@@ -43,6 +43,7 @@ ohos_unittest("os_account_test") {
     "${os_account_core_path}/src/os_account_constraint_subscriber_manager.cpp",
     "${os_account_innerkits_native_path}/src/os_account_constraint_subscribe_info.cpp",
     "${os_account_innerkits_native_path}/src/os_account_constraint_subscriber.cpp",
+    "${os_account_core_path}/src/os_account_state_reply_callback.cpp",
     "os_account_test.cpp"
   ]
 

@@ -172,6 +172,59 @@ void DomainAccountClientModuleTest::TearDown(void)
 {}
 
 /**
+ * @tc.name: GetOsAccountLocalIdFromDomain_001
+ * @tc.desc: Test the invalid domain and accountName.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientModuleTest, GetOsAccountLocalIdFromDomain_001, TestSize.Level3)
+{
+    DomainAccountInfo invaildInfo("", STRING_NAME);
+    int32_t localId = -1;
+    ErrCode errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(invaildInfo, localId);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    std::string invaildDomainString(Constants::DOMAIN_NAME_MAX_SIZE + 1, '1');
+    DomainAccountInfo invaildInfo1(invaildDomainString, STRING_NAME);
+    errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(invaildInfo1, localId);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+
+    DomainAccountInfo invaildInfo2("vaildDomainString", "");
+    errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(invaildInfo2, localId);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    std::string invaildAccountNameString(Constants::LOCAL_NAME_MAX_SIZE + 1, '1');
+    DomainAccountInfo invaildInfo3("vaildDomainString", invaildAccountNameString);
+    errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(invaildInfo3, localId);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: CreateOsAccountForDomain_001
+ * @tc.desc: Test the invalid domain and accountName.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientModuleTest, CreateOsAccountForDomain_001, TestSize.Level3)
+{
+    DomainAccountInfo invaildInfo("", STRING_NAME);
+    CreateOsAccountForDomainOptions options;
+    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(
+        OsAccountType::NORMAL, invaildInfo, nullptr, options);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    std::string invaildDomainString(Constants::DOMAIN_NAME_MAX_SIZE + 1, '1');
+    DomainAccountInfo invaildInfo1(invaildDomainString, STRING_NAME);
+    errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, invaildInfo1, nullptr, options);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+
+    DomainAccountInfo invaildInfo2("vaildDomainString", "");
+    errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, invaildInfo2, nullptr, options);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    std::string invaildAccountNameString(Constants::LOCAL_NAME_MAX_SIZE + 1, '1');
+    DomainAccountInfo invaildInfo3("vaildDomainString", invaildAccountNameString);
+    errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, invaildInfo3, nullptr, options);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
  * @tc.name: DomainAccountClientModuleTest_Plugin_001
  * @tc.desc: Register plugin successfully.
  * @tc.type: FUNC

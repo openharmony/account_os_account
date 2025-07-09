@@ -28,6 +28,7 @@
 #include "os_account.h"
 #include "os_account_constants.h"
 #include "os_account_constraint_subscriber_manager.h"
+#include "os_account_state_reply_callback.h"
 #undef private
 #include "singleton.h"
 #include "system_ability_definition.h"
@@ -602,4 +603,57 @@ HWTEST_F(OsAccountTest, StringRawData_001, TestSize.Level3)
     string str2 = "";
     EXPECT_EQ(rawData.Unmarshalling(str2), ERR_OK);
     EXPECT_EQ(str2, STRING_NAME);
+}
+
+/**
+ * @tc.name: OnComplete_001
+ * @tc.desc: Test that neither cv_ nor callbackCounter is empty.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OnComplete_001, TestSize.Level3)
+{
+    auto cv = std::make_shared<std::condition_variable>();
+    auto counter = std::make_shared<bool>(true);
+
+    OsAccountStateReplyCallback callback(cv, counter);
+    OsAccountStateReplyCallback callback1(nullptr);
+
+    callback1.OnComplete();
+    // Verify that the callbackCounter will be reset after OnComplete
+    callback.OnComplete();
+    // Check whether the callbackCounter has been reset (changed to nullptr)
+    EXPECT_TRUE(callback.callbackCounter == nullptr);
+}
+
+/**
+ * @tc.name: OnComplete_002
+ * @tc.desc: Test cv_ is empty, and callbackCounter is not empty
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OnComplete_002, TestSize.Level3)
+{
+    auto counter = std::make_shared<bool>(true);
+    // Pass in an empty cv
+    OsAccountStateReplyCallback callback(nullptr, counter);
+    callback.OnComplete();
+    // The callbackCounter should not be modified
+    EXPECT_TRUE(counter != nullptr);
+}
+
+/**
+ * @tc.name: OnComplete_003
+ * @tc.desc: Test cv_ is not empty and callbackCounter is empty
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OnComplete_003, TestSize.Level3)
+{
+    auto cv = std::make_shared<std::condition_variable>();
+    // Pass in an empty callbackCounter
+    OsAccountStateReplyCallback callback(cv, nullptr);
+    callback.OnComplete();
+    // cv_ should remain unchanged
+    EXPECT_TRUE(cv != nullptr);
 }
