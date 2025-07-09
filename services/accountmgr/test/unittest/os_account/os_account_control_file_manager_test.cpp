@@ -30,6 +30,7 @@
 #define private public
 #include "os_account_control_file_manager.h"
 #include "os_account_file_operator.h"
+#include "account_file_watcher_manager.h"
 #undef private
 
 namespace OHOS {
@@ -55,6 +56,7 @@ const char U1_CONFIG[] = "1";
 const char SYSTEM_ACCOUNT_NAME[] = "name";
 const char SYSTEM_ACCOUNT_TYPE[] = "type";
 #endif // ENABLE_U1_ACCOUNT
+const std::string TEST_FILE_PATH = "/data/service/el1/public/account/test";
 const std::string STRING_PHOTO =
     "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD//gAUU29mdHdhcmU6IFNuaXBhc3Rl/"
     "9sAQwADAgIDAgIDAwMDBAMDBAUIBQUEBAUKBwcGCAwKDAwLCgsLDQ4SEA0OEQ4LCxAWEBETFBUVFQwPFxgWFBgSFBUU/"
@@ -106,7 +108,11 @@ void OsAccountControlFileManagerUnitTest::SetUpTestCase(void)
 }
 
 void OsAccountControlFileManagerUnitTest::TearDownTestCase(void)
-{}
+{
+    std::string cmd = "rm -rf " + TEST_FILE_PATH + "*";
+    system(cmd.c_str());
+}
+
 
 void OsAccountControlFileManagerUnitTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 {
@@ -819,5 +825,32 @@ HWTEST_F(OsAccountControlFileManagerUnitTest, GetU1Config001, TestSize.Level2)
     EXPECT_EQ(config.isU1Enable, true);
 }
 #endif // ENABLE_U1_ACCOUNT
+
+#ifdef ENABLE_FILE_WATCHER
+/**
+ * @tc.name: GetWrongAccountInfoDigestFromFile
+ * @tc.desc: coverage GetAccountInfoDigestFromFile
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerUnitTest, GetWrongAccountInfoDigestFromFile, TestSize.Level1)
+{
+    std::string invalidDigestJson = R"({
+        "/test/path": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    })";
+    auto fileOperator = std::make_shared<AccountFileOperator>();
+    fileOperator->CreateDir("/data/service/el1/public/account");
+    EXPECT_EQ(fileOperator->InputFileByPathAndContent(
+        Constants::ACCOUNT_INFO_DIGEST_FILE_PATH, invalidDigestJson), ERR_OK);
+    
+    uint8_t digest[32] = {0};
+    uint32_t size = 32;
+    AccountFileWatcherMgr &fileWatcherMgr = AccountFileWatcherMgr::GetInstance();
+    ErrCode result = fileWatcherMgr.GetAccountInfoDigestFromFile(
+        Constants::ACCOUNT_INFO_DIGEST_FILE_PATH, digest, size);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR);
+    fileOperator->DeleteDirOrFile(Constants::ACCOUNT_INFO_DIGEST_FILE_PATH);
+}
+#endif // ENABLE_FILE_WATCHER
 }  // namespace AccountSA
 }  // namespace OHOS

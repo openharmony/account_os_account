@@ -375,6 +375,10 @@ ErrCode AccountFileWatcherMgr::GetAccountInfoDigestFromFile(const std::string &p
     }
     std::vector<uint8_t> digestTmp;
     digestTmp = GetVectorUint8FromJson(accountInfoDigestJson, path);
+    if (digestTmp.size() != ALG_COMMON_SIZE) {
+        ACCOUNT_LOGE("Invalid digest size: expected %{public}d, got %{public}zu", ALG_COMMON_SIZE, digestTmp.size());
+        return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
+    }
     if (memcpy_s(digest, size, digestTmp.data(), ALG_COMMON_SIZE) != EOK) {
         ACCOUNT_LOGE("Get digest failed duo to memcpy_s failed");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
