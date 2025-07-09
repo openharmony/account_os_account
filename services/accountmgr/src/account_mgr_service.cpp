@@ -25,6 +25,7 @@
 #endif
 #include "account_info.h"
 #include "account_log_wrapper.h"
+#include "account_file_operator.h"
 #ifdef HICOLLIE_ENABLE
 #include "account_timer.h"
 #endif // HICOLLIE_ENABLE
@@ -109,7 +110,7 @@ std::shared_ptr<void> RequestTimer(std::string eventStr)
 
 void CreateDeviceDir()
 {
-    if (!OHOS::FileExists(DEVICE_OWNER_DIR)) {
+    if (!FileExists(DEVICE_OWNER_DIR)) {
         ACCOUNT_LOGI("Device owner dir not exist, create!");
         if (!OHOS::ForceCreateDirectory(DEVICE_OWNER_DIR)) {
             int32_t err = errno;
