@@ -149,6 +149,8 @@
         "OHOS::AccountSA::IInnerOsAccountManager::PublishOsAccountLockEvent(int, bool&)";
         "OHOS::AccountSA::IInnerOsAccountManager::LockOsAccount(int)";
         "OHOS::AccountSA::IInnerOsAccountManager::CheckDomainAccountBound(OHOS::AccountSA::DomainAccountInfo const&, bool&)";
+        "OHOS::AccountSA::IInnerOsAccountManager::WaitForAnimationReady(int)";
+        "OHOS::AccountSA::IInnerOsAccountManager::ActivateOsAccountInBackground(int)";
         "OHOS::AccountSA::InnerAppAccountManager::AddAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int const&)";
         "OHOS::AccountSA::InnerAppAccountManager::AddAccountImplicitly(OHOS::AccountSA::AuthenticatorSessionRequest const&)";
         "OHOS::AccountSA::InnerAppAccountManager::Authenticate(OHOS::AccountSA::AuthenticatorSessionRequest const&)";

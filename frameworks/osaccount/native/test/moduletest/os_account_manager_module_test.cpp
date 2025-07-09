@@ -973,6 +973,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest033, TestSize.Lev
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest034, TestSize.Level1)
 {
     EXPECT_NE(OsAccountManager::SetOsAccountName(commonOsAccountInfo.GetLocalId(), STRING_EMPTY), ERR_OK);
+    EXPECT_EQ(OsAccountManager::SetOsAccountName(-1, STRING_EMPTY), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -1097,6 +1098,10 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest042, TestSize.Lev
 {
     EXPECT_NE(OsAccountManager::SetOsAccountProfilePhoto(
         commonOsAccountInfo.GetLocalId(), STRING_PHOTO_OUT_OF_RANGE), ERR_OK);
+    EXPECT_EQ(OsAccountManager::SetOsAccountProfilePhoto(
+        -1, STRING_PHOTO_OUT_OF_RANGE), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    EXPECT_EQ(OsAccountManager::SetOsAccountProfilePhoto(
+        commonOsAccountInfo.GetLocalId(), STRING_PHOTO_OUT_OF_RANGE), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     EXPECT_EQ(
         OsAccountManager::SetOsAccountProfilePhoto(commonOsAccountInfo.GetLocalId(), STRING_PHOTO_MAX), ERR_OK);
     std::string photo;
@@ -1161,6 +1166,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest046, TestSize.Lev
 {
     std::string photo;
     EXPECT_NE(OsAccountManager::GetOsAccountProfilePhoto(Constants::MAX_USER_ID + 1, photo), ERR_OK);
+    EXPECT_EQ(OsAccountManager::GetOsAccountProfilePhoto(-1, photo), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -1186,6 +1192,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest047, TestSize.Lev
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest048, TestSize.Level1)
 {
     EXPECT_EQ(OsAccountManager::StartOsAccount(Constants::MAX_USER_ID + 1), ERR_OK);
+    EXPECT_EQ(OsAccountManager::StartOsAccount(-1), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -2184,6 +2191,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest113, TestSize.Lev
     // The test set a nonexistent id as the default id
     EXPECT_NE(OsAccountManager::SetDefaultActivatedOsAccount(commonOsAccountInfo.GetLocalId() + 1), ERR_OK);
     EXPECT_NE(OsAccountManager::SetDefaultActivatedOsAccount(MAIN_ACCOUNT_ID - 1), ERR_OK);
+    EXPECT_EQ(OsAccountManager::SetDefaultActivatedOsAccount(-1), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
     EXPECT_NE(OsAccountManager::SetDefaultActivatedOsAccount(Constants::MAX_USER_ID + 1), ERR_OK);
     EXPECT_EQ(OsAccountManager::CreateOsAccount("ModuleTest113", OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
     EXPECT_EQ(OsAccountManager::SetDefaultActivatedOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
@@ -2271,6 +2279,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest115, TestSize.Lev
               ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
     EXPECT_EQ(OsAccountManager::DeactivateOsAccount(Constants::MAX_USER_ID + 1),
         ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    EXPECT_EQ(OsAccountManager::DeactivateOsAccount(-1), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -3206,6 +3215,8 @@ HWTEST_F(OsAccountManagerModuleTest, GetOsAccountFromDatabaseMockTest001, TestSi
 {
     OsAccountInfo osAccountInfo;
     EXPECT_NE(ERR_OK, OsAccountManager::GetOsAccountFromDatabase("", MAIN_ACCOUNT_ID, osAccountInfo));
+    EXPECT_EQ(OsAccountManager::GetOsAccountFromDatabase("", -1, osAccountInfo),
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -3243,4 +3254,17 @@ HWTEST_F(OsAccountManagerModuleTest, SubscribeConstraints001, TestSize.Level1)
 {
     EXPECT_EQ(OsAccountManager::SubscribeOsAccountConstraints(nullptr), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     EXPECT_EQ(OsAccountManager::UnsubscribeOsAccountConstraints(nullptr), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: SetOsAccountConstraints001
+ * @tc.desc: Test IsOsAccountConstraintEnable with invalid id.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, SetOsAccountConstraints001, TestSize.Level3)
+{
+    bool enable = true;
+    EXPECT_EQ(OsAccountManager::SetOsAccountConstraints(
+        -1, CONSTANTS_VECTOR, enable), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }

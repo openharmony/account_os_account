@@ -113,12 +113,12 @@ void OhosAccountManagerTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 void OhosAccountManagerTest::TearDown() {}
 
 /**
- * @tc.name: OhosAccountManagerTest001
+ * @tc.name: OhosAccountManagerTest000
  * @tc.desc: Account manager login OhosAccount faild
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest001, TestSize.Level3)
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest000, TestSize.Level3)
 {
     OhosAccountInfo accountInfo;
     accountInfo.name_ = TEST_NAME;
@@ -132,12 +132,12 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest001, TestSize.Level3)
 }
 
 /**
- * @tc.name: OhosAccountManagerTest002
+ * @tc.name: OhosAccountManagerTest001
  * @tc.desc: test GetOhosAccountInfoByUserId with invalid user id.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest002, TestSize.Level3)
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest001, TestSize.Level3)
 {
     std::int32_t testUserId = 200; // 200 is test user id.
     AccountInfo info;
@@ -146,12 +146,12 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest002, TestSize.Level3)
 }
 
 /**
- * @tc.name: OhosAccountManagerTest003
+ * @tc.name: OhosAccountManagerTest002
  * @tc.desc: test HandleEvent GetCallingUserID failed..
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest003, TestSize.Level3)
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest002, TestSize.Level3)
 {
     AccountInfo curOhosAccount;
     ErrCode ret = OhosAccountManager::GetInstance().HandleEvent(curOhosAccount, TEST_EVENT_STR);
@@ -159,12 +159,12 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest003, TestSize.Level3)
 }
 
 /**
- * @tc.name: OhosAccountManagerTest004
+ * @tc.name: OhosAccountManagerTest003
  * @tc.desc: test LogoutOhosAccount GetCallingUserID failed.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest004, TestSize.Level3)
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest003, TestSize.Level3)
 {
     OhosAccountInfo curOhosAccount;
     ErrCode ret = OhosAccountManager::GetInstance().LogoutOhosAccount(ACCOUNT_UID, curOhosAccount, TEST_EVENT_STR);
@@ -172,12 +172,12 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest004, TestSize.Level3)
 }
 
 /**
- * @tc.name: OhosAccountManagerTest005
+ * @tc.name: OhosAccountManagerTest004
  * @tc.desc: test LogoffOhosAccount GetCallingUserID failed.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest005, TestSize.Level3)
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest004, TestSize.Level3)
 {
     OhosAccountInfo curOhosAccount;
     ErrCode ret = OhosAccountManager::GetInstance().LogoffOhosAccount(ACCOUNT_UID, curOhosAccount, TEST_EVENT_STR);
@@ -185,13 +185,13 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest005, TestSize.Level3)
 }
 
 /**
- * @tc.name: OhosAccountManagerTest006
+ * @tc.name: OhosAccountManagerTest005
  * @tc.desc: test LoginOhosAccount first login and second login public different commonevent.
  * @tc.type: FUNC
  * @tc.require:
  */
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
-HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest006, TestSize.Level3)
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest005, TestSize.Level3)
 {
     OsAccountInfo osAccountInfoOne;
     EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
@@ -228,12 +228,12 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest006, TestSize.Level3)
 }
 
 /**
- * @tc.name: OhosAccountManagerTest007
+ * @tc.name: OhosAccountManagerTest006
  * @tc.desc: test login and logout.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest007, TestSize.Level3)
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest006, TestSize.Level3)
 {
     OsAccountInfo osAccountInfoOne;
     EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
@@ -270,19 +270,19 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest007, TestSize.Level3)
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
 /**
- * @tc.name: OhosAccountManagerTest07
+ * @tc.name: OhosAccountManagerTest007
  * @tc.desc: test OhosAccountStateChange event is invalid .
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest07, TestSize.Level3)
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest007, TestSize.Level3)
 {
     EXPECT_EQ(OhosAccountManager::GetInstance().OhosAccountStateChange("test", "testuid", "testevent"),
               ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
- * @tc.name: OhosAccountManagerTest010
+ * @tc.name: OhosAccountManagerTest008
  * @tc.desc: test LoginOhosAccount CheckOhosAccountCanBind not ok.
  * @tc.type: FUNC
  * @tc.require:
@@ -295,7 +295,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest008, TestSize.Level3)
 }
 
 /**
- * @tc.name: OhosAccountManagerTest011
+ * @tc.name: OhosAccountManagerTest009
  * @tc.desc: test LogoutOhosAccount CheckOhosAccountCanBind not ok.
  * @tc.type: FUNC
  * @tc.require:
@@ -308,7 +308,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest009, TestSize.Level3)
 }
 
 /**
- * @tc.name: OhosAccountManagerTest012
+ * @tc.name: OhosAccountManagerTest010
  * @tc.desc: test LogoffOhosAccount CheckOhosAccountCanBind not ok.
  * @tc.type: FUNC
  * @tc.require:
@@ -321,7 +321,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest010, TestSize.Level3)
 }
 
 /**
- * @tc.name: OhosAccountManagerTest013
+ * @tc.name: OhosAccountManagerTest011
  * @tc.desc: test HandleOhosAccountTokenInvalidEvent CheckOhosAccountCanBind not ok.
  * @tc.type: FUNC
  * @tc.require:
@@ -334,7 +334,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest011, TestSize.Level3)
 }
 
 /**
- * @tc.name: OhosAccountManagerTest015
+ * @tc.name: OhosAccountManagerTest012
  * @tc.desc: test CheckOhosAccountCanBind newOhosUid is invalid.
  * @tc.type: FUNC
  * @tc.require:
@@ -364,4 +364,98 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest_013, TestSize.Level3)
     accountInfoTar.ohosAccountInfo_ = ohosAccountInfo;
     bool ret = (accountInfoSrc == accountInfoTar);
     EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: OhosAccountManagerTest014
+ * @tc.desc: test AnonymizeOhosAccountInfo.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest014, TestSize.Level3)
+{
+    OhosAccountInfo ohosAccountInfo;
+    std::string bundleName = "";
+    ohosAccountInfo.uid_ = "test_uid";
+    ohosAccountInfo.name_ = "test_name";
+    ohosAccountInfo.nickname_ = "test_nickname";
+    ohosAccountInfo.avatar_ = "test_avatar";
+    OhosAccountManager::GetInstance().AnonymizeOhosAccountInfo(ohosAccountInfo, bundleName);
+    EXPECT_EQ(ohosAccountInfo.uid_, "4FC58A21C100CE1835B8F9991D738B56965D14B24E1761FBDFFC69AC5E0B667A");
+    EXPECT_EQ(ohosAccountInfo.name_, "t**********");
+    EXPECT_EQ(ohosAccountInfo.nickname_, "t**********");
+    EXPECT_EQ(ohosAccountInfo.avatar_, "**********");
+
+    ohosAccountInfo.uid_ = "";
+    OhosAccountManager::GetInstance().AnonymizeOhosAccountInfo(ohosAccountInfo, bundleName);
+    EXPECT_EQ(ohosAccountInfo.uid_, "");
+
+    ohosAccountInfo.name_ = "";
+    OhosAccountManager::GetInstance().AnonymizeOhosAccountInfo(ohosAccountInfo, bundleName);
+    EXPECT_EQ(ohosAccountInfo.name_, "");
+
+    ohosAccountInfo.nickname_ = "";
+    OhosAccountManager::GetInstance().AnonymizeOhosAccountInfo(ohosAccountInfo, bundleName);
+    EXPECT_EQ(ohosAccountInfo.nickname_, "");
+
+    ohosAccountInfo.avatar_ = "";
+    OhosAccountManager::GetInstance().AnonymizeOhosAccountInfo(ohosAccountInfo, bundleName);
+    EXPECT_EQ(ohosAccountInfo.avatar_, "");
+}
+
+/**
+ * @tc.name: OhosAccountManagerTest015
+ * @tc.desc: test ExtractFirstUtf8Char.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest015, TestSize.Level3)
+{
+    std::string input = ""; // Test an empty string
+    std::string result = OhosAccountManager::GetInstance().ExtractFirstUtf8Char(input);
+    EXPECT_EQ(result, "");
+
+    input = "A"; // Test single-byte ASCII characters
+    result = OhosAccountManager::GetInstance().ExtractFirstUtf8Char(input);
+    EXPECT_EQ(result, "A");
+
+    input = "\xC3\xB1"; // Test double-byte UTF-8 characters
+    result = OhosAccountManager::GetInstance().ExtractFirstUtf8Char(input);
+    EXPECT_EQ(result, "\xC3\xB1");
+
+    input = "\xE4\xB8\xAD"; // Test three-byte UTF-8 characters
+    result = OhosAccountManager::GetInstance().ExtractFirstUtf8Char(input);
+    EXPECT_EQ(result, "\xE4\xB8\xAD");
+
+    input = "\xF0\x90\x8D\x88"; // Test four-byte UTF-8 characters
+    result = OhosAccountManager::GetInstance().ExtractFirstUtf8Char(input);
+    EXPECT_EQ(result, "\xF0\x90\x8D\x88");
+
+    input = "\x80"; // Test for illegal first byte (0x80, consecutive bytes)
+    result = OhosAccountManager::GetInstance().ExtractFirstUtf8Char(input);
+    EXPECT_EQ(result, "");
+
+    input = "\xF8"; // Test illegal first byte (0xF8, out of range)
+    result = OhosAccountManager::GetInstance().ExtractFirstUtf8Char(input);
+    EXPECT_EQ(result, "");
+
+    input = "\xC3"; // Test truncated double-byte characters
+    result = OhosAccountManager::GetInstance().ExtractFirstUtf8Char(input);
+    EXPECT_EQ(result, "\xC3");
+
+    input = "\xE4\xB8"; // Test truncated three-byte characters
+    result = OhosAccountManager::GetInstance().ExtractFirstUtf8Char(input);
+    EXPECT_EQ(result, "\xE4\xB8");
+
+    input = "\xF0\x90"; // Test the truncated four-byte character
+    result = OhosAccountManager::GetInstance().ExtractFirstUtf8Char(input);
+    EXPECT_EQ(result, "\xF0\x90");
+
+    input = "Hello 世界 𐍈"; // Test the first character in a multi-character string
+    result = OhosAccountManager::GetInstance().ExtractFirstUtf8Char(input);
+    EXPECT_EQ(result, "H"); // The first character 'H' should be returned
+
+    input = "\x80\xC3\xB1"; // Illegal bytes followed by valid characters
+    result = OhosAccountManager::GetInstance().ExtractFirstUtf8Char(input);
+    EXPECT_EQ(result, ""); // An empty string should be returned
 }

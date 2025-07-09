@@ -313,7 +313,7 @@ ErrCode OhosAccountManager::QueryDistributedVirtualDeviceId(const std::string &b
     return ERR_OK;
 }
 
-std::string ExtractFirstUtf8Char(const std::string &str)
+std::string OhosAccountManager::ExtractFirstUtf8Char(const std::string &str)
 {
     if (str.empty()) {
         return std::string("");
@@ -337,7 +337,7 @@ std::string ExtractFirstUtf8Char(const std::string &str)
     return str.substr(0, charLength);
 }
 
-void AnonymizeOhosAccountInfo(OhosAccountInfo &ohosAccountInfo, const std::string &bundleName)
+void OhosAccountManager::AnonymizeOhosAccountInfo(OhosAccountInfo &ohosAccountInfo, const std::string &bundleName)
 {
     if (!(ohosAccountInfo.uid_ == DEFAULT_OHOS_ACCOUNT_UID || ohosAccountInfo.uid_.empty())) {
         ohosAccountInfo.uid_ = GenerateDVID(bundleName, ohosAccountInfo.GetRawUid());
