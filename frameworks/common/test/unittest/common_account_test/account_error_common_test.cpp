@@ -180,3 +180,41 @@ HWTEST_F(AccountErrorCodeConvertTest, AccountErrorCodeConvertTest006, TestSize.L
     EXPECT_EQ(ConvertToJSErrCode(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR),
         ERR_JS_IS_NOT_SYSTEM_APP);
 }
+
+/**
+ * @tc.name: AccountErrorCodeTest007
+ * @tc.desc: OsAccountConvertToJSErrCode test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountErrorCodeConvertTest, AccountErrorCodeConvertTest007, TestSize.Level3)
+{
+    EXPECT_EQ(ConvertToJSErrCode(ERR_ACCOUNT_COMMON_INVALID_PARAMETER),
+        ERR_JS_INVALID_PARAMETER);
+    EXPECT_EQ(ConvertToJSErrCode(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR),
+        ERR_JS_ACCOUNT_NOT_FOUND);
+    EXPECT_EQ(ConvertToJSErrCode(ERR_ACCOUNT_COMMON_SHORT_NAME_HAD_EXISTED),
+        ERR_JS_ACCOUNT_SHORT_NAME_ALREADY_EXIST);
+    EXPECT_EQ(ConvertToJSErrCode(ERR_OSACCOUNT_SERVICE_LOGGED_IN_ACCOUNTS_OVERSIZE),
+        ERR_JS_ACCOUNT_LOGGED_IN_ACCOUNTS_OVERSIZE);
+    EXPECT_EQ(ConvertToJSErrCode(ERR_ACCOUNT_COMMON_PERMISSION_DENIED),
+        ERR_JS_PERMISSION_DENIED);
+    EXPECT_EQ(ConvertToJSErrCode(ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR),
+        ERR_JS_ACCOUNT_SERVICE_BUSY);
+}
+
+/**
+ * @tc.name: AccountErrorCodeTest008
+ * @tc.desc: DomainAccountConvertToJSErrCode test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountErrorCodeConvertTest, AccountErrorCodeConvertTest008, TestSize.Level3)
+{
+    EXPECT_EQ(ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT),
+        ERR_JS_ACCOUNT_NOT_FOUND);
+    EXPECT_EQ(ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST),
+        ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_ERR_CODE_LIMIT),
+        ERR_JS_SYSTEM_SERVICE_EXCEPTION);
+}

@@ -241,6 +241,9 @@ private:
                                         const std::string &inputUid,
                                         const std::int32_t callingUserId) const;
 
+    std::string ExtractFirstUtf8Char(const std::string &str);
+    void AnonymizeOhosAccountInfo(OhosAccountInfo &ohosAccountInfo, const std::string &bundleName);
+
 #ifdef HAS_CES_PART
     void OnPackageRemoved(const std::int32_t callingUid);
     bool CreateCommonEventSubscribe();
