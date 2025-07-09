@@ -190,7 +190,7 @@ HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountCheckLabelsModuleTest_OnRequ
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_CallbackEnter_0100, TestSize.Level1)
+HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_CallbackEnter_0100, TestSize.Level3)
 {
     ASSERT_NE(appAccountCheckLabelsCallbackPtr, nullptr);
     EXPECT_EQ(appAccountCheckLabelsCallbackPtr->CallbackEnter(
@@ -203,7 +203,7 @@ HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_CallbackEnt
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_CallbackExit_0100, TestSize.Level1)
+HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_CallbackExit_0100, TestSize.Level3)
 {
     ASSERT_NE(appAccountCheckLabelsCallbackPtr, nullptr);
     EXPECT_EQ(appAccountCheckLabelsCallbackPtr->CallbackExit(
@@ -216,7 +216,7 @@ HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_CallbackExi
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_CallbackExit_0200, TestSize.Level1)
+HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_CallbackExit_0200, TestSize.Level3)
 {
     ASSERT_NE(appAccountCheckLabelsCallbackPtr, nullptr);
     EXPECT_EQ(appAccountCheckLabelsCallbackPtr->CallbackExit(
@@ -230,7 +230,7 @@ HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_CallbackExi
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_CallbackExit_0300, TestSize.Level1)
+HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_CallbackExit_0300, TestSize.Level3)
 {
     ASSERT_NE(appAccountCheckLabelsCallbackPtr, nullptr);
     EXPECT_EQ(appAccountCheckLabelsCallbackPtr->CallbackExit(
@@ -244,7 +244,7 @@ HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_CallbackExi
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_CallbackExit_0400, TestSize.Level1)
+HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_CallbackExit_0400, TestSize.Level3)
 {
     ASSERT_NE(appAccountCheckLabelsCallbackPtr, nullptr);
     EXPECT_EQ(appAccountCheckLabelsCallbackPtr->CallbackExit(static_cast<uint32_t>(
@@ -258,7 +258,7 @@ HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_CallbackExi
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_CallbackExit_0500, TestSize.Level1)
+HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_CallbackExit_0500, TestSize.Level3)
 {
     ASSERT_NE(appAccountCheckLabelsCallbackPtr, nullptr);
     EXPECT_EQ(appAccountCheckLabelsCallbackPtr->CallbackExit(static_cast<uint32_t>(
