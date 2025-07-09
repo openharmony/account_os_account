@@ -146,7 +146,7 @@ HWTEST_F(AppAccountAuthenticatorCallbackModuleTest, AppAccountAuthenticatorCallb
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountAuthenticatorCallbackModuleTest, AppAccountAuthenticatorCallbackTest_func_0300, TestSize.Level1)
+HWTEST_F(AppAccountAuthenticatorCallbackModuleTest, AppAccountAuthenticatorCallbackTest_func_0300, TestSize.Level3)
 {
     const std::string sessionId = "testsessionid";
     auto AppAccountAuthenticatorCallbackPtr = std::make_shared<AppAccountAuthenticatorCallback>(sessionId);
@@ -159,7 +159,7 @@ HWTEST_F(AppAccountAuthenticatorCallbackModuleTest, AppAccountAuthenticatorCallb
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountAuthenticatorCallbackModuleTest, AppAccountAuthenticatorCallbackTest_func_0400, TestSize.Level1)
+HWTEST_F(AppAccountAuthenticatorCallbackModuleTest, AppAccountAuthenticatorCallbackTest_func_0400, TestSize.Level3)
 {
     const std::string sessionId = "testsessionid";
     auto AppAccountAuthenticatorCallbackPtr = std::make_shared<AppAccountAuthenticatorCallback>(sessionId);
@@ -174,7 +174,7 @@ HWTEST_F(AppAccountAuthenticatorCallbackModuleTest, AppAccountAuthenticatorCallb
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountAuthenticatorCallbackModuleTest, AppAccountAuthenticatorCallbackTest_func_0500, TestSize.Level1)
+HWTEST_F(AppAccountAuthenticatorCallbackModuleTest, AppAccountAuthenticatorCallbackTest_func_0500, TestSize.Level3)
 {
     const std::string sessionId = "testsessionid";
     auto AppAccountAuthenticatorCallbackPtr = std::make_shared<AppAccountAuthenticatorCallback>(sessionId);
@@ -189,7 +189,7 @@ HWTEST_F(AppAccountAuthenticatorCallbackModuleTest, AppAccountAuthenticatorCallb
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountAuthenticatorCallbackModuleTest, AppAccountAuthenticatorCallbackTest_func_0600, TestSize.Level1)
+HWTEST_F(AppAccountAuthenticatorCallbackModuleTest, AppAccountAuthenticatorCallbackTest_func_0600, TestSize.Level3)
 {
     const std::string sessionId = "testsessionid";
     auto AppAccountAuthenticatorCallbackPtr = std::make_shared<AppAccountAuthenticatorCallback>(sessionId);
@@ -204,7 +204,7 @@ HWTEST_F(AppAccountAuthenticatorCallbackModuleTest, AppAccountAuthenticatorCallb
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountAuthenticatorCallbackModuleTest, AppAccountAuthenticatorCallbackTest_func_0700, TestSize.Level1)
+HWTEST_F(AppAccountAuthenticatorCallbackModuleTest, AppAccountAuthenticatorCallbackTest_func_0700, TestSize.Level3)
 {
     const std::string sessionId = "testsessionid";
     auto AppAccountAuthenticatorCallbackPtr = std::make_shared<AppAccountAuthenticatorCallback>(sessionId);

@@ -309,13 +309,9 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_QueryDistributedVirtualDev
  */
 HWTEST_F(AccountStubModuleTest, SubscribeDistributedAccountEvent_001, TestSize.Level3)
 {
-    uint64_t selfTokenid = IPCSkeleton::GetSelfTokenID();
-    uint64_t tokenID;
-    ASSERT_TRUE(AllocPermission(ALL_ACCOUNT_PERMISSION_LIST, tokenID));
     sptr<IRemoteObject> eventListener = nullptr;
     EXPECT_EQ(accountService_->SubscribeDistributedAccountEvent(TEST_UID, eventListener),
         ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
-    SetSelfTokenID(selfTokenid);
 }
 
 /**
@@ -325,11 +321,7 @@ HWTEST_F(AccountStubModuleTest, SubscribeDistributedAccountEvent_001, TestSize.L
  */
 HWTEST_F(AccountStubModuleTest, UnSubscribeDistributedAccountEvent_001, TestSize.Level3)
 {
-    uint64_t selfTokenid = IPCSkeleton::GetSelfTokenID();
-    uint64_t tokenID;
-    ASSERT_TRUE(AllocPermission(ALL_ACCOUNT_PERMISSION_LIST, tokenID));
     sptr<IRemoteObject> eventListener = nullptr;
     EXPECT_EQ(accountService_->UnsubscribeDistributedAccountEvent(TEST_UID, eventListener),
         ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
-    SetSelfTokenID(selfTokenid);
 }

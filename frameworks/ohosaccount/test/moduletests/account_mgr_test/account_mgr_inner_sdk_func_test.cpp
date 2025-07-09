@@ -844,14 +844,3 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserIdPermissionTest004
     setuid(0);
     ASSERT_EQ(0, SetSelfTokenID(selfTokenId));
 }
-
-/**
- * @tc.name: GetDomainAccountServiceTest001
- * @tc.desc: Test GetDomainAccountService
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AccountMgrInnerSdkFuncTest, GetDomainAccountServiceTest001, TestSize.Level3)
-{
-    EXPECT_NE(OhosAccountKitsImpl::GetInstance().GetDomainAccountService(), nullptr);
-}

@@ -160,7 +160,7 @@ HWTEST_F(AppAccountEventModuleTest, AppAccountEventTest_OnAccountsChanged_0300, 
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountEventModuleTest, AppAccountEventTest_OnAccountsChanged_0400, TestSize.Level1)
+HWTEST_F(AppAccountEventModuleTest, AppAccountEventTest_OnAccountsChanged_0400, TestSize.Level3)
 {
     AppAccountEventListener *appAccountEventListener = AppAccountEventListener::GetInstance();
     std::vector<AppAccountInfo> accounts(static_cast<int32_t>(Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT) + 1);

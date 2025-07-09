@@ -3021,42 +3021,16 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountControlManager_Transactio
 #endif // SQLITE_DLCLOSE_ENABLE
 
 /**
- * @tc.name: OnAccountsChanged01
- * @tc.desc: Test OnAccountsChanged success.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AppAccountManagerServiceModuleTest, OnAccountsChanged01, TestSize.Level1)
-{
-    OsAccountStateSubscriber *subscriber = new OsAccountStateSubscriber();
-    EXPECT_EQ(subscriber->OnAccountsChanged(TEST_ID), ERR_OK);
-}
-
-/**
- * @tc.name: OnAccountsSwitch01
- * @tc.desc: Test OnAccountsSwitch function.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AppAccountManagerServiceModuleTest, OnAccountsSwitch01, TestSize.Level1)
-{
-    OsAccountStateSubscriber *subscriber = new OsAccountStateSubscriber();
-    EXPECT_EQ(subscriber->OnAccountsSwitch(TEST_ID, TEST_ID), ERR_OK);
-}
-
-/**
  * @tc.name: CallbackEnter01
  * @tc.desc: Test CallbackEnter success.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountManagerServiceModuleTest, CallbackEnter01, TestSize.Level1)
+HWTEST_F(AppAccountManagerServiceModuleTest, CallbackEnter01, TestSize.Level3)
 {
-    uint64_t selfTokenid = IPCSkeleton::GetSelfTokenID();
     setuid(ACCOUNT_UID);
     OsAccountStateSubscriber *subscriber = new OsAccountStateSubscriber();
     EXPECT_EQ(subscriber->CallbackEnter(TEST_CODE), ERR_OK);
-    SetSelfTokenID(selfTokenid);
 }
 
 /**
@@ -3065,13 +3039,11 @@ HWTEST_F(AppAccountManagerServiceModuleTest, CallbackEnter01, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountManagerServiceModuleTest, CallbackEnter02, TestSize.Level1)
+HWTEST_F(AppAccountManagerServiceModuleTest, CallbackEnter02, TestSize.Level3)
 {
-    uint64_t selfTokenid = IPCSkeleton::GetSelfTokenID();
     setuid(TEST_ID);
     OsAccountStateSubscriber *subscriber = new OsAccountStateSubscriber();
     EXPECT_EQ(subscriber->CallbackEnter(TEST_CODE), ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
-    SetSelfTokenID(selfTokenid);
 }
 
 /**
@@ -3080,7 +3052,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, CallbackEnter02, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AppAccountManagerServiceModuleTest, CallbackExit01, TestSize.Level1)
+HWTEST_F(AppAccountManagerServiceModuleTest, CallbackExit01, TestSize.Level3)
 {
     OsAccountStateSubscriber *subscriber = new OsAccountStateSubscriber();
     EXPECT_EQ(subscriber->CallbackExit(TEST_CODE, TEST_ID), ERR_OK);

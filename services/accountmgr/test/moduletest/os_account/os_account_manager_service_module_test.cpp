@@ -2167,7 +2167,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, CreateOsAccount_001, TestSize.Level1
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, CheckOsAccountConstraint01, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, CheckOsAccountConstraint01, TestSize.Level3)
 {
     bool isConstraintEnable = false;
     std::string constraint = "";
