@@ -193,7 +193,7 @@ class THCreateDomainCallback : public AccountSA::DomainAccountCallback {
                 return;
             }
             std::unique_lock<std::mutex> lock(mutex_);
-            if (this->onResultCalled) {
+            if (this->onResultCalled_) {
                 return;
             }
             this->onResultCalled_ = true;
