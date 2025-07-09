@@ -285,6 +285,10 @@ interface DomainAccountManager {}
 @gen_promise("isAuthenticationExpired")
 function IsAuthenticationExpiredSync(domainAccountInfo: DomainAccountInfo): bool;
 
+@static("DomainAccountManager")
+@overload("auth")
+function Auth(domainAccountInfo: DomainAccountInfo, credential: @typedarray Array<u8>, callback: IUserAuthCallback): void;
+
 struct AuthResult {
     token: Optional<@typedarray Array<u8>>;
     remainTimes: Optional<i32>;
