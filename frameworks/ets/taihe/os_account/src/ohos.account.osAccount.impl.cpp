@@ -32,6 +32,7 @@
 #include "ohos_account_kits.h"
 #include "os_account_info.h"
 #include "os_account_manager.h"
+#include "securec.h"
 #include "taihe/runtime.hpp"
 #include "taihe_common.h"
 #include "taihe_account_info.h"
@@ -233,7 +234,7 @@ public:
     void OnResult(int32_t result, const UserIam::UserAuth::Attributes &extraInfo) override
     {
         ohos::account::osAccount::RequestResult reqResult = ConvertToRequestResult(extraInfo);
-        taiheCallback_.onResult(result, reqResult);
+        taiheCallback_.onResult(AccountIAMConvertToJSErrCode(result), reqResult);
     }
 
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const UserIam::UserAuth::Attributes &extraInfo) override
@@ -1562,6 +1563,28 @@ bool IsAuthenticationExpiredSync(const DomainAccountInfo &domainAccountInfo)
     return isExpired;
 }
 
+void Auth(DomainAccountInfo const& domainAccountInfo, array_view<uint8_t> credential, IUserAuthCallback const& callback)
+{
+    AccountSA::DomainAccountInfo domainAccountInfoInner = ConvertToDomainAccountInfoInner(domainAccountInfo);
+    std::vector<uint8_t> credentialInner(credential.begin(), credential.begin() + credential.size());
+    std::shared_ptr<THDomainAccountCallback> callbackInner =
+            std::make_shared<THDomainAccountCallback>(callback);
+    int32_t errorCode = AccountSA::DomainAccountClient::GetInstance().Auth(domainAccountInfoInner,
+        credentialInner, callbackInner);
+    if (!credentialInner.empty()) {
+        (void)memset_s(const_cast<uint8_t*>(credentialInner.data()), credentialInner.size(), 0, credentialInner.size());
+    }
+    if (errorCode != ERR_OK) {
+        Parcel emptyParcel;
+        AccountSA::DomainAuthResult emptyResult;
+        if (!emptyResult.Marshalling(emptyParcel)) {
+            ACCOUNT_LOGE("authResult Marshalling failed");
+            return;
+        }
+        callbackInner->OnResult(ConvertToJSErrCode(errorCode), emptyParcel);
+    }
+}
+
 void RegisterInputer(AuthType authType, const IInputer &inputer)
 {
     int32_t type = authType.get_value();
@@ -1611,3 +1634,4 @@ TH_EXPORT_CPP_API_unregisterInputer(UnregisterInputer);
 TH_EXPORT_CPP_API_CreateUserIdentityManager(CreateUserIdentityManager);
 TH_EXPORT_CPP_API_CreateUserAuth(CreateUserAuth);
 TH_EXPORT_CPP_API_CreatePINAuth(CreatePINAuth);
+TH_EXPORT_CPP_API_Auth(Auth);
