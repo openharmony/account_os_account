@@ -603,7 +603,7 @@ IAMState AccountIAMClient::GetAccountState(int32_t userId)
     if (proxy == nullptr) {
         return IDLE;
     }
-    int32_t state;
+    int32_t state = static_cast<int32_t>(IDLE);
     proxy->GetAccountState(userId, state);
     return static_cast<IAMState>(state);
 }

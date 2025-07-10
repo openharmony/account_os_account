@@ -200,7 +200,7 @@ ErrCode AccountMgrService::SetOhosAccountInfo(const OhosAccountInfo &ohosAccount
 }
 
 ErrCode AccountMgrService::SetOsAccountDistributedInfo(
-    const int32_t localId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
+    int32_t localId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
 {
     [[maybe_unused]] auto timerPtr = RequestTimer(eventStr);
     std::int32_t ret = AccountPermissionManager::CheckSystemApp();

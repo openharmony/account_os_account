@@ -31,6 +31,9 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
+#ifdef HICOLLIE_ENABLE
+thread_local int32_t g_timerId = 0;
+#endif
 const std::string DUMP_TAB_CHARACTER = "\t";
 const std::map<OsAccountType, std::string> DUMP_TYPE_MAP = {
     {OsAccountType::ADMIN, "admin"},
@@ -1409,8 +1412,9 @@ ErrCode OsAccountManagerService::GetOsAccountListFromDatabase(const std::string&
 {
     std::vector<OsAccountInfo> osAccountVec;
     auto errCode = innerManager_.GetOsAccountListFromDatabase(storeID, osAccountVec);
-    if (errCode == ERR_OK) {
-        WriteOsAccountInfoVector(osAccountInfos, osAccountVec);
+    if (errCode == ERR_OK && !WriteOsAccountInfoVector(osAccountInfos, osAccountVec)) {
+        ACCOUNT_LOGE("WriteOsAccountInfoVector failed, please check osAccountInfos");
+        return IPC_STUB_WRITE_PARCEL_ERR;
     }
     return errCode;
 }
@@ -1991,9 +1995,10 @@ ErrCode OsAccountManagerService::CheckLocalIdRestricted(int32_t localId)
 ErrCode OsAccountManagerService::CallbackEnter([[maybe_unused]] uint32_t code)
 {
 #ifdef HICOLLIE_ENABLE
-    AccountTimer timer(false);
     if (WATCH_DOG_WHITE_LIST.find(code) == WATCH_DOG_WHITE_LIST.end()) {
-        timer.Init();
+        g_timerId =
+            HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, TIMEOUT,
+            nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
     }
 #endif // HICOLLIE_ENABLE
     return ERR_OK;
@@ -2001,6 +2006,11 @@ ErrCode OsAccountManagerService::CallbackEnter([[maybe_unused]] uint32_t code)
 
 ErrCode OsAccountManagerService::CallbackExit([[maybe_unused]] uint32_t code, [[maybe_unused]] int32_t result)
 {
+#ifdef HICOLLIE_ENABLE
+    if (WATCH_DOG_WHITE_LIST.find(code) == WATCH_DOG_WHITE_LIST.end()) {
+        HiviewDFX::XCollie::GetInstance().CancelTimer(g_timerId);
+    }
+#endif // HICOLLIE_ENABLE
     return ERR_OK;
 }
 }  // namespace AccountSA

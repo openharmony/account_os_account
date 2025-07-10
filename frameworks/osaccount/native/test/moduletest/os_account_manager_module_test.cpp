@@ -1020,6 +1020,14 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest036, TestSize.Lev
     // after ohos account logout
     ret = OsAccountManager::GetDistributedVirtualDeviceId(deviceId);
     EXPECT_EQ(ret, ERR_OK);
+
+    uint64_t tokenID;
+    ASSERT_TRUE(AllocPermission({}, tokenID));
+    setuid(commonOsAccountInfo.GetLocalId() * UID_TRANSFORM_DIVISOR);
+    ret = OsAccountManager::GetDistributedVirtualDeviceId(deviceId);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    setuid(ROOT_UID);
+    ASSERT_TRUE(RecoveryPermission(tokenID));
 }
 
 /**
