@@ -347,7 +347,6 @@ class THGetEnrolledIdCallback : public AccountSA::GetEnrolledIdCallback {
             } else {
                 int32_t jsErrCode = AccountIAMConvertToJSErrCode(this->errorCode_);
                 taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-                return;
             }
             cv_.notify_one();
         }
