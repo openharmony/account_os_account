@@ -174,10 +174,6 @@ interface AccountManager {
     @gen_promise("getEnabledOsAccountConstraints")
     GetEnabledOsAccountConstraintsSync(localId: i32): Array<String>;
 
-    @gen_promise("createOsAccountForDomain")
-    CreateOsAccountForDomainWithOpts(type: OsAccountType, domainInfo: DomainAccountInfo,
-        options: Optional<CreateOsAccountForDomainOptions>): OsAccountInfo;
-
     @gen_promise("getOsAccountDomainInfo")
     GetOsAccountDomainInfoSync(localId: i32): DomainAccountInfo;
 
