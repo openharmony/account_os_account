@@ -602,8 +602,8 @@ private:
 AccountSA::DomainAccountInfo ConvertToDomainAccountInfoInner(const ohos::account::osAccount::DomainAccountInfo
     &domainAccountInfo)
 {
-    AccountSA::DomainAccountInfo domainAccountInfoInner(std::string(domainAccountInfo.domain.c_str()),
-                                                        std::string(domainAccountInfo.accountName.c_str()));
+    AccountSA::DomainAccountInfo domainAccountInfoInner(domainAccountInfo.domain.c_str(),
+                                                        domainAccountInfo.accountName.c_str());
     if (domainAccountInfo.accountId.has_value()) {
         domainAccountInfoInner.accountId_ = domainAccountInfo.accountId.value();
     }
@@ -1158,8 +1158,7 @@ public:
         if (!isSystemApp) {
             taihe::set_business_error(ERR_JS_IS_NOT_SYSTEM_APP, ConvertToJsErrMsg(ERR_JS_IS_NOT_SYSTEM_APP));
         }
-        int32_t result = 0;
-        return result;
+        return 0;
     }
 
     int32_t GetAvailableStatusSync(AuthType authType, AuthTrustLevel authTrustLevel)
