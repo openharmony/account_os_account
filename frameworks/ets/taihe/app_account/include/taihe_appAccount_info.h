@@ -22,47 +22,8 @@
 #include "ani_common_want.h"
 #include "app_account_authenticator_callback_stub.h"
 
-#include "app_account_authenticator_stub.h"
-#include "app_account_authenticator_callback_stub.h"
-#include "app_account_common.h"
-#include "app_account_manager.h"
-
-using active_callback = taihe::callback_view<void(taihe::array_view<ohos::account::appAccount::AppAccountInfo>)>;
-
 namespace OHOS {
 namespace AccountSA {
-
-struct AsyncContextForSubscribe;
-class SubscriberPtr;
-
-const char TYPE_CHANGE[] = "change";
-
-struct AsyncContextForUnsubscribe {
-    std::string type;
-    std::vector<std::shared_ptr<AccountSA::SubscriberPtr>> subscribers = {nullptr};
-    AccountSA::AppAccountManager *appAccountManager = nullptr;
-    size_t argc = 0;
-};
-
-struct AsyncContextForSubscribe {
-    std::string type;
-    std::vector<std::string> owners;
-    AccountSA::AppAccountManager *appAccountManager = nullptr;
-    std::shared_ptr<SubscriberPtr> subscriber = nullptr;
-};
-
-class SubscriberPtr : public AccountSA::AppAccountSubscriber {
-public:
-    explicit SubscriberPtr(const AccountSA::AppAccountSubscribeInfo &subscribeInfo,
-        active_callback callback);
-    ~SubscriberPtr() override;
-    void OnAccountsChanged(const std::vector<AccountSA::AppAccountInfo> &accounts) override;
-
-public:
-    std::mutex mutex_;
-    bool isDone = false;
-    active_callback callback_;
-};
 
 struct AuthenticatorCallbackParam {
     int32_t resultCode = -1;

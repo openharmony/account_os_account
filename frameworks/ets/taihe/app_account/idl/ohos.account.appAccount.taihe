@@ -193,13 +193,4 @@ interface AppAccountManager {
     @gen_async("deleteCredential")
     @gen_promise("deleteCredential")
     DeleteCredentialSync(name: String, credentialType: String);
-
-    @overload("on")
-    OnSync(type: String, owners: Array<String>, Callback: (data: Array<AppAccountInfo>) => void): void;
-
-    @overload("off")
-    OffSync(type: String): void;
-
-    @overload("off")
-    OffSyncTaihe(type: String, Callback: (data: Array<AppAccountInfo>) => void): void;
 }
