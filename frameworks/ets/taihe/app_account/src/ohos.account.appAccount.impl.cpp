@@ -35,7 +35,7 @@ using OHOS::AccountSA::ACCOUNT_LABEL;
 
 AppAccountInfo ConvertAppAccountInfo(AccountSA::AppAccountInfo& innerInfo)
 {
-    return AppAccountInfo{
+    return AppAccountInfo {
         .owner = taihe::string(innerInfo.GetOwner().c_str()),
         .name = taihe::string(innerInfo.GetName().c_str()),
     };
