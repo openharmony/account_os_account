@@ -49,7 +49,7 @@ public:
     }
 
     std::int32_t SetOsAccountDistributedInfo(
-        const int32_t localId, const OhosAccountInfo& ohosAccountInfo, const std::string& eventStr) override
+        int32_t localId, const OhosAccountInfo& ohosAccountInfo, const std::string& eventStr) override
     {
         return 0;
     }

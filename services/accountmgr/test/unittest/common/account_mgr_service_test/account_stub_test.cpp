@@ -21,9 +21,11 @@
 #include "account_mgr_service.h"
 #include "account_stub.h"
 #undef private
+#include "account_info.h"
 #include "account_test_common.h"
 #include "iaccount.h"
 #include "ipc_skeleton.h"
+#include "os_account_manager.h"
 #include "parcel.h"
 #include "token_setproc.h"
 #include "want.h"
@@ -40,6 +42,11 @@ const std::string TEST_ACCOUNT_UID = "TestAccountUid";
 const std::string INVALID_ACCOUNT_EVENT = "InvalidAccountEvent";
 const std::string TEST_BUNDLE_NAME = "TestBundleName";
 const int32_t INVALID_USERID = -1;
+const std::string TEST_NICKNAME = "NickName_Test";
+const std::string TEST_AVATAR = "Avatar_Test";
+const std::string KEY_ACCOUNT_INFO_SCALABLEDATA = "age";
+std::string g_eventLogin = OHOS_ACCOUNT_EVENT_LOGIN;
+const std::string STRING_TEST_NAME = "test_account_name";
 } // namespace
 
 class AccountStubModuleTest : public testing::Test {
@@ -48,7 +55,7 @@ public:
     static void TearDownTestCase(void);
     void SetUp();
     void TearDown();
-    sptr<AccountMgrService> accountServie_ = nullptr;
+    sptr<AccountMgrService> accountService_ = nullptr;
 };
 
 void AccountStubModuleTest::SetUpTestCase(void) {}
@@ -64,8 +71,8 @@ void AccountStubModuleTest::SetUp(void) __attribute__((no_sanitize("cfi")))
     string testCaseName = string(testinfo->name());
     ACCOUNT_LOGI("[SetUp] %{public}s start", testCaseName.c_str());
 
-    accountServie_ = new (std::nothrow) AccountMgrService();
-    ASSERT_NE(accountServie_, nullptr);
+    accountService_ = new (std::nothrow) AccountMgrService();
+    ASSERT_NE(accountService_, nullptr);
 }
 
 void AccountStubModuleTest::TearDown(void) {}
@@ -82,7 +89,7 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_UpdateOhosAccountInfo_001,
     std::string accountName = "";
     std::string uid = "";
     std::string eventStr = "";
-    EXPECT_EQ(accountServie_->UpdateOhosAccountInfo(accountName, uid, eventStr),
+    EXPECT_EQ(accountService_->UpdateOhosAccountInfo(accountName, uid, eventStr),
         ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     setuid(ROOT_UID);
 }
@@ -101,7 +108,7 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_UpdateOhosAccountInfo_002,
     std::string accountName = "";
     std::string uid = TEST_ACCOUNT_UID;
     std::string eventStr = INVALID_ACCOUNT_EVENT;
-    EXPECT_EQ(accountServie_->UpdateOhosAccountInfo(accountName, uid, eventStr), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(accountService_->UpdateOhosAccountInfo(accountName, uid, eventStr), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     SetSelfTokenID(selfTokenid);
 }
 
@@ -119,7 +126,7 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_UpdateOhosAccountInfo_003,
     std::string accountName = TEST_ACCOUNT_NAME;
     std::string uid = "";
     std::string eventStr = INVALID_ACCOUNT_EVENT;
-    EXPECT_EQ(accountServie_->UpdateOhosAccountInfo(accountName, uid, eventStr), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(accountService_->UpdateOhosAccountInfo(accountName, uid, eventStr), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     SetSelfTokenID(selfTokenid);
 }
 
@@ -137,7 +144,7 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_UpdateOhosAccountInfo_004,
     std::string accountName = TEST_ACCOUNT_NAME;
     std::string uid = TEST_ACCOUNT_UID;
     std::string eventStr = INVALID_ACCOUNT_EVENT;
-    EXPECT_EQ(accountServie_->UpdateOhosAccountInfo(accountName, uid, eventStr), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(accountService_->UpdateOhosAccountInfo(accountName, uid, eventStr), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     SetSelfTokenID(selfTokenid);
 }
 
@@ -152,7 +159,7 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_SetOhosAccountInfo_001, Te
     setuid(TEST_UID);
     OhosAccountInfo ohosAccountInfo;
     std::string eventStr = INVALID_ACCOUNT_EVENT;
-    EXPECT_EQ(accountServie_->SetOhosAccountInfo(ohosAccountInfo, eventStr),
+    EXPECT_EQ(accountService_->SetOhosAccountInfo(ohosAccountInfo, eventStr),
         ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     setuid(ROOT_UID);
 }
@@ -172,7 +179,7 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_SetOhosAccountInfo_003, Te
     OhosAccountInfo info;
     info.nickname_ = std::string(Constants::NICKNAME_MAX_SIZE + 1, '#');
     std::string eventStr = INVALID_ACCOUNT_EVENT;
-    EXPECT_EQ(accountServie_->SetOhosAccountInfo(info, eventStr),
+    EXPECT_EQ(accountService_->SetOhosAccountInfo(info, eventStr),
         ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     SetSelfTokenID(selfTokenid);
 }
@@ -189,8 +196,8 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_SetOsAccountDistributedInf
     int32_t localId = INVALID_USERID;
     OhosAccountInfo ohosAccountInfo;
     std::string eventStr = INVALID_ACCOUNT_EVENT;
-    EXPECT_NE(accountServie_->SetOsAccountDistributedInfo(localId, ohosAccountInfo, eventStr),
-        ERR_NONE);
+    EXPECT_EQ(accountService_->SetOsAccountDistributedInfo(localId, ohosAccountInfo, eventStr),
+        ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     setuid(ROOT_UID);
 }
 
@@ -206,7 +213,7 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_QueryOhosAccountInfo_001, 
     std::string bundleName = TEST_ACCOUNT_NAME;
     std::string uid = TEST_ACCOUNT_UID;
     int32_t status = INVALID_USERID;
-    EXPECT_EQ(accountServie_->QueryOhosAccountInfo(bundleName, uid, status),
+    EXPECT_EQ(accountService_->QueryOhosAccountInfo(bundleName, uid, status),
         ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     setuid(ROOT_UID);
 }
@@ -221,7 +228,7 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_GetOhosAccountInfo_001, Te
 {
     setuid(TEST_UID);
     OhosAccountInfo info;
-    EXPECT_EQ(accountServie_->GetOhosAccountInfo(info), ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    EXPECT_EQ(accountService_->GetOhosAccountInfo(info), ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     setuid(ROOT_UID);
 }
 
@@ -236,7 +243,7 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_GetOsAccountDistributedInf
     setuid(TEST_UID);
     int32_t localId = INVALID_USERID;
     OhosAccountInfo info;
-    EXPECT_EQ(accountServie_->GetOsAccountDistributedInfo(localId, info), ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    EXPECT_EQ(accountService_->GetOsAccountDistributedInfo(localId, info), ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     setuid(ROOT_UID);
 }
 
@@ -253,7 +260,7 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_GetOsAccountDistributedInf
     std::string accountName = TEST_ACCOUNT_NAME;
     std::string uid = TEST_ACCOUNT_UID;
     int32_t status = INVALID_USERID;
-    EXPECT_EQ(accountServie_->QueryOsAccountDistributedInfo(localId, accountName, uid, status),
+    EXPECT_EQ(accountService_->QueryOsAccountDistributedInfo(localId, accountName, uid, status),
         ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     setuid(ROOT_UID);
 }
@@ -270,7 +277,7 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_QueryDistributedVirtualDev
     std::string bundleName = TEST_ACCOUNT_NAME;
     int32_t localId = INVALID_USERID;
     std::string dvid = TEST_ACCOUNT_UID;
-    EXPECT_EQ(accountServie_->QueryDistributedVirtualDeviceId(bundleName, localId, dvid),
+    EXPECT_EQ(accountService_->QueryDistributedVirtualDeviceId(bundleName, localId, dvid),
         ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     setuid(ROOT_UID);
 }
@@ -290,7 +297,31 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_QueryDistributedVirtualDev
     std::string bundleName = TEST_ACCOUNT_NAME;
     int32_t localId = INVALID_USERID;
     std::string dvid = "";
-    EXPECT_EQ(accountServie_->QueryDistributedVirtualDeviceId(bundleName, localId, dvid),
+    EXPECT_EQ(accountService_->QueryDistributedVirtualDeviceId(bundleName, localId, dvid),
         ERR_ACCOUNT_DATADEAL_NOT_READY);
     SetSelfTokenID(selfTokenid);
+}
+
+/**
+ * @tc.name: SubscribeDistributedAccountEvent_001
+ * @tc.desc: Test SubscribeDistributedAccountEvent with eventListener is null.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AccountStubModuleTest, SubscribeDistributedAccountEvent_001, TestSize.Level3)
+{
+    sptr<IRemoteObject> eventListener = nullptr;
+    EXPECT_EQ(accountService_->SubscribeDistributedAccountEvent(TEST_UID, eventListener),
+        ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
+}
+
+/**
+ * @tc.name: UnSubscribeDistributedAccountEvent_001
+ * @tc.desc: Test UnSubscribeDistributedAccountEvent with eventListener is null.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AccountStubModuleTest, UnSubscribeDistributedAccountEvent_001, TestSize.Level3)
+{
+    sptr<IRemoteObject> eventListener = nullptr;
+    EXPECT_EQ(accountService_->UnsubscribeDistributedAccountEvent(TEST_UID, eventListener),
+        ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }

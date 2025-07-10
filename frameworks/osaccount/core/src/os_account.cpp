@@ -738,7 +738,7 @@ ErrCode OsAccount::SubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber>
         return result;
     }
     result = proxy->SubscribeOsAccount(listenerManager_->GetTotalSubscribeInfo(), listenerManager_);
-    ConvertToAccountErrCode(result);
+    result = ConvertToAccountErrCode(result);
     if (result != ERR_OK) {
         listenerManager_->RemoveRecord(subscriber);
         ACCOUNT_LOGE("SubscribeOsAccount failed, errCode=%{public}d", result);
@@ -773,7 +773,7 @@ ErrCode OsAccount::UnsubscribeOsAccount(const std::shared_ptr<OsAccountSubscribe
     }
 
     result = proxy->UnsubscribeOsAccount(listenerManager_);
-    ConvertToAccountErrCode(result);
+    result = ConvertToAccountErrCode(result);
     if (result != ERR_OK) {
         listenerManager_->InsertRecord(subscriber);
         return result;
