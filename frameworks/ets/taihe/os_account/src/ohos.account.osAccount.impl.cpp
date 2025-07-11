@@ -878,14 +878,8 @@ public:
         std::shared_ptr<AccountSA::IDMCallback> idmCallbackPtr = std::make_shared<TaiheIDMCallbackAdapter>(callback);
         UserIam::UserAuth::Attributes emptyResult;
 
-        if (!info.accountId.has_value()) {
-            ACCOUNT_LOGE("AddCredential failed: accountId is missing.");
-            idmCallbackPtr->OnResult(ERR_JS_PARAMETER_ERROR, emptyResult);
-            return;
-        }
-
-        int32_t userId = info.accountId.value();
-        if (!AccountSA::IsAccountIdValid(userId)) {
+        int32_t userId = info.accountId.value_or(-1);
+        if (info.accountId.has_value() && !AccountSA::IsAccountIdValid(userId)) {
             ACCOUNT_LOGE("AddCredential failed: accountId %{public}d is invalid.", userId);
             idmCallbackPtr->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, emptyResult);
             return;
@@ -1134,21 +1128,34 @@ ExecutorProperty ConvertToExecutorPropertyTH(
                     ConvertToAuthSubTypeTH(static_cast<AccountSA::PinSubType>(propertyInfoInner.authSubType));
                 break;
             case AccountSA::Attributes::AttributeKey::ATTR_REMAIN_TIMES:
-                propertyTH.remainTimes = optional<int32_t>(std::in_place_t{}, propertyInfoInner.remainTimes);
+                if (propertyInfoInner.remainTimes.has_value()) {
+                    propertyTH.remainTimes = optional<int32_t>(
+                        std::in_place_t{}, propertyInfoInner.remainTimes.value());
+                }
                 break;
             case AccountSA::Attributes::AttributeKey::ATTR_FREEZING_TIME:
-                propertyTH.freezingTime = optional<int32_t>(std::in_place_t{}, propertyInfoInner.freezingTime);
+                if (propertyInfoInner.freezingTime.has_value()) {
+                    propertyTH.freezingTime = optional<int32_t>(
+                        std::in_place_t{}, propertyInfoInner.freezingTime.value());
+                }
                 break;
             case AccountSA::Attributes::AttributeKey::ATTR_ENROLL_PROGRESS:
-                propertyTH.enrollmentProgress =
-                    optional<string>(std::in_place_t{}, propertyInfoInner.enrollmentProgress);
+                if (propertyInfoInner.enrollmentProgress.has_value()) {
+                    propertyTH.enrollmentProgress =
+                        optional<string>(std::in_place_t{}, propertyInfoInner.enrollmentProgress.value());
+                }
                 break;
             case AccountSA::Attributes::AttributeKey::ATTR_SENSOR_INFO:
-                propertyTH.sensorInfo = optional<string>(std::in_place_t{}, propertyInfoInner.sensorInfo);
+                if (propertyInfoInner.sensorInfo.has_value()) {
+                    propertyTH.sensorInfo = optional<string>(
+                        std::in_place_t{}, propertyInfoInner.sensorInfo.value());
+                }
                 break;
             case AccountSA::Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION:
-                propertyTH.nextPhaseFreezingTime =
-                    optional<int32_t>(std::in_place_t{}, propertyInfoInner.nextPhaseFreezingTime);
+                if (propertyInfoInner.nextPhaseFreezingTime.has_value()) {
+                    propertyTH.nextPhaseFreezingTime =
+                        optional<int32_t>(std::in_place_t{}, propertyInfoInner.nextPhaseFreezingTime.value());
+                }
                 break;
             default:
                 break;
@@ -1275,8 +1282,60 @@ public:
 
     explicit THGetPropCallback(std::vector<UserIam::UserAuth::Attributes::AttributeKey> keys) : keys(keys){};
 
+private:
+    void ProcessRemainTimes(const UserIam::UserAuth::Attributes &extraInfo,
+                           AccountJsKit::ExecutorProperty &propertyInfo)
+    {
+        int32_t tempValue;
+        if (extraInfo.GetInt32Value(
+            AccountSA::Attributes::AttributeKey::ATTR_REMAIN_TIMES, tempValue)) {
+            propertyInfo.remainTimes = tempValue;
+        }
+    }
+
+    void ProcessFreezingTime(const UserIam::UserAuth::Attributes &extraInfo,
+                            AccountJsKit::ExecutorProperty &propertyInfo)
+    {
+        int32_t tempValue;
+        if (extraInfo.GetInt32Value(
+            AccountSA::Attributes::AttributeKey::ATTR_FREEZING_TIME, tempValue)) {
+            propertyInfo.freezingTime = tempValue;
+        }
+    }
+
+    void ProcessEnrollProgress(const UserIam::UserAuth::Attributes &extraInfo,
+                              AccountJsKit::ExecutorProperty &propertyInfo)
+    {
+        std::string tempValue;
+        if (extraInfo.GetStringValue(
+            AccountSA::Attributes::AttributeKey::ATTR_ENROLL_PROGRESS, tempValue)) {
+            propertyInfo.enrollmentProgress = tempValue;
+        }
+    }
+
+    void ProcessSensorInfo(const UserIam::UserAuth::Attributes &extraInfo,
+                          AccountJsKit::ExecutorProperty &propertyInfo)
+    {
+        std::string tempValue;
+        if (extraInfo.GetStringValue(
+            AccountSA::Attributes::AttributeKey::ATTR_SENSOR_INFO, tempValue)) {
+            propertyInfo.sensorInfo = tempValue;
+        }
+    }
+
+    void ProcessNextPhaseFreezingTime(const UserIam::UserAuth::Attributes &extraInfo,
+                                     AccountJsKit::ExecutorProperty &propertyInfo)
+    {
+        int32_t tempValue;
+        if (extraInfo.GetInt32Value(
+            AccountSA::Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION, tempValue)) {
+            propertyInfo.nextPhaseFreezingTime = tempValue;
+        }
+    }
+
+public:
     void GetExecutorPropertys(const UserIam::UserAuth::Attributes &extraInfo,
-        AccountJsKit::ExecutorProperty &propertyInfo)
+                             AccountJsKit::ExecutorProperty &propertyInfo)
     {
         for (const auto &key : keys) {
             switch (key) {
@@ -1285,24 +1344,19 @@ public:
                         propertyInfo.authSubType);
                     break;
                 case AccountSA::Attributes::AttributeKey::ATTR_REMAIN_TIMES:
-                    extraInfo.GetInt32Value(AccountSA::Attributes::AttributeKey::ATTR_REMAIN_TIMES,
-                        propertyInfo.remainTimes);
+                    ProcessRemainTimes(extraInfo, propertyInfo);
                     break;
                 case AccountSA::Attributes::AttributeKey::ATTR_FREEZING_TIME:
-                    extraInfo.GetInt32Value(AccountSA::Attributes::AttributeKey::ATTR_FREEZING_TIME,
-                        propertyInfo.freezingTime);
+                    ProcessFreezingTime(extraInfo, propertyInfo);
                     break;
                 case AccountSA::Attributes::AttributeKey::ATTR_ENROLL_PROGRESS:
-                    extraInfo.GetStringValue(AccountSA::Attributes::AttributeKey::ATTR_ENROLL_PROGRESS,
-                        propertyInfo.enrollmentProgress);
+                    ProcessEnrollProgress(extraInfo, propertyInfo);
                     break;
                 case AccountSA::Attributes::AttributeKey::ATTR_SENSOR_INFO:
-                    extraInfo.GetStringValue(AccountSA::Attributes::AttributeKey::ATTR_SENSOR_INFO,
-                        propertyInfo.sensorInfo);
+                    ProcessSensorInfo(extraInfo, propertyInfo);
                     break;
                 case AccountSA::Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION:
-                    extraInfo.GetInt32Value(AccountSA::Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION,
-                        propertyInfo.nextPhaseFreezingTime);
+                    ProcessNextPhaseFreezingTime(extraInfo, propertyInfo);
                     break;
                 default:
                     break;

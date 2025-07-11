@@ -30,30 +30,6 @@ using namespace OHOS;
 namespace {
 using OHOS::AccountSA::ACCOUNT_LABEL;
 
-AccountSA::OhosAccountInfo ConvertToOhosAccountInfoTH(const DistributedInfo &info)
-{
-    std::string name(info.name.data(), info.name.size());
-    std::string id(info.id.data(), info.id.size());
-    std::int32_t status = info.status->get_value();
-    std::string event(info.event.data(), info.event.size());
-    AccountSA::OhosAccountInfo ret;
-    ret.name_ = name;
-    ret.uid_ = id;
-    ret.status_ = status;
-    ret.name_ = name;
-    if (info.nickname.has_value()) {
-        ret.nickname_ = std::string(info.nickname.value().data(), info.nickname.value().size());
-    }
-    if (info.avatar.has_value()) {
-        ret.avatar_ = std::string(info.avatar.value().data(), info.avatar.value().size());
-    }
-    if (info.scalableData.has_value()) {
-        AAFwk::Want* wantPtr = reinterpret_cast<AAFwk::Want*>(info.scalableData.value());
-        auto params = wantPtr->GetParams();
-        ret.scalableData_.SetParams(params);
-    }
-    return ret;
-}
 class DistributedAccountAbilityImpl {
 public:
     DistributedAccountAbilityImpl() {}
