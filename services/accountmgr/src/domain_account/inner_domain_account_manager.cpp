@@ -333,10 +333,10 @@ void InnerDomainAccountManager::LoaderLib(const std::string &path, const std::st
     libHandle_ = dlopen(soPath.c_str(), RTLD_LAZY);
     if (libHandle_ == nullptr) {
         const char *dlsym_error = dlerror();
-        ACCOUNT_LOGE("Call dlopen failed error=%{public}s", dlsym_error);
         if (dlsym_error == NULL) {
             dlsym_error = DLOPEN_ERR;
         }
+        ACCOUNT_LOGE("Call dlopen failed error=%{public}s", dlsym_error);
         ReportOsAccountOperationFail(
             ADMIN_USERID, OPERATOR_LOAD_LIB, ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, dlsym_error);
         return;
