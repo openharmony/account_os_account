@@ -19,6 +19,7 @@
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "ani_common_want.h"
+#include "bool_wrapper.h"
 #include "domain_account_client.h"
 #include "iam_common_defines.h"
 #include "account_error_no.h"
@@ -1434,8 +1435,8 @@ public:
     int32_t errorCode_ = -1;
     std::mutex mutex_;
     std::condition_variable cv_;
-    AccountSA::DomainAccountInfo domainAccountInfo_;
     bool onGetAccountInfoCalled_ = false;
+    AAFwk::WantParams getAccountInfoParams_;
 
     void OnResult(int32_t errCode, Parcel &parcel)
     {
@@ -1446,13 +1447,12 @@ public:
         this->onGetAccountInfoCalled_ = true;
         this->errorCode_ = errCode;
         if (errCode == ERR_OK) {
-            std::shared_ptr<AccountSA::DomainAccountInfo>
-                domainAccountInfoParcel(AccountSA::DomainAccountInfo::Unmarshalling(parcel));
-            if (domainAccountInfoParcel == nullptr) {
-                ACCOUNT_LOGE("failed to unmarshalling OsAccountInfo");
+            std::shared_ptr<AAFwk::WantParams> parameters (AAFwk::WantParams::Unmarshalling(parcel));
+            if (parameters == nullptr) {
+                ACCOUNT_LOGE("Parameters unmarshalling error");
                 errCode = ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
             } else {
-                this->domainAccountInfo_ = *domainAccountInfoParcel;
+                this->getAccountInfoParams_ = *parameters;
             }
         }
         cv_.notify_one();
@@ -1494,12 +1494,20 @@ DomainAccountInfo GetAccountInfoSync(GetDomainAccountInfoOptions const& options)
         return emptyDomainAccountInfo;
     }
     DomainAccountInfo domainAccountInfo = DomainAccountInfo {
-        .domain = getAccountInfoCallback->domainAccountInfo_.domain_,
-        .accountName = getAccountInfoCallback->domainAccountInfo_.accountName_,
-        .accountId = optional<string>(std::in_place, getAccountInfoCallback->domainAccountInfo_.accountId_),
-        .isAuthenticated = optional<bool>(std::in_place, getAccountInfoCallback->domainAccountInfo_.isAuthenticated),
-        .serverConfigId = optional<string>(std::in_place, getAccountInfoCallback->domainAccountInfo_.serverConfigId_),
+        .domain = getAccountInfoCallback->getAccountInfoParams_.GetStringParam("domain"),
+        .accountName = getAccountInfoCallback->getAccountInfoParams_.GetStringParam("accountName"),
+        .accountId = optional<string>(std::in_place,
+            getAccountInfoCallback->getAccountInfoParams_.GetStringParam("accountId").c_str()),
+        .isAuthenticated = optional<bool>(std::in_place,
+            getAccountInfoCallback->getAccountInfoParams_.GetIntParam("isAuthenticated", 0)),
+        .serverConfigId = optional<string>(std::in_place,
+            getAccountInfoCallback->getAccountInfoParams_.GetStringParam("serverConfigId").c_str()),
     };
+    auto value = getAccountInfoCallback->getAccountInfoParams_.GetParam("isAuthenticated");
+    OHOS::AAFwk::IBoolean *bo = OHOS::AAFwk::IBoolean::Query(value);
+    if (bo != nullptr) {
+        domainAccountInfo.isAuthenticated =  optional<bool>(std::in_place, OHOS::AAFwk::Boolean::Unbox(bo));
+    }
     return domainAccountInfo;
 }
 
