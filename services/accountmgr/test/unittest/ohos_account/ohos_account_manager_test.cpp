@@ -459,3 +459,20 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest015, TestSize.Level3)
     result = OhosAccountManager::GetInstance().ExtractFirstUtf8Char(input);
     EXPECT_EQ(result, ""); // An empty string should be returned
 }
+
+/**
+ * @tc.name: OhosAccountManagerTest015
+ * @tc.desc: test GetCurOhosAccountAndCheckMatch.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest016, TestSize.Level3)
+{
+    std::string input = "";
+    AccountInfo info;
+    std::string inputUid;
+    bool result = OhosAccountManager::GetInstance().GetCurOhosAccountAndCheckMatch(info, input, input, 100);
+    EXPECT_EQ(result, false);
+    result = OhosAccountManager::GetInstance().GetCurOhosAccountAndCheckMatch(info, TEST_NAME, TEST_NAME, 100);
+    EXPECT_EQ(result, false);
+}

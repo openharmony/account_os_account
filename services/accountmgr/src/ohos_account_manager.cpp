@@ -76,6 +76,15 @@ constexpr size_t UTF8_DOUBLE_BYTE_CHAR_LENGTH = 2;
 constexpr size_t UTF8_TRIPLE_BYTE_CHAR_LENGTH = 3;
 constexpr size_t UTF8_QUAD_BYTE_CHAR_LENGTH = 4;
 const char DEFAULT_ANON_STR[] = "**********";
+constexpr int32_t INTERCEPT_HEAD_PART_LEN_FOR_NAME = 1;
+
+std::string AnonymizeNameStr(const std::string& nameStr)
+{
+    if (nameStr.empty()) {
+        return nameStr;
+    }
+    return nameStr.substr(0, INTERCEPT_HEAD_PART_LEN_FOR_NAME) + DEFAULT_ANON_STR;
+}
 
 bool GetCallerBundleName(std::string &bundleName, bool &isSystemApp)
 {
@@ -781,7 +790,7 @@ bool OhosAccountManager::CheckOhosAccountCanBind(const AccountInfo &currAccountI
     const OhosAccountInfo &newOhosAccountInfo, const std::string &newOhosUid) const
 {
     if (newOhosUid.length() != OHOS_ACCOUNT_UDID_LENGTH) {
-        ACCOUNT_LOGE("newOhosUid invalid length, %{public}s.", newOhosUid.c_str());
+        ACCOUNT_LOGE("newOhosUid invalid length, %{public}u.", newOhosUid.length());
         return false;
     }
 
@@ -840,7 +849,7 @@ bool OhosAccountManager::GetCurOhosAccountAndCheckMatch(AccountInfo &curAccountI
     if (inputName != curAccountInfo.ohosAccountInfo_.name_ ||
         ohosAccountUid != curAccountInfo.ohosAccountInfo_.uid_) {
         ACCOUNT_LOGE("account name %{public}s or ohosAccountUid %{public}s mismatch, calling user %{public}d.",
-            inputName.c_str(), ohosAccountUid.c_str(), callingUserId);
+            AnonymizeNameStr(inputName).c_str(), AnonymizeNameStr(ohosAccountUid).c_str(), callingUserId);
         return false;
     }
     return true;

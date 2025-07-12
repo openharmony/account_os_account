@@ -1960,7 +1960,7 @@ static void SetAppRecovery(bool &isAppRecovery,
 
 bool IInnerOsAccountManager::IsLoggedInAccountsOversize()
 {
-    uint32_t logginAccountSize = loggedInAccounts_.Size();
+    uint32_t logginAccountSize = static_cast<uint32_t>(loggedInAccounts_.Size());
 #ifdef ENABLE_U1_ACCOUNT
     bool isLoggedIn = false;
     loggedInAccounts_.Find(Constants::U1_ID, isLoggedIn);
