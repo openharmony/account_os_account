@@ -134,12 +134,10 @@ ErrCode OsAccountControlFileManager::GetOsAccountConfig(OsAccountConfig &config)
 {
     std::string cfgPath = DEFAULT_OS_ACCOUNT_CONFIG_FILE;
 #ifdef HAS_CONFIG_POLICY_PART
-    CfgFiles *cfgFiles = GetCfgFiles(OS_ACCOUNT_CONFIG_FILE);
-    if (cfgFiles != nullptr) {
-        if (cfgFiles->paths[0] != nullptr) {
-            cfgPath = cfgFiles->paths[0];
-        }
-        FreeCfgFiles(cfgFiles);
+    char buf[MAX_PATH_LEN];
+    char *path = GetOneCfgFile(OS_ACCOUNT_CONFIG_FILE, buf, MAX_PATH_LEN);
+    if (path != nullptr && *path != '\0') {
+        cfgPath = path;
     }
 #endif
     std::string configStr;
