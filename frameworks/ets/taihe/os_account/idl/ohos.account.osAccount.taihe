@@ -1,0 +1,409 @@
+/*
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@!namespace("@ohos.account.osAccount", "osAccount")
+
+use ohos.account.distributedAccount as distributedAccount;
+
+@!sts_inject("""
+static { loadLibrary("os_account_taihe_native.z") }
+""")
+
+function getAccountManager(): AccountManager;
+
+interface AccountManager {
+    @gen_async("isMainOsAccount")
+    @gen_promise("isMainOsAccount")
+    IsMainOsAccountSync():bool;
+
+    @gen_async("getOsAccountProfilePhoto")
+    @gen_promise("getOsAccountProfilePhoto")
+    GetOsAccountProfilePhotoSync(localId: i32): String;
+
+    @gen_promise("getOsAccountType")
+    @gen_async("getOsAccountType")
+    GetOsAccountTypeSync(): OsAccountType;
+    @gen_promise("getOsAccountType")
+    GetOsAccountTypeWithIdSync(localId: i32): OsAccountType;
+
+    on(type: String,name: String, callback: (id:i32) => void): void;
+
+    off(type: String,name: String, callback: Optional<(id:i32) => void>): void;
+
+    @on_off("switching")
+    OnSwitching(callback: (data:OsAccountSwitchEventData) => void): void;
+    @on_off("switched")
+    OnSwitched(callback: (data:OsAccountSwitchEventData) => void): void;
+
+    @on_off("switching")
+    OffSwitching(callback: Optional<(data:OsAccountSwitchEventData) => void>): void;
+    @on_off("switched")
+    OffSwitched(callback: Optional<(data:OsAccountSwitchEventData) => void>): void;
+
+    @gen_async("activateOsAccount")
+    @gen_promise("activateOsAccount")
+    ActivateOsAccountSync(localId: i32): void;
+
+    @gen_async("createOsAccount")
+    CreateOsAccountSync(localName: String, type: OsAccountType): OsAccountInfo;
+
+    @gen_promise("createOsAccount")
+    CreateOsAccountWithOptionSync(localName: String, type: OsAccountType, options: Optional<CreateOsAccountOptions>): OsAccountInfo;
+
+    @gen_promise("deactivateOsAccount")
+    DeactivateOsAccountSync(localId: i32): void;
+
+    @gen_async("getActivatedOsAccountLocalIds")
+    @gen_promise("getActivatedOsAccountLocalIds")
+    GetActivatedOsAccountLocalIdsSync(): Array<i32>;
+
+    @gen_promise("queryOsAccount")
+    QueryOsAccountSync(): OsAccountInfo;
+
+    @gen_promise("getForegroundOsAccountLocalId")
+    GetForegroundOsAccountLocalIdSync(): i32;
+
+    @gen_async("getOsAccountLocalId")
+    @gen_promise("getOsAccountLocalId")
+    GetOsAccountLocalIdSync(): i32;
+
+    @gen_async("getOsAccountLocalIdForUid")
+    @gen_promise("getOsAccountLocalIdForUid")
+    GetOsAccountLocalIdForUidSync(uid: i32): i32;
+
+    @gen_promise("isOsAccountUnlocked")
+    IsOsAccountUnlockedSync(): bool;
+
+    @gen_promise("isOsAccountUnlocked")
+    IsOsAccountUnlockedById(localId: i32): bool;
+
+    @gen_async("queryAllCreatedOsAccounts")
+    @gen_promise("queryAllCreatedOsAccounts")
+    QueryAllCreatedOsAccountsSync(): Array<OsAccountInfo>;
+
+    @gen_promise("queryMaxLoggedInOsAccountNumber")
+    QueryMaxLoggedInOsAccountNumberSync(): i32;
+
+    @gen_async("queryOsAccountById")
+    @gen_promise("queryOsAccountById")
+    QueryOsAccountByIdSync(localId: i32): OsAccountInfo;
+}
+
+@class
+interface UserIdentityManager {
+    @gen_async("openSession")
+    OpenSession(): @typedarray Array<u8>;
+
+    @gen_promise("openSession")
+    OpenSessionPromise(accountId:Optional<i32>): @typedarray Array<u8>;
+
+    @overload("closeSession")
+    CloseSession(accountId: Optional<i32>): void;
+
+    @gen_promise("getAuthInfo")
+    @gen_async("getAuthInfo")
+    GetAuthInfoEmpty(): Array<EnrolledCredInfo>;
+
+    @gen_async("getAuthInfo")
+    @gen_promise("getAuthInfo")
+    GetAuthInfoType(authType: AuthType): Array<EnrolledCredInfo>;
+
+    @gen_promise("getAuthInfo")
+    GetAuthInfoWithOptionsSync(options: GetAuthInfoOptions): Array<EnrolledCredInfo>;
+
+    @overload("addCredential")
+    AddCredential(info: CredentialInfo, callback: IIdmCallback): void;
+
+    @overload("updateCredential")
+    UpdateCredential(credentialInfo: CredentialInfo, callback: IIdmCallback): void;
+
+    @overload("delUser")
+    DelUser(token: @arraybuffer Array<u8>, callback: IIdmCallback);
+}
+
+enum AuthType : i32 {
+    INVALID = 0,
+    PIN = 1,
+    FACE = 2,
+    FINGERPRINT = 4,
+    RECOVERY_KEY = 8,
+    PRIVATE_PIN = 16,
+    DOMAIN = 1024
+}
+
+enum AuthSubType : i32 {
+    INVALID = 0,
+    PIN_SIX = 10000,
+    PIN_NUMBER = 10001,
+    PIN_MIXED = 10002,
+    PIN_FOUR = 10003,
+    PIN_PATTERN = 10004,
+    PIN_QUESTION = 10005,
+    FACE_2D = 20000,
+    FACE_3D = 20001,
+    FINGERPRINT_CAPACITIVE = 30000,
+    FINGERPRINT_OPTICAL = 30001,
+    FINGERPRINT_ULTRASONIC = 30002,
+    DOMAIN_MIXED = 10240001
+}
+
+struct CredentialInfo {
+    credType: AuthType;
+    credSubType: AuthSubType;
+    token: @typedarray Array<u8>;
+    accountId: Optional<i32>;
+}
+
+struct RequestResult {
+    credentialId: Optional<@typedarray Array<u8>>;
+}
+
+struct IIdmCallback {
+    onResult: (result: i32, extraInfo: RequestResult) => void;
+    onAcquireInfo: Optional<(module: i32, acquire: u32, extraInfo: @typedarray Array<u8>)=>void>;
+}
+
+enum OsAccountType : u32 {
+    ADMIN = 0,
+    NORMAL = 1,
+    GUEST = 2,
+    PRIVATE = 1024
+}
+
+struct DomainAccountInfo {
+    domain: String;
+    accountName: String;
+    accountId: Optional<String>;
+    isAuthenticated: Optional<bool>;
+    serverConfigId: Optional<String>;
+}
+
+struct OsAccountInfo {
+    localId: i32;
+    localName: String;
+    shortName: Optional<String>;
+    type: OsAccountType;
+    constraints: Array<String>;
+    isUnlocked: bool;
+    photo: String;
+    createTime: i64;
+    lastLoginTime: i64;
+    serialNumber: i64;
+    isActivated: bool;
+    isLoggedIn: Optional<bool>;
+    isCreateCompleted: bool;
+    distributedInfo: distributedAccount.DistributedInfo;
+    domainInfo: DomainAccountInfo;
+}
+
+enum FingerprintTips : u8 {
+    FINGERPRINT_TIP_GOOD = 0,
+    FINGERPRINT_TIP_IMAGER_DIRTY = 1,
+    FINGERPRINT_TIP_INSUFFICIENT = 2,
+    FINGERPRINT_TIP_PARTIAL = 3,
+    FINGERPRINT_TIP_TOO_FAST = 4,
+    FINGERPRINT_TIP_TOO_SLOW = 5,
+    FINGERPRINT_TIP_FINGER_DOWN = 6,
+    FINGERPRINT_TIP_FINGER_UP = 7
+}
+
+enum ResultCode : u8 {
+    SUCCESS = 0,
+    FAIL = 1,
+    GENERAL_ERROR = 2,
+    CANCELED = 3,
+    TIMEOUT = 4,
+    TYPE_NOT_SUPPORT = 5,
+    TRUST_LEVEL_NOT_SUPPORT = 6,
+    BUSY = 7,
+    INVALID_PARAMETERS = 8,
+    LOCKED = 9,
+    NOT_ENROLLED = 10
+}
+
+enum GetPropertyType : u32 {
+    AUTH_SUB_TYPE = 1,
+    REMAIN_TIMES = 2,
+    FREEZING_TIME = 3,
+    ENROLLMENT_PROGRESS = 4,
+    SENSOR_INFO = 5,
+    NEXT_PHASE_FREEZING_TIME = 6
+}
+
+struct GetPropertyRequest {
+    authType: AuthType;
+    keys: Array<GetPropertyType>;
+    accountId: Optional<i32>;
+}
+
+struct OsAccountSwitchEventData {
+    fromAccountId: i32;
+    toAccountId: i32;
+}
+
+struct GetInputDataOptions {
+    challenge: Optional<@typedarray Array<u8>>;
+}
+
+struct CreateOsAccountOptions {
+    shortName: String;
+}
+
+struct GetAuthInfoOptions {
+    authType: Optional<AuthType>;
+    accountId: Optional<i32>;
+}
+
+struct EnrolledCredInfo {
+    credentialId: @typedarray Array<u8>;
+    authType: AuthType;
+    authSubType: AuthSubType;
+    templateId: @typedarray Array<u8>;
+}
+
+interface DomainPlugin {
+    @overload("auth")
+    Auth(domainAccountInfo: DomainAccountInfo, credential: @typedarray Array<u8>, callback: IUserAuthCallback): void;
+}
+
+@class
+interface DomainAccountManager {}
+
+@static("DomainAccountManager")
+@gen_promise("isAuthenticationExpired")
+function IsAuthenticationExpiredSync(domainAccountInfo: DomainAccountInfo): bool;
+
+struct AuthResult {
+    token: Optional<@typedarray Array<u8>>;
+    remainTimes: Optional<i32>;
+    freezingTime: Optional<i32>;
+    nextPhaseFreezingTime: Optional<i32>;
+    credentialId: Optional<@typedarray Array<u8>>;
+    accountId: Optional<i32>;
+    pinValidityPeriod: Optional<i64>;
+}
+
+enum AuthTrustLevel: i32 {
+    ATL1 = 10000,
+    ATL2 = 20000,
+    ATL3 = 30000,
+    ATL4 = 40000
+}
+
+enum AuthIntent: i32 {
+    DEFAULT = 0,
+    UNLOCK = 1,
+    SILENT_AUTH = 2,
+    QUESTION_AUTH = 3,
+}
+
+enum SetPropertyType: i32 {
+    INIT_ALGORITHM = 1
+}
+
+struct SetPropertyRequest {
+    authType: AuthType;
+    key: SetPropertyType;
+    setInfo: @typedarray Array<u8>;
+}
+
+struct RemoteAuthOptions {
+    verifierNetworkId: Optional<String>;
+    collectorNetworkId: Optional<String>;
+    collectorTokenId: Optional<i32>;
+}
+
+struct AuthOptions {
+    accountId: Optional<i32>;
+    authIntent: Optional<AuthIntent>;
+    remoteAuthOptions: Optional<RemoteAuthOptions>;
+}
+
+struct ExecutorProperty {
+    result: i32;
+    authSubType: AuthSubType;
+    remainTimes: Optional<i32>;
+    freezingTime: Optional<i32>;
+    nextPhaseFreezingTime: Optional<i32>;
+    enrollmentProgress: Optional<String>;
+    sensorInfo: Optional<String>;
+}
+
+struct IUserAuthCallback {
+    onResult: (result: i32, extraInfo: AuthResult) => void;
+    onAcquireInfo: Optional<(module: i32, acquire: i32, extraInfo: @typedarray Array<u8>)=>void>;
+}
+
+struct IInputer {
+    onGetData: (authSubType: AuthSubType, callback: IInputData, options: GetInputDataOptions) => void;
+}
+
+interface IInputData {
+    GetSpecificImplPtr (): i64;
+    OnSetDataInner(authSubType: AuthSubType, data: @typedarray Array<u8>):void;
+}
+
+@class
+interface UserAuth {
+    @overload("auth")
+    AuthSync(challenge: @typedarray Array<u8>, authType: AuthType,
+        authTrustLevel: AuthTrustLevel, callback: IUserAuthCallback): @typedarray Array<u8>;
+
+    @overload("auth")
+    AuthWithOptSync(challenge: @typedarray Array<u8>, authType: AuthType,
+        authTrustLevel: AuthTrustLevel, options: AuthOptions, callback: IUserAuthCallback): @typedarray Array<u8>;
+
+    @overload("authUser")
+    AuthUser(userId: i32, challenge: @typedarray Array<u8>, authType: AuthType,
+        authTrustLevel: AuthTrustLevel, callback: IUserAuthCallback): @typedarray Array<u8>;
+    
+    @overload("cancelAuth")
+    CancelAuth(contextID: @typedarray Array<u8>): void;
+
+    @gen_async("getProperty")
+    @gen_promise("getProperty")
+    GetPropertySync(request: GetPropertyRequest): ExecutorProperty;
+
+    @gen_async("setProperty")
+    @gen_promise("setProperty")
+    SetPropertySync(request: SetPropertyRequest): void;
+}
+
+@class
+interface PINAuth {
+    @overload("registerInputer")
+    RegisterInputer(inputer: IInputer): void;
+
+    @overload("unregisterInputer")
+    UnregisterInputer(): void;
+}
+
+@class
+interface InputerManager {
+}
+
+@static("InputerManager")
+function registerInputer(authType: AuthType, inputer: IInputer): void;
+@static("InputerManager")
+function unregisterInputer(authType: AuthType): void;
+
+@ctor("UserIdentityManager")
+function CreateUserIdentityManager(): UserIdentityManager;
+
+@ctor("UserAuth")
+function CreateUserAuth(): UserAuth;
+
+@ctor("PINAuth")
+function CreatePINAuth(): PINAuth;

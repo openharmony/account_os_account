@@ -16,7 +16,6 @@
 #include "napi_account_error.h"
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
-#include <unordered_map>
 
 using namespace OHOS::AccountSA;
 
@@ -103,16 +102,6 @@ napi_value GenerateBusinessError(napi_env env, int32_t jsErrCode, const std::str
     return errJs;
 }
 
-std::string ConvertToJsErrMsg(int32_t jsErrCode)
-{
-    auto iter = g_errorStringMap.find(jsErrCode);
-    if (iter != g_errorStringMap.end()) {
-        return iter->second;
-    } else {
-        return "Unknown error, please reboot your device and try again";
-    }
-}
-
 static napi_value GetErrorCodeValue(napi_env env, int errCode)
 {
     napi_value jsObject = nullptr;
@@ -143,23 +132,9 @@ napi_value GenerateBusinessError(napi_env env, int32_t nativeErrCode, bool throw
 
 napi_value GenerateBusinessError(napi_env env, int32_t nativeErrCode)
 {
-    int32_t jsErrCode = nativeErrCode;
-    auto iter = g_errorStringMap.find(jsErrCode);
-    if (iter == g_errorStringMap.end()) {
-        jsErrCode = ConvertToJSErrCode(nativeErrCode);
-    }
+    int32_t jsErrCode = GenerateBusinessErrorCode(nativeErrCode);
     std::string jsErrMsg = ConvertToJsErrMsg(jsErrCode);
-
     return GenerateBusinessError(env, jsErrCode, jsErrMsg);
-}
-
-bool CheckJsErrorCode(int32_t errCode)
-{
-    auto iter = g_errorStringMap.find(errCode);
-    if (iter == g_errorStringMap.end()) {
-        return false;
-    }
-    return true;
 }
 
 void AccountNapiThrow(napi_env env, int32_t nativeErrCode, bool throwErr)
