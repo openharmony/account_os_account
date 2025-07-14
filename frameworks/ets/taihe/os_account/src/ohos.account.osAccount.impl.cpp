@@ -1447,7 +1447,7 @@ public:
         this->onGetAccountInfoCalled_ = true;
         this->errorCode_ = errCode;
         if (errCode == ERR_OK) {
-            std::shared_ptr<AAFwk::WantParams> parameters (AAFwk::WantParams::Unmarshalling(parcel));
+            std::shared_ptr<AAFwk::WantParams> parameters(AAFwk::WantParams::Unmarshalling(parcel));
             if (parameters == nullptr) {
                 ACCOUNT_LOGE("Parameters unmarshalling error");
                 errCode = ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
