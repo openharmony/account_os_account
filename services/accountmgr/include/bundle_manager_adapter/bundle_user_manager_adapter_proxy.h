@@ -41,7 +41,7 @@ public:
     ErrCode RemoveUser(int32_t userId) override;
 
 private:
-    bool SendTransactCmd(AppExecFwk::BundleUserMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply);
+    ErrCode SendTransactCmd(AppExecFwk::BundleUserMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply);
     bool WriteStrListToData(MessageParcel &data, const std::vector<std::string> &list, size_t maxListSize);
     static inline BrokerDelegator<BundleUserManagerAdapterProxy> delegator_;
 };

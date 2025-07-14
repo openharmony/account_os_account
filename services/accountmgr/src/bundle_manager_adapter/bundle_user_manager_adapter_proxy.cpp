@@ -14,6 +14,7 @@
  */
 #include "bundle_framework_core_ipc_interface_code.h"
 #include "bundle_user_manager_adapter_proxy.h"
+#include "account_constants.h"
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 
@@ -56,9 +57,10 @@ ErrCode BundleUserManagerAdapterProxy::CreateNewUser(int32_t userId, const std::
         }
     }
     MessageParcel reply;
-    if (!SendTransactCmd(AppExecFwk::BundleUserMgrInterfaceCode::CREATE_USER, data, reply)) {
+    ErrCode sendResult = SendTransactCmd(AppExecFwk::BundleUserMgrInterfaceCode::CREATE_USER, data, reply);
+    if (sendResult != ERR_OK) {
         ACCOUNT_LOGE("fail to CreateNewUser from server");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+        return sendResult;
     }
     ErrCode ret = reply.ReadInt32();
     if (ret != ERR_OK) {
@@ -100,9 +102,10 @@ ErrCode BundleUserManagerAdapterProxy::RemoveUser(int32_t userId)
     }
 
     MessageParcel reply;
-    if (!SendTransactCmd(AppExecFwk::BundleUserMgrInterfaceCode::REMOVE_USER, data, reply)) {
+    ErrCode sendResult = SendTransactCmd(AppExecFwk::BundleUserMgrInterfaceCode::REMOVE_USER, data, reply);
+    if (sendResult != ERR_OK) {
         ACCOUNT_LOGE("fail to RemoveUser from server");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+        return sendResult;
     }
 
     ErrCode ret = reply.ReadInt32();
@@ -113,7 +116,7 @@ ErrCode BundleUserManagerAdapterProxy::RemoveUser(int32_t userId)
     return ERR_OK;
 }
 
-bool BundleUserManagerAdapterProxy::SendTransactCmd(
+ErrCode BundleUserManagerAdapterProxy::SendTransactCmd(
     AppExecFwk::BundleUserMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply)
 {
     MessageOption option(MessageOption::TF_SYNC);
@@ -121,15 +124,15 @@ bool BundleUserManagerAdapterProxy::SendTransactCmd(
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
         ACCOUNT_LOGE("fail to uninstall, for Remote() is nullptr");
-        return false;
+        return Constants::E_IPC_SA_DIED;
     }
 
     int32_t result = remote->SendRequest(static_cast<uint32_t>(code), data, reply, option);
     if (result != NO_ERROR) {
         ACCOUNT_LOGE("fail to sendRequest, for transact is failed and error code is: %{public}d", result);
-        return false;
+        return result;
     }
-    return true;
+    return ERR_OK;
 }
 }  // namespace AccountSA
 }  // namespace OHOS
