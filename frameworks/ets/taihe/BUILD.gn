@@ -25,10 +25,11 @@ copy_taihe_idl("copy_account") {
 
 subsystem_name = "account"
 part_name = "os_account"
-taihe_generated_file_path = "$taihe_file_path/out/$subsystem_name/$part_name"
+taihe_generated_file_path_distributed_account = "$taihe_file_path/out/$subsystem_name/$part_name/distributed_account"
+taihe_generated_file_path_osaccount = "$taihe_file_path/out/$subsystem_name/$part_name/osaccount"
 
 ohos_taihe("distributed_account_taihe") {
-  taihe_generated_file_path = "${taihe_generated_file_path}"
+  taihe_generated_file_path = "${taihe_generated_file_path_distributed_account}"
   deps = [ ":copy_account" ]
   outputs = [
     "${taihe_generated_file_path}/src/ohos.account.distributedAccount.ani.cpp",
@@ -45,7 +46,7 @@ taihe_shared_library("distributed_account_taihe_native") {
     debug = false
   }
 
-  taihe_generated_file_path = "${taihe_generated_file_path}"
+  taihe_generated_file_path = "${taihe_generated_file_path_distributed_account}"
   part_name = "${part_name}"
   subsystem_name = "${subsystem_name}"
 
@@ -86,7 +87,7 @@ taihe_shared_library("distributed_account_taihe_native") {
 }
 
 ohos_taihe("osaccount_taihe") {
-  taihe_generated_file_path = "$taihe_generated_file_path"
+  taihe_generated_file_path = "${taihe_generated_file_path_osaccount}"
   deps = [ ":copy_account" ]
   outputs = [
     "$taihe_generated_file_path/src/ohos.account.osAccount.ani.cpp",
@@ -102,7 +103,7 @@ taihe_shared_library("os_account_taihe_native") {
     cfi_cross_dso = true
     debug = false
   }
-  taihe_generated_file_path = "$taihe_generated_file_path"
+  taihe_generated_file_path = "${taihe_generated_file_path_osaccount}"
   part_name = "$part_name"
   subsystem_name = "$subsystem_name"
 
@@ -168,17 +169,17 @@ taihe_shared_library("os_account_taihe_native") {
 }
 
 generate_static_abc("distributed_account_abc") {
-  base_url = "${taihe_generated_file_path}"
+  base_url = "${taihe_generated_file_path_distributed_account}"
   files =
-      [ "${taihe_generated_file_path}/@ohos.account.distributedAccount.ets" ]
+      [ "${taihe_generated_file_path_distributed_account}/@ohos.account.distributedAccount.ets" ]
   is_boot_abc = "True"
   device_dst_file = "/system/framework/distributed_account_abc.abc"
   dependencies = [ ":distributed_account_taihe" ]
 }
 
 generate_static_abc("os_account_abc") {
-  base_url = "$taihe_generated_file_path"
-  files = [ "$taihe_generated_file_path/@ohos.account.osAccount.ets" ]
+  base_url = "${taihe_generated_file_path_osaccount}"
+  files = [ "${taihe_generated_file_path_osaccount}/@ohos.account.osAccount.ets" ]
   is_boot_abc = "True"
   device_dst_file = "/system/framework/os_account_abc.abc"
   dependencies = [ ":osaccount_taihe" ]
