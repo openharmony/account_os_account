@@ -17,27 +17,17 @@
 #include "os_account_manager.h"
 #include "account_error_no.h"
 #include "os_account_info.h"
+#include "account_info.h"
 #include "account_log_wrapper.h"
+#include <unistd.h>
 
 namespace OHOS::AccountJsKit {
     using namespace OHOS::AccountSA;
 
     bool OsAccountManagerImpl::IsOsAccountConstraintEnabled(char *constraint, int32_t *errCode)
     {
-        int32_t id = 0;
+        int32_t id = getuid() / OHOS::AccountSA::UID_TRANSFORM_DIVISOR;
         bool isConsEnable = false;
-        std::vector<int32_t> ids;
-        *errCode = OsAccountManager::QueryActiveOsAccountIds(ids);
-        if (*errCode != ERR_OK) {
-            ACCOUNT_LOGE("isOsAccountConstraintEnabled Get id failed");
-            return false;
-        }
-        if (ids.empty()) {
-            *errCode = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-            ACCOUNT_LOGE("isOsAccountConstraintEnabled No Active OsAccount Ids");
-            return false;
-        }
-        id = ids[0];
         *errCode = ConvertToJSErrCode(OsAccountManager::CheckOsAccountConstraintEnabled(id, constraint, isConsEnable));
         return isConsEnable;
     }
