@@ -298,10 +298,20 @@ public:
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return false;
         }
-        std::unique_lock<std::mutex> lock(callback->mutex);
-        callback->cv.wait(lock, [callback] { return callback->isDone; });
-        return callback->param->result.GetBoolParam(AccountSA::Constants::KEY_BOOLEAN_RESULT, false);
+        std::unique_lock<std::mutex> lock(callback->mutex_);
+        callback->cv_.wait(lock, [callback] { return callback->isDone_; });
+        if (callback->param_ == nullptr) {
+            ACCOUNT_LOGE("Insufficient memory for AuthenticatorCallbackParam!");
+            return false;
+        }
+        if (callback->param_->resultCode != ERR_OK) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(callback->param_->resultCode);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return false;
+        }
+        return callback->param_->result.GetBoolParam(AccountSA::Constants::KEY_BOOLEAN_RESULT, false);
     }
 
     array<AppAccountInfo> SelectAccountsByOptionsSync(SelectAccountsOptions const& options)
@@ -318,13 +328,23 @@ public:
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return taihe::array<AppAccountInfo>(taihe::copy_data_t{}, accountInfos.data(), accountInfos.size());
         }
-        std::unique_lock<std::mutex> lock(callback->mutex);
-        callback->cv.wait(lock, [callback] { return callback->isDone; });
+        std::unique_lock<std::mutex> lock(callback->mutex_);
+        callback->cv_.wait(lock, [callback] { return callback->isDone_; });
+        if (callback->param_ == nullptr) {
+            ACCOUNT_LOGE("Insufficient memory for AuthenticatorCallbackParam!");
+            return taihe::array<AppAccountInfo>(taihe::copy_data_t{}, accountInfos.data(), accountInfos.size());
+        }
+        if (callback->param_->resultCode != ERR_OK) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(callback->param_->resultCode);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return taihe::array<AppAccountInfo>(taihe::copy_data_t{}, accountInfos.data(), accountInfos.size());
+        }
         std::vector<std::string> names =
-			callback->param->result.GetStringArrayParam(AccountSA::Constants::KEY_ACCOUNT_NAMES);
+			callback->param_->result.GetStringArrayParam(AccountSA::Constants::KEY_ACCOUNT_NAMES);
         std::vector<std::string> owners =
-			callback->param->result.GetStringArrayParam(AccountSA::Constants::KEY_ACCOUNT_OWNERS);
+			callback->param_->result.GetStringArrayParam(AccountSA::Constants::KEY_ACCOUNT_OWNERS);
         if (names.size() != owners.size()) {
             int32_t jsErrCode = GenerateBusinessErrorCode(JSErrorCode::ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
@@ -466,7 +486,4 @@ AppAccountManager createAppAccountManager()
 }
 }  // namespace
 
-// Since these macros are auto-generate, lint will cause false positive.
-// NOLINTBEGIN
 TH_EXPORT_CPP_API_createAppAccountManager(createAppAccountManager);
-// NOLINTEND

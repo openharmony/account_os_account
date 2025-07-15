@@ -19,6 +19,7 @@
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "ani_common_want.h"
+#include "bool_wrapper.h"
 #include "domain_account_client.h"
 #include "iam_common_defines.h"
 #include "account_error_no.h"
@@ -235,19 +236,6 @@ private:
     ohos::account::osAccount::IIdmCallback taiheCallback_;
 };
 
-AccountSA::DomainAccountInfo ConvertToDomainAccountInfoInner(const DomainAccountInfo &domainAccountInfo)
-{
-    AccountSA::DomainAccountInfo domainAccountInfoInner(std::string(domainAccountInfo.domain.c_str()),
-                                                        std::string(domainAccountInfo.accountName.c_str()));
-    if (domainAccountInfo.accountId.has_value()) {
-        domainAccountInfoInner.accountId_ = domainAccountInfo.accountId.value();
-    }
-    if (domainAccountInfo.serverConfigId.has_value()) {
-        domainAccountInfoInner.serverConfigId_ = domainAccountInfo.serverConfigId.value();
-    }
-    return domainAccountInfoInner;
-}
-
 AuthType ConvertToAuthTypeTH(const AccountSA::AuthType &type)
 {
     switch (type) {
@@ -354,9 +342,12 @@ class THGetEnrolledIdCallback : public AccountSA::GetEnrolledIdCallback {
             }
             this->onEnrolledIdCalled_ = true;
             this->errorCode_ = result;
-            if (this->errorCode_ != ERR_OK) {
+            if (this->errorCode_ == ERR_OK) {
                 this->enrolledID_ = array<uint8_t>(taihe::copy_data_t{},
                     reinterpret_cast<uint8_t *>(&enrolledIdUint64), sizeof(uint64_t));
+            } else {
+                int32_t jsErrCode = AccountIAMConvertToJSErrCode(this->errorCode_);
+                taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
             }
             cv_.notify_one();
         }
@@ -607,6 +598,20 @@ private:
     bool onResultCalled_ = false;
     IUserAuthCallback callback_;
 };
+
+AccountSA::DomainAccountInfo ConvertToDomainAccountInfoInner(const ohos::account::osAccount::DomainAccountInfo
+    &domainAccountInfo)
+{
+    AccountSA::DomainAccountInfo domainAccountInfoInner(domainAccountInfo.domain.c_str(),
+                                                        domainAccountInfo.accountName.c_str());
+    if (domainAccountInfo.accountId.has_value()) {
+        domainAccountInfoInner.accountId_ = domainAccountInfo.accountId.value();
+    }
+    if (domainAccountInfo.serverConfigId.has_value()) {
+        domainAccountInfoInner.serverConfigId_ = domainAccountInfo.serverConfigId.value();
+    }
+    return domainAccountInfoInner;
+}
 
 class DomainPluginImpl {
 public:
@@ -1147,6 +1152,15 @@ public:
         }
     }
 
+    int32_t GetVersionSync()
+    {
+        bool isSystemApp = OHOS::AccountSA::IsSystemApp();
+        if (!isSystemApp) {
+            taihe::set_business_error(ERR_JS_IS_NOT_SYSTEM_APP, ConvertToJsErrMsg(ERR_JS_IS_NOT_SYSTEM_APP));
+        }
+        return 0;
+    }
+
     int32_t GetAvailableStatusSync(AuthType authType, AuthTrustLevel authTrustLevel)
     {
         AccountSA::AuthType authTypeInner = static_cast<AccountSA::AuthType>(authType.get_value());
@@ -1337,7 +1351,8 @@ void Auth(DomainAccountInfo const& domainAccountInfo, array_view<uint8_t> creden
     int32_t errorCode = AccountSA::DomainAccountClient::GetInstance().Auth(domainAccountInfoInner,
         credentialInner, callbackInner);
     if (!credentialInner.empty()) {
-        (void)memset_s(const_cast<uint8_t*>(credentialInner.data()), credentialInner.size(), 0, credentialInner.size());
+        (void)memset_s(const_cast<uint8_t*>(credentialInner.data()),
+            credentialInner.size(), 0, credentialInner.size());
     }
     if (errorCode != ERR_OK) {
         Parcel emptyParcel;
@@ -1392,6 +1407,7 @@ bool HasAccountSync(DomainAccountInfo const& domainAccountInfo)
     if (errorCode != ERR_OK) {
         Parcel emptyParcel;
         callbackInner->OnResult(errorCode, emptyParcel);
+        return false;
     }
     std::unique_lock<std::mutex> lock(callbackInner->mutex_);
     callbackInner->cv_.wait(lock, [callbackInner] { return callbackInner->onResultCalled_;});
@@ -1412,6 +1428,87 @@ void UpdateAccountTokenSync(DomainAccountInfo const &domainAccountInfo, array_vi
         ACCOUNT_LOGE("UpdateAccountTokenSync failed with errCode: %{public}d", errCode);
         SetTaiheBusinessErrorFromNativeCode(errCode);
     }
+}
+
+class THGetAccountInfoCallback : public AccountSA::DomainAccountCallback {
+public:
+    int32_t errorCode_ = -1;
+    std::mutex mutex_;
+    std::condition_variable cv_;
+    bool onGetAccountInfoCalled_ = false;
+    AAFwk::WantParams getAccountInfoParams_;
+
+    void OnResult(int32_t errCode, Parcel &parcel)
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        if (this->onGetAccountInfoCalled_) {
+            return;
+        }
+        this->onGetAccountInfoCalled_ = true;
+        this->errorCode_ = errCode;
+        if (errCode == ERR_OK) {
+            std::shared_ptr<AAFwk::WantParams> parameters(AAFwk::WantParams::Unmarshalling(parcel));
+            if (parameters == nullptr) {
+                ACCOUNT_LOGE("Parameters unmarshalling error");
+                errCode = ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+            } else {
+                this->getAccountInfoParams_ = *parameters;
+            }
+        }
+        cv_.notify_one();
+    }
+};
+
+DomainAccountInfo GetAccountInfoSync(GetDomainAccountInfoOptions const& options)
+{
+    AccountSA::DomainAccountInfo innerDomainInfo;
+    innerDomainInfo.accountName_ = options.accountName;
+    if (options.domain.has_value()) {
+        innerDomainInfo.domain_ = options.domain.value();
+    }
+    if (options.serverConfigId.has_value()) {
+        innerDomainInfo.serverConfigId_ = options.serverConfigId.value();
+    }
+    DomainAccountInfo emptyDomainAccountInfo = {
+        .domain = string(""),
+        .accountName = string(""),
+        .accountId = optional<string>(std::in_place, string("")),
+        .isAuthenticated = optional<bool>(std::in_place, false),
+        .serverConfigId = optional<string>(std::in_place, string("")),
+    };
+    std::shared_ptr<THGetAccountInfoCallback> getAccountInfoCallback = std::make_shared<THGetAccountInfoCallback>();
+    ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().GetDomainAccountInfo(innerDomainInfo,
+        getAccountInfoCallback);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("GetAccountInfoSync failed with errCode: %{public}d", errCode);
+        SetTaiheBusinessErrorFromNativeCode(errCode);
+        return emptyDomainAccountInfo;
+    }
+    std::unique_lock<std::mutex> lock(getAccountInfoCallback->mutex_);
+    getAccountInfoCallback->cv_.wait(lock, [getAccountInfoCallback] {
+        return getAccountInfoCallback->onGetAccountInfoCalled_;
+    });
+    if (getAccountInfoCallback->errorCode_ != ERR_OK) {
+        ACCOUNT_LOGE("GetAccountInfoSync failed with errCode: %{public}d", getAccountInfoCallback->errorCode_);
+        SetTaiheBusinessErrorFromNativeCode(getAccountInfoCallback->errorCode_);
+        return emptyDomainAccountInfo;
+    }
+    DomainAccountInfo domainAccountInfo = DomainAccountInfo {
+        .domain = getAccountInfoCallback->getAccountInfoParams_.GetStringParam("domain"),
+        .accountName = getAccountInfoCallback->getAccountInfoParams_.GetStringParam("accountName"),
+        .accountId = optional<string>(std::in_place,
+            getAccountInfoCallback->getAccountInfoParams_.GetStringParam("accountId").c_str()),
+        .isAuthenticated = optional<bool>(std::in_place,
+            getAccountInfoCallback->getAccountInfoParams_.GetIntParam("isAuthenticated", 0)),
+        .serverConfigId = optional<string>(std::in_place,
+            getAccountInfoCallback->getAccountInfoParams_.GetStringParam("serverConfigId").c_str()),
+    };
+    auto value = getAccountInfoCallback->getAccountInfoParams_.GetParam("isAuthenticated");
+    OHOS::AAFwk::IBoolean *bo = OHOS::AAFwk::IBoolean::Query(value);
+    if (bo != nullptr) {
+        domainAccountInfo.isAuthenticated =  optional<bool>(std::in_place, OHOS::AAFwk::Boolean::Unbox(bo));
+    }
+    return domainAccountInfo;
 }
 
 void UpdateAccountInfoSync(DomainAccountInfo const &oldAccountInfo, DomainAccountInfo const &newAccountInfo)
@@ -1485,6 +1582,7 @@ TH_EXPORT_CPP_API_AuthWithPopup(AuthWithPopup);
 TH_EXPORT_CPP_API_AuthWithPopupWithId(AuthWithPopupWithId);
 TH_EXPORT_CPP_API_HasAccountSync(HasAccountSync);
 TH_EXPORT_CPP_API_UpdateAccountTokenSync(UpdateAccountTokenSync);
+TH_EXPORT_CPP_API_GetAccountInfoSync(GetAccountInfoSync);
 TH_EXPORT_CPP_API_UpdateAccountInfoSync(UpdateAccountInfoSync);
 TH_EXPORT_CPP_API_RemoveServerConfigSync(RemoveServerConfigSync);
 TH_EXPORT_CPP_API_registerInputer(RegisterInputer);

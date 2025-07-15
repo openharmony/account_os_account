@@ -39,10 +39,10 @@ public:
     void OnRequestContinued() override;
 
 public:
-    std::shared_ptr<AuthenticatorCallbackParam> param;
-    std::mutex mutex;
-    bool isDone = false;
-    std::condition_variable cv;
+    std::shared_ptr<AuthenticatorCallbackParam> param_;
+    std::mutex mutex_;
+    bool isDone_ = false;
+    std::condition_variable cv_;
 };
     
 } // namespace AccountSA
