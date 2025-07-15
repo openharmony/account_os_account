@@ -302,6 +302,10 @@ public:
         }
         std::unique_lock<std::mutex> lock(callback->mutex_);
         callback->cv_.wait(lock, [callback] { return callback->isDone_; });
+        if (callback->param_ == nullptr) {
+            ACCOUNT_LOGE("Insufficient memory for AuthenticatorCallbackParam!");
+            return false;
+        }
         if (callback->param_->resultCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(callback->param_->resultCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
@@ -328,6 +332,10 @@ public:
         }
         std::unique_lock<std::mutex> lock(callback->mutex_);
         callback->cv_.wait(lock, [callback] { return callback->isDone_; });
+        if (callback->param_ == nullptr) {
+            ACCOUNT_LOGE("Insufficient memory for AuthenticatorCallbackParam!");
+            return taihe::array<AppAccountInfo>(taihe::copy_data_t{}, accountInfos.data(), accountInfos.size());
+        }
         if (callback->param_->resultCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(callback->param_->resultCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
