@@ -145,6 +145,10 @@ interface AccountManager {
     @gen_promise("isOsAccountConstraintEnabled")
     IsOsAccountConstraintEnabledWithId(localId: i32, constraint: String): bool;
 
+    @gen_async("checkOsAccountTestable")
+    @gen_promise("checkOsAccountTestable")
+    CheckOsAccountTestableSync(): bool;
+
     @gen_async("setOsAccountConstraints")
     @gen_promise("setOsAccountConstraints")
     SetOsAccountConstraintsSync(localId: i32, constraints: Array<String>, enable: bool);
@@ -401,6 +405,11 @@ function HasAccountSync(domainAccountInfo: DomainAccountInfo): bool;
 function UpdateAccountTokenSync(domainAccountInfo: DomainAccountInfo, token: @typedarray Array<u8>);
 
 @static("DomainAccountManager")
+@gen_async("getAccountInfo")
+@gen_promise("getAccountInfo")
+function GetAccountInfoSync(options: GetDomainAccountInfoOptions): DomainAccountInfo;
+
+@static("DomainAccountManager")
 @gen_promise("updateAccountInfo")
 function UpdateAccountInfoSync(oldAccountInfo: DomainAccountInfo, newAccountInfo: DomainAccountInfo);
 
@@ -502,6 +511,9 @@ interface UserAuth {
     @gen_async("setProperty")
     @gen_promise("setProperty")
     SetPropertySync(request: SetPropertyRequest): void;
+
+    @overload("getVersion")
+    GetVersionSync(): i32;
 
     @overload("getAvailableStatus")
     GetAvailableStatusSync(authType: AuthType, authTrustLevel: AuthTrustLevel): i32;

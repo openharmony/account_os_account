@@ -778,6 +778,11 @@ public:
         return isConsEnabled;
     }
 
+    bool CheckOsAccountTestableSync()
+    {
+        return false;
+    }
+
     void SetOsAccountConstraintsSync(int32_t localId, array_view<taihe::string> constraints, bool enable)
     {
         std::vector<std::string> innerConstraints;
@@ -879,6 +884,20 @@ public:
             SetTaiheBusinessErrorFromNativeCode(errCode);
         }
         return taihe::array<string>(taihe::copy_data_t{}, innerConstraints.data(), innerConstraints.size());
+    }
+
+    AccountSA::DomainAccountInfo ConvertToDomainAccountInfoInner(const ohos::account::osAccount::DomainAccountInfo
+        &domainAccountInfo)
+    {
+        AccountSA::DomainAccountInfo domainAccountInfoInner(std::string(domainAccountInfo.domain.c_str()),
+                                                            std::string(domainAccountInfo.accountName.c_str()));
+        if (domainAccountInfo.accountId.has_value()) {
+            domainAccountInfoInner.accountId_ = domainAccountInfo.accountId.value();
+        }
+        if (domainAccountInfo.serverConfigId.has_value()) {
+            domainAccountInfoInner.serverConfigId_ = domainAccountInfo.serverConfigId.value();
+        }
+        return domainAccountInfoInner;
     }
 
     DomainAccountInfo GetOsAccountDomainInfoSync(int32_t localId)

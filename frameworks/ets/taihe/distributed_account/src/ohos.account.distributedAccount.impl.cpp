@@ -40,7 +40,6 @@ AccountSA::OhosAccountInfo ConvertToOhosAccountInfoTH(const DistributedInfo &inf
     ret.name_ = name;
     ret.uid_ = id;
     ret.status_ = status;
-    ret.name_ = name;
     if (info.nickname.has_value()) {
         ret.nickname_ = std::string(info.nickname.value().data(), info.nickname.value().size());
     }
