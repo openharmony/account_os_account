@@ -18,6 +18,7 @@ import("//build/ohos/taihe_idl/taihe.gni")
 
 copy_taihe_idl("copy_account") {
   sources = [
+    "app_account/idl/ohos.account.appAccount.taihe",
     "distributed_account/idl/ohos.account.distributedAccount.taihe",
     "os_account/idl/ohos.account.osAccount.taihe",
   ]
