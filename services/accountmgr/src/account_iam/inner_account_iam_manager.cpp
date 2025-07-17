@@ -628,6 +628,7 @@ ErrCode InnerAccountIAMManager::UpdateUserAuthWithRecoveryKey(const std::vector<
     if (updateUserAuthWithRecoveryKey == nullptr) {
         ACCOUNT_LOGE("Call dlsym failed, method=%{public}s error=%{public}s.",
             RECOVERY_METHOD_NAME, dlerror());
+        dlclose(handle);
         return ERR_INVALID_VALUE;
     }
     ErrCode res = (*reinterpret_cast<UpdateUserAuthWithRecoveryKeyFunc>(updateUserAuthWithRecoveryKey))(
