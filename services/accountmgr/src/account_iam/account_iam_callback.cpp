@@ -561,6 +561,11 @@ VerifyTokenCallbackWrapper::VerifyTokenCallbackWrapper(uint32_t userId, const st
     : userId_(userId), token_(token), callerTokenId_(callerTokenId), innerCallback_(callback)
 {}
 
+VerifyTokenCallbackWrapper::~VerifyTokenCallbackWrapper()
+{
+    std::fill(token_.begin(), token_.end(), 0);
+}
+
 void VerifyTokenCallbackWrapper::OnResult(int32_t result, const Attributes &extraInfo)
 {
     std::unique_lock<std::mutex> verifyLock(mutex_);
@@ -693,6 +698,11 @@ DelCredCallback::DelCredCallback(int32_t userId, bool isPIN, std::vector<uint8_t
     const sptr<IIDMCallback> &callback)
     : userId_(userId), isPIN_(isPIN), token_(token), innerCallback_(callback)
 {}
+
+DelCredCallback::~DelCredCallback()
+{
+    std::fill(token_.begin(), token_.end(), 0);
+}
 
 void DelCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
