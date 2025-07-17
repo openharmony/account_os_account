@@ -918,21 +918,33 @@ ErrCode OsAccountManagerService::SetOsAccountName(int32_t id, const std::string 
     return innerManager_.SetOsAccountName(id, name);
 }
 
-void OsAccountManagerService::ConstraintPublish(const std::vector<std::string> &constraints,
-    int32_t localId, bool enable)
+void OsAccountManagerService::ConstraintPublish(const std::vector<std::string> &oldConstraints,
+    const std::vector<std::string> &constraints, int32_t localId, bool isEnabled)
 {
+    // Create a set to store constraints that need to be published
     std::set<std::string> constraintsSet;
+    std::vector<std::string> newConstraints;
+    ErrCode errCode = innerManager_.GetOsAccountAllConstraints(localId, newConstraints);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Call getOsAccountAllConstraints failed, errCode=%{public}d.", errCode);
+        return;
+    }
+    // Iterate through each constraint in the new constraints list
     for (auto const &constraint : constraints) {
-        bool isConstraintEnable = true;
-        ErrCode errCode = innerManager_.IsOsAccountConstraintEnable(localId, constraint, isConstraintEnable);
-        if (errCode == ERR_OK && isConstraintEnable == enable) {
+        // Check if the constraint is currently enabled for the account
+        bool isEnabledNew =
+            std::find(newConstraints.begin(), newConstraints.end(), constraint) != newConstraints.end();
+        if (isEnabledNew != isEnabled) {
+            ACCOUNT_LOGD("%{public}s not publish, enable=%{public}d.", constraint.c_str(), isEnabled);
+            continue;
+        }
+        bool isEnabledOld = std::find(oldConstraints.begin(), oldConstraints.end(), constraint) != oldConstraints.end();
+        if (isEnabledOld != isEnabledNew) {
             constraintsSet.emplace(constraint);
-        } else {
-            ACCOUNT_LOGE("Not publish constraints=%{public}s, errCode=%{public}d, enable=%{public}d.",
-                constraint.c_str(), errCode, isConstraintEnable);
         }
     }
-    return constraintManger_.Publish(localId, constraintsSet, enable);
+    // Publish the final set of constraints with the specified enable state
+    return constraintManger_.Publish(localId, constraintsSet, isEnabled);
 }
 
 ErrCode OsAccountManagerService::SetOsAccountConstraints(
@@ -958,11 +970,19 @@ ErrCode OsAccountManagerService::SetOsAccountConstraints(
         REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
-    ErrCode errCode = innerManager_.SetBaseOsAccountConstraints(id, constraints, enable);
-    if (errCode == ERR_OK) {
-        ConstraintPublish(constraints, id, enable);
+    std::vector<std::string> oldConstraints;
+    result = innerManager_.GetOsAccountAllConstraints(id, oldConstraints);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("GetOsAccountAllConstraints failed, result=%{public}d", result);
+        return result;
     }
-    return errCode;
+    result = innerManager_.SetBaseOsAccountConstraints(id, constraints, enable);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SetBaseOsAccountConstraints failed, result=%{public}d", result);
+        return result;
+    }
+    ConstraintPublish(oldConstraints, constraints, id, enable);
+    return result;
 }
 
 ErrCode OsAccountManagerService::SetOsAccountProfilePhoto(const int id, const std::string &photo)
@@ -1531,19 +1551,32 @@ ErrCode OsAccountManagerService::SetGlobalOsAccountConstraints(const std::vector
         REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
-    ErrCode errCode = innerManager_.SetGlobalOsAccountConstraints(constraints, enable, enforcerId, isDeviceOwner);
-    if (errCode == ERR_OK) {
-        std::vector<OsAccountInfo> osAccountInfos;
-        ErrCode res = innerManager_.QueryAllCreatedOsAccounts(osAccountInfos);
-        if (res != ERR_OK) {
-            ACCOUNT_LOGE("QueryAllCreatedOsAccounts failed!");
-            return errCode;
-        }
-        for (auto const& info : osAccountInfos) {
-            ConstraintPublish(constraints, info.GetLocalId(), enable);
-        }
+    std::vector<OsAccountInfo> osAccountInfos;
+    ErrCode result = innerManager_.QueryAllCreatedOsAccounts(osAccountInfos);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("QueryAllCreatedOsAccounts failed, result=%{public}d", result);
+        return result;
     }
-    return errCode;
+    std::map<int32_t, std::vector<std::string>> oldConstraintsMap;
+    for (auto const&info : osAccountInfos) {
+        std::vector<std::string> oldConstraints;
+        result = innerManager_.GetOsAccountAllConstraints(info.GetLocalId(), oldConstraints);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGE("GetOsAccountAllConstraints failed, result=%{public}d", result);
+            return result;
+        }
+        oldConstraintsMap.emplace(info.GetLocalId(), oldConstraints);
+    }
+
+    result = innerManager_.SetGlobalOsAccountConstraints(constraints, enable, enforcerId, isDeviceOwner);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SetGlobalOsAccountConstraints failed, result=%{public}d", result);
+        return result;
+    }
+    for (const auto& item : oldConstraintsMap) {
+        ConstraintPublish(item.second, constraints, item.first, enable);
+    }
+    return result;
 }
 
 ErrCode OsAccountManagerService::SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
@@ -1569,13 +1602,20 @@ ErrCode OsAccountManagerService::SetSpecificOsAccountConstraints(const std::vect
         ACCOUNT_LOGE("Invalid input account id %{public}d or %{public}d.", targetId, enforcerId);
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
-
-    ErrCode errCode = innerManager_.SetSpecificOsAccountConstraints(
-        constraints, enable, targetId, enforcerId, isDeviceOwner);
-    if (errCode == ERR_OK) {
-        ConstraintPublish(constraints, targetId, enable);
+    std::vector<std::string> oldConstraints;
+    ErrCode result = innerManager_.GetOsAccountAllConstraints(targetId, oldConstraints);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("GetOsAccountAllConstraints failed, result=%{public}d", result);
+        return result;
     }
-    return errCode;
+    result = innerManager_.SetSpecificOsAccountConstraints(
+        constraints, enable, targetId, enforcerId, isDeviceOwner);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SetSpecificOsAccountConstraints failed, result=%{public}d", result);
+        return result;
+    }
+    ConstraintPublish(oldConstraints, constraints, targetId, enable);
+    return result;
 }
 
 ErrCode OsAccountManagerService::SubscribeOsAccountConstraints(const OsAccountConstraintSubscribeInfo &subscribeInfo,
