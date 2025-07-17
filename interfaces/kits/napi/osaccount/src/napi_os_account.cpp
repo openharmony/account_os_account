@@ -19,6 +19,7 @@
 #include "napi_os_account_common.h"
 #include "napi/native_common.h"
 #include <mutex>
+#include <unordered_set>
 
 using namespace OHOS::AccountSA;
 
@@ -34,6 +35,8 @@ const int OS_ACCOUNT_TYPE_GUEST = 2;
 const int OS_ACCOUNT_TYPE_PRIVATE = 1024;
 const int DOMAIN_ACCOUNT_STATUS_NOT_LOGGED_IN = 0;
 const int DOMAIN_ACCOUNT_STATUS_LOGGED_IN = 1;
+static std::unordered_set<napi_env> g_registeredEnvs;
+static std::mutex g_envRegistrationLock;
 std::mutex g_lockForOsAccountSubscribers;
 std::vector<SubscribeCBInfo *> g_osAccountSubscribers;
 static napi_property_descriptor g_osAccountProperties[] = {
@@ -1459,7 +1462,8 @@ static bool IsSubscribeInVec(napi_env env, SubscribeCBInfo *subscribeCBInfo)
 {
     std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
     for (const auto& existingSubInfo : g_osAccountSubscribers) {
-        if (existingSubInfo->osSubscribeType == subscribeCBInfo->osSubscribeType &&
+        if (existingSubInfo->env == env &&
+            existingSubInfo->osSubscribeType == subscribeCBInfo->osSubscribeType &&
             CompareOnAndOffRef(env, existingSubInfo->callbackRef, subscribeCBInfo->callbackRef)) {
             return true;
         }
@@ -1467,8 +1471,54 @@ static bool IsSubscribeInVec(napi_env env, SubscribeCBInfo *subscribeCBInfo)
     return false;
 }
 
+static void OnEnvCleanup(void* data)
+{
+    ACCOUNT_LOGI("Start.");
+    napi_env cleanupEnv = static_cast<napi_env>(data);
+    {
+        std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
+        auto it = g_osAccountSubscribers.begin();
+        while (it != g_osAccountSubscribers.end()) {
+            if ((*it)->env == cleanupEnv) {
+                ACCOUNT_LOGW("Removing subscriber for destroyed environment");
+                if ((*it)->subscriber) {
+                    OsAccountManager::UnsubscribeOsAccount((*it)->subscriber);
+                }
+                delete *it;
+                it = g_osAccountSubscribers.erase(it);
+            } else {
+                ++it;
+            }
+        }
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(g_envRegistrationLock);
+        g_registeredEnvs.erase(cleanupEnv);
+    }
+}
+
+static bool RegisterEnvCleanupHook(napi_env env)
+{
+    std::lock_guard<std::mutex> lock(g_envRegistrationLock);
+    if (g_registeredEnvs.find(env) != g_registeredEnvs.end()) {
+        return true;
+    }
+    napi_status status = napi_add_env_cleanup_hook(env, OnEnvCleanup, env);
+    if (status == napi_ok) {
+        g_registeredEnvs.insert(env);
+        return true;
+    }
+    return false;
+}
+
 napi_value Subscribe(napi_env env, napi_callback_info cbInfo)
 {
+    if (!RegisterEnvCleanupHook(env)) {
+        ACCOUNT_LOGE("Failed to register env cleanup hook");
+        AccountNapiThrow(env, ERR_JS_SYSTEM_SERVICE_EXCEPTION, true);
+        return nullptr;
+    }
     SubscribeCBInfo *subscribeCBInfo = new (std::nothrow) SubscribeCBInfo(env);
     if (subscribeCBInfo == nullptr) {
         ACCOUNT_LOGE("insufficient memory for subscribeCBInfo!");
@@ -1647,6 +1697,11 @@ void UnsubscribeSync(napi_env env, UnsubscribeCBInfo *unsubscribeCBInfo)
     auto it = g_osAccountSubscribers.begin();
     while (it != g_osAccountSubscribers.end()) {
         SubscribeCBInfo* currentSubInfo = *it;
+        if (currentSubInfo->env != env) {
+            ACCOUNT_LOGW("Current subscriber env is not equal to the input env, continue.");
+            it++;
+            continue;
+        }
         OsAccountSubscribeInfo subscribeInfo;
         OS_ACCOUNT_SUBSCRIBE_TYPE osSubscribeType;
         std::string name;
