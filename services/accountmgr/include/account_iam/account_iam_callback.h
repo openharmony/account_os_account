@@ -89,7 +89,7 @@ class AddCredCallback : public UserIdmClientCallback {
 public:
     AddCredCallback(uint32_t userId, const CredentialParameters &credInfo,
         const sptr<IIDMCallback> &callback);
-    virtual ~AddCredCallback() = default;
+    virtual ~AddCredCallback();
 
     void SetDeathRecipient(const sptr<IDMCallbackDeathRecipient> &deathRecipient);
     void OnResult(int32_t result, const Attributes &extraInfo) override;
@@ -111,7 +111,7 @@ class UpdateCredCallback : public UserIdmClientCallback {
 public:
     UpdateCredCallback(uint32_t userId, const CredentialParameters &credInfo,
         const sptr<IIDMCallback> &callback);
-    virtual ~UpdateCredCallback() = default;
+    virtual ~UpdateCredCallback();
 
     void SetDeathRecipient(const sptr<IDMCallbackDeathRecipient> &deathRecipient);
     void OnResult(int32_t result, const Attributes &extraInfo) override;
@@ -214,6 +214,7 @@ struct UpdateCredInfo {
 
     UpdateCredInfo() = default;
     UpdateCredInfo(const Attributes &extraInfo);
+    ~UpdateCredInfo();
 };
 
 class CommitCredUpdateCallback : public UserIdmClientCallback {

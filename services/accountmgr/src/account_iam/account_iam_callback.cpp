@@ -91,6 +91,13 @@ UpdateCredInfo::UpdateCredInfo(const Attributes &extraInfo)
     extraInfo.GetUint8ArrayValue(Attributes::ATTR_OLD_ROOT_SECRET, oldSecret);
 }
 
+UpdateCredInfo::~UpdateCredInfo()
+{
+    std::fill(token.begin(), token.end(), 0);
+    std::fill(newSecret.begin(), newSecret.end(), 0);
+    std::fill(oldSecret.begin(), oldSecret.end(), 0);
+}
+
 ReEnrollCallback::ReEnrollCallback(const sptr<IIDMCallback> &innerCallback) : innerCallback_(innerCallback)
 {}
 
@@ -129,6 +136,7 @@ ErrCode AuthCallback::InnerHandleReEnroll(const std::vector<uint8_t> &token)
         .token = token
     };
     InnerAccountIAMManager::GetInstance().UpdateCredential(userId_, credInfo, callback);
+    std::fill(credInfo.token.begin(), credInfo.token.end(), 0);
     std::unique_lock<std::mutex> lock(callback->mutex_);
     bool done = callback->onResultCondition_.wait_for(lock, std::chrono::seconds(Constants::REENROLL_WAIT_TIME),
         [cb = callback]() { return cb->isCalled_; });
@@ -246,6 +254,7 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo, int32_t acco
         secret.clear();
     }
     ErrCode ret = UnlockAccount(accountId, token, secret, isUpdateVerifiedStatus);
+    std::fill(secret.begin(), secret.end(), 0);
     if (ret != ERR_OK) {
         int32_t remainTimes = 0;
         int32_t freezingTime = 0;
@@ -255,6 +264,7 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo, int32_t acco
         errInfo.SetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, remainTimes);
         errInfo.SetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, freezingTime);
         innerCallback_->OnResult(ResultCode::FAIL, errInfo.Serialize());
+        std::fill(token.begin(), token.end(), 0);
         return ret;
     }
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
@@ -262,6 +272,7 @@ ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo, int32_t acco
     InnerDomainAccountManager::GetInstance().AuthWithToken(accountId, token);
 #endif // SUPPORT_DOMAIN_ACCOUNTS
     HandleReEnroll(extraInfo, accountId, token);
+    std::fill(token.begin(), token.end(), 0);
     return ret;
 }
 
@@ -363,6 +374,11 @@ AddCredCallback::AddCredCallback(uint32_t userId, const CredentialParameters &cr
     : userId_(userId), credInfo_(credInfo), innerCallback_(callback)
 {}
 
+AddCredCallback::~AddCredCallback()
+{
+    std::fill(credInfo_.token.begin(), credInfo_.token.end(), 0);
+}
+
 void AddCredCallback::SetDeathRecipient(const sptr<IDMCallbackDeathRecipient> &deathRecipient)
 {
     deathRecipient_ = deathRecipient;
@@ -420,6 +436,9 @@ void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
         extraInfo.GetUint8ArrayValue(Attributes::ATTR_AUTH_TOKEN, token);
         std::vector<uint8_t> oldSecret;
         ErrCode code = AddUserKey(userId_, secureUid, token, oldSecret, newSecret);
+        std::fill(newSecret.begin(), newSecret.end(), 0);
+        std::fill(token.begin(), token.end(), 0);
+        std::fill(oldSecret.begin(), oldSecret.end(), 0);
         if (code == ERR_OK) {
             DeleteSecretFlag(userId_, "addCredential");
         }
@@ -453,6 +472,11 @@ UpdateCredCallback::UpdateCredCallback(
     uint32_t userId, const CredentialParameters &credInfo, const sptr<IIDMCallback> &callback)
     : userId_(userId), credInfo_(credInfo), innerCallback_(callback)
 {}
+
+UpdateCredCallback::~UpdateCredCallback()
+{
+    std::fill(credInfo_.token.begin(), credInfo_.token.end(), 0);
+}
 
 void UpdateCredCallback::SetDeathRecipient(const sptr<IDMCallbackDeathRecipient> &deathRecipient)
 {
@@ -568,6 +592,7 @@ void VerifyTokenCallbackWrapper::InnerOnResult(int32_t result, const Attributes 
     }
     auto &innerIamMgr = InnerAccountIAMManager::GetInstance();
     ErrCode errCode = innerIamMgr.UpdateStorageUserAuth(userId_, secureUid, token_, rootSecret, {});
+    std::fill(rootSecret.begin(), rootSecret.end(), 0);
     if (errCode != ERR_OK) {
         ReportOsAccountOperationFail(userId_, "deleteCredential", errCode, "Failed to update user auth");
         DeleteSecretFlag(userId_, "deleteCredential");
@@ -685,6 +710,8 @@ void DelCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
         uint64_t secureUid = 0;
         extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, secureUid);
         ErrCode updateRet = innerIamMgr.UpdateStorageUserAuth(userId_, secureUid, token_, oldSecret, newSecret);
+        std::fill(newSecret.begin(), newSecret.end(), 0);
+        std::fill(oldSecret.begin(), oldSecret.end(), 0);
         if (updateRet != ERR_OK) {
             ReportOsAccountOperationFail(userId_, "deleteCredential", updateRet, "Failed to update user auth");
         }
@@ -894,4 +921,4 @@ void GetDomainAuthStatusInfoCallback::OnResult(int32_t result, Parcel &parcel)
 }
 #endif // SUPPORT_DOMAIN_ACCOUNTS
 }  // namespace AccountSA
-}  // namespace OHOS
+} // namespace OHOS
