@@ -144,6 +144,7 @@ private:
 
 struct IDMContext : public CommonAsyncContext {
     IDMContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
+    ~IDMContext();
     bool throwErr = true;
     std::vector<uint8_t> challenge;
     uint64_t credentialId = 0;

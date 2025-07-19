@@ -105,6 +105,11 @@ int32_t AccountIAMConvertToJSErrCode(int32_t errCode)
     }
 }
 
+IDMContext::~IDMContext()
+{
+    std::fill(token.begin(), token.end(), 0);
+}
+
 #ifdef HAS_USER_AUTH_PART
 NapiIDMCallback::NapiIDMCallback(napi_env env, const std::shared_ptr<JsIAMCallback> &callback)
     : env_(env), callback_(callback)
@@ -993,6 +998,7 @@ napi_value OnSetData(napi_env env, napi_callback_info info)
     }
     ACCOUNT_LOGI("Call OnSetData, authSubType: %{public}d", authSubType);
     context->inputerData->OnSetData(authSubType, data);
+    std::fill(data.begin(), data.end(), 0);
     context->inputerData = nullptr;
     return nullptr;
 }
