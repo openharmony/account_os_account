@@ -89,7 +89,7 @@ class AddCredCallback : public UserIdmClientCallback {
 public:
     AddCredCallback(uint32_t userId, const CredentialParameters &credInfo,
         const sptr<IIDMCallback> &callback);
-    virtual ~AddCredCallback() = default;
+    virtual ~AddCredCallback();
 
     void SetDeathRecipient(const sptr<IDMCallbackDeathRecipient> &deathRecipient);
     void OnResult(int32_t result, const Attributes &extraInfo) override;
@@ -111,7 +111,7 @@ class UpdateCredCallback : public UserIdmClientCallback {
 public:
     UpdateCredCallback(uint32_t userId, const CredentialParameters &credInfo,
         const sptr<IIDMCallback> &callback);
-    virtual ~UpdateCredCallback() = default;
+    virtual ~UpdateCredCallback();
 
     void SetDeathRecipient(const sptr<IDMCallbackDeathRecipient> &deathRecipient);
     void OnResult(int32_t result, const Attributes &extraInfo) override;
@@ -141,35 +141,13 @@ public:
     void OnGetData(int32_t authSubType, std::vector<uint8_t> challenge,
         std::shared_ptr<IInputerData> inputerData) override;
 };
-
-class DelUserCallback : public UserIdmClientCallback {
-public:
-    DelUserCallback(uint32_t userId, const std::vector<uint8_t> &token, const sptr<IIDMCallback> &callback);
-    virtual ~DelUserCallback();
-
-    void OnResult(int32_t result, const Attributes &extraInfo) override;
-    void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override {};
-
-private:
-    void InnerOnResult(int32_t result, const Attributes &extraInfo);
-
-public:
-    std::mutex mutex_;
-    bool isCalled_ = false;
-    std::condition_variable onResultCondition_;
-
-private:
-    std::uint32_t userId_;
-    std::vector<uint8_t> token_;
-    const sptr<IIDMCallback> innerCallback_ = nullptr;
-};
 #endif // HAS_PIN_AUTH_PART
 
 class VerifyTokenCallbackWrapper : public VerifyTokenCallback {
 public:
     VerifyTokenCallbackWrapper(uint32_t userId, const std::vector<uint8_t> &token,
         Security::AccessToken::AccessTokenID callerTokenId, const sptr<IIDMCallback> &callback);
-    virtual ~VerifyTokenCallbackWrapper() = default;
+    virtual ~VerifyTokenCallbackWrapper();
     void OnResult(int32_t result, const Attributes &extraInfo) override;
 
 private:
@@ -214,6 +192,7 @@ struct UpdateCredInfo {
 
     UpdateCredInfo() = default;
     UpdateCredInfo(const Attributes &extraInfo);
+    virtual ~UpdateCredInfo();
 };
 
 class CommitCredUpdateCallback : public UserIdmClientCallback {
@@ -241,7 +220,7 @@ private:
 class DelCredCallback : public UserIdmClientCallback {
 public:
     DelCredCallback(int32_t userId, bool isPIN, std::vector<uint8_t> token, const sptr<IIDMCallback> &callback);
-    virtual ~DelCredCallback() = default;
+    virtual ~DelCredCallback();
 
     void OnResult(int32_t result, const Attributes &extraInfo) override;
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override;
