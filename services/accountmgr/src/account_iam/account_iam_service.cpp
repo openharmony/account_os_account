@@ -140,6 +140,8 @@ int32_t AccountIAMService::AddCredential(
         return ERR_ACCOUNT_COMMON_ACCOUNT_IS_RESTRICTED;
     }
     InnerAccountIAMManager::GetInstance().AddCredential(userId, credInfoIam.credentialParameters, idmCallback);
+    auto info = const_cast<CredentialParametersIam*>(&credInfoIam);
+    std::fill(info->credentialParameters.token.begin(), info->credentialParameters.token.end(), 0);
     return ERR_OK;
 }
 
@@ -154,6 +156,8 @@ int32_t AccountIAMService::UpdateCredential(int32_t userId, const CredentialPara
         return ret;
     }
     InnerAccountIAMManager::GetInstance().UpdateCredential(userId, credInfoIam.credentialParameters, idmCallback);
+    auto info = const_cast<CredentialParametersIam *>(&credInfoIam);
+    std::fill(info->credentialParameters.token.begin(), info->credentialParameters.token.end(), 0);
     return ERR_OK;
 }
 
@@ -180,6 +184,8 @@ int32_t AccountIAMService::DelCred(
         return ret;
     }
     InnerAccountIAMManager::GetInstance().DelCred(userId, credentialId, authToken, idmCallback);
+    auto token = const_cast<std::vector<uint8_t> *>(&authToken);
+    std::fill(token->begin(), token->end(), 0);
     return ERR_OK;
 }
 
@@ -194,6 +200,8 @@ int32_t AccountIAMService::DelUser(
         return ret;
     }
     InnerAccountIAMManager::GetInstance().DelUser(userId, authToken, idmCallback);
+    auto token = const_cast<std::vector<uint8_t> *>(&authToken);
+    std::fill(token->begin(), token->end(), 0);
     return ERR_OK;
 }
 

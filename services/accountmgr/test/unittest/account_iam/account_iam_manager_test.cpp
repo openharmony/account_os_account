@@ -40,6 +40,10 @@ using namespace Security::AccessToken;
 using namespace StorageManager;
 
 namespace OHOS {
+namespace AccountSA {
+UpdateCredInfo::~UpdateCredInfo() {}
+}
+
 namespace AccountTest {
 namespace {
     const int32_t TEST_EXIST_ID = 100;
