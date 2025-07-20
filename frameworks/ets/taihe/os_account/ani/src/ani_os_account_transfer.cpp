@@ -16,22 +16,22 @@
 #include "ani_os_account_transfer.h"
 #include <ani.h>
 #include <array>
-#include <bit>  // 为了使用bit_cast (since C++20), 如果版本不支持可以用memcpy
+#include <bit>
 #include <string>
 #include <sys/syscall.h>
 #include <unistd.h>
+#include "account_log_wrapper.h"
 #include "interop_js/arkts_interop_js_api.h"
 #include "interop_js/arkts_esvalue.h"
 #include "interop_js/arkts_interop_js_api.h"
 #include "interop_js/hybridgref_ani.h"
 #include "interop_js/hybridgref_napi.h"
+#include "ohos.account.osAccount.impl.hpp"
+#include "napi_account_iam_common.h"
+#include "napi_account_iam_onsetdata.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "native_engine/native_engine.h"
-#include "account_log_wrapper.h"
-#include "napi_account_iam_common.h"
-#include "napi_account_iam_onsetdata.h"
-#include "ohos.account.osAccount.impl.hpp"
 #include "taihe_common.h"
 
 using OHOS::AccountSA::ACCOUNT_LABEL;
@@ -39,8 +39,8 @@ using OHOS::AccountSA::ACCOUNT_LABEL;
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const const char *ETS_OS_ACCOUNT_TRANSFER_CLASS_NAME = "L@ohos/account/transfer/osAccount/Transfer;";
-const const char *OS_ACCOUNT_TAIHE_NAME_SPACE = "L@ohos/account/osAccount/osAccount;";
+const char *ETS_OS_ACCOUNT_TRANSFER_CLASS_NAME = "L@ohos/account/transfer/osAccount/Transfer;";
+const char *OS_ACCOUNT_TAIHE_NAME_SPACE = "L@ohos/account/osAccount/osAccount;";
 }
 
 ani_object AniOsAccountTransfer::NativeIInputDataTransferStatic(ani_env *aniEnv, ani_class aniCls, ani_object input)
@@ -88,6 +88,45 @@ ani_object AniOsAccountTransfer::NativeIInputDataTransferStatic(ani_env *aniEnv,
 #endif
 }
 
+ani_ref AniOsAccountTransfer::GenerateDynamic(ani_env *aniEnv, int64_t ptr)
+{
+#ifdef HAS_PIN_AUTH_PART
+    AccountSA::IInputerData* rawPtr = reinterpret_cast<AccountSA::IInputerData*>(ptr);
+    auto inputerData = std::shared_ptr<AccountSA::IInputerData>(
+        rawPtr,
+        [](AccountSA::IInputerData *p) {
+            if (p != nullptr) {
+                delete p;
+            }
+        }
+    );
+    napi_env jsEnv;
+    if (!arkts_napi_scope_open(aniEnv, &jsEnv)) {
+        ACCOUNT_LOGE("failed to arkts_napi_scope_open");
+        return nullptr;
+    }
+    napi_value cons = AccountJsKit::GetCtorIInputerData(jsEnv, inputerData);
+    if (cons == nullptr) {
+        ACCOUNT_LOGD("failed to GetCtorIInputerData");
+        return nullptr;
+    }
+    napi_value inputerDataVarCtor;
+    napi_status napiStatus = napi_new_instance(jsEnv, cons, 0, nullptr, &inputerDataVarCtor);
+    if (napi_status::napi_ok != napiStatus) {
+        ACCOUNT_LOGE("Failed to napi_new_instance, status=%{public}d", napiStatus);
+        return nullptr;
+    }
+    ani_ref outObj;
+    if (!arkts_napi_scope_close_n(jsEnv, 1, &inputerDataVarCtor, &outObj)) {
+        ACCOUNT_LOGE("Failed to arkts_napi_scope_close_n");
+        return nullptr;
+    }
+    return outObj;
+#else
+    return nullptr;
+#endif
+}
+
 ani_ref AniOsAccountTransfer::NativeIInputDataTransferDynamic(ani_env *aniEnv, ani_class aniCls, ani_object input)
 {
     ACCOUNT_LOGD("Transfer static NativeIInputDataTransferDynamic");
@@ -113,39 +152,7 @@ ani_ref AniOsAccountTransfer::NativeIInputDataTransferDynamic(ani_env *aniEnv, a
         return nullptr;
     }
     int64_t ptr = static_cast<int64_t>(aniPtr);
-    AccountSA::IInputerData* raw_ptr = reinterpret_cast<AccountSA::IInputerData*>(ptr);
-    auto inputerData = std::shared_ptr<AccountSA::IInputerData>(
-        raw_ptr,
-        [](AccountSA::IInputerData *p) {
-            if (p != nullptr) {
-                delete p;
-            }
-        }
-    );
-
-    napi_env jsenv;
-    if (!arkts_napi_scope_open(aniEnv, &jsenv)) {
-        ACCOUNT_LOGE("failed to arkts_napi_scope_open");
-        return nullptr;
-    }
-    napi_value cons = AccountJsKit::GetCtorIInputerData(jsenv, inputerData);
-    if (cons == nullptr) {
-        ACCOUNT_LOGD("failed to GetCtorIInputerData");
-        return nullptr;
-    }
-
-    napi_value inputerDataVarCtor;
-    napi_status napiStatus = napi_new_instance(jsenv, cons, 0, nullptr, &inputerDataVarCtor);
-    if (napi_status::napi_ok != napiStatus){
-        ACCOUNT_LOGE("Failed to napi_new_instance, status=%{public}d", napiStatus);
-        return nullptr;
-    }
-    ani_ref outObj;
-    if (!arkts_napi_scope_close_n(jsenv, 1, &inputerDataVarCtor, &outObj)) {
-        ACCOUNT_LOGE("Failed to arkts_napi_scope_close_n");
-        return nullptr;
-    }
-    return outObj;
+    return GenerateDynamic(aniEnv, ptr);
 #else
     return nullptr;
 #endif
@@ -178,7 +185,7 @@ void AniOsAccountTransferInit(ani_env *aniEnv)
         return;
     }
 
-    ACCOUNT_LOGD( "Init transfer native method end");
+    ACCOUNT_LOGD("Init transfer native method end");
 }
 }
 }

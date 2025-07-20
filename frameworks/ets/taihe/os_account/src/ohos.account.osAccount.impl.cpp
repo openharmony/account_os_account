@@ -997,7 +997,7 @@ class OnSetDataCallbackImpl {
 private:
     std::shared_ptr<AccountSA::IInputerData> inputerData_;
 public:
-    OnSetDataCallbackImpl(std::shared_ptr<AccountSA::IInputerData> inputerData) : inputerData_(inputerData) {}
+    explicit OnSetDataCallbackImpl(std::shared_ptr<AccountSA::IInputerData> inputerData) : inputerData_(inputerData) {}
     void operator()(AuthSubType authSubType, ::taihe::array_view<uint8_t> data) __attribute__((no_sanitize("cfi")))
     {
         bool isSystemApp = OHOS::AccountSA::IsSystemApp();
@@ -1019,11 +1019,11 @@ public:
 public:
     IInputDataImpl() {}
 
-    IInputDataImpl(int64_t ptr)
+    explicit IInputDataImpl(int64_t ptr)
     {
-        AccountSA::IInputerData* raw_ptr = reinterpret_cast<AccountSA::IInputerData*>(ptr);
+        AccountSA::IInputerData* rawPtr = reinterpret_cast<AccountSA::IInputerData*>(ptr);
         inputerData_ = std::shared_ptr<AccountSA::IInputerData>(
-            raw_ptr,
+            rawPtr,
             [](AccountSA::IInputerData *p) {
                 if (p != nullptr) {
                     delete p;
@@ -1061,7 +1061,8 @@ public:
         inputerData_ = nullptr;
     }
 
-    ::taihe::callback<void(AuthSubType authSubType, ::taihe::array_view<uint8_t> data)> GetOnSetData() {
+    ::taihe::callback<void(AuthSubType authSubType, ::taihe::array_view<uint8_t> data)> GetOnSetData()
+    {
         ::taihe::callback<void(AuthSubType authSubType, ::taihe::array_view<uint8_t> data)> cb =
             ::taihe::make_holder<OnSetDataCallbackImpl,
             ::taihe::callback<void(AuthSubType authSubType, ::taihe::array_view<uint8_t> data)>>(inputerData_);
@@ -1597,18 +1598,20 @@ public:
 
 class InteropEnvGuard {
 public:
-    InteropEnvGuard() {
-        is_temporary = get_vm()->GetEnv(ANI_VERSION_1, &env) != ANI_OK;
-        if (is_temporary) {
+    InteropEnvGuard()
+    {
+        isTemporary = get_vm()->GetEnv(ANI_VERSION_1, &env) != ANI_OK;
+        if (isTemporary) {
             ani_option interopEnabled {"--interop=enable", nullptr};
             ani_options aniArgs {1, &interopEnabled};
             get_vm()->AttachCurrentThread(&aniArgs, ANI_VERSION_1, &env);
         }
     }
 
-    ~InteropEnvGuard() {
-        if (is_temporary) {
-        get_vm()->DetachCurrentThread();
+    ~InteropEnvGuard()
+    {
+        if (isTemporary) {
+            get_vm()->DetachCurrentThread();
         }
     }
 
@@ -1617,12 +1620,13 @@ public:
     InteropEnvGuard(InteropEnvGuard &&) = delete;
     InteropEnvGuard &operator=(InteropEnvGuard &&) = delete;
 
-    ani_env *get_env() {
+    ani_env *get_env()
+    {
         return env;
     }
 private:
     ani_env *env;
-    bool is_temporary;
+    bool isTemporary;
 };
 
 class TaiheGetDataCallback : public AccountSA::IInputer {

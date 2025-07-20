@@ -35,6 +35,7 @@ public:
     static ani_object NativeIInputDataTransferStatic(ani_env *aniEnv, ani_class aniCls, ani_object input);
     static ani_ref NativeIInputDataTransferDynamic(ani_env *aniEnv, ani_class aniCls, ani_object input);
 private:
+    static ani_ref GenerateDynamic(ani_env *aniEnv, int64_t ptr);
 };
 
 void AniOsAccountTransferInit(ani_env *aniEnv);
