@@ -352,8 +352,12 @@ struct IInputer {
 
 interface IInputData {
     GetSpecificImplPtr (): i64;
-    OnSetDataInner(authSubType: AuthSubType, data: @typedarray Array<u8>):void;
+    GetIInputDataPtr (): i64;
+    @get GetOnSetData():(authSubType: AuthSubType, data: @typedarray Array<u8>) => void;
 }
+
+function createIInputData(ptr: i64): IInputData;
+function getPtrByIInputData(data: IInputData): i64;
 
 @class
 interface UserAuth {
@@ -368,7 +372,7 @@ interface UserAuth {
     @overload("authUser")
     AuthUser(userId: i32, challenge: @typedarray Array<u8>, authType: AuthType,
         authTrustLevel: AuthTrustLevel, callback: IUserAuthCallback): @typedarray Array<u8>;
-    
+
     @overload("cancelAuth")
     CancelAuth(contextID: @typedarray Array<u8>): void;
 
