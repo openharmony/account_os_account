@@ -993,22 +993,16 @@ public:
     DomainAccountManagerImpl() {}
 };
 
-class IInputDataImpl {
-public:
+class OnSetDataCallbackImpl {
+private:
     std::shared_ptr<AccountSA::IInputerData> inputerData_;
-
 public:
-    IInputDataImpl() {}
-
-    int64_t GetSpecificImplPtr()
-    {
-        return reinterpret_cast<int64_t>(this);
-    }
-
-    void OnSetDataInner(AuthSubType authSubType, array_view<uint8_t> data)
+    explicit OnSetDataCallbackImpl(std::shared_ptr<AccountSA::IInputerData> inputerData) : inputerData_(inputerData) {}
+    void operator()(AuthSubType authSubType, ::taihe::array_view<uint8_t> data) __attribute__((no_sanitize("cfi")))
     {
         bool isSystemApp = OHOS::AccountSA::IsSystemApp();
         if (!isSystemApp) {
+            ACCOUNT_LOGE("Not system app.");
             taihe::set_business_error(ERR_JS_IS_NOT_SYSTEM_APP, ConvertToJsErrMsg(ERR_JS_IS_NOT_SYSTEM_APP));
             return;
         }
@@ -1017,6 +1011,74 @@ public:
         inputerData_ = nullptr;
     }
 };
+
+class IInputDataImpl {
+public:
+    std::shared_ptr<AccountSA::IInputerData> inputerData_;
+
+public:
+    IInputDataImpl() {}
+
+    explicit IInputDataImpl(int64_t ptr)
+    {
+        AccountSA::IInputerData* rawPtr = reinterpret_cast<AccountSA::IInputerData*>(ptr);
+        inputerData_ = std::shared_ptr<AccountSA::IInputerData>(
+            rawPtr,
+            [](AccountSA::IInputerData *p) {
+                if (p != nullptr) {
+                    delete p;
+                }
+            }
+        );
+    }
+
+    int64_t GetSpecificImplPtr()
+    {
+        return reinterpret_cast<int64_t>(this);
+    }
+
+    int64_t GetIInputDataPtr()
+    {
+        return reinterpret_cast<int64_t>(inputerData_.get());
+    }
+
+    void OnSetData(AuthSubType authSubType, array_view<uint8_t> data) __attribute__((no_sanitize("cfi")))
+    {
+        bool isSystemApp = OHOS::AccountSA::IsSystemApp();
+        if (!isSystemApp) {
+            ACCOUNT_LOGE("Not system app.");
+            taihe::set_business_error(ERR_JS_IS_NOT_SYSTEM_APP, ConvertToJsErrMsg(ERR_JS_IS_NOT_SYSTEM_APP));
+            return;
+        }
+        std::vector<uint8_t> authTokenVec(data.data(), data.data() + data.size());
+        if (inputerData_ == nullptr) {
+            ACCOUNT_LOGE("InputerData_ is nullptr.");
+            taihe::set_business_error(ERR_JS_SYSTEM_SERVICE_EXCEPTION,
+                ConvertToJsErrMsg(ERR_JS_SYSTEM_SERVICE_EXCEPTION));
+            return;
+        }
+        inputerData_->OnSetData(static_cast<int32_t>(authSubType), authTokenVec);
+        inputerData_ = nullptr;
+    }
+
+    ::taihe::callback<void(AuthSubType authSubType, ::taihe::array_view<uint8_t> data)> GetOnSetData()
+    {
+        ::taihe::callback<void(AuthSubType authSubType, ::taihe::array_view<uint8_t> data)> cb =
+            ::taihe::make_holder<OnSetDataCallbackImpl,
+            ::taihe::callback<void(AuthSubType authSubType, ::taihe::array_view<uint8_t> data)>>(inputerData_);
+        return cb;
+    }
+};
+
+IInputData createIInputData(int64_t ptr)
+{
+    return make_holder<IInputDataImpl, IInputData>(ptr);
+}
+
+int64_t getPtrByIInputData(IInputData data)
+{
+    return data->GetIInputDataPtr();
+}
 
 AccountSA::RemoteAuthOptions ConvertToRemoteAuthOptionsInner(const RemoteAuthOptions &options)
 {
@@ -1534,6 +1596,39 @@ public:
     }
 };
 
+class InteropEnvGuard {
+public:
+    InteropEnvGuard()
+    {
+        isTemporary = get_vm()->GetEnv(ANI_VERSION_1, &env) != ANI_OK;
+        if (isTemporary) {
+            ani_option interopEnabled {"--interop=enable", nullptr};
+            ani_options aniArgs {1, &interopEnabled};
+            get_vm()->AttachCurrentThread(&aniArgs, ANI_VERSION_1, &env);
+        }
+    }
+
+    ~InteropEnvGuard()
+    {
+        if (isTemporary) {
+            get_vm()->DetachCurrentThread();
+        }
+    }
+
+    InteropEnvGuard(InteropEnvGuard const &) = delete;
+    InteropEnvGuard &operator=(InteropEnvGuard const &) = delete;
+    InteropEnvGuard(InteropEnvGuard &&) = delete;
+    InteropEnvGuard &operator=(InteropEnvGuard &&) = delete;
+
+    ani_env *get_env()
+    {
+        return env;
+    }
+private:
+    ani_env *env;
+    bool isTemporary;
+};
+
 class TaiheGetDataCallback : public AccountSA::IInputer {
 public:
     TaiheGetDataCallback();
@@ -1544,6 +1639,7 @@ public:
 
     std::shared_ptr<TaiheIInputer> inputer_ = nullptr;
     std::shared_ptr<TaiheIInputData> inputerData_ = nullptr;
+    std::shared_ptr<InteropEnvGuard> guardPtr_ = nullptr;
 };
 
 TaiheGetDataCallback::TaiheGetDataCallback() {}
@@ -1558,10 +1654,11 @@ void TaiheGetDataCallback::OnGetData(int32_t authSubType, std::vector<uint8_t> c
         ACCOUNT_LOGE("The onGetData function is undefined");
         return;
     }
+    guardPtr_ = std::make_shared<InteropEnvGuard>();
     GetInputDataOptions option = {
         optional<array<uint8_t>>(std::in_place_t{}, taihe::copy_data_t{}, challenge.data(), challenge.size())};
     reinterpret_cast<IInputDataImpl *>((*inputerData_)->GetSpecificImplPtr())->inputerData_ = inputerData;
-    inputer_->onGetData(static_cast<AuthSubType::key_t>(authSubType), *inputerData_, option);
+    inputer_->onGetData(AuthSubType::from_value(authSubType), *inputerData_, option);
 }
 
 class PINAuthImpl {
@@ -1665,3 +1762,5 @@ TH_EXPORT_CPP_API_unregisterInputer(UnregisterInputer);
 TH_EXPORT_CPP_API_CreateUserIdentityManager(CreateUserIdentityManager);
 TH_EXPORT_CPP_API_CreateUserAuth(CreateUserAuth);
 TH_EXPORT_CPP_API_CreatePINAuth(CreatePINAuth);
+TH_EXPORT_CPP_API_createIInputData(createIInputData);
+TH_EXPORT_CPP_API_getPtrByIInputData(getPtrByIInputData);

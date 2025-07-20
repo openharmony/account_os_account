@@ -68,7 +68,8 @@
         "user_auth_framework",
         "window_manager",
         "openssl",
-        "config_policy"
+        "config_policy",
+        "icu"
       ],
       "third_party": []
     },
