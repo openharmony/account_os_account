@@ -177,13 +177,16 @@ taihe_shared_library("os_account_taihe_native") {
   sources = get_target_outputs(":osaccount_taihe")
   sources += [
     "./common/src/taihe_distributed_account_converter.cpp",
+    "os_account/ani/src/ani_os_account_transfer.cpp",
     "os_account/src/ani_constructor.cpp",
     "os_account/src/ohos.account.osAccount.impl.cpp",
     "os_account/src/taihe_account_info.cpp",
     "os_account/src/taihe_common.cpp",
+    "${account_iam_kits_path}/src/napi_account_iam_onsetdata.cpp",
   ]
 
   include_dirs = [
+    "os_account/ani/include",
     "os_account/include",
     "distributed_account/include",
     "./common/include",
@@ -215,8 +218,11 @@ taihe_shared_library("os_account_taihe_native") {
     "access_token:libtokenid_sdk",
     "c_utils:utils",
     "hilog:libhilog",
+    "icu:shared_icuuc",
     "ipc:ipc_single",
     "napi:ace_napi",
+    "runtime_core:ani",
+    "runtime_core:ani_helpers",
   ]
 
   cflags_cc = [ "-w" ]
@@ -235,6 +241,11 @@ taihe_shared_library("os_account_taihe_native") {
     "ACCOUNT_LOG_TAG = \"TH_OS_Account\"",
     "LOG_DOMAIN = 0xD001B00",
   ]
+}
+
+ohos_copy("copy_transfer") {
+  sources = ["${os_account_path}/frameworks/ets/taihe/os_account/idl/@ohos.account.transfer.ets"]
+  outputs = ["${taihe_generated_file_path_osaccount}/{{source_file_part}}"]
 }
 
 generate_static_abc("distributed_account_abc") {
@@ -256,10 +267,16 @@ generate_static_abc("app_account_abc") {
 
 generate_static_abc("os_account_abc") {
   base_url = "${taihe_generated_file_path_osaccount}"
-  files = [ "${taihe_generated_file_path_osaccount}/@ohos.account.osAccount.ets" ]
+  files = [
+    "${taihe_generated_file_path_osaccount}/@ohos.account.osAccount.ets",
+    "${taihe_generated_file_path_osaccount}/@ohos.account.transfer.ets"
+  ]
   is_boot_abc = "True"
   device_dst_file = "/system/framework/os_account_abc.abc"
-  dependencies = [ ":osaccount_taihe" ]
+  dependencies = [
+    ":osaccount_taihe",
+    ":copy_transfer"
+  ]
 }
 
 generate_static_abc("os_account_abc_test") {

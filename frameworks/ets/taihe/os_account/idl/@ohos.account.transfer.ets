@@ -13,21 +13,18 @@
  * limitations under the License.
  */
 
-#include "ohos.account.osAccount.ani.hpp"
-#include "ani_os_account_transfer.h"
-
-ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
-{
-    ani_env *env;
-    if (ANI_OK != vm->GetEnv(ANI_VERSION_1, &env)) {
-        return ANI_ERROR;
+ export namespace osAccount {
+    class Transfer {
+        static {
+            loadLibrary("os_account_taihe_native.z");
+        }
+        static native nativeIInputDataTransferStatic(input: ESValue): Object;
+        static native nativeIInputDataTransferDynamic(input: Object): ESValue;
+        static iInputDataTransferStatic(input: Any): Object {
+            return Transfer.nativeIInputDataTransferStatic(ESValue.wrap(input));
+        }
+        static iInputDataTransferDynamic(input: Object): Any {
+            return Transfer.nativeIInputDataTransferDynamic(input);
+        }
     }
-    if (ANI_OK != ohos::account::osAccount::ANIRegister(env)) {
-        std::cerr << "ohos::account::osAccount" << std::endl;
-        return ANI_ERROR;
-    }
-    OHOS::AccountSA::AniOsAccountTransferInit(env);
-    taihe::set_vm(vm);
-    *result = ANI_VERSION_1;
-    return ANI_OK;
-}
+ }
