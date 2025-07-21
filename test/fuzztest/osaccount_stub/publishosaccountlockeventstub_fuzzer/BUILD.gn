@@ -42,12 +42,12 @@ ohos_fuzztest("PublishOsAccountLockEventStubFuzzTest") {
   cflags_cc = [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
   sources = [
     "${os_account_core_path}/src/os_account_event_listener.cpp",
-    "${os_account_core_path}/src/os_account_event_stub.cpp",
     "${os_account_path}/services/accountmgr/src/osaccount/os_account_manager_service.cpp",
     "publishosaccountlockeventstub_fuzzer.cpp",
   ]
 
   deps = [
+    "${os_account_innerkits_native_path}:os_account_event_stub",
     "${os_account_path}/frameworks/common:libaccount_common",
     "${os_account_path}/frameworks/osaccount/native:os_account_innerkits",
     "${os_account_path}/services/accountmgr:accountmgr",
