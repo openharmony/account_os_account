@@ -1596,39 +1596,6 @@ public:
     }
 };
 
-class InteropEnvGuard {
-public:
-    InteropEnvGuard()
-    {
-        isTemporary = get_vm()->GetEnv(ANI_VERSION_1, &env) != ANI_OK;
-        if (isTemporary) {
-            ani_option interopEnabled {"--interop=enable", nullptr};
-            ani_options aniArgs {1, &interopEnabled};
-            get_vm()->AttachCurrentThread(&aniArgs, ANI_VERSION_1, &env);
-        }
-    }
-
-    ~InteropEnvGuard()
-    {
-        if (isTemporary) {
-            get_vm()->DetachCurrentThread();
-        }
-    }
-
-    InteropEnvGuard(InteropEnvGuard const &) = delete;
-    InteropEnvGuard &operator=(InteropEnvGuard const &) = delete;
-    InteropEnvGuard(InteropEnvGuard &&) = delete;
-    InteropEnvGuard &operator=(InteropEnvGuard &&) = delete;
-
-    ani_env *get_env()
-    {
-        return env;
-    }
-private:
-    ani_env *env;
-    bool isTemporary;
-};
-
 class TaiheGetDataCallback : public AccountSA::IInputer {
 public:
     TaiheGetDataCallback();
@@ -1639,7 +1606,6 @@ public:
 
     std::shared_ptr<TaiheIInputer> inputer_ = nullptr;
     std::shared_ptr<TaiheIInputData> inputerData_ = nullptr;
-    std::shared_ptr<InteropEnvGuard> guardPtr_ = nullptr;
 };
 
 TaiheGetDataCallback::TaiheGetDataCallback() {}
@@ -1654,7 +1620,6 @@ void TaiheGetDataCallback::OnGetData(int32_t authSubType, std::vector<uint8_t> c
         ACCOUNT_LOGE("The onGetData function is undefined");
         return;
     }
-    guardPtr_ = std::make_shared<InteropEnvGuard>();
     GetInputDataOptions option = {
         optional<array<uint8_t>>(std::in_place_t{}, taihe::copy_data_t{}, challenge.data(), challenge.size())};
     reinterpret_cast<IInputDataImpl *>((*inputerData_)->GetSpecificImplPtr())->inputerData_ = inputerData;
