@@ -574,6 +574,50 @@ HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerTest024
 }
 
 /**
+ * @tc.name: OsAccountControlFileManagerTest025
+ * @tc.desc: Test GetAllowCreateId when ID range is full
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerUnitTest, OsAccountControlFileManagerTest025, TestSize.Level1)
+{
+    std::string backupPath = Constants::ACCOUNT_LIST_FILE_JSON_PATH + ".backup";
+    std::string accountListContent;
+    g_controlManager->accountFileOperator_->GetFileContentByPath(
+        Constants::ACCOUNT_LIST_FILE_JSON_PATH, accountListContent);
+    g_controlManager->accountFileOperator_->InputFileByPathAndContent(backupPath, accountListContent);
+    
+    CJsonUnique fullAccountListJson = CreateJson();
+    std::vector<std::string> fullAccountIdList;
+    
+    for (int32_t i = Constants::START_USER_ID + 1; i <= Constants::MAX_CREATABLE_USER_ID; i++) {
+        fullAccountIdList.push_back(std::to_string(i));
+    }
+    
+    AddVectorStringToJson(fullAccountListJson, Constants::ACCOUNT_LIST, fullAccountIdList);
+    AddIntToJson(fullAccountListJson, "nextLocalId", Constants::MAX_CREATABLE_USER_ID + 1);
+    AddIntToJson(fullAccountListJson, Constants::COUNT_ACCOUNT_NUM, static_cast<int>(fullAccountIdList.size()));
+    AddInt64ToJson(fullAccountListJson, Constants::SERIAL_NUMBER_NUM, Constants::MAX_CREATABLE_USER_ID + 1);
+    AddIntToJson(fullAccountListJson, Constants::MAX_ALLOW_CREATE_ACCOUNT_ID, Constants::MAX_CREATABLE_USER_ID);
+    
+    std::string fullAccountListStr = PackJsonToString(fullAccountListJson);
+    EXPECT_EQ(g_controlManager->accountFileOperator_->InputFileByPathAndContent(
+        Constants::ACCOUNT_LIST_FILE_JSON_PATH, fullAccountListStr), ERR_OK);
+    
+    int id = 0;
+    ErrCode result = g_controlManager->GetAllowCreateId(id);
+    
+    EXPECT_EQ(result, ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR);
+    
+    EXPECT_GT(id, Constants::MAX_CREATABLE_USER_ID);
+    
+    g_controlManager->accountFileOperator_->GetFileContentByPath(backupPath, accountListContent);
+    g_controlManager->accountFileOperator_->InputFileByPathAndContent(
+        Constants::ACCOUNT_LIST_FILE_JSON_PATH, accountListContent);
+    g_controlManager->accountFileOperator_->DeleteDirOrFile(backupPath);
+}
+
+/**
  * @tc.name: IsFromBaseOAConstraintsList_001
  * @tc.desc: coverage IsFromBaseOAConstraintsList
  * @tc.type: FUNC
