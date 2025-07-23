@@ -1,0 +1,160 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@!namespace("@ohos.account.appAccount", "appAccount")
+
+@!sts_inject_into_module("import Want from '@ohos.app.ability.Want';")
+
+@!sts_inject("""
+static { loadLibrary("app_account_taihe_native.z") }
+""")
+
+function createAppAccountManager(): AppAccountManager;
+
+struct CreateAccountOptions {
+    customData: Optional<@record Map<String, String>>;
+}
+
+struct AppAccountInfo {
+    owner: String;
+    name: String;
+}
+
+struct AuthTokenInfo {
+    authType: String;
+    token: String;
+    account: Optional<AppAccountInfo>;
+}
+
+struct AuthenticatorInfo {
+    owner: String;
+    iconId: i32;
+    labelId: i32;
+}
+
+struct AuthResult {
+    account: Optional<AppAccountInfo>;
+    tokenInfo: Optional<AuthTokenInfo>;
+}
+
+struct CreateAccountImplicitlyOptions {
+    requiredLabels: Optional<Array<String>>;
+    authType: Optional<String>;
+    parameters: Optional<@record Map<String, Opaque>>;
+}
+
+struct SelectAccountsOptions {
+    allowedAccounts: Optional<Array<AppAccountInfo>>;
+    allowedOwners: Optional<Array<String>>;
+    requiredLabels: Optional<Array<String>>;
+}
+
+struct VerifyCredentialOptions {
+    credentialType: Optional<String>;
+    credential: Optional<String>;
+    parameters: Optional<@record Map<String, Opaque>>;
+}
+
+struct SetPropertiesOptions {
+    properties: Optional<@record Map<String, Opaque>>;
+    parameters: Optional<@record Map<String, Opaque>>;
+}
+
+enum Constants: String {
+    ACTION_CREATE_ACCOUNT_IMPLICITLY = "createAccountImplicitly",
+    ACTION_AUTH = "auth",
+    ACTION_VERIFY_CREDENTIAL = "verifyCredential",
+    ACTION_SET_AUTHENTICATOR_PROPERTIES = "setAuthenticatorProperties",
+    KEY_NAME = "name",
+    KEY_OWNER = "owner",
+    KEY_TOKEN = "token",
+    KEY_ACTION = "action",
+    KEY_AUTH_TYPE = "authType",
+    KEY_SESSION_ID = "sessionId",
+    KEY_CALLER_PID = "callerPid",
+    KEY_CALLER_UID = "callerUid",
+    KEY_CALLER_BUNDLE_NAME = "callerBundleName",
+    KEY_REQUIRED_LABELS = "requiredLabels",
+    KEY_BOOLEAN_RESULT = "booleanResult"
+}
+
+struct AuthCallback {
+    onResult: (code: i32, @optional result: Optional<AuthResult>) => void;
+    onRequestRedirected: (request: @sts_type("Want")Opaque) => void;
+    onRequestContinued: Optional<() => void>;
+}
+
+interface AppAccountManager {
+
+    @overload("on")
+    OnSync(type: String, owners: Array<String>, callback: (data: Array<AppAccountInfo>) => void): void;
+
+    @overload("off")
+    OffAllSync(type: String): void;
+
+    @overload("off")
+    OffSyncTaihe(type: String, callback: (data: Array<AppAccountInfo>) => void): void;
+
+    @gen_async("getAuthCallback")
+    @gen_promise("getAuthCallback")
+    GetAuthCallbackSync(sessionId: String):AuthCallback;
+
+    @overload("verifyCredential")
+    VerifyCredentialSync(name: String, owner: String, callback: AuthCallback);
+
+    @overload("verifyCredential")
+    VerifyCredentialWithOpt(name: String, owner: String, options: @sts_type("VerifyCredentialOptions")Opaque, callback: AuthCallback);
+
+    @overload("setAuthenticatorProperties")
+    SetAuthenticatorPropertiesSync(owner: String, callback: AuthCallback): void;
+
+    @overload("setAuthenticatorProperties")
+    SetAuthenticatorPropertiesWithOpt(owner: String, options: @sts_type("SetPropertiesOptions")Opaque, callback: AuthCallback): void;
+
+    @overload("createAccountImplicitly")
+    CreateAccountImplicitly(owner: String, callback: AuthCallback);
+
+    @overload("createAccountImplicitly")
+    CreateAccountImplicitlyWithOpt(owner: String, options: CreateAccountImplicitlyOptions, callback: AuthCallback);
+
+    @overload("auth")
+    AuthSync(name: String, owner: String, authType: String, callback: AuthCallback);
+
+    @overload("auth")
+    AuthWithMap(name: String, owner: String, authType: String, options: @record Map<String, Opaque>, callback: AuthCallback);
+}
+
+interface Authenticator {
+    @overload("createAccountImplicitly")
+    CreateAccountImplicitly(options: CreateAccountImplicitlyOptions, callback: AuthCallback): void;
+
+    @overload("auth")
+    Auth(name: String, authType: String, options: @record Map<String, Opaque>, Callback: AuthCallback): void;
+
+    @overload("setProperties")
+    SetProperties(options: SetPropertiesOptions, callback: AuthCallback): void;
+
+    @overload("verifyCredential")
+    VerifyCredential(name: String, options: VerifyCredentialOptions, callback: AuthCallback): void;
+
+    @overload("checkAccountLabels")
+    CheckAccountLabelsSyncTaihe(name: String, labels: Array<String>, Callback: AuthCallback): void;
+
+    @overload("checkAccountRemovable")
+    CheckAccountRemovable(name: String, callback: AuthCallback): void;
+
+    @overload("getRemoteObject")
+    GetRemoteObject(): Opaque;
+}

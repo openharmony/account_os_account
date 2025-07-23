@@ -99,6 +99,13 @@ interface AccountManager {
     @gen_async("queryOsAccountById")
     @gen_promise("queryOsAccountById")
     QueryOsAccountByIdSync(localId: i32): OsAccountInfo;
+
+    @gen_async("createOsAccountForDomain")
+    CreateOsAccountForDomainSync(type: OsAccountType, domainInfo: DomainAccountInfo): OsAccountInfo;
+
+    @gen_promise("createOsAccountForDomain")
+    CreateOsAccountForDomainWithOpts(type: OsAccountType, domainInfo: DomainAccountInfo,
+        options: Optional<CreateOsAccountForDomainOptions>): OsAccountInfo;
 }
 
 @class
@@ -130,7 +137,7 @@ interface UserIdentityManager {
     UpdateCredential(credentialInfo: CredentialInfo, callback: IIdmCallback): void;
 
     @overload("delUser")
-    DelUser(token: @arraybuffer Array<u8>, callback: IIdmCallback);
+    DelUser(token: @typedarray Array<u8>, callback: IIdmCallback);
 }
 
 enum AuthType : i32 {
@@ -273,9 +280,54 @@ struct EnrolledCredInfo {
     templateId: @typedarray Array<u8>;
 }
 
-interface DomainPlugin {
-    @overload("auth")
-    Auth(domainAccountInfo: DomainAccountInfo, credential: @typedarray Array<u8>, callback: IUserAuthCallback): void;
+@class
+struct GetDomainAccountInfoPluginOptions {
+    @extends options: GetDomainAccountInfoOptions;
+    callerUid: i32;
+}
+
+struct DomainServerConfig {
+    parameters: @sts_type("Record<String, Object>")Opaque;
+    id: String;
+    domain: String;
+}
+
+struct GetDomainAccountInfoOptions {
+    accountName: String;
+    domain: Optional<String>;
+    serverConfigId: Optional<String>;
+}
+
+struct AuthStatusInfo {
+    remainTimes: i32;
+    freezingTime: i32;
+}
+
+struct GetDomainAccessTokenOptions {
+    domainAccountInfo: DomainAccountInfo;
+    domainAccountToken: @typedarray Array<u8>;
+    businessParams: @sts_type("Record<String, Object>")Opaque;
+    callerUid: i32;
+}
+
+struct DomainPlugin {
+    Auth: (domainAccountInfo: DomainAccountInfo, credential: @typedarray Array<u8>, callback: IUserAuthCallback) => void;
+
+    AuthWithPopup: (domainAccountInfo: DomainAccountInfo, callback: IUserAuthCallback) => void;
+
+    AuthWithToken: (domainAccountInfo: DomainAccountInfo, token: @typedarray Array<u8>, callback: IUserAuthCallback) => void;
+
+    GetAccountInfoSync: (options: GetDomainAccountInfoPluginOptions) => DomainAccountInfo;
+
+    GetAuthStatusInfoSync: (domainAccountInfo: DomainAccountInfo) => AuthStatusInfo;
+
+    BindAccountSync: (domainAccountInfo: DomainAccountInfo, localId: i32) => void;
+
+    UnbindAccountSync: (domainAccountInfo: DomainAccountInfo) => void;
+
+    IsAccountTokenValidSync: (domainAccountInfo: DomainAccountInfo, token: @typedarray Array<u8>) => bool;
+
+    GetAccessTokenSync: (options: GetDomainAccessTokenOptions) => @typedarray Array<u8>;
 }
 
 @class
@@ -284,6 +336,35 @@ interface DomainAccountManager {}
 @static("DomainAccountManager")
 @gen_promise("isAuthenticationExpired")
 function IsAuthenticationExpiredSync(domainAccountInfo: DomainAccountInfo): bool;
+
+@static("DomainAccountManager")
+@overload("registerPlugin")
+function RegisterPlugin(plugin: DomainPlugin): void;
+
+@static("DomainAccountManager")
+@gen_async("getAccessToken")
+@gen_promise("getAccessToken")
+function GetAccessTokenSync(businessParams: @sts_type("Record<string, Object>")Opaque): @typedarray Array<u8>;
+
+@static("DomainServerConfigManager")
+@gen_promise("addServerConfig")
+function AddServerConfigSync(parameters: @sts_type("Record<String, Object>")Opaque): DomainServerConfig;
+
+@static("DomainServerConfigManager")
+@gen_promise("updateServerConfig")
+function UpdateServerConfigSync(configId: String, parameters: @sts_type("Record<String, Object>")Opaque):DomainServerConfig;
+
+@static("DomainServerConfigManager")
+@gen_promise("getServerConfig")
+function GetServerConfigSync(configId: String): DomainServerConfig;
+
+@static("DomainServerConfigManager")
+@gen_promise("getAllServerConfigs")
+function GetAllServerConfigsSync(): Array<DomainServerConfig>;
+
+@static("DomainServerConfigManager")
+@gen_promise("getAccountServerConfig")
+function GetAccountServerConfigSync(domainAccountInfo: DomainAccountInfo): DomainServerConfig;
 
 struct AuthResult {
     token: Optional<@typedarray Array<u8>>;
@@ -411,3 +492,8 @@ function CreateUserAuth(): UserAuth;
 
 @ctor("PINAuth")
 function CreatePINAuth(): PINAuth;
+
+@class
+struct CreateOsAccountForDomainOptions {
+    @extends options: CreateOsAccountOptions;
+}
