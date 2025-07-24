@@ -91,7 +91,7 @@ enum Constants: String {
 }
 
 struct AuthCallback {
-    onResult: (code: i32, @optional result: Optional<AuthResult>) => void;
+    onResult: (code: i32, @optional result: Optional<@sts_type("AuthResult")Opaque>) => void;
     onRequestRedirected: (request: @sts_type("Want")Opaque) => void;
     onRequestContinued: Optional<() => void>;
 }
