@@ -556,6 +556,8 @@ public:
 
     bool ParseParameters(ani_env *env, uintptr_t options, AccountSA::VerifyCredentialOptions &innerOptions)
     {
+        ani_object optionsObj = reinterpret_cast<ani_object>(options);
+        ani_boolean isUndefined;
         ani_ref parametersRef;
         if (env->Object_GetPropertyByName_Ref(optionsObj, "parameters", &parametersRef) != ANI_OK) {
             ACCOUNT_LOGE("Failed to get options's parameters property");
@@ -572,7 +574,7 @@ public:
                 return false;
             }
         }
-
+        return true;
     }
 
     void VerifyCredentialWithOpt(string_view name, string_view owner, uintptr_t options, AuthCallback const& callback)
