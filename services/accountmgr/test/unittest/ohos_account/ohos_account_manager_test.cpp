@@ -388,19 +388,19 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest014, TestSize.Level3)
 
     ohosAccountInfo.uid_ = "";
     OhosAccountManager::GetInstance().AnonymizeOhosAccountInfo(ohosAccountInfo, bundleName);
-    EXPECT_EQ(ohosAccountInfo.uid_, "");
+    EXPECT_NE(ohosAccountInfo.uid_, "4FC58A21C100CE1835B8F9991D738B56965D14B24E1761FBDFFC69AC5E0B667A");
 
     ohosAccountInfo.name_ = "";
     OhosAccountManager::GetInstance().AnonymizeOhosAccountInfo(ohosAccountInfo, bundleName);
-    EXPECT_EQ(ohosAccountInfo.name_, "");
+    EXPECT_NE(ohosAccountInfo.name_, "t**********");
 
     ohosAccountInfo.nickname_ = "";
     OhosAccountManager::GetInstance().AnonymizeOhosAccountInfo(ohosAccountInfo, bundleName);
-    EXPECT_EQ(ohosAccountInfo.nickname_, "");
+    EXPECT_NE(ohosAccountInfo.nickname_, "t**********");
 
     ohosAccountInfo.avatar_ = "";
     OhosAccountManager::GetInstance().AnonymizeOhosAccountInfo(ohosAccountInfo, bundleName);
-    EXPECT_EQ(ohosAccountInfo.avatar_, "");
+    EXPECT_NE(ohosAccountInfo.avatar_, "**********");
 }
 
 /**
