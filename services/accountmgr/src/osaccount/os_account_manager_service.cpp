@@ -15,6 +15,7 @@
 #include "os_account_manager_service.h"
 #include <algorithm>
 #include <cstddef>
+#include <stack>
 #include "account_constants.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
@@ -32,7 +33,7 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 #ifdef HICOLLIE_ENABLE
-thread_local int32_t g_timerId = 0;
+thread_local std::stack<int32_t> g_timerIdStack;
 #endif
 const std::string DUMP_TAB_CHARACTER = "\t";
 const std::map<OsAccountType, std::string> DUMP_TYPE_MAP = {
@@ -1996,9 +1997,8 @@ ErrCode OsAccountManagerService::CallbackEnter([[maybe_unused]] uint32_t code)
 {
 #ifdef HICOLLIE_ENABLE
     if (WATCH_DOG_WHITE_LIST.find(code) == WATCH_DOG_WHITE_LIST.end()) {
-        g_timerId =
-            HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, TIMEOUT,
-            nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
+        g_timerIdStack.push(HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, TIMEOUT,
+            nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG));
     }
 #endif // HICOLLIE_ENABLE
     return ERR_OK;
@@ -2007,8 +2007,12 @@ ErrCode OsAccountManagerService::CallbackEnter([[maybe_unused]] uint32_t code)
 ErrCode OsAccountManagerService::CallbackExit([[maybe_unused]] uint32_t code, [[maybe_unused]] int32_t result)
 {
 #ifdef HICOLLIE_ENABLE
-    if (WATCH_DOG_WHITE_LIST.find(code) == WATCH_DOG_WHITE_LIST.end()) {
-        HiviewDFX::XCollie::GetInstance().CancelTimer(g_timerId);
+    if (WATCH_DOG_WHITE_LIST.find(code) != WATCH_DOG_WHITE_LIST.end()) {
+        return ERR_OK;
+    }
+    if (!g_timerIdStack.empty()) {
+        HiviewDFX::XCollie::GetInstance().CancelTimer(g_timerIdStack.top());
+        g_timerIdStack.pop();
     }
 #endif // HICOLLIE_ENABLE
     return ERR_OK;
