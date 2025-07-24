@@ -40,7 +40,7 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AccountSA::AppAccountInf
         if (isFound) break;
     }
 
-    if(!isFound) {
+    if (!isFound) {
         return;
     }
 

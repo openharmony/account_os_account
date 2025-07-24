@@ -48,21 +48,14 @@ public:
     ~THAppAccountManagerCallback() override = default;
     ErrCode OnResult(int32_t resultCode, const AAFwk::Want &result) override
     {
-        AppAccountInfo appAccountInfo = AppAccountInfo {
-            .owner = result.GetStringArrayParam(AccountSA::Constants::KEY_ACCOUNT_OWNERS)[0],
-            .name = result.GetStringArrayParam(AccountSA::Constants::KEY_ACCOUNT_NAMES)[0],
-        };
-        AuthTokenInfo authTokenInfo = AuthTokenInfo {
-            .authType = result.GetStringArrayParam(AccountSA::Constants::KEY_AUTH_TYPE)[0],
-            .token = result.GetStringArrayParam(AccountSA::Constants::KEY_TOKEN)[0]
-        };
-        AuthResult authResult = AuthResult {
-            .account = optional<AppAccountInfo>(std::in_place_t{}, appAccountInfo),
-            .tokenInfo = optional<AuthTokenInfo>(std::in_place_t{}, authTokenInfo),
-        };
-        taiheCallback_.onResult(resultCode, optional<AuthResult>(std::in_place_t{}, authResult));
+        ani_env *env = get_env();
+        auto resultParams = result.GetParams();
+        auto resultRef = AppExecFwk::WrapWantParams(env, resultParams);
+        taiheCallback_.onResult(resultCode, optional<uintptr_t>(std::in_place_t{},
+            reinterpret_cast<uintptr_t>(resultRef)));
         return true;
     }
+
     ErrCode OnRequestRedirected(const AAFwk::Want &request) override
     {
         ani_env *env = get_env();
@@ -86,12 +79,21 @@ public:
     explicit OnResultCallbackImpl(sptr<AccountSA::IAppAccountAuthenticatorCallback> callback) 
         : callback_(callback) {}
 
-    void operator()(int32_t result, const optional_view<AuthResult> authResult) {
+    void operator()(int32_t result, const optional_view<uintptr_t> authResult) {
         if (callback_ == nullptr) {
             ACCOUNT_LOGE("Native callback is nullptr");
             return;
         }
         AAFwk::Want wantResult;
+        ani_env *env = get_env();
+        if (authResult.has_value()) {
+            ani_object authResultObj = reinterpret_cast<ani_object>(authResult.value());
+            auto status = AppExecFwk::UnwrapWant(env, authResultObj, wantResult);
+            if (status == false) {
+                ACCOUNT_LOGE("Failed to UnwrapWant authResult status = %{public}d", status);
+                return;
+            }
+        }
         callback_->OnResult(result, wantResult);
     }
 
@@ -110,6 +112,13 @@ public:
             return;
         }
         AAFwk::Want wantResult;
+        ani_env *env = get_env();
+        ani_object requestObj = reinterpret_cast<ani_object>(request);
+        auto status = AppExecFwk::UnwrapWant(env, requestObj, wantResult);
+        if (status == false) {
+            ACCOUNT_LOGE("Failed to UnwrapWant request status = %{public}d", status);
+            return;
+        }
         callback_->OnRequestRedirected(wantResult);
     }
 
@@ -119,10 +128,11 @@ private:
 
 class OnRequestContinuedCallbackImpl {
 public:
-    explicit OnRequestContinuedCallbackImpl(sptr<AccountSA::IAppAccountAuthenticatorCallback> callback) 
+    explicit OnRequestContinuedCallbackImpl(sptr<AccountSA::IAppAccountAuthenticatorCallback> callback)
         : callback_(callback) {}
 
-    void operator()() {
+    void operator()()
+    {
         if (callback_ == nullptr) {
             ACCOUNT_LOGE("Native callback is nullptr");
             return;
@@ -162,7 +172,8 @@ public:
         }
     }
 
-    void CreateAccountImplicitlyWithOpt(string_view owner, ohos::account::appAccount::CreateAccountImplicitlyOptions const& options,
+    void CreateAccountImplicitlyWithOpt(string_view owner,
+        ohos::account::appAccount::CreateAccountImplicitlyOptions const& options,
         AuthCallback const& callback)
     {
         std::string innerOwner(owner.data(), owner.size());
@@ -170,15 +181,15 @@ public:
         if (options.authType.has_value()) {
             inneroptions.authType = std::string(options.authType.value().data(), options.authType.value().size());
         }
-        if(options.requiredLabels.has_value()){
-            inneroptions.requiredLabels.assign(options.requiredLabels.value().data(), 
-            options.requiredLabels.value().data() + options.requiredLabels.value().size());
+        if (options.requiredLabels.has_value()) {
+            inneroptions.requiredLabels.assign(options.requiredLabels.value().data(),
+                options.requiredLabels.value().data() + options.requiredLabels.value().size());
         }
         if (options.parameters.has_value()) {
             for (const auto& [key, value] : options.parameters.value()) {
                 int* ptr = reinterpret_cast<int*>(value);
                 std::string tempKey(key.data(), key.size());
-                inneroptions.parameters.SetParam(tempKey,*ptr);
+                inneroptions.parameters.SetParam(tempKey, *ptr);
             }
         }
         auto appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
@@ -240,7 +251,7 @@ public:
         for (const auto& [key, value] : options) {
             int* ptr = reinterpret_cast<int*>(value);
             std::string tempKey(key.data(), key.size());
-            innerOptions.SetParam(tempKey,*ptr);
+            innerOptions.SetParam(tempKey, *ptr);
         }
         auto appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
         if (appAccountMgrCb == nullptr) {
@@ -436,7 +447,8 @@ public:
         delete context;
     }
 
-    AuthCallback GetAuthCallbackSync(string_view sessionId) {
+    AuthCallback GetAuthCallbackSync(string_view sessionId)
+    {
         std::string innerSessionId(sessionId.data(), sessionId.size());
         sptr<IRemoteObject> remoteCallback;
         int errorCode = AccountSA::AppAccountManager::GetAuthenticatorCallback(
@@ -448,14 +460,17 @@ public:
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
         }
 
-        ::taihe::callback<void(int32_t, optional_view<AuthResult>)> onResult =
-            ::taihe::make_holder<OnResultCallbackImpl, ::taihe::callback<void(int32_t, optional_view<AuthResult>)>>(authenticatorCallback);
+        ::taihe::callback<void(int32_t, optional_view<uintptr_t>)> onResult =
+            ::taihe::make_holder<OnResultCallbackImpl,
+                ::taihe::callback<void(int32_t, optional_view<uintptr_t>)>>(authenticatorCallback);
 
         ::taihe::callback<void(uintptr_t)> onRequestRedirected =
-            ::taihe::make_holder<OnRequestRedirectedCallbackImpl, ::taihe::callback<void(uintptr_t)>>(authenticatorCallback);
+            ::taihe::make_holder<OnRequestRedirectedCallbackImpl,
+                ::taihe::callback<void(uintptr_t)>>(authenticatorCallback);
         
         ::taihe::callback<void()> onRequestContinued =
-            ::taihe::make_holder<OnRequestContinuedCallbackImpl, ::taihe::callback<void()>>(authenticatorCallback);
+            ::taihe::make_holder<OnRequestContinuedCallbackImpl,
+                ::taihe::callback<void()>>(authenticatorCallback);
 
         AuthCallback authCallback{
             .onResult = onResult,
@@ -501,7 +516,8 @@ public:
         res.resize(sz);
     }
 
-    bool ParseVerifyCredentialOptions(ani_env *env, uintptr_t options, AccountSA::VerifyCredentialOptions &innerOptions)
+    bool ParseVerifyCredentialOptions(ani_env *env,
+        uintptr_t options, AccountSA::VerifyCredentialOptions &innerOptions)
     {
         ani_object optionsObj = reinterpret_cast<ani_object>(options);
         ani_boolean isUndefined;
@@ -535,6 +551,11 @@ public:
             RetrieveStringFromAni(env, credentialTypeRefString, innerCredentialType);
             innerOptions.credentialType = innerCredentialType;
         }
+        return ParseParameters(env, options, innerOptions);
+    }
+
+    bool ParseParameters(ani_env *env, uintptr_t options, AccountSA::VerifyCredentialOptions &innerOptions)
+    {
         ani_ref parametersRef;
         if (env->Object_GetPropertyByName_Ref(optionsObj, "parameters", &parametersRef) != ANI_OK) {
             ACCOUNT_LOGE("Failed to get options's parameters property");
@@ -551,10 +572,11 @@ public:
                 return false;
             }
         }
-        return true;
+
     }
 
-    void VerifyCredentialWithOpt(string_view name, string_view owner, uintptr_t options, AuthCallback const& callback) {
+    void VerifyCredentialWithOpt(string_view name, string_view owner, uintptr_t options, AuthCallback const& callback)
+    {
         std::string innerName(name.data(), name.size());
         std::string innerOwner(owner.data(), owner.size());
         AccountSA::VerifyCredentialOptions innerOptions;
@@ -580,7 +602,8 @@ public:
         }
     }
     
-    void SetAuthenticatorPropertiesSync(string_view owner, AuthCallback const& callback) {
+    void SetAuthenticatorPropertiesSync(string_view owner, AuthCallback const& callback)
+    {
         std::string innerOwner(owner.data(), owner.size());
         AccountSA::SetPropertiesOptions options;
         auto appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
@@ -637,7 +660,8 @@ public:
         return true;
     }
 
-    void SetAuthenticatorPropertiesWithOpt(string_view owner, uintptr_t options, AuthCallback const& callback) {
+    void SetAuthenticatorPropertiesWithOpt(string_view owner, uintptr_t options, AuthCallback const& callback)
+    {
         std::string innerOwner(owner.data(), owner.size());
         AccountSA::SetPropertiesOptions innerOptions;
         ani_env *env = get_env();
@@ -674,11 +698,13 @@ public:
     TaiheAppAccountAuthenticator() = default;
     ~TaiheAppAccountAuthenticator() override = default;
     
-    bool CheckObjectLegality() const override {
+    bool CheckObjectLegality() const override
+    {
         return true;
     }
     
-    int GetObjectType() const override {
+    int GetObjectType() const override
+    {
         return OBJECT_TYPE_NATIVE;
     }
     
@@ -686,7 +712,8 @@ public:
         const std::string& callerBundleName,
         const WantParams& options,
         const sptr<IRemoteObject>& remoteObjCallback,
-        int32_t& funcResult) override {
+        int32_t& funcResult) override
+    {
         return ERR_OK;
     }
     
@@ -694,14 +721,16 @@ public:
         const AppAccountAuthenticatorStringInfo& appAccountAuthenticatorStringInfo,
         const WantParams& options,
         const sptr<IRemoteObject>& remoteObjCallback,
-        int32_t& funcResult) override {
+        int32_t& funcResult) override
+    {
         return ERR_OK;
     }
     
     ErrCode CreateAccountImplicitly(
         const AccountSA::CreateAccountImplicitlyOptions& options,
         const sptr<IRemoteObject>& remoteObjCallback,
-        int32_t& funcResult) override {
+        int32_t& funcResult) override
+    {
         return ERR_OK;
     }
     
@@ -710,7 +739,8 @@ public:
         const std::string& authType,
         const WantParams& options,
         const sptr<IRemoteObject>& remoteObjCallback,
-        int32_t& funcResult) override {
+        int32_t& funcResult) override
+    {
         return ERR_OK;
     }
     
@@ -718,7 +748,8 @@ public:
         const std::string& name,
         const AccountSA::VerifyCredentialOptions& options,
         const sptr<IRemoteObject>& remoteObjCallback,
-        int32_t& funcResult) override {
+        int32_t& funcResult) override
+    {
         return ERR_OK;
     }
     
@@ -726,28 +757,32 @@ public:
         const std::string& name,
         const std::vector<std::string>& labels,
         const sptr<IRemoteObject>& remoteObjCallback,
-        int32_t& funcResult) override {
+        int32_t& funcResult) override
+    {
         return ERR_OK;
     }
     
     ErrCode SetProperties(
         const AccountSA::SetPropertiesOptions& options,
         const sptr<IRemoteObject>& remoteObjCallback,
-        int32_t& funcResult) override {
+        int32_t& funcResult) override
+    {
         return ERR_OK;
     }
     
     ErrCode IsAccountRemovable(
         const std::string& name,
         const sptr<IRemoteObject>& remoteObjCallback,
-        int32_t& funcResult) override {
+        int32_t& funcResult) override
+    {
         return ERR_OK;
     }
 };
 
 class AuthenticatorImpl {
 public:
-    AuthenticatorImpl() {
+    AuthenticatorImpl()
+    {
         auto authenticator = new (std::nothrow) TaiheAppAccountAuthenticator();
         if (authenticator == nullptr) {
             remoteObject_ = 0;
@@ -768,17 +803,18 @@ public:
         remoteObject_ = reinterpret_cast<uintptr_t>(aniRemoteObj);
     }
 
-    ~AuthenticatorImpl() {
+    ~AuthenticatorImpl()
+    {
         if (remoteObject_ != 0) {
             remoteObject_ = 0;
         }
     }
 
-    uintptr_t GetRemoteObject() {
+    uintptr_t GetRemoteObject()
+    {
         if (remoteObject_ == 0) {
             ACCOUNT_LOGE("Remote object not initialized");
         }
-        
         return remoteObject_;
     }
 
