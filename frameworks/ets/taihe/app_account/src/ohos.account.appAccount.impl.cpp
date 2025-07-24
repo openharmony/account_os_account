@@ -76,10 +76,11 @@ private:
 
 class OnResultCallbackImpl {
 public:
-    explicit OnResultCallbackImpl(sptr<AccountSA::IAppAccountAuthenticatorCallback> callback) 
+    explicit OnResultCallbackImpl(sptr<AccountSA::IAppAccountAuthenticatorCallback> callback)
         : callback_(callback) {}
 
-    void operator()(int32_t result, const optional_view<uintptr_t> authResult) {
+    void operator()(int32_t result, const optional_view<uintptr_t> authResult)
+    {
         if (callback_ == nullptr) {
             ACCOUNT_LOGE("Native callback is nullptr");
             return;
@@ -103,10 +104,11 @@ private:
 
 class OnRequestRedirectedCallbackImpl {
 public:
-    explicit OnRequestRedirectedCallbackImpl(sptr<AccountSA::IAppAccountAuthenticatorCallback> callback) 
+    explicit OnRequestRedirectedCallbackImpl(sptr<AccountSA::IAppAccountAuthenticatorCallback> callback)
         : callback_(callback) {}
 
-    void operator()(uintptr_t request) {
+    void operator()(uintptr_t request)
+    {
         if (callback_ == nullptr) {
             ACCOUNT_LOGE("Native callback is nullptr");
             return;
