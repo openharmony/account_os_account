@@ -1855,7 +1855,8 @@ public:
     explicit OnResultCallbackImpl(std::shared_ptr<AccountSA::DomainAccountCallback> callback)
         : callback_(callback) {}
 
-    void operator()(int32_t result, const ::ohos::account::osAccount::AuthResult& extraInfo) {
+    void operator()(int32_t result, const ::ohos::account::osAccount::AuthResult& extraInfo)
+    {
         if (callback_ == nullptr) {
             ACCOUNT_LOGE("native callback is nullptr");
             return;
@@ -1985,7 +1986,8 @@ private:
     IUserAuthCallback ConvertToDomainAccountCallback(const std::shared_ptr<AccountSA::DomainAccountCallback> &callback)
     {
         ::taihe::callback<void(int32_t, ::ohos::account::osAccount::AuthResult const&)> onResultCallback =
-        ::taihe::make_holder<OnResultCallbackImpl, ::taihe::callback<void(int32_t, ::ohos::account::osAccount::AuthResult const&)>>(callback);
+        ::taihe::make_holder<OnResultCallbackImpl, ::taihe::callback<void(int32_t,
+            ::ohos::account::osAccount::AuthResult const&)>>(callback);
 
         ::ohos::account::osAccount::IUserAuthCallback taiheCallback{
             .onResult = onResultCallback,
