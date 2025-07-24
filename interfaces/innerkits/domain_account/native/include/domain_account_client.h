@@ -164,6 +164,7 @@ private:
     std::mutex recordMutex_;
     sptr<IDomainAccount> proxy_ = nullptr;
     sptr<DomainAccountDeathRecipient> deathRecipient_ = nullptr;
+    std::mutex pluginServiceMutex_;
     sptr<IDomainAccountPlugin> pluginService_ = nullptr;
     sptr<IDomainAccountCallback> callback_ = nullptr;
     std::shared_ptr<DomainAccountStatusListenerManager> listenerManager_ = nullptr;
