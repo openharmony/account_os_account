@@ -1411,7 +1411,7 @@ ErrCode OsAccountManagerService::GetOsAccountListFromDatabase(const std::string&
     StringRawData& osAccountInfos)
 {
     std::vector<OsAccountInfo> osAccountVec;
-    auto errCode = innerManager_.GetOsAccountListFromDatabase(storeID, osAccountVec);
+    auto errCode = GetOsAccountListFromDatabase(storeID, osAccountVec);
     if (errCode == ERR_OK && !WriteOsAccountInfoVector(osAccountInfos, osAccountVec)) {
         ACCOUNT_LOGE("WriteOsAccountInfoVector failed, please check osAccountInfos");
         return IPC_STUB_WRITE_PARCEL_ERR;
