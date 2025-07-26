@@ -37,8 +37,12 @@ bool SetOsAccountProfilePhotoStubFuzzTest(const uint8_t *data, size_t size)
     if (!datas.WriteInt32(fuzzData.GetData<int32_t>())) {
         return false;
     }
-
-    if (!datas.WriteString(fuzzData.GenerateString())) {
+    StringRawData stringRawData;
+    stringRawData.Marshalling(fuzzData.GenerateString());
+    if (!datas.WriteUint32(stringRawData.size)) {
+        return false;
+    }
+    if (!datas.WriteRawData(stringRawData.data, stringRawData.size)) {
         return false;
     }
 
