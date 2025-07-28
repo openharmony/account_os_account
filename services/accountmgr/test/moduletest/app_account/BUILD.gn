@@ -30,7 +30,10 @@ config("app_account_service_config_mock") {
 config("app_account_service_config_unittest") {
   visibility = [ ":*" ]
 
-  include_dirs = []
+  include_dirs = [
+    "${services_path}/accountmgr/include/common/database/kvstore",
+    "${services_path}/accountmgr/include/common/database",
+  ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -109,6 +112,7 @@ ohos_moduletest("app_account_manager_service_associated_data_test") {
     "${services_path}/accountmgr/src/osaccount/os_account_subscribe_death_recipient.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_subscribe_manager.cpp",
     "app_account_associated_data_test.cpp",
+    "${services_path}/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
   ]
 
   sources += app_account_sources_mock
@@ -122,6 +126,8 @@ ohos_moduletest("app_account_manager_service_associated_data_test") {
   include_dirs = [
     "${app_account_services_path}/test/mock/common",
     "${app_account_innerkits_native_path}/include",
+    "${services_path}/accountmgr/include/common/database/kvstore",
+    "${services_path}/accountmgr/include/common/database",
   ]
 
   deps = [
@@ -377,6 +383,7 @@ ohos_moduletest("app_account_control_manager_module_test") {
     "${services_path}/accountmgr/src/osaccount/os_account_subscribe_death_recipient.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_subscribe_manager.cpp",
     "app_account_control_manager_module_test.cpp",
+    "${services_path}/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
   ]
 
   sources += app_account_sources_mock
@@ -390,6 +397,8 @@ ohos_moduletest("app_account_control_manager_module_test") {
   include_dirs = [
     "${app_account_services_path}/test/mock/common",
     "${app_account_innerkits_native_path}/include",
+    "${services_path}/accountmgr/include/common/database/kvstore",
+    "${services_path}/accountmgr/include/common/database",
   ]
 
   deps = [
@@ -507,6 +516,8 @@ ohos_moduletest("app_account_authenticator_session_module_test") {
     "${innerkits_native_path}/include",
     "${os_account_path}/frameworks/osaccount/core/include",
     "${os_account_path}/interfaces/innerkits/osaccount/native/include",
+    "${services_path}/accountmgr/include/common/database/kvstore",
+    "${services_path}/accountmgr/include/common/database",
   ]
   sources = [
     "${app_account_services_path}/src/appaccount/app_account_control_manager.cpp",
@@ -516,6 +527,7 @@ ohos_moduletest("app_account_authenticator_session_module_test") {
     "${app_account_services_path}/test/mock/app_account/mock_app_account_authenticator_stub.cpp",
     "${app_account_services_path}/test/mock/common/ability_manager_adapter.cpp",
     "app_account_authenticator_session_module_test.cpp",
+    "${services_path}/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
   ]
 
   sources += [
@@ -649,6 +661,7 @@ ohos_moduletest("app_account_manager_service_module_test") {
     "${services_path}/accountmgr/src/osaccount/os_account_subscribe_death_recipient.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_subscribe_manager.cpp",
     "app_account_manager_service_module_test.cpp",
+    "${services_path}/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
   ]
 
   use_exceptions = true
@@ -835,6 +848,7 @@ ohos_moduletest("at_not_mock_app_account_manager_service_module_test") {
     "${services_path}/accountmgr/src/osaccount/os_account_subscribe_death_recipient.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_subscribe_manager.cpp",
     "at_not_mock_app_account_manager_service_module_test.cpp",
+    "${services_path}/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
   ]
 
   sources += app_account_sources_mock
@@ -1055,6 +1069,8 @@ ohos_moduletest("app_account_authenticator_session_manager_module_test") {
     "${app_account_innerkits_native_path}/include",
     "${os_account_path}/frameworks/osaccount/core/include",
     "${os_account_path}/interfaces/innerkits/osaccount/native/include",
+    "${services_path}/accountmgr/include/common/database/kvstore",
+    "${services_path}/accountmgr/include/common/database",
   ]
 
   sources = [
@@ -1065,6 +1081,7 @@ ohos_moduletest("app_account_authenticator_session_manager_module_test") {
     "${app_account_services_path}/test/mock/app_account/mock_app_account_authenticator_stub.cpp",
     "${app_account_services_path}/test/mock/common/ability_manager_adapter.cpp",
     "app_account_authenticator_session_manager_module_test.cpp",
+    "${services_path}/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
   ]
 
   sources += [
@@ -1186,6 +1203,7 @@ ohos_moduletest("app_account_subscribe_manager_test") {
     "${services_path}/accountmgr/src/appaccount/app_account_subscribe_death_recipient.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_subscribe_manager.cpp",
     "app_account_subscribe_manager_test.cpp",
+    "${services_path}/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
   ]
 
   configs = [

@@ -26,13 +26,8 @@ class OsAccountDataStorage : public AccountDataStorage {
 public:
     OsAccountDataStorage(const std::string &appId, const std::string &storeId, const bool &autoSync);
     ~OsAccountDataStorage() override;
-#ifndef SQLITE_DLCLOSE_ENABLE
-    void SaveEntries(const std::vector<OHOS::DistributedKv::Entry> &allEntries,
-        std::map<std::string, std::shared_ptr<IAccountInfo>> &infos) override;
-#else
     void SaveEntries(const std::vector<DbAdapterEntry> &allEntries,
         std::map<std::string, std::shared_ptr<IAccountInfo>> &infos) override;
-#endif // SQLITE_DLCLOSE_ENABLE
 };
 }  // namespace AccountSA
 }  // namespace OHOS

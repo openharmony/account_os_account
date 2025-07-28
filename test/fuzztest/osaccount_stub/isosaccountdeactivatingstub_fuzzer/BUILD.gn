@@ -25,6 +25,8 @@ ohos_fuzztest("IsOsAccountDeactivatingStubFuzzTest") {
     "${services_path}/accountmgr/include/osaccount",
     "${os_account_innerkits_native_path}/include",
     "${os_account_path}/test/fuzztest/osaccount_stub/common",
+    "${services_path}/accountmgr/include/common/database/kvstore",
+    "${services_path}/accountmgr/include/common/database",
   ]
   cflags = [
     "-g",
@@ -41,6 +43,7 @@ ohos_fuzztest("IsOsAccountDeactivatingStubFuzzTest") {
   sources = [
     "${os_account_path}/services/accountmgr/src/osaccount/os_account_manager_service.cpp",
     "isosaccountdeactivatingstub_fuzzer.cpp",
+    "${os_account_path}/services/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
   ]
   deps = [
     "${os_account_path}/frameworks/common:libaccount_common",

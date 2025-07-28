@@ -153,6 +153,8 @@ ohos_unittest("account_mgr_test") {
     "${os_account_core_path}/src/os_account_event_listener.cpp",
   ]
 
+  sources += [ "${services_path}/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp" ]
+
   configs = [
     ":bundle_manager_config",
     "${services_path}/accountmgr:accountmgr_config",

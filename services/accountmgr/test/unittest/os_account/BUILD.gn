@@ -136,6 +136,8 @@ config("os_account_data_storage_test_config") {
     "${innerkits_path}/include",
     "${services_path}/accountmgr/test/unittest/os_account/mock",
     "${os_account_path}/frameworks/appaccount/native/include",
+    "${services_path}/accountmgr/include/common/database/kvstore",
+    "${services_path}/accountmgr/include/common/database",
   ]
 }
 
@@ -301,6 +303,8 @@ config("os_account_amgr_test_config") {
     "${innerkits_common}/include",
     "${innerkits_path}/include",
     "${services_path}/accountmgr/test/unittest/os_account/mock",
+    "${services_path}/accountmgr/include/common/database",
+    "${services_path}/accountmgr/include/common/database/kvstore",
   ]
 }
 
@@ -404,6 +408,8 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     "${services_path}/accountmgr/include/osaccount",
     "${os_account_path}/interfaces/innerkits/ohosaccount/native/include/",
     "${services_path}/accountmgr/test/unittest/domain_account/mock",
+    "${services_path}/accountmgr/include/common/database/kvstore",
+    "${services_path}/accountmgr/include/common/database",
   ]
   sources = [
     "${app_account_services_path}/test/mock/common/ability_manager_adapter_mock.cpp",
@@ -420,6 +426,7 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     "${services_path}/accountmgr/test/mock/os_account/os_account_interface.cpp",
     "${services_path}/accountmgr/test/unittest/os_account/mock/mock_os_account_musl.cpp",
     "os_account_inner_account_mgr_mock.cpp",
+    "${services_path}/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
   ]
   sources += account_service_sources
   sources -=
@@ -549,6 +556,8 @@ ohos_unittest("OsAccountInnerAccmgrPluginMockTest") {
     "${services_path}/accountmgr/include/osaccount",
     "${os_account_path}/interfaces/innerkits/ohosaccount/native/include/",
     "${account_iam_interfaces_native_path}/include",
+    "${services_path}/accountmgr/include/common/database/kvstore",
+    "${services_path}/accountmgr/include/common/database",
   ]
   sources = [
     "${common_path}/log/src/account_log_wrapper.cpp",
@@ -694,6 +703,8 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
     "${services_path}/accountmgr/include/domain_account",
     "${services_path}/accountmgr/include/osaccount",
     "${os_account_path}/interfaces/innerkits/ohosaccount/native/include/",
+    "${services_path}/accountmgr/include/common/database/kvstore",
+    "${services_path}/accountmgr/include/common/database",
   ]
   sources = [
     "${account_test_common}/src/account_test_common.cpp",
@@ -819,6 +830,8 @@ ohos_unittest("os_account_maintenance_type_mock_test") {
     "${app_account_innerkits_native_path}/include",
     "${os_account_path}/frameworks/osaccount/core/include",
     "${os_account_dfx_path}/data_dfx",
+    "${services_path}/accountmgr/include/common/database/kvstore",
+    "${services_path}/accountmgr/include/common/database",
   ]
   sources = [ "os_account_maintenance_type_mock_test.cpp" ]
   sources += [
@@ -841,6 +854,7 @@ ohos_unittest("os_account_maintenance_type_mock_test") {
     "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
     "${services_path}/accountmgr/src/appaccount/os_account_state_subscriber.cpp",
+    "${services_path}/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
   ]
   sources += account_service_sources_mock
   sources += account_data_storage_source

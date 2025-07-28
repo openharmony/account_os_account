@@ -24,11 +24,7 @@ namespace AccountSA {
 class AppAccountDataStorage : public AccountDataStorage {
 public:
     AppAccountDataStorage() = delete;
-#ifndef SQLITE_DLCLOSE_ENABLE
-    AppAccountDataStorage(const std::string &storeId, const AccountDataStorageOptions &options);
-#else
     AppAccountDataStorage(const std::string &storeId, const DbAdapterOptions &options);
-#endif // SQLITE_DLCLOSE_ENABLE
     ~AppAccountDataStorage() override = default;
 
     CJsonUnique GetAccessibleAccountsFromAuthorizedAccounts(const std::string &authorizedAccounts,
@@ -42,13 +38,8 @@ public:
     ErrCode DeleteAccountInfoFromDataStorage(AppAccountInfo &appAccountInfo);
 
 private:
-#ifndef SQLITE_DLCLOSE_ENABLE
-    void SaveEntries(const std::vector<OHOS::DistributedKv::Entry> &allEntries,
-        std::map<std::string, std::shared_ptr<IAccountInfo>> &infos) override;
-#else
     void SaveEntries(const std::vector<DbAdapterEntry> &allEntries,
         std::map<std::string, std::shared_ptr<IAccountInfo>> &infos) override;
-#endif // SQLITE_DLCLOSE_ENABLE
 };
 }  // namespace AccountSA
 }  // namespace OHOS

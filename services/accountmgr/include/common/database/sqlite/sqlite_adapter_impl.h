@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -40,7 +40,7 @@ public:
     static std::shared_ptr<AppAccountSqliteHelper> GetInstance();
     AppAccountSqliteHelper();
     ~AppAccountSqliteHelper();
-    
+
     std::string CheckDataType(const DataType type);
     void OnCreate() override;
     void OnUpdate(int32_t version) override;
@@ -64,6 +64,10 @@ public:
     DbAdapterStatus Put(const std::string &keyStr, const std::string &valueStr) override;
     DbAdapterStatus GetEntries(const std::string subId,
         std::vector<DbAdapterEntry> &allEntries) override;
+    DbAdapterStatus Commit() override;
+    DbAdapterStatus Rollback() override;
+    DbAdapterStatus StartTransaction() override;
+    DbAdapterStatus PutBatch(const std::vector<DbAdapterEntry> &entries) override;
 
 private:
     std::string GenerateGetSql(const DataType type);
@@ -83,6 +87,10 @@ public:
         std::shared_ptr<IDbAdapterSingleStore> &kvStorePtr) override;
     DbAdapterStatus GetSingleKvStore(const DbAdapterOptions &options, const std::string &appIdStr,
         const std::string &storeIdStr, std::shared_ptr<IDbAdapterSingleStore> &kvStorePtr) override;
+    DbAdapterStatus DeleteKvStore(const std::string &appIdStr, const std::string &storeIdStr,
+        const std::string &baseDir) override;
+    DbAdapterStatus GetAllKvStoreId(const std::string &appIdStr, std::vector<std::string> &storeIdList) override;
+    bool IsKvStore() override;
 private:
     std::shared_ptr<DbAdapterSqlite> sqliteShareHandler_ = nullptr;
 };

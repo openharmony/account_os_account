@@ -320,6 +320,8 @@ ohos_unittest("account_inner_iam_manager_mock_source_file_test") {
     "${os_account_path}/interfaces/innerkits/ohosaccount/native/include/",
     "${account_test_common}/include",
     "${os_account_dfx_path}/data_dfx",
+    "${services_path}/accountmgr/include/common/database/kvstore",
+    "${services_path}/accountmgr/include/common/database",
   ]
 
   sources += [
@@ -334,6 +336,7 @@ ohos_unittest("account_inner_iam_manager_mock_source_file_test") {
     "${innerkits_native_path}/src/distributed_account_subscribe_callback.cpp",
     "${os_account_dfx_path}/data_dfx/data_size_report_adapter.cpp",
     "${os_account_dfx_path}/hisysevent_adapter/account_hisysevent_adapter.cpp",
+    "${services_path}/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
   ]
 
   configs = [
