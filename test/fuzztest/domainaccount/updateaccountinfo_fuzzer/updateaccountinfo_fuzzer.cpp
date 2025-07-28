@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,13 +13,11 @@
  * limitations under the License.
  */
 
-#include "getaccountserverconfig_fuzzer.h"
+#include "updateaccountinfo_fuzzer.h"
 
-#include <string>
 #include "access_token.h"
 #include "access_token_error.h"
 #include "accesstoken_kit.h"
-#include "account_log_wrapper.h"
 #include "domain_account_client.h"
 #include "fuzz_data.h"
 #include "nativetoken_kit.h"
@@ -34,27 +32,39 @@ constexpr int32_t PERMISSION_COUNT_NUM = 2;
 constexpr int32_t FIRST_PARAM_INDEX = 0;
 constexpr int32_t SECOND_PARAM_INDEX = 1;
 }
-namespace OHOS {
 
-    bool GetAccountServerConfigFuzzTest(const uint8_t* data, size_t size)
-    {
-        if ((data == nullptr) || (size == 0)) {
-            return false;
-        }
-        FuzzData fuzzData(data, size);
-        DomainAccountInfo info;
-        DomainServerConfig config;
-        std::string accoutId(fuzzData.GenerateString());
-        std::string accountName(fuzzData.GenerateString());
-        std::string domain(fuzzData.GenerateString());
-        std::string serverConfigId(fuzzData.GenerateString());
-        info.accountId_ = accoutId;
-        info.accountName_ = accountName;
-        info.domain_ = domain;
-        info.serverConfigId_ = serverConfigId;
-        DomainAccountClient::GetInstance().GetAccountServerConfig(info, config);
-        return true;
+namespace OHOS {
+namespace {
+const int ENUM_MAX = 4;
+}
+bool UpdateAccountInfoFuzzTest(const uint8_t* data, size_t size)
+{
+    bool result = false;
+    if ((data == nullptr) || (size == 0)) {
+        return false;
     }
+    FuzzData fuzzData(data, size);
+    DomainAccountInfo oldAccountInfo;
+    oldAccountInfo.domain_ = fuzzData.GenerateString();
+    oldAccountInfo.accountName_ = fuzzData.GenerateString();
+    oldAccountInfo.accountId_ = fuzzData.GenerateString();
+    oldAccountInfo.isAuthenticated = fuzzData.GenerateBool();
+    oldAccountInfo.serverConfigId_ = fuzzData.GenerateString();
+    int typeNumber = fuzzData.GetData<int>() % ENUM_MAX;
+    oldAccountInfo.status_ = static_cast<DomainAccountStatus>(typeNumber);
+
+    DomainAccountInfo newAccountInfo;
+    newAccountInfo.domain_ = fuzzData.GenerateString();
+    newAccountInfo.accountName_ = fuzzData.GenerateString();
+    newAccountInfo.accountId_ = fuzzData.GenerateString();
+    newAccountInfo.isAuthenticated = fuzzData.GenerateBool();
+    newAccountInfo.serverConfigId_ = fuzzData.GenerateString();
+    typeNumber = fuzzData.GetData<int>() % ENUM_MAX;
+    newAccountInfo.status_ = static_cast<DomainAccountStatus>(typeNumber);
+
+    result = DomainAccountClient::GetInstance().UpdateAccountInfo(oldAccountInfo, newAccountInfo);
+    return result == ERR_OK;
+}
 }
 
 void NativeTokenGet()
@@ -62,7 +72,7 @@ void NativeTokenGet()
     uint64_t tokenId;
     const char **perms = new const char *[PERMISSION_COUNT_NUM];
     perms[FIRST_PARAM_INDEX] = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
-    perms[SECOND_PARAM_INDEX] = "ohos.permission.MANAGE_DOMAIN_ACCOUNT_SERVER_CONFIGS";
+    perms[SECOND_PARAM_INDEX] = "ohos.permission.MANAGE_DOMAIN_ACCOUNTS";
     NativeTokenInfoParams infoInstance = {
         .dcapsNum = 0,
         .permsNum = PERMISSION_COUNT_NUM,
@@ -89,7 +99,7 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::GetAccountServerConfigFuzzTest(data, size);
+    OHOS::UpdateAccountInfoFuzzTest(data, size);
     return 0;
 }
 
