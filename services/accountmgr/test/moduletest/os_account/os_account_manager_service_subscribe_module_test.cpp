@@ -190,6 +190,9 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     OsAccountSubscribeInfo osAccountSubscribeInfo;
     osAccountSubscribeInfo.SetOsAccountSubscribeType(OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATED);
     osAccountSubscribeInfo.SetName("subscribeActivated");
+    std::string name;
+    osAccountSubscribeInfo.GetName(name);
+    EXPECT_EQ(name, "subscribeActivated");
 
     // make a subscriber
     auto subscriberTestPtr = std::make_shared<OsAccountSubscriberTest>(osAccountSubscribeInfo);
