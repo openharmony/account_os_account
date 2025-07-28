@@ -21,7 +21,8 @@ use ohos.account.distributedAccount as distributedAccount;
 static { loadLibrary("os_account_taihe_native.z") }
 """)
 
-function getAccountManager(): AccountManager;
+@overload("getAccountManager")
+function GetAccountManager(): AccountManager;
 
 interface AccountManager {
     @gen_async("isMainOsAccount")
@@ -81,7 +82,7 @@ interface AccountManager {
 
     @gen_async("getOsAccountLocalIdForUid")
     @gen_promise("getOsAccountLocalIdForUid")
-    GetOsAccountLocalIdForUidSync(uid: i32): i32;
+    GetOsAccountLocalIdForUidSyncTaihe(uid: i32): i32;
 
     @gen_promise("isOsAccountUnlocked")
     IsOsAccountUnlockedSync(): bool;
@@ -99,6 +100,86 @@ interface AccountManager {
     @gen_async("queryOsAccountById")
     @gen_promise("queryOsAccountById")
     QueryOsAccountByIdSync(localId: i32): OsAccountInfo;
+
+    @gen_promise("setOsAccountProfilePhoto")
+    @gen_async("setOsAccountProfilePhoto")
+    SetOsAccountProfilePhotoSync(localId: i32, photo: String);
+
+    @gen_promise("getOsAccountLocalIdForSerialNumber")
+    @gen_async("getOsAccountLocalIdForSerialNumber")
+    GetOsAccountLocalIdForSerialNumberSync(serialNumber: i64): i32;
+
+    @gen_promise("getSerialNumberForOsAccountLocalId")
+    @gen_async("getSerialNumberForOsAccountLocalId")
+    GetSerialNumberForOsAccountLocalIdSync(localId: i32): i32;
+
+    @gen_promise("getBundleIdForUid")
+    @gen_async("getBundleIdForUid")
+    GetBundleIdForUidWithIdSync(uid: i32): i32;
+
+    @overload("getBundleIdForUidSync")
+    GetBundleIdForUidSyncTaihe(uid: i32): i32;
+
+    @gen_promise("getOsAccountConstraintSourceTypes")
+    @gen_async("getOsAccountConstraintSourceTypes")
+    GetOsAccountConstraintSourceTypesSync(localId: i32, constraint: String): Array<ConstraintSourceTypeInfo>;
+
+    @gen_async("checkMultiOsAccountEnabled")
+    @gen_promise("checkMultiOsAccountEnabled")
+    CheckMultiOsAccountEnabledSync(): bool;
+
+    @gen_async("removeOsAccount")
+    @gen_promise("removeOsAccount")
+    RemoveOsAccountSync(localId: i32);
+
+    @gen_async("setOsAccountName")
+    @gen_promise("setOsAccountName")
+    SetOsAccountNameSync(localId: i32, localName: String);
+
+    @gen_promise("isOsAccountActivated")
+    IsOsAccountActivatedSync(localId: i32): bool;
+
+    @gen_promise("isOsAccountConstraintEnabled")
+    IsOsAccountConstraintEnabledSync(constraint: String): bool;
+
+    @gen_promise("isOsAccountConstraintEnabled")
+    IsOsAccountConstraintEnabledWithId(localId: i32, constraint: String): bool;
+
+    @gen_async("checkOsAccountTestable")
+    @gen_promise("checkOsAccountTestable")
+    CheckOsAccountTestableSync(): bool;
+
+    @gen_async("setOsAccountConstraints")
+    @gen_promise("setOsAccountConstraints")
+    SetOsAccountConstraintsSync(localId: i32, constraints: Array<String>, enable: bool);
+
+    @gen_promise("getOsAccountName")
+    GetOsAccountNameSync(): String;
+
+    @gen_async("getOsAccountCount")
+    @gen_promise("getOsAccountCount")
+    GetOsAccountCountSync():u32;
+
+    @overload("getOsAccountLocalIdForUidSync")
+    GetOsAccountLocalIdForUidSyncOverload(uid: i32): i32;
+
+    @gen_async("getOsAccountLocalIdForDomain")
+    @gen_promise("getOsAccountLocalIdForDomain")
+    GetOsAccountLocalIdForDomainSync(domainInfo: DomainAccountInfo): i32;
+
+    @gen_async("queryMaxOsAccountNumber")
+    @gen_promise("queryMaxOsAccountNumber")
+    QueryMaxOsAccountNumberSync(): u32;
+
+    @gen_promise("getEnabledOsAccountConstraints")
+    GetEnabledOsAccountConstraintsSync(localId: i32): Array<String>;
+
+    @gen_promise("getOsAccountDomainInfo")
+    GetOsAccountDomainInfoSync(localId: i32): DomainAccountInfo;
+
+    @gen_async("queryDistributedVirtualDeviceId")
+    @gen_promise("queryDistributedVirtualDeviceId")
+    QueryDistributedVirtualDeviceIdSync(): String;
 }
 
 @class
@@ -131,6 +212,15 @@ interface UserIdentityManager {
 
     @overload("delUser")
     DelUser(token: @arraybuffer Array<u8>, callback: IIdmCallback);
+
+    @overload("cancel")
+    CancelWithChallenge(challenge: @typedarray Array<u8>): void;
+
+    @overload("delCred")
+    DelCred(credentialId: @typedarray Array<u8>, token: @typedarray Array<u8>, callback: IIdmCallback);
+
+    @gen_promise("getEnrolledId")
+    GetEnrolledIdSync(authType: AuthType, accountId: Optional<i32>): @typedarray Array<u8>;
 }
 
 enum AuthType : i32 {
@@ -281,9 +371,51 @@ interface DomainPlugin {
 @class
 interface DomainAccountManager {}
 
+@class
+interface DomainServerConfigManager {}
+
 @static("DomainAccountManager")
 @gen_promise("isAuthenticationExpired")
 function IsAuthenticationExpiredSync(domainAccountInfo: DomainAccountInfo): bool;
+
+@static("DomainAccountManager")
+@overload("unregisterPlugin")
+function UnregisterPlugin(): void;
+
+@static("DomainAccountManager")
+@overload("auth")
+function Auth(domainAccountInfo: DomainAccountInfo, credential: @typedarray Array<u8>, callback: IUserAuthCallback): void;
+
+@static("DomainAccountManager")
+@overload("authWithPopup")
+function AuthWithPopup(callback: IUserAuthCallback): void;
+
+@static("DomainAccountManager")
+@overload("authWithPopup")
+function AuthWithPopupWithId(localId: i32, callback: IUserAuthCallback): void;
+
+@static("DomainAccountManager")
+@gen_async("hasAccount")
+@gen_promise("hasAccount")
+function HasAccountSync(domainAccountInfo: DomainAccountInfo): bool;
+
+@static("DomainAccountManager")
+@gen_async("updateAccountToken")
+@gen_promise("updateAccountToken")
+function UpdateAccountTokenSync(domainAccountInfo: DomainAccountInfo, token: @typedarray Array<u8>);
+
+@static("DomainAccountManager")
+@gen_async("getAccountInfo")
+@gen_promise("getAccountInfo")
+function GetAccountInfoSync(options: GetDomainAccountInfoOptions): DomainAccountInfo;
+
+@static("DomainAccountManager")
+@gen_promise("updateAccountInfo")
+function UpdateAccountInfoSync(oldAccountInfo: DomainAccountInfo, newAccountInfo: DomainAccountInfo);
+
+@static("DomainServerConfigManager")
+@gen_promise("removeServerConfig")
+function RemoveServerConfigSync(configId: String);
 
 struct AuthResult {
     token: Optional<@typedarray Array<u8>>;
@@ -383,6 +515,18 @@ interface UserAuth {
     @gen_async("setProperty")
     @gen_promise("setProperty")
     SetPropertySync(request: SetPropertyRequest): void;
+
+    @overload("getVersion")
+    GetVersionSync(): i32;
+
+    @overload("getAvailableStatus")
+    GetAvailableStatusSync(authType: AuthType, authTrustLevel: AuthTrustLevel): i32;
+
+    @gen_promise("getPropertyByCredentialId")
+    GetPropertyByCredentialIdSync(credentialId: @typedarray Array<u8>, keys: Array<GetPropertyType>): ExecutorProperty;
+
+    @gen_promise("prepareRemoteAuth")
+    PrepareRemoteAuthSync(remoteNetworkId: String): void;
 }
 
 @class
@@ -411,3 +555,68 @@ function CreateUserAuth(): UserAuth;
 
 @ctor("PINAuth")
 function CreatePINAuth(): PINAuth;
+
+struct AuthStatusInfo {
+    remainTimes: i32;
+    freezingTime: i32;
+}
+
+struct GetDomainAccessTokenOptions {
+    domainAccountInfo: DomainAccountInfo;
+    domainAccountToken: @typedarray Array<u8>;
+    businessParams: @record Map<String, Opaque>;
+    callerUid: i32;
+}
+
+struct GetDomainAccountInfoOptions {
+    accountName: String;
+    domain: Optional<String>;
+    serverConfigId: Optional<String>;
+}
+
+@class
+struct GetDomainAccountInfoPluginOptions {
+    @extends options: GetDomainAccountInfoOptions;
+    callerUid: i32;
+}
+
+struct DomainServerConfig {
+    parameters: @record Map<String, Opaque>;
+    id: String;
+    domain: String;
+}
+
+enum FaceTipsCode : i32 {
+    FACE_AUTH_TIP_TOO_BRIGHT = 1,
+    FACE_AUTH_TIP_TOO_DARK = 2,
+    FACE_AUTH_TIP_TOO_CLOSE = 3,
+    FACE_AUTH_TIP_TOO_FAR = 4,
+    FACE_AUTH_TIP_TOO_HIGH = 5,
+    FACE_AUTH_TIP_TOO_LOW = 6,
+    FACE_AUTH_TIP_TOO_RIGHT = 7,
+    FACE_AUTH_TIP_TOO_LEFT = 8,
+    FACE_AUTH_TIP_TOO_MUCH_MOTION = 9,
+    FACE_AUTH_TIP_POOR_GAZE = 10,
+    FACE_AUTH_TIP_NOT_DETECTED = 11
+}
+
+enum ConstraintSourceType : i32 {
+    CONSTRAINT_NOT_EXIST = 0,
+    CONSTRAINT_TYPE_BASE = 1,
+    CONSTRAINT_TYPE_DEVICE_OWNER = 2,
+    CONSTRAINT_TYPE_PROFILE_OWNER = 3
+}
+
+enum Module : i32 {
+    FACE_AUTH = 1
+}
+
+struct ConstraintSourceTypeInfo {
+    localId: i32;
+    type: ConstraintSourceType;
+}
+
+@class
+struct CreateOsAccountForDomainOptions {
+    @extends options: CreateOsAccountOptions;
+}

@@ -18,6 +18,7 @@ import("//build/ohos/taihe_idl/taihe.gni")
 
 copy_taihe_idl("copy_account") {
   sources = [
+    "app_account/idl/ohos.account.appAccount.taihe",
     "distributed_account/idl/ohos.account.distributedAccount.taihe",
     "os_account/idl/ohos.account.osAccount.taihe",
   ]
@@ -56,10 +57,12 @@ taihe_shared_library("app_account_taihe_native") {
   sources += [
     "./app_account/src/ani_constructor.cpp",
     "./app_account/src/ohos.account.appAccount.impl.cpp",
+    "./app_account/src/taihe_appAccount_info.cpp",
   ]
 
   include_dirs = [
     "./app_account/include",
+    "./common/include",
     "${os_account_path}/frameworks/appaccount/native/include",
     "${os_account_path}/interfaces/innerkits/appaccount/native/include",
     "${os_account_path}/frameworks/ets/taihe/os_account/include/",
@@ -72,6 +75,7 @@ taihe_shared_library("app_account_taihe_native") {
   deps = [
     ":app_account_taihe",
     "${account_napi_common_path}:account_napi_common",
+    "${common_path}:libaccount_common",
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${innerkits_native_path}:libaccountkits",
   ]
@@ -83,6 +87,7 @@ taihe_shared_library("app_account_taihe_native") {
     "ability_runtime:runtime",
     "c_utils:utils",
     "hilog:libhilog",
+    "ipc:ipc_single",
   ]
 
   defines = [
@@ -180,6 +185,7 @@ taihe_shared_library("os_account_taihe_native") {
     "os_account/ani/src/ani_os_account_transfer.cpp",
     "os_account/src/ani_constructor.cpp",
     "os_account/src/ohos.account.osAccount.impl.cpp",
+    "os_account/src/ohos.account.osAccount_accountManager.impl.cpp",
     "os_account/src/taihe_account_info.cpp",
     "os_account/src/taihe_common.cpp",
     "${account_iam_kits_path}/src/napi_account_iam_onsetdata.cpp",
@@ -291,6 +297,7 @@ generate_static_abc("os_account_abc_test") {
   dependencies = [
     ":os_account_abc",
     ":distributed_account_abc",
+    ":app_account_abc",
   ]
 }
 
@@ -300,6 +307,14 @@ ohos_prebuilt_etc("distributed_account_etc") {
   part_name = "${part_name}"
   subsystem_name = "${subsystem_name}"
   deps = [ ":distributed_account_abc" ]
+}
+
+ohos_prebuilt_etc("app_account_etc") {
+  source = "${target_out_dir}/app_account_abc.abc"
+  module_install_dir = "framework"
+  part_name = "${part_name}"
+  subsystem_name = "${subsystem_name}"
+  deps = [ ":app_account_abc" ]
 }
 
 ohos_prebuilt_etc("os_account_etc") {
@@ -325,8 +340,16 @@ group("os_account_taihe_gp") {
   ]
 }
 
+group("app_account_taihe_gp") {
+  deps = [
+    ":app_account_etc",
+    ":app_account_taihe_native",
+  ]
+}
+
 group("account_taihe") {
   deps = [
+    ":app_account_taihe_gp",
     ":distributed_account_taihe_gp",
     ":os_account_taihe_gp",
   ]
