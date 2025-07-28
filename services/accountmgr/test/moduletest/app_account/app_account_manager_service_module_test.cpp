@@ -733,14 +733,17 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_SetAppAc
     g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
+    funcResult = -1;
     g_accountManagerService->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_FALSE, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
+    funcResult = -1;
     bool syncEnable = SYNC_ENABLE_TRUE;
     g_accountManagerService->CheckAppAccountSyncEnable(STRING_NAME, syncEnable, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
     EXPECT_EQ(syncEnable, SYNC_ENABLE_FALSE);
 
+    funcResult = -1;
     g_accountManagerService->DeleteAccount(STRING_NAME, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 }
@@ -774,14 +777,17 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAccount
     g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
+    funcResult = -1;
     g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
     std::string credential;
+    funcResult = -1;
     g_accountManagerService->GetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credential, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
     EXPECT_EQ(credential, STRING_CREDENTIAL);
 
+    funcResult = -1;
     g_accountManagerService->DeleteAccount(STRING_NAME, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 }
@@ -839,23 +845,27 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAccount
     int32_t funcResult = -1;
     g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
-
+    funcResult = -1;
     g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
+    funcResult = -1;
     g_accountManagerService->SetAccountCredential(STRING_NAME,
         STRING_CREDENTIAL_TYPE_TWO, STRING_CREDENTIAL_TWO, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
+    funcResult = -1;
     std::string credential;
     g_accountManagerService->GetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credential, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
     EXPECT_EQ(credential, STRING_CREDENTIAL);
 
+    funcResult = -1;
     g_accountManagerService->GetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE_TWO, credential, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
     EXPECT_EQ(credential, STRING_CREDENTIAL_TWO);
 
+    funcResult = -1;
     g_accountManagerService->DeleteAccount(STRING_NAME, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 }
@@ -874,9 +884,11 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccount
     g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
+    funcResult = -1;
     g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
+    funcResult = -1;
     g_accountManagerService->DeleteAccount(STRING_NAME, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 }
@@ -895,18 +907,22 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccount
     g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
+    funcResult = -1;
     g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
+    funcResult = -1;
     g_accountManagerService->SetAccountCredential(STRING_NAME,
         STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL_TWO, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
+    funcResult = -1;
     std::string credential;
     g_accountManagerService->GetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credential, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
     EXPECT_EQ(credential, STRING_CREDENTIAL_TWO);
 
+    funcResult = -1;
     g_accountManagerService->DeleteAccount(STRING_NAME, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 }
@@ -2411,22 +2427,27 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteAcco
     g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
+    funcResult = -1;
     g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
+    funcResult = -1;
     std::string credential;
     g_accountManagerService->GetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credential, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
     EXPECT_EQ(credential, STRING_CREDENTIAL);
 
+    funcResult = -1;
     g_accountManagerService->DeleteAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
+    funcResult = -1;
     credential = "";
     g_accountManagerService->GetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credential, funcResult);
     EXPECT_NE(funcResult, ERR_OK);
     EXPECT_EQ(credential, "");
 
+    funcResult = -1;
     g_accountManagerService->DeleteAccount(STRING_NAME, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 }
@@ -2477,12 +2498,15 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteAcco
     g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
+    funcResult = -1;
     g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
+    funcResult = -1;
     g_accountManagerService->DeleteAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE_TWO, funcResult);
     EXPECT_EQ(funcResult, ERR_APPACCOUNT_SERVICE_ACCOUNT_CREDENTIAL_NOT_EXIST);
 
+    funcResult = -1;
     g_accountManagerService->DeleteAccount(STRING_NAME, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 }

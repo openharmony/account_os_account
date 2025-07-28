@@ -71,6 +71,7 @@ ErrCode DomainAccountClient::RegisterPlugin(const std::shared_ptr<DomainAccountP
     }
     ErrCode result = proxy->RegisterPlugin(pluginService);
     if (result == ERR_OK) {
+        std::lock_guard<std::mutex> lock(pluginServiceMutex_);
         pluginService_ = pluginService;
     }
     return result;
@@ -89,6 +90,7 @@ ErrCode DomainAccountClient::UnregisterPlugin()
     }
     ErrCode ret = proxy->UnregisterPlugin();
     if (ret == ERR_OK) {
+        std::lock_guard<std::mutex> lock(pluginServiceMutex_);
         pluginService_ = nullptr;
     }
     return ret;
@@ -518,6 +520,7 @@ void DomainAccountClient::RestoreListenerRecords()
 
 void DomainAccountClient::RestorePlugin()
 {
+    std::lock_guard<std::mutex> lock(pluginServiceMutex_);
     if (pluginService_ == nullptr) {
         ACCOUNT_LOGI("pluginService_ is nullptr");
         return;

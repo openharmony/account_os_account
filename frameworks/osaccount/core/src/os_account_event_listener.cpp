@@ -25,6 +25,7 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 constexpr int32_t WAIT_SECONDS = 5;
+constexpr int32_t USE_COUNT_NUM = 2;
 const char THREAD_OS_ACCOUNT_EVENT[] = "OsAccountEvent";
 const char THREAD_WAIT_COMPLETE[] = "WaitComplete";
 const uid_t ACCOUNT_UID = 3058;
@@ -48,7 +49,7 @@ static ErrCode WaitForComplete(const sptr<IRemoteObject> &callback, std::shared_
     std::mutex mutex;
     std::unique_lock<std::mutex> waitLock(mutex);
     auto result = cvPtr->wait_for(waitLock, std::chrono::seconds(WAIT_SECONDS),
-        [callbackCounter]() { return callbackCounter.use_count() == 2; });
+        [callbackCounter]() { return callbackCounter.use_count() == USE_COUNT_NUM; });
     remoteCallback->OnComplete();
     if (!result) {
         ACCOUNT_LOGE("Wait reply timed out");
