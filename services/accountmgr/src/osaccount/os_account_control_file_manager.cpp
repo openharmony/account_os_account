@@ -1235,17 +1235,28 @@ ErrCode OsAccountControlFileManager::GetSerialNumber(int64_t &serialNumber)
 
 int32_t OsAccountControlFileManager::GetNextLocalId(const std::vector<std::string> &accountIdList, int32_t startId)
 {
+    if ((startId <= Constants::START_USER_ID) || (startId > Constants::MAX_CREATABLE_USER_ID)) {
+        startId = Constants::START_USER_ID + 1;
+    }
+    int32_t searchCount = 0;
+    int32_t totalRange = Constants::MAX_CREATABLE_USER_ID - Constants::START_USER_ID;
+
     do {
-        if ((startId <= Constants::START_USER_ID) || (startId >= Constants::MAX_USER_ID)) {
-            startId = Constants::START_USER_ID + 1;
-        }
         if (std::find(accountIdList.begin(), accountIdList.end(), std::to_string(startId)) ==
             accountIdList.end()) {
-            break;
+            return startId;
         }
         ++startId;
+        ++searchCount;
+        if (startId > Constants::MAX_CREATABLE_USER_ID) {
+            startId = Constants::START_USER_ID + 1;
+        }
+        if (searchCount >= totalRange) {
+            ACCOUNT_LOGE("No available account id in range %{public}d - %{public}d",
+                Constants::START_USER_ID + 1, Constants::MAX_CREATABLE_USER_ID);
+            return Constants::MAX_CREATABLE_USER_ID + 1;
+        }
     } while (true);
-    return startId;
 }
 
 ErrCode OsAccountControlFileManager::GetAllowCreateId(int &id)
@@ -1273,8 +1284,12 @@ ErrCode OsAccountControlFileManager::GetAllowCreateId(int &id)
             ACCOUNT_LOGW("Convert last item in accountIdList to string failed.");
         }
     }
-
     id = GetNextLocalId(accountIdList, nextLocalId);
+    if (id > Constants::MAX_CREATABLE_USER_ID) {
+        ACCOUNT_LOGE("No available account id in range 0 - %{public}d, next id would be %{public}d",
+            Constants::MAX_CREATABLE_USER_ID, id);
+        return ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR;
+    }
     AddIntToJson(accountListJson, NEXT_LOCAL_ID, id + 1);
     result = SaveAccountListToFileAndDataBase(accountListJson);
     if (result != ERR_OK) {

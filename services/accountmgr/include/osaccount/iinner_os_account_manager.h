@@ -197,6 +197,8 @@ private:
     ErrCode IsValidOsAccount(const OsAccountInfo &osAccountInfo);
     ErrCode GetNonSACreatedOACount(unsigned int &nonSACreatedOACount) const;
     std::vector<int32_t> GetVerifiedAccountIds(const SafeMap<int32_t, bool> &verifiedAccounts);
+    ErrCode SendToStorageAndAMSAccountStart(OsAccountInfo &osAccountInfo, const bool startStorage,
+        const uint64_t displayId, const bool isAppRecovery, int32_t oldId);
 
 private:
     std::shared_ptr<IOsAccountControl> osAccountControl_;

@@ -26,7 +26,7 @@ namespace OHOS::AccountJsKit {
 
     bool OsAccountManagerImpl::IsOsAccountConstraintEnabled(char *constraint, int32_t *errCode)
     {
-        int32_t id = getuid() / OHOS::AccountSA::UID_TRANSFORM_DIVISOR;
+        int32_t id = static_cast<int32_t>(getuid()) / OHOS::AccountSA::UID_TRANSFORM_DIVISOR;
         bool isConsEnable = false;
         *errCode = ConvertToJSErrCode(OsAccountManager::CheckOsAccountConstraintEnabled(id, constraint, isConsEnable));
         return isConsEnable;

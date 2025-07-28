@@ -2185,17 +2185,11 @@ void IInnerOsAccountManager::RollBackToEarlierAccount(int32_t fromId, int32_t to
     ACCOUNT_LOGI("End pushlishing post switch event.");
 }
 
-ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccountInfo, const bool startStorage,
-                                                        const uint64_t displayId, const bool isAppRecovery)
+ErrCode IInnerOsAccountManager::SendToStorageAndAMSAccountStart(OsAccountInfo &osAccountInfo, const bool startStorage,
+    const uint64_t displayId, const bool isAppRecovery, int32_t oldId)
 {
-    // activate
-    int32_t oldId = -1;
-    bool oldIdExist = foregroundAccountMap_.Find(displayId, oldId);
     int32_t localId = static_cast<int32_t>(osAccountInfo.GetLocalId());
-    bool preActivated = osAccountInfo.GetIsActived();
-    if (oldId != localId) {
-        subscribeManager_.Publish(oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING, localId);
-    }
+    
     if (startStorage) {
         ErrCode errCode = SendToStorageAccountStart(osAccountInfo);
         if (errCode != ERR_OK && !isAppRecovery) {
@@ -2203,9 +2197,33 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
             return errCode;
         }
     }
+    
     ErrCode errCode = SendToAMSAccountStart(osAccountInfo, displayId, isAppRecovery);
     if (errCode != ERR_OK) {
         RollBackToEarlierAccount(localId, oldId);
+        return errCode;
+    }
+    
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccountInfo, const bool startStorage,
+    const uint64_t displayId, const bool isAppRecovery)
+{
+    // activate
+    int32_t oldId = -1;
+    bool oldIdExist = foregroundAccountMap_.Find(displayId, oldId);
+    int32_t localId = static_cast<int32_t>(osAccountInfo.GetLocalId());
+    bool preActivated = osAccountInfo.GetIsActived();
+    if (!preActivated) {
+        OsAccountInterface::PublishCommonEvent(osAccountInfo,
+            OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_STARTING, Constants::OPERATION_STARTING);
+    }
+    if (oldId != localId) {
+        subscribeManager_.Publish(oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING, localId);
+    }
+    ErrCode errCode = SendToStorageAndAMSAccountStart(osAccountInfo, startStorage, displayId, isAppRecovery, oldId);
+    if (errCode != ERR_OK) {
         return errCode;
     }
     if (oldId != localId) {
@@ -2232,6 +2250,8 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
         }
     }
     if (!preActivated) {
+        OsAccountInterface::PublishCommonEvent(osAccountInfo,
+            OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_STARTED, Constants::OPERATION_STARTED);
         ReportOsAccountLifeCycle(defaultActivatedId_, Constants::OPERATION_ACTIVATE);
     }
     ACCOUNT_LOGI("SendMsgForAccountActivate ok");
