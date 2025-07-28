@@ -44,6 +44,7 @@ const std::string STRING_NAME = "name";
 const std::int32_t MAIN_ACCOUNT_ID = 100;
 const std::int32_t WAIT_A_MOMENT = 3000;
 const std::int32_t ILLEGAL_LOCAL_ID = -1;
+const std::int32_t COUNT_SIZE_TWO = 2;
 const std::int32_t NOT_EXSIT_ID = 99999;
 const std::string STRING_NAME_OUT_OF_RANGE(1200, '1'); // length 1200
 const std::string STRING_PHOTO_OUT_OF_RANGE(1024 * 1024 + 1, '1'); // length 1024*1024+1
@@ -56,6 +57,7 @@ const std::vector<std::string> CONSTANTS_VECTOR {
     "constraint.share.into.profile"
 };
 const std::string CONSTRAINT_WIFI = "constraint.wifi";
+const std::string CONSTRAINT_BOOT = "constraint.safe.boot";
 const std::string CONSTRAINT_TIME_OUT = "constraint.screen.timeout.set";
 const std::string CONSTRAINT_SHARE =  "constraint.share.into.profile";
 const std::string STRING_DOMAIN_VALID = "TestDomainUT";
@@ -169,11 +171,14 @@ public:
     ErrCode OnConstraintChanged(int localId, const std::set<std::string> &constraints, bool enable)
     {
         std::unique_lock<std::mutex> lock(mutex_);
-        isReady_ = true;
-        if (localId == Constants::START_USER_ID) {
-            count_++;
+        if (checkIdSet.count(localId) != 1) {
+            return ERR_OK;
         }
-        cv_.notify_one();
+        count_++;
+        if (checkIdSet.size() == count_) {
+            isReady_ = true;
+            cv_.notify_one();
+        }
         return ERR_OK;
     }
 
@@ -186,6 +191,7 @@ public:
         ACCOUNT_LOGI("End");
     }
 
+    std::set<int32_t> checkIdSet = {Constants::START_USER_ID};
     std::condition_variable cv_;
     bool isReady_ = false;
     std::mutex mutex_;
@@ -537,6 +543,111 @@ HWTEST_F(OsAccountTest, OsAccountTest022, TestSize.Level1)
     EXPECT_EQ(g_osAccount->SetGlobalOsAccountConstraints(vec, false, MAIN_ACCOUNT_ID, false), ERR_OK);
     listener->WaitForCallBack();
     EXPECT_EQ(listener->count_, count);
+    ASSERT_TRUE(SetSelfTokenID(selfTokenId) == 0);
+}
+
+/**
+ * @tc.name: OsAccountTest023
+ * @tc.desc: test SubscribeOsAccountConstraints callback time check.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountTest023, TestSize.Level1)
+{
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    ASSERT_TRUE(MockTokenId("edm"));
+    std::set<std::string> constraints;
+    constraints = {CONSTRAINT_WIFI};
+    OsAccountConstraintSubscribeInfo subscribeInfo(constraints);
+    auto listener = new (std::nothrow) MockOsAccountConstraintEventListener();
+    ErrCode errCode = g_osAccount->proxy_->SubscribeOsAccountConstraints(subscribeInfo, listener->AsObject());
+    EXPECT_EQ(errCode, ERR_OK);
+    bool isEnabled = false;
+    EXPECT_EQ(g_osAccount->IsOsAccountConstraintEnable(Constants::START_USER_ID, CONSTRAINT_WIFI, isEnabled), ERR_OK);
+    std::vector<std::string> vec = {CONSTRAINT_WIFI};
+    int32_t count = 0;
+    if (!isEnabled) {
+        EXPECT_EQ(g_osAccount->SetOsAccountConstraints(Constants::START_USER_ID, vec, true), ERR_OK);
+        listener->WaitForCallBack();
+        count++;
+    }
+    EXPECT_EQ(g_osAccount->SetOsAccountConstraints(Constants::START_USER_ID, vec, true), ERR_OK);
+    listener->WaitForCallBack();
+    EXPECT_EQ(listener->count_, count);
+    ASSERT_TRUE(SetSelfTokenID(selfTokenId) == 0);
+}
+
+/**
+ * @tc.name: OsAccountTest024
+ * @tc.desc: test SubscribeOsAccountConstraints callback time check.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountTest024, TestSize.Level1)
+{
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    ASSERT_TRUE(MockTokenId("edm"));
+    std::set<std::string> constraints;
+    constraints = {CONSTRAINT_WIFI};
+    OsAccountConstraintSubscribeInfo subscribeInfo(constraints);
+    auto listener = new (std::nothrow) MockOsAccountConstraintEventListener();
+    ErrCode errCode = g_osAccount->proxy_->SubscribeOsAccountConstraints(subscribeInfo, listener->AsObject());
+    EXPECT_EQ(errCode, ERR_OK);
+    bool isEnabled = false;
+    EXPECT_EQ(g_osAccount->IsOsAccountConstraintEnable(Constants::START_USER_ID, CONSTRAINT_WIFI, isEnabled), ERR_OK);
+    std::vector<std::string> vec = {CONSTRAINT_WIFI};
+    int32_t count = 0;
+    if (isEnabled) {
+        EXPECT_EQ(g_osAccount->SetOsAccountConstraints(Constants::START_USER_ID, vec, false), ERR_OK);
+        listener->WaitForCallBack();
+        count++;
+    }
+    EXPECT_EQ(g_osAccount->SetOsAccountConstraints(Constants::START_USER_ID, vec, false), ERR_OK);
+    listener->WaitForCallBack();
+    EXPECT_EQ(listener->count_, count);
+    ASSERT_TRUE(SetSelfTokenID(selfTokenId) == 0);
+}
+
+/**
+ * @tc.name: OsAccountTest025
+ * @tc.desc: test SubscribeOsAccountConstraints callback time check.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountTest025, TestSize.Level1)
+{
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    ASSERT_TRUE(MockTokenId("edm"));
+    std::vector<std::string> constraints;
+    constraints = {CONSTRAINT_BOOT};
+    OsAccountInfo newInfo;
+    ErrCode errCode = g_osAccount->CreateOsAccount("test", OsAccountType::GUEST, newInfo);
+    EXPECT_EQ(errCode, ERR_OK);
+    bool isEnabled = false;
+    EXPECT_EQ(g_osAccount->IsOsAccountConstraintEnable(Constants::START_USER_ID, CONSTRAINT_BOOT, isEnabled), ERR_OK);
+    if (isEnabled) {
+        EXPECT_EQ(g_osAccount->SetSpecificOsAccountConstraints(constraints, false, Constants::START_USER_ID,
+            Constants::START_USER_ID, false), ERR_OK);
+        EXPECT_EQ(g_osAccount->SetOsAccountConstraints(Constants::START_USER_ID, constraints, false), ERR_OK);
+    }
+    isEnabled = false;
+    EXPECT_EQ(g_osAccount->IsOsAccountConstraintEnable(newInfo.GetLocalId(), CONSTRAINT_BOOT, isEnabled), ERR_OK);
+    if (isEnabled) {
+        EXPECT_EQ(g_osAccount->SetSpecificOsAccountConstraints(constraints, false, newInfo.GetLocalId(),
+            newInfo.GetLocalId(), false), ERR_OK);
+        EXPECT_EQ(g_osAccount->SetOsAccountConstraints(newInfo.GetLocalId(), constraints, false), ERR_OK);
+    }
+    EXPECT_EQ(g_osAccount->SetGlobalOsAccountConstraints(constraints, true, MAIN_ACCOUNT_ID, true), ERR_OK);
+    auto listener = new (std::nothrow) MockOsAccountConstraintEventListener();
+    std::set<std::string> constraintSet = {CONSTRAINT_BOOT};
+    OsAccountConstraintSubscribeInfo subscribeInfo(constraintSet);
+    errCode = g_osAccount->proxy_->SubscribeOsAccountConstraints(subscribeInfo, listener->AsObject());
+    EXPECT_EQ(errCode, ERR_OK);
+    listener->checkIdSet.emplace(newInfo.GetLocalId());
+    EXPECT_EQ(g_osAccount->SetGlobalOsAccountConstraints(constraints, false, MAIN_ACCOUNT_ID, false), ERR_OK);
+    listener->WaitForCallBack();
+    EXPECT_EQ(listener->count_, COUNT_SIZE_TWO);
+    EXPECT_EQ(g_osAccount->RemoveOsAccount(newInfo.GetLocalId()), ERR_OK);
     ASSERT_TRUE(SetSelfTokenID(selfTokenId) == 0);
 }
 

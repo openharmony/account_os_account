@@ -420,6 +420,9 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest015
     bool enable = false;
     EXPECT_EQ(osAccountManagerService_->SetOsAccountConstraints(
         osAccountInfoOne.GetLocalId(), CONSTANTS_VECTOR, enable), ERR_OK);
+    std::vector<std::string> testSet = {"test"};
+    EXPECT_EQ(osAccountManagerService_->SetOsAccountConstraints(
+        osAccountInfoOne.GetLocalId(), testSet, enable), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
