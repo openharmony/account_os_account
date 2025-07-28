@@ -21,5 +21,6 @@ group("unittest") {
     "account_file_operator_test:unittest",
     "account_mgr_service_test:unittest",
     "account_permission_manager_test:unittest",
+    "account_database_test:unittest",
   ]
 }

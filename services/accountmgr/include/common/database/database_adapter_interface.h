@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -46,6 +46,7 @@ enum DbAdapterStatus : int32_t {
     IPC_ERROR,
     INTERNAL_ERROR,
     KEY_NOT_EXIST,
+    NOT_SUPPORT,
 };
 
 struct DbAdapterOptions {
@@ -69,9 +70,10 @@ public:
     virtual DbAdapterStatus Put(const std::string &keyStr, const std::string &valueStr) = 0;
     virtual DbAdapterStatus GetEntries(const std::string subId,
         std::vector<DbAdapterEntry> &allEntries) = 0;
-#ifndef SQLITE_DLCLOSE_ENABLE
     virtual DbAdapterStatus PutBatch(const std::vector<DbAdapterEntry> &entries) = 0;
-#endif // SQLITE_DLCLOSE_ENABLE
+    virtual DbAdapterStatus Commit() = 0;
+    virtual DbAdapterStatus Rollback() = 0;
+    virtual DbAdapterStatus StartTransaction() = 0;
 };
 
 class IDbAdapterDataManager {
@@ -81,11 +83,10 @@ public:
         std::shared_ptr<IDbAdapterSingleStore> &kvStorePtr) = 0;
     virtual DbAdapterStatus GetSingleKvStore(const DbAdapterOptions &options, const std::string &appIdStr,
         const std::string &storeIdStr, std::shared_ptr<IDbAdapterSingleStore> &kvStorePtr) = 0;
-#ifndef SQLITE_DLCLOSE_ENABLE
     virtual DbAdapterStatus DeleteKvStore(const std::string &appIdStr, const std::string &storeIdStr,
         const std::string &baseDir) = 0;
     virtual DbAdapterStatus GetAllKvStoreId(const std::string &appIdStr, std::vector<std::string> &storeIdList) = 0;
-#endif // SQLITE_DLCLOSE_ENABLE
+    virtual bool IsKvStore() = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

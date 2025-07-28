@@ -22,6 +22,7 @@
 #include "app_account_info.h"
 #undef private
 #include "app_account_control_manager.h"
+#include "database_adapter_interface.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -39,7 +40,7 @@ const std::string EL2_DATA_STORE_PREFIX = "account_";
 const std::string DATA_STORAGE_PATH = "/data/service/el2/100/account/test/app_account/database/";
 constexpr std::size_t SIZE_ZERO = 0;
 constexpr std::size_t SIZE_ONE = 1;
-AccountDataStorageOptions gOptions;
+DbAdapterOptions gOptions;
 }  // namespace
 
 class AppAccountDataStorageTest : public testing::Test {
@@ -70,8 +71,8 @@ void AppAccountDataStorageTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 
     GTEST_LOG_(INFO) << "SetUp enter!";
     gOptions.autoSync = false;
-    gOptions.securityLevel = DistributedKv::SecurityLevel::S1;
-    gOptions.area = DistributedKv::EL2;
+    gOptions.securityLevel = DbAdapterSecurityLevel::S1;
+    gOptions.area = DbAdapterArea::EL2;
     gOptions.baseDir = DATA_STORAGE_PATH;
     ClearDataStorage();
 }
