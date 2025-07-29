@@ -344,9 +344,6 @@ ErrCode OsAccount::IsOsAccountDeactivating(const int id, bool &isDeactivating)
     return ConvertToAccountErrCode(errCode);
 }
 
-#ifdef FUZZ_TEST
-// LCOV_EXCL_START
-#endif
 ErrCode OsAccount::GetCreatedOsAccountsCount(unsigned int &osAccountsCount)
 {
     auto proxy = GetOsAccountProxy();
@@ -357,13 +354,7 @@ ErrCode OsAccount::GetCreatedOsAccountsCount(unsigned int &osAccountsCount)
     auto errCode = proxy->GetCreatedOsAccountsCount(osAccountsCount);
     return ConvertToAccountErrCode(errCode);
 }
-#ifdef FUZZ_TEST
-// LCOV_EXCL_STOP
-#endif
 
-#ifdef FUZZ_TEST
-// LCOV_EXCL_START
-#endif
 ErrCode OsAccount::GetOsAccountLocalIdFromProcess(int &id)
 {
     auto proxy = GetOsAccountProxy();
@@ -374,13 +365,7 @@ ErrCode OsAccount::GetOsAccountLocalIdFromProcess(int &id)
     auto errCode = proxy->GetOsAccountLocalIdFromProcess(id);
     return ConvertToAccountErrCode(errCode);
 }
-#ifdef FUZZ_TEST
-// LCOV_EXCL_STOP
-#endif
 
-#ifdef FUZZ_TEST
-// LCOV_EXCL_START
-#endif
 ErrCode OsAccount::IsMainOsAccount(bool &isMainOsAccount)
 {
     isMainOsAccount = false;
@@ -392,9 +377,6 @@ ErrCode OsAccount::IsMainOsAccount(bool &isMainOsAccount)
     auto errCode = proxy->IsMainOsAccount(isMainOsAccount);
     return ConvertToAccountErrCode(errCode);
 }
-#ifdef FUZZ_TEST
-// LCOV_EXCL_STOP
-#endif
 
 ErrCode OsAccount::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id)
 {
@@ -423,9 +405,6 @@ ErrCode OsAccount::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domain
     return ConvertToAccountErrCode(errCode);
 }
 
-#ifdef FUZZ_TEST
-// LCOV_EXCL_START
-#endif
 ErrCode OsAccount::QueryMaxOsAccountNumber(uint32_t &maxOsAccountNumber)
 {
     auto proxy = GetOsAccountProxy();
@@ -436,13 +415,7 @@ ErrCode OsAccount::QueryMaxOsAccountNumber(uint32_t &maxOsAccountNumber)
     auto errCode = proxy->QueryMaxOsAccountNumber(maxOsAccountNumber);
     return ConvertToAccountErrCode(errCode);
 }
-#ifdef FUZZ_TEST
-// LCOV_EXCL_STOP
-#endif
 
-#ifdef FUZZ_TEST
-// LCOV_EXCL_START
-#endif
 ErrCode OsAccount::QueryMaxLoggedInOsAccountNumber(uint32_t &maxNum)
 {
     auto proxy = GetOsAccountProxy();
@@ -453,9 +426,6 @@ ErrCode OsAccount::QueryMaxLoggedInOsAccountNumber(uint32_t &maxNum)
     auto errCode = proxy->QueryMaxLoggedInOsAccountNumber(maxNum);
     return ConvertToAccountErrCode(errCode);
 }
-#ifdef FUZZ_TEST
-// LCOV_EXCL_STOP
-#endif
 
 ErrCode OsAccount::GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints)
 {
@@ -472,9 +442,6 @@ ErrCode OsAccount::GetOsAccountAllConstraints(const int id, std::vector<std::str
     return ConvertToAccountErrCode(errCode);
 }
 
-#ifdef FUZZ_TEST
-// LCOV_EXCL_START
-#endif
 ErrCode OsAccount::QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos)
 {
     auto proxy = GetOsAccountProxy();
@@ -489,13 +456,7 @@ ErrCode OsAccount::QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccou
     }
     return ConvertToAccountErrCode(errCode);
 }
-#ifdef FUZZ_TEST
-// LCOV_EXCL_STOP
-#endif
 
-#ifdef FUZZ_TEST
-// LCOV_EXCL_START
-#endif
 ErrCode OsAccount::QueryCurrentOsAccount(OsAccountInfo &osAccountInfo)
 {
     auto proxy = GetOsAccountProxy();
@@ -511,9 +472,6 @@ ErrCode OsAccount::QueryCurrentOsAccount(OsAccountInfo &osAccountInfo)
     }
     return ConvertToAccountErrCode(errCode);
 }
-#ifdef FUZZ_TEST
-// LCOV_EXCL_STOP
-#endif
 
 ErrCode OsAccount::QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo)
 {
@@ -535,9 +493,6 @@ ErrCode OsAccount::QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo
     return ConvertToAccountErrCode(errCode);
 }
 
-#ifdef FUZZ_TEST
-// LCOV_EXCL_START
-#endif
 ErrCode OsAccount::GetOsAccountTypeFromProcess(OsAccountType &type)
 {
     auto proxy = GetOsAccountProxy();
@@ -550,9 +505,6 @@ ErrCode OsAccount::GetOsAccountTypeFromProcess(OsAccountType &type)
     type = static_cast<OsAccountType>(typeValue);
     return ConvertToAccountErrCode(errCode);
 }
-#ifdef FUZZ_TEST
-// LCOV_EXCL_STOP
-#endif
 
 ErrCode OsAccount::GetOsAccountType(const int id, OsAccountType& type)
 {
@@ -586,9 +538,6 @@ ErrCode OsAccount::GetOsAccountProfilePhoto(const int id, std::string &photo)
     return ConvertToAccountErrCode(errCode);
 }
 
-#ifdef FUZZ_TEST
-// LCOV_EXCL_START
-#endif
 ErrCode OsAccount::IsMultiOsAccountEnable(bool &isMultiOsAccountEnable)
 {
     isMultiOsAccountEnable = false;
@@ -600,9 +549,6 @@ ErrCode OsAccount::IsMultiOsAccountEnable(bool &isMultiOsAccountEnable)
     auto errCode = proxy->IsMultiOsAccountEnable(isMultiOsAccountEnable);
     return ConvertToAccountErrCode(errCode);
 }
-#ifdef FUZZ_TEST
-// LCOV_EXCL_STOP
-#endif
 
 ErrCode OsAccount::SetOsAccountName(const int id, const std::string &localName)
 {
@@ -668,16 +614,10 @@ ErrCode OsAccount::SetOsAccountProfilePhoto(const int id, const std::string &pho
     return ConvertToAccountErrCode(errCode);
 }
 
-#ifdef FUZZ_TEST
-// LCOV_EXCL_START
-#endif
 ErrCode OsAccount::GetDistributedVirtualDeviceId(std::string &dvid)
 {
     return OhosAccountKitsImpl::GetInstance().QueryDistributedVirtualDeviceId(dvid);
 }
-#ifdef FUZZ_TEST
-// LCOV_EXCL_STOP
-#endif
 
 ErrCode OsAccount::QueryDistributedVirtualDeviceId(const std::string &bundleName, int32_t localId, std::string &dvid)
 {
@@ -714,9 +654,6 @@ ErrCode OsAccount::DeactivateOsAccount(const int id)
     return ConvertToAccountErrCode(errCode);
 }
 
-#ifdef FUZZ_TEST
-// LCOV_EXCL_START
-#endif
 ErrCode OsAccount::DeactivateAllOsAccounts()
 {
     auto proxy = GetOsAccountProxy();
@@ -727,9 +664,6 @@ ErrCode OsAccount::DeactivateAllOsAccounts()
     auto errCode = proxy->DeactivateAllOsAccounts();
     return ConvertToAccountErrCode(errCode);
 }
-#ifdef FUZZ_TEST
-// LCOV_EXCL_STOP
-#endif
 
 ErrCode OsAccount::StartOsAccount(const int id)
 {
@@ -848,9 +782,6 @@ ErrCode OsAccount::UnsubscribeOsAccount(const std::shared_ptr<OsAccountSubscribe
     return ERR_OK;
 }
 
-#ifdef FUZZ_TEST
-// LCOV_EXCL_START
-#endif
 OS_ACCOUNT_SWITCH_MOD OsAccount::GetOsAccountSwitchMod()
 {
     auto proxy = GetOsAccountProxy();
@@ -861,9 +792,6 @@ OS_ACCOUNT_SWITCH_MOD OsAccount::GetOsAccountSwitchMod()
     proxy->GetOsAccountSwitchMod(switchMod);
     return static_cast<OS_ACCOUNT_SWITCH_MOD>(switchMod);
 }
-#ifdef FUZZ_TEST
-// LCOV_EXCL_STOP
-#endif
 
 ErrCode OsAccount::DumpState(const int &id, std::vector<std::string> &state)
 {
@@ -876,9 +804,6 @@ ErrCode OsAccount::DumpState(const int &id, std::vector<std::string> &state)
     return ConvertToAccountErrCode(errCode);
 }
 
-#ifdef FUZZ_TEST
-// LCOV_EXCL_START
-#endif
 ErrCode OsAccount::ResetOsAccountProxy()
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -888,13 +813,7 @@ ErrCode OsAccount::ResetOsAccountProxy()
     proxy_ = nullptr;
     return ERR_OK;
 }
-#ifdef FUZZ_TEST
-// LCOV_EXCL_STOP
-#endif
 
-#ifdef FUZZ_TEST
-// LCOV_EXCL_START
-#endif
 ErrCode OsAccount::IsCurrentOsAccountVerified(bool &isVerified)
 {
     isVerified = false;
@@ -905,9 +824,6 @@ ErrCode OsAccount::IsCurrentOsAccountVerified(bool &isVerified)
     auto errCode = proxy->IsCurrentOsAccountVerified(isVerified);
     return ConvertToAccountErrCode(errCode);
 }
-#ifdef FUZZ_TEST
-// LCOV_EXCL_STOP
-#endif
 
 ErrCode OsAccount::IsOsAccountCompleted(const int id, bool &isOsAccountCompleted)
 {
@@ -948,9 +864,6 @@ ErrCode OsAccount::SetOsAccountIsVerified(const int id, const bool isVerified)
     return ConvertToAccountErrCode(errCode);
 }
 
-#ifdef FUZZ_TEST
-// LCOV_EXCL_START
-#endif
 sptr<IOsAccount> OsAccount::GetOsAccountProxy()
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -980,9 +893,6 @@ sptr<IOsAccount> OsAccount::GetOsAccountProxy()
     }
     return proxy_;
 }
-#ifdef FUZZ_TEST
-// LCOV_EXCL_STOP
-#endif
 
 ErrCode OsAccount::GetCreatedOsAccountNumFromDatabase(const std::string& storeID, int &createdOsAccountNum)
 {
@@ -1047,9 +957,6 @@ ErrCode OsAccount::GetOsAccountListFromDatabase(const std::string& storeID, std:
     return ConvertToAccountErrCode(errCode);
 }
 
-#ifdef FUZZ_TEST
-// LCOV_EXCL_START
-#endif
 ErrCode OsAccount::QueryActiveOsAccountIds(std::vector<int32_t>& ids)
 {
     auto proxy = GetOsAccountProxy();
@@ -1063,9 +970,6 @@ ErrCode OsAccount::QueryActiveOsAccountIds(std::vector<int32_t>& ids)
     }
     return ConvertToAccountErrCode(errCode);
 }
-#ifdef FUZZ_TEST
-// LCOV_EXCL_STOP
-#endif
 
 ErrCode OsAccount::QueryOsAccountConstraintSourceTypes(const int32_t id, const std::string &constraint,
     std::vector<ConstraintSourceTypeInfo> &constraintSourceTypeInfos)
@@ -1137,9 +1041,6 @@ ErrCode OsAccount::SetDefaultActivatedOsAccount(const int32_t id)
     return ConvertToAccountErrCode(errCode);
 }
 
-#ifdef FUZZ_TEST
-// LCOV_EXCL_START
-#endif
 ErrCode OsAccount::GetDefaultActivatedOsAccount(int32_t &id)
 {
     auto proxy = GetOsAccountProxy();
@@ -1149,13 +1050,7 @@ ErrCode OsAccount::GetDefaultActivatedOsAccount(int32_t &id)
     auto errCode = proxy->GetDefaultActivatedOsAccount(id);
     return ConvertToAccountErrCode(errCode);
 }
-#ifdef FUZZ_TEST
-// LCOV_EXCL_STOP
-#endif
 
-#ifdef FUZZ_TEST
-// LCOV_EXCL_START
-#endif
 ErrCode OsAccount::GetOsAccountShortName(std::string &shortName)
 {
     auto proxy = GetOsAccountProxy();
@@ -1165,13 +1060,7 @@ ErrCode OsAccount::GetOsAccountShortName(std::string &shortName)
     auto errCode = proxy->GetOsAccountShortName(shortName);
     return ConvertToAccountErrCode(errCode);
 }
-#ifdef FUZZ_TEST
-// LCOV_EXCL_STOP
-#endif
 
-#ifdef FUZZ_TEST
-// LCOV_EXCL_START
-#endif
 ErrCode OsAccount::GetOsAccountName(std::string &name)
 {
     auto proxy = GetOsAccountProxy();
@@ -1181,9 +1070,6 @@ ErrCode OsAccount::GetOsAccountName(std::string &name)
     auto errCode = proxy->GetOsAccountName(name);
     return ConvertToAccountErrCode(errCode);
 }
-#ifdef FUZZ_TEST
-// LCOV_EXCL_STOP
-#endif
 
 ErrCode OsAccount::GetOsAccountNameById(int32_t id, std::string &name)
 {
@@ -1266,9 +1152,6 @@ ErrCode OsAccount::GetForegroundLocalIdCommon(const uint64_t displayId, int32_t 
     return ConvertToAccountErrCode(errCode);
 }
 
-#ifdef FUZZ_TEST
-// LCOV_EXCL_START
-#endif
 ErrCode OsAccount::GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts)
 {
     auto proxy = GetOsAccountProxy();
@@ -1279,9 +1162,6 @@ ErrCode OsAccount::GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &acc
     auto errCode = proxy->GetForegroundOsAccounts(accounts);
     return ConvertToAccountErrCode(errCode);
 }
-#ifdef FUZZ_TEST
-// LCOV_EXCL_STOP
-#endif
 
 ErrCode OsAccount::GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds)
 {
