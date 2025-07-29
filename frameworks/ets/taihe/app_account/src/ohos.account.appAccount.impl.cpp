@@ -632,20 +632,21 @@ public:
         sptr<IRemoteObject> remoteCallback;
         int errorCode = AccountSA::AppAccountManager::GetAuthenticatorCallback(
             innerSessionId, remoteCallback);
+        if (errorCode != ERR_OK) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+        }
         sptr<AccountSA::IAppAccountAuthenticatorCallback> authenticatorCallback =
             iface_cast<OHOS::AccountSA::IAppAccountAuthenticatorCallback>(remoteCallback);
         ::taihe::callback<void(int32_t, optional_view<uintptr_t>)> onResult =
             ::taihe::make_holder<OnResultCallbackImpl,
                 ::taihe::callback<void(int32_t, optional_view<uintptr_t>)>>(authenticatorCallback);
-
         ::taihe::callback<void(uintptr_t)> onRequestRedirected =
             ::taihe::make_holder<OnRequestRedirectedCallbackImpl,
                 ::taihe::callback<void(uintptr_t)>>(authenticatorCallback);
-        
         ::taihe::callback<void()> onRequestContinued =
             ::taihe::make_holder<OnRequestContinuedCallbackImpl,
                 ::taihe::callback<void()>>(authenticatorCallback);
-
         AuthCallback authCallback{
             .onResult = onResult,
             .onRequestRedirected = onRequestRedirected,
@@ -882,14 +883,12 @@ public:
         return authenticatorInfo;
     }
 
-
     void DeleteCredentialSync(string_view name, string_view credentialType)
     {
         std::string innerName(name.data(), name.size());
         std::string innerCredentialType(credentialType.data(), credentialType.size());
         int32_t errorCode = AccountSA::AppAccountManager::DeleteAccountCredential(innerName,
             innerCredentialType);
-
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
