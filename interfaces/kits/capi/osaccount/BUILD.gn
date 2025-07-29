@@ -57,6 +57,10 @@ ohos_shared_library("libos_account_ndk") {
     "-Werror",
   ]
 
+  if (use_libfuzzer) {
+    cflags_cc += [ "-DFUZZ_TEST" ]
+  }
+
   subsystem_name = "account"
   part_name = "os_account"
 }

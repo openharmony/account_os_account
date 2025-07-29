@@ -30,6 +30,67 @@ using namespace OHOS::AccountSA;
 using namespace OHOS::Security::AccessToken;
 namespace OHOS {
 const std::u16string IOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccount";
+const std::string TEST_CONSTRIANT = "constraint.wifi";
+
+bool SubscribeOsAccountConstraint(const std::string &constraint)
+{
+    MessageParcel datas;
+    datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
+    std::set<string> constraints = {constraint};
+    OsAccountConstraintSubscribeInfo subscriber(constraints);
+    if (!datas.WriteParcelable(&subscriber)) {
+        return false;
+    }
+
+    if (!datas.WriteRemoteObject(OsAccountConstraintSubscriberManager::GetInstance()->AsObject())) {
+        return false;
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+    auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
+
+    osAccountManagerService_ ->OnRemoteRequest(
+        static_cast<int32_t>(IOsAccountIpcCode::COMMAND_SUBSCRIBE_OS_ACCOUNT_CONSTRAINTS), datas, reply, option);
+
+    return true;
+}
+
+bool UnsubscribeOsAccountConstraintStubFuzzTest(const uint8_t *data, size_t size)
+{
+    if ((data == nullptr) || (size == 0)) {
+        return false;
+    }
+
+    FuzzData fuzzData(data, size);
+    std::string testStr = fuzzData.GetData<bool>() ? fuzzData.GenerateString() : TEST_CONSTRIANT;
+    SubscribeOsAccountConstraint(testStr);
+
+    int32_t id = fuzzData.GetData<int32_t>();
+    OsAccountConstraintSubscribeManager::GetInstance().Publish(id, {testStr}, fuzzData.GetData<bool>());
+    MessageParcel datas;
+    datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
+    std::set<string> constraints = {testStr};
+    OsAccountConstraintSubscribeInfo subscriber(constraints);
+
+    if (!datas.WriteParcelable(&subscriber)) {
+        return false;
+    }
+
+    if (!datas.WriteRemoteObject(OsAccountConstraintSubscriberManager::GetInstance()->AsObject())) {
+        return false;
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+    auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
+
+    osAccountManagerService_ ->OnRemoteRequest(
+        static_cast<int32_t>(IOsAccountIpcCode::COMMAND_UNSUBSCRIBE_OS_ACCOUNT_CONSTRAINTS), datas, reply, option);
+
+    return true;
+}
+} // namespace OHOS
 
 void NativeTokenGet()
 {
@@ -53,38 +114,13 @@ void NativeTokenGet()
     delete [] perms;
 }
 
-bool UnsubscribeOsAccountConstraintStubFuzzTest(const uint8_t *data, size_t size)
+/* Fuzzer entry point */
+extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-
-    MessageParcel datas;
-    datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
-    FuzzData fuzzData(data, size);
-    std::string testStr = fuzzData.GenerateString();
-    std::set<string> constraints = {testStr};
-    OsAccountConstraintSubscribeInfo subscriber(constraints);
-
-    if (!datas.WriteParcelable(&subscriber)) {
-        return false;
-    }
-
-    if (!datas.WriteRemoteObject(OsAccountConstraintSubscriberManager::GetInstance()->AsObject())) {
-        return false;
-    }
-
-    MessageParcel reply;
-    MessageOption option;
     NativeTokenGet();
-    auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
-
-    osAccountManagerService_ ->OnRemoteRequest(
-        static_cast<int32_t>(IOsAccountIpcCode::COMMAND_UNSUBSCRIBE_OS_ACCOUNT_CONSTRAINTS), datas, reply, option);
-
-    return true;
+    return 0;
 }
-} // namespace OHOS
+
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)

@@ -58,8 +58,8 @@ ohos_fuzztest("GetPropertyByCredentialIdStubFuzzTest") {
   ]
 
   deps = [
-    "${account_iam_framework_path}:account_iam_innerkits",
     "${account_iam_framework_path}:account_iam_stub",
+    "${account_iam_framework_path}:account_iam_innerkits",
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${os_account_path}/services/accountmgr:accountmgr",
