@@ -19,7 +19,6 @@
 #include <vector>
 
 #include "fuzz_data.h"
-#include "iaccount.h"
 
 #define private public
 #define PROTECTED public

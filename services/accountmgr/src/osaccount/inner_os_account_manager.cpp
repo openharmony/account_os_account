@@ -130,6 +130,9 @@ IInnerOsAccountManager &IInnerOsAccountManager::GetInstance()
     return *instance;
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode IInnerOsAccountManager::RetryToInsertOsAccount(OsAccountInfo &osAccountInfo)
 {
     int32_t retryTimes = 0;
@@ -145,7 +148,13 @@ ErrCode IInnerOsAccountManager::RetryToInsertOsAccount(OsAccountInfo &osAccountI
     }
     return result;
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 void IInnerOsAccountManager::CreateBaseAdminAccount()
 {
     ACCOUNT_LOGI("Start to create admin account");
@@ -170,7 +179,13 @@ void IInnerOsAccountManager::CreateBaseAdminAccount()
         ACCOUNT_LOGI("OsAccountAccountMgr admin account already exists");
     }
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode IInnerOsAccountManager::SendMsgForAccountActivateInBackground(OsAccountInfo &osAccountInfo)
 {
     // activate
@@ -188,7 +203,13 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivateInBackground(OsAccountI
     ACCOUNT_LOGI("SendMsgForAccountActivateInBackground %{public}d ok", osAccountInfo.GetLocalId());
     return ERR_OK;
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode IInnerOsAccountManager::ActivateOsAccountInBackground(const int32_t id)
 {
     ACCOUNT_LOGI("Start to activate %{public}d account", id);
@@ -211,7 +232,13 @@ ErrCode IInnerOsAccountManager::ActivateOsAccountInBackground(const int32_t id)
     errCode = SendMsgForAccountActivateInBackground(osAccountInfo);
     return errCode;
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 bool IInnerOsAccountManager::CreateBaseStandardAccount(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("Start to create base account %{public}d", osAccountInfo.GetLocalId());
@@ -253,6 +280,9 @@ bool IInnerOsAccountManager::CreateBaseStandardAccount(OsAccountInfo &osAccountI
     ACCOUNT_LOGI("OsAccountAccountMgr created base account end");
     return true;
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 void IInnerOsAccountManager::RetryToGetAccount(OsAccountInfo &osAccountInfo)
 {
@@ -305,6 +335,9 @@ ErrCode IInnerOsAccountManager::GetRealOsAccountInfoById(const int id, OsAccount
     return ERR_OK;
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode IInnerOsAccountManager::ActivateDefaultOsAccount()
 {
 #ifdef HICOLLIE_ENABLE
@@ -352,6 +385,9 @@ ErrCode IInnerOsAccountManager::ActivateDefaultOsAccount()
 #endif // HICOLLIE_ENABLE
     return errCode;
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 void IInnerOsAccountManager::RestartActiveAccount()
 {
@@ -1368,6 +1404,9 @@ ErrCode IInnerOsAccountManager::IsOsAccountDeactivating(const int id, bool &isDe
     return ERR_OK;
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode IInnerOsAccountManager::GetCreatedOsAccountsCount(unsigned int &createdOsAccountCount)
 {
     std::vector<int32_t> idList;
@@ -1379,7 +1418,13 @@ ErrCode IInnerOsAccountManager::GetCreatedOsAccountsCount(unsigned int &createdO
     createdOsAccountCount = idList.size();
     return ERR_OK;
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode IInnerOsAccountManager::GetNonSACreatedOACount(unsigned int &nonSACreatedOACount) const
 {
     std::vector<int32_t> idList;
@@ -1399,7 +1444,13 @@ ErrCode IInnerOsAccountManager::GetNonSACreatedOACount(unsigned int &nonSACreate
     nonSACreatedOACount = idList.size() - saCreatedNum;
     return ERR_OK;
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode IInnerOsAccountManager::QueryMaxOsAccountNumber(uint32_t &maxOsAccountNumber)
 {
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
@@ -1409,7 +1460,13 @@ ErrCode IInnerOsAccountManager::QueryMaxOsAccountNumber(uint32_t &maxOsAccountNu
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
     return ERR_OK;
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode IInnerOsAccountManager::QueryMaxLoggedInOsAccountNumber(uint32_t &maxNum)
 {
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
@@ -1419,7 +1476,13 @@ ErrCode IInnerOsAccountManager::QueryMaxLoggedInOsAccountNumber(uint32_t &maxNum
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
     return ERR_OK;
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode IInnerOsAccountManager::GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints)
 {
     OsAccountInfo osAccountInfo;
@@ -1452,6 +1515,9 @@ ErrCode IInnerOsAccountManager::GetOsAccountAllConstraints(const int id, std::ve
     }
     return ERR_OK;
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 ErrCode IInnerOsAccountManager::QueryOsAccountConstraintSourceTypes(const int32_t id,
     const std::string &constraint, std::vector<ConstraintSourceTypeInfo> &constraintSourceTypeInfos)
@@ -1580,6 +1646,9 @@ ErrCode IInnerOsAccountManager::SetSpecificOsAccountConstraints(const std::vecto
     return ERR_OK;
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode IInnerOsAccountManager::QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &createdOsAccounts)
 {
     std::vector<int32_t> allOsAccountIds;
@@ -1600,6 +1669,9 @@ ErrCode IInnerOsAccountManager::QueryAllCreatedOsAccounts(std::vector<OsAccountI
     }
     return ERR_OK;
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 ErrCode IInnerOsAccountManager::DealWithDeviceOwnerId(const bool isDeviceOwner, const int32_t localId)
 {
@@ -1778,6 +1850,9 @@ ErrCode IInnerOsAccountManager::GetOsAccountProfilePhoto(const int id, std::stri
     return ERR_OK;
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode IInnerOsAccountManager::IsMultiOsAccountEnable(bool &isMultiOsAccountEnable)
 {
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
@@ -1791,6 +1866,9 @@ ErrCode IInnerOsAccountManager::IsMultiOsAccountEnable(bool &isMultiOsAccountEna
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
     return ERR_OK;
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 ErrCode IInnerOsAccountManager::SetOsAccountName(const int id, const std::string &name)
 {
@@ -2025,6 +2103,9 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount
     return ERR_OK;
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 void IInnerOsAccountManager::ExecuteDeactivationAnimation(int32_t pipeFd, const OsAccountInfo &osAccountInfo)
 {
     std::string pipeFdStr = std::to_string(pipeFd);
@@ -2040,7 +2121,13 @@ void IInnerOsAccountManager::ExecuteDeactivationAnimation(int32_t pipeFd, const 
         exit(EXIT_FAILURE);
     }
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode IInnerOsAccountManager::WaitForAnimationReady(int32_t pipeFd)
 {
     char buf[MAX_WAIT_ANIMATION_MSG_BUFFER];
@@ -2070,7 +2157,13 @@ ErrCode IInnerOsAccountManager::WaitForAnimationReady(int32_t pipeFd)
     ACCOUNT_LOGI("Received message from child process: %{public}s", buf);
     return ERR_OK;
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 void IInnerOsAccountManager::LaunchDeactivationAnimation(const OsAccountInfo &osAccountInfo)
 {
     int32_t localId = osAccountInfo.GetLocalId();
@@ -2112,6 +2205,9 @@ void IInnerOsAccountManager::LaunchDeactivationAnimation(const OsAccountInfo &os
         close(pipeFd[PIPE_WRITE_END]);
     }
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 ErrCode IInnerOsAccountManager::DeactivateOsAccount(const int id, bool isStopStorage)
 {
@@ -2166,6 +2262,9 @@ ErrCode IInnerOsAccountManager::DeactivateOsAccount(const int id, bool isStopSto
     return ERR_OK;
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 void IInnerOsAccountManager::RollBackToEarlierAccount(int32_t fromId, int32_t toId)
 {
     ACCOUNT_LOGI("Enter.");
@@ -2184,6 +2283,9 @@ void IInnerOsAccountManager::RollBackToEarlierAccount(int32_t fromId, int32_t to
     ReportOsAccountSwitch(toId, fromId);
     ACCOUNT_LOGI("End pushlishing post switch event.");
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 ErrCode IInnerOsAccountManager::SendToStorageAndAMSAccountStart(OsAccountInfo &osAccountInfo, const bool startStorage,
     const uint64_t displayId, const bool isAppRecovery, int32_t oldId)
@@ -2660,6 +2762,9 @@ bool IInnerOsAccountManager::CheckAndAddLocalIdOperating(int32_t localId)
     return true;
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode IInnerOsAccountManager::QueryActiveOsAccountIds(std::vector<int32_t>& ids)
 {
     CopyFromActiveList(ids);
@@ -2670,6 +2775,9 @@ ErrCode IInnerOsAccountManager::QueryActiveOsAccountIds(std::vector<int32_t>& id
 #endif // ENABLE_U1_ACCOUNT
     return ERR_OK;
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 void IInnerOsAccountManager::PushIdIntoActiveList(int32_t id)
 {

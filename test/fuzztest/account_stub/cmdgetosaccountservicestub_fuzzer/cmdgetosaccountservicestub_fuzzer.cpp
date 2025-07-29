@@ -52,7 +52,7 @@ std::u16string GenerateRandomU16String(FuzzData& fuzzData)
 }
 }
 
-bool CmdGetOsAccountServiceStubFuzzTest(const uint8_t* data, size_t size)
+bool CmdGetOsAccountServiceStubFuzzTest(const uint8_t* data, size_t size, uint32_t code)
 {
     if ((data == nullptr) || (size == 0)) {
         return false;
@@ -83,7 +83,6 @@ bool CmdGetOsAccountServiceStubFuzzTest(const uint8_t* data, size_t size)
     
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(IAccountIpcCode::COMMAND_GET_OS_ACCOUNT_SERVICE);
     DelayedRefSingleton<AccountMgrService>::GetInstance().OnRemoteRequest(code, dataTemp, reply, option);
     return true;
 }
@@ -93,6 +92,13 @@ bool CmdGetOsAccountServiceStubFuzzTest(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::CmdGetOsAccountServiceStubFuzzTest(data, size);
+    OHOS::CmdGetOsAccountServiceStubFuzzTest(
+        data, size, static_cast<uint32_t>(IAccountIpcCode::COMMAND_GET_OS_ACCOUNT_SERVICE));
+    OHOS::CmdGetOsAccountServiceStubFuzzTest(
+        data, size, static_cast<uint32_t>(IAccountIpcCode::COMMAND_GET_APP_ACCOUNT_SERVICE));
+    OHOS::CmdGetOsAccountServiceStubFuzzTest(
+        data, size, static_cast<uint32_t>(IAccountIpcCode::COMMAND_GET_ACCOUNT_I_A_M_SERVICE));
+    OHOS::CmdGetOsAccountServiceStubFuzzTest(
+        data, size, static_cast<uint32_t>(IAccountIpcCode::COMMAND_GET_DOMAIN_ACCOUNT_SERVICE));
     return 0;
 }

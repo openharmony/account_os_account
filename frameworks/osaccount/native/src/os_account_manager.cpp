@@ -93,20 +93,38 @@ ErrCode OsAccountManager::IsOsAccountDeactivating(const int id, bool &isDeactiva
     return OsAccount::GetInstance().IsOsAccountDeactivating(id, isDeactivating);
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManager::GetCreatedOsAccountsCount(unsigned int &osAccountsCount)
 {
     return OsAccount::GetInstance().GetCreatedOsAccountsCount(osAccountsCount);
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManager::GetOsAccountLocalIdFromProcess(int &id)
 {
     return OsAccount::GetInstance().GetOsAccountLocalIdFromProcess(id);
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManager::IsMainOsAccount(bool &isMainOsAccount)
 {
     return OsAccount::GetInstance().IsMainOsAccount(isMainOsAccount);
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 ErrCode OsAccountManager::GetOsAccountLocalIdFromUid(const int uid, int &id)
 {
@@ -140,40 +158,70 @@ ErrCode OsAccountManager::GetOsAccountLocalIdFromDomain(const DomainAccountInfo 
     return OsAccount::GetInstance().GetOsAccountLocalIdFromDomain(domainInfo, id);
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManager::QueryMaxOsAccountNumber(uint32_t &maxOsAccountNumber)
 {
     return OsAccount::GetInstance().QueryMaxOsAccountNumber(maxOsAccountNumber);
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManager::QueryMaxLoggedInOsAccountNumber(uint32_t &maxNum)
 {
     return OsAccount::GetInstance().QueryMaxLoggedInOsAccountNumber(maxNum);
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 ErrCode OsAccountManager::GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints)
 {
     return OsAccount::GetInstance().GetOsAccountAllConstraints(id, constraints);
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManager::QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos)
 {
     return OsAccount::GetInstance().QueryAllCreatedOsAccounts(osAccountInfos);
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManager::QueryCurrentOsAccount(OsAccountInfo &osAccountInfo)
 {
     return OsAccount::GetInstance().QueryCurrentOsAccount(osAccountInfo);
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 ErrCode OsAccountManager::QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo)
 {
     return OsAccount::GetInstance().QueryOsAccountById(id, osAccountInfo);
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManager::GetOsAccountTypeFromProcess(OsAccountType &type)
 {
     return OsAccount::GetInstance().GetOsAccountTypeFromProcess(type);
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 ErrCode OsAccountManager::GetOsAccountType(const int id, OsAccountType& type)
 {
@@ -185,10 +233,16 @@ ErrCode OsAccountManager::GetOsAccountProfilePhoto(const int id, std::string &ph
     return OsAccount::GetInstance().GetOsAccountProfilePhoto(id, photo);
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManager::IsMultiOsAccountEnable(bool &isMultiOsAccountEnable)
 {
     return OsAccount::GetInstance().IsMultiOsAccountEnable(isMultiOsAccountEnable);
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 ErrCode OsAccountManager::SetOsAccountName(const int id, const std::string &localName)
 {
@@ -206,10 +260,16 @@ ErrCode OsAccountManager::SetOsAccountProfilePhoto(const int id, const std::stri
     return OsAccount::GetInstance().SetOsAccountProfilePhoto(id, photo);
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManager::GetDistributedVirtualDeviceId(std::string &dvid)
 {
     return OsAccount::GetInstance().GetDistributedVirtualDeviceId(dvid);
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 ErrCode OsAccountManager::QueryDistributedVirtualDeviceId(const std::string &bundleName, int32_t localId,
     std::string &dvid)
@@ -227,10 +287,16 @@ ErrCode OsAccountManager::DeactivateOsAccount(const int id)
     return OsAccount::GetInstance().DeactivateOsAccount(id);
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManager::DeactivateAllOsAccounts()
 {
     return OsAccount::GetInstance().DeactivateAllOsAccounts();
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 ErrCode OsAccountManager::StartOsAccount(const int id)
 {
@@ -256,15 +322,27 @@ ErrCode OsAccountManager::UnsubscribeOsAccount(const std::shared_ptr<OsAccountSu
 {
     return OsAccount::GetInstance().UnsubscribeOsAccount(subscriber);
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 OS_ACCOUNT_SWITCH_MOD OsAccountManager::GetOsAccountSwitchMod()
 {
     return OsAccount::GetInstance().GetOsAccountSwitchMod();
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManager::IsCurrentOsAccountVerified(bool &isVerified)
 {
     return OsAccount::GetInstance().IsCurrentOsAccountVerified(isVerified);
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 ErrCode OsAccountManager::IsOsAccountCompleted(const int id, bool &isOsAccountCompleted)
 {
@@ -310,10 +388,16 @@ ErrCode OsAccountManager::GetOsAccountListFromDatabase(const std::string& storeI
     return OsAccount::GetInstance().GetOsAccountListFromDatabase(storeID, osAccountList);
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManager::QueryActiveOsAccountIds(std::vector<int32_t>& ids)
 {
     return OsAccount::GetInstance().QueryActiveOsAccountIds(ids);
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 ErrCode OsAccountManager::QueryOsAccountConstraintSourceTypes(const int32_t id, const std::string constraint,
     std::vector<ConstraintSourceTypeInfo> &constraintSourceTypeInfos)
@@ -358,60 +442,102 @@ ErrCode OsAccountManager::GetDefaultActivatedOsAccount(int32_t &id)
     return OsAccount::GetInstance().GetDefaultActivatedOsAccount(id);
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManager::GetOsAccountShortName(std::string &shortName)
 {
     return OsAccount::GetInstance().GetOsAccountShortName(shortName);
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 ErrCode OsAccountManager::GetOsAccountShortName(const int32_t id, std::string &shortName)
 {
     return OsAccount::GetInstance().GetOsAccountShortNameById(id, shortName);
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManager::GetOsAccountName(std::string &name)
 {
     return OsAccount::GetInstance().GetOsAccountName(name);
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 ErrCode OsAccountManager::GetOsAccountNameById(int32_t id, std::string &name)
 {
     return OsAccount::GetInstance().GetOsAccountNameById(id, name);
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManager::IsOsAccountForeground(bool &isForeground)
 {
     return OsAccount::GetInstance().IsOsAccountForeground(isForeground);
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManager::IsOsAccountForeground(const int32_t localId, bool &isForeground)
 {
     return OsAccount::GetInstance().IsOsAccountForeground(localId, isForeground);
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 ErrCode OsAccountManager::IsOsAccountForeground(const int32_t localId, const uint64_t displayId, bool &isForeground)
 {
     return OsAccount::GetInstance().IsOsAccountForeground(localId, displayId, isForeground);
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManager::GetForegroundOsAccountLocalId(int32_t &localId)
 {
     return OsAccount::GetInstance().GetForegroundOsAccountLocalId(localId);
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 ErrCode OsAccountManager::GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId)
 {
     return OsAccount::GetInstance().GetForegroundOsAccountLocalId(displayId, localId);
 }
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManager::GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts)
 {
     return OsAccount::GetInstance().GetForegroundOsAccounts(accounts);
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
+#ifdef FUZZ_TEST
+// LCOV_EXCL_START
+#endif
 ErrCode OsAccountManager::GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds)
 {
     return OsAccount::GetInstance().GetBackgroundOsAccountLocalIds(localIds);
 }
+#ifdef FUZZ_TEST
+// LCOV_EXCL_STOP
+#endif
 
 ErrCode OsAccountManager::SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved)
 {

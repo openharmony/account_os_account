@@ -36,6 +36,9 @@ ohos_fuzztest("SetGlobalOsAccountConstraintsStubFuzzTest") {
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
+  if (use_libfuzzer) {
+    cflags += [ "-DFUZZ_TEST" ]
+  }
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }

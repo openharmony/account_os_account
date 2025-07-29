@@ -37,6 +37,25 @@ namespace OHOS {
         }
         return result == ERR_OK;
     }
+
+    void CreateTestOsAccount()
+    {
+        OsAccountInfo osAccountInfoOne;
+        OsAccountType testType = OsAccountType::NORMAL;
+        std::string accountName = "deactivate_test_account";
+
+        int32_t result = OsAccountManager::CreateOsAccount(accountName, testType, osAccountInfoOne);
+        if (result == ERR_OK) {
+            ACCOUNT_LOGI("Delete deactivate_test_account.");
+            OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
+        }
+    }
+}
+
+extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
+{
+    OHOS::CreateTestOsAccount();
+    return 0;
 }
 
 /* Fuzzer entry point */

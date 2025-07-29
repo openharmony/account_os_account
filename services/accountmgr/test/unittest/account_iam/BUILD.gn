@@ -232,6 +232,10 @@ ohos_unittest("account_iam_manager_test") {
   ]
 
   cflags_cc = []
+  if (use_libfuzzer) {
+    cflags_cc += [ "-DFUZZ_TEST" ]
+  }
+
   if (has_user_auth_part) {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
   }
@@ -345,6 +349,9 @@ ohos_unittest("account_inner_iam_manager_mock_source_file_test") {
   cflags_cc = [ "-DACCOUNT_TEST" ]
   if (has_user_auth_part) {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
+  }
+  if (use_libfuzzer) {
+    cflags_cc += [ "-DFUZZ_TEST" ]
   }
 
   external_deps = [
