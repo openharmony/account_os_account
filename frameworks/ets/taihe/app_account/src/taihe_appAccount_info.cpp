@@ -56,5 +56,34 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AccountSA::AppAccountInf
     active_callback call = callback_;
     call(tempInfo);
 }
+THauthenticatorAsyncCallback::THauthenticatorAsyncCallback()
+{}
+
+THauthenticatorAsyncCallback::~THauthenticatorAsyncCallback()
+{}
+
+ErrCode THauthenticatorAsyncCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (isDone_) {
+        return ERR_OK;
+    }
+    isDone_ = true;
+    param_ = std::make_shared<AuthenticatorCallbackParam>();
+    param_->resultCode = resultCode;
+    param_->result = result;
+    cv_.notify_one();
+    return ERR_OK;
+}
+
+ErrCode THauthenticatorAsyncCallback::OnRequestRedirected(const AAFwk::Want &request)
+{
+    return ERR_OK;
+};
+
+ErrCode THauthenticatorAsyncCallback::OnRequestContinued()
+{
+    return ERR_OK;
+};
 }
 }
