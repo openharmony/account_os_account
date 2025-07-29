@@ -755,25 +755,6 @@ public:
     }
 };
 
-class DomainServerConfigManagerImpl {
-private:
-    AccountSA::OsAccountManager *osAccountManger_ = nullptr;
-
-public:
-    DomainServerConfigManagerImpl()
-    {
-        osAccountManger_ = new (std::nothrow) AccountSA::OsAccountManager();
-    }
-
-    ~DomainServerConfigManagerImpl()
-    {
-        if (osAccountManger_ != nullptr) {
-            delete osAccountManger_;
-            osAccountManger_ = nullptr;
-        }
-    }
-};
-
 class IInputDataImpl {
 public:
     std::shared_ptr<AccountSA::IInputerData> inputerData_;
@@ -1494,166 +1475,6 @@ public:
     }
 };
 
-DomainAccountInfo ConvertToDomainAccountInfo(const AccountSA::DomainAccountInfo &domainAccountInfo)
-{
-    return DomainAccountInfo{
-        .domain = taihe::string(domainAccountInfo.domain_.c_str()),
-        .accountName = taihe::string(domainAccountInfo.accountName_.c_str()),
-        .accountId = optional<string>(std::in_place_t{}, domainAccountInfo.accountId_),
-        .isAuthenticated = optional<bool>(std::in_place_t{}, domainAccountInfo.isAuthenticated),
-        .serverConfigId = optional<string>(std::in_place_t{}, domainAccountInfo.serverConfigId_),
-    };
-}
-
-class OnResultCallbackImpl {
-public:
-    explicit OnResultCallbackImpl(std::shared_ptr<AccountSA::DomainAccountCallback> callback)
-        : callback_(callback) {}
-
-    void operator()(int32_t result, const ::ohos::account::osAccount::AuthResult& extraInfo)
-    {
-        if (callback_ == nullptr) {
-            ACCOUNT_LOGE("native callback is nullptr");
-            return;
-        }
-
-        AccountSA::DomainAuthResult nativeResult;
-
-        if (extraInfo.token.has_value()) {
-            const auto& taiheToken = extraInfo.token.value();
-            nativeResult.token.assign(taiheToken.data(), taiheToken.data() + taiheToken.size());
-        } else {
-            nativeResult.token.clear();
-        }
-
-        nativeResult.authStatusInfo.remainingTimes = extraInfo.remainTimes.has_value() ?
-            extraInfo.remainTimes.value() : -1;
-        nativeResult.authStatusInfo.freezingTime = extraInfo.freezingTime.has_value() ?
-            extraInfo.freezingTime.value() : -1;
-
-        Parcel parcel;
-        if (!nativeResult.Marshalling(parcel)) {
-            Parcel emptyParcel;
-            callback_->OnResult(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyParcel);
-            return;
-        }
-        callback_->OnResult(result, parcel);
-        ACCOUNT_LOGI("Successfully called native callback");
-    }
-
-private:
-    std::shared_ptr<AccountSA::DomainAccountCallback> callback_;
-};
-
-class TaiheDomainPluginBridge : public AccountSA::DomainAccountPlugin {
-public:
-    explicit TaiheDomainPluginBridge(const DomainPlugin& jsPlugin)
-        : jsPlugin_(jsPlugin) {}
-
-    void Auth(const AccountSA::DomainAccountInfo &info, const std::vector<uint8_t> &credential,
-        const std::shared_ptr<AccountSA::DomainAccountCallback> &callback) override
-    {
-        DomainAccountInfo taiheInfo = ConvertToDomainAccountInfo(info);
-        taihe::array<uint8_t> taiheCredential(taihe::copy_data_t{}, credential.data(), credential.size());
-        IUserAuthCallback taiheCallback = ConvertToDomainAccountCallback(callback);
-        jsPlugin_.Auth(taiheInfo, taiheCredential, taiheCallback);
-    }
-
-    void AuthWithPopup(const AccountSA::DomainAccountInfo &info,
-        const std::shared_ptr<AccountSA::DomainAccountCallback> &callback)
-    {
-        DomainAccountInfo taiheInfo = ConvertToDomainAccountInfo(info);
-        IUserAuthCallback taiheCallback = ConvertToDomainAccountCallback(callback);
-        jsPlugin_.AuthWithPopup(taiheInfo, taiheCallback);
-    }
-
-    void AuthWithToken(const AccountSA::DomainAccountInfo &info, const std::vector<uint8_t> &token,
-        const std::shared_ptr<AccountSA::DomainAccountCallback> &callback)
-    {
-        DomainAccountInfo taiheInfo = ConvertToDomainAccountInfo(info);
-        taihe::array<uint8_t> taiheToken(taihe::copy_data_t{}, token.data(), token.size());
-        IUserAuthCallback taiheCallback = ConvertToDomainAccountCallback(callback);
-        jsPlugin_.AuthWithToken(taiheInfo, taiheToken, taiheCallback);
-    }
-
-    void GetDomainAccountInfo(const AccountSA::GetDomainAccountInfoOptions &options,
-        const std::shared_ptr<AccountSA::DomainAccountCallback> &callback)
-    {
-        GetDomainAccountInfoOptions option{
-            .accountName = options.accountInfo.accountName_.c_str(),
-            .domain = optional<string>(std::in_place_t{}, options.accountInfo.domain_),
-            .serverConfigId = optional<string>(std::in_place_t{}, options.accountInfo.serverConfigId_),
-        };
-        GetDomainAccountInfoPluginOptions taiheOptions{
-            .options = option,
-            .callerUid = options.callingUid,
-        };
-        jsPlugin_.GetAccountInfoSync(taiheOptions);
-    }
-
-    void GetAuthStatusInfo(const AccountSA::DomainAccountInfo &info,
-        const std::shared_ptr<AccountSA::DomainAccountCallback> &callback)
-    {
-        DomainAccountInfo taiheInfo = ConvertToDomainAccountInfo(info);
-        jsPlugin_.GetAuthStatusInfoSync(taiheInfo);
-    }
-
-    void OnAccountBound(const AccountSA::DomainAccountInfo &info, const int32_t localId,
-        const std::shared_ptr<AccountSA::DomainAccountCallback> &callback)
-    {
-        DomainAccountInfo taiheInfo = ConvertToDomainAccountInfo(info);
-        jsPlugin_.BindAccountSync(taiheInfo, localId);
-    }
-
-    void OnAccountUnBound(const AccountSA::DomainAccountInfo &info,
-        const std::shared_ptr<AccountSA::DomainAccountCallback> &callback)
-    {
-        DomainAccountInfo taiheInfo = ConvertToDomainAccountInfo(info);
-        jsPlugin_.UnbindAccountSync(taiheInfo);
-    }
-
-    void IsAccountTokenValid(const AccountSA::DomainAccountInfo &info, const std::vector<uint8_t> &token,
-        const std::shared_ptr<AccountSA::DomainAccountCallback> &callback)
-    {
-        DomainAccountInfo taiheInfo = ConvertToDomainAccountInfo(info);
-        taihe::array<uint8_t> taiheToken(taihe::copy_data_t{}, token.data(), token.size());
-        jsPlugin_.IsAccountTokenValidSync(taiheInfo, taiheToken);
-    }
-
-    void GetAccessToken(const AccountSA::DomainAccountInfo &domainInfo, const std::vector<uint8_t> &accountToken,
-        const AccountSA::GetAccessTokenOptions &option,
-        const std::shared_ptr<AccountSA::DomainAccountCallback> &callback)
-    {
-        taihe::array<uint8_t> taiheToken(taihe::copy_data_t{}, accountToken.data(), accountToken.size());
-        AAFwk::WantParams getTokenParams;
-        ani_env *env = get_env();
-        auto parametersRef = AppExecFwk::WrapWantParams(env, option.getTokenParams_);
-        GetDomainAccessTokenOptions domainAccessTokenOptions {
-            .domainAccountInfo = ConvertToDomainAccountInfo(domainInfo),
-            .domainAccountToken = taiheToken,
-            .businessParams = reinterpret_cast<uintptr_t>(parametersRef),
-            .callerUid = option.callingUid_,
-        };
-        jsPlugin_.GetAccessTokenSync(domainAccessTokenOptions);
-    }
-
-private:
-    IUserAuthCallback ConvertToDomainAccountCallback(const std::shared_ptr<AccountSA::DomainAccountCallback> &callback)
-    {
-        ::taihe::callback<void(int32_t, ::ohos::account::osAccount::AuthResult const&)> onResultCallback =
-        ::taihe::make_holder<OnResultCallbackImpl, ::taihe::callback<void(int32_t,
-            ::ohos::account::osAccount::AuthResult const&)>>(callback);
-
-        ::ohos::account::osAccount::IUserAuthCallback taiheCallback{
-            .onResult = onResultCallback,
-            .onAcquireInfo = std::nullopt,
-        };
-        return taiheCallback;
-    }
-private:
-    DomainPlugin jsPlugin_;
-};
-
 class InputerManagerImpl {
 public:
     InputerManagerImpl() {}
@@ -2063,17 +1884,6 @@ DomainServerConfig GetAccountServerConfigSync(DomainAccountInfo const &domainAcc
                                          innerDomainServerConfig.domain_, innerDomainServerConfig.parameters_);
 }
 
-void RegisterPlugin(DomainPlugin plugin)
-{
-    std::shared_ptr<TaiheDomainPluginBridge> innerPlugin = std::make_shared<TaiheDomainPluginBridge>(plugin);
-    int32_t errCode = AccountSA::DomainAccountClient::GetInstance().RegisterPlugin(innerPlugin);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("failed to register plugin, errCode=%{public}d", errCode);
-        int32_t jsErrCode = AccountIAMConvertToJSErrCode(errCode);
-        taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-    }
-}
-
 void RegisterInputer(AuthType authType, const IInputer &inputer)
 {
     int32_t type = authType.get_value();
@@ -2117,7 +1927,6 @@ PINAuth CreatePINAuth()
 } // namespace
 
 TH_EXPORT_CPP_API_IsAuthenticationExpiredSync(IsAuthenticationExpiredSync);
-TH_EXPORT_CPP_API_RegisterPlugin(RegisterPlugin);
 TH_EXPORT_CPP_API_UnregisterPlugin(UnregisterPlugin);
 TH_EXPORT_CPP_API_Auth(Auth);
 TH_EXPORT_CPP_API_AuthWithPopup(AuthWithPopup);
@@ -2138,3 +1947,5 @@ TH_EXPORT_CPP_API_unregisterInputer(UnregisterInputer);
 TH_EXPORT_CPP_API_CreateUserIdentityManager(CreateUserIdentityManager);
 TH_EXPORT_CPP_API_CreateUserAuth(CreateUserAuth);
 TH_EXPORT_CPP_API_CreatePINAuth(CreatePINAuth);
+TH_EXPORT_CPP_API_createIInputData(createIInputData);
+TH_EXPORT_CPP_API_getPtrByIInputData(getPtrByIInputData);

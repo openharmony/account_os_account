@@ -369,35 +369,6 @@ struct EnrolledCredInfo {
     templateId: @typedarray Array<u8>;
 }
 
-@class
-struct GetDomainAccountInfoPluginOptions {
-    @extends options: GetDomainAccountInfoOptions;
-    callerUid: i32;
-}
-
-struct DomainServerConfig {
-    parameters: @sts_type("Record<String, Object>")Opaque;
-    id: String;
-    domain: String;
-}
-
-struct GetDomainAccountInfoOptions {
-    accountName: String;
-    domain: Optional<String>;
-    serverConfigId: Optional<String>;
-}
-
-struct AuthStatusInfo {
-    remainTimes: i32;
-    freezingTime: i32;
-}
-
-struct GetDomainAccessTokenOptions {
-    domainAccountInfo: DomainAccountInfo;
-    domainAccountToken: @typedarray Array<u8>;
-    businessParams: @sts_type("Record<String, Object>")Opaque;
-    callerUid: i32;
-}
 
 struct DomainPlugin {
     Auth: (domainAccountInfo: DomainAccountInfo, credential: @typedarray Array<u8>, callback: IUserAuthCallback) => void;
@@ -432,6 +403,8 @@ function IsAuthenticationExpiredSync(domainAccountInfo: DomainAccountInfo): bool
 @static("DomainAccountManager")
 @overload("registerPlugin")
 function RegisterPlugin(plugin: DomainPlugin): void;
+
+@static("DomainAccountManager")
 @overload("unregisterPlugin")
 function UnregisterPlugin(): void;
 
@@ -642,7 +615,7 @@ struct AuthStatusInfo {
 struct GetDomainAccessTokenOptions {
     domainAccountInfo: DomainAccountInfo;
     domainAccountToken: @typedarray Array<u8>;
-    businessParams: @record Map<String, Opaque>;
+    businessParams: @sts_type("Record<String, Object>")Opaque;
     callerUid: i32;
 }
 
@@ -659,7 +632,7 @@ struct GetDomainAccountInfoPluginOptions {
 }
 
 struct DomainServerConfig {
-    parameters: @record Map<String, Opaque>;
+    parameters: @sts_type("Record<String, Object>")Opaque;
     id: String;
     domain: String;
 }
