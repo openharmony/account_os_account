@@ -60,6 +60,25 @@ struct AsyncContextForUnsubscribe {
     size_t argc = 0;
 };
 
+struct AuthenticatorCallbackParam {
+    int32_t resultCode = -1;
+    AAFwk::Want result;
+};
+
+class THauthenticatorAsyncCallback : public AccountSA::AppAccountAuthenticatorCallbackStub {
+public:
+    explicit THauthenticatorAsyncCallback();
+    ~THauthenticatorAsyncCallback() override;
+    ErrCode OnResult(int32_t resultCode, const AAFwk::Want &result) override;
+    ErrCode OnRequestRedirected(const AAFwk::Want &request) override;
+    ErrCode OnRequestContinued() override;
+
+public:
+    std::shared_ptr<AuthenticatorCallbackParam> param_;
+    std::mutex mutex_;
+    bool isDone_ = false;
+    std::condition_variable cv_;
+};
     
 } // namespace AccountSA
 } // namespace OHOS
