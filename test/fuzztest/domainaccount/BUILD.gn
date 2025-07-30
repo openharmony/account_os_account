@@ -18,11 +18,17 @@ group("fuzztest") {
   deps = []
   if (os_account_support_domain_accounts) {
     deps += [
+      "authclient_fuzzer:AuthClientFuzzTest",
+      "getaccesstoken_fuzzer:GetAccessTokenFuzzTest",
       "getaccountpolicy_fuzzer:GetAccountPolicyFuzzTest",
+      "getaccountstatus_fuzzer:GetAccountStatusFuzzTest",
       "getdomainaccountinfo_fuzzer:GetDomainAccountInfoFuzzTest",
       "getserverconfig_fuzzer:GetServerConfigFuzzTest",
+      "hasdomainaccount_fuzzer:HasDomainAccountFuzzTest",
+      "isauthenticationexpired_fuzzer:IsAuthenticationExpiredFuzzTest",
       "setaccountpolicy_fuzzer:SetAccountPolicyFuzzTest",
       "updateaccountinfo_fuzzer:UpdateAccountInfoFuzzTest",
+      "updateaccounttoken_fuzzer:UpdateAccountTokenFuzzTest",
       "updateserverconfig_fuzzer:UpdateServerConfigFuzzTest",
     ]
   }
