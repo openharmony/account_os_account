@@ -28,6 +28,7 @@
 
 using namespace std;
 using namespace OHOS::AccountSA;
+const int MORE_VECTOR_MAX_SIZE = 102401;
 class AppAccountSubscriberTest : public AppAccountSubscriber {
 public:
     explicit AppAccountSubscriberTest(const AppAccountSubscribeInfo &subscribeInfo)
@@ -56,19 +57,34 @@ bool UnSubscribeAppAccountStubFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
     FuzzData fuzzData(data, size);
-    AppAccountSubscribeInfo subscribeInfo;
-    subscribeInfo.SetOwners({fuzzData.GenerateString()});
-    std::shared_ptr<AppAccountSubscriberTest> appAccountSubscriberPtr =
-        std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
-    if (!dataTemp.WriteRemoteObject(AppAccountEventListener::GetInstance()->AsObject())) {
+    bool isWriteSubscribeInfo = fuzzData.GetData<bool>();
+    if (isWriteSubscribeInfo) {
+        AppAccountSubscribeInfo subscribeInfo;
+        subscribeInfo.SetOwners({ fuzzData.GenerateString() });
+        std::shared_ptr<AppAccountSubscriberTest> appAccountSubscriberPtr =
+            std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
+        if (!dataTemp.WriteRemoteObject(AppAccountEventListener::GetInstance()->AsObject())) {
+            return false;
+        }
+    }
+    uint32_t ownerSize = fuzzData.GetData<uint32_t>() % MORE_VECTOR_MAX_SIZE;
+    auto isMoreSize = fuzzData.GetData<bool>();
+    if (isMoreSize) {
+        ownerSize = MORE_VECTOR_MAX_SIZE;
+    }
+    if (!dataTemp.WriteInt32(ownerSize)) {
         return false;
+    }
+    for (size_t i = 0; i < isMoreSize; i++) {
+        if (!dataTemp.WriteString(fuzzData.GenerateString())) {
+            return false;
+        }
     }
     MessageParcel reply;
     MessageOption option;
     uint32_t code = static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_UNSUBSCRIBE_APP_ACCOUNT);
     auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
     appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
-
     return true;
 }
 }

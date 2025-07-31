@@ -55,15 +55,21 @@ bool SubscribeAppAccountStubFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
     FuzzData fuzzData(data, size);
-    AppAccountSubscribeInfo subscribeInfo;
-    subscribeInfo.SetOwners({fuzzData.GenerateString()});
-    if (!dataTemp.WriteParcelable(&subscribeInfo)) {
-        return false;
+    bool isWriteSubscribeInfo = fuzzData.GetData<bool>();
+    if (isWriteSubscribeInfo) {
+        AppAccountSubscribeInfo subscribeInfo;
+        subscribeInfo.SetOwners({ fuzzData.GenerateString() });
+        std::shared_ptr<AppAccountSubscriberTest> appAccountSubscriberPtr =
+            std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
+        if (!dataTemp.WriteParcelable(&subscribeInfo)) {
+            return false;
+        }
     }
-    std::shared_ptr<AppAccountSubscriberTest> appAccountSubscriberPtr =
-        std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
-    if (!dataTemp.WriteRemoteObject(AppAccountEventListener::GetInstance()->AsObject())) {
-        return false;
+    bool isWriteSubscriber = fuzzData.GetData<bool>();
+    if (isWriteSubscriber) {
+        if (!dataTemp.WriteRemoteObject(AppAccountEventListener::GetInstance()->AsObject())) {
+            return false;
+        }
     }
     MessageParcel reply;
     MessageOption option;
