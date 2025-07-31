@@ -34,6 +34,16 @@ namespace OHOS {
             std::string testAccountName(fuzzData.GenerateString());
             std::string testUid(fuzzData.GenerateString());
             std::string testEventStr(fuzzData.GenerateString());
+            bool isInitEvent = fuzzData.GetData<bool>();
+            if (isInitEvent) {
+                std::vector<std::string> eventList;
+                eventList.emplace_back(OHOS_ACCOUNT_EVENT_LOGIN);
+                eventList.emplace_back(OHOS_ACCOUNT_EVENT_LOGOUT);
+                eventList.emplace_back(OHOS_ACCOUNT_EVENT_TOKEN_INVALID);
+                eventList.emplace_back(OHOS_ACCOUNT_EVENT_LOGOFF);
+                int32_t eventIndex = fuzzData.GetData<int32_t>() % eventList.size();
+                testEventStr = eventList[eventIndex];
+            }
             result = OhosAccountKits::GetInstance().UpdateOhosAccountInfo(testAccountName, testUid, testEventStr);
         }
         return result;

@@ -97,7 +97,11 @@ bool GetCredentialInfoFuzzTest(const uint8_t* data, size_t size)
     FuzzData fuzzData(data, size);
     int32_t userId = fuzzData.GetData<int32_t>();
     AuthType authType = fuzzData.GenerateEnmu(UserIam::UserAuth::RECOVERY_KEY);
-    std::shared_ptr<GetCredInfoCallback> callback = make_shared<MockIDMCallback>();
+    std::shared_ptr<GetCredInfoCallback> callback = nullptr;
+    bool isInitCallback = fuzzData.GetData<bool>();
+    if (isInitCallback) {
+        callback = make_shared<MockIDMCallback>();
+    }
     int32_t result = AccountIAMClient::GetInstance().GetCredentialInfo(userId, authType, callback);
     return result == ERR_OK;
 }
@@ -121,7 +125,11 @@ bool PrepareRemoteAuthFuzzTest(const uint8_t* data, size_t size)
     }
     FuzzData fuzzData(data, size);
     std::string remoteNetworkId(fuzzData.GenerateString());
-    std::shared_ptr<PreRemoteAuthCallback> callback = make_shared<MockPreRemoteAuthCallback>();
+    std::shared_ptr<PreRemoteAuthCallback> callback = nullptr;
+    bool isInitCallback = fuzzData.GetData<bool>();
+    if (isInitCallback) {
+        callback = make_shared<MockPreRemoteAuthCallback>();
+    }
     int32_t result = AccountIAMClient::GetInstance().PrepareRemoteAuth(remoteNetworkId, callback);
     return result == ERR_OK;
 }
@@ -135,8 +143,12 @@ bool GetEnrolledIdFuzzTest(const uint8_t* data, size_t size)
     int32_t userId = fuzzData.GetData<int32_t>();
     AuthType authType = static_cast<AuthType>(fuzzData.GenerateEnmu(IAMAuthType::TYPE_END));
     auto callback = std::make_shared<MockGetEnrolledIdCallback>();
+    bool isNullCallback = fuzzData.GetData<bool>();
+    if (isNullCallback) {
+        callback = nullptr;
+    }
     AccountIAMClient::GetInstance().GetEnrolledId(userId, authType, callback);
-    return callback->result_ == ERR_OK;
+    return false;
 }
 
 bool OpenSessionFuzzTest(const uint8_t* data, size_t size)
