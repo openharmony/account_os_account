@@ -30,6 +30,7 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
 const int CONSTANTS_NUMBER_FIVE = 5;
 const std::u16string IOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccount";
+const std::string TEST_SHORT_NAME = "test_short_name";
 bool CreateOsAccountForDomainStubFuzzTest(const uint8_t *data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
@@ -37,27 +38,36 @@ bool CreateOsAccountForDomainStubFuzzTest(const uint8_t *data, size_t size)
     }
 
     FuzzData fuzzData(data, size);
-    DomainAccountInfo domainInfo(fuzzData.GenerateString(),
-        fuzzData.GenerateString());
-    OsAccountType testType = static_cast<OsAccountType>(fuzzData.GetData<size_t>() % CONSTANTS_NUMBER_FIVE);
-    CreateOsAccountForDomainOptions options;
     MessageParcel datas;
     datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
-
+    OsAccountType testType = static_cast<OsAccountType>(fuzzData.GetData<size_t>() % CONSTANTS_NUMBER_FIVE);
     if (!datas.WriteInt32(testType)) {
         return false;
     }
-
-    if (!datas.WriteParcelable(&domainInfo)) {
-        return false;
+    auto useDomainAccountInfo = fuzzData.GenerateBool();
+    if (useDomainAccountInfo) {
+        DomainAccountInfo domainInfo(fuzzData.GenerateString(), fuzzData.GenerateString());
+        if (!datas.WriteParcelable(&domainInfo)) {
+            return false;
+        }
     }
-    std::shared_ptr<DomainAccountCallback> callbackPtr = nullptr;
-    sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callbackPtr);
-    if ((callbackService == nullptr) || (!datas.WriteRemoteObject(callbackService->AsObject()))) {
-        return false;
+    auto useDomainAccountCallback = fuzzData.GenerateBool();
+    if (useDomainAccountCallback) {
+        std::shared_ptr<DomainAccountCallback> callbackPtr = nullptr;
+        sptr<DomainAccountCallbackService> callbackService =
+            new (std::nothrow) DomainAccountCallbackService(callbackPtr);
+        if ((callbackService == nullptr) || (!datas.WriteRemoteObject(callbackService->AsObject()))) {
+            return false;
+        }
     }
-    if (!datas.WriteParcelable(&options)) {
-        return false;
+    auto useCreateOsAccountForDomainOptions = fuzzData.GenerateBool();
+    if (useCreateOsAccountForDomainOptions) {
+        CreateOsAccountForDomainOptions options;
+        options.shortName = TEST_SHORT_NAME;
+        options.hasShortName = true;
+        if (!datas.WriteParcelable(&options)) {
+            return false;
+        }
     }
 
     MessageParcel reply;
@@ -67,6 +77,9 @@ bool CreateOsAccountForDomainStubFuzzTest(const uint8_t *data, size_t size)
 
     osAccountManagerService_ ->OnRemoteRequest(
         static_cast<int32_t>(IOsAccountIpcCode::COMMAND_CREATE_OS_ACCOUNT_FOR_DOMAIN), datas, reply, option);
+    osAccountManagerService_ ->OnRemoteRequest(static_cast<int32_t>(
+        IOsAccountIpcCode::COMMAND_CREATE_OS_ACCOUNT_FOR_DOMAIN_IN_INT_IN_DOMAINACCOUNTINFO_IN_IDOMAINACCOUNTCALLBACK),
+        datas, reply, option);
 
     return true;
 }
@@ -96,22 +109,28 @@ void SendRequestWithCode(int32_t code)
 
 bool ReadOsAccountInfo(MessageParcel &data, OsAccountInfo &accountInfo)
 {
-    int32_t accountSize;
-    if (!data.ReadInt32(accountSize)) {
+    StringRawData stringRawData;
+
+    data.ReadInt32();
+    if (!data.ReadUint32(stringRawData.size)) {
         return false;
     }
-    auto readRawData = data.ReadRawData(accountSize);
-    if (readRawData == nullptr) {
+    auto readstringRawData = data.ReadRawData(stringRawData.size);
+    if (readstringRawData == nullptr) {
         return false;
     }
-    const char *accountData = reinterpret_cast<const char *>(readRawData);
-    std::string accountJson = std::string(accountData, accountSize - 1);
-    auto jsonObject = CreateJsonFromString(accountJson);
+    ErrCode stringRawDataoutError = stringRawData.RawDataCpy(readstringRawData);
+    if (stringRawDataoutError) {
+        return false;
+    }
+
+    std::string accountStr;
+    stringRawData.Unmarshalling(accountStr);
+    auto jsonObject = CreateJsonFromString(accountStr);
     if (jsonObject == nullptr) {
         return false;
     }
     FromJson(jsonObject.get(), accountInfo);
-
     return true;
 }
 
@@ -124,7 +143,7 @@ void CheckOsAccountStatus()
     MessageParcel reply;
     MessageOption option;
     data.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
-    data.WriteString(accountName);
+    data.WriteString16(Str8ToStr16(accountName));
     data.WriteInt32(static_cast<int32_t>(testType));
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
     osAccountManagerService_->OnRemoteRequest(
@@ -144,9 +163,14 @@ void CheckOsAccountStatus()
     SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_GET_DEFAULT_ACTIVATED_OS_ACCOUNT));
     SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_GET_BACKGROUND_OS_ACCOUNT_LOCAL_IDS));
     SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_GET_OS_ACCOUNT_LOCAL_ID_FROM_PROCESS));
+    SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_GET_OS_ACCOUNT_SWITCH_MOD));
+    SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_GET_OS_ACCOUNT_TYPE_FROM_PROCESS));
+    SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_QUERY_ACTIVE_OS_ACCOUNT_IDS));
     SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_QUERY_CURRENT_OS_ACCOUNT));
     SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_QUERY_ALL_CREATED_OS_ACCOUNTS));
     SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_QUERY_MAX_LOGGED_IN_OS_ACCOUNT_NUMBER));
+    SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_QUERY_MAX_OS_ACCOUNT_NUMBER));
+    SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_IS_CURRENT_OS_ACCOUNT_VERIFIED));
     SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_IS_MAIN_OS_ACCOUNT));
     SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_IS_MULTI_OS_ACCOUNT_ENABLE));
     SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_DEACTIVATE_ALL_OS_ACCOUNTS));

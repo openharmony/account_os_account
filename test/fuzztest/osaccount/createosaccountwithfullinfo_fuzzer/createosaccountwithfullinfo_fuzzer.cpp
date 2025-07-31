@@ -17,14 +17,20 @@
 
 #include <string>
 #include <vector>
-#include "os_account_manager.h"
+#include "access_token.h"
+#include "access_token_error.h"
+#include "accesstoken_kit.h"
 #include "account_log_wrapper.h"
 #include "fuzz_data.h"
+#include "nativetoken_kit.h"
 #include "os_account_constants.h"
+#include "os_account_manager.h"
 #include "securec.h"
+#include "token_setproc.h"
 
 using namespace std;
 using namespace OHOS::AccountSA;
+using namespace OHOS::Security::AccessToken;
 
 namespace OHOS {
 constexpr int32_t START_USER_ID_100 = 100;
@@ -64,8 +70,34 @@ bool CreateOsAccountWithFullInfoFuzzTest(const uint8_t* data, size_t size)
     
     return result == ERR_OK;
 }
-
 } // namespace OHOS
+
+void NativeTokenGet()
+{
+    uint64_t tokenId;
+    const char **perms = new const char *[1];
+    perms[0] = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 1,
+        .aclsNum = 0,
+        .perms = perms,
+        .acls = nullptr,
+        .aplStr = "system_core",
+    };
+    infoInstance.processName = "RegisterInputer";
+    tokenId = GetAccessTokenId(&infoInstance);
+    SetSelfTokenID(tokenId);
+    AccessTokenKit::ReloadNativeTokenInfo();
+    delete[] perms;
+}
+
+/* Fuzzer entry point */
+extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
+{
+    NativeTokenGet();
+    return 0;
+}
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)

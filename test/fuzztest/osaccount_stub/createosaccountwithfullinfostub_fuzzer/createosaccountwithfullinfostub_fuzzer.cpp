@@ -27,6 +27,7 @@ const int32_t TEST_USER_ID = 1006;
 const int32_t OS_ACCOUNT_TYPE_NUM = 5;
 const int64_t TEST_TIME_STAMP = 1695883215000;
 const std::u16string IOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccount";
+const std::string TEST_HAP_STRING = "test_hap1";
 
 namespace OHOS {
     bool CreateOsAccountWithFullInfoStubFuzzTest(const uint8_t* data, size_t size)
@@ -41,29 +42,44 @@ namespace OHOS {
             return false;
         }
         
-        // Create OsAccountInfo object for fuzzing
-        OsAccountInfo osAccountInfo;
-        osAccountInfo.SetLocalId(fuzzData.GetData<int32_t>());
-        osAccountInfo.SetLocalName(fuzzData.GenerateString());
-        osAccountInfo.SetShortName(fuzzData.GenerateString());
-        osAccountInfo.SetType(static_cast<OsAccountType>(fuzzData.GetData<int32_t>() % OS_ACCOUNT_TYPE_NUM));
-        osAccountInfo.SetCreateTime(TEST_TIME_STAMP);
-        osAccountInfo.SetLastLoginTime(TEST_TIME_STAMP);
-        
-        if (!dataParcel.WriteParcelable(&osAccountInfo)) {
-            return false;
+        auto useOsAccountInfo = fuzzData.GenerateBool();
+        if (useOsAccountInfo) {
+            // Create OsAccountInfo object for fuzzing
+            OsAccountInfo osAccountInfo;
+            osAccountInfo.SetLocalId(fuzzData.GetData<int32_t>());
+            osAccountInfo.SetLocalName(fuzzData.GenerateString());
+            osAccountInfo.SetShortName(fuzzData.GenerateString());
+            osAccountInfo.SetType(static_cast<OsAccountType>(fuzzData.GetData<int32_t>() % OS_ACCOUNT_TYPE_NUM));
+            osAccountInfo.SetCreateTime(TEST_TIME_STAMP);
+            osAccountInfo.SetLastLoginTime(TEST_TIME_STAMP);
+            
+            if (!dataParcel.WriteParcelable(&osAccountInfo)) {
+                return false;
+            }
         }
-        CreateOsAccountOptions options;
-        if (!dataParcel.WriteParcelable(&options)) {
-            return false;
+
+        auto useOptions = fuzzData.GenerateBool();
+        if (useOptions) {
+            CreateOsAccountOptions options;
+            options.disallowedHapList.push_back(TEST_HAP_STRING);
+            if (!options.allowedHapList.has_value()) {
+                options.allowedHapList = std::vector<std::string>();
+                options.allowedHapList->push_back(TEST_HAP_STRING);
+            }
+            if (!dataParcel.WriteParcelable(&options)) {
+                return false;
+            }
         }
+
         MessageParcel reply;
         MessageOption option;
         auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
         osAccountManagerService_->OnRemoteRequest(
             static_cast<uint32_t>(IOsAccountIpcCode::COMMAND_CREATE_OS_ACCOUNT_WITH_FULL_INFO),
             dataParcel, reply, option);
-
+        osAccountManagerService_->OnRemoteRequest(
+            static_cast<uint32_t>(IOsAccountIpcCode::COMMAND_CREATE_OS_ACCOUNT_WITH_FULL_INFO_IN_OSACCOUNTINFO),
+            dataParcel, reply, option);
         return true;
     }
 
@@ -73,8 +89,10 @@ namespace OHOS {
         datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
         datas.WriteInt32(TEST_USER_ID);
         string photo = "test profile photo";
-        datas.WriteInt32(photo.size() + 1);
-        datas.WriteRawData(photo.c_str(), photo.size() + 1);
+        StringRawData stringRawData;
+        stringRawData.Marshalling(photo);
+        datas.WriteUint32(stringRawData.size);
+        datas.WriteRawData(stringRawData.data, stringRawData.size);
         MessageParcel reply;
         MessageOption option;
         auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
@@ -143,6 +161,9 @@ namespace OHOS {
         auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
         osAccountManagerService_->OnRemoteRequest(
             static_cast<uint32_t>(IOsAccountIpcCode::COMMAND_CREATE_OS_ACCOUNT_WITH_FULL_INFO),
+            dataParcel, reply, option);
+        osAccountManagerService_->OnRemoteRequest(
+            static_cast<uint32_t>(IOsAccountIpcCode::COMMAND_CREATE_OS_ACCOUNT_WITH_FULL_INFO_IN_OSACCOUNTINFO),
             dataParcel, reply, option);
     }
 } // namespace OHOS

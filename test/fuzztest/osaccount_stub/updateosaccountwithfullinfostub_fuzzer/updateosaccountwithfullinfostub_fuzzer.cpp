@@ -36,25 +36,30 @@ namespace OHOS {
         
         FuzzData fuzzData(data, size);
         MessageParcel dataParcel;
-        if (!dataParcel.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR)) {
-            return false;
+        auto useValidDescriptor = fuzzData.GenerateBool();
+        if (useValidDescriptor) {
+            if (!dataParcel.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR)) {
+                return false;
+            }
         }
-        
-        // Create OsAccountInfo object for fuzzing
-        OsAccountInfo osAccountInfo;
-        int32_t localId = fuzzData.GetData<bool>() ?
-                        (fuzzData.GetData<int32_t>() % MAX_TEST_ID) : fuzzData.GetData<int32_t>();
-        osAccountInfo.SetLocalId(localId);
-        osAccountInfo.SetLocalName(fuzzData.GenerateString());
-        osAccountInfo.SetShortName(fuzzData.GenerateString());
-        osAccountInfo.SetType(static_cast<OsAccountType>(fuzzData.GetData<int32_t>() % OS_ACCOUNT_TYPE_NUM));
-        osAccountInfo.SetIsCreateCompleted(fuzzData.GetData<bool>());
-        osAccountInfo.SetIsActived(fuzzData.GetData<bool>());
-        
-        if (!dataParcel.WriteParcelable(&osAccountInfo)) {
-            return false;
+        auto useOsAccountInfo = fuzzData.GenerateBool();
+        if (useOsAccountInfo) {
+            // Create OsAccountInfo object for fuzzing
+            OsAccountInfo osAccountInfo;
+            int32_t localId = fuzzData.GetData<bool>() ?
+                            (fuzzData.GetData<int32_t>() % MAX_TEST_ID) : fuzzData.GetData<int32_t>();
+            osAccountInfo.SetLocalId(localId);
+            osAccountInfo.SetLocalName(fuzzData.GenerateString());
+            osAccountInfo.SetShortName(fuzzData.GenerateString());
+            osAccountInfo.SetType(static_cast<OsAccountType>(fuzzData.GetData<int32_t>() % OS_ACCOUNT_TYPE_NUM));
+            osAccountInfo.SetIsCreateCompleted(fuzzData.GetData<bool>());
+            osAccountInfo.SetIsActived(fuzzData.GetData<bool>());
+            
+            if (!dataParcel.WriteParcelable(&osAccountInfo)) {
+                return false;
+            }
         }
-        
+
         MessageParcel reply;
         MessageOption option;
         auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
