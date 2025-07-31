@@ -70,15 +70,21 @@ bool UnsubscribeOsAccountConstraintStubFuzzTest(const uint8_t *data, size_t size
     OsAccountConstraintSubscribeManager::GetInstance().Publish(id, {testStr}, fuzzData.GetData<bool>());
     MessageParcel datas;
     datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
-    std::set<string> constraints = {testStr};
-    OsAccountConstraintSubscribeInfo subscriber(constraints);
 
-    if (!datas.WriteParcelable(&subscriber)) {
-        return false;
+    auto useOsAccountConstraintSubscribeInfo = fuzzData.GenerateBool();
+    if (useOsAccountConstraintSubscribeInfo) {
+        std::set<string> constraints = {testStr};
+        OsAccountConstraintSubscribeInfo subscriber(constraints);
+        if (!datas.WriteParcelable(&subscriber)) {
+            return false;
+        }
     }
 
-    if (!datas.WriteRemoteObject(OsAccountConstraintSubscriberManager::GetInstance()->AsObject())) {
-        return false;
+    auto useOsAccountConstraintSubscriberManager = fuzzData.GenerateBool();
+    if (useOsAccountConstraintSubscriberManager) {
+        if (!datas.WriteRemoteObject(OsAccountConstraintSubscriberManager::GetInstance()->AsObject())) {
+            return false;
+        }
     }
 
     MessageParcel reply;

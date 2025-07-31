@@ -29,6 +29,7 @@ namespace OHOS {
 const int32_t ENFORCER_ID = 100;
 const int CONSTANTS_NUMBER_TWO = 2;
 const int CONSTANTS_NUMBER_THREE = 3;
+const int32_t OOM_VECTOR_SIZE = 102402;
 const std::u16string IOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccount";
 bool SetGlobalOsAccountConstraintsStubFuzzTest(const uint8_t *data, size_t size)
 {
@@ -39,25 +40,30 @@ bool SetGlobalOsAccountConstraintsStubFuzzTest(const uint8_t *data, size_t size)
     MessageParcel datas;
     FuzzData fuzzData(data, size);
     datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
-
-    if (!datas.WriteInt32(ENFORCER_ID)) {
-        return false;
-    }
+    auto useOOMVectorSize = fuzzData.GenerateBool();
     std::vector<std::string> constraints {
         "constraint.print",
         "constraint.screen.timeout.set",
         "constraint.share.into.profile"
     };
-    if (!datas.WriteStringVector(constraints)) {
+    int32_t constraintsSize = useOOMVectorSize ? OOM_VECTOR_SIZE : constraints.size();
+    if (!datas.WriteInt32(constraintsSize)) {
         return false;
+    }
+    for (auto constraint = constraints.begin(); constraint != constraints.end(); ++constraint) {
+        if (!datas.WriteString16(Str8ToStr16((*constraint)))) {
+            return false;
+        }
     }
     bool enable = ((fuzzData.GetData<size_t>() % CONSTANTS_NUMBER_TWO) == 0);
-    bool isDeviceOwner = ((fuzzData.GetData<size_t>() % CONSTANTS_NUMBER_THREE) == 0);
-
-    if (!datas.WriteBool(enable)) {
+    if (!datas.WriteInt32(enable ? 1 : 0)) {
         return false;
     }
-    if (!datas.WriteBool(isDeviceOwner)) {
+    if (!datas.WriteInt32(ENFORCER_ID)) {
+        return false;
+    }
+    bool isDeviceOwner = ((fuzzData.GetData<size_t>() % CONSTANTS_NUMBER_THREE) == 0);
+    if (!datas.WriteInt32(isDeviceOwner ? 1 : 0)) {
         return false;
     }
 
