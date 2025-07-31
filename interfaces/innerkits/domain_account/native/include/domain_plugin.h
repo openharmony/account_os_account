@@ -117,8 +117,6 @@ typedef PluginBussnessError* (*GetAccountPolicyFunc)(const PluginDomainAccountIn
     const int32_t callerLocalId, PluginDomainAccountPolicy **domainAccountPolicy);
 typedef PluginBussnessError* (*SetAccountPolicyFunc)(const PluginString *parameters,
     const PluginDomainAccountInfo *domainAccountInfo, const int32_t callerLocalId);
-typedef PluginBussnessError* (*GetServerConfigFunc)(const PluginString *serverConfigId, const int32_t callerLocalId,
-    PluginServerConfigInfo **serverConfigInfo);
 
 enum PluginMethodEnum {
     ADD_SERVER_CONFIG = 0,

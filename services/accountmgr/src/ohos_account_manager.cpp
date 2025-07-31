@@ -790,7 +790,7 @@ bool OhosAccountManager::CheckOhosAccountCanBind(const AccountInfo &currAccountI
     const OhosAccountInfo &newOhosAccountInfo, const std::string &newOhosUid) const
 {
     if (newOhosUid.length() != OHOS_ACCOUNT_UDID_LENGTH) {
-        ACCOUNT_LOGE("newOhosUid invalid length, %{public}u.", newOhosUid.length());
+        ACCOUNT_LOGE("newOhosUid invalid length, %{public}zu.", newOhosUid.length());
         return false;
     }
 
