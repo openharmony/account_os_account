@@ -42,7 +42,8 @@ bool SubscribeOsAccountConstraintStubFuzzTest(const uint8_t *data, size_t size)
     FuzzData fuzzData(data, size);
     std::string testStr = fuzzData.GenerateString();
     std::set<string> constraints = {testStr};
-    OsAccountConstraintSubscribeInfo subscriber(constraints);
+    OsAccountConstraintSubscribeInfo subscriber;
+    subscriber.SetConstraints(constraints);
     if (!datas.WriteParcelable(&subscriber)) {
         return false;
     }

@@ -34,6 +34,9 @@ namespace OHOS {
             std::string testName(fuzzData.GenerateString());
             std::string extraInfo(fuzzData.GenerateString());
             result = AppAccountManager::AddAccount(testName, extraInfo);
+            std::string testOwner(fuzzData.GenerateString());
+            std::vector<AppAccountInfo> appAccounts;
+            result = AppAccountManager::QueryAllAccessibleAccounts(testOwner, appAccounts);
         }
         return result;
     }
