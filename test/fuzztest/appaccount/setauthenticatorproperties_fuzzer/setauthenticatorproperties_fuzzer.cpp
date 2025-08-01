@@ -18,12 +18,16 @@
 #include <string>
 #include <vector>
 #include "account_log_wrapper.h"
+#include "app_account_authenticator_callback_stub.h"
 #include "app_account_common.h"
 #include "app_account_manager.h"
 #include "fuzz_data.h"
 
 using namespace std;
 using namespace OHOS::AccountSA;
+const int CONSTANTS_NUMBER_ONE = 1;
+const int CONSTANTS_NUMBER_TWO = 2;
+const int CONSTANTS_NUMBER_THREE = 3;
 
 class MockAuthenticatorCallback : public OHOS::AccountSA::IAppAccountAuthenticatorCallback {
 public:
@@ -45,6 +49,31 @@ public:
     }
 };
 
+class MockAuthenticatorCallbackStub final : public AppAccountAuthenticatorCallbackStub {
+public:
+    OHOS::ErrCode OnResult(int32_t resultCode, const OHOS::AAFwk::Want &result)
+    {
+        return OHOS::ERR_OK;
+    }
+
+    OHOS::ErrCode OnRequestRedirected(const OHOS::AAFwk::Want &request)
+    {
+        return OHOS::ERR_OK;
+    }
+
+    OHOS::ErrCode OnRequestContinued()
+    {
+        return OHOS::ERR_OK;
+    }
+    OHOS::ErrCode CallbackEnter([[maybe_unused]] uint32_t code)
+    {
+        return OHOS::ERR_OK;
+    }
+    OHOS::ErrCode CallbackExit([[maybe_unused]] uint32_t code, [[maybe_unused]] int32_t result)
+    {
+        return OHOS::ERR_OK;
+    }
+};
 namespace OHOS {
     bool SetAuthenticatorPropertiesFuzzTest(const uint8_t* data, size_t size)
     {
@@ -52,7 +81,13 @@ namespace OHOS {
         if (size > 0) {
             FuzzData fuzzData(data, size);
             std::string testOwner(fuzzData.GenerateString());
-            sptr<MockAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
+            sptr<IAppAccountAuthenticatorCallback> callback = nullptr;
+            uint32_t number = fuzzData.GetData<uint32_t>() % CONSTANTS_NUMBER_THREE;
+            if (number == CONSTANTS_NUMBER_ONE) {
+                callback = new (std::nothrow) MockAuthenticatorCallback();
+            } else if (number == CONSTANTS_NUMBER_TWO) {
+                callback = new (std::nothrow) MockAuthenticatorCallbackStub();
+            }
             SetPropertiesOptions options;
             result = AppAccountManager::SetAuthenticatorProperties(testOwner, options, callback);
         }
