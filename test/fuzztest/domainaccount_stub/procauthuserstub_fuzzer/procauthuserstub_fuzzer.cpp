@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,6 +31,7 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace {
 const int32_t PASSWORD_LEN = 8;
+const uint32_t TEST_VECTOR_MAX_SIZE = 102402;
 
 class TestDomainAuthCallback : public OHOS::AccountSA::DomainAccountCallback {
 public:
@@ -48,12 +49,6 @@ public:
         }
         FuzzData fuzzData(data, size);
         int32_t userId = fuzzData.GetData<int32_t>();
-        std::vector<uint8_t> password;
-
-        for (int32_t i = 0; i < PASSWORD_LEN; i++) {
-            uint8_t bit = fuzzData.GetData<uint8_t>();
-            password.emplace_back(bit);
-        }
 
         auto callbackPtr = std::make_shared<TestDomainAuthCallback>();
         sptr<IDomainAccountCallback> callback = new (std::nothrow) DomainAccountCallbackService(callbackPtr);
@@ -66,11 +61,19 @@ public:
         if (!dataTemp.WriteInt32(userId)) {
             return false;
         }
-        if (!dataTemp.WriteUInt8Vector(password)) {
+        uint32_t passwordSize = fuzzData.GetData<bool>() ? TEST_VECTOR_MAX_SIZE : PASSWORD_LEN;
+        if (!dataTemp.WriteInt32(passwordSize)) {
             return false;
         }
-        if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
-            return false;
+        for (uint32_t i = 0; i < PASSWORD_LEN; i++) {
+            if (!dataTemp.WriteUint8(fuzzData.GetData<uint8_t>())) {
+                return false;
+            }
+        }
+        if (fuzzData.GetData<bool>()) {
+            if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
+                return false;
+            }
         }
 
         MessageParcel reply;

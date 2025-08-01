@@ -59,9 +59,10 @@ namespace OHOS {
         info.domain_ = fuzzData.GenerateString();
         info.accountName_ = fuzzData.GenerateString();
         info.accountId_ = fuzzData.GenerateString();
-
-        if (!dataTemp.WriteParcelable(&info)) {
-            return false;
+        if (fuzzData.GetData<bool>()) {
+            if (!dataTemp.WriteParcelable(&info)) {
+                return false;
+            }
         }
 
         auto testCallback = new TestHasDomainInfoCallback();
@@ -70,9 +71,10 @@ namespace OHOS {
             ACCOUNT_LOGI("AppAccountStub ProcHasDomainAccount testCallback is null");
             return false;
         }
-
-        if (!dataTemp.WriteRemoteObject(testCallback->AsObject())) {
-            return false;
+        if (fuzzData.GetData<bool>()) {
+            if (!dataTemp.WriteRemoteObject(testCallback->AsObject())) {
+                return false;
+            }
         }
         MessageParcel reply;
         MessageOption option;

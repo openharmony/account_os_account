@@ -31,6 +31,7 @@ namespace OHOS {
 namespace {
 const int ENUM_MAX = 4;
 const uint32_t TOKEN_LEN = 10;
+const uint32_t TEST_VECTOR_MAX_SIZE = 102402;
 
 class TestGetDomainAccountInfoCallback : public DomainAccountCallbackStub {
 public:
@@ -57,7 +58,7 @@ bool ProcAddServerConfigStubFuzzTest(const uint8_t* data, size_t size)
     if (!dataTemp.WriteInterfaceToken(DomainAccountStub::GetDescriptor())) {
         return false;
     }
-    if (!dataTemp.WriteString(fuzzData.GenerateString())) {
+    if (!dataTemp.WriteString16(Str8ToStr16(fuzzData.GenerateString()))) {
         return false;
     }
     MessageParcel reply;
@@ -76,12 +77,13 @@ bool ProcGetAccountStatusStubFuzzTest(const uint8_t *data, size_t size)
     }
 
     MessageParcel dataTemp;
-    if (!dataTemp.WriteInterfaceToken(DomainAccountStub::GetDescriptor())) {
-        return false;
-    }
-
-    DomainAccountInfo info;
     FuzzData fuzzData(data, size);
+    if (fuzzData.GetData<bool>()) {
+        if (!dataTemp.WriteInterfaceToken(DomainAccountStub::GetDescriptor())) {
+            return false;
+        }
+    }
+    DomainAccountInfo info;
     info.domain_ = fuzzData.GenerateString();
     info.accountName_ = fuzzData.GenerateString();
     info.accountId_ = fuzzData.GenerateString();
@@ -89,9 +91,10 @@ bool ProcGetAccountStatusStubFuzzTest(const uint8_t *data, size_t size)
     info.serverConfigId_ = fuzzData.GenerateString();
     int typeNumber = fuzzData.GetData<int>() % ENUM_MAX;
     info.status_ = static_cast<DomainAccountStatus>(typeNumber);
-
-    if (!dataTemp.WriteParcelable(&info)) {
-        return false;
+    if (fuzzData.GetData<bool>()) {
+        if (!dataTemp.WriteParcelable(&info)) {
+            return false;
+        }
     }
 
     MessageParcel reply;
@@ -123,14 +126,17 @@ bool ProcGetDomainAccessTokenStubFuzzTest(const uint8_t *data, size_t size)
     info.serverConfigId_ = fuzzData.GenerateString();
     int typeNumber = fuzzData.GetData<int>() % ENUM_MAX;
     info.status_ = static_cast<DomainAccountStatus>(typeNumber);
-
-    if (!dataTemp.WriteParcelable(&info)) {
-        return false;
+    if (fuzzData.GetData<bool>()) {
+        if (!dataTemp.WriteParcelable(&info)) {
+            return false;
+        }
     }
 
     AAFwk::WantParams workParams;
-    if (!dataTemp.WriteParcelable(&workParams)) {
-        return false;
+    if (fuzzData.GetData<bool>()) {
+        if (!dataTemp.WriteParcelable(&workParams)) {
+            return false;
+        }
     }
 
     auto testCallback = new TestGetDomainAccountInfoCallback();
@@ -138,9 +144,10 @@ bool ProcGetDomainAccessTokenStubFuzzTest(const uint8_t *data, size_t size)
     if (testCallback == nullptr) {
         return false;
     }
-
-    if (!dataTemp.WriteRemoteObject(testCallback->AsObject())) {
-        return false;
+    if (fuzzData.GetData<bool>()) {
+        if (!dataTemp.WriteRemoteObject(testCallback->AsObject())) {
+            return false;
+        }
     }
 
     MessageParcel reply;
@@ -172,18 +179,19 @@ bool ProcUpdateAccountTokenStubFuzzTest(const uint8_t *data, size_t size)
     info.serverConfigId_ = fuzzData.GenerateString();
     int typeNumber = fuzzData.GetData<int>() % ENUM_MAX;
     info.status_ = static_cast<DomainAccountStatus>(typeNumber);
-
-    if (!dataTemp.WriteParcelable(&info)) {
+    if (fuzzData.GetData<bool>()) {
+        if (!dataTemp.WriteParcelable(&info)) {
+            return false;
+        }
+    }
+    uint32_t bufferSize = fuzzData.GetData<bool>() ? TEST_VECTOR_MAX_SIZE : TOKEN_LEN;
+    if (!dataTemp.WriteInt32(bufferSize)) {
         return false;
     }
-
-    std::vector<uint8_t> buffer;
     for (uint32_t i = 0; i < TOKEN_LEN; i++) {
-        uint8_t bit = fuzzData.GetData<uint8_t>();
-        buffer.emplace_back(bit);
-    }
-    if (!dataTemp.WriteUInt8Vector(buffer)) {
-        return false;
+        if (!dataTemp.WriteUint8(fuzzData.GetData<uint8_t>())) {
+            return false;
+        }
     }
 
     MessageParcel reply;
