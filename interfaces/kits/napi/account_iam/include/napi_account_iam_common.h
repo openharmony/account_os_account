@@ -140,6 +140,7 @@ private:
     napi_ref callbackRef_ = nullptr;
     napi_deferred deferred_ = nullptr;
     std::mutex mutex_;
+    bool onResultCalled_ = false;
 };
 
 struct IDMContext : public CommonAsyncContext {

@@ -832,6 +832,11 @@ void NapiPrepareRemoteAuthCallback::OnResult(int32_t result)
     if ((callbackRef_ == nullptr) && (deferred_ == nullptr)) {
         return;
     }
+    if (onResultCalled_) {
+        ACCOUNT_LOGE("Call twice is not allowed");
+        return;
+    }
+    onResultCalled_ = true;
     std::shared_ptr<PrepareRemoteAuthContext> context = std::make_shared<PrepareRemoteAuthContext>(env_);
     if (context == nullptr) {
         ACCOUNT_LOGE("Nullptr fail.");
