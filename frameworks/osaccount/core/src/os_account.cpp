@@ -437,7 +437,7 @@ ErrCode OsAccount::GetOsAccountAllConstraints(const int id, std::vector<std::str
     std::vector<std::string> constraintsVec;
     auto errCode = proxy->GetOsAccountAllConstraints(id, constraintsVec);
     if (errCode == ERR_OK) {
-        constraints = std::move(constraintsVec);
+        constraints = constraintsVec;
     }
     return ConvertToAccountErrCode(errCode);
 }
@@ -966,7 +966,7 @@ ErrCode OsAccount::QueryActiveOsAccountIds(std::vector<int32_t>& ids)
     std::vector<int32_t> idsVec;
     auto errCode = proxy->QueryActiveOsAccountIds(idsVec);
     if (errCode == ERR_OK) {
-        ids = std::move(idsVec);
+        ids = idsVec;
     }
     return ConvertToAccountErrCode(errCode);
 }
