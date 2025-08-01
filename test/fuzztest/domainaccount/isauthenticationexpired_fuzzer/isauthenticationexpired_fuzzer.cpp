@@ -26,6 +26,7 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace {
 const int ENUM_MAX = 4;
+const int TEST_ENUM = 5;
 }
 bool IsAuthenticationExpiredFuzzTest(const uint8_t* data, size_t size)
 {
@@ -40,7 +41,7 @@ bool IsAuthenticationExpiredFuzzTest(const uint8_t* data, size_t size)
     info.accountId_ = fuzzData.GenerateString();
     info.isAuthenticated = fuzzData.GenerateBool();
     info.serverConfigId_ = fuzzData.GenerateString();
-    int typeNumber = fuzzData.GetData<int>() % ENUM_MAX;
+    int typeNumber = fuzzData.GenerateBool() ? TEST_ENUM : fuzzData.GetData<int>() % ENUM_MAX;
     info.status_ = static_cast<DomainAccountStatus>(typeNumber);
     bool isExpired = fuzzData.GenerateBool();
     ret = DomainAccountClient::GetInstance().IsAuthenticationExpired(info, isExpired);

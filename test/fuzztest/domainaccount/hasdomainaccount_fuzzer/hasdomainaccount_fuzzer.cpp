@@ -26,6 +26,7 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace {
 const int ENUM_MAX = 4;
+const int TEST_ENUM = 5;
 class TestDomainAccountCallback : public DomainAccountCallback {
 public:
     TestDomainAccountCallback() {};
@@ -70,7 +71,7 @@ bool HasDomainAccountFuzzTest(const uint8_t* data, size_t size)
     info.accountId_ = fuzzData.GenerateString();
     info.isAuthenticated = fuzzData.GenerateBool();
     info.serverConfigId_ = fuzzData.GenerateString();
-    int typeNumber = fuzzData.GetData<int>() % ENUM_MAX;
+    int typeNumber = fuzzData.GenerateBool() ? TEST_ENUM : fuzzData.GetData<int>() % ENUM_MAX;
     info.status_ = static_cast<DomainAccountStatus>(typeNumber);
     std::shared_ptr<DomainAccountCallback> callback = std::make_shared<TestDomainAccountCallback>();
     std::shared_ptr<DomainAccountPlugin> plugin = std::make_shared<TestDomainAccountPlugin>();

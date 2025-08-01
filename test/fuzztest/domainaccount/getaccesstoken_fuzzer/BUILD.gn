@@ -43,7 +43,7 @@ ohos_fuzztest("GetAccessTokenFuzzTest") {
   ]
 
   defines = [
-    "ACCOUNT_LOG_TAG = \"AppAccountFuzzTest\"",
+    "ACCOUNT_LOG_TAG = \"DomainAccountFuzzTest\"",
     "LOG_DOMAIN = 0xD001B00",
   ]
 
