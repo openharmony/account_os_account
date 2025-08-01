@@ -32,7 +32,7 @@ public:
     {
         T object{};
         size_t objectSize = sizeof(object);
-        if (data_ == nullptr || objectSize > size_ - pos_) {
+        if (data_ == nullptr || objectSize > (size_ - pos_)) {
             return object;
         }
         errno_t ret = memcpy_s(&object, objectSize, data_ + pos_, objectSize);
