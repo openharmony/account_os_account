@@ -42,6 +42,8 @@ bool SetOhosAccountInfoFuzzTest(const uint8_t* data, size_t size)
         );
         std::string testEventStr(fuzzData.GenerateString());
         result = OhosAccountKits::GetInstance().SetOhosAccountInfo(testOhosAccountInfo, testEventStr);
+        result = OhosAccountKits::GetInstance().GetOhosAccountInfo(testOhosAccountInfo);
+        OhosAccountKits::GetInstance().QueryOhosAccountInfo();
     }
     return result == ERR_OK;
 }

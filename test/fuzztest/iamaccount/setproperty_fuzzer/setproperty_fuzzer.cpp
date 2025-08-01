@@ -44,7 +44,11 @@ namespace OHOS {
             .mode = fuzzData.GenerateEnmu(UserIam::UserAuth::PROPERTY_MODE_NOTIFY_COLLECTOR_READY),
             .attrs = Attributes(attr),
         };
-        std::shared_ptr<GetSetPropCallback> callback = make_shared<MockGetSetPropCallback>();
+        std::shared_ptr<GetSetPropCallback> callback = nullptr;
+        bool isInitCallback = fuzzData.GetData<bool>();
+        if (isInitCallback) {
+            callback = make_shared<MockGetSetPropCallback>();
+        }
         AccountIAMClient::GetInstance().SetProperty(userId, request, callback);
         return false;
     }

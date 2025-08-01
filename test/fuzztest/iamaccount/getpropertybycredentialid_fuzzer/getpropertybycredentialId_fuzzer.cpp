@@ -40,7 +40,11 @@ namespace OHOS {
         uint64_t credentialId = fuzzData.GetData<uint64_t>();
         std::vector<Attributes::AttributeKey> keys = {
             fuzzData.GenerateEnmu(UserIam::UserAuth::Attributes::ATTR_AUTH_INTENTION)};
-        std::shared_ptr<GetSetPropCallback> callback = make_shared<MockGetSetPropCallback>();
+        std::shared_ptr<GetSetPropCallback> callback = nullptr;
+        bool isInitCallback = fuzzData.GetData<bool>();
+        if (isInitCallback) {
+            callback = make_shared<MockGetSetPropCallback>();
+        }
         AccountIAMClient::GetInstance().GetPropertyByCredentialId(credentialId, keys, callback);
         return false;
     }

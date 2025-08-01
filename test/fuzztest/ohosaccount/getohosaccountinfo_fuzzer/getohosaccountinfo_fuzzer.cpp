@@ -21,6 +21,7 @@
 #include "distributed_account_subscribe_callback.h"
 #include "fuzz_data.h"
 #include "ohos_account_kits.h"
+#include "ohos_account_kits_impl.h"
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -61,9 +62,13 @@ bool SubscribeDistributedAccountEventFuzzTest(const uint8_t* data, size_t size)
     }
     int32_t result;
     FuzzData fuzzData(data, size);
-    auto loginSubscribeCallback = std::make_shared<MockDistributedAccountSubscribeCallback>();
     DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type = static_cast<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE>(
         fuzzData.GetData<int32_t>() % 4);
+    std::shared_ptr<DistributedAccountSubscribeCallback> loginSubscribeCallback = nullptr;
+    bool isInitCallback = fuzzData.GetData<bool>();
+    if (isInitCallback) {
+        loginSubscribeCallback = std::make_shared<MockDistributedAccountSubscribeCallback>();
+    }
     result = OhosAccountKits::GetInstance().SubscribeDistributedAccountEvent(type, loginSubscribeCallback);
     return result == ERR_OK;
 }
@@ -75,9 +80,13 @@ bool UnsubscribeDistributedAccountEventFuzzTest(const uint8_t* data, size_t size
     }
     int32_t result;
     FuzzData fuzzData(data, size);
-    auto loginSubscribeCallback = std::make_shared<MockDistributedAccountSubscribeCallback>();
     DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE type = static_cast<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE>(
         fuzzData.GetData<int32_t>() % 4);
+    std::shared_ptr<DistributedAccountSubscribeCallback> loginSubscribeCallback = nullptr;
+    bool isInitCallback = fuzzData.GetData<bool>();
+    if (isInitCallback) {
+        loginSubscribeCallback = std::make_shared<MockDistributedAccountSubscribeCallback>();
+    }
     result = OhosAccountKits::GetInstance().UnsubscribeDistributedAccountEvent(type, loginSubscribeCallback);
     return result == ERR_OK;
 }
@@ -97,6 +106,8 @@ bool SetOhosAccountInfoByUserIdFuzzTest(const uint8_t* data, size_t size)
     );
     std::string testEventStr(fuzzData.GenerateString());
     int32_t result = accountProxy->SetOsAccountDistributedInfo(userId, testOhosAccountInfo, testEventStr);
+    std::string deviceId;
+    result = accountProxy->QueryDistributedVirtualDeviceId(deviceId);
     return result == ERR_OK;
 }
 
