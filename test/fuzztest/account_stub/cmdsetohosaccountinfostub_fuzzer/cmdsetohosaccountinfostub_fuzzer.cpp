@@ -48,9 +48,11 @@ bool CmdSetOhosAccountInfoStubFuzzTest(const uint8_t* data, size_t size)
     ohosAccountInfo.callingUid_ = fuzzData.GetData<int32_t>();
     ohosAccountInfo.nickname_ = fuzzData.GenerateString();
     ohosAccountInfo.avatar_ = fuzzData.GenerateString();
-    if (!dataTemp.WriteParcelable(&ohosAccountInfo)) {
-        ACCOUNT_LOGE("Write ohosAccountInfo failed!");
-        return false;
+    if (fuzzData.GenerateBool()) {
+        if (!dataTemp.WriteParcelable(&ohosAccountInfo)) {
+            ACCOUNT_LOGE("Write ohosAccountInfo failed!");
+            return false;
+        }
     }
     std::string eventStr = fuzzData.GenerateString();
     if (!dataTemp.WriteString16(Str8ToStr16(eventStr))) {

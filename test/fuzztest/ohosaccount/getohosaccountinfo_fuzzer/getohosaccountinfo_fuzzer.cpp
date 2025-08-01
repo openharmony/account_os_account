@@ -87,6 +87,9 @@ bool UnsubscribeDistributedAccountEventFuzzTest(const uint8_t* data, size_t size
     if (isInitCallback) {
         loginSubscribeCallback = std::make_shared<MockDistributedAccountSubscribeCallback>();
     }
+    if (fuzzData.GenerateBool()) {
+        OhosAccountKits::GetInstance().SubscribeDistributedAccountEvent(type, loginSubscribeCallback);
+    }
     result = OhosAccountKits::GetInstance().UnsubscribeDistributedAccountEvent(type, loginSubscribeCallback);
     return result == ERR_OK;
 }
@@ -145,6 +148,22 @@ bool QueryOhosAccountInfoByUserIdProxyFuzzTest(const uint8_t* data, size_t size)
     result = accountProxy->QueryOsAccountDistributedInfo(userId, accountName, uid, status);
     return result == ERR_OK;
 }
+
+void CheckOhosAccountInfo()
+{
+    OhosAccountInfo accountInfo;
+    OhosAccountKits::GetInstance().QueryOhosAccountInfo();
+    OhosAccountKits::GetInstance().GetOhosAccountInfo(accountInfo);
+    std::int32_t accountId;
+    OhosAccountKits::GetInstance().QueryDeviceAccountId(accountId);
+}
+}
+
+extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
+{
+    OHOS::CheckOhosAccountInfo();
+    printf("Fuzzer start\n");
+    return 0;
 }
 
 /* Fuzzer entry point */

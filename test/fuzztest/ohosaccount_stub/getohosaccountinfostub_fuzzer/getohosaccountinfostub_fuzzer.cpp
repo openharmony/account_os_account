@@ -74,8 +74,10 @@ bool SubscribeDistributedAccountEvenStubtFuzzTest(const uint8_t* data, size_t si
     if (!datas.WriteInt32(type)) {
         return false;
     }
-    if (!datas.WriteRemoteObject(DistributedAccountEventService::GetInstance()->AsObject())) {
-        return false;
+    if (fuzzData.GenerateBool()) {
+        if (!datas.WriteRemoteObject(DistributedAccountEventService::GetInstance()->AsObject())) {
+            return false;
+        }
     }
     MessageParcel reply;
     MessageOption option;
@@ -99,8 +101,10 @@ bool UnsubscribeDistributedAccountStubEventFuzzTest(const uint8_t* data, size_t 
     if (!datas.WriteInt32(type)) {
         return false;
     }
-    if (!datas.WriteRemoteObject(DistributedAccountEventService::GetInstance()->AsObject())) {
-        return false;
+    if (fuzzData.GenerateBool()) {
+        if (!datas.WriteRemoteObject(DistributedAccountEventService::GetInstance()->AsObject())) {
+            return false;
+        }
     }
     MessageParcel reply;
     MessageOption option;
