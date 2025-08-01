@@ -42,7 +42,11 @@ namespace OHOS {
         FuzzData fuzzData(data, size);
         int32_t userId = fuzzData.GetData<int32_t>();
         std::vector<uint8_t> authToken = {fuzzData.GetData<uint8_t>()};
-        std::shared_ptr<IDMCallback> callback = make_shared<MockIDMCallback>();
+        std::shared_ptr<IDMCallback> callback = nullptr;
+        bool isInitCallback = fuzzData.GetData<bool>();
+        if (isInitCallback) {
+            callback = make_shared<MockIDMCallback>();
+        }
         AccountIAMClient::GetInstance().DelUser(userId, authToken, callback);
         return false;
     }

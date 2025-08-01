@@ -50,7 +50,11 @@ namespace OHOS {
             .pinType = pinType,
             .token = token,
         };
-        std::shared_ptr<IDMCallback> callback = make_shared<MockIDMCallback>();
+        std::shared_ptr<IDMCallback> callback = nullptr;
+        bool isInitCallback = fuzzData.GetData<bool>();
+        if (isInitCallback) {
+            callback = make_shared<MockIDMCallback>();
+        }
         AccountIAMClient::GetInstance().UpdateCredential(userId, credInfo, callback);
         return false;
     }

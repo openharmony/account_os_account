@@ -45,7 +45,11 @@ namespace OHOS {
             .authType = authType,
             .keys = keys,
         };
-        std::shared_ptr<GetSetPropCallback> callback = make_shared<MockGetSetPropCallback>();
+        std::shared_ptr<GetSetPropCallback> callback = nullptr;
+        bool isInitCallback = fuzzData.GetData<bool>();
+        if (isInitCallback) {
+            callback = make_shared<MockGetSetPropCallback>();
+        }
         AccountIAMClient::GetInstance().GetProperty(userId, request, callback);
         return false;
     }

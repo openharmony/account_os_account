@@ -45,9 +45,13 @@ namespace OHOS {
         std::vector<uint8_t> challenge = {fuzzData.GetData<uint8_t>()};
         AuthType authType = fuzzData.GenerateEnmu(UserIam::UserAuth::RECOVERY_KEY);
         AuthTrustLevel authTrustLevel = fuzzData.GenerateEnmu(UserIam::UserAuth::ATL4);
-        std::shared_ptr<IDMCallback> callback = make_shared<MockIDMCallback>();
+        std::shared_ptr<IDMCallback> callback = nullptr;
         AuthOptions authOptions;
         authOptions.accountId = userId;
+        bool isInitCallback = fuzzData.GetData<bool>();
+        if (isInitCallback) {
+            callback = make_shared<MockIDMCallback>();
+        }
         uint64_t result = AccountIAMClient::GetInstance().AuthUser(
             authOptions, challenge, authType, authTrustLevel, callback);
         return result == ERR_OK;
