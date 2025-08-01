@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -45,8 +45,10 @@ bool ProcSetAuthenticationExpiryThresholdStubFuzzTest(const uint8_t* data, size_
     info.accountName_ = fuzzData.GenerateString();
     info.accountId_ = fuzzData.GenerateString();
     std::string policy = fuzzData.GenerateString();
-    if (!dataTemp.WriteParcelable(&info)) {
-        return false;
+    if (fuzzData.GetData<bool>()) {
+        if (!dataTemp.WriteParcelable(&info)) {
+            return false;
+        }
     }
     if (!dataTemp.WriteString(policy)) {
         return false;
