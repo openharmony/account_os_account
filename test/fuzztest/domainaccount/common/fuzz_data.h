@@ -25,7 +25,7 @@ static constexpr uint32_t BOOL_MODULO_NUM = 2;
 }
 class FuzzData {
 public:
-    explicit FuzzData(const uint8_t *data, const size_t size) : pos_(0), data_(data), size_(size) {}
+    FuzzData(const uint8_t *data, const size_t size) : pos_(0), data_(data), size_(size) {}
 
     template <class T> T GetData()
     {
