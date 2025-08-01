@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,6 +30,8 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace {
 const int32_t PASSWORD_LEN = 8;
+const int ENUM_MAX = 4;
+const uint32_t TEST_VECTOR_MAX_SIZE = 102402;
 
 class TestDomainAuthCallback : public OHOS::AccountSA::DomainAccountCallback {
 public:
@@ -47,35 +49,42 @@ public:
         }
 
         FuzzData fuzzData(data, size);
-        std::vector<uint8_t> password;
-
-        for (int32_t i = 0; i < PASSWORD_LEN; i++) {
-            uint8_t bit = fuzzData.GetData<uint8_t>();
-            password.emplace_back(bit);
-        }
 
         auto callbackPtr = std::make_shared<TestDomainAuthCallback>();
         sptr<IDomainAccountCallback> callback = new (std::nothrow) DomainAccountCallbackService(callbackPtr);
 
         MessageParcel dataTemp;
 
+        DomainAccountInfo info;
+        info.domain_ = fuzzData.GenerateString();
+        info.accountName_ = fuzzData.GenerateString();
+        info.accountId_ = fuzzData.GenerateString();
+        info.isAuthenticated = fuzzData.GenerateBool();
+        info.serverConfigId_ = fuzzData.GenerateString();
+        int typeNumber = fuzzData.GetData<int>() % ENUM_MAX;
+        info.status_ = static_cast<DomainAccountStatus>(typeNumber);
+
         if (!dataTemp.WriteInterfaceToken(DomainAccountStub::GetDescriptor())) {
             return false;
         }
-        if (!dataTemp.WriteString(fuzzData.GenerateString())) {
+        if (fuzzData.GetData<bool>()) {
+            if (!dataTemp.WriteParcelable(&info)) {
+                return false;
+            }
+        }
+        uint32_t passwordSize = fuzzData.GetData<bool>() ? TEST_VECTOR_MAX_SIZE : PASSWORD_LEN;
+        if (!dataTemp.WriteInt32(passwordSize)) {
             return false;
         }
-        if (!dataTemp.WriteString(fuzzData.GenerateString())) {
-            return false;
+        for (uint32_t i = 0; i < PASSWORD_LEN; i++) {
+            if (!dataTemp.WriteUint8(fuzzData.GetData<uint8_t>())) {
+                return false;
+            }
         }
-        if (!dataTemp.WriteUInt8Vector(password)) {
-            return false;
-        }
-        if (!dataTemp.WriteString(fuzzData.GenerateString())) {
-            return false;
-        }
-        if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
-            return false;
+        if (fuzzData.GetData<bool>()) {
+            if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
+                return false;
+            }
         }
 
         MessageParcel reply;

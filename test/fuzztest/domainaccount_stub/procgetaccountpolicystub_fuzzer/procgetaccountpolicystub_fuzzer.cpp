@@ -30,6 +30,9 @@ using namespace OHOS;
 using namespace OHOS::AccountSA;
 
 namespace OHOS {
+namespace {
+const uint32_t TEST_CODE = 100;
+}
 bool ProcGetAccountPolicyStubFuzzTest(const uint8_t* data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
@@ -45,9 +48,10 @@ bool ProcGetAccountPolicyStubFuzzTest(const uint8_t* data, size_t size)
     info.domain_ = fuzzData.GenerateString();
     info.accountName_ = fuzzData.GenerateString();
     info.accountId_ = fuzzData.GenerateString();
-
-    if (!dataTemp.WriteParcelable(&info)) {
-        return false;
+    if (fuzzData.GetData<bool>()) {
+        if (!dataTemp.WriteParcelable(&info)) {
+            return false;
+        }
     }
 
     MessageParcel reply;
@@ -55,6 +59,7 @@ bool ProcGetAccountPolicyStubFuzzTest(const uint8_t* data, size_t size)
     uint32_t code = static_cast<uint32_t>(IDomainAccountIpcCode::COMMAND_GET_ACCOUNT_POLICY);
     auto domainAccountService = std::make_shared<DomainAccountManagerService>();
     domainAccountService->OnRemoteRequest(code, dataTemp, reply, option);
+    domainAccountService->OnRemoteRequest(TEST_CODE, dataTemp, reply, option);
 
     return true;
 }
