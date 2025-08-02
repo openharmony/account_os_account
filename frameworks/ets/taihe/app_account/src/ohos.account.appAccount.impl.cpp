@@ -84,12 +84,20 @@ public:
     ~THAppAccountManagerCallback() override = default;
     ErrCode OnResult(int32_t resultCode, const AAFwk::Want &result) override
     {
-        ani_env *env = get_env();
-        auto resultParams = result.GetParams();
-        auto resultRef = AppExecFwk::WrapWantParams(env, resultParams);
-        taiheCallback_.onResult(resultCode, optional<uintptr_t>(std::in_place_t{},
-            reinterpret_cast<uintptr_t>(resultRef)));
-        return true;
+        AppAccountInfo appAccountInfo = AppAccountInfo {
+            .owner = result.GetStringParam(AccountSA::Constants::KEY_ACCOUNT_OWNERS),
+            .name = result.GetStringParam(AccountSA::Constants::KEY_ACCOUNT_NAMES),
+        };
+        AuthTokenInfo authTokenInfo = AuthTokenInfo {
+            .authType = result.GetStringParam(AccountSA::Constants::KEY_AUTH_TYPE),
+            .token = result.GetStringParam(AccountSA::Constants::KEY_TOKEN)
+        };
+        AuthResult authResult = AuthResult {
+            .account = optional<AppAccountInfo>(std::in_place_t{}, appAccountInfo),
+            .tokenInfo = optional<AuthTokenInfo>(std::in_place_t{}, authTokenInfo),
+        };
+        taiheCallback_.onResult(resultCode, optional<AuthResult>(std::in_place_t{}, authResult));
+        return ERR_OK;
     }
 
     ErrCode OnRequestRedirected(const AAFwk::Want &request) override
@@ -98,13 +106,15 @@ public:
         auto requestObj = AppExecFwk::WrapWant(env, request);
         auto requestPtr = reinterpret_cast<uintptr_t>(requestObj);
         taiheCallback_.onRequestRedirected(requestPtr);
-        return true;
+        return ERR_OK;
     }
 
     ErrCode OnRequestContinued() override
     {
-        taiheCallback_.onRequestContinued.value()();
-        return true;
+        if (taiheCallback_.onRequestContinued.has_value()) {
+            taiheCallback_.onRequestContinued.value()();
+        }
+        return ERR_OK;
     }
 private:
     ohos::account::appAccount::AuthCallback taiheCallback_;
@@ -115,20 +125,29 @@ public:
     explicit OnResultCallbackImpl(sptr<AccountSA::IAppAccountAuthenticatorCallback> callback)
         : callback_(callback) {}
 
-    void operator()(int32_t result, const optional_view<uintptr_t> authResult)
+    void operator()(int32_t result, const optional_view<AuthResult> authResult)
     {
         if (callback_ == nullptr) {
             ACCOUNT_LOGE("Native callback is nullptr");
             return;
         }
         AAFwk::Want wantResult;
-        ani_env *env = get_env();
         if (authResult.has_value()) {
-            ani_object authResultObj = reinterpret_cast<ani_object>(authResult.value());
-            auto status = AppExecFwk::UnwrapWant(env, authResultObj, wantResult);
-            if (status == false) {
-                ACCOUNT_LOGE("Failed to UnwrapWant authResult status = %{public}d", status);
-                return;
+            if (authResult.value().account.has_value()) {
+                std::string name(authResult.value().account.value().name.data(),
+                    authResult.value().account.value().name.size());
+                std::string owner(authResult.value().account.value().owner.data(),
+                    authResult.value().account.value().owner.size());
+                wantResult.SetParam(AccountSA::Constants::KEY_ACCOUNT_NAMES, name);
+                wantResult.SetParam(AccountSA::Constants::KEY_ACCOUNT_OWNERS, owner);
+            }
+            if (authResult.value().tokenInfo.has_value()) {
+                std::string authType(authResult.value().tokenInfo.value().authType.data(),
+                    authResult.value().tokenInfo.value().authType.size());
+                std::string token(authResult.value().tokenInfo.value().token.data(),
+                    authResult.value().tokenInfo.value().token.size());
+                wantResult.SetParam(AccountSA::Constants::KEY_AUTH_TYPE, authType);
+                wantResult.SetParam(AccountSA::Constants::KEY_TOKEN, token);
             }
         }
         callback_->OnResult(result, wantResult);
@@ -150,13 +169,15 @@ public:
             return;
         }
         AAFwk::Want wantResult;
+        AAFwk::WantParams wantParamsResult;
         ani_env *env = get_env();
-        ani_object requestObj = reinterpret_cast<ani_object>(request);
-        auto status = AppExecFwk::UnwrapWant(env, requestObj, wantResult);
+        ani_ref requestRef = reinterpret_cast<ani_ref>(request);
+        auto status = AppExecFwk::UnwrapWantParams(env, requestRef, wantParamsResult);
         if (status == false) {
-            ACCOUNT_LOGE("Failed to UnwrapWant request status = %{public}d", status);
+            ACCOUNT_LOGE("Failed to UnwrapWantParams status = %{public}d", status);
             return;
         }
+        wantResult = wantResult.SetParams(wantParamsResult);
         callback_->OnRequestRedirected(wantResult);
     }
 
@@ -219,7 +240,7 @@ public:
     {
         std::string innerOwner(owner.data(), owner.size());
         AccountSA::CreateAccountImplicitlyOptions options;
-        auto appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
+        sptr<THAppAccountManagerCallback> appAccountMgrCb = new(std::nothrow) THAppAccountManagerCallback(callback);
         if (appAccountMgrCb == nullptr) {
             ACCOUNT_LOGE("failed to create AppAccountManagerCallback for insufficient memory");
             AAFwk::Want result;
@@ -259,7 +280,7 @@ public:
                 inneroptions.parameters.SetParam(tempKey, *ptr);
             }
         }
-        auto appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
+        sptr<THAppAccountManagerCallback> appAccountMgrCb = new(std::nothrow) THAppAccountManagerCallback(callback);
         if (appAccountMgrCb == nullptr) {
             ACCOUNT_LOGE("failed to create AppAccountManagerCallback for insufficient memory");
             AAFwk::Want result;
@@ -638,9 +659,9 @@ public:
         }
         sptr<AccountSA::IAppAccountAuthenticatorCallback> authenticatorCallback =
             iface_cast<OHOS::AccountSA::IAppAccountAuthenticatorCallback>(remoteCallback);
-        ::taihe::callback<void(int32_t, optional_view<uintptr_t>)> onResult =
+        ::taihe::callback<void(int32_t, optional_view<AuthResult>)> onResult =
             ::taihe::make_holder<OnResultCallbackImpl,
-                ::taihe::callback<void(int32_t, optional_view<uintptr_t>)>>(authenticatorCallback);
+                ::taihe::callback<void(int32_t, optional_view<AuthResult>)>>(authenticatorCallback);
         ::taihe::callback<void(uintptr_t)> onRequestRedirected =
             ::taihe::make_holder<OnRequestRedirectedCallbackImpl,
                 ::taihe::callback<void(uintptr_t)>>(authenticatorCallback);
@@ -660,7 +681,7 @@ public:
         std::string innerName(name.data(), name.size());
         std::string innerOwner(owner.data(), owner.size());
         AccountSA::VerifyCredentialOptions options;
-        auto appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
+        sptr<THAppAccountManagerCallback> appAccountMgrCb = new(std::nothrow) THAppAccountManagerCallback(callback);
         if (appAccountMgrCb == nullptr) {
             ACCOUNT_LOGE("Failed to create AppAccountManagerCallback for insufficient memory");
             int32_t jsErrCode = GenerateBusinessErrorCode(JSErrorCode::ERR_JS_SYSTEM_SERVICE_EXCEPTION);
@@ -764,7 +785,7 @@ public:
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
             return;
         }
-        auto appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
+        sptr<THAppAccountManagerCallback> appAccountMgrCb = new(std::nothrow) THAppAccountManagerCallback(callback);
         if (appAccountMgrCb == nullptr) {
             ACCOUNT_LOGE("Failed to create AppAccountManagerCallback for insufficient memory");
             int32_t jsErrCode = GenerateBusinessErrorCode(JSErrorCode::ERR_JS_SYSTEM_SERVICE_EXCEPTION);
@@ -783,7 +804,7 @@ public:
     {
         std::string innerOwner(owner.data(), owner.size());
         AccountSA::SetPropertiesOptions options;
-        auto appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
+        sptr<THAppAccountManagerCallback> appAccountMgrCb = new(std::nothrow) THAppAccountManagerCallback(callback);
         if (appAccountMgrCb == nullptr) {
             ACCOUNT_LOGE("Failed to create AppAccountManagerCallback for insufficient memory");
             int32_t jsErrCode = GenerateBusinessErrorCode(JSErrorCode::ERR_JS_SYSTEM_SERVICE_EXCEPTION);
@@ -848,7 +869,7 @@ public:
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
             return;
         }
-        auto appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
+        sptr<THAppAccountManagerCallback> appAccountMgrCb = new(std::nothrow) THAppAccountManagerCallback(callback);
         if (appAccountMgrCb == nullptr) {
             ACCOUNT_LOGE("Failed to create AppAccountManagerCallback for insufficient memory");
             int32_t jsErrCode = GenerateBusinessErrorCode(JSErrorCode::ERR_JS_SYSTEM_SERVICE_EXCEPTION);
@@ -901,7 +922,7 @@ public:
         std::string innerOwner(owner.data(), owner.size());
         std::string innerAuthType(authType.data(), authType.size());
         AAFwk::Want options;
-        auto appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
+        sptr<THAppAccountManagerCallback> appAccountMgrCb = new(std::nothrow) THAppAccountManagerCallback(callback);
         if (appAccountMgrCb == nullptr) {
             ACCOUNT_LOGE("failed to create AppAccountManagerCallback for insufficient memory");
             AAFwk::Want result;
@@ -934,7 +955,7 @@ public:
             std::string tempKey(key.data(), key.size());
             innerOptions.SetParam(tempKey, *ptr);
         }
-        auto appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
+        sptr<THAppAccountManagerCallback> appAccountMgrCb = new(std::nothrow) THAppAccountManagerCallback(callback);
         if (appAccountMgrCb == nullptr) {
             ACCOUNT_LOGE("failed to create AppAccountManagerCallback for insufficient memory");
             AAFwk::Want result;
