@@ -18,8 +18,7 @@
 namespace OHOS {
 namespace AccountSA {
 SubscriberPtr::SubscriberPtr(const AccountSA::AppAccountSubscribeInfo &subscribeInfo,
-    taihe::callback_view<void(taihe::array_view<ohos::account::appAccount::AppAccountInfo>)>
-        callback):AccountSA::AppAccountSubscriber(subscribeInfo), callback_(callback)
+    subscribe_callback callback):AccountSA::AppAccountSubscriber(subscribeInfo), callback_(callback)
 {}
 
 SubscriberPtr::~SubscriberPtr()
@@ -48,12 +47,12 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AccountSA::AppAccountInf
     std::vector<ohos::account::appAccount::AppAccountInfo> tempInfo;
     for (auto& accountInfo : tempAccountsInfos) {
         ohos::account::appAccount::AppAccountInfo tempAccountInfo{
-            .owner = accountInfo.GetOwner().c_str(),
-            .name = accountInfo.GetName().c_str(),
+            .owner = taihe::string(accountInfo.GetOwner().c_str()),
+            .name = taihe::string(accountInfo.GetName().c_str()),
         };
         tempInfo.push_back(tempAccountInfo);
     }
-    active_callback call = callback_;
+    subscribe_callback call = callback_;
     call(tempInfo);
 }
 THauthenticatorAsyncCallback::THauthenticatorAsyncCallback()

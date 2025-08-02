@@ -16,6 +16,7 @@
 @!namespace("@ohos.account.appAccount", "appAccount")
 
 @!sts_inject_into_module("import Want from '@ohos.app.ability.Want';")
+@!sts_inject_into_module("import rpc from '@ohos.rpc';")
 
 @!sts_inject("""
 static { loadLibrary("app_account_taihe_native.z") }
@@ -52,7 +53,7 @@ struct AuthResult {
 struct CreateAccountImplicitlyOptions {
     requiredLabels: Optional<Array<String>>;
     authType: Optional<String>;
-    parameters: Optional<@record Map<String, Opaque>>;
+    parameters: Optional <@sts_type("Record<String, Object>")Opaque>;
 }
 
 struct SelectAccountsOptions {
@@ -222,16 +223,13 @@ interface AppAccountManager {
     OnSync(type: String, owners: Array<String>, callback: (data: Array<AppAccountInfo>) => void): void;
 
     @overload("off")
-    OffAllSync(type: String): void;
-
-    @overload("off")
-    OffSyncTaihe(type: String, callback: (data: Array<AppAccountInfo>) => void): void;
+    OffSync(type: String, callback: Optional<(data: Array<AppAccountInfo>) => void>): void;
 
     @overload("auth")
     AuthSync(name: String, owner: String, authType: String, callback: AuthCallback);
 
     @overload("auth")
-    AuthWithMap(name: String, owner: String, authType: String, options: @record Map<String, Opaque>, callback: AuthCallback);
+    AuthWithMap(name: String, owner: String, authType: String, options: @sts_type("Record<String, Object>")Opaque, callback: AuthCallback);
 }
 
 interface Authenticator {
@@ -239,7 +237,7 @@ interface Authenticator {
     CreateAccountImplicitly(options: CreateAccountImplicitlyOptions, callback: AuthCallback): void;
 
     @overload("auth")
-    Auth(name: String, authType: String, options: @record Map<String, Opaque>, Callback: AuthCallback): void;
+    Auth(name: String, authType: String, options: @record Map<String, Opaque>, callback: AuthCallback): void;
 
     @overload("setProperties")
     SetProperties(options: SetPropertiesOptions, callback: AuthCallback): void;
@@ -248,11 +246,11 @@ interface Authenticator {
     VerifyCredential(name: String, options: VerifyCredentialOptions, callback: AuthCallback): void;
 
     @overload("checkAccountLabels")
-    CheckAccountLabelsSyncTaihe(name: String, labels: Array<String>, Callback: AuthCallback): void;
+    CheckAccountLabelsSyncTaihe(name: String, labels: Array<String>, callback: AuthCallback): void;
 
     @overload("checkAccountRemovable")
     CheckAccountRemovable(name: String, callback: AuthCallback): void;
 
     @overload("getRemoteObject")
-    GetRemoteObject(): Opaque;
+    GetRemoteObject(): @sts_type("rpc.RemoteObject")Opaque;
 }

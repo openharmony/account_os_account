@@ -243,20 +243,13 @@ public:
         sptr<THAppAccountManagerCallback> appAccountMgrCb = new(std::nothrow) THAppAccountManagerCallback(callback);
         if (appAccountMgrCb == nullptr) {
             ACCOUNT_LOGE("failed to create AppAccountManagerCallback for insufficient memory");
-            AAFwk::Want result;
-            appAccountMgrCb->OnResult(JSErrorCode::ERR_JS_SYSTEM_SERVICE_EXCEPTION, result);
+            return;
         }
-        ErrCode errCode = AccountSA::AppAccountManager::CreateAccountImplicitly(innerOwner, options, appAccountMgrCb);
+        ErrCode errCode = AccountSA::AppAccountManager::CreateAccountImplicitly(innerOwner,
+            options, appAccountMgrCb);
         AAFwk::Want errResult;
-        if ((errCode != 0) && (appAccountMgrCb != nullptr)) {
-            appAccountMgrCb->OnResult(errCode, errResult);
-        }
         if (errCode != ERR_OK) {
-            int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
-            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-        }
-        if (appAccountMgrCb != nullptr) {
-            delete appAccountMgrCb;
+            appAccountMgrCb->OnResult(errCode, errResult);
         }
     }
 
@@ -265,40 +258,36 @@ public:
         AuthCallback const& callback)
     {
         std::string innerOwner(owner.data(), owner.size());
-        AccountSA::CreateAccountImplicitlyOptions inneroptions;
+        AccountSA::CreateAccountImplicitlyOptions innerOptions;
         if (options.authType.has_value()) {
-            inneroptions.authType = std::string(options.authType.value().data(), options.authType.value().size());
+            innerOptions.authType = std::string(options.authType.value().data(), options.authType.value().size());
         }
         if (options.requiredLabels.has_value()) {
-            inneroptions.requiredLabels.assign(options.requiredLabels.value().data(),
+            innerOptions.requiredLabels.assign(options.requiredLabels.value().data(),
                 options.requiredLabels.value().data() + options.requiredLabels.value().size());
         }
-        if (options.parameters.has_value()) {
-            for (const auto& [key, value] : options.parameters.value()) {
-                int* ptr = reinterpret_cast<int*>(value);
-                std::string tempKey(key.data(), key.size());
-                inneroptions.parameters.SetParam(tempKey, *ptr);
-            }
+
+        AAFwk::WantParams params;
+        ani_env *env = get_env();
+        ani_ref parametersRef = reinterpret_cast<ani_ref>(options.parameters.value());
+        auto status = AppExecFwk::UnwrapWantParams(env, parametersRef, params);
+        if (status == false) {
+            ACCOUNT_LOGE("Failed to UnwrapWant options status = %{public}d", status);
+            return;
         }
+        innerOptions.parameters.SetParams(params);
+
         sptr<THAppAccountManagerCallback> appAccountMgrCb = new(std::nothrow) THAppAccountManagerCallback(callback);
         if (appAccountMgrCb == nullptr) {
             ACCOUNT_LOGE("failed to create AppAccountManagerCallback for insufficient memory");
-            AAFwk::Want result;
-            appAccountMgrCb->OnResult(JSErrorCode::ERR_JS_SYSTEM_SERVICE_EXCEPTION, result);
+            return;
         }
 
         ErrCode errCode = AccountSA::AppAccountManager::CreateAccountImplicitly(innerOwner,
-            inneroptions, appAccountMgrCb);
+            innerOptions, appAccountMgrCb);
         AAFwk::Want errResult;
-        if ((errCode != 0) && (appAccountMgrCb != nullptr)) {
-            appAccountMgrCb->OnResult(errCode, errResult);
-        }
         if (errCode != ERR_OK) {
-            int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
-            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-        }
-        if (appAccountMgrCb != nullptr) {
-            delete appAccountMgrCb;
+            appAccountMgrCb->OnResult(errCode, errResult);
         }
     }
     void RemoveAccountSync(string_view name)
@@ -916,63 +905,74 @@ public:
         }
     }
 
+    static bool CheckSpecialCharacters(const std::string &name)
+    {
+        for (const auto &specialCharacter : AccountSA::Constants::SPECIAL_CHARACTERS) {
+            std::size_t index = name.find(specialCharacter);
+            if (index != std::string::npos) {
+                ACCOUNT_LOGE("found a special character, specialCharacter = %{public}c", specialCharacter);
+                NativeErrMsg() = "Invalid name. The name cannot contain space characters";
+                return false;
+            }
+        }
+        return true;
+    }
+
     void AuthSync(string_view name, string_view owner, string_view authType, AuthCallback const& callback)
     {
         std::string innerName(name.data(), name.size());
+        if (!CheckSpecialCharacters(innerName)) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return;
+        }
         std::string innerOwner(owner.data(), owner.size());
         std::string innerAuthType(authType.data(), authType.size());
         AAFwk::Want options;
         sptr<THAppAccountManagerCallback> appAccountMgrCb = new(std::nothrow) THAppAccountManagerCallback(callback);
         if (appAccountMgrCb == nullptr) {
             ACCOUNT_LOGE("failed to create AppAccountManagerCallback for insufficient memory");
-            AAFwk::Want result;
-            appAccountMgrCb->OnResult(JSErrorCode::ERR_JS_SYSTEM_SERVICE_EXCEPTION, result);
+            return;
         }
         ErrCode errCode = AccountSA::AppAccountManager::Authenticate(
             innerName, innerOwner, innerAuthType, options, appAccountMgrCb);
         AAFwk::Want errResult;
-        if ((errCode != 0) && (appAccountMgrCb != nullptr)) {
+        if (errCode != 0) {
             appAccountMgrCb->OnResult(errCode, errResult);
-        }
-        if (errCode != ERR_OK) {
-            int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
-            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-        }
-        if (appAccountMgrCb != nullptr) {
-            delete appAccountMgrCb;
         }
     }
 
     void AuthWithMap(string_view name, string_view owner, string_view authType,
-        map_view<string, uintptr_t> options, AuthCallback const& callback)
+        uintptr_t options, AuthCallback const& callback)
     {
         std::string innerName(name.data(), name.size());
+        if (!CheckSpecialCharacters(innerName)) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return;
+        }
         std::string innerOwner(owner.data(), owner.size());
         std::string innerAuthType(authType.data(), authType.size());
-        AAFwk::Want innerOptions;
-        for (const auto& [key, value] : options) {
-            int* ptr = reinterpret_cast<int*>(value);
-            std::string tempKey(key.data(), key.size());
-            innerOptions.SetParam(tempKey, *ptr);
+        AAFwk::WantParams params;
+        ani_env *env = get_env();
+        ani_ref parametersRef = reinterpret_cast<ani_ref>(options);
+        auto status = AppExecFwk::UnwrapWantParams(env, parametersRef, params);
+        if (status == false) {
+            ACCOUNT_LOGE("Failed to UnwrapWant options status = %{public}d", status);
+            return;
         }
+        AAFwk::Want innerOptions;
+        innerOptions.SetParams(params);
         sptr<THAppAccountManagerCallback> appAccountMgrCb = new(std::nothrow) THAppAccountManagerCallback(callback);
         if (appAccountMgrCb == nullptr) {
             ACCOUNT_LOGE("failed to create AppAccountManagerCallback for insufficient memory");
-            AAFwk::Want result;
-            appAccountMgrCb->OnResult(JSErrorCode::ERR_JS_SYSTEM_SERVICE_EXCEPTION, result);
+            return;
         }
         ErrCode errCode = AccountSA::AppAccountManager::Authenticate(innerName, innerOwner,
             innerAuthType, innerOptions, appAccountMgrCb);
         AAFwk::Want errResult;
-        if ((errCode != 0) && (appAccountMgrCb != nullptr)) {
+        if (errCode != 0) {
             appAccountMgrCb->OnResult(errCode, errResult);
-        }
-        if (errCode != ERR_OK) {
-            int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
-            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-        }
-        if (appAccountMgrCb != nullptr) {
-            delete appAccountMgrCb;
         }
     }
 
@@ -983,12 +983,11 @@ public:
             return false;
         }
 
-        for (const auto& existingContext : subscribe->second) {
-            if (context->subscriber && existingContext->subscriber &&
-                context->subscriber.get() == existingContext->subscriber.get()) {
-                return true;
-            }
+        for (size_t index = 0; index < subscribe->second.size(); index++) {
+        if (subscribe->second[index]->callbackRef == context->callbackRef) {
+            return true;
         }
+    }
 
         return false;
     }
@@ -1012,7 +1011,7 @@ public:
         }
         std::vector<std::string> innerOwners(owners.data(), owners.data() + owners.size());
 
-        auto context = std::make_unique<AccountSA::AsyncContextForSubscribe>();
+        auto context = std::make_unique<AccountSA::AsyncContextForSubscribe>(callback);
         context->appAccountManager = GetInner();
         AccountSA::AppAccountSubscribeInfo subscribeInfo(innerOwners);
         context->subscriber = std::make_shared<AccountSA::SubscriberPtr>(subscribeInfo, callback);
@@ -1043,110 +1042,81 @@ public:
                     subscribers.emplace_back(item->subscriber);
                 }
                 return true;
-                break;
             }
         }
         return false;
     }
 
-    void OffAllSync(string_view type)
+    void Unsubscribe(std::shared_ptr<AccountSA::AsyncContextForUnsubscribe> context,
+        optional_view<callback<void(array_view<AppAccountInfo> data)>> callback)
     {
-        if (!CheckType(type)) {
-            return;
-        }
-
-        AccountSA::AsyncContextForUnsubscribe *context = new (std::nothrow) AccountSA::AsyncContextForUnsubscribe();
-        if (context == nullptr) {
-            ACCOUNT_LOGE("fail to create subscriber");
-            return;
-        }
-        context->appAccountManager = GetInner();
         std::lock_guard<std::mutex> lock(AccountSA::g_thLockForAppAccountSubscribers);
         auto subscribe = AccountSA::g_ThAppAccountSubscribers.find(context->appAccountManager);
         if (subscribe == AccountSA::g_ThAppAccountSubscribers.end()) {
-            delete context;
-            return;
-        }
-
-        std::vector<std::shared_ptr<AccountSA::SubscriberPtr>> subscribers = {nullptr};
-        if (!GetSubscriberByUnsubscribe(subscribers, context)) {
-            ACCOUNT_LOGE("Unsubscribe failed. The current subscriber does not exist");
-            delete context;
-            return;
-        }
-
-        context->subscribers = subscribers;
-
-        for (auto offSubscriber : context->subscribers) {
-            int errCode = AccountSA::AppAccountManager::UnsubscribeAppAccount(offSubscriber);
-            if (errCode != ERR_OK) {
-                int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
-                taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-                delete context;
-                return;
-            }
-        }
-
-        subscribe = AccountSA::g_ThAppAccountSubscribers.find(context->appAccountManager);
-        if (subscribe != AccountSA::g_ThAppAccountSubscribers.end()) {
-            for (auto offCBInfo : subscribe->second) {
-                delete offCBInfo;
-            }
-            AccountSA::g_ThAppAccountSubscribers.erase(subscribe);
-        }
-        delete context;
-    }
-
-    void OffSyncTaihe(string_view type, callback_view<void(array_view<AppAccountInfo>)> callback)
-    {
-        if (!CheckType(type)) {
-            return;
-        }
-        AccountSA::AsyncContextForUnsubscribe *context = new (std::nothrow) AccountSA::AsyncContextForUnsubscribe();
-        if (context == nullptr) {
-            ACCOUNT_LOGE("fail to create subscriber");
-            return;
-        }
-        context->appAccountManager = GetInner();
-        std::lock_guard<std::mutex> lock(AccountSA::g_thLockForAppAccountSubscribers);
-        auto subscribe = AccountSA::g_ThAppAccountSubscribers.find(context->appAccountManager);
-        if (subscribe == AccountSA::g_ThAppAccountSubscribers.end()) {
-            delete context;
             return;
         }
         std::vector<std::shared_ptr<AccountSA::SubscriberPtr>> subscribers = {nullptr};
-        if (!GetSubscriberByUnsubscribe(subscribers, context)) {
+        if (!GetSubscriberByUnsubscribe(subscribers, context.get())) {
             ACCOUNT_LOGE("Unsubscribe failed. The current subscriber does not exist");
-            delete context;
             return;
         }
-        std::shared_ptr<active_callback> currentCallback = nullptr;
-        std::shared_ptr<active_callback> needRemoveCallback = nullptr;
-        active_callback call = callback;
-        needRemoveCallback = std::make_shared<active_callback>(call);
-        for (size_t index = 0; index < subscribe->second.size(); ++index) {
-            active_callback tempCall = subscribe->second[index]->subscriber->callback_;
-            currentCallback = std::make_shared<active_callback>(tempCall);
-            if ((needRemoveCallback != nullptr) && (currentCallback.get() != needRemoveCallback.get())) {
-                continue;
+        if(callback == nullptr){
+            context->subscribers = subscribers;
+            for (auto offSubscriber : context->subscribers) {
+                int errCode = AccountSA::AppAccountManager::UnsubscribeAppAccount(offSubscriber);
+                ACCOUNT_LOGD("Unsubscribe errcode parameter is %{public}d", errCode);
             }
-            int errCode = AccountSA::AppAccountManager::UnsubscribeAppAccount(subscribe->second[index]->subscriber);
-            if (errCode != ERR_OK) {
-                int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
-                taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-                delete context;
-                return;
+            subscribe = AccountSA::g_ThAppAccountSubscribers.find(context->appAccountManager);
+            if (subscribe != AccountSA::g_ThAppAccountSubscribers.end()) {
+                for (auto offCBInfo : subscribe->second) {
+                    delete offCBInfo;
+                }
+                AccountSA::g_ThAppAccountSubscribers.erase(subscribe);
             }
-            delete subscribe->second[index];
-            if (needRemoveCallback.get() != nullptr) {
+        } else {
+            std::shared_ptr<subscribe_callback> currentCallback = nullptr;
+            std::shared_ptr<subscribe_callback> needRemoveCallback = nullptr;
+            subscribe_callback call = callback.value();
+            needRemoveCallback = std::make_shared<subscribe_callback>(call);
+            for (size_t index = 0; index < subscribe->second.size(); ++index) {
+                subscribe_callback tempCall = subscribe->second[index]->subscriber->callback_;
+                currentCallback = std::make_shared<subscribe_callback>(tempCall);
+                if ((needRemoveCallback != nullptr) && (!(call == tempCall))) {
+                    continue;
+                }
+                int errCode = AccountSA::AppAccountManager::UnsubscribeAppAccount(subscribe->second[index]->subscriber);
+                if (errCode != ERR_OK) {
+                    int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
+                    taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+                    return;
+                }
+                delete subscribe->second[index];
                 subscribe->second.erase(subscribe->second.begin() + index);
                 break;
             }
+            if ((needRemoveCallback.get() == nullptr) || (subscribe->second.empty())) {
+                AccountSA::g_ThAppAccountSubscribers.erase(subscribe);
+            }
         }
-        if ((needRemoveCallback.get() == nullptr) || (subscribe->second.empty())) {
-            AccountSA::g_ThAppAccountSubscribers.erase(subscribe);
+    }
+
+    void OffSync(string_view type, optional_view<callback<void(array_view<AppAccountInfo> data)>> callback)
+    {
+        if (!CheckType(type)) {
+            return;
         }
-        delete context;
+        std::shared_ptr<AccountSA::AsyncContextForUnsubscribe> context
+            (new (std::nothrow) AccountSA::AsyncContextForUnsubscribe());
+        if (context == nullptr) {
+            ACCOUNT_LOGE("fail to create subscriber");
+            return;
+        }
+        context->appAccountManager = GetInner();
+        if(callback.has_value()){
+            Unsubscribe(context, callback);
+        } else {
+            Unsubscribe(context, nullptr);
+        }
     }
 
 private:
