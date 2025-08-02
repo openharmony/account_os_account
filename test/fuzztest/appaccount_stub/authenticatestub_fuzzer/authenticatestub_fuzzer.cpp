@@ -60,25 +60,40 @@ bool AuthenticateStubFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
     FuzzData fuzzData(data, size);
-    AppAccountStringInfo stringInfo;
-    stringInfo.name = fuzzData.GenerateString();
-    stringInfo.owner = fuzzData.GenerateString();
-    stringInfo.authType = fuzzData.GenerateString();
     MessageParcel dataTemp;
-    if (!dataTemp.WriteParcelable(&stringInfo)) {
-        return false;
+    bool isWriteInterfaceToken = fuzzData.GetData<bool>();
+    if (isWriteInterfaceToken) {
+        if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
+            return false;
+        }
     }
-    AAFwk::Want options;
-    if (!dataTemp.WriteParcelable(&options)) {
-        return false;
+    bool isWriteStringInfo = fuzzData.GetData<bool>();
+    if (isWriteStringInfo) {
+        AppAccountStringInfo stringInfo;
+        stringInfo.name = fuzzData.GenerateString();
+        stringInfo.owner = fuzzData.GenerateString();
+        stringInfo.authType = fuzzData.GenerateString();
+        if (!dataTemp.WriteParcelable(&stringInfo)) {
+            return false;
+        }
     }
-    sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
-    if (callback == nullptr) {
-        ACCOUNT_LOGI("AppAccountStub Authenticate callback is null");
-        return false;
+    bool isWriteWant = fuzzData.GetData<bool>();
+    if (isWriteWant) {
+        AAFwk::Want options;
+        if (!dataTemp.WriteParcelable(&options)) {
+            return false;
+        }
     }
-    if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
-        return false;
+    bool isWriteCallback = fuzzData.GetData<bool>();
+    if (isWriteCallback) {
+        sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
+        if (callback == nullptr) {
+            ACCOUNT_LOGI("AppAccountStub Authenticate callback is null");
+            return false;
+        }
+        if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
+            return false;
+        }
     }
     MessageParcel reply;
     MessageOption option;
