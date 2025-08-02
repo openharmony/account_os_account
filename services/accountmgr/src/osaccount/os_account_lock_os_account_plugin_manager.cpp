@@ -29,7 +29,7 @@ static const char OS_ACCOUNT_PLUGIN_LIB_PATH[] = "/system/lib64/";
 #else
 static const char OS_ACCOUNT_PLUGIN_LIB_PATH[] = "/system/lib/";
 #endif
-static const char OS_ACCOUNT_PLUGIN_LIB_NAME[] = "libspace_mgr_ext.z.so";
+static const char OS_ACCOUNT_PLUGIN_LIB_NAME[] = "libos_account_locking_plugin.z.so";
 static const char* LOCK_OS_ACCOUNT = "LockUserAccount";
 }
 
