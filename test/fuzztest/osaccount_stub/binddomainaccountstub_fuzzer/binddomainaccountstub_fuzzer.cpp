@@ -52,23 +52,27 @@ bool BindDomainAccountStubFuzzTest(const uint8_t *data, size_t size)
     }
 
     FuzzData fuzzData(data, size);
-    DomainAccountInfo domainInfo(fuzzData.GenerateString(),
-        fuzzData.GenerateString());
-    int32_t localId = static_cast<int32_t>(fuzzData.GetData<size_t>() % Constants::MAX_USER_ID);
     MessageParcel datas;
     datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
-
+    int32_t localId = static_cast<int32_t>(fuzzData.GetData<size_t>() % Constants::MAX_USER_ID);
     if (!datas.WriteInt32(localId)) {
         return false;
     }
-
-    if (!datas.WriteParcelable(&domainInfo)) {
-        return false;
+    auto useDomainAccountInfo = fuzzData.GenerateBool();
+    if (useDomainAccountInfo) {
+        DomainAccountInfo domainInfo(fuzzData.GenerateString(), fuzzData.GenerateString());
+        if (!datas.WriteParcelable(&domainInfo)) {
+            return false;
+        }
     }
-    std::shared_ptr<DomainAccountCallback> callbackPtr = std::make_shared<TestCallback>();
-    sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callbackPtr);
-    if ((callbackService == nullptr) || (!datas.WriteRemoteObject(callbackService->AsObject()))) {
-        return false;
+    auto useDomainAccountCallbackService = fuzzData.GenerateBool();
+    if (useDomainAccountCallbackService) {
+        std::shared_ptr<DomainAccountCallback> callbackPtr = std::make_shared<TestCallback>();
+        sptr<DomainAccountCallbackService> callbackService =
+            new (std::nothrow) DomainAccountCallbackService(callbackPtr);
+        if ((callbackService == nullptr) || (!datas.WriteRemoteObject(callbackService->AsObject()))) {
+            return false;
+        }
     }
 
     MessageParcel reply;

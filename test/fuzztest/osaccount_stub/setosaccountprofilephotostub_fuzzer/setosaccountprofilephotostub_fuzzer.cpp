@@ -37,15 +37,20 @@ bool SetOsAccountProfilePhotoStubFuzzTest(const uint8_t *data, size_t size)
     if (!datas.WriteInt32(fuzzData.GetData<int32_t>())) {
         return false;
     }
-    
-    string photo = fuzzData.GenerateString();
-    if (!datas.WriteInt32(photo.size() + 1)) {
-        return false;
+    StringRawData stringRawData;
+    stringRawData.Marshalling(fuzzData.GenerateString());
+    auto useStringRawDataSize = fuzzData.GenerateBool();
+    if (useStringRawDataSize) {
+        if (!datas.WriteUint32(stringRawData.size)) {
+            return false;
+        }
     }
-    if (!datas.WriteRawData(photo.c_str(), photo.size() + 1)) {
-        return false;
+    auto useStringRawData = fuzzData.GenerateBool();
+    if (useStringRawData) {
+        if (!datas.WriteRawData(stringRawData.data, stringRawData.size)) {
+            return false;
+        }
     }
-
     MessageParcel reply;
     MessageOption option;
 

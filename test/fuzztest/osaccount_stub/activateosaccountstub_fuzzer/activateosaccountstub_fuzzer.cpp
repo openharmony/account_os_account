@@ -92,7 +92,9 @@ bool ProcCreateOsAccountWithFullInfoStubFuzzTest(const uint8_t *data, size_t siz
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
     osAccountManagerService_->OnRemoteRequest(
         static_cast<int32_t>(IOsAccountIpcCode::COMMAND_CREATE_OS_ACCOUNT_WITH_FULL_INFO), datas, reply, option);
-
+    osAccountManagerService_->OnRemoteRequest(
+        static_cast<int32_t>(IOsAccountIpcCode::COMMAND_CREATE_OS_ACCOUNT_WITH_FULL_INFO_IN_OSACCOUNTINFO),
+        datas, reply, option);
     return true;
 }
 
