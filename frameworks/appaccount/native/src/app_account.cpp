@@ -101,6 +101,7 @@ void AppAccount::RestoreListenerRecords()
         subscribeInfo.GetOwners(owners);
         ACCOUNT_LOGE("SubscribeAppAccount owners size=%{public}d failed, errCode=%{public}d",
             static_cast<uint32_t>(owners.size()), result);
+        return;
     }
 
     ACCOUNT_LOGI("The data recovery was successful.");
