@@ -25,6 +25,7 @@
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "napi_account_common.h"
+#include "napi_app_account_transfer.h"
 #include "want.h"
 
 namespace OHOS {
@@ -48,9 +49,6 @@ constexpr int PARAMFIVE = 5;
 
 class AppAccountManagerCallback;
 struct AsyncContextForSubscribe;
-extern std::mutex g_lockForAppAccountSubscribers;
-extern std::map<AppAccountManager *, std::vector<AsyncContextForSubscribe *>> g_AppAccountSubscribers;
-
 class SubscriberPtr : public AppAccountSubscriber {
 public:
     explicit SubscriberPtr(const AppAccountSubscribeInfo &subscribeInfo);
@@ -182,10 +180,8 @@ struct SubscriberAccountsWorker : public CommonAsyncContext {
     SubscriberPtr *subscriber = nullptr;
 };
 
-struct AsyncContextForSubscribe : public CommonAsyncContext {
+struct AsyncContextForSubscribe : public CommonAsyncContext, public AsyncContextForSubscribeBase {
     explicit AsyncContextForSubscribe(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
-    std::string type;
-    std::vector<std::string> owners;
     AppAccountManager *appAccountManager = nullptr;
     std::shared_ptr<SubscriberPtr> subscriber = nullptr;
 };

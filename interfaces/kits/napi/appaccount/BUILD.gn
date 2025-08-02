@@ -20,6 +20,7 @@ config("appaccount_kit_config") {
     "${app_account_kits_path}/include",
     "${os_account_path}/interfaces/kits/napi/common/include",
     "include",
+    "include/common",
     "${app_account_innerkits_native_path}/include",
   ]
 
@@ -50,6 +51,7 @@ ohos_shared_library("appaccount") {
     "src/napi_app_account_common.cpp",
     "src/napi_app_account_constant.cpp",
     "src/napi_app_account_module.cpp",
+    "src/common/napi_app_account_transfer.cpp",
   ]
 
   deps = [
