@@ -27,7 +27,7 @@ class AccessTokenKit {
 public:
     static int VerifyAccessToken(unsigned int tokenID, const std::string &permissionName);
     static int GetHapTokenInfo(AccessTokenID tokenID, HapTokenInfo& hapTokenInfoRes);
-    static ATokenTypeEnum GetTokenType(AccessTokenID tokenID);
+    static ATokenTypeEnum GetTokenTypeFlag(AccessTokenID tokenID);
 };
 }  // namespace AccessToken
 }  // namespace Security

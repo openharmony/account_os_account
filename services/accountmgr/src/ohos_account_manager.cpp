@@ -90,7 +90,7 @@ bool GetCallerBundleName(std::string &bundleName, bool &isSystemApp)
 {
     uint64_t fullTokenId = IPCSkeleton::GetCallingFullTokenID();
     Security::AccessToken::AccessTokenID tokenId = fullTokenId & TOKEN_ID_LOWMASK;
-    Security::AccessToken::ATokenTypeEnum tokenType = Security::AccessToken::AccessTokenKit::GetTokenType(tokenId);
+    Security::AccessToken::ATokenTypeEnum tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(tokenId);
     isSystemApp = Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId);
     if (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_HAP) {
         Security::AccessToken::HapTokenInfo hapTokenInfo;
