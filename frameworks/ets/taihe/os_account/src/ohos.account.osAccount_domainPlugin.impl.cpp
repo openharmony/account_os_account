@@ -21,7 +21,6 @@
 #include "ani_common_want.h"
 #include "domain_account_client.h"
 #include "iam_common_defines.h"
-#include "account_error_no.h"
 #include "ohos.account.osAccount.impl.hpp"
 #include "ohos.account.osAccount.proj.hpp"
 #include "ohos_account_kits.h"
