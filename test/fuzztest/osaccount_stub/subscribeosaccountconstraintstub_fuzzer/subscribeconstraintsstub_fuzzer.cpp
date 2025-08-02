@@ -40,16 +40,21 @@ bool SubscribeOsAccountConstraintStubFuzzTest(const uint8_t *data, size_t size)
     MessageParcel datas;
     datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
     FuzzData fuzzData(data, size);
-    std::string testStr = fuzzData.GenerateString();
-    std::set<string> constraints = {testStr};
-    OsAccountConstraintSubscribeInfo subscriber;
-    subscriber.SetConstraints(constraints);
-    if (!datas.WriteParcelable(&subscriber)) {
-        return false;
+    auto useOsAccountConstraintSubscribeInfo = fuzzData.GenerateBool();
+    if (useOsAccountConstraintSubscribeInfo) {
+        std::string testStr = fuzzData.GenerateString();
+        std::set<string> constraints = {testStr};
+        OsAccountConstraintSubscribeInfo subscriber(constraints);
+        if (!datas.WriteParcelable(&subscriber)) {
+            return false;
+        }
     }
 
-    if (!datas.WriteRemoteObject(OsAccountConstraintSubscriberManager::GetInstance()->AsObject())) {
-        return false;
+    auto useOsAccountConstraintSubscriberManager = fuzzData.GenerateBool();
+    if (useOsAccountConstraintSubscriberManager) {
+        if (!datas.WriteRemoteObject(OsAccountConstraintSubscriberManager::GetInstance()->AsObject())) {
+            return false;
+        }
     }
 
     MessageParcel reply;

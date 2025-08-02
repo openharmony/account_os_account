@@ -71,6 +71,9 @@ namespace OHOS {
         MessageOption option;
         auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
         osAccountManagerService_->OnRemoteRequest(static_cast<uint32_t>(IOsAccountIpcCode::
+            COMMAND_CREATE_OS_ACCOUNT_IN_STRING_IN_STRING_IN_INT_OUT_STRINGRAWDATA),
+            dataParcel, reply, option);
+        osAccountManagerService_->OnRemoteRequest(static_cast<uint32_t>(IOsAccountIpcCode::
             COMMAND_CREATE_OS_ACCOUNT_IN_STRING_IN_STRING_IN_INT_OUT_STRINGRAWDATA_IN_CREATEOSACCOUNTOPTIONS),
             dataParcel, reply, option);
 
@@ -91,6 +94,9 @@ namespace OHOS {
         MessageParcel reply;
         MessageOption option;
         auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
+        osAccountManagerService_->OnRemoteRequest(static_cast<uint32_t>(IOsAccountIpcCode::
+            COMMAND_CREATE_OS_ACCOUNT_IN_STRING_IN_STRING_IN_INT_OUT_STRINGRAWDATA),
+            dataParcel, reply, option);
         osAccountManagerService_->OnRemoteRequest(static_cast<uint32_t>(IOsAccountIpcCode::
             COMMAND_CREATE_OS_ACCOUNT_IN_STRING_IN_STRING_IN_INT_OUT_STRINGRAWDATA_IN_CREATEOSACCOUNTOPTIONS),
             dataParcel, reply, option);

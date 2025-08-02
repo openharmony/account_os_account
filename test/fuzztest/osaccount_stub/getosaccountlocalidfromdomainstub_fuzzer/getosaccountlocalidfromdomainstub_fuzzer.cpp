@@ -26,6 +26,9 @@ using namespace std;
 using namespace OHOS::AccountSA;
 
 namespace OHOS {
+namespace {
+const int ENUM_MAX = 5;
+}
 const std::u16string IOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccount";
 bool GetOsAccountLocalIdFromDomainStubFuzzTest(const uint8_t *data, size_t size)
 {
@@ -36,14 +39,21 @@ bool GetOsAccountLocalIdFromDomainStubFuzzTest(const uint8_t *data, size_t size)
     MessageParcel datas;
     datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
     FuzzData fuzzData(data, size);
-    if (!datas.WriteString(fuzzData.GenerateString())) {
-        return false;
+    auto useDomainAccountInfo = fuzzData.GenerateBool();
+    if (useDomainAccountInfo) {
+        DomainAccountInfo info;
+        FuzzData fuzzData(data, size);
+        info.domain_ = fuzzData.GenerateString();
+        info.accountName_ = fuzzData.GenerateString();
+        info.accountId_ = fuzzData.GenerateString();
+        info.isAuthenticated = fuzzData.GenerateBool();
+        info.serverConfigId_ = fuzzData.GenerateString();
+        int typeNumber = fuzzData.GetData<int>() % ENUM_MAX;
+        info.status_ = static_cast<DomainAccountStatus>(typeNumber);
+        if (!datas.WriteParcelable(&info)) {
+            return false;
+        }
     }
-
-    if (!datas.WriteString(fuzzData.GenerateString())) {
-        return false;
-    }
-
     MessageParcel reply;
     MessageOption option;
 

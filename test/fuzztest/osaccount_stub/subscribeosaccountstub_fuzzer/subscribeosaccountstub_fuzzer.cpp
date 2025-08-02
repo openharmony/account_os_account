@@ -63,26 +63,28 @@ bool SubscribeOsAccountStubFuzzTest(const uint8_t *data, size_t size)
     MessageParcel datas;
     datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
     FuzzData fuzzData(data, size);
-    
-    OsAccountSubscribeInfo subscribeInfo;
-    subscribeInfo.SetName(fuzzData.GenerateString());
-    
-    int32_t subscribeTypeValue = (fuzzData.GetData<int32_t>() % CONSTANTS_SUBSCRIBE_TYPE_MAX) - 1;
-    OS_ACCOUNT_SUBSCRIBE_TYPE testType = static_cast<OS_ACCOUNT_SUBSCRIBE_TYPE>(subscribeTypeValue);
-    subscribeInfo.SetOsAccountSubscribeType(testType);
 
-    if (!datas.WriteParcelable(&subscribeInfo)) {
-        return false;
+    auto useOsAccountSubscribeInfo = fuzzData.GenerateBool();
+    if (useOsAccountSubscribeInfo) {
+        OsAccountSubscribeInfo subscribeInfo;
+        subscribeInfo.SetName(fuzzData.GenerateString());
+        int32_t subscribeTypeValue = (fuzzData.GetData<int32_t>() % CONSTANTS_SUBSCRIBE_TYPE_MAX) - 1;
+        OS_ACCOUNT_SUBSCRIBE_TYPE testType = static_cast<OS_ACCOUNT_SUBSCRIBE_TYPE>(subscribeTypeValue);
+        subscribeInfo.SetOsAccountSubscribeType(testType);
+        if (!datas.WriteParcelable(&subscribeInfo)) {
+            return false;
+        }
     }
-
-    sptr<OsAccountEventListener> listener = new (std::nothrow) OsAccountEventListener();
-    if (listener == nullptr) {
-        return false;
-    }
-    sptr<IRemoteObject> osAccountEventListener = listener->AsObject();
-
-    if (!datas.WriteRemoteObject(osAccountEventListener)) {
-        return false;
+    auto useOsAccountEventListener = fuzzData.GenerateBool();
+    if (useOsAccountEventListener) {
+        sptr<OsAccountEventListener> listener = new (std::nothrow) OsAccountEventListener();
+        if (listener == nullptr) {
+            return false;
+        }
+        sptr<IRemoteObject> osAccountEventListener = listener->AsObject();
+        if (!datas.WriteRemoteObject(osAccountEventListener)) {
+            return false;
+        }
     }
 
     MessageParcel reply;
@@ -106,14 +108,16 @@ bool UnsubscribeOsAccountStubFuzzTest(const uint8_t *data, size_t size)
     datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
     FuzzData fuzzData(data, size);
 
-    sptr<OsAccountEventListener> listener = new (std::nothrow) TestOsAccountEventListener();
-    if (listener == nullptr) {
-        return false;
-    }
-    sptr<IRemoteObject> osAccountEventListener = listener->AsObject();
-
-    if (!datas.WriteRemoteObject(osAccountEventListener)) {
-        return false;
+    auto useOsAccountEventListener = fuzzData.GenerateBool();
+    if (useOsAccountEventListener) {
+        sptr<OsAccountEventListener> listener = new (std::nothrow) TestOsAccountEventListener();
+        if (listener == nullptr) {
+            return false;
+        }
+        sptr<IRemoteObject> osAccountEventListener = listener->AsObject();
+        if (!datas.WriteRemoteObject(osAccountEventListener)) {
+            return false;
+        }
     }
 
     MessageParcel reply;
