@@ -16,6 +16,7 @@
 #ifndef OS_ACCOUNT_INTERFACES_KITS_COMMON_INCLUDE_NAPI_ACCOUNT_COMMON_H
 #define OS_ACCOUNT_INTERFACES_KITS_COMMON_INCLUDE_NAPI_ACCOUNT_COMMON_H
 
+#include <map>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -80,6 +81,25 @@ public:
     std::string errMsg;
     std::string nativeErrMsg;
     bool throwErr = false;
+};
+
+struct AsyncContextForSubscribeBase {
+    virtual ~AsyncContextForSubscribeBase() = default;
+    std::string type;
+    std::vector<std::string> owners;
+    void *appAccountManager = nullptr;
+};
+
+class AppAccountSubscriberInfo {
+public:
+    static AppAccountSubscriberInfo& GetInstance();
+    std::mutex lockForAppAccountSubscribers;
+    std::map<uint64_t, std::vector<AsyncContextForSubscribeBase *>> appAccountSubscribersMap;
+private:
+    AppAccountSubscriberInfo() {}
+    ~AppAccountSubscriberInfo() {}
+    AppAccountSubscriberInfo(const AppAccountSubscriberInfo&) = delete;
+    AppAccountSubscriberInfo& operator=(const AppAccountSubscriberInfo&) = delete;
 };
 
 void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data);

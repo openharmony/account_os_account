@@ -17,13 +17,14 @@
 
 @!sts_inject_into_module("import Want from '@ohos.app.ability.Want';")
 @!sts_inject_into_module("import rpc from '@ohos.rpc';")
-@!sts_inject_into_module("import { RecordData } from '@ohos.base';")
 
 @!sts_inject("""
 static { loadLibrary("app_account_taihe_native.z") }
 """)
 
 function createAppAccountManager(): AppAccountManager;
+function createAppAccountManagerByPtr(ptr: u64): AppAccountManager;
+function getPtrByAppAccountManager(manager: AppAccountManager): u64;
 
 struct CreateAccountOptions {
     customData: Optional<@record Map<String, String>>;
@@ -54,7 +55,7 @@ struct AuthResult {
 struct CreateAccountImplicitlyOptions {
     requiredLabels: Optional<Array<String>>;
     authType: Optional<String>;
-    parameters: Optional<@sts_type("RecordData")Opaque>;
+    parameters: Optional <@sts_type("Record<String, Object>")Opaque>;
 }
 
 struct SelectAccountsOptions {
@@ -66,12 +67,12 @@ struct SelectAccountsOptions {
 struct VerifyCredentialOptions {
     credentialType: Optional<String>;
     credential: Optional<String>;
-    parameters: Optional<@sts_type("RecordData")Opaque>;
+    parameters: Optional <@sts_type("Record<String, Object>")Opaque>;
 }
 
 struct SetPropertiesOptions {
-    properties: Optional<@sts_type("RecordData")Opaque>;
-    parameters: Optional<@sts_type("RecordData")Opaque>;
+    properties: Optional <@sts_type("Record<String, Object>")Opaque>;
+    parameters: Optional <@sts_type("Record<String, Object>")Opaque>;
 }
 
 enum Constants: String {
@@ -93,12 +94,15 @@ enum Constants: String {
 }
 
 struct AuthCallback {
+    transferPtr: u64;
     onResult: (code: i32, @optional result: Optional<AuthResult>) => void;
     onRequestRedirected: (request: @sts_type("Want")Opaque) => void;
     onRequestContinued: Optional<() => void>;
 }
-
+function getAuthCallbackByPtr(ptr:u64): AuthCallback;
+function getAuthCallbackPtr(callback: AuthCallback): u64;
 interface AppAccountManager {
+    GetInner(): u64;
     @gen_promise("createAccount")
     CreateAccountPromise(name: String, options: Optional<CreateAccountOptions>);
 
@@ -231,7 +235,7 @@ interface AppAccountManager {
     AuthSync(name: String, owner: String, authType: String, callback: AuthCallback);
 
     @overload("auth")
-    AuthWithMap(name: String, owner: String, authType: String, options: @sts_type("RecordData")Opaque, callback: AuthCallback);
+    AuthWithMap(name: String, owner: String, authType: String, options: @sts_type("Record<String, Object>")Opaque, callback: AuthCallback);
 }
 
 @constructor ("Authenticator")@rename
@@ -241,7 +245,7 @@ function MakeAuthenticator(@sts_this self: Authenticator): Authenticator;
 interface Authenticator {
     CreateAccountImplicitly(options: CreateAccountImplicitlyOptions, callback: AuthCallback): void;
 
-    Auth(name: String, authType: String, options: @sts_type("RecordData")Opaque, callback: AuthCallback): void;
+    Auth(name: String, authType: String, options: @sts_type("Record<String, Object>")Opaque, callback: AuthCallback): void;
 
     SetProperties(options: SetPropertiesOptions, callback: AuthCallback): void;
 

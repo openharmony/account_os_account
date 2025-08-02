@@ -29,7 +29,7 @@ public:
     ~NapiAppAccountAuthenticatorCallback();
     sptr<IRemoteObject> GetRemoteObject();
     static napi_value Init(napi_env env, napi_value exports);
-
+    static napi_value GetConstructor(napi_env env, napi_value constructor);
 private:
     static napi_value JsOnResult(napi_env env, napi_callback_info cbInfo);
     static napi_value JsOnRequestRedirected(napi_env env, napi_callback_info cbInfo);

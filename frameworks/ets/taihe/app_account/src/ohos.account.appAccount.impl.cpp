@@ -23,6 +23,7 @@
 #include "ohos.account.appAccount.impl.hpp"
 #include "taihe_appAccount_info.h"
 #include "ohos_account_kits.h"
+#include "napi_app_account_transfer.h"
 #include "stdexcept"
 #include "taihe/runtime.hpp"
 #include "remote_object_taihe_ani.h"
@@ -31,11 +32,10 @@ using namespace taihe;
 using namespace OHOS;
 using namespace ohos::account::appAccount;
 
-static std::map<uint64_t, std::vector<AccountSA::AsyncContextForSubscribe *>> g_thAppAccountSubscribers;
-static std::mutex g_thLockForAppAccountSubscribers;
-
 namespace OHOS {
 namespace AccountSA {
+using namespace OHOS::AccountJsKit;
+
 SubscriberPtr::SubscriberPtr(const AccountSA::AppAccountSubscribeInfo &subscribeInfo,
     SubscribeCallback callback):AccountSA::AppAccountSubscriber(subscribeInfo), callback_(callback)
 {}
@@ -45,13 +45,20 @@ SubscriberPtr::~SubscriberPtr()
 
 void SubscriberPtr::OnAccountsChanged(const std::vector<AccountSA::AppAccountInfo> &accounts)
 {
-    std::lock_guard<std::mutex> lock(g_thLockForAppAccountSubscribers);
+    std::lock_guard<std::mutex> lock(AppAccountSubscriberInfo::GetInstance().lockForAppAccountSubscribers);
     SubscriberPtr *subscriber = this;
     bool isFound = false;
-    for (const auto& objectInfoTmp : g_thAppAccountSubscribers) {
-        isFound = std::any_of(objectInfoTmp.second.begin(), objectInfoTmp.second.end(),
-            [subscriber](const AsyncContextForSubscribe* item) {
-                return item->subscriber.get() == subscriber;
+    auto begin = GetBeginAppAccountSubscribersMapIterator();
+    auto end = GetEndAppAccountSubscribersMapIterator();
+    for (auto it = begin; it != end; it++) {
+        isFound = std::any_of(it->second.begin(), it->second.end(),
+            [subscriber](const AsyncContextForSubscribeBase* item) {
+                const AsyncContextForSubscribe *subptr = static_cast<const AsyncContextForSubscribe *>(item);
+                if (subptr == nullptr) {
+                    ACCOUNT_LOGE("AsyncContextForSubscribe cast error");
+                    return false;
+                }
+                return subptr->subscriber.get() == subscriber;
             });
         if (isFound) {
             break;
@@ -79,6 +86,8 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AccountSA::AppAccountInf
 
 namespace {
 using OHOS::AccountSA::ACCOUNT_LABEL;
+using OHOS::AccountSA::AsyncContextForSubscribe;
+using namespace OHOS::AccountJsKit;
 
 AppAccountInfo ConvertAppAccountInfo(AccountSA::AppAccountInfo& innerInfo)
 {
@@ -243,8 +252,24 @@ private:
 };
 
 class AppAccountManagerImpl {
+private:
+   uint64_t ptr_ = 0;
 public:
-    AppAccountManagerImpl() {}
+    AppAccountManagerImpl()
+    {
+        AccountSA::AppAccountManager *objectInfo = new (std::nothrow) AccountSA::AppAccountManager();
+        if (objectInfo == nullptr) {
+            ACCOUNT_LOGE("failed to create AppAccountManager for insufficient memory");
+            ptr_ = 0;
+        } else {
+            ptr_ = reinterpret_cast<int64_t>(objectInfo);
+        }
+    }
+
+    explicit AppAccountManagerImpl(uint64_t ptr)
+    {
+        ptr_ = ptr;
+    }
 
     void CreateAccountPromise(string_view name, optional_view<CreateAccountOptions> options)
     {
@@ -458,20 +483,14 @@ public:
 
     array<AppAccountInfo> GetAccountsByOwnerSync(string_view owner)
     {
-        std::vector<AppAccountInfo> appAccountsInfos;
         std::string innerOwner(owner.data(), owner.size());
-        if (innerOwner.empty()) {
-            int32_t jsErrCode = GenerateBusinessErrorCode(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-            return taihe::array<AppAccountInfo>(taihe::copy_data_t{}, appAccountsInfos.data(),
-                appAccountsInfos.size());
-        }
         std::vector<AccountSA::AppAccountInfo> appAccounts;
         int32_t errorCode = AccountSA::AppAccountManager::QueryAllAccessibleAccounts(innerOwner, appAccounts);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
         }
+        std::vector<AppAccountInfo> appAccountsInfos;
         appAccountsInfos.reserve(appAccounts.size());
         for (auto &info : appAccounts) {
             appAccountsInfos.push_back(ConvertAppAccountInfo(info));
@@ -1055,12 +1074,17 @@ public:
 
     static bool IsExitSubscribe(AccountSA::AsyncContextForSubscribe* context)
     {
-        auto subscribe = g_thAppAccountSubscribers.find(context->appAccountManagerHandle);
-        if (subscribe == g_thAppAccountSubscribers.end()) {
+        auto subscribe = GetAppAccountSubscribersMapIterator(context->appAccountManagerHandle);
+        if (subscribe == GetEndAppAccountSubscribersMapIterator()) {
             return false;
         }
         for (size_t index = 0; index < subscribe->second.size(); index++) {
-            if (subscribe->second[index]->callbackRef == context->callbackRef) {
+            AsyncContextForSubscribe *item = static_cast<AsyncContextForSubscribe *>(subscribe->second[index]);
+            if (item == nullptr) {
+                ACCOUNT_LOGE("AsyncContextForSubscribe cast error");
+                return false;
+            }
+            if (item->callbackRef == context->callbackRef) {
                 return true;
             }
         }
@@ -1095,7 +1119,7 @@ public:
             return;
         }
         {
-            std::lock_guard<std::mutex> lock(g_thLockForAppAccountSubscribers);
+            std::lock_guard<std::mutex> lock(AppAccountSubscriberInfo::GetInstance().lockForAppAccountSubscribers);
             if (IsExitSubscribe(context.get())) {
                 return;
             }
@@ -1107,8 +1131,8 @@ public:
             return;
         }
         {
-            std::lock_guard<std::mutex> lock(g_thLockForAppAccountSubscribers);
-            g_thAppAccountSubscribers[context->appAccountManagerHandle].emplace_back(context.get());
+            std::lock_guard<std::mutex> lock(AppAccountSubscriberInfo::GetInstance().lockForAppAccountSubscribers);
+            InsertAppAccountSubscriberInfoToMap(context->appAccountManagerHandle, context.get());
         }
         context.release();
     }
@@ -1116,16 +1140,21 @@ public:
     void Unsubscribe(std::shared_ptr<AccountSA::AsyncContextForUnsubscribe> context,
         optional_view<callback<void(array_view<AppAccountInfo> data)>> callback)
     {
-        std::lock_guard<std::mutex> lock(g_thLockForAppAccountSubscribers);
-        auto subscribe = g_thAppAccountSubscribers.find(context->appAccountManagerHandle);
-        if (subscribe == g_thAppAccountSubscribers.end()) {
+        std::lock_guard<std::mutex> lock(AppAccountSubscriberInfo::GetInstance().lockForAppAccountSubscribers);
+        auto subscribe = GetAppAccountSubscribersMapIterator(ptr_);
+        if (subscribe == GetEndAppAccountSubscribersMapIterator()) {
             return;
         }
         for (size_t index = 0; index < subscribe->second.size(); ++index) {
-            if (callback.has_value() && !(callback.value() == subscribe->second[index]->subscriber->callback_)) {
+            AsyncContextForSubscribe *item = static_cast<AsyncContextForSubscribe *>(subscribe->second[index]);
+            if (item == nullptr) {
+                ACCOUNT_LOGE("AsyncContextForSubscribe cast error");
                 continue;
             }
-            int errCode = AccountSA::AppAccountManager::UnsubscribeAppAccount(subscribe->second[index]->subscriber);
+            if (callback.has_value() && !(callback.value() == item->subscriber->callback_)) {
+                continue;
+            }
+            int errCode = AccountSA::AppAccountManager::UnsubscribeAppAccount(item->subscriber);
             if (errCode != ERR_OK) {
                 int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
                 taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
@@ -1138,7 +1167,7 @@ public:
             }
         }
         if ((!callback.has_value()) || (subscribe->second.empty())) {
-            g_thAppAccountSubscribers.erase(subscribe);
+            EraseAccountSubscribersMap(ptr_);
         }
     }
 
@@ -1160,11 +1189,10 @@ public:
             Unsubscribe(context, nullptr);
         }
     }
-
-private:
+    
     uint64_t GetInner()
     {
-        return reinterpret_cast<uint64_t>(this);
+        return ptr_;
     }
 };
 
@@ -1175,6 +1203,11 @@ public:
     ~THappAccountAuthenticatorCallback()
     {
         object_ = nullptr;
+    }
+
+    sptr<IRemoteObject> GetRemote()
+    {
+        return object_;
     }
 
     void operator()(int32_t resultCode, const ::taihe::optional_view<::ohos::account::appAccount::AuthResult>& result)
@@ -1230,6 +1263,29 @@ public:
 private:
     sptr<IRemoteObject> object_;
 };
+
+ohos::account::appAccount::AuthCallback ConvertToAppAccountAuthenticatorCallback(
+    const sptr<IRemoteObject> &callback)
+{
+    ::taihe::callback<void(int32_t, ::taihe::optional_view<::ohos::account::appAccount::AuthResult>)>
+        onResultCallback = ::taihe::make_holder<THappAccountAuthenticatorCallback, ::taihe::callback<void(int32_t,
+            ::taihe::optional_view<::ohos::account::appAccount::AuthResult>)>>(callback);
+    ::taihe::callback<void(uintptr_t request)>
+        onRequestRedirectedCallback = ::taihe::make_holder<THappAccountAuthenticatorCallback,
+            ::taihe::callback<void(uintptr_t request)>>(callback);
+    taihe::callback<void()> tempCallback = ::taihe::make_holder<THappAccountAuthenticatorCallback,
+        ::taihe::callback<void()>>(callback);
+    taihe::optional<taihe::callback<void ()>> onRequestContinuedCallback =
+        taihe::optional<taihe::callback<void ()>>(std::in_place_t{}, tempCallback);
+
+    ::ohos::account::appAccount::AuthCallback taiheCallback{
+        .onResult = onResultCallback,
+        .onRequestRedirected = onRequestRedirectedCallback,
+        .onRequestContinued = onRequestContinuedCallback,
+    };
+    taiheCallback.transferPtr = reinterpret_cast<uint64_t>(callback.GetRefPtr());
+    return taiheCallback;
+}
 
 class TaiheAppAccountAuthenticator : public AccountSA::AppAccountAuthenticatorStub {
 public:
@@ -1367,28 +1423,6 @@ public:
         self_->CheckAccountRemovable(taiheName, callback);
         return ERR_OK;
     }
-private:
-    ohos::account::appAccount::AuthCallback ConvertToAppAccountAuthenticatorCallback(
-        const sptr<IRemoteObject> &callback)
-    {
-        ::taihe::callback<void(int32_t, ::taihe::optional_view<::ohos::account::appAccount::AuthResult>)>
-            onResultCallback = ::taihe::make_holder<THappAccountAuthenticatorCallback, ::taihe::callback<void(int32_t,
-                ::taihe::optional_view<::ohos::account::appAccount::AuthResult>)>>(callback);
-        ::taihe::callback<void(uintptr_t request)>
-            onRequestRedirectedCallback = ::taihe::make_holder<THappAccountAuthenticatorCallback,
-                ::taihe::callback<void(uintptr_t request)>>(callback);
-        taihe::callback<void()> tempCallback = ::taihe::make_holder<THappAccountAuthenticatorCallback,
-            ::taihe::callback<void()>>(callback);
-        taihe::optional<taihe::callback<void ()>> onRequestContinuedCallback =
-            taihe::optional<taihe::callback<void ()>>(std::in_place_t{}, tempCallback);
-
-        ::ohos::account::appAccount::AuthCallback taiheCallback{
-            .onResult = onResultCallback,
-            .onRequestRedirected = onRequestRedirectedCallback,
-            .onRequestContinued = onRequestContinuedCallback,
-        };
-        return taiheCallback;
-    }
 
 private:
     Authenticator self_;
@@ -1478,7 +1512,33 @@ AppAccountManager createAppAccountManager()
 {
     return make_holder<AppAccountManagerImpl, AppAccountManager>();
 }
+
+AppAccountManager createAppAccountManagerByPtr(uint64_t ptr)
+{
+    return make_holder<AppAccountManagerImpl, AppAccountManager>(ptr);
+}
+
+uint64_t getPtrByAppAccountManager(AppAccountManager manager)
+{
+    return manager->GetInner();
+}
+
+ohos::account::appAccount::AuthCallback getAuthCallbackByPtr(uint64_t ptr)
+{
+    IRemoteObject* rawPtr = reinterpret_cast<IRemoteObject*>(ptr);
+    sptr<IRemoteObject> callback = sptr<IRemoteObject>(rawPtr);
+    return ConvertToAppAccountAuthenticatorCallback(callback);
+}
+
+uint64_t getAuthCallbackPtr(ohos::account::appAccount::AuthCallback const& callback)
+{
+    return callback.transferPtr;
+}
 }  // namespace
 
 TH_EXPORT_CPP_API_createAppAccountManager(createAppAccountManager);
+TH_EXPORT_CPP_API_createAppAccountManagerByPtr(createAppAccountManagerByPtr);
+TH_EXPORT_CPP_API_getPtrByAppAccountManager(getPtrByAppAccountManager);
+TH_EXPORT_CPP_API_getAuthCallbackByPtr(getAuthCallbackByPtr);
+TH_EXPORT_CPP_API_getAuthCallbackPtr(getAuthCallbackPtr);
 TH_EXPORT_CPP_API_MakeAuthenticator(MakeAuthenticator);
