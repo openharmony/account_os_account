@@ -146,6 +146,8 @@ ohos_shared_library("accountmgr") {
     blocklist = "./account_cfi_blocklist.txt"
   }
 
+  ldflags = [ "-lc++" ]
+
   visibility = [ "${os_account_path}/*" ]
   cflags = [ "-pipe" ]
   if (!use_clang_coverage) {
