@@ -25,7 +25,7 @@
 #include "app_account_common.h"
 #include "app_account_manager.h"
 
-using active_callback = taihe::callback_view<void(taihe::array_view<ohos::account::appAccount::AppAccountInfo>)>;
+using subscribe_callback = taihe::callback<void(taihe::array_view<ohos::account::appAccount::AppAccountInfo>)>;
 
 namespace OHOS {
 namespace AccountSA {
@@ -33,20 +33,22 @@ namespace AccountSA {
 class SubscriberPtr : public AccountSA::AppAccountSubscriber {
 public:
     explicit SubscriberPtr(const AccountSA::AppAccountSubscribeInfo &subscribeInfo,
-        active_callback callback);
+        subscribe_callback callback);
     ~SubscriberPtr() override;
     void OnAccountsChanged(const std::vector<AccountSA::AppAccountInfo> &accounts) override;
 
 public:
     std::mutex mutex_;
-    active_callback callback_;
+    subscribe_callback callback_;
 };
 
 struct AsyncContextForSubscribe {
+    explicit AsyncContextForSubscribe(subscribe_callback callback): callbackRef(callback) {};
     std::string type;
     std::vector<std::string> owners;
     uint64_t appAccountManager = 0;
     std::shared_ptr<SubscriberPtr> subscriber = nullptr;
+    subscribe_callback callbackRef;
 };
 
 extern std::map<uint64_t,
