@@ -85,12 +85,12 @@ public:
     ErrCode OnResult(int32_t resultCode, const AAFwk::Want &result) override
     {
         AppAccountInfo appAccountInfo = AppAccountInfo {
-            .owner = result.GetStringParam(AccountSA::Constants::KEY_ACCOUNT_OWNERS),
-            .name = result.GetStringParam(AccountSA::Constants::KEY_ACCOUNT_NAMES),
+            .owner = taihe::string(result.GetStringParam(AccountSA::Constants::KEY_ACCOUNT_OWNERS)),
+            .name = taihe::string(result.GetStringParam(AccountSA::Constants::KEY_ACCOUNT_NAMES))
         };
         AuthTokenInfo authTokenInfo = AuthTokenInfo {
-            .authType = result.GetStringParam(AccountSA::Constants::KEY_AUTH_TYPE),
-            .token = result.GetStringParam(AccountSA::Constants::KEY_TOKEN)
+            .authType = taihe::string(result.GetStringParam(AccountSA::Constants::KEY_AUTH_TYPE)),
+            .token = taihe::string(result.GetStringParam(AccountSA::Constants::KEY_TOKEN))
         };
         AuthResult authResult = AuthResult {
             .account = optional<AppAccountInfo>(std::in_place_t{}, appAccountInfo),
@@ -240,7 +240,7 @@ public:
     {
         std::string innerOwner(owner.data(), owner.size());
         AccountSA::CreateAccountImplicitlyOptions options;
-        sptr<THAppAccountManagerCallback> appAccountMgrCb = new(std::nothrow) THAppAccountManagerCallback(callback);
+        sptr<THAppAccountManagerCallback> appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
         if (appAccountMgrCb == nullptr) {
             ACCOUNT_LOGE("failed to create AppAccountManagerCallback for insufficient memory");
             return;
@@ -277,7 +277,7 @@ public:
         }
         innerOptions.parameters.SetParams(params);
 
-        sptr<THAppAccountManagerCallback> appAccountMgrCb = new(std::nothrow) THAppAccountManagerCallback(callback);
+        sptr<THAppAccountManagerCallback> appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
         if (appAccountMgrCb == nullptr) {
             ACCOUNT_LOGE("failed to create AppAccountManagerCallback for insufficient memory");
             return;
@@ -670,7 +670,7 @@ public:
         std::string innerName(name.data(), name.size());
         std::string innerOwner(owner.data(), owner.size());
         AccountSA::VerifyCredentialOptions options;
-        sptr<THAppAccountManagerCallback> appAccountMgrCb = new(std::nothrow) THAppAccountManagerCallback(callback);
+        sptr<THAppAccountManagerCallback> appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
         if (appAccountMgrCb == nullptr) {
             ACCOUNT_LOGE("Failed to create AppAccountManagerCallback for insufficient memory");
             int32_t jsErrCode = GenerateBusinessErrorCode(JSErrorCode::ERR_JS_SYSTEM_SERVICE_EXCEPTION);
@@ -774,7 +774,7 @@ public:
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
             return;
         }
-        sptr<THAppAccountManagerCallback> appAccountMgrCb = new(std::nothrow) THAppAccountManagerCallback(callback);
+        sptr<THAppAccountManagerCallback> appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
         if (appAccountMgrCb == nullptr) {
             ACCOUNT_LOGE("Failed to create AppAccountManagerCallback for insufficient memory");
             int32_t jsErrCode = GenerateBusinessErrorCode(JSErrorCode::ERR_JS_SYSTEM_SERVICE_EXCEPTION);
@@ -793,7 +793,7 @@ public:
     {
         std::string innerOwner(owner.data(), owner.size());
         AccountSA::SetPropertiesOptions options;
-        sptr<THAppAccountManagerCallback> appAccountMgrCb = new(std::nothrow) THAppAccountManagerCallback(callback);
+        sptr<THAppAccountManagerCallback> appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
         if (appAccountMgrCb == nullptr) {
             ACCOUNT_LOGE("Failed to create AppAccountManagerCallback for insufficient memory");
             int32_t jsErrCode = GenerateBusinessErrorCode(JSErrorCode::ERR_JS_SYSTEM_SERVICE_EXCEPTION);
@@ -858,7 +858,7 @@ public:
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
             return;
         }
-        sptr<THAppAccountManagerCallback> appAccountMgrCb = new(std::nothrow) THAppAccountManagerCallback(callback);
+        sptr<THAppAccountManagerCallback> appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
         if (appAccountMgrCb == nullptr) {
             ACCOUNT_LOGE("Failed to create AppAccountManagerCallback for insufficient memory");
             int32_t jsErrCode = GenerateBusinessErrorCode(JSErrorCode::ERR_JS_SYSTEM_SERVICE_EXCEPTION);
@@ -929,7 +929,7 @@ public:
         std::string innerOwner(owner.data(), owner.size());
         std::string innerAuthType(authType.data(), authType.size());
         AAFwk::Want options;
-        sptr<THAppAccountManagerCallback> appAccountMgrCb = new(std::nothrow) THAppAccountManagerCallback(callback);
+        sptr<THAppAccountManagerCallback> appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
         if (appAccountMgrCb == nullptr) {
             ACCOUNT_LOGE("failed to create AppAccountManagerCallback for insufficient memory");
             return;
@@ -963,7 +963,7 @@ public:
         }
         AAFwk::Want innerOptions;
         innerOptions.SetParams(params);
-        sptr<THAppAccountManagerCallback> appAccountMgrCb = new(std::nothrow) THAppAccountManagerCallback(callback);
+        sptr<THAppAccountManagerCallback> appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
         if (appAccountMgrCb == nullptr) {
             ACCOUNT_LOGE("failed to create AppAccountManagerCallback for insufficient memory");
             return;
@@ -1060,7 +1060,7 @@ public:
             ACCOUNT_LOGE("Unsubscribe failed. The current subscriber does not exist");
             return;
         }
-        if(callback == nullptr){
+        if (callback == nullptr) {
             context->subscribers = subscribers;
             for (auto offSubscriber : context->subscribers) {
                 int errCode = AccountSA::AppAccountManager::UnsubscribeAppAccount(offSubscriber);
@@ -1105,14 +1105,14 @@ public:
         if (!CheckType(type)) {
             return;
         }
-        std::shared_ptr<AccountSA::AsyncContextForUnsubscribe> context
-            (new (std::nothrow) AccountSA::AsyncContextForUnsubscribe());
+        std::shared_ptr<AccountSA::AsyncContextForUnsubscribe> context(
+            new (std::nothrow) AccountSA::AsyncContextForUnsubscribe());
         if (context == nullptr) {
             ACCOUNT_LOGE("fail to create subscriber");
             return;
         }
         context->appAccountManager = GetInner();
-        if(callback.has_value()){
+        if (callback.has_value()) {
             Unsubscribe(context, callback);
         } else {
             Unsubscribe(context, nullptr);

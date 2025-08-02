@@ -1794,7 +1794,6 @@ void RemoveServerConfigSync(string_view configId)
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("RemoveServerConfigSync failed with errCode: %{public}d", errCode);
         SetTaiheBusinessErrorFromNativeCode(errCode);
-
     }
 }
 
