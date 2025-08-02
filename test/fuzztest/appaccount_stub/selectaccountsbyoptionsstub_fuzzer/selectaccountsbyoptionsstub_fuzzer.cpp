@@ -59,28 +59,34 @@ bool SelectAccountsByOptionsStubFuzzTest(const uint8_t* data, size_t size)
     if ((data == nullptr) || (size == 0)) {
         return false;
     }
-    FuzzData fuzzData(data, size);
-    std::string testValue = fuzzData.GenerateString();
-    SelectAccountsOptions options;
-    options.hasAccounts = fuzzData.GenerateBool();
-    options.hasOwners = fuzzData.GenerateBool();
-    options.hasLabels = fuzzData.GenerateBool();
-    options.allowedOwners.emplace_back(testValue);
-    options.requiredLabels.emplace_back(testValue);
-    sptr<MockAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
-    if (callback == nullptr) {
-        ACCOUNT_LOGI("AppAccountStub SelectAccountsByOptions callback is null");
-        return false;
-    }
     MessageParcel dataTemp;
     if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
         return false;
     }
-    if (!dataTemp.WriteParcelable(&options)) {
-        return false;
+    FuzzData fuzzData(data, size);
+    bool isWriteOptions = fuzzData.GetData<bool>();
+    if (isWriteOptions) {
+        SelectAccountsOptions options;
+        std::string testValue = fuzzData.GenerateString();
+        options.hasAccounts = fuzzData.GenerateBool();
+        options.hasOwners = fuzzData.GenerateBool();
+        options.hasLabels = fuzzData.GenerateBool();
+        options.allowedOwners.emplace_back(testValue);
+        options.requiredLabels.emplace_back(testValue);
+        if (!dataTemp.WriteParcelable(&options)) {
+            return false;
+        }
     }
-    if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
-        return false;
+    bool isWriteCallback = fuzzData.GetData<bool>();
+    if (isWriteCallback) {
+        sptr<MockAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
+        if (callback == nullptr) {
+            ACCOUNT_LOGI("AppAccountStub SelectAccountsByOptions callback is null");
+            return false;
+        }
+        if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
+            return false;
+        }
     }
     MessageParcel reply;
     MessageOption option;

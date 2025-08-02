@@ -66,11 +66,6 @@ bool VerifyCredentialStubFuzzTest(const uint8_t* data, size_t size)
     VerifyCredentialOptions options;
     options.credentialType = testValue;
     options.credential = testValue;
-    sptr<MockAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
-    if (callback == nullptr) {
-        ACCOUNT_LOGI("AppAccountStub VerifyCredential callback is null");
-        return false;
-    }
     MessageParcel dataTemp;
     if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
         return false;
@@ -84,8 +79,16 @@ bool VerifyCredentialStubFuzzTest(const uint8_t* data, size_t size)
     if (!dataTemp.WriteParcelable(&options)) {
         return false;
     }
-    if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
-        return false;
+    bool isWriteCallback = fuzzData.GetData<bool>();
+    if (isWriteCallback) {
+        sptr<MockAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
+        if (callback == nullptr) {
+            ACCOUNT_LOGI("AppAccountStub VerifyCredential callback is null");
+            return false;
+        }
+        if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
+            return false;
+        }
     }
     MessageParcel reply;
     MessageOption option;

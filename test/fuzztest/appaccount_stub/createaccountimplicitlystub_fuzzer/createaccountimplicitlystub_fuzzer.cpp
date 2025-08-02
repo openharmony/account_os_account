@@ -72,13 +72,16 @@ bool CreateAccountImplicitlyStubFuzzTest(const uint8_t* data, size_t size)
     if (!dataTemp.WriteParcelable(&options)) {
         return false;
     }
-    sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
-    if (callback == nullptr) {
-        ACCOUNT_LOGI("AppAccountStub CreateAccountImplicitly callback is null");
-        return false;
-    }
-    if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
-        return false;
+    bool isWriteCallback = fuzzData.GetData<bool>();
+    if (isWriteCallback) {
+        sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
+        if (callback == nullptr) {
+            ACCOUNT_LOGI("AppAccountStub CreateAccountImplicitly callback is null");
+            return false;
+        }
+        if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
+            return false;
+        }
     }
     MessageParcel reply;
     MessageOption option;
