@@ -505,7 +505,8 @@ ErrCode AccountIAMClient::RegisterPINInputer(const std::shared_ptr<IInputer> &in
     if (!GetCurrentUserId(userId)) {
         return ERR_ACCOUNT_IAM_KIT_GET_USERID_FAIL;
     }
-    if (UserIam::PinAuth::PinAuthRegister::GetInstance().RegisterInputer(inputer)) {
+    auto iamInputer = std::make_shared<IAMInputer>(userId, inputer);
+    if (UserIam::PinAuth::PinAuthRegister::GetInstance().RegisterInputer(iamInputer)) {
         pinInputer_ = inputer;
         ACCOUNT_LOGI("Register inputer successful!");
         return ERR_OK;

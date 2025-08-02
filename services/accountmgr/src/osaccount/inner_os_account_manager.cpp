@@ -588,7 +588,11 @@ void IInnerOsAccountManager::RollbackOsAccount(OsAccountInfo &osAccountInfo, boo
         }
     }
 
-    (void)osAccountControl_->DelOsAccount(osAccountInfo.GetLocalId());
+    DomainAccountInfo curDomainInfo;
+    osAccountInfo.GetDomainInfo(curDomainInfo);
+    if (curDomainInfo.accountName_.empty()) {
+        (void)osAccountControl_->DelOsAccount(osAccountInfo.GetLocalId());
+    }
 }
 
 ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(

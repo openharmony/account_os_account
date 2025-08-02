@@ -206,6 +206,24 @@ void DomainCredentialRecipient::OnSetData(int32_t authSubType, std::vector<uint8
         callback->OnResult(errCode, emptyParcel);
     }
 }
+
+IAMInputer::IAMInputer(int32_t userId, const std::shared_ptr<IInputer> &inputer)
+    : userId_(userId), innerInputer_(inputer)
+{}
+
+void IAMInputer::OnGetData(int32_t authSubType, std::vector<uint8_t> challenge,
+    std::shared_ptr<IInputerData> inputerData)
+{
+    ACCOUNT_LOGI("AuthSubType: %{public}d", authSubType);
+    if (authSubType == 0) {
+        authSubType = AccountIAMClient::GetInstance().GetAuthSubType(userId_);
+    }
+    if (innerInputer_ == nullptr) {
+        ACCOUNT_LOGE("innerInputer_ is nullptr");
+        return;
+    }
+    innerInputer_->OnGetData(authSubType, challenge, inputerData);
+}
 #endif
 }  // namespace AccountSA
 }  // namespace OHOS

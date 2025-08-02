@@ -33,7 +33,7 @@
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
 #include "ohos_account_constants.h"
-#include "ohos_account_kits.h"
+#include "ohos_account_kits_impl.h"
 #include "os_account_manager.h"
 #include "system_ability_definition.h"
 

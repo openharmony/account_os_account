@@ -22,8 +22,10 @@
 #undef private
 #include "account_iam_client.h"
 #include "account_log_wrapper.h"
+#include "account_test_common.h"
 #include "domain_account_client.h"
 #include "inner_account_iam_manager.h"
+#include "iinner_os_account_manager.h"
 #include "ipc_skeleton.h"
 #include "iremote_stub.h"
 #include "mock_domain_plugin.h"
@@ -47,7 +49,7 @@ const int32_t DEFAULT_USER_ID = 100;
 const int32_t TEST_USER_ID = 200;
 const int32_t TEST_MODULE = 5;
 const int32_t TEST_ACQUIRE_INFO = 10;
-const static AccessTokenID g_accountMgrTokenID = AccessTokenKit::GetNativeTokenId("accountmgr");
+static AccessTokenID g_accountMgrTokenID = 0;
 } // namespace
 
 #ifdef HAS_PIN_AUTH_PART
@@ -138,10 +140,12 @@ public:
     static void TearDownTestCase(void);
     void SetUp(void) override;
     void TearDown(void) override;
+    IInnerOsAccountManager *innerMgrService_ = &IInnerOsAccountManager::GetInstance();
 };
 
 void AccountIamCallbackTest::SetUpTestCase(void)
 {
+    g_accountMgrTokenID = GetTokenIdFromProcess("accountmgr");
     SetSelfTokenID(g_accountMgrTokenID);
 }
 
@@ -443,7 +447,11 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_UnlockAccount_0200, TestSize.Level
     EXPECT_TRUE(userAuthCallback->innerCallback_ != nullptr);
     std::vector<uint8_t> secret = {8, 8, 8, 8, 8, 8, 8};
     bool isUpdateVerifiedStatus = true;
+    bool isVerified = false;
+    innerMgrService_->IsOsAccountVerified(100, isVerified);
+    innerMgrService_->SetOsAccountIsVerified(100, true);
     EXPECT_EQ(ERR_OK, userAuthCallback->UnlockAccount(100, {}, secret, isUpdateVerifiedStatus));
+    innerMgrService_->SetOsAccountIsVerified(100, isVerified);
 }
 
 /**
@@ -481,7 +489,12 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_UnlockUserScreen_0100, TestSize.Le
     std::vector<uint8_t> secret = {8, 8, 8, 8, 8, 8, 8};
     isUpdateVerifiedStatus = false;
     EXPECT_NE(ERR_OK, userAuthCallback->UnlockUserScreen(-1, {}, secret, isUpdateVerifiedStatus));
+
+    bool isVerified = false;
+    innerMgrService_->IsOsAccountVerified(100, isVerified);
+    innerMgrService_->SetOsAccountIsVerified(100, true);
     EXPECT_EQ(ERR_OK, userAuthCallback->UnlockUserScreen(100, {}, secret, isUpdateVerifiedStatus));
+    innerMgrService_->SetOsAccountIsVerified(100, isVerified);
 }
 
 /**
