@@ -44,7 +44,7 @@ ErrCode AccountPermissionManager::CheckSystemApp(bool isCallStub)
         fullTokenId = IPCSkeleton::GetSelfTokenID();
     }
     AccessTokenID tokenId = fullTokenId & TOKEN_ID_LOWMASK;
-    ATokenTypeEnum tokenType = AccessTokenKit::GetTokenType(tokenId);
+    ATokenTypeEnum tokenType = AccessTokenKit::GetTokenTypeFlag(tokenId);
     if ((tokenType == ATokenTypeEnum::TOKEN_HAP) && (!TokenIdKit::IsSystemAppByFullTokenID(fullTokenId))) {
         return ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR;
     }
@@ -54,14 +54,14 @@ ErrCode AccountPermissionManager::CheckSystemApp(bool isCallStub)
 bool AccountPermissionManager::CheckSaCall()
 {
     AccessTokenID callingToken = IPCSkeleton::GetCallingTokenID();
-    TypeATokenTypeEnum res = AccessTokenKit::GetTokenType(callingToken);
+    TypeATokenTypeEnum res = AccessTokenKit::GetTokenTypeFlag(callingToken);
     return (res == TOKEN_NATIVE);
 }
 
 bool AccountPermissionManager::CheckShellCall()
 {
     AccessTokenID callingToken = IPCSkeleton::GetCallingTokenID();
-    TypeATokenTypeEnum res = AccessTokenKit::GetTokenType(callingToken);
+    TypeATokenTypeEnum res = AccessTokenKit::GetTokenTypeFlag(callingToken);
     return (res == TOKEN_SHELL);
 }
 }  // namespace AccountSA

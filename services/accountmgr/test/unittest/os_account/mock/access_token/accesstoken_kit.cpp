@@ -22,9 +22,9 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace Security {
 namespace AccessToken {
-ATokenTypeEnum AccessTokenKit::GetTokenType(AccessTokenID tokenID)
+ATokenTypeEnum AccessTokenKit::GetTokenTypeFlag(AccessTokenID tokenID)
 {
-    ACCOUNT_LOGI("mock GetTokenType enter");
+    ACCOUNT_LOGI("mock GetTokenTypeFlag enter");
     return TOKEN_HAP;
 }
 
