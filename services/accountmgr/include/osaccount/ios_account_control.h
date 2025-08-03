@@ -79,7 +79,10 @@ public:
     virtual ErrCode GetDeviceOwnerId(int32_t &deviceOwnerId) = 0;
     virtual ErrCode UpdateDeviceOwnerId(const int32_t deviceOwnerId) = 0;
     virtual ErrCode SetDefaultActivatedOsAccount(const int32_t id) = 0;
+    virtual ErrCode SetDefaultActivatedOsAccount(const uint64_t displayId, const int32_t id) = 0;
     virtual ErrCode GetDefaultActivatedOsAccount(int32_t &id) = 0;
+    virtual ErrCode GetDefaultActivatedOsAccount(const uint64_t displayId, int32_t &id) = 0;
+    virtual ErrCode GetAllDefaultActivatedOsAccounts(std::map<uint64_t, int32_t> &ids) = 0;
     virtual ErrCode UpdateAccountIndex(const OsAccountInfo &osAccountInfo, const bool isDelete) = 0;
     virtual ErrCode SetNextLocalId(const int32_t &nextLocalId) = 0;
     virtual ErrCode SetDomainBoundFlag(

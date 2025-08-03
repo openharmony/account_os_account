@@ -16,6 +16,7 @@
 #include "os_account_subscribe_manager.h"
 #include <pthread.h>
 #include <thread>
+#include <cinttypes>
 #include "account_constants.h"
 #include "account_hisysevent_adapter.h"
 #include "account_log_wrapper.h"
@@ -236,6 +237,30 @@ const std::shared_ptr<OsAccountSubscribeInfo> OsAccountSubscribeManager::GetSubs
     return nullptr;
 }
 
+std::string OsAccountSubscribeManager::FormatStateInfo(const OsAccountStateParcel& stateParcel,
+    int32_t targetUid, const std::string& phase, ErrCode errCode) const
+{
+    std::string info = "Publish " + phase + ", state=" + std::to_string(stateParcel.state) +
+        " to uid=" + std::to_string(targetUid) + " async, fromId=" + std::to_string(stateParcel.fromId) +
+        ", toId=" + std::to_string(stateParcel.toId);
+    if ((stateParcel.state == SWITCHING || stateParcel.state == SWITCHED) &&
+        stateParcel.displayId.has_value()) {
+        info += ", displayId=" + std::to_string(stateParcel.displayId.value());
+    }
+    info += ", withHandshake=" + std::to_string(stateParcel.callback != nullptr);
+    if (phase == "end") {
+        info += ", result=" + std::to_string(errCode);
+    }
+    return info;
+}
+
+void OsAccountSubscribeManager::LogPublishEvent(const OsAccountStateParcel& stateParcel,
+    int32_t targetUid, const std::string& phase, ErrCode errCode) const
+{
+    std::string logInfo = FormatStateInfo(stateParcel, targetUid, phase, errCode);
+    ACCOUNT_LOGI("%{public}s", logInfo.c_str());
+}
+
 bool OsAccountSubscribeManager::OnStateChanged(
     const sptr<IOsAccountEvent> &eventProxy, OsAccountStateParcel &stateParcel, int32_t targetUid)
 {
@@ -245,30 +270,25 @@ bool OsAccountSubscribeManager::OnStateChanged(
         }
         return switchRecordMap_[targetUid]->ProductTask(eventProxy, stateParcel);
     }
-    auto task = [eventProxy, stateParcel, targetUid]() mutable {
+    auto task = [this, eventProxy, stateParcel, targetUid]() mutable {
         if (stateParcel.toId == -1 && (stateParcel.state != OsAccountState::SWITCHED)
             && (stateParcel.state != OsAccountState::SWITCHING)) {
             stateParcel.toId = stateParcel.fromId;
         }
-        ACCOUNT_LOGI("Publish start, state=%{public}d to uid=%{public}d async, "
-            "fromId=%{public}d, toId=%{public}d, withHandshake=%{public}d",
-            stateParcel.state, targetUid, stateParcel.fromId, stateParcel.toId, stateParcel.callback != nullptr);
-        ErrCode errCode =  eventProxy->OnStateChanged(stateParcel);
-        ACCOUNT_LOGI("Publish end, state=%{public}d to uid=%{public}d async, "
-            "fromId=%{public}d, toId=%{public}d, withHandshake=%{public}d, result=%{public}d", stateParcel.state,
-            targetUid, stateParcel.fromId, stateParcel.toId, stateParcel.callback != nullptr, errCode);
+        
+        LogPublishEvent(stateParcel, targetUid, "start");
+        ErrCode errCode = eventProxy->OnStateChanged(stateParcel);
+        LogPublishEvent(stateParcel, targetUid, "end", errCode);
         if (errCode != ERR_OK) {
+            std::string errorMsg = FormatStateInfo(stateParcel, targetUid, "failed", errCode);
             REPORT_OS_ACCOUNT_FAIL(stateParcel.toId, Constants::OPERATION_EVENT_PUBLISH, errCode,
-                "Send OnStateChanged failed, state=" +std::to_string(stateParcel.state) +
-                ", targetUid=" + std::to_string(targetUid) + ", fromId=" + std::to_string(stateParcel.fromId) +
-                ", toId=" + std::to_string(stateParcel.toId));
+                "Send OnStateChanged " + errorMsg);
         }
         auto callback = iface_cast<OsAccountStateReplyCallbackService>(stateParcel.callback);
         if (callback == nullptr) {
             return;
         }
-        std::chrono::system_clock::time_point startTime = std::chrono::system_clock::now();
-        callback->SetStartTime(startTime);
+        callback->SetStartTime(std::chrono::system_clock::now());
         if (errCode != ERR_OK) {
             callback->OnComplete();
         }
@@ -280,7 +300,7 @@ bool OsAccountSubscribeManager::OnStateChanged(
 }
 
 bool OsAccountSubscribeManager::OnStateChangedV0(const sptr<IOsAccountEvent> &eventProxy,
-    OsAccountState state, int32_t fromId, int32_t toId, int32_t targetUid)
+    OsAccountState state, int32_t fromId, int32_t toId, int32_t targetUid, const std::optional<uint64_t> &displayId)
 {
     if (state == SWITCHING || state == SWITCHED) {
         if (switchRecordMap_.count(targetUid) == 0) {
@@ -290,6 +310,7 @@ bool OsAccountSubscribeManager::OnStateChangedV0(const sptr<IOsAccountEvent> &ev
         stateParcel.fromId = fromId;
         stateParcel.toId = toId;
         stateParcel.state = state;
+        stateParcel.displayId = displayId;
         return switchRecordMap_[targetUid]->ProductTask(eventProxy, stateParcel);
     }
     return OnAccountsChanged(eventProxy, state, fromId, targetUid);
@@ -320,11 +341,34 @@ static bool IsStateNeedHandShake(const OsAccountState& state)
     return false;
 }
 
-ErrCode OsAccountSubscribeManager::Publish(int32_t fromId, OsAccountState state, int32_t toId)
+ErrCode OsAccountSubscribeManager::Publish(int32_t fromId, OsAccountState state,
+    int32_t toId, std::optional<uint64_t> displayId)
 {
     std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
     auto cvPtr = std::make_shared<std::condition_variable>();
     auto safeQueue = std::make_shared<SafeQueue<uint8_t>>();
+    
+    PublishToAllSubscribers(fromId, state, toId, displayId, cvPtr, safeQueue);
+    
+    if ((state == SWITCHING || state == SWITCHED) && displayId.has_value()) {
+        ACCOUNT_LOGI("End, state: %{public}d, fromId: %{public}d, toId: %{public}d, displayId: %{public}d",
+            state, fromId, toId, static_cast<int>(displayId.value()));
+    } else {
+        ACCOUNT_LOGI("End, state: %{public}d, fromId: %{public}d, toId: %{public}d", state, fromId, toId);
+    }
+    ErrCode result = WaitForAllReplies(cvPtr, safeQueue);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Wait reply timed out");
+        REPORT_OS_ACCOUNT_FAIL(fromId, OsAccountStateReplyCallbackService::ConvertStateToSceneFlag(state),
+            ERR_ACCOUNT_COMMON_OPERATION_TIMEOUT, "Wait reply timed out");
+    }
+    return result;
+}
+
+void OsAccountSubscribeManager::PublishToAllSubscribers(int32_t fromId, OsAccountState state, int32_t toId,
+    std::optional<uint64_t> displayId, std::shared_ptr<std::condition_variable> cvPtr,
+    std::shared_ptr<SafeQueue<uint8_t>> safeQueue)
+{
     for (const auto &subscribeRecord : subscribeRecords_) {
         if (subscribeRecord->subscribeInfoPtr_ == nullptr) {
             ACCOUNT_LOGE("Subscribe info is null, fromId: %{public}d, toId: %{public}d", fromId, toId);
@@ -339,7 +383,7 @@ ErrCode OsAccountSubscribeManager::Publish(int32_t fromId, OsAccountState state,
         OS_ACCOUNT_SUBSCRIBE_TYPE subscribeType;
         subscribeRecord->subscribeInfoPtr_->GetOsAccountSubscribeType(subscribeType);
         if (subscribeType == state) { // For old version
-            OnStateChangedV0(eventProxy, state, fromId, toId, subscriberUid);
+            OnStateChangedV0(eventProxy, state, fromId, toId, subscriberUid, displayId);
             continue;
         }
         std::set<OsAccountState> states;
@@ -351,6 +395,9 @@ ErrCode OsAccountSubscribeManager::Publish(int32_t fromId, OsAccountState state,
         stateParcel.fromId = fromId;
         stateParcel.toId = toId;
         stateParcel.state = state;
+        if (state == SWITCHING || state == SWITCHED) {
+            stateParcel.displayId = displayId;
+        }
         if (IsStateNeedHandShake(state) && (subscribeRecord->subscribeInfoPtr_->IsWithHandshake())) {
             safeQueue->Push(1);
             stateParcel.callback = new (std::nothrow) OsAccountStateReplyCallbackService(
@@ -358,15 +405,16 @@ ErrCode OsAccountSubscribeManager::Publish(int32_t fromId, OsAccountState state,
         }
         OnStateChanged(eventProxy, stateParcel, subscriberUid);
     }
-    ACCOUNT_LOGI("End, state: %{public}d, fromId: %{public}d, toId: %{public}d", state, fromId, toId);
+}
+
+ErrCode OsAccountSubscribeManager::WaitForAllReplies(std::shared_ptr<std::condition_variable> cvPtr,
+    std::shared_ptr<SafeQueue<uint8_t>> safeQueue)
+{
     std::mutex mutex;
     std::unique_lock<std::mutex> waitLock(mutex);
     auto result = cvPtr->wait_for(waitLock, std::chrono::seconds(DEACTIVATION_WAIT_SECONDS),
         [safeQueue]() { return safeQueue->Size() == 0; });
     if (!result) {
-        ACCOUNT_LOGE("Wait reply timed out");
-        REPORT_OS_ACCOUNT_FAIL(fromId, OsAccountStateReplyCallbackService::ConvertStateToSceneFlag(state),
-            ERR_ACCOUNT_COMMON_OPERATION_TIMEOUT, "Wait reply timed out");
         return ERR_ACCOUNT_COMMON_OPERATION_TIMEOUT;
     }
     return ERR_OK;

@@ -151,6 +151,7 @@
         "OHOS::AccountSA::IInnerOsAccountManager::CheckDomainAccountBound(OHOS::AccountSA::DomainAccountInfo const&, bool&)";
         "OHOS::AccountSA::IInnerOsAccountManager::WaitForAnimationReady(int)";
         "OHOS::AccountSA::IInnerOsAccountManager::ActivateOsAccountInBackground(int)";
+        "OHOS::AccountSA::IInnerOsAccountManager::CopyFromActiveList(std::__h::vector<int, std::__h::allocator<int>>&)";
         "OHOS::AccountSA::InnerAppAccountManager::AddAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int const&)";
         "OHOS::AccountSA::InnerAppAccountManager::AddAccountImplicitly(OHOS::AccountSA::AuthenticatorSessionRequest const&)";
         "OHOS::AccountSA::InnerAppAccountManager::Authenticate(OHOS::AccountSA::AuthenticatorSessionRequest const&)";
@@ -230,6 +231,8 @@
         "OHOS::AccountSA::IInnerOsAccountManager::SendMsgForAccountCreate(OsAccountInfo &osAccountInfo)";
         "OHOS::AccountSA::IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccountInfo)";
         "OHOS::AccountSA::IInnerOsAccountManager::UpdateAccountInfoByDomainAccountInfo(int, OHOS::AccountSA::DomainAccountInfo const&)";
+        "OHOS::AccountSA::IInnerOsAccountManager::GetAllDefaultActivatedOsAccounts(std::__h::map<unsigned long long, int, std::__h::less<unsigned long long>, std::__h::allocator<std::__h::pair<unsigned long long const, int>>>&)";
+        "OHOS::AccountSA::IInnerOsAccountManager::GetAllDefaultActivatedOsAccounts(std::__h::map<unsigned long, int, std::__h::less<unsigned long>, std::__h::allocator<std::__h::pair<unsigned long const, int>>>&)";
         "OHOS::AccountSA::OsAccountActivateLockPluginManager::GetInstance()";
         "OHOS::AccountSA::OsAccountActivateLockPluginManager::IsCreationAllowed()";
         "OHOS::AccountSA::OsAccountLockOsAccountPluginManager::GetInstance()";

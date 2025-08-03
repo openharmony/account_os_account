@@ -70,12 +70,13 @@ constexpr int32_t GET_MSG_FREQ = 100 * 1000;
 constexpr int32_t DEAL_TIMES = MAX_GETBUNDLE_WAIT_TIMES / GET_MSG_FREQ;
 }
 
-ErrCode InnerSendToAMSAccountStart(int32_t localId, sptr<OsAccountUserCallback> callback, bool isAppRecovery)
+ErrCode InnerSendToAMSAccountStart(
+    int32_t localId, sptr<OsAccountUserCallback> callback, uint64_t displayId, bool isAppRecovery)
 {
     ErrCode code = ERR_OK;
     int32_t retryTimes = 0;
     while (retryTimes < MAX_RETRY_TIMES) {
-        code = AbilityManagerAdapter::GetInstance()->StartUser(localId, callback, isAppRecovery);
+        code = AbilityManagerAdapter::GetInstance()->StartUser(localId, displayId, callback, isAppRecovery);
         if (code == ERR_OK || (code != Constants::E_IPC_ERROR && code != Constants::E_IPC_SA_DIED)) {
             break;
         }
@@ -87,7 +88,7 @@ ErrCode InnerSendToAMSAccountStart(int32_t localId, sptr<OsAccountUserCallback> 
     return code;
 }
 
-ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo,
+ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo, const uint64_t displayId,
     const OsAccountStartCallbackFunc &callbackFunc, bool isAppRecovery)
 {
     int32_t localId = osAccountInfo.GetLocalId();
@@ -101,7 +102,7 @@ ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo,
     }
     StartTraceAdapter("AbilityManagerAdapter StartUser");
 
-    ErrCode code = InnerSendToAMSAccountStart(localId, osAccountStartUserCallback, isAppRecovery);
+    ErrCode code = InnerSendToAMSAccountStart(localId, osAccountStartUserCallback, displayId, isAppRecovery);
     if (code != ERR_OK) {
         ACCOUNT_LOGE("AbilityManagerAdapter StartUser failed after retries! errcode is %{public}d", code);
         ReportOsAccountOperationFail(localId, Constants::OPERATION_ACTIVATE, code,
@@ -371,21 +372,24 @@ void OsAccountInterface::PublishCommonEvent(
 #endif // HAS_CES_PART
 }
 
-void OsAccountInterface::SendToCESAccountSwitched(int newId, int oldId)
+void OsAccountInterface::SendToCESAccountSwitched(int newId, int oldId, uint64_t displayId)
 {
 #ifdef HAS_CES_PART
     StartTraceAdapter("PublishCommonEvent account switched");
     OHOS::AAFwk::Want want;
     want.SetAction(OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED);
     want.SetParam("oldId", std::to_string(oldId));
+    want.SetParam("displayId", std::to_string(displayId));
     OHOS::EventFwk::CommonEventData data;
     data.SetCode(newId);
     data.SetWant(want);
     if (!OHOS::EventFwk::CommonEventManager::PublishCommonEvent(data)) {
-        ACCOUNT_LOGE("PublishCommonEvent failed, account switched:%{public}d->%{public}d", oldId, newId);
+        ACCOUNT_LOGE("PublishCommonEvent failed, account switched:%{public}d->%{public}d displayId: %{public}llu",
+            oldId, newId, static_cast<unsigned long long>(displayId));
         ReportOsAccountOperationFail(newId, Constants::OPERATION_SWITCH, -1, "PublishCommonEvent switched failed!");
     } else {
-        ACCOUNT_LOGI("PublishCommonEvent successful, account switched:%{public}d->%{public}d", oldId, newId);
+        ACCOUNT_LOGI("PublishCommonEvent successful, account switched:%{public}d->%{public}d displayId: %{public}llu",
+            oldId, newId, static_cast<unsigned long long>(displayId));
     }
     FinishTraceAdapter();
 #else // HAS_CES_PART

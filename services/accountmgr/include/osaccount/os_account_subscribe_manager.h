@@ -18,6 +18,7 @@
 
 #include <deque>
 #include <map>
+#include <optional>
 #include <memory>
 #include <set>
 
@@ -25,6 +26,7 @@
 #include "ios_account_subscribe.h"
 #include "os_account_state_parcel.h"
 #include "singleton.h"
+#include "safe_queue.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -62,7 +64,8 @@ public:
     ErrCode UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener) override;
     const std::shared_ptr<OsAccountSubscribeInfo> GetSubscribeRecordInfo(
         const sptr<IRemoteObject> &eventListener) override;
-    ErrCode Publish(int32_t fromId, OsAccountState state, int32_t toId) override;
+    ErrCode Publish(int32_t fromId, OsAccountState state, int32_t toId = -1,
+        std::optional<uint64_t> displayId = std::nullopt) override;
 
 private:
     OsAccountSubscribeManager();
@@ -70,11 +73,20 @@ private:
     bool OnStateChanged(const sptr<IOsAccountEvent> &eventProxy, OsAccountStateParcel &stateParcel, int32_t targetUid);
     // Compatible with historical versions
     bool OnStateChangedV0(const sptr<IOsAccountEvent> &eventProxy, OsAccountState state, int32_t fromId, int32_t toId,
-        int32_t targetUid);
+        int32_t targetUid, const std::optional<uint64_t> &displayId = std::nullopt);
     bool OnAccountsChanged(const sptr<IOsAccountEvent> &eventProxy,
         OsAccountState state, int32_t id, int32_t targetUid);
     DISALLOW_COPY_AND_MOVE(OsAccountSubscribeManager);
     ErrCode RemoveSubscribeRecord(const sptr<IRemoteObject> &eventListener);
+    void PublishToAllSubscribers(int32_t fromId, OsAccountState state, int32_t toId,
+        std::optional<uint64_t> displayId, std::shared_ptr<std::condition_variable> cvPtr,
+        std::shared_ptr<SafeQueue<uint8_t>> safeQueue);
+    ErrCode WaitForAllReplies(std::shared_ptr<std::condition_variable> cvPtr,
+        std::shared_ptr<SafeQueue<uint8_t>> safeQueue);
+    std::string FormatStateInfo(const OsAccountStateParcel& stateParcel, int32_t targetUid,
+        const std::string& phase, ErrCode errCode = ERR_OK) const;
+    void LogPublishEvent(const OsAccountStateParcel& stateParcel, int32_t targetUid,
+        const std::string& phase, ErrCode errCode = ERR_OK) const;
 
 private:
     std::mutex mutex_;

@@ -896,5 +896,110 @@ HWTEST_F(OsAccountControlFileManagerUnitTest, GetWrongAccountInfoDigestFromFile,
     fileOperator->DeleteDirOrFile(Constants::ACCOUNT_INFO_DIGEST_FILE_PATH);
 }
 #endif // ENABLE_FILE_WATCHER
+
+/**
+ * @tc.name: OTACompatibilityTest001_ReadOldFormatDefaultActivatedAccount
+ * @tc.desc: Test reading old format (integer) default activated account data and converting to new format
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerUnitTest,
+    OTACompatibilityTest001_ReadOldFormatDefaultActivatedAccount, TestSize.Level1)
+{
+    // Create old format account list file: "DefaultActivatedAccountID": 100
+    std::string oldFormatAccountList = R"({
+        "AccountList": ["100"],
+        "CountAccountNum": 1,
+        "IsSerialNumberFull": false,
+        "NextLocalId": 101,
+        "SerialNumber": 1,
+        "DefaultActivatedAccountID": 100
+    })";
+    
+    auto fileOperator = std::make_shared<AccountFileOperator>();
+    fileOperator->CreateDir("/data/service/el1/public/account");
+    EXPECT_EQ(fileOperator->InputFileByPathAndContent(
+        Constants::ACCOUNT_LIST_FILE_JSON_PATH, oldFormatAccountList), ERR_OK);
+    
+    // Test reading old format data with new code
+    int32_t id = -1;
+    ErrCode result = g_controlManager->GetDefaultActivatedOsAccount(Constants::DEFAULT_DISPLAY_ID, id);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(id, 100);
+    
+    // Test reading for non-default display should fail for old format
+    int32_t nonDefaultId = -1;
+    result = g_controlManager->GetDefaultActivatedOsAccount(1, nonDefaultId);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR);
+    
+    // Test GetAllDefaultActivatedOsAccounts with old format
+    std::map<uint64_t, int32_t> ids;
+    result = g_controlManager->GetAllDefaultActivatedOsAccounts(ids);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(ids.size(), 1);
+    EXPECT_EQ(ids[Constants::DEFAULT_DISPLAY_ID], 100);
+    
+    // Clean up
+    fileOperator->DeleteDirOrFile(Constants::ACCOUNT_LIST_FILE_JSON_PATH);
+}
+
+/**
+ * @tc.name: OTACompatibilityTest002_UpgradeOldFormatToNewFormat
+ * @tc.desc: Test upgrading old format to new format when setting default activated account
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerUnitTest, OTACompatibilityTest002_UpgradeOldFormatToNewFormat, TestSize.Level1)
+{
+    // Create old format account list file: "DefaultActivatedAccountID": 100
+    std::string oldFormatAccountList = R"({
+        "AccountList": ["100"],
+        "CountAccountNum": 1,
+        "IsSerialNumberFull": false,
+        "NextLocalId": 101,
+        "SerialNumber": 1,
+        "DefaultActivatedAccountID": 100
+    })";
+    
+    auto fileOperator = std::make_shared<AccountFileOperator>();
+    fileOperator->CreateDir("/data/service/el1/public/account");
+    EXPECT_EQ(fileOperator->InputFileByPathAndContent(
+        Constants::ACCOUNT_LIST_FILE_JSON_PATH, oldFormatAccountList), ERR_OK);
+    
+    // Set new account for default display (should upgrade format)
+    ErrCode result = g_controlManager->SetDefaultActivatedOsAccount(Constants::DEFAULT_DISPLAY_ID, 101);
+    EXPECT_EQ(result, ERR_OK);
+    
+    // Verify the old data is preserved and new data is added
+    int32_t defaultId = -1;
+    result = g_controlManager->GetDefaultActivatedOsAccount(Constants::DEFAULT_DISPLAY_ID, defaultId);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(defaultId, 101);
+    
+    // Set account for another display
+    result = g_controlManager->SetDefaultActivatedOsAccount(1, 102);
+    EXPECT_EQ(result, ERR_OK);
+    
+    // Verify both displays have correct accounts
+    std::map<uint64_t, int32_t> ids;
+    result = g_controlManager->GetAllDefaultActivatedOsAccounts(ids);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(ids.size(), 2);
+    EXPECT_EQ(ids[Constants::DEFAULT_DISPLAY_ID], 101);
+    EXPECT_EQ(ids[1], 102);
+    
+    // Verify the file now has new format
+    std::string fileContent;
+    result = fileOperator->GetFileContentByPath(Constants::ACCOUNT_LIST_FILE_JSON_PATH, fileContent);
+    EXPECT_EQ(result, ERR_OK);
+    
+    // Check that the content contains object format
+    EXPECT_TRUE(fileContent.find("\"DefaultActivatedAccountID\":{") != std::string::npos);
+    EXPECT_TRUE(fileContent.find("\"0\":101") != std::string::npos);
+    EXPECT_TRUE(fileContent.find("\"1\":102") != std::string::npos);
+    
+    // Clean up
+    fileOperator->DeleteDirOrFile(Constants::ACCOUNT_LIST_FILE_JSON_PATH);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

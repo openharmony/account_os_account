@@ -131,6 +131,8 @@ bool AddVectorUint8ToJson(CJson *jsonObj, const std::string &key, std::vector<ui
 // map
 std::map<std::string, std::string> PackJsonToMap(const CJson *jsonObj);
 std::map<std::string, std::string> PackJsonToMap(const CJsonUnique &jsonObj);
+std::map<std::uint64_t, std::int32_t> PackJsonToMapUint64Int32(const CJson *jsonObj);
+std::map<std::uint64_t, std::int32_t> PackJsonToMapUint64Int32(const CJsonUnique &jsonObj);
 CJsonUnique CreateJsonFromMap(const std::map<std::string, std::string> &mapData);
 
 // set

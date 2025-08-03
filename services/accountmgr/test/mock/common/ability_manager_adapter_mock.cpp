@@ -48,7 +48,7 @@ ErrCode AbilityManagerAdapter::DisconnectAbility(const sptr<AAFwk::IAbilityConne
     return ERR_OK;
 }
 
-ErrCode AbilityManagerAdapter::StartUser(int accountId,
+ErrCode AbilityManagerAdapter::StartUser(int accountId, const uint64_t displayId,
     const sptr<AAFwk::IUserCallback> &callback, bool isAppRecovery)
 {
     auto task = [accountId, callback] { callback->OnStartUserDone(accountId, 0); };

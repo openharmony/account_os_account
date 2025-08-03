@@ -76,6 +76,7 @@ interface OHOS.AccountSA.IOsAccount {
         [in] int id, [in] String[] constraints, [in] boolean enable);
     void SetOsAccountProfilePhoto([in] int id, [in] StringRawData stringRawData);
     void ActivateOsAccount([in] int id);
+    void ActivateOsAccount([in] int id, [in] unsigned long displayId);
     void DeactivateOsAccount([in] int id);
     void DeactivateAllOsAccounts();
     void StartOsAccount([in] int id);
@@ -110,13 +111,17 @@ interface OHOS.AccountSA.IOsAccount {
         [in] boolean enable, [in] int targetId, [in] int enforcerId, [in] boolean isDeviceOwner);
 
     void SetDefaultActivatedOsAccount([in] int id);
+    void SetDefaultActivatedOsAccount([in] unsigned long displayId, [in] int id);
     void GetDefaultActivatedOsAccount([out] int id);
+    void GetDefaultActivatedOsAccount([in] unsigned long displayId, [out] int id);
     void GetOsAccountShortName([out] String shortName);
     void GetOsAccountName([out] String name);
     void GetOsAccountNameById([in] int id, [out] String name);
     void GetOsAccountShortNameById([in] int id, [out] String shortName);
     void IsOsAccountForeground([in] int localId, [in] unsigned long displayId, [out] boolean isForeground);
+    void GetForegroundOsAccountLocalId([out] int localId);
     void GetForegroundOsAccountLocalId([in] unsigned long displayId, [out] int localId);
+    void GetForegroundOsAccountDisplayId([in] int localId, [out] unsigned long displayId);
     void GetForegroundOsAccounts([out] ForegroundOsAccount[] accounts);
     void GetBackgroundOsAccountLocalIds([out] int[] localIds);
     void SetOsAccountToBeRemoved([in] int localId, [in] boolean toBeRemoved);

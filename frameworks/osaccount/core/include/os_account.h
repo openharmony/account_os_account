@@ -61,6 +61,7 @@ public:
     ErrCode GetDistributedVirtualDeviceId(std::string &dvid);
     ErrCode QueryDistributedVirtualDeviceId(const std::string &bundleName, int32_t localId, std::string &dvid);
     ErrCode ActivateOsAccount(const int id);
+    ErrCode ActivateOsAccount(const int id, const uint64_t displayId);
     ErrCode DeactivateOsAccount(const int id);
     ErrCode DeactivateAllOsAccounts();
     ErrCode StartOsAccount(const int id);
@@ -94,7 +95,9 @@ public:
     ErrCode SubscribeOsAccountConstraints(const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber);
     ErrCode UnsubscribeOsAccountConstraints(const std::shared_ptr<OsAccountConstraintSubscriber> &subscriber);
     ErrCode SetDefaultActivatedOsAccount(const int32_t id);
+    ErrCode SetDefaultActivatedOsAccount(const uint64_t displayId, const int32_t id);
     ErrCode GetDefaultActivatedOsAccount(int32_t &id);
+    ErrCode GetDefaultActivatedOsAccount(const uint64_t displayId, int32_t &id);
     ErrCode GetOsAccountShortName(std::string &shortName);
     ErrCode GetOsAccountName(std::string &name);
     ErrCode GetOsAccountNameById(int32_t id, std::string &name);
@@ -105,6 +108,7 @@ public:
     ErrCode IsOsAccountForeground(const int32_t localId, const uint64_t displayId, bool &isForeground);
     ErrCode GetForegroundOsAccountLocalId(int32_t &localId);
     ErrCode GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId);
+    ErrCode GetForegroundOsAccountDisplayId(const int32_t localId, uint64_t &displayId);
     ErrCode GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts);
     ErrCode GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds);
     ErrCode SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved);

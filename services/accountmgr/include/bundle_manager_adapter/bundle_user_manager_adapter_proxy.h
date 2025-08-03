@@ -31,6 +31,7 @@ public:
      * @brief Create new user.
      * @param userId Indicates the userId.
      * @param disallowedHapList Pass in the provisioned disallowList.
+     * @param allowedHapList Pass in the provisioned allowList.
      */
     ErrCode CreateNewUser(int32_t userId, const std::vector<std::string> &disallowedHapList = {},
         const std::optional<std::vector<std::string>> &allowedHapList = std::nullopt) override;

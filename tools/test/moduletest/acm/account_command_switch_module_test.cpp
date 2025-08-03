@@ -121,3 +121,63 @@ HWTEST_F(AccountCommandSwitchModuleTest, Acm_Command_Switch_0300, TestSize.Level
     commandResult = AccountCommandUtil::DeleteLastOsAccount();
     ASSERT_NE(commandResult.find(STRING_DELETE_OS_ACCOUNT_OK), std::string::npos);
 }
+
+/**
+ * @tc.name: Acm_Command_Switch_0400
+ * @tc.desc: Verify the "acm switch -i <local-account-id> -d <display-id>" command.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFO
+ */
+HWTEST_F(AccountCommandSwitchModuleTest, Acm_Command_Switch_0400, TestSize.Level1)
+{
+    std::string command = TOOL_NAME + " " + cmd_ + " -i 100 -d 0";
+    GTEST_LOG_(INFO) << "command = " << command;
+
+    std::string commandResult = ExecuteCommand(command);
+    EXPECT_EQ(commandResult, STRING_SWITCH_OS_ACCOUNT_NG + "\n");
+}
+
+/**
+ * @tc.name: Acm_Command_Switch_0500
+ * @tc.desc: Verify the "acm switch -i <local-account-id> -d <invalid-display-id>" command.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFO
+ */
+HWTEST_F(AccountCommandSwitchModuleTest, Acm_Command_Switch_0500, TestSize.Level1)
+{
+    std::string command = TOOL_NAME + " " + cmd_ + " -i 100 -d -1";
+    GTEST_LOG_(INFO) << "command = " << command;
+
+    std::string commandResult = ExecuteCommand(command);
+    EXPECT_EQ(commandResult, "fail: invalid display name.\n" + HELP_MSG_SWITCH);
+}
+
+/**
+ * @tc.name: Acm_Command_Switch_0600
+ * @tc.desc: Verify the "acm switch -i <local-account-id> -d <invalid-display-format>" command.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFO
+ */
+HWTEST_F(AccountCommandSwitchModuleTest, Acm_Command_Switch_0600, TestSize.Level1)
+{
+    std::string command = TOOL_NAME + " " + cmd_ + " -i 100 -d abc";
+    GTEST_LOG_(INFO) << "command = " << command;
+
+    std::string commandResult = ExecuteCommand(command);
+    EXPECT_EQ(commandResult, "fail: invalid display name.\n" + HELP_MSG_SWITCH);
+}
+
+/**
+ * @tc.name: Acm_Command_Switch_0700
+ * @tc.desc: Verify the "acm switch -d" command without displayId argument.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFO
+ */
+HWTEST_F(AccountCommandSwitchModuleTest, Acm_Command_Switch_0700, TestSize.Level1)
+{
+    std::string command = TOOL_NAME + " " + cmd_ + " -i 100 -d";
+    GTEST_LOG_(INFO) << "command = " << command;
+
+    std::string commandResult = ExecuteCommand(command);
+    EXPECT_EQ(commandResult, HELP_MSG_OPTION_REQUIRES_AN_ARGUMENT + "\n" + HELP_MSG_SWITCH);
+}

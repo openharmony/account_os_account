@@ -64,10 +64,13 @@ public:
      * @brief start user.
      * @param accountId accountId.
      * @param callback callback.
+     * @param displayId displayId.
+     * @param isAppRecovery isAppRecovery.
      *
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode StartUser(int32_t accountId, const sptr<IUserCallback> &callback, bool isAppRecovery = false);
+    ErrCode StartUser(int32_t accountId, const uint64_t displayId, const sptr<IUserCallback> &callback,
+        bool isAppRecovery = false);
 
     /**
      * @brief stop user.

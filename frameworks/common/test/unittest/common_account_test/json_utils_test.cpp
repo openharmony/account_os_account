@@ -953,3 +953,110 @@ HWTEST_F(JsonUtilsTest, GetJsonArrayFromJsonTest001, TestSize.Level4)
     auto jsonRes = GetJsonArrayFromJson(jsonObj.get(), "key");
     EXPECT_TRUE(IsArray(jsonRes));
 }
+
+/*
+ * @tc.name: PackJsonToMapUint64Int32Test001
+ * @tc.desc: PackJsonToMapUint64Int32 with nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsonUtilsTest, PackJsonToMapUint64Int32Test001, TestSize.Level4)
+{
+    // Test with nullptr
+    std::map<std::uint64_t, std::int32_t> result = PackJsonToMapUint64Int32(nullptr);
+    EXPECT_TRUE(result.empty());
+}
+
+/*
+ * @tc.name: PackJsonToMapUint64Int32Test002
+ * @tc.desc: PackJsonToMapUint64Int32 with non-object
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsonUtilsTest, PackJsonToMapUint64Int32Test002, TestSize.Level4)
+{
+    // Test with array (non-object)
+    auto jsonArray = CreateJsonArray();
+    std::map<std::uint64_t, std::int32_t> result = PackJsonToMapUint64Int32(jsonArray.get());
+    EXPECT_TRUE(result.empty());
+}
+
+/*
+ * @tc.name: PackJsonToMapUint64Int32Test003
+ * @tc.desc: PackJsonToMapUint64Int32 with empty object
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsonUtilsTest, PackJsonToMapUint64Int32Test003, TestSize.Level4)
+{
+    // Test with empty object
+    auto jsonObj = CreateJson();
+    std::map<std::uint64_t, std::int32_t> result = PackJsonToMapUint64Int32(jsonObj.get());
+    EXPECT_TRUE(result.empty());
+}
+
+/*
+ * @tc.name: PackJsonToMapUint64Int32Test004
+ * @tc.desc: PackJsonToMapUint64Int32 with valid data
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsonUtilsTest, PackJsonToMapUint64Int32Test004, TestSize.Level4)
+{
+    // Test with valid uint64 key and int32 value
+    const std::string jsonStr = "{\"123\":456,\"18446744073709551615\":789}";
+    auto jsonObj = CreateJsonFromString(jsonStr);
+    std::map<std::uint64_t, std::int32_t> result = PackJsonToMapUint64Int32(jsonObj.get());
+    EXPECT_EQ(2, result.size());
+    EXPECT_EQ(456, result[123]);
+    EXPECT_EQ(789, result[18446744073709551615ULL]);
+}
+
+/*
+ * @tc.name: PackJsonToMapUint64Int32Test005
+ * @tc.desc: PackJsonToMapUint64Int32 with non-number items
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsonUtilsTest, PackJsonToMapUint64Int32Test005, TestSize.Level4)
+{
+    // Test with non-number items (should be skipped)
+    auto jsonObj = CreateJson();
+    EXPECT_TRUE(AddStringToJson(jsonObj, "123", "string_value"));
+    EXPECT_TRUE(AddIntToJson(jsonObj, "456", 789));
+    std::map<std::uint64_t, std::int32_t> result = PackJsonToMapUint64Int32(jsonObj.get());
+    EXPECT_EQ(1, result.size());
+    EXPECT_EQ(789, result[456]);
+}
+
+/*
+ * @tc.name: PackJsonToMapUint64Int32Test006
+ * @tc.desc: PackJsonToMapUint64Int32 with invalid key format
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsonUtilsTest, PackJsonToMapUint64Int32Test006, TestSize.Level4)
+{
+    // Test with invalid key format (non-numeric string)
+    const std::string jsonStr = "{\"abc\":123,\"456\":789}";
+    auto jsonObj = CreateJsonFromString(jsonStr);
+    std::map<std::uint64_t, std::int32_t> result = PackJsonToMapUint64Int32(jsonObj.get());
+    EXPECT_EQ(1, result.size());
+    EXPECT_EQ(789, result[456]);
+}
+
+/*
+ * @tc.name: PackJsonToMapUint64Int32Test007
+ * @tc.desc: PackJsonToMapUint64Int32 with CJsonUnique
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsonUtilsTest, PackJsonToMapUint64Int32Test007, TestSize.Level4)
+{
+    // Test CJsonUnique overload
+    const std::string jsonStr = "{\"123\":456}";
+    auto jsonObj = CreateJsonFromString(jsonStr);
+    std::map<std::uint64_t, std::int32_t> result = PackJsonToMapUint64Int32(jsonObj);
+    EXPECT_EQ(1, result.size());
+    EXPECT_EQ(456, result[123]);
+}

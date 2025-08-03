@@ -20,6 +20,7 @@
 #include <map>
 #include <mutex>
 #include <vector>
+#include <optional>
 #include "os_account_info.h"
 #include "os_account_manager.h"
 #include "account_log_wrapper.h"
@@ -37,14 +38,14 @@ public:
     explicit SubscriberPtr(const OsAccountSubscribeInfo &subscribeInfo);
     ~SubscriberPtr() override;
 
-    void OnAccountsChanged(const int &id) override;
-    void OnAccountsSwitch(const int &newId, const int &oldId) override;
+    void OnStateChanged(const OsAccountStateData &data) override;
 
     void SetEnv(const napi_env &env);
     void SetCallbackRef(const napi_ref &ref);
 
 private:
-    void OnAccountsSubNotify(const int &newId, const int &oldId);
+    void OnAccountsSubNotify(const int &newId, const int &oldId, const std::optional<uint64_t> &displayId,
+    const OsAccountState &state = OsAccountState::INVALID_TYPE);
     napi_env env_ = nullptr;
     napi_ref ref_ = nullptr;
 };
@@ -70,6 +71,11 @@ struct SetOAConsAsyncContext : public CommonAsyncContext {
 };
 
 struct ActivateOAAsyncContext : public CommonAsyncContext {
+    int id = -1;
+    std::optional<uint64_t> displayId;
+};
+
+struct DeactivateOAAsyncContext : public CommonAsyncContext {
     int id = -1;
 };
 
@@ -123,7 +129,13 @@ struct QueryActiveIdsAsyncContext : public CommonAsyncContext {
 };
 
 struct GetForegroundOALocalIdAsyncContext : public CommonAsyncContext {
+    std::optional<uint64_t> displayId;
     int id = 0;
+};
+
+struct GetForegroundOADisplayIdAsyncContext : public CommonAsyncContext {
+    int id = 0;
+    uint64_t displayId = -1ull;
 };
 
 struct GetOAPhotoAsyncContext : public CommonAsyncContext {
@@ -215,6 +227,8 @@ struct SubscribeCBInfo : public CommonAsyncContext {
 struct SubscriberOAWorker : public CommonAsyncContext {
     int oldId = 0;
     int newId = 0;
+    std::optional<uint64_t> displayId;
+    OsAccountState state = OsAccountState::INVALID_TYPE;
     napi_ref ref = nullptr;
     SubscriberPtr *subscriber = nullptr;
 };
@@ -288,6 +302,8 @@ napi_value QueryAllCreatedOsAccounts(napi_env env, napi_callback_info cbInfo);
 napi_value GetActivatedOsAccountIds(napi_env env, napi_callback_info cbInfo);
 
 napi_value GetForegroundOsAccountLocalId(napi_env env, napi_callback_info cbInfo);
+
+napi_value GetForegroundOsAccountDisplayId(napi_env env, napi_callback_info cbInfo);
 
 napi_value QueryActivatedOsAccountIds(napi_env env, napi_callback_info cbInfo);
 

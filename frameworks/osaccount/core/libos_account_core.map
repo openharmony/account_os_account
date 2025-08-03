@@ -22,6 +22,8 @@
         "OHOS::AccountSA::OsAccount::DumpState(int const&, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>&)";
         "OHOS::AccountSA::OsAccount::SetOsAccountConstraints(int, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&, bool)";
         "OHOS::AccountSA::OsAccount::ActivateOsAccount(int)";
+        "OHOS::AccountSA::OsAccount::ActivateOsAccount(int, unsigned long)";
+        "OHOS::AccountSA::OsAccount::ActivateOsAccount(int, unsigned long long)";
         "OHOS::AccountSA::OsAccount::DeactivateOsAccount(int)";
         "OHOS::AccountSA::OsAccount::DeactivateAllOsAccounts()";
         "VTT for OHOS::AccountSA::OsAccountInfo";
