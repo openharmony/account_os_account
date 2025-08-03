@@ -222,6 +222,11 @@ ErrCode OsAccountManager::ActivateOsAccount(const int id)
     return OsAccount::GetInstance().ActivateOsAccount(id);
 }
 
+ErrCode OsAccountManager::ActivateOsAccount(const int id, const uint64_t displayId)
+{
+    return OsAccount::GetInstance().ActivateOsAccount(id, displayId);
+}
+
 ErrCode OsAccountManager::DeactivateOsAccount(const int id)
 {
     return OsAccount::GetInstance().DeactivateOsAccount(id);
@@ -358,9 +363,19 @@ ErrCode OsAccountManager::SetDefaultActivatedOsAccount(const int32_t id)
     return OsAccount::GetInstance().SetDefaultActivatedOsAccount(id);
 }
 
+ErrCode OsAccountManager::SetDefaultActivatedOsAccount(const uint64_t displayId, const int32_t id)
+{
+    return OsAccount::GetInstance().SetDefaultActivatedOsAccount(displayId, id);
+}
+
 ErrCode OsAccountManager::GetDefaultActivatedOsAccount(int32_t &id)
 {
     return OsAccount::GetInstance().GetDefaultActivatedOsAccount(id);
+}
+
+ErrCode OsAccountManager::GetDefaultActivatedOsAccount(const uint64_t displayId, int32_t &id)
+{
+    return OsAccount::GetInstance().GetDefaultActivatedOsAccount(displayId, id);
 }
 
 ErrCode OsAccountManager::GetOsAccountShortName(std::string &shortName)
@@ -406,6 +421,11 @@ ErrCode OsAccountManager::GetForegroundOsAccountLocalId(int32_t &localId)
 ErrCode OsAccountManager::GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId)
 {
     return OsAccount::GetInstance().GetForegroundOsAccountLocalId(displayId, localId);
+}
+
+ErrCode OsAccountManager::GetForegroundOsAccountDisplayId(const int32_t localId, uint64_t &displayId)
+{
+    return OsAccount::GetInstance().GetForegroundOsAccountDisplayId(localId, displayId);
 }
 
 ErrCode OsAccountManager::GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts)

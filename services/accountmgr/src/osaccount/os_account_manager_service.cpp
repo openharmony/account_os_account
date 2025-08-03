@@ -1101,6 +1101,16 @@ ErrCode OsAccountManagerService::SetOsAccountProfilePhoto(int32_t id, const Stri
 
 ErrCode OsAccountManagerService::ActivateOsAccount(int32_t id)
 {
+    return ActivateOsAccountCommon(id, Constants::DEFAULT_DISPLAY_ID);
+}
+
+ErrCode OsAccountManagerService::ActivateOsAccount(int32_t id, const uint64_t displayId)
+{
+    return ActivateOsAccountCommon(id, displayId);
+}
+
+ErrCode OsAccountManagerService::ActivateOsAccountCommon(int32_t id, const uint64_t displayId)
+{
     ErrCode result = AccountPermissionManager::CheckSystemApp();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
@@ -1122,8 +1132,7 @@ ErrCode OsAccountManagerService::ActivateOsAccount(int32_t id)
         REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
-
-    return innerManager_.ActivateOsAccount(id);
+    return innerManager_.ActivateOsAccount(id, true, displayId);
 }
 
 ErrCode OsAccountManagerService::DeactivateOsAccount(int32_t id)
@@ -1150,7 +1159,8 @@ ErrCode OsAccountManagerService::DeactivateOsAccount(int32_t id)
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     int32_t currentId = Constants::START_USER_ID;
-    GetCurrentLocalId(currentId);
+    uint64_t displayId = Constants::DEFAULT_DISPLAY_ID;
+    GetCallerLocalIdAndDisplayId(currentId, displayId);
 
 #ifndef SUPPORT_STOP_MAIN_OS_ACCOUNT
     if (id == Constants::START_USER_ID) {
@@ -1162,11 +1172,14 @@ ErrCode OsAccountManagerService::DeactivateOsAccount(int32_t id)
     res = innerManager_.DeactivateOsAccount(id);
 
     if (currentId == id) { // if stop current account
+#ifndef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
 #ifdef SUPPORT_STOP_MAIN_OS_ACCOUNT
-        innerManager_.ActivateOsAccount(id, false, Constants::DEFAULT_DISPALY_ID, true);
+        innerManager_.ActivateOsAccount(id, false, displayId, true);
 #else
-        innerManager_.ActivateOsAccount(Constants::START_USER_ID, false, Constants::DEFAULT_DISPALY_ID);
+        innerManager_.ActivateOsAccount(displayId == Constants::DEFAULT_DISPLAY_ID ? Constants::START_USER_ID : id,
+            false, displayId);
 #endif // SUPPORT_STOP_MAIN_OS_ACCOUNT
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
     }
     return res;
 }
@@ -1221,15 +1234,17 @@ ErrCode OsAccountManagerService::DeactivateAllOsAccounts()
 #ifdef FUZZ_TEST
 // LCOV_EXCL_START
 #endif
-void OsAccountManagerService::GetCurrentLocalId(int32_t &userId)
+void OsAccountManagerService::GetCallerLocalIdAndDisplayId(int32_t &userId, uint64_t &displayId)
 {
-    std::vector<int32_t> userIds;
-    if ((innerManager_.QueryActiveOsAccountIds(userIds) != ERR_OK) || userIds.empty()) {
-        ACCOUNT_LOGE("Fail to get activated os account ids");
-        return;
+    userId = static_cast<int32_t>(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR);
+    ErrCode errCode = innerManager_.GetForegroundOsAccountDisplayId(userId, displayId);
+    if (errCode != ERR_OK) {
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+        displayId = Constants::INVALID_DISPLAY_ID;
+#else
+        displayId = Constants::DEFAULT_DISPLAY_ID;
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
     }
-    userId = userIds[0];
-    return;
 }
 #ifdef FUZZ_TEST
 // LCOV_EXCL_STOP
@@ -1277,7 +1292,7 @@ ErrCode OsAccountManagerService::SubscribeOsAccount(
     // permission check
     if (!(PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "") ||
           PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "") ||
-          (AccountPermissionManager::CheckSaCall() && PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")))) {
+          PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, ""))) {
         ACCOUNT_LOGE("Account manager service, permission denied!");
         REPORT_PERMISSION_FAIL();
 #ifdef HICOLLIE_ENABLE
@@ -1820,9 +1835,36 @@ ErrCode OsAccountManagerService::SetDefaultActivatedOsAccount(int32_t id)
     return innerManager_.SetDefaultActivatedOsAccount(id);
 }
 
+ErrCode OsAccountManagerService::SetDefaultActivatedOsAccount(const uint64_t displayId, const int32_t id)
+{
+    // parameters check
+    ErrCode ret = CheckLocalId(id);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    // permission check
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        REPORT_PERMISSION_FAIL();
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    return innerManager_.SetDefaultActivatedOsAccount(displayId, id);
+}
+
 ErrCode OsAccountManagerService::GetDefaultActivatedOsAccount(int32_t &id)
 {
     return innerManager_.GetDefaultActivatedOsAccount(id);
+}
+
+ErrCode OsAccountManagerService::GetDefaultActivatedOsAccount(const uint64_t displayId, int32_t &id)
+{
+    return innerManager_.GetDefaultActivatedOsAccount(displayId, id);
+}
+
+ErrCode OsAccountManagerService::GetAllDefaultActivatedOsAccounts(std::map<uint64_t, int32_t> &activatedIds)
+{
+    return innerManager_.GetAllDefaultActivatedOsAccounts(activatedIds);
 }
 
 ErrCode OsAccountManagerService::GetOsAccountShortNameCommon(const int32_t id, std::string &shortName)
@@ -1951,12 +1993,7 @@ ErrCode OsAccountManagerService::IsOsAccountForeground(int32_t localId, const ui
     int32_t callerId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     int32_t id = (localId == -1) ? callerId : localId;
     if (id < Constants::ADMIN_LOCAL_ID) {
-        ACCOUNT_LOGE("LocalId %{public}d is invlaid.", id);
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-    if (displayId != Constants::DEFAULT_DISPALY_ID) {
-        ACCOUNT_LOGE("DisplayId %{public}llu not exist.", static_cast<unsigned long long>(displayId));
-        return ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR;
     }
     bool isOsAccountExists = false;
     ErrCode result = IsOsAccountExists(id, isOsAccountExists);
@@ -1975,18 +2012,49 @@ ErrCode OsAccountManagerService::IsOsAccountForeground(int32_t localId, const ui
     return innerManager_.IsOsAccountForeground(id, displayId, isForeground);
 }
 
+ErrCode OsAccountManagerService::GetForegroundOsAccountLocalId(int32_t &localId)
+{
+    return innerManager_.GetForegroundOsAccountLocalId(Constants::DEFAULT_DISPLAY_ID, localId);
+}
+
+
 ErrCode OsAccountManagerService::GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId)
 {
-    if (displayId != Constants::DEFAULT_DISPALY_ID) {
-        ACCOUNT_LOGE("DisplayId %{public}llu not exist.", static_cast<unsigned long long>(displayId));
-        return ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR;
+    // permission check
+    if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("Account manager service, permission denied!");
+        REPORT_PERMISSION_FAIL();
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     return innerManager_.GetForegroundOsAccountLocalId(displayId, localId);
 }
 
-#ifdef FUZZ_TEST
-// LCOV_EXCL_START
-#endif
+ErrCode OsAccountManagerService::GetForegroundOsAccountDisplayId(const int32_t localId, uint64_t &displayId)
+{
+    // permission check
+    if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("Account manager service, permission denied!");
+        REPORT_PERMISSION_FAIL();
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
+    }
+    int32_t id = (localId == -1) ? (IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR) : localId;
+    if (id < Constants::ADMIN_LOCAL_ID) {
+        ACCOUNT_LOGE("LocalId %{public}d is invalid.", id);
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+
+    bool isOsAccountExists = false;
+    ErrCode result = IsOsAccountExists(id, isOsAccountExists);
+    if (result != ERR_OK) {
+        return result;
+    }
+    if (!isOsAccountExists) {
+        ACCOUNT_LOGE("LocalId %{public}d not exist.", id);
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+    return innerManager_.GetForegroundOsAccountDisplayId(localId, displayId);
+}
+
 ErrCode OsAccountManagerService::GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts)
 {
     ErrCode checkResult = AccountPermissionManager::CheckSystemApp();

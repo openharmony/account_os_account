@@ -33,6 +33,15 @@ bool OsAccountStateParcel::Marshalling(Parcel &parcel) const
         ACCOUNT_LOGE("Failed to write toId");
         return false;
     }
+    bool hasDisplayId = displayId.has_value();
+    if (!parcel.WriteBool(hasDisplayId)) {
+        ACCOUNT_LOGE("Failed to write displayId presence");
+        return false;
+    }
+    if (hasDisplayId && !parcel.WriteUint64(displayId.value())) {
+        ACCOUNT_LOGE("Failed to write displayId");
+        return false;
+    }
     bool withHandshake = (callback != nullptr);
     if (!parcel.WriteBool(withHandshake)) {
         ACCOUNT_LOGE("Failed to write handshake");
@@ -71,6 +80,21 @@ bool OsAccountStateParcel::ReadFromParcel(Parcel &parcel)
     if (!parcel.ReadInt32(toId)) {
         ACCOUNT_LOGE("Failed to read toId");
         return false;
+    }
+    bool hasDisplayId = false;
+    if (!parcel.ReadBool(hasDisplayId)) {
+        ACCOUNT_LOGE("Failed to read displayId presence");
+        return false;
+    }
+    if (hasDisplayId) {
+        uint64_t tempDisplayIdUint64;
+        if (!parcel.ReadUint64(tempDisplayIdUint64)) {
+            ACCOUNT_LOGE("Failed to read displayId as uint64_t");
+            return false;
+        }
+        displayId = std::make_optional(tempDisplayIdUint64);
+    } else {
+        displayId = std::nullopt;
     }
     bool withHandshake = false;
     if (!parcel.ReadBool(withHandshake)) {

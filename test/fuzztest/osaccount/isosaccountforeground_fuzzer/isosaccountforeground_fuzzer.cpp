@@ -48,7 +48,7 @@ void IsOsAccountForegroundWith3ArgsFuzzTest(const uint8_t *data, size_t size)
     }
     FuzzData fuzzData(data, size);
     int32_t localId = fuzzData.GetData<int32_t>();
-    OsAccountManager::IsOsAccountForeground(localId, Constants::DEFAULT_DISPALY_ID, isForeground);
+    OsAccountManager::IsOsAccountForeground(localId, Constants::DEFAULT_DISPLAY_ID, isForeground);
 }
 }
 

@@ -22,7 +22,7 @@ namespace OHOS {
 namespace AccountSA {
 class OsAccountInterface {
 public:
-    static ErrCode SendToAMSAccountStart(OsAccountInfo &osAccountInfo,
+    static ErrCode SendToAMSAccountStart(OsAccountInfo &osAccountInfo, const uint64_t displayId,
         const OsAccountStartCallbackFunc &callbackFunc, bool isAppRecovery = false);
     static ErrCode SendToAMSAccountStop(OsAccountInfo &osAccountInfo);
     static ErrCode SendToAMSAccountDeactivate(OsAccountInfo &osAccountInfo);
@@ -35,7 +35,7 @@ public:
 #endif // HAS_USER_IDM_PART
     static void SendToCESAccountCreate(OsAccountInfo &osAccountInfo);
     static void SendToCESAccountDelete(OsAccountInfo &osAccountInfo);
-    static void SendToCESAccountSwitched(int newId, int oldId);
+    static void SendToCESAccountSwitched(int newId, int oldId, uint64_t displayId);
     static ErrCode SendToStorageAccountCreateComplete(int32_t localId);
     static ErrCode SendToStorageAccountCreate(OsAccountInfo &osAccountInfo);
     static ErrCode SendToStorageAccountRemove(OsAccountInfo &osAccountInfo);

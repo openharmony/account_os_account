@@ -411,10 +411,12 @@ void OsAccountControlFileManager::BuildAndSaveAccountListJsonFile(const std::vec
 {
     ACCOUNT_LOGD("Enter.");
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
+    auto defaultActivatedIds = CreateJson();
+    AddIntToJson(defaultActivatedIds, std::to_string(Constants::DEFAULT_DISPLAY_ID), Constants::START_USER_ID);
     auto accountList = CreateJson();
     AddVectorStringToJson(accountList, Constants::ACCOUNT_LIST, accounts);
     AddIntToJson(accountList, Constants::COUNT_ACCOUNT_NUM, accounts.size());
-    AddIntToJson(accountList, DEFAULT_ACTIVATED_ACCOUNT_ID, Constants::START_USER_ID);
+    AddObjToJson(accountList, DEFAULT_ACTIVATED_ACCOUNT_ID, defaultActivatedIds);
     AddIntToJson(accountList, Constants::MAX_ALLOW_CREATE_ACCOUNT_ID, Constants::MAX_USER_ID);
     AddInt64ToJson(accountList, Constants::SERIAL_NUMBER_NUM, Constants::SERIAL_NUMBER_NUM_START);
     AddBoolToJson(accountList, IS_SERIAL_NUMBER_FULL, Constants::IS_SERIAL_NUMBER_FULL_INIT_VALUE);
@@ -1635,6 +1637,11 @@ ErrCode OsAccountControlFileManager::UpdateDeviceOwnerId(const int deviceOwnerId
 
 ErrCode OsAccountControlFileManager::SetDefaultActivatedOsAccount(const int32_t id)
 {
+    return SetDefaultActivatedOsAccount(Constants::DEFAULT_DISPLAY_ID, id);
+}
+
+ErrCode OsAccountControlFileManager::SetDefaultActivatedOsAccount(const uint64_t displayId, const int32_t id)
+{
     std::lock_guard<std::mutex> lock(accountInfoFileLock_);
     CJsonUnique accountListJson = nullptr;
     ErrCode result = GetAccountListFromFile(accountListJson);
@@ -1642,18 +1649,84 @@ ErrCode OsAccountControlFileManager::SetDefaultActivatedOsAccount(const int32_t 
         ACCOUNT_LOGE("Get account list failed!");
         return result;
     }
-    AddIntToJson(accountListJson, DEFAULT_ACTIVATED_ACCOUNT_ID, id);
+    CJson* defaultActivatedAccountJson = nullptr;
+    int tmpId;
+    if (GetDataByType<CJson *>(accountListJson, DEFAULT_ACTIVATED_ACCOUNT_ID, defaultActivatedAccountJson)) {
+        AddIntToJson(defaultActivatedAccountJson, std::to_string(displayId), id);
+    } else if (GetDataByType<int>(accountListJson, DEFAULT_ACTIVATED_ACCOUNT_ID, tmpId)) {
+        CJsonUnique tmpJson = CreateJson();
+        if (displayId != Constants::DEFAULT_DISPLAY_ID) {
+            AddIntToJson(tmpJson, std::to_string(Constants::DEFAULT_DISPLAY_ID), tmpId);
+        }
+        AddIntToJson(tmpJson, std::to_string(displayId), id);
+        AddObjToJson(accountListJson, DEFAULT_ACTIVATED_ACCOUNT_ID, tmpJson);
+    } else {
+        ACCOUNT_LOGE("Failed, Json data for default activated account is not found!");
+        ReportOsAccountOperationFail(id, "setDefaultActivated", ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR,
+            "JSON data for default activated account not found");
+        return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
+    }
     return SaveAccountListToFileAndDataBase(accountListJson);
 }
 
 ErrCode OsAccountControlFileManager::GetDefaultActivatedOsAccount(int32_t &id)
 {
-    CJsonUnique accountListJsonData = nullptr;
-    ErrCode result = GetAccountListFromFile(accountListJsonData);
+    return GetDefaultActivatedOsAccount(Constants::DEFAULT_DISPLAY_ID, id);
+}
+
+ErrCode OsAccountControlFileManager::GetDefaultActivatedOsAccount(const uint64_t displayId, int32_t &id)
+{
+    std::lock_guard<std::mutex> lock(accountInfoFileLock_);
+    CJsonUnique accountListJson = nullptr;
+    ErrCode result = GetAccountListFromFile(accountListJson);
     if (result != ERR_OK) {
         return result;
     }
-    GetDataByType<int>(accountListJsonData, DEFAULT_ACTIVATED_ACCOUNT_ID, id);
+    CJson* defaultActivatedAccountJson = nullptr;
+    if (!GetDataByType<CJson*>(accountListJson, DEFAULT_ACTIVATED_ACCOUNT_ID, defaultActivatedAccountJson)) {
+        if (displayId != Constants::DEFAULT_DISPLAY_ID) {
+            ACCOUNT_LOGE("Cannot find default activated account id in display %{public}llu",
+                static_cast<unsigned long long>(displayId));
+            ReportOsAccountOperationFail(-1, "getDefaultActivated", ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR,
+                "Display ID does not exist when getting default activated account");
+            return ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR;
+        }
+        if (!GetDataByType<int>(accountListJson, DEFAULT_ACTIVATED_ACCOUNT_ID, id)) {
+            ACCOUNT_LOGE("Failed to get default activated account id from json data");
+            ReportOsAccountOperationFail(-1, "getDefaultActivated", ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR,
+                "Failed to get default activated account id from json data");
+        }
+        return ERR_OK;
+    }
+    if (!GetDataByType<int>(defaultActivatedAccountJson, std::to_string(displayId), id)) {
+        ACCOUNT_LOGE("Cannot find default activated account id in display %{public}llu",
+            static_cast<unsigned long long>(displayId));
+        ReportOsAccountOperationFail(-1, "getDefaultActivated", ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR,
+            "Cannot find account ID for specified display");
+        return ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR;
+    }
+    return ERR_OK;
+}
+
+ErrCode OsAccountControlFileManager::GetAllDefaultActivatedOsAccounts(std::map<uint64_t, int32_t> &ids)
+{
+    CJsonUnique accountListJson = nullptr;
+    ErrCode result = GetAccountListFromFile(accountListJson);
+    if (result != ERR_OK) {
+        return result;
+    }
+    CJson* defaultActivatedAccountJson = nullptr;
+    int tmpId = -1;
+    ids.clear();
+    if (!GetDataByType<CJson*>(accountListJson, DEFAULT_ACTIVATED_ACCOUNT_ID, defaultActivatedAccountJson)) {
+        if (!GetDataByType<int>(accountListJson, DEFAULT_ACTIVATED_ACCOUNT_ID, tmpId)) {
+            ACCOUNT_LOGE("Failed, Json data for default activated account is not found!");
+            return ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR;
+        }
+        ids.emplace(Constants::DEFAULT_DISPLAY_ID, tmpId);
+        return ERR_OK;
+    }
+    ids = PackJsonToMapUint64Int32(defaultActivatedAccountJson);
     return ERR_OK;
 }
 

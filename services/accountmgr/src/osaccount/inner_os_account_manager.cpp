@@ -51,6 +51,10 @@
 #include "account_timer.h"
 #include "xcollie/xcollie.h"
 #endif // HICOLLIE_ENABLE
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+#include "display_manager_lite.h"
+#include <cstdint>
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
 
 namespace OHOS {
 namespace AccountSA {
@@ -118,7 +122,11 @@ IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManager_(OsAccountSu
     osAccountControl_ = std::make_shared<OsAccountControlFileManager>();
     osAccountControl_->Init();
     osAccountControl_->GetDeviceOwnerId(deviceOwnerId_);
-    osAccountControl_->GetDefaultActivatedOsAccount(defaultActivatedId_);
+    std::map<uint64_t, int32_t> activatedAccountsMap;
+    osAccountControl_->GetAllDefaultActivatedOsAccounts(activatedAccountsMap);
+    for (const auto &[displayId, localId] : activatedAccountsMap) {
+        defaultActivatedIds_.EnsureInsert(displayId, localId);
+    }
     osAccountControl_->GetOsAccountConfig(config_);
     SetParameter(PARAM_LOGIN_NAME_MAX, std::to_string(Constants::LOCAL_NAME_MAX_SIZE).c_str());
     ACCOUNT_LOGI("Init end, maxOsAccountNum: %{public}d, maxLoggedInOsAccountNum: %{public}d",
@@ -193,7 +201,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivateInBackground(OsAccountI
     subscribeManager_.Publish(osAccountInfo.GetLocalId(), OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
     (void)SendToStorageAccountStart(osAccountInfo);
     // StorageManager failture does not block boot, continue!
-    ErrCode errCode = SendToAMSAccountStart(osAccountInfo, Constants::INVALID_DISPALY_ID, true);
+    ErrCode errCode = SendToAMSAccountStart(osAccountInfo, Constants::INVALID_DISPLAY_ID, true);
     if (errCode != ERR_OK) {
         return errCode;
     }
@@ -345,51 +353,54 @@ ErrCode IInnerOsAccountManager::GetRealOsAccountInfoById(const int id, OsAccount
 
     bool isActivated = IsOsAccountIDInActiveList(id);
     osAccountInfo.SetIsActived(isActivated);
+    if (!isActivated) {
+        osAccountInfo.SetDisplayId(Constants::INVALID_DISPLAY_ID);
+        osAccountInfo.SetIsForeground(false);
+        return ERR_OK;
+    }
 
-    int32_t foregroundId = -1;
-    foregroundAccountMap_.Find(Constants::DEFAULT_DISPALY_ID, foregroundId);
-    osAccountInfo.SetIsForeground(foregroundId == id);
-    osAccountInfo.SetDisplayId(foregroundId == id ? Constants::DEFAULT_DISPALY_ID : Constants::INVALID_DISPALY_ID);
-
+    uint64_t displayId = Constants::INVALID_DISPLAY_ID;
+    auto it = [&displayId, id](uint64_t dispId, int32_t localId) {
+        if (localId == id) {
+            displayId = dispId;
+        }
+    };
+    foregroundAccountMap_.Iterate(it);
+    osAccountInfo.SetDisplayId(displayId);
+    osAccountInfo.SetIsForeground(displayId != Constants::INVALID_DISPLAY_ID);
     return ERR_OK;
 }
 
 #ifdef FUZZ_TEST
 // LCOV_EXCL_START
 #endif
-ErrCode IInnerOsAccountManager::ActivateDefaultOsAccount()
+ErrCode IInnerOsAccountManager::ActivateU1Account()
 {
-#ifdef HICOLLIE_ENABLE
-    XCollieCallback callbackFunc = [this](void *) {
-        ACCOUNT_LOGE("ActivateDefaultOsAccount failed due to timeout.");
-        REPORT_OS_ACCOUNT_FAIL(this->defaultActivatedId_, Constants::OPERATION_BOOT_ACTIVATING,
-            ERR_ACCOUNT_COMMON_OPERATION_TIMEOUT, "Activate default os account over time.");
-    };
-    int timerId =
-        HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, TIMEOUT, callbackFunc, nullptr,
-            HiviewDFX::XCOLLIE_FLAG_LOG);
-#endif // HICOLLIE_ENABLE
-    ACCOUNT_LOGI("Start to activate default account");
-    ErrCode errCode;
 #ifdef ENABLE_U1_ACCOUNT
-    if (config_.isU1Enable) {
-        errCode = ActivateOsAccountInBackground(Constants::U1_ID);
-        // if account not exist, do not block boot
-        if (errCode == ERR_OK) {
-            ReportOsAccountLifeCycle(Constants::U1_ID, Constants::OPERATION_BOOT_ACTIVATED);
-        } else {
-            REPORT_OS_ACCOUNT_FAIL(Constants::U1_ID, Constants::OPERATION_BOOT_ACTIVATING, errCode,
-                "ActivateOsAccountInBackground fail isBlockBoot:" + std::to_string(config_.isBlockBoot));
-            if (config_.isBlockBoot && (errCode != ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR)) {
-                return errCode;
-            }
-        }
+    if (!config_.isU1Enable) {
+        return ERR_OK;
+    }
+    
+    ErrCode errCode = ActivateOsAccountInBackground(Constants::U1_ID);
+    if (errCode == ERR_OK) {
+        ReportOsAccountLifeCycle(Constants::U1_ID, Constants::OPERATION_BOOT_ACTIVATED);
+        return ERR_OK;
+    }
+    
+    REPORT_OS_ACCOUNT_FAIL(Constants::U1_ID, Constants::OPERATION_BOOT_ACTIVATING, errCode,
+        "ActivateOsAccountInBackground fail isBlockBoot:" + std::to_string(config_.isBlockBoot));
+    if (config_.isBlockBoot && (errCode != ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR)) {
+        return errCode;
     }
 #endif // ENABLE_U1_ACCOUNT
-    OsAccountInfo osAccountInfo;
-    errCode = GetRealOsAccountInfoById(defaultActivatedId_, osAccountInfo);
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::PrepareForDefaultAccount(int32_t activatedId, OsAccountInfo &osAccountInfo)
+{
+    ErrCode errCode = GetRealOsAccountInfoById(activatedId, osAccountInfo);
     if ((errCode != ERR_OK) || (IsValidOsAccount(osAccountInfo) != ERR_OK)) {
-        ACCOUNT_LOGE("Account not found, localId: %{public}d, error: %{public}d", defaultActivatedId_, errCode);
+        ACCOUNT_LOGE("Account not found, localId: %{public}d, error: %{public}d", activatedId, errCode);
         RetryToGetAccount(osAccountInfo);
         errCode = SetDefaultActivatedOsAccount(osAccountInfo.GetLocalId());
         if (errCode != ERR_OK) {
@@ -399,16 +410,50 @@ ErrCode IInnerOsAccountManager::ActivateDefaultOsAccount()
                 "Set default activated osAccount failed");
         }
     }
-    // activate
-    errCode = SendMsgForAccountActivate(osAccountInfo, true, Constants::DEFAULT_DISPALY_ID, true);
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::ActivateDefaultOsAccount()
+{
+    int32_t activatedId;
+    if (!defaultActivatedIds_.Find(Constants::DEFAULT_DISPLAY_ID, activatedId)) {
+        ACCOUNT_LOGE("Default activated account not found in default display.");
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
+    }
+#ifdef HICOLLIE_ENABLE
+    XCollieCallback callbackFunc = [&](void *) {
+        ACCOUNT_LOGE("ActivateDefaultOsAccount failed due to timeout.");
+        REPORT_OS_ACCOUNT_FAIL(activatedId, Constants::OPERATION_BOOT_ACTIVATING,
+            ERR_ACCOUNT_COMMON_OPERATION_TIMEOUT, "Activate default os account over time.");
+    };
+    int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, TIMEOUT, callbackFunc, nullptr,
+        HiviewDFX::XCOLLIE_FLAG_LOG);
+#endif // HICOLLIE_ENABLE
+    ACCOUNT_LOGI("Start to activate default account");
+    // Activate U1 account if enabled
+    ErrCode errCode = ActivateU1Account();
+    if (errCode != ERR_OK) {
+#ifdef HICOLLIE_ENABLE
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
+        return errCode;
+    }
+    // Validate and prepare default account
+    OsAccountInfo osAccountInfo;
+    PrepareForDefaultAccount(activatedId, osAccountInfo);
+    
+    // Activate account and set parameters
+    errCode = SendMsgForAccountActivate(osAccountInfo, true, Constants::DEFAULT_DISPLAY_ID, true);
     if (errCode == ERR_OK) {
         errCode = SetParameter(ACCOUNT_READY_EVENT, "true");
         if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("Set parameter failed, localId: %{public}d, error: %{public}d", defaultActivatedId_, errCode);
-            REPORT_OS_ACCOUNT_FAIL(defaultActivatedId_, Constants::OPERATION_BOOT_ACTIVATING, errCode,
+            ACCOUNT_LOGE("Set parameter failed, localId: %{public}d, error: %{public}d",
+                osAccountInfo.GetLocalId(), errCode);
+            REPORT_OS_ACCOUNT_FAIL(osAccountInfo.GetLocalId(), Constants::OPERATION_BOOT_ACTIVATING, errCode,
                 "Set parameter bootevent.account.ready failed");
+        } else {
+            ReportOsAccountLifeCycle(osAccountInfo.GetLocalId(), Constants::OPERATION_BOOT_ACTIVATED);
         }
-        ReportOsAccountLifeCycle(osAccountInfo.GetLocalId(), Constants::OPERATION_BOOT_ACTIVATED);
     }
 #ifdef HICOLLIE_ENABLE
     HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
@@ -428,9 +473,11 @@ void IInnerOsAccountManager::RestartActiveAccount()
     }
     for (const auto& osAccountInfo : osAccountInfos) {
         std::int32_t id = osAccountInfo.GetLocalId();
-        if (osAccountInfo.GetIsActived() && id != Constants::START_USER_ID) {
+        std::uint64_t displayId = osAccountInfo.GetDisplayId();
+        if (osAccountInfo.GetIsActived() && id != Constants::START_USER_ID &&
+            displayId != Constants::INVALID_DISPLAY_ID) {
             // reactivate account state
-            if (ActivateOsAccount(id) != ERR_OK) {
+            if (ActivateOsAccount(id, true, displayId) != ERR_OK) {
                 ACCOUNT_LOGE("Active base account failed");
                 return;
             }
@@ -1019,11 +1066,26 @@ ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
 void IInnerOsAccountManager::CheckAndRefreshLocalIdRecord(const int id)
 {
     std::lock_guard<std::mutex> lock(operatingMutex_);
-    if (id == defaultActivatedId_) {
-        ACCOUNT_LOGI("Remove default activated id %{public}d", id);
-        osAccountControl_->SetDefaultActivatedOsAccount(Constants::START_USER_ID);
-        defaultActivatedId_ = Constants::START_USER_ID;
+    std::vector<std::pair<uint64_t, int32_t>> updatesVec;
+
+    auto it = [&](uint64_t displayId, int32_t localId) {
+        if (id == localId) {
+            if (displayId == Constants::DEFAULT_DISPLAY_ID) {
+                updatesVec.emplace_back(displayId, Constants::START_USER_ID);
+            } else {
+                updatesVec.emplace_back(displayId, Constants::INVALID_OS_ACCOUNT_ID);
+            }
+        }
+    };
+    
+    defaultActivatedIds_.Iterate(it);
+    for (const auto& update : updatesVec) {
+        uint64_t displayId = update.first;
+        int32_t newId = update.second;
+        osAccountControl_->SetDefaultActivatedOsAccount(displayId, newId);
+        defaultActivatedIds_.EnsureInsert(displayId, newId);
     }
+    
     if (id == deviceOwnerId_) {
         osAccountControl_->UpdateDeviceOwnerId(-1);
     }
@@ -1193,10 +1255,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountDeactivate(OsAccountInfo &osAcc
         ACCOUNT_LOGE("SendToAMSAccountDeactivate failed, id %{public}d, errCode %{public}d", localId, errCode);
         return errCode;
     }
-    int32_t foregroundId = -1;
-    if (foregroundAccountMap_.Find(Constants::DEFAULT_DISPALY_ID, foregroundId) && foregroundId == localId) {
-        foregroundAccountMap_.Erase(Constants::DEFAULT_DISPALY_ID);
-    }
+    CleanForegroundAccountMap(osAccountInfo);
     subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
     if (isStopStorage) {
         errCode = OsAccountInterface::SendToStorageAccountStop(osAccountInfo);
@@ -2011,15 +2070,29 @@ ErrCode IInnerOsAccountManager::SetOsAccountProfilePhoto(const int id, const std
     return ERR_OK;
 }
 
+void IInnerOsAccountManager::CleanForegroundAccountMap(const OsAccountInfo &osAccountInfo)
+{
+    if (!osAccountInfo.GetIsForeground()) {
+        return;
+    }
+    
+    int32_t localId = osAccountInfo.GetLocalId();
+    uint64_t displayId = osAccountInfo.GetDisplayId();
+    
+    int32_t currentForegroundId = -1;
+    if (foregroundAccountMap_.Find(displayId, currentForegroundId) && currentForegroundId == localId) {
+        ACCOUNT_LOGI("Removing foreground account id=%{public}d from display %{public}llu",
+            localId, static_cast<unsigned long long>(displayId));
+        foregroundAccountMap_.Erase(displayId);
+    }
+}
+
 ErrCode IInnerOsAccountManager::DeactivateOsAccountByInfo(OsAccountInfo &osAccountInfo)
 {
     int localId = osAccountInfo.GetLocalId();
     loggedInAccounts_.Erase(localId);
     verifiedAccounts_.Erase(localId);
-    int32_t foregroundId = -1;
-    if (foregroundAccountMap_.Find(Constants::DEFAULT_DISPALY_ID, foregroundId) && foregroundId == localId) {
-        foregroundAccountMap_.Erase(Constants::DEFAULT_DISPALY_ID);
-    }
+    CleanForegroundAccountMap(osAccountInfo);
     EraseIdFromActiveList(localId);
 
     DomainAccountInfo domainAccountInfo;
@@ -2082,53 +2155,163 @@ bool IInnerOsAccountManager::IsLoggedInAccountsOversize()
     return false;
 }
 
-ErrCode IInnerOsAccountManager::ActivateOsAccount
-    (const int id, const bool startStorage, const uint64_t displayId, bool isAppRecovery)
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+void IInnerOsAccountManager::QueryAllDisplayIds(std::vector<uint64_t> &displayIds)
 {
-    if (!CheckAndAddLocalIdOperating(id)) {
-        ACCOUNT_LOGE("The %{public}d already in operating", id);
-        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
+    displayIds.clear();
+    std::vector<Rosen::DisplayId> allDisplayIds = Rosen::DisplayManagerLite::GetInstance().GetAllDisplayIds();
+    if (allDisplayIds.empty()) {
+        ACCOUNT_LOGW("GetAllDisplayIds returned empty display list");
+        ReportOsAccountOperationFail(-1, "queryDisplayIds", 0, "GetAllDisplayIds returned empty display list");
     }
-    std::lock_guard<std::mutex> lock(*GetOrInsertUpdateLock(id));
-    // get information
-    OsAccountInfo osAccountInfo;
+    for (const auto &displayId : allDisplayIds) {
+        displayIds.emplace_back(static_cast<uint64_t>(displayId));
+    }
+}
+
+ErrCode IInnerOsAccountManager::ValidateDisplayId(const uint64_t displayId)
+{
+    if (displayId != Constants::DEFAULT_DISPLAY_ID) {
+        std::vector<uint64_t> displayIds;
+        QueryAllDisplayIds(displayIds);
+        if (std::find(displayIds.begin(), displayIds.end(), displayId) == displayIds.end()) {
+            ACCOUNT_LOGE("Display %{public}llu does not exist", static_cast<unsigned long long>(displayId));
+            return ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR;
+        }
+    }
+    return ERR_OK;
+}
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+ErrCode IInnerOsAccountManager::ValidateDisplayForActivation(const int id, const uint64_t displayId)
+{
+    std::vector<uint64_t> displayIds;
+    QueryAllDisplayIds(displayIds);
+    bool displayIdExists = false;
+    for (const auto &remoteDisId : displayIds) {
+        if (remoteDisId == displayId || displayId == Constants::DEFAULT_DISPLAY_ID) {
+            displayIdExists = true;
+            break;
+        }
+    }
+    if (!displayIdExists && (displayId != Constants::DEFAULT_DISPLAY_ID)) {
+        ACCOUNT_LOGE("Display %{public}llu does not exist", static_cast<unsigned long long>(displayId));
+        ReportOsAccountOperationFail(id, Constants::OPERATION_ACTIVATE,
+            ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR,
+            "Target display does not exist");
+        RemoveLocalIdToOperating(id);
+        return ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR;
+    }
+    int32_t foregroundId = -1;
+    if (foregroundAccountMap_.Find(displayId, foregroundId) && (foregroundId == id)) {
+        ACCOUNT_LOGE("Failed to activate. Account %{public}d is already foreground on display %{public}llu.",
+            id, static_cast<unsigned long long>(displayId));
+        ReportOsAccountOperationFail(id, Constants::OPERATION_ACTIVATE,
+            ERR_ACCOUNT_COMMON_CROSS_DISPLAY_ACTIVE_ERROR,
+            "Account already foreground on another display");
+        RemoveLocalIdToOperating(id);
+        return ERR_ACCOUNT_COMMON_CROSS_DISPLAY_ACTIVE_ERROR;
+    }
+    return ERR_OK;
+}
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+
+ErrCode IInnerOsAccountManager::PrepareActivateOsAccount(
+    const int id, const uint64_t displayId, OsAccountInfo &osAccountInfo, int32_t &foregroundId)
+{
+    // Get account information
     ErrCode errCode = GetRealOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(id);
         ACCOUNT_LOGE("Cannot find os account info by id:%{public}d, errCode %{public}d.", id, errCode);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
-    int32_t foregroundId = -1;
+    
+    // Validate display ID for activation
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    errCode = ValidateDisplayForActivation(id, displayId);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+#else
+    if (displayId != Constants::DEFAULT_DISPLAY_ID && displayId != Constants::INVALID_DISPLAY_ID) {
+        ReportOsAccountOperationFail(id, Constants::OPERATION_ACTIVATE,
+            ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR,
+            "Display not supported in non-multi-foreground environment");
+        RemoveLocalIdToOperating(id);
+        return ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR;
+    }
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    
+    foregroundId = -1;
     if (foregroundAccountMap_.Find(displayId, foregroundId) && (foregroundId == id) && osAccountInfo.GetIsVerified()) {
         ACCOUNT_LOGI("Account %{public}d already is foreground", id);
         RemoveLocalIdToOperating(id);
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREADY_ACTIVE_ERROR;
     }
+    
     errCode = IsValidOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(id);
         return errCode;
     }
+    
     if (!osAccountInfo.GetIsActived() && IsLoggedInAccountsOversize()) {
         RemoveLocalIdToOperating(id);
         ACCOUNT_LOGE("The number of logged in account reaches the upper limit, maxLoggedInNum: %{public}d",
             config_.maxLoggedInOsAccountNum);
         return ERR_OSACCOUNT_SERVICE_LOGGED_IN_ACCOUNTS_OVERSIZE;
     }
+    
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::ActivateOsAccount
+    (const int32_t id, const bool startStorage, const uint64_t displayId, bool isAppRecovery)
+{
+    // Check if account is already in operation
+    if (!CheckAndAddLocalIdOperating(id)) {
+        ACCOUNT_LOGE("The %{public}d already in operating", id);
+        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
+    }
+
+    // acquire the exclusive lock
+    std::lock_guard<std::mutex> lock(*GetOrInsertUpdateLock(id));
+    
+    // prepare to activate the account
+    OsAccountInfo osAccountInfo;
+    int32_t foregroundId = -1;
+    ErrCode errCode = PrepareActivateOsAccount(id, displayId, osAccountInfo, foregroundId);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+    
+    // publish activating event
     if (foregroundId != id) {
         subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
     }
-    SetAppRecovery(isAppRecovery, activeAccountId_, id, defaultActivatedId_);
+    
+    // set the account as active
+    int32_t activatedId;
+    if (defaultActivatedIds_.Find(displayId, activatedId)) {
+        SetAppRecovery(isAppRecovery, activeAccountId_, id, activatedId);
+    }
+    
+    // main func to send message for account activation
     errCode = SendMsgForAccountActivate(osAccountInfo, startStorage, displayId, isAppRecovery);
     RemoveLocalIdToOperating(id);
     if (errCode != ERR_OK) {
         return errCode;
     }
+    
+    //domain account
     DomainAccountInfo domainInfo;
     osAccountInfo.GetDomainInfo(domainInfo);
     if (domainInfo.accountId_.empty() && (osAccountInfo.GetCredentialId() == 0)) {
         AccountInfoReport::ReportSecurityInfo(osAccountInfo.GetLocalName(), id, ReportEvent::EVENT_LOGIN, 0);
     }
+    
     ACCOUNT_LOGI("Activate end");
     return ERR_OK;
 }
@@ -2295,21 +2478,21 @@ ErrCode IInnerOsAccountManager::DeactivateOsAccount(const int id, bool isStopSto
 #ifdef FUZZ_TEST
 // LCOV_EXCL_START
 #endif
-void IInnerOsAccountManager::RollBackToEarlierAccount(int32_t fromId, int32_t toId)
+void IInnerOsAccountManager::RollBackToEarlierAccount(int32_t fromId, int32_t toId, uint64_t displayId)
 {
     ACCOUNT_LOGI("Enter.");
     if (fromId == toId) {
         return;
     }
-    subscribeManager_.Publish(toId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, fromId);
+    subscribeManager_.Publish(toId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, fromId, displayId);
     ReportOsAccountSwitch(fromId, toId);
     ACCOUNT_LOGI("End pushlishing pre switch event.");
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetLocalId(toId);
-    subscribeManager_.Publish(fromId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING, toId);
+    subscribeManager_.Publish(fromId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING, toId, displayId);
     OsAccountInterface::PublishCommonEvent(osAccountInfo,
         OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_FOREGROUND, Constants::OPERATION_SWITCH);
-    subscribeManager_.Publish(fromId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, toId);
+    subscribeManager_.Publish(fromId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, toId, displayId);
     ReportOsAccountSwitch(toId, fromId);
     ACCOUNT_LOGI("End pushlishing post switch event.");
 }
@@ -2325,14 +2508,14 @@ ErrCode IInnerOsAccountManager::SendToStorageAndAMSAccountStart(OsAccountInfo &o
     if (startStorage) {
         ErrCode errCode = SendToStorageAccountStart(osAccountInfo);
         if (errCode != ERR_OK && !isAppRecovery) {
-            RollBackToEarlierAccount(localId, oldId);
+            RollBackToEarlierAccount(localId, oldId, displayId);
             return errCode;
         }
     }
 
     ErrCode errCode = SendToAMSAccountStart(osAccountInfo, displayId, isAppRecovery);
     if (errCode != ERR_OK) {
-        RollBackToEarlierAccount(localId, oldId);
+        RollBackToEarlierAccount(localId, oldId, displayId);
         return errCode;
     }
 
@@ -2342,50 +2525,57 @@ ErrCode IInnerOsAccountManager::SendToStorageAndAMSAccountStart(OsAccountInfo &o
 ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccountInfo, const bool startStorage,
     const uint64_t displayId, const bool isAppRecovery)
 {
-    // activate
     int32_t oldId = -1;
     bool oldIdExist = foregroundAccountMap_.Find(displayId, oldId);
     int32_t localId = static_cast<int32_t>(osAccountInfo.GetLocalId());
     bool preActivated = osAccountInfo.GetIsActived();
+    bool switched = (oldId != localId);
+
     if (!preActivated) {
         OsAccountInterface::PublishCommonEvent(osAccountInfo,
             OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_STARTING, Constants::OPERATION_STARTING);
     }
-    if (oldId != localId) {
-        subscribeManager_.Publish(oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING, localId);
+    if (switched) {
+        subscribeManager_.Publish(oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING, localId, displayId);
     }
     ErrCode errCode = SendToStorageAndAMSAccountStart(osAccountInfo, startStorage, displayId, isAppRecovery, oldId);
     if (errCode != ERR_OK) {
         return errCode;
     }
-    if (oldId != localId) {
+
+    if (switched) {
         OsAccountInterface::PublishCommonEvent(osAccountInfo,
             OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_FOREGROUND, Constants::OPERATION_SWITCH);
     }
-    if (osAccountInfo.GetIsLoggedIn()) {
-#ifdef ACTIVATE_LAST_LOGGED_IN_ACCOUNT
-        std::lock_guard<std::mutex> operatingLock(operatingMutex_);
-        osAccountControl_->SetDefaultActivatedOsAccount(localId);
-        defaultActivatedId_ = localId;
-#endif
-    }
 
-    if (oldId != localId) {
-        OsAccountInterface::SendToCESAccountSwitched(localId, oldId);
+#ifdef ACTIVATE_LAST_LOGGED_IN_ACCOUNT
+    if (osAccountInfo.GetIsLoggedIn()) {
+        std::lock_guard<std::mutex> operatingLock(operatingMutex_);
+        osAccountControl_->SetDefaultActivatedOsAccount(displayId, localId);
+        defaultActivatedIds_.EnsureInsert(displayId, localId);
+    }
+#endif
+
+    if (switched) {
+        OsAccountInterface::SendToCESAccountSwitched(localId, oldId, displayId);
         subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATED);
-        subscribeManager_.Publish(oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, localId);
+        subscribeManager_.Publish(oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, localId, displayId);
         ReportOsAccountSwitch(localId, oldId);
     }
-    if (oldIdExist && (oldId != localId)) {
-        if ((errCode = UpdateAccountToBackground(oldId)) != ERR_OK) {
-            return errCode;
-        }
+
+    if (oldIdExist && switched) {
+        errCode = UpdateAccountToBackground(oldId);
+        if (errCode != ERR_OK) return errCode;
     }
+
     if (!preActivated) {
         OsAccountInterface::PublishCommonEvent(osAccountInfo,
             OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_STARTED, Constants::OPERATION_STARTED);
-        ReportOsAccountLifeCycle(defaultActivatedId_, Constants::OPERATION_ACTIVATE);
+        int32_t activatedId = -1;
+        if (defaultActivatedIds_.Find(displayId, activatedId))
+            ReportOsAccountLifeCycle(activatedId, Constants::OPERATION_ACTIVATE);
     }
+
     ACCOUNT_LOGI("SendMsgForAccountActivate ok");
     return errCode;
 }
@@ -2428,12 +2618,20 @@ ErrCode  IInnerOsAccountManager::SendToAMSAccountStart(OsAccountInfo &osAccountI
     uint64_t displayId, const bool isAppRecovery)
 {
     OsAccountStartCallbackFunc callbackFunc = [this, displayId](int32_t localId) {
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+        if (displayId == Constants::DEFAULT_DISPLAY_ID) {
+            this->PushIdIntoActiveList(localId);
+        } else {
+            activeAccountId_.push_back(localId);
+        }
+#else
         this->PushIdIntoActiveList(localId);
-        if (displayId != Constants::INVALID_DISPALY_ID) {
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+        if (displayId != Constants::INVALID_DISPLAY_ID) {
             this->foregroundAccountMap_.EnsureInsert(displayId, localId);
         }
     };
-    ErrCode errCode = OsAccountInterface::SendToAMSAccountStart(osAccountInfo, callbackFunc, isAppRecovery);
+    ErrCode errCode = OsAccountInterface::SendToAMSAccountStart(osAccountInfo, displayId, callbackFunc, isAppRecovery);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Failed to call SendToAMSAccountStart, localId: %{public}d, error: %{public}d.",
             osAccountInfo.GetLocalId(), errCode);
@@ -2602,12 +2800,13 @@ ErrCode IInnerOsAccountManager::SetOsAccountIsLoggedIn(const int32_t id, const b
     }
     if (!osAccountInfo.GetIsLoggedIn()) {
 #ifdef ACTIVATE_LAST_LOGGED_IN_ACCOUNT
-        {
+        uint64_t displayId = osAccountInfo.GetDisplayId();
+        if (displayId != Constants::INVALID_DISPLAY_ID) {
             std::lock_guard<std::mutex> operatingLock(operatingMutex_);
-            osAccountControl_->SetDefaultActivatedOsAccount(id);
-            defaultActivatedId_ = id;
+            osAccountControl_->SetDefaultActivatedOsAccount(displayId, id);
+            defaultActivatedIds_.EnsureInsert(displayId, id);
         }
-#endif
+#endif // ACTIVATE_LAST_LOGGED_IN_ACCOUNT
         osAccountInfo.SetLastLoginTime(std::chrono::duration_cast<std::chrono::seconds>(
             std::chrono::system_clock::now().time_since_epoch()).count());
     }
@@ -2650,10 +2849,28 @@ ErrCode IInnerOsAccountManager::SetOsAccountCredentialId(const int id, uint64_t 
 
 ErrCode IInnerOsAccountManager::SetDefaultActivatedOsAccount(const int32_t id)
 {
+    return SetDefaultActivatedOsAccount(Constants::DEFAULT_DISPLAY_ID, id);
+}
+
+ErrCode IInnerOsAccountManager::SetDefaultActivatedOsAccount(const uint64_t displayId, const int32_t id)
+{
     std::lock_guard<std::mutex> lock(operatingMutex_);
-    if (id == defaultActivatedId_) {
+    int32_t activatedId;
+    if (defaultActivatedIds_.Find(displayId, activatedId) && (activatedId == id)) {
         ACCOUNT_LOGW("No need to repeat set initial start id %{public}d", id);
         return ERR_OK;
+    }
+    if (displayId != Constants::DEFAULT_DISPLAY_ID) {
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+        ErrCode errCode = ValidateDisplayId(displayId);
+        if (errCode != ERR_OK) {
+            ReportOsAccountOperationFail(id, "setDefaultActivated", errCode,
+                "Failed to validate display ID for setting default activated account");
+            return errCode;
+        }
+#else
+        return ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR;
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
     }
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
@@ -2665,12 +2882,14 @@ ErrCode IInnerOsAccountManager::SetDefaultActivatedOsAccount(const int32_t id)
     if (errCode != ERR_OK) {
         return errCode;
     }
-    errCode = osAccountControl_->SetDefaultActivatedOsAccount(id);
+    errCode = osAccountControl_->SetDefaultActivatedOsAccount(displayId, id);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Set default activated account id error %{public}d, id: %{public}d", errCode, id);
+        ReportOsAccountOperationFail(id, "setDefaultActivated", errCode,
+            "Failed to set default activated account in storage");
         return errCode;
     }
-    defaultActivatedId_ = id;
+    defaultActivatedIds_.EnsureInsert(displayId, id);
     return ERR_OK;
 }
 
@@ -2678,6 +2897,29 @@ ErrCode IInnerOsAccountManager::IsOsAccountForeground(const int32_t localId, con
                                                       bool &isForeground)
 {
     int32_t id;
+    if (displayId == Constants::ANY_DISPLAY_ID) {
+        isForeground = false;
+        auto it = [&isForeground, localId](uint64_t dispId, int32_t userId) {
+            if (userId == localId) {
+                isForeground = true;
+            }
+        };
+        foregroundAccountMap_.Iterate(it);
+        return ERR_OK;
+    }
+
+    // Validate display ID exists
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    ErrCode errCode = ValidateDisplayId(displayId);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+#else
+    if (displayId != Constants::DEFAULT_DISPLAY_ID) {
+        return ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR;
+    }
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+
     if (!foregroundAccountMap_.Find(displayId, id)) {
         return ERR_ACCOUNT_COMMON_ACCOUNT_IN_DISPLAY_ID_NOT_FOUND_ERROR;
     }
@@ -2688,6 +2930,22 @@ ErrCode IInnerOsAccountManager::IsOsAccountForeground(const int32_t localId, con
 ErrCode IInnerOsAccountManager::GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId)
 {
     if (!foregroundAccountMap_.Find(displayId, localId)) {
+        return ERR_ACCOUNT_COMMON_ACCOUNT_IN_DISPLAY_ID_NOT_FOUND_ERROR;
+    }
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::GetForegroundOsAccountDisplayId(const int32_t localId, uint64_t &displayId)
+{
+    displayId = Constants::INVALID_DISPLAY_ID;
+    auto it = [&displayId, localId](uint64_t dispId, int32_t userId) {
+        if (userId == localId) {
+            displayId = dispId;
+        }
+    };
+    foregroundAccountMap_.Iterate(it);
+    if (displayId == Constants::INVALID_DISPLAY_ID) {
+        ACCOUNT_LOGW("Cannot find displayId for localId %{public}d", localId);
         return ERR_ACCOUNT_COMMON_ACCOUNT_IN_DISPLAY_ID_NOT_FOUND_ERROR;
     }
     return ERR_OK;
@@ -2729,8 +2987,28 @@ ErrCode IInnerOsAccountManager::GetBackgroundOsAccountLocalIds(std::vector<int32
 
 ErrCode IInnerOsAccountManager::GetDefaultActivatedOsAccount(int32_t &id)
 {
+    return GetDefaultActivatedOsAccount(Constants::DEFAULT_DISPLAY_ID, id);
+}
+
+ErrCode IInnerOsAccountManager::GetDefaultActivatedOsAccount(const uint64_t displayId, int32_t &id)
+{
     std::lock_guard<std::mutex> lock(operatingMutex_);
-    id = defaultActivatedId_;
+    if (!defaultActivatedIds_.Find(displayId, id)) {
+        ACCOUNT_LOGE("Cannot find default activated account for display %{public}llu",
+            static_cast<unsigned long long>(displayId));
+        return ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR;
+    }
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::GetAllDefaultActivatedOsAccounts(std::map<uint64_t, int32_t> &activatedIds)
+{
+    std::lock_guard<std::mutex> lock(operatingMutex_);
+    activatedIds.clear();
+    auto it = [&activatedIds](uint64_t displayId, int32_t id) {
+        activatedIds.emplace(displayId, id);
+    };
+    defaultActivatedIds_.Iterate(it);
     return ERR_OK;
 }
 
@@ -2954,6 +3232,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountToBeRemoved(int32_t localId, bool to
         ACCOUNT_LOGE("The account %{public}d already in operating", localId);
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
     }
+
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(localId, osAccountInfo);
     if (errCode != ERR_OK) {
@@ -2964,17 +3243,12 @@ ErrCode IInnerOsAccountManager::SetOsAccountToBeRemoved(int32_t localId, bool to
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
 
-    if (toBeRemoved && (localId == defaultActivatedId_)) {
-        ErrCode result = osAccountControl_->SetDefaultActivatedOsAccount(Constants::START_USER_ID);
-        if (result != ERR_OK) {
-            ReportOsAccountOperationFail(localId, OPERATION_SET_TO_BE_REMOVED, result,
-                "Persist defaultActivatedId to START_USER_ID failed");
-            ACCOUNT_LOGE("SetDefaultActivatedOsAccount persist failed, err=%{public}d, keep memory unchanged", result);
+    if (toBeRemoved) {
+        errCode = ResetDefaultActivatedAccount(localId);
+        if (errCode != ERR_OK) {
             RemoveLocalIdToOperating(localId);
-            return result;
+            return errCode;
         }
-        defaultActivatedId_ = Constants::START_USER_ID;
-        ACCOUNT_LOGE("Default activated account updated to START_USER_ID");
     }
 
     osAccountInfo.SetToBeRemoved(toBeRemoved);
@@ -2984,9 +3258,30 @@ ErrCode IInnerOsAccountManager::SetOsAccountToBeRemoved(int32_t localId, bool to
             "Update ToBeRemoved flag failed");
         ACCOUNT_LOGE("Update ToBeRemoved flag failed, err=%{public}d", errCode);
     }
+
     RemoveLocalIdToOperating(localId);
     ReportOsAccountLifeCycle(localId, OPERATION_SET_TO_BE_REMOVED);
     return errCode;
+}
+
+ErrCode IInnerOsAccountManager::ResetDefaultActivatedAccount(int32_t localId)
+{
+    int32_t defaultActivatedId = -1;
+    if (defaultActivatedIds_.Find(Constants::DEFAULT_DISPLAY_ID, defaultActivatedId) &&
+        defaultActivatedId == localId) {
+        ErrCode err = osAccountControl_->SetDefaultActivatedOsAccount(Constants::DEFAULT_DISPLAY_ID,
+            Constants::START_USER_ID);
+        if (err != ERR_OK) {
+            ReportOsAccountOperationFail(localId, OPERATION_SET_TO_BE_REMOVED, err,
+                "Persist defaultActivatedId to START_USER_ID failed for default display");
+            ACCOUNT_LOGE("SetDefaultActivatedOsAccount persist failed for default display, err=%{public}d", err);
+            return err;
+        }
+        defaultActivatedIds_.EnsureInsert(Constants::DEFAULT_DISPLAY_ID, Constants::START_USER_ID);
+        ACCOUNT_LOGI("Successfully updated default activated account for default display");
+    }
+    
+    return ERR_OK;
 }
 
 ErrCode IInnerOsAccountManager::IsValidOsAccount(const OsAccountInfo &osAccountInfo)

@@ -89,7 +89,7 @@ void ActivateOAExecuteCB(napi_env env, void *data);
 
 void ActivateOACallbackCompletedCB(napi_env env, napi_status status, void *data);
 
-bool ParseParaDeactivateOA(napi_env env, napi_callback_info cbInfo, ActivateOAAsyncContext *asyncContext);
+bool ParseParaDeactivateOA(napi_env env, napi_callback_info cbInfo, DeactivateOAAsyncContext *asyncContext);
 
 void DeactivateOAExecuteCB(napi_env env, void *data);
 
@@ -148,9 +148,19 @@ void QueryCreateOACallbackCompletedCB(napi_env env, napi_status status, void *da
 
 void QueryActiveIdsCallbackCompletedCB(napi_env env, napi_status status, void *data);
 
+bool ParseParaGetForegroundOALocalId(napi_env env, napi_callback_info cbInfo,
+    GetForegroundOALocalIdAsyncContext *asyncContext);
+
 void GetForegroundOALocalIdExecuteCB(napi_env env, void *data);
 
 void GetForegroundOALocalIdCallbackCompletedCB(napi_env env, napi_status status, void *data);
+
+bool ParseParaGetForegroundOADisplayId(napi_env env, napi_callback_info cbInfo,
+    GetForegroundOADisplayIdAsyncContext *asyncContext);
+
+void GetForegroundOADisplayIdExecuteCB(napi_env env, void *data);
+
+void GetForegroundOADisplayIdCallbackCompletedCB(napi_env env, napi_status status, void *data);
 
 void QueryOAInfoForResult(napi_env env, const std::vector<OsAccountInfo> &info, napi_value &result);
 

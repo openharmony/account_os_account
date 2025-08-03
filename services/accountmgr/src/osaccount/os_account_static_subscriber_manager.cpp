@@ -15,6 +15,7 @@
 
 #include "os_account_static_subscriber_manager.h"
 
+#include <cinttypes>
 #include <dlfcn.h>
 #include <thread>
 #include <pthread.h>
@@ -117,8 +118,9 @@ ErrCode OsAccountStaticSubscriberManager::PublishToSubscriber(
         ACCOUNT_LOGE("Invalid subscriber");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    ACCOUNT_LOGI("State: %{public}d, fromId: %{public}d, toId: %{public}d, subscriberPath: %{public}s",
-        data.state, data.fromId, data.toId, subscriber->path.c_str());
+    ACCOUNT_LOGI(
+        "State: %{public}d, fromId: %{public}d, toId: %{public}d, displayId: %{public}llu, subscriberPath: %{public}s",
+        data.state, data.fromId, data.toId, static_cast<unsigned long long>(data.displayId), subscriber->path.c_str());
 #ifdef HICOLLIE_ENABLE
     AccountTimer timer;
 #endif
@@ -127,7 +129,8 @@ ErrCode OsAccountStaticSubscriberManager::PublishToSubscriber(
     return (*reinterpret_cast<OnOsAccountStateChangedFunc>(subscriber->callback))(&data);
 }
 
-ErrCode OsAccountStaticSubscriberManager::Publish(int32_t fromId, OsAccountState state, int32_t toId)
+ErrCode OsAccountStaticSubscriberManager::Publish(int32_t fromId, OsAccountState state,
+    int32_t toId, uint64_t displayId)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = state2Subscribers_.find(state);
@@ -136,18 +139,22 @@ ErrCode OsAccountStaticSubscriberManager::Publish(int32_t fromId, OsAccountState
         return ERR_OK;
     }
     for (const std::shared_ptr<StaticSubscriber> &subscriber : it->second) {
-        auto task = [subscriber, state, fromId, toId] {
+        auto task = [subscriber, state, fromId, toId, displayId] {
             COsAccountStateData data;
             data.fromId = fromId;
             data.state = state;
             data.toId = toId;
+            data.displayId = displayId;
+
             ErrCode errCode = PublishToSubscriber(subscriber, data);
             if (errCode != ERR_OK) {
                 ACCOUNT_LOGE("Failed to publish to subscriber, path=%{public}s, state=%{public}d, fromId=%{public}d, "
-                    "toId=%{public}d, errCode=%{public}d", subscriber->path.c_str(), state, fromId, toId, errCode);
+                    "toId=%{public}d, displayId=%{public}llu, errCode=%{public}d",
+                    subscriber->path.c_str(), state, fromId, toId, static_cast<unsigned long long>(displayId), errCode);
                 REPORT_OS_ACCOUNT_FAIL(data.toId, Constants::OPERATION_EVENT_PUBLISH, errCode,
                     "Failed to publish to subscriber, path=" + subscriber->path + ", state=" + std::to_string(state) +
-                    ", fromId=" + std::to_string(fromId) + ", toId=" + std::to_string(toId));
+                    ", fromId=" + std::to_string(fromId) + ", toId=" + std::to_string(toId) +
+                    ", displayId=" + std::to_string(displayId));
             }
         };
         std::thread publishThread(task);

@@ -118,6 +118,12 @@ int32_t OsAccountConvertToJSErrCode(int32_t errCode)
             return ERR_JS_OS_ACCOUNT_ALREADY_BOUND;
         case ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ACCOUNT_ALREADY_BOUND:
             return ERR_JS_DOMAIN_ACCOUNT_ALREADY_BOUND;
+        case ERR_ACCOUNT_COMMON_ACCOUNT_IN_DISPLAY_ID_NOT_FOUND_ERROR:
+            return ERR_JS_FOREGROUND_OS_ACCOUNT_NOT_FOUND;
+        case ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR:
+            return ERR_JS_DISPLAY_NOT_FOUND;
+        case ERR_ACCOUNT_COMMON_CROSS_DISPLAY_ACTIVE_ERROR:
+            return ERR_JS_CROSS_DISPLAY_ACTIVATION_NOT_SUPPORTED;
         default:
             return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
     }
@@ -161,7 +167,11 @@ static bool IsOsAccountServiceError(int32_t errCode)
 {
     return ((errCode >= ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR) &&
             (errCode <= ERR_OS_ACCOUNT_SERVICE_CODE_END)) ||
-           (errCode == ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED) || (errCode == ERR_ACCOUNT_COMMON_SHORT_NAME_HAD_EXISTED);
+           (errCode == ERR_ACCOUNT_COMMON_NAME_HAD_EXISTED) ||
+           (errCode == ERR_ACCOUNT_COMMON_SHORT_NAME_HAD_EXISTED) ||
+           (errCode == ERR_ACCOUNT_COMMON_ACCOUNT_IN_DISPLAY_ID_NOT_FOUND_ERROR) ||
+           (errCode == ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR) ||
+           (errCode == ERR_ACCOUNT_COMMON_CROSS_DISPLAY_ACTIVE_ERROR);
 }
 
 static bool IsDomainAccountServiceError(int32_t errCode)

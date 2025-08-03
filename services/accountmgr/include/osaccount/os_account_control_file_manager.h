@@ -87,7 +87,10 @@ public:
     ErrCode UpdateDeviceOwnerId(const int32_t deviceOwnerId) override;
 
     ErrCode SetDefaultActivatedOsAccount(const int32_t id) override;
+    ErrCode SetDefaultActivatedOsAccount(const uint64_t displayId, const int32_t id) override;
     ErrCode GetDefaultActivatedOsAccount(int32_t &id) override;
+    ErrCode GetDefaultActivatedOsAccount(const uint64_t displayId, int32_t &id) override;
+    ErrCode GetAllDefaultActivatedOsAccounts(std::map<uint64_t, int32_t> &ids) override;
     ErrCode GenerateAccountInfoDigestStr(
         const std::string &userInfoPath, const std::string &accountInfoStr, std::string &digestStr);
     ErrCode DeleteAccountInfoDigest(const std::string &userInfoPath);

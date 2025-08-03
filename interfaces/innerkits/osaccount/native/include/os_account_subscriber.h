@@ -16,6 +16,7 @@
 #ifndef OS_ACCOUNT_INTERFACES_INNERKITS_OSACCOUNT_NATIVE_INCLUDE_OS_ACCOUNT_SUBSCRIBER_H
 #define OS_ACCOUNT_INTERFACES_INNERKITS_OSACCOUNT_NATIVE_INCLUDE_OS_ACCOUNT_SUBSCRIBER_H
 
+#include <optional>
 #include "os_account_info.h"
 #include "os_account_state_reply_callback.h"
 #include "os_account_subscribe_info.h"
@@ -26,6 +27,7 @@ struct OsAccountStateData {
     OsAccountState state = OsAccountState::INVALID_TYPE;
     int32_t fromId = -1;
     int32_t toId = -1;
+    std::optional<uint64_t> displayId;
     std::shared_ptr<OsAccountStateReplyCallback> callback = nullptr;
 };
 

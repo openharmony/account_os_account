@@ -46,6 +46,7 @@ struct COsAccountStateData {
     OsAccountState state = OsAccountState::INVALID_TYPE;
     int32_t fromId = -1;
     int32_t toId = -1;
+    uint64_t displayId = 0;
 };
 
 typedef int32_t (*OnOsAccountStateChangedFunc)(const COsAccountStateData *stateData);

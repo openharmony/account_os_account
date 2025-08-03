@@ -391,6 +391,23 @@ public:
     static ErrCode ActivateOsAccount(const int id);
 
     /**
+     * @brief Activates a specified OS account.
+     * <p>
+     * If multiple OS accounts are available, you can call this method to enable a specific OS account
+     * to run in the foreground. Cross-display activation refers to switching a foreground OS account
+     * from one display to another. In standard non-cross-display activation, the OS account previously
+     * running in the foreground will be switched to the background. However, it is not supported in
+     * cross-display activation.
+     * </p>
+     *
+     * @permission ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION
+     * @param id - Indicates the local ID of the OS account.
+     * @param displayId - Indicates the display ID.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode ActivateOsAccount(const int32_t id, const uint64_t displayId);
+
+    /**
      * @brief Deactivates a specified OS account.
      * <p>
      * You can call this method to disable a specific OS account.
@@ -602,11 +619,27 @@ public:
     static ErrCode SetDefaultActivatedOsAccount(const int32_t id);
 
     /**
+     * @brief Sets the default activated OS account.
+     * @param displayId - Indicates the display ID.
+     * @param id - Indicates the local ID of the default activated OS account.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode SetDefaultActivatedOsAccount(const uint64_t displayId, const int32_t id);
+
+    /**
      * @brief Gets the default activated OS account.
      * @param id - Indicates the local IDs of the default activated OS accounts.
      * @return error code, see account_error_no.h
      */
     static ErrCode GetDefaultActivatedOsAccount(int32_t &id);
+
+    /**
+     * @brief Gets the default activated OS account.
+     * @param displayId - Indicates the display ID.
+     * @param id - Indicates the local ID of the default activated OS account.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode GetDefaultActivatedOsAccount(const uint64_t displayId, int32_t &id);
 
     /**
      * @brief Gets the currend user short name.
@@ -678,6 +711,14 @@ public:
      * @return error code, see account_error_no.h
      */
     static ErrCode GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId);
+
+    /**
+     * @brief Gets the display id from specified local id.
+     * @param localId - Indicates the local id of the specified display.
+     * @param displayId - Indicates the corresponding display id of specified localId.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode GetForegroundOsAccountDisplayId(const int32_t localId, uint64_t &displayId);
 
     /**
      * @brief Gets the foreground accounts.

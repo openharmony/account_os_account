@@ -96,11 +96,14 @@ public:
     virtual ErrCode SetBaseOsAccountConstraints(const int32_t id,
         const std::vector<std::string> &constraints, const bool enable) = 0;
     virtual ErrCode SetDefaultActivatedOsAccount(const int32_t id) = 0;
+    virtual ErrCode SetDefaultActivatedOsAccount(const uint64_t displayId, const int32_t id) = 0;
     virtual ErrCode GetDefaultActivatedOsAccount(int32_t &id) = 0;
+    virtual ErrCode GetDefaultActivatedOsAccount(const uint64_t displayId, int32_t &id) = 0;
     virtual ErrCode GetTypeNumber(const OsAccountType& type, int32_t& typeNumber) = 0;
     virtual ErrCode CheckTypeNumber(const OsAccountType& type) = 0;
     virtual ErrCode IsOsAccountForeground(const int32_t localId, const uint64_t displayId, bool &isForeground) = 0;
     virtual ErrCode GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId) = 0;
+    virtual ErrCode GetForegroundOsAccountDisplayId(const int32_t localId, uint64_t &displayId) = 0;
     virtual ErrCode GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts) = 0;
     virtual ErrCode GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds) = 0;
     virtual ErrCode SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved) = 0;
