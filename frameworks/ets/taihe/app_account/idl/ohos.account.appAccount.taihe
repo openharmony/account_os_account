@@ -231,26 +231,3 @@ interface AppAccountManager {
     @overload("auth")
     AuthWithMap(name: String, owner: String, authType: String, options: @sts_type("Record<String, Object>")Opaque, callback: AuthCallback);
 }
-
-interface Authenticator {
-    @overload("createAccountImplicitly")
-    CreateAccountImplicitly(options: CreateAccountImplicitlyOptions, callback: AuthCallback): void;
-
-    @overload("auth")
-    Auth(name: String, authType: String, options: @record Map<String, Opaque>, callback: AuthCallback): void;
-
-    @overload("setProperties")
-    SetProperties(options: SetPropertiesOptions, callback: AuthCallback): void;
-
-    @overload("verifyCredential")
-    VerifyCredential(name: String, options: VerifyCredentialOptions, callback: AuthCallback): void;
-
-    @overload("checkAccountLabels")
-    CheckAccountLabelsSyncTaihe(name: String, labels: Array<String>, callback: AuthCallback): void;
-
-    @overload("checkAccountRemovable")
-    CheckAccountRemovable(name: String, callback: AuthCallback): void;
-
-    @overload("getRemoteObject")
-    GetRemoteObject(): @sts_type("rpc.RemoteObject")Opaque;
-}

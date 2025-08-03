@@ -18,7 +18,7 @@
 namespace OHOS {
 namespace AccountSA {
 SubscriberPtr::SubscriberPtr(const AccountSA::AppAccountSubscribeInfo &subscribeInfo,
-    subscribe_callback callback):AccountSA::AppAccountSubscriber(subscribeInfo), callback_(callback)
+    subscribeCallback callback):AccountSA::AppAccountSubscriber(subscribeInfo), callback_(callback)
 {}
 
 SubscriberPtr::~SubscriberPtr()
@@ -29,14 +29,16 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AccountSA::AppAccountInf
     std::lock_guard<std::mutex> lock(g_thLockForAppAccountSubscribers);
     SubscriberPtr *subscriber = this;
     bool isFound = false;
-    for (const auto& objectInfoTmp : AccountSA::g_ThAppAccountSubscribers) {
+    for (const auto& objectInfoTmp : AccountSA::g_thAppAccountSubscribers) {
         for (const auto& item : objectInfoTmp.second) {
             if (item->subscriber.get() == subscriber) {
                 isFound = true;
                 break;
             }
         }
-        if (isFound) break;
+        if (isFound) {
+            break;
+        }
     }
 
     if (!isFound) {
@@ -52,7 +54,7 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AccountSA::AppAccountInf
         };
         tempInfo.push_back(tempAccountInfo);
     }
-    subscribe_callback call = callback_;
+    subscribeCallback call = callback_;
     call(tempInfo);
 }
 THauthenticatorAsyncCallback::THauthenticatorAsyncCallback()
