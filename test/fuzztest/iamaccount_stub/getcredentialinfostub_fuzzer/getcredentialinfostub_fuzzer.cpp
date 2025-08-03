@@ -64,8 +64,10 @@ bool GetCredentialInfoStubFuzzTest(const uint8_t *data, size_t size)
     std::shared_ptr<GetCredInfoCallbackImpl> callback =
         make_shared<GetCredInfoCallbackImpl>();
     sptr<IGetCredInfoCallback> wrapper = sptr<GetCredInfoCallbackService>::MakeSptr(callback);
-    if (!dataTemp.WriteRemoteObject(wrapper->AsObject())) {
-        return false;
+    if (fuzzData.GenerateBool()) {
+        if (!dataTemp.WriteRemoteObject(wrapper->AsObject())) {
+            return false;
+        }
     }
     MessageParcel reply;
     MessageOption option;

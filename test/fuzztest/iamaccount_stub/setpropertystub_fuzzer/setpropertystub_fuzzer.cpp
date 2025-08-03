@@ -66,11 +66,15 @@ bool SetPropertyStubFuzzTest(const uint8_t *data, size_t size)
     if (!dataTemp.WriteInt32(userId)) {
         return false;
     }
-    if (!dataTemp.WriteParcelable(&requestIam)) {
-        return false;
+    if (fuzzData.GenerateBool()) {
+        if (!dataTemp.WriteParcelable(&requestIam)) {
+            return false;
+        }
     }
-    if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
-        return false;
+    if (fuzzData.GenerateBool()) {
+        if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
+            return false;
+        }
     }
     MessageParcel reply;
     MessageOption option;
