@@ -33,6 +33,9 @@ using namespace std;
 using namespace OHOS::AccountSA;
 using namespace OHOS::Security::AccessToken;
 namespace OHOS {
+namespace {
+const uint32_t TEST_CODE = 100;
+}
 const std::u16string IAMACCOUNT_TOKEN = u"ohos.accountfwk.IAccountIAM";
 
 class GetEnrolledIdCallbackTest : public GetEnrolledIdCallback {
@@ -65,14 +68,17 @@ bool GetEnrolledIdStubFuzzTest(const uint8_t *data, size_t size)
     }
     auto callback = std::make_shared<GetEnrolledIdCallbackTest>();
     sptr<IGetEnrolledIdCallback> wrapper = sptr<GetEnrolledIdCallbackService>::MakeSptr(callback);
-    if (!dataTemp.WriteRemoteObject(wrapper->AsObject())) {
-        return false;
+    if (fuzzData.GenerateBool()) {
+        if (!dataTemp.WriteRemoteObject(wrapper->AsObject())) {
+            return false;
+        }
     }
     MessageParcel reply;
     MessageOption option;
     uint32_t code = static_cast<uint32_t>(IAccountIAMIpcCode::COMMAND_GET_ENROLLED_ID);
     auto iamAccountManagerService = std::make_shared<AccountIAMService>();
     iamAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
+    iamAccountManagerService->OnRemoteRequest(TEST_CODE, dataTemp, reply, option);
 
     return true;
 }

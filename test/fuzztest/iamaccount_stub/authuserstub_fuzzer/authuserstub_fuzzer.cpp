@@ -100,17 +100,24 @@ bool AuthUserStubFuzzTest(const uint8_t *data, size_t size)
     authParam.authType = static_cast<AuthType>(fuzzData.GenerateEnmu(IAMAuthType::TYPE_END));
     authParam.authTrustLevel = fuzzData.GenerateEnmu(AuthTrustLevel::ATL4);
     authParam.authIntent = fuzzData.GenerateEnmu(AuthIntent::ABANDONED_PIN_AUTH);
+    RemoteAuthParam remoteAuthParam = { fuzzData.GenerateString(), fuzzData.GenerateString(),
+        fuzzData.GetData<uint32_t>() };
+    authParam.remoteAuthParam = remoteAuthParam;
     std::shared_ptr<IDMCallback> ptr = make_shared<MockIDMCallback>();
     sptr<IIDMCallback> callback = new (std::nothrow) IDMCallbackService(userId, ptr);
     MessageParcel dataTemp;
     if (!dataTemp.WriteInterfaceToken(IAMACCOUNT_TOKEN)) {
         return false;
     }
-    if (!dataTemp.WriteParcelable(&authParam)) {
-        return false;
+    if (fuzzData.GenerateBool()) {
+        if (!dataTemp.WriteParcelable(&authParam)) {
+            return false;
+        }
     }
-    if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
-        return false;
+    if (fuzzData.GenerateBool()) {
+        if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
+            return false;
+        }
     }
     SetRemoteAuthParam(dataTemp, fuzzData);
     MessageParcel reply;

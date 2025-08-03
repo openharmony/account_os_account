@@ -33,6 +33,9 @@ using namespace OHOS::AccountSA;
 using namespace OHOS::Security::AccessToken;
 
 namespace OHOS {
+namespace {
+const uint32_t TEST_VECTOR_MAX_SIZE = 102401;
+}
 const std::u16string IAMACCOUNT_TOKEN = u"ohos.accountfwk.IAccountIAM";
 
 class MockGetSetPropCallback : public OHOS::AccountSA::GetSetPropCallback {
@@ -51,9 +54,7 @@ bool GetPropertyByCredentialIdStubFuzzTest(const uint8_t *data, size_t size)
     }
     FuzzData fuzzData(data, size);
     uint64_t credentialId = fuzzData.GetData<uint64_t>();
-    std::vector<Attributes::AttributeKey> keys = {
-        fuzzData.GenerateEnmu(Attributes::AttributeKey::ATTR_AUTH_INTENTION)
-    };
+    std::vector<int32_t> keys = { fuzzData.GetData<int32_t>() };
     std::shared_ptr<GetSetPropCallback> ptr = make_shared<MockGetSetPropCallback>();
     sptr<IGetSetPropCallback> callback = new (std::nothrow) GetSetPropCallbackService(ptr);
 
@@ -64,15 +65,19 @@ bool GetPropertyByCredentialIdStubFuzzTest(const uint8_t *data, size_t size)
     if (!dataTemp.WriteUint64(credentialId)) {
         return false;
     }
-    std::vector<uint32_t> attrKeys;
-    std::transform(keys.begin(), keys.end(), std::back_inserter(attrKeys),
-        [](const auto &key) { return static_cast<uint32_t>(key); });
-
-    if (!dataTemp.WriteUInt32Vector(attrKeys)) {
+    int32_t vecSize = fuzzData.GenerateBool() ? TEST_VECTOR_MAX_SIZE : keys.size();
+    if (!dataTemp.WriteInt32(vecSize)) {
         return false;
     }
-    if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
-        return false;
+    for (auto it4 = keys.begin(); it4 != keys.end(); ++it4) {
+        if (!dataTemp.WriteInt32((*it4))) {
+            return false;
+        }
+    }
+    if (fuzzData.GenerateBool()) {
+        if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
+            return false;
+        }
     }
 
     MessageParcel reply;
