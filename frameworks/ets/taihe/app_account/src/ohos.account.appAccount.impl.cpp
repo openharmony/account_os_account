@@ -1042,7 +1042,7 @@ public:
             return;
         }
         for (size_t index = 0; index < subscribe->second.size(); ++index) {
-            if(callback.has_value() && !(callback.value() == subscribe->second[index]->subscriber->callback_)) {
+            if (callback.has_value() && !(callback.value() == subscribe->second[index]->subscriber->callback_)) {
                 continue;
             }
             int errCode = AccountSA::AppAccountManager::UnsubscribeAppAccount(subscribe->second[index]->subscriber);
@@ -1052,7 +1052,7 @@ public:
                 return;
             }
             delete subscribe->second[index];
-            if(callback.has_value()) {
+            if (callback.has_value()) {
                 subscribe->second.erase(subscribe->second.begin() + index);
                 break;
             }
@@ -1067,8 +1067,8 @@ public:
         if (!CheckType(type)) {
             return;
         }
-        std::shared_ptr<AccountSA::AsyncContextForUnsubscribe> context
-            (new (std::nothrow) AccountSA::AsyncContextForUnsubscribe());
+        std::shared_ptr<AccountSA::AsyncContextForUnsubscribe> context(
+            new (std::nothrow) AccountSA::AsyncContextForUnsubscribe());
         if (context == nullptr) {
             ACCOUNT_LOGE("fail to create subscriber");
             return;
