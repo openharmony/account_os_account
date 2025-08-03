@@ -31,6 +31,22 @@ using namespace taihe;
 using namespace OHOS;
 using namespace ohos::account::appAccount;
 
+static std::map<uint64_t, std::vector<AccountSA::AsyncContextForSubscribe *>> g_thAppAccountSubscribers;
+static std::mutex g_thLockForAppAccountSubscribers;
+
+namespace OHOS {
+namespace AccountSA {
+void GetAppAccountInfo(std::map<uint64_t, std::vector<AccountSA::AsyncContextForSubscribe *>> appAccountSubscribers)
+{
+    appAccountSubscribers = g_thAppAccountSubscribers;
+}
+
+std::mutex& GetMutex()
+{
+    return g_thLockForAppAccountSubscribers;
+}
+}
+}
 
 namespace {
 using OHOS::AccountSA::ACCOUNT_LABEL;
@@ -959,8 +975,8 @@ public:
 
     static bool IsExitSubscribe(AccountSA::AsyncContextForSubscribe* context)
     {
-        auto subscribe = AccountSA::g_thAppAccountSubscribers.find(context->appAccountManager);
-        if (subscribe == AccountSA::g_thAppAccountSubscribers.end()) {
+        auto subscribe = g_thAppAccountSubscribers.find(context->appAccountManager);
+        if (subscribe == g_thAppAccountSubscribers.end()) {
             return false;
         }
 
@@ -1000,7 +1016,7 @@ public:
             ACCOUNT_LOGE("fail to create subscriber");
             return;
         }
-        std::lock_guard<std::mutex> lock(AccountSA::g_thLockForAppAccountSubscribers);
+        std::lock_guard<std::mutex> lock(g_thLockForAppAccountSubscribers);
         if (IsExitSubscribe(context.get())) {
             return;
         }
@@ -1010,14 +1026,14 @@ public:
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
             return;
         }
-        AccountSA::g_thAppAccountSubscribers[context->appAccountManager].emplace_back(context.get());
+        g_thAppAccountSubscribers[context->appAccountManager].emplace_back(context.get());
         context.release();
     }
 
     bool GetSubscriberByUnsubscribe(std::vector<std::shared_ptr<AccountSA::SubscriberPtr>> &subscribers,
         AccountSA::AsyncContextForUnsubscribe *asyncContextForOff)
     {
-        for (auto subscriberInstance : AccountSA::g_thAppAccountSubscribers) {
+        for (auto subscriberInstance : g_thAppAccountSubscribers) {
             if (subscriberInstance.first == asyncContextForOff->appAccountManager) {
                 for (auto item : subscriberInstance.second) {
                     subscribers.emplace_back(item->subscriber);
@@ -1031,9 +1047,9 @@ public:
     void Unsubscribe(std::shared_ptr<AccountSA::AsyncContextForUnsubscribe> context,
         optional_view<callback<void(array_view<AppAccountInfo> data)>> callback)
     {
-        std::lock_guard<std::mutex> lock(AccountSA::g_thLockForAppAccountSubscribers);
-        auto subscribe = AccountSA::g_thAppAccountSubscribers.find(context->appAccountManager);
-        if (subscribe == AccountSA::g_thAppAccountSubscribers.end()) {
+        std::lock_guard<std::mutex> lock(g_thLockForAppAccountSubscribers);
+        auto subscribe = g_thAppAccountSubscribers.find(context->appAccountManager);
+        if (subscribe == g_thAppAccountSubscribers.end()) {
             return;
         }
         std::vector<std::shared_ptr<AccountSA::SubscriberPtr>> subscribers = {nullptr};
@@ -1058,7 +1074,7 @@ public:
             }
         }
         if ((!callback.has_value()) || (subscribe->second.empty())) {
-            AccountSA::g_thAppAccountSubscribers.erase(subscribe);
+            g_thAppAccountSubscribers.erase(subscribe);
         }
     }
 

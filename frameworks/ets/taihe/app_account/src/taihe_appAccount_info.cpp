@@ -26,10 +26,13 @@ SubscriberPtr::~SubscriberPtr()
 
 void SubscriberPtr::OnAccountsChanged(const std::vector<AccountSA::AppAccountInfo> &accounts)
 {
+    std::mutex& g_thLockForAppAccountSubscribers = GetMutex();
+    std::map<uint64_t, std::vector<AsyncContextForSubscribe *>> g_thAppAccountSubscribers;
+    GetAppAccountInfo(g_thAppAccountSubscribers);
     std::lock_guard<std::mutex> lock(g_thLockForAppAccountSubscribers);
     SubscriberPtr *subscriber = this;
     bool isFound = false;
-    for (const auto& objectInfoTmp : AccountSA::g_thAppAccountSubscribers) {
+    for (const auto& objectInfoTmp : g_thAppAccountSubscribers) {
         for (const auto& item : objectInfoTmp.second) {
             if (item->subscriber.get() == subscriber) {
                 isFound = true;
