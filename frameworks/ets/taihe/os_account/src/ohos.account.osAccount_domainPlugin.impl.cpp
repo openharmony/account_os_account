@@ -38,7 +38,6 @@
 
 using namespace taihe;
 using namespace OHOS;
-using namespace ohos::account::osAccount;
 
 namespace {
 using OHOS::AccountSA::ACCOUNT_LABEL;
@@ -209,7 +208,7 @@ void RegisterPlugin(DomainPlugin plugin)
     int32_t errCode = AccountSA::DomainAccountClient::GetInstance().RegisterPlugin(innerPlugin);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("failed to register plugin, errCode=%{public}d", errCode);
-        int32_t jsErrCode = AccountIAMConvertToJSErrCode(errCode);
+        int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
         taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
     }
 }
