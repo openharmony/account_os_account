@@ -190,8 +190,8 @@ private:
     IUserAuthCallback ConvertToDomainAccountCallback(const std::shared_ptr<AccountSA::DomainAccountCallback> &callback)
     {
         ::taihe::callback<void(int32_t, ::ohos::account::osAccount::AuthResult const&)> onResultCallback =
-        ::taihe::make_holder<OnResultCallbackImpl, ::taihe::callback<void(int32_t,
-            ::ohos::account::osAccount::AuthResult const&)>>(callback);
+            ::taihe::make_holder<OnResultCallbackImpl, ::taihe::callback<void(int32_t,
+                ::ohos::account::osAccount::AuthResult const&)>>(callback);
 
         ::ohos::account::osAccount::IUserAuthCallback taiheCallback{
             .onResult = onResultCallback,

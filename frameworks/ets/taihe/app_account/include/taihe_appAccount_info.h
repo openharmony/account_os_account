@@ -25,7 +25,7 @@
 #include "app_account_common.h"
 #include "app_account_manager.h"
 
-using subscribe_callback = taihe::callback<void(taihe::array_view<ohos::account::appAccount::AppAccountInfo>)>;
+using subscribeCallback = taihe::callback<void(taihe::array_view<ohos::account::appAccount::AppAccountInfo>)>;
 
 namespace OHOS {
 namespace AccountSA {
@@ -33,31 +33,31 @@ namespace AccountSA {
 class SubscriberPtr : public AccountSA::AppAccountSubscriber {
 public:
     explicit SubscriberPtr(const AccountSA::AppAccountSubscribeInfo &subscribeInfo,
-        subscribe_callback callback);
+        subscribeCallback callback);
     ~SubscriberPtr() override;
     void OnAccountsChanged(const std::vector<AccountSA::AppAccountInfo> &accounts) override;
 
 public:
     std::mutex mutex_;
-    subscribe_callback callback_;
+    subscribeCallback callback_;
 };
 
 struct AsyncContextForSubscribe {
-    explicit AsyncContextForSubscribe(subscribe_callback callback): callbackRef(callback) {};
+    explicit AsyncContextForSubscribe(subscribeCallback callback): callbackRef(callback) {};
     std::string type;
     std::vector<std::string> owners;
     uint64_t appAccountManager = 0;
     std::shared_ptr<SubscriberPtr> subscriber = nullptr;
-    subscribe_callback callbackRef;
+    subscribeCallback callbackRef;
 };
 
-extern std::map<uint64_t,
-    std::vector<AsyncContextForSubscribe *>> g_ThAppAccountSubscribers;
-extern std::mutex g_thLockForAppAccountSubscribers;
+static std::map<uint64_t,
+    std::vector<AsyncContextForSubscribe *>> g_thAppAccountSubscribers;
+static std::mutex g_thLockForAppAccountSubscribers;
 
 struct AsyncContextForUnsubscribe {
     std::string type;
-    std::vector<std::shared_ptr<AccountSA::SubscriberPtr>> subscribers = {nullptr};
+    std::vector<std::shared_ptr<AccountSA::SubscriberPtr>> subscribers = {};
     uint64_t appAccountManager = 0;
     size_t argc = 0;
 };
