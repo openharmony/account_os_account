@@ -1477,7 +1477,7 @@ ErrCode IInnerOsAccountManager::QueryMaxLoggedInOsAccountNumber(uint32_t &maxNum
     maxNum = config_.maxLoggedInOsAccountNum;
 #else
     maxNum = 1;
-#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
+#endif // ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
     return ERR_OK;
 }
 #ifdef FUZZ_TEST
@@ -2295,7 +2295,7 @@ ErrCode IInnerOsAccountManager::SendToStorageAndAMSAccountStart(OsAccountInfo &o
     const uint64_t displayId, const bool isAppRecovery, int32_t oldId)
 {
     int32_t localId = static_cast<int32_t>(osAccountInfo.GetLocalId());
-    
+
     if (startStorage) {
         ErrCode errCode = SendToStorageAccountStart(osAccountInfo);
         if (errCode != ERR_OK && !isAppRecovery) {
@@ -2303,13 +2303,13 @@ ErrCode IInnerOsAccountManager::SendToStorageAndAMSAccountStart(OsAccountInfo &o
             return errCode;
         }
     }
-    
+
     ErrCode errCode = SendToAMSAccountStart(osAccountInfo, displayId, isAppRecovery);
     if (errCode != ERR_OK) {
         RollBackToEarlierAccount(localId, oldId);
         return errCode;
     }
-    
+
     return ERR_OK;
 }
 
@@ -2929,6 +2929,18 @@ ErrCode IInnerOsAccountManager::SetOsAccountToBeRemoved(int32_t localId, bool to
         RemoveLocalIdToOperating(localId);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
+
+    if (toBeRemoved && (localId == defaultActivatedId_)) {
+        ErrCode result = osAccountControl_->SetDefaultActivatedOsAccount(Constants::START_USER_ID);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGE("SetDefaultActivatedOsAccount persist failed, err=%{public}d, keep memory unchanged", result);
+            RemoveLocalIdToOperating(localId);
+            return result;
+        }
+        defaultActivatedId_ = Constants::START_USER_ID;
+        ACCOUNT_LOGI("Default activated account updated to START_USER_ID");
+    }
+
     osAccountInfo.SetToBeRemoved(toBeRemoved);
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     RemoveLocalIdToOperating(localId);

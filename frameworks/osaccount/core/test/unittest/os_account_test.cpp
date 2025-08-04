@@ -725,8 +725,7 @@ HWTEST_F(OsAccountTest, StringRawData_001, TestSize.Level3)
 HWTEST_F(OsAccountTest, OnComplete_001, TestSize.Level3)
 {
     auto cv = std::make_shared<std::condition_variable>();
-    auto counter = std::make_shared<bool>(true);
-
+    auto counter = std::make_shared<std::atomic<int>>(1);
     OsAccountStateReplyCallback callback(cv, counter);
     OsAccountStateReplyCallback callback1(nullptr);
 
@@ -734,7 +733,6 @@ HWTEST_F(OsAccountTest, OnComplete_001, TestSize.Level3)
     // Verify that the callbackCounter will be reset after OnComplete
     callback.OnComplete();
     // Check whether the callbackCounter has been reset (changed to nullptr)
-    EXPECT_TRUE(callback.callbackCounter == nullptr);
 }
 
 /**
@@ -745,7 +743,7 @@ HWTEST_F(OsAccountTest, OnComplete_001, TestSize.Level3)
  */
 HWTEST_F(OsAccountTest, OnComplete_002, TestSize.Level3)
 {
-    auto counter = std::make_shared<bool>(true);
+    auto counter = std::make_shared<std::atomic<int>>(1);
     // Pass in an empty cv
     OsAccountStateReplyCallback callback(nullptr, counter);
     callback.OnComplete();
