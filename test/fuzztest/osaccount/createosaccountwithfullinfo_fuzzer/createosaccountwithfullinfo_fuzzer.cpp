@@ -25,6 +25,8 @@
 #include "nativetoken_kit.h"
 #include "os_account_constants.h"
 #include "os_account_manager.h"
+#include "os_account_manager_service.h"
+#include "os_account_proxy.h"
 #include "securec.h"
 #include "token_setproc.h"
 
@@ -67,7 +69,14 @@ bool CreateOsAccountWithFullInfoFuzzTest(const uint8_t* data, size_t size)
         ACCOUNT_LOGI("CreateOsAccountWithFullInfoFuzzTest RemoveOsAccount");
         OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId());
     }
-    
+    auto servicePtr = new (std::nothrow) OsAccountManagerService();
+    std::shared_ptr<OsAccountProxy> osAccountProxy = std::make_shared<OsAccountProxy>(servicePtr->AsObject());
+    result = osAccountProxy->CreateOsAccountWithFullInfo(osAccountInfo);
+    if (result == ERR_OK) {
+        ACCOUNT_LOGI("CreateOsAccountWithFullInfoFuzzTest RemoveOsAccount");
+        OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId());
+    }
+
     return result == ERR_OK;
 }
 } // namespace OHOS

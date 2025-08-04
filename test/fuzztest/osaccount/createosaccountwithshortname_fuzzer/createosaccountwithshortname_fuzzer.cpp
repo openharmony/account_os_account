@@ -22,6 +22,9 @@
 #include "account_log_wrapper.h"
 #include "fuzz_data.h"
 #include "os_account_constants.h"
+#include "os_account_info_json_parser.h"
+#include "os_account_manager_service.h"
+#include "os_account_proxy.h"
 #include "securec.h"
 
 using namespace std;
@@ -60,7 +63,24 @@ bool CreateOsAccountWithShortNameFuzzTest(const uint8_t* data, size_t size)
         ACCOUNT_LOGI("CreateOsAccountWithShortNameFuzzTest RemoveOsAccount");
         OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
     }
-    
+
+    auto servicePtr = new (std::nothrow) OsAccountManagerService();
+    std::shared_ptr<OsAccountProxy> osAccountProxy = std::make_shared<OsAccountProxy>(servicePtr->AsObject());
+    StringRawData stringRawData;
+    result = osAccountProxy->CreateOsAccount(accountName, shortName, testType, stringRawData);
+    if (result == ERR_OK) {
+        OsAccountInfo osAccountInfoTwo;
+        std::string accountStr;
+        stringRawData.Unmarshalling(accountStr);
+        auto jsonObject = CreateJsonFromString(accountStr);
+        if (jsonObject == nullptr) {
+            return false;
+        }
+        FromJson(jsonObject.get(), osAccountInfoTwo);
+        ACCOUNT_LOGI("CreateOsAccountWithShortNameFuzzTest with options RemoveOsAccount");
+        OsAccountManager::RemoveOsAccount(osAccountInfoTwo.GetLocalId());
+    }
+
     CreateOsAccountOptions options;
     if (useValidParams) {
         options.disallowedHapList.push_back("com.example.test");
@@ -79,7 +99,7 @@ bool CreateOsAccountWithShortNameFuzzTest(const uint8_t* data, size_t size)
         ACCOUNT_LOGI("CreateOsAccountWithShortNameFuzzTest with options RemoveOsAccount");
         OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
     }
-    
+
     return result == ERR_OK;
 }
 

@@ -20,8 +20,7 @@ import("//build/test.gni")
 ##############################fuzztest##########################################
 ohos_fuzztest("CreateOsAccountForDomainFuzzTest") {
   module_out_path = fuzz_output_path
-  fuzz_config_file =
-      "${os_account_path}/test/fuzztest/osaccount/createosaccountfordomain_fuzzer"
+  fuzz_config_file = "${os_account_path}/test/fuzztest/osaccount/createosaccountfordomain_fuzzer"
   include_dirs = [ "${os_account_path}/test/fuzztest/osaccount/common" ]
   cflags = [
     "-g",
@@ -34,9 +33,13 @@ ohos_fuzztest("CreateOsAccountForDomainFuzzTest") {
   deps = [
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_proxy",
+    "${os_account_path}/services/accountmgr:accountmgr",
   ]
 
   external_deps = [
+    "ability_runtime:app_manager",
+    "cJSON:cjson",
     "c_utils:utils",
     "hilog:libhilog",
   ]
