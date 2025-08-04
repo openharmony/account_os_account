@@ -32,6 +32,9 @@ using namespace std;
 using namespace OHOS::AccountSA;
 using namespace OHOS::Security::AccessToken;
 namespace OHOS {
+namespace {
+const uint32_t TEST_VECTOR_MAX_SIZE = 102401;
+}
 const std::u16string IAMACCOUNT_TOKEN = u"ohos.accountfwk.IAccountIAM";
 
 class MockIDMCallback : public OHOS::AccountSA::IDMCallback {
@@ -65,11 +68,19 @@ bool DelUserStubFuzzTest(const uint8_t *data, size_t size)
     if (!dataTemp.WriteInt32(userId)) {
         return false;
     }
-    if (!dataTemp.WriteUInt8Vector(authToken)) {
+    int32_t vecSize = fuzzData.GenerateBool() ? TEST_VECTOR_MAX_SIZE : authToken.size();
+    if (!dataTemp.WriteInt32(vecSize)) {
         return false;
     }
-    if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
-        return false;
+    for (auto it = authToken.begin(); it != authToken.end(); ++it) {
+        if (!dataTemp.WriteUint8((*it))) {
+            return false;
+        }
+    }
+    if (fuzzData.GenerateBool()) {
+        if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
+            return false;
+        }
     }
     MessageParcel reply;
     MessageOption option;
