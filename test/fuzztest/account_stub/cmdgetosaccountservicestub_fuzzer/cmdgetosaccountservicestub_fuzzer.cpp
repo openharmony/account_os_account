@@ -35,6 +35,7 @@ constexpr char16_t NULL_CHARACTER = 0;
 constexpr char16_t ASCII_MAX = 0x007F;
 constexpr char16_t PRINTABLE_ASCII_COUNT = 95;
 constexpr char16_t SPACE_CHARACTER = 32;
+const uint32_t TEST_CODE = 1000;
 
 std::u16string GenerateRandomU16String(FuzzData& fuzzData)
 {
@@ -86,6 +87,25 @@ bool CmdGetOsAccountServiceStubFuzzTest(const uint8_t* data, size_t size, uint32
     DelayedRefSingleton<AccountMgrService>::GetInstance().OnRemoteRequest(code, dataTemp, reply, option);
     return true;
 }
+
+void SendRequestWithCode(int32_t code)
+{
+    MessageParcel dataTemp;
+    dataTemp.WriteInterfaceToken(ACCOUNT_TOKEN);
+    MessageOption option;
+    MessageParcel reply;
+    DelayedRefSingleton<AccountMgrService>::GetInstance().state_ = ServiceRunningState::STATE_RUNNING;
+    DelayedRefSingleton<AccountMgrService>::GetInstance().OnRemoteRequest(code, dataTemp, reply, option);
+}
+}
+
+extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
+{
+    OHOS::SendRequestWithCode(static_cast<uint32_t>(IAccountIpcCode::COMMAND_QUERY_OHOS_ACCOUNT_INFO));
+    OHOS::SendRequestWithCode(static_cast<uint32_t>(IAccountIpcCode::COMMAND_QUERY_DISTRIBUTED_VIRTUAL_DEVICE_ID));
+    OHOS::SendRequestWithCode(static_cast<uint32_t>(IAccountIpcCode::COMMAND_GET_OHOS_ACCOUNT_INFO));
+    OHOS::SendRequestWithCode(static_cast<uint32_t>(IAccountIpcCode::COMMAND_QUERY_DEVICE_ACCOUNT_ID));
+    return 0;
 }
 
 /* Fuzzer entry point */
@@ -100,5 +120,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         data, size, static_cast<uint32_t>(IAccountIpcCode::COMMAND_GET_ACCOUNT_I_A_M_SERVICE));
     OHOS::CmdGetOsAccountServiceStubFuzzTest(
         data, size, static_cast<uint32_t>(IAccountIpcCode::COMMAND_GET_DOMAIN_ACCOUNT_SERVICE));
+    OHOS::CmdGetOsAccountServiceStubFuzzTest(data, size, OHOS::TEST_CODE);
     return 0;
 }
