@@ -75,7 +75,7 @@ bool UnSubscribeAppAccountStubFuzzTest(const uint8_t* data, size_t size)
     if (!dataTemp.WriteInt32(ownerSize)) {
         return false;
     }
-    for (size_t i = 0; i < isMoreSize; i++) {
+    for (size_t i = 0; i < ownerSize; i++) {
         if (!dataTemp.WriteString(fuzzData.GenerateString())) {
             return false;
         }

@@ -27,16 +27,22 @@ using namespace std;
 using namespace OHOS::AccountSA;
 namespace OHOS {
 const std::u16string APPACCOUNT_TOKEN = u"OHOS.AccountSA.IAppAccount";
+const int CONST_NUMBER_ONE = 1;
 bool EnableAppAccessStubFuzzTest(const uint8_t *data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
         return false;
     }
     MessageParcel dataTemp;
-    if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
+    FuzzData fuzzData(data, size);
+    auto token = APPACCOUNT_TOKEN;
+    auto isWriteCorrectToken = fuzzData.GetData<bool>();
+    if (!isWriteCorrectToken) {
+        token.append(CONST_NUMBER_ONE, fuzzData.GetData<char16_t>());
+    }
+    if (!dataTemp.WriteInterfaceToken(token)) {
         return false;
     }
-    FuzzData fuzzData(data, size);
     std::string name = fuzzData.GenerateString();
     if (!dataTemp.WriteString(name)) {
         return false;
