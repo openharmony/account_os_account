@@ -14,26 +14,27 @@
  */
 
 #include "os_account_state_reply_callback.h"
-#include "account_log_wrapper.h"
 
 namespace OHOS {
 namespace AccountSA {
-OsAccountStateReplyCallback::OsAccountStateReplyCallback(
-    const sptr<IRemoteObject> &object)
+
+OsAccountStateReplyCallback::OsAccountStateReplyCallback(const sptr<IRemoteObject> &object)
 {}
 
 OsAccountStateReplyCallback::OsAccountStateReplyCallback(
-    const std::shared_ptr<std::condition_variable> &cv, const std::shared_ptr<bool> &callbackCounter)
-    : cv_(cv), callbackCounter(callbackCounter)
+    const std::shared_ptr<std::condition_variable> &cv,
+    const std::shared_ptr<std::atomic<int>> &counter)
+    : cv_(cv), counter_(counter)
 {}
 
 void OsAccountStateReplyCallback::OnComplete()
 {
-    if (cv_ == nullptr || callbackCounter == nullptr) {
+    if (counter_ == nullptr || cv_ == nullptr) {
         return;
     }
-    callbackCounter.reset();
+    counter_->fetch_sub(1);
     cv_->notify_one();
 }
-}  // namespace AccountSA
-}  // namespace OHOS
+
+} // namespace AccountSA
+} // namespace OHOS

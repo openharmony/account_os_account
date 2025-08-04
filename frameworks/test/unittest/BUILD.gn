@@ -61,6 +61,7 @@ ohos_unittest("account_proxy_mock_test") {
     "${os_account_innerkits_native_path}/src/os_account_constraint_subscriber.cpp",
     "${os_account_innerkits_native_path}/src/os_account_manager.cpp",
     "${os_account_innerkits_native_path}/src/os_account_subscriber.cpp",
+    "${os_account_core_path}/src/os_account_state_reply_callback.cpp",
     "account_iam_proxy_mock_test.cpp",
     "account_ohosaccount_proxy_mock_test.cpp",
     "mock/iservice_registry.cpp",
