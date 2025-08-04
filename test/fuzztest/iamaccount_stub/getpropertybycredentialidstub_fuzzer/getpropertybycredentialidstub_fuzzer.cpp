@@ -69,8 +69,8 @@ bool GetPropertyByCredentialIdStubFuzzTest(const uint8_t *data, size_t size)
     if (!dataTemp.WriteInt32(vecSize)) {
         return false;
     }
-    for (auto it4 = keys.begin(); it4 != keys.end(); ++it4) {
-        if (!dataTemp.WriteInt32((*it4))) {
+    for (auto it = keys.begin(); it != keys.end(); ++it) {
+        if (!dataTemp.WriteInt32((*it))) {
             return false;
         }
     }
