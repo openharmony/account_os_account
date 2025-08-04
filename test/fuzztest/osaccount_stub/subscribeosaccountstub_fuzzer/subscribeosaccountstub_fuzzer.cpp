@@ -18,16 +18,22 @@
 #include <thread>
 #include <vector>
 
+#include "access_token.h"
+#include "access_token_error.h"
+#include "accesstoken_kit.h"
 #include "fuzz_data.h"
 #include "ios_account.h"
+#include "nativetoken_kit.h"
 #include "os_account_event_listener.h"
 #include "os_account_manager_service.h"
 #include "os_account_subscriber.h"
 #include "os_account_subscribe_manager.h"
+#include "token_setproc.h"
 
 using namespace std;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
+using namespace OHOS::Security::AccessToken;
 
 class TestOsAccountEventListener : public OsAccountEventListener {
 public:
@@ -53,6 +59,9 @@ const int CONSTANTS_STATE_MAX = 13;
 const int CONSTANTS_SUBSCRIBE_TYPE_MAX = 13;
 constexpr uint32_t MAX_STATE_PUBLISH_COUNT = 100;
 constexpr uint32_t MIN_STATE_PUBLISH_COUNT = 1;
+constexpr int32_t PERMISSION_COUNT_NUM = 2;
+constexpr int32_t FIRST_PARAM_INDEX = 0;
+constexpr int32_t SECOND_PARAM_INDEX = 1;
 const std::u16string IOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccount";
 bool SubscribeOsAccountStubFuzzTest(const uint8_t *data, size_t size)
 {
@@ -198,6 +207,34 @@ bool OsAccountSubscribeWithHandshakeFuzzTest(const uint8_t *data, size_t size)
     return true;
 }
 } // namespace OHOS
+
+void NativeTokenGet()
+{
+    uint64_t tokenId;
+    const char **perms = new const char *[PERMISSION_COUNT_NUM];
+    perms[FIRST_PARAM_INDEX] = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
+    perms[SECOND_PARAM_INDEX] = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION";
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = PERMISSION_COUNT_NUM,
+        .aclsNum = 0,
+        .perms = perms,
+        .acls = nullptr,
+        .aplStr = "system_core",
+    };
+    infoInstance.processName = "RegisterInputer";
+    tokenId = GetAccessTokenId(&infoInstance);
+    SetSelfTokenID(tokenId);
+    AccessTokenKit::ReloadNativeTokenInfo();
+    delete[] perms;
+}
+
+/* Fuzzer entry point */
+extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
+{
+    NativeTokenGet();
+    return 0;
+}
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)

@@ -20,7 +20,10 @@
 #include "os_account_manager.h"
 #include "account_log_wrapper.h"
 #include "fuzz_data.h"
+#include "os_account.h"
 #include "os_account_constants.h"
+#include "os_account_manager_service.h"
+#include "os_account_proxy.h"
 #include "securec.h"
 
 using namespace std;
@@ -57,12 +60,75 @@ bool CreateOsAccountForDomainFuzzTest(const uint8_t* data, size_t size)
         ACCOUNT_LOGI("CreateOsAccountForDomainFuzzTest RemoveOsAccount");
         OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId());
     }
-    
+
+    auto servicePtr = new (std::nothrow) OsAccountManagerService();
+    std::shared_ptr<OsAccountProxy> osAccountProxy = std::make_shared<OsAccountProxy>(servicePtr->AsObject());
+    result = osAccountProxy->CreateOsAccountForDomain(testType, domainInfo, nullptr);
+    if (result == ERR_OK) {
+        ACCOUNT_LOGI("CreateOsAccountForDomainFuzzTest RemoveOsAccount");
+        OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId());
+    }
+
     return result == ERR_OK;
 }
 
+void CheckOsAccountStatus()
+{
+    OsAccountInfo osAccountInfoOne;
+    OsAccountType testType = OsAccountType::NORMAL;
+    std::string accountName = "fordomain_test_account";
+    OsAccountManager::CreateOsAccount(accountName, testType, osAccountInfoOne);
+    int32_t localId = osAccountInfoOne.GetLocalId();
+    OsAccountManager::ActivateOsAccount(localId);
+    OsAccountManager::DeactivateOsAccount(localId);
+    std::vector<std::string> states;
+    OsAccount::GetInstance().DumpState(localId, states);
+    OsAccountType getOsAccountType;
+    OsAccountManager::GetOsAccountType(localId, getOsAccountType);
+    std::string osAccountName;
+    OsAccountManager::GetOsAccountName(osAccountName);
+    std::string osAccountShortName;
+    OsAccountManager::GetOsAccountShortName(osAccountShortName);
+    std::vector<ForegroundOsAccount> accounts;
+    OsAccountManager::GetForegroundOsAccounts(accounts);
+    unsigned int osAccountsCount;
+    OsAccountManager::GetCreatedOsAccountsCount(osAccountsCount);
+    std::vector<std::string> constraints;
+    OsAccountManager::GetOsAccountAllConstraints(localId, constraints);
+    int32_t defaultActivatedOsAccountId;
+    OsAccountManager::GetDefaultActivatedOsAccount(defaultActivatedOsAccountId);
+    std::vector<int32_t> localIds;
+    OsAccountManager::GetBackgroundOsAccountLocalIds(localIds);
+    int osAccountLocalId;
+    OsAccountManager::GetOsAccountLocalIdFromProcess(osAccountLocalId);
+    OsAccountManager::GetOsAccountSwitchMod();
+    OsAccountType osAccountType;
+    OsAccountManager::GetOsAccountTypeFromProcess(osAccountType);
+    std::vector<int32_t> activeOsAccountIds;
+    OsAccountManager::QueryActiveOsAccountIds(activeOsAccountIds);
+    OsAccountInfo osAccountInfo;
+    OsAccountManager::QueryCurrentOsAccount(osAccountInfo);
+    std::vector<OsAccountInfo> osAccountInfos;
+    OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos);
+    uint32_t maxNum;
+    OsAccountManager::QueryMaxLoggedInOsAccountNumber(maxNum);
+    uint32_t maxOsAccountNumber;
+    OsAccountManager::QueryMaxOsAccountNumber(maxOsAccountNumber);
+    bool isVerified;
+    OsAccountManager::IsCurrentOsAccountVerified(isVerified);
+    bool isMainOsAccount;
+    OsAccountManager::IsMainOsAccount(isMainOsAccount);
+    bool isMultiOsAccountEnable;
+    OsAccountManager::IsMultiOsAccountEnable(isMultiOsAccountEnable);
+    OsAccountManager::DeactivateAllOsAccounts();
+}
 } // namespace OHOS
 
+extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
+{
+    OHOS::CheckOsAccountStatus();
+    return 0;
+}
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
