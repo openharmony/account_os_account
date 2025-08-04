@@ -72,8 +72,8 @@ bool DelUserStubFuzzTest(const uint8_t *data, size_t size)
     if (!dataTemp.WriteInt32(vecSize)) {
         return false;
     }
-    for (auto it3 = authToken.begin(); it3 != authToken.end(); ++it3) {
-        if (!dataTemp.WriteUint8((*it3))) {
+    for (auto it = authToken.begin(); it != authToken.end(); ++it) {
+        if (!dataTemp.WriteUint8((*it))) {
             return false;
         }
     }

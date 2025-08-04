@@ -76,8 +76,8 @@ bool DelCredStubFuzzTest(const uint8_t *data, size_t size)
     if (!dataTemp.WriteInt32(vecSize)) {
         return false;
     }
-    for (auto it2 = authToken.begin(); it2 != authToken.end(); ++it2) {
-        if (!dataTemp.WriteUint8((*it2))) {
+    for (auto it = authToken.begin(); it != authToken.end(); ++it) {
+        if (!dataTemp.WriteUint8((*it))) {
             return false;
         }
     }
