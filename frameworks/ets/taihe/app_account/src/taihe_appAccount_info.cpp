@@ -17,49 +17,6 @@
 
 namespace OHOS {
 namespace AccountSA {
-SubscriberPtr::SubscriberPtr(const AccountSA::AppAccountSubscribeInfo &subscribeInfo,
-    subscribeCallback callback):AccountSA::AppAccountSubscriber(subscribeInfo), callback_(callback)
-{}
-
-SubscriberPtr::~SubscriberPtr()
-{}
-
-void SubscriberPtr::OnAccountsChanged(const std::vector<AccountSA::AppAccountInfo> &accounts)
-{
-    std::mutex& g_thLockForAppAccountSubscribers = GetMutex();
-    std::map<uint64_t, std::vector<AsyncContextForSubscribe *>> g_thAppAccountSubscribers;
-    GetAppAccountInfo(g_thAppAccountSubscribers);
-    std::lock_guard<std::mutex> lock(g_thLockForAppAccountSubscribers);
-    SubscriberPtr *subscriber = this;
-    bool isFound = false;
-    for (const auto& objectInfoTmp : g_thAppAccountSubscribers) {
-        for (const auto& item : objectInfoTmp.second) {
-            if (item->subscriber.get() == subscriber) {
-                isFound = true;
-                break;
-            }
-        }
-        if (isFound) {
-            break;
-        }
-    }
-
-    if (!isFound) {
-        return;
-    }
-
-    std::vector<AccountSA::AppAccountInfo> tempAccountsInfos = accounts;
-    std::vector<ohos::account::appAccount::AppAccountInfo> tempInfo;
-    for (auto& accountInfo : tempAccountsInfos) {
-        ohos::account::appAccount::AppAccountInfo tempAccountInfo{
-            .owner = taihe::string(accountInfo.GetOwner().c_str()),
-            .name = taihe::string(accountInfo.GetName().c_str()),
-        };
-        tempInfo.push_back(tempAccountInfo);
-    }
-    subscribeCallback call = callback_;
-    call(tempInfo);
-}
 THauthenticatorAsyncCallback::THauthenticatorAsyncCallback()
 {}
 
