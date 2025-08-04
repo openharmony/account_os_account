@@ -35,7 +35,7 @@ constexpr char16_t NULL_CHARACTER = 0;
 constexpr char16_t ASCII_MAX = 0x007F;
 constexpr char16_t PRINTABLE_ASCII_COUNT = 95;
 constexpr char16_t SPACE_CHARACTER = 32;
-const uint32_t TEST_CODE = 100;
+const uint32_t TEST_CODE = 1000;
 
 std::u16string GenerateRandomU16String(FuzzData& fuzzData)
 {
