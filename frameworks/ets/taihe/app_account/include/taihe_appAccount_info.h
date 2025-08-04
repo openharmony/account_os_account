@@ -51,9 +51,6 @@ struct AsyncContextForSubscribe {
     subscribeCallback callbackRef;
 };
 
-void GetAppAccountInfo(std::map<uint64_t, std::vector<AsyncContextForSubscribe *>> appAccountSubscribers);
-std::mutex& GetMutex();
-
 struct AsyncContextForUnsubscribe {
     std::string type;
     std::vector<std::shared_ptr<AccountSA::SubscriberPtr>> subscribers = {};

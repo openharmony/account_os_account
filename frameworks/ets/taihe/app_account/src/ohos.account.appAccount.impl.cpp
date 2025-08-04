@@ -36,14 +36,45 @@ static std::mutex g_thLockForAppAccountSubscribers;
 
 namespace OHOS {
 namespace AccountSA {
-void GetAppAccountInfo(std::map<uint64_t, std::vector<AccountSA::AsyncContextForSubscribe *>> appAccountSubscribers)
-{
-    appAccountSubscribers = g_thAppAccountSubscribers;
-}
+SubscriberPtr::SubscriberPtr(const AccountSA::AppAccountSubscribeInfo &subscribeInfo,
+    subscribeCallback callback):AccountSA::AppAccountSubscriber(subscribeInfo), callback_(callback)
+{}
 
-std::mutex& GetMutex()
+SubscriberPtr::~SubscriberPtr()
+{}
+
+void SubscriberPtr::OnAccountsChanged(const std::vector<AccountSA::AppAccountInfo> &accounts)
 {
-    return g_thLockForAppAccountSubscribers;
+    std::lock_guard<std::mutex> lock(g_thLockForAppAccountSubscribers);
+    SubscriberPtr *subscriber = this;
+    bool isFound = false;
+    for (const auto& objectInfoTmp : g_thAppAccountSubscribers) {
+        for (const auto& item : objectInfoTmp.second) {
+            if (item->subscriber.get() == subscriber) {
+                isFound = true;
+                break;
+            }
+        }
+        if (isFound) {
+            break;
+        }
+    }
+
+    if (!isFound) {
+        return;
+    }
+
+    std::vector<AccountSA::AppAccountInfo> tempAccountsInfos = accounts;
+    std::vector<ohos::account::appAccount::AppAccountInfo> tempInfo;
+    for (auto& accountInfo : tempAccountsInfos) {
+        ohos::account::appAccount::AppAccountInfo tempAccountInfo{
+            .owner = taihe::string(accountInfo.GetOwner().c_str()),
+            .name = taihe::string(accountInfo.GetName().c_str()),
+        };
+        tempInfo.push_back(tempAccountInfo);
+    }
+    subscribeCallback call = callback_;
+    call(tempInfo);
 }
 }
 }
