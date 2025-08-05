@@ -96,6 +96,7 @@ const std::string STRING_DOMAIN_NAME_OUT_OF_RANGE(200, '1');  // length 200
 const std::string STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE(600, '1');  // length 600
 const std::string STRING_DOMAIN_VALID = "TestDomainMT";
 const std::string STRING_DOMAIN_ACCOUNT_NAME_VALID = "TestDomainAccountNameMT";
+const std::string TEST_LOCAL_PHOTO_MAX_SIZE((1024 * 1024 + 1), '1');
 const std::int32_t MAIN_ACCOUNT_ID = 100;
 const std::int32_t INVALID_ACCOUNT_ID = 200;
 #ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
@@ -2176,6 +2177,24 @@ HWTEST_F(OsAccountManagerServiceModuleTest, CheckOsAccountConstraint01, TestSize
     std::string constraint = "";
     EXPECT_EQ(osAccountManagerService_->IsOsAccountConstraintEnable(
         INVALID_ACCOUNT_ID, constraint, isConstraintEnable), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: ServiceCheck001
+ * @tc.desc: Test ParamCheck and SetOsAccountProfilePhoto.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, ServiceCheck001, TestSize.Level3)
+{
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetLocalId(TEST_UID);
+    EXPECT_EQ(osAccountManagerService_->CreateOsAccountWithFullInfo(osAccountInfo),
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(osAccountManagerService_->UpdateOsAccountWithFullInfo(osAccountInfo),
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(osAccountManagerService_->SetOsAccountProfilePhoto(TEST_UID, TEST_LOCAL_PHOTO_MAX_SIZE),
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 }  // namespace AccountSA
 }  // namespace OHOS
