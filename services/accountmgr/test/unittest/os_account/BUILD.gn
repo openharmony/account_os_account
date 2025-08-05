@@ -13,6 +13,7 @@
 
 import("//build/ohos.gni")
 import("//build/test.gni")
+import("../../../../../os_account.gni")
 import("../../../../../services/accountmgr/os_account_service.gni")
 
 module_output_path = "os_account/os_account"
@@ -220,8 +221,9 @@ ohos_unittest("os_account_domain_account_callback_test") {
     "kv_store:distributeddata_inner",
   ]
 
+  cflags_cc = []
   if (has_user_auth_part) {
-    cflags_cc = [ "-DHAS_USER_AUTH_PART" ]
+    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
     external_deps += [ "user_auth_framework:userauth_client" ]
   }
   if (os_account_support_domain_accounts) {
@@ -1053,8 +1055,9 @@ ohos_unittest("os_account_state_reply_callback_service_test") {
 
 group("unittest") {
   testonly = true
+  deps =[]
 
-  deps = [
+  deps += [
     ":OsAccountControlFileManagerUnitTest",
     ":OsAccountEventManagerMultipleThreadTest",
     ":OsAccountFileManagerMultipleThreadTest",

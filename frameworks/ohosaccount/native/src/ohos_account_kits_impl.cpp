@@ -374,7 +374,7 @@ void OhosAccountKitsImpl::RestoreSubscribe()
     std::lock_guard<std::mutex> lock(eventListenersMutex_);
     std::set<DISTRIBUTED_ACCOUNT_SUBSCRIBE_TYPE> typeList;
     DistributedAccountEventService::GetInstance()->GetAllType(typeList);
-    for (auto type : typeList) {
+    for (const auto &type : typeList) {
         ErrCode subscribeState = accountProxy->SubscribeDistributedAccountEvent(static_cast<int32_t>(type),
             DistributedAccountEventService::GetInstance()->AsObject());
         if (subscribeState != ERR_OK) {
