@@ -750,15 +750,17 @@ public:
         ani_object optionsObj = reinterpret_cast<ani_object>(options);
         ani_boolean isUndefined;
         ani_ref credentialRef;
+        bool hasCredential = true;
+        bool hasCredentialType = true;
         if (env->Object_GetPropertyByName_Ref(optionsObj, "credential", &credentialRef) != ANI_OK) {
             ACCOUNT_LOGE("Failed to get options's credential property");
-            return false;
+            hasCredential = false;
         }
         if (env->Reference_IsUndefined(credentialRef, &isUndefined) != ANI_OK) {
             ACCOUNT_LOGE("Failed to check undefined for credentialRef");
-            return false;
+            hasCredential = false;
         }
-        if (!isUndefined) {
+        if (hasCredential) {
             std::string innerCredential;
             ani_string credentialRefString = static_cast<ani_string>(credentialRef);
             RetrieveStringFromAni(env, credentialRefString, innerCredential);
@@ -767,13 +769,13 @@ public:
         ani_ref credentialTypeRef;
         if (env->Object_GetPropertyByName_Ref(optionsObj, "credentialType", &credentialTypeRef) != ANI_OK) {
             ACCOUNT_LOGE("Failed to get options's credentialType property");
-            return false;
+            hasCredentialType = false;
         }
         if (env->Reference_IsUndefined(credentialTypeRef, &isUndefined) != ANI_OK) {
             ACCOUNT_LOGE("Failed to check undefined for credentialTypeRef");
-            return false;
+            hasCredentialType = false;
         }
-        if (!isUndefined) {
+        if (hasCredentialType) {
             std::string innerCredentialType;
             ani_string credentialTypeRefString = static_cast<ani_string>(credentialTypeRef);
             RetrieveStringFromAni(env, credentialTypeRefString, innerCredentialType);
@@ -787,15 +789,16 @@ public:
         ani_object optionsObj = reinterpret_cast<ani_object>(options);
         ani_boolean isUndefined;
         ani_ref parametersRef;
+        bool hasParameters = true;
         if (env->Object_GetPropertyByName_Ref(optionsObj, "parameters", &parametersRef) != ANI_OK) {
             ACCOUNT_LOGE("Failed to get options's parameters property");
-            return false;
+            hasParameters = false;
         }
         if (env->Reference_IsUndefined(parametersRef, &isUndefined) != ANI_OK) {
             ACCOUNT_LOGE("Failed to check undefined for parametersRef");
-            return false;
+            hasParameters = false;
         }
-        if (!isUndefined) {
+        if (hasParameters) {
             auto status = AppExecFwk::UnwrapWantParams(env, parametersRef, innerOptions.parameters);
             if (!status) {
                 ACCOUNT_LOGE("Failed to UnwrapWantParams parameters status = %{public}d", status);
@@ -856,15 +859,17 @@ public:
         ani_object optionsObj = reinterpret_cast<ani_object>(options);
         ani_boolean isUndefined;
         ani_ref propertiesRef;
+        bool hasProperties = true;
+        bool hasParameters = true;
         if (env->Object_GetPropertyByName_Ref(optionsObj, "properties", &propertiesRef) != ANI_OK) {
             ACCOUNT_LOGE("Failed to get options's properties property");
-            return false;
+            hasProperties = false;
         }
         if (env->Reference_IsUndefined(propertiesRef, &isUndefined) != ANI_OK) {
             ACCOUNT_LOGE("Failed to check undefined for propertiesRef");
-            return false;
+            hasProperties = false;
         }
-        if (!isUndefined) {
+        if (hasProperties) {
             auto status = AppExecFwk::UnwrapWantParams(env, propertiesRef, innerOptions.properties);
             if (!status) {
                 ACCOUNT_LOGE("Failed to UnwrapWantParams properties status = %{public}d", status);
@@ -874,13 +879,13 @@ public:
         ani_ref parametersRef;
         if (env->Object_GetPropertyByName_Ref(optionsObj, "parameters", &parametersRef) != ANI_OK) {
             ACCOUNT_LOGE("Failed to get options's parameters property");
-            return false;
+            hasParameters = false;
         }
         if (env->Reference_IsUndefined(parametersRef, &isUndefined) != ANI_OK) {
             ACCOUNT_LOGE("Failed to check undefined for parametersRef");
-            return false;
+            hasParameters = false;
         }
-        if (!isUndefined) {
+        if (hasParameters) {
             auto status = AppExecFwk::UnwrapWantParams(env, parametersRef, innerOptions.parameters);
             if (!status) {
                 ACCOUNT_LOGE("Failed to UnwrapWantParams parameters status = %{public}d", status);
@@ -1010,13 +1015,11 @@ public:
         if (subscribe == g_thAppAccountSubscribers.end()) {
             return false;
         }
-
         for (size_t index = 0; index < subscribe->second.size(); index++) {
-        if (subscribe->second[index]->callbackRef == context->callbackRef) {
-            return true;
+            if (subscribe->second[index]->callbackRef == context->callbackRef) {
+                return true;
+            }
         }
-    }
-
         return false;
     }
 
