@@ -81,6 +81,9 @@
         "OHOS::AccountSA::OsAccount::SetCurrentOsAccountIsVerified(bool)";
         "OHOS::AccountSA::OsAccount::SetOsAccountIsVerified(int, bool)";
         "OHOS::AccountSA::OsAccountConstraintSubscriber::OnConstraintChanged(OHOS::AccountSA::OsAccountConstraintStateData const&)";
+        "OHOS::AccountSA::OsAccountConstraintSubscriber::GetConstraintSet(std::__h::set<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::less<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>&) const";
+        "OHOS::AccountSA::OsAccountConstraintSubscriber::~OsAccountConstraintSubscriber()";
+        "OHOS::AccountSA::OsAccountConstraintSubscriber::OsAccountConstraintSubscriber(std::__h::set<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::less<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&)";
         "OHOS::AccountSA::OsAccountEventListener::OsAccountEventListener()";
         "OHOS::AccountSA::OsAccountEventListener::InsertRecord(std::__h::shared_ptr<OHOS::AccountSA::OsAccountSubscriber> const&)";
         "OHOS::AccountSA::OsAccountEventListener::GetTotalSubscribeInfo()";
