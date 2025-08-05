@@ -37,7 +37,7 @@ static std::mutex g_thLockForAppAccountSubscribers;
 namespace OHOS {
 namespace AccountSA {
 SubscriberPtr::SubscriberPtr(const AccountSA::AppAccountSubscribeInfo &subscribeInfo,
-    subscribeCallback callback):AccountSA::AppAccountSubscriber(subscribeInfo), callback_(callback)
+    SubscribeCallback callback):AccountSA::AppAccountSubscriber(subscribeInfo), callback_(callback)
 {}
 
 SubscriberPtr::~SubscriberPtr()
@@ -73,7 +73,7 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AccountSA::AppAccountInf
         };
         tempInfo.push_back(tempAccountInfo);
     }
-    subscribeCallback call = callback_;
+    SubscribeCallback call = callback_;
     call(tempInfo);
 }
 }

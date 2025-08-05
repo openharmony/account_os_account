@@ -686,6 +686,11 @@ std::string ConvertMapViewToStringInner(uintptr_t parameters)
 {
     ani_env *env = get_env();
     ani_class cls;
+    if (env == nullptr) {
+        ACCOUNT_LOGE("ani_env is nullptr.");
+        return "";
+    }
+
     ani_status status = env->FindClass("Lescompat/JSON;", &cls);
     ani_static_method stringify;
     if (status != ANI_OK) {
@@ -708,7 +713,8 @@ std::string ConvertMapViewToStringInner(uintptr_t parameters)
     return parametersInnerString;
 }
 
-DomainServerConfig ConvertToDomainServerConfigTH(std::string id, std::string domain, std::string parameters)
+DomainServerConfig ConvertToDomainServerConfigTH(const std::string& id, const std::string& domain,
+    const std::string& parameters)
 {
     const DomainServerConfig emptyDomainServerConfig = {
         .parameters = 0,
@@ -1515,8 +1521,8 @@ public:
 
     void OnResult(const int32_t errCode, Parcel &parcel) override
     {
-        this->errCode_ = errCode;
         std::unique_lock<std::mutex> lock(mutex_);
+        this->errCode_ = errCode;
         if (this->onResultCalled_) {
             return;
         }
@@ -1631,6 +1637,7 @@ public:
         if (this->onResultCalled_) {
             return;
         }
+        this->errorCode_ = errCode;
         this->onResultCalled_ = true;
         this->accessToken_ = accessToken;
         cv_.notify_one();
