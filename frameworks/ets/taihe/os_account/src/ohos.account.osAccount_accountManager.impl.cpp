@@ -189,6 +189,7 @@ public:
     {
         std::shared_ptr<AccountSA::OsAccountInfo> osAccountInfo(AccountSA::OsAccountInfo::Unmarshalling(parcel));
         if (osAccountInfo == nullptr) {
+            this->onResultCalled_ = true;
             ACCOUNT_LOGE("failed to unmarshalling OsAccountInfo");
             return;
         }
@@ -937,7 +938,8 @@ public:
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("CreateOsAccountForDomainSync failed with errCode: %{public}d", errCode);
             SetTaiheBusinessErrorFromNativeCode(errCode);
-            return ConvertOsAccountInfo(createDomainCallback->osAccountInfos_);
+            AccountSA::OsAccountInfo emptyOsAccountInfo;
+            return ConvertOsAccountInfo(emptyOsAccountInfo);
         }
         std::unique_lock<std::mutex> lock(createDomainCallback->mutex_);
         createDomainCallback->cv_.wait(lock, [createDomainCallback] { return createDomainCallback->onResultCalled_;});
@@ -968,7 +970,8 @@ public:
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("CreateOsAccountForDomainWithOpts failed with errCode: %{public}d", errCode);
             SetTaiheBusinessErrorFromNativeCode(errCode);
-            return ConvertOsAccountInfo(createDomainCallback->osAccountInfos_);
+            AccountSA::OsAccountInfo emptyOsAccountInfo;
+            return ConvertOsAccountInfo(emptyOsAccountInfo);
         }
         std::unique_lock<std::mutex> lock(createDomainCallback->mutex_);
         createDomainCallback->cv_.wait(lock, [createDomainCallback] { return createDomainCallback->onResultCalled_;});

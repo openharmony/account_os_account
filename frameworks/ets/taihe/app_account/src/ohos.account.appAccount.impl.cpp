@@ -213,7 +213,7 @@ public:
         AAFwk::WantParams wantParamsResult;
         ani_env *env = get_env();
         ani_ref requestRef = reinterpret_cast<ani_ref>(request);
-        auto status = AppExecFwk::UnwrapWantParams(env, requestRef, wantParamsResult);
+        bool status = AppExecFwk::UnwrapWantParams(env, requestRef, wantParamsResult);
         if (!status) {
             ACCOUNT_LOGE("Failed to UnwrapWantParams status = %{public}d", status);
             return;
@@ -311,14 +311,15 @@ public:
 
         AAFwk::WantParams params;
         ani_env *env = get_env();
-        ani_ref parametersRef = reinterpret_cast<ani_ref>(options.parameters.value());
-        auto status = AppExecFwk::UnwrapWantParams(env, parametersRef, params);
-        if (!status) {
-            ACCOUNT_LOGE("Failed to UnwrapWant options status = %{public}d", status);
-            return;
+        if (options.parameters.has_value()) {
+            ani_ref parametersRef = reinterpret_cast<ani_ref>(options.parameters.value());
+            auto status = AppExecFwk::UnwrapWantParams(env, parametersRef, params);
+            if (!status) {
+                ACCOUNT_LOGE("Failed to UnwrapWant options status = %{public}d", status);
+                return;
+            }
+            innerOptions.parameters.SetParams(params);
         }
-        innerOptions.parameters.SetParams(params);
-
         sptr<THAppAccountManagerCallback> appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
         if (appAccountMgrCb == nullptr) {
             ACCOUNT_LOGE("failed to create AppAccountManagerCallback for insufficient memory");
@@ -679,8 +680,22 @@ public:
         return array<string>(taihe::copy_data_t{}, innerAuthListVector.data(), innerAuthListVector.size());
     }
 
+    template <typename Signature>
+    taihe::callback<Signature> CreateEmptyCallback() {
+        typename taihe::callback_view<Signature>::abi_type emptyAbi {
+            .vtbl_ptr = nullptr,
+            .data_ptr = nullptr
+        };
+        return taihe::callback<Signature>(emptyAbi);
+    }
+
     AuthCallback GetAuthCallbackSync(string_view sessionId)
     {
+        AuthCallback emptyAuthCallback {
+            .onResult = CreateEmptyCallback<void(int32_t, optional_view<AuthResult>)>(),
+            .onRequestRedirected = CreateEmptyCallback<void(uintptr_t)>(),
+            .onRequestContinued = optional<taihe::callback<void ()>>(std::in_place_t{}, CreateEmptyCallback<void()>())
+        };
         std::string innerSessionId(sessionId.data(), sessionId.size());
         sptr<IRemoteObject> remoteCallback;
         int errorCode = AccountSA::AppAccountManager::GetAuthenticatorCallback(
@@ -688,6 +703,7 @@ public:
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return emptyAuthCallback;
         }
         sptr<AccountSA::IAppAccountAuthenticatorCallback> authenticatorCallback =
             iface_cast<OHOS::AccountSA::IAppAccountAuthenticatorCallback>(remoteCallback);
@@ -1067,7 +1083,7 @@ public:
     bool GetSubscriberByUnsubscribe(std::vector<std::shared_ptr<AccountSA::SubscriberPtr>> &subscribers,
         AccountSA::AsyncContextForUnsubscribe *asyncContextForOff)
     {
-        for (auto subscriberInstance : g_thAppAccountSubscribers) {
+        for (auto const& subscriberInstance : g_thAppAccountSubscribers) {
             if (subscriberInstance.first == asyncContextForOff->appAccountManager) {
                 for (auto item : subscriberInstance.second) {
                     subscribers.emplace_back(item->subscriber);
