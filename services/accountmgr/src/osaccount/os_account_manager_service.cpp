@@ -335,6 +335,11 @@ ErrCode OsAccountManagerService::CreateOsAccountWithFullInfo(const OsAccountInfo
 ErrCode OsAccountManagerService::CreateOsAccountWithFullInfo(const OsAccountInfo& osAccountInfo,
     const CreateOsAccountOptions &options)
 {
+    ErrCode code = const_cast<OsAccountInfo *>(&osAccountInfo)->ParamCheck();
+    if (code != ERR_OK) {
+        ACCOUNT_LOGE("OsAccountInfo required field is invalidate");
+        return code;
+    }
     ErrCode result = AccountPermissionManager::CheckSystemApp();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
@@ -372,6 +377,11 @@ ErrCode OsAccountManagerService::CreateOsAccountWithFullInfo(const OsAccountInfo
 
 ErrCode OsAccountManagerService::UpdateOsAccountWithFullInfo(const OsAccountInfo& osAccountInfo)
 {
+    ErrCode code = const_cast<OsAccountInfo *>(&osAccountInfo)->ParamCheck();
+    if (code != ERR_OK) {
+        ACCOUNT_LOGE("OsAccountInfo required field is invalidate");
+        return code;
+    }
     ErrCode result = AccountPermissionManager::CheckSystemApp();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
@@ -1011,6 +1021,11 @@ ErrCode OsAccountManagerService::SetOsAccountConstraints(
 
 ErrCode OsAccountManagerService::SetOsAccountProfilePhoto(const int id, const std::string &photo)
 {
+    int32_t photoSize = photo.size() + 1;
+    if (photoSize - 1 > static_cast<int32_t>(Constants::LOCAL_PHOTO_MAX_SIZE) || photoSize < 1) {
+        ACCOUNT_LOGE("PhotoSize is invalid, photosize = %{public}d", photoSize);
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
     // parameters check
     ErrCode res = CheckLocalId(id);
     if (res != ERR_OK) {
