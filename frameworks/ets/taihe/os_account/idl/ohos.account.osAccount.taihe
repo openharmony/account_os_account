@@ -369,25 +369,9 @@ struct EnrolledCredInfo {
     templateId: @typedarray Array<u8>;
 }
 
-
-struct DomainPlugin {
-    Auth: (domainAccountInfo: DomainAccountInfo, credential: @typedarray Array<u8>, callback: IUserAuthCallback) => void;
-
-    AuthWithPopup: (domainAccountInfo: DomainAccountInfo, callback: IUserAuthCallback) => void;
-
-    AuthWithToken: (domainAccountInfo: DomainAccountInfo, token: @typedarray Array<u8>, callback: IUserAuthCallback) => void;
-
-    GetAccountInfoSync: (options: GetDomainAccountInfoPluginOptions) => DomainAccountInfo;
-
-    GetAuthStatusInfoSync: (domainAccountInfo: DomainAccountInfo) => AuthStatusInfo;
-
-    BindAccountSync: (domainAccountInfo: DomainAccountInfo, localId: i32) => void;
-
-    UnbindAccountSync: (domainAccountInfo: DomainAccountInfo) => void;
-
-    IsAccountTokenValidSync: (domainAccountInfo: DomainAccountInfo, token: @typedarray Array<u8>) => bool;
-
-    GetAccessTokenSync: (options: GetDomainAccessTokenOptions) => @typedarray Array<u8>;
+interface DomainPlugin {
+    @overload("auth")
+    Auth(domainAccountInfo: DomainAccountInfo, credential: @typedarray Array<u8>, callback: IUserAuthCallback): void;
 }
 
 @class
@@ -399,10 +383,6 @@ interface DomainServerConfigManager {}
 @static("DomainAccountManager")
 @gen_promise("isAuthenticationExpired")
 function IsAuthenticationExpiredSync(domainAccountInfo: DomainAccountInfo): bool;
-
-@static("DomainAccountManager")
-@overload("registerPlugin")
-function RegisterPlugin(plugin: DomainPlugin): void;
 
 @static("DomainAccountManager")
 @overload("unregisterPlugin")
