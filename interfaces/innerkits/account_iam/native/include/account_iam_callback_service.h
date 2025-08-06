@@ -113,7 +113,7 @@ private:
 
 class IAMInputer final: public IInputer {
 public:
-    IAMInputer(int32_t userId, const std::shared_ptr<IInputer> &input);
+    IAMInputer(int32_t userId, const std::shared_ptr<IInputer> &inputer);
 
     void OnGetData(int32_t authSubType, std::vector<uint8_t> challenge,
         std::shared_ptr<IInputerData> inputerData) override;
