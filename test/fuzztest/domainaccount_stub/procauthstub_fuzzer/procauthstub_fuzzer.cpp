@@ -21,6 +21,7 @@
 #include "domain_account_callback.h"
 #include "domain_account_callback_service.h"
 #include "domain_account_manager_service.h"
+#include "domain_account_plugin_service.h"
 #include "fuzz_data.h"
 #include "idomain_account.h"
 
@@ -39,6 +40,30 @@ public:
     virtual ~TestDomainAuthCallback() = default;
     void OnResult(const int32_t errCode, Parcel &parcel) override
     {}
+};
+
+class TestDomainAccountPlugin : public DomainAccountPlugin {
+public:
+    TestDomainAccountPlugin() {}
+    virtual ~TestDomainAccountPlugin() {}
+    void Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
+        const std::shared_ptr<DomainAccountCallback> &callback) override {}
+    void AuthWithPopup(const AccountSA::DomainAccountInfo &info,
+        const std::shared_ptr<AccountSA::DomainAccountCallback> &callback) override {}
+    void AuthWithToken(const AccountSA::DomainAccountInfo &info, const std::vector<uint8_t> &token,
+        const std::shared_ptr<AccountSA::DomainAccountCallback> &callback) override {}
+    void GetAuthStatusInfo(const DomainAccountInfo &info,
+        const std::shared_ptr<DomainAccountCallback> &callback) override {}
+    void GetDomainAccountInfo(const GetDomainAccountInfoOptions &options,
+        const std::shared_ptr<DomainAccountCallback> &callback) override {}
+    void OnAccountBound(const DomainAccountInfo &info, const int32_t localId,
+        const std::shared_ptr<DomainAccountCallback> &callback) override {}
+    void OnAccountUnBound(const DomainAccountInfo &info,
+        const std::shared_ptr<DomainAccountCallback> &callback) override {}
+    void IsAccountTokenValid(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
+        const std::shared_ptr<DomainAccountCallback> &callback) override {}
+    void GetAccessToken(const DomainAccountInfo &domainInfo, const std::vector<uint8_t> &accountToken,
+        const GetAccessTokenOptions &option, const std::shared_ptr<DomainAccountCallback> &callback) override {}
 };
 }
 
@@ -96,6 +121,58 @@ public:
 
         return true;
     }
+
+    bool CheckIDomainAccountPlugin(uint32_t code)
+    {
+        MessageParcel dataTemp;
+        if (!dataTemp.WriteInterfaceToken(DomainAccountStub::GetDescriptor())) {
+            return false;
+        }
+
+        std::shared_ptr<DomainAccountPlugin> pluginImpl = std::make_shared<TestDomainAccountPlugin>();
+        sptr<IDomainAccountPlugin> plugin = new (std::nothrow) DomainAccountPluginService(pluginImpl);
+
+        if (!dataTemp.WriteRemoteObject(plugin->AsObject())) {
+            return false;
+        }
+        MessageParcel reply;
+        MessageOption option;
+        auto domainAccountService = std::make_shared<DomainAccountManagerService>();
+        domainAccountService->OnRemoteRequest(code, dataTemp, reply, option);
+        return true;
+    }
+
+    bool CheckIDomainAccountCallback(uint32_t code)
+    {
+        MessageParcel dataTemp;
+        if (!dataTemp.WriteInterfaceToken(DomainAccountStub::GetDescriptor())) {
+            return false;
+        }
+
+        auto callbackPtr = std::make_shared<TestDomainAuthCallback>();
+        sptr<IDomainAccountCallback> callback = new (std::nothrow) DomainAccountCallbackService(callbackPtr);
+
+        if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
+            return false;
+        }
+        MessageParcel reply;
+        MessageOption option;
+        auto domainAccountService = std::make_shared<DomainAccountManagerService>();
+        domainAccountService->OnRemoteRequest(code, dataTemp, reply, option);
+        return true;
+    }
+}
+
+extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
+{
+    OHOS::CheckIDomainAccountPlugin(static_cast<uint32_t>(IDomainAccountIpcCode::COMMAND_REGISTER_PLUGIN));
+    OHOS::CheckIDomainAccountPlugin(static_cast<uint32_t>(IDomainAccountIpcCode::COMMAND_UNREGISTER_PLUGIN));
+    OHOS::CheckIDomainAccountCallback(static_cast<uint32_t>(
+        IDomainAccountIpcCode::COMMAND_REGISTER_ACCOUNT_STATUS_LISTENER));
+    OHOS::CheckIDomainAccountCallback(static_cast<uint32_t>(
+        IDomainAccountIpcCode::COMMAND_UNREGISTER_ACCOUNT_STATUS_LISTENER));
+    OHOS::CheckIDomainAccountCallback(static_cast<uint32_t>(IDomainAccountIpcCode::COMMAND_GET_ALL_SERVER_CONFIGS));
+    return 0;
 }
 
 /* Fuzzer entry point */
