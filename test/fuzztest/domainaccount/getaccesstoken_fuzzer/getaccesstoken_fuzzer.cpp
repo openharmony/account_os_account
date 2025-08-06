@@ -33,6 +33,13 @@ public:
     virtual ~TestGetAccessTokenCallback() {};
     void OnResult(const int32_t errCode, const std::vector<uint8_t> &accessToken) {};
 };
+
+class TestDomainAccountStatusListener : public DomainAccountStatusListener {
+public:
+    TestDomainAccountStatusListener() {};
+    virtual ~TestDomainAccountStatusListener() {};
+    void OnStatusChanged(const DomainAccountEventData &data) override {}
+};
 }
 bool GetAccessTokenFuzzTest(const uint8_t* data, size_t size)
 {
@@ -54,6 +61,21 @@ bool GetAccessTokenFuzzTest(const uint8_t* data, size_t size)
     ret = DomainAccountClient::GetInstance().GetAccessToken(info, parameters, callback);
     return ret == ERR_OK;
 }
+
+void CheckDomainAccount()
+{
+    std::shared_ptr<DomainAccountStatusListener> callback = std::make_shared<TestDomainAccountStatusListener>();
+    DomainAccountClient::GetInstance().RegisterAccountStatusListener(callback);
+    DomainAccountClient::GetInstance().UnregisterAccountStatusListener(callback);
+    std::vector<DomainServerConfig> configs;
+    DomainAccountClient::GetInstance().GetAllServerConfigs(configs);
+}
+}
+
+extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
+{
+    OHOS::CheckDomainAccount();
+    return 0;
 }
 
 /* Fuzzer entry point */
