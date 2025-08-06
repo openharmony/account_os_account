@@ -60,11 +60,40 @@ bool ProcCreateOsAccountWithShortNameStubFuzzTest(const uint8_t *data, size_t si
 
     osAccountManagerService_ ->OnRemoteRequest(
         static_cast<int32_t>(IOsAccountIpcCode::
-            COMMAND_CREATE_OS_ACCOUNT_IN_STRING_IN_STRING_IN_INT_OUT_STRINGRAWDATA),
+            COMMAND_CREATE_OS_ACCOUNT_IN_STRING_IN_STRING_IN_INT_OUT_STRINGRAWDATA_IN_CREATEOSACCOUNTOPTIONS),
             datas, reply, option);
+
+    return true;
+}
+
+bool ProcCreateOsAccountWithoutOptionsStubFuzzTest(const uint8_t *data, size_t size)
+{
+    if ((data == nullptr) || (size == 0)) {
+        return false;
+    }
+    FuzzData fuzzData(data, size);
+    MessageParcel datas;
+    datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
+
+    if (!datas.WriteString(fuzzData.GenerateString())) {
+        return false;
+    }
+    if (!datas.WriteString(fuzzData.GenerateString())) {
+        return false;
+    }
+    OsAccountType testType = static_cast<OsAccountType>(fuzzData.GetData<size_t>() % CONSTANTS_NUMBER_FIVE);
+    if (!datas.WriteInt32(testType)) {
+        return false;
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+
+    auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
+
     osAccountManagerService_ ->OnRemoteRequest(
         static_cast<int32_t>(IOsAccountIpcCode::
-            COMMAND_CREATE_OS_ACCOUNT_IN_STRING_IN_STRING_IN_INT_OUT_STRINGRAWDATA_IN_CREATEOSACCOUNTOPTIONS),
+            COMMAND_CREATE_OS_ACCOUNT_IN_STRING_IN_STRING_IN_INT_OUT_STRINGRAWDATA),
             datas, reply, option);
 
     return true;
@@ -76,5 +105,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
     OHOS::ProcCreateOsAccountWithShortNameStubFuzzTest(data, size);
+    OHOS::ProcCreateOsAccountWithoutOptionsStubFuzzTest(data, size);
     return 0;
 }

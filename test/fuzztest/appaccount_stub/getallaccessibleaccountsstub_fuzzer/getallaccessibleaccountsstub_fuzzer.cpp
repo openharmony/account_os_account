@@ -27,7 +27,31 @@ using namespace std;
 using namespace OHOS::AccountSA;
 namespace OHOS {
 const std::u16string APPACCOUNT_TOKEN = u"OHOS.AccountSA.IAppAccount";
+const int CONST_NUMBER_ONE = 1;
 bool GetAllAccessibleAccountsStubFuzzTest(const uint8_t *data, size_t size)
+{
+    if ((data == nullptr) || (size == 0)) {
+        return false;
+    }
+    MessageParcel dataTemp;
+    FuzzData fuzzData(data, size);
+    auto token = APPACCOUNT_TOKEN;
+    auto isWriteCorrectToken = fuzzData.GetData<bool>();
+    if (!isWriteCorrectToken) {
+        token.append(CONST_NUMBER_ONE, fuzzData.GetData<char16_t>());
+    }
+    if (!dataTemp.WriteInterfaceToken(token)) {
+        return false;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_GET_ALL_ACCESSIBLE_ACCOUNTS);
+    auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
+    appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
+    return true;
+}
+
+bool QueryAllAccessibleAccountsStubFuzzTest(const uint8_t *data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
         return false;
@@ -36,17 +60,15 @@ bool GetAllAccessibleAccountsStubFuzzTest(const uint8_t *data, size_t size)
     if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
         return false;
     }
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code = static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_GET_ALL_ACCESSIBLE_ACCOUNTS);
-    auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
-    appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
     FuzzData fuzzData(data, size);
     std::string owner = fuzzData.GenerateString();
     if (!dataTemp.WriteString(owner)) {
         return false;
     }
-    code = static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_QUERY_ALL_ACCESSIBLE_ACCOUNTS);
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_QUERY_ALL_ACCESSIBLE_ACCOUNTS);
+    auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
     appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
     return true;
 }
@@ -57,5 +79,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
     OHOS::GetAllAccessibleAccountsStubFuzzTest(data, size);
+    OHOS::QueryAllAccessibleAccountsStubFuzzTest(data, size);
     return 0;
 }
