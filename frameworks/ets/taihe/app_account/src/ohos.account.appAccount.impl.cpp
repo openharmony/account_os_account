@@ -681,7 +681,8 @@ public:
     }
 
     template <typename Signature>
-    taihe::callback<Signature> CreateEmptyCallback() {
+    taihe::callback<Signature> CreateEmptyCallback()
+    {
         typename taihe::callback_view<Signature>::abi_type emptyAbi {
             .vtbl_ptr = nullptr,
             .data_ptr = nullptr
