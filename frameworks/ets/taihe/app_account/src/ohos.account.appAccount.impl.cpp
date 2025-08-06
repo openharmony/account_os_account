@@ -740,8 +740,9 @@ public:
         ErrCode errorCode = AccountSA::AppAccountManager::VerifyCredential(
             innerName, innerOwner, options, appAccountMgrCb);
         if (errorCode != ERR_OK) {
+            AAFwk::Want errResult;
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
-            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            appAccountMgrCb->OnResult(jsErrCode, errResult);
         }
     }
 
@@ -767,15 +768,12 @@ public:
         ani_object optionsObj = reinterpret_cast<ani_object>(options);
         ani_boolean isUndefined;
         ani_ref credentialRef;
-        bool hasCredential = true;
-        bool hasCredentialType = true;
-        if (env->Object_GetPropertyByName_Ref(optionsObj, "credential", &credentialRef) != ANI_OK) {
-            ACCOUNT_LOGE("Failed to get options's credential property");
-            hasCredential = false;
-        }
-        if (env->Reference_IsUndefined(credentialRef, &isUndefined) != ANI_OK) {
-            ACCOUNT_LOGE("Failed to check undefined for credentialRef");
-            hasCredential = false;
+        bool hasCredential = false;
+        bool hasCredentialType = false;
+        if (env->Object_GetPropertyByName_Ref(optionsObj, "credential", &credentialRef) == ANI_OK) {
+            if (env->Reference_IsUndefined(credentialRef, &isUndefined) == ANI_OK) {
+                hasCredential = true;
+            }
         }
         if (hasCredential) {
             std::string innerCredential;
@@ -784,13 +782,10 @@ public:
             innerOptions.credential = innerCredential;
         }
         ani_ref credentialTypeRef;
-        if (env->Object_GetPropertyByName_Ref(optionsObj, "credentialType", &credentialTypeRef) != ANI_OK) {
-            ACCOUNT_LOGE("Failed to get options's credentialType property");
-            hasCredentialType = false;
-        }
-        if (env->Reference_IsUndefined(credentialTypeRef, &isUndefined) != ANI_OK) {
-            ACCOUNT_LOGE("Failed to check undefined for credentialTypeRef");
-            hasCredentialType = false;
+        if (env->Object_GetPropertyByName_Ref(optionsObj, "credentialType", &credentialTypeRef) == ANI_OK) {
+            if (env->Reference_IsUndefined(credentialTypeRef, &isUndefined) == ANI_OK) {
+                hasCredentialType = true;
+            }
         }
         if (hasCredentialType) {
             std::string innerCredentialType;
@@ -806,14 +801,11 @@ public:
         ani_object optionsObj = reinterpret_cast<ani_object>(options);
         ani_boolean isUndefined;
         ani_ref parametersRef;
-        bool hasParameters = true;
-        if (env->Object_GetPropertyByName_Ref(optionsObj, "parameters", &parametersRef) != ANI_OK) {
-            ACCOUNT_LOGE("Failed to get options's parameters property");
-            hasParameters = false;
-        }
-        if (env->Reference_IsUndefined(parametersRef, &isUndefined) != ANI_OK) {
-            ACCOUNT_LOGE("Failed to check undefined for parametersRef");
-            hasParameters = false;
+        bool hasParameters = false;
+        if (env->Object_GetPropertyByName_Ref(optionsObj, "parameters", &parametersRef) == ANI_OK) {
+            if (env->Reference_IsUndefined(parametersRef, &isUndefined) == ANI_OK) {
+                hasParameters = true;
+            }
         }
         if (hasParameters) {
             auto status = AppExecFwk::UnwrapWantParams(env, parametersRef, innerOptions.parameters);
@@ -847,8 +839,9 @@ public:
         ErrCode errorCode = AccountSA::AppAccountManager::VerifyCredential(
             innerName, innerOwner, innerOptions, appAccountMgrCb);
         if (errorCode != ERR_OK) {
+            AAFwk::Want errResult;
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
-            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            appAccountMgrCb->OnResult(jsErrCode, errResult);
         }
     }
 
@@ -866,8 +859,9 @@ public:
         ErrCode errCode = AccountSA::AppAccountManager::SetAuthenticatorProperties(
             innerOwner, options, appAccountMgrCb);
         if (errCode != ERR_OK) {
+            AAFwk::Want errResult;
             int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
-            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            appAccountMgrCb->OnResult(jsErrCode, errResult);
         }
     }
 
@@ -875,16 +869,13 @@ public:
     {
         ani_object optionsObj = reinterpret_cast<ani_object>(options);
         ani_boolean isUndefined;
+        bool hasProperties = false;
+        bool hasParameters = false;
         ani_ref propertiesRef;
-        bool hasProperties = true;
-        bool hasParameters = true;
-        if (env->Object_GetPropertyByName_Ref(optionsObj, "properties", &propertiesRef) != ANI_OK) {
-            ACCOUNT_LOGE("Failed to get options's properties property");
-            hasProperties = false;
-        }
-        if (env->Reference_IsUndefined(propertiesRef, &isUndefined) != ANI_OK) {
-            ACCOUNT_LOGE("Failed to check undefined for propertiesRef");
-            hasProperties = false;
+        if (env->Object_GetPropertyByName_Ref(optionsObj, "properties", &propertiesRef) == ANI_OK) {
+            if (env->Reference_IsUndefined(propertiesRef, &isUndefined) == ANI_OK) {
+                hasProperties = true;
+            }
         }
         if (hasProperties) {
             auto status = AppExecFwk::UnwrapWantParams(env, propertiesRef, innerOptions.properties);
@@ -894,13 +885,10 @@ public:
             }
         }
         ani_ref parametersRef;
-        if (env->Object_GetPropertyByName_Ref(optionsObj, "parameters", &parametersRef) != ANI_OK) {
-            ACCOUNT_LOGE("Failed to get options's parameters property");
-            hasParameters = false;
-        }
-        if (env->Reference_IsUndefined(parametersRef, &isUndefined) != ANI_OK) {
-            ACCOUNT_LOGE("Failed to check undefined for parametersRef");
-            hasParameters = false;
+        if (env->Object_GetPropertyByName_Ref(optionsObj, "parameters", &parametersRef) == ANI_OK) {
+            if (env->Reference_IsUndefined(parametersRef, &isUndefined) == ANI_OK) {
+                hasParameters = true;
+            }
         }
         if (hasParameters) {
             auto status = AppExecFwk::UnwrapWantParams(env, parametersRef, innerOptions.parameters);
@@ -933,8 +921,9 @@ public:
         ErrCode errCode = AccountSA::AppAccountManager::SetAuthenticatorProperties(
             innerOwner, innerOptions, appAccountMgrCb);
         if (errCode != ERR_OK) {
+            AAFwk::Want errResult;
             int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
-            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            appAccountMgrCb->OnResult(jsErrCode, errResult);
         }
     }
 
@@ -978,7 +967,7 @@ public:
         AAFwk::Want options;
         sptr<THAppAccountManagerCallback> appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
         if (appAccountMgrCb == nullptr) {
-            int32_t jsErrCode = GenerateBusinessErrorCode(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+            int32_t jsErrCode = GenerateBusinessErrorCode(ERR_JS_SYSTEM_SERVICE_EXCEPTION);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
             ACCOUNT_LOGE("failed to create AppAccountManagerCallback for insufficient memory");
             return;
@@ -1042,7 +1031,7 @@ public:
 
     bool CheckType(string_view type)
     {
-        if (type.empty() || type != "accountChange") {
+        if (type != "accountChange") {
             ACCOUNT_LOGE("Subscriber type size %{public}zu is invalid.", type.size());
             std::string errMsg =
                 "Parameter error. The content of \"type\" must be \"accountChange\"";
