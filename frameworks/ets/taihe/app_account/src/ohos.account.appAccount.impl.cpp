@@ -25,10 +25,57 @@
 #include "ohos_account_kits.h"
 #include "stdexcept"
 #include "taihe/runtime.hpp"
+#include "ani_remote_object.h"
 
 using namespace taihe;
 using namespace OHOS;
 using namespace ohos::account::appAccount;
+
+static std::map<uint64_t, std::vector<AccountSA::AsyncContextForSubscribe *>> g_thAppAccountSubscribers;
+static std::mutex g_thLockForAppAccountSubscribers;
+
+namespace OHOS {
+namespace AccountSA {
+SubscriberPtr::SubscriberPtr(const AccountSA::AppAccountSubscribeInfo &subscribeInfo,
+    SubscribeCallback callback):AccountSA::AppAccountSubscriber(subscribeInfo), callback_(callback)
+{}
+
+SubscriberPtr::~SubscriberPtr()
+{}
+
+void SubscriberPtr::OnAccountsChanged(const std::vector<AccountSA::AppAccountInfo> &accounts)
+{
+    std::lock_guard<std::mutex> lock(g_thLockForAppAccountSubscribers);
+    SubscriberPtr *subscriber = this;
+    bool isFound = false;
+    for (const auto& objectInfoTmp : g_thAppAccountSubscribers) {
+        isFound = std::any_of(objectInfoTmp.second.begin(), objectInfoTmp.second.end(),
+            [subscriber](const AsyncContextForSubscribe* item) {
+                return item->subscriber.get() == subscriber;
+            });
+        if (isFound) {
+            break;
+        }
+    }
+
+    if (!isFound) {
+        return;
+    }
+
+    std::vector<AccountSA::AppAccountInfo> tempAccountsInfos = accounts;
+    std::vector<ohos::account::appAccount::AppAccountInfo> tempInfo;
+    for (auto& accountInfo : tempAccountsInfos) {
+        ohos::account::appAccount::AppAccountInfo tempAccountInfo{
+            .owner = taihe::string(accountInfo.GetOwner().c_str()),
+            .name = taihe::string(accountInfo.GetName().c_str()),
+        };
+        tempInfo.push_back(tempAccountInfo);
+    }
+    SubscribeCallback call = callback_;
+    call(tempInfo);
+}
+}
+}
 
 namespace {
 using OHOS::AccountSA::ACCOUNT_LABEL;
@@ -68,6 +115,133 @@ AccountSA::SelectAccountsOptions ConvertAccountsOptionsInfo(
     return tempOptions;
 }
 
+class THAppAccountManagerCallback : public AccountSA::AppAccountAuthenticatorCallbackStub {
+public:
+    explicit THAppAccountManagerCallback(const ohos::account::appAccount::AuthCallback &taiheCallback)
+        : taiheCallback_(taiheCallback) {}
+
+    ~THAppAccountManagerCallback() override = default;
+    ErrCode OnResult(int32_t resultCode, const AAFwk::Want &result) override
+    {
+        AppAccountInfo appAccountInfo = AppAccountInfo {
+            .owner = taihe::string(result.GetStringParam(AccountSA::Constants::KEY_ACCOUNT_OWNERS)),
+            .name = taihe::string(result.GetStringParam(AccountSA::Constants::KEY_ACCOUNT_NAMES))
+        };
+        AuthTokenInfo authTokenInfo = AuthTokenInfo {
+            .authType = taihe::string(result.GetStringParam(AccountSA::Constants::KEY_AUTH_TYPE)),
+            .token = taihe::string(result.GetStringParam(AccountSA::Constants::KEY_TOKEN))
+        };
+        AuthResult authResult = AuthResult {
+            .account = optional<AppAccountInfo>(std::in_place_t{}, appAccountInfo),
+            .tokenInfo = optional<AuthTokenInfo>(std::in_place_t{}, authTokenInfo),
+        };
+        taiheCallback_.onResult(resultCode, optional<AuthResult>(std::in_place_t{}, authResult));
+        return ERR_OK;
+    }
+
+    ErrCode OnRequestRedirected(const AAFwk::Want &request) override
+    {
+        ani_env *env = get_env();
+        auto requestObj = AppExecFwk::WrapWant(env, request);
+        auto requestPtr = reinterpret_cast<uintptr_t>(requestObj);
+        taiheCallback_.onRequestRedirected(requestPtr);
+        return ERR_OK;
+    }
+
+    ErrCode OnRequestContinued() override
+    {
+        if (taiheCallback_.onRequestContinued.has_value()) {
+            taiheCallback_.onRequestContinued.value()();
+        }
+        return ERR_OK;
+    }
+private:
+    ohos::account::appAccount::AuthCallback taiheCallback_;
+};
+
+class OnResultCallbackImpl {
+public:
+    explicit OnResultCallbackImpl(sptr<AccountSA::IAppAccountAuthenticatorCallback> callback)
+        : callback_(callback) {}
+
+    void operator()(int32_t result, const optional_view<AuthResult> authResult)
+    {
+        if (callback_ == nullptr) {
+            ACCOUNT_LOGE("Native callback is nullptr");
+            return;
+        }
+        AAFwk::Want wantResult;
+        if (authResult.has_value()) {
+            if (authResult.value().account.has_value()) {
+                std::string name(authResult.value().account.value().name.data(),
+                    authResult.value().account.value().name.size());
+                std::string owner(authResult.value().account.value().owner.data(),
+                    authResult.value().account.value().owner.size());
+                wantResult.SetParam(AccountSA::Constants::KEY_ACCOUNT_NAMES, name);
+                wantResult.SetParam(AccountSA::Constants::KEY_ACCOUNT_OWNERS, owner);
+            }
+            if (authResult.value().tokenInfo.has_value()) {
+                std::string authType(authResult.value().tokenInfo.value().authType.data(),
+                    authResult.value().tokenInfo.value().authType.size());
+                std::string token(authResult.value().tokenInfo.value().token.data(),
+                    authResult.value().tokenInfo.value().token.size());
+                wantResult.SetParam(AccountSA::Constants::KEY_AUTH_TYPE, authType);
+                wantResult.SetParam(AccountSA::Constants::KEY_TOKEN, token);
+            }
+        }
+        callback_->OnResult(result, wantResult);
+    }
+
+private:
+    sptr<AccountSA::IAppAccountAuthenticatorCallback> callback_;
+};
+
+class OnRequestRedirectedCallbackImpl {
+public:
+    explicit OnRequestRedirectedCallbackImpl(sptr<AccountSA::IAppAccountAuthenticatorCallback> callback)
+        : callback_(callback) {}
+
+    void operator()(uintptr_t request)
+    {
+        if (callback_ == nullptr) {
+            ACCOUNT_LOGE("Native callback is nullptr");
+            return;
+        }
+        AAFwk::Want wantResult;
+        AAFwk::WantParams wantParamsResult;
+        ani_env *env = get_env();
+        ani_ref requestRef = reinterpret_cast<ani_ref>(request);
+        bool status = AppExecFwk::UnwrapWantParams(env, requestRef, wantParamsResult);
+        if (!status) {
+            ACCOUNT_LOGE("Failed to UnwrapWantParams status = %{public}d", status);
+            return;
+        }
+        wantResult = wantResult.SetParams(wantParamsResult);
+        callback_->OnRequestRedirected(wantResult);
+    }
+
+private:
+    sptr<AccountSA::IAppAccountAuthenticatorCallback> callback_;
+};
+
+class OnRequestContinuedCallbackImpl {
+public:
+    explicit OnRequestContinuedCallbackImpl(sptr<AccountSA::IAppAccountAuthenticatorCallback> callback)
+        : callback_(callback) {}
+
+    void operator()()
+    {
+        if (callback_ == nullptr) {
+            ACCOUNT_LOGE("Native callback is nullptr");
+            return;
+        }
+        callback_->OnRequestContinued();
+    }
+
+private:
+    sptr<AccountSA::IAppAccountAuthenticatorCallback> callback_;
+};
+
 class AppAccountManagerImpl {
 public:
     AppAccountManagerImpl() {}
@@ -101,6 +275,63 @@ public:
         }
     }
 
+    void CreateAccountImplicitly(string_view owner, const AuthCallback &callback)
+    {
+        std::string innerOwner(owner.data(), owner.size());
+        AccountSA::CreateAccountImplicitlyOptions options;
+        sptr<THAppAccountManagerCallback> appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
+        if (appAccountMgrCb == nullptr) {
+            ACCOUNT_LOGE("failed to create AppAccountManagerCallback for insufficient memory");
+            return;
+        }
+        ErrCode errCode = AccountSA::AppAccountManager::CreateAccountImplicitly(innerOwner,
+            options, appAccountMgrCb);
+        if (errCode != ERR_OK) {
+            AAFwk::Want errResult;
+            int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
+            appAccountMgrCb->OnResult(jsErrCode, errResult);
+        }
+    }
+
+    void CreateAccountImplicitlyWithOpt(string_view owner,
+        const ohos::account::appAccount::CreateAccountImplicitlyOptions &options,
+        const AuthCallback &callback)
+    {
+        std::string innerOwner(owner.data(), owner.size());
+        AccountSA::CreateAccountImplicitlyOptions innerOptions;
+        if (options.authType.has_value()) {
+            innerOptions.authType = std::string(options.authType.value().data(), options.authType.value().size());
+        }
+        if (options.requiredLabels.has_value()) {
+            innerOptions.requiredLabels.assign(options.requiredLabels.value().data(),
+                options.requiredLabels.value().data() + options.requiredLabels.value().size());
+        }
+
+        AAFwk::WantParams params;
+        ani_env *env = get_env();
+        if (options.parameters.has_value()) {
+            ani_ref parametersRef = reinterpret_cast<ani_ref>(options.parameters.value());
+            auto status = AppExecFwk::UnwrapWantParams(env, parametersRef, params);
+            if (!status) {
+                ACCOUNT_LOGE("Failed to UnwrapWant options status = %{public}d", status);
+                return;
+            }
+            innerOptions.parameters.SetParams(params);
+        }
+        sptr<THAppAccountManagerCallback> appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
+        if (appAccountMgrCb == nullptr) {
+            ACCOUNT_LOGE("failed to create AppAccountManagerCallback for insufficient memory");
+            return;
+        }
+
+        ErrCode errCode = AccountSA::AppAccountManager::CreateAccountImplicitly(innerOwner,
+            innerOptions, appAccountMgrCb);
+        if (errCode != ERR_OK) {
+            AAFwk::Want errResult;
+            int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
+            appAccountMgrCb->OnResult(jsErrCode, errResult);
+        }
+    }
     void RemoveAccountSync(string_view name)
     {
         std::string innerName(name.data(), name.size());
@@ -447,6 +678,253 @@ public:
         return array<string>(taihe::copy_data_t{}, innerAuthListVector.data(), innerAuthListVector.size());
     }
 
+    template <typename Signature>
+    taihe::callback<Signature> CreateEmptyCallback()
+    {
+        typename taihe::callback_view<Signature>::abi_type emptyAbi {
+            .vtbl_ptr = nullptr,
+            .data_ptr = nullptr
+        };
+        return taihe::callback<Signature>(emptyAbi);
+    }
+
+    AuthCallback GetAuthCallbackSync(string_view sessionId)
+    {
+        AuthCallback emptyAuthCallback {
+            .onResult = CreateEmptyCallback<void(int32_t, optional_view<AuthResult>)>(),
+            .onRequestRedirected = CreateEmptyCallback<void(uintptr_t)>(),
+            .onRequestContinued = optional<taihe::callback<void ()>>(std::in_place_t{}, CreateEmptyCallback<void()>())
+        };
+        std::string innerSessionId(sessionId.data(), sessionId.size());
+        sptr<IRemoteObject> remoteCallback;
+        int errorCode = AccountSA::AppAccountManager::GetAuthenticatorCallback(
+            innerSessionId, remoteCallback);
+        if (errorCode != ERR_OK) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return emptyAuthCallback;
+        }
+        sptr<AccountSA::IAppAccountAuthenticatorCallback> authenticatorCallback =
+            iface_cast<OHOS::AccountSA::IAppAccountAuthenticatorCallback>(remoteCallback);
+        ::taihe::callback<void(int32_t, optional_view<AuthResult>)> onResult =
+            ::taihe::make_holder<OnResultCallbackImpl,
+                ::taihe::callback<void(int32_t, optional_view<AuthResult>)>>(authenticatorCallback);
+        ::taihe::callback<void(uintptr_t)> onRequestRedirected =
+            ::taihe::make_holder<OnRequestRedirectedCallbackImpl,
+                ::taihe::callback<void(uintptr_t)>>(authenticatorCallback);
+        ::taihe::callback<void()> onRequestContinued =
+            ::taihe::make_holder<OnRequestContinuedCallbackImpl,
+                ::taihe::callback<void()>>(authenticatorCallback);
+        AuthCallback authCallback{
+            .onResult = onResult,
+            .onRequestRedirected = onRequestRedirected,
+            .onRequestContinued = optional<taihe::callback<void ()>>(std::in_place_t{}, onRequestContinued),
+        };
+        return authCallback;
+    }
+
+    void VerifyCredentialSync(string_view name, string_view owner, AuthCallback const& callback)
+    {
+        std::string innerName(name.data(), name.size());
+        std::string innerOwner(owner.data(), owner.size());
+        AccountSA::VerifyCredentialOptions options;
+        sptr<THAppAccountManagerCallback> appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
+        if (appAccountMgrCb == nullptr) {
+            ACCOUNT_LOGE("Failed to create AppAccountManagerCallback for insufficient memory");
+            int32_t jsErrCode = GenerateBusinessErrorCode(JSErrorCode::ERR_JS_SYSTEM_SERVICE_EXCEPTION);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return;
+        }
+        ErrCode errorCode = AccountSA::AppAccountManager::VerifyCredential(
+            innerName, innerOwner, options, appAccountMgrCb);
+        if (errorCode != ERR_OK) {
+            AAFwk::Want errResult;
+            int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
+            appAccountMgrCb->OnResult(jsErrCode, errResult);
+        }
+    }
+
+    void RetrieveStringFromAni(ani_env *env, ani_string str, std::string &res)
+    {
+        ani_size sz {};
+        ani_status status = ANI_ERROR;
+        if ((status = env->String_GetUTF8Size(str, &sz)) != ANI_OK) {
+            ACCOUNT_LOGE("String_GetUTF8Size Fail! status: %{public}d", status);
+            return;
+        }
+        res.resize(sz + 1);
+        if ((status = env->String_GetUTF8SubString(str, 0, sz, res.data(), res.size(), &sz)) != ANI_OK) {
+            ACCOUNT_LOGE("String_GetUTF8SubString Fail! status: %{public}d", status);
+            return;
+        }
+        res.resize(sz);
+    }
+
+    bool ParseVerifyCredentialOptions(ani_env *env,
+        uintptr_t options, AccountSA::VerifyCredentialOptions &innerOptions)
+    {
+        ani_object optionsObj = reinterpret_cast<ani_object>(options);
+        ani_boolean isUndefined;
+        ani_ref credentialRef;
+        bool hasCredential = false;
+        bool hasCredentialType = false;
+        if (env->Object_GetPropertyByName_Ref(optionsObj, "credential", &credentialRef) == ANI_OK) {
+            if (env->Reference_IsUndefined(credentialRef, &isUndefined) == ANI_OK && !isUndefined) {
+                hasCredential = true;
+            }
+        }
+        if (hasCredential) {
+            std::string innerCredential;
+            ani_string credentialRefString = static_cast<ani_string>(credentialRef);
+            RetrieveStringFromAni(env, credentialRefString, innerCredential);
+            innerOptions.credential = innerCredential;
+        }
+        ani_ref credentialTypeRef;
+        if (env->Object_GetPropertyByName_Ref(optionsObj, "credentialType", &credentialTypeRef) == ANI_OK) {
+            if (env->Reference_IsUndefined(credentialTypeRef, &isUndefined) == ANI_OK && !isUndefined) {
+                hasCredentialType = true;
+            }
+        }
+        if (hasCredentialType) {
+            std::string innerCredentialType;
+            ani_string credentialTypeRefString = static_cast<ani_string>(credentialTypeRef);
+            RetrieveStringFromAni(env, credentialTypeRefString, innerCredentialType);
+            innerOptions.credentialType = innerCredentialType;
+        }
+        return ParseParameters(env, options, innerOptions);
+    }
+
+    bool ParseParameters(ani_env *env, uintptr_t options, AccountSA::VerifyCredentialOptions &innerOptions)
+    {
+        ani_object optionsObj = reinterpret_cast<ani_object>(options);
+        ani_boolean isUndefined;
+        ani_ref parametersRef;
+        bool hasParameters = false;
+        if (env->Object_GetPropertyByName_Ref(optionsObj, "parameters", &parametersRef) == ANI_OK) {
+            if (env->Reference_IsUndefined(parametersRef, &isUndefined) == ANI_OK) {
+                hasParameters = true;
+            }
+        }
+        if (hasParameters) {
+            auto status = AppExecFwk::UnwrapWantParams(env, parametersRef, innerOptions.parameters);
+            if (!status) {
+                ACCOUNT_LOGE("Failed to UnwrapWantParams parameters status = %{public}d", status);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    void VerifyCredentialWithOpt(string_view name, string_view owner, uintptr_t options, AuthCallback const& callback)
+    {
+        std::string innerName(name.data(), name.size());
+        std::string innerOwner(owner.data(), owner.size());
+        AccountSA::VerifyCredentialOptions innerOptions;
+        ani_env *env = get_env();
+        if (!ParseVerifyCredentialOptions(env, options, innerOptions)) {
+            ACCOUNT_LOGE("Failed to parse verifyCredentialOptions");
+            int32_t jsErrCode = GenerateBusinessErrorCode(JSErrorCode::ERR_JS_PARAMETER_ERROR);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return;
+        }
+        sptr<THAppAccountManagerCallback> appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
+        if (appAccountMgrCb == nullptr) {
+            ACCOUNT_LOGE("Failed to create AppAccountManagerCallback for insufficient memory");
+            int32_t jsErrCode = GenerateBusinessErrorCode(JSErrorCode::ERR_JS_SYSTEM_SERVICE_EXCEPTION);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return;
+        }
+        ErrCode errorCode = AccountSA::AppAccountManager::VerifyCredential(
+            innerName, innerOwner, innerOptions, appAccountMgrCb);
+        if (errorCode != ERR_OK) {
+            AAFwk::Want errResult;
+            int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
+            appAccountMgrCb->OnResult(jsErrCode, errResult);
+        }
+    }
+
+    void SetAuthenticatorPropertiesSync(string_view owner, AuthCallback const& callback)
+    {
+        std::string innerOwner(owner.data(), owner.size());
+        AccountSA::SetPropertiesOptions options;
+        sptr<THAppAccountManagerCallback> appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
+        if (appAccountMgrCb == nullptr) {
+            ACCOUNT_LOGE("Failed to create AppAccountManagerCallback for insufficient memory");
+            int32_t jsErrCode = GenerateBusinessErrorCode(JSErrorCode::ERR_JS_SYSTEM_SERVICE_EXCEPTION);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return;
+        }
+        ErrCode errCode = AccountSA::AppAccountManager::SetAuthenticatorProperties(
+            innerOwner, options, appAccountMgrCb);
+        if (errCode != ERR_OK) {
+            AAFwk::Want errResult;
+            int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
+            appAccountMgrCb->OnResult(jsErrCode, errResult);
+        }
+    }
+
+    bool ParseSetPropertiesOptions(ani_env *env, uintptr_t options, AccountSA::SetPropertiesOptions &innerOptions)
+    {
+        ani_object optionsObj = reinterpret_cast<ani_object>(options);
+        ani_boolean isUndefined;
+        bool hasProperties = false;
+        bool hasParameters = false;
+        ani_ref propertiesRef;
+        if (env->Object_GetPropertyByName_Ref(optionsObj, "properties", &propertiesRef) == ANI_OK) {
+            if (env->Reference_IsUndefined(propertiesRef, &isUndefined) == ANI_OK && !isUndefined) {
+                hasProperties = true;
+            }
+        }
+        if (hasProperties) {
+            auto status = AppExecFwk::UnwrapWantParams(env, propertiesRef, innerOptions.properties);
+            if (!status) {
+                ACCOUNT_LOGE("Failed to UnwrapWantParams properties status = %{public}d", status);
+                return false;
+            }
+        }
+        ani_ref parametersRef;
+        if (env->Object_GetPropertyByName_Ref(optionsObj, "parameters", &parametersRef) == ANI_OK) {
+            if (env->Reference_IsUndefined(parametersRef, &isUndefined) == ANI_OK && !isUndefined) {
+                hasParameters = true;
+            }
+        }
+        if (hasParameters) {
+            auto status = AppExecFwk::UnwrapWantParams(env, parametersRef, innerOptions.parameters);
+            if (!status) {
+                ACCOUNT_LOGE("Failed to UnwrapWantParams parameters status = %{public}d", status);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    void SetAuthenticatorPropertiesWithOpt(string_view owner, uintptr_t options, AuthCallback const& callback)
+    {
+        std::string innerOwner(owner.data(), owner.size());
+        AccountSA::SetPropertiesOptions innerOptions;
+        ani_env *env = get_env();
+        if (!ParseSetPropertiesOptions(env, options, innerOptions)) {
+            ACCOUNT_LOGE("Failed to parse setPropertiesOptions");
+            int32_t jsErrCode = GenerateBusinessErrorCode(JSErrorCode::ERR_JS_PARAMETER_ERROR);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return;
+        }
+        sptr<THAppAccountManagerCallback> appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
+        if (appAccountMgrCb == nullptr) {
+            ACCOUNT_LOGE("Failed to create AppAccountManagerCallback for insufficient memory");
+            int32_t jsErrCode = GenerateBusinessErrorCode(JSErrorCode::ERR_JS_SYSTEM_SERVICE_EXCEPTION);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return;
+        }
+        ErrCode errCode = AccountSA::AppAccountManager::SetAuthenticatorProperties(
+            innerOwner, innerOptions, appAccountMgrCb);
+        if (errCode != ERR_OK) {
+            AAFwk::Want errResult;
+            int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
+            appAccountMgrCb->OnResult(jsErrCode, errResult);
+        }
+    }
+
     AuthenticatorInfo QueryAuthenticatorInfoSync(string_view owner)
     {
         std::string innerOwner(owner.data(), owner.size());
@@ -478,7 +956,192 @@ public:
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
         }
     }
+
+    void AuthSync(string_view name, string_view owner, string_view authType, const AuthCallback &callback)
+    {
+        std::string innerName(name.data(), name.size());
+        std::string innerOwner(owner.data(), owner.size());
+        std::string innerAuthType(authType.data(), authType.size());
+        AAFwk::Want options;
+        sptr<THAppAccountManagerCallback> appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
+        if (appAccountMgrCb == nullptr) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(ERR_JS_SYSTEM_SERVICE_EXCEPTION);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            ACCOUNT_LOGE("failed to create AppAccountManagerCallback for insufficient memory");
+            return;
+        }
+        ErrCode errCode = AccountSA::AppAccountManager::Authenticate(
+            innerName, innerOwner, innerAuthType, options, appAccountMgrCb);
+        AAFwk::Want errResult;
+        if (errCode != ERR_OK) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
+            appAccountMgrCb->OnResult(jsErrCode, errResult);
+        }
+    }
+
+    void AuthWithMap(string_view name, string_view owner, string_view authType,
+        uintptr_t options, const AuthCallback &callback)
+    {
+        std::string innerName(name.data(), name.size());
+        std::string innerOwner(owner.data(), owner.size());
+        std::string innerAuthType(authType.data(), authType.size());
+        AAFwk::WantParams params;
+        ani_env *env = get_env();
+        ani_ref parametersRef = reinterpret_cast<ani_ref>(options);
+        auto status = AppExecFwk::UnwrapWantParams(env, parametersRef, params);
+        if (!status) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(JSErrorCode::ERR_JS_PARAMETER_ERROR);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            ACCOUNT_LOGE("Failed to UnwrapWant options status = %{public}d", status);
+            return;
+        }
+        AAFwk::Want innerOptions;
+        innerOptions.SetParams(params);
+        sptr<THAppAccountManagerCallback> appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
+        if (appAccountMgrCb == nullptr) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            ACCOUNT_LOGE("failed to create AppAccountManagerCallback for insufficient memory");
+            return;
+        }
+        ErrCode errCode = AccountSA::AppAccountManager::Authenticate(innerName, innerOwner,
+            innerAuthType, innerOptions, appAccountMgrCb);
+        AAFwk::Want errResult;
+        if (errCode != 0) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
+            appAccountMgrCb->OnResult(jsErrCode, errResult);
+        }
+    }
+
+    static bool IsExitSubscribe(AccountSA::AsyncContextForSubscribe* context)
+    {
+        auto subscribe = g_thAppAccountSubscribers.find(context->appAccountManager);
+        if (subscribe == g_thAppAccountSubscribers.end()) {
+            return false;
+        }
+        for (size_t index = 0; index < subscribe->second.size(); index++) {
+            if (subscribe->second[index]->callbackRef == context->callbackRef) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool CheckType(string_view type)
+    {
+        if (type != "accountChange") {
+            ACCOUNT_LOGE("Subscriber type size %{public}zu is invalid.", type.size());
+            std::string errMsg =
+                "Parameter error. The content of \"type\" must be \"accountChange\"";
+            taihe::set_business_error(ERR_JS_INVALID_PARAMETER, errMsg);
+            return false;
+        }
+        return true;
+    }
+
+    void OnSync(string_view type, array_view<string> owners, callback_view<void(array_view<AppAccountInfo>)> callback)
+    {
+        if (!CheckType(type)) {
+            return;
+        }
+        std::vector<std::string> innerOwners(owners.data(), owners.data() + owners.size());
+
+        auto context = std::make_unique<AccountSA::AsyncContextForSubscribe>(callback);
+        context->appAccountManager = GetInner();
+        AccountSA::AppAccountSubscribeInfo subscribeInfo(innerOwners);
+        context->subscriber = std::make_shared<AccountSA::SubscriberPtr>(subscribeInfo, callback);
+        if (context->subscriber == nullptr) {
+            ACCOUNT_LOGE("fail to create subscriber");
+            return;
+        }
+        std::lock_guard<std::mutex> lock(g_thLockForAppAccountSubscribers);
+        if (IsExitSubscribe(context.get())) {
+            return;
+        }
+        ErrCode errorCode = AccountSA::AppAccountManager::SubscribeAppAccount(context->subscriber);
+        if (errorCode != ERR_OK) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return;
+        }
+        g_thAppAccountSubscribers[context->appAccountManager].emplace_back(context.get());
+        context.release();
+    }
+
+    bool GetSubscriberByUnsubscribe(std::vector<std::shared_ptr<AccountSA::SubscriberPtr>> &subscribers,
+        AccountSA::AsyncContextForUnsubscribe *asyncContextForOff)
+    {
+        for (auto const& subscriberInstance : g_thAppAccountSubscribers) {
+            if (subscriberInstance.first == asyncContextForOff->appAccountManager) {
+                for (auto item : subscriberInstance.second) {
+                    subscribers.emplace_back(item->subscriber);
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void Unsubscribe(std::shared_ptr<AccountSA::AsyncContextForUnsubscribe> context,
+        optional_view<callback<void(array_view<AppAccountInfo> data)>> callback)
+    {
+        std::lock_guard<std::mutex> lock(g_thLockForAppAccountSubscribers);
+        auto subscribe = g_thAppAccountSubscribers.find(context->appAccountManager);
+        if (subscribe == g_thAppAccountSubscribers.end()) {
+            return;
+        }
+        std::vector<std::shared_ptr<AccountSA::SubscriberPtr>> subscribers = {nullptr};
+        if (!GetSubscriberByUnsubscribe(subscribers, context.get())) {
+            ACCOUNT_LOGE("Unsubscribe failed. The current subscriber does not exist");
+            return;
+        }
+        for (size_t index = 0; index < subscribe->second.size(); ++index) {
+            if (callback.has_value() && !(callback.value() == subscribe->second[index]->subscriber->callback_)) {
+                continue;
+            }
+            int errCode = AccountSA::AppAccountManager::UnsubscribeAppAccount(subscribe->second[index]->subscriber);
+            if (errCode != ERR_OK) {
+                int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
+                taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+                return;
+            }
+            delete subscribe->second[index];
+            if (callback.has_value()) {
+                subscribe->second.erase(subscribe->second.begin() + index);
+                break;
+            }
+        }
+        if ((!callback.has_value()) || (subscribe->second.empty())) {
+            g_thAppAccountSubscribers.erase(subscribe);
+        }
+    }
+
+    void OffSync(string_view type, optional_view<callback<void(array_view<AppAccountInfo> data)>> callback)
+    {
+        if (!CheckType(type)) {
+            return;
+        }
+        std::shared_ptr<AccountSA::AsyncContextForUnsubscribe> context(
+            new (std::nothrow) AccountSA::AsyncContextForUnsubscribe());
+        if (context == nullptr) {
+            ACCOUNT_LOGE("fail to create subscriber");
+            return;
+        }
+        context->appAccountManager = GetInner();
+        if (callback.has_value()) {
+            Unsubscribe(context, callback);
+        } else {
+            Unsubscribe(context, nullptr);
+        }
+    }
+
+private:
+    uint64_t GetInner()
+    {
+        return reinterpret_cast<uint64_t>(this);
+    }
 };
+
 
 AppAccountManager createAppAccountManager()
 {

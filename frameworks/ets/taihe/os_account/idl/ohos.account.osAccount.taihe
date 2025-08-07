@@ -173,6 +173,12 @@ interface AccountManager {
 
     @gen_promise("getEnabledOsAccountConstraints")
     GetEnabledOsAccountConstraintsSync(localId: i32): Array<String>;
+    @gen_async("createOsAccountForDomain")
+    CreateOsAccountForDomainSync(type: OsAccountType, domainInfo: DomainAccountInfo): OsAccountInfo;
+
+    @gen_promise("createOsAccountForDomain")
+    CreateOsAccountForDomainWithOpts(type: OsAccountType, domainInfo: DomainAccountInfo,
+        options: Optional<CreateOsAccountForDomainOptions>): OsAccountInfo;
 
     @gen_promise("getOsAccountDomainInfo")
     GetOsAccountDomainInfoSync(localId: i32): DomainAccountInfo;
@@ -211,7 +217,7 @@ interface UserIdentityManager {
     UpdateCredential(credentialInfo: CredentialInfo, callback: IIdmCallback): void;
 
     @overload("delUser")
-    DelUser(token: @arraybuffer Array<u8>, callback: IIdmCallback);
+    DelUser(token: @typedarray Array<u8>, callback: IIdmCallback);
 
     @overload("cancel")
     CancelWithChallenge(challenge: @typedarray Array<u8>): void;
@@ -405,6 +411,11 @@ function HasAccountSync(domainAccountInfo: DomainAccountInfo): bool;
 function UpdateAccountTokenSync(domainAccountInfo: DomainAccountInfo, token: @typedarray Array<u8>);
 
 @static("DomainAccountManager")
+@gen_async("getAccessToken")
+@gen_promise("getAccessToken")
+function GetAccessTokenSync(businessParams: @sts_type("Record<string, Object>")Opaque): @typedarray Array<u8>;
+
+@static("DomainAccountManager")
 @gen_async("getAccountInfo")
 @gen_promise("getAccountInfo")
 function GetAccountInfoSync(options: GetDomainAccountInfoOptions): DomainAccountInfo;
@@ -414,8 +425,28 @@ function GetAccountInfoSync(options: GetDomainAccountInfoOptions): DomainAccount
 function UpdateAccountInfoSync(oldAccountInfo: DomainAccountInfo, newAccountInfo: DomainAccountInfo);
 
 @static("DomainServerConfigManager")
+@gen_promise("addServerConfig")
+function AddServerConfigSync(parameters: @sts_type("Record<String, Object>")Opaque): DomainServerConfig;
+
+@static("DomainServerConfigManager")
 @gen_promise("removeServerConfig")
 function RemoveServerConfigSync(configId: String);
+
+@static("DomainServerConfigManager")
+@gen_promise("updateServerConfig")
+function UpdateServerConfigSync(configId: String, parameters: @sts_type("Record<String, Object>")Opaque):DomainServerConfig;
+
+@static("DomainServerConfigManager")
+@gen_promise("getServerConfig")
+function GetServerConfigSync(configId: String): DomainServerConfig;
+
+@static("DomainServerConfigManager")
+@gen_promise("getAllServerConfigs")
+function GetAllServerConfigsSync(): Array<DomainServerConfig>;
+
+@static("DomainServerConfigManager")
+@gen_promise("getAccountServerConfig")
+function GetAccountServerConfigSync(domainAccountInfo: DomainAccountInfo): DomainServerConfig;
 
 struct AuthResult {
     token: Optional<@typedarray Array<u8>>;
@@ -564,7 +595,7 @@ struct AuthStatusInfo {
 struct GetDomainAccessTokenOptions {
     domainAccountInfo: DomainAccountInfo;
     domainAccountToken: @typedarray Array<u8>;
-    businessParams: @record Map<String, Opaque>;
+    businessParams: @sts_type("Record<String, Object>")Opaque;
     callerUid: i32;
 }
 
@@ -581,7 +612,7 @@ struct GetDomainAccountInfoPluginOptions {
 }
 
 struct DomainServerConfig {
-    parameters: @record Map<String, Opaque>;
+    parameters: @sts_type("Record<String, Object>")Opaque;
     id: String;
     domain: String;
 }

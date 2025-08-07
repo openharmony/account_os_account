@@ -88,6 +88,7 @@ taihe_shared_library("app_account_taihe_native") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "ipc:rpc_ani",
   ]
 
   defines = [

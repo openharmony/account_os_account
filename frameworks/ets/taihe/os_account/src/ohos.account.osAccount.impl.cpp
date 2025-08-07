@@ -666,6 +666,82 @@ public:
     }
 };
 
+void RetrieveStringFromAni(ani_env *env, ani_string str, std::string &res)
+{
+    ani_size sz {};
+    ani_status status = ANI_ERROR;
+    if ((status = env->String_GetUTF8Size(str, &sz)) != ANI_OK) {
+        ACCOUNT_LOGE("String_GetUTF8Size Fail! status: %{public}d", status);
+        return;
+    }
+    res.resize(sz + 1);
+    if ((status = env->String_GetUTF8SubString(str, 0, sz, res.data(), res.size(), &sz)) != ANI_OK) {
+        ACCOUNT_LOGE("String_GetUTF8SubString Fail! status: %{public}d", status);
+        return;
+    }
+    res.resize(sz);
+}
+
+std::string ConvertMapViewToStringInner(uintptr_t parameters)
+{
+    ani_env *env = get_env();
+    ani_class cls;
+    if (env == nullptr) {
+        ACCOUNT_LOGE("ani_env is nullptr.");
+        return "";
+    }
+
+    ani_status status = env->FindClass("Lescompat/JSON;", &cls);
+    ani_static_method stringify;
+    if (status != ANI_OK) {
+        ACCOUNT_LOGE("JSON not found, ret: %{public}d.", status);
+        return "";
+    }
+    status = env->Class_FindStaticMethod(cls, "stringify", "Lstd/core/Object;:Lstd/core/String;", &stringify);
+    if (status != ANI_OK) {
+        ACCOUNT_LOGE("Stringify not found, ret: %{public}d.", status);
+        return "";
+    }
+    ani_ref result;
+    status = env->Class_CallStaticMethod_Ref(cls, stringify, &result, reinterpret_cast<ani_object>(parameters));
+    if (status != ANI_OK) {
+        ACCOUNT_LOGE("JSON.stringify run failed, ret: %{public}d.", status);
+        return "";
+    }
+    std::string parametersInnerString;
+    RetrieveStringFromAni(env, reinterpret_cast<ani_string>(result), parametersInnerString);
+    return parametersInnerString;
+}
+
+DomainServerConfig ConvertToDomainServerConfigTH(const std::string& id, const std::string& domain,
+    const std::string& parameters)
+{
+    const DomainServerConfig emptyDomainServerConfig = {
+        .parameters = 0,
+        .id = string(""),
+        .domain = string("")
+    };
+    if (parameters.empty()) {
+        ACCOUNT_LOGE("Parameters is invalid.");
+        return emptyDomainServerConfig;
+    }
+    auto parametersJson = nlohmann::json::parse(parameters, nullptr, false);
+    if (parametersJson.is_discarded()) {
+        ACCOUNT_LOGE("Failed to parse json string");
+        return emptyDomainServerConfig;
+    }
+    ani_env *env = get_env();
+    AAFwk::WantParams parametersWantParams;
+    from_json(parametersJson, parametersWantParams);
+    ani_ref parametersRef = AppExecFwk::WrapWantParams(env, parametersWantParams);
+    DomainServerConfig domainServerConfig = DomainServerConfig{
+        .id = id,
+        .domain = domain,
+        .parameters = reinterpret_cast<uintptr_t>(parametersRef),
+    };
+    return domainServerConfig;
+}
+
 class OnSetDataCallbackImpl {
 private:
     std::shared_ptr<AccountSA::IInputerData> inputerData_;
@@ -1441,10 +1517,12 @@ public:
     std::condition_variable cv_;
     bool onResultCalled_ = false;
     bool isHasDomainAccount_ = false;
+    int32_t errCode_ = -1;
 
     void OnResult(const int32_t errCode, Parcel &parcel) override
     {
         std::unique_lock<std::mutex> lock(mutex_);
+        this->errCode_ = errCode;
         if (this->onResultCalled_) {
             return;
         }
@@ -1546,6 +1624,58 @@ void UpdateAccountTokenSync(DomainAccountInfo const &domainAccountInfo, array_vi
     }
 }
 
+class THGetAccessTokenCallback : public AccountSA::GetAccessTokenCallback {
+public:
+    int32_t errorCode_ = -1;
+    std::mutex mutex_;
+    std::condition_variable cv_;
+    std::vector<uint8_t> accessToken_;
+    bool onResultCalled_ = false;
+    void OnResult(const int32_t errCode, const std::vector<uint8_t> &accessToken)
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        if (this->onResultCalled_) {
+            return;
+        }
+        this->errorCode_ = errCode;
+        this->onResultCalled_ = true;
+        this->accessToken_ = accessToken;
+        cv_.notify_one();
+    }
+};
+
+array<uint8_t> GetAccessTokenSync(uintptr_t businessParams)
+{
+    AccountSA::DomainAccountInfo innerDomainInfo;
+    AAFwk::WantParams innerGetTokenParams;
+    array<uint8_t> accessToken = {};
+    ani_env *env = get_env();
+    ani_ref businessParamsRef = reinterpret_cast<ani_ref>(businessParams);
+    auto status = AppExecFwk::UnwrapWantParams(env, businessParamsRef, innerGetTokenParams);
+    if (status == false) {
+        ACCOUNT_LOGE("Parameter error. The type of \"businessParams\" must be Record");
+        SetTaiheBusinessErrorFromNativeCode(JSErrorCode::ERR_JS_PARAMETER_ERROR);
+        return array<uint8_t>(taihe::copy_data_t{}, accessToken.data(), accessToken.size());
+    }
+    std::shared_ptr<THGetAccessTokenCallback> getAccessTokenCallback = std::make_shared<THGetAccessTokenCallback>();
+    ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().GetAccessToken(
+        innerDomainInfo, innerGetTokenParams, getAccessTokenCallback);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("GetAccessTokenSync failed with errCode: %{public}d", errCode);
+        SetTaiheBusinessErrorFromNativeCode(errCode);
+        return array<uint8_t>(taihe::copy_data_t{}, accessToken.data(), accessToken.size());
+    }
+    std::unique_lock<std::mutex> lock(getAccessTokenCallback->mutex_);
+    getAccessTokenCallback->cv_.wait(lock, [getAccessTokenCallback] { return getAccessTokenCallback->onResultCalled_;});
+    if (getAccessTokenCallback->errorCode_ != ERR_OK) {
+        ACCOUNT_LOGE("GetAccessTokenSync failed with errCode: %{public}d", getAccessTokenCallback->errorCode_);
+        SetTaiheBusinessErrorFromNativeCode(getAccessTokenCallback->errorCode_);
+        return array<uint8_t>(taihe::copy_data_t{}, accessToken.data(), accessToken.size());
+    }
+    return array<uint8_t>(taihe::copy_data_t{}, getAccessTokenCallback->accessToken_.data(),
+        getAccessTokenCallback->accessToken_.size());
+}
+
 class THGetAccountInfoCallback : public AccountSA::DomainAccountCallback {
 public:
     int32_t errorCode_ = -1;
@@ -1639,6 +1769,31 @@ void UpdateAccountInfoSync(DomainAccountInfo const &oldAccountInfo, DomainAccoun
     }
 }
 
+DomainServerConfig AddServerConfigSync(uintptr_t parameters)
+{
+    AccountSA::DomainServerConfig innerDomainServerConfig;
+    DomainServerConfig emptyDomainServerConfig = {
+        .parameters = 0,
+        .id = string(""),
+        .domain = string("")
+    };
+    std::string innerParameters = ConvertMapViewToStringInner(parameters);
+    if (innerParameters == "") {
+        ACCOUNT_LOGE("Get parameters failed.");
+        SetTaiheBusinessErrorFromNativeCode(JSErrorCode::ERR_JS_PARAMETER_ERROR);
+        return emptyDomainServerConfig;
+    }
+    ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().AddServerConfig(
+        innerParameters, innerDomainServerConfig);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("AddServerConfigSync failed with errCode: %{public}d", errCode);
+        SetTaiheBusinessErrorFromNativeCode(errCode);
+        return emptyDomainServerConfig;
+    }
+    return ConvertToDomainServerConfigTH(innerDomainServerConfig.id_,
+                                         innerDomainServerConfig.domain_, innerDomainServerConfig.parameters_);
+}
+
 void RemoveServerConfigSync(string_view configId)
 {
     std::string innerConfigId(configId.data(), configId.size());
@@ -1647,6 +1802,92 @@ void RemoveServerConfigSync(string_view configId)
         ACCOUNT_LOGE("RemoveServerConfigSync failed with errCode: %{public}d", errCode);
         SetTaiheBusinessErrorFromNativeCode(errCode);
     }
+}
+
+DomainServerConfig UpdateServerConfigSync(string_view configId, uintptr_t parameters)
+{
+    std::string innerConfigId(configId.data(), configId.size());
+    AccountSA::DomainServerConfig innerDomainServerConfig;
+    DomainServerConfig emptyDomainServerConfig = {
+        .parameters = 0,
+        .id = string(""),
+        .domain = string("")
+    };
+    std::string innerParameters = ConvertMapViewToStringInner(parameters);
+    if (innerParameters == "") {
+        ACCOUNT_LOGE("Get parameters failed.");
+        SetTaiheBusinessErrorFromNativeCode(JSErrorCode::ERR_JS_PARAMETER_ERROR);
+        return emptyDomainServerConfig;
+    }
+    ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().UpdateServerConfig(innerConfigId,
+        innerParameters, innerDomainServerConfig);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("UpdateServerConfigSync failed with errCode: %{public}d", errCode);
+        SetTaiheBusinessErrorFromNativeCode(errCode);
+        return emptyDomainServerConfig;
+    }
+    return ConvertToDomainServerConfigTH(innerDomainServerConfig.id_,
+                                         innerDomainServerConfig.domain_, innerDomainServerConfig.parameters_);
+}
+
+DomainServerConfig GetServerConfigSync(string_view configId)
+{
+    std::string innerConfigId(configId.data(), configId.size());
+    AccountSA::DomainServerConfig innerDomainServerConfig;
+    ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().GetServerConfig(innerConfigId,
+        innerDomainServerConfig);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("getServerConfigSync failed with errCode: %{public}d", errCode);
+        SetTaiheBusinessErrorFromNativeCode(errCode);
+        DomainServerConfig emptyDomainServerConfig = {
+            .parameters = 0,
+            .id = string(""),
+            .domain = string("")
+        };
+        return emptyDomainServerConfig;
+    }
+    return ConvertToDomainServerConfigTH(innerDomainServerConfig.id_,
+                                         innerDomainServerConfig.domain_, innerDomainServerConfig.parameters_);
+}
+
+array<DomainServerConfig> GetAllServerConfigsSync()
+{
+    std::vector<AccountSA::DomainServerConfig> innerDomainServerConfigs;
+    std::vector<DomainServerConfig> domainServerConfigsVector;
+    ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().GetAllServerConfigs(innerDomainServerConfigs);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("GetAllServerConfigsSync failed with errCode: %{public}d", errCode);
+        SetTaiheBusinessErrorFromNativeCode(errCode);
+        return array<DomainServerConfig>(taihe::copy_data_t{}, domainServerConfigsVector.data(),
+            domainServerConfigsVector.size());
+    }
+    for (const auto &innerDomainServerConfig : innerDomainServerConfigs) {
+        auto domainServerConfig = ConvertToDomainServerConfigTH(innerDomainServerConfig.id_,
+            innerDomainServerConfig.domain_, innerDomainServerConfig.parameters_);
+        domainServerConfigsVector.push_back(domainServerConfig);
+    }
+    return array<DomainServerConfig>(taihe::copy_data_t{}, domainServerConfigsVector.data(),
+    domainServerConfigsVector.size());
+}
+
+DomainServerConfig GetAccountServerConfigSync(DomainAccountInfo const &domainAccountInfo)
+{
+    AccountSA::DomainAccountInfo innerDomainAccountInfo = ConvertToDomainAccountInfoInner(domainAccountInfo);
+    AccountSA::DomainServerConfig innerDomainServerConfig;
+    ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().GetAccountServerConfig(innerDomainAccountInfo,
+                                                                                           innerDomainServerConfig);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("getAccountServerConfigSync failed with errCode: %{public}d", errCode);
+        SetTaiheBusinessErrorFromNativeCode(errCode);
+        DomainServerConfig emptyDomainServerConfig = {
+            .parameters = 0,
+            .id = string(""),
+            .domain = string("")
+        };
+        return emptyDomainServerConfig;
+    }
+    return ConvertToDomainServerConfigTH(innerDomainServerConfig.id_,
+                                         innerDomainServerConfig.domain_, innerDomainServerConfig.parameters_);
 }
 
 void RegisterInputer(AuthType authType, const IInputer &inputer)
@@ -1698,9 +1939,15 @@ TH_EXPORT_CPP_API_AuthWithPopup(AuthWithPopup);
 TH_EXPORT_CPP_API_AuthWithPopupWithId(AuthWithPopupWithId);
 TH_EXPORT_CPP_API_HasAccountSync(HasAccountSync);
 TH_EXPORT_CPP_API_UpdateAccountTokenSync(UpdateAccountTokenSync);
+TH_EXPORT_CPP_API_GetAccessTokenSync(GetAccessTokenSync);
 TH_EXPORT_CPP_API_GetAccountInfoSync(GetAccountInfoSync);
 TH_EXPORT_CPP_API_UpdateAccountInfoSync(UpdateAccountInfoSync);
+TH_EXPORT_CPP_API_AddServerConfigSync(AddServerConfigSync);
 TH_EXPORT_CPP_API_RemoveServerConfigSync(RemoveServerConfigSync);
+TH_EXPORT_CPP_API_UpdateServerConfigSync(UpdateServerConfigSync);
+TH_EXPORT_CPP_API_GetServerConfigSync(GetServerConfigSync);
+TH_EXPORT_CPP_API_GetAllServerConfigsSync(GetAllServerConfigsSync);
+TH_EXPORT_CPP_API_GetAccountServerConfigSync(GetAccountServerConfigSync);
 TH_EXPORT_CPP_API_registerInputer(RegisterInputer);
 TH_EXPORT_CPP_API_unregisterInputer(UnregisterInputer);
 TH_EXPORT_CPP_API_CreateUserIdentityManager(CreateUserIdentityManager);
