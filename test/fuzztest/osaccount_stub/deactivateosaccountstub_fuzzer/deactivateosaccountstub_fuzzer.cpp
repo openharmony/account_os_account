@@ -64,11 +64,24 @@ void IsOsAccountDeactivating()
         static_cast<uint32_t>(IOsAccountIpcCode::COMMAND_IS_OS_ACCOUNT_DEACTIVATING),
         dataParcel, reply, option);
 }
+
+void IsCurrentOsAccountVerified()
+{
+    MessageParcel datas;
+    datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
+    MessageOption option;
+    MessageParcel reply;
+    auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
+    osAccountManagerService_->OnRemoteRequest(
+        static_cast<uint32_t>(IOsAccountIpcCode::COMMAND_IS_CURRENT_OS_ACCOUNT_VERIFIED),
+        datas, reply, option);
+}
 } // namespace OHOS
 
 extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
     OHOS::IsOsAccountDeactivating();
+    OHOS::IsCurrentOsAccountVerified();
     return 0;
 }
 
