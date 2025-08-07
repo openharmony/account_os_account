@@ -771,7 +771,7 @@ public:
         bool hasCredential = false;
         bool hasCredentialType = false;
         if (env->Object_GetPropertyByName_Ref(optionsObj, "credential", &credentialRef) == ANI_OK) {
-            if (env->Reference_IsUndefined(credentialRef, &isUndefined) == ANI_OK) {
+            if (env->Reference_IsUndefined(credentialRef, &isUndefined) == ANI_OK && !isUndefined) {
                 hasCredential = true;
             }
         }
@@ -783,7 +783,7 @@ public:
         }
         ani_ref credentialTypeRef;
         if (env->Object_GetPropertyByName_Ref(optionsObj, "credentialType", &credentialTypeRef) == ANI_OK) {
-            if (env->Reference_IsUndefined(credentialTypeRef, &isUndefined) == ANI_OK) {
+            if (env->Reference_IsUndefined(credentialTypeRef, &isUndefined) == ANI_OK && !isUndefined) {
                 hasCredentialType = true;
             }
         }
@@ -873,7 +873,7 @@ public:
         bool hasParameters = false;
         ani_ref propertiesRef;
         if (env->Object_GetPropertyByName_Ref(optionsObj, "properties", &propertiesRef) == ANI_OK) {
-            if (env->Reference_IsUndefined(propertiesRef, &isUndefined) == ANI_OK) {
+            if (env->Reference_IsUndefined(propertiesRef, &isUndefined) == ANI_OK && !isUndefined) {
                 hasProperties = true;
             }
         }
@@ -886,7 +886,7 @@ public:
         }
         ani_ref parametersRef;
         if (env->Object_GetPropertyByName_Ref(optionsObj, "parameters", &parametersRef) == ANI_OK) {
-            if (env->Reference_IsUndefined(parametersRef, &isUndefined) == ANI_OK) {
+            if (env->Reference_IsUndefined(parametersRef, &isUndefined) == ANI_OK && !isUndefined) {
                 hasParameters = true;
             }
         }
