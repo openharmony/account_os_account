@@ -1661,14 +1661,14 @@ array<uint8_t> GetAccessTokenSync(uintptr_t businessParams)
     ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().GetAccessToken(
         innerDomainInfo, innerGetTokenParams, getAccessTokenCallback);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("UpdateAccountTokenSync failed with errCode: %{public}d", errCode);
+        ACCOUNT_LOGE("GetAccessTokenSync failed with errCode: %{public}d", errCode);
         SetTaiheBusinessErrorFromNativeCode(errCode);
         return array<uint8_t>(taihe::copy_data_t{}, accessToken.data(), accessToken.size());
     }
     std::unique_lock<std::mutex> lock(getAccessTokenCallback->mutex_);
     getAccessTokenCallback->cv_.wait(lock, [getAccessTokenCallback] { return getAccessTokenCallback->onResultCalled_;});
     if (getAccessTokenCallback->errorCode_ != ERR_OK) {
-        ACCOUNT_LOGE("UpdateAccountTokenSync failed with errCode: %{public}d", getAccessTokenCallback->errorCode_);
+        ACCOUNT_LOGE("GetAccessTokenSync failed with errCode: %{public}d", getAccessTokenCallback->errorCode_);
         SetTaiheBusinessErrorFromNativeCode(getAccessTokenCallback->errorCode_);
         return array<uint8_t>(taihe::copy_data_t{}, accessToken.data(), accessToken.size());
     }
