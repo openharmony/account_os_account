@@ -154,26 +154,7 @@ void CheckOsAccountStatus()
     int32_t localId = osAccountInfoOne.GetLocalId();
     SendRequestWithAccountId(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_ACTIVATE_OS_ACCOUNT), localId);
     SendRequestWithAccountId(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_DEACTIVATE_OS_ACCOUNT), localId);
-    SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_GET_OS_ACCOUNT_TYPE));
-    SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_GET_OS_ACCOUNT_NAME));
-    SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_GET_OS_ACCOUNT_SHORT_NAME));
-    SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_GET_FOREGROUND_OS_ACCOUNTS));
-    SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_GET_CREATED_OS_ACCOUNTS_COUNT));
-    SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_GET_OS_ACCOUNT_ALL_CONSTRAINTS));
-    SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_GET_DEFAULT_ACTIVATED_OS_ACCOUNT));
-    SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_GET_BACKGROUND_OS_ACCOUNT_LOCAL_IDS));
-    SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_GET_OS_ACCOUNT_LOCAL_ID_FROM_PROCESS));
-    SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_GET_OS_ACCOUNT_SWITCH_MOD));
-    SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_GET_OS_ACCOUNT_TYPE_FROM_PROCESS));
-    SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_QUERY_ACTIVE_OS_ACCOUNT_IDS));
     SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_QUERY_CURRENT_OS_ACCOUNT));
-    SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_QUERY_ALL_CREATED_OS_ACCOUNTS));
-    SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_QUERY_MAX_LOGGED_IN_OS_ACCOUNT_NUMBER));
-    SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_QUERY_MAX_OS_ACCOUNT_NUMBER));
-    SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_IS_CURRENT_OS_ACCOUNT_VERIFIED));
-    SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_IS_MAIN_OS_ACCOUNT));
-    SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_IS_MULTI_OS_ACCOUNT_ENABLE));
-    SendRequestWithCode(static_cast<int32_t>(IOsAccountIpcCode::COMMAND_DEACTIVATE_ALL_OS_ACCOUNTS));
 }
 } // namespace OHOS
 

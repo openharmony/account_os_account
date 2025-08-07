@@ -53,7 +53,25 @@ bool QueryOsAccountConstraintSourceTypesStubFuzzTest(const uint8_t *data, size_t
 
     return true;
 }
+
+void GetOsAccountAllConstraints()
+{
+    MessageParcel datas;
+    datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
+    MessageOption option;
+    MessageParcel reply;
+    auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
+    osAccountManagerService_->OnRemoteRequest(
+        static_cast<uint32_t>(IOsAccountIpcCode::COMMAND_GET_OS_ACCOUNT_ALL_CONSTRAINTS),
+        datas, reply, option);
+}
 } // namespace OHOS
+
+extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
+{
+    OHOS::GetOsAccountAllConstraints();
+    return 0;
+}
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
