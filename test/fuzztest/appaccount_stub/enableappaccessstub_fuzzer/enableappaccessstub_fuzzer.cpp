@@ -56,7 +56,31 @@ bool EnableAppAccessStubFuzzTest(const uint8_t *data, size_t size)
     uint32_t code = static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_ENABLE_APP_ACCESS);
     auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
     appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
-    code = static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_DISABLE_APP_ACCESS);
+    return true;
+}
+
+bool DisableAppAccessStubFuzzTest(const uint8_t *data, size_t size)
+{
+    if ((data == nullptr) || (size == 0)) {
+        return false;
+    }
+    MessageParcel dataTemp;
+    if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
+        return false;
+    }
+    FuzzData fuzzData(data, size);
+    std::string name = fuzzData.GenerateString();
+    if (!dataTemp.WriteString(name)) {
+        return false;
+    }
+    std::string authorizedApp = fuzzData.GenerateString();
+    if (!dataTemp.WriteString(authorizedApp)) {
+        return false;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_DISABLE_APP_ACCESS);
+    auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
     appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
     return true;
 }
@@ -67,5 +91,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
     OHOS::EnableAppAccessStubFuzzTest(data, size);
+    OHOS::DisableAppAccessStubFuzzTest(data, size);
     return 0;
 }

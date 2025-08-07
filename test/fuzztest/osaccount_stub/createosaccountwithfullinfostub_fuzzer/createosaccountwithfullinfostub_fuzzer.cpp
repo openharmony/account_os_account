@@ -77,6 +77,40 @@ namespace OHOS {
         osAccountManagerService_->OnRemoteRequest(
             static_cast<uint32_t>(IOsAccountIpcCode::COMMAND_CREATE_OS_ACCOUNT_WITH_FULL_INFO),
             dataParcel, reply, option);
+        return true;
+    }
+
+    bool CreateOsAccountWithFullInfoInOsAccountInfoStubFuzzTest(const uint8_t* data, size_t size)
+    {
+        if ((data == nullptr) || (size == 0)) {
+            return false;
+        }
+        
+        FuzzData fuzzData(data, size);
+        MessageParcel dataParcel;
+        if (!dataParcel.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR)) {
+            return false;
+        }
+        
+        auto useOsAccountInfo = fuzzData.GenerateBool();
+        if (useOsAccountInfo) {
+            // Create OsAccountInfo object for fuzzing
+            OsAccountInfo osAccountInfo;
+            osAccountInfo.SetLocalId(fuzzData.GetData<int32_t>());
+            osAccountInfo.SetLocalName(fuzzData.GenerateString());
+            osAccountInfo.SetShortName(fuzzData.GenerateString());
+            osAccountInfo.SetType(static_cast<OsAccountType>(fuzzData.GetData<int32_t>() % OS_ACCOUNT_TYPE_NUM));
+            osAccountInfo.SetCreateTime(TEST_TIME_STAMP);
+            osAccountInfo.SetLastLoginTime(TEST_TIME_STAMP);
+            
+            if (!dataParcel.WriteParcelable(&osAccountInfo)) {
+                return false;
+            }
+        }
+
+        MessageParcel reply;
+        MessageOption option;
+        auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
         osAccountManagerService_->OnRemoteRequest(
             static_cast<uint32_t>(IOsAccountIpcCode::COMMAND_CREATE_OS_ACCOUNT_WITH_FULL_INFO_IN_OSACCOUNTINFO),
             dataParcel, reply, option);
@@ -162,6 +196,23 @@ namespace OHOS {
         osAccountManagerService_->OnRemoteRequest(
             static_cast<uint32_t>(IOsAccountIpcCode::COMMAND_CREATE_OS_ACCOUNT_WITH_FULL_INFO),
             dataParcel, reply, option);
+    }
+
+    void InitOsAccountWithFullInfoInOsAccountInfo()
+    {
+        MessageParcel dataParcel;
+        dataParcel.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
+        OsAccountInfo osAccountInfo;
+        osAccountInfo.SetLocalId(TEST_USER_ID);
+        osAccountInfo.SetLocalName("test_full_info_name");
+        osAccountInfo.SetShortName("test_full_info_short_name");
+        osAccountInfo.SetType(OsAccountType::NORMAL);
+        osAccountInfo.SetCreateTime(TEST_TIME_STAMP);
+        osAccountInfo.SetLastLoginTime(TEST_TIME_STAMP);
+        dataParcel.WriteParcelable(&osAccountInfo);
+        MessageParcel reply;
+        MessageOption option;
+        auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
         osAccountManagerService_->OnRemoteRequest(
             static_cast<uint32_t>(IOsAccountIpcCode::COMMAND_CREATE_OS_ACCOUNT_WITH_FULL_INFO_IN_OSACCOUNTINFO),
             dataParcel, reply, option);
@@ -171,6 +222,7 @@ namespace OHOS {
 extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
     OHOS::InitOsAccountWithFullInfo();
+    OHOS::InitOsAccountWithFullInfoInOsAccountInfo();
     OHOS::UpdateOsAccountWithFullInfo();
     OHOS::SetProfilePhoto();
     OHOS::CleanOsAccount();
@@ -182,5 +234,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::CreateOsAccountWithFullInfoStubFuzzTest(data, size);
+    OHOS::CreateOsAccountWithFullInfoInOsAccountInfoStubFuzzTest(data, size);
     return 0;
 }
