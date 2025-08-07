@@ -733,7 +733,7 @@ DomainServerConfig ConvertToDomainServerConfigTH(const std::string& id, const st
     ani_env *env = get_env();
     AAFwk::WantParams parametersWantParams;
     from_json(parametersJson, parametersWantParams);
-    auto parametersRef = AppExecFwk::WrapWantParams(env, parametersWantParams);
+    ani_ref parametersRef = AppExecFwk::WrapWantParams(env, parametersWantParams);
     DomainServerConfig domainServerConfig = DomainServerConfig{
         .id = id,
         .domain = domain,

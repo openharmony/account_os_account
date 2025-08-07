@@ -49,12 +49,10 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AccountSA::AppAccountInf
     SubscriberPtr *subscriber = this;
     bool isFound = false;
     for (const auto& objectInfoTmp : g_thAppAccountSubscribers) {
-        for (const auto& item : objectInfoTmp.second) {
-            if (item->subscriber.get() == subscriber) {
-                isFound = true;
-                break;
-            }
-        }
+        isFound = std::any_of(objectInfoTmp.second.begin(), objectInfoTmp.second.end(),
+            [subscriber](const AsyncContextForSubscribe* item) {
+                return item->subscriber.get() == subscriber;
+            });
         if (isFound) {
             break;
         }
@@ -975,7 +973,7 @@ public:
         ErrCode errCode = AccountSA::AppAccountManager::Authenticate(
             innerName, innerOwner, innerAuthType, options, appAccountMgrCb);
         AAFwk::Want errResult;
-        if (errCode != 0) {
+        if (errCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errCode);
             appAccountMgrCb->OnResult(jsErrCode, errResult);
         }
