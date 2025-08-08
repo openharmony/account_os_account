@@ -30,6 +30,39 @@ const char DISTRIBUTED_DATASYNC[] = "ohos.permission.DISTRIBUTED_DATASYNC";
 const char GET_ALL_APP_ACCOUNTS[] = "ohos.permission.GET_ALL_APP_ACCOUNTS";
 }
 
+#define RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(str, funcResult)                   \
+    if (CheckSpecialCharacters(str) != ERR_OK) {                           \
+        ACCOUNT_LOGE("fail to check special characters");                  \
+        funcResult = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;                 \
+        return ERR_NONE;                                                   \
+    }                                                                      \
+
+#define RETURN_IF_STRING_IS_OVERSIZE(str, maxSize, msg, funcResult)                                                    \
+    if ((str).size() > (maxSize)) {                                                                             \
+        ACCOUNT_LOGE("%{public}s, input size: %{public}zu, max size: %{public}zu", msg, (str).size(), maxSize); \
+        funcResult = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;                                                      \
+        return ERR_NONE;                                                                                        \
+    }                                                                                                           \
+
+#define RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(str, maxSize, msg, funcResult)                                           \
+    if ((str).empty() || ((str).size() > (maxSize))) {                                                          \
+        ACCOUNT_LOGE("%{public}s, input size: %{public}zu, max size: %{public}zu", msg, (str).size(), maxSize); \
+        funcResult = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;                                                      \
+        return ERR_NONE;                                                                                        \
+    }                                                                                                           \
+
+static ErrCode CheckSpecialCharacters(const std::string &str)
+{
+    for (auto specialCharacter : Constants::SPECIAL_CHARACTERS) {
+        std::size_t found = str.find(specialCharacter);
+        if (found != std::string::npos) {
+            ACCOUNT_LOGE("found a special character, specialCharacter = %{public}c", specialCharacter);
+            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+        }
+    }
+    return ERR_OK;
+}
+
 AppAccountManagerService::AppAccountManagerService()
 #ifdef HAS_CES_PART
     : observer_(AppAccountCommonEventObserver::GetInstance())
@@ -46,6 +79,9 @@ AppAccountManagerService::~AppAccountManagerService()
 
 ErrCode AppAccountManagerService::AddAccount(const std::string &name, const std::string &extraInfo, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name, funcResult);
+    RETURN_IF_STRING_IS_OVERSIZE(extraInfo, Constants::EXTRA_INFO_MAX_SIZE, "extraInfo is oversize", funcResult);
     int32_t callingUid = -1;
     std::string bundleName;
     uint32_t appIndex;
@@ -61,6 +97,8 @@ ErrCode AppAccountManagerService::AddAccount(const std::string &name, const std:
 ErrCode AppAccountManagerService::AddAccountImplicitly(const std::string &owner, const std::string &authType,
     const AAFwk::Want &options, const sptr<IAppAccountAuthenticatorCallback> &callback, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize", funcResult);
     AuthenticatorSessionRequest request;
     request.callerPid = IPCSkeleton::GetCallingRealPid();
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
@@ -81,6 +119,15 @@ ErrCode AppAccountManagerService::AddAccountImplicitly(const std::string &owner,
 ErrCode AppAccountManagerService::CreateAccount(
     const std::string &name, const CreateAccountOptions &options, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_OVERSIZE(
+        options.customData, Constants::MAX_CUSTOM_DATA_SIZE, "customData is oversize", funcResult);
+    for (const auto &it : options.customData) {
+        RETURN_IF_STRING_IS_OVERSIZE(
+            it.first, Constants::ASSOCIATED_KEY_MAX_SIZE, "customData key is oversize", funcResult);
+        RETURN_IF_STRING_IS_OVERSIZE(
+            it.second, Constants::ASSOCIATED_VALUE_MAX_SIZE, "customData value is oversize", funcResult);
+    }
     int32_t callingUid = -1;
     std::string bundleName;
     uint32_t appIndex;
@@ -97,6 +144,11 @@ ErrCode AppAccountManagerService::CreateAccountImplicitly(const std::string &own
     const CreateAccountImplicitlyOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback,
     int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_OVERSIZE(
+        options.authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_OVERSIZE(options.requiredLabels,
+        Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "requiredLabels array is oversize", funcResult);
     AuthenticatorSessionRequest request;
     request.callerPid = IPCSkeleton::GetCallingRealPid();
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
@@ -114,6 +166,7 @@ ErrCode AppAccountManagerService::CreateAccountImplicitly(const std::string &own
 
 ErrCode AppAccountManagerService::DeleteAccount(const std::string &name, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
     int32_t callingUid = -1;
     std::string bundleName;
     uint32_t appIndex;
@@ -129,6 +182,8 @@ ErrCode AppAccountManagerService::DeleteAccount(const std::string &name, int32_t
 ErrCode AppAccountManagerService::GetAccountExtraInfo(
     const std::string &name, std::string &extraInfo, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name, funcResult);
     int32_t callingUid = -1;
     std::string bundleName;
     uint32_t appIndex;
@@ -144,6 +199,9 @@ ErrCode AppAccountManagerService::GetAccountExtraInfo(
 ErrCode AppAccountManagerService::SetAccountExtraInfo(
     const std::string &name, const std::string &extraInfo, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name, funcResult);
+    RETURN_IF_STRING_IS_OVERSIZE(extraInfo, Constants::EXTRA_INFO_MAX_SIZE, "extraInfo is oversize", funcResult);
     int32_t callingUid = -1;
     std::string bundleName;
     uint32_t appIndex;
@@ -159,6 +217,10 @@ ErrCode AppAccountManagerService::SetAccountExtraInfo(
 ErrCode AppAccountManagerService::EnableAppAccess(
     const std::string &name, const std::string &authorizedApp, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name, funcResult);
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(authorizedApp, Constants::BUNDLE_NAME_MAX_SIZE,
+        "bundleName is empty or oversize", funcResult);
     AppAccountCallingInfo appAccountCallingInfo;
     ErrCode result = GetCallingInfo(
         appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName, appAccountCallingInfo.appIndex);
@@ -180,6 +242,10 @@ ErrCode AppAccountManagerService::EnableAppAccess(
 ErrCode AppAccountManagerService::DisableAppAccess(
     const std::string &name, const std::string &authorizedApp, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name, funcResult);
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(authorizedApp, Constants::BUNDLE_NAME_MAX_SIZE,
+        "bundleName is empty or oversize", funcResult);
     AppAccountCallingInfo appAccountCallingInfo;
     ErrCode ret = GetCallingInfo(
         appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName, appAccountCallingInfo.appIndex);
@@ -199,6 +265,9 @@ ErrCode AppAccountManagerService::DisableAppAccess(
 ErrCode AppAccountManagerService::SetAppAccess(
     const std::string &name, const std::string &authorizedApp, bool isAccessible, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(authorizedApp, Constants::BUNDLE_NAME_MAX_SIZE,
+        "bundleName is empty or oversize", funcResult);
     AppAccountCallingInfo appAccountCallingInfo;
     ErrCode ret = GetCallingInfo(
         appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName, appAccountCallingInfo.appIndex);
@@ -231,6 +300,7 @@ ErrCode AppAccountManagerService::SetAppAccess(
 ErrCode AppAccountManagerService::CheckAppAccountSyncEnable(
     const std::string &name, bool &syncEnable, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
     int32_t callingUid = -1;
     std::string bundleName;
     uint32_t appIndex;
@@ -253,6 +323,7 @@ ErrCode AppAccountManagerService::CheckAppAccountSyncEnable(
 ErrCode AppAccountManagerService::SetAppAccountSyncEnable(
     const std::string &name, bool syncEnable, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
     int32_t callingUid = -1;
     std::string bundleName;
     uint32_t appIndex;
@@ -283,6 +354,10 @@ ErrCode AppAccountManagerService::GetAssociatedData(
 ErrCode AppAccountManagerService::SetAssociatedData(
     const std::string &name, const std::string &key, const std::string &value, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(
+        key, Constants::ASSOCIATED_KEY_MAX_SIZE, "key is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_OVERSIZE(value, Constants::ASSOCIATED_VALUE_MAX_SIZE, "value is oversize", funcResult);
     AppAccountCallingInfo appAccountCallingInfo;
     ErrCode ret = GetCallingInfo(appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName,
         appAccountCallingInfo.appIndex);
@@ -297,6 +372,9 @@ ErrCode AppAccountManagerService::SetAssociatedData(
 ErrCode AppAccountManagerService::GetAccountCredential(
     const std::string &name, const std::string &credentialType, std::string &credential, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(credentialType, Constants::CREDENTIAL_TYPE_MAX_SIZE,
+        "credentialType is empty or oversize", funcResult);
     AppAccountCallingInfo appAccountCallingInfo;
     ErrCode ret = GetCallingInfo(appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName,
         appAccountCallingInfo.appIndex);
@@ -311,6 +389,10 @@ ErrCode AppAccountManagerService::GetAccountCredential(
 ErrCode AppAccountManagerService::SetAccountCredential(
     const std::string &name, const std::string &credentialType, const std::string &credential, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(credentialType, Constants::CREDENTIAL_TYPE_MAX_SIZE,
+        "credentialType is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_OVERSIZE(credential, Constants::CREDENTIAL_MAX_SIZE, "credential is oversize", funcResult);
     AppAccountCallingInfo appAccountCallingInfo;
     ErrCode ret = GetCallingInfo(appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName,
         appAccountCallingInfo.appIndex);
@@ -325,6 +407,12 @@ ErrCode AppAccountManagerService::SetAccountCredential(
 ErrCode AppAccountManagerService::Authenticate(const AppAccountStringInfo &appAccountStringInfo,
     const AAFwk::Want &options, const sptr<IAppAccountAuthenticatorCallback> &callback, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(
+        appAccountStringInfo.name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(
+        appAccountStringInfo.owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_OVERSIZE(
+        appAccountStringInfo.authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize", funcResult);
     AuthenticatorSessionRequest request;
     request.callerPid = IPCSkeleton::GetCallingRealPid();
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
@@ -347,6 +435,10 @@ ErrCode AppAccountManagerService::GetOAuthToken(
     const std::string &name, const std::string &owner, const std::string &authType, std::string &token,
     int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize", funcResult);
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name, funcResult);
     AuthenticatorSessionRequest request;
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
@@ -364,6 +456,9 @@ ErrCode AppAccountManagerService::GetAuthToken(
     const std::string &name, const std::string &owner, const std::string &authType, std::string &token,
     int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize", funcResult);
     AuthenticatorSessionRequest request;
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
@@ -380,6 +475,9 @@ ErrCode AppAccountManagerService::GetAuthToken(
 ErrCode AppAccountManagerService::SetOAuthToken(
     const std::string &name, const std::string &authType, const std::string &token, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize", funcResult);
+    RETURN_IF_STRING_IS_OVERSIZE(token, Constants::TOKEN_MAX_SIZE, "token is oversize", funcResult);
     AuthenticatorSessionRequest request;
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
@@ -398,6 +496,11 @@ ErrCode AppAccountManagerService::DeleteOAuthToken(
     const std::string &name, const std::string &owner, const std::string &authType, const std::string &token,
     int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize", funcResult);
+    RETURN_IF_STRING_IS_OVERSIZE(token, Constants::TOKEN_MAX_SIZE, "token is oversize", funcResult);
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name, funcResult);
     AuthenticatorSessionRequest request;
     ErrCode ret = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (ret != ERR_OK) {
@@ -416,6 +519,10 @@ ErrCode AppAccountManagerService::DeleteAuthToken(
     const std::string &name, const std::string &owner, const std::string &authType, const std::string &token,
     int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize", funcResult);
+    RETURN_IF_STRING_IS_OVERSIZE(token, Constants::TOKEN_MAX_SIZE, "token is oversize", funcResult);
     AuthenticatorSessionRequest request;
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
@@ -448,6 +555,11 @@ ErrCode AppAccountManagerService::SetOAuthTokenVisibility(
     const std::string &name, const std::string &authType, const std::string &bundleName, bool isVisible,
     int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize", funcResult);
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(bundleName, Constants::BUNDLE_NAME_MAX_SIZE,
+        "bundleName is empty or oversize", funcResult);
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name, funcResult);
     AuthenticatorSessionRequest request;
     ErrCode ret = GetTokenVisibilityParam(name, authType, bundleName, request);
     if (ret != ERR_OK) {
@@ -463,6 +575,10 @@ ErrCode AppAccountManagerService::SetAuthTokenVisibility(
     const std::string &name, const std::string &authType, const std::string &bundleName, bool isVisible,
     int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize", funcResult);
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(bundleName, Constants::BUNDLE_NAME_MAX_SIZE,
+        "bundleName is empty or oversize", funcResult);
     AuthenticatorSessionRequest request;
     ErrCode result = GetTokenVisibilityParam(name, authType, bundleName, request);
     if (result != ERR_OK) {
@@ -489,6 +605,11 @@ ErrCode AppAccountManagerService::CheckOAuthTokenVisibility(
     const std::string &name, const std::string &authType, const std::string &bundleName, bool &isVisible,
     int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize", funcResult);
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(bundleName, Constants::BUNDLE_NAME_MAX_SIZE,
+        "bundleName is empty or oversize", funcResult);
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name, funcResult);
     AuthenticatorSessionRequest request;
     ErrCode ret = GetTokenVisibilityParam(name, authType, bundleName, request);
     if (ret != ERR_OK) {
@@ -503,6 +624,10 @@ ErrCode AppAccountManagerService::CheckAuthTokenVisibility(
     const std::string &name, const std::string &authType, const std::string &bundleName, bool &isVisible,
     int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize", funcResult);
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(bundleName, Constants::BUNDLE_NAME_MAX_SIZE,
+        "bundleName is empty or oversize", funcResult);
     AuthenticatorSessionRequest request;
     ErrCode ret = GetTokenVisibilityParam(name, authType, bundleName, request);
     if (ret != ERR_OK) {
@@ -516,6 +641,7 @@ ErrCode AppAccountManagerService::CheckAuthTokenVisibility(
 ErrCode AppAccountManagerService::GetAuthenticatorInfo(
     const std::string &owner, AuthenticatorInfo &info, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize", funcResult);
     AuthenticatorSessionRequest request;
     request.callerUid = IPCSkeleton::GetCallingUid();
     ErrCode result = GetCallingTokenInfoAndAppIndex(request.appIndex);
@@ -532,6 +658,8 @@ ErrCode AppAccountManagerService::GetAuthenticatorInfo(
 ErrCode AppAccountManagerService::GetAllOAuthTokens(
     const std::string &name, const std::string &owner, std::vector<OAuthTokenInfo> &tokenInfos, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize", funcResult);
     AuthenticatorSessionRequest request;
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
@@ -547,6 +675,9 @@ ErrCode AppAccountManagerService::GetAllOAuthTokens(
 ErrCode AppAccountManagerService::GetOAuthList(
     const std::string &name, const std::string &authType, std::set<std::string> &oauthList, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::OWNER_MAX_SIZE, "authType is oversize", funcResult);
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name, funcResult);
     AuthenticatorSessionRequest request;
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
@@ -562,6 +693,8 @@ ErrCode AppAccountManagerService::GetOAuthList(
 ErrCode AppAccountManagerService::GetAuthList(
     const std::string &name, const std::string &authType, std::set<std::string> &oauthList, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::OWNER_MAX_SIZE, "authType is oversize", funcResult);
     AuthenticatorSessionRequest request;
     ErrCode ret = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (ret != ERR_OK) {
@@ -577,6 +710,8 @@ ErrCode AppAccountManagerService::GetAuthList(
 ErrCode AppAccountManagerService::GetAuthenticatorCallback(
     const std::string &sessionId, int32_t &funcResult, sptr<IRemoteObject> &callback)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(sessionId, Constants::SESSION_ID_MAX_SIZE,
+        "sessionId is empty or oversize", funcResult);
     AuthenticatorSessionRequest request;
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
@@ -591,6 +726,7 @@ ErrCode AppAccountManagerService::GetAuthenticatorCallback(
 ErrCode AppAccountManagerService::GetAllAccounts(
     const std::string &owner, std::vector<AppAccountInfo> &appAccounts, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize", funcResult);
     int32_t callingUid = -1;
     std::string bundleName;
     uint32_t appIndex;
@@ -644,6 +780,7 @@ ErrCode AppAccountManagerService::GetAllAccessibleAccounts(
 ErrCode AppAccountManagerService::QueryAllAccessibleAccounts(
     const std::string &owner, std::vector<AppAccountInfo> &appAccounts, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is or oversize", funcResult);
     int32_t callingUid = -1;
     std::string bundleName;
     uint32_t appIndex;
@@ -671,6 +808,9 @@ ErrCode AppAccountManagerService::QueryAllAccessibleAccounts(
 ErrCode AppAccountManagerService::CheckAppAccess(
     const std::string &name, const std::string &authorizedApp, bool &isAccessible, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(authorizedApp, Constants::BUNDLE_NAME_MAX_SIZE,
+        "bundleName is empty or oversize", funcResult);
     AppAccountCallingInfo appAccountCallingInfo;
     ErrCode result = GetCallingInfo(appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName,
         appAccountCallingInfo.appIndex);
@@ -690,6 +830,9 @@ ErrCode AppAccountManagerService::CheckAppAccess(
 ErrCode AppAccountManagerService::DeleteAccountCredential(
     const std::string &name, const std::string &credentialType, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(credentialType, Constants::CREDENTIAL_TYPE_MAX_SIZE,
+        "credentialType is empty or oversize", funcResult);
     int32_t callingUid = -1;
     std::string bundleName;
     uint32_t appIndex;
@@ -705,6 +848,12 @@ ErrCode AppAccountManagerService::DeleteAccountCredential(
 ErrCode AppAccountManagerService::SelectAccountsByOptions(
     const SelectAccountsOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_OVERSIZE(options.allowedAccounts,
+        Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "allowedAccounts array is oversize", funcResult);
+    RETURN_IF_STRING_IS_OVERSIZE(options.allowedOwners,
+        Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "allowedOwners array is oversize", funcResult);
+    RETURN_IF_STRING_IS_OVERSIZE(options.requiredLabels,
+        Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "requiredLabels array is oversize", funcResult);
     int32_t callingUid = -1;
     std::string bundleName;
     uint32_t appIndex;
@@ -720,6 +869,12 @@ ErrCode AppAccountManagerService::SelectAccountsByOptions(
 ErrCode AppAccountManagerService::VerifyCredential(const std::string &name, const std::string &owner,
     const VerifyCredentialOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_OVERSIZE(
+        options.credentialType, Constants::CREDENTIAL_TYPE_MAX_SIZE, "the credential type is oversize", funcResult);
+    RETURN_IF_STRING_IS_OVERSIZE(
+        options.credential, Constants::CREDENTIAL_MAX_SIZE, "the credential is oversize", funcResult);
     AuthenticatorSessionRequest request;
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
@@ -737,6 +892,10 @@ ErrCode AppAccountManagerService::VerifyCredential(const std::string &name, cons
 ErrCode AppAccountManagerService::CheckAccountLabels(const std::string &name, const std::string &owner,
     const std::vector<std::string> &labels, const sptr<IAppAccountAuthenticatorCallback> &callback, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize", funcResult);
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(
+        labels, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "labels array is empty or oversize", funcResult);
     AuthenticatorSessionRequest request;
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
@@ -754,6 +913,7 @@ ErrCode AppAccountManagerService::CheckAccountLabels(const std::string &name, co
 ErrCode AppAccountManagerService::SetAuthenticatorProperties(const std::string &owner,
     const SetPropertiesOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE,  "owner is empty or oversize", funcResult);
     AuthenticatorSessionRequest request;
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
@@ -813,6 +973,8 @@ ErrCode AppAccountManagerService::SubscribeAppAccount(
 ErrCode AppAccountManagerService::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener,
     const std::vector<std::string> &owners, int32_t &funcResult)
 {
+    RETURN_IF_STRING_IS_OVERSIZE(
+        owners, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "owners array is empty or oversize", funcResult);
     std::vector<std::string> ownerList = owners;
     funcResult = innerManager_->UnsubscribeAppAccount(eventListener, ownerList);
     return ERR_OK;
