@@ -337,7 +337,7 @@ ErrCode OsAccountManagerService::CreateOsAccountWithFullInfo(const OsAccountInfo
 {
     ErrCode code = const_cast<OsAccountInfo *>(&osAccountInfo)->ParamCheck();
     if (code != ERR_OK) {
-        ACCOUNT_LOGE("OsAccountInfo required field is invalidate");
+        ACCOUNT_LOGE("OsAccountInfo required field is invalidate, code = %{public}u.", code);
         return code;
     }
     ErrCode result = AccountPermissionManager::CheckSystemApp();
@@ -379,7 +379,7 @@ ErrCode OsAccountManagerService::UpdateOsAccountWithFullInfo(const OsAccountInfo
 {
     ErrCode code = const_cast<OsAccountInfo *>(&osAccountInfo)->ParamCheck();
     if (code != ERR_OK) {
-        ACCOUNT_LOGE("OsAccountInfo required field is invalidate");
+        ACCOUNT_LOGE("OsAccountInfo required field is invalidate, code = %{public}u.", code);
         return code;
     }
     ErrCode result = AccountPermissionManager::CheckSystemApp();
