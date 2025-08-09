@@ -33,6 +33,7 @@ using namespace OHOS;
 using namespace AccountSA;
 namespace {
 const int TEST_USER_ID = 100;
+const int TEST_ACCOUNT_ID = 222;
 const std::string TEST_STR = "1";
 const std::string LONG_STR = std::string(400, '1');
 const int TEST_USERID = 999;
@@ -71,6 +72,17 @@ void OsAccountServiceTest::TearDown(void)
         osAccountService_ = nullptr;
     }
 }
+
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+ErrCode InnerDomainAccountManager::GetAccountServerConfig(const std::string &accountName,
+    const std::string &configId, DomainServerConfig &config)
+{
+    if (accountName == "fail") {
+        return false;
+    }
+    return true;
+}
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 
 /**
  * @tc.name: OnStopUserDone001
@@ -163,5 +175,72 @@ HWTEST_F(OsAccountServiceTest, IsOsAccountVerified001, TestSize.Level1)
         ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
     setuid(0);
 }
+
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+/*
+ * @tc.name: GetServerConfigInfo001
+ * @tc.desc: Test GetServerConfigInfo with valid userid.
+ * @tc.type: FUNC
+ * @tc.require: #I6JV5X
+ */
+HWTEST_F(OsAccountServiceTest, GetServerConfigInfo001, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    osAccountInfo.SetIsCreateCompleted(false);
+    ErrCode errCode = osAccountService_->GetServerConfigInfo(osAccountInfo);
+    EXPECT_EQ(errCode, ERR_OK);
+    osAccountInfo.SetIsCreateCompleted(true);
+    osAccountInfo.SetToBeRemoved(true);
+    errCode = osAccountService_->GetServerConfigInfo(osAccountInfo);
+    EXPECT_EQ(errCode, ERR_OK);
+    osAccountInfo.SetToBeRemoved(false);
+    errCode = osAccountService_->GetServerConfigInfo(osAccountInfo);
+    EXPECT_EQ(errCode, ERR_OK);
+    DomainAccountInfo info;
+    info.accountName_ = "test";
+    osAccountInfo.SetDomainInfo(info);
+    errCode = osAccountService_->GetServerConfigInfo(osAccountInfo);
+    EXPECT_EQ(errCode, ERR_OK);
+    info.serverConfigId_ = "test";
+    osAccountInfo.SetDomainInfo(info);
+    EXPECT_EQ(errCode, ERR_OK);
+}
+
+/*
+ * @tc.name: GetServerConfigInfo001
+ * @tc.desc: Test GetServerConfigInfo with valid userid.
+ * @tc.type: FUNC
+ * @tc.require: #I6JV5X
+ */
+HWTEST_F(OsAccountServiceTest, GetServerConfigInfo002, TestSize.Level1)
+{
+    OsAccountInfo accountInfo(TEST_ACCOUNT_ID, "QueryOsAccountInfo001", OsAccountType::NORMAL, 0);
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = "fail";
+    domainInfo.domain_ = "test.example.com";
+    domainInfo.accountId_ = "testid";
+    domainInfo.serverConfigId_ = "test";
+    accountInfo.SetIsCreateCompleted(true);
+    accountInfo.SetDomainInfo(domainInfo);
+    OsAccountControlFileManager *controlManager = new (std::nothrow) OsAccountControlFileManager();
+    EXPECT_EQ(ERR_OK, controlManager->InsertOsAccount(accountInfo));
+    OsAccountInfo info;
+    EXPECT_EQ(osAccountService_->QueryOsAccountById(TEST_ACCOUNT_ID, info), ERR_OK);
+#if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
+    EXPECT_EQ(osAccountService_->GetOsAccountFromDatabase("os_account_info", TEST_ACCOUNT_ID, info), ERR_OK);
+    std::vector<OsAccountInfo> osAccountList;
+    EXPECT_EQ(osAccountService_->GetOsAccountListFromDatabase("os_account_info", osAccountList), ERR_OK);
+#endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
+    domainInfo.accountName_ = "tets";
+    accountInfo.SetDomainInfo(domainInfo);
+    EXPECT_EQ(ERR_OK, controlManager->UpdateOsAccount(accountInfo));
+    EXPECT_EQ(osAccountService_->QueryOsAccountById(TEST_ACCOUNT_ID, info), ERR_OK);
+#if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
+    EXPECT_EQ(osAccountService_->GetOsAccountFromDatabase("os_account_info", TEST_ACCOUNT_ID, info), ERR_OK);
+    EXPECT_EQ(osAccountService_->GetOsAccountListFromDatabase("os_account_info", osAccountList), ERR_OK);
+#endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
+    EXPECT_EQ(controlManager->DelOsAccount(TEST_ACCOUNT_ID), ERR_OK);
+}
+#endif //SUPPORT_DOMAIN_ACCOUNTS
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -287,6 +287,7 @@
         "OHOS::AccountSA::InnerDomainAccountManager::SetAccountPolicy(OHOS::AccountSA::DomainAccountInfo const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::InnerDomainAccountManager::GetAccountPolicy(OHOS::AccountSA::DomainAccountInfo const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&)";
         "OHOS::AccountSA::InnerDomainAccountManager::BindDomainAccount(int, OHOS::AccountSA::DomainAccountInfo const&, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
+        "OHOS::AccountSA::InnerDomainAccountManager::GetAccountServerConfig(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::DomainServerConfig&)";
         "OHOS::AccountSA::DomainAccountStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
         "OHOS::AccountSA::DomainAccountInfo::DomainAccountInfo()";
         "OHOS::AccountSA::SwitchSubscribeInfo::~SwitchSubscribeInfo()";
