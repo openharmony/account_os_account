@@ -73,6 +73,8 @@ public:
     ErrCode GetServerConfig(const std::string &configId, DomainServerConfig &config);
     ErrCode GetAllServerConfigs(std::vector<DomainServerConfig> &configs);
     ErrCode GetAccountServerConfig(const DomainAccountInfo &info, DomainServerConfig &config);
+    ErrCode GetAccountServerConfig(const std::string &accountName, const std::string &configId,
+        DomainServerConfig &config);
     void LoaderLib(const std::string &path, const std::string &libName);
     void CloseLib();
     ErrCode UpdateAccountInfo(const DomainAccountInfo &oldAccountInfo, const DomainAccountInfo &newAccountInfo);
@@ -80,9 +82,9 @@ public:
     ErrCode UnbindDomainAccountSync(const DomainAccountInfo &info, const int32_t localId);
     ErrCode BindDomainAccountSync(const DomainAccountInfo &info, const int32_t localId);
     ErrCode GetDomainAccountInfoSync(const int32_t localId, const DomainAccountInfo &info, DomainAccountInfo &fullInfo);
-    
+
     ErrCode CheckAndRecoverBindDomainForUncomplete(const OsAccountInfo &accountInfo);
-    
+
     ErrCode BindDomainAccount(const int32_t localId,
         const DomainAccountInfo &domainInfo, const sptr<IDomainAccountCallback> &callback);
     ErrCode CleanUnbindDomainAccount();

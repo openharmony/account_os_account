@@ -30,6 +30,7 @@ static int g_addServerConfig = 0;
 const char PARAM_CONTENT_ONE = '1';
 const int32_t SERVER_CONFIG_CASE_ONE = 1;
 const int32_t SERVER_CONFIG_CASE_TWO = 2;
+const int32_t ITEM_SIZE = 2;
 
 int dlclose(void *handler)
 {
@@ -120,15 +121,25 @@ PluginBussnessError* GetServerConfig(const PluginString *serverConfigId, const i
 
 static void AddServerConfigToList(PluginServerConfigInfoList **serverConfigInfoList)
 {
-    PluginServerConfigInfo *item = (PluginServerConfigInfo *)malloc(sizeof(PluginServerConfigInfo));
-    if (item == nullptr) {
+    (*serverConfigInfoList)->items = (PluginServerConfigInfo*)malloc(ITEM_SIZE * sizeof(PluginServerConfigInfo));
+    if ((*serverConfigInfoList)->items == nullptr) {
         return;
     }
-    item->id.data = nullptr;
-    item->domain.data = nullptr;
-    item->parameters.data = nullptr;
-    (*serverConfigInfoList)->items = item; //GetServerConfigList return serverConfigInfoList size is 1
-    (*serverConfigInfoList)->size = 1;
+    (*serverConfigInfoList)->size = ITEM_SIZE;
+    PluginServerConfigInfo *item = &(*serverConfigInfoList)->items[0];
+    item->id.data = strdup(RIGHT_SO);
+    item->id.length = strlen(RIGHT_SO);
+    item->domain.data = strdup(RIGHT_SO);
+    item->domain.length = strlen(RIGHT_SO);
+    item->parameters.data = strdup(RIGHT_SO);
+    item->parameters.length = strlen(RIGHT_SO);
+    PluginServerConfigInfo *item2 = &(*serverConfigInfoList)->items[1];
+    item2->id.data = strdup(RIGHT_SO);
+    item2->id.length = strlen(RIGHT_SO);
+    item2->domain.data = strdup(RIGHT_SO);
+    item2->domain.length = strlen(RIGHT_SO);
+    item2->parameters.data = nullptr;
+    item2->parameters.length = 0;
 }
 
 PluginBussnessError* GetServerConfigList(PluginServerConfigInfoList **serverConfigInfoList)

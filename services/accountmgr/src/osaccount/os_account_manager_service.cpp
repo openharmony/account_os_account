@@ -745,8 +745,20 @@ ErrCode OsAccountManagerService::QueryAllCreatedOsAccounts(std::vector<OsAccount
     if (result != ERR_OK) {
         REPORT_OS_ACCOUNT_FAIL(IPCSkeleton::GetCallingUid(), Constants::OPERATION_LOG_ERROR,
             result, "Query all created os account failed.");
+        return result;
     }
-    return result;
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+    for (auto& info : osAccountInfos) {
+        result = GetServerConfigInfo(info);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGE("Failed to get domain server config, error=%{public}d", result);
+            ReportOsAccountOperationFail(info.GetLocalId(), Constants::OPERATION_GET_INFO,
+                result, "Failed to get domain server config");
+            continue;
+        }
+    }
+#endif // SUPPORT_DOMAIN_ACCOUNTS
+    return ERR_OK;
 }
 #ifdef FUZZ_TEST
 // LCOV_EXCL_STOP
@@ -781,7 +793,20 @@ ErrCode OsAccountManagerService::QueryCurrentOsAccount(OsAccountInfo &osAccountI
     }
 
     int id = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
-    return innerManager_.QueryOsAccountById(id, osAccountInfo);
+    ErrCode errCode = innerManager_.QueryOsAccountById(id, osAccountInfo);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+    errCode = GetServerConfigInfo(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get domain server config, error=%{public}d", errCode);
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_GET_INFO,
+            errCode, "Failed to get domain server config");
+        return ERR_OK;
+    }
+#endif // SUPPORT_DOMAIN_ACCOUNTS
+    return ERR_OK;
 }
 #ifdef FUZZ_TEST
 // LCOV_EXCL_STOP
@@ -812,7 +837,20 @@ ErrCode OsAccountManagerService::QueryOsAccountById(const int id, OsAccountInfo 
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 
-    return innerManager_.QueryOsAccountById(id, osAccountInfo);
+    ErrCode errCode = innerManager_.QueryOsAccountById(id, osAccountInfo);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+    errCode = GetServerConfigInfo(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get domain server config, error=%{public}d", errCode);
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_GET_INFO,
+            errCode, "Failed to get domain server config");
+        return ERR_OK;
+    }
+#endif // SUPPORT_DOMAIN_ACCOUNTS
+    return ERR_OK;
 }
 
 #ifdef FUZZ_TEST
@@ -1458,7 +1496,20 @@ ErrCode OsAccountManagerService::GetOsAccountFromDatabase(const std::string& sto
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 
-    return innerManager_.GetOsAccountFromDatabase(storeID, id, osAccountInfo);
+    ErrCode errCode = innerManager_.GetOsAccountFromDatabase(storeID, id, osAccountInfo);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+    errCode = GetServerConfigInfo(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get domain server config, error=%{public}d", errCode);
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_GET_INFO,
+            errCode, "Failed to get domain server config");
+        return ERR_OK;
+    }
+#endif
+    return ERR_OK;
 }
 
 ErrCode OsAccountManagerService::GetOsAccountFromDatabase(const std::string& storeID,
@@ -1482,7 +1533,22 @@ ErrCode OsAccountManagerService::GetOsAccountListFromDatabase(const std::string&
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 
-    return innerManager_.GetOsAccountListFromDatabase(storeID, osAccountList);
+    ErrCode errCode = innerManager_.GetOsAccountListFromDatabase(storeID, osAccountList);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+    for (auto &info : osAccountList) {
+        errCode = GetServerConfigInfo(info);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("Failed to get domain server config, error=%{public}d", errCode);
+            ReportOsAccountOperationFail(info.GetLocalId(), Constants::OPERATION_GET_INFO,
+                errCode, "Failed to get domain server config");
+            continue;
+        }
+    }
+#endif
+    return ERR_OK;
 }
 
 ErrCode OsAccountManagerService::GetOsAccountListFromDatabase(const std::string& storeID,
@@ -2144,5 +2210,30 @@ ErrCode OsAccountManagerService::CallbackExit([[maybe_unused]] uint32_t code, [[
 #endif // HICOLLIE_ENABLE
     return ERR_OK;
 }
+
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+ErrCode OsAccountManagerService::GetServerConfigInfo(OsAccountInfo &osAccountInfo)
+{
+    if (!osAccountInfo.GetIsCreateCompleted() || osAccountInfo.GetToBeRemoved()) {
+        return ERR_OK;
+    }
+    DomainAccountInfo info;
+    osAccountInfo.GetDomainInfo(info);
+    if (info.accountName_.empty() || info.serverConfigId_.empty()) {
+        return ERR_OK;
+    }
+    DomainServerConfig config;
+    ErrCode errCode = InnerDomainAccountManager::GetInstance().GetAccountServerConfig(info.accountName_,
+        info.serverConfigId_, config);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("GetAccountServerConfig failed, errCode=%{public}d", errCode);
+        return errCode;
+    }
+    info.domain_ = config.domain_;
+    info.serverConfigId_ = config.id_;
+    osAccountInfo.SetDomainInfo(info);
+    return ERR_OK;
+}
+#endif
 }  // namespace AccountSA
 }  // namespace OHOS
