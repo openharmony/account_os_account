@@ -549,6 +549,8 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     EXPECT_EQ(instance->AddServerConfig(identifier, config), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     DomainAccountInfo info;
     EXPECT_EQ(instance->GetAccountServerConfig(info, config), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(instance->GetAccountServerConfig("test", "test", config),
+        ERR_JS_CAPABILITY_NOT_SUPPORTED);
     std::string configId = STRING_TEST_NAME;
     EXPECT_EQ(instance->RemoveServerConfig(configId), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->UpdateServerConfig(configId, STRING_TEST_NAME, config), ERR_JS_CAPABILITY_NOT_SUPPORTED);
@@ -654,8 +656,11 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     password.push_back(0);
     option.callingUid_ = 1;
     instance->methodMap_.clear();
+    instance->libHandle_ = nullptr;
     EXPECT_EQ(instance->AddServerConfig(identifier, config), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->GetAccountServerConfig(info, config), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    EXPECT_EQ(instance->GetAccountServerConfig(info.accountName_, info.serverConfigId_, config),
+        ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->RemoveServerConfig(configId), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->UpdateServerConfig(configId, STRING_TEST_NAME, config), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->GetServerConfig(configId, config), ERR_JS_CAPABILITY_NOT_SUPPORTED);
@@ -694,6 +699,7 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, GetAllServerConfigs001, TestSize.
     EXPECT_EQ(instance->AddServerConfig("2", config), ERR_OK);
     EXPECT_EQ(instance->GetAllServerConfigs(configs), ERR_OK);
     EXPECT_EQ(instance->RemoveServerConfig("1"), ERR_OK);
+    EXPECT_EQ(instance->GetAccountServerConfig("test", "test", config), ERR_OK);
     setuid(0);
 }
 }  // namespace AccountSA

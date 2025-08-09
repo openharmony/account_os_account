@@ -352,7 +352,14 @@ ohos_unittest("OsAccountInnerAccmgrCovTest") {
     cflags_cc += [ "-DHAS_CES_PART" ]
     external_deps += [ "common_event_service:cesfwk_innerkits" ]
   }
-
+  if (os_account_distributed_feature) {
+    cflags_cc += [
+      "-DDISTRIBUTED_FEATURE_ENABLED"
+    ]
+  }
+  if (has_kv_store_part && os_account_distributed_feature) {
+    cflags_cc += [ "-DHAS_KV_STORE_PART" ]
+  }
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
   }
@@ -1031,7 +1038,7 @@ ohos_unittest("os_account_state_reply_callback_service_test") {
     "${common_path}/account_error/src/account_error_no.cpp",
     "os_account_state_reply_callback_service_test.cpp",
   ]
-  configs = [ 
+  configs = [
     "${services_path}/accountmgr/test:accountmgr_test_config",
   ]
 
