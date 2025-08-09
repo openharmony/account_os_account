@@ -675,7 +675,8 @@ ErrCode InnerDomainAccountManager::UpdateServerConfig(const std::string &configI
     if (errCode != ERR_OK) {
         return errCode;
     }
-    return IInnerOsAccountManager::GetInstance().UpdateServerConfig(configId, config);
+    (void)IInnerOsAccountManager::GetInstance().UpdateServerConfig(configId, config);
+    return errCode;
 }
 
 ErrCode InnerDomainAccountManager::GetServerConfig(const std::string &configId,
@@ -740,6 +741,10 @@ ErrCode InnerDomainAccountManager::GetAllServerConfigs(
             ACCOUNT_LOGE("Failed to get server config domain at index %{public}zu", i);
             continue;
         }
+        if (GetAndCleanPluginString(configInfoList->items[i].parameters, config.parameters_) != ERR_OK) {
+            ACCOUNT_LOGE("Failed to get server config parameters at index %{public}zu", i);
+            continue;
+        }
         configs.push_back(config);
     }
     delete[] configInfoList->items;
@@ -747,27 +752,17 @@ ErrCode InnerDomainAccountManager::GetAllServerConfigs(
     return GetAndCleanPluginBussnessError(&error, iter->first);
 }
 
-ErrCode InnerDomainAccountManager::GetAccountServerConfig(
-    const DomainAccountInfo &info, DomainServerConfig &config) __attribute__((no_sanitize("cfi")))
+ErrCode InnerDomainAccountManager::GetAccountServerConfig(const std::string &accountName,
+    const std::string &configId, DomainServerConfig &config) __attribute__((no_sanitize("cfi")))
 {
-    if (!IsSupportNetRequest()) {
-        ACCOUNT_LOGE("Not support background account request");
-        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
-    }
     auto iter = methodMap_.find(PluginMethodEnum::GET_ACCOUNT_SERVER_CONFIG);
     if (iter == methodMap_.end() || iter->second == nullptr) {
         ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::GET_ACCOUNT_SERVER_CONFIG);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
-    int32_t localId = 0;
-    ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, localId);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("get os account localId from domain failed, result: %{public}d", result);
-        if (result != ERR_ACCOUNT_COMMON_INVALID_PARAMETER) {
-            return result;
-        }
-        return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
-    }
+    DomainAccountInfo info;
+    info.accountName_ = accountName;
+    info.serverConfigId_ = configId;
     PluginDomainAccountInfo domainAccountInfo;
     SetPluginDomainAccountInfo(info, domainAccountInfo);
     PluginServerConfigInfo *serverConfigInfo = nullptr;
@@ -783,6 +778,32 @@ ErrCode InnerDomainAccountManager::GetAccountServerConfig(
         return ERR_JS_ACCOUNT_NOT_FOUND;
     }
     return errCode;
+}
+
+ErrCode InnerDomainAccountManager::GetAccountServerConfig(
+    const DomainAccountInfo &info, DomainServerConfig &config) __attribute__((no_sanitize("cfi")))
+{
+    if (!IsSupportNetRequest()) {
+        ACCOUNT_LOGE("Not support background account request");
+        return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
+    }
+    {
+        std::lock_guard<std::mutex> lock(libMutex_);
+        if (libHandle_ == nullptr) {
+            ACCOUNT_LOGE("Caller method=%{public}d not exsit.", PluginMethodEnum::GET_ACCOUNT_SERVER_CONFIG);
+            return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+        }
+    }
+    int32_t localId = 0;
+    ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, localId);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Get os account localId from domain failed, result: %{public}d", result);
+        if (result != ERR_ACCOUNT_COMMON_INVALID_PARAMETER) {
+            return result;
+        }
+        return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
+    }
+    return GetAccountServerConfig(info.accountName_, info.serverConfigId_, config);
 }
 
 ErrCode InnerDomainAccountManager::PluginAuth(const DomainAccountInfo &info,
