@@ -65,12 +65,12 @@ struct SelectAccountsOptions {
 struct VerifyCredentialOptions {
     credentialType: Optional<String>;
     credential: Optional<String>;
-    parameters: Optional<@record Map<String, Opaque>>;
+    parameters: Optional <@sts_type("Record<String, Object>")Opaque>;
 }
 
 struct SetPropertiesOptions {
-    properties: Optional<@record Map<String, Opaque>>;
-    parameters: Optional<@record Map<String, Opaque>>;
+    properties: Optional <@sts_type("Record<String, Object>")Opaque>;
+    parameters: Optional <@sts_type("Record<String, Object>")Opaque>;
 }
 
 enum Constants: String {
@@ -230,4 +230,24 @@ interface AppAccountManager {
 
     @overload("auth")
     AuthWithMap(name: String, owner: String, authType: String, options: @sts_type("Record<String, Object>")Opaque, callback: AuthCallback);
+}
+
+@constructor ("Authenticator")@rename
+function MakeAuthenticator(@sts_this self: Authenticator): Authenticator;
+
+@class
+interface Authenticator {
+    CreateAccountImplicitly(options: CreateAccountImplicitlyOptions, callback: AuthCallback): void;
+
+    Auth(name: String, authType: String, options: @sts_type("Record<String, Object>")Opaque, callback: AuthCallback): void;
+
+    SetProperties(options: SetPropertiesOptions, callback: AuthCallback): void;
+
+    VerifyCredential(name: String, options: VerifyCredentialOptions, callback: AuthCallback): void;
+
+    CheckAccountLabelsSync(name: String, labels: Array<String>, callback: AuthCallback): void;
+
+    CheckAccountRemovable(name: String, callback: AuthCallback): void;
+
+    GetRemoteObject(): @sts_type("rpc.RemoteObject")Opaque;
 }
