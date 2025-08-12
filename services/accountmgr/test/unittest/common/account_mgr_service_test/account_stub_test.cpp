@@ -47,6 +47,7 @@ const std::string TEST_AVATAR = "Avatar_Test";
 const std::string KEY_ACCOUNT_INFO_SCALABLEDATA = "age";
 std::string g_eventLogin = OHOS_ACCOUNT_EVENT_LOGIN;
 const std::string STRING_TEST_NAME = "test_account_name";
+const std::string STRING_TEST_NICKNAME(1025, 't');
 } // namespace
 
 class AccountStubModuleTest : public testing::Test {
@@ -199,6 +200,27 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_SetOsAccountDistributedInf
     EXPECT_EQ(accountService_->SetOsAccountDistributedInfo(localId, ohosAccountInfo, eventStr),
         ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     setuid(ROOT_UID);
+}
+
+/**
+ * @tc.name: AccountStubModuleTest_SetOsAccountDistributedInfo_002
+ * @tc.desc: SetOsAccountDistributedInfo IsValid error.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_SetOsAccountDistributedInfo_002, TestSize.Level3)
+{
+    uint64_t selfTokenid = IPCSkeleton::GetSelfTokenID();
+    uint64_t tokenID;
+    ASSERT_TRUE(AllocPermission(ALL_ACCOUNT_PERMISSION_LIST, tokenID));
+    setuid(ROOT_UID);
+    int32_t localId = TEST_UID;
+    OhosAccountInfo ohosAccountInfo;
+    ohosAccountInfo.nickname_ = STRING_TEST_NICKNAME;
+    std::string eventStr = INVALID_ACCOUNT_EVENT;
+    EXPECT_EQ(accountService_->SetOsAccountDistributedInfo(localId, ohosAccountInfo, eventStr),
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    SetSelfTokenID(selfTokenid);
 }
 
 /**

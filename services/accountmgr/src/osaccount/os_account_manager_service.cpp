@@ -1059,11 +1059,6 @@ ErrCode OsAccountManagerService::SetOsAccountConstraints(
 
 ErrCode OsAccountManagerService::SetOsAccountProfilePhoto(const int id, const std::string &photo)
 {
-    int32_t photoSize = photo.size() + 1;
-    if (photoSize - 1 > static_cast<int32_t>(Constants::LOCAL_PHOTO_MAX_SIZE) || photoSize < 1) {
-        ACCOUNT_LOGE("PhotoSize is invalid, photosize = %{public}d", photoSize);
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
     // parameters check
     ErrCode res = CheckLocalId(id);
     if (res != ERR_OK) {
