@@ -34,21 +34,21 @@ const char GET_ALL_APP_ACCOUNTS[] = "ohos.permission.GET_ALL_APP_ACCOUNTS";
     if (CheckSpecialCharacters(str) != ERR_OK) {                           \
         ACCOUNT_LOGE("fail to check special characters");                  \
         funcResult = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;                 \
-        return ERR_NONE;                                                   \
+        return ERR_OK;                                                   \
     }                                                                      \
 
 #define RETURN_IF_STRING_IS_OVERSIZE(str, maxSize, msg, funcResult)                                                    \
     if ((str).size() > (maxSize)) {                                                                             \
         ACCOUNT_LOGE("%{public}s, input size: %{public}zu, max size: %{public}zu", msg, (str).size(), maxSize); \
         funcResult = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;                                                      \
-        return ERR_NONE;                                                                                        \
+        return ERR_OK;                                                                                        \
     }                                                                                                           \
 
 #define RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(str, maxSize, msg, funcResult)                                           \
     if ((str).empty() || ((str).size() > (maxSize))) {                                                          \
         ACCOUNT_LOGE("%{public}s, input size: %{public}zu, max size: %{public}zu", msg, (str).size(), maxSize); \
         funcResult = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;                                                      \
-        return ERR_NONE;                                                                                        \
+        return ERR_OK;                                                                                        \
     }                                                                                                           \
 
 static ErrCode CheckSpecialCharacters(const std::string &str)
