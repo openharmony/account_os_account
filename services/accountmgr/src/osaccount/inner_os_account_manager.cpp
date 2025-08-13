@@ -56,7 +56,6 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 const char OPERATION_UPDATE[] = "update";
-// 新增：SetToBeRemoved 失败上报用的操作名
 const char OPERATION_SETTOBEREMOVED[] = "setToBeRemoved";
 const char ADMIN_LOCAL_NAME[] = "admin";
 #ifdef SUPPORT_LOCK_OS_ACCOUNT
