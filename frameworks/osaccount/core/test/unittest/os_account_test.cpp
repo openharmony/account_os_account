@@ -733,6 +733,7 @@ HWTEST_F(OsAccountTest, OnComplete_001, TestSize.Level3)
     // Verify that the callbackCounter will be reset after OnComplete
     callback.OnComplete();
     // Check whether the callbackCounter has been reset (changed to nullptr)
+    EXPECT_EQ(0, counter->load());
 }
 
 /**
