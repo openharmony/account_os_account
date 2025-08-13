@@ -56,7 +56,7 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 const char OPERATION_UPDATE[] = "update";
-const char OPERATION_SETTOBEREMOVED[] = "setToBeRemoved";
+const char OPERATION_SET_TO_BE_REMOVED[] = "setToBeRemoved";
 const char ADMIN_LOCAL_NAME[] = "admin";
 #ifdef SUPPORT_LOCK_OS_ACCOUNT
 const char OPERATION_LOCK[] = "lock";
@@ -1478,7 +1478,7 @@ ErrCode IInnerOsAccountManager::QueryMaxLoggedInOsAccountNumber(uint32_t &maxNum
     maxNum = config_.maxLoggedInOsAccountNum;
 #else
     maxNum = 1;
-#endif // ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
     return ERR_OK;
 }
 #ifdef FUZZ_TEST
@@ -2926,7 +2926,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountToBeRemoved(int32_t localId, bool to
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(localId, osAccountInfo);
     if (errCode != ERR_OK) {
-        ReportOsAccountOperationFail(localId, OPERATION_SETTOBEREMOVED, errCode,
+        ReportOsAccountOperationFail(localId, OPERATION_SET_TO_BE_REMOVED, errCode,
             "Get account info failed when set ToBeRemoved");
         RemoveLocalIdToOperating(localId);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
@@ -2935,7 +2935,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountToBeRemoved(int32_t localId, bool to
     if (toBeRemoved && (localId == defaultActivatedId_)) {
         ErrCode result = osAccountControl_->SetDefaultActivatedOsAccount(Constants::START_USER_ID);
         if (result != ERR_OK) {
-            ReportOsAccountOperationFail(localId, OPERATION_SETTOBEREMOVED, result,
+            ReportOsAccountOperationFail(localId, OPERATION_SET_TO_BE_REMOVED, result,
                 "Persist defaultActivatedId to START_USER_ID failed");
             ACCOUNT_LOGE("SetDefaultActivatedOsAccount persist failed, err=%{public}d, keep memory unchanged", result);
             RemoveLocalIdToOperating(localId);
@@ -2948,12 +2948,12 @@ ErrCode IInnerOsAccountManager::SetOsAccountToBeRemoved(int32_t localId, bool to
     osAccountInfo.SetToBeRemoved(toBeRemoved);
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
-        ReportOsAccountOperationFail(localId, OPERATION_SETTOBEREMOVED, errCode,
+        ReportOsAccountOperationFail(localId, OPERATION_SET_TO_BE_REMOVED, errCode,
             "Update ToBeRemoved flag failed");
         ACCOUNT_LOGI("Update ToBeRemoved flag failed, err=%{public}d", errCode);
     }
     RemoveLocalIdToOperating(localId);
-    ReportOsAccountLifeCycle(Constants::START_USER_ID, OPERATION_SETTOBEREMOVED);
+    ReportOsAccountLifeCycle(Constants::START_USER_ID, OPERATION_SET_TO_BE_REMOVED);
     return errCode;
 }
 

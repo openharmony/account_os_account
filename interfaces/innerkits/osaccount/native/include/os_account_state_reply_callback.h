@@ -35,8 +35,6 @@ private:
     std::shared_ptr<std::condition_variable> cv_;
     std::shared_ptr<std::atomic<int>> counter_;
 };
-
 } // namespace AccountSA
 } // namespace OHOS
-
-#endif // OS_ACCOUNT_STATE_REPLY_CALLBACK_H
+#endif // OS_ACCOUNT_FRAMEWORKS_OSACCOUNT_CORE_INCLUDE_OS_ACCOUNT_STATE_REPLY_CALLBACK_H
