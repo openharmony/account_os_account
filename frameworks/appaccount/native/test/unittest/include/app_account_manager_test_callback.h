@@ -19,7 +19,6 @@
 #include <gmock/gmock.h>
 
 #include "app_account_authenticator_callback_stub.h"
-#include "app_account_authorization_extension_callback_stub.h"
 
 namespace OHOS {
 namespace AccountTest {
@@ -30,17 +29,6 @@ public:
     MOCK_METHOD0(OnRequestContinued, ErrCode());
     MOCK_METHOD1(CallbackEnter, ErrCode(uint32_t code));
     MOCK_METHOD2(CallbackExit, ErrCode(uint32_t code, int32_t result));
-};
-
-class MockAppAccountAuthorizationExtensionCallbackStub final
-    : public AccountSA::AppAccountAuthorizationExtensionCallbackStub {
-public:
-    MOCK_METHOD2(
-        OnResult, ErrCode(const AccountSA::AsyncCallbackError& businessError, const AAFwk::WantParams& parameters));
-    ErrCode OnRequestRedirected(const AAFwk::Want& request)
-    {
-        return ERR_OK;
-    }
 };
 } // namespace AccountTest
 } // namespace OHOS

@@ -132,14 +132,6 @@ bool SelectAccountsOptions::ReadFromParcel(Parcel &parcel)
     return parcel.ReadStringVector(&allowedOwners) && parcel.ReadStringVector(&requiredLabels);
 }
 
-AuthorizationRequest::AuthorizationRequest(const int32_t &callingUid, const AAFwk::WantParams &parameters,
-    const sptr<IAppAccountAuthorizationExtensionCallback> &callback)
-    : callerUid(callingUid), parameters(parameters), callback(callback)
-{}
-
-AuthorizationRequest::AuthorizationRequest()
-{}
-
 bool VerifyCredentialOptions::Marshalling(Parcel &parcel) const
 {
     return parcel.WriteString(credentialType) && parcel.WriteString(credential) && parcel.WriteParcelable(&parameters);
@@ -302,67 +294,6 @@ AccountCapabilityRequest *AccountCapabilityRequest::Unmarshalling(Parcel &parcel
         info = nullptr;
     }
     return info;
-}
-
-bool AuthorizationRequest::Marshalling(Parcel &parcel) const
-{
-    if (!parcel.WriteInt32(callerUid)) {
-        ACCOUNT_LOGE("Write callerUid failed, please check callerUid value or parcel status");
-        return false;
-    }
-    if (!parcel.WriteBool(isEnableContext)) {
-        ACCOUNT_LOGE("Write isEnableContext failed, please check isEnableContext value or parcel status");
-        return false;
-    }
-    if (!parcel.WriteParcelable(&parameters)) {
-        ACCOUNT_LOGE("Write parameters failed, please check parameters value or parcel status");
-        return false;
-    }
-    if ((callback == nullptr) || (!parcel.WriteRemoteObject(callback->AsObject()))) {
-        ACCOUNT_LOGE("WriteRemoteObject failed, please check callback value or parcel status");
-        return false;
-    }
-    return true;
-}
-
-AuthorizationRequest *AuthorizationRequest::Unmarshalling(Parcel &parcel)
-{
-    AuthorizationRequest *info = new (std::nothrow) AuthorizationRequest();
-    if ((info != nullptr) && (!info->ReadFromParcel(parcel))) {
-        ACCOUNT_LOGW("ReadFromParcel failed, please check parcel data");
-        delete info;
-        info = nullptr;
-    }
-    return info;
-}
-
-bool AuthorizationRequest::ReadFromParcel(Parcel &parcel)
-{
-    if (!parcel.ReadInt32(callerUid)) {
-        ACCOUNT_LOGE("Read callerUid failed, please check callerUid in parcel");
-        return false;
-    }
-    if (!parcel.ReadBool(isEnableContext)) {
-        ACCOUNT_LOGE("Read isEnableContext failed, please check isEnableContext in parcel");
-        return false;
-    }
-    sptr<AAFwk::WantParams> paramsPtr = parcel.ReadParcelable<AAFwk::WantParams>();
-    if (paramsPtr == nullptr) {
-        ACCOUNT_LOGE("Read parameters failed, please check parameters in parcel");
-        return false;
-    }
-    parameters = *paramsPtr;
-    auto readCallback = (static_cast<MessageParcel*>(&parcel))->ReadRemoteObject();
-    if (readCallback == nullptr) {
-        ACCOUNT_LOGE("Read callback failed, please check callback object in parcel");
-        return false;
-    }
-    callback = iface_cast<IAppAccountAuthorizationExtensionCallback>(readCallback);
-    if (callback == nullptr) {
-        ACCOUNT_LOGE("Convert callback failed, please check callback object in parcel");
-        return false;
-    }
-    return true;
 }
 
 bool AccountCapabilityRequest::ReadFromParcel(Parcel &parcel)
