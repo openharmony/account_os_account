@@ -17,7 +17,6 @@
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_COMMON_H
 
 #include <string>
-#include "iapp_account_authorization_extension_callback.h"
 #include "iapp_account_authenticator_callback.h"
 #include "want.h"
 
@@ -116,19 +115,6 @@ enum AuthenticatorAction {
     IS_ACCOUNT_REMOVABLE,
     CREATE_ACCOUNT_IMPLICITLY,
     AUTH,
-};
-
-struct AuthorizationRequest : public Parcelable {
-    AuthorizationRequest();
-    AuthorizationRequest(const int32_t &callingUid, const AAFwk::WantParams &parameters,
-        const sptr<IAppAccountAuthorizationExtensionCallback> &callback);
-    int32_t callerUid = -1;
-    bool isEnableContext = false;
-    AAFwk::WantParams parameters;
-    sptr<IAppAccountAuthorizationExtensionCallback> callback = nullptr;
-    bool ReadFromParcel(Parcel &parcel);
-    bool Marshalling(Parcel &parcel) const override;
-    static AuthorizationRequest *Unmarshalling(Parcel &parcel);
 };
 
 struct AccountCapabilityRequest : public Parcelable {
