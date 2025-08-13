@@ -17,6 +17,8 @@
 
 use ohos.account.distributedAccount as distributedAccount;
 
+@!sts_inject_into_module("import { BusinessError } from '@ohos.base';")
+
 @!sts_inject("""
 static { loadLibrary("os_account_taihe_native.z") }
 """)
@@ -369,9 +371,58 @@ struct EnrolledCredInfo {
     templateId: @typedarray Array<u8>;
 }
 
+union OptionalError {
+    error: @sts_type("BusinessError") Opaque;
+    @null nValue;
+}
+
+union DomainAccountInfoData {
+    data: DomainAccountInfo;
+    @undefined uValue;
+}
+
+union AuthStatusInfoData {
+    data: AuthStatusInfo;
+    @undefined uValue;
+}
+
+union BoolData {
+    data: bool;
+    @undefined uValue;
+}
+
+union ArrayData {
+    data: @typedarray Array<u8>;
+    @undefined uValue;
+}
+
 interface DomainPlugin {
     @overload("auth")
     Auth(domainAccountInfo: DomainAccountInfo, credential: @typedarray Array<u8>, callback: IUserAuthCallback): void;
+
+    @overload("authWithPopup")
+    AuthWithPopup(domainAccountInfo: DomainAccountInfo, callback: IUserAuthCallback): void;
+
+    @overload("authWithToken")
+    AuthWithToken(domainAccountInfo: DomainAccountInfo, token: @typedarray Array<u8>, callback: IUserAuthCallback): void;
+
+    @overload("getAccountInfo")
+    GetAccountInfo(options: GetDomainAccountInfoPluginOptions, callback: (err: OptionalError, data: DomainAccountInfoData) => void): void;
+
+    @overload("getAuthStatusInfo")
+    GetAuthStatusInfo(domainAccountInfo: DomainAccountInfo, callback: (err: OptionalError, data: AuthStatusInfoData) => void): void;
+
+    @overload("bindAccount")
+    BindAccount(domainAccountInfo: DomainAccountInfo, localId: i32, callback: (err: OptionalError) => void): void;
+
+    @overload("unbindAccount")
+    UnbindAccount(domainAccountInfo: DomainAccountInfo, callback: (err: OptionalError) => void): void;
+
+    @overload("isAccountTokenValid")
+    IsAccountTokenValid(domainAccountInfo: DomainAccountInfo, token: @typedarray Array<u8>, callback: (err: OptionalError, data: BoolData) => void): void;
+
+    @overload("getAccessToken")
+    GetAccessToken(options: GetDomainAccessTokenOptions, callback: (err: OptionalError, data: ArrayData) => void): void;
 }
 
 @class
@@ -383,6 +434,10 @@ interface DomainServerConfigManager {}
 @static("DomainAccountManager")
 @gen_promise("isAuthenticationExpired")
 function IsAuthenticationExpiredSync(domainAccountInfo: DomainAccountInfo): bool;
+
+@static("DomainAccountManager")
+@overload("registerPlugin")
+function RegisterPlugin(plugin: DomainPlugin): void;
 
 @static("DomainAccountManager")
 @overload("unregisterPlugin")
