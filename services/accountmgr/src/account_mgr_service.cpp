@@ -86,7 +86,6 @@ const std::set<int32_t> INIT_ACCOUNT_ID_SET = {
 const bool REGISTER_RESULT =
     SystemAbility::MakeAndRegisterAbility(&DelayedRefSingleton<AccountMgrService>::GetInstance());
 const char DEVICE_OWNER_DIR[] = "/data/service/el1/public/account/0/";
-constexpr std::int32_t INVALID_USERID = -1;
 
 std::shared_ptr<void> RequestTimer(std::string eventStr)
 {
@@ -223,9 +222,6 @@ ErrCode AccountMgrService::SetOsAccountDistributedInfo(
     if (!ohosAccountInfo.IsValid()) {
         ACCOUNT_LOGE("Check OhosAccountInfo failed");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-    if (localId == INVALID_USERID) {
-        localId = AccountMgrService::GetInstance().GetCallingUserID();
     }
     ret = OhosAccountManager::GetInstance().OhosAccountStateChange(localId, ohosAccountInfo, eventStr);
     if (ret != ERR_OK) {
