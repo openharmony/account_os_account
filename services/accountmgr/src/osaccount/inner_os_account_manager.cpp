@@ -2888,7 +2888,7 @@ ErrCode IInnerOsAccountManager::UpdateAccountToBackground(int32_t oldId)
     OsAccountInterface::PublishCommonEvent(oldOsAccountInfo,
         OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_BACKGROUND, Constants::OPERATION_SWITCH);
 #ifdef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
-#ifdef SUPPORT_STOP_MAIN_OS_ACCOUNT
+#ifndef SUPPORT_STOP_MAIN_OS_ACCOUNT
     if (oldId == Constants::START_USER_ID) {
         return ERR_OK;
     }
