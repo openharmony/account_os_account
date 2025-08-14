@@ -16,23 +16,25 @@
 #ifndef OS_ACCOUNT_FRAMEWORKS_OSACCOUNT_CORE_INCLUDE_OS_ACCOUNT_STATE_REPLY_CALLBACK_H
 #define OS_ACCOUNT_FRAMEWORKS_OSACCOUNT_CORE_INCLUDE_OS_ACCOUNT_STATE_REPLY_CALLBACK_H
 
-#include "iremote_proxy.h"
+#include <atomic>
+#include <condition_variable>
+#include <memory>
+#include "iremote_object.h"
 
 namespace OHOS {
 namespace AccountSA {
+
 class OsAccountStateReplyCallback {
 public:
     explicit OsAccountStateReplyCallback(const sptr<IRemoteObject> &object);
-    OsAccountStateReplyCallback(
-        const std::shared_ptr<std::condition_variable> &cv, const std::shared_ptr<bool> &callbackCounter);
-    ~OsAccountStateReplyCallback() = default;
-
+    OsAccountStateReplyCallback(const std::shared_ptr<std::condition_variable> &cv,
+                                const std::shared_ptr<std::atomic<int>> &counter);
     void OnComplete();
 
 private:
     std::shared_ptr<std::condition_variable> cv_;
-    std::shared_ptr<bool> callbackCounter;
+    std::shared_ptr<std::atomic<int>> counter_;
 };
-}  // namespace AccountSA
-}  // namespace OHOS
-#endif  // OS_ACCOUNT_FRAMEWORKS_OSACCOUNT_CORE_INCLUDE_OS_ACCOUNT_STATE_REPLY_CALLBACK_H
+} // namespace AccountSA
+} // namespace OHOS
+#endif // OS_ACCOUNT_FRAMEWORKS_OSACCOUNT_CORE_INCLUDE_OS_ACCOUNT_STATE_REPLY_CALLBACK_H
