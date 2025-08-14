@@ -24,7 +24,9 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 constexpr int64_t TIMEOUT_THRESHOLD = 5000000; // 5s
-static const char *ConvertStateToSceneFlag(OsAccountState state)
+}
+
+const char *OsAccountStateReplyCallbackService::ConvertStateToSceneFlag(OsAccountState state)
 {
     switch (state) {
         case OsAccountState::STOPPING:
@@ -45,7 +47,6 @@ static const char *ConvertStateToSceneFlag(OsAccountState state)
         default:
             return "";
     }
-}
 }
 
 OsAccountStateReplyCallbackService::~OsAccountStateReplyCallbackService()
