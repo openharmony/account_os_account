@@ -2926,6 +2926,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountToBeRemoved(int32_t localId, bool to
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(localId, osAccountInfo);
     if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Get osaccount info error, errCode %{public}d.", errCode);
         ReportOsAccountOperationFail(localId, OPERATION_SET_TO_BE_REMOVED, errCode,
             "Get account info failed when set ToBeRemoved");
         RemoveLocalIdToOperating(localId);
@@ -2942,7 +2943,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountToBeRemoved(int32_t localId, bool to
             return result;
         }
         defaultActivatedId_ = Constants::START_USER_ID;
-        ACCOUNT_LOGI("Default activated account updated to START_USER_ID");
+        ACCOUNT_LOGE("Default activated account updated to START_USER_ID");
     }
 
     osAccountInfo.SetToBeRemoved(toBeRemoved);
@@ -2950,7 +2951,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountToBeRemoved(int32_t localId, bool to
     if (errCode != ERR_OK) {
         ReportOsAccountOperationFail(localId, OPERATION_SET_TO_BE_REMOVED, errCode,
             "Update ToBeRemoved flag failed");
-        ACCOUNT_LOGI("Update ToBeRemoved flag failed, err=%{public}d", errCode);
+        ACCOUNT_LOGE("Update ToBeRemoved flag failed, err=%{public}d", errCode);
     }
     RemoveLocalIdToOperating(localId);
     ReportOsAccountLifeCycle(localId, OPERATION_SET_TO_BE_REMOVED);
