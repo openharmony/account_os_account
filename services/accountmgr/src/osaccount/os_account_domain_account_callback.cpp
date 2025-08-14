@@ -119,11 +119,11 @@ void BindDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
             DomainAccountInfo curDomainInfo;
             osAccountInfo_.GetDomainInfo(curDomainInfo);
             if (InnerDomainAccountManager::GetInstance().OnAccountUnBound(curDomainInfo, nullptr,
-                osAccountInfo_.GetLocalId()) != ERR_OK) {
-                ACCOUNT_LOGE("Failed to bind domain account");
-                return;
+                osAccountInfo_.GetLocalId()) == ERR_OK) {
+                (void)osAccountControl_->DelOsAccount(osAccountInfo_.GetLocalId());
+            } else {
+                ACCOUNT_LOGE("Failed to unbound domain account");
             }
-            (void)osAccountControl_->DelOsAccount(osAccountInfo_.GetLocalId());
         }
         osAccountInfo_.Marshalling(resultParcel);
         DomainAccountParcel domainAccountResultParcel;
@@ -131,13 +131,14 @@ void BindDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
         innerCallback_->OnResult(errCode, domainAccountResultParcel);
         return;
     }
-
+    if ((osAccountInfo_.GetLocalId() == Constants::START_USER_ID) && (errCode == ERR_OK)) {
 #ifdef HAS_CES_PART
     AccountEventProvider::EventPublish(
         EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::START_USER_ID, nullptr);
 #else  // HAS_CES_PART
     ACCOUNT_LOGI("No common event part! Publish nothing!");
 #endif // HAS_CES_PART
+    }
     osAccountInfo_.Marshalling(resultParcel);
     DomainAccountParcel domainAccountResultParcel;
     domainAccountResultParcel.SetParcelData(resultParcel);
