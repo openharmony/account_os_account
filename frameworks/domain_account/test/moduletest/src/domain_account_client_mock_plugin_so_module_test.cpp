@@ -1019,6 +1019,9 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, UpdateServerConfig001, TestS
     ASSERT_NE(testCallback, nullptr);
     ErrCode code = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo,
         testCallback, options);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                              [lockCallback = testCallback]() { return lockCallback->isReady; });
     ASSERT_EQ(code, ERR_OK);
     int32_t userId1 = -1;
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId1), ERR_OK);
@@ -1026,8 +1029,12 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, UpdateServerConfig001, TestS
     domainInfo.accountName_ = "testaccount2";
     domainInfo.accountId_ = "testid2";
     domainInfo.serverConfigId_ = "serverConfigId2";
+    auto testCallback2 = std::make_shared<TestPluginSoCreateDomainAccountCallback>(callback);
+    ASSERT_NE(testCallback2, nullptr);
     code = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo,
-        testCallback, options);
+        testCallback2, options);
+    testCallback2->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                              [lockCallback = testCallback2]() { return lockCallback->isReady; });
     EXPECT_EQ(code, ERR_OK);
     int32_t userId2 = -1;
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId2), ERR_OK);
@@ -1050,7 +1057,7 @@ class TestBindDomainCallback : public DomainAccountCallback {
 public:
     TestBindDomainCallback() = default;
     virtual ~TestBindDomainCallback() = default;
-    
+
     void OnResult(const int32_t errCode, Parcel &parcel) override
     {
         std::unique_lock<std::mutex> lock(mutex_);
@@ -1438,7 +1445,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, BindDomainAccount009, TestSi
     auto callback = std::make_shared<TestBindDomainCallback>();
 
     OsAccountControlFileManager fileController;
-    
+
     std::string filePath = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(info.GetLocalId()) +
                            Constants::PATH_SEPARATOR + Constants::IS_DOMAIN_BOUND_COMPLETED_FILE_NAME;
     fileController.accountFileOperator_->InputFileByPathAndContent(filePath, "{ \"domain\": 123");
