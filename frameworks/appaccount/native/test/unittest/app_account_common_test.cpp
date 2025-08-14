@@ -18,7 +18,6 @@
 #include "account_log_wrapper.h"
 #include "account_error_no.h"
 #include "app_account_common.h"
-#include "app_account_authorization_extension_callback_stub.h"
 #include "string_wrapper.h"
 
 using namespace testing::ext;
@@ -36,7 +35,6 @@ const std::string STRING_WANTPARAMS_KEY = "key";
 const std::string STRING_WANTPARAMS_VALUE = "value";
 const std::string STRING_MESSAGE = "message";
 const uint32_t UINT32_ID = 1;
-const int32_t INT32_ID = 1;
 } // namespace
 
 class AppAccountCommonTest : public testing::Test {
@@ -66,13 +64,6 @@ void AppAccountCommonTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 void AppAccountCommonTest::TearDown(void)
 {}
 
-class MockCallback : public AppAccountAuthorizationExtensionCallbackStub {
-public:
-    MOCK_METHOD2(OnResult, ErrCode(const AsyncCallbackError& businessError,
-        const OHOS::AAFwk::WantParams& parameters));
-    MOCK_METHOD1(OnRequestRedirected, ErrCode(const OHOS::AAFwk::Want& request));
-};
-
 /**
  * @tc.name: AuthenticatorInfo_Marshalling001
  * @tc.desc: Func Marshalling and Unmarshalling.
@@ -97,61 +88,6 @@ HWTEST_F(AppAccountCommonTest, AuthenticatorInfo_Marshalling001, TestSize.Level3
     EXPECT_EQ(option2->abilityName, STRING_NAME);
     EXPECT_EQ(option2->iconId, UINT32_ID);
     EXPECT_EQ(option2->labelId, UINT32_ID);
-}
-
-/**
- * @tc.name: AuthorizationRequest_Marshalling001
- * @tc.desc: Func Marshalling and Unmarshalling.
- * @tc.type: FUNC
- * @tc.require issueI5RWXN
- */
-HWTEST_F(AppAccountCommonTest, AuthorizationRequest_Marshalling001, TestSize.Level3)
-{
-    ACCOUNT_LOGI("AuthorizationRequest_Marshalling001");
-    Parcel Parcel;
-    AAFwk::WantParams parameters;
-    parameters.SetParam(STRING_WANTPARAMS_KEY, OHOS::AAFwk::String::Box(STRING_WANTPARAMS_VALUE));
-    sptr<IAppAccountAuthorizationExtensionCallback> callback = new (std::nothrow) MockCallback();
-
-    AuthorizationRequest option1(INT32_ID, parameters, callback);
-    option1.isEnableContext = true;
-
-    EXPECT_EQ(option1.Marshalling(Parcel), true);
-    AuthorizationRequest *option2 = option1.Unmarshalling(Parcel);
-    EXPECT_NE(option2, nullptr);
-
-    EXPECT_EQ(option2->callerUid, INT32_ID);
-    EXPECT_EQ(option2->isEnableContext, true);
-    EXPECT_EQ(OHOS::AAFwk::String::Unbox(OHOS::AAFwk::IString::Query(
-        option2->parameters.GetParam(STRING_WANTPARAMS_KEY))), STRING_WANTPARAMS_VALUE);
-    EXPECT_EQ(option2->callback, callback);
-}
-
-/**
- * @tc.name: AsyncCallbackError_Marshalling001
- * @tc.desc: Func Marshalling and Unmarshalling.
- * @tc.type: FUNC
- * @tc.require issueI5RWXN
- */
-HWTEST_F(AppAccountCommonTest, AsyncCallbackError_Marshalling001, TestSize.Level3)
-{
-    ACCOUNT_LOGI("AuthenticatorInfo_Marshalling001");
-    Parcel Parcel;
-    AsyncCallbackError option1;
-    AAFwk::WantParams data;
-    data.SetParam(STRING_WANTPARAMS_KEY, OHOS::AAFwk::String::Box(STRING_WANTPARAMS_VALUE));
-    option1.code = INT32_ID;
-    option1.message = STRING_MESSAGE;
-    option1.data = data;
-
-    EXPECT_EQ(option1.Marshalling(Parcel), true);
-    AsyncCallbackError *option2 = option1.Unmarshalling(Parcel);
-    EXPECT_NE(option2, nullptr);
-
-    EXPECT_EQ(option2->code, INT32_ID);
-    EXPECT_EQ(option2->message, STRING_MESSAGE);
-    EXPECT_EQ(AAFwk::String::Unbox(AAFwk::IString::Query(
-        option2->data.GetParam(STRING_WANTPARAMS_KEY))), STRING_WANTPARAMS_VALUE);
 }
 
 /**

@@ -21,8 +21,6 @@
 #include "app_account_authenticator_session.h"
 #include "app_account_control_manager.h"
 #include "app_account_subscribe_manager.h"
-#include "app_account_authorization_extension_callback_service.h"
-#include "app_account_authorization_extension_stub.h"
 #include "bundle_manager_adapter.h"
 
 namespace OHOS {
