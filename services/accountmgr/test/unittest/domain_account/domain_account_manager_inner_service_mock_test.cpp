@@ -153,6 +153,7 @@ HWTEST_F(DomainAccountManagerInnerServiceMockTest, GetAllServerConfigs001, TestS
     setuid(USER_UID);
     EXPECT_EQ(instance->GetAllServerConfigs(configs),
         ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST);
+    setuid(0);
 }
 
 /**
