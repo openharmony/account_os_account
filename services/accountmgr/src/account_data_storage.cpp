@@ -119,7 +119,7 @@ DbAdapterStatus AccountDataStorage::GetKvStore()
 
 bool AccountDataStorage::CheckKvStore()
 {
-    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+    std::lock_guard<std::recursive_mutex> lock(kvStorePtrMutex_);
 
     if (kvStorePtr_ != nullptr) {
         return true;
@@ -228,7 +228,7 @@ ErrCode AccountDataStorage::RemoveValueFromKvStore(const std::string &keyStr)
     OHOS::DistributedKv::Status status;
     OHOS::DistributedKv::Value value;
     {
-        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        std::lock_guard<std::recursive_mutex> lock(kvStorePtrMutex_);
         // check exist
         TryTwice([this, &status, &key, &value] {
             status = kvStorePtr_->Get(key, value);
@@ -265,7 +265,7 @@ ErrCode AccountDataStorage::RemoveValueFromKvStore(const std::string &keyStr)
     DbAdapterStatus status;
     std::string value;
     {
-        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        std::lock_guard<std::recursive_mutex> lock(kvStorePtrMutex_);
         // check exist
         TryTwice([this, &status, &keyStr, &value] {
             status = kvStorePtr_->Get(keyStr, value);
@@ -298,7 +298,7 @@ OHOS::DistributedKv::Status AccountDataStorage::GetEntries(
     std::string subId, std::vector<OHOS::DistributedKv::Entry> &allEntries) const
 {
     OHOS::DistributedKv::Key allEntryKeyPrefix(subId);
-    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+    std::lock_guard<std::recursive_mutex> lock(kvStorePtrMutex_);
     OHOS::DistributedKv::Status status = kvStorePtr_->GetEntries(allEntryKeyPrefix, allEntries);
 
     return status;
@@ -307,7 +307,7 @@ OHOS::DistributedKv::Status AccountDataStorage::GetEntries(
 DbAdapterStatus AccountDataStorage::GetEntries(
     std::string subId, std::vector<DbAdapterEntry> &allEntries) const
 {
-    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+    std::lock_guard<std::recursive_mutex> lock(kvStorePtrMutex_);
     DbAdapterStatus status = kvStorePtr_->GetEntries(subId, allEntries);
 
     return status;
@@ -316,7 +316,7 @@ DbAdapterStatus AccountDataStorage::GetEntries(
 
 ErrCode AccountDataStorage::Close()
 {
-    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+    std::lock_guard<std::recursive_mutex> lock(kvStorePtrMutex_);
 #ifndef SQLITE_DLCLOSE_ENABLE
     ErrCode errCode = dataManager_.CloseKvStore(appId_, kvStorePtr_);
 #else
@@ -336,7 +336,7 @@ ErrCode AccountDataStorage::DeleteKvStore()
 
     OHOS::DistributedKv::Status status;
     {
-        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        std::lock_guard<std::recursive_mutex> lock(kvStorePtrMutex_);
         dataManager_.CloseKvStore(this->appId_, this->storeId_);
         status = dataManager_.DeleteKvStore(this->appId_, this->storeId_, baseDir_);
     }
@@ -429,7 +429,7 @@ ErrCode AccountDataStorage::PutValueToKvStore(const std::string &keyStr, const s
     OHOS::DistributedKv::Status status;
 
     {
-        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        std::lock_guard<std::recursive_mutex> lock(kvStorePtrMutex_);
         status = kvStorePtr_->Put(key, value);
         if (status == OHOS::DistributedKv::Status::IPC_ERROR) {
             status = kvStorePtr_->Put(key, value);
@@ -440,7 +440,7 @@ ErrCode AccountDataStorage::PutValueToKvStore(const std::string &keyStr, const s
 #else
     DbAdapterStatus status = DbAdapterStatus::SUCCESS;
     {
-        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        std::lock_guard<std::recursive_mutex> lock(kvStorePtrMutex_);
         status = kvStorePtr_->Put(keyStr, valueStr);
         if (status == DbAdapterStatus::IPC_ERROR) {
             status = kvStorePtr_->Put(keyStr, valueStr);
@@ -468,7 +468,7 @@ ErrCode AccountDataStorage::GetValueFromKvStore(const std::string &keyStr, std::
     OHOS::DistributedKv::Status status;
 
     {
-        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        std::lock_guard<std::recursive_mutex> lock(kvStorePtrMutex_);
         status = kvStorePtr_->Get(key, value);
         if (status == OHOS::DistributedKv::Status::IPC_ERROR) {
             ACCOUNT_LOGE("kvstore ipc error and try again, status = %{public}d", status);
@@ -481,7 +481,7 @@ ErrCode AccountDataStorage::GetValueFromKvStore(const std::string &keyStr, std::
     DbAdapterStatus status;
 
     {
-        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        std::lock_guard<std::recursive_mutex> lock(kvStorePtrMutex_);
         status = kvStorePtr_->Get(keyStr, valueStr);
         if (status == DbAdapterStatus::IPC_ERROR) {
             ACCOUNT_LOGE("kvstore ipc error and try again, status = %{public}d", status);
@@ -522,7 +522,7 @@ ErrCode AccountDataStorage::MoveData(const std::shared_ptr<AccountDataStorage> &
         ACCOUNT_LOGE("GetEntries failed, result=%{public}u", status);
         return ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
     }
-    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+    std::lock_guard<std::recursive_mutex> lock(kvStorePtrMutex_);
     ErrCode errCode = StartTransaction();
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("StartTransaction failed, errCode=%{public}d", errCode);
@@ -556,7 +556,7 @@ ErrCode AccountDataStorage::StartTransaction()
     transactionMutex_.lock();
     OHOS::DistributedKv::Status status;
     {
-        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        std::lock_guard<std::recursive_mutex> lock(kvStorePtrMutex_);
         TryTwice([this, &status] {
             status = kvStorePtr_->StartTransaction();
             return status;
@@ -580,7 +580,7 @@ ErrCode AccountDataStorage::Commit()
     }
     OHOS::DistributedKv::Status status;
     {
-        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        std::lock_guard<std::recursive_mutex> lock(kvStorePtrMutex_);
         TryTwice([this, &status] {
             status = kvStorePtr_->Commit();
             return status;
@@ -605,7 +605,7 @@ ErrCode AccountDataStorage::Rollback()
     }
     OHOS::DistributedKv::Status status;
     {
-        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        std::lock_guard<std::recursive_mutex> lock(kvStorePtrMutex_);
         TryTwice([this, &status] {
             status = kvStorePtr_->Rollback();
             return status;
