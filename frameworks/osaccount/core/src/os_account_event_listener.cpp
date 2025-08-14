@@ -81,9 +81,8 @@ static void NotifySubscriber(std::shared_ptr<OsAccountSubscriber> &subscriber, O
 
 ErrCode OsAccountEventListener::OnStateChanged(const OsAccountStateParcel &parcel)
 {
-    ACCOUNT_LOGI("State: %{public}d, fromId: %{public}d, toId: %{public}d, callback: %{public}s",
-        parcel.state, parcel.fromId, parcel.toId,
-        (parcel.callback == nullptr ? "null" : "not null"));
+     ACCOUNT_LOGI("State: %{public}d, fromId: %{public}d, toId: %{public}d, callback_isnull: %{public}d",
+        parcel.state, parcel.fromId, parcel.toId, static_cast<int>(parcel.callback == nullptr));
     OsAccountStateData data;
     data.fromId = parcel.fromId;
     data.toId = parcel.toId;
