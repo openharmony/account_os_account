@@ -124,7 +124,6 @@ ohos_unittest("app_account_common_test") {
   sources = [ "app_account_common_test.cpp" ]
   sources += app_account_mock_sources
   sources += [ "${app_account_innerkits_native_path}/src/app_account_common.cpp" ]
-  sources += [ "${app_account_innerkits_native_path}/src/async_callback_error.cpp" ]
 
   configs = [
     ":app_account_interfaces_native_config_mock",
