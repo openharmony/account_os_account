@@ -102,7 +102,10 @@ ErrCode OsAccountEventListener::OnStateChanged(const OsAccountStateParcel &parce
             taskThread.detach();
         }
     }
-
+    if (parcel.callback == nullptr) {
+        ACCOUNT_LOGE("Callback is null, skip waiting.");
+        return ERR_OK;
+    }
     std::thread waitThread([callback = parcel.callback, cvPtr, pendingCounter]() mutable {
         WaitForComplete(callback, cvPtr, pendingCounter);
     });
