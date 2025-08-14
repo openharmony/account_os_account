@@ -39,7 +39,7 @@ void OsAccountDataStorage::SaveEntries(const std::vector<OHOS::DistributedKv::En
             ACCOUNT_LOGE("Error key: %{private}s", item.key.ToString().c_str());
             // it's a bad json, delete it
             {
-                std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+                std::lock_guard<std::recursive_mutex> lock(kvStorePtrMutex_);
                 kvStorePtr_->Delete(item.key);
             }
             continue;
@@ -61,7 +61,7 @@ void OsAccountDataStorage::SaveEntries(const std::vector<DbAdapterEntry> &allEnt
             ACCOUNT_LOGE("Error key: %{private}s", item.key.c_str());
             // it's a bad json, delete it
             {
-                std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+                std::lock_guard<std::recursive_mutex> lock(kvStorePtrMutex_);
                 kvStorePtr_->Delete(item.key);
             }
             continue;
