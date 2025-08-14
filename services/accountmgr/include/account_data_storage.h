@@ -73,7 +73,7 @@ protected:
     bool CheckKvStore();
     OHOS::DistributedKv::DistributedKvDataManager dataManager_;
     std::shared_ptr<OHOS::DistributedKv::SingleKvStore> kvStorePtr_;
-    mutable std::mutex kvStorePtrMutex_;
+    mutable std::recursive_mutex kvStorePtrMutex_;
     OHOS::DistributedKv::AppId appId_;
     OHOS::DistributedKv::StoreId storeId_;
     AccountDataStorageOptions options_;
@@ -113,7 +113,7 @@ protected:
     bool CheckKvStore();
     std::shared_ptr<IDbAdapterDataManager> dataManager_ = nullptr;
     std::shared_ptr<IDbAdapterSingleStore> kvStorePtr_ = nullptr;
-    mutable std::mutex kvStorePtrMutex_;
+    mutable std::recursive_mutex kvStorePtrMutex_;
     std::string appId_;
     std::string storeId_;
     DbAdapterOptions options_;

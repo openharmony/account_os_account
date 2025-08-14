@@ -76,11 +76,16 @@ const std::vector<std::string> TEST_LABELS = {
     "test_label2",
 };
 
+const char EL2_DATA_STORE_PREFIX[] = "account_";
+const char EL2_DATA_STORAGE_PATH_PREFIX[] = "/data/service/el2/";
+const char EL2_DATA_STORAGE_PATH_SUFFIX[] = "/account/app_account/database/";
+
 const bool SYNC_ENABLE_TRUE = true;
 const bool SYNC_ENABLE_FALSE = false;
 
 constexpr std::int32_t UID = 10000;
 constexpr std::int32_t TEST_USER_ID = 101;
+constexpr std::int32_t TEST_MOVE_ID = 102;
 constexpr std::size_t SIZE_ZERO = 0;
 constexpr std::size_t SIZE_ONE = 1;
 constexpr std::size_t SIZE_TWO = 2;
@@ -3080,4 +3085,34 @@ HWTEST_F(AppAccountManagerServiceModuleTest, CallbackExit01, TestSize.Level3)
 {
     OsAccountStateSubscriber *subscriber = new OsAccountStateSubscriber();
     EXPECT_EQ(subscriber->CallbackExit(TEST_CODE, TEST_ID), ERR_OK);
+}
+
+
+/**
+ * @tc.name: MoveData_0100
+ * @tc.desc: test MoveData.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, MoveData_0100, TestSize.Level0)
+{
+    AccountDataStorageOptions options;
+    options.baseDir = "/data/test/" + std::to_string(TEST_MOVE_ID) + "/movedata/database";
+    auto oldDatamanager = std::make_shared<AppAccountDataStorage>(
+        "accounttest_" + std::to_string(TEST_MOVE_ID), options);
+    ASSERT_NE(nullptr, oldDatamanager);
+    std::string testKey = "test";
+    std::string testValue = "test1";
+    EXPECT_EQ(ERR_OK, oldDatamanager->PutValueToKvStore(testKey, testValue));
+    AppAccountControlManager::GetInstance().migratedAccounts_.insert(TEST_MOVE_ID);
+    EXPECT_EQ(AppAccountControlManager::GetInstance().migratedAccounts_.empty(), false);
+    AppAccountControlManager::GetInstance().MoveData();
+    EXPECT_EQ(AppAccountControlManager::GetInstance().migratedAccounts_.empty(), true);
+    options.encrypt = false;
+    options.area = DistributedKv::EL2;
+    options.baseDir = EL2_DATA_STORAGE_PATH_PREFIX + std::to_string(TEST_MOVE_ID) + EL2_DATA_STORAGE_PATH_SUFFIX;
+    auto newDatamanager = std::make_shared<AppAccountDataStorage>(
+        EL2_DATA_STORE_PREFIX + std::to_string(TEST_MOVE_ID), options);
+    std::string searchValue = "";
+    EXPECT_EQ(ERR_OK, newDatamanager->GetValueFromKvStore(testKey, searchValue));
 }
