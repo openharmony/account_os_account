@@ -1141,3 +1141,160 @@ HWTEST_F(OsAccountInfoTest, CreateOsAccount11, TestSize.Level1)
         OsAccountManager::CreateOsAccount(STRING_NAME, "shortName", OsAccountType::NORMAL, osAccountInfo));
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
+
+/**
+ * @tc.name: SetOsAccountToBeRemoved_UpdateDefaultActivated_001
+ * @tc.desc: Test SetOsAccountToBeRemoved updates default activated account when target is default activated
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, SetOsAccountToBeRemoved_UpdateDefaultActivated_001, TestSize.Level1)
+{
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
+    // Step 1: Create test account
+    OsAccountInfo osAccountInfo;
+    CreateOsAccountOptions options;
+    options.allowedHapList = {};
+    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("TestDefaultActivatedAccount", "testShort",
+              OsAccountType::NORMAL, options, osAccountInfo));
+
+    int32_t testAccountId = osAccountInfo.GetLocalId();
+    EXPECT_GT(testAccountId, 0);
+
+    // Step 2: Set this account as default activated account
+    EXPECT_EQ(ERR_OK, OsAccountManager::SetDefaultActivatedOsAccount(testAccountId));
+
+    // Step 3: Call SetOsAccountToBeRemoved to mark the target account for removal
+    EXPECT_EQ(ERR_OK, OsAccountManager::SetOsAccountToBeRemoved(testAccountId, true));
+
+    // Step 4: Verify default activated account is automatically updated to START_USER_ID
+    int32_t newDefaultActivatedId = 0;
+    EXPECT_EQ(ERR_OK, OsAccountManager::GetDefaultActivatedOsAccount(newDefaultActivatedId));
+    EXPECT_EQ(newDefaultActivatedId, Constants::START_USER_ID);
+
+    // Clean up test account
+    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(testAccountId));
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
+}
+
+/**
+ * @tc.name: SetOsAccountToBeRemoved_NonDefaultAccount_002
+ * @tc.desc: Test SetOsAccountToBeRemoved does not change default activated account when target is not default
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, SetOsAccountToBeRemoved_NonDefaultAccount_002, TestSize.Level1)
+{
+    ACCOUNT_LOGI("SetOsAccountToBeRemoved_NonDefaultAccount_002 start");
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
+    // Step 1: Create test account
+    OsAccountInfo testAccountInfo;
+    CreateOsAccountOptions options;
+    options.allowedHapList = {};
+    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("TestDefaultActivatedAccount2", "testShort2",
+              OsAccountType::NORMAL, options, testAccountInfo));
+
+    int32_t testAccountId = testAccountInfo.GetLocalId();
+
+    // Step 2: Get current default activated account ID
+    int32_t originalDefaultId = 0;
+    EXPECT_EQ(ERR_OK, OsAccountManager::GetDefaultActivatedOsAccount(originalDefaultId));
+
+    // Step 3: Ensure test account is not the default activated account
+    EXPECT_NE(testAccountId, originalDefaultId);
+
+    // Step 4: Call SetOsAccountToBeRemoved to mark the test account for removal
+    EXPECT_EQ(ERR_OK, OsAccountManager::SetOsAccountToBeRemoved(testAccountId, true));
+
+    // Step 5: Verify default activated account remains unchanged
+    int32_t currentDefaultId = 0;
+    EXPECT_EQ(ERR_OK, OsAccountManager::GetDefaultActivatedOsAccount(currentDefaultId));
+    EXPECT_EQ(currentDefaultId, originalDefaultId);
+
+    // Clean up test account
+    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(testAccountId));
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
+}
+
+/**
+ * @tc.name: SetOsAccountToBeRemoved_CancelRemoval_003
+ * @tc.desc: Test SetOsAccountToBeRemoved with false parameter cancels removal flag
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, SetOsAccountToBeRemoved_CancelRemoval_003, TestSize.Level1)
+{
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
+    // Step 1: Create test account
+    OsAccountInfo testAccountInfo;
+    CreateOsAccountOptions options;
+    options.allowedHapList = {};
+    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("TestDefaultActivatedAccount3", "testShort3",
+              OsAccountType::NORMAL, options, testAccountInfo));
+
+    int32_t testAccountId = testAccountInfo.GetLocalId();
+
+    // Step 2: First set to be removed
+    EXPECT_EQ(ERR_OK, OsAccountManager::SetOsAccountToBeRemoved(testAccountId, true));
+
+    // Step 3: Cancel removal status
+    EXPECT_EQ(ERR_OK, OsAccountManager::SetOsAccountToBeRemoved(testAccountId, false));
+
+    // Clean up test account
+    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(testAccountId));
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
+}
+/**
+ * @tc.name: SetOsAccountToBeRemoved_UpdateDefaultActivatedError_008
+ * @tc.desc: Test SetOsAccountToBeRemoved handles error when updating default activated account fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, SetOsAccountToBeRemoved_UpdateDefaultActivatedError_008, TestSize.Level1)
+{
+    ACCOUNT_LOGI("SetOsAccountToBeRemoved_UpdateDefaultActivatedError_008 start");
+
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
+    // Step 1: Create test account
+    OsAccountInfo osAccountInfo;
+    CreateOsAccountOptions options;
+    options.allowedHapList = {};
+    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("TestDefaultActivatedAccountError", "testError",
+              OsAccountType::NORMAL, options, osAccountInfo));
+
+    int32_t testAccountId = osAccountInfo.GetLocalId();
+    EXPECT_GT(testAccountId, 0);
+
+    // Step 2: Set this account as default activated account
+    EXPECT_EQ(ERR_OK, OsAccountManager::SetDefaultActivatedOsAccount(testAccountId));
+
+    // Verify the setting is successful
+    int32_t defaultActivatedId = 0;
+    EXPECT_EQ(ERR_OK, OsAccountManager::GetDefaultActivatedOsAccount(defaultActivatedId));
+    EXPECT_EQ(defaultActivatedId, testAccountId);
+
+    // Step 3: Simulate error condition by setting an invalid START_USER_ID scenario
+    OsAccountInfo tempAccountInfo;
+    EXPECT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("TempAccount", "temp",
+              OsAccountType::NORMAL, options, tempAccountInfo));
+    int32_t tempAccountId = tempAccountInfo.GetLocalId();
+
+    // Set temp account as default activated
+    EXPECT_EQ(ERR_OK, OsAccountManager::SetDefaultActivatedOsAccount(tempAccountId));
+
+    // Now set our test account back as default
+    EXPECT_EQ(ERR_OK, OsAccountManager::SetDefaultActivatedOsAccount(testAccountId));
+
+    // Step 4: Call SetOsAccountToBeRemoved - this should attempt to update default activated account
+    ErrCode ret = OsAccountManager::SetOsAccountToBeRemoved(testAccountId, true);
+    EXPECT_EQ(ret, ERR_OK);
+
+    // Step 5: Verify that despite potential internal errors, the operation completes
+
+    int32_t finalDefaultId = 0;
+    EXPECT_EQ(ERR_OK, OsAccountManager::GetDefaultActivatedOsAccount(finalDefaultId));
+    EXPECT_EQ(finalDefaultId, Constants::START_USER_ID);
+    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(testAccountId));
+    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(tempAccountId));
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
+}

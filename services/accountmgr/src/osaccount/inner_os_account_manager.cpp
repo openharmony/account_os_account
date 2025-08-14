@@ -56,6 +56,7 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 const char OPERATION_UPDATE[] = "update";
+const char OPERATION_SET_TO_BE_REMOVED[] = "setToBeRemoved";
 const char ADMIN_LOCAL_NAME[] = "admin";
 #ifdef SUPPORT_LOCK_OS_ACCOUNT
 const char OPERATION_LOCK[] = "lock";
@@ -2295,7 +2296,7 @@ ErrCode IInnerOsAccountManager::SendToStorageAndAMSAccountStart(OsAccountInfo &o
     const uint64_t displayId, const bool isAppRecovery, int32_t oldId)
 {
     int32_t localId = static_cast<int32_t>(osAccountInfo.GetLocalId());
-    
+
     if (startStorage) {
         ErrCode errCode = SendToStorageAccountStart(osAccountInfo);
         if (errCode != ERR_OK && !isAppRecovery) {
@@ -2303,13 +2304,13 @@ ErrCode IInnerOsAccountManager::SendToStorageAndAMSAccountStart(OsAccountInfo &o
             return errCode;
         }
     }
-    
+
     ErrCode errCode = SendToAMSAccountStart(osAccountInfo, displayId, isAppRecovery);
     if (errCode != ERR_OK) {
         RollBackToEarlierAccount(localId, oldId);
         return errCode;
     }
-    
+
     return ERR_OK;
 }
 
@@ -2886,7 +2887,6 @@ ErrCode IInnerOsAccountManager::UpdateAccountToBackground(int32_t oldId)
     }
     OsAccountInterface::PublishCommonEvent(oldOsAccountInfo,
         OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_BACKGROUND, Constants::OPERATION_SWITCH);
-
 #ifdef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
 #ifndef SUPPORT_STOP_MAIN_OS_ACCOUNT
     if (oldId == Constants::START_USER_ID) {
@@ -2926,12 +2926,35 @@ ErrCode IInnerOsAccountManager::SetOsAccountToBeRemoved(int32_t localId, bool to
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(localId, osAccountInfo);
     if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Get osaccount info error, errCode %{public}d.", errCode);
+        ReportOsAccountOperationFail(localId, OPERATION_SET_TO_BE_REMOVED, errCode,
+            "Get account info failed when set ToBeRemoved");
         RemoveLocalIdToOperating(localId);
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
+
+    if (toBeRemoved && (localId == defaultActivatedId_)) {
+        ErrCode result = osAccountControl_->SetDefaultActivatedOsAccount(Constants::START_USER_ID);
+        if (result != ERR_OK) {
+            ReportOsAccountOperationFail(localId, OPERATION_SET_TO_BE_REMOVED, result,
+                "Persist defaultActivatedId to START_USER_ID failed");
+            ACCOUNT_LOGE("SetDefaultActivatedOsAccount persist failed, err=%{public}d, keep memory unchanged", result);
+            RemoveLocalIdToOperating(localId);
+            return result;
+        }
+        defaultActivatedId_ = Constants::START_USER_ID;
+        ACCOUNT_LOGE("Default activated account updated to START_USER_ID");
+    }
+
     osAccountInfo.SetToBeRemoved(toBeRemoved);
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ReportOsAccountOperationFail(localId, OPERATION_SET_TO_BE_REMOVED, errCode,
+            "Update ToBeRemoved flag failed");
+        ACCOUNT_LOGE("Update ToBeRemoved flag failed, err=%{public}d", errCode);
+    }
     RemoveLocalIdToOperating(localId);
+    ReportOsAccountLifeCycle(localId, OPERATION_SET_TO_BE_REMOVED);
     return errCode;
 }
 

@@ -18,6 +18,7 @@
 #include "os_account_constants.h"
 #include "os_account_event_listener.h"
 #include "os_account_state_reply_callback_proxy.h"
+#include <atomic>
 #include <pthread.h>
 #include <thread>
 
@@ -25,7 +26,6 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 constexpr int32_t WAIT_SECONDS = 5;
-constexpr int32_t USE_COUNT_NUM = 2;
 const char THREAD_OS_ACCOUNT_EVENT[] = "OsAccountEvent";
 const char THREAD_WAIT_COMPLETE[] = "WaitComplete";
 const uid_t ACCOUNT_UID = 3058;
@@ -37,7 +37,7 @@ OsAccountEventListener::~OsAccountEventListener()
 {}
 
 static ErrCode WaitForComplete(const sptr<IRemoteObject> &callback, std::shared_ptr<std::condition_variable> &cvPtr,
-    std::shared_ptr<bool> &callbackCounter)
+    std::shared_ptr<std::atomic<int>> &pendingCounter)
 {
     if (callback == nullptr) {
         return ERR_OK;
@@ -49,7 +49,7 @@ static ErrCode WaitForComplete(const sptr<IRemoteObject> &callback, std::shared_
     std::mutex mutex;
     std::unique_lock<std::mutex> waitLock(mutex);
     auto result = cvPtr->wait_for(waitLock, std::chrono::seconds(WAIT_SECONDS),
-        [callbackCounter]() { return callbackCounter.use_count() == USE_COUNT_NUM; });
+        [pendingCounter]() { return pendingCounter->load() == 0;});
     remoteCallback->OnComplete();
     if (!result) {
         ACCOUNT_LOGE("Wait reply timed out");
@@ -59,7 +59,7 @@ static ErrCode WaitForComplete(const sptr<IRemoteObject> &callback, std::shared_
 }
 
 static void NotifySubscriber(std::shared_ptr<OsAccountSubscriber> &subscriber, OsAccountStateData &data,
-    std::shared_ptr<std::condition_variable> &cvPtr, std::shared_ptr<bool> &callbackCounter)
+    std::shared_ptr<std::condition_variable> &cvPtr, std::shared_ptr<std::atomic<int>> &pendingCounter)
 {
     OsAccountSubscribeInfo info;
     subscriber->GetSubscribeInfo(info);
@@ -68,46 +68,47 @@ static void NotifySubscriber(std::shared_ptr<OsAccountSubscriber> &subscriber, O
     if (!states.empty()) {
         if (info.IsWithHandshake() &&
             (data.state == OsAccountState::STOPPING || data.state == OsAccountState::LOCKING)) {
-            data.callback = std::make_shared<OsAccountStateReplyCallback>(cvPtr, callbackCounter);
+            pendingCounter->fetch_add(1);
+            data.callback = std::make_shared<OsAccountStateReplyCallback>(cvPtr, pendingCounter);
         }
-        callbackCounter.reset();
         subscriber->OnStateChanged(data);
     } else if (data.state == OsAccountState::SWITCHING || data.state == OsAccountState::SWITCHED) {
-        callbackCounter.reset();
         subscriber->OnAccountsSwitch(data.toId, data.fromId);
     } else {
-        callbackCounter.reset();
         subscriber->OnAccountsChanged(data.fromId);
     }
 }
 
 ErrCode OsAccountEventListener::OnStateChanged(const OsAccountStateParcel &parcel)
 {
-    ACCOUNT_LOGI("State: %{public}d, fromId: %{public}d, toId: %{public}d", parcel.state, parcel.fromId, parcel.toId);
+    ACCOUNT_LOGI("State: %{public}d, fromId: %{public}d, toId: %{public}d, callback_isnull: %{public}d",
+        parcel.state, parcel.fromId, parcel.toId, static_cast<int>(parcel.callback == nullptr));
     OsAccountStateData data;
     data.fromId = parcel.fromId;
     data.toId = parcel.toId;
     data.state = parcel.state;
     auto cvPtr = std::make_shared<std::condition_variable>();
-    auto callbackCounter = std::make_shared<bool>();
+    auto pendingCounter = std::make_shared<std::atomic<int>>(0);
     {
         std::lock_guard<std::mutex> lock(mutex_);
         for (const auto &it : subscriberAll_) {
             if (it.second.find(data.state) == it.second.end()) {
                 continue;
             }
-            auto task = [subscriber = it.first, data, cvPtr, callbackCounter]() mutable {
-                NotifySubscriber(subscriber, data, cvPtr, callbackCounter);
+            auto task = [subscriber = it.first, data, cvPtr, pendingCounter]() mutable {
+                NotifySubscriber(subscriber, data, cvPtr, pendingCounter);
             };
             std::thread taskThread(task);
             pthread_setname_np(taskThread.native_handle(), THREAD_OS_ACCOUNT_EVENT);
             taskThread.detach();
         }
     }
-    std::thread waitThread([callback = parcel.callback, cvPtr, callbackCounter]() mutable {
-        WaitForComplete(callback, cvPtr, callbackCounter);
+    if (parcel.callback == nullptr) {
+        return ERR_OK;
+    }
+    std::thread waitThread([callback = parcel.callback, cvPtr, pendingCounter]() mutable {
+        WaitForComplete(callback, cvPtr, pendingCounter);
     });
-    callbackCounter.reset();
     pthread_setname_np(waitThread.native_handle(), THREAD_WAIT_COMPLETE);
     waitThread.detach();
     return ERR_OK;
