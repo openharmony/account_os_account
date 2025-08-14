@@ -110,6 +110,7 @@
             "header_base":"//base/account/os_account/interfaces/innerkits/osaccount/native/include",
             "header_files": [
               "os_account_constants.h",
+              "os_account_constraint_subscriber.h",
               "os_account_info.h",
               "os_account_manager.h",
               "os_account_subscribe_info.h",
