@@ -2953,7 +2953,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountToBeRemoved(int32_t localId, bool to
         ACCOUNT_LOGI("Update ToBeRemoved flag failed, err=%{public}d", errCode);
     }
     RemoveLocalIdToOperating(localId);
-    ReportOsAccountLifeCycle(Constants::START_USER_ID, OPERATION_SET_TO_BE_REMOVED);
+    ReportOsAccountLifeCycle(localId, OPERATION_SET_TO_BE_REMOVED);
     return errCode;
 }
 
