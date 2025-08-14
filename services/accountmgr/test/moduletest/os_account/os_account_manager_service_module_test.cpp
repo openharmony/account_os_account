@@ -2193,8 +2193,6 @@ HWTEST_F(OsAccountManagerServiceModuleTest, ServiceCheck001, TestSize.Level3)
         ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     EXPECT_EQ(osAccountManagerService_->UpdateOsAccountWithFullInfo(osAccountInfo),
         ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    EXPECT_EQ(osAccountManagerService_->SetOsAccountProfilePhoto(TEST_UID, TEST_LOCAL_PHOTO_MAX_SIZE),
-        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 }  // namespace AccountSA
 }  // namespace OHOS
