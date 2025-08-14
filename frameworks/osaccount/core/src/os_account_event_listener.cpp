@@ -81,7 +81,9 @@ static void NotifySubscriber(std::shared_ptr<OsAccountSubscriber> &subscriber, O
 
 ErrCode OsAccountEventListener::OnStateChanged(const OsAccountStateParcel &parcel)
 {
-    ACCOUNT_LOGI("State: %{public}d, fromId: %{public}d, toId: %{public}d", parcel.state, parcel.fromId, parcel.toId);
+    ACCOUNT_LOGI("State: %{public}d, fromId: %{public}d, toId: %{public}d, callback: %{public}s",
+        parcel.state, parcel.fromId, parcel.toId,
+        (parcel.callback == nullptr ? "null" : "not null"));
     OsAccountStateData data;
     data.fromId = parcel.fromId;
     data.toId = parcel.toId;
@@ -103,7 +105,6 @@ ErrCode OsAccountEventListener::OnStateChanged(const OsAccountStateParcel &parce
         }
     }
     if (parcel.callback == nullptr) {
-        ACCOUNT_LOGE("Callback is null, skip waiting.");
         return ERR_OK;
     }
     std::thread waitThread([callback = parcel.callback, cvPtr, pendingCounter]() mutable {
