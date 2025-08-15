@@ -96,6 +96,7 @@ public:
     ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
         std::vector<OsAccountInfo> &osAccountList) override;
     ErrCode QueryActiveOsAccountIds(std::vector<int32_t>& ids) override;
+    ErrCode GetUnlockedOsAccountLocalIds(std::vector<int32_t>& ids) override;
     ErrCode QueryOsAccountConstraintSourceTypes(const int32_t id,
         const std::string &constraint, std::vector<ConstraintSourceTypeInfo> &constraintSourceTypeInfos) override;
     ErrCode SetBaseOsAccountConstraints(const int32_t id,

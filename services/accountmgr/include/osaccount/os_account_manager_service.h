@@ -131,7 +131,7 @@ public:
     ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
         StringRawData& osAccountInfos) override;
     ErrCode QueryActiveOsAccountIds(std::vector<int32_t>& ids) override;
-
+    ErrCode GetUnlockedOsAccountLocalIds(std::vector<int32_t>& ids) override;
     ErrCode QueryOsAccountConstraintSourceTypes(int32_t id,
         const std::string &constraint, std::vector<ConstraintSourceTypeInfo> &constraintSourceTypeInfos) override;
     ErrCode SetGlobalOsAccountConstraints(const std::vector<std::string> &constraints,

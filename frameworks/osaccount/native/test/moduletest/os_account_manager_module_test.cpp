@@ -1879,6 +1879,12 @@ HWTEST_F(OsAccountManagerModuleTest, UnlockUserTest002, TestSize.Level4)
     OsAccountInfo osAccountInfo;
     ASSERT_EQ(OsAccountManager::CreateOsAccount("UnlockUserTest002", OsAccountType::NORMAL, osAccountInfo), ERR_OK);
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+
+    std::vector<int32_t> ids;
+    EXPECT_EQ(OsAccountManager::GetUnlockedOsAccountLocalIds(ids), ERR_OK);
+    auto searchId = std::find(ids.begin(), ids.end(), osAccountInfo.GetLocalId());
+    EXPECT_NE(searchId, ids.end());
+
     std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR +
         std::to_string(osAccountInfo.GetLocalId()) + Constants::PATH_SEPARATOR + Constants::USER_SECRET_FLAG_FILE_NAME;
     auto accountFileOperator = std::make_shared<AccountFileOperator>();
@@ -3275,4 +3281,16 @@ HWTEST_F(OsAccountManagerModuleTest, SetOsAccountConstraints001, TestSize.Level3
     bool enable = true;
     EXPECT_EQ(OsAccountManager::SetOsAccountConstraints(
         -1, CONSTANTS_VECTOR, enable), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest0125
+ * @tc.desc: Test query unlocked os account ids.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest125, TestSize.Level1)
+{
+    std::vector<int32_t> ids;
+    EXPECT_EQ(OsAccountManager::GetUnlockedOsAccountLocalIds(ids), ERR_OK);
 }

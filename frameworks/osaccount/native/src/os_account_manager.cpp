@@ -315,6 +315,11 @@ ErrCode OsAccountManager::QueryActiveOsAccountIds(std::vector<int32_t>& ids)
     return OsAccount::GetInstance().QueryActiveOsAccountIds(ids);
 }
 
+ErrCode OsAccountManager::GetUnlockedOsAccountLocalIds(std::vector<int32_t>& ids)
+{
+    return OsAccount::GetInstance().GetUnlockedOsAccountLocalIds(ids);
+}
+
 ErrCode OsAccountManager::QueryOsAccountConstraintSourceTypes(const int32_t id, const std::string constraint,
     std::vector<ConstraintSourceTypeInfo> &constraintSourceTypeInfos)
 {

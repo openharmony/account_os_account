@@ -971,6 +971,17 @@ ErrCode OsAccount::QueryActiveOsAccountIds(std::vector<int32_t>& ids)
     return ConvertToAccountErrCode(errCode);
 }
 
+ErrCode OsAccount::GetUnlockedOsAccountLocalIds(std::vector<int32_t>& ids)
+{
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    ids.clear();
+    auto errCode = proxy->GetUnlockedOsAccountLocalIds(ids);
+    return ConvertToAccountErrCode(errCode);
+}
+
 ErrCode OsAccount::QueryOsAccountConstraintSourceTypes(const int32_t id, const std::string &constraint,
     std::vector<ConstraintSourceTypeInfo> &constraintSourceTypeInfos)
 {
