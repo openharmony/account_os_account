@@ -537,6 +537,14 @@ public:
     static ErrCode QueryActiveOsAccountIds(std::vector<int32_t>& ids);
 
     /**
+     * @brief Gets the local IDs of all unlocked OS accounts.
+     * @permission ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS
+     * @param ids - Indicates the local IDs of all unlocked OS accounts.
+     * @return error code, see account_error_no.h
+     */
+    static ErrCode GetUnlockedOsAccountLocalIds(std::vector<int32_t>& ids);
+
+    /**
      * @brief Gets a list of constraint source types for the specified os account.
      * @permission ohos.permission.MANAGE_LOCAL_ACCOUNTS
      * @param localId - Indicates the local ID of the OS account.
