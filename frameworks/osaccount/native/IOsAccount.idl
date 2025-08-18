@@ -101,6 +101,7 @@ interface OHOS.AccountSA.IOsAccount {
     void GetOsAccountListFromDatabase([in] String storeID,
         [out] StringRawData osAccountInfos);
     void QueryActiveOsAccountIds([out] int[] ids);
+    void GetUnlockedOsAccountLocalIds([out] int[] ids);
     void QueryOsAccountConstraintSourceTypes([in] int id,
         [in] String constraint, [out] ConstraintSourceTypeInfo[] constraintSourceTypeInfos);
     void SetGlobalOsAccountConstraints([in] String[] constraints,

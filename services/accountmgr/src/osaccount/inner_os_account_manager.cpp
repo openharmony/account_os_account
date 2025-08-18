@@ -2809,6 +2809,12 @@ ErrCode IInnerOsAccountManager::QueryActiveOsAccountIds(std::vector<int32_t>& id
 // LCOV_EXCL_STOP
 #endif
 
+ErrCode IInnerOsAccountManager::GetUnlockedOsAccountLocalIds(std::vector<int32_t>& ids)
+{
+    ids = GetVerifiedAccountIds(verifiedAccounts_);
+    return ERR_OK;
+}
+
 void IInnerOsAccountManager::PushIdIntoActiveList(int32_t id)
 {
     std::lock_guard<std::mutex> lock(ativeMutex_);

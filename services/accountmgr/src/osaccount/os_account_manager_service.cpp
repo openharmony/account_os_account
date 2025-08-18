@@ -1634,6 +1634,11 @@ ErrCode OsAccountManagerService::QueryActiveOsAccountIds(std::vector<int32_t>& i
 // LCOV_EXCL_STOP
 #endif
 
+ErrCode OsAccountManagerService::GetUnlockedOsAccountLocalIds(std::vector<int32_t>& ids)
+{
+    return innerManager_.GetUnlockedOsAccountLocalIds(ids);
+}
+
 ErrCode OsAccountManagerService::QueryOsAccountConstraintSourceTypes(int32_t id,
     const std::string &constraint, std::vector<ConstraintSourceTypeInfo> &constraintSourceTypeInfos)
 {
