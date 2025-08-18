@@ -33,7 +33,7 @@ public:
     ErrCode OnComplete() override;
     void SetStartTime(const std::chrono::system_clock::time_point &startTime);
     int32_t GetSubscriberUid() const;
-
+    static const char *ConvertStateToSceneFlag(OsAccountState state);
 private:
     int32_t accountId_;
     OsAccountState state_;

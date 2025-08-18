@@ -365,6 +365,8 @@ ErrCode OsAccountSubscribeManager::Publish(int32_t fromId, OsAccountState state,
         [safeQueue]() { return safeQueue->Size() == 0; });
     if (!result) {
         ACCOUNT_LOGE("Wait reply timed out");
+        REPORT_OS_ACCOUNT_FAIL(fromId, OsAccountStateReplyCallbackService::ConvertStateToSceneFlag(state),
+            ERR_ACCOUNT_COMMON_OPERATION_TIMEOUT, "Wait reply timed out");
         return ERR_ACCOUNT_COMMON_OPERATION_TIMEOUT;
     }
     return ERR_OK;

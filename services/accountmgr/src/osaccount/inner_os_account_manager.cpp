@@ -242,12 +242,17 @@ ErrCode IInnerOsAccountManager::ActivateOsAccountInBackground(const int32_t id)
 #endif
 bool IInnerOsAccountManager::CreateBaseStandardAccount(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("Start to create base account %{public}d", osAccountInfo.GetLocalId());
+    int32_t id = osAccountInfo.GetLocalId();
+    ACCOUNT_LOGI("Start to create base account %{public}d", id);
     int64_t serialNumber = 0;
-    osAccountControl_->GetSerialNumber(serialNumber);
+    ErrCode errCode = osAccountControl_->GetSerialNumber(serialNumber);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Get serialNumber failed, account:%{public}d, errCode:%{public}d.", id, errCode);
+        ReportOsAccountOperationFail(id, Constants::OPERATION_BOOT_CREATE, errCode, "Get serialNumber failed");
+    }
     osAccountInfo.SetSerialNumber(serialNumber);
     std::vector<std::string> constraints;
-    ErrCode errCode = osAccountControl_->GetConstraintsByType(osAccountInfo.GetType(), constraints);
+    errCode = osAccountControl_->GetConstraintsByType(osAccountInfo.GetType(), constraints);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Fail to get constraints by type for account %{public}d, errCode %{public}d.",
             osAccountInfo.GetLocalId(), errCode);
@@ -288,9 +293,10 @@ bool IInnerOsAccountManager::CreateBaseStandardAccount(OsAccountInfo &osAccountI
 void IInnerOsAccountManager::RetryToGetAccount(OsAccountInfo &osAccountInfo)
 {
     int32_t retryTimes = 0;
+    ErrCode errCode = ERR_OK;
     while (retryTimes < MAX_RETRY_TIMES) {
         std::vector<OsAccountInfo> osAccountInfos;
-        QueryAllCreatedOsAccounts(osAccountInfos);
+        errCode = QueryAllCreatedOsAccounts(osAccountInfos);
         if (!osAccountInfos.empty() && (IsValidOsAccount(osAccountInfos[0]) == ERR_OK)) {
             osAccountInfo = osAccountInfos[0];
             return;
@@ -299,15 +305,27 @@ void IInnerOsAccountManager::RetryToGetAccount(OsAccountInfo &osAccountInfo)
         retryTimes++;
         std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
     }
-
+    ACCOUNT_LOGE("Query all created osAccounts failed, error: %{public}d", errCode);
+    REPORT_OS_ACCOUNT_FAIL(osAccountInfo.GetLocalId(), Constants::OPERATION_BOOT_ACTIVATING, errCode,
+        "Query all created osAccounts failed");
+    retryTimes = 0;
+    while (retryTimes < MAX_RETRY_TIMES) {
 #ifdef ENABLE_DEFAULT_ADMIN_NAME
-    while (CreateOsAccount(STANDARD_LOCAL_NAME, ADMIN, osAccountInfo) != ERR_OK) {
+        errCode = CreateOsAccount(STANDARD_LOCAL_NAME, ADMIN, osAccountInfo);
 #else
-    while (CreateOsAccount("", ADMIN, osAccountInfo) != ERR_OK) {
+        errCode = CreateOsAccount("", ADMIN, osAccountInfo);
 #endif
+        if (errCode == ERR_OK) {
+            return;
+        }
         ACCOUNT_LOGE("Fail to create account");
+        retryTimes++;
         std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_EXCEPTION));
     }
+    ACCOUNT_LOGE("Create osAccount failed, localId: %{public}d, error: %{public}d",
+        osAccountInfo.GetLocalId(), errCode);
+    REPORT_OS_ACCOUNT_FAIL(osAccountInfo.GetLocalId(), Constants::OPERATION_BOOT_ACTIVATING, errCode,
+        "Create osAccount failed");
 }
 
 ErrCode IInnerOsAccountManager::GetRealOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo)
@@ -373,12 +391,23 @@ ErrCode IInnerOsAccountManager::ActivateDefaultOsAccount()
     if ((errCode != ERR_OK) || (IsValidOsAccount(osAccountInfo) != ERR_OK)) {
         ACCOUNT_LOGE("Account not found, localId: %{public}d, error: %{public}d", defaultActivatedId_, errCode);
         RetryToGetAccount(osAccountInfo);
-        SetDefaultActivatedOsAccount(osAccountInfo.GetLocalId());
+        errCode = SetDefaultActivatedOsAccount(osAccountInfo.GetLocalId());
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("Set default activated osAccount failed, localId: %{public}d, error: %{public}d",
+                osAccountInfo.GetLocalId(), errCode);
+            REPORT_OS_ACCOUNT_FAIL(osAccountInfo.GetLocalId(), Constants::OPERATION_BOOT_ACTIVATING, errCode,
+                "Set default activated osAccount failed");
+        }
     }
     // activate
     errCode = SendMsgForAccountActivate(osAccountInfo, true, Constants::DEFAULT_DISPALY_ID, true);
     if (errCode == ERR_OK) {
-        SetParameter(ACCOUNT_READY_EVENT, "true");
+        errCode = SetParameter(ACCOUNT_READY_EVENT, "true");
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("Set parameter failed, localId: %{public}d, error: %{public}d", defaultActivatedId_, errCode);
+            REPORT_OS_ACCOUNT_FAIL(defaultActivatedId_, Constants::OPERATION_BOOT_ACTIVATING, errCode,
+                "Set parameter bootevent.account.ready failed");
+        }
         ReportOsAccountLifeCycle(osAccountInfo.GetLocalId(), Constants::OPERATION_BOOT_ACTIVATED);
     }
 #ifdef HICOLLIE_ENABLE
@@ -1168,11 +1197,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountDeactivate(OsAccountInfo &osAcc
     if (foregroundAccountMap_.Find(Constants::DEFAULT_DISPALY_ID, foregroundId) && foregroundId == localId) {
         foregroundAccountMap_.Erase(Constants::DEFAULT_DISPALY_ID);
     }
-    errCode = subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
-    if (errCode != ERR_OK) {
-        ReportOsAccountOperationFail(localId, Constants::OPERATION_STOP, errCode,
-            "Failed to publish stopping notification");
-    }
+    subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
     if (isStopStorage) {
         errCode = OsAccountInterface::SendToStorageAccountStop(osAccountInfo);
         if (errCode != ERR_OK) {
@@ -2283,7 +2308,7 @@ void IInnerOsAccountManager::RollBackToEarlierAccount(int32_t fromId, int32_t to
     osAccountInfo.SetLocalId(toId);
     subscribeManager_.Publish(fromId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING, toId);
     OsAccountInterface::PublishCommonEvent(osAccountInfo,
-            OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_FOREGROUND, Constants::OPERATION_SWITCH);
+        OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_FOREGROUND, Constants::OPERATION_SWITCH);
     subscribeManager_.Publish(fromId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, toId);
     ReportOsAccountSwitch(toId, fromId);
     ACCOUNT_LOGI("End pushlishing post switch event.");
@@ -2996,7 +3021,7 @@ ErrCode IInnerOsAccountManager::UpdateServerConfig(const std::string &configId,
     ErrCode errCode = osAccountControl_->GetOsAccountList(osAccountInfos);
     if (errCode != ERR_OK) {
         REPORT_OS_ACCOUNT_FAIL(-1, Constants::OPERATION_UPDATE_SERVER_CONFIG,
-                    errCode, "Get osAcount list error.");
+            errCode, "Get osAcount list error");
         ACCOUNT_LOGE("GetOsAccountList error:%{public}d", errCode);
         return errCode;
     }
