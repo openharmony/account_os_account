@@ -672,7 +672,7 @@ int32_t NeedSkipActiveUserKey(const int localId, bool &isNeedSkip)
 }
 #endif // HAS_USER_IDM_PART
 
-int32_t OsAccountInterface::UnlockUser(const int localId)
+int32_t OsAccountInterface::UnlockUser(const int localId, bool startUser)
 {
     int32_t retryTimes = 0;
     int32_t errCode = 0;
@@ -696,7 +696,7 @@ int32_t OsAccountInterface::UnlockUser(const int localId)
         errCode = proxy->ActiveUserKey(localId, emptyData, emptyData);
         ACCOUNT_LOGI("ActiveUserKey end, ret %{public}d.", errCode);
         if (errCode != ErrNo::E_ACTIVE_EL2_FAILED) {
-            errCode = proxy->PrepareStartUser(localId);
+            errCode = startUser ? proxy->PrepareStartUser(localId) : 0;
             ACCOUNT_LOGI("PrepareStartUser end, errCode %{public}d.", errCode);
             if (errCode != 0) {
                 ReportOsAccountOperationFail(localId, Constants::OPERATION_ACTIVATE,
@@ -727,7 +727,7 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
 #ifdef HAS_STORAGE_PART
     int localId = osAccountInfo.GetLocalId();
     StartTraceAdapter("StorageManager PrepareStartUser");
-    int32_t err = UnlockUser(localId);
+    int32_t err = UnlockUser(localId, !osAccountInfo.GetIsVerified());
     if (err == ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER) {
         ReportOsAccountOperationFail(localId, Constants::OPERATION_ACTIVATE,
             ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, "Failed to get StorageManager service");
