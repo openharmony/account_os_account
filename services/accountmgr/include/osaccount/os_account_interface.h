@@ -53,7 +53,7 @@ public:
 private:
     static ErrCode InnerSendToStorageAccountCreateComplete(int32_t localId);
     static ErrCode InnerSendToStorageAccountCreate(OsAccountInfo &osAccountInfo);
-    static int32_t UnlockUser(const int localId);
+    static int32_t UnlockUser(const int localId, bool startUser);
 };
 }  // namespace AccountSA
 }  // namespace OHOS
