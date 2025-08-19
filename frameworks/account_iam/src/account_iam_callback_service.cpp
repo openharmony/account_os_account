@@ -198,6 +198,7 @@ void DomainCredentialRecipient::OnSetData(int32_t authSubType, std::vector<uint8
 {
     std::unique_lock<std::mutex> lock(mutex_);
     data_ = data;
+    std::fill(data.begin(), data.end(), 0);
     cv_.notify_all();
 }
 
