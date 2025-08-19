@@ -1186,7 +1186,7 @@ public:
                     wantResult.SetParam(AccountSA::Constants::KEY_TOKEN, token);
                 }
             }
-        callbackProxy->OnResult(resultCode, wantResult);
+            callbackProxy->OnResult(resultCode, wantResult);
         }
     }
 
