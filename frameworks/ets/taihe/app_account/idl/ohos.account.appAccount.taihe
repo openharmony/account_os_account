@@ -98,16 +98,14 @@ struct AuthCallback {
 }
 
 interface AppAccountManager {
-    @gen_async("createAccount")
     @gen_promise("createAccount")
-    CreateAccountSync(name: String);
+    CreateAccountPromise(name: String, options: Optional<CreateAccountOptions>);
 
     @gen_async("createAccount")
-    @gen_promise("createAccount")
-    CreateAccountWithOpt(name: String, options: CreateAccountOptions);
+    CreateAccountCallback(name: String);
 
-    @overload("createAccountImplicitly")
-    CreateAccountImplicitly(owner: String, callback: AuthCallback);
+    @gen_async("createAccount")
+    CreateAccountCallbackWithOpt(name: String, options: CreateAccountOptions);
 
     @overload("createAccountImplicitly")
     CreateAccountImplicitlyWithOpt(owner: String, options: CreateAccountImplicitlyOptions, callback: AuthCallback);
