@@ -246,18 +246,37 @@ class AppAccountManagerImpl {
 public:
     AppAccountManagerImpl() {}
 
-    void CreateAccountSync(string_view name)
+    void CreateAccountPromise(string_view name, optional_view<CreateAccountOptions> options)
     {
-        AccountSA::CreateAccountOptions options{};
+        AccountSA::CreateAccountOptions innerOptions;
+        if (options.has_value()) {
+            if (options.value().customData.has_value()) {
+                for (const auto& [key, value] : options.value().customData.value()) {
+                    std::string tempKey(key.data(), key.size());
+                    std::string tempValue(value.data(), value.size());
+                    innerOptions.customData.emplace(tempKey, tempValue);
+                }
+            }
+        }
         std::string innerName(name.data(), name.size());
-        int32_t errorCode = AccountSA::AppAccountManager::CreateAccount(innerName, options);
+        int32_t errorCode = AccountSA::AppAccountManager::CreateAccount(innerName, innerOptions);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
         }
     }
 
-    void CreateAccountWithOpt(string_view name, CreateAccountOptions const& options)
+    void CreateAccountCallback(string_view name) {
+        AccountSA::CreateAccountOptions innerOptions;
+        std::string innerName(name.data(), name.size());
+        int32_t errorCode = AccountSA::AppAccountManager::CreateAccount(innerName, innerOptions);
+        if (errorCode != ERR_OK) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+        }
+    }
+
+    void CreateAccountCallbackWithOpt(string_view name, CreateAccountOptions const& options)
     {
         std::string innerName(name.data(), name.size());
         AccountSA::CreateAccountOptions optionsInner;
@@ -1084,7 +1103,7 @@ public:
         AccountSA::AsyncContextForUnsubscribe *asyncContextForOff)
     {
         for (auto const& subscriberInstance : g_thAppAccountSubscribers) {
-            if (subscriberInstance.first == asyncContextForOff->appAccountManager) {
+            if (subscriberInstance.first == asyncContextForOff->appAccountManagerHandle) {
                 for (auto item : subscriberInstance.second) {
                     subscribers.emplace_back(item->subscriber);
                 }
