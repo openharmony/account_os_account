@@ -16,6 +16,7 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_DOMAIN_HISYSEVENT_UTILS_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_DOMAIN_HISYSEVENT_UTILS_H
 
+#include <variant>
 #include "account_hisysevent_adapter.h"
 #include "domain_plugin.h"
 #include "os_account_info.h"
@@ -24,11 +25,15 @@ namespace OHOS {
 namespace AccountSA {
 class DomainHisyseventUtils {
 public:
-    static void ReportFail(const int32_t errCode, const std::string &msg, PluginMethodEnum methodEnum, const int32_t id,
+    static void ReportFail(const int32_t errCode, const std::string &msg, PluginMethodEnum methodEnum, int32_t userId,
         const DomainAccountInfo &domainInfo = DomainAccountInfo());
-    static void ReportFail(const int32_t errCode, const std::string &msg, const std::string &optName, const int32_t id,
+    static void ReportFail(const int32_t errCode, const std::string &msg, const std::string &optName, int32_t userId,
+        const GetDomainAccountInfoOptions &options);
+    static void ReportFail(const int32_t errCode, const std::string &msg, const std::string &optName, int32_t userId,
         const DomainAccountInfo &domainInfo = DomainAccountInfo());
-    static void ReportStatistic(PluginMethodEnum methodEnum, const int32_t id,
+    static void ReportStatistic(PluginMethodEnum methodEnum, int32_t userId,
+        const DomainAccountInfo &domainInfo = DomainAccountInfo());
+    static void ReportStatistic(const std::string &optName, int32_t userId,
         const DomainAccountInfo &domainInfo = DomainAccountInfo());
 #define REPORT_DOMAIN_ACCOUNT_FAIL(errCode, msg, optName, id, ...) \
     DomainHisyseventUtils::ReportFail(errCode, ASSEMBLE_ERRMSG(msg), optName, id, ##__VA_ARGS__)
