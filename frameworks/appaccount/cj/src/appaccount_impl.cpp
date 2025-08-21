@@ -514,8 +514,12 @@ void CJAppAccountImpl::ParseContextForVerifyCredential(
     JSAuthCallback &callback,
     VerifyCredentialOptions &options)
 {
-    options.credential = cOptions.credential;
-    options.credentialType = cOptions.credentialType;
+    if (cOptions.credential != nullptr) {
+        options.credential = cOptions.credential;
+    }
+    if (cOptions.credentialType != nullptr) {
+        options.credentialType = cOptions.credentialType;
+    }
     if (cOptions.parameters.size != 0) {
         SetDataParameters(cOptions.parameters, options.parameters);
     }
