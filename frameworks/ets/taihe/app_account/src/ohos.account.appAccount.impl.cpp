@@ -266,7 +266,8 @@ public:
         }
     }
 
-    void CreateAccountCallback(string_view name) {
+    void CreateAccountCallback(string_view name)
+    {
         AccountSA::CreateAccountOptions innerOptions;
         std::string innerName(name.data(), name.size());
         int32_t errorCode = AccountSA::AppAccountManager::CreateAccount(innerName, innerOptions);
