@@ -108,6 +108,9 @@ interface AppAccountManager {
     CreateAccountCallbackWithOpt(name: String, options: CreateAccountOptions);
 
     @overload("createAccountImplicitly")
+    CreateAccountImplicitly(owner: String, callback: AuthCallback);
+
+    @overload("createAccountImplicitly")
     CreateAccountImplicitlyWithOpt(owner: String, options: CreateAccountImplicitlyOptions, callback: AuthCallback);
 
     @gen_async("removeAccount")
