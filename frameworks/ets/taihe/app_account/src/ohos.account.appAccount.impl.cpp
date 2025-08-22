@@ -1057,7 +1057,7 @@ public:
         {
             std::lock_guard<std::mutex> lock(g_thLockForAppAccountSubscribers);
             if (IsExitSubscribe(context.get())) {
-                return
+                return;
             }
         }
         ErrCode errorCode = AccountSA::AppAccountManager::SubscribeAppAccount(context->subscriber);
