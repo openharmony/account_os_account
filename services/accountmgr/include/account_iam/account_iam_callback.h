@@ -65,6 +65,7 @@ private:
     ErrCode InnerHandleReEnroll(const std::vector<uint8_t> &token);
     ErrCode UnlockUserScreen(int32_t accountId, const std::vector<uint8_t> &token,
         const std::vector<uint8_t> &secret, bool &isUpdateVerifiedStatus);
+    bool IsTokenFromRemoteDevice(const Attributes &extraInfo);
 
 private:
     uint32_t userId_;

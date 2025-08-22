@@ -176,7 +176,7 @@ ErrCode AuthCallback::UnlockAccount(int32_t accountId, const std::vector<uint8_t
     const std::vector<uint8_t> &secret, bool &isUpdateVerifiedStatus)
 {
     ErrCode ret = ERR_OK;
-    if (authType_ == AuthType::PIN) {
+    if (authType_ == AuthType::PIN && !isRemoteAuth_) {
         if (secret.empty()) {
             ACCOUNT_LOGI("No need to active user.");
             return ERR_OK;
@@ -300,6 +300,27 @@ static bool IsOsAccountDeactivatingOrLocking(int32_t authedAccountId)
     return false;
 }
 
+bool AuthCallback::IsTokenFromRemoteDevice(const Attributes &extraInfo)
+{
+    if (!isRemoteAuth_) {
+        return false;
+    }
+
+    ACCOUNT_LOGI("Remote auth");
+    if (!extraInfo.HasAttribute(Attributes::AttributeKey::ATTR_TOKEN_FROM_REMOTE_DEVICE)) {
+        ACCOUNT_LOGI("ATTR_TOKEN_FROM_REMOTE_DEVICE not exist");
+        return false;
+    }
+
+    bool isTokenFromRemoteDevice = true;
+    if (!extraInfo.GetBoolValue(Attributes::AttributeKey::ATTR_TOKEN_FROM_REMOTE_DEVICE, isTokenFromRemoteDevice)) {
+        ACCOUNT_LOGE("Get ATTR_TOKEN_FROM_REMOTE_DEVICE failed");
+        return false;
+    }
+    ACCOUNT_LOGI("isTokenFromRemoteDevice=%{public}d", isTokenFromRemoteDevice);
+    return isTokenFromRemoteDevice;
+}
+
 void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
     int32_t authedAccountId = 0;
@@ -328,8 +349,7 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         innerCallback_->OnResult(result, extraInfo.Serialize());
         return;
     }
-    if (isRemoteAuth_) {
-        ACCOUNT_LOGI("Remote auth");
+    if (IsTokenFromRemoteDevice(extraInfo)) {
         innerCallback_->OnResult(result, extraInfo.Serialize());
         return;
     }
