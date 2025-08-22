@@ -1054,13 +1054,11 @@ public:
             ACCOUNT_LOGE("fail to create subscriber");
             return;
         }
-        bool isExit = false;
         {
             std::lock_guard<std::mutex> lock(g_thLockForAppAccountSubscribers);
-            isExit = IsExitSubscribe(context.get());
-        }
-        if (isExit) {
-            return;
+            if (IsExitSubscribe(context.get())) {
+                return
+            }
         }
         ErrCode errorCode = AccountSA::AppAccountManager::SubscribeAppAccount(context->subscriber);
         if (errorCode != ERR_OK) {
