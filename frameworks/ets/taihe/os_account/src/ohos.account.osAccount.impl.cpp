@@ -1657,6 +1657,10 @@ array<uint8_t> GetAccessTokenSync(uintptr_t businessParams)
         SetTaiheBusinessErrorFromNativeCode(JSErrorCode::ERR_JS_PARAMETER_ERROR);
         return array<uint8_t>(taihe::copy_data_t{}, accessToken.data(), accessToken.size());
     }
+    innerDomainInfo.domain_ = innerGetTokenParams.GetStringParam("domain");
+    innerDomainInfo.accountName_ = innerGetTokenParams.GetStringParam("accountName");
+    innerDomainInfo.accountId_ = innerGetTokenParams.GetStringParam("accountId");
+    innerDomainInfo.serverConfigId_ = innerGetTokenParams.GetStringParam("serverConfigId");
     std::shared_ptr<THGetAccessTokenCallback> getAccessTokenCallback = std::make_shared<THGetAccessTokenCallback>();
     ErrCode errCode = AccountSA::DomainAccountClient::GetInstance().GetAccessToken(
         innerDomainInfo, innerGetTokenParams, getAccessTokenCallback);
