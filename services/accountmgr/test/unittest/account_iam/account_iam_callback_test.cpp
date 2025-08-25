@@ -342,6 +342,7 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0400, TestSize.Level0)
     userAuthCallback->OnResult(errCode, extraInfo);
     EXPECT_EQ(errCode, callback->result_);
     userAuthCallback->isRemoteAuth_ = true;
+    EXPECT_EQ(extraInfo.SetBoolValue(Attributes::ATTR_TOKEN_FROM_REMOTE_DEVICE, true), true);
     userAuthCallback->OnResult(errCode, extraInfo);
     EXPECT_EQ(errCode, callback->result_);
     errCode = 10; // result != 0
@@ -600,7 +601,7 @@ HWTEST_F(AccountIamCallbackTest, CommitCredUpdateCallback_InnerOnResult_0100, Te
     auto commitCredUpdateCallback = std::make_shared<CommitCredUpdateCallback>(
         TEST_USER_ID, updateCredInfo, callback);
     EXPECT_TRUE(commitCredUpdateCallback->innerCallback_ != nullptr);
-    
+
     commitCredUpdateCallback->InnerOnResult(10, extraInfo);
     EXPECT_EQ(callback->result_, 10);
     commitCredUpdateCallback->InnerOnResult(0, extraInfo);
@@ -794,7 +795,7 @@ HWTEST_F(AccountIamCallbackTest, DelCredCallback_OnResult_0200, TestSize.Level0)
     auto delCredCallback = std::make_shared<DelCredCallback>(
         TEST_USER_ID, true, token, callback);
     EXPECT_TRUE(delCredCallback->innerCallback_ != nullptr);
-    
+
     delCredCallback->OnResult(10, extraInfo);
     EXPECT_EQ(callback->result_, 10);
     delCredCallback->OnResult(0, extraInfo);
@@ -926,7 +927,7 @@ HWTEST_F(AccountIamCallbackTest, GetPropCallbackWrapper_OnResult_0200, TestSize.
     sptr<MockGetSetPropCallback> callback = new (std::nothrow) MockGetSetPropCallback();
     auto getPropCallbackWrapper = std::make_shared<GetPropCallbackWrapper>(TEST_USER_ID, callback);
     EXPECT_TRUE(getPropCallbackWrapper->innerCallback_ != nullptr);
-    
+
     EXPECT_CALL(*callback, OnResult(10, _)).Times(1);
     getPropCallbackWrapper->OnResult(10, extraInfo);
     EXPECT_CALL(*callback, OnResult(0, _)).Times(1);
