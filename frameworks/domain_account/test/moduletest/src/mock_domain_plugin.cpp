@@ -222,7 +222,7 @@ void MockDomainPlugin::IsAccountTokenValid(const DomainAccountInfo &info, const 
 {
     ACCOUNT_LOGI("mock IsAccountTokenValid called");
     Parcel parcel;
-    parcel.WriteBool(true);
+    parcel.WriteBool(info.accountName_ != "false");
     callback->OnResult(0, parcel);
 }
 
