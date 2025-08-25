@@ -1100,7 +1100,7 @@ public:
         }
         {
             std::lock_guard<std::mutex> lock(g_thLockForAppAccountSubscribers);
-            g_thAppAccountSubscribers[context->appAccountManager].emplace_back(context.get());
+            g_thAppAccountSubscribers[context->appAccountManagerHandle].emplace_back(context.get());
         }
         context.release();
     }
