@@ -396,33 +396,16 @@ union ArrayData {
     @undefined uValue;
 }
 
-interface DomainPlugin {
-    @overload("auth")
-    Auth(domainAccountInfo: DomainAccountInfo, credential: @typedarray Array<u8>, callback: IUserAuthCallback): void;
-
-    @overload("authWithPopup")
-    AuthWithPopup(domainAccountInfo: DomainAccountInfo, callback: IUserAuthCallback): void;
-
-    @overload("authWithToken")
-    AuthWithToken(domainAccountInfo: DomainAccountInfo, token: @typedarray Array<u8>, callback: IUserAuthCallback): void;
-
-    @overload("getAccountInfo")
-    GetAccountInfo(options: GetDomainAccountInfoPluginOptions, callback: (err: OptionalError, data: DomainAccountInfoData) => void): void;
-
-    @overload("getAuthStatusInfo")
-    GetAuthStatusInfo(domainAccountInfo: DomainAccountInfo, callback: (err: OptionalError, data: AuthStatusInfoData) => void): void;
-
-    @overload("bindAccount")
-    BindAccount(domainAccountInfo: DomainAccountInfo, localId: i32, callback: (err: OptionalError) => void): void;
-
-    @overload("unbindAccount")
-    UnbindAccount(domainAccountInfo: DomainAccountInfo, callback: (err: OptionalError) => void): void;
-
-    @overload("isAccountTokenValid")
-    IsAccountTokenValid(domainAccountInfo: DomainAccountInfo, token: @typedarray Array<u8>, callback: (err: OptionalError, data: BoolData) => void): void;
-
-    @overload("getAccessToken")
-    GetAccessToken(options: GetDomainAccessTokenOptions, callback: (err: OptionalError, data: ArrayData) => void): void;
+struct DomainPlugin {
+    auth: (domainAccountInfo: DomainAccountInfo, credential: @typedarray Array<u8>, callback: IUserAuthCallback) => void;
+    authWithPopup: (domainAccountInfo: DomainAccountInfo, callback: IUserAuthCallback) => void;
+    authWithToken: (domainAccountInfo: DomainAccountInfo, token: @typedarray Array<u8>, callback: IUserAuthCallback) => void;
+    getAccountInfo: (options: GetDomainAccountInfoPluginOptions, callback: (err: OptionalError, data: DomainAccountInfoData) => void) => void;
+    getAuthStatusInfo: (domainAccountInfo: DomainAccountInfo, callback: (err: OptionalError, data: AuthStatusInfoData) => void) => void;
+    bindAccount: (domainAccountInfo: DomainAccountInfo, localId: i32, callback: (err: OptionalError) => void) => void;
+    unbindAccount: (domainAccountInfo: DomainAccountInfo, callback: (err: OptionalError) => void) => void;
+    isAccountTokenValid: (domainAccountInfo: DomainAccountInfo, token: @typedarray Array<u8>, callback: (err: OptionalError, data: BoolData) => void) => void;
+    getAccessToken: (options: GetDomainAccessTokenOptions, callback: (err: OptionalError, data: ArrayData) => void) => void;
 }
 
 @class
