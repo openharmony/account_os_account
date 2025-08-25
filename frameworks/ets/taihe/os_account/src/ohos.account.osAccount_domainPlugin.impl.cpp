@@ -28,68 +28,6 @@ namespace {
 static const char* CLASS_NAME_BUSINESSERROR = "@ohos.base.BusinessError";
 using OHOS::AccountSA::ACCOUNT_LABEL;
 
-class DomainPluginImpl {
-public:
-    explicit DomainPluginImpl(DomainPlugin const& plugin): plugin_(plugin) {}
-
-    void Auth(DomainAccountInfo const& domainAccountInfo,
-        array_view<uint8_t> credential, IUserAuthCallback const& callback)
-    {
-        this->plugin_->Auth(domainAccountInfo, credential, callback);
-    }
-
-    void AuthWithPopup(DomainAccountInfo const& domainAccountInfo, IUserAuthCallback const& callback)
-    {
-        this->plugin_->AuthWithPopup(domainAccountInfo, callback);
-    }
-
-    void AuthWithToken(DomainAccountInfo const& domainAccountInfo,
-        array_view<uint8_t> token, IUserAuthCallback const& callback)
-    {
-        this->plugin_->AuthWithToken(domainAccountInfo, token, callback);
-    }
-
-    void GetAccountInfo(GetDomainAccountInfoPluginOptions const& options,
-        callback_view<void(OptionalError const& err, DomainAccountInfoData const& data)> callback)
-    {
-        this->plugin_->GetAccountInfo(options, callback);
-    }
-
-    void GetAuthStatusInfo(DomainAccountInfo const& domainAccountInfo,
-        callback_view<void(OptionalError const& err, AuthStatusInfoData const& data)> callback)
-    {
-        this->plugin_->GetAuthStatusInfo(domainAccountInfo, callback);
-    }
-
-    void BindAccount(DomainAccountInfo const& domainAccountInfo, int32_t localId,
-        callback_view<void(OptionalError const& err)> callback)
-    {
-        this->plugin_->BindAccount(domainAccountInfo, localId, callback);
-    }
-
-    void UnbindAccount(DomainAccountInfo const& domainAccountInfo,
-        callback_view<void(OptionalError const& err)> callback)
-    {
-        this->plugin_->UnbindAccount(domainAccountInfo, callback);
-    }
-
-    void IsAccountTokenValid(DomainAccountInfo const& domainAccountInfo,
-        array_view<uint8_t> token, callback_view<void(OptionalError const& err,
-        BoolData const& data)> callback)
-    {
-        this->plugin_->IsAccountTokenValid(domainAccountInfo, token, callback);
-    }
-
-    void GetAccessToken(GetDomainAccessTokenOptions const& options,
-        callback_view<void(OptionalError const& err, ArrayData const& data)> callback)
-    {
-        this->plugin_->GetAccessToken(options, callback);
-    }
-
-private:
-    DomainPlugin plugin_;
-};
-
 class AuthResultCallBack {
 public:
     explicit AuthResultCallBack(std::shared_ptr<AccountSA::DomainAccountCallback> const& callback)
@@ -106,8 +44,6 @@ public:
         if (extraInfo.token.has_value()) {
             const auto& taiheToken = extraInfo.token.value();
             nativeResult.token.assign(taiheToken.data(), taiheToken.data() + taiheToken.size());
-        } else {
-            nativeResult.token.clear();
         }
 
         nativeResult.authStatusInfo.remainingTimes = extraInfo.remainTimes.has_value() ?
@@ -119,11 +55,9 @@ public:
         if (!nativeResult.Marshalling(parcel)) {
             Parcel emptyParcel;
             callback_->OnResult(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyParcel);
-            nativeResult.token.clear();
             return;
         }
         callback_->OnResult(result, parcel);
-        nativeResult.token.clear();
         ACCOUNT_LOGI("Successfully called native callback");
     }
 
@@ -142,9 +76,9 @@ static bool ConvertOptionalError(OptionalError const& err, int32_t& errorCode)
     return false;
 }
 
-class AuthStatusInfoCallback {
+class GetAuthStatusInfoCallback {
 public:
-    explicit AuthStatusInfoCallback(std::shared_ptr<AccountSA::DomainAccountCallback> const& callback)
+    explicit GetAuthStatusInfoCallback(std::shared_ptr<AccountSA::DomainAccountCallback> const& callback)
         : callback_(callback) {}
 
     void operator()(OptionalError const& err, AuthStatusInfoData const& data)
@@ -159,6 +93,7 @@ public:
             if (!ConvertOptionalError(err, errorCode)) {
                 Parcel emptyParcel;
                 callback_->OnResult(ERR_ACCOUNT_COMMON_NULL_PTR_ERROR, emptyParcel);
+                return;
             }
         }
 
@@ -182,9 +117,9 @@ private:
     std::shared_ptr<AccountSA::DomainAccountCallback> callback_;
 };
 
-class DomainAccountInfoCallback {
+class GetDomainAccountInfoCallback {
 public:
-    explicit DomainAccountInfoCallback(std::shared_ptr<AccountSA::DomainAccountCallback> const& callback)
+    explicit GetDomainAccountInfoCallback(std::shared_ptr<AccountSA::DomainAccountCallback> const& callback)
         : callback_(callback) {}
 
     void operator()(OptionalError const& err, DomainAccountInfoData const& data)
@@ -199,6 +134,7 @@ public:
             if (!ConvertOptionalError(err, errorCode)) {
                 Parcel emptyParcel;
                 callback_->OnResult(ERR_ACCOUNT_COMMON_NULL_PTR_ERROR, emptyParcel);
+                return;
             }
         }
 
@@ -238,9 +174,10 @@ private:
     std::shared_ptr<AccountSA::DomainAccountCallback> callback_;
 };
 
-class VoidCallBack {
+class BindOrUnbindCallback {
 public:
-    explicit VoidCallBack(std::shared_ptr<AccountSA::DomainAccountCallback> const& callback): callback_(callback) {}
+    explicit BindOrUnbindCallback(std::shared_ptr<AccountSA::DomainAccountCallback> const& callback)
+        : callback_(callback) {}
 
     void operator()(OptionalError const& err)
     {
@@ -254,6 +191,7 @@ public:
             if (!ConvertOptionalError(err, errorCode)) {
                 Parcel emptyParcel;
                 callback_->OnResult(ERR_ACCOUNT_COMMON_NULL_PTR_ERROR, emptyParcel);
+                return;
             }
         }
 
@@ -271,9 +209,10 @@ private:
     std::shared_ptr<AccountSA::DomainAccountCallback> callback_;
 };
 
-class BoolDataCallback {
+class IsAccountTokenValidCallback {
 public:
-    explicit BoolDataCallback(std::shared_ptr<AccountSA::DomainAccountCallback> const& callback): callback_(callback) {}
+    explicit IsAccountTokenValidCallback(std::shared_ptr<AccountSA::DomainAccountCallback> const& callback)
+        : callback_(callback) {}
 
     void operator()(OptionalError const& err, BoolData const& data)
     {
@@ -287,6 +226,7 @@ public:
             if (!ConvertOptionalError(err, errorCode)) {
                 Parcel emptyParcel;
                 callback_->OnResult(ERR_ACCOUNT_COMMON_NULL_PTR_ERROR, emptyParcel);
+                return;
             }
         }
 
@@ -309,9 +249,9 @@ private:
     std::shared_ptr<AccountSA::DomainAccountCallback> callback_;
 };
 
-class ArrayDataCallback {
+class GetAccessTokenCallback {
 public:
-    explicit ArrayDataCallback(std::shared_ptr<AccountSA::DomainAccountCallback> const& callback)
+    explicit GetAccessTokenCallback(std::shared_ptr<AccountSA::DomainAccountCallback> const& callback)
         : callback_(callback) {}
 
     void operator()(OptionalError const& err, ArrayData const& data)
@@ -326,6 +266,7 @@ public:
             if (!ConvertOptionalError(err, errorCode)) {
                 Parcel emptyParcel;
                 callback_->OnResult(ERR_ACCOUNT_COMMON_NULL_PTR_ERROR, emptyParcel);
+                return;
             }
         }
 
@@ -351,7 +292,7 @@ private:
 
 class TaiheDomainAccountPlugin final: public AccountSA::DomainAccountPlugin {
 public:
-    explicit TaiheDomainAccountPlugin(const DomainPluginImpl &plugin): plugin_(plugin) {}
+    explicit TaiheDomainAccountPlugin(const DomainPlugin &plugin): plugin_(plugin) {}
 
     void Auth(const AccountSA::DomainAccountInfo &info, const std::vector<uint8_t> &credential,
         const std::shared_ptr<AccountSA::DomainAccountCallback> &callback)
@@ -359,7 +300,7 @@ public:
         auto taiheInfo = ConvertToDomainAccountInfo(info);
         taihe::array<uint8_t> taiheCredential(taihe::copy_data_t{}, credential.data(), credential.size());
         auto taiheCallback = ConvertToIUserAuthCallback(callback);
-        plugin_.Auth(taiheInfo, taiheCredential, taiheCallback);
+        plugin_.auth(taiheInfo, taiheCredential, taiheCallback);
     }
 
     void AuthWithPopup(const AccountSA::DomainAccountInfo &info,
@@ -367,7 +308,7 @@ public:
     {
         auto taiheInfo = ConvertToDomainAccountInfo(info);
         auto taiheCallback = ConvertToIUserAuthCallback(callback);
-        plugin_.AuthWithPopup(taiheInfo, taiheCallback);
+        plugin_.authWithPopup(taiheInfo, taiheCallback);
     }
 
     void AuthWithToken(const AccountSA::DomainAccountInfo &info, const std::vector<uint8_t> &token,
@@ -376,7 +317,7 @@ public:
         auto taiheInfo = ConvertToDomainAccountInfo(info);
         taihe::array<uint8_t> taiheToken(taihe::copy_data_t{}, token.data(), token.size());
         auto taiheCallback = ConvertToIUserAuthCallback(callback);
-        plugin_.AuthWithToken(taiheInfo, taiheToken, taiheCallback);
+        plugin_.authWithToken(taiheInfo, taiheToken, taiheCallback);
     }
 
     void GetAuthStatusInfo(const AccountSA::DomainAccountInfo &info,
@@ -384,9 +325,9 @@ public:
     {
         auto taiheInfo = ConvertToDomainAccountInfo(info);
         ::taihe::callback<void(OptionalError const& err, AuthStatusInfoData const& data)> taiheCallback =
-            make_holder<AuthStatusInfoCallback,
+            make_holder<GetAuthStatusInfoCallback,
             ::taihe::callback<void(OptionalError const& err, AuthStatusInfoData const& data)>>(callback);
-        plugin_.GetAuthStatusInfo(taiheInfo, taiheCallback);
+        plugin_.getAuthStatusInfo(taiheInfo, taiheCallback);
     }
 
     void GetDomainAccountInfo(const AccountSA::GetDomainAccountInfoOptions &options,
@@ -402,27 +343,27 @@ public:
             .callerUid = options.callingUid,
         };
         ::taihe::callback<void(OptionalError const& err, DomainAccountInfoData const& data)> taiheCallback =
-            make_holder<DomainAccountInfoCallback,
+            make_holder<GetDomainAccountInfoCallback,
             ::taihe::callback<void(OptionalError const& err, DomainAccountInfoData const& data)>>(callback);
-        plugin_.GetAccountInfo(taiheOptions, taiheCallback);
+        plugin_.getAccountInfo(taiheOptions, taiheCallback);
     }
 
     void OnAccountBound(const AccountSA::DomainAccountInfo &info, const int32_t localId,
         const std::shared_ptr<AccountSA::DomainAccountCallback> &callback)
     {
         auto taiheInfo = ConvertToDomainAccountInfo(info);
-        ::taihe::callback<void(OptionalError const& err)> taiheCallback = make_holder<VoidCallBack,
+        ::taihe::callback<void(OptionalError const& err)> taiheCallback = make_holder<BindOrUnbindCallback,
             ::taihe::callback<void(OptionalError const& err)>>(callback);
-        plugin_.BindAccount(taiheInfo, localId, taiheCallback);
+        plugin_.bindAccount(taiheInfo, localId, taiheCallback);
     }
 
     void OnAccountUnBound(const AccountSA::DomainAccountInfo &info,
         const std::shared_ptr<AccountSA::DomainAccountCallback> &callback)
     {
         auto taiheInfo = ConvertToDomainAccountInfo(info);
-        ::taihe::callback<void(OptionalError const& err)> taiheCallback = make_holder<VoidCallBack,
+        ::taihe::callback<void(OptionalError const& err)> taiheCallback = make_holder<BindOrUnbindCallback,
             ::taihe::callback<void(OptionalError const& err)>>(callback);
-        plugin_.UnbindAccount(taiheInfo, taiheCallback);
+        plugin_.unbindAccount(taiheInfo, taiheCallback);
     }
 
     void IsAccountTokenValid(const AccountSA::DomainAccountInfo &info, const std::vector<uint8_t> &token,
@@ -431,9 +372,9 @@ public:
         auto taiheInfo = ConvertToDomainAccountInfo(info);
         taihe::array<uint8_t> taiheToken(taihe::copy_data_t{}, token.data(), token.size());
         ::taihe::callback<void(OptionalError const& err, BoolData const& data)> taiheCallback =
-            make_holder<BoolDataCallback,
+            make_holder<IsAccountTokenValidCallback,
             ::taihe::callback<void(OptionalError const& err, BoolData const& data)>>(callback);
-        plugin_.IsAccountTokenValid(taiheInfo, taiheToken, taiheCallback);
+        plugin_.isAccountTokenValid(taiheInfo, taiheToken, taiheCallback);
     }
 
     void GetAccessToken(const AccountSA::DomainAccountInfo &domainInfo, const std::vector<uint8_t> &accountToken,
@@ -451,9 +392,9 @@ public:
             .callerUid = option.callingUid_,
         };
         ::taihe::callback<void(OptionalError const& err, ArrayData const& data)> taiheCallback =
-            make_holder<ArrayDataCallback,
+            make_holder<GetAccessTokenCallback,
             ::taihe::callback<void(OptionalError const& err, ArrayData const& data)>>(callback);
-        plugin_.GetAccessToken(domainAccessTokenOptions, taiheCallback);
+        plugin_.getAccessToken(domainAccessTokenOptions, taiheCallback);
     }
 private:
     DomainAccountInfo ConvertToDomainAccountInfo(const AccountSA::DomainAccountInfo &domainAccountInfo)
@@ -479,13 +420,12 @@ private:
         return taiheCallback;
     }
 
-    DomainPluginImpl plugin_;
+    DomainPlugin plugin_;
 };
 
 void RegisterPlugin(DomainPlugin const& plugin)
 {
-    DomainPluginImpl taihePlugin(plugin);
-    auto pluginPtr = std::make_shared<TaiheDomainAccountPlugin>(taihePlugin);
+    auto pluginPtr = std::make_shared<TaiheDomainAccountPlugin>(plugin);
     int32_t errCode = AccountSA::DomainAccountClient::GetInstance().RegisterPlugin(pluginPtr);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Failed to register plugin, errCode=%{public}d", errCode);
