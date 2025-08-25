@@ -1054,9 +1054,11 @@ public:
             ACCOUNT_LOGE("fail to create subscriber");
             return;
         }
-        std::lock_guard<std::mutex> lock(g_thLockForAppAccountSubscribers);
-        if (IsExitSubscribe(context.get())) {
-            return;
+        {
+            std::lock_guard<std::mutex> lock(g_thLockForAppAccountSubscribers);
+            if (IsExitSubscribe(context.get())) {
+                return;
+            }
         }
         ErrCode errorCode = AccountSA::AppAccountManager::SubscribeAppAccount(context->subscriber);
         if (errorCode != ERR_OK) {
@@ -1064,23 +1066,13 @@ public:
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
             return;
         }
-        g_thAppAccountSubscribers[context->appAccountManager].emplace_back(context.get());
+        {
+            std::lock_guard<std::mutex> lock(g_thLockForAppAccountSubscribers);
+            g_thAppAccountSubscribers[context->appAccountManager].emplace_back(context.get());
+        }
         context.release();
     }
 
-    bool GetSubscriberByUnsubscribe(std::vector<std::shared_ptr<AccountSA::SubscriberPtr>> &subscribers,
-        AccountSA::AsyncContextForUnsubscribe *asyncContextForOff)
-    {
-        for (auto const& subscriberInstance : g_thAppAccountSubscribers) {
-            if (subscriberInstance.first == asyncContextForOff->appAccountManager) {
-                for (auto item : subscriberInstance.second) {
-                    subscribers.emplace_back(item->subscriber);
-                }
-                return true;
-            }
-        }
-        return false;
-    }
 
     void Unsubscribe(std::shared_ptr<AccountSA::AsyncContextForUnsubscribe> context,
         optional_view<callback<void(array_view<AppAccountInfo> data)>> callback)
@@ -1088,11 +1080,6 @@ public:
         std::lock_guard<std::mutex> lock(g_thLockForAppAccountSubscribers);
         auto subscribe = g_thAppAccountSubscribers.find(context->appAccountManager);
         if (subscribe == g_thAppAccountSubscribers.end()) {
-            return;
-        }
-        std::vector<std::shared_ptr<AccountSA::SubscriberPtr>> subscribers = {nullptr};
-        if (!GetSubscriberByUnsubscribe(subscribers, context.get())) {
-            ACCOUNT_LOGE("Unsubscribe failed. The current subscriber does not exist");
             return;
         }
         for (size_t index = 0; index < subscribe->second.size(); ++index) {
