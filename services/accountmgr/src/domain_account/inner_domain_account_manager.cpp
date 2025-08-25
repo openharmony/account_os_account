@@ -121,9 +121,12 @@ static bool IsSupportNetRequest()
     return isForeground;
 }
 
-static int32_t GetCallingUserID()
+static int32_t GetCallingUserID(std::int32_t callingUid)
 {
-    std::int32_t userId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+    if (callingUid == -1) {
+        callingUid = IPCSkeleton::GetCallingUid();
+    }
+    std::int32_t userId = callingUid / UID_TRANSFORM_DIVISOR;
     if (userId <= 0) {
         std::vector<int32_t> userIds;
         (void)IInnerOsAccountManager::GetInstance().QueryActiveOsAccountIds(userIds);
@@ -133,6 +136,11 @@ static int32_t GetCallingUserID()
         userId = userIds[0];
     }
     return userId;
+}
+
+static int32_t GetCallingUserID()
+{
+    return GetCallingUserID(-1);
 }
 
 InnerDomainAccountManager::InnerDomainAccountManager()
@@ -568,16 +576,22 @@ static void SetPluginDomainAccountInfo(const DomainAccountInfo &info, PluginDoma
         SetPluginString(info.serverConfigId_, pluginInfo.serverConfigId);
         return;
     }
-    int32_t userId = GetCallingUserID();
-    OsAccountInfo accountInfo;
-    ErrCode errCode = IInnerOsAccountManager::GetInstance().GetRealOsAccountInfoById(userId, accountInfo);
+    int32_t userId = 0;
+    ErrCode errCode = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("QueryOsAccountById fail code=%{public}d.", errCode);
+        ACCOUNT_LOGI("The target domain account not found.");
+        pluginInfo.serverConfigId.data = nullptr;
+        return;
+    }
+    OsAccountInfo osAccountInfo;
+    errCode = IInnerOsAccountManager::GetInstance().GetRealOsAccountInfoById(userId, osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGI("Failed to get account info, userId = %{public}d", userId);
         pluginInfo.serverConfigId.data = nullptr;
         return;
     }
     DomainAccountInfo savedInfo;
-    accountInfo.GetDomainInfo(savedInfo);
+    osAccountInfo.GetDomainInfo(savedInfo);
     SetPluginString(savedInfo.serverConfigId_, pluginInfo.serverConfigId);
     return;
 }
@@ -1025,7 +1039,7 @@ ErrCode InnerDomainAccountManager::Auth(const DomainAccountInfo &info, const std
 }
 
 ErrCode InnerDomainAccountManager::PluginBindAccount(const DomainAccountInfo &info, const int32_t localId,
-    DomainAuthResult &resultParcel) __attribute__((no_sanitize("cfi")))
+    DomainAuthResult &resultParcel, const int32_t callingUid) __attribute__((no_sanitize("cfi")))
 {
     auto iter = methodMap_.find(PluginMethodEnum::BIND_ACCOUNT);
     if (iter == methodMap_.end() || iter->second == nullptr) {
@@ -1035,7 +1049,7 @@ ErrCode InnerDomainAccountManager::PluginBindAccount(const DomainAccountInfo &in
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
     ACCOUNT_LOGD("Param localId=%{public}d.", localId);
-    int32_t callerLocalId = GetCallingUserID();
+    int32_t callerLocalId = GetCallingUserID(callingUid);
     if (localId == -1) {
         ACCOUNT_LOGE("fail to get activated os account ids");
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR,
@@ -1516,6 +1530,24 @@ static void OnResultForGetAccessToken(const ErrCode errCode, const sptr<IDomainA
     callback->OnResult(errCode, domainAccountParcel);
 }
 
+ErrCode InnerDomainAccountManager::StartPluginGetAccessToken(const std::vector<uint8_t> &accountToken,
+    const DomainAccountInfo &info, const GetAccessTokenOptions &option, const sptr<IDomainAccountCallback> &callback)
+{
+    Parcel emptyParcel;
+    AccountSA::DomainAuthResult authResult;
+    ErrCode err = PluginGetAccessToken(option, accountToken, info, authResult);
+    DomainAccountParcel domainAccountParcel;
+    if (!authResult.Marshalling(emptyParcel)) {
+        ACCOUNT_LOGE("DomainAuthResult marshalling failed.");
+        err = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
+        callback->OnResult(err, domainAccountParcel);
+        return err;
+    }
+    domainAccountParcel.SetParcelData(emptyParcel);
+    callback->OnResult(err, domainAccountParcel);
+    return ERR_OK;
+}
+
 ErrCode InnerDomainAccountManager::StartGetAccessToken(const sptr<IDomainAccountPlugin> &plugin,
     const std::vector<uint8_t> &accountToken, const DomainAccountInfo &info, const GetAccessTokenOptions &option,
     const sptr<IDomainAccountCallback> &callback)
@@ -1604,22 +1636,16 @@ ErrCode InnerDomainAccountManager::GetAccessToken(
         ACCOUNT_LOGI("The target domain account has not authenticated");
     }
     GetAccessTokenOptions option(callingUid, parameters);
+    std::function<void()> task;
     if (plugin_ == nullptr) {
-        Parcel emptyParcel;
-        AccountSA::DomainAuthResult authResult;
-        ErrCode err = PluginGetAccessToken(option, accountToken, targetInfo, authResult);
-        if (!authResult.Marshalling(emptyParcel)) {
-            ACCOUNT_LOGE("DomainAuthResult marshalling failed.");
-            err = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
-        }
-        DomainAccountParcel domainAccountParcel;
-        domainAccountParcel.SetParcelData(emptyParcel);
-        callback->OnResult(err, domainAccountParcel);
-        return ERR_OK;
+        task = [this, accountToken, targetInfo, option, callback] {
+            this->StartPluginGetAccessToken(accountToken, targetInfo, option, callback);
+        };
+    } else {
+        task = [this, accountToken, targetInfo, option, callback, plugin = plugin_] {
+            this->StartGetAccessToken(plugin, accountToken, targetInfo, option, callback);
+        };
     }
-    auto task = [this, accountToken, targetInfo, option, callback, plugin = plugin_] {
-        this->StartGetAccessToken(plugin, accountToken, targetInfo, option, callback);
-    };
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_GET_ACCESS_TOKEN);
     taskThread.detach();
@@ -2018,6 +2044,28 @@ void InnerDomainAccountManager::StartOnAccountBound(const sptr<IDomainAccountPlu
     plugin->OnAccountBound(info, localId, callback);
 }
 
+void InnerDomainAccountManager::StartPluginOnAccountBindOrUnBind(const DomainAccountInfo &info, const int32_t localId,
+    const sptr<IDomainAccountCallback> &callback, bool isBound, const int32_t callingUid)
+{
+    Parcel emptyParcel;
+    AccountSA::DomainAuthResult result;
+    ErrCode err = ERR_OK;
+    if (isBound) {
+        err = PluginBindAccount(info, localId, result, callingUid);
+    } else {
+        err = PluginUnBindAccount(info, result, localId);
+    }
+    DomainAccountParcel domainAccountParcel;
+    if (!result.Marshalling(emptyParcel)) {
+        ACCOUNT_LOGE("DomainAuthResult marshalling failed.");
+        err = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
+        callback->OnResult(err, domainAccountParcel);
+        return;
+    }
+    domainAccountParcel.SetParcelData(emptyParcel);
+    callback->OnResult(err, domainAccountParcel);
+}
+
 ErrCode InnerDomainAccountManager::OnAccountBound(const DomainAccountInfo &info, const int32_t localId,
     const std::shared_ptr<DomainAccountCallback> &callback)
 {
@@ -2034,22 +2082,16 @@ ErrCode InnerDomainAccountManager::OnAccountBound(const DomainAccountInfo &info,
             "Alloc DomainAccountCallbackService failed", Constants::DOMAIN_OPT_BIND, localId, info);
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
+    std::function<void()> task;
     if (plugin_ == nullptr) {
-        Parcel emptyParcel;
-        AccountSA::DomainAuthResult result;
-        ErrCode err = PluginBindAccount(info, localId, result);
-        if (!result.Marshalling(emptyParcel)) {
-            ACCOUNT_LOGE("DomainAuthResult marshalling failed.");
-            err = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
-        }
-        DomainAccountParcel domainAccountParcel;
-        domainAccountParcel.SetParcelData(emptyParcel);
-        callbackService->OnResult(err, domainAccountParcel);
-        return ERR_OK;
+        task = [this, info, localId, callbackService, callingUid = IPCSkeleton::GetCallingUid()] {
+            this->StartPluginOnAccountBindOrUnBind(info, localId, callbackService, true, callingUid);
+        };
+    } else {
+        task = [this, info, localId, callbackService, plugin = plugin_] {
+            this->StartOnAccountBound(plugin, info, localId, callbackService);
+        };
     }
-    auto task = [this, info, localId, callbackService, plugin = plugin_] {
-        this->StartOnAccountBound(plugin, info, localId, callbackService);
-    };
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_BIND_ACCOUNT);
     taskThread.detach();
@@ -2082,22 +2124,16 @@ ErrCode InnerDomainAccountManager::OnAccountUnBound(const DomainAccountInfo &inf
             "Alloc DomainAccountCallbackService failed", Constants::DOMAIN_OPT_UNBIND, localId, info);
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
+    std::function<void()> task;
     if (plugin_ == nullptr) {
-        Parcel emptyParcel;
-        AccountSA::DomainAuthResult result;
-        ErrCode err = PluginUnBindAccount(info, result, localId);
-        if (!result.Marshalling(emptyParcel)) {
-            ACCOUNT_LOGE("DomainAuthResult marshalling failed.");
-            err = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
-        }
-        DomainAccountParcel domainAccountParcel;
-        domainAccountParcel.SetParcelData(emptyParcel);
-        callbackService->OnResult(err, domainAccountParcel);
-        return ERR_OK;
+        task = [this, info, localId, callbackService] {
+            this->StartPluginOnAccountBindOrUnBind(info, localId, callbackService, false);
+        };
+    } else {
+        task = [this, info, callbackService, plugin = plugin_] {
+            this->StartOnAccountUnBound(plugin, info, callbackService);
+        };
     }
-    auto task = [this, info, callbackService, plugin = plugin_] {
-        this->StartOnAccountUnBound(plugin, info, callbackService);
-    };
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_UNBIND_ACCOUNT);
     taskThread.detach();
@@ -2129,7 +2165,7 @@ ErrCode InnerDomainAccountManager::PluginGetDomainAccountInfo(const GetDomainAcc
             "Method GetDomainAccountInfo not exsit", Constants::DOMAIN_OPT_GET_INFO, -1, options);
         return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     }
-    int32_t localId = GetCallingUserID();
+    int32_t localId = GetCallingUserID(options.callingUid);
     if (localId == -1) {
         REPORT_DOMAIN_ACCOUNT_FAIL(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR,
             "Get userId is invalid", Constants::DOMAIN_OPT_GET_INFO, -1, options);
@@ -2167,6 +2203,30 @@ ErrCode InnerDomainAccountManager::GetDomainAccountInfo(const DomainAccountInfo 
     return ERR_OK;
 }
 
+void InnerDomainAccountManager::StartPluginGetDomainAccountInfo(GetDomainAccountInfoOptions options,
+    const sptr<IDomainAccountCallback> &callbackService)
+{
+    Parcel emptyParcel;
+    DomainAccountInfo result;
+    ErrCode err = PluginGetDomainAccountInfo(options, result);
+    AAFwk::WantParams wParam;
+    wParam.SetParam("domain", OHOS::AAFwk::String::Box(result.domain_));
+    wParam.SetParam("accountName", OHOS::AAFwk::String::Box(result.accountName_));
+    wParam.SetParam("accountId", OHOS::AAFwk::String::Box(result.accountId_));
+    wParam.SetParam("serverConfigId", OHOS::AAFwk::String::Box(result.serverConfigId_));
+    wParam.SetParam("isAuthenticated", OHOS::AAFwk::Boolean::Box(result.isAuthenticated));
+    wParam.SetParam("status", OHOS::AAFwk::Integer::Box(result.status_));
+    DomainAccountParcel domainAccountParcel;
+    if (!wParam.Marshalling(emptyParcel)) {
+        ACCOUNT_LOGE("DomainAccountInfo marshalling failed.");
+        err = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
+        callbackService->OnResult(err, domainAccountParcel);
+        return;
+    }
+    domainAccountParcel.SetParcelData(emptyParcel);
+    callbackService->OnResult(err, domainAccountParcel);
+}
+
 ErrCode InnerDomainAccountManager::GetDomainAccountInfo(
     const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback)
 {
@@ -2194,29 +2254,16 @@ ErrCode InnerDomainAccountManager::GetDomainAccountInfo(
     GetDomainAccountInfoOptions options;
     options.accountInfo = info;
     options.callingUid = callingUid;
+    std::function<void()> task;
     if (plugin_ == nullptr) {
-        Parcel emptyParcel;
-        DomainAccountInfo result;
-        ErrCode err = PluginGetDomainAccountInfo(options, result);
-        AAFwk::WantParams wParam;
-        wParam.SetParam("domain", OHOS::AAFwk::String::Box(result.domain_));
-        wParam.SetParam("accountName", OHOS::AAFwk::String::Box(result.accountName_));
-        wParam.SetParam("accountId", OHOS::AAFwk::String::Box(result.accountId_));
-        wParam.SetParam("serverConfigId", OHOS::AAFwk::String::Box(result.serverConfigId_));
-        wParam.SetParam("isAuthenticated", OHOS::AAFwk::Boolean::Box(result.isAuthenticated));
-        wParam.SetParam("status", OHOS::AAFwk::Integer::Box(result.status_));
-        if (!wParam.Marshalling(emptyParcel)) {
-            ACCOUNT_LOGE("DomainAccountInfo marshalling failed.");
-            err = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
-        }
-        DomainAccountParcel domainAccountParcel;
-        domainAccountParcel.SetParcelData(emptyParcel);
-        callbackService->OnResult(err, domainAccountParcel);
-        return ERR_OK;
+        task = [this, options, callbackService] {
+            this->StartPluginGetDomainAccountInfo(options, callbackService);
+        };
+    } else {
+        task = [this, options, callbackService, plugin = plugin_] {
+            this->StartGetDomainAccountInfo(plugin, options, callbackService);
+        };
     }
-    auto task = [this, options, callbackService, plugin = plugin_] {
-        this->StartGetDomainAccountInfo(plugin, options, callbackService);
-    };
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_GET_ACCOUNT);
     taskThread.detach();
@@ -2238,6 +2285,23 @@ void InnerDomainAccountManager::StartIsAccountTokenValid(const sptr<IDomainAccou
     }
 }
 
+void InnerDomainAccountManager::StartPluginIsAccountTokenValid(const DomainAccountInfo &info,
+    const std::vector<uint8_t> &token, const sptr<IDomainAccountCallback> &callback)
+{
+    Parcel emptyParcel;
+    int32_t isValid = -1;
+    ErrCode err = PluginIsAccountTokenValid(info, token, isValid);
+    DomainAccountParcel domainAccountParcel;
+    if (!emptyParcel.WriteBool(isValid == 1)) {
+        ACCOUNT_LOGE("IsValid marshalling failed.");
+        err = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
+        callback->OnResult(err, domainAccountParcel);
+        return;
+    }
+    domainAccountParcel.SetParcelData(emptyParcel);
+    callback->OnResult(err, domainAccountParcel);
+}
+
 ErrCode InnerDomainAccountManager::IsAccountTokenValid(const DomainAccountInfo &info,
     const std::vector<uint8_t> &token, const std::shared_ptr<DomainAccountCallback> &callback)
 {
@@ -2254,22 +2318,16 @@ ErrCode InnerDomainAccountManager::IsAccountTokenValid(const DomainAccountInfo &
             "Alloc DomainAccountCallbackService failed", Constants::DOMAIN_OPT_GET_INFO, -1, info);
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
+    std::function<void()> task;
     if (plugin_ == nullptr) {
-        Parcel emptyParcel;
-        int32_t isValid = -1;
-        ErrCode err = PluginIsAccountTokenValid(info, token, isValid);
-        if (!emptyParcel.WriteBool(isValid == 1)) {
-            ACCOUNT_LOGE("IsValid marshalling failed.");
-            err = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
-        }
-        DomainAccountParcel domainAccountParcel;
-        domainAccountParcel.SetParcelData(emptyParcel);
-        callbackService->OnResult(err, domainAccountParcel);
-        return ERR_OK;
+        task = [this, info, token, callbackService] {
+            this->StartPluginIsAccountTokenValid(info, token, callbackService);
+        };
+    } else {
+        task = [this, info, token, callbackService, plugin = plugin_] {
+            this->StartIsAccountTokenValid(plugin, info, token, callbackService);
+        };
     }
-    auto task = [this, info, token, callbackService, plugin = plugin_] {
-        this->StartIsAccountTokenValid(plugin, info, token, callbackService);
-    };
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_IS_ACCOUNT_VALID);
     taskThread.detach();

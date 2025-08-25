@@ -423,6 +423,8 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     sptr<MockDomainAccountCallbackStub> testCallback = new (std::nothrow) MockDomainAccountCallbackStub(callback);
     ASSERT_NE(testCallback, nullptr);
     ASSERT_EQ(InnerDomainAccountManager::GetInstance().IsAccountTokenValid(info, token, nullptr), ERR_OK);
+    info.accountName_ = "false";
+    ASSERT_EQ(InnerDomainAccountManager::GetInstance().IsAccountTokenValid(info, token, nullptr), ERR_OK);
 }
 
 /**
@@ -724,6 +726,5 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, AddToContextMap001, TestSize.Leve
     EXPECT_FALSE(instance->AddToContextMap(1, callback));
     delete instance;
 }
-
 }  // namespace AccountSA
 }  // namespace OHOS

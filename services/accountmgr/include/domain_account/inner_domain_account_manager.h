@@ -130,7 +130,8 @@ private:
     ErrCode PluginAuthToken(const DomainAccountInfo &info,  const std::vector<uint8_t> &authData,
         DomainAuthResult &resultParcel);
     ErrCode PluginGetAuthStatusInfo(const DomainAccountInfo &info, AuthStatusInfo &resultParcel);
-    ErrCode PluginBindAccount(const DomainAccountInfo &info, const int32_t localId, DomainAuthResult &resultParcel);
+    ErrCode PluginBindAccount(const DomainAccountInfo &info, const int32_t localId, DomainAuthResult &resultParcel,
+        const int32_t callerUid = -1);
     ErrCode PluginUnBindAccount(const DomainAccountInfo &info, DomainAuthResult &resultParcel, const int32_t localId);
     ErrCode PluginIsAccountTokenValid(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
         int32_t &isValid);
@@ -141,6 +142,14 @@ private:
     ErrCode RecoverBindDomainForUncomplete(const OsAccountInfo &osAccountInfo, const DomainAccountInfo &domainInfo);
     ErrCode BindDomainAccountWork(
         const int32_t localId, const DomainAccountInfo &domainInfo, const OsAccountInfo &info);
+    ErrCode StartPluginGetAccessToken(const std::vector<uint8_t> &accountToken, const DomainAccountInfo &info,
+        const GetAccessTokenOptions &option, const sptr<IDomainAccountCallback> &callback);
+    void StartPluginIsAccountTokenValid(const DomainAccountInfo &info,
+        const std::vector<uint8_t> &token, const sptr<IDomainAccountCallback> &callback);
+    void StartPluginOnAccountBindOrUnBind(const DomainAccountInfo &info, const int32_t localId,
+        const sptr<IDomainAccountCallback> &callback, bool isBound, const int32_t callerLocalId = -1);
+    void StartPluginGetDomainAccountInfo(GetDomainAccountInfoOptions options,
+        const sptr<IDomainAccountCallback> &callbackService);
     ErrCode CancelAuthWork(const uint64_t &contextId);
 
 protected:
