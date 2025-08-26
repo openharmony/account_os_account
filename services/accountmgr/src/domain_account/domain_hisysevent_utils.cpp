@@ -61,51 +61,68 @@ static std::string GetOperationName(PluginMethodEnum methodEnum)
     }
 }
 
-void DomainHisyseventUtils::ReportStatistic(PluginMethodEnum methodEnum, const int32_t id,
+static void GetLocalIdFromDomain(int32_t& userId, const DomainAccountInfo& domainInfo)
+{
+    if (userId != -1 || domainInfo.accountName_.empty()) {
+        return;
+    }
+    ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(domainInfo, userId);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Get os account localId from domain failed, result: %{public}d", result);
+    }
+}
+
+void DomainHisyseventUtils::ReportStatistic(const std::string &optName, int32_t userId,
     const DomainAccountInfo &domainInfo)
 {
-    std::string optName = GetOperationName(methodEnum);
     if (optName == Constants::DOMAIN_OPT_GET_CONFIG || optName == Constants::DOMAIN_OPT_GET_INFO ||
         optName == Constants::DOMAIN_OPT_GET_POLICY) {
         return;
     }
-    int32_t userId = id;
-    if (userId == -1) {
-        if (domainInfo.accountName_.empty()) {
-            DomainHisysEventInfo eventInfo(-1, optName);
+    if (userId == -1 && domainInfo.accountName_.empty()) {
+        DomainHisysEventInfo eventInfo(-1, optName);
             return ReportDomainAccountOperationStatistic(eventInfo);
         }
-        ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(domainInfo, userId);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("Get os account localId from domain failed, result: %{public}d", result);
-        }
-    }
+    GetLocalIdFromDomain(userId, domainInfo);
     DomainHisysEventInfo eventInfo(userId, optName, domainInfo.accountName_);
-    return ReportDomainAccountOperationStatistic(eventInfo);
+    ReportDomainAccountOperationStatistic(eventInfo);
+}
+
+void DomainHisyseventUtils::ReportStatistic(PluginMethodEnum methodEnum, int32_t userId,
+    const DomainAccountInfo &domainInfo)
+{
+    ReportStatistic(GetOperationName(methodEnum), userId, domainInfo);
 }
 
 void DomainHisyseventUtils::ReportFail(const int32_t errCode, const std::string &msg, const std::string &optName,
-    const int32_t id, const DomainAccountInfo &domainInfo)
+    int32_t userId, const DomainAccountInfo &domainInfo)
 {
-    int32_t userId = id;
-    if (userId == -1) {
-        if (domainInfo.accountName_.empty()) {
-            DomainHisysEventInfo eventInfo(-1, optName);
-            return ReportDomainAccountOperationFail(eventInfo, errCode, msg);
-        }
-        ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(domainInfo, userId);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("Get os account localId from domain failed, result: %{public}d", result);
-        }
+    if (userId == -1 && domainInfo.accountName_.empty()) {
+        DomainHisysEventInfo eventInfo(-1, optName);
+        return ReportDomainAccountOperationFail(eventInfo, errCode, msg);
     }
+    GetLocalIdFromDomain(userId, domainInfo);
     DomainHisysEventInfo eventInfo(userId, optName, domainInfo.accountName_);
-    return ReportDomainAccountOperationFail(eventInfo, errCode, msg);
+    ReportDomainAccountOperationFail(eventInfo, errCode, msg);
+}
+
+void DomainHisyseventUtils::ReportFail(const int32_t errCode, const std::string &msg, const std::string &optName,
+    int32_t userId, const GetDomainAccountInfoOptions &options)
+{
+    DomainAccountInfo domainInfo = options.accountInfo;
+    if (userId == -1 && domainInfo.accountName_.empty()) {
+        DomainHisysEventInfo eventInfo(-1, optName, options.callingUid);
+        return ReportDomainAccountOperationFail(eventInfo, errCode, msg);
+    }
+    GetLocalIdFromDomain(userId, domainInfo);
+    DomainHisysEventInfo eventInfo(userId, optName, options.callingUid, domainInfo.accountName_);
+    ReportDomainAccountOperationFail(eventInfo, errCode, msg);
 }
 
 void DomainHisyseventUtils::ReportFail(const int32_t errCode, const std::string &msg, PluginMethodEnum methodEnum,
-    const int32_t id, const DomainAccountInfo &domainInfo)
+    int32_t userId, const DomainAccountInfo &domainInfo)
 {
-    ReportFail(errCode, msg, GetOperationName(methodEnum), id, domainInfo);
+    ReportFail(errCode, msg, GetOperationName(methodEnum), userId, domainInfo);
 }
 } // AccountSA
 } // OHOS
