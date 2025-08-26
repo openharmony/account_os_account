@@ -832,9 +832,6 @@ HWTEST_F(OsAccountControlFileManagerUnitTest, GetU1Config001, TestSize.Level2)
     AddObjToJson(systemJson, U1_CONFIG, u1Json);
     AddObjToJson(json, SYSTEM_ACCOUNTS_CONFIG, systemJson);
     g_controlManager->GetU1Config(json, config);
-    ACCOUNT_LOGE("json:%{public}s",PackJsonToString(json).c_str());
-    ACCOUNT_LOGE("json1:%{public}s",PackJsonToString(u1Json).c_str());
-    ACCOUNT_LOGE("json2:%{public}s",PackJsonToString(systemJson).c_str());
     EXPECT_EQ(config.isU1Enable, true);
     std::string errName(2000, '1');
     AddStringToJson(u1Json, SYSTEM_ACCOUNT_NAME, errName);
