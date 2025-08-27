@@ -46,7 +46,7 @@ struct AsyncContextForSubscribe {
     explicit AsyncContextForSubscribe(SubscribeCallback callback): callbackRef(callback) {};
     std::string type;
     std::vector<std::string> owners;
-    uint64_t appAccountManager = 0;
+    uint64_t appAccountManagerHandle = 0;
     std::shared_ptr<SubscriberPtr> subscriber = nullptr;
     SubscribeCallback callbackRef;
 };
@@ -54,7 +54,7 @@ struct AsyncContextForSubscribe {
 struct AsyncContextForUnsubscribe {
     std::string type;
     std::vector<std::shared_ptr<AccountSA::SubscriberPtr>> subscribers;
-    uint64_t appAccountManager = 0;
+    uint64_t appAccountManagerHandle = 0;
     size_t argc = 0;
 };
 
