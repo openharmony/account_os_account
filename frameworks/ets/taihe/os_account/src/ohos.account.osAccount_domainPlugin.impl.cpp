@@ -69,8 +69,7 @@ static bool ConvertOptionalError(OptionalError const& err, int32_t& errorCode)
 {
     ani_env* env = get_env();
     ani_object ani_obj = reinterpret_cast<ani_object>(err.get_ref<OptionalError::tag_t::error>());
-    if (env != nullptr) {
-        env->Object_GetPropertyByName_Int(ani_obj, "code", &errorCode);
+    if (env != nullptr && ((env->Object_GetPropertyByName_Int(ani_obj, "code", &errorCode)) == ANI_OK)) {
         return true;
     }
     return false;
