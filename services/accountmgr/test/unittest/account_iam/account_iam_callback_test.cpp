@@ -166,6 +166,30 @@ void AccountIamCallbackTest::TearDown(void)
 {}
 
 /**
+ * @tc.name: AuthCallback_IsTokenFromRemoteDevice_0100
+ * @tc.desc: IsTokenFromRemoteDevice test.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamCallbackTest, AuthCallback_IsTokenFromRemoteDevice_0100, TestSize.Level0)
+{
+    AuthCallback userAuthCallback(TEST_USER_ID, AuthType::PIN, AccountSA::AuthIntent::DEFAULT, nullptr);
+    Attributes extraInfo;
+    userAuthCallback.isRemoteAuth_ = false;
+    EXPECT_FALSE(userAuthCallback.IsTokenFromRemoteDevice(extraInfo));
+
+    userAuthCallback.isRemoteAuth_ = true;
+    EXPECT_FALSE(userAuthCallback.IsTokenFromRemoteDevice(extraInfo));
+
+    std::vector<uint64_t> value(10);
+    EXPECT_EQ(extraInfo.SetUint64ArrayValue(Attributes::ATTR_TOKEN_FROM_REMOTE_DEVICE, value), true);
+    EXPECT_FALSE(userAuthCallback.IsTokenFromRemoteDevice(extraInfo));
+
+    EXPECT_EQ(extraInfo.SetBoolValue(Attributes::ATTR_TOKEN_FROM_REMOTE_DEVICE, true), true);
+    EXPECT_TRUE(userAuthCallback.IsTokenFromRemoteDevice(extraInfo));
+}
+
+/**
  * @tc.name: AuthCallback_OnResult_0100
  * @tc.desc: OnResult with nullptr.
  * @tc.type: FUNC
