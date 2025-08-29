@@ -16,6 +16,7 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_IOS_ACCOUNT_SUBSCRIBE_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_IOS_ACCOUNT_SUBSCRIBE_H
 
+#include <optional>
 #include "account_error_no.h"
 #include "os_account_subscribe_info.h"
 #include "iremote_object.h"
@@ -59,7 +60,8 @@ public:
     virtual ErrCode UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener) = 0;
     virtual const std::shared_ptr<OsAccountSubscribeInfo> GetSubscribeRecordInfo(
         const sptr<IRemoteObject> &eventListener) = 0;
-    virtual ErrCode Publish(int32_t fromId, OsAccountState state, int32_t toId = -1) = 0;
+    virtual ErrCode Publish(int32_t fromId, OsAccountState state, int32_t toId = -1,
+        std::optional<uint64_t> displayId = std::nullopt) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

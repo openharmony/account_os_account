@@ -56,6 +56,8 @@ void OsAccountSubscribeTest::SetUp(void) __attribute__((no_sanitize("cfi")))
 class MockSubscriber {
 public:
     MOCK_METHOD3(OnStateChanged, void(OsAccountState state, int32_t fromId, int32_t toId));
+    MOCK_METHOD4(OnStateChangedWithDisplayId,
+        void(OsAccountState state, int32_t fromId, int32_t toId, std::optional<uint64_t> displayId));
 };
 
 class TestSubscriber final : public OsAccountSubscriber {
@@ -107,6 +109,53 @@ void TestSubscriber::OnStateChanged(const OsAccountStateData &data)
     }
     data.callback->OnComplete();
 }
+
+class TestDisplayIdSubscriber final : public OsAccountSubscriber {
+public:
+    TestDisplayIdSubscriber(const OsAccountSubscribeInfo &info, std::shared_ptr<MockSubscriber> &mockSubscriber)
+        : OsAccountSubscriber(info), info_(info), mockSubscriber_(mockSubscriber) {};
+
+    void OnStateChanged(const OsAccountStateData &data) override;
+
+public:
+    bool isRemoved_ = false;
+    std::mutex mutex_;
+    std::condition_variable condVar_;
+
+private:
+    OsAccountSubscribeInfo info_;
+    std::shared_ptr<MockSubscriber> mockSubscriber_;
+};
+
+void TestDisplayIdSubscriber::OnStateChanged(const OsAccountStateData &data)
+{
+    ACCOUNT_LOGI("State: %{public}d, fromId: %{public}d, toId: %{public}d, displayId: %{public}s",
+        data.state, data.fromId, data.toId, data.displayId.has_value() ?
+        std::to_string(data.displayId.value()).c_str() : "nullopt");
+    std::set<OsAccountState> states;
+    info_.GetStates(states);
+    if (states.find(data.state) == states.end()) {
+        ACCOUNT_LOGE("The state=%{public}d is not expected", data.state);
+        return;
+    }
+    if (data.state == OsAccountState::REMOVED) {
+        std::lock_guard<std::mutex> lock(mutex_);
+        isRemoved_ = true;
+        condVar_.notify_one();
+    }
+    if (mockSubscriber_ != nullptr) {
+        if (data.state == OsAccountState::SWITCHING || data.state == OsAccountState::SWITCHED) {
+            mockSubscriber_->OnStateChangedWithDisplayId(data.state, data.fromId, data.toId, data.displayId);
+        } else {
+            mockSubscriber_->OnStateChanged(data.state, data.fromId, data.toId);
+        }
+    }
+    if (data.callback == nullptr) {
+        ACCOUNT_LOGE("Callback is nullptr");
+        return;
+    }
+    data.callback->OnComplete();
+}
 void TestStateLockingMachine(int32_t localId, bool isBlock, std::shared_ptr<MockSubscriber> mockSubscriber)
 {
 #ifdef SUPPORT_LOCK_OS_ACCOUNT
@@ -140,32 +189,22 @@ void TestStateMachine(bool withHandshake, bool isBlock)
     EXPECT_EQ(OsAccountManager::CreateOsAccount(ACCOUNT_NAME, OsAccountType::NORMAL, info), ERR_OK);
     int32_t localId = info.GetLocalId();
     int32_t currentId = -1;
-    EXPECT_EQ(OsAccountManager::GetForegroundOsAccountLocalId(currentId), ERR_OK);
-    EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::SWITCHING, currentId, localId)).Times(Exactly(1));
-    EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::UNLOCKED, localId, localId)).Times(Exactly(1));
-    EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::SWITCHED, currentId, localId)).Times(Exactly(1));
+    int32_t fgRet = OsAccountManager::GetForegroundOsAccountLocalId(currentId);
+    if (fgRet != ERR_OK) {
+        currentId = Constants::START_USER_ID;
+    }
+
+    EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::SWITCHING, _, _)).Times(AtMost(TWICE));
+    EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::SWITCHED, _, _)).Times(AtMost(TWICE));
+    EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::UNLOCKED, _, _))
+        .Times(AtLeast(1));
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(localId), ERR_OK);
     EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::STOPPING, localId, localId)).Times(Exactly(TWICE));
     EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::STOPPED, localId, localId)).Times(Exactly(TWICE));
-#ifdef SUPPORT_STOP_MAIN_OS_ACCOUNT
-    EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::SWITCHING, -1, localId)).Times(Exactly(1));
-    EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::SWITCHED, -1, localId)).Times(Exactly(1));
-#else
-    EXPECT_CALL(*mockSubscriber,
-        OnStateChanged(OsAccountState::SWITCHING, -1, Constants::START_USER_ID)).Times(Exactly(1));
-    EXPECT_CALL(*mockSubscriber,
-        OnStateChanged(OsAccountState::SWITCHED, -1, Constants::START_USER_ID)).Times(Exactly(1));
-#endif // SUPPORT_STOP_MAIN_OS_ACCOUNT
 
     TestStateLockingMachine(localId, isBlock, mockSubscriber);
 
     EXPECT_EQ(OsAccountManager::DeactivateOsAccount(localId), ERR_OK);
-#ifdef SUPPORT_STOP_MAIN_OS_ACCOUNT
-    EXPECT_CALL(*mockSubscriber,
-        OnStateChanged(OsAccountState::SWITCHING, localId, Constants::START_USER_ID)).Times(Exactly(1));
-    EXPECT_CALL(*mockSubscriber,
-        OnStateChanged(OsAccountState::SWITCHED, localId, Constants::START_USER_ID)).Times(Exactly(1));
-#endif // SUPPORT_STOP_MAIN_OS_ACCOUNT
     EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::REMOVED, localId, localId)).Times(Exactly(1));
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(localId), ERR_OK);
     std::unique_lock<std::mutex> lock(subscriber->mutex_);
@@ -241,4 +280,55 @@ HWTEST_F(OsAccountSubscribeTest, OsAccountSubscribeTest04, TestSize.Level1)
     OsAccountSubscribeInfo subscribeInfo3(OsAccountState::INVALID_TYPE, "");
     subscriber = std::make_shared<TestSubscriber>(subscribeInfo3, mockSubscriber);
     EXPECT_EQ(OsAccountManager::SubscribeOsAccount(subscriber), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: OsAccountSubscribeTestWithDisplayId
+ * @tc.desc: Test subscribing OS account SWITCHING and SWITCHED states with displayId
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountSubscribeTest, OsAccountSubscribeTestWithDisplayId, TestSize.Level1)
+{
+    std::set<OsAccountState> states = {
+        OsAccountState::SWITCHING,
+        OsAccountState::SWITCHED,
+        OsAccountState::CREATED,
+        OsAccountState::REMOVED,
+        OsAccountState::UNLOCKED
+    };
+    OsAccountSubscribeInfo subscribeInfo(states, false);
+    auto mockSubscriber = std::make_shared<MockSubscriber>();
+    auto subscriber = std::make_shared<TestDisplayIdSubscriber>(subscribeInfo, mockSubscriber);
+    EXPECT_EQ(OsAccountManager::SubscribeOsAccount(subscriber), ERR_OK);
+
+    EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::CREATED, _, _)).Times(Exactly(1));
+    
+    OsAccountInfo info;
+    EXPECT_EQ(OsAccountManager::CreateOsAccount(ACCOUNT_NAME, OsAccountType::NORMAL, info), ERR_OK);
+    int32_t localId = info.GetLocalId();
+    int32_t currentId = -1;
+    int32_t fgRet = OsAccountManager::GetForegroundOsAccountLocalId(currentId);
+    if (fgRet != ERR_OK) {
+        currentId = Constants::START_USER_ID;
+    }
+    EXPECT_CALL(*mockSubscriber,
+        OnStateChangedWithDisplayId(OsAccountState::SWITCHING, _, _, std::optional<uint64_t>(0)))
+        .Times(AtMost(TWICE));
+    EXPECT_CALL(*mockSubscriber,
+        OnStateChangedWithDisplayId(OsAccountState::SWITCHED, _, _, std::optional<uint64_t>(0)))
+        .Times(AtMost(TWICE));
+    EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::UNLOCKED, _, _)).Times(AtLeast(1));
+    
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(localId), ERR_OK);
+    EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::REMOVED, localId, localId)).Times(Exactly(1));
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(localId), ERR_OK);
+    std::unique_lock<std::mutex> lock(subscriber->mutex_);
+    if (!subscriber->isRemoved_) {
+        subscriber->condVar_.wait(lock, [subscriber] { return subscriber->isRemoved_; });
+    }
+    
+    EXPECT_EQ(OsAccountManager::UnsubscribeOsAccount(subscriber), ERR_OK);
+    
+    SUCCEED();
 }

@@ -77,6 +77,12 @@ ohos_moduletest("os_account_frameworks_module_test") {
     "samgr:samgr_proxy",
   ]
   cflags_cc = []
+
+  if (os_account_enable_multiple_foreground_os_accounts) {
+    cflags_cc += [ "-DENABLE_MULTI_FOREGROUND_OS_ACCOUNTS" ]
+    external_deps += [ "window_manager:libdm_lite" ]
+  }
+
   cflags_cc += [ "-DSCENE_USE_CASE" ]
   if (os_account_support_domain_accounts) {
     cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]

@@ -16,6 +16,7 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_IINNER_OS_ACCOUNT_MANAGER_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_IINNER_OS_ACCOUNT_MANAGER_H
 
+#include <map>
 #include <memory>
 #include "iinner_os_account.h"
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
@@ -107,9 +108,13 @@ public:
         const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner) override;
 
     ErrCode SetDefaultActivatedOsAccount(const int32_t id) override;
+    ErrCode SetDefaultActivatedOsAccount(const uint64_t displayId, const int32_t id) override;
     ErrCode GetDefaultActivatedOsAccount(int32_t &id) override;
+    ErrCode GetDefaultActivatedOsAccount(const uint64_t displayId, int32_t &id) override;
+    ErrCode GetAllDefaultActivatedOsAccounts(std::map<uint64_t, int32_t> &activatedIds);
     ErrCode IsOsAccountForeground(const int32_t localId, const uint64_t displayId, bool &isForeground) override;
     ErrCode GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId) override;
+    ErrCode GetForegroundOsAccountDisplayId(const int32_t localId, uint64_t &displayId) override;
     ErrCode GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts) override;
     ErrCode GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds) override;
     ErrCode SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved) override;
@@ -162,6 +167,7 @@ private:
     ErrCode RemoveOsAccountOperate(const int id, OsAccountInfo &osAccountInfo, bool isCleanGarbage = false);
     ErrCode DeactivateOsAccountById(const int id);
     ErrCode DeactivateOsAccountByInfo(OsAccountInfo &osAccountInfo);
+    void CleanForegroundAccountMap(const OsAccountInfo &osAccountInfo);
     ErrCode PrepareOsAccountInfo(const std::string &name, const OsAccountType &type,
         const DomainAccountInfo &domainAccount, OsAccountInfo &osAccountInfo);
     ErrCode PrepareOsAccountInfo(const std::string &localName, const std::string &shortName, const OsAccountType &type,
@@ -179,7 +185,7 @@ private:
     ErrCode ValidateOsAccount(const OsAccountInfo &osAccountInfo);
     ErrCode DealWithDeviceOwnerId(const bool isDeviceOwner, const int32_t localId);
     void CheckAndRefreshLocalIdRecord(const int id);
-    void RollBackToEarlierAccount(int32_t fromId, int32_t toId);
+    void RollBackToEarlierAccount(int32_t fromId, int32_t toId, uint64_t displayId = 0);
     void RollbackOsAccount(OsAccountInfo &osAccountInfo, bool needDelStorage, bool needDelBms);
     bool IsToBeRemoved(const int32_t localId);
     // operations for active list
@@ -200,6 +206,14 @@ private:
     std::vector<int32_t> GetVerifiedAccountIds(const SafeMap<int32_t, bool> &verifiedAccounts);
     ErrCode SendToStorageAndAMSAccountStart(OsAccountInfo &osAccountInfo, const bool startStorage,
         const uint64_t displayId, const bool isAppRecovery, int32_t oldId);
+    ErrCode PrepareActivateOsAccount(const int32_t id, const uint64_t displayId,
+        OsAccountInfo &osAccountInfo, int32_t &foregroundId);
+    ErrCode ResetDefaultActivatedAccount(int32_t localId);
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    void QueryAllDisplayIds(std::vector<uint64_t> &displayIds);
+    ErrCode ValidateDisplayForActivation(const int id, const uint64_t displayId);
+    ErrCode ValidateDisplayId(const uint64_t displayId);
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
 
 private:
     std::shared_ptr<IOsAccountControl> osAccountControl_;
@@ -207,7 +221,7 @@ private:
     std::vector<int32_t> operatingId_;
     IOsAccountSubscribe &subscribeManager_;
     std::int32_t deviceOwnerId_ = -1;
-    std::int32_t defaultActivatedId_ = -1;
+    SafeMap<uint64_t, int32_t> defaultActivatedIds_;
     OsAccountConfig config_;
     mutable std::mutex ativeMutex_;
     mutable std::mutex operatingMutex_;
@@ -224,6 +238,10 @@ private:
     SafeMap<int32_t, bool> lockingAccounts_;
 #endif
     std::map<int32_t, std::shared_ptr<std::mutex>> updateLocks_;
+    
+    // Helper functions for ActivateDefaultOsAccount
+    ErrCode ActivateU1Account();
+    ErrCode PrepareForDefaultAccount(int32_t activatedId, OsAccountInfo &osAccountInfo);
 
 public:
 #ifdef SUPPORT_DOMAIN_ACCOUNTS

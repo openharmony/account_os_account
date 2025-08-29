@@ -107,8 +107,9 @@ const int64_t CARRY_NUM = 100000000;
 const bool IS_SERIAL_NUMBER_FULL_INIT_VALUE = false;
 const int64_t TIME_WAIT_TIME_OUT = 5;
 const std::int32_t WAIT_ONE_TIME = 1000;
-const uint64_t DEFAULT_DISPALY_ID = 0;
-const uint64_t INVALID_DISPALY_ID = -1ull;
+const uint64_t DEFAULT_DISPLAY_ID = 0;
+const uint64_t INVALID_DISPLAY_ID = -1ull;
+const uint64_t ANY_DISPLAY_ID = -1ull;  // Special value to indicate "any display" in foreground queries
 const uint64_t REENROLL_WAIT_TIME = 3;
 
 // max size of subscribed states

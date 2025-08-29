@@ -89,6 +89,15 @@ static ErrCode CheckLocalId(int localId)
     return ERR_OK;
 }
 
+static ErrCode CheckDisplayId(uint64_t displayId)
+{
+    if (displayId == Constants::INVALID_DISPLAY_ID) {
+        ACCOUNT_LOGE("DisplayId %{public}llu is invalid", static_cast<unsigned long long>(displayId));
+        return ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR;
+    }
+    return ERR_OK;
+}
+
 OsAccount &OsAccount::GetInstance()
 {
     static OsAccount *instance = new (std::nothrow) OsAccount();
@@ -626,7 +635,16 @@ ErrCode OsAccount::QueryDistributedVirtualDeviceId(const std::string &bundleName
 
 ErrCode OsAccount::ActivateOsAccount(const int id)
 {
+    return ActivateOsAccount(id, Constants::DEFAULT_DISPLAY_ID);
+}
+
+ErrCode OsAccount::ActivateOsAccount(const int id, const uint64_t displayId)
+{
     ErrCode result = CheckLocalId(id);
+    if (result != ERR_OK) {
+        return result;
+    }
+    result = CheckDisplayId(displayId);
     if (result != ERR_OK) {
         return result;
     }
@@ -635,7 +653,7 @@ ErrCode OsAccount::ActivateOsAccount(const int id)
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
 
-    auto errCode = proxy->ActivateOsAccount(id);
+    auto errCode = proxy->ActivateOsAccount(id, displayId);
     return ConvertToAccountErrCode(errCode);
 }
 
@@ -1052,6 +1070,24 @@ ErrCode OsAccount::SetDefaultActivatedOsAccount(const int32_t id)
     return ConvertToAccountErrCode(errCode);
 }
 
+ErrCode OsAccount::SetDefaultActivatedOsAccount(const uint64_t displayId, const int32_t id)
+{
+    ErrCode result = CheckLocalId(id);
+    if (result != ERR_OK) {
+        return result;
+    }
+    result = CheckDisplayId(displayId);
+    if (result != ERR_OK) {
+        return result;
+    }
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    auto errCode = proxy->SetDefaultActivatedOsAccount(displayId, id);
+    return ConvertToAccountErrCode(errCode);
+}
+
 ErrCode OsAccount::GetDefaultActivatedOsAccount(int32_t &id)
 {
     auto proxy = GetOsAccountProxy();
@@ -1059,6 +1095,20 @@ ErrCode OsAccount::GetDefaultActivatedOsAccount(int32_t &id)
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     auto errCode = proxy->GetDefaultActivatedOsAccount(id);
+    return ConvertToAccountErrCode(errCode);
+}
+
+ErrCode OsAccount::GetDefaultActivatedOsAccount(const uint64_t displayId, int32_t &id)
+{
+    ErrCode result = CheckDisplayId(displayId);
+    if (result != ERR_OK) {
+        return result;
+    }
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    auto errCode = proxy->GetDefaultActivatedOsAccount(displayId, id);
     return ConvertToAccountErrCode(errCode);
 }
 
@@ -1104,7 +1154,7 @@ ErrCode OsAccount::GetOsAccountShortNameById(const int32_t id, std::string &shor
 
 ErrCode OsAccount::IsOsAccountForeground(bool &isForeground)
 {
-    return IsOsAccountForegroundCommon(-1, Constants::DEFAULT_DISPALY_ID, isForeground);
+    return IsOsAccountForegroundCommon(-1, Constants::ANY_DISPLAY_ID, isForeground);
 }
 
 ErrCode OsAccount::IsOsAccountForeground(const int32_t localId, bool &isForeground)
@@ -1113,7 +1163,7 @@ ErrCode OsAccount::IsOsAccountForeground(const int32_t localId, bool &isForegrou
         ACCOUNT_LOGE("LocalId %{public}d is invlaid", localId);
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    return IsOsAccountForegroundCommon(localId, Constants::DEFAULT_DISPALY_ID, isForeground);
+    return IsOsAccountForegroundCommon(localId, Constants::ANY_DISPLAY_ID, isForeground);
 }
 
 ErrCode OsAccount::IsOsAccountForeground(const int32_t localId, const uint64_t displayId, bool &isForeground)
@@ -1122,9 +1172,9 @@ ErrCode OsAccount::IsOsAccountForeground(const int32_t localId, const uint64_t d
         ACCOUNT_LOGE("LocalId %{public}d is invlaid", localId);
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    if (displayId != Constants::DEFAULT_DISPALY_ID) {
-        ACCOUNT_LOGE("DisplayId %{public}llu not exist", static_cast<unsigned long long>(displayId));
-        return ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR;
+    ErrCode result = CheckDisplayId(displayId);
+    if (result != ERR_OK) {
+        return result;
     }
     return IsOsAccountForegroundCommon(localId, displayId, isForeground);
 }
@@ -1141,25 +1191,31 @@ ErrCode OsAccount::IsOsAccountForegroundCommon(const int32_t localId, const uint
 
 ErrCode OsAccount::GetForegroundOsAccountLocalId(int32_t &localId)
 {
-    return GetForegroundLocalIdCommon(Constants::DEFAULT_DISPALY_ID, localId);
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    auto errCode = proxy->GetForegroundOsAccountLocalId(localId);
+    return ConvertToAccountErrCode(errCode);
 }
 
 ErrCode OsAccount::GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId)
-{
-    if (displayId != Constants::DEFAULT_DISPALY_ID) {
-        ACCOUNT_LOGE("DisplayId %{public}llu not exist", static_cast<unsigned long long>(displayId));
-        return ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR;
-    }
-    return GetForegroundLocalIdCommon(displayId, localId);
-}
-
-ErrCode OsAccount::GetForegroundLocalIdCommon(const uint64_t displayId, int32_t &localId)
 {
     auto proxy = GetOsAccountProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     auto errCode = proxy->GetForegroundOsAccountLocalId(displayId, localId);
+    return ConvertToAccountErrCode(errCode);
+}
+
+ErrCode OsAccount::GetForegroundOsAccountDisplayId(const int32_t localId, uint64_t &displayId)
+{
+    auto proxy = GetOsAccountProxy();
+    if (proxy == nullptr) {
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    auto errCode = proxy->GetForegroundOsAccountDisplayId(localId, displayId);
     return ConvertToAccountErrCode(errCode);
 }
 

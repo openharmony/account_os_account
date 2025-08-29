@@ -207,6 +207,11 @@ ohos_unittest("account_mgr_test") {
     "samgr:samgr_proxy",
   ]
 
+  if (os_account_enable_multiple_foreground_os_accounts) {
+    cflags_cc += [ "-DENABLE_MULTI_FOREGROUND_OS_ACCOUNTS" ]
+    external_deps += [ "window_manager:libdm_lite" ]
+  }
+
   if (os_account_multiple_active_accounts ||
       os_account_support_deactivate_main_os_account) {
     external_deps += [ "ability_runtime:app_manager" ]
@@ -328,6 +333,10 @@ ohos_unittest("account_mgr_test") {
 
   if (os_account_enable_account_1) {
     cflags_cc += [ "-DENABLE_U1_ACCOUNT" ]
+  }
+  
+  if (os_account_enable_multiple_foreground_os_accounts){
+    cflags += [ "-DENABLE_MULTI_FOREGROUND_OS_ACCOUNTS" ]
   }
 
   part_name = "os_account"

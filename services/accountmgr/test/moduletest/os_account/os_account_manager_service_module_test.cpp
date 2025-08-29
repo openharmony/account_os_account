@@ -15,6 +15,7 @@
 #include <cerrno>
 #include <filesystem>
 #include <gtest/gtest.h>
+#include <limits>
 #include <thread>
 #include <unistd.h>
 #include "account_error_no.h"
@@ -2194,5 +2195,328 @@ HWTEST_F(OsAccountManagerServiceModuleTest, ServiceCheck001, TestSize.Level3)
     EXPECT_EQ(osAccountManagerService_->UpdateOsAccountWithFullInfo(osAccountInfo),
         ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest129
+ * @tc.desc: Coverage for IsOsAccountForeground: invalid param, not exist, reserved range, caller id
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest129, TestSize.Level1)
+{
+    // Ensure system app permission to pass CheckSystemApp
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    ASSERT_TRUE(MockTokenId("accountmgr"));
+
+    bool isForeground = true;
+
+    // 1) invalid parameter: id < ADMIN_LOCAL_ID - 1
+    ErrCode ret = osAccountManagerService_->IsOsAccountForeground(
+        OHOS::AccountSA::Constants::ADMIN_LOCAL_ID - 2,
+        OHOS::AccountSA::Constants::DEFAULT_DISPLAY_ID, isForeground);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+
+    // 2) account not exist
+    ret = osAccountManagerService_->IsOsAccountForeground(
+        OHOS::AccountSA::Constants::MAX_USER_ID + 1,
+        OHOS::AccountSA::Constants::DEFAULT_DISPLAY_ID, isForeground);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+
+    // 3) reserved range: [ADMIN_LOCAL_ID, START_USER_ID) always background if exists
+    ret = osAccountManagerService_->IsOsAccountForeground(
+        OHOS::AccountSA::Constants::ADMIN_LOCAL_ID,
+        OHOS::AccountSA::Constants::DEFAULT_DISPLAY_ID, isForeground);
+    if (ret == ERR_OK) {
+        EXPECT_FALSE(isForeground);
+    } else {
+        EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    }
+
+    // 4) localId == -1: use caller's account id
+    ret = osAccountManagerService_->IsOsAccountForeground(
+        -1, OHOS::AccountSA::Constants::DEFAULT_DISPLAY_ID, isForeground);
+    EXPECT_EQ(ret, ERR_OK);
+
+    // Restore token
+    ASSERT_TRUE(SetSelfTokenID(selfTokenId) == 0);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest130
+ * @tc.desc: Coverage for GetAllDefaultActivatedOsAccounts; verify clearing and mapping content
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest130, TestSize.Level1)
+{
+    // Prepare inner map state: default display and another display
+    auto &innermgr = osAccountManagerService_->innerManager_;
+    const uint64_t anotherDisplay = 987654321ULL;
+    const int32_t idOnDefault = OHOS::AccountSA::Constants::START_USER_ID;     // main account
+    const int32_t idOnAnother = OHOS::AccountSA::Constants::START_USER_ID + 1; // arbitrary valid-looking id
+
+    // Backup old values to restore later
+    bool hadDefault = false, hadAnother = false;
+    int32_t oldDefault = -1, oldAnother = -1;
+    innermgr.defaultActivatedIds_.Iterate([&](uint64_t d, int32_t v) {
+        if (d == OHOS::AccountSA::Constants::DEFAULT_DISPLAY_ID) { hadDefault = true; oldDefault = v; }
+        if (d == anotherDisplay) { hadAnother = true; oldAnother = v; }
+    });
+
+    innermgr.defaultActivatedIds_.EnsureInsert(
+        OHOS::AccountSA::Constants::DEFAULT_DISPLAY_ID, idOnDefault);
+    innermgr.defaultActivatedIds_.EnsureInsert(anotherDisplay, idOnAnother);
+
+    // Pre-fill output with a garbage entry to ensure it gets cleared
+    std::map<uint64_t, int32_t> out = { { std::numeric_limits<uint64_t>::max(), -999 } };
+
+    ErrCode ret = osAccountManagerService_->GetAllDefaultActivatedOsAccounts(out);
+    EXPECT_EQ(ret, ERR_OK);
+
+    // The garbage entry must be removed
+    EXPECT_EQ(out.count(std::numeric_limits<uint64_t>::max()), 0u);
+
+    // The output should contain both entries we set
+    auto itDefault = out.find(OHOS::AccountSA::Constants::DEFAULT_DISPLAY_ID);
+    auto itAnother = out.find(anotherDisplay);
+    EXPECT_TRUE(itDefault != out.end());
+    EXPECT_TRUE(itAnother != out.end());
+    EXPECT_EQ(itDefault->second, idOnDefault);
+    EXPECT_EQ(itAnother->second, idOnAnother);
+
+    // Restore inner state
+    if (hadDefault) {
+        innermgr.defaultActivatedIds_.EnsureInsert(
+            OHOS::AccountSA::Constants::DEFAULT_DISPLAY_ID, oldDefault);
+    } else {
+        innermgr.defaultActivatedIds_.Erase(OHOS::AccountSA::Constants::DEFAULT_DISPLAY_ID);
+    }
+    if (hadAnother) {
+        innermgr.defaultActivatedIds_.EnsureInsert(anotherDisplay, oldAnother);
+    } else {
+        innermgr.defaultActivatedIds_.Erase(anotherDisplay);
+    }
+}
+
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
+/**
+ * @tc.name: SetDefaultActivatedOsAccountWithDisplayIdTest001
+ * @tc.desc: Test SetDefaultActivatedOsAccount with displayId - invalid id
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, SetDefaultActivatedOsAccountWithDisplayIdTest001, TestSize.Level1)
+{
+    uint64_t displayId = 0;
+    ErrCode result = osAccountManagerService_->SetDefaultActivatedOsAccount(displayId, INVALID_OS_ACCOUNT_ID);
+    EXPECT_NE(result, ERR_OK);
+    
+    result = osAccountManagerService_->SetDefaultActivatedOsAccount(displayId, -1);
+    EXPECT_NE(result, ERR_OK);
+    
+    result = osAccountManagerService_->SetDefaultActivatedOsAccount(displayId, MAX_USER_ID + 1);
+    EXPECT_NE(result, ERR_OK);
+}
+
+/**
+ * @tc.name: SetDefaultActivatedOsAccountWithDisplayIdTest002
+ * @tc.desc: Test SetDefaultActivatedOsAccount with displayId - permission denied
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, SetDefaultActivatedOsAccountWithDisplayIdTest002, TestSize.Level1)
+{
+    uint64_t displayId = 0;
+    // Test without proper permission should be denied
+    // The exact test depends on the permission system, but we test the API
+    ErrCode result = osAccountManagerService_->SetDefaultActivatedOsAccount(displayId, START_USER_ID);
+    // Result may vary based on permission context, so we just check it's handled
+    EXPECT_TRUE(result == ERR_OK || result == ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+}
+
+/**
+ * @tc.name: SetDefaultActivatedOsAccountWithDisplayIdTest003
+ * @tc.desc: Test SetDefaultActivatedOsAccount with displayId - valid case
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, SetDefaultActivatedOsAccountWithDisplayIdTest003, TestSize.Level1)
+{
+    uint64_t displayId = 0;
+    ErrCode result = osAccountManagerService_->SetDefaultActivatedOsAccount(displayId, START_USER_ID);
+    EXPECT_TRUE(result == ERR_OK || result == ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    
+    // Test with another display ID
+    uint64_t anotherDisplayId = 1;
+    result = osAccountManagerService_->SetDefaultActivatedOsAccount(anotherDisplayId, START_USER_ID);
+    EXPECT_TRUE(result == ERR_OK || result == ERR_ACCOUNT_COMMON_PERMISSION_DENIED ||
+                result == ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR);
+}
+
+/**
+ * @tc.name: GetDefaultActivatedOsAccountWithDisplayIdTest001
+ * @tc.desc: Test GetDefaultActivatedOsAccount with displayId
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, GetDefaultActivatedOsAccountWithDisplayIdTest001, TestSize.Level1)
+{
+    uint64_t displayId = 0;
+    int32_t id = -1;
+    
+    ErrCode result = osAccountManagerService_->GetDefaultActivatedOsAccount(displayId, id);
+    EXPECT_TRUE(result == ERR_OK || result == ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR);
+    
+    if (result == ERR_OK) {
+        EXPECT_GE(id, START_USER_ID);
+    }
+}
+
+/**
+ * @tc.name: GetDefaultActivatedOsAccountWithDisplayIdTest002
+ * @tc.desc: Test GetDefaultActivatedOsAccount with different display IDs
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, GetDefaultActivatedOsAccountWithDisplayIdTest002, TestSize.Level1)
+{
+    uint64_t displayId1 = 0;
+    uint64_t displayId2 = 1;
+    int32_t id1 = -1, id2 = -1;
+    
+    ErrCode result1 = osAccountManagerService_->GetDefaultActivatedOsAccount(displayId1, id1);
+    ErrCode result2 = osAccountManagerService_->GetDefaultActivatedOsAccount(displayId2, id2);
+    
+    EXPECT_TRUE(result1 == ERR_OK || result1 == ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR);
+    EXPECT_TRUE(result2 == ERR_OK || result2 == ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR);
+    
+    // Test non-existent display ID
+    uint64_t invalidDisplayId = 99999;
+    int32_t invalidId = -1;
+    ErrCode result3 = osAccountManagerService_->GetDefaultActivatedOsAccount(invalidDisplayId, invalidId);
+    EXPECT_EQ(result3, ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR);
+}
+
+/**
+ * @tc.name: GetForegroundOsAccountLocalIdTest001
+ * @tc.desc: Test GetForegroundOsAccountLocalId - permission check
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, GetForegroundOsAccountLocalIdTest001, TestSize.Level1)
+{
+    uint64_t displayId = 0;
+    int32_t localId = -1;
+    
+    ErrCode result = osAccountManagerService_->GetForegroundOsAccountLocalId(displayId, localId);
+    // Should either succeed or fail due to permission/display not found
+    EXPECT_TRUE(result == ERR_OK ||
+                result == ERR_ACCOUNT_COMMON_PERMISSION_DENIED ||
+                result == ERR_ACCOUNT_COMMON_ACCOUNT_IN_DISPLAY_ID_NOT_FOUND_ERROR);
+}
+
+/**
+ * @tc.name: GetForegroundOsAccountLocalIdTest002
+ * @tc.desc: Test GetForegroundOsAccountLocalId with multiple displays
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, GetForegroundOsAccountLocalIdTest002, TestSize.Level1)
+{
+    uint64_t displayId1 = 0;
+    uint64_t displayId2 = 1;
+    int32_t localId1 = -1, localId2 = -1;
+    
+    ErrCode result1 = osAccountManagerService_->GetForegroundOsAccountLocalId(displayId1, localId1);
+    ErrCode result2 = osAccountManagerService_->GetForegroundOsAccountLocalId(displayId2, localId2);
+    
+    EXPECT_TRUE(result1 == ERR_OK ||
+                result1 == ERR_ACCOUNT_COMMON_PERMISSION_DENIED ||
+                result1 == ERR_ACCOUNT_COMMON_ACCOUNT_IN_DISPLAY_ID_NOT_FOUND_ERROR);
+    EXPECT_TRUE(result2 == ERR_OK ||
+                result2 == ERR_ACCOUNT_COMMON_PERMISSION_DENIED ||
+                result2 == ERR_ACCOUNT_COMMON_ACCOUNT_IN_DISPLAY_ID_NOT_FOUND_ERROR);
+}
+
+/**
+ * @tc.name: GetForegroundOsAccountDisplayIdTest001
+ * @tc.desc: Test GetForegroundOsAccountDisplayId - permission check
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, GetForegroundOsAccountDisplayIdTest001, TestSize.Level1)
+{
+    int32_t localId = START_USER_ID;
+    uint64_t displayId = 0;
+    
+    ErrCode result = osAccountManagerService_->GetForegroundOsAccountDisplayId(localId, displayId);
+    EXPECT_TRUE(result == ERR_OK ||
+                result == ERR_ACCOUNT_COMMON_PERMISSION_DENIED ||
+                result == ERR_ACCOUNT_COMMON_ACCOUNT_IN_DISPLAY_ID_NOT_FOUND_ERROR);
+}
+
+/**
+ * @tc.name: GetForegroundOsAccountDisplayIdTest002
+ * @tc.desc: Test GetForegroundOsAccountDisplayId with invalid parameters
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, GetForegroundOsAccountDisplayIdTest002, TestSize.Level1)
+{
+    uint64_t displayId = 0;
+    
+    // Test with invalid local ID
+    ErrCode result = osAccountManagerService_->GetForegroundOsAccountDisplayId(-2, displayId);
+    EXPECT_TRUE(result == ERR_ACCOUNT_COMMON_PERMISSION_DENIED ||
+                result == ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    
+    // Test with non-existent account
+    result = osAccountManagerService_->GetForegroundOsAccountDisplayId(99999, displayId);
+    EXPECT_TRUE(result == ERR_ACCOUNT_COMMON_PERMISSION_DENIED ||
+                result == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR ||
+                result == ERR_ACCOUNT_COMMON_ACCOUNT_IN_DISPLAY_ID_NOT_FOUND_ERROR);
+}
+
+/**
+ * @tc.name: GetForegroundOsAccountDisplayIdTest003
+ * @tc.desc: Test GetForegroundOsAccountDisplayId with calling UID
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, GetForegroundOsAccountDisplayIdTest003, TestSize.Level1)
+{
+    // Test with localId = -1 (should use calling UID)
+    int32_t localId = -1;
+    uint64_t displayId = 0;
+    
+    ErrCode result = osAccountManagerService_->GetForegroundOsAccountDisplayId(localId, displayId);
+    EXPECT_TRUE(result == ERR_OK ||
+                result == ERR_ACCOUNT_COMMON_PERMISSION_DENIED ||
+                result == ERR_ACCOUNT_COMMON_INVALID_PARAMETER ||
+                result == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR ||
+                result == ERR_ACCOUNT_COMMON_ACCOUNT_IN_DISPLAY_ID_NOT_FOUND_ERROR);
+}
+
+/**
+ * @tc.name: GetForegroundOsAccountDisplayIdTest004
+ * @tc.desc: Test GetForegroundOsAccountDisplayId with valid account
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, GetForegroundOsAccountDisplayIdTest004, TestSize.Level1)
+{
+    int32_t localId = START_USER_ID;  // Main account
+    uint64_t displayId = 0;
+    
+    ErrCode result = osAccountManagerService_->GetForegroundOsAccountDisplayId(localId, displayId);
+    EXPECT_TRUE(result == ERR_OK ||
+                result == ERR_ACCOUNT_COMMON_PERMISSION_DENIED ||
+                result == ERR_ACCOUNT_COMMON_ACCOUNT_IN_DISPLAY_ID_NOT_FOUND_ERROR);
+    
+    if (result == ERR_OK) {
+        // displayId should be a valid value
+        EXPECT_NE(displayId, Constants::INVALID_DISPLAY_ID);
+    }
+}
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
+
 }  // namespace AccountSA
 }  // namespace OHOS

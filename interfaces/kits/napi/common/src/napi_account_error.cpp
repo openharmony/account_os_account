@@ -86,6 +86,9 @@ static const std::unordered_map<uint32_t, std::string> g_errorStringMap = {
     {ERR_JS_DOMAIN_ACCOUNT_ALREADY_BOUND, "The domain account is already bound."},
     {ERR_JS_ACCOUNT_CROSS_DEVICE_CAPABILITY_NOT_SUPPORT, "Cross-device capability not supported"},
     {ERR_JS_ACCOUNT_CROSS_DEVICE_COMMUNICATION_FAILED, "Cross-device communication failed"},
+    {ERR_JS_FOREGROUND_OS_ACCOUNT_NOT_FOUND, "The foreground OS account is not found"},
+    {ERR_JS_DISPLAY_NOT_FOUND, "Display not found"},
+    {ERR_JS_CROSS_DISPLAY_ACTIVATION_NOT_SUPPORTED, "Cross-display activation not supported"},
 };
 
 napi_value GenerateBusinessError(napi_env env, int32_t jsErrCode, const std::string &jsErrMsg)

@@ -17,6 +17,7 @@
 #include <cinttypes>
 #include <cstdint>
 #include <string>
+#include <cerrno>
 #include "securec.h"
 namespace OHOS {
 namespace AccountSA {
@@ -274,6 +275,36 @@ std::map<std::string, std::string> PackJsonToMap(const CJson *jsonObj)
 std::map<std::string, std::string> PackJsonToMap(const CJsonUnique &jsonObj)
 {
     return PackJsonToMap(jsonObj.get());
+}
+
+std::map<std::uint64_t, std::int32_t> PackJsonToMapUint64Int32(const CJson *jsonObj)
+{
+    if (!IsObject(jsonObj)) {
+        return {};
+    }
+    std::map<std::uint64_t, std::int32_t> mapData;
+    for (cJSON *item = jsonObj->child; item != nullptr; item = item->next) {
+        if (!cJSON_IsNumber(item) || item->string == nullptr) {
+            continue;
+        }
+        char *endptr = nullptr;
+        const char *start = item->string;
+        std::uint64_t key = strtoull(start, &endptr, DECIMALISM);
+        if (endptr == nullptr || endptr == start || *endptr != '\0') {
+            continue;
+        }
+        double doubleValue = cJSON_GetNumberValue(item);
+        if (doubleValue < INT32_MIN || doubleValue > INT32_MAX) {
+            continue;
+        }
+        mapData[key] = static_cast<std::int32_t>(doubleValue);
+    }
+    return mapData;
+}
+
+std::map<std::uint64_t, std::int32_t> PackJsonToMapUint64Int32(const CJsonUnique &jsonObj)
+{
+    return PackJsonToMapUint64Int32(jsonObj.get());
 }
 
 bool GetVectorStringFromJson(const CJson *jsonObj, const std::string &key, std::vector<std::string> &value)

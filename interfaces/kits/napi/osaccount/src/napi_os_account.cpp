@@ -64,6 +64,7 @@ static napi_property_descriptor g_osAccountProperties[] = {
     DECLARE_NAPI_FUNCTION("getActivatedOsAccountIds", GetActivatedOsAccountIds),
     DECLARE_NAPI_FUNCTION("getActivatedOsAccountLocalIds", GetActivatedOsAccountIds),
     DECLARE_NAPI_FUNCTION("getForegroundOsAccountLocalId", GetForegroundOsAccountLocalId),
+    DECLARE_NAPI_FUNCTION("getForegroundOsAccountDisplayId", GetForegroundOsAccountDisplayId),
     DECLARE_NAPI_FUNCTION("getOsAccountProfilePhoto", GetOsAccountProfilePhoto),
     DECLARE_NAPI_FUNCTION("getOsAccountName", GetOsAccountName),
     DECLARE_NAPI_FUNCTION("queryCurrentOsAccount", QueryCurrentOsAccount),
@@ -366,7 +367,7 @@ napi_value ActivateOsAccount(napi_env env, napi_callback_info cbInfo)
 
 napi_value DeactivateOsAccount(napi_env env, napi_callback_info cbInfo)
 {
-    auto asyncContext = std::make_unique<ActivateOAAsyncContext>();
+    auto asyncContext = std::make_unique<DeactivateOAAsyncContext>();
     asyncContext->env = env;
 
     if (!ParseParaDeactivateOA(env, cbInfo, asyncContext.get())) {
@@ -735,6 +736,10 @@ napi_value GetForegroundOsAccountLocalId(napi_env env, napi_callback_info cbInfo
     getForegroundIds->env = env;
     getForegroundIds->throwErr = true;
 
+    if (!ParseParaGetForegroundOALocalId(env, cbInfo, getForegroundIds.get())) {
+        return nullptr;
+    }
+
     napi_value result = nullptr;
     NAPI_CALL(env, napi_create_promise(env, &getForegroundIds->deferred, &result));
 
@@ -751,6 +756,35 @@ napi_value GetForegroundOsAccountLocalId(napi_env env, napi_callback_info cbInfo
 
     NAPI_CALL(env, napi_queue_async_work_with_qos(env, getForegroundIds->work, napi_qos_default));
     getForegroundIds.release();
+    return result;
+}
+
+napi_value GetForegroundOsAccountDisplayId(napi_env env, napi_callback_info cbInfo)
+{
+    auto getDisplayId = std::make_unique<GetForegroundOADisplayIdAsyncContext>();
+    getDisplayId->env = env;
+    getDisplayId->throwErr = true;
+
+    if (!ParseParaGetForegroundOADisplayId(env, cbInfo, getDisplayId.get())) {
+        return nullptr;
+    }
+
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_promise(env, &getDisplayId->deferred, &result));
+
+    napi_value resource = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, "GetForegroundOsAccountDisplayId", NAPI_AUTO_LENGTH, &resource));
+
+    NAPI_CALL(env, napi_create_async_work(env,
+        nullptr,
+        resource,
+        GetForegroundOADisplayIdExecuteCB,
+        GetForegroundOADisplayIdCallbackCompletedCB,
+        reinterpret_cast<void *>(getDisplayId.get()),
+        &getDisplayId->work));
+
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, getDisplayId->work, napi_qos_default));
+    getDisplayId.release();
     return result;
 }
 
@@ -1535,7 +1569,7 @@ napi_value Subscribe(napi_env env, napi_callback_info cbInfo)
     }
 
     // make osaccount subscribe info
-    OsAccountSubscribeInfo subscribeInfo(subscribeCBInfo->osSubscribeType, subscribeCBInfo->name);
+    OsAccountSubscribeInfo subscribeInfo({subscribeCBInfo->osSubscribeType});
     // make a subscriber
     subscribeCBInfo->subscriber = std::make_shared<SubscriberPtr>(subscribeInfo);
 
@@ -1551,6 +1585,7 @@ napi_value Subscribe(napi_env env, napi_callback_info cbInfo)
     ErrCode errCode = OsAccountManager::SubscribeOsAccount(subscribeCBInfo->subscriber);
     if (errCode != ERR_OK) {
         delete subscribeCBInfo;
+        ACCOUNT_LOGE("SubscribeOsAccount failed with errCode=%{public}d", errCode);
         AccountNapiThrow(env, errCode, true);
         return WrapVoidToJS(env);
     } else {
@@ -1566,17 +1601,13 @@ SubscriberPtr::SubscriberPtr(const OsAccountSubscribeInfo &subscribeInfo) : OsAc
 SubscriberPtr::~SubscriberPtr()
 {}
 
-void SubscriberPtr::OnAccountsChanged(const int &id)
+void SubscriberPtr::OnStateChanged(const OsAccountStateData &data)
 {
-    OnAccountsSubNotify(id, id);
+    OnAccountsSubNotify(data.toId, data.fromId, data.displayId, data.state);
 }
 
-void SubscriberPtr::OnAccountsSwitch(const int &newId, const int &oldId)
-{
-    OnAccountsSubNotify(newId, oldId);
-}
-
-void SubscriberPtr::OnAccountsSubNotify(const int &newId, const int &oldId)
+void SubscriberPtr::OnAccountsSubNotify(const int &newId, const int &oldId, const std::optional<uint64_t> &displayId,
+    const OsAccountState &state)
 {
     std::shared_ptr<SubscriberOAWorker> subscriberOAWorker = std::make_shared<SubscriberOAWorker>();
     if (subscriberOAWorker == nullptr) {
@@ -1585,6 +1616,8 @@ void SubscriberPtr::OnAccountsSubNotify(const int &newId, const int &oldId)
     }
     subscriberOAWorker->oldId = oldId;
     subscriberOAWorker->newId = newId;
+    subscriberOAWorker->displayId = displayId;
+    subscriberOAWorker->state = state;
     subscriberOAWorker->env = env_;
     subscriberOAWorker->ref = ref_;
     subscriberOAWorker->subscriber = this;
@@ -1608,7 +1641,53 @@ static napi_value CreateSwitchEventInfoObj(const std::shared_ptr<SubscriberOAWor
     NAPI_CALL(env, napi_create_int32(env, subscriberOAWorker->newId, &toAccountIdJs));
     NAPI_CALL(env, napi_set_named_property(env, objInfo, "toAccountId", toAccountIdJs));
 
+    if (subscriberOAWorker->displayId.has_value()) {
+        napi_value displayIdJs;
+        NAPI_CALL(env, napi_create_bigint_uint64(env, subscriberOAWorker->displayId.value(), &displayIdJs));
+        NAPI_CALL(env, napi_set_named_property(env, objInfo, "displayId", displayIdJs));
+    }
+
     return objInfo;
+}
+
+static napi_value CreateOsAccountEventDataObj(
+    const std::shared_ptr<SubscriberOAWorker> &subscriberOAWorker, const std::string &eventType)
+{
+    napi_env env = subscriberOAWorker->env;
+    napi_value objInfo = nullptr;
+    NAPI_CALL(env, napi_create_object(env, &objInfo));
+
+    napi_value accountIdJs;
+    NAPI_CALL(env, napi_create_int32(env, subscriberOAWorker->newId, &accountIdJs));
+    NAPI_CALL(env, napi_set_named_property(env, objInfo, "accountId", accountIdJs));
+
+    napi_value eventJs;
+    NAPI_CALL(env, napi_create_string_utf8(env, eventType.c_str(), eventType.length(), &eventJs));
+    NAPI_CALL(env, napi_set_named_property(env, objInfo, "event", eventJs));
+
+    return objInfo;
+}
+
+
+static napi_value CreateSubEventData(const std::shared_ptr<SubscriberOAWorker> &subscriberOAWorkerData)
+{
+    switch (subscriberOAWorkerData->state) {
+        case OsAccountState::SWITCHING:
+        case OsAccountState::SWITCHED: {
+            return CreateSwitchEventInfoObj(subscriberOAWorkerData);
+        }
+        case OsAccountState::CREATED: {
+            return CreateOsAccountEventDataObj(subscriberOAWorkerData, "created");
+        }
+        case OsAccountState::REMOVED: {
+            return CreateOsAccountEventDataObj(subscriberOAWorkerData, "removed");
+        }
+        default: {
+            napi_value result = nullptr;
+            napi_create_int32(subscriberOAWorkerData->env, subscriberOAWorkerData->newId, &result);
+            return result;
+        }
+    }
 }
 
 std::function<void()> OnAccountsSubNotifyTask(const std::shared_ptr<SubscriberOAWorker> &subscriberOAWorkerData)
@@ -1622,33 +1701,21 @@ std::function<void()> OnAccountsSubNotifyTask(const std::shared_ptr<SubscriberOA
             return;
         }
         bool isFound = false;
+        OS_ACCOUNT_SUBSCRIBE_TYPE osSubscribeType = OS_ACCOUNT_SUBSCRIBE_TYPE::INVALID_TYPE;
         {
             std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
             SubscriberPtr *subscriber = subscriberOAWorkerData->subscriber;
             for (const auto& item : g_osAccountSubscribers) {
                 if (item->subscriber.get() == subscriber) {
                     isFound = true;
-                    ACCOUNT_LOGD("OsAccount subscriber has been found.");
+                    osSubscribeType = item->osSubscribeType;
                     break;
                 }
             }
         }
         if (isFound) {
-            OsAccountSubscribeInfo subscribeInfo;
-            OS_ACCOUNT_SUBSCRIBE_TYPE osSubscribeType;
-            subscriberOAWorkerData->subscriber->GetSubscribeInfo(subscribeInfo);
-            subscribeInfo.GetOsAccountSubscribeType(osSubscribeType);
-
-            napi_value result[ARGS_SIZE_ONE] = { nullptr };
-            if ((osSubscribeType == SWITCHING || osSubscribeType == SWITCHED)) {
-                ACCOUNT_LOGI("Switch condition, return oldId=%{public}d and newId=%{public}d.",
-                    subscriberOAWorkerData->oldId, subscriberOAWorkerData->newId);
-                result[PARAMZERO] = CreateSwitchEventInfoObj(subscriberOAWorkerData);
-            } else {
-                napi_create_int32(subscriberOAWorkerData->env, subscriberOAWorkerData->newId, &result[PARAMZERO]);
-            }
-            NapiCallVoidFunction(
-                subscriberOAWorkerData->env, &result[PARAMZERO], ARGS_SIZE_ONE, subscriberOAWorkerData->ref);
+            napi_value eventObj = CreateSubEventData(subscriberOAWorkerData);
+            NapiCallVoidFunction(subscriberOAWorkerData->env, &eventObj, ARGS_SIZE_ONE, subscriberOAWorkerData->ref);
         }
         napi_close_handle_scope(subscriberOAWorkerData->env, scope);
     };
@@ -1703,31 +1770,36 @@ void UnsubscribeSync(napi_env env, UnsubscribeCBInfo *unsubscribeCBInfo)
             continue;
         }
         OsAccountSubscribeInfo subscribeInfo;
-        OS_ACCOUNT_SUBSCRIBE_TYPE osSubscribeType;
-        std::string name;
         currentSubInfo->subscriber->GetSubscribeInfo(subscribeInfo);
-        subscribeInfo.GetOsAccountSubscribeType(osSubscribeType);
-        subscribeInfo.GetName(name);
+        std::set<OsAccountState> states;
+        subscribeInfo.GetStates(states);
 
-        if (((unsubscribeCBInfo->osSubscribeType != osSubscribeType) || (unsubscribeCBInfo->name != name)) ||
-            ((unsubscribeCBInfo->callbackRef != nullptr) &&
-            (!CompareOnAndOffRef(env, currentSubInfo->callbackRef, unsubscribeCBInfo->callbackRef)))) {
+        OsAccountState targetState = static_cast<OsAccountState>(unsubscribeCBInfo->osSubscribeType);
+        if (states.find(targetState) == states.end()) {
             it++;
             continue;
         }
-
-        int errCode = OsAccountManager::UnsubscribeOsAccount(currentSubInfo->subscriber);
-        if (errCode != ERR_OK) {
-            AccountNapiThrow(env, errCode, true);
-            return;
-        }
-        delete currentSubInfo;
-        it = g_osAccountSubscribers.erase(it);
-        if (unsubscribeCBInfo->callbackRef != nullptr) {
-            break;
+        
+        bool isCallbackMatched = (unsubscribeCBInfo->callbackRef == nullptr) ||  // unsubscribe all
+            CompareOnAndOffRef(env, currentSubInfo->callbackRef, unsubscribeCBInfo->callbackRef);
+        if (isCallbackMatched) {
+            int errCode = OsAccountManager::UnsubscribeOsAccount(currentSubInfo->subscriber);
+            if (errCode != ERR_OK) {
+                ACCOUNT_LOGE("UnsubscribeOsAccount failed with errCode=%{public}d", errCode);
+                AccountNapiThrow(env, errCode, true);
+                return;
+            }
+            delete currentSubInfo;
+            it = g_osAccountSubscribers.erase(it);
+            if (unsubscribeCBInfo->callbackRef != nullptr) {
+                break;
+            }
+        } else {
+            it++;
         }
     }
 }
+
 napi_value IsOsAccountActivated(napi_env env, napi_callback_info cbInfo)
 {
     if (AccountPermissionManager::CheckSystemApp(false) != ERR_OK) {

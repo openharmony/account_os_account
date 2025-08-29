@@ -29,6 +29,7 @@
 #include "os_account_constants.h"
 #include "os_account_constraint_subscriber_manager.h"
 #include "os_account_state_reply_callback.h"
+#include "os_account_state_parcel.h"
 #undef private
 #include "singleton.h"
 #include "system_ability_definition.h"
@@ -766,4 +767,232 @@ HWTEST_F(OsAccountTest, OnComplete_003, TestSize.Level3)
     callback.OnComplete();
     // cv_ should remain unchanged
     EXPECT_TRUE(cv != nullptr);
+}
+
+/**
+ * @tc.name: OsAccountActivateOsAccountTest001
+ * @tc.desc: Test ActivateOsAccount with invalid parameters and valid flow
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountActivateOsAccountTest001, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountActivateOsAccountTest001");
+    
+    // Test invalid localId
+    ErrCode result = g_osAccount->ActivateOsAccount(-1, Constants::DEFAULT_DISPLAY_ID);
+    EXPECT_NE(result, ERR_OK);
+    
+    // Test invalid displayId
+    result = g_osAccount->ActivateOsAccount(MAIN_ACCOUNT_ID, Constants::INVALID_DISPLAY_ID);
+    EXPECT_NE(result, ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountSetDefaultActivatedOsAccountTest001
+ * @tc.desc: Test SetDefaultActivatedOsAccount with parameters validation
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountSetDefaultActivatedOsAccountTest001, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountSetDefaultActivatedOsAccountTest001");
+    
+    // Test invalid localId
+    ErrCode result = g_osAccount->SetDefaultActivatedOsAccount(Constants::DEFAULT_DISPLAY_ID, -1);
+    EXPECT_NE(result, ERR_OK);
+    
+    // Test invalid displayId
+    result = g_osAccount->SetDefaultActivatedOsAccount(Constants::INVALID_DISPLAY_ID, MAIN_ACCOUNT_ID);
+    EXPECT_NE(result, ERR_OK);
+    
+    // Test valid setting
+    result = g_osAccount->SetDefaultActivatedOsAccount(Constants::DEFAULT_DISPLAY_ID, MAIN_ACCOUNT_ID);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountGetDefaultActivatedOsAccountTest001
+ * @tc.desc: Test GetDefaultActivatedOsAccount functionality
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountGetDefaultActivatedOsAccountTest001, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountGetDefaultActivatedOsAccountTest001");
+    
+    // Test invalid displayId
+    int32_t id = -1;
+    ErrCode result = g_osAccount->GetDefaultActivatedOsAccount(Constants::INVALID_DISPLAY_ID, id);
+    EXPECT_NE(result, ERR_OK);
+    
+    // Test valid getting
+    result = g_osAccount->GetDefaultActivatedOsAccount(Constants::DEFAULT_DISPLAY_ID, id);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_GE(id, 0);
+}
+
+/**
+ * @tc.name: OsAccountGetForegroundOsAccountLocalIdTest001
+ * @tc.desc: Test GetForegroundOsAccountLocalId functionality
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountGetForegroundOsAccountLocalIdTest001, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountGetForegroundOsAccountLocalIdTest001");
+    
+    // Test invalid displayId
+    int32_t localId = -1;
+    ErrCode result = g_osAccount->GetForegroundOsAccountLocalId(Constants::INVALID_DISPLAY_ID, localId);
+    EXPECT_NE(result, ERR_OK);
+    
+    // Test valid getting
+    result = g_osAccount->GetForegroundOsAccountLocalId(Constants::DEFAULT_DISPLAY_ID, localId);
+    // May succeed or fail depending on system state
+    if (result == ERR_OK) {
+        EXPECT_GE(localId, 0);
+    }
+}
+
+/**
+ * @tc.name: OsAccountGetForegroundOsAccountDisplayIdTest001
+ * @tc.desc: Test GetForegroundOsAccountDisplayId functionality
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountGetForegroundOsAccountDisplayIdTest001, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountGetForegroundOsAccountDisplayIdTest001");
+    
+    // Test invalid localId
+    uint64_t displayId = 0;
+    ErrCode result = g_osAccount->GetForegroundOsAccountDisplayId(-1, displayId);
+    EXPECT_NE(result, ERR_OK);
+    
+    // Test valid getting with main account
+    result = g_osAccount->GetForegroundOsAccountDisplayId(MAIN_ACCOUNT_ID, displayId);
+    // May succeed or fail depending on whether account is foreground
+    if (result == ERR_OK) {
+        EXPECT_GE(displayId, 0);
+    }
+}
+
+/**
+ * @tc.name: OsAccountIsOsAccountForegroundTest001
+ * @tc.desc: Test IsOsAccountForeground without parameters
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountIsOsAccountForegroundTest001, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountIsOsAccountForegroundTest001");
+    
+    bool isForeground = false;
+    ErrCode result = g_osAccount->IsOsAccountForeground(isForeground);
+    
+    // Should not fail with this overload
+    EXPECT_EQ(result, ERR_OK);
+    // isForeground can be true or false depending on system state
+}
+
+/**
+ * @tc.name: OsAccountIsOsAccountForegroundTest002
+ * @tc.desc: Test IsOsAccountForeground with localId parameter
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountIsOsAccountForegroundTest002, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountIsOsAccountForegroundTest002");
+    
+    bool isForeground = false;
+    
+    // Test with invalid localId
+    ErrCode result = g_osAccount->IsOsAccountForeground(ILLEGAL_LOCAL_ID, isForeground);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    
+    // Test with invalid localId (less than admin)
+    result = g_osAccount->IsOsAccountForeground(-5, isForeground);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    
+    // Test with valid localId
+    result = g_osAccount->IsOsAccountForeground(MAIN_ACCOUNT_ID, isForeground);
+    EXPECT_EQ(result, ERR_OK);
+    
+    // Test with non-existent account
+    result = g_osAccount->IsOsAccountForeground(NOT_EXSIT_ID, isForeground);
+    EXPECT_NE(result, ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountIsOsAccountForegroundTest003
+ * @tc.desc: Test IsOsAccountForeground with localId and displayId parameters
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountIsOsAccountForegroundTest003, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountIsOsAccountForegroundTest003");
+    
+    bool isForeground = false;
+    
+    // Test with invalid localId
+    ErrCode result = g_osAccount->IsOsAccountForeground(ILLEGAL_LOCAL_ID, Constants::DEFAULT_DISPLAY_ID, isForeground);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    
+    // Test with invalid localId
+    result = g_osAccount->IsOsAccountForeground(-5, Constants::DEFAULT_DISPLAY_ID, isForeground);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    
+    // Test with invalid displayId
+    result = g_osAccount->IsOsAccountForeground(MAIN_ACCOUNT_ID, Constants::INVALID_DISPLAY_ID, isForeground);
+    EXPECT_NE(result, ERR_OK);
+    
+    // Test with very large invalid displayId
+    result = g_osAccount->IsOsAccountForeground(MAIN_ACCOUNT_ID, 99999, isForeground);
+    EXPECT_NE(result, ERR_OK);
+    
+    // Test with valid parameters
+    result = g_osAccount->IsOsAccountForeground(MAIN_ACCOUNT_ID, Constants::DEFAULT_DISPLAY_ID, isForeground);
+    EXPECT_EQ(result, ERR_OK);
+    
+    // Test with non-existent account but valid displayId
+    result = g_osAccount->IsOsAccountForeground(NOT_EXSIT_ID, Constants::DEFAULT_DISPLAY_ID, isForeground);
+    EXPECT_NE(result, ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountGetForegroundOsAccountLocalIdTest002
+ * @tc.desc: Test GetForegroundOsAccountLocalId without displayId parameter
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountGetForegroundOsAccountLocalIdTest002, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountGetForegroundOsAccountLocalIdTest002");
+    
+    int32_t localId = -1;
+    ErrCode result = g_osAccount->GetForegroundOsAccountLocalId(localId);
+    
+    // Should succeed or fail depending on system state and proxy availability
+    if (result == ERR_OK) {
+        EXPECT_GE(localId, Constants::ADMIN_LOCAL_ID);
+        ACCOUNT_LOGI("Retrieved foreground account localId: %{public}d", localId);
+    } else {
+        ACCOUNT_LOGI("GetForegroundOsAccountLocalId failed with code: %{public}d", result);
+        // Verify it's a reasonable error code
+        EXPECT_TRUE(result == ERR_ACCOUNT_COMMON_GET_PROXY ||
+                   result == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR ||
+                   result != ERR_OK);
+    }
+    
+    // Test multiple calls for consistency
+    int32_t localId2 = -1;
+    ErrCode result2 = g_osAccount->GetForegroundOsAccountLocalId(localId2);
+    
+    // If both succeed, they should return the same value
+    if (result == ERR_OK && result2 == ERR_OK) {
+        EXPECT_EQ(localId, localId2);
+    }
 }

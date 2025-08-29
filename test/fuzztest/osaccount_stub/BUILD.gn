@@ -24,6 +24,7 @@ group("fuzztest") {
     "deactivateosaccountstub_fuzzer:DeactivateOsAccountStubFuzzTest",
     "dumpstatestub_fuzzer:DumpStateStubFuzzTest",
     "getforegroundosaccountlocalidstub_fuzzer:GetForegroundOsAccountLocalIdStubFuzzTest",
+    "getforegroundosaccountdisplayidstub_fuzzer:GetForegroundOsAccountDisplayIdStubFuzzTest",
     "getosaccountallconstraintsstub_fuzzer:GetOsAccountAllConstraintsStubFuzzTest",
     "getosaccountlocalidbyserialnumberstub_fuzzer:GetOsAccountLocalIdBySerialNumberStubFuzzTest",
     "getosaccountnamebyidstub_fuzzer:GetOsAccountNameByIdStubFuzzTest",
