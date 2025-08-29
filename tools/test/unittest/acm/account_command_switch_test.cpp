@@ -279,3 +279,75 @@ HWTEST_F(AccountCommandSwitchTest, Acm_Command_Switch_1000, TestSize.Level1)
     EXPECT_EQ(cmd.ExecCommand(), STRING_SWITCH_OS_ACCOUNT_OK + "\n");
     OsAccount::GetInstance().RemoveOsAccount(osAccountInfo.GetLocalId());
 }
+
+/**
+ * @tc.name: Acm_Command_Switch_1100
+ * @tc.desc: Verify the "acm switch -i <id> -D <displayId>" command.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountCommandSwitchTest, Acm_Command_Switch_1100, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    // create an os account
+    EXPECT_EQ(ERR_OK, OsAccount::GetInstance().CreateOsAccount(TOOL_NAME, OsAccountType::NORMAL, osAccountInfo));
+
+    std::string userId = std::to_string(osAccountInfo.GetLocalId());
+    char *argv[] = {
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>(cmd_.c_str()),
+        const_cast<char *>("-i"),
+        const_cast<char *>(userId.c_str()),
+        const_cast<char *>("-d"),
+        const_cast<char *>("0"),
+        const_cast<char *>(""),
+    };
+    int argc = sizeof(argv) / sizeof(argv[0]) - 1;
+
+    AccountCommand cmd(argc, argv);
+    EXPECT_EQ(cmd.ExecCommand(), STRING_SWITCH_OS_ACCOUNT_OK + "\n");
+    OsAccount::GetInstance().RemoveOsAccount(osAccountInfo.GetLocalId());
+}
+
+/**
+ * @tc.name: Acm_Command_Switch_1200
+ * @tc.desc: Verify the "acm switch -d" command without argument.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountCommandSwitchTest, Acm_Command_Switch_1200, TestSize.Level1)
+{
+    char *argv[] = {
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>(cmd_.c_str()),
+        const_cast<char *>("-d"),
+        const_cast<char *>(""),
+    };
+    int argc = sizeof(argv) / sizeof(argv[0]) - 1;
+
+    AccountCommand cmd(argc, argv);
+    EXPECT_EQ(cmd.ExecCommand(), HELP_MSG_OPTION_REQUIRES_AN_ARGUMENT + "\n" + HELP_MSG_SWITCH);
+}
+
+/**
+ * @tc.name: Acm_Command_Switch_1300
+ * @tc.desc: Verify the "acm switch -i <id> -d <invalid-displayId>" command.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountCommandSwitchTest, Acm_Command_Switch_1300, TestSize.Level1)
+{
+    char *argv[] = {
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>(cmd_.c_str()),
+        const_cast<char *>("-i"),
+        const_cast<char *>("100"),
+        const_cast<char *>("-d"),
+        const_cast<char *>("-1"),
+        const_cast<char *>(""),
+    };
+    int argc = sizeof(argv) / sizeof(argv[0]) - 1;
+
+    AccountCommand cmd(argc, argv);
+    EXPECT_EQ(cmd.ExecCommand(), "fail: invalid display name.\n" + HELP_MSG_SWITCH);
+}

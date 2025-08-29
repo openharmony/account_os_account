@@ -66,7 +66,8 @@ const std::string HELP_MSG_SWITCH =
     "usage: acm switch <options>\n"
     "options list:\n"
     "  -h, --help                                       list available commands\n"
-    "  -i <local-account-id>                            switch a local account with an id\n";
+    "  -i <local-account-id> [-d <display-id>]          switch a local account with id and\n"
+    "                                                   display id(default 0)\n";
 
 const std::string HELP_MSG_DEACTIVATE =
     "usage: acm deactivate <options>\n"
@@ -133,6 +134,8 @@ private:
     ErrCode RunAsSetCommandMissingOptionArgument(void);
     ErrCode RunAsSetCommandExistentOptionArgument(
         const int &option, int &id, std::vector<std::string> &constraints, bool &enable);
+    ErrCode RunAsSwitchCommandMissingOptionArgument(void);
+    ErrCode RunAsSwitchCommandExistentOptionArgument(const int &option, int &id, unsigned long &displayId);
     ErrCode RunAsCommonCommandExistentOptionArgument(const int &option, int &id);
     ErrCode RunAsCommonCommandMissingOptionArgument(const std::string &command);
     ErrCode RunCommandError(const std::string &command);
@@ -141,7 +144,8 @@ private:
     void RunCommand(int &counter, ErrCode &result, bool &enable, int &id, std::vector<std::string> &constraints);
     ErrCode ParseCreateCommandOpt(std::string &name,
         std::string &shortName, OsAccountType &osAccountType, CreateOsAccountOptions &options);
-
+    ErrCode ParseSwitchCommandOpt(int &id, unsigned long &displayId);
+    
     ErrCode AnalyzeTypeArgument(OsAccountType &type);
     ErrCode AnalyzeListArgument(std::vector<std::string> &list);
     ErrCode AnalyzeLocalIdArgument(int &id);

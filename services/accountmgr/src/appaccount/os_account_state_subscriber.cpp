@@ -29,7 +29,8 @@ OsAccountStateSubscriber::OsAccountStateSubscriber()
 
 ErrCode OsAccountStateSubscriber::OnStateChanged(const OsAccountStateParcel &parcel)
 {
-    ACCOUNT_LOGI("State: %{public}d, fromId: %{public}d, toId: %{public}d", parcel.state, parcel.fromId, parcel.toId);
+    ACCOUNT_LOGI("State: %{public}d, fromId: %{public}d, toId: %{public}d",
+        parcel.state, parcel.fromId, parcel.toId);
     if (parcel.state == OsAccountState::STOPPING) {
         ACCOUNT_LOGI("Account stopping id=%{public}d", parcel.fromId);
         AppAccountControlManager::GetInstance().OnUserStopping(parcel.fromId);

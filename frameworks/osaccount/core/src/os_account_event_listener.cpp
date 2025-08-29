@@ -81,11 +81,17 @@ static void NotifySubscriber(std::shared_ptr<OsAccountSubscriber> &subscriber, O
 
 ErrCode OsAccountEventListener::OnStateChanged(const OsAccountStateParcel &parcel)
 {
-    ACCOUNT_LOGI("State: %{public}d, fromId: %{public}d, toId: %{public}d, callback_isnull: %{public}d",
-        parcel.state, parcel.fromId, parcel.toId, static_cast<int>(parcel.callback == nullptr));
+    const unsigned long long displayId = parcel.displayId.has_value()
+        ? static_cast<unsigned long long>(parcel.displayId.value())
+        : static_cast<unsigned long long>(-1ULL);
+    ACCOUNT_LOGI(
+        "State: %{public}d, fromId: %{public}d, toId: %{public}d, "
+        "callback_isnull: %{public}d, displayId: %{public}llu",
+        parcel.state, parcel.fromId, parcel.toId, static_cast<int>(parcel.callback == nullptr), displayId);
     OsAccountStateData data;
     data.fromId = parcel.fromId;
     data.toId = parcel.toId;
+    data.displayId = parcel.displayId;
     data.state = parcel.state;
     auto cvPtr = std::make_shared<std::condition_variable>();
     auto pendingCounter = std::make_shared<std::atomic<int>>(0);

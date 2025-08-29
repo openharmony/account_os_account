@@ -31,6 +31,7 @@ const struct option LONG_OPTIONS[] = {
     {"name", required_argument, nullptr, 'n'},
     {"type", required_argument, nullptr, 't'},
     {"id", required_argument, nullptr, 'i'},
+    {"displayId", optional_argument, nullptr, 'd'},
     {"shortName", optional_argument, nullptr, 's'},
     {"disallowedPreinstalledBundles", optional_argument, nullptr, 'd'},
     {"allowedPreinstalledBundles", optional_argument, nullptr, 'p'},
@@ -48,6 +49,7 @@ static const char SET_COMMAND[] = "set";
 static const char CREATE_COMMAND[] = "create";
 static constexpr int MIN_ARGUMENT_NUMBER = 2;
 static constexpr int MAX_ARGUMENT_NUMBER = 4096;
+static constexpr int DECIMAL_BASE = 10;
 }  // namespace
 
 AccountCommand::AccountCommand(int argc, char *argv[])
@@ -363,19 +365,45 @@ void AccountCommand::ParseCommandOpt(const std::string &command, ErrCode &result
     }
 }
 
+ErrCode AccountCommand::ParseSwitchCommandOpt(int &id, unsigned long &displayId)
+{
+    int counter = 0;
+    ErrCode result = ERR_OK;
+    while (true) {
+        counter++;
+
+        int option = getopt_long(argc_, argv_, SHORT_OPTIONS, LONG_OPTIONS, nullptr);
+        ACCOUNT_LOGD("option: %{public}d, optopt:%{public}d, optind:%{public}d", option, optopt, optind);
+
+        if (option == -1) {
+            if (counter == 1) {
+                result = RunCommandError(SWITCH_COMMAND);
+            }
+            break;
+        }
+
+        if (option == '?') {
+            result = RunAsSwitchCommandMissingOptionArgument();
+            break;
+        }
+
+        result = RunAsSwitchCommandExistentOptionArgument(option, id, displayId);
+    }
+    return result;
+}
+
 ErrCode AccountCommand::RunAsSwitchCommand(void)
 {
-    ErrCode result = ERR_OK;
     int id = -1;
-    ParseCommandOpt(SWITCH_COMMAND, result, id);
-
+    unsigned long displayId = 0;
+    ErrCode result = ParseSwitchCommandOpt(id, displayId);
     if (result != ERR_OK) {
         resultReceiver_.append(HELP_MSG_SWITCH);
     } else {
         /* switch */
 
         // switch an os account
-        result = OsAccount::GetInstance().ActivateOsAccount(id);
+        result = OsAccount::GetInstance().ActivateOsAccount(id, displayId);
         if (result == ERR_OK) {
             resultReceiver_ = STRING_SWITCH_OS_ACCOUNT_OK + "\n";
         } else {
@@ -451,6 +479,45 @@ ErrCode AccountCommand::RunAsCreateCommandMissingOptionArgument(void)
             std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
 
             ACCOUNT_LOGD("'acm create' with an unknown option.");
+
+            resultReceiver_.append(unknownOptionMsg);
+            result = ERR_INVALID_VALUE;
+            break;
+        }
+    }
+
+    ACCOUNT_LOGD("end, result = %{public}d", result);
+    return result;
+}
+
+ErrCode AccountCommand::RunAsSwitchCommandMissingOptionArgument(void)
+{
+    ErrCode result = ERR_OK;
+
+    switch (optopt) {
+        case 'i': {
+            // 'acm switch -i <id>' with no argument: acm switch -i
+            ACCOUNT_LOGD("'acm switch -i' with no argument.");
+
+            resultReceiver_.append(HELP_MSG_OPTION_REQUIRES_AN_ARGUMENT + "\n");
+            result = ERR_INVALID_VALUE;
+            break;
+        }
+        case 'd': {
+            // 'acm switch -d <displayId>' with no argument: acm switch -d
+            ACCOUNT_LOGD("'acm switch -d' with no argument.");
+
+            resultReceiver_.append(HELP_MSG_OPTION_REQUIRES_AN_ARGUMENT + "\n");
+            result = ERR_INVALID_VALUE;
+            break;
+        }
+        default: {
+            // 'acm switch' with an unknown option: acm switch -x
+            // 'acm switch' with an unknown option: acm switch --xxx
+            std::string unknownOption = "";
+            std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
+
+            ACCOUNT_LOGD("'acm switch' with an unknown option.");
 
             resultReceiver_.append(unknownOptionMsg);
             result = ERR_INVALID_VALUE;
@@ -673,6 +740,64 @@ ErrCode AccountCommand::RunAsCommonCommandExistentOptionArgument(const int &opti
         }
     }
     ACCOUNT_LOGD("end, result = %{public}d, id = %{public}d", result, id);
+    return result;
+}
+
+ErrCode AccountCommand::RunAsSwitchCommandExistentOptionArgument(const int &option, int &id, unsigned long &displayId)
+{
+    ErrCode result = ERR_OK;
+
+    switch (option) {
+        case 'h': {
+            // 'acm switch -h'
+            // 'acm switch --help'
+            result = ERR_INVALID_VALUE;
+            break;
+        }
+        case 'i': {
+            // 'acm switch -i <id>'
+            char* endptr;
+            long id_tmp = std::strtol(optarg, &endptr, DECIMAL_BASE);
+            if (*endptr != '\0') {
+                resultReceiver_.append(HELP_MSG_INVALID_ID_ARGUMENT + "\n");
+                result = ERR_INVALID_VALUE;
+                break;
+            }
+            if (id_tmp > INT_MAX || id_tmp < INT_MIN) {
+                resultReceiver_.append(HELP_MSG_INVALID_ID_ARGUMENT + "\n");
+                result = ERR_INVALID_VALUE;
+                break;
+            }
+            id = static_cast<int>(id_tmp);
+            break;
+        }
+        case 'd': {
+            // 'acm switch -d <displayId>'
+            // disallow negative displayId
+            if (optarg == nullptr) {
+                result = ERR_INVALID_VALUE;
+                resultReceiver_.append("fail: invalid display name.\n");
+                break;
+            }
+            if (optarg[0] == '-') {
+                result = ERR_INVALID_VALUE;
+                resultReceiver_.append("fail: invalid display name.\n");
+                break;
+            }
+            char *endptr;
+            displayId = std::strtoull(optarg, &endptr, DECIMAL_BASE);
+            if (*endptr != '\0') {
+                result = ERR_INVALID_VALUE;
+                resultReceiver_.append("fail: invalid display name.\n");
+            }
+            break;
+        }
+        default: {
+            break;
+        }
+    }
+
+    ACCOUNT_LOGD("end, result = %{public}d", result);
     return result;
 }
 

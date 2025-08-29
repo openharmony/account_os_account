@@ -97,6 +97,7 @@ public:
     ErrCode SetOsAccountProfilePhoto(int32_t id, const StringRawData& stringRawData) override;
 
     ErrCode ActivateOsAccount(int32_t id) override;
+    ErrCode ActivateOsAccount(int32_t id, const uint64_t displayId) override;
     ErrCode DeactivateOsAccount(int32_t id) override;
     ErrCode DeactivateAllOsAccounts() override;
 
@@ -144,14 +145,19 @@ public:
         const sptr<IRemoteObject> &eventListener) override;
 
     ErrCode SetDefaultActivatedOsAccount(int32_t id) override;
+    ErrCode SetDefaultActivatedOsAccount(const uint64_t displayId, int32_t id) override;
     ErrCode GetDefaultActivatedOsAccount(int32_t &id) override;
+    ErrCode GetDefaultActivatedOsAccount(const uint64_t displayId, int32_t &id) override;
+    ErrCode GetAllDefaultActivatedOsAccounts(std::map<uint64_t, int32_t> &activatedIds);
     ErrCode GetOsAccountShortName(std::string &shortName) override;
     ErrCode GetOsAccountName(std::string &name) override;
     ErrCode GetOsAccountNameById(int32_t id, std::string &name) override;
     ErrCode GetOsAccountShortNameById(int32_t id, std::string &shortName) override;
 
     ErrCode IsOsAccountForeground(int32_t localId, const uint64_t displayId, bool &isForeground) override;
+    ErrCode GetForegroundOsAccountLocalId(int32_t &localId) override;
     ErrCode GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId) override;
+    ErrCode GetForegroundOsAccountDisplayId(const int32_t localId, uint64_t &displayId) override;
     ErrCode GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts) override;
     ErrCode GetBackgroundOsAccountLocalIds(std::vector<int32_t> &localIds) override;
     ErrCode SetOsAccountToBeRemoved(int32_t localId, bool toBeRemoved) override;
@@ -174,12 +180,13 @@ private:
     bool PermissionCheck(const std::string& permissionName, const std::string& constraintName);
     bool CheckCreateOsAccountWhiteList();
     ErrCode ValidateShortName(const std::string &shortName);
-    void GetCurrentLocalId(int32_t &localId);
+    void GetCallerLocalIdAndDisplayId(int32_t &localId, uint64_t &displayId);
     ErrCode GetOsAccountShortNameCommon(const int32_t id, std::string &shortName);
     ErrCode ValidateAccountCreateParamAndPermission(const std::string &localName, const OsAccountType &type);
     void ConstraintPublish(const std::vector<std::string> &oldConstraints,
         const std::vector<std::string> &constraints, int32_t localId, bool enable);
     ErrCode CheckLocalIdRestricted(int32_t localId);
+    ErrCode ActivateOsAccountCommon(const int32_t id, const uint64_t displayId);
 
 private:
     IInnerOsAccountManager &innerManager_;

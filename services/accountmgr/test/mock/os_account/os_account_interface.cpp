@@ -18,7 +18,7 @@
 namespace OHOS {
 namespace AccountSA {
 
-ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo,
+ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo, const uint64_t displayId,
     const OsAccountStartCallbackFunc &callbackFunc, bool isAppRecovery)
 {
     ACCOUNT_LOGI("mock OsAccountInterface SendToAMSAccountStart start");
@@ -79,7 +79,7 @@ void OsAccountInterface::SendToCESAccountDelete(OsAccountInfo &osAccountInfo)
     ACCOUNT_LOGI("mock OsAccountInterface SendToCESAccountDelete start");
 }
 
-void OsAccountInterface::SendToCESAccountSwitched(int newId, int oldId)
+void OsAccountInterface::SendToCESAccountSwitched(int newId, int oldId, uint64_t displayId)
 {
     ACCOUNT_LOGI("mock OsAccountInterface SendToCESAccountSwitched start");
 }

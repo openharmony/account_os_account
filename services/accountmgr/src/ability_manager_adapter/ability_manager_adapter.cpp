@@ -20,6 +20,7 @@
 #include "account_log_wrapper.h"
 #include "account_hisysevent_adapter.h"
 #include "iservice_registry.h"
+#include "os_account_constants.h"
 #include "system_ability_definition.h"
 #ifdef ENABLE_DEACTIVATE_OS_ACCOUNTS
 #include "app_mgr_interface.h"
@@ -119,8 +120,8 @@ void AbilityManagerAdapter::Connect()
     proxy_ = remoteObj;
 }
 
-ErrCode AbilityManagerAdapter::StartUser
-    (int32_t accountId, const sptr<AAFwk::IUserCallback> &callback, bool isAppRecovery)
+ErrCode AbilityManagerAdapter::StartUser(
+    int32_t accountId, const uint64_t displayId, const sptr<AAFwk::IUserCallback> &callback, bool isAppRecovery)
 {
     auto abms = GetAbilityManager();
     if (abms == nullptr) {
@@ -140,6 +141,11 @@ ErrCode AbilityManagerAdapter::StartUser
 
     if (!data.WriteInt32(accountId)) {
         ACCOUNT_LOGE("StartUser:WriteInt32 fail.");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!data.WriteUint64(displayId)) {
+        ACCOUNT_LOGE("StartUser:WriteUint64 fail.");
         return ERR_INVALID_VALUE;
     }
 

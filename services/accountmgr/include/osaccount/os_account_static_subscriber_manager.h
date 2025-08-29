@@ -33,7 +33,7 @@ struct StaticSubscriber {
 class OsAccountStaticSubscriberManager {
 public:
     static OsAccountStaticSubscriberManager& GetInstance();
-    ErrCode Publish(int32_t fromId, OsAccountState state, int32_t toId);
+    ErrCode Publish(int32_t fromId, OsAccountState state, int32_t toId, uint64_t displayId = 0);
 
 private:
     OsAccountStaticSubscriberManager();

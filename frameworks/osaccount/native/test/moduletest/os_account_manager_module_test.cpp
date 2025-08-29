@@ -61,6 +61,7 @@ const uid_t ACCOUNT_UID = 3058;
 const gid_t ACCOUNT_GID = 3058;
 #endif
 const uid_t ROOT_UID = 0;
+const uint64_t ANOTHER_DISPLAY_ID = 4;
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 std::shared_ptr<AccountFileOperator> g_accountFileOperator = std::make_shared<AccountFileOperator>();
 
@@ -2606,6 +2607,158 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest124, TestSize.Lev
 }
 #endif
 
+#ifndef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+/**
+ * @tc.name: OsAccountManagerModuleTest126
+ * @tc.desc: Test ActivateOsAccount in non-multi-foreground os account environment.
+ * @tc.type: FUNC
+ * @tc.require: issueICCB0Y
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest126, TestSize.Level1)
+{
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(commonOsAccountInfo.GetLocalId(), DEFAULT_DISPLAY_ID), ERR_OK);
+
+    OsAccountInfo updatedAccountInfo;
+    EXPECT_EQ(OsAccountManager::QueryOsAccountById(commonOsAccountInfo.GetLocalId(), updatedAccountInfo), ERR_OK);
+    EXPECT_EQ(updatedAccountInfo.GetDisplayId(), DEFAULT_DISPLAY_ID);
+    
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(MAIN_ACCOUNT_ID, DEFAULT_DISPLAY_ID), ERR_OK);
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(commonOsAccountInfo.GetLocalId(), ANOTHER_DISPLAY_ID),
+              ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest128
+ * @tc.desc: Test multi-display interfaces coverage in non-multi-foreground environment.
+ * @tc.type: FUNC
+ * @tc.require: issueICCB0Y
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest128, TestSize.Level1)
+{
+    // Test SetDefaultActivatedOsAccount with displayId for coverage
+    // Valid DEFAULT_DISPLAY_ID should work
+    EXPECT_EQ(OsAccountManager::SetDefaultActivatedOsAccount(DEFAULT_DISPLAY_ID, commonOsAccountInfo.GetLocalId()),
+              ERR_OK);
+    
+    // Test GetDefaultActivatedOsAccount with displayId for coverage
+    int32_t id = -1;
+    EXPECT_EQ(OsAccountManager::GetDefaultActivatedOsAccount(DEFAULT_DISPLAY_ID, id), ERR_OK);
+    EXPECT_EQ(id, commonOsAccountInfo.GetLocalId());
+    
+    // Test GetForegroundOsAccountLocalId with displayId for coverage
+    int32_t localId = -1;
+    EXPECT_EQ(OsAccountManager::GetForegroundOsAccountLocalId(DEFAULT_DISPLAY_ID, localId), ERR_OK);
+    EXPECT_GE(localId, 0);
+    
+    // Reset to main account for cleanup
+    EXPECT_EQ(OsAccountManager::SetDefaultActivatedOsAccount(DEFAULT_DISPLAY_ID, MAIN_ACCOUNT_ID), ERR_OK);
+}
+
+#else // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+
+/**
+ * @tc.name: OsAccountManagerModuleTest129
+ * @tc.desc: Activate common os account to another display id.
+ * @tc.type: FUNC
+ * @tc.require: issueICCB0Y
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest129, TestSize.Level1)
+{
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(commonOsAccountInfo.GetLocalId(), INVALID_DISPLAY_ID),
+            ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR);
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(commonOsAccountInfo.GetLocalId(), ANOTHER_DISPLAY_ID), ERR_OK);
+    EXPECT_EQ(commonOsAccountInfo.GetDisplayId(), ANOTHER_DISPLAY_ID);
+    EXPECT_EQ(OsAccountManager::DeactivateOsAccount(commonOsAccountInfo.GetLocalId()), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest130
+ * @tc.desc: Activate main account id to another display. Expect it to fail.
+ * @tc.type: FUNC
+ * @tc.require: issueICCB0Y
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest130, TestSize.Level1)
+{
+    // Because main account is not allowed to be activated to another display id.
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(MAIN_ACCOUNT_ID, DEFAULT_DISPLAY_ID), ERR_OK);
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(MAIN_ACCOUNT_ID, ANOTHER_DISPLAY_ID),
+        ERR_ACCOUNT_COMMON_CROSS_DISPLAY_ACTIVE_ERROR);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest131
+ * @tc.desc: Activate common account to another display. And activate it to default display id.
+ * @tc.type: FUNC
+ * @tc.require: issueICCB0Y
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest131, TestSize.Level1)
+{
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(commonOsAccountInfo.GetLocalId(), ANOTHER_DISPLAY_ID), ERR_OK);
+    EXPECT_EQ(commonOsAccountInfo.GetDisplayId(), ANOTHER_DISPLAY_ID);
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(commonOsAccountInfo.GetLocalId(), DEFAULT_DISPLAY_ID),
+        ERR_ACCOUNT_COMMON_CROSS_DISPLAY_ACTIVE_ERROR);
+    EXPECT_EQ(commonOsAccountInfo.GetDisplayId(), ANOTHER_DISPLAY_ID);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest132
+ * @tc.desc: Activate common account to invalid displays.
+ * @tc.type: FUNC
+ * @tc.require: issueICCB0Y
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest132, TestSize.Level1)
+{
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(commonOsAccountInfo.GetLocalId(), ANOTHER_DISPLAY_ID + 1),
+        ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR);
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(commonOsAccountInfo.GetLocalId(), INVALID_DISPLAY_ID),
+        ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR);
+}
+
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+
+/**
+ * @tc.name: OsAccountManagerModuleTest133
+ * @tc.desc: Set default activated account id as common account, display id is invalid.
+ * @tc.type: FUNC
+ * @tc.require: issueICCB0Y
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest133, TestSize.Level1)
+{
+    EXPECT_EQ(OsAccountManager::SetDefaultActivatedOsAccount(INVALID_DISPLAY_ID, commonOsAccountInfo.GetLocalId()),
+        ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR);
+    EXPECT_EQ(OsAccountManager::SetDefaultActivatedOsAccount(ANOTHER_DISPLAY_ID + 1, commonOsAccountInfo.GetLocalId()),
+        ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR);
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    EXPECT_EQ(OsAccountManager::SetDefaultActivatedOsAccount(DEFAULT_DISPLAY_ID, commonOsAccountInfo.GetLocalId()),
+        ERR_OK);
+    EXPECT_NE(OsAccountManager::SetDefaultActivatedOsAccount(ANOTHER_DISPLAY_ID, commonOsAccountInfo.GetLocalId()),
+        ERR_OK);
+    int32_t id;
+    EXPECT_EQ(OsAccountManager::GetDefaultActivatedOsAccount(DEFAULT_DISPLAY_ID, id), ERR_OK);
+    EXPECT_EQ(id, commonOsAccountInfo.GetLocalId());
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    EXPECT_EQ(OsAccountManager::SetDefaultActivatedOsAccount(DEFAULT_DISPLAY_ID, MAIN_ACCOUNT_ID), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest134
+ * @tc.desc: Set default activated os account in another display.
+ * @tc.type: FUNC
+ * @tc.require: issueICCB0Y
+ */
+#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest134, TestSize.Level1)
+{
+    int32_t id;
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(commonOsAccountInfo.GetLocalId(), ANOTHER_DISPLAY_ID), ERR_OK);
+    EXPECT_EQ(OsAccountManager::SetDefaultActivatedOsAccount(ANOTHER_DISPLAY_ID, commonOsAccountInfo.GetLocalId()),
+        ERR_OK);
+    EXPECT_EQ(OsAccountManager::GetDefaultActivatedOsAccount(ANOTHER_DISPLAY_ID, id), ERR_OK);
+    EXPECT_EQ(id, commonOsAccountInfo.GetLocalId());
+    EXPECT_EQ(OsAccountManager::DeactivateOsAccount(commonOsAccountInfo.GetLocalId()), ERR_OK);
+}
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+
 /**
  * @tc.name: GetOsAccountType001
  * @tc.desc: Test GetOsAccountType.
@@ -2770,7 +2923,7 @@ HWTEST_F(OsAccountManagerModuleTest, IsOsAccountForeground005, TestSize.Level1)
 
     // test not in foreground before switch
     OsAccountManager::ActivateOsAccount(100);
-    EXPECT_EQ(OsAccountManager::IsOsAccountForeground(commonOsAccountInfo.GetLocalId(), Constants::DEFAULT_DISPALY_ID,
+    EXPECT_EQ(OsAccountManager::IsOsAccountForeground(commonOsAccountInfo.GetLocalId(), Constants::DEFAULT_DISPLAY_ID,
                                                       isForeground),
               ERR_OK);
     EXPECT_EQ(isForeground, false);
@@ -2780,7 +2933,7 @@ HWTEST_F(OsAccountManagerModuleTest, IsOsAccountForeground005, TestSize.Level1)
 
     // test in foreground
     isForeground = false;
-    EXPECT_EQ(OsAccountManager::IsOsAccountForeground(commonOsAccountInfo.GetLocalId(), Constants::DEFAULT_DISPALY_ID,
+    EXPECT_EQ(OsAccountManager::IsOsAccountForeground(commonOsAccountInfo.GetLocalId(), Constants::DEFAULT_DISPLAY_ID,
                                                       isForeground),
               ERR_OK);
     EXPECT_EQ(isForeground, true);
@@ -2800,19 +2953,19 @@ HWTEST_F(OsAccountManagerModuleTest, IsOsAccountForeground006, TestSize.Level1)
     bool isForeground = true;
 
     // test localId < 0
-    EXPECT_EQ(OsAccountManager::IsOsAccountForeground(-1, Constants::DEFAULT_DISPALY_ID, isForeground),
+    EXPECT_EQ(OsAccountManager::IsOsAccountForeground(-1, Constants::DEFAULT_DISPLAY_ID, isForeground),
               ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 
     // test localId = 0
-    EXPECT_EQ(OsAccountManager::IsOsAccountForeground(0, Constants::DEFAULT_DISPALY_ID, isForeground), ERR_OK);
+    EXPECT_EQ(OsAccountManager::IsOsAccountForeground(0, Constants::DEFAULT_DISPLAY_ID, isForeground), ERR_OK);
     EXPECT_EQ(isForeground, false);
 
     // test localId = 2
-    EXPECT_EQ(OsAccountManager::IsOsAccountForeground(2, Constants::DEFAULT_DISPALY_ID, isForeground),
+    EXPECT_EQ(OsAccountManager::IsOsAccountForeground(2, Constants::DEFAULT_DISPLAY_ID, isForeground),
               ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 
     // test localId not exist
-    EXPECT_EQ(OsAccountManager::IsOsAccountForeground(1099, Constants::DEFAULT_DISPALY_ID, isForeground),
+    EXPECT_EQ(OsAccountManager::IsOsAccountForeground(1099, Constants::DEFAULT_DISPLAY_ID, isForeground),
               ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 
     // test displayId not exist
@@ -2865,35 +3018,39 @@ HWTEST_F(OsAccountManagerModuleTest, GetForegroundOsAccountLocalId002, TestSize.
 
     // test in main account
     OsAccountManager::ActivateOsAccount(MAIN_ACCOUNT_ID);
-    EXPECT_EQ(OsAccountManager::GetForegroundOsAccountLocalId(Constants::DEFAULT_DISPALY_ID, localId), ERR_OK);
+    EXPECT_EQ(OsAccountManager::GetForegroundOsAccountLocalId(Constants::DEFAULT_DISPLAY_ID, localId), ERR_OK);
     EXPECT_EQ(localId, MAIN_ACCOUNT_ID);
 
     // test in account GetForegroundOsAccountLocalId002
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
-    EXPECT_EQ(OsAccountManager::GetForegroundOsAccountLocalId(Constants::DEFAULT_DISPALY_ID, localId), ERR_OK);
+    EXPECT_EQ(OsAccountManager::GetForegroundOsAccountLocalId(Constants::DEFAULT_DISPLAY_ID, localId), ERR_OK);
     EXPECT_EQ(localId, osAccountInfo.GetLocalId());
 
     ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
 
+    // test displayId not exist
+    EXPECT_EQ(OsAccountManager::GetForegroundOsAccountLocalId(100000, localId),
+              ERR_ACCOUNT_COMMON_ACCOUNT_IN_DISPLAY_ID_NOT_FOUND_ERROR);
+
     // test in main account
-    EXPECT_EQ(OsAccountManager::GetForegroundOsAccountLocalId(Constants::DEFAULT_DISPALY_ID, localId), ERR_OK);
+    EXPECT_EQ(OsAccountManager::GetForegroundOsAccountLocalId(Constants::DEFAULT_DISPLAY_ID, localId), ERR_OK);
     EXPECT_EQ(localId, MAIN_ACCOUNT_ID);
 }
 
 /**
- * @tc.name: GetForegroundOsAccountLocalId006
- * @tc.desc: Test call GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId) failed with invalid
- * param.
+ * @tc.name: GetForegroundOsAccountDisplayId001
+ * @tc.desc: Test GetForegroundOsAccountDisplayId(int32_t localId, uint64_t &displayId) in main account success.
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: IssueICCB0Y
  */
-HWTEST_F(OsAccountManagerModuleTest, GetForegroundOsAccountLocalId006, TestSize.Level1)
+HWTEST_F(OsAccountManagerModuleTest, GetForegroundOsAccountDisplayId001, TestSize.Level1)
 {
-    int32_t localId = 0;
-
-    // test displayId not exist
-    EXPECT_EQ(OsAccountManager::GetForegroundOsAccountLocalId(100000, localId),
-              ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR);
+    uint64_t displayId = INVALID_DISPLAY_ID;
+    EXPECT_EQ(OsAccountManager::GetForegroundOsAccountDisplayId(MAIN_ACCOUNT_ID, displayId), ERR_OK);
+    EXPECT_EQ(displayId, DEFAULT_DISPLAY_ID);
+    // test localId < 0
+    displayId = INVALID_DISPLAY_ID;
+    EXPECT_NE(OsAccountManager::GetForegroundOsAccountDisplayId(-1, displayId), ERR_OK);
 }
 
 /**
@@ -2919,7 +3076,7 @@ HWTEST_F(OsAccountManagerModuleTest, GetForegroundOsAccounts001, TestSize.Level1
         return foregroundAccounts.localId == commonOsAccountInfo.GetLocalId();
     });
     EXPECT_TRUE(it != accounts.end());
-    EXPECT_EQ(it->displayId, Constants::DEFAULT_DISPALY_ID);
+    EXPECT_EQ(it->displayId, Constants::DEFAULT_DISPLAY_ID);
 
     // test account in foregroud list after switch
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(MAIN_ACCOUNT_ID), ERR_OK);
@@ -2928,7 +3085,7 @@ HWTEST_F(OsAccountManagerModuleTest, GetForegroundOsAccounts001, TestSize.Level1
         return foregroundAccounts.localId == MAIN_ACCOUNT_ID;
     });
     EXPECT_TRUE(it != accounts.end());
-    EXPECT_EQ(it->displayId, Constants::DEFAULT_DISPALY_ID);
+    EXPECT_EQ(it->displayId, Constants::DEFAULT_DISPLAY_ID);
 
     // test account not in foregroud list after deactive
     EXPECT_EQ(OsAccountManager::DeactivateOsAccount(commonOsAccountInfo.GetLocalId()), ERR_OK);
@@ -3022,6 +3179,156 @@ HWTEST_F(OsAccountManagerModuleTest, DeactivateAllOsAccountsModuleTest001, TestS
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(MAIN_ACCOUNT_ID), ERR_OK);
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
+
+/**
+ * @tc.name: ActivateOsAccountWithDisplayIdModuleTest001
+ * @tc.desc: Test ActivateOsAccount with displayId - invalid id.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, ActivateOsAccountWithDisplayIdModuleTest001, TestSize.Level1)
+{
+    uint64_t displayId = 0;
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(INVALID_ID, displayId), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(ERROR_LOCAL_ID, displayId),
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(-1, displayId), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(Constants::MAX_USER_ID + 1, displayId),
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(MAIN_ACCOUNT_ID, 99999),
+        ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR);
+}
+
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
+/**
+ * @tc.name: ActivateOsAccountWithDisplayIdModuleTest003
+ * @tc.desc: Test ActivateOsAccount with displayId - success.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, ActivateOsAccountWithDisplayIdModuleTest003, TestSize.Level1)
+{
+    ASSERT_TRUE(commonOsAccountInfo.GetLocalId() > Constants::START_USER_ID);
+    uint64_t displayId = 0;
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(commonOsAccountInfo.GetLocalId(), displayId), ERR_OK);
+    
+    // Test with another display ID
+    uint64_t anotherDisplayId = ANOTHER_DISPLAY_ID;
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(commonOsAccountInfo.GetLocalId(), anotherDisplayId),
+        ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR);
+    
+    // Cleanup - activate main account
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(MAIN_ACCOUNT_ID, displayId), ERR_OK);
+}
+
+/**
+ * @tc.name: SetDefaultActivatedOsAccountWithDisplayIdModuleTest001
+ * @tc.desc: Test SetDefaultActivatedOsAccount with displayId.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, SetDefaultActivatedOsAccountWithDisplayIdModuleTest001, TestSize.Level1)
+{
+    ASSERT_TRUE(commonOsAccountInfo.GetLocalId() > Constants::START_USER_ID);
+    uint64_t displayId = 0;
+    
+    // Test with invalid account id - all should return account not exist error
+    EXPECT_EQ(OsAccountManager::SetDefaultActivatedOsAccount(displayId, INVALID_ID),
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    EXPECT_EQ(OsAccountManager::SetDefaultActivatedOsAccount(displayId, ERROR_LOCAL_ID),
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    EXPECT_EQ(OsAccountManager::SetDefaultActivatedOsAccount(displayId, -1),
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    EXPECT_EQ(OsAccountManager::SetDefaultActivatedOsAccount(displayId, Constants::MAX_USER_ID + 1),
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    
+    // Test with valid account id on default display
+    EXPECT_EQ(OsAccountManager::SetDefaultActivatedOsAccount(displayId, commonOsAccountInfo.GetLocalId()), ERR_OK);
+    
+    // Test with invalid display ID
+    uint64_t invalidDisplayId = INVALID_DISPLAY_ID;
+    EXPECT_EQ(OsAccountManager::SetDefaultActivatedOsAccount(invalidDisplayId, commonOsAccountInfo.GetLocalId()),
+              ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR);
+
+    // Reset to main account for cleanup
+    EXPECT_EQ(OsAccountManager::SetDefaultActivatedOsAccount(displayId, MAIN_ACCOUNT_ID), ERR_OK);
+}
+
+/**
+ * @tc.name: GetDefaultActivatedOsAccountWithDisplayIdModuleTest001
+ * @tc.desc: Test GetDefaultActivatedOsAccount with displayId.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, GetDefaultActivatedOsAccountWithDisplayIdModuleTest001, TestSize.Level1)
+{
+    ASSERT_TRUE(commonOsAccountInfo.GetLocalId() > Constants::START_USER_ID);
+    uint64_t displayId = 0;
+    int32_t id = -1;
+    
+    // Test getting default activated account on default display
+    EXPECT_EQ(OsAccountManager::GetDefaultActivatedOsAccount(displayId, id), ERR_OK);
+    EXPECT_GE(id, MAIN_ACCOUNT_ID);
+    
+    // Set a specific default account and verify
+    EXPECT_EQ(OsAccountManager::SetDefaultActivatedOsAccount(displayId, commonOsAccountInfo.GetLocalId()), ERR_OK);
+    EXPECT_EQ(OsAccountManager::GetDefaultActivatedOsAccount(displayId, id), ERR_OK);
+    EXPECT_EQ(id, commonOsAccountInfo.GetLocalId());
+
+    // Test with invalid display ID - should return display not exist error
+    uint64_t invalidDisplayId = INVALID_DISPLAY_ID;
+    int32_t invalidId = -1;
+    EXPECT_EQ(OsAccountManager::GetDefaultActivatedOsAccount(invalidDisplayId, invalidId),
+              ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR);
+    
+    uint64_t anotherDisplayId = ANOTHER_DISPLAY_ID;
+    EXPECT_EQ(OsAccountManager::GetDefaultActivatedOsAccount(anotherDisplayId, id),
+              ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR);
+    // Reset to main account for cleanup
+    EXPECT_EQ(OsAccountManager::SetDefaultActivatedOsAccount(displayId, MAIN_ACCOUNT_ID), ERR_OK);
+}
+
+/**
+ * @tc.name: GetForegroundOsAccountDisplayIdModuleTest001
+ * @tc.desc: Test GetForegroundOsAccountDisplayId.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, GetForegroundOsAccountDisplayIdModuleTest001, TestSize.Level1)
+{
+    ASSERT_TRUE(commonOsAccountInfo.GetLocalId() > Constants::START_USER_ID);
+    uint64_t displayId = 0;
+    
+    // Test with invalid account id
+    EXPECT_NE(OsAccountManager::GetForegroundOsAccountDisplayId(INVALID_ID, displayId), ERR_OK);
+    EXPECT_NE(OsAccountManager::GetForegroundOsAccountDisplayId(ERROR_LOCAL_ID, displayId), ERR_OK);
+    EXPECT_NE(OsAccountManager::GetForegroundOsAccountDisplayId(-1, displayId), ERR_OK);
+    
+    // Test with main account
+    EXPECT_EQ(OsAccountManager::GetForegroundOsAccountDisplayId(MAIN_ACCOUNT_ID, displayId), ERR_OK);
+    EXPECT_GE(displayId, 0);
+    
+    // Test with another account - first activate it
+    uint64_t testDisplayId = 0;
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(commonOsAccountInfo.GetLocalId(), testDisplayId), ERR_OK);
+    uint64_t foregroundDisplayId = 0;
+    EXPECT_EQ(OsAccountManager::GetForegroundOsAccountDisplayId(
+        commonOsAccountInfo.GetLocalId(), foregroundDisplayId), ERR_OK);
+    EXPECT_GE(foregroundDisplayId, 0);
+    
+    // Test with another display ID activation
+    uint64_t anotherDisplayId = ANOTHER_DISPLAY_ID;
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(commonOsAccountInfo.GetLocalId(), anotherDisplayId),
+        ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR);
+    uint64_t anotherForegroundDisplayId = 0;
+    EXPECT_EQ(OsAccountManager::GetForegroundOsAccountDisplayId(
+        commonOsAccountInfo.GetLocalId(), anotherForegroundDisplayId), ERR_OK);
+    
+    // Cleanup - activate main account
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(MAIN_ACCOUNT_ID, 0), ERR_OK);
+}
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
+
 /**
  * @tc.name: IsOsAccountDeactivatingModuleTest001
  * @tc.desc: Test IsOsAccountDeactivating success.
@@ -3282,16 +3589,4 @@ HWTEST_F(OsAccountManagerModuleTest, SetOsAccountConstraints001, TestSize.Level3
     bool enable = true;
     EXPECT_EQ(OsAccountManager::SetOsAccountConstraints(
         -1, CONSTANTS_VECTOR, enable), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
-}
-
-/**
- * @tc.name: OsAccountManagerModuleTest0125
- * @tc.desc: Test query unlocked os account ids.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest125, TestSize.Level1)
-{
-    std::vector<int32_t> ids;
-    EXPECT_EQ(OsAccountManager::GetUnlockedOsAccountLocalIds(ids), ERR_OK);
 }

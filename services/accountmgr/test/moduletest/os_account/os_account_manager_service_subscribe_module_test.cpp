@@ -270,5 +270,69 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     result = OsAccount::GetInstance().RemoveOsAccount(id);
     EXPECT_EQ(result, ERR_OK);
 }
+
+/**
+ * @tc.name: OsAccountManagerServiceSubscribeModuleTest_0003
+ * @tc.desc: Subscribe os accounts switching with displayId testing
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFH
+ */
+HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubscribeModuleTest_0003, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerServiceSubscribeModuleTest_0003");
+    OsAccountSubscribeInfo osAccountSubscribeInfo;
+    osAccountSubscribeInfo.SetOsAccountSubscribeType(OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING);
+    osAccountSubscribeInfo.SetName("subscribeSwitching");
+
+    // Test OnStateChanged with displayId - main displayId test
+    auto osAccountEventListener = std::make_shared<OsAccountEventListener>();
+    auto subscriberTestPtr = std::make_shared<OsAccountSubscriberTest>(osAccountSubscribeInfo);
+    osAccountEventListener->InsertRecord(subscriberTestPtr);
+    
+    // Test OnStateChanged with empty displayId
+    OsAccountStateParcel stateParcel1;
+    stateParcel1.state = SWITCHING;
+    stateParcel1.fromId = 100;
+    stateParcel1.toId = 101;
+    osAccountEventListener->OnStateChanged(stateParcel1);
+    
+    // Test OnStateChanged with valid displayId
+    OsAccountStateParcel stateParcel2;
+    stateParcel2.state = SWITCHING;
+    stateParcel2.fromId = 200;
+    stateParcel2.toId = 201;
+    stateParcel2.displayId = std::make_optional<uint64_t>(Constants::DEFAULT_DISPLAY_ID);
+    osAccountEventListener->OnStateChanged(stateParcel2);
+
+    // Test real account switching with displayId
+    OsAccountInfo osAccountInfo;
+    ErrCode result = OsAccount::GetInstance().CreateOsAccount(
+        "OsAccountManagerServiceSubscribeModuleTest_0003", OsAccountType::GUEST, osAccountInfo);
+    EXPECT_EQ(result, ERR_OK);
+
+    subscriberTestPtr->id_ = osAccountInfo.GetLocalId();
+    result = OsAccount::GetInstance().SubscribeOsAccount(subscriberTestPtr);
+    EXPECT_EQ(result, ERR_OK);
+    
+    // Test ActivateOsAccount with displayId parameter
+    g_mtx.lock();
+    result = OsAccount::GetInstance().ActivateOsAccount(osAccountInfo.GetLocalId(), Constants::DEFAULT_DISPLAY_ID);
+    EXPECT_EQ(result, ERR_OK);
+    
+    // Wait for subscription event
+    struct tm startTime = {0}, doingTime = {0};
+    EXPECT_EQ(GetSystemCurrentTime(&startTime), true);
+    while (!g_mtx.try_lock()) {
+        EXPECT_EQ(GetSystemCurrentTime(&doingTime), true);
+        if (GetSecondsBetween(startTime, doingTime) >= 5) {
+            break;
+        }
+    }
+    g_mtx.unlock();
+    
+    // Clean up
+    OsAccount::GetInstance().UnsubscribeOsAccount(subscriberTestPtr);
+    OsAccount::GetInstance().RemoveOsAccount(osAccountInfo.GetLocalId());
+}
 }
 }

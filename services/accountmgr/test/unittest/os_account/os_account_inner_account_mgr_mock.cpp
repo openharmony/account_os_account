@@ -2152,7 +2152,7 @@ HWTEST_F(OsAccountInnerAccmgrMockTest, OsAccountInnerAccmgrMockTest044, TestSize
 
     EXPECT_CALL(*ptr, GetOsAccountInfoById(::testing::_, ::testing::_))
         .WillRepeatedly(DoAll(SetArgReferee<1>(account1), testing::Return(0)));
-    EXPECT_CALL(*ptr, SetDefaultActivatedOsAccount(::testing::_))
+    EXPECT_CALL(*ptr, SetDefaultActivatedOsAccount(::testing::_, ::testing::_))
         .WillRepeatedly(testing::Return(-1));
     int ret = innerMgrService_->SetDefaultActivatedOsAccount(TEST_USER_ID108);
     EXPECT_EQ(ret, -1);

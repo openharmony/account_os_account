@@ -110,7 +110,7 @@ bool ParseCallbackAndId(napi_env env, napi_callback_info cbInfo, napi_ref &callb
     return true;
 }
 
-bool ParseParaDeactivateOA(napi_env env, napi_callback_info cbInfo, ActivateOAAsyncContext *asyncContext)
+bool ParseParaDeactivateOA(napi_env env, napi_callback_info cbInfo, DeactivateOAAsyncContext *asyncContext)
 {
     size_t argc = ARGS_SIZE_ONE;
     napi_value argv[ARGS_SIZE_ONE] = {0};
@@ -133,14 +133,14 @@ bool ParseParaDeactivateOA(napi_env env, napi_callback_info cbInfo, ActivateOAAs
 
 void DeactivateOAExecuteCB(napi_env env, void *data)
 {
-    ActivateOAAsyncContext *asyncContext = reinterpret_cast<ActivateOAAsyncContext *>(data);
+    DeactivateOAAsyncContext *asyncContext = reinterpret_cast<DeactivateOAAsyncContext *>(data);
     asyncContext->errCode = OsAccountManager::DeactivateOsAccount(asyncContext->id);
 }
 
 void DeactivateOACompletedCB(napi_env env, napi_status status, void *data)
 {
-    ActivateOAAsyncContext *asyncContext = reinterpret_cast<ActivateOAAsyncContext *>(data);
-    std::unique_ptr<ActivateOAAsyncContext> asyncContextPtr{asyncContext};
+    DeactivateOAAsyncContext *asyncContext = reinterpret_cast<DeactivateOAAsyncContext *>(data);
+    std::unique_ptr<DeactivateOAAsyncContext> asyncContextPtr{asyncContext};
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
     if (asyncContext->errCode == ERR_OK) {
@@ -475,13 +475,63 @@ void SetOAConsCallbackCompletedCB(napi_env env, napi_status status, void *data)
 
 bool ParseParaActiveOA(napi_env env, napi_callback_info cbInfo, ActivateOAAsyncContext *asyncContext)
 {
-    return ParseCallbackAndId(env, cbInfo, asyncContext->callbackRef, asyncContext->id, asyncContext->throwErr);
+    size_t argc = ARGS_SIZE_TWO;
+    napi_value argv[ARGS_SIZE_TWO] = {0};
+    NAPI_CALL_BASE(env, napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr), false);
+
+    // argv[0]: id
+    if (!GetIntProperty(env, argv[PARAMZERO], asyncContext->id)) {
+        ACCOUNT_LOGE("Get id failed");
+        std::string errMsg = "Parameter error. The type of \"localId\" must be number";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+
+    // argv[1]: callback or displayId
+    napi_valuetype valueType = napi_undefined;
+    NAPI_CALL_BASE(env, napi_typeof(env, argv[PARAMONE], &valueType), false);
+    
+    if ((valueType == napi_undefined) || (valueType == napi_null)) {
+        return true;
+    } else if (valueType == napi_function) {
+        NAPI_CALL_BASE(env, napi_create_reference(env, argv[PARAMONE], 1, &asyncContext->callbackRef), false);
+        return true;
+    } else if (valueType == napi_number) {
+        // argv[1]: displayId
+        int64_t displayId;
+        if (!GetLongIntProperty(env, argv[PARAMONE], displayId)) {
+            ACCOUNT_LOGE("Get displayId failed");
+            std::string errMsg = "Parameter error. Failed to get displayId value";
+            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+            return false;
+        }
+        
+        if (displayId < 0) {
+            ACCOUNT_LOGE("displayId is negative: %{public}lld", static_cast<long long>(displayId));
+            std::string errMsg = "Parameter error. The value of \"displayId\" must be a non-negative number";
+            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+            return false;
+        }
+
+        asyncContext->displayId = static_cast<uint64_t>(displayId);
+        return true;
+    } else {
+        ACCOUNT_LOGE("The second parameter type is not supported: %{public}d", valueType);
+        std::string errMsg = "Parameter error. The second param must be function (callback) or number (displayId)";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+    return true;
 }
 
 void ActivateOAExecuteCB(napi_env env, void *data)
 {
     ActivateOAAsyncContext *activateOACB = reinterpret_cast<ActivateOAAsyncContext *>(data);
-    activateOACB->errCode = OsAccountManager::ActivateOsAccount(activateOACB->id);
+    if (activateOACB->displayId.has_value()) {
+        activateOACB->errCode = OsAccountManager::ActivateOsAccount(activateOACB->id, activateOACB->displayId.value());
+    } else {
+        activateOACB->errCode = OsAccountManager::ActivateOsAccount(activateOACB->id);
+    }
     ACCOUNT_LOGD("errcode is %{public}d", activateOACB->errCode);
     activateOACB->status = (activateOACB->errCode == 0) ? napi_ok : napi_generic_failure;
 }
@@ -1010,10 +1060,45 @@ void QueryCreateOACallbackCompletedCB(napi_env env, napi_status status, void *da
     delete asyncContext;
 }
 
+bool ParseParaGetForegroundOALocalId(napi_env env, napi_callback_info cbInfo,
+    GetForegroundOALocalIdAsyncContext *asyncContext)
+{
+    size_t argc = ARGS_SIZE_ONE;
+    napi_value argv[ARGS_SIZE_ONE] = {0};
+    NAPI_CALL_BASE(env, napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr), false);
+
+    if (argc == ARGS_SIZE_ZERO) {
+        asyncContext->displayId = std::nullopt;
+        return true;
+    }
+
+    // argv[0]: displayId
+    int64_t displayId;
+    if (!GetLongIntProperty(env, argv[PARAMZERO], displayId)) {
+        ACCOUNT_LOGE("Get displayId failed");
+        std::string errMsg = "Parameter error. The type of \"displayId\" must be number";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+    if (displayId < 0) {
+        ACCOUNT_LOGE("displayId is negative: %{public}lld", static_cast<long long>(displayId));
+        std::string errMsg = "Parameter error. The value of \"displayId\" must be a non-negative number";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+    asyncContext->displayId = static_cast<uint64_t>(displayId);
+    return true;
+}
+
 void GetForegroundOALocalIdExecuteCB(napi_env env, void *data)
 {
     GetForegroundOALocalIdAsyncContext *asyncContext = reinterpret_cast<GetForegroundOALocalIdAsyncContext *>(data);
-    asyncContext->errCode = OsAccountManager::GetForegroundOsAccountLocalId(asyncContext->id);
+    if (asyncContext->displayId.has_value()) {
+        asyncContext->errCode = OsAccountManager::GetForegroundOsAccountLocalId(
+            asyncContext->displayId.value(), asyncContext->id);
+    } else {
+        asyncContext->errCode = OsAccountManager::GetForegroundOsAccountLocalId(asyncContext->id);
+    }
 }
 
 void GetForegroundOALocalIdCallbackCompletedCB(napi_env env, napi_status status, void *data)
@@ -1025,6 +1110,53 @@ void GetForegroundOALocalIdCallbackCompletedCB(napi_env env, napi_status status,
     if (asyncContext->errCode == ERR_OK) {
         NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &errJs));
         NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, asyncContext->id, &dataJs));
+    } else {
+        errJs = GenerateBusinessError(env, asyncContext->errCode);
+        NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &dataJs));
+    }
+    ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
+}
+
+bool ParseParaGetForegroundOADisplayId(napi_env env, napi_callback_info cbInfo,
+    GetForegroundOADisplayIdAsyncContext *asyncContext)
+{
+    size_t argc = ARGS_SIZE_ONE;
+    napi_value argv[ARGS_SIZE_ONE] = {0};
+    NAPI_CALL_BASE(env, napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr), false);
+    
+    if (argc == ARGS_SIZE_ZERO) {
+        ACCOUNT_LOGE("GetForegroundOADisplayId failed, no parameters");
+        std::string errMsg = "Parameter error. The number of parameters should be 1.";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+
+    // argv[0]: id
+    if (!GetIntProperty(env, argv[PARAMZERO], asyncContext->id)) {
+        ACCOUNT_LOGE("Get localId failed");
+        std::string errMsg = "Parameter error. The type of \"localId\" must be number";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+    return true;
+}
+
+void GetForegroundOADisplayIdExecuteCB(napi_env env, void *data)
+{
+    GetForegroundOADisplayIdAsyncContext *asyncContext = reinterpret_cast<GetForegroundOADisplayIdAsyncContext *>(data);
+    asyncContext->errCode = OsAccountManager::GetForegroundOsAccountDisplayId(
+        asyncContext->id, asyncContext->displayId);
+}
+
+void GetForegroundOADisplayIdCallbackCompletedCB(napi_env env, napi_status status, void *data)
+{
+    GetForegroundOADisplayIdAsyncContext *asyncContext = reinterpret_cast<GetForegroundOADisplayIdAsyncContext *>(data);
+    std::unique_ptr<GetForegroundOADisplayIdAsyncContext> asyncContextPtr{asyncContext};
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    if (asyncContext->errCode == ERR_OK) {
+        NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &errJs));
+        NAPI_CALL_RETURN_VOID(env, napi_create_bigint_uint64(env, asyncContext->displayId, &dataJs));
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode);
         NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &dataJs));
@@ -1861,6 +1993,33 @@ static bool ParseParamForSwitchSubscriber(const napi_env &env, const std::string
     return true;
 }
 
+static bool ParseParamForCreateOrRemoveSubscriber(const napi_env &env, const std::string &type,
+    SubscribeCBInfo *asyncContext, size_t argc, napi_value *argv)
+{
+    if (argc < ARGS_SIZE_TWO) {
+        ACCOUNT_LOGE("The number of parameters should be at least 2");
+        std::string errMsg = "Parameter error. The number of parameters should be at least 2";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+    if (argc >= ARGS_SIZE_TWO) {
+        if (!GetCallbackProperty(env, argv[PARAMONE], asyncContext->callbackRef, 1)) {
+            ACCOUNT_LOGE("Get callbackRef failed");
+            std::string errMsg = "Parameter error. The type of \"callback\" must be function";
+            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+            return false;
+        }
+    }
+    // argv[0] type: 'created' | 'removed'
+    if (type == "created") {
+        asyncContext->osSubscribeType = OS_ACCOUNT_SUBSCRIBE_TYPE::CREATED;
+    } else {
+        asyncContext->osSubscribeType = OS_ACCOUNT_SUBSCRIBE_TYPE::REMOVED;
+    }
+
+    return true;
+}
+
 bool ParseParaToSubscriber(const napi_env &env, napi_callback_info cbInfo, SubscribeCBInfo *asyncContext,
                            napi_value *thisVar)
 {
@@ -1886,8 +2045,12 @@ bool ParseParaToSubscriber(const napi_env &env, napi_callback_info cbInfo, Subsc
     if (type == "switched" || type == "switching") {
         return ParseParamForSwitchSubscriber(env, type, asyncContext, argc, argv);
     }
+    if (type == "created" || type == "removed") {
+        return ParseParamForCreateOrRemoveSubscriber(env, type, asyncContext, argc, argv);
+    }
     ACCOUNT_LOGE("Get type fail, %{public}s is invalid.", type.c_str());
-    std::string errMsg = "Parameter error. The content of \"type\" must be \"activate|activating|switched|switching\"";
+    std::string errMsg = "Parameter error. The content of \"type\" must be "
+                         "\"activate|activating|switched|switching|created|removed\"";
     AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, errMsg, asyncContext->throwErr);
     return false;
 }
@@ -1962,6 +2125,33 @@ static bool ParseParamForSwitchUnsubscriber(const napi_env &env, const std::stri
     return true;
 }
 
+static bool ParseParamForCreateOrRemoveUnsubscriber(const napi_env &env, const std::string &type,
+    UnsubscribeCBInfo *asyncContext, size_t argc, napi_value *argv)
+{
+    if (argc < ARGS_SIZE_ONE) {
+        ACCOUNT_LOGE("The arg number less than 1 characters.");
+        std::string errMsg = "The arg number must be at least 1 characters";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+    if (argc >= ARGS_SIZE_TWO) {
+        if (!GetCallbackProperty(env, argv[PARAMONE], asyncContext->callbackRef, 1)) {
+            ACCOUNT_LOGE("Get callbackRef failed.");
+            std::string errMsg = "The type of arg " + std::to_string(PARAMONE + 1) + " must be function";
+            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+            return false;
+        }
+    }
+    // argv[0] type: 'created' | 'removed'
+    if (type == "created") {
+        asyncContext->osSubscribeType = OS_ACCOUNT_SUBSCRIBE_TYPE::CREATED;
+    } else {
+        asyncContext->osSubscribeType = OS_ACCOUNT_SUBSCRIBE_TYPE::REMOVED;
+    }
+
+    return true;
+}
+
 bool ParseParaToUnsubscriber(const napi_env &env, napi_callback_info cbInfo, UnsubscribeCBInfo *asyncContext,
                              napi_value *thisVar)
 {
@@ -1987,8 +2177,12 @@ bool ParseParaToUnsubscriber(const napi_env &env, napi_callback_info cbInfo, Uns
     if (type == "switched" || type == "switching") {
         return ParseParamForSwitchUnsubscriber(env, type, asyncContext, argc, argv);
     }
+    if (type == "created" || type == "removed") {
+        return ParseParamForCreateOrRemoveUnsubscriber(env, type, asyncContext, argc, argv);
+    }
     ACCOUNT_LOGE("Get type fail, %{public}s is invalid.", type.c_str());
-    std::string errMsg = "Parameter error. The content of \"type\" must be \"activate|activating|switched|switching\"";
+    std::string errMsg = "Parameter error. The content of \"type\" must be "
+                         "\"activate|activating|switched|switching|created|removed\"";
     AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, errMsg, asyncContext->throwErr);
     return false;
 }

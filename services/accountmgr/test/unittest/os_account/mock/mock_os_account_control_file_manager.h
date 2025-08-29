@@ -57,6 +57,7 @@ public:
     MOCK_METHOD2(SetPhotoById, ErrCode(const int id, const std::string &photo));
     MOCK_METHOD1(UpdateDeviceOwnerId, ErrCode(const int32_t deviceOwnerId));
     MOCK_METHOD1(SetDefaultActivatedOsAccount, ErrCode(const int32_t initialStartupId));
+    MOCK_METHOD2(SetDefaultActivatedOsAccount, ErrCode(const uint64_t displayId, const int32_t initialStartupId));
     MOCK_METHOD3(UpdateGlobalOAConstraints, ErrCode(const std::string& idStr,
         const std::vector<std::string>& ConstraintStr, bool isAdd));
     MOCK_METHOD1(SetNextLocalId, ErrCode(const int32_t &nextLocalId));
@@ -81,6 +82,8 @@ public:
         const std::string& targetIdStr, const std::vector<std::string>& ConstraintStr, bool isAdd) { return ERR_OK; }
     ErrCode GetDeviceOwnerId(int32_t &deviceOwnerId) { return ERR_OK; }
     ErrCode GetDefaultActivatedOsAccount(int32_t &id) { return ERR_OK; }
+    ErrCode GetDefaultActivatedOsAccount(const uint64_t displayId, int32_t &id) { return ERR_OK; }
+    ErrCode GetAllDefaultActivatedOsAccounts(std::map<uint64_t, int32_t> &ids) { return ERR_OK; }
     ErrCode UpdateAccountIndex(const OsAccountInfo &osAccountInfo, const bool isDelete) { return ERR_OK; }
     ErrCode SetDomainBoundFlag(
         const int32_t localId, const bool isBoundCompleted, const DomainAccountInfo domainInfo = {}) { return ERR_OK; }

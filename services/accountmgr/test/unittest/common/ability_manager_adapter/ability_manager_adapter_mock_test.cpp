@@ -29,6 +29,7 @@ using namespace OHOS::AAFwk;
 
 namespace {
     const std::int32_t MAIN_ACCOUNT_ID = 100;
+    const std::uint64_t MAIN_DISPLAY_ID = 0;
     const std::int32_t USER_ID = 100;
     const std::string TEST_SESSIONID = "testsessionId";
 }
@@ -103,7 +104,7 @@ HWTEST_F(AbilityManagerAdapterMockTest, AbilityManagerAdapterMockTest002, TestSi
 HWTEST_F(AbilityManagerAdapterMockTest, AbilityManagerAdapterMockTest003, TestSize.Level3)
 {
     EXPECT_EQ(ERR_ACCOUNT_COMMON_CONNECT_ABILITY_MANAGER_SERVICE_ERROR,
-        AbilityManagerAdapter::GetInstance()->StartUser(MAIN_ACCOUNT_ID, nullptr));
+        AbilityManagerAdapter::GetInstance()->StartUser(MAIN_ACCOUNT_ID, MAIN_DISPLAY_ID, nullptr));
 }
 
 /**

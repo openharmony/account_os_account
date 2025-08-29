@@ -72,6 +72,10 @@ ohos_moduletest("inner_os_account_manager_test") {
   ]
 
   cflags_cc = []
+  if (os_account_enable_multiple_foreground_os_accounts) {
+    cflags_cc += [ "-DENABLE_MULTI_FOREGROUND_OS_ACCOUNTS" ]
+    external_deps += [ "window_manager:libdm_lite" ]
+  }
   if (os_account_enable_account_1) {
     cflags_cc += [ "-DENABLE_U1_ACCOUNT" ]
   }
@@ -204,6 +208,11 @@ ohos_moduletest("os_account_manager_service_module_test") {
 
   part_name = "os_account"
   cflags_cc = [ "-DACCOUNT_TEST" ]
+
+  if (os_account_enable_multiple_foreground_os_accounts) {
+    cflags_cc += [ "-DENABLE_MULTI_FOREGROUND_OS_ACCOUNTS" ]
+    external_deps += [ "window_manager:libdm_lite" ]
+  }
 
   if (use_libfuzzer) {
     cflags_cc += [ "-DFUZZ_TEST" ]

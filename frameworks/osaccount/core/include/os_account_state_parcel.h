@@ -16,6 +16,7 @@
 #ifndef OS_ACCOUNT_FRAMEWORKS_OS_ACCOUNT_INCLUDE_OS_ACCOUNT_STATE_PARCEL_H
 #define OS_ACCOUNT_FRAMEWORKS_OS_ACCOUNT_INCLUDE_OS_ACCOUNT_STATE_PARCEL_H
 
+#include <optional>
 #include "iremote_object.h"
 #include "os_account_subscribe_info.h"
 #include "parcel.h"
@@ -26,6 +27,7 @@ struct OsAccountStateParcel : public Parcelable {
     OsAccountState state = OsAccountState::INVALID_TYPE;
     int32_t fromId = -1;
     int32_t toId = -1;
+    std::optional<uint64_t> displayId = std::nullopt;
     sptr<IRemoteObject> callback = nullptr;
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
