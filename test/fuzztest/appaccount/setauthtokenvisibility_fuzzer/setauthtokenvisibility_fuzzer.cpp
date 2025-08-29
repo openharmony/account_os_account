@@ -23,9 +23,6 @@
 
 using namespace std;
 using namespace OHOS::AccountSA;
-
-const int CONSTANTS_NUMBER_TWO = 2;
-
 namespace OHOS {
     bool SetAuthTokenVisibilityFuzzTest(const uint8_t* data, size_t size)
     {
@@ -35,7 +32,7 @@ namespace OHOS {
             std::string testName(fuzzData.GenerateString());
             std::string testAuthType(fuzzData.GenerateString());
             std::string testBundleName(fuzzData.GenerateString());
-            bool isVisible = ((size % CONSTANTS_NUMBER_TWO) == 0);
+            bool isVisible = fuzzData.GetData<bool>();
             result = AppAccountManager::SetAuthTokenVisibility(testName, testAuthType, testBundleName, isVisible);
         }
         return result;

@@ -84,9 +84,9 @@ namespace OHOS {
             FuzzData fuzzData(data, size);
             std::string testValue(fuzzData.GenerateString());
             SelectAccountsOptions options;
-            options.hasAccounts = (size % CONSTANTS_NUMBER_TWO) == 0 ? true : false;
-            options.hasOwners = (size % CONSTANTS_NUMBER_TWO) == 0 ? true : false;
-            options.hasLabels = (size % CONSTANTS_NUMBER_TWO) == 0 ? true : false;
+            options.hasAccounts = fuzzData.GetData<bool>();
+            options.hasOwners = fuzzData.GetData<bool>();
+            options.hasLabels = fuzzData.GetData<bool>();
             options.allowedOwners.emplace_back(testValue);
             options.requiredLabels.emplace_back(testValue);
             sptr<IAppAccountAuthenticatorCallback> callback = nullptr;
