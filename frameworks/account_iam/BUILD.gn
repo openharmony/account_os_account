@@ -118,6 +118,10 @@ ohos_shared_library("account_iam_innerkits") {
     external_deps += [ "user_auth_framework:userauth_client" ]
   }
 
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
+
   innerapi_tags = [ "platformsdk_indirect" ]
   subsystem_name = "account"
   part_name = "os_account"

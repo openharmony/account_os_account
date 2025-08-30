@@ -51,6 +51,7 @@ if (os_account_support_lock_os_account) {
 if (os_account_support_domain_accounts) {
   account_service_sources += [
     "${services_path}/accountmgr/src/domain_account/domain_account_manager_service.cpp",
+    "${services_path}/accountmgr/src/domain_account/domain_account_auth_death_recipient.cpp",
     "${services_path}/accountmgr/src/domain_account/domain_account_plugin_death_recipient.cpp",
     "${services_path}/accountmgr/src/domain_account/domain_has_domain_info_callback.cpp",
     "${services_path}/accountmgr/src/domain_account/domain_hisysevent_utils.cpp",
@@ -116,6 +117,7 @@ if (os_account_support_domain_accounts) {
   account_service_sources_mock += [
     "${services_path}/accountmgr/src/osaccount/os_account_domain_account_callback.cpp",
     "${services_path}/accountmgr/src/domain_account/domain_account_manager_service.cpp",
+    "${services_path}/accountmgr/src/domain_account/domain_account_auth_death_recipient.cpp",
     "${services_path}/accountmgr/src/domain_account/domain_account_plugin_death_recipient.cpp",
     "${services_path}/accountmgr/src/domain_account/domain_has_domain_info_callback.cpp",
     "${services_path}/accountmgr/src/domain_account/domain_hisysevent_utils.cpp",

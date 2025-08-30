@@ -36,6 +36,7 @@
 #ifndef OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_DOMAIN_ACCOUNT_CLIENT_H
 #define OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_DOMAIN_ACCOUNT_CLIENT_H
 
+#include <functional>
 #include <mutex>
 #include "domain_account_callback.h"
 #include "domain_account_plugin.h"
@@ -87,13 +88,28 @@ public:
     /**
      * @brief Authenticates a domain account bound with the specified userId with a credential.
      * @permission ohos.permission.ACCESS_USER_AUTH_INTERNAL
-     * @param domainAccountInfo - Indicates the domain account information.
+     * @param userId - Indicates the local ID of the specified OS account.
      * @param password - Indicates the credential for authentication.
      * @param callback - Indicates the callback for getting the authentication result.
+     * @param contextId - Indicates the context ID for the authentication request.
      * @return error code, see account_error_no.h
      */
     ErrCode AuthUser(int32_t userId, const std::vector<uint8_t> &password,
-        const std::shared_ptr<DomainAccountCallback> &callback);
+        const std::shared_ptr<DomainAccountCallback> &callback, uint64_t &contextId);
+
+    /**
+     * @brief Authenticates a domain account bound with the specified userId with a credential.
+     * @permission ohos.permission.ACCESS_USER_AUTH_INTERNAL
+     * @param userId - Indicates the local ID of the specified OS account.
+     * @param getPasswordHooks - Indicates the hooks function to get password for authentication.
+     * @param callback - Indicates the callback for getting the authentication result.
+     * @param contextId - Indicates the context ID for the authentication request.
+     * @return error code, see account_error_no.h
+     */
+    ErrCode AuthUser(int32_t userId, const std::function<std::vector<uint8_t>()> getPasswordHooks,
+        const std::shared_ptr<DomainAccountCallback> &callback, uint64_t &contextId);
+
+    ErrCode CancelAuth(const uint64_t contextId);
 
     /**
      * @brief Authenticates the domain account bound to the specified OS account with a popup.
@@ -138,6 +154,8 @@ private:
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
     void RestoreListenerRecords();
     void RestorePlugin();
+    bool GenerateCallbackAndContextId(const std::shared_ptr<DomainAccountCallback> &callback,
+        sptr<DomainAccountCallbackService> &callbackService, uint64_t &contextId);
 #endif // SUPPORT_DOMAIN_ACCOUNTS
     DISALLOW_COPY_AND_MOVE(DomainAccountClient);
 
@@ -155,7 +173,9 @@ private:
     sptr<IDomainAccount> GetDomainAccountProxy();
     void ResetDomainAccountProxy(const wptr<IRemoteObject> &remote);
     ErrCode AuthProxyInit(const std::shared_ptr<DomainAccountCallback> &callback,
-        sptr<DomainAccountCallbackService> &callbackService, sptr<IDomainAccount> &proxy);
+        sptr<DomainAccountCallbackService> &callbackService,
+        sptr<IDomainAccount> &proxy, uint64_t &contextId);
+    void EraseContext(const uint64_t contextId);
 #endif // SUPPORT_DOMAIN_ACCOUNTS
 
 private:
@@ -168,6 +188,9 @@ private:
     sptr<IDomainAccountPlugin> pluginService_ = nullptr;
     sptr<IDomainAccountCallback> callback_ = nullptr;
     std::shared_ptr<DomainAccountStatusListenerManager> listenerManager_ = nullptr;
+    std::recursive_mutex contextIdMutex_;
+    std::map<uint64_t, sptr<DomainAccountCallbackService>> contextIdMap_;
+    uint32_t contextIdCount_ = 0;
 #endif // SUPPORT_DOMAIN_ACCOUNTS
 };
 }  // namespace AccountSA

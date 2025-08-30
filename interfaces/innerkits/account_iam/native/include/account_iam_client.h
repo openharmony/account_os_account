@@ -153,7 +153,7 @@ public:
      * @param callback - Indicates the callback to get result and acquireInfo.
      * @return a context ID for cancellation.
      */
-    uint64_t Auth(AuthOptions& authOptions, const std::vector<uint8_t> &challenge, AuthType authType,
+    std::vector<uint8_t> Auth(AuthOptions& authOptions, const std::vector<uint8_t> &challenge, AuthType authType,
         AuthTrustLevel authTrustLevel, const std::shared_ptr<IDMCallback> &callback);
 
     /**
@@ -166,7 +166,7 @@ public:
      * @param callback - Indicates the callback to get result and acquireInfo.
      * @return a context ID for cancellation.
      */
-    uint64_t AuthUser(AuthOptions &authOptions, const std::vector<uint8_t> &challenge, AuthType authType,
+    std::vector<uint8_t> AuthUser(AuthOptions &authOptions, const std::vector<uint8_t> &challenge, AuthType authType,
         AuthTrustLevel authTrustLevel, const std::shared_ptr<IDMCallback> &callback);
 
     /**
@@ -175,7 +175,7 @@ public:
      * @param contextID - Indicates the authentication context ID.
      * @return error code, see account_error_no.h
      */
-    int32_t CancelAuth(uint64_t contextId);
+    int32_t CancelAuth(const std::vector<uint8_t> &contextIdByteArray);
 
     /**
      * @brief Checks whether the authentication capability is available.
@@ -288,6 +288,7 @@ public:
 private:
     AccountIAMClient() = default;
     ~AccountIAMClient() = default;
+    uint8_t GetAuthTypeIndex(AuthType authType);
     DISALLOW_COPY_AND_MOVE(AccountIAMClient);
     class AccountIAMDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
