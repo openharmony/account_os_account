@@ -14,6 +14,7 @@
  */
 
 #include <gmock/gmock.h>
+#include <thread>
 #include "accesstoken_kit.h"
 #define private public
 #include "account_iam_client.h"
@@ -49,7 +50,7 @@ const int32_t DEFAULT_API_VERSION = 8;
 const uint32_t INVALID_IPC_CODE = 1000;
 const uint32_t INVALID_TOKEN_ID = 0;
 const int32_t WAIT_TIME = 20;
-const uint64_t TEST_CONTEXT_ID = 122;
+const std::vector<uint8_t> TEST_CONTEXT_ID = {0x01, 0x7A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 const uint64_t TEST_CREDENTIAL_ID = 0;
 const std::vector<uint8_t> TEST_CHALLENGE = {1, 2, 3, 4};
 
@@ -615,9 +616,13 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_AuthUser_0100, TestSize.Level3)
 HWTEST_F(AccountIAMClientTest, AccountIAMClient_AuthUser_0200, TestSize.Level3)
 {
     AuthOptions authOptions;
-    uint64_t ret = AccountIAMClient::GetInstance().AuthUser(
+    std::vector<uint8_t> ret = AccountIAMClient::GetInstance().AuthUser(
         authOptions, TEST_CHALLENGE, AuthType::PIN, AuthTrustLevel::ATL1, nullptr);
-    EXPECT_EQ(ret, 0);
+    uint64_t contextId = 0;
+    for (int32_t i = 1; i < ret.size(); ++i) {
+        contextId = (contextId << 8) | ret[i];
+    }
+    EXPECT_EQ(contextId, 0);
 }
 
 /**
@@ -650,6 +655,12 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_Auth_0100, TestSize.Level3)
 HWTEST_F(AccountIAMClientTest, AccountIAMClient_CancelAuth_0100, TestSize.Level3)
 {
     EXPECT_NE(ERR_OK, AccountIAMClient::GetInstance().CancelAuth(TEST_CONTEXT_ID));
+
+    std::vector<uint8_t> contextId = {};
+    ASSERT_EQ(ERR_IAM_INVALID_CONTEXT_ID, AccountIAMClient::GetInstance().CancelAuth(contextId));
+
+    std::vector<uint8_t> contextIdTest = {0x7A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    ASSERT_EQ(ERR_IAM_INVALID_CONTEXT_ID, AccountIAMClient::GetInstance().CancelAuth(contextIdTest));
 }
 
 #ifdef HAS_PIN_AUTH_PART
@@ -1083,6 +1094,26 @@ HWTEST_F(AccountIAMClientTest, StartDomainAuth001, TestSize.Level3)
     EXPECT_EQ(0, ret);
 }
 
+#ifdef HAS_PIN_AUTH_PART
+class TestAsyncIInputer : public OHOS::AccountSA::IInputer {
+public:
+    void OnGetData(
+        int32_t authSubType, std::vector<uint8_t> challenge, std::shared_ptr<IInputerData> inputerData) override
+    {
+        if (inputerData != nullptr) {
+            auto task = [inputerData, authSubType]() {
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+                inputerData->OnSetData(authSubType, {0, 0, 0, 0, 0, 0});
+            };
+            std::thread thread(task);
+            thread.detach();
+        }
+    }
+
+    virtual ~TestAsyncIInputer() = default;
+};
+#endif
+
 /**
  * @tc.name: StartDomainAuth002
  * @tc.desc: test StartDomainAuth.
@@ -1094,14 +1125,16 @@ HWTEST_F(AccountIAMClientTest, StartDomainAuth002, TestSize.Level3)
     auto callback = std::make_shared<MockIDMCallback>();
     EXPECT_CALL(*callback, OnResult(ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR, _)).Times(Exactly(1));
     auto testCallback = std::make_shared<TestIDMCallback>(callback);
-    std::shared_ptr<IInputer> inputer = std::make_shared<TestIInputer>();
+    std::shared_ptr<IInputer> inputer = std::make_shared<TestAsyncIInputer>();
     AccountIAMClient::GetInstance().domainInputer_ = inputer;
+    
     uint64_t ret = AccountIAMClient::GetInstance().StartDomainAuth(TEST_USER_ID, testCallback);
     std::unique_lock<std::mutex> lock(testCallback->mutex);
     testCallback->cv.wait_for(
         lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
-    EXPECT_EQ(0, ret);
+    EXPECT_NE(0, ret);
     testing::Mock::AllowLeak(testCallback.get());
+    AccountIAMClient::GetInstance().domainInputer_ = nullptr;
 }
 #endif
 #endif // SUPPORT_DOMAIN_ACCOUNTS
@@ -1223,5 +1256,92 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_DelUser_0100, TestSize.Level3)
     }
     AccountIAMClient::GetInstance().UnregisterPINInputer();
 }
+
+/**
+ * @tc.name: AccountIAMClient_GetAuthTypeIndex_0100
+ * @tc.desc: Get auth type index.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetAuthTypeIndex_0100, TestSize.Level3)
+{
+    ASSERT_EQ(static_cast<uint8_t>(AuthTypeIndex::ALL),
+        AccountIAMClient::GetInstance().GetAuthTypeIndex(AuthType::ALL));
+    ASSERT_EQ(
+        static_cast<uint8_t>(AuthTypeIndex::PIN), AccountIAMClient::GetInstance().GetAuthTypeIndex(AuthType::PIN));
+    ASSERT_EQ(
+        static_cast<uint8_t>(AuthTypeIndex::FACE), AccountIAMClient::GetInstance().GetAuthTypeIndex(AuthType::FACE));
+    ASSERT_EQ(static_cast<uint8_t>(AuthTypeIndex::FINGERPRINT),
+        AccountIAMClient::GetInstance().GetAuthTypeIndex(AuthType::FINGERPRINT));
+    ASSERT_EQ(static_cast<uint8_t>(AuthTypeIndex::RECOVERY_KEY),
+        AccountIAMClient::GetInstance().GetAuthTypeIndex(AuthType::RECOVERY_KEY));
+    ASSERT_EQ(static_cast<uint8_t>(AuthTypeIndex::PRIVATE_PIN),
+        AccountIAMClient::GetInstance().GetAuthTypeIndex(AuthType::PRIVATE_PIN));
+    ASSERT_EQ(static_cast<uint8_t>(AuthTypeIndex::TUI_PIN),
+        AccountIAMClient::GetInstance().GetAuthTypeIndex(AuthType::TUI_PIN));
+    ASSERT_EQ(static_cast<uint8_t>(AuthTypeIndex::DOMAIN),
+        AccountIAMClient::GetInstance().GetAuthTypeIndex(static_cast<AuthType>(IAMAuthType::DOMAIN)));
+    ASSERT_EQ(static_cast<uint8_t>(AuthTypeIndex::INVALID),
+        AccountIAMClient::GetInstance().GetAuthTypeIndex(static_cast<AuthType>(0xFF)));
+}
+
+#ifdef HAS_PIN_AUTH_PART
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+
+class TestDomainAuthInputer : public OHOS::AccountSA::IInputer {
+public:
+    virtual ~TestDomainAuthInputer() {}
+    void OnGetData(
+        int32_t authSubType, std::vector<uint8_t> challenge, std::shared_ptr<IInputerData> inputerData) override
+    {
+        std::vector<uint8_t> data = {1, 2, 3, 4, 5, 6, 7, 8};
+        inputerData->OnSetData(authSubType, data);
+    }
+};
+
+class TestDomainAuthCallback : public IDMCallback {
+public:
+    std::mutex mutex;
+    std::condition_variable cv;
+    bool isReady = false;
+    void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override
+    {
+        return;
+    }
+
+    void OnResult(int32_t result, const Attributes &extraInfo) override
+    {
+        std::lock_guard<std::mutex> lock(mutex);
+        isReady = true;
+        cv.notify_one();
+    }
+
+    TestDomainAuthCallback() = default;
+    virtual ~TestDomainAuthCallback() = default;
+};
+
+/**
+ * @tc.name: AccountIAMClient_DomainAuth_0100
+ * @tc.desc: Get auth type index.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_DomainAuth_0100, TestSize.Level1)
+{
+    std::shared_ptr<IInputer> inputer = std::make_shared<TestAsyncIInputer>();
+    ASSERT_EQ(ERR_OK, AccountIAMClient::GetInstance().RegisterDomainInputer(inputer));
+    AuthOptions authOptions;
+    std::shared_ptr<TestDomainAuthCallback> callback = std::make_shared<TestDomainAuthCallback>();
+    auto contextId = AccountIAMClient::GetInstance().AuthUser(
+        authOptions, {}, static_cast<AuthType>(IAMAuthType::DOMAIN), AuthTrustLevel::ATL1, callback);
+    std::unique_lock<std::mutex> lock(callback->mutex);
+    bool isCalled = callback->cv.wait_for(
+        lock, std::chrono::seconds(WAIT_TIME), [callback = callback]() { return callback->isReady; });
+    ASSERT_TRUE(isCalled);
+
+    EXPECT_EQ(ERR_OK, AccountIAMClient::GetInstance().UnregisterInputer(IAMAuthType::DOMAIN));
+}
+#endif // SUPPORT_DOMAIN_ACCOUNTS
+#endif // HAS_PIN_AUTH_PART
 }  // namespace AccountTest
 }  // namespace OHOS

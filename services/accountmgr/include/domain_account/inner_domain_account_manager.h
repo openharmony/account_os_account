@@ -18,6 +18,7 @@
 
 #include <condition_variable>
 #include <mutex>
+#include "domain_account_auth_death_recipient.h"
 #include "domain_account_common.h"
 #include "domain_account_plugin_death_recipient.h"
 #include "domain_account_callback.h"
@@ -31,6 +32,7 @@
 
 namespace OHOS {
 namespace AccountSA {
+class InnerDomainAuthCallback;
 class InnerDomainAccountManager {
 public:
     static InnerDomainAccountManager &GetInstance();
@@ -40,6 +42,9 @@ public:
         const sptr<IDomainAccountCallback> &callback);
     ErrCode AuthUser(int32_t userId, const std::vector<uint8_t> &password,
         const sptr<IDomainAccountCallback> &callback);
+    void AuthResultInfoCallback(uint64_t contextId, PluginAuthResultInfo *authResultInfo, PluginBussnessError *error);
+    ErrCode CancelAuth(const sptr<IDomainAccountCallback> &callback);
+    ErrCode CancelAuth(const uint64_t &contextId);
     ErrCode AuthWithPopup(int32_t userId, const sptr<IDomainAccountCallback> &callback);
     ErrCode AuthWithToken(int32_t userId, const std::vector<uint8_t> &token);
     ErrCode GetAuthStatusInfo(const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback);
@@ -94,6 +99,7 @@ public:
 private:
     InnerDomainAccountManager();
     ~InnerDomainAccountManager();
+    bool GenerateContextId(uint64_t &contextId);
     DISALLOW_COPY_AND_MOVE(InnerDomainAccountManager);
     void StartIsAccountTokenValid(const sptr<IDomainAccountPlugin> &plugin, const AccountSA::DomainAccountInfo &info,
         const std::vector<uint8_t> &token, const sptr<IDomainAccountCallback> &callback);
@@ -111,11 +117,13 @@ private:
     ErrCode StartAuth(const sptr<IDomainAccountPlugin> &plugin, const DomainAccountInfo &info,
         const std::vector<uint8_t> &password, const sptr<IDomainAccountCallback> &callback, AuthMode authMode);
     sptr<IRemoteObject::DeathRecipient> GetDeathRecipient();
+    ErrCode StartPluginAuth(int32_t userId, const std::vector<uint8_t> &authData, const DomainAccountInfo &domainInfo,
+        const sptr<InnerDomainAuthCallback> &innerCallback, AuthMode authMode);
     ErrCode InnerAuth(int32_t userId, const std::vector<uint8_t> &authData,
         const sptr<IDomainAccountCallback> &callback, AuthMode authMode);
     ErrCode CheckUserToken(const std::vector<uint8_t> &token, bool &isValid, const DomainAccountInfo &info);
     ErrCode PluginAuth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
-        DomainAuthResult &resultParcel);
+        uint64_t &contextId);
     ErrCode PluginGetDomainAccountInfo(const GetDomainAccountInfoOptions &options,
         DomainAccountInfo &resultParcel);
     ErrCode PluginAuthWithPopup(const DomainAccountInfo &info, DomainAuthResult &resultParcel);
@@ -133,6 +141,16 @@ private:
     ErrCode RecoverBindDomainForUncomplete(const OsAccountInfo &osAccountInfo, const DomainAccountInfo &domainInfo);
     ErrCode BindDomainAccountWork(
         const int32_t localId, const DomainAccountInfo &domainInfo, const OsAccountInfo &info);
+    ErrCode CancelAuthWork(const uint64_t &contextId);
+
+protected:
+    friend InnerDomainAuthCallback;
+    bool AddToContextMap(const uint64_t contextId, const sptr<InnerDomainAuthCallback> &innerCallback);
+    void EraseFromContextMap(const uint64_t contextId);
+    bool FindCallbackInContextMap(const sptr<IDomainAccountCallback> &callback, uint64_t &contextId);
+    std::map<uint64_t, sptr<InnerDomainAuthCallback>> authContextIdMap_;
+    mutable std::recursive_mutex authContextIdMapMutex_;
+    uint64_t contextIdCount_ = 0;
 
 private:
     int32_t callingUid_ = -1;
@@ -164,9 +182,14 @@ public:
     InnerDomainAuthCallback(int32_t userId, const sptr<IDomainAccountCallback> &callback);
     virtual ~InnerDomainAuthCallback();
     ErrCode OnResult(int32_t errCode, const DomainAccountParcel &domainAccountParcel) override;
-
+    void SetOpenContextIdCheck(bool isEnabled, uint64_t contextId = 0);
 private:
     int32_t userId_;
+    sptr<DomainAccountAuthDeathRecipient> deathRecipient_;
+    bool needCheckContextId_ = false;
+    std::mutex mutex_;
+protected:
+    friend InnerDomainAccountManager;
     sptr<IDomainAccountCallback> callback_;
 };
 

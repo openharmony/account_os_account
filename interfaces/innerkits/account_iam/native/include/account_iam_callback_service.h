@@ -25,6 +25,9 @@
 #include "get_set_prop_callback_stub.h"
 #include "id_m_callback_stub.h"
 #include "pre_remote_auth_callback_stub.h"
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+#include "domain_account_client.h"
+#endif
 
 namespace OHOS {
 namespace AccountSA {
@@ -100,16 +103,19 @@ private:
 };
 
 #ifdef HAS_PIN_AUTH_PART
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
 class DomainCredentialRecipient : public IInputerData {
 public:
-    DomainCredentialRecipient(int32_t userId, const std::shared_ptr<IDMCallback> &callback);
+    DomainCredentialRecipient();
     ~DomainCredentialRecipient() override;
     void OnSetData(int32_t authSubType, std::vector<uint8_t> data) override;
-
+    std::vector<uint8_t> WaitToGetData();
 private:
-    int32_t userId_;
-    std::shared_ptr<IDMCallback> idmCallback_;
+    std::mutex mutex_;
+    std::condition_variable cv_;
+    std::vector<uint8_t> data_;
 };
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 
 class IAMInputer final: public IInputer {
 public:
