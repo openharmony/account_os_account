@@ -27,6 +27,7 @@ namespace Constants {
 const char DOMAIN_OPT_REGISTER[] = "registerPlugin";
 const char DOMAIN_OPT_UNREGISTER[] = "unregisterPlugin";
 const char DOMAIN_OPT_AUTH[] = "auth";
+const char DOMAIN_OPT_CANCEL_AUTH[] = "cancelAuth";
 const char DOMAIN_OPT_AUTH_POP[] = "authWithPop";
 const char DOMAIN_OPT_AUTH_TOKEN[] = "authWithToken";
 const char DOMAIN_OPT_UPDATE_INFO[] = "updateInfo";

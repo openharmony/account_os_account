@@ -42,7 +42,7 @@ public:
         const std::shared_ptr<DomainAccountCallback> &callback) override;
     void GetAccessToken(const DomainAccountInfo &domainInfo, const std::vector<uint8_t> &accountToken,
         const GetAccessTokenOptions &option, const std::shared_ptr<DomainAccountCallback> &callback) override;
-
+    void SetAuthDelaySecond(int32_t sleepSeconds);
 private:
     void AuthCommonInterface(const DomainAccountInfo &info, const std::vector<uint8_t> &authData,
         const std::shared_ptr<DomainAccountCallback> &callback, AuthMode authMode);
@@ -50,6 +50,7 @@ private:
 private:
     int32_t remainingTimes_;
     int32_t freezingTime_;
+    int32_t authSleepSeconds_ = 0;
 };
 }  // AccountSA
 }  // OHOS

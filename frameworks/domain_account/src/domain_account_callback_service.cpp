@@ -23,6 +23,11 @@ DomainAccountCallbackService::DomainAccountCallbackService(
     : innerCallback_(callback)
 {}
 
+DomainAccountCallbackService::DomainAccountCallbackService(
+    const std::shared_ptr<DomainAccountCallback> &callback, std::function<void()> afterOnResult)
+    : innerCallback_(callback), afterOnResult_(afterOnResult)
+{}
+
 DomainAccountCallbackService::DomainAccountCallbackService(const DomainAccountCallbackFunc &callback)
     : callback_(callback)
 {}
@@ -40,6 +45,9 @@ ErrCode DomainAccountCallbackService::OnResult(int32_t errCode, const DomainAcco
     }
     if (callback_ != nullptr) {
         callback_(errCode, parcel);
+    }
+    if (afterOnResult_ != nullptr) {
+        afterOnResult_();
     }
     return ERR_OK;
 }

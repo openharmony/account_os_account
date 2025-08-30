@@ -73,6 +73,11 @@ ohos_shared_library("domain_account_napi") {
   if (!use_clang_coverage) {
     version_script = "libnapi_account_innerkits.map"
   }
+  cflags_cc = []
+  if (os_account_support_domain_accounts) {
+    cflags_cc += [ "-DSUPPORT_DOMAIN_ACCOUNTS" ]
+  }
+
   subsystem_name = "account"
 
   innerapi_tags = [ "platformsdk" ]

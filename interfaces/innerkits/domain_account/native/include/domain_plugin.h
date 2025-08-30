@@ -81,6 +81,8 @@ typedef struct {
     PluginString parameters;
 } PluginDomainAccountPolicy;
 
+typedef void (*PluginAuthResultInfoCallback)(uint64_t contextId, PluginAuthResultInfo *authResultInfo,
+    PluginBussnessError *error);
 typedef PluginBussnessError* (*AddServerConfigFunc)(const PluginString *parameters, const int32_t callerLocalId,
     PluginServerConfigInfo **serverConfigInfo);
 typedef PluginBussnessError* (*RemoveServerConfigFunc)(const PluginString *serverConfigId, const int32_t callerLocalId);
@@ -92,7 +94,8 @@ typedef PluginBussnessError* (*GetServerConfigListFunc)(PluginServerConfigInfoLi
 typedef PluginBussnessError* (*GetAccountServerConfigFunc)(const PluginDomainAccountInfo *domainAccountInfo,
     PluginServerConfigInfo **serverConfigInfo);
 typedef PluginBussnessError* (*AuthFunc)(const PluginDomainAccountInfo *domainAccountInfo,
-    const PluginUint8Vector *credential, const int32_t callerLocalId, PluginAuthResultInfo **authResultInfo);
+    const PluginUint8Vector *credential, const int32_t callerLocalId,
+    PluginAuthResultInfoCallback callback, uint64_t *contextId);
 typedef PluginBussnessError* (*AuthWithPopupFunc)(const PluginDomainAccountInfo *domainAccountInfo,
     PluginAuthResultInfo **authResultInfo);
 typedef PluginBussnessError* (*AuthWithTokenFunc)(const PluginDomainAccountInfo *domainAccountInfo,
@@ -117,6 +120,7 @@ typedef PluginBussnessError* (*GetAccountPolicyFunc)(const PluginDomainAccountIn
     const int32_t callerLocalId, PluginDomainAccountPolicy **domainAccountPolicy);
 typedef PluginBussnessError* (*SetAccountPolicyFunc)(const PluginString *parameters,
     const PluginDomainAccountInfo *domainAccountInfo, const int32_t callerLocalId);
+typedef PluginBussnessError* (*CancelAuthFunc)(const uint64_t contextId);
 
 enum PluginMethodEnum {
     ADD_SERVER_CONFIG = 0,
@@ -138,6 +142,7 @@ enum PluginMethodEnum {
     IS_AUTHENTICATION_EXPIRED,
     SET_ACCOUNT_POLICY,
     GET_ACCOUNT_POLICY,
+    CANCEL_AUTH,
     //this is last just for count enum
     COUNT,
 };

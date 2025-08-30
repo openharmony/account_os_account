@@ -83,6 +83,18 @@ public:
         auto domainAccountService = std::make_shared<DomainAccountManagerService>();
         domainAccountService->OnRemoteRequest(code, dataTemp, reply, option);
 
+        code = static_cast<uint32_t>(IDomainAccountIpcCode::COMMAND_CANCEL_AUTH);
+        MessageParcel cancelData;
+        MessageParcel cancelReply;
+        if (!cancelData.WriteInterfaceToken(DomainAccountStub::GetDescriptor())) {
+            return false;
+        }
+        if (fuzzData.GetData<bool>()) {
+            if (!cancelData.WriteRemoteObject(callback->AsObject())) {
+                return false;
+            }
+        }
+        domainAccountService->OnRemoteRequest(code, cancelData, cancelReply, option);
         return true;
     }
 }
