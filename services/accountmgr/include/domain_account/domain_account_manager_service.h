@@ -38,6 +38,7 @@ public:
     ErrCode AuthUser(int32_t userId, const std::vector<uint8_t> &password,
         const sptr<IDomainAccountCallback> &callback) override;
     ErrCode AuthWithPopup(int32_t userId, const sptr<IDomainAccountCallback> &callback) override;
+    ErrCode CancelAuth(const sptr<IDomainAccountCallback> &callback) override;
     ErrCode UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token) override;
     ErrCode IsAuthenticationExpired(const DomainAccountInfo &info, bool &isExpired) override;
     ErrCode SetAccountPolicy(const DomainAccountInfo &info, const std::string &policy) override;

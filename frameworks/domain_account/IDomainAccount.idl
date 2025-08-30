@@ -30,6 +30,7 @@ interface OHOS.AccountSA.IDomainAccount {
     void AuthUser([in] int userId, [in] unsigned char[] password,
         [in] IDomainAccountCallback domainAccountCallback);
     void AuthWithPopup([in] int userId, [in] IDomainAccountCallback domainAccountCallback);
+    void CancelAuth([in] IDomainAccountCallback domainAccountCallback);
     void HasDomainAccount([in] DomainAccountInfo info, [in] IDomainAccountCallback domainAccountCallback);
     void UpdateAccountToken([in] DomainAccountInfo info, [in] unsigned char[] token);
     void IsAuthenticationExpired([in] DomainAccountInfo info, [out] boolean isExpired);

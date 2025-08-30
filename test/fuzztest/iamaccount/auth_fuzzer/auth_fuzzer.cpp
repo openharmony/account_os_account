@@ -72,9 +72,9 @@ namespace OHOS {
             GenRemoteAuthOptions(fuzzData, authOptions.remoteAuthOptions);
         }
         authOptions.authIntent = fuzzData.GenerateEnmu(AuthIntent::ABANDONED_PIN_AUTH);
-        uint64_t result = AccountIAMClient::GetInstance().Auth(
+        std::vector<uint8_t> result = AccountIAMClient::GetInstance().Auth(
             authOptions, challenge, authType, authTrustLevel, callback);
-        return result == ERR_OK;
+        return true;
     }
 }
 
