@@ -1156,7 +1156,7 @@ void GetForegroundOADisplayIdCallbackCompletedCB(napi_env env, napi_status statu
     napi_value dataJs = nullptr;
     if (asyncContext->errCode == ERR_OK) {
         NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &errJs));
-        NAPI_CALL_RETURN_VOID(env, napi_create_bigint_uint64(env, asyncContext->displayId, &dataJs));
+        NAPI_CALL_RETURN_VOID(env, napi_create_int64(env, static_cast<int64_t>(asyncContext->displayId), &dataJs));
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode);
         NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &dataJs));
