@@ -1643,7 +1643,8 @@ static napi_value CreateSwitchEventInfoObj(const std::shared_ptr<SubscriberOAWor
 
     if (subscriberOAWorker->displayId.has_value()) {
         napi_value displayIdJs;
-        NAPI_CALL(env, napi_create_bigint_uint64(env, subscriberOAWorker->displayId.value(), &displayIdJs));
+        NAPI_CALL(env, napi_create_int64(env,
+            static_cast<int64_t>(subscriberOAWorker->displayId.value()), &displayIdJs));
         NAPI_CALL(env, napi_set_named_property(env, objInfo, "displayId", displayIdJs));
     }
 

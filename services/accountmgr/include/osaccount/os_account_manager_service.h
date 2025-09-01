@@ -180,7 +180,7 @@ private:
     bool PermissionCheck(const std::string& permissionName, const std::string& constraintName);
     bool CheckCreateOsAccountWhiteList();
     ErrCode ValidateShortName(const std::string &shortName);
-    void GetCallerLocalIdAndDisplayId(int32_t &localId, uint64_t &displayId);
+    void GetCurrentLocalId(int32_t &localId);
     ErrCode GetOsAccountShortNameCommon(const int32_t id, std::string &shortName);
     ErrCode ValidateAccountCreateParamAndPermission(const std::string &localName, const OsAccountType &type);
     void ConstraintPublish(const std::vector<std::string> &oldConstraints,

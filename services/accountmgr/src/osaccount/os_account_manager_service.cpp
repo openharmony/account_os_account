@@ -1159,8 +1159,7 @@ ErrCode OsAccountManagerService::DeactivateOsAccount(int32_t id)
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     int32_t currentId = Constants::START_USER_ID;
-    uint64_t displayId = Constants::DEFAULT_DISPLAY_ID;
-    GetCallerLocalIdAndDisplayId(currentId, displayId);
+    GetCurrentLocalId(currentId);
 
 #ifndef SUPPORT_STOP_MAIN_OS_ACCOUNT
     if (id == Constants::START_USER_ID) {
@@ -1174,10 +1173,9 @@ ErrCode OsAccountManagerService::DeactivateOsAccount(int32_t id)
     if (currentId == id) { // if stop current account
 #ifndef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
 #ifdef SUPPORT_STOP_MAIN_OS_ACCOUNT
-        innerManager_.ActivateOsAccount(id, false, displayId, true);
+        innerManager_.ActivateOsAccount(id, false, Constants::DEFAULT_DISPLAY_ID, true);
 #else
-        innerManager_.ActivateOsAccount(displayId == Constants::DEFAULT_DISPLAY_ID ? Constants::START_USER_ID : id,
-            false, displayId);
+        innerManager_.ActivateOsAccount(Constants::START_USER_ID, false, Constants::DEFAULT_DISPLAY_ID);
 #endif // SUPPORT_STOP_MAIN_OS_ACCOUNT
 #endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
     }
@@ -1234,17 +1232,15 @@ ErrCode OsAccountManagerService::DeactivateAllOsAccounts()
 #ifdef FUZZ_TEST
 // LCOV_EXCL_START
 #endif
-void OsAccountManagerService::GetCallerLocalIdAndDisplayId(int32_t &userId, uint64_t &displayId)
+void OsAccountManagerService::GetCurrentLocalId(int32_t &userId)
 {
-    userId = static_cast<int32_t>(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR);
-    ErrCode errCode = innerManager_.GetForegroundOsAccountDisplayId(userId, displayId);
-    if (errCode != ERR_OK) {
-#ifdef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
-        displayId = Constants::INVALID_DISPLAY_ID;
-#else
-        displayId = Constants::DEFAULT_DISPLAY_ID;
-#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    std::vector<int32_t> userIds;
+    if ((innerManager_.QueryActiveOsAccountIds(userIds) != ERR_OK) || userIds.empty()) {
+        ACCOUNT_LOGE("Fail to get activated os account ids");
+        return;
     }
+    userId = userIds[0];
+    return;
 }
 #ifdef FUZZ_TEST
 // LCOV_EXCL_STOP
