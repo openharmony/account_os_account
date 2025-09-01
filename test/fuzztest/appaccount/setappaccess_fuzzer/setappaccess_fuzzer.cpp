@@ -25,8 +25,6 @@
 using namespace std;
 using namespace OHOS::AccountSA;
 
-const int CONSTANTS_NUMBER_TWO = 2;
-
 namespace OHOS {
     bool SetAppAccessFuzzTest(const uint8_t* data, size_t size)
     {
@@ -35,7 +33,7 @@ namespace OHOS {
             FuzzData fuzzData(data, size);
             std::string testName(fuzzData.GenerateString());
             std::string testAuthorizedApp(fuzzData.GenerateString());
-            bool isAccessible = ((size % CONSTANTS_NUMBER_TWO) == 0);
+            bool isAccessible = fuzzData.GetData<bool>();
             result = AppAccountManager::SetAppAccess(testName, testAuthorizedApp, isAccessible);
         }
         return result;
