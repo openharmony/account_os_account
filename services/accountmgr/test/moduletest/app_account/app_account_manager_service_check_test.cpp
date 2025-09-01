@@ -332,11 +332,14 @@ HWTEST_F(AppAccountManagerServiceCheckTest, GetAccountCredential_01, TestSize.Le
 HWTEST_F(AppAccountManagerServiceCheckTest, SetAccountCredential_01, TestSize.Level3)
 {
     int32_t result = 0;
-    g_accountManagerService->SetAccountCredential(STRING_EMPTY, STRING_NAME, STRING_NAME, result);
+    std::string credCpy = STRING_NAME;
+    g_accountManagerService->SetAccountCredential(STRING_EMPTY, STRING_NAME, credCpy, result);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_MAX_SIZE, STRING_NAME, result);
+    credCpy = STRING_NAME;
+    g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_MAX_SIZE, credCpy, result);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_NAME, STRING_MAX_SIZE, result);
+    credCpy = STRING_MAX_SIZE;
+    g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_NAME, credCpy, result);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
@@ -416,11 +419,14 @@ HWTEST_F(AppAccountManagerServiceCheckTest, GetAuthToken_01, TestSize.Level3)
 HWTEST_F(AppAccountManagerServiceCheckTest, SetOAuthToken_01, TestSize.Level3)
 {
     int32_t result = 0;
-    g_accountManagerService->SetOAuthToken(STRING_EMPTY, STRING_NAME, STRING_NAME, result);
+    std::string tokenCpy = STRING_NAME;
+    g_accountManagerService->SetOAuthToken(STRING_EMPTY, STRING_NAME, tokenCpy, result);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_MAX_SIZE, STRING_NAME, result);
+    tokenCpy = STRING_NAME;
+    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_MAX_SIZE, tokenCpy, result);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_NAME, STRING_MAX_SIZE, result);
+    tokenCpy = STRING_MAX_SIZE;
+    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_NAME, tokenCpy, result);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
@@ -433,15 +439,20 @@ HWTEST_F(AppAccountManagerServiceCheckTest, SetOAuthToken_01, TestSize.Level3)
 HWTEST_F(AppAccountManagerServiceCheckTest, DeleteOAuthToken_01, TestSize.Level3)
 {
     int32_t result = 0;
-    g_accountManagerService->DeleteOAuthToken(STRING_MAX_SIZE, STRING_NAME, STRING_NAME, STRING_NAME, result);
+    std::string tokenCpy = STRING_NAME;
+    g_accountManagerService->DeleteOAuthToken(STRING_MAX_SIZE, STRING_NAME, STRING_NAME, tokenCpy, result);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    g_accountManagerService->DeleteOAuthToken(STRING_NAME, STRING_MAX_SIZE, STRING_NAME, STRING_NAME, result);
+    tokenCpy = STRING_NAME;
+    g_accountManagerService->DeleteOAuthToken(STRING_NAME, STRING_MAX_SIZE, STRING_NAME, tokenCpy, result);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    g_accountManagerService->DeleteOAuthToken(STRING_NAME, STRING_NAME, STRING_MAX_SIZE, STRING_NAME, result);
+    tokenCpy = STRING_NAME;
+    g_accountManagerService->DeleteOAuthToken(STRING_NAME, STRING_NAME, STRING_MAX_SIZE, tokenCpy, result);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    g_accountManagerService->DeleteOAuthToken(STRING_NAME, STRING_NAME, STRING_NAME, STRING_MAX_SIZE, result);
+    tokenCpy = STRING_MAX_SIZE;
+    g_accountManagerService->DeleteOAuthToken(STRING_NAME, STRING_NAME, STRING_NAME, tokenCpy, result);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    g_accountManagerService->DeleteOAuthToken(STRING_SPECIAL_CHARACTERS, STRING_NAME, STRING_NAME, STRING_NAME, result);
+    tokenCpy = STRING_NAME;
+    g_accountManagerService->DeleteOAuthToken(STRING_SPECIAL_CHARACTERS, STRING_NAME, STRING_NAME, tokenCpy, result);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
@@ -454,13 +465,17 @@ HWTEST_F(AppAccountManagerServiceCheckTest, DeleteOAuthToken_01, TestSize.Level3
 HWTEST_F(AppAccountManagerServiceCheckTest, DeleteAuthToken_01, TestSize.Level3)
 {
     int32_t result = 0;
-    g_accountManagerService->DeleteAuthToken(STRING_MAX_SIZE, STRING_NAME, STRING_NAME, STRING_NAME, result);
+    std::string tokenCpy = STRING_NAME;
+    g_accountManagerService->DeleteAuthToken(STRING_MAX_SIZE, STRING_NAME, STRING_NAME, tokenCpy, result);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    g_accountManagerService->DeleteAuthToken(STRING_NAME, STRING_MAX_SIZE, STRING_NAME, STRING_NAME, result);
+    tokenCpy = STRING_NAME;
+    g_accountManagerService->DeleteAuthToken(STRING_NAME, STRING_MAX_SIZE, STRING_NAME, tokenCpy, result);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    g_accountManagerService->DeleteAuthToken(STRING_NAME, STRING_NAME, STRING_MAX_SIZE, STRING_NAME, result);
+    tokenCpy = STRING_NAME;
+    g_accountManagerService->DeleteAuthToken(STRING_NAME, STRING_NAME, STRING_MAX_SIZE, tokenCpy, result);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    g_accountManagerService->DeleteAuthToken(STRING_NAME, STRING_NAME, STRING_NAME, STRING_MAX_SIZE, result);
+    tokenCpy = STRING_MAX_SIZE;
+    g_accountManagerService->DeleteAuthToken(STRING_NAME, STRING_NAME, STRING_NAME, tokenCpy, result);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 

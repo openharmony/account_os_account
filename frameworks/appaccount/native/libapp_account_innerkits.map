@@ -104,6 +104,7 @@
         "OHOS::AccountSA::SetPropertiesOptions::Unmarshalling(OHOS::Parcel&)";
         "OHOS::AccountSA::VerifyCredentialOptions::Marshalling(OHOS::Parcel&) const";
         "OHOS::AccountSA::VerifyCredentialOptions::Unmarshalling(OHOS::Parcel&)";
+        "OHOS::AccountSA::VerifyCredentialOptions::~VerifyCredentialOptions()";
         "OHOS::AccountSA::AccountCapabilityRequest::Marshalling(OHOS::Parcel&) const";
         "OHOS::AccountSA::AccountCapabilityRequest::Unmarshalling(OHOS::Parcel&)";
         "OHOS::AccountSA::AppAccount::CreateAppAccountEventListener(std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscriber> const&, OHOS::sptr<OHOS::IRemoteObject>&)";

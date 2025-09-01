@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "napi_app_account_common.h"
+#include <securec.h>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "app_account_constants.h"
@@ -389,6 +390,20 @@ ErrCode AppAccountManagerCallback::CallbackExit([[maybe_unused]] uint32_t code, 
             return ERR_NONE;
     }
     return ERR_NONE;
+}
+
+AppAccountAsyncContext::~AppAccountAsyncContext()
+{
+    if (credential.size() > 0) {
+        (void)memset_s(credential.data(), credential.size(), 0, credential.size());
+    }
+}
+
+OAuthAsyncContext::~OAuthAsyncContext()
+{
+    if (token.size() > 0) {
+        (void)memset_s(token.data(), token.size(), 0, token.size());
+    }
 }
 
 napi_value NapiGetNull(napi_env env)
