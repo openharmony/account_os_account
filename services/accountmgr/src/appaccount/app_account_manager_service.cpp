@@ -14,6 +14,8 @@
  */
 
 #include "app_account_manager_service.h"
+
+#include <securec.h>
 #include "accesstoken_kit.h"
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
@@ -398,9 +400,13 @@ ErrCode AppAccountManagerService::SetAccountCredential(
         appAccountCallingInfo.appIndex);
     if (ret != ERR_OK) {
         funcResult = ret;
+        auto credStr = const_cast<std::string *>(&credential);
+        (void)memset_s(credStr->data(), credStr->size(), 0, credStr->size());
         return ERR_OK;
     }
     funcResult = innerManager_->SetAccountCredential(name, credentialType, credential, appAccountCallingInfo);
+    auto credStr = const_cast<std::string *>(&credential);
+    (void)memset_s(credStr->data(), credStr->size(), 0, credStr->size());
     return ERR_OK;
 }
 
@@ -482,6 +488,8 @@ ErrCode AppAccountManagerService::SetOAuthToken(
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
         funcResult = result;
+        auto tokenStr = const_cast<std::string *>(&token);
+        (void)memset_s(tokenStr->data(), tokenStr->size(), 0, tokenStr->size());
         return ERR_OK;
     }
     request.name = name;
@@ -489,6 +497,8 @@ ErrCode AppAccountManagerService::SetOAuthToken(
     request.authType = authType;
     request.token = token;
     funcResult = innerManager_->SetOAuthToken(request);
+    auto tokenStr = const_cast<std::string *>(&token);
+    (void)memset_s(tokenStr->data(), tokenStr->size(), 0, tokenStr->size());
     return ERR_OK;
 }
 
@@ -505,6 +515,8 @@ ErrCode AppAccountManagerService::DeleteOAuthToken(
     ErrCode ret = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (ret != ERR_OK) {
         funcResult = ret;
+        auto tokenStr = const_cast<std::string *>(&token);
+        (void)memset_s(tokenStr->data(), tokenStr->size(), 0, tokenStr->size());
         return ERR_OK;
     }
     request.name = name;
@@ -512,6 +524,8 @@ ErrCode AppAccountManagerService::DeleteOAuthToken(
     request.authType = authType;
     request.token = token;
     funcResult = innerManager_->DeleteOAuthToken(request);
+    auto tokenStr = const_cast<std::string *>(&token);
+    (void)memset_s(tokenStr->data(), tokenStr->size(), 0, tokenStr->size());
     return ERR_OK;
 }
 
@@ -527,6 +541,8 @@ ErrCode AppAccountManagerService::DeleteAuthToken(
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
         funcResult = result;
+        auto tokenStr = const_cast<std::string *>(&token);
+        (void)memset_s(tokenStr->data(), tokenStr->size(), 0, tokenStr->size());
         return ERR_OK;
     }
     request.name = name;
@@ -534,6 +550,8 @@ ErrCode AppAccountManagerService::DeleteAuthToken(
     request.authType = authType;
     request.token = token;
     funcResult = innerManager_->DeleteOAuthToken(request, Constants::API_VERSION9);
+    auto tokenStr = const_cast<std::string *>(&token);
+    (void)memset_s(tokenStr->data(), tokenStr->size(), 0, tokenStr->size());
     return ERR_OK;
 }
 
