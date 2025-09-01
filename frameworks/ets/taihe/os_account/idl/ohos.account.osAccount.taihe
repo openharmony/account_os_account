@@ -18,6 +18,7 @@
 use ohos.account.distributedAccount as distributedAccount;
 
 @!sts_inject_into_module("import { BusinessError } from '@ohos.base';")
+@!sts_inject_into_module("import { RecordData } from '@ohos.base';")
 
 @!sts_inject("""
 static { loadLibrary("os_account_taihe_native.z") }
@@ -451,7 +452,7 @@ function UpdateAccountTokenSync(domainAccountInfo: DomainAccountInfo, token: @ty
 @static("DomainAccountManager")
 @gen_async("getAccessToken")
 @gen_promise("getAccessToken")
-function GetAccessTokenSync(businessParams: @sts_type("Record<string, Object>")Opaque): @typedarray Array<u8>;
+function GetAccessTokenSync(businessParams: @sts_type("RecordData")Opaque): @typedarray Array<u8>;
 
 @static("DomainAccountManager")
 @gen_async("getAccountInfo")
@@ -464,7 +465,7 @@ function UpdateAccountInfoSync(oldAccountInfo: DomainAccountInfo, newAccountInfo
 
 @static("DomainServerConfigManager")
 @gen_promise("addServerConfig")
-function AddServerConfigSync(parameters: @sts_type("Record<String, Object>")Opaque): DomainServerConfig;
+function AddServerConfigSync(parameters: @sts_type("RecordData")Opaque): DomainServerConfig;
 
 @static("DomainServerConfigManager")
 @gen_promise("removeServerConfig")
@@ -472,7 +473,7 @@ function RemoveServerConfigSync(configId: String);
 
 @static("DomainServerConfigManager")
 @gen_promise("updateServerConfig")
-function UpdateServerConfigSync(configId: String, parameters: @sts_type("Record<String, Object>")Opaque):DomainServerConfig;
+function UpdateServerConfigSync(configId: String, parameters: @sts_type("RecordData")Opaque):DomainServerConfig;
 
 @static("DomainServerConfigManager")
 @gen_promise("getServerConfig")
@@ -633,7 +634,7 @@ struct AuthStatusInfo {
 struct GetDomainAccessTokenOptions {
     domainAccountInfo: DomainAccountInfo;
     domainAccountToken: @typedarray Array<u8>;
-    businessParams: @sts_type("Record<String, Object>")Opaque;
+    businessParams: @sts_type("RecordData")Opaque;
     callerUid: i32;
 }
 
@@ -650,7 +651,7 @@ struct GetDomainAccountInfoPluginOptions {
 }
 
 struct DomainServerConfig {
-    parameters: @sts_type("Record<String, Object>")Opaque;
+    parameters: @sts_type("RecordData")Opaque;
     id: String;
     domain: String;
 }
