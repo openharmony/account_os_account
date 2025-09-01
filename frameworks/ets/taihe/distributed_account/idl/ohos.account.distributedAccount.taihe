@@ -14,6 +14,7 @@
  */
 
 @!namespace("@ohos.account.distributedAccount", "distributedAccount")
+@!sts_inject_into_module("import { RecordData } from '@ohos.base';")
 
 @!sts_inject("""
 static { loadLibrary("distributed_account_taihe_native.z") }
@@ -26,7 +27,7 @@ struct DistributedInfo {
     nickname: Optional<String>;
     avatar: Optional<String>;
     @readonly status: Optional<DistributedAccountStatus>;
-    scalableData: Optional<Opaque>;
+    scalableData: Optional<@sts_type("RecordData")Opaque>;
 }
 
 enum DistributedAccountStatus: i32 {
