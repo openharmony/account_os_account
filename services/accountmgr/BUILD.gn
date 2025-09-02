@@ -79,6 +79,7 @@ config("accountmgr_public_config") {
   visibility = [ ":*" ]
 
   include_dirs = [
+    "${os_account_dfx_path}/hitrace_adapter",
     "${services_path}/accountmgr/include",
     "${services_path}/accountmgr/include/appaccount",
     "${services_path}/accountmgr/include/osaccount",
