@@ -20,6 +20,7 @@
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "account_hisysevent_adapter.h"
+#include "hitrace_adapter.h"
 #include "iinner_os_account_manager.h"
 #include "ipc_skeleton.h"
 #include "os_account_constants.h"
@@ -1106,24 +1107,30 @@ ErrCode OsAccountManagerService::ActivateOsAccount(int32_t id)
         ACCOUNT_LOGE("Is not system application, result = %{public}u.", result);
         return result;
     }
+    StartTraceAdapter("AccountManager ActivateAccount");
     // parameters check
     ErrCode res = CheckLocalId(id);
     if (res != ERR_OK) {
+        FinishTraceAdapter();
         return res;
     }
     res = CheckLocalIdRestricted(id);
     if (res != ERR_OK) {
         ACCOUNT_LOGW("Check local id restricted, result = %{public}d, localId = %{public}d.", res, id);
+        FinishTraceAdapter();
         return res;
     }
     // permission check
     if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, CONSTANT_ACTIVATE)) {
         ACCOUNT_LOGE("Account manager service, permission denied!");
         REPORT_PERMISSION_FAIL();
+        FinishTraceAdapter();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 
-    return innerManager_.ActivateOsAccount(id);
+    res = innerManager_.ActivateOsAccount(id);
+    FinishTraceAdapter();
+    return res;
 }
 
 ErrCode OsAccountManagerService::DeactivateOsAccount(int32_t id)
