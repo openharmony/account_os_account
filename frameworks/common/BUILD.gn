@@ -99,7 +99,7 @@ ohos_shared_library("libaccount_common") {
     cflags_cc += [ "-DHICOLLIE_ENABLE" ]
   }
 
-  if (os_account_distributed_feature) {
+  if (os_account_distributed_feature && !use_libfuzzer) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
   }
 
