@@ -1207,7 +1207,7 @@ HWTEST_F(OsAccountInfoTest, SetOsAccountToBeRemoved_NonDefaultAccount_002, TestS
     EXPECT_EQ(ERR_OK, OsAccountManager::SetOsAccountToBeRemoved(testAccountId, true));
 
     // Step 5: Verify default activated account remains unchanged
-    int32_t currentDefaultId = 0;
+    int32_t currentDefaultId = 1;
     EXPECT_EQ(ERR_OK, OsAccountManager::GetDefaultActivatedOsAccount(currentDefaultId));
     EXPECT_EQ(currentDefaultId, originalDefaultId);
 
