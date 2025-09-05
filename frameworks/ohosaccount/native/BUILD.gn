@@ -103,6 +103,10 @@ ohos_shared_library("libaccountkits") {
     "samgr:samgr_proxy",
   ]
 
+  if (use_libfuzzer) {
+    cflags_cc += [ "-DFUZZ_TEST" ]
+  }
+
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "account"
   part_name = "os_account"

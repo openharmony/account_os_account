@@ -391,6 +391,9 @@ std::int32_t OhosAccountKitsImpl::GetDeviceAccountIdByUID(std::int32_t& uid)
 
 ErrCode OhosAccountKitsImpl::SubscribeSystemAbility(const DomainAccountSubscribeSACallbackFunc& callbackFunc)
 {
+#ifdef FUZZ_TEST
+    (void)callbackFunc;
+#else
     sptr<ISystemAbilityStatusChange> statusChangeListener =
         new (std::nothrow) SystemAbilityStatusChangeListener(callbackFunc);
     if (statusChangeListener == nullptr) {
@@ -407,6 +410,7 @@ ErrCode OhosAccountKitsImpl::SubscribeSystemAbility(const DomainAccountSubscribe
         ACCOUNT_LOGE("SubscribeSystemAbility is failed");
         return ret;
     }
+#endif // FUZZ_TEST
     return ERR_OK;
 }
 
