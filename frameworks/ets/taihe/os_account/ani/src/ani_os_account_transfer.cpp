@@ -173,15 +173,15 @@ void AniOsAccountTransferInit(ani_env *aniEnv)
         return;
     }
 
-    std::array nativeFuncs = {
+    std::array nativeStaticFuncs = {
         ani_native_function { "nativeIInputDataTransferStatic", nullptr,
             reinterpret_cast<void*>(AniOsAccountTransfer::NativeIInputDataTransferStatic)},
         ani_native_function { "nativeIInputDataTransferDynamic", nullptr,
             reinterpret_cast<void*>(AniOsAccountTransfer::NativeIInputDataTransferDynamic)},
     };
-    status = aniEnv->Class_BindNativeMethods(cls, nativeFuncs.data(), nativeFuncs.size());
+    status = aniEnv->Class_BindStaticNativeMethods(cls, nativeStaticFuncs.data(), nativeStaticFuncs.size());
     if (status != ANI_OK) {
-        ACCOUNT_LOGE("Class_BindNativeMethods failed status: %{public}d", status);
+        ACCOUNT_LOGE("Class_BindStaticNativeMethods failed status: %{public}d", status);
         return;
     }
 
