@@ -459,6 +459,10 @@ public:
     array<AppAccountInfo> GetAccountsByOwnerSync(string_view owner)
     {
         std::string innerOwner(owner.data(), owner.size());
+        if (innerOwner.empty()) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+        }
         std::vector<AccountSA::AppAccountInfo> appAccounts;
         int32_t errorCode = AccountSA::AppAccountManager::QueryAllAccessibleAccounts(innerOwner, appAccounts);
         if (errorCode != ERR_OK) {
