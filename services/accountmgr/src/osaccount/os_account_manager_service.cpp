@@ -1318,7 +1318,7 @@ ErrCode OsAccountManagerService::UnsubscribeOsAccount(const sptr<IRemoteObject> 
     // permission check
     if (!(PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "") ||
           PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "") ||
-          (AccountPermissionManager::CheckSaCall() && PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")))) {
+          PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, ""))) {
         ACCOUNT_LOGE("Account manager service, permission denied!");
         REPORT_PERMISSION_FAIL();
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
