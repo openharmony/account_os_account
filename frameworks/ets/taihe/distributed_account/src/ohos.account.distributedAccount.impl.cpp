@@ -47,7 +47,7 @@ AccountSA::OhosAccountInfo ConvertToOhosAccountInfoTH(const DistributedInfo &inf
         AAFwk::WantParams params;
         ani_env *env = get_env();
         ani_ref scalableDataRef = reinterpret_cast<ani_ref>(info.scalableData.value());
-        if (!AppExecFwk::UnwrapWantParams(env,scalableDataRef, params)) {
+        if (!AppExecFwk::UnwrapWantParams(env, scalableDataRef, params)) {
             ACCOUNT_LOGE("Failed to get DistributedInfo's scalableData property");
             int32_t jsErrCode = GenerateBusinessErrorCode(ERR_JS_PARAMETER_ERROR);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
