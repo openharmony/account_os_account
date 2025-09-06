@@ -458,10 +458,13 @@ public:
 
     array<AppAccountInfo> GetAccountsByOwnerSync(string_view owner)
     {
+        std::vector<AppAccountInfo> appAccountsInfos;
         std::string innerOwner(owner.data(), owner.size());
         if (innerOwner.empty()) {
             int32_t jsErrCode = GenerateBusinessErrorCode(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return taihe::array<AppAccountInfo>(taihe::copy_data_t{}, appAccountsInfos.data(),
+                appAccountsInfos.size());
         }
         std::vector<AccountSA::AppAccountInfo> appAccounts;
         int32_t errorCode = AccountSA::AppAccountManager::QueryAllAccessibleAccounts(innerOwner, appAccounts);
@@ -469,7 +472,6 @@ public:
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
         }
-        std::vector<AppAccountInfo> appAccountsInfos;
         appAccountsInfos.reserve(appAccounts.size());
         for (auto &info : appAccounts) {
             appAccountsInfos.push_back(ConvertAppAccountInfo(info));
