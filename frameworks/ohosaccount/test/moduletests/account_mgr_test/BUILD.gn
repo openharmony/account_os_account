@@ -118,7 +118,7 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
     cflags_cc += [ "-DFUZZ_TEST" ]
   }
   
-  if (os_account_distributed_feature) {
+  if (os_account_distributed_feature && !use_libfuzzer) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
     sources +=
         [ "${services_path}/accountmgr/src/account_file_watcher_manager.cpp" ]

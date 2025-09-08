@@ -481,6 +481,7 @@ void OsAccountControlFileManager::RecoverAccountInfoDigestJsonFile()
 {
     std::string listInfoStr;
     accountFileOperator_->GetFileContentByPath(Constants::ACCOUNT_LIST_FILE_JSON_PATH, listInfoStr);
+#ifdef ENABLE_FILE_WATCHER
 #ifdef HAS_HUKS_PART
     uint8_t digestOutData[ALG_COMMON_SIZE] = {0};
     GenerateAccountInfoDigest(listInfoStr, digestOutData, ALG_COMMON_SIZE);
@@ -490,6 +491,7 @@ void OsAccountControlFileManager::RecoverAccountInfoDigestJsonFile()
     std::string strValue = PackJsonToString(digestJsonData);
     accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_INFO_DIGEST_FILE_PATH, strValue);
 #endif // HAS_HUKS_PART
+#endif // ENABLE_FILE_WATCHER
     return;
 }
 
