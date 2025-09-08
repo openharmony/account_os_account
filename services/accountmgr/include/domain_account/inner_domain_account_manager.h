@@ -165,6 +165,7 @@ private:
     int32_t callingUid_ = -1;
     std::mutex mutex_;
     std::mutex libMutex_;
+    std::mutex tokenMutex_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
     sptr<IDomainAccountPlugin> plugin_;
     std::map<PluginMethodEnum, void*> methodMap_;
