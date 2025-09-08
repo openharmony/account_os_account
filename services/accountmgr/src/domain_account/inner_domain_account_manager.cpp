@@ -121,7 +121,7 @@ static bool IsSupportNetRequest()
     return isForeground;
 }
 
-static int32_t GetCallingUserID(std::int32_t callingUid)
+static int32_t GetCallingUserID(std::int32_t callingUid = -1)
 {
     if (callingUid == -1) {
         callingUid = IPCSkeleton::GetCallingUid();
@@ -136,11 +136,6 @@ static int32_t GetCallingUserID(std::int32_t callingUid)
         userId = userIds[0];
     }
     return userId;
-}
-
-static int32_t GetCallingUserID()
-{
-    return GetCallingUserID(-1);
 }
 
 InnerDomainAccountManager::InnerDomainAccountManager()
@@ -579,14 +574,14 @@ static void SetPluginDomainAccountInfo(const DomainAccountInfo &info, PluginDoma
     int32_t userId = 0;
     ErrCode errCode = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGI("The target domain account not found.");
+        ACCOUNT_LOGI("The target domain account not found, errCode = %{public}d", errCode);
         pluginInfo.serverConfigId.data = nullptr;
         return;
     }
     OsAccountInfo osAccountInfo;
     errCode = IInnerOsAccountManager::GetInstance().GetRealOsAccountInfoById(userId, osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGI("Failed to get account info, userId = %{public}d", userId);
+        ACCOUNT_LOGI("Failed to get account info, userId = %{public}d, errCode = %{public}d", userId, errCode);
         pluginInfo.serverConfigId.data = nullptr;
         return;
     }
@@ -1003,38 +998,41 @@ ErrCode InnerDomainAccountManager::Auth(const DomainAccountInfo &info, const std
     IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
     sptr<InnerDomainAuthCallback> innerCallback = sptr<InnerDomainAuthCallback>::MakeSptr(userId, callback);
     uint64_t contextId = 0;
-    if (plugin_ == nullptr) {
-        Parcel emptyParcel;
-        AccountSA::DomainAuthResult result;
-        ErrCode err = -1;
-        {
-            std::lock_guard<std::recursive_mutex> lock(authContextIdMapMutex_);
-            err = PluginAuth(info, password, contextId);
-            if (err == ERR_OK) {
-                if (!AddToContextMap(contextId, innerCallback)) {
-                    ACCOUNT_LOGE("AddToContextMap failed");
-                    return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
-                }
-                return ERR_OK;
-            }
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (plugin_ != nullptr) {
+            auto task = [this, info, password, innerCallback, plugin = plugin_] {
+                this->StartAuth(plugin, info, password, innerCallback, AUTH_WITH_CREDENTIAL_MODE);
+            };
+            std::thread taskThread(task);
+            pthread_setname_np(taskThread.native_handle(), THREAD_AUTH);
+            taskThread.detach();
+            return ERR_OK;
         }
-        if (!result.Marshalling(emptyParcel)) {
-            ACCOUNT_LOGE("DomainAuthResult marshalling failed.");
-            err = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
-        }
-        if (innerCallback != nullptr) {
-            DomainAccountParcel domainAccountParcel;
-            domainAccountParcel.SetParcelData(emptyParcel);
-            innerCallback->OnResult(err, domainAccountParcel);
-        }
-        return ERR_OK;
     }
-    auto task = [this, info, password, innerCallback, plugin = plugin_] {
-        this->StartAuth(plugin, info, password, innerCallback, AUTH_WITH_CREDENTIAL_MODE);
-    };
-    std::thread taskThread(task);
-    pthread_setname_np(taskThread.native_handle(), THREAD_AUTH);
-    taskThread.detach();
+    Parcel emptyParcel;
+    AccountSA::DomainAuthResult result;
+    ErrCode err = -1;
+    {
+        std::lock_guard<std::recursive_mutex> lock(authContextIdMapMutex_);
+        err = PluginAuth(info, password, contextId);
+        if (err == ERR_OK) {
+            if (!AddToContextMap(contextId, innerCallback)) {
+                ACCOUNT_LOGE("AddToContextMap failed");
+                return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+            }
+            return ERR_OK;
+        }
+    }
+    if (!result.Marshalling(emptyParcel)) {
+        ACCOUNT_LOGE("DomainAuthResult marshalling failed.");
+        err = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
+    }
+    if (innerCallback != nullptr) {
+        DomainAccountParcel domainAccountParcel;
+        domainAccountParcel.SetParcelData(emptyParcel);
+        innerCallback->OnResult(err, domainAccountParcel);
+    }
     return ERR_OK;
 }
 
@@ -1254,7 +1252,7 @@ ErrCode InnerDomainAccountManager::StartPluginAuth(int32_t userId, const std::ve
     switch (authMode) {
         case AUTH_WITH_CREDENTIAL_MODE:
             {
-                std::lock_guard<std::recursive_mutex> lock(authContextIdMapMutex_);
+                std::lock_guard<std::recursive_mutex> lockContext(authContextIdMapMutex_);
                 uint64_t contextId = 0;
                 errCode = PluginAuth(domainInfo, authData, contextId);
                 if (errCode == ERR_OK) {
@@ -1299,28 +1297,31 @@ ErrCode InnerDomainAccountManager::InnerAuth(int32_t userId, const std::vector<u
         ACCOUNT_LOGE("failed to create innerCallback");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
-    if (plugin_ == nullptr) {
-        return StartPluginAuth(userId, authData, domainInfo, innerCallback, authMode);
-    }
-    if (authMode == AUTH_WITH_CREDENTIAL_MODE) {
-        std::lock_guard<std::recursive_mutex> lock(authContextIdMapMutex_);
-        uint64_t contextId = 0;
-        if (!GenerateContextId(contextId)) {
-            ACCOUNT_LOGE("GenerateContextId failed");
-            return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (plugin_ != nullptr) {
+            if (authMode == AUTH_WITH_CREDENTIAL_MODE) {
+                std::lock_guard<std::recursive_mutex> lockContext(authContextIdMapMutex_);
+                uint64_t contextId = 0;
+                if (!GenerateContextId(contextId)) {
+                    ACCOUNT_LOGE("GenerateContextId failed");
+                    return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+                }
+                if (!AddToContextMap(contextId, innerCallback)) {
+                    ACCOUNT_LOGE("AddToContextMap failed");
+                    return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+                }
+            }
+            auto task = [this, domainInfo, authData, innerCallback, authMode, plugin = plugin_] {
+                this->StartAuth(plugin, domainInfo, authData, innerCallback, authMode);
+            };
+            std::thread taskThread(task);
+            pthread_setname_np(taskThread.native_handle(), THREAD_INNER_AUTH);
+            taskThread.detach();
+            return ERR_OK;
         }
-        if (!AddToContextMap(contextId, innerCallback)) {
-            ACCOUNT_LOGE("AddToContextMap failed");
-            return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
-        }
     }
-    auto task = [this, domainInfo, authData, innerCallback, authMode, plugin = plugin_] {
-        this->StartAuth(plugin, domainInfo, authData, innerCallback, authMode);
-    };
-    std::thread taskThread(task);
-    pthread_setname_np(taskThread.native_handle(), THREAD_INNER_AUTH);
-    taskThread.detach();
-    return ERR_OK;
+    return StartPluginAuth(userId, authData, domainInfo, innerCallback, authMode);
 }
 
 ErrCode InnerDomainAccountManager::AuthUser(int32_t userId, const std::vector<uint8_t> &password,
@@ -1441,13 +1442,13 @@ ErrCode InnerDomainAccountManager::AuthWithToken(int32_t userId, const std::vect
 
 void InnerDomainAccountManager::InsertTokenToMap(int32_t userId, const std::vector<uint8_t> &token)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(tokenMutex_);
     userTokenMap_[userId] = token;
 }
 
 bool InnerDomainAccountManager::GetTokenFromMap(int32_t userId, std::vector<uint8_t> &token)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(tokenMutex_);
     auto it = userTokenMap_.find(userId);
     if (it == userTokenMap_.end()) {
         token.clear();
@@ -1459,7 +1460,7 @@ bool InnerDomainAccountManager::GetTokenFromMap(int32_t userId, std::vector<uint
 
 void InnerDomainAccountManager::RemoveTokenFromMap(int32_t userId)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(tokenMutex_);
     userTokenMap_.erase(userId);
     return;
 }
@@ -1484,12 +1485,15 @@ void InnerDomainAccountManager::NotifyDomainAccountEvent(
 
 ErrCode InnerDomainAccountManager::UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token)
 {
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
-    if ((callingUid_ != -1) && (callingUid != callingUid_)) {
-        ACCOUNT_LOGE("callingUid and register callinguid is not same!");
-        REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_SERVICE_INVALID_CALLING_UID,
-            "CallingUid and register callinguid is not same", Constants::DOMAIN_OPT_UPDATE_INFO, -1, info);
-        return ERR_DOMAIN_ACCOUNT_SERVICE_INVALID_CALLING_UID;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        int32_t callingUid = IPCSkeleton::GetCallingUid();
+        if ((callingUid_ != -1) && (callingUid != callingUid_)) {
+            ACCOUNT_LOGE("callingUid and register callinguid is not same!");
+            REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_SERVICE_INVALID_CALLING_UID,
+                "CallingUid and register callinguid is not same", Constants::DOMAIN_OPT_UPDATE_INFO, -1, info);
+            return ERR_DOMAIN_ACCOUNT_SERVICE_INVALID_CALLING_UID;
+        }
     }
     int32_t userId = 0;
     ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
@@ -1637,6 +1641,7 @@ ErrCode InnerDomainAccountManager::GetAccessToken(
     }
     GetAccessTokenOptions option(callingUid, parameters);
     std::function<void()> task;
+    std::lock_guard<std::mutex> lock(mutex_);
     if (plugin_ == nullptr) {
         task = [this, accountToken, targetInfo, option, callback] {
             this->StartPluginGetAccessToken(accountToken, targetInfo, option, callback);
@@ -1942,23 +1947,25 @@ ErrCode InnerDomainAccountManager::GetAuthStatusInfo(
             "Create DomainAccountCallbackService failed", Constants::DOMAIN_OPT_GET_INFO, -1, info);
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
-    if (plugin_ == nullptr) {
-        Parcel emptyParcel;
-        AuthStatusInfo authInfo;
-        ErrCode err = PluginGetAuthStatusInfo(info, authInfo);
-        if (!authInfo.Marshalling(emptyParcel)) {
-            ACCOUNT_LOGE("AuthStatusInfo marshalling failed.");
-            err = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (plugin_ != nullptr) {
+            auto errCode = plugin_->GetAuthStatusInfo(info, callbackService);
+            errCode = ConvertToAccountErrCode(errCode);
+            return errCode;
         }
-        DomainAccountParcel domainAccountParcel;
-        domainAccountParcel.SetParcelData(emptyParcel);
-        callbackService->OnResult(err, domainAccountParcel);
-        return ERR_OK;
     }
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto errCode = plugin_->GetAuthStatusInfo(info, callbackService);
-    errCode = ConvertToAccountErrCode(errCode);
-    return errCode;
+    Parcel emptyParcel;
+    AuthStatusInfo authInfo;
+    ErrCode err = PluginGetAuthStatusInfo(info, authInfo);
+    if (!authInfo.Marshalling(emptyParcel)) {
+        ACCOUNT_LOGE("AuthStatusInfo marshalling failed.");
+        err = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
+    }
+    DomainAccountParcel domainAccountParcel;
+    domainAccountParcel.SetParcelData(emptyParcel);
+    callbackService->OnResult(err, domainAccountParcel);
+    return ERR_OK;
 }
 
 sptr<IRemoteObject::DeathRecipient> InnerDomainAccountManager::GetDeathRecipient()
@@ -2027,6 +2034,7 @@ ErrCode InnerDomainAccountManager::HasDomainAccount(
     GetDomainAccountInfoOptions options;
     options.accountInfo = info;
     options.callingUid = callingUid;
+    std::lock_guard<std::mutex> lock(mutex_);
     auto task = [this, options, callback, plugin = plugin_] { this->StartHasDomainAccount(plugin, options, callback); };
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_HAS_ACCOUNT);
@@ -2083,6 +2091,7 @@ ErrCode InnerDomainAccountManager::OnAccountBound(const DomainAccountInfo &info,
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
     std::function<void()> task;
+    std::lock_guard<std::mutex> lock(mutex_);
     if (plugin_ == nullptr) {
         task = [this, info, localId, callbackService, callingUid = IPCSkeleton::GetCallingUid()] {
             this->StartPluginOnAccountBindOrUnBind(info, localId, callbackService, true, callingUid);
@@ -2125,6 +2134,7 @@ ErrCode InnerDomainAccountManager::OnAccountUnBound(const DomainAccountInfo &inf
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
     std::function<void()> task;
+    std::lock_guard<std::mutex> lock(mutex_);
     if (plugin_ == nullptr) {
         task = [this, info, localId, callbackService] {
             this->StartPluginOnAccountBindOrUnBind(info, localId, callbackService, false);
@@ -2194,13 +2204,16 @@ ErrCode InnerDomainAccountManager::GetDomainAccountInfo(const DomainAccountInfo 
         ACCOUNT_LOGW("Domain Account not bind");
         return ERR_OK;
     }
-    if (plugin_ == nullptr) {
-        GetDomainAccountInfoOptions options;
-        options.accountInfo = info;
-        options.callingUid = IPCSkeleton::GetCallingUid();
-        return PluginGetDomainAccountInfo(options, result);
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (plugin_ != nullptr) {
+            return ERR_OK;
+        }
     }
-    return ERR_OK;
+    GetDomainAccountInfoOptions options;
+    options.accountInfo = info;
+    options.callingUid = IPCSkeleton::GetCallingUid();
+    return PluginGetDomainAccountInfo(options, result);
 }
 
 void InnerDomainAccountManager::StartPluginGetDomainAccountInfo(GetDomainAccountInfoOptions options,
@@ -2255,6 +2268,7 @@ ErrCode InnerDomainAccountManager::GetDomainAccountInfo(
     options.accountInfo = info;
     options.callingUid = callingUid;
     std::function<void()> task;
+    std::lock_guard<std::mutex> lock(mutex_);
     if (plugin_ == nullptr) {
         task = [this, options, callbackService] {
             this->StartPluginGetDomainAccountInfo(options, callbackService);
@@ -2319,6 +2333,7 @@ ErrCode InnerDomainAccountManager::IsAccountTokenValid(const DomainAccountInfo &
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
     std::function<void()> task;
+    std::lock_guard<std::mutex> lock(mutex_);
     if (plugin_ == nullptr) {
         task = [this, info, token, callbackService] {
             this->StartPluginIsAccountTokenValid(info, token, callbackService);
@@ -2473,12 +2488,17 @@ ErrCode InnerDomainAccountManager::UpdateAccountInfo(
         }
     } else {
         // update account info
-        if (plugin_ == nullptr) {
-            result = PluginUpdateAccountInfo(oldAccountInfo, newDomainAccountInfo);
-            if (result != ERR_OK) {
-                ACCOUNT_LOGE("PluginUpdateAccountInfo failed, errCode = %{public}d", result);
-                return result;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            if (plugin_ != nullptr) {
+                return IInnerOsAccountManager::GetInstance().UpdateAccountInfoByDomainAccountInfo(
+                    userId, newDomainAccountInfo);
             }
+        }
+        result = PluginUpdateAccountInfo(oldAccountInfo, newDomainAccountInfo);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGE("PluginUpdateAccountInfo failed, errCode = %{public}d", result);
+            return result;
         }
     }
 
