@@ -119,7 +119,7 @@ ohos_moduletest("account_command_module_mock_test") {
   if (os_account_support_lock_os_account) {
     cflags_cc += [ "-DSUPPORT_LOCK_OS_ACCOUNT" ]
   }
-  if (os_account_distributed_feature) {
+  if (os_account_distributed_feature && !use_libfuzzer) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
     sources +=
         [ "${services_path}/accountmgr/src/account_file_watcher_manager.cpp" ]
@@ -192,7 +192,7 @@ ohos_moduletest("account_command_module_test") {
     "ipc:ipc_single",
   ]
   cflags_cc = [ "-DACCOUNT_TEST" ]
-  if (os_account_distributed_feature) {
+  if (os_account_distributed_feature && !use_libfuzzer) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
   }
 }

@@ -214,7 +214,7 @@ ohos_moduletest("app_account_manager_service_associated_data_test") {
     cflags += [ "-DDISTRIBUTED_FEATURE_ENABLED" ]
   }
 
-  if (os_account_distributed_feature) {
+  if (os_account_distributed_feature && !use_libfuzzer) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
   }
 }
@@ -481,7 +481,7 @@ ohos_moduletest("app_account_control_manager_module_test") {
     cflags += [ "-DDISTRIBUTED_FEATURE_ENABLED" ]
   }
 
-  if (os_account_distributed_feature) {
+  if (os_account_distributed_feature && !use_libfuzzer) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
   }
 
@@ -615,7 +615,7 @@ ohos_moduletest("app_account_authenticator_session_module_test") {
     ]
   }
   cflags_cc = []
-  if (os_account_distributed_feature) {
+  if (os_account_distributed_feature && !use_libfuzzer) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
   }
 }
