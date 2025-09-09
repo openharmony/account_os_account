@@ -110,7 +110,7 @@ std::vector<AppAccountSubscribeRecordPtr> AppAccountSubscribeManager::GetSubscri
 {
     auto records = std::vector<AppAccountSubscribeRecordPtr>();
 
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (ownerSubscribeRecords_.size() == 0) {
         return records;
     }
@@ -219,6 +219,7 @@ ErrCode AppAccountSubscribeManager::CheckAppAccess(const std::shared_ptr<AppAcco
 void AppAccountSubscribeManager::ClearOldData(const sptr<IRemoteObject> &eventListener, const std::string &owner,
     std::map<std::string, std::multiset<AppAccountSubscribeRecordPtr>>::iterator &item)
 {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     for (auto it = item->second.begin(); it != item->second.end(); ++it) {
         if ((eventListener == (*it)->eventListener) || ((*it)->eventListener == nullptr)) {
             ACCOUNT_LOGI("The subscription record already exists. Update the owner operation");
@@ -242,7 +243,7 @@ ErrCode AppAccountSubscribeManager::InsertSubscribeRecord(
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
 
-    std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
 
     auto eventListener = subscribeRecordPtr->eventListener;
     for (auto owner : owners) {
@@ -273,6 +274,7 @@ ErrCode AppAccountSubscribeManager::InsertSubscribeRecord(
 void AppAccountSubscribeManager::RefreshOldData(const sptr<IRemoteObject> &eventListener, const std::string &owner,
     const std::vector<std::string> &ownerList, const std::vector<std::string> &newOwners)
 {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     for (auto it = ownerSubscribeRecords_[owner].begin(); it != ownerSubscribeRecords_[owner].end(); ++it) {
         if ((eventListener == (*it)->eventListener) || ((*it)->eventListener == nullptr)) {
             ACCOUNT_LOGI("Clear owner only, owner size=%{public}zu.", newOwners.size());
@@ -295,7 +297,7 @@ ErrCode AppAccountSubscribeManager::RemoveSubscribeRecord(const sptr<IRemoteObje
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
 
-    std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
 
     std::vector<std::string> owners;
     std::vector<std::string> newOwners;
