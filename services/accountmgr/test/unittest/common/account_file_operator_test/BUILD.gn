@@ -62,7 +62,7 @@ ohos_unittest("AccountFileOperatorTest") {
   ]
   part_name = "os_account"
   cflags_cc = []
-  if (os_account_distributed_feature) {
+  if (os_account_distributed_feature && !use_libfuzzer) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
   }
 }
