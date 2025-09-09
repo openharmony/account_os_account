@@ -24,7 +24,7 @@ namespace OHOS {
 namespace AccountSA {
 
 AccountDataStorage::AccountDataStorage(const std::string &appId, const std::string &storeId,
-    const AccountDataStorageOptions &options)
+    const DbAdapterOptions &options)
 {
     ACCOUNT_LOGI("mock enter");
 }
@@ -34,15 +34,15 @@ AccountDataStorage::~AccountDataStorage()
     ACCOUNT_LOGI("mock enter");
 }
 
-void AccountDataStorage::TryTwice(const std::function<DistributedKv::Status()> &func) const
+void AccountDataStorage::TryTwice(const std::function<DbAdapterStatus()> &func) const
 {
     ACCOUNT_LOGI("mock enter");
 }
 
-OHOS::DistributedKv::Status AccountDataStorage::GetKvStore()
+DbAdapterStatus AccountDataStorage::GetKvStore()
 {
     ACCOUNT_LOGI("mock enter");
-    return OHOS::DistributedKv::Status::SUCCESS;
+    return DbAdapterStatus::SUCCESS;
 }
 
 bool AccountDataStorage::CheckKvStore()
@@ -75,11 +75,11 @@ ErrCode AccountDataStorage::RemoveValueFromKvStore(const std::string &keyStr)
     return ERR_OK;
 }
 
-OHOS::DistributedKv::Status AccountDataStorage::GetEntries(
-    std::string subId, std::vector<OHOS::DistributedKv::Entry> &allEntries) const
+DbAdapterStatus AccountDataStorage::GetEntries(
+    std::string subId, std::vector<DbAdapterEntry> &allEntries) const
 {
     ACCOUNT_LOGI("mock enter");
-    return OHOS::DistributedKv::Status::SUCCESS;
+    return DbAdapterStatus::SUCCESS;
 }
 
 ErrCode AccountDataStorage::Close()

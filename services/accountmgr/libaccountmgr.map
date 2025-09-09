@@ -83,7 +83,7 @@
         "OHOS::AccountSA::AppAccountControlManager::GetAllAccessibleAccountsFromDataStorage(std::__h::vector<OHOS::AccountSA::AppAccountInfo, std::__h::allocator<OHOS::AccountSA::AppAccountInfo>>&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::shared_ptr<OHOS::AccountSA::AppAccountDataStorage> const&, unsigned int const&)";
         "OHOS::AccountSA::AppAccountControlManager::GetAllAccountsFromDataStorage(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::vector<OHOS::AccountSA::AppAccountInfo, std::__h::allocator<OHOS::AccountSA::AppAccountInfo>>&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::shared_ptr<OHOS::AccountSA::AppAccountDataStorage> const&)";
         "OHOS::AccountSA::AppAccountControlManager::GetAllOAuthTokens(OHOS::AccountSA::AuthenticatorSessionRequest const&, std::__h::vector<OHOS::AccountSA::OAuthTokenInfo, std::__h::allocator<OHOS::AccountSA::OAuthTokenInfo>>&)";
-        "OHOS::AccountSA::AppAccountControlManager::GetDataStorage(unsigned int const&, bool const&, OHOS::DistributedKv::SecurityLevel)";
+        "OHOS::AccountSA::AppAccountControlManager::GetDataStorage(unsigned int const&, bool const&, OHOS::AccountSA::DbAdapterSecurityLevel)";
         "OHOS::AccountSA::AppAccountControlManager::NeedSyncDataStorage(OHOS::AccountSA::AppAccountInfo const&)";
         "OHOS::AccountSA::AppAccountControlManager::RemoveAuthorizedAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::AppAccountInfo&, std::__h::shared_ptr<OHOS::AccountSA::AppAccountDataStorage> const&, unsigned int const&)";
         "OHOS::AccountSA::AppAccountControlManager::RemoveAuthorizedAccountFromDataStorage(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::AppAccountInfo&, std::__h::shared_ptr<OHOS::AccountSA::AppAccountDataStorage> const&)";
@@ -97,7 +97,7 @@
         "OHOS::AccountSA::AppAccountControlManager::OnUserRemoved(int)";
         "OHOS::AccountSA::AppAccountControlManager::OnPackageRemoved(unsigned int const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int const&)";
         "OHOS::AccountSA::AppAccountDataStorage::AddAccountInfoIntoDataStorage(OHOS::AccountSA::AppAccountInfo&)";
-        "OHOS::AccountSA::AppAccountDataStorage::AppAccountDataStorage(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::AccountDataStorageOptions const&)";
+        "OHOS::AccountSA::AppAccountDataStorage::AppAccountDataStorage(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::DbAdapterOptions const&)";
         "OHOS::AccountSA::AppAccountDataStorage::AUTHORIZED_ACCOUNTS";
         "OHOS::AccountSA::AppAccountDataStorage::GetAccessibleAccountsFromDataStorage(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>&)";
         "OHOS::AccountSA::AppAccountManagerService::AppAccountManagerService()";
@@ -357,13 +357,13 @@
         "OHOS::AccountSA::AbilityManagerAdapter::DisconnectAbility(OHOS::sptr<OHOS::AAFwk::IAbilityConnection> const&)";
         "OHOS::AccountSA::AppAccountControlManager::GetInstance()";
         "OHOS::AccountSA::AppAccountControlManager::AddAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::AppAccountInfo&)";
-        "OHOS::AccountSA::AccountDataStorage::AccountDataStorage(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::AccountDataStorageOptions const&)";
+        "OHOS::AccountSA::AccountDataStorage::AccountDataStorage(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::DbAdapterOptions const&)";
         "OHOS::AccountSA::AccountDataStorage::GetValueFromKvStore(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&)";
         "OHOS::AccountSA::AccountDataStorage::GetAccountInfoById(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, OHOS::AccountSA::IAccountInfo&)";
         "OHOS::AccountSA::AccountDataStorage::AddAccountInfo(OHOS::AccountSA::IAccountInfo const&)";
         "OHOS::AccountSA::AccountDataStorage::SaveAccountInfo(OHOS::AccountSA::IAccountInfo const&)";
         "OHOS::AccountSA::AccountDataStorage::RemoveValueFromKvStore(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
-        "OHOS::AccountSA::AppAccountControlManager::GetDataStorage(unsigned int const&, bool const&, OHOS::DistributedKv::SecurityLevel)";
+        "OHOS::AccountSA::AppAccountControlManager::GetDataStorage(unsigned int const&, bool const&, OHOS::AccountSA::DbAdapterSecurityLevel)";
         "OHOS::AccountSA::AppAccountManagerService::AppAccountManagerService()";
         "OHOS::AccountSA::AccountDataStorage::IsKeyExists(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>)";
         "OHOS::AccountSA::AccountDataStorage::PutValueToKvStore(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
@@ -389,6 +389,8 @@
         "OHOS::AccountSA::PrepareRemoteAuthCallbackWrapper::PrepareRemoteAuthCallbackWrapper(OHOS::sptr<OHOS::AccountSA::IPreRemoteAuthCallback> const&)";
         OHOS::AccountSA::OhosAccountManager::QueryDistributedVirtualDeviceId*;
         "OHOS::AccountSA::AuthenticatorSessionRequest::~AuthenticatorSessionRequest()";
+        "OHOS::AccountSA::DatabaseAdapterLoader::GetInstance()";
+        "OHOS::AccountSA::DatabaseAdapterLoader::GetDataManager()";
     };
   local:
     *;

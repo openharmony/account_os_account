@@ -3101,7 +3101,6 @@ HWTEST_F(AppAccountManagerServiceModuleTest, CallbackExit01, TestSize.Level3)
     EXPECT_EQ(subscriber->CallbackExit(TEST_CODE, TEST_ID), ERR_OK);
 }
 
-
 /**
  * @tc.name: MoveData_0100
  * @tc.desc: test MoveData.
@@ -3110,7 +3109,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, CallbackExit01, TestSize.Level3)
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, MoveData_0100, TestSize.Level0)
 {
-    AccountDataStorageOptions options;
+    DbAdapterOptions options;
     options.baseDir = "/data/test/" + std::to_string(TEST_MOVE_ID) + "/movedata/database";
     auto oldDatamanager = std::make_shared<AppAccountDataStorage>(
         "accounttest_" + std::to_string(TEST_MOVE_ID), options);
@@ -3123,7 +3122,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, MoveData_0100, TestSize.Level0)
     AppAccountControlManager::GetInstance().MoveData();
     EXPECT_EQ(AppAccountControlManager::GetInstance().migratedAccounts_.empty(), true);
     options.encrypt = false;
-    options.area = DistributedKv::EL2;
+    options.area = DbAdapterArea::EL2;
     options.baseDir = EL2_DATA_STORAGE_PATH_PREFIX + std::to_string(TEST_MOVE_ID) + EL2_DATA_STORAGE_PATH_SUFFIX;
     auto newDatamanager = std::make_shared<AppAccountDataStorage>(
         EL2_DATA_STORE_PREFIX + std::to_string(TEST_MOVE_ID), options);

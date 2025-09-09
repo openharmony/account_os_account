@@ -24,6 +24,8 @@
 
 namespace OHOS {
 namespace AccountSA {
+const int32_t SQLITE_HELPER_SUCCESS = 0;
+
 class SqliteHelper {
 public:
     SqliteHelper(const std::string& dbName, const std::string& dbPath, int32_t version);

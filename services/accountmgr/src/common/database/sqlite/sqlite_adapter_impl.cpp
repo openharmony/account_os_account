@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -194,16 +194,13 @@ DbAdapterStatus DbAdapterSqlite::Delete(const std::string &keyStr)
     std::string sql = GenerateDeleteSql(DataType::ACCOUNT_INFO_DATA_TYPE);
     Utils::UniqueWriteGuard<Utils::RWLock> lock(DATABASE_RWLOCK);
     Statement statement = appAccountDb_->Prepare(sql);
-    appAccountDb_->BeginTransaction();
     VariantValue deleteKey(keyStr);
     statement.Bind(ACCOUNT_INFO_TABLE_KEY, deleteKey);
     int32_t ret = statement.Step();
     if (ret != Statement::State::DONE) {
         ACCOUNT_LOGE("Remove error, ret %{public}d", ret);
-        appAccountDb_->RollbackTransaction();
         return DbAdapterStatus::INTERNAL_ERROR;
     }
-    appAccountDb_->CommitTransaction();
     return DbAdapterStatus::SUCCESS;
 }
 
@@ -232,7 +229,6 @@ DbAdapterStatus DbAdapterSqlite::Put(const std::string &keyStr, const std::strin
     std::string sql = GeneratePutSql(DataType::ACCOUNT_INFO_DATA_TYPE);
     Utils::UniqueWriteGuard<Utils::RWLock> lock(DATABASE_RWLOCK);
     Statement statement = appAccountDb_->Prepare(sql);
-    appAccountDb_->BeginTransaction();
     VariantValue insertKey(keyStr);
     statement.Bind(ACCOUNT_INFO_TABLE_KEY, insertKey);
     VariantValue insertValue(valueStr);
@@ -240,10 +236,8 @@ DbAdapterStatus DbAdapterSqlite::Put(const std::string &keyStr, const std::strin
     int32_t ret = statement.Step();
     if (ret != Statement::State::DONE) {
         ACCOUNT_LOGE("Insert error, ret %{public}d", ret);
-        appAccountDb_->RollbackTransaction();
         return DbAdapterStatus::INTERNAL_ERROR;
     }
-    appAccountDb_->CommitTransaction();
     return DbAdapterStatus::SUCCESS;
 }
 
@@ -292,11 +286,52 @@ DbAdapterStatus DbAdapterSqlite::GetEntries(const std::string subId,
     return DbAdapterStatus::SUCCESS;
 }
 
+DbAdapterStatus DbAdapterSqlite::Commit()
+{
+    Utils::UniqueWriteGuard<Utils::RWLock> lock(DATABASE_RWLOCK);
+    if (appAccountDb_->CommitTransaction() != SQLITE_HELPER_SUCCESS) {
+        ACCOUNT_LOGE("Commit transaction failed.");
+        return DbAdapterStatus::INTERNAL_ERROR;
+    } else {
+        return DbAdapterStatus::SUCCESS;
+    }
+}
+
+DbAdapterStatus DbAdapterSqlite::Rollback()
+{
+    Utils::UniqueWriteGuard<Utils::RWLock> lock(DATABASE_RWLOCK);
+    if (appAccountDb_->RollbackTransaction() != SQLITE_HELPER_SUCCESS) {
+        ACCOUNT_LOGE("Rollback transaction failed.");
+        return DbAdapterStatus::INTERNAL_ERROR;
+    } else {
+        return DbAdapterStatus::SUCCESS;
+    }
+}
+
+DbAdapterStatus DbAdapterSqlite::StartTransaction()
+{
+    Utils::UniqueWriteGuard<Utils::RWLock> lock(DATABASE_RWLOCK);
+    if (appAccountDb_->BeginTransaction() != SQLITE_HELPER_SUCCESS) {
+        ACCOUNT_LOGE("Start transaction failed.");
+        return DbAdapterStatus::INTERNAL_ERROR;
+    } else {
+        return DbAdapterStatus::SUCCESS;
+    }
+}
+
+DbAdapterStatus DbAdapterSqlite::PutBatch(const std::vector<DbAdapterEntry> &entries)
+{
+    //No need to batch put
+    ACCOUNT_LOGI("Sqlite PutBatch not enabled.");
+    return DbAdapterStatus::NOT_SUPPORT;
+}
+
 DbAdapterStatus SqliteAdapterDataManager::CloseKvStore(const std::string appIdStr,
     std::shared_ptr<IDbAdapterSingleStore> &kvStorePtr)
 {
     // No need to close
     kvStorePtr = nullptr;
+    ACCOUNT_LOGI("Sqlite CloseKvStore not enabled.");
     return DbAdapterStatus::SUCCESS;
 }
 
@@ -309,6 +344,27 @@ DbAdapterStatus SqliteAdapterDataManager::GetSingleKvStore(const DbAdapterOption
     }
     kvStorePtr = std::dynamic_pointer_cast<IDbAdapterSingleStore>(storeImpl);
     return DbAdapterStatus::SUCCESS;
+}
+
+DbAdapterStatus SqliteAdapterDataManager::DeleteKvStore(const std::string &appIdStr,
+    const std::string &storeIdStr, const std::string &baseDir)
+{
+    // delete not enabled
+    ACCOUNT_LOGI("Sqlite DeleteKvStore not enabled.");
+    return DbAdapterStatus::NOT_SUPPORT;
+}
+
+DbAdapterStatus SqliteAdapterDataManager::GetAllKvStoreId(const std::string &appIdStr,
+    std::vector<std::string> &storeIdList)
+{
+    // No need to get all kv store id
+    ACCOUNT_LOGI("Sqlite GetAllKvStoreId not enabled.");
+    return DbAdapterStatus::NOT_SUPPORT;
+}
+
+bool SqliteAdapterDataManager::IsKvStore()
+{
+    return false;
 }
 
 extern "C" {

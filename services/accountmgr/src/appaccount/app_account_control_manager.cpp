@@ -25,10 +25,10 @@
 #ifdef HAS_ASSET_PART
 #include "asset_system_api.h"
 #endif
-#include "bundle_manager_adapter.h"
 #ifdef SQLITE_DLCLOSE_ENABLE
 #include "database_adapter_loader.h"
 #endif // SQLITE_DLCLOSE_ENABLE
+#include "bundle_manager_adapter.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "ohos_account_kits.h"
@@ -168,16 +168,16 @@ static ErrCode RemoveDataFromAssetByLabel(int32_t localId, int32_t tag, const st
 }
 #endif
 
-#ifndef SQLITE_DLCLOSE_ENABLE
+
 void AppAccountControlManager::MoveData()
 {
-    DistributedKv::DistributedKvDataManager dataManager;
-    DistributedKv::AppId appId = { .appId = Constants::APP_ACCOUNT_APP_ID };
-    std::vector<DistributedKv::StoreId> storeIdList;
+#ifndef SQLITE_DLCLOSE_ENABLE
+    std::shared_ptr<KvStoreAdapterDataManager> dataManager = std::make_shared<KvStoreAdapterDataManager>();
     std::lock_guard<std::mutex> storeIdLock(storePtrMutex_);
-    OHOS::DistributedKv::Status status = dataManager.GetAllKvStoreId(appId, storeIdList);
-    if (status != OHOS::DistributedKv::Status::SUCCESS) {
-        ACCOUNT_LOGE("GetAllKvStoreId failed, status=%{public}u", status);
+    std::vector<std::string> storeIdList;
+    DbAdapterStatus status = dataManager->GetAllKvStoreId(Constants::APP_ACCOUNT_APP_ID, storeIdList);
+    if (status != DbAdapterStatus::SUCCESS) {
+        ACCOUNT_LOGE("GetAllKvStoreId failed, status=%{public}d", status);
         return;
     }
     std::lock_guard<std::mutex> accountIdLock(migratedAccountMutex_);
@@ -188,14 +188,14 @@ void AppAccountControlManager::MoveData()
                 || storeId.find(userId) == std::string::npos) {
                 continue;
             }
-            AccountDataStorageOptions options;
+            DbAdapterOptions options;
             if (storeId.find(DATA_STORAGE_PREFIX) != std::string::npos) {
                 options.encrypt = true;
             }
             ACCOUNT_LOGI("MoveData start, storeId=%{public}s", storeId.c_str());
             auto oldPtr = std::make_shared<AppAccountDataStorage>(storeId, options);
             options.encrypt = false;
-            options.area = DistributedKv::EL2;
+            options.area = DbAdapterArea::EL2;
             options.baseDir = EL2_DATA_STORAGE_PATH_PREFIX + userId + EL2_DATA_STORAGE_PATH_SUFFIX;
             auto newPtr = std::make_shared<AppAccountDataStorage>(EL2_DATA_STORE_PREFIX + userId, options);
             ErrCode result = newPtr->MoveData(oldPtr);
@@ -212,13 +212,10 @@ void AppAccountControlManager::MoveData()
         migratedAccounts_.erase(migratedAccounts_.begin());
     }
     ACCOUNT_LOGI("MoveData complete");
-}
 #else
-void AppAccountControlManager::MoveData()
-{
-    ACCOUNT_LOGI("MoveData not enabled.");
-}
+    ACCOUNT_LOGE("MoveData not enabled.");
 #endif // SQLITE_DLCLOSE_ENABLE
+}
 
 void AppAccountControlManager::AddMigratedAccount(int32_t localId)
 {
@@ -1268,22 +1265,6 @@ ErrCode AppAccountControlManager::GetAllAccessibleAccountsFromDataStorage(
     return ERR_OK;
 }
 
-#ifndef SQLITE_DLCLOSE_ENABLE
-std::shared_ptr<AppAccountDataStorage> AppAccountControlManager::GetDataStorageByUserId(
-    int32_t userId, const bool &autoSync, DistributedKv::SecurityLevel securityLevel)
-{
-    std::string storeId = std::to_string(userId);
-    if (autoSync == true) {
-        storeId = storeId + DATA_STORAGE_SUFFIX;
-    }
-    std::lock_guard<std::mutex> lock(storePtrMutex_);
-    auto it = storePtrMap_.find(storeId);
-    if ((it != storePtrMap_.end()) && (it->second != nullptr)) {
-        return it->second;
-    }
-    AccountDataStorageOptions options;
-    options.area = DistributedKv::EL2;
-#else
 std::shared_ptr<AppAccountDataStorage> AppAccountControlManager::GetDataStorageByUserId(
     int32_t userId, const bool &autoSync, DbAdapterSecurityLevel securityLevel)
 {
@@ -1298,7 +1279,6 @@ std::shared_ptr<AppAccountDataStorage> AppAccountControlManager::GetDataStorageB
     }
     DbAdapterOptions options;
     options.area = DbAdapterArea::EL2;
-#endif // SQLITE_DLCLOSE_ENABLE
     options.autoSync = autoSync;
     options.securityLevel = securityLevel;
     options.baseDir = EL2_DATA_STORAGE_PATH_PREFIX + std::to_string(userId) + EL2_DATA_STORAGE_PATH_SUFFIX;
@@ -1307,13 +1287,8 @@ std::shared_ptr<AppAccountDataStorage> AppAccountControlManager::GetDataStorageB
     return storePtr;
 }
 
-#ifndef SQLITE_DLCLOSE_ENABLE
-std::shared_ptr<AppAccountDataStorage> AppAccountControlManager::GetDataStorage(
-    const uid_t &uid, const bool &autoSync, DistributedKv::SecurityLevel securityLevel)
-#else
 std::shared_ptr<AppAccountDataStorage> AppAccountControlManager::GetDataStorage(
     const uid_t &uid, const bool &autoSync, DbAdapterSecurityLevel securityLevel)
-#endif // SQLITE_DLCLOSE_ENABLE
 {
     return GetDataStorageByUserId(uid / UID_TRANSFORM_DIVISOR, autoSync, securityLevel);
 }

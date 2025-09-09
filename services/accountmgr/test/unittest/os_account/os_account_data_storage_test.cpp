@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -95,7 +95,6 @@ HWTEST_F(OsAccountDataStorageTest, OsAccountDataStorageTest001, TestSize.Level1)
 HWTEST_F(OsAccountDataStorageTest, OsAccountDataStorageTest002, TestSize.Level3)
 {
     EXPECT_EQ(osAccountDataStorage_->MoveData(nullptr), ERR_ACCOUNT_COMMON_CHECK_KVSTORE_ERROR);
-    AccountDataStorageOptions options;
     std::shared_ptr<OsAccountDataStorage> testOsAccountDataStorageNull =
         std::make_shared<OsAccountDataStorage>("", "", false);
     EXPECT_EQ(osAccountDataStorage_->MoveData(testOsAccountDataStorageNull), ERR_ACCOUNT_COMMON_CHECK_KVSTORE_ERROR);
