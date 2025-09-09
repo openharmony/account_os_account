@@ -526,7 +526,10 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &localNam
         ACCOUNT_LOGE("Insert os account info err, errCode %{public}d.", errCode);
         return errCode;
     }
-    osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
+    errCode = osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Update account index failed, errCode = %{public}d", errCode);
+    }
 
     errCode = osAccountControl_->UpdateBaseOAConstraints(std::to_string(osAccountInfo.GetLocalId()),
         osAccountInfo.GetConstraints(), true);
@@ -601,7 +604,10 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfoWithFullInfo(OsAccountInfo &
         return errCode;
     }
 
-    osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
+    errCode = osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Update account index failed, errCode = %{public}d", errCode);
+    }
 
     std::vector<std::string> constraints;
     constraints.clear();
@@ -748,7 +754,10 @@ ErrCode IInnerOsAccountManager::UpdateFirstOsAccountInfo(OsAccountInfo& accountI
             "Failed to update OS account");
         return code;
     }
-    osAccountControl_->UpdateAccountIndex(accountInfoOld, false);
+    code = osAccountControl_->UpdateAccountIndex(accountInfoOld, false);
+    if (code != ERR_OK) {
+        ACCOUNT_LOGE("Update account index failed, errCode = %{public}d", code);
+    }
     osAccountInfo = accountInfoOld;
     return ERR_OK;
 }
@@ -998,7 +1007,7 @@ ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type,
     }
     errCode = osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Failed to update account index.");
+        ACCOUNT_LOGE("Update account index failed, errCode = %{public}d", errCode);
         return errCode;
     }
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
@@ -1077,7 +1086,7 @@ void IInnerOsAccountManager::CheckAndRefreshLocalIdRecord(const int id)
             }
         }
     };
-    
+
     defaultActivatedIds_.Iterate(it);
     for (const auto& update : updatesVec) {
         uint64_t displayId = update.first;
@@ -1085,9 +1094,12 @@ void IInnerOsAccountManager::CheckAndRefreshLocalIdRecord(const int id)
         osAccountControl_->SetDefaultActivatedOsAccount(displayId, newId);
         defaultActivatedIds_.EnsureInsert(displayId, newId);
     }
-    
+
     if (id == deviceOwnerId_) {
-        osAccountControl_->UpdateDeviceOwnerId(-1);
+        ErrCode errCode = osAccountControl_->UpdateDeviceOwnerId(-1);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("Update device owner id failed, errCode = %{public}d", errCode);
+        }
     }
     return;
 }
@@ -1108,7 +1120,10 @@ ErrCode IInnerOsAccountManager::PrepareRemoveOsAccount(OsAccountInfo &osAccountI
     DomainAccountInfo curDomainInfo;
     osAccountInfo.GetDomainInfo(curDomainInfo);
     if (!curDomainInfo.accountName_.empty()) {
-        InnerDomainAccountManager::GetInstance().OnAccountUnBound(curDomainInfo, nullptr, id);
+        errCode = InnerDomainAccountManager::GetInstance().OnAccountUnBound(curDomainInfo, nullptr, id);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("On account unbound failed, errCode = %{public}d", errCode);
+        }
         InnerDomainAccountManager::GetInstance().RemoveTokenFromMap(id);
     }
 #endif // SUPPORT_DOMAIN_ACCOUNTS
@@ -1689,7 +1704,10 @@ ErrCode IInnerOsAccountManager::SetGlobalOsAccountConstraints(const std::vector<
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
-    osAccountControl_->UpdateGlobalOAConstraints(std::to_string(enforcerId), constraints, enable);
+    errCode = osAccountControl_->UpdateGlobalOAConstraints(std::to_string(enforcerId), constraints, enable);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Update global OA constraints failed, errCode = %{public}d", errCode);
+    }
 
     errCode = DealWithDeviceOwnerId(isDeviceOwner, enforcerId);
     if (errCode != ERR_OK) {
@@ -1724,8 +1742,11 @@ ErrCode IInnerOsAccountManager::SetSpecificOsAccountConstraints(const std::vecto
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
-    osAccountControl_->UpdateSpecificOAConstraints(
+    errCode = osAccountControl_->UpdateSpecificOAConstraints(
         std::to_string(enforcerId), std::to_string(targetId), constraints, enable);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Update specific OA constraints failed, errCode = %{public}d", errCode);
+    }
 
     errCode = DealWithDeviceOwnerId(isDeviceOwner, enforcerId);
     if (errCode != ERR_OK) {
@@ -1816,6 +1837,7 @@ int32_t IInnerOsAccountManager::CleanGarbageOsAccounts(int32_t excludeId)
             ACCOUNT_LOGE("Remove account %{public}d failed! errCode %{public}d.", id, errCode);
         } else {
             ACCOUNT_LOGI("Remove account %{public}d succeed!", id);
+            ReportOsAccountLifeCycle(id, Constants::OPERATION_CLEAN);
             removeNum++;
         }
     }
@@ -1990,7 +2012,10 @@ ErrCode IInnerOsAccountManager::SetOsAccountName(const int id, const std::string
         ACCOUNT_LOGE("Update osaccount info error %{public}d, id: %{public}d", errCode, osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
-    osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
+    errCode = osAccountControl_->UpdateAccountIndex(osAccountInfo, false);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Update account index failed, errCode = %{public}d", errCode);
+    }
     OsAccountInterface::PublishCommonEvent(
         osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, OPERATION_UPDATE);
     return ERR_OK;
