@@ -1692,7 +1692,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, InnerGenerateContextId001, T
     // remove contextid 2
     InnerDomainAccountManager::GetInstance().EraseFromContextMap(contextId2);
     InnerDomainAccountManager::GetInstance().contextIdCount_ = 0;
-    uint64_t contextId4 = 0;
+    uint64_t contextId4 = 1;
     ASSERT_TRUE(InnerDomainAccountManager::GetInstance().GenerateContextId(contextId4));
     EXPECT_EQ(contextId4, contextId2);
     InnerDomainAccountManager::GetInstance().authContextIdMap_.clear();

@@ -988,7 +988,7 @@ HWTEST_F(OsAccountTest, OsAccountGetForegroundOsAccountLocalIdTest002, TestSize.
     }
     
     // Test multiple calls for consistency
-    int32_t localId2 = -1;
+    int32_t localId2 = -2;
     ErrCode result2 = g_osAccount->GetForegroundOsAccountLocalId(localId2);
     
     // If both succeed, they should return the same value
