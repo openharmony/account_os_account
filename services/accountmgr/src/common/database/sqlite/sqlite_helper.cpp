@@ -88,7 +88,7 @@ int32_t SqliteHelper::BeginTransaction() const
         return GENERAL_ERROR;
     }
     char* errorMessage = nullptr;
-    int32_t result = 0;
+    int32_t result = SQLITE_HELPER_SUCCESS;
     int32_t ret = sqlite3_exec(db_, "BEGIN;", nullptr, nullptr, &errorMessage);
     if (ret != SQLITE_OK) {
         ACCOUNT_LOGE("Failed, errorMsg: %{public}s", errorMessage);
@@ -105,7 +105,7 @@ int32_t SqliteHelper::CommitTransaction() const
         return GENERAL_ERROR;
     }
     char* errorMessage = nullptr;
-    int32_t result = 0;
+    int32_t result = SQLITE_HELPER_SUCCESS;
     int32_t ret = sqlite3_exec(db_, "COMMIT;", nullptr, nullptr, &errorMessage);
     if (ret != SQLITE_OK) {
         ACCOUNT_LOGE("Failed, errorMsg: %{public}s", errorMessage);
@@ -122,7 +122,7 @@ int32_t SqliteHelper::RollbackTransaction() const
         ACCOUNT_LOGW("Do open data base first!");
         return GENERAL_ERROR;
     }
-    int32_t result = 0;
+    int32_t result = SQLITE_HELPER_SUCCESS;
     char* errorMessage = nullptr;
     int32_t ret = sqlite3_exec(db_, "ROLLBACK;", nullptr, nullptr, &errorMessage);
     if (ret != SQLITE_OK) {

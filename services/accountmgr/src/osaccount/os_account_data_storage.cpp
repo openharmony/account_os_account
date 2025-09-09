@@ -27,29 +27,6 @@ OsAccountDataStorage::OsAccountDataStorage(const std::string &appId, const std::
     : AccountDataStorage(appId, storeId, { .autoSync = autoSync })
 {}
 
-#ifndef SQLITE_DLCLOSE_ENABLE
-void OsAccountDataStorage::SaveEntries(const std::vector<OHOS::DistributedKv::Entry> &allEntries,
-    std::map<std::string, std::shared_ptr<IAccountInfo>> &infos)
-{
-    ACCOUNT_LOGD("Start, allEntries size is: %{public}zu", allEntries.size());
-    for (auto const &item : allEntries) {
-        OsAccountInfo osAccountInfo;
-        auto jsonObject = CreateJsonFromString(item.value.ToString());
-        if (jsonObject == nullptr) {
-            ACCOUNT_LOGE("Error key: %{private}s", item.key.ToString().c_str());
-            // it's a bad json, delete it
-            {
-                std::lock_guard<std::recursive_mutex> lock(kvStorePtrMutex_);
-                kvStorePtr_->Delete(item.key);
-            }
-            continue;
-        }
-        FromJson(jsonObject.get(), osAccountInfo);
-        infos.emplace(item.key.ToString(), std::make_shared<OsAccountInfo>(osAccountInfo));
-    }
-    ACCOUNT_LOGD("End");
-}
-#else
 void OsAccountDataStorage::SaveEntries(const std::vector<DbAdapterEntry> &allEntries,
     std::map<std::string, std::shared_ptr<IAccountInfo>> &infos)
 {
@@ -71,6 +48,5 @@ void OsAccountDataStorage::SaveEntries(const std::vector<DbAdapterEntry> &allEnt
     }
     ACCOUNT_LOGD("End");
 }
-#endif // SQLITE_DLCLOSE_ENABLE
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -47,6 +47,8 @@ ohos_moduletest("AccountInnerSdkModuleMockTest") {
     "${services_path}/accountmgr/include/domain_account",
     "${services_path}/accountmgr/include/osaccount",
     "${os_account_path}/interfaces/innerkits/ohosaccount/native/include/",
+    "${services_path}/accountmgr/include/common/database/kvstore",
+    "${services_path}/accountmgr/include/common/database",
   ]
 
   sources = [

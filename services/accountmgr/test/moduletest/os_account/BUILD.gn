@@ -106,10 +106,13 @@ ohos_moduletest("os_account_manager_service_module_test") {
     "${app_account_innerkits_native_path}/include",
     "${os_account_path}/frameworks/osaccount/core/include",
     "${os_account_dfx_path}/data_dfx",
+    "${services_path}/accountmgr/include/common/database/kvstore",
+    "${services_path}/accountmgr/include/common/database",
   ]
   sources = [
     "os_account_manager_service_module_test.cpp",
     "os_account_manager_service_no_permission_module_test.cpp",
+    "${services_path}/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
   ]
   sources += [
     "${account_iam_framework_path}/src/account_iam_info.cpp",
@@ -256,6 +259,8 @@ config("os_account_manager_service_subscribe_test_config") {
     "${account_iam_interfaces_native_path}/include",
     "${account_iam_framework_path}/test/unittest/include",
     "${os_account_path}/frameworks/appaccount/native/include",
+    "${services_path}/accountmgr/include/common/database/kvstore",
+    "${services_path}/accountmgr/include/common/database",
   ]
 }
 
@@ -287,6 +292,7 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
     "${services_path}/accountmgr/test/mock/common/bundle_manager_adapter.cpp",
     "${services_path}/accountmgr/test/mock/os_account/os_account_interface.cpp",
     "${services_path}/accountmgr/test/mock/os_account/permission_kit.cpp",
+    "${services_path}/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
   ]
 
   sources += [
@@ -472,6 +478,7 @@ ohos_moduletest("os_account_database_operator_test") {
   sources += [
     "${services_path}/accountmgr/test/mock/os_account/os_account_interface.cpp",
     "${services_path}/accountmgr/test/mock/os_account/permission_kit.cpp",
+    "${services_path}/accountmgr/src/common/database/kvstore/kvstore_adapter_impl.cpp",
   ]
   configs = [
     ":os_account_manager_service_subscribe_test_config",

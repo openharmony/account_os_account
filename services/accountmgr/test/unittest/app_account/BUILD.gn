@@ -26,7 +26,10 @@ config("app_account_service_config_mock") {
 config("app_account_service_config_unittest") {
   visibility = [ ":*" ]
 
-  include_dirs = []
+  include_dirs = [
+    "${services_path}/accountmgr/include/common/database/kvstore",
+    "${services_path}/accountmgr/include/common/database",
+  ]
 
   cflags = []
   if (target_cpu == "arm") {

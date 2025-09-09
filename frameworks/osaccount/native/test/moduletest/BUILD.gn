@@ -138,6 +138,8 @@ ohos_moduletest("os_account_frameworks_module_mock_test") {
     "${services_path}/accountmgr/include/osaccount",
     "${os_account_path}/interfaces/innerkits/ohosaccount/native/include/",
     "${services_path}/accountmgr/test/unittest/os_account/mock",
+    "${services_path}/accountmgr/include/common/database/kvstore",
+    "${services_path}/accountmgr/include/common/database",
   ]
   sources = [
     "${app_account_services_path}/test/mock/common/ability_manager_adapter_mock.cpp",
