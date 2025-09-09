@@ -51,6 +51,7 @@ struct SelectAccountsOptions : public Parcelable {
 };
 
 struct VerifyCredentialOptions : public Parcelable {
+    ~VerifyCredentialOptions() override;
     std::string credentialType;
     std::string credential;
     AAFwk::WantParams parameters;
@@ -86,6 +87,7 @@ struct CreateAccountImplicitlyOptions : public Parcelable {
 };
 
 struct AuthenticatorSessionRequest {
+    ~AuthenticatorSessionRequest();
     std::string action;
     std::string sessionId;
     std::string name;

@@ -67,6 +67,7 @@ private:
 
 struct AppAccountAsyncContext : public CommonAsyncContext {
     AppAccountAsyncContext(napi_env napiEnv, bool isThrowable = false) : CommonAsyncContext(napiEnv, isThrowable) {};
+    ~AppAccountAsyncContext() override;
     std::string name;
     std::string owner;
     std::string extraInfo;
@@ -88,6 +89,7 @@ struct JSAuthCallback {
 
 struct OAuthAsyncContext : public CommonAsyncContext {
     OAuthAsyncContext(napi_env env, bool throwAble = false) : CommonAsyncContext(env, throwAble) {};
+    ~OAuthAsyncContext() override;
     std::string name;
     std::string owner;
     std::string sessionId;
