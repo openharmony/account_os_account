@@ -47,7 +47,7 @@ const uint32_t RETRY_SLEEP_MS = 5;
 const uint64_t FDSAN_DIR_TAG = fdsan_create_owner_tag(FDSAN_OWNER_TYPE_DIRECTORY, 0xC01B00);
 static std::map<std::string, std::shared_ptr<Utils::RWLock>> g_rwLockMap;
 static std::mutex g_rwLockMapMutex;
-const char OPERATION_LOG_ERROR[] = "errLog";
+const char OPERATION_FILE[] = "fileOperate";
 const int32_t RELEASE_COUNT = 2;
 } // namespace
 
@@ -68,7 +68,7 @@ static bool FileExists(const std::string &path)
         }
     }
     std::string errMsg = "Stat " + path + " with retry failed.";
-    REPORT_OS_ACCOUNT_FAIL(0, OPERATION_LOG_ERROR, ENOENT, errMsg);
+    REPORT_OS_ACCOUNT_FAIL(-1, OPERATION_FILE, ENOENT, errMsg);
     return false;
 }
 
@@ -286,7 +286,7 @@ ErrCode FileTransaction::DeleteTempFile()
         int32_t err = errno;
         ACCOUNT_LOGE("DeleteTempFile failed, path %{public}s, errno %{public}d.", tempFilePath.c_str(), err);
         std::string errMsg = "DeleteTempFile failed, path " + tempFilePath + ", errno " + std::to_string(err);
-        REPORT_OS_ACCOUNT_FAIL(0, OPERATION_LOG_ERROR, err, errMsg);
+        REPORT_OS_ACCOUNT_FAIL(-1, OPERATION_FILE, err, errMsg);
         return ERR_OSACCOUNT_SERVICE_FILE_DELE_ERROR;
     }
     return ERR_OK;
@@ -315,7 +315,9 @@ ErrCode FileTransaction::SwapFileNames()
     uint32_t mode = RENAME_NOREPLACE;
     if (isTargetFileExist) {
         if (!ChangeModeFile(path_, S_IRUSR | S_IWUSR)) {
+            int32_t ret = errno;
             ACCOUNT_LOGW("Failed to change mode for file %{public}s, errno = %{public}d.", path_.c_str(), errno);
+            REPORT_OS_ACCOUNT_FAIL(-1, OPERATION_FILE, ret, "Chmod for " + path_ + " failed");
             return ERR_OHOSACCOUNT_SERVICE_FILE_CHANGE_DIR_MODE_ERROR;
         }
         mode = RENAME_EXCHANGE;
@@ -330,14 +332,14 @@ ErrCode FileTransaction::SwapFileNames()
             ACCOUNT_LOGE("Failed to swap file names, errno = %{public}d, errMsg = %{public}s", err, strerror(err));
             std::string errMsg = "Failed to swap file " + tempFileName + " and " +
                 path_ + ", errMsg = %{public}s" + strerror(err);
-            REPORT_OS_ACCOUNT_FAIL(0, OPERATION_LOG_ERROR, err, errMsg);
+            REPORT_OS_ACCOUNT_FAIL(-1, OPERATION_FILE, err, errMsg);
             return ERR_ACCOUNT_COMMON_FILE_SWAP_FAILED;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(RETRY_SLEEP_MS));
     }
     std::string errMsg =
         "Failed to swap file " + tempFileName + " and " + path_ + ", with retry";
-    REPORT_OS_ACCOUNT_FAIL(0, OPERATION_LOG_ERROR, EAGAIN, errMsg);
+    REPORT_OS_ACCOUNT_FAIL(-1, OPERATION_FILE, EAGAIN, errMsg);
     return ERR_ACCOUNT_COMMON_FILE_SWAP_FAILED;
 }
 
@@ -561,6 +563,7 @@ ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, 
         ErrCode errCode = CreateDir(str);
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("failed to create dir, str = %{public}s errCode %{public}d.", str.c_str(), errCode);
+            REPORT_OS_ACCOUNT_FAIL(-1, OPERATION_FILE, errCode, "Create " + str + " failed");
             return errCode;
         }
     }
@@ -574,6 +577,7 @@ ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, 
     ErrCode ret = WriteFile(path, content);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("WriteFile failed, path = %{public}s.", path.c_str());
+        REPORT_OS_ACCOUNT_FAIL(-1, OPERATION_FILE, ret, "Write " + path + " failed");
 #ifdef ENABLE_FILE_WATCHER
         SetValidModifyFileOperationFlag(path, false);
 #endif // ENABLE_FILE_WATCHER
@@ -591,6 +595,7 @@ ErrCode AccountFileOperator::GetFileContentByPath(const std::string &path, std::
     ErrCode ret = ReadFile(path, content);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("Failed to read file, path = %{public}s, ret = %{public}d", path.c_str(), ret);
+        REPORT_OS_ACCOUNT_FAIL(-1, OPERATION_FILE, ret, "Read " + path + " failed");
     }
     return ret;
 }

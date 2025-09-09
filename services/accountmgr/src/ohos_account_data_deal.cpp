@@ -107,10 +107,17 @@ bool OhosAccountDataDeal::DealWithFileModifyEvent(const std::string &fileName, c
         return false;
     }
     uint8_t localDigestData[ALG_COMMON_SIZE] = {0};
-    accountFileWatcherMgr_.GetAccountInfoDigestFromFile(fileName, localDigestData, ALG_COMMON_SIZE);
+    ErrCode errCode = accountFileWatcherMgr_.GetAccountInfoDigestFromFile(fileName, localDigestData, ALG_COMMON_SIZE);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Get account info digest from file failed, errCode = %{public}d", errCode);
+        REPORT_OHOS_ACCOUNT_FAIL(id, "fileWatcher", errCode, "Get account info digest failed");
+    }
 #ifdef HAS_HUKS_PART
     uint8_t newDigestData[ALG_COMMON_SIZE] = {0};
-    GenerateAccountInfoDigest(fileInfoStr, newDigestData, ALG_COMMON_SIZE);
+    int32_t result = GenerateAccountInfoDigest(fileInfoStr, newDigestData, ALG_COMMON_SIZE);
+    if (result != ERR_OK) {
+        REPORT_OHOS_ACCOUNT_FAIL(id, "fileWatcher", result, "Generate account info digest failed");
+    }
     if (memcmp(localDigestData, newDigestData, ALG_COMMON_SIZE) == 0) {
         ACCOUNT_LOGD("No need to recover local file data.");
         return true;
@@ -396,7 +403,10 @@ void OhosAccountDataDeal::BuildJsonFileFromScratch(int32_t userId)
     accountInfo.ohosAccountInfo_.callingUid_ = DEFAULT_CALLING_UID;
     accountInfo.digest_ = "";
     accountInfo.ohosAccountInfo_.SetRawUid(DEFAULT_OHOS_ACCOUNT_UID);
-    SaveAccountInfo(accountInfo);
+    ErrCode result = SaveAccountInfo(accountInfo);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Save account Info failed, result = %{public}d", result);
+    }
 #ifdef ENABLE_FILE_WATCHER
     AddFileWatcher(userId);
 #endif // ENABLE_FILE_WATCHER

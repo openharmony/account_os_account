@@ -483,11 +483,11 @@ static bool SetPluginUint8Vector(const std::vector<uint8_t> &vector, PluginUint8
     return true;
 }
 
-static ErrCode GetAndCleanPluginUint8Vector(PluginUint8Vector &pVector, std::vector<uint8_t> &vector)
+void GetAndCleanPluginUint8Vector(PluginUint8Vector &pVector, std::vector<uint8_t> &vector)
 {
     if (pVector.data == nullptr) {
         ACCOUNT_LOGE("PluginUint8Vector data is null.");
-        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+        return;
     }
     vector.assign(pVector.data, pVector.data + pVector.size);
     (void)memset_s(pVector.data, pVector.capcity, 0, pVector.capcity);
@@ -495,7 +495,6 @@ static ErrCode GetAndCleanPluginUint8Vector(PluginUint8Vector &pVector, std::vec
     pVector.data = nullptr;
     pVector.capcity = 0;
     pVector.size = 0;
-    return ERR_OK;
 }
 
 static ErrCode GetAndCleanPluginBussnessError(PluginBussnessError **error, PluginMethodEnum methodEnum, int32_t id,
@@ -2583,8 +2582,7 @@ ErrCode InnerDomainAccountManager::RecoverBindDomainForUncomplete(
         REPORT_DOMAIN_ACCOUNT_FAIL(err, "Delete bound flag failed", Constants::DOMAIN_OPT_RECOVERY, localId,
             domainInfo);
     }
-    REPORT_OS_ACCOUNT_FAIL(localId, Constants::OPERATION_RECOVER_BIND_DOMAIN_ACCOUNT,
-        err, "Recover bind domain account success.");
+    DomainHisyseventUtils::ReportStatistic(Constants::DOMAIN_OPT_RECOVERY, localId, domainInfo);
     return ERR_OK;
 }
 
@@ -2621,7 +2619,12 @@ ErrCode InnerDomainAccountManager::BindDomainAccountWork(
         RecoverBindDomainForUncomplete(info, fullInfo);
         return err;
     }
-    fileController.SetDomainBoundFlag(localId, true);
+    err = fileController.SetDomainBoundFlag(localId, true);
+    if (err != ERR_OK) {
+        ACCOUNT_LOGW("Set Domain bound flag failed, ret = %{public}d", err);
+        REPORT_DOMAIN_ACCOUNT_FAIL(err, "Delete bound flag failed", Constants::DOMAIN_OPT_RECOVERY, localId,
+            domainInfo);
+    }
     DomainHisyseventUtils::ReportStatistic(Constants::DOMAIN_OPT_BIND, localId, domainInfo);
     return err;
 }
