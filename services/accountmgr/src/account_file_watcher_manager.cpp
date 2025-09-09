@@ -392,7 +392,11 @@ ErrCode AccountFileWatcherMgr::GenerateAccountInfoDigestStr(
     uint8_t digestOutData[ALG_COMMON_SIZE];
 #ifdef HAS_HUKS_PART
     StartTraceAdapter("GenerateAccountInfoDigest Using Huks");
-    GenerateAccountInfoDigest(accountInfoStr, digestOutData, ALG_COMMON_SIZE);
+    int32_t result = GenerateAccountInfoDigest(accountInfoStr, digestOutData, ALG_COMMON_SIZE);
+    if (result != ERR_OK) {
+        REPORT_OS_ACCOUNT_FAIL(-1, "fileWatcher", result, "Generate account info digest failed");
+    }
+
     FinishTraceAdapter();
 #endif // HAS_HUKS_PART
 

@@ -180,7 +180,10 @@ bool OsAccountControlFileManager::RecoverAccountData(const std::string &fileName
     std::string recoverDataStr;
     if (fileName == Constants::ACCOUNT_LIST_FILE_JSON_PATH) {
         CJsonUnique accountListJson = nullptr;
-        osAccountDataBaseOperator_->GetAccountListFromStoreID(OS_ACCOUNT_STORE_ID, accountListJson);
+        ErrCode errCode = osAccountDataBaseOperator_->GetAccountListFromStoreID(OS_ACCOUNT_STORE_ID, accountListJson);
+        if (errCode != ERR_OK) {
+            REPORT_OS_ACCOUNT_FAIL(id, "fileWatcher", errCode, "Get account list from storeID failed");
+        }
         recoverDataStr = PackJsonToString(accountListJson);
         if (recoverDataStr.empty()) {
             ACCOUNT_LOGE("failed to dump json object");
@@ -234,10 +237,16 @@ bool OsAccountControlFileManager::DealWithFileModifyEvent(const std::string &fil
         return false;
     }
     uint8_t localDigestData[ALG_COMMON_SIZE] = {0};
-    accountFileWatcherMgr_.GetAccountInfoDigestFromFile(fileName, localDigestData, ALG_COMMON_SIZE);
+    ErrCode errCode = accountFileWatcherMgr_.GetAccountInfoDigestFromFile(fileName, localDigestData, ALG_COMMON_SIZE);
+    if (errCode != ERR_OK) {
+        REPORT_OS_ACCOUNT_FAIL(id, "fileWatcher", errCode, "Get account info digest from file failed");
+    }
 #ifdef HAS_HUKS_PART
     uint8_t newDigestData[ALG_COMMON_SIZE] = {0};
-    GenerateAccountInfoDigest(fileInfoStr, newDigestData, ALG_COMMON_SIZE);
+    int32_t result = GenerateAccountInfoDigest(fileInfoStr, newDigestData, ALG_COMMON_SIZE);
+    if (result != ERR_OK) {
+        REPORT_OS_ACCOUNT_FAIL(id, "fileWatcher", result, "Generate account info digest failed");
+    }
 
     if (memcmp(localDigestData, newDigestData, ALG_COMMON_SIZE) == EOK) {
         ACCOUNT_LOGD("No need to recover local file data.");
@@ -422,7 +431,10 @@ void OsAccountControlFileManager::BuildAndSaveAccountListJsonFile(const std::vec
     AddBoolToJson(accountList, IS_SERIAL_NUMBER_FULL, Constants::IS_SERIAL_NUMBER_FULL_INIT_VALUE);
     AddIntToJson(accountList, NEXT_LOCAL_ID, Constants::START_USER_ID + 1);
 
-    SaveAccountListToFile(accountList);
+    ErrCode errCode = SaveAccountListToFile(accountList);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Save account list to file failed, errCode = %{public}d", errCode);
+    }
 }
 
 void OsAccountControlFileManager::BuildAndSaveBaseOAConstraintsJsonFile()
@@ -436,7 +448,10 @@ void OsAccountControlFileManager::BuildAndSaveBaseOAConstraintsJsonFile()
     }
     auto baseOsAccountConstraints = CreateJson();
     AddVectorStringToJson(baseOsAccountConstraints, START_USER_STRING_ID, baseOAConstraints);
-    SaveBaseOAConstraintsToFile(baseOsAccountConstraints);
+    ErrCode errCode = SaveBaseOAConstraintsToFile(baseOsAccountConstraints);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Save base OA constraints to file failed, errCode = %{public}d", errCode);
+    }
 }
 
 void OsAccountControlFileManager::BuildAndSaveGlobalOAConstraintsJsonFile()
@@ -447,7 +462,10 @@ void OsAccountControlFileManager::BuildAndSaveGlobalOAConstraintsJsonFile()
     AddIntToJson(globalOsAccountConstraints, DEVICE_OWNER_ID, -1);
     auto allGlobalConstraints = CreateJsonNull();
     AddObjToJson(globalOsAccountConstraints, Constants::ALL_GLOBAL_CONSTRAINTS, allGlobalConstraints);
-    SaveGlobalOAConstraintsToFile(globalOsAccountConstraints);
+    ErrCode errCode = SaveGlobalOAConstraintsToFile(globalOsAccountConstraints);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Save global OA constraints to file failed, errCode = %{public}d", errCode);
+    }
 }
 
 void OsAccountControlFileManager::BuildAndSaveSpecificOAConstraintsJsonFile()
@@ -458,7 +476,10 @@ void OsAccountControlFileManager::BuildAndSaveSpecificOAConstraintsJsonFile()
     AddObjToJson(osAccountConstraintsList, Constants::ALL_SPECIFIC_CONSTRAINTS, allGlobalConstraints);
     auto specificOsAccountConstraints = CreateJson();
     AddObjToJson(specificOsAccountConstraints, START_USER_STRING_ID, osAccountConstraintsList);
-    SaveSpecificOAConstraintsToFile(specificOsAccountConstraints);
+    ErrCode errCode = SaveSpecificOAConstraintsToFile(specificOsAccountConstraints);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Save specific OA constraints to file failed, errCode = %{public}d", errCode);
+    }
 }
 
 void OsAccountControlFileManager::BuildAndSaveOsAccountIndexJsonFile()
@@ -480,16 +501,25 @@ void OsAccountControlFileManager::BuildAndSaveOsAccountIndexJsonFile()
 void OsAccountControlFileManager::RecoverAccountInfoDigestJsonFile()
 {
     std::string listInfoStr;
-    accountFileOperator_->GetFileContentByPath(Constants::ACCOUNT_LIST_FILE_JSON_PATH, listInfoStr);
+    int32_t result = accountFileOperator_->GetFileContentByPath(Constants::ACCOUNT_LIST_FILE_JSON_PATH, listInfoStr);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Get account list file content failed, result = %{public}d", result);
+    }
 #ifdef ENABLE_FILE_WATCHER
 #ifdef HAS_HUKS_PART
     uint8_t digestOutData[ALG_COMMON_SIZE] = {0};
-    GenerateAccountInfoDigest(listInfoStr, digestOutData, ALG_COMMON_SIZE);
+    result = GenerateAccountInfoDigest(listInfoStr, digestOutData, ALG_COMMON_SIZE);
+    if (result != ERR_OK) {
+        REPORT_OS_ACCOUNT_FAIL(-1, "fileInit", result, "Generate account info digest failed");
+    }
     auto digestJsonData = CreateJson();
     AddVectorUint8ToJson(digestJsonData, Constants::ACCOUNT_LIST_FILE_JSON_PATH,
-                         std::vector<uint8_t>(digestOutData, digestOutData + ALG_COMMON_SIZE));
+        std::vector<uint8_t>(digestOutData, digestOutData + ALG_COMMON_SIZE));
     std::string strValue = PackJsonToString(digestJsonData);
-    accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_INFO_DIGEST_FILE_PATH, strValue);
+    result = accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_INFO_DIGEST_FILE_PATH, strValue);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Save account info digest to file failed, result = %{public}d", result);
+    }
 #endif // HAS_HUKS_PART
 #endif // ENABLE_FILE_WATCHER
     return;
@@ -575,7 +605,10 @@ ErrCode OsAccountControlFileManager::GetOsAccountList(std::vector<OsAccountInfo>
         ACCOUNT_LOGE("GetAccountListFromFile failed!");
 #if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
         if (osAccountDataBaseOperator_->GetAccountListFromStoreID("", accountListJson) == ERR_OK) {
-            SaveAccountListToFile(accountListJson);
+            ErrCode errCode = SaveAccountListToFile(accountListJson);
+            if (errCode != ERR_OK) {
+                ACCOUNT_LOGE("Save account list to file failed, errCode = %{public}d", errCode);
+            }
         } else {
             return result;
         }
@@ -1021,7 +1054,10 @@ ErrCode OsAccountControlFileManager::UpdateAccountIndex(const OsAccountInfo &osA
         return result;
     }
 #ifdef ENABLE_FILE_WATCHER
-    accountFileWatcherMgr_.AddAccountInfoDigest(lastAccountIndexStr, Constants::ACCOUNT_INDEX_JSON_PATH);
+    result = accountFileWatcherMgr_.AddAccountInfoDigest(lastAccountIndexStr, Constants::ACCOUNT_INDEX_JSON_PATH);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Add digest for updating account index failed, result = %{public}d", result);
+    }
 #endif // ENABLE_FILE_WATCHER
     return ERR_OK;
 }
@@ -1069,7 +1105,10 @@ ErrCode OsAccountControlFileManager::RemoveAccountIndex(const int32_t id)
         return result;
     }
 #ifdef ENABLE_FILE_WATCHER
-    accountFileWatcherMgr_.AddAccountInfoDigest(lastAccountIndexStr, Constants::ACCOUNT_INDEX_JSON_PATH);
+    result = accountFileWatcherMgr_.AddAccountInfoDigest(lastAccountIndexStr, Constants::ACCOUNT_INDEX_JSON_PATH);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Add digest for account index failed, result = %{public}d", result);
+    }
 #endif // ENABLE_FILE_WATCHER
     return ERR_OK;
 }
@@ -1098,7 +1137,7 @@ ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInf
     if (osAccountInfo.GetLocalId() >= Constants::START_USER_ID) {
         ErrCode updateRet = UpdateAccountList(osAccountInfo.GetPrimeKey(), true);
         if (updateRet != ERR_OK) {
-            ACCOUNT_LOGE("Update account list failed, errCode: %{public}d", updateRet);
+            ACCOUNT_LOGE("Update account list failed, errCode = %{public}d", updateRet);
             return updateRet;
         }
     }
@@ -1113,7 +1152,10 @@ ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInf
 
 #ifdef ENABLE_FILE_WATCHER
     if (osAccountInfo.GetLocalId() >= Constants::START_USER_ID || osAccountInfo.GetLocalId() == Constants::U1_ID) {
-        accountFileWatcherMgr_.AddAccountInfoDigest(accountInfoStr, path);
+        result = accountFileWatcherMgr_.AddAccountInfoDigest(accountInfoStr, path);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGE("Add digest for account info failed, result = %{public}d", result);
+        }
         accountFileWatcherMgr_.AddFileWatcher(osAccountInfo.GetLocalId(), eventCallbackFunc_);
     }
 #endif // ENABLE_FILE_WATCHER
@@ -1140,10 +1182,16 @@ ErrCode OsAccountControlFileManager::DelOsAccount(const int id)
 #endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 #ifdef ENABLE_FILE_WATCHER
     path += Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
-    accountFileWatcherMgr_.DeleteAccountInfoDigest(path);
+    result = accountFileWatcherMgr_.DeleteAccountInfoDigest(path);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Delete digest for os account failed, result = %{public}d", result);
+    }
     std::string distributedDataPath =
         Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(id) + DISTRIBUTED_ACCOUNT_FILE_NAME;
-    accountFileWatcherMgr_.DeleteAccountInfoDigest(distributedDataPath);
+    result = accountFileWatcherMgr_.DeleteAccountInfoDigest(distributedDataPath);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Delete digest for distributed account failed, result = %{public}d", result);
+    }
 #endif // ENABLE_FILE_WATCHER
     RemoveAccountIndex(id);
     return UpdateAccountList(std::to_string(id), false);
@@ -1180,7 +1228,10 @@ ErrCode OsAccountControlFileManager::UpdateOsAccount(OsAccountInfo &osAccountInf
     ACCOUNT_LOGI("No distributed feature!");
 #endif // defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
 #ifdef ENABLE_FILE_WATCHER
-    accountFileWatcherMgr_.AddAccountInfoDigest(accountInfoStr, path);
+    result = accountFileWatcherMgr_.AddAccountInfoDigest(accountInfoStr, path);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Add digest for account info failed, result = %{public}d", result);
+    }
 #endif // ENABLE_FILE_WATCHER
     ACCOUNT_LOGD("End");
     return ERR_OK;
@@ -1555,7 +1606,10 @@ ErrCode OsAccountControlFileManager::SaveAccountListToFile(const CJsonUnique &ac
         return result;
     }
 #ifdef ENABLE_FILE_WATCHER
-    accountFileWatcherMgr_.AddAccountInfoDigest(strValue, Constants::ACCOUNT_LIST_FILE_JSON_PATH);
+    result = accountFileWatcherMgr_.AddAccountInfoDigest(strValue, Constants::ACCOUNT_LIST_FILE_JSON_PATH);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Add digest for account list failed, result = %{public}d", result);
+    }
 #endif // ENABLE_FILE_WATCHER
     ACCOUNT_LOGD("Save account list file succeed!");
     return ERR_OK;
@@ -1572,8 +1626,11 @@ ErrCode OsAccountControlFileManager::SaveBaseOAConstraintsToFile(const CJsonUniq
         return result;
     }
 #ifdef ENABLE_FILE_WATCHER
-    accountFileWatcherMgr_.AddAccountInfoDigest(
+    result = accountFileWatcherMgr_.AddAccountInfoDigest(
         strValue, Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Add digest for base osaccount constraints failed, result = %{public}d", result);
+    }
 #endif // ENABLE_FILE_WATCHER
     return ERR_OK;
 }
@@ -1589,8 +1646,11 @@ ErrCode OsAccountControlFileManager::SaveGlobalOAConstraintsToFile(const CJsonUn
         return result;
     }
 #ifdef ENABLE_FILE_WATCHER
-    accountFileWatcherMgr_.AddAccountInfoDigest(
+    result = accountFileWatcherMgr_.AddAccountInfoDigest(
         strValue, Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Add digest for global osaccount constraints failed, result = %{public}d", result);
+    }
 #endif // ENABLE_FILE_WATCHER
     return ERR_OK;
 }
@@ -1606,8 +1666,11 @@ ErrCode OsAccountControlFileManager::SaveSpecificOAConstraintsToFile(const CJson
         return result;
     }
 #ifdef ENABLE_FILE_WATCHER
-    accountFileWatcherMgr_.AddAccountInfoDigest(
+    result = accountFileWatcherMgr_.AddAccountInfoDigest(
         strValue, Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Add digest for specific osaccount constraints failed, result = %{public}d", result);
+    }
 #endif // ENABLE_FILE_WATCHER
     return ERR_OK;
 }
