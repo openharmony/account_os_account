@@ -105,7 +105,7 @@ ohos_moduletest("os_account_frameworks_module_test") {
     external_deps += [ "common_event_service:cesfwk_innerkits" ]
   }
 
-  if (os_account_distributed_feature) {
+  if (os_account_distributed_feature && !use_libfuzzer) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
   }
 
@@ -226,7 +226,7 @@ ohos_moduletest("os_account_frameworks_module_mock_test") {
   if (has_kv_store_part) {
     external_deps += [ "kv_store:distributeddata_inner" ]
   }
-  if (os_account_distributed_feature) {
+  if (os_account_distributed_feature && !use_libfuzzer) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
     sources +=
         [ "${services_path}/accountmgr/src/account_file_watcher_manager.cpp" ]

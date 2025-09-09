@@ -72,7 +72,7 @@ ohos_unittest("OsAccountControlFileManagerUnitTest") {
 
   cflags_cc = [ "-DACCOUNT_TEST" ]
 
-  if (os_account_distributed_feature) {
+  if (os_account_distributed_feature && !use_libfuzzer) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
   }
 
@@ -487,7 +487,7 @@ ohos_unittest("OsAccountInnerAccmgrBundleAdapterMockTest") {
     cflags_cc += [ "-DFUZZ_TEST" ]
   }
 
-  if (os_account_distributed_feature) {
+  if (os_account_distributed_feature && !use_libfuzzer) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
     cflags_cc += [ "-DDISTRIBUTED_FEATURE_ENABLED" ]
     sources +=
@@ -642,7 +642,7 @@ ohos_unittest("OsAccountInnerAccmgrPluginMockTest") {
     cflags_cc += [ "-DFUZZ_TEST" ]
   }
 
-  if (os_account_distributed_feature) {
+  if (os_account_distributed_feature && !use_libfuzzer) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
     sources +=
         [ "${services_path}/accountmgr/src/account_file_watcher_manager.cpp" ]
@@ -780,7 +780,7 @@ ohos_unittest("OsAccountEventManagerMultipleThreadTest") {
   if (has_storage_service_part) {
     external_deps += [ "storage_service:storage_manager_sa_proxy" ]
   }
-  if (os_account_distributed_feature) {
+  if (os_account_distributed_feature && !use_libfuzzer) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
     sources +=
         [ "${services_path}/accountmgr/src/account_file_watcher_manager.cpp" ]
@@ -934,7 +934,7 @@ ohos_unittest("os_account_maintenance_type_mock_test") {
   if (use_libfuzzer) {
     cflags_cc += [ "-DFUZZ_TEST" ]
   }
-  if (os_account_distributed_feature) {
+  if (os_account_distributed_feature && !use_libfuzzer) {
     cflags_cc += [ "-DENABLE_FILE_WATCHER" ]
     sources +=
         [ "${services_path}/accountmgr/src/account_file_watcher_manager.cpp" ]
