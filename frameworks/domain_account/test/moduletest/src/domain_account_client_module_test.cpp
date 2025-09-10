@@ -2438,7 +2438,7 @@ HWTEST_F(DomainAccountClientModuleTest, GenerateContextId002, TestSize.Level3)
 
     DomainAccountClient::GetInstance().EraseContext(contextId1);
     DomainAccountClient::GetInstance().contextIdCount_--;
-    uint64_t contextId3 = 0;
+    uint64_t contextId3 = 1;
     ASSERT_TRUE(DomainAccountClient::GetInstance().GenerateCallbackAndContextId(callback, callbackService, contextId3));
     count = contextId3 & UINT32_MAX;
     EXPECT_EQ(contextId3, contextId1);
