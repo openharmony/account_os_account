@@ -69,8 +69,9 @@ void AppAccountCheckLabelsModuleTest::SetUp(void) __attribute__((no_sanitize("cf
     std::vector<AppAccountInfo> accounts;
     accounts.emplace_back(testAppAccountInfo);
     AuthenticatorSessionRequest request;
+    std::uint64_t id = 0;
     request.name = NAME;
-    appAccountCheckLabelsSessionPtr = std::make_shared<AppAccountCheckLabelsSession>(accounts, request);
+    appAccountCheckLabelsSessionPtr = std::make_shared<AppAccountCheckLabelsSession>(accounts, request, id);
     appAccountCheckLabelsCallbackPtr = std::make_shared<AppAccountCheckLabelsCallback>(accounts, request, SESSION_ID);
 }
 
