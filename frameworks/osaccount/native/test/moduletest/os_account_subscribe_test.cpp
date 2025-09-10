@@ -204,8 +204,10 @@ void TestStateMachine(bool withHandshake, bool isBlock)
 
     TestStateLockingMachine(localId, isBlock, mockSubscriber);
 
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(Constants::START_USER_ID), ERR_OK);
     EXPECT_EQ(OsAccountManager::DeactivateOsAccount(localId), ERR_OK);
     EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::REMOVED, localId, localId)).Times(Exactly(1));
+    // RemoveOsAccount will Activate 100, when localId is foreground.
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(localId), ERR_OK);
     std::unique_lock<std::mutex> lock(subscriber->mutex_);
     if (!subscriber->isRemoved_) {
@@ -321,7 +323,9 @@ HWTEST_F(OsAccountSubscribeTest, OsAccountSubscribeTestWithDisplayId, TestSize.L
     EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::UNLOCKED, _, _)).Times(AtLeast(1));
     
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(localId), ERR_OK);
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(Constants::START_USER_ID), ERR_OK);
     EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::REMOVED, localId, localId)).Times(Exactly(1));
+    // RemoveOsAccount will Activate 100, when localId is foreground.
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(localId), ERR_OK);
     std::unique_lock<std::mutex> lock(subscriber->mutex_);
     if (!subscriber->isRemoved_) {
