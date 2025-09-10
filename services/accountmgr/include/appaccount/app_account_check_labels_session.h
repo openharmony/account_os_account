@@ -23,8 +23,8 @@ namespace OHOS {
 namespace AccountSA {
 class AppAccountCheckLabelsSession : public AppAccountAuthenticatorSession {
 public:
-    explicit AppAccountCheckLabelsSession(
-        std::vector<AppAccountInfo> accounts, const AuthenticatorSessionRequest &request);
+    explicit AppAccountCheckLabelsSession(const std::vector<AppAccountInfo> &accounts,
+        const AuthenticatorSessionRequest &request, const std::uint64_t &sessionId);
     ~AppAccountCheckLabelsSession() override;
 
     ErrCode Open() override;
