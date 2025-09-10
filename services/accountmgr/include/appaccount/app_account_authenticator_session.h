@@ -66,7 +66,8 @@ private:
 
 class AppAccountAuthenticatorSession {
 public:
-    AppAccountAuthenticatorSession(AuthenticatorAction action, const AuthenticatorSessionRequest &request);
+    AppAccountAuthenticatorSession(AuthenticatorAction action, const AuthenticatorSessionRequest &request,
+        const std::uint64_t &sessionId);
     virtual ~AppAccountAuthenticatorSession();
     virtual ErrCode Open();
     virtual void Close();
