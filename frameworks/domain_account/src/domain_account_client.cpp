@@ -240,6 +240,7 @@ ErrCode DomainAccountClient::AuthUser(int32_t userId,
     auto task = [getPasswordHooks, proxy, callbackService, userId]() {
         std::vector<uint8_t> password = getPasswordHooks();
         ErrCode errCode = proxy->AuthUser(userId, password, callbackService);
+        std::fill(password.begin(), password.end(), 0);
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("Failed to auth for domain account, errCode=%{public}d", errCode);
             Parcel emptyParcel;

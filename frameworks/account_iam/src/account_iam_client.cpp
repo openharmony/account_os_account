@@ -294,8 +294,8 @@ static std::vector<uint8_t> GenerateContextArray(const uint64_t contextId, const
     std::vector<uint8_t> contextArray(sizeof(uint64_t), 0);
     uint64_t contextIdCopy =  contextId;
     size_t vecSize = contextArray.size();
-    for (int i = vecSize - 1; i >= 0; i--) {
-        contextArray[i] = contextIdCopy & 0xFF;
+    for (size_t i = vecSize; i >= 1; i--) {
+        contextArray[i - 1] = contextIdCopy & 0xFF;
         contextIdCopy >>= UINT8_SHIFT_LENGTH;
     }
     contextArray.insert(contextArray.begin(), authTypeIdx);
