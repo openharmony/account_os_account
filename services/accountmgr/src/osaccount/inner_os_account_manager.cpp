@@ -91,20 +91,28 @@ constexpr int32_t PIPE_READ_END = 0;
 constexpr int32_t PIPE_WRITE_END = 1;
 }
 
-#ifndef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
-static ErrCode RestartForegroundBeforeRemove(OsAccountInfo &osAccountInfo, int32_t id)
+
+static ErrCode ResetForegroundBeforeRemove(OsAccountInfo &osAccountInfo, int32_t id)
 {
     if (osAccountInfo.GetIsForeground()) {
+#ifndef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
         ACCOUNT_LOGI("Remove foreground account id=%{public}d.", id);
         if (IInnerOsAccountManager::GetInstance().ActivateOsAccount(Constants::START_USER_ID) != ERR_OK) {
             ACCOUNT_LOGE("RemoveOsAccount active base account failed");
             return ERR_OSACCOUNT_SERVICE_INNER_REMOVE_ACCOUNT_ACTIVED_ERROR;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_REMOVING_FOREGROUND_OS_ACCOUNT));
+#else
+        ACCOUNT_LOGI("Remove foreground account id=%{public}d.", id);
+        ErrCode errCode = OsAccountInterface::SendToAMSAccountDeactivate(osAccountInfo);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("SendToAMSAccountDeactivate failed, id %{public}d, errCode %{public}d", id, errCode);
+            return errCode;
+        }
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
     }
     return ERR_OK;
 }
-#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
 
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
 static ErrCode GetDomainAccountStatus(OsAccountInfo &osAccountInfo)
@@ -1148,12 +1156,10 @@ ErrCode IInnerOsAccountManager::PrepareRemoveOsAccount(OsAccountInfo &osAccountI
         ACCOUNT_LOGI("Clean garbage account data, no need to deal foreground status.");
         return ERR_OK;
     }
-#ifndef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
-    errCode = RestartForegroundBeforeRemove(osAccountInfo, id);
+    errCode = ResetForegroundBeforeRemove(osAccountInfo, id);
     if (errCode != ERR_OK) {
         return errCode;
     }
-#endif
     loggedInAccounts_.Erase(id);
     verifiedAccounts_.Erase(id);
     // stop account
