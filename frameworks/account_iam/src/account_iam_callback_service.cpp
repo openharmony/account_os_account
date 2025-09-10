@@ -198,6 +198,7 @@ void DomainCredentialRecipient::OnSetData(int32_t authSubType, std::vector<uint8
 {
     std::unique_lock<std::mutex> lock(mutex_);
     data_ = data;
+    dataReady_ = true;
     std::fill(data.begin(), data.end(), 0);
     cv_.notify_all();
 }
@@ -205,7 +206,7 @@ void DomainCredentialRecipient::OnSetData(int32_t authSubType, std::vector<uint8
 std::vector<uint8_t> DomainCredentialRecipient::WaitToGetData()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    cv_.wait(lock);
+    cv_.wait(lock, [this] { return dataReady_.load(); });
     return data_;
 }
 #endif // SUPPORT_DOMAIN_ACCOUNTS

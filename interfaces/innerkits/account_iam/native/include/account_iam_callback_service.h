@@ -114,6 +114,7 @@ private:
     std::mutex mutex_;
     std::condition_variable cv_;
     std::vector<uint8_t> data_;
+    std::atomic<bool> dataReady_ = false;
 };
 #endif // SUPPORT_DOMAIN_ACCOUNTS
 
