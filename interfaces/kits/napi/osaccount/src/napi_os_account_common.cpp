@@ -505,13 +505,6 @@ bool ParseParaActiveOA(napi_env env, napi_callback_info cbInfo, ActivateOAAsyncC
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
             return false;
         }
-        
-        if (displayId < 0) {
-            ACCOUNT_LOGE("displayId is negative: %{public}lld", static_cast<long long>(displayId));
-            std::string errMsg = "Parameter error. The value of \"displayId\" must be a non-negative number";
-            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-            return false;
-        }
 
         asyncContext->displayId = static_cast<uint64_t>(displayId);
         return true;
@@ -1077,12 +1070,6 @@ bool ParseParaGetForegroundOALocalId(napi_env env, napi_callback_info cbInfo,
     if (!GetLongIntProperty(env, argv[PARAMZERO], displayId)) {
         ACCOUNT_LOGE("Get displayId failed");
         std::string errMsg = "Parameter error. The type of \"displayId\" must be number";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-        return false;
-    }
-    if (displayId < 0) {
-        ACCOUNT_LOGE("displayId is negative: %{public}lld", static_cast<long long>(displayId));
-        std::string errMsg = "Parameter error. The value of \"displayId\" must be a non-negative number";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
         return false;
     }

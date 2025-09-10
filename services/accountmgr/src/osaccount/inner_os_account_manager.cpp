@@ -78,7 +78,9 @@ constexpr int32_t MAX_RETRY_TIMES = 50;
 constexpr int32_t MAX_INSERT_RETRY_TIMES = 3;
 constexpr int32_t MAX_PRIVATE_TYPE_NUMBER = 1;
 constexpr int32_t MAX_MAINTENANCE_TYPE_NUMBER = 1;
+#ifndef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
 constexpr int32_t DELAY_FOR_REMOVING_FOREGROUND_OS_ACCOUNT = 1500;
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
 #ifdef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
 constexpr int32_t DELAY_FOR_DEACTIVATE_OS_ACCOUNT = 3000;
 #endif
@@ -88,6 +90,21 @@ constexpr int32_t PIPE_FD_COUNT = 2;
 constexpr int32_t PIPE_READ_END = 0;
 constexpr int32_t PIPE_WRITE_END = 1;
 }
+
+#ifndef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+static ErrCode RestartForegroundBeforeRemove(OsAccountInfo &osAccountInfo, int32_t id)
+{
+    if (osAccountInfo.GetIsForeground()) {
+        ACCOUNT_LOGI("Remove foreground account id=%{public}d.", id);
+        if (IInnerOsAccountManager::GetInstance().ActivateOsAccount(Constants::START_USER_ID) != ERR_OK) {
+            ACCOUNT_LOGE("RemoveOsAccount active base account failed");
+            return ERR_OSACCOUNT_SERVICE_INNER_REMOVE_ACCOUNT_ACTIVED_ERROR;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_REMOVING_FOREGROUND_OS_ACCOUNT));
+    }
+    return ERR_OK;
+}
+#endif // ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
 
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
 static ErrCode GetDomainAccountStatus(OsAccountInfo &osAccountInfo)
@@ -1131,14 +1148,12 @@ ErrCode IInnerOsAccountManager::PrepareRemoveOsAccount(OsAccountInfo &osAccountI
         ACCOUNT_LOGI("Clean garbage account data, no need to deal foreground status.");
         return ERR_OK;
     }
-    if (osAccountInfo.GetIsForeground()) {
-        ACCOUNT_LOGI("Remove foreground account id=%{public}d.", id);
-        if (ActivateOsAccount(Constants::START_USER_ID) != ERR_OK) {
-            ACCOUNT_LOGE("RemoveOsAccount active base account failed");
-            return ERR_OSACCOUNT_SERVICE_INNER_REMOVE_ACCOUNT_ACTIVED_ERROR;
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_REMOVING_FOREGROUND_OS_ACCOUNT));
+#ifndef ENABLE_MULTI_FOREGROUND_OS_ACCOUNTS
+    errCode = RestartForegroundBeforeRemove(osAccountInfo, id);
+    if (errCode != ERR_OK) {
+        return errCode;
     }
+#endif
     loggedInAccounts_.Erase(id);
     verifiedAccounts_.Erase(id);
     // stop account
@@ -2228,10 +2243,16 @@ ErrCode IInnerOsAccountManager::ValidateDisplayForActivation(const int id, const
         RemoveLocalIdToOperating(id);
         return ERR_ACCOUNT_COMMON_DISPLAY_ID_NOT_EXIST_ERROR;
     }
-    int32_t foregroundId = -1;
-    if (foregroundAccountMap_.Find(displayId, foregroundId) && (foregroundId == id)) {
-        ACCOUNT_LOGE("Failed to activate. Account %{public}d is already foreground on display %{public}llu.",
-            id, static_cast<unsigned long long>(displayId));
+    // If this account is already foreground on any other display, disallow activation on target display
+    bool isActiveCrossDisplay = false;
+    auto it = [&isActiveCrossDisplay, displayId, id](uint64_t currentDisplayId, int32_t currentLocalId) {
+        if ((currentLocalId == id) && (currentDisplayId != displayId)) {
+            isActiveCrossDisplay = true;
+        }
+    };
+    foregroundAccountMap_.Iterate(it);
+    if (isActiveCrossDisplay) {
+        ACCOUNT_LOGE("Failed to activate. Account %{public}d is already foreground on another display.", id);
         ReportOsAccountOperationFail(id, Constants::OPERATION_ACTIVATE,
             ERR_ACCOUNT_COMMON_CROSS_DISPLAY_ACTIVE_ERROR,
             "Account already foreground on another display");
