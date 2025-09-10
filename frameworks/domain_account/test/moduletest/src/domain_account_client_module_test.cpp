@@ -1137,6 +1137,54 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessT
 }
 
 /**
+ * @tc.name: DomainAccountClientModuleTest_GetAccessToken_007
+ * @tc.desc: GetAccessToken successfully with domain and accountName is invalid accountId is valid.
+ * @tc.type: FUNC
+ * @tc.require: I6JV52
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessToken_007, TestSize.Level0)
+{
+    DomainAccountInfo info;
+    info.accountName_ = STRING_NAME_TWO;
+    info.domain_ = STRING_DOMAIN_NEW;
+    info.accountId_ = INVALID_STRING_ACCOUNTID;
+
+    auto callbackCreate = std::make_shared<MockDomainCreateDomainAccountCallback>();
+    ASSERT_NE(callbackCreate, nullptr);
+    auto testCallbackCreate = std::make_shared<TestCreateDomainAccountCallback>(callbackCreate);
+    EXPECT_CALL(*callbackCreate, OnResult(ERR_OK,
+        STRING_NAME_TWO, STRING_DOMAIN_NEW, STRING_ACCOUNTID_FIVE)).Times(Exactly(1));
+    ASSERT_NE(testCallbackCreate, nullptr);
+    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, info, testCallbackCreate);
+    {
+        std::unique_lock<std::mutex> lock(testCallbackCreate->mutex);
+        testCallbackCreate->cv.wait_for(lock,
+            std::chrono::seconds(WAIT_TIME), [lockCallback = testCallbackCreate]() { return lockCallback->isReady; });
+    }
+    ASSERT_EQ(errCode, ERR_OK);
+
+    auto callback = std::make_shared<MockDomainGetAccessTokenCallback>();
+    ASSERT_NE(callback, nullptr);
+    std::vector<uint8_t> empty;
+    EXPECT_CALL(*callback, OnResult(ERR_JS_CAPABILITY_NOT_SUPPORTED, empty)).Times(Exactly(1));
+    auto testCallback = std::make_shared<TestGetAccessTokenCallback>(callback);
+    ASSERT_NE(testCallback, nullptr);
+    EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountToken(info, DEFAULT_TOKEN), ERR_OK);
+    AAFwk::WantParams parameters;
+    DomainAccountClient::GetInstance().UnregisterPlugin();
+    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccessToken(info, parameters, testCallback), ERR_OK);
+    {
+        std::unique_lock<std::mutex> lock(testCallback->mutex);
+        testCallback->cv.wait_for(
+            lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
+    }
+    int32_t userId = -1;
+    errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(info, userId);
+    EXPECT_EQ(errCode, ERR_OK);
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
+}
+
+/**
  * @tc.name: DomainAccountClientModuleTest_UpdateAccountToken_001
  * @tc.desc: UpdateAccountToken successfully.
  * @tc.type: FUNC
