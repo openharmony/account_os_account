@@ -47,7 +47,8 @@
         "OHOS::AccountSA::AppAccountAuthenticatorManager::Init()";
         "OHOS::AccountSA::AppAccountAuthenticatorProxy::AppAccountAuthenticatorProxy(OHOS::sptr<OHOS::IRemoteObject> const&)";
         "OHOS::AccountSA::AppAccountAuthenticatorSession::AddClientDeathRecipient()";
-        "OHOS::AccountSA::AppAccountAuthenticatorSession::AppAccountAuthenticatorSession(OHOS::AccountSA::AuthenticatorAction, OHOS::AccountSA::AuthenticatorSessionRequest const&)";
+        "OHOS::AccountSA::AppAccountAuthenticatorSession::AppAccountAuthenticatorSession(OHOS::AccountSA::AuthenticatorAction, OHOS::AccountSA::AuthenticatorSessionRequest const&, unsigned long long const&)";
+        "OHOS::AccountSA::AppAccountAuthenticatorSession::AppAccountAuthenticatorSession(OHOS::AccountSA::AuthenticatorAction, OHOS::AccountSA::AuthenticatorSessionRequest const&, unsigned long const&)";
         "OHOS::AccountSA::AppAccountAuthenticatorSession::GetAuthenticatorCallback(OHOS::AccountSA::AuthenticatorSessionRequest const&, OHOS::sptr<OHOS::IRemoteObject>&) const";
         "OHOS::AccountSA::AppAccountAuthenticatorSession::Init()";
         "OHOS::AccountSA::AppAccountAuthenticatorSession::OnAbilityConnectDone(OHOS::AppExecFwk::ElementName const&, OHOS::sptr<OHOS::IRemoteObject> const&, int)";
@@ -70,7 +71,8 @@
         "OHOS::AccountSA::AppAccountAuthenticatorSessionManager::SelectAccountsByOptions(std::__h::vector<OHOS::AccountSA::AppAccountInfo, std::__h::allocator<OHOS::AccountSA::AppAccountInfo>>, OHOS::AccountSA::AuthenticatorSessionRequest const&)";
         "OHOS::AccountSA::AppAccountAuthenticatorSessionManager::UnregisterApplicationStateObserver()";
         "OHOS::AccountSA::AppAccountCheckLabelsCallback::AppAccountCheckLabelsCallback(std::__h::vector<OHOS::AccountSA::AppAccountInfo, std::__h::allocator<OHOS::AccountSA::AppAccountInfo>>, OHOS::AccountSA::AuthenticatorSessionRequest const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
-        "OHOS::AccountSA::AppAccountCheckLabelsSession::AppAccountCheckLabelsSession(std::__h::vector<OHOS::AccountSA::AppAccountInfo, std::__h::allocator<OHOS::AccountSA::AppAccountInfo>>, OHOS::AccountSA::AuthenticatorSessionRequest const&)";
+        "OHOS::AccountSA::AppAccountCheckLabelsSession::AppAccountCheckLabelsSession(std::__h::vector<OHOS::AccountSA::AppAccountInfo, std::__h::allocator<OHOS::AccountSA::AppAccountInfo>> const&, OHOS::AccountSA::AuthenticatorSessionRequest const&, unsigned long long const&)";
+        "OHOS::AccountSA::AppAccountCheckLabelsSession::AppAccountCheckLabelsSession(std::__h::vector<OHOS::AccountSA::AppAccountInfo, std::__h::allocator<OHOS::AccountSA::AppAccountInfo>> const&, OHOS::AccountSA::AuthenticatorSessionRequest const&, unsigned long const&)";
         "OHOS::AccountSA::AppAccountCheckLabelsSession::CheckLabels()";
         "OHOS::AccountSA::AppAccountCommonEventObserver::GetInstance()";
         "OHOS::AccountSA::AppAccountControlManager::AddAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::AppAccountInfo&)";

@@ -20,9 +20,9 @@
 
 namespace OHOS {
 namespace AccountSA {
-AppAccountCheckLabelsSession::AppAccountCheckLabelsSession(
-    std::vector<AppAccountInfo> accounts, const AuthenticatorSessionRequest &request)
-    : AppAccountAuthenticatorSession(CHECK_ACCOUNT_LABELS, request), accounts_(accounts)
+AppAccountCheckLabelsSession::AppAccountCheckLabelsSession(const std::vector<AppAccountInfo> &accounts,
+    const AuthenticatorSessionRequest &request, const std::uint64_t &sessionId)
+    : AppAccountAuthenticatorSession(CHECK_ACCOUNT_LABELS, request, sessionId), accounts_(accounts)
 {}
 
 AppAccountCheckLabelsSession::~AppAccountCheckLabelsSession()
