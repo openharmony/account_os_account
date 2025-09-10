@@ -24,6 +24,7 @@
 #include "iremote_object.h"
 #include "singleton.h"
 #include "want_params.h"
+#include <unordered_set>
 
 namespace OHOS {
 namespace AccountSA {
@@ -57,6 +58,7 @@ public:
     void OnSessionResult(const std::string &sessionId, int32_t resultCode, const AAFwk::Want &result);
     void OnSessionRequestRedirected(const std::string &sessionId, AAFwk::Want &request);
     void OnSessionRequestContinued(const std::string &sessionId);
+    void GenerateSessionId(std::uint64_t &sessionId);
 
 private:
     AppAccountAuthenticatorSessionManager() = default;
@@ -64,7 +66,7 @@ private:
     DISALLOW_COPY_AND_MOVE(AppAccountAuthenticatorSessionManager);
 
 private:
-    std::mutex mutex_;
+    std::recursive_mutex mutex_;
     std::map<std::string, std::shared_ptr<AppAccountAuthenticatorSession>> sessionMap_;
     std::map<std::string, std::set<std::string>> abilitySessions_;
     bool isInitialized_ = false;

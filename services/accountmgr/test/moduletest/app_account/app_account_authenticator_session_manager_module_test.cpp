@@ -111,7 +111,7 @@ void AppAccountSessionManagerModuleTest::SetUp(void) __attribute__((no_sanitize(
 
 void AppAccountSessionManagerModuleTest::TearDown(void)
 {
-    std::lock_guard<std::mutex> lock(appAccountAuthenticatorSessionManagerPtr_->mutex_);
+    std::lock_guard<std::recursive_mutex> lock(appAccountAuthenticatorSessionManagerPtr_->mutex_);
     appAccountAuthenticatorSessionManagerPtr_->sessionMap_.clear();
     appAccountAuthenticatorSessionManagerPtr_->abilitySessions_.clear();
 }
@@ -180,18 +180,19 @@ HWTEST_F(AppAccountSessionManagerModuleTest, AppAccountSessionManagerModuleTest_
     ErrCode result = appAccountAuthenticatorSessionManagerPtr_->OpenSession(session);
     ASSERT_EQ(ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION, result);
 
+    std::uint64_t id = 0;
     for (int i = 0; i < SESSION_MAX_NUM; i++) {
         std::string key = std::to_string(i);
         AuthenticatorAction action;
         AuthenticatorSessionRequest request;
-        auto sessionPtr = std::make_shared<AppAccountAuthenticatorSession>(action, request);
+        auto sessionPtr = std::make_shared<AppAccountAuthenticatorSession>(action, request, id);
         ASSERT_NE(sessionPtr, nullptr);
         appAccountAuthenticatorSessionManagerPtr_->sessionMap_[key] = sessionPtr;
     }
     ASSERT_EQ(appAccountAuthenticatorSessionManagerPtr_->sessionMap_.size(), SESSION_MAX_NUM);
     AuthenticatorAction action;
     AuthenticatorSessionRequest request;
-    session = std::make_shared<AppAccountAuthenticatorSession>(action, request);
+    session = std::make_shared<AppAccountAuthenticatorSession>(action, request, ++id);
     ASSERT_NE(session, nullptr);
     result = appAccountAuthenticatorSessionManagerPtr_->OpenSession(session);
     ASSERT_EQ(ERR_APPACCOUNT_SERVICE_OAUTH_BUSY, result);
@@ -210,7 +211,8 @@ HWTEST_F(AppAccountSessionManagerModuleTest, AppAccountSessionManagerModuleTest_
     std::string key = std::to_string(SESSION_MAX_NUM);
     AuthenticatorAction action;
     AuthenticatorSessionRequest request;
-    auto session = std::make_shared<AppAccountAuthenticatorSession>(action, request);
+    std::uint64_t id = 0;
+    auto session = std::make_shared<AppAccountAuthenticatorSession>(action, request, id);
     ASSERT_NE(session, nullptr);
     appAccountAuthenticatorSessionManagerPtr_->sessionMap_.clear();
     appAccountAuthenticatorSessionManagerPtr_->sessionMap_[key] = session;
@@ -239,7 +241,8 @@ HWTEST_F(AppAccountSessionManagerModuleTest, AppAccountSessionManagerModuleTest_
 
     AuthenticatorAction action;
     AuthenticatorSessionRequest request;
-    auto session = std::make_shared<AppAccountAuthenticatorSession>(action, request);
+    std::uint64_t id = 0;
+    auto session = std::make_shared<AppAccountAuthenticatorSession>(action, request, id);
     ASSERT_NE(session, nullptr);
     appAccountAuthenticatorSessionManagerPtr_->sessionMap_[sessionId] = session;
     sessionPtr = appAccountAuthenticatorSessionManagerPtr_->GetSession(sessionId);
@@ -286,7 +289,8 @@ HWTEST_F(
     ASSERT_NE(testCallBack, nullptr);
     request.callback = testCallBack;
     ASSERT_NE(request.callback, nullptr);
-    auto session = std::make_shared<AppAccountAuthenticatorSession>(action, request);
+    std::uint64_t id = 0;
+    auto session = std::make_shared<AppAccountAuthenticatorSession>(action, request, id);
     ASSERT_NE(session, nullptr);
 
     auto sessionPtr = appAccountAuthenticatorSessionManagerPtr_->GetSession(sessionId);
@@ -322,7 +326,8 @@ HWTEST_F(AppAccountSessionManagerModuleTest, AppAccountSessionManagerModuleTest_
     ASSERT_NE(testCallBack, nullptr);
     request.callback = testCallBack;
     ASSERT_NE(request.callback, nullptr);
-    auto session = std::make_shared<AppAccountAuthenticatorSession>(action, request);
+    std::uint64_t id = 0;
+    auto session = std::make_shared<AppAccountAuthenticatorSession>(action, request, id);
     ASSERT_NE(session, nullptr);
 
     auto sessionPtr = appAccountAuthenticatorSessionManagerPtr_->GetSession(sessionId);
@@ -348,7 +353,8 @@ HWTEST_F(AppAccountSessionManagerModuleTest, AppAccountSessionManagerModuleTest_
     int32_t resultCode = -1;
     AuthenticatorAction action;
     AuthenticatorSessionRequest request;
-    auto session = std::make_shared<AppAccountAuthenticatorSession>(action, request);
+    std::uint64_t id = 0;
+    auto session = std::make_shared<AppAccountAuthenticatorSession>(action, request, id);
     ASSERT_NE(session, nullptr);
     session->isConnected_ = true;
 
@@ -385,7 +391,8 @@ HWTEST_F(AppAccountSessionManagerModuleTest, AppAccountSessionManagerModuleTest_
     ASSERT_NE(testCallBack, nullptr);
     request.callback = testCallBack;
     ASSERT_NE(request.callback, nullptr);
-    auto session = std::make_shared<AppAccountAuthenticatorSession>(action, request);
+    std::uint64_t id = 0;
+    auto session = std::make_shared<AppAccountAuthenticatorSession>(action, request, id);
     ASSERT_NE(session, nullptr);
 
     EXPECT_CALL(*testCallBack, OnResult(_, _)).Times(Exactly(0));
@@ -433,7 +440,8 @@ HWTEST_F(AppAccountSessionManagerModuleTest, AppAccountSessionManagerModuleTest_
     request.owner = BUNDLE_NAME;
     auto testCallBack = new (std::nothrow) MockSpecicalAuthenticatorCallback();
     ASSERT_NE(testCallBack, nullptr);
-    auto session = std::make_shared<AppAccountAuthenticatorSession>(action, request);
+    std::uint64_t id = 0;
+    auto session = std::make_shared<AppAccountAuthenticatorSession>(action, request, id);
     ASSERT_NE(session, nullptr);
 
     AppExecFwk::ElementName element = result.GetElement();
@@ -467,7 +475,8 @@ HWTEST_F(AppAccountSessionManagerModuleTest, AppAccountSessionManagerModuleTest_
     ASSERT_NE(testCallBack, nullptr);
     request.callback = testCallBack;
     ASSERT_NE(request.callback, nullptr);
-    auto session = std::make_shared<AppAccountAuthenticatorSession>(AUTHENTICATE, request);
+    std::uint64_t id = 0;
+    auto session = std::make_shared<AppAccountAuthenticatorSession>(AUTHENTICATE, request, id);
     ASSERT_NE(session, nullptr);
 
     appAccountAuthenticatorSessionManagerPtr_->sessionMap_[sessionId] = session;
@@ -482,7 +491,7 @@ HWTEST_F(AppAccountSessionManagerModuleTest, AppAccountSessionManagerModuleTest_
 
     AuthenticatorSessionRequest request1;
     request1.owner = BUNDLE_NAME;
-    auto session1 = std::make_shared<AppAccountAuthenticatorSession>(ADD_ACCOUNT_IMPLICITLY, request1);
+    auto session1 = std::make_shared<AppAccountAuthenticatorSession>(ADD_ACCOUNT_IMPLICITLY, request1, ++id);
     ASSERT_NE(session, nullptr);
 
     appAccountAuthenticatorSessionManagerPtr_->sessionMap_[SESSION_ID_OTHER] = session1;
@@ -529,10 +538,11 @@ HWTEST_F(AppAccountSessionManagerModuleTest, AppAccountSessionManagerModuleTest_
     AAFwk::Want result;
     AuthenticatorAction action;
     AuthenticatorSessionRequest request;
+    std::uint64_t id = 0;
     auto testCallBack = new (std::nothrow) MockSpecicalAuthenticatorCallback();
     ASSERT_NE(testCallBack, nullptr);
 
-    auto session = std::make_shared<AppAccountAuthenticatorSession>(action, request);
+    auto session = std::make_shared<AppAccountAuthenticatorSession>(action, request, id);
     session->isConnected_ = true;
     ASSERT_NE(session, nullptr);
     appAccountAuthenticatorSessionManagerPtr_->sessionMap_[sessionId] = session;

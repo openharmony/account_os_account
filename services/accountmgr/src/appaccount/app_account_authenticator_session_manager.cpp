@@ -21,11 +21,13 @@
 #include "app_mgr_constants.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
+#include <random>
 
 namespace OHOS {
 namespace AccountSA {
 namespace {
 constexpr size_t SESSION_MAX_NUM = 256;
+constexpr int32_t TIMESTAMP_SHIFT_BIT = 32;
 }
 
 AppAccountAuthenticatorSessionManager::~AppAccountAuthenticatorSessionManager()
@@ -41,57 +43,84 @@ AppAccountAuthenticatorSessionManager &AppAccountAuthenticatorSessionManager::Ge
 
 ErrCode AppAccountAuthenticatorSessionManager::AddAccountImplicitly(const AuthenticatorSessionRequest &request)
 {
-    auto session = std::make_shared<AppAccountAuthenticatorSession>(ADD_ACCOUNT_IMPLICITLY, request);
+    uint64_t sessionId = 0;
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    GenerateSessionId(sessionId);
+    auto session = std::make_shared<AppAccountAuthenticatorSession>(ADD_ACCOUNT_IMPLICITLY, request, sessionId);
     return OpenSession(session);
 }
 
 ErrCode AppAccountAuthenticatorSessionManager::CreateAccountImplicitly(const AuthenticatorSessionRequest &request)
 {
-    auto session = std::make_shared<AppAccountAuthenticatorSession>(CREATE_ACCOUNT_IMPLICITLY, request);
+    uint64_t sessionId = 0;
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    GenerateSessionId(sessionId);
+    auto session = std::make_shared<AppAccountAuthenticatorSession>(CREATE_ACCOUNT_IMPLICITLY, request, sessionId);
     return OpenSession(session);
 }
 
 ErrCode AppAccountAuthenticatorSessionManager::Authenticate(const AuthenticatorSessionRequest &request)
 {
-    auto session = std::make_shared<AppAccountAuthenticatorSession>(AUTHENTICATE, request);
+    uint64_t sessionId = 0;
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    GenerateSessionId(sessionId);
+    auto session = std::make_shared<AppAccountAuthenticatorSession>(AUTHENTICATE, request, sessionId);
     return OpenSession(session);
 }
 
 ErrCode AppAccountAuthenticatorSessionManager::Auth(const AuthenticatorSessionRequest &request)
 {
-    auto session = std::make_shared<AppAccountAuthenticatorSession>(AUTH, request);
+    uint64_t sessionId = 0;
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    GenerateSessionId(sessionId);
+    auto session = std::make_shared<AppAccountAuthenticatorSession>(AUTH, request, sessionId);
     return OpenSession(session);
 }
 
 ErrCode AppAccountAuthenticatorSessionManager::VerifyCredential(const AuthenticatorSessionRequest &request)
 {
-    auto session = std::make_shared<AppAccountAuthenticatorSession>(VERIFY_CREDENTIAL, request);
+    uint64_t sessionId = 0;
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    GenerateSessionId(sessionId);
+    auto session = std::make_shared<AppAccountAuthenticatorSession>(VERIFY_CREDENTIAL, request, sessionId);
     return OpenSession(session);
 }
 
 ErrCode AppAccountAuthenticatorSessionManager::CheckAccountLabels(const AuthenticatorSessionRequest &request)
 {
-    auto session = std::make_shared<AppAccountAuthenticatorSession>(CHECK_ACCOUNT_LABELS, request);
+    uint64_t sessionId = 0;
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    GenerateSessionId(sessionId);
+    auto session = std::make_shared<AppAccountAuthenticatorSession>(CHECK_ACCOUNT_LABELS, request, sessionId);
     return OpenSession(session);
 }
 
 ErrCode AppAccountAuthenticatorSessionManager::IsAccountRemovable(const AuthenticatorSessionRequest &request)
 {
-    auto session = std::make_shared<AppAccountAuthenticatorSession>(IS_ACCOUNT_REMOVABLE, request);
+    uint64_t sessionId = 0;
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    GenerateSessionId(sessionId);
+    auto session = std::make_shared<AppAccountAuthenticatorSession>(IS_ACCOUNT_REMOVABLE, request, sessionId);
     return OpenSession(session);
 }
 
 ErrCode AppAccountAuthenticatorSessionManager::SelectAccountsByOptions(
     const std::vector<AppAccountInfo> accounts, const AuthenticatorSessionRequest &request)
 {
-    auto session = std::make_shared<AppAccountCheckLabelsSession>(accounts, request);
+    uint64_t sessionId = 0;
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    GenerateSessionId(sessionId);
+    auto session = std::make_shared<AppAccountCheckLabelsSession>(accounts, request, sessionId);
     OpenSession(session);
     return session->CheckLabels();
 }
 
 ErrCode AppAccountAuthenticatorSessionManager::SetAuthenticatorProperties(const AuthenticatorSessionRequest &request)
 {
-    auto session = std::make_shared<AppAccountAuthenticatorSession>(SET_AUTHENTICATOR_PROPERTIES, request);
+    uint64_t sessionId = 0;
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    GenerateSessionId(sessionId);
+    auto session = std::make_shared<AppAccountAuthenticatorSession>(SET_AUTHENTICATOR_PROPERTIES, request, sessionId);
     return OpenSession(session);
 }
 
@@ -105,7 +134,7 @@ ErrCode AppAccountAuthenticatorSessionManager::OpenSession(
     std::string sessionId = session->GetSessionId();
     ErrCode result = ERR_OK;
     {
-        std::lock_guard<std::mutex> lock(mutex_);
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
         if (sessionMap_.size() == SESSION_MAX_NUM) {
             ACCOUNT_LOGD("app account mgr service is busy");
             return ERR_APPACCOUNT_SERVICE_OAUTH_BUSY;
@@ -126,7 +155,7 @@ ErrCode AppAccountAuthenticatorSessionManager::OpenSession(
 std::shared_ptr<AppAccountAuthenticatorSession> AppAccountAuthenticatorSessionManager::GetSession(
     const std::string &sessionId)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     auto it = sessionMap_.find(sessionId);
     if (it == sessionMap_.end()) {
         return nullptr;
@@ -138,7 +167,7 @@ ErrCode AppAccountAuthenticatorSessionManager::GetAuthenticatorCallback(
     const AuthenticatorSessionRequest &request, sptr<IRemoteObject> &callback)
 {
     callback = nullptr;
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     auto it = sessionMap_.find(request.sessionId);
     if ((it == sessionMap_.end()) || (it->second == nullptr)) {
         ACCOUNT_LOGE("failed to find a session by id=%{private}s.", request.sessionId.c_str());
@@ -201,7 +230,7 @@ void AppAccountAuthenticatorSessionManager::OnSessionRequestContinued(const std:
 
 void AppAccountAuthenticatorSessionManager::CloseSession(const std::string &sessionId)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     auto it = sessionMap_.find(sessionId);
     if (it == sessionMap_.end()) {
         ACCOUNT_LOGI("session not exist, sessionId=%{private}s", sessionId.c_str());
@@ -211,5 +240,19 @@ void AppAccountAuthenticatorSessionManager::CloseSession(const std::string &sess
     it->second->GetRequest(request);
     sessionMap_.erase(it);
 }
+
+void AppAccountAuthenticatorSessionManager::GenerateSessionId(std::uint64_t &sessionId)
+{
+    std::random_device rd;
+    std::uniform_int_distribution<uint32_t> u(0, UINT32_MAX);
+    static thread_local std::mt19937 e(rd());
+    uint64_t ts = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+    do {
+        uint64_t rnd = u(e);
+        sessionId = (ts << TIMESTAMP_SHIFT_BIT) | rnd;
+    } while (sessionMap_.count(std::to_string(sessionId)) > 0);
+}
+
 }  // namespace AccountSA
 }  // namespace OHOS
