@@ -57,6 +57,7 @@ ohos_unittest("account_iam_client_test") {
     "${account_test_common}:account_test_common_source_set",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
 
   external_deps = [
@@ -112,6 +113,7 @@ ohos_unittest("account_iam_client_proxy_mock_test") {
     "${app_account_services_path}:accountmgr",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
 
   external_deps = [

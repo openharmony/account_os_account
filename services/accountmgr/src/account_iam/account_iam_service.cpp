@@ -39,13 +39,19 @@ AccountIAMService::~AccountIAMService()
 
 static bool GetCurrentUserId(int32_t &userId)
 {
-    std::vector<int32_t> userIds;
-    (void)IInnerOsAccountManager::GetInstance().QueryActiveOsAccountIds(userIds);
-    if (userIds.empty()) {
-        ACCOUNT_LOGE("Fail to get activated os account ids");
-        return false;
+    int32_t callingLocalId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+    if (callingLocalId == 0) {
+        int32_t foregroundLocalId = -1;
+        ErrCode ret = IInnerOsAccountManager::GetInstance().GetForegroundOsAccountLocalId(
+            Constants::DEFAULT_DISPLAY_ID, foregroundLocalId);
+        if (ret != ERR_OK) {
+            ACCOUNT_LOGE("Fail to get foreground os account local id on default display, errCode = %{public}d", ret);
+            return false;
+        }
+        userId = foregroundLocalId;
+        return true;
     }
-    userId = userIds[0];
+    userId = callingLocalId;
     return true;
 }
 
