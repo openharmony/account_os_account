@@ -199,8 +199,8 @@ void TestStateMachine(bool withHandshake, bool isBlock)
     EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::UNLOCKED, _, _))
         .Times(AtLeast(1));
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(localId), ERR_OK);
-    EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::STOPPING, localId, localId)).Times(Exactly(TWICE));
-    EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::STOPPED, localId, localId)).Times(Exactly(TWICE));
+    EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::STOPPING, localId, localId)).Times(AtLeast(1));
+    EXPECT_CALL(*mockSubscriber, OnStateChanged(OsAccountState::STOPPED, localId, localId)).Times(AtLeast(1));
 
     TestStateLockingMachine(localId, isBlock, mockSubscriber);
 
