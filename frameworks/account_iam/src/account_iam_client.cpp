@@ -733,12 +733,18 @@ int32_t AccountIAMClient::GetAuthSubType(int32_t userId)
 
 bool AccountIAMClient::GetCurrentUserId(int32_t &userId)
 {
-    std::vector<int32_t> userIds;
-    if ((OsAccountManager::QueryActiveOsAccountIds(userIds) != ERR_OK) || userIds.empty()) {
-        ACCOUNT_LOGE("fail to get activated os account ids");
-        return false;
+    int32_t currentLocalId = getuid() / UID_TRANSFORM_DIVISOR;
+    if (currentLocalId == 0) {
+        int32_t foregroundLocalId = -1;
+        ErrCode ret = OsAccountManager::GetForegroundOsAccountLocalId(foregroundLocalId);
+        if (ret != ERR_OK) {
+            ACCOUNT_LOGE("Fail to get foreground os account local id, errCode = %{public}d", ret);
+            return false;
+        }
+        userId = foregroundLocalId;
+        return true;
     }
-    userId = userIds[0];
+    userId = currentLocalId;
     return true;
 }
 
