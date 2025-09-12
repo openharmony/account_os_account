@@ -33,6 +33,8 @@
 #include "iam_common_defines.h"
 #include "ipc_skeleton.h"
 #include "test_common.h"
+#include "account_info.h"
+#include "os_account_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1343,5 +1345,24 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_DomainAuth_0100, TestSize.Level1
 }
 #endif // SUPPORT_DOMAIN_ACCOUNTS
 #endif // HAS_PIN_AUTH_PART
+
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetCurrentUserId_0100, TestSize.Level2)
+{
+    // if is called by normal user
+    int32_t testUserId = 100; // 100: userId
+    int32_t testApplicationUid = testUserId * UID_TRANSFORM_DIVISOR + 10; // 10: appId
+    EXPECT_EQ(0, setuid(testApplicationUid));
+    int32_t userIdOutput = -1;
+    ASSERT_TRUE(AccountIAMClient::GetInstance().GetCurrentUserId(userIdOutput));
+    EXPECT_EQ(testUserId, userIdOutput);
+
+    // if is called by U0
+    EXPECT_EQ(0, setuid(0));
+    testUserId = -1;
+    EXPECT_EQ(ERR_OK, OsAccountManager::GetForegroundOsAccountLocalId(testUserId));
+    userIdOutput = -1;
+    EXPECT_TRUE(AccountIAMClient::GetInstance().GetCurrentUserId(userIdOutput));
+    EXPECT_EQ(testUserId, userIdOutput);
+}
 }  // namespace AccountTest
 }  // namespace OHOS
