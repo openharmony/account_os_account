@@ -52,6 +52,8 @@ ErrCode AbilityManagerAdapter::ConnectAbility(const AAFwk::Want &want, const spt
     auto abms = GetAbilityManager();
     if (abms == nullptr) {
         ACCOUNT_LOGE("ability manager proxy is nullptr.");
+        REPORT_APP_ACCOUNT_FAIL("", "", Constants::APP_DFX_CONNECT_ABILITY,
+            ERR_ACCOUNT_COMMON_CONNECT_ABILITY_MANAGER_SERVICE_ERROR, "Ability manager proxy is nullptr");
         return ERR_ACCOUNT_COMMON_CONNECT_ABILITY_MANAGER_SERVICE_ERROR;
     }
 

@@ -1230,6 +1230,10 @@ ErrCode OsAccountManagerService::DeactivateAllOsAccounts()
             result = res;
         }
     }
+    if (result != ERR_OK) {
+        ReportOsAccountOperationFail(0,
+            Constants::OPERATION_DEACTIVATE_ALL, result, "deactivate all os account failed");
+    }
     return result;
 }
 #ifdef FUZZ_TEST

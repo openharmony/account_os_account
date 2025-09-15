@@ -25,6 +25,7 @@
 #include "app_account_common.h"
 #include "bundle_manager_adapter.h"
 #include "iservice_registry.h"
+#include "account_hisysevent_adapter.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -124,10 +125,14 @@ ErrCode AppAccountAuthenticatorSession::Open()
 {
     if (isOpened_) {
         ACCOUNT_LOGD("session has been opened");
+        REPORT_APP_ACCOUNT_FAIL("", "", Constants::APP_DFX_AUTHENTICATOR_SESSION,
+            ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION, "Session has been opened");
         return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
     }
     if (!isInitialized_) {
         ACCOUNT_LOGD("session has not been initialized");
+        REPORT_APP_ACCOUNT_FAIL("", "", Constants::APP_DFX_AUTHENTICATOR_SESSION,
+            ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION, "Session has not been initialized");
         return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
     }
     AuthenticatorInfo info;
@@ -135,6 +140,8 @@ ErrCode AppAccountAuthenticatorSession::Open()
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("authenticator not exist, owner: %{public}s, errCode: %{public}d.",
             request_.owner.c_str(), errCode);
+        REPORT_APP_ACCOUNT_FAIL("", request_.owner, Constants::APP_DFX_AUTHENTICATOR_SESSION,
+            errCode, "Authenticator not exist");
         return errCode;
     }
     AAFwk::Want want;
@@ -172,6 +179,8 @@ void AppAccountAuthenticatorSession::CloseSelf() const
 ErrCode AppAccountAuthenticatorSession::AddClientDeathRecipient()
 {
     if (!isOpened_) {
+        REPORT_APP_ACCOUNT_FAIL("", "", Constants::APP_DFX_AUTHENTICATOR_SESSION,
+            ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION, "Session is not opened");
         return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
     }
     if ((request_.callback == nullptr) || (request_.callback->AsObject() == nullptr)) {
@@ -367,10 +376,14 @@ ErrCode AppAccountAuthenticatorSession::GetAuthenticatorCallback(
     callback = nullptr;
     if ((request.callerUid != ownerUid_) || (request.callerBundleName != request_.owner)) {
         ACCOUNT_LOGE("fail to get authenticator callback for permission denied");
+        REPORT_APP_ACCOUNT_FAIL("", request.callerBundleName, Constants::APP_DFX_GET_AUTHENTICATOR_CALLBACK,
+            ERR_ACCOUNT_COMMON_PERMISSION_DENIED, "Get authenticator callback for permission denied faild");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     if (!authenticatorCb_) {
         ACCOUNT_LOGE("session has not been initialized");
+        REPORT_APP_ACCOUNT_FAIL("", request.callerBundleName, Constants::APP_DFX_GET_AUTHENTICATOR_CALLBACK,
+            ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION, "Session has not been initialized");
         return ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_CALLBACK_NOT_EXIST;
     }
     callback = authenticatorCb_->AsObject();
