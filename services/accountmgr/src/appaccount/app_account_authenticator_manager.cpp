@@ -21,6 +21,7 @@
 #include "account_log_wrapper.h"
 #include "app_account_constants.h"
 #include "bundle_manager_adapter.h"
+#include "account_hisysevent_adapter.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -53,6 +54,8 @@ static ErrCode QueryAbilityInfos(const std::string &owner, int32_t userId,
     }
     if (!result) {
         ACCOUNT_LOGE("failed to query ability info");
+        REPORT_APP_ACCOUNT_FAIL("", owner, Constants::APP_DFX_GET_AUTHENTICATOR_INFO,
+            ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST, "Query ability info failed");
         return ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST;
     }
     return ERR_OK;
@@ -93,6 +96,8 @@ ErrCode AppAccountAuthenticatorManager::GetAuthenticatorInfo(
         info.labelId = iter_extensionInfos->labelId;
         return ERR_OK;
     }
+    REPORT_APP_ACCOUNT_FAIL("", owner, Constants::APP_DFX_AUTHENTICATOR_SESSION,
+        ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST, "Find authenticator ability failed");
     return ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST;
 }
 }  // namespace AccountSA
