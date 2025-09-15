@@ -83,8 +83,8 @@ void SessionConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName &e
 }
 
 AppAccountAuthenticatorSession::AppAccountAuthenticatorSession(
-    AuthenticatorAction action, const AuthenticatorSessionRequest &request)
-    : action_(action), request_(request)
+    AuthenticatorAction action, const AuthenticatorSessionRequest &request, const std::uint64_t &sessionId)
+    : action_(action), request_(request), sessionId_(std::to_string(sessionId))
 {
     Init();
 }
@@ -103,7 +103,6 @@ void AppAccountAuthenticatorSession::Init()
         return;
     }
 
-    sessionId_ = std::to_string(reinterpret_cast<int64_t>(this));
     conn_ = new (std::nothrow) SessionConnection(sessionId_);
     clientDeathRecipient_ = new (std::nothrow) SessionClientDeathRecipient(sessionId_);
     serverDeathRecipient_ = new (std::nothrow) SessionServerDeathRecipient(sessionId_);
