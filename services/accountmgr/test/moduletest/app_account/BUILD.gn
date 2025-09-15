@@ -587,6 +587,7 @@ ohos_moduletest("app_account_authenticator_session_module_test") {
   external_deps = [
     "ability_base:base",
     "ability_base:want",
+    "ability_runtime:ability_connect_callback_stub",
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
     "ability_runtime:abilitykit_native",
@@ -876,6 +877,7 @@ ohos_moduletest("at_not_mock_app_account_manager_service_module_test") {
   external_deps = [
     "ability_base:base",
     "ability_base:want",
+    "ability_runtime:ability_connect_callback_stub",
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
     "ability_runtime:abilitykit_native",
@@ -1140,6 +1142,7 @@ ohos_moduletest("app_account_authenticator_session_manager_module_test") {
 
   external_deps = [
     "ability_base:want",
+    "ability_runtime:ability_connect_callback_stub",
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
     "ability_runtime:abilitykit_native",
