@@ -15,6 +15,7 @@
 
 #include "app_account_common.h"
 
+#include <securec.h>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "app_account_constants.h"
@@ -307,6 +308,20 @@ bool AccountCapabilityRequest::ReadFromParcel(Parcel &parcel)
     }
     parameters = *paramsPtr;
     return true;
+}
+
+VerifyCredentialOptions::~VerifyCredentialOptions()
+{
+    if (credential.size() > 0) {
+        (void)memset_s(credential.data(), credential.size(), 0, credential.size());
+    }
+}
+
+AuthenticatorSessionRequest::~AuthenticatorSessionRequest()
+{
+    if (token.size() > 0) {
+        (void)memset_s(token.data(), token.size(), 0, token.size());
+    }
 }
 
 int32_t ConvertOtherJSErrCodeV8(int32_t errCode)
