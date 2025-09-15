@@ -893,6 +893,7 @@ ohos_unittest("os_account_maintenance_type_mock_test") {
   external_deps = [
     "ability_base:base",
     "ability_base:want",
+    "ability_runtime:ability_connect_callback_stub",
     "ability_runtime:ability_manager",
     "ability_runtime:app_manager",
     "access_token:libtokensetproc_shared",
