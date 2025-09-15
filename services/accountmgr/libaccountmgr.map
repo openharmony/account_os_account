@@ -379,6 +379,7 @@
         "OHOS::AccountSA::GetDomainAuthStatusInfoCallback::GetDomainAuthStatusInfoCallback(OHOS::UserIam::UserAuth::GetPropertyRequest const&, OHOS::sptr<OHOS::AccountSA::IGetSetPropCallback> const&)";
         "OHOS::AccountSA::PrepareRemoteAuthCallbackWrapper::PrepareRemoteAuthCallbackWrapper(OHOS::sptr<OHOS::AccountSA::IPreRemoteAuthCallback> const&)";
         OHOS::AccountSA::OhosAccountManager::QueryDistributedVirtualDeviceId*;
+        "OHOS::AccountSA::AuthenticatorSessionRequest::~AuthenticatorSessionRequest()";
     };
   local:
     *;

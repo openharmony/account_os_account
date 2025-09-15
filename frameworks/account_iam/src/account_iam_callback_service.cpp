@@ -194,6 +194,7 @@ void DomainCredentialRecipient::OnSetData(int32_t authSubType, std::vector<uint8
 {
     auto callback = std::make_shared<DomainAuthCallbackAdapter>(idmCallback_);
     ErrCode errCode = DomainAccountClient::GetInstance().AuthUser(userId_, data, callback);
+    std::fill(data.begin(), data.end(), 0);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Failed to auth for domain account, errCode=%{public}d", errCode);
         Parcel emptyParcel;

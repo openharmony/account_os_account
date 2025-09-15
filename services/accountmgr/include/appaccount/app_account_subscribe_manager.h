@@ -61,9 +61,8 @@ private:
     ErrCode RemoveSubscribeRecord(const sptr<IRemoteObject> &eventListener, std::vector<std::string> &ownerList);
 
 private:
-    std::mutex mutex_;
+    std::recursive_mutex mutex_;
     sptr<IRemoteObject::DeathRecipient> subscribeDeathRecipient_;
-    std::mutex subscribeRecordMutex_;
     std::map<std::string, std::multiset<AppAccountSubscribeRecordPtr>> ownerSubscribeRecords_;
     std::vector<AppAccountSubscribeRecordPtr> subscribeRecords_;
 };

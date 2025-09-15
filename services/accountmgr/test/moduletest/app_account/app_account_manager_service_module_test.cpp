@@ -783,7 +783,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAccount
     EXPECT_EQ(funcResult, ERR_OK);
 
     funcResult = -1;
-    g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL, funcResult);
+    std::string credCpy = STRING_CREDENTIAL;
+    g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
     std::string credential;
@@ -851,12 +852,13 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAccount
     g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
     funcResult = -1;
-    g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL, funcResult);
+    std::string credCpy = STRING_CREDENTIAL;
+    g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
     funcResult = -1;
-    g_accountManagerService->SetAccountCredential(STRING_NAME,
-        STRING_CREDENTIAL_TYPE_TWO, STRING_CREDENTIAL_TWO, funcResult);
+    credCpy = STRING_CREDENTIAL_TWO;
+    g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE_TWO, credCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
     funcResult = -1;
@@ -890,7 +892,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccount
     EXPECT_EQ(funcResult, ERR_OK);
 
     funcResult = -1;
-    g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL, funcResult);
+    std::string credCpy = STRING_CREDENTIAL;
+    g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
     funcResult = -1;
@@ -913,12 +916,13 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccount
     EXPECT_EQ(funcResult, ERR_OK);
 
     funcResult = -1;
-    g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL, funcResult);
+    std::string credCpy = STRING_CREDENTIAL;
+    g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
     funcResult = -1;
-    g_accountManagerService->SetAccountCredential(STRING_NAME,
-        STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL_TWO, funcResult);
+    credCpy = STRING_CREDENTIAL_TWO;
+    g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
     funcResult = -1;
@@ -943,8 +947,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccount
     ACCOUNT_LOGI("AppAccountManagerService_SetAccountCredential_0300");
 
     int32_t funcResult = -1;
-    g_accountManagerService->SetAccountCredential(STRING_NAME,
-        STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL, funcResult);
+    std::string credCpy = STRING_CREDENTIAL;
+    g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
 }
 
@@ -1063,7 +1067,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthTo
     std::string owner;
     appAccounts[0].GetOwner(owner);
 
-    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN, funcResult);
+    std::string tokenCpy = STRING_TOKEN;
+    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, tokenCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
     std::string token;
@@ -1096,8 +1101,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAuthTok
     ASSERT_EQ(appAccounts.size(), SIZE_ONE);
     std::string owner;
     appAccounts[0].GetOwner(owner);
-
-    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN, funcResult);
+    std::string tokenCpy = STRING_TOKEN;
+    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, tokenCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
     std::string token;
@@ -1120,7 +1125,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTo
     ACCOUNT_LOGI("AppAccountManagerService_SetOAuthToken_0100");
 
     int32_t funcResult = -1;
-    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN, funcResult);
+    std::string tokenCpy = STRING_TOKEN;
+    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, tokenCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
 }
 
@@ -1137,11 +1143,11 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTo
     int32_t funcResult = -1;
     g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
-
-    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN, funcResult);
+    std::string tokenCpy = STRING_TOKEN;
+    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, tokenCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
-
-    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE_TWO, STRING_TOKEN_TWO, funcResult);
+    tokenCpy = STRING_TOKEN_TWO;
+    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE_TWO, tokenCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
     std::vector<AppAccountInfo> appAccounts;
@@ -1171,8 +1177,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAut
     ACCOUNT_LOGI("AppAccountManagerService_DeleteOAuthToken_0100");
 
     int32_t funcResult = -1;
-    g_accountManagerService->DeleteOAuthToken(STRING_NAME,
-        STRING_OWNER, STRING_AUTH_TYPE, STRING_TOKEN, funcResult);
+    std::string tokenCpy = STRING_TOKEN;
+    g_accountManagerService->DeleteOAuthToken(STRING_NAME, STRING_OWNER, STRING_AUTH_TYPE, tokenCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
 }
 
@@ -1187,8 +1193,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteAuth
     ACCOUNT_LOGI("AppAccountManagerService_DeleteAuthToken_0100");
 
     int32_t funcResult = -1;
-    g_accountManagerService->DeleteAuthToken(STRING_NAME,
-        STRING_OWNER, STRING_AUTH_TYPE, STRING_TOKEN, funcResult);
+    std::string tokenCpy = STRING_TOKEN;
+    g_accountManagerService->DeleteAuthToken(STRING_NAME, STRING_OWNER, STRING_AUTH_TYPE, tokenCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
 }
 
@@ -1212,8 +1218,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAut
     ASSERT_EQ(appAccounts.size(), SIZE_ONE);
     std::string owner;
     appAccounts[0].GetOwner(owner);
-
-    g_accountManagerService->DeleteOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, STRING_TOKEN, funcResult);
+    std::string tokenCpy = STRING_TOKEN;
+    g_accountManagerService->DeleteOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, tokenCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
     std::string token;
@@ -1246,8 +1252,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteAuth
     ASSERT_EQ(appAccounts.size(), SIZE_ONE);
     std::string owner;
     appAccounts[0].GetOwner(owner);
-
-    g_accountManagerService->DeleteAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, STRING_TOKEN, funcResult);
+    std::string tokenCpy = STRING_TOKEN;
+    g_accountManagerService->DeleteAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, tokenCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST);
 
     std::string token;
@@ -1278,11 +1284,11 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAut
     ASSERT_EQ(appAccounts.size(), SIZE_ONE);
     std::string owner;
     appAccounts[0].GetOwner(owner);
-
-    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN, funcResult);
+    std::string tokenCpy = STRING_TOKEN;
+    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, tokenCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
-
-    g_accountManagerService->DeleteOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, STRING_TOKEN, funcResult);
+    tokenCpy = STRING_TOKEN;
+    g_accountManagerService->DeleteOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, tokenCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
     std::string token;
@@ -1315,16 +1321,16 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteAuth
     ASSERT_EQ(appAccounts.size(), SIZE_ONE);
     std::string owner;
     appAccounts[0].GetOwner(owner);
-
-    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN, funcResult);
+    std::string tokenCpy = STRING_TOKEN;
+    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, tokenCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
     std::string token;
     g_accountManagerService->GetAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, token, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
     EXPECT_EQ(token, STRING_TOKEN);
-
-    g_accountManagerService->DeleteAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, STRING_TOKEN, funcResult);
+    tokenCpy = STRING_TOKEN;
+    g_accountManagerService->DeleteAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, tokenCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
     token = "";
@@ -1377,11 +1383,11 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllOAut
     g_accountManagerService->GetAllOAuthTokens(STRING_NAME, owner, tokenInfos, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
     ASSERT_EQ(tokenInfos.size(), static_cast<size_t>(0));
-
-    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN, funcResult);
+    std::string tokenCpy = STRING_TOKEN;
+    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, tokenCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
-
-    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE_TWO, STRING_TOKEN_TWO, funcResult);
+    tokenCpy = STRING_TOKEN_TWO;
+    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE_TWO, tokenCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
     tokenInfos.clear();
@@ -1532,8 +1538,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTo
     ASSERT_EQ(appAccounts.size(), SIZE_ONE);
     std::string owner;
     appAccounts[0].GetOwner(owner);
-
-    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN, funcResult);
+    std::string tokenCpy = STRING_TOKEN;
+    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, tokenCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
     g_accountManagerService->SetOAuthTokenVisibility(STRING_NAME,
@@ -1579,7 +1585,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAuthTok
     EXPECT_EQ(isVisible, true);
 
     // check other owners
-    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN, funcResult);
+    std::string tokenCpy = STRING_TOKEN;
+    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, tokenCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
     g_accountManagerService->SetAuthTokenVisibility(STRING_NAME,
@@ -1653,8 +1660,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckOAuth
         STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
     EXPECT_EQ(isVisible, false);
-
-    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN, funcResult);
+    std::string tokenCpy = STRING_TOKEN;
+    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, tokenCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
     g_accountManagerService->SetOAuthTokenVisibility(STRING_NAME,
@@ -1827,8 +1834,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAuthLis
     int32_t funcResult = -1;
     g_accountManagerService->CreateAccount(STRING_NAME, option, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
-
-    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN, funcResult);
+    std::string tokenCpy = STRING_TOKEN;
+    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, tokenCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
     g_accountManagerService->SetAuthTokenVisibility(STRING_NAME,
@@ -2433,7 +2440,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteAcco
     EXPECT_EQ(funcResult, ERR_OK);
 
     funcResult = -1;
-    g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL, funcResult);
+    std::string credCpy = STRING_CREDENTIAL;
+    g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
     funcResult = -1;
@@ -2504,7 +2512,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteAcco
     EXPECT_EQ(funcResult, ERR_OK);
 
     funcResult = -1;
-    g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL, funcResult);
+    std::string credCpy = STRING_CREDENTIAL;
+    g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
     funcResult = -1;
@@ -2774,7 +2783,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthTo
     EXPECT_EQ(result, ERR_OK);
     g_accountManagerService->GetAllAccessibleAccounts(appAccounts, funcResult);
     ASSERT_EQ(appAccounts.size(), SIZE_TWO);
-    g_accountManagerService->SetOAuthToken(STRING_NAME_TWO, STRING_AUTH_TYPE, STRING_TOKEN, funcResult);
+    std::string tokenCpy = STRING_TOKEN;
+    g_accountManagerService->SetOAuthToken(STRING_NAME_TWO, STRING_AUTH_TYPE, tokenCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
     appAccounts[1].GetOwner(owner);
     g_accountManagerService->GetOAuthToken(STRING_NAME_TWO, owner, STRING_AUTH_TYPE, token, funcResult);
@@ -2805,8 +2815,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAut
     appAccounts[0].GetOwner(owner);
     result = appAccountInfo.SetOAuthToken(STRING_AUTH_TYPE, STRING_TOKEN);
     EXPECT_EQ(result, ERR_OK);
-
-    g_accountManagerService->DeleteOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, STRING_TOKEN, funcResult);
+    std::string tokenCpy = STRING_TOKEN;
+    g_accountManagerService->DeleteOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, tokenCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
 
     AppAccountInfo appAccountInfoTwo(STRING_NAME_TWO, STRING_OWNER);
@@ -2816,10 +2826,12 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAut
     EXPECT_EQ(result, ERR_OK);
     g_accountManagerService->GetAllAccessibleAccounts(appAccounts, funcResult);
     ASSERT_EQ(appAccounts.size(), SIZE_TWO);
-    g_accountManagerService->SetOAuthToken(STRING_NAME_TWO, STRING_AUTH_TYPE, STRING_TOKEN, funcResult);
+    tokenCpy = STRING_TOKEN;
+    g_accountManagerService->SetOAuthToken(STRING_NAME_TWO, STRING_AUTH_TYPE, tokenCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
     appAccounts[1].GetOwner(owner);
-    g_accountManagerService->DeleteOAuthToken(STRING_NAME_TWO, owner, STRING_AUTH_TYPE, STRING_TOKEN, funcResult);
+    tokenCpy = STRING_TOKEN;
+    g_accountManagerService->DeleteOAuthToken(STRING_NAME_TWO, owner, STRING_AUTH_TYPE, tokenCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 }
 
@@ -2846,10 +2858,11 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllOAut
     ASSERT_EQ(appAccounts.size(), SIZE_ONE);
     std::string owner;
     appAccounts[0].GetOwner(owner);
-    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN, funcResult);
+    std::string tokenCpy = STRING_TOKEN;
+    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, tokenCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
-
-    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE_TWO, STRING_TOKEN_TWO, funcResult);
+    tokenCpy = STRING_TOKEN_TWO;
+    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE_TWO, tokenCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
     std::vector<OAuthTokenInfo> tokenInfos;
     g_accountManagerService->GetAllOAuthTokens(STRING_NAME, owner, tokenInfos, funcResult);
@@ -2928,7 +2941,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckAuthT
     EXPECT_EQ(funcResult, ERR_OK);
 
     bool isVisible = false;
-    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN, funcResult);
+    std::string tokenCpy = STRING_TOKEN;
+    g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, tokenCpy, funcResult);
     EXPECT_EQ(funcResult, ERR_OK);
 
     g_accountManagerService->SetAuthTokenVisibility(STRING_NAME,
