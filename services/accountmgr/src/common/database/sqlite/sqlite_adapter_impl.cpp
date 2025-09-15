@@ -106,7 +106,7 @@ DbAdapterStatus DbAdapterSqlite::CheckOrOpenDb()
     bool isReady = false;
     {
         Utils::UniqueReadGuard<Utils::RWLock> lock(DATABASE_RWLOCK);
-        isReady= appAccountDb_->CheckReady();
+        isReady = appAccountDb_->CheckReady();
     }
     if (isReady) {
         return DbAdapterStatus::SUCCESS;
@@ -339,7 +339,7 @@ DbAdapterStatus SqliteAdapterDataManager::GetSingleKvStore(const DbAdapterOption
     const std::string &storeIdStr, std::shared_ptr<IDbAdapterSingleStore> &kvStorePtr)
 {
     std::shared_ptr<DbAdapterSqlite> storeImpl = std::make_shared<DbAdapterSqlite>();
-    if ((storeImpl == nullptr) && (storeImpl->CheckOrOpenDb())) {
+    if ((storeImpl == nullptr) || (storeImpl->CheckOrOpenDb())) {
         return DbAdapterStatus::INTERNAL_ERROR;
     }
     kvStorePtr = std::dynamic_pointer_cast<IDbAdapterSingleStore>(storeImpl);
