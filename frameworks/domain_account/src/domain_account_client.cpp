@@ -97,8 +97,12 @@ ErrCode DomainAccountClient::UnregisterPlugin()
     }
     ErrCode ret = proxy->UnregisterPlugin();
     if (ret == ERR_OK) {
-        std::lock_guard<std::mutex> lock(pluginServiceMutex_);
-        pluginService_ = nullptr;
+        auto task = [&pluginService = pluginService_, &pluginServiceMutex = pluginServiceMutex_]() {
+            std::lock_guard<std::mutex> lock(pluginServiceMutex);
+            pluginService = nullptr;
+        };
+        std::thread thread(task);
+        thread.detach();
     }
     return ret;
 #else
