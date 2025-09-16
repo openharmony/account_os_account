@@ -1360,7 +1360,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetCurrentUserId_0100, TestSize.
     EXPECT_EQ(0, setuid(0));
     testUserId = -1;
     EXPECT_EQ(ERR_OK, OsAccountManager::GetForegroundOsAccountLocalId(testUserId));
-    userIdOutput = -1;
+    userIdOutput = 0;
     EXPECT_TRUE(AccountIAMClient::GetInstance().GetCurrentUserId(userIdOutput));
     EXPECT_EQ(testUserId, userIdOutput);
 }
