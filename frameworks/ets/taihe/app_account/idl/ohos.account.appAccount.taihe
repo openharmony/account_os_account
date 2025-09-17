@@ -1,0 +1,255 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@!namespace("@ohos.account.appAccount", "appAccount")
+
+@!sts_inject_into_module("import Want from '@ohos.app.ability.Want';")
+@!sts_inject_into_module("import rpc from '@ohos.rpc';")
+@!sts_inject_into_module("import { RecordData } from '@ohos.base';")
+
+@!sts_inject("""
+static { loadLibrary("app_account_taihe_native.z") }
+""")
+
+function createAppAccountManager(): AppAccountManager;
+
+struct CreateAccountOptions {
+    customData: Optional<@record Map<String, String>>;
+}
+
+struct AppAccountInfo {
+    owner: String;
+    name: String;
+}
+
+struct AuthTokenInfo {
+    authType: String;
+    token: String;
+    account: Optional<AppAccountInfo>;
+}
+
+struct AuthenticatorInfo {
+    owner: String;
+    iconId: i32;
+    labelId: i32;
+}
+
+struct AuthResult {
+    account: Optional<AppAccountInfo>;
+    tokenInfo: Optional<AuthTokenInfo>;
+}
+
+struct CreateAccountImplicitlyOptions {
+    requiredLabels: Optional<Array<String>>;
+    authType: Optional<String>;
+    parameters: Optional<@sts_type("RecordData")Opaque>;
+}
+
+struct SelectAccountsOptions {
+    allowedAccounts: Optional<Array<AppAccountInfo>>;
+    allowedOwners: Optional<Array<String>>;
+    requiredLabels: Optional<Array<String>>;
+}
+
+struct VerifyCredentialOptions {
+    credentialType: Optional<String>;
+    credential: Optional<String>;
+    parameters: Optional<@sts_type("RecordData")Opaque>;
+}
+
+struct SetPropertiesOptions {
+    properties: Optional<@sts_type("RecordData")Opaque>;
+    parameters: Optional<@sts_type("RecordData")Opaque>;
+}
+
+enum Constants: String {
+    ACTION_CREATE_ACCOUNT_IMPLICITLY = "createAccountImplicitly",
+    ACTION_AUTH = "auth",
+    ACTION_VERIFY_CREDENTIAL = "verifyCredential",
+    ACTION_SET_AUTHENTICATOR_PROPERTIES = "setAuthenticatorProperties",
+    KEY_NAME = "name",
+    KEY_OWNER = "owner",
+    KEY_TOKEN = "token",
+    KEY_ACTION = "action",
+    KEY_AUTH_TYPE = "authType",
+    KEY_SESSION_ID = "sessionId",
+    KEY_CALLER_PID = "callerPid",
+    KEY_CALLER_UID = "callerUid",
+    KEY_CALLER_BUNDLE_NAME = "callerBundleName",
+    KEY_REQUIRED_LABELS = "requiredLabels",
+    KEY_BOOLEAN_RESULT = "booleanResult"
+}
+
+struct AuthCallback {
+    onResult: (code: i32, @optional result: Optional<AuthResult>) => void;
+    onRequestRedirected: (request: @sts_type("Want")Opaque) => void;
+    onRequestContinued: Optional<() => void>;
+}
+
+interface AppAccountManager {
+    @gen_promise("createAccount")
+    CreateAccountPromise(name: String, options: Optional<CreateAccountOptions>);
+
+    @gen_async("createAccount")
+    CreateAccountCallback(name: String);
+
+    @gen_async("createAccount")
+    CreateAccountCallbackWithOpt(name: String, options: CreateAccountOptions);
+
+    @overload("createAccountImplicitly")
+    CreateAccountImplicitly(owner: String, callback: AuthCallback);
+
+    @overload("createAccountImplicitly")
+    CreateAccountImplicitlyWithOpt(owner: String, options: CreateAccountImplicitlyOptions, callback: AuthCallback);
+
+    @gen_async("removeAccount")
+    @gen_promise("removeAccount")
+    RemoveAccountSync(name: String);
+
+    @gen_async("setAppAccess")
+    @gen_promise("setAppAccess")
+    SetAppAccessSync(name: String, bundleName: String, isAccessible: bool);
+
+    @gen_async("checkAppAccess")
+    @gen_promise("checkAppAccess")
+    CheckAppAccessSync(name: String, bundleName: String): bool;
+
+    @gen_async("checkDataSyncEnabled")
+    @gen_promise("checkDataSyncEnabled")
+    CheckDataSyncEnabledSync(name: String): bool;
+
+    @gen_async("setCredential")
+    @gen_promise("setCredential")
+    SetCredentialSync(name: String, credentialType: String, credential: String);
+
+    @gen_async("setDataSyncEnabled")
+    @gen_promise("setDataSyncEnabled")
+    SetDataSyncEnabledSync(name: String, isEnabled: bool);
+
+    @gen_async("setCustomData")
+    @gen_promise("setCustomData")
+    SetCustomDataSync(name: String, key: String, value: String);
+
+	@gen_async("getAllAccounts")
+    @gen_promise("getAllAccounts")
+    GetAllAccountsSync(): Array<AppAccountInfo>;
+
+    @gen_async("getAccountsByOwner")
+    @gen_promise("getAccountsByOwner")
+    GetAccountsByOwnerSync(owner: String): Array<AppAccountInfo>;
+
+    @gen_async("getCredential")
+    @gen_promise("getCredential")
+    GetCredentialSync(name: String, credentialType: String): String;
+
+    @gen_async("getCustomData")
+    @gen_promise("getCustomData")
+    GetCustomDataWithTypeSync(name: String, credentialType: String): String;
+
+	@overload("getCustomDataSync")
+    GetCustomDataSyncTaihe(name: String, key: String): String;
+	
+	@gen_async("getAuthToken")
+    @gen_promise("getAuthToken")
+    GetAuthTokenSync(name: String, owner: String, authType: String): String;
+
+    @gen_async("setAuthToken")
+    @gen_promise("setAuthToken")
+    SetAuthTokenSync(name: String, authType: String, token: String);
+
+    @gen_async("checkAccountLabels")
+    @gen_promise("checkAccountLabels")
+    CheckAccountLabelsSync(name: String, owner: String, labels: Array<String>): bool;
+
+    @gen_async("selectAccountsByOptions")
+    @gen_promise("selectAccountsByOptions")
+    SelectAccountsByOptionsSync(options: SelectAccountsOptions): Array<AppAccountInfo>;
+
+    @gen_async("deleteAuthToken")
+    @gen_promise("deleteAuthToken")
+    DeleteAuthTokenSync(name: String, owner: String, authType: String, token: String);
+
+    @gen_async("setAuthTokenVisibility")
+    @gen_promise("setAuthTokenVisibility")
+    SetAuthTokenVisibilitySync(name: String, authType: String, bundleName: String, isVisible: bool);
+
+    @gen_async("checkAuthTokenVisibility")
+    @gen_promise("checkAuthTokenVisibility")
+    CheckAuthTokenVisibilitySync(name: String, authType: String, bundleName: String): bool;
+
+    @gen_async("getAllAuthTokens")
+    @gen_promise("getAllAuthTokens")
+    GetAllAuthTokensSync(name: String, owner: String): Array<AuthTokenInfo>;
+
+    @gen_async("getAuthList")
+    @gen_promise("getAuthList")
+    GetAuthListSync(name: String, authType: String):Array<String>;
+
+    @gen_async("getAuthCallback")
+    @gen_promise("getAuthCallback")
+    GetAuthCallbackSync(sessionId: String):AuthCallback;
+
+    @overload("verifyCredential")
+    VerifyCredentialSync(name: String, owner: String, callback: AuthCallback);
+
+    @overload("verifyCredential")
+    VerifyCredentialWithOpt(name: String, owner: String, options: @sts_type("VerifyCredentialOptions")Opaque, callback: AuthCallback);
+
+    @overload("setAuthenticatorProperties")
+    SetAuthenticatorPropertiesSync(owner: String, callback: AuthCallback): void;
+
+    @overload("setAuthenticatorProperties")
+    SetAuthenticatorPropertiesWithOpt(owner: String, options: @sts_type("SetPropertiesOptions")Opaque, callback: AuthCallback): void;
+
+    @gen_async("queryAuthenticatorInfo")
+    @gen_promise("queryAuthenticatorInfo")
+    QueryAuthenticatorInfoSync(owner: String): AuthenticatorInfo;
+
+    @gen_async("deleteCredential")
+    @gen_promise("deleteCredential")
+    DeleteCredentialSync(name: String, credentialType: String);
+
+    @overload("on")
+    OnSync(type: String, owners: Array<String>, callback: (data: Array<AppAccountInfo>) => void): void;
+
+    @overload("off")
+    OffSync(type: String, callback: Optional<(data: Array<AppAccountInfo>) => void>): void;
+
+    @overload("auth")
+    AuthSync(name: String, owner: String, authType: String, callback: AuthCallback);
+
+    @overload("auth")
+    AuthWithMap(name: String, owner: String, authType: String, options: @sts_type("RecordData")Opaque, callback: AuthCallback);
+}
+
+@constructor ("Authenticator")@rename
+function MakeAuthenticator(@sts_this self: Authenticator): Authenticator;
+
+@class
+interface Authenticator {
+    CreateAccountImplicitly(options: CreateAccountImplicitlyOptions, callback: AuthCallback): void;
+
+    Auth(name: String, authType: String, options: @sts_type("RecordData")Opaque, callback: AuthCallback): void;
+
+    SetProperties(options: SetPropertiesOptions, callback: AuthCallback): void;
+
+    VerifyCredential(name: String, options: VerifyCredentialOptions, callback: AuthCallback): void;
+
+    CheckAccountLabelsSync(name: String, labels: Array<String>, callback: AuthCallback): void;
+
+    CheckAccountRemovable(name: String, callback: AuthCallback): void;
+
+    GetRemoteObject(): @sts_type("rpc.RemoteObject")Opaque;
+}
