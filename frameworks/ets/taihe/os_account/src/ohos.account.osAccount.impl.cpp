@@ -742,25 +742,6 @@ DomainServerConfig ConvertToDomainServerConfigTH(const std::string& id, const st
     return domainServerConfig;
 }
 
-class OnSetDataCallbackImpl {
-private:
-    std::shared_ptr<AccountSA::IInputerData> inputerData_;
-public:
-    explicit OnSetDataCallbackImpl(std::shared_ptr<AccountSA::IInputerData> inputerData) : inputerData_(inputerData) {}
-    void operator()(AuthSubType authSubType, ::taihe::array_view<uint8_t> data) __attribute__((no_sanitize("cfi")))
-    {
-        bool isSystemApp = OHOS::AccountSA::IsSystemApp();
-        if (!isSystemApp) {
-            ACCOUNT_LOGE("Not system app.");
-            taihe::set_business_error(ERR_JS_IS_NOT_SYSTEM_APP, ConvertToJsErrMsg(ERR_JS_IS_NOT_SYSTEM_APP));
-            return;
-        }
-        std::vector<uint8_t> authTokenVec(data.data(), data.data() + data.size());
-        inputerData_->OnSetData(static_cast<int32_t>(authSubType), authTokenVec);
-        inputerData_ = nullptr;
-    }
-};
-
 class IInputDataImpl {
 public:
     std::shared_ptr<AccountSA::IInputerData> inputerData_;
@@ -808,14 +789,6 @@ public:
         }
         inputerData_->OnSetData(static_cast<int32_t>(authSubType), authTokenVec);
         inputerData_ = nullptr;
-    }
-
-    ::taihe::callback<void(AuthSubType authSubType, ::taihe::array_view<uint8_t> data)> GetOnSetData()
-    {
-        ::taihe::callback<void(AuthSubType authSubType, ::taihe::array_view<uint8_t> data)> cb =
-            ::taihe::make_holder<OnSetDataCallbackImpl,
-            ::taihe::callback<void(AuthSubType authSubType, ::taihe::array_view<uint8_t> data)>>(inputerData_);
-        return cb;
     }
 };
 

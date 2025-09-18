@@ -555,7 +555,7 @@ struct IInputer {
 interface IInputData {
     GetSpecificImplPtr (): i64;
     GetIInputDataPtr (): i64;
-    @get GetOnSetData():(authSubType: AuthSubType, data: @typedarray Array<u8>) => void;
+    OnSetData(authSubType: AuthSubType, data: @typedarray Array<u8>): void;
 }
 
 function createIInputData(ptr: i64): IInputData;
