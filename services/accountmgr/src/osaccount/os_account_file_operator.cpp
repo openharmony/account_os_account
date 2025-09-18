@@ -17,6 +17,7 @@
 
 #include "account_log_wrapper.h"
 #include "os_account_constants.h"
+#include "account_hisysevent_adapter.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -83,12 +84,19 @@ ErrCode OsAccountFileOperator::GetGlobalOAConstraintsList(std::vector<std::strin
             Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH, globalOsAccountConstraintsConfigStr);
         globalOsAccountConstraintsConfig = CreateJsonFromString(globalOsAccountConstraintsConfigStr);
         if (globalOsAccountConstraintsConfig == nullptr) {
+            ACCOUNT_LOGE("GlobalOsAccountConstraints config is empty");
+            REPORT_OS_ACCOUNT_FAIL(0, Constants::OPERATION_CONSTRAINT,
+                ERR_OSACCOUNT_SERVICE_GET_DATA_FROM_GLOBAL_CONSTRAINTS_FILE_EMPTY,
+                "Global constraints config is empty");
             return ERR_OSACCOUNT_SERVICE_GET_DATA_FROM_GLOBAL_CONSTRAINTS_FILE_EMPTY;
         }
     }
 
     if (GetItemNum(globalOsAccountConstraintsConfig) == 0) {
         ACCOUNT_LOGE("GlobalOsAccountConstraints data is empty");
+        REPORT_OS_ACCOUNT_FAIL(0, Constants::OPERATION_CONSTRAINT,
+            ERR_OSACCOUNT_SERVICE_GET_DATA_FROM_GLOBAL_CONSTRAINTS_FILE_EMPTY,
+            "Global constraints data is empty");
         return ERR_OSACCOUNT_SERVICE_GET_DATA_FROM_GLOBAL_CONSTRAINTS_FILE_EMPTY;
     }
     GetDataByType<std::vector<std::string>>(globalOsAccountConstraintsConfig, Constants::ALL_GLOBAL_CONSTRAINTS,
@@ -105,12 +113,19 @@ ErrCode OsAccountFileOperator::GetSpecificOAConstraintsList(const int id, std::v
             Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH, specificOsAccountConstraintsConfigStr);
         specificOsAccountConstraintsConfig = CreateJsonFromString(specificOsAccountConstraintsConfigStr);
         if (specificOsAccountConstraintsConfig == nullptr) {
+            ACCOUNT_LOGE("SpecificOsAccountConstraints config is empty");
+            REPORT_OS_ACCOUNT_FAIL(0, Constants::OPERATION_CONSTRAINT,
+                ERR_OSACCOUNT_SERVICE_GET_DATA_FROM_SPECIFIC_CONSTRAINTS_FILE_EMPTY,
+                "Specific constraints config is empty");
             return ERR_OSACCOUNT_SERVICE_GET_DATA_FROM_SPECIFIC_CONSTRAINTS_FILE_EMPTY;
         }
     }
 
     if (GetItemNum(specificOsAccountConstraintsConfig) == 0) {
-        ACCOUNT_LOGE("GlobalOsAccountConstraints data is empty");
+        ACCOUNT_LOGE("SpecificOsAccountConstraints data is empty");
+        REPORT_OS_ACCOUNT_FAIL(0, Constants::OPERATION_CONSTRAINT,
+            ERR_OSACCOUNT_SERVICE_GET_DATA_FROM_SPECIFIC_CONSTRAINTS_FILE_EMPTY,
+            "Specific constraints data is empty");
         return ERR_OSACCOUNT_SERVICE_GET_DATA_FROM_SPECIFIC_CONSTRAINTS_FILE_EMPTY;
     }
     CJson *SpecificOAConstraintsData = nullptr;

@@ -1492,18 +1492,23 @@ ErrCode IInnerOsAccountManager::IsOsAccountConstraintEnable(
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Get osaccount info failed, errCode = %{public}d", errCode);
+        REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_CONSTRAINT, errCode, "Get osaccount info failed");
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     std::vector<std::string> constraints;
     constraints = osAccountInfo.GetConstraints();
     if (std::find(constraints.begin(), constraints.end(), constraint) != constraints.end()) {
         isOsAccountConstraintEnable = true;
+        ACCOUNT_LOGI("Check constraint true from osaccount, callingUid = %{public}d.", IPCSkeleton::GetCallingUid());
         return ERR_OK;
     }
     constraints.clear();
     if (osAccountControl_->GetGlobalOAConstraintsList(constraints) == ERR_OK) {
         if (std::find(constraints.begin(), constraints.end(), constraint) != constraints.end()) {
             isOsAccountConstraintEnable = true;
+            ACCOUNT_LOGI("Check constraint true from GlobalOAConstraintsList, callingUid = %{public}d.",
+                IPCSkeleton::GetCallingUid());
             return ERR_OK;
         }
     }
@@ -1511,6 +1516,8 @@ ErrCode IInnerOsAccountManager::IsOsAccountConstraintEnable(
     if (osAccountControl_->GetSpecificOAConstraintsList(id, constraints) == ERR_OK) {
         if (std::find(constraints.begin(), constraints.end(), constraint) != constraints.end()) {
             isOsAccountConstraintEnable = true;
+            ACCOUNT_LOGI("Check constraint true from SpecificOAConstraintsList, callingUid = %{public}d.",
+                IPCSkeleton::GetCallingUid());
             return ERR_OK;
         }
     }
@@ -1620,6 +1627,8 @@ ErrCode IInnerOsAccountManager::GetOsAccountAllConstraints(const int id, std::ve
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Get osaccount info failed, errCode = %{public}d", errCode);
+        REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_CONSTRAINT, errCode, "Get osaccount info failed");
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     constraints = osAccountInfo.GetConstraints();
@@ -1645,6 +1654,7 @@ ErrCode IInnerOsAccountManager::GetOsAccountAllConstraints(const int id, std::ve
             constraints.push_back(*it);
         }
     }
+    ACCOUNT_LOGI("Get os account %{public}d all constraints success", id);
     return ERR_OK;
 }
 #ifdef FUZZ_TEST
@@ -1694,6 +1704,7 @@ ErrCode IInnerOsAccountManager::QueryOsAccountConstraintSourceTypes(const int32_
         constraintSourceTypeInfos.insert(
             constraintSourceTypeInfos.end(), specificSourceList.begin(), specificSourceList.end());
     }
+    ACCOUNT_LOGI("Query account %{public}d constraint %{public}s source types success", id, constraint.c_str());
     return ERR_OK;
 }
 
@@ -1720,10 +1731,14 @@ ErrCode IInnerOsAccountManager::SetGlobalOsAccountConstraints(const std::vector<
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(enforcerId, osAccountInfo);
     if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Get osaccount info failed, errCode = %{public}d", errCode);
+        REPORT_OS_ACCOUNT_FAIL(enforcerId, Constants::OPERATION_CONSTRAINT, errCode, "Get osaccount info failed");
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     if (osAccountInfo.GetToBeRemoved()) {
         ACCOUNT_LOGE("Account %{public}d will be removed, cannot change constraints!", enforcerId);
+        REPORT_OS_ACCOUNT_FAIL(enforcerId, Constants::OPERATION_CONSTRAINT,
+            ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR, "Account to be removed");
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR;
     }
 
@@ -1742,6 +1757,8 @@ ErrCode IInnerOsAccountManager::SetGlobalOsAccountConstraints(const std::vector<
         ACCOUNT_LOGE("Deal with device owner id error");
         return errCode;
     }
+    ACCOUNT_LOGI("Set account %{public}d global OA constraints %{public}d success, callingUid = %{public}d",
+        enforcerId, enable, IPCSkeleton::GetCallingUid());
     return ERR_OK;
 }
 
@@ -1751,17 +1768,24 @@ ErrCode IInnerOsAccountManager::SetSpecificOsAccountConstraints(const std::vecto
     OsAccountInfo enforcerOsAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(enforcerId, enforcerOsAccountInfo);
     if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Get enforcer info failed, errCode = %{public}d", errCode);
+        REPORT_OS_ACCOUNT_FAIL(enforcerId, Constants::OPERATION_CONSTRAINT, errCode, "Get enforcer info failed");
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
 
     OsAccountInfo targetOsAccountInfo;
     errCode = osAccountControl_->GetOsAccountInfoById(targetId, targetOsAccountInfo);
     if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Get target info failed, errCode = %{public}d", errCode);
+        REPORT_OS_ACCOUNT_FAIL(targetId, Constants::OPERATION_CONSTRAINT, errCode, "Get target info failed");
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     if (targetOsAccountInfo.GetToBeRemoved() || enforcerOsAccountInfo.GetToBeRemoved()) {
         ACCOUNT_LOGE("Account %{public}d or %{public}d will be removed, cannot change constraints!",
             enforcerId, targetId);
+        REPORT_OS_ACCOUNT_FAIL(enforcerId, Constants::OPERATION_CONSTRAINT,
+            ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR, "Enforcer " + std::to_string(enforcerId) +
+            " or target " + std::to_string(targetId) + " to be removed");
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR;
     }
 
@@ -1781,6 +1805,8 @@ ErrCode IInnerOsAccountManager::SetSpecificOsAccountConstraints(const std::vecto
         ACCOUNT_LOGE("Deal with device owner id error");
         return errCode;
     }
+    ACCOUNT_LOGI("Set %{public}d specific constraints %{public}d for %{public}d success, callingUid = %{public}d",
+        enforcerId, enable, targetId, IPCSkeleton::GetCallingUid());
     return ERR_OK;
 }
 
@@ -2055,12 +2081,16 @@ ErrCode IInnerOsAccountManager::SetOsAccountConstraints(
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Get osaccount info failed, errCode = %{public}d", errCode);
+        REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_CONSTRAINT, errCode, "Get osaccount info failed");
         return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
 
     // to be removed, cannot change any thing
     if (osAccountInfo.GetToBeRemoved()) {
         ACCOUNT_LOGE("Account %{public}d will be removed, cannot change constraints!", id);
+        REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_CONSTRAINT,
+            ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR, "Account to be removed");
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR;
     }
 
@@ -2073,18 +2103,23 @@ ErrCode IInnerOsAccountManager::SetOsAccountConstraints(
         if (enable) {
             if (std::find(oldConstraints.begin(), oldConstraints.end(), *it) == oldConstraints.end()) {
                 oldConstraints.push_back(*it);
+                ACCOUNT_LOGI("OldConstraints add constraint");
             }
         } else {
             oldConstraints.erase(
                 std::remove(oldConstraints.begin(), oldConstraints.end(), *it), oldConstraints.end());
+            ACCOUNT_LOGI("OldConstraints remove constraint");
         }
     }
     osAccountInfo.SetConstraints(oldConstraints);
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Update osaccount info error %{public}d, id: %{public}d", errCode, osAccountInfo.GetLocalId());
+        REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_CONSTRAINT, errCode, "Update osaccount info failed");
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
+    ACCOUNT_LOGI("Set os account %{public}d constraints %{public}d success, callingUid = %{public}d",
+        id, enable, IPCSkeleton::GetCallingUid());
     return ERR_OK;
 }
 

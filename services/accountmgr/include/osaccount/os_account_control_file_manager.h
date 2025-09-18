@@ -35,6 +35,12 @@ using CheckNotifyEventCallbackFunc = std::function<bool(const std::string&, int3
 
 bool GetValidAccountID(const std::string& dirName, std::int32_t& accountID);
 
+struct RemoveConstraintInfo {
+    std::string constraintTypeConstants;
+    std::string constraint;
+    std::string idStr;
+};
+
 class OsAccountControlFileManager : public IOsAccountControl {
 public:
     OsAccountControlFileManager();
@@ -115,6 +121,8 @@ private:
     void BuildAndSaveBaseOAConstraintsJsonFile();
     void BuildAndSaveGlobalOAConstraintsJsonFile();
     void BuildAndSaveSpecificOAConstraintsJsonFile();
+    bool RemoveConstraintsFromJsonOperate(const RemoveConstraintInfo &params, cJSON *constraintsJson,
+        std::vector<std::string> &waitForErase, std::vector<std::string> &oldConstraintsList);
     void GlobalConstraintsDataOperate(const std::string& idStr,
         const std::vector<std::string>& ConstraintStr, bool isAdd, CJsonUnique &globalOAConstraintsJson);
     void SpecificConstraintsDataOperate(const std::string& idStr, const std::string& targetIdStr,
