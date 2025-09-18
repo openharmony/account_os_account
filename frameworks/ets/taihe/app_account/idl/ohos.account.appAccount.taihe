@@ -247,7 +247,7 @@ interface Authenticator {
 
     VerifyCredential(name: String, options: VerifyCredentialOptions, callback: AuthCallback): void;
 
-    CheckAccountLabelsSync(name: String, labels: Array<String>, callback: AuthCallback): void;
+    CheckAccountLabels(name: String, labels: Array<String>, callback: AuthCallback): void;
 
     CheckAccountRemovable(name: String, callback: AuthCallback): void;
 
