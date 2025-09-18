@@ -25,7 +25,7 @@
 #include "ohos_account_kits.h"
 #include "stdexcept"
 #include "taihe/runtime.hpp"
-#include "ani_remote_object.h"
+#include "remote_object_taihe_ani.h"
 
 using namespace taihe;
 using namespace OHOS;
@@ -141,7 +141,8 @@ public:
 
     ErrCode OnRequestRedirected(const AAFwk::Want &request) override
     {
-        ani_env *env = get_env();
+        taihe::env_guard guard;
+        ani_env *env = guard.get_env();
         auto requestObj = AppExecFwk::WrapWant(env, request);
         auto requestPtr = reinterpret_cast<uintptr_t>(requestObj);
         taiheCallback_.onRequestRedirected(requestPtr);
@@ -208,15 +209,14 @@ public:
             return;
         }
         AAFwk::Want wantResult;
-        AAFwk::WantParams wantParamsResult;
-        ani_env *env = get_env();
-        ani_ref requestRef = reinterpret_cast<ani_ref>(request);
-        bool status = AppExecFwk::UnwrapWantParams(env, requestRef, wantParamsResult);
+        taihe::env_guard guard;
+        ani_env *env = guard.get_env();
+        ani_object requestRef = reinterpret_cast<ani_object>(request);
+        bool status = AppExecFwk::UnwrapWant(env, requestRef, wantResult);
         if (!status) {
-            ACCOUNT_LOGE("Failed to UnwrapWantParams status = %{public}d", status);
+            ACCOUNT_LOGE("Failed to UnwrapWant status = %{public}d", status);
             return;
         }
-        wantResult = wantResult.SetParams(wantParamsResult);
         callback_->OnRequestRedirected(wantResult);
     }
 
@@ -545,7 +545,7 @@ public:
         }
     }
 
-    bool CheckAccountLabelsSync(string_view name, string_view owner, array_view<string> labels)
+    bool CheckAccountLabelsSync(string_view name, string_view owner, array_view<string_view> labels)
     {
         std::string innerName(name.data(), name.size());
         std::string innerOwner(owner.data(), owner.size());
@@ -999,6 +999,7 @@ public:
         std::string innerOwner(owner.data(), owner.size());
         std::string innerAuthType(authType.data(), authType.size());
         AAFwk::Want options;
+        options.SetParam(AccountSA::Constants::API_V9, true);
         sptr<THAppAccountManagerCallback> appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
         if (appAccountMgrCb == nullptr) {
             ACCOUNT_LOGE("failed to create AppAccountManagerCallback for insufficient memory");
@@ -1034,6 +1035,7 @@ public:
         }
         AAFwk::Want innerOptions;
         innerOptions.SetParams(params);
+        innerOptions.SetParam(AccountSA::Constants::API_V9, true);
         sptr<THAppAccountManagerCallback> appAccountMgrCb = new (std::nothrow) THAppAccountManagerCallback(callback);
         if (appAccountMgrCb == nullptr) {
             ACCOUNT_LOGE("failed to create AppAccountManagerCallback for insufficient memory");
@@ -1205,15 +1207,13 @@ public:
     void operator()(uintptr_t request)
     {
         AAFwk::Want wantResult;
-        AAFwk::WantParams wantParamsResult;
         ani_env *env = get_env();
-        ani_ref requestRef = reinterpret_cast<ani_ref>(request);
-        auto status = AppExecFwk::UnwrapWantParams(env, requestRef, wantParamsResult);
+        ani_object requestRef = reinterpret_cast<ani_object>(request);
+        auto status = AppExecFwk::UnwrapWant(env, requestRef, wantResult);
         if (!status) {
-            ACCOUNT_LOGE("Failed to UnwrapWantParams status = %{public}d", status);
+            ACCOUNT_LOGE("Failed to UnwrapWant status = %{public}d", status);
             return;
         }
-        wantResult = wantResult.SetParams(wantParamsResult);
         auto callbackProxy = iface_cast<AccountSA::IAppAccountAuthenticatorCallback>(object_);
         if ((callbackProxy != nullptr) && (callbackProxy->AsObject() != nullptr)) {
             callbackProxy->OnRequestRedirected(wantResult);
@@ -1261,7 +1261,8 @@ public:
         const sptr<IRemoteObject>& remoteObjCallback,
         int32_t& funcResult) override
     {
-        ani_env *env = get_env();
+        taihe::env_guard guard;
+        ani_env *env = guard.get_env();
         auto parameters = AppExecFwk::WrapWant(env, options.parameters);
         auto tempParameters = reinterpret_cast<uintptr_t>(parameters);
         ohos::account::appAccount::CreateAccountImplicitlyOptions taiheOptions =
@@ -1300,7 +1301,8 @@ public:
         int32_t& funcResult) override
     {
         taihe::string_view taiheName = taihe::string(name.c_str());
-        ani_env *env = get_env();
+        taihe::env_guard guard;
+        ani_env *env = guard.get_env();
         auto parameters = AppExecFwk::WrapWantParams(env, options.parameters);
         auto tempParameters = reinterpret_cast<uintptr_t>(parameters);
 
@@ -1327,10 +1329,10 @@ public:
         for (const auto &label : labels) {
             tempLabels.emplace_back(taihe::string(label.c_str()));
         }
-        taihe::array_view<taihe::string> taiheLabels = taihe::array<taihe::string>(taihe::copy_data_t{},
+        taihe::array<taihe::string> taiheLabels = taihe::array<taihe::string>(taihe::copy_data_t{},
             tempLabels.data(), tempLabels.size());
         ohos::account::appAccount::AuthCallback callback = ConvertToAppAccountAuthenticatorCallback(remoteObjCallback);
-        self_->CheckAccountLabelsSync(taiheName, taiheLabels, callback);
+        self_->CheckAccountLabels(taiheName, taiheLabels, callback);
         return ERR_OK;
     }
 
@@ -1339,7 +1341,8 @@ public:
         const sptr<IRemoteObject>& remoteObjCallback,
         int32_t& funcResult) override
     {
-        ani_env *env = get_env();
+        taihe::env_guard guard;
+        ani_env *env = guard.get_env();
         auto properties = AppExecFwk::WrapWantParams(env, options.properties);
         auto tempProperties = reinterpret_cast<uintptr_t>(properties);
         auto parameters = AppExecFwk::WrapWantParams(env, options.parameters);
@@ -1393,7 +1396,27 @@ private:
 
 class AuthenticatorImpl {
 public:
-    explicit AuthenticatorImpl(const Authenticator &self): self_(self) {}
+    explicit AuthenticatorImpl(const Authenticator &self): self_(self)
+    {
+        authenticator_ = std::make_unique<TaiheAppAccountAuthenticator>(self);
+        if (authenticator_ == nullptr) {
+        ACCOUNT_LOGE("null authenticator_");
+            return;
+        }
+        ani_env* env = get_env();
+        if (env == nullptr) {
+            authenticator_.reset();
+            ACCOUNT_LOGE("null env");
+            return;
+        }
+        ani_ref aniRemoteObj = ANI_ohos_rpc_CreateJsRemoteObject(env, authenticator_->AsObject());
+        if (aniRemoteObj == nullptr) {
+            ACCOUNT_LOGE("null aniRemoteObj");
+            authenticator_.reset();
+            return;
+        }
+        remoteObject_ = reinterpret_cast<uintptr_t>(aniRemoteObj);
+    }
     ~AuthenticatorImpl()
     {
         if (remoteObject_ != 0) {
@@ -1423,9 +1446,9 @@ public:
         ACCOUNT_LOGE("VerifyCredential is not implemented");
     }
 
-    void CheckAccountLabelsSync(string_view name, array_view<string> labels, AuthCallback const& callback)
+    void CheckAccountLabels(string_view name, array_view<string> labels, AuthCallback const& callback)
     {
-        ACCOUNT_LOGE("CheckAccountLabelsSyncTaihe is not implemented");
+        ACCOUNT_LOGE("CheckAccountLabels is not implemented");
     }
 
     void CheckAccountRemovable(string_view name, AuthCallback const& callback)
@@ -1434,27 +1457,6 @@ public:
     }
     uintptr_t GetRemoteObject()
     {
-        auto authenticator = new (std::nothrow) TaiheAppAccountAuthenticator(self_);
-        if (authenticator == nullptr) {
-            remoteObject_ = 0;
-            return 0;
-        }
-
-        ani_env* env = get_env();
-        if (env == nullptr) {
-            remoteObject_ = 0;
-            delete authenticator;
-            return 0;
-        }
-
-        ani_ref aniRemoteObj = ANI_ohos_rpc_CreateJsRemoteObject(env, authenticator->AsObject());
-        if (aniRemoteObj == nullptr) {
-            remoteObject_ = 0;
-            delete authenticator;
-            return 0;
-        }
-        remoteObject_ = reinterpret_cast<uintptr_t>(aniRemoteObj);
-
         if (remoteObject_ == 0) {
             ACCOUNT_LOGE("Remote object not initialized");
         }
@@ -1464,6 +1466,7 @@ public:
 private:
     uintptr_t remoteObject_;
     Authenticator self_;
+    std::unique_ptr<TaiheAppAccountAuthenticator> authenticator_ = nullptr;
 };
 
 Authenticator MakeAuthenticator(weak::Authenticator self)
