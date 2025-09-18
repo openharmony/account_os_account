@@ -65,6 +65,7 @@ const char OPERATION_ADD_CRED[] = "addCredential";
 const char OPERATION_DELETE_CRED[] = "deleteCredential";
 const char OPERATION_LOG_ERROR[] = "errLog";
 const char OPERATION_UPDATE_SERVER_CONFIG[] = "updateServerConfig";
+const char OPERATION_CONSTRAINT[] = "constraintManagement";
 
 // Domain account DFX flag
 const char OPERATION_BIND_DOMAIN_ACCOUNT[] = "bindDomainAccount";
