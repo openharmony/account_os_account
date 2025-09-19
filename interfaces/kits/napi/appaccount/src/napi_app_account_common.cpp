@@ -509,31 +509,6 @@ void GetOAuthListForResult(napi_env env, const std::set<std::string> &info, napi
     }
 }
 
-void GetAuthenticatorCallbackForResult(napi_env env, sptr<IRemoteObject> callback, napi_value *result)
-{
-    if (callback == nullptr) {
-        napi_get_undefined(env, result);
-        return;
-    }
-    napi_value remote;
-    napi_create_int64(env, reinterpret_cast<int64_t>(callback.GetRefPtr()), &remote);
-    napi_value global = nullptr;
-    napi_get_global(env, &global);
-    if (global == nullptr) {
-        ACCOUNT_LOGE("get napi global failed");
-        return;
-    }
-    napi_value jsAuthCallbackConstructor = nullptr;
-    napi_get_named_property(env, global, "AuthCallbackConstructor_", &jsAuthCallbackConstructor);
-    if (jsAuthCallbackConstructor == nullptr) {
-        ACCOUNT_LOGE("jsAuthCallbackConstructor is null");
-        return;
-    }
-    size_t argc = ARGS_SIZE_ONE;
-    napi_value argv[ARGS_SIZE_ONE] = { remote };
-    napi_new_instance(env, jsAuthCallbackConstructor, argc, argv, result);
-}
-
 bool ParseContextWithExInfo(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
 {
     size_t argc = ARGS_SIZE_THREE;
