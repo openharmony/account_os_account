@@ -2434,13 +2434,12 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest117, TestSize.Lev
 #else
     EXPECT_NE(ids[0], commonOsAccountInfo.GetLocalId());
 #endif // SUPPORT_STOP_MAIN_OS_ACCOUNT
-
+    sleep(1);
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(commonOsAccountInfo.GetLocalId()), ERR_OK);
     ids.clear();
     OsAccountManager::QueryActiveOsAccountIds(ids);
     EXPECT_EQ(ids.size() > 0, true);
     EXPECT_EQ(ids[0], commonOsAccountInfo.GetLocalId());
-    sleep(1);
     TestStateAfterActivateOsAccount();
 
     EXPECT_EQ(OsAccountManager::DeactivateOsAccount(commonOsAccountInfo.GetLocalId()), ERR_OK);
