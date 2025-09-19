@@ -26,25 +26,20 @@
 #include "napi/native_node_api.h"
 #include "napi_account_common.h"
 #include "napi_account_iam_constant.h"
+#include "napi_account_iam_onsetdata.h"
 
 namespace OHOS {
 namespace AccountJsKit {
 using namespace OHOS::AccountSA;
 
-constexpr size_t ARG_SIZE_ONE = 1;
-constexpr size_t ARG_SIZE_TWO = 2;
 constexpr size_t ARG_SIZE_THREE = 3;
 constexpr size_t ARG_SIZE_FOUR = 4;
 constexpr size_t ARG_SIZE_FIVE = 5;
 
-constexpr size_t PARAM_ZERO = 0;
-constexpr size_t PARAM_ONE = 1;
 constexpr size_t PARAM_TWO = 2;
 constexpr size_t PARAM_THREE = 3;
 constexpr size_t PARAM_FOUR = 4;
 constexpr size_t PARAM_FIVE = 5;
-
-int32_t AccountIAMConvertToJSErrCode(int32_t errCode);
 
 struct JsIAMCallback {
     JsIAMCallback(napi_env env) : env(env) {}
@@ -297,13 +292,6 @@ private:
 #endif  // HAS_USER_AUTH_PART
 
 #ifdef HAS_PIN_AUTH_PART
-struct InputerContext : public CommonAsyncContext {
-    int32_t authSubType = -1;
-    std::vector<uint8_t> challenge;
-    std::shared_ptr<AccountSA::IInputerData> inputerData = nullptr;
-    std::shared_ptr<NapiCallbackRef> callback;
-};
-
 class NapiGetDataCallback : public AccountSA::IInputer {
 public:
     NapiGetDataCallback(napi_env env, const std::shared_ptr<NapiCallbackRef> &callback);
