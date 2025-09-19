@@ -1,0 +1,125 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "account_log_wrapper.h"
+#include "ani_common_want.h"
+#include "napi_account_error.h"
+#include "ohos.account.distributedAccount.impl.hpp"
+#include "ohos.account.distributedAccount.proj.hpp"
+#include "ohos_account_kits.h"
+#include "stdexcept"
+#include "taihe/runtime.hpp"
+#include "taihe_distributed_account_converter.h"
+
+using namespace taihe;
+using namespace ohos::account::distributedAccount;
+using namespace OHOS;
+
+namespace {
+using OHOS::AccountSA::ACCOUNT_LABEL;
+
+AccountSA::OhosAccountInfo ConvertToOhosAccountInfoTH(const DistributedInfo &info)
+{
+    std::string name(info.name.data(), info.name.size());
+    std::string id(info.id.data(), info.id.size());
+    AccountSA::OhosAccountInfo ret;
+    ret.name_ = name;
+    ret.uid_ = id;
+    if (info.nickname.has_value()) {
+        ret.nickname_ = std::string(info.nickname.value().data(), info.nickname.value().size());
+    }
+    if (info.avatar.has_value()) {
+        ret.avatar_ = std::string(info.avatar.value().data(), info.avatar.value().size());
+    }
+    if (info.scalableData.has_value()) {
+        AAFwk::WantParams params;
+        ani_env *env = get_env();
+        ani_ref scalableDataRef = reinterpret_cast<ani_ref>(info.scalableData.value());
+        if (!AppExecFwk::UnwrapWantParams(env, scalableDataRef, params)) {
+            ACCOUNT_LOGE("Failed to get DistributedInfo's scalableData property");
+            int32_t jsErrCode = GenerateBusinessErrorCode(ERR_JS_PARAMETER_ERROR);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return ret;
+        }
+        ret.scalableData_.SetParams(params);
+    }
+    return ret;
+}
+class DistributedAccountAbilityImpl {
+public:
+    DistributedAccountAbilityImpl() {}
+
+    DistributedInfo GetOsAccountDistributedInfoSync()
+    {
+        AccountSA::OhosAccountInfo info;
+        ErrCode err = AccountSA::OhosAccountKits::GetInstance().GetOhosAccountInfo(info);
+        if (err != ERR_OK) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(err);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+        }
+        return OHOS::AccountSA::ConvertToDistributedInfoTH(info);
+    }
+
+    DistributedInfo GetOsAccountDistributedInfoByLocalIdSync(int32_t localId)
+    {
+        AccountSA::OhosAccountInfo info;
+        ErrCode err = AccountSA::OhosAccountKits::GetInstance().GetOsAccountDistributedInfo(localId, info);
+        if (err != ERR_OK) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(err);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+        }
+        return OHOS::AccountSA::ConvertToDistributedInfoTH(info);
+    }
+
+    void SetOsAccountDistributedInfoSync(DistributedInfo const& accountInfo)
+    {
+        std::string event(accountInfo.event.data(), accountInfo.event.size());
+        AccountSA::OhosAccountInfo info = ConvertToOhosAccountInfoTH(accountInfo);
+        ErrCode err = AccountSA::OhosAccountKits::GetInstance().SetOhosAccountInfo(info, event);
+        if (err != ERR_OK) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(err);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+        }
+    }
+
+    void SetOsAccountDistributedInfoByLocalIdSync(int32_t localId, DistributedInfo const& distributedInfo)
+    {
+        std::string event(distributedInfo.event.data(), distributedInfo.event.size());
+        AccountSA::OhosAccountInfo info = ConvertToOhosAccountInfoTH(distributedInfo);
+        ErrCode err = AccountSA::OhosAccountKits::GetInstance().SetOsAccountDistributedInfo(localId, info, event);
+        if (err != ERR_OK) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(err);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+        }
+    }
+};
+DistributedAccountAbility getDistributedAccountAbility()
+{
+    return make_holder<DistributedAccountAbilityImpl, DistributedAccountAbility>();
+}
+} // namespace
+
+namespace OHOS {
+namespace AccountSA {
+
+DistributedInfo CreateDistributedInfoFromAccountInfo(const OhosAccountInfo &info)
+{
+    return ConvertToDistributedInfoTH(info);
+}
+
+} // namespace AccountSA
+} // namespace OHOS
+
+TH_EXPORT_CPP_API_getDistributedAccountAbility(getDistributedAccountAbility);

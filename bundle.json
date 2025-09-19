@@ -57,6 +57,7 @@
         "ipc",
         "napi",
         "pin_auth",
+        "runtime_core",
         "safwk",
         "samgr",
         "security_guard",
@@ -67,7 +68,8 @@
         "user_auth_framework",
         "window_manager",
         "openssl",
-        "config_policy"
+        "config_policy",
+        "icu"
       ],
       "third_party": []
     },
@@ -76,6 +78,7 @@
         "base_group": [
           "//base/account/os_account/interfaces/kits/capi:capi_packages",
           "//base/account/os_account/interfaces/kits/napi:napi_packages",
+          "//base/account/os_account/frameworks/ets/taihe:account_taihe",
           "//base/account/os_account/sa_profile:account_sa_profile",
           "//base/account/os_account/tools:tools_acm"
         ],
