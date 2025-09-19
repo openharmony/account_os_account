@@ -733,7 +733,7 @@ int32_t AccountIAMClient::GetAuthSubType(int32_t userId)
 
 bool AccountIAMClient::GetCurrentUserId(int32_t &userId)
 {
-    int32_t currentLocalId = getuid() / UID_TRANSFORM_DIVISOR;
+    int32_t currentLocalId = static_cast<int32_t>(getuid()) / UID_TRANSFORM_DIVISOR;
     if (currentLocalId == 0) {
         int32_t foregroundLocalId = -1;
         ErrCode ret = OsAccountManager::GetForegroundOsAccountLocalId(foregroundLocalId);
