@@ -776,7 +776,7 @@ public:
         std::vector<int> ids;
         ErrCode idErrCode = AccountSA::OsAccountManager::QueryActiveOsAccountIds(ids);
         if (idErrCode != ERR_OK) {
-            ACCOUNT_LOGE("IsOsAccountActivatedSync Get id failed", idErrCode);
+            ACCOUNT_LOGE("IsOsAccountActivatedSync Get id failed with idErrCode: %{public}d", idErrCode);
             SetTaiheBusinessErrorFromNativeCode(idErrCode);
         }
         if (ids.empty()) {
