@@ -1286,12 +1286,12 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountStop(OsAccountInfo &osAccountIn
 ErrCode IInnerOsAccountManager::SendMsgForAccountDeactivate(OsAccountInfo &osAccountInfo, bool isStopStorage)
 {
     int32_t localId = osAccountInfo.GetLocalId();
+    CleanForegroundAccountMap(osAccountInfo);
     ErrCode errCode = OsAccountInterface::SendToAMSAccountDeactivate(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("SendToAMSAccountDeactivate failed, id %{public}d, errCode %{public}d", localId, errCode);
         return errCode;
     }
-    CleanForegroundAccountMap(osAccountInfo);
     subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::STOPPING);
     if (isStopStorage) {
         errCode = OsAccountInterface::SendToStorageAccountStop(osAccountInfo);
