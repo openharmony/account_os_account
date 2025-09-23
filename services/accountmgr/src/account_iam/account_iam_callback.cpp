@@ -196,15 +196,20 @@ ErrCode AuthCallback::UnlockAccount(int32_t accountId, const std::vector<uint8_t
         if (needActivateKey) {
             // el2 file decryption
             ret = InnerAccountIAMManager::GetInstance().ActivateUserKey(accountId, token, secret);
-            if (ret != 0 && ret != ErrNo::E_PARAMS_NULLPTR_ERR) {
+            if ((ret != ERR_OK) && (ret != ErrNo::E_PARAMS_NULLPTR_ERR)) {
                 ACCOUNT_LOGE("Failed to activate user key");
                 ReportOsAccountOperationFail(accountId, "auth", ret, "Failed to activate user key");
+            }
+            // only catch el2 activation error
+            if (ret == ErrNo::E_ACTIVE_EL2_FAILED) {
+                ACCOUNT_LOGE("Failed to activate el2, exit user activation.");
                 return ret;
             }
             ret = InnerAccountIAMManager::GetInstance().PrepareStartUser(accountId);
-            if (ret != 0) {
+            if (ret != ERR_OK) {
                 ACCOUNT_LOGE("Failed to prepare start user");
                 ReportOsAccountOperationFail(accountId, "auth", ret, "Failed to prepare start user");
+                return ret;
             }
             isUpdateVerifiedStatus = true;
         }
