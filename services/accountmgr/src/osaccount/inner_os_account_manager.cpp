@@ -83,6 +83,13 @@ constexpr int32_t MAX_WAIT_ANIMATION_READY_TIMEOUT = 1000;
 constexpr int32_t PIPE_FD_COUNT = 2;
 constexpr int32_t PIPE_READ_END = 0;
 constexpr int32_t PIPE_WRITE_END = 1;
+#ifdef SUPPORT_STOP_MAIN_OS_ACCOUNT
+const std::vector<int32_t> NO_DESKTOP_OS_ACCOUNTS = {
+#ifdef ENABLE_U1_ACCOUNT
+    OHOS::AccountSA::Constants::U1_ID
+#endif // ENABLE_U1_ACCOUNT
+};
+#endif // SUPPORT_STOP_MAIN_OS_ACCOUNT
 }
 
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
@@ -2026,16 +2033,18 @@ ErrCode IInnerOsAccountManager::DeactivateOsAccountById(const int id)
 
 /**
  * This function sets the isAppRecovery flag to true in two scenarios:
- * 1. During boot stage (including fast boot) when activating the main user
- *    - When active account list is empty and system is starting up
- * 2. When re-activating a user after it has been logged out
- *    - When active after user logout and the same user is activated again
+ * 1. During boot stage (including fast boot) when activating the main account:
+ *    - When the active account list only contains NO_DESKTOP_USER.
+ * 2. When re-activating a user after it has been logged out:
+ *    - When the same account is activated again after logout.
+ *
+ * NO_DESKTOP_OS_ACCOUNTS is a vector contains the no-desktop accounts.
  */
 static void SetAppRecovery(bool &isAppRecovery,
     const std::vector<int32_t> &activeAccountId, std::int32_t id, std::int32_t defaultActivatedId)
 {
 #ifdef SUPPORT_STOP_MAIN_OS_ACCOUNT
-    if (!isAppRecovery && activeAccountId.empty()) {
+    if (!isAppRecovery && (activeAccountId.size() <= NO_DESKTOP_OS_ACCOUNTS.size())) {
         isAppRecovery = true;
     }
 #endif
