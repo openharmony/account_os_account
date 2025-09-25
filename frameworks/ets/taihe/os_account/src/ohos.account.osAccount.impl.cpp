@@ -691,7 +691,7 @@ std::string ConvertMapViewToStringInner(uintptr_t parameters)
         return "";
     }
 
-    ani_status status = env->FindClass("escompat.JSON", &cls);
+    ani_status status = env->FindClass("std.core.JSON", &cls);
     ani_static_method stringify;
     if (status != ANI_OK) {
         ACCOUNT_LOGE("JSON not found, ret: %{public}d.", status);
