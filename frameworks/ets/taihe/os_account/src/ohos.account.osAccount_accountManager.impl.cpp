@@ -761,6 +761,10 @@ public:
     bool IsOsAccountActivatedSync(int32_t localId)
     {
         bool isOsAccountActived;
+        if (AccountSA::AccountPermissionManager::CheckSystemApp(false) != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(ERR_JS_IS_NOT_SYSTEM_APP);
+            return isOsAccountActived;
+        }
         ErrCode errCode = AccountSA::OsAccountManager::IsOsAccountActived(localId, isOsAccountActived);
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("IsOsAccountActivatedSync failed with errCode: %{public}d", errCode);
@@ -795,6 +799,10 @@ public:
     bool IsOsAccountConstraintEnabledWithId(int32_t localId, string_view constraint)
     {
         bool isConsEnabled;
+        if (AccountSA::AccountPermissionManager::CheckSystemApp(false) != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(ERR_JS_IS_NOT_SYSTEM_APP);
+            return isConsEnabled;
+        }
         std::string innerConstraint(constraint.data(), constraint.size());
         ErrCode errCode = AccountSA::OsAccountManager::CheckOsAccountConstraintEnabled(localId,
             innerConstraint, isConsEnabled);
