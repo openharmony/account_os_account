@@ -23,9 +23,9 @@ namespace AccountJsKit {
 class NapiAppAccount {
 public:
     static napi_value Init(napi_env env, napi_value exports);
-
-private:
     static napi_property_descriptor appAccountProperties[];
+    static uint32_t GetPropertySize();
+private:
     static napi_value CreateAppAccountManager(napi_env env, napi_callback_info cbInfo);
     static napi_value AddAccount(napi_env env, napi_callback_info cbInfo);
     static napi_value AddAccountImplicitly(napi_env env, napi_callback_info cbInfo);

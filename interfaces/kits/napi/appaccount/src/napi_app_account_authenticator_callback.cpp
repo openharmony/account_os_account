@@ -67,6 +67,20 @@ napi_value NapiAppAccountAuthenticatorCallback::Init(napi_env env, napi_value ex
     return exports;
 }
 
+napi_value NapiAppAccountAuthenticatorCallback::GetConstructor(napi_env env, napi_value constructor)
+{
+    const std::string className = "AuthCallback";
+    napi_property_descriptor properties[] = {
+        DECLARE_NAPI_FUNCTION("onResult", JsOnResult),
+        DECLARE_NAPI_FUNCTION("onRequestRedirected", JsOnRequestRedirected),
+        DECLARE_NAPI_FUNCTION("onRequestContinued", JsOnRequestContinued),
+    };
+    NAPI_CALL(env, napi_define_class(env, className.c_str(), className.length(), JsConstructor, nullptr,
+        sizeof(properties) / sizeof(napi_property_descriptor), properties, &constructor));
+    return constructor;
+}
+
+
 static void ParseContextForOnResult(napi_env env, napi_callback_info cbInfo, CallbackParam *param)
 {
     size_t argc = ARGS_SIZE_FOUR;
