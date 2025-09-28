@@ -38,6 +38,12 @@ const char BUSINESS_ERROR_DATA_NAME[] = "data";
 
 using namespace AccountSA;
 
+AppAccountSubscriberInfo& AppAccountSubscriberInfo::GetInstance()
+{
+    static AppAccountSubscriberInfo instance;
+    return instance;
+}
+
 CommonAsyncContext::~CommonAsyncContext()
 {
     if (env == nullptr) {

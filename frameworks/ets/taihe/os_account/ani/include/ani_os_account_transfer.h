@@ -42,4 +42,4 @@ void AniOsAccountTransferInit(ani_env *aniEnv);
 }
 }
 
-#endif ANI_OS_ACCOUNT_TRANSFER_H
+#endif // ANI_OS_ACCOUNT_TRANSFER_H

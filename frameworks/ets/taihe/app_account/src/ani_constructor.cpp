@@ -12,8 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include "ani_app_account_transfer.h"
 #include "ohos.account.appAccount.ani.hpp"
+
 ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
 {
     ani_env *env;
@@ -24,6 +25,8 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
         std::cerr << "Error from ohos::account::appAccount::ANIRegister" << std::endl;
         return ANI_ERROR;
     }
+    OHOS::AccountSA::AniAppAccountTransferInit(env);
+    taihe::set_vm(vm);
     *result = ANI_VERSION_1;
     return ANI_OK;
 }
