@@ -225,11 +225,11 @@ interface AppAccountManager {
     @gen_promise("deleteCredential")
     DeleteCredentialSync(name: String, credentialType: String);
 
-    @overload("on")
-    OnSync(type: String, owners: Array<String>, callback: (data: Array<AppAccountInfo>) => void): void;
+    @rename("onAccountChange")
+    OnAccountChange(owners: Array<String>, callback: (data: Array<AppAccountInfo>) => void): void;
 
-    @overload("off")
-    OffSync(type: String, callback: Optional<(data: Array<AppAccountInfo>) => void>): void;
+    @rename("offAccountChange")
+    OffAccountChange(callback: Optional<(data: Array<AppAccountInfo>) => void>): void;
 
     @overload("auth")
     AuthSync(name: String, owner: String, authType: String, callback: AuthCallback);

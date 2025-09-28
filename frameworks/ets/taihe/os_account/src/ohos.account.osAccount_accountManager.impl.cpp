@@ -276,7 +276,7 @@ public:
         return false;
     }
 
-    void Subsribe(std::string name, AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE type,
+    void Subscribe(std::string name, AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE type,
                   std::shared_ptr<active_callback> activeCallback, std::shared_ptr<switch_callback> switchCallback)
     {
         AccountSA::SubscribeCBInfo *subscribeCBInfo = new (std::nothrow) AccountSA::SubscribeCBInfo();
@@ -352,15 +352,8 @@ public:
         }
     }
 
-    void on(string_view type, string_view name, callback_view<void(int32_t)> callback)
+    void OnActivate(string_view name, callback_view<void(int32_t)> callback)
     {
-        if (type.size() == 0 || (type != "activate" && type != "activating")) {
-            ACCOUNT_LOGE("Subscriber name size %{public}zu is invalid.", name.size());
-            std::string errMsg =
-                "Parameter error. The content of \"type\" must be \"activate|activating|switched|switching\"";
-            taihe::set_business_error(ERR_JS_INVALID_PARAMETER, errMsg);
-            return;
-        }
         if (name.size() == 0 || name.size() > MAX_SUBSCRIBER_NAME_LEN) {
             ACCOUNT_LOGE("Subscriber name size %{public}zu is invalid.", name.size());
             std::string errMsg = "Parameter error. The length of \"name\" is invalid";
@@ -368,21 +361,25 @@ public:
             return;
         }
         active_callback call = callback;
-        Subsribe(name.data(),
-                 type == "activate" ? AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATED
-                                    : AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING,
-                 std::make_shared<active_callback>(call), nullptr);
+        Subscribe(name.data(), AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATED,
+            std::make_shared<active_callback>(call), nullptr);
     }
 
-    void off(string_view type, string_view name, optional_view<callback<void(int32_t)>> callback)
+    void OnActivating(string_view name, callback_view<void(int32_t)> callback)
     {
-        if (type.size() == 0 || (type != "activate" && type != "activating")) {
+        if (name.size() == 0 || name.size() > MAX_SUBSCRIBER_NAME_LEN) {
             ACCOUNT_LOGE("Subscriber name size %{public}zu is invalid.", name.size());
-            std::string errMsg =
-                "Parameter error. The content of \"type\" must be \"activate|activating|switched|switching\"";
+            std::string errMsg = "Parameter error. The length of \"name\" is invalid";
             taihe::set_business_error(ERR_JS_INVALID_PARAMETER, errMsg);
             return;
         }
+        active_callback call = callback;
+        Subscribe(name.data(), AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING,
+            std::make_shared<active_callback>(call), nullptr);
+    }
+
+    void OffActivate(string_view name, optional_view<callback<void(int32_t)>> callback)
+    {
         if (name.size() == 0 || name.size() > MAX_SUBSCRIBER_NAME_LEN) {
             ACCOUNT_LOGE("Subscriber name size %{public}zu is invalid.", name.size());
             std::string errMsg = "Parameter error. The length of \"name\" is invalid";
@@ -394,22 +391,36 @@ public:
             active_callback call = *callback;
             activeCallback = std::make_shared<active_callback>(call);
         }
-        Unsubscribe(name.data(),
-                    type == "activate" ? AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATED
-                                       : AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING,
-                    activeCallback, nullptr);
+        Unsubscribe(name.data(), AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATED, activeCallback, nullptr);
+    }
+
+    void OffActivating(string_view name, optional_view<callback<void(int32_t)>> callback)
+    {
+        if (name.size() == 0 || name.size() > MAX_SUBSCRIBER_NAME_LEN) {
+            ACCOUNT_LOGE("Subscriber name size %{public}zu is invalid.", name.size());
+            std::string errMsg = "Parameter error. The length of \"name\" is invalid";
+            taihe::set_business_error(ERR_JS_INVALID_PARAMETER, errMsg);
+            return;
+        }
+        std::shared_ptr<active_callback> activeCallback = nullptr;
+        if (callback) {
+            active_callback call = *callback;
+            activeCallback = std::make_shared<active_callback>(call);
+        }
+        Unsubscribe(name.data(), AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING, activeCallback, nullptr);
     }
 
     void OnSwitching(callback_view<void(OsAccountSwitchEventData const &)> callback)
     {
         switch_callback call = callback;
-        Subsribe("", AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING, nullptr, std::make_shared<switch_callback>(call));
+        Subscribe("", AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING,
+            nullptr, std::make_shared<switch_callback>(call));
     }
 
     void OnSwitched(callback_view<void(OsAccountSwitchEventData const &)> callback)
     {
         switch_callback call = callback;
-        Subsribe("", AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, nullptr, std::make_shared<switch_callback>(call));
+        Subscribe("", AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, nullptr, std::make_shared<switch_callback>(call));
     }
 
     void OffSwitching(optional_view<callback<void(OsAccountSwitchEventData const &)>> callback)

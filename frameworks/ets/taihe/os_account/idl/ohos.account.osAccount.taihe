@@ -41,19 +41,25 @@ interface AccountManager {
     GetOsAccountTypeSync(): OsAccountType;
     @gen_promise("getOsAccountType")
     GetOsAccountTypeWithIdSync(localId: i32): OsAccountType;
+    
+    @rename("onActivate")
+    OnActivate(name: String, callback: (id:i32) => void): void;
+    @rename("offActivate")
+    OffActivate(name: String, callback: Optional<(id:i32) => void>): void;
+    
+    @rename("onActivating")
+    OnActivating(name: String, callback: (id:i32) => void): void;
+    @rename("offActivating")
+    OffActivating(name: String, callback: Optional<(id:i32) => void>): void;
 
-    on(type: String,name: String, callback: (id:i32) => void): void;
-
-    off(type: String,name: String, callback: Optional<(id:i32) => void>): void;
-
-    @on_off("switching")
+    @rename("onSwitching")
     OnSwitching(callback: (data:OsAccountSwitchEventData) => void): void;
-    @on_off("switched")
+    @rename("onSwitched")
     OnSwitched(callback: (data:OsAccountSwitchEventData) => void): void;
 
-    @on_off("switching")
+    @rename("offSwitching")
     OffSwitching(callback: Optional<(data:OsAccountSwitchEventData) => void>): void;
-    @on_off("switched")
+    @rename("offSwitched")
     OffSwitched(callback: Optional<(data:OsAccountSwitchEventData) => void>): void;
 
     @gen_async("activateOsAccount")
