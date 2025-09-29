@@ -2344,6 +2344,9 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount
     OsAccountInfo osAccountInfo;
     int32_t foregroundId = -1;
     ErrCode errCode = PrepareActivateOsAccount(id, displayId, osAccountInfo, foregroundId);
+    if (errCode == ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREADY_ACTIVE_ERROR) {
+        return ERR_OK;
+    }
     if (errCode != ERR_OK) {
         return errCode;
     }
