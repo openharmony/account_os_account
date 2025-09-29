@@ -1503,6 +1503,7 @@ public:
         if (errCode == ERR_OK) {
             parcel.ReadBool(isHasDomainAccount_);
         }
+        SetTaiheBusinessErrorFromNativeCode(errCode);
         cv_.notify_one();
     }
 private:
