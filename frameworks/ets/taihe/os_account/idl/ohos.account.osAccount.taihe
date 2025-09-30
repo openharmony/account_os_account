@@ -114,7 +114,7 @@ interface AccountManager {
 
     @gen_promise("getSerialNumberForOsAccountLocalId")
     @gen_async("getSerialNumberForOsAccountLocalId")
-    GetSerialNumberForOsAccountLocalIdSync(localId: i32): i32;
+    GetSerialNumberForOsAccountLocalIdSync(localId: i32): i64;
 
     @gen_promise("getBundleIdForUid")
     @gen_async("getBundleIdForUid")
