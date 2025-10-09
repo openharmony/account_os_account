@@ -2017,9 +2017,18 @@ ErrCode OsAccountManagerService::IsOsAccountForeground(int32_t localId, const ui
 
 ErrCode OsAccountManagerService::GetForegroundOsAccountLocalId(int32_t &localId)
 {
-    return innerManager_.GetForegroundOsAccountLocalId(Constants::DEFAULT_DISPLAY_ID, localId);
+    int32_t callerLocalId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+    uint64_t displayId = Constants::DEFAULT_DISPLAY_ID;
+    if (innerManager_.GetForegroundOsAccountDisplayId(callerLocalId, displayId) == ERR_OK) {
+        localId = callerLocalId;
+        return ERR_OK;
+    }
+    ErrCode result = innerManager_.GetForegroundOsAccountLocalId(Constants::DEFAULT_DISPLAY_ID, localId);
+    if (result == ERR_ACCOUNT_COMMON_ACCOUNT_IN_DISPLAY_ID_NOT_FOUND_ERROR) {
+        result = ERR_ACCOUNT_COMMON_EXCEPTION_ERROR;
+    }
+    return result;
 }
-
 
 ErrCode OsAccountManagerService::GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId)
 {
