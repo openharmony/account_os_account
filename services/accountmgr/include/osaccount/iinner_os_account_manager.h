@@ -18,6 +18,7 @@
 
 #include <map>
 #include <memory>
+#include <mutex>
 #include "iinner_os_account.h"
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
 #include "inner_domain_account_manager.h"
@@ -226,6 +227,7 @@ private:
     mutable std::mutex ativeMutex_;
     mutable std::mutex operatingMutex_;
     mutable std::mutex updateLockMutex_;
+    mutable std::mutex createOsAccountMutex_;
     SafeMap<uint64_t, int32_t> foregroundAccountMap_;
 #ifdef SUPPORT_LOCK_OS_ACCOUNT
     OsAccountLockOsAccountPluginManager &lockOsAccountPluginManager_;
