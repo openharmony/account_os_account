@@ -1103,11 +1103,8 @@ public:
         return true;
     }
 
-    void OnSync(string_view type, array_view<string> owners, callback_view<void(array_view<AppAccountInfo>)> callback)
+    void OnAccountChange(array_view<string> owners, callback_view<void(array_view<AppAccountInfo>)> callback)
     {
-        if (!CheckType(type)) {
-            return;
-        }
         std::vector<std::string> innerOwners(owners.data(), owners.data() + owners.size());
 
         auto context = std::make_unique<AccountSA::AsyncContextForSubscribe>(callback);
@@ -1171,11 +1168,8 @@ public:
         }
     }
 
-    void OffSync(string_view type, optional_view<callback<void(array_view<AppAccountInfo> data)>> callback)
+    void OffAccountChange(optional_view<callback<void(array_view<AppAccountInfo> data)>> callback)
     {
-        if (!CheckType(type)) {
-            return;
-        }
         std::shared_ptr<AccountSA::AsyncContextForUnsubscribe> context(
             new (std::nothrow) AccountSA::AsyncContextForUnsubscribe());
         if (context == nullptr) {
