@@ -45,6 +45,7 @@
 #include "parcel.h"
 #include "string_ex.h"
 #include <pthread.h>
+#include <mutex>
 #include <thread>
 #include <unordered_set>
 #ifdef HICOLLIE_ENABLE
@@ -761,6 +762,7 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(
         ACCOUNT_LOGI("Not allow creation account.");
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_PLUGIN_NOT_ALLOWED_CREATION_ERROR;
     }
+    std::lock_guard<std::mutex> createLock(createOsAccountMutex_);
 #ifdef HICOLLIE_ENABLE
     AccountTimer timer;
 #endif // HICOLLIE_ENABLE
@@ -801,6 +803,7 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(const std::string &localName, co
         ACCOUNT_LOGI("Not allow creation account.");
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_PLUGIN_NOT_ALLOWED_CREATION_ERROR;
     }
+    std::lock_guard<std::mutex> createLock(createOsAccountMutex_);
 #ifdef HICOLLIE_ENABLE
     AccountTimer timer;
 #endif // HICOLLIE_ENABLE
@@ -826,6 +829,7 @@ ErrCode IInnerOsAccountManager::CreateOsAccountWithFullInfo(OsAccountInfo &osAcc
         ACCOUNT_LOGI("Not allow creation account.");
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_PLUGIN_NOT_ALLOWED_CREATION_ERROR;
     }
+    std::lock_guard<std::mutex> createLock(createOsAccountMutex_);
 #ifdef HICOLLIE_ENABLE
     AccountTimer timer;
 #endif // HICOLLIE_ENABLE
@@ -1050,9 +1054,8 @@ ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type,
 }
 #endif // SUPPORT_DOMAIN_ACCOUNTS
 
-ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
-    const OsAccountType &type, const DomainAccountInfo &domainInfo, const sptr<IDomainAccountCallback> &callback,
-    const CreateOsAccountForDomainOptions &options)
+ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
+    const sptr<IDomainAccountCallback> &callback, const CreateOsAccountForDomainOptions &options)
 {
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
     std::lock_guard<std::mutex> lock(createOrBindDomainAccountMutex_);
@@ -1060,6 +1063,7 @@ ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
         ACCOUNT_LOGI("Not allow creation account.");
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_PLUGIN_NOT_ALLOWED_CREATION_ERROR;
     }
+    std::lock_guard<std::mutex> createLock(createOsAccountMutex_);
 #ifdef HICOLLIE_ENABLE
     AccountTimer timer;
 #endif // HICOLLIE_ENABLE
