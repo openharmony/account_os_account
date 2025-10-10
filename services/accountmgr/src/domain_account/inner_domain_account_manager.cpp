@@ -16,6 +16,7 @@
 #include "inner_domain_account_manager.h"
 
 #include <cinttypes>
+#include <cerrno>
 #include <dlfcn.h>
 #include <pthread.h>
 #include <thread>
@@ -140,6 +141,15 @@ static int32_t GetCallingUserID(std::int32_t callingUid = -1)
 
 InnerDomainAccountManager::InnerDomainAccountManager()
 {
+    std::string path(LIB_PATH);
+    std::string name(LIB_NAME);
+    std::string soPath = path + name;
+    if (access(soPath.c_str(), F_OK) != 0) {
+        if (errno == ENOENT) {
+            ACCOUNT_LOGI("Plugin so not exist");
+            return;
+        }
+    }
     int times = 0;
     while (times < Constants::MAX_RETRY_TIMES) {
         LoaderLib(LIB_PATH, LIB_NAME);
@@ -445,14 +455,14 @@ void InnerDomainAccountManager::CloseLib()
 static void SetPluginString(const std::string &str, PluginString &pStr)
 {
     if (str.empty()) {
-        ACCOUNT_LOGE("Str is empty.");
+        ACCOUNT_LOGD("Str is empty.");
         pStr.data = nullptr;
         pStr.length = 0;
         return;
     }
     pStr.data = strdup(str.c_str());
     if (pStr.data == nullptr) {
-        ACCOUNT_LOGE("Failed to duplicate string.");
+        ACCOUNT_LOGD("Failed to duplicate string.");
         pStr.length = 0;
         return;
     }
@@ -462,7 +472,7 @@ static void SetPluginString(const std::string &str, PluginString &pStr)
 static void CleanPluginString(char** data, size_t length)
 {
     if (data == nullptr || *data == nullptr) {
-        ACCOUNT_LOGE("Data is nullptr.");
+        ACCOUNT_LOGD("Data is nullptr.");
         return;
     }
     (void)memset_s(*data, length, 0, length);
@@ -474,7 +484,7 @@ static void CleanPluginString(char** data, size_t length)
 static bool SetPluginUint8Vector(const std::vector<uint8_t> &vector, PluginUint8Vector &pVector)
 {
     if (vector.empty()) {
-        ACCOUNT_LOGE("Vector is empty.");
+        ACCOUNT_LOGD("Vector is empty.");
         pVector.data = nullptr;
         pVector.capcity = 0;
         pVector.size = 0;
@@ -489,7 +499,7 @@ static bool SetPluginUint8Vector(const std::vector<uint8_t> &vector, PluginUint8
 void GetAndCleanPluginUint8Vector(PluginUint8Vector &pVector, std::vector<uint8_t> &vector)
 {
     if (pVector.data == nullptr) {
-        ACCOUNT_LOGE("PluginUint8Vector data is null.");
+        ACCOUNT_LOGD("PluginUint8Vector data is null.");
         return;
     }
     vector.assign(pVector.data, pVector.data + pVector.size);
@@ -522,7 +532,7 @@ static ErrCode GetAndCleanPluginBussnessError(PluginBussnessError **error, Plugi
     free((*error));
     (*error) = nullptr;
     if (err == ERR_OK) {
-        ACCOUNT_LOGD("Call method=%{public}s is ok msg=%{public}s.", methodName.c_str(), msg.c_str());
+        ACCOUNT_LOGI("Call method=%{public}s is ok msg=%{public}s.", methodName.c_str(), msg.c_str());
         DomainHisyseventUtils::ReportStatistic(methodEnum, id, info);
         return err;
     }
@@ -536,7 +546,7 @@ static ErrCode GetAndCleanPluginBussnessError(PluginBussnessError **error, Plugi
 static ErrCode GetAndCleanPluginString(PluginString &pStr, std::string &str)
 {
     if (pStr.data == nullptr) {
-        ACCOUNT_LOGE("PluginString's data is null.");
+        ACCOUNT_LOGD("PluginString's data is null.");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     str = std::string(pStr.data);
@@ -551,7 +561,7 @@ static void GetAndCleanPluginServerConfigInfo(PluginServerConfigInfo **pConfigIn
     std::string &id, std::string &domain, std::string &parameters)
 {
     if (pConfigInfo == nullptr || *pConfigInfo == nullptr) {
-        ACCOUNT_LOGE("PluginServerConfigInfo is null");
+        ACCOUNT_LOGD("PluginServerConfigInfo is null");
         return;
     }
     GetAndCleanPluginString((*pConfigInfo)->id, id);
@@ -601,7 +611,7 @@ static void CleanPluginDomainAccountInfo(PluginDomainAccountInfo &domainAccountI
 static void GetAndCleanPluginDomainAccountInfo(DomainAccountInfo &info, PluginDomainAccountInfo **pDomainAccountInfo)
 {
     if (pDomainAccountInfo == nullptr || *pDomainAccountInfo == nullptr) {
-        ACCOUNT_LOGE("PluginDomainAccountInfo is null.");
+        ACCOUNT_LOGD("PluginDomainAccountInfo is null.");
         return;
     }
     GetAndCleanPluginString((*pDomainAccountInfo)->serverConfigId, info.serverConfigId_);
@@ -617,7 +627,7 @@ static void GetAndCleanPluginAuthResultInfo(PluginAuthResultInfo **authResultInf
     std::vector<uint8_t> &token, int32_t &remainTimes, int32_t &freezingTime)
 {
     if (authResultInfo == nullptr || *authResultInfo == nullptr) {
-        ACCOUNT_LOGE("PluginAuthResultInfo is null");
+        ACCOUNT_LOGD("PluginAuthResultInfo is null");
         return;
     }
     freezingTime = (*authResultInfo)->freezingTime;
@@ -631,7 +641,7 @@ static void GetAndCleanPluginAuthStatusInfo(PluginAuthStatusInfo **statusInfo,
     int32_t &remainTimes, int32_t &freezingTime)
 {
     if (statusInfo == nullptr || *statusInfo == nullptr) {
-        ACCOUNT_LOGE("PluginAuthStatusInfo is null.");
+        ACCOUNT_LOGD("PluginAuthStatusInfo is null.");
         return;
     }
     remainTimes = (*statusInfo)->remainTimes;
@@ -643,7 +653,7 @@ static void GetAndCleanPluginAuthStatusInfo(PluginAuthStatusInfo **statusInfo,
 static void GetAndCleanPluginDomainAccountPolicy(PluginDomainAccountPolicy **accountPolicy, std::string &policy)
 {
     if (accountPolicy == nullptr || *accountPolicy == nullptr) {
-        ACCOUNT_LOGE("PluginDomainAccountPolicy is null.");
+        ACCOUNT_LOGD("PluginDomainAccountPolicy is null.");
         return;
     }
     GetAndCleanPluginString((*accountPolicy)->parameters, policy);
