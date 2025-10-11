@@ -26,7 +26,10 @@
 #include "os_account_manager.h"
 #ifdef HAS_PIN_AUTH_PART
 #include "pinauth_register.h"
-#endif
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+#include "domain_account_client.h"
+#endif // SUPPORT_DOMAIN_ACCOUNTS
+#endif // HAS_PIN_AUTH_PART
 
 namespace OHOS {
 namespace AccountSA {
@@ -34,6 +37,7 @@ namespace {
 const char PERMISSION_ACCESS_PIN_AUTH[] = "ohos.permission.ACCESS_PIN_AUTH";
 const char PERMISSION_MANAGE_USER_IDM[] = "ohos.permission.MANAGE_USER_IDM";
 const char PERMISSION_ACCESS_USER_AUTH_INTERNAL[] = "ohos.permission.ACCESS_USER_AUTH_INTERNAL";
+const int32_t UINT8_SHIFT_LENGTH = 8;
 }
 
 AccountIAMClient &AccountIAMClient::GetInstance()
@@ -230,6 +234,7 @@ int32_t AccountIAMClient::Cancel(int32_t userId)
 }
 
 #ifdef HAS_PIN_AUTH_PART
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
 uint64_t AccountIAMClient::StartDomainAuth(int32_t userId, const std::shared_ptr<IDMCallback> &callback)
 {
     std::lock_guard<std::mutex> lock(domainMutex_);
@@ -239,10 +244,23 @@ uint64_t AccountIAMClient::StartDomainAuth(int32_t userId, const std::shared_ptr
         callback->OnResult(ERR_ACCOUNT_IAM_KIT_INPUTER_NOT_REGISTERED, emptyResult);
         return 0;
     }
-    domainInputer_->OnGetData(IAMAuthType::DOMAIN, std::vector<uint8_t>(),
-        std::make_shared<DomainCredentialRecipient>(userId, callback));
-    return 0;
+    uint64_t contextId = 0;
+    auto idmCallback = std::make_shared<DomainAuthCallbackAdapter>(callback);
+
+    auto getPwdHooks = [domainInputer = domainInputer_] {
+        auto recipient = std::make_shared<DomainCredentialRecipient>();
+        domainInputer->OnGetData(IAMAuthType::DOMAIN, std::vector<uint8_t>(), recipient);
+        return recipient->WaitToGetData();
+    };
+    ErrCode errCode = DomainAccountClient::GetInstance().AuthUser(userId, getPwdHooks, idmCallback, contextId);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to begin authenticate user, errCode = %{public}d", errCode);
+        callback->OnResult(errCode, emptyResult);
+        return 0;
+    }
+    return contextId;
 }
+#endif
 #endif
 
 int32_t AccountIAMClient::PrepareRemoteAuth(
@@ -271,7 +289,42 @@ int32_t AccountIAMClient::PrepareRemoteAuth(
     return ret;
 }
 
-uint64_t AccountIAMClient::Auth(AuthOptions& authOptions, const std::vector<uint8_t> &challenge,
+static std::vector<uint8_t> GenerateContextArray(const uint64_t contextId, const uint8_t authTypeIdx)
+{
+    std::vector<uint8_t> contextArray(sizeof(uint64_t), 0);
+    uint64_t contextIdCopy =  contextId;
+    size_t vecSize = contextArray.size();
+    for (size_t i = vecSize; i >= 1; i--) {
+        contextArray[i - 1] = contextIdCopy & 0xFF;
+        contextIdCopy >>= UINT8_SHIFT_LENGTH;
+    }
+    contextArray.insert(contextArray.begin(), authTypeIdx);
+    return contextArray;
+}
+
+static bool ParseContextId(const std::vector<uint8_t> &contextIdArray, uint64_t &contextId, uint8_t &authTypeIdx)
+{
+    size_t vecSize = contextIdArray.size();
+    if ((vecSize != sizeof(uint64_t)) && (vecSize != sizeof(uint64_t) + sizeof(uint8_t))) {
+        ACCOUNT_LOGE("Invalid contextId vector size: %{public}zu, expected between: %{public}zu and %{public}zu",
+            vecSize, sizeof(uint64_t), sizeof(uint64_t) + sizeof(uint8_t));
+        return false;
+    }
+    int32_t offset = 0;
+    if (vecSize == sizeof(uint64_t)) {
+        // if size is 8, is iam in default
+        authTypeIdx = static_cast<uint8_t>(AuthTypeIndex::ALL);
+    } else {
+        authTypeIdx = contextIdArray[0];
+        offset = 1;
+    }
+    for (auto each = contextIdArray.begin() + offset; each != contextIdArray.end(); each++) {
+        contextId = (contextId << UINT8_SHIFT_LENGTH) | (*each);
+    }
+    return true;
+}
+
+std::vector<uint8_t> AccountIAMClient::Auth(AuthOptions& authOptions, const std::vector<uint8_t> &challenge,
     AuthType authType, AuthTrustLevel authTrustLevel, const std::shared_ptr<IDMCallback> &callback)
 {
     return AuthUser(authOptions, challenge, authType, authTrustLevel, callback);
@@ -296,36 +349,44 @@ static void CopyAuthOptionsToAuthParam(const AuthOptions &authOptions, AuthParam
     }
 }
 
-uint64_t AccountIAMClient::AuthUser(
+std::vector<uint8_t> AccountIAMClient::AuthUser(
     AuthOptions &authOptions, const std::vector<uint8_t> &challenge, AuthType authType,
     AuthTrustLevel authTrustLevel, const std::shared_ptr<IDMCallback> &callback)
 {
     uint64_t contextId = 0;
+    std::vector<uint8_t> errorContextId(sizeof(uint64_t), 0);
+    auto authTypeIdx = GetAuthTypeIndex(authType);
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
-        return contextId;
+        return errorContextId;
     }
     Attributes emptyResult;
     auto proxy = GetAccountIAMProxy();
     if (proxy == nullptr) {
         callback->OnResult(ERR_ACCOUNT_COMMON_GET_PROXY, emptyResult);
-        return contextId;
+        return errorContextId;
     }
     if ((!authOptions.hasRemoteAuthOptions) && (authOptions.accountId == -1) &&
         (!GetCurrentUserId(authOptions.accountId))) {
         callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
-        return contextId;
+        return errorContextId;
     }
 #ifdef HAS_PIN_AUTH_PART
     if (static_cast<int32_t>(authType) == static_cast<int32_t>(IAMAuthType::DOMAIN)) {
-        return StartDomainAuth(authOptions.accountId, callback);
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+        contextId = StartDomainAuth(authOptions.accountId, callback);
+        return GenerateContextArray(contextId, authTypeIdx);
+#else
+        callback->OnResult(ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE, emptyResult);
+        return errorContextId;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
     }
 #endif
     sptr<IIDMCallback> wrapper = new (std::nothrow) IDMCallbackService(authOptions.accountId, callback);
     if (wrapper == nullptr) {
         ACCOUNT_LOGE("The wrapper is nullptr");
         callback->OnResult(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, emptyResult);
-        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+        return errorContextId;
     }
     AuthParam authParam;
     authParam.challenge = challenge;
@@ -336,17 +397,56 @@ uint64_t AccountIAMClient::AuthUser(
     if (result != ERR_OK) {
         ACCOUNT_LOGE("Failed to auth user, result = %{public}d", result);
         wrapper->OnResult(result, emptyResult.Serialize());
+        return errorContextId;
     }
-    return contextId;
+    return GenerateContextArray(contextId, authTypeIdx);
 }
 
-int32_t AccountIAMClient::CancelAuth(uint64_t contextId)
+int32_t AccountIAMClient::CancelAuth(const std::vector<uint8_t> &contextIdByteArray)
 {
+    uint8_t authTypeIdx = 0;
+    uint64_t contextId = 0;
+    if (!ParseContextId(contextIdByteArray, contextId, authTypeIdx)) {
+        ACCOUNT_LOGE("Failed to parse contextId");
+        return ERR_IAM_INVALID_CONTEXT_ID;
+    }
+
+    if (authTypeIdx == static_cast<uint8_t>(AuthTypeIndex::DOMAIN)) {
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+        return DomainAccountClient::GetInstance().CancelAuth(contextId);
+#else
+        return ERR_IAM_INVALID_CONTEXT_ID;
+#endif
+    }
     auto proxy = GetAccountIAMProxy();
     if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     return proxy->CancelAuth(contextId);
+}
+
+uint8_t AccountIAMClient::GetAuthTypeIndex(AuthType authType)
+{
+    switch (static_cast<int32_t>(authType)) {
+        case AuthType::ALL:
+            return static_cast<uint8_t>(AuthTypeIndex::ALL);
+        case AuthType::PIN:
+            return static_cast<uint8_t>(AuthTypeIndex::PIN);
+        case AuthType::FACE:
+            return static_cast<uint8_t>(AuthTypeIndex::FACE);
+        case AuthType::FINGERPRINT:
+            return static_cast<uint8_t>(AuthTypeIndex::FINGERPRINT);
+        case AuthType::RECOVERY_KEY:
+            return static_cast<uint8_t>(AuthTypeIndex::RECOVERY_KEY);
+        case AuthType::PRIVATE_PIN:
+            return static_cast<uint8_t>(AuthTypeIndex::PRIVATE_PIN);
+        case AuthType::TUI_PIN:
+            return static_cast<uint8_t>(AuthTypeIndex::TUI_PIN);
+        case IAMAuthType::DOMAIN:
+            return static_cast<uint8_t>(AuthTypeIndex::DOMAIN);
+        default:
+            return static_cast<uint8_t>(AuthTypeIndex::INVALID);
+    }
 }
 
 int32_t AccountIAMClient::GetAvailableStatus(AuthType authType, AuthTrustLevel authTrustLevel, int32_t &status)

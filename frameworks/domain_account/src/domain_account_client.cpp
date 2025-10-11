@@ -15,6 +15,7 @@
 
 #include "domain_account_client.h"
 
+#include <thread>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
@@ -27,6 +28,12 @@
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+static const uint32_t CONTEXT_ID_HIGH_LENGTH = 32;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
+};
+
 DomainAccountClient &DomainAccountClient::GetInstance()
 {
     static DomainAccountClient *instance = new (std::nothrow) DomainAccountClient();
@@ -101,15 +108,14 @@ ErrCode DomainAccountClient::UnregisterPlugin()
 
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
 ErrCode DomainAccountClient::AuthProxyInit(const std::shared_ptr<DomainAccountCallback> &callback,
-    sptr<DomainAccountCallbackService> &callbackService, sptr<IDomainAccount> &proxy)
+    sptr<DomainAccountCallbackService> &callbackService, sptr<IDomainAccount> &proxy, uint64_t &contextId)
 {
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
-    if (callbackService == nullptr) {
-        ACCOUNT_LOGE("failed to create DomainAccountCallbackService");
+    if (!GenerateCallbackAndContextId(callback, callbackService, contextId)) {
+        ACCOUNT_LOGE("GenerateCallbackAndContextId failed");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
     proxy = GetDomainAccountProxy();
@@ -176,27 +182,83 @@ ErrCode DomainAccountClient::Auth(const DomainAccountInfo &info, const std::vect
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
     sptr<DomainAccountCallbackService> callbackService = nullptr;
     sptr<IDomainAccount> proxy = nullptr;
-    ErrCode result = AuthProxyInit(callback, callbackService, proxy);
+    uint64_t contextId = 0;
+    std::lock_guard<std::recursive_mutex> lock(contextIdMutex_);
+    ErrCode result = AuthProxyInit(callback, callbackService, proxy, contextId);
     if (result != ERR_OK) {
         return result;
     }
-    return proxy->Auth(info, password, callbackService);
+    result = proxy->Auth(info, password, callbackService);
+    if (result != ERR_OK) {
+        EraseContext(contextId);
+    }
+    return result;
 #else
     return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
 #endif // SUPPORT_DOMAIN_ACCOUNTS
 }
 
 ErrCode DomainAccountClient::AuthUser(int32_t userId, const std::vector<uint8_t> &password,
-    const std::shared_ptr<DomainAccountCallback> &callback)
+    const std::shared_ptr<DomainAccountCallback> &callback, uint64_t &contextId)
 {
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
     sptr<DomainAccountCallbackService> callbackService = nullptr;
     sptr<IDomainAccount> proxy = nullptr;
-    ErrCode result = AuthProxyInit(callback, callbackService, proxy);
+    std::lock_guard<std::recursive_mutex> lock(contextIdMutex_);
+    ErrCode result = AuthProxyInit(callback, callbackService, proxy, contextId);
     if (result != ERR_OK) {
         return result;
     }
-    return proxy->AuthUser(userId, password, callbackService);
+    result = proxy->AuthUser(userId, password, callbackService);
+    if (result != ERR_OK) {
+        EraseContext(contextId);
+    }
+    return result;
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
+}
+
+ErrCode DomainAccountClient::AuthUser(int32_t userId,
+    const std::function<std::vector<uint8_t>()> getPasswordHooks,
+    const std::shared_ptr<DomainAccountCallback> &callback, uint64_t &contextId)
+{
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+    if ((callback == nullptr) || (getPasswordHooks == nullptr)) {
+        ACCOUNT_LOGE("callback or hooks is nullptr");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    sptr<DomainAccountCallbackService> callbackService = nullptr;
+    sptr<IDomainAccount> proxy = nullptr;
+    uint64_t genContextId = 0;
+    std::lock_guard<std::recursive_mutex> lock(contextIdMutex_);
+    ErrCode result = AuthProxyInit(callback, callbackService, proxy, genContextId);
+    if (result != ERR_OK) {
+        return result;
+    }
+    contextId = genContextId;
+    auto task = [getPasswordHooks, proxy, callbackService, userId]() {
+        std::vector<uint8_t> password = getPasswordHooks();
+        ErrCode errCode = proxy->AuthUser(userId, password, callbackService);
+        std::fill(password.begin(), password.end(), 0);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("Failed to auth for domain account, errCode=%{public}d", errCode);
+            Parcel emptyParcel;
+            DomainAccountParcel emptyDomainParcel;
+            AccountSA::DomainAuthResult emptyResult;
+            if (!emptyResult.Marshalling(emptyParcel)) {
+                ACCOUNT_LOGE("authResult Marshalling failed");
+                errCode = ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+            }
+            emptyDomainParcel.SetParcelData(emptyParcel);
+            callbackService->OnResult(errCode, emptyDomainParcel);
+        }
+    };
+    std::thread taskThread(task);
+    pthread_setname_np(taskThread.native_handle(), "DomainAuthThread");
+    taskThread.detach();
+
+    return ERR_OK;
 #else
     return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
 #endif // SUPPORT_DOMAIN_ACCOUNTS
@@ -207,11 +269,37 @@ ErrCode DomainAccountClient::AuthWithPopup(int32_t userId, const std::shared_ptr
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
     sptr<DomainAccountCallbackService> callbackService = nullptr;
     sptr<IDomainAccount> proxy = nullptr;
-    ErrCode result = AuthProxyInit(callback, callbackService, proxy);
+    uint64_t contextId = 0;
+    std::lock_guard<std::recursive_mutex> lock(contextIdMutex_);
+    ErrCode result = AuthProxyInit(callback, callbackService, proxy, contextId);
     if (result != ERR_OK) {
         return result;
     }
-    return proxy->AuthWithPopup(userId, callbackService);
+    result = proxy->AuthWithPopup(userId, callbackService);
+    if (result != ERR_OK) {
+        EraseContext(contextId);
+    }
+    return result;
+#else
+    return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
+#endif // SUPPORT_DOMAIN_ACCOUNTS
+}
+
+ErrCode DomainAccountClient::CancelAuth(const uint64_t contextId)
+{
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+    std::lock_guard<std::recursive_mutex> lock(contextIdMutex_);
+    auto it = contextIdMap_.find(contextId);
+    if (it == contextIdMap_.end()) {
+        ACCOUNT_LOGE("ContextId not found.");
+        return ERR_JS_INVALID_CONTEXT_ID;
+    }
+    sptr<IDomainAccount> proxy = GetDomainAccountProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("Get domain account proxy failed.");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->CancelAuth(it->second);
 #else
     return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT;
 #endif // SUPPORT_DOMAIN_ACCOUNTS
@@ -249,6 +337,19 @@ ErrCode DomainAccountClient::IsAuthenticationExpired(const DomainAccountInfo &in
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
 void DomainAccountClient::ResetDomainAccountProxy(const wptr<IRemoteObject>& remote)
 {
+    {
+        std::lock_guard<std::recursive_mutex> lock(contextIdMutex_);
+        Parcel emptyParcel;
+        AccountSA::DomainAuthResult emptyResult;
+        DomainAccountParcel emptyDomainParcel;
+        (void)emptyResult.Marshalling(emptyParcel);
+        emptyDomainParcel.SetParcelData(emptyParcel);
+        for (const auto &pair : contextIdMap_) {
+            pair.second->OnResult(ERR_JS_SYSTEM_SERVICE_EXCEPTION, emptyDomainParcel);
+        }
+        ACCOUNT_LOGE("Service is exit abnormally, interrupt auth context number = %{public}zu", contextIdMap_.size());
+        contextIdMap_.clear();
+    }
     std::lock_guard<std::mutex> lock(mutex_);
     if (proxy_ == nullptr) {
         ACCOUNT_LOGE("Proxy is nullptr");
@@ -501,6 +602,45 @@ ErrCode DomainAccountClient::GetAccountPolicy(const DomainAccountInfo &info, std
 }
 
 #ifdef SUPPORT_DOMAIN_ACCOUNTS
+bool DomainAccountClient::GenerateCallbackAndContextId(const std::shared_ptr<DomainAccountCallback> &callback,
+    sptr<DomainAccountCallbackService> &callbackService, uint64_t &contextId)
+{
+    std::lock_guard<std::recursive_mutex> lock(contextIdMutex_);
+    if (contextIdCount_ >= UINT32_MAX) {
+        contextIdCount_ = 0;
+    }
+    contextIdCount_++;
+    uint32_t higherContextId = getuid();
+    uint64_t tmpContextId = higherContextId;
+    tmpContextId = (tmpContextId << CONTEXT_ID_HIGH_LENGTH);
+    if (contextIdMap_.find(tmpContextId + contextIdCount_) != contextIdMap_.end()) {
+        for (uint32_t i = 1; i < UINT32_MAX; i++) {
+            if (contextIdMap_.find(tmpContextId + i) == contextIdMap_.end()) {
+                contextIdCount_ = i;
+                break;
+            }
+            if (i == (UINT32_MAX - 1)) {
+                ACCOUNT_LOGE("ContextId reach max value.");
+                contextIdCount_ = 0;
+                return false;
+            }
+        }
+    }
+    contextId = tmpContextId + contextIdCount_;
+    std::function<void()> afterOnResultCallback = [contextId]() {
+        DomainAccountClient::GetInstance().EraseContext(contextId);
+    };
+    callbackService = sptr<DomainAccountCallbackService>::MakeSptr(callback, afterOnResultCallback);
+    contextIdMap_[contextId] = callbackService;
+    return true;
+}
+
+void DomainAccountClient::EraseContext(const uint64_t contextId)
+{
+    std::lock_guard<std::recursive_mutex> lock(contextIdMutex_);
+    contextIdMap_.erase(contextId);
+}
+
 void DomainAccountClient::RestoreListenerRecords()
 {
     std::lock_guard<std::mutex> lock(recordMutex_);

@@ -23,9 +23,10 @@
 extern "C" {
 #endif
 static int32_t g_testErrCode = 123456;
-
+typedef void (*PluginAuthResultInfoCallback)(
+    uint64_t contextId, PluginAuthResultInfo *authResultInfo, PluginBussnessError *error);
 PluginBussnessError *Auth(const PluginDomainAccountInfo *domainAccountInfo, const PluginUint8Vector *credential,
-                          const int32_t callerLocalId, PluginAuthResultInfo **authResultInfo);
+    const int32_t callerLocalId, PluginAuthResultInfoCallback callback, uint64_t *contextId);
 PluginBussnessError *BindAccount(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId);
 PluginBussnessError *BindAccountError(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId);
 PluginBussnessError *GetAccountInfo(const PluginGetDomainAccountInfoOptions *options, const int32_t callerLocalId,
@@ -44,6 +45,9 @@ PluginBussnessError* UpdateServerConfig(const PluginString *serverConfigId, cons
     const int32_t localId, PluginServerConfigInfo **serverConfigInfo);
 PluginBussnessError *UnBindAccount(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId);
 PluginBussnessError *UnBindAccountError(const PluginDomainAccountInfo *domainAccountInfo, const int32_t localId);
+PluginBussnessError *AuthBlocking(const PluginDomainAccountInfo *domainAccountInfo, const PluginUint8Vector *credential,
+    const int32_t callerLocalId, PluginAuthResultInfoCallback callback, uint64_t *contextId);
+PluginBussnessError *CancelAuth(const uint64_t contextId);
 int32_t GetCallingLocalId();
 void ResetCallingLocalId();
 #ifdef __cplusplus

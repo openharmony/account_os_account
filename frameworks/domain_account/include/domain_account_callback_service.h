@@ -16,6 +16,7 @@
 #ifndef OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_DOMAIN_ACCOUNT_CALLBACK_SERVICE_H
 #define OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_DOMAIN_ACCOUNT_CALLBACK_SERVICE_H
 
+#include <functional>
 #include "domain_account_callback.h"
 #include "domain_account_callback_stub.h"
 
@@ -25,6 +26,8 @@ using DomainAccountCallbackFunc = std::function<void(const int32_t, Parcel &)>;
 class DomainAccountCallbackService : public DomainAccountCallbackStub {
 public:
     DomainAccountCallbackService(const std::shared_ptr<DomainAccountCallback> &callback);
+    DomainAccountCallbackService(const std::shared_ptr<DomainAccountCallback> &callback,
+        std::function<void()> afterOnResult);
     DomainAccountCallbackService(const DomainAccountCallbackFunc &callback);
     ~DomainAccountCallbackService() override;
     ErrCode OnResult(int32_t errCode, const DomainAccountParcel &domainAccountParcel) override;
@@ -32,6 +35,7 @@ public:
 private:
     std::shared_ptr<DomainAccountCallback> innerCallback_;
     DomainAccountCallbackFunc callback_;
+    std::function<void()> afterOnResult_ = nullptr;
     DISALLOW_COPY_AND_MOVE(DomainAccountCallbackService);
 };
 }  // namespace AccountSA

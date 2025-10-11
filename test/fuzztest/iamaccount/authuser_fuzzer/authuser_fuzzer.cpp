@@ -52,9 +52,9 @@ namespace OHOS {
         if (isInitCallback) {
             callback = make_shared<MockIDMCallback>();
         }
-        uint64_t result = AccountIAMClient::GetInstance().AuthUser(
+        std::vector<uint8_t> result = AccountIAMClient::GetInstance().AuthUser(
             authOptions, challenge, authType, authTrustLevel, callback);
-        return result == ERR_OK;
+        return true;
     }
 }
 

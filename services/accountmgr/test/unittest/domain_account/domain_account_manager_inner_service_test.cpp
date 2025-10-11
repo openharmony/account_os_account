@@ -18,11 +18,13 @@
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #define private public
+#define protected public
 #include "domain_account_plugin_death_recipient.h"
 #include "domain_account_plugin_service.h"
 #include "domain_account_callback_service.h"
 #include "domain_has_domain_info_callback.h"
 #include "inner_domain_account_manager.h"
+#undef protected
 #undef private
 #include "os_account_manager.h"
 #include "mock_domain_account_callback_stub.h"
@@ -558,7 +560,8 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     EXPECT_EQ(instance->GetAllServerConfigs(configs), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     std::vector<uint8_t> password;
     DomainAuthResult resultParcel;
-    EXPECT_EQ(instance->PluginAuth(info, password, resultParcel), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    uint64_t contextId = 0;
+    EXPECT_EQ(instance->PluginAuth(info, password, contextId), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->PluginBindAccount(info, 100, resultParcel), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->PluginUnBindAccount(info, resultParcel, 0), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     int32_t isVaild;
@@ -610,7 +613,8 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
         ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
     EXPECT_EQ(instance->GetServerConfig(configId, config), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
     EXPECT_EQ(instance->GetAllServerConfigs(configs), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
-    EXPECT_EQ(instance->PluginAuth(info, password, resultParcel), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
+    uint64_t contextId = 0;
+    EXPECT_EQ(instance->PluginAuth(info, password, contextId), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
     EXPECT_EQ(instance->PluginBindAccount(info, 100, resultParcel), ERR_OK);
     EXPECT_EQ(instance->PluginUnBindAccount(info, resultParcel, 0), ERR_OK);
     password.push_back(0);
@@ -665,7 +669,8 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     EXPECT_EQ(instance->UpdateServerConfig(configId, STRING_TEST_NAME, config), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->GetServerConfig(configId, config), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->GetAllServerConfigs(configs), ERR_JS_CAPABILITY_NOT_SUPPORTED);
-    EXPECT_EQ(instance->PluginAuth(info, password, resultParcel), ERR_JS_CAPABILITY_NOT_SUPPORTED);
+    uint64_t contextId = 0;
+    EXPECT_EQ(instance->PluginAuth(info, password, contextId), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->PluginBindAccount(info, 100, resultParcel), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->PluginUnBindAccount(info, resultParcel, 0), ERR_JS_CAPABILITY_NOT_SUPPORTED);
     EXPECT_EQ(instance->PluginIsAccountTokenValid(info, password, isVaild),
@@ -702,5 +707,23 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, GetAllServerConfigs001, TestSize.
     EXPECT_EQ(instance->GetAccountServerConfig("test", "test", config), ERR_OK);
     setuid(0);
 }
+
+/**
+ * @tc.name: AddToContextMap001
+ * @tc.desc: test AddToContextMap branches
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountManagerInnerServiceTest, AddToContextMap001, TestSize.Level3)
+{
+    InnerDomainAccountManager *instance = new (std::nothrow) InnerDomainAccountManager();
+    sptr<InnerDomainAuthCallback> callback = new (std::nothrow) InnerDomainAuthCallback(1, nullptr);
+    uint64_t contextId = 0;
+    EXPECT_FALSE(instance->FindCallbackInContextMap(callback, contextId));
+    ASSERT_TRUE(instance->AddToContextMap(1, callback));
+    EXPECT_FALSE(instance->AddToContextMap(1, callback));
+    delete instance;
+}
+
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -25,10 +25,16 @@ using namespace std;
 using namespace OHOS::AccountSA;
 
 namespace OHOS {
+namespace {
+const int32_t LENGTH_LIMIT = 9; // length limit
+};
     bool CancelAuthFuzzTest(const uint8_t* data, size_t size)
     {
         FuzzData fuzzData(data, size);
-        uint64_t contextId = fuzzData.GetData<uint64_t>();
+        std::vector<uint8_t> contextId;
+        for (size_t i = 0; i < LENGTH_LIMIT; ++i) {
+            contextId.push_back(fuzzData.GetData<uint8_t>());
+        }
         int32_t result = AccountIAMClient::GetInstance().CancelAuth(contextId);
         return result == ERR_OK;
     }

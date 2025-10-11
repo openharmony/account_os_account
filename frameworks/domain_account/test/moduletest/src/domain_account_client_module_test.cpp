@@ -31,10 +31,12 @@
 #include "domain_account_proxy.h"
 #endif
 #define private public
+#define protected public
 #include "domain_account_client.h"
 #include "inner_domain_account_manager.h"
 #include "iinner_os_account_manager.h"
 #include "os_account.h"
+#undef protected
 #undef private
 #include "ipc_skeleton.h"
 #include "mock_domain_auth_callback.h"
@@ -403,9 +405,9 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
 {
     auto testCallback = std::make_shared<TestDomainAuthCallback>(nullptr);
     ASSERT_NE(testCallback, nullptr);
-    EXPECT_EQ(
-        DomainAccountClient::GetInstance().AuthUser(
-            0, VALID_PASSWORD, testCallback), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    uint64_t contextId = 0;
+    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(0, VALID_PASSWORD, testCallback, contextId),
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -443,7 +445,9 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
 {
     auto testCallback = std::make_shared<TestDomainAuthCallback>(nullptr);
     ASSERT_NE(testCallback, nullptr);
-    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(NON_EXISTENT_USER_ID, VALID_PASSWORD, testCallback),
+    uint64_t contextId = 0;
+    EXPECT_EQ(
+        DomainAccountClient::GetInstance().AuthUser(NON_EXISTENT_USER_ID, VALID_PASSWORD, testCallback, contextId),
         ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
@@ -461,8 +465,10 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
     ASSERT_EQ(errCode, ERR_OK);
     auto testCallback = std::make_shared<TestDomainAuthCallback>(nullptr);
     ASSERT_NE(testCallback, nullptr);
-    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(
-        accountInfo.GetLocalId(), VALID_PASSWORD, testCallback), ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT);
+    uint64_t contextId = 0;
+    EXPECT_EQ(
+        DomainAccountClient::GetInstance().AuthUser(accountInfo.GetLocalId(), VALID_PASSWORD, testCallback, contextId),
+        ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT);
     errCode = OsAccountManager::RemoveOsAccount(accountInfo.GetLocalId());
     ASSERT_EQ(errCode, ERR_OK);
 }
@@ -500,7 +506,8 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
     int32_t userId = -1;
     errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId);
     EXPECT_EQ(errCode, ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(userId, DEFAULT_TOKEN, testAuthCallback), ERR_OK);
+    uint64_t contextId = 0;
+    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(userId, DEFAULT_TOKEN, testAuthCallback, contextId), ERR_OK);
     {
         std::unique_lock<std::mutex> lock(testAuthCallback->mutex);
         testAuthCallback->cv.wait_for(lock,
@@ -523,7 +530,18 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
  */
 HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_006, TestSize.Level0)
 {
-    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(DEFAULT_USER_ID, VALID_PASSWORD, nullptr),
+    uint64_t contextId = 0;
+    std::shared_ptr<DomainAccountCallback> callback = nullptr;
+    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(DEFAULT_USER_ID, VALID_PASSWORD, callback, contextId),
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+
+    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(DEFAULT_USER_ID, nullptr, callback, contextId),
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+
+    std::function<std::vector<uint8_t>()> pwdhooks = []() {
+        return std::vector<uint8_t>();
+    };
+    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(DEFAULT_USER_ID, pwdhooks, nullptr, contextId),
         ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
@@ -1271,7 +1289,8 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccount
     EXPECT_CALL(*authCallback, OnResult(ERR_OK, _)).Times(Exactly(1));
     auto testAuthCallback = std::make_shared<TestDomainAuthCallback>(authCallback);
     ASSERT_NE(testAuthCallback, nullptr);
-    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(localId, DEFAULT_TOKEN, testAuthCallback), ERR_OK);
+    uint64_t contextId = 0;
+    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(localId, DEFAULT_TOKEN, testAuthCallback, contextId), ERR_OK);
     {
         std::unique_lock<std::mutex> lock(testAuthCallback->mutex);
         testAuthCallback->cv.wait_for(lock,
@@ -1368,7 +1387,8 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccount
     int32_t userId = -1;
     errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId);
     EXPECT_EQ(errCode, ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(userId, DEFAULT_TOKEN, testAuthCallback), ERR_OK);
+    uint64_t contextId = 0;
+    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(userId, DEFAULT_TOKEN, testAuthCallback, contextId), ERR_OK);
     {
         std::unique_lock<std::mutex> lock(testAuthCallback->mutex);
         testAuthCallback->cv.wait_for(lock,
@@ -1659,7 +1679,8 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_004, TestS
     ASSERT_NE(testAuthCallback, nullptr);
     int32_t userId = -1;
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(userId, DEFAULT_TOKEN, testAuthCallback), ERR_OK);
+    uint64_t contextId = 0;
+    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(userId, DEFAULT_TOKEN, testAuthCallback, contextId), ERR_OK);
     {
         std::unique_lock<std::mutex> lock1(testAuthCallback->mutex);
         testAuthCallback->cv.wait_for(lock1, std::chrono::seconds(WAIT_TIME),
@@ -1668,7 +1689,7 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_004, TestS
     testAuthCallback->isReady = false;
     int32_t userId1 = -1;
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo1, userId1), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(userId1, DEFAULT_TOKEN, testAuthCallback), ERR_OK);
+    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(userId1, DEFAULT_TOKEN, testAuthCallback, contextId), ERR_OK);
     {
         std::unique_lock<std::mutex> lock2(testAuthCallback->mutex);
         testAuthCallback->cv.wait_for(lock2, std::chrono::seconds(WAIT_TIME),
@@ -1707,7 +1728,8 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_005, TestS
     EXPECT_CALL(*authCallback, OnResult(ERR_OK, _)).Times(Exactly(2));
     auto testAuthCallback = std::make_shared<TestDomainAuthCallbackForListener>(authCallback);
     ASSERT_NE(testAuthCallback, nullptr);
-    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(userId, DEFAULT_TOKEN, testAuthCallback), ERR_OK);
+    uint64_t contextId = 0;
+    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(userId, DEFAULT_TOKEN, testAuthCallback, contextId), ERR_OK);
     {
         std::unique_lock<std::mutex> lock1(testAuthCallback->mutex);
         testAuthCallback->cv.wait_for(lock1, std::chrono::seconds(WAIT_TIME),
@@ -1717,7 +1739,7 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_005, TestS
     int32_t userId1;
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo1, userId1), ERR_OK);
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(userId1), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(userId1, DEFAULT_TOKEN, testAuthCallback), ERR_OK);
+    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(userId1, DEFAULT_TOKEN, testAuthCallback, contextId), ERR_OK);
     {
         std::unique_lock<std::mutex> lock2(testAuthCallback->mutex);
         testAuthCallback->cv.wait_for(lock2, std::chrono::seconds(WAIT_TIME),
@@ -1892,7 +1914,8 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_011, TestS
     ASSERT_NE(testAuthCallback, nullptr);
     int32_t userId = -1;
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(userId, DEFAULT_TOKEN, testAuthCallback), ERR_OK);
+    uint64_t contextId = 0;
+    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(userId, DEFAULT_TOKEN, testAuthCallback, contextId), ERR_OK);
     {
         std::unique_lock<std::mutex> lock1(testAuthCallback->mutex);
         testAuthCallback->cv.wait_for(lock1, std::chrono::seconds(WAIT_TIME),
@@ -1907,6 +1930,49 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_011, TestS
 
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
     DomainAccountClient::GetInstance().listenerManager_ = listenerManager;
+}
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_CancelAuthJsPlugin_001
+ * @tc.desc: CancelAuth with js plugin
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CancelAuthJsPlugin_001, TestSize.Level1)
+{
+    uint64_t selfTokenId = IPCSkeleton::GetSelfTokenID();
+    ASSERT_TRUE(MockTokenId("accountmgr"));
+    auto servicePtr = new (std::nothrow) DomainAccountManagerService();
+    ASSERT_NE(servicePtr, nullptr);
+    DomainAccountClient::GetInstance().proxy_ = new (std::nothrow) DomainAccountProxy(servicePtr->AsObject());
+    DomainAccountClient::GetInstance().UnregisterPlugin();
+    DomainAccountClient::GetInstance().RegisterPlugin(g_plugin);
+    DomainAccountInfo domainInfo(STRING_DOMAIN_NEW, STRING_NAME_TWO, INVALID_STRING_ACCOUNTID);
+    CreateDomainAccount(domainInfo);
+
+    int32_t localId = -1;
+    ErrCode errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, localId);
+    int32_t authSleepTime = 3; // sleep 5s when auth
+    g_plugin->SetAuthDelaySecond(authSleepTime);
+    EXPECT_EQ(errCode, ERR_OK);
+    auto authCallback = std::make_shared<MockDomainAuthCallbackForListener>();
+    ASSERT_NE(authCallback, nullptr);
+    EXPECT_CALL(*authCallback, OnResult(ERR_JS_AUTH_CANCELLED, _)).Times(Exactly(1));
+    auto testAuthCallback = std::make_shared<TestDomainAuthCallbackForListener>(authCallback);
+    ASSERT_NE(testAuthCallback, nullptr);
+    uint64_t contextId = 0;
+    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(localId, DEFAULT_TOKEN, testAuthCallback, contextId), ERR_OK);
+    EXPECT_EQ(DomainAccountClient::GetInstance().CancelAuth(contextId), ERR_OK);
+    {
+        std::unique_lock<std::mutex> lock1(testAuthCallback->mutex);
+        testAuthCallback->cv.wait_for(lock1, std::chrono::seconds(authSleepTime + 1),
+            [lockCallback = testAuthCallback]() { return lockCallback->isReady; });
+    }
+    std::this_thread::sleep_for(std::chrono::seconds(authSleepTime));
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(localId), ERR_OK);
+    g_plugin->SetAuthDelaySecond(0);
+    DomainAccountClient::GetInstance().UnregisterPlugin();
+    SetSelfTokenID(selfTokenId);
 }
 #endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 
@@ -1948,8 +2014,8 @@ HWTEST_F(DomainAccountClientModuleTest, AuthProxyInit_001, TestSize.Level0)
     std::shared_ptr<DomainAccountCallback> callback = nullptr;
     sptr<DomainAccountCallbackService> callbackService;
     sptr<IDomainAccount> proxy;
-
-    EXPECT_EQ(DomainAccountClient::GetInstance().AuthProxyInit(callback, callbackService, proxy),
+    uint64_t contextId = 0;
+    EXPECT_EQ(DomainAccountClient::GetInstance().AuthProxyInit(callback, callbackService, proxy, contextId),
         ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
@@ -1968,10 +2034,12 @@ HWTEST_F(DomainAccountClientModuleTest, AuthProxyInit_002, TestSize.Level0)
     ASSERT_NE(testCallback, nullptr);
     sptr<DomainAccountCallbackService> callbackService = nullptr;
     sptr<IDomainAccount> proxy = nullptr;
-
-    EXPECT_EQ(DomainAccountClient::GetInstance().AuthProxyInit(testCallback, callbackService, proxy), ERR_OK);
+    uint64_t contextId = 0;
+    EXPECT_EQ(
+        DomainAccountClient::GetInstance().AuthProxyInit(testCallback, callbackService, proxy, contextId), ERR_OK);
     EXPECT_NE(callbackService, nullptr);
     EXPECT_NE(proxy, nullptr);
+    DomainAccountClient::GetInstance().EraseContext(contextId);
 }
 
 /**
@@ -2261,4 +2329,163 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAcco
     DomainAccountInfo oldInfo(STRING_DOMAIN, STRING_NAME), newInfo(STRING_DOMAIN, STRING_NAME_NEW);
     EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountInfo(oldInfo, newInfo),
         ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+}
+
+/**
+ * @tc.name: InnerDomainAuthCallback001
+ * @tc.desc: test InnerDomainAuthCallback branches
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientModuleTest, InnerDomainAuthCallback001, TestSize.Level3)
+{
+    sptr<InnerDomainAuthCallback> innerCallback = new (std::nothrow) InnerDomainAuthCallback(DEFAULT_USER_ID, nullptr);
+    InnerDomainAccountManager::GetInstance().authContextIdMap_.clear();
+    DomainAccountParcel domainAccountParcel;
+    innerCallback->deathRecipient_ = sptr<DomainAccountAuthDeathRecipient>::MakeSptr(0);
+    innerCallback->SetOpenContextIdCheck(true, 1);
+    EXPECT_EQ(1, innerCallback->deathRecipient_->contextId_);
+    EXPECT_EQ(ERR_OK, innerCallback->OnResult(0, domainAccountParcel));
+}
+
+/**
+ * @tc.name: GenerateContextId001
+ * @tc.desc: test GenerateContextId branches
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientModuleTest, GenerateContextId001, TestSize.Level3)
+{
+    InnerDomainAccountManager::GetInstance().contextIdCount_ = 0;
+    InnerDomainAccountManager::GetInstance().authContextIdMap_.clear();
+    uint64_t contextId = 0;
+    EXPECT_TRUE(InnerDomainAccountManager::GetInstance().GenerateContextId(contextId));
+    EXPECT_EQ(contextId, 1);
+    EXPECT_TRUE(InnerDomainAccountManager::GetInstance().GenerateContextId(contextId));
+    EXPECT_EQ(contextId, 2);
+    InnerDomainAccountManager::GetInstance().authContextIdMap_.clear();
+}
+
+/**
+ * @tc.name: GenerateContextId002
+ * @tc.desc: Test GenerateContextId branches
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientModuleTest, GenerateContextId002, TestSize.Level3)
+{
+    std::shared_ptr<DomainAccountCallback> callback = nullptr;
+    sptr<DomainAccountCallbackService> callbackService = nullptr;
+    uint64_t contextId1 = 0;
+    DomainAccountClient::GetInstance().contextIdCount_ = 0;
+    DomainAccountClient::GetInstance().contextIdMap_.clear();
+    ASSERT_TRUE(DomainAccountClient::GetInstance().GenerateCallbackAndContextId(callback, callbackService, contextId1));
+    uint32_t count = contextId1 & UINT32_MAX;
+    EXPECT_EQ(1, count);
+
+    uint64_t contextId2 = 0;
+    ASSERT_TRUE(DomainAccountClient::GetInstance().GenerateCallbackAndContextId(callback, callbackService, contextId2));
+    count = contextId2 & UINT32_MAX;
+    EXPECT_EQ(2, count);
+
+    DomainAccountClient::GetInstance().EraseContext(contextId1);
+    DomainAccountClient::GetInstance().contextIdCount_--;
+    uint64_t contextId3 = 1;
+    ASSERT_TRUE(DomainAccountClient::GetInstance().GenerateCallbackAndContextId(callback, callbackService, contextId3));
+    count = contextId3 & UINT32_MAX;
+    EXPECT_EQ(contextId3, contextId1);
+    EXPECT_EQ(DomainAccountClient::GetInstance().contextIdCount_, count);
+
+    DomainAccountClient::GetInstance().contextIdCount_ = 0;
+    DomainAccountClient::GetInstance().contextIdMap_.clear();
+}
+
+class AuthCallbackSync : public DomainAccountCallbackStub {
+public:
+    AuthCallbackSync() = default;
+    virtual ~AuthCallbackSync() = default;
+    int32_t errCode = -1;
+    ErrCode OnResult(int32_t domainAccountErrCode, const DomainAccountParcel &domainAccountParcel) override
+    {
+        errCode = domainAccountErrCode;
+        return ERR_OK;
+    };
+};
+
+/**
+ * @tc.name: AuthResultInfoCallback001
+ * @tc.desc: test InnerDomainAccountManager branches
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientModuleTest, AuthResultInfoCallback001, TestSize.Level3)
+{
+    InnerDomainAccountManager::GetInstance().authContextIdMap_.clear();
+    PluginAuthResultInfo *info = nullptr;
+    PluginBussnessError *errInfo = nullptr;
+    InnerDomainAccountManager::GetInstance().AuthResultInfoCallback(1, info, errInfo);
+
+    auto rawCallback = new (std::nothrow) AuthCallbackSync();
+    sptr<IDomainAccountCallback> callback = rawCallback;
+    auto innerCallback = sptr<InnerDomainAuthCallback>::MakeSptr(0, callback);
+    InnerDomainAccountManager::GetInstance().authContextIdMap_[1] = innerCallback;
+    InnerDomainAccountManager::GetInstance().AuthResultInfoCallback(1, info, errInfo);
+    ASSERT_EQ(rawCallback->errCode, ERR_JS_SYSTEM_SERVICE_EXCEPTION);
+}
+
+/**
+ * @tc.name: CancelAuth001
+ * @tc.desc: Test CancelAuth branches
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientModuleTest, CancelAuth001, TestSize.Level3)
+{
+    auto rawCallback = new (std::nothrow) AuthCallbackSync();
+    sptr<IDomainAccountCallback> callback = rawCallback;
+    auto innerCallback = sptr<InnerDomainAuthCallback>::MakeSptr(0, callback);
+    uint64_t contextId = 0;
+    InnerDomainAccountManager::GetInstance().authContextIdMap_.clear();
+    ASSERT_EQ(0, InnerDomainAccountManager::GetInstance().authContextIdMap_.size());
+    EXPECT_EQ(ERR_JS_INVALID_CONTEXT_ID, InnerDomainAccountManager::GetInstance().CancelAuth(callback));
+    EXPECT_EQ(ERR_JS_INVALID_CONTEXT_ID, InnerDomainAccountManager::GetInstance().CancelAuth(1));
+
+    ASSERT_TRUE(InnerDomainAccountManager::GetInstance().GenerateContextId(contextId));
+    EXPECT_TRUE(InnerDomainAccountManager::GetInstance().AddToContextMap(contextId, innerCallback));
+    EXPECT_EQ(1, InnerDomainAccountManager::GetInstance().authContextIdMap_.size());
+    EXPECT_EQ(ERR_OK, InnerDomainAccountManager::GetInstance().CancelAuth(callback));
+    ASSERT_EQ(rawCallback->errCode, ERR_JS_AUTH_CANCELLED);
+    EXPECT_EQ(0, InnerDomainAccountManager::GetInstance().authContextIdMap_.size());
+
+    rawCallback->errCode = -1;
+    ASSERT_TRUE(InnerDomainAccountManager::GetInstance().GenerateContextId(contextId));
+    EXPECT_TRUE(InnerDomainAccountManager::GetInstance().AddToContextMap(contextId, innerCallback));
+    EXPECT_EQ(1, InnerDomainAccountManager::GetInstance().authContextIdMap_.size());
+    EXPECT_EQ(ERR_OK, InnerDomainAccountManager::GetInstance().CancelAuth(contextId));
+    ASSERT_EQ(rawCallback->errCode, ERR_JS_AUTH_CANCELLED);
+    EXPECT_EQ(0, InnerDomainAccountManager::GetInstance().authContextIdMap_.size());
+}
+
+/**
+ * @tc.name: DomainAccountAuthDeathRecipient001
+ * @tc.desc: Test CancelAuth branches
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountAuthDeathRecipient001, TestSize.Level3)
+{
+    uint64_t contextId = 0;
+    InnerDomainAccountManager::GetInstance().authContextIdMap_.clear();
+    auto rawCallback = new (std::nothrow) AuthCallbackSync();
+    sptr<IDomainAccountCallback> callback = rawCallback;
+    auto innerCallback = sptr<InnerDomainAuthCallback>::MakeSptr(0, callback);
+    ASSERT_TRUE(InnerDomainAccountManager::GetInstance().GenerateContextId(contextId));
+    EXPECT_TRUE(InnerDomainAccountManager::GetInstance().AddToContextMap(contextId, innerCallback));
+    sptr<DomainAccountAuthDeathRecipient> deathRecipient = sptr<DomainAccountAuthDeathRecipient>::MakeSptr(0);
+    deathRecipient->SetContextId(contextId);
+    deathRecipient->OnRemoteDied(nullptr);
+    EXPECT_EQ(1, InnerDomainAccountManager::GetInstance().authContextIdMap_.size());
+    deathRecipient->OnRemoteDied(innerCallback->AsObject());
+    ASSERT_EQ(rawCallback->errCode, ERR_JS_AUTH_CANCELLED);
+    EXPECT_EQ(0, InnerDomainAccountManager::GetInstance().authContextIdMap_.size());
 }

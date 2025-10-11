@@ -195,22 +195,6 @@ HWTEST_F(AccountIAMCallbackServiceTest, DomainAuthCallbackAdapter_OnResult_0100,
     ASSERT_TRUE(cmdRes.find("callback is nullptr") != std::string::npos);
 }
 
-#ifdef HAS_PIN_AUTH_PART
-/**
- * @tc.name: DomainCredentialRecipient_OnSetData_0100
- * @tc.desc: test OnSetData.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AccountIAMCallbackServiceTest, DomainCredentialRecipient_OnSetData_0100, TestSize.Level3)
-{
-    auto domainCredentialRecipient = new (std::nothrow) DomainCredentialRecipient(100, nullptr);
-    std::vector<uint8_t> data = {1, 2, 3, 4};
-    domainCredentialRecipient->OnSetData(0, data);
-    EXPECT_EQ(domainCredentialRecipient->idmCallback_, nullptr);
-}
-#endif
-
 /**
  * @tc.name: IDMCallbackService_DestructTest_0100
  * @tc.desc: Test the 'IDMCallbackService' object has not been called before destructing.
