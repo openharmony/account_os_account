@@ -14,6 +14,8 @@
  */
 
 #include "inner_domain_account_manager.h"
+
+#include <cinttypes>
 #include <dlfcn.h>
 #include <pthread.h>
 #include <thread>
@@ -101,6 +103,7 @@ static const std::map<PluginMethodEnum, std::string> METHOD_NAME_MAP = {
     {PluginMethodEnum::IS_AUTHENTICATION_EXPIRED, "IsAuthenticationExpired"},
     {PluginMethodEnum::SET_ACCOUNT_POLICY, "SetAccountPolicy"},
     {PluginMethodEnum::GET_ACCOUNT_POLICY, "GetAccountPolicy"},
+    {PluginMethodEnum::CANCEL_AUTH, "CancelAuth"},
 };
 
 static bool IsSupportNetRequest()
@@ -161,10 +164,26 @@ InnerDomainAccountManager &InnerDomainAccountManager::GetInstance()
 
 InnerDomainAuthCallback::InnerDomainAuthCallback(int32_t userId, const sptr<IDomainAccountCallback> &callback)
     : userId_(userId), callback_(callback)
-{}
+{
+    if (callback_ == nullptr) {
+        return;
+    }
+    deathRecipient_ = sptr<DomainAccountAuthDeathRecipient>::MakeSptr(userId);
+    if (!callback_->AsObject()->AddDeathRecipient(deathRecipient_)) {
+        ACCOUNT_LOGE("AddDeathRecipient failed");
+        deathRecipient_ = nullptr;
+    }
+}
 
 InnerDomainAuthCallback::~InnerDomainAuthCallback()
-{}
+{
+    if ((callback_ == nullptr) || (deathRecipient_ == nullptr)) {
+        return;
+    }
+    if (!callback_->AsObject()->RemoveDeathRecipient(deathRecipient_)) {
+        ACCOUNT_LOGE("RemoveDeathRecipient failed");
+    }
+}
 
 static void CallbackOnResult(sptr<IDomainAccountCallback> &callback, const int32_t errCode, Parcel &resultParcel)
 {
@@ -184,6 +203,17 @@ ErrCode InnerDomainAuthCallback::OnResult(int32_t errCode, const DomainAccountPa
     domainAccountParcel.GetParcelData(parcel);
     Parcel resultParcel;
     std::shared_ptr<DomainAuthResult> authResult(DomainAuthResult::Unmarshalling(parcel));
+    if (needCheckContextId_) {
+        std::lock_guard<std::recursive_mutex> lock(InnerDomainAccountManager::GetInstance().authContextIdMapMutex_);
+        uint64_t contextId = 0;
+        if (!InnerDomainAccountManager::GetInstance().FindCallbackInContextMap(callback_, contextId)) {
+            ACCOUNT_LOGW("Cannot find contextId for callback, maybe has been cancelled");
+            REPORT_DOMAIN_ACCOUNT_FAIL(ERR_JS_INVALID_CONTEXT_ID, "Cannot find contextId for callback",
+                Constants::DOMAIN_OPT_AUTH, userId_);
+            return ERR_OK;
+        }
+        InnerDomainAccountManager::GetInstance().EraseFromContextMap(contextId);
+    }
     if (authResult == nullptr) {
         ACCOUNT_LOGE("authResult is nullptr");
         CallbackOnResult(callback_, ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR, resultParcel);
@@ -211,6 +241,33 @@ ErrCode InnerDomainAuthCallback::OnResult(int32_t errCode, const DomainAccountPa
     AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, errCode);
     CallbackOnResult(callback_, errCode, resultParcel);
     return ERR_OK;
+}
+
+void InnerDomainAuthCallback::SetOpenContextIdCheck(bool isEnabled, uint64_t contextId)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    needCheckContextId_ = isEnabled;
+    if (deathRecipient_ != nullptr) {
+        deathRecipient_->SetContextId(contextId);
+    }
+}
+
+bool InnerDomainAccountManager::GenerateContextId(uint64_t &contextId)
+{
+    std::lock_guard<std::recursive_mutex> lock(authContextIdMapMutex_);
+    contextIdCount_++;
+    if (authContextIdMap_.find(contextIdCount_) == authContextIdMap_.end()) {
+        contextId = contextIdCount_;
+        return true;
+    }
+    for (uint64_t searchContextId = 1; searchContextId < UINT64_MAX; searchContextId++) {
+        if (authContextIdMap_.find(searchContextId) == authContextIdMap_.end()) {
+            contextId = searchContextId;
+            contextIdCount_ = searchContextId;
+            return true;
+        }
+    }
+    return false;
 }
 
 ErrCode InnerDomainAccountManager::RegisterPlugin(const sptr<IDomainAccountPlugin> &plugin)
@@ -604,6 +661,12 @@ static void SetPluginGetDomainAccessTokenOptions(const GetAccessTokenOptions &op
     pluginOptions.callerUid = option.callingUid_;
 }
 
+static void PluginAuthCallback(uint64_t contextId, PluginAuthResultInfo *authResultInfo, PluginBussnessError *error)
+    __attribute__((no_sanitize("cfi")))
+{
+    InnerDomainAccountManager::GetInstance().AuthResultInfoCallback(contextId, authResultInfo, error);
+}
+
 ErrCode InnerDomainAccountManager::AddServerConfig(
     const std::string &paremters, DomainServerConfig &config) __attribute__((no_sanitize("cfi")))
 {
@@ -854,8 +917,36 @@ ErrCode InnerDomainAccountManager::GetAccountServerConfig(
     return GetAccountServerConfig(info.accountName_, info.serverConfigId_, config);
 }
 
-ErrCode InnerDomainAccountManager::PluginAuth(const DomainAccountInfo &info,
-    const std::vector<uint8_t> &password, DomainAuthResult &resultParcel) __attribute__((no_sanitize("cfi")))
+void InnerDomainAccountManager::AuthResultInfoCallback(
+    uint64_t contextId, PluginAuthResultInfo *authResultInfo, PluginBussnessError *error)
+{
+    std::lock_guard<std::recursive_mutex> lock(authContextIdMapMutex_);
+    auto it = authContextIdMap_.find(contextId);
+    if (it == authContextIdMap_.end()) {
+        ACCOUNT_LOGE("ContextId not found, contextId = %{public}" PRIu64, contextId);
+        std::string errMsg = "ContextId not found, contextId = " + std::to_string(contextId);
+        REPORT_DOMAIN_ACCOUNT_FAIL(ERR_JS_INVALID_CONTEXT_ID, errMsg, Constants::DOMAIN_OPT_AUTH, 0);
+        return;
+    }
+    auto callback = it->second;
+    DomainAuthResult result;
+    Parcel resultParcel;
+    GetAndCleanPluginAuthResultInfo(
+        &authResultInfo, result.token, result.authStatusInfo.remainingTimes, result.authStatusInfo.freezingTime);
+    ErrCode errCode = GetAndCleanPluginBussnessError(&error, PluginMethodEnum::AUTH, -1);
+    if (!result.Marshalling(resultParcel)) {
+        ACCOUNT_LOGE("DomainAuthResult marshalling failed.");
+        errCode = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
+    }
+    DomainAccountParcel domainAccountParcel;
+    domainAccountParcel.SetParcelData(resultParcel);
+    if (callback != nullptr) {
+        callback->OnResult(errCode, domainAccountParcel);
+    }
+}
+
+ErrCode InnerDomainAccountManager::PluginAuth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
+    uint64_t &contextId) __attribute__((no_sanitize("cfi")))
 {
     auto iter = methodMap_.find(PluginMethodEnum::AUTH);
     if (iter == methodMap_.end() || iter->second == nullptr) {
@@ -875,12 +966,9 @@ ErrCode InnerDomainAccountManager::PluginAuth(const DomainAccountInfo &info,
     SetPluginDomainAccountInfo(info, domainAccountInfo);
     PluginUint8Vector credential;
     SetPluginUint8Vector(password, credential);
-    PluginAuthResultInfo *authResultInfo = nullptr;
     ACCOUNT_LOGD("Param localId=%{public}d.", localId);
     PluginBussnessError* error = (*reinterpret_cast<AuthFunc>(iter->second))(&domainAccountInfo, &credential, localId,
-        &authResultInfo);
-    GetAndCleanPluginAuthResultInfo(&authResultInfo, resultParcel.token,
-        resultParcel.authStatusInfo.remainingTimes, resultParcel.authStatusInfo.freezingTime);
+        PluginAuthCallback, &contextId);
     CleanPluginString(&(domainAccountInfo.domain.data), domainAccountInfo.domain.length);
     CleanPluginString(&(domainAccountInfo.serverConfigId.data), domainAccountInfo.serverConfigId.length);
     CleanPluginString(&(domainAccountInfo.accountName.data), domainAccountInfo.accountName.length);
@@ -898,19 +986,24 @@ ErrCode InnerDomainAccountManager::Auth(const DomainAccountInfo &info, const std
         return ERR_DOMAIN_ACCOUNT_NOT_SUPPORT_BACKGROUND_ACCOUNT_REQUEST;
     }
     int32_t userId = -1;
-    sptr<IDomainAccountCallback> innerCallback = callback;
     IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
-    if (userId >= 0) {
-        innerCallback = new (std::nothrow) InnerDomainAuthCallback(userId, callback);
-        if (innerCallback == nullptr) {
-            ACCOUNT_LOGE("failed to create innerCallback");
-            innerCallback = callback;
-        }
-    }
+    sptr<InnerDomainAuthCallback> innerCallback = sptr<InnerDomainAuthCallback>::MakeSptr(userId, callback);
+    uint64_t contextId = 0;
     if (plugin_ == nullptr) {
         Parcel emptyParcel;
         AccountSA::DomainAuthResult result;
-        ErrCode err = PluginAuth(info, password, result);
+        ErrCode err = -1;
+        {
+            std::lock_guard<std::recursive_mutex> lock(authContextIdMapMutex_);
+            err = PluginAuth(info, password, contextId);
+            if (err == ERR_OK) {
+                if (!AddToContextMap(contextId, innerCallback)) {
+                    ACCOUNT_LOGE("AddToContextMap failed");
+                    return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+                }
+                return ERR_OK;
+            }
+        }
         if (!result.Marshalling(emptyParcel)) {
             ACCOUNT_LOGE("DomainAuthResult marshalling failed.");
             err = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
@@ -1138,6 +1231,47 @@ ErrCode InnerDomainAccountManager::PluginUpdateAccountInfo(const DomainAccountIn
     return GetAndCleanPluginBussnessError(&error, iter->first, -1, oldAccountInfo);
 }
 
+ErrCode InnerDomainAccountManager::StartPluginAuth(int32_t userId, const std::vector<uint8_t> &authData,
+    const DomainAccountInfo &domainInfo, const sptr<InnerDomainAuthCallback> &innerCallback, AuthMode authMode)
+{
+    Parcel emptyParcel;
+    AccountSA::DomainAuthResult result;
+    ErrCode errCode = -1;
+    switch (authMode) {
+        case AUTH_WITH_CREDENTIAL_MODE:
+            {
+                std::lock_guard<std::recursive_mutex> lock(authContextIdMapMutex_);
+                uint64_t contextId = 0;
+                errCode = PluginAuth(domainInfo, authData, contextId);
+                if (errCode == ERR_OK) {
+                    if (!AddToContextMap(contextId, innerCallback)) {
+                        ACCOUNT_LOGE("AddToContextMap failed");
+                        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+                    }
+                    return ERR_OK;
+                }
+            }
+            break;
+        case AUTH_WITH_POPUP_MODE:
+            errCode = PluginAuthWithPopup(domainInfo, result);
+            break;
+        case AUTH_WITH_TOKEN_MODE:
+            errCode = PluginAuthToken(domainInfo, authData, result);
+            break;
+        default:
+            ACCOUNT_LOGE("AuthMode not match.");
+            break;
+    }
+    if (!result.Marshalling(emptyParcel)) {
+        ACCOUNT_LOGE("DomainAuthResult marshalling failed.");
+        errCode = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
+    }
+    DomainAccountParcel domainAccountParcel;
+    domainAccountParcel.SetParcelData(emptyParcel);
+    innerCallback->OnResult(errCode, domainAccountParcel);
+    return ERR_OK;
+}
+
 ErrCode InnerDomainAccountManager::InnerAuth(int32_t userId, const std::vector<uint8_t> &authData,
     const sptr<IDomainAccountCallback> &callback, AuthMode authMode)
 {
@@ -1152,30 +1286,19 @@ ErrCode InnerDomainAccountManager::InnerAuth(int32_t userId, const std::vector<u
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
     if (plugin_ == nullptr) {
-        Parcel emptyParcel;
-        AccountSA::DomainAuthResult result;
-        switch (authMode) {
-            case AUTH_WITH_CREDENTIAL_MODE:
-                errCode = PluginAuth(domainInfo, authData, result);
-                break;
-            case AUTH_WITH_POPUP_MODE:
-                errCode = PluginAuthWithPopup(domainInfo, result);
-                break;
-            case AUTH_WITH_TOKEN_MODE:
-                errCode = PluginAuthToken(domainInfo, authData, result);
-                break;
-            default:
-                ACCOUNT_LOGE("AuthMode not match.");
-                break;
+        return StartPluginAuth(userId, authData, domainInfo, innerCallback, authMode);
+    }
+    if (authMode == AUTH_WITH_CREDENTIAL_MODE) {
+        std::lock_guard<std::recursive_mutex> lock(authContextIdMapMutex_);
+        uint64_t contextId = 0;
+        if (!GenerateContextId(contextId)) {
+            ACCOUNT_LOGE("GenerateContextId failed");
+            return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
         }
-        if (!result.Marshalling(emptyParcel)) {
-            ACCOUNT_LOGE("DomainAuthResult marshalling failed.");
-            errCode = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
+        if (!AddToContextMap(contextId, innerCallback)) {
+            ACCOUNT_LOGE("AddToContextMap failed");
+            return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
         }
-        DomainAccountParcel domainAccountParcel;
-        domainAccountParcel.SetParcelData(emptyParcel);
-        innerCallback->OnResult(errCode, domainAccountParcel);
-        return ERR_OK;
     }
     auto task = [this, domainInfo, authData, innerCallback, authMode] {
         this->StartAuth(this->plugin_, domainInfo, authData, innerCallback, authMode);
@@ -1210,6 +1333,63 @@ ErrCode InnerDomainAccountManager::AuthUser(int32_t userId, const std::vector<ui
         return ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE;
     }
     return InnerAuth(userId, password, callback, AUTH_WITH_CREDENTIAL_MODE);
+}
+
+ErrCode InnerDomainAccountManager::CancelAuth(const sptr<IDomainAccountCallback> &callback)
+{
+    std::lock_guard<std::recursive_mutex> lock(authContextIdMapMutex_);
+    uint64_t contextId = 0;
+    if (!FindCallbackInContextMap(callback, contextId)) {
+        ACCOUNT_LOGE("Cannot find contextId for callback");
+        return ERR_JS_INVALID_CONTEXT_ID;
+    }
+    return CancelAuthWork(contextId);
+}
+
+ErrCode InnerDomainAccountManager::CancelAuth(const uint64_t &contextId)
+{
+    std::lock_guard<std::recursive_mutex> lock(authContextIdMapMutex_);
+    auto it = authContextIdMap_.find(contextId);
+    if (it == authContextIdMap_.end()) {
+        ACCOUNT_LOGE("Cannot find contextId for callback");
+        return ERR_JS_INVALID_CONTEXT_ID;
+    }
+    return CancelAuthWork(contextId);
+}
+
+ErrCode InnerDomainAccountManager::CancelAuthWork(const uint64_t &contextId) __attribute__((no_sanitize("cfi")))
+{
+    std::lock_guard<std::recursive_mutex> lock(authContextIdMapMutex_);
+    if (plugin_ == nullptr) {
+        auto iter = methodMap_.find(PluginMethodEnum::CANCEL_AUTH);
+        if (iter == methodMap_.end() || iter->second == nullptr) {
+            ACCOUNT_LOGE("Caller method=%{public}d not exist.", PluginMethodEnum::CANCEL_AUTH);
+            REPORT_DOMAIN_ACCOUNT_FAIL(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, "CancelAuth not exist",
+                Constants::DOMAIN_OPT_CANCEL_AUTH, -1);
+            return ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+        }
+        PluginBussnessError *error = (*reinterpret_cast<CancelAuthFunc>(iter->second))(contextId);
+        return GetAndCleanPluginBussnessError(&error, PluginMethodEnum::CANCEL_AUTH, -1);
+    }
+    auto it = authContextIdMap_.find(contextId);
+    if (it != authContextIdMap_.end()) {
+        sptr<IDomainAccountCallback> callback = it->second;
+        ErrCode errCode = ERR_JS_AUTH_CANCELLED;
+        AccountSA::DomainAuthResult result;
+        Parcel resultParcel;
+        if (!result.Marshalling(resultParcel)) {
+            ACCOUNT_LOGE("DomainAuthResult marshalling failed.");
+            errCode = ConvertToJSErrCode(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
+        }
+        DomainAccountParcel domainAccountParcel;
+        domainAccountParcel.SetParcelData(resultParcel);
+        if (callback != nullptr) {
+            callback->OnResult(errCode, domainAccountParcel);
+            return ERR_OK;
+        }
+        EraseFromContextMap(contextId);
+    }
+    return ERR_JS_INVALID_CONTEXT_ID;
 }
 
 ErrCode InnerDomainAccountManager::AuthWithPopup(int32_t userId, const sptr<IDomainAccountCallback> &callback)
@@ -2444,6 +2624,44 @@ ErrCode InnerDomainAccountManager::BindDomainAccountWork(
     fileController.SetDomainBoundFlag(localId, true);
     DomainHisyseventUtils::ReportStatistic(Constants::DOMAIN_OPT_BIND, localId, domainInfo);
     return err;
+}
+
+bool InnerDomainAccountManager::AddToContextMap(const uint64_t contextId,
+    const sptr<InnerDomainAuthCallback> &innerCallback)
+{
+    std::lock_guard<std::recursive_mutex> lock(authContextIdMapMutex_);
+    if (authContextIdMap_.find(contextId) != authContextIdMap_.end()) {
+        ACCOUNT_LOGE("Context id exists, contextId = %{public}" PRIu64, contextId);
+        std::string errMsg = "Context id exists, contextId = " + std::to_string(contextId);
+        REPORT_DOMAIN_ACCOUNT_FAIL(ERR_JS_INVALID_CONTEXT_ID, errMsg, Constants::DOMAIN_OPT_AUTH, 0);
+        return false;
+    }
+    authContextIdMap_[contextId] = innerCallback;
+    innerCallback->SetOpenContextIdCheck(true, contextId);
+    return true;
+}
+
+void InnerDomainAccountManager::EraseFromContextMap(const uint64_t contextId)
+{
+    std::lock_guard<std::recursive_mutex> lock(authContextIdMapMutex_);
+    authContextIdMap_.erase(contextId);
+}
+
+bool InnerDomainAccountManager::FindCallbackInContextMap(
+    const sptr<IDomainAccountCallback> &callback, uint64_t &contextId)
+{
+    std::lock_guard<std::recursive_mutex> lock(authContextIdMapMutex_);
+    if (callback == nullptr) {
+        return false;
+    }
+    auto searchObj = callback->AsObject();
+    for (const auto &pair : authContextIdMap_) {
+        if ((pair.second != nullptr) && (pair.second->callback_->AsObject() == searchObj)) {
+            contextId = pair.first;
+            return true;
+        }
+    }
+    return false;
 }
 
 ErrCode InnerDomainAccountManager::CleanUnbindDomainAccount()

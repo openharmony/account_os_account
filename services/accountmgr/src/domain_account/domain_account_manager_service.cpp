@@ -66,7 +66,8 @@ static const std::map<IDomainAccountIpcCode, std::vector<std::string>> PERMISSIO
         {MANAGE_LOCAL_ACCOUNTS, MANAGE_DOMAIN_ACCOUNT_SERVER_CONFIGS}},
     {IDomainAccountIpcCode::COMMAND_UPDATE_SERVER_CONFIG, {MANAGE_DOMAIN_ACCOUNT_SERVER_CONFIGS}},
     {IDomainAccountIpcCode::COMMAND_GET_SERVER_CONFIG, {MANAGE_DOMAIN_ACCOUNT_SERVER_CONFIGS}},
-    {IDomainAccountIpcCode::COMMAND_GET_ALL_SERVER_CONFIGS, {MANAGE_DOMAIN_ACCOUNT_SERVER_CONFIGS}}
+    {IDomainAccountIpcCode::COMMAND_GET_ALL_SERVER_CONFIGS, {MANAGE_DOMAIN_ACCOUNT_SERVER_CONFIGS}},
+    {IDomainAccountIpcCode::COMMAND_CANCEL_AUTH, {ACCESS_USER_AUTH_INTERNAL}},
 };
 }
 
@@ -188,6 +189,15 @@ ErrCode DomainAccountManagerService::AuthUser(int32_t userId, const std::vector<
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     return InnerDomainAccountManager::GetInstance().AuthUser(userId, password, callback);
+}
+
+ErrCode DomainAccountManagerService::CancelAuth(const sptr<IDomainAccountCallback> &callback)
+{
+    auto result = CheckPermission(IDomainAccountIpcCode::COMMAND_CANCEL_AUTH);
+    if (result != ERR_OK) {
+        return result;
+    }
+    return InnerDomainAccountManager::GetInstance().CancelAuth(callback);
 }
 
 ErrCode DomainAccountManagerService::AuthWithPopup(int32_t userId, const sptr<IDomainAccountCallback> &callback)

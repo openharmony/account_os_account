@@ -185,6 +185,7 @@ ohos_unittest("os_account_domain_account_callback_test") {
   module_out_path = module_output_path
 
   sources = [
+    "${services_path}/accountmgr/src/domain_account/domain_account_auth_death_recipient.cpp",
     "${services_path}/accountmgr/src/domain_account/domain_account_plugin_death_recipient.cpp",
     "${services_path}/accountmgr/src/domain_account/domain_has_domain_info_callback.cpp",
     "${services_path}/accountmgr/src/domain_account/inner_domain_account_manager.cpp",

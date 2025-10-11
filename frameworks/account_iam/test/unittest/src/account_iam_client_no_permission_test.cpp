@@ -32,7 +32,7 @@ namespace OHOS {
 namespace AccountTest {
 namespace {
 constexpr int32_t TEST_USER_ID = 200;
-constexpr uint64_t TEST_CONTEXT_ID = 122;
+const std::vector<uint8_t> TEST_CONTEXT_ID = {1, 0, 0, 0, 0, 0, 0, 0, 0x7A};
 constexpr uint64_t TEST_CREDENTIAL_ID = 0;
 const std::vector<uint8_t> TEST_CHALLENGE = {1, 2, 3, 4};
 }
@@ -360,9 +360,13 @@ HWTEST_F(AccountIAMClientNoPermissionTest, AccountIAMClientNoPermission_AuthUser
     ASSERT_NE(callback, nullptr);
     AuthOptions authOptions;
     authOptions.accountId = TEST_USER_ID;
-    int32_t res = AccountIAMClient::GetInstance().AuthUser(
+    std::vector<uint8_t> contextId = AccountIAMClient::GetInstance().AuthUser(
         authOptions, TEST_CHALLENGE, AuthType::PIN, AuthTrustLevel::ATL1, callback);
-    EXPECT_EQ(res, 0);
+    uint64_t realContext = 0;
+    for (int32_t i = 1; i < contextId.size(); ++i) {
+        realContext = (realContext << 8) | contextId[i];
+    }
+    EXPECT_EQ(realContext, 0);
 }
 
 /**
