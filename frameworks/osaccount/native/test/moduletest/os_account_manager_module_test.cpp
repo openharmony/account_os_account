@@ -432,7 +432,7 @@ HWTEST_F(OsAccountManagerModuleTest, CreateOsAccountWithFullInfo003, TestSize.Le
  * @tc.type: FUNC
  * @tc.require: issueI4IU74
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest001, TestSize.Level0)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest001, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     ASSERT_EQ(OsAccountManager::CreateOsAccount("ModuleTest001", OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
@@ -478,7 +478,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest003, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: issueI4IU51
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest004, TestSize.Level0)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest004, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     ASSERT_EQ(OsAccountManager::CreateOsAccount("ModuleTest004", OsAccountType::ADMIN, osAccountInfoOne), ERR_OK);
@@ -499,7 +499,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest004, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: issueI4IU51
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest005, TestSize.Level0)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest005, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     ASSERT_EQ(OsAccountManager::CreateOsAccount("ModuleTest005", OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
