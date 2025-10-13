@@ -1330,7 +1330,13 @@ ErrCode InnerDomainAccountManager::InnerAuth(int32_t userId, const std::vector<u
             return ERR_OK;
         }
     }
-    return StartPluginAuth(userId, authData, domainInfo, innerCallback, authMode);
+    auto task = [this, userId, domainInfo, authData, innerCallback, authMode] {
+        this->StartPluginAuth(userId, authData, domainInfo, innerCallback, authMode);
+    };
+    std::thread taskThread(task);
+    pthread_setname_np(taskThread.native_handle(), THREAD_INNER_AUTH);
+    taskThread.detach();
+    return ERR_OK;
 }
 
 ErrCode InnerDomainAccountManager::AuthUser(int32_t userId, const std::vector<uint8_t> &password,
