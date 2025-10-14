@@ -31,11 +31,13 @@
 #include "domain_account_proxy.h"
 #endif
 #define private public
+#define protected public
 #include "domain_account_client.h"
 #include "inner_domain_account_manager.h"
 #include "iinner_os_account_manager.h"
 #include "os_account.h"
 #include "os_account_control_file_manager.h"
+#undef protected
 #undef private
 #include "ipc_skeleton.h"
 #include "mock_domain_auth_callback.h"
@@ -80,7 +82,8 @@ std::map<PluginMethodEnum, void *> PLUGIN_METHOD_MAP = {
     {PluginMethodEnum::GET_ACCOUNT_POLICY, reinterpret_cast<void *>(GetAccountPolicy)},
     {PluginMethodEnum::UPDATE_ACCOUNT_INFO, reinterpret_cast<void *>(UpdateAccountInfo)},
     {PluginMethodEnum::UPDATE_SERVER_CONFIG, reinterpret_cast<void *>(UpdateServerConfig)},
-    {PluginMethodEnum::UNBIND_ACCOUNT, reinterpret_cast<void*>(UnBindAccount)}
+    {PluginMethodEnum::UNBIND_ACCOUNT, reinterpret_cast<void *>(UnBindAccount)},
+    {PluginMethodEnum::CANCEL_AUTH, reinterpret_cast<void *>(CancelAuth)},
 };
 }
 
@@ -106,7 +109,8 @@ public:
     virtual ~TestPluginSoDomainAuthCallback();
     void OnResult(const int32_t errCode, Parcel &parcel) override;
     void SetOsAccountInfo(const OsAccountInfo &info);
-
+    std::condition_variable cv;
+    std::mutex mutex;
 private:
     std::shared_ptr<MockPluginSoDomainAuthCallback> callback_;
     OsAccountInfo accountInfo_;
@@ -123,12 +127,14 @@ TestPluginSoDomainAuthCallback::~TestPluginSoDomainAuthCallback()
 void TestPluginSoDomainAuthCallback::OnResult(const int32_t errCode, Parcel &parcel)
 {
     ACCOUNT_LOGI("TestPluginSoDomainAuthCallback");
+    std::unique_lock<std::mutex> lock(mutex);
     if (callback_ == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
         return;
     }
     std::shared_ptr<DomainAuthResult> authResult(DomainAuthResult::Unmarshalling(parcel));
     callback_->OnResult(errCode, (*authResult));
+    cv.notify_all();
 }
 
 void TestPluginSoDomainAuthCallback::SetOsAccountInfo(const OsAccountInfo &accountInfo)
@@ -773,7 +779,10 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, DomainAccountClientModuleTes
     auto testAuthCallback = std::make_shared<TestPluginSoDomainAuthCallback>(authCallback);
     ASSERT_NE(testAuthCallback, nullptr);
     EXPECT_EQ(DomainAccountClient::GetInstance().Auth(domainInfo, DEFAULT_TOKEN, testAuthCallback), ERR_OK);
-
+    {
+        std::unique_lock<std::mutex> lock(testAuthCallback->mutex);
+        testAuthCallback->cv.wait(lock);
+    }
     bool isExpired = false;
     EXPECT_EQ(DomainAccountClient::GetInstance().IsAuthenticationExpired(domainInfo, isExpired), ERR_OK);
     EXPECT_FALSE(isExpired);
@@ -1019,6 +1028,9 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, UpdateServerConfig001, TestS
     ASSERT_NE(testCallback, nullptr);
     ErrCode code = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo,
         testCallback, options);
+    std::unique_lock<std::mutex> lock(testCallback->mutex);
+    testCallback->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                              [lockCallback = testCallback]() { return lockCallback->isReady; });
     ASSERT_EQ(code, ERR_OK);
     int32_t userId1 = -1;
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId1), ERR_OK);
@@ -1026,8 +1038,12 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, UpdateServerConfig001, TestS
     domainInfo.accountName_ = "testaccount2";
     domainInfo.accountId_ = "testid2";
     domainInfo.serverConfigId_ = "serverConfigId2";
+    auto testCallback2 = std::make_shared<TestPluginSoCreateDomainAccountCallback>(callback);
+    ASSERT_NE(testCallback2, nullptr);
     code = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo,
-        testCallback, options);
+        testCallback2, options);
+    testCallback2->cv.wait_for(lock, std::chrono::seconds(WAIT_TIME),
+                              [lockCallback = testCallback2]() { return lockCallback->isReady; });
     EXPECT_EQ(code, ERR_OK);
     int32_t userId2 = -1;
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId2), ERR_OK);
@@ -1050,7 +1066,7 @@ class TestBindDomainCallback : public DomainAccountCallback {
 public:
     TestBindDomainCallback() = default;
     virtual ~TestBindDomainCallback() = default;
-    
+
     void OnResult(const int32_t errCode, Parcel &parcel) override
     {
         std::unique_lock<std::mutex> lock(mutex_);
@@ -1438,7 +1454,7 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, BindDomainAccount009, TestSi
     auto callback = std::make_shared<TestBindDomainCallback>();
 
     OsAccountControlFileManager fileController;
-    
+
     std::string filePath = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(info.GetLocalId()) +
                            Constants::PATH_SEPARATOR + Constants::IS_DOMAIN_BOUND_COMPLETED_FILE_NAME;
     fileController.accountFileOperator_->InputFileByPathAndContent(filePath, "{ \"domain\": 123");
@@ -1558,4 +1574,127 @@ HWTEST_F(DomainAccountClientMockPluginSoModuleTest, CleanUnbindDomainAccount001,
 
     EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(info.GetLocalId()));
     UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: CancelAuth001
+ * @tc.desc: Test CancelAuth with full process
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, CancelAuth001, TestSize.Level1)
+{
+    PLUGIN_METHOD_MAP[PluginMethodEnum::AUTH] = reinterpret_cast<void *>(AuthBlocking);
+    LoadPluginMethods();
+
+    OsAccountInfo osAccountinfo;
+    ASSERT_EQ(ERR_OK, OsAccountManager::CreateOsAccount("CancelAuth001", OsAccountType::ADMIN, osAccountinfo));
+
+    auto bindCallback = std::make_shared<TestBindDomainCallback>();
+    DomainAccountInfo info;
+    info.accountName_ = "testAccount";
+    info.domain_ = "test.example.com";
+    info.accountId_ = "testAccountId";
+    ErrCode ret = OsAccountManager::BindDomainAccount(osAccountinfo.GetLocalId(), info, bindCallback);
+    bindCallback->WaitForCallbackResult();
+    EXPECT_EQ(ret, ERR_OK);
+    uint64_t contextId = 0;
+
+    std::vector<uint8_t> passwd = {0x31, 0x32, 0x33, 0x34, 0x35, 0x36}; // "123456"
+    auto authCallback = std::make_shared<MockPluginSoDomainAuthCallback>();
+    ASSERT_NE(authCallback, nullptr);
+    EXPECT_CALL(*authCallback, OnResult(ERR_JS_AUTH_CANCELLED, _)).Times(Exactly(1));
+    std::shared_ptr<TestPluginSoDomainAuthCallback> callback =
+        std::make_shared<TestPluginSoDomainAuthCallback>(authCallback);
+    ErrCode result =
+        DomainAccountClient::GetInstance().AuthUser(osAccountinfo.GetLocalId(), passwd, callback, contextId);
+    EXPECT_EQ(result, ERR_OK);
+    ASSERT_NE(contextId, 0);
+
+    result = DomainAccountClient::GetInstance().CancelAuth(contextId);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(ERR_OK, OsAccountManager::RemoveOsAccount(osAccountinfo.GetLocalId()));
+    UnloadPluginMethods();
+    PLUGIN_METHOD_MAP[PluginMethodEnum::AUTH] = reinterpret_cast<void *>(Auth);
+}
+
+class AuthCallbackSync : public DomainAccountCallbackStub {
+public:
+    AuthCallbackSync() = default;
+    virtual ~AuthCallbackSync() = default;
+    int32_t errCode = -1;
+    ErrCode OnResult(int32_t domainAccountErrCode, const DomainAccountParcel &domainAccountParcel) override
+    {
+        errCode = domainAccountErrCode;
+        return ERR_OK;
+    };
+};
+
+/**
+ * @tc.name: CancelAuth002
+ * @tc.desc: Test CancelAuth branches
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, CancelAuth002, TestSize.Level3)
+{
+    LoadPluginMethods();
+    auto callback = sptr<AuthCallbackSync>::MakeSptr();
+    auto innerCallback = sptr<InnerDomainAuthCallback>::MakeSptr(0, callback);
+    uint64_t contextId = 0;
+    InnerDomainAccountManager::GetInstance().authContextIdMap_.clear();
+    ASSERT_EQ(0, InnerDomainAccountManager::GetInstance().authContextIdMap_.size());
+    EXPECT_EQ(ERR_JS_INVALID_CONTEXT_ID, InnerDomainAccountManager::GetInstance().CancelAuth(callback));
+    EXPECT_EQ(ERR_JS_INVALID_CONTEXT_ID, InnerDomainAccountManager::GetInstance().CancelAuth(1));
+
+    ASSERT_TRUE(InnerDomainAccountManager::GetInstance().GenerateContextId(contextId));
+    EXPECT_TRUE(InnerDomainAccountManager::GetInstance().AddToContextMap(contextId, innerCallback));
+    EXPECT_EQ(1, InnerDomainAccountManager::GetInstance().authContextIdMap_.size());
+    EXPECT_EQ(ERR_OK, InnerDomainAccountManager::GetInstance().CancelAuth(callback));
+    ASSERT_EQ(callback->errCode, ERR_JS_AUTH_CANCELLED);
+    EXPECT_EQ(0, InnerDomainAccountManager::GetInstance().authContextIdMap_.size());
+
+    callback->errCode = -1;
+    ASSERT_TRUE(InnerDomainAccountManager::GetInstance().GenerateContextId(contextId));
+    EXPECT_TRUE(InnerDomainAccountManager::GetInstance().AddToContextMap(contextId, innerCallback));
+    EXPECT_EQ(1, InnerDomainAccountManager::GetInstance().authContextIdMap_.size());
+    EXPECT_EQ(ERR_OK, InnerDomainAccountManager::GetInstance().CancelAuth(contextId));
+    ASSERT_EQ(callback->errCode, ERR_JS_AUTH_CANCELLED);
+    EXPECT_EQ(0, InnerDomainAccountManager::GetInstance().authContextIdMap_.size());
+
+    UnloadPluginMethods();
+}
+
+/**
+ * @tc.name: InnerGenerateContextId001
+ * @tc.desc: Test InnerGenerateContextId branches
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientMockPluginSoModuleTest, InnerGenerateContextId001, TestSize.Level3)
+{
+    InnerDomainAccountManager::GetInstance().authContextIdMap_.clear();
+    InnerDomainAccountManager::GetInstance().contextIdCount_ = 0;
+    auto callback = sptr<AuthCallbackSync>::MakeSptr();
+    auto innerCallback = sptr<InnerDomainAuthCallback>::MakeSptr(0, callback);
+    uint64_t contextId1 = 0;
+    ASSERT_TRUE(InnerDomainAccountManager::GetInstance().GenerateContextId(contextId1));
+    EXPECT_TRUE(InnerDomainAccountManager::GetInstance().AddToContextMap(contextId1, innerCallback));
+
+    uint64_t contextId2 = 0;
+    ASSERT_TRUE(InnerDomainAccountManager::GetInstance().GenerateContextId(contextId2));
+    EXPECT_TRUE(InnerDomainAccountManager::GetInstance().AddToContextMap(contextId2, innerCallback));
+
+    uint64_t contextId3 = 0;
+    ASSERT_TRUE(InnerDomainAccountManager::GetInstance().GenerateContextId(contextId3));
+    EXPECT_TRUE(InnerDomainAccountManager::GetInstance().AddToContextMap(contextId3, innerCallback));
+
+    // remove contextid 2
+    InnerDomainAccountManager::GetInstance().EraseFromContextMap(contextId2);
+    InnerDomainAccountManager::GetInstance().contextIdCount_ = 0;
+    uint64_t contextId4 = 1;
+    ASSERT_TRUE(InnerDomainAccountManager::GetInstance().GenerateContextId(contextId4));
+    EXPECT_EQ(contextId4, contextId2);
+    InnerDomainAccountManager::GetInstance().authContextIdMap_.clear();
+    InnerDomainAccountManager::GetInstance().contextIdCount_ = 0;
 }

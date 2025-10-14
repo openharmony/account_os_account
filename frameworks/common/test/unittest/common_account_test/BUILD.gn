@@ -53,6 +53,7 @@ ohos_unittest("AccountCommonTest") {
     "c_utils:utils",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "ipc:ipc_single",
   ]
   part_name = "os_account"
 }
@@ -83,6 +84,7 @@ ohos_unittest("AccountJsonTest") {
   external_deps = [
     "cJSON:cjson",
     "c_utils:utils",
+    "ipc:ipc_single",
     "googletest:gtest_main",
     "hilog:libhilog",
   ]

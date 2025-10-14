@@ -82,6 +82,28 @@ void ReportOsAccountOperationFail(
 #endif // HAS_HISYSEVENT_PART
 }
 
+void ReportDomainAccountOperationFail(const DomainHisysEventInfo &info, const int32_t errCode,
+    const std::string& errMsg)
+{
+#ifdef HAS_HISYSEVENT_PART
+    int ret = HiSysEventWrite(HiSysEvent::Domain::ACCOUNT, "DOMAIN_ACCOUNT_FAILED",
+        HiSysEvent::EventType::FAULT,
+        "OS_ACCOUNT_ID", info.domainBindLocalId,
+        "OPERATE_TYPE", info.operationStr,
+        "ERROR_TYPE", errCode,
+        "ERROR_MSG", errMsg,
+        "CALLER_INFO", "");
+    if (ret != 0) {
+        ACCOUNT_LOGE("ReportDomainAccountOperationFail, ret=%{public}d, id=%{public}d, opStr=%{public}s",
+            ret, info.domainBindLocalId, info.operationStr.c_str());
+    }
+#else // HAS_HISYSEVENT_PART
+    (void)info;
+    (void)errCode;
+    (void)errMsg;
+#endif // HAS_HISYSEVENT_PART
+}
+
 void ReportOhosAccountOperationFail(
     int32_t userId, const std::string& operationStr, int32_t errCode, const std::string& errMsg)
 {
@@ -161,6 +183,26 @@ void ReportOsAccountSwitch(int32_t currentId, int32_t oldId)
 #else // HAS_HISYSEVENT_PART
     (void)currentId;
     (void)oldId;
+#endif // HAS_HISYSEVENT_PART
+}
+
+void ReportDomainAccountOperationStatistic(const DomainHisysEventInfo &info)
+{
+#ifdef HAS_HISYSEVENT_PART
+    int ret = HiSysEventWrite(HiSysEvent::Domain::ACCOUNT, "DOMAIN_ACCOUNT_STATISTIC",
+        HiSysEvent::EventType::STATISTIC,
+        "OS_ACCOUNT_ID", info.domainBindLocalId,
+        "DOMAIN_ACCOUNT", "",
+        "OPERATION_TYPE", info.operationStr,
+        "OLD_STATE", "",
+        "NEW_STATE", "",
+        "CALLER_INFO", "");
+    if (ret != 0) {
+        ACCOUNT_LOGE("ReportDomainAccountOperationStatistic failed, ret=%{public}d, id=%{public}d, oper=%{public}s",
+            ret, info.domainBindLocalId, info.operationStr.c_str());
+    }
+#else // HAS_HISYSEVENT_PART
+    (void)info;
 #endif // HAS_HISYSEVENT_PART
 }
 

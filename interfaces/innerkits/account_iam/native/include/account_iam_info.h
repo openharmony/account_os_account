@@ -163,6 +163,19 @@ struct SetPropertyRequestIam : public Parcelable {
     bool Marshalling(Parcel &parcel) const override;
     static SetPropertyRequestIam *Unmarshalling(Parcel &parcel);
 };
+
+enum class AuthTypeIndex : uint8_t {
+    INVALID = 0xFF,   // For AuthType::INVALID
+    ALL = 0xFE,       // For AuthType::ALL
+    PIN = 0,          // AuthType::PIN (1)
+    FACE = 1,         // AuthType::FACE (2)
+    FINGERPRINT = 2,  // AuthType::FINGERPRINT (4)
+    RECOVERY_KEY = 3, // AuthType::RECOVERY_PIN (8)
+    PRIVATE_PIN = 4,  // AuthType::PRIVATE_PIN (16)
+    TUI_PIN = 5,      // AuthType::TUI_PIN (32)
+    DOMAIN = 10,      // AuthType::DOMAIN (1024)
+};
+
 }  // namespace AccountSA
 }  // namespace OHOS
 #endif  // OS_ACCOUNT_INTERFACES_INNERKITS_ACCOUNT_IAM_NATIVE_INCLUDE_ACCOUNT_IAM_INFO_H

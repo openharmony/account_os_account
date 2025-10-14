@@ -84,6 +84,7 @@ static const std::unordered_map<uint32_t, std::string> g_errorStringMap = {
     {ERR_JS_SERVER_CONFIG_UPPER_LIMIT, "The number of server config reaches the upper limit"},
     {ERR_JS_OS_ACCOUNT_ALREADY_BOUND, "The OS account is already bound."},
     {ERR_JS_DOMAIN_ACCOUNT_ALREADY_BOUND, "The domain account is already bound."},
+    {ERR_JS_AUTH_CANCELLED, "The authentication, enrollment, or update operation is canceled."},
     {ERR_JS_ACCOUNT_CROSS_DEVICE_CAPABILITY_NOT_SUPPORT, "Cross-device capability not supported"},
     {ERR_JS_ACCOUNT_CROSS_DEVICE_COMMUNICATION_FAILED, "Cross-device communication failed"},
 };
