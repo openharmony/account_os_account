@@ -16,6 +16,7 @@
 
 #include <cerrno>
 #include <condition_variable>
+#include <future>
 #include <thread>
 
 #include "ability_manager_adapter.h"
@@ -41,6 +42,7 @@
 #ifdef HAS_STORAGE_PART
 #include "storage_manager_proxy.h"
 #include "storage_service_errno.h"
+#include "storage_service_constants.h"
 #endif
 #include "iinner_os_account_manager.h"
 #include "system_ability_definition.h"
@@ -63,6 +65,7 @@ constexpr uint32_t CRYPTO_FLAG_EL1 = 1;
 constexpr uint32_t CRYPTO_FLAG_EL2 = 2;
 #endif
 
+constexpr int32_t WAIT_BMS_TIMEOUT = 5;
 constexpr int32_t DELAY_FOR_EXCEPTION = 100;
 constexpr int32_t MAX_RETRY_TIMES = 10;
 constexpr int32_t MAX_GETBUNDLE_WAIT_TIMES = 10 * 1000 * 1000;
@@ -252,6 +255,37 @@ ErrCode OsAccountInterface::SendToBMSAccountCreate(
 ErrCode OsAccountInterface::SendToBMSAccountDelete(OsAccountInfo &osAccountInfo)
 {
     return BundleManagerAdapter::GetInstance()->RemoveUser(osAccountInfo.GetLocalId());
+}
+
+void OsAccountInterface::SendToBMSAccountUnlocked(const OsAccountInfo &osAccountInfo)
+{
+    auto localId = osAccountInfo.GetLocalId();
+    ACCOUNT_LOGI("Begin, %{public}d", localId);
+    ErrCode res = BundleManagerAdapter::GetInstance()->CreateNewBundleEl5Dir(localId);
+    if (res != ERR_OK) {
+        ACCOUNT_LOGE("Failed, %{public}d, errCode: %{public}d", localId, res);
+        ReportOsAccountOperationFail(
+            localId, Constants::OPERATION_UNLOCK, res, "Failed to create new bundle el5 dir");
+        return;
+    }
+    ReportOsAccountLifeCycle(localId, "notifyBmsUnlock");
+    ACCOUNT_LOGI("End, %{public}d", localId);
+}
+
+void OsAccountInterface::SendToBMSAccountUnlockedWithTimeout(const OsAccountInfo &osAccountInfo)
+{
+    std::promise<bool> promise;
+    std::future<bool> future = promise.get_future();
+    std::thread([osAccountInfo, p = std::move(promise)]() mutable {
+        SendToBMSAccountUnlocked(osAccountInfo);
+        p.set_value(true);
+    }).detach();
+
+    if (future.wait_for(std::chrono::seconds(WAIT_BMS_TIMEOUT)) == std::future_status::timeout) {
+        ACCOUNT_LOGE("SendToBMSAccountUnlocked timeout, %{public}d", osAccountInfo.GetLocalId());
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_UNLOCK, -1,
+            "Create new bundle el5 dir time out");
+    }
 }
 
 #ifdef HAS_USER_IDM_PART
@@ -847,6 +881,48 @@ ErrCode OsAccountInterface::InnerSendToStorageAccountCreateComplete(int32_t loca
     FinishTraceAdapter();
 #endif
     return ERR_OK;
+}
+
+void OsAccountInterface::SendToStorageAccountUnlocked(const OsAccountInfo &osAccountInfo)
+{
+#ifdef HAS_STORAGE_PART
+    auto localId = osAccountInfo.GetLocalId();
+    ACCOUNT_LOGI("Begin, %{public}d", localId);
+    sptr<StorageManager::IStorageManager> proxy = nullptr;
+    if (GetStorageProxy(proxy) != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get STORAGE_MANAGER_MANAGER_ID proxy.");
+        ReportOsAccountOperationFail(localId, Constants::OPERATION_UNLOCK,
+            ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
+            "GetSystemAbility for storage failed!");
+        return;
+    }
+    StartTraceAdapter("StorageManager NotifyUserChangedEvent");
+    proxy->NotifyUserChangedEvent(localId, StorageService::EVENT_USER_UNLOCKED);
+    FinishTraceAdapter();
+    ReportOsAccountLifeCycle(localId, "notifyStorageUnlock");
+    ACCOUNT_LOGI("End, %{public}d", localId);
+#endif
+}
+
+void OsAccountInterface::SendToStorageAccountSwitched(const OsAccountInfo &osAccountInfo)
+{
+#ifdef HAS_STORAGE_PART
+    auto localId = osAccountInfo.GetLocalId();
+    ACCOUNT_LOGI("Begin, %{public}d", localId);
+    sptr<StorageManager::IStorageManager> proxy = nullptr;
+    if (GetStorageProxy(proxy) != ERR_OK) {
+        ACCOUNT_LOGE("Failed to get STORAGE_MANAGER_MANAGER_ID proxy.");
+        ReportOsAccountOperationFail(localId, Constants::OPERATION_SWITCH,
+            ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
+            "GetSystemAbility for storage failed!");
+        return;
+    }
+    StartTraceAdapter("StorageManager NotifyUserChangedEvent");
+    proxy->NotifyUserChangedEvent(localId, StorageService::EVENT_USER_SWITCHED);
+    FinishTraceAdapter();
+    ReportOsAccountLifeCycle(localId, "notifyStorageSwitched");
+    ACCOUNT_LOGI("End, %{public}d", localId);
+#endif
 }
 
 ErrCode OsAccountInterface::CheckAllAppDied(int32_t accountId)

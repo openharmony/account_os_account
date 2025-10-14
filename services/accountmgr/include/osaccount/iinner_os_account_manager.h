@@ -180,6 +180,8 @@ private:
     ErrCode SendToStorageAccountStart(OsAccountInfo &osAccountInfo);
     ErrCode SendToAMSAccountStart(OsAccountInfo &osAccountInfo, const uint64_t dispalyId, const bool isAppRecovery);
     ErrCode SendMsgForAccountDeactivate(OsAccountInfo &osAccountInfo, bool isStopStorage = true);
+    void SendMsgForAccountUnlocked(OsAccountInfo &osAccountInfo);
+    void SendMsgForAccountSwitched(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountStop(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountRemove(OsAccountInfo &osAccountInfo);
     ErrCode ValidateOsAccount(const OsAccountInfo &osAccountInfo);
