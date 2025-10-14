@@ -18,13 +18,72 @@
 
 #include <string>
 #include "account_log_wrapper.h"
+#include "ipc_skeleton.h"
 
 namespace OHOS {
 namespace AccountSA {
+namespace Constants {
+//DOMAIN_DFX
+const char DOMAIN_OPT_REGISTER[] = "registerPlugin";
+const char DOMAIN_OPT_UNREGISTER[] = "unregisterPlugin";
+const char DOMAIN_OPT_AUTH[] = "auth";
+const char DOMAIN_OPT_CANCEL_AUTH[] = "cancelAuth";
+const char DOMAIN_OPT_AUTH_POP[] = "authWithPop";
+const char DOMAIN_OPT_AUTH_TOKEN[] = "authWithToken";
+const char DOMAIN_OPT_UPDATE_INFO[] = "updateInfo";
+const char DOMAIN_OPT_GET_INFO[] = "getInfo";
+const char DOMAIN_OPT_ADD_CONFIG[] = "addServerConfig";
+const char DOMAIN_OPT_REMOVE_CONFIG[] = "removeServerConfig";
+const char DOMAIN_OPT_GET_CONFIG[] = "getServerConfig";
+const char DOMAIN_OPT_UPDATE_CONFIG[] = "updateServerConfig";
+const char DOMAIN_OPT_SUBSCRIBE[] = "subscribe";
+const char DOMAIN_OPT_UNSUBSCRIBE[] = "unsubscribe";
+const char DOMAIN_OPT_PUBLISH_EVENT[] = "publishEvent";
+const char DOMAIN_OPT_GET_POLICY[] = "getPolicy";
+const char DOMAIN_OPT_SET_POLICY[] = "setPolicy";
+const char DOMAIN_OPT_CREATE[] = "create";
+const char DOMAIN_OPT_BIND[] = "bind";
+const char DOMAIN_OPT_UNBIND[] = "unbind";
+const char DOMAIN_OPT_CLEAN[] = "clean";
+const char DOMAIN_OPT_RECOVERY[] = "recoveryBind";
+const char DOMAIN_OPT_REBOOT_RECOVERY[] = "rebootRecoveryBind";
+const size_t INTERCEPT_HEAD_PART_LEN_FOR_NAME = 1;
+const char DEFAULT_ANON_STR[] = "**********";
+}
+
+struct DomainHisysEventInfo {
+    int32_t domainBindLocalId = -1;
+    std::string operationStr = "";
+    int32_t callingUid = -1;
+    std::string domainAccountName = "";
+    DomainHisysEventInfo() = default;
+    DomainHisysEventInfo(int32_t id, std::string optStr)
+        : domainBindLocalId(id), operationStr(optStr) {}
+    DomainHisysEventInfo(int32_t id, std::string optStr, int32_t uid)
+        : domainBindLocalId(id), operationStr(optStr), callingUid(uid) {}
+
+    DomainHisysEventInfo(int32_t id, std::string optStr, std::string accountName)
+        : domainBindLocalId(id), operationStr(optStr), domainAccountName(accountName) {}
+
+    DomainHisysEventInfo(int32_t id, std::string optStr, int32_t uid, std::string accountName)
+        : domainBindLocalId(id), operationStr(optStr), callingUid(uid), domainAccountName(accountName) {}
+
+    std::string GetCallingInfo()
+    {
+        if (callingUid == -1) {
+            callingUid = IPCSkeleton::GetCallingUid();
+        }
+        return "uid=" + std::to_string(callingUid);
+    }
+};
+
 void ReportServiceStartFail(int32_t errCode, const std::string& errMsg);
 void ReportPermissionFail(int32_t callerUid, int32_t callerPid, const std::string& permName);
 void ReportOsAccountOperationFail(
     int32_t id, const std::string& operationStr, int32_t errCode, const std::string& errMsg);
+void ReportDomainAccountOperationFail(const DomainHisysEventInfo &info, const int32_t errCode,
+    const std::string& errMsg);
+void ReportDomainAccountOperationStatistic(const DomainHisysEventInfo &info);
 void ReportOhosAccountOperationFail(
     int32_t userId, const std::string& operationStr, int32_t errCode, const std::string& errMsg);
 void ReportAppAccountOperationFail(const std::string &name, const std::string &owner, const std::string& operationStr,

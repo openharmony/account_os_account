@@ -15,7 +15,9 @@
 
 #include <ctime>
 #include <securec.h>
+#include <thread>
 #include "account_log_wrapper.h"
+#include "account_error_no.h"
 #include "mock_domain_so_plugin.h"
 
 namespace OHOS {
@@ -30,6 +32,10 @@ static const std::string DOMAIN = "testDomain";
 static const int32_t ERROR_CODE = 12300001;
 namespace {
 static int32_t g_callingLocalId = -1;
+
+static std::mutex g_mutex;
+static int32_t g_contextId = 1;
+static PluginAuthResultInfoCallback g_authResultInfoCallback = nullptr;
 };
 
 static void SetPluginString(const std::string &str, PluginString &pStr)
@@ -64,7 +70,7 @@ static bool SetPluginUint8Vector(const std::vector<uint8_t> &vector, PluginUint8
 }
 
 PluginBussnessError *Auth(const PluginDomainAccountInfo *domainAccountInfo, const PluginUint8Vector *credential,
-                          const int32_t callerLocalId, PluginAuthResultInfo **authResultInfo)
+    const int32_t callerLocalId, PluginAuthResultInfoCallback callback, uint64_t *contextId)
 {
     ACCOUNT_LOGI("Mock Auth enter.");
     PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
@@ -79,11 +85,31 @@ PluginBussnessError *Auth(const PluginDomainAccountInfo *domainAccountInfo, cons
 
     error->code = 0;
     error->msg.data = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(g_mutex);
+        *contextId = g_contextId;
+        g_contextId++;
+    }
+    
+    auto delayCallback = [callback, contextId = *contextId]() {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        ACCOUNT_LOGI("Mock Auth begin");
+        PluginAuthResultInfo *authResultInfo = (PluginAuthResultInfo *)malloc(sizeof(PluginAuthResultInfo));
+        SetPluginUint8Vector({1, 2}, authResultInfo->accountToken);
+        authResultInfo->remainTimes = 1;
+        authResultInfo->freezingTime = 1;
 
-    *authResultInfo = (PluginAuthResultInfo *)malloc(sizeof(PluginAuthResultInfo));
-    SetPluginUint8Vector({1, 2}, (*authResultInfo)->accountToken);
-    (*authResultInfo)->remainTimes = 1;
-    (*authResultInfo)->freezingTime = 1;
+        PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+        if (error != nullptr) {
+            error->code = 0;
+            error->msg.data = nullptr;
+        }
+        callback(contextId, authResultInfo, error);
+    };
+    std::thread thread(delayCallback);
+    pthread_setname_np(thread.native_handle(), "AuthCallbackTest");
+    thread.detach();
+    
     return error;
 }
 
@@ -297,6 +323,58 @@ PluginBussnessError* UpdateServerConfig(const PluginString *serverConfigId, cons
     (*serverConfigInfo)->parameters.data = nullptr;
     SetPluginString(UPDATE_CONFIG_ID, (*serverConfigInfo)->id);
     SetPluginString(DOMAIN, (*serverConfigInfo)->domain);
+    return error;
+}
+
+PluginBussnessError *AuthBlocking(const PluginDomainAccountInfo *domainAccountInfo, const PluginUint8Vector *credential,
+    const int32_t callerLocalId, PluginAuthResultInfoCallback callback, uint64_t *contextId)
+{
+    ACCOUNT_LOGI("Mock AuthBlock enter.");
+    PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    if (error == nullptr) {
+        return nullptr;
+    }
+
+    time_t authTime;
+    (void)time(&authTime);
+    g_authTime = authTime;
+    ACCOUNT_LOGI("Mock Auth time: %{public}d.", g_authTime);
+
+    error->code = 0;
+    error->msg.data = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(g_mutex);
+        *contextId = g_contextId;
+        g_contextId++;
+        g_authResultInfoCallback = callback;
+    }
+
+    return error;
+}
+
+PluginBussnessError *CancelAuth(const uint64_t contextId)
+{
+    PluginBussnessError *error = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+    if (error == nullptr) {
+        return nullptr;
+    }
+    error->code = 0;
+    error->msg.data = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(g_mutex);
+        ACCOUNT_LOGI("Mock cancel begin");
+        PluginAuthResultInfo *authResultInfo = (PluginAuthResultInfo *)malloc(sizeof(PluginAuthResultInfo));
+        SetPluginUint8Vector({1, 2}, authResultInfo->accountToken);
+        authResultInfo->remainTimes = 1;
+        authResultInfo->freezingTime = 1;
+
+        PluginBussnessError *errorCallback = (PluginBussnessError *)malloc(sizeof(PluginBussnessError));
+        if (errorCallback != nullptr) {
+            errorCallback->code = ERR_JS_AUTH_CANCELLED;
+            errorCallback->msg.data = nullptr;
+        }
+        g_authResultInfoCallback(contextId, authResultInfo, errorCallback);
+    }
     return error;
 }
 #ifdef __cplusplus

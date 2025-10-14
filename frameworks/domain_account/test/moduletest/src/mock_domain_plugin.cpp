@@ -14,6 +14,8 @@
  */
 
 #include "mock_domain_plugin.h"
+
+#include <thread>
 #include "account_log_wrapper.h"
 #include "string_wrapper.h"
 
@@ -96,6 +98,9 @@ void MockDomainPlugin::AuthCommonInterface(const DomainAccountInfo &info, const 
 void MockDomainPlugin::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
     const std::shared_ptr<DomainAccountCallback> &callback)
 {
+    if (authSleepSeconds_ > 0) {
+        std::this_thread::sleep_for(std::chrono::seconds(authSleepSeconds_));
+    }
     AuthCommonInterface(info, password, callback, AUTH_WITH_CREDENTIAL_MODE);
 }
 
@@ -234,6 +239,11 @@ void MockDomainPlugin::GetAccessToken(const DomainAccountInfo &domainInfo, const
         parcel.WriteUInt8Vector(token);
         callback->OnResult(INVALID_CODE, parcel);
     }
+}
+
+void MockDomainPlugin::SetAuthDelaySecond(int32_t sleepSeconds)
+{
+    authSleepSeconds_ = sleepSeconds;
 }
 }  // AccountSA
 }  // OHOS

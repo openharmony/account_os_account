@@ -271,7 +271,7 @@
         "OHOS::AccountSA::InnerDomainAccountManager::UpdateAccountToken(OHOS::AccountSA::DomainAccountInfo const&, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>> const&)";
         "OHOS::AccountSA::InnerDomainAccountManager::IsAuthenticationExpired(OHOS::AccountSA::DomainAccountInfo const&, bool&)";
         "OHOS::AccountSA::InnerDomainAccountManager::Auth(OHOS::AccountSA::DomainAccountInfo const&, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>> const&, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
-        "OHOS::AccountSA::InnerDomainAccountManager::AuthUser(int, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>> const&, OHOS::sptr<OHOS::AccountSA::IDomainAuthCallback> const&)";
+        "OHOS::AccountSA::InnerDomainAccountManager::AuthUser(int, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>> const&, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
         "OHOS::AccountSA::InnerDomainAccountManager::AuthWithPopup(int, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
         "OHOS::AccountSA::InnerDomainAccountManager::GetAccountStatus(OHOS::AccountSA::DomainAccountInfo const&, OHOS::AccountSA::DomainAccountStatus&)";
         "OHOS::AccountSA::InnerDomainAccountManager::RegisterAccountStatusListener(OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
@@ -290,7 +290,16 @@
         "OHOS::AccountSA::InnerDomainAccountManager::GetAccountPolicy(OHOS::AccountSA::DomainAccountInfo const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&)";
         "OHOS::AccountSA::InnerDomainAccountManager::BindDomainAccount(int, OHOS::AccountSA::DomainAccountInfo const&, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
         "OHOS::AccountSA::InnerDomainAccountManager::GetAccountServerConfig(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::DomainServerConfig&)";
+        "OHOS::AccountSA::InnerDomainAccountManager::CancelAuth(unsigned long long)";
+        "OHOS::AccountSA::InnerDomainAccountManager::CancelAuth(OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
         "OHOS::AccountSA::DomainAccountStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
+        "OHOS::AccountSA::DomainHisyseventUtils::ReportFail(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, int, OHOS::AccountSA::DomainAccountInfo const&)";
+        "OHOS::AccountSA::DomainHisyseventUtils::ReportFail(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, PluginMethodEnum, int, OHOS::AccountSA::DomainAccountInfo const&)";
+        "OHOS::AccountSA::DomainHisyseventUtils::ReportStatistic(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, int, OHOS::AccountSA::DomainAccountInfo const&)";
+        "OHOS::AccountSA::DomainHisyseventUtils::ReportStatistic(PluginMethodEnum, int, OHOS::AccountSA::DomainAccountInfo const&)";
+        "OHOS::AccountSA::DomainHisyseventUtils::ReportFail(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, int, OHOS::AccountSA::GetDomainAccountInfoOptions const&)";
+        "OHOS::AccountSA::DomainHisyseventUtils::ReportStatistic(PluginMethodEnum, int, std::__h::variant<OHOS::AccountSA::DomainAccountInfo, OHOS::AccountSA::GetDomainAccountInfoOptions> const&)";
+        "OHOS::AccountSA::DomainHisyseventUtils::ReportFail(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, PluginMethodEnum, int, std::__h::variant<OHOS::AccountSA::DomainAccountInfo, OHOS::AccountSA::GetDomainAccountInfoOptions>)";
         "OHOS::AccountSA::DomainAccountInfo::DomainAccountInfo()";
         "OHOS::AccountSA::SwitchSubscribeInfo::~SwitchSubscribeInfo()";
         "OHOS::AccountSA::SwitchSubscribeInfo::ProductTask(OHOS::sptr<OHOS::AccountSA::IOsAccountEvent> const&, OHOS::AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE, int, int)";
@@ -314,7 +323,6 @@
         "OHOS::AccountSA::AccountIAMStub::~AccountIAMStub()";
         "non-virtual thunk to OHOS::AccountSA::AccountIAMStub::~AccountIAMStub()";
         "virtual thunk to OHOS::AccountSA::AccountIAMStub::~AccountIAMStub()";
-        "OHOS::AccountSA::InnerDomainAccountManager::AuthUser(int, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>> const&, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
         "OHOS::AccountSA::AppAccountDataStorage::GetAccountInfoFromDataStorage(OHOS::AccountSA::AppAccountInfo&)";
         "OHOS::AccountSA::AppAccountInfo::GetAppIndex()";
         "OHOS::AccountSA::AccountDataStorage::LoadDataByLocalFuzzyQuery(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::map<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::shared_ptr<OHOS::AccountSA::IAccountInfo>, std::__h::less<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::pair<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const, std::__h::shared_ptr<OHOS::AccountSA::IAccountInfo>>>>&)";

@@ -21,7 +21,7 @@ namespace OHOS {
 namespace AccountTest {
 namespace {
 constexpr int32_t TEST_USER_ID = 200;
-constexpr uint64_t TEST_CONTEXT_ID = 122;
+const std::vector<uint8_t> TEST_CONTEXT_ID = {0x01, 0x7A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 constexpr uint64_t TEST_CREDENTIAL_ID = 0;
 const std::vector<uint8_t> TEST_CHALLENGE = {1, 2, 3, 4};
 }
@@ -228,7 +228,8 @@ HWTEST_F(AccountIAMProxyMockTest, AccountIAMClient_AuthUser_0100, TestSize.Level
     ASSERT_NE(testCallback, nullptr);
     AuthOptions authOptions;
     authOptions.accountId = TEST_USER_ID;
-    ASSERT_EQ(static_cast<uint64_t>(0), AccountIAMClient::GetInstance().AuthUser(
+    std::vector<uint8_t> errContextId = {0, 0, 0, 0, 0, 0, 0, 0};
+    ASSERT_EQ(errContextId, AccountIAMClient::GetInstance().AuthUser(
         authOptions, TEST_CHALLENGE, AuthType::PIN, AuthTrustLevel::ATL1, testCallback));
 }
 

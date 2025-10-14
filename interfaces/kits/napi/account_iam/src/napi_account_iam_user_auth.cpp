@@ -15,6 +15,7 @@
 
 #include "napi_account_iam_user_auth.h"
 
+#include "account_error_no.h"
 #include "account_iam_client.h"
 #include "account_log_wrapper.h"
 #include "napi_account_common.h"
@@ -469,9 +470,9 @@ napi_value NapiAccountIAMUserAuth::Auth(napi_env env, napi_callback_info info)
         context.callback->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, emptyInfo);
         return nullptr;
     }
-    uint64_t contextId = AccountIAMClient::GetInstance().Auth(context.authOptions, context.challenge,
+    std::vector<uint8_t> contextId = AccountIAMClient::GetInstance().Auth(context.authOptions, context.challenge,
         static_cast<AuthType>(context.authType), static_cast<AuthTrustLevel>(context.trustLevel), context.callback);
-    return CreateUint8Array(env, reinterpret_cast<uint8_t *>(&contextId), sizeof(uint64_t));
+    return CreateUint8Array(env, contextId.data(), contextId.size());
 }
 
 napi_value NapiAccountIAMUserAuth::AuthUser(napi_env env, napi_callback_info info)
@@ -489,9 +490,9 @@ napi_value NapiAccountIAMUserAuth::AuthUser(napi_env env, napi_callback_info inf
         return nullptr;
     }
     context.authOptions.accountId = context.userId;
-    uint64_t contextId = AccountIAMClient::GetInstance().AuthUser(context.authOptions, context.challenge,
+    std::vector<uint8_t> contextId = AccountIAMClient::GetInstance().AuthUser(context.authOptions, context.challenge,
         static_cast<AuthType>(context.authType), static_cast<AuthTrustLevel>(context.trustLevel), context.callback);
-    return CreateUint8Array(env, reinterpret_cast<uint8_t *>(&contextId), sizeof(uint64_t));
+    return CreateUint8Array(env, contextId.data(), contextId.size());
 }
 
 napi_value NapiAccountIAMUserAuth::CancelAuth(napi_env env, napi_callback_info info)
@@ -505,8 +506,8 @@ napi_value NapiAccountIAMUserAuth::CancelAuth(napi_env env, napi_callback_info i
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return nullptr;
     }
-    uint64_t contextId = 0;
-    if (ParseUint8TypedArrayToUint64(env, argv[0], contextId) != napi_ok) {
+    std::vector<uint8_t> contextId;
+    if (ParseUint8TypedArrayToVector(env, argv[0], contextId) != napi_ok) {
         ACCOUNT_LOGE("failed to parse contextId");
         std::string errMsg = "Parameter error. The type of \"contextID\" must be Uint8Array";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);

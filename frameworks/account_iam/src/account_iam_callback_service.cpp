@@ -183,30 +183,33 @@ void DomainAuthCallbackAdapter::OnResult(const int32_t errCode, Parcel &parcel)
 }
 
 #ifdef HAS_PIN_AUTH_PART
-DomainCredentialRecipient::DomainCredentialRecipient(int32_t userId, const std::shared_ptr<IDMCallback> &callback)
-    : userId_(userId), idmCallback_(callback)
+#ifdef SUPPORT_DOMAIN_ACCOUNTS
+DomainCredentialRecipient::DomainCredentialRecipient()
 {}
 
 DomainCredentialRecipient::~DomainCredentialRecipient()
-{}
+{
+    if (data_.size() > 0) {
+        std::fill(data_.begin(), data_.end(), 0);
+    }
+}
 
 void DomainCredentialRecipient::OnSetData(int32_t authSubType, std::vector<uint8_t> data)
 {
-    auto callback = std::make_shared<DomainAuthCallbackAdapter>(idmCallback_);
-    ErrCode errCode = DomainAccountClient::GetInstance().AuthUser(userId_, data, callback);
+    std::unique_lock<std::mutex> lock(mutex_);
+    data_ = data;
+    dataReady_ = true;
     std::fill(data.begin(), data.end(), 0);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("Failed to auth for domain account, errCode=%{public}d", errCode);
-        Parcel emptyParcel;
-        AccountSA::DomainAuthResult emptyResult;
-        if (!emptyResult.Marshalling(emptyParcel)) {
-            ACCOUNT_LOGE("authResult Marshalling failed");
-            callback->OnResult(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyParcel);
-            return;
-        }
-        callback->OnResult(errCode, emptyParcel);
-    }
+    cv_.notify_all();
 }
+
+std::vector<uint8_t> DomainCredentialRecipient::WaitToGetData()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    cv_.wait(lock, [this]() { return dataReady_.load(); });
+    return data_;
+}
+#endif // SUPPORT_DOMAIN_ACCOUNTS
 
 IAMInputer::IAMInputer(int32_t userId, const std::shared_ptr<IInputer> &inputer)
     : userId_(userId), innerInputer_(inputer)
