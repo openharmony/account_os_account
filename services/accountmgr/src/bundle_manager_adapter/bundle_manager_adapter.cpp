@@ -49,6 +49,20 @@ ErrCode BundleManagerAdapter::GetNameForUid(const int uid, std::string &bundleNa
     return result;
 }
 
+ErrCode BundleManagerAdapter::CreateNewBundleEl5Dir(int32_t userId)
+{
+    std::lock_guard<std::mutex> lock(proxyMutex_);
+    ErrCode result = Connect();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("Failed to connect bundle manager service.");
+        return ERR_OK; // no pin boot, connect bms will not success, ignore it.
+    }
+    StartTraceAdapter("Bundle manager service, CreateNewBundleEl5Dir");
+    result = proxy_->CreateNewBundleEl5Dir(userId);
+    FinishTraceAdapter();
+    return result;
+}
+
 int BundleManagerAdapter::GetUidByBundleName(const std::string &bundleName, const int userId)
 {
     std::lock_guard<std::mutex> lock(proxyMutex_);

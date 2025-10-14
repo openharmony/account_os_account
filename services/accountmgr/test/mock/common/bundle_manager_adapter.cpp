@@ -68,6 +68,12 @@ ErrCode BundleManagerAdapter::GetNameForUid(const int uid, std::string &bundleNa
     return ERR_OK;
 }
 
+ErrCode BundleManagerAdapter::CreateNewBundleEl5Dir(int32_t userId)
+{
+    ACCOUNT_LOGI("RemoveUser mock");
+    return ERR_OK;
+}
+
 bool BundleManagerAdapter::GetBundleInfo(const std::string &bundleName, const AppExecFwk::BundleFlag flag,
     AppExecFwk::BundleInfo &bundleInfo, int32_t userId)
 {

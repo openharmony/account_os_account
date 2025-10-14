@@ -30,6 +30,10 @@ public:
         OsAccountInfo &osAccountInfo, const std::vector<std::string> &disallowedHapList = {},
         const std::optional<std::vector<std::string>> &allowedHapList = std::nullopt);
     static ErrCode SendToBMSAccountDelete(OsAccountInfo &osAccountInfo);
+    static void SendToBMSAccountUnlocked(const OsAccountInfo &osAccountInfo);
+    static void SendToBMSAccountUnlockedWithTimeout(const OsAccountInfo &osAccountInfo);
+    static void SendToStorageAccountUnlocked(const OsAccountInfo &osAccountInfo);
+    static void SendToStorageAccountSwitched(const OsAccountInfo &osAccountInfo);
 #ifdef HAS_USER_IDM_PART
     static ErrCode SendToIDMAccountDelete(OsAccountInfo &osAccountInfo);
 #endif // HAS_USER_IDM_PART
