@@ -1308,6 +1308,9 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountDeactivate(OsAccountInfo &osAcc
         errCode = OsAccountInterface::SendToStorageAccountStop(osAccountInfo);
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("SendToStorageAccountStop failed, id %{public}d, errCode %{public}d", localId, errCode);
+            loggedInAccounts_.Erase(localId);
+            verifiedAccounts_.Erase(localId);
+            EraseIdFromActiveList(localId);
             return errCode;
         }
     }
