@@ -688,11 +688,19 @@ ErrCode OsAccountControlFileManager::UpdateBaseOAConstraints(const std::string& 
         ACCOUNT_LOGE("Get baseOAConstraints from json file failed!");
         return result;
     }
+    int id = 0;
+    if (!StrToInt(idStr, id)) {
+        ACCOUNT_LOGE("Convert localId failed");
+    }
     if (!IsKeyExist(baseOAConstraintsJson, idStr)) {
         if (!isAdd) {
             return ERR_OK;
         }
-        AddVectorStringToJson(baseOAConstraintsJson, idStr, ConstraintStr);
+        if (!AddVectorStringToJson(baseOAConstraintsJson, idStr, ConstraintStr)) {
+            ACCOUNT_LOGE("Add constraintStr to base json failed");
+            REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_CONSTRAINT,
+                ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR, "Add constraintStr to base json failed");
+        }
     } else {
         std::vector<std::string> baseOAConstraints;
         GetDataByType<std::vector<std::string>>(baseOAConstraintsJson, idStr, baseOAConstraints);
@@ -706,7 +714,11 @@ ErrCode OsAccountControlFileManager::UpdateBaseOAConstraints(const std::string& 
                 baseOAConstraints.emplace_back(*it);
             }
         }
-        AddVectorStringToJson(baseOAConstraintsJson, idStr, baseOAConstraints);
+        if (!AddVectorStringToJson(baseOAConstraintsJson, idStr, baseOAConstraints)) {
+            ACCOUNT_LOGE("Add base constraints to base json failed");
+            REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_CONSTRAINT,
+                ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR, "Add base constraints to base json failed");
+        }
     }
     return SaveBaseOAConstraintsToFile(baseOAConstraintsJson);
 }
@@ -725,6 +737,29 @@ ErrCode OsAccountControlFileManager::UpdateGlobalOAConstraints(
     return SaveGlobalOAConstraintsToFile(globalOAConstraintsJson);
 }
 
+bool OsAccountControlFileManager::RemoveConstraintsFromJsonOperate(const RemoveConstraintInfo &params,
+    cJSON *constraintsJson, std::vector<std::string> &waitForErase,
+    std::vector<std::string> &oldConstraintsList)
+{
+    std::vector<std::string> constraintSourceList;
+    GetDataByType<std::vector<std::string>>(constraintsJson, params.constraint, constraintSourceList);
+    constraintSourceList.erase(std::remove(constraintSourceList.begin(), constraintSourceList.end(), params.idStr),
+        constraintSourceList.end());
+    if (constraintSourceList.empty()) {
+        oldConstraintsList.erase(std::remove(oldConstraintsList.begin(),
+            oldConstraintsList.end(), params.constraint), oldConstraintsList.end());
+        if (!AddVectorStringToJson(constraintsJson, params.constraintTypeConstants, oldConstraintsList)) {
+            return false;
+        }
+        waitForErase.push_back(params.constraint);
+    } else {
+        if (!AddVectorStringToJson(constraintsJson, params.constraint, constraintSourceList)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 void OsAccountControlFileManager::GlobalConstraintsDataOperate(const std::string& idStr,
     const std::vector<std::string>& ConstraintStr, bool isAdd, CJsonUnique &globalOAConstraintsJson)
 {
@@ -732,24 +767,21 @@ void OsAccountControlFileManager::GlobalConstraintsDataOperate(const std::string
     GetDataByType<std::vector<std::string>>(globalOAConstraintsJson, Constants::ALL_GLOBAL_CONSTRAINTS,
                                             globalOAConstraintsList);
     std::vector<std::string> waitForErase;
+    int id = 0;
+    if (!StrToInt(idStr, id)) {
+        ACCOUNT_LOGE("Convert localId failed");
+    }
     for (auto it = ConstraintStr.begin(); it != ConstraintStr.end(); it++) {
         if (!isAdd) {
             if (std::find(globalOAConstraintsList.begin(),
             globalOAConstraintsList.end(), *it) == globalOAConstraintsList.end()) {
                 continue;
             }
-            std::vector<std::string> constraintSourceList;
-            GetDataByType<std::vector<std::string>>(globalOAConstraintsJson, *it, constraintSourceList);
-            constraintSourceList.erase(std::remove(constraintSourceList.begin(), constraintSourceList.end(), idStr),
-                constraintSourceList.end());
-            if (constraintSourceList.size() == 0) {
-                globalOAConstraintsList.erase(std::remove(globalOAConstraintsList.begin(),
-                    globalOAConstraintsList.end(), *it), globalOAConstraintsList.end());
-                AddVectorStringToJson(globalOAConstraintsJson, Constants::ALL_GLOBAL_CONSTRAINTS,
-                                      globalOAConstraintsList);
-                waitForErase.push_back(*it);
-            } else {
-                AddVectorStringToJson(globalOAConstraintsJson, *it, constraintSourceList);
+            if (!RemoveConstraintsFromJsonOperate(RemoveConstraintInfo{Constants::ALL_GLOBAL_CONSTRAINTS, *it, idStr},
+                globalOAConstraintsJson.get(), waitForErase, globalOAConstraintsList)) {
+                ACCOUNT_LOGE("Remove global constraints to json failed");
+                REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_CONSTRAINT,
+                    ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR, "Remove global constraints to json failed");
             }
             continue;
         }
@@ -758,17 +790,31 @@ void OsAccountControlFileManager::GlobalConstraintsDataOperate(const std::string
             std::vector<std::string> constraintSourceList;
             GetDataByType<std::vector<std::string>>(globalOAConstraintsJson, *it, constraintSourceList);
             if (std::find(constraintSourceList.begin(),
-                constraintSourceList.end(), idStr) == constraintSourceList.end()) {
-                constraintSourceList.emplace_back(idStr);
-                AddVectorStringToJson(globalOAConstraintsJson, *it, constraintSourceList);
+                constraintSourceList.end(), idStr) != constraintSourceList.end()) {
+                continue;
+            }
+            constraintSourceList.emplace_back(idStr);
+            if (!AddVectorStringToJson(globalOAConstraintsJson, *it, constraintSourceList)) {
+                ACCOUNT_LOGE("Add constraints source to global json failed");
+                REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_CONSTRAINT,
+                    ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR, "Add constraints source to global json failed");
             }
             continue;
         }
         std::vector<std::string> constraintSourceList;
         constraintSourceList.emplace_back(idStr);
         globalOAConstraintsList.emplace_back(*it);
-        AddVectorStringToJson(globalOAConstraintsJson, *it, constraintSourceList);
-        AddVectorStringToJson(globalOAConstraintsJson, Constants::ALL_GLOBAL_CONSTRAINTS, globalOAConstraintsList);
+        if (!AddVectorStringToJson(globalOAConstraintsJson, *it, constraintSourceList)) {
+            ACCOUNT_LOGE("Add constraints source to global json failed");
+            REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_CONSTRAINT,
+                ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR, "Add constraints source to global json failed");
+        }
+        if (!AddVectorStringToJson(globalOAConstraintsJson, Constants::ALL_GLOBAL_CONSTRAINTS,
+            globalOAConstraintsList)) {
+            ACCOUNT_LOGE("Add global constraints to json failed");
+            REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_CONSTRAINT,
+                ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR, "Add global constraints to json failed");
+        }
     }
     for (auto keyStr : waitForErase) {
         DeleteItemFromJson(globalOAConstraintsJson, keyStr);
@@ -785,18 +831,40 @@ ErrCode OsAccountControlFileManager::UpdateSpecificOAConstraints(
         ACCOUNT_LOGE("Get specificOAConstraints from file failed!");
         return result;
     }
+    int id = 0;
+    int targetId = 0;
+    if (!StrToInt(idStr, id) || !StrToInt(targetIdStr, targetId)) {
+        ACCOUNT_LOGE("Convert localId failed");
+    }
     if (!IsKeyExist(specificOAConstraintsJson, targetIdStr)) {
         if (!isAdd) {
             return ERR_OK;
         }
         auto accountList = CreateJsonNull();
         auto osAccountConstraintsList = CreateJson();
-        AddObjToJson(osAccountConstraintsList, Constants::ALL_SPECIFIC_CONSTRAINTS, accountList);
-        AddObjToJson(specificOAConstraintsJson, targetIdStr, osAccountConstraintsList);
+        if (!AddObjToJson(osAccountConstraintsList, Constants::ALL_SPECIFIC_CONSTRAINTS, accountList)) {
+            ACCOUNT_LOGE("Add account to constraints list json failed");
+            REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_CONSTRAINT,
+                ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR, "Add constraints list to json failed");
+        }
+        if (!AddObjToJson(specificOAConstraintsJson, targetIdStr, osAccountConstraintsList)) {
+            ACCOUNT_LOGE("Add constraints to specific json failed");
+            REPORT_OS_ACCOUNT_FAIL(targetId, Constants::OPERATION_CONSTRAINT,
+                ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR, "Add constraints to specific json failed");
+        }
     }
     cJSON *userPrivateConstraintsDataJson = GetItemFromJson(specificOAConstraintsJson, targetIdStr);
+    if (userPrivateConstraintsDataJson == nullptr) {
+        ACCOUNT_LOGE("Get user private constraints data json failed");
+        REPORT_OS_ACCOUNT_FAIL(targetId, Constants::OPERATION_CONSTRAINT,
+            ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR, "Get user private constraints data json failed");
+    }
     SpecificConstraintsDataOperate(idStr, targetIdStr, ConstraintStr, isAdd, userPrivateConstraintsDataJson);
-    AddObjToJson(specificOAConstraintsJson.get(), targetIdStr, userPrivateConstraintsDataJson);
+    if (!AddObjToJson(specificOAConstraintsJson.get(), targetIdStr, userPrivateConstraintsDataJson)) {
+        ACCOUNT_LOGE("Add private constraints to specific json failed");
+        REPORT_OS_ACCOUNT_FAIL(targetId, Constants::OPERATION_CONSTRAINT,
+            ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR, "Add private constraints to specific json failed");
+    }
     return SaveSpecificOAConstraintsToFile(specificOAConstraintsJson);
 }
 
@@ -809,23 +877,20 @@ void OsAccountControlFileManager::SpecificConstraintsDataOperate(
                                             specificOAConstraintsList);
 
     std::vector<std::string> waitForErase;
+    int targetId = 0;
+    if (!StrToInt(targetIdStr, targetId)) {
+        ACCOUNT_LOGE("Convert localId failed");
+    }
     for (auto it = ConstraintStr.begin(); it != ConstraintStr.end(); it++) {
         if (!isAdd) {
             if (!IsKeyExist(userPrivateConstraintsDataJson, *it)) {
                 continue;
             }
-            std::vector<std::string> constraintSourceList;
-            GetDataByType<std::vector<std::string>>(userPrivateConstraintsDataJson, *it, constraintSourceList);
-            constraintSourceList.erase(std::remove(constraintSourceList.begin(), constraintSourceList.end(), idStr),
-                constraintSourceList.end());
-            if (constraintSourceList.size() == 0) {
-                specificOAConstraintsList.erase(std::remove(specificOAConstraintsList.begin(),
-                    specificOAConstraintsList.end(), *it), specificOAConstraintsList.end());
-                AddVectorStringToJson(userPrivateConstraintsDataJson, Constants::ALL_SPECIFIC_CONSTRAINTS,
-                    specificOAConstraintsList);
-                waitForErase.push_back(*it);
-            } else {
-                AddVectorStringToJson(userPrivateConstraintsDataJson, *it, constraintSourceList);
+            if (!RemoveConstraintsFromJsonOperate(RemoveConstraintInfo{Constants::ALL_SPECIFIC_CONSTRAINTS, *it, idStr},
+                userPrivateConstraintsDataJson, waitForErase, specificOAConstraintsList)) {
+                ACCOUNT_LOGE("Remove constraints source to private json failed");
+                REPORT_OS_ACCOUNT_FAIL(targetId, Constants::OPERATION_CONSTRAINT,
+                    ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR, "Remove specific constraints to private json failed");
             }
             continue;
         }
@@ -834,18 +899,31 @@ void OsAccountControlFileManager::SpecificConstraintsDataOperate(
             std::vector<std::string> constraintSourceList;
             GetDataByType<std::vector<std::string>>(userPrivateConstraintsDataJson, *it, constraintSourceList);
             if (std::find(constraintSourceList.begin(),
-                constraintSourceList.end(), idStr) == constraintSourceList.end()) {
-                constraintSourceList.emplace_back(idStr);
-                AddVectorStringToJson(userPrivateConstraintsDataJson, *it, constraintSourceList);
+                constraintSourceList.end(), idStr) != constraintSourceList.end()) {
+                continue;
+            }
+            constraintSourceList.emplace_back(idStr);
+            if (!AddVectorStringToJson(userPrivateConstraintsDataJson, *it, constraintSourceList)) {
+                ACCOUNT_LOGE("Add constraints source to private json failed");
+                REPORT_OS_ACCOUNT_FAIL(targetId, Constants::OPERATION_CONSTRAINT,
+                    ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR, "Add specific constraints to private json failed");
             }
             continue;
         }
         std::vector<std::string> constraintSourceList;
         constraintSourceList.emplace_back(idStr);
         specificOAConstraintsList.emplace_back(*it);
-        AddVectorStringToJson(userPrivateConstraintsDataJson, *it, constraintSourceList);
-        AddVectorStringToJson(userPrivateConstraintsDataJson, Constants::ALL_SPECIFIC_CONSTRAINTS,
-            specificOAConstraintsList);
+        if (!AddVectorStringToJson(userPrivateConstraintsDataJson, *it, constraintSourceList)) {
+            ACCOUNT_LOGE("Add constraints source to private json failed");
+            REPORT_OS_ACCOUNT_FAIL(targetId, Constants::OPERATION_CONSTRAINT,
+                ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR, "Add specific constraints to private json failed");
+        }
+        if (!AddVectorStringToJson(userPrivateConstraintsDataJson, Constants::ALL_SPECIFIC_CONSTRAINTS,
+            specificOAConstraintsList)) {
+            ACCOUNT_LOGE("Add specific constraints to private json failed");
+            REPORT_OS_ACCOUNT_FAIL(targetId, Constants::OPERATION_CONSTRAINT,
+                ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR, "Add specific constraints to private json failed");
+        }
     }
     for (auto keyStr : waitForErase) {
         DeleteItemFromJson(userPrivateConstraintsDataJson, keyStr);
@@ -1490,6 +1568,7 @@ ErrCode OsAccountControlFileManager::IsFromBaseOAConstraintsList(
     ErrCode errCode = osAccountFileOperator_->GetBaseOAConstraintsList(id, constraintsList);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("GetBaseOAConstraintsList failed! error code %{public}d.", errCode);
+        REPORT_OS_ACCOUNT_FAIL(id, Constants::OPERATION_CONSTRAINT, errCode, "Get base constraintsList failed");
         return errCode;
     }
 
@@ -1619,6 +1698,11 @@ ErrCode OsAccountControlFileManager::SaveBaseOAConstraintsToFile(const CJsonUniq
 {
     std::lock_guard<std::mutex> lock(baseOAConstraintsFileLock_);
     std::string strValue = PackJsonToString(baseOAConstraints);
+    if (strValue.empty()) {
+        ACCOUNT_LOGE("Base osaccount constraints json data is empty");
+        REPORT_OS_ACCOUNT_FAIL(0, Constants::OPERATION_CONSTRAINT, ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR,
+            "Base constraints json data is empty");
+    }
     ErrCode result = accountFileOperator_->InputFileByPathAndContent(
         Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH, strValue);
     if (result != ERR_OK) {
@@ -1639,6 +1723,11 @@ ErrCode OsAccountControlFileManager::SaveGlobalOAConstraintsToFile(const CJsonUn
 {
     std::lock_guard<std::mutex> lock(globalOAConstraintsFileLock_);
     std::string strValue = PackJsonToString(globalOAConstraints);
+    if (strValue.empty()) {
+        ACCOUNT_LOGE("Global osaccount constraints json data is empty");
+        REPORT_OS_ACCOUNT_FAIL(0, Constants::OPERATION_CONSTRAINT, ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR,
+            "Global constraints json data is empty");
+    }
     ErrCode result = accountFileOperator_->InputFileByPathAndContent(
         Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH, strValue);
     if (result != ERR_OK) {
@@ -1659,6 +1748,11 @@ ErrCode OsAccountControlFileManager::SaveSpecificOAConstraintsToFile(const CJson
 {
     std::lock_guard<std::mutex> lock(specificOAConstraintsFileLock_);
     std::string strValue = PackJsonToString(specificOAConstraints);
+    if (strValue.empty()) {
+        ACCOUNT_LOGE("Specific osaccount constraints json data is empty");
+        REPORT_OS_ACCOUNT_FAIL(0, Constants::OPERATION_CONSTRAINT, ERR_ACCOUNT_COMMON_BAD_JSON_FORMAT_ERROR,
+            "Specific constraints json data is empty");
+    }
     ErrCode result = accountFileOperator_->InputFileByPathAndContent(
         Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH, strValue);
     if (result != ERR_OK) {
