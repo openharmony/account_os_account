@@ -156,18 +156,21 @@ AccountSA::SelectAccountsOptions ConvertAccountsOptionsInfo(
             tempPair.second = accountsOptionsInfo.name.c_str();
             tempOptions.allowedAccounts.push_back(tempPair);
         }
+        tempOptions.hasAccounts = true;
     }
     
     if (options.allowedOwners) {
         std::vector<std::string> tempAllowedOwners(options.allowedOwners.value().data(),
             options.allowedOwners.value().data() + options.allowedOwners.value().size());
         tempOptions.allowedOwners = tempAllowedOwners;
+        tempOptions.hasOwners = true;
     }
 
     if (options.requiredLabels) {
         std::vector<std::string> tempRequiredLabels(options.requiredLabels.value().data(),
             options.requiredLabels.value().data() + options.requiredLabels.value().size());
         tempOptions.requiredLabels = tempRequiredLabels;
+        tempOptions.hasLabels = true;
     }
     return tempOptions;
 }
@@ -529,13 +532,18 @@ public:
     array<AppAccountInfo> GetAccountsByOwnerSync(string_view owner)
     {
         std::string innerOwner(owner.data(), owner.size());
+        std::vector<AppAccountInfo> appAccountsInfos;
+        if (innerOwner.empty()) {
+            int32_t jsErrCode = GenerateBusinessErrorCode(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return taihe::array<AppAccountInfo>(taihe::copy_data_t{}, appAccountsInfos.data(), appAccountsInfos.size());
+        }
         std::vector<AccountSA::AppAccountInfo> appAccounts;
         int32_t errorCode = AccountSA::AppAccountManager::QueryAllAccessibleAccounts(innerOwner, appAccounts);
         if (errorCode != ERR_OK) {
             int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
         }
-        std::vector<AppAccountInfo> appAccountsInfos;
         appAccountsInfos.reserve(appAccounts.size());
         for (auto &info : appAccounts) {
             appAccountsInfos.push_back(ConvertAppAccountInfo(info));

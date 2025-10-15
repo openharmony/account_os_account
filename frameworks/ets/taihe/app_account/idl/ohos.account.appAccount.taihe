@@ -43,8 +43,8 @@ struct AuthTokenInfo {
 
 struct AuthenticatorInfo {
     owner: String;
-    iconId: i32;
-    labelId: i32;
+    iconId: i64;
+    labelId: i64;
 }
 
 struct AuthResult {
