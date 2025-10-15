@@ -3013,7 +3013,6 @@ ErrCode IInnerOsAccountManager::GetForegroundOsAccountDisplayId(const int32_t lo
     };
     foregroundAccountMap_.Iterate(it);
     if (displayId == Constants::INVALID_DISPLAY_ID) {
-        ACCOUNT_LOGW("Cannot find displayId for localId %{public}d", localId);
         return ERR_ACCOUNT_COMMON_ACCOUNT_IN_DISPLAY_ID_NOT_FOUND_ERROR;
     }
     return ERR_OK;
