@@ -653,7 +653,7 @@ public:
         return id;
     }
 
-    int32_t GetSerialNumberForOsAccountLocalIdSync(int32_t localId)
+    int64_t GetSerialNumberForOsAccountLocalIdSync(int32_t localId)
     {
         int64_t serialNum = -1;
         ErrCode errorCode = AccountSA::OsAccountManager::GetSerialNumberByOsAccountLocalId(localId, serialNum);
@@ -662,7 +662,7 @@ public:
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
         }
 
-        return static_cast<int32_t>(serialNum);
+        return serialNum;
     }
 
     int32_t GetBundleIdForUidWithIdSync(int32_t uid)
