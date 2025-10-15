@@ -1361,6 +1361,12 @@ public:
 
         std::shared_ptr<THGetPropCallback> getPropCallback =
             std::make_shared<THGetPropCallback>(getPropertyRequestInner);
+        getPropCallback->isGetById = true;
+        if (credentialId.size() != sizeof(uint64_t)) {
+            AccountSA::Attributes extraInfo;
+            getPropCallback->OnResult(ERR_JS_CREDENTIAL_NOT_EXIST, extraInfo);
+            return CreateEmptyExecutorPropertyTH();
+        }
         AccountSA::AccountIAMClient::GetInstance().GetPropertyByCredentialId(id,
             getPropertyRequestInner, getPropCallback);
         std::unique_lock<std::mutex> lock(getPropCallback->mutex);

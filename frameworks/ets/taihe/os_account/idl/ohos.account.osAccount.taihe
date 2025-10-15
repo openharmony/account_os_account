@@ -655,7 +655,6 @@ struct GetDomainAccountInfoOptions {
     serverConfigId: Optional<String>;
 }
 
-@class
 struct GetDomainAccountInfoPluginOptions {
     @extends options: GetDomainAccountInfoOptions;
     callerUid: i32;
@@ -697,7 +696,6 @@ struct ConstraintSourceTypeInfo {
     type: ConstraintSourceType;
 }
 
-@class
 struct CreateOsAccountForDomainOptions {
     @extends options: CreateOsAccountOptions;
 }
