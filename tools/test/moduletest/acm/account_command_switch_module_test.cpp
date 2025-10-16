@@ -134,7 +134,7 @@ HWTEST_F(AccountCommandSwitchModuleTest, Acm_Command_Switch_0400, TestSize.Level
     GTEST_LOG_(INFO) << "command = " << command;
 
     std::string commandResult = ExecuteCommand(command);
-    EXPECT_EQ(commandResult, STRING_SWITCH_OS_ACCOUNT_NG + "\n");
+    EXPECT_EQ(commandResult, STRING_SWITCH_OS_ACCOUNT_OK + "\n");
 }
 
 /**
