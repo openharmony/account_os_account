@@ -171,8 +171,10 @@ AccountSA::CreateOsAccountOptions ConvertToInnerOptions(optional_view<CreateOsAc
 
     const auto &opts = options.value();
 
-    innerOptions.shortName = std::string(opts.shortName.data(), opts.shortName.size());
-    innerOptions.hasShortName = true;
+    if (options.value().shortName.has_value()) {
+        innerOptions.shortName = std::string(opts.shortName.value().data(), opts.shortName.value().size());
+        innerOptions.hasShortName = true;
+    }
 
     return innerOptions;
 }
@@ -477,8 +479,10 @@ public:
 
         if (options.has_value()) {
             const auto &opts = options.value();
-            std::string shortName(opts.shortName.data(), opts.shortName.size());
-
+            std::string shortName = "";
+            if (opts.shortName.has_value()) {
+                shortName.assign(opts.shortName.value().data(), opts.shortName.value().size());
+            }
             AccountSA::CreateOsAccountOptions innerOptions = ConvertToInnerOptions(options);
             ErrCode errCode =
                 AccountSA::OsAccountManager::CreateOsAccount(name, shortName, innerType, innerOptions, innerInfo);
@@ -977,9 +981,10 @@ public:
         AccountSA::DomainAccountInfo innerDomainAccountInfo = ConvertToDomainAccountInfoInner(domainInfo);
         AccountSA::CreateOsAccountForDomainOptions innerOptions;
         innerOptions.hasShortName = false;
-        if (options.has_value() && options.value().options.shortName != "") {
-            std::string innerShortName(options.value().options.shortName.data(),
-                options.value().options.shortName.size());
+        if (options.has_value() && options.value().options.shortName.has_value() &&
+            options.value().options.shortName.value() != "") {
+            std::string innerShortName(options.value().options.shortName.value().data(),
+                options.value().options.shortName.value().size());
             innerOptions.shortName = innerShortName;
             innerOptions.hasShortName = true;
         }
@@ -1002,12 +1007,15 @@ public:
         return ConvertOsAccountInfo(createDomainCallback->osAccountInfos_);
     }
 
-    DomainAccountInfo GetOsAccountDomainInfoSync(int32_t localId)
+    DomainAccountInfoOrNull GetOsAccountDomainInfoSync(int32_t localId)
     {
         AccountSA::DomainAccountInfo innerDomainInfo;
         ErrCode errCode = AccountSA::OsAccountManager::GetOsAccountDomainInfo(localId, innerDomainInfo);
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("GetOsAccountDomainInfoSync failed with errCode: %{public}d", errCode);
+            if (errCode == ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT) {
+                return DomainAccountInfoOrNull::make_nullData();
+            }
             SetTaiheBusinessErrorFromNativeCode(errCode);
         }
         DomainAccountInfo domainAccountInfo = DomainAccountInfo {
@@ -1017,7 +1025,7 @@ public:
             .isAuthenticated = optional<bool>(std::in_place, innerDomainInfo.isAuthenticated),
             .serverConfigId = optional<string>(std::in_place, innerDomainInfo.serverConfigId_),
         };
-        return domainAccountInfo;
+        return DomainAccountInfoOrNull::make_infoData(domainAccountInfo);
     }
 
     string QueryDistributedVirtualDeviceIdSync()
