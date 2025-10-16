@@ -219,7 +219,7 @@ public:
     void OnResult(int32_t result, const UserIam::UserAuth::Attributes &extraInfo) override
     {
         ohos::account::osAccount::RequestResult reqResult = ConvertToRequestResult(extraInfo);
-        taiheCallback_.onResult(result, reqResult);
+        taiheCallback_.onResult(AccountIAMConvertToJSErrCode(result), reqResult);
     }
 
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const UserIam::UserAuth::Attributes &extraInfo) override
