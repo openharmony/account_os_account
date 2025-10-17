@@ -71,6 +71,12 @@ public:
      */
     ErrCode GetNameForUid(const int uid, std::string &bundleName) override;
 
+    /** @brief Create new bundle el5 dir.
+     * @param userId Indicates the userid.
+     * @return Returns 0 if success.
+     */
+    ErrCode CreateNewBundleEl5Dir(int32_t userId) override;
+
     /**
      * @brief Obtains the interface used to create or delete user.
      * @return Returns a pointer to IBundleUserMgr class if exist; returns nullptr otherwise.

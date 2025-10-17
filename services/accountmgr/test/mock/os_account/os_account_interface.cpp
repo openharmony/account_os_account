@@ -50,6 +50,26 @@ ErrCode OsAccountInterface::SendToAMSAccountDeactivate(OsAccountInfo &osAccountI
     return ERR_OK;
 }
 
+void OsAccountInterface::SendToBMSAccountUnlocked(const OsAccountInfo &osAccountInfo)
+{
+    ACCOUNT_LOGI("mock OsAccountInterface SendToBMSAccountUnlocked start");
+}
+
+void OsAccountInterface::SendToBMSAccountUnlockedWithTimeout(const OsAccountInfo &osAccountInfo)
+{
+    ACCOUNT_LOGI("mock OsAccountInterface SendToBMSAccountUnlockedWithTimeout start");
+}
+
+void OsAccountInterface::SendToStorageAccountUnlocked(const OsAccountInfo &osAccountInfo)
+{
+    ACCOUNT_LOGI("mock OsAccountInterface SendToStorageAccountUnlocked start");
+}
+
+void OsAccountInterface::SendToStorageAccountSwitched(const OsAccountInfo &osAccountInfo)
+{
+    ACCOUNT_LOGI("mock OsAccountInterface SendToStorageAccountSwitched start");
+}
+
 ErrCode OsAccountInterface::SendToBMSAccountDelete(OsAccountInfo &osAccountInfo)
 {
     DomainAccountInfo info;

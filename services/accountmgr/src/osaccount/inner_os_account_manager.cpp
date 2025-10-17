@@ -1318,6 +1318,27 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountDeactivate(OsAccountInfo &osAcc
     return DeactivateOsAccountByInfo(osAccountInfo);
 }
 
+void IInnerOsAccountManager::SendMsgForAccountUnlocked(OsAccountInfo &osAccountInfo)
+{
+    auto task = [osAccountInfo]() {
+        OsAccountInterface::SendToBMSAccountUnlockedWithTimeout(osAccountInfo);
+        OsAccountInterface::SendToStorageAccountUnlocked(osAccountInfo);
+    };
+    std::thread taskThread(task);
+    pthread_setname_np(taskThread.native_handle(), "SendMsgForAccountUnlocked");
+    taskThread.detach();
+}
+
+void IInnerOsAccountManager::SendMsgForAccountSwitched(OsAccountInfo &osAccountInfo)
+{
+    auto task = [osAccountInfo]() {
+        OsAccountInterface::SendToStorageAccountSwitched(osAccountInfo);
+    };
+    std::thread taskThread(task);
+    pthread_setname_np(taskThread.native_handle(), "SendMsgForAccountSwitched");
+    taskThread.detach();
+}
+
 bool IInnerOsAccountManager::IsToBeRemoved(int32_t localId)
 {
     OsAccountInfo osAccountInfo;
@@ -2663,6 +2684,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
 #endif
 
     if (switched) {
+        SendMsgForAccountSwitched(osAccountInfo);
         OsAccountInterface::SendToCESAccountSwitched(localId, oldId, displayId);
         subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATED);
         subscribeManager_.Publish(oldId, OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, localId, displayId);
@@ -2705,6 +2727,7 @@ ErrCode  IInnerOsAccountManager::SendToStorageAccountStart(OsAccountInfo &osAcco
     }
 
     if (!preVerified && osAccountInfo.GetIsVerified()) {
+        SendMsgForAccountUnlocked(osAccountInfo);
         OsAccountInterface::PublishCommonEvent(osAccountInfo,
             OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED, Constants::OPERATION_UNLOCK);
         subscribeManager_.Publish(localId, OS_ACCOUNT_SUBSCRIBE_TYPE::UNLOCKED);
@@ -2875,6 +2898,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountIsVerified(const int id, const bool 
         verifiedAccounts_.Erase(id);
     }
     if (isVerified && !preVerified) {
+        SendMsgForAccountUnlocked(osAccountInfo);
         OsAccountInterface::PublishCommonEvent(osAccountInfo,
             OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED, Constants::OPERATION_UNLOCK);
         subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::UNLOCKED);
