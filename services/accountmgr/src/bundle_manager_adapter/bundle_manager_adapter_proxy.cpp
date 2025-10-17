@@ -226,6 +226,26 @@ ErrCode BundleManagerAdapterProxy::GetNameForUid(const int uid, std::string &bun
     return result;
 }
 
+ErrCode BundleManagerAdapterProxy::CreateNewBundleEl5Dir(int32_t userId)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Fail to CreateNewBundleEl5Dir due to write interface token fail");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+    if (!data.WriteInt32(userId)) {
+        ACCOUNT_LOGE("Fail to CreateNewBundleEl5Dir due to write userId fail");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+
+    MessageParcel reply;
+    if (!SendTransactCmd(BundleMgrInterfaceCode::CREATE_NEW_BUNDLE_EL5_DIR, data, reply)) {
+        ACCOUNT_LOGE("SendTransactCmd failed");
+        return ERR_BUNDLE_MANAGER_IPC_TRANSACTION;
+    }
+    return reply.ReadInt32();
+}
+
 bool BundleManagerAdapterProxy::QueryAbilityInfos(
     const Want &want, int32_t flags, int32_t userId, std::vector<AbilityInfo> &abilityInfos)
 {
