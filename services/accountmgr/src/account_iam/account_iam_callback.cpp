@@ -200,7 +200,6 @@ ErrCode AuthCallback::UnlockAccount(int32_t accountId, const std::vector<uint8_t
             if (ret != ERR_OK) {
                 ACCOUNT_LOGE("Failed to prepare start user");
                 ReportOsAccountOperationFail(accountId, "auth", ret, "Failed to prepare start user");
-                return ret;
             }
             isUpdateVerifiedStatus = true;
         }
