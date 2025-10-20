@@ -25,6 +25,7 @@
 #include "napi/native_node_api.h"
 #include "napi_account_common.h"
 #include "napi_account_error.h"
+#include "napi_app_account_authenticator.h"
 #include "napi_app_account_common.h"
 
 using namespace OHOS::AccountSA;
@@ -1435,8 +1436,12 @@ napi_value NapiAppAccount::GetAuthCallbackInternal(napi_env env, napi_callback_i
             },
             [](napi_env env, napi_status status, void *data) {
                 OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
-                napi_value result = nullptr;
-                GetAuthenticatorCallbackForResult(env, asyncContext->authenticatorCb, &result);
+                napi_value result = NapiAppAccountAuthenticator::CreateAuthenticatorCallback(
+                    env, asyncContext->authenticatorCb);
+                if (result == nullptr) {
+                    ACCOUNT_LOGE("Fail to create AuthenticatorCallback");
+                    asyncContext->errCode = ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+                }
                 napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
                     GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
                 ProcessCallbackOrPromise(env, asyncContext, err, result);
