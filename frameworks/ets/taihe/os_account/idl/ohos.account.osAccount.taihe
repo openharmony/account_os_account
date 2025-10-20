@@ -190,7 +190,7 @@ interface AccountManager {
         options: Optional<CreateOsAccountForDomainOptions>): OsAccountInfo;
 
     @gen_promise("getOsAccountDomainInfo")
-    GetOsAccountDomainInfoSync(localId: i32): DomainAccountInfo;
+    GetOsAccountDomainInfoSync(localId: i32): DomainAccountInfoOrNull;
 
     @gen_async("queryDistributedVirtualDeviceId")
     @gen_promise("queryDistributedVirtualDeviceId")
@@ -295,6 +295,11 @@ struct DomainAccountInfo {
     serverConfigId: Optional<String>;
 }
 
+union DomainAccountInfoOrNull {
+    infoData: DomainAccountInfo;
+    nullData: @null unit;
+}
+
 struct OsAccountInfo {
     localId: i32;
     localName: String;
@@ -363,7 +368,7 @@ struct GetInputDataOptions {
 }
 
 struct CreateOsAccountOptions {
-    shortName: String;
+    shortName: Optional<String>;
 }
 
 struct GetAuthInfoOptions {

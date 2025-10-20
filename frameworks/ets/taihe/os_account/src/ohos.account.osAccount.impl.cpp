@@ -177,9 +177,10 @@ AccountSA::CreateOsAccountOptions ConvertToInnerOptions(optional_view<CreateOsAc
     }
 
     const auto &opts = options.value();
-
-    innerOptions.shortName = std::string(opts.shortName.data(), opts.shortName.size());
-    innerOptions.hasShortName = true;
+    if (options.value().shortName.has_value()) {
+        innerOptions.shortName = std::string(opts.shortName.value().data(), opts.shortName.value().size());
+        innerOptions.hasShortName = true;
+    }
 
     return innerOptions;
 }
