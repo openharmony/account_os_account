@@ -17,6 +17,7 @@
 
 @!sts_inject_into_module("import Want from '@ohos.app.ability.Want';")
 @!sts_inject_into_module("import rpc from '@ohos.rpc';")
+@!sts_inject_into_module("import { RecordData } from '@ohos.base';")
 
 @!sts_inject("""
 static { loadLibrary("app_account_taihe_native.z") }
@@ -55,7 +56,7 @@ struct AuthResult {
 struct CreateAccountImplicitlyOptions {
     requiredLabels: Optional<Array<String>>;
     authType: Optional<String>;
-    parameters: Optional <@sts_type("Record<String, Object>")Opaque>;
+    parameters: Optional<@sts_type("RecordData")Opaque>;
 }
 
 struct SelectAccountsOptions {
@@ -67,12 +68,12 @@ struct SelectAccountsOptions {
 struct VerifyCredentialOptions {
     credentialType: Optional<String>;
     credential: Optional<String>;
-    parameters: Optional <@sts_type("Record<String, Object>")Opaque>;
+    parameters: Optional<@sts_type("RecordData")Opaque>;
 }
 
 struct SetPropertiesOptions {
-    properties: Optional <@sts_type("Record<String, Object>")Opaque>;
-    parameters: Optional <@sts_type("Record<String, Object>")Opaque>;
+    properties: Optional<@sts_type("RecordData")Opaque>;
+    parameters: Optional<@sts_type("RecordData")Opaque>;
 }
 
 enum Constants: String {
@@ -235,7 +236,7 @@ interface AppAccountManager {
     AuthSync(name: String, owner: String, authType: String, callback: AuthCallback);
 
     @overload("auth")
-    AuthWithMap(name: String, owner: String, authType: String, options: @sts_type("Record<String, Object>")Opaque, callback: AuthCallback);
+    AuthWithMap(name: String, owner: String, authType: String, options: @sts_type("RecordData")Opaque, callback: AuthCallback);
 }
 
 @constructor ("Authenticator")@rename
@@ -245,7 +246,7 @@ function MakeAuthenticator(@sts_this self: Authenticator): Authenticator;
 interface Authenticator {
     CreateAccountImplicitly(options: CreateAccountImplicitlyOptions, callback: AuthCallback): void;
 
-    Auth(name: String, authType: String, options: @sts_type("Record<String, Object>")Opaque, callback: AuthCallback): void;
+    Auth(name: String, authType: String, options: @sts_type("RecordData")Opaque, callback: AuthCallback): void;
 
     SetProperties(options: SetPropertiesOptions, callback: AuthCallback): void;
 
