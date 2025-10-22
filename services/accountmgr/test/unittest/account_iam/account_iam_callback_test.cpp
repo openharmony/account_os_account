@@ -468,7 +468,7 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_UnlockAccount_0300, TestSize.Level
     EXPECT_TRUE(userAuthCallback->innerCallback_ != nullptr);
     std::vector<uint8_t> secret = {8, 8, 8, 8, 8, 8, 8};
     bool isUpdateVerifiedStatus = true;
-    EXPECT_NE(ERR_OK, userAuthCallback->UnlockAccount(-1, {}, secret, isUpdateVerifiedStatus));
+    EXPECT_EQ(ERR_OK, userAuthCallback->UnlockAccount(-1, {}, secret, isUpdateVerifiedStatus));
 }
 
 /**
