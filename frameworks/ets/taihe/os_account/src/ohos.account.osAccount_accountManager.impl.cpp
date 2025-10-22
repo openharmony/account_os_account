@@ -149,6 +149,7 @@ OsAccountInfo ConvertOsAccountInfo(const AccountSA::OsAccountInfo &innerInfo)
 AccountSA::CreateOsAccountOptions ConvertToInnerOptions(optional_view<CreateOsAccountOptions> options)
 {
     AccountSA::CreateOsAccountOptions innerOptions;
+    innerOptions.hasShortName = false;
 
     if (!options.has_value()) {
         return innerOptions;
@@ -156,9 +157,23 @@ AccountSA::CreateOsAccountOptions ConvertToInnerOptions(optional_view<CreateOsAc
 
     const auto &opts = options.value();
 
-    if (options.value().shortName.has_value()) {
+    if (opts.shortName.has_value()) {
         innerOptions.shortName = std::string(opts.shortName.value().data(), opts.shortName.value().size());
         innerOptions.hasShortName = true;
+    }
+
+    if (opts.disallowedPreinstalledBundles.has_value()) {
+        for (const auto &bundleName : opts.disallowedPreinstalledBundles.value()) {
+            innerOptions.disallowedHapList.emplace_back(bundleName.data(), bundleName.size());
+        }
+    }
+
+    if (opts.allowedPreinstalledBundles.has_value()) {
+        std::vector<std::string> allowedList;
+        for (const auto &bundleName : opts.allowedPreinstalledBundles.value()) {
+            allowedList.emplace_back(bundleName.data(), bundleName.size());
+        }
+        innerOptions.allowedHapList = allowedList;
     }
 
     return innerOptions;
@@ -462,24 +477,19 @@ public:
         std::string name(localName.data(), localName.size());
         AccountSA::OsAccountType innerType = static_cast<AccountSA::OsAccountType>(type.get_value());
 
+        ErrCode errCode;
         if (options.has_value()) {
-            const auto &opts = options.value();
-            std::string shortName = "";
-            if (opts.shortName.has_value()) {
-                shortName.assign(opts.shortName.value().data(), opts.shortName.value().size());
-            }
             AccountSA::CreateOsAccountOptions innerOptions = ConvertToInnerOptions(options);
-            ErrCode errCode =
-                AccountSA::OsAccountManager::CreateOsAccount(name, shortName, innerType, innerOptions, innerInfo);
-            if (errCode != ERR_OK) {
-                SetTaiheBusinessErrorFromNativeCode(errCode);
-            }
+            errCode = AccountSA::OsAccountManager::CreateOsAccount(
+                name, innerOptions.shortName, innerType, innerOptions, innerInfo);
         } else {
-            ErrCode errCode = AccountSA::OsAccountManager::CreateOsAccount(name, innerType, innerInfo);
+            errCode = AccountSA::OsAccountManager::CreateOsAccount(name, innerType, innerInfo);
+        }
         if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("CreateOsAccount failed with errCode: %{public}d", errCode);
             SetTaiheBusinessErrorFromNativeCode(errCode);
         }
-        }
+
         OsAccountInfo info = ConvertOsAccountInfo(innerInfo);
         return info;
     }
