@@ -88,21 +88,6 @@ OsAccountType::key_t ConvertToOsAccountTypeKey(AccountSA::OsAccountType type)
     }
 }
 
-AccountSA::OsAccountType ConvertFromOsAccountTypeKey(int32_t type)
-{
-    switch (static_cast<OsAccountType::key_t>(type)) {
-        case OsAccountType::key_t::ADMIN:
-            return AccountSA::OsAccountType::ADMIN;
-        case OsAccountType::key_t::GUEST:
-            return AccountSA::OsAccountType::GUEST;
-        case OsAccountType::key_t::PRIVATE:
-            return AccountSA::OsAccountType::PRIVATE;
-        case OsAccountType::key_t::NORMAL:
-        default:
-            return AccountSA::OsAccountType::NORMAL;
-    }
-}
-
 taihe::array<taihe::string> ConvertConstraints(const std::vector<std::string> &constraints)
 {
     std::vector<taihe::string> tempStrings;
@@ -390,8 +375,8 @@ public:
             return;
         }
         std::shared_ptr<active_callback> activeCallback = nullptr;
-        if (callback) {
-            active_callback call = *callback;
+        if (callback.has_value()) {
+            active_callback call = callback.value();
             activeCallback = std::make_shared<active_callback>(call);
         }
         Unsubscribe(name.data(),
@@ -415,8 +400,8 @@ public:
     void OffSwitching(optional_view<callback<void(OsAccountSwitchEventData const &)>> callback)
     {
         std::shared_ptr<switch_callback> switchCallback = nullptr;
-        if (callback) {
-            switch_callback call = *callback;
+        if (callback.has_value()) {
+            active_callback call = callback.value();
             switchCallback = std::make_shared<switch_callback>(call);
         }
         Unsubscribe("", AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING, nullptr, switchCallback);
@@ -425,8 +410,8 @@ public:
     void OffSwitched(optional_view<callback<void(OsAccountSwitchEventData const &)>> callback)
     {
         std::shared_ptr<switch_callback> switchCallback = nullptr;
-        if (callback) {
-            switch_callback call = *callback;
+        if (callback.has_value()) {
+            active_callback call = callback.value();
             switchCallback = std::make_shared<switch_callback>(call);
         }
         Unsubscribe("", AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, nullptr, switchCallback);
@@ -446,7 +431,7 @@ public:
     {
         AccountSA::OsAccountInfo innerInfo;
         std::string name(localName.data(), localName.size());
-        AccountSA::OsAccountType innerType = ConvertFromOsAccountTypeKey(type.get_value());
+        AccountSA::OsAccountType innerType = static_cast<AccountSA::OsAccountType>(type.get_value());
 
         ErrCode errCode = AccountSA::OsAccountManager::CreateOsAccount(name, innerType, innerInfo);
         if (errCode != ERR_OK) {
@@ -462,7 +447,7 @@ public:
     {
         AccountSA::OsAccountInfo innerInfo;
         std::string name(localName.data(), localName.size());
-        AccountSA::OsAccountType innerType = ConvertFromOsAccountTypeKey(type.get_value());
+        AccountSA::OsAccountType innerType = static_cast<AccountSA::OsAccountType>(type.get_value());
 
         if (options.has_value()) {
             const auto &opts = options.value();
@@ -929,7 +914,7 @@ public:
 
     OsAccountInfo CreateOsAccountForDomainSync(OsAccountType type, DomainAccountInfo const& domainInfo)
     {
-        AccountSA::OsAccountType innerType = ConvertFromOsAccountTypeKey(type.get_value());
+        AccountSA::OsAccountType innerType = static_cast<AccountSA::OsAccountType>(type.get_value());
         AccountSA::DomainAccountInfo innerDomainAccountInfo = ConvertToDomainAccountInfoInner(domainInfo);
         std::shared_ptr<THCreateDomainCallback> createDomainCallback = std::make_shared<THCreateDomainCallback>();
         AccountSA::CreateOsAccountForDomainOptions innerOptions;
@@ -954,7 +939,7 @@ public:
     OsAccountInfo CreateOsAccountForDomainWithOpts(OsAccountType type, DomainAccountInfo const& domainInfo,
         optional_view<ohos::account::osAccount::CreateOsAccountForDomainOptions> const& options)
     {
-        AccountSA::OsAccountType innerType = ConvertFromOsAccountTypeKey(type.get_value());
+        AccountSA::OsAccountType innerType = static_cast<AccountSA::OsAccountType>(type.get_value());
         AccountSA::DomainAccountInfo innerDomainAccountInfo = ConvertToDomainAccountInfoInner(domainInfo);
         AccountSA::CreateOsAccountForDomainOptions innerOptions;
         innerOptions.hasShortName = false;
