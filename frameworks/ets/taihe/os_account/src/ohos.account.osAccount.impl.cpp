@@ -95,21 +95,6 @@ OsAccountType::key_t ConvertToOsAccountTypeKey(AccountSA::OsAccountType type)
     }
 }
 
-AccountSA::OsAccountType ConvertFromOsAccountTypeKey(int32_t type)
-{
-    switch (static_cast<OsAccountType::key_t>(type)) {
-        case OsAccountType::key_t::ADMIN:
-            return AccountSA::OsAccountType::ADMIN;
-        case OsAccountType::key_t::GUEST:
-            return AccountSA::OsAccountType::GUEST;
-        case OsAccountType::key_t::PRIVATE:
-            return AccountSA::OsAccountType::PRIVATE;
-        case OsAccountType::key_t::NORMAL:
-        default:
-            return AccountSA::OsAccountType::NORMAL;
-    }
-}
-
 taihe::array<taihe::string> ConvertConstraints(const std::vector<std::string> &constraints)
 {
     std::vector<taihe::string> tempStrings;
@@ -355,7 +340,13 @@ public:
 
 class UserIdentityManagerImpl {
 public:
-    UserIdentityManagerImpl() {}
+    UserIdentityManagerImpl()
+    {
+        bool isSystemApp = OHOS::AccountSA::IsSystemApp();
+        if (!isSystemApp) {
+            taihe::set_business_error(ERR_JS_IS_NOT_SYSTEM_APP, ConvertToJsErrMsg(ERR_JS_IS_NOT_SYSTEM_APP));
+        }
+    }
 
     array<uint8_t> OpenSession()
     {
@@ -441,16 +432,20 @@ public:
         return taihe::array<EnrolledCredInfo>(taihe::copy_data_t{}, infos.data(), infos.size());
     }
 
-    array<EnrolledCredInfo> GetAuthInfoWithOptionsSync(const GetAuthInfoOptions &options)
+    array<EnrolledCredInfo> GetAuthInfoWithOptionsSync(optional_view<GetAuthInfoOptions> options)
     {
         int32_t userId = -1;
         std::vector<EnrolledCredInfo> infos;
         AccountSA::AuthType authTypeInner;
-        if (options.authType.has_value()) {
-            authTypeInner = static_cast<AccountSA::AuthType>(options.authType.value().get_value());
+        if (!options.has_value()) {
+            return GetAuthInfoEmpty();
         }
-        if (options.accountId.has_value()) {
-            userId = options.accountId.value();
+        const auto &opts = options.value();
+        if (opts.authType.has_value()) {
+            authTypeInner = static_cast<AccountSA::AuthType>(opts.authType.value().get_value());
+        }
+        if (opts.accountId.has_value()) {
+            userId = opts.accountId.value();
             if (!AccountSA::IsAccountIdValid(userId)) {
                 int32_t jsErrCode = AccountIAMConvertToJSErrCode(JSErrorCode::ERR_JS_ACCOUNT_NOT_FOUND);
                 taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
@@ -482,7 +477,7 @@ public:
             idmCallbackPtr->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, emptyResult);
             return;
         }
-        AccountSA::AccountIAMClient::GetInstance().AddCredential(info.accountId.value(), innerCredInfo, idmCallbackPtr);
+        AccountSA::AccountIAMClient::GetInstance().AddCredential(userId, innerCredInfo, idmCallbackPtr);
     }
 
     void UpdateCredential(const CredentialInfo &credentialInfo, const IIdmCallback &callback)
@@ -491,13 +486,7 @@ public:
         std::shared_ptr<AccountSA::IDMCallback> idmCallbackPtr = std::make_shared<TaiheIDMCallbackAdapter>(callback);
         UserIam::UserAuth::Attributes emptyResult;
 
-        if (!credentialInfo.accountId.has_value()) {
-            ACCOUNT_LOGE("UpdateCredential failed: accountId is missing.");
-            idmCallbackPtr->OnResult(ERR_JS_PARAMETER_ERROR, emptyResult);
-            return;
-        }
-
-        int32_t userId = credentialInfo.accountId.value();
+        int32_t userId = credentialInfo.accountId.value_or(-1);
         if (!AccountSA::IsAccountIdValid(userId)) {
             ACCOUNT_LOGE("UpdateCredential failed: accountId %{public}d is invalid.", userId);
             idmCallbackPtr->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, emptyResult);
@@ -1194,7 +1183,13 @@ public:
 
 class UserAuthImpl {
 public:
-    UserAuthImpl() {}
+    UserAuthImpl()
+    {
+        bool isSystemApp = OHOS::AccountSA::IsSystemApp();
+        if (!isSystemApp) {
+            taihe::set_business_error(ERR_JS_IS_NOT_SYSTEM_APP, ConvertToJsErrMsg(ERR_JS_IS_NOT_SYSTEM_APP));
+        }
+    }
 
     array<uint8_t> AuthSync(array_view<uint8_t> challenge, AuthType authType, AuthTrustLevel authTrustLevel,
                             const IUserAuthCallback &callback)
