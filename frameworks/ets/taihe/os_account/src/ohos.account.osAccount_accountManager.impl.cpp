@@ -401,7 +401,7 @@ public:
     {
         std::shared_ptr<switch_callback> switchCallback = nullptr;
         if (callback.has_value()) {
-            active_callback call = callback.value();
+            switch_callback call = callback.value();
             switchCallback = std::make_shared<switch_callback>(call);
         }
         Unsubscribe("", AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING, nullptr, switchCallback);
@@ -411,7 +411,7 @@ public:
     {
         std::shared_ptr<switch_callback> switchCallback = nullptr;
         if (callback.has_value()) {
-            active_callback call = callback.value();
+            switch_callback call = callback.value();
             switchCallback = std::make_shared<switch_callback>(call);
         }
         Unsubscribe("", AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, nullptr, switchCallback);
