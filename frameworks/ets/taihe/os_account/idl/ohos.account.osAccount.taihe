@@ -202,16 +202,12 @@ interface UserIdentityManager {
     @overload("closeSession")
     CloseSession(accountId: Optional<i32>): void;
 
-    @gen_promise("getAuthInfo")
-    @gen_async("getAuthInfo")
-    GetAuthInfoEmpty(): Array<EnrolledCredInfo>;
-
     @gen_async("getAuthInfo")
     @gen_promise("getAuthInfo")
     GetAuthInfoType(authType: AuthType): Array<EnrolledCredInfo>;
 
     @gen_promise("getAuthInfo")
-    GetAuthInfoWithOptionsSync(options: GetAuthInfoOptions): Array<EnrolledCredInfo>;
+    GetAuthInfoWithOptionsSync(options: Optional<GetAuthInfoOptions>): Array<EnrolledCredInfo>;
 
     @overload("addCredential")
     AddCredential(info: CredentialInfo, callback: IIdmCallback): void;
