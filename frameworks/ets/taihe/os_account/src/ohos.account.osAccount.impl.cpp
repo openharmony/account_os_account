@@ -1150,12 +1150,7 @@ public:
         if (!isGetById && (result == IAMResultCode::ERR_IAM_NOT_ENROLLED)) {
             result = ERR_OK;
         }
-        if (result != ERR_OK) {
-            int32_t jsErrCode = AccountIAMConvertToJSErrCode(propertyInfoInner.result);
-            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-            return;
-        }
-        errCode = ERR_OK;
+        errCode = result;
         cv.notify_one();
     }
 
@@ -1282,12 +1277,17 @@ public:
             std::make_shared<THGetPropCallback>(getPropertyRequestInner.keys);
         if (request.accountId.has_value() && !AccountSA::IsAccountIdValid(request.accountId.value())) {
             idmCallback->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, AccountSA::Attributes());
-            return ConvertToExecutorPropertyTH(idmCallback->propertyInfoInner, idmCallback->keys);
+        } else {
+            AccountSA::AccountIAMClient::GetInstance().GetProperty(
+                request.accountId.value_or(-1), getPropertyRequestInner, idmCallback);
         }
-        AccountSA::AccountIAMClient::GetInstance().GetProperty(request.accountId.value_or(-1), getPropertyRequestInner,
-                                                               idmCallback);
         std::unique_lock<std::mutex> lock(idmCallback->mutex);
         idmCallback->cv.wait(lock, [idmCallback] { return idmCallback->onResultCalled; });
+        if (idmCallback->errCode != ERR_OK) {
+            int32_t jsErrCode = AccountIAMConvertToJSErrCode(idmCallback->errCode);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return CreateEmptyExecutorPropertyTH();
+        }
         return ConvertToExecutorPropertyTH(idmCallback->propertyInfoInner, idmCallback->keys);
     }
 
