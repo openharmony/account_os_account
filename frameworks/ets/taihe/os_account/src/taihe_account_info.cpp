@@ -54,17 +54,18 @@ bool SubscribeCBInfo::IsSameCallBack(AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE type,
     }
     if (osSubscribeType == AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATED ||
         osSubscribeType == AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING) {
-        if (activeCallbackRef.get() == activeCallback.get()) {
+        if (*activeCallbackRef == *activeCallback) {
             return true;
         } else {
             ACCOUNT_LOGE("ActiveCallback is different!");
             return false;
         }
     } else {
-        if (switchCallbackRef.get() == switchCallback.get()) {
+        if (*switchCallbackRef == *switchCallback) {
             return true;
-            ACCOUNT_LOGE("SwitchCallback is different!");
+
         } else {
+            ACCOUNT_LOGE("SwitchCallback is different!");
             return false;
         }
     }
