@@ -63,7 +63,6 @@ bool SubscribeCBInfo::IsSameCallBack(AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE type,
     } else {
         if (*switchCallbackRef == *switchCallback) {
             return true;
-
         } else {
             ACCOUNT_LOGE("SwitchCallback is different!");
             return false;
