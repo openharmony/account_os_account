@@ -416,6 +416,11 @@ public:
         return taihe::array<EnrolledCredInfo>(taihe::copy_data_t{}, infos.data(), infos.size());
     }
 
+    array<EnrolledCredInfo> GetAuthInfoTypeSync(AuthType authType)
+    {
+        return GetAuthInfoType(authType);
+    }
+
     array<EnrolledCredInfo> GetAuthInfoType(AuthType authType)
     {
         int32_t userId = -1;
@@ -487,7 +492,7 @@ public:
         UserIam::UserAuth::Attributes emptyResult;
 
         int32_t userId = credentialInfo.accountId.value_or(-1);
-        if (!AccountSA::IsAccountIdValid(userId)) {
+        if (credentialInfo.accountId.has_value() && !AccountSA::IsAccountIdValid(userId)) {
             ACCOUNT_LOGE("UpdateCredential failed: accountId %{public}d is invalid.", userId);
             idmCallbackPtr->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, emptyResult);
             return;
