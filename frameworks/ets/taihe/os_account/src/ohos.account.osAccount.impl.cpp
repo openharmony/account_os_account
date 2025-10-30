@@ -1366,7 +1366,11 @@ public:
             getPropertyRequestInner, getPropCallback);
         std::unique_lock<std::mutex> lock(getPropCallback->mutex);
         getPropCallback->cv.wait(lock, [getPropCallback] { return getPropCallback->onResultCalled; });
-
+        if (getPropCallback->errCode != ERR_OK) {
+            int32_t jsErrCode = AccountIAMConvertToJSErrCode(getPropCallback->errCode);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return CreateEmptyExecutorPropertyTH();
+        }
         return ConvertToExecutorPropertyTH(getPropCallback->propertyInfoInner, getPropCallback->keys);
     }
 
