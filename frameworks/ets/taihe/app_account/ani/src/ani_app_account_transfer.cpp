@@ -39,8 +39,8 @@ using OHOS::AccountSA::ACCOUNT_LABEL;
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const char *ETS_APP_ACCOUNT_TRANSFER_CLASS_NAME = "L@ohos/appAccount/transfer/appAccount/Transfer;";
-const char *APP_ACCOUNT_TAIHE_NAME_SPACE = "L@ohos/account/appAccount/appAccount;";
+const char *ETS_APP_ACCOUNT_TRANSFER_CLASS_NAME = "@ohos.appAccount.transfer.appAccount.Transfer";
+const char *APP_ACCOUNT_TAIHE_NAME_SPACE = "@ohos.account.appAccount.appAccount";
 }
 const std::string APP_ACCOUNT_CLASS_NAME = "AppAccountManager";
 
