@@ -498,11 +498,8 @@ public:
         }
         ErrCode errCode = AccountSA::OsAccountManager::QueryCurrentOsAccount(innerInfo);
         if (errCode != ERR_OK) {
-            int32_t jsErrCode = (errCode == ERR_ACCOUNT_COMMON_PERMISSION_DENIED)
-                                    ? ERR_OSACCOUNT_KIT_QUERY_CURRENT_OS_ACCOUNT_ERROR
-                                    : errCode;
-            ACCOUNT_LOGE("QueryCurrentOsAccount failed with errCode: %{public}d", jsErrCode);
-            SetTaiheBusinessErrorFromNativeCode(jsErrCode);
+            ACCOUNT_LOGE("QueryCurrentOsAccount failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
             return ConvertOsAccountInfo(innerInfo);
         }
         return ConvertOsAccountInfo(innerInfo);
