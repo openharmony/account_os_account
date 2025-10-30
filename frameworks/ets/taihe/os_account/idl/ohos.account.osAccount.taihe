@@ -209,6 +209,11 @@ interface UserIdentityManager {
     CloseSession(accountId: Optional<i32>): void;
 
     @gen_async("getAuthInfo")
+    GetAuthInfoEmpty(): Array<EnrolledCredInfo>;
+
+    @gen_async("getAuthInfo")
+    GetAuthInfoTypeSync(authType: AuthType): Array<EnrolledCredInfo>;
+
     @gen_promise("getAuthInfo")
     GetAuthInfoType(authType: AuthType): Array<EnrolledCredInfo>;
 
