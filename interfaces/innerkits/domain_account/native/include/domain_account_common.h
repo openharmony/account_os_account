@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -128,6 +128,10 @@ struct DomainAuthResult : public Parcelable {
     std::vector<uint8_t> token;
     AuthStatusInfo authStatusInfo;
 
+    ~DomainAuthResult()
+    {
+        std::fill(this->token.begin(), this->token.end(), 0);
+    }
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
     static DomainAuthResult *Unmarshalling(Parcel &parcel);

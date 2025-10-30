@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -66,6 +66,20 @@ napi_value NapiAppAccountAuthenticatorCallback::Init(napi_env env, napi_value ex
     NAPI_ASSERT(env, status == napi_ok, "set stub constructor failed");
     return exports;
 }
+
+napi_value NapiAppAccountAuthenticatorCallback::GetConstructor(napi_env env, napi_value constructor)
+{
+    const std::string className = "AuthCallback";
+    napi_property_descriptor properties[] = {
+        DECLARE_NAPI_FUNCTION("onResult", JsOnResult),
+        DECLARE_NAPI_FUNCTION("onRequestRedirected", JsOnRequestRedirected),
+        DECLARE_NAPI_FUNCTION("onRequestContinued", JsOnRequestContinued),
+    };
+    NAPI_CALL(env, napi_define_class(env, className.c_str(), className.length(), JsConstructor, nullptr,
+        sizeof(properties) / sizeof(napi_property_descriptor), properties, &constructor));
+    return constructor;
+}
+
 
 static void ParseContextForOnResult(napi_env env, napi_callback_info cbInfo, CallbackParam *param)
 {

@@ -40,11 +40,41 @@ ErrCode THauthenticatorAsyncCallback::OnResult(int32_t resultCode, const AAFwk::
 ErrCode THauthenticatorAsyncCallback::OnRequestRedirected(const AAFwk::Want &request)
 {
     return ERR_OK;
-};
+}
 
 ErrCode THauthenticatorAsyncCallback::OnRequestContinued()
 {
     return ERR_OK;
-};
+}
+
+ErrCode THauthenticatorAsyncCallback::CallbackEnter([[maybe_unused]] uint32_t code)
+{
+    return ERR_OK;
+}
+
+ErrCode THauthenticatorAsyncCallback::CallbackExit([[maybe_unused]] uint32_t code, [[maybe_unused]] int32_t result)
+{
+    switch (code) {
+        case static_cast<uint32_t>(IAppAccountAuthenticatorCallbackIpcCode::COMMAND_ON_RESULT): {
+            if (result == ERR_INVALID_DATA) {
+                AAFwk::Want resultWant;
+                OnResult(ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION, resultWant);
+                return ERR_APPACCOUNT_SERVICE_OAUTH_INVALID_RESPONSE;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(IAppAccountAuthenticatorCallbackIpcCode::COMMAND_ON_REQUEST_REDIRECTED): {
+            if (result == ERR_INVALID_DATA) {
+                AAFwk::Want request;
+                OnRequestRedirected(request);
+                return ERR_APPACCOUNT_SERVICE_OAUTH_INVALID_RESPONSE;
+            }
+            break;
+        }
+        default:
+            return ERR_NONE;
+    }
+    return ERR_NONE;
+}
 }
 }

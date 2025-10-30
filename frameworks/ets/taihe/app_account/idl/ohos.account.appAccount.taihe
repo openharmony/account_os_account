@@ -24,6 +24,8 @@ static { loadLibrary("app_account_taihe_native.z") }
 """)
 
 function createAppAccountManager(): AppAccountManager;
+function createAppAccountManagerByPtr(ptr: u64): AppAccountManager;
+function getPtrByAppAccountManager(manager: AppAccountManager): u64;
 
 struct CreateAccountOptions {
     customData: Optional<@record Map<String, String>>;
@@ -42,8 +44,8 @@ struct AuthTokenInfo {
 
 struct AuthenticatorInfo {
     owner: String;
-    iconId: i32;
-    labelId: i32;
+    iconId: i64;
+    labelId: i64;
 }
 
 struct AuthResult {
@@ -93,12 +95,15 @@ enum Constants: String {
 }
 
 struct AuthCallback {
+    transferPtr: u64;
     onResult: (code: i32, @optional result: Optional<AuthResult>) => void;
     onRequestRedirected: (request: @sts_type("Want")Opaque) => void;
     onRequestContinued: Optional<() => void>;
 }
-
+function getAuthCallbackByPtr(ptr:u64): AuthCallback;
+function getAuthCallbackPtr(callback: AuthCallback): u64;
 interface AppAccountManager {
+    GetInner(): u64;
     @gen_promise("createAccount")
     CreateAccountPromise(name: String, options: Optional<CreateAccountOptions>);
 
@@ -221,11 +226,11 @@ interface AppAccountManager {
     @gen_promise("deleteCredential")
     DeleteCredentialSync(name: String, credentialType: String);
 
-    @overload("on")
-    OnSync(type: String, owners: Array<String>, callback: (data: Array<AppAccountInfo>) => void): void;
+    @rename("onAccountChange")
+    OnAccountChange(owners: Array<String>, callback: (data: Array<AppAccountInfo>) => void): void;
 
-    @overload("off")
-    OffSync(type: String, callback: Optional<(data: Array<AppAccountInfo>) => void>): void;
+    @rename("offAccountChange")
+    OffAccountChange(callback: Optional<(data: Array<AppAccountInfo>) => void>): void;
 
     @overload("auth")
     AuthSync(name: String, owner: String, authType: String, callback: AuthCallback);
@@ -247,7 +252,7 @@ interface Authenticator {
 
     VerifyCredential(name: String, options: VerifyCredentialOptions, callback: AuthCallback): void;
 
-    CheckAccountLabelsSync(name: String, labels: Array<String>, callback: AuthCallback): void;
+    CheckAccountLabels(name: String, labels: Array<String>, callback: AuthCallback): void;
 
     CheckAccountRemovable(name: String, callback: AuthCallback): void;
 

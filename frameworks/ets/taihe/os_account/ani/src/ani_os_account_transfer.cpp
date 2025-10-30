@@ -23,6 +23,7 @@
 #include "account_log_wrapper.h"
 #include "interop_js/arkts_interop_js_api.h"
 #include "interop_js/arkts_esvalue.h"
+#include "interop_js/arkts_interop_js_api.h"
 #include "interop_js/hybridgref_ani.h"
 #include "interop_js/hybridgref_napi.h"
 #include "ohos.account.osAccount.impl.hpp"
@@ -38,8 +39,8 @@ using OHOS::AccountSA::ACCOUNT_LABEL;
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const char *ETS_OS_ACCOUNT_TRANSFER_CLASS_NAME = "L@ohos/account/transfer/osAccount/Transfer;";
-const char *OS_ACCOUNT_TAIHE_NAME_SPACE = "L@ohos/account/osAccount/osAccount;";
+const char *ETS_OS_ACCOUNT_TRANSFER_CLASS_NAME = "@ohos.account.transfer.osAccount.Transfer";
+const char *OS_ACCOUNT_TAIHE_NAME_SPACE = "@ohos.account.osAccount.osAccount";
 }
 
 ani_object AniOsAccountTransfer::NativeIInputDataTransferStatic(ani_env *aniEnv, ani_class aniCls, ani_object input)

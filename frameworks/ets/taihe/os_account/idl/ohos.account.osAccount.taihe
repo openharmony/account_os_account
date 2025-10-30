@@ -41,19 +41,25 @@ interface AccountManager {
     GetOsAccountTypeSync(): OsAccountType;
     @gen_promise("getOsAccountType")
     GetOsAccountTypeWithIdSync(localId: i32): OsAccountType;
+    
+    @rename("onActivate")
+    OnActivate(name: String, callback: (id:i32) => void): void;
+    @rename("offActivate")
+    OffActivate(name: String, callback: Optional<(id:i32) => void>): void;
+    
+    @rename("onActivating")
+    OnActivating(name: String, callback: (id:i32) => void): void;
+    @rename("offActivating")
+    OffActivating(name: String, callback: Optional<(id:i32) => void>): void;
 
-    on(type: String,name: String, callback: (id:i32) => void): void;
-
-    off(type: String,name: String, callback: Optional<(id:i32) => void>): void;
-
-    @on_off("switching")
+    @rename("onSwitching")
     OnSwitching(callback: (data:OsAccountSwitchEventData) => void): void;
-    @on_off("switched")
+    @rename("onSwitched")
     OnSwitched(callback: (data:OsAccountSwitchEventData) => void): void;
 
-    @on_off("switching")
+    @rename("offSwitching")
     OffSwitching(callback: Optional<(data:OsAccountSwitchEventData) => void>): void;
-    @on_off("switched")
+    @rename("offSwitched")
     OffSwitched(callback: Optional<(data:OsAccountSwitchEventData) => void>): void;
 
     @gen_async("activateOsAccount")
@@ -114,7 +120,7 @@ interface AccountManager {
 
     @gen_promise("getSerialNumberForOsAccountLocalId")
     @gen_async("getSerialNumberForOsAccountLocalId")
-    GetSerialNumberForOsAccountLocalIdSync(localId: i32): i32;
+    GetSerialNumberForOsAccountLocalIdSync(localId: i32): i64;
 
     @gen_promise("getBundleIdForUid")
     @gen_async("getBundleIdForUid")
@@ -184,7 +190,7 @@ interface AccountManager {
         options: Optional<CreateOsAccountForDomainOptions>): OsAccountInfo;
 
     @gen_promise("getOsAccountDomainInfo")
-    GetOsAccountDomainInfoSync(localId: i32): DomainAccountInfo;
+    GetOsAccountDomainInfoSync(localId: i32): DomainAccountInfoOrNull;
 
     @gen_async("queryDistributedVirtualDeviceId")
     @gen_promise("queryDistributedVirtualDeviceId")
@@ -290,6 +296,11 @@ struct DomainAccountInfo {
     serverConfigId: Optional<String>;
 }
 
+union DomainAccountInfoOrNull {
+    infoData: DomainAccountInfo;
+    nullData: @null unit;
+}
+
 struct OsAccountInfo {
     localId: i32;
     localName: String;
@@ -358,7 +369,9 @@ struct GetInputDataOptions {
 }
 
 struct CreateOsAccountOptions {
-    shortName: String;
+    shortName: Optional<String>;
+    disallowedPreinstalledBundles: Optional<Array<String>>;
+    allowedPreinstalledBundles: Optional<Array<String>>;
 }
 
 struct GetAuthInfoOptions {
@@ -645,7 +658,6 @@ struct GetDomainAccountInfoOptions {
     serverConfigId: Optional<String>;
 }
 
-@class
 struct GetDomainAccountInfoPluginOptions {
     @extends options: GetDomainAccountInfoOptions;
     callerUid: i32;
@@ -687,7 +699,6 @@ struct ConstraintSourceTypeInfo {
     type: ConstraintSourceType;
 }
 
-@class
 struct CreateOsAccountForDomainOptions {
     @extends options: CreateOsAccountOptions;
 }
