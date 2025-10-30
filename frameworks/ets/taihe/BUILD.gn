@@ -26,9 +26,12 @@ copy_taihe_idl("copy_account") {
 
 subsystem_name = "account"
 part_name = "os_account"
-taihe_generated_file_path_app_account = "$taihe_file_path/out/$subsystem_name/$part_name/app_account"
-taihe_generated_file_path_distributed_account = "$taihe_file_path/out/$subsystem_name/$part_name/distributed_account"
-taihe_generated_file_path_osaccount = "$taihe_file_path/out/$subsystem_name/$part_name/osaccount"
+taihe_generated_file_path_app_account =
+    "$taihe_file_path/out/$subsystem_name/$part_name/app_account"
+taihe_generated_file_path_distributed_account =
+    "$taihe_file_path/out/$subsystem_name/$part_name/distributed_account"
+taihe_generated_file_path_osaccount =
+    "$taihe_file_path/out/$subsystem_name/$part_name/osaccount"
 
 ohos_taihe("app_account_taihe") {
   taihe_generated_file_path = "${taihe_generated_file_path_app_account}"
@@ -55,16 +58,25 @@ taihe_shared_library("app_account_taihe_native") {
 
   sources = get_target_outputs(":app_account_taihe")
   sources += [
+    "${os_account_path}/interfaces/kits/napi/appaccount/src/common/napi_app_account_transfer.cpp",
+    "${os_account_path}/interfaces/kits/napi/appaccount/src/napi_app_account.cpp",
+    "${os_account_path}/interfaces/kits/napi/appaccount/src/napi_app_account_authenticator.cpp",
+    "${os_account_path}/interfaces/kits/napi/appaccount/src/napi_app_account_authenticator_callback.cpp",
+    "${os_account_path}/interfaces/kits/napi/appaccount/src/napi_app_account_common.cpp",
+    "./app_account/ani/src/ani_app_account_transfer.cpp",
     "./app_account/src/ani_constructor.cpp",
     "./app_account/src/ohos.account.appAccount.impl.cpp",
     "./app_account/src/taihe_appAccount_info.cpp",
   ]
 
   include_dirs = [
+    "./app_account/ani/include",
     "./app_account/include",
     "./common/include",
     "${os_account_path}/frameworks/appaccount/native/include",
     "${os_account_path}/interfaces/innerkits/appaccount/native/include",
+    "${os_account_path}/interfaces/kits/napi/appaccount/include/common",
+    "${os_account_path}/interfaces/kits/napi/appaccount/include",
     "${os_account_path}/frameworks/ets/taihe/os_account/include/",
     "${taihe_generated_file_path}/include",
     "${innerkits_path}/include",
@@ -75,8 +87,8 @@ taihe_shared_library("app_account_taihe_native") {
   deps = [
     ":app_account_taihe",
     "${account_napi_common_path}:account_napi_common",
-    "${common_path}:libaccount_common",
     "${app_account_innerkits_native_path}:app_account_innerkits",
+    "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
   ]
 
@@ -84,11 +96,15 @@ taihe_shared_library("app_account_taihe_native") {
     "ability_base:want",
     "ability_runtime:ani_common",
     "ability_runtime:app_context",
+    "ability_runtime:napi_common",
     "ability_runtime:runtime",
     "c_utils:utils",
     "hilog:libhilog",
+    "ipc:ipc_napi",
     "ipc:ipc_single",
-    "ipc:rpc_ani",
+    "ipc:rpc_taihe",
+    "napi:ace_napi",
+    "runtime_core:ani_helpers",
   ]
 
   defines = [
@@ -182,6 +198,7 @@ taihe_shared_library("os_account_taihe_native") {
 
   sources = get_target_outputs(":osaccount_taihe")
   sources += [
+    "${account_iam_kits_path}/src/napi_account_iam_onsetdata.cpp",
     "./common/src/taihe_distributed_account_converter.cpp",
     "os_account/ani/src/ani_os_account_transfer.cpp",
     "os_account/src/ani_constructor.cpp",
@@ -190,7 +207,6 @@ taihe_shared_library("os_account_taihe_native") {
     "os_account/src/ohos.account.osAccount_domainPlugin.impl.cpp",
     "os_account/src/taihe_account_info.cpp",
     "os_account/src/taihe_common.cpp",
-    "${account_iam_kits_path}/src/napi_account_iam_onsetdata.cpp",
   ]
 
   include_dirs = [
@@ -252,14 +268,18 @@ taihe_shared_library("os_account_taihe_native") {
 }
 
 ohos_copy("copy_transfer") {
-  sources = ["${os_account_path}/frameworks/ets/taihe/os_account/idl/@ohos.account.transfer.ets"]
-  outputs = ["${taihe_generated_file_path_osaccount}/{{source_file_part}}"]
+  sources = [ "${os_account_path}/frameworks/ets/taihe/os_account/idl/@ohos.account.transfer.ets" ]
+  outputs = [ "${taihe_generated_file_path_osaccount}/{{source_file_part}}" ]
+}
+
+ohos_copy("copy_app_transfer") {
+  sources = [ "${os_account_path}/frameworks/ets/taihe/app_account/idl/@ohos.appAccount.transfer.ets" ]
+  outputs = [ "${taihe_generated_file_path_app_account}/{{source_file_part}}" ]
 }
 
 generate_static_abc("distributed_account_abc") {
   base_url = "${taihe_generated_file_path_distributed_account}"
-  files =
-      [ "${taihe_generated_file_path_distributed_account}/@ohos.account.distributedAccount.ets" ]
+  files = [ "${taihe_generated_file_path_distributed_account}/@ohos.account.distributedAccount.ets" ]
   is_boot_abc = "True"
   device_dst_file = "/system/framework/distributed_account_abc.abc"
   dependencies = [ ":distributed_account_taihe" ]
@@ -267,23 +287,29 @@ generate_static_abc("distributed_account_abc") {
 
 generate_static_abc("app_account_abc") {
   base_url = "${taihe_generated_file_path_app_account}"
-  files = [ "${taihe_generated_file_path_app_account}/@ohos.account.appAccount.ets" ]
+  files = [
+    "${taihe_generated_file_path_app_account}/@ohos.account.appAccount.ets",
+    "${taihe_generated_file_path_app_account}/@ohos.appAccount.transfer.ets",
+  ]
   is_boot_abc = "True"
   device_dst_file = "/system/framework/app_account_abc.abc"
-  dependencies = [ ":app_account_taihe" ]
+  dependencies = [
+    ":app_account_taihe",
+    ":copy_app_transfer",
+  ]
 }
 
 generate_static_abc("os_account_abc") {
   base_url = "${taihe_generated_file_path_osaccount}"
   files = [
     "${taihe_generated_file_path_osaccount}/@ohos.account.osAccount.ets",
-    "${taihe_generated_file_path_osaccount}/@ohos.account.transfer.ets"
+    "${taihe_generated_file_path_osaccount}/@ohos.account.transfer.ets",
   ]
   is_boot_abc = "True"
   device_dst_file = "/system/framework/os_account_abc.abc"
   dependencies = [
     ":osaccount_taihe",
-    ":copy_transfer"
+    ":copy_transfer",
   ]
 }
 
@@ -350,11 +376,9 @@ group("app_account_taihe_gp") {
 }
 
 group("account_taihe") {
-  if (!ohos_indep_compiler_enable) {
-    deps = [
-      # ":app_account_taihe_gp",
-      ":distributed_account_taihe_gp",
-      ":os_account_taihe_gp",
-    ]
-  }
+  deps = [
+    ":app_account_taihe_gp",
+    ":distributed_account_taihe_gp",
+    ":os_account_taihe_gp",
+  ]
 }

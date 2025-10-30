@@ -27,7 +27,7 @@ struct DistributedInfo {
     nickname: Optional<String>;
     avatar: Optional<String>;
     @readonly status: Optional<DistributedAccountStatus>;
-    scalableData: Optional<Opaque>;
+    scalableData: Optional<@sts_type("RecordData")Opaque>;
 }
 
 enum DistributedAccountStatus: i32 {

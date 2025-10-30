@@ -162,9 +162,10 @@ AccountSA::CreateOsAccountOptions ConvertToInnerOptions(optional_view<CreateOsAc
     }
 
     const auto &opts = options.value();
-
-    innerOptions.shortName = std::string(opts.shortName.data(), opts.shortName.size());
-    innerOptions.hasShortName = true;
+    if (options.value().shortName.has_value()) {
+        innerOptions.shortName = std::string(opts.shortName.value().data(), opts.shortName.value().size());
+        innerOptions.hasShortName = true;
+    }
 
     return innerOptions;
 }
@@ -685,13 +686,13 @@ std::string ConvertMapViewToStringInner(uintptr_t parameters)
         return "";
     }
 
-    ani_status status = env->FindClass("Lescompat/JSON;", &cls);
+    ani_status status = env->FindClass("escompat.JSON", &cls);
     ani_static_method stringify;
     if (status != ANI_OK) {
         ACCOUNT_LOGE("JSON not found, ret: %{public}d.", status);
         return "";
     }
-    status = env->Class_FindStaticMethod(cls, "stringify", "Lstd/core/Object;:Lstd/core/String;", &stringify);
+    status = env->Class_FindStaticMethod(cls, "stringify", "C{std.core.Object}:C{std.core.String}", &stringify);
     if (status != ANI_OK) {
         ACCOUNT_LOGE("Stringify not found, ret: %{public}d.", status);
         return "";
@@ -1154,12 +1155,7 @@ public:
         if (!isGetById && (result == IAMResultCode::ERR_IAM_NOT_ENROLLED)) {
             result = ERR_OK;
         }
-        if (result != ERR_OK) {
-            int32_t jsErrCode = AccountIAMConvertToJSErrCode(propertyInfoInner.result);
-            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
-            return;
-        }
-        errCode = ERR_OK;
+        errCode = result;
         cv.notify_one();
     }
 
@@ -1253,12 +1249,15 @@ public:
 
     void CancelAuth(array_view<uint8_t> contextID)
     {
-        std::vector<uint8_t> contextId(contextID.data(), contextID.data() + contextID.size());
-        if (contextId.empty()) {
-            ACCOUNT_LOGE("contextID is empty.");
+        std::vector<uint8_t> contextId;
+        if (contextID.size() != sizeof(uint64_t)) {
+            ACCOUNT_LOGE("contextID size is invalid.");
             std::string errMsg = "Parameter error. The type of \"contextID\" must be Uint8Array";
             taihe::set_business_error(ERR_JS_PARAMETER_ERROR, errMsg);
             return;
+        }
+        for (auto each : contextID) {
+            contextId.emplace_back(each);
         }
         ErrCode errCode = AccountSA::AccountIAMClient::GetInstance().CancelAuth(contextId);
         if (errCode != ERR_OK) {
@@ -1282,12 +1281,17 @@ public:
             std::make_shared<THGetPropCallback>(getPropertyRequestInner.keys);
         if (request.accountId.has_value() && !AccountSA::IsAccountIdValid(request.accountId.value())) {
             idmCallback->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, AccountSA::Attributes());
-            return ConvertToExecutorPropertyTH(idmCallback->propertyInfoInner, idmCallback->keys);
+        } else {
+            AccountSA::AccountIAMClient::GetInstance().GetProperty(
+                request.accountId.value_or(-1), getPropertyRequestInner, idmCallback);
         }
-        AccountSA::AccountIAMClient::GetInstance().GetProperty(request.accountId.value_or(-1), getPropertyRequestInner,
-                                                               idmCallback);
         std::unique_lock<std::mutex> lock(idmCallback->mutex);
         idmCallback->cv.wait(lock, [idmCallback] { return idmCallback->onResultCalled; });
+        if (idmCallback->errCode != ERR_OK) {
+            int32_t jsErrCode = AccountIAMConvertToJSErrCode(idmCallback->errCode);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return CreateEmptyExecutorPropertyTH();
+        }
         return ConvertToExecutorPropertyTH(idmCallback->propertyInfoInner, idmCallback->keys);
     }
 
@@ -1356,6 +1360,12 @@ public:
 
         std::shared_ptr<THGetPropCallback> getPropCallback =
             std::make_shared<THGetPropCallback>(getPropertyRequestInner);
+        getPropCallback->isGetById = true;
+        if (credentialId.size() != sizeof(uint64_t)) {
+            AccountSA::Attributes extraInfo;
+            getPropCallback->OnResult(ERR_JS_CREDENTIAL_NOT_EXIST, extraInfo);
+            return CreateEmptyExecutorPropertyTH();
+        }
         AccountSA::AccountIAMClient::GetInstance().GetPropertyByCredentialId(id,
             getPropertyRequestInner, getPropCallback);
         std::unique_lock<std::mutex> lock(getPropCallback->mutex);
@@ -1499,6 +1509,7 @@ public:
         if (errCode == ERR_OK) {
             parcel.ReadBool(isHasDomainAccount_);
         }
+        SetTaiheBusinessErrorFromNativeCode(errCode);
         cv_.notify_one();
     }
 private:

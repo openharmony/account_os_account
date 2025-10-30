@@ -149,6 +149,7 @@ OsAccountInfo ConvertOsAccountInfo(const AccountSA::OsAccountInfo &innerInfo)
 AccountSA::CreateOsAccountOptions ConvertToInnerOptions(optional_view<CreateOsAccountOptions> options)
 {
     AccountSA::CreateOsAccountOptions innerOptions;
+    innerOptions.hasShortName = false;
 
     if (!options.has_value()) {
         return innerOptions;
@@ -156,8 +157,24 @@ AccountSA::CreateOsAccountOptions ConvertToInnerOptions(optional_view<CreateOsAc
 
     const auto &opts = options.value();
 
-    innerOptions.shortName = std::string(opts.shortName.data(), opts.shortName.size());
-    innerOptions.hasShortName = true;
+    if (opts.shortName.has_value()) {
+        innerOptions.shortName = std::string(opts.shortName.value().data(), opts.shortName.value().size());
+        innerOptions.hasShortName = true;
+    }
+
+    if (opts.disallowedPreinstalledBundles.has_value()) {
+        for (const auto &bundleName : opts.disallowedPreinstalledBundles.value()) {
+            innerOptions.disallowedHapList.emplace_back(bundleName.data(), bundleName.size());
+        }
+    }
+
+    if (opts.allowedPreinstalledBundles.has_value()) {
+        std::vector<std::string> allowedList;
+        for (const auto &bundleName : opts.allowedPreinstalledBundles.value()) {
+            allowedList.emplace_back(bundleName.data(), bundleName.size());
+        }
+        innerOptions.allowedHapList = allowedList;
+    }
 
     return innerOptions;
 }
@@ -261,7 +278,7 @@ public:
         return false;
     }
 
-    void Subsribe(std::string name, AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE type,
+    void Subscribe(std::string name, AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE type,
                   std::shared_ptr<active_callback> activeCallback, std::shared_ptr<switch_callback> switchCallback)
     {
         AccountSA::SubscribeCBInfo *subscribeCBInfo = new (std::nothrow) AccountSA::SubscribeCBInfo();
@@ -337,15 +354,8 @@ public:
         }
     }
 
-    void on(string_view type, string_view name, callback_view<void(int32_t)> callback)
+    void OnActivate(string_view name, callback_view<void(int32_t)> callback)
     {
-        if (type.size() == 0 || (type != "activate" && type != "activating")) {
-            ACCOUNT_LOGE("Subscriber name size %{public}zu is invalid.", name.size());
-            std::string errMsg =
-                "Parameter error. The content of \"type\" must be \"activate|activating|switched|switching\"";
-            taihe::set_business_error(ERR_JS_INVALID_PARAMETER, errMsg);
-            return;
-        }
         if (name.size() == 0 || name.size() > MAX_SUBSCRIBER_NAME_LEN) {
             ACCOUNT_LOGE("Subscriber name size %{public}zu is invalid.", name.size());
             std::string errMsg = "Parameter error. The length of \"name\" is invalid";
@@ -353,21 +363,25 @@ public:
             return;
         }
         active_callback call = callback;
-        Subsribe(name.data(),
-                 type == "activate" ? AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATED
-                                    : AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING,
-                 std::make_shared<active_callback>(call), nullptr);
+        Subscribe(name.data(), AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATED,
+            std::make_shared<active_callback>(call), nullptr);
     }
 
-    void off(string_view type, string_view name, optional_view<callback<void(int32_t)>> callback)
+    void OnActivating(string_view name, callback_view<void(int32_t)> callback)
     {
-        if (type.size() == 0 || (type != "activate" && type != "activating")) {
+        if (name.size() == 0 || name.size() > MAX_SUBSCRIBER_NAME_LEN) {
             ACCOUNT_LOGE("Subscriber name size %{public}zu is invalid.", name.size());
-            std::string errMsg =
-                "Parameter error. The content of \"type\" must be \"activate|activating|switched|switching\"";
+            std::string errMsg = "Parameter error. The length of \"name\" is invalid";
             taihe::set_business_error(ERR_JS_INVALID_PARAMETER, errMsg);
             return;
         }
+        active_callback call = callback;
+        Subscribe(name.data(), AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING,
+            std::make_shared<active_callback>(call), nullptr);
+    }
+
+    void OffActivate(string_view name, optional_view<callback<void(int32_t)>> callback)
+    {
         if (name.size() == 0 || name.size() > MAX_SUBSCRIBER_NAME_LEN) {
             ACCOUNT_LOGE("Subscriber name size %{public}zu is invalid.", name.size());
             std::string errMsg = "Parameter error. The length of \"name\" is invalid";
@@ -379,22 +393,36 @@ public:
             active_callback call = callback.value();
             activeCallback = std::make_shared<active_callback>(call);
         }
-        Unsubscribe(name.data(),
-                    type == "activate" ? AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATED
-                                       : AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING,
-                    activeCallback, nullptr);
+        Unsubscribe(name.data(), AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATED, activeCallback, nullptr);
+    }
+
+    void OffActivating(string_view name, optional_view<callback<void(int32_t)>> callback)
+    {
+        if (name.size() == 0 || name.size() > MAX_SUBSCRIBER_NAME_LEN) {
+            ACCOUNT_LOGE("Subscriber name size %{public}zu is invalid.", name.size());
+            std::string errMsg = "Parameter error. The length of \"name\" is invalid";
+            taihe::set_business_error(ERR_JS_INVALID_PARAMETER, errMsg);
+            return;
+        }
+        std::shared_ptr<active_callback> activeCallback = nullptr;
+        if (callback.has_value()) {
+            active_callback call = callback.value();
+            activeCallback = std::make_shared<active_callback>(call);
+        }
+        Unsubscribe(name.data(), AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING, activeCallback, nullptr);
     }
 
     void OnSwitching(callback_view<void(OsAccountSwitchEventData const &)> callback)
     {
         switch_callback call = callback;
-        Subsribe("", AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING, nullptr, std::make_shared<switch_callback>(call));
+        Subscribe("", AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHING,
+            nullptr, std::make_shared<switch_callback>(call));
     }
 
     void OnSwitched(callback_view<void(OsAccountSwitchEventData const &)> callback)
     {
         switch_callback call = callback;
-        Subsribe("", AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, nullptr, std::make_shared<switch_callback>(call));
+        Subscribe("", AccountSA::OS_ACCOUNT_SUBSCRIBE_TYPE::SWITCHED, nullptr, std::make_shared<switch_callback>(call));
     }
 
     void OffSwitching(optional_view<callback<void(OsAccountSwitchEventData const &)>> callback)
@@ -449,22 +477,19 @@ public:
         std::string name(localName.data(), localName.size());
         AccountSA::OsAccountType innerType = static_cast<AccountSA::OsAccountType>(type.get_value());
 
+        ErrCode errCode;
         if (options.has_value()) {
-            const auto &opts = options.value();
-            std::string shortName(opts.shortName.data(), opts.shortName.size());
-
             AccountSA::CreateOsAccountOptions innerOptions = ConvertToInnerOptions(options);
-            ErrCode errCode =
-                AccountSA::OsAccountManager::CreateOsAccount(name, shortName, innerType, innerOptions, innerInfo);
-            if (errCode != ERR_OK) {
-                SetTaiheBusinessErrorFromNativeCode(errCode);
-            }
+            errCode = AccountSA::OsAccountManager::CreateOsAccount(
+                name, innerOptions.shortName, innerType, innerOptions, innerInfo);
         } else {
-            ErrCode errCode = AccountSA::OsAccountManager::CreateOsAccount(name, innerType, innerInfo);
-            if (errCode != ERR_OK) {
-                SetTaiheBusinessErrorFromNativeCode(errCode);
-            }
+            errCode = AccountSA::OsAccountManager::CreateOsAccount(name, innerType, innerInfo);
         }
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("CreateOsAccount failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+
         OsAccountInfo info = ConvertOsAccountInfo(innerInfo);
         return info;
     }
@@ -624,7 +649,7 @@ public:
         return id;
     }
 
-    int32_t GetSerialNumberForOsAccountLocalIdSync(int32_t localId)
+    int64_t GetSerialNumberForOsAccountLocalIdSync(int32_t localId)
     {
         int64_t serialNum = -1;
         ErrCode errorCode = AccountSA::OsAccountManager::GetSerialNumberByOsAccountLocalId(localId, serialNum);
@@ -633,7 +658,7 @@ public:
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
         }
 
-        return static_cast<int32_t>(serialNum);
+        return serialNum;
     }
 
     int32_t GetBundleIdForUidWithIdSync(int32_t uid)
@@ -743,6 +768,10 @@ public:
     bool IsOsAccountActivatedSync(int32_t localId)
     {
         bool isOsAccountActived;
+        if (AccountSA::AccountPermissionManager::CheckSystemApp(false) != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(ERR_JS_IS_NOT_SYSTEM_APP);
+            return isOsAccountActived;
+        }
         ErrCode errCode = AccountSA::OsAccountManager::IsOsAccountActived(localId, isOsAccountActived);
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("IsOsAccountActivatedSync failed with errCode: %{public}d", errCode);
@@ -777,6 +806,10 @@ public:
     bool IsOsAccountConstraintEnabledWithId(int32_t localId, string_view constraint)
     {
         bool isConsEnabled;
+        if (AccountSA::AccountPermissionManager::CheckSystemApp(false) != ERR_OK) {
+            SetTaiheBusinessErrorFromNativeCode(ERR_JS_IS_NOT_SYSTEM_APP);
+            return isConsEnabled;
+        }
         std::string innerConstraint(constraint.data(), constraint.size());
         ErrCode errCode = AccountSA::OsAccountManager::CheckOsAccountConstraintEnabled(localId,
             innerConstraint, isConsEnabled);
@@ -940,9 +973,10 @@ public:
         AccountSA::DomainAccountInfo innerDomainAccountInfo = ConvertToDomainAccountInfoInner(domainInfo);
         AccountSA::CreateOsAccountForDomainOptions innerOptions;
         innerOptions.hasShortName = false;
-        if (options.has_value() && options.value().options.shortName != "") {
-            std::string innerShortName(options.value().options.shortName.data(),
-                options.value().options.shortName.size());
+        if (options.has_value() && options.value().options.shortName.has_value() &&
+            options.value().options.shortName.value() != "") {
+            std::string innerShortName(options.value().options.shortName.value().data(),
+                options.value().options.shortName.value().size());
             innerOptions.shortName = innerShortName;
             innerOptions.hasShortName = true;
         }
@@ -965,12 +999,15 @@ public:
         return ConvertOsAccountInfo(createDomainCallback->osAccountInfos_);
     }
 
-    DomainAccountInfo GetOsAccountDomainInfoSync(int32_t localId)
+    DomainAccountInfoOrNull GetOsAccountDomainInfoSync(int32_t localId)
     {
         AccountSA::DomainAccountInfo innerDomainInfo;
         ErrCode errCode = AccountSA::OsAccountManager::GetOsAccountDomainInfo(localId, innerDomainInfo);
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("GetOsAccountDomainInfoSync failed with errCode: %{public}d", errCode);
+            if (errCode == ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT) {
+                return DomainAccountInfoOrNull::make_nullData();
+            }
             SetTaiheBusinessErrorFromNativeCode(errCode);
         }
         DomainAccountInfo domainAccountInfo = DomainAccountInfo {
@@ -980,7 +1017,7 @@ public:
             .isAuthenticated = optional<bool>(std::in_place, innerDomainInfo.isAuthenticated),
             .serverConfigId = optional<string>(std::in_place, innerDomainInfo.serverConfigId_),
         };
-        return domainAccountInfo;
+        return DomainAccountInfoOrNull::make_infoData(domainAccountInfo);
     }
 
     string QueryDistributedVirtualDeviceIdSync()
