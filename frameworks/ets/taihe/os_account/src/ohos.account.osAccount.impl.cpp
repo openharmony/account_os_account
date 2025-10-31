@@ -40,11 +40,14 @@
 #include "taihe_account_info.h"
 #include "user_idm_client.h"
 #include "user_idm_client_defines.h"
+#include "event_handler.h"
+#include "event_runner.h"
 
 #include <cstdint>
 #include <memory>
 #include <optional>
 #include <stdexcept>
+#include <thread>
 #include <vector>
 
 using namespace taihe;
@@ -192,10 +195,12 @@ inline ohos::account::osAccount::RequestResult ConvertToRequestResult(const User
     return result;
 }
 
-class TaiheIDMCallbackAdapter : public AccountSA::IDMCallback {
+class TaiheIDMCallbackAdapter : public AccountSA::IDMCallback,
+                                public std::enable_shared_from_this<TaiheIDMCallbackAdapter> {
 public:
-    explicit TaiheIDMCallbackAdapter(const ohos::account::osAccount::IIdmCallback &taiheCallback)
-        : taiheCallback_(taiheCallback)
+    explicit TaiheIDMCallbackAdapter(const ohos::account::osAccount::IIdmCallback &taiheCallback,
+        const std::shared_ptr<AppExecFwk::EventHandler> &handler)
+        : taiheCallback_(taiheCallback), handler_(handler)
     {
     }
 
@@ -203,22 +208,41 @@ public:
 
     void OnResult(int32_t result, const UserIam::UserAuth::Attributes &extraInfo) override
     {
+        if (!handler_) {
+            return;
+        }
         ohos::account::osAccount::RequestResult reqResult = ConvertToRequestResult(extraInfo);
-        taiheCallback_.onResult(AccountIAMConvertToJSErrCode(result), reqResult);
+        int32_t jsErrCode = AccountIAMConvertToJSErrCode(result);
+        auto self = shared_from_this();
+        auto task = [self, jsErrCode, reqResult]() {
+            taihe::env_guard guard;
+            self->taiheCallback_.onResult(jsErrCode, reqResult);
+        };
+        handler_->PostTask(task, "OnResult", 0, OHOS::AppExecFwk::EventQueue::Priority::VIP, {});
     }
 
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const UserIam::UserAuth::Attributes &extraInfo) override
     {
-        if (taiheCallback_.onAcquireInfo.has_value()) {
-            std::vector<uint8_t> extraDataVec;
-            extraInfo.GetUint8ArrayValue(AccountSA::Attributes::AttributeKey::ATTR_EXTRA_INFO, extraDataVec);
-            taihe::array_view<uint8_t> extraDataView(extraDataVec.data(), extraDataVec.size());
-            taiheCallback_.onAcquireInfo.value()(module, acquireInfo, extraDataView);
+        if (!handler_ || !taiheCallback_.onAcquireInfo.has_value()) {
+            return;
         }
+        std::vector<uint8_t> extraDataVec;
+        extraInfo.GetUint8ArrayValue(AccountSA::Attributes::AttributeKey::ATTR_EXTRA_INFO, extraDataVec);
+        auto self = shared_from_this();
+        auto task = [self, module, acquireInfo, extraData = std::move(extraDataVec)]() mutable {
+            taihe::env_guard guard;
+            if (!self->taiheCallback_.onAcquireInfo.has_value()) {
+                return;
+            }
+            taihe::array_view<uint8_t> extraDataView(extraData.data(), extraData.size());
+            self->taiheCallback_.onAcquireInfo.value()(module, acquireInfo, extraDataView);
+        };
+        handler_->PostTask(task, "OnAcquireInfo", 0, OHOS::AppExecFwk::EventQueue::Priority::VIP, {});
     }
 
 private:
     ohos::account::osAccount::IIdmCallback taiheCallback_;
+    std::shared_ptr<AppExecFwk::EventHandler> handler_;
 };
 
 AuthType ConvertToAuthTypeTH(const AccountSA::AuthType &type)
@@ -472,8 +496,13 @@ public:
     void AddCredential(const CredentialInfo &info, const IIdmCallback &callback)
     {
         AccountSA::CredentialParameters innerCredInfo = ConvertToCredentialParameters(info);
-        ErrCode nativeErrCode = ERR_OK;
-        std::shared_ptr<AccountSA::IDMCallback> idmCallbackPtr = std::make_shared<TaiheIDMCallbackAdapter>(callback);
+        auto runner = AppExecFwk::EventRunner::GetMainEventRunner();
+        if (!runner) {
+            return;
+        }
+        auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+        std::shared_ptr<AccountSA::IDMCallback> idmCallbackPtr =
+            std::make_shared<TaiheIDMCallbackAdapter>(callback, handler);
         UserIam::UserAuth::Attributes emptyResult;
 
         int32_t userId = info.accountId.value_or(-1);
@@ -488,7 +517,13 @@ public:
     void UpdateCredential(const CredentialInfo &credentialInfo, const IIdmCallback &callback)
     {
         AccountSA::CredentialParameters innerCredInfo = ConvertToCredentialParameters(credentialInfo);
-        std::shared_ptr<AccountSA::IDMCallback> idmCallbackPtr = std::make_shared<TaiheIDMCallbackAdapter>(callback);
+        auto runner = AppExecFwk::EventRunner::GetMainEventRunner();
+        if (!runner) {
+            return;
+        }
+        auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+        std::shared_ptr<AccountSA::IDMCallback> idmCallbackPtr =
+            std::make_shared<TaiheIDMCallbackAdapter>(callback, handler);
         UserIam::UserAuth::Attributes emptyResult;
 
         int32_t userId = credentialInfo.accountId.value_or(-1);
@@ -504,7 +539,13 @@ public:
     {
         const int32_t defaultUserId = -1;
         std::vector<uint8_t> authTokenVec(token.data(), token.data() + token.size());
-        std::shared_ptr<AccountSA::IDMCallback> idmCallbackPtr = std::make_shared<TaiheIDMCallbackAdapter>(callback);
+        auto runner = AppExecFwk::EventRunner::GetMainEventRunner();
+        if (!runner) {
+            return;
+        }
+        auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+        std::shared_ptr<AccountSA::IDMCallback> idmCallbackPtr =
+            std::make_shared<TaiheIDMCallbackAdapter>(callback, handler);
 
         AccountSA::AccountIAMClient::GetInstance().DelUser(defaultUserId, authTokenVec, idmCallbackPtr);
     }
@@ -534,7 +575,13 @@ public:
             credentialIdUint64 = (credentialIdUint64 << CONTEXTID_OFFSET);
             credentialIdUint64 += each;
         }
-        std::shared_ptr<AccountSA::IDMCallback> idmCallbackPtr = std::make_shared<TaiheIDMCallbackAdapter>(callback);
+        auto runner = AppExecFwk::EventRunner::GetMainEventRunner();
+        if (!runner) {
+            return;
+        }
+        auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+        std::shared_ptr<AccountSA::IDMCallback> idmCallbackPtr =
+            std::make_shared<TaiheIDMCallbackAdapter>(callback, handler);
         AccountSA::AccountIAMClient::GetInstance().DelCred(accountId, credentialIdUint64, innerToken, idmCallbackPtr);
     }
 
