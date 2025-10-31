@@ -370,6 +370,8 @@ struct GetInputDataOptions {
 
 struct CreateOsAccountOptions {
     shortName: Optional<String>;
+    disallowedPreinstalledBundles: Optional<Array<String>>;
+    allowedPreinstalledBundles: Optional<Array<String>>;
 }
 
 struct GetAuthInfoOptions {
