@@ -557,6 +557,12 @@ public:
 
     void CancelWithChallenge(array_view<uint8_t> challenge)
     {
+        if (challenge.size() < sizeof(uint64_t)) {
+            ACCOUNT_LOGE("credentialId size is invalid.");
+            std::string errMsg = "Parameter error. The type of \"challenge\" must be Uint8Array";
+            taihe::set_business_error(ERR_JS_PARAMETER_ERROR, errMsg);
+            return;
+        }
         int32_t ret = AccountSA::AccountIAMClient::GetInstance().Cancel(-1); // -1 indicates the current user
         if (ret != ERR_OK) {
             ACCOUNT_LOGE("Failed to cancel account, ret = %{public}d", ret);
@@ -1446,15 +1452,23 @@ public:
 
     class THPrepareRemoteAuthCallback : public AccountSA::PreRemoteAuthCallback {
     public:
+        std::mutex mutex;
+        std::condition_variable cv;
+        bool onResultCalled = false;
+        int32_t errCode = 0;
 
         void OnResult(int32_t result) override
         {
-            std::lock_guard<std::mutex> lock(mutex_);
+            std::lock_guard<std::mutex> lock(mutex);
             ACCOUNT_LOGI("Post OnResult task finish");
+            if (onResultCalled) {
+                ACCOUNT_LOGE("OnResult called more than once");
+                return;
+            }
+            onResultCalled = true;
+            errCode = result;
+            cv.notify_one();
         }
-
-    private:
-        std::mutex mutex_;
     };
 
     void PrepareRemoteAuthSync(string_view remoteNetworkId)
@@ -1465,7 +1479,16 @@ public:
         ErrCode errorCode = AccountSA::AccountIAMClient::GetInstance().PrepareRemoteAuth(innerRemoteNetworkId,
             prepareRemoteAuthCallback);
         if (errorCode != ERR_OK) {
-            int32_t jsErrCode = GenerateBusinessErrorCode(errorCode);
+            ACCOUNT_LOGE("PrepareRemoteAuth failed");
+            int32_t jsErrCode = AccountIAMConvertToJSErrCode(errorCode);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return;
+        }
+        std::unique_lock<std::mutex> lock(prepareRemoteAuthCallback->mutex);
+        prepareRemoteAuthCallback->cv.wait(
+            lock, [prepareRemoteAuthCallback] { return prepareRemoteAuthCallback->onResultCalled; });
+        if (prepareRemoteAuthCallback->errCode != ERR_OK) {
+            int32_t jsErrCode = AccountIAMConvertToJSErrCode(prepareRemoteAuthCallback->errCode);
             taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
         }
     }
