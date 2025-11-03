@@ -124,7 +124,7 @@ ErrCode NapiAppAccountAuthenticator::AddAccountImplicitly(
     param->callerBundleName = callerBundleName;
     param->options = options;
     param->callback = callback;
-    if (napi_ok != napi_send_event(env_, AddAccountImplicitlyWork(param), napi_eprio_vip)) {
+    if (napi_ok != napi_send_event(env_, AddAccountImplicitlyWork(param), napi_eprio_vip, "AddAccountImplicitly")) {
         ACCOUNT_LOGE("Post task failed");
         funcResult = ERR_APPACCOUNT_SERVICE_OTHER;
         return ERR_OK;
@@ -150,7 +150,7 @@ ErrCode NapiAppAccountAuthenticator::Authenticate(
     param->callerBundleName = appAccountAuthenticatorStringInfo.callerBundleName;
     param->options = options;
     param->callback = callback;
-    if (napi_ok != napi_send_event(env_, AuthenticateWork(param), napi_eprio_vip)) {
+    if (napi_ok != napi_send_event(env_, AuthenticateWork(param), napi_eprio_vip, "Authenticate")) {
         ACCOUNT_LOGE("Post task failed");
         funcResult = ERR_APPACCOUNT_SERVICE_OTHER;
         return ERR_OK;
@@ -172,7 +172,8 @@ ErrCode NapiAppAccountAuthenticator::CreateAccountImplicitly(
     param->jsAuthenticator = jsAuthenticator_;
     param->createOptions = options;
     param->callback = callback;
-    if (napi_ok != napi_send_event(env_, CreateAccountImplicitlyWork(param), napi_eprio_vip)) {
+    if (napi_ok != napi_send_event(
+        env_, CreateAccountImplicitlyWork(param), napi_eprio_vip, "CreateAccountImplicitly")) {
         ACCOUNT_LOGE("Post task failed");
         funcResult = ERR_APPACCOUNT_SERVICE_OTHER;
         return ERR_OK;
@@ -196,7 +197,7 @@ ErrCode NapiAppAccountAuthenticator::Auth(const std::string &name, const std::st
     param->name = name;
     param->options = options;
     param->callback = callback;
-    if (napi_ok != napi_send_event(env_, AuthWork(param), napi_eprio_vip)) {
+    if (napi_ok != napi_send_event(env_, AuthWork(param), napi_eprio_vip, "Auth")) {
         ACCOUNT_LOGE("Post task failed");
         funcResult = ERR_APPACCOUNT_SERVICE_OTHER;
         return ERR_OK;
@@ -220,7 +221,7 @@ ErrCode NapiAppAccountAuthenticator::VerifyCredential(
     param->verifyCredOptions = options;
     param->name = name;
     param->callback = callback;
-    if (napi_ok != napi_send_event(env_, VerifyCredentialWork(param), napi_eprio_vip)) {
+    if (napi_ok != napi_send_event(env_, VerifyCredentialWork(param), napi_eprio_vip, "VerifyCredential")) {
         ACCOUNT_LOGE("Post task failed");
         funcResult = ERR_APPACCOUNT_SERVICE_OTHER;
         return ERR_OK;
@@ -242,7 +243,7 @@ ErrCode NapiAppAccountAuthenticator::SetProperties(
     param->jsAuthenticator = jsAuthenticator_;
     param->setPropOptions = options;
     param->callback = callback;
-    if (napi_ok != napi_send_event(env_, SetPropertiesWork(param), napi_eprio_vip)) {
+    if (napi_ok != napi_send_event(env_, SetPropertiesWork(param), napi_eprio_vip, "SetProperties")) {
         ACCOUNT_LOGE("Post task failed");
         funcResult = ERR_APPACCOUNT_SERVICE_OTHER;
         return ERR_OK;
@@ -266,7 +267,7 @@ ErrCode NapiAppAccountAuthenticator::CheckAccountLabels(
     param->labels = labels;
     param->name = name;
     param->callback = callback;
-    if (napi_ok != napi_send_event(env_, CheckAccountLabelsWork(param), napi_eprio_vip)) {
+    if (napi_ok != napi_send_event(env_, CheckAccountLabelsWork(param), napi_eprio_vip, "CheckAccountLabels")) {
         ACCOUNT_LOGE("Post task failed");
         funcResult = ERR_APPACCOUNT_SERVICE_OTHER;
         return ERR_OK;
@@ -288,7 +289,7 @@ ErrCode NapiAppAccountAuthenticator::IsAccountRemovable(const std::string &name,
     param->jsAuthenticator = jsAuthenticator_;
     param->name = name;
     param->callback = callback;
-    if (napi_ok != napi_send_event(env_, IsAccountRemovableWork(param), napi_eprio_vip)) {
+    if (napi_ok != napi_send_event(env_, IsAccountRemovableWork(param), napi_eprio_vip, "IsAccountRemovable")) {
         ACCOUNT_LOGE("Post task failed");
         funcResult = ERR_APPACCOUNT_SERVICE_OTHER;
         return ERR_OK;
