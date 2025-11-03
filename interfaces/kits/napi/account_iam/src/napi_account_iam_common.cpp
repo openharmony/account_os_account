@@ -79,7 +79,7 @@ void NapiIDMCallback::OnResult(int32_t result, const Attributes &extraInfo)
         napi_close_handle_scope(param->env, scope);
         return;
     };
-    if (napi_status::napi_ok !=  napi_send_event(env_, task, napi_eprio_vip)) {
+    if (napi_status::napi_ok !=  napi_send_event(env_, task, napi_eprio_vip, "NapiIDMCallback")) {
         ACCOUNT_LOGE("Failed to send event for auth");
         return;
     }
@@ -123,7 +123,8 @@ void NapiIDMCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const 
         napi_close_handle_scope(param->env, scope);
         return;
     };
-    if (napi_status::napi_ok !=  napi_send_event(env_, task, napi_eprio_vip)) {
+    if (napi_status::napi_ok !=  napi_send_event(
+        env_, task, napi_eprio_vip, "NapiIDMCallback::OnAcquireInfo")) {
         ACCOUNT_LOGE("Failed to send event for auth");
         return;
     }
@@ -490,7 +491,7 @@ void NapiUserAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         delete param;
         return;
     };
-    if (napi_status::napi_ok !=  napi_send_event(env_, task, napi_eprio_vip)) {
+    if (napi_status::napi_ok !=  napi_send_event(env_, task, napi_eprio_vip, "NapiUserAuthCallback")) {
         delete param;
         return;
     }
@@ -535,7 +536,8 @@ void NapiUserAuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, c
         delete param;
         return;
     };
-    if (napi_status::napi_ok !=  napi_send_event(env_, task, napi_eprio_vip)) {
+    if (napi_status::napi_ok !=  napi_send_event(
+        env_, task, napi_eprio_vip, "NapiUserAuthCallback::OnAcquireInfo")) {
         ACCOUNT_LOGE("Failed to send event for auth");
         delete param;
         return;
@@ -595,7 +597,7 @@ void NapiGetInfoCallback::OnCredentialInfo(int32_t result, const std::vector<Acc
         napi_close_handle_scope(context->env, scope);
         return;
     };
-    if (napi_status::napi_ok !=  napi_send_event(env_, task, napi_eprio_vip)) {
+    if (napi_status::napi_ok !=  napi_send_event(env_, task, napi_eprio_vip, "OnCredentialInfo")) {
         ACCOUNT_LOGE("Failed to send event for auth");
         return;
     }
@@ -642,7 +644,7 @@ void NapiGetEnrolledIdCallback::OnEnrolledId(int32_t result, uint64_t enrolledId
         napi_close_handle_scope(env, scope);
         return;
     };
-    if (napi_status::napi_ok !=  napi_send_event(env_, task, napi_eprio_vip)) {
+    if (napi_status::napi_ok !=  napi_send_event(env_, task, napi_eprio_vip, "OnEnrolledId")) {
         ACCOUNT_LOGE("Failed to send event for auth");
         return;
     }
@@ -733,7 +735,7 @@ void NapiGetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attr
         napi_close_handle_scope(context->env, scope);
         return;
     };
-    if (napi_status::napi_ok !=  napi_send_event(env_, task, napi_eprio_vip)) {
+    if (napi_status::napi_ok !=  napi_send_event(env_, task, napi_eprio_vip, "NapiGetPropCallback")) {
         ACCOUNT_LOGE("Failed to send event for auth");
         return;
     }
@@ -805,7 +807,7 @@ void NapiPrepareRemoteAuthCallback::OnResult(int32_t result)
         napi_close_handle_scope(context->env, scope);
         return;
     };
-    if (napi_status::napi_ok !=  napi_send_event(env_, task, napi_eprio_vip)) {
+    if (napi_status::napi_ok !=  napi_send_event(env_, task, napi_eprio_vip, "NapiPrepareRemoteAuthCallback")) {
         ACCOUNT_LOGE("Failed to send event for auth");
         return;
     }
@@ -857,7 +859,7 @@ void NapiSetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attr
         napi_close_handle_scope(env, scope);
         return;
     };
-    if (napi_status::napi_ok !=  napi_send_event(env_, task, napi_eprio_vip)) {
+    if (napi_status::napi_ok !=  napi_send_event(env_, task, napi_eprio_vip, "NapiSetPropCallback")) {
         ACCOUNT_LOGE("Failed to send event for auth");
         return;
     }
@@ -912,7 +914,7 @@ void NapiGetDataCallback::OnGetData(int32_t authSubType, std::vector<uint8_t> ch
         napi_close_handle_scope(env, scope);
         return;
     };
-    if (napi_status::napi_ok !=  napi_send_event(env_, task, napi_eprio_vip)) {
+    if (napi_status::napi_ok !=  napi_send_event(env_, task, napi_eprio_vip, "OnGetData")) {
         ACCOUNT_LOGE("Failed to send event for auth");
         return;
     }

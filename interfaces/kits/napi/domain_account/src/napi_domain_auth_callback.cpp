@@ -217,7 +217,7 @@ void NapiDomainAccountCallback::OnResult(const int32_t errCode, Parcel &parcel)
     }
     param->authResult = (*authResult);
     param->callback = callback_;
-    if (napi_ok != napi_send_event(env_, DomainAuthResultWork(param), napi_eprio_vip)) {
+    if (napi_ok != napi_send_event(env_, DomainAuthResultWork(param), napi_eprio_vip, "NapiDomainAccountCallback")) {
         ACCOUNT_LOGE("Post task failed");
         return;
     }
