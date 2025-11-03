@@ -1325,14 +1325,17 @@ public:
             return CreateEmptyExecutorPropertyTH();
         }
 
+        if (request.accountId.has_value() && !AccountSA::IsAccountIdValid(request.accountId.value())) {
+            int32_t jsErrCode = AccountIAMConvertToJSErrCode(ERR_JS_ACCOUNT_NOT_FOUND);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return CreateEmptyExecutorPropertyTH();
+        }
+
         std::shared_ptr<THGetPropCallback> idmCallback =
             std::make_shared<THGetPropCallback>(getPropertyRequestInner.keys);
-        if (request.accountId.has_value() && !AccountSA::IsAccountIdValid(request.accountId.value())) {
-            idmCallback->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, AccountSA::Attributes());
-        } else {
-            AccountSA::AccountIAMClient::GetInstance().GetProperty(
-                request.accountId.value_or(-1), getPropertyRequestInner, idmCallback);
-        }
+        AccountSA::AccountIAMClient::GetInstance().GetProperty(
+            request.accountId.value_or(-1), getPropertyRequestInner, idmCallback);
+
         std::unique_lock<std::mutex> lock(idmCallback->mutex);
         idmCallback->cv.wait(lock, [idmCallback] { return idmCallback->onResultCalled; });
         if (idmCallback->errCode != ERR_OK) {
@@ -1410,15 +1413,18 @@ public:
             std::make_shared<THGetPropCallback>(getPropertyRequestInner);
         getPropCallback->isGetById = true;
         if (credentialId.size() != sizeof(uint64_t)) {
-            AccountSA::Attributes extraInfo;
-            getPropCallback->OnResult(ERR_JS_CREDENTIAL_NOT_EXIST, extraInfo);
+            taihe::set_business_error(ERR_JS_CREDENTIAL_NOT_EXIST, ConvertToJsErrMsg(ERR_JS_CREDENTIAL_NOT_EXIST));
             return CreateEmptyExecutorPropertyTH();
         }
         AccountSA::AccountIAMClient::GetInstance().GetPropertyByCredentialId(id,
             getPropertyRequestInner, getPropCallback);
         std::unique_lock<std::mutex> lock(getPropCallback->mutex);
         getPropCallback->cv.wait(lock, [getPropCallback] { return getPropCallback->onResultCalled; });
-
+        if (getPropCallback->errCode != ERR_OK) {
+            int32_t jsErrCode = AccountIAMConvertToJSErrCode(getPropCallback->errCode);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return CreateEmptyExecutorPropertyTH();
+        }
         return ConvertToExecutorPropertyTH(getPropCallback->propertyInfoInner, getPropCallback->keys);
     }
 
