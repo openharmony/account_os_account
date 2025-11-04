@@ -257,10 +257,12 @@ AuthType ConvertToAuthTypeTH(const AccountSA::AuthType &type)
             return AuthType(AuthType::key_t::FINGERPRINT);
         case AccountSA::AuthType::RECOVERY_KEY:
             return AuthType(AuthType::key_t::RECOVERY_KEY);
+        case AccountSA::AuthType::PRIVATE_PIN:
+            return AuthType(AuthType::key_t::PRIVATE_PIN);
         case AccountSA::IAMAuthType::DOMAIN:
             return AuthType(AuthType::key_t::DOMAIN);
         default:
-            SetTaiheBusinessErrorFromNativeCode(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+            ACCOUNT_LOGE("ConvertToAuthTypeTH: unknown auth type %{public}d", static_cast<int>(type));
             return AuthType(AuthType::key_t::INVALID);
     }
 }
@@ -564,7 +566,6 @@ public:
     void DelCred(array_view<uint8_t> credentialId, array_view<uint8_t> token, IIdmCallback const &callback)
     {
         int32_t accountId = -1;
-        uint64_t credentialIdUint64 = 0;
         std::vector<uint8_t> innerToken(token.data(), token.data() + token.size());
         if (credentialId.size() != sizeof(uint64_t)) {
             ACCOUNT_LOGE("credentialId size is invalid.");
@@ -572,10 +573,7 @@ public:
             taihe::set_business_error(ERR_JS_PARAMETER_ERROR, errMsg);
             return;
         }
-        for (auto each : credentialId) {
-            credentialIdUint64 = (credentialIdUint64 << CONTEXTID_OFFSET);
-            credentialIdUint64 += each;
-        }
+        uint64_t credentialIdUint64 = *(reinterpret_cast<const uint64_t *>(credentialId.data()));
         auto runner = AppExecFwk::EventRunner::GetMainEventRunner();
         if (!runner) {
             return;
@@ -1393,11 +1391,11 @@ public:
 
     ExecutorProperty GetPropertyByCredentialIdSync(array_view<uint8_t> credentialId, array_view<GetPropertyType> keys)
     {
-        uint64_t id = 0;
-        for (auto each : credentialId) {
-            id = (id << CONTEXTID_OFFSET);
-            id += each;
+        if (credentialId.size() != sizeof(uint64_t)) {
+            taihe::set_business_error(ERR_JS_CREDENTIAL_NOT_EXIST, ConvertToJsErrMsg(ERR_JS_CREDENTIAL_NOT_EXIST));
+            return CreateEmptyExecutorPropertyTH();
         }
+        uint64_t id = *(reinterpret_cast<const uint64_t *>(credentialId.data()));
 
         std::vector<OHOS::UserIam::UserAuth::Attributes::AttributeKey> getPropertyRequestInner;
         for (GetPropertyType each : keys) {
@@ -1412,10 +1410,6 @@ public:
         std::shared_ptr<THGetPropCallback> getPropCallback =
             std::make_shared<THGetPropCallback>(getPropertyRequestInner);
         getPropCallback->isGetById = true;
-        if (credentialId.size() != sizeof(uint64_t)) {
-            taihe::set_business_error(ERR_JS_CREDENTIAL_NOT_EXIST, ConvertToJsErrMsg(ERR_JS_CREDENTIAL_NOT_EXIST));
-            return CreateEmptyExecutorPropertyTH();
-        }
         AccountSA::AccountIAMClient::GetInstance().GetPropertyByCredentialId(id,
             getPropertyRequestInner, getPropCallback);
         std::unique_lock<std::mutex> lock(getPropCallback->mutex);
