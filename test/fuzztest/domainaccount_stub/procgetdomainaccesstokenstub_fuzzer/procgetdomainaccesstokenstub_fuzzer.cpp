@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "procaddserverconfigstub_fuzzer.h"
+#include "procgetdomainaccesstokenstub_fuzzer.h"
 
 #include <string>
 #include <vector>
@@ -29,6 +29,7 @@ using namespace OHOS::AccountSA;
 
 namespace OHOS {
 namespace {
+const int ENUM_MAX = 4;
 
 class TestGetDomainAccountInfoCallback : public DomainAccountCallbackStub {
 public:
@@ -45,33 +46,66 @@ ErrCode TestGetDomainAccountInfoCallback::OnResult(int32_t errCode, const Domain
 }
 }
 
-bool ProcAddServerConfigStubFuzzTest(const uint8_t* data, size_t size)
+bool ProcGetDomainAccessTokenStubFuzzTest(const uint8_t *data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
         return false;
     }
-    FuzzData fuzzData(data, size);
+
     MessageParcel dataTemp;
     if (!dataTemp.WriteInterfaceToken(DomainAccountStub::GetDescriptor())) {
         return false;
     }
-    if (!dataTemp.WriteString16(Str8ToStr16(fuzzData.GenerateString()))) {
+
+    DomainAccountInfo info;
+    FuzzData fuzzData(data, size);
+    info.domain_ = fuzzData.GenerateString();
+    info.accountName_ = fuzzData.GenerateString();
+    info.accountId_ = fuzzData.GenerateString();
+    info.isAuthenticated = fuzzData.GenerateBool();
+    info.serverConfigId_ = fuzzData.GenerateString();
+    int typeNumber = fuzzData.GetData<int>() % ENUM_MAX;
+    info.status_ = static_cast<DomainAccountStatus>(typeNumber);
+    if (fuzzData.GetData<bool>()) {
+        if (!dataTemp.WriteParcelable(&info)) {
+            return false;
+        }
+    }
+
+    AAFwk::WantParams workParams;
+    if (fuzzData.GetData<bool>()) {
+        if (!dataTemp.WriteParcelable(&workParams)) {
+            return false;
+        }
+    }
+
+    auto testCallback = new TestGetDomainAccountInfoCallback();
+
+    if (testCallback == nullptr) {
         return false;
     }
+    if (fuzzData.GetData<bool>()) {
+        if (!dataTemp.WriteRemoteObject(testCallback->AsObject())) {
+            return false;
+        }
+    }
+
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(IDomainAccountIpcCode::COMMAND_ADD_SERVER_CONFIG);
+    uint32_t code = static_cast<uint32_t>(IDomainAccountIpcCode::COMMAND_GET_ACCESS_TOKEN);
     auto domainAccountService = std::make_shared<DomainAccountManagerService>();
     domainAccountService->OnRemoteRequest(code, dataTemp, reply, option);
 
     return true;
 }
+
 }
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::ProcAddServerConfigStubFuzzTest(data, size);
+    OHOS::ProcGetDomainAccessTokenStubFuzzTest(data, size);
     return 0;
 }
+

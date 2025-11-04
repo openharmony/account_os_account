@@ -18,7 +18,8 @@ group("fuzztest") {
   deps = []
   if (os_account_support_domain_accounts) {
     deps += [
-      "authclient_fuzzer:AuthClientFuzzTest",
+      "authwithpopup_fuzzer:AuthWithPopUpFuzzTest",
+      "domainauthuser_fuzzer:DomainAuthUserFuzzTest",
       "getaccesstoken_fuzzer:GetAccessTokenFuzzTest",
       "getaccountpolicy_fuzzer:GetAccountPolicyFuzzTest",
       "getaccountstatus_fuzzer:GetAccountStatusFuzzTest",
