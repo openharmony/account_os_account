@@ -466,7 +466,7 @@ function UpdateAccountTokenSync(domainAccountInfo: DomainAccountInfo, token: @ty
 @static("DomainAccountManager")
 @gen_async("getAccessToken")
 @gen_promise("getAccessToken")
-function GetAccessTokenSync(businessParams: @sts_type("RecordData")Opaque): @typedarray Array<u8>;
+function GetAccessTokenSync(businessParams: @sts_type("Record<string, RecordData>")Opaque): @typedarray Array<u8>;
 
 @static("DomainAccountManager")
 @gen_async("getAccountInfo")
@@ -479,7 +479,7 @@ function UpdateAccountInfoSync(oldAccountInfo: DomainAccountInfo, newAccountInfo
 
 @static("DomainServerConfigManager")
 @gen_promise("addServerConfig")
-function AddServerConfigSync(parameters: @sts_type("RecordData")Opaque): DomainServerConfig;
+function AddServerConfigSync(parameters: @sts_type("Record<string, RecordData>")Opaque): DomainServerConfig;
 
 @static("DomainServerConfigManager")
 @gen_promise("removeServerConfig")
@@ -487,7 +487,7 @@ function RemoveServerConfigSync(configId: String);
 
 @static("DomainServerConfigManager")
 @gen_promise("updateServerConfig")
-function UpdateServerConfigSync(configId: String, parameters: @sts_type("RecordData")Opaque):DomainServerConfig;
+function UpdateServerConfigSync(configId: String, parameters: @sts_type("Record<string, RecordData>")Opaque):DomainServerConfig;
 
 @static("DomainServerConfigManager")
 @gen_promise("getServerConfig")
@@ -648,7 +648,7 @@ struct AuthStatusInfo {
 struct GetDomainAccessTokenOptions {
     domainAccountInfo: DomainAccountInfo;
     domainAccountToken: @typedarray Array<u8>;
-    businessParams: @sts_type("RecordData")Opaque;
+    businessParams: @sts_type("Record<string, RecordData>")Opaque;
     callerUid: i32;
 }
 
@@ -664,7 +664,7 @@ struct GetDomainAccountInfoPluginOptions {
 }
 
 struct DomainServerConfig {
-    parameters: @sts_type("RecordData")Opaque;
+    parameters: @sts_type("Record<string, RecordData>")Opaque;
     id: String;
     domain: String;
 }
