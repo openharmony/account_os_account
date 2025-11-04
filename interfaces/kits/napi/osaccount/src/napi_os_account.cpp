@@ -1622,7 +1622,7 @@ void SubscriberPtr::OnAccountsSubNotify(const int &newId, const int &oldId, cons
     subscriberOAWorker->ref = ref_;
     subscriberOAWorker->subscriber = this;
     auto task = OnAccountsSubNotifyTask(subscriberOAWorker);
-    if (napi_ok != napi_send_event(env_, task, napi_eprio_vip)) {
+    if (napi_ok != napi_send_event(env_, task, napi_eprio_vip, "OnAccountsSubNotify")) {
         ACCOUNT_LOGE("Post task failed");
         return;
     }
