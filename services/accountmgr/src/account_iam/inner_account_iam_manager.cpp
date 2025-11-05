@@ -508,16 +508,26 @@ void InnerAccountIAMManager::HandleFileKeyException(int32_t userId, const std::v
             userId, "readdCredential", -1, "Get secure uid timeout when restoring key context");
         return;
     }
+
+    auto userLock = GetOperatingUserLock(userId);
+    if (!userLock->try_lock()) {
+        ACCOUNT_LOGE("Failed to get user lock");
+        ReportOsAccountOperationFail(
+            userId, "readdCredential", ERR_ACCOUNT_COMMON_BUSY, "Failed to get user lock");
+        return;
+    }
     code = UpdateStorageUserAuth(userId, callback->secureUid_, token, {}, secret);
     if (code != ERR_OK) {
         ACCOUNT_LOGE("Restore user auth fail, userId: %{public}d", userId);
         ReportOsAccountOperationFail(userId, "readdCredential", code, "Failed to restore user auth");
+        userLock->unlock();
         return;
     }
     code = UpdateStorageKeyContext(userId);
     if (code != ERR_OK) {
         ACCOUNT_LOGE("Restore key context fail, userId:%{public}d", userId);
         ReportOsAccountOperationFail(userId, "readdCredential", code, "Failed to restore key context");
+        userLock->unlock();
         return;
     }
     ACCOUNT_LOGI("Restore key context successfully, userId:%{public}d", userId);
@@ -526,6 +536,7 @@ void InnerAccountIAMManager::HandleFileKeyException(int32_t userId, const std::v
         ReportOsAccountOperationFail(userId, "readdCredential", code,
             "Failed to delete iam_fault file after restoring key context");
     }
+    userLock->unlock();
 }
 
 IAMState InnerAccountIAMManager::GetState(int32_t userId)
@@ -676,6 +687,7 @@ ErrCode InnerAccountIAMManager::InnerGetLockScreenStatus(uint32_t userId, bool &
 ErrCode InnerAccountIAMManager::UnlockUserScreen(
     int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret)
 {
+    std::lock_guard<std::mutex> userLock(*GetOperatingUserLock(userId));
     int times = 0;
     ErrCode errCode = ERR_OK;
     while (times < MAX_RETRY_TIMES) {
@@ -711,6 +723,7 @@ ErrCode InnerAccountIAMManager::InnerUnlockUserScreen(
 ErrCode InnerAccountIAMManager::ActivateUserKey(
     int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret)
 {
+    std::lock_guard<std::mutex> userLock(*GetOperatingUserLock(userId));
     int times = 0;
     ErrCode errCode = ERR_OK;
     while (times < MAX_RETRY_TIMES) {
