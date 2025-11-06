@@ -56,7 +56,7 @@ struct AuthResult {
 struct CreateAccountImplicitlyOptions {
     requiredLabels: Optional<Array<String>>;
     authType: Optional<String>;
-    parameters: Optional<@sts_type("RecordData")Opaque>;
+    parameters: Optional<@sts_type("Record<string, RecordData>")Opaque>;
 }
 
 struct SelectAccountsOptions {
@@ -68,12 +68,12 @@ struct SelectAccountsOptions {
 struct VerifyCredentialOptions {
     credentialType: Optional<String>;
     credential: Optional<String>;
-    parameters: Optional<@sts_type("RecordData")Opaque>;
+    parameters: Optional<@sts_type("Record<string, RecordData>")Opaque>;
 }
 
 struct SetPropertiesOptions {
-    properties: Optional<@sts_type("RecordData")Opaque>;
-    parameters: Optional<@sts_type("RecordData")Opaque>;
+    properties: Optional<@sts_type("Record<string, RecordData>")Opaque>;
+    parameters: Optional<@sts_type("Record<string, RecordData>")Opaque>;
 }
 
 enum Constants: String {
@@ -236,7 +236,7 @@ interface AppAccountManager {
     AuthSync(name: String, owner: String, authType: String, callback: AuthCallback);
 
     @overload("auth")
-    AuthWithMap(name: String, owner: String, authType: String, options: @sts_type("RecordData")Opaque, callback: AuthCallback);
+    AuthWithMap(name: String, owner: String, authType: String, options: @sts_type("Record<string, RecordData>")Opaque, callback: AuthCallback);
 }
 
 @constructor ("Authenticator")@rename
@@ -246,7 +246,7 @@ function MakeAuthenticator(@sts_this self: Authenticator): Authenticator;
 interface Authenticator {
     CreateAccountImplicitly(options: CreateAccountImplicitlyOptions, callback: AuthCallback): void;
 
-    Auth(name: String, authType: String, options: @sts_type("RecordData")Opaque, callback: AuthCallback): void;
+    Auth(name: String, authType: String, options: @sts_type("Record<string, RecordData>")Opaque, callback: AuthCallback): void;
 
     SetProperties(options: SetPropertiesOptions, callback: AuthCallback): void;
 

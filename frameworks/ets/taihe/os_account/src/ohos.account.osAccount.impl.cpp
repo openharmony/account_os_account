@@ -40,11 +40,14 @@
 #include "taihe_account_info.h"
 #include "user_idm_client.h"
 #include "user_idm_client_defines.h"
+#include "event_handler.h"
+#include "event_runner.h"
 
 #include <cstdint>
 #include <memory>
 #include <optional>
 #include <stdexcept>
+#include <thread>
 #include <vector>
 
 using namespace taihe;
@@ -193,10 +196,12 @@ inline ohos::account::osAccount::RequestResult ConvertToRequestResult(const User
     return result;
 }
 
-class TaiheIDMCallbackAdapter : public AccountSA::IDMCallback {
+class TaiheIDMCallbackAdapter : public AccountSA::IDMCallback,
+                                public std::enable_shared_from_this<TaiheIDMCallbackAdapter> {
 public:
-    explicit TaiheIDMCallbackAdapter(const ohos::account::osAccount::IIdmCallback &taiheCallback)
-        : taiheCallback_(taiheCallback)
+    explicit TaiheIDMCallbackAdapter(const ohos::account::osAccount::IIdmCallback &taiheCallback,
+        const std::shared_ptr<AppExecFwk::EventHandler> &handler)
+        : taiheCallback_(taiheCallback), handler_(handler)
     {
     }
 
@@ -204,22 +209,41 @@ public:
 
     void OnResult(int32_t result, const UserIam::UserAuth::Attributes &extraInfo) override
     {
+        if (!handler_) {
+            return;
+        }
         ohos::account::osAccount::RequestResult reqResult = ConvertToRequestResult(extraInfo);
-        taiheCallback_.onResult(AccountIAMConvertToJSErrCode(result), reqResult);
+        int32_t jsErrCode = AccountIAMConvertToJSErrCode(result);
+        auto self = shared_from_this();
+        auto task = [self, jsErrCode, reqResult]() {
+            taihe::env_guard guard;
+            self->taiheCallback_.onResult(jsErrCode, reqResult);
+        };
+        handler_->PostTask(task, "OnResult", 0, OHOS::AppExecFwk::EventQueue::Priority::VIP, {});
     }
 
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const UserIam::UserAuth::Attributes &extraInfo) override
     {
-        if (taiheCallback_.onAcquireInfo.has_value()) {
-            std::vector<uint8_t> extraDataVec;
-            extraInfo.GetUint8ArrayValue(AccountSA::Attributes::AttributeKey::ATTR_EXTRA_INFO, extraDataVec);
-            taihe::array_view<uint8_t> extraDataView(extraDataVec.data(), extraDataVec.size());
-            taiheCallback_.onAcquireInfo.value()(module, acquireInfo, extraDataView);
+        if (!handler_ || !taiheCallback_.onAcquireInfo.has_value()) {
+            return;
         }
+        std::vector<uint8_t> extraDataVec;
+        extraInfo.GetUint8ArrayValue(AccountSA::Attributes::AttributeKey::ATTR_EXTRA_INFO, extraDataVec);
+        auto self = shared_from_this();
+        auto task = [self, module, acquireInfo, extraData = std::move(extraDataVec)]() mutable {
+            taihe::env_guard guard;
+            if (!self->taiheCallback_.onAcquireInfo.has_value()) {
+                return;
+            }
+            taihe::array_view<uint8_t> extraDataView(extraData.data(), extraData.size());
+            self->taiheCallback_.onAcquireInfo.value()(module, acquireInfo, extraDataView);
+        };
+        handler_->PostTask(task, "OnAcquireInfo", 0, OHOS::AppExecFwk::EventQueue::Priority::VIP, {});
     }
 
 private:
     ohos::account::osAccount::IIdmCallback taiheCallback_;
+    std::shared_ptr<AppExecFwk::EventHandler> handler_;
 };
 
 AuthType ConvertToAuthTypeTH(const AccountSA::AuthType &type)
@@ -233,10 +257,12 @@ AuthType ConvertToAuthTypeTH(const AccountSA::AuthType &type)
             return AuthType(AuthType::key_t::FINGERPRINT);
         case AccountSA::AuthType::RECOVERY_KEY:
             return AuthType(AuthType::key_t::RECOVERY_KEY);
+        case AccountSA::AuthType::PRIVATE_PIN:
+            return AuthType(AuthType::key_t::PRIVATE_PIN);
         case AccountSA::IAMAuthType::DOMAIN:
             return AuthType(AuthType::key_t::DOMAIN);
         default:
-            SetTaiheBusinessErrorFromNativeCode(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+            ACCOUNT_LOGE("ConvertToAuthTypeTH: unknown auth type %{public}d", static_cast<int>(type));
             return AuthType(AuthType::key_t::INVALID);
     }
 }
@@ -473,8 +499,13 @@ public:
     void AddCredential(const CredentialInfo &info, const IIdmCallback &callback)
     {
         AccountSA::CredentialParameters innerCredInfo = ConvertToCredentialParameters(info);
-        ErrCode nativeErrCode = ERR_OK;
-        std::shared_ptr<AccountSA::IDMCallback> idmCallbackPtr = std::make_shared<TaiheIDMCallbackAdapter>(callback);
+        auto runner = AppExecFwk::EventRunner::GetMainEventRunner();
+        if (!runner) {
+            return;
+        }
+        auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+        std::shared_ptr<AccountSA::IDMCallback> idmCallbackPtr =
+            std::make_shared<TaiheIDMCallbackAdapter>(callback, handler);
         UserIam::UserAuth::Attributes emptyResult;
 
         int32_t userId = info.accountId.value_or(-1);
@@ -489,7 +520,13 @@ public:
     void UpdateCredential(const CredentialInfo &credentialInfo, const IIdmCallback &callback)
     {
         AccountSA::CredentialParameters innerCredInfo = ConvertToCredentialParameters(credentialInfo);
-        std::shared_ptr<AccountSA::IDMCallback> idmCallbackPtr = std::make_shared<TaiheIDMCallbackAdapter>(callback);
+        auto runner = AppExecFwk::EventRunner::GetMainEventRunner();
+        if (!runner) {
+            return;
+        }
+        auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+        std::shared_ptr<AccountSA::IDMCallback> idmCallbackPtr =
+            std::make_shared<TaiheIDMCallbackAdapter>(callback, handler);
         UserIam::UserAuth::Attributes emptyResult;
 
         int32_t userId = credentialInfo.accountId.value_or(-1);
@@ -505,7 +542,13 @@ public:
     {
         const int32_t defaultUserId = -1;
         std::vector<uint8_t> authTokenVec(token.data(), token.data() + token.size());
-        std::shared_ptr<AccountSA::IDMCallback> idmCallbackPtr = std::make_shared<TaiheIDMCallbackAdapter>(callback);
+        auto runner = AppExecFwk::EventRunner::GetMainEventRunner();
+        if (!runner) {
+            return;
+        }
+        auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+        std::shared_ptr<AccountSA::IDMCallback> idmCallbackPtr =
+            std::make_shared<TaiheIDMCallbackAdapter>(callback, handler);
 
         AccountSA::AccountIAMClient::GetInstance().DelUser(defaultUserId, authTokenVec, idmCallbackPtr);
     }
@@ -523,7 +566,6 @@ public:
     void DelCred(array_view<uint8_t> credentialId, array_view<uint8_t> token, IIdmCallback const &callback)
     {
         int32_t accountId = -1;
-        uint64_t credentialIdUint64 = 0;
         std::vector<uint8_t> innerToken(token.data(), token.data() + token.size());
         if (credentialId.size() != sizeof(uint64_t)) {
             ACCOUNT_LOGE("credentialId size is invalid.");
@@ -531,11 +573,14 @@ public:
             taihe::set_business_error(ERR_JS_PARAMETER_ERROR, errMsg);
             return;
         }
-        for (auto each : credentialId) {
-            credentialIdUint64 = (credentialIdUint64 << CONTEXTID_OFFSET);
-            credentialIdUint64 += each;
+        uint64_t credentialIdUint64 = *(reinterpret_cast<const uint64_t *>(credentialId.data()));
+        auto runner = AppExecFwk::EventRunner::GetMainEventRunner();
+        if (!runner) {
+            return;
         }
-        std::shared_ptr<AccountSA::IDMCallback> idmCallbackPtr = std::make_shared<TaiheIDMCallbackAdapter>(callback);
+        auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+        std::shared_ptr<AccountSA::IDMCallback> idmCallbackPtr =
+            std::make_shared<TaiheIDMCallbackAdapter>(callback, handler);
         AccountSA::AccountIAMClient::GetInstance().DelCred(accountId, credentialIdUint64, innerToken, idmCallbackPtr);
     }
 
@@ -686,7 +731,7 @@ std::string ConvertMapViewToStringInner(uintptr_t parameters)
         return "";
     }
 
-    ani_status status = env->FindClass("escompat.JSON", &cls);
+    ani_status status = env->FindClass("std.core.JSON", &cls);
     ani_static_method stringify;
     if (status != ANI_OK) {
         ACCOUNT_LOGE("JSON not found, ret: %{public}d.", status);
@@ -1200,10 +1245,10 @@ public:
         std::shared_ptr<THUserAuthCallback> callbackInner = std::make_shared<THUserAuthCallback>(callback);
         std::vector<uint8_t> challengeInner(challenge.begin(), challenge.begin() + challenge.size());
         AccountSA::AuthOptions authOptionsInner;
-        std::vector<uint8_t> contextId = AccountSA::AccountIAMClient::GetInstance().Auth(
+        uint64_t contextId = AccountSA::AccountIAMClient::GetInstance().Auth(
             authOptionsInner, challengeInner, static_cast<AccountSA::AuthType>(authTypeInner),
             static_cast<AccountSA::AuthTrustLevel>(trustLevelInner), callbackInner);
-        return taihe::array<uint8_t>(taihe::copy_data_t{}, contextId.data(), contextId.size());
+        return taihe::array<uint8_t>(taihe::copy_data_t{}, reinterpret_cast<uint8_t *>(&contextId), sizeof(uint64_t));
     }
 
     array<uint8_t> AuthWithOptSync(array_view<uint8_t> challenge, AuthType authType, AuthTrustLevel authTrustLevel,
@@ -1220,10 +1265,10 @@ public:
             callbackInner->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, emptyInfo);
             return taihe::array<uint8_t>::make(0);
         }
-        std::vector<uint8_t> contextId = AccountSA::AccountIAMClient::GetInstance().Auth(
+        uint64_t contextId = AccountSA::AccountIAMClient::GetInstance().Auth(
             authOptionsInner, challengeInner, static_cast<AccountSA::AuthType>(authTypeInner),
             static_cast<AccountSA::AuthTrustLevel>(trustLevelInner), callbackInner);
-        return taihe::array<uint8_t>(taihe::copy_data_t{}, contextId.data(), contextId.size());
+        return taihe::array<uint8_t>(taihe::copy_data_t{}, reinterpret_cast<uint8_t *>(&contextId), sizeof(uint64_t));
     }
 
     array<uint8_t> AuthUser(int32_t userId, array_view<uint8_t> challenge, AuthType authType,
@@ -1241,15 +1286,15 @@ public:
             return taihe::array<uint8_t>::make(0);
         }
         authOptionsInner.accountId = userId;
-        std::vector<uint8_t> contextId = AccountSA::AccountIAMClient::GetInstance().AuthUser(
+        uint64_t contextId = AccountSA::AccountIAMClient::GetInstance().AuthUser(
             authOptionsInner, challengeInner, static_cast<AccountSA::AuthType>(authTypeInner),
             static_cast<AccountSA::AuthTrustLevel>(trustLevelInner), callbackInner);
-        return taihe::array<uint8_t>(taihe::copy_data_t{}, contextId.data(), contextId.size());
+        return taihe::array<uint8_t>(taihe::copy_data_t{}, reinterpret_cast<uint8_t *>(&contextId), sizeof(uint64_t));
     }
 
     void CancelAuth(array_view<uint8_t> contextID)
     {
-        std::vector<uint8_t> contextId;
+        uint64_t contextId = 0;
         if (contextID.size() != sizeof(uint64_t)) {
             ACCOUNT_LOGE("contextID size is invalid.");
             std::string errMsg = "Parameter error. The type of \"contextID\" must be Uint8Array";
@@ -1257,7 +1302,8 @@ public:
             return;
         }
         for (auto each : contextID) {
-            contextId.emplace_back(each);
+            contextId = (contextId << CONTEXTID_OFFSET);
+            contextId += each;
         }
         ErrCode errCode = AccountSA::AccountIAMClient::GetInstance().CancelAuth(contextId);
         if (errCode != ERR_OK) {
@@ -1277,14 +1323,17 @@ public:
             return CreateEmptyExecutorPropertyTH();
         }
 
+        if (request.accountId.has_value() && !AccountSA::IsAccountIdValid(request.accountId.value())) {
+            int32_t jsErrCode = AccountIAMConvertToJSErrCode(ERR_JS_ACCOUNT_NOT_FOUND);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return CreateEmptyExecutorPropertyTH();
+        }
+
         std::shared_ptr<THGetPropCallback> idmCallback =
             std::make_shared<THGetPropCallback>(getPropertyRequestInner.keys);
-        if (request.accountId.has_value() && !AccountSA::IsAccountIdValid(request.accountId.value())) {
-            idmCallback->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, AccountSA::Attributes());
-        } else {
-            AccountSA::AccountIAMClient::GetInstance().GetProperty(
-                request.accountId.value_or(-1), getPropertyRequestInner, idmCallback);
-        }
+        AccountSA::AccountIAMClient::GetInstance().GetProperty(
+            request.accountId.value_or(-1), getPropertyRequestInner, idmCallback);
+
         std::unique_lock<std::mutex> lock(idmCallback->mutex);
         idmCallback->cv.wait(lock, [idmCallback] { return idmCallback->onResultCalled; });
         if (idmCallback->errCode != ERR_OK) {
@@ -1342,11 +1391,11 @@ public:
 
     ExecutorProperty GetPropertyByCredentialIdSync(array_view<uint8_t> credentialId, array_view<GetPropertyType> keys)
     {
-        uint64_t id = 0;
-        for (auto each : credentialId) {
-            id = (id << CONTEXTID_OFFSET);
-            id += each;
+        if (credentialId.size() != sizeof(uint64_t)) {
+            taihe::set_business_error(ERR_JS_CREDENTIAL_NOT_EXIST, ConvertToJsErrMsg(ERR_JS_CREDENTIAL_NOT_EXIST));
+            return CreateEmptyExecutorPropertyTH();
         }
+        uint64_t id = *(reinterpret_cast<const uint64_t *>(credentialId.data()));
 
         std::vector<OHOS::UserIam::UserAuth::Attributes::AttributeKey> getPropertyRequestInner;
         for (GetPropertyType each : keys) {
@@ -1361,16 +1410,15 @@ public:
         std::shared_ptr<THGetPropCallback> getPropCallback =
             std::make_shared<THGetPropCallback>(getPropertyRequestInner);
         getPropCallback->isGetById = true;
-        if (credentialId.size() != sizeof(uint64_t)) {
-            AccountSA::Attributes extraInfo;
-            getPropCallback->OnResult(ERR_JS_CREDENTIAL_NOT_EXIST, extraInfo);
-            return CreateEmptyExecutorPropertyTH();
-        }
         AccountSA::AccountIAMClient::GetInstance().GetPropertyByCredentialId(id,
             getPropertyRequestInner, getPropCallback);
         std::unique_lock<std::mutex> lock(getPropCallback->mutex);
         getPropCallback->cv.wait(lock, [getPropCallback] { return getPropCallback->onResultCalled; });
-
+        if (getPropCallback->errCode != ERR_OK) {
+            int32_t jsErrCode = AccountIAMConvertToJSErrCode(getPropCallback->errCode);
+            taihe::set_business_error(jsErrCode, ConvertToJsErrMsg(jsErrCode));
+            return CreateEmptyExecutorPropertyTH();
+        }
         return ConvertToExecutorPropertyTH(getPropCallback->propertyInfoInner, getPropCallback->keys);
     }
 
