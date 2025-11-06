@@ -33,10 +33,12 @@ public:
     explicit TaiheSubscriberPtr(const AccountSA::OsAccountSubscribeInfo &subscribeInfo);
     ~TaiheSubscriberPtr() override;
 
-    void OnAccountsChanged(const int &id) override;
-    void OnAccountsSwitch(const int &newId, const int &oldId) override;
-    std::shared_ptr<active_callback> activeRef_;
-    std::shared_ptr<switch_callback> switchRef_;
+    void OnStateChanged(const OsAccountStateData &data) override;
+    std::shared_ptr<active_callback> activeRef_ = nullptr;
+    std::shared_ptr<switch_callback> switchRef_ = nullptr;
+private:
+    void OnAccountsChanged(const int &id);
+    void OnAccountsSwitch(const int &newId, const int &oldId, std::optional<uint64_t> displayId);
 };
 
 struct TaiheUnsubscribeCBInfo   {

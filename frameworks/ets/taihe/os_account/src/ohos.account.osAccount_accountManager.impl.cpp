@@ -19,6 +19,7 @@
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "ani_common_want.h"
+#include "domain_account_callback.h"
 #include "ohos.account.distributedAccount.impl.hpp"
 #include "ohos.account.distributedAccount.proj.hpp"
 #include "ohos.account.osAccount.impl.hpp"
@@ -206,6 +207,24 @@ public:
     }
 };
 
+class THBindDomainCallback final : public AccountSA::DomainAccountCallback {
+public:
+    int32_t errCode_ = -1;
+    std::mutex mutex_;
+    std::condition_variable cv_;
+    bool onResultCalled_ = false;
+    void OnResult(const int32_t errCode, Parcel &parcel)
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        if (this->onResultCalled_) {
+            return;
+        }
+        this->onResultCalled_ = true;
+        this->errCode_ = errCode;
+        cv_.notify_one();
+    }
+};
+
 class AccountManagerImpl {
 private:
     AccountSA::OsAccountManager *osAccountManger_ = nullptr;
@@ -288,7 +307,7 @@ public:
         }
         subscribeCBInfo->activeCallbackRef = activeCallback;
         subscribeCBInfo->switchCallbackRef = switchCallback;
-        AccountSA::OsAccountSubscribeInfo subscribeInfo(type, name);
+        AccountSA::OsAccountSubscribeInfo subscribeInfo({type});
         subscribeCBInfo->subscriber = std::make_shared<AccountSA::TaiheSubscriberPtr>(subscribeInfo);
         subscribeCBInfo->subscriber->activeRef_ = activeCallback;
         subscribeCBInfo->subscriber->switchRef_ = switchCallback;
@@ -455,6 +474,16 @@ public:
         }
     }
 
+    void ActivateOsAccountWithDisplayId(int32_t localId, uint64_t displayId)
+    {
+        ErrCode errCode = AccountSA::OsAccountManager::ActivateOsAccount(localId, displayId);
+        ACCOUNT_LOGI("ActivateOsAccount returned errCode: %{public}d", errCode);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("ActivateOsAccount failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+    }
+
     OsAccountInfo CreateOsAccountSync(string_view localName, OsAccountType type)
     {
         AccountSA::OsAccountInfo innerInfo;
@@ -539,6 +568,28 @@ public:
             SetTaiheBusinessErrorFromNativeCode(errCode);
         }
         return id;
+    }
+
+    int32_t getForegroundOsAccountLocalIdWithDislpayId(uint64_t displayId)
+    {
+        int32_t id = -1;
+        ErrCode errCode = AccountSA::OsAccountManager::GetForegroundOsAccountLocalId(displayId, id);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("GetForegroundOsAccountLocalId failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+        return id;
+    }
+
+    uint64_t getForegroundOsAccountDisplayIdSync(int32_t localId)
+    {
+        uint64_t displayId = -1;
+        ErrCode errCode = AccountSA::OsAccountManager::GetForegroundOsAccountDisplayId(localId, displayId);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("GetForegroundOsAccountLocalId failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+        }
+        return displayId;
     }
 
     int32_t GetOsAccountLocalIdSync()
@@ -735,6 +786,24 @@ public:
             tempConstraintSourceTypeInfos.size());
     }
 
+    void bindDomainAccountSync(int32_t localId, DomainAccountInfo domainAccountInfo)
+    {
+        AccountSA::DomainAccountInfo innerDomainAccountInfo = ConvertToDomainAccountInfoInner(domainAccountInfo);
+        std::shared_ptr<THBindDomainCallback> callback = std::make_shared<THBindDomainCallback>();
+        ErrCode errCode = AccountSA::OsAccountManager::BindDomainAccount(localId, innerDomainAccountInfo, callback);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("bindDomainAccountSync failed with errCode: %{public}d", errCode);
+            SetTaiheBusinessErrorFromNativeCode(errCode);
+            return;
+        }
+        std::unique_lock<std::mutex> lock(callback->mutex_);
+        callback->cv_.wait(lock, [callback] { return callback->onResultCalled_;});
+        if (callback->errCode_ != ERR_OK) {
+            ACCOUNT_LOGE("bindDomainAccountSync failed with errCode: %{public}d", callback->errCode_);
+            SetTaiheBusinessErrorFromNativeCode(callback->errCode_);
+        }
+    }
+
     bool CheckMultiOsAccountEnabledSync()
     {
         bool isMultiOAEnabled;
@@ -754,6 +823,7 @@ public:
             SetTaiheBusinessErrorFromNativeCode(errCode);
         }
     }
+
 
     void SetOsAccountNameSync(int32_t localId, string_view localName)
     {
