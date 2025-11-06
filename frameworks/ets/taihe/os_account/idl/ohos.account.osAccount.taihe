@@ -66,6 +66,9 @@ interface AccountManager {
     @gen_promise("activateOsAccount")
     ActivateOsAccountSync(localId: i32): void;
 
+    @gen_promise("activateOsAccount")
+    ActivateOsAccountWithDisplayId(localId: i32, displayId: u64): void;
+
     @gen_async("createOsAccount")
     CreateOsAccountSync(localName: String, type: OsAccountType): OsAccountInfo;
 
@@ -84,6 +87,12 @@ interface AccountManager {
 
     @gen_promise("getForegroundOsAccountLocalId")
     GetForegroundOsAccountLocalIdSync(): i32;
+
+    @gen_promise("getForegroundOsAccountLocalId")
+    getForegroundOsAccountLocalIdWithDislpayId(displayId: u64): i32;
+
+    @gen_promise("getForegroundOsAccountLocalId")
+    getForegroundOsAccountDisplayIdSync(localId: i32): u64;
 
     @gen_async("getOsAccountLocalId")
     @gen_promise("getOsAccountLocalId")
@@ -132,6 +141,9 @@ interface AccountManager {
     @gen_promise("getOsAccountConstraintSourceTypes")
     @gen_async("getOsAccountConstraintSourceTypes")
     GetOsAccountConstraintSourceTypesSync(localId: i32, constraint: String): Array<ConstraintSourceTypeInfo>;
+
+    @gen_promise("bindDomainAccount")
+    bindDomainAccountSync(localId: i32, domainAccountInfo: DomainAccountInfo): void;
 
     @gen_async("checkMultiOsAccountEnabled")
     @gen_promise("checkMultiOsAccountEnabled")
@@ -350,7 +362,8 @@ enum GetPropertyType : u32 {
     FREEZING_TIME = 3,
     ENROLLMENT_PROGRESS = 4,
     SENSOR_INFO = 5,
-    NEXT_PHASE_FREEZING_TIME = 6
+    NEXT_PHASE_FREEZING_TIME = 6,
+    CREDENTIAL_LENGTH = 7,
 }
 
 struct GetPropertyRequest {
@@ -362,6 +375,7 @@ struct GetPropertyRequest {
 struct OsAccountSwitchEventData {
     fromAccountId: i32;
     toAccountId: i32;
+    displayId: Optional<u64>;
 }
 
 struct GetInputDataOptions {
@@ -384,6 +398,8 @@ struct EnrolledCredInfo {
     authType: AuthType;
     authSubType: AuthSubType;
     templateId: @typedarray Array<u8>;
+    isAbandoned: Optional<bool>;
+    validityPeriod: Optional<i64>;
 }
 
 union OptionalError {
@@ -523,6 +539,7 @@ enum AuthIntent: i32 {
     UNLOCK = 1,
     SILENT_AUTH = 2,
     QUESTION_AUTH = 3,
+    ABANDONED_PIN_AUTH = 4,
 }
 
 enum SetPropertyType: i32 {
@@ -555,6 +572,7 @@ struct ExecutorProperty {
     nextPhaseFreezingTime: Optional<i32>;
     enrollmentProgress: Optional<String>;
     sensorInfo: Optional<String>;
+    credentialLength: Optional<i32>;
 }
 
 struct IUserAuthCallback {

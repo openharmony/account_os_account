@@ -309,6 +309,8 @@ std::vector<EnrolledCredInfo> ConvertCredentialInfoArray(const std::vector<Accou
                                                 sizeof(uint64_t)),
             .authType = ConvertToAuthTypeTH(each.authType),
             .authSubType = ConvertToAuthSubTypeTH(each.pinType.value_or(AccountJsKit::PinSubType::PIN_MAX)),
+            .isAbandoned = optional<bool>(std::in_place_t{}, reinterpret_cast<bool>(each.isAbandoned)),
+            .validityPeriod = optional<int64_t>(std::in_place_t{}, reinterpret_cast<int64_t>(each.validityPeriod)),
         };
         result.emplace_back(info);
     }
@@ -886,7 +888,8 @@ bool ConvertGetPropertyTypeToAttributeKeyTh(AccountJsKit::GetPropertyType in, Ac
         {AccountJsKit::GetPropertyType::ENROLLMENT_PROGRESS, AccountSA::Attributes::AttributeKey::ATTR_ENROLL_PROGRESS},
         {AccountJsKit::GetPropertyType::SENSOR_INFO, AccountSA::Attributes::AttributeKey::ATTR_SENSOR_INFO},
         {AccountJsKit::GetPropertyType::NEXT_PHASE_FREEZING_TIME,
-         AccountSA::Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION},
+            AccountSA::Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION},
+        {AccountJsKit::GetPropertyType::CREDENTIAL_LENGTH, AccountSA::Attributes::AttributeKey::ATTR_CREDENTIAL_LENGTH},
     };
 
     auto iter = type2Key.find(in);
@@ -937,6 +940,7 @@ ExecutorProperty CreateEmptyExecutorPropertyTH()
         .enrollmentProgress = optional<string>(std::nullopt),
         .sensorInfo = optional<string>(std::nullopt),
         .nextPhaseFreezingTime = optional<int32_t>(std::nullopt),
+        .credentialLength = optional<int32_t>(std::nullopt),
     };
 }
 
@@ -977,8 +981,14 @@ ExecutorProperty ConvertToExecutorPropertyTH(
                 break;
             case AccountSA::Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION:
                 if (propertyInfoInner.nextPhaseFreezingTime.has_value()) {
-                propertyTH.nextPhaseFreezingTime =
+                    propertyTH.nextPhaseFreezingTime =
                         optional<int32_t>(std::in_place_t{}, propertyInfoInner.nextPhaseFreezingTime.value());
+                }
+                break;
+            case AccountSA::Attributes::AttributeKey::ATTR_CREDENTIAL_LENGTH:
+                if (propertyInfoInner.credentialLength.has_value()) {
+                    propertyTH.credentialLength =
+                        optional<int32_t>(std::in_place_t{}, propertyInfoInner.credentialLength.value());
                 }
                 break;
             default:
@@ -1157,6 +1167,16 @@ private:
         }
     }
 
+    void ProcessCredentialLength(const UserIam::UserAuth::Attributes &extraInfo,
+                                     AccountJsKit::ExecutorProperty &propertyInfo)
+    {
+        int32_t tempValue;
+        if (extraInfo.GetInt32Value(
+            AccountSA::Attributes::AttributeKey::ATTR_CREDENTIAL_LENGTH, tempValue)) {
+            propertyInfo.credentialLength = tempValue;
+        }
+    }
+
 public:
     void GetExecutorPropertys(const UserIam::UserAuth::Attributes &extraInfo,
         AccountJsKit::ExecutorProperty &propertyInfo)
@@ -1181,6 +1201,9 @@ public:
                     break;
                 case AccountSA::Attributes::AttributeKey::ATTR_NEXT_FAIL_LOCKOUT_DURATION:
                     ProcessNextPhaseFreezingTime(extraInfo, propertyInfo);
+                    break;
+                case AccountSA::Attributes::AttributeKey::ATTR_CREDENTIAL_LENGTH:
+                    ProcessCredentialLength(extraInfo, propertyInfo);
                     break;
                 default:
                     break;
@@ -1245,10 +1268,10 @@ public:
         std::shared_ptr<THUserAuthCallback> callbackInner = std::make_shared<THUserAuthCallback>(callback);
         std::vector<uint8_t> challengeInner(challenge.begin(), challenge.begin() + challenge.size());
         AccountSA::AuthOptions authOptionsInner;
-        uint64_t contextId = AccountSA::AccountIAMClient::GetInstance().Auth(
+        std::vector<uint8_t> contextId = AccountSA::AccountIAMClient::GetInstance().Auth(
             authOptionsInner, challengeInner, static_cast<AccountSA::AuthType>(authTypeInner),
             static_cast<AccountSA::AuthTrustLevel>(trustLevelInner), callbackInner);
-        return taihe::array<uint8_t>(taihe::copy_data_t{}, reinterpret_cast<uint8_t *>(&contextId), sizeof(uint64_t));
+        return taihe::array<uint8_t>(taihe::copy_data_t{}, contextId.data(), contextId.size());
     }
 
     array<uint8_t> AuthWithOptSync(array_view<uint8_t> challenge, AuthType authType, AuthTrustLevel authTrustLevel,
@@ -1265,10 +1288,10 @@ public:
             callbackInner->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, emptyInfo);
             return taihe::array<uint8_t>::make(0);
         }
-        uint64_t contextId = AccountSA::AccountIAMClient::GetInstance().Auth(
+        std::vector<uint8_t> contextId = AccountSA::AccountIAMClient::GetInstance().Auth(
             authOptionsInner, challengeInner, static_cast<AccountSA::AuthType>(authTypeInner),
             static_cast<AccountSA::AuthTrustLevel>(trustLevelInner), callbackInner);
-        return taihe::array<uint8_t>(taihe::copy_data_t{}, reinterpret_cast<uint8_t *>(&contextId), sizeof(uint64_t));
+        return taihe::array<uint8_t>(taihe::copy_data_t{}, contextId.data(), contextId.size());
     }
 
     array<uint8_t> AuthUser(int32_t userId, array_view<uint8_t> challenge, AuthType authType,
@@ -1286,15 +1309,15 @@ public:
             return taihe::array<uint8_t>::make(0);
         }
         authOptionsInner.accountId = userId;
-        uint64_t contextId = AccountSA::AccountIAMClient::GetInstance().AuthUser(
+        std::vector<uint8_t> contextId = AccountSA::AccountIAMClient::GetInstance().AuthUser(
             authOptionsInner, challengeInner, static_cast<AccountSA::AuthType>(authTypeInner),
             static_cast<AccountSA::AuthTrustLevel>(trustLevelInner), callbackInner);
-        return taihe::array<uint8_t>(taihe::copy_data_t{}, reinterpret_cast<uint8_t *>(&contextId), sizeof(uint64_t));
+        return taihe::array<uint8_t>(taihe::copy_data_t{}, contextId.data(), contextId.size());
     }
 
     void CancelAuth(array_view<uint8_t> contextID)
     {
-        uint64_t contextId = 0;
+        std::vector<uint8_t> contextId;
         if (contextID.size() != sizeof(uint64_t)) {
             ACCOUNT_LOGE("contextID size is invalid.");
             std::string errMsg = "Parameter error. The type of \"contextID\" must be Uint8Array";
@@ -1302,8 +1325,7 @@ public:
             return;
         }
         for (auto each : contextID) {
-            contextId = (contextId << CONTEXTID_OFFSET);
-            contextId += each;
+            contextId.emplace_back(each);
         }
         ErrCode errCode = AccountSA::AccountIAMClient::GetInstance().CancelAuth(contextId);
         if (errCode != ERR_OK) {
