@@ -225,6 +225,7 @@ taihe_shared_library("os_account_taihe_native") {
     "ability_runtime:runtime",
     "access_token:libtokenid_sdk",
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "icu:shared_icuuc",
     "ipc:ipc_single",
