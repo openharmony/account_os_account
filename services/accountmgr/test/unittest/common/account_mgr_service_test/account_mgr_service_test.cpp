@@ -63,7 +63,7 @@ sptr<IAccount> GetAccountMgr()
     }
 
     sptr<IRemoteObject> accountObj = systemMgr->GetSystemAbility(SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN);
-    return iface_cast<AccountProxy>(accountObj);
+    return iface_cast<IAccount>(accountObj);
 }
 }
 
