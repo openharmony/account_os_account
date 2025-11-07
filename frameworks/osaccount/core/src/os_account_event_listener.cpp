@@ -42,7 +42,7 @@ static ErrCode WaitForComplete(const sptr<IRemoteObject> &callback, std::shared_
     if (callback == nullptr) {
         return ERR_OK;
     }
-    sptr<OsAccountStateReplyCallbackProxy> remoteCallback = iface_cast<OsAccountStateReplyCallbackProxy>(callback);
+    sptr<IOsAccountStateReplyCallback> remoteCallback = iface_cast<IOsAccountStateReplyCallback>(callback);
     if (remoteCallback == nullptr) {
         return ERR_OK;
     }
