@@ -100,7 +100,7 @@ void OsAccountTest::SetUpTestCase(void)
         SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     sptr<IRemoteObject> remoteObject =
         systemAbilityManager->GetSystemAbility(SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN);
-    sptr<IAccount> accountProxy = iface_cast<AccountProxy>(remoteObject);
+    sptr<IAccount> accountProxy = iface_cast<IAccount>(remoteObject);
     EXPECT_NE(accountProxy, nullptr);
     sptr<IRemoteObject> osAccountRemoteObject = nullptr;
     accountProxy->GetOsAccountService(osAccountRemoteObject);
