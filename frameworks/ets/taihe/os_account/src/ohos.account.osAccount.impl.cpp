@@ -743,7 +743,7 @@ std::string ConvertMapViewToStringInner(uintptr_t parameters)
         ACCOUNT_LOGE("JSON not found, ret: %{public}d.", status);
         return "";
     }
-    status = env->Class_FindStaticMethod(cls, "stringify", "C{std.core.Object}:C{std.core.String}", &stringify);
+    status = env->Class_FindStaticMethod(cls, "stringify", "Y:C{std.core.String}", &stringify);
     if (status != ANI_OK) {
         ACCOUNT_LOGE("Stringify not found, ret: %{public}d.", status);
         return "";
