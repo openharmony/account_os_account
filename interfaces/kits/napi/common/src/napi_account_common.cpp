@@ -563,7 +563,7 @@ void ReleaseNapiRefArray(napi_env env, const std::vector<napi_ref> &napiRefVec)
                     napi_delete_reference(context->env, napiRef);
                 }
             }
-        }, napi_eprio_vip));
+        }, napi_eprio_vip, "ReleaseNapiRefArray"));
 }
 
 NapiCallbackRef::~NapiCallbackRef()

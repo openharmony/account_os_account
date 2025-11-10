@@ -57,7 +57,8 @@ void NapiCreateDomainCallback::OnResult(const int32_t errCode, Parcel &parcel)
     // transfer control of callbackRef & deferred to asyncContext, they would be released in async context
     callbackRef_ = nullptr;
     deferred_ = nullptr;
-    if (napi_ok != napi_send_event(env_, CreateOAForDomainCallbackCompletedWork(asyncContext), napi_eprio_vip)) {
+    if (napi_ok != napi_send_event(
+        env_, CreateOAForDomainCallbackCompletedWork(asyncContext), napi_eprio_vip, "NapiCreateDomainCallback")) {
         ACCOUNT_LOGE("Post task failed");
         return;
     }
@@ -2216,7 +2217,8 @@ void NapiBindDomainCallback::OnResult(const int32_t errCode, Parcel &parcel)
     asyncContext->env = env_;
     asyncContext->deferred = deferred_;
     asyncContext->errCode = errCode;
-    if (napi_ok != napi_send_event(env_, BindDomainAccountCompleteWork(asyncContext), napi_eprio_vip)) {
+    if (napi_ok != napi_send_event(
+        env_, BindDomainAccountCompleteWork(asyncContext), napi_eprio_vip, "NapiBindDomainCallback")) {
         ACCOUNT_LOGE("Post task failed");
         return;
     }

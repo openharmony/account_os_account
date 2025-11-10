@@ -570,7 +570,7 @@ public:
         return id;
     }
 
-    int32_t getForegroundOsAccountLocalIdWithDislpayId(uint64_t displayId)
+    int32_t GetForegroundOsAccountLocalIdWithDislpayId(uint64_t displayId)
     {
         int32_t id = -1;
         ErrCode errCode = AccountSA::OsAccountManager::GetForegroundOsAccountLocalId(displayId, id);
@@ -581,7 +581,7 @@ public:
         return id;
     }
 
-    uint64_t getForegroundOsAccountDisplayIdSync(int32_t localId)
+    uint64_t GetForegroundOsAccountDisplayIdSync(int32_t localId)
     {
         uint64_t displayId = -1;
         ErrCode errCode = AccountSA::OsAccountManager::GetForegroundOsAccountDisplayId(localId, displayId);
@@ -823,7 +823,6 @@ public:
             SetTaiheBusinessErrorFromNativeCode(errCode);
         }
     }
-
 
     void SetOsAccountNameSync(int32_t localId, string_view localName)
     {

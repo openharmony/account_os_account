@@ -96,7 +96,7 @@ sptr<IAccount> OhosAccountKitsImpl::GetService()
         ACCOUNT_LOGE("Failed to add death recipient");
     }
 
-    accountProxy_ = iface_cast<AccountProxy>(object);
+    accountProxy_ = iface_cast<IAccount>(object);
     if (accountProxy_ == nullptr) {
         ACCOUNT_LOGE("account iface_cast failed");
     }

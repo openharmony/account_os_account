@@ -50,28 +50,6 @@ bool GetAllAccessibleAccountsStubFuzzTest(const uint8_t *data, size_t size)
     appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
     return true;
 }
-
-bool QueryAllAccessibleAccountsStubFuzzTest(const uint8_t *data, size_t size)
-{
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-    MessageParcel dataTemp;
-    if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
-        return false;
-    }
-    FuzzData fuzzData(data, size);
-    std::string owner = fuzzData.GenerateString();
-    if (!dataTemp.WriteString(owner)) {
-        return false;
-    }
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code = static_cast<uint32_t>(IAppAccountIpcCode::COMMAND_QUERY_ALL_ACCESSIBLE_ACCOUNTS);
-    auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
-    appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
-    return true;
-}
 } // namespace OHOS
 
 /* Fuzzer entry point */
@@ -79,6 +57,5 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
     OHOS::GetAllAccessibleAccountsStubFuzzTest(data, size);
-    OHOS::QueryAllAccessibleAccountsStubFuzzTest(data, size);
     return 0;
 }

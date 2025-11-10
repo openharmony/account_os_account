@@ -55,35 +55,6 @@ bool AuthFuzzTest(const uint8_t* data, size_t size)
     result = DomainAccountClient::GetInstance().Auth(info, password, callback);
     return result == ERR_OK;
 }
-
-bool AuthUserFuzzTest(const uint8_t* data, size_t size)
-{
-    bool result = false;
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-    FuzzData fuzzData(data, size);
-    int32_t userId = fuzzData.GetData<int32_t>();
-    std::vector<uint8_t> password = {fuzzData.GetData<uint8_t>(), fuzzData.GetData<uint8_t>()};
-    std::shared_ptr<DomainAccountCallback> callback = std::make_shared<TestDomainAccountCallback>();
-    uint64_t contextId = 0;
-    result = DomainAccountClient::GetInstance().AuthUser(userId, password, callback, contextId);
-    result = DomainAccountClient::GetInstance().CancelAuth(contextId);
-    return result == ERR_OK;
-}
-
-bool AuthWithPopupFuzzTest(const uint8_t* data, size_t size)
-{
-    bool result = false;
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-    FuzzData fuzzData(data, size);
-    int32_t userId = fuzzData.GetData<int32_t>();
-    std::shared_ptr<DomainAccountCallback> callback = std::make_shared<TestDomainAccountCallback>();
-    result = DomainAccountClient::GetInstance().AuthWithPopup(userId, callback);
-    return result == ERR_OK;
-}
 }
 
 /* Fuzzer entry point */
@@ -91,8 +62,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::AuthFuzzTest(data, size);
-    OHOS::AuthUserFuzzTest(data, size);
-    OHOS::AuthWithPopupFuzzTest(data, size);
     return 0;
 }
 

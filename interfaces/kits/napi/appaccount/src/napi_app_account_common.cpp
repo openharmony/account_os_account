@@ -101,7 +101,7 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AppAccountInfo> &account
     worker->ref = ref_;
     worker->subscriber = this;
 
-    if (napi_ok != napi_send_event(env_, OnAppAccountsChangedWork(worker), napi_eprio_vip)) {
+    if (napi_ok != napi_send_event(env_, OnAppAccountsChangedWork(worker), napi_eprio_vip, "OnAccountsChanged")) {
         ACCOUNT_LOGE("Post task failed");
         return;
     }
@@ -207,7 +207,7 @@ ErrCode AuthenticatorAsyncCallback::OnResult(int32_t resultCode, const AAFwk::Wa
     param->deferred = deferred_;
     param->errCode = resultCode;
     param->result = result;
-    if (napi_ok == napi_send_event(env_, workCb_(param), napi_eprio_vip)) {
+    if (napi_ok == napi_send_event(env_, workCb_(param), napi_eprio_vip, "AuthenticatorAsyncCallback")) {
         ACCOUNT_LOGI("Post task finish");
         return ERR_OK;
     }
@@ -327,7 +327,7 @@ ErrCode AppAccountManagerCallback::OnResult(int32_t resultCode, const AAFwk::Wan
     std::shared_ptr<AuthenticatorCallbackParam> param = std::make_shared<AuthenticatorCallbackParam>(callback_);
     param->resultCode = resultCode;
     param->result = result;
-    if (napi_ok != napi_send_event(env_, OnResultWork(param), napi_eprio_vip)) {
+    if (napi_ok != napi_send_event(env_, OnResultWork(param), napi_eprio_vip, "AppAccountManagerCallback")) {
         ACCOUNT_LOGE("Post task failed");
         return ERR_OK;
     }
@@ -343,7 +343,7 @@ ErrCode AppAccountManagerCallback::OnRequestRedirected(const AAFwk::Want &reques
     }
     std::shared_ptr<AuthenticatorCallbackParam> param = std::make_shared<AuthenticatorCallbackParam>(callback_);
     param->request = request;
-    if (napi_ok != napi_send_event(env_, OnRequestRedirectedWork(param), napi_eprio_vip)) {
+    if (napi_ok != napi_send_event(env_, OnRequestRedirectedWork(param), napi_eprio_vip, "OnRequestRedirected")) {
         ACCOUNT_LOGE("Post task failed");
         return ERR_OK;
     }
@@ -358,7 +358,7 @@ ErrCode AppAccountManagerCallback::OnRequestContinued()
         return ERR_OK;
     }
     std::shared_ptr<AuthenticatorCallbackParam> param = std::make_shared<AuthenticatorCallbackParam>(callback_);
-    if (napi_ok != napi_send_event(env_, OnRequestContinuedWork(param), napi_eprio_vip)) {
+    if (napi_ok != napi_send_event(env_, OnRequestContinuedWork(param), napi_eprio_vip, "OnRequestContinued")) {
         ACCOUNT_LOGE("Post task failed");
         return ERR_OK;
     }
