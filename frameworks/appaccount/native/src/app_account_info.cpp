@@ -344,6 +344,10 @@ void AppAccountInfo::SetSyncEnable(const bool &syncEnable)
 ErrCode AppAccountInfo::InitCustomData(const std::map<std::string, std::string> &data)
 {
     CJsonUnique jsonObject = CreateJsonFromMap(data);
+    if (!jsonObject) {
+        ACCOUNT_LOGE("Failed to create JSON object from map data");
+        return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
+    }
     associatedData_ = PackJsonToString(jsonObject);
     if (associatedData_.empty()) {
         ACCOUNT_LOGE("failed to dump json object");
