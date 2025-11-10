@@ -669,7 +669,7 @@ void NapiDomainAccountPlugin::AuthCommon(AccountSA::AuthMode authMode, const Acc
     param->domainAccountInfo = info;
     param->authMode = authMode;
     param->authData = authData;
-    if (napi_ok != napi_send_event(env_, AuthCommonWork(param), napi_eprio_vip)) {
+    if (napi_ok != napi_send_event(env_, AuthCommonWork(param), napi_eprio_vip, "AuthCommon")) {
         ACCOUNT_LOGE("Post task failed");
         delete param;
         return;
@@ -717,7 +717,7 @@ void NapiDomainAccountPlugin::GetAuthStatusInfo(
     param->func = jsPlugin_.getAuthStatusInfo;
     param->domainAccountInfo = info;
     param->callback = callback;
-    if (napi_ok != napi_send_event(env_, GetAuthStatusInfoWork(param), napi_eprio_vip)) {
+    if (napi_ok != napi_send_event(env_, GetAuthStatusInfoWork(param), napi_eprio_vip, "GetAuthStatusInfo")) {
         ACCOUNT_LOGE("Post task failed");
         delete param;
         return;
@@ -748,7 +748,7 @@ void NapiDomainAccountPlugin::OnAccountBound(const DomainAccountInfo &info, cons
     param->func = jsPlugin_.onAccountBound;
     param->callback = callback;
     param->userId = localId;
-    if (napi_ok != napi_send_event(env_, OnAccountBoundWork(param), napi_eprio_vip)) {
+    if (napi_ok != napi_send_event(env_, OnAccountBoundWork(param), napi_eprio_vip, "OnAccountBound")) {
         ACCOUNT_LOGE("Post task failed");
         delete param;
         return;
@@ -778,7 +778,7 @@ void NapiDomainAccountPlugin::OnAccountUnBound(const DomainAccountInfo &info,
     param->domainAccountInfo = info;
     param->func = jsPlugin_.onAccountUnbound;
     param->callback = callback;
-    if (napi_ok != napi_send_event(env_, OnAccountUnBoundWork(param), napi_eprio_vip)) {
+    if (napi_ok != napi_send_event(env_, OnAccountUnBoundWork(param), napi_eprio_vip, "OnAccountUnBound")) {
         ACCOUNT_LOGE("Post task failed");
         delete param;
         return;
@@ -809,7 +809,7 @@ void NapiDomainAccountPlugin::GetDomainAccountInfo(const GetDomainAccountInfoOpt
     param->callingUid = options.callingUid;
     param->callback = callback;
     param->func = jsPlugin_.getDomainAccountInfo;
-    if (napi_ok != napi_send_event(env_, GetDomainAccountInfoWork(param), napi_eprio_vip)) {
+    if (napi_ok != napi_send_event(env_, GetDomainAccountInfoWork(param), napi_eprio_vip, "GetDomainAccountInfo")) {
         ACCOUNT_LOGE("Post task failed");
         delete param;
         return;
@@ -840,7 +840,7 @@ void NapiDomainAccountPlugin::IsAccountTokenValid(const DomainAccountInfo &info,
     param->authData = token;
     param->domainAccountInfo = info;
     param->func = jsPlugin_.isAccountTokenValid;
-    if (napi_ok != napi_send_event(env_, IsUserTokenValidWork(param), napi_eprio_vip)) {
+    if (napi_ok != napi_send_event(env_, IsUserTokenValidWork(param), napi_eprio_vip, "IsAccountTokenValid")) {
         ACCOUNT_LOGE("Post task failed");
         delete param;
         return;
@@ -873,7 +873,7 @@ void NapiDomainAccountPlugin::GetAccessToken(const AccountSA::DomainAccountInfo 
     param->authData = accountToken;
     param->option = option;
     param->func = jsPlugin_.getAccessToken;
-    if (napi_ok != napi_send_event(env_, GetAccessTokenWork(param), napi_eprio_vip)) {
+    if (napi_ok != napi_send_event(env_, GetAccessTokenWork(param), napi_eprio_vip, "GetAccessToken")) {
         ACCOUNT_LOGE("Post task failed");
         delete param;
         return;
@@ -1254,7 +1254,8 @@ void NapiHasDomainInfoCallback::OnResult(const int32_t errCode, Parcel &parcel)
     asyncContext->errCode = errCode;
     asyncContext->callbackRef = callbackRef_.callbackRef;
     asyncContext->deferred = deferred_;
-    if (napi_ok != napi_send_event(env_, HasDomainAccountCompletedWork(asyncContext), napi_eprio_vip)) {
+    if (napi_ok != napi_send_event(
+        env_, HasDomainAccountCompletedWork(asyncContext), napi_eprio_vip, "NapiHasDomainInfoCallback")) {
         ACCOUNT_LOGE("Post task failed");
         delete asyncContext;
         return;
@@ -1283,7 +1284,8 @@ void NapiGetAccessTokenCallback::OnResult(const int32_t errCode, const std::vect
     asyncContext->accessToken = accessToken;
     asyncContext->callbackRef = callbackRef_.callbackRef;
     asyncContext->deferred = deferred_;
-    if (napi_ok != napi_send_event(env_, GetAccessTokenCompleteWork(asyncContext), napi_eprio_vip)) {
+    if (napi_ok != napi_send_event(
+        env_, GetAccessTokenCompleteWork(asyncContext), napi_eprio_vip, "NapiGetAccessTokenCallback")) {
         ACCOUNT_LOGE("Post task failed");
         delete asyncContext;
         return;
@@ -1555,7 +1557,8 @@ void NapiGetAccountInfoCallback::OnResult(int32_t errCode, Parcel &parcel)
     asyncContext->errCode = errCode;
     asyncContext->callbackRef = callbackRef_;
     asyncContext->deferred = deferred_;
-    if (napi_ok !=  napi_send_event(env_, GetAccountInfoCompleteWork(asyncContext), napi_eprio_vip)) {
+    if (napi_ok !=  napi_send_event(
+        env_, GetAccountInfoCompleteWork(asyncContext), napi_eprio_vip, "NapiGetAccountInfoCallback")) {
         ACCOUNT_LOGE("Post task failed");
         delete asyncContext;
         return;

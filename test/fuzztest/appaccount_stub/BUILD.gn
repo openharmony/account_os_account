@@ -38,6 +38,7 @@ group("fuzztest") {
     "getauthenticatorinfostub_fuzzer:GetAuthenticatorInfoStubFuzzTest",
     "getauthliststub_fuzzer:GetAuthListStubFuzzTest",
     "getoauthtokenstub_fuzzer:GetOAuthTokenStubFuzzTest",
+    "queryallaccessibleaccountsstub_fuzzer:QueryAllAccessibleAccountsStubFuzzTest",
     "selectaccountsbyoptionsstub_fuzzer:SelectAccountsByOptionsStubFuzzTest",
     "setaccountcredentialstub_fuzzer:SetAccountCredentialStubFuzzTest",
     "setaccountextrainfostub_fuzzer:SetAccountExtraInfoStubFuzzTest",

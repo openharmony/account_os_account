@@ -89,10 +89,10 @@ interface AccountManager {
     GetForegroundOsAccountLocalIdSync(): i32;
 
     @gen_promise("getForegroundOsAccountLocalId")
-    getForegroundOsAccountLocalIdWithDislpayId(displayId: u64): i32;
+    GetForegroundOsAccountLocalIdWithDislpayId(displayId: u64): i32;
 
     @gen_promise("getForegroundOsAccountLocalId")
-    getForegroundOsAccountDisplayIdSync(localId: i32): u64;
+    GetForegroundOsAccountDisplayIdSync(localId: i32): u64;
 
     @gen_async("getOsAccountLocalId")
     @gen_promise("getOsAccountLocalId")

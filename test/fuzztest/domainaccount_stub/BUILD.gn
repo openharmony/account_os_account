@@ -25,6 +25,8 @@ group("fuzztest") {
       "procauthwithpopupstub_fuzzer:ProcAuthWithPopupStubFuzzTest",
       "procgetaccountpolicystub_fuzzer:ProcGetAccountPolicyStubFuzzTest",
       "procgetaccountserverconfigstub_fuzzer:ProcGetAccountServerConfigStubFuzzTest",
+      "procgetaccountstatusstub_fuzzer:ProcGetAccountStatusStubFuzzTest",
+      "procgetdomainaccesstokenstub_fuzzer:ProcGetDomainAccessTokenStubFuzzTest",
       "procgetdomainaccountinfostub_fuzzer:ProcGetDomainAccountInfoStubFuzzTest",
       "procgetserverconfigstub_fuzzer:ProcGetServerConfigStubFuzzTest",
       "prochasdomainaccountstub_fuzzer:ProcHasDomainAccountStubFuzzTest",
@@ -32,6 +34,7 @@ group("fuzztest") {
       "procremoveserverconfigstub_fuzzer:ProcRemoveServerConfigStubFuzzTest",
       "procsetauthenticationexpirythresholdstub_fuzzer:ProcSetAuthenticationExpiryThresholdStubFuzzTest",
       "procupdateaccountinfostub_fuzzer:ProcUpdateAccountInfoStubFuzzTest",
+      "procupdateaccounttokenstub_fuzzer:ProcUpdateAccountTokenStubFuzzTest",
       "procupdateserverconfigstub_fuzzer:ProcUpdateServerConfigStubFuzzTest",
     ]
   }
