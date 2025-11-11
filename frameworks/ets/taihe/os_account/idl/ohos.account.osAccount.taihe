@@ -67,7 +67,7 @@ interface AccountManager {
     ActivateOsAccountSync(localId: i32): void;
 
     @gen_promise("activateOsAccount")
-    ActivateOsAccountWithDisplayId(localId: i32, displayId: u64): void;
+    ActivateOsAccountWithDisplayId(localId: i32, displayId: i64): void;
 
     @gen_async("createOsAccount")
     CreateOsAccountSync(localName: String, type: OsAccountType): OsAccountInfo;
@@ -89,10 +89,10 @@ interface AccountManager {
     GetForegroundOsAccountLocalIdSync(): i32;
 
     @gen_promise("getForegroundOsAccountLocalId")
-    GetForegroundOsAccountLocalIdWithDislpayId(displayId: u64): i32;
+    GetForegroundOsAccountLocalIdWithDisplayId(displayId: i64): i32;
 
-    @gen_promise("getForegroundOsAccountLocalId")
-    GetForegroundOsAccountDisplayIdSync(localId: i32): u64;
+    @gen_promise("getForegroundOsAccountDisplayId")
+    GetForegroundOsAccountDisplayIdSync(localId: i32): i64;
 
     @gen_async("getOsAccountLocalId")
     @gen_promise("getOsAccountLocalId")
@@ -375,7 +375,7 @@ struct GetPropertyRequest {
 struct OsAccountSwitchEventData {
     fromAccountId: i32;
     toAccountId: i32;
-    displayId: Optional<u64>;
+    displayId: Optional<i64>;
 }
 
 struct GetInputDataOptions {

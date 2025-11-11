@@ -165,7 +165,7 @@ AccountSA::CreateOsAccountOptions ConvertToInnerOptions(optional_view<CreateOsAc
     }
 
     const auto &opts = options.value();
-    if (options.value().shortName.has_value()) {
+    if (opts.shortName.has_value()) {
         innerOptions.shortName = std::string(opts.shortName.value().data(), opts.shortName.value().size());
         innerOptions.hasShortName = true;
     }
