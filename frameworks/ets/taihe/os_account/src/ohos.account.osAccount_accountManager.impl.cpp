@@ -173,12 +173,12 @@ public:
     void OnResult(const int32_t errorCode, Parcel &parcel)
     {
         std::shared_ptr<AccountSA::OsAccountInfo> osAccountInfo(AccountSA::OsAccountInfo::Unmarshalling(parcel));
+        std::unique_lock<std::mutex> lock(mutex_);
         if (osAccountInfo == nullptr) {
             this->onResultCalled_ = true;
             ACCOUNT_LOGE("failed to unmarshalling OsAccountInfo");
             return;
         }
-        std::unique_lock<std::mutex> lock(mutex_);
         if (this->onResultCalled_) {
             return;
         }

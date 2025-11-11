@@ -248,6 +248,9 @@ std::string GetStringFromJson(const CJsonUnique &jsonObj, const std::string &key
 CJsonUnique CreateJsonFromMap(const std::map<std::string, std::string> &mapData)
 {
     CJson *jsonObj = cJSON_CreateObject();
+    if (!jsonObj) {
+        return nullptr;
+    }
 
     for (const auto &pair : mapData) {
         cJSON_AddStringToObject(jsonObj, pair.first.c_str(), pair.second.c_str());
@@ -320,7 +323,7 @@ bool GetVectorStringFromJson(const CJson *jsonObj, const std::string &key, std::
     int32_t arraySize = cJSON_GetArraySize(array);
     for (int32_t i = 0; i < arraySize; i++) {
         CJson *item = cJSON_GetArrayItem(array, i);
-        if (item->type == cJSON_String) {
+        if ((item != nullptr) && (item->type == cJSON_String)) {
             value.push_back(item->valuestring);
         }
     }
@@ -353,7 +356,7 @@ std::vector<uint8_t> GetVectorUint8FromJson(const CJson *jsonObj, const std::str
     int32_t arraySize = cJSON_GetArraySize(array);
     for (int32_t i = 0; i < arraySize; i++) {
         CJson *item = cJSON_GetArrayItem(array, i);
-        if (item->type == cJSON_Number) {
+        if ((item != nullptr) && (item->type == cJSON_Number)) {
             result.push_back(item->valueint);
         }
     }
@@ -388,8 +391,18 @@ bool AddSetStringToJson(CJson *jsonObj, const std::string &key, const std::set<s
     if (array == nullptr) {
         return false;
     }
+    bool success = true;
     for (const std::string &item : setData) {
-        cJSON_AddItemToArray(array, cJSON_CreateString(item.c_str()));
+        cJSON *itemJson = cJSON_CreateString(item.c_str());
+        if (itemJson == nullptr) {
+            success = false;
+            break;
+        }
+        cJSON_AddItemToArray(array, itemJson);
+    }
+    if (!success) {
+        cJSON_Delete(array);
+        return false;
     }
     CJson *item = cJSON_GetObjectItemCaseSensitive(jsonObj, key.c_str());
     if (item == nullptr) {
@@ -423,7 +436,7 @@ bool GetSetStringFromJson(const CJson *jsonObj, const std::string &key, std::set
     int32_t arraySize = cJSON_GetArraySize(arrayItem);
     for (int32_t i = 0; i < arraySize; ++i) {
         CJson *element = cJSON_GetArrayItem(arrayItem, i);
-        if (IsString(element)) {
+        if ((element != nullptr) && IsString(element)) {
             setData.insert(element->valuestring);
         }
     }
