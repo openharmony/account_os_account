@@ -1043,8 +1043,7 @@ public:
         AccountSA::DomainAccountInfo innerDomainAccountInfo = ConvertToDomainAccountInfoInner(domainInfo);
         AccountSA::CreateOsAccountForDomainOptions innerOptions;
         innerOptions.hasShortName = false;
-        if (options.has_value() && options.value().options.shortName.has_value() &&
-            options.value().options.shortName.value() != "") {
+        if (options.has_value() && options.value().options.shortName.has_value()) {
             std::string innerShortName(options.value().options.shortName.value().data(),
                 options.value().options.shortName.value().size());
             innerOptions.shortName = innerShortName;
