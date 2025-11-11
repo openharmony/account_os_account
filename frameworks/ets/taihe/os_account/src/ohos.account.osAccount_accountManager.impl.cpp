@@ -98,10 +98,10 @@ taihe::array<taihe::string> ConvertConstraints(const std::vector<std::string> &c
     return taihe::array<taihe::string>(taihe::copy_data_t{}, tempStrings.data(), tempStrings.size());
 }
 
-DistributedInfo ConvertDistributedInfo()
+DistributedInfo ConvertDistributedInfo(int32_t localId)
 {
     std::pair<bool, AccountSA::OhosAccountInfo> dbAccountInfo =
-        AccountSA::OhosAccountKits::GetInstance().QueryOhosAccountInfo();
+        AccountSA::OhosAccountKits::GetInstance().QueryOsAccountDistributedInfo(localId);
     if (!dbAccountInfo.first) {
         ACCOUNT_LOGE("QueryOhosAccountInfo failed.");
         return AccountSA::ConvertToDistributedInfoTH(AccountSA::OhosAccountInfo{});
@@ -141,7 +141,7 @@ OsAccountInfo ConvertOsAccountInfo(const AccountSA::OsAccountInfo &innerInfo)
         .isActivated = innerInfo.GetIsActived(),
         .isLoggedIn = taihe::optional<bool>(std::in_place_t{}, innerInfo.GetIsLoggedIn()),
         .isCreateCompleted = innerInfo.GetIsCreateCompleted(),
-        .distributedInfo = ConvertDistributedInfo(),
+        .distributedInfo = ConvertDistributedInfo(innerInfo.GetLocalId()),
         .domainInfo = ConvertDomainInfo(innerInfo)
     };
 }
