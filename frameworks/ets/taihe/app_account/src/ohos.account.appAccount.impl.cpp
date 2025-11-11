@@ -342,7 +342,7 @@ public:
             ACCOUNT_LOGE("failed to create AppAccountManager for insufficient memory");
             ptr_ = 0;
         } else {
-            ptr_ = reinterpret_cast<int64_t>(objectInfo);
+            ptr_ = reinterpret_cast<uint64_t>(objectInfo);
         }
     }
 

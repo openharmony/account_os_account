@@ -474,9 +474,9 @@ public:
         }
     }
 
-    void ActivateOsAccountWithDisplayId(int32_t localId, uint64_t displayId)
+    void ActivateOsAccountWithDisplayId(int32_t localId, int64_t displayId)
     {
-        ErrCode errCode = AccountSA::OsAccountManager::ActivateOsAccount(localId, displayId);
+        ErrCode errCode = AccountSA::OsAccountManager::ActivateOsAccount(localId, static_cast<uint64_t>(displayId));
         ACCOUNT_LOGI("ActivateOsAccount returned errCode: %{public}d", errCode);
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("ActivateOsAccount failed with errCode: %{public}d", errCode);
@@ -570,10 +570,11 @@ public:
         return id;
     }
 
-    int32_t GetForegroundOsAccountLocalIdWithDislpayId(uint64_t displayId)
+    int32_t GetForegroundOsAccountLocalIdWithDisplayId(int64_t displayId)
     {
         int32_t id = -1;
-        ErrCode errCode = AccountSA::OsAccountManager::GetForegroundOsAccountLocalId(displayId, id);
+        ErrCode errCode = AccountSA::OsAccountManager::GetForegroundOsAccountLocalId(
+            static_cast<uint64_t>(displayId), id);
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("GetForegroundOsAccountLocalId failed with errCode: %{public}d", errCode);
             SetTaiheBusinessErrorFromNativeCode(errCode);
@@ -581,15 +582,15 @@ public:
         return id;
     }
 
-    uint64_t GetForegroundOsAccountDisplayIdSync(int32_t localId)
+    int64_t GetForegroundOsAccountDisplayIdSync(int32_t localId)
     {
-        uint64_t displayId = -1;
+        int64_t displayId = -1;
         ErrCode errCode = AccountSA::OsAccountManager::GetForegroundOsAccountDisplayId(localId, displayId);
         if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("GetForegroundOsAccountLocalId failed with errCode: %{public}d", errCode);
+            ACCOUNT_LOGE("GetForegroundOsAccountDisplayId failed with errCode: %{public}d", errCode);
             SetTaiheBusinessErrorFromNativeCode(errCode);
         }
-        return displayId;
+        return static_cast<int64_t>(displayId);
     }
 
     int32_t GetOsAccountLocalIdSync()
