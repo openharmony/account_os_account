@@ -30,6 +30,8 @@ namespace {
 constexpr int32_t UID_TRANSFORM_DIVISOR = 200000;  // local account id = uid / UID_TRANSFORM_DIVISOR
 const char DISTRIBUTED_DATASYNC[] = "ohos.permission.DISTRIBUTED_DATASYNC";
 const char GET_ALL_APP_ACCOUNTS[] = "ohos.permission.GET_ALL_APP_ACCOUNTS";
+std::mutex g_mapMutex;
+std::map<int32_t, std::weak_ptr<std::mutex>> g_uidMutexMap;
 }
 
 #define RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(str, funcResult)                   \
@@ -65,6 +67,32 @@ static ErrCode CheckSpecialCharacters(const std::string &str)
     return ERR_OK;
 }
 
+AppAccountLock::AppAccountLock(int32_t uid) : uid_(uid)
+{
+    {
+        std::lock_guard<std::mutex> lock(g_mapMutex);
+        auto it = g_uidMutexMap.find(uid);
+        if (it != g_uidMutexMap.end()) {
+            mutexPtr_ = it->second.lock();
+        }
+
+        if (mutexPtr_ == nullptr) {
+            mutexPtr_ = std::make_shared<std::mutex>();
+            g_uidMutexMap[uid] = mutexPtr_;
+        }
+    }
+    lock_ = std::unique_lock<std::mutex>(*mutexPtr_);
+}
+
+AppAccountLock::~AppAccountLock()
+{
+    lock_.unlock();
+    if (mutexPtr_.use_count() == 1) {
+        std::lock_guard<std::mutex> lock(g_mapMutex);
+        g_uidMutexMap.erase(uid_);
+    }
+}
+
 AppAccountManagerService::AppAccountManagerService()
 #ifdef HAS_CES_PART
     : observer_(AppAccountCommonEventObserver::GetInstance())
@@ -92,6 +120,7 @@ ErrCode AppAccountManagerService::AddAccount(const std::string &name, const std:
         funcResult = ret;
         return ERR_OK;
     }
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
     funcResult = innerManager_->AddAccount(name, extraInfo, callingUid, bundleName, appIndex);
     return ERR_OK;
 }
@@ -114,6 +143,7 @@ ErrCode AppAccountManagerService::AddAccountImplicitly(const std::string &owner,
     request.callback = callback;
     request.options.SetParam(Constants::KEY_CALLER_PID, request.callerPid);
     request.options.SetParam(Constants::KEY_CALLER_UID, request.callerUid);
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(request.callerUid);
     funcResult = innerManager_->AddAccountImplicitly(request);
     return ERR_OK;
 }
@@ -138,6 +168,7 @@ ErrCode AppAccountManagerService::CreateAccount(
         funcResult = ret;
         return ERR_OK;
     }
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
     funcResult = innerManager_->CreateAccount(name, options, callingUid, bundleName, appIndex);
     return ERR_OK;
 }
@@ -162,6 +193,7 @@ ErrCode AppAccountManagerService::CreateAccountImplicitly(const std::string &own
     request.callback = callback;
     request.createOptions = options;
     request.createOptions.parameters.SetParam(Constants::KEY_CALLER_BUNDLE_NAME, request.callerBundleName);
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(request.callerUid);
     funcResult = innerManager_->CreateAccountImplicitly(request);
     return ERR_OK;
 }
@@ -177,6 +209,7 @@ ErrCode AppAccountManagerService::DeleteAccount(const std::string &name, int32_t
         funcResult = ret;
         return ERR_OK;
     }
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
     funcResult = innerManager_->DeleteAccount(name, callingUid, bundleName, appIndex);
     return ERR_OK;
 }
@@ -194,6 +227,7 @@ ErrCode AppAccountManagerService::GetAccountExtraInfo(
         funcResult = ret;
         return ERR_OK;
     }
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
     funcResult = innerManager_->GetAccountExtraInfo(name, extraInfo, callingUid, bundleName, appIndex);
     return ERR_OK;
 }
@@ -212,6 +246,7 @@ ErrCode AppAccountManagerService::SetAccountExtraInfo(
         funcResult = ret;
         return ERR_OK;
     }
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
     funcResult = innerManager_->SetAccountExtraInfo(name, extraInfo, callingUid, bundleName, appIndex);
     return ERR_OK;
 }
@@ -237,6 +272,7 @@ ErrCode AppAccountManagerService::EnableAppAccess(
         return ERR_OK;
     }
 
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(appAccountCallingInfo.callingUid);
     funcResult = innerManager_->EnableAppAccess(name, authorizedApp, appAccountCallingInfo);
     return ERR_OK;
 }
@@ -260,6 +296,7 @@ ErrCode AppAccountManagerService::DisableAppAccess(
         funcResult = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
         return ERR_OK;
     }
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(appAccountCallingInfo.callingUid);
     funcResult = innerManager_->DisableAppAccess(name, authorizedApp, appAccountCallingInfo);
     return ERR_OK;
 }
@@ -289,6 +326,7 @@ ErrCode AppAccountManagerService::SetAppAccess(
             return ERR_OK;
         }
     }
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(appAccountCallingInfo.callingUid);
     if (isAccessible) {
         funcResult = innerManager_->EnableAppAccess(
             name, authorizedApp, appAccountCallingInfo, Constants::API_VERSION9);
@@ -318,6 +356,7 @@ ErrCode AppAccountManagerService::CheckAppAccountSyncEnable(
         return ERR_OK;
     }
 
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
     funcResult = innerManager_->CheckAppAccountSyncEnable(name, syncEnable, callingUid, bundleName, appIndex);
     return ERR_OK;
 }
@@ -341,6 +380,7 @@ ErrCode AppAccountManagerService::SetAppAccountSyncEnable(
         return ERR_OK;
     }
 
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
     funcResult = innerManager_->SetAppAccountSyncEnable(name, syncEnable, callingUid, bundleName, appIndex);
     return ERR_OK;
 }
@@ -349,6 +389,7 @@ ErrCode AppAccountManagerService::GetAssociatedData(
     const std::string &name, const std::string &key, std::string &value, int32_t &funcResult)
 {
     int32_t callingUid = IPCSkeleton::GetCallingUid();
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
     funcResult = innerManager_->GetAssociatedData(name, key, value, callingUid);
     return ERR_OK;
 }
@@ -367,6 +408,7 @@ ErrCode AppAccountManagerService::SetAssociatedData(
         funcResult = ret;
         return ERR_OK;
     }
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(appAccountCallingInfo.callingUid);
     funcResult = innerManager_->SetAssociatedData(name, key, value, appAccountCallingInfo);
     return ERR_OK;
 }
@@ -384,6 +426,7 @@ ErrCode AppAccountManagerService::GetAccountCredential(
         funcResult = ret;
         return ERR_OK;
     }
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(appAccountCallingInfo.callingUid);
     funcResult = innerManager_->GetAccountCredential(name, credentialType, credential, appAccountCallingInfo);
     return ERR_OK;
 }
@@ -404,6 +447,7 @@ ErrCode AppAccountManagerService::SetAccountCredential(
         (void)memset_s(credStr->data(), credStr->size(), 0, credStr->size());
         return ERR_OK;
     }
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(appAccountCallingInfo.callingUid);
     funcResult = innerManager_->SetAccountCredential(name, credentialType, credential, appAccountCallingInfo);
     auto credStr = const_cast<std::string *>(&credential);
     (void)memset_s(credStr->data(), credStr->size(), 0, credStr->size());
@@ -433,6 +477,7 @@ ErrCode AppAccountManagerService::Authenticate(const AppAccountStringInfo &appAc
     request.callback = callback;
     request.options.SetParam(Constants::KEY_CALLER_BUNDLE_NAME, request.callerBundleName);
     request.options.SetParam(Constants::KEY_CALLER_UID, request.callerUid);
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(request.callerUid);
     funcResult = innerManager_->Authenticate(request);
     return ERR_OK;
 }
@@ -454,6 +499,7 @@ ErrCode AppAccountManagerService::GetOAuthToken(
     request.name = name;
     request.owner = owner;
     request.authType = authType;
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(request.callerUid);
     funcResult = innerManager_->GetOAuthToken(request, token);
     return ERR_OK;
 }
@@ -474,6 +520,7 @@ ErrCode AppAccountManagerService::GetAuthToken(
     request.name = name;
     request.owner = owner;
     request.authType = authType;
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(request.callerUid);
     funcResult = innerManager_->GetOAuthToken(request, token, Constants::API_VERSION9);
     return ERR_OK;
 }
@@ -496,6 +543,7 @@ ErrCode AppAccountManagerService::SetOAuthToken(
     request.owner = request.callerBundleName;
     request.authType = authType;
     request.token = token;
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(request.callerUid);
     funcResult = innerManager_->SetOAuthToken(request);
     auto tokenStr = const_cast<std::string *>(&token);
     (void)memset_s(tokenStr->data(), tokenStr->size(), 0, tokenStr->size());
@@ -523,6 +571,7 @@ ErrCode AppAccountManagerService::DeleteOAuthToken(
     request.owner = owner;
     request.authType = authType;
     request.token = token;
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(request.callerUid);
     funcResult = innerManager_->DeleteOAuthToken(request);
     auto tokenStr = const_cast<std::string *>(&token);
     (void)memset_s(tokenStr->data(), tokenStr->size(), 0, tokenStr->size());
@@ -549,6 +598,7 @@ ErrCode AppAccountManagerService::DeleteAuthToken(
     request.owner = owner;
     request.authType = authType;
     request.token = token;
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(request.callerUid);
     funcResult = innerManager_->DeleteOAuthToken(request, Constants::API_VERSION9);
     auto tokenStr = const_cast<std::string *>(&token);
     (void)memset_s(tokenStr->data(), tokenStr->size(), 0, tokenStr->size());
@@ -585,6 +635,7 @@ ErrCode AppAccountManagerService::SetOAuthTokenVisibility(
         return ERR_OK;
     }
     request.isTokenVisible = isVisible;
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(request.callerUid);
     funcResult = innerManager_->SetOAuthTokenVisibility(request);
     return ERR_OK;
 }
@@ -615,6 +666,7 @@ ErrCode AppAccountManagerService::SetAuthTokenVisibility(
         }
     }
     request.isTokenVisible = isVisible;
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(request.callerUid);
     funcResult = innerManager_->SetOAuthTokenVisibility(request, Constants::API_VERSION9);
     return ERR_OK;
 }
@@ -634,6 +686,7 @@ ErrCode AppAccountManagerService::CheckOAuthTokenVisibility(
         funcResult = ret;
         return ERR_OK;
     }
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(request.callerUid);
     funcResult = innerManager_->CheckOAuthTokenVisibility(request, isVisible);
     return ERR_OK;
 }
@@ -652,6 +705,7 @@ ErrCode AppAccountManagerService::CheckAuthTokenVisibility(
         funcResult = ret;
         return ERR_OK;
     }
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(request.callerUid);
     funcResult = innerManager_->CheckOAuthTokenVisibility(request, isVisible, Constants::API_VERSION9);
     return ERR_OK;
 }
@@ -669,6 +723,7 @@ ErrCode AppAccountManagerService::GetAuthenticatorInfo(
         return ERR_OK;
     }
     request.owner = owner;
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(request.callerUid);
     funcResult = innerManager_->GetAuthenticatorInfo(request, info);
     return ERR_OK;
 }
@@ -686,6 +741,7 @@ ErrCode AppAccountManagerService::GetAllOAuthTokens(
     }
     request.name = name;
     request.owner = owner;
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(request.callerUid);
     funcResult = innerManager_->GetAllOAuthTokens(request, tokenInfos);
     return ERR_OK;
 }
@@ -704,6 +760,7 @@ ErrCode AppAccountManagerService::GetOAuthList(
     }
     request.name = name;
     request.authType = authType;
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(request.callerUid);
     funcResult = innerManager_->GetOAuthList(request, oauthList);
     return ERR_OK;
 }
@@ -721,6 +778,7 @@ ErrCode AppAccountManagerService::GetAuthList(
     }
     request.name = name;
     request.authType = authType;
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(request.callerUid);
     funcResult = innerManager_->GetOAuthList(request, oauthList, Constants::API_VERSION9);
     return ERR_OK;
 }
@@ -737,6 +795,7 @@ ErrCode AppAccountManagerService::GetAuthenticatorCallback(
         return ERR_OK;
     }
     request.sessionId = sessionId;
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(request.callerUid);
     funcResult = innerManager_->GetAuthenticatorCallback(request, callback);
     return ERR_OK;
 }
@@ -769,7 +828,7 @@ ErrCode AppAccountManagerService::GetAllAccounts(
         funcResult = ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO;
         return ERR_OK;
     }
-
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
     funcResult = innerManager_->GetAllAccounts(owner, appAccounts, callingUid, bundleName, appIndex);
     return ERR_OK;
 }
@@ -791,6 +850,7 @@ ErrCode AppAccountManagerService::GetAllAccessibleAccounts(
         funcResult = ret;
         return ERR_OK;
     }
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
     funcResult = innerManager_->GetAllAccessibleAccounts(appAccounts, callingUid, bundleName, appIndex);
     return ERR_OK;
 }
@@ -819,6 +879,7 @@ ErrCode AppAccountManagerService::QueryAllAccessibleAccounts(
         funcResult = ERR_OK;
         return ERR_OK;
     }
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
     funcResult = innerManager_->GetAllAccounts(owner, appAccounts, callingUid, bundleName, appIndex);
     return ERR_OK;
 }
@@ -841,6 +902,7 @@ ErrCode AppAccountManagerService::CheckAppAccess(
         funcResult = ERR_OK;
         return ERR_OK;
     }
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(appAccountCallingInfo.callingUid);
     funcResult = innerManager_->CheckAppAccess(name, authorizedApp, isAccessible, appAccountCallingInfo);
     return ERR_OK;
 }
@@ -859,6 +921,7 @@ ErrCode AppAccountManagerService::DeleteAccountCredential(
         funcResult = ret;
         return ERR_OK;
     }
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
     funcResult = innerManager_->DeleteAccountCredential(name, credentialType, callingUid, bundleName, appIndex);
     return ERR_OK;
 }
@@ -880,6 +943,7 @@ ErrCode AppAccountManagerService::SelectAccountsByOptions(
         funcResult = ret;
         return ERR_OK;
     }
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
     funcResult = innerManager_->SelectAccountsByOptions(options, callback, callingUid, bundleName, appIndex);
     return ERR_OK;
 }
@@ -903,6 +967,7 @@ ErrCode AppAccountManagerService::VerifyCredential(const std::string &name, cons
     request.owner = owner;
     request.verifyCredOptions = options;
     request.callback = callback;
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(request.callerUid);
     funcResult = innerManager_->VerifyCredential(request);
     return ERR_OK;
 }
@@ -924,6 +989,7 @@ ErrCode AppAccountManagerService::CheckAccountLabels(const std::string &name, co
     request.callback = callback;
     request.name = name;
     request.owner = owner;
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(request.callerUid);
     funcResult = innerManager_->CheckAccountLabels(request);
     return ERR_OK;
 }
@@ -941,6 +1007,7 @@ ErrCode AppAccountManagerService::SetAuthenticatorProperties(const std::string &
     request.owner = owner;
     request.setPropOptions = options;
     request.callback = callback;
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(request.callerUid);
     funcResult = innerManager_->SetAuthenticatorProperties(request);
     return ERR_OK;
 }
@@ -984,6 +1051,7 @@ ErrCode AppAccountManagerService::SubscribeAppAccount(
         return ERR_OK;
     }
     subscribeInfoCopy.SetOwners(existOwners);
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(callingUid);
     funcResult = innerManager_->SubscribeAppAccount(subscribeInfoCopy, eventListener, callingUid, bundleName, appIndex);
     return ERR_OK;
 }
@@ -994,6 +1062,7 @@ ErrCode AppAccountManagerService::UnsubscribeAppAccount(const sptr<IRemoteObject
     RETURN_IF_STRING_IS_OVERSIZE(
         owners, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "owners array is empty or oversize", funcResult);
     std::vector<std::string> ownerList = owners;
+    std::unique_ptr<AppAccountLock> lock = std::make_unique<AppAccountLock>(IPCSkeleton::GetCallingUid());
     funcResult = innerManager_->UnsubscribeAppAccount(eventListener, ownerList);
     return ERR_OK;
 }
