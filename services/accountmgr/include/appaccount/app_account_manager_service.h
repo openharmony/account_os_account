@@ -16,6 +16,7 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_MANAGER_SERVICE_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_MANAGER_SERVICE_H
 
+#include <mutex>
 #ifdef HAS_CES_PART
 #include "app_account_common_event_observer.h"
 #endif // HAS_CES_PART
@@ -24,6 +25,17 @@
 
 namespace OHOS {
 namespace AccountSA {
+class AppAccountLock {
+public:
+    explicit AppAccountLock(int32_t uid);
+    ~AppAccountLock();
+
+private:
+    int32_t uid_;
+    std::shared_ptr<std::mutex> mutexPtr_;
+    std::unique_lock<std::mutex> lock_;
+};
+
 class AppAccountManagerService : public AppAccountStub {
 public:
     AppAccountManagerService();
