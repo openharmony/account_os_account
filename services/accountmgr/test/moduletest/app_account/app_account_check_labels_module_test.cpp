@@ -17,6 +17,8 @@
 
 #include "account_log_wrapper.h"
 #include "app_mgr_constants.h"
+#include "string_wrapper.h"
+#include "want_params_wrapper.h"
 #define protected public
 #define private public
 #include "app_account_authenticator_session.h"
@@ -264,4 +266,289 @@ HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_CallbackExi
     ASSERT_NE(appAccountCheckLabelsCallbackPtr, nullptr);
     EXPECT_EQ(appAccountCheckLabelsCallbackPtr->CallbackExit(static_cast<uint32_t>(
         IAppAccountAuthenticatorCallbackIpcCode::COMMAND_ON_REQUEST_CONTINUED), ERR_NONE), ERR_NONE);
+}
+
+class NativeAppAuthResultTestHelper {
+public:
+    NativeAppAuthResultTestHelper(bool hasAuthResult, std::optional<AppAccountInfo> account)
+        : hasAuthResult(hasAuthResult), account(account)
+    {}
+
+    AAFwk::Want ToWant();
+    bool hasAuthResult = false;
+    std::optional<AppAccountInfo> account = std::nullopt;
+};
+
+AAFwk::Want NativeAppAuthResultTestHelper::ToWant()
+{
+    AAFwk::Want want;
+    AAFwk::WantParams accountParam;
+    if (!hasAuthResult) {
+        return want;
+    }
+    AAFwk::WantParams accountInfo;
+    if (account.has_value()) {
+        accountInfo.SetParam("name", AAFwk::String::Box(account->GetName()));
+        accountInfo.SetParam("owner", AAFwk::String::Box(account->GetOwner()));
+    }
+    accountParam.SetParam("account", AAFwk::WantParamWrapper::Box(accountInfo));
+    want.SetParams(accountParam);
+    return want;
+}
+
+/**
+ * @tc.name: AppAccountAuthenticateTest_NativeAppAuthResult_0100
+ * @tc.desc: test NativeAppAuthResult data conversion.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_NativeAppAuthResult_0100, TestSize.Level3)
+{
+    // empty want
+    AAFwk::Want emptyWant;
+    NativeAppAuthResult nativeAppAuthResultEmpty(emptyWant);
+    ASSERT_EQ(nativeAppAuthResultEmpty.hasAuthResult, false);
+
+    // empty account
+    NativeAppAuthResultTestHelper emptyAccountHelper(true, std::nullopt);
+    auto emptyAccountWantResult = emptyAccountHelper.ToWant();
+    NativeAppAuthResult nativeAppAuthResultNoAccount(emptyAccountWantResult);
+    ASSERT_EQ(nativeAppAuthResultNoAccount.hasAuthResult, true);
+    ASSERT_EQ(nativeAppAuthResultNoAccount.account.has_value(), false);
+
+    // full want with account
+    AppAccountInfo accountInfo(NAME, OWNER);
+    NativeAppAuthResultTestHelper fullAccountHelper(true, accountInfo);
+    auto fullWantResult = fullAccountHelper.ToWant();
+    NativeAppAuthResult nativeAppAuthResultWithAccount(fullWantResult);
+    ASSERT_EQ(nativeAppAuthResultWithAccount.hasAuthResult, true);
+    ASSERT_EQ(nativeAppAuthResultWithAccount.account.has_value(), true);
+    ASSERT_EQ(nativeAppAuthResultWithAccount.account->GetName(), NAME);
+    ASSERT_EQ(nativeAppAuthResultWithAccount.account->GetOwner(), OWNER);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticateTest_OnResultAPI9_0100
+ * @tc.desc: test AppAccountCheckLabelsCallback func OnResultAPI9 success.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_OnResultAPI9_0100, TestSize.Level1)
+{
+    AppAccountInfo info(NAME, OWNER);
+    std::vector<AppAccountInfo> accounts;
+    accounts.emplace_back(info);
+    AuthenticatorSessionRequest request;
+    request.name = NAME;
+    auto cbkPtr = std::make_shared<AppAccountCheckLabelsCallback>(accounts, request, SESSION_ID);
+    // test OnResult with API9
+    AAFwk::Want emptyWant;
+    cbkPtr->isRequesting_ = true;
+    ASSERT_EQ(cbkPtr->OnResult(-1, emptyWant), ERR_OK);
+    cbkPtr->isRequesting_ = true;
+    ASSERT_EQ(cbkPtr->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, emptyWant), ERR_OK);
+    cbkPtr->index_ = 2; // set index_ out of range
+    cbkPtr->isRequesting_ = true;
+    ASSERT_EQ(cbkPtr->OnResult(ERR_OK, emptyWant), ERR_OK);
+    ASSERT_EQ(cbkPtr->accountsWithLabels_.size(), NUMBER_ZERO);
+    cbkPtr->index_ = 0;
+    cbkPtr->isRequesting_ = true;
+    ASSERT_EQ(cbkPtr->OnResult(ERR_OK, emptyWant), ERR_OK);
+    ASSERT_EQ(cbkPtr->accountsWithLabels_.size(), NUMBER_ZERO);
+    // empty account
+    NativeAppAuthResultTestHelper emptyAccountHelper(false, std::nullopt);
+    auto emptyAuthResult = emptyAccountHelper.ToWant();
+    cbkPtr->isRequesting_ = true;
+    ASSERT_EQ(cbkPtr->OnResult(ERR_OK, emptyAuthResult), ERR_OK);
+    ASSERT_EQ(cbkPtr->accountsWithLabels_.size(), NUMBER_ZERO);
+    // full info
+    cbkPtr->index_ = 0;
+    NativeAppAuthResultTestHelper fullAccountHelper(true, info);
+    auto fullWantResult = fullAccountHelper.ToWant();
+    cbkPtr->isRequesting_ = true;
+    ASSERT_EQ(cbkPtr->OnResult(ERR_OK, fullWantResult), ERR_OK);
+    ASSERT_EQ(cbkPtr->accountsWithLabels_.size(), NUMBER_SIZE);
+    cbkPtr->index_ = 0;
+    AppAccountInfo diffAccountInfo("nameA", "ownerA");
+    NativeAppAuthResultTestHelper diffAccountHelper(true, diffAccountInfo);
+    auto diffWantResult = diffAccountHelper.ToWant();
+    cbkPtr->isRequesting_ = true;
+    ASSERT_EQ(cbkPtr->OnResult(ERR_OK, diffWantResult), ERR_OK);
+    ASSERT_EQ(cbkPtr->accountsWithLabels_.size(), NUMBER_SIZE);
+}
+
+class AuthenticatorCallbackTest : public AppAccountAuthenticatorCallbackStub {
+public:
+    AuthenticatorCallbackTest() = default;
+    ~AuthenticatorCallbackTest() override = default;
+
+    ErrCode OnResult(int32_t resultCode, const AAFwk::Want &result) override
+    {
+        isOnresultCalled = true;
+        resultWant = result;
+        errCode = resultCode;
+        return ERR_OK;
+    }
+
+    ErrCode OnRequestRedirected(const AAFwk::Want &request) override
+    {
+        isOnRequestRedirectedCalled = true;
+        resultWant = request;
+        return ERR_OK;
+    }
+
+    ErrCode OnRequestContinued() override
+    {
+        isOnRequestContinuedCalled = true;
+        return ERR_OK;
+    }
+
+    ErrCode CallbackEnter([[maybe_unused]] uint32_t code) override
+    {
+        return ERR_OK;
+    }
+    ErrCode CallbackExit([[maybe_unused]] uint32_t code, [[maybe_unused]] int32_t result) override
+    {
+        return ERR_OK;
+    }
+
+    void Clear()
+    {
+        isOnresultCalled = false;
+        isOnRequestRedirectedCalled = false;
+        isOnRequestContinuedCalled = false;
+        resultWant = AAFwk::Want();
+        errCode = ERR_OK;
+    }
+
+    bool isOnresultCalled = false;
+    bool isOnRequestRedirectedCalled = false;
+    bool isOnRequestContinuedCalled = false;
+    AAFwk::Want resultWant;
+    ErrCode errCode;
+};
+
+/**
+ * @tc.name: AppAccountAuthenticateTest_CheckLabelsCallbackHelper_0100
+ * @tc.desc: test ipc enter&exist
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_CheckLabelsCallbackHelper_0100, TestSize.Level3)
+{
+    auto testCallback = sptr<AuthenticatorCallbackTest>::MakeSptr();
+    auto cbkPtr = std::make_shared<CheckLabelsCallbackHelper>(NAME, OWNER, testCallback);
+    ASSERT_EQ(cbkPtr->CallbackEnter(
+        static_cast<uint32_t>(IAppAccountAuthenticatorCallbackIpcCode::COMMAND_ON_RESULT)), ERR_NONE);
+
+    ASSERT_EQ(cbkPtr->CallbackExit(
+                  static_cast<uint32_t>(IAppAccountAuthenticatorCallbackIpcCode::COMMAND_ON_RESULT), ERR_NONE),
+        ERR_NONE);
+    ASSERT_EQ(
+        cbkPtr->CallbackExit(
+            static_cast<uint32_t>(IAppAccountAuthenticatorCallbackIpcCode::COMMAND_ON_REQUEST_REDIRECTED), ERR_NONE),
+        ERR_NONE);
+    ASSERT_EQ(cbkPtr->CallbackExit(
+                  static_cast<uint32_t>(IAppAccountAuthenticatorCallbackIpcCode::COMMAND_ON_RESULT), ERR_INVALID_DATA),
+        ERR_APPACCOUNT_SERVICE_OAUTH_INVALID_RESPONSE);
+    ASSERT_EQ(cbkPtr->CallbackExit(
+                  static_cast<uint32_t>(IAppAccountAuthenticatorCallbackIpcCode::COMMAND_ON_REQUEST_REDIRECTED),
+                  ERR_INVALID_DATA),
+        ERR_APPACCOUNT_SERVICE_OAUTH_INVALID_RESPONSE);
+    ASSERT_EQ(
+        cbkPtr->CallbackExit(
+            static_cast<uint32_t>(IAppAccountAuthenticatorCallbackIpcCode::COMMAND_ON_REQUEST_CONTINUED), ERR_NONE),
+        ERR_NONE);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticateTest_CheckLabelsCallbackHelper_0200
+ * @tc.desc: test OnRequestRedirected & OnRequestContinued
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_CheckLabelsCallbackHelper_0200, TestSize.Level1)
+{
+    auto testCallback = sptr<AuthenticatorCallbackTest>::MakeSptr();
+    auto cbkPtr = std::make_shared<CheckLabelsCallbackHelper>(NAME, OWNER, testCallback);
+    AAFwk::Want request;
+    request.SetParam(Constants::KEY_BOOLEAN_RESULT, true);
+    ASSERT_EQ(cbkPtr->OnRequestRedirected(request), ERR_OK);
+    ASSERT_EQ(testCallback->isOnRequestRedirectedCalled, true);
+    ASSERT_TRUE(testCallback->resultWant.GetBoolParam(Constants::KEY_BOOLEAN_RESULT, false));
+
+    ASSERT_EQ(cbkPtr->OnRequestContinued(), ERR_OK);
+    ASSERT_EQ(testCallback->isOnRequestContinuedCalled, true);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticateTest_CheckLabelsCallbackHelper_0300
+ * @tc.desc: test OnResult when below api 9
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_CheckLabelsCallbackHelper_0300, TestSize.Level1)
+{
+    auto testCallback = sptr<AuthenticatorCallbackTest>::MakeSptr();
+    auto cbkPtr = std::make_shared<CheckLabelsCallbackHelper>(NAME, OWNER, testCallback);
+    AAFwk::Want result;
+    result.SetParam(Constants::KEY_BOOLEAN_RESULT, false);
+    ASSERT_EQ(cbkPtr->OnResult(-1, result), ERR_OK);
+    ASSERT_EQ(testCallback->isOnresultCalled, true);
+    ASSERT_EQ(testCallback->errCode, -1);
+    ASSERT_EQ(testCallback->resultWant.ToString(), result.ToString());
+}
+
+/**
+ * @tc.name: AppAccountAuthenticateTest_CheckLabelsCallbackHelper_0400
+ * @tc.desc: test OnResult when above api 9
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountCheckLabelsModuleTest, AppAccountAuthenticateTest_CheckLabelsCallbackHelper_0400, TestSize.Level1)
+{
+    auto testCallback = sptr<AuthenticatorCallbackTest>::MakeSptr();
+    auto cbkPtr = std::make_shared<CheckLabelsCallbackHelper>(NAME, OWNER, testCallback);
+    NativeAppAuthResultTestHelper emptyAccountHelper(true, std::nullopt);
+    auto emptyAccountWantResult = emptyAccountHelper.ToWant();
+    ASSERT_EQ(cbkPtr->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, emptyAccountWantResult), ERR_OK);
+    ASSERT_EQ(testCallback->isOnresultCalled, true);
+    ASSERT_EQ(testCallback->errCode, ERR_JS_ACCOUNT_NOT_FOUND);
+    testCallback->Clear();
+    ASSERT_EQ(cbkPtr->OnResult(1, emptyAccountWantResult), ERR_OK);
+    ASSERT_EQ(testCallback->isOnresultCalled, true);
+    ASSERT_EQ(testCallback->errCode, ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION);
+    testCallback->Clear();
+
+    ASSERT_EQ(cbkPtr->OnResult(ERR_OK, emptyAccountWantResult), ERR_OK);
+    ASSERT_EQ(testCallback->isOnresultCalled, true);
+    ASSERT_EQ(testCallback->errCode, ERR_OK);
+    ASSERT_EQ(testCallback->resultWant.GetBoolParam(Constants::KEY_BOOLEAN_RESULT, true), false);
+    testCallback->Clear();
+
+    NativeAppAuthResultTestHelper emptyAuthResultHelper(false, std::nullopt);
+    auto emptyAuthResult = emptyAuthResultHelper.ToWant();
+    ASSERT_EQ(cbkPtr->OnResult(ERR_OK, emptyAuthResult), ERR_OK);
+    ASSERT_EQ(testCallback->isOnresultCalled, true);
+    ASSERT_EQ(testCallback->errCode, ERR_OK);
+    ASSERT_EQ(testCallback->resultWant.GetBoolParam(Constants::KEY_BOOLEAN_RESULT, true), false);
+    testCallback->Clear();
+
+    AppAccountInfo info(NAME, OWNER);
+    NativeAppAuthResultTestHelper fullAccountHelper(true, info);
+    auto fullWantResult = fullAccountHelper.ToWant();
+    ASSERT_EQ(cbkPtr->OnResult(ERR_OK, fullWantResult), ERR_OK);
+    ASSERT_EQ(testCallback->isOnresultCalled, true);
+    ASSERT_EQ(testCallback->errCode, ERR_OK);
+    ASSERT_EQ(testCallback->resultWant.GetBoolParam(Constants::KEY_BOOLEAN_RESULT, false), true);
+    testCallback->Clear();
+
+    AppAccountInfo diffInfo("nameA", "ownerA");
+    NativeAppAuthResultTestHelper diffAccountHelper(true, diffInfo);
+    auto diffWantResult = diffAccountHelper.ToWant();
+    ASSERT_EQ(cbkPtr->OnResult(ERR_OK, diffWantResult), ERR_OK);
+    ASSERT_EQ(testCallback->isOnresultCalled, true);
+    ASSERT_EQ(testCallback->errCode, ERR_OK);
+    ASSERT_EQ(testCallback->resultWant.GetBoolParam(Constants::KEY_BOOLEAN_RESULT, true), false);
+    testCallback->Clear();
 }
