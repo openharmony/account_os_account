@@ -19,6 +19,7 @@
 #include "accesstoken_kit.h"
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
+#include "app_account_check_labels_callback.h"
 #include "bundle_manager_adapter.h"
 #include "account_hisysevent_adapter.h"
 #include "inner_app_account_manager.h"
@@ -921,7 +922,7 @@ ErrCode AppAccountManagerService::CheckAccountLabels(const std::string &name, co
         return ERR_OK;
     }
     request.labels = labels;
-    request.callback = callback;
+    request.callback = sptr<CheckLabelsCallbackHelper>::MakeSptr(name, owner, callback);
     request.name = name;
     request.owner = owner;
     funcResult = innerManager_->CheckAccountLabels(request);
