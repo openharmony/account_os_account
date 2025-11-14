@@ -2032,6 +2032,11 @@ ErrCode OsAccountManagerService::GetForegroundOsAccountLocalId(int32_t &localId)
 
 ErrCode OsAccountManagerService::GetForegroundOsAccountLocalId(const uint64_t displayId, int32_t &localId)
 {
+    ErrCode checkResult = AccountPermissionManager::CheckSystemApp();
+    if (checkResult != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", checkResult);
+        return checkResult;
+    }
     // permission check
     if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("Account manager service, permission denied!");
@@ -2043,6 +2048,11 @@ ErrCode OsAccountManagerService::GetForegroundOsAccountLocalId(const uint64_t di
 
 ErrCode OsAccountManagerService::GetForegroundOsAccountDisplayId(const int32_t localId, uint64_t &displayId)
 {
+    ErrCode checkResult = AccountPermissionManager::CheckSystemApp();
+    if (checkResult != ERR_OK) {
+        ACCOUNT_LOGE("Is not system application, result = %{public}u.", checkResult);
+        return checkResult;
+    }
     // permission check
     if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("Account manager service, permission denied!");
