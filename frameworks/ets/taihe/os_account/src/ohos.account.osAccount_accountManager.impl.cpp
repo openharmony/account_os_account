@@ -584,7 +584,7 @@ public:
 
     int64_t GetForegroundOsAccountDisplayIdSync(int32_t localId)
     {
-        int64_t displayId = -1;
+        uint64_t displayId = -1;
         ErrCode errCode = AccountSA::OsAccountManager::GetForegroundOsAccountDisplayId(localId, displayId);
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("GetForegroundOsAccountDisplayId failed with errCode: %{public}d", errCode);

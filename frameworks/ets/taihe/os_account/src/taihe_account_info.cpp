@@ -63,7 +63,7 @@ void TaiheSubscriberPtr::OnAccountsSwitch(const int &newId, const int &oldId, st
     }
     TaiheOsAccountSwitchEventData data = {oldId, newId};
     if (displayId.has_value()) {
-        data.displayId = optional<int64_t>(std::in_place_t{}, reinterpret_cast<int64_t>(displayId.value()));
+        data.displayId = optional<int64_t>(std::in_place_t{}, static_cast<int64_t>(displayId.value()));
     }
     switch_callback call = *switchRef_;
     call(data);
