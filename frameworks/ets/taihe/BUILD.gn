@@ -99,6 +99,7 @@ taihe_shared_library("app_account_taihe_native") {
     "ability_runtime:napi_common",
     "ability_runtime:runtime",
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "ipc:ipc_napi",
     "ipc:ipc_single",
