@@ -69,6 +69,7 @@
         "constraint.usb.storageDevice.write",
         "constraint.distributed.transmission.outgoing",
         "constraint.recoveryKey",
+        "constraint.preview.openFileBoost",
         "constraint.sudo",
         "constraint.font.set"
     ]
